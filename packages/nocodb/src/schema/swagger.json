@@ -202,20 +202,7 @@
             }
           },
           "400": {
-            "description": "Bad Request",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "object",
-                  "properties": {
-                    "msg": {
-                      "type": "string",
-                      "description": "Error Message"
-                    }
-                  }
-                }
-              }
-            }
+            "$ref": "#/components/responses/BadRequest"
           }
         },
         "tags": ["Auth"],
@@ -267,6 +254,9 @@
                 }
               }
             }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
           }
         },
         "tags": ["Auth"],
@@ -291,8 +281,8 @@
           "200": {
             "description": "OK"
           },
-          "401": {
-            "description": "Unauthorized"
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
           }
         },
         "description": "Emails user with a reset url.",
@@ -346,32 +336,7 @@
             }
           },
           "400": {
-            "description": "Bad request",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "object",
-                  "properties": {
-                    "msg": {
-                      "type": "string",
-                      "description": "Error Message"
-                    }
-                  }
-                },
-                "examples": {
-                  "Missing params": {
-                    "value": {
-                      "msg": "Missing new/old password"
-                    }
-                  },
-                  "Wrong password": {
-                    "value": {
-                      "msg": "Current password is wrong"
-                    }
-                  }
-                }
-              }
-            }
+            "$ref": "#/components/responses/BadRequest"
           }
         },
         "description": "Change password of authenticated user with a new one.",
@@ -404,6 +369,9 @@
         "responses": {
           "200": {
             "description": "OK"
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
           }
         },
         "description": "Validate password reset url token.",
@@ -430,6 +398,9 @@
         "responses": {
           "200": {
             "description": "OK"
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
           }
         },
         "description": "Api for verifying email where token need to be passed which is shared to user email.",
@@ -456,6 +427,9 @@
         "responses": {
           "200": {
             "description": "OK"
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
           }
         },
         "description": "Update user password to new by using reset token.",
@@ -512,6 +486,9 @@
                 "examples": {}
               }
             }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
           }
         },
         "description": "Regenerate user refresh token",
@@ -587,6 +564,9 @@
                 }
               }
             }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
           }
         },
         "description": "List all organisation API tokens.  Access with API tokens will be blocked.",
@@ -599,6 +579,9 @@
         "responses": {
           "200": {
             "description": "OK"
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
           }
         },
         "requestBody": {
@@ -639,6 +622,9 @@
         "responses": {
           "200": {
             "description": "OK"
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
           }
         },
         "tags": ["Org Tokens"],
@@ -672,6 +658,9 @@
                 }
               }
             }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
           }
         },
         "description": "Get the application license key. Exclusive for super admin.",
@@ -734,6 +723,9 @@
                 }
               }
             }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
           }
         },
         "description": "Get the application settings. Exclusive for super admin.",
@@ -746,6 +738,9 @@
         "responses": {
           "200": {
             "description": "OK"
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
           }
         },
         "requestBody": {
@@ -812,6 +807,9 @@
                 }
               }
             }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
           }
         },
         "description": "List all organisation users. Exclusive for Super Admin. Access with API Tokens will be blocked.",
@@ -829,6 +827,9 @@
                 "schema": {}
               }
             }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
           }
         },
         "requestBody": {
@@ -871,6 +872,9 @@
         "responses": {
           "200": {
             "description": "OK"
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
           }
         },
         "tags": ["Org Users"],
@@ -900,6 +904,9 @@
         "responses": {
           "200": {
             "description": "OK"
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
           }
         },
         "tags": ["Org Users"],
@@ -925,6 +932,9 @@
         "responses": {
           "200": {
             "description": "OK"
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
           }
         },
         "tags": ["Org Users"],
@@ -969,6 +979,9 @@
                 "examples": {}
               }
             }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
           }
         },
         "description": "Generate Password Reset Token for Organisation User. Exclusive for Super Admin. Access with API Tokens will be blocked."
@@ -1032,6 +1045,9 @@
                 }
               }
             }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
           }
         },
         "description": "List all users in the given project.",
@@ -1061,6 +1077,9 @@
                 "schema": {}
               }
             }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
           }
         },
         "requestBody": {
@@ -1167,6 +1186,9 @@
                 }
               }
             }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
           }
         },
         "tags": ["Project"],
@@ -1208,6 +1230,9 @@
                 "schema": {}
               }
             }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
           }
         },
         "requestBody": {
@@ -1233,6 +1258,9 @@
                 "schema": {}
               }
             }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
           }
         },
         "tags": ["Auth"],
@@ -1254,6 +1282,9 @@
                 }
               }
             }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
           }
         },
         "description": "Hide / show views based on user role",
@@ -1294,6 +1325,9 @@
                 }
               }
             }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
           }
         },
         "requestBody": {
@@ -1395,6 +1429,9 @@
                 }
               }
             }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
           }
         },
         "requestBody": {
@@ -1528,6 +1565,9 @@
                 }
               }
             }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
           }
         }
       },
@@ -1537,6 +1577,9 @@
         "responses": {
           "200": {
             "description": "OK"
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
           }
         },
         "tags": ["Project"],
@@ -1548,6 +1591,9 @@
         "responses": {
           "200": {
             "description": "OK"
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
           }
         },
         "tags": ["Project"],
@@ -1627,6 +1673,9 @@
                 }
               }
             }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
           }
         }
       },
@@ -1636,6 +1685,9 @@
         "responses": {
           "200": {
             "description": "OK"
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
           }
         },
         "tags": ["Base"],
@@ -1647,6 +1699,9 @@
         "responses": {
           "200": {
             "description": "OK"
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
           }
         },
         "tags": ["Base"],
@@ -1727,6 +1782,9 @@
                 }
               }
             }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
           }
         }
       },
@@ -1743,6 +1801,9 @@
                 }
               }
             }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
           }
         },
         "requestBody": {
@@ -1852,6 +1913,9 @@
                 }
               }
             }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
           }
         }
       },
@@ -1861,6 +1925,9 @@
         "responses": {
           "200": {
             "description": "OK"
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
           }
         },
         "tags": ["Project"],
@@ -1887,6 +1954,9 @@
                 }
               }
             }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
           }
         },
         "tags": ["Project"],
@@ -1937,6 +2007,9 @@
                 }
               }
             }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
           }
         },
         "requestBody": {
@@ -2000,6 +2073,9 @@
                 }
               }
             }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
           }
         },
         "x-internal": true
@@ -2390,6 +2466,9 @@
                 }
               }
             }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
           }
         },
         "requestBody": {
@@ -2410,6 +2489,9 @@
         "responses": {
           "200": {
             "$ref": "#/components/responses/TableList"
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
           }
         },
         "parameters": [
@@ -2838,6 +2920,9 @@
                 }
               }
             }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
           }
         },
         "tags": ["DB Table"],
@@ -2854,6 +2939,9 @@
                 "schema": {}
               }
             }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
           }
         },
         "tags": ["DB Table"],
@@ -2894,6 +2982,9 @@
         "responses": {
           "200": {
             "description": "OK"
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
           }
         },
         "tags": ["DB Table"],
@@ -2930,6 +3021,9 @@
         "responses": {
           "200": {
             "$ref": "#/components/responses/TableList"
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
           }
         },
         "parameters": [
@@ -3343,6 +3437,9 @@
                 }
               }
             }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
           }
         },
         "requestBody": {
@@ -3378,6 +3475,9 @@
         "responses": {
           "200": {
             "description": "OK"
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
           }
         },
         "requestBody": {
@@ -3425,6 +3525,9 @@
         "responses": {
           "200": {
             "description": "OK"
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
           }
         },
         "requestBody": {
@@ -3502,6 +3605,9 @@
                 }
               }
             }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
           }
         },
         "requestBody": {
@@ -3522,6 +3628,9 @@
         "responses": {
           "200": {
             "description": "OK"
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
           }
         },
         "tags": ["DB Table Column"],
@@ -3533,6 +3642,9 @@
         "responses": {
           "200": {
             "description": "OK"
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
           }
         },
         "tags": ["DB Table Column"],
@@ -3556,6 +3668,9 @@
         "responses": {
           "200": {
             "description": "OK"
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
           }
         },
         "tags": ["DB Table Column"],
@@ -3668,6 +3783,9 @@
                 }
               }
             }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
           }
         },
         "tags": ["DB View"],
@@ -3693,6 +3811,9 @@
         "responses": {
           "200": {
             "description": "OK"
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
           }
         },
         "requestBody": {
@@ -3726,6 +3847,9 @@
         "responses": {
           "200": {
             "description": "OK"
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
           }
         },
         "tags": ["DB View"],
@@ -3751,6 +3875,9 @@
         "responses": {
           "200": {
             "description": "OK"
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
           }
         },
         "tags": ["DB View"],
@@ -3785,6 +3912,9 @@
         "responses": {
           "200": {
             "description": "OK"
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
           }
         },
         "tags": ["DB View"],
@@ -3869,6 +3999,9 @@
                 }
               }
             }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
           }
         },
         "description": "List all shared views in a given Table",
@@ -3909,6 +4042,9 @@
                 }
               }
             }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
           }
         },
         "tags": ["DB View Share"],
@@ -3927,6 +4063,9 @@
                 }
               }
             }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
           }
         },
         "requestBody": {
@@ -3948,6 +4087,9 @@
         "responses": {
           "200": {
             "description": "OK"
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
           }
         },
         "description": "Delete a shared view in a given View.",
@@ -4031,6 +4173,9 @@
                 }
               }
             }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
           }
         },
         "tags": ["DB View Column"],
@@ -4042,6 +4187,9 @@
         "responses": {
           "200": {
             "description": "OK"
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
           }
         },
         "tags": ["DB View Column"],
@@ -4095,6 +4243,9 @@
         "responses": {
           "200": {
             "description": "OK"
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
           }
         },
         "tags": ["DB View Column"],
@@ -4168,6 +4319,9 @@
                 }
               }
             }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
           }
         },
         "tags": ["DB Table Sort"],
@@ -4179,6 +4333,9 @@
         "responses": {
           "200": {
             "description": "OK"
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
           }
         },
         "tags": ["DB Table Sort"],
@@ -4247,6 +4404,9 @@
                 }
               }
             }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
           }
         },
         "tags": ["DB Table Sort"],
@@ -4258,6 +4418,9 @@
         "responses": {
           "200": {
             "description": "OK"
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
           }
         },
         "tags": ["DB Table Sort"],
@@ -4286,6 +4449,9 @@
         "responses": {
           "200": {
             "description": "OK"
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
           }
         },
         "tags": ["DB Table Sort"],
@@ -4350,6 +4516,9 @@
                 }
               }
             }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
           }
         },
         "tags": ["DB Table Filter"],
@@ -4389,6 +4558,9 @@
                 }
               }
             }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
           }
         },
         "tags": ["DB Table Filter"],
@@ -4435,6 +4607,9 @@
         "responses": {
           "200": {
             "$ref": "#/components/responses/FilterList"
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
           }
         },
         "tags": ["DB Table Webhook Filter"],
@@ -4446,6 +4621,9 @@
         "responses": {
           "200": {
             "description": "OK"
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
           }
         },
         "tags": ["DB Table Webhook Filter"],
@@ -4520,6 +4698,9 @@
                 }
               }
             }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
           }
         },
         "tags": ["DB Table Filter"],
@@ -4531,6 +4712,9 @@
         "responses": {
           "200": {
             "description": "OK"
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
           }
         },
         "tags": ["DB Table Filter"],
@@ -4551,6 +4735,9 @@
         "responses": {
           "200": {
             "description": "OK"
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
           }
         },
         "tags": ["DB Table Filter"],
@@ -4615,6 +4802,9 @@
                 }
               }
             }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
           }
         },
         "tags": ["DB Table Filter"],
@@ -4648,6 +4838,9 @@
                 }
               }
             }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
           }
         },
         "tags": ["DB View"],
@@ -4700,6 +4893,9 @@
                 }
               }
             }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
           }
         },
         "description": "Create a new form view in a given Table",
@@ -4820,6 +5016,9 @@
                 }
               }
             }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
           }
         },
         "tags": ["DB View"],
@@ -4866,6 +5065,9 @@
                 }
               }
             }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
           }
         },
         "tags": ["DB View"],
@@ -4905,6 +5107,9 @@
                 "schema": {}
               }
             }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
           }
         },
         "tags": ["DB View"],
@@ -5013,6 +5218,9 @@
                 }
               }
             }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
           }
         },
         "tags": ["DB View"],
@@ -5044,6 +5252,9 @@
                 "schema": {}
               }
             }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
           }
         },
         "tags": ["DB View"],
@@ -5095,6 +5306,9 @@
                 }
               }
             }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
           }
         },
         "tags": ["DB View"],
@@ -5128,6 +5342,9 @@
         "responses": {
           "200": {
             "description": "OK"
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
           }
         },
         "tags": ["DB View"],
@@ -5155,6 +5372,9 @@
                 }
               }
             }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
           }
         },
         "tags": ["DB View"],
@@ -5189,6 +5409,9 @@
                 }
               }
             }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
           }
         },
         "tags": ["DB View"],
@@ -5231,6 +5454,9 @@
         "responses": {
           "200": {
             "description": "OK"
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
           }
         },
         "tags": ["DB View"],
@@ -5258,6 +5484,9 @@
                 }
               }
             }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
           }
         },
         "tags": ["DB View"],
@@ -5292,6 +5521,9 @@
                 }
               }
             }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
           }
         },
         "tags": ["DB View"],
@@ -5352,6 +5584,9 @@
         "responses": {
           "200": {
             "description": "OK"
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
           }
         },
         "tags": ["DB View"],
@@ -5379,6 +5614,9 @@
                 }
               }
             }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
           }
         },
         "tags": ["DB View"],
@@ -5410,6 +5648,9 @@
                 "schema": {}
               }
             }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
           }
         },
         "tags": ["Project"],
@@ -5428,6 +5669,9 @@
                 "schema": {}
               }
             }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
           }
         },
         "description": "Get the meta data difference between NC_DB and external data sources "
@@ -5468,6 +5712,9 @@
                 "schema": {}
               }
             }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
           }
         },
         "tags": ["Base"],
@@ -5486,6 +5733,9 @@
                 "schema": {}
               }
             }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
           }
         },
         "description": "Get the meta data difference between NC_DB and external data sources in a given Base"
@@ -5518,6 +5768,9 @@
                 "schema": {}
               }
             }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
           }
         },
         "description": "Check if a project contains empty and null filters. Used in `Show NULL and EMPTY in Filter` in Project Setting.",
@@ -5634,6 +5887,9 @@
                 "schema": {}
               }
             }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
           }
         }
       },
@@ -5648,6 +5904,9 @@
                 "schema": {}
               }
             }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
           }
         },
         "tags": ["DB Table Row"],
@@ -5724,6 +5983,9 @@
                 "schema": {}
               }
             }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
           }
         }
       }
@@ -5900,6 +6162,9 @@
                 "schema": {}
               }
             }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
           }
         }
       }
@@ -5984,6 +6249,9 @@
                 "schema": {}
               }
             }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
           }
         }
       }
@@ -6153,6 +6421,9 @@
                 }
               }
             }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
           }
         }
       },
@@ -6167,6 +6438,9 @@
                 "schema": {}
               }
             }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
           }
         },
         "tags": ["DB View Row"],
@@ -6257,6 +6531,9 @@
                 "schema": {}
               }
             }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
           }
         }
       }
@@ -6349,6 +6626,9 @@
                 "schema": {}
               }
             }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
           }
         }
       }
@@ -6509,6 +6789,9 @@
         "responses": {
           "200": {
             "description": "OK"
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
           }
         },
         "tags": ["DB View Row"],
@@ -6570,6 +6853,9 @@
                 "schema": {}
               }
             }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
           }
         },
         "description": "Check row with provided primary key exists or not",
@@ -6639,6 +6925,9 @@
                 "schema": {}
               }
             }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
           }
         },
         "tags": ["DB Table Row"],
@@ -6662,6 +6951,9 @@
                 "schema": {}
               }
             }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
           }
         },
         "tags": ["DB Table Row"],
@@ -6715,6 +7007,9 @@
                 "schema": {}
               }
             }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
           }
         },
         "description": "check row with provided primary key exists or not",
@@ -6759,6 +7054,9 @@
                 "schema": {}
               }
             }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
           }
         },
         "tags": ["DB Table Row"],
@@ -6782,6 +7080,9 @@
                 "schema": {}
               }
             }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
           }
         },
         "tags": ["DB Table Row"],
@@ -6805,6 +7106,9 @@
                 "schema": {}
               }
             }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
           }
         },
         "tags": ["DB Table Row"],
@@ -6886,6 +7190,9 @@
                 "schema": {}
               }
             }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
           }
         },
         "tags": ["DB Table Row"],
@@ -6965,6 +7272,9 @@
                 "description": "The starting offset of the next set of rows"
               }
             }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
           }
         }
       }
@@ -7027,6 +7337,9 @@
                 "description": "The starting offset of the next set of rows"
               }
             }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
           }
         },
         "parameters": []
@@ -7199,6 +7512,9 @@
                 "schema": {}
               }
             }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
           }
         },
         "tags": ["DB Table Row"],
@@ -7285,6 +7601,9 @@
                 "schema": {}
               }
             }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
           }
         },
         "tags": ["DB Table Row"],
@@ -7355,6 +7674,9 @@
                 "schema": {}
               }
             }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
           }
         },
         "tags": ["DB Table Row"],
@@ -7427,6 +7749,9 @@
                 "schema": {}
               }
             }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
           }
         },
         "tags": ["Public"],
@@ -7578,6 +7903,9 @@
                 }
               }
             }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
           }
         },
         "tags": ["Public"],
@@ -7664,6 +7992,9 @@
                 "schema": {}
               }
             }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
           }
         },
         "requestBody": {
@@ -7738,6 +8069,9 @@
                 "schema": {}
               }
             }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
           }
         },
         "tags": ["Public"],
@@ -7859,6 +8193,9 @@
                 "description": "The starting offset of the next set of rows"
               }
             }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
           }
         },
         "tags": ["Public"]
@@ -7902,6 +8239,9 @@
                 "schema": {}
               }
             }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
           }
         },
         "parameters": [
@@ -8009,6 +8349,9 @@
                 }
               }
             }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
           }
         },
         "tags": ["Public"]
@@ -8106,6 +8449,9 @@
                 "schema": {}
               }
             }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
           }
         },
         "tags": ["Public"],
@@ -8126,6 +8472,9 @@
                 "schema": {}
               }
             }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
           }
         },
         "description": "List all comments",
@@ -8205,6 +8554,9 @@
                 "schema": {}
               }
             }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
           }
         },
         "description": "Return the number of comments in the given query.",
@@ -8267,6 +8619,9 @@
                 }
               }
             }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
           }
         },
         "description": "List all audit data in the given project",
@@ -8309,6 +8664,9 @@
         "responses": {
           "200": {
             "description": "OK"
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
           }
         },
         "tags": ["Utils"],
@@ -8382,6 +8740,9 @@
                 }
               }
             }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
           }
         },
         "description": "List all hook records in the given Table",
@@ -8421,6 +8782,9 @@
                 }
               }
             }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
           }
         },
         "description": "Create a hook in the given table",
@@ -8461,6 +8825,9 @@
                 "schema": {}
               }
             }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
           }
         },
         "tags": ["DB Table Webhook"],
@@ -8531,6 +8898,9 @@
                 }
               }
             }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
           }
         },
         "description": "Get the sample hook payload",
@@ -8564,6 +8934,9 @@
                 }
               }
             }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
           }
         },
         "tags": ["DB Table Webhook"],
@@ -8584,6 +8957,9 @@
         "responses": {
           "200": {
             "description": "OK"
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
           }
         },
         "tags": ["DB Table Webhook"],
@@ -8618,6 +8994,9 @@
                 }
               }
             }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
           }
         },
         "description": "List all plugins",
@@ -8649,6 +9028,9 @@
                 }
               }
             }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
           }
         },
         "description": "Check plugin is active or not",
@@ -8671,10 +9053,7 @@
             }
           },
           "400": {
-            "description": "Bad Request"
-          },
-          "401": {
-            "description": "Unauthorized"
+            "$ref": "#/components/responses/BadRequest"
           }
         },
         "description": "Test if the plugin is working with the given configurations",
@@ -8713,6 +9092,9 @@
                 "schema": {}
               }
             }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
           }
         },
         "tags": ["Plugin"],
@@ -8740,6 +9122,9 @@
                 }
               }
             }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
           }
         },
         "tags": ["Plugin"],
@@ -8769,6 +9154,9 @@
                 }
               }
             }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
           }
         },
         "tags": ["Utils"],
@@ -8803,6 +9191,9 @@
                 "schema": {}
               }
             }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
           }
         },
         "description": "Extract XC URL From JDBC and parse to connection config"
@@ -8821,6 +9212,9 @@
                 "schema": {}
               }
             }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
           }
         },
         "tags": ["Utils"],
@@ -8843,6 +9237,9 @@
                 }
               }
             }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
           }
         },
         "description": "Generic Axios Call",
@@ -8872,6 +9269,9 @@
                 "schema": {}
               }
             }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
           }
         },
         "tags": ["Utils"],
@@ -8891,6 +9291,9 @@
                 "schema": {}
               }
             }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
           }
         },
         "tags": ["Utils"],
@@ -9106,6 +9509,9 @@
                 }
               }
             }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
           }
         },
         "tags": ["Utils"],
@@ -9126,6 +9532,9 @@
         "responses": {
           "200": {
             "description": "OK"
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
           }
         },
         "description": "Delete All K/V pairs in NocoCache",
@@ -9168,6 +9577,9 @@
                 }
               }
             }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
           }
         },
         "operationId": "api-token-list",
@@ -9187,6 +9599,9 @@
                 "schema": {}
               }
             }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
           }
         },
         "requestBody": {
@@ -9230,6 +9645,9 @@
         "responses": {
           "200": {
             "description": "OK"
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
           }
         },
         "tags": ["API Token"],
@@ -9367,6 +9785,9 @@
                 "schema": {}
               }
             }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
           }
         },
         "tags": ["Auth"],
@@ -15727,7 +16148,7 @@
         }
       },
       "BadRequest": {
-        "description": "BadReqeust Example Response",
+        "description": "BadReqeust",
         "content": {
           "application/json": {
             "schema": {

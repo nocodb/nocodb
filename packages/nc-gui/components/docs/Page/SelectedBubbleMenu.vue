@@ -173,7 +173,7 @@ const onToggleLink = () => {
         type="text"
         :class="{ 'is-active': editor.isActive('taskList') }"
         class="menu-button"
-        @click="editor!.chain().focus().toggleListItem('task').run()"
+        @click="editor!.chain().focus().toggleTask().run()"
       >
         <MdiFormatListCheckbox />
       </a-button>

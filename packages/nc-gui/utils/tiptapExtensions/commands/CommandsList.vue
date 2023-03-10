@@ -173,8 +173,7 @@ const items = [
     title: 'Task list',
     class: 'text-xs',
     command: ({ editor, range }: { editor: Editor; range: Range }) => {
-      editor.chain().focus().deleteRange(range).setNode('taskList').run()
-      ;(editor.chain().focus() as any).toggleTaskList().run()
+      editor.chain().focus().deleteRange(range).toggleTask().run()
     },
     icon: MdiTaskList,
     iconClass: '',

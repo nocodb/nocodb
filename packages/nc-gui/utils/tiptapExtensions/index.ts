@@ -11,6 +11,7 @@ import Blockquote from '@tiptap/extension-blockquote'
 import type { Extensions } from '@tiptap/core'
 import { Bullet } from './listItem/bullet'
 import { Ordered } from './listItem/ordered'
+import { Task } from './listItem/task'
 import { HorizontalRule } from './horizontalRule'
 import { Link } from './link'
 import { TableCell } from './table/cell'
@@ -60,6 +61,7 @@ const tiptapExtensions = (): Extensions => {
     }),
     Ordered,
     Bullet,
+    Task,
     // OrderedList.extend({
     //   addKeyboardShortcuts() {
     //     return {

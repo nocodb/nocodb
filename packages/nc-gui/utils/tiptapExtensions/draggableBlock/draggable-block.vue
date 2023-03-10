@@ -12,7 +12,11 @@ const optionsPopoverRef = ref()
 const optionWrapperStyle = computed(() => {
   const { content } = node.content as any
 
-  if (content[0].type.name === 'bullet') {
+  if (content[0].type.name === 'task') {
+    return {
+      marginTop: '0.2rem',
+    }
+  } else if (content[0].type.name === 'bullet') {
     return {
       marginTop: '0.2rem',
       marginRight: '0.8rem',

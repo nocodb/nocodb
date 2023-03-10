@@ -1,32 +1,36 @@
 import { Node, mergeAttributes, wrappingInputRule } from '@tiptap/core'
+import type { Node as ProseMirrorNode } from 'prosemirror-model'
 import { Fragment, Slice } from 'prosemirror-model'
 import { Plugin } from 'prosemirror-state'
 
-export interface OrderItemsOptions {
-  number: string
+export interface TaskOptions {
   HTMLAttributes: Record<string, any>
+  checked: boolean
+  nested: boolean
+  onReadOnlyChecked: (node: ProseMirrorNode, checked: boolean) => boolean
 }
 
 declare module '@tiptap/core' {
   interface Commands<ReturnType> {
-    ordered: {
-      toggleOrdered: () => ReturnType
+    task: {
+      toggleTask: () => ReturnType
     }
   }
 }
 
-const inputRegex = /^\d+\.\s+(.*)$/gm
-const inputPasteRegex = /^\d+\.\s+(.*)$/gm
+const inputPasteRegex = /^\s*(\[([( |x])?\])\s/g
+const inputRegex = /^\s*(\[([( |x])?\])\s/g
 
 let lastTransaction: any = null
 
-export const Ordered = Node.create<OrderItemsOptions>({
-  name: 'ordered',
+export const Task = Node.create<TaskOptions>({
+  name: 'task',
 
   addOptions() {
     return {
-      number: '1',
       HTMLAttributes: {},
+      checked: false,
+      nested: false,
     }
   },
 
@@ -36,54 +40,48 @@ export const Ordered = Node.create<OrderItemsOptions>({
     return 'paragraph'
   },
 
+  addAttributes() {
+    return {
+      checked: {
+        default: null,
+        parseHTML: (element) => element.getAttribute('checked') === 'true',
+      },
+    }
+  },
+
   parseHTML() {
     return [
       {
-        tag: 'div[data-type="ordered"]',
-        attrs: { 'data-type': 'ordered' },
+        tag: 'div[data-type="task"]',
+        attrs: { 'data-type': 'task' },
       },
     ]
-  },
-
-  addAttributes() {
-    return {
-      number: {
-        default: null,
-        parseHTML: (element) => {
-          const value = element.getAttribute('data-number')
-
-          return value || ''
-        },
-      },
-    }
   },
 
   renderHTML({ node, HTMLAttributes }) {
     return [
       'div',
       mergeAttributes(this.options.HTMLAttributes, HTMLAttributes, {
-        'data-type': node.type.name,
-        'data-number': node.attrs.number,
+        'data-type': this.name,
       }),
       [
-        'div',
-        {
-          class: 'tiptap-list-item-start',
-        },
+        'label',
         [
-          'span',
+          'input',
           {
-            'data-number': node.attrs.number,
+            type: 'checkbox',
+            checked: node.attrs.checked ? 'checked' : 'unchecked',
           },
         ],
+        ['span'],
       ],
-      ['div', { class: 'tiptap-list-item-content' }, 0],
+      ['div', 0],
     ]
   },
 
   addCommands() {
     return {
-      toggleOrdered:
+      toggleTask:
         () =>
         ({ chain, state }) => {
           const { selection } = state
@@ -95,21 +93,14 @@ export const Ordered = Node.create<OrderItemsOptions>({
           const slice = state.doc.slice(topDBlockPos, bottomDBlockPos)
           const sliceJson = slice.toJSON()
 
-          let prevOrderedListNodeNumber = 0
-          // Toggle a bullet under `dblock` nodes in slice
+          // Toggle a task under `dblock` nodes in slice
           for (const node of sliceJson.content) {
             if (node.type === 'dBlock') {
               for (const child of node.content) {
                 if (child.type !== this.name) {
                   child.content = [structuredClone(child)]
                   child.type = this.name
-                  child.attrs = {
-                    number: String(prevOrderedListNodeNumber + 1),
-                  }
-                  console.log('child', child)
-                  prevOrderedListNodeNumber = prevOrderedListNodeNumber + 1
                 } else {
-                  prevOrderedListNodeNumber = 0
                   child.type = 'paragraph'
 
                   if (child.content.length === 1) {
@@ -136,17 +127,17 @@ export const Ordered = Node.create<OrderItemsOptions>({
 
   addKeyboardShortcuts() {
     return {
-      'Ctrl-Alt-3': () => {
-        return (this.editor.chain().focus() as any).toggleOrdered().run()
+      'Ctrl-Alt-1': () => {
+        return (this.editor.chain().focus() as any).toggleTask().run()
       },
       'Enter': () => {
         const { selection } = this.editor.state
 
         const parentNode = selection.$from.node(-1)
-        if (parentNode.type.name !== 'ordered') return false
+        if (parentNode.type.name !== 'task') return false
         const currentNode = selection.$from.node()
 
-        // Delete the ordered point if it's empty
+        // Delete the task point if it's empty
         const currentNodeIsEmpty = currentNode.textContent.length === 1
         if (currentNodeIsEmpty) {
           this.editor
@@ -165,12 +156,12 @@ export const Ordered = Node.create<OrderItemsOptions>({
         const from = selection.from
         const currentNodeEndPos = currentNodePosResolve.posAtIndex(1)
 
-        // We check if cursor at the end of the ordered point
-        const isEndOfOrdered = currentNodeEndPos === selection.to
+        // We check if cursor at the end of the task point
+        const isEndOfTask = currentNodeEndPos === selection.to
 
         const sliceToBeMoved = this.editor.state.doc.slice(from, currentNodeEndPos)
 
-        const sliceToBeMovedContent = !isEndOfOrdered
+        const sliceToBeMovedContent = !isEndOfTask
           ? sliceToBeMoved.toJSON().content
           : [
               {
@@ -187,10 +178,7 @@ export const Ordered = Node.create<OrderItemsOptions>({
             type: 'dBlock',
             content: [
               {
-                type: 'ordered',
-                attrs: {
-                  number: String(Number(parentNode.attrs.number) + 1),
-                },
+                type: 'task',
                 content: [
                   {
                     type: 'paragraph',
@@ -203,7 +191,7 @@ export const Ordered = Node.create<OrderItemsOptions>({
           .setTextSelection(currentNodeEndPos + 1)
           .deleteRange({ from, to: currentNodeEndPos })
           .command(({ tr }) => {
-            if (isEndOfOrdered) {
+            if (isEndOfTask) {
               tr.deleteRange(currentNodeEndPos + 1, currentNodeEndPos + 2)
             }
 
@@ -216,18 +204,96 @@ export const Ordered = Node.create<OrderItemsOptions>({
     }
   },
 
+  addNodeView() {
+    return ({ node, HTMLAttributes, getPos, editor }) => {
+      const listItem = document.createElement('div')
+      listItem.setAttribute('data-type', 'task')
+      const checkboxWrapper = document.createElement('label')
+      const checkboxStyler = document.createElement('span')
+      const checkbox = document.createElement('input')
+      const content = document.createElement('div')
+
+      checkboxWrapper.contentEditable = 'false'
+      checkbox.type = 'checkbox'
+      checkbox.addEventListener('change', (event) => {
+        // if the editor isn’t editable and we don't have a handler for
+        // readonly checks we have to undo the latest change
+        if (!editor.isEditable && !this.options.onReadOnlyChecked) {
+          checkbox.checked = !checkbox.checked
+
+          return
+        }
+
+        const { checked } = event.target as any
+
+        if (editor.isEditable && typeof getPos === 'function') {
+          const position = getPos()
+          editor
+            .chain()
+            .focus(undefined, { scrollIntoView: false })
+            .command(({ tr }) => {
+              const currentNode = tr.doc.nodeAt(position)
+
+              tr.setNodeMarkup(position, undefined, {
+                ...currentNode?.attrs,
+                checked,
+              })
+
+              return true
+            })
+            .setTextSelection(position + 1)
+            .run()
+        }
+        if (!editor.isEditable && this.options.onReadOnlyChecked) {
+          // Reset state if onReadOnlyChecked returns false
+          if (!this.options.onReadOnlyChecked(node, checked)) {
+            checkbox.checked = !checkbox.checked
+          }
+        }
+      })
+
+      Object.entries(this.options.HTMLAttributes).forEach(([key, value]) => {
+        listItem.setAttribute(key, value)
+      })
+
+      listItem.dataset.checked = node.attrs.checked
+      if (node.attrs.checked) {
+        checkbox.setAttribute('checked', 'checked')
+      }
+
+      checkboxWrapper.append(checkbox, checkboxStyler)
+      listItem.append(checkboxWrapper, content)
+
+      Object.entries(HTMLAttributes).forEach(([key, value]) => {
+        listItem.setAttribute(key, value)
+      })
+
+      return {
+        dom: listItem,
+        contentDOM: content,
+        update: (updatedNode) => {
+          if (updatedNode.type !== this.type) {
+            return false
+          }
+
+          listItem.dataset.checked = updatedNode.attrs.checked
+          if (updatedNode.attrs.checked) {
+            checkbox.setAttribute('checked', 'checked')
+          } else {
+            checkbox.removeAttribute('checked')
+          }
+
+          return true
+        },
+      }
+    }
+  },
+
   addInputRules() {
     return [
       wrappingInputRule({
         find: inputRegex,
         type: this.type,
-        getAttributes: (match) => {
-          console.log('match', match)
-          const number = match[0].split('.')[0].trim()
-          return {
-            number,
-          }
-        },
       }),
     ]
   },
@@ -239,7 +305,7 @@ export const Ordered = Node.create<OrderItemsOptions>({
           // todo: Hacky way to remove auto inserted line
           // Line is auto inserted when we paste text somewhere in tiptap editor
           // Find a way to avoid this auto insertion
-          if (transaction.getMeta('ordered-paste-remove-auto-inserted-line')) {
+          if (transaction.getMeta('task-paste-remove-auto-inserted-line')) {
             lastTransaction = transaction
             return true
           }
@@ -252,14 +318,16 @@ export const Ordered = Node.create<OrderItemsOptions>({
           if (!transactionContent) return true
 
           transactionContent = transactionContent.replace('\n', ' ')
+          transactionContent = transactionContent
+            .split('-')
+            .map((item, index) => (index === 0 ? item : item.trim()))
+            .join()
 
-          console.log(
-            'transactionContent',
-            transactionContent,
-            lastTransaction.getMeta('ordered-paste-remove-auto-inserted-line'),
-          )
-
-          const lastTransactionContent = lastTransaction.getMeta('ordered-paste-remove-auto-inserted-line')
+          const lastTransactionContent = (lastTransaction.getMeta('task-paste-remove-auto-inserted-line') as string)
+            .replace('\n', ' ')
+            .split('-')
+            .map((item, index) => (index === 0 ? item : item.trim()))
+            .join()
 
           if (lastTransactionContent.trim().includes(transactionContent.trim())) {
             lastTransaction = null
@@ -278,32 +346,30 @@ export const Ordered = Node.create<OrderItemsOptions>({
               const selection = state.selection
               const tr = state.tr
 
-              let count = 0
-              const fragments: Fragment[] = []
+              let found = false
+
               for (const match of matches) {
                 if (!match || !match.input) continue
 
-                count = count + 1
-                const listItem = match[1]
+                const listItems = match.input
+                  .split('\n')
+                  .map((item) => item.split('-')[1].trim())
+                  .reverse()
 
-                fragments.push(
-                  Fragment.from(
-                    state.schema.nodes.ordered.create(
-                      {
-                        number: String(count),
-                      },
-                      [state.schema.nodes.paragraph.create(undefined, [state.schema.text(listItem)])],
-                    ),
-                  ),
-                )
-              }
+                for (const listItem of listItems) {
+                  found = true
+                  const fragment = Fragment.from(
+                    state.schema.nodes.task.create(undefined, [
+                      state.schema.nodes.paragraph.create(undefined, [state.schema.text(listItem)]),
+                    ]),
+                  )
 
-              if (count > 0) {
-                for (const fragment of fragments.reverse()) {
                   tr.insert(selection.from - 1, fragment)
                 }
+              }
 
-                tr.setMeta('ordered-paste-remove-auto-inserted-line', textContent)
+              if (found) {
+                tr.setMeta('task-paste-remove-auto-inserted-line', textContent)
                 view.dispatch(tr)
                 return true
               }

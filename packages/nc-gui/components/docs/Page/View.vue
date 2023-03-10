@@ -518,6 +518,10 @@ watch(
     }
   }
 
+  [data-type='task'] {
+    @apply flex flex-row items-center gap-x-2;
+  }
+
   ul {
     // bullet color black
     list-style: disc;

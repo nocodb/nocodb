@@ -35,7 +35,7 @@ export function useViewSorts(view: Ref<ViewType | undefined>, reloadData?: () =>
   const loadSorts = async () => {
     if (isPublic.value) {
       // todo: sorts missing on `ViewType`
-      const sharedSorts = (sharedView.value as any)?.list || []
+      const sharedSorts = (sharedView.value as any)?.sorts || []
       sorts.value = [...sharedSorts]
       return
     }

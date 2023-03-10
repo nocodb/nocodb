@@ -1331,8 +1331,60 @@
         "summary": "List Projects",
         "operationId": "project-list",
         "responses": {
-          "201": {
-            "$ref": "#/components/responses/ProjectList"
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProjectList"
+                },
+                "examples": {
+                  "Example 1": {
+                    "value": {
+                      "list": [
+                        {
+                          "bases": [
+                            {
+                              "alias": "string",
+                              "config": null,
+                              "created_at": "2023-03-01 14:27:36",
+                              "enabled": true,
+                              "id": "string",
+                              "inflection_column": "camelize",
+                              "inflection_table": "camelize",
+                              "is_meta": true,
+                              "order": 1,
+                              "project_id": "string",
+                              "type": "mysql2",
+                              "updated_at": "2023-03-01 14:27:36"
+                            }
+                          ],
+                          "color": "#24716E",
+                          "created_at": "2023-03-01 14:27:36",
+                          "deleted": true,
+                          "description": "This is my project description",
+                          "id": "p_124hhlkbeasewh",
+                          "is_meta": true,
+                          "meta": {},
+                          "order": 0,
+                          "prefix": "nc_vm5q__",
+                          "status": "string",
+                          "title": "my-project",
+                          "updated_at": "2023-03-01 14:27:36"
+                        }
+                      ],
+                      "pageInfo": {
+                        "isFirstPage": true,
+                        "isLastPage": true,
+                        "page": 1,
+                        "pageSize": 10,
+                        "totalRows": 1
+                      }
+                    }
+                  }
+                }
+              }
+            }
           }
         },
         "description": "List all project meta data",
@@ -9582,7 +9634,8 @@
               "id": "xqwcniocq37hk"
             }
           }
-        }
+        },
+        "required": ["list", "pageInfo"]
       },
       "BaseReq": {
         "description": "Model for Base Request",
@@ -10042,7 +10095,8 @@
               "id": "ko0s0z13h4hsw"
             }
           }
-        }
+        },
+        "required": ["list", "pageInfo"]
       },
       "ColumnReq": {
         "allOf": [
@@ -10401,7 +10455,8 @@
               "id": "7cyrb1770mrzz"
             }
           }
-        }
+        },
+        "required": ["list", "pageInfo"]
       },
       "FilterReq": {
         "description": "Model for Filter Request",
@@ -11678,7 +11733,8 @@
           "pageInfo": {
             "$ref": "#/components/schemas/Paginated"
           }
-        }
+        },
+        "required": ["list", "pageInfo"]
       },
       "HookLog": {
         "description": "Model for Hook Log",
@@ -12983,21 +13039,6 @@
             }
           }
         ],
-        "properties": {
-          "list": {
-            "description": "List of Project Models",
-            "items": {
-              "$ref": "#/components/schemas/Project"
-            },
-            "minItems": 1,
-            "type": "array",
-            "uniqueItems": true
-          },
-          "pageInfo": {
-            "$ref": "#/components/schemas/Paginated",
-            "description": "Pagination Info"
-          }
-        },
         "title": "Project List Model",
         "type": "object",
         "x-examples": {
@@ -13028,7 +13069,23 @@
               }
             }
           }
-        }
+        },
+        "properties": {
+          "list": {
+            "description": "List of Project Models",
+            "minItems": 1,
+            "type": "array",
+            "uniqueItems": true,
+            "items": {
+              "$ref": "#/components/schemas/Project"
+            }
+          },
+          "pageInfo": {
+            "$ref": "#/components/schemas/Paginated",
+            "description": "Pagination Info"
+          }
+        },
+        "required": ["list", "pageInfo"]
       },
       "ProjectReq": {
         "description": "Model for Project Request",
@@ -13375,19 +13432,6 @@
             }
           }
         ],
-        "properties": {
-          "list": {
-            "items": {
-              "$ref": "#/components/schemas/SharedView"
-            },
-            "minItems": 1,
-            "type": "array",
-            "uniqueItems": true
-          },
-          "pageInfo": {
-            "$ref": "#/components/schemas/Paginated"
-          }
-        },
         "title": "Shared View List Model",
         "type": "object",
         "x-examples": {
@@ -13418,7 +13462,21 @@
               }
             }
           }
-        }
+        },
+        "properties": {
+          "list": {
+            "minItems": 1,
+            "type": "array",
+            "uniqueItems": true,
+            "items": {
+              "$ref": "#/components/schemas/SharedView"
+            }
+          },
+          "pageInfo": {
+            "$ref": "#/components/schemas/Paginated"
+          }
+        },
+        "required": ["list", "pageInfo"]
       },
       "SharedViewReq": {
         "description": "Model for Shared View Request",
@@ -13644,7 +13702,8 @@
               "id": "i75wcejfp5mnq"
             }
           }
-        }
+        },
+        "required": ["list", "pageInfo"]
       },
       "SortReq": {
         "description": "Model for Sort Request",
@@ -14231,7 +14290,8 @@
           "pageInfo": {
             "$ref": "#/components/schemas/Paginated"
           }
-        }
+        },
+        "required": ["list", "pageInfo"]
       },
       "TableReq": {
         "description": "Model for Table Request",
@@ -14534,7 +14594,8 @@
               "id": "0d98n6sfxfvft"
             }
           }
-        }
+        },
+        "required": ["list", "pageInfo"]
       },
       "View": {
         "description": "Model for View",
@@ -14726,17 +14787,6 @@
             }
           }
         ],
-        "properties": {
-          "list": {
-            "items": {
-              "$ref": "#/components/schemas/View"
-            },
-            "type": "array"
-          },
-          "pageInfo": {
-            "$ref": "#/components/schemas/Paginated"
-          }
-        },
         "title": "View List Model",
         "type": "object",
         "x-examples": {
@@ -14767,7 +14817,19 @@
               }
             }
           }
-        }
+        },
+        "properties": {
+          "list": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/View"
+            }
+          },
+          "pageInfo": {
+            "$ref": "#/components/schemas/Paginated"
+          }
+        },
+        "required": ["list", "pageInfo"]
       },
       "ViewReq": {
         "description": "Model for View Request",

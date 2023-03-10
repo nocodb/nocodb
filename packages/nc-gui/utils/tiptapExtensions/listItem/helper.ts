@@ -11,7 +11,7 @@ export const addPastedContentToTransaction = (transaction: Transaction, state: E
   }
 }
 
-export const getTextAsParagraphFromSliceJson = (sliceJson: any) => {
+export const getTextFromSliceJson = (sliceJson: any) => {
   // recursively get text from slice json
   const getText = (sliceJson: any, text: string) => {
     if (sliceJson.text) {
@@ -27,14 +27,25 @@ export const getTextAsParagraphFromSliceJson = (sliceJson: any) => {
     return text
   }
 
-  const text = getText(sliceJson, '')
+  return getText(sliceJson, '')
+}
+
+export const getTextAsParagraphFromSliceJson = (sliceJson: any) => {
+  const text = getTextFromSliceJson(sliceJson)
+
+  if (text.length === 0) {
+    return {
+      type: 'paragraph',
+      content: [],
+    }
+  }
 
   return {
     type: 'paragraph',
     content: [
       {
         type: 'text',
-        text,
+        text: getTextFromSliceJson(sliceJson),
       },
     ],
   }

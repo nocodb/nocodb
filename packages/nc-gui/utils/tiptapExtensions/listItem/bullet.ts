@@ -1,4 +1,4 @@
-import { Node, mergeAttributes, wrappingInputRule } from '@tiptap/core'
+import { Node, mergeAttributes, nodePasteRule, wrappingInputRule } from '@tiptap/core'
 import { Fragment, Slice } from 'prosemirror-model'
 import { Plugin } from 'prosemirror-state'
 import { addPastedContentToTransaction, getTextAsParagraphFromSliceJson } from './helper'
@@ -17,8 +17,6 @@ declare module '@tiptap/core' {
 
 const inputPasteRegex = /^\s*([-+*])\s/g
 const inputRegex = /^\s*([-+*])\s$/g
-
-let lastTransaction: any = null
 
 export const Bullet = Node.create<ListOptions>({
   name: 'bullet',
@@ -184,95 +182,6 @@ export const Bullet = Node.create<ListOptions>({
       wrappingInputRule({
         find: inputRegex,
         type: this.type,
-      }),
-    ]
-  },
-
-  addProseMirrorPlugins() {
-    return [
-      new Plugin({
-        filterTransaction: (transaction) => {
-          // todo: Hacky way to remove auto inserted line
-          // Line is auto inserted when we paste text somewhere in tiptap editor
-          // Find a way to avoid this auto insertion
-          if (transaction.getMeta('bullet-paste-remove-auto-inserted-line')) {
-            lastTransaction = transaction
-            return true
-          }
-
-          if (!lastTransaction) return true
-
-          if (transaction.steps.length !== 1) return true
-
-          let transactionContent: string | undefined = transaction.steps[0].slice?.content?.toJSON()?.[0].text
-          if (!transactionContent) return true
-
-          transactionContent = transactionContent.replace('\n', ' ')
-          transactionContent = transactionContent
-            .split('-')
-            .map((item, index) => (index === 0 ? item : item.trim()))
-            .join()
-
-          const lastTransactionContent = (lastTransaction.getMeta('bullet-paste-remove-auto-inserted-line') as string)
-            .replace('\n', ' ')
-            .split('-')
-            .map((item, index) => (index === 0 ? item : item.trim()))
-            .join()
-
-          if (lastTransactionContent.trim().includes(transactionContent.trim())) {
-            lastTransaction = null
-            return false
-          }
-
-          return true
-        },
-        props: {
-          handleDOMEvents: {
-            paste: (view, event) => {
-              // const htmlContent = event.clipboardData.getData('text/html')
-              const textContent = event.clipboardData?.getData('text/plain')
-              if (!textContent) return false
-
-              const matches = textContent.matchAll(inputPasteRegex)
-              const state = view.state
-              const tr = state.tr
-
-              let found = false
-
-              const fragments = []
-              for (const match of matches) {
-                if (!match || !match.input) continue
-
-                const listItems = match.input
-                  .split('\n')
-                  .map((item) => item.split('-')[1].trim())
-                  .reverse()
-
-                for (const listItem of listItems) {
-                  found = true
-                  const fragment = Fragment.from(
-                    state.schema.nodes.bullet.create(undefined, [
-                      state.schema.nodes.paragraph.create(undefined, [state.schema.text(listItem)]),
-                    ]),
-                  )
-
-                  fragments.push(fragment)
-                }
-              }
-
-              if (found) {
-                addPastedContentToTransaction(tr, state, fragments.reverse())
-
-                tr.setMeta('bullet-paste-remove-auto-inserted-line', textContent)
-
-                view.dispatch(tr)
-                return true
-              }
-
-              return false
-            },
-          },
-        },
       }),
     ]
   },

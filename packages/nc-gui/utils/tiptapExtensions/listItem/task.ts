@@ -1,4 +1,4 @@
-import { Node, mergeAttributes, wrappingInputRule } from '@tiptap/core'
+import { Node, mergeAttributes, nodePasteRule, wrappingInputRule } from '@tiptap/core'
 import type { Node as ProseMirrorNode } from 'prosemirror-model'
 import { Fragment, Slice } from 'prosemirror-model'
 import { Plugin } from 'prosemirror-state'
@@ -21,8 +21,6 @@ declare module '@tiptap/core' {
 
 const inputPasteRegex = /^-?\s*\[[ x]\]\s+(.*)?\n?$/gm
 const inputRegex = /^-?\s*\[[ x]\]\s+(.*)?\n?$/gm
-
-let lastTransaction: any = null
 
 export const Task = Node.create<TaskOptions>({
   name: 'task',
@@ -339,89 +337,6 @@ export const Task = Node.create<TaskOptions>({
       wrappingInputRule({
         find: inputRegex,
         type: this.type,
-      }),
-    ]
-  },
-
-  addProseMirrorPlugins() {
-    return [
-      new Plugin({
-        filterTransaction: (transaction) => {
-          // todo: Hacky way to remove auto inserted line
-          // Line is auto inserted when we paste text somewhere in tiptap editor
-          // Find a way to avoid this auto insertion
-          if (transaction.getMeta('task-paste-remove-auto-inserted-line')) {
-            lastTransaction = transaction
-            return true
-          }
-
-          if (!lastTransaction) return true
-
-          if (transaction.steps.length !== 1) return true
-
-          let transactionContent: string | undefined = transaction.steps[0].slice?.content?.toJSON()?.[0].text
-          if (!transactionContent) return true
-
-          transactionContent = transactionContent.replace('\n', ' ').replace(/\s/g, '').trim() as string
-
-          const lastTransactionContent = lastTransaction
-            .getMeta('task-paste-remove-auto-inserted-line')
-            .replace('\n', ' ')
-            // replace white space with empty string
-            .replace(/\s/g, '')
-            .trim() as string
-
-          if (lastTransactionContent.includes(transactionContent)) {
-            lastTransaction = null
-            return false
-          }
-
-          return true
-        },
-        props: {
-          handleDOMEvents: {
-            paste: (view, event) => {
-              // const htmlContent = event.clipboardData.getData('text/html')
-              const textContent = event.clipboardData?.getData('text/plain')
-              if (!textContent) return false
-
-              const matches = textContent.matchAll(inputPasteRegex)
-              const state = view.state
-              const tr = state.tr
-
-              let count = 0
-              const fragments: Fragment[] = []
-              for (const match of matches) {
-                if (!match || !match.input) continue
-                count += 1
-
-                const isChecked = match[0].replace(match[1], '').trim().toLowerCase().includes('[x]')
-                const listItem = match[1]
-
-                fragments.push(
-                  Fragment.from(
-                    state.schema.nodes.task.create(
-                      {
-                        checked: isChecked,
-                      },
-                      [state.schema.nodes.paragraph.create(undefined, [state.schema.text(listItem)])],
-                    ),
-                  ),
-                )
-              }
-
-              if (count > 0) {
-                addPastedContentToTransaction(tr, state, fragments.reverse())
-
-                tr.setMeta('task-paste-remove-auto-inserted-line', textContent)
-                view.dispatch(tr)
-                return true
-              }
-
-              return false
-            },
-          },
-        },
       }),
     ]
   },

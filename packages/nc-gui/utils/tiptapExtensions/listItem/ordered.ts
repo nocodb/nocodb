@@ -1,7 +1,7 @@
-import { Node, mergeAttributes, wrappingInputRule } from '@tiptap/core'
+import { Node, mergeAttributes, nodePasteRule, wrappingInputRule } from '@tiptap/core'
 import { Fragment, Slice } from 'prosemirror-model'
 import { Plugin } from 'prosemirror-state'
-import { addPastedContentToTransaction, getTextAsParagraphFromSliceJson } from './helper'
+import { addPastedContentToTransaction, getTextAsParagraphFromSliceJson, getTextFromSliceJson } from './helper'
 
 export interface OrderItemsOptions {
   number: string
@@ -18,8 +18,6 @@ declare module '@tiptap/core' {
 
 const inputRegex = /^\d+\.\s+(.*)$/gm
 const inputPasteRegex = /^\d+\.\s+(.*)$/gm
-
-let lastTransaction: any = null
 
 export const Ordered = Node.create<OrderItemsOptions>({
   name: 'ordered',
@@ -101,13 +99,13 @@ export const Ordered = Node.create<OrderItemsOptions>({
           for (const node of sliceJson.content) {
             if (node.type === 'dBlock') {
               for (const child of node.content) {
-                if (child.type !== this.name) {
+                if (child.type !== this.name && getTextFromSliceJson(child).length > 0) {
                   child.content = [getTextAsParagraphFromSliceJson(child)]
                   child.type = this.name
                   child.attrs = {
                     number: String(prevOrderedListNodeNumber + 1),
                   }
-                  console.log('child', child)
+
                   prevOrderedListNodeNumber = prevOrderedListNodeNumber + 1
                 } else {
                   prevOrderedListNodeNumber = 0
@@ -233,79 +231,11 @@ export const Ordered = Node.create<OrderItemsOptions>({
     ]
   },
 
-  addProseMirrorPlugins() {
+  addPasteRules() {
     return [
-      new Plugin({
-        filterTransaction: (transaction) => {
-          // todo: Hacky way to remove auto inserted line
-          // Line is auto inserted when we paste text somewhere in tiptap editor
-          // Find a way to avoid this auto insertion
-          if (transaction.getMeta('ordered-paste-remove-auto-inserted-line')) {
-            lastTransaction = transaction
-            return true
-          }
-
-          if (!lastTransaction) return true
-
-          if (transaction.steps.length !== 1) return true
-
-          let transactionContent: string | undefined = transaction.steps[0].slice?.content?.toJSON()?.[0].text
-          if (!transactionContent) return true
-
-          transactionContent = transactionContent.replace('\n', ' ')
-
-          const lastTransactionContent = lastTransaction.getMeta('ordered-paste-remove-auto-inserted-line')
-
-          if (lastTransactionContent.trim().includes(transactionContent.trim())) {
-            lastTransaction = null
-            return false
-          }
-
-          return true
-        },
-        props: {
-          handleDOMEvents: {
-            paste: (view, event) => {
-              // const htmlContent = event.clipboardData.getData('text/html')
-              const textContent = event.clipboardData?.getData('text/plain')
-              if (!textContent) return false
-
-              const matches = textContent.matchAll(inputPasteRegex)
-              const state = view.state
-              const tr = state.tr
-
-              let count = 0
-              const fragments: Fragment[] = []
-              for (const match of matches) {
-                if (!match || !match.input) continue
-
-                count = count + 1
-                const listItem = match[1]
-
-                fragments.push(
-                  Fragment.from(
-                    state.schema.nodes.ordered.create(
-                      {
-                        number: String(count),
-                      },
-                      [state.schema.nodes.paragraph.create(undefined, [state.schema.text(listItem)])],
-                    ),
-                  ),
-                )
-              }
-
-              if (count > 0) {
-                addPastedContentToTransaction(tr, state, fragments.reverse())
-
-                tr.setMeta('ordered-paste-remove-auto-inserted-line', textContent)
-                view.dispatch(tr)
-                return true
-              }
-
-              return false
-            },
-          },
-        },
+      nodePasteRule({
+        find: inputRegex,
+        type: this.type,
       }),
     ]
   },

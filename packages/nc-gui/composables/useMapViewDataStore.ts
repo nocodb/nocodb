@@ -33,7 +33,7 @@ const [useProvideMapViewStore, useMapViewStore] = useInjectionState(
 
     const formattedData = ref<Row[]>([])
 
-    const { api } = useApi()
+    // const { api } = useApi()
 
     const { project } = useProject()
 
@@ -61,42 +61,43 @@ const [useProvideMapViewStore, useMapViewStore] = useInjectionState(
     }))
 
     async function syncCount() {
-      const { count } = await $api.dbViewRow.count(
-        NOCO,
-        project?.value?.title as string,
-        meta?.value?.id as string,
-        viewMeta?.value?.id as string,
-      )
-      paginationData.value.totalRows = count
+      // const { count } = await $api.dbViewRow.count(
+      //   NOCO,
+      //   project?.value?.title as string,
+      //   meta?.value?.id as string,
+      //   viewMeta?.value?.id as string,
+      // )
+      // paginationData.value.totalRows = count
     }
 
     async function loadMapMeta() {
-      if (!viewMeta?.value?.id || !meta?.value?.columns) return
-      mapMetaData.value = await $api.dbView.mapRead(viewMeta.value.id)
-      geoDataFieldColumn.value =
-        (meta.value.columns as ColumnType[]).filter((f) => f.id === mapMetaData.value.fk_geo_data_col_id)[0] || {}
+      alert('loadMapData')
+      // if (!viewMeta?.value?.id || !meta?.value?.columns) return
+      // mapMetaData.value = await $api.dbView.mapRead(viewMeta.value.id)
+      // geoDataFieldColumn.value =
+      //   (meta.value.columns as ColumnType[]).filter((f) => f.id === mapMetaData.value.fk_geo_data_col_id)[0] || {}
     }
 
     async function loadMapData() {
-      if ((!project?.value?.id || !meta.value?.id || !viewMeta.value?.id) && !isPublic?.value) return
+      // if ((!project?.value?.id || !meta.value?.id || !viewMeta.value?.id) && !isPublic?.value) return
 
-      const res = !isPublic.value
-        ? await api.dbViewRow.list('noco', project.value.id!, meta.value!.id!, viewMeta.value!.id!, {
-            ...queryParams.value,
-            ...(isUIAllowed('filterSync') ? {} : { filterArrJson: JSON.stringify(nestedFilters.value) }),
-            where: where?.value,
-          })
-        : await fetchSharedViewData({ sortsArr: sorts.value, filtersArr: nestedFilters.value })
+      // const res = !isPublic.value
+      //   ? await api.dbViewRow.list('noco', project.value.id!, meta.value!.id!, viewMeta.value!.id!, {
+      //       ...queryParams.value,
+      //       ...(isUIAllowed('filterSync') ? {} : { filterArrJson: JSON.stringify(nestedFilters.value) }),
+      //       where: where?.value,
+      //     })
+      //   : await fetchSharedViewData({ sortsArr: sorts.value, filtersArr: nestedFilters.value })
 
-      formattedData.value = formatData(res.list)
+      // formattedData.value = formatData(res.list)
     }
 
     async function updateMapMeta(updateObj: Partial<MapType>) {
-      if (!viewMeta?.value?.id || !isUIAllowed('xcDatatableEditable')) return
-      await $api.dbView.mapUpdate(viewMeta.value.id, {
-        ...mapMetaData.value,
-        ...updateObj,
-      })
+      // if (!viewMeta?.value?.id || !isUIAllowed('xcDatatableEditable')) return
+      // await $api.dbView.mapUpdate(viewMeta.value.id, {
+      //   ...mapMetaData.value,
+      //   ...updateObj,
+      // })
     }
 
     const { getMeta } = useMetas()

@@ -4031,7 +4031,7 @@
           }
         },
         "tags": ["DB View Column"],
-        "description": "List all columns by ViewID",
+        "description": "List all columns by ViewID"
       },
       "post": {
         "summary": "Create Column in View",

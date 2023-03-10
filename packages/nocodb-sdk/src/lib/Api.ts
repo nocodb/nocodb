@@ -5504,7 +5504,7 @@ export class Api<
      * @name List
      * @summary List Table View Rows
      * @request GET:/api/v1/db/data/{orgs}/{projectName}/{tableName}/views/{viewName}
-     * @response `200` `any` OK
+     * @response `200` `ViewListType` OK
      */
     list: (
       orgs: string,
@@ -5521,7 +5521,7 @@ export class Api<
       },
       params: RequestParams = {}
     ) =>
-      this.request<any, any>({
+      this.request<ViewListType, any>({
         path: `/api/v1/db/data/${orgs}/${projectName}/${tableName}/views/${viewName}`,
         method: 'GET',
         query: query,
@@ -5823,7 +5823,7 @@ export class Api<
      * @name DataList
      * @summary List Shared View Rows
      * @request GET:/api/v1/db/public/shared-view/{sharedViewUuid}/rows
-     * @response `200` `any` OK
+     * @response `200` `SharedViewListType` OK
      */
     dataList: (
       sharedViewUuid: string,
@@ -5851,7 +5851,7 @@ export class Api<
       },
       params: RequestParams = {}
     ) =>
-      this.request<any, any>({
+      this.request<SharedViewListType, any>({
         path: `/api/v1/db/public/shared-view/${sharedViewUuid}/rows`,
         method: 'GET',
         query: query,
@@ -6451,28 +6451,16 @@ export class Api<
   };
   dbTableWebhook = {
     /**
- * @description List all hook records in the given Table
- * 
- * @tags DB Table Webhook
- * @name List
- * @summary List Table Hooks
- * @request GET:/api/v1/db/meta/tables/{tableId}/hooks
- * @response `200` `{
-  list: (HookType)[],
-  \** Model for Paginated *\
-  pageInfo: PaginatedType,
-
-}` OK
- */
+     * @description List all hook records in the given Table
+     *
+     * @tags DB Table Webhook
+     * @name List
+     * @summary List Table Hooks
+     * @request GET:/api/v1/db/meta/tables/{tableId}/hooks
+     * @response `200` `HookListType` OK
+     */
     list: (tableId: IdType, params: RequestParams = {}) =>
-      this.request<
-        {
-          list: HookType[];
-          /** Model for Paginated */
-          pageInfo: PaginatedType;
-        },
-        any
-      >({
+      this.request<HookListType, any>({
         path: `/api/v1/db/meta/tables/${tableId}/hooks`,
         method: 'GET',
         format: 'json',

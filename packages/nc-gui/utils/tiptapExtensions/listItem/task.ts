@@ -2,7 +2,7 @@ import { Node, mergeAttributes, wrappingInputRule } from '@tiptap/core'
 import type { Node as ProseMirrorNode } from 'prosemirror-model'
 import { Fragment, Slice } from 'prosemirror-model'
 import { Plugin } from 'prosemirror-state'
-import { addPastedContentToTransaction } from './helper'
+import { addPastedContentToTransaction, getTextAsParagraphFromSliceJson } from './helper'
 
 export interface TaskOptions {
   HTMLAttributes: Record<string, any>
@@ -101,7 +101,7 @@ export const Task = Node.create<TaskOptions>({
             if (node.type === 'dBlock') {
               for (const child of node.content) {
                 if (child.type !== this.name) {
-                  child.content = [structuredClone(child)]
+                  child.content = [getTextAsParagraphFromSliceJson(child)]
                   child.type = this.name
                 } else {
                   child.type = 'paragraph'

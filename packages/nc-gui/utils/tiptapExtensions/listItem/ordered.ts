@@ -1,7 +1,7 @@
 import { Node, mergeAttributes, wrappingInputRule } from '@tiptap/core'
 import { Fragment, Slice } from 'prosemirror-model'
 import { Plugin } from 'prosemirror-state'
-import { addPastedContentToTransaction } from './helper'
+import { addPastedContentToTransaction, getTextAsParagraphFromSliceJson } from './helper'
 
 export interface OrderItemsOptions {
   number: string
@@ -102,7 +102,7 @@ export const Ordered = Node.create<OrderItemsOptions>({
             if (node.type === 'dBlock') {
               for (const child of node.content) {
                 if (child.type !== this.name) {
-                  child.content = [structuredClone(child)]
+                  child.content = [getTextAsParagraphFromSliceJson(child)]
                   child.type = this.name
                   child.attrs = {
                     number: String(prevOrderedListNodeNumber + 1),

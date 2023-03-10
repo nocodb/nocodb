@@ -1,7 +1,7 @@
 import { Node, mergeAttributes, wrappingInputRule } from '@tiptap/core'
 import { Fragment, Slice } from 'prosemirror-model'
 import { Plugin } from 'prosemirror-state'
-import { addPastedContentToTransaction } from './helper'
+import { addPastedContentToTransaction, getTextAsParagraphFromSliceJson } from './helper'
 
 export interface ListOptions {
   HTMLAttributes: Record<string, any>
@@ -73,7 +73,7 @@ export const Bullet = Node.create<ListOptions>({
             if (node.type === 'dBlock') {
               for (const child of node.content) {
                 if (child.type !== this.name) {
-                  child.content = [structuredClone(child)]
+                  child.content = [getTextAsParagraphFromSliceJson(child)]
                   child.type = this.name
                 } else {
                   child.type = 'paragraph'

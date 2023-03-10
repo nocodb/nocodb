@@ -59,9 +59,9 @@ const tiptapExtensions = (): Extensions => {
         return 'Press / to open the command menu or start writing'
       },
     }),
+    Task,
     Ordered,
     Bullet,
-    Task,
     // OrderedList.extend({
     //   addKeyboardShortcuts() {
     //     return {

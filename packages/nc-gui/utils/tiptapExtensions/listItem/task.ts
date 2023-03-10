@@ -18,13 +18,15 @@ declare module '@tiptap/core' {
   }
 }
 
-const inputPasteRegex = /^\s*(\[([( |x])?\])\s/g
-const inputRegex = /^\s*(\[([( |x])?\])\s/g
+const inputPasteRegex = /^-?\s*\[[ x]\]\s+(.*)?\n?$/gm
+const inputRegex = /^-?\s*\[[ x]\]\s+(.*)?\n?$/gm
 
 let lastTransaction: any = null
 
 export const Task = Node.create<TaskOptions>({
   name: 'task',
+
+  priority: 1000,
 
   addOptions() {
     return {
@@ -122,6 +124,48 @@ export const Task = Node.create<TaskOptions>({
             })
             .setTextSelection(topDBlockPos + newSlice.size - 1)
         },
+    }
+  },
+
+  onUpdate() {
+    const selection = this.editor.state.selection
+
+    const parentNode = selection.$from.node(-1)
+    if (parentNode.type.name !== 'bullet') return false
+
+    const parentNodePos = selection.$from.before(2)
+    const currentNode = selection.$from.node()
+
+    const currentNodeText = currentNode.textContent.trimStart().toLowerCase()
+
+    if (currentNodeText.startsWith('[ ]') || currentNodeText.startsWith('[x]')) {
+      const isChecked = currentNodeText.startsWith('[x]')
+
+      this.editor
+        .chain()
+        .focus()
+        .setNodeSelection(parentNodePos)
+        .deleteSelection()
+        .insertContentAt(parentNodePos, {
+          type: 'task',
+          content: [
+            {
+              type: 'paragraph',
+              attrs: {
+                checked: isChecked,
+              },
+              content: [
+                {
+                  type: 'text',
+                  text: ' ',
+                },
+              ],
+            },
+          ],
+        })
+        .setTextSelection({ from: parentNodePos + 1, to: parentNodePos + 2 })
+        .deleteSelection()
+        .run()
     }
   },
 
@@ -317,19 +361,16 @@ export const Task = Node.create<TaskOptions>({
           let transactionContent: string | undefined = transaction.steps[0].slice?.content?.toJSON()?.[0].text
           if (!transactionContent) return true
 
-          transactionContent = transactionContent.replace('\n', ' ')
-          transactionContent = transactionContent
-            .split('-')
-            .map((item, index) => (index === 0 ? item : item.trim()))
-            .join()
+          transactionContent = transactionContent.replace('\n', ' ').replace(/\s/g, '').trim() as string
 
-          const lastTransactionContent = (lastTransaction.getMeta('task-paste-remove-auto-inserted-line') as string)
+          const lastTransactionContent = lastTransaction
+            .getMeta('task-paste-remove-auto-inserted-line')
             .replace('\n', ' ')
-            .split('-')
-            .map((item, index) => (index === 0 ? item : item.trim()))
-            .join()
+            // replace white space with empty string
+            .replace(/\s/g, '')
+            .trim() as string
 
-          if (lastTransactionContent.trim().includes(transactionContent.trim())) {
+          if (lastTransactionContent.includes(transactionContent)) {
             lastTransaction = null
             return false
           }
@@ -346,29 +387,32 @@ export const Task = Node.create<TaskOptions>({
               const selection = state.selection
               const tr = state.tr
 
-              let found = false
-
+              let count = 0
+              const fragments: Fragment[] = []
               for (const match of matches) {
                 if (!match || !match.input) continue
+                count += 1
 
-                const listItems = match.input
-                  .split('\n')
-                  .map((item) => item.split('-')[1].trim())
-                  .reverse()
+                const isChecked = match[0].replace(match[1], '').trim().toLowerCase().includes('[x]')
+                const listItem = match[1]
 
-                for (const listItem of listItems) {
-                  found = true
-                  const fragment = Fragment.from(
-                    state.schema.nodes.task.create(undefined, [
-                      state.schema.nodes.paragraph.create(undefined, [state.schema.text(listItem)]),
-                    ]),
-                  )
-
-                  tr.insert(selection.from - 1, fragment)
-                }
+                fragments.push(
+                  Fragment.from(
+                    state.schema.nodes.task.create(
+                      {
+                        checked: isChecked,
+                      },
+                      [state.schema.nodes.paragraph.create(undefined, [state.schema.text(listItem)])],
+                    ),
+                  ),
+                )
               }
 
-              if (found) {
+              if (count > 0) {
+                for (const fragment of fragments.reverse()) {
+                  tr.insert(selection.from - 1, fragment)
+                }
+
                 tr.setMeta('task-paste-remove-auto-inserted-line', textContent)
                 view.dispatch(tr)
                 return true

@@ -4613,11 +4613,13 @@ export class Api<
      * @name List
      * @summary List Columns In View
      * @request GET:/api/v1/db/meta/views/{viewId}/columns
+     * @response `200` `ColumnListType` OK
      */
     list: (viewId: string, params: RequestParams = {}) =>
-      this.request<any, any>({
+      this.request<ColumnListType, any>({
         path: `/api/v1/db/meta/views/${viewId}/columns`,
         method: 'GET',
+        format: 'json',
         ...params,
       }),
 

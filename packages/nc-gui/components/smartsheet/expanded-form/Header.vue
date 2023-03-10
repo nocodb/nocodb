@@ -101,20 +101,9 @@ const onConfirmDeleteRowClick = async () => {
     </h5>
 
     <div class="flex-1" />
-
-    <!--    <a-tooltip placement="bottom">
+    <a-tooltip placement="bottom">
       <template #title>
-        <div class="text-center w-full">{{ $t('general.reload') }}</div>
-      </template>
-      <mdi-reload
-        v-if="!isNew"
-        class="nc-icon-transition cursor-pointer select-none text-gray-500 mx-1 min-w-4"
-        @click="loadRow"
-      />
-    </a-tooltip> -->
-    <!--    <a-tooltip placement="bottom">
-      <template #title>
-        &lt;!&ndash; todo: i18n &ndash;&gt;
+        <!-- todo: i18n -->
         <div class="text-center w-full">Copy record URL</div>
       </template>
       <mdi-link
@@ -122,7 +111,7 @@ const onConfirmDeleteRowClick = async () => {
         class="nc-icon-transition cursor-pointer select-none text-gray-500 mx-1 nc-copy-row-url min-w-4"
         @click="copyRecordUrl"
       />
-    </a-tooltip> -->
+    </a-tooltip>
 
     <a-tooltip v-if="!isSqlView" placement="bottom">
       <!--      Toggle comments draw -->
@@ -134,18 +123,6 @@ const onConfirmDeleteRowClick = async () => {
         v-e="['c:row-expand:comment-toggle']"
         class="nc-icon-transition cursor-pointer select-none nc-toggle-comments text-gray-500 mx-1 min-w-4"
         @click="commentsDrawer = !commentsDrawer"
-      />
-    </a-tooltip>
-
-    <a-tooltip v-if="!isSqlView" placement="bottom">
-      <template #title>
-        <div class="text-center w-full">{{ $t('activity.duplicateRow') }}</div>
-      </template>
-      <MdiContentCopy
-        v-if="isUIAllowed('xcDatatableEditable') && !isNew"
-        v-e="['c:row-expand:duplicate']"
-        class="nc-icon-transition cursor-pointer select-none nc-duplicate-row text-gray-500 mx-1 min-w-4"
-        @click="!isNew && emit('duplicateRow')"
       />
     </a-tooltip>
 
@@ -188,15 +165,6 @@ const onConfirmDeleteRowClick = async () => {
               {{ $t('general.reload') }}
             </div>
           </a-menu-item>
-          <a-menu-item v-if="!isNew" @click="loadRow">
-            <div v-e="['c:row-expand:reload']" class="py-2 flex gap-2 items-center">
-              <mdi-link
-                class="nc-icon-transition cursor-pointer select-none text-gray-500 mx-1 nc-copy-row-url min-w-4"
-                @click="copyRecordUrl"
-              />
-              Copy record URL
-            </div>
-          </a-menu-item>
           <a-menu-item v-if="isUIAllowed('xcDatatableEditable') && !isNew" @click="!isNew && emit('duplicateRow')">
             <div v-e="['c:row-expand:duplicate']" class="py-2 flex gap-2 a">
               <MdiContentCopy class="nc-icon-transition cursor-pointer select-none nc-duplicate-row text-gray-500 mx-1 min-w-4" />
@@ -209,21 +177,17 @@ const onConfirmDeleteRowClick = async () => {
               {{ $t('activity.deleteRow') }}
             </div>
           </a-menu-item>
+          <a-menu-item @click="emit('cancel')">
+            <div v-e="['c:row-expand:delete']" class="py-2 flex gap-2 items-center">
+              <MdiCloseCircleOutline
+                class="nc-icon-transition cursor-pointer select-none nc-delete-row text-gray-500 mx-1 min-w-4"
+              />
+              {{ $t('general.close') }}
+            </div>
+          </a-menu-item>
         </a-menu>
       </template>
     </a-dropdown>
-
-    <a-tooltip placement="bottom">
-      <!-- Close -->
-      <template #title>
-        <div class="text-center w-full">{{ $t('general.close') }}</div>
-      </template>
-      <MdiCloseCircleOutline
-        class="nc-icon-transition cursor-pointer select-none nc-close-form text-gray-500 mx-1 min-w-4"
-        @click="emit('cancel')"
-      />
-    </a-tooltip>
-
     <a-modal v-model:visible="showDeleteRowModal" title="Delete row?" @ok="onConfirmDeleteRowClick">
       <p>Are you sure you want to delete this row?</p>
     </a-modal>

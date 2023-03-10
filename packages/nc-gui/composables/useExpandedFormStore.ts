@@ -38,7 +38,7 @@ const [useProvideExpandedFormStore, useExpandedFormStore] = useInjectionState((m
 
   const commentsDrawer = ref(true)
 
-  const saveRowAndStay = ref(1)
+  const saveRowAndStay = ref(0)
 
   const changedColumns = ref(new Set<string>())
 

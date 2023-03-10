@@ -2301,12 +2301,6 @@ export type VisibilityRuleReqType = {
   };
 }[];
 
-export interface ApiTokenReqCopyType {
-  list?: ApiTokenType[];
-  /** Model for Paginated */
-  pageInfo?: PaginatedType;
-}
-
 import axios, { AxiosInstance, AxiosRequestConfig, ResponseType } from 'axios';
 
 export type QueryParamsType = Record<string | number, any>;
@@ -2523,6 +2517,11 @@ export class Api<
   msg?: string,
 
 }` OK
+ * @response `400` `{
+  \** @example BadRequest [Error]: <ERROR MESSAGE> *\
+  msg?: string,
+
+}`
  */
     signout: (params: RequestParams = {}) =>
       this.request<
@@ -2530,7 +2529,10 @@ export class Api<
           /** Success Message */
           msg?: string;
         },
-        any
+        {
+          /** @example BadRequest [Error]: <ERROR MESSAGE> */
+          msg?: string;
+        }
       >({
         path: `/api/v1/auth/user/signout`,
         method: 'POST',
@@ -2551,10 +2553,10 @@ export class Api<
 
 }` OK
  * @response `400` `{
-  \** Error Message *\
+  \** @example BadRequest [Error]: <ERROR MESSAGE> *\
   msg?: string,
 
-}` Bad Request
+}`
  */
     signin: (data: SignInReqType, params: RequestParams = {}) =>
       this.request<
@@ -2563,7 +2565,7 @@ export class Api<
           token?: string;
         },
         {
-          /** Error Message */
+          /** @example BadRequest [Error]: <ERROR MESSAGE> */
           msg?: string;
         }
       >({
@@ -2576,14 +2578,19 @@ export class Api<
       }),
 
     /**
-     * @description Returns authenticated user info
-     *
-     * @tags Auth
-     * @name Me
-     * @summary Get User Info
-     * @request GET:/api/v1/auth/user/me
-     * @response `200` `UserInfoType` OK
-     */
+ * @description Returns authenticated user info
+ * 
+ * @tags Auth
+ * @name Me
+ * @summary Get User Info
+ * @request GET:/api/v1/auth/user/me
+ * @response `200` `UserInfoType` OK
+ * @response `400` `{
+  \** @example BadRequest [Error]: <ERROR MESSAGE> *\
+  msg?: string,
+
+}`
+ */
     me: (
       query?: {
         /** Pass project id to get project specific roles along with user info */
@@ -2591,7 +2598,13 @@ export class Api<
       },
       params: RequestParams = {}
     ) =>
-      this.request<UserInfoType, any>({
+      this.request<
+        UserInfoType,
+        {
+          /** @example BadRequest [Error]: <ERROR MESSAGE> */
+          msg?: string;
+        }
+      >({
         path: `/api/v1/auth/user/me`,
         method: 'GET',
         query: query,
@@ -2600,17 +2613,27 @@ export class Api<
       }),
 
     /**
-     * @description Emails user with a reset url.
-     *
-     * @tags Auth
-     * @name PasswordForgot
-     * @summary Forget Password
-     * @request POST:/api/v1/auth/password/forgot
-     * @response `200` `void` OK
-     * @response `401` `void` Unauthorized
-     */
+ * @description Emails user with a reset url.
+ * 
+ * @tags Auth
+ * @name PasswordForgot
+ * @summary Forget Password
+ * @request POST:/api/v1/auth/password/forgot
+ * @response `200` `void` OK
+ * @response `400` `{
+  \** @example BadRequest [Error]: <ERROR MESSAGE> *\
+  msg?: string,
+
+}`
+ */
     passwordForgot: (data: PasswordForgotReqType, params: RequestParams = {}) =>
-      this.request<void, void>({
+      this.request<
+        void,
+        {
+          /** @example BadRequest [Error]: <ERROR MESSAGE> */
+          msg?: string;
+        }
+      >({
         path: `/api/v1/auth/password/forgot`,
         method: 'POST',
         body: data,
@@ -2631,10 +2654,10 @@ export class Api<
 
 }` OK
  * @response `400` `{
-  \** Error Message *\
+  \** @example BadRequest [Error]: <ERROR MESSAGE> *\
   msg?: string,
 
-}` Bad request
+}`
  */
     passwordChange: (data: PasswordChangeReqType, params: RequestParams = {}) =>
       this.request<
@@ -2643,7 +2666,7 @@ export class Api<
           msg?: string;
         },
         {
-          /** Error Message */
+          /** @example BadRequest [Error]: <ERROR MESSAGE> */
           msg?: string;
         }
       >({
@@ -2656,52 +2679,85 @@ export class Api<
       }),
 
     /**
-     * @description Validate password reset url token.
-     *
-     * @tags Auth
-     * @name PasswordResetTokenValidate
-     * @summary Verify Reset Token
-     * @request POST:/api/v1/auth/token/validate/{token}
-     * @response `200` `void` OK
-     */
+ * @description Validate password reset url token.
+ * 
+ * @tags Auth
+ * @name PasswordResetTokenValidate
+ * @summary Verify Reset Token
+ * @request POST:/api/v1/auth/token/validate/{token}
+ * @response `200` `void` OK
+ * @response `400` `{
+  \** @example BadRequest [Error]: <ERROR MESSAGE> *\
+  msg?: string,
+
+}`
+ */
     passwordResetTokenValidate: (token: string, params: RequestParams = {}) =>
-      this.request<void, any>({
+      this.request<
+        void,
+        {
+          /** @example BadRequest [Error]: <ERROR MESSAGE> */
+          msg?: string;
+        }
+      >({
         path: `/api/v1/auth/token/validate/${token}`,
         method: 'POST',
         ...params,
       }),
 
     /**
-     * @description Api for verifying email where token need to be passed which is shared to user email.
-     *
-     * @tags Auth
-     * @name EmailValidate
-     * @summary Verify Email
-     * @request POST:/api/v1/auth/email/validate/{token}
-     * @response `200` `void` OK
-     */
+ * @description Api for verifying email where token need to be passed which is shared to user email.
+ * 
+ * @tags Auth
+ * @name EmailValidate
+ * @summary Verify Email
+ * @request POST:/api/v1/auth/email/validate/{token}
+ * @response `200` `void` OK
+ * @response `400` `{
+  \** @example BadRequest [Error]: <ERROR MESSAGE> *\
+  msg?: string,
+
+}`
+ */
     emailValidate: (token: string, params: RequestParams = {}) =>
-      this.request<void, any>({
+      this.request<
+        void,
+        {
+          /** @example BadRequest [Error]: <ERROR MESSAGE> */
+          msg?: string;
+        }
+      >({
         path: `/api/v1/auth/email/validate/${token}`,
         method: 'POST',
         ...params,
       }),
 
     /**
-     * @description Update user password to new by using reset token.
-     *
-     * @tags Auth
-     * @name PasswordReset
-     * @summary Reset Password
-     * @request POST:/api/v1/auth/password/reset/{token}
-     * @response `200` `void` OK
-     */
+ * @description Update user password to new by using reset token.
+ * 
+ * @tags Auth
+ * @name PasswordReset
+ * @summary Reset Password
+ * @request POST:/api/v1/auth/password/reset/{token}
+ * @response `200` `void` OK
+ * @response `400` `{
+  \** @example BadRequest [Error]: <ERROR MESSAGE> *\
+  msg?: string,
+
+}`
+ */
     passwordReset: (
       token: string,
       data: PasswordResetReqType,
       params: RequestParams = {}
     ) =>
-      this.request<void, any>({
+      this.request<
+        void,
+        {
+          /** @example BadRequest [Error]: <ERROR MESSAGE> */
+          msg?: string;
+        }
+      >({
         path: `/api/v1/auth/password/reset/${token}`,
         method: 'POST',
         body: data,
@@ -2721,6 +2777,11 @@ export class Api<
   token?: string,
 
 }` OK
+ * @response `400` `{
+  \** @example BadRequest [Error]: <ERROR MESSAGE> *\
+  msg?: string,
+
+}`
  */
     tokenRefresh: (params: RequestParams = {}) =>
       this.request<
@@ -2728,7 +2789,10 @@ export class Api<
           /** New access token for user */
           token?: string;
         },
-        any
+        {
+          /** @example BadRequest [Error]: <ERROR MESSAGE> */
+          msg?: string;
+        }
       >({
         path: `/api/v1/auth/token/refresh`,
         method: 'POST',
@@ -2752,6 +2816,11 @@ export class Api<
 },
 
 }` OK
+ * @response `400` `{
+  \** @example BadRequest [Error]: <ERROR MESSAGE> *\
+  msg?: string,
+
+}`
  */
     projectUserList: (projectId: IdType, params: RequestParams = {}) =>
       this.request<
@@ -2762,7 +2831,10 @@ export class Api<
             pageInfo: PaginatedType;
           };
         },
-        any
+        {
+          /** @example BadRequest [Error]: <ERROR MESSAGE> */
+          msg?: string;
+        }
       >({
         path: `/api/v1/db/meta/projects/${projectId}/users`,
         method: 'GET',
@@ -2771,20 +2843,31 @@ export class Api<
       }),
 
     /**
-     * @description Create a user and add it to the given project
-     *
-     * @tags Auth
-     * @name ProjectUserAdd
-     * @summary Create Project User
-     * @request POST:/api/v1/db/meta/projects/{projectId}/users
-     * @response `200` `any` OK
-     */
+ * @description Create a user and add it to the given project
+ * 
+ * @tags Auth
+ * @name ProjectUserAdd
+ * @summary Create Project User
+ * @request POST:/api/v1/db/meta/projects/{projectId}/users
+ * @response `200` `any` OK
+ * @response `400` `{
+  \** @example BadRequest [Error]: <ERROR MESSAGE> *\
+  msg?: string,
+
+}`
+ */
     projectUserAdd: (
       projectId: IdType,
       data: ProjectUserReqType,
       params: RequestParams = {}
     ) =>
-      this.request<any, any>({
+      this.request<
+        any,
+        {
+          /** @example BadRequest [Error]: <ERROR MESSAGE> */
+          msg?: string;
+        }
+      >({
         path: `/api/v1/db/meta/projects/${projectId}/users`,
         method: 'POST',
         body: data,
@@ -2794,21 +2877,32 @@ export class Api<
       }),
 
     /**
-     * @description Update a given user in a given project. Exclusive for Super Admin. Access with API Tokens will be blocked.
-     *
-     * @tags Auth
-     * @name ProjectUserUpdate
-     * @summary Update Project User
-     * @request PATCH:/api/v1/db/meta/projects/{projectId}/users/{userId}
-     * @response `200` `any` OK
-     */
+ * @description Update a given user in a given project. Exclusive for Super Admin. Access with API Tokens will be blocked.
+ * 
+ * @tags Auth
+ * @name ProjectUserUpdate
+ * @summary Update Project User
+ * @request PATCH:/api/v1/db/meta/projects/{projectId}/users/{userId}
+ * @response `200` `any` OK
+ * @response `400` `{
+  \** @example BadRequest [Error]: <ERROR MESSAGE> *\
+  msg?: string,
+
+}`
+ */
     projectUserUpdate: (
       projectId: IdType,
       userId: IdType,
       data: ProjectUserReqType,
       params: RequestParams = {}
     ) =>
-      this.request<any, any>({
+      this.request<
+        any,
+        {
+          /** @example BadRequest [Error]: <ERROR MESSAGE> */
+          msg?: string;
+        }
+      >({
         path: `/api/v1/db/meta/projects/${projectId}/users/${userId}`,
         method: 'PATCH',
         body: data,
@@ -2818,20 +2912,31 @@ export class Api<
       }),
 
     /**
-     * @description Delete a given user in a given project. Exclusive for Super Admin. Access with API Tokens will be blocked.
-     *
-     * @tags Auth
-     * @name ProjectUserRemove
-     * @summary Delete Project User
-     * @request DELETE:/api/v1/db/meta/projects/{projectId}/users/{userId}
-     * @response `200` `any` OK
-     */
+ * @description Delete a given user in a given project. Exclusive for Super Admin. Access with API Tokens will be blocked.
+ * 
+ * @tags Auth
+ * @name ProjectUserRemove
+ * @summary Delete Project User
+ * @request DELETE:/api/v1/db/meta/projects/{projectId}/users/{userId}
+ * @response `200` `any` OK
+ * @response `400` `{
+  \** @example BadRequest [Error]: <ERROR MESSAGE> *\
+  msg?: string,
+
+}`
+ */
     projectUserRemove: (
       projectId: IdType,
       userId: IdType,
       params: RequestParams = {}
     ) =>
-      this.request<any, any>({
+      this.request<
+        any,
+        {
+          /** @example BadRequest [Error]: <ERROR MESSAGE> */
+          msg?: string;
+        }
+      >({
         path: `/api/v1/db/meta/projects/${projectId}/users/${userId}`,
         method: 'DELETE',
         format: 'json',
@@ -2839,20 +2944,31 @@ export class Api<
       }),
 
     /**
-     * @description Resend Invitation to a specific user
-     *
-     * @tags Auth
-     * @name ProjectUserResendInvite
-     * @summary Resend User Invitation
-     * @request POST:/api/v1/db/meta/projects/{projectId}/users/{userId}/resend-invite
-     * @response `200` `any` OK
-     */
+ * @description Resend Invitation to a specific user
+ * 
+ * @tags Auth
+ * @name ProjectUserResendInvite
+ * @summary Resend User Invitation
+ * @request POST:/api/v1/db/meta/projects/{projectId}/users/{userId}/resend-invite
+ * @response `200` `any` OK
+ * @response `400` `{
+  \** @example BadRequest [Error]: <ERROR MESSAGE> *\
+  msg?: string,
+
+}`
+ */
     projectUserResendInvite: (
       projectId: IdType,
       userId: IdType,
       params: RequestParams = {}
     ) =>
-      this.request<any, any>({
+      this.request<
+        any,
+        {
+          /** @example BadRequest [Error]: <ERROR MESSAGE> */
+          msg?: string;
+        }
+      >({
         path: `/api/v1/db/meta/projects/${projectId}/users/${userId}/resend-invite`,
         method: 'POST',
         format: 'json',
@@ -2879,6 +2995,11 @@ export class Api<
 },
 
 }` OK
+ * @response `400` `{
+  \** @example BadRequest [Error]: <ERROR MESSAGE> *\
+  msg?: string,
+
+}`
  */
     list: (params: RequestParams = {}) =>
       this.request<
@@ -2891,7 +3012,10 @@ export class Api<
             pageInfo: PaginatedType;
           };
         },
-        any
+        {
+          /** @example BadRequest [Error]: <ERROR MESSAGE> */
+          msg?: string;
+        }
       >({
         path: `/api/v1/tokens`,
         method: 'GET',
@@ -2900,16 +3024,27 @@ export class Api<
       }),
 
     /**
-     * @description Creat an organisation API token. Access with API tokens will be blocked.
-     *
-     * @tags Org Tokens
-     * @name Create
-     * @summary Create Organisation API Token
-     * @request POST:/api/v1/tokens
-     * @response `200` `void` OK
-     */
+ * @description Creat an organisation API token. Access with API tokens will be blocked.
+ * 
+ * @tags Org Tokens
+ * @name Create
+ * @summary Create Organisation API Token
+ * @request POST:/api/v1/tokens
+ * @response `200` `void` OK
+ * @response `400` `{
+  \** @example BadRequest [Error]: <ERROR MESSAGE> *\
+  msg?: string,
+
+}`
+ */
     create: (data: ApiTokenReqType, params: RequestParams = {}) =>
-      this.request<void, any>({
+      this.request<
+        void,
+        {
+          /** @example BadRequest [Error]: <ERROR MESSAGE> */
+          msg?: string;
+        }
+      >({
         path: `/api/v1/tokens`,
         method: 'POST',
         body: data,
@@ -2918,16 +3053,27 @@ export class Api<
       }),
 
     /**
-     * @description Delete an organisation API token. Access with API tokens will be blocked.
-     *
-     * @tags Org Tokens
-     * @name Delete
-     * @summary Delete Organisation API Tokens
-     * @request DELETE:/api/v1/tokens/{token}
-     * @response `200` `void` OK
-     */
+ * @description Delete an organisation API token. Access with API tokens will be blocked.
+ * 
+ * @tags Org Tokens
+ * @name Delete
+ * @summary Delete Organisation API Tokens
+ * @request DELETE:/api/v1/tokens/{token}
+ * @response `200` `void` OK
+ * @response `400` `{
+  \** @example BadRequest [Error]: <ERROR MESSAGE> *\
+  msg?: string,
+
+}`
+ */
     delete: (token: string, params: RequestParams = {}) =>
-      this.request<void, any>({
+      this.request<
+        void,
+        {
+          /** @example BadRequest [Error]: <ERROR MESSAGE> */
+          msg?: string;
+        }
+      >({
         path: `/api/v1/tokens/${token}`,
         method: 'DELETE',
         ...params,
@@ -2946,6 +3092,11 @@ export class Api<
   key?: string,
 
 }` OK
+ * @response `400` `{
+  \** @example BadRequest [Error]: <ERROR MESSAGE> *\
+  msg?: string,
+
+}`
  */
     get: (params: RequestParams = {}) =>
       this.request<
@@ -2953,7 +3104,10 @@ export class Api<
           /** Application license key */
           key?: string;
         },
-        any
+        {
+          /** @example BadRequest [Error]: <ERROR MESSAGE> */
+          msg?: string;
+        }
       >({
         path: `/api/v1/license`,
         method: 'GET',
@@ -2995,6 +3149,11 @@ export class Api<
   invite_only_signup?: boolean,
 
 }` OK
+ * @response `400` `{
+  \** @example BadRequest [Error]: <ERROR MESSAGE> *\
+  msg?: string,
+
+}`
  */
     get: (params: RequestParams = {}) =>
       this.request<
@@ -3005,7 +3164,10 @@ export class Api<
            */
           invite_only_signup?: boolean;
         },
-        any
+        {
+          /** @example BadRequest [Error]: <ERROR MESSAGE> */
+          msg?: string;
+        }
       >({
         path: `/api/v1/app-settings`,
         method: 'GET',
@@ -3014,14 +3176,19 @@ export class Api<
       }),
 
     /**
-     * @description Update the application settings. Exclusive for super admin.
-     *
-     * @tags Org App Settings
-     * @name Set
-     * @summary Create App Settings
-     * @request POST:/api/v1/app-settings
-     * @response `200` `void` OK
-     */
+ * @description Update the application settings. Exclusive for super admin.
+ * 
+ * @tags Org App Settings
+ * @name Set
+ * @summary Create App Settings
+ * @request POST:/api/v1/app-settings
+ * @response `200` `void` OK
+ * @response `400` `{
+  \** @example BadRequest [Error]: <ERROR MESSAGE> *\
+  msg?: string,
+
+}`
+ */
     set: (
       data: {
         /**
@@ -3032,7 +3199,13 @@ export class Api<
       },
       params: RequestParams = {}
     ) =>
-      this.request<void, any>({
+      this.request<
+        void,
+        {
+          /** @example BadRequest [Error]: <ERROR MESSAGE> */
+          msg?: string;
+        }
+      >({
         path: `/api/v1/app-settings`,
         method: 'POST',
         body: data,
@@ -3042,16 +3215,27 @@ export class Api<
   };
   orgUsers = {
     /**
-     * @description List all organisation users. Exclusive for Super Admin. Access with API Tokens will be blocked.
-     *
-     * @tags Org Users
-     * @name List
-     * @summary List Organisation Users
-     * @request GET:/api/v1/users
-     * @response `200` `UserListType` OK
-     */
+ * @description List all organisation users. Exclusive for Super Admin. Access with API Tokens will be blocked.
+ * 
+ * @tags Org Users
+ * @name List
+ * @summary List Organisation Users
+ * @request GET:/api/v1/users
+ * @response `200` `UserListType` OK
+ * @response `400` `{
+  \** @example BadRequest [Error]: <ERROR MESSAGE> *\
+  msg?: string,
+
+}`
+ */
     list: (params: RequestParams = {}) =>
-      this.request<UserListType, any>({
+      this.request<
+        UserListType,
+        {
+          /** @example BadRequest [Error]: <ERROR MESSAGE> */
+          msg?: string;
+        }
+      >({
         path: `/api/v1/users`,
         method: 'GET',
         format: 'json',
@@ -3059,16 +3243,27 @@ export class Api<
       }),
 
     /**
-     * @description Create an organisation user. Exclusive for Super Admin. Access with API Tokens will be blocked.
-     *
-     * @tags Org Users
-     * @name Add
-     * @summary Create Organisation User
-     * @request POST:/api/v1/users
-     * @response `200` `any` OK
-     */
+ * @description Create an organisation user. Exclusive for Super Admin. Access with API Tokens will be blocked.
+ * 
+ * @tags Org Users
+ * @name Add
+ * @summary Create Organisation User
+ * @request POST:/api/v1/users
+ * @response `200` `any` OK
+ * @response `400` `{
+  \** @example BadRequest [Error]: <ERROR MESSAGE> *\
+  msg?: string,
+
+}`
+ */
     add: (data: OrgUserReqType, params: RequestParams = {}) =>
-      this.request<any, any>({
+      this.request<
+        any,
+        {
+          /** @example BadRequest [Error]: <ERROR MESSAGE> */
+          msg?: string;
+        }
+      >({
         path: `/api/v1/users`,
         method: 'POST',
         body: data,
@@ -3078,20 +3273,31 @@ export class Api<
       }),
 
     /**
-     * @description Update an organisation user by User ID. Exclusive for Super Admin. Access with API Tokens will be blocked.
-     *
-     * @tags Org Users
-     * @name Update
-     * @summary Update Organisation User
-     * @request PATCH:/api/v1/users/{userId}
-     * @response `200` `void` OK
-     */
+ * @description Update an organisation user by User ID. Exclusive for Super Admin. Access with API Tokens will be blocked.
+ * 
+ * @tags Org Users
+ * @name Update
+ * @summary Update Organisation User
+ * @request PATCH:/api/v1/users/{userId}
+ * @response `200` `void` OK
+ * @response `400` `{
+  \** @example BadRequest [Error]: <ERROR MESSAGE> *\
+  msg?: string,
+
+}`
+ */
     update: (
       userId: IdType,
       data: OrgUserReqType,
       params: RequestParams = {}
     ) =>
-      this.request<void, any>({
+      this.request<
+        void,
+        {
+          /** @example BadRequest [Error]: <ERROR MESSAGE> */
+          msg?: string;
+        }
+      >({
         path: `/api/v1/users/${userId}`,
         method: 'PATCH',
         body: data,
@@ -3100,32 +3306,54 @@ export class Api<
       }),
 
     /**
-     * @description Delete an organisation user by User ID. Exclusive for Super Admin. Access with API Tokens will be blocked.
-     *
-     * @tags Org Users
-     * @name Delete
-     * @summary Delete Organisation User
-     * @request DELETE:/api/v1/users/{userId}
-     * @response `200` `void` OK
-     */
+ * @description Delete an organisation user by User ID. Exclusive for Super Admin. Access with API Tokens will be blocked.
+ * 
+ * @tags Org Users
+ * @name Delete
+ * @summary Delete Organisation User
+ * @request DELETE:/api/v1/users/{userId}
+ * @response `200` `void` OK
+ * @response `400` `{
+  \** @example BadRequest [Error]: <ERROR MESSAGE> *\
+  msg?: string,
+
+}`
+ */
     delete: (userId: IdType, params: RequestParams = {}) =>
-      this.request<void, any>({
+      this.request<
+        void,
+        {
+          /** @example BadRequest [Error]: <ERROR MESSAGE> */
+          msg?: string;
+        }
+      >({
         path: `/api/v1/users/${userId}`,
         method: 'DELETE',
         ...params,
       }),
 
     /**
-     * @description Resend Invitation to a specific user. Exclusive for Super Admin. Access with API Tokens will be blocked.
-     *
-     * @tags Org Users
-     * @name ResendInvite
-     * @summary Invite Organisation User
-     * @request POST:/api/v1/users/{userId}/resend-invite
-     * @response `200` `void` OK
-     */
+ * @description Resend Invitation to a specific user. Exclusive for Super Admin. Access with API Tokens will be blocked.
+ * 
+ * @tags Org Users
+ * @name ResendInvite
+ * @summary Invite Organisation User
+ * @request POST:/api/v1/users/{userId}/resend-invite
+ * @response `200` `void` OK
+ * @response `400` `{
+  \** @example BadRequest [Error]: <ERROR MESSAGE> *\
+  msg?: string,
+
+}`
+ */
     resendInvite: (userId: IdType, params: RequestParams = {}) =>
-      this.request<void, any>({
+      this.request<
+        void,
+        {
+          /** @example BadRequest [Error]: <ERROR MESSAGE> */
+          msg?: string;
+        }
+      >({
         path: `/api/v1/users/${userId}/resend-invite`,
         method: 'POST',
         ...params,
@@ -3145,6 +3373,11 @@ export class Api<
   reset_password_url?: string,
 
 }` OK
+ * @response `400` `{
+  \** @example BadRequest [Error]: <ERROR MESSAGE> *\
+  msg?: string,
+
+}`
  */
     generatePasswordResetToken: (userId: IdType, params: RequestParams = {}) =>
       this.request<
@@ -3154,7 +3387,10 @@ export class Api<
           /** Password Reset URL for the user */
           reset_password_url?: string;
         },
-        any
+        {
+          /** @example BadRequest [Error]: <ERROR MESSAGE> */
+          msg?: string;
+        }
       >({
         path: `/api/v1/users/${userId}/generate-reset-url`,
         method: 'POST',
@@ -3213,6 +3449,11 @@ export class Api<
   PackageVersion?: string,
 
 }` OK
+ * @response `400` `{
+  \** @example BadRequest [Error]: <ERROR MESSAGE> *\
+  msg?: string,
+
+}`
  */
     metaGet: (projectId: IdType, params: RequestParams = {}) =>
       this.request<
@@ -3258,7 +3499,10 @@ export class Api<
            */
           PackageVersion?: string;
         },
-        any
+        {
+          /** @example BadRequest [Error]: <ERROR MESSAGE> */
+          msg?: string;
+        }
       >({
         path: `/api/v1/db/meta/projects/${projectId}/info`,
         method: 'GET',
@@ -3267,14 +3511,19 @@ export class Api<
       }),
 
     /**
-     * @description Hide / show views based on user role
-     *
-     * @tags Project
-     * @name ModelVisibilityList
-     * @summary Get UI ACL
-     * @request GET:/api/v1/db/meta/projects/{projectId}/visibility-rules
-     * @response `200` `(any)[]` OK
-     */
+ * @description Hide / show views based on user role
+ * 
+ * @tags Project
+ * @name ModelVisibilityList
+ * @summary Get UI ACL
+ * @request GET:/api/v1/db/meta/projects/{projectId}/visibility-rules
+ * @response `200` `(any)[]` OK
+ * @response `400` `{
+  \** @example BadRequest [Error]: <ERROR MESSAGE> *\
+  msg?: string,
+
+}`
+ */
     modelVisibilityList: (
       projectId: IdType,
       query?: {
@@ -3282,7 +3531,13 @@ export class Api<
       },
       params: RequestParams = {}
     ) =>
-      this.request<any[], any>({
+      this.request<
+        any[],
+        {
+          /** @example BadRequest [Error]: <ERROR MESSAGE> */
+          msg?: string;
+        }
+      >({
         path: `/api/v1/db/meta/projects/${projectId}/visibility-rules`,
         method: 'GET',
         query: query,
@@ -3291,20 +3546,31 @@ export class Api<
       }),
 
     /**
-     * @description Hide / show views based on user role
-     *
-     * @tags Project
-     * @name ModelVisibilitySet
-     * @summary Create UI ACL
-     * @request POST:/api/v1/db/meta/projects/{projectId}/visibility-rules
-     * @response `200` `VisibilityRuleReqType` OK
-     */
+ * @description Hide / show views based on user role
+ * 
+ * @tags Project
+ * @name ModelVisibilitySet
+ * @summary Create UI ACL
+ * @request POST:/api/v1/db/meta/projects/{projectId}/visibility-rules
+ * @response `200` `VisibilityRuleReqType` OK
+ * @response `400` `{
+  \** @example BadRequest [Error]: <ERROR MESSAGE> *\
+  msg?: string,
+
+}`
+ */
     modelVisibilitySet: (
       projectId: IdType,
       data: any,
       params: RequestParams = {}
     ) =>
-      this.request<VisibilityRuleReqType, any>({
+      this.request<
+        VisibilityRuleReqType,
+        {
+          /** @example BadRequest [Error]: <ERROR MESSAGE> */
+          msg?: string;
+        }
+      >({
         path: `/api/v1/db/meta/projects/${projectId}/visibility-rules`,
         method: 'POST',
         body: data,
@@ -3331,14 +3597,19 @@ export class Api<
       }),
 
     /**
-     * @description Create a new project
-     *
-     * @tags Project
-     * @name Create
-     * @summary Create Project
-     * @request POST:/api/v1/db/meta/projects/
-     * @response `200` `ProjectReqType` OK
-     */
+ * @description Create a new project
+ * 
+ * @tags Project
+ * @name Create
+ * @summary Create Project
+ * @request POST:/api/v1/db/meta/projects/
+ * @response `200` `ProjectReqType` OK
+ * @response `400` `{
+  \** @example BadRequest [Error]: <ERROR MESSAGE> *\
+  msg?: string,
+
+}`
+ */
     create: (
       data: ProjectType & {
         /** If true, the project will us an external database else it will use the root database */
@@ -3346,7 +3617,13 @@ export class Api<
       },
       params: RequestParams = {}
     ) =>
-      this.request<ProjectReqType, any>({
+      this.request<
+        ProjectReqType,
+        {
+          /** @example BadRequest [Error]: <ERROR MESSAGE> */
+          msg?: string;
+        }
+      >({
         path: `/api/v1/db/meta/projects/`,
         method: 'POST',
         body: data,
@@ -3356,16 +3633,27 @@ export class Api<
       }),
 
     /**
-     * @description Get the info of a given projecct
-     *
-     * @tags Project
-     * @name Read
-     * @summary Get Project
-     * @request GET:/api/v1/db/meta/projects/{projectId}
-     * @response `200` `ProjectType` OK
-     */
+ * @description Get the info of a given projecct
+ * 
+ * @tags Project
+ * @name Read
+ * @summary Get Project
+ * @request GET:/api/v1/db/meta/projects/{projectId}
+ * @response `200` `ProjectType` OK
+ * @response `400` `{
+  \** @example BadRequest [Error]: <ERROR MESSAGE> *\
+  msg?: string,
+
+}`
+ */
     read: (projectId: IdType, params: RequestParams = {}) =>
-      this.request<ProjectType, any>({
+      this.request<
+        ProjectType,
+        {
+          /** @example BadRequest [Error]: <ERROR MESSAGE> */
+          msg?: string;
+        }
+      >({
         path: `/api/v1/db/meta/projects/${projectId}`,
         method: 'GET',
         format: 'json',
@@ -3373,32 +3661,54 @@ export class Api<
       }),
 
     /**
-     * @description Delete the given project
-     *
-     * @tags Project
-     * @name Delete
-     * @summary Delete Project
-     * @request DELETE:/api/v1/db/meta/projects/{projectId}
-     * @response `200` `void` OK
-     */
+ * @description Delete the given project
+ * 
+ * @tags Project
+ * @name Delete
+ * @summary Delete Project
+ * @request DELETE:/api/v1/db/meta/projects/{projectId}
+ * @response `200` `void` OK
+ * @response `400` `{
+  \** @example BadRequest [Error]: <ERROR MESSAGE> *\
+  msg?: string,
+
+}`
+ */
     delete: (projectId: IdType, params: RequestParams = {}) =>
-      this.request<void, any>({
+      this.request<
+        void,
+        {
+          /** @example BadRequest [Error]: <ERROR MESSAGE> */
+          msg?: string;
+        }
+      >({
         path: `/api/v1/db/meta/projects/${projectId}`,
         method: 'DELETE',
         ...params,
       }),
 
     /**
-     * @description Update the given project
-     *
-     * @tags Project
-     * @name Update
-     * @summary Update Project
-     * @request PATCH:/api/v1/db/meta/projects/{projectId}
-     * @response `200` `void` OK
-     */
+ * @description Update the given project
+ * 
+ * @tags Project
+ * @name Update
+ * @summary Update Project
+ * @request PATCH:/api/v1/db/meta/projects/{projectId}
+ * @response `200` `void` OK
+ * @response `400` `{
+  \** @example BadRequest [Error]: <ERROR MESSAGE> *\
+  msg?: string,
+
+}`
+ */
     update: (projectId: IdType, data: any, params: RequestParams = {}) =>
-      this.request<void, any>({
+      this.request<
+        void,
+        {
+          /** @example BadRequest [Error]: <ERROR MESSAGE> */
+          msg?: string;
+        }
+      >({
         path: `/api/v1/db/meta/projects/${projectId}`,
         method: 'PATCH',
         body: data,
@@ -3425,6 +3735,11 @@ export class Api<
   roles?: string,
 
 }` OK
+ * @response `400` `{
+  \** @example BadRequest [Error]: <ERROR MESSAGE> *\
+  msg?: string,
+
+}`
  */
     sharedBaseGet: (projectId: IdType, params: RequestParams = {}) =>
       this.request<
@@ -3439,7 +3754,10 @@ export class Api<
           /** @example viewer */
           roles?: string;
         },
-        any
+        {
+          /** @example BadRequest [Error]: <ERROR MESSAGE> */
+          msg?: string;
+        }
       >({
         path: `/api/v1/db/meta/projects/${projectId}/shared`,
         method: 'GET',
@@ -3448,16 +3766,27 @@ export class Api<
       }),
 
     /**
-     * @description Delete Project Shared Base
-     *
-     * @tags Project
-     * @name SharedBaseDisable
-     * @summary Delete Project Shared Base
-     * @request DELETE:/api/v1/db/meta/projects/{projectId}/shared
-     * @response `200` `void` OK
-     */
+ * @description Delete Project Shared Base
+ * 
+ * @tags Project
+ * @name SharedBaseDisable
+ * @summary Delete Project Shared Base
+ * @request DELETE:/api/v1/db/meta/projects/{projectId}/shared
+ * @response `200` `void` OK
+ * @response `400` `{
+  \** @example BadRequest [Error]: <ERROR MESSAGE> *\
+  msg?: string,
+
+}`
+ */
     sharedBaseDisable: (projectId: IdType, params: RequestParams = {}) =>
-      this.request<void, any>({
+      this.request<
+        void,
+        {
+          /** @example BadRequest [Error]: <ERROR MESSAGE> */
+          msg?: string;
+        }
+      >({
         path: `/api/v1/db/meta/projects/${projectId}/shared`,
         method: 'DELETE',
         ...params,
@@ -3477,6 +3806,11 @@ export class Api<
   roles?: StringOrNullType,
 
 }` OK
+ * @response `400` `{
+  \** @example BadRequest [Error]: <ERROR MESSAGE> *\
+  msg?: string,
+
+}`
  */
     sharedBaseCreate: (
       projectId: IdType,
@@ -3490,7 +3824,10 @@ export class Api<
           /** Model for StringOrNull */
           roles?: StringOrNullType;
         },
-        any
+        {
+          /** @example BadRequest [Error]: <ERROR MESSAGE> */
+          msg?: string;
+        }
       >({
         path: `/api/v1/db/meta/projects/${projectId}/shared`,
         method: 'POST',
@@ -3519,6 +3856,11 @@ export class Api<
   roles?: string,
 
 }` OK
+ * @response `400` `{
+  \** @example BadRequest [Error]: <ERROR MESSAGE> *\
+  msg?: string,
+
+}`
  */
     sharedBaseUpdate: (
       projectId: IdType,
@@ -3537,7 +3879,10 @@ export class Api<
           /** @example viewer */
           roles?: string;
         },
-        any
+        {
+          /** @example BadRequest [Error]: <ERROR MESSAGE> */
+          msg?: string;
+        }
       >({
         path: `/api/v1/db/meta/projects/${projectId}/shared`,
         method: 'PATCH',
@@ -3548,16 +3893,27 @@ export class Api<
       }),
 
     /**
-     * @description Calculate the Project Cost
-     *
-     * @tags Project
-     * @name Cost
-     * @summary Project Cost
-     * @request GET:/api/v1/db/meta/projects/{projectId}/cost
-     * @response `200` `object` OK
-     */
+ * @description Calculate the Project Cost
+ * 
+ * @tags Project
+ * @name Cost
+ * @summary Project Cost
+ * @request GET:/api/v1/db/meta/projects/{projectId}/cost
+ * @response `200` `object` OK
+ * @response `400` `{
+  \** @example BadRequest [Error]: <ERROR MESSAGE> *\
+  msg?: string,
+
+}`
+ */
     cost: (projectId: IdType, params: RequestParams = {}) =>
-      this.request<object, any>({
+      this.request<
+        object,
+        {
+          /** @example BadRequest [Error]: <ERROR MESSAGE> */
+          msg?: string;
+        }
+      >({
         path: `/api/v1/db/meta/projects/${projectId}/cost`,
         method: 'GET',
         format: 'json',
@@ -3565,16 +3921,27 @@ export class Api<
       }),
 
     /**
-     * @description Synchronise the meta data difference between NC_DB and external data sources
-     *
-     * @tags Project
-     * @name MetaDiffSync
-     * @summary Sync Meta
-     * @request POST:/api/v1/db/meta/projects/{projectId}/meta-diff
-     * @response `200` `any` OK
-     */
+ * @description Synchronise the meta data difference between NC_DB and external data sources 
+ * 
+ * @tags Project
+ * @name MetaDiffSync
+ * @summary Sync Meta
+ * @request POST:/api/v1/db/meta/projects/{projectId}/meta-diff
+ * @response `200` `any` OK
+ * @response `400` `{
+  \** @example BadRequest [Error]: <ERROR MESSAGE> *\
+  msg?: string,
+
+}`
+ */
     metaDiffSync: (projectId: IdType, params: RequestParams = {}) =>
-      this.request<any, any>({
+      this.request<
+        any,
+        {
+          /** @example BadRequest [Error]: <ERROR MESSAGE> */
+          msg?: string;
+        }
+      >({
         path: `/api/v1/db/meta/projects/${projectId}/meta-diff`,
         method: 'POST',
         format: 'json',
@@ -3582,16 +3949,27 @@ export class Api<
       }),
 
     /**
-     * @description Get the meta data difference between NC_DB and external data sources
-     *
-     * @tags Project
-     * @name MetaDiffGet
-     * @summary Meta Diff
-     * @request GET:/api/v1/db/meta/projects/{projectId}/meta-diff
-     * @response `200` `any` OK
-     */
+ * @description Get the meta data difference between NC_DB and external data sources 
+ * 
+ * @tags Project
+ * @name MetaDiffGet
+ * @summary Meta Diff
+ * @request GET:/api/v1/db/meta/projects/{projectId}/meta-diff
+ * @response `200` `any` OK
+ * @response `400` `{
+  \** @example BadRequest [Error]: <ERROR MESSAGE> *\
+  msg?: string,
+
+}`
+ */
     metaDiffGet: (projectId: IdType, params: RequestParams = {}) =>
-      this.request<any, any>({
+      this.request<
+        any,
+        {
+          /** @example BadRequest [Error]: <ERROR MESSAGE> */
+          msg?: string;
+        }
+      >({
         path: `/api/v1/db/meta/projects/${projectId}/meta-diff`,
         method: 'GET',
         format: 'json',
@@ -3599,16 +3977,27 @@ export class Api<
       }),
 
     /**
-     * @description Check if a project contains empty and null filters. Used in `Show NULL and EMPTY in Filter` in Project Setting.
-     *
-     * @tags Project
-     * @name HasEmptyOrNullFilters
-     * @summary List Empty & Null Filter
-     * @request GET:/api/v1/db/meta/projects/{projectId}/has-empty-or-null-filters
-     * @response `200` `any` OK
-     */
+ * @description Check if a project contains empty and null filters. Used in `Show NULL and EMPTY in Filter` in Project Setting.
+ * 
+ * @tags Project
+ * @name HasEmptyOrNullFilters
+ * @summary List Empty & Null Filter
+ * @request GET:/api/v1/db/meta/projects/{projectId}/has-empty-or-null-filters
+ * @response `200` `any` OK
+ * @response `400` `{
+  \** @example BadRequest [Error]: <ERROR MESSAGE> *\
+  msg?: string,
+
+}`
+ */
     hasEmptyOrNullFilters: (projectId: IdType, params: RequestParams = {}) =>
-      this.request<any, any>({
+      this.request<
+        any,
+        {
+          /** @example BadRequest [Error]: <ERROR MESSAGE> */
+          msg?: string;
+        }
+      >({
         path: `/api/v1/db/meta/projects/${projectId}/has-empty-or-null-filters`,
         method: 'GET',
         format: 'json',
@@ -3628,6 +4017,11 @@ export class Api<
   pageInfo: PaginatedType,
 
 }` OK
+ * @response `400` `{
+  \** @example BadRequest [Error]: <ERROR MESSAGE> *\
+  msg?: string,
+
+}`
  */
     auditList: (
       projectId: IdType,
@@ -3645,7 +4039,10 @@ export class Api<
           /** Model for Paginated */
           pageInfo: PaginatedType;
         },
-        any
+        {
+          /** @example BadRequest [Error]: <ERROR MESSAGE> */
+          msg?: string;
+        }
       >({
         path: `/api/v1/db/meta/projects/${projectId}/audits`,
         method: 'GET',
@@ -3656,16 +4053,27 @@ export class Api<
   };
   base = {
     /**
-     * @description Get the base details of a given project
-     *
-     * @tags Base
-     * @name Read
-     * @summary Get Base
-     * @request GET:/api/v1/db/meta/projects/{projectId}/bases/{baseId}
-     * @response `200` `BaseType` OK
-     */
+ * @description Get the base details of a given project
+ * 
+ * @tags Base
+ * @name Read
+ * @summary Get Base
+ * @request GET:/api/v1/db/meta/projects/{projectId}/bases/{baseId}
+ * @response `200` `BaseType` OK
+ * @response `400` `{
+  \** @example BadRequest [Error]: <ERROR MESSAGE> *\
+  msg?: string,
+
+}`
+ */
     read: (projectId: IdType, baseId: string, params: RequestParams = {}) =>
-      this.request<BaseType, any>({
+      this.request<
+        BaseType,
+        {
+          /** @example BadRequest [Error]: <ERROR MESSAGE> */
+          msg?: string;
+        }
+      >({
         path: `/api/v1/db/meta/projects/${projectId}/bases/${baseId}`,
         method: 'GET',
         format: 'json',
@@ -3673,37 +4081,59 @@ export class Api<
       }),
 
     /**
-     * @description Delete the base details of a given project
-     *
-     * @tags Base
-     * @name Delete
-     * @summary Delete Base
-     * @request DELETE:/api/v1/db/meta/projects/{projectId}/bases/{baseId}
-     * @response `200` `void` OK
-     */
+ * @description Delete the base details of a given project
+ * 
+ * @tags Base
+ * @name Delete
+ * @summary Delete Base
+ * @request DELETE:/api/v1/db/meta/projects/{projectId}/bases/{baseId}
+ * @response `200` `void` OK
+ * @response `400` `{
+  \** @example BadRequest [Error]: <ERROR MESSAGE> *\
+  msg?: string,
+
+}`
+ */
     delete: (projectId: IdType, baseId: string, params: RequestParams = {}) =>
-      this.request<void, any>({
+      this.request<
+        void,
+        {
+          /** @example BadRequest [Error]: <ERROR MESSAGE> */
+          msg?: string;
+        }
+      >({
         path: `/api/v1/db/meta/projects/${projectId}/bases/${baseId}`,
         method: 'DELETE',
         ...params,
       }),
 
     /**
-     * @description Update the base details of a given project
-     *
-     * @tags Base
-     * @name Update
-     * @summary Update Base
-     * @request PATCH:/api/v1/db/meta/projects/{projectId}/bases/{baseId}
-     * @response `200` `void` OK
-     */
+ * @description Update the base details of a given project
+ * 
+ * @tags Base
+ * @name Update
+ * @summary Update Base
+ * @request PATCH:/api/v1/db/meta/projects/{projectId}/bases/{baseId}
+ * @response `200` `void` OK
+ * @response `400` `{
+  \** @example BadRequest [Error]: <ERROR MESSAGE> *\
+  msg?: string,
+
+}`
+ */
     update: (
       projectId: IdType,
       baseId: string,
       data: any,
       params: RequestParams = {}
     ) =>
-      this.request<void, any>({
+      this.request<
+        void,
+        {
+          /** @example BadRequest [Error]: <ERROR MESSAGE> */
+          msg?: string;
+        }
+      >({
         path: `/api/v1/db/meta/projects/${projectId}/bases/${baseId}`,
         method: 'PATCH',
         body: data,
@@ -3712,16 +4142,27 @@ export class Api<
       }),
 
     /**
-     * @description Get project base list
-     *
-     * @tags Base
-     * @name List
-     * @summary List Bases
-     * @request GET:/api/v1/db/meta/projects/{projectId}/bases/
-     * @response `200` `BaseListType` OK
-     */
+ * @description Get project base list
+ * 
+ * @tags Base
+ * @name List
+ * @summary List Bases
+ * @request GET:/api/v1/db/meta/projects/{projectId}/bases/
+ * @response `200` `BaseListType` OK
+ * @response `400` `{
+  \** @example BadRequest [Error]: <ERROR MESSAGE> *\
+  msg?: string,
+
+}`
+ */
     list: (projectId: IdType, params: RequestParams = {}) =>
-      this.request<BaseListType, any>({
+      this.request<
+        BaseListType,
+        {
+          /** @example BadRequest [Error]: <ERROR MESSAGE> */
+          msg?: string;
+        }
+      >({
         path: `/api/v1/db/meta/projects/${projectId}/bases/`,
         method: 'GET',
         format: 'json',
@@ -3729,14 +4170,19 @@ export class Api<
       }),
 
     /**
-     * @description Create a new base on a given project
-     *
-     * @tags Base
-     * @name Create
-     * @summary Create Base
-     * @request POST:/api/v1/db/meta/projects/{projectId}/bases/
-     * @response `200` `BaseType` OK
-     */
+ * @description Create a new base on a given project
+ * 
+ * @tags Base
+ * @name Create
+ * @summary Create Base
+ * @request POST:/api/v1/db/meta/projects/{projectId}/bases/
+ * @response `200` `BaseType` OK
+ * @response `400` `{
+  \** @example BadRequest [Error]: <ERROR MESSAGE> *\
+  msg?: string,
+
+}`
+ */
     create: (
       projectId: IdType,
       data: BaseType & {
@@ -3744,7 +4190,13 @@ export class Api<
       },
       params: RequestParams = {}
     ) =>
-      this.request<BaseType, any>({
+      this.request<
+        BaseType,
+        {
+          /** @example BadRequest [Error]: <ERROR MESSAGE> */
+          msg?: string;
+        }
+      >({
         path: `/api/v1/db/meta/projects/${projectId}/bases/`,
         method: 'POST',
         body: data,
@@ -3754,14 +4206,19 @@ export class Api<
       }),
 
     /**
-     * @description List all tables in a given Project and Base
-     *
-     * @tags Base
-     * @name TableList
-     * @summary List Tables
-     * @request GET:/api/v1/db/meta/projects/{projectId}/{baseId}/tables
-     * @response `200` `TableListType`
-     */
+ * @description List all tables in a given Project and Base
+ * 
+ * @tags Base
+ * @name TableList
+ * @summary List Tables
+ * @request GET:/api/v1/db/meta/projects/{projectId}/{baseId}/tables
+ * @response `200` `TableListType`
+ * @response `400` `{
+  \** @example BadRequest [Error]: <ERROR MESSAGE> *\
+  msg?: string,
+
+}`
+ */
     tableList: (
       projectId: IdType,
       baseId: string,
@@ -3773,7 +4230,13 @@ export class Api<
       },
       params: RequestParams = {}
     ) =>
-      this.request<TableListType, any>({
+      this.request<
+        TableListType,
+        {
+          /** @example BadRequest [Error]: <ERROR MESSAGE> */
+          msg?: string;
+        }
+      >({
         path: `/api/v1/db/meta/projects/${projectId}/${baseId}/tables`,
         method: 'GET',
         query: query,
@@ -3781,21 +4244,32 @@ export class Api<
       }),
 
     /**
-     * @description Create a new table in a given Project and Base
-     *
-     * @tags Base
-     * @name TableCreate
-     * @summary Create Table
-     * @request POST:/api/v1/db/meta/projects/{projectId}/{baseId}/tables
-     * @response `200` `TableType` OK
-     */
+ * @description Create a new table in a given Project and Base
+ * 
+ * @tags Base
+ * @name TableCreate
+ * @summary Create Table
+ * @request POST:/api/v1/db/meta/projects/{projectId}/{baseId}/tables
+ * @response `200` `TableType` OK
+ * @response `400` `{
+  \** @example BadRequest [Error]: <ERROR MESSAGE> *\
+  msg?: string,
+
+}`
+ */
     tableCreate: (
       projectId: IdType,
       baseId: string,
       data: TableReqType,
       params: RequestParams = {}
     ) =>
-      this.request<TableType, any>({
+      this.request<
+        TableType,
+        {
+          /** @example BadRequest [Error]: <ERROR MESSAGE> */
+          msg?: string;
+        }
+      >({
         path: `/api/v1/db/meta/projects/${projectId}/${baseId}/tables`,
         method: 'POST',
         body: data,
@@ -3805,20 +4279,31 @@ export class Api<
       }),
 
     /**
-     * @description Synchronise the meta data difference between NC_DB and external data sources in a given Base
-     *
-     * @tags Base
-     * @name MetaDiffSync
-     * @summary Synchronise Base Meta
-     * @request POST:/api/v1/db/meta/projects/{projectId}/meta-diff/{baseId}
-     * @response `200` `any` OK
-     */
+ * @description Synchronise the meta data difference between NC_DB and external data sources in a given Base
+ * 
+ * @tags Base
+ * @name MetaDiffSync
+ * @summary Synchronise Base Meta
+ * @request POST:/api/v1/db/meta/projects/{projectId}/meta-diff/{baseId}
+ * @response `200` `any` OK
+ * @response `400` `{
+  \** @example BadRequest [Error]: <ERROR MESSAGE> *\
+  msg?: string,
+
+}`
+ */
     metaDiffSync: (
       projectId: IdType,
       baseId: string,
       params: RequestParams = {}
     ) =>
-      this.request<any, any>({
+      this.request<
+        any,
+        {
+          /** @example BadRequest [Error]: <ERROR MESSAGE> */
+          msg?: string;
+        }
+      >({
         path: `/api/v1/db/meta/projects/${projectId}/meta-diff/${baseId}`,
         method: 'POST',
         format: 'json',
@@ -3826,20 +4311,31 @@ export class Api<
       }),
 
     /**
-     * @description Get the meta data difference between NC_DB and external data sources in a given Base
-     *
-     * @tags Base
-     * @name MetaDiffGet
-     * @summary Base Meta Diff
-     * @request GET:/api/v1/db/meta/projects/{projectId}/meta-diff/{baseId}
-     * @response `200` `any` OK
-     */
+ * @description Get the meta data difference between NC_DB and external data sources in a given Base
+ * 
+ * @tags Base
+ * @name MetaDiffGet
+ * @summary Base Meta Diff
+ * @request GET:/api/v1/db/meta/projects/{projectId}/meta-diff/{baseId}
+ * @response `200` `any` OK
+ * @response `400` `{
+  \** @example BadRequest [Error]: <ERROR MESSAGE> *\
+  msg?: string,
+
+}`
+ */
     metaDiffGet: (
       projectId: IdType,
       baseId: string,
       params: RequestParams = {}
     ) =>
-      this.request<any, any>({
+      this.request<
+        any,
+        {
+          /** @example BadRequest [Error]: <ERROR MESSAGE> */
+          msg?: string;
+        }
+      >({
         path: `/api/v1/db/meta/projects/${projectId}/meta-diff/${baseId}`,
         method: 'GET',
         format: 'json',
@@ -3848,20 +4344,31 @@ export class Api<
   };
   dbTable = {
     /**
-     * @description Create a new table in a given project
-     *
-     * @tags DB Table
-     * @name Create
-     * @summary Create Table
-     * @request POST:/api/v1/db/meta/projects/{projectId}/tables
-     * @response `200` `TableType` OK
-     */
+ * @description Create a new table in a given project
+ * 
+ * @tags DB Table
+ * @name Create
+ * @summary Create Table
+ * @request POST:/api/v1/db/meta/projects/{projectId}/tables
+ * @response `200` `TableType` OK
+ * @response `400` `{
+  \** @example BadRequest [Error]: <ERROR MESSAGE> *\
+  msg?: string,
+
+}`
+ */
     create: (
       projectId: IdType,
       data: TableReqType,
       params: RequestParams = {}
     ) =>
-      this.request<TableType, any>({
+      this.request<
+        TableType,
+        {
+          /** @example BadRequest [Error]: <ERROR MESSAGE> */
+          msg?: string;
+        }
+      >({
         path: `/api/v1/db/meta/projects/${projectId}/tables`,
         method: 'POST',
         body: data,
@@ -3871,14 +4378,19 @@ export class Api<
       }),
 
     /**
-     * @description List all tables in a given project
-     *
-     * @tags DB Table
-     * @name List
-     * @summary List Tables
-     * @request GET:/api/v1/db/meta/projects/{projectId}/tables
-     * @response `200` `TableListType`
-     */
+ * @description List all tables in a given project
+ * 
+ * @tags DB Table
+ * @name List
+ * @summary List Tables
+ * @request GET:/api/v1/db/meta/projects/{projectId}/tables
+ * @response `200` `TableListType`
+ * @response `400` `{
+  \** @example BadRequest [Error]: <ERROR MESSAGE> *\
+  msg?: string,
+
+}`
+ */
     list: (
       projectId: IdType,
       query?: {
@@ -3889,7 +4401,13 @@ export class Api<
       },
       params: RequestParams = {}
     ) =>
-      this.request<TableListType, any>({
+      this.request<
+        TableListType,
+        {
+          /** @example BadRequest [Error]: <ERROR MESSAGE> */
+          msg?: string;
+        }
+      >({
         path: `/api/v1/db/meta/projects/${projectId}/tables`,
         method: 'GET',
         query: query,
@@ -3897,16 +4415,27 @@ export class Api<
       }),
 
     /**
-     * @description Read the table meta data by the given table ID
-     *
-     * @tags DB Table
-     * @name Read
-     * @summary Read Table
-     * @request GET:/api/v1/db/meta/tables/{tableId}
-     * @response `200` `TableType` OK
-     */
+ * @description Read the table meta data by the given table ID
+ * 
+ * @tags DB Table
+ * @name Read
+ * @summary Read Table
+ * @request GET:/api/v1/db/meta/tables/{tableId}
+ * @response `200` `TableType` OK
+ * @response `400` `{
+  \** @example BadRequest [Error]: <ERROR MESSAGE> *\
+  msg?: string,
+
+}`
+ */
     read: (tableId: IdType, params: RequestParams = {}) =>
-      this.request<TableType, any>({
+      this.request<
+        TableType,
+        {
+          /** @example BadRequest [Error]: <ERROR MESSAGE> */
+          msg?: string;
+        }
+      >({
         path: `/api/v1/db/meta/tables/${tableId}`,
         method: 'GET',
         format: 'json',
@@ -3914,14 +4443,19 @@ export class Api<
       }),
 
     /**
-     * @description Update the table meta data by the given table ID
-     *
-     * @tags DB Table
-     * @name Update
-     * @summary Update Table
-     * @request PATCH:/api/v1/db/meta/tables/{tableId}
-     * @response `200` `any` OK
-     */
+ * @description Update the table meta data by the given table ID
+ * 
+ * @tags DB Table
+ * @name Update
+ * @summary Update Table
+ * @request PATCH:/api/v1/db/meta/tables/{tableId}
+ * @response `200` `any` OK
+ * @response `400` `{
+  \** @example BadRequest [Error]: <ERROR MESSAGE> *\
+  msg?: string,
+
+}`
+ */
     update: (
       tableId: IdType,
       data: {
@@ -3945,7 +4479,13 @@ export class Api<
       },
       params: RequestParams = {}
     ) =>
-      this.request<any, any>({
+      this.request<
+        any,
+        {
+          /** @example BadRequest [Error]: <ERROR MESSAGE> */
+          msg?: string;
+        }
+      >({
         path: `/api/v1/db/meta/tables/${tableId}`,
         method: 'PATCH',
         body: data,
@@ -3955,30 +4495,46 @@ export class Api<
       }),
 
     /**
-     * @description Delete the table meta data by the given table ID
-     *
-     * @tags DB Table
-     * @name Delete
-     * @summary Delete Table
-     * @request DELETE:/api/v1/db/meta/tables/{tableId}
-     * @response `200` `void` OK
-     */
+ * @description Delete the table meta data by the given table ID
+ * 
+ * @tags DB Table
+ * @name Delete
+ * @summary Delete Table
+ * @request DELETE:/api/v1/db/meta/tables/{tableId}
+ * @response `200` `void` OK
+ * @response `400` `{
+  \** @example BadRequest [Error]: <ERROR MESSAGE> *\
+  msg?: string,
+
+}`
+ */
     delete: (tableId: IdType, params: RequestParams = {}) =>
-      this.request<void, any>({
+      this.request<
+        void,
+        {
+          /** @example BadRequest [Error]: <ERROR MESSAGE> */
+          msg?: string;
+        }
+      >({
         path: `/api/v1/db/meta/tables/${tableId}`,
         method: 'DELETE',
         ...params,
       }),
 
     /**
-     * @description Update the order of the given Table
-     *
-     * @tags DB Table
-     * @name Reorder
-     * @summary Reorder Table
-     * @request POST:/api/v1/db/meta/tables/{tableId}/reorder
-     * @response `200` `void` OK
-     */
+ * @description Update the order of the given Table
+ * 
+ * @tags DB Table
+ * @name Reorder
+ * @summary Reorder Table
+ * @request POST:/api/v1/db/meta/tables/{tableId}/reorder
+ * @response `200` `void` OK
+ * @response `400` `{
+  \** @example BadRequest [Error]: <ERROR MESSAGE> *\
+  msg?: string,
+
+}`
+ */
     reorder: (
       tableId: IdType,
       data: {
@@ -3986,7 +4542,13 @@ export class Api<
       },
       params: RequestParams = {}
     ) =>
-      this.request<void, any>({
+      this.request<
+        void,
+        {
+          /** @example BadRequest [Error]: <ERROR MESSAGE> */
+          msg?: string;
+        }
+      >({
         path: `/api/v1/db/meta/tables/${tableId}/reorder`,
         method: 'POST',
         body: data,
@@ -3996,20 +4558,31 @@ export class Api<
   };
   dbTableColumn = {
     /**
-     * @description Create a new column in a given Table
-     *
-     * @tags DB Table Column
-     * @name Create
-     * @summary Create Column
-     * @request POST:/api/v1/db/meta/tables/{tableId}/columns
-     * @response `200` `void` OK
-     */
+ * @description Create a new column in a given Table
+ * 
+ * @tags DB Table Column
+ * @name Create
+ * @summary Create Column
+ * @request POST:/api/v1/db/meta/tables/{tableId}/columns
+ * @response `200` `void` OK
+ * @response `400` `{
+  \** @example BadRequest [Error]: <ERROR MESSAGE> *\
+  msg?: string,
+
+}`
+ */
     create: (
       tableId: IdType,
       data: ColumnReqType,
       params: RequestParams = {}
     ) =>
-      this.request<void, any>({
+      this.request<
+        void,
+        {
+          /** @example BadRequest [Error]: <ERROR MESSAGE> */
+          msg?: string;
+        }
+      >({
         path: `/api/v1/db/meta/tables/${tableId}/columns`,
         method: 'POST',
         body: data,
@@ -4018,20 +4591,31 @@ export class Api<
       }),
 
     /**
-     * @description Update the existing column by the given column ID
-     *
-     * @tags DB Table Column
-     * @name Update
-     * @summary Update Column
-     * @request PATCH:/api/v1/db/meta/columns/{columnId}
-     * @response `200` `ColumnType` OK
-     */
+ * @description Update the existing column by the given column ID
+ * 
+ * @tags DB Table Column
+ * @name Update
+ * @summary Update Column
+ * @request PATCH:/api/v1/db/meta/columns/{columnId}
+ * @response `200` `ColumnType` OK
+ * @response `400` `{
+  \** @example BadRequest [Error]: <ERROR MESSAGE> *\
+  msg?: string,
+
+}`
+ */
     update: (
       columnId: string,
       data: ColumnReqType,
       params: RequestParams = {}
     ) =>
-      this.request<ColumnType, any>({
+      this.request<
+        ColumnType,
+        {
+          /** @example BadRequest [Error]: <ERROR MESSAGE> */
+          msg?: string;
+        }
+      >({
         path: `/api/v1/db/meta/columns/${columnId}`,
         method: 'PATCH',
         body: data,
@@ -4041,48 +4625,81 @@ export class Api<
       }),
 
     /**
-     * @description Delete the existing column by the given column ID
-     *
-     * @tags DB Table Column
-     * @name Delete
-     * @summary Delete Column
-     * @request DELETE:/api/v1/db/meta/columns/{columnId}
-     * @response `200` `void` OK
-     */
+ * @description Delete the existing column by the given column ID
+ * 
+ * @tags DB Table Column
+ * @name Delete
+ * @summary Delete Column
+ * @request DELETE:/api/v1/db/meta/columns/{columnId}
+ * @response `200` `void` OK
+ * @response `400` `{
+  \** @example BadRequest [Error]: <ERROR MESSAGE> *\
+  msg?: string,
+
+}`
+ */
     delete: (columnId: string, params: RequestParams = {}) =>
-      this.request<void, any>({
+      this.request<
+        void,
+        {
+          /** @example BadRequest [Error]: <ERROR MESSAGE> */
+          msg?: string;
+        }
+      >({
         path: `/api/v1/db/meta/columns/${columnId}`,
         method: 'DELETE',
         ...params,
       }),
 
     /**
-     * @description Get the existing column by the given column ID
-     *
-     * @tags DB Table Column
-     * @name Get
-     * @summary Get Column
-     * @request GET:/api/v1/db/meta/columns/{columnId}
-     * @response `200` `void` OK
-     */
+ * @description Get the existing column by the given column ID
+ * 
+ * @tags DB Table Column
+ * @name Get
+ * @summary Get Column
+ * @request GET:/api/v1/db/meta/columns/{columnId}
+ * @response `200` `void` OK
+ * @response `400` `{
+  \** @example BadRequest [Error]: <ERROR MESSAGE> *\
+  msg?: string,
+
+}`
+ */
     get: (columnId: string, params: RequestParams = {}) =>
-      this.request<void, any>({
+      this.request<
+        void,
+        {
+          /** @example BadRequest [Error]: <ERROR MESSAGE> */
+          msg?: string;
+        }
+      >({
         path: `/api/v1/db/meta/columns/${columnId}`,
         method: 'GET',
         ...params,
       }),
 
     /**
-     * @description Set a primary value on a given column
-     *
-     * @tags DB Table Column
-     * @name PrimaryColumnSet
-     * @summary Create Primary Value
-     * @request POST:/api/v1/db/meta/columns/{columnId}/primary
-     * @response `200` `void` OK
-     */
+ * @description Set a primary value on a given column
+ * 
+ * @tags DB Table Column
+ * @name PrimaryColumnSet
+ * @summary Create Primary Value
+ * @request POST:/api/v1/db/meta/columns/{columnId}/primary
+ * @response `200` `void` OK
+ * @response `400` `{
+  \** @example BadRequest [Error]: <ERROR MESSAGE> *\
+  msg?: string,
+
+}`
+ */
     primaryColumnSet: (columnId: string, params: RequestParams = {}) =>
-      this.request<void, any>({
+      this.request<
+        void,
+        {
+          /** @example BadRequest [Error]: <ERROR MESSAGE> */
+          msg?: string;
+        }
+      >({
         path: `/api/v1/db/meta/columns/${columnId}/primary`,
         method: 'POST',
         ...params,
@@ -4090,16 +4707,27 @@ export class Api<
   };
   dbView = {
     /**
-     * @description List all views in a given Table.
-     *
-     * @tags DB View
-     * @name List
-     * @summary List views
-     * @request GET:/api/v1/db/meta/tables/{tableId}/views
-     * @response `200` `ViewListType` OK
-     */
+ * @description List all views in a given Table.
+ * 
+ * @tags DB View
+ * @name List
+ * @summary List views
+ * @request GET:/api/v1/db/meta/tables/{tableId}/views
+ * @response `200` `ViewListType` OK
+ * @response `400` `{
+  \** @example BadRequest [Error]: <ERROR MESSAGE> *\
+  msg?: string,
+
+}`
+ */
     list: (tableId: IdType, params: RequestParams = {}) =>
-      this.request<ViewListType, any>({
+      this.request<
+        ViewListType,
+        {
+          /** @example BadRequest [Error]: <ERROR MESSAGE> */
+          msg?: string;
+        }
+      >({
         path: `/api/v1/db/meta/tables/${tableId}/views`,
         method: 'GET',
         format: 'json',
@@ -4107,16 +4735,27 @@ export class Api<
       }),
 
     /**
-     * @description Update the view with the given view Id.
-     *
-     * @tags DB View
-     * @name Update
-     * @summary Update View
-     * @request PATCH:/api/v1/db/meta/views/{viewId}
-     * @response `200` `void` OK
-     */
+ * @description Update the view with the given view Id.
+ * 
+ * @tags DB View
+ * @name Update
+ * @summary Update View
+ * @request PATCH:/api/v1/db/meta/views/{viewId}
+ * @response `200` `void` OK
+ * @response `400` `{
+  \** @example BadRequest [Error]: <ERROR MESSAGE> *\
+  msg?: string,
+
+}`
+ */
     update: (viewId: IdType, data: ViewReqType, params: RequestParams = {}) =>
-      this.request<void, any>({
+      this.request<
+        void,
+        {
+          /** @example BadRequest [Error]: <ERROR MESSAGE> */
+          msg?: string;
+        }
+      >({
         path: `/api/v1/db/meta/views/${viewId}`,
         method: 'PATCH',
         body: data,
@@ -4125,30 +4764,46 @@ export class Api<
       }),
 
     /**
-     * @description Delete the view with the given view Id.
-     *
-     * @tags DB View
-     * @name Delete
-     * @summary Delete View
-     * @request DELETE:/api/v1/db/meta/views/{viewId}
-     * @response `200` `void` OK
-     */
+ * @description Delete the view with the given view Id.
+ * 
+ * @tags DB View
+ * @name Delete
+ * @summary Delete View
+ * @request DELETE:/api/v1/db/meta/views/{viewId}
+ * @response `200` `void` OK
+ * @response `400` `{
+  \** @example BadRequest [Error]: <ERROR MESSAGE> *\
+  msg?: string,
+
+}`
+ */
     delete: (viewId: IdType, params: RequestParams = {}) =>
-      this.request<void, any>({
+      this.request<
+        void,
+        {
+          /** @example BadRequest [Error]: <ERROR MESSAGE> */
+          msg?: string;
+        }
+      >({
         path: `/api/v1/db/meta/views/${viewId}`,
         method: 'DELETE',
         ...params,
       }),
 
     /**
-     * @description Show All Columns in a given View
-     *
-     * @tags DB View
-     * @name ShowAllColumn
-     * @summary Show All Columns In View
-     * @request POST:/api/v1/db/meta/views/{viewId}/show-all
-     * @response `200` `void` OK
-     */
+ * @description Show All Columns in a given View
+ * 
+ * @tags DB View
+ * @name ShowAllColumn
+ * @summary Show All Columns In View
+ * @request POST:/api/v1/db/meta/views/{viewId}/show-all
+ * @response `200` `void` OK
+ * @response `400` `{
+  \** @example BadRequest [Error]: <ERROR MESSAGE> *\
+  msg?: string,
+
+}`
+ */
     showAllColumn: (
       viewId: IdType,
       query?: {
@@ -4156,7 +4811,13 @@ export class Api<
       },
       params: RequestParams = {}
     ) =>
-      this.request<void, any>({
+      this.request<
+        void,
+        {
+          /** @example BadRequest [Error]: <ERROR MESSAGE> */
+          msg?: string;
+        }
+      >({
         path: `/api/v1/db/meta/views/${viewId}/show-all`,
         method: 'POST',
         query: query,
@@ -4164,14 +4825,19 @@ export class Api<
       }),
 
     /**
-     * @description Hide All Columns in a given View
-     *
-     * @tags DB View
-     * @name HideAllColumn
-     * @summary Hide All Columns In View
-     * @request POST:/api/v1/db/meta/views/{viewId}/hide-all
-     * @response `200` `void` OK
-     */
+ * @description Hide All Columns in a given View
+ * 
+ * @tags DB View
+ * @name HideAllColumn
+ * @summary Hide All Columns In View
+ * @request POST:/api/v1/db/meta/views/{viewId}/hide-all
+ * @response `200` `void` OK
+ * @response `400` `{
+  \** @example BadRequest [Error]: <ERROR MESSAGE> *\
+  msg?: string,
+
+}`
+ */
     hideAllColumn: (
       viewId: IdType,
       query?: {
@@ -4179,7 +4845,13 @@ export class Api<
       },
       params: RequestParams = {}
     ) =>
-      this.request<void, any>({
+      this.request<
+        void,
+        {
+          /** @example BadRequest [Error]: <ERROR MESSAGE> */
+          msg?: string;
+        }
+      >({
         path: `/api/v1/db/meta/views/${viewId}/hide-all`,
         method: 'POST',
         query: query,
@@ -4187,20 +4859,31 @@ export class Api<
       }),
 
     /**
-     * @description Create a new grid view in a given Table
-     *
-     * @tags DB View
-     * @name GridCreate
-     * @summary Create Grid View
-     * @request POST:/api/v1/db/meta/tables/{tableId}/grids
-     * @response `200` `GridType` OK
-     */
+ * @description Create a new grid view in a given Table
+ * 
+ * @tags DB View
+ * @name GridCreate
+ * @summary Create Grid View
+ * @request POST:/api/v1/db/meta/tables/{tableId}/grids
+ * @response `200` `GridType` OK
+ * @response `400` `{
+  \** @example BadRequest [Error]: <ERROR MESSAGE> *\
+  msg?: string,
+
+}`
+ */
     gridCreate: (
       tableId: IdType,
       data: GridReqType,
       params: RequestParams = {}
     ) =>
-      this.request<GridType, any>({
+      this.request<
+        GridType,
+        {
+          /** @example BadRequest [Error]: <ERROR MESSAGE> */
+          msg?: string;
+        }
+      >({
         path: `/api/v1/db/meta/tables/${tableId}/grids`,
         method: 'POST',
         body: data,
@@ -4210,20 +4893,31 @@ export class Api<
       }),
 
     /**
-     * @description Create a new form view in a given Table
-     *
-     * @tags DB View
-     * @name FormCreate
-     * @summary Create Form View
-     * @request POST:/api/v1/db/meta/tables/{tableId}/forms
-     * @response `200` `FormType` OK
-     */
+ * @description Create a new form view in a given Table
+ * 
+ * @tags DB View
+ * @name FormCreate
+ * @summary Create Form View
+ * @request POST:/api/v1/db/meta/tables/{tableId}/forms
+ * @response `200` `FormType` OK
+ * @response `400` `{
+  \** @example BadRequest [Error]: <ERROR MESSAGE> *\
+  msg?: string,
+
+}`
+ */
     formCreate: (
       tableId: IdType,
       data: FormReqType,
       params: RequestParams = {}
     ) =>
-      this.request<FormType, any>({
+      this.request<
+        FormType,
+        {
+          /** @example BadRequest [Error]: <ERROR MESSAGE> */
+          msg?: string;
+        }
+      >({
         path: `/api/v1/db/meta/tables/${tableId}/forms`,
         method: 'POST',
         body: data,
@@ -4255,16 +4949,27 @@ export class Api<
       }),
 
     /**
-     * @description Get the form data by Form ID
-     *
-     * @tags DB View
-     * @name FormRead
-     * @summary Get Form
-     * @request GET:/api/v1/db/meta/forms/{formViewId}
-     * @response `200` `FormType` OK
-     */
+ * @description Get the form data by Form ID
+ * 
+ * @tags DB View
+ * @name FormRead
+ * @summary Get Form
+ * @request GET:/api/v1/db/meta/forms/{formViewId}
+ * @response `200` `FormType` OK
+ * @response `400` `{
+  \** @example BadRequest [Error]: <ERROR MESSAGE> *\
+  msg?: string,
+
+}`
+ */
     formRead: (formViewId: IdType, params: RequestParams = {}) =>
-      this.request<FormType, any>({
+      this.request<
+        FormType,
+        {
+          /** @example BadRequest [Error]: <ERROR MESSAGE> */
+          msg?: string;
+        }
+      >({
         path: `/api/v1/db/meta/forms/${formViewId}`,
         method: 'GET',
         format: 'json',
@@ -4272,20 +4977,31 @@ export class Api<
       }),
 
     /**
-     * @description Update the form column(s) by Form View Column ID
-     *
-     * @tags DB View
-     * @name FormColumnUpdate
-     * @summary Update Form Column
-     * @request PATCH:/api/v1/db/meta/form-columns/{formViewColumnId}
-     * @response `200` `FormColumnReqType` OK
-     */
+ * @description Update the form column(s) by Form View Column ID
+ * 
+ * @tags DB View
+ * @name FormColumnUpdate
+ * @summary Update Form Column
+ * @request PATCH:/api/v1/db/meta/form-columns/{formViewColumnId}
+ * @response `200` `FormColumnReqType` OK
+ * @response `400` `{
+  \** @example BadRequest [Error]: <ERROR MESSAGE> *\
+  msg?: string,
+
+}`
+ */
     formColumnUpdate: (
       formViewColumnId: IdType,
       data: FormColumnReqType,
       params: RequestParams = {}
     ) =>
-      this.request<FormColumnReqType, any>({
+      this.request<
+        FormColumnReqType,
+        {
+          /** @example BadRequest [Error]: <ERROR MESSAGE> */
+          msg?: string;
+        }
+      >({
         path: `/api/v1/db/meta/form-columns/${formViewColumnId}`,
         method: 'PATCH',
         body: data,
@@ -4295,16 +5011,27 @@ export class Api<
       }),
 
     /**
-     * @description Update Grid View
-     *
-     * @tags DB View
-     * @name GridUpdate
-     * @summary Update Grid View
-     * @request PATCH:/api/v1/db/meta/grids/{viewId}
-     * @response `200` `any` OK
-     */
+ * @description Update Grid View
+ * 
+ * @tags DB View
+ * @name GridUpdate
+ * @summary Update Grid View
+ * @request PATCH:/api/v1/db/meta/grids/{viewId}
+ * @response `200` `any` OK
+ * @response `400` `{
+  \** @example BadRequest [Error]: <ERROR MESSAGE> *\
+  msg?: string,
+
+}`
+ */
     gridUpdate: (viewId: string, data: GridType, params: RequestParams = {}) =>
-      this.request<any, any>({
+      this.request<
+        any,
+        {
+          /** @example BadRequest [Error]: <ERROR MESSAGE> */
+          msg?: string;
+        }
+      >({
         path: `/api/v1/db/meta/grids/${viewId}`,
         method: 'PATCH',
         body: data,
@@ -4314,16 +5041,27 @@ export class Api<
       }),
 
     /**
-     * @description List all columns in the given Grid
-     *
-     * @tags DB View
-     * @name GridColumnsList
-     * @summary List Grid Columns
-     * @request GET:/api/v1/db/meta/grids/{gridId}/grid-columns
-     * @response `200` `(GridColumnType)[]` OK
-     */
+ * @description List all columns in the given Grid
+ * 
+ * @tags DB View
+ * @name GridColumnsList
+ * @summary List Grid Columns
+ * @request GET:/api/v1/db/meta/grids/{gridId}/grid-columns
+ * @response `200` `(GridColumnType)[]` OK
+ * @response `400` `{
+  \** @example BadRequest [Error]: <ERROR MESSAGE> *\
+  msg?: string,
+
+}`
+ */
     gridColumnsList: (gridId: string, params: RequestParams = {}) =>
-      this.request<GridColumnType[], any>({
+      this.request<
+        GridColumnType[],
+        {
+          /** @example BadRequest [Error]: <ERROR MESSAGE> */
+          msg?: string;
+        }
+      >({
         path: `/api/v1/db/meta/grids/${gridId}/grid-columns`,
         method: 'GET',
         format: 'json',
@@ -4331,20 +5069,31 @@ export class Api<
       }),
 
     /**
-     * @description Update grid column(s) in the given Grid
-     *
-     * @tags DB View
-     * @name GridColumnUpdate
-     * @summary Update Grid Column
-     * @request PATCH:/api/v1/db/meta/grid-columns/{columnId}
-     * @response `200` `any` OK
-     */
+ * @description Update grid column(s) in the given Grid
+ * 
+ * @tags DB View
+ * @name GridColumnUpdate
+ * @summary Update Grid Column
+ * @request PATCH:/api/v1/db/meta/grid-columns/{columnId}
+ * @response `200` `any` OK
+ * @response `400` `{
+  \** @example BadRequest [Error]: <ERROR MESSAGE> *\
+  msg?: string,
+
+}`
+ */
     gridColumnUpdate: (
       columnId: IdType,
       data: GridColumnReqType,
       params: RequestParams = {}
     ) =>
-      this.request<any, any>({
+      this.request<
+        any,
+        {
+          /** @example BadRequest [Error]: <ERROR MESSAGE> */
+          msg?: string;
+        }
+      >({
         path: `/api/v1/db/meta/grid-columns/${columnId}`,
         method: 'PATCH',
         body: data,
@@ -4354,20 +5103,31 @@ export class Api<
       }),
 
     /**
-     * No description
-     *
-     * @tags DB View
-     * @name GalleryCreate
-     * @summary Gallery View
-     * @request POST:/api/v1/db/meta/tables/{tableId}/galleries
-     * @response `200` `object` OK
-     */
+ * No description
+ * 
+ * @tags DB View
+ * @name GalleryCreate
+ * @summary Gallery View
+ * @request POST:/api/v1/db/meta/tables/{tableId}/galleries
+ * @response `200` `object` OK
+ * @response `400` `{
+  \** @example BadRequest [Error]: <ERROR MESSAGE> *\
+  msg?: string,
+
+}`
+ */
     galleryCreate: (
       tableId: IdType,
       data: GalleryReqType,
       params: RequestParams = {}
     ) =>
-      this.request<object, any>({
+      this.request<
+        object,
+        {
+          /** @example BadRequest [Error]: <ERROR MESSAGE> */
+          msg?: string;
+        }
+      >({
         path: `/api/v1/db/meta/tables/${tableId}/galleries`,
         method: 'POST',
         body: data,
@@ -4377,20 +5137,31 @@ export class Api<
       }),
 
     /**
-     * @description Update the Gallery View data with Gallery ID
-     *
-     * @tags DB View
-     * @name GalleryUpdate
-     * @summary Update Gallery View
-     * @request PATCH:/api/v1/db/meta/galleries/{galleryViewId}
-     * @response `200` `void` OK
-     */
+ * @description Update the Gallery View data with Gallery ID
+ * 
+ * @tags DB View
+ * @name GalleryUpdate
+ * @summary Update Gallery View
+ * @request PATCH:/api/v1/db/meta/galleries/{galleryViewId}
+ * @response `200` `void` OK
+ * @response `400` `{
+  \** @example BadRequest [Error]: <ERROR MESSAGE> *\
+  msg?: string,
+
+}`
+ */
     galleryUpdate: (
       galleryViewId: string,
       data: GalleryReqType,
       params: RequestParams = {}
     ) =>
-      this.request<void, any>({
+      this.request<
+        void,
+        {
+          /** @example BadRequest [Error]: <ERROR MESSAGE> */
+          msg?: string;
+        }
+      >({
         path: `/api/v1/db/meta/galleries/${galleryViewId}`,
         method: 'PATCH',
         body: data,
@@ -4399,16 +5170,27 @@ export class Api<
       }),
 
     /**
-     * @description Get the Gallery View data with Gallery ID
-     *
-     * @tags DB View
-     * @name GalleryRead
-     * @summary Get Gallery View
-     * @request GET:/api/v1/db/meta/galleries/{galleryViewId}
-     * @response `200` `GalleryType` OK
-     */
+ * @description Get the Gallery View data with Gallery ID
+ * 
+ * @tags DB View
+ * @name GalleryRead
+ * @summary Get Gallery View
+ * @request GET:/api/v1/db/meta/galleries/{galleryViewId}
+ * @response `200` `GalleryType` OK
+ * @response `400` `{
+  \** @example BadRequest [Error]: <ERROR MESSAGE> *\
+  msg?: string,
+
+}`
+ */
     galleryRead: (galleryViewId: string, params: RequestParams = {}) =>
-      this.request<GalleryType, any>({
+      this.request<
+        GalleryType,
+        {
+          /** @example BadRequest [Error]: <ERROR MESSAGE> */
+          msg?: string;
+        }
+      >({
         path: `/api/v1/db/meta/galleries/${galleryViewId}`,
         method: 'GET',
         format: 'json',
@@ -4416,20 +5198,31 @@ export class Api<
       }),
 
     /**
-     * @description Create a new Kanban View
-     *
-     * @tags DB View
-     * @name KanbanCreate
-     * @summary Create Kanban View
-     * @request POST:/api/v1/db/meta/tables/{tableId}/kanbans
-     * @response `200` `object` OK
-     */
+ * @description Create a new Kanban View
+ * 
+ * @tags DB View
+ * @name KanbanCreate
+ * @summary Create Kanban View
+ * @request POST:/api/v1/db/meta/tables/{tableId}/kanbans
+ * @response `200` `object` OK
+ * @response `400` `{
+  \** @example BadRequest [Error]: <ERROR MESSAGE> *\
+  msg?: string,
+
+}`
+ */
     kanbanCreate: (
       tableId: IdType,
       data: KanbanReqType,
       params: RequestParams = {}
     ) =>
-      this.request<object, any>({
+      this.request<
+        object,
+        {
+          /** @example BadRequest [Error]: <ERROR MESSAGE> */
+          msg?: string;
+        }
+      >({
         path: `/api/v1/db/meta/tables/${tableId}/kanbans`,
         method: 'POST',
         body: data,
@@ -4439,20 +5232,31 @@ export class Api<
       }),
 
     /**
-     * @description Update the Kanban View data with Kanban ID
-     *
-     * @tags DB View
-     * @name KanbanUpdate
-     * @summary Update Kanban View
-     * @request PATCH:/api/v1/db/meta/kanbans/{kanbanViewId}
-     * @response `200` `void` OK
-     */
+ * @description Update the Kanban View data with Kanban ID
+ * 
+ * @tags DB View
+ * @name KanbanUpdate
+ * @summary Update Kanban View
+ * @request PATCH:/api/v1/db/meta/kanbans/{kanbanViewId}
+ * @response `200` `void` OK
+ * @response `400` `{
+  \** @example BadRequest [Error]: <ERROR MESSAGE> *\
+  msg?: string,
+
+}`
+ */
     kanbanUpdate: (
       kanbanViewId: string,
       data: KanbanUpdateReqType,
       params: RequestParams = {}
     ) =>
-      this.request<void, any>({
+      this.request<
+        void,
+        {
+          /** @example BadRequest [Error]: <ERROR MESSAGE> */
+          msg?: string;
+        }
+      >({
         path: `/api/v1/db/meta/kanbans/${kanbanViewId}`,
         method: 'PATCH',
         body: data,
@@ -4461,16 +5265,27 @@ export class Api<
       }),
 
     /**
-     * @description Get the Kanban View data by Kanban ID
-     *
-     * @tags DB View
-     * @name KanbanRead
-     * @summary Get Kanban View
-     * @request GET:/api/v1/db/meta/kanbans/{kanbanViewId}
-     * @response `200` `KanbanType` OK
-     */
+ * @description Get the Kanban View data by Kanban ID
+ * 
+ * @tags DB View
+ * @name KanbanRead
+ * @summary Get Kanban View
+ * @request GET:/api/v1/db/meta/kanbans/{kanbanViewId}
+ * @response `200` `KanbanType` OK
+ * @response `400` `{
+  \** @example BadRequest [Error]: <ERROR MESSAGE> *\
+  msg?: string,
+
+}`
+ */
     kanbanRead: (kanbanViewId: string, params: RequestParams = {}) =>
-      this.request<KanbanType, any>({
+      this.request<
+        KanbanType,
+        {
+          /** @example BadRequest [Error]: <ERROR MESSAGE> */
+          msg?: string;
+        }
+      >({
         path: `/api/v1/db/meta/kanbans/${kanbanViewId}`,
         method: 'GET',
         format: 'json',
@@ -4478,16 +5293,27 @@ export class Api<
       }),
 
     /**
-     * @description Create a new Map View
-     *
-     * @tags DB View
-     * @name MapCreate
-     * @summary Create Map View
-     * @request POST:/api/v1/db/meta/tables/{tableId}/maps
-     * @response `200` `object` OK
-     */
+ * @description Create a new Map View
+ * 
+ * @tags DB View
+ * @name MapCreate
+ * @summary Create Map View
+ * @request POST:/api/v1/db/meta/tables/{tableId}/maps
+ * @response `200` `object` OK
+ * @response `400` `{
+  \** @example BadRequest [Error]: <ERROR MESSAGE> *\
+  msg?: string,
+
+}`
+ */
     mapCreate: (tableId: IdType, data: MapType, params: RequestParams = {}) =>
-      this.request<object, any>({
+      this.request<
+        object,
+        {
+          /** @example BadRequest [Error]: <ERROR MESSAGE> */
+          msg?: string;
+        }
+      >({
         path: `/api/v1/db/meta/tables/${tableId}/maps`,
         method: 'POST',
         body: data,
@@ -4497,16 +5323,27 @@ export class Api<
       }),
 
     /**
-     * @description Update the Map View data by Map ID
-     *
-     * @tags DB View
-     * @name MapUpdate
-     * @summary Update Map View
-     * @request PATCH:/api/v1/db/meta/maps/{mapViewId}
-     * @response `200` `void` OK
-     */
+ * @description Update the Map View data by Map ID
+ * 
+ * @tags DB View
+ * @name MapUpdate
+ * @summary Update Map View
+ * @request PATCH:/api/v1/db/meta/maps/{mapViewId}
+ * @response `200` `void` OK
+ * @response `400` `{
+  \** @example BadRequest [Error]: <ERROR MESSAGE> *\
+  msg?: string,
+
+}`
+ */
     mapUpdate: (mapViewId: string, data: MapType, params: RequestParams = {}) =>
-      this.request<void, any>({
+      this.request<
+        void,
+        {
+          /** @example BadRequest [Error]: <ERROR MESSAGE> */
+          msg?: string;
+        }
+      >({
         path: `/api/v1/db/meta/maps/${mapViewId}`,
         method: 'PATCH',
         body: data,
@@ -4515,16 +5352,27 @@ export class Api<
       }),
 
     /**
-     * @description Get the Map View data by Map ID
-     *
-     * @tags DB View
-     * @name MapRead
-     * @summary Get Map View
-     * @request GET:/api/v1/db/meta/maps/{mapViewId}
-     * @response `200` `MapType` OK
-     */
+ * @description Get the Map View data by Map ID
+ * 
+ * @tags DB View
+ * @name MapRead
+ * @summary Get Map View
+ * @request GET:/api/v1/db/meta/maps/{mapViewId}
+ * @response `200` `MapType` OK
+ * @response `400` `{
+  \** @example BadRequest [Error]: <ERROR MESSAGE> *\
+  msg?: string,
+
+}`
+ */
     mapRead: (mapViewId: string, params: RequestParams = {}) =>
-      this.request<MapType, any>({
+      this.request<
+        MapType,
+        {
+          /** @example BadRequest [Error]: <ERROR MESSAGE> */
+          msg?: string;
+        }
+      >({
         path: `/api/v1/db/meta/maps/${mapViewId}`,
         method: 'GET',
         format: 'json',
@@ -4533,16 +5381,27 @@ export class Api<
   };
   dbViewShare = {
     /**
-     * @description List all shared views in a given Table
-     *
-     * @tags DB View Share
-     * @name List
-     * @summary List Shared Views
-     * @request GET:/api/v1/db/meta/tables/{tableId}/share
-     * @response `200` `SharedViewListType` OK
-     */
+ * @description List all shared views in a given Table
+ * 
+ * @tags DB View Share
+ * @name List
+ * @summary List Shared Views
+ * @request GET:/api/v1/db/meta/tables/{tableId}/share
+ * @response `200` `SharedViewListType` OK
+ * @response `400` `{
+  \** @example BadRequest [Error]: <ERROR MESSAGE> *\
+  msg?: string,
+
+}`
+ */
     list: (tableId: IdType, params: RequestParams = {}) =>
-      this.request<SharedViewListType, any>({
+      this.request<
+        SharedViewListType,
+        {
+          /** @example BadRequest [Error]: <ERROR MESSAGE> */
+          msg?: string;
+        }
+      >({
         path: `/api/v1/db/meta/tables/${tableId}/share`,
         method: 'GET',
         format: 'json',
@@ -4550,16 +5409,27 @@ export class Api<
       }),
 
     /**
-     * @description Create a shared view in a given View..
-     *
-     * @tags DB View Share
-     * @name Create
-     * @summary Create Shared View
-     * @request POST:/api/v1/db/meta/views/{viewId}/share
-     * @response `200` `SharedViewReqType` OK
-     */
+ * @description Create a shared view in a given View..
+ * 
+ * @tags DB View Share
+ * @name Create
+ * @summary Create Shared View
+ * @request POST:/api/v1/db/meta/views/{viewId}/share
+ * @response `200` `SharedViewReqType` OK
+ * @response `400` `{
+  \** @example BadRequest [Error]: <ERROR MESSAGE> *\
+  msg?: string,
+
+}`
+ */
     create: (viewId: string, params: RequestParams = {}) =>
-      this.request<SharedViewReqType, any>({
+      this.request<
+        SharedViewReqType,
+        {
+          /** @example BadRequest [Error]: <ERROR MESSAGE> */
+          msg?: string;
+        }
+      >({
         path: `/api/v1/db/meta/views/${viewId}/share`,
         method: 'POST',
         format: 'json',
@@ -4567,20 +5437,31 @@ export class Api<
       }),
 
     /**
-     * @description Update a shared view in a given View..
-     *
-     * @tags DB View Share
-     * @name Update
-     * @summary Update Shared View
-     * @request PATCH:/api/v1/db/meta/views/{viewId}/share
-     * @response `200` `SharedViewType` OK
-     */
+ * @description Update a shared view in a given View..
+ * 
+ * @tags DB View Share
+ * @name Update
+ * @summary Update Shared View
+ * @request PATCH:/api/v1/db/meta/views/{viewId}/share
+ * @response `200` `SharedViewType` OK
+ * @response `400` `{
+  \** @example BadRequest [Error]: <ERROR MESSAGE> *\
+  msg?: string,
+
+}`
+ */
     update: (
       viewId: string,
       data: SharedViewReqType,
       params: RequestParams = {}
     ) =>
-      this.request<SharedViewType, any>({
+      this.request<
+        SharedViewType,
+        {
+          /** @example BadRequest [Error]: <ERROR MESSAGE> */
+          msg?: string;
+        }
+      >({
         path: `/api/v1/db/meta/views/${viewId}/share`,
         method: 'PATCH',
         body: data,
@@ -4590,16 +5471,27 @@ export class Api<
       }),
 
     /**
-     * @description Delete a shared view in a given View.
-     *
-     * @tags DB View Share
-     * @name Delete
-     * @summary Delete Shared View
-     * @request DELETE:/api/v1/db/meta/views/{viewId}/share
-     * @response `200` `void` OK
-     */
+ * @description Delete a shared view in a given View.
+ * 
+ * @tags DB View Share
+ * @name Delete
+ * @summary Delete Shared View
+ * @request DELETE:/api/v1/db/meta/views/{viewId}/share
+ * @response `200` `void` OK
+ * @response `400` `{
+  \** @example BadRequest [Error]: <ERROR MESSAGE> *\
+  msg?: string,
+
+}`
+ */
     delete: (viewId: string, params: RequestParams = {}) =>
-      this.request<void, any>({
+      this.request<
+        void,
+        {
+          /** @example BadRequest [Error]: <ERROR MESSAGE> */
+          msg?: string;
+        }
+      >({
         path: `/api/v1/db/meta/views/${viewId}/share`,
         method: 'DELETE',
         ...params,
@@ -4607,16 +5499,27 @@ export class Api<
   };
   dbViewColumn = {
     /**
-     * @description List all columns by ViewID
-     *
-     * @tags DB View Column
-     * @name List
-     * @summary List Columns In View
-     * @request GET:/api/v1/db/meta/views/{viewId}/columns
-     * @response `200` `ColumnListType` OK
-     */
+ * @description List all columns by ViewID
+ * 
+ * @tags DB View Column
+ * @name List
+ * @summary List Columns In View
+ * @request GET:/api/v1/db/meta/views/{viewId}/columns
+ * @response `200` `ColumnListType` OK
+ * @response `400` `{
+  \** @example BadRequest [Error]: <ERROR MESSAGE> *\
+  msg?: string,
+
+}`
+ */
     list: (viewId: string, params: RequestParams = {}) =>
-      this.request<ColumnListType, any>({
+      this.request<
+        ColumnListType,
+        {
+          /** @example BadRequest [Error]: <ERROR MESSAGE> */
+          msg?: string;
+        }
+      >({
         path: `/api/v1/db/meta/views/${viewId}/columns`,
         method: 'GET',
         format: 'json',
@@ -4624,20 +5527,31 @@ export class Api<
       }),
 
     /**
-     * @description Create a new column in a given View
-     *
-     * @tags DB View Column
-     * @name Create
-     * @summary Create Column in View
-     * @request POST:/api/v1/db/meta/views/{viewId}/columns
-     * @response `200` `void` OK
-     */
+ * @description Create a new column in a given View
+ * 
+ * @tags DB View Column
+ * @name Create
+ * @summary Create Column in View
+ * @request POST:/api/v1/db/meta/views/{viewId}/columns
+ * @response `200` `void` OK
+ * @response `400` `{
+  \** @example BadRequest [Error]: <ERROR MESSAGE> *\
+  msg?: string,
+
+}`
+ */
     create: (
       viewId: string,
       data: ViewColumnReqType,
       params: RequestParams = {}
     ) =>
-      this.request<void, any>({
+      this.request<
+        void,
+        {
+          /** @example BadRequest [Error]: <ERROR MESSAGE> */
+          msg?: string;
+        }
+      >({
         path: `/api/v1/db/meta/views/${viewId}/columns`,
         method: 'POST',
         body: data,
@@ -4646,21 +5560,32 @@ export class Api<
       }),
 
     /**
-     * @description Update a column in a View
-     *
-     * @tags DB View Column
-     * @name Update
-     * @summary Update View Column
-     * @request PATCH:/api/v1/db/meta/views/{viewId}/columns/{columnId}
-     * @response `200` `void` OK
-     */
+ * @description Update a column in a View
+ * 
+ * @tags DB View Column
+ * @name Update
+ * @summary Update View Column
+ * @request PATCH:/api/v1/db/meta/views/{viewId}/columns/{columnId}
+ * @response `200` `void` OK
+ * @response `400` `{
+  \** @example BadRequest [Error]: <ERROR MESSAGE> *\
+  msg?: string,
+
+}`
+ */
     update: (
       viewId: IdType,
       columnId: IdType,
       data: ViewColumnUpdateReqType,
       params: RequestParams = {}
     ) =>
-      this.request<void, any>({
+      this.request<
+        void,
+        {
+          /** @example BadRequest [Error]: <ERROR MESSAGE> */
+          msg?: string;
+        }
+      >({
         path: `/api/v1/db/meta/views/${viewId}/columns/${columnId}`,
         method: 'PATCH',
         body: data,
@@ -4670,16 +5595,27 @@ export class Api<
   };
   dbTableSort = {
     /**
-     * @description List all the sort data in a given View
-     *
-     * @tags DB Table Sort
-     * @name List
-     * @summary List View Sorts
-     * @request GET:/api/v1/db/meta/views/{viewId}/sorts
-     * @response `200` `SortListType` OK
-     */
+ * @description List all the sort data in a given View
+ * 
+ * @tags DB Table Sort
+ * @name List
+ * @summary List View Sorts
+ * @request GET:/api/v1/db/meta/views/{viewId}/sorts
+ * @response `200` `SortListType` OK
+ * @response `400` `{
+  \** @example BadRequest [Error]: <ERROR MESSAGE> *\
+  msg?: string,
+
+}`
+ */
     list: (viewId: string, params: RequestParams = {}) =>
-      this.request<SortListType, any>({
+      this.request<
+        SortListType,
+        {
+          /** @example BadRequest [Error]: <ERROR MESSAGE> */
+          msg?: string;
+        }
+      >({
         path: `/api/v1/db/meta/views/${viewId}/sorts`,
         method: 'GET',
         format: 'json',
@@ -4687,14 +5623,19 @@ export class Api<
       }),
 
     /**
-     * @description Update the sort data in a given View
-     *
-     * @tags DB Table Sort
-     * @name Create
-     * @summary Update View Sort
-     * @request POST:/api/v1/db/meta/views/{viewId}/sorts
-     * @response `200` `void` OK
-     */
+ * @description Update the sort data in a given View
+ * 
+ * @tags DB Table Sort
+ * @name Create
+ * @summary Update View Sort
+ * @request POST:/api/v1/db/meta/views/{viewId}/sorts
+ * @response `200` `void` OK
+ * @response `400` `{
+  \** @example BadRequest [Error]: <ERROR MESSAGE> *\
+  msg?: string,
+
+}`
+ */
     create: (
       viewId: string,
       data: SortReqType & {
@@ -4706,7 +5647,13 @@ export class Api<
       },
       params: RequestParams = {}
     ) =>
-      this.request<void, any>({
+      this.request<
+        void,
+        {
+          /** @example BadRequest [Error]: <ERROR MESSAGE> */
+          msg?: string;
+        }
+      >({
         path: `/api/v1/db/meta/views/${viewId}/sorts`,
         method: 'POST',
         body: data,
@@ -4715,16 +5662,27 @@ export class Api<
       }),
 
     /**
-     * @description Get the sort data by Sort ID
-     *
-     * @tags DB Table Sort
-     * @name Get
-     * @summary Get Sort
-     * @request GET:/api/v1/db/meta/sorts/{sortId}
-     * @response `200` `SortType` OK
-     */
+ * @description Get the sort data by Sort ID
+ * 
+ * @tags DB Table Sort
+ * @name Get
+ * @summary Get Sort
+ * @request GET:/api/v1/db/meta/sorts/{sortId}
+ * @response `200` `SortType` OK
+ * @response `400` `{
+  \** @example BadRequest [Error]: <ERROR MESSAGE> *\
+  msg?: string,
+
+}`
+ */
     get: (sortId: string, params: RequestParams = {}) =>
-      this.request<SortType, any>({
+      this.request<
+        SortType,
+        {
+          /** @example BadRequest [Error]: <ERROR MESSAGE> */
+          msg?: string;
+        }
+      >({
         path: `/api/v1/db/meta/sorts/${sortId}`,
         method: 'GET',
         format: 'json',
@@ -4732,16 +5690,27 @@ export class Api<
       }),
 
     /**
-     * @description Update the sort data by Sort ID
-     *
-     * @tags DB Table Sort
-     * @name Update
-     * @summary Update Sort
-     * @request PATCH:/api/v1/db/meta/sorts/{sortId}
-     * @response `200` `void` OK
-     */
+ * @description Update the sort data by Sort ID
+ * 
+ * @tags DB Table Sort
+ * @name Update
+ * @summary Update Sort
+ * @request PATCH:/api/v1/db/meta/sorts/{sortId}
+ * @response `200` `void` OK
+ * @response `400` `{
+  \** @example BadRequest [Error]: <ERROR MESSAGE> *\
+  msg?: string,
+
+}`
+ */
     update: (sortId: string, data: SortReqType, params: RequestParams = {}) =>
-      this.request<void, any>({
+      this.request<
+        void,
+        {
+          /** @example BadRequest [Error]: <ERROR MESSAGE> */
+          msg?: string;
+        }
+      >({
         path: `/api/v1/db/meta/sorts/${sortId}`,
         method: 'PATCH',
         body: data,
@@ -4750,16 +5719,27 @@ export class Api<
       }),
 
     /**
-     * @description Delete the sort data by Sort ID
-     *
-     * @tags DB Table Sort
-     * @name Delete
-     * @summary Delete Sort
-     * @request DELETE:/api/v1/db/meta/sorts/{sortId}
-     * @response `200` `void` OK
-     */
+ * @description Delete the sort data by Sort ID
+ * 
+ * @tags DB Table Sort
+ * @name Delete
+ * @summary Delete Sort
+ * @request DELETE:/api/v1/db/meta/sorts/{sortId}
+ * @response `200` `void` OK
+ * @response `400` `{
+  \** @example BadRequest [Error]: <ERROR MESSAGE> *\
+  msg?: string,
+
+}`
+ */
     delete: (sortId: string, params: RequestParams = {}) =>
-      this.request<void, any>({
+      this.request<
+        void,
+        {
+          /** @example BadRequest [Error]: <ERROR MESSAGE> */
+          msg?: string;
+        }
+      >({
         path: `/api/v1/db/meta/sorts/${sortId}`,
         method: 'DELETE',
         ...params,
@@ -4767,16 +5747,27 @@ export class Api<
   };
   dbTableFilter = {
     /**
-     * @description Get the filter data in a given View
-     *
-     * @tags DB Table Filter
-     * @name Read
-     * @summary Get View Filter
-     * @request GET:/api/v1/db/meta/views/{viewId}/filters
-     * @response `200` `FilterListType` OK
-     */
+ * @description Get the filter data in a given View
+ * 
+ * @tags DB Table Filter
+ * @name Read
+ * @summary Get View Filter
+ * @request GET:/api/v1/db/meta/views/{viewId}/filters
+ * @response `200` `FilterListType` OK
+ * @response `400` `{
+  \** @example BadRequest [Error]: <ERROR MESSAGE> *\
+  msg?: string,
+
+}`
+ */
     read: (viewId: string, params: RequestParams = {}) =>
-      this.request<FilterListType, any>({
+      this.request<
+        FilterListType,
+        {
+          /** @example BadRequest [Error]: <ERROR MESSAGE> */
+          msg?: string;
+        }
+      >({
         path: `/api/v1/db/meta/views/${viewId}/filters`,
         method: 'GET',
         format: 'json',
@@ -4784,16 +5775,27 @@ export class Api<
       }),
 
     /**
-     * @description Update the filter data in a given View
-     *
-     * @tags DB Table Filter
-     * @name Create
-     * @summary Create View Filter
-     * @request POST:/api/v1/db/meta/views/{viewId}/filters
-     * @response `200` `FilterType` OK
-     */
+ * @description Update the filter data in a given View
+ * 
+ * @tags DB Table Filter
+ * @name Create
+ * @summary Create View Filter
+ * @request POST:/api/v1/db/meta/views/{viewId}/filters
+ * @response `200` `FilterType` OK
+ * @response `400` `{
+  \** @example BadRequest [Error]: <ERROR MESSAGE> *\
+  msg?: string,
+
+}`
+ */
     create: (viewId: string, data: FilterReqType, params: RequestParams = {}) =>
-      this.request<FilterType, any>({
+      this.request<
+        FilterType,
+        {
+          /** @example BadRequest [Error]: <ERROR MESSAGE> */
+          msg?: string;
+        }
+      >({
         path: `/api/v1/db/meta/views/${viewId}/filters`,
         method: 'POST',
         body: data,
@@ -4803,16 +5805,27 @@ export class Api<
       }),
 
     /**
-     * @description Get the filter data with a given Filter ID
-     *
-     * @tags DB Table Filter
-     * @name Get
-     * @summary Get Filter
-     * @request GET:/api/v1/db/meta/filters/{filterId}
-     * @response `200` `FilterType` OK
-     */
+ * @description Get the filter data with a given Filter ID
+ * 
+ * @tags DB Table Filter
+ * @name Get
+ * @summary Get Filter
+ * @request GET:/api/v1/db/meta/filters/{filterId}
+ * @response `200` `FilterType` OK
+ * @response `400` `{
+  \** @example BadRequest [Error]: <ERROR MESSAGE> *\
+  msg?: string,
+
+}`
+ */
     get: (filterId: IdType, params: RequestParams = {}) =>
-      this.request<FilterType, any>({
+      this.request<
+        FilterType,
+        {
+          /** @example BadRequest [Error]: <ERROR MESSAGE> */
+          msg?: string;
+        }
+      >({
         path: `/api/v1/db/meta/filters/${filterId}`,
         method: 'GET',
         format: 'json',
@@ -4820,20 +5833,31 @@ export class Api<
       }),
 
     /**
-     * @description Update the filter data with a given Filter ID
-     *
-     * @tags DB Table Filter
-     * @name Update
-     * @summary Update Filter
-     * @request PATCH:/api/v1/db/meta/filters/{filterId}
-     * @response `200` `void` OK
-     */
+ * @description Update the filter data with a given Filter ID
+ * 
+ * @tags DB Table Filter
+ * @name Update
+ * @summary Update Filter
+ * @request PATCH:/api/v1/db/meta/filters/{filterId}
+ * @response `200` `void` OK
+ * @response `400` `{
+  \** @example BadRequest [Error]: <ERROR MESSAGE> *\
+  msg?: string,
+
+}`
+ */
     update: (
       filterId: IdType,
       data: FilterReqType,
       params: RequestParams = {}
     ) =>
-      this.request<void, any>({
+      this.request<
+        void,
+        {
+          /** @example BadRequest [Error]: <ERROR MESSAGE> */
+          msg?: string;
+        }
+      >({
         path: `/api/v1/db/meta/filters/${filterId}`,
         method: 'PATCH',
         body: data,
@@ -4842,32 +5866,54 @@ export class Api<
       }),
 
     /**
-     * @description Delete the filter data with a given Filter ID
-     *
-     * @tags DB Table Filter
-     * @name Delete
-     * @summary Delete Filter
-     * @request DELETE:/api/v1/db/meta/filters/{filterId}
-     * @response `200` `void` OK
-     */
+ * @description Delete the filter data with a given Filter ID
+ * 
+ * @tags DB Table Filter
+ * @name Delete
+ * @summary Delete Filter
+ * @request DELETE:/api/v1/db/meta/filters/{filterId}
+ * @response `200` `void` OK
+ * @response `400` `{
+  \** @example BadRequest [Error]: <ERROR MESSAGE> *\
+  msg?: string,
+
+}`
+ */
     delete: (filterId: IdType, params: RequestParams = {}) =>
-      this.request<void, any>({
+      this.request<
+        void,
+        {
+          /** @example BadRequest [Error]: <ERROR MESSAGE> */
+          msg?: string;
+        }
+      >({
         path: `/api/v1/db/meta/filters/${filterId}`,
         method: 'DELETE',
         ...params,
       }),
 
     /**
-     * @description Get Filter Group Children of a given group ID
-     *
-     * @tags DB Table Filter
-     * @name ChildrenRead
-     * @summary Get Filter Group Children
-     * @request GET:/api/v1/db/meta/filters/{filterGroupId}/children
-     * @response `200` `FilterListType` OK
-     */
+ * @description Get Filter Group Children of a given group ID
+ * 
+ * @tags DB Table Filter
+ * @name ChildrenRead
+ * @summary Get Filter Group Children
+ * @request GET:/api/v1/db/meta/filters/{filterGroupId}/children
+ * @response `200` `FilterListType` OK
+ * @response `400` `{
+  \** @example BadRequest [Error]: <ERROR MESSAGE> *\
+  msg?: string,
+
+}`
+ */
     childrenRead: (filterGroupId: IdType, params: RequestParams = {}) =>
-      this.request<FilterListType, any>({
+      this.request<
+        FilterListType,
+        {
+          /** @example BadRequest [Error]: <ERROR MESSAGE> */
+          msg?: string;
+        }
+      >({
         path: `/api/v1/db/meta/filters/${filterGroupId}/children`,
         method: 'GET',
         format: 'json',
@@ -4876,32 +5922,54 @@ export class Api<
   };
   dbTableWebhookFilter = {
     /**
-     * @description Get the filter data in a given Hook
-     *
-     * @tags DB Table Webhook Filter
-     * @name Read
-     * @summary Get Hook Filter
-     * @request GET:/api/v1/db/meta/hooks/{hookId}/filters
-     * @response `200` `FilterListType`
-     */
+ * @description Get the filter data in a given Hook
+ * 
+ * @tags DB Table Webhook Filter
+ * @name Read
+ * @summary Get Hook Filter
+ * @request GET:/api/v1/db/meta/hooks/{hookId}/filters
+ * @response `200` `FilterListType`
+ * @response `400` `{
+  \** @example BadRequest [Error]: <ERROR MESSAGE> *\
+  msg?: string,
+
+}`
+ */
     read: (hookId: IdType, params: RequestParams = {}) =>
-      this.request<FilterListType, any>({
+      this.request<
+        FilterListType,
+        {
+          /** @example BadRequest [Error]: <ERROR MESSAGE> */
+          msg?: string;
+        }
+      >({
         path: `/api/v1/db/meta/hooks/${hookId}/filters`,
         method: 'GET',
         ...params,
       }),
 
     /**
-     * @description Create filter(s) in a given Hook
-     *
-     * @tags DB Table Webhook Filter
-     * @name Create
-     * @summary Create Hook Filter
-     * @request POST:/api/v1/db/meta/hooks/{hookId}/filters
-     * @response `200` `void` OK
-     */
+ * @description Create filter(s) in a given Hook
+ * 
+ * @tags DB Table Webhook Filter
+ * @name Create
+ * @summary Create Hook Filter
+ * @request POST:/api/v1/db/meta/hooks/{hookId}/filters
+ * @response `200` `void` OK
+ * @response `400` `{
+  \** @example BadRequest [Error]: <ERROR MESSAGE> *\
+  msg?: string,
+
+}`
+ */
     create: (hookId: IdType, data: FilterReqType, params: RequestParams = {}) =>
-      this.request<void, any>({
+      this.request<
+        void,
+        {
+          /** @example BadRequest [Error]: <ERROR MESSAGE> */
+          msg?: string;
+        }
+      >({
         path: `/api/v1/db/meta/hooks/${hookId}/filters`,
         method: 'POST',
         body: data,
@@ -4911,14 +5979,19 @@ export class Api<
   };
   dbTableRow = {
     /**
-     * @description List all table rows in a given table and project
-     *
-     * @tags DB Table Row
-     * @name List
-     * @summary List Table Rows
-     * @request GET:/api/v1/db/data/{orgs}/{projectName}/{tableName}
-     * @response `200` `any` OK
-     */
+ * @description List all table rows in a given table and project
+ * 
+ * @tags DB Table Row
+ * @name List
+ * @summary List Table Rows
+ * @request GET:/api/v1/db/data/{orgs}/{projectName}/{tableName}
+ * @response `200` `any` OK
+ * @response `400` `{
+  \** @example BadRequest [Error]: <ERROR MESSAGE> *\
+  msg?: string,
+
+}`
+ */
     list: (
       orgs: string,
       projectName: string,
@@ -4947,7 +6020,13 @@ export class Api<
       },
       params: RequestParams = {}
     ) =>
-      this.request<any, any>({
+      this.request<
+        any,
+        {
+          /** @example BadRequest [Error]: <ERROR MESSAGE> */
+          msg?: string;
+        }
+      >({
         path: `/api/v1/db/data/${orgs}/${projectName}/${tableName}`,
         method: 'GET',
         query: query,
@@ -4956,14 +6035,19 @@ export class Api<
       }),
 
     /**
-     * @description Create a new row in a given table and project.
-     *
-     * @tags DB Table Row
-     * @name Create
-     * @summary Create Table Row
-     * @request POST:/api/v1/db/data/{orgs}/{projectName}/{tableName}
-     * @response `200` `any` OK
-     */
+ * @description Create a new row in a given table and project.
+ * 
+ * @tags DB Table Row
+ * @name Create
+ * @summary Create Table Row
+ * @request POST:/api/v1/db/data/{orgs}/{projectName}/{tableName}
+ * @response `200` `any` OK
+ * @response `400` `{
+  \** @example BadRequest [Error]: <ERROR MESSAGE> *\
+  msg?: string,
+
+}`
+ */
     create: (
       orgs: string,
       projectName: string,
@@ -4971,7 +6055,13 @@ export class Api<
       data: any,
       params: RequestParams = {}
     ) =>
-      this.request<any, any>({
+      this.request<
+        any,
+        {
+          /** @example BadRequest [Error]: <ERROR MESSAGE> */
+          msg?: string;
+        }
+      >({
         path: `/api/v1/db/data/${orgs}/${projectName}/${tableName}`,
         method: 'POST',
         body: data,
@@ -4981,14 +6071,19 @@ export class Api<
       }),
 
     /**
-     * @description Return the first result of the target Table Row
-     *
-     * @tags DB Table Row
-     * @name FindOne
-     * @summary Find One Table Row
-     * @request GET:/api/v1/db/data/{orgs}/{projectName}/{tableName}/find-one
-     * @response `200` `any` OK
-     */
+ * @description Return the first result of the target Table Row
+ * 
+ * @tags DB Table Row
+ * @name FindOne
+ * @summary Find One Table Row
+ * @request GET:/api/v1/db/data/{orgs}/{projectName}/{tableName}/find-one
+ * @response `200` `any` OK
+ * @response `400` `{
+  \** @example BadRequest [Error]: <ERROR MESSAGE> *\
+  msg?: string,
+
+}`
+ */
     findOne: (
       orgs: string,
       projectName: string,
@@ -5000,7 +6095,13 @@ export class Api<
       },
       params: RequestParams = {}
     ) =>
-      this.request<any, any>({
+      this.request<
+        any,
+        {
+          /** @example BadRequest [Error]: <ERROR MESSAGE> */
+          msg?: string;
+        }
+      >({
         path: `/api/v1/db/data/${orgs}/${projectName}/${tableName}/find-one`,
         method: 'GET',
         query: query,
@@ -5042,14 +6143,19 @@ export class Api<
       }),
 
     /**
-     * @description Get the grouped data By Column ID. Used in Kanban View.
-     *
-     * @tags DB Table Row
-     * @name GroupedDataList
-     * @summary Table Group by Column
-     * @request GET:/api/v1/db/data/{orgs}/{projectName}/{tableName}/group/{columnId}
-     * @response `200` `any` OK
-     */
+ * @description Get the grouped data By Column ID. Used in Kanban View.
+ * 
+ * @tags DB Table Row
+ * @name GroupedDataList
+ * @summary Table Group by Column
+ * @request GET:/api/v1/db/data/{orgs}/{projectName}/{tableName}/group/{columnId}
+ * @response `200` `any` OK
+ * @response `400` `{
+  \** @example BadRequest [Error]: <ERROR MESSAGE> *\
+  msg?: string,
+
+}`
+ */
     groupedDataList: (
       orgs: string,
       projectName: string,
@@ -5064,7 +6170,13 @@ export class Api<
       },
       params: RequestParams = {}
     ) =>
-      this.request<any, any>({
+      this.request<
+        any,
+        {
+          /** @example BadRequest [Error]: <ERROR MESSAGE> */
+          msg?: string;
+        }
+      >({
         path: `/api/v1/db/data/${orgs}/${projectName}/${tableName}/group/${columnId}`,
         method: 'GET',
         query: query,
@@ -5096,14 +6208,19 @@ export class Api<
       }),
 
     /**
-     * @description Update the Table Row
-     *
-     * @tags DB Table Row
-     * @name Update
-     * @summary Update Table Row
-     * @request PATCH:/api/v1/db/data/{orgs}/{projectName}/{tableName}/{rowId}
-     * @response `200` `any` OK
-     */
+ * @description Update the Table Row
+ * 
+ * @tags DB Table Row
+ * @name Update
+ * @summary Update Table Row
+ * @request PATCH:/api/v1/db/data/{orgs}/{projectName}/{tableName}/{rowId}
+ * @response `200` `any` OK
+ * @response `400` `{
+  \** @example BadRequest [Error]: <ERROR MESSAGE> *\
+  msg?: string,
+
+}`
+ */
     update: (
       orgs: string,
       projectName: string,
@@ -5112,7 +6229,13 @@ export class Api<
       data: any,
       params: RequestParams = {}
     ) =>
-      this.request<any, any>({
+      this.request<
+        any,
+        {
+          /** @example BadRequest [Error]: <ERROR MESSAGE> */
+          msg?: string;
+        }
+      >({
         path: `/api/v1/db/data/${orgs}/${projectName}/${tableName}/${rowId}`,
         method: 'PATCH',
         body: data,
@@ -5122,14 +6245,19 @@ export class Api<
       }),
 
     /**
-     * @description Delete the Table Row
-     *
-     * @tags DB Table Row
-     * @name Delete
-     * @summary Delete Table Row
-     * @request DELETE:/api/v1/db/data/{orgs}/{projectName}/{tableName}/{rowId}
-     * @response `200` `any` OK
-     */
+ * @description Delete the Table Row
+ * 
+ * @tags DB Table Row
+ * @name Delete
+ * @summary Delete Table Row
+ * @request DELETE:/api/v1/db/data/{orgs}/{projectName}/{tableName}/{rowId}
+ * @response `200` `any` OK
+ * @response `400` `{
+  \** @example BadRequest [Error]: <ERROR MESSAGE> *\
+  msg?: string,
+
+}`
+ */
     delete: (
       orgs: string,
       projectName: string,
@@ -5137,7 +6265,13 @@ export class Api<
       rowId: any,
       params: RequestParams = {}
     ) =>
-      this.request<any, any>({
+      this.request<
+        any,
+        {
+          /** @example BadRequest [Error]: <ERROR MESSAGE> */
+          msg?: string;
+        }
+      >({
         path: `/api/v1/db/data/${orgs}/${projectName}/${tableName}/${rowId}`,
         method: 'DELETE',
         format: 'json',
@@ -5145,14 +6279,19 @@ export class Api<
       }),
 
     /**
-     * @description check row with provided primary key exists or not
-     *
-     * @tags DB Table Row
-     * @name Exist
-     * @summary Does Table Row Exist
-     * @request GET:/api/v1/db/data/{orgs}/{projectName}/{tableName}/{rowId}/exist
-     * @response `201` `any` Created
-     */
+ * @description check row with provided primary key exists or not
+ * 
+ * @tags DB Table Row
+ * @name Exist
+ * @summary Does Table Row Exist
+ * @request GET:/api/v1/db/data/{orgs}/{projectName}/{tableName}/{rowId}/exist
+ * @response `201` `any` Created
+ * @response `400` `{
+  \** @example BadRequest [Error]: <ERROR MESSAGE> *\
+  msg?: string,
+
+}`
+ */
     exist: (
       orgs: string,
       projectName: string,
@@ -5160,7 +6299,13 @@ export class Api<
       rowId: any,
       params: RequestParams = {}
     ) =>
-      this.request<any, any>({
+      this.request<
+        any,
+        {
+          /** @example BadRequest [Error]: <ERROR MESSAGE> */
+          msg?: string;
+        }
+      >({
         path: `/api/v1/db/data/${orgs}/${projectName}/${tableName}/${rowId}/exist`,
         method: 'GET',
         format: 'json',
@@ -5168,14 +6313,19 @@ export class Api<
       }),
 
     /**
-     * @description Bulk insert table rows in one go.
-     *
-     * @tags DB Table Row
-     * @name BulkCreate
-     * @summary Bulk Insert Table Rows
-     * @request POST:/api/v1/db/data/bulk/{orgs}/{projectName}/{tableName}
-     * @response `200` `any` OK
-     */
+ * @description Bulk insert table rows in one go.
+ * 
+ * @tags DB Table Row
+ * @name BulkCreate
+ * @summary Bulk Insert Table Rows
+ * @request POST:/api/v1/db/data/bulk/{orgs}/{projectName}/{tableName}
+ * @response `200` `any` OK
+ * @response `400` `{
+  \** @example BadRequest [Error]: <ERROR MESSAGE> *\
+  msg?: string,
+
+}`
+ */
     bulkCreate: (
       orgs: string,
       projectName: string,
@@ -5183,7 +6333,13 @@ export class Api<
       data: any,
       params: RequestParams = {}
     ) =>
-      this.request<any, any>({
+      this.request<
+        any,
+        {
+          /** @example BadRequest [Error]: <ERROR MESSAGE> */
+          msg?: string;
+        }
+      >({
         path: `/api/v1/db/data/bulk/${orgs}/${projectName}/${tableName}`,
         method: 'POST',
         body: data,
@@ -5193,14 +6349,19 @@ export class Api<
       }),
 
     /**
-     * @description Bulk Update Table Rows by given IDs
-     *
-     * @tags DB Table Row
-     * @name BulkUpdate
-     * @summary Bulk Update Table Rows by IDs
-     * @request PATCH:/api/v1/db/data/bulk/{orgs}/{projectName}/{tableName}
-     * @response `200` `any` OK
-     */
+ * @description Bulk Update Table Rows by given IDs
+ * 
+ * @tags DB Table Row
+ * @name BulkUpdate
+ * @summary Bulk Update Table Rows by IDs
+ * @request PATCH:/api/v1/db/data/bulk/{orgs}/{projectName}/{tableName}
+ * @response `200` `any` OK
+ * @response `400` `{
+  \** @example BadRequest [Error]: <ERROR MESSAGE> *\
+  msg?: string,
+
+}`
+ */
     bulkUpdate: (
       orgs: string,
       projectName: string,
@@ -5208,7 +6369,13 @@ export class Api<
       data: any,
       params: RequestParams = {}
     ) =>
-      this.request<any, any>({
+      this.request<
+        any,
+        {
+          /** @example BadRequest [Error]: <ERROR MESSAGE> */
+          msg?: string;
+        }
+      >({
         path: `/api/v1/db/data/bulk/${orgs}/${projectName}/${tableName}`,
         method: 'PATCH',
         body: data,
@@ -5218,14 +6385,19 @@ export class Api<
       }),
 
     /**
-     * @description Bulk Delete Table Rows by given IDs
-     *
-     * @tags DB Table Row
-     * @name BulkDelete
-     * @summary Bulk Delete Table Rows by IDs
-     * @request DELETE:/api/v1/db/data/bulk/{orgs}/{projectName}/{tableName}
-     * @response `200` `any` OK
-     */
+ * @description Bulk Delete Table Rows by given IDs
+ * 
+ * @tags DB Table Row
+ * @name BulkDelete
+ * @summary Bulk Delete Table Rows by IDs
+ * @request DELETE:/api/v1/db/data/bulk/{orgs}/{projectName}/{tableName}
+ * @response `200` `any` OK
+ * @response `400` `{
+  \** @example BadRequest [Error]: <ERROR MESSAGE> *\
+  msg?: string,
+
+}`
+ */
     bulkDelete: (
       orgs: string,
       projectName: string,
@@ -5233,7 +6405,13 @@ export class Api<
       data: any,
       params: RequestParams = {}
     ) =>
-      this.request<any, any>({
+      this.request<
+        any,
+        {
+          /** @example BadRequest [Error]: <ERROR MESSAGE> */
+          msg?: string;
+        }
+      >({
         path: `/api/v1/db/data/bulk/${orgs}/${projectName}/${tableName}`,
         method: 'DELETE',
         body: data,
@@ -5272,14 +6450,19 @@ export class Api<
       }),
 
     /**
-     * @description Bulk Delete all Table Rows if the condition is true
-     *
-     * @tags DB Table Row
-     * @name BulkDeleteAll
-     * @summary Bulk Delete Table Rows with Conditions
-     * @request DELETE:/api/v1/db/data/bulk/{orgs}/{projectName}/{tableName}/all
-     * @response `200` `any` OK
-     */
+ * @description Bulk Delete all Table Rows if the condition is true
+ * 
+ * @tags DB Table Row
+ * @name BulkDeleteAll
+ * @summary Bulk Delete Table Rows with Conditions
+ * @request DELETE:/api/v1/db/data/bulk/{orgs}/{projectName}/{tableName}/all
+ * @response `200` `any` OK
+ * @response `400` `{
+  \** @example BadRequest [Error]: <ERROR MESSAGE> *\
+  msg?: string,
+
+}`
+ */
     bulkDeleteAll: (
       orgs: string,
       projectName: string,
@@ -5290,7 +6473,13 @@ export class Api<
       },
       params: RequestParams = {}
     ) =>
-      this.request<any, any>({
+      this.request<
+        any,
+        {
+          /** @example BadRequest [Error]: <ERROR MESSAGE> */
+          msg?: string;
+        }
+      >({
         path: `/api/v1/db/data/bulk/${orgs}/${projectName}/${tableName}/all`,
         method: 'DELETE',
         query: query,
@@ -5301,14 +6490,19 @@ export class Api<
       }),
 
     /**
-     * @description Export Table View Rows by CSV or Excel
-     *
-     * @tags DB Table Row
-     * @name CsvExport
-     * @summary Export Table View Rows
-     * @request GET:/api/v1/db/data/{orgs}/{projectName}/{tableName}/export/{type}
-     * @response `200` `any` OK
-     */
+ * @description Export Table View Rows by CSV or Excel
+ * 
+ * @tags DB Table Row
+ * @name CsvExport
+ * @summary Export Table View Rows
+ * @request GET:/api/v1/db/data/{orgs}/{projectName}/{tableName}/export/{type}
+ * @response `200` `any` OK
+ * @response `400` `{
+  \** @example BadRequest [Error]: <ERROR MESSAGE> *\
+  msg?: string,
+
+}`
+ */
     csvExport: (
       orgs: string,
       projectName: string,
@@ -5316,7 +6510,13 @@ export class Api<
       type: 'csv' | 'excel',
       params: RequestParams = {}
     ) =>
-      this.request<any, any>({
+      this.request<
+        any,
+        {
+          /** @example BadRequest [Error]: <ERROR MESSAGE> */
+          msg?: string;
+        }
+      >({
         path: `/api/v1/db/data/${orgs}/${projectName}/${tableName}/export/${type}`,
         method: 'GET',
         wrapped: true,
@@ -5357,14 +6557,19 @@ export class Api<
       }),
 
     /**
-     * @description Create a new nested relations row
-     *
-     * @tags DB Table Row
-     * @name NestedAdd
-     * @summary Create Nested Relations Row
-     * @request POST:/api/v1/db/data/{orgs}/{projectName}/{tableName}/{rowId}/{relationType}/{columnName}/{refRowId}
-     * @response `200` `any` OK
-     */
+ * @description Create a new nested relations row
+ * 
+ * @tags DB Table Row
+ * @name NestedAdd
+ * @summary Create Nested Relations Row
+ * @request POST:/api/v1/db/data/{orgs}/{projectName}/{tableName}/{rowId}/{relationType}/{columnName}/{refRowId}
+ * @response `200` `any` OK
+ * @response `400` `{
+  \** @example BadRequest [Error]: <ERROR MESSAGE> *\
+  msg?: string,
+
+}`
+ */
     nestedAdd: (
       orgs: string,
       projectName: string,
@@ -5397,7 +6602,13 @@ export class Api<
       },
       params: RequestParams = {}
     ) =>
-      this.request<any, any>({
+      this.request<
+        any,
+        {
+          /** @example BadRequest [Error]: <ERROR MESSAGE> */
+          msg?: string;
+        }
+      >({
         path: `/api/v1/db/data/${orgs}/${projectName}/${tableName}/${rowId}/${relationType}/${columnName}/${refRowId}`,
         method: 'POST',
         query: query,
@@ -5406,14 +6617,19 @@ export class Api<
       }),
 
     /**
-     * @description Delete a new nested relations row
-     *
-     * @tags DB Table Row
-     * @name NestedRemove
-     * @summary Delete Nested Relations Row
-     * @request DELETE:/api/v1/db/data/{orgs}/{projectName}/{tableName}/{rowId}/{relationType}/{columnName}/{refRowId}
-     * @response `200` `any` OK
-     */
+ * @description Delete a new nested relations row
+ * 
+ * @tags DB Table Row
+ * @name NestedRemove
+ * @summary Delete Nested Relations Row
+ * @request DELETE:/api/v1/db/data/{orgs}/{projectName}/{tableName}/{rowId}/{relationType}/{columnName}/{refRowId}
+ * @response `200` `any` OK
+ * @response `400` `{
+  \** @example BadRequest [Error]: <ERROR MESSAGE> *\
+  msg?: string,
+
+}`
+ */
     nestedRemove: (
       orgs: string,
       projectName: string,
@@ -5424,7 +6640,13 @@ export class Api<
       refRowId: string,
       params: RequestParams = {}
     ) =>
-      this.request<any, any>({
+      this.request<
+        any,
+        {
+          /** @example BadRequest [Error]: <ERROR MESSAGE> */
+          msg?: string;
+        }
+      >({
         path: `/api/v1/db/data/${orgs}/${projectName}/${tableName}/${rowId}/${relationType}/${columnName}/${refRowId}`,
         method: 'DELETE',
         format: 'json',
@@ -5432,14 +6654,19 @@ export class Api<
       }),
 
     /**
-     * @description Get the table rows but exculding the current record's children and parent
-     *
-     * @tags DB Table Row
-     * @name NestedChildrenExcludedList
-     * @summary Referenced Table Rows Excluding Current Record's Children / Parent
-     * @request GET:/api/v1/db/data/{orgs}/{projectName}/{tableName}/{rowId}/{relationType}/{columnName}/exclude
-     * @response `200` `any` OK
-     */
+ * @description Get the table rows but exculding the current record's children and parent
+ * 
+ * @tags DB Table Row
+ * @name NestedChildrenExcludedList
+ * @summary Referenced Table Rows Excluding Current Record's Children / Parent
+ * @request GET:/api/v1/db/data/{orgs}/{projectName}/{tableName}/{rowId}/{relationType}/{columnName}/exclude
+ * @response `200` `any` OK
+ * @response `400` `{
+  \** @example BadRequest [Error]: <ERROR MESSAGE> *\
+  msg?: string,
+
+}`
+ */
     nestedChildrenExcludedList: (
       orgs: string,
       projectName: string,
@@ -5456,7 +6683,13 @@ export class Api<
       },
       params: RequestParams = {}
     ) =>
-      this.request<any, any>({
+      this.request<
+        any,
+        {
+          /** @example BadRequest [Error]: <ERROR MESSAGE> */
+          msg?: string;
+        }
+      >({
         path: `/api/v1/db/data/${orgs}/${projectName}/${tableName}/${rowId}/${relationType}/${columnName}/exclude`,
         method: 'GET',
         query: query,
@@ -5466,14 +6699,19 @@ export class Api<
   };
   dbViewRow = {
     /**
-     * @description Get the grouped data By Column ID. Used in Kanban View.
-     *
-     * @tags DB View Row
-     * @name GroupedDataList
-     * @summary Table Group by Column
-     * @request GET:/api/v1/db/data/{orgs}/{projectName}/{tableName}/views/{viewName}/group/{columnId}
-     * @response `200` `any` OK
-     */
+ * @description Get the grouped data By Column ID. Used in Kanban View.
+ * 
+ * @tags DB View Row
+ * @name GroupedDataList
+ * @summary Table Group by Column
+ * @request GET:/api/v1/db/data/{orgs}/{projectName}/{tableName}/views/{viewName}/group/{columnId}
+ * @response `200` `any` OK
+ * @response `400` `{
+  \** @example BadRequest [Error]: <ERROR MESSAGE> *\
+  msg?: string,
+
+}`
+ */
     groupedDataList: (
       orgs: IdType,
       projectName: string,
@@ -5489,7 +6727,13 @@ export class Api<
       },
       params: RequestParams = {}
     ) =>
-      this.request<any, any>({
+      this.request<
+        any,
+        {
+          /** @example BadRequest [Error]: <ERROR MESSAGE> */
+          msg?: string;
+        }
+      >({
         path: `/api/v1/db/data/${orgs}/${projectName}/${tableName}/views/${viewName}/group/${columnId}`,
         method: 'GET',
         query: query,
@@ -5498,14 +6742,19 @@ export class Api<
       }),
 
     /**
-     * @description List all table view rows
-     *
-     * @tags DB View Row
-     * @name List
-     * @summary List Table View Rows
-     * @request GET:/api/v1/db/data/{orgs}/{projectName}/{tableName}/views/{viewName}
-     * @response `200` `ViewListType` OK
-     */
+ * @description List all table view rows
+ * 
+ * @tags DB View Row
+ * @name List
+ * @summary List Table View Rows
+ * @request GET:/api/v1/db/data/{orgs}/{projectName}/{tableName}/views/{viewName}
+ * @response `200` `ViewListType` OK
+ * @response `400` `{
+  \** @example BadRequest [Error]: <ERROR MESSAGE> *\
+  msg?: string,
+
+}`
+ */
     list: (
       orgs: string,
       projectName: string,
@@ -5521,7 +6770,13 @@ export class Api<
       },
       params: RequestParams = {}
     ) =>
-      this.request<ViewListType, any>({
+      this.request<
+        ViewListType,
+        {
+          /** @example BadRequest [Error]: <ERROR MESSAGE> */
+          msg?: string;
+        }
+      >({
         path: `/api/v1/db/data/${orgs}/${projectName}/${tableName}/views/${viewName}`,
         method: 'GET',
         query: query,
@@ -5530,14 +6785,19 @@ export class Api<
       }),
 
     /**
-     * @description Create a new row in the given Table View
-     *
-     * @tags DB View Row
-     * @name Create
-     * @summary Create Table View Row
-     * @request POST:/api/v1/db/data/{orgs}/{projectName}/{tableName}/views/{viewName}
-     * @response `200` `any` OK
-     */
+ * @description Create a new row in the given Table View
+ * 
+ * @tags DB View Row
+ * @name Create
+ * @summary Create Table View Row
+ * @request POST:/api/v1/db/data/{orgs}/{projectName}/{tableName}/views/{viewName}
+ * @response `200` `any` OK
+ * @response `400` `{
+  \** @example BadRequest [Error]: <ERROR MESSAGE> *\
+  msg?: string,
+
+}`
+ */
     create: (
       orgs: string,
       projectName: string,
@@ -5546,7 +6806,13 @@ export class Api<
       data: any,
       params: RequestParams = {}
     ) =>
-      this.request<any, any>({
+      this.request<
+        any,
+        {
+          /** @example BadRequest [Error]: <ERROR MESSAGE> */
+          msg?: string;
+        }
+      >({
         path: `/api/v1/db/data/${orgs}/${projectName}/${tableName}/views/${viewName}`,
         method: 'POST',
         body: data,
@@ -5556,14 +6822,19 @@ export class Api<
       }),
 
     /**
-     * @description Return the first result of table view rows with the given query
-     *
-     * @tags DB View Row
-     * @name FindOne
-     * @summary Find One Table View Row
-     * @request GET:/api/v1/db/data/{orgs}/{projectName}/{tableName}/views/{viewName}/find-one
-     * @response `200` `any` OK
-     */
+ * @description Return the first result of table view rows with the given query
+ * 
+ * @tags DB View Row
+ * @name FindOne
+ * @summary Find One Table View Row
+ * @request GET:/api/v1/db/data/{orgs}/{projectName}/{tableName}/views/{viewName}/find-one
+ * @response `200` `any` OK
+ * @response `400` `{
+  \** @example BadRequest [Error]: <ERROR MESSAGE> *\
+  msg?: string,
+
+}`
+ */
     findOne: (
       orgs: string,
       projectName: string,
@@ -5578,7 +6849,13 @@ export class Api<
       },
       params: RequestParams = {}
     ) =>
-      this.request<any, any>({
+      this.request<
+        any,
+        {
+          /** @example BadRequest [Error]: <ERROR MESSAGE> */
+          msg?: string;
+        }
+      >({
         path: `/api/v1/db/data/${orgs}/${projectName}/${tableName}/views/${viewName}/find-one`,
         method: 'GET',
         query: query,
@@ -5587,14 +6864,19 @@ export class Api<
       }),
 
     /**
-     * @description Get the table view rows groupe by the given query
-     *
-     * @tags DB View Row
-     * @name GroupBy
-     * @summary Group By Table View Row
-     * @request GET:/api/v1/db/data/{orgs}/{projectName}/{tableName}/views/{viewName}/groupby
-     * @response `200` `any` OK
-     */
+ * @description Get the table view rows groupe by the given query
+ * 
+ * @tags DB View Row
+ * @name GroupBy
+ * @summary Group By Table View Row
+ * @request GET:/api/v1/db/data/{orgs}/{projectName}/{tableName}/views/{viewName}/groupby
+ * @response `200` `any` OK
+ * @response `400` `{
+  \** @example BadRequest [Error]: <ERROR MESSAGE> *\
+  msg?: string,
+
+}`
+ */
     groupBy: (
       orgs: string,
       projectName: string,
@@ -5612,7 +6894,13 @@ export class Api<
       },
       params: RequestParams = {}
     ) =>
-      this.request<any, any>({
+      this.request<
+        any,
+        {
+          /** @example BadRequest [Error]: <ERROR MESSAGE> */
+          msg?: string;
+        }
+      >({
         path: `/api/v1/db/data/${orgs}/${projectName}/${tableName}/views/${viewName}/groupby`,
         method: 'GET',
         query: query,
@@ -5701,14 +6989,19 @@ export class Api<
       }),
 
     /**
-     * @description Delete the target Table View Row
-     *
-     * @tags DB View Row
-     * @name Delete
-     * @summary Delete Table View Row
-     * @request DELETE:/api/v1/db/data/{orgs}/{projectName}/{tableName}/views/{viewName}/{rowId}
-     * @response `200` `void` OK
-     */
+ * @description Delete the target Table View Row
+ * 
+ * @tags DB View Row
+ * @name Delete
+ * @summary Delete Table View Row
+ * @request DELETE:/api/v1/db/data/{orgs}/{projectName}/{tableName}/views/{viewName}/{rowId}
+ * @response `200` `void` OK
+ * @response `400` `{
+  \** @example BadRequest [Error]: <ERROR MESSAGE> *\
+  msg?: string,
+
+}`
+ */
     delete: (
       orgs: string,
       projectName: string,
@@ -5717,21 +7010,32 @@ export class Api<
       rowId: any,
       params: RequestParams = {}
     ) =>
-      this.request<void, any>({
+      this.request<
+        void,
+        {
+          /** @example BadRequest [Error]: <ERROR MESSAGE> */
+          msg?: string;
+        }
+      >({
         path: `/api/v1/db/data/${orgs}/${projectName}/${tableName}/views/${viewName}/${rowId}`,
         method: 'DELETE',
         ...params,
       }),
 
     /**
-     * @description Check row with provided primary key exists or not
-     *
-     * @tags DB View Row
-     * @name Exist
-     * @summary Does Table View Row Exist
-     * @request GET:/api/v1/db/data/{orgs}/{projectName}/{tableName}/views/{viewName}/{rowId}/exist
-     * @response `201` `any` Created
-     */
+ * @description Check row with provided primary key exists or not
+ * 
+ * @tags DB View Row
+ * @name Exist
+ * @summary Does Table View Row Exist
+ * @request GET:/api/v1/db/data/{orgs}/{projectName}/{tableName}/views/{viewName}/{rowId}/exist
+ * @response `201` `any` Created
+ * @response `400` `{
+  \** @example BadRequest [Error]: <ERROR MESSAGE> *\
+  msg?: string,
+
+}`
+ */
     exist: (
       orgs: string,
       projectName: string,
@@ -5740,7 +7044,13 @@ export class Api<
       rowId: any,
       params: RequestParams = {}
     ) =>
-      this.request<any, any>({
+      this.request<
+        any,
+        {
+          /** @example BadRequest [Error]: <ERROR MESSAGE> */
+          msg?: string;
+        }
+      >({
         path: `/api/v1/db/data/${orgs}/${projectName}/${tableName}/views/${viewName}/${rowId}/exist`,
         method: 'GET',
         format: 'json',
@@ -5748,14 +7058,19 @@ export class Api<
       }),
 
     /**
-     * @description Export Table View Rows by CSV or Excel
-     *
-     * @tags DB View Row
-     * @name Export
-     * @summary Export Table View Rows
-     * @request GET:/api/v1/db/data/{orgs}/{projectName}/{tableName}/views/{viewName}/export/{type}
-     * @response `200` `any` OK
-     */
+ * @description Export Table View Rows by CSV or Excel
+ * 
+ * @tags DB View Row
+ * @name Export
+ * @summary Export Table View Rows
+ * @request GET:/api/v1/db/data/{orgs}/{projectName}/{tableName}/views/{viewName}/export/{type}
+ * @response `200` `any` OK
+ * @response `400` `{
+  \** @example BadRequest [Error]: <ERROR MESSAGE> *\
+  msg?: string,
+
+}`
+ */
     export: (
       orgs: string,
       projectName: string,
@@ -5764,7 +7079,13 @@ export class Api<
       type: 'csv' | 'excel',
       params: RequestParams = {}
     ) =>
-      this.request<any, any>({
+      this.request<
+        any,
+        {
+          /** @example BadRequest [Error]: <ERROR MESSAGE> */
+          msg?: string;
+        }
+      >({
         path: `/api/v1/db/data/${orgs}/${projectName}/${tableName}/views/${viewName}/export/${type}`,
         method: 'GET',
         wrapped: true,
@@ -5773,14 +7094,19 @@ export class Api<
   };
   public = {
     /**
-     * @description List Shared View Grouped Data
-     *
-     * @tags Public
-     * @name GroupedDataList
-     * @summary List Shared View Grouped Data
-     * @request GET:/api/v1/db/public/shared-view/{sharedViewUuid}/group/{columnId}
-     * @response `200` `any` OK
-     */
+ * @description List Shared View Grouped Data
+ * 
+ * @tags Public
+ * @name GroupedDataList
+ * @summary List Shared View Grouped Data
+ * @request GET:/api/v1/db/public/shared-view/{sharedViewUuid}/group/{columnId}
+ * @response `200` `any` OK
+ * @response `400` `{
+  \** @example BadRequest [Error]: <ERROR MESSAGE> *\
+  msg?: string,
+
+}`
+ */
     groupedDataList: (
       sharedViewUuid: string,
       columnId: IdType,
@@ -5808,7 +7134,13 @@ export class Api<
       },
       params: RequestParams = {}
     ) =>
-      this.request<any, any>({
+      this.request<
+        any,
+        {
+          /** @example BadRequest [Error]: <ERROR MESSAGE> */
+          msg?: string;
+        }
+      >({
         path: `/api/v1/db/public/shared-view/${sharedViewUuid}/group/${columnId}`,
         method: 'GET',
         query: query,
@@ -5817,14 +7149,19 @@ export class Api<
       }),
 
     /**
-     * @description List all shared view rows
-     *
-     * @tags Public
-     * @name DataList
-     * @summary List Shared View Rows
-     * @request GET:/api/v1/db/public/shared-view/{sharedViewUuid}/rows
-     * @response `200` `SharedViewListType` OK
-     */
+ * @description List all shared view rows
+ * 
+ * @tags Public
+ * @name DataList
+ * @summary List Shared View Rows
+ * @request GET:/api/v1/db/public/shared-view/{sharedViewUuid}/rows
+ * @response `200` `SharedViewListType` OK
+ * @response `400` `{
+  \** @example BadRequest [Error]: <ERROR MESSAGE> *\
+  msg?: string,
+
+}`
+ */
     dataList: (
       sharedViewUuid: string,
       query?: {
@@ -5851,7 +7188,13 @@ export class Api<
       },
       params: RequestParams = {}
     ) =>
-      this.request<SharedViewListType, any>({
+      this.request<
+        SharedViewListType,
+        {
+          /** @example BadRequest [Error]: <ERROR MESSAGE> */
+          msg?: string;
+        }
+      >({
         path: `/api/v1/db/public/shared-view/${sharedViewUuid}/rows`,
         method: 'GET',
         query: query,
@@ -5860,20 +7203,31 @@ export class Api<
       }),
 
     /**
-     * @description Create a new row for the target shared view
-     *
-     * @tags Public
-     * @name DataCreate
-     * @summary Create Share View Row
-     * @request POST:/api/v1/db/public/shared-view/{sharedViewUuid}/rows
-     * @response `200` `any` OK
-     */
+ * @description Create a new row for the target shared view
+ * 
+ * @tags Public
+ * @name DataCreate
+ * @summary Create Share View Row
+ * @request POST:/api/v1/db/public/shared-view/{sharedViewUuid}/rows
+ * @response `200` `any` OK
+ * @response `400` `{
+  \** @example BadRequest [Error]: <ERROR MESSAGE> *\
+  msg?: string,
+
+}`
+ */
     dataCreate: (
       sharedViewUuid: string,
       data: object,
       params: RequestParams = {}
     ) =>
-      this.request<any, any>({
+      this.request<
+        any,
+        {
+          /** @example BadRequest [Error]: <ERROR MESSAGE> */
+          msg?: string;
+        }
+      >({
         path: `/api/v1/db/public/shared-view/${sharedViewUuid}/rows`,
         method: 'POST',
         body: data,
@@ -5883,14 +7237,19 @@ export class Api<
       }),
 
     /**
-     * @description List all nested list data in a given shared view
-     *
-     * @tags Public
-     * @name DataNestedList
-     * @summary List Nested List Data
-     * @request GET:/api/v1/db/public/shared-view/{sharedViewUuid}/rows/{rowId}/{relationType}/{columnName}
-     * @response `200` `any` OK
-     */
+ * @description List all nested list data in a given shared view
+ * 
+ * @tags Public
+ * @name DataNestedList
+ * @summary List Nested List Data
+ * @request GET:/api/v1/db/public/shared-view/{sharedViewUuid}/rows/{rowId}/{relationType}/{columnName}
+ * @response `200` `any` OK
+ * @response `400` `{
+  \** @example BadRequest [Error]: <ERROR MESSAGE> *\
+  msg?: string,
+
+}`
+ */
     dataNestedList: (
       sharedViewUuid: string,
       rowId: any,
@@ -5920,7 +7279,13 @@ export class Api<
       },
       params: RequestParams = {}
     ) =>
-      this.request<any, any>({
+      this.request<
+        any,
+        {
+          /** @example BadRequest [Error]: <ERROR MESSAGE> */
+          msg?: string;
+        }
+      >({
         path: `/api/v1/db/public/shared-view/${sharedViewUuid}/rows/${rowId}/${relationType}/${columnName}`,
         method: 'GET',
         query: query,
@@ -5929,20 +7294,31 @@ export class Api<
       }),
 
     /**
-     * @description Export all rows in Share View in a CSV / Excel Format
-     *
-     * @tags Public
-     * @name CsvExport
-     * @summary Export Rows in Share View
-     * @request GET:/api/v1/db/public/shared-view/{sharedViewUuid}/rows/export/{type}
-     * @response `200` `any` OK
-     */
+ * @description Export all rows in Share View in a CSV / Excel Format
+ * 
+ * @tags Public
+ * @name CsvExport
+ * @summary Export Rows in Share View
+ * @request GET:/api/v1/db/public/shared-view/{sharedViewUuid}/rows/export/{type}
+ * @response `200` `any` OK
+ * @response `400` `{
+  \** @example BadRequest [Error]: <ERROR MESSAGE> *\
+  msg?: string,
+
+}`
+ */
     csvExport: (
       sharedViewUuid: string,
       type: 'csv' | 'excel',
       params: RequestParams = {}
     ) =>
-      this.request<any, any>({
+      this.request<
+        any,
+        {
+          /** @example BadRequest [Error]: <ERROR MESSAGE> */
+          msg?: string;
+        }
+      >({
         path: `/api/v1/db/public/shared-view/${sharedViewUuid}/rows/export/${type}`,
         method: 'GET',
         wrapped: true,
@@ -5950,14 +7326,19 @@ export class Api<
       }),
 
     /**
-     * @description List Nested Data Relation
-     *
-     * @tags Public
-     * @name DataRelationList
-     * @summary List Nested Data Relation
-     * @request GET:/api/v1/db/public/shared-view/{sharedViewUuid}/nested/{columnName}
-     * @response `200` `any` OK
-     */
+ * @description List Nested Data Relation
+ * 
+ * @tags Public
+ * @name DataRelationList
+ * @summary List Nested Data Relation
+ * @request GET:/api/v1/db/public/shared-view/{sharedViewUuid}/nested/{columnName}
+ * @response `200` `any` OK
+ * @response `400` `{
+  \** @example BadRequest [Error]: <ERROR MESSAGE> *\
+  msg?: string,
+
+}`
+ */
     dataRelationList: (
       sharedViewUuid: string,
       columnName: string,
@@ -5985,7 +7366,13 @@ export class Api<
       },
       params: RequestParams = {}
     ) =>
-      this.request<any, any>({
+      this.request<
+        any,
+        {
+          /** @example BadRequest [Error]: <ERROR MESSAGE> */
+          msg?: string;
+        }
+      >({
         path: `/api/v1/db/public/shared-view/${sharedViewUuid}/nested/${columnName}`,
         method: 'GET',
         query: query,
@@ -6004,13 +7391,21 @@ export class Api<
   project_id?: string,
 
 }` OK
+ * @response `400` `{
+  \** @example BadRequest [Error]: <ERROR MESSAGE> *\
+  msg?: string,
+
+}`
  */
     sharedBaseGet: (sharedBaseUuid: string, params: RequestParams = {}) =>
       this.request<
         {
           project_id?: string;
         },
-        any
+        {
+          /** @example BadRequest [Error]: <ERROR MESSAGE> */
+          msg?: string;
+        }
       >({
         path: `/api/v1/db/public/shared-base/${sharedBaseUuid}/meta`,
         method: 'GET',
@@ -6037,6 +7432,11 @@ export class Api<
   view?: (FormType | GridType | GalleryType | (FormType & GridType & GalleryType)),
 
 })` OK
+ * @response `400` `{
+  \** @example BadRequest [Error]: <ERROR MESSAGE> *\
+  msg?: string,
+
+}`
  */
     sharedViewMetaGet: (sharedViewUuid: string, params: RequestParams = {}) =>
       this.request<
@@ -6060,7 +7460,10 @@ export class Api<
             | GalleryType
             | (FormType & GridType & GalleryType);
         },
-        any
+        {
+          /** @example BadRequest [Error]: <ERROR MESSAGE> */
+          msg?: string;
+        }
       >({
         path: `/api/v1/db/public/shared-view/${sharedViewUuid}/meta`,
         method: 'GET',
@@ -6070,14 +7473,19 @@ export class Api<
   };
   utils = {
     /**
-     * @description List all comments
-     *
-     * @tags Utils
-     * @name CommentList
-     * @summary List Comments in Audit
-     * @request GET:/api/v1/db/meta/audits/comments
-     * @response `201` `any` Created
-     */
+ * @description List all comments
+ * 
+ * @tags Utils
+ * @name CommentList
+ * @summary List Comments in Audit
+ * @request GET:/api/v1/db/meta/audits/comments
+ * @response `201` `any` Created
+ * @response `400` `{
+  \** @example BadRequest [Error]: <ERROR MESSAGE> *\
+  msg?: string,
+
+}`
+ */
     commentList: (
       query: {
         /**
@@ -6098,7 +7506,13 @@ export class Api<
       },
       params: RequestParams = {}
     ) =>
-      this.request<any, any>({
+      this.request<
+        any,
+        {
+          /** @example BadRequest [Error]: <ERROR MESSAGE> */
+          msg?: string;
+        }
+      >({
         path: `/api/v1/db/meta/audits/comments`,
         method: 'GET',
         query: query,
@@ -6125,14 +7539,19 @@ export class Api<
       }),
 
     /**
-     * @description Return the number of comments in the given query.
-     *
-     * @tags Utils
-     * @name CommentCount
-     * @summary Count Comments
-     * @request GET:/api/v1/db/meta/audits/comments/count
-     * @response `201` `any` Created
-     */
+ * @description Return the number of comments in the given query.
+ * 
+ * @tags Utils
+ * @name CommentCount
+ * @summary Count Comments
+ * @request GET:/api/v1/db/meta/audits/comments/count
+ * @response `201` `any` Created
+ * @response `400` `{
+  \** @example BadRequest [Error]: <ERROR MESSAGE> *\
+  msg?: string,
+
+}`
+ */
     commentCount: (
       query: {
         ids: any;
@@ -6141,7 +7560,13 @@ export class Api<
       },
       params: RequestParams = {}
     ) =>
-      this.request<any, any>({
+      this.request<
+        any,
+        {
+          /** @example BadRequest [Error]: <ERROR MESSAGE> */
+          msg?: string;
+        }
+      >({
         path: `/api/v1/db/meta/audits/comments/count`,
         method: 'GET',
         query: query,
@@ -6150,20 +7575,31 @@ export class Api<
       }),
 
     /**
-     * @description Update Audit Row
-     *
-     * @tags Utils
-     * @name AuditRowUpdate
-     * @summary Update Audit Row
-     * @request POST:/api/v1/db/meta/audits/rows/{rowId}/update
-     * @response `200` `void` OK
-     */
+ * @description Update Audit Row
+ * 
+ * @tags Utils
+ * @name AuditRowUpdate
+ * @summary Update Audit Row
+ * @request POST:/api/v1/db/meta/audits/rows/{rowId}/update
+ * @response `200` `void` OK
+ * @response `400` `{
+  \** @example BadRequest [Error]: <ERROR MESSAGE> *\
+  msg?: string,
+
+}`
+ */
     auditRowUpdate: (
       rowId: any,
       data: AuditRowUpdateReqType,
       params: RequestParams = {}
     ) =>
-      this.request<void, any>({
+      this.request<
+        void,
+        {
+          /** @example BadRequest [Error]: <ERROR MESSAGE> */
+          msg?: string;
+        }
+      >({
         path: `/api/v1/db/meta/audits/rows/${rowId}/update`,
         method: 'POST',
         body: data,
@@ -6183,6 +7619,11 @@ export class Api<
   message?: string,
 
 }` OK
+ * @response `400` `{
+  \** @example BadRequest [Error]: <ERROR MESSAGE> *\
+  msg?: string,
+
+}`
  */
     testConnection: (data: any, params: RequestParams = {}) =>
       this.request<
@@ -6190,7 +7631,10 @@ export class Api<
           code?: number;
           message?: string;
         },
-        any
+        {
+          /** @example BadRequest [Error]: <ERROR MESSAGE> */
+          msg?: string;
+        }
       >({
         path: `/api/v1/db/meta/connection/test`,
         method: 'POST',
@@ -6201,16 +7645,27 @@ export class Api<
       }),
 
     /**
-     * @description Extract XC URL From JDBC and parse to connection config
-     *
-     * @tags Utils
-     * @name UrlToConfig
-     * @summary Convert JDBC URL to Config
-     * @request POST:/api/v1/url_to_config
-     * @response `200` `any` OK
-     */
+ * @description Extract XC URL From JDBC and parse to connection config
+ * 
+ * @tags Utils
+ * @name UrlToConfig
+ * @summary Convert JDBC URL to Config
+ * @request POST:/api/v1/url_to_config
+ * @response `200` `any` OK
+ * @response `400` `{
+  \** @example BadRequest [Error]: <ERROR MESSAGE> *\
+  msg?: string,
+
+}`
+ */
     urlToConfig: (data: any, params: RequestParams = {}) =>
-      this.request<any, any>({
+      this.request<
+        any,
+        {
+          /** @example BadRequest [Error]: <ERROR MESSAGE> */
+          msg?: string;
+        }
+      >({
         path: `/api/v1/url_to_config`,
         method: 'POST',
         body: data,
@@ -6220,16 +7675,27 @@ export class Api<
       }),
 
     /**
-     * @description Get the application info such as authType, defaultLimit, version and etc.
-     *
-     * @tags Utils
-     * @name AppInfo
-     * @summary Get App Info
-     * @request GET:/api/v1/db/meta/nocodb/info
-     * @response `200` `any` OK
-     */
+ * @description Get the application info such as authType, defaultLimit, version and etc.
+ * 
+ * @tags Utils
+ * @name AppInfo
+ * @summary Get App Info
+ * @request GET:/api/v1/db/meta/nocodb/info
+ * @response `200` `any` OK
+ * @response `400` `{
+  \** @example BadRequest [Error]: <ERROR MESSAGE> *\
+  msg?: string,
+
+}`
+ */
     appInfo: (params: RequestParams = {}) =>
-      this.request<any, any>({
+      this.request<
+        any,
+        {
+          /** @example BadRequest [Error]: <ERROR MESSAGE> */
+          msg?: string;
+        }
+      >({
         path: `/api/v1/db/meta/nocodb/info`,
         method: 'GET',
         format: 'json',
@@ -6237,16 +7703,27 @@ export class Api<
       }),
 
     /**
-     * @description Generic Axios Call
-     *
-     * @tags Utils
-     * @name AxiosRequestMake
-     * @summary Axios Request
-     * @request POST:/api/v1/db/meta/axiosRequestMake
-     * @response `200` `object` OK
-     */
+ * @description Generic Axios Call
+ * 
+ * @tags Utils
+ * @name AxiosRequestMake
+ * @summary Axios Request
+ * @request POST:/api/v1/db/meta/axiosRequestMake
+ * @response `200` `object` OK
+ * @response `400` `{
+  \** @example BadRequest [Error]: <ERROR MESSAGE> *\
+  msg?: string,
+
+}`
+ */
     axiosRequestMake: (data: object, params: RequestParams = {}) =>
-      this.request<object, any>({
+      this.request<
+        object,
+        {
+          /** @example BadRequest [Error]: <ERROR MESSAGE> */
+          msg?: string;
+        }
+      >({
         path: `/api/v1/db/meta/axiosRequestMake`,
         method: 'POST',
         body: data,
@@ -6256,16 +7733,27 @@ export class Api<
       }),
 
     /**
-     * @description Get the application version
-     *
-     * @tags Utils
-     * @name AppVersion
-     * @summary Get App Version
-     * @request GET:/api/v1/version
-     * @response `200` `any` OK
-     */
+ * @description Get the application version
+ * 
+ * @tags Utils
+ * @name AppVersion
+ * @summary Get App Version
+ * @request GET:/api/v1/version
+ * @response `200` `any` OK
+ * @response `400` `{
+  \** @example BadRequest [Error]: <ERROR MESSAGE> *\
+  msg?: string,
+
+}`
+ */
     appVersion: (params: RequestParams = {}) =>
-      this.request<any, any>({
+      this.request<
+        any,
+        {
+          /** @example BadRequest [Error]: <ERROR MESSAGE> */
+          msg?: string;
+        }
+      >({
         path: `/api/v1/version`,
         method: 'GET',
         format: 'json',
@@ -6273,16 +7761,27 @@ export class Api<
       }),
 
     /**
-     * @description Get Application Health Status
-     *
-     * @tags Utils
-     * @name AppHealth
-     * @summary Get Application Health Status
-     * @request GET:/api/v1/health
-     * @response `200` `any` OK
-     */
+ * @description Get Application Health Status
+ * 
+ * @tags Utils
+ * @name AppHealth
+ * @summary Get Application Health Status
+ * @request GET:/api/v1/health
+ * @response `200` `any` OK
+ * @response `400` `{
+  \** @example BadRequest [Error]: <ERROR MESSAGE> *\
+  msg?: string,
+
+}`
+ */
     appHealth: (params: RequestParams = {}) =>
-      this.request<any, any>({
+      this.request<
+        any,
+        {
+          /** @example BadRequest [Error]: <ERROR MESSAGE> */
+          msg?: string;
+        }
+      >({
         path: `/api/v1/health`,
         method: 'GET',
         format: 'json',
@@ -6354,6 +7853,11 @@ export class Api<
   sharedBaseCount?: number,
 
 }` OK
+ * @response `400` `{
+  \** @example BadRequest [Error]: <ERROR MESSAGE> *\
+  msg?: string,
+
+}`
  */
     aggregatedMetaInfo: (params: RequestParams = {}) =>
       this.request<
@@ -6410,7 +7914,10 @@ export class Api<
           /** Total shared base Count */
           sharedBaseCount?: number;
         },
-        any
+        {
+          /** @example BadRequest [Error]: <ERROR MESSAGE> */
+          msg?: string;
+        }
       >({
         path: `/api/v1/aggregated-meta-info`,
         method: 'GET',
@@ -6434,16 +7941,27 @@ export class Api<
       }),
 
     /**
-     * @description Delete All K/V pairs in NocoCache
-     *
-     * @tags Utils
-     * @name CacheDelete
-     * @summary Delete Cache
-     * @request DELETE:/api/v1/db/meta/cache
-     * @response `200` `void` OK
-     */
+ * @description Delete All K/V pairs in NocoCache
+ * 
+ * @tags Utils
+ * @name CacheDelete
+ * @summary Delete Cache
+ * @request DELETE:/api/v1/db/meta/cache
+ * @response `200` `void` OK
+ * @response `400` `{
+  \** @example BadRequest [Error]: <ERROR MESSAGE> *\
+  msg?: string,
+
+}`
+ */
     cacheDelete: (params: RequestParams = {}) =>
-      this.request<void, any>({
+      this.request<
+        void,
+        {
+          /** @example BadRequest [Error]: <ERROR MESSAGE> */
+          msg?: string;
+        }
+      >({
         path: `/api/v1/db/meta/cache`,
         method: 'DELETE',
         ...params,
@@ -6451,16 +7969,27 @@ export class Api<
   };
   dbTableWebhook = {
     /**
-     * @description List all hook records in the given Table
-     *
-     * @tags DB Table Webhook
-     * @name List
-     * @summary List Table Hooks
-     * @request GET:/api/v1/db/meta/tables/{tableId}/hooks
-     * @response `200` `HookListType` OK
-     */
+ * @description List all hook records in the given Table
+ * 
+ * @tags DB Table Webhook
+ * @name List
+ * @summary List Table Hooks
+ * @request GET:/api/v1/db/meta/tables/{tableId}/hooks
+ * @response `200` `HookListType` OK
+ * @response `400` `{
+  \** @example BadRequest [Error]: <ERROR MESSAGE> *\
+  msg?: string,
+
+}`
+ */
     list: (tableId: IdType, params: RequestParams = {}) =>
-      this.request<HookListType, any>({
+      this.request<
+        HookListType,
+        {
+          /** @example BadRequest [Error]: <ERROR MESSAGE> */
+          msg?: string;
+        }
+      >({
         path: `/api/v1/db/meta/tables/${tableId}/hooks`,
         method: 'GET',
         format: 'json',
@@ -6468,16 +7997,27 @@ export class Api<
       }),
 
     /**
-     * @description Create a hook in the given table
-     *
-     * @tags DB Table Webhook
-     * @name Create
-     * @summary Create Table Hook
-     * @request POST:/api/v1/db/meta/tables/{tableId}/hooks
-     * @response `200` `HookReqType` OK
-     */
+ * @description Create a hook in the given table
+ * 
+ * @tags DB Table Webhook
+ * @name Create
+ * @summary Create Table Hook
+ * @request POST:/api/v1/db/meta/tables/{tableId}/hooks
+ * @response `200` `HookReqType` OK
+ * @response `400` `{
+  \** @example BadRequest [Error]: <ERROR MESSAGE> *\
+  msg?: string,
+
+}`
+ */
     create: (tableId: IdType, data: AuditType, params: RequestParams = {}) =>
-      this.request<HookReqType, any>({
+      this.request<
+        HookReqType,
+        {
+          /** @example BadRequest [Error]: <ERROR MESSAGE> */
+          msg?: string;
+        }
+      >({
         path: `/api/v1/db/meta/tables/${tableId}/hooks`,
         method: 'POST',
         body: data,
@@ -6487,20 +8027,31 @@ export class Api<
       }),
 
     /**
-     * @description Test the hook in the given Table
-     *
-     * @tags DB Table Webhook
-     * @name Test
-     * @summary Test Hook
-     * @request POST:/api/v1/db/meta/tables/{tableId}/hooks/test
-     * @response `200` `any` OK
-     */
+ * @description Test the hook in the given Table
+ * 
+ * @tags DB Table Webhook
+ * @name Test
+ * @summary Test Hook
+ * @request POST:/api/v1/db/meta/tables/{tableId}/hooks/test
+ * @response `200` `any` OK
+ * @response `400` `{
+  \** @example BadRequest [Error]: <ERROR MESSAGE> *\
+  msg?: string,
+
+}`
+ */
     test: (
       tableId: IdType,
       data: HookTestReqType,
       params: RequestParams = {}
     ) =>
-      this.request<any, any>({
+      this.request<
+        any,
+        {
+          /** @example BadRequest [Error]: <ERROR MESSAGE> */
+          msg?: string;
+        }
+      >({
         path: `/api/v1/db/meta/tables/${tableId}/hooks/test`,
         method: 'POST',
         body: data,
@@ -6525,6 +8076,11 @@ export class Api<
 },
 
 }` OK
+ * @response `400` `{
+  \** @example BadRequest [Error]: <ERROR MESSAGE> *\
+  msg?: string,
+
+}`
  */
     samplePayloadGet: (
       tableId: IdType,
@@ -6539,7 +8095,10 @@ export class Api<
             pageInfo: PaginatedType;
           };
         },
-        any
+        {
+          /** @example BadRequest [Error]: <ERROR MESSAGE> */
+          msg?: string;
+        }
       >({
         path: `/api/v1/db/meta/tables/${tableId}/hooks/samplePayload/${operation}`,
         method: 'GET',
@@ -6548,16 +8107,27 @@ export class Api<
       }),
 
     /**
-     * @description Update the exsiting hook by its ID
-     *
-     * @tags DB Table Webhook
-     * @name Update
-     * @summary Update Hook
-     * @request PATCH:/api/v1/db/meta/hooks/{hookId}
-     * @response `200` `HookType` OK
-     */
+ * @description Update the exsiting hook by its ID
+ * 
+ * @tags DB Table Webhook
+ * @name Update
+ * @summary Update Hook
+ * @request PATCH:/api/v1/db/meta/hooks/{hookId}
+ * @response `200` `HookType` OK
+ * @response `400` `{
+  \** @example BadRequest [Error]: <ERROR MESSAGE> *\
+  msg?: string,
+
+}`
+ */
     update: (hookId: string, data: HookType, params: RequestParams = {}) =>
-      this.request<HookType, any>({
+      this.request<
+        HookType,
+        {
+          /** @example BadRequest [Error]: <ERROR MESSAGE> */
+          msg?: string;
+        }
+      >({
         path: `/api/v1/db/meta/hooks/${hookId}`,
         method: 'PATCH',
         body: data,
@@ -6567,16 +8137,27 @@ export class Api<
       }),
 
     /**
-     * @description Delete the exsiting hook by its ID
-     *
-     * @tags DB Table Webhook
-     * @name Delete
-     * @summary Delete Hook
-     * @request DELETE:/api/v1/db/meta/hooks/{hookId}
-     * @response `200` `void` OK
-     */
+ * @description Delete the exsiting hook by its ID
+ * 
+ * @tags DB Table Webhook
+ * @name Delete
+ * @summary Delete Hook
+ * @request DELETE:/api/v1/db/meta/hooks/{hookId}
+ * @response `200` `void` OK
+ * @response `400` `{
+  \** @example BadRequest [Error]: <ERROR MESSAGE> *\
+  msg?: string,
+
+}`
+ */
     delete: (hookId: string, params: RequestParams = {}) =>
-      this.request<void, any>({
+      this.request<
+        void,
+        {
+          /** @example BadRequest [Error]: <ERROR MESSAGE> */
+          msg?: string;
+        }
+      >({
         path: `/api/v1/db/meta/hooks/${hookId}`,
         method: 'DELETE',
         ...params,
@@ -6596,6 +8177,11 @@ export class Api<
   pageInfo?: PaginatedType,
 
 }` OK
+ * @response `400` `{
+  \** @example BadRequest [Error]: <ERROR MESSAGE> *\
+  msg?: string,
+
+}`
  */
     list: (params: RequestParams = {}) =>
       this.request<
@@ -6604,7 +8190,10 @@ export class Api<
           /** Model for Paginated */
           pageInfo?: PaginatedType;
         },
-        any
+        {
+          /** @example BadRequest [Error]: <ERROR MESSAGE> */
+          msg?: string;
+        }
       >({
         path: `/api/v1/db/meta/plugins`,
         method: 'GET',
@@ -6613,16 +8202,27 @@ export class Api<
       }),
 
     /**
-     * @description Check plugin is active or not
-     *
-     * @tags Plugin
-     * @name Status
-     * @summary Get Plugin Status
-     * @request GET:/api/v1/db/meta/plugins/{pluginTitle}/status
-     * @response `200` `boolean` OK
-     */
+ * @description Check plugin is active or not
+ * 
+ * @tags Plugin
+ * @name Status
+ * @summary Get Plugin Status
+ * @request GET:/api/v1/db/meta/plugins/{pluginTitle}/status
+ * @response `200` `boolean` OK
+ * @response `400` `{
+  \** @example BadRequest [Error]: <ERROR MESSAGE> *\
+  msg?: string,
+
+}`
+ */
     status: (pluginTitle: string, params: RequestParams = {}) =>
-      this.request<boolean, any>({
+      this.request<
+        boolean,
+        {
+          /** @example BadRequest [Error]: <ERROR MESSAGE> */
+          msg?: string;
+        }
+      >({
         path: `/api/v1/db/meta/plugins/${pluginTitle}/status`,
         method: 'GET',
         format: 'json',
@@ -6630,18 +8230,27 @@ export class Api<
       }),
 
     /**
-     * @description Test if the plugin is working with the given configurations
-     *
-     * @tags Plugin
-     * @name Test
-     * @summary Test Plugin
-     * @request POST:/api/v1/db/meta/plugins/test
-     * @response `200` `any` OK
-     * @response `400` `void` Bad Request
-     * @response `401` `void` Unauthorized
-     */
+ * @description Test if the plugin is working with the given configurations
+ * 
+ * @tags Plugin
+ * @name Test
+ * @summary Test Plugin
+ * @request POST:/api/v1/db/meta/plugins/test
+ * @response `200` `any` OK
+ * @response `400` `{
+  \** @example BadRequest [Error]: <ERROR MESSAGE> *\
+  msg?: string,
+
+}`
+ */
     test: (data: PluginTestReqType, params: RequestParams = {}) =>
-      this.request<any, void>({
+      this.request<
+        any,
+        {
+          /** @example BadRequest [Error]: <ERROR MESSAGE> */
+          msg?: string;
+        }
+      >({
         path: `/api/v1/db/meta/plugins/test`,
         method: 'POST',
         body: data,
@@ -6651,20 +8260,31 @@ export class Api<
       }),
 
     /**
-     * @description Update the plugin data by ID
-     *
-     * @tags Plugin
-     * @name Update
-     * @summary Update Plugin
-     * @request PATCH:/api/v1/db/meta/plugins/{pluginId}
-     * @response `200` `any` OK
-     */
+ * @description Update the plugin data by ID
+ * 
+ * @tags Plugin
+ * @name Update
+ * @summary Update Plugin
+ * @request PATCH:/api/v1/db/meta/plugins/{pluginId}
+ * @response `200` `any` OK
+ * @response `400` `{
+  \** @example BadRequest [Error]: <ERROR MESSAGE> *\
+  msg?: string,
+
+}`
+ */
     update: (
       pluginId: string,
       data: PluginReqType,
       params: RequestParams = {}
     ) =>
-      this.request<any, any>({
+      this.request<
+        any,
+        {
+          /** @example BadRequest [Error]: <ERROR MESSAGE> */
+          msg?: string;
+        }
+      >({
         path: `/api/v1/db/meta/plugins/${pluginId}`,
         method: 'PATCH',
         body: data,
@@ -6674,16 +8294,27 @@ export class Api<
       }),
 
     /**
-     * @description Get the plugin data by ID
-     *
-     * @tags Plugin
-     * @name Read
-     * @summary Get Plugin
-     * @request GET:/api/v1/db/meta/plugins/{pluginId}
-     * @response `200` `PluginType` OK
-     */
+ * @description Get the plugin data by ID
+ * 
+ * @tags Plugin
+ * @name Read
+ * @summary Get Plugin
+ * @request GET:/api/v1/db/meta/plugins/{pluginId}
+ * @response `200` `PluginType` OK
+ * @response `400` `{
+  \** @example BadRequest [Error]: <ERROR MESSAGE> *\
+  msg?: string,
+
+}`
+ */
     read: (pluginId: string, params: RequestParams = {}) =>
-      this.request<PluginType, any>({
+      this.request<
+        PluginType,
+        {
+          /** @example BadRequest [Error]: <ERROR MESSAGE> */
+          msg?: string;
+        }
+      >({
         path: `/api/v1/db/meta/plugins/${pluginId}`,
         method: 'GET',
         format: 'json',
@@ -6692,16 +8323,27 @@ export class Api<
   };
   apiToken = {
     /**
-     * @description List API Tokens in the given project
-     *
-     * @tags API Token
-     * @name List
-     * @summary List API Tokens in Project
-     * @request GET:/api/v1/db/meta/projects/{projectId}/api-tokens
-     * @response `200` `ApiTokenListType` OK
-     */
+ * @description List API Tokens in the given project
+ * 
+ * @tags API Token
+ * @name List
+ * @summary List API Tokens in Project
+ * @request GET:/api/v1/db/meta/projects/{projectId}/api-tokens
+ * @response `200` `ApiTokenListType` OK
+ * @response `400` `{
+  \** @example BadRequest [Error]: <ERROR MESSAGE> *\
+  msg?: string,
+
+}`
+ */
     list: (projectId: IdType, params: RequestParams = {}) =>
-      this.request<ApiTokenListType, any>({
+      this.request<
+        ApiTokenListType,
+        {
+          /** @example BadRequest [Error]: <ERROR MESSAGE> */
+          msg?: string;
+        }
+      >({
         path: `/api/v1/db/meta/projects/${projectId}/api-tokens`,
         method: 'GET',
         format: 'json',
@@ -6709,21 +8351,32 @@ export class Api<
       }),
 
     /**
-     * @description Create API Token in a project
-     *
-     * @tags API Token
-     * @name Create
-     * @summary Create API Token
-     * @request POST:/api/v1/db/meta/projects/{projectId}/api-tokens
-     * @response `200` `void` OK
-     * @response `201` `any` Created
-     */
+ * @description Create API Token in a project
+ * 
+ * @tags API Token
+ * @name Create
+ * @summary Create API Token
+ * @request POST:/api/v1/db/meta/projects/{projectId}/api-tokens
+ * @response `200` `void` OK
+ * @response `201` `any` Created
+ * @response `400` `{
+  \** @example BadRequest [Error]: <ERROR MESSAGE> *\
+  msg?: string,
+
+}`
+ */
     create: (
       projectId: IdType,
       data: ApiTokenReqType,
       params: RequestParams = {}
     ) =>
-      this.request<void, any>({
+      this.request<
+        void,
+        {
+          /** @example BadRequest [Error]: <ERROR MESSAGE> */
+          msg?: string;
+        }
+      >({
         path: `/api/v1/db/meta/projects/${projectId}/api-tokens`,
         method: 'POST',
         body: data,
@@ -6732,16 +8385,27 @@ export class Api<
       }),
 
     /**
-     * @description Delete the given API Token in project
-     *
-     * @tags API Token
-     * @name Delete
-     * @summary Delete API Token
-     * @request DELETE:/api/v1/db/meta/projects/{projectId}/api-tokens/{token}
-     * @response `200` `void` OK
-     */
+ * @description Delete the given API Token in project
+ * 
+ * @tags API Token
+ * @name Delete
+ * @summary Delete API Token
+ * @request DELETE:/api/v1/db/meta/projects/{projectId}/api-tokens/{token}
+ * @response `200` `void` OK
+ * @response `400` `{
+  \** @example BadRequest [Error]: <ERROR MESSAGE> *\
+  msg?: string,
+
+}`
+ */
     delete: (projectId: IdType, token: string, params: RequestParams = {}) =>
-      this.request<void, any>({
+      this.request<
+        void,
+        {
+          /** @example BadRequest [Error]: <ERROR MESSAGE> */
+          msg?: string;
+        }
+      >({
         path: `/api/v1/db/meta/projects/${projectId}/api-tokens/${token}`,
         method: 'DELETE',
         ...params,

@@ -245,9 +245,9 @@ export interface BaseType {
  * Model for Base List
  */
 export interface BaseListType {
-  list?: BaseType[];
+  list: BaseType[];
   /** Model for Paginated */
-  pageInfo?: PaginatedType;
+  pageInfo: PaginatedType;
 }
 
 /**
@@ -434,9 +434,9 @@ export interface ColumnType {
  * Model for Column List
  */
 export interface ColumnListType {
-  list?: ColumnType[];
+  list: ColumnType[];
   /** Model for Paginated */
-  pageInfo?: PaginatedType;
+  pageInfo: PaginatedType;
 }
 
 /**
@@ -590,9 +590,9 @@ export interface FilterType {
  * Model for Filter List
  */
 export interface FilterListType {
-  list?: FilterType[];
+  list: FilterType[];
   /** Model for Paginated */
-  pageInfo?: PaginatedType;
+  pageInfo: PaginatedType;
 }
 
 /**
@@ -1176,9 +1176,9 @@ export interface HookReqType {
  * Model for Hook List
  */
 export interface HookListType {
-  list?: HookType[];
+  list: HookType[];
   /** Model for Paginated */
-  pageInfo?: PaginatedType;
+  pageInfo: PaginatedType;
 }
 
 /**
@@ -1765,9 +1765,9 @@ export interface ProjectType {
  */
 export interface ProjectListType {
   /** List of Project Models */
-  list?: ProjectType[];
+  list: ProjectType[];
   /** Pagination Info */
-  pageInfo?: PaginatedType;
+  pageInfo: PaginatedType;
 }
 
 /**
@@ -1915,9 +1915,9 @@ export type SharedViewType = ViewType;
  * Model for Shared View List
  */
 export interface SharedViewListType {
-  list?: SharedViewType[];
+  list: SharedViewType[];
   /** Model for Paginated */
-  pageInfo?: PaginatedType;
+  pageInfo: PaginatedType;
 }
 
 /**
@@ -2001,9 +2001,9 @@ export interface SortType {
  * Model for Sort List
  */
 export interface SortListType {
-  list?: SortType[];
+  list: SortType[];
   /** Model for Paginated */
-  pageInfo?: PaginatedType;
+  pageInfo: PaginatedType;
 }
 
 /**
@@ -2061,9 +2061,9 @@ export interface TableType {
  * Model for Table List
  */
 export interface TableListType {
-  list?: TableType[];
+  list: TableType[];
   /** Model for Paginated */
-  pageInfo?: PaginatedType;
+  pageInfo: PaginatedType;
 }
 
 /**
@@ -2150,9 +2150,9 @@ export interface UserInfoType {
  * Model for User List
  */
 export interface UserListType {
-  list?: UserType[];
+  list: UserType[];
   /** Model for Paginated */
-  pageInfo?: PaginatedType;
+  pageInfo: PaginatedType;
 }
 
 /**
@@ -2199,9 +2199,9 @@ export interface ViewType {
  * Model for View List
  */
 export interface ViewListType {
-  list?: ViewType[];
+  list: ViewType[];
   /** Model for Paginated */
-  pageInfo?: PaginatedType;
+  pageInfo: PaginatedType;
 }
 
 /**
@@ -3321,12 +3321,13 @@ export class Api<
      * @name List
      * @summary List Projects
      * @request GET:/api/v1/db/meta/projects/
-     * @response `201` `ProjectListType`
+     * @response `200` `ProjectListType` OK
      */
     list: (params: RequestParams = {}) =>
       this.request<ProjectListType, any>({
         path: `/api/v1/db/meta/projects/`,
         method: 'GET',
+        format: 'json',
         ...params,
       }),
 

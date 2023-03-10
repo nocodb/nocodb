@@ -1,5 +1,4 @@
 <script setup lang="ts">
-import { storeToRefs } from 'pinia'
 import {
   Empty,
   computed,
@@ -7,6 +6,7 @@ import {
   h,
   message,
   onMounted,
+  storeToRefs,
   useGlobal,
   useI18n,
   useNuxtApp,

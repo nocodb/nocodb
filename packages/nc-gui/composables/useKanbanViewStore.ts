@@ -1,4 +1,3 @@
-import { storeToRefs } from 'pinia'
 import type { ComputedRef, Ref } from 'vue'
 import type { Api, ColumnType, KanbanType, SelectOptionType, SelectOptionsType, TableType, ViewType } from 'nocodb-sdk'
 import type { Row } from '~/lib'
@@ -14,6 +13,7 @@ import {
   message,
   provide,
   ref,
+  storeToRefs,
   useApi,
   useFieldQuery,
   useI18n,

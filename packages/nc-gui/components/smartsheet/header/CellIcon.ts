@@ -1,6 +1,5 @@
 import type { ColumnType } from 'nocodb-sdk'
 import type { PropType } from '@vue/runtime-core'
-import { storeToRefs } from 'pinia'
 import {
   ColumnInj,
   computed,
@@ -31,6 +30,7 @@ import {
   isTime,
   isURL,
   isYear,
+  storeToRefs,
   toRef,
   useProject,
 } from '#imports'

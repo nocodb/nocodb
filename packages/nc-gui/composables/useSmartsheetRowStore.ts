@@ -1,6 +1,5 @@
 import { RelationTypes, UITypes } from 'nocodb-sdk'
 import type { ColumnType, LinkToAnotherRecordType, TableType } from 'nocodb-sdk'
-import { storeToRefs } from 'pinia'
 import type { Ref } from 'vue'
 import type { MaybeRef } from '@vueuse/core'
 import {
@@ -14,6 +13,7 @@ import {
   isMm,
   message,
   ref,
+  storeToRefs,
   unref,
   useI18n,
   useInjectionState,

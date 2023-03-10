@@ -1,7 +1,6 @@
 <script setup lang="ts">
 import type { ColumnType } from 'nocodb-sdk'
 import { isSystemColumn } from 'nocodb-sdk'
-import { storeToRefs } from 'pinia'
 import {
   ActiveCellInj,
   ColumnInj,
@@ -40,6 +39,7 @@ import {
   isYear,
   provide,
   ref,
+  storeToRefs,
   toRef,
   useDebounceFn,
   useProject,

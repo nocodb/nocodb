@@ -1,5 +1,4 @@
 import type { ColumnType, FilterType, ViewType } from 'nocodb-sdk'
-import { storeToRefs } from 'pinia'
 import type { ComputedRef, Ref } from 'vue'
 import type { SelectProps } from 'ant-design-vue'
 import { UITypes, isSystemColumn } from 'nocodb-sdk'
@@ -12,6 +11,7 @@ import {
   inject,
   message,
   ref,
+  storeToRefs,
   useDebounceFn,
   useMetas,
   useNuxtApp,

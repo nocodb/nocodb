@@ -1,5 +1,4 @@
 <script setup lang="ts">
-import { storeToRefs } from 'pinia'
 import tinycolor from 'tinycolor2'
 import {
   TabType,
@@ -18,6 +17,7 @@ import {
   projectThemeColors,
   ref,
   resolveComponent,
+  storeToRefs,
   useCopy,
   useDialog,
   useGlobal,

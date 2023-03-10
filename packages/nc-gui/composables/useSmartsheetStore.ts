@@ -1,8 +1,17 @@
 import { ViewTypes } from 'nocodb-sdk'
 import type { FilterType, KanbanType, SortType, TableType, ViewType } from 'nocodb-sdk'
-import { storeToRefs } from 'pinia'
 import type { Ref } from 'vue'
-import { computed, ref, unref, useEventBus, useFieldQuery, useInjectionState, useNuxtApp, useProject } from '#imports'
+import {
+  computed,
+  ref,
+  storeToRefs,
+  unref,
+  useEventBus,
+  useFieldQuery,
+  useInjectionState,
+  useNuxtApp,
+  useProject,
+} from '#imports'
 import type { SmartsheetStoreEvents } from '~/lib'
 
 const [useProvideSmartsheetStore, useSmartsheetStore] = useInjectionState(

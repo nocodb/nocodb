@@ -198,6 +198,7 @@ export default defineNuxtConfig({
       { name: 'Empty', from: 'ant-design-vue/es' },
       { name: 'Form', from: 'ant-design-vue/es' },
       { name: 'useJwt', from: '@vueuse/integrations/useJwt' },
+      { name: 'storeToRefs', from: 'pinia' },
     ],
   },
 })

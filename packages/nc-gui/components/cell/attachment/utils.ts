@@ -1,5 +1,4 @@
 import type { AttachmentType } from 'nocodb-sdk'
-import { storeToRefs } from 'pinia'
 import RenameFile from './RenameFile.vue'
 import {
   ColumnInj,
@@ -14,6 +13,7 @@ import {
   isImage,
   message,
   ref,
+  storeToRefs,
   useApi,
   useAttachment,
   useFileDialog,

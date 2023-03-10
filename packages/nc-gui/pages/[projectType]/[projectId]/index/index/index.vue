@@ -1,11 +1,11 @@
 <script lang="ts" setup>
 import type { UploadChangeParam, UploadFile } from 'ant-design-vue'
 import type { BaseType } from 'nocodb-sdk'
-import { storeToRefs } from 'pinia'
 import {
   message,
   ref,
   resolveComponent,
+  storeToRefs,
   useDialog,
   useDropZone,
   useFileDialog,

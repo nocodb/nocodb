@@ -1,7 +1,6 @@
 import type { MaybeRef } from '@vueuse/core'
 import type { ColumnType, LinkToAnotherRecordType, TableType } from 'nocodb-sdk'
 import { RelationTypes, UITypes, isVirtualCol } from 'nocodb-sdk'
-import { storeToRefs } from 'pinia'
 import type { Cell } from './cellRange'
 import { CellRange } from './cellRange'
 import convertCellData from './convertCellData'
@@ -15,6 +14,7 @@ import {
   message,
   reactive,
   ref,
+  storeToRefs,
   unref,
   useCopy,
   useEventListener,

@@ -1,5 +1,4 @@
 import type { SortType, ViewType } from 'nocodb-sdk'
-import { storeToRefs } from 'pinia'
 import type { Ref } from 'vue'
 import {
   IsPublicInj,
@@ -8,6 +7,7 @@ import {
   inject,
   message,
   ref,
+  storeToRefs,
   useNuxtApp,
   useProject,
   useSharedView,

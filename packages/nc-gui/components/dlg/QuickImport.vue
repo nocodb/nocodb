@@ -2,7 +2,6 @@
 import type { TableType } from 'nocodb-sdk'
 import type { UploadChangeParam, UploadFile } from 'ant-design-vue'
 import { Upload } from 'ant-design-vue'
-import { storeToRefs } from 'pinia'
 import {
   CSVTemplateAdapter,
   ExcelTemplateAdapter,
@@ -19,6 +18,7 @@ import {
   message,
   reactive,
   ref,
+  storeToRefs,
   useI18n,
   useProject,
   useVModel,

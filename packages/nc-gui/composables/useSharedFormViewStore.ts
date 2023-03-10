@@ -1,6 +1,5 @@
 import useVuelidate from '@vuelidate/core'
 import { helpers, minLength, required } from '@vuelidate/validators'
-import { storeToRefs } from 'pinia'
 import type { Ref } from 'vue'
 import type { ColumnType, FormType, LinkToAnotherRecordType, TableType, ViewType } from 'nocodb-sdk'
 import { ErrorMessages, RelationTypes, UITypes, isVirtualCol } from 'nocodb-sdk'
@@ -13,6 +12,7 @@ import {
   message,
   provide,
   ref,
+  storeToRefs,
   useApi,
   useI18n,
   useInjectionState,

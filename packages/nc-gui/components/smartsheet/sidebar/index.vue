@@ -1,6 +1,5 @@
 <script setup lang="ts">
 import type { ViewType, ViewTypes } from 'nocodb-sdk'
-import { storeToRefs } from 'pinia'
 import {
   ActiveViewInj,
   MetaInj,
@@ -8,6 +7,7 @@ import {
   inject,
   ref,
   resolveComponent,
+  storeToRefs,
   useDialog,
   useNuxtApp,
   useRoute,

@@ -2,7 +2,6 @@
 import type { TableType } from 'nocodb-sdk'
 import type { Input } from 'ant-design-vue'
 import { Dropdown, Tooltip, message } from 'ant-design-vue'
-import { storeToRefs } from 'pinia'
 import Sortable from 'sortablejs'
 import GithubButton from 'vue-github-button'
 import { Icon } from '@iconify/vue'
@@ -18,6 +17,7 @@ import {
   reactive,
   ref,
   resolveComponent,
+  storeToRefs,
   useDialog,
   useGlobal,
   useNuxtApp,

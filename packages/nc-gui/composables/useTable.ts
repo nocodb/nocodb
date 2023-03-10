@@ -1,6 +1,5 @@
 import type { LinkToAnotherRecordType, TableType } from 'nocodb-sdk'
 import { UITypes, isSystemColumn } from 'nocodb-sdk'
-import { storeToRefs } from 'pinia'
 import {
   Modal,
   SYSTEM_COLUMNS,
@@ -8,6 +7,7 @@ import {
   generateUniqueTitle as generateTitle,
   message,
   reactive,
+  storeToRefs,
   useI18n,
   useMetas,
   useNuxtApp,

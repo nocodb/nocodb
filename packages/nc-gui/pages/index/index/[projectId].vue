@@ -3,7 +3,6 @@ import type { Form } from 'ant-design-vue'
 import type { ProjectType } from 'nocodb-sdk'
 import type { VNodeRef } from '@vue/runtime-core'
 import type { RuleObject } from 'ant-design-vue/es/form'
-import { storeToRefs } from 'pinia'
 import {
   extractSdkResponseErrorMsg,
   message,
@@ -11,6 +10,7 @@ import {
   projectTitleValidator,
   reactive,
   ref,
+  storeToRefs,
   useProject,
   useRoute,
 } from '#imports'

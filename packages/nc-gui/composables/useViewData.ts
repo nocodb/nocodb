@@ -1,6 +1,5 @@
 import { UITypes, ViewTypes } from 'nocodb-sdk'
 import type { Api, ColumnType, FormColumnType, FormType, GalleryType, PaginatedType, TableType, ViewType } from 'nocodb-sdk'
-import { storeToRefs } from 'pinia'
 import type { ComputedRef, Ref } from 'vue'
 import {
   IsPublicInj,
@@ -13,6 +12,7 @@ import {
   message,
   populateInsertObject,
   ref,
+  storeToRefs,
   until,
   useApi,
   useGlobal,

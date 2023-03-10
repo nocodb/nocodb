@@ -11,7 +11,7 @@ function getPredicate(key: Partial<TabItem>) {
     (!('type' in key) || tab.type === key.type)
 }
 
-export const useTabs = createSharedComposable(() => {
+export const useTab = createSharedComposable(() => {
   const tabs = ref<TabItem[]>([])
 
   const router = useRouter()

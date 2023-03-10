@@ -245,11 +245,9 @@ export interface BaseType {
  * Model for Base List
  */
 export interface BaseListType {
-  bases: {
-    list: BaseType[];
-    /** Model for Paginated */
-    pageInfo: PaginatedType;
-  };
+  list?: BaseType[];
+  /** Model for Paginated */
+  pageInfo?: PaginatedType;
 }
 
 /**
@@ -436,9 +434,9 @@ export interface ColumnType {
  * Model for Column List
  */
 export interface ColumnListType {
-  columns: {
-    list: ColumnType[];
-  };
+  list?: ColumnType[];
+  /** Model for Paginated */
+  pageInfo?: PaginatedType;
 }
 
 /**
@@ -592,9 +590,9 @@ export interface FilterType {
  * Model for Filter List
  */
 export interface FilterListType {
-  filters: {
-    list: FilterType[];
-  };
+  list?: FilterType[];
+  /** Model for Paginated */
+  pageInfo?: PaginatedType;
 }
 
 /**
@@ -2003,9 +2001,9 @@ export interface SortType {
  * Model for Sort List
  */
 export interface SortListType {
-  sorts: {
-    list: SortType[];
-  };
+  list?: SortType[];
+  /** Model for Paginated */
+  pageInfo?: PaginatedType;
 }
 
 /**
@@ -2152,13 +2150,9 @@ export interface UserInfoType {
  * Model for User List
  */
 export interface UserListType {
-  /** users includes `list` and `pageInfo` */
-  users: {
-    /** List of User objects */
-    list: UserType;
-    /** Pagination info */
-    pageInfo: PaginatedType;
-  };
+  list?: UserType[];
+  /** Model for Paginated */
+  pageInfo?: PaginatedType;
 }
 
 /**
@@ -2178,7 +2172,7 @@ export interface ViewType {
   /** The rder of the list of views */
   order?: number;
   /** Password for protecting the view */
-  password?: string;
+  password?: StringOrNullType;
   /** Unique Project ID */
   project_id?: IdType;
   /** If this view is shown? */
@@ -4102,12 +4096,13 @@ export class Api<
      * @name List
      * @summary List views
      * @request GET:/api/v1/db/meta/tables/{tableId}/views
-     * @response `200` `ViewListType`
+     * @response `200` `ViewListType` OK
      */
     list: (tableId: IdType, params: RequestParams = {}) =>
       this.request<ViewListType, any>({
         path: `/api/v1/db/meta/tables/${tableId}/views`,
         method: 'GET',
+        format: 'json',
         ...params,
       }),
 
@@ -4673,29 +4668,16 @@ export class Api<
   };
   dbTableSort = {
     /**
- * @description List all the sort data in a given View
- * 
- * @tags DB Table Sort
- * @name List
- * @summary List View Sorts
- * @request GET:/api/v1/db/meta/views/{viewId}/sorts
- * @response `200` `{
-  sorts?: {
-  list?: (SortType)[],
-
-},
-
-}` OK
- */
+     * @description List all the sort data in a given View
+     *
+     * @tags DB Table Sort
+     * @name List
+     * @summary List View Sorts
+     * @request GET:/api/v1/db/meta/views/{viewId}/sorts
+     * @response `200` `SortListType` OK
+     */
     list: (viewId: string, params: RequestParams = {}) =>
-      this.request<
-        {
-          sorts?: {
-            list?: SortType[];
-          };
-        },
-        any
-      >({
+      this.request<SortListType, any>({
         path: `/api/v1/db/meta/views/${viewId}/sorts`,
         method: 'GET',
         format: 'json',
@@ -4789,10 +4771,10 @@ export class Api<
      * @name Read
      * @summary Get View Filter
      * @request GET:/api/v1/db/meta/views/{viewId}/filters
-     * @response `200` `(FilterType)[]` OK
+     * @response `200` `FilterListType` OK
      */
     read: (viewId: string, params: RequestParams = {}) =>
-      this.request<FilterType[], any>({
+      this.request<FilterListType, any>({
         path: `/api/v1/db/meta/views/${viewId}/filters`,
         method: 'GET',
         format: 'json',
@@ -4880,10 +4862,10 @@ export class Api<
      * @name ChildrenRead
      * @summary Get Filter Group Children
      * @request GET:/api/v1/db/meta/filters/{filterGroupId}/children
-     * @response `200` `(FilterType)[]` OK
+     * @response `200` `FilterListType` OK
      */
     childrenRead: (filterGroupId: IdType, params: RequestParams = {}) =>
-      this.request<FilterType[], any>({
+      this.request<FilterListType, any>({
         path: `/api/v1/db/meta/filters/${filterGroupId}/children`,
         method: 'GET',
         format: 'json',

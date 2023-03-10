@@ -4031,7 +4031,10 @@
           }
         },
         "tags": ["DB View Column"],
-        "description": "List all columns by ViewID"
+        "description": "List all columns by ViewID",
+        "requestBody": {
+          "content": {}
+        }
       },
       "post": {
         "summary": "Create Column in View",
@@ -8218,21 +8221,38 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "type": "object",
-                  "properties": {
-                    "list": {
-                      "type": "array",
-                      "uniqueItems": true,
-                      "minItems": 1,
-                      "items": {
-                        "$ref": "#/components/schemas/Hook"
+                  "$ref": "#/components/schemas/HookList"
+                },
+                "examples": {
+                  "Example 1": {
+                    "value": {
+                      "list": [
+                        {
+                          "active": 0,
+                          "async": 0,
+                          "description": "This is my hook description",
+                          "env": "all",
+                          "event": "after",
+                          "fk_model_id": "md_rsu68aqjsbyqtl",
+                          "id": "string",
+                          "notification": "{\"type\":\"URL\",\"payload\":{\"method\":\"POST\",\"body\":\"{{ json data }}\",\"headers\":[{}],\"parameters\":[{}],\"auth\":\"\",\"path\":\"http://example.com\"}}",
+                          "null": null,
+                          "operation": "insert",
+                          "retries": 10,
+                          "retry_interval": 60000,
+                          "timeout": 60000,
+                          "title": "My Webhook"
+                        }
+                      ],
+                      "pageInfo": {
+                        "isFirstPage": true,
+                        "isLastPage": true,
+                        "page": 1,
+                        "pageSize": 10,
+                        "totalRows": 1
                       }
-                    },
-                    "pageInfo": {
-                      "$ref": "#/components/schemas/Paginated"
                     }
-                  },
-                  "required": ["list", "pageInfo"]
+                  }
                 }
               }
             }

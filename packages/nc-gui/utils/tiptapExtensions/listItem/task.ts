@@ -2,6 +2,7 @@ import { Node, mergeAttributes, wrappingInputRule } from '@tiptap/core'
 import type { Node as ProseMirrorNode } from 'prosemirror-model'
 import { Fragment, Slice } from 'prosemirror-model'
 import { Plugin } from 'prosemirror-state'
+import { addPastedContentToTransaction } from './helper'
 
 export interface TaskOptions {
   HTMLAttributes: Record<string, any>
@@ -381,10 +382,11 @@ export const Task = Node.create<TaskOptions>({
           handleDOMEvents: {
             paste: (view, event) => {
               // const htmlContent = event.clipboardData.getData('text/html')
-              const textContent = event.clipboardData.getData('text/plain')
+              const textContent = event.clipboardData?.getData('text/plain')
+              if (!textContent) return false
+
               const matches = textContent.matchAll(inputPasteRegex)
               const state = view.state
-              const selection = state.selection
               const tr = state.tr
 
               let count = 0
@@ -409,9 +411,7 @@ export const Task = Node.create<TaskOptions>({
               }
 
               if (count > 0) {
-                for (const fragment of fragments.reverse()) {
-                  tr.insert(selection.from - 1, fragment)
-                }
+                addPastedContentToTransaction(tr, state, fragments.reverse())
 
                 tr.setMeta('task-paste-remove-auto-inserted-line', textContent)
                 view.dispatch(tr)

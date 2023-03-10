@@ -1,6 +1,7 @@
 import { Node, mergeAttributes, wrappingInputRule } from '@tiptap/core'
 import { Fragment, Slice } from 'prosemirror-model'
 import { Plugin } from 'prosemirror-state'
+import { addPastedContentToTransaction } from './helper'
 
 export interface ListOptions {
   HTMLAttributes: Record<string, any>
@@ -229,14 +230,16 @@ export const Bullet = Node.create<ListOptions>({
           handleDOMEvents: {
             paste: (view, event) => {
               // const htmlContent = event.clipboardData.getData('text/html')
-              const textContent = event.clipboardData.getData('text/plain')
+              const textContent = event.clipboardData?.getData('text/plain')
+              if (!textContent) return false
+
               const matches = textContent.matchAll(inputPasteRegex)
               const state = view.state
-              const selection = state.selection
               const tr = state.tr
 
               let found = false
 
+              const fragments = []
               for (const match of matches) {
                 if (!match || !match.input) continue
 
@@ -253,12 +256,15 @@ export const Bullet = Node.create<ListOptions>({
                     ]),
                   )
 
-                  tr.insert(selection.from - 1, fragment)
+                  fragments.push(fragment)
                 }
               }
 
               if (found) {
+                addPastedContentToTransaction(tr, state, fragments.reverse())
+
                 tr.setMeta('bullet-paste-remove-auto-inserted-line', textContent)
+
                 view.dispatch(tr)
                 return true
               }

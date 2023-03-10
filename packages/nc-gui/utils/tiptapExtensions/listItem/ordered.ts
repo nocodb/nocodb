@@ -1,6 +1,7 @@
 import { Node, mergeAttributes, wrappingInputRule } from '@tiptap/core'
 import { Fragment, Slice } from 'prosemirror-model'
 import { Plugin } from 'prosemirror-state'
+import { addPastedContentToTransaction } from './helper'
 
 export interface OrderItemsOptions {
   number: string
@@ -253,12 +254,6 @@ export const Ordered = Node.create<OrderItemsOptions>({
 
           transactionContent = transactionContent.replace('\n', ' ')
 
-          console.log(
-            'transactionContent',
-            transactionContent,
-            lastTransaction.getMeta('ordered-paste-remove-auto-inserted-line'),
-          )
-
           const lastTransactionContent = lastTransaction.getMeta('ordered-paste-remove-auto-inserted-line')
 
           if (lastTransactionContent.trim().includes(transactionContent.trim())) {
@@ -272,10 +267,11 @@ export const Ordered = Node.create<OrderItemsOptions>({
           handleDOMEvents: {
             paste: (view, event) => {
               // const htmlContent = event.clipboardData.getData('text/html')
-              const textContent = event.clipboardData.getData('text/plain')
+              const textContent = event.clipboardData?.getData('text/plain')
+              if (!textContent) return false
+
               const matches = textContent.matchAll(inputPasteRegex)
               const state = view.state
-              const selection = state.selection
               const tr = state.tr
 
               let count = 0
@@ -299,9 +295,7 @@ export const Ordered = Node.create<OrderItemsOptions>({
               }
 
               if (count > 0) {
-                for (const fragment of fragments.reverse()) {
-                  tr.insert(selection.from - 1, fragment)
-                }
+                addPastedContentToTransaction(tr, state, fragments.reverse())
 
                 tr.setMeta('ordered-paste-remove-auto-inserted-line', textContent)
                 view.dispatch(tr)

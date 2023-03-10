@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { Empty, extractSdkResponseErrorMsg, h, message, useI18n, useNuxtApp, useProject } from '#imports'
+import { storeToRefs } from 'pinia'
 
 const props = defineProps<{
   baseId: string
@@ -11,7 +12,7 @@ const { $api } = useNuxtApp()
 
 const projectStore = useProject()
 const { loadTables } = projectStore
-const { project } = projectStore
+const { project } = storeToRefs(projectStore)
 
 const { t } = useI18n()
 

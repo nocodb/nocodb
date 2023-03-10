@@ -26,7 +26,7 @@ import {
 } from '#imports'
 import type { Row } from '~/lib'
 
-const formatData = (list: Row[]) =>
+const formatData = (list: Record<string, any>[]) =>
   list.map((row) => ({
     row: { ...row },
     oldRow: { ...row },
@@ -197,6 +197,7 @@ export function useViewData(
           where: where?.value,
         })
       : await fetchSharedViewData({ sortsArr: sorts.value, filtersArr: nestedFilters.value })
+
     formattedData.value = formatData(response.list)
     paginationData.value = response.pageInfo
 

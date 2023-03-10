@@ -1662,6 +1662,34 @@
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/BaseList"
+                },
+                "examples": {
+                  "Example 1": {
+                    "value": {
+                      "list": [
+                        {
+                          "alias": null,
+                          "config": "<ENCRYPTED>",
+                          "enabled": 1,
+                          "id": "ds_krsappzu9f8vmo",
+                          "inflection_column": "camelize",
+                          "inflection_table": "camelize",
+                          "is_meta": 1,
+                          "meta": null,
+                          "order": 1,
+                          "project_id": "p_01clqvzik3izk6",
+                          "type": "mysql2"
+                        }
+                      ],
+                      "pageInfo": {
+                        "isFirstPage": true,
+                        "isLastPage": true,
+                        "page": 1,
+                        "pageSize": 10,
+                        "totalRows": 1
+                      }
+                    }
+                  }
                 }
               }
             }
@@ -3519,7 +3547,93 @@
         "operationId": "db-view-list",
         "responses": {
           "200": {
-            "$ref": "#/components/responses/ViewList"
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ViewList"
+                },
+                "examples": {
+                  "Example 1": {
+                    "value": {
+                      "list": [
+                        {
+                          "alias": "string",
+                          "column": [
+                            {
+                              "alias": "string",
+                              "auto_increment": true,
+                              "auto_update_timestamp": true,
+                              "base_id": "string",
+                              "character_maximum_length": "string",
+                              "character_set_name": "string",
+                              "colOptions": {
+                                "deleted": "string",
+                                "dr": "string",
+                                "fk_child_column_id": "string",
+                                "fk_column_id": "string",
+                                "fk_index_name": "string",
+                                "fk_mm_child_column_id": "string",
+                                "fk_mm_model_id": "string",
+                                "fk_mm_parent_column_id": "string",
+                                "fk_parent_column_id": "string",
+                                "id": "string",
+                                "order": "string",
+                                "type": "string",
+                                "ur": "string",
+                                "virtual": true
+                              },
+                              "column_comment": "string",
+                              "column_default": "string",
+                              "column_ordinal_position": "string",
+                              "column_type": "string",
+                              "data_type": "string",
+                              "data_type_x": "string",
+                              "data_type_x_precision": "string",
+                              "data_type_x_scale": "string",
+                              "deleted": true,
+                              "fk_model_id": "string",
+                              "id": "string",
+                              "numeric_precision": "string",
+                              "numeric_scale": "string",
+                              "order": 0,
+                              "primary_key": true,
+                              "primary_value": true,
+                              "rqd": "string",
+                              "title": "string",
+                              "ui_data_type": "string",
+                              "un": "string",
+                              "unique": true,
+                              "visible": true
+                            }
+                          ],
+                          "columnByIds": {},
+                          "deleted": true,
+                          "enabled": true,
+                          "fk_base_id": "string",
+                          "fk_project_id": "string",
+                          "id": "string",
+                          "order": 0,
+                          "parent_id": "string",
+                          "pinned": true,
+                          "show_as": "string",
+                          "tags": "string",
+                          "title": "string",
+                          "type": "string"
+                        }
+                      ],
+                      "pageInfo": {
+                        "isFirstPage": true,
+                        "isLastPage": true,
+                        "page": 1,
+                        "pageSize": 10,
+                        "totalRows": 1
+                      }
+                    }
+                  }
+                }
+              }
+            }
           }
         },
         "tags": ["DB View"],
@@ -3930,36 +4044,28 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "type": "object",
-                  "properties": {
-                    "sorts": {
-                      "type": "object",
-                      "properties": {
-                        "list": {
-                          "type": "array",
-                          "items": {
-                            "$ref": "#/components/schemas/Sort"
-                          }
-                        }
-                      }
-                    }
-                  }
+                  "$ref": "#/components/schemas/SortList"
                 },
                 "examples": {
                   "Example 1": {
                     "value": {
-                      "sorts": {
-                        "list": [
-                          {
-                            "id": "so_xd4t51uv60ghzl",
-                            "fk_column_id": "cl_l11b769pe2j1ce",
-                            "fk_model_id": "md_ehn5izr99m7d45",
-                            "base_id": "ds_3l9qx8xqksenrl",
-                            "direction": "desc",
-                            "order": 1,
-                            "project_id": "p_9sx43moxhqtjm3"
-                          }
-                        ]
+                      "list": [
+                        {
+                          "id": "so_xd4t51uv60ghzl",
+                          "fk_column_id": "cl_l11b769pe2j1ce",
+                          "fk_model_id": "md_ehn5izr99m7d45",
+                          "base_id": "ds_3l9qx8xqksenrl",
+                          "direction": "desc",
+                          "order": 1,
+                          "project_id": "p_9sx43moxhqtjm3"
+                        }
+                      ],
+                      "pageInfo": {
+                        "isFirstPage": true,
+                        "isLastPage": true,
+                        "page": 1,
+                        "pageSize": 10,
+                        "totalRows": 1
                       }
                     }
                   }
@@ -4112,32 +4218,38 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "type": "array",
-                  "items": {
-                    "$ref": "#/components/schemas/Filter"
-                  }
+                  "$ref": "#/components/schemas/FilterList"
                 },
                 "examples": {
                   "Example 1": {
-                    "value": [
-                      {
-                        "base_id": "ds_g4ccx6e77h1dmi",
-                        "comparison_op": "eq",
-                        "comparison_sub_op": null,
-                        "created_at": "2023-03-02 18:18:05",
-                        "fk_column_id": "cl_d7ah9n2qfupgys",
-                        "fk_hook_id": null,
-                        "fk_parent_id": null,
-                        "fk_view_id": "vw_b739e29vqmrxnf",
-                        "id": "fi_xn647tpmdq8fu8",
-                        "is_group": null,
-                        "logical_op": "and",
-                        "order": 1,
-                        "project_id": "p_xm3thidrblw4n7",
-                        "updated_at": "2023-03-02 18:18:05",
-                        "value": "foo"
+                    "value": {
+                      "list": [
+                        {
+                          "base_id": "ds_g4ccx6e77h1dmi",
+                          "comparison_op": "eq",
+                          "comparison_sub_op": null,
+                          "created_at": "2023-03-02 18:18:05",
+                          "fk_column_id": "cl_d7ah9n2qfupgys",
+                          "fk_hook_id": null,
+                          "fk_parent_id": null,
+                          "fk_view_id": "vw_b739e29vqmrxnf",
+                          "id": "fi_xn647tpmdq8fu8",
+                          "is_group": null,
+                          "logical_op": "and",
+                          "order": 1,
+                          "project_id": "p_xm3thidrblw4n7",
+                          "updated_at": "2023-03-02 18:18:05",
+                          "value": "foo"
+                        }
+                      ],
+                      "pageInfo": {
+                        "isFirstPage": true,
+                        "isLastPage": true,
+                        "page": 1,
+                        "pageSize": 10,
+                        "totalRows": 1
                       }
-                    ]
+                    }
                   }
                 }
               }
@@ -4371,32 +4483,38 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "type": "array",
-                  "items": {
-                    "$ref": "#/components/schemas/Filter"
-                  }
+                  "$ref": "#/components/schemas/FilterList"
                 },
                 "examples": {
                   "Example 1": {
-                    "value": [
-                      {
-                        "base_id": "ds_g4ccx6e77h1dmi",
-                        "comparison_op": "eq",
-                        "comparison_sub_op": null,
-                        "created_at": "2023-03-02 18:18:05",
-                        "fk_column_id": "cl_d7ah9n2qfupgys",
-                        "fk_hook_id": null,
-                        "fk_parent_id": null,
-                        "fk_view_id": "vw_b739e29vqmrxnf",
-                        "id": "fi_xn647tpmdq8fu8",
-                        "is_group": null,
-                        "logical_op": "and",
-                        "order": 1,
-                        "project_id": "p_xm3thidrblw4n7",
-                        "updated_at": "2023-03-02 18:18:05",
-                        "value": "foo"
+                    "value": {
+                      "list": [
+                        {
+                          "base_id": "ds_g4ccx6e77h1dmi",
+                          "comparison_op": "eq",
+                          "comparison_sub_op": null,
+                          "created_at": "2023-03-02 18:18:05",
+                          "fk_column_id": "cl_d7ah9n2qfupgys",
+                          "fk_hook_id": null,
+                          "fk_parent_id": null,
+                          "fk_view_id": "vw_b739e29vqmrxnf",
+                          "id": "fi_xn647tpmdq8fu8",
+                          "is_group": null,
+                          "logical_op": "and",
+                          "order": 1,
+                          "project_id": "p_xm3thidrblw4n7",
+                          "updated_at": "2023-03-02 18:18:05",
+                          "value": "foo"
+                        }
+                      ],
+                      "pageInfo": {
+                        "isFirstPage": true,
+                        "isLastPage": true,
+                        "page": 1,
+                        "pageSize": 10,
+                        "totalRows": 1
                       }
-                    ]
+                    }
                   }
                 }
               }
@@ -9374,53 +9492,30 @@
         "description": "Model for Base List",
         "examples": [
           {
-            "bases": {
-              "list": [
-                {
-                  "alias": "string",
-                  "config": null,
-                  "created_at": "2023-03-01 14:27:36",
-                  "enabled": true,
-                  "id": "string",
-                  "inflection_column": "camelize",
-                  "inflection_table": "camelize",
-                  "is_meta": true,
-                  "order": 1,
-                  "project_id": "string",
-                  "type": "mysql2",
-                  "updated_at": "2023-03-01 14:27:36"
-                }
-              ],
-              "pageInfo": {
-                "isFirstPage": true,
-                "isLastPage": true,
-                "page": 1,
-                "pageSize": 10,
-                "totalRows": 1
+            "list": [
+              {
+                "alias": null,
+                "config": "<ENCRYPTED>",
+                "enabled": 1,
+                "id": "ds_krsappzu9f8vmo",
+                "inflection_column": "camelize",
+                "inflection_table": "camelize",
+                "is_meta": 1,
+                "meta": null,
+                "order": 1,
+                "project_id": "p_01clqvzik3izk6",
+                "type": "mysql2"
               }
+            ],
+            "pageInfo": {
+              "isFirstPage": true,
+              "isLastPage": true,
+              "page": 1,
+              "pageSize": 10,
+              "totalRows": 1
             }
           }
         ],
-        "properties": {
-          "bases": {
-            "properties": {
-              "list": {
-                "items": {
-                  "$ref": "#/components/schemas/Base"
-                },
-                "minItems": 1,
-                "type": "array",
-                "uniqueItems": true
-              },
-              "pageInfo": {
-                "$ref": "#/components/schemas/Paginated"
-              }
-            },
-            "required": ["list", "pageInfo"],
-            "type": "object"
-          }
-        },
-        "required": ["bases"],
         "title": "Base List Model",
         "type": "object",
         "x-examples": {
@@ -9465,6 +9560,26 @@
                 "pageSize": 2,
                 "totalRows": 2
               }
+            }
+          }
+        },
+        "properties": {
+          "list": {
+            "type": "array",
+            "x-stoplight": {
+              "id": "1q3ny60j1g4z2"
+            },
+            "items": {
+              "$ref": "#/components/schemas/Base",
+              "x-stoplight": {
+                "id": "udd0nrcv6pq8d"
+              }
+            }
+          },
+          "pageInfo": {
+            "$ref": "#/components/schemas/Paginated",
+            "x-stoplight": {
+              "id": "xqwcniocq37hk"
             }
           }
         }
@@ -9830,90 +9945,53 @@
         "description": "Model for Column List",
         "examples": [
           {
-            "columns": {
-              "list": [
-                {
-                  "ai": 0,
-                  "au": 0,
-                  "base_id": "ds_krsappzu9f8vmo",
-                  "cc": "",
-                  "cdf": null,
-                  "clen": "1",
-                  "colOptions": {
-                    "options": [
-                      {
-                        "color": "#c2f5e8",
-                        "fk_column_id": "cl_vnrvdzwnk6uuov",
-                        "id": "sl_uabhxfapw4frlg",
-                        "order": 3,
-                        "title": "c"
-                      },
-                      {
-                        "color": "#cfdffe",
-                        "fk_column_id": "cl_vnrvdzwnk6uuov",
-                        "id": "sl_mb8fkdvgudzu3r",
-                        "order": 1,
-                        "title": "a"
-                      },
-                      {
-                        "color": "#d0f1fd",
-                        "fk_column_id": "cl_vnrvdzwnk6uuov",
-                        "id": "sl_31uj9j02qacl7c",
-                        "order": 2,
-                        "title": "b"
-                      }
-                    ]
-                  },
-                  "column_name": "SingleSelect",
-                  "cop": "5",
-                  "created_at": "2023-03-03 11:32:59",
-                  "csn": "utf8mb4",
-                  "ct": "enum('a','b','c')",
-                  "deleted": null,
-                  "dt": "enum",
-                  "dtx": "specificType",
-                  "dtxp": "'a','b','c'",
-                  "dtxs": null,
-                  "fk_model_id": "md_yvwvbt2i78rgcm",
-                  "id": "cl_vnrvdzwnk6uuov",
-                  "meta": {},
-                  "np": null,
-                  "ns": null,
-                  "order": null,
-                  "pk": 0,
-                  "project_id": "p_01clqvzik3izk6",
-                  "pv": null,
-                  "rqd": 0,
-                  "system": 0,
-                  "title": "SingleSelect",
-                  "uidt": "SingleSelect",
-                  "un": 0,
-                  "unique": 0,
-                  "updated_at": "2023-03-03 11:32:59",
-                  "validate": null,
-                  "virtual": null
-                }
-              ]
+            "list": [
+              {
+                "ai": 0,
+                "au": 0,
+                "base_id": "ds_krsappzu9f8vmo",
+                "cc": "",
+                "cdf": null,
+                "clen": "45",
+                "column_name": "title",
+                "cop": "2",
+                "created_at": "2023-03-02 13:14:16",
+                "csn": "utf8mb4",
+                "ct": "varchar(45)",
+                "deleted": null,
+                "dt": "varchar",
+                "dtx": "specificType",
+                "dtxp": "45",
+                "dtxs": null,
+                "fk_model_id": "md_yvwvbt2i78rgcm",
+                "id": "cl_0j9gv0oi8vjy46",
+                "meta": null,
+                "np": null,
+                "ns": null,
+                "order": 2,
+                "pk": 0,
+                "project_id": "p_01clqvzik3izk6",
+                "pv": 1,
+                "rqd": 0,
+                "system": 0,
+                "title": "Title",
+                "uidt": "SingleLineText",
+                "un": 0,
+                "unique": 0,
+                "updated_at": "2023-03-02 13:14:16",
+                "validate": null,
+                "virtual": null
+              }
+            ],
+            "pageInfo": {
+              "isFirstPage": true,
+              "isLastPage": true,
+              "page": 1,
+              "pageSize": 10,
+              "totalRows": 1
             }
           }
         ],
-        "properties": {
-          "columns": {
-            "properties": {
-              "list": {
-                "items": {
-                  "$ref": "#/components/schemas/Column"
-                },
-                "minItems": 1,
-                "type": "array",
-                "uniqueItems": true
-              }
-            },
-            "required": ["list"],
-            "type": "object"
-          }
-        },
-        "required": ["columns"],
         "title": "Column List Model",
         "type": "object",
         "x-examples": {
@@ -9942,6 +10020,26 @@
                 "sort": "string",
                 "totalRows": 0
               }
+            }
+          }
+        },
+        "properties": {
+          "list": {
+            "type": "array",
+            "x-stoplight": {
+              "id": "c6lpw8px25356"
+            },
+            "items": {
+              "$ref": "#/components/schemas/Column",
+              "x-stoplight": {
+                "id": "zbm89i86dr73y"
+              }
+            }
+          },
+          "pageInfo": {
+            "$ref": "#/components/schemas/Paginated",
+            "x-stoplight": {
+              "id": "ko0s0z13h4hsw"
             }
           }
         }
@@ -10225,63 +10323,34 @@
         "description": "Model for Filter List",
         "examples": [
           {
-            "filters": {
-              "list": [
-                {
-                  "base_id": "ds_g4ccx6e77h1dmi",
-                  "comparison_op": "eq",
-                  "comparison_sub_op": null,
-                  "created_at": "2023-03-02 18:18:05",
-                  "fk_column_id": "cl_d7ah9n2qfupgys",
-                  "fk_hook_id": null,
-                  "fk_parent_id": null,
-                  "fk_view_id": "vw_b739e29vqmrxnf",
-                  "id": "fi_xn647tpmdq8fu8",
-                  "is_group": null,
-                  "logical_op": "and",
-                  "order": 1,
-                  "project_id": "p_xm3thidrblw4n7",
-                  "updated_at": "2023-03-02 18:18:05",
-                  "value": "foo"
-                },
-                {
-                  "base_id": "ds_g4ccx6e77h1dmi",
-                  "comparison_op": "nlike",
-                  "comparison_sub_op": null,
-                  "created_at": "2023-03-02 18:21:52",
-                  "fk_column_id": "cl_d7ah9n2qfupgys",
-                  "fk_hook_id": null,
-                  "fk_parent_id": null,
-                  "fk_view_id": "vw_b739e29vqmrxnf",
-                  "id": "fi_wl91o3rf6rs0fq",
-                  "is_group": null,
-                  "logical_op": "and",
-                  "order": 2,
-                  "project_id": "p_xm3thidrblw4n7",
-                  "updated_at": "2023-03-02 18:21:52",
-                  "value": "bar"
-                }
-              ]
+            "list": [
+              {
+                "base_id": "ds_g4ccx6e77h1dmi",
+                "comparison_op": "eq",
+                "comparison_sub_op": null,
+                "created_at": "2023-03-02 18:18:05",
+                "fk_column_id": "cl_d7ah9n2qfupgys",
+                "fk_hook_id": null,
+                "fk_parent_id": null,
+                "fk_view_id": "vw_b739e29vqmrxnf",
+                "id": "fi_xn647tpmdq8fu8",
+                "is_group": null,
+                "logical_op": "and",
+                "order": 1,
+                "project_id": "p_xm3thidrblw4n7",
+                "updated_at": "2023-03-02 18:18:05",
+                "value": "foo"
+              }
+            ],
+            "pageInfo": {
+              "isFirstPage": true,
+              "isLastPage": true,
+              "page": 1,
+              "pageSize": 10,
+              "totalRows": 1
             }
           }
         ],
-        "properties": {
-          "filters": {
-            "properties": {
-              "list": {
-                "items": {
-                  "$ref": "#/components/schemas/Filter"
-                },
-                "minItems": 1,
-                "type": "array",
-                "uniqueItems": true
-              }
-            },
-            "required": ["list"],
-            "type": "object"
-          }
-        },
-        "required": ["filters"],
         "title": "Filter List Model",
         "type": "object",
         "x-examples": {
@@ -10310,6 +10379,26 @@
                 "sort": "string",
                 "totalRows": 0
               }
+            }
+          }
+        },
+        "properties": {
+          "list": {
+            "type": "array",
+            "x-stoplight": {
+              "id": "22sgv37ve9kxo"
+            },
+            "items": {
+              "$ref": "#/components/schemas/Filter",
+              "x-stoplight": {
+                "id": "ttw5rxhy83k8p"
+              }
+            }
+          },
+          "pageInfo": {
+            "$ref": "#/components/schemas/Paginated",
+            "x-stoplight": {
+              "id": "7cyrb1770mrzz"
             }
           }
         }
@@ -11519,7 +11608,24 @@
         "description": "Model for Hook List",
         "examples": [
           {
-            "list": [{}],
+            "list": [
+              {
+                "active": 0,
+                "async": 0,
+                "description": "This is my hook description",
+                "env": "all",
+                "event": "after",
+                "fk_model_id": "md_rsu68aqjsbyqtl",
+                "id": "string",
+                "notification": "{\"type\":\"URL\",\"payload\":{\"method\":\"POST\",\"body\":\"{{ json data }}\",\"headers\":[{}],\"parameters\":[{}],\"auth\":\"\",\"path\":\"http://example.com\"}}",
+                "null": null,
+                "operation": "insert",
+                "retries": 10,
+                "retry_interval": 60000,
+                "timeout": 60000,
+                "title": "My Webhook"
+              }
+            ],
             "pageInfo": {
               "isFirstPage": true,
               "isLastPage": true,
@@ -13468,18 +13574,23 @@
         "description": "Model for Sort List",
         "examples": [
           {
-            "sorts": {
-              "list": [
-                {
-                  "id": "so_xd4t51uv60ghzl",
-                  "fk_column_id": "cl_l11b769pe2j1ce",
-                  "fk_model_id": "md_ehn5izr99m7d45",
-                  "base_id": "ds_3l9qx8xqksenrl",
-                  "direction": "desc",
-                  "order": 1,
-                  "project_id": "p_9sx43moxhqtjm3"
-                }
-              ]
+            "list": [
+              {
+                "id": "so_xd4t51uv60ghzl",
+                "fk_column_id": "cl_l11b769pe2j1ce",
+                "fk_model_id": "md_ehn5izr99m7d45",
+                "base_id": "ds_3l9qx8xqksenrl",
+                "direction": "desc",
+                "order": 1,
+                "project_id": "p_9sx43moxhqtjm3"
+              }
+            ],
+            "pageInfo": {
+              "isFirstPage": true,
+              "isLastPage": true,
+              "page": 1,
+              "pageSize": 10,
+              "totalRows": 1
             }
           }
         ],
@@ -13515,22 +13626,25 @@
           }
         },
         "properties": {
-          "sorts": {
-            "type": "object",
-            "required": ["list"],
-            "properties": {
-              "list": {
-                "minItems": 1,
-                "type": "array",
-                "uniqueItems": true,
-                "items": {
-                  "$ref": "#/components/schemas/Sort"
-                }
+          "list": {
+            "type": "array",
+            "x-stoplight": {
+              "id": "gjqqc8ciqg947"
+            },
+            "items": {
+              "$ref": "#/components/schemas/Sort",
+              "x-stoplight": {
+                "id": "usnfa1kbovpmb"
               }
             }
+          },
+          "pageInfo": {
+            "$ref": "#/components/schemas/Paginated",
+            "x-stoplight": {
+              "id": "i75wcejfp5mnq"
+            }
           }
-        },
-        "required": ["sorts"]
+        }
       },
       "SortReq": {
         "description": "Model for Sort Request",
@@ -14074,20 +14188,6 @@
             }
           }
         ],
-        "properties": {
-          "list": {
-            "items": {
-              "$ref": "#/components/schemas/Table"
-            },
-            "minItems": 1,
-            "type": "array",
-            "uniqueItems": true
-          },
-          "pageInfo": {
-            "$ref": "#/components/schemas/Paginated"
-          }
-        },
-        "required": ["tables"],
         "title": "Table List Model",
         "type": "object",
         "x-examples": {
@@ -14117,6 +14217,19 @@
                 "totalRows": 0
               }
             }
+          }
+        },
+        "properties": {
+          "list": {
+            "minItems": 1,
+            "type": "array",
+            "uniqueItems": true,
+            "items": {
+              "$ref": "#/components/schemas/Table"
+            }
+          },
+          "pageInfo": {
+            "$ref": "#/components/schemas/Paginated"
           }
         }
       },
@@ -14352,45 +14465,25 @@
         "description": "Model for User List",
         "examples": [
           {
-            "users": {
-              "list": {
-                "created_at": "2023-03-01 11:36:49",
+            "list": [
+              {
                 "email": "user@example.com",
                 "email_verified": true,
-                "firstName": "Alice",
+                "firstname": "Alice",
                 "id": "us_8kugj628ebjngs",
-                "lastName": "Smith",
-                "roles": "org-level-viewer",
-                "updated_at": "2023-03-01 11:36:49"
-              },
-              "pageInfo": {
-                "isFirstPage": true,
-                "isLastPage": true,
-                "page": 1,
-                "pageSize": 10,
-                "totalRows": 1
+                "lastname": "Smith",
+                "roles": "org-level-viewer"
               }
+            ],
+            "pageInfo": {
+              "isFirstPage": true,
+              "isLastPage": true,
+              "page": 1,
+              "pageSize": 10,
+              "totalRows": 1
             }
           }
         ],
-        "properties": {
-          "users": {
-            "description": "users includes `list` and `pageInfo`",
-            "properties": {
-              "list": {
-                "$ref": "#/components/schemas/User",
-                "description": "List of User objects"
-              },
-              "pageInfo": {
-                "$ref": "#/components/schemas/Paginated",
-                "description": "Pagination info"
-              }
-            },
-            "required": ["list", "pageInfo"],
-            "type": "object"
-          }
-        },
-        "required": ["users"],
         "title": "User List Model",
         "type": "object",
         "x-examples": {
@@ -14419,6 +14512,26 @@
                 "sort": "string",
                 "totalRows": 0
               }
+            }
+          }
+        },
+        "properties": {
+          "list": {
+            "type": "array",
+            "x-stoplight": {
+              "id": "8o7v47q3e67ef"
+            },
+            "items": {
+              "$ref": "#/components/schemas/User",
+              "x-stoplight": {
+                "id": "kwqzxwea9r5er"
+              }
+            }
+          },
+          "pageInfo": {
+            "$ref": "#/components/schemas/Paginated",
+            "x-stoplight": {
+              "id": "0d98n6sfxfvft"
             }
           }
         }
@@ -14484,8 +14597,8 @@
             "type": "number"
           },
           "password": {
-            "description": "Password for protecting the view",
-            "type": "string"
+            "$ref": "#/components/schemas/StringOrNull",
+            "description": "Password for protecting the view"
           },
           "project_id": {
             "$ref": "#/components/schemas/Id",
@@ -14624,7 +14737,6 @@
             "$ref": "#/components/schemas/Paginated"
           }
         },
-        "required": ["views"],
         "title": "View List Model",
         "type": "object",
         "x-examples": {
@@ -14961,6 +15073,85 @@
           "application/json": {
             "schema": {
               "$ref": "#/components/schemas/TableList"
+            },
+            "examples": {
+              "Example 1": {
+                "value": {
+                  "list": [
+                    {
+                      "alias": "string",
+                      "base_id": "string",
+                      "column": [
+                        {
+                          "alias": "string",
+                          "auto_increment": true,
+                          "auto_update_timestamp": true,
+                          "base_id": "string",
+                          "character_maximum_length": "string",
+                          "character_set_name": "string",
+                          "colOptions": {
+                            "deleted": "string",
+                            "dr": "string",
+                            "fk_child_column_id": "string",
+                            "fk_column_id": "string",
+                            "fk_index_name": "string",
+                            "fk_mm_child_column_id": "string",
+                            "fk_mm_model_id": "string",
+                            "fk_mm_parent_column_id": "string",
+                            "fk_parent_column_id": "string",
+                            "id": "string",
+                            "order": "string",
+                            "type": "string",
+                            "ur": "string",
+                            "virtual": true
+                          },
+                          "column_comment": "string",
+                          "column_default": "string",
+                          "column_ordinal_position": "string",
+                          "column_type": "string",
+                          "data_type": "string",
+                          "data_type_x": "string",
+                          "data_type_x_precision": "string",
+                          "data_type_x_scale": "string",
+                          "deleted": true,
+                          "fk_model_id": "string",
+                          "id": "string",
+                          "numeric_precision": "string",
+                          "numeric_scale": "string",
+                          "order": 0,
+                          "primary_key": true,
+                          "primary_value": true,
+                          "rqd": "string",
+                          "title": "string",
+                          "ui_data_type": "string",
+                          "un": "string",
+                          "unique": true,
+                          "visible": true
+                        }
+                      ],
+                      "columnByIds": {},
+                      "deleted": true,
+                      "enabled": true,
+                      "id": "string",
+                      "order": 0,
+                      "parent_id": "string",
+                      "pinned": true,
+                      "project_id": "string",
+                      "show_as": "string",
+                      "tags": "string",
+                      "title": "string",
+                      "type": "string"
+                    }
+                  ],
+                  "pageInfo": {
+                    "isFirstPage": true,
+                    "isLastPage": true,
+                    "page": 1,
+                    "pageSize": 10,
+                    "totalRows": 1
+                  }
+                }
+              }
             }
           }
         }
@@ -14991,7 +15182,8 @@
           "application/json": {
             "schema": {
               "$ref": "#/components/schemas/SortList"
-            }
+            },
+            "examples": {}
           }
         }
       },
@@ -15003,25 +15195,80 @@
               "$ref": "#/components/schemas/ViewList"
             },
             "examples": {
-              "example-1": {
+              "Example 1": {
                 "value": {
-                  "views": {
-                    "list": [
-                      {
-                        "id": "string",
-                        "title": "string",
-                        "alias": "string",
-                        "deleted": true,
-                        "order": 0
-                      }
-                    ],
-                    "pageInfo": {
-                      "pageSize": 0,
-                      "totalRows": 0,
-                      "sort": "string",
-                      "isFirstPage": true,
-                      "isLastPage": true
+                  "list": [
+                    {
+                      "alias": "string",
+                      "column": [
+                        {
+                          "alias": "string",
+                          "auto_increment": true,
+                          "auto_update_timestamp": true,
+                          "base_id": "string",
+                          "character_maximum_length": "string",
+                          "character_set_name": "string",
+                          "colOptions": {
+                            "deleted": "string",
+                            "dr": "string",
+                            "fk_child_column_id": "string",
+                            "fk_column_id": "string",
+                            "fk_index_name": "string",
+                            "fk_mm_child_column_id": "string",
+                            "fk_mm_model_id": "string",
+                            "fk_mm_parent_column_id": "string",
+                            "fk_parent_column_id": "string",
+                            "id": "string",
+                            "order": "string",
+                            "type": "string",
+                            "ur": "string",
+                            "virtual": true
+                          },
+                          "column_comment": "string",
+                          "column_default": "string",
+                          "column_ordinal_position": "string",
+                          "column_type": "string",
+                          "data_type": "string",
+                          "data_type_x": "string",
+                          "data_type_x_precision": "string",
+                          "data_type_x_scale": "string",
+                          "deleted": true,
+                          "fk_model_id": "string",
+                          "id": "string",
+                          "numeric_precision": "string",
+                          "numeric_scale": "string",
+                          "order": 0,
+                          "primary_key": true,
+                          "primary_value": true,
+                          "rqd": "string",
+                          "title": "string",
+                          "ui_data_type": "string",
+                          "un": "string",
+                          "unique": true,
+                          "visible": true
+                        }
+                      ],
+                      "columnByIds": {},
+                      "deleted": true,
+                      "enabled": true,
+                      "fk_base_id": "string",
+                      "fk_project_id": "string",
+                      "id": "string",
+                      "order": 0,
+                      "parent_id": "string",
+                      "pinned": true,
+                      "show_as": "string",
+                      "tags": "string",
+                      "title": "string",
+                      "type": "string"
                     }
+                  ],
+                  "pageInfo": {
+                    "isFirstPage": true,
+                    "isLastPage": true,
+                    "page": 1,
+                    "pageSize": 10,
+                    "totalRows": 1
                   }
                 }
               }
@@ -15035,6 +15282,49 @@
           "application/json": {
             "schema": {
               "$ref": "#/components/schemas/SharedViewList"
+            },
+            "examples": {
+              "Example 1": {
+                "value": {
+                  "list": [
+                    {
+                      "base_id": "ds_g4ccx6e77h1dmi",
+                      "created_at": "2023-03-02 17:46:31",
+                      "fk_model_id": "md_mhs9z4r2ak98x0",
+                      "id": "vw_lg052cnc1c26kf",
+                      "is_default": 1,
+                      "lock_type": "collaborative",
+                      "meta": {},
+                      "order": 1,
+                      "password": null,
+                      "project_id": "p_xm3thidrblw4n7",
+                      "show": 1,
+                      "show_system_fields": null,
+                      "title": "Sheet-1",
+                      "type": 3,
+                      "updated_at": "2023-03-02 17:46:31",
+                      "uuid": null,
+                      "view": {
+                        "base_id": "ds_g4ccx6e77h1dmi",
+                        "created_at": "2023-03-02 17:46:31",
+                        "fk_view_id": "vw_lg052cnc1c26kf",
+                        "meta": null,
+                        "project_id": "p_xm3thidrblw4n7",
+                        "row_height": null,
+                        "updated_at": "2023-03-02 17:46:31",
+                        "uuid": null
+                      }
+                    }
+                  ],
+                  "pageInfo": {
+                    "isFirstPage": true,
+                    "isLastPage": true,
+                    "page": 1,
+                    "pageSize": 10,
+                    "totalRows": 1
+                  }
+                }
+              }
             }
           }
         }
@@ -15055,6 +15345,29 @@
           "application/json": {
             "schema": {
               "$ref": "#/components/schemas/UserList"
+            },
+            "examples": {
+              "Example 1": {
+                "value": {
+                  "list": [
+                    {
+                      "email": "user@example.com",
+                      "email_verified": true,
+                      "firstname": "Alice",
+                      "id": "us_8kugj628ebjngs",
+                      "lastname": "Smith",
+                      "roles": "org-level-viewer"
+                    }
+                  ],
+                  "pageInfo": {
+                    "isFirstPage": true,
+                    "isLastPage": true,
+                    "page": 1,
+                    "pageSize": 10,
+                    "totalRows": 1
+                  }
+                }
+              }
             }
           }
         }

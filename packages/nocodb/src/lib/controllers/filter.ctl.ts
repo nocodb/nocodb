@@ -3,14 +3,14 @@ import ncMetaAclMw from '../meta/helpers/ncMetaAclMw';
 import { metaApiMetrics } from '../meta/helpers/apiMetrics';
 import { PagedResponseImpl } from '../meta/helpers/PagedResponse';
 import { filterService } from '../services';
-import type { FilterReqType } from 'nocodb-sdk';
+import type { FilterListType, FilterReqType } from 'nocodb-sdk';
 import type { Request, Response } from 'express';
 
 export async function filterGet(req: Request, res: Response) {
   res.json(await filterService.filterGet({ filterId: req.params.filterId }));
 }
 
-export async function filterList(req: Request, res: Response) {
+export async function filterList(req: Request, res: Response<FilterListType>) {
   res.json(
     new PagedResponseImpl(
       await filterService.filterList({

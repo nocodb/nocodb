@@ -54,14 +54,13 @@ export async function hookTest(req: Request<any, any>, res: Response) {
 }
 
 export async function tableSampleData(req: Request, res: Response) {
-  res // todo: pagination
-    .json(
-      await hookService.tableSampleData({
-        tableId: req.params.tableId,
-        // todo: replace any with type
-        operation: req.params.operation as any,
-      })
-    );
+  res.json(
+    await hookService.tableSampleData({
+      tableId: req.params.tableId,
+      // todo: replace any with type
+      operation: req.params.operation as any,
+    })
+  );
 }
 
 const router = Router({ mergeParams: true });

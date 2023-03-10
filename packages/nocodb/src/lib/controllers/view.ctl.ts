@@ -9,14 +9,15 @@ import type { Request, Response } from 'express';
 // @ts-ignore
 export async function viewGet(req: Request, res: Response) {}
 
-// @ts-ignore
 export async function viewList(req: Request<any, any, any>, res: Response) {
-  const filteredViewList = await viewService.viewList({
-    tableId: req.params.tableId,
-    user: (req as any).session?.passport?.user,
-  });
-
-  res.json(new PagedResponseImpl(filteredViewList));
+  res.json(
+    new PagedResponseImpl(
+      await viewService.viewList({
+        tableId: req.params.tableId,
+        user: (req as any).session?.passport?.user,
+      })
+    )
+  );
 }
 
 // @ts-ignore

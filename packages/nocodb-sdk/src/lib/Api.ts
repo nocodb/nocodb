@@ -1715,7 +1715,7 @@ export interface PluginReqType {
   /** Is Plugin Active? */
   active?: BoolType;
   /** Plugin Input */
-  input?: string;
+  input?: StringOrNullType;
 }
 
 /**

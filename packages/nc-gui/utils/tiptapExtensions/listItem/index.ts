@@ -2,7 +2,8 @@ import { Node, PasteRule, callOrReturn, mergeAttributes, nodePasteRule, wrapping
 import { Fragment, ParseOptions, Node as ProseMirrorNode, Slice } from 'prosemirror-model'
 import { NodeSelection, Plugin, TextSelection } from 'prosemirror-state'
 export interface ListOptions {
-  type: string
+  type: 'bullet' | 'ordered' | 'task'
+  value: string
   HTMLAttributes: Record<string, any>
 }
 
@@ -13,7 +14,7 @@ declare module '@tiptap/core' {
        * Toggle a list item
        */
       insertBulletList: () => ReturnType
-      toogleBulletList: () => ReturnType
+      toggleListItem: (type: string) => ReturnType
     }
   }
 }
@@ -29,6 +30,8 @@ export const ListItem = Node.create<ListOptions>({
   addOptions() {
     return {
       type: 'bullet',
+      content: '',
+      HTMLAttributes: {},
     }
   },
 
@@ -38,17 +41,52 @@ export const ListItem = Node.create<ListOptions>({
     return 'paragraph'
   },
 
-  parseHTML() {
-    return [{ tag: 'div', attrs: { 'data-type': this.options.type } }]
+  addAttributes() {
+    return {
+      type: {
+        default: null,
+        parseHTML: (element) => {
+          const type = element.getAttribute('data-sub-type')
+
+          return type || 'bullet'
+        },
+      },
+      value: {
+        default: null,
+        parseHTML: (element) => {
+          const value = element.getAttribute('data-value')
+
+          return value || ''
+        },
+      },
+    }
   },
 
-  renderHTML({ HTMLAttributes }) {
+  parseHTML() {
+    return [{ tag: 'div', attrs: { 'data-type': this.name } }]
+  },
+
+  renderHTML({ node, HTMLAttributes }) {
     return [
       'div',
       mergeAttributes(this.options.HTMLAttributes, HTMLAttributes, {
-        'data-type': this.options.type,
+        'data-type': node.type.name,
+        'data-sub-type': node.attrs.type,
+        'data-value': node.attrs.value,
       }),
-      0,
+      [
+        'div',
+        {
+          class: 'tiptap-list-item-start',
+        },
+        [
+          'span',
+          {
+            'data-value': node.attrs.value,
+          },
+        ],
+      ],
+      ['div', { class: 'tiptap-list-item-content' }, 0],
     ]
   },
 
@@ -56,7 +94,7 @@ export const ListItem = Node.create<ListOptions>({
     return {
       insertBulletList:
         () =>
-        ({ commands, chain, tr }) => {
+        ({ chain, tr }) => {
           const selection = this.editor.state.selection
           const currentNode = this.editor.state.doc.nodeAt(selection.from - 1)
           const parentNodePos = selection.from - currentNode!.nodeSize
@@ -68,7 +106,7 @@ export const ListItem = Node.create<ListOptions>({
           const bulletNode = this.editor.state.schema.nodes.bullet.create(undefined, paragraphFragment)
 
           return chain()
-            .deleteRange({ from: selection.from - parentNode?.nodeSize, to: selection.from })
+            .deleteRange({ from: selection.from - parentNode!.nodeSize, to: selection.from })
             .focus()
             .selectParentNode()
             .command(() => {
@@ -77,8 +115,8 @@ export const ListItem = Node.create<ListOptions>({
               return true
             })
         },
-      toogleBulletList:
-        () =>
+      toggleListItem:
+        (type: string) =>
         ({ chain, state }) => {
           const { selection } = state
 
@@ -89,6 +127,7 @@ export const ListItem = Node.create<ListOptions>({
           const slice = state.doc.slice(topDBlockPos, bottomDBlockPos)
           const sliceJson = slice.toJSON()
 
+          const prevNumberListNode: any = null
           // Toggle a bullet under `dblock` nodes in slice
           for (const node of sliceJson.content) {
             if (node.type === 'dBlock') {
@@ -97,7 +136,8 @@ export const ListItem = Node.create<ListOptions>({
                   child.content = [structuredClone(child)]
                   child.type = this.name
                   child.attrs = {
-                    type: this.options.type,
+                    value: '1',
+                    type,
                   }
                 } else {
                   child.type = 'paragraph'
@@ -128,7 +168,7 @@ export const ListItem = Node.create<ListOptions>({
     return {
       'Ctrl-Alt-2': () => {
         this.editor.chain().focus().setNode('listItem').run()
-        return (this.editor.chain().focus() as any).toogleBulletList().run()
+        return (this.editor.chain().focus() as any).toggleListItem().run()
       },
       'Enter': () => {
         const { selection } = this.editor.state
@@ -144,7 +184,7 @@ export const ListItem = Node.create<ListOptions>({
             .chain()
             .focus()
             .setNodeSelection(selection.from - 1)
-            .deleteSelection()
+            .setNode('paragraph')
             .run()
 
           return true
@@ -179,6 +219,10 @@ export const ListItem = Node.create<ListOptions>({
             content: [
               {
                 type: 'listItem',
+                attrs: {
+                  type: parentNode.attrs.type,
+                  value: parentNode.attrs.type === 'ordered' ? Number(parentNode.attrs.value) + 1 : '',
+                },
                 content: [
                   {
                     type: 'paragraph',

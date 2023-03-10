@@ -184,7 +184,7 @@ const items = [
     title: 'Bullet List',
     class: 'text-xs',
     command: ({ editor, range }: { editor: Editor; range: Range }) => {
-      editor.chain().focus().deleteRange(range).toogleBulletList().run()
+      editor.chain().focus().deleteRange(range).toggleListItem('bullet').run()
     },
     icon: MdiBulletList,
     iconClass: '',
@@ -195,8 +195,7 @@ const items = [
     title: 'Numbered List',
     class: 'text-xs',
     command: ({ editor, range }: { editor: Editor; range: Range }) => {
-      editor.chain().focus().deleteRange(range).setNode('orderedList').run()
-      ;(editor.chain().focus() as any).toggleOrderedList().run()
+      editor.chain().focus().deleteRange(range).toggleListItem('ordered').run()
     },
     icon: MdiNumberedList,
     iconClass: '',

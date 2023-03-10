@@ -41,6 +41,16 @@ export interface ApiTokenReqType {
 }
 
 /**
+ * Model for API Token List
+ */
+export interface ApiTokenListType {
+  /** @example [{"list":[{"id":"1","fk_user_id":"us_b3xo2i44nx5y9l","description":"This API Token is for ABC application","token":"DYh540o8hbWpUGdarekECKLdN5OhlgCUWutVJYX2"}],"pageInfo":{"isFirstPage":true,"isLastPage":true,"page":1,"pageSize":10,"totalRows":1}}] */
+  list?: ApiTokenType[];
+  /** Model for Paginated */
+  pageInfo?: PaginatedType;
+}
+
+/**
  * Model for Attachment
  */
 export interface AttachmentType {
@@ -2291,6 +2301,12 @@ export type VisibilityRuleReqType = {
   };
 }[];
 
+export interface ApiTokenReqCopyType {
+  list?: ApiTokenType[];
+  /** Model for Paginated */
+  pageInfo?: PaginatedType;
+}
+
 import axios, { AxiosInstance, AxiosRequestConfig, ResponseType } from 'axios';
 
 export type QueryParamsType = Record<string | number, any>;
@@ -3026,33 +3042,16 @@ export class Api<
   };
   orgUsers = {
     /**
- * @description List all organisation users. Exclusive for Super Admin. Access with API Tokens will be blocked.
- * 
- * @tags Org Users
- * @name List
- * @summary List Organisation Users
- * @request GET:/api/v1/users
- * @response `200` `{
-  users?: {
-  list: (UserType)[],
-  \** Model for Paginated *\
-  pageInfo: PaginatedType,
-
-},
-
-}` OK
- */
+     * @description List all organisation users. Exclusive for Super Admin. Access with API Tokens will be blocked.
+     *
+     * @tags Org Users
+     * @name List
+     * @summary List Organisation Users
+     * @request GET:/api/v1/users
+     * @response `200` `UserListType` OK
+     */
     list: (params: RequestParams = {}) =>
-      this.request<
-        {
-          users?: {
-            list: UserType[];
-            /** Model for Paginated */
-            pageInfo: PaginatedType;
-          };
-        },
-        any
-      >({
+      this.request<UserListType, any>({
         path: `/api/v1/users`,
         method: 'GET',
         format: 'json',
@@ -6703,30 +6702,16 @@ export class Api<
   };
   apiToken = {
     /**
- * @description List API Tokens in the given project
- * 
- * @tags API Token
- * @name List
- * @summary List API Tokens in Project
- * @request GET:/api/v1/db/meta/projects/{projectId}/api-tokens
- * @response `200` `{
-  \** List of API Token Models *\
-  list: (ApiTokenType)[],
-  \** Pagination Info *\
-  pageInfo: PaginatedType,
-
-}` OK
- */
+     * @description List API Tokens in the given project
+     *
+     * @tags API Token
+     * @name List
+     * @summary List API Tokens in Project
+     * @request GET:/api/v1/db/meta/projects/{projectId}/api-tokens
+     * @response `200` `ApiTokenListType` OK
+     */
     list: (projectId: IdType, params: RequestParams = {}) =>
-      this.request<
-        {
-          /** List of API Token Models */
-          list: ApiTokenType[];
-          /** Pagination Info */
-          pageInfo: PaginatedType;
-        },
-        any
-      >({
+      this.request<ApiTokenListType, any>({
         path: `/api/v1/db/meta/projects/${projectId}/api-tokens`,
         method: 'GET',
         format: 'json',

@@ -50,3 +50,30 @@ export const getTextAsParagraphFromSliceJson = (sliceJson: any) => {
     ],
   }
 }
+
+export const isSelectionOfType = (state: EditorState, type: string) => {
+  try {
+    const { selection } = state
+
+    const topDBlockPos = selection.$from.before(1)
+
+    const bottomDBlockPos = selection.$to.after(1)
+
+    const slice = state.doc.slice(topDBlockPos, bottomDBlockPos)
+    const sliceJson = slice.toJSON()
+
+    for (const node of sliceJson.content) {
+      if (node.type === 'dBlock') {
+        for (const child of node.content) {
+          if (child.type !== type) {
+            return false
+          }
+        }
+      }
+    }
+
+    return true
+  } catch (error) {
+    return false
+  }
+}

@@ -1,7 +1,6 @@
-import { Node, mergeAttributes, nodePasteRule, wrappingInputRule } from '@tiptap/core'
-import { Fragment, Slice } from 'prosemirror-model'
-import { Plugin } from 'prosemirror-state'
-import { addPastedContentToTransaction, getTextAsParagraphFromSliceJson } from './helper'
+import { Node, mergeAttributes, wrappingInputRule } from '@tiptap/core'
+import { Slice } from 'prosemirror-model'
+import { getTextAsParagraphFromSliceJson, getTextFromSliceJson, isSelectionOfType } from './helper'
 
 export interface ListOptions {
   HTMLAttributes: Record<string, any>
@@ -10,12 +9,12 @@ export interface ListOptions {
 declare module '@tiptap/core' {
   interface Commands<ReturnType> {
     bullet: {
+      isSelectionTypeBullet: () => boolean
       toggleBullet: () => ReturnType
     }
   }
 }
 
-const inputPasteRegex = /^\s*([-+*])\s/g
 const inputRegex = /^\s*([-+*])\s$/g
 
 export const Bullet = Node.create<ListOptions>({
@@ -54,9 +53,14 @@ export const Bullet = Node.create<ListOptions>({
 
   addCommands() {
     return {
+      isSelectionTypeBullet:
+        () =>
+        ({ state }: any) => {
+          return isSelectionOfType(state, this.name)
+        },
       toggleBullet:
         () =>
-        ({ chain, state }) => {
+        ({ chain, state }: any) => {
           const { selection } = state
 
           const topDBlockPos = selection.$from.before(1)
@@ -76,8 +80,10 @@ export const Bullet = Node.create<ListOptions>({
                 } else {
                   child.type = 'paragraph'
 
-                  if (child.content.length === 1) {
+                  if (child.content?.length === 1) {
                     child.content = child.content[0].content
+                  } else {
+                    child.content = []
                   }
                 }
               }
@@ -85,6 +91,7 @@ export const Bullet = Node.create<ListOptions>({
           }
 
           const newSlice = Slice.fromJSON(state.schema, sliceJson)
+          const isEmpty = getTextFromSliceJson(sliceJson).length === 0
 
           return chain()
             .command(() => {
@@ -93,15 +100,16 @@ export const Bullet = Node.create<ListOptions>({
 
               return true
             })
-            .setTextSelection(topDBlockPos + newSlice.size - 1)
+            .setTextSelection(isEmpty ? topDBlockPos + newSlice.size - 1 : topDBlockPos + newSlice.size - 2)
         },
-    }
+    } as any
   },
 
   addKeyboardShortcuts() {
     return {
       'Ctrl-Alt-2': () => {
-        return (this.editor.chain().focus() as any).toggleBullet().run()
+        this.editor.chain().focus().toggleBullet().run()
+        return true
       },
       'Enter': () => {
         const { selection } = this.editor.state
@@ -134,16 +142,7 @@ export const Bullet = Node.create<ListOptions>({
 
         const sliceToBeMoved = this.editor.state.doc.slice(from, currentNodeEndPos)
 
-        const sliceToBeMovedContent = !isEndOfBullet
-          ? sliceToBeMoved.toJSON().content
-          : [
-              {
-                type: 'text',
-                // We add space since otherwise insertion is being ignored
-                // We then remove it in the end
-                text: ' ',
-              },
-            ]
+        const sliceToBeMovedContent = !isEndOfBullet ? sliceToBeMoved.toJSON().content : []
 
         this.editor
           .chain()
@@ -163,13 +162,6 @@ export const Bullet = Node.create<ListOptions>({
           })
           .setTextSelection(currentNodeEndPos + 1)
           .deleteRange({ from, to: currentNodeEndPos })
-          .command(({ tr }) => {
-            if (isEndOfBullet) {
-              tr.deleteRange(currentNodeEndPos + 1, currentNodeEndPos + 2)
-            }
-
-            return true
-          })
           .run()
 
         return true

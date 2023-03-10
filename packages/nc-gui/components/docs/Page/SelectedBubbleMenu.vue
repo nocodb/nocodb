@@ -171,7 +171,7 @@ const onToggleLink = () => {
       <div class="divider"></div>
       <a-button
         type="text"
-        :class="{ 'is-active': editor.isActive('taskList') }"
+        :class="{ 'is-active': editor.isActive('task') }"
         class="menu-button"
         @click="editor!.chain().focus().toggleTask().run()"
       >
@@ -179,7 +179,7 @@ const onToggleLink = () => {
       </a-button>
       <a-button
         type="text"
-        :class="{ 'is-active': editor.isActive('bulletList') }"
+        :class="{ 'is-active': editor.isActive('bullet') }"
         class="menu-button"
         @click="editor!.chain().focus().toggleBullet().run()"
       >
@@ -187,7 +187,7 @@ const onToggleLink = () => {
       </a-button>
       <a-button
         type="text"
-        :class="{ 'is-active': editor.isActive('orderedList') }"
+        :class="{ 'is-active': editor.isActive('ordered') }"
         class="menu-button"
         @click="editor!.chain().focus().toggleOrdered().run()"
       >

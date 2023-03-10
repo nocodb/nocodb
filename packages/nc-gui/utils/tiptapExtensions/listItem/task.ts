@@ -1,8 +1,7 @@
-import { Node, mergeAttributes, nodePasteRule, wrappingInputRule } from '@tiptap/core'
+import { Node, mergeAttributes, wrappingInputRule } from '@tiptap/core'
 import type { Node as ProseMirrorNode } from 'prosemirror-model'
-import { Fragment, Slice } from 'prosemirror-model'
-import { Plugin } from 'prosemirror-state'
-import { addPastedContentToTransaction, getTextAsParagraphFromSliceJson } from './helper'
+import { Slice } from 'prosemirror-model'
+import { getTextAsParagraphFromSliceJson, getTextFromSliceJson, isSelectionOfType } from './helper'
 
 export interface TaskOptions {
   HTMLAttributes: Record<string, any>
@@ -15,11 +14,11 @@ declare module '@tiptap/core' {
   interface Commands<ReturnType> {
     task: {
       toggleTask: () => ReturnType
+      isSelectionTypeTask: () => boolean
     }
   }
 }
 
-const inputPasteRegex = /^-?\s*\[[ x]\]\s+(.*)?\n?$/gm
 const inputRegex = /^-?\s*\[[ x]\]\s+(.*)?\n?$/gm
 
 export const Task = Node.create<TaskOptions>({
@@ -32,7 +31,7 @@ export const Task = Node.create<TaskOptions>({
       HTMLAttributes: {},
       checked: false,
       nested: false,
-    }
+    } as any
   },
 
   group: 'block',
@@ -82,9 +81,14 @@ export const Task = Node.create<TaskOptions>({
 
   addCommands() {
     return {
+      isSelectionTypeTask:
+        () =>
+        ({ state }: any) => {
+          return isSelectionOfType(state, this.name)
+        },
       toggleTask:
         () =>
-        ({ chain, state }) => {
+        ({ chain, state }: any) => {
           const { selection } = state
 
           const topDBlockPos = selection.$from.before(1)
@@ -104,8 +108,10 @@ export const Task = Node.create<TaskOptions>({
                 } else {
                   child.type = 'paragraph'
 
-                  if (child.content.length === 1) {
+                  if (child.content?.length === 1) {
                     child.content = child.content[0].content
+                  } else {
+                    child.content = []
                   }
                 }
               }
@@ -113,6 +119,7 @@ export const Task = Node.create<TaskOptions>({
           }
 
           const newSlice = Slice.fromJSON(state.schema, sliceJson)
+          const isEmpty = getTextFromSliceJson(sliceJson).length === 0
 
           return chain()
             .command(() => {
@@ -122,8 +129,9 @@ export const Task = Node.create<TaskOptions>({
               return true
             })
             .setTextSelection(topDBlockPos + newSlice.size - 1)
+            .setTextSelection(isEmpty ? topDBlockPos + newSlice.size - 1 : topDBlockPos + newSlice.size - 2)
         },
-    }
+    } as any
   },
 
   onUpdate() {
@@ -171,7 +179,8 @@ export const Task = Node.create<TaskOptions>({
   addKeyboardShortcuts() {
     return {
       'Ctrl-Alt-1': () => {
-        return (this.editor.chain().focus() as any).toggleTask().run()
+        ;(this.editor.chain().focus() as any).toggleTask().run()
+        return true
       },
       'Enter': () => {
         const { selection } = this.editor.state

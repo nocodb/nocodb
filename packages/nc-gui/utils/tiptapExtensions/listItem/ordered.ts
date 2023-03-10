@@ -1,7 +1,6 @@
 import { Node, mergeAttributes, nodePasteRule, wrappingInputRule } from '@tiptap/core'
-import { Fragment, Slice } from 'prosemirror-model'
-import { Plugin } from 'prosemirror-state'
-import { addPastedContentToTransaction, getTextAsParagraphFromSliceJson, getTextFromSliceJson } from './helper'
+import { Slice } from 'prosemirror-model'
+import { getTextAsParagraphFromSliceJson, getTextFromSliceJson, isSelectionOfType } from './helper'
 
 export interface OrderItemsOptions {
   number: string
@@ -12,12 +11,12 @@ declare module '@tiptap/core' {
   interface Commands<ReturnType> {
     ordered: {
       toggleOrdered: () => ReturnType
+      isSelectionTypeOrdered: () => boolean
     }
   }
 }
 
 const inputRegex = /^\d+\.\s+(.*)$/gm
-const inputPasteRegex = /^\d+\.\s+(.*)$/gm
 
 export const Ordered = Node.create<OrderItemsOptions>({
   name: 'ordered',
@@ -82,9 +81,14 @@ export const Ordered = Node.create<OrderItemsOptions>({
 
   addCommands() {
     return {
+      isSelectionTypeOrdered:
+        () =>
+        ({ state }: any) => {
+          return isSelectionOfType(state, this.name)
+        },
       toggleOrdered:
         () =>
-        ({ chain, state }) => {
+        ({ chain, state }: any) => {
           const { selection } = state
 
           const topDBlockPos = selection.$from.before(1)
@@ -111,8 +115,10 @@ export const Ordered = Node.create<OrderItemsOptions>({
                   prevOrderedListNodeNumber = 0
                   child.type = 'paragraph'
 
-                  if (child.content.length === 1) {
+                  if (child.content?.length === 1) {
                     child.content = child.content[0].content
+                  } else {
+                    child.content = []
                   }
                 }
               }
@@ -120,6 +126,7 @@ export const Ordered = Node.create<OrderItemsOptions>({
           }
 
           const newSlice = Slice.fromJSON(state.schema, sliceJson)
+          const isEmpty = getTextFromSliceJson(sliceJson).length === 0
 
           return chain()
             .command(() => {
@@ -128,15 +135,16 @@ export const Ordered = Node.create<OrderItemsOptions>({
 
               return true
             })
-            .setTextSelection(topDBlockPos + newSlice.size - 1)
+            .setTextSelection(isEmpty ? topDBlockPos + newSlice.size - 1 : topDBlockPos + newSlice.size - 2)
         },
-    }
+    } as any
   },
 
   addKeyboardShortcuts() {
     return {
       'Ctrl-Alt-3': () => {
-        return (this.editor.chain().focus() as any).toggleOrdered().run()
+        ;(this.editor.chain().focus() as any).toggleOrdered().run()
+        return true
       },
       'Enter': () => {
         const { selection } = this.editor.state

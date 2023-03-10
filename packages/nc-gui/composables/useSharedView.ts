@@ -100,7 +100,7 @@ export function useSharedView() {
       offset = (page - 1) * pageSize
     }
 
-    const { data } = await $api.public.dataList(
+    return await $api.public.dataList(
       sharedView.value.uuid!,
       {
         offset,
@@ -113,7 +113,6 @@ export function useSharedView() {
         },
       },
     )
-    return data
   }
 
   const fetchSharedViewGroupedData = async (

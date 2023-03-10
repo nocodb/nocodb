@@ -92,7 +92,11 @@ export function useSharedView() {
     filtersArr: FilterType[]
     offset?: number
   }) => {
-    if (!sharedView.value) return
+    if (!sharedView.value)
+      return {
+        list: [],
+        pageInfo: {},
+      }
 
     if (!offset) {
       const page = paginationData.value.page || 1

@@ -782,48 +782,27 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "type": "object",
-                  "properties": {
-                    "users": {
-                      "type": "object",
-                      "properties": {
-                        "list": {
-                          "type": "array",
-                          "uniqueItems": true,
-                          "minItems": 1,
-                          "items": {
-                            "$ref": "#/components/schemas/User"
-                          }
-                        },
-                        "pageInfo": {
-                          "$ref": "#/components/schemas/Paginated"
-                        }
-                      },
-                      "required": ["list", "pageInfo"]
-                    }
-                  }
+                  "$ref": "#/components/schemas/UserList"
                 },
                 "examples": {
                   "Example 1": {
                     "value": {
-                      "users": {
-                        "list": [
-                          {
-                            "email": "user@example.com",
-                            "email_verified": true,
-                            "firstname": "Alice",
-                            "id": "us_8kugj628ebjngs",
-                            "lastname": "Smith",
-                            "roles": "org-level-viewer"
-                          }
-                        ],
-                        "pageInfo": {
-                          "isFirstPage": true,
-                          "isLastPage": true,
-                          "page": 1,
-                          "pageSize": 10,
-                          "totalRows": 1
+                      "list": [
+                        {
+                          "email": "user@example.com",
+                          "email_verified": true,
+                          "firstname": "Alice",
+                          "id": "us_8kugj628ebjngs",
+                          "lastname": "Smith",
+                          "roles": "org-level-viewer"
                         }
+                      ],
+                      "pageInfo": {
+                        "isFirstPage": true,
+                        "isLastPage": true,
+                        "page": 1,
+                        "pageSize": 10,
+                        "totalRows": 1
                       }
                     }
                   }
@@ -8956,21 +8935,28 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "type": "object",
-                  "properties": {
-                    "list": {
-                      "type": "array",
-                      "description": "List of API Token Models",
-                      "items": {
-                        "$ref": "#/components/schemas/ApiToken"
+                  "$ref": "#/components/schemas/ApiTokenList"
+                },
+                "examples": {
+                  "Example 1": {
+                    "value": {
+                      "list": [
+                        {
+                          "id": "1",
+                          "fk_user_id": "us_b3xo2i44nx5y9l",
+                          "description": "This API Token is for ABC application",
+                          "token": "DYh540o8hbWpUGdarekECKLdN5OhlgCUWutVJYX2"
+                        }
+                      ],
+                      "pageInfo": {
+                        "isFirstPage": true,
+                        "isLastPage": true,
+                        "page": 1,
+                        "pageSize": 10,
+                        "totalRows": 1
                       }
-                    },
-                    "pageInfo": {
-                      "$ref": "#/components/schemas/Paginated",
-                      "description": "Pagination Info"
                     }
-                  },
-                  "required": ["list", "pageInfo"]
+                  }
                 }
               }
             }
@@ -9230,6 +9216,73 @@
             "maxLength": 255,
             "type": "string",
             "example": "This API Token is for ABC application"
+          }
+        }
+      },
+      "ApiTokenList": {
+        "description": "Model for API Token List",
+        "x-stoplight": {
+          "id": "5llg0az9z4tjc"
+        },
+        "examples": [
+          {
+            "list": [
+              {
+                "id": "1",
+                "fk_user_id": "us_b3xo2i44nx5y9l",
+                "description": "This API Token is for ABC application",
+                "token": "DYh540o8hbWpUGdarekECKLdN5OhlgCUWutVJYX2"
+              }
+            ],
+            "pageInfo": {
+              "isFirstPage": true,
+              "isLastPage": true,
+              "page": 1,
+              "pageSize": 10,
+              "totalRows": 1
+            }
+          }
+        ],
+        "title": "API Token List Model",
+        "type": "object",
+        "properties": {
+          "list": {
+            "type": "array",
+            "example": [
+              {
+                "list": [
+                  {
+                    "id": "1",
+                    "fk_user_id": "us_b3xo2i44nx5y9l",
+                    "description": "This API Token is for ABC application",
+                    "token": "DYh540o8hbWpUGdarekECKLdN5OhlgCUWutVJYX2"
+                  }
+                ],
+                "pageInfo": {
+                  "isFirstPage": true,
+                  "isLastPage": true,
+                  "page": 1,
+                  "pageSize": 10,
+                  "totalRows": 1
+                }
+              }
+            ],
+            "x-stoplight": {
+              "id": "c7xu43yjgyjww"
+            },
+            "items": {
+              "$ref": "#/components/schemas/ApiToken",
+              "x-stoplight": {
+                "id": "5ih4l0ix2tr5q"
+              }
+            }
+          },
+          "pageInfo": {
+            "$ref": "#/components/schemas/Paginated",
+            "x-stoplight": {
+              "id": "0w8ktfnx3pusz"
+            },
+            "description": "Model for Paginated"
           }
         }
       },
@@ -15015,6 +15068,29 @@
         },
         "title": "Visibility Rule Request Model",
         "type": "array"
+      },
+      "ApiTokenReq - copy": {
+        "type": "object",
+        "properties": {
+          "list": {
+            "type": "array",
+            "x-stoplight": {
+              "id": "uukp6v55zfp7i"
+            },
+            "items": {
+              "$ref": "#/components/schemas/ApiToken",
+              "x-stoplight": {
+                "id": "9zqpoqfkdxy0y"
+              }
+            }
+          },
+          "pageInfo": {
+            "$ref": "#/components/schemas/Paginated",
+            "x-stoplight": {
+              "id": "6unr17jyisial"
+            }
+          }
+        }
       }
     },
     "responses": {
@@ -15028,43 +15104,44 @@
             "examples": {
               "example-1": {
                 "value": {
-                  "projects": {
-                    "list": [
-                      {
-                        "id": "string",
-                        "title": "string",
-                        "status": "string",
-                        "description": "string",
-                        "meta": "string",
-                        "color": "string",
-                        "deleted": "string",
-                        "order": 0,
-                        "bases": [
-                          {
-                            "id": "string",
-                            "project_id": "string",
-                            "alias": "string",
-                            "type": "string",
-                            "is_meta": true,
-                            "config": null,
-                            "created_at": null,
-                            "updated_at": null
-                          }
-                        ],
-                        "is_meta": true,
-                        "prefix": "string",
-                        "created_at": null,
-                        "updated_at": null
-                      }
-                    ],
-                    "pageInfo": {
-                      "pageSize": 0,
-                      "totalRows": 0,
-                      "sort": "string",
-                      "isFirstPage": true,
-                      "isLastPage": true,
-                      "page": 0
+                  "list": [
+                    {
+                      "bases": [
+                        {
+                          "alias": "string",
+                          "config": null,
+                          "created_at": "2023-03-01 14:27:36",
+                          "enabled": true,
+                          "id": "string",
+                          "inflection_column": "camelize",
+                          "inflection_table": "camelize",
+                          "is_meta": true,
+                          "order": 1,
+                          "project_id": "string",
+                          "type": "mysql2",
+                          "updated_at": "2023-03-01 14:27:36"
+                        }
+                      ],
+                      "color": "#24716E",
+                      "created_at": "2023-03-01 14:27:36",
+                      "deleted": true,
+                      "description": "This is my project description",
+                      "id": "p_124hhlkbeasewh",
+                      "is_meta": true,
+                      "meta": {},
+                      "order": 0,
+                      "prefix": "nc_vm5q__",
+                      "status": "string",
+                      "title": "my-project",
+                      "updated_at": "2023-03-01 14:27:36"
                     }
+                  ],
+                  "pageInfo": {
+                    "isFirstPage": true,
+                    "isLastPage": true,
+                    "page": 1,
+                    "pageSize": 10,
+                    "totalRows": 1
                   }
                 }
               }
@@ -15082,46 +15159,44 @@
             "examples": {
               "example-1": {
                 "value": {
-                  "bases": {
-                    "list": [
-                      {
-                        "id": "ds_krsappzu9f8vmo",
-                        "project_id": "p_01clqvzik3izk6",
-                        "alias": null,
-                        "config": "<ENCRYPTED>",
-                        "meta": null,
-                        "is_meta": 1,
-                        "type": "mysql2",
-                        "inflection_column": "camelize",
-                        "inflection_table": "camelize",
-                        "created_at": "2023-03-01 16:31:49",
-                        "updated_at": "2023-03-02 11:28:17",
-                        "enabled": 1,
-                        "order": 1
-                      },
-                      {
-                        "id": "ds_btbdt19zde0gj9",
-                        "project_id": "p_01clqvzik3izk6",
-                        "alias": "sakila",
-                        "config": "<ENCRYPTED>",
-                        "meta": null,
-                        "is_meta": null,
-                        "type": "mysql2",
-                        "inflection_column": "camelize",
-                        "inflection_table": "camelize",
-                        "created_at": "2023-03-02 11:28:17",
-                        "updated_at": "2023-03-02 11:28:17",
-                        "enabled": 1,
-                        "order": 2
-                      }
-                    ],
-                    "pageInfo": {
-                      "totalRows": 2,
-                      "page": 1,
-                      "pageSize": 2,
-                      "isFirstPage": true,
-                      "isLastPage": true
+                  "list": [
+                    {
+                      "id": "ds_krsappzu9f8vmo",
+                      "project_id": "p_01clqvzik3izk6",
+                      "alias": null,
+                      "config": "<ENCRYPTED>",
+                      "meta": null,
+                      "is_meta": 1,
+                      "type": "mysql2",
+                      "inflection_column": "camelize",
+                      "inflection_table": "camelize",
+                      "created_at": "2023-03-01 16:31:49",
+                      "updated_at": "2023-03-02 11:28:17",
+                      "enabled": 1,
+                      "order": 1
+                    },
+                    {
+                      "id": "ds_btbdt19zde0gj9",
+                      "project_id": "p_01clqvzik3izk6",
+                      "alias": "sakila",
+                      "config": "<ENCRYPTED>",
+                      "meta": null,
+                      "is_meta": null,
+                      "type": "mysql2",
+                      "inflection_column": "camelize",
+                      "inflection_table": "camelize",
+                      "created_at": "2023-03-02 11:28:17",
+                      "updated_at": "2023-03-02 11:28:17",
+                      "enabled": 1,
+                      "order": 2
                     }
+                  ],
+                  "pageInfo": {
+                    "totalRows": 2,
+                    "page": 1,
+                    "pageSize": 2,
+                    "isFirstPage": true,
+                    "isLastPage": true
                   }
                 }
               }
@@ -15431,6 +15506,17 @@
                 }
               }
             }
+          }
+        }
+      },
+      "APITokenList": {
+        "description": "Example response",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/ApiTokenList"
+            },
+            "examples": {}
           }
         }
       }

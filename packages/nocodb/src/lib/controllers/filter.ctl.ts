@@ -21,11 +21,13 @@ export async function filterList(req: Request, res: Response<FilterListType>) {
 }
 
 export async function filterChildrenRead(req: Request, res: Response) {
-  const filter = await filterService.filterChildrenList({
-    filterId: req.params.filterParentId,
-  });
-
-  res.json(filter);
+  res.json(
+    new PagedResponseImpl(
+      await filterService.filterChildrenList({
+        filterId: req.params.filterParentId,
+      })
+    )
+  );
 }
 
 export async function filterCreate(req: Request<any, any, FilterReqType>, res) {

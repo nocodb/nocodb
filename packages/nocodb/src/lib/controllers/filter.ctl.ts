@@ -53,9 +53,11 @@ export async function filterDelete(req: Request, res: Response) {
 
 export async function hookFilterList(req: Request, res: Response) {
   res.json(
-    await filterService.hookFilterList({
-      hookId: req.params.hookId,
-    })
+    new PagedResponseImpl(
+      await filterService.hookFilterList({
+        hookId: req.params.hookId,
+      })
+    )
   );
 }
 

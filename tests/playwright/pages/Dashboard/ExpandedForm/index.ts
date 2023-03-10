@@ -142,7 +142,17 @@ export class ExpandedFormPage extends BasePage {
   }
 
   async close() {
-    await this.get().locator('.nc-close-form').last().click();
+    await this.get().locator('.nc-icon-transition.ant-dropdown-trigger').last().click();
+
+    // TODO: fix this; remove the delay
+    // await this.rootPage.locator('.ant-dropdown').waitFor({ state: 'visible' });
+    // await this.rootPage.locator('.ant-dropdown').locator('.ant-dropdown-menu-item:has-text("Close")').click();
+
+    // add delay; wait for the menu to appear
+    await this.rootPage.waitForTimeout(500);
+
+    const popUpMenu = await this.rootPage.locator('.ant-dropdown');
+    await popUpMenu.locator('.ant-dropdown-menu-item:has-text("Close")').click();
   }
 
   async openChildCard(param: { column: string; title: string }) {

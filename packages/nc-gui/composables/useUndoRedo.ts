@@ -1,9 +1,11 @@
 import type { Ref } from 'vue'
-import clone from 'just-clone'
+import rfdc from 'rfdc'
 import { createSharedComposable, ref } from '#imports'
 import type { UndoRedoAction } from '~/lib'
 
 export const useUndoRedo = createSharedComposable(() => {
+  const clone = rfdc()
+
   const undoQueue: Ref<UndoRedoAction[]> = ref([])
 
   const redoQueue: Ref<UndoRedoAction[]> = ref([])

@@ -526,6 +526,7 @@ export interface DocsPageType {
   is_nested_published?: boolean;
   is_parent?: boolean;
   is_published?: boolean;
+  nested_published_parent_id?: string | null;
   last_published_by_id?: string;
   /** @format date */
   last_published_date?: string;

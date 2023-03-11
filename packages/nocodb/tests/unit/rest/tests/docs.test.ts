@@ -659,12 +659,30 @@ function docTests() {
     expect(parentPageUpdated.is_parent).to.equal(1)
   })
 
-  it('Page publish should change its flag and update published_content', async () => {
+  it('Page publish should change its flag and update published_content and update its children', async () => {
     const page = await createPage({
       project: project,
       
       attributes: {
         title: 'test',
+      },
+      user: context.user,
+    });
+
+    const childPage = await createPage({
+      project: project,
+      attributes: {
+        title: 'test',
+        parent_page_id: page.id,
+      },
+      user: context.user,
+    });
+
+    const childChildPage = await createPage({
+      project: project,
+      attributes: {
+        title: 'test',
+        parent_page_id: childPage.id,
       },
       user: context.user,
     });
@@ -690,6 +708,30 @@ function docTests() {
 
     expect(pageUpdated.is_published).to.equal(1)
     expect(pageUpdated.published_content).to.equal(page.content)
+
+    const childPageUpdated = await getPage({
+      id: childPage.id!,
+      project: project,
+    
+      user: context.user,
+    })
+
+    expect(childPageUpdated.is_published).to.equal(1)
+    expect(childPageUpdated.published_content).to.equal(childPage.content)
+    expect(childPageUpdated.parent_page_id).to.equal(page.id)
+    expect(childPageUpdated.nested_published_parent_id).to.equal(page.id)
+
+    const childChildPageUpdated = await getPage({
+      id: childChildPage.id!,
+      project: project,
+
+      user: context.user,
+    })
+
+    expect(childChildPageUpdated.is_published).to.equal(1)
+    expect(childChildPageUpdated.published_content).to.equal(childChildPage.content)
+    expect(childChildPageUpdated.parent_page_id).to.equal(childPage.id)
+    expect(childChildPageUpdated.nested_published_parent_id).to.equal(page.id)
   })
 
   it('Public project page list and get api', async () => {

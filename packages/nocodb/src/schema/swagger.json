@@ -12221,6 +12221,9 @@
           "is_published": {
             "type": "boolean"
           },
+          "nested_published_parent_id": {
+            "type": [ "string", "null"]
+          },
           "last_published_by_id": {
             "type": "string"
           },

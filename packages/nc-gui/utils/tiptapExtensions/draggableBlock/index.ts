@@ -139,7 +139,15 @@ export const DraggableBlock = Node.create<DBlockOptions>({
         if (parent.type.name !== 'dBlock') return false
 
         const currentNode = $head.node($head.depth)
-        if (currentNode.type.name === 'codeBlock') return false
+
+        if (
+          currentNode.type.name === 'codeBlock' ||
+          currentNode.type.name === 'bullet' ||
+          currentNode.type.name === 'ordered' ||
+          currentNode.type.name === 'task'
+        ) {
+          return false
+        }
 
         const activeNodeText: string | undefined = parent.firstChild?.content?.content?.[0]?.text
         if (activeNodeText?.startsWith('/')) return false

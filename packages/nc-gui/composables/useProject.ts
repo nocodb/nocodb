@@ -120,7 +120,11 @@ export const useProject = createSharedComposable(() => {
   }
 
   async function loadBookProject(projectId?: string) {
-    projectId = projectId || (route.params.projectId as string)
+    if (!projectId) {
+      const pageId = route.params.pageId as string
+      projectId = pageId.split('-')[pageId.split('-').length - 1]
+    }
+
     if (projectId) {
       project.value = await api.project.read(projectId)
     }

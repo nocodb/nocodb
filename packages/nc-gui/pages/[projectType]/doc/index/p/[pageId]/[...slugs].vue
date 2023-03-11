@@ -6,8 +6,10 @@ definePageMeta({
 })
 
 const { project } = useProject()
+const { openedPageId } = useDocs()
 </script>
 
 <template>
-  <DocsBookView v-if="project?.id" :key="project?.id" />
+  <DocsPageView v-if="project?.id && openedPageId" :key="project?.id" />
+  <DocsBookView v-else-if="project?.id" />
 </template>

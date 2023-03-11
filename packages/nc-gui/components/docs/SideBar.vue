@@ -17,7 +17,7 @@ const {
   addNewPage,
   getChildrenOfPage,
   updatePage,
-  isNoPageOpen,
+  openedPageId,
   projectUrl,
   expandTabOfOpenedPage,
   isPublic,
@@ -146,12 +146,12 @@ onKeyStroke('Enter', () => {
     <div
       v-if="!isPublic"
       class="flex flex-row justify-between items-center pr-2 pl-4.5 py-2 border-b-gray-100 border-b-1 hover:(bg-gray-100 cursor-pointer)"
-      :class="{ 'bg-primary-selected hover:(!bg-primary-selected bg-opacity-20)': isNoPageOpen, '': !isNoPageOpen }"
+      :class="{ 'bg-primary-selected hover:(!bg-primary-selected bg-opacity-20)': !openedPageId, '': openedPageId }"
       @click.self="navigateToHome"
     >
       <div
         class="flex flex-row text-xs font-semibold items-center gap-x-3 h-6.5"
-        :class="{ 'text-primary': isNoPageOpen }"
+        :class="{ 'text-primary': !openedPageId }"
         @click="navigateToHome"
       >
         <div v-if="project.title" class="flex pop-in-animation">

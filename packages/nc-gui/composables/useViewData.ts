@@ -12,6 +12,7 @@ import {
   message,
   populateInsertObject,
   ref,
+  rowPkData,
   storeToRefs,
   until,
   useApi,
@@ -25,7 +26,7 @@ import {
   useSmartsheetStoreOrThrow,
   useUIPermission,
 } from '#imports'
-import type { Row } from '~/lib'
+import type { Row, UndoRedoAction } from '~/lib'
 
 const formatData = (list: Record<string, any>[]) =>
   list.map((row) => ({
@@ -54,6 +55,8 @@ export function useViewData(
   const { appInfo } = $(useGlobal())
 
   const { getMeta } = useMetas()
+
+  const { addUndo, clone } = useUndoRedo()
 
   const appInfoDefaultLimit = appInfo.defaultLimit || 25
 
@@ -225,6 +228,7 @@ export function useViewData(
     currentRow: Row,
     ltarState: Record<string, any> = {},
     { metaValue = meta.value, viewMetaValue = viewMeta.value }: { metaValue?: TableType; viewMetaValue?: ViewType } = {},
+    undo = false,
   ) {
     const row = currentRow.row
     if (currentRow.rowMeta) currentRow.rowMeta.saving = true
@@ -234,6 +238,7 @@ export function useViewData(
         ltarState,
         getMeta,
         row,
+        undo,
       })
 
       if (missingRequiredColumns.size) return
@@ -245,6 +250,38 @@ export function useViewData(
         viewMetaValue?.id as string,
         insertObj,
       )
+
+      if (!undo) {
+        const id = extractPkFromRow(insertedData, metaValue?.columns as ColumnType[])
+
+        addUndo({
+          redo: {
+            fn: async function redo(
+              this: UndoRedoAction,
+              row: Row,
+              ltarState: Record<string, any>,
+              { metaValue, viewMetaValue }: { metaValue?: TableType; viewMetaValue?: ViewType },
+            ) {
+              const pkData = rowPkData(row.row, metaValue?.columns as ColumnType[])
+              row.row = { ...pkData, ...row.row }
+              await insertRow(row, ltarState, { metaValue, viewMetaValue }, true)
+              loadData()
+            },
+            args: [clone(currentRow), clone(ltarState), clone({ metaValue, viewMetaValue })],
+          },
+          undo: {
+            fn: async function undo(
+              this: UndoRedoAction,
+              id: string,
+              { metaValue, viewMetaValue }: { metaValue?: TableType; viewMetaValue?: ViewType } = {},
+            ) {
+              await deleteRowById(id, { metaValue, viewMetaValue })
+              loadData()
+            },
+            args: [id, clone({ metaValue, viewMetaValue })],
+          },
+        })
+      }
 
       Object.assign(currentRow, {
         row: { ...insertedData, ...row },
@@ -267,6 +304,7 @@ export function useViewData(
     toUpdate: Row,
     property: string,
     { metaValue = meta.value, viewMetaValue = viewMeta.value }: { metaValue?: TableType; viewMetaValue?: ViewType } = {},
+    undo = false,
   ) {
     if (toUpdate.rowMeta) toUpdate.rowMeta.saving = true
 
@@ -297,25 +335,57 @@ export function useViewData(
         prev_value: getHTMLEncodedText(toUpdate.oldRow[property]),
       })
 
-      /** update row data(to sync formula and other related columns)
-       * update only formula, rollup and auto updated datetime columns data to avoid overwriting any changes made by user
-       */
-      Object.assign(
-        toUpdate.row,
-        metaValue!.columns!.reduce<Record<string, any>>((acc: Record<string, any>, col: ColumnType) => {
-          if (
-            col.uidt === UITypes.Formula ||
-            col.uidt === UITypes.QrCode ||
-            col.uidt === UITypes.Barcode ||
-            col.uidt === UITypes.Rollup ||
-            col.au ||
-            col.cdf?.includes(' on update ')
-          )
-            acc[col.title!] = updatedRowData[col.title!]
-          return acc
-        }, {} as Record<string, any>),
-      )
-      Object.assign(toUpdate.oldRow, updatedRowData)
+      if (!undo) {
+        addUndo({
+          redo: {
+            fn: async function redo(
+              toUpdate: Row,
+              property: string,
+              { metaValue, viewMetaValue }: { metaValue?: TableType; viewMetaValue?: ViewType } = {},
+            ) {
+              await updateRowProperty(toUpdate, property, { metaValue, viewMetaValue }, true)
+            },
+            args: [clone(toUpdate), property, clone({ metaValue, viewMetaValue })],
+          },
+          undo: {
+            fn: async function undo(
+              toUpdate: Row,
+              property: string,
+              { metaValue, viewMetaValue }: { metaValue?: TableType; viewMetaValue?: ViewType } = {},
+            ) {
+              await updateRowProperty(
+                { row: toUpdate.oldRow, oldRow: toUpdate.row, rowMeta: toUpdate.rowMeta },
+                property,
+                { metaValue, viewMetaValue },
+                true,
+              )
+            },
+            args: [clone(toUpdate), property, clone({ metaValue, viewMetaValue })],
+          },
+        })
+
+        /** update row data(to sync formula and other related columns)
+         * update only formula, rollup and auto updated datetime columns data to avoid overwriting any changes made by user
+         */
+        Object.assign(
+          toUpdate.row,
+          metaValue!.columns!.reduce<Record<string, any>>((acc: Record<string, any>, col: ColumnType) => {
+            if (
+              col.uidt === UITypes.Formula ||
+              col.uidt === UITypes.QrCode ||
+              col.uidt === UITypes.Barcode ||
+              col.uidt === UITypes.Rollup ||
+              col.au ||
+              col.cdf?.includes(' on update ')
+            )
+              acc[col.title!] = updatedRowData[col.title!]
+            return acc
+          }, {} as Record<string, any>),
+        )
+        Object.assign(toUpdate.oldRow, updatedRowData)
+      } else {
+        loadData()
+      }
     } catch (e: any) {
       message.error(`${t('msg.error.rowUpdateFailed')} ${await extractSdkResponseErrorMsg(e)}`)
     } finally {
@@ -354,7 +424,10 @@ export function useViewData(
     $e('a:grid:pagination')
   }
 
-  async function deleteRowById(id: string) {
+  async function deleteRowById(
+    id: string,
+    { metaValue = meta.value, viewMetaValue = viewMeta.value }: { metaValue?: TableType; viewMetaValue?: ViewType } = {},
+  ) {
     if (!id) {
       throw new Error("Delete not allowed for table which doesn't have primary Key")
     }
@@ -362,8 +435,8 @@ export function useViewData(
     const res: any = await $api.dbViewRow.delete(
       'noco',
       project.value.id as string,
-      meta.value?.id as string,
-      viewMeta.value?.id as string,
+      metaValue?.id as string,
+      viewMetaValue?.id as string,
       id,
     )
 
@@ -378,7 +451,7 @@ export function useViewData(
     return true
   }
 
-  async function deleteRow(rowIndex: number) {
+  async function deleteRow(rowIndex: number, undo?: boolean) {
     try {
       const row = formattedData.value[rowIndex]
       if (!row.rowMeta.new) {
@@ -386,6 +459,38 @@ export function useViewData(
           ?.filter((c) => c.pk)
           .map((c) => row.row[c.title!])
           .join('___')
+
+        if (!undo) {
+          const metaValue = meta.value
+          const viewMetaValue = viewMeta.value
+          addUndo({
+            redo: {
+              fn: async function undo(
+                this: UndoRedoAction,
+                id: string,
+                { metaValue, viewMetaValue }: { metaValue?: TableType; viewMetaValue?: ViewType } = {},
+              ) {
+                await deleteRowById(id, { metaValue, viewMetaValue })
+                loadData()
+              },
+              args: [id, clone({ metaValue, viewMetaValue })],
+            },
+            undo: {
+              fn: async function redo(
+                this: UndoRedoAction,
+                row: Row,
+                ltarState: Record<string, any>,
+                { metaValue, viewMetaValue }: { metaValue?: TableType; viewMetaValue?: ViewType },
+              ) {
+                const pkData = rowPkData(row.row, metaValue?.columns as ColumnType[])
+                row.row = { ...pkData, ...row.row }
+                await insertRow(row, ltarState, { metaValue, viewMetaValue }, true)
+                loadData()
+              },
+              args: [clone(row), {}, clone({ metaValue, viewMetaValue })],
+            },
+          })
+        }
 
         const deleted = await deleteRowById(id as string)
         if (!deleted) {

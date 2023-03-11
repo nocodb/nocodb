@@ -104,3 +104,8 @@ export type importFileList = (UploadFile & { data: string | ArrayBuffer })[]
 export type streamImportFileList = UploadFile[]
 
 export type Nullable<T> = { [K in keyof T]: T[K] | null }
+
+export interface UndoRedoAction {
+  undo: { fn: Function; args: any[] }
+  redo: { fn: Function; args: any[] }
+}

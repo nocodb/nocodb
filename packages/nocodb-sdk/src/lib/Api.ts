@@ -6168,7 +6168,13 @@ export class Api<
  * @name List
  * @summary List Table Rows
  * @request GET:/api/v1/db/data/{orgs}/{projectName}/{tableName}
- * @response `200` `any` OK
+ * @response `200` `{
+  \** List of data objects *\
+  list?: (object)[],
+  \** Paginated Info *\
+  pageInfo?: PaginatedType,
+
+}` OK
  * @response `400` `{
   \** @example BadRequest [Error]: <ERROR MESSAGE> *\
   msg?: string,
@@ -6204,7 +6210,12 @@ export class Api<
       params: RequestParams = {}
     ) =>
       this.request<
-        any,
+        {
+          /** List of data objects */
+          list?: object[];
+          /** Paginated Info */
+          pageInfo?: PaginatedType;
+        },
         {
           /** @example BadRequest [Error]: <ERROR MESSAGE> */
           msg?: string;
@@ -6235,7 +6246,7 @@ export class Api<
       orgs: string,
       projectName: string,
       tableName: string,
-      data: any,
+      data: object,
       params: RequestParams = {}
     ) =>
       this.request<
@@ -6260,7 +6271,7 @@ export class Api<
  * @name FindOne
  * @summary Find One Table Row
  * @request GET:/api/v1/db/data/{orgs}/{projectName}/{tableName}/find-one
- * @response `200` `any` OK
+ * @response `200` `object` OK
  * @response `400` `{
   \** @example BadRequest [Error]: <ERROR MESSAGE> *\
   msg?: string,
@@ -6279,7 +6290,7 @@ export class Api<
       params: RequestParams = {}
     ) =>
       this.request<
-        any,
+        object,
         {
           /** @example BadRequest [Error]: <ERROR MESSAGE> */
           msg?: string;
@@ -6368,14 +6379,19 @@ export class Api<
       }),
 
     /**
-     * @description Get the Table Row
-     *
-     * @tags DB Table Row
-     * @name Read
-     * @summary Get Table Row
-     * @request GET:/api/v1/db/data/{orgs}/{projectName}/{tableName}/{rowId}
-     * @response `201` `any` Created
-     */
+ * @description Get the Table Row by Row ID
+ * 
+ * @tags DB Table Row
+ * @name Read
+ * @summary Get Table Row
+ * @request GET:/api/v1/db/data/{orgs}/{projectName}/{tableName}/{rowId}
+ * @response `200` `object` OK
+ * @response `400` `{
+  \** @example BadRequest [Error]: <ERROR MESSAGE> *\
+  msg?: string,
+
+}`
+ */
     read: (
       orgs: string,
       projectName: string,
@@ -6383,7 +6399,13 @@ export class Api<
       rowId: any,
       params: RequestParams = {}
     ) =>
-      this.request<any, any>({
+      this.request<
+        object,
+        {
+          /** @example BadRequest [Error]: <ERROR MESSAGE> */
+          msg?: string;
+        }
+      >({
         path: `/api/v1/db/data/${orgs}/${projectName}/${tableName}/${rowId}`,
         method: 'GET',
         format: 'json',
@@ -6397,7 +6419,7 @@ export class Api<
  * @name Update
  * @summary Update Table Row
  * @request PATCH:/api/v1/db/data/{orgs}/{projectName}/{tableName}/{rowId}
- * @response `200` `any` OK
+ * @response `200` `object` OK
  * @response `400` `{
   \** @example BadRequest [Error]: <ERROR MESSAGE> *\
   msg?: string,
@@ -6409,11 +6431,11 @@ export class Api<
       projectName: string,
       tableName: string,
       rowId: any,
-      data: any,
+      data: object,
       params: RequestParams = {}
     ) =>
       this.request<
-        any,
+        object,
         {
           /** @example BadRequest [Error]: <ERROR MESSAGE> */
           msg?: string;
@@ -6434,7 +6456,7 @@ export class Api<
  * @name Delete
  * @summary Delete Table Row
  * @request DELETE:/api/v1/db/data/{orgs}/{projectName}/{tableName}/{rowId}
- * @response `200` `any` OK
+ * @response `200` `number` OK
  * @response `400` `{
   \** @example BadRequest [Error]: <ERROR MESSAGE> *\
   msg?: string,
@@ -6449,7 +6471,7 @@ export class Api<
       params: RequestParams = {}
     ) =>
       this.request<
-        any,
+        number,
         {
           /** @example BadRequest [Error]: <ERROR MESSAGE> */
           msg?: string;
@@ -6468,7 +6490,7 @@ export class Api<
  * @name Exist
  * @summary Does Table Row Exist
  * @request GET:/api/v1/db/data/{orgs}/{projectName}/{tableName}/{rowId}/exist
- * @response `201` `any` Created
+ * @response `200` `number` OK
  * @response `400` `{
   \** @example BadRequest [Error]: <ERROR MESSAGE> *\
   msg?: string,
@@ -6483,7 +6505,7 @@ export class Api<
       params: RequestParams = {}
     ) =>
       this.request<
-        any,
+        number,
         {
           /** @example BadRequest [Error]: <ERROR MESSAGE> */
           msg?: string;
@@ -6502,7 +6524,10 @@ export class Api<
  * @name BulkCreate
  * @summary Bulk Insert Table Rows
  * @request POST:/api/v1/db/data/bulk/{orgs}/{projectName}/{tableName}
- * @response `200` `any` OK
+ * @response `200` `({
+  id?: string,
+
+})[]` OK
  * @response `400` `{
   \** @example BadRequest [Error]: <ERROR MESSAGE> *\
   msg?: string,
@@ -6513,11 +6538,13 @@ export class Api<
       orgs: string,
       projectName: string,
       tableName: string,
-      data: any,
+      data: object[],
       params: RequestParams = {}
     ) =>
       this.request<
-        any,
+        {
+          id?: string;
+        }[],
         {
           /** @example BadRequest [Error]: <ERROR MESSAGE> */
           msg?: string;
@@ -6538,7 +6565,7 @@ export class Api<
  * @name BulkUpdate
  * @summary Bulk Update Table Rows by IDs
  * @request PATCH:/api/v1/db/data/bulk/{orgs}/{projectName}/{tableName}
- * @response `200` `any` OK
+ * @response `200` `(number)[]` OK
  * @response `400` `{
   \** @example BadRequest [Error]: <ERROR MESSAGE> *\
   msg?: string,
@@ -6549,11 +6576,11 @@ export class Api<
       orgs: string,
       projectName: string,
       tableName: string,
-      data: any,
+      data: object[],
       params: RequestParams = {}
     ) =>
       this.request<
-        any,
+        number[],
         {
           /** @example BadRequest [Error]: <ERROR MESSAGE> */
           msg?: string;
@@ -6574,7 +6601,7 @@ export class Api<
  * @name BulkDelete
  * @summary Bulk Delete Table Rows by IDs
  * @request DELETE:/api/v1/db/data/bulk/{orgs}/{projectName}/{tableName}
- * @response `200` `any` OK
+ * @response `200` `(number)[]` OK
  * @response `400` `{
   \** @example BadRequest [Error]: <ERROR MESSAGE> *\
   msg?: string,
@@ -6585,11 +6612,11 @@ export class Api<
       orgs: string,
       projectName: string,
       tableName: string,
-      data: any,
+      data: object[],
       params: RequestParams = {}
     ) =>
       this.request<
-        any,
+        number[],
         {
           /** @example BadRequest [Error]: <ERROR MESSAGE> */
           msg?: string;
@@ -6953,7 +6980,7 @@ export class Api<
  * @name List
  * @summary List Table View Rows
  * @request GET:/api/v1/db/data/{orgs}/{projectName}/{tableName}/views/{viewName}
- * @response `200` `ViewListType` OK
+ * @response `200` `object` OK
  * @response `400` `{
   \** @example BadRequest [Error]: <ERROR MESSAGE> *\
   msg?: string,
@@ -6976,7 +7003,7 @@ export class Api<
       params: RequestParams = {}
     ) =>
       this.request<
-        ViewListType,
+        object,
         {
           /** @example BadRequest [Error]: <ERROR MESSAGE> */
           msg?: string;
@@ -6996,7 +7023,7 @@ export class Api<
  * @name Create
  * @summary Create Table View Row
  * @request POST:/api/v1/db/data/{orgs}/{projectName}/{tableName}/views/{viewName}
- * @response `200` `any` OK
+ * @response `200` `object` OK
  * @response `400` `{
   \** @example BadRequest [Error]: <ERROR MESSAGE> *\
   msg?: string,
@@ -7008,11 +7035,11 @@ export class Api<
       projectName: string,
       tableName: string,
       viewName: string,
-      data: any,
+      data: object,
       params: RequestParams = {}
     ) =>
       this.request<
-        any,
+        object,
         {
           /** @example BadRequest [Error]: <ERROR MESSAGE> */
           msg?: string;
@@ -7033,7 +7060,7 @@ export class Api<
  * @name FindOne
  * @summary Find One Table View Row
  * @request GET:/api/v1/db/data/{orgs}/{projectName}/{tableName}/views/{viewName}/find-one
- * @response `200` `any` OK
+ * @response `200` `object` OK
  * @response `400` `{
   \** @example BadRequest [Error]: <ERROR MESSAGE> *\
   msg?: string,
@@ -7055,7 +7082,7 @@ export class Api<
       params: RequestParams = {}
     ) =>
       this.request<
-        any,
+        object,
         {
           /** @example BadRequest [Error]: <ERROR MESSAGE> */
           msg?: string;
@@ -7305,7 +7332,19 @@ export class Api<
  * @name GroupedDataList
  * @summary List Shared View Grouped Data
  * @request GET:/api/v1/db/public/shared-view/{sharedViewUuid}/group/{columnId}
- * @response `200` `any` OK
+ * @response `200` `({
+  \** The Grouped Key *\
+  key?: string,
+  \** the paginated result of the given key *\
+  value?: {
+  \** List of the target data *\
+  list?: (object)[],
+  \** Model for Paginated *\
+  pageInfo?: PaginatedType,
+
+},
+
+})[]` OK
  * @response `400` `{
   \** @example BadRequest [Error]: <ERROR MESSAGE> *\
   msg?: string,
@@ -7340,7 +7379,17 @@ export class Api<
       params: RequestParams = {}
     ) =>
       this.request<
-        any,
+        {
+          /** The Grouped Key */
+          key?: string;
+          /** the paginated result of the given key */
+          value?: {
+            /** List of the target data */
+            list?: object[];
+            /** Model for Paginated */
+            pageInfo?: PaginatedType;
+          };
+        }[],
         {
           /** @example BadRequest [Error]: <ERROR MESSAGE> */
           msg?: string;
@@ -7414,7 +7463,7 @@ export class Api<
  * @name DataCreate
  * @summary Create Share View Row
  * @request POST:/api/v1/db/public/shared-view/{sharedViewUuid}/rows
- * @response `200` `any` OK
+ * @response `200` `object` OK
  * @response `400` `{
   \** @example BadRequest [Error]: <ERROR MESSAGE> *\
   msg?: string,
@@ -7427,7 +7476,7 @@ export class Api<
       params: RequestParams = {}
     ) =>
       this.request<
-        any,
+        object,
         {
           /** @example BadRequest [Error]: <ERROR MESSAGE> */
           msg?: string;
@@ -7436,7 +7485,7 @@ export class Api<
         path: `/api/v1/db/public/shared-view/${sharedViewUuid}/rows`,
         method: 'POST',
         body: data,
-        type: ContentType.FormData,
+        type: ContentType.Json,
         format: 'json',
         ...params,
       }),
@@ -7448,7 +7497,13 @@ export class Api<
  * @name DataNestedList
  * @summary List Nested List Data
  * @request GET:/api/v1/db/public/shared-view/{sharedViewUuid}/rows/{rowId}/{relationType}/{columnName}
- * @response `200` `any` OK
+ * @response `200` `{
+  \** List of data objects *\
+  list?: (object)[],
+  \** Paginated info *\
+  pageInfo?: PaginatedType,
+
+}` OK
  * @response `400` `{
   \** @example BadRequest [Error]: <ERROR MESSAGE> *\
   msg?: string,
@@ -7485,7 +7540,12 @@ export class Api<
       params: RequestParams = {}
     ) =>
       this.request<
-        any,
+        {
+          /** List of data objects */
+          list?: object[];
+          /** Paginated info */
+          pageInfo?: PaginatedType;
+        },
         {
           /** @example BadRequest [Error]: <ERROR MESSAGE> */
           msg?: string;
@@ -7593,6 +7653,7 @@ export class Api<
  * @summary Get Share Base Meta
  * @request GET:/api/v1/db/public/shared-base/{sharedBaseUuid}/meta
  * @response `200` `{
+  \** Project ID *\
   project_id?: string,
 
 }` OK
@@ -7605,6 +7666,7 @@ export class Api<
     sharedBaseGet: (sharedBaseUuid: string, params: RequestParams = {}) =>
       this.request<
         {
+          /** Project ID */
           project_id?: string;
         },
         {
@@ -8573,8 +8635,7 @@ export class Api<
  * @name Create
  * @summary Create API Token
  * @request POST:/api/v1/db/meta/projects/{projectId}/api-tokens
- * @response `200` `void` OK
- * @response `201` `any` Created
+ * @response `200` `ApiTokenType` OK
  * @response `400` `{
   \** @example BadRequest [Error]: <ERROR MESSAGE> *\
   msg?: string,
@@ -8587,7 +8648,7 @@ export class Api<
       params: RequestParams = {}
     ) =>
       this.request<
-        void,
+        ApiTokenType,
         {
           /** @example BadRequest [Error]: <ERROR MESSAGE> */
           msg?: string;
@@ -8597,6 +8658,7 @@ export class Api<
         method: 'POST',
         body: data,
         type: ContentType.Json,
+        format: 'json',
         ...params,
       }),
 
@@ -8607,7 +8669,7 @@ export class Api<
  * @name Delete
  * @summary Delete API Token
  * @request DELETE:/api/v1/db/meta/projects/{projectId}/api-tokens/{token}
- * @response `200` `void` OK
+ * @response `200` `number` OK
  * @response `400` `{
   \** @example BadRequest [Error]: <ERROR MESSAGE> *\
   msg?: string,
@@ -8616,7 +8678,7 @@ export class Api<
  */
     delete: (projectId: IdType, token: string, params: RequestParams = {}) =>
       this.request<
-        void,
+        number,
         {
           /** @example BadRequest [Error]: <ERROR MESSAGE> */
           msg?: string;
@@ -8624,6 +8686,7 @@ export class Api<
       >({
         path: `/api/v1/db/meta/projects/${projectId}/api-tokens/${token}`,
         method: 'DELETE',
+        format: 'json',
         ...params,
       }),
   };

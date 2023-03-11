@@ -4099,7 +4099,11 @@ export class Api<
  * @name MetaDiffSync
  * @summary Sync Meta
  * @request POST:/api/v1/db/meta/projects/{projectId}/meta-diff
- * @response `200` `any` OK
+ * @response `200` `{
+  \** @example The meta has been synchronized successfully *\
+  msg?: string,
+
+}` OK
  * @response `400` `{
   \** @example BadRequest [Error]: <ERROR MESSAGE> *\
   msg?: string,
@@ -4108,7 +4112,10 @@ export class Api<
  */
     metaDiffSync: (projectId: IdType, params: RequestParams = {}) =>
       this.request<
-        any,
+        {
+          /** @example The meta has been synchronized successfully */
+          msg?: string;
+        },
         {
           /** @example BadRequest [Error]: <ERROR MESSAGE> */
           msg?: string;
@@ -4127,7 +4134,26 @@ export class Api<
  * @name MetaDiffGet
  * @summary Meta Diff
  * @request GET:/api/v1/db/meta/projects/{projectId}/meta-diff
- * @response `200` `any` OK
+ * @response `200` `({
+  \**
+   * Table Name
+   * @example Table 1
+   *\
+  table_name?: string,
+  \**
+   * Base ID
+   * @example ds_rrplkgy0pq1f3c
+   *\
+  base_id?: string,
+  \**
+   * Change Type
+   * @example table
+   *\
+  type?: string,
+  \** Detected Changes *\
+  detectedChanges?: (object)[],
+
+})[]` OK
  * @response `400` `{
   \** @example BadRequest [Error]: <ERROR MESSAGE> *\
   msg?: string,
@@ -4136,7 +4162,25 @@ export class Api<
  */
     metaDiffGet: (projectId: IdType, params: RequestParams = {}) =>
       this.request<
-        any,
+        {
+          /**
+           * Table Name
+           * @example Table 1
+           */
+          table_name?: string;
+          /**
+           * Base ID
+           * @example ds_rrplkgy0pq1f3c
+           */
+          base_id?: string;
+          /**
+           * Change Type
+           * @example table
+           */
+          type?: string;
+          /** Detected Changes */
+          detectedChanges?: object[];
+        }[],
         {
           /** @example BadRequest [Error]: <ERROR MESSAGE> */
           msg?: string;
@@ -4259,7 +4303,7 @@ export class Api<
  * @name Delete
  * @summary Delete Base
  * @request DELETE:/api/v1/db/meta/projects/{projectId}/bases/{baseId}
- * @response `200` `void` OK
+ * @response `200` `boolean` OK
  * @response `400` `{
   \** @example BadRequest [Error]: <ERROR MESSAGE> *\
   msg?: string,
@@ -4268,7 +4312,7 @@ export class Api<
  */
     delete: (projectId: IdType, baseId: string, params: RequestParams = {}) =>
       this.request<
-        void,
+        boolean,
         {
           /** @example BadRequest [Error]: <ERROR MESSAGE> */
           msg?: string;
@@ -4276,6 +4320,7 @@ export class Api<
       >({
         path: `/api/v1/db/meta/projects/${projectId}/bases/${baseId}`,
         method: 'DELETE',
+        format: 'json',
         ...params,
       }),
 
@@ -4286,7 +4331,7 @@ export class Api<
  * @name Update
  * @summary Update Base
  * @request PATCH:/api/v1/db/meta/projects/{projectId}/bases/{baseId}
- * @response `200` `void` OK
+ * @response `200` `object` OK
  * @response `400` `{
   \** @example BadRequest [Error]: <ERROR MESSAGE> *\
   msg?: string,
@@ -4296,11 +4341,11 @@ export class Api<
     update: (
       projectId: IdType,
       baseId: string,
-      data: any,
+      data: object,
       params: RequestParams = {}
     ) =>
       this.request<
-        void,
+        object,
         {
           /** @example BadRequest [Error]: <ERROR MESSAGE> */
           msg?: string;
@@ -4310,6 +4355,7 @@ export class Api<
         method: 'PATCH',
         body: data,
         type: ContentType.Json,
+        format: 'json',
         ...params,
       }),
 
@@ -4457,7 +4503,11 @@ export class Api<
  * @name MetaDiffSync
  * @summary Synchronise Base Meta
  * @request POST:/api/v1/db/meta/projects/{projectId}/meta-diff/{baseId}
- * @response `200` `any` OK
+ * @response `200` `{
+  \** @example The base meta has been synchronized successfully *\
+  msg?: string,
+
+}` OK
  * @response `400` `{
   \** @example BadRequest [Error]: <ERROR MESSAGE> *\
   msg?: string,
@@ -4470,7 +4520,10 @@ export class Api<
       params: RequestParams = {}
     ) =>
       this.request<
-        any,
+        {
+          /** @example The base meta has been synchronized successfully */
+          msg?: string;
+        },
         {
           /** @example BadRequest [Error]: <ERROR MESSAGE> */
           msg?: string;
@@ -4489,7 +4542,26 @@ export class Api<
  * @name MetaDiffGet
  * @summary Base Meta Diff
  * @request GET:/api/v1/db/meta/projects/{projectId}/meta-diff/{baseId}
- * @response `200` `any` OK
+ * @response `200` `({
+  \**
+   * Table Name
+   * @example Table 1
+   *\
+  table_name?: string,
+  \**
+   * Base ID
+   * @example ds_rrplkgy0pq1f3c
+   *\
+  base_id?: string,
+  \**
+   * Change Type
+   * @example table
+   *\
+  type?: string,
+  \** Detected Changes *\
+  detectedChanges?: (object)[],
+
+})[]` OK
  * @response `400` `{
   \** @example BadRequest [Error]: <ERROR MESSAGE> *\
   msg?: string,
@@ -4502,7 +4574,25 @@ export class Api<
       params: RequestParams = {}
     ) =>
       this.request<
-        any,
+        {
+          /**
+           * Table Name
+           * @example Table 1
+           */
+          table_name?: string;
+          /**
+           * Base ID
+           * @example ds_rrplkgy0pq1f3c
+           */
+          base_id?: string;
+          /**
+           * Change Type
+           * @example table
+           */
+          type?: string;
+          /** Detected Changes */
+          detectedChanges?: object[];
+        }[],
         {
           /** @example BadRequest [Error]: <ERROR MESSAGE> */
           msg?: string;
@@ -4621,7 +4711,11 @@ export class Api<
  * @name Update
  * @summary Update Table
  * @request PATCH:/api/v1/db/meta/tables/{tableId}
- * @response `200` `any` OK
+ * @response `200` `{
+  \** @example The table has been updated successfully *\
+  msg?: string,
+
+}` OK
  * @response `400` `{
   \** @example BadRequest [Error]: <ERROR MESSAGE> *\
   msg?: string,
@@ -4652,7 +4746,10 @@ export class Api<
       params: RequestParams = {}
     ) =>
       this.request<
-        any,
+        {
+          /** @example The table has been updated successfully */
+          msg?: string;
+        },
         {
           /** @example BadRequest [Error]: <ERROR MESSAGE> */
           msg?: string;
@@ -4673,7 +4770,7 @@ export class Api<
  * @name Delete
  * @summary Delete Table
  * @request DELETE:/api/v1/db/meta/tables/{tableId}
- * @response `200` `void` OK
+ * @response `200` `boolean` OK
  * @response `400` `{
   \** @example BadRequest [Error]: <ERROR MESSAGE> *\
   msg?: string,
@@ -4682,7 +4779,7 @@ export class Api<
  */
     delete: (tableId: IdType, params: RequestParams = {}) =>
       this.request<
-        void,
+        boolean,
         {
           /** @example BadRequest [Error]: <ERROR MESSAGE> */
           msg?: string;
@@ -4690,6 +4787,7 @@ export class Api<
       >({
         path: `/api/v1/db/meta/tables/${tableId}`,
         method: 'DELETE',
+        format: 'json',
         ...params,
       }),
 
@@ -4700,7 +4798,7 @@ export class Api<
  * @name Reorder
  * @summary Reorder Table
  * @request POST:/api/v1/db/meta/tables/{tableId}/reorder
- * @response `200` `void` OK
+ * @response `200` `boolean` OK
  * @response `400` `{
   \** @example BadRequest [Error]: <ERROR MESSAGE> *\
   msg?: string,
@@ -4715,7 +4813,7 @@ export class Api<
       params: RequestParams = {}
     ) =>
       this.request<
-        void,
+        boolean,
         {
           /** @example BadRequest [Error]: <ERROR MESSAGE> */
           msg?: string;
@@ -4725,6 +4823,7 @@ export class Api<
         method: 'POST',
         body: data,
         type: ContentType.Json,
+        format: 'json',
         ...params,
       }),
   };
@@ -6343,7 +6442,7 @@ export class Api<
  * @name GroupedDataList
  * @summary Table Group by Column
  * @request GET:/api/v1/db/data/{orgs}/{projectName}/{tableName}/group/{columnId}
- * @response `200` `any` OK
+ * @response `200` `object` OK
  * @response `400` `{
   \** @example BadRequest [Error]: <ERROR MESSAGE> *\
   msg?: string,
@@ -6365,7 +6464,7 @@ export class Api<
       params: RequestParams = {}
     ) =>
       this.request<
-        any,
+        object,
         {
           /** @example BadRequest [Error]: <ERROR MESSAGE> */
           msg?: string;
@@ -6648,7 +6747,7 @@ export class Api<
       orgs: string,
       projectName: string,
       tableName: string,
-      data: any,
+      data: object,
       query?: {
         where?: string;
       },
@@ -6677,7 +6776,7 @@ export class Api<
  * @name BulkDeleteAll
  * @summary Bulk Delete Table Rows with Conditions
  * @request DELETE:/api/v1/db/data/bulk/{orgs}/{projectName}/{tableName}/all
- * @response `200` `any` OK
+ * @response `200` `(object)[]` OK
  * @response `400` `{
   \** @example BadRequest [Error]: <ERROR MESSAGE> *\
   msg?: string,
@@ -6688,14 +6787,14 @@ export class Api<
       orgs: string,
       projectName: string,
       tableName: string,
-      data: any,
+      data: object,
       query?: {
         where?: string;
       },
       params: RequestParams = {}
     ) =>
       this.request<
-        any,
+        object[],
         {
           /** @example BadRequest [Error]: <ERROR MESSAGE> */
           msg?: string;
@@ -6937,7 +7036,7 @@ export class Api<
  * @name GroupedDataList
  * @summary Table Group by Column
  * @request GET:/api/v1/db/data/{orgs}/{projectName}/{tableName}/views/{viewName}/group/{columnId}
- * @response `200` `any` OK
+ * @response `200` `object` OK
  * @response `400` `{
   \** @example BadRequest [Error]: <ERROR MESSAGE> *\
   msg?: string,
@@ -6960,7 +7059,7 @@ export class Api<
       params: RequestParams = {}
     ) =>
       this.request<
-        any,
+        object,
         {
           /** @example BadRequest [Error]: <ERROR MESSAGE> */
           msg?: string;
@@ -7141,14 +7240,17 @@ export class Api<
       }),
 
     /**
-     * @description Count how many rows in the given Table View
-     *
-     * @tags DB View Row
-     * @name Count
-     * @summary Count Table View Rows
-     * @request GET:/api/v1/db/data/{orgs}/{projectName}/{tableName}/views/{viewName}/count
-     * @response `200` `any` OK
-     */
+ * @description Count how many rows in the given Table View
+ * 
+ * @tags DB View Row
+ * @name Count
+ * @summary Count Table View Rows
+ * @request GET:/api/v1/db/data/{orgs}/{projectName}/{tableName}/views/{viewName}/count
+ * @response `200` `{
+  count?: number,
+
+}` OK
+ */
     count: (
       orgs: string,
       projectName: string,
@@ -7161,7 +7263,12 @@ export class Api<
       },
       params: RequestParams = {}
     ) =>
-      this.request<any, any>({
+      this.request<
+        {
+          count?: number;
+        },
+        any
+      >({
         path: `/api/v1/db/data/${orgs}/${projectName}/${tableName}/views/${viewName}/count`,
         method: 'GET',
         query: query,
@@ -7170,14 +7277,19 @@ export class Api<
       }),
 
     /**
-     * @description Get the target Table View Row
-     *
-     * @tags DB View Row
-     * @name Read
-     * @summary Get Table View Row
-     * @request GET:/api/v1/db/data/{orgs}/{projectName}/{tableName}/views/{viewName}/{rowId}
-     * @response `201` `any` Created
-     */
+ * @description Get the target Table View Row
+ * 
+ * @tags DB View Row
+ * @name Read
+ * @summary Get Table View Row
+ * @request GET:/api/v1/db/data/{orgs}/{projectName}/{tableName}/views/{viewName}/{rowId}
+ * @response `200` `object` OK
+ * @response `400` `{
+  \** @example BadRequest [Error]: <ERROR MESSAGE> *\
+  msg?: string,
+
+}`
+ */
     read: (
       orgs: string,
       projectName: string,
@@ -7186,7 +7298,13 @@ export class Api<
       rowId: any,
       params: RequestParams = {}
     ) =>
-      this.request<any, any>({
+      this.request<
+        object,
+        {
+          /** @example BadRequest [Error]: <ERROR MESSAGE> */
+          msg?: string;
+        }
+      >({
         path: `/api/v1/db/data/${orgs}/${projectName}/${tableName}/views/${viewName}/${rowId}`,
         method: 'GET',
         format: 'json',
@@ -7194,24 +7312,35 @@ export class Api<
       }),
 
     /**
-     * @description Update the target Table View Row
-     *
-     * @tags DB View Row
-     * @name Update
-     * @summary Update Table View Row
-     * @request PATCH:/api/v1/db/data/{orgs}/{projectName}/{tableName}/views/{viewName}/{rowId}
-     * @response `200` `any` OK
-     */
+ * @description Update the target Table View Row
+ * 
+ * @tags DB View Row
+ * @name Update
+ * @summary Update Table View Row
+ * @request PATCH:/api/v1/db/data/{orgs}/{projectName}/{tableName}/views/{viewName}/{rowId}
+ * @response `200` `object` OK
+ * @response `400` `{
+  \** @example BadRequest [Error]: <ERROR MESSAGE> *\
+  msg?: string,
+
+}`
+ */
     update: (
       orgs: string,
       projectName: string,
       tableName: string,
       viewName: string,
       rowId: any,
-      data: any,
+      data: object,
       params: RequestParams = {}
     ) =>
-      this.request<any, any>({
+      this.request<
+        object,
+        {
+          /** @example BadRequest [Error]: <ERROR MESSAGE> */
+          msg?: string;
+        }
+      >({
         path: `/api/v1/db/data/${orgs}/${projectName}/${tableName}/views/${viewName}/${rowId}`,
         method: 'PATCH',
         body: data,
@@ -7227,7 +7356,7 @@ export class Api<
  * @name Delete
  * @summary Delete Table View Row
  * @request DELETE:/api/v1/db/data/{orgs}/{projectName}/{tableName}/views/{viewName}/{rowId}
- * @response `200` `void` OK
+ * @response `200` `number` OK
  * @response `400` `{
   \** @example BadRequest [Error]: <ERROR MESSAGE> *\
   msg?: string,
@@ -7243,7 +7372,7 @@ export class Api<
       params: RequestParams = {}
     ) =>
       this.request<
-        void,
+        number,
         {
           /** @example BadRequest [Error]: <ERROR MESSAGE> */
           msg?: string;
@@ -7251,6 +7380,7 @@ export class Api<
       >({
         path: `/api/v1/db/data/${orgs}/${projectName}/${tableName}/views/${viewName}/${rowId}`,
         method: 'DELETE',
+        format: 'json',
         ...params,
       }),
 
@@ -7261,7 +7391,7 @@ export class Api<
  * @name Exist
  * @summary Does Table View Row Exist
  * @request GET:/api/v1/db/data/{orgs}/{projectName}/{tableName}/views/{viewName}/{rowId}/exist
- * @response `201` `any` Created
+ * @response `201` `number` Created
  * @response `400` `{
   \** @example BadRequest [Error]: <ERROR MESSAGE> *\
   msg?: string,
@@ -7277,7 +7407,7 @@ export class Api<
       params: RequestParams = {}
     ) =>
       this.request<
-        any,
+        number,
         {
           /** @example BadRequest [Error]: <ERROR MESSAGE> */
           msg?: string;

@@ -1020,7 +1020,7 @@ export default class RestAuthCtrl {
           });
       }
 
-      res.json({ msg: 'Success' });
+      res.json({ msg: 'Signed out successfully' });
     } catch (e) {
       console.log(e);
       next(e);

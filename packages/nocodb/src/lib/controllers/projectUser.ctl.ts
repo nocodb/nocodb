@@ -13,25 +13,26 @@ async function userList(req, res) {
 }
 
 async function userInvite(req, res): Promise<any> {
-  res.json(
-    await projectUserService.userInvite({
-      projectId: req.params.projectId,
-      projectUser: req.body,
-      req,
-    })
-  );
+  await projectUserService.userInvite({
+    projectId: req.params.projectId,
+    projectUser: req.body,
+    req,
+  })
+  res.json({
+    msg: 'The user has been invited successfully',
+  });
 }
 
-// @ts-ignore
-async function projectUserUpdate(req, res, next): Promise<any> {
-  res.json(
-    await projectUserService.projectUserUpdate({
-      projectUser: req.body,
-      projectId: req.params.projectId,
-      userId: req.params.userId,
-      req,
-    })
-  );
+async function projectUserUpdate(req, res): Promise<any> {
+  await projectUserService.projectUserUpdate({
+    projectUser: req.body,
+    projectId: req.params.projectId,
+    userId: req.params.userId,
+    req,
+  })
+  res.json({
+    msg: 'The user has been updated successfully',
+  });
 }
 
 async function projectUserDelete(req, res): Promise<any> {
@@ -41,19 +42,22 @@ async function projectUserDelete(req, res): Promise<any> {
     req,
   });
   res.json({
-    msg: 'success',
+    msg: 'The user has been deleted successfully',
   });
 }
 
 async function projectUserInviteResend(req, res): Promise<any> {
-  res.json(
-    await projectUserService.projectUserInviteResend({
-      projectId: req.params.projectId,
-      userId: req.params.userId,
-      projectUser: req.body,
-      req,
-    })
-  );
+  await projectUserService.projectUserInviteResend({
+    projectId: req.params.projectId,
+    userId: req.params.userId,
+    projectUser: req.body,
+    req,
+  })
+;
+  res.json({
+    msg: 'The invitation has been sent to the user'
+  })
+    
 }
 
 const router = Router({ mergeParams: true });

@@ -1,6 +1,6 @@
 import { Node, mergeAttributes, nodePasteRule, wrappingInputRule } from '@tiptap/core'
 import { Slice } from 'prosemirror-model'
-import { getTextAsParagraphFromSliceJson, getTextFromSliceJson, isSelectionOfType } from './helper'
+import { getTextAsParagraphFromSliceJson, getTextFromSliceJson, isSelectionOfType, onEnter } from './helper'
 
 export interface OrderItemsOptions {
   number: string
@@ -147,78 +147,7 @@ export const Ordered = Node.create<OrderItemsOptions>({
         return true
       },
       'Enter': () => {
-        const { selection } = this.editor.state
-
-        const parentNode = selection.$from.node(-1)
-        if (parentNode.type.name !== 'ordered') return false
-        const currentNode = selection.$from.node()
-
-        // Delete the ordered point if it's empty
-        const currentNodeIsEmpty = currentNode.textContent.length === 1
-        if (currentNodeIsEmpty) {
-          this.editor
-            .chain()
-            .focus()
-            .setNodeSelection(selection.from - 1)
-            .setNode('paragraph')
-            .run()
-
-          return true
-        }
-
-        const isMultiSelect = selection.from !== selection.to
-        const currentNodePosResolve = this.editor.state.doc.resolve(selection.from)
-
-        const from = selection.from
-        const currentNodeEndPos = currentNodePosResolve.posAtIndex(1)
-
-        // We check if cursor at the end of the ordered point
-        const isEndOfOrdered = currentNodeEndPos === selection.to
-
-        const sliceToBeMoved = this.editor.state.doc.slice(from, currentNodeEndPos)
-
-        const sliceToBeMovedContent = !isEndOfOrdered
-          ? sliceToBeMoved.toJSON().content
-          : [
-              {
-                type: 'text',
-                // We add space since otherwise insertion is being ignored
-                // We then remove it in the end
-                text: ' ',
-              },
-            ]
-
-        this.editor
-          .chain()
-          .insertContentAt(currentNodeEndPos + 2, {
-            type: 'dBlock',
-            content: [
-              {
-                type: 'ordered',
-                attrs: {
-                  number: String(Number(parentNode.attrs.number) + 1),
-                },
-                content: [
-                  {
-                    type: 'paragraph',
-                    content: isMultiSelect ? [] : sliceToBeMovedContent,
-                  },
-                ],
-              },
-            ],
-          })
-          .setTextSelection(currentNodeEndPos + 1)
-          .deleteRange({ from, to: currentNodeEndPos })
-          .command(({ tr }) => {
-            if (isEndOfOrdered) {
-              tr.deleteRange(currentNodeEndPos + 1, currentNodeEndPos + 2)
-            }
-
-            return true
-          })
-          .run()
-
-        return true
+        return onEnter(this.editor, this.name as any)
       },
     }
   },

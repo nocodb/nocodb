@@ -1,6 +1,6 @@
 import { Node, mergeAttributes, wrappingInputRule } from '@tiptap/core'
 import { Slice } from 'prosemirror-model'
-import { getTextAsParagraphFromSliceJson, getTextFromSliceJson, isSelectionOfType } from './helper'
+import { getTextAsParagraphFromSliceJson, getTextFromSliceJson, isSelectionOfType, onEnter } from './helper'
 
 export interface ListOptions {
   HTMLAttributes: Record<string, any>
@@ -112,59 +112,7 @@ export const Bullet = Node.create<ListOptions>({
         return true
       },
       'Enter': () => {
-        const { selection } = this.editor.state
-
-        const parentNode = selection.$from.node(-1)
-        if (parentNode.type.name !== 'bullet') return false
-        const currentNode = selection.$from.node()
-
-        // Delete the bullet point if it's empty
-        const currentNodeIsEmpty = currentNode.textContent.length === 1
-        if (currentNodeIsEmpty) {
-          this.editor
-            .chain()
-            .focus()
-            .setNodeSelection(selection.from - 1)
-            .setNode('paragraph')
-            .run()
-
-          return true
-        }
-
-        const isMultiSelect = selection.from !== selection.to
-        const currentNodePosResolve = this.editor.state.doc.resolve(selection.from)
-
-        const from = selection.from
-        const currentNodeEndPos = currentNodePosResolve.posAtIndex(1)
-
-        // We check if cursor at the end of the bullet point
-        const isEndOfBullet = currentNodeEndPos === selection.to
-
-        const sliceToBeMoved = this.editor.state.doc.slice(from, currentNodeEndPos)
-
-        const sliceToBeMovedContent = !isEndOfBullet ? sliceToBeMoved.toJSON().content : []
-
-        this.editor
-          .chain()
-          .insertContentAt(currentNodeEndPos + 2, {
-            type: 'dBlock',
-            content: [
-              {
-                type: 'bullet',
-                content: [
-                  {
-                    type: 'paragraph',
-                    content: isMultiSelect ? [] : sliceToBeMovedContent,
-                  },
-                ],
-              },
-            ],
-          })
-          .setTextSelection(currentNodeEndPos + 1)
-          .deleteRange({ from, to: currentNodeEndPos })
-          .run()
-
-        return true
+        return onEnter(this.editor, this.name as any)
       },
     }
   },

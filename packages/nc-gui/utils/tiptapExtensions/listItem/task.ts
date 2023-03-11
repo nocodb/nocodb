@@ -1,7 +1,7 @@
 import { Node, mergeAttributes, wrappingInputRule } from '@tiptap/core'
 import type { Node as ProseMirrorNode } from 'prosemirror-model'
 import { Slice } from 'prosemirror-model'
-import { getTextAsParagraphFromSliceJson, getTextFromSliceJson, isSelectionOfType } from './helper'
+import { getTextAsParagraphFromSliceJson, getTextFromSliceJson, isSelectionOfType, onEnter } from './helper'
 
 export interface TaskOptions {
   HTMLAttributes: Record<string, any>
@@ -183,75 +183,7 @@ export const Task = Node.create<TaskOptions>({
         return true
       },
       'Enter': () => {
-        const { selection } = this.editor.state
-
-        const parentNode = selection.$from.node(-1)
-        if (parentNode.type.name !== 'task') return false
-        const currentNode = selection.$from.node()
-
-        // Delete the task point if it's empty
-        const currentNodeIsEmpty = currentNode.textContent.length === 1
-        if (currentNodeIsEmpty) {
-          this.editor
-            .chain()
-            .focus()
-            .setNodeSelection(selection.from - 1)
-            .setNode('paragraph')
-            .run()
-
-          return true
-        }
-
-        const isMultiSelect = selection.from !== selection.to
-        const currentNodePosResolve = this.editor.state.doc.resolve(selection.from)
-
-        const from = selection.from
-        const currentNodeEndPos = currentNodePosResolve.posAtIndex(1)
-
-        // We check if cursor at the end of the task point
-        const isEndOfTask = currentNodeEndPos === selection.to
-
-        const sliceToBeMoved = this.editor.state.doc.slice(from, currentNodeEndPos)
-
-        const sliceToBeMovedContent = !isEndOfTask
-          ? sliceToBeMoved.toJSON().content
-          : [
-              {
-                type: 'text',
-                // We add space since otherwise insertion is being ignored
-                // We then remove it in the end
-                text: ' ',
-              },
-            ]
-
-        this.editor
-          .chain()
-          .insertContentAt(currentNodeEndPos + 2, {
-            type: 'dBlock',
-            content: [
-              {
-                type: 'task',
-                content: [
-                  {
-                    type: 'paragraph',
-                    content: isMultiSelect ? [] : sliceToBeMovedContent,
-                  },
-                ],
-              },
-            ],
-          })
-          .setTextSelection(currentNodeEndPos + 1)
-          .deleteRange({ from, to: currentNodeEndPos })
-          .command(({ tr }) => {
-            if (isEndOfTask) {
-              tr.deleteRange(currentNodeEndPos + 1, currentNodeEndPos + 2)
-            }
-
-            return true
-          })
-          .run()
-
-        return true
+        return onEnter(this.editor, this.name as any)
       },
     }
   },

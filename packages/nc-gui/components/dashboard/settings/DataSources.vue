@@ -8,6 +8,7 @@ import UIAcl from './UIAcl.vue'
 import Erd from './Erd.vue'
 import { ClientType, DataSourcesSubTab } from '~/lib'
 import { storeToRefs, useCommandPalette, useNuxtApp, useProject } from '#imports'
+import {storeToRefs} from "pinia";
 
 interface Props {
   state: string
@@ -27,7 +28,6 @@ const { $api, $e } = useNuxtApp()
 const projectStore = useProject()
 const { loadProject } = projectStore
 const { project } = storeToRefs(projectStore)
-
 const { refreshCommandPalette } = useCommandPalette()
 
 let sources = $ref<BaseType[]>([])

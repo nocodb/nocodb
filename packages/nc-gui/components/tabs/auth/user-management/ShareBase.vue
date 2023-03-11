@@ -10,6 +10,7 @@ import {
   useNuxtApp,
   useProject,
 } from '#imports'
+import {storeToRefs} from "pinia";
 
 interface ShareBase {
   uuid?: string

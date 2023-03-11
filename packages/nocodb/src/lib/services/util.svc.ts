@@ -1,5 +1,4 @@
 import { compareVersions, validate } from 'compare-versions';
-import axios from 'axios';
 import JSON5 from 'json5';
 import { identify } from 'sql-query-identifier';
 import { ViewTypes } from 'nocodb-sdk';

@@ -1,9 +1,10 @@
 <script setup lang="ts">
 import { TabType } from '~/lib'
+import {storeToRefs} from "pinia";
 
 const route = useRoute()
 
-const { bases } = useProject()
+const { bases } = storeToRefs(useProject())
 
 useMetas()
 

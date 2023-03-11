@@ -1,4 +1,6 @@
 <script setup lang="ts">
+import {storeToRefs} from "pinia";
+
 definePageMeta({
   key: 'true',
   hideHeader: true,
@@ -7,7 +9,10 @@ definePageMeta({
 
 const route = useRoute()
 const { isOpen: isSidebarOpen, toggleHasSidebar, toggle } = useSidebar('nc-left-sidebar')
-const { isErrored, isPublic, isFetching } = useDocs()
+const projectStore = useProject()
+const {  loadBookProject, loadBookPublicProject } = projectStore
+const { project, isLoading: isProjectLoading } = storeToRefs(projectStore)
+const { fetchNestedPages, openChildPageTabsOfRootPages, isErrored, isPublic, nestedPublicParentPage, isFetching, isErrored, isPublic, isFetching } = useDocs()
 
 const toggleSidebar = (isOpen: boolean) => {
   if (isOpen) {

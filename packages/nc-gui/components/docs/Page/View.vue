@@ -3,7 +3,9 @@ import { EditorContent, useEditor } from '@tiptap/vue-3'
 import { Icon as IconifyIcon } from '@iconify/vue'
 import { useShortcuts } from '../utils'
 import tiptapExtensions from '~~/utils/tiptapExtensions'
+import {storeToRefs} from "pinia";
 
+const { project } = useProject()
 useShortcuts()
 
 const {

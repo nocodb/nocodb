@@ -16,6 +16,7 @@ import {
   useViewData,
   watch,
 } from '#imports'
+import {storeToRefs} from "pinia";
 
 const props = defineProps<{
   modelValue: boolean

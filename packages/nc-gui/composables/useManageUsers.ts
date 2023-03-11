@@ -1,9 +1,10 @@
 import type { RequestParams } from 'nocodb-sdk'
 import type { User } from '~/lib'
+import {storeToRefs} from "pinia";
 
 const [setup, use] = useInjectionState(() => {
   const { api } = useApi()
-  const { project } = useProject()
+  const { project } = storeToRefs(useProject())
   const { t } = useI18n()
   const { $e } = useNuxtApp()
 

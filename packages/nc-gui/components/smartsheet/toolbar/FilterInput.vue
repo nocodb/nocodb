@@ -41,6 +41,7 @@ import Decimal from '~/components/cell/Decimal.vue'
 import Integer from '~/components/cell/Integer.vue'
 import Float from '~/components/cell/Float.vue'
 import Text from '~/components/cell/Text.vue'
+import {storeToRefs} from "pinia";
 
 interface Props {
   column: ColumnType

@@ -5,8 +5,9 @@ import type { ColumnType } from 'nocodb-sdk'
 import { message } from 'ant-design-vue'
 import MdiHammer from '~icons/mdi/hammer'
 import { useNuxtApp, useProject, useSqlEditor, useUIPermission } from '#imports'
+import {storeToRefs} from "pinia";
 
-const { bases, tables } = useProject()
+const { bases, tables } = storeToRefs(useProject())
 
 const { metas, getMeta } = useMetas()
 

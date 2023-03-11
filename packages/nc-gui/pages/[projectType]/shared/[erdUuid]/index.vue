@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { definePageMeta, navigateTo, onMounted, ref, useGlobal, useMetas, useNuxtApp, useProject, useRoute } from '#imports'
+import {storeToRefs} from "pinia";
 
 definePageMeta({
   public: true,
@@ -10,7 +11,9 @@ const route = useRoute()
 
 const { appInfo } = useGlobal()
 
-const { loadProject, project } = useProject()
+const projectStore = useProject()
+const { loadProject,  } = projectStore
+const {  project } = storeToRefs(projectStore)
 
 useMetas()
 

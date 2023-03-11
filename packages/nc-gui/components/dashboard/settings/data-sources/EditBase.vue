@@ -25,6 +25,7 @@ import {
   useNuxtApp,
   watch,
 } from '#imports'
+import {storeToRefs} from "pinia";
 
 const props = defineProps<{
   baseId: string

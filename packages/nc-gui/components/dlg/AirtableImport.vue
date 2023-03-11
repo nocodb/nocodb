@@ -18,6 +18,7 @@ import {
   useProject,
   watch,
 } from '#imports'
+import {storeToRefs} from "pinia";
 
 const { modelValue, baseId } = defineProps<{
   modelValue: boolean

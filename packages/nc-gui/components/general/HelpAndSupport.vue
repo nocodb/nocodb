@@ -1,5 +1,6 @@
 <script lang="ts" setup>
 import { ref, storeToRefs, useGlobal, useProject, useRoute } from '#imports'
+import {storeToRefs} from "pinia";
 
 const showDrawer = ref(false)
 

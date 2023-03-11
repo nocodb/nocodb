@@ -3,6 +3,7 @@ import { ModelTypes, MssqlUi, SqliteUi } from 'nocodb-sdk'
 import { MetaInj, inject, ref, storeToRefs, useProject, useVModel } from '#imports'
 import MdiPlusIcon from '~icons/mdi/plus-circle-outline'
 import MdiMinusIcon from '~icons/mdi/minus-circle-outline'
+import {storeToRefs} from "pinia";
 
 const props = defineProps<{
   value: any

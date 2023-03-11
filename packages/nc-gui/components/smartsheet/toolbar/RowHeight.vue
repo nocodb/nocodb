@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import type { GridType } from 'nocodb-sdk'
 import { ActiveViewInj, IsLockedInj, inject, ref, storeToRefs, useMenuCloseOnEsc } from '#imports'
+import {storeToRefs} from "pinia";
 
 const { isSharedBase } = storeToRefs(useProject())
 

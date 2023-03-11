@@ -3,6 +3,7 @@ import type { BaseType, LinkToAnotherRecordType, TableType } from 'nocodb-sdk'
 import { UITypes } from 'nocodb-sdk'
 import type { ERDConfig } from './utils'
 import { reactive, ref, storeToRefs, useMetas, useProject, watch } from '#imports'
+import {storeToRefs} from "pinia";
 
 const props = defineProps<{ table?: TableType; baseId?: string }>()
 

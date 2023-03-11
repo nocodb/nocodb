@@ -2,6 +2,7 @@
 import Draggable from 'vuedraggable'
 import { UITypes } from 'nocodb-sdk'
 import { IsKanbanInj, enumColor, onMounted, useColumnCreateStoreOrThrow, useVModel, watch } from '#imports'
+import {storeToRefs} from "pinia";
 
 interface Option {
   color: string
@@ -21,7 +22,7 @@ const vModel = useVModel(props, 'value', emit)
 
 const { formState, setAdditionalValidations, validateInfos, isPg, isMysql } = useColumnCreateStoreOrThrow()
 
-const { project } = useProject()
+const { project } = storeToRefs(useProject())
 
 const { $api } = useNuxtApp()
 

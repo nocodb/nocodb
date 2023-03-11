@@ -23,6 +23,7 @@ import {
   useSharedView,
 } from '#imports'
 import type { Row } from '~/lib'
+import {storeToRefs} from "pinia";
 
 const [useProvideExpandedFormStore, useExpandedFormStore] = useInjectionState((meta: Ref<TableType>, row: Ref<Row>) => {
   const { $e, $state, $api } = useNuxtApp()

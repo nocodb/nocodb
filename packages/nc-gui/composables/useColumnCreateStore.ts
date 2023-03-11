@@ -17,6 +17,7 @@ import {
   useProject,
   watch,
 } from '#imports'
+import {storeToRefs} from "pinia";
 
 const useForm = Form.useForm
 
@@ -30,7 +31,7 @@ const [useProvideColumnCreateStore, useColumnCreateStore] = createInjectionState
   (meta: Ref<TableType | undefined>, column: Ref<ColumnType | undefined>) => {
     const projectStore = useProject()
     const { isMysql: isMysqlFunc, isPg: isPgFunc, isMssql: isMssqlFunc } = projectStore
-    const { project, sqlUis } = storeToRefs(projectStore)
+    const { project, sqlUis} = storeToRefs(projectStore)
 
     const { $api } = useNuxtApp()
 

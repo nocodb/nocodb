@@ -35,7 +35,7 @@ export function useTable(onTableCreate?: (tableMeta: TableType) => void, baseId?
 
   const { closeTab } = useTabs()
 
-  const projectStore = useProject()
+  const projectStore = (useProject())
   const { sqlUis, project, tables } = storeToRefs(projectStore)
 
   const { refreshCommandPalette } = useCommandPalette()

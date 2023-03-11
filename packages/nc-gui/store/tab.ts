@@ -1,5 +1,5 @@
 import type { WritableComputedRef } from '@vue/reactivity'
-import { defineStore } from 'pinia'
+import {defineStore, storeToRefs} from 'pinia'
 import { computed, navigateTo, ref, useProject, useRouter, watch } from '#imports'
 import type { TabItem } from '~/lib'
 import { TabType } from '~/lib'
@@ -23,18 +23,28 @@ export const useTabs = defineStore('tabStore', () => {
   const { isUIAllowed } = useUIPermission()
 
   const projectStore = useProject()
+  const { project, tables } = $(storeToRefs(projectStore))
+  const projectsStore = useProjects()
 
-  const projectType = $computed(() => route.params.projectType as string)
+  const projectType = $computed(() => route.params.projectType as string ?? 'nc')
+
+  // todo: new-layout
+  const workspaceId = $computed(() => route.params.workspaceId as string)
 
   const previousActiveTabIndex = ref(-1)
   const activeTabIndex: WritableComputedRef<number> = computed({
     get() {
       const routeName = route.name as string
+      console.log(tables)
+      console.log(project)
 
-      if (routeName.startsWith('projectType-projectId-index-index-type-title-viewTitle') && projectStore.tables.length) {
+      // todo: new-layout
+      if (routeName.includes('projectType-projectId-index-index-type-title-viewTitle') && (tables.length
+      || projectsStore.projectTableList[project?.id!]?.length)) {
+
         const tab: TabItem = { type: route.params.type as TabType, title: route.params.title as string }
 
-        const currentTable = projectStore.tables.find((t) => t.id === tab.title || t.title === tab.title)
+        const currentTable = (tables ?? projectsStore.projectTableList[project?.id!]).find((t) => t.id === tab.title || t.title === tab.title)
 
         if (!currentTable) return -1
 
@@ -49,7 +59,7 @@ export const useTabs = defineStore('tabStore', () => {
         tab.meta = currentTable.meta
 
         // append base alias to tab title if duplicate titles exist on other bases
-        if (projectStore.tables.find((t) => t.title === currentTable?.title && t.base_id !== currentTable?.base_id))
+        if (tables.find((t) => t.title === currentTable?.title && t.base_id !== currentTable?.base_id))
           tab.title = `${tab.title}${currentBase?.alias ? ` (${currentBase.alias})` : ``}`
 
         if (index === -1) {
@@ -60,11 +70,11 @@ export const useTabs = defineStore('tabStore', () => {
         }
 
         return index
-      } else if (routeName.startsWith('projectType-projectId-index-index-auth')) {
+      } else if (routeName.includes('projectType-projectId-index-index-auth')) {
         return tabs.value.findIndex((t) => t.type === TabType.AUTH)
-      } else if (routeName.startsWith('projectType-projectId-index-index-sql')) {
+      } else if (routeName.includes('projectType-projectId-index-index-sql')) {
         return tabs.value.findIndex((t) => t.type === TabType.SQL)
-      } else if (routeName.startsWith('projectType-projectId-index-index-erd-baseId')) {
+      } else if (routeName.includes('projectType-projectId-index-index-erd-baseId')) {
         return tabs.value.findIndex((t) => t.id === `${TabType.ERD}-${route.params.baseId}`)
       }
 
@@ -73,7 +83,7 @@ export const useTabs = defineStore('tabStore', () => {
     },
     set(index: number) {
       if (index === -1) {
-        navigateTo(`/${projectType}/${route.params.projectId}`)
+        navigateTo(`/ws/${workspaceId}/${projectType}/${project?.id!}`)
       } else {
         const tab = tabs.value[index]
 
@@ -100,13 +110,13 @@ export const useTabs = defineStore('tabStore', () => {
     }
     // if tab not found add it
     else {
-      const currentTable = projectStore.tables.find((t) => t.id === tabMeta.id || t.title === tabMeta.id)
+      const currentTable = tables.find((t) => t.id === tabMeta.id || t.title === tabMeta.id)
       const currentBase = projectStore.bases.find((b) => b.id === currentTable?.base_id)
 
       tabMeta.meta = currentTable?.meta
 
       // append base alias to tab title if duplicate titles exist on other bases
-      if (projectStore.tables.find((t) => t.title === currentTable?.title && t.base_id !== currentTable?.base_id))
+      if (tables.find((t) => t.title === currentTable?.title && t.base_id !== currentTable?.base_id))
         tabMeta.title = `${tabMeta.title}${currentBase?.alias ? ` (${currentBase.alias})` : ``}`
 
       tabs.value = [...(tabs.value || []), tabMeta]
@@ -127,7 +137,7 @@ export const useTabs = defineStore('tabStore', () => {
       if (newTabIndex < 0 && tabs.value?.length > 1) newTabIndex = index + 1
 
       if (newTabIndex === -1) {
-        await navigateTo(`/${projectType}/${route.params.projectId}`)
+        await navigateTo(`/ws/${workspaceId}/${projectType}/${route.params.projectId}`)
       } else {
         await navigateToTab(tabs.value?.[newTabIndex])
       }
@@ -139,15 +149,15 @@ export const useTabs = defineStore('tabStore', () => {
   function navigateToTab(tab: TabItem) {
     switch (tab.type) {
       case TabType.TABLE:
-        return navigateTo(`/${projectType}/${route.params.projectId}/table/${tab?.id}${tab.viewTitle ? `/${tab.viewTitle}` : ''}`)
+        return navigateTo(`/ws/${workspaceId}/${projectType}/${tab.projectId}/table/${tab?.id}${tab.viewTitle ? `/${tab.viewTitle}` : ''}`)
       case TabType.VIEW:
-        return navigateTo(`/${projectType}/${route.params.projectId}/view/${tab?.id}${tab.viewTitle ? `/${tab.viewTitle}` : ''}`)
+        return navigateTo(`/ws/${workspaceId}/${projectType}/${tab.projectId}/view/${tab?.id}${tab.viewTitle ? `/${tab.viewTitle}` : ''}`)
       case TabType.AUTH:
-        return navigateTo(`/${projectType}/${route.params.projectId}/auth`)
+        return navigateTo(`/ws/${workspaceId}/${projectType}/${tab.projectId}/auth`)
       case TabType.SQL:
-        return navigateTo(`/${projectType}/${route.params.projectId}/sql`)
+        return navigateTo(`/ws/${workspaceId}/${projectType}/${tab.projectId}/sql`)
       case TabType.ERD:
-        return navigateTo(`/${projectType}/${route.params.projectId}/erd/${tab?.tabMeta?.base.id}`)
+        return navigateTo(`/ws/${workspaceId}/${projectType}/${tab.projectId}/erd/${tab?.tabMeta?.base.id}`)
     }
   }
 
@@ -172,8 +182,8 @@ export const useTabs = defineStore('tabStore', () => {
     () => route.name,
     (n, o) => {
       if (n === o) return
-      if (!n || !/^projectType-projectId-index-index/.test(n.toString())) return
-      const activeTabRoute = n.toString().replace('projectType-projectId-index-index-', '')
+      if (!n || !/projectType-projectId-index-index/.test(n.toString())) return
+      const activeTabRoute = n.toString().replace(/ws-workspaceId-projectType-projectId-index-index-/, '')
       switch (activeTabRoute) {
         case TabType.SQL:
           addTab({ id: TabType.SQL, type: TabType.SQL, title: 'SQL Editor' })

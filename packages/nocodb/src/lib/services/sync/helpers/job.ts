@@ -1541,6 +1541,7 @@ export default async (
     ncCreatedProjectSchema = await api.project.create({
       title: projName,
     });
+
     recordPerfStats(_perfStart, 'project.create');
   }
 

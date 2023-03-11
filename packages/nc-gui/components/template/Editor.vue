@@ -31,6 +31,7 @@ import {
   useTabs,
 } from '#imports'
 import { TabType } from '~/lib'
+import {storeToRefs} from "pinia";
 
 const { quickImportType, projectTemplate, importData, importColumns, importDataOnly, maxRowsToParse, baseId } =
   defineProps<Props>()

@@ -1,0 +1,360 @@
+<script lang="ts" setup>
+import { onMounted, useRouter, useWorkspace } from '#imports'
+
+const router = useRouter()
+const route = $(router.currentRoute)
+
+const workspaceStore = useWorkspace()
+
+onMounted(async () => {
+  await workspaceStore.loadWorkspace(route.params.workspaceId as string)
+  await workspaceStore.loadProjects()
+})
+
+// todo:
+const isOpen = ref(true)
+const isSharedBase = ref(false)
+const currentVersion = ref('')
+</script>
+
+<template>
+  <NuxtLayout>
+    <!--    Workspace -->
+
+    <!--    {{ workspaceStore.workspace }} -->
+    <!--    {{ workspaceStore.projects }} -->
+
+    <!--    <nuxt-page/> -->
+    <template #sidebar>
+      <a-layout-sider
+        ref="sidebar"
+        :collapsed="!isOpen"
+        width="250"
+        collapsed-width="50"
+        class="relative shadow-md h-full z-1 nc-left-sidebar"
+        :trigger="null"
+        collapsible
+        theme="light"
+      >
+        <div
+          style="height: var(--header-height); border-bottom-width: 1px"
+          :class="isOpen ? 'pl-4' : ''"
+          class="flex items-center text-primary px-1 gap-1 nc-sidebar-header"
+        >
+          <div
+            v-if="isOpen && !isSharedBase"
+            v-e="['c:navbar:home']"
+            data-testid="nc-noco-brand-icon"
+            class="w-[29px] min-w-[29px] transition-all duration-200 py-1 pl-1 cursor-pointer transform hover:scale-105 nc-noco-brand-icon"
+            @click="navigateTo('/')"
+          >
+            <a-tooltip placement="bottom">
+              <template #title>
+                {{ currentVersion }}
+              </template>
+              <img width="25" class="-mr-1" alt="NocoDB" src="~/assets/img/icons/512x512.png" />
+            </a-tooltip>
+          </div>
+
+          <a
+            v-if="isOpen && isSharedBase"
+            class="w-[40px] min-w-[40px] transition-all duration-200 p-1 cursor-pointer transform hover:scale-105"
+            href="https://github.com/nocodb/nocodb"
+            target="_blank"
+          >
+            <a-tooltip placement="bottom">
+              <template #title>
+                {{ currentVersion }}
+              </template>
+              <img width="25" alt="NocoDB" src="~/assets/img/icons/512x512-trans.png" />
+            </a-tooltip>
+          </a>
+
+          <a-dropdown
+            class="h-full min-w-0 flex-1"
+            :trigger="['click']"
+            placement="bottom"
+            overlay-class-name="nc-dropdown-project-menu"
+          >
+            <div
+              :style="{ width: isOpen ? 'calc(100% - 40px) pr-2' : '100%' }"
+              :class="[isOpen ? '' : 'justify-center']"
+              data-testid="nc-project-menu"
+              class="group cursor-pointer flex gap-1 items-center nc-project-menu overflow-hidden"
+            >
+              <template v-if="isOpen">
+                <a-tooltip v-if="project?.title?.length > 12" placement="bottom">
+                  <div class="text-md font-semibold truncate">{{ project.title }}</div>
+                  <template #title>
+                    <div class="text-sm">{{ project?.title }}</div>
+                  </template>
+                </a-tooltip>
+                <div v-else class="text-md font-semibold truncate capitalize">{{ project?.title }}</div>
+
+                <MdiChevronDown class="min-w-[17px] group-hover:text-accent text-md" />
+              </template>
+
+              <template v-else>
+                <MdiFolder class="text-primary cursor-pointer transform hover:scale-105 text-2xl" />
+              </template>
+            </div>
+
+            <template #overlay>
+              <a-menu class="!ml-1 !w-[300px] !text-sm">
+                <a-menu-item-group>
+                  <template #title>
+                    <div class="group select-none flex items-center gap-4 py-1">
+                      <MdiFolder class="group-hover:text-accent text-xl" />
+
+                      <div class="flex flex-col">
+                        <div class="text-lg group-hover:(!text-primary) font-semibold capitalize">
+                          <GeneralTruncateText>{{ project.title }}</GeneralTruncateText>
+                        </div>
+
+                        <div v-if="!isSharedBase" class="flex items-center gap-1">
+                          <div class="group-hover:(!text-primary)">ID:</div>
+
+                          <div class="text-xs group-hover:text-accent truncate font-italic">{{ project.id }}</div>
+                        </div>
+                      </div>
+                    </div>
+                  </template>
+                  <template v-if="!isSharedBase">
+                    <!-- Copy Project Info -->
+                    <a-menu-item key="copy">
+                      <div
+                        v-e="['c:navbar:user:copy-proj-info']"
+                        class="nc-project-menu-item group"
+                        @click.stop="copyProjectInfo"
+                      >
+                        <MdiContentCopy class="group-hover:text-accent" />
+                        {{ $t('activity.account.projInfo') }}
+                      </div>
+                    </a-menu-item>
+
+                    <a-menu-divider />
+
+                    <!-- Swagger: Rest APIs -->
+                    <a-menu-item key="api">
+                      <div
+                        v-if="isUIAllowed('apiDocs')"
+                        v-e="['e:api-docs']"
+                        class="nc-project-menu-item group"
+                        @click.stop="openLink(`/api/v1/db/meta/projects/${route.params.projectId}/swagger`, appInfo.ncSiteUrl)"
+                      >
+                        <MdiApi class="group-hover:text-accent" />
+                        {{ $t('activity.account.swagger') }}
+                      </div>
+                    </a-menu-item>
+
+                    <!-- Copy Auth Token -->
+                    <a-menu-item key="copy">
+                      <div v-e="['a:navbar:user:copy-auth-token']" class="nc-project-menu-item group" @click.stop="copyAuthToken">
+                        <MdiScriptTextKeyOutline class="group-hover:text-accent" />
+                        {{ $t('activity.account.authToken') }}
+                      </div>
+                    </a-menu-item>
+
+                    <a-menu-divider />
+
+                    <!-- Team & Settings -->
+                    <a-menu-item key="teamAndSettings">
+                      <div
+                        v-if="isUIAllowed('settings')"
+                        v-e="['c:navdraw:project-settings']"
+                        class="nc-project-menu-item group"
+                        @click="toggleDialog(true, 'teamAndAuth')"
+                      >
+                        <MdiCog class="group-hover:text-accent" />
+                        {{ $t('title.teamAndSettings') }}
+                      </div>
+                    </a-menu-item>
+
+                    <!-- Theme -->
+                    <template v-if="isUIAllowed('projectTheme')">
+                      <a-sub-menu key="theme">
+                        <template #title>
+                          <div class="nc-project-menu-item group">
+                            <ClarityImageLine class="group-hover:text-accent" />
+                            {{ $t('activity.account.themes') }}
+
+                            <div class="flex-1" />
+
+                            <MaterialSymbolsChevronRightRounded
+                              class="transform group-hover:(scale-115 text-accent) text-xl text-gray-400"
+                            />
+                          </div>
+                        </template>
+
+                        <template #expandIcon></template>
+
+                        <LazyGeneralColorPicker
+                          :model-value="theme.primaryColor"
+                          :colors="projectThemeColors"
+                          :row-size="9"
+                          :advanced="false"
+                          class="rounded-t"
+                          @input="handleThemeColor('swatch', $event)"
+                        />
+
+                        <!-- Custom Theme -->
+                        <a-sub-menu key="theme-2">
+                          <template #title>
+                            <div class="nc-project-menu-item group">
+                              {{ $t('labels.customTheme') }}
+
+                              <div class="flex-1" />
+
+                              <MaterialSymbolsChevronRightRounded
+                                class="transform group-hover:(scale-115 text-accent) text-xl text-gray-400"
+                              />
+                            </div>
+                          </template>
+
+                          <!-- Primary Color -->
+                          <template #expandIcon></template>
+
+                          <a-sub-menu key="pick-primary">
+                            <template #title>
+                              <div class="nc-project-menu-item group">
+                                <ClarityColorPickerSolid class="group-hover:text-accent" />
+                                {{ $t('labels.primaryColor') }}
+                              </div>
+                            </template>
+
+                            <template #expandIcon></template>
+
+                            <LazyGeneralChromeWrapper @input="handleThemeColor('primary', $event)" />
+                          </a-sub-menu>
+
+                          <!-- Accent Color -->
+                          <a-sub-menu key="pick-accent">
+                            <template #title>
+                              <div class="nc-project-menu-item group">
+                                <ClarityColorPickerSolid class="group-hover:text-accent" />
+                                {{ $t('labels.accentColor') }}
+                              </div>
+                            </template>
+
+                            <template #expandIcon></template>
+
+                            <LazyGeneralChromeWrapper @input="handleThemeColor('accent', $event)" />
+                          </a-sub-menu>
+                        </a-sub-menu>
+                      </a-sub-menu>
+                    </template>
+
+                    <a-menu-divider />
+
+                    <!-- Preview As -->
+                    <a-sub-menu v-if="isUIAllowed('previewAs')" key="preview-as">
+                      <template #title>
+                        <div v-e="['c:navdraw:preview-as']" class="nc-project-menu-item group">
+                          <MdiFileEyeOutline class="group-hover:text-accent" />
+                          {{ $t('activity.previewAs') }}
+
+                          <div class="flex-1" />
+
+                          <MaterialSymbolsChevronRightRounded
+                            class="transform group-hover:(scale-115 text-accent) text-xl text-gray-400"
+                          />
+                        </div>
+                      </template>
+
+                      <template #expandIcon></template>
+
+                      <LazyGeneralPreviewAs />
+                    </a-sub-menu>
+                  </template>
+                  <!-- Language -->
+                  <a-sub-menu
+                    key="language"
+                    class="lang-menu !py-0"
+                    popup-class-name="scrollbar-thin-dull min-w-50 max-h-90vh !overflow-auto"
+                  >
+                    <template #title>
+                      <div class="nc-project-menu-item group">
+                        <MaterialSymbolsTranslate class="group-hover:text-accent nc-language" />
+                        {{ $t('labels.language') }}
+                        <div class="flex items-center text-gray-400 text-xs">(Community Translated)</div>
+                        <div class="flex-1" />
+
+                        <MaterialSymbolsChevronRightRounded
+                          class="transform group-hover:(scale-115 text-accent) text-xl text-gray-400"
+                        />
+                      </div>
+                    </template>
+
+                    <template #expandIcon></template>
+
+                    <LazyGeneralLanguageMenu />
+                  </a-sub-menu>
+
+                  <!-- Account -->
+                  <template v-if="signedIn && !isSharedBase">
+                    <a-sub-menu key="account">
+                      <template #title>
+                        <div class="nc-project-menu-item group">
+                          <MdiAccount class="group-hover:text-accent" />
+                          {{ $t('labels.account') }}
+                          <div class="flex-1" />
+
+                          <MaterialSymbolsChevronRightRounded
+                            class="transform group-hover:(scale-115 text-accent) text-xl text-gray-400"
+                          />
+                        </div>
+                      </template>
+
+                      <template #expandIcon></template>
+
+                      <a-menu-item key="0" class="!rounded-t">
+                        <nuxt-link
+                          v-e="['c:navbar:user:email']"
+                          class="nc-project-menu-item group !no-underline"
+                          to="/account/users"
+                        >
+                          <MdiAt class="mt-1 group-hover:text-accent" />&nbsp;
+                          <div class="prose-sm group-hover:text-primary">
+                            <div>Account</div>
+                            <div class="text-xs text-gray-500">{{ email }}</div>
+                          </div>
+                        </nuxt-link>
+                      </a-menu-item>
+
+                      <a-menu-item key="1" class="!rounded-b">
+                        <div v-e="['a:navbar:user:sign-out']" class="nc-project-menu-item group" @click="logout">
+                          <MdiLogout class="group-hover:(!text-accent)" />&nbsp;
+
+                          <span class="prose-sm nc-user-menu-signout">
+                            {{ $t('general.signOut') }}
+                          </span>
+                        </div>
+                      </a-menu-item>
+                    </a-sub-menu>
+                  </template>
+                </a-menu-item-group>
+              </a-menu>
+            </template>
+          </a-dropdown>
+
+          <div
+            class="nc-sidebar-left-toggle-icon hover:after:(bg-primary bg-opacity-75) group nc-sidebar-add-row flex items-center px-2"
+          >
+            <MdiBackburger
+              v-e="['c:grid:toggle-navdraw']"
+              class="cursor-pointer transform transition-transform duration-500"
+              :class="{ 'rotate-180': !isOpen }"
+              @click="toggle(!isOpen)"
+            />
+          </div>
+        </div>
+
+        <LazyDashboardTreeViewNew @create-base-dlg="toggleDialog(true, 'dataSources')" />
+      </a-layout-sider>
+    </template>
+
+    <NuxtPage />
+  </NuxtLayout>
+</template>
+
+<style scoped></style>

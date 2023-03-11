@@ -43,6 +43,8 @@ const [useProvideLTARStore, useLTARStore] = useInjectionState(
 
     const { $api } = useNuxtApp()
 
+    const { addUndo, clone } = useUndoRedo()
+
     const sharedViewPassword = inject(SharedViewPasswordInj, ref(null))
 
     const childrenExcludedList = ref<DataApiResponse | undefined>()
@@ -245,7 +247,7 @@ const [useProvideLTARStore, useLTARStore] = useInjectionState(
       })
     }
 
-    const unlink = async (row: Record<string, any>) => {
+    const unlink = async (row: Record<string, any>, { metaValue = meta.value }: { metaValue?: TableType } = {}, undo = false) => {
       // const column = meta.columns.find(c => c.id === this.column.colOptions.fk_child_column_id);
       // todo: handle if new record
       // if (this.isNew) {
@@ -264,12 +266,26 @@ const [useProvideLTARStore, useLTARStore] = useInjectionState(
         await $api.dbTableRow.nestedRemove(
           NOCO,
           project.value.title as string,
-          meta.value.title,
+          metaValue.title,
           rowId.value,
           colOptions.type as 'mm' | 'hm',
           encodeURIComponent(column?.value?.title),
           getRelatedTableRowId(row) as string,
         )
+
+        if (!undo) {
+          addUndo({
+            redo: {
+              fn: (row: Record<string, any>, { metaValue }: { metaValue?: TableType } = {}) => unlink(row, { metaValue }, true),
+              args: [clone(row), clone({ metaValue })],
+            },
+            undo: {
+              // eslint-disable-next-line @typescript-eslint/no-use-before-define
+              fn: (row: Record<string, any>, { metaValue }: { metaValue?: TableType } = {}) => link(row, { metaValue }, true),
+              args: [clone(row), clone({ metaValue })],
+            },
+          })
+        }
       } catch (e: any) {
         message.error(`${t('msg.error.unlinkFailed')}: ${await extractSdkResponseErrorMsg(e)}`)
       }
@@ -277,7 +293,7 @@ const [useProvideLTARStore, useLTARStore] = useInjectionState(
       reloadData?.(false)
     }
 
-    const link = async (row: Record<string, any>) => {
+    const link = async (row: Record<string, any>, { metaValue = meta.value }: { metaValue?: TableType } = {}, undo = false) => {
       // todo: handle new record
       //   const pid = this._extractRowId(parent, this.parentMeta);
       // const id = this._extractRowId(this.row, this.meta);
@@ -295,13 +311,26 @@ const [useProvideLTARStore, useLTARStore] = useInjectionState(
         await $api.dbTableRow.nestedAdd(
           NOCO,
           project.value.title as string,
-          meta.value.title as string,
+          metaValue.title as string,
           rowId.value,
           colOptions.type as 'mm' | 'hm',
           encodeURIComponent(column?.value?.title),
           getRelatedTableRowId(row) as string,
         )
         await loadChildrenList()
+
+        if (!undo) {
+          addUndo({
+            redo: {
+              fn: (row: Record<string, any>, { metaValue }: { metaValue?: TableType } = {}) => link(row, { metaValue }, true),
+              args: [clone(row), clone({ metaValue })],
+            },
+            undo: {
+              fn: (row: Record<string, any>, { metaValue }: { metaValue?: TableType } = {}) => unlink(row, { metaValue }, true),
+              args: [clone(row), clone({ metaValue })],
+            },
+          })
+        }
       } catch (e: any) {
         message.error(`Linking failed: ${await extractSdkResponseErrorMsg(e)}`)
       }

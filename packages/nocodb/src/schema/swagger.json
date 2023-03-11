@@ -61,14 +61,15 @@
                   "properties": {
                     "token": {
                       "type": "string",
-                      "description": "The signed JWT token for information exchange"
+                      "description": "The signed JWT token for information exchange",
+                      "example": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJlbWFpbCI6IndAbm9jb2RiLmNvbSIsImZpcnN0bmFtZSI6bnVsbCwibGFzdG5hbWUiOm51bGwsImlkIjoidXNfYjN4bzJpNDRueDV5OWwiLCJyb2xlcyI6Im9yZy1sZXZlbC1jcmVhdG9yLHN1cGVyIiwidG9rZW5fdmVyc2lvbiI6ImJmMTc3ZGUzYjk3YjAzMjY4YjU0NGZmMjMzNGU5YjFhMGUzYzgxM2NiYzliOTJkYWMwYmM5NTRiNmUzN2ZjMTJjYmFkNDM2NmIwYzExZTdjIiwiaWF0IjoxNjc4MDc4NDMyLCJleHAiOjE2NzgxMTQ0MzJ9.gzwp_svZlbA5PV_eawYV-9UFjZVjniy-tCDce16xrkI"
                     }
                   }
                 },
                 "examples": {
-                  "Successful registration response": {
+                  "Example 1": {
                     "value": {
-                      "token": "string"
+                      "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJlbWFpbCI6IndAbm9jb2RiLmNvbSIsImZpcnN0bmFtZSI6bnVsbCwibGFzdG5hbWUiOm51bGwsImlkIjoidXNfYjN4bzJpNDRueDV5OWwiLCJyb2xlcyI6Im9yZy1sZXZlbC1jcmVhdG9yLHN1cGVyIiwidG9rZW5fdmVyc2lvbiI6ImJmMTc3ZGUzYjk3YjAzMjY4YjU0NGZmMjMzNGU5YjFhMGUzYzgxM2NiYzliOTJkYWMwYmM5NTRiNmUzN2ZjMTJjYmFkNDM2NmIwYzExZTdjIiwiaWF0IjoxNjc4MDc4NDMyLCJleHAiOjE2NzgxMTQ0MzJ9.gzwp_svZlbA5PV_eawYV-9UFjZVjniy-tCDce16xrkI"
                     }
                   }
                 }
@@ -157,7 +158,15 @@
                   "properties": {
                     "msg": {
                       "type": "string",
-                      "description": "Success Message"
+                      "description": "Success Message",
+                      "example": "Signed out successfully"
+                    }
+                  }
+                },
+                "examples": {
+                  "Example 1": {
+                    "value": {
+                      "msg": "Signed out successfully"
                     }
                   }
                 }
@@ -191,7 +200,8 @@
                   "properties": {
                     "token": {
                       "type": "string",
-                      "description": "The signed JWT token for information exchange"
+                      "description": "The signed JWT token for information exchange",
+                      "example": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJlbWFpbCI6IndAbm9jb2RiLmNvbSIsImZpcnN0bmFtZSI6bnVsbCwibGFzdG5hbWUiOm51bGwsImlkIjoidXNfYjN4bzJpNDRueDV5OWwiLCJyb2xlcyI6Im9yZy1sZXZlbC1jcmVhdG9yLHN1cGVyIiwidG9rZW5fdmVyc2lvbiI6ImJmMTc3ZGUzYjk3YjAzMjY4YjU0NGZmMjMzNGU5YjFhMGUzYzgxM2NiYzliOTJkYWMwYmM5NTRiNmUzN2ZjMTJjYmFkNDM2NmIwYzExZTdjIiwiaWF0IjoxNjc4MDc4NDMyLCJleHAiOjE2NzgxMTQ0MzJ9.gzwp_svZlbA5PV_eawYV-9UFjZVjniy-tCDce16xrkI"
                     }
                   }
                 },
@@ -291,7 +301,31 @@
         "operationId": "auth-password-forgot",
         "responses": {
           "200": {
-            "description": "OK"
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "msg": {
+                      "type": "string",
+                      "x-stoplight": {
+                        "id": "q9s5vh2i34x6c"
+                      },
+                      "example": "Please check your email to reset the password",
+                      "description": "Success Message"
+                    }
+                  }
+                },
+                "examples": {
+                  "Example 1": {
+                    "value": {
+                      "msg": "Please check your email to reset the password"
+                    }
+                  }
+                }
+              }
+            }
           },
           "400": {
             "$ref": "#/components/responses/BadRequest"
@@ -344,7 +378,7 @@
                 "examples": {
                   "Success response": {
                     "value": {
-                      "msg": "Password updated successfully"
+                      "msg": "Password has been updated successfully"
                     }
                   }
                 }
@@ -388,7 +422,31 @@
         "operationId": "auth-password-reset-token-validate",
         "responses": {
           "200": {
-            "description": "OK"
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "msg": {
+                      "type": "string",
+                      "x-stoplight": {
+                        "id": "unxdsok22kg1y"
+                      },
+                      "example": "Token has been validated successfully",
+                      "description": "Success Message"
+                    }
+                  }
+                },
+                "examples": {
+                  "Example 1": {
+                    "value": {
+                      "msg": "Token has been validated successfully"
+                    }
+                  }
+                }
+              }
+            }
           },
           "400": {
             "$ref": "#/components/responses/BadRequest"
@@ -422,7 +480,31 @@
         "operationId": "auth-email-validate",
         "responses": {
           "200": {
-            "description": "OK"
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "msg": {
+                      "type": "string",
+                      "x-stoplight": {
+                        "id": "u49sbr20s9rgf"
+                      },
+                      "description": "Success Message",
+                      "example": "Email has been verified successfully"
+                    }
+                  }
+                },
+                "examples": {
+                  "Example 1": {
+                    "value": {
+                      "msg": "Email has been verified successfully"
+                    }
+                  }
+                }
+              }
+            }
           },
           "400": {
             "$ref": "#/components/responses/BadRequest"
@@ -456,7 +538,31 @@
         "operationId": "auth-password-reset",
         "responses": {
           "200": {
-            "description": "OK"
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "msg": {
+                      "type": "string",
+                      "x-stoplight": {
+                        "id": "2to6ro4121rfx"
+                      },
+                      "description": "Success Message",
+                      "example": "Password has been reset successfully"
+                    }
+                  }
+                },
+                "examples": {
+                  "Example 1": {
+                    "value": {
+                      "msg": "Password has been reset successfully"
+                    }
+                  }
+                }
+              }
+            }
           },
           "400": {
             "$ref": "#/components/responses/BadRequest"
@@ -514,11 +620,18 @@
                   "properties": {
                     "token": {
                       "type": "string",
-                      "description": "New access token for user"
+                      "description": "New access token for user",
+                      "example": "96751db2d53fb834382b682268874a2ea9ee610e4d904e688d1513f11d3c30d62d36d9e05dec0d63"
                     }
                   }
                 },
-                "examples": {}
+                "examples": {
+                  "Example 1": {
+                    "value": {
+                      "token": "96751db2d53fb834382b682268874a2ea9ee610e4d904e688d1513f11d3c30d62d36d9e05dec0d63"
+                    }
+                  }
+                }
               }
             }
           },
@@ -550,58 +663,25 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "type": "object",
-                  "properties": {
-                    "users": {
-                      "type": "object",
-                      "properties": {
-                        "list": {
-                          "type": "array",
-                          "items": {
-                            "allOf": [
-                              {
-                                "$ref": "#/components/schemas/ApiToken"
-                              },
-                              {
-                                "type": "object",
-                                "properties": {
-                                  "created_by": {
-                                    "type": "string"
-                                  }
-                                }
-                              }
-                            ],
-                            "type": "object"
-                          }
-                        },
-                        "pageInfo": {
-                          "$ref": "#/components/schemas/Paginated"
-                        }
-                      },
-                      "required": ["list", "pageInfo"]
-                    }
-                  }
+                  "$ref": "#/components/schemas/ApiTokenList"
                 },
                 "examples": {
                   "Example 1": {
                     "value": {
-                      "users": {
-                        "list": [
-                          {
-                            "id": "1",
-                            "fk_user_id": "us_b3xo2i44nx5y9l",
-                            "description": "This API Token is for ABC application",
-                            "token": "DYh540o8hbWpUGdarekECKLdN5OhlgCUWutVJYX2",
-                            "created_by": "string"
-                          }
-                        ],
-                        "pageInfo": {
-                          "isFirstPage": true,
-                          "isLastPage": true,
-                          "page": 1,
-                          "pageSize": 10,
-                          "totalRows": 1
+                      "list": [
+                        {
+                          "id": "1",
+                          "fk_user_id": "us_b3xo2i44nx5y9l",
+                          "description": "This API Token is for ABC application",
+                          "token": "DYh540o8hbWpUGdarekECKLdN5OhlgCUWutVJYX2"
                         }
+                      ],
+                      "pageInfo": {
+                        "isFirstPage": true,
+                        "isLastPage": true,
+                        "page": 1,
+                        "pageSize": 10,
+                        "totalRows": 1
                       }
                     }
                   }
@@ -674,7 +754,20 @@
         "operationId": "org-tokens-delete",
         "responses": {
           "200": {
-            "description": "OK"
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "number",
+                  "example": 1
+                },
+                "examples": {
+                  "Example 1": {
+                    "value": 1
+                  }
+                }
+              }
+            }
           },
           "400": {
             "$ref": "#/components/responses/BadRequest"
@@ -974,7 +1067,30 @@
         "operationId": "org-users-update",
         "responses": {
           "200": {
-            "description": "OK"
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "msg": {
+                      "type": "string",
+                      "x-stoplight": {
+                        "id": "6oa45bkw7j57j"
+                      },
+                      "example": "The user has been updated successfully"
+                    }
+                  }
+                },
+                "examples": {
+                  "Example 1": {
+                    "value": {
+                      "msg": "The user has been updated successfully"
+                    }
+                  }
+                }
+              }
+            }
           },
           "400": {
             "$ref": "#/components/responses/BadRequest"
@@ -1006,7 +1122,31 @@
         "operationId": "org-users-delete",
         "responses": {
           "200": {
-            "description": "OK"
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "msg": {
+                      "type": "string",
+                      "x-stoplight": {
+                        "id": "buvrqjvv255tf"
+                      },
+                      "example": "The user has been deleted successfully",
+                      "description": "Sucess Message"
+                    }
+                  }
+                },
+                "examples": {
+                  "Example 1": {
+                    "value": {
+                      "msg": "The user has been deleted successfully"
+                    }
+                  }
+                }
+              }
+            }
           },
           "400": {
             "$ref": "#/components/responses/BadRequest"
@@ -1034,7 +1174,31 @@
         "operationId": "org-users-resend-invite",
         "responses": {
           "200": {
-            "description": "OK"
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "msg": {
+                      "type": "string",
+                      "x-stoplight": {
+                        "id": "aixfqd9jfh5pq"
+                      },
+                      "example": "The invitation has been sent to the target user",
+                      "description": "Success Message"
+                    }
+                  }
+                },
+                "examples": {
+                  "Example 1": {
+                    "value": {
+                      "msg": "The invitation has been sent to the target user"
+                    }
+                  }
+                }
+              }
+            }
           },
           "400": {
             "$ref": "#/components/responses/BadRequest"
@@ -1084,7 +1248,14 @@
                     }
                   }
                 },
-                "examples": {}
+                "examples": {
+                  "Example 1": {
+                    "value": {
+                      "reset_password_token": "string",
+                      "reset_password_url": "string"
+                    }
+                  }
+                }
               }
             }
           },
@@ -1192,7 +1363,26 @@
             "description": "OK",
             "content": {
               "application/json": {
-                "schema": {}
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "msg": {
+                      "type": "string",
+                      "x-stoplight": {
+                        "id": "waau9tvy75zsd"
+                      },
+                      "description": "Success Message",
+                      "example": "The user has been invited successfully"
+                    }
+                  }
+                },
+                "examples": {
+                  "Example 1": {
+                    "value": {
+                      "msg": "The user has been invited successfully"
+                    }
+                  }
+                }
               }
             }
           },
@@ -1355,7 +1545,26 @@
             "description": "OK",
             "content": {
               "application/json": {
-                "schema": {}
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "msg": {
+                      "type": "string",
+                      "x-stoplight": {
+                        "id": "5a2q8as60daly"
+                      },
+                      "description": "Success Message",
+                      "example": "The user has been updated successfully"
+                    }
+                  }
+                },
+                "examples": {
+                  "Example 1": {
+                    "value": {
+                      "msg": "The user has been updated successfully"
+                    }
+                  }
+                }
               }
             }
           },
@@ -1368,6 +1577,14 @@
             "application/json": {
               "schema": {
                 "$ref": "#/components/schemas/ProjectUserReq"
+              },
+              "examples": {
+                "Example 1": {
+                  "value": {
+                    "email": "user@example.com",
+                    "roles": "owner"
+                  }
+                }
               }
             }
           }
@@ -1388,7 +1605,26 @@
             "description": "OK",
             "content": {
               "application/json": {
-                "schema": {}
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "msg": {
+                      "type": "string",
+                      "x-stoplight": {
+                        "id": "5h7c9lqh5ynve"
+                      },
+                      "example": "The user has been updated successfully",
+                      "description": "Success Message"
+                    }
+                  }
+                },
+                "examples": {
+                  "Example 1": {
+                    "value": {
+                      "msg": "The user has been updated successfully"
+                    }
+                  }
+                }
               }
             }
           },
@@ -10536,7 +10772,26 @@
             "description": "OK",
             "content": {
               "application/json": {
-                "schema": {}
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "msg": {
+                      "type": "string",
+                      "x-stoplight": {
+                        "id": "m570oh5j3afjt"
+                      },
+                      "description": "Success Message",
+                      "example": "The invitation has been sent to the user"
+                    }
+                  }
+                },
+                "examples": {
+                  "Example 1": {
+                    "value": {
+                      "msg": "The invitation has been sent to the user"
+                    }
+                  }
+                }
               }
             }
           },

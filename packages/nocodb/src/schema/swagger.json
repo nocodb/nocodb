@@ -6470,7 +6470,8 @@
           },
           "name": "orgs",
           "in": "path",
-          "required": true
+          "required": true,
+          "description": "Organisation Name. Currently `noco` will be used."
         },
         {
           "schema": {
@@ -6478,7 +6479,8 @@
           },
           "name": "projectName",
           "in": "path",
-          "required": true
+          "required": true,
+          "description": "Project Name"
         },
         {
           "schema": {
@@ -6486,7 +6488,8 @@
           },
           "name": "tableName",
           "in": "path",
-          "required": true
+          "required": true,
+          "description": "Table Name"
         }
       ],
       "get": {
@@ -6572,7 +6575,87 @@
             "description": "OK",
             "content": {
               "application/json": {
-                "schema": {}
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "list": {
+                      "type": "array",
+                      "x-stoplight": {
+                        "id": "g92aqxk869a7o"
+                      },
+                      "description": "List of data objects",
+                      "items": {
+                        "x-stoplight": {
+                          "id": "rnbt8ubciknfd"
+                        },
+                        "type": "object"
+                      }
+                    },
+                    "pageInfo": {
+                      "$ref": "#/components/schemas/Paginated",
+                      "x-stoplight": {
+                        "id": "7f38yyzdg03x5"
+                      },
+                      "description": "Paginated Info"
+                    }
+                  }
+                },
+                "examples": {
+                  "Example 1": {
+                    "value": {
+                      "list": [
+                        {
+                          "Id": 1,
+                          "Title": "baz",
+                          "SingleSelect": null,
+                          "Sheet-1 List": [
+                            {
+                              "Id": 1,
+                              "Title": "baz"
+                            }
+                          ],
+                          "LTAR": [
+                            {
+                              "Id": 1,
+                              "Title": "baz"
+                            }
+                          ]
+                        },
+                        {
+                          "Id": 2,
+                          "Title": "foo",
+                          "SingleSelect": "a",
+                          "Sheet-1 List": [
+                            {
+                              "Id": 2,
+                              "Title": "foo"
+                            }
+                          ],
+                          "LTAR": [
+                            {
+                              "Id": 2,
+                              "Title": "foo"
+                            }
+                          ]
+                        },
+                        {
+                          "Id": 3,
+                          "Title": "bar",
+                          "SingleSelect": "b",
+                          "Sheet-1 List": [],
+                          "LTAR": []
+                        }
+                      ],
+                      "pageInfo": {
+                        "totalRows": 3,
+                        "page": 1,
+                        "pageSize": 25,
+                        "isFirstPage": true,
+                        "isLastPage": true
+                      }
+                    }
+                  }
+                }
               }
             }
           },
@@ -6601,7 +6684,19 @@
         "requestBody": {
           "content": {
             "application/json": {
-              "schema": {}
+              "schema": {
+                "type": "object"
+              },
+              "examples": {
+                "Example 1": {
+                  "value": {
+                    "Id": 1,
+                    "Title": "foo",
+                    "CreatedAt": "2023-03-11T09:10:53.567Z",
+                    "UpdatedAt": "2023-03-11T09:10:53.567Z"
+                  }
+                }
+              }
             }
           }
         },
@@ -6621,7 +6716,8 @@
           },
           "name": "orgs",
           "in": "path",
-          "required": true
+          "required": true,
+          "description": "Organisation Name. Currently `noco` will be used."
         },
         {
           "schema": {
@@ -6629,7 +6725,8 @@
           },
           "name": "projectName",
           "in": "path",
-          "required": true
+          "required": true,
+          "description": "Project Name"
         },
         {
           "schema": {
@@ -6637,7 +6734,8 @@
           },
           "name": "tableName",
           "in": "path",
-          "required": true
+          "required": true,
+          "description": "Table Name"
         }
       ],
       "get": {
@@ -6676,7 +6774,19 @@
             "description": "OK",
             "content": {
               "application/json": {
-                "schema": {}
+                "schema": {
+                  "type": "object"
+                },
+                "examples": {
+                  "Example 1": {
+                    "value": {
+                      "Id": 1,
+                      "Title": "foo",
+                      "CreatedAt": "2023-03-11T09:10:53.567Z",
+                      "UpdatedAt": "2023-03-11T09:10:53.567Z"
+                    }
+                  }
+                }
               }
             }
           },
@@ -6694,7 +6804,8 @@
           },
           "name": "orgs",
           "in": "path",
-          "required": true
+          "required": true,
+          "description": "Organisation Name. Currently `noco` will be used."
         },
         {
           "schema": {
@@ -6702,7 +6813,8 @@
           },
           "name": "projectName",
           "in": "path",
-          "required": true
+          "required": true,
+          "description": "Project Name"
         },
         {
           "schema": {
@@ -6710,7 +6822,8 @@
           },
           "name": "tableName",
           "in": "path",
-          "required": true
+          "required": true,
+          "description": "Table Name"
         },
         {
           "schema": {
@@ -6879,7 +6992,8 @@
           },
           "name": "orgs",
           "in": "path",
-          "required": true
+          "required": true,
+          "description": "Organisation Name. Currently `noco` will be used."
         },
         {
           "schema": {
@@ -6887,7 +7001,8 @@
           },
           "name": "projectName",
           "in": "path",
-          "required": true
+          "required": true,
+          "description": "Project Name"
         },
         {
           "schema": {
@@ -6895,7 +7010,8 @@
           },
           "name": "tableName",
           "in": "path",
-          "required": true
+          "required": true,
+          "description": "Table Name"
         },
         {
           "schema": {
@@ -6969,7 +7085,8 @@
           },
           "name": "orgs",
           "in": "path",
-          "required": true
+          "required": true,
+          "description": "Organisation Name. Currently `noco` will be used."
         },
         {
           "schema": {
@@ -6977,7 +7094,8 @@
           },
           "name": "projectName",
           "in": "path",
-          "required": true
+          "required": true,
+          "description": "Project Name"
         },
         {
           "schema": {
@@ -6985,7 +7103,8 @@
           },
           "name": "tableName",
           "in": "path",
-          "required": true
+          "required": true,
+          "description": "Table Name"
         },
         {
           "schema": {
@@ -7046,83 +7165,60 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/ViewList"
+                  "type": "object"
                 },
                 "examples": {
                   "Example 1": {
                     "value": {
                       "list": [
                         {
-                          "alias": "string",
-                          "column": [
+                          "Id": 1,
+                          "Title": "baz",
+                          "SingleSelect": null,
+                          "Sheet-1 List": [
                             {
-                              "alias": "string",
-                              "auto_increment": true,
-                              "auto_update_timestamp": true,
-                              "base_id": "string",
-                              "character_maximum_length": "string",
-                              "character_set_name": "string",
-                              "colOptions": {
-                                "deleted": "string",
-                                "dr": "string",
-                                "fk_child_column_id": "string",
-                                "fk_column_id": "string",
-                                "fk_index_name": "string",
-                                "fk_mm_child_column_id": "string",
-                                "fk_mm_model_id": "string",
-                                "fk_mm_parent_column_id": "string",
-                                "fk_parent_column_id": "string",
-                                "id": "string",
-                                "order": "string",
-                                "type": "string",
-                                "ur": "string",
-                                "virtual": true
-                              },
-                              "column_comment": "string",
-                              "column_default": "string",
-                              "column_ordinal_position": "string",
-                              "column_type": "string",
-                              "data_type": "string",
-                              "data_type_x": "string",
-                              "data_type_x_precision": "string",
-                              "data_type_x_scale": "string",
-                              "deleted": true,
-                              "fk_model_id": "string",
-                              "id": "string",
-                              "numeric_precision": "string",
-                              "numeric_scale": "string",
-                              "order": 0,
-                              "primary_key": true,
-                              "primary_value": true,
-                              "rqd": "string",
-                              "title": "string",
-                              "ui_data_type": "string",
-                              "un": "string",
-                              "unique": true,
-                              "visible": true
+                              "Id": 1,
+                              "Title": "baz"
                             }
                           ],
-                          "columnByIds": {},
-                          "deleted": true,
-                          "enabled": true,
-                          "fk_base_id": "string",
-                          "fk_project_id": "string",
-                          "id": "string",
-                          "order": 0,
-                          "parent_id": "string",
-                          "pinned": true,
-                          "show_as": "string",
-                          "tags": "string",
-                          "title": "string",
-                          "type": "string"
+                          "LTAR": [
+                            {
+                              "Id": 1,
+                              "Title": "baz"
+                            }
+                          ]
+                        },
+                        {
+                          "Id": 2,
+                          "Title": "foo",
+                          "SingleSelect": "a",
+                          "Sheet-1 List": [
+                            {
+                              "Id": 2,
+                              "Title": "foo"
+                            }
+                          ],
+                          "LTAR": [
+                            {
+                              "Id": 2,
+                              "Title": "foo"
+                            }
+                          ]
+                        },
+                        {
+                          "Id": 3,
+                          "Title": "bar",
+                          "SingleSelect": "b",
+                          "Sheet-1 List": [],
+                          "LTAR": []
                         }
                       ],
                       "pageInfo": {
-                        "isFirstPage": true,
-                        "isLastPage": true,
+                        "totalRows": 3,
                         "page": 1,
-                        "pageSize": 10,
-                        "totalRows": 1
+                        "pageSize": 25,
+                        "isFirstPage": true,
+                        "isLastPage": true
                       }
                     }
                   }
@@ -7143,7 +7239,9 @@
             "description": "OK",
             "content": {
               "application/json": {
-                "schema": {}
+                "schema": {
+                  "type": "object"
+                }
               }
             }
           },
@@ -7155,7 +7253,19 @@
         "requestBody": {
           "content": {
             "application/json": {
-              "schema": {}
+              "schema": {
+                "type": "object"
+              },
+              "examples": {
+                "Example 1": {
+                  "value": {
+                    "Id": 1,
+                    "Title": "foo",
+                    "CreatedAt": "2023-03-11T09:10:53.567Z",
+                    "UpdatedAt": "2023-03-11T09:10:53.567Z"
+                  }
+                }
+              }
             }
           }
         },
@@ -7170,7 +7280,8 @@
           },
           "name": "orgs",
           "in": "path",
-          "required": true
+          "required": true,
+          "description": "Organisation Name. Currently `noco` will be used."
         },
         {
           "schema": {
@@ -7178,7 +7289,8 @@
           },
           "name": "projectName",
           "in": "path",
-          "required": true
+          "required": true,
+          "description": "Project Name"
         },
         {
           "schema": {
@@ -7186,7 +7298,8 @@
           },
           "name": "tableName",
           "in": "path",
-          "required": true
+          "required": true,
+          "description": "Table Name"
         },
         {
           "schema": {
@@ -7239,7 +7352,19 @@
             "description": "OK",
             "content": {
               "application/json": {
-                "schema": {}
+                "schema": {
+                  "type": "object"
+                },
+                "examples": {
+                  "Example 1": {
+                    "value": {
+                      "Id": 1,
+                      "Title": "foo",
+                      "CreatedAt": "2023-03-11T09:10:53.567Z",
+                      "UpdatedAt": "2023-03-11T09:10:53.567Z"
+                    }
+                  }
+                }
               }
             }
           },
@@ -7257,7 +7382,8 @@
           },
           "name": "orgs",
           "in": "path",
-          "required": true
+          "required": true,
+          "description": "Organisation Name. Currently `noco` will be used."
         },
         {
           "schema": {
@@ -7265,7 +7391,8 @@
           },
           "name": "projectName",
           "in": "path",
-          "required": true
+          "required": true,
+          "description": "Project Name"
         },
         {
           "schema": {
@@ -7273,7 +7400,8 @@
           },
           "name": "tableName",
           "in": "path",
-          "required": true
+          "required": true,
+          "description": "Table Name"
         },
         {
           "schema": {
@@ -7355,7 +7483,8 @@
           },
           "name": "orgs",
           "in": "path",
-          "required": true
+          "required": true,
+          "description": "Organisation Name. Currently `noco` will be used."
         },
         {
           "schema": {
@@ -7363,7 +7492,8 @@
           },
           "name": "projectName",
           "in": "path",
-          "required": true
+          "required": true,
+          "description": "Project Name"
         },
         {
           "schema": {
@@ -7371,7 +7501,8 @@
           },
           "name": "tableName",
           "in": "path",
-          "required": true
+          "required": true,
+          "description": "Table Name"
         },
         {
           "schema": {
@@ -7425,7 +7556,8 @@
           },
           "name": "orgs",
           "in": "path",
-          "required": true
+          "required": true,
+          "description": "Organisation Name. Currently `noco` will be used."
         },
         {
           "schema": {
@@ -7433,7 +7565,8 @@
           },
           "name": "projectName",
           "in": "path",
-          "required": true
+          "required": true,
+          "description": "Project Name"
         },
         {
           "schema": {
@@ -7441,7 +7574,8 @@
           },
           "name": "tableName",
           "in": "path",
-          "required": true
+          "required": true,
+          "description": "Table Name"
         },
         {
           "schema": {
@@ -7538,7 +7672,8 @@
           },
           "name": "orgs",
           "in": "path",
-          "required": true
+          "required": true,
+          "description": "Organisation Name. Currently `noco` will be used."
         },
         {
           "schema": {
@@ -7546,7 +7681,8 @@
           },
           "name": "projectName",
           "in": "path",
-          "required": true
+          "required": true,
+          "description": "Project Name"
         },
         {
           "schema": {
@@ -7554,7 +7690,8 @@
           },
           "name": "tableName",
           "in": "path",
-          "required": true
+          "required": true,
+          "description": "Table Name"
         },
         {
           "schema": {
@@ -7607,7 +7744,8 @@
           },
           "name": "orgs",
           "in": "path",
-          "required": true
+          "required": true,
+          "description": "Organisation Name. Currently `noco` will be used."
         },
         {
           "schema": {
@@ -7615,7 +7753,8 @@
           },
           "name": "projectName",
           "in": "path",
-          "required": true
+          "required": true,
+          "description": "Project Name"
         },
         {
           "schema": {
@@ -7623,7 +7762,8 @@
           },
           "name": "tableName",
           "in": "path",
-          "required": true
+          "required": true,
+          "description": "Table Name"
         },
         {
           "schema": {
@@ -7639,16 +7779,32 @@
         "summary": "Get Table Row",
         "operationId": "db-table-row-read",
         "responses": {
-          "201": {
-            "description": "Created",
+          "200": {
+            "description": "OK",
             "content": {
               "application/json": {
-                "schema": {}
+                "schema": {
+                  "type": "object",
+                  "properties": {}
+                },
+                "examples": {
+                  "Example 1": {
+                    "value": {
+                      "Id": 1,
+                      "Title": "foo",
+                      "CreatedAt": "2023-03-11T09:11:47.437Z",
+                      "UpdatedAt": "2023-03-11T09:11:47.784Z"
+                    }
+                  }
+                }
               }
             }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
           }
         },
-        "description": "Get the Table Row",
+        "description": "Get the Table Row by Row ID",
         "tags": ["DB Table Row"],
         "parameters": [
           {
@@ -7664,7 +7820,19 @@
             "description": "OK",
             "content": {
               "application/json": {
-                "schema": {}
+                "schema": {
+                  "type": "object"
+                },
+                "examples": {
+                  "Example 1": {
+                    "value": {
+                      "Id": 1,
+                      "Title": "bar",
+                      "CreatedAt": "2023-03-11T09:11:47.437Z",
+                      "UpdatedAt": "2023-03-11T09:20:21.133Z"
+                    }
+                  }
+                }
               }
             }
           },
@@ -7676,7 +7844,16 @@
         "requestBody": {
           "content": {
             "application/json": {
-              "schema": {}
+              "schema": {
+                "type": "object"
+              },
+              "examples": {
+                "Example 1": {
+                  "value": {
+                    "Title": "bar"
+                  }
+                }
+              }
             }
           }
         },
@@ -7695,7 +7872,14 @@
             "description": "OK",
             "content": {
               "application/json": {
-                "schema": {}
+                "schema": {
+                  "type": "number"
+                },
+                "examples": {
+                  "Example 1": {
+                    "value": 1
+                  }
+                }
               }
             }
           },
@@ -7720,7 +7904,8 @@
           },
           "name": "orgs",
           "in": "path",
-          "required": true
+          "required": true,
+          "description": "Organisation Name. Currently `noco` will be used."
         },
         {
           "schema": {
@@ -7728,7 +7913,8 @@
           },
           "name": "projectName",
           "in": "path",
-          "required": true
+          "required": true,
+          "description": "Project Name"
         },
         {
           "schema": {
@@ -7736,7 +7922,8 @@
           },
           "name": "tableName",
           "in": "path",
-          "required": true
+          "required": true,
+          "description": "Table Name"
         },
         {
           "schema": {
@@ -7752,11 +7939,18 @@
         "summary": "Does Table Row Exist",
         "operationId": "db-table-row-exist",
         "responses": {
-          "201": {
-            "description": "Created",
+          "200": {
+            "description": "OK",
             "content": {
               "application/json": {
-                "schema": {}
+                "schema": {
+                  "type": "number"
+                },
+                "examples": {
+                  "Example 1": {
+                    "value": 1
+                  }
+                }
               }
             }
           },
@@ -7781,7 +7975,8 @@
           },
           "name": "orgs",
           "in": "path",
-          "required": true
+          "required": true,
+          "description": "Organisation Name. Currently `noco` will be used."
         },
         {
           "schema": {
@@ -7789,7 +7984,8 @@
           },
           "name": "projectName",
           "in": "path",
-          "required": true
+          "required": true,
+          "description": "Project Name"
         },
         {
           "schema": {
@@ -7797,7 +7993,8 @@
           },
           "name": "tableName",
           "in": "path",
-          "required": true
+          "required": true,
+          "description": "Table Name"
         }
       ],
       "post": {
@@ -7808,7 +8005,36 @@
             "description": "OK",
             "content": {
               "application/json": {
-                "schema": {}
+                "schema": {
+                  "type": "array",
+                  "description": "List of returned IDs",
+                  "items": {
+                    "x-stoplight": {
+                      "id": "dbkhyd3mnajax"
+                    },
+                    "type": "object",
+                    "properties": {
+                      "id": {
+                        "type": "string",
+                        "x-stoplight": {
+                          "id": "lnwqjl14f287f"
+                        }
+                      }
+                    }
+                  }
+                },
+                "examples": {
+                  "Example 1": {
+                    "value": [
+                      {
+                        "id": 1
+                      },
+                      {
+                        "id": 2
+                      }
+                    ]
+                  }
+                }
               }
             }
           },
@@ -7820,9 +8046,31 @@
         "requestBody": {
           "content": {
             "application/json": {
-              "schema": {}
+              "schema": {
+                "type": "array",
+                "description": "List of data objects",
+                "items": {
+                  "x-stoplight": {
+                    "id": "7u0mp8nzlvysz"
+                  },
+                  "type": "object"
+                }
+              },
+              "examples": {
+                "Example 1": {
+                  "value": [
+                    {
+                      "Title": "abc"
+                    },
+                    {
+                      "Title": "def"
+                    }
+                  ]
+                }
+              }
             }
-          }
+          },
+          "description": ""
         },
         "description": "Bulk insert table rows in one go.",
         "parameters": [
@@ -7839,7 +8087,21 @@
             "description": "OK",
             "content": {
               "application/json": {
-                "schema": {}
+                "schema": {
+                  "type": "array",
+                  "description": "List of returned values. 1 means successful. 0 means failed.",
+                  "items": {
+                    "x-stoplight": {
+                      "id": "ga0xhsahovdt7"
+                    },
+                    "type": "number"
+                  }
+                },
+                "examples": {
+                  "Example 1": {
+                    "value": [1, 1]
+                  }
+                }
               }
             }
           },
@@ -7851,7 +8113,30 @@
         "requestBody": {
           "content": {
             "application/json": {
-              "schema": {}
+              "schema": {
+                "type": "array",
+                "description": "List of data objects",
+                "items": {
+                  "x-stoplight": {
+                    "id": "q2xtbf29i1s5n"
+                  },
+                  "type": "object"
+                }
+              },
+              "examples": {
+                "Example 1": {
+                  "value": [
+                    {
+                      "Id": "1",
+                      "Title": "123"
+                    },
+                    {
+                      "Id": "2",
+                      "Title": "456"
+                    }
+                  ]
+                }
+              }
             }
           }
         },
@@ -7870,7 +8155,20 @@
             "description": "OK",
             "content": {
               "application/json": {
-                "schema": {}
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "x-stoplight": {
+                      "id": "b9o9o2r6ipho9"
+                    },
+                    "type": "number"
+                  }
+                },
+                "examples": {
+                  "Example 1": {
+                    "value": [1, 1]
+                  }
+                }
               }
             }
           },
@@ -7882,9 +8180,30 @@
         "requestBody": {
           "content": {
             "application/json": {
-              "schema": {}
+              "schema": {
+                "type": "array",
+                "items": {
+                  "x-stoplight": {
+                    "id": "sd8udhhjnqiay"
+                  },
+                  "type": "object"
+                }
+              },
+              "examples": {
+                "Example 1": {
+                  "value": [
+                    {
+                      "Id": "1"
+                    },
+                    {
+                      "Id": "2"
+                    }
+                  ]
+                }
+              }
             }
-          }
+          },
+          "description": ""
         },
         "description": "Bulk Delete Table Rows by given IDs",
         "parameters": [
@@ -7902,7 +8221,8 @@
           },
           "name": "orgs",
           "in": "path",
-          "required": true
+          "required": true,
+          "description": "Organisation Name. Currently `noco` will be used."
         },
         {
           "schema": {
@@ -7910,7 +8230,8 @@
           },
           "name": "projectName",
           "in": "path",
-          "required": true
+          "required": true,
+          "description": "Project Name"
         },
         {
           "schema": {
@@ -7918,7 +8239,8 @@
           },
           "name": "tableName",
           "in": "path",
-          "required": true
+          "required": true,
+          "description": "Table Name"
         },
         {
           "schema": {
@@ -7999,7 +8321,8 @@
           },
           "name": "orgs",
           "in": "path",
-          "required": true
+          "required": true,
+          "description": "Organisation Name. Currently `noco` will be used."
         },
         {
           "schema": {
@@ -8007,7 +8330,8 @@
           },
           "name": "projectName",
           "in": "path",
-          "required": true
+          "required": true,
+          "description": "Project Name"
         },
         {
           "schema": {
@@ -8015,7 +8339,8 @@
           },
           "name": "tableName",
           "in": "path",
-          "required": true
+          "required": true,
+          "description": "Table Name"
         },
         {
           "schema": {
@@ -8077,7 +8402,8 @@
           },
           "name": "orgs",
           "in": "path",
-          "required": true
+          "required": true,
+          "description": "Organisation Name. Currently `noco` will be used."
         },
         {
           "schema": {
@@ -8085,7 +8411,8 @@
           },
           "name": "projectName",
           "in": "path",
-          "required": true
+          "required": true,
+          "description": "Project Name"
         },
         {
           "schema": {
@@ -8093,7 +8420,8 @@
           },
           "name": "tableName",
           "in": "path",
-          "required": true
+          "required": true,
+          "description": "Table Name"
         },
         {
           "schema": {
@@ -8147,7 +8475,8 @@
           },
           "name": "orgs",
           "in": "path",
-          "required": true
+          "required": true,
+          "description": "Organisation Name. Currently `noco` will be used."
         },
         {
           "schema": {
@@ -8155,7 +8484,8 @@
           },
           "name": "projectName",
           "in": "path",
-          "required": true
+          "required": true,
+          "description": "Project Name"
         },
         {
           "schema": {
@@ -8163,7 +8493,8 @@
           },
           "name": "tableName",
           "in": "path",
-          "required": true
+          "required": true,
+          "description": "Table Name"
         },
         {
           "schema": {
@@ -8248,7 +8579,8 @@
           },
           "name": "orgs",
           "in": "path",
-          "required": true
+          "required": true,
+          "description": "Organisation Name. Currently `noco` will be used."
         },
         {
           "schema": {
@@ -8256,7 +8588,8 @@
           },
           "name": "projectName",
           "in": "path",
-          "required": true
+          "required": true,
+          "description": "Project Name"
         },
         {
           "schema": {
@@ -8264,7 +8597,8 @@
           },
           "name": "tableName",
           "in": "path",
-          "required": true
+          "required": true,
+          "description": "Table Name"
         },
         {
           "schema": {
@@ -8426,7 +8760,8 @@
           },
           "name": "orgs",
           "in": "path",
-          "required": true
+          "required": true,
+          "description": "Organisation Name. Currently `noco` will be used."
         },
         {
           "schema": {
@@ -8434,7 +8769,8 @@
           },
           "name": "projectName",
           "in": "path",
-          "required": true
+          "required": true,
+          "description": "Project Name"
         },
         {
           "schema": {
@@ -8442,7 +8778,8 @@
           },
           "name": "tableName",
           "in": "path",
-          "required": true
+          "required": true,
+          "description": "Table Name"
         },
         {
           "schema": {
@@ -8523,11 +8860,13 @@
       "parameters": [
         {
           "schema": {
-            "type": "string"
+            "type": "string",
+            "example": "24a6d0bb-e45d-4b1a-bfef-f492d870de9f"
           },
           "name": "sharedViewUuid",
           "in": "path",
-          "required": true
+          "required": true,
+          "description": "Shared View UUID"
         },
         {
           "schema": {
@@ -8557,7 +8896,115 @@
             "description": "OK",
             "content": {
               "application/json": {
-                "schema": {}
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "x-stoplight": {
+                      "id": "bldcv1pwuri5s"
+                    },
+                    "type": "object",
+                    "properties": {
+                      "key": {
+                        "type": "string",
+                        "x-stoplight": {
+                          "id": "n0ujmkbyhgsxo"
+                        },
+                        "description": "The Grouped Key"
+                      },
+                      "value": {
+                        "type": "object",
+                        "x-stoplight": {
+                          "id": "0xsi3jvwn7duo"
+                        },
+                        "description": "the paginated result of the given key",
+                        "properties": {
+                          "list": {
+                            "type": "array",
+                            "x-stoplight": {
+                              "id": "jw8dmo16txbjv"
+                            },
+                            "description": "List of the target data",
+                            "items": {
+                              "x-stoplight": {
+                                "id": "xcu8vxmf5ygyi"
+                              },
+                              "type": "object"
+                            }
+                          },
+                          "pageInfo": {
+                            "$ref": "#/components/schemas/Paginated",
+                            "x-stoplight": {
+                              "id": "1gsbgwi9bg8s5"
+                            }
+                          }
+                        }
+                      }
+                    }
+                  }
+                },
+                "examples": {
+                  "Example 1": {
+                    "value": [
+                      {
+                        "key": "a",
+                        "value": {
+                          "list": [
+                            {
+                              "Id": 2,
+                              "Title": "foo",
+                              "s": "a"
+                            }
+                          ],
+                          "pageInfo": {
+                            "totalRows": 1,
+                            "page": 1,
+                            "pageSize": 25,
+                            "isFirstPage": true,
+                            "isLastPage": true
+                          }
+                        }
+                      },
+                      {
+                        "key": "b",
+                        "value": {
+                          "list": [
+                            {
+                              "Id": 3,
+                              "Title": "bar",
+                              "s": "b"
+                            }
+                          ],
+                          "pageInfo": {
+                            "totalRows": 1,
+                            "page": 1,
+                            "pageSize": 25,
+                            "isFirstPage": true,
+                            "isLastPage": true
+                          }
+                        }
+                      },
+                      {
+                        "key": null,
+                        "value": {
+                          "list": [
+                            {
+                              "Id": 1,
+                              "Title": "baz",
+                              "s": null
+                            }
+                          ],
+                          "pageInfo": {
+                            "totalRows": 1,
+                            "page": 1,
+                            "pageSize": 25,
+                            "isFirstPage": true,
+                            "isLastPage": true
+                          }
+                        }
+                      }
+                    ]
+                  }
+                }
               }
             }
           },
@@ -8643,11 +9090,13 @@
       "parameters": [
         {
           "schema": {
-            "type": "string"
+            "type": "string",
+            "example": "24a6d0bb-e45d-4b1a-bfef-f492d870de9f"
           },
           "name": "sharedViewUuid",
           "in": "path",
-          "required": true
+          "required": true,
+          "description": "Shared View UUID"
         },
         {
           "schema": {
@@ -8800,7 +9249,20 @@
             "description": "OK",
             "content": {
               "application/json": {
-                "schema": {}
+                "schema": {
+                  "type": "object"
+                },
+                "examples": {
+                  "Example 1": {
+                    "value": {
+                      "Id": 1,
+                      "col1": "foo",
+                      "col2": "bar",
+                      "CreatedAt": "2023-03-11T08:48:25.598Z",
+                      "UpdatedAt": "2023-03-11T08:48:25.598Z"
+                    }
+                  }
+                }
               }
             }
           },
@@ -8810,13 +9272,22 @@
         },
         "requestBody": {
           "content": {
-            "multipart/form-data": {
+            "application/json": {
               "schema": {
                 "type": "object",
-                "properties": {}
+                "description": "Data Object where the key is column and the value is the data value"
+              },
+              "examples": {
+                "Example 1": {
+                  "value": {
+                    "col1": "foo",
+                    "col2": "bar"
+                  }
+                }
               }
             }
-          }
+          },
+          "description": ""
         },
         "tags": ["Public"],
         "parameters": [
@@ -8836,11 +9307,13 @@
       "parameters": [
         {
           "schema": {
-            "type": "string"
+            "type": "string",
+            "example": "24a6d0bb-e45d-4b1a-bfef-f492d870de9f"
           },
           "name": "sharedViewUuid",
           "in": "path",
-          "required": true
+          "required": true,
+          "description": "Shared View UUID"
         },
         {
           "schema": {
@@ -8858,7 +9331,8 @@
           },
           "name": "relationType",
           "in": "path",
-          "required": true
+          "required": true,
+          "description": "Relation Type"
         },
         {
           "schema": {
@@ -8866,7 +9340,8 @@
           },
           "name": "columnName",
           "in": "path",
-          "required": true
+          "required": true,
+          "description": "Column Name"
         }
       ],
       "get": {
@@ -8877,7 +9352,55 @@
             "description": "OK",
             "content": {
               "application/json": {
-                "schema": {}
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "list": {
+                      "type": "array",
+                      "x-stoplight": {
+                        "id": "gvblksjzjfyg7"
+                      },
+                      "description": "List of data objects",
+                      "items": {
+                        "x-stoplight": {
+                          "id": "8assgoc1vtcs9"
+                        },
+                        "type": "object"
+                      }
+                    },
+                    "pageInfo": {
+                      "$ref": "#/components/schemas/Paginated",
+                      "x-stoplight": {
+                        "id": "if546w1yuo6fw"
+                      },
+                      "description": "Paginated info"
+                    }
+                  }
+                },
+                "examples": {
+                  "Example 1": {
+                    "value": [
+                      {
+                        "Id": 1,
+                        "Title": "foo",
+                        "CreatedAt": "2023-03-11T08:41:41.356Z",
+                        "UpdatedAt": "2023-03-11T08:41:41.356Z"
+                      },
+                      {
+                        "Id": 2,
+                        "Title": "bar",
+                        "CreatedAt": "2023-03-11T08:41:45.330Z",
+                        "UpdatedAt": "2023-03-11T08:41:45.330Z"
+                      },
+                      {
+                        "Id": 3,
+                        "Title": "baz",
+                        "CreatedAt": "2023-03-11T08:48:25.598Z",
+                        "UpdatedAt": "2023-03-11T08:48:25.598Z"
+                      }
+                    ]
+                  }
+                }
               }
             }
           },
@@ -9016,11 +9539,13 @@
       "parameters": [
         {
           "schema": {
-            "type": "string"
+            "type": "string",
+            "example": "24a6d0bb-e45d-4b1a-bfef-f492d870de9f"
           },
           "name": "sharedViewUuid",
           "in": "path",
-          "required": true
+          "required": true,
+          "description": "Shared View UUID"
         },
         {
           "schema": {
@@ -9028,7 +9553,8 @@
           },
           "name": "columnName",
           "in": "path",
-          "required": true
+          "required": true,
+          "description": "Column Name"
         },
         {
           "schema": {
@@ -9133,11 +9659,13 @@
       "parameters": [
         {
           "schema": {
-            "type": "string"
+            "type": "string",
+            "example": "24a6d0bb-e45d-4b1a-bfef-f492d870de9f"
           },
           "name": "sharedBaseUuid",
           "in": "path",
-          "required": true
+          "required": true,
+          "description": "Shared Base UUID"
         }
       ],
       "get": {
@@ -9158,7 +9686,15 @@
                   "type": "object",
                   "properties": {
                     "project_id": {
-                      "type": "string"
+                      "type": "string",
+                      "description": "Project ID"
+                    }
+                  }
+                },
+                "examples": {
+                  "Example 1": {
+                    "value": {
+                      "project_id": "p_63b4q0qengen1x"
                     }
                   }
                 }
@@ -9176,11 +9712,13 @@
       "parameters": [
         {
           "schema": {
-            "type": "string"
+            "type": "string",
+            "example": "24a6d0bb-e45d-4b1a-bfef-f492d870de9f"
           },
           "name": "sharedViewUuid",
           "in": "path",
-          "required": true
+          "required": true,
+          "description": "Shared View UUID"
         },
         {
           "schema": {
@@ -10564,13 +11102,22 @@
         "operationId": "api-token-create",
         "responses": {
           "200": {
-            "description": "OK"
-          },
-          "201": {
-            "description": "Created",
+            "description": "OK",
             "content": {
               "application/json": {
-                "schema": {}
+                "schema": {
+                  "$ref": "#/components/schemas/ApiToken"
+                },
+                "examples": {
+                  "Example 1": {
+                    "value": {
+                      "id": "1",
+                      "fk_user_id": "us_b3xo2i44nx5y9l",
+                      "description": "This API Token is for ABC application",
+                      "token": "DYh540o8hbWpUGdarekECKLdN5OhlgCUWutVJYX2"
+                    }
+                  }
+                }
               }
             }
           },
@@ -10623,7 +11170,20 @@
         "operationId": "api-token-delete",
         "responses": {
           "200": {
-            "description": "OK"
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "number",
+                  "example": 1
+                },
+                "examples": {
+                  "Example 1": {
+                    "value": 1
+                  }
+                }
+              }
+            }
           },
           "400": {
             "$ref": "#/components/responses/BadRequest"
@@ -10651,11 +11211,13 @@
         },
         {
           "schema": {
-            "type": "string"
+            "type": "string",
+            "example": "DYh540o8hbWpUGdarekECKLdN5OhlgCUWutVJYX2"
           },
           "name": "token",
           "in": "path",
-          "required": true
+          "required": true,
+          "description": "API Token"
         }
       ]
     },

@@ -26,7 +26,7 @@ export const useTabs = defineStore('tabStore', () => {
   const { project, tables } = $(storeToRefs(projectStore))
   const projectsStore = useProjects()
 
-  const projectType = $computed(() => route.params.projectType as string ?? 'nc')
+  const projectType = $computed(() => route.params.projectType as string  ||  'nc')
 
   // todo: new-layout
   const workspaceId = $computed(() => route.params.workspaceId as string)
@@ -44,7 +44,9 @@ export const useTabs = defineStore('tabStore', () => {
 
         const tab: TabItem = { type: route.params.type as TabType, title: route.params.title as string }
 
-        const currentTable = (tables ?? projectsStore.projectTableList[project?.id!]).find((t) => t.id === tab.title || t.title === tab.title)
+        const currentTable = (tables ?? projectsStore.projectTableList[project?.id!]).find((t) => {
+         return  t.id === tab.title || t.title === tab.title
+        })
 
         if (!currentTable) return -1
 
@@ -89,7 +91,14 @@ export const useTabs = defineStore('tabStore', () => {
 
         if (!tab) return
 
-        navigateToTab(tab)
+        if(tab.projectId) {
+          projectStore.loadProject(true, tab.projectId).then(() => projectStore.loadTables()).then(() => {
+            navigateToTab(tab)
+          })
+        }else{
+          navigateToTab(tab)
+        }
+
       }
     },
   })
@@ -100,7 +109,7 @@ export const useTabs = defineStore('tabStore', () => {
 
   const activeTab = computed(() => tabs.value?.[activeTabIndex.value])
 
-  const addTab = (tabMeta: TabItem) => {
+  const addTab = async (tabMeta: TabItem) => {
     tabMeta.sortsState = tabMeta.sortsState || new Map()
     tabMeta.filterState = tabMeta.filterState || new Map()
     const tabIndex = tabs.value.findIndex((tab) => tab.id === tabMeta.id)
@@ -108,8 +117,14 @@ export const useTabs = defineStore('tabStore', () => {
     if (tabIndex > -1) {
       activeTabIndex.value = tabIndex
     }
+
+
     // if tab not found add it
     else {
+      if(tabMeta.projectId) {
+        await projectStore.loadProject(true, tabMeta.projectId)
+        await projectStore.loadTables()
+      }
       const currentTable = tables.find((t) => t.id === tabMeta.id || t.title === tabMeta.id)
       const currentBase = projectStore.bases.find((b) => b.id === currentTable?.base_id)
 

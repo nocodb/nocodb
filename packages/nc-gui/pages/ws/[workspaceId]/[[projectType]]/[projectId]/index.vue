@@ -181,9 +181,9 @@ onBeforeMount(async () => {
     message.error(await extractSdkResponseErrorMsg(e))
   }
 
-  if (route.name.toString().includes('projectType-projectId-index-index') && isUIAllowed('teamAndAuth')) {
-    addTab({ id: TabType.AUTH, type: TabType.AUTH, title: t('title.teamAndAuth') })
-  }
+  // if (route.name.toString().includes('projectType-projectId-index-index') && isUIAllowed('teamAndAuth')) {
+  //   addTab({ id: TabType.AUTH, type: TabType.AUTH, title: t('title.teamAndAuth') })
+  // }
 
   /** If v1 url found navigate to corresponding new url */
   const { type, name, view } = route.query
@@ -201,7 +201,7 @@ onMounted(() => {
 })
 
 onBeforeUnmount(() => {
-  clearTabs()
+  // clearTabs()
   reset()
 })
 
@@ -585,7 +585,7 @@ useEventListener(document, 'keydown', async (e: KeyboardEvent) => {
         v-model:open-key="openDialogKey"
         v-model:data-sources-state="dataSourcesState"
       />
-      <NuxtPage :page-key="$route.params.projectId" />
+      <NuxtPage />
       <LazyGeneralPreviewAs float />
     </div>
   </div>

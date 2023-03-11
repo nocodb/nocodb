@@ -1,8 +1,12 @@
 <script lang="ts" setup>
 import { onMounted, useRouter, useWorkspace } from '#imports'
+import {storeToRefs} from "pinia";
+import {useProject} from "~/store/project";
 
 const router = useRouter()
 const route = $(router.currentRoute)
+
+const { project }= storeToRefs(useProject())
 
 const workspaceStore = useWorkspace()
 

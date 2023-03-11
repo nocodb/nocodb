@@ -208,10 +208,6 @@ export async function projectUserUpdate(param: {
     description: `updated roles for ${user.email} with ${param.projectUser.roles} `,
     ip: param.req.clientIp,
   });
-
-  return {
-    msg: 'User details updated successfully',
-  };
 }
 
 export async function projectUserDelete(param: {

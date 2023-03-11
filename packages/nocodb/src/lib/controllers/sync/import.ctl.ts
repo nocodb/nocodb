@@ -119,6 +119,7 @@ export default (
           baseId: syncSource.base_id,
           authToken: token,
           baseURL,
+          user: user,
         });
       }, 1000);
 

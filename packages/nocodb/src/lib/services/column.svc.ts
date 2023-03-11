@@ -836,7 +836,7 @@ export async function columnSetAsPrimary(param: { columnId: string }) {
 }
 
 export async function columnAdd(param: {
-  req?: any;
+  req: any;
   tableId: string;
   column: ColumnReqType;
 }) {
@@ -1111,7 +1111,7 @@ export async function columnAdd(param: {
     project_id: base.project_id,
     op_type: AuditOperationTypes.TABLE_COLUMN,
     op_sub_type: AuditOperationSubTypes.CREATED,
-    user: param?.req?.user?.email,
+    user: param?.req.user?.email,
     description: `created column ${colBody.column_name} with alias ${colBody.title} from table ${table.table_name}`,
     ip: param?.req.clientIp,
   }).then(() => {});

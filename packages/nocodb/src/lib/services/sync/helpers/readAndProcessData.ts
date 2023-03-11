@@ -1,7 +1,8 @@
 import { RelationTypes, UITypes } from 'nocodb-sdk';
+import { bulkDataService, tableService } from '../..';
 import EntityMap from './EntityMap';
 import type { AirtableBase } from 'airtable/lib/airtable_base';
-import type { Api, TableType } from 'nocodb-sdk';
+import type { TableType } from 'nocodb-sdk';
 
 const BULK_DATA_BATCH_SIZE = 500;
 const ASSOC_BULK_DATA_BATCH_SIZE = 1000;
@@ -70,7 +71,6 @@ export async function importData({
   projectName,
   table,
   base,
-  api,
   nocoBaseDataProcessing_v2,
   sDB,
   logDetailed = (_str) => {},
@@ -82,7 +82,6 @@ export async function importData({
   base: AirtableBase;
   logBasic: (string) => void;
   logDetailed: (string) => void;
-  api: Api<any>;
   nocoBaseDataProcessing_v2;
   sDB;
 }): Promise<EntityMap> {
@@ -116,12 +115,20 @@ export async function importData({
 
             if (tempData.length >= BULK_DATA_BATCH_SIZE) {
               let insertArray = tempData.splice(0, tempData.length);
-              await api.dbTableRow.bulkCreate(
-                'nc',
-                projectName,
-                table.id,
-                insertArray
-              );
+              // await api.dbTableRow.bulkCreate(
+              //   'nc',
+              //   projectName,
+              //   table.id,
+              //   insertArray
+              // );
+
+              await bulkDataService.bulkDataInsert({
+                projectName: projectName,
+                tableName: table.title,
+                body: insertArray,
+                cookie: {},
+              });
+
               logBasic(
                 `:: Importing '${
                   table.title
@@ -142,12 +149,20 @@ export async function importData({
       readable.on('end', async () => {
         await Promise.all(promises);
         if (tempData.length > 0) {
-          await api.dbTableRow.bulkCreate(
-            'nc',
-            projectName,
-            table.id,
-            tempData
-          );
+          // await api.dbTableRow.bulkCreate(
+          //   'nc',
+          //   projectName,
+          //   table.id,
+          //   tempData
+          // );
+
+          await bulkDataService.bulkDataInsert({
+            projectName: projectName,
+            tableName: table.title,
+            body: tempData,
+            cookie: {},
+          });
+
           logBasic(
             `:: Importing '${
               table.title
@@ -174,7 +189,6 @@ export async function importLTARData({
   table,
   fields,
   base,
-  api,
   projectName,
   insertedAssocRef = {},
   logDetailed = (_str) => {},
@@ -182,6 +196,7 @@ export async function importLTARData({
   records,
   atNcAliasRef,
   ncLinkMappingTable,
+  syncDB,
 }: {
   projectName: string;
   table: { title?: string; id?: string };
@@ -189,7 +204,6 @@ export async function importLTARData({
   base: AirtableBase;
   logDetailed: (string) => void;
   logBasic: (string) => void;
-  api: Api<any>;
   insertedAssocRef: { [assocTableId: string]: boolean };
   records?: EntityMap;
   atNcAliasRef: {
@@ -198,6 +212,7 @@ export async function importLTARData({
     };
   };
   ncLinkMappingTable: Record<string, Record<string, any>>[];
+  syncDB;
 }) {
   const assocTableMetas: Array<{
     modelMeta: { id?: string; title?: string };
@@ -215,7 +230,11 @@ export async function importLTARData({
       logBasic,
     }));
 
-  const modelMeta: any = await api.dbTable.read(table.id);
+  // const modelMeta: any = await api.dbTable.read(table.id);
+  const modelMeta: any = await tableService.getTableWithAccessibleViews({
+    tableId: table.id,
+    user: syncDB.user,
+  });
 
   for (const colMeta of modelMeta.columns) {
     // skip columns which are not LTAR and Many to many
@@ -235,9 +254,15 @@ export async function importLTARData({
     // mark as inserted
     insertedAssocRef[colMeta.colOptions.fk_mm_model_id] = true;
 
-    const assocModelMeta: TableType = (await api.dbTable.read(
-      colMeta.colOptions.fk_mm_model_id
-    )) as any;
+    // const assocModelMeta: TableType = (await api.dbTable.read(
+    //   colMeta.colOptions.fk_mm_model_id
+    // )) as any;
+
+    const assocModelMeta: TableType =
+      (await tableService.getTableWithAccessibleViews({
+        tableId: colMeta.colOptions.fk_mm_model_id,
+        user: syncDB.user,
+      })) as any;
 
     // extract associative table and columns meta
     assocTableMetas.push({
@@ -291,12 +316,19 @@ export async function importLTARData({
                 )}`
               );
 
-              await api.dbTableRow.bulkCreate(
-                'nc',
-                projectName,
-                assocMeta.modelMeta.id,
-                insertArray
-              );
+              // await api.dbTableRow.bulkCreate(
+              //   'nc',
+              //   projectName,
+              //   assocMeta.modelMeta.id,
+              //   insertArray
+              // );
+
+              await bulkDataService.bulkDataInsert({
+                projectName: projectName,
+                tableName: table.title,
+                body: insertArray,
+                cookie: {},
+              });
 
               importedCount += insertArray.length;
               insertArray = [];
@@ -319,12 +351,19 @@ export async function importLTARData({
             )}`
           );
 
-          await api.dbTableRow.bulkCreate(
-            'nc',
-            projectName,
-            assocMeta.modelMeta.id,
-            assocTableData
-          );
+          // await api.dbTableRow.bulkCreate(
+          //   'nc',
+          //   projectName,
+          //   assocMeta.modelMeta.id,
+          //   assocTableData
+          // );
+
+          await bulkDataService.bulkDataInsert({
+            projectName: projectName,
+            tableName: table.title,
+            body: assocTableData,
+            cookie: {},
+          });
 
           importedCount += assocTableData.length;
           assocTableData = [];

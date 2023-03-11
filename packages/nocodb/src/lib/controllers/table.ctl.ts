@@ -64,7 +64,7 @@ export async function tableUpdate(req: Request<any, any>, res) {
     table: req.body,
     projectId: (req as any).ncProjectId,
   });
-  res.json({ msg: 'success' });
+  res.json({ msg: 'The table has been updated successfully' });
 }
 
 const router = Router({ mergeParams: true });

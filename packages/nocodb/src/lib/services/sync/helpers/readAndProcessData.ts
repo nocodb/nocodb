@@ -115,12 +115,6 @@ export async function importData({
 
             if (tempData.length >= BULK_DATA_BATCH_SIZE) {
               let insertArray = tempData.splice(0, tempData.length);
-              // await api.dbTableRow.bulkCreate(
-              //   'nc',
-              //   projectName,
-              //   table.id,
-              //   insertArray
-              // );
 
               await bulkDataService.bulkDataInsert({
                 projectName: projectName,
@@ -149,13 +143,6 @@ export async function importData({
       readable.on('end', async () => {
         await Promise.all(promises);
         if (tempData.length > 0) {
-          // await api.dbTableRow.bulkCreate(
-          //   'nc',
-          //   projectName,
-          //   table.id,
-          //   tempData
-          // );
-
           await bulkDataService.bulkDataInsert({
             projectName: projectName,
             tableName: table.title,
@@ -230,7 +217,6 @@ export async function importLTARData({
       logBasic,
     }));
 
-  // const modelMeta: any = await api.dbTable.read(table.id);
   const modelMeta: any = await tableService.getTableWithAccessibleViews({
     tableId: table.id,
     user: syncDB.user,
@@ -253,10 +239,6 @@ export async function importLTARData({
 
     // mark as inserted
     insertedAssocRef[colMeta.colOptions.fk_mm_model_id] = true;
-
-    // const assocModelMeta: TableType = (await api.dbTable.read(
-    //   colMeta.colOptions.fk_mm_model_id
-    // )) as any;
 
     const assocModelMeta: TableType =
       (await tableService.getTableWithAccessibleViews({
@@ -316,13 +298,6 @@ export async function importLTARData({
                 )}`
               );
 
-              // await api.dbTableRow.bulkCreate(
-              //   'nc',
-              //   projectName,
-              //   assocMeta.modelMeta.id,
-              //   insertArray
-              // );
-
               await bulkDataService.bulkDataInsert({
                 projectName: projectName,
                 tableName: table.title,
@@ -350,13 +325,6 @@ export async function importLTARData({
               assocTableData.length
             )}`
           );
-
-          // await api.dbTableRow.bulkCreate(
-          //   'nc',
-          //   projectName,
-          //   assocMeta.modelMeta.id,
-          //   assocTableData
-          // );
 
           await bulkDataService.bulkDataInsert({
             projectName: projectName,

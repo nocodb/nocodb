@@ -3655,7 +3655,7 @@ export class Api<
       }),
 
     /**
- * @description Get the info of a given projecct
+ * @description Get the info of a given project
  * 
  * @tags Project
  * @name Read

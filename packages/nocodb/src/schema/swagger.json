@@ -2073,7 +2073,19 @@
         "operationId": "base-delete",
         "responses": {
           "200": {
-            "description": "OK"
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "boolean"
+                },
+                "examples": {
+                  "Example 1": {
+                    "value": true
+                  }
+                }
+              }
+            }
           },
           "400": {
             "$ref": "#/components/responses/BadRequest"
@@ -2092,7 +2104,33 @@
         "operationId": "base-update",
         "responses": {
           "200": {
-            "description": "OK"
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {}
+                },
+                "examples": {
+                  "Example 1": {
+                    "value": {
+                      "id": "ds_rrplkgy0pq1f3c",
+                      "project_id": "p_63b4q0qengen1x",
+                      "alias": "sakila",
+                      "meta": null,
+                      "is_meta": null,
+                      "type": "mysql2",
+                      "inflection_column": "camelize",
+                      "inflection_table": "camelize",
+                      "created_at": "2023-03-11T10:31:15.341Z",
+                      "updated_at": "2023-03-11T10:32:25.763Z",
+                      "enabled": true,
+                      "order": 2
+                    }
+                  }
+                }
+              }
+            }
           },
           "400": {
             "$ref": "#/components/responses/BadRequest"
@@ -2102,7 +2140,29 @@
         "requestBody": {
           "content": {
             "application/json": {
-              "schema": {}
+              "schema": {
+                "type": "object"
+              },
+              "examples": {
+                "Example 1": {
+                  "value": {
+                    "alias": "sakila",
+                    "type": "mysql2",
+                    "config": {
+                      "client": "mysql2",
+                      "connection": {
+                        "host": "localhost",
+                        "port": "3306",
+                        "user": "root",
+                        "password": "password",
+                        "database": "sakila"
+                      }
+                    },
+                    "inflection_column": "camelize",
+                    "inflection_table": "camelize"
+                  }
+                }
+              }
             }
           }
         },
@@ -3346,7 +3406,25 @@
             "description": "OK",
             "content": {
               "application/json": {
-                "schema": {}
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "msg": {
+                      "type": "string",
+                      "x-stoplight": {
+                        "id": "5a0g9yvs4e678"
+                      },
+                      "example": "The table has been updated successfully"
+                    }
+                  }
+                },
+                "examples": {
+                  "Example 1": {
+                    "value": {
+                      "msg": "The table has been updated successfully"
+                    }
+                  }
+                }
               }
             }
           },
@@ -3380,6 +3458,16 @@
                     "$ref": "#/components/schemas/Meta"
                   }
                 }
+              },
+              "examples": {
+                "Example 1": {
+                  "value": {
+                    "table_name": "users",
+                    "title": "Users",
+                    "project_id": "p_124hhlkbeasewh",
+                    "meta": null
+                  }
+                }
               }
             }
           }
@@ -3396,7 +3484,19 @@
         "operationId": "db-table-delete",
         "responses": {
           "200": {
-            "description": "OK"
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "boolean"
+                },
+                "examples": {
+                  "Example 1": {
+                    "value": true
+                  }
+                }
+              }
+            }
           },
           "400": {
             "$ref": "#/components/responses/BadRequest"
@@ -3863,6 +3963,108 @@
             "application/json": {
               "schema": {
                 "$ref": "#/components/schemas/TableReq"
+              },
+              "examples": {
+                "Example 1": {
+                  "value": {
+                    "columns": [
+                      {
+                        "ai": false,
+                        "altered": 1,
+                        "cdf": "CURRENT_TIMESTAMP on update CURRENT_TIMESTAMP",
+                        "ck": false,
+                        "clen": 45,
+                        "column_name": "updated_at",
+                        "ct": "varchar(45)",
+                        "dt": "timestamp",
+                        "dtx": "specificType",
+                        "dtxp": "",
+                        "dtxs": "",
+                        "np": null,
+                        "nrqd": true,
+                        "ns": null,
+                        "pk": false,
+                        "rqd": false,
+                        "title": "UpdatedAt",
+                        "uicn": "",
+                        "uidt": "DateTime",
+                        "uip": "",
+                        "un": false
+                      },
+                      {
+                        "ai": false,
+                        "altered": 1,
+                        "cdf": "CURRENT_TIMESTAMP",
+                        "ck": false,
+                        "clen": 45,
+                        "column_name": "created_at",
+                        "ct": "varchar(45)",
+                        "dt": "timestamp",
+                        "dtx": "specificType",
+                        "dtxp": "",
+                        "dtxs": "",
+                        "np": null,
+                        "nrqd": true,
+                        "ns": null,
+                        "pk": false,
+                        "rqd": false,
+                        "title": "CreatedAt",
+                        "uicn": "",
+                        "uidt": "DateTime",
+                        "uip": "",
+                        "un": false
+                      },
+                      {
+                        "ai": false,
+                        "altered": 1,
+                        "cdf": null,
+                        "ck": false,
+                        "clen": 45,
+                        "column_name": "title",
+                        "ct": "varchar(45)",
+                        "dt": "varchar",
+                        "dtx": "specificType",
+                        "dtxp": "45",
+                        "dtxs": "",
+                        "np": null,
+                        "nrqd": true,
+                        "ns": null,
+                        "pk": false,
+                        "rqd": false,
+                        "title": "Title",
+                        "uicn": "",
+                        "uidt": "SingleLineText",
+                        "uip": "",
+                        "un": false
+                      },
+                      {
+                        "ai": true,
+                        "altered": 1,
+                        "cdf": null,
+                        "ck": false,
+                        "clen": null,
+                        "column_name": "id",
+                        "ct": "int(11)",
+                        "dt": "int",
+                        "dtx": "integer",
+                        "dtxp": "11",
+                        "dtxs": "",
+                        "np": 11,
+                        "nrqd": false,
+                        "ns": 0,
+                        "pk": true,
+                        "rqd": true,
+                        "title": "Id",
+                        "uicn": "",
+                        "uidt": "ID",
+                        "uip": "",
+                        "un": true
+                      }
+                    ],
+                    "table_name": "Sheet-1",
+                    "title": "Sheet-1"
+                  }
+                }
               }
             }
           }
@@ -3895,7 +4097,19 @@
         "operationId": "db-table-reorder",
         "responses": {
           "200": {
-            "description": "OK"
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "boolean"
+                },
+                "examples": {
+                  "Example 1": {
+                    "value": true
+                  }
+                }
+              }
+            }
           },
           "400": {
             "$ref": "#/components/responses/BadRequest"
@@ -6305,7 +6519,25 @@
             "description": "OK",
             "content": {
               "application/json": {
-                "schema": {}
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "msg": {
+                      "type": "string",
+                      "x-stoplight": {
+                        "id": "la6fd99uw6eao"
+                      },
+                      "example": "The meta has been synchronized successfully"
+                    }
+                  }
+                },
+                "examples": {
+                  "Example 1": {
+                    "value": {
+                      "msg": "The meta has been synchronized successfully"
+                    }
+                  }
+                }
               }
             }
           },
@@ -6338,7 +6570,91 @@
             "description": "OK",
             "content": {
               "application/json": {
-                "schema": {}
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "x-stoplight": {
+                      "id": "awdkjwr7uultr"
+                    },
+                    "type": "object",
+                    "properties": {
+                      "table_name": {
+                        "type": "string",
+                        "x-stoplight": {
+                          "id": "jjj8ufafq1sd2"
+                        },
+                        "description": "Table Name",
+                        "example": "Table 1"
+                      },
+                      "base_id": {
+                        "type": "string",
+                        "x-stoplight": {
+                          "id": "smx2or6bv1xym"
+                        },
+                        "description": "Base ID",
+                        "example": "ds_rrplkgy0pq1f3c"
+                      },
+                      "type": {
+                        "type": "string",
+                        "x-stoplight": {
+                          "id": "zr19ahh1s6d13"
+                        },
+                        "description": "Change Type",
+                        "example": "table"
+                      },
+                      "detectedChanges": {
+                        "type": "array",
+                        "x-stoplight": {
+                          "id": "bptxla2y27aq6"
+                        },
+                        "description": "Detected Changes",
+                        "items": {
+                          "x-stoplight": {
+                            "id": "ob16o1ln7xy8o"
+                          },
+                          "type": "object"
+                        }
+                      }
+                    }
+                  }
+                },
+                "examples": {
+                  "Example 1": {
+                    "value": [
+                      {
+                        "table_name": "_nc_m2m_uuv_xzru3m",
+                        "base_id": "ds_rrplkgy0pq1f3c",
+                        "type": "table",
+                        "detectedChanges": [
+                          {
+                            "type": "TABLE_NEW",
+                            "msg": "New table"
+                          },
+                          {
+                            "type": "TABLE_RELATION_ADD",
+                            "tn": "_nc_m2m_uuv_xzru3m",
+                            "rtn": "Sheet-1",
+                            "cn": "table1_id",
+                            "rcn": "id",
+                            "msg": "New relation added",
+                            "relationType": "bt",
+                            "cstn": "_nc_m2m_uuv_xzru3m_table1_id_foreign"
+                          },
+                          {
+                            "type": "TABLE_RELATION_ADD",
+                            "tn": "_nc_m2m_uuv_xzru3m",
+                            "rtn": "address",
+                            "cn": "table2_id",
+                            "rcn": "address_id",
+                            "msg": "New relation added",
+                            "relationType": "bt",
+                            "cstn": "_nc_m2m_uuv_xzru3m_table2_id_foreign"
+                          }
+                        ]
+                      }
+                    ]
+                  }
+                }
               }
             }
           },
@@ -6381,7 +6697,25 @@
             "description": "OK",
             "content": {
               "application/json": {
-                "schema": {}
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "msg": {
+                      "type": "string",
+                      "x-stoplight": {
+                        "id": "acy7tx4rounqw"
+                      },
+                      "example": "The base meta has been synchronized successfully"
+                    }
+                  }
+                },
+                "examples": {
+                  "Example 1": {
+                    "value": {
+                      "msg": "The base meta has been synchronized successfully"
+                    }
+                  }
+                }
               }
             }
           },
@@ -6411,7 +6745,91 @@
             "description": "OK",
             "content": {
               "application/json": {
-                "schema": {}
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "x-stoplight": {
+                      "id": "pav4jmel1ebeu"
+                    },
+                    "type": "object",
+                    "properties": {
+                      "table_name": {
+                        "type": "string",
+                        "x-stoplight": {
+                          "id": "xjw4k4httzmaf"
+                        },
+                        "description": "Table Name",
+                        "example": "Table 1"
+                      },
+                      "base_id": {
+                        "type": "string",
+                        "x-stoplight": {
+                          "id": "l1o3qhkgagsdl"
+                        },
+                        "example": "ds_rrplkgy0pq1f3c",
+                        "description": "Base ID"
+                      },
+                      "type": {
+                        "type": "string",
+                        "x-stoplight": {
+                          "id": "v5ciaygrj64uh"
+                        },
+                        "description": "Change Type",
+                        "example": "table"
+                      },
+                      "detectedChanges": {
+                        "type": "array",
+                        "x-stoplight": {
+                          "id": "wqn5noi0e46q8"
+                        },
+                        "description": "Detected Changes",
+                        "items": {
+                          "x-stoplight": {
+                            "id": "r2roo274wquvf"
+                          },
+                          "type": "object"
+                        }
+                      }
+                    }
+                  }
+                },
+                "examples": {
+                  "Example 1": {
+                    "value": [
+                      {
+                        "table_name": "_nc_m2m_uuv_xzru3m",
+                        "base_id": "ds_rrplkgy0pq1f3c",
+                        "type": "table",
+                        "detectedChanges": [
+                          {
+                            "type": "TABLE_NEW",
+                            "msg": "New table"
+                          },
+                          {
+                            "type": "TABLE_RELATION_ADD",
+                            "tn": "_nc_m2m_uuv_xzru3m",
+                            "rtn": "Sheet-1",
+                            "cn": "table1_id",
+                            "rcn": "id",
+                            "msg": "New relation added",
+                            "relationType": "bt",
+                            "cstn": "_nc_m2m_uuv_xzru3m_table1_id_foreign"
+                          },
+                          {
+                            "type": "TABLE_RELATION_ADD",
+                            "tn": "_nc_m2m_uuv_xzru3m",
+                            "rtn": "address",
+                            "cn": "table2_id",
+                            "rcn": "address_id",
+                            "msg": "New relation added",
+                            "relationType": "bt",
+                            "cstn": "_nc_m2m_uuv_xzru3m_table2_id_foreign"
+                          }
+                        ]
+                      }
+                    ]
+                  }
+                }
               }
             }
           },
@@ -6894,31 +7312,38 @@
           },
           "name": "orgs",
           "in": "path",
-          "required": true
+          "required": true,
+          "description": "Organisation Name. Currently `noco` will be used."
         },
         {
           "schema": {
-            "type": "string"
+            "type": "string",
+            "example": "p_tbhl1hnycvhe5l"
           },
           "name": "projectName",
           "in": "path",
-          "required": true
+          "required": true,
+          "description": "Project Name"
         },
         {
           "schema": {
-            "type": "string"
+            "type": "string",
+            "example": "md_5hua2iqloqirhd"
           },
           "name": "tableName",
           "in": "path",
-          "required": true
+          "required": true,
+          "description": "Table Name"
         },
         {
           "schema": {
-            "type": "string"
+            "type": "string",
+            "example": "vw_mldv0a5mtwh1la"
           },
           "name": "viewName",
           "in": "path",
-          "required": true
+          "required": true,
+          "description": "View Name"
         },
         {
           "schema": {
@@ -6974,7 +7399,77 @@
             "description": "OK",
             "content": {
               "application/json": {
-                "schema": {}
+                "schema": {
+                  "type": "object"
+                },
+                "examples": {
+                  "Example 1": {
+                    "value": [
+                      {
+                        "key": "a",
+                        "value": {
+                          "list": [
+                            {
+                              "Id": 2,
+                              "Title": "foo",
+                              "SingleSelect": "a"
+                            }
+                          ],
+                          "pageInfo": {
+                            "totalRows": 1,
+                            "page": 1,
+                            "pageSize": 25,
+                            "isFirstPage": true,
+                            "isLastPage": true
+                          }
+                        }
+                      },
+                      {
+                        "key": "b",
+                        "value": {
+                          "list": [
+                            {
+                              "Id": 3,
+                              "Title": "bar",
+                              "SingleSelect": "b"
+                            }
+                          ],
+                          "pageInfo": {
+                            "totalRows": 1,
+                            "page": 1,
+                            "pageSize": 25,
+                            "isFirstPage": true,
+                            "isLastPage": true
+                          }
+                        }
+                      },
+                      {
+                        "key": null,
+                        "value": {
+                          "list": [
+                            {
+                              "Id": 1,
+                              "Title": "baz",
+                              "SingleSelect": null
+                            },
+                            {
+                              "Id": 5,
+                              "Title": "xyz",
+                              "SingleSelect": null
+                            }
+                          ],
+                          "pageInfo": {
+                            "totalRows": 2,
+                            "page": 1,
+                            "pageSize": 25,
+                            "isFirstPage": true,
+                            "isLastPage": true
+                          }
+                        }
+                      }
+                    ]
+                  }
+                }
               }
             }
           },
@@ -6997,7 +7492,8 @@
         },
         {
           "schema": {
-            "type": "string"
+            "type": "string",
+            "example": "p_tbhl1hnycvhe5l"
           },
           "name": "projectName",
           "in": "path",
@@ -7006,7 +7502,8 @@
         },
         {
           "schema": {
-            "type": "string"
+            "type": "string",
+            "example": "md_5hua2iqloqirhd"
           },
           "name": "tableName",
           "in": "path",
@@ -7067,7 +7564,77 @@
             "description": "OK",
             "content": {
               "application/json": {
-                "schema": {}
+                "schema": {
+                  "type": "object"
+                },
+                "examples": {
+                  "Example 1": {
+                    "value": [
+                      {
+                        "key": "a",
+                        "value": {
+                          "list": [
+                            {
+                              "Id": 2,
+                              "Title": "foo",
+                              "SingleSelect": "a"
+                            }
+                          ],
+                          "pageInfo": {
+                            "totalRows": 1,
+                            "page": 1,
+                            "pageSize": 25,
+                            "isFirstPage": true,
+                            "isLastPage": true
+                          }
+                        }
+                      },
+                      {
+                        "key": "b",
+                        "value": {
+                          "list": [
+                            {
+                              "Id": 3,
+                              "Title": "bar",
+                              "SingleSelect": "b"
+                            }
+                          ],
+                          "pageInfo": {
+                            "totalRows": 1,
+                            "page": 1,
+                            "pageSize": 25,
+                            "isFirstPage": true,
+                            "isLastPage": true
+                          }
+                        }
+                      },
+                      {
+                        "key": null,
+                        "value": {
+                          "list": [
+                            {
+                              "Id": 1,
+                              "Title": "baz",
+                              "SingleSelect": null
+                            },
+                            {
+                              "Id": 5,
+                              "Title": "xyz",
+                              "SingleSelect": null
+                            }
+                          ],
+                          "pageInfo": {
+                            "totalRows": 2,
+                            "page": 1,
+                            "pageSize": 25,
+                            "isFirstPage": true,
+                            "isLastPage": true
+                          }
+                        }
+                      }
+                    ]
+                  }
+                }
               }
             }
           },
@@ -7241,6 +7808,17 @@
               "application/json": {
                 "schema": {
                   "type": "object"
+                },
+                "examples": {
+                  "Example 1": {
+                    "value": {
+                      "Id": 1,
+                      "col1": "foo",
+                      "col2": "bar",
+                      "CreatedAt": "2023-03-11T08:48:25.598Z",
+                      "UpdatedAt": "2023-03-11T08:48:25.598Z"
+                    }
+                  }
                 }
               }
             }
@@ -7259,10 +7837,8 @@
               "examples": {
                 "Example 1": {
                   "value": {
-                    "Id": 1,
-                    "Title": "foo",
-                    "CreatedAt": "2023-03-11T09:10:53.567Z",
-                    "UpdatedAt": "2023-03-11T09:10:53.567Z"
+                    "col1": "foo",
+                    "col2": "bar"
                   }
                 }
               }
@@ -7506,11 +8082,13 @@
         },
         {
           "schema": {
-            "type": "string"
+            "type": "string",
+            "example": "vw_75neroyqdye94k"
           },
           "name": "viewName",
           "in": "path",
-          "required": true
+          "required": true,
+          "description": "View Name"
         }
       ],
       "get": {
@@ -7541,7 +8119,24 @@
             "description": "OK",
             "content": {
               "application/json": {
-                "schema": {}
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "count": {
+                      "type": "number",
+                      "x-stoplight": {
+                        "id": "hwq29x70rcipi"
+                      }
+                    }
+                  }
+                },
+                "examples": {
+                  "Example 1": {
+                    "value": {
+                      "count": 25
+                    }
+                  }
+                }
               }
             }
           }
@@ -7579,11 +8174,13 @@
         },
         {
           "schema": {
-            "type": "string"
+            "type": "string",
+            "example": "vw_75neroyqdye94k"
           },
           "name": "viewName",
           "in": "path",
-          "required": true
+          "required": true,
+          "description": "View Name"
         },
         {
           "schema": {
@@ -7599,13 +8196,29 @@
         "summary": "Get Table View Row",
         "operationId": "db-view-row-read",
         "responses": {
-          "201": {
-            "description": "Created",
+          "200": {
+            "description": "OK",
             "content": {
               "application/json": {
-                "schema": {}
+                "schema": {
+                  "type": "object",
+                  "properties": {}
+                },
+                "examples": {
+                  "Example 1": {
+                    "value": {
+                      "Id": 1,
+                      "Title": "foo",
+                      "CreatedAt": "2023-03-11T09:11:47.437Z",
+                      "UpdatedAt": "2023-03-11T09:11:47.784Z"
+                    }
+                  }
+                }
               }
             }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
           }
         },
         "description": "Get the target Table View Row",
@@ -7624,16 +8237,40 @@
             "description": "OK",
             "content": {
               "application/json": {
-                "schema": {}
+                "schema": {
+                  "type": "object"
+                },
+                "examples": {
+                  "Example 1": {
+                    "value": {
+                      "Id": 1,
+                      "Title": "bar",
+                      "CreatedAt": "2023-03-11T09:11:47.437Z",
+                      "UpdatedAt": "2023-03-11T09:20:21.133Z"
+                    }
+                  }
+                }
               }
             }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
           }
         },
         "tags": ["DB View Row"],
         "requestBody": {
           "content": {
             "application/json": {
-              "schema": {}
+              "schema": {
+                "type": "object"
+              },
+              "examples": {
+                "Example 1": {
+                  "value": {
+                    "Title": "bar"
+                  }
+                }
+              }
             }
           }
         },
@@ -7649,7 +8286,19 @@
         "operationId": "db-view-row-delete",
         "responses": {
           "200": {
-            "description": "OK"
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "number"
+                },
+                "examples": {
+                  "Example 1": {
+                    "value": 1
+                  }
+                }
+              }
+            }
           },
           "400": {
             "$ref": "#/components/responses/BadRequest"
@@ -7719,7 +8368,14 @@
             "description": "Created",
             "content": {
               "application/json": {
-                "schema": {}
+                "schema": {
+                  "type": "number"
+                },
+                "examples": {
+                  "Example 1": {
+                    "value": 1
+                  }
+                }
               }
             }
           },
@@ -8258,7 +8914,19 @@
             "description": "OK",
             "content": {
               "application/json": {
-                "schema": {}
+                "schema": {},
+                "examples": {
+                  "Example 1": {
+                    "value": [
+                      {
+                        "Id": "1"
+                      },
+                      {
+                        "Id": "2"
+                      }
+                    ]
+                  }
+                }
               }
             }
           },
@@ -8270,7 +8938,16 @@
         "requestBody": {
           "content": {
             "application/json": {
-              "schema": {}
+              "schema": {
+                "type": "object"
+              },
+              "examples": {
+                "Example 1": {
+                  "value": {
+                    "Title": "foo"
+                  }
+                }
+              }
             }
           }
         },
@@ -8289,7 +8966,20 @@
             "description": "OK",
             "content": {
               "application/json": {
-                "schema": {}
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "x-stoplight": {
+                      "id": "9gcl3ok7is3y0"
+                    },
+                    "type": "object"
+                  }
+                },
+                "examples": {
+                  "Example 1": {
+                    "value": [1, 1]
+                  }
+                }
               }
             }
           },
@@ -8301,7 +8991,16 @@
         "requestBody": {
           "content": {
             "application/json": {
-              "schema": {}
+              "schema": {
+                "type": "object"
+              },
+              "examples": {
+                "Example 1": {
+                  "value": {
+                    "Title": "foo"
+                  }
+                }
+              }
             }
           }
         },
@@ -8512,7 +9211,8 @@
           },
           "name": "relationType",
           "in": "path",
-          "required": true
+          "required": true,
+          "description": "Relation Type"
         },
         {
           "schema": {
@@ -8520,7 +9220,8 @@
           },
           "name": "columnName",
           "in": "path",
-          "required": true
+          "required": true,
+          "description": "Column Name"
         }
       ],
       "get": {
@@ -17398,68 +18099,22 @@
                 "value": {
                   "list": [
                     {
-                      "alias": "string",
-                      "base_id": "string",
-                      "column": [
-                        {
-                          "alias": "string",
-                          "auto_increment": true,
-                          "auto_update_timestamp": true,
-                          "base_id": "string",
-                          "character_maximum_length": "string",
-                          "character_set_name": "string",
-                          "colOptions": {
-                            "deleted": "string",
-                            "dr": "string",
-                            "fk_child_column_id": "string",
-                            "fk_column_id": "string",
-                            "fk_index_name": "string",
-                            "fk_mm_child_column_id": "string",
-                            "fk_mm_model_id": "string",
-                            "fk_mm_parent_column_id": "string",
-                            "fk_parent_column_id": "string",
-                            "id": "string",
-                            "order": "string",
-                            "type": "string",
-                            "ur": "string",
-                            "virtual": true
-                          },
-                          "column_comment": "string",
-                          "column_default": "string",
-                          "column_ordinal_position": "string",
-                          "column_type": "string",
-                          "data_type": "string",
-                          "data_type_x": "string",
-                          "data_type_x_precision": "string",
-                          "data_type_x_scale": "string",
-                          "deleted": true,
-                          "fk_model_id": "string",
-                          "id": "string",
-                          "numeric_precision": "string",
-                          "numeric_scale": "string",
-                          "order": 0,
-                          "primary_key": true,
-                          "primary_value": true,
-                          "rqd": "string",
-                          "title": "string",
-                          "ui_data_type": "string",
-                          "un": "string",
-                          "unique": true,
-                          "visible": true
-                        }
-                      ],
-                      "columnByIds": {},
-                      "deleted": true,
+                      "id": "md_5hua2iqloqirhd",
+                      "base_id": "ds_jxuewivwbxeum2",
+                      "project_id": "p_tbhl1hnycvhe5l",
+                      "table_name": "nc_b84e___Sheet-1",
+                      "title": "Sheet-1",
+                      "type": "table",
+                      "meta": null,
+                      "schema": null,
                       "enabled": true,
-                      "id": "string",
-                      "order": 0,
-                      "parent_id": "string",
-                      "pinned": true,
-                      "project_id": "string",
-                      "show_as": "string",
-                      "tags": "string",
-                      "title": "string",
-                      "type": "string"
+                      "mm": false,
+                      "tags": null,
+                      "pinned": null,
+                      "deleted": null,
+                      "order": 1,
+                      "created_at": "2023-03-11T09:11:45.907Z",
+                      "updated_at": "2023-03-11T09:11:45.907Z"
                     }
                   ],
                   "pageInfo": {

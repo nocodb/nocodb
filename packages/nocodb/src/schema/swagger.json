@@ -4327,7 +4327,19 @@
         "operationId": "db-table-column-primary-column-set",
         "responses": {
           "200": {
-            "description": "OK"
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "boolean"
+                },
+                "examples": {
+                  "Example 1": {
+                    "value": true
+                  }
+                }
+              }
+            }
           },
           "400": {
             "$ref": "#/components/responses/BadRequest"
@@ -5058,7 +5070,19 @@
         "operationId": "db-table-sort-create",
         "responses": {
           "200": {
-            "description": "OK"
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "number"
+                },
+                "examples": {
+                  "Example 1": {
+                    "value": 1
+                  }
+                }
+              }
+            }
           },
           "400": {
             "$ref": "#/components/responses/BadRequest"
@@ -5153,7 +5177,20 @@
         "operationId": "db-table-sort-update",
         "responses": {
           "200": {
-            "description": "OK"
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "number",
+                  "example": 1
+                },
+                "examples": {
+                  "Example 1": {
+                    "value": 1
+                  }
+                }
+              }
+            }
           },
           "400": {
             "$ref": "#/components/responses/BadRequest"
@@ -5189,7 +5226,19 @@
         "operationId": "db-table-sort-delete",
         "responses": {
           "200": {
-            "description": "OK"
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "boolean"
+                },
+                "examples": {
+                  "Example 1": {
+                    "value": true
+                  }
+                }
+              }
+            }
           },
           "400": {
             "$ref": "#/components/responses/BadRequest"
@@ -5482,7 +5531,19 @@
         "operationId": "db-table-filter-update",
         "responses": {
           "200": {
-            "description": "OK"
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "number"
+                },
+                "examples": {
+                  "Example 1": {
+                    "value": 1
+                  }
+                }
+              }
+            }
           },
           "400": {
             "$ref": "#/components/responses/BadRequest"
@@ -5494,6 +5555,18 @@
             "application/json": {
               "schema": {
                 "$ref": "#/components/schemas/FilterReq"
+              },
+              "examples": {
+                "Example 1": {
+                  "value": {
+                    "comparison_op": "eq",
+                    "comparison_sub_op": null,
+                    "fk_column_id": "cl_d7ah9n2qfupgys",
+                    "is_group": false,
+                    "logical_op": "and",
+                    "value": "foo"
+                  }
+                }
               }
             }
           }
@@ -5510,7 +5583,19 @@
         "operationId": "db-table-filter-delete",
         "responses": {
           "200": {
-            "description": "OK"
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "boolean"
+                },
+                "examples": {
+                  "Example 1": {
+                    "value": true
+                  }
+                }
+              }
+            }
           },
           "400": {
             "$ref": "#/components/responses/BadRequest"
@@ -12176,6 +12261,7 @@
             "x-stoplight": {
               "id": "c7xu43yjgyjww"
             },
+            "description": "List of api token objects",
             "items": {
               "$ref": "#/components/schemas/ApiToken",
               "x-stoplight": {
@@ -12580,6 +12666,7 @@
             "x-stoplight": {
               "id": "1q3ny60j1g4z2"
             },
+            "description": "List of base objects",
             "items": {
               "$ref": "#/components/schemas/Base",
               "x-stoplight": {
@@ -13041,6 +13128,7 @@
             "x-stoplight": {
               "id": "c6lpw8px25356"
             },
+            "description": "List of column objects",
             "items": {
               "$ref": "#/components/schemas/Column",
               "x-stoplight": {
@@ -13401,6 +13489,7 @@
             "x-stoplight": {
               "id": "22sgv37ve9kxo"
             },
+            "description": "List of filter objects",
             "items": {
               "$ref": "#/components/schemas/Filter",
               "x-stoplight": {
@@ -14685,6 +14774,7 @@
             "minItems": 1,
             "type": "array",
             "uniqueItems": true,
+            "description": "List of hook objects",
             "items": {
               "$ref": "#/components/schemas/Hook"
             }
@@ -16427,6 +16517,7 @@
             "minItems": 1,
             "type": "array",
             "uniqueItems": true,
+            "description": "List of shared view objects",
             "items": {
               "$ref": "#/components/schemas/SharedView"
             }
@@ -16648,6 +16739,7 @@
             "x-stoplight": {
               "id": "gjqqc8ciqg947"
             },
+            "description": "List of Sort Objects",
             "items": {
               "$ref": "#/components/schemas/Sort",
               "x-stoplight": {
@@ -17242,6 +17334,7 @@
             "minItems": 1,
             "type": "array",
             "uniqueItems": true,
+            "description": "List of table objects",
             "items": {
               "$ref": "#/components/schemas/Table"
             }
@@ -17540,6 +17633,7 @@
             "x-stoplight": {
               "id": "8o7v47q3e67ef"
             },
+            "description": "List of user objects",
             "items": {
               "$ref": "#/components/schemas/User",
               "x-stoplight": {
@@ -17780,6 +17874,7 @@
         "properties": {
           "list": {
             "type": "array",
+            "description": "List of view objects",
             "items": {
               "$ref": "#/components/schemas/View"
             }

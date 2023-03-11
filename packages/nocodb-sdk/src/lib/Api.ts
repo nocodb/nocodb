@@ -2478,7 +2478,10 @@ export class Api<
  * @summary Signup
  * @request POST:/api/v1/auth/user/signup
  * @response `200` `{
-  \** The signed JWT token for information exchange *\
+  \**
+   * The signed JWT token for information exchange
+   * @example eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJlbWFpbCI6IndAbm9jb2RiLmNvbSIsImZpcnN0bmFtZSI6bnVsbCwibGFzdG5hbWUiOm51bGwsImlkIjoidXNfYjN4bzJpNDRueDV5OWwiLCJyb2xlcyI6Im9yZy1sZXZlbC1jcmVhdG9yLHN1cGVyIiwidG9rZW5fdmVyc2lvbiI6ImJmMTc3ZGUzYjk3YjAzMjY4YjU0NGZmMjMzNGU5YjFhMGUzYzgxM2NiYzliOTJkYWMwYmM5NTRiNmUzN2ZjMTJjYmFkNDM2NmIwYzExZTdjIiwiaWF0IjoxNjc4MDc4NDMyLCJleHAiOjE2NzgxMTQ0MzJ9.gzwp_svZlbA5PV_eawYV-9UFjZVjniy-tCDce16xrkI
+   *\
   token?: string,
 
 }` OK
@@ -2490,7 +2493,10 @@ export class Api<
     signup: (data: SignUpReqType, params: RequestParams = {}) =>
       this.request<
         {
-          /** The signed JWT token for information exchange */
+          /**
+           * The signed JWT token for information exchange
+           * @example eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJlbWFpbCI6IndAbm9jb2RiLmNvbSIsImZpcnN0bmFtZSI6bnVsbCwibGFzdG5hbWUiOm51bGwsImlkIjoidXNfYjN4bzJpNDRueDV5OWwiLCJyb2xlcyI6Im9yZy1sZXZlbC1jcmVhdG9yLHN1cGVyIiwidG9rZW5fdmVyc2lvbiI6ImJmMTc3ZGUzYjk3YjAzMjY4YjU0NGZmMjMzNGU5YjFhMGUzYzgxM2NiYzliOTJkYWMwYmM5NTRiNmUzN2ZjMTJjYmFkNDM2NmIwYzExZTdjIiwiaWF0IjoxNjc4MDc4NDMyLCJleHAiOjE2NzgxMTQ0MzJ9.gzwp_svZlbA5PV_eawYV-9UFjZVjniy-tCDce16xrkI
+           */
           token?: string;
         },
         {
@@ -2513,7 +2519,10 @@ export class Api<
  * @summary Signout
  * @request POST:/api/v1/auth/user/signout
  * @response `200` `{
-  \** Success Message *\
+  \**
+   * Success Message
+   * @example Signed out successfully
+   *\
   msg?: string,
 
 }` OK
@@ -2526,7 +2535,10 @@ export class Api<
     signout: (params: RequestParams = {}) =>
       this.request<
         {
-          /** Success Message */
+          /**
+           * Success Message
+           * @example Signed out successfully
+           */
           msg?: string;
         },
         {
@@ -2548,7 +2560,10 @@ export class Api<
  * @summary Signin
  * @request POST:/api/v1/auth/user/signin
  * @response `200` `{
-  \** The signed JWT token for information exchange *\
+  \**
+   * The signed JWT token for information exchange
+   * @example eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJlbWFpbCI6IndAbm9jb2RiLmNvbSIsImZpcnN0bmFtZSI6bnVsbCwibGFzdG5hbWUiOm51bGwsImlkIjoidXNfYjN4bzJpNDRueDV5OWwiLCJyb2xlcyI6Im9yZy1sZXZlbC1jcmVhdG9yLHN1cGVyIiwidG9rZW5fdmVyc2lvbiI6ImJmMTc3ZGUzYjk3YjAzMjY4YjU0NGZmMjMzNGU5YjFhMGUzYzgxM2NiYzliOTJkYWMwYmM5NTRiNmUzN2ZjMTJjYmFkNDM2NmIwYzExZTdjIiwiaWF0IjoxNjc4MDc4NDMyLCJleHAiOjE2NzgxMTQ0MzJ9.gzwp_svZlbA5PV_eawYV-9UFjZVjniy-tCDce16xrkI
+   *\
   token?: string,
 
 }` OK
@@ -2561,7 +2576,10 @@ export class Api<
     signin: (data: SignInReqType, params: RequestParams = {}) =>
       this.request<
         {
-          /** The signed JWT token for information exchange */
+          /**
+           * The signed JWT token for information exchange
+           * @example eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJlbWFpbCI6IndAbm9jb2RiLmNvbSIsImZpcnN0bmFtZSI6bnVsbCwibGFzdG5hbWUiOm51bGwsImlkIjoidXNfYjN4bzJpNDRueDV5OWwiLCJyb2xlcyI6Im9yZy1sZXZlbC1jcmVhdG9yLHN1cGVyIiwidG9rZW5fdmVyc2lvbiI6ImJmMTc3ZGUzYjk3YjAzMjY4YjU0NGZmMjMzNGU5YjFhMGUzYzgxM2NiYzliOTJkYWMwYmM5NTRiNmUzN2ZjMTJjYmFkNDM2NmIwYzExZTdjIiwiaWF0IjoxNjc4MDc4NDMyLCJleHAiOjE2NzgxMTQ0MzJ9.gzwp_svZlbA5PV_eawYV-9UFjZVjniy-tCDce16xrkI
+           */
           token?: string;
         },
         {
@@ -2619,7 +2637,14 @@ export class Api<
  * @name PasswordForgot
  * @summary Forget Password
  * @request POST:/api/v1/auth/password/forgot
- * @response `200` `void` OK
+ * @response `200` `{
+  \**
+   * Success Message
+   * @example Please check your email to reset the password
+   *\
+  msg?: string,
+
+}` OK
  * @response `400` `{
   \** @example BadRequest [Error]: <ERROR MESSAGE> *\
   msg?: string,
@@ -2628,7 +2653,13 @@ export class Api<
  */
     passwordForgot: (data: PasswordForgotReqType, params: RequestParams = {}) =>
       this.request<
-        void,
+        {
+          /**
+           * Success Message
+           * @example Please check your email to reset the password
+           */
+          msg?: string;
+        },
         {
           /** @example BadRequest [Error]: <ERROR MESSAGE> */
           msg?: string;
@@ -2638,6 +2669,7 @@ export class Api<
         method: 'POST',
         body: data,
         type: ContentType.Json,
+        format: 'json',
         ...params,
       }),
 
@@ -2685,7 +2717,14 @@ export class Api<
  * @name PasswordResetTokenValidate
  * @summary Verify Reset Token
  * @request POST:/api/v1/auth/token/validate/{token}
- * @response `200` `void` OK
+ * @response `200` `{
+  \**
+   * Success Message
+   * @example Token has been validated successfully
+   *\
+  msg?: string,
+
+}` OK
  * @response `400` `{
   \** @example BadRequest [Error]: <ERROR MESSAGE> *\
   msg?: string,
@@ -2694,7 +2733,13 @@ export class Api<
  */
     passwordResetTokenValidate: (token: string, params: RequestParams = {}) =>
       this.request<
-        void,
+        {
+          /**
+           * Success Message
+           * @example Token has been validated successfully
+           */
+          msg?: string;
+        },
         {
           /** @example BadRequest [Error]: <ERROR MESSAGE> */
           msg?: string;
@@ -2702,6 +2747,7 @@ export class Api<
       >({
         path: `/api/v1/auth/token/validate/${token}`,
         method: 'POST',
+        format: 'json',
         ...params,
       }),
 
@@ -2712,7 +2758,14 @@ export class Api<
  * @name EmailValidate
  * @summary Verify Email
  * @request POST:/api/v1/auth/email/validate/{token}
- * @response `200` `void` OK
+ * @response `200` `{
+  \**
+   * Success Message
+   * @example Email has been verified successfully
+   *\
+  msg?: string,
+
+}` OK
  * @response `400` `{
   \** @example BadRequest [Error]: <ERROR MESSAGE> *\
   msg?: string,
@@ -2721,7 +2774,13 @@ export class Api<
  */
     emailValidate: (token: string, params: RequestParams = {}) =>
       this.request<
-        void,
+        {
+          /**
+           * Success Message
+           * @example Email has been verified successfully
+           */
+          msg?: string;
+        },
         {
           /** @example BadRequest [Error]: <ERROR MESSAGE> */
           msg?: string;
@@ -2729,6 +2788,7 @@ export class Api<
       >({
         path: `/api/v1/auth/email/validate/${token}`,
         method: 'POST',
+        format: 'json',
         ...params,
       }),
 
@@ -2739,7 +2799,14 @@ export class Api<
  * @name PasswordReset
  * @summary Reset Password
  * @request POST:/api/v1/auth/password/reset/{token}
- * @response `200` `void` OK
+ * @response `200` `{
+  \**
+   * Success Message
+   * @example Password has been reset successfully
+   *\
+  msg?: string,
+
+}` OK
  * @response `400` `{
   \** @example BadRequest [Error]: <ERROR MESSAGE> *\
   msg?: string,
@@ -2752,7 +2819,13 @@ export class Api<
       params: RequestParams = {}
     ) =>
       this.request<
-        void,
+        {
+          /**
+           * Success Message
+           * @example Password has been reset successfully
+           */
+          msg?: string;
+        },
         {
           /** @example BadRequest [Error]: <ERROR MESSAGE> */
           msg?: string;
@@ -2762,6 +2835,7 @@ export class Api<
         method: 'POST',
         body: data,
         type: ContentType.Json,
+        format: 'json',
         ...params,
       }),
 
@@ -2773,7 +2847,10 @@ export class Api<
  * @summary Refresh Token
  * @request POST:/api/v1/auth/token/refresh
  * @response `200` `{
-  \** New access token for user *\
+  \**
+   * New access token for user
+   * @example 96751db2d53fb834382b682268874a2ea9ee610e4d904e688d1513f11d3c30d62d36d9e05dec0d63
+   *\
   token?: string,
 
 }` OK
@@ -2786,7 +2863,10 @@ export class Api<
     tokenRefresh: (params: RequestParams = {}) =>
       this.request<
         {
-          /** New access token for user */
+          /**
+           * New access token for user
+           * @example 96751db2d53fb834382b682268874a2ea9ee610e4d904e688d1513f11d3c30d62d36d9e05dec0d63
+           */
           token?: string;
         },
         {
@@ -2849,7 +2929,14 @@ export class Api<
  * @name ProjectUserAdd
  * @summary Create Project User
  * @request POST:/api/v1/db/meta/projects/{projectId}/users
- * @response `200` `any` OK
+ * @response `200` `{
+  \**
+   * Success Message
+   * @example The user has been invited successfully
+   *\
+  msg?: string,
+
+}` OK
  * @response `400` `{
   \** @example BadRequest [Error]: <ERROR MESSAGE> *\
   msg?: string,
@@ -2862,7 +2949,13 @@ export class Api<
       params: RequestParams = {}
     ) =>
       this.request<
-        any,
+        {
+          /**
+           * Success Message
+           * @example The user has been invited successfully
+           */
+          msg?: string;
+        },
         {
           /** @example BadRequest [Error]: <ERROR MESSAGE> */
           msg?: string;
@@ -2883,7 +2976,14 @@ export class Api<
  * @name ProjectUserUpdate
  * @summary Update Project User
  * @request PATCH:/api/v1/db/meta/projects/{projectId}/users/{userId}
- * @response `200` `any` OK
+ * @response `200` `{
+  \**
+   * Success Message
+   * @example The user has been updated successfully
+   *\
+  msg?: string,
+
+}` OK
  * @response `400` `{
   \** @example BadRequest [Error]: <ERROR MESSAGE> *\
   msg?: string,
@@ -2897,7 +2997,13 @@ export class Api<
       params: RequestParams = {}
     ) =>
       this.request<
-        any,
+        {
+          /**
+           * Success Message
+           * @example The user has been updated successfully
+           */
+          msg?: string;
+        },
         {
           /** @example BadRequest [Error]: <ERROR MESSAGE> */
           msg?: string;
@@ -2918,7 +3024,14 @@ export class Api<
  * @name ProjectUserRemove
  * @summary Delete Project User
  * @request DELETE:/api/v1/db/meta/projects/{projectId}/users/{userId}
- * @response `200` `any` OK
+ * @response `200` `{
+  \**
+   * Success Message
+   * @example The user has been updated successfully
+   *\
+  msg?: string,
+
+}` OK
  * @response `400` `{
   \** @example BadRequest [Error]: <ERROR MESSAGE> *\
   msg?: string,
@@ -2931,7 +3044,13 @@ export class Api<
       params: RequestParams = {}
     ) =>
       this.request<
-        any,
+        {
+          /**
+           * Success Message
+           * @example The user has been updated successfully
+           */
+          msg?: string;
+        },
         {
           /** @example BadRequest [Error]: <ERROR MESSAGE> */
           msg?: string;
@@ -2950,7 +3069,14 @@ export class Api<
  * @name ProjectUserResendInvite
  * @summary Resend User Invitation
  * @request POST:/api/v1/db/meta/projects/{projectId}/users/{userId}/resend-invite
- * @response `200` `any` OK
+ * @response `200` `{
+  \**
+   * Success Message
+   * @example The invitation has been sent to the user
+   *\
+  msg?: string,
+
+}` OK
  * @response `400` `{
   \** @example BadRequest [Error]: <ERROR MESSAGE> *\
   msg?: string,
@@ -2963,7 +3089,13 @@ export class Api<
       params: RequestParams = {}
     ) =>
       this.request<
-        any,
+        {
+          /**
+           * Success Message
+           * @example The invitation has been sent to the user
+           */
+          msg?: string;
+        },
         {
           /** @example BadRequest [Error]: <ERROR MESSAGE> */
           msg?: string;
@@ -2983,18 +3115,7 @@ export class Api<
  * @name List
  * @summary List Organisation API Tokens
  * @request GET:/api/v1/tokens
- * @response `200` `{
-  users?: {
-  list: ((ApiTokenType & {
-  created_by?: string,
-
-}))[],
-  \** Model for Paginated *\
-  pageInfo: PaginatedType,
-
-},
-
-}` OK
+ * @response `200` `ApiTokenListType` OK
  * @response `400` `{
   \** @example BadRequest [Error]: <ERROR MESSAGE> *\
   msg?: string,
@@ -3003,15 +3124,7 @@ export class Api<
  */
     list: (params: RequestParams = {}) =>
       this.request<
-        {
-          users?: {
-            list: (ApiTokenType & {
-              created_by?: string;
-            })[];
-            /** Model for Paginated */
-            pageInfo: PaginatedType;
-          };
-        },
+        ApiTokenListType,
         {
           /** @example BadRequest [Error]: <ERROR MESSAGE> */
           msg?: string;
@@ -3059,7 +3172,7 @@ export class Api<
  * @name Delete
  * @summary Delete Organisation API Tokens
  * @request DELETE:/api/v1/tokens/{token}
- * @response `200` `void` OK
+ * @response `200` `number` OK
  * @response `400` `{
   \** @example BadRequest [Error]: <ERROR MESSAGE> *\
   msg?: string,
@@ -3068,7 +3181,7 @@ export class Api<
  */
     delete: (token: string, params: RequestParams = {}) =>
       this.request<
-        void,
+        number,
         {
           /** @example BadRequest [Error]: <ERROR MESSAGE> */
           msg?: string;
@@ -3076,6 +3189,7 @@ export class Api<
       >({
         path: `/api/v1/tokens/${token}`,
         method: 'DELETE',
+        format: 'json',
         ...params,
       }),
   };
@@ -3290,7 +3404,11 @@ export class Api<
  * @name Update
  * @summary Update Organisation User
  * @request PATCH:/api/v1/users/{userId}
- * @response `200` `void` OK
+ * @response `200` `{
+  \** @example The user has been updated successfully *\
+  msg?: string,
+
+}` OK
  * @response `400` `{
   \** @example BadRequest [Error]: <ERROR MESSAGE> *\
   msg?: string,
@@ -3303,7 +3421,10 @@ export class Api<
       params: RequestParams = {}
     ) =>
       this.request<
-        void,
+        {
+          /** @example The user has been updated successfully */
+          msg?: string;
+        },
         {
           /** @example BadRequest [Error]: <ERROR MESSAGE> */
           msg?: string;
@@ -3313,6 +3434,7 @@ export class Api<
         method: 'PATCH',
         body: data,
         type: ContentType.Json,
+        format: 'json',
         ...params,
       }),
 
@@ -3323,7 +3445,14 @@ export class Api<
  * @name Delete
  * @summary Delete Organisation User
  * @request DELETE:/api/v1/users/{userId}
- * @response `200` `void` OK
+ * @response `200` `{
+  \**
+   * Sucess Message
+   * @example The user has been deleted successfully
+   *\
+  msg?: string,
+
+}` OK
  * @response `400` `{
   \** @example BadRequest [Error]: <ERROR MESSAGE> *\
   msg?: string,
@@ -3332,7 +3461,13 @@ export class Api<
  */
     delete: (userId: IdType, params: RequestParams = {}) =>
       this.request<
-        void,
+        {
+          /**
+           * Sucess Message
+           * @example The user has been deleted successfully
+           */
+          msg?: string;
+        },
         {
           /** @example BadRequest [Error]: <ERROR MESSAGE> */
           msg?: string;
@@ -3340,6 +3475,7 @@ export class Api<
       >({
         path: `/api/v1/users/${userId}`,
         method: 'DELETE',
+        format: 'json',
         ...params,
       }),
 
@@ -3350,7 +3486,14 @@ export class Api<
  * @name ResendInvite
  * @summary Invite Organisation User
  * @request POST:/api/v1/users/{userId}/resend-invite
- * @response `200` `void` OK
+ * @response `200` `{
+  \**
+   * Success Message
+   * @example The invitation has been sent to the target user
+   *\
+  msg?: string,
+
+}` OK
  * @response `400` `{
   \** @example BadRequest [Error]: <ERROR MESSAGE> *\
   msg?: string,
@@ -3359,7 +3502,13 @@ export class Api<
  */
     resendInvite: (userId: IdType, params: RequestParams = {}) =>
       this.request<
-        void,
+        {
+          /**
+           * Success Message
+           * @example The invitation has been sent to the target user
+           */
+          msg?: string;
+        },
         {
           /** @example BadRequest [Error]: <ERROR MESSAGE> */
           msg?: string;
@@ -3367,6 +3516,7 @@ export class Api<
       >({
         path: `/api/v1/users/${userId}/resend-invite`,
         method: 'POST',
+        format: 'json',
         ...params,
       }),
 

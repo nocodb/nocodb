@@ -149,7 +149,7 @@ export async function userInvite(param: {
 
   if (emails.length === 1) {
     return {
-      msg: 'success',
+      msg: 'The user has been invited successfully',
     };
   } else {
     return { invite_token, emails, error };
@@ -208,6 +208,10 @@ export async function projectUserUpdate(param: {
     description: `updated roles for ${user.email} with ${param.projectUser.roles} `,
     ip: param.req.clientIp,
   });
+
+  return {
+    msg: 'User has been updated successfully',
+  };
 }
 
 export async function projectUserDelete(param: {

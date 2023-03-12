@@ -18,8 +18,8 @@ import {
   inject,
   isDrawerOrModalExist,
   ref,
-  storeToRefs,
   useEventListener,
+  useProject,
   useRoles,
   useSelectedCellKeyupListener,
   watch,
@@ -61,7 +61,7 @@ const { getMeta } = useMetas()
 
 const { hasRole } = useRoles()
 
-const { isPg, isMysql } = storeToRefs(useProject())
+const { isPg, isMysql } = useProject()
 
 // a variable to keep newly created option value
 // temporary until it's add the option to column meta

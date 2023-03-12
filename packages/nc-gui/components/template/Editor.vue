@@ -24,6 +24,7 @@ import {
   parseStringDate,
   reactive,
   ref,
+  storeToRefs,
   useI18n,
   useNuxtApp,
   useProject,
@@ -67,7 +68,9 @@ const { $api } = useNuxtApp()
 
 const { addTab } = useTabs()
 
-const { sqlUis, project, loadTables } = useProject()
+const projectStrore = useProject()
+const { loadTables } = projectStrore
+const { sqlUis, project } = storeToRefs(projectStrore)
 
 const sqlUi = ref(sqlUis.value[baseId] || Object.values(sqlUis.value)[0])
 

@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import type { ApiTokenType } from 'nocodb-sdk'
-import { extractSdkResponseErrorMsg, message, onMounted, useCopy, useI18n, useNuxtApp, useProject } from '#imports'
+import { extractSdkResponseErrorMsg, message, onMounted, storeToRefs, useCopy, useI18n, useNuxtApp, useProject } from '#imports'
 
 interface ApiToken extends ApiTokenType {
   show?: boolean
@@ -10,7 +10,7 @@ const { t } = useI18n()
 
 const { $api, $e } = useNuxtApp()
 
-const { project } = $(useProject())
+const { project } = $(storeToRefs(useProject()))
 
 const { copy } = useCopy()
 

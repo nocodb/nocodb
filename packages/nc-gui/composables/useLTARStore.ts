@@ -11,6 +11,7 @@ import {
   message,
   reactive,
   ref,
+  storeToRefs,
   useI18n,
   useInjectionState,
   useMetas,
@@ -38,7 +39,7 @@ const [useProvideLTARStore, useLTARStore] = useInjectionState(
     // state
     const { metas, getMeta } = useMetas()
 
-    const { project } = useProject()
+    const { project } = storeToRefs(useProject())
 
     const { $api } = useNuxtApp()
 

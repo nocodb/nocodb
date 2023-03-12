@@ -20,6 +20,7 @@ import {
   projectTitleValidator,
   readFile,
   ref,
+  storeToRefs,
   useApi,
   useGlobal,
   useI18n,
@@ -35,7 +36,7 @@ const { appInfo } = useGlobal()
 
 const projectStore = useProject()
 const { loadProject } = projectStore
-const { project } = projectStore
+const { project } = storeToRefs(projectStore)
 
 const useForm = Form.useForm
 

@@ -11,6 +11,7 @@ import {
   message,
   populateInsertObject,
   ref,
+  storeToRefs,
   useApi,
   useI18n,
   useInjectionState,
@@ -42,7 +43,7 @@ const [useProvideExpandedFormStore, useExpandedFormStore] = useInjectionState((m
 
   const changedColumns = ref(new Set<string>())
 
-  const { project } = useProject()
+  const { project } = storeToRefs(useProject())
 
   const rowStore = useProvideSmartsheetRowStore(meta, row)
 

@@ -1,12 +1,12 @@
 <script setup lang="ts">
 import type { CheckboxChangeEvent } from 'ant-design-vue/es/checkbox/interface'
-import { useGlobal, useProject, watch } from '#imports'
+import { storeToRefs, useGlobal, useProject, watch } from '#imports'
 
 const { includeM2M, showNull } = useGlobal()
 
 const projectStore = useProject()
 const { updateProject, loadTables, hasEmptyOrNullFilters } = projectStore
-const { project, projectMeta } = projectStore
+const { project, projectMeta } = storeToRefs(projectStore)
 
 watch(includeM2M, async () => await loadTables())
 

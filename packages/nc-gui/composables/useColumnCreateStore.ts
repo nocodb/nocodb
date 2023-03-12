@@ -10,6 +10,7 @@ import {
   extractSdkResponseErrorMsg,
   message,
   ref,
+  storeToRefs,
   useI18n,
   useMetas,
   useNuxtApp,
@@ -27,7 +28,9 @@ interface ValidationsObj {
 
 const [useProvideColumnCreateStore, useColumnCreateStore] = createInjectionState(
   (meta: Ref<TableType | undefined>, column: Ref<ColumnType | undefined>) => {
-    const { project, sqlUis, isMysql: isMysqlFunc, isPg: isPgFunc, isMssql: isMssqlFunc } = useProject()
+    const projectStore = useProject()
+    const { isMysql: isMysqlFunc, isPg: isPgFunc, isMssql: isMssqlFunc } = projectStore
+    const { project, sqlUis } = storeToRefs(projectStore)
 
     const { $api } = useNuxtApp()
 

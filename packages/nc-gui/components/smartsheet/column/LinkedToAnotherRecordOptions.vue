@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { ModelTypes, MssqlUi, SqliteUi } from 'nocodb-sdk'
-import { MetaInj, inject, ref, useProject, useVModel } from '#imports'
+import { MetaInj, inject, ref, storeToRefs, useProject, useVModel } from '#imports'
 import MdiPlusIcon from '~icons/mdi/plus-circle-outline'
 import MdiMinusIcon from '~icons/mdi/minus-circle-outline'
 
@@ -16,7 +16,7 @@ const meta = $(inject(MetaInj, ref()))
 
 const { setAdditionalValidations, validateInfos, onDataTypeChange, sqlUi } = useColumnCreateStoreOrThrow()
 
-const { tables } = $(useProject())
+const { tables } = $(storeToRefs(useProject()))
 
 setAdditionalValidations({
   childId: [{ required: true, message: 'Required' }],

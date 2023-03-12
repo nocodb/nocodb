@@ -12,6 +12,7 @@ import {
   onBeforeUnmount,
   onMounted,
   ref,
+  storeToRefs,
   useGlobal,
   useNuxtApp,
   useProject,
@@ -33,7 +34,7 @@ const { $state } = useNuxtApp()
 
 const projectStore = useProject()
 
-const { project } = projectStore
+const { project } = storeToRefs(projectStore)
 
 const showGoToDashboardButton = ref(false)
 

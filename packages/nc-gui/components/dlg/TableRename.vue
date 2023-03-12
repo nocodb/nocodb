@@ -8,6 +8,7 @@ import {
   message,
   nextTick,
   reactive,
+  storeToRefs,
   useI18n,
   useMetas,
   useNuxtApp,
@@ -40,7 +41,7 @@ const { updateTab } = useTabs()
 
 const projectStore = useProject()
 const { loadTables, isMysql, isMssql, isPg } = projectStore
-const { project } = projectStore
+const { project } = storeToRefs(projectStore)
 
 const inputEl = $ref<ComponentPublicInstance>()
 

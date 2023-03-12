@@ -19,6 +19,7 @@ import {
   projectTitleValidator,
   readFile,
   ref,
+  storeToRefs,
   useApi,
   useI18n,
   useNuxtApp,
@@ -33,7 +34,7 @@ const emit = defineEmits(['baseUpdated'])
 
 const projectStore = useProject()
 const { loadProject } = projectStore
-const { project } = projectStore
+const { project } = storeToRefs(projectStore)
 
 const useForm = Form.useForm
 

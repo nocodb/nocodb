@@ -1,7 +1,7 @@
 import { reactive } from 'vue'
 import type { ComputedRef, Ref } from 'vue'
 import type { ColumnType, MapType, PaginatedType, TableType, ViewType } from 'nocodb-sdk'
-import { IsPublicInj, ref, useInjectionState, useMetas, useProject } from '#imports'
+import { IsPublicInj, ref, storeToRefs, useInjectionState, useMetas, useProject } from '#imports'
 import type { Row } from '~/lib'
 
 const storedValue = localStorage.getItem('geodataToggleState')
@@ -35,7 +35,7 @@ const [useProvideMapViewStore, useMapViewStore] = useInjectionState(
 
     const { api } = useApi()
 
-    const { project } = useProject()
+    const { project } = storeToRefs(useProject())
 
     const { $api } = useNuxtApp()
 

@@ -6,6 +6,7 @@ import {
   inject,
   message,
   ref,
+  storeToRefs,
   useCopy,
   useGlobal,
   useI18n,
@@ -24,7 +25,7 @@ const emits = defineEmits(['update:modelValue'])
 
 const { t } = useI18n()
 
-const { project } = $(useProject())
+const { project } = $(storeToRefs(useProject()))
 
 const { appInfo, token } = $(useGlobal())
 

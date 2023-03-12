@@ -7,6 +7,7 @@ import {
   onBeforeMount,
   projectRoleTagColors,
   ref,
+  storeToRefs,
   useApi,
   useCopy,
   useDashboard,
@@ -24,7 +25,7 @@ const { $e } = useNuxtApp()
 
 const { api } = useApi()
 
-const { project } = useProject()
+const { project } = storeToRefs(useProject())
 
 const { copy } = useCopy()
 

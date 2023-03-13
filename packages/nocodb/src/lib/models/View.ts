@@ -745,7 +745,6 @@ export default class View implements ViewType {
   > {
     const view = await this.get(viewId);
     const table = this.extractViewColumnsTableName(view);
-    console.log(table);
 
     const existingCol = await ncMeta.metaGet2(null, null, table, {
       fk_view_id: viewId,

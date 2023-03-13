@@ -39,7 +39,7 @@ const breadCrumbs = computed(() => {
 })
 
 const editor = useEditor({
-  extensions: tiptapExtensions(),
+  extensions: tiptapExtensions(isPublic.value),
   onUpdate: ({ editor }) => {
     if (!openedPage.value) return
 

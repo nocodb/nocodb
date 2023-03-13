@@ -7,37 +7,52 @@ definePageMeta({
   layout: 'docs',
 })
 
-const { nestedPages, navigateToFirstPage, routePageSlugs, nestedPublicParentPage, openedPage } = useDocs()
+const { toggleHasSidebar, toggle } = useSidebar('nc-left-sidebar')
+const { loadPublicPageAndProject, fetchNestedPages, openChildPageTabsOfRootPages, openedPage, isNestedPublicPage } = useDocs()
 
 const route = useRoute()
 
+const toggleSidebar = (isOpen: boolean) => {
+  if (isOpen) {
+    toggleHasSidebar(true)
+    toggle(true)
+  } else {
+    toggleHasSidebar(false)
+    toggle(false)
+  }
+}
+
+onMounted(async () => {
+  toggleSidebar(false)
+
+  await loadPublicPageAndProject()
+})
+
 watch(
-  nestedPages,
+  openedPage,
   async () => {
-    const slugs = route.params.slugs && (route.params.slugs as string[])?.filter((slug) => slug !== '')
-
-    if (slugs.length === 0) await navigateToFirstPage()
-  },
-  {
-    deep: true,
-  },
-)
-
-watch(
-  () => openedPage.value?.id,
-  (oldId, newId) => {
     if (!openedPage.value) return
-    if (oldId === newId) return
 
-    if (!nestedPublicParentPage.value && !!openedPage.value?.is_nested_published) {
-      nestedPublicParentPage.value = JSON.parse(JSON.stringify(openedPage.value))
-    } else if (routePageSlugs.value[0] !== nestedPublicParentPage.value?.id) {
-      nestedPublicParentPage.value = undefined
+    if (!isNestedPublicPage.value) {
+      toggleSidebar(false)
+      return
     }
+
+    toggleSidebar(true)
+
+    await fetchNestedPages()
+    await openChildPageTabsOfRootPages()
   },
   {
     deep: true,
     immediate: true,
+  },
+)
+
+watch(
+  () => route.path,
+  async () => {
+    await loadPublicPageAndProject()
   },
 )
 </script>

@@ -130,14 +130,6 @@
             "schema": {
               "type": "string"
             }
-          },
-          {
-            "name": "nestedPageId",
-            "in": "query",
-            "description": "nestedPageId",
-            "schema": {
-              "type": "string"
-            }
           }
         ],
         "description": ""

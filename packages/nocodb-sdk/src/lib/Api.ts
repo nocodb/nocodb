@@ -523,7 +523,6 @@ export interface DocsPageType {
   icon?: string;
   /** Unique identifier for the given page. */
   id?: string;
-  is_nested_published?: boolean;
   is_parent?: boolean;
   is_published?: boolean;
   nested_published_parent_id?: string | null;
@@ -2595,25 +2594,37 @@ export class Api<
       }),
 
     /**
-     * No description
-     *
-     * @tags Noco docs
-     * @name GetPublicPage
-     * @summary get public page
-     * @request GET:/api/v1/public/docs/page/{id}
-     * @response `200` `void` OK
-     */
+ * No description
+ * 
+ * @tags Noco docs
+ * @name GetPublicPage
+ * @summary get public page
+ * @request GET:/api/v1/public/docs/page/{id}
+ * @response `200` `{
+  \** Page of Noco docs *\
+  page?: DocsPageType,
+  \** Model for Project *\
+  project?: ProjectType,
+
+}` OK
+ */
     getPublicPage: (
       id: string,
       query: {
         /** Project id */
         projectId: string;
-        /** nestedPageId */
-        nestedPageId?: string;
       },
       params: RequestParams = {}
     ) =>
-      this.request<void, any>({
+      this.request<
+        {
+          /** Page of Noco docs */
+          page?: DocsPageType;
+          /** Model for Project */
+          project?: ProjectType;
+        },
+        any
+      >({
         path: `/api/v1/public/docs/page/${id}`,
         method: 'GET',
         query: query,
@@ -6809,23 +6820,6 @@ export class Api<
         path: `/api/v1/db/public/shared-view/${sharedViewUuid}/nested/${columnName}`,
         method: 'GET',
         query: query,
-        format: 'json',
-        ...params,
-      }),
-
-    /**
-     * No description
-     *
-     * @tags Public
-     * @name GetProject
-     * @summary get public project
-     * @request GET:/api/v1/db/public/project/{id}
-     * @response `200` `void` OK
-     */
-    getProject: (id: string, params: RequestParams = {}) =>
-      this.request<void, any>({
-        path: `/api/v1/db/public/project/${id}`,
-        method: 'GET',
         format: 'json',
         ...params,
       }),

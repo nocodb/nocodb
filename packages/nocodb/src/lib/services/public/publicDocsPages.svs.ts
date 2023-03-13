@@ -2,11 +2,7 @@ import Page from '../../models/Page';
 import { NcError } from '../../meta/helpers/catchError';
 import Project from '../../models/Project';
 
-export async function get(param: {
-  projectId: string;
-  pageId: string;
-  nestedPageId: string;
-}) {
+export async function get(param: { projectId: string; pageId: string }) {
   const project = await Project.getWithInfo(param.projectId as string);
 
   const page = await Page.get({

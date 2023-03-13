@@ -12,6 +12,7 @@ const [setup, use] = useInjectionState(() => {
   const { $api } = useNuxtApp()
   const { appInfo } = $(useGlobal())
   const { projectRoles } = useRoles()
+  const { project } = useProject()
 
   const isPublic = computed<boolean>(() => !!route.meta.public)
   const isEditAllowed = computed<boolean>(
@@ -71,8 +72,19 @@ const [setup, use] = useInjectionState(() => {
 
   const openedPage = ref<PageSidebarNode | undefined>(undefined)
 
-  const nestedPublicParentPage = ref<PageSidebarNode | undefined>(undefined)
-  const isNestedPublicPage = computed<boolean>(() => isPublic.value && !!nestedPublicParentPage.value)
+  const isNestedPublicPage = computed<boolean>(
+    () =>
+      !!(
+        openedPage.value?.is_published &&
+        openedPage.value?.nested_published_parent_id &&
+        openedPage.value?.nested_published_parent_id !== openedPage.value.id
+      ) ||
+      !!(
+        openedPage.value?.is_published &&
+        openedPage.value?.nested_published_parent_id === openedPage.value.id &&
+        openedPage.value.is_parent
+      ),
+  )
 
   // Pages tree used in sidebar
   const nestedPages = ref<PageSidebarNode[]>([])
@@ -82,23 +94,18 @@ const [setup, use] = useInjectionState(() => {
     if (!openedPageId.value) return undefined
     if (isFetching.value.nestedPages) return undefined
 
-    if (isNestedPublicPage.value) {
-      if (routePageSlugs.value.length < 3) return findPage(nestedPages.value, routePageSlugs.value[0])
-      return findPage(nestedPages.value, routePageSlugs.value[2])
-    }
-
-    return findPage(nestedPages.value, isNestedPublicPage.value ? routePageSlugs.value[2] : openedPageId.value)
+    return findPage(nestedPages.value, openedPageId.value)
   })
 
   watch(
     openedPageInSidebar,
     () => {
       if (!openedPage.value) return
+      if (isPublic.value) return
 
       openedPage.value = {
+        ...openedPage.value,
         ...openedPageInSidebar.value,
-        content: openedPage.value.content,
-        title: openedPage.value.title,
       } as PageSidebarNode
     },
     {
@@ -179,21 +186,13 @@ const [setup, use] = useInjectionState(() => {
 
   const openedPageWithParents = computed(() => (openedPageInSidebar.value ? getPageWithParents(openedPageInSidebar.value) : []))
 
-  // Is any of the parent pages of the opened page nested published
-  const parentWhichIsNestedPublished = computed(() => {
-    if (!openedPage.value) return false
-
-    const pageWithParents = getPageWithParents(openedPage.value!)
-    return pageWithParents?.find((page) => page.is_nested_published)
-  })
-
   async function fetchNestedPages() {
     isFetching.value.nestedPages = true
     try {
       const nestedDocTree = isPublic.value
         ? await $api.nocoDocs.listPublicPages({
             projectId: projectId!,
-            parent_page_id: openedPageId.value,
+            parent_page_id: openedPage.value!.nested_published_parent_id!,
           })
         : await $api.nocoDocs.listPages({
             projectId: projectId!,
@@ -232,7 +231,6 @@ const [setup, use] = useInjectionState(() => {
       return isPublic.value
         ? await $api.nocoDocs.getPublicPage(pageId, {
             projectId: projectId!,
-            nestedPageId: openedPageId.value,
           })
         : await $api.nocoDocs.getPage(pageId, {
             projectId: projectId!,
@@ -364,13 +362,8 @@ const [setup, use] = useInjectionState(() => {
     const slug = findPage(nestedPages.value, id)?.slug ?? ''
 
     const publicMode = isPublic.value || publicUrl
-    // We use nestedPublicParentPage when we are actually rendering the nested public page
-    // And we use openedPage when we are generating the url for the nested public page
-    const isNestedPublicMode = isNestedPublicPage.value || openedPage.value?.is_nested_published
     let url: string
-    if (publicMode && isNestedPublicMode) {
-      url = `/nc/doc/${projectId!}/s/${nestedPublicParentPage.value?.id ?? id}/${slug}/${id}/${slug}`
-    } else if (publicMode) {
+    if (publicMode) {
       url = `/nc/doc/s/${slug}-${id}-${projectId}`
     } else {
       url = `/nc/doc/p/${slug}-${id}-${projectId}`
@@ -542,7 +535,7 @@ const [setup, use] = useInjectionState(() => {
         path: [NOCO, projectId, randomId].join('/'),
       },
       {
-        files: file,
+        files: file as any,
         json: '{}',
       },
     )
@@ -601,6 +594,25 @@ const [setup, use] = useInjectionState(() => {
     return findPageInTree(_nestedPages, pageId)
   }
 
+  const loadPublicPageAndProject = async () => {
+    if (!openedPageId.value) throw new Error('openedPageId is not defined')
+
+    isFetching.value.page = true
+    try {
+      const response = await $api.nocoDocs.getPublicPage(openedPageId.value!, {
+        projectId: projectId!,
+      })
+
+      openedPage.value = response.page as any
+      project.value = response.project as any
+    } catch (error) {
+      console.error(error)
+      isPageErrored.value = true
+    } finally {
+      isFetching.value.page = false
+    }
+  }
+
   return {
     isPageErrored,
     isFetching,
@@ -637,10 +649,11 @@ const [setup, use] = useInjectionState(() => {
     openedPageWithParents,
     isPublic,
     getPageWithParents,
-    nestedPublicParentPage,
-    parentWhichIsNestedPublished,
     findPage,
     isEditAllowed,
+    projectId,
+    loadPublicPageAndProject,
+    isNestedPublicPage,
   }
 }, 'useDocs')
 

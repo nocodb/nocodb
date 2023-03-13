@@ -4,7 +4,6 @@ import { Icon as IconifyIcon } from '@iconify/vue'
 import { useShortcuts } from '../utils'
 import tiptapExtensions from '~~/utils/tiptapExtensions'
 
-const { project } = useProject()
 useShortcuts()
 
 const {
@@ -18,7 +17,6 @@ const {
   openedPageId,
   isPublic,
   isEditAllowed,
-  nestedPublicParentPage,
   isFetching,
   findPage,
   nestedPages,
@@ -148,9 +146,7 @@ watch(
       <div class="flex flex-col w-full">
         <div class="flex flex-row justify-between items-center pl-6 pt-2.5">
           <div class="flex flex-row h-6">
-            <template
-              v-if="!isFetching.nestedPages &&(!isPublic || (project.meta as any)?.isPublic || nestedPublicParentPage?.is_nested_published)"
-            >
+            <template v-if="!isFetching.nestedPages">
               <div v-for="({ href, title, icon, id }, index) of breadCrumbs" :key="id" class="flex">
                 <NuxtLink
                   class="text-sm !hover:text-black docs-breadcrumb-item !underline-transparent"

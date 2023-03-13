@@ -11,7 +11,6 @@ async function get(
   const { page, project } = await publicDocsPagesService.get({
     pageId: req.params.id,
     projectId: req.query?.projectId as string,
-    nestedPageId: req.query?.nestedPageId as string,
   });
 
   res.json({ page, project });

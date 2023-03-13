@@ -187,7 +187,6 @@ export function useViewData(
   }
 
   async function loadData(params: Parameters<Api<any>['dbViewRow']['list']>[4] = {}) {
-    debugger
     if ((!project?.value?.id || !meta.value?.id || !viewMeta.value?.id) && !isPublic.value) return
     const response = !isPublic.value
       ? await api.dbViewRow.list('noco', project.value.id!, meta.value!.id!, viewMeta.value!.id!, {
@@ -218,7 +217,6 @@ export function useViewData(
     galleryData.value = isPublic.value
       ? (sharedView.value?.view as GalleryType)
       : await $api.dbView.galleryRead(viewMeta.value.id)
-    // debugger
   }
 
   async function insertRow(

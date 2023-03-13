@@ -24,10 +24,13 @@ onMounted(async () => {
   if (isPublic.value) toggleSidebar(false)
 
   if (!project.value.id && !isProjectLoading.value) {
+    const pageId = route.params.pageId as string
+    const projectId = pageId.split('-')[pageId.split('-').length - 1]
+
     if (isPublic.value) {
-      await loadBookPublicProject()
+      await loadBookPublicProject(projectId)
     } else {
-      await loadBookProject()
+      await loadBookProject(projectId)
     }
 
     await fetchNestedPages()

@@ -6233,11 +6233,13 @@
       "parameters": [
         {
           "schema": {
-            "type": "string"
+            "type": "string",
+            "example": "vw_q6k13mmygdi3yz"
           },
           "name": "gridId",
           "in": "path",
-          "required": true
+          "required": true,
+          "description": "Grid View ID"
         }
       ],
       "get": {

@@ -89,6 +89,9 @@ jobs:
               ${{ runner.os }}-build-${{ env.cache-name }}-
               ${{ runner.os }}-build-
               ${{ runner.os }}-
+        - name: setup pg
+          working-directory: ./
+          run: docker-compose -f ./tests/playwright/scripts/docker-compose-playwright-pg.yml up -d &
         - name: install dependencies nocodb-sdk
           working-directory: ./packages/nocodb-sdk
           run: npm install

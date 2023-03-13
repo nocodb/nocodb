@@ -1,4 +1,14 @@
-import type { ExportTypes, FilterType, KanbanType, PaginatedType, RequestParams, SortType, TableType, ViewType } from 'nocodb-sdk'
+import type {
+  ExportTypes,
+  FilterType,
+  KanbanType,
+  MapType,
+  PaginatedType,
+  RequestParams,
+  SortType,
+  TableType,
+  ViewType,
+} from 'nocodb-sdk'
 import { UITypes } from 'nocodb-sdk'
 import { computed, useGlobal, useMetas, useNuxtApp, useState } from '#imports'
 
@@ -21,7 +31,7 @@ export function useSharedView() {
 
   const allowCSVDownload = useState<boolean>('allowCSVDownload', () => false)
 
-  const meta = useState<TableType | KanbanType | undefined>('meta', () => undefined)
+  const meta = useState<TableType | KanbanType | MapType | undefined>('meta', () => undefined)
 
   const formColumns = computed(
     () =>

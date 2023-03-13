@@ -22,7 +22,7 @@ const formatData = (list: Record<string, any>[]) =>
 
 const [useProvideMapViewStore, useMapViewStore] = useInjectionState(
   (
-    meta: Ref<TableType | undefined>,
+    meta: Ref<MapType | undefined>,
     viewMeta: Ref<ViewType | MapType | undefined> | ComputedRef<(ViewType & { id: string }) | undefined>,
     shared = false,
     where?: ComputedRef<string | undefined>,

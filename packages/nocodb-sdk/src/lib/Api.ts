@@ -758,7 +758,7 @@ export interface FormType {
 }
 
 /**
- * Model for Form Request
+ * Model for Form Update Request
  */
 export interface FormUpdateReqType {
   /** Banner Image URL. Not in use currently. */
@@ -770,11 +770,6 @@ export interface FormUpdateReqType {
    * @example My Form
    */
   heading?: string;
-  /**
-   * Lock Type of this view
-   * @example collaborative
-   */
-  lock_type?: 'collaborative' | 'locked' | 'personal';
   /** Logo URL. Not in use currently. */
   logo_url?: StringOrNullType;
   /** Meta Info for this view */
@@ -785,20 +780,12 @@ export interface FormUpdateReqType {
   redirect_url?: StringOrNullType;
   /** Show `Blank Form` after 5 seconds */
   show_blank_form?: BoolType;
-  /**
-   * The subheading of the form
-   * @example My Form Subheading
-   */
-  subheading?: string;
+  /** The subheading of the form */
+  subheading?: StringOrNullType;
   /** Show `Submit Another Form` button */
   submit_another_form?: BoolType;
   /** Custom message after the form is successfully submitted */
   success_msg?: StringOrNullType;
-  /**
-   * The title of the form
-   * @example My Form
-   */
-  title?: string;
 }
 
 /**
@@ -3756,7 +3743,11 @@ export class Api<
  * @name ModelVisibilitySet
  * @summary Create UI ACL
  * @request POST:/api/v1/db/meta/projects/{projectId}/visibility-rules
- * @response `200` `BoolType` OK
+ * @response `200` `{
+  \** @example UI ACL has been created successfully *\
+  msg?: string,
+
+}` OK
  * @response `400` `{
   \** @example BadRequest [Error]: <ERROR MESSAGE> *\
   msg?: string,
@@ -3769,7 +3760,10 @@ export class Api<
       params: RequestParams = {}
     ) =>
       this.request<
-        BoolType,
+        {
+          /** @example UI ACL has been created successfully */
+          msg?: string;
+        },
         {
           /** @example BadRequest [Error]: <ERROR MESSAGE> */
           msg?: string;
@@ -6974,7 +6968,11 @@ export class Api<
  * @name NestedAdd
  * @summary Create Nested Relations Row
  * @request POST:/api/v1/db/data/{orgs}/{projectName}/{tableName}/{rowId}/{relationType}/{columnName}/{refRowId}
- * @response `200` `any` OK
+ * @response `200` `{
+  \** @example The relation data has been created successfully *\
+  msg?: string,
+
+}` OK
  * @response `400` `{
   \** @example BadRequest [Error]: <ERROR MESSAGE> *\
   msg?: string,
@@ -7014,7 +7012,10 @@ export class Api<
       params: RequestParams = {}
     ) =>
       this.request<
-        any,
+        {
+          /** @example The relation data has been created successfully */
+          msg?: string;
+        },
         {
           /** @example BadRequest [Error]: <ERROR MESSAGE> */
           msg?: string;
@@ -7034,7 +7035,11 @@ export class Api<
  * @name NestedRemove
  * @summary Delete Nested Relations Row
  * @request DELETE:/api/v1/db/data/{orgs}/{projectName}/{tableName}/{rowId}/{relationType}/{columnName}/{refRowId}
- * @response `200` `any` OK
+ * @response `200` `{
+  \** @example The relation data has been deleted successfully *\
+  msg?: string,
+
+}` OK
  * @response `400` `{
   \** @example BadRequest [Error]: <ERROR MESSAGE> *\
   msg?: string,
@@ -7052,7 +7057,10 @@ export class Api<
       params: RequestParams = {}
     ) =>
       this.request<
-        any,
+        {
+          /** @example The relation data has been deleted successfully */
+          msg?: string;
+        },
         {
           /** @example BadRequest [Error]: <ERROR MESSAGE> */
           msg?: string;
@@ -7159,7 +7167,13 @@ export class Api<
  * @name List
  * @summary List Table View Rows
  * @request GET:/api/v1/db/data/{orgs}/{projectName}/{tableName}/views/{viewName}
- * @response `200` `object` OK
+ * @response `200` `{
+  \** List of table view rows *\
+  list?: (object)[],
+  \** Paginated Info *\
+  pageInfo?: PaginatedType,
+
+}` OK
  * @response `400` `{
   \** @example BadRequest [Error]: <ERROR MESSAGE> *\
   msg?: string,
@@ -7182,7 +7196,12 @@ export class Api<
       params: RequestParams = {}
     ) =>
       this.request<
-        object,
+        {
+          /** List of table view rows */
+          list?: object[];
+          /** Paginated Info */
+          pageInfo?: PaginatedType;
+        },
         {
           /** @example BadRequest [Error]: <ERROR MESSAGE> */
           msg?: string;

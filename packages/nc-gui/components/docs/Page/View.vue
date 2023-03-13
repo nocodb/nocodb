@@ -43,7 +43,7 @@ const editor = useEditor({
   onUpdate: ({ editor }) => {
     if (!openedPage.value) return
 
-    openedPage.value.content = editor.getHTML()
+    openedPage.value.content = JSON.stringify(editor.getJSON())
   },
   editorProps: {
     handleKeyDown: (view, event) => {
@@ -93,12 +93,16 @@ watch(
   () => {
     if (!editor.value) return
 
-    if (content.value !== editor.value?.getHTML()) {
+    if (content.value !== JSON.stringify(editor.value?.getJSON())) {
       ;(editor.value.state as any).history$.prevRanges = null
       ;(editor.value.state as any).history$.done.eventCount = 0
 
       const selection = editor.value.view.state.selection
-      editor.value.chain().setContent(content.value).setTextSelection(selection.to).run()
+      editor.value
+        .chain()
+        .setContent(JSON.parse(content.value ?? {}))
+        .setTextSelection(selection.to)
+        .run()
     }
   },
 )

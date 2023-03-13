@@ -51,7 +51,7 @@ export async function list(param: { projectId: string; parentPageId: string }) {
 
   if (!page) NcError.notFound('Page not found');
 
-  if (!page.is_published) {
+  if (!page.is_published || page.id !== page.nested_published_parent_id) {
     NcError.notFound('Page is not found.');
   }
 

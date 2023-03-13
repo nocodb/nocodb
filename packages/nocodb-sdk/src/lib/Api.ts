@@ -5849,7 +5849,7 @@ export class Api<
  * @name Create
  * @summary Create Column in View
  * @request POST:/api/v1/db/meta/views/{viewId}/columns
- * @response `200` `void` OK
+ * @response `200` `ColumnType` OK
  * @response `400` `{
   \** @example BadRequest [Error]: <ERROR MESSAGE> *\
   msg?: string,
@@ -5862,7 +5862,7 @@ export class Api<
       params: RequestParams = {}
     ) =>
       this.request<
-        void,
+        ColumnType,
         {
           /** @example BadRequest [Error]: <ERROR MESSAGE> */
           msg?: string;
@@ -5872,6 +5872,7 @@ export class Api<
         method: 'POST',
         body: data,
         type: ContentType.Json,
+        format: 'json',
         ...params,
       }),
 
@@ -5882,7 +5883,7 @@ export class Api<
  * @name Update
  * @summary Update View Column
  * @request PATCH:/api/v1/db/meta/views/{viewId}/columns/{columnId}
- * @response `200` `void` OK
+ * @response `200` `number` OK
  * @response `400` `{
   \** @example BadRequest [Error]: <ERROR MESSAGE> *\
   msg?: string,
@@ -5896,7 +5897,7 @@ export class Api<
       params: RequestParams = {}
     ) =>
       this.request<
-        void,
+        number,
         {
           /** @example BadRequest [Error]: <ERROR MESSAGE> */
           msg?: string;
@@ -5906,6 +5907,7 @@ export class Api<
         method: 'PATCH',
         body: data,
         type: ContentType.Json,
+        format: 'json',
         ...params,
       }),
   };

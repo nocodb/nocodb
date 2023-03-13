@@ -50,14 +50,14 @@ const clear = () => {
 
 const onClickSetCurrentLocation = () => {
   isLoading = true
-  const onSuccess = (position) => {
+  const onSuccess: PositionCallback = (position: GeolocationPosition) => {
     const crd = position.coords
-    formState.latitude = crd.latitude
-    formState.longitude = crd.longitude
+    formState.latitude = `${crd.latitude}`
+    formState.longitude = `${crd.longitude}`
     isLoading = false
   }
 
-  const onError = (err) => {
+  const onError: PositionErrorCallback = (err) => {
     console.error(`ERROR(${err.code}): ${err.message}`)
     isLoading = false
   }

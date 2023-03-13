@@ -212,8 +212,8 @@ export class GridPage extends BasePage {
       recordCnt = records[0].split(' ')[0];
 
       // to ensure page loading is complete
-      await this.rootPage.waitForTimeout(500);
       i++;
+      await this.rootPage.waitForTimeout(100 * i);
     }
     expect(parseInt(recordCnt)).toEqual(count);
   }
@@ -282,6 +282,9 @@ export class GridPage extends BasePage {
       columnHeader: columnHeader,
     });
     await expect(await cell.locator('input')).toBeVisible();
+
+    // press escape to exit edit mode
+    await cell.press('Escape');
 
     // right click menu
     await this.get().locator(`td[data-testid="cell-${columnHeader}-0"]`).click({

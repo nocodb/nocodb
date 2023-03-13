@@ -4,10 +4,9 @@ import { promisify } from 'util';
 
 import mkdirp from 'mkdirp';
 
-import { IStorageAdapterV2, XcFile } from 'nc-plugin';
-import NcConfigFactory from '../../../../utils/NcConfigFactory';
-
 import axios from 'axios';
+import NcConfigFactory from '../../../../utils/NcConfigFactory';
+import type { IStorageAdapterV2, XcFile } from 'nc-plugin';
 
 export default class Local implements IStorageAdapterV2 {
   constructor() {}

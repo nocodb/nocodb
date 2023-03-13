@@ -235,6 +235,7 @@
     "action": "Handling",
     "actions": "Handlinger",
     "operation": "Operasjon",
+    "operationSub": "Sub Operation",
     "operationType": "Operasjonstype",
     "operationSubType": "OPERATION SUB-TYPE",
     "description": "Beskrivelse",

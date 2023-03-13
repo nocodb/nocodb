@@ -173,7 +173,11 @@ const rowMixedValue = (column: ColumnType, index: number) => {
     case UITypes.LongText:
       return longText[index % longText.length];
     case UITypes.Date:
-      return '2020-01-01';
+      // set startDate as 400 days before today
+      // eslint-disable-next-line no-case-declarations
+      const result = new Date();
+      result.setDate(result.getDate() - 400 + index);
+      return result.toISOString().slice(0, 10);
     case UITypes.URL:
       return urls[index % urls.length];
     case UITypes.SingleSelect:
@@ -214,7 +218,7 @@ const listRow = async ({
   const bases = await project.getBases();
   const baseModel = await Model.getBaseModelSQL({
     id: table.id,
-    dbDriver: NcConnectionMgrv2.get(bases[0]!),
+    dbDriver: await NcConnectionMgrv2.get(bases[0]!),
   });
 
   const ignorePagination = !options;

@@ -1,6 +1,6 @@
-import PGClient from './PgClient';
 import Debug from '../../../util/Debug';
 import Result from '../../../util/Result';
+import PGClient from './PgClient';
 
 const log = new Debug('YBClient');
 

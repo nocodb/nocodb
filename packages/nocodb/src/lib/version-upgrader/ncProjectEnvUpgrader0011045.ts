@@ -1,4 +1,4 @@
-import { NcUpgraderCtx } from './NcUpgrader';
+import type { NcUpgraderCtx } from './NcUpgrader';
 
 export default async function (ctx: NcUpgraderCtx) {
   const projects = await ctx.ncMeta.projectList();

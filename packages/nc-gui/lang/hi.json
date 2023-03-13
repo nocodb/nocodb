@@ -235,6 +235,7 @@
     "action": "गतिविधि",
     "actions": "कार्रवाई",
     "operation": "संचालन",
+    "operationSub": "Sub Operation",
     "operationType": "प्रचालन प्रकार",
     "operationSubType": "प्रचालन उप-प्रकार",
     "description": "विवरण",

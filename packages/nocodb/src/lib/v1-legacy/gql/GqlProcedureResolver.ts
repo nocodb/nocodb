@@ -3,8 +3,8 @@ import autoBind from 'auto-bind';
 import BaseProcedure from '../../utils/common/BaseProcedure';
 import XcProcedure from '../../utils/common/XcProcedure';
 
-import { GqlApiBuilder } from './GqlApiBuilder';
 import GqlBaseResolver from './GqlBaseResolver';
+import type { GqlApiBuilder } from './GqlApiBuilder';
 
 export class GqlProcedureResolver extends BaseProcedure {
   private acls: { [aclName: string]: { [role: string]: boolean } };

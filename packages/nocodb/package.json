@@ -25,7 +25,7 @@
     "obfuscate:build:publish": "npm run build:obfuscate && npm publish .",
     "fix": "run-s fix:*",
     "fix:prettier": "prettier \"src/**/*.ts\" --write",
-    "lint": "eslint src --ext .ts",
+    "lint": "eslint src --ext .ts --fix",
     "test": "cross-env TS_NODE_PROJECT=tsconfig.json mocha -r ts-node/register   src/__tests__/**/*.test.ts --recursive",
     "unit-test": "cross-env TS_NODE_PROJECT=tsconfig.json mocha --require ts-node/register 'src/__tests__/unit/**/*.test.ts' --recursive --check-leaks --exit",
     "local:test:unit": "cross-env TS_NODE_PROJECT=./tests/unit/tsconfig.json mocha -r ts-node/register   tests/unit/index.test.ts --recursive --timeout 300000  --exit --delay",
@@ -43,7 +43,8 @@
     "watch:run:pg": "cross-env  NC_DISABLE_TELE=true EE=true nodemon -e ts,js -w ./src -x \"ts-node src/run/dockerRunPG --log-error --project tsconfig.json\"",
     "run": "ts-node src/run/docker",
     "watch:try": "nodemon -e ts,js -w ./src -x \"ts-node src/run/try --log-error --project tsconfig.json\"",
-    "example:docker": "ts-node src/run/docker.ts"
+    "example:docker": "ts-node src/run/docker.ts",
+    "redoc": "nodemon -e ts,json -w ./src/schema -x \"ts-node src/run/redoc --log-error --project tsconfig.json\""
   },
   "engines": {
     "node": ">=8.9"
@@ -54,6 +55,7 @@
     "@sentry/node": "^6.3.5",
     "airtable": "^0.11.3",
     "ajv": "^8.12.0",
+    "ajv-formats": "^2.1.1",
     "archiver": "^5.0.2",
     "auto-bind": "^4.0.0",
     "aws-sdk": "^2.829.0",
@@ -105,7 +107,7 @@
     "multer": "^1.4.2",
     "mysql2": "^2.2.5",
     "nanoid": "^3.1.20",
-    "nc-help": "0.2.85",
+    "nc-help": "0.2.87",
     "nc-lib-gui": "0.105.3",
     "nc-plugin": "0.1.2",
     "ncp": "^2.0.0",
@@ -160,7 +162,7 @@
     "eslint-config-prettier": "^6.15.0",
     "eslint-plugin-eslint-comments": "^3.2.0",
     "eslint-plugin-functional": "^3.0.2",
-    "eslint-plugin-import": "^2.22.0",
+    "eslint-plugin-import": "^2.25.2",
     "eslint-plugin-prettier": "^4.0.0",
     "mocha": "^10.1.0",
     "nodemon": "^2.0.7",

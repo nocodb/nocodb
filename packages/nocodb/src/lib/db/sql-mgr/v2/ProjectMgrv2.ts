@@ -1,7 +1,7 @@
 import SqlMgrv2 from './SqlMgrv2';
 import SqlMgrv2Trans from './SqlMgrv2Trans';
-import NcMetaIO from '../../../meta/NcMetaIO';
-import Base from '../../../models/Base';
+import type NcMetaIO from '../../../meta/NcMetaIO';
+import type Base from '../../../models/Base';
 
 export default class ProjectMgrv2 {
   private static sqlMgrMap: {

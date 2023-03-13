@@ -1,12 +1,13 @@
-import { Knex } from 'knex';
-import { NcUpgraderCtx } from './NcUpgrader';
+import { UITypes } from 'nocodb-sdk';
 import { MetaTable } from '../utils/globals';
 import Base from '../models/Base';
 import Model from '../models/Model';
-import { XKnex } from '../db/sql-data-mapper/index';
 import NcConnectionMgrv2 from '../utils/common/NcConnectionMgrv2';
-import { BaseType, UITypes } from 'nocodb-sdk';
 import { throwTimeoutError } from './ncUpgradeErrors';
+import type { Knex } from 'knex';
+import type { NcUpgraderCtx } from './NcUpgrader';
+import type { XKnex } from '../db/sql-data-mapper/index';
+import type { BaseType } from 'nocodb-sdk';
 
 // after 0101002 upgrader, the attachment object would become broken when
 // (1) switching views after updating a singleSelect field
@@ -58,7 +59,7 @@ export default async function ({ ncMeta }: NcUpgraderCtx) {
 
     const knex: Knex = base.is_meta
       ? ncMeta.knexConnection
-      : NcConnectionMgrv2.get(base);
+      : await NcConnectionMgrv2.get(base);
     const models = await base.getModels(ncMeta);
 
     // used in timeout error message
@@ -135,7 +136,7 @@ export default async function ({ ncMeta }: NcUpgraderCtx) {
                       corruptedAttachment.length - 1
                     )}]`
                   );
-                  let newAttachmentMeta = [];
+                  const newAttachmentMeta = [];
                   for (const attachment of corruptedAttachment) {
                     newAttachmentMeta.push(JSON.parse(attachment));
                   }

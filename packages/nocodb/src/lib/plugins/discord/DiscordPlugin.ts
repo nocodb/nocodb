@@ -1,9 +1,7 @@
-import {
-  IWebhookNotificationAdapter,
-  XcWebhookNotificationPlugin,
-} from 'nc-plugin';
+import { XcWebhookNotificationPlugin } from 'nc-plugin';
 
 import Discord from './Discord';
+import type { IWebhookNotificationAdapter } from 'nc-plugin';
 
 class DiscordPlugin extends XcWebhookNotificationPlugin {
   private static notificationAdapter: Discord;

@@ -1,8 +1,8 @@
-import { NcUpgraderCtx } from './NcUpgrader';
 import { MetaTable } from '../utils/globals';
 import View from '../models/View';
 import Hook from '../models/Hook';
 import Column from '../models/Column';
+import type { NcUpgraderCtx } from './NcUpgrader';
 
 // before 0.101.0, an incorrect project_id was inserted when
 // a filter is created without specifying the column

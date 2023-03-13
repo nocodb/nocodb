@@ -1,10 +1,10 @@
-import SqlMgrv2 from './SqlMgrv2';
-import Base from '../../../models/Base';
 import NcConnectionMgrv2 from '../../../utils/common/NcConnectionMgrv2';
-import { Knex } from 'knex';
-import { XKnex } from '../../sql-data-mapper';
-import NcMetaIO from '../../../meta/NcMetaIO';
 import KnexMigratorv2Tans from '../../sql-migrator/lib/KnexMigratorv2Tans';
+import SqlMgrv2 from './SqlMgrv2';
+import type Base from '../../../models/Base';
+import type { Knex } from 'knex';
+import type { XKnex } from '../../sql-data-mapper';
+import type NcMetaIO from '../../../meta/NcMetaIO';
 
 export default class SqlMgrv2Trans extends SqlMgrv2 {
   protected trx: Knex.Transaction;
@@ -34,7 +34,7 @@ export default class SqlMgrv2Trans extends SqlMgrv2 {
   }
 
   public async startTransaction(base: Base) {
-    const knex: XKnex = NcConnectionMgrv2.get(base);
+    const knex: XKnex = await NcConnectionMgrv2.get(base);
     this.trx = await knex.transaction();
   }
 

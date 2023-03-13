@@ -1,6 +1,5 @@
-import axios from 'axios';
-
 import { promises as fs } from 'fs';
+import axios from 'axios';
 
 const sqliteFilePath = (parallelId: string) => {
   const rootDir = __dirname.replace(

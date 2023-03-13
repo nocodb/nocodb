@@ -1,10 +1,9 @@
-import { ColumnType } from 'nocodb-sdk';
-
 import knex from 'knex';
+import find from 'lodash/find';
 import KnexClient from '../KnexClient';
 import Debug from '../../../util/Debug';
 import Result from '../../../util/Result';
-import find from 'lodash/find';
+import type { ColumnType } from 'nocodb-sdk';
 
 const log = new Debug('MssqlClient');
 

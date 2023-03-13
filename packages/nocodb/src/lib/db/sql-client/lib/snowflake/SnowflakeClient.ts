@@ -1,11 +1,11 @@
 import { nanoid } from 'nanoid';
 
 import _ from 'lodash';
+import lodash from 'lodash';
 import KnexClient from '../KnexClient';
 import Debug from '../../../util/Debug';
 import Result from '../../../util/Result';
 import queries from './snowflake.queries';
-import lodash from 'lodash';
 const log = new Debug('SnowflakeClient');
 
 const rowsToLower = (arr) => {

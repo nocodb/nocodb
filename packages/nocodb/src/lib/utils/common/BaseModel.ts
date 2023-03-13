@@ -1,12 +1,12 @@
 import Handlebars from 'handlebars';
-import { IWebhookNotificationAdapter } from 'nc-plugin';
 import ejs from 'ejs';
-import IEmailAdapter from '../../../interface/IEmailAdapter';
 import { BaseModelSql } from '../../db/sql-data-mapper';
+import formSubmissionEmailTemplate from './formSubmissionEmailTemplate';
+import type { IWebhookNotificationAdapter } from 'nc-plugin';
+import type IEmailAdapter from '../../../interface/IEmailAdapter';
 
 // import axios from "axios";
-import BaseApiBuilder from './BaseApiBuilder';
-import formSubmissionEmailTemplate from './formSubmissionEmailTemplate';
+import type BaseApiBuilder from './BaseApiBuilder';
 
 Handlebars.registerHelper('json', function (context) {
   return JSON.stringify(context);

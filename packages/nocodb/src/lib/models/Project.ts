@@ -1,6 +1,4 @@
-import Base from './/Base';
 import Noco from '../Noco';
-import { BoolType, MetaType, ProjectType } from 'nocodb-sdk';
 import {
   CacheDelDirection,
   CacheGetType,
@@ -9,6 +7,9 @@ import {
 } from '../utils/globals';
 import { extractProps } from '../meta/helpers/extractProps';
 import NocoCache from '../cache/NocoCache';
+import Base from './/Base';
+import type { BoolType, MetaType, ProjectType } from 'nocodb-sdk';
+import type { DB_TYPES } from './/Base';
 
 export default class Project implements ProjectType {
   public id: string;
@@ -68,7 +69,7 @@ export default class Project implements ProjectType {
     for (const base of project.bases) {
       await Base.createBase(
         {
-          type: base.config?.client,
+          type: base.config?.client as typeof DB_TYPES[number],
           ...base,
           projectId,
         },

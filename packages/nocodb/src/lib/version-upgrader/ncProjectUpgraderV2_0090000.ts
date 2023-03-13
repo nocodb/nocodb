@@ -1,25 +1,17 @@
-import { NcUpgraderCtx } from './NcUpgrader';
-import Noco from '../Noco';
-import User from '../models/User';
-import Project from '../models/Project';
-import ProjectUser from '../models/ProjectUser';
-import Model from '../models/Model';
 import {
   ModelTypes,
   substituteColumnAliasWithIdInFormula,
   UITypes,
-  ViewType,
   ViewTypes,
 } from 'nocodb-sdk';
+import Model from '../models/Model';
+import ProjectUser from '../models/ProjectUser';
+import Project from '../models/Project';
+import User from '../models/User';
+import Noco from '../Noco';
 import Column from '../models/Column';
-import LinkToAnotherRecordColumn from '../models/LinkToAnotherRecordColumn';
 import NcHelp from '../utils/NcHelp';
-import RollupColumn from '../models/RollupColumn';
 import View from '../models/View';
-import GridView from '../models/GridView';
-import KanbanView from '../models/KanbanView';
-import FormView from '../models/FormView';
-import GalleryView from '../models/GalleryView';
 import Sort from '../models/Sort';
 import Filter from '../models/Filter';
 import ModelRoleVisibility from '../models/ModelRoleVisibility';
@@ -30,6 +22,15 @@ import GridViewColumn from '../models/GridViewColumn';
 import { getUniqueColumnAliasName } from '../meta/helpers/getUniqueName';
 import NcProjectBuilderEE from '../v1-legacy/NcProjectBuilderEE';
 import Audit from '../models/Audit';
+import type GalleryView from '../models/GalleryView';
+import type FormView from '../models/FormView';
+import type { ViewType } from 'nocodb-sdk';
+import type KanbanView from '../models/KanbanView';
+import type GridView from '../models/GridView';
+import type RollupColumn from '../models/RollupColumn';
+import type { ROLLUP_FUNCTIONS } from '../models/RollupColumn';
+import type LinkToAnotherRecordColumn from '../models/LinkToAnotherRecordColumn';
+import type { NcUpgraderCtx } from './NcUpgrader';
 
 export default async function (ctx: NcUpgraderCtx) {
   const ncMeta = ctx.ncMeta;
@@ -92,14 +93,10 @@ async function migrateProjects(
           is_meta: !!projectConfig.prefix,
           type: d.client,
           config: d,
-          created_at: project.created_at,
-          updated_at: project.updated_at,
           inflection_column: inflection.cn,
           inflection_table: inflection.tn,
         };
       }),
-      created_at: project.created_at,
-      updated_at: project.updated_at,
     };
     const p = await Project.createProject(projectBody, ncMeta);
     projectsObj[p.id] = p;
@@ -126,8 +123,6 @@ async function migrateProjectUsers(
         project_id: projectUser.project_id,
         fk_user_id: projectUser.user_id,
         roles: projectUser.roles,
-        created_at: projectUser.created_at,
-        updated_at: projectUser.updated_at,
       },
       ncMeta
     );
@@ -268,8 +263,6 @@ interface ModelMetav1 {
   m_to_m_meta: string;
   order: number;
   view_order: number;
-  created_at;
-  updated_at;
 }
 
 type ObjModelColumnRefv1 = {
@@ -406,8 +399,6 @@ async function migrateProjectModels(
           title: modelData.alias,
           // todo: sanitize
           type: modelData.type === 'table' ? ModelTypes.TABLE : ModelTypes.VIEW,
-          created_at: modelData.created_at,
-          updated_at: modelData.updated_at,
           mm: !!modelData.mm,
         },
         ncMeta
@@ -613,7 +604,8 @@ async function migrateProjectModels(
 
               const colBody: Partial<RollupColumn & Column> = {
                 title: columnMeta._cn,
-                rollup_function: columnMeta.rl.fn,
+                rollup_function: columnMeta.rl
+                  .fn as typeof ROLLUP_FUNCTIONS[number],
               };
 
               colBody.fk_rollup_column_id =
@@ -883,14 +875,7 @@ async function migrateProjectModelViews(
       queryParams;
 
     const insertObj: Partial<
-      View &
-        GridView &
-        KanbanView &
-        FormView &
-        GalleryView & {
-          created_at;
-          updated_at;
-        }
+      View & GridView & KanbanView & FormView & GalleryView
     > = {
       title: viewData.title,
       show: true,
@@ -898,8 +883,6 @@ async function migrateProjectModelViews(
       fk_model_id: objModelRef[project.id][viewData.parent_model_title].id,
       project_id: project.id,
       base_id: baseId,
-      created_at: viewData.created_at,
-      updated_at: viewData.updated_at,
     };
 
     if (viewData.show_as === 'grid') {
@@ -1082,8 +1065,6 @@ async function migrateUIAcl(ctx: MigrateCtxV1, ncMeta: any) {
     tn: string;
     parent_model_title: string;
     project_id: string;
-    created_at?;
-    updated_at?;
   }> = await ncMeta.metaList(null, null, 'nc_disabled_models_for_role');
 
   for (const acl of uiAclList) {
@@ -1116,8 +1097,6 @@ async function migrateUIAcl(ctx: MigrateCtxV1, ncMeta: any) {
         role: acl.role,
         fk_view_id,
         disabled: acl.disabled,
-        created_at: acl.created_at,
-        updated_at: acl.updated_at,
       },
       ncMeta
     );
@@ -1216,8 +1195,6 @@ async function migratePlugins(ncMeta: any) {
       creator: plugin.creator,
       creator_website: plugin.creator_website,
       price: plugin.price,
-      created_at: plugin.created_at,
-      updated_at: plugin.updated_at,
     });
   }
 }
@@ -1243,8 +1220,6 @@ async function migrateWebhooks(ctx: MigrateCtxV1, ncMeta: any) {
     retry_interval: number;
     timeout: number;
     active: boolean;
-    created_at?;
-    updated_at?;
   }> = await ncMeta.metaList(null, null, 'nc_hooks');
 
   for (const hookMeta of hooks) {
@@ -1274,8 +1249,6 @@ async function migrateWebhooks(ctx: MigrateCtxV1, ncMeta: any) {
         retry_interval: hookMeta.retry_interval,
         timeout: hookMeta.timeout,
         active: hookMeta.active,
-        created_at: hookMeta.created_at,
-        updated_at: hookMeta.updated_at,
       },
       ncMeta
     );
@@ -1325,8 +1298,6 @@ async function migrateAutitLog(
     status: string;
     description: string;
     details: string;
-    created_at: any;
-    updated_at: any;
   }> = await ncMeta.metaList(null, null, 'nc_audit');
 
   for (const audit of audits) {
@@ -1343,8 +1314,6 @@ async function migrateAutitLog(
       status: audit.status,
       description: audit.description,
       details: audit.details,
-      created_at: audit.created_at,
-      updated_at: audit.updated_at,
     };
 
     if (audit.model_name) {

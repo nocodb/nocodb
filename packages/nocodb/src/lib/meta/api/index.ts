@@ -1,114 +1,114 @@
-import { Tele } from 'nc-help';
-import orgLicenseApis from './orgLicenseApis';
-import orgTokenApis from './orgTokenApis';
-import orgUserApis from './orgUserApis';
-import projectApis from './projectApis';
-import baseApis from './baseApis';
-import tableApis from './tableApis';
-import columnApis from './columnApis';
-import { Router } from 'express';
-import sortApis from './sortApis';
-import filterApis from './filterApis';
-import viewColumnApis from './viewColumnApis';
-import gridViewApis from './gridViewApis';
-import viewApis from './viewApis';
-import galleryViewApis from './galleryViewApis';
-import formViewApis from './formViewApis';
-import formViewColumnApis from './formViewColumnApis';
-import attachmentApis from './attachmentApis';
-import exportApis from './exportApis';
-import auditApis from './auditApis';
-import hookApis from './hookApis';
-import pluginApis from './pluginApis';
-import gridViewColumnApis from './gridViewColumnApis';
-import kanbanViewApis from './kanbanViewApis';
-import { userApis } from './userApi';
-// import extractProjectIdAndAuthenticate from './helpers/extractProjectIdAndAuthenticate';
-import utilApis from './utilApis';
-import projectUserApis from './projectUserApis';
-import sharedBaseApis from './sharedBaseApis';
-import { initStrategies } from './userApi/initStrategies';
-import modelVisibilityApis from './modelVisibilityApis';
-import metaDiffApis from './metaDiffApis';
-import cacheApis from './cacheApis';
-import apiTokenApis from './apiTokenApis';
-import hookFilterApis from './hookFilterApis';
-import testApis from './testApis';
-import {
-  bulkDataAliasApis,
-  dataAliasApis,
-  dataAliasExportApis,
-  dataAliasNestedApis,
-  dataApis,
-  oldDataApis,
-} from './dataApis';
-import {
-  publicDataApis,
-  publicDataExportApis,
-  publicMetaApis,
-} from './publicApis';
-import { Server, Socket } from 'socket.io';
-import passport from 'passport';
-
 import crypto from 'crypto';
-import swaggerApis from './swagger/swaggerApis';
-import importApis from './sync/importApis';
-import syncSourceApis from './sync/syncSourceApis';
-import mapViewApis from './mapViewApis';
+import { T } from 'nc-help';
+import { Server } from 'socket.io';
+import passport from 'passport';
+import orgLicenseController from '../../controllers/orgLicense.ctl';
+import orgTokenController from '../../controllers/orgToken.ctl';
+import orgUserController from '../../controllers/orgUser.ctl';
+import projectController from '../../controllers/project.ctl';
+import baseController from '../../controllers/base.ctl';
+import tableController from '../../controllers/table.ctl';
+import columnController from '../../controllers/column.ctl';
+import sortController from '../../controllers/sort.ctl';
+import filterController from '../../controllers/filter.ctl';
+import viewColumnController from '../../controllers/viewColumn.ctl';
+import gridViewController from '../../controllers/views/gridView.ctl';
+import viewController from '../../controllers/view.ctl';
+import galleryViewController from '../../controllers/views/galleryView.ctl';
+import formViewController from '../../controllers/views/formView.ctl';
+import formViewColumnController from '../../controllers/views/formViewColumn.ctl';
+import attachmentController from '../../controllers/attachment.ctl';
+import exportController from '../../controllers/export.ctl';
+import auditController from '../../controllers/audit.ctl';
+import hookController from '../../controllers/hook.ctl';
+import pluginController from '../../controllers/plugin.ctl';
+import gridViewColumnController from '../../controllers/views/gridViewColumn.ctl';
+import kanbanViewController from '../../controllers/views/kanbanView.ctl';
+import { userController } from '../../controllers/user';
+// import extractProjectIdAndAuthenticate from './helpers/extractProjectIdAndAuthenticate';
+import utilController from '../../controllers/util.ctl';
+import projectUserController from '../../controllers/projectUser.ctl';
+import sharedBaseController from '../../controllers/sharedBase.ctl';
+import { initStrategies } from '../../controllers/user/initStrategies';
+import modelVisibilityController from '../../controllers/modelVisibility.ctl';
+import metaDiffController from '../../controllers/metaDiff.ctl';
+import cacheController from '../../controllers/cache.ctl';
+import apiTokenController from '../../controllers/apiToken.ctl';
+import hookFilterController from '../../controllers/hookFilter.ctl';
+import testController from '../../controllers/test.ctl';
+import {
+  bulkDataAliasController,
+  dataAliasController,
+  dataAliasExportController,
+  dataAliasNestedController,
+  dataController,
+  oldDataController,
+} from '../../controllers/dbData';
+import {
+  publicDataController,
+  publicDataExportController,
+  publicMetaController,
+} from '../../controllers/publicControllers';
+
+import swaggerController from '../../controllers/apiDocs';
+import { importController, syncSourceController } from '../../controllers/sync';
+import mapViewController from '../../controllers/views/mapView.ctl';
+import type { Socket } from 'socket.io';
+import type { Router } from 'express';
 
 const clients: { [id: string]: Socket } = {};
 const jobs: { [id: string]: { last_message: any } } = {};
 
 export default function (router: Router, server) {
   initStrategies(router);
-  projectApis(router);
-  baseApis(router);
-  utilApis(router);
+  projectController(router);
+  baseController(router);
+  utilController(router);
 
   if (process.env['PLAYWRIGHT_TEST'] === 'true') {
-    router.use(testApis);
+    router.use(testController);
   }
-  router.use(columnApis);
-  router.use(exportApis);
-  router.use(dataApis);
-  router.use(bulkDataAliasApis);
-  router.use(dataAliasApis);
-  router.use(dataAliasNestedApis);
-  router.use(dataAliasExportApis);
-  router.use(oldDataApis);
-  router.use(sortApis);
-  router.use(filterApis);
-  router.use(viewColumnApis);
-  router.use(gridViewApis);
-  router.use(formViewColumnApis);
-  router.use(publicDataApis);
-  router.use(publicDataExportApis);
-  router.use(publicMetaApis);
-  router.use(gridViewColumnApis);
-  router.use(tableApis);
-  router.use(galleryViewApis);
-  router.use(formViewApis);
-  router.use(viewApis);
-  router.use(attachmentApis);
-  router.use(auditApis);
-  router.use(hookApis);
-  router.use(pluginApis);
-  router.use(projectUserApis);
-  router.use(orgUserApis);
-  router.use(orgTokenApis);
-  router.use(orgLicenseApis);
-  router.use(sharedBaseApis);
-  router.use(modelVisibilityApis);
-  router.use(metaDiffApis);
-  router.use(cacheApis);
-  router.use(apiTokenApis);
-  router.use(hookFilterApis);
-  router.use(swaggerApis);
-  router.use(syncSourceApis);
-  router.use(kanbanViewApis);
-  router.use(mapViewApis);
+  router.use(columnController);
+  router.use(exportController);
+  router.use(dataController);
+  router.use(bulkDataAliasController);
+  router.use(dataAliasController);
+  router.use(dataAliasNestedController);
+  router.use(dataAliasExportController);
+  router.use(oldDataController);
+  router.use(sortController);
+  router.use(filterController);
+  router.use(viewColumnController);
+  router.use(gridViewController);
+  router.use(formViewColumnController);
+  router.use(publicDataController);
+  router.use(publicDataExportController);
+  router.use(publicMetaController);
+  router.use(gridViewColumnController);
+  router.use(tableController);
+  router.use(galleryViewController);
+  router.use(formViewController);
+  router.use(viewController);
+  router.use(attachmentController);
+  router.use(auditController);
+  router.use(hookController);
+  router.use(pluginController);
+  router.use(projectUserController);
+  router.use(orgUserController);
+  router.use(orgTokenController);
+  router.use(orgLicenseController);
+  router.use(sharedBaseController);
+  router.use(modelVisibilityController);
+  router.use(metaDiffController);
+  router.use(cacheController);
+  router.use(apiTokenController);
+  router.use(hookFilterController);
+  router.use(swaggerController);
+  router.use(syncSourceController);
+  router.use(kanbanViewController);
+  router.use(mapViewController);
 
-  userApis(router);
+  userController(router);
 
   const io = new Server(server, {
     cors: {
@@ -133,15 +133,15 @@ export default function (router: Router, server) {
   }).on('connection', (socket) => {
     clients[socket.id] = socket;
     const id = getHash(
-      (process.env.NC_SERVER_UUID || Tele.id) +
+      (process.env.NC_SERVER_UUID || T.id) +
         (socket?.handshake as any)?.user?.id
     );
 
     socket.on('page', (args) => {
-      Tele.page({ ...args, id });
+      T.page({ ...args, id });
     });
     socket.on('event', (args) => {
-      Tele.event({ ...args, id });
+      T.event({ ...args, id });
     });
     socket.on('subscribe', (room) => {
       if (room in jobs) {
@@ -152,7 +152,7 @@ export default function (router: Router, server) {
     });
   });
 
-  importApis(router, io, jobs);
+  importController(router, io, jobs);
 }
 
 function getHash(str) {

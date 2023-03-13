@@ -1,20 +1,20 @@
 import { customAlphabet } from 'nanoid';
-import {
+import { UITypes } from 'nocodb-sdk';
+import Column from '../../../models/Column';
+import { getUniqueColumnAliasName } from '../../helpers/getUniqueName';
+import validateParams from '../../helpers/validateParams';
+import type {
+  BoolType,
   ColumnReqType,
   LinkToAnotherRecordType,
   LookupColumnReqType,
-  BoolType,
   RelationTypes,
   RollupColumnReqType,
   TableType,
-  UITypes,
 } from 'nocodb-sdk';
-import Column from '../../../models/Column';
-import LinkToAnotherRecordColumn from '../../../models/LinkToAnotherRecordColumn';
-import LookupColumn from '../../../models/LookupColumn';
-import Model from '../../../models/Model';
-import { getUniqueColumnAliasName } from '../../helpers/getUniqueName';
-import validateParams from '../../helpers/validateParams';
+import type LinkToAnotherRecordColumn from '../../../models/LinkToAnotherRecordColumn';
+import type LookupColumn from '../../../models/LookupColumn';
+import type Model from '../../../models/Model';
 
 export const randomID = customAlphabet(
   '1234567890abcdefghijklmnopqrstuvwxyz_',
@@ -77,9 +77,7 @@ export async function createHmAndBtColumn(
   }
 }
 
-export async function validateRollupPayload(
-  payload: ColumnReqType & { uidt: UITypes }
-) {
+export async function validateRollupPayload(payload: ColumnReqType | Column) {
   validateParams(
     [
       'title',
@@ -125,7 +123,7 @@ export async function validateRollupPayload(
 }
 
 export async function validateLookupPayload(
-  payload: ColumnReqType & { uidt: UITypes },
+  payload: ColumnReqType,
   columnId?: string
 ) {
   validateParams(

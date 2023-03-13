@@ -6,12 +6,11 @@ import * as jwt from 'jsonwebtoken';
 import passport from 'passport';
 import { ExtractJwt, Strategy } from 'passport-jwt';
 
-import IEmailAdapter from '../../../interface/IEmailAdapter';
-import { DbConfig, NcConfig } from '../../../interface/config';
-import { Knex, XKnex } from '../../db/sql-data-mapper';
-import Noco from '../../Noco';
-
 import authSchema from './auth/schema';
+import type IEmailAdapter from '../../../interface/IEmailAdapter';
+import type { DbConfig, NcConfig } from '../../../interface/config';
+import type { Knex, XKnex } from '../../db/sql-data-mapper';
+import type Noco from '../../Noco';
 
 const { v4: uuidv4 } = require('uuid');
 const PassportLocalStrategy = require('passport-local').Strategy;

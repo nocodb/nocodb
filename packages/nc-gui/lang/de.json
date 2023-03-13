@@ -100,7 +100,7 @@
       "form": "Formular",
       "kanban": "Kanban",
       "calendar": "Kalender",
-      "map": "Karte"
+      "map": "Map"
     },
     "user": "Nutzer",
     "users": "Benutzer",
@@ -235,6 +235,7 @@
     "action": "Aktion",
     "actions": "Aktionen",
     "operation": "Vorgang",
+    "operationSub": "Sub Operation",
     "operationType": "Vorgangstyp",
     "operationSubType": "Vorgangsuntertyp",
     "description": "Beschreibung",

@@ -118,6 +118,7 @@ const {
   selectedAllRecords,
   removeRowIfNew,
   navigateToSiblingRow,
+  getExpandedRowIndex,
 } = useViewData(meta, view, xWhere)
 
 const { getMeta } = useMetas()
@@ -980,6 +981,8 @@ const closeAddColumnDropdown = () => {
         :row-id="routeQuery.rowId"
         :view="view"
         show-next-prev-icons
+        :first-row="getExpandedRowIndex() === 0"
+        :last-row="getExpandedRowIndex() === data.length - 1"
         @next="navigateToSiblingRow(NavigateDir.NEXT)"
         @prev="navigateToSiblingRow(NavigateDir.PREV)"
       />
@@ -1056,7 +1059,7 @@ const closeAddColumnDropdown = () => {
     position: sticky !important;
     left: 80px;
     z-index: 5;
-    @apply border-r-1 border-r-gray-300;
+    @apply border-r-2 border-r-gray-300;
   }
 
   tbody td:nth-child(2) {
@@ -1064,7 +1067,7 @@ const closeAddColumnDropdown = () => {
     left: 80px;
     z-index: 4;
     background: white;
-    @apply shadow-lg border-r-1 border-r-gray-300;
+    @apply border-r-2 border-r-gray-300;
   }
 }
 

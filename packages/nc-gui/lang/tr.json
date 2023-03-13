@@ -235,6 +235,7 @@
     "action": "Aksiyon",
     "actions": "Aksiyonlar",
     "operation": "İşlem",
+    "operationSub": "Sub Operation",
     "operationType": "İşlem türü",
     "operationSubType": "İşlem alt-türü",
     "description": "Tanım",

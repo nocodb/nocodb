@@ -225,7 +225,7 @@ function onNotTypeChange(reset = false) {
   }
 
   if (hook.notification.type === 'Slack') {
-    slackChannels.value = (apps.value && apps.value.Slack && apps.Slack.parsedInput) || []
+    slackChannels.value = (apps.value && apps.value.Slack && apps.value.Slack.parsedInput) || []
   }
 
   if (hook.notification.type === 'Microsoft Teams') {
@@ -651,6 +651,7 @@ onMounted(loadPluginList)
             </a-checkbox>
 
             <LazySmartsheetToolbarColumnFilter
+              class="mt-4"
               v-if="hook.condition"
               ref="filterRef"
               :auto-save="false"

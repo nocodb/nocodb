@@ -1,8 +1,52 @@
-import { AuditOperationTypes, AuditType } from 'nocodb-sdk';
+import { AuditOperationTypes } from 'nocodb-sdk';
 import { MetaTable } from '../utils/globals';
 import Noco from '../Noco';
-import Model from './Model';
 import { extractProps } from '../meta/helpers/extractProps';
+import Model from './Model';
+import type { AuditType } from 'nocodb-sdk';
+
+const opTypes = <const>[
+  'COMMENT',
+  'DATA',
+  'PROJECT',
+  'VIRTUAL_RELATION',
+  'RELATION',
+  'TABLE_VIEW',
+  'TABLE',
+  'VIEW',
+  'META',
+  'WEBHOOKS',
+  'AUTHENTICATION',
+  'TABLE_COLUMN',
+  'ORG_USER',
+];
+
+const opSubTypes = <const>[
+  'UPDATE',
+  'INSERT',
+  'BULK_INSERT',
+  'BULK_UPDATE',
+  'BULK_DELETE',
+  'LINK_RECORD',
+  'UNLINK_RECORD',
+  'DELETE',
+  'CREATED',
+  'DELETED',
+  'RENAMED',
+  'IMPORT_FROM_ZIP',
+  'EXPORT_TO_FS',
+  'EXPORT_TO_ZIP',
+  'UPDATED',
+  'SIGNIN',
+  'SIGNUP',
+  'PASSWORD_RESET',
+  'PASSWORD_FORGOT',
+  'PASSWORD_CHANGE',
+  'EMAIL_VERIFICATION',
+  'ROLES_MANAGEMENT',
+  'INVITE',
+  'RESEND_INVITE',
+];
 
 export default class Audit implements AuditType {
   id?: string;
@@ -12,8 +56,8 @@ export default class Audit implements AuditType {
   project_id?: string;
   fk_model_id?: string;
   row_id?: string;
-  op_type?: string;
-  op_sub_type?: string;
+  op_type?: typeof opTypes[number];
+  op_sub_type?: typeof opSubTypes[number];
   status?: string;
   description?: string;
   details?: string;

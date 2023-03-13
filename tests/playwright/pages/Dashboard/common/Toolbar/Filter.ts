@@ -29,20 +29,28 @@ export class ToolbarFilterPage extends BasePage {
     ).toBeChecked();
   }
 
+  async clickAddFilter() {
+    await this.get().locator(`button:has-text("Add Filter")`).first().click();
+  }
+
   async add({
     columnTitle,
     opType,
+    opSubType,
     value,
     isLocallySaved,
     dataType,
+    openModal = false,
   }: {
     columnTitle: string;
     opType: string;
+    opSubType?: string; // for date datatype
     value?: string;
     isLocallySaved: boolean;
     dataType?: string;
+    openModal?: boolean;
   }) {
-    await this.get().locator(`button:has-text("Add Filter")`).first().click();
+    if (!openModal) await this.get().locator(`button:has-text("Add Filter")`).first().click();
 
     const selectedField = await this.rootPage.locator('.nc-filter-field-select').textContent();
     if (selectedField !== columnTitle) {
@@ -52,19 +60,6 @@ export class ToolbarFilterPage extends BasePage {
         .locator(`div[label="${columnTitle}"]:visible`)
         .click();
     }
-
-    // network request will be triggered only after filter value is configured
-    //
-    // const selectColumn = this.rootPage
-    //   .locator('div.ant-select-dropdown.nc-dropdown-toolbar-field-list')
-    //   .locator(`div[label="${columnTitle}"]`)
-    //   .click();
-    // await this.waitForResponse({
-    //   uiAction: selectColumn,
-    //   httpMethodsToMatch: isLocallySaved ? ['GET'] : ['POST', 'PATCH'],
-    //   requestUrlPathToMatch: isLocallySaved ? `/api/v1/db/public/` : `/filters`,
-    // });
-    // await this.toolbar.parent.dashboard.waitForLoaderToDisappear();
 
     const selectedOpType = await this.rootPage.locator('.nc-filter-operation-select').textContent();
     if (selectedOpType !== opType) {
@@ -76,27 +71,42 @@ export class ToolbarFilterPage extends BasePage {
         .first()
         .click();
     }
-    // if (selectedOpType !== opType) {
-    //   await this.rootPage.locator('.nc-filter-operation-select').last().click();
-    //   // first() : filter list has >, >=
-    //   const selectOpType = this.rootPage
-    //     .locator('.nc-dropdown-filter-comp-op')
-    //     .locator(`.ant-select-item:has-text("${opType}")`)
-    //     .first()
-    //     .click();
-    //
-    //   await this.waitForResponse({
-    //     uiAction: selectOpType,
-    //     httpMethodsToMatch: isLocallySaved ? ['GET'] : ['POST', 'PATCH'],
-    //     requestUrlPathToMatch: isLocallySaved ? `/api/v1/db/public/` : `/filters`,
-    //   });
-    //   await this.toolbar.parent.dashboard.waitForLoaderToDisappear();
-    // }
+
+    // subtype for date
+    if (dataType === UITypes.Date && opSubType) {
+      const selectedSubType = await this.rootPage.locator('.nc-filter-sub_operation-select').textContent();
+      if (selectedSubType !== opSubType) {
+        await this.rootPage.locator('.nc-filter-sub_operation-select').click();
+        // first() : filter list has >, >=
+        await this.rootPage
+          .locator('.nc-dropdown-filter-comp-sub-op')
+          .locator(`.ant-select-item:has-text("${opSubType}")`)
+          .first()
+          .click();
+      }
+    }
 
     // if value field was provided, fill it
     if (value) {
       let fillFilter: any = null;
       switch (dataType) {
+        case UITypes.Date:
+          if (opSubType === 'exact date') {
+            await this.get().locator('.nc-filter-value-select').click();
+            await this.rootPage.locator(`.ant-picker-dropdown:visible`);
+            await this.rootPage.locator(`.ant-picker-cell-inner:has-text("${value}")`).click();
+          } else {
+            fillFilter = () => this.rootPage.locator('.nc-filter-value-select > input').last().fill(value);
+            await this.waitForResponse({
+              uiAction: fillFilter,
+              httpMethodsToMatch: ['GET'],
+              requestUrlPathToMatch: isLocallySaved ? `/api/v1/db/public/` : `/api/v1/db/data/noco/`,
+            });
+            await this.toolbar.parent.dashboard.waitForLoaderToDisappear();
+            await this.toolbar.parent.waitLoading();
+            break;
+          }
+          break;
         case UITypes.Duration:
           await this.get().locator('.nc-filter-value-select').locator('input').fill(value);
           break;
@@ -113,7 +123,7 @@ export class ToolbarFilterPage extends BasePage {
           for (let i = 0; i < v.length; i++) {
             await this.rootPage
               .locator(`.nc-dropdown-multi-select-cell`)
-              .locator(`.nc-select-option-MultiSelect-${v[i]}`)
+              .locator(`[data-testid="select-option-MultiSelect-filter"].nc-select-option-MultiSelect-${v[i]}`)
               .click();
           }
           break;

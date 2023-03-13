@@ -2,15 +2,14 @@ import fs from 'fs';
 import path from 'path';
 import { promisify } from 'util';
 
-import autoBind from 'auto-bind';
-import debug from 'debug';
+import { URL } from 'url';
 import * as ejs from 'ejs';
 import { Router } from 'express';
 import { glob } from 'glob';
 import mkdirp from 'mkdirp';
 
-import { URL } from 'url';
-import { DbConfig, NcConfig } from '../../../interface/config';
+import debug from 'debug';
+import autoBind from 'auto-bind';
 import ModelXcMetaFactory from '../../db/sql-mgr/code/models/xc/ModelXcMetaFactory';
 import SwaggerXc from '../../db/sql-mgr/code/routers/xc-ts/SwaggerXc';
 import SwaggerXcBt from '../../db/sql-mgr/code/routers/xc-ts/SwaggerXcBt';
@@ -19,26 +18,29 @@ import ExpressXcTsRoutes from '../../db/sql-mgr/code/routes/xc-ts/ExpressXcTsRou
 import ExpressXcTsRoutesBt from '../../db/sql-mgr/code/routes/xc-ts/ExpressXcTsRoutesBt';
 import ExpressXcTsRoutesHm from '../../db/sql-mgr/code/routes/xc-ts/ExpressXcTsRoutesHm';
 import NcHelp from '../../utils/NcHelp';
-import NcProjectBuilder from '../NcProjectBuilder';
-import Noco from '../../Noco';
 import BaseApiBuilder, {
   IGNORE_TABLES,
-  NcMetaData,
-  XcTablesPopulateParams,
 } from '../../utils/common/BaseApiBuilder';
-import NcMetaIO from '../../meta/NcMetaIO';
-
+import Column from '../../models/Column';
+import { MetaTable } from '../../utils/globals';
 import { RestCtrl } from './RestCtrl';
+
 import { RestCtrlBelongsTo } from './RestCtrlBelongsTo';
 import { RestCtrlCustom } from './RestCtrlCustom';
 import { RestCtrlHasMany } from './RestCtrlHasMany';
 import { RestCtrlProcedure } from './RestCtrlProcedure';
-import Column from '../../models/Column';
+import type NcMetaIO from '../../meta/NcMetaIO';
+import type {
+  NcMetaData,
+  XcTablesPopulateParams,
+} from '../../utils/common/BaseApiBuilder';
+import type Noco from '../../Noco';
 // import NocoTypeGenerator from '../v1-legacy-resolver/NocoTypeGenerator';
 // import NocoResolverGenerator from '../v1-legacy-resolver/NocoResolverGenerator';
 // import { RestCtrlv2 } from './RestCtrlv2';
 // import registerRestCtrl from './registerRestCtrl';
-import { MetaTable } from '../../utils/globals';
+import type { DbConfig, NcConfig } from '../../../interface/config';
+import type NcProjectBuilder from '../NcProjectBuilder';
 // import { BaseModelSqlv2 } from '../../sql-data-mapper/lib/sql/BaseModelSqlv2';
 
 const log = debug('nc:api:rest');

@@ -235,6 +235,7 @@
     "action": "Akce",
     "actions": "Akce",
     "operation": "Operace",
+    "operationSub": "Sub Operation",
     "operationType": "Typ operace",
     "operationSubType": "Podtyp operace",
     "description": "Popis",

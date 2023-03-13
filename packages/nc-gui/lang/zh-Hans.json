@@ -75,7 +75,7 @@
     "hideField": "隐藏字段",
     "sortAsc": "升序",
     "sortDesc": "降序",
-    "geoDataField": "GeoData Field"
+    "geoDataField": "地理数据字段"
   },
   "objects": {
     "project": "项目",
@@ -138,7 +138,7 @@
     "Currency": "货币",
     "Percent": "百分比",
     "Duration": "时长",
-    "GeoData": "GeoData",
+    "GeoData": "地理数据",
     "Rating": "评分",
     "Formula": "公式",
     "Rollup": "聚合",
@@ -235,6 +235,7 @@
     "action": "操作",
     "actions": "操作",
     "operation": "操作",
+    "operationSub": "Sub Operation",
     "operationType": "操作类型",
     "operationSubType": "子操作类型",
     "description": "描述",
@@ -256,9 +257,9 @@
     "barcodeFormat": "条形码码制",
     "qrCodeValueTooLong": "字数超出二维码容量",
     "barcodeValueTooLong": "字数超出条形码容量",
-    "yourLocation": "Your Location",
-    "lng": "Lng",
-    "lat": "Lat",
+    "yourLocation": "您所在的位置",
+    "lng": "经度",
+    "lat": "纬度",
     "aggregateFunction": "汇总功能",
     "dbCreateIfNotExists": "自动创建数据库",
     "clientKey": "客户端密钥",
@@ -529,8 +530,8 @@
         "orgViewer": "游客不能创建新项目，仅允许访问受邀项目。"
       },
       "map": {
-        "overLimit": "You're over the limit.",
-        "closeLimit": "You're getting close to the limit.",
+        "overLimit": "你已经超出了限制。",
+        "closeLimit": "您已接近上限。",
         "limitNumber": "The limit of markers shown in a Map View is 1000 records."
       },
       "footerInfo": "每页行驶",
@@ -615,7 +616,7 @@
         "gallery": "添加画廊视图",
         "form": "添加表单视图",
         "kanban": "添加看板视图",
-        "map": "Add Map View",
+        "map": "添加地图视图",
         "calendar": "添加日历视图"
       },
       "tablesMetadataInSync": "表元数据同步",

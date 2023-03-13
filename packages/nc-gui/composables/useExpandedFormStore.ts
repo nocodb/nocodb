@@ -30,13 +30,15 @@ const [useProvideExpandedFormStore, useExpandedFormStore] = useInjectionState((m
 
   const { t } = useI18n()
 
-  const commentsOnly = ref(false)
+  const commentsOnly = ref(true)
 
   const commentsAndLogs = ref<any[]>([])
 
   const comment = ref('')
 
-  const commentsDrawer = ref(false)
+  const commentsDrawer = ref(true)
+
+  const saveRowAndStay = ref(0)
 
   const changedColumns = ref(new Set<string>())
 
@@ -243,6 +245,7 @@ const [useProvideExpandedFormStore, useExpandedFormStore] = useInjectionState((m
     changedColumns,
     loadRow,
     primaryKey,
+    saveRowAndStay,
   }
 }, 'expanded-form-store')
 

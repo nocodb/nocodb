@@ -1,7 +1,7 @@
-import { GqlApiBuilder } from '../../v1-legacy/gql/GqlApiBuilder';
-import { RestApiBuilder } from '../../v1-legacy/rest/RestApiBuilder';
+import type { GqlApiBuilder } from '../../v1-legacy/gql/GqlApiBuilder';
+import type { RestApiBuilder } from '../../v1-legacy/rest/RestApiBuilder';
 
-import XcProcedure from './XcProcedure';
+import type XcProcedure from './XcProcedure';
 
 export default class BaseProcedure {
   protected builder: GqlApiBuilder | RestApiBuilder;

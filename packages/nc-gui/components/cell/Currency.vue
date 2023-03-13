@@ -81,6 +81,7 @@ onMounted(() => {
     @keydown.delete.stop
     @selectstart.capture.stop
     @mousedown.stop
+    @contextmenu.stop
   />
 
   <span v-else-if="vModel === null && showNull" class="nc-null">NULL</span>

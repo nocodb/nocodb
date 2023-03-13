@@ -11111,22 +11111,24 @@
                 "schema": {
                   "type": "object",
                   "properties": {
-                    "plugins": {
+                    "data": {
                       "type": "object",
-                      "properties": {
-                        "list": {
-                          "type": "array",
-                          "uniqueItems": true,
-                          "minItems": 1,
-                          "items": {
-                            "$ref": "#/components/schemas/Plugin"
-                          }
-                        },
-                        "pageInfo": {
-                          "$ref": "#/components/schemas/Paginated"
-                        }
+                      "x-stoplight": {
+                        "id": "qifsikf69hqbl"
                       },
-                      "required": ["list", "pageInfo"]
+                      "description": "Sample Payload Data"
+                    }
+                  }
+                },
+                "examples": {
+                  "Example 1": {
+                    "value": {
+                      "data": {
+                        "Id": 1,
+                        "Title": "Sample Text",
+                        "CreatedAt": "2023-03-13T04:59:49.363Z",
+                        "UpdatedAt": "2023-03-13T04:59:49.363Z"
+                      }
                     }
                   }
                 }

@@ -1838,11 +1838,22 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/Bool"
+                  "type": "object",
+                  "properties": {
+                    "msg": {
+                      "type": "string",
+                      "x-stoplight": {
+                        "id": "2txh071wsodys"
+                      },
+                      "example": "UI ACL has been created successfully"
+                    }
+                  }
                 },
                 "examples": {
                   "Example 1": {
-                    "value": 1
+                    "value": {
+                      "msg": "UI ACL has been created successfully"
+                    }
                   }
                 }
               }
@@ -8409,7 +8420,29 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "type": "object"
+                  "type": "object",
+                  "properties": {
+                    "list": {
+                      "type": "array",
+                      "x-stoplight": {
+                        "id": "okd8utzm9xqet"
+                      },
+                      "description": "List of table view rows",
+                      "items": {
+                        "x-stoplight": {
+                          "id": "j758lsjv53o4q"
+                        },
+                        "type": "object"
+                      }
+                    },
+                    "pageInfo": {
+                      "$ref": "#/components/schemas/Paginated",
+                      "x-stoplight": {
+                        "id": "hylgqzgm8yhye"
+                      },
+                      "description": "Paginated Info"
+                    }
+                  }
                 },
                 "examples": {
                   "Example 1": {
@@ -10021,7 +10054,25 @@
             "description": "OK",
             "content": {
               "application/json": {
-                "schema": {}
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "msg": {
+                      "type": "string",
+                      "x-stoplight": {
+                        "id": "m6jox00hxgd6s"
+                      },
+                      "example": "The relation data has been created successfully"
+                    }
+                  }
+                },
+                "examples": {
+                  "Example 1": {
+                    "value": {
+                      "msg": "The relation data has been created successfully"
+                    }
+                  }
+                }
               }
             }
           },
@@ -10113,7 +10164,25 @@
             "description": "OK",
             "content": {
               "application/json": {
-                "schema": {}
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "msg": {
+                      "type": "string",
+                      "x-stoplight": {
+                        "id": "vo3x8xf3j2xlb"
+                      },
+                      "example": "The relation data has been deleted successfully"
+                    }
+                  }
+                },
+                "examples": {
+                  "Example 1": {
+                    "value": {
+                      "msg": "The relation data has been deleted successfully"
+                    }
+                  }
+                }
               }
             }
           },

@@ -760,7 +760,7 @@ export interface FormType {
 /**
  * Model for Form Request
  */
-export interface FormReqType {
+export interface FormUpdateReqType {
   /** Banner Image URL. Not in use currently. */
   banner_image_url?: StringOrNullType;
   /** Email to sned after form is submitted */
@@ -930,41 +930,9 @@ export interface GalleryColumnType {
 }
 
 /**
- * Model for Gallery Request
- */
-export interface GalleryReqType {
-  /** Not in use currently */
-  cover_image?: string;
-  /**
-   * Not in use currently
-   * @min 0
-   */
-  cover_image_idx?: number;
-  /** The id of the column that contains the cover image */
-  fk_cover_image_col_id?: StringOrNullType;
-  /** The lock type of gallery */
-  lock_type?: 'collaborative' | 'locked' | 'personal';
-  /** Not in use currently */
-  next_enabled?: BoolType;
-  /** Not in use currently */
-  prev_enabled?: BoolType;
-  /** Not in use currently */
-  restrict_number?: string;
-  /** Not in use currently */
-  restrict_size?: string;
-  /** Not in use currently */
-  restrict_types?: string;
-  /**
-   * The title of the gallery
-   * @example My Gallery
-   */
-  title: string;
-}
-
-/**
  * Model for Gallery View Update Request
  */
-export interface GalleryViewUpdateReqType {
+export interface GalleryUpdateReqType {
   /** The id of the column that contains the cover image */
   fk_cover_image_col_id?: StringOrNullType;
   /** Meta Info */
@@ -1065,7 +1033,7 @@ export interface GridColumnReqType {
 /**
  * Model for Grid View Update
  */
-export interface GridViewUpdateReqType {
+export interface GridUpdateReqType {
   /**
    * Row Height
    * @example 1
@@ -1073,30 +1041,6 @@ export interface GridViewUpdateReqType {
   row_height?: number;
   /** Meta Info for grid view */
   meta?: MetaType;
-}
-
-/**
- * Model for Grid Request
- */
-export interface GridReqType {
-  /** The lock type of the grid */
-  lock_type?: 'collaborative' | 'locked' | 'personal';
-  /**
-   * The order of the grid
-   * @example 1
-   */
-  order?: number;
-  /**
-   * The height of the grid rows
-   * @min 1
-   * @example 1
-   */
-  row_height?: number;
-  /**
-   * The title of the grid
-   * @example My Grid
-   */
-  title: string;
 }
 
 /**
@@ -1321,19 +1265,6 @@ export interface KanbanColumnType {
 }
 
 /**
- * Model for Kanban Request
- */
-export interface KanbanReqType {
-  /** Grouping Column ID */
-  fk_grp_col_id?: StringOrNullType;
-  /**
-   * The title of the kanban
-   * @example My Kanban
-   */
-  title: string;
-}
-
-/**
  * Model for Kanban Update Request
  */
 export interface KanbanUpdateReqType {
@@ -1476,7 +1407,7 @@ export interface MapType {
 /**
  * Model for Map
  */
-export interface MapViewUpdateReqType {
+export interface MapUpdateReqType {
   /**
    * Foreign Key to GeoData Column
    * @example cl_8iw2o4ejzvdyna
@@ -5298,11 +5229,7 @@ export class Api<
 
 }`
  */
-    formUpdate: (
-      formViewId: IdType,
-      data: FormReqType,
-      params: RequestParams = {}
-    ) =>
+    formUpdate: (formViewId: IdType, data: any, params: RequestParams = {}) =>
       this.request<
         number,
         {
@@ -5396,7 +5323,7 @@ export class Api<
  */
     gridUpdate: (
       viewId: string,
-      data: GridViewUpdateReqType,
+      data: GridUpdateReqType,
       params: RequestParams = {}
     ) =>
       this.request<
@@ -5526,7 +5453,7 @@ export class Api<
  */
     galleryUpdate: (
       galleryViewId: string,
-      data: GalleryViewUpdateReqType,
+      data: GalleryUpdateReqType,
       params: RequestParams = {}
     ) =>
       this.request<
@@ -5718,7 +5645,7 @@ export class Api<
  */
     mapUpdate: (
       mapViewId: string,
-      data: MapViewUpdateReqType,
+      data: MapUpdateReqType,
       params: RequestParams = {}
     ) =>
       this.request<

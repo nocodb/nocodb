@@ -2017,7 +2017,19 @@
         "operationId": "project-delete",
         "responses": {
           "200": {
-            "description": "OK"
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "boolean"
+                },
+                "examples": {
+                  "Example 1": {
+                    "value": true
+                  }
+                }
+              }
+            }
           },
           "400": {
             "$ref": "#/components/responses/BadRequest"
@@ -2046,7 +2058,14 @@
         "requestBody": {
           "content": {
             "application/json": {
-              "schema": {}
+              "schema": {
+                "type": "number"
+              },
+              "examples": {
+                "Example 1": {
+                  "value": 1
+                }
+              }
             }
           }
         },
@@ -2435,7 +2454,19 @@
         "operationId": "project-shared-base-disable",
         "responses": {
           "200": {
-            "description": "OK"
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "boolean"
+                },
+                "examples": {
+                  "Example 1": {
+                    "value": true
+                  }
+                }
+              }
+            }
           },
           "400": {
             "$ref": "#/components/responses/BadRequest"
@@ -11087,11 +11118,67 @@
         "summary": "List Comments in Audit",
         "operationId": "utils-comment-list",
         "responses": {
-          "201": {
-            "description": "Created",
+          "200": {
+            "description": "OK",
             "content": {
               "application/json": {
-                "schema": {}
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "list": {
+                      "x-stoplight": {
+                        "id": "5zto1xohsngbu"
+                      },
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/Audit",
+                        "x-stoplight": {
+                          "id": "d22zkup0c0l80"
+                        }
+                      }
+                    }
+                  }
+                },
+                "examples": {
+                  "Example 1": {
+                    "value": {
+                      "list": [
+                        {
+                          "id": "adt_3sii7erfwrlegb",
+                          "user": "w@nocodb.com",
+                          "ip": null,
+                          "base_id": null,
+                          "project_id": "p_63b4q0qengen1x",
+                          "fk_model_id": "md_5mipbdg6ketmv8",
+                          "row_id": "1",
+                          "op_type": "COMMENT",
+                          "op_sub_type": null,
+                          "status": null,
+                          "description": "bar",
+                          "details": null,
+                          "created_at": "2023-03-13T09:39:14.225Z",
+                          "updated_at": "2023-03-13T09:39:14.225Z"
+                        },
+                        {
+                          "id": "adt_fezs668qbxj8gc",
+                          "user": "w@nocodb.com",
+                          "ip": null,
+                          "base_id": null,
+                          "project_id": "p_63b4q0qengen1x",
+                          "fk_model_id": "md_5mipbdg6ketmv8",
+                          "row_id": "1",
+                          "op_type": "COMMENT",
+                          "op_sub_type": null,
+                          "status": null,
+                          "description": "foo",
+                          "details": null,
+                          "created_at": "2023-03-13T09:39:13.321Z",
+                          "updated_at": "2023-03-13T09:39:13.321Z"
+                        }
+                      ]
+                    }
+                  }
+                }
               }
             }
           },
@@ -11141,7 +11228,27 @@
         "operationId": "utils-comment-row",
         "responses": {
           "200": {
-            "description": "OK"
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Audit"
+                },
+                "examples": {
+                  "Example 1": {
+                    "value": {
+                      "user": "w@nocodb.com",
+                      "row_id": "1",
+                      "fk_model_id": "md_5mipbdg6ketmv8",
+                      "op_type": "COMMENT",
+                      "description": "qq",
+                      "project_id": "p_63b4q0qengen1x",
+                      "id": "adt_vx58jpp0loo8qy"
+                    }
+                  }
+                }
+              }
+            }
           },
           "400": {
             "$ref": "#/components/responses/BadRequest"
@@ -11184,11 +11291,47 @@
         "summary": "Count Comments",
         "operationId": "utils-comment-count",
         "responses": {
-          "201": {
-            "description": "Created",
+          "200": {
+            "description": "OK",
             "content": {
               "application/json": {
-                "schema": {}
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "x-stoplight": {
+                      "id": "ziwcy4va5r1ao"
+                    },
+                    "type": "object",
+                    "properties": {
+                      "count": {
+                        "type": "string",
+                        "x-stoplight": {
+                          "id": "5r91gkxmaiyv4"
+                        },
+                        "description": "The number of comments",
+                        "example": "4"
+                      },
+                      "row_id": {
+                        "type": "string",
+                        "x-stoplight": {
+                          "id": "08sgorhq172sm"
+                        },
+                        "description": "Row ID",
+                        "example": "1"
+                      }
+                    }
+                  }
+                },
+                "examples": {
+                  "Example 1": {
+                    "value": [
+                      {
+                        "count": "4",
+                        "row_id": "1"
+                      }
+                    ]
+                  }
+                }
               }
             }
           },
@@ -11201,7 +11344,8 @@
           {
             "in": "query",
             "name": "ids",
-            "required": true
+            "required": true,
+            "description": "Comment IDs"
           },
           {
             "schema": {
@@ -11209,7 +11353,8 @@
             },
             "in": "query",
             "name": "fk_model_id",
-            "required": true
+            "required": true,
+            "description": "Foreign Key to Model"
           },
           {
             "$ref": "#/components/parameters/xc-auth"
@@ -11306,7 +11451,27 @@
         "operationId": "utils-audit-row-update",
         "responses": {
           "200": {
-            "description": "OK"
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Audit"
+                },
+                "examples": {
+                  "Example 1": {
+                    "value": {
+                      "user": "w@nocodb.com",
+                      "row_id": "1",
+                      "fk_model_id": "md_5mipbdg6ketmv8",
+                      "op_type": "COMMENT",
+                      "description": "Table Sheet-1 : field Column A got changed from foo to bar",
+                      "project_id": "p_63b4q0qengen1x",
+                      "id": "adt_vx58jpp0loo8qy"
+                    }
+                  }
+                }
+              }
+            }
           },
           "400": {
             "$ref": "#/components/responses/BadRequest"
@@ -11318,6 +11483,17 @@
             "application/json": {
               "schema": {
                 "$ref": "#/components/schemas/AuditRowUpdateReq"
+              },
+              "examples": {
+                "Example 1": {
+                  "value": {
+                    "column_name": "baz",
+                    "fk_model_id": "md_ehn5izr99m7d45",
+                    "row_id": "1",
+                    "prev_value": "foo",
+                    "value": "bar"
+                  }
+                }
               }
             }
           }
@@ -11965,6 +12141,21 @@
                     },
                     "message": {
                       "type": "string"
+                    },
+                    "data": {
+                      "type": "object",
+                      "x-stoplight": {
+                        "id": "6orbk04w97ien"
+                      }
+                    }
+                  }
+                },
+                "examples": {
+                  "Example 1": {
+                    "value": {
+                      "code": 0,
+                      "message": "",
+                      "data": {}
                     }
                   }
                 }
@@ -11979,7 +12170,71 @@
         "requestBody": {
           "content": {
             "application/json": {
-              "schema": {}
+              "schema": {
+                "type": "object",
+                "x-examples": {
+                  "Example 1": {
+                    "client": "mysql2",
+                    "connection": {
+                      "host": "localhost",
+                      "port": "3306",
+                      "user": "root",
+                      "password": "password",
+                      "database": null
+                    }
+                  }
+                },
+                "properties": {
+                  "client": {
+                    "description": "DB Type",
+                    "enum": [
+                      "mssql",
+                      "mysql",
+                      "mysql2",
+                      "oracledb",
+                      "pg",
+                      "snowflake",
+                      "sqlite3"
+                    ],
+                    "example": "mysql2",
+                    "type": "string"
+                  },
+                  "connection": {
+                    "type": "object",
+                    "properties": {
+                      "host": {
+                        "type": "string"
+                      },
+                      "port": {
+                        "type": "string"
+                      },
+                      "user": {
+                        "type": "string"
+                      },
+                      "password": {
+                        "type": "string"
+                      },
+                      "database": {
+                        "$ref": "#/components/schemas/StringOrNull"
+                      }
+                    }
+                  }
+                }
+              },
+              "examples": {
+                "Example 1": {
+                  "value": {
+                    "client": "mysql2",
+                    "connection": {
+                      "host": "localhost",
+                      "port": "3306",
+                      "user": "root",
+                      "password": "password",
+                      "database": null
+                    }
+                  }
+                }
+              }
             }
           }
         },
@@ -12004,7 +12259,26 @@
         "requestBody": {
           "content": {
             "application/json": {
-              "schema": {}
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "url": {
+                    "type": "string",
+                    "x-stoplight": {
+                      "id": "fgdbmcjjtkky5"
+                    },
+                    "description": "JDBC URL",
+                    "example": "jdbc:mysql://username:password@localhost:3306/sakila"
+                  }
+                }
+              },
+              "examples": {
+                "Example 1": {
+                  "value": {
+                    "url": "jdbc:mysql://username:password@localhost:3306/sakila"
+                  }
+                }
+              }
             }
           }
         },
@@ -12013,7 +12287,77 @@
             "description": "OK",
             "content": {
               "application/json": {
-                "schema": {}
+                "schema": {
+                  "type": "object",
+                  "x-examples": {
+                    "Example 1": {
+                      "client": "mysql2",
+                      "connection": {
+                        "user": "username",
+                        "password": "password",
+                        "database": "sakila",
+                        "host": "localhost",
+                        "port": "3306"
+                      }
+                    }
+                  },
+                  "properties": {
+                    "client": {
+                      "description": "DB Type",
+                      "enum": [
+                        "mssql",
+                        "mysql",
+                        "mysql2",
+                        "oracledb",
+                        "pg",
+                        "snowflake",
+                        "sqlite3"
+                      ],
+                      "example": "mysql2",
+                      "type": "string"
+                    },
+                    "connection": {
+                      "type": "object",
+                      "description": "Connection Config",
+                      "properties": {
+                        "user": {
+                          "type": "string",
+                          "description": "DB User"
+                        },
+                        "password": {
+                          "type": "string",
+                          "description": "DB Password"
+                        },
+                        "database": {
+                          "type": "string",
+                          "description": "DB Name"
+                        },
+                        "host": {
+                          "type": "string",
+                          "description": "DB Host"
+                        },
+                        "port": {
+                          "type": "string",
+                          "description": "DB Host"
+                        }
+                      }
+                    }
+                  }
+                },
+                "examples": {
+                  "Example 1": {
+                    "value": {
+                      "client": "mysql2",
+                      "connection": {
+                        "user": "username",
+                        "password": "password",
+                        "database": "sakila",
+                        "host": "localhost",
+                        "port": "3306"
+                      }
+                    }
+                  }
+                }
               }
             }
           },
@@ -12043,7 +12387,106 @@
             "description": "OK",
             "content": {
               "application/json": {
-                "schema": {}
+                "schema": {
+                  "type": "object",
+                  "x-examples": {
+                    "Example 1": {
+                      "authType": "jwt",
+                      "projectHasAdmin": true,
+                      "firstUser": false,
+                      "type": "rest",
+                      "googleAuthEnabled": false,
+                      "githubAuthEnabled": false,
+                      "oneClick": false,
+                      "connectToExternalDB": true,
+                      "version": "0.105.3",
+                      "defaultLimit": 25,
+                      "ncMin": false,
+                      "teleEnabled": false,
+                      "auditEnabled": true,
+                      "ncSiteUrl": "http://localhost:8080",
+                      "ee": false,
+                      "ncAttachmentFieldSize": 20971520,
+                      "ncMaxAttachmentsAllowed": 10
+                    }
+                  },
+                  "properties": {
+                    "authType": {
+                      "type": "string"
+                    },
+                    "projectHasAdmin": {
+                      "type": "boolean"
+                    },
+                    "firstUser": {
+                      "type": "boolean"
+                    },
+                    "type": {
+                      "type": "string"
+                    },
+                    "googleAuthEnabled": {
+                      "type": "boolean"
+                    },
+                    "githubAuthEnabled": {
+                      "type": "boolean"
+                    },
+                    "oneClick": {
+                      "type": "boolean"
+                    },
+                    "connectToExternalDB": {
+                      "type": "boolean"
+                    },
+                    "version": {
+                      "type": "string"
+                    },
+                    "defaultLimit": {
+                      "type": "number"
+                    },
+                    "ncMin": {
+                      "type": "boolean"
+                    },
+                    "teleEnabled": {
+                      "type": "boolean"
+                    },
+                    "auditEnabled": {
+                      "type": "boolean"
+                    },
+                    "ncSiteUrl": {
+                      "type": "string"
+                    },
+                    "ee": {
+                      "type": "boolean"
+                    },
+                    "ncAttachmentFieldSize": {
+                      "type": "number"
+                    },
+                    "ncMaxAttachmentsAllowed": {
+                      "type": "number"
+                    }
+                  }
+                },
+                "examples": {
+                  "Example 1": {
+                    "value": {
+                      "authType": "jwt",
+                      "projectHasAdmin": true,
+                      "firstUser": false,
+                      "type": "rest",
+                      "googleAuthEnabled": false,
+                      "githubAuthEnabled": false,
+                      "oneClick": false,
+                      "connectToExternalDB": true,
+                      "version": "0.105.3",
+                      "defaultLimit": 25,
+                      "ncMin": false,
+                      "teleEnabled": false,
+                      "auditEnabled": true,
+                      "ncSiteUrl": "http://localhost:8080",
+                      "ee": false,
+                      "ncAttachmentFieldSize": 20971520,
+                      "ncMaxAttachmentsAllowed": 10
+                    }
+                  }
+                }
               }
             }
           },
@@ -12118,7 +12561,35 @@
             "description": "OK",
             "content": {
               "application/json": {
-                "schema": {}
+                "schema": {
+                  "type": "object",
+                  "x-examples": {
+                    "Example 1": {
+                      "currentVersion": "0.105.3",
+                      "releaseVersion": "0.105.3"
+                    }
+                  },
+                  "properties": {
+                    "currentVersion": {
+                      "type": "string",
+                      "description": "Current NocoDB Version",
+                      "example": "0.104.0"
+                    },
+                    "releaseVersion": {
+                      "type": "string",
+                      "description": "Latest Release Version",
+                      "example": "0.105.3"
+                    }
+                  }
+                },
+                "examples": {
+                  "Example 1": {
+                    "value": {
+                      "currentVersion": "0.104.0",
+                      "releaseVersion": "0.105.3"
+                    }
+                  }
+                }
               }
             }
           },
@@ -12149,7 +12620,39 @@
             "description": "OK",
             "content": {
               "application/json": {
-                "schema": {}
+                "schema": {
+                  "type": "object",
+                  "x-examples": {
+                    "Example 1": {
+                      "message": "OK",
+                      "timestamp": 1678702175755,
+                      "uptime": 1618.996877834
+                    }
+                  },
+                  "properties": {
+                    "message": {
+                      "type": "string",
+                      "example": "OK"
+                    },
+                    "timestamp": {
+                      "type": "string",
+                      "example": "1678702175755"
+                    },
+                    "uptime": {
+                      "type": "string",
+                      "example": "1618.996877834"
+                    }
+                  }
+                },
+                "examples": {
+                  "Example 1": {
+                    "value": {
+                      "message": "OK",
+                      "timestamp": 1678702175755,
+                      "uptime": 1618.996877834
+                    }
+                  }
+                }
               }
             }
           },
@@ -12411,7 +12914,19 @@
         "operationId": "utils-cache-delete",
         "responses": {
           "200": {
-            "description": "OK"
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "boolean"
+                },
+                "examples": {
+                  "Example 1": {
+                    "value": true
+                  }
+                }
+              }
+            }
           },
           "400": {
             "$ref": "#/components/responses/BadRequest"

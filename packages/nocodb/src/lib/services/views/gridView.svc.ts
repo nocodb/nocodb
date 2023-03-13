@@ -3,13 +3,13 @@ import { ViewTypes } from 'nocodb-sdk';
 import { validatePayload } from '../../meta/api/helpers';
 import { View } from '../../models';
 import { GridView } from '../../models';
-import type { GridReqType } from 'nocodb-sdk';
+import type { GridReqType, ViewCreateReqType } from 'nocodb-sdk';
 
 export async function gridViewCreate(param: {
   tableId: string;
-  grid: GridReqType;
+  grid: ViewCreateReqType;
 }) {
-  validatePayload('swagger.json#/components/schemas/GridReq', param.grid);
+  validatePayload('swagger.json#/components/schemas/ViewCreateReq', param.grid);
 
   const view = await View.insert({
     ...param.grid,
@@ -17,7 +17,9 @@ export async function gridViewCreate(param: {
     fk_model_id: param.tableId,
     type: ViewTypes.GRID,
   });
+
   T.emit('evt', { evt_type: 'vtable:created', show_as: 'grid' });
+
   return view;
 }
 

@@ -2,7 +2,7 @@ import { ViewTypes } from 'nocodb-sdk';
 import { T } from 'nc-help';
 import { validatePayload } from '../../meta/api/helpers';
 import { KanbanView, View } from '../../models';
-import type { KanbanReqType } from 'nocodb-sdk';
+import type { KanbanReqType, ViewCreateReqType } from 'nocodb-sdk';
 
 export async function kanbanViewGet(param: { kanbanViewId: string }) {
   return await KanbanView.get(param.kanbanViewId);
@@ -10,11 +10,12 @@ export async function kanbanViewGet(param: { kanbanViewId: string }) {
 
 export async function kanbanViewCreate(param: {
   tableId: string;
-  kanban: KanbanReqType;
+  kanban: ViewCreateReqType;
 }) {
-  validatePayload('swagger.json#/components/schemas/KanbanReq', param.kanban);
-
-  T.emit('evt', { evt_type: 'vtable:created', show_as: 'kanban' });
+  validatePayload(
+    'swagger.json#/components/schemas/ViewCreateReq',
+    param.kanban
+  );
 
   const view = await View.insert({
     ...param.kanban,
@@ -22,6 +23,9 @@ export async function kanbanViewCreate(param: {
     fk_model_id: param.tableId,
     type: ViewTypes.KANBAN,
   });
+
+  T.emit('evt', { evt_type: 'vtable:created', show_as: 'kanban' });
+
   return view;
 }
 

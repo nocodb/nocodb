@@ -15010,13 +15010,12 @@
         }
       },
       "FormUpdateReq": {
-        "description": "Model for Form Request",
+        "description": "Model for Form Update Request",
         "examples": [
           {
             "banner_image_url": null,
             "email": "user@example.com",
             "heading": "My Form",
-            "lock_type": "collaborative",
             "logo_url": null,
             "meta": null,
             "redirect_after_secs": null,
@@ -15024,11 +15023,10 @@
             "show_blank_form": 0,
             "subheading": "My Form Subheading",
             "submit_another_form": 0,
-            "success_msg": "Thank you for the submission.",
-            "title": "Form View 1"
+            "success_msg": "Thank you for the submission."
           }
         ],
-        "title": "Form Request Model",
+        "title": "Form Update Request Model",
         "type": "object",
         "properties": {
           "banner_image_url": {
@@ -15044,12 +15042,6 @@
             "example": "My Form",
             "maxLength": 255,
             "type": "string"
-          },
-          "lock_type": {
-            "enum": ["collaborative", "locked", "personal"],
-            "type": "string",
-            "description": "Lock Type of this view",
-            "example": "collaborative"
           },
           "logo_url": {
             "$ref": "#/components/schemas/StringOrNull",
@@ -15072,10 +15064,8 @@
             "description": "Show `Blank Form` after 5 seconds"
           },
           "subheading": {
-            "description": "The subheading of the form",
-            "example": "My Form Subheading",
-            "maxLength": 255,
-            "type": "string"
+            "$ref": "#/components/schemas/StringOrNull",
+            "description": "The subheading of the form"
           },
           "submit_another_form": {
             "$ref": "#/components/schemas/Bool",
@@ -15084,13 +15074,6 @@
           "success_msg": {
             "$ref": "#/components/schemas/StringOrNull",
             "description": "Custom message after the form is successfully submitted"
-          },
-          "title": {
-            "description": "The title of the form",
-            "example": "My Form",
-            "maxLength": 255,
-            "minLength": 1,
-            "type": "string"
           }
         }
       },

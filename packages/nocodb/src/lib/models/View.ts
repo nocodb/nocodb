@@ -652,11 +652,10 @@ export default class View implements ViewType {
     colId: string,
     colData: {
       order?: number;
-      show?: boolean;
+      show?: BoolType;
     },
     ncMeta = Noco.ncMeta
-  ): Promise<Array<GridViewColumn | any>> {
-    const columns: Array<GridViewColumn | any> = [];
+  ) {
     const view = await this.get(viewId, ncMeta);
     let table;
     let cacheScope;
@@ -722,9 +721,7 @@ export default class View implements ViewType {
       await NocoCache.set(key, o);
     }
     // set meta
-    await ncMeta.metaUpdate(null, null, table, updateObj, colId);
-
-    return columns;
+    return await ncMeta.metaUpdate(null, null, table, updateObj, colId);
   }
 
   static async insertOrUpdateColumn(

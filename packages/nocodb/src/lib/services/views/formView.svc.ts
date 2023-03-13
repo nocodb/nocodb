@@ -2,7 +2,7 @@ import { T } from 'nc-help';
 import { ViewTypes } from 'nocodb-sdk';
 import { validatePayload } from '../../meta/api/helpers';
 import { FormView, View } from '../../models';
-import type { FormReqType, ViewCreateReqType } from 'nocodb-sdk';
+import type { FormUpdateReqType, ViewCreateReqType } from 'nocodb-sdk';
 
 export async function formViewGet(param: { formViewId: string }) {
   const formViewData = await FormView.getWithInfo(param.formViewId);
@@ -27,13 +27,12 @@ export async function formViewCreate(param: {
   return view;
 }
 
-// @ts-ignore
 export async function formViewUpdate(param: {
   formViewId: string;
-  body: FormReqType;
+  form: FormUpdateReqType;
 }) {
-  validatePayload('swagger.json#/components/schemas/FormReq', param.body);
+  validatePayload('swagger.json#/components/schemas/FormUpdateReq', param.form);
 
-  T.emit('evt', { evt_type: 'view:updated', type: 'grid' });
-  return await FormView.update(param.formViewId, param.body);
+  T.emit('evt', { evt_type: 'view:updated', type: 'form' });
+  return await FormView.update(param.formViewId, param.form);
 }

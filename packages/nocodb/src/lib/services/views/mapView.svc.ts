@@ -3,7 +3,7 @@ import { T } from 'nc-help';
 import View from '../../models/View';
 import MapView from '../../models/MapView';
 import { validatePayload } from '../../meta/api/helpers';
-import type { MapType, ViewCreateReqType } from 'nocodb-sdk';
+import type { MapUpdateReqType, ViewCreateReqType } from 'nocodb-sdk';
 
 export async function mapViewGet(param: { mapViewId: string }) {
   return await MapView.get(param.mapViewId);
@@ -26,10 +26,9 @@ export async function mapViewCreate(param: {
 
 export async function mapViewUpdate(param: {
   mapViewId: string;
-  // todo: add MapReq in schema
-  map: MapType;
+  map: MapUpdateReqType;
 }) {
+  validatePayload('swagger.json#/components/schemas/MapUpdateReq', param.map);
   T.emit('evt', { evt_type: 'view:updated', type: 'map' });
-  // todo: type correction
-  return await MapView.update(param.mapViewId, param.map as any);
+  return await MapView.update(param.mapViewId, param.map);
 }

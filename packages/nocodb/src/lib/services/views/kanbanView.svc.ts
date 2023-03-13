@@ -2,7 +2,7 @@ import { ViewTypes } from 'nocodb-sdk';
 import { T } from 'nc-help';
 import { validatePayload } from '../../meta/api/helpers';
 import { KanbanView, View } from '../../models';
-import type { KanbanReqType, ViewCreateReqType } from 'nocodb-sdk';
+import type { KanbanUpdateReqType, ViewCreateReqType } from 'nocodb-sdk';
 
 export async function kanbanViewGet(param: { kanbanViewId: string }) {
   return await KanbanView.get(param.kanbanViewId);
@@ -31,7 +31,7 @@ export async function kanbanViewCreate(param: {
 
 export async function kanbanViewUpdate(param: {
   kanbanViewId: string;
-  kanban: KanbanReqType;
+  kanban: KanbanUpdateReqType;
 }) {
   validatePayload(
     'swagger.json#/components/schemas/KanbanUpdateReq',

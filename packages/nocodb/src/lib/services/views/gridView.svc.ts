@@ -3,7 +3,7 @@ import { ViewTypes } from 'nocodb-sdk';
 import { validatePayload } from '../../meta/api/helpers';
 import { View } from '../../models';
 import { GridView } from '../../models';
-import type { GridReqType, ViewCreateReqType } from 'nocodb-sdk';
+import type { GridUpdateReqType, ViewCreateReqType } from 'nocodb-sdk';
 
 export async function gridViewCreate(param: {
   tableId: string;
@@ -23,11 +23,11 @@ export async function gridViewCreate(param: {
   return view;
 }
 
-// todo: json schema validation
 export async function gridViewUpdate(param: {
   viewId: string;
-  grid: GridReqType;
+  grid: GridUpdateReqType;
 }) {
+  validatePayload('swagger.json#/components/schemas/GridUpdateReq', param.grid);
   T.emit('evt', { evt_type: 'view:updated', type: 'grid' });
   return await GridView.update(param.viewId, param.grid);
 }

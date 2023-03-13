@@ -300,10 +300,7 @@ const [useProvideKanbanViewStore, useKanbanViewStore] = useInjectionState(
 
     async function updateKanbanMeta(updateObj: Partial<KanbanType>) {
       if (!viewMeta?.value?.id || !isUIAllowed('xcDatatableEditable')) return
-      await $api.dbView.kanbanUpdate(viewMeta.value.id, {
-        ...kanbanMetaData.value,
-        ...updateObj,
-      })
+      await $api.dbView.kanbanUpdate(viewMeta.value.id, updateObj)
     }
 
     async function insertRow(row: Record<string, any>, rowIndex = formattedData.value.get(null)!.length) {

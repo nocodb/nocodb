@@ -97,6 +97,12 @@ const [setup, use] = useInjectionState(() => {
     return findPage(nestedPages.value, openedPageId.value)
   })
 
+  const nestedPublicParentPage = computed<PageSidebarNode | undefined>(() =>
+    openedPage.value?.nested_published_parent_id
+      ? findPage(nestedPages.value, openedPage.value?.nested_published_parent_id)
+      : undefined,
+  )
+
   watch(
     openedPageInSidebar,
     () => {
@@ -186,8 +192,8 @@ const [setup, use] = useInjectionState(() => {
 
   const openedPageWithParents = computed(() => (openedPageInSidebar.value ? getPageWithParents(openedPageInSidebar.value) : []))
 
-  async function fetchNestedPages() {
-    isFetching.value.nestedPages = true
+  async function fetchNestedPages({ withoutLoading }: { withoutLoading?: boolean } = {}) {
+    if (!withoutLoading) isFetching.value.nestedPages = true
     try {
       const nestedDocTree = isPublic.value
         ? await $api.nocoDocs.listPublicPages({
@@ -219,7 +225,7 @@ const [setup, use] = useInjectionState(() => {
       console.log(e)
       message.error(await extractSdkResponseErrorMsg(e as any))
     } finally {
-      isFetching.value.nestedPages = false
+      if (!withoutLoading) isFetching.value.nestedPages = false
     }
   }
 
@@ -423,17 +429,13 @@ const [setup, use] = useInjectionState(() => {
     } else {
       Object.assign(foundPage, page)
     }
-  }
 
-  const updateContent = async ({ pageId, content }: { pageId: string; content: string }) => {
-    try {
-      await $api.nocoDocs.updatePage(pageId, {
-        attributes: { content } as any,
-        projectId: projectId!,
+    if ('is_published' in page || 'parent_page_id' in page) {
+      openedPage.value = { ...updatedPage, ...openedPage.value } as any
+
+      await fetchNestedPages({
+        withoutLoading: true,
       })
-    } catch (e) {
-      console.log(e)
-      message.error(await extractSdkResponseErrorMsg(e as any))
     }
   }
 
@@ -633,7 +635,6 @@ const [setup, use] = useInjectionState(() => {
     deletePage,
     addNewPage,
     createMagic,
-    updateContent,
     getChildrenOfPage,
     createImport,
     reorderPages,
@@ -653,6 +654,7 @@ const [setup, use] = useInjectionState(() => {
     isEditAllowed,
     projectId,
     loadPublicPageAndProject,
+    nestedPublicParentPage,
     isNestedPublicPage,
   }
 }, 'useDocs')

@@ -9,7 +9,7 @@ useShortcuts()
 const {
   openedPage,
   openedPageInSidebar,
-  updateContent,
+  updatePage,
   openedPageWithParents,
   nestedUrl,
   fetchPage,
@@ -107,7 +107,7 @@ watchDebounced(
   () => [openedPage.value?.id, openedPage.value?.content],
   ([newId, newContent], [oldId, oldContent]) => {
     if (isEditAllowed && openedPage.value?.id && newId === oldId && newContent !== oldContent) {
-      updateContent({ pageId: openedPage.value?.id, content: openedPage.value!.content })
+      updatePage({ pageId: openedPage.value?.id, page: { content: openedPage.value!.content } })
     }
   },
   {

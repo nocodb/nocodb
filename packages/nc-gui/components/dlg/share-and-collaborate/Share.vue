@@ -5,7 +5,7 @@ interface Emits {
 
 const emits = defineEmits<Emits>()
 
-const { openedPage, updatePage, nestedUrl } = useDocs()
+const { openedPage, updatePage, nestedUrl, nestedPublicParentPage } = useDocs()
 
 const isPagePublishing = ref(false)
 
@@ -38,6 +38,8 @@ const embedPageHtml = async () => {
   isCopied.value.embed = true
 }
 
+const isNestedParent = computed(() => nestedPublicParentPage.value?.id === openedPage.value!.id)
+
 const togglePagePublishedState = async () => {
   isPagePublishing.value = true
 
@@ -62,6 +64,11 @@ const togglePagePublishedState = async () => {
   }
 }
 
+const openParentPageLink = async () => {
+  await navigateTo(nestedUrl(nestedPublicParentPage.value!.id!, {}))
+  emits('close')
+}
+
 watch(
   isPagePublishing,
   () => {
@@ -83,10 +90,19 @@ watch(
           :checked="!!openedPage?.is_published"
           :loading="isPagePublishing"
           class="docs-share-public-toggle"
+          :disabled="openedPage.is_published && !isNestedParent"
           @click="togglePagePublishedState"
         />
       </div>
-      <div class="flex text-xs">Share only the current selected page</div>
+      <div class="flex text-xs">
+        <template v-if="openedPage.is_published && !isNestedParent">
+          Shared through page
+          <span class="text-blue-600 underline pl-1 cursor-pointer mr-1" @click="openParentPageLink">
+            {{ nestedPublicParentPage?.title }}</span
+          >
+        </template>
+        <template v-else>Share only the current selected page </template>
+      </div>
       <div v-if="openedPage?.is_published" class="flex flex-row justify-end text-gray-600 gap-x-1.5">
         <div class="flex py-1.5 px-1.5 hover:bg-gray-100 cursor-pointer rounded-md border-1 border-gray-300" @click="openPageUrl">
           <RiExternalLinkLine class="h-3.75" />

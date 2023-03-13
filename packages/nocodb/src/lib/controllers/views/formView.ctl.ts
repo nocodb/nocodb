@@ -24,7 +24,7 @@ export async function formViewUpdate(req, res) {
   res.json(
     await formViewService.formViewUpdate({
       formViewId: req.params.formViewId,
-      form: req.form,
+      form: req.body,
     })
   );
 }

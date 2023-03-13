@@ -257,7 +257,7 @@
     "barcodeFormat": "Viivakoodin muoto",
     "qrCodeValueTooLong": "Liian monta merkkiä QR-koodiin",
     "barcodeValueTooLong": "Liikaa merkkejä viivakoodiin",
-    "yourLocation": "Your Location",
+    "currentLocation": "Current Location",
     "lng": "Lng",
     "lat": "Lat",
     "aggregateFunction": "Kokonaistoiminto",

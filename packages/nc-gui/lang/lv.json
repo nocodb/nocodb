@@ -257,7 +257,7 @@
     "barcodeFormat": "Svītrkoda formāts",
     "qrCodeValueTooLong": "Pārāk daudz rakstzīmju QR kodam",
     "barcodeValueTooLong": "Pārāk daudz zīmju svītrkodam",
-    "yourLocation": "Your Location",
+    "currentLocation": "Current Location",
     "lng": "Lng",
     "lat": "Lat",
     "aggregateFunction": "Agregācijas funkcija",

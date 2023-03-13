@@ -257,7 +257,7 @@
     "barcodeFormat": "Format črtne kode",
     "qrCodeValueTooLong": "Preveč znakov za kodo QR",
     "barcodeValueTooLong": "Preveč znakov za črtno kodo",
-    "yourLocation": "Your Location",
+    "currentLocation": "Current Location",
     "lng": "Lng",
     "lat": "Lat",
     "aggregateFunction": "Agregatna funkcija",

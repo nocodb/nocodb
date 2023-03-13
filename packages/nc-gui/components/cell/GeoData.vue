@@ -2,6 +2,8 @@
 import type { GeoLocationType } from 'nocodb-sdk'
 import { Modal as AModal, latLongToJoinedString, useVModel } from '#imports'
 import MdiMapIcon from '~icons/mdi/map-outline'
+import GpsFixedIcon from '~icons/mdi/gps-fixed'
+import OpenInNewIcon from '~icons/mdi/open-in-new'
 
 interface Props {
   modelValue?: string | null
@@ -134,16 +136,16 @@ const openInOSM = () => {
             />
           </div>
         </a-form-item>
-        <a-form-item>
-          <div class="flex items-center mr-2">
-            <MdiReload v-if="isLoading" :class="{ 'animate-infinite animate-spin text-gray-500': isLoading }" />
-            <a-button class="ml-2" @click="onClickSetCurrentLocation">{{ $t('labels.yourLocation') }}</a-button>
-          </div>
-        </a-form-item>
         <a-form-item v-if="vModel">
           <div class="mr-2 flex flex-col items-end gap-1 text-left">
-            <a-button @click="openInOSM"><MdiMapIcon class="mr-2" />Open in OSM</a-button>
-            <a-button @click="openInGoogleMaps"><MdiMapIcon class="mr-2" />Open in Google Maps</a-button>
+            <MdiReload v-if="isLoading" :class="{ 'animate-infinite animate-spin text-gray-500': isLoading }" />
+            <a-button class="ml-2" @click="onClickSetCurrentLocation"
+              ><GpsFixedIcon class="mr-2" />{{ $t('labels.currentLocation') }}</a-button
+            >
+          </div>
+          <div class="mr-2 flex flex-col items-end gap-1 text-left">
+            <a-button @click="openInOSM"><OpenInNewIcon class="mr-2" />{{ $t('activity.map.openInOpenStreetMap') }}</a-button>
+            <a-button @click="openInGoogleMaps"><OpenInNewIcon class="mr-2" />{{ $t('activity.map.openInGoogleMaps') }}</a-button>
           </div>
         </a-form-item>
         <a-form-item>

@@ -5957,11 +5957,23 @@
         }
       ],
       "patch": {
-        "summary": "Update Form",
+        "summary": "Update Form View",
         "operationId": "db-view-form-update",
         "responses": {
           "200": {
-            "description": "OK"
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "number"
+                },
+                "examples": {
+                  "Example 1": {
+                    "value": 1
+                  }
+                }
+              }
+            }
           },
           "400": {
             "$ref": "#/components/responses/BadRequest"
@@ -6135,7 +6147,14 @@
             "description": "OK",
             "content": {
               "application/json": {
-                "schema": {}
+                "schema": {
+                  "type": "number"
+                },
+                "examples": {
+                  "Example 1": {
+                    "value": 1
+                  }
+                }
               }
             }
           },
@@ -6392,7 +6411,19 @@
         "operationId": "db-view-gallery-update",
         "responses": {
           "200": {
-            "description": "OK"
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "number"
+                },
+                "examples": {
+                  "Example 1": {
+                    "value": 1
+                  }
+                }
+              }
+            }
           },
           "400": {
             "$ref": "#/components/responses/BadRequest"
@@ -6404,7 +6435,8 @@
             "application/json": {
               "schema": {
                 "$ref": "#/components/schemas/GalleryReq"
-              }
+              },
+              "examples": {}
             }
           }
         },
@@ -6519,7 +6551,19 @@
         "operationId": "db-view-kanban-update",
         "responses": {
           "200": {
-            "description": "OK"
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "number"
+                },
+                "examples": {
+                  "Example 1": {
+                    "value": 1
+                  }
+                }
+              }
+            }
           },
           "400": {
             "$ref": "#/components/responses/BadRequest"
@@ -6531,7 +6575,8 @@
             "application/json": {
               "schema": {
                 "$ref": "#/components/schemas/KanbanUpdateReq"
-              }
+              },
+              "examples": {}
             }
           }
         },
@@ -6664,7 +6709,19 @@
         "operationId": "db-view-map-update",
         "responses": {
           "200": {
-            "description": "OK"
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "number"
+                },
+                "examples": {
+                  "Example 1": {
+                    "value": 1
+                  }
+                }
+              }
+            }
           },
           "400": {
             "$ref": "#/components/responses/BadRequest"
@@ -6676,6 +6733,31 @@
             "application/json": {
               "schema": {
                 "$ref": "#/components/schemas/Map"
+              },
+              "examples": {
+                "Example 1": {
+                  "value": {
+                    "base_id": "ds_g4ccx6e77h1dmi",
+                    "columns": [
+                      {
+                        "base_id": "ds_g4ccx6e77h1dmi",
+                        "fk_column_id": "cl_8iw2o4ejzvdyna",
+                        "fk_view_id": "vw_qjt7klod1p9kyv",
+                        "id": "nc_46xcacqn4rc9xf",
+                        "order": 1,
+                        "project_id": "p_xm3thidrblw4n7",
+                        "show": 1
+                      }
+                    ],
+                    "fk_geo_data_col_id": "cl_8iw2o4ejzvdyna",
+                    "fk_view_id": "vw_qjt7klod1p9kyv",
+                    "meta": {},
+                    "order": 0,
+                    "project_id": "p_xm3thidrblw4n7",
+                    "show": true,
+                    "title": "My Map"
+                  }
+                }
               }
             }
           }

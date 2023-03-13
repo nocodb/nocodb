@@ -5229,7 +5229,11 @@ export class Api<
 
 }`
  */
-    formUpdate: (formViewId: IdType, data: any, params: RequestParams = {}) =>
+    formUpdate: (
+      formViewId: IdType,
+      data: FormUpdateReqType,
+      params: RequestParams = {}
+    ) =>
       this.request<
         number,
         {

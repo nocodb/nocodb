@@ -113,7 +113,7 @@ export default class Audit implements AuditType {
     if (forceAwait) {
       return await insertAudit();
     } else {
-      insertAudit();
+      return insertAudit();
     }
   }
 

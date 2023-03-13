@@ -44,7 +44,10 @@ export interface ApiTokenReqType {
  * Model for API Token List
  */
 export interface ApiTokenListType {
-  /** @example [{"list":[{"id":"1","fk_user_id":"us_b3xo2i44nx5y9l","description":"This API Token is for ABC application","token":"DYh540o8hbWpUGdarekECKLdN5OhlgCUWutVJYX2"}],"pageInfo":{"isFirstPage":true,"isLastPage":true,"page":1,"pageSize":10,"totalRows":1}}] */
+  /**
+   * List of api token objects
+   * @example [{"list":[{"id":"1","fk_user_id":"us_b3xo2i44nx5y9l","description":"This API Token is for ABC application","token":"DYh540o8hbWpUGdarekECKLdN5OhlgCUWutVJYX2"}],"pageInfo":{"isFirstPage":true,"isLastPage":true,"page":1,"pageSize":10,"totalRows":1}}]
+   */
   list?: ApiTokenType[];
   /** Model for Paginated */
   pageInfo?: PaginatedType;
@@ -255,6 +258,7 @@ export interface BaseType {
  * Model for Base List
  */
 export interface BaseListType {
+  /** List of base objects */
   list: BaseType[];
   /** Model for Paginated */
   pageInfo: PaginatedType;
@@ -444,6 +448,7 @@ export interface ColumnType {
  * Model for Column List
  */
 export interface ColumnListType {
+  /** List of column objects */
   list: ColumnType[];
   /** Model for Paginated */
   pageInfo: PaginatedType;
@@ -600,6 +605,7 @@ export interface FilterType {
  * Model for Filter List
  */
 export interface FilterListType {
+  /** List of filter objects */
   list: FilterType[];
   /** Model for Paginated */
   pageInfo: PaginatedType;
@@ -927,19 +933,26 @@ export interface GalleryColumnType {
  * Model for Gallery Request
  */
 export interface GalleryReqType {
+  /** Not in use currently */
   cover_image?: string;
-  /** @min 0 */
+  /**
+   * Not in use currently
+   * @min 0
+   */
   cover_image_idx?: number;
   /** The id of the column that contains the cover image */
-  fk_cover_image_col_id?: string;
+  fk_cover_image_col_id?: StringOrNullType;
   /** The lock type of gallery */
   lock_type?: 'collaborative' | 'locked' | 'personal';
-  /** Model for Bool */
+  /** Not in use currently */
   next_enabled?: BoolType;
-  /** Model for Bool */
+  /** Not in use currently */
   prev_enabled?: BoolType;
+  /** Not in use currently */
   restrict_number?: string;
+  /** Not in use currently */
   restrict_size?: string;
+  /** Not in use currently */
   restrict_types?: string;
   /**
    * The title of the gallery
@@ -1186,6 +1199,7 @@ export interface HookReqType {
  * Model for Hook List
  */
 export interface HookListType {
+  /** List of hook objects */
   list: HookType[];
   /** Model for Paginated */
   pageInfo: PaginatedType;
@@ -1300,7 +1314,7 @@ export interface KanbanReqType {
  * Model for Kanban Update Request
  */
 export interface KanbanUpdateReqType {
-  /** Model for StringOrNull */
+  /** Foreign Key to Grouping Field Column */
   fk_grp_col_id?: StringOrNullType;
 }
 
@@ -1925,6 +1939,7 @@ export type SharedViewType = ViewType;
  * Model for Shared View List
  */
 export interface SharedViewListType {
+  /** List of shared view objects */
   list: SharedViewType[];
   /** Model for Paginated */
   pageInfo: PaginatedType;
@@ -2011,6 +2026,7 @@ export interface SortType {
  * Model for Sort List
  */
 export interface SortListType {
+  /** List of Sort Objects */
   list: SortType[];
   /** Model for Paginated */
   pageInfo: PaginatedType;
@@ -2071,6 +2087,7 @@ export interface TableType {
  * Model for Table List
  */
 export interface TableListType {
+  /** List of table objects */
   list: TableType[];
   /** Model for Paginated */
   pageInfo: PaginatedType;
@@ -2160,6 +2177,7 @@ export interface UserInfoType {
  * Model for User List
  */
 export interface UserListType {
+  /** List of user objects */
   list: UserType[];
   /** Model for Paginated */
   pageInfo: PaginatedType;
@@ -2209,15 +2227,35 @@ export interface ViewType {
  * Model for View List
  */
 export interface ViewListType {
+  /** List of view objects */
   list: ViewType[];
   /** Model for Paginated */
   pageInfo: PaginatedType;
 }
 
 /**
- * Model for View Request
+ * Model for View Create Request
  */
-export interface ViewReqType {
+export interface ViewCreateReqType {
+  /**
+   * View Title
+   * @example My View
+   */
+  title: string;
+  /** View Type */
+  type?: number;
+  /** ID of view to be copied from. Used in Copy View. */
+  copy_from_id?: StringOrNullType;
+  /** Foreign Key to Grouping Column. Used in creating Kanban View. */
+  fk_grp_col_id?: StringOrNullType;
+  /** Foreign Key to Geo Data Column. Used in creating Map View. */
+  fk_geo_data_col_id?: StringOrNullType;
+}
+
+/**
+ * Model for View Update Request
+ */
+export interface ViewUpdateReqType {
   /**
    * View Title
    * @example Grid View 1
@@ -4956,7 +4994,7 @@ export class Api<
  * @name PrimaryColumnSet
  * @summary Create Primary Value
  * @request POST:/api/v1/db/meta/columns/{columnId}/primary
- * @response `200` `void` OK
+ * @response `200` `boolean` OK
  * @response `400` `{
   \** @example BadRequest [Error]: <ERROR MESSAGE> *\
   msg?: string,
@@ -4965,7 +5003,7 @@ export class Api<
  */
     primaryColumnSet: (columnId: string, params: RequestParams = {}) =>
       this.request<
-        void,
+        boolean,
         {
           /** @example BadRequest [Error]: <ERROR MESSAGE> */
           msg?: string;
@@ -4973,6 +5011,7 @@ export class Api<
       >({
         path: `/api/v1/db/meta/columns/${columnId}/primary`,
         method: 'POST',
+        format: 'json',
         ...params,
       }),
   };
@@ -5012,16 +5051,16 @@ export class Api<
  * @name Update
  * @summary Update View
  * @request PATCH:/api/v1/db/meta/views/{viewId}
- * @response `200` `void` OK
+ * @response `200` `ViewType` OK
  * @response `400` `{
   \** @example BadRequest [Error]: <ERROR MESSAGE> *\
   msg?: string,
 
 }`
  */
-    update: (viewId: IdType, data: ViewReqType, params: RequestParams = {}) =>
+    update: (viewId: IdType, data: any, params: RequestParams = {}) =>
       this.request<
-        void,
+        ViewType,
         {
           /** @example BadRequest [Error]: <ERROR MESSAGE> */
           msg?: string;
@@ -5031,6 +5070,7 @@ export class Api<
         method: 'PATCH',
         body: data,
         type: ContentType.Json,
+        format: 'json',
         ...params,
       }),
 
@@ -5041,7 +5081,7 @@ export class Api<
  * @name Delete
  * @summary Delete View
  * @request DELETE:/api/v1/db/meta/views/{viewId}
- * @response `200` `void` OK
+ * @response `200` `boolean` OK
  * @response `400` `{
   \** @example BadRequest [Error]: <ERROR MESSAGE> *\
   msg?: string,
@@ -5050,7 +5090,7 @@ export class Api<
  */
     delete: (viewId: IdType, params: RequestParams = {}) =>
       this.request<
-        void,
+        boolean,
         {
           /** @example BadRequest [Error]: <ERROR MESSAGE> */
           msg?: string;
@@ -5058,6 +5098,7 @@ export class Api<
       >({
         path: `/api/v1/db/meta/views/${viewId}`,
         method: 'DELETE',
+        format: 'json',
         ...params,
       }),
 
@@ -5068,7 +5109,7 @@ export class Api<
  * @name ShowAllColumn
  * @summary Show All Columns In View
  * @request POST:/api/v1/db/meta/views/{viewId}/show-all
- * @response `200` `void` OK
+ * @response `200` `boolean` OK
  * @response `400` `{
   \** @example BadRequest [Error]: <ERROR MESSAGE> *\
   msg?: string,
@@ -5083,7 +5124,7 @@ export class Api<
       params: RequestParams = {}
     ) =>
       this.request<
-        void,
+        boolean,
         {
           /** @example BadRequest [Error]: <ERROR MESSAGE> */
           msg?: string;
@@ -5092,6 +5133,7 @@ export class Api<
         path: `/api/v1/db/meta/views/${viewId}/show-all`,
         method: 'POST',
         query: query,
+        format: 'json',
         ...params,
       }),
 
@@ -5102,7 +5144,7 @@ export class Api<
  * @name HideAllColumn
  * @summary Hide All Columns In View
  * @request POST:/api/v1/db/meta/views/{viewId}/hide-all
- * @response `200` `void` OK
+ * @response `200` `boolean` OK
  * @response `400` `{
   \** @example BadRequest [Error]: <ERROR MESSAGE> *\
   msg?: string,
@@ -5117,7 +5159,7 @@ export class Api<
       params: RequestParams = {}
     ) =>
       this.request<
-        void,
+        boolean,
         {
           /** @example BadRequest [Error]: <ERROR MESSAGE> */
           msg?: string;
@@ -5126,6 +5168,7 @@ export class Api<
         path: `/api/v1/db/meta/views/${viewId}/hide-all`,
         method: 'POST',
         query: query,
+        format: 'json',
         ...params,
       }),
 
@@ -5136,7 +5179,7 @@ export class Api<
  * @name GridCreate
  * @summary Create Grid View
  * @request POST:/api/v1/db/meta/tables/{tableId}/grids
- * @response `200` `GridType` OK
+ * @response `200` `ViewType` OK
  * @response `400` `{
   \** @example BadRequest [Error]: <ERROR MESSAGE> *\
   msg?: string,
@@ -5145,11 +5188,11 @@ export class Api<
  */
     gridCreate: (
       tableId: IdType,
-      data: GridReqType,
+      data: ViewCreateReqType,
       params: RequestParams = {}
     ) =>
       this.request<
-        GridType,
+        ViewType,
         {
           /** @example BadRequest [Error]: <ERROR MESSAGE> */
           msg?: string;
@@ -5170,7 +5213,7 @@ export class Api<
  * @name FormCreate
  * @summary Create Form View
  * @request POST:/api/v1/db/meta/tables/{tableId}/forms
- * @response `200` `FormType` OK
+ * @response `200` `ViewType` OK
  * @response `400` `{
   \** @example BadRequest [Error]: <ERROR MESSAGE> *\
   msg?: string,
@@ -5179,11 +5222,11 @@ export class Api<
  */
     formCreate: (
       tableId: IdType,
-      data: FormReqType,
+      data: ViewCreateReqType,
       params: RequestParams = {}
     ) =>
       this.request<
-        FormType,
+        ViewType,
         {
           /** @example BadRequest [Error]: <ERROR MESSAGE> */
           msg?: string;
@@ -5202,9 +5245,9 @@ export class Api<
  * 
  * @tags DB View
  * @name FormUpdate
- * @summary Update Form
+ * @summary Update Form View
  * @request PATCH:/api/v1/db/meta/forms/{formViewId}
- * @response `200` `void` OK
+ * @response `200` `number` OK
  * @response `400` `{
   \** @example BadRequest [Error]: <ERROR MESSAGE> *\
   msg?: string,
@@ -5217,7 +5260,7 @@ export class Api<
       params: RequestParams = {}
     ) =>
       this.request<
-        void,
+        number,
         {
           /** @example BadRequest [Error]: <ERROR MESSAGE> */
           msg?: string;
@@ -5227,6 +5270,7 @@ export class Api<
         method: 'PATCH',
         body: data,
         type: ContentType.Json,
+        format: 'json',
         ...params,
       }),
 
@@ -5299,7 +5343,7 @@ export class Api<
  * @name GridUpdate
  * @summary Update Grid View
  * @request PATCH:/api/v1/db/meta/grids/{viewId}
- * @response `200` `any` OK
+ * @response `200` `number` OK
  * @response `400` `{
   \** @example BadRequest [Error]: <ERROR MESSAGE> *\
   msg?: string,
@@ -5308,7 +5352,7 @@ export class Api<
  */
     gridUpdate: (viewId: string, data: GridType, params: RequestParams = {}) =>
       this.request<
-        any,
+        number,
         {
           /** @example BadRequest [Error]: <ERROR MESSAGE> */
           msg?: string;
@@ -5357,7 +5401,7 @@ export class Api<
  * @name GridColumnUpdate
  * @summary Update Grid Column
  * @request PATCH:/api/v1/db/meta/grid-columns/{columnId}
- * @response `200` `any` OK
+ * @response `200` `number` OK
  * @response `400` `{
   \** @example BadRequest [Error]: <ERROR MESSAGE> *\
   msg?: string,
@@ -5370,7 +5414,7 @@ export class Api<
       params: RequestParams = {}
     ) =>
       this.request<
-        any,
+        number,
         {
           /** @example BadRequest [Error]: <ERROR MESSAGE> */
           msg?: string;
@@ -5389,9 +5433,9 @@ export class Api<
  * 
  * @tags DB View
  * @name GalleryCreate
- * @summary Gallery View
+ * @summary Create Gallery View
  * @request POST:/api/v1/db/meta/tables/{tableId}/galleries
- * @response `200` `object` OK
+ * @response `200` `ViewType` OK
  * @response `400` `{
   \** @example BadRequest [Error]: <ERROR MESSAGE> *\
   msg?: string,
@@ -5400,11 +5444,11 @@ export class Api<
  */
     galleryCreate: (
       tableId: IdType,
-      data: GalleryReqType,
+      data: ViewCreateReqType,
       params: RequestParams = {}
     ) =>
       this.request<
-        object,
+        ViewType,
         {
           /** @example BadRequest [Error]: <ERROR MESSAGE> */
           msg?: string;
@@ -5425,7 +5469,7 @@ export class Api<
  * @name GalleryUpdate
  * @summary Update Gallery View
  * @request PATCH:/api/v1/db/meta/galleries/{galleryViewId}
- * @response `200` `void` OK
+ * @response `200` `number` OK
  * @response `400` `{
   \** @example BadRequest [Error]: <ERROR MESSAGE> *\
   msg?: string,
@@ -5438,7 +5482,7 @@ export class Api<
       params: RequestParams = {}
     ) =>
       this.request<
-        void,
+        number,
         {
           /** @example BadRequest [Error]: <ERROR MESSAGE> */
           msg?: string;
@@ -5448,6 +5492,7 @@ export class Api<
         method: 'PATCH',
         body: data,
         type: ContentType.Json,
+        format: 'json',
         ...params,
       }),
 
@@ -5486,7 +5531,7 @@ export class Api<
  * @name KanbanCreate
  * @summary Create Kanban View
  * @request POST:/api/v1/db/meta/tables/{tableId}/kanbans
- * @response `200` `object` OK
+ * @response `200` `ViewType` OK
  * @response `400` `{
   \** @example BadRequest [Error]: <ERROR MESSAGE> *\
   msg?: string,
@@ -5495,11 +5540,11 @@ export class Api<
  */
     kanbanCreate: (
       tableId: IdType,
-      data: KanbanReqType,
+      data: ViewCreateReqType,
       params: RequestParams = {}
     ) =>
       this.request<
-        object,
+        ViewType,
         {
           /** @example BadRequest [Error]: <ERROR MESSAGE> */
           msg?: string;
@@ -5520,7 +5565,7 @@ export class Api<
  * @name KanbanUpdate
  * @summary Update Kanban View
  * @request PATCH:/api/v1/db/meta/kanbans/{kanbanViewId}
- * @response `200` `void` OK
+ * @response `200` `number` OK
  * @response `400` `{
   \** @example BadRequest [Error]: <ERROR MESSAGE> *\
   msg?: string,
@@ -5533,7 +5578,7 @@ export class Api<
       params: RequestParams = {}
     ) =>
       this.request<
-        void,
+        number,
         {
           /** @example BadRequest [Error]: <ERROR MESSAGE> */
           msg?: string;
@@ -5543,6 +5588,7 @@ export class Api<
         method: 'PATCH',
         body: data,
         type: ContentType.Json,
+        format: 'json',
         ...params,
       }),
 
@@ -5581,16 +5627,20 @@ export class Api<
  * @name MapCreate
  * @summary Create Map View
  * @request POST:/api/v1/db/meta/tables/{tableId}/maps
- * @response `200` `object` OK
+ * @response `200` `ViewType` OK
  * @response `400` `{
   \** @example BadRequest [Error]: <ERROR MESSAGE> *\
   msg?: string,
 
 }`
  */
-    mapCreate: (tableId: IdType, data: MapType, params: RequestParams = {}) =>
+    mapCreate: (
+      tableId: IdType,
+      data: ViewCreateReqType,
+      params: RequestParams = {}
+    ) =>
       this.request<
-        object,
+        ViewType,
         {
           /** @example BadRequest [Error]: <ERROR MESSAGE> */
           msg?: string;
@@ -5611,7 +5661,7 @@ export class Api<
  * @name MapUpdate
  * @summary Update Map View
  * @request PATCH:/api/v1/db/meta/maps/{mapViewId}
- * @response `200` `void` OK
+ * @response `200` `number` OK
  * @response `400` `{
   \** @example BadRequest [Error]: <ERROR MESSAGE> *\
   msg?: string,
@@ -5620,7 +5670,7 @@ export class Api<
  */
     mapUpdate: (mapViewId: string, data: MapType, params: RequestParams = {}) =>
       this.request<
-        void,
+        number,
         {
           /** @example BadRequest [Error]: <ERROR MESSAGE> */
           msg?: string;
@@ -5630,6 +5680,7 @@ export class Api<
         method: 'PATCH',
         body: data,
         type: ContentType.Json,
+        format: 'json',
         ...params,
       }),
 
@@ -5911,7 +5962,7 @@ export class Api<
  * @name Create
  * @summary Update View Sort
  * @request POST:/api/v1/db/meta/views/{viewId}/sorts
- * @response `200` `void` OK
+ * @response `200` `number` OK
  * @response `400` `{
   \** @example BadRequest [Error]: <ERROR MESSAGE> *\
   msg?: string,
@@ -5930,7 +5981,7 @@ export class Api<
       params: RequestParams = {}
     ) =>
       this.request<
-        void,
+        number,
         {
           /** @example BadRequest [Error]: <ERROR MESSAGE> */
           msg?: string;
@@ -5940,6 +5991,7 @@ export class Api<
         method: 'POST',
         body: data,
         type: ContentType.Json,
+        format: 'json',
         ...params,
       }),
 
@@ -5978,7 +6030,7 @@ export class Api<
  * @name Update
  * @summary Update Sort
  * @request PATCH:/api/v1/db/meta/sorts/{sortId}
- * @response `200` `void` OK
+ * @response `200` `number` OK
  * @response `400` `{
   \** @example BadRequest [Error]: <ERROR MESSAGE> *\
   msg?: string,
@@ -5987,7 +6039,7 @@ export class Api<
  */
     update: (sortId: string, data: SortReqType, params: RequestParams = {}) =>
       this.request<
-        void,
+        number,
         {
           /** @example BadRequest [Error]: <ERROR MESSAGE> */
           msg?: string;
@@ -5997,6 +6049,7 @@ export class Api<
         method: 'PATCH',
         body: data,
         type: ContentType.Json,
+        format: 'json',
         ...params,
       }),
 
@@ -6007,7 +6060,7 @@ export class Api<
  * @name Delete
  * @summary Delete Sort
  * @request DELETE:/api/v1/db/meta/sorts/{sortId}
- * @response `200` `void` OK
+ * @response `200` `boolean` OK
  * @response `400` `{
   \** @example BadRequest [Error]: <ERROR MESSAGE> *\
   msg?: string,
@@ -6016,7 +6069,7 @@ export class Api<
  */
     delete: (sortId: string, params: RequestParams = {}) =>
       this.request<
-        void,
+        boolean,
         {
           /** @example BadRequest [Error]: <ERROR MESSAGE> */
           msg?: string;
@@ -6024,6 +6077,7 @@ export class Api<
       >({
         path: `/api/v1/db/meta/sorts/${sortId}`,
         method: 'DELETE',
+        format: 'json',
         ...params,
       }),
   };
@@ -6121,7 +6175,7 @@ export class Api<
  * @name Update
  * @summary Update Filter
  * @request PATCH:/api/v1/db/meta/filters/{filterId}
- * @response `200` `void` OK
+ * @response `200` `number` OK
  * @response `400` `{
   \** @example BadRequest [Error]: <ERROR MESSAGE> *\
   msg?: string,
@@ -6134,7 +6188,7 @@ export class Api<
       params: RequestParams = {}
     ) =>
       this.request<
-        void,
+        number,
         {
           /** @example BadRequest [Error]: <ERROR MESSAGE> */
           msg?: string;
@@ -6144,6 +6198,7 @@ export class Api<
         method: 'PATCH',
         body: data,
         type: ContentType.Json,
+        format: 'json',
         ...params,
       }),
 
@@ -6154,7 +6209,7 @@ export class Api<
  * @name Delete
  * @summary Delete Filter
  * @request DELETE:/api/v1/db/meta/filters/{filterId}
- * @response `200` `void` OK
+ * @response `200` `boolean` OK
  * @response `400` `{
   \** @example BadRequest [Error]: <ERROR MESSAGE> *\
   msg?: string,
@@ -6163,7 +6218,7 @@ export class Api<
  */
     delete: (filterId: IdType, params: RequestParams = {}) =>
       this.request<
-        void,
+        boolean,
         {
           /** @example BadRequest [Error]: <ERROR MESSAGE> */
           msg?: string;
@@ -6171,6 +6226,7 @@ export class Api<
       >({
         path: `/api/v1/db/meta/filters/${filterId}`,
         method: 'DELETE',
+        format: 'json',
         ...params,
       }),
 
@@ -6210,7 +6266,7 @@ export class Api<
  * @name Read
  * @summary Get Hook Filter
  * @request GET:/api/v1/db/meta/hooks/{hookId}/filters
- * @response `200` `FilterListType`
+ * @response `200` `FilterListType` OK
  * @response `400` `{
   \** @example BadRequest [Error]: <ERROR MESSAGE> *\
   msg?: string,
@@ -6227,6 +6283,7 @@ export class Api<
       >({
         path: `/api/v1/db/meta/hooks/${hookId}/filters`,
         method: 'GET',
+        format: 'json',
         ...params,
       }),
 
@@ -6237,7 +6294,7 @@ export class Api<
  * @name Create
  * @summary Create Hook Filter
  * @request POST:/api/v1/db/meta/hooks/{hookId}/filters
- * @response `200` `void` OK
+ * @response `200` `FilterType` OK
  * @response `400` `{
   \** @example BadRequest [Error]: <ERROR MESSAGE> *\
   msg?: string,
@@ -6246,7 +6303,7 @@ export class Api<
  */
     create: (hookId: IdType, data: FilterReqType, params: RequestParams = {}) =>
       this.request<
-        void,
+        FilterType,
         {
           /** @example BadRequest [Error]: <ERROR MESSAGE> */
           msg?: string;
@@ -6256,6 +6313,7 @@ export class Api<
         method: 'POST',
         body: data,
         type: ContentType.Json,
+        format: 'json',
         ...params,
       }),
   };
@@ -8441,7 +8499,11 @@ export class Api<
  * @name Test
  * @summary Test Hook
  * @request POST:/api/v1/db/meta/tables/{tableId}/hooks/test
- * @response `200` `any` OK
+ * @response `200` `{
+  \** @example The hook has been tested successfully *\
+  msg?: string,
+
+}` OK
  * @response `400` `{
   \** @example BadRequest [Error]: <ERROR MESSAGE> *\
   msg?: string,
@@ -8454,7 +8516,10 @@ export class Api<
       params: RequestParams = {}
     ) =>
       this.request<
-        any,
+        {
+          /** @example The hook has been tested successfully */
+          msg?: string;
+        },
         {
           /** @example BadRequest [Error]: <ERROR MESSAGE> */
           msg?: string;
@@ -8476,12 +8541,8 @@ export class Api<
  * @summary Get Sample Hook Payload
  * @request GET:/api/v1/db/meta/tables/{tableId}/hooks/samplePayload/{operation}
  * @response `200` `{
-  plugins?: {
-  list: (PluginType)[],
-  \** Model for Paginated *\
-  pageInfo: PaginatedType,
-
-},
+  \** Sample Payload Data *\
+  data?: object,
 
 }` OK
  * @response `400` `{
@@ -8497,11 +8558,8 @@ export class Api<
     ) =>
       this.request<
         {
-          plugins?: {
-            list: PluginType[];
-            /** Model for Paginated */
-            pageInfo: PaginatedType;
-          };
+          /** Sample Payload Data */
+          data?: object;
         },
         {
           /** @example BadRequest [Error]: <ERROR MESSAGE> */
@@ -8551,7 +8609,7 @@ export class Api<
  * @name Delete
  * @summary Delete Hook
  * @request DELETE:/api/v1/db/meta/hooks/{hookId}
- * @response `200` `void` OK
+ * @response `200` `boolean` OK
  * @response `400` `{
   \** @example BadRequest [Error]: <ERROR MESSAGE> *\
   msg?: string,
@@ -8560,7 +8618,7 @@ export class Api<
  */
     delete: (hookId: string, params: RequestParams = {}) =>
       this.request<
-        void,
+        boolean,
         {
           /** @example BadRequest [Error]: <ERROR MESSAGE> */
           msg?: string;
@@ -8568,6 +8626,7 @@ export class Api<
       >({
         path: `/api/v1/db/meta/hooks/${hookId}`,
         method: 'DELETE',
+        format: 'json',
         ...params,
       }),
   };

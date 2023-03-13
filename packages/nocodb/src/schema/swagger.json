@@ -10994,7 +10994,25 @@
             "description": "OK",
             "content": {
               "application/json": {
-                "schema": {}
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "msg": {
+                      "type": "string",
+                      "x-stoplight": {
+                        "id": "l5k90tzuvvv1g"
+                      },
+                      "example": "The hook has been tested successfully"
+                    }
+                  }
+                },
+                "examples": {
+                  "Example 1": {
+                    "value": {
+                      "msg": "The hook has been tested successfully"
+                    }
+                  }
+                }
               }
             }
           },
@@ -11008,6 +11026,45 @@
             "application/json": {
               "schema": {
                 "$ref": "#/components/schemas/HookTestReq"
+              },
+              "examples": {
+                "Example 1": {
+                  "value": {
+                    "hook": {
+                      "active": 0,
+                      "async": 0,
+                      "description": "This is my hook description",
+                      "env": "all",
+                      "event": "after",
+                      "fk_model_id": "md_rsu68aqjsbyqtl",
+                      "id": "string",
+                      "notification": "{\"type\":\"URL\",\"payload\":{\"method\":\"POST\",\"body\":\"{{ json data }}\",\"headers\":[{}],\"parameters\":[{}],\"auth\":\"\",\"path\":\"http://example.com\"}}",
+                      "null": null,
+                      "operation": "insert",
+                      "retries": 10,
+                      "retry_interval": 60000,
+                      "timeout": 60000,
+                      "title": "My Webhook"
+                    },
+                    "payload": {
+                      "data": {
+                        "Id": 1,
+                        "Title": "Sample Text",
+                        "CreatedAt": "2023-03-03T10:03:06.484Z",
+                        "UpdatedAt": "2023-03-03T10:03:06.484Z",
+                        "attachment": [
+                          {
+                            "url": "https://nocodb.com/dummy.png",
+                            "title": "image.png",
+                            "mimetype": "image/png",
+                            "size": 0
+                          }
+                        ],
+                        "f": "Sample Output"
+                      }
+                    }
+                  }
+                }
               }
             }
           }

@@ -6204,7 +6204,7 @@
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/GridViewUpdateReq"
+                "$ref": "#/components/schemas/GridUpdateReq"
               },
               "examples": {
                 "Example 1": {
@@ -6471,7 +6471,7 @@
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/GalleryViewUpdateReq"
+                "$ref": "#/components/schemas/GalleryUpdateReq"
               },
               "examples": {
                 "Example 1": {
@@ -6857,7 +6857,7 @@
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/MapViewUpdateReq"
+                "$ref": "#/components/schemas/MapUpdateReq"
               },
               "examples": {
                 "Example 1": {
@@ -14183,7 +14183,7 @@
           }
         }
       },
-      "FormReq": {
+      "FormUpdateReq": {
         "description": "Model for Form Request",
         "examples": [
           {
@@ -14612,67 +14612,7 @@
         "title": "Gallery Column Model",
         "type": "object"
       },
-      "GalleryReq": {
-        "description": "Model for Gallery Request",
-        "examples": [
-          {
-            "fk_cover_image_col_id": "cl_g0a89q9xdry3lu",
-            "lock_type": "collaborative",
-            "title": "My Gallery"
-          }
-        ],
-        "title": "Gallery Request Model",
-        "type": "object",
-        "properties": {
-          "cover_image": {
-            "type": "string",
-            "description": "Not in use currently"
-          },
-          "cover_image_idx": {
-            "minimum": 0,
-            "type": "integer",
-            "description": "Not in use currently"
-          },
-          "fk_cover_image_col_id": {
-            "$ref": "#/components/schemas/StringOrNull",
-            "description": "The id of the column that contains the cover image"
-          },
-          "lock_type": {
-            "description": "The lock type of gallery",
-            "enum": ["collaborative", "locked", "personal"],
-            "type": "string"
-          },
-          "next_enabled": {
-            "$ref": "#/components/schemas/Bool",
-            "description": "Not in use currently"
-          },
-          "prev_enabled": {
-            "$ref": "#/components/schemas/Bool",
-            "description": "Not in use currently"
-          },
-          "restrict_number": {
-            "type": "string",
-            "description": "Not in use currently"
-          },
-          "restrict_size": {
-            "type": "string",
-            "description": "Not in use currently"
-          },
-          "restrict_types": {
-            "type": "string",
-            "description": "Not in use currently"
-          },
-          "title": {
-            "description": "The title of the gallery",
-            "example": "My Gallery",
-            "maxLength": 255,
-            "minLength": 1,
-            "type": "string"
-          }
-        },
-        "required": ["title"]
-      },
-      "GalleryViewUpdateReq": {
+      "GalleryUpdateReq": {
         "description": "Model for Gallery View Update Request",
         "x-stoplight": {
           "id": "mgch3vcokvxml"
@@ -14951,7 +14891,7 @@
         "title": "Grid Column Request Model",
         "type": "object"
       },
-      "GridViewUpdateReq": {
+      "GridUpdateReq": {
         "description": "Model for Grid View Update",
         "x-stoplight": {
           "id": "d7x12vwf1fgz4"
@@ -14981,45 +14921,6 @@
             "description": "Meta Info for grid view"
           }
         }
-      },
-      "GridReq": {
-        "description": "Model for Grid Request",
-        "examples": [
-          {
-            "lock_type": "collaborative",
-            "order": 1,
-            "row_height": 1,
-            "title": "My Grid"
-          }
-        ],
-        "properties": {
-          "lock_type": {
-            "description": "The lock type of the grid",
-            "enum": ["collaborative", "locked", "personal"],
-            "type": "string"
-          },
-          "order": {
-            "description": "The order of the grid",
-            "example": 1,
-            "type": "number"
-          },
-          "row_height": {
-            "description": "The height of the grid rows",
-            "example": 1,
-            "minimum": 1,
-            "type": "number"
-          },
-          "title": {
-            "description": "The title of the grid",
-            "example": "My Grid",
-            "maxLength": 255,
-            "minLength": 1,
-            "type": "string"
-          }
-        },
-        "required": ["title"],
-        "title": "Grid Request Model",
-        "type": "object"
       },
       "Hook": {
         "description": "Model for Hook",
@@ -15557,31 +15458,6 @@
           }
         }
       },
-      "KanbanReq": {
-        "description": "Model for Kanban Request",
-        "examples": [
-          {
-            "fk_grp_col_id": "cl_phvuuwjrzcdo0g",
-            "title": "My Kanban"
-          }
-        ],
-        "title": "Kanban Request Model",
-        "type": "object",
-        "properties": {
-          "fk_grp_col_id": {
-            "$ref": "#/components/schemas/StringOrNull",
-            "description": "Grouping Column ID"
-          },
-          "title": {
-            "description": "The title of the kanban",
-            "example": "My Kanban",
-            "maxLength": 255,
-            "minLength": 1,
-            "type": "string"
-          }
-        },
-        "required": ["title"]
-      },
       "KanbanUpdateReq": {
         "description": "Model for Kanban Update Request",
         "examples": [
@@ -15939,7 +15815,7 @@
         "title": "Map Model",
         "type": "object"
       },
-      "MapViewUpdateReq": {
+      "MapUpdateReq": {
         "description": "Model for Map",
         "x-stoplight": {
           "id": "o1v53xl8b6hn9"

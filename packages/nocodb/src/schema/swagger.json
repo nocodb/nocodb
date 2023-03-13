@@ -4531,7 +4531,7 @@
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/ViewReq"
+                "$ref": "#/components/schemas/ViewUpdateReq"
               },
               "examples": {
                 "Example 1": {
@@ -6204,54 +6204,13 @@
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/Grid"
+                "$ref": "#/components/schemas/GridViewUpdateReq"
               },
               "examples": {
                 "Example 1": {
                   "value": {
-                    "project_id": "p_xm3thidrblw4n7",
-                    "base_id": "ds_g4ccx6e77h1dmi",
-                    "fk_view_id": "vw_p2jcatxz4mvcfw",
                     "row_height": 1,
-                    "meta": null,
-                    "columns": [
-                      {
-                        "id": "cl_phvuuwjrzcdo0g",
-                        "base_id": "ds_g4ccx6e77h1dmi",
-                        "project_id": "p_xm3thidrblw4n7",
-                        "fk_model_id": "md_rsu68aqjsbyqtl",
-                        "title": "Id",
-                        "column_name": "id",
-                        "uidt": "ID",
-                        "dt": "int",
-                        "np": "10",
-                        "ns": "0",
-                        "clen": null,
-                        "cop": "1",
-                        "pk": 1,
-                        "pv": null,
-                        "rqd": 1,
-                        "un": 1,
-                        "ct": "int unsigned",
-                        "ai": 1,
-                        "unique": 0,
-                        "cdf": null,
-                        "cc": "",
-                        "csn": null,
-                        "dtx": "specificType",
-                        "dtxp": "",
-                        "dtxs": "0",
-                        "au": 0,
-                        "validate": null,
-                        "virtual": null,
-                        "deleted": null,
-                        "system": 0,
-                        "order": 1,
-                        "created_at": "2023-03-02 17:04:06",
-                        "updated_at": "2023-03-02 17:04:06",
-                        "meta": null
-                      }
-                    ]
+                    "meta": null
                   }
                 }
               }
@@ -6512,14 +6471,13 @@
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/GalleryReq"
+                "$ref": "#/components/schemas/GalleryViewUpdateReq"
               },
               "examples": {
                 "Example 1": {
                   "value": {
-                    "fk_cover_image_col_id": "cl_g0a89q9xdry3lu",
-                    "lock_type": "collaborative",
-                    "title": "My Gallery"
+                    "fk_cover_image_col_id": "cl_ib8l4j1kiu1efx",
+                    "meta": null
                   }
                 }
               }
@@ -6689,7 +6647,51 @@
               "examples": {
                 "Example 1": {
                   "value": {
-                    "fk_grp_col_id": "cl_g0a89q9xdry3lu"
+                    "fk_grp_col_id": "cl_g0a89q9xdry3lu",
+                    "fk_cover_image_col_id": "cl_ib8l4j1kiu1efx",
+                    "meta": {
+                      "cl_g0a89q9xdry3lu": [
+                        {
+                          "id": "uncategorized",
+                          "title": null,
+                          "order": 0,
+                          "color": "#c2f5e8",
+                          "collapsed": false
+                        },
+                        {
+                          "id": "sl_ihyva6jx6dg0fc",
+                          "fk_column_id": "cl_g0a89q9xdry3lu",
+                          "title": "a",
+                          "color": "#cfdffe",
+                          "order": 1,
+                          "collapsed": false
+                        },
+                        {
+                          "id": "sl_gqdm5v6t8aetoa",
+                          "fk_column_id": "cl_g0a89q9xdry3lu",
+                          "title": "b",
+                          "color": "#d0f1fd",
+                          "order": 2,
+                          "collapsed": false
+                        },
+                        {
+                          "id": "sl_eipnl0kn7a9d3c",
+                          "fk_column_id": "cl_g0a89q9xdry3lu",
+                          "title": "cc",
+                          "color": "#c2f5e8",
+                          "order": 3,
+                          "collapsed": false
+                        },
+                        {
+                          "id": "sl_dei8p2jq0cnlv0",
+                          "fk_column_id": "cl_g0a89q9xdry3lu",
+                          "title": "d",
+                          "color": "#ffdaf6",
+                          "order": 4,
+                          "collapsed": false
+                        }
+                      ]
+                    }
                   }
                 }
               }
@@ -6855,30 +6857,13 @@
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/Map"
+                "$ref": "#/components/schemas/MapViewUpdateReq"
               },
               "examples": {
                 "Example 1": {
                   "value": {
-                    "base_id": "ds_g4ccx6e77h1dmi",
-                    "columns": [
-                      {
-                        "base_id": "ds_g4ccx6e77h1dmi",
-                        "fk_column_id": "cl_8iw2o4ejzvdyna",
-                        "fk_view_id": "vw_qjt7klod1p9kyv",
-                        "id": "nc_46xcacqn4rc9xf",
-                        "order": 1,
-                        "project_id": "p_xm3thidrblw4n7",
-                        "show": 1
-                      }
-                    ],
                     "fk_geo_data_col_id": "cl_8iw2o4ejzvdyna",
-                    "fk_view_id": "vw_qjt7klod1p9kyv",
-                    "meta": {},
-                    "order": 0,
-                    "project_id": "p_xm3thidrblw4n7",
-                    "show": true,
-                    "title": "My Map"
+                    "meta": null
                   }
                 }
               }
@@ -7822,7 +7807,8 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "type": "object"
+                  "type": "array",
+                  "items": {}
                 },
                 "examples": {
                   "Example 1": {
@@ -7987,7 +7973,8 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "type": "object"
+                  "type": "array",
+                  "items": {}
                 },
                 "examples": {
                   "Example 1": {
@@ -10502,26 +10489,35 @@
                 },
                 "examples": {
                   "Example 1": {
-                    "value": [
-                      {
-                        "Id": 1,
-                        "Title": "foo",
-                        "CreatedAt": "2023-03-11T08:41:41.356Z",
-                        "UpdatedAt": "2023-03-11T08:41:41.356Z"
-                      },
-                      {
-                        "Id": 2,
-                        "Title": "bar",
-                        "CreatedAt": "2023-03-11T08:41:45.330Z",
-                        "UpdatedAt": "2023-03-11T08:41:45.330Z"
-                      },
-                      {
-                        "Id": 3,
-                        "Title": "baz",
-                        "CreatedAt": "2023-03-11T08:48:25.598Z",
-                        "UpdatedAt": "2023-03-11T08:48:25.598Z"
+                    "value": {
+                      "list": [
+                        {
+                          "Id": 1,
+                          "Title": "foo",
+                          "CreatedAt": "2023-03-11T08:41:41.356Z",
+                          "UpdatedAt": "2023-03-11T08:41:41.356Z"
+                        },
+                        {
+                          "Id": 2,
+                          "Title": "bar",
+                          "CreatedAt": "2023-03-11T08:41:45.330Z",
+                          "UpdatedAt": "2023-03-11T08:41:45.330Z"
+                        },
+                        {
+                          "Id": 3,
+                          "Title": "baz",
+                          "CreatedAt": "2023-03-11T08:48:25.598Z",
+                          "UpdatedAt": "2023-03-11T08:48:25.598Z"
+                        }
+                      ],
+                      "pageInfo": {
+                        "isFirstPage": true,
+                        "isLastPage": true,
+                        "pageSize": 1,
+                        "sort": "string",
+                        "totalRows": 3
                       }
-                    ]
+                    }
                   }
                 }
               }
@@ -14676,6 +14672,33 @@
         },
         "required": ["title"]
       },
+      "GalleryViewUpdateReq": {
+        "description": "Model for Gallery View Update Request",
+        "x-stoplight": {
+          "id": "mgch3vcokvxml"
+        },
+        "examples": [
+          {
+            "fk_cover_image_col_id": "cl_ib8l4j1kiu1efx",
+            "meta": null
+          }
+        ],
+        "title": "Gallery View Update Request Model",
+        "type": "object",
+        "properties": {
+          "fk_cover_image_col_id": {
+            "$ref": "#/components/schemas/StringOrNull",
+            "description": "The id of the column that contains the cover image"
+          },
+          "meta": {
+            "$ref": "#/components/schemas/Meta",
+            "x-stoplight": {
+              "id": "zhp6jkrr54wuf"
+            },
+            "description": "Meta Info"
+          }
+        }
+      },
       "GeoLocation": {
         "description": "Model for Geo Location",
         "examples": [
@@ -14927,6 +14950,37 @@
         },
         "title": "Grid Column Request Model",
         "type": "object"
+      },
+      "GridViewUpdateReq": {
+        "description": "Model for Grid View Update",
+        "x-stoplight": {
+          "id": "d7x12vwf1fgz4"
+        },
+        "examples": [
+          {
+            "row_height": "1",
+            "meta": null
+          }
+        ],
+        "title": "Grid View Update Model",
+        "type": "object",
+        "properties": {
+          "row_height": {
+            "type": "number",
+            "x-stoplight": {
+              "id": "m5976ax1q13cr"
+            },
+            "description": "Row Height",
+            "example": 1
+          },
+          "meta": {
+            "$ref": "#/components/schemas/Meta",
+            "x-stoplight": {
+              "id": "dugbkhe9iupqu"
+            },
+            "description": "Meta Info for grid view"
+          }
+        }
       },
       "GridReq": {
         "description": "Model for Grid Request",
@@ -15532,7 +15586,51 @@
         "description": "Model for Kanban Update Request",
         "examples": [
           {
-            "fk_grp_col_id": "cl_g0a89q9xdry3lu"
+            "fk_grp_col_id": "cl_g0a89q9xdry3lu",
+            "fk_cover_image_col_id": "cl_ib8l4j1kiu1efx",
+            "meta": {
+              "cl_g0a89q9xdry3lu": [
+                {
+                  "id": "uncategorized",
+                  "title": null,
+                  "order": 0,
+                  "color": "#c2f5e8",
+                  "collapsed": false
+                },
+                {
+                  "id": "sl_ihyva6jx6dg0fc",
+                  "fk_column_id": "cl_g0a89q9xdry3lu",
+                  "title": "a",
+                  "color": "#cfdffe",
+                  "order": 1,
+                  "collapsed": false
+                },
+                {
+                  "id": "sl_gqdm5v6t8aetoa",
+                  "fk_column_id": "cl_g0a89q9xdry3lu",
+                  "title": "b",
+                  "color": "#d0f1fd",
+                  "order": 2,
+                  "collapsed": false
+                },
+                {
+                  "id": "sl_eipnl0kn7a9d3c",
+                  "fk_column_id": "cl_g0a89q9xdry3lu",
+                  "title": "cc",
+                  "color": "#c2f5e8",
+                  "order": 3,
+                  "collapsed": false
+                },
+                {
+                  "id": "sl_dei8p2jq0cnlv0",
+                  "fk_column_id": "cl_g0a89q9xdry3lu",
+                  "title": "d",
+                  "color": "#ffdaf6",
+                  "order": 4,
+                  "collapsed": false
+                }
+              ]
+            }
           }
         ],
         "title": "Kanban Update Request Model",
@@ -15541,6 +15639,20 @@
           "fk_grp_col_id": {
             "$ref": "#/components/schemas/StringOrNull",
             "description": "Foreign Key to Grouping Field Column"
+          },
+          "fk_cover_image_col_id": {
+            "$ref": "#/components/schemas/StringOrNull",
+            "x-stoplight": {
+              "id": "81wn4hzj76wod"
+            },
+            "description": "Foreign Key to Cover Image Column"
+          },
+          "meta": {
+            "$ref": "#/components/schemas/Meta",
+            "x-stoplight": {
+              "id": "stsvdmkli1b0r"
+            },
+            "description": "Meta Info"
           }
         }
       },
@@ -15826,6 +15938,31 @@
         },
         "title": "Map Model",
         "type": "object"
+      },
+      "MapViewUpdateReq": {
+        "description": "Model for Map",
+        "x-stoplight": {
+          "id": "o1v53xl8b6hn9"
+        },
+        "examples": [
+          {
+            "fk_geo_data_col_id": "cl_8iw2o4ejzvdyna",
+            "meta": null
+          }
+        ],
+        "title": "Map View Update Request Model",
+        "type": "object",
+        "properties": {
+          "fk_geo_data_col_id": {
+            "description": "Foreign Key to GeoData Column",
+            "example": "cl_8iw2o4ejzvdyna",
+            "type": "string"
+          },
+          "meta": {
+            "$ref": "#/components/schemas/Meta",
+            "description": "Meta data for this view"
+          }
+        }
       },
       "MapColumn": {
         "description": "Model for Map Column",

@@ -298,12 +298,13 @@ export async function importLTARData({
                 )}`
               );
 
-              await bulkDataService.bulkDataInsert({
+              const x = await bulkDataService.bulkDataInsert({
                 projectName: projectName,
-                tableName: table.title,
+                tableName: assocMeta.modelMeta.title,
                 body: insertArray,
                 cookie: {},
               });
+              console.log(x);
 
               importedCount += insertArray.length;
               insertArray = [];
@@ -328,7 +329,7 @@ export async function importLTARData({
 
           await bulkDataService.bulkDataInsert({
             projectName: projectName,
-            tableName: table.title,
+            tableName: assocMeta.modelMeta.title,
             body: assocTableData,
             cookie: {},
           });

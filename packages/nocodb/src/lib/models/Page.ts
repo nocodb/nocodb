@@ -54,7 +54,6 @@ export default class Page {
         .foreign('last_published_by_id')
         .references(`${MetaTable.USERS}.id`)
         .withKeyName(`nc_page_last_published_id_${uuidv4()}`);
-      table.boolean('is_nested_published').defaultTo(false);
 
       table.string('nested_published_parent_id', 20).nullable();
       table
@@ -145,6 +144,14 @@ export default class Page {
     );
 
     if (parent_page_id) {
+      const parentPage = await this.get(
+        {
+          id: parent_page_id,
+          projectId,
+        },
+        ncMeta
+      );
+
       await this._updatePage(
         {
           pageId: parent_page_id,
@@ -155,9 +162,23 @@ export default class Page {
         },
         ncMeta
       );
+
+      if (parentPage?.is_published) {
+        await this._updatePage(
+          {
+            pageId: createdPageId,
+            projectId,
+            attributes: {
+              is_published: true,
+              nested_published_parent_id: parentPage.nested_published_parent_id,
+            },
+          },
+          ncMeta
+        );
+      }
     }
 
-    await this.reorder({ parent_page_id, projectId });
+    await this.updateOrderAfterCreate({ parent_page_id, projectId });
 
     return await this.get({ id: createdPageId, projectId }, ncMeta);
   }
@@ -339,7 +360,7 @@ export default class Page {
           'parent_page_id',
           'is_parent',
           'is_published',
-          'is_nested_published',
+          'nested_published_parent_id',
           'updated_at',
           'created_at',
           'last_updated_by_id',
@@ -504,29 +525,17 @@ export default class Page {
     await NocoCache.del(`${CacheScope.DOCS_PAGE}:${projectId}:${id}`);
   }
 
-  static async reorder(
+  static async updateOrderAfterCreate(
     {
       parent_page_id,
-      keepPageId,
       projectId,
     }: {
       projectId: string;
       parent_page_id?: string;
-      keepPageId?: string;
     },
     ncMeta = Noco.ncMeta
   ) {
     const pages = await this.list({ parent_page_id, projectId }, ncMeta);
-
-    if (keepPageId) {
-      const kpPage = pages.splice(
-        pages.indexOf(pages.find((base) => base.id === keepPageId)),
-        1
-      );
-      if (kpPage.length) {
-        pages.splice(kpPage[0].order - 1, 0, kpPage[0]);
-      }
-    }
 
     // update order for pages
     for (const [i, b] of Object.entries(pages)) {

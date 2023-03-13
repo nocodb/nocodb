@@ -103,7 +103,17 @@
             "description": "OK",
             "content": {
               "application/json": {
-                "$ref": "#/components/schemas/DocsPage"
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "page": {
+                      "$ref": "#/components/schemas/DocsPage"
+                    },
+                    "project": {
+                      "$ref": "#/components/schemas/Project"
+                    }
+                  }
+                }                
               }
             }
           }
@@ -12190,9 +12200,6 @@
           "id": {
             "description": "Unique identifier for the given page.",
             "type": "string"
-          },
-          "is_nested_published": {
-            "type": "boolean"
           },
           "is_parent": {
             "type": "boolean"

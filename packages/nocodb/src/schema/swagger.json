@@ -711,7 +711,24 @@
         "operationId": "org-tokens-create",
         "responses": {
           "200": {
-            "description": "OK"
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiToken"
+                },
+                "examples": {
+                  "Example 1": {
+                    "value": {
+                      "id": "1",
+                      "fk_user_id": "us_b3xo2i44nx5y9l",
+                      "description": "This API Token is for ABC application",
+                      "token": "DYh540o8hbWpUGdarekECKLdN5OhlgCUWutVJYX2"
+                    }
+                  }
+                }
+              }
+            }
           },
           "400": {
             "$ref": "#/components/responses/BadRequest"
@@ -832,7 +849,30 @@
         "operationId": "org-license-set",
         "responses": {
           "200": {
-            "description": "OK"
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "msg": {
+                      "type": "string",
+                      "x-stoplight": {
+                        "id": "wsiywigeb9hjl"
+                      },
+                      "example": "The license key has been saved"
+                    }
+                  }
+                },
+                "examples": {
+                  "Example 1": {
+                    "value": {
+                      "msg": "The license key has been saved"
+                    }
+                  }
+                }
+              }
+            }
           },
           "400": {
             "$ref": "#/components/responses/BadRequest"
@@ -914,7 +954,30 @@
         "operationId": "org-app-settings-set",
         "responses": {
           "200": {
-            "description": "OK"
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "msg": {
+                      "type": "string",
+                      "x-stoplight": {
+                        "id": "6qbh8ijtc4tva"
+                      },
+                      "example": "The app settings have been saved"
+                    }
+                  }
+                },
+                "examples": {
+                  "Example 1": {
+                    "value": {
+                      "msg": "The app settings have been saved"
+                    }
+                  }
+                }
+              }
+            }
           },
           "400": {
             "$ref": "#/components/responses/BadRequest"
@@ -1015,7 +1078,34 @@
             "description": "OK",
             "content": {
               "application/json": {
-                "schema": {}
+                "schema": {
+                  "type": "object",
+                  "x-examples": {
+                    "Example 1": {
+                      "invite_token": "c22c129f-d947-4030-a838-1b498fce21bb",
+                      "email": "w123@nocodb.com"
+                    }
+                  },
+                  "properties": {
+                    "invite_token": {
+                      "type": "string",
+                      "description": "Invite Token"
+                    },
+                    "email": {
+                      "type": "string",
+                      "description": "User email",
+                      "example": "user@example.com"
+                    }
+                  }
+                },
+                "examples": {
+                  "Example 1": {
+                    "value": {
+                      "invite_token": "c22c129f-d947-4030-a838-1b498fce21bb",
+                      "email": "user@example.com"
+                    }
+                  }
+                }
               }
             }
           },

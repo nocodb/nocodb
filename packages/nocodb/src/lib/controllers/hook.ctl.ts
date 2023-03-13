@@ -50,7 +50,7 @@ export async function hookTest(req: Request<any, any>, res: Response) {
     hookTest: req.body,
     tableId: req.params.tableId,
   });
-  res.json({ msg: 'Success' });
+  res.json({ msg: 'The hook has been tested successfully' });
 }
 
 export async function tableSampleData(req: Request, res: Response) {

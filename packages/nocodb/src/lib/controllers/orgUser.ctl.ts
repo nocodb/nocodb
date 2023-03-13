@@ -79,7 +79,7 @@ async function appSettingsSet(req, res) {
     settings: req.body,
   });
 
-  res.json({ msg: 'Settings saved' });
+  res.json({ msg: 'The app settings have been saved' });
 }
 
 const router = Router({ mergeParams: true });

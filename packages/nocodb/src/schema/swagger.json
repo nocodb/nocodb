@@ -1653,6 +1653,56 @@
                 "schema": {
                   "type": "array",
                   "items": {}
+                },
+                "examples": {
+                  "Example 1": {
+                    "value": [
+                      {
+                        "ptn": "nc_09gt___Sheet-1",
+                        "_ptn": "Sheet-1",
+                        "ptype": "table",
+                        "tn": "Sheet-1",
+                        "_tn": "Sheet-1",
+                        "table_meta": null,
+                        "id": "vw_75neroyqdye94k",
+                        "base_id": "ds_eol59jg2l4zwev",
+                        "project_id": "p_63b4q0qengen1x",
+                        "fk_model_id": "md_5mipbdg6ketmv8",
+                        "title": "Sheet-1",
+                        "type": 3,
+                        "is_default": true,
+                        "show_system_fields": null,
+                        "lock_type": "collaborative",
+                        "uuid": "24a6d0bb-e45d-4b1a-bfef-f492d870de9f",
+                        "password": null,
+                        "show": true,
+                        "order": 1,
+                        "created_at": "2023-03-08T10:44:55.253Z",
+                        "updated_at": "2023-03-10T07:18:44.908Z",
+                        "meta": {
+                          "allowCSVDownload": true
+                        },
+                        "view": {
+                          "fk_view_id": "vw_75neroyqdye94k",
+                          "base_id": "ds_eol59jg2l4zwev",
+                          "project_id": "p_63b4q0qengen1x",
+                          "uuid": null,
+                          "created_at": "2023-03-08T10:44:55.288Z",
+                          "updated_at": "2023-03-08T10:44:55.288Z",
+                          "meta": null,
+                          "row_height": null
+                        },
+                        "disabled": {
+                          "owner": false,
+                          "creator": false,
+                          "viewer": false,
+                          "editor": false,
+                          "commenter": false,
+                          "guest": false
+                        }
+                      }
+                    ]
+                  }
                 }
               }
             }
@@ -1698,7 +1748,12 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/VisibilityRuleReq"
+                  "$ref": "#/components/schemas/Bool"
+                },
+                "examples": {
+                  "Example 1": {
+                    "value": 1
+                  }
                 }
               }
             }
@@ -1710,7 +1765,9 @@
         "requestBody": {
           "content": {
             "application/json": {
-              "schema": {}
+              "schema": {
+                "$ref": "#/components/schemas/VisibilityRuleReq"
+              }
             }
           }
         },
@@ -4864,7 +4921,19 @@
         "operationId": "db-view-share-delete",
         "responses": {
           "200": {
-            "description": "OK"
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "boolean"
+                },
+                "examples": {
+                  "Example 1": {
+                    "value": true
+                  }
+                }
+              }
+            }
           },
           "400": {
             "$ref": "#/components/responses/BadRequest"
@@ -11733,7 +11802,8 @@
           },
           "name": "pluginTitle",
           "in": "path",
-          "required": true
+          "required": true,
+          "description": "Plugin Title"
         }
       ],
       "get": {
@@ -11760,7 +11830,8 @@
             "$ref": "#/components/parameters/xc-auth"
           }
         ],
-        "tags": ["Plugin"]
+        "tags": ["Plugin"],
+        "x-internal": false
       }
     },
     "/api/v1/db/meta/plugins/test": {
@@ -11811,7 +11882,8 @@
           },
           "name": "pluginId",
           "in": "path",
-          "required": true
+          "required": true,
+          "description": "Plugin ID"
         }
       ],
       "patch": {
@@ -11845,7 +11917,8 @@
           {
             "$ref": "#/components/parameters/xc-auth"
           }
-        ]
+        ],
+        "x-internal": false
       },
       "get": {
         "summary": "Get Plugin",
@@ -11866,7 +11939,8 @@
           }
         },
         "tags": ["Plugin"],
-        "description": "Get the plugin data by ID"
+        "description": "Get the plugin data by ID",
+        "x-internal": false
       }
     },
     "/api/v1/db/meta/connection/test": {

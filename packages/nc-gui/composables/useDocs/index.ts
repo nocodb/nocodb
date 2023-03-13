@@ -104,6 +104,38 @@ const [setup, use] = useInjectionState(() => {
   )
 
   watch(
+    openedPageId,
+    async (_, oldId) => {
+      if (!openedPageId.value) {
+        openedPage.value = undefined
+        return
+      }
+
+      if (openedPage.value?.new) return
+
+      if (oldId) {
+        const page = findPage(nestedPages.value, oldId)
+        if (page?.new) {
+          page.new = false
+        }
+      }
+
+      isFetching.value.page = true
+      openedPage.value = undefined
+
+      const newPage = (await fetchPage()) as any
+      if (newPage?.id !== openedPageId.value) return
+
+      openedPage.value = newPage
+
+      isFetching.value.page = false
+    },
+    {
+      immediate: true,
+    },
+  )
+
+  watch(
     openedPageInSidebar,
     () => {
       if (!openedPage.value) return
@@ -229,7 +261,7 @@ const [setup, use] = useInjectionState(() => {
     }
   }
 
-  const fetchPage = async ({ page }: { page?: PageSidebarNode } = {}) => {
+  async function fetchPage({ page }: { page?: PageSidebarNode } = {}) {
     const pageId = page?.id || openedPageId.value
     if (!pageId) throw new Error('No page id or slug provided')
 

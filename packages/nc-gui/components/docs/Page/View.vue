@@ -12,14 +12,11 @@ const {
   updatePage,
   openedPageWithParents,
   nestedUrl,
-  fetchPage,
   openPage,
   openedPageId,
   isPublic,
   isEditAllowed,
   isFetching,
-  findPage,
-  nestedPages,
 } = useDocs()
 
 const wrapperRef = ref<HTMLDivElement | undefined>()
@@ -69,13 +66,6 @@ const focusEditor = () => {
   editor?.value?.commands.focus('start')
 }
 
-const removeNewFlagFromNewPage = (pageId: string) => {
-  const page = findPage(nestedPages.value, pageId)
-  if (page?.new) {
-    page.new = false
-  }
-}
-
 watch(
   isEditAllowed,
   () => {
@@ -97,12 +87,16 @@ watch(
       ;(editor.value.state as any).history$.prevRanges = null
       ;(editor.value.state as any).history$.done.eventCount = 0
 
+      let contentJSON = {}
+      try {
+        contentJSON = JSON.parse(String(content.value).length > 0 ? String(content.value) : '{}')
+      } catch (e) {
+        console.error('Failed to parse content JSON', content.value.length, '||')
+        console.error(e)
+      }
+
       const selection = editor.value.view.state.selection
-      editor.value
-        .chain()
-        .setContent(JSON.parse(content.value ?? {}))
-        .setTextSelection(selection.to)
-        .run()
+      editor.value.chain().setContent(contentJSON).setTextSelection(selection.to).run()
     }
   },
 )
@@ -117,29 +111,6 @@ watchDebounced(
   {
     debounce: 300,
     maxWait: 600,
-  },
-)
-
-watch(
-  openedPageId,
-  async (_, oldId) => {
-    if (!openedPageId.value) return
-    if (openedPage.value?.new) return
-
-    if (oldId) removeNewFlagFromNewPage(oldId)
-
-    isFetching.value.page = true
-    openedPage.value = undefined
-
-    const newPage = (await fetchPage()) as any
-    if (newPage?.id !== openedPageId.value) return
-
-    openedPage.value = newPage
-
-    isFetching.value.page = false
-  },
-  {
-    immediate: true,
   },
 )
 </script>

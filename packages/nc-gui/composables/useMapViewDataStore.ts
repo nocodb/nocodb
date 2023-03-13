@@ -31,6 +31,8 @@ const [useProvideMapViewStore, useMapViewStore] = useInjectionState(
       throw new Error('Table meta is not available')
     }
 
+    const defaultPageSize = 1000
+
     const formattedData = ref<Row[]>([])
 
     const { api } = useApi()
@@ -45,13 +47,11 @@ const [useProvideMapViewStore, useMapViewStore] = useInjectionState(
 
     const { sorts, nestedFilters } = useSmartsheetStoreOrThrow()
 
-    const { sharedView, fetchSharedViewData } = useSharedView()
+    const { sharedView, fetchSharedViewData } = useSharedView(defaultPageSize)
 
     const mapMetaData = ref<MapType>({})
 
     const geoDataFieldColumn = ref<ColumnType | undefined>()
-
-    const defaultPageSize = 1000
 
     const paginationData = ref<PaginatedType>({ page: 1, pageSize: defaultPageSize })
 

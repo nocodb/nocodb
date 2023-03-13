@@ -12,7 +12,7 @@ import type {
 import { UITypes } from 'nocodb-sdk'
 import { computed, useGlobal, useMetas, useNuxtApp, useState } from '#imports'
 
-export function useSharedView() {
+export function useSharedView(limit?: number) {
   const nestedFilters = ref<(FilterType & { status?: 'update' | 'delete' | 'create'; parentId?: string })[]>([])
 
   const { appInfo } = $(useGlobal())
@@ -21,7 +21,10 @@ export function useSharedView() {
 
   const appInfoDefaultLimit = appInfo.defaultLimit || 25
 
-  const paginationData = useState<PaginatedType>('paginationData', () => ({ page: 1, pageSize: appInfoDefaultLimit }))
+  const paginationData = useState<PaginatedType>('paginationData', () => ({
+    page: 1,
+    pageSize: appInfoDefaultLimit,
+  }))
 
   const sharedView = useState<ViewType | undefined>('sharedView', () => undefined)
 
@@ -113,6 +116,7 @@ export function useSharedView() {
     const { data } = await $api.public.dataList(
       sharedView.value.uuid!,
       {
+        limit,
         offset,
         filterArrJson: JSON.stringify(filtersArr ?? nestedFilters.value),
         sortArrJson: JSON.stringify(sortsArr ?? sorts.value),

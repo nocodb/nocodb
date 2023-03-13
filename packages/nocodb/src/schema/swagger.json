@@ -4492,7 +4492,36 @@
         "operationId": "db-view-update",
         "responses": {
           "200": {
-            "description": "OK"
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/View"
+                },
+                "examples": {
+                  "Example 1": {
+                    "value": {
+                      "base_id": "ds_g4ccx6e77h1dmi",
+                      "created_at": "2023-03-02 17:46:31",
+                      "fk_model_id": "md_mhs9z4r2ak98x0",
+                      "id": "vw_lg052cnc1c26kf",
+                      "is_default": 1,
+                      "lock_type": "collaborative",
+                      "meta": "{\"allowCSVDownload\":true}",
+                      "order": 1,
+                      "password": "password123",
+                      "project_id": "p_xm3thidrblw4n7",
+                      "show": 1,
+                      "show_system_fields": null,
+                      "title": "Grid View 1",
+                      "type": 3,
+                      "updated_at": "2023-03-02 17:46:31",
+                      "uuid": null
+                    }
+                  }
+                }
+              }
+            }
           },
           "400": {
             "$ref": "#/components/responses/BadRequest"
@@ -4533,7 +4562,19 @@
         "operationId": "db-view-delete",
         "responses": {
           "200": {
-            "description": "OK"
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "boolean"
+                },
+                "examples": {
+                  "Example 1": {
+                    "value": true
+                  }
+                }
+              }
+            }
           },
           "400": {
             "$ref": "#/components/responses/BadRequest"

@@ -11171,6 +11171,26 @@
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/Hook"
+                },
+                "examples": {
+                  "Example 1": {
+                    "value": {
+                      "active": 0,
+                      "async": 0,
+                      "description": "This is my hook description",
+                      "env": "all",
+                      "event": "after",
+                      "fk_model_id": "md_rsu68aqjsbyqtl",
+                      "id": "string",
+                      "notification": "{\"type\":\"URL\",\"payload\":{\"method\":\"POST\",\"body\":\"{{ json data }}\",\"headers\":[{}],\"parameters\":[{}],\"auth\":\"\",\"path\":\"http://example.com\"}}",
+                      "null": null,
+                      "operation": "insert",
+                      "retries": 10,
+                      "retry_interval": 60000,
+                      "timeout": 60000,
+                      "title": "My Webhook"
+                    }
+                  }
                 }
               }
             }
@@ -11185,6 +11205,26 @@
             "application/json": {
               "schema": {
                 "$ref": "#/components/schemas/Hook"
+              },
+              "examples": {
+                "Example 1": {
+                  "value": {
+                    "active": 0,
+                    "async": 0,
+                    "description": "This is my hook description",
+                    "env": "all",
+                    "event": "after",
+                    "fk_model_id": "md_rsu68aqjsbyqtl",
+                    "id": "string",
+                    "notification": "{\"type\":\"URL\",\"payload\":{\"method\":\"POST\",\"body\":\"{{ json data }}\",\"headers\":[{}],\"parameters\":[{}],\"auth\":\"\",\"path\":\"http://example.com\"}}",
+                    "null": null,
+                    "operation": "insert",
+                    "retries": 10,
+                    "retry_interval": 60000,
+                    "timeout": 60000,
+                    "title": "My Webhook"
+                  }
+                }
               }
             }
           }
@@ -11201,7 +11241,19 @@
         "operationId": "db-table-webhook-delete",
         "responses": {
           "200": {
-            "description": "OK"
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "boolean"
+                },
+                "examples": {
+                  "Example 1": {
+                    "value": true
+                  }
+                }
+              }
+            }
           },
           "400": {
             "$ref": "#/components/responses/BadRequest"

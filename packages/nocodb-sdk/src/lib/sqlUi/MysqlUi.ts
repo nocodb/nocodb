@@ -973,6 +973,9 @@ export class MysqlUi {
       case 'Attachment':
         colProp.dt = 'text';
         break;
+      case 'GeoData':
+        colProp.dt = 'text';
+        break;
       case 'Checkbox':
         colProp.dt = 'tinyint';
         colProp.dtxp = 1;
@@ -1107,6 +1110,7 @@ export class MysqlUi {
       case 'SingleLineText':
       case 'LongText':
       case 'Collaborator':
+      case 'GeoData':
         return [
           'char',
           'varchar',

@@ -8,7 +8,6 @@ export async function columnList(param: { viewId: string }) {
 }
 export async function columnAdd(param: {
   viewId: string;
-  columnId: string;
   column: ViewColumnReqType;
 }) {
   validatePayload(
@@ -18,8 +17,11 @@ export async function columnAdd(param: {
 
   const viewColumn = await View.insertOrUpdateColumn(
     param.viewId,
-    param.columnId,
-    param.column
+    param.column.fk_column_id,
+    {
+      order: param.column.order,
+      show: param.column.show,
+    }
   );
   T.emit('evt', { evt_type: 'viewColumn:inserted' });
 

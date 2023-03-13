@@ -12,7 +12,10 @@ export async function galleryViewCreate(param: {
   tableId: string;
   gallery: ViewCreateReqType;
 }) {
-  validatePayload('swagger.json#/components/schemas/GalleryReq', param.gallery);
+  validatePayload(
+    'swagger.json#/components/schemas/ViewCreateReq',
+    param.gallery
+  );
 
   T.emit('evt', { evt_type: 'vtable:created', show_as: 'gallery' });
   const view = await View.insert({

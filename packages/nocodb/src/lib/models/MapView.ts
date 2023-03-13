@@ -5,6 +5,7 @@ import View from './View';
 import MapViewColumn from './MapViewColumn';
 import type { MapType } from 'nocodb-sdk';
 import { extractProps } from '../meta/helpers/extractProps';
+import { MetaType } from 'nocodb-sdk';
 
 export default class MapView implements MapType {
   fk_view_id: string;
@@ -12,7 +13,7 @@ export default class MapView implements MapType {
   project_id?: string;
   base_id?: string;
   fk_geo_data_col_id?: string;
-  meta?: string | Record<string, unknown>;
+  meta?: MetaType;
 
   // below fields are not in use at this moment
   // keep them for time being

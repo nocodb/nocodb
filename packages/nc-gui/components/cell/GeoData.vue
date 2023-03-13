@@ -1,7 +1,6 @@
 <script lang="ts" setup>
 import type { GeoLocationType } from 'nocodb-sdk'
 import { Modal as AModal, latLongToJoinedString, useVModel } from '#imports'
-import MdiMapIcon from '~icons/mdi/map-outline'
 import GpsFixedIcon from '~icons/mdi/gps-fixed'
 import OpenInNewIcon from '~icons/mdi/open-in-new'
 
@@ -89,7 +88,7 @@ const openInOSM = () => {
   <a-dropdown :is="isExpanded ? AModal : 'div'" v-model:visible="isExpanded" trigger="click">
     <div
       v-if="!isLocationSet"
-      class="group cursor-pointer flex gap-1 items-center mx-auto max-w-32 justify-center active:(ring ring-accent ring-opacity-100) rounded border-1 p-1 shadow-sm hover:(bg-primary bg-opacity-10) dark:(!bg-slate-500)"
+      class="group cursor-pointer flex gap-1 items-center mx-auto max-w-64 justify-center active:(ring ring-accent ring-opacity-100) rounded border-1 p-1 shadow-sm hover:(bg-primary bg-opacity-10) dark:(!bg-slate-500)"
     >
       <div class="flex items-center gap-2" data-testid="nc-geo-data-set-location-button">
         <MdiMapMarker class="transform dark:(!text-white) group-hover:(!text-accent scale-120) text-gray-500 text-[0.75rem]" />
@@ -100,7 +99,7 @@ const openInOSM = () => {
     </div>
     <div v-else data-testid="nc-geo-data-lat-long-set">{{ latLongStr }}</div>
     <template #overlay>
-      <a-form :model="formState" class="flex flex-col w-max-58" @finish="handleFinish">
+      <a-form :model="formState" class="flex flex-col w-max-64" @finish="handleFinish">
         <a-form-item>
           <div class="flex mt-4 items-center mx-2">
             <div class="mr-2">{{ $t('labels.lat') }}:</div>
@@ -136,14 +135,16 @@ const openInOSM = () => {
             />
           </div>
         </a-form-item>
-        <a-form-item v-if="vModel">
+        <a-form-item>
           <div class="mr-2 flex flex-col items-end gap-1 text-left">
             <MdiReload v-if="isLoading" :class="{ 'animate-infinite animate-spin text-gray-500': isLoading }" />
             <a-button class="ml-2" @click="onClickSetCurrentLocation"
               ><GpsFixedIcon class="mr-2" />{{ $t('labels.currentLocation') }}</a-button
             >
           </div>
-          <div class="mr-2 flex flex-col items-end gap-1 text-left">
+        </a-form-item>
+        <a-form-item v-if="vModel">
+          <div class="mr-2 flex flex-row items-end gap-1 text-left">
             <a-button @click="openInOSM"><OpenInNewIcon class="mr-2" />{{ $t('activity.map.openInOpenStreetMap') }}</a-button>
             <a-button @click="openInGoogleMaps"><OpenInNewIcon class="mr-2" />{{ $t('activity.map.openInGoogleMaps') }}</a-button>
           </div>

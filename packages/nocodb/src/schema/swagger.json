@@ -4974,7 +4974,54 @@
         "operationId": "db-view-column-create",
         "responses": {
           "200": {
-            "description": "OK"
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Column"
+                },
+                "examples": {
+                  "Example 1": {
+                    "value": {
+                      "ai": 0,
+                      "au": 0,
+                      "base_id": "ds_krsappzu9f8vmo",
+                      "cc": "",
+                      "cdf": null,
+                      "clen": "45",
+                      "column_name": "title",
+                      "cop": "2",
+                      "created_at": "2023-03-02 13:14:16",
+                      "csn": "utf8mb4",
+                      "ct": "varchar(45)",
+                      "deleted": null,
+                      "dt": "varchar",
+                      "dtx": "specificType",
+                      "dtxp": "45",
+                      "dtxs": null,
+                      "fk_model_id": "md_yvwvbt2i78rgcm",
+                      "id": "cl_0j9gv0oi8vjy46",
+                      "meta": null,
+                      "np": null,
+                      "ns": null,
+                      "order": 2,
+                      "pk": 0,
+                      "project_id": "p_01clqvzik3izk6",
+                      "pv": 1,
+                      "rqd": 0,
+                      "system": 0,
+                      "title": "Title",
+                      "uidt": "SingleLineText",
+                      "un": 0,
+                      "unique": 0,
+                      "updated_at": "2023-03-02 13:14:16",
+                      "validate": null,
+                      "virtual": null
+                    }
+                  }
+                }
+              }
+            }
           },
           "400": {
             "$ref": "#/components/responses/BadRequest"
@@ -5035,7 +5082,19 @@
         "operationId": "db-view-column-update",
         "responses": {
           "200": {
-            "description": "OK"
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "number"
+                },
+                "examples": {
+                  "Example 1": {
+                    "value": 1
+                  }
+                }
+              }
+            }
           },
           "400": {
             "$ref": "#/components/responses/BadRequest"

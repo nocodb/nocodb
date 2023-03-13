@@ -272,7 +272,13 @@ export default class Filter implements FilterType {
       await NocoCache.set(key, o);
     }
     // set meta
-   return await ncMeta.metaUpdate(null, null, MetaTable.FILTER_EXP, updateObj, id);
+    return await ncMeta.metaUpdate(
+      null,
+      null,
+      MetaTable.FILTER_EXP,
+      updateObj,
+      id
+    );
   }
 
   static async delete(id: string, ncMeta = Noco.ncMeta) {

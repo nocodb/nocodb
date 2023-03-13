@@ -1,9 +1,7 @@
 <script setup lang="ts">
 import { isDrawerOrModalExist, isMac, useNuxtApp } from '#imports'
 
-const { visibility } = useShare()
-
-const showModal = ref(false)
+const { visibility, showShareModal } = useShare()
 
 const { $e } = useNuxtApp()
 
@@ -15,7 +13,7 @@ useEventListener(document, 'keydown', async (e: KeyboardEvent) => {
         // ALT + I
         if (!isDrawerOrModalExist()) {
           $e('c:shortcut', { key: 'ALT + I' })
-          showModal.value = true
+          showShareModal.value = true
         }
         break
       }
@@ -31,14 +29,14 @@ useEventListener(document, 'keydown', async (e: KeyboardEvent) => {
     :class="{
       '!pl-3': visibility === 'none',
     }"
-    @click="showModal = true"
+    @click="showShareModal = true"
   >
     <MaterialSymbolsPublic v-if="visibility === 'public'" class="h-3.5" />
     <MaterialSymbolsLockOutline v-else-if="visibility === 'private'" class="h-3.5" />
     <div class="flex">Share</div>
   </div>
 
-  <LazyDlgShareAndCollaborate v-model:model-value="showModal" />
+  <LazyDlgShareAndCollaborate v-model:model-value="showShareModal" />
 </template>
 
 <style lang="scss">

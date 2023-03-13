@@ -2,6 +2,8 @@ const [setup, use] = useInjectionState(() => {
   const visibility = ref<'public' | 'private' | 'none' | 'hidden'>('none')
   const { openedPage, isEditAllowed } = useDocs()
 
+  const showShareModal = ref(false)
+
   watch(
     [openedPage, isEditAllowed],
     () => {
@@ -22,6 +24,7 @@ const [setup, use] = useInjectionState(() => {
 
   return {
     visibility,
+    showShareModal,
   }
 }, 'useShare')
 

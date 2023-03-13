@@ -33,5 +33,5 @@ export async function formViewUpdate(param: {
   validatePayload('swagger.json#/components/schemas/FormReq', param.body);
 
   T.emit('evt', { evt_type: 'view:updated', type: 'grid' });
-  await FormView.update(param.formViewId, param.body);
+  return await FormView.update(param.formViewId, param.body);
 }

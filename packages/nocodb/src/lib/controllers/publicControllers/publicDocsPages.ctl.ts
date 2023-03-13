@@ -8,13 +8,12 @@ async function get(
   req: Request<any> & { user: { id: string; roles: string } },
   res: Response
 ) {
-  const page = await publicDocsPagesService.get({
+  const { page, project } = await publicDocsPagesService.get({
     pageId: req.params.id,
     projectId: req.query?.projectId as string,
-    nestedPageId: req.query?.nestedPageId as string,
   });
 
-  res.json(page);
+  res.json({ page, project });
 }
 
 async function list(

@@ -7,8 +7,7 @@ definePageMeta({
 
 const route = useRoute()
 const { isOpen: isSidebarOpen, toggleHasSidebar, toggle } = useSidebar('nc-left-sidebar')
-const { project, loadBookProject, isLoading: isProjectLoading, loadBookPublicProject } = useProject()
-const { fetchNestedPages, openChildPageTabsOfRootPages, isErrored, isPublic, nestedPublicParentPage, isFetching } = useDocs()
+const { isErrored, isPublic, isFetching } = useDocs()
 
 const toggleSidebar = (isOpen: boolean) => {
   if (isOpen) {
@@ -20,62 +19,11 @@ const toggleSidebar = (isOpen: boolean) => {
   }
 }
 
-onMounted(async () => {
-  if (isPublic.value) toggleSidebar(false)
-
-  if (!project.value.id && !isProjectLoading.value) {
-    if (isPublic.value) {
-      await loadBookPublicProject()
-    } else {
-      await loadBookProject()
-    }
-
-    await fetchNestedPages()
-
-    await openChildPageTabsOfRootPages()
-  }
-})
-
-const isNestedPage = computed(() => {
-  return !!nestedPublicParentPage.value?.is_nested_published
-})
-
-const isProjectPublic = computed(() => {
-  if (typeof project.value.meta === 'string') {
-    return JSON.parse(project.value.meta)?.isPublic
-  }
-
-  return (project.value.meta as any)?.isPublic
-})
-
 watch(
-  [isErrored, isFetching, isNestedPage, isProjectPublic],
+  [isErrored, isFetching],
   () => {
-    if ((!isPublic.value || isProjectPublic.value) && !isErrored.value) {
-      toggleSidebar(true)
-      return
-    }
-
-    let projectMeta
-    if (typeof project.value.meta === 'string') {
-      projectMeta = JSON.parse(project.value.meta)
-    } else {
-      projectMeta = project.value.meta
-    }
-
-    if (isErrored.value && !isFetching.value.nestedPages) {
+    if (isErrored.value) {
       toggleSidebar(false)
-    } else {
-      const isPublicProject = isPublic.value && projectMeta?.isPublic
-      const isNestedPages = isPublic.value && nestedPublicParentPage.value?.is_nested_published
-      const isSinglePage = !isPublicProject && !isNestedPages
-
-      if (isSinglePage) {
-        toggleSidebar(false)
-        return
-      }
-
-      toggleSidebar(true)
     }
   },
   {

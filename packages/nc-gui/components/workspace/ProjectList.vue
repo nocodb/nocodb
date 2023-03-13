@@ -18,7 +18,7 @@ const { isUIAllowed } = useUIPermission()
 const openProject = async (project: ProjectType) => {
   switch (project.type) {
     case NcProjectType.DOCS:
-      await navigateTo(`/nc/doc/${project.id}`)
+      await navigateTo(`/nc/doc/p/${project.id}`)
       // todo: Hack
       window.location.reload()
       break

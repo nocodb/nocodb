@@ -31,7 +31,7 @@ import { Heading } from './heading'
 import { TrailingNode } from './trailingNode'
 import { Placeholder } from './placeholder'
 
-const tiptapExtensions = (): Extensions => {
+const tiptapExtensions = (isPublic: boolean): Extensions => {
   const { uploadFile } = useDocs()
 
   return [
@@ -131,7 +131,7 @@ const tiptapExtensions = (): Extensions => {
     }),
     ExternalContent,
     TrailingNode,
-    Link,
+    Link({ isPublic }),
   ]
 }
 

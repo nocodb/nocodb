@@ -86,7 +86,7 @@ const createProject = async () => {
     switch (route.query.type) {
       case NcProjectType.DOCS:
         await loadProject(true, result.id)
-        await navigateTo(`/nc/doc/${result.id}`)
+        await navigateTo(`/nc/doc/p/${result.id}`)
         // todo: Hack. Remove
         setTimeout(() => {
           window.location.reload()

@@ -100,22 +100,3 @@ export async function publicSharedErdGet(param: {
 
   return base;
 }
-
-export async function getPublicProject(param: { id: string }): Promise<any> {
-  const project = await Project.get(param.id);
-  if (!project) {
-    NcError.notFound();
-  }
-
-  if (project.type !== 'documentation') {
-    NcError.forbidden('Not allowed');
-  }
-
-  const projectMeta = project?.meta
-    ? typeof project.meta === 'string'
-      ? JSON.parse(project.meta as string)
-      : project.meta
-    : {};
-
-  return { title: project.title, id: project.id, meta: projectMeta };
-}

@@ -4,24 +4,19 @@ import { Icon as IconifyIcon } from '@iconify/vue'
 import { useShortcuts } from '../utils'
 import tiptapExtensions from '~~/utils/tiptapExtensions'
 
-const { project } = useProject()
 useShortcuts()
 
 const {
   openedPage,
   openedPageInSidebar,
-  updateContent,
+  updatePage,
   openedPageWithParents,
   nestedUrl,
-  fetchPage,
   openPage,
   openedPageId,
   isPublic,
   isEditAllowed,
-  nestedPublicParentPage,
   isFetching,
-  findPage,
-  nestedPages,
 } = useDocs()
 
 const wrapperRef = ref<HTMLDivElement | undefined>()
@@ -41,11 +36,11 @@ const breadCrumbs = computed(() => {
 })
 
 const editor = useEditor({
-  extensions: tiptapExtensions(),
+  extensions: tiptapExtensions(isPublic.value),
   onUpdate: ({ editor }) => {
     if (!openedPage.value) return
 
-    openedPage.value.content = editor.getHTML()
+    openedPage.value.content = JSON.stringify(editor.getJSON())
   },
   editorProps: {
     handleKeyDown: (view, event) => {
@@ -71,13 +66,6 @@ const focusEditor = () => {
   editor?.value?.commands.focus('start')
 }
 
-const removeNewFlagFromNewPage = (pageId: string) => {
-  const page = findPage(nestedPages.value, pageId)
-  if (page?.new) {
-    page.new = false
-  }
-}
-
 watch(
   isEditAllowed,
   () => {
@@ -95,12 +83,20 @@ watch(
   () => {
     if (!editor.value) return
 
-    if (content.value !== editor.value?.getHTML()) {
+    if (content.value !== JSON.stringify(editor.value?.getJSON())) {
       ;(editor.value.state as any).history$.prevRanges = null
       ;(editor.value.state as any).history$.done.eventCount = 0
 
+      let contentJSON = {}
+      try {
+        contentJSON = JSON.parse(String(content.value).length > 0 ? String(content.value) : '{}')
+      } catch (e) {
+        console.error('Failed to parse content JSON', content.value.length, '||')
+        console.error(e)
+      }
+
       const selection = editor.value.view.state.selection
-      editor.value.chain().setContent(content.value).setTextSelection(selection.to).run()
+      editor.value.chain().setContent(contentJSON).setTextSelection(selection.to).run()
     }
   },
 )
@@ -109,35 +105,12 @@ watchDebounced(
   () => [openedPage.value?.id, openedPage.value?.content],
   ([newId, newContent], [oldId, oldContent]) => {
     if (isEditAllowed && openedPage.value?.id && newId === oldId && newContent !== oldContent) {
-      updateContent({ pageId: openedPage.value?.id, content: openedPage.value!.content })
+      updatePage({ pageId: openedPage.value?.id, page: { content: openedPage.value!.content } })
     }
   },
   {
     debounce: 300,
     maxWait: 600,
-  },
-)
-
-watch(
-  openedPageId,
-  async (_, oldId) => {
-    if (!openedPageId.value) return
-    if (openedPage.value?.new) return
-
-    if (oldId) removeNewFlagFromNewPage(oldId)
-
-    isFetching.value.page = true
-    openedPage.value = undefined
-
-    const newPage = (await fetchPage()) as any
-    if (newPage?.id !== openedPageId.value) return
-
-    openedPage.value = newPage
-
-    isFetching.value.page = false
-  },
-  {
-    immediate: true,
   },
 )
 </script>
@@ -148,9 +121,7 @@ watch(
       <div class="flex flex-col w-full">
         <div class="flex flex-row justify-between items-center pl-6 pt-2.5">
           <div class="flex flex-row h-6">
-            <template
-              v-if="!isFetching.nestedPages &&(!isPublic || (project.meta as any)?.isPublic || nestedPublicParentPage?.is_nested_published)"
-            >
+            <template v-if="!isFetching.nestedPages">
               <div v-for="({ href, title, icon, id }, index) of breadCrumbs" :key="id" class="flex">
                 <NuxtLink
                   class="text-sm !hover:text-black docs-breadcrumb-item !underline-transparent"

@@ -15,7 +15,11 @@ const emit = defineEmits(['delete-project'])
 const { $e } = useNuxtApp()
 
 const openProject = async (project: ProjectType) => {
-  await navigateTo(`/nc/${project.id}`)
+  if (project.type === 'documentation') {
+    await navigateTo(`/nc/doc/p/${project.id}`)
+  } else {
+    await navigateTo(`/nc/${project.id}`)
+  }
   $e('a:project:open', { count: projects.length })
 }
 </script>

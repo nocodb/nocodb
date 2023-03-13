@@ -2,6 +2,7 @@ import slugify from 'slug';
 import Noco from '../Noco';
 import { CacheGetType, CacheScope, MetaTable } from '../utils/globals';
 import NocoCache from '../cache/NocoCache';
+import { updatePageService } from '../services/docs/pageUpdater.svc';
 import type { DocsPageType, UserType } from 'nocodb-sdk';
 import type NcMetaIO from '../meta/NcMetaIO';
 const { v4: uuidv4 } = require('uuid');
@@ -53,7 +54,12 @@ export default class Page {
         .foreign('last_published_by_id')
         .references(`${MetaTable.USERS}.id`)
         .withKeyName(`nc_page_last_published_id_${uuidv4()}`);
-      table.boolean('is_nested_published').defaultTo(false);
+
+      table.string('nested_published_parent_id', 20).nullable();
+      table
+        .foreign('nested_published_parent_id')
+        .references(`${Page.tableName({ projectId })}.id`)
+        .withKeyName(`nc_p_nest_publish_parent_id_${uuidv4()}`);
 
       table.string('last_updated_by_id', 20).nullable();
       table
@@ -138,6 +144,14 @@ export default class Page {
     );
 
     if (parent_page_id) {
+      const parentPage = await this.get(
+        {
+          id: parent_page_id,
+          projectId,
+        },
+        ncMeta
+      );
+
       await this._updatePage(
         {
           pageId: parent_page_id,
@@ -148,9 +162,23 @@ export default class Page {
         },
         ncMeta
       );
+
+      if (parentPage?.is_published) {
+        await this._updatePage(
+          {
+            pageId: createdPageId,
+            projectId,
+            attributes: {
+              is_published: true,
+              nested_published_parent_id: parentPage.nested_published_parent_id,
+            },
+          },
+          ncMeta
+        );
+      }
     }
 
-    await this.reorder({ parent_page_id, projectId });
+    await this.updateOrderAfterCreate({ parent_page_id, projectId });
 
     return await this.get({ id: createdPageId, projectId }, ncMeta);
   }
@@ -258,113 +286,15 @@ export default class Page {
     },
     ncMeta = Noco.ncMeta
   ): Promise<DocsPageType> {
-    // const now = new Date();
-    const oldPage = await this.get({ id: pageId, projectId });
-    if (!oldPage) throw new Error('Page not found');
-
-    if (attributes.title === oldPage.title) delete attributes.title;
-
-    if (attributes.title) {
-      if (attributes.title.length === 0) {
-        throw new Error('Title cannot be empty');
-      }
-
-      const uniqueSlug = await this.uniqueSlug({
-        projectId,
-        parent_page_id: oldPage.parent_page_id,
-        title: attributes.title,
-      });
-
-      attributes.slug = uniqueSlug;
-    }
-
-    if ('is_published' in attributes && attributes.is_published) {
-      // todo: Set published date
-      // attributes.last_published_date = now.toISOString();
-      attributes.last_published_by_id = user.id;
-      attributes.published_content = attributes.content || oldPage.content;
-    }
-
-    attributes.last_updated_by_id = user.id;
-
-    await this._updatePage(
+    return await updatePageService(
       {
         pageId,
         projectId,
         attributes,
+        user,
       },
       ncMeta
     );
-
-    if (attributes.order) {
-      await this.reorder({
-        projectId,
-        parent_page_id: attributes.parent_page_id,
-        keepPageId: pageId,
-      });
-    }
-
-    // if old parent page is changed, update is_parent flag of previous parent page
-    if (
-      'parent_page_id' in attributes &&
-      oldPage.parent_page_id &&
-      attributes.parent_page_id !== oldPage.parent_page_id
-    ) {
-      const previousParentChildren = await this.getChildPages({
-        parent_page_id: oldPage.parent_page_id,
-        projectId,
-      });
-      if (previousParentChildren.length === 0) {
-        await this._updatePage(
-          {
-            pageId: oldPage.parent_page_id,
-            projectId,
-            attributes: {
-              is_parent: false,
-            },
-          },
-          ncMeta
-        );
-      }
-    }
-
-    if (attributes.parent_page_id) {
-      await this._updatePage(
-        {
-          pageId: attributes.parent_page_id,
-          projectId,
-          attributes: {
-            is_parent: true,
-          },
-        },
-        ncMeta
-      );
-      const currentPage = await this.get({ id: pageId, projectId });
-
-      // Since there can be slug collision, when page is moved to a new parent
-      const uniqueSlug = await this.uniqueSlug(
-        {
-          projectId,
-          parent_page_id: attributes.parent_page_id,
-          title: currentPage.title,
-        },
-        ncMeta
-      );
-      if (uniqueSlug !== currentPage.slug) {
-        await this._updatePage(
-          {
-            pageId,
-            projectId,
-            attributes: {
-              slug: uniqueSlug,
-            },
-          },
-          ncMeta
-        );
-      }
-    }
-
-    return await this.get({ id: pageId, projectId });
   }
 
   public static async getChildPages({
@@ -430,7 +360,7 @@ export default class Page {
           'parent_page_id',
           'is_parent',
           'is_published',
-          'is_nested_published',
+          'nested_published_parent_id',
           'updated_at',
           'created_at',
           'last_updated_by_id',
@@ -595,29 +525,17 @@ export default class Page {
     await NocoCache.del(`${CacheScope.DOCS_PAGE}:${projectId}:${id}`);
   }
 
-  static async reorder(
+  static async updateOrderAfterCreate(
     {
       parent_page_id,
-      keepPageId,
       projectId,
     }: {
       projectId: string;
       parent_page_id?: string;
-      keepPageId?: string;
     },
     ncMeta = Noco.ncMeta
   ) {
     const pages = await this.list({ parent_page_id, projectId }, ncMeta);
-
-    if (keepPageId) {
-      const kpPage = pages.splice(
-        pages.indexOf(pages.find((base) => base.id === keepPageId)),
-        1
-      );
-      if (kpPage.length) {
-        pages.splice(kpPage[0].order - 1, 0, kpPage[0]);
-      }
-    }
 
     // update order for pages
     for (const [i, b] of Object.entries(pages)) {
@@ -636,7 +554,7 @@ export default class Page {
     }
   }
 
-  private static async uniqueSlug(
+  public static async uniqueSlug(
     {
       title,
       projectId,

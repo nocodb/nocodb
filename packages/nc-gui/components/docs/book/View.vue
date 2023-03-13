@@ -5,7 +5,10 @@ import type { Ref } from 'vue'
 import { Loading3QuartersOutlined } from '@ant-design/icons-vue'
 import MdiFileDocumentOutline from '~icons/mdi/file-document-outline'
 import MdiFilterVariant from '~icons/mdi/filter-variant'
+import MaterialSymbolsPublic from '~icons/material-symbols/public'
 import type { PageSidebarNode } from '~composables/docs/useDocs'
+
+const { showShareModal } = useShare()
 
 const { project } = useProject()
 const {
@@ -38,20 +41,15 @@ const tabInfo = [
     key: 'all',
     icon: () => MdiFileDocumentOutline,
   },
-  // {
-  //   title: 'Published',
-  //   key: 'published',
-  //   icon: () => MdiPublish,
-  // },
-  // {
-  //   title: 'Unpublished',
-  //   key: 'unpublished',
-  //   icon: () => MdiFileEditOutline,
-  // },
   {
     title: 'A-Z',
     key: 'allByTitle',
     icon: () => MdiFilterVariant,
+  },
+  {
+    title: 'Shared',
+    key: 'shared',
+    icon: () => MaterialSymbolsPublic,
   },
 ]
 
@@ -83,17 +81,18 @@ watch(
   },
 )
 
-// const isPagesFetching = ref(false)
+const flatPublishedPages = computed(() => {
+  return flattenedNestedPages.value.filter((page) => page.is_published)
+})
+
 const pages = computed(() => {
   switch (activeTabKey.value) {
     case 'all':
       return flattenedNestedPagesByUpdatedAt.value
     case 'allByTitle':
       return flattenedNestedPagesByTitle.value
-    // case 'published':
-    //   return publishedPages.value
-    // case 'unpublished':
-    //   return drafts.value
+    case 'shared':
+      return flatPublishedPages.value
     default:
       return flattenedNestedPages.value
   }
@@ -162,88 +161,13 @@ const closeMagicModal = () => {
   magicModalOpen.value = false
 }
 
-// watch(isOnlyBookOpened, async () => {
-//   if (!isOnlyBookOpened.value) return
-//   isPagesFetching.value = true
-//   activeTabPagination.value = 1
-//   activeTabKey.value = 'all'
+const onShare = async (page: PageSidebarNode) => {
+  await openPage(page)
 
-//   await fetchAllPages({
-//     pageNumber: activeTabPagination.value,
-//     clear: true,
-//   })
-// })
-
-// watch(
-//   activeTabKey,
-//   async (key) => {
-//     isPagesFetching.value = true
-//     activeTabPagination.value = 1
-//     try {
-//       if (key === 'all') {
-//         await fetchAllPages({
-//           pageNumber: activeTabPagination.value,
-//           clear: true,
-//         })
-//       } else if (key === 'allByTitle') {
-//         await fetchAllPagesByTitle({
-//           pageNumber: activeTabPagination.value,
-//           clear: true,
-//         })
-//       }
-//       else if (key === 'published') {
-//         await fetchPublishedPages({
-//           pageNumber: activeTabPagination.value,
-//           clear: true,
-//         })
-//       } else if (key === 'unpublished') {
-//         await fetchDrafts()
-//       }
-//     } finally {
-//       isPagesFetching.value = false
-//     }
-//   },
-//   {
-//     immediate: true,
-//   },
-// )
-
-// const loadListData = async ($state: any) => {
-//   $state.complete()
-// if (activeTabKey.value === 'unpublished') {
-//   return
-// }
-
-// $state.loading()
-// const oldPagesCount = pages.value?.length || 0
-
-// activeTabPagination.value += 1
-// switch (activeTabKey.value) {
-//   case 'all':
-//     await fetchAllPages({
-//       pageNumber: activeTabPagination.value,
-//     })
-//     break
-//   case 'allByTitle':
-//     await fetchAllPagesByTitle({
-//       pageNumber: activeTabPagination.value,
-//     })
-//     break
-//   case 'published':
-//     await fetchPublishedPages({
-//       pageNumber: activeTabPagination.value,
-//     })
-//     break
-//   default:
-//     break
-// }
-
-// if (pages.value?.length === oldPagesCount) {
-//   $state.complete()
-//   return
-// }
-// $state.loaded()
-// }
+  setTimeout(() => {
+    showShareModal.value = true
+  }, 100)
+}
 </script>
 
 <template>
@@ -374,10 +298,9 @@ const closeMagicModal = () => {
                 <div
                   v-for="(page, index) of pages"
                   :key="index"
-                  class="flex cursor-pointer px-5 mx-1 py-3 rounded-md border-gray-50 border-1 hover:bg-gray-50 shadow-gray-50 shadow-sm"
-                  @click="() => openPage(page)"
+                  class="flex flex-row w-full items-center cursor-pointer px-5 mx-1 py-3 rounded-md border-gray-50 border-1 hover:bg-gray-50 shadow-gray-50 shadow-sm"
                 >
-                  <div class="flex flex-col gap-y-2">
+                  <div class="flex flex-col gap-y-2" @click="() => openPage(page)">
                     <div style="font-weight: 450; font-size: 0.9rem">
                       {{ page?.title }}
                     </div>
@@ -386,6 +309,26 @@ const closeMagicModal = () => {
                       Updated {{ dayjs(page!.updated_at!).local().fromNow() }}
                     </div>
                   </div>
+                  <div class="flex-grow" @click="() => openPage(page)"></div>
+                  <a-dropdown trigger="click" placement="bottomRight">
+                    <div
+                      class="nc-docs-sidebar-page-options flex px-1 py-1 hover:( !bg-gray-300 !bg-opacity-30 rounded-md text-gray-600) cursor-pointer select-none group-hover:block text-gray-500"
+                    >
+                      <MdiDotsHorizontal />
+                    </div>
+
+                    <template #overlay>
+                      <div class="flex flex-col bg-gray-100 px-1 py-1 rounded-md shadow-sm">
+                        <div
+                          class="flex flex-row justify-center items-center gap-x-2 hover:bg-gray-200 px-2 py-1 rounded-md cursor-pointer"
+                          @click="() => onShare(page)"
+                        >
+                          <MaterialSymbolsPublic />
+                          Share
+                        </div>
+                      </div>
+                    </template>
+                  </a-dropdown>
                 </div>
                 <!-- <InfiniteLoading v-bind="$attrs" @infinite="loadListData">
                   <template #spinner>

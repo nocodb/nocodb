@@ -103,7 +103,17 @@
             "description": "OK",
             "content": {
               "application/json": {
-                "$ref": "#/components/schemas/DocsPage"
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "page": {
+                      "$ref": "#/components/schemas/DocsPage"
+                    },
+                    "project": {
+                      "$ref": "#/components/schemas/Project"
+                    }
+                  }
+                }                
               }
             }
           }
@@ -117,14 +127,6 @@
             "in": "query",
             "description": "Project id",
             "required": true,
-            "schema": {
-              "type": "string"
-            }
-          },
-          {
-            "name": "nestedPageId",
-            "in": "query",
-            "description": "nestedPageId",
             "schema": {
               "type": "string"
             }
@@ -8984,27 +8986,6 @@
         "description": "List Nested Data Relation"
       }
     },
-    "/api/v1/db/public/project/{id}": {
-      "get": {
-        "summary": "get public project",
-        "operationId": "get-public-project",
-        "responses": {
-          "200": {
-            "description": "OK",
-            "content": {
-              "application/json": {
-                "$ref": "#/components/schemas/Project"
-              }
-            }
-          }
-        },
-        "tags": [
-          "Public"
-        ],
-        "parameters": [],
-        "description": ""
-      }
-    },
     "/api/v1/db/public/shared-base/{sharedBaseUuid}/meta": {
       "parameters": [
         {
@@ -12212,14 +12193,14 @@
             "description": "Unique identifier for the given page.",
             "type": "string"
           },
-          "is_nested_published": {
-            "type": "boolean"
-          },
           "is_parent": {
             "type": "boolean"
           },
           "is_published": {
             "type": "boolean"
+          },
+          "nested_published_parent_id": {
+            "type": [ "string", "null"]
           },
           "last_published_by_id": {
             "type": "string"

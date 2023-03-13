@@ -120,16 +120,15 @@ export const useProject = createSharedComposable(() => {
   }
 
   async function loadBookProject(projectId?: string) {
+    if (projectId) {
+      forcedProjectId.value = projectId
+    }
     projectId = projectId || (route.params.projectId as string)
+
     if (projectId) {
       project.value = await api.project.read(projectId)
     }
     await loadProjectRoles(project.value.id!)
-  }
-
-  async function loadBookPublicProject(projectId?: string) {
-    projectId = projectId || (route.params.projectId as string)
-    project.value = (await api.public.getProject(projectId)) as any
   }
 
   async function loadProject(withTheme = true, forcedId?: string) {
@@ -251,6 +250,5 @@ export const useProject = createSharedComposable(() => {
     isXcdbBase,
     hasEmptyOrNullFilters,
     loadBookProject,
-    loadBookPublicProject,
   }
 })

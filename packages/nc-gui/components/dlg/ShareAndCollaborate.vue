@@ -20,6 +20,8 @@ const { formStatus } = useManageUsers()
 
 const vModel = useVModel(props, 'modelValue', emits)
 
+const { openedPage } = useDocs()
+
 const indicator = h(LoadingOutlined, {
   style: {
     fontSize: '24px',
@@ -91,7 +93,7 @@ watch(formStatus, (val) => {
             </template>
             <Collaborate />
           </a-tab-pane>
-          <a-tab-pane key="share">
+          <a-tab-pane v-if="openedPage" key="share">
             <template #tab>
               <div class="flex flex-row items-center text-xs px-2">
                 <MdiEarth class="mr-1" />

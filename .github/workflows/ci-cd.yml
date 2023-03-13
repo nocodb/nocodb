@@ -63,7 +63,7 @@ jobs:
         - name: run unit tests
           working-directory: ./packages/nocodb
           run: npm run test:unit
-    unit-tests:pg:
+    unit-tests-pg:
       runs-on: ubuntu-20.04
       timeout-minutes: 40
       if: ${{ github.event_name == 'push' || contains(github.event.pull_request.labels.*.name, 'trigger-CI') || !github.event.pull_request.draft }}

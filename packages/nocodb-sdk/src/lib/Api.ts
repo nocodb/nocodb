@@ -962,6 +962,16 @@ export interface GalleryReqType {
 }
 
 /**
+ * Model for Gallery View Update Request
+ */
+export interface GalleryViewUpdateReqType {
+  /** The id of the column that contains the cover image */
+  fk_cover_image_col_id?: StringOrNullType;
+  /** Meta Info */
+  meta?: MetaType;
+}
+
+/**
  * Model for Geo Location
  */
 export interface GeoLocationType {
@@ -1050,6 +1060,19 @@ export interface GridColumnReqType {
    * @example 200px
    */
   width?: string;
+}
+
+/**
+ * Model for Grid View Update
+ */
+export interface GridViewUpdateReqType {
+  /**
+   * Row Height
+   * @example 1
+   */
+  row_height?: number;
+  /** Meta Info for grid view */
+  meta?: MetaType;
 }
 
 /**
@@ -1316,6 +1339,10 @@ export interface KanbanReqType {
 export interface KanbanUpdateReqType {
   /** Foreign Key to Grouping Field Column */
   fk_grp_col_id?: StringOrNullType;
+  /** Foreign Key to Cover Image Column */
+  fk_cover_image_col_id?: StringOrNullType;
+  /** Meta Info */
+  meta?: MetaType;
 }
 
 /**
@@ -1444,6 +1471,19 @@ export interface MapType {
    * @example My Map
    */
   title?: string;
+}
+
+/**
+ * Model for Map
+ */
+export interface MapViewUpdateReqType {
+  /**
+   * Foreign Key to GeoData Column
+   * @example cl_8iw2o4ejzvdyna
+   */
+  fk_geo_data_col_id?: string;
+  /** Meta data for this view */
+  meta?: MetaType;
 }
 
 /**
@@ -5058,7 +5098,11 @@ export class Api<
 
 }`
  */
-    update: (viewId: IdType, data: any, params: RequestParams = {}) =>
+    update: (
+      viewId: IdType,
+      data: ViewUpdateReqType,
+      params: RequestParams = {}
+    ) =>
       this.request<
         ViewType,
         {
@@ -5350,7 +5394,11 @@ export class Api<
 
 }`
  */
-    gridUpdate: (viewId: string, data: GridType, params: RequestParams = {}) =>
+    gridUpdate: (
+      viewId: string,
+      data: GridViewUpdateReqType,
+      params: RequestParams = {}
+    ) =>
       this.request<
         number,
         {
@@ -5478,7 +5526,7 @@ export class Api<
  */
     galleryUpdate: (
       galleryViewId: string,
-      data: GalleryReqType,
+      data: GalleryViewUpdateReqType,
       params: RequestParams = {}
     ) =>
       this.request<
@@ -5668,7 +5716,11 @@ export class Api<
 
 }`
  */
-    mapUpdate: (mapViewId: string, data: MapType, params: RequestParams = {}) =>
+    mapUpdate: (
+      mapViewId: string,
+      data: MapViewUpdateReqType,
+      params: RequestParams = {}
+    ) =>
       this.request<
         number,
         {
@@ -6500,7 +6552,7 @@ export class Api<
  * @name GroupedDataList
  * @summary Table Group by Column
  * @request GET:/api/v1/db/data/{orgs}/{projectName}/{tableName}/group/{columnId}
- * @response `200` `object` OK
+ * @response `200` `(any)[]` OK
  * @response `400` `{
   \** @example BadRequest [Error]: <ERROR MESSAGE> *\
   msg?: string,
@@ -6522,7 +6574,7 @@ export class Api<
       params: RequestParams = {}
     ) =>
       this.request<
-        object,
+        any[],
         {
           /** @example BadRequest [Error]: <ERROR MESSAGE> */
           msg?: string;
@@ -7094,7 +7146,7 @@ export class Api<
  * @name GroupedDataList
  * @summary Table Group by Column
  * @request GET:/api/v1/db/data/{orgs}/{projectName}/{tableName}/views/{viewName}/group/{columnId}
- * @response `200` `object` OK
+ * @response `200` `(any)[]` OK
  * @response `400` `{
   \** @example BadRequest [Error]: <ERROR MESSAGE> *\
   msg?: string,
@@ -7117,7 +7169,7 @@ export class Api<
       params: RequestParams = {}
     ) =>
       this.request<
-        object,
+        any[],
         {
           /** @example BadRequest [Error]: <ERROR MESSAGE> */
           msg?: string;

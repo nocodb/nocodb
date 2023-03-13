@@ -3152,7 +3152,7 @@ export class Api<
  * @name Create
  * @summary Create Organisation API Token
  * @request POST:/api/v1/tokens
- * @response `200` `void` OK
+ * @response `200` `ApiTokenType` OK
  * @response `400` `{
   \** @example BadRequest [Error]: <ERROR MESSAGE> *\
   msg?: string,
@@ -3161,7 +3161,7 @@ export class Api<
  */
     create: (data: ApiTokenReqType, params: RequestParams = {}) =>
       this.request<
-        void,
+        ApiTokenType,
         {
           /** @example BadRequest [Error]: <ERROR MESSAGE> */
           msg?: string;
@@ -3171,6 +3171,7 @@ export class Api<
         method: 'POST',
         body: data,
         type: ContentType.Json,
+        format: 'json',
         ...params,
       }),
 
@@ -3245,7 +3246,11 @@ export class Api<
  * @name Set
  * @summary Create App License
  * @request POST:/api/v1/license
- * @response `200` `void` OK
+ * @response `200` `{
+  \** @example The license key has been saved *\
+  msg?: string,
+
+}` OK
  * @response `400` `{
   \** @example BadRequest [Error]: <ERROR MESSAGE> *\
   msg?: string,
@@ -3254,7 +3259,10 @@ export class Api<
  */
     set: (data: LicenseReqType, params: RequestParams = {}) =>
       this.request<
-        void,
+        {
+          /** @example The license key has been saved */
+          msg?: string;
+        },
         {
           /** @example BadRequest [Error]: <ERROR MESSAGE> */
           msg?: string;
@@ -3264,6 +3272,7 @@ export class Api<
         method: 'POST',
         body: data,
         type: ContentType.Json,
+        format: 'json',
         ...params,
       }),
   };
@@ -3316,7 +3325,11 @@ export class Api<
  * @name Set
  * @summary Create App Settings
  * @request POST:/api/v1/app-settings
- * @response `200` `void` OK
+ * @response `200` `{
+  \** @example The app settings have been saved *\
+  msg?: string,
+
+}` OK
  * @response `400` `{
   \** @example BadRequest [Error]: <ERROR MESSAGE> *\
   msg?: string,
@@ -3334,7 +3347,10 @@ export class Api<
       params: RequestParams = {}
     ) =>
       this.request<
-        void,
+        {
+          /** @example The app settings have been saved */
+          msg?: string;
+        },
         {
           /** @example BadRequest [Error]: <ERROR MESSAGE> */
           msg?: string;
@@ -3344,6 +3360,7 @@ export class Api<
         method: 'POST',
         body: data,
         type: ContentType.Json,
+        format: 'json',
         ...params,
       }),
   };
@@ -3383,7 +3400,16 @@ export class Api<
  * @name Add
  * @summary Create Organisation User
  * @request POST:/api/v1/users
- * @response `200` `any` OK
+ * @response `200` `{
+  \** Invite Token *\
+  invite_token?: string,
+  \**
+   * User email
+   * @example user@example.com
+   *\
+  email?: string,
+
+}` OK
  * @response `400` `{
   \** @example BadRequest [Error]: <ERROR MESSAGE> *\
   msg?: string,
@@ -3392,7 +3418,15 @@ export class Api<
  */
     add: (data: OrgUserReqType, params: RequestParams = {}) =>
       this.request<
-        any,
+        {
+          /** Invite Token */
+          invite_token?: string;
+          /**
+           * User email
+           * @example user@example.com
+           */
+          email?: string;
+        },
         {
           /** @example BadRequest [Error]: <ERROR MESSAGE> */
           msg?: string;

@@ -186,6 +186,10 @@ export const useProject = defineStore('projectStore', () => {
     setTheme()
   }
 
+  const setProject = (projectVal: ProjectType) => {
+    project.value = projectVal
+  }
+
   watch(
     () => route.params.projectType,
     (n) => {
@@ -217,5 +221,6 @@ export const useProject = defineStore('projectStore', () => {
     lastOpenedViewMap,
     isXcdbBase,
     hasEmptyOrNullFilters,
+    setProject,
   }
 })

@@ -17,6 +17,7 @@ import {
   useI18n,
   useInjectionState,
   useMetas,
+  useProject,
   useProvideSmartsheetRowStore,
   watch,
 } from '#imports'
@@ -44,7 +45,8 @@ const [useProvideSharedFormStore, useSharedFormStore] = useInjectionState((share
 
   const { metas, setMeta } = useMetas()
 
-  const { project } = storeToRefs(useProject)
+  const projectStore = useProject()
+  const { project } = storeToRefs(projectStore)
 
   const { t } = useI18n()
 
@@ -89,14 +91,14 @@ const [useProvideSharedFormStore, useSharedFormStore] = useInjectionState((share
 
       // if project is not defined then set it with an object containing base
       if (!project.value?.bases)
-        project.value = {
+        projectStore.setProject({
           bases: [
             {
               id: viewMeta.base_id,
               type: viewMeta.client,
             },
           ],
-        }
+        })
 
       const relatedMetas = { ...viewMeta.relatedMetas }
 

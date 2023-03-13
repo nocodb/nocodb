@@ -5837,7 +5837,29 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/Grid"
+                  "$ref": "#/components/schemas/View"
+                },
+                "examples": {
+                  "Example 1": {
+                    "value": {
+                      "id": "vw_o50jiw9v2txktv",
+                      "base_id": "ds_a95vextjl510z7",
+                      "project_id": "p_slkm6i3v31q4bc",
+                      "fk_model_id": "md_8hr3xndx8umuce",
+                      "title": "Grid-1",
+                      "type": 3,
+                      "is_default": null,
+                      "show_system_fields": null,
+                      "lock_type": "collaborative",
+                      "uuid": null,
+                      "password": null,
+                      "show": true,
+                      "order": 2,
+                      "created_at": "2023-03-13T07:29:16.610Z",
+                      "updated_at": "2023-03-13T07:29:16.610Z",
+                      "meta": {}
+                    }
+                  }
                 }
               }
             }
@@ -5851,15 +5873,16 @@
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/GridReq"
+                "$ref": "#/components/schemas/ViewCreateReq"
               },
               "examples": {
                 "Example 1": {
                   "value": {
-                    "lock_type": "collaborative",
-                    "order": 1,
-                    "row_height": 1,
-                    "title": "My Grid"
+                    "title": "My Grid View",
+                    "type": 3,
+                    "copy_from_id": null,
+                    "fk_grp_col_id": null,
+                    "fk_geo_data_col_id": null
                   }
                 }
               }
@@ -5897,7 +5920,29 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/Form"
+                  "$ref": "#/components/schemas/View"
+                },
+                "examples": {
+                  "Example 1": {
+                    "value": {
+                      "id": "vw_a830n4bmwk8wlp",
+                      "base_id": "ds_a95vextjl510z7",
+                      "project_id": "p_slkm6i3v31q4bc",
+                      "fk_model_id": "md_8hr3xndx8umuce",
+                      "title": "Form-1",
+                      "type": 1,
+                      "is_default": null,
+                      "show_system_fields": null,
+                      "lock_type": "collaborative",
+                      "uuid": null,
+                      "password": null,
+                      "show": true,
+                      "order": 4,
+                      "created_at": "2023-03-13T07:29:19.957Z",
+                      "updated_at": "2023-03-13T07:29:19.957Z",
+                      "meta": {}
+                    }
+                  }
                 }
               }
             }
@@ -5912,24 +5957,16 @@
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/FormReq"
+                "$ref": "#/components/schemas/ViewCreateReq"
               },
               "examples": {
                 "Example 1": {
                   "value": {
-                    "banner_image_url": null,
-                    "email": "user@example.com",
-                    "heading": "My Form",
-                    "lock_type": "collaborative",
-                    "logo_url": null,
-                    "meta": null,
-                    "redirect_after_secs": null,
-                    "redirect_url": null,
-                    "show_blank_form": 0,
-                    "subheading": "My Form Subheading",
-                    "submit_another_form": 0,
-                    "success_msg": "Thank you for the submission.",
-                    "title": "Form View 1"
+                    "title": "My Form View",
+                    "type": 1,
+                    "copy_from_id": null,
+                    "fk_grp_col_id": null,
+                    "fk_geo_data_col_id": null
                   }
                 }
               }
@@ -6311,7 +6348,14 @@
             "description": "OK",
             "content": {
               "application/json": {
-                "schema": {}
+                "schema": {
+                  "type": "number"
+                },
+                "examples": {
+                  "Example 1": {
+                    "value": 1
+                  }
+                }
               }
             }
           },
@@ -6360,7 +6404,7 @@
         }
       ],
       "post": {
-        "summary": "Gallery View",
+        "summary": "Create Gallery View",
         "operationId": "db-view-gallery-create",
         "responses": {
           "200": {
@@ -6368,8 +6412,29 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "type": "object",
-                  "properties": {}
+                  "$ref": "#/components/schemas/View"
+                },
+                "examples": {
+                  "Example 1": {
+                    "value": {
+                      "id": "vw_qp94qfnvffgk5f",
+                      "base_id": "ds_a95vextjl510z7",
+                      "project_id": "p_slkm6i3v31q4bc",
+                      "fk_model_id": "md_8hr3xndx8umuce",
+                      "title": "Gallery-1",
+                      "type": 2,
+                      "is_default": null,
+                      "show_system_fields": null,
+                      "lock_type": "collaborative",
+                      "uuid": null,
+                      "password": null,
+                      "show": true,
+                      "order": 3,
+                      "created_at": "2023-03-13T07:29:18.707Z",
+                      "updated_at": "2023-03-13T07:29:18.707Z",
+                      "meta": {}
+                    }
+                  }
                 }
               }
             }
@@ -6383,7 +6448,18 @@
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/GalleryReq"
+                "$ref": "#/components/schemas/ViewCreateReq"
+              },
+              "examples": {
+                "Example 1": {
+                  "value": {
+                    "title": "My Gallery View",
+                    "type": 2,
+                    "copy_from_id": null,
+                    "fk_grp_col_id": null,
+                    "fk_geo_data_col_id": null
+                  }
+                }
               }
             }
           }
@@ -6438,7 +6514,15 @@
               "schema": {
                 "$ref": "#/components/schemas/GalleryReq"
               },
-              "examples": {}
+              "examples": {
+                "Example 1": {
+                  "value": {
+                    "fk_cover_image_col_id": "cl_g0a89q9xdry3lu",
+                    "lock_type": "collaborative",
+                    "title": "My Gallery"
+                  }
+                }
+              }
             }
           }
         },
@@ -6499,8 +6583,29 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "type": "object",
-                  "properties": {}
+                  "$ref": "#/components/schemas/View"
+                },
+                "examples": {
+                  "Example 1": {
+                    "value": {
+                      "id": "vw_569sqsrp2vuff4",
+                      "base_id": "ds_a95vextjl510z7",
+                      "project_id": "p_slkm6i3v31q4bc",
+                      "fk_model_id": "md_8hr3xndx8umuce",
+                      "title": "Kanban-1",
+                      "type": 4,
+                      "is_default": null,
+                      "show_system_fields": null,
+                      "lock_type": "collaborative",
+                      "uuid": null,
+                      "password": null,
+                      "show": true,
+                      "order": 5,
+                      "created_at": "2023-03-13T07:29:21.387Z",
+                      "updated_at": "2023-03-13T07:29:21.387Z",
+                      "meta": {}
+                    }
+                  }
                 }
               }
             }
@@ -6514,13 +6619,16 @@
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/KanbanReq"
+                "$ref": "#/components/schemas/ViewCreateReq"
               },
               "examples": {
                 "Example 1": {
                   "value": {
-                    "fk_grp_col_id": "cl_phvuuwjrzcdo0g",
-                    "title": "My Kanban"
+                    "title": "My Kanban View",
+                    "type": 4,
+                    "copy_from_id": null,
+                    "fk_grp_col_id": "cl_g0a89q9xdry3lu",
+                    "fk_geo_data_col_id": null
                   }
                 }
               }
@@ -6578,7 +6686,13 @@
               "schema": {
                 "$ref": "#/components/schemas/KanbanUpdateReq"
               },
-              "examples": {}
+              "examples": {
+                "Example 1": {
+                  "value": {
+                    "fk_grp_col_id": "cl_g0a89q9xdry3lu"
+                  }
+                }
+              }
             }
           }
         },
@@ -6639,8 +6753,29 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "type": "object",
-                  "properties": {}
+                  "$ref": "#/components/schemas/View"
+                },
+                "examples": {
+                  "Example 1": {
+                    "value": {
+                      "base_id": "ds_g4ccx6e77h1dmi",
+                      "created_at": "2023-03-02 17:46:31",
+                      "fk_model_id": "md_mhs9z4r2ak98x0",
+                      "id": "vw_lg052cnc1c26kf",
+                      "is_default": 1,
+                      "lock_type": "collaborative",
+                      "meta": {},
+                      "order": 1,
+                      "password": null,
+                      "project_id": "p_xm3thidrblw4n7",
+                      "show": 1,
+                      "show_system_fields": null,
+                      "title": "Sheet-1",
+                      "type": 3,
+                      "updated_at": "2023-03-02 17:46:31",
+                      "uuid": null
+                    }
+                  }
                 }
               }
             }
@@ -6654,30 +6789,16 @@
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/Map"
+                "$ref": "#/components/schemas/ViewCreateReq"
               },
               "examples": {
                 "Example 1": {
                   "value": {
-                    "base_id": "ds_g4ccx6e77h1dmi",
-                    "columns": [
-                      {
-                        "base_id": "ds_g4ccx6e77h1dmi",
-                        "fk_column_id": "cl_8iw2o4ejzvdyna",
-                        "fk_view_id": "vw_qjt7klod1p9kyv",
-                        "id": "nc_46xcacqn4rc9xf",
-                        "order": 1,
-                        "project_id": "p_xm3thidrblw4n7",
-                        "show": 1
-                      }
-                    ],
-                    "fk_geo_data_col_id": "cl_8iw2o4ejzvdyna",
-                    "fk_view_id": "vw_qjt7klod1p9kyv",
-                    "meta": {},
-                    "order": 0,
-                    "project_id": "p_xm3thidrblw4n7",
-                    "show": true,
-                    "title": "My Map"
+                    "title": "My Map View",
+                    "type": 5,
+                    "copy_from_id": null,
+                    "fk_grp_col_id": null,
+                    "fk_geo_data_col_id": "cl_uu1meolj00tlrq"
                   }
                 }
               }
@@ -14499,30 +14620,26 @@
         "description": "Model for Gallery Request",
         "examples": [
           {
-            "cover_image": "string",
-            "cover_image_idx": 0,
-            "fk_cover_image_col_id": "string",
+            "fk_cover_image_col_id": "cl_g0a89q9xdry3lu",
             "lock_type": "collaborative",
-            "next_enabled": true,
-            "prev_enabled": true,
-            "restrict_number": "string",
-            "restrict_size": "string",
-            "restrict_types": "string",
             "title": "My Gallery"
           }
         ],
+        "title": "Gallery Request Model",
+        "type": "object",
         "properties": {
           "cover_image": {
-            "type": "string"
+            "type": "string",
+            "description": "Not in use currently"
           },
           "cover_image_idx": {
             "minimum": 0,
-            "type": "integer"
+            "type": "integer",
+            "description": "Not in use currently"
           },
           "fk_cover_image_col_id": {
-            "description": "The id of the column that contains the cover image",
-            "maxLength": 20,
-            "type": "string"
+            "$ref": "#/components/schemas/StringOrNull",
+            "description": "The id of the column that contains the cover image"
           },
           "lock_type": {
             "description": "The lock type of gallery",
@@ -14530,19 +14647,24 @@
             "type": "string"
           },
           "next_enabled": {
-            "$ref": "#/components/schemas/Bool"
+            "$ref": "#/components/schemas/Bool",
+            "description": "Not in use currently"
           },
           "prev_enabled": {
-            "$ref": "#/components/schemas/Bool"
+            "$ref": "#/components/schemas/Bool",
+            "description": "Not in use currently"
           },
           "restrict_number": {
-            "type": "string"
+            "type": "string",
+            "description": "Not in use currently"
           },
           "restrict_size": {
-            "type": "string"
+            "type": "string",
+            "description": "Not in use currently"
           },
           "restrict_types": {
-            "type": "string"
+            "type": "string",
+            "description": "Not in use currently"
           },
           "title": {
             "description": "The title of the gallery",
@@ -14552,9 +14674,7 @@
             "type": "string"
           }
         },
-        "required": ["title"],
-        "title": "Gallery Request Model",
-        "type": "object"
+        "required": ["title"]
       },
       "GeoLocation": {
         "description": "Model for Geo Location",
@@ -15412,16 +15532,17 @@
         "description": "Model for Kanban Update Request",
         "examples": [
           {
-            "fk_grp_col_id": "string"
+            "fk_grp_col_id": "cl_g0a89q9xdry3lu"
           }
         ],
+        "title": "Kanban Update Request Model",
+        "type": "object",
         "properties": {
           "fk_grp_col_id": {
-            "$ref": "#/components/schemas/StringOrNull"
+            "$ref": "#/components/schemas/StringOrNull",
+            "description": "Foreign Key to Grouping Field Column"
           }
-        },
-        "title": "Kanban Update Request Model",
-        "type": "object"
+        }
       },
       "LicenseReq": {
         "description": "Model for Kanban Request",
@@ -18212,8 +18333,80 @@
         },
         "required": ["list", "pageInfo"]
       },
-      "ViewReq": {
-        "description": "Model for View Request",
+      "ViewCreateReq": {
+        "type": "object",
+        "x-stoplight": {
+          "id": "36edbe4aa5d24"
+        },
+        "title": "ViewCreateReq",
+        "description": "Model for View Create Request",
+        "examples": [
+          {
+            "title": "My Grid View",
+            "type": 3,
+            "copy_from_id": null,
+            "fk_grp_col_id": null,
+            "fk_geo_data_col_id": null
+          },
+          {
+            "title": "My Gallery View",
+            "type": 2,
+            "copy_from_id": null,
+            "fk_grp_col_id": null,
+            "fk_geo_data_col_id": null
+          },
+          {
+            "title": "My Form View",
+            "type": 1,
+            "copy_from_id": null,
+            "fk_grp_col_id": null,
+            "fk_geo_data_col_id": null
+          },
+          {
+            "title": "My Kanban View",
+            "type": 4,
+            "copy_from_id": null,
+            "fk_grp_col_id": "cl_g0a89q9xdry3lu",
+            "fk_geo_data_col_id": null
+          },
+          {
+            "title": "My Map View",
+            "type": 5,
+            "copy_from_id": null,
+            "fk_grp_col_id": null,
+            "fk_geo_data_col_id": "cl_uu1meolj00tlrq"
+          }
+        ],
+        "properties": {
+          "title": {
+            "type": "string",
+            "description": "View Title",
+            "example": "My View"
+          },
+          "type": {
+            "type": "number",
+            "description": "View Type"
+          },
+          "copy_from_id": {
+            "$ref": "#/components/schemas/StringOrNull",
+            "description": "ID of view to be copied from. Used in Copy View."
+          },
+          "fk_grp_col_id": {
+            "$ref": "#/components/schemas/StringOrNull",
+            "description": "Foreign Key to Grouping Column. Used in creating Kanban View."
+          },
+          "fk_geo_data_col_id": {
+            "$ref": "#/components/schemas/StringOrNull",
+            "description": "Foreign Key to Geo Data Column. Used in creating Map View."
+          }
+        },
+        "required": ["title"]
+      },
+      "ViewUpdateReq": {
+        "description": "Model for View Update Request",
+        "x-stoplight": {
+          "id": "1f9fe53ec13a2"
+        },
         "examples": [
           {
             "title": "Grid View 1",
@@ -18225,7 +18418,7 @@
             "show_system_fields": 0
           }
         ],
-        "title": "View Request Model",
+        "title": "View Update Request Model",
         "type": "object",
         "properties": {
           "title": {

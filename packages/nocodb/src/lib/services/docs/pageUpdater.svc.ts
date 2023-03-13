@@ -25,16 +25,33 @@ export const updatePageService = async (
 
   if (attributes.title) await generateSlug(projectId, attributes, oldPage);
 
-  if ('is_published' in attributes && attributes.is_published) {
+  if ('is_published' in attributes) {
     attributes.last_published_date = ncMeta.knex.fn.now();
     attributes.last_published_by_id = user.id;
-    attributes.published_content = attributes.content || oldPage.content;
+  }
 
-    await publishChildPages({
+  if ('is_published' in attributes && attributes.is_published) {
+    attributes.published_content = attributes.content || oldPage.content;
+    attributes.nested_published_parent_id = oldPage.id;
+
+    await updateChildPagesIsPublish({
       pageId,
       projectId,
       ncMeta,
       nestedParentPageId: pageId,
+      isPublished: true,
+    });
+  }
+
+  if ('is_published' in attributes && !attributes.is_published) {
+    attributes.nested_published_parent_id = null;
+
+    await updateChildPagesIsPublish({
+      pageId,
+      projectId,
+      ncMeta,
+      nestedParentPageId: pageId,
+      isPublished: false,
     });
   }
 
@@ -47,27 +64,40 @@ export const updatePageService = async (
     ncMeta
   );
 
-  // Post update logic
+  //// Post update logic
 
   if (attributes.order) {
-    await Page.reorder({
+    await reorderPage({
       projectId,
       parent_page_id: attributes.parent_page_id,
       keepPageId: pageId,
     });
   }
 
-  // if old parent page is changed, update is_parent flag of previous parent page
+  // Handle parent page change
   if (
     'parent_page_id' in attributes &&
-    oldPage.parent_page_id &&
     attributes.parent_page_id !== oldPage.parent_page_id
   ) {
-    await updateOldParentPagesIsParentFlag(projectId, oldPage, ncMeta);
-  }
+    if (oldPage.parent_page_id) {
+      await updateOldParentPagesIsParentFlag(projectId, oldPage, ncMeta);
+    }
 
-  if (attributes.parent_page_id) {
-    await changeParentPage(pageId, attributes, projectId, ncMeta);
+    await updateParentAndSlugOnCollision(pageId, attributes, projectId, ncMeta);
+
+    if (attributes.parent_page_id) {
+      await handlePagePublishWithNewParent(oldPage.id, projectId, ncMeta);
+    }
+
+    // If parent page is changed to null, unpublish the page
+    // if the page is nested published under previous parent page
+    if (
+      !attributes.parent_page_id &&
+      oldPage.id !== oldPage.nested_published_parent_id
+    ) {
+      console.log('unpublishing page');
+      await unpublishPage(oldPage.id, projectId, ncMeta);
+    }
   }
 
   return await Page.get({ id: pageId, projectId });
@@ -81,16 +111,40 @@ export const updatePageService = async (
  *
  * */
 
-async function publishChildPages({
+async function unpublishPage(pageId: string, projectId: string, ncMeta) {
+  await Page._updatePage(
+    {
+      pageId: pageId,
+      projectId,
+      attributes: {
+        nested_published_parent_id: null,
+        is_published: false,
+      },
+    },
+    ncMeta
+  );
+
+  await updateChildPagesIsPublish({
+    pageId,
+    projectId,
+    ncMeta,
+    nestedParentPageId: pageId,
+    isPublished: false,
+  });
+}
+
+async function updateChildPagesIsPublish({
   pageId,
   projectId,
   nestedParentPageId,
   ncMeta,
+  isPublished,
 }: {
   pageId: string;
   projectId: string;
   nestedParentPageId: string;
   ncMeta?: any;
+  isPublished: boolean;
 }) {
   const childPages = await Page.getChildPages({
     parent_page_id: pageId,
@@ -103,19 +157,20 @@ async function publishChildPages({
         pageId: childPage.id,
         projectId,
         attributes: {
-          is_published: true,
-          nested_published_parent_id: nestedParentPageId,
+          is_published: isPublished,
+          nested_published_parent_id: isPublished ? nestedParentPageId : null,
           last_published_date: ncMeta.knex.fn.now(),
           published_content: childPage.content,
         },
       },
       ncMeta
     );
-    await publishChildPages({
+    await updateChildPagesIsPublish({
       pageId: childPage.id,
       nestedParentPageId: nestedParentPageId,
       projectId,
       ncMeta,
+      isPublished,
     });
   }
 }
@@ -147,6 +202,64 @@ async function generateSlug(
   attributes.slug = uniqueSlug;
 }
 
+async function handlePagePublishWithNewParent(
+  pageId: string,
+  projectId: string,
+  ncMeta
+) {
+  const page = await Page.get({ id: pageId, projectId });
+  if (!page.parent_page_id) return;
+
+  const parentPage = await Page.get({
+    id: page.parent_page_id,
+    projectId,
+  });
+
+  if (parentPage.is_published) {
+    await Page._updatePage(
+      {
+        pageId,
+        projectId,
+        attributes: {
+          is_published: true,
+          nested_published_parent_id: parentPage.nested_published_parent_id,
+          last_published_date: ncMeta.knex.fn.now(),
+          published_content: page.content,
+        },
+      },
+      ncMeta
+    );
+
+    await updateChildPagesIsPublish({
+      pageId,
+      projectId,
+      ncMeta,
+      nestedParentPageId: parentPage.nested_published_parent_id,
+      isPublished: true,
+    });
+  } else {
+    await Page._updatePage(
+      {
+        pageId,
+        projectId,
+        attributes: {
+          is_published: false,
+          nested_published_parent_id: null,
+        },
+      },
+      ncMeta
+    );
+
+    await updateChildPagesIsPublish({
+      pageId,
+      projectId,
+      ncMeta,
+      nestedParentPageId: pageId,
+      isPublished: false,
+    });
+  }
+}
+
 async function updateOldParentPagesIsParentFlag(
   projectId: string,
   oldPage: DocsPageType,
@@ -170,22 +283,25 @@ async function updateOldParentPagesIsParentFlag(
   }
 }
 
-async function changeParentPage(
+async function updateParentAndSlugOnCollision(
   pageId: string,
   attributes: Partial<DocsPageType>,
   projectId: string,
   ncMeta
 ) {
-  await Page._updatePage(
-    {
-      pageId: attributes.parent_page_id,
-      projectId,
-      attributes: {
-        is_parent: true,
+  if (attributes.parent_page_id) {
+    await Page._updatePage(
+      {
+        pageId: attributes.parent_page_id,
+        projectId,
+        attributes: {
+          is_parent: true,
+        },
       },
-    },
-    ncMeta
-  );
+      ncMeta
+    );
+  }
+
   const currentPage = await Page.get({ id: pageId, projectId });
 
   // Since there can be slug collision, when page is moved to a new parent
@@ -204,6 +320,47 @@ async function changeParentPage(
         projectId,
         attributes: {
           slug: uniqueSlug,
+        },
+      },
+      ncMeta
+    );
+  }
+}
+
+async function reorderPage(
+  {
+    parent_page_id,
+    keepPageId,
+    projectId,
+  }: {
+    projectId: string;
+    parent_page_id?: string;
+    keepPageId?: string;
+  },
+  ncMeta = Noco.ncMeta
+) {
+  const pages = await Page.list({ parent_page_id, projectId }, ncMeta);
+
+  if (keepPageId) {
+    const kpPage = pages.splice(
+      pages.indexOf(pages.find((page) => page.id === keepPageId)),
+      1
+    );
+    if (kpPage.length) {
+      pages.splice(kpPage[0].order - 1, 0, kpPage[0]);
+    }
+  }
+
+  // update order for pages
+  for (const [i, b] of Object.entries(pages)) {
+    b.order = parseInt(i) + 1;
+
+    await Page._updatePage(
+      {
+        pageId: b.id,
+        projectId,
+        attributes: {
+          order: b.order,
         },
       },
       ncMeta

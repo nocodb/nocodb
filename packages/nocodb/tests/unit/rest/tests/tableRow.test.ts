@@ -446,7 +446,7 @@ function tableTest() {
           fk_column_id: paymentListColumn?.id,
           status: 'create',
           logical_op: 'and',
-          comparison_op: 'notempty',
+          comparison_op: 'notblank',
         },
       ],
     };
@@ -536,7 +536,7 @@ function tableTest() {
           fk_column_id: paymentListColumn?.id,
           status: 'create',
           logical_op: 'and',
-          comparison_op: 'notempty',
+          comparison_op: 'notblank',
         },
         {
           is_group: true,
@@ -665,7 +665,7 @@ function tableTest() {
             fk_column_id: paymentListColumn?.id,
             status: 'create',
             logical_op: 'and',
-            comparison_op: 'notempty',
+            comparison_op: 'notblank',
           },
           {
             is_group: true,
@@ -821,7 +821,7 @@ function tableTest() {
             fk_column_id: paymentListColumn?.id,
             status: 'create',
             logical_op: 'and',
-            comparison_op: 'notempty',
+            comparison_op: 'notblank',
           },
           {
             is_group: true,
@@ -1130,7 +1130,7 @@ function tableTest() {
             fk_column_id: paymentListColumn?.id,
             status: 'create',
             logical_op: 'and',
-            comparison_op: 'notempty',
+            comparison_op: 'notblank',
           },
           {
             is_group: true,
@@ -2129,7 +2129,9 @@ function tableTest() {
 
     // todo: only keep generic error message once updated in noco catchError middleware
     if (
-      !response.body.message?.includes("The column 'customer_id' cannot be null") &&
+      !response.body.message?.includes(
+        "The column 'customer_id' cannot be null"
+      ) &&
       !response.body.message?.includes("Column 'customer_id' cannot be null") &&
       !response.body.message?.includes('Cannot add or update a child row') &&
       !response.body.msg?.includes("Column 'customer_id' cannot be null") &&

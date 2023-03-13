@@ -542,7 +542,7 @@ function viewRowTests() {
           fk_column_id: paymentListColumn?.id,
           status: 'create',
           logical_op: 'and',
-          comparison_op: 'notempty',
+          comparison_op: 'notblank',
         },
       ],
     };
@@ -659,7 +659,7 @@ function viewRowTests() {
             fk_column_id: paymentListColumn?.id,
             status: 'create',
             logical_op: 'and',
-            comparison_op: 'notempty',
+            comparison_op: 'notblank',
           },
           {
             is_group: true,
@@ -928,7 +928,7 @@ function viewRowTests() {
             fk_column_id: paymentListColumn?.id,
             status: 'create',
             logical_op: 'and',
-            comparison_op: 'notempty',
+            comparison_op: 'notblank',
           },
           {
             is_group: true,

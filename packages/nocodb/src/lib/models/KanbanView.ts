@@ -106,6 +106,7 @@ export default class KanbanView implements KanbanType {
     const updateObj = extractProps(body, [
       'title',
       'fk_cover_image_col_id',
+      'fk_grp_col_id',
       'meta',
     ]);
 

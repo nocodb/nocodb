@@ -31,5 +31,5 @@ export async function galleryViewUpdate(param: {
   validatePayload('swagger.json#/components/schemas/GalleryReq', param.gallery);
 
   T.emit('evt', { evt_type: 'view:updated', type: 'gallery' });
-  await GalleryView.update(param.galleryViewId, param.gallery);
+  return await GalleryView.update(param.galleryViewId, param.gallery);
 }

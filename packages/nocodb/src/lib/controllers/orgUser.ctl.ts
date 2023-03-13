@@ -33,7 +33,7 @@ async function userDelete(req, res) {
   await orgUserService.userDelete({
     userId: req.params.userId,
   });
-  res.json({ msg: 'success' });
+  res.json({ msg: 'The user has been deleted successfully' });
 }
 
 async function userAdd(req, res) {
@@ -57,7 +57,7 @@ async function userInviteResend(req, res): Promise<any> {
     req,
   });
 
-  res.json({ msg: 'success' });
+  res.json({ msg: 'The invitation has been sent to the user' });
 }
 
 async function generateResetUrl(req, res) {

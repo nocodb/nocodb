@@ -3722,7 +3722,7 @@ export class Api<
  * @name ModelVisibilitySet
  * @summary Create UI ACL
  * @request POST:/api/v1/db/meta/projects/{projectId}/visibility-rules
- * @response `200` `VisibilityRuleReqType` OK
+ * @response `200` `BoolType` OK
  * @response `400` `{
   \** @example BadRequest [Error]: <ERROR MESSAGE> *\
   msg?: string,
@@ -3731,11 +3731,11 @@ export class Api<
  */
     modelVisibilitySet: (
       projectId: IdType,
-      data: any,
+      data: VisibilityRuleReqType,
       params: RequestParams = {}
     ) =>
       this.request<
-        VisibilityRuleReqType,
+        BoolType,
         {
           /** @example BadRequest [Error]: <ERROR MESSAGE> */
           msg?: string;
@@ -3848,7 +3848,7 @@ export class Api<
  * @name Delete
  * @summary Delete Project
  * @request DELETE:/api/v1/db/meta/projects/{projectId}
- * @response `200` `void` OK
+ * @response `200` `boolean` OK
  * @response `400` `{
   \** @example BadRequest [Error]: <ERROR MESSAGE> *\
   msg?: string,
@@ -3857,7 +3857,7 @@ export class Api<
  */
     delete: (projectId: IdType, params: RequestParams = {}) =>
       this.request<
-        void,
+        boolean,
         {
           /** @example BadRequest [Error]: <ERROR MESSAGE> */
           msg?: string;
@@ -3865,6 +3865,7 @@ export class Api<
       >({
         path: `/api/v1/db/meta/projects/${projectId}`,
         method: 'DELETE',
+        format: 'json',
         ...params,
       }),
 
@@ -3882,7 +3883,7 @@ export class Api<
 
 }`
  */
-    update: (projectId: IdType, data: any, params: RequestParams = {}) =>
+    update: (projectId: IdType, data: number, params: RequestParams = {}) =>
       this.request<
         void,
         {
@@ -3953,7 +3954,7 @@ export class Api<
  * @name SharedBaseDisable
  * @summary Delete Project Shared Base
  * @request DELETE:/api/v1/db/meta/projects/{projectId}/shared
- * @response `200` `void` OK
+ * @response `200` `boolean` OK
  * @response `400` `{
   \** @example BadRequest [Error]: <ERROR MESSAGE> *\
   msg?: string,
@@ -3962,7 +3963,7 @@ export class Api<
  */
     sharedBaseDisable: (projectId: IdType, params: RequestParams = {}) =>
       this.request<
-        void,
+        boolean,
         {
           /** @example BadRequest [Error]: <ERROR MESSAGE> */
           msg?: string;
@@ -3970,6 +3971,7 @@ export class Api<
       >({
         path: `/api/v1/db/meta/projects/${projectId}/shared`,
         method: 'DELETE',
+        format: 'json',
         ...params,
       }),
 
@@ -5793,7 +5795,7 @@ export class Api<
  * @name Delete
  * @summary Delete Shared View
  * @request DELETE:/api/v1/db/meta/views/{viewId}/share
- * @response `200` `void` OK
+ * @response `200` `boolean` OK
  * @response `400` `{
   \** @example BadRequest [Error]: <ERROR MESSAGE> *\
   msg?: string,
@@ -5802,7 +5804,7 @@ export class Api<
  */
     delete: (viewId: string, params: RequestParams = {}) =>
       this.request<
-        void,
+        boolean,
         {
           /** @example BadRequest [Error]: <ERROR MESSAGE> */
           msg?: string;
@@ -5810,6 +5812,7 @@ export class Api<
       >({
         path: `/api/v1/db/meta/views/${viewId}/share`,
         method: 'DELETE',
+        format: 'json',
         ...params,
       }),
   };
@@ -7919,7 +7922,10 @@ export class Api<
  * @name CommentList
  * @summary List Comments in Audit
  * @request GET:/api/v1/db/meta/audits/comments
- * @response `201` `any` Created
+ * @response `200` `{
+  list?: (AuditType)[],
+
+}` OK
  * @response `400` `{
   \** @example BadRequest [Error]: <ERROR MESSAGE> *\
   msg?: string,
@@ -7947,7 +7953,9 @@ export class Api<
       params: RequestParams = {}
     ) =>
       this.request<
-        any,
+        {
+          list?: AuditType[];
+        },
         {
           /** @example BadRequest [Error]: <ERROR MESSAGE> */
           msg?: string;
@@ -7967,7 +7975,7 @@ export class Api<
  * @name CommentRow
  * @summary Comment Rows
  * @request POST:/api/v1/db/meta/audits/comments
- * @response `200` `void` OK
+ * @response `200` `AuditType` OK
  * @response `400` `{
   \** @example BadRequest [Error]: <ERROR MESSAGE> *\
   msg?: string,
@@ -7976,7 +7984,7 @@ export class Api<
  */
     commentRow: (data: CommentReqType, params: RequestParams = {}) =>
       this.request<
-        void,
+        AuditType,
         {
           /** @example BadRequest [Error]: <ERROR MESSAGE> */
           msg?: string;
@@ -7986,6 +7994,7 @@ export class Api<
         method: 'POST',
         body: data,
         type: ContentType.Json,
+        format: 'json',
         ...params,
       }),
 
@@ -7996,7 +8005,19 @@ export class Api<
  * @name CommentCount
  * @summary Count Comments
  * @request GET:/api/v1/db/meta/audits/comments/count
- * @response `201` `any` Created
+ * @response `200` `({
+  \**
+   * The number of comments
+   * @example 4
+   *\
+  count?: string,
+  \**
+   * Row ID
+   * @example 1
+   *\
+  row_id?: string,
+
+})[]` OK
  * @response `400` `{
   \** @example BadRequest [Error]: <ERROR MESSAGE> *\
   msg?: string,
@@ -8005,14 +8026,26 @@ export class Api<
  */
     commentCount: (
       query: {
+        /** Comment IDs */
         ids: any;
-        /** Model for ID */
+        /** Foreign Key to Model */
         fk_model_id: IdType;
       },
       params: RequestParams = {}
     ) =>
       this.request<
-        any,
+        {
+          /**
+           * The number of comments
+           * @example 4
+           */
+          count?: string;
+          /**
+           * Row ID
+           * @example 1
+           */
+          row_id?: string;
+        }[],
         {
           /** @example BadRequest [Error]: <ERROR MESSAGE> */
           msg?: string;
@@ -8032,7 +8065,7 @@ export class Api<
  * @name AuditRowUpdate
  * @summary Update Audit Row
  * @request POST:/api/v1/db/meta/audits/rows/{rowId}/update
- * @response `200` `void` OK
+ * @response `200` `AuditType` OK
  * @response `400` `{
   \** @example BadRequest [Error]: <ERROR MESSAGE> *\
   msg?: string,
@@ -8045,7 +8078,7 @@ export class Api<
       params: RequestParams = {}
     ) =>
       this.request<
-        void,
+        AuditType,
         {
           /** @example BadRequest [Error]: <ERROR MESSAGE> */
           msg?: string;
@@ -8055,6 +8088,7 @@ export class Api<
         method: 'POST',
         body: data,
         type: ContentType.Json,
+        format: 'json',
         ...params,
       }),
 
@@ -8068,6 +8102,7 @@ export class Api<
  * @response `200` `{
   code?: number,
   message?: string,
+  data?: object,
 
 }` OK
  * @response `400` `{
@@ -8076,11 +8111,36 @@ export class Api<
 
 }`
  */
-    testConnection: (data: any, params: RequestParams = {}) =>
+    testConnection: (
+      data: {
+        /**
+         * DB Type
+         * @example mysql2
+         */
+        client?:
+          | 'mssql'
+          | 'mysql'
+          | 'mysql2'
+          | 'oracledb'
+          | 'pg'
+          | 'snowflake'
+          | 'sqlite3';
+        connection?: {
+          host?: string;
+          port?: string;
+          user?: string;
+          password?: string;
+          /** Model for StringOrNull */
+          database?: StringOrNullType;
+        };
+      },
+      params: RequestParams = {}
+    ) =>
       this.request<
         {
           code?: number;
           message?: string;
+          data?: object;
         },
         {
           /** @example BadRequest [Error]: <ERROR MESSAGE> */
@@ -8102,16 +8162,72 @@ export class Api<
  * @name UrlToConfig
  * @summary Convert JDBC URL to Config
  * @request POST:/api/v1/url_to_config
- * @response `200` `any` OK
+ * @response `200` `{
+  \**
+   * DB Type
+   * @example mysql2
+   *\
+  client?: "mssql" | "mysql" | "mysql2" | "oracledb" | "pg" | "snowflake" | "sqlite3",
+  \** Connection Config *\
+  connection?: {
+  \** DB User *\
+  user?: string,
+  \** DB Password *\
+  password?: string,
+  \** DB Name *\
+  database?: string,
+  \** DB Host *\
+  host?: string,
+  \** DB Host *\
+  port?: string,
+
+},
+
+}` OK
  * @response `400` `{
   \** @example BadRequest [Error]: <ERROR MESSAGE> *\
   msg?: string,
 
 }`
  */
-    urlToConfig: (data: any, params: RequestParams = {}) =>
+    urlToConfig: (
+      data: {
+        /**
+         * JDBC URL
+         * @example jdbc:mysql://username:password@localhost:3306/sakila
+         */
+        url?: string;
+      },
+      params: RequestParams = {}
+    ) =>
       this.request<
-        any,
+        {
+          /**
+           * DB Type
+           * @example mysql2
+           */
+          client?:
+            | 'mssql'
+            | 'mysql'
+            | 'mysql2'
+            | 'oracledb'
+            | 'pg'
+            | 'snowflake'
+            | 'sqlite3';
+          /** Connection Config */
+          connection?: {
+            /** DB User */
+            user?: string;
+            /** DB Password */
+            password?: string;
+            /** DB Name */
+            database?: string;
+            /** DB Host */
+            host?: string;
+            /** DB Host */
+            port?: string;
+          };
+        },
         {
           /** @example BadRequest [Error]: <ERROR MESSAGE> */
           msg?: string;
@@ -8132,7 +8248,26 @@ export class Api<
  * @name AppInfo
  * @summary Get App Info
  * @request GET:/api/v1/db/meta/nocodb/info
- * @response `200` `any` OK
+ * @response `200` `{
+  authType?: string,
+  projectHasAdmin?: boolean,
+  firstUser?: boolean,
+  type?: string,
+  googleAuthEnabled?: boolean,
+  githubAuthEnabled?: boolean,
+  oneClick?: boolean,
+  connectToExternalDB?: boolean,
+  version?: string,
+  defaultLimit?: number,
+  ncMin?: boolean,
+  teleEnabled?: boolean,
+  auditEnabled?: boolean,
+  ncSiteUrl?: string,
+  ee?: boolean,
+  ncAttachmentFieldSize?: number,
+  ncMaxAttachmentsAllowed?: number,
+
+}` OK
  * @response `400` `{
   \** @example BadRequest [Error]: <ERROR MESSAGE> *\
   msg?: string,
@@ -8141,7 +8276,25 @@ export class Api<
  */
     appInfo: (params: RequestParams = {}) =>
       this.request<
-        any,
+        {
+          authType?: string;
+          projectHasAdmin?: boolean;
+          firstUser?: boolean;
+          type?: string;
+          googleAuthEnabled?: boolean;
+          githubAuthEnabled?: boolean;
+          oneClick?: boolean;
+          connectToExternalDB?: boolean;
+          version?: string;
+          defaultLimit?: number;
+          ncMin?: boolean;
+          teleEnabled?: boolean;
+          auditEnabled?: boolean;
+          ncSiteUrl?: string;
+          ee?: boolean;
+          ncAttachmentFieldSize?: number;
+          ncMaxAttachmentsAllowed?: number;
+        },
         {
           /** @example BadRequest [Error]: <ERROR MESSAGE> */
           msg?: string;
@@ -8190,7 +8343,19 @@ export class Api<
  * @name AppVersion
  * @summary Get App Version
  * @request GET:/api/v1/version
- * @response `200` `any` OK
+ * @response `200` `{
+  \**
+   * Current NocoDB Version
+   * @example 0.104.0
+   *\
+  currentVersion?: string,
+  \**
+   * Latest Release Version
+   * @example 0.105.3
+   *\
+  releaseVersion?: string,
+
+}` OK
  * @response `400` `{
   \** @example BadRequest [Error]: <ERROR MESSAGE> *\
   msg?: string,
@@ -8199,7 +8364,18 @@ export class Api<
  */
     appVersion: (params: RequestParams = {}) =>
       this.request<
-        any,
+        {
+          /**
+           * Current NocoDB Version
+           * @example 0.104.0
+           */
+          currentVersion?: string;
+          /**
+           * Latest Release Version
+           * @example 0.105.3
+           */
+          releaseVersion?: string;
+        },
         {
           /** @example BadRequest [Error]: <ERROR MESSAGE> */
           msg?: string;
@@ -8218,7 +8394,15 @@ export class Api<
  * @name AppHealth
  * @summary Get Application Health Status
  * @request GET:/api/v1/health
- * @response `200` `any` OK
+ * @response `200` `{
+  \** @example OK *\
+  message?: string,
+  \** @example 1678702175755 *\
+  timestamp?: string,
+  \** @example 1618.996877834 *\
+  uptime?: string,
+
+}` OK
  * @response `400` `{
   \** @example BadRequest [Error]: <ERROR MESSAGE> *\
   msg?: string,
@@ -8227,7 +8411,14 @@ export class Api<
  */
     appHealth: (params: RequestParams = {}) =>
       this.request<
-        any,
+        {
+          /** @example OK */
+          message?: string;
+          /** @example 1678702175755 */
+          timestamp?: string;
+          /** @example 1618.996877834 */
+          uptime?: string;
+        },
         {
           /** @example BadRequest [Error]: <ERROR MESSAGE> */
           msg?: string;
@@ -8398,7 +8589,7 @@ export class Api<
  * @name CacheDelete
  * @summary Delete Cache
  * @request DELETE:/api/v1/db/meta/cache
- * @response `200` `void` OK
+ * @response `200` `boolean` OK
  * @response `400` `{
   \** @example BadRequest [Error]: <ERROR MESSAGE> *\
   msg?: string,
@@ -8407,7 +8598,7 @@ export class Api<
  */
     cacheDelete: (params: RequestParams = {}) =>
       this.request<
-        void,
+        boolean,
         {
           /** @example BadRequest [Error]: <ERROR MESSAGE> */
           msg?: string;
@@ -8415,6 +8606,7 @@ export class Api<
       >({
         path: `/api/v1/db/meta/cache`,
         method: 'DELETE',
+        format: 'json',
         ...params,
       }),
   };

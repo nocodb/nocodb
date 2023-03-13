@@ -4,7 +4,6 @@ import { publicMetaService } from '../../services';
 import type { Request, Response } from 'express';
 
 export async function viewMetaGet(req: Request, res: Response) {
-  console.log('FOO viewMetaGet');
   res.json(
     await publicMetaService.viewMetaGet({
       password: req.headers?.['xc-password'] as string,

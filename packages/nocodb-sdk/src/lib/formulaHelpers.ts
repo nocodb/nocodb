@@ -179,9 +179,8 @@ export function jsepTreeToFormula(node) {
 
   if (node.type === 'Literal') {
     if (typeof node.value === 'string') {
-      return '"' + node.value + '"';
+      return String.raw`"${escapeDoubleQuotes(node.value)}"`;
     }
-
     return '' + node.value;
   }
 
@@ -213,4 +212,8 @@ export function jsepTreeToFormula(node) {
   }
 
   return '';
+}
+
+function escapeDoubleQuotes(v: string) {
+  return v.replace(/"/g, '\\"');
 }

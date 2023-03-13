@@ -1,4 +1,4 @@
-import { UITypes } from 'nocodb-sdk';
+import { MetaType, UITypes } from 'nocodb-sdk';
 import Noco from '../Noco';
 import { CacheGetType, CacheScope, MetaTable } from '../utils/globals';
 import NocoCache from '../cache/NocoCache';
@@ -26,6 +26,7 @@ export default class GalleryView implements GalleryType {
   base_id?: string;
 
   columns?: GalleryColumnType[];
+  meta?: MetaType;
 
   constructor(data: GalleryView) {
     Object.assign(this, data);
@@ -95,16 +96,12 @@ export default class GalleryView implements GalleryType {
     // get existing cache
     const key = `${CacheScope.GALLERY_VIEW}:${galleryId}`;
     let o = await NocoCache.get(key, CacheGetType.TYPE_OBJECT);
-    const updateObj = extractProps(body, [
-      'next_enabled',
-      'prev_enabled',
-      'cover_image_idx',
-      'cover_image',
-      'restrict_types',
-      'restrict_size',
-      'restrict_number',
-      'fk_cover_image_col_id',
-    ]);
+
+    const updateObj = extractProps(body, ['fk_cover_image_col_id', 'meta']);
+    if (updateObj.meta && typeof updateObj.meta === 'object') {
+      updateObj.meta = JSON.stringify(updateObj.meta ?? {});
+    }
+
     if (o) {
       o = { ...o, ...updateObj };
       // set cache

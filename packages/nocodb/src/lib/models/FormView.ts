@@ -6,6 +6,7 @@ import { extractProps } from '../meta/helpers/extractProps';
 import FormViewColumn from './FormViewColumn';
 import View from './View';
 import type { BoolType, FormType } from 'nocodb-sdk';
+import { MetaType } from 'nocodb-sdk';
 
 export default class FormView implements FormType {
   show: BoolType;
@@ -27,7 +28,7 @@ export default class FormView implements FormType {
   columns?: FormViewColumn[];
   project_id?: string;
   base_id?: string;
-  meta?: string | Record<string, any>;
+  meta?: MetaType;
 
   constructor(data: FormView) {
     Object.assign(this, data);

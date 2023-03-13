@@ -104,7 +104,6 @@ export default class KanbanView implements KanbanType {
     let o = await NocoCache.get(key, CacheGetType.TYPE_OBJECT);
 
     const updateObj = extractProps(body, [
-      'title',
       'fk_cover_image_col_id',
       'fk_grp_col_id',
       'meta',

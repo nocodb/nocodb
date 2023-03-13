@@ -4,6 +4,7 @@ import NocoCache from '../cache/NocoCache';
 import View from './View';
 import MapViewColumn from './MapViewColumn';
 import type { MapType } from 'nocodb-sdk';
+import { extractProps } from '../meta/helpers/extractProps';
 
 export default class MapView implements MapType {
   fk_view_id: string;
@@ -71,13 +72,13 @@ export default class MapView implements MapType {
     // get existing cache
     const key = `${CacheScope.MAP_VIEW}:${mapId}`;
     let o = await NocoCache.get(key, CacheGetType.TYPE_OBJECT);
-    const updateObj = {
-      ...body,
-      meta:
-        typeof body.meta === 'string'
-          ? body.meta
-          : JSON.stringify(body.meta ?? {}),
-    };
+
+    const updateObj = extractProps(body, ['fk_geo_data_col_id', 'meta']);
+
+    if (updateObj.meta && typeof updateObj.meta === 'object') {
+      updateObj.meta = JSON.stringify(updateObj.meta ?? {});
+    }
+
     if (o) {
       o = { ...o, ...updateObj };
       // set cache

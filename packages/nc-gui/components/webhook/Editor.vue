@@ -651,9 +651,9 @@ onMounted(loadPluginList)
             </a-checkbox>
 
             <LazySmartsheetToolbarColumnFilter
-              class="mt-4"
               v-if="hook.condition"
               ref="filterRef"
+              class="mt-4"
               :auto-save="false"
               :show-loading="false"
               :hook-id="hook.id"

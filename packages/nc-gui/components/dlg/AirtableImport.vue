@@ -34,7 +34,7 @@ const { $state } = useNuxtApp()
 
 const projectStore = useProject()
 
-const { loadTables } = projectStore;
+const { loadTables } = projectStore
 
 const { project } = storeToRefs(projectStore)
 

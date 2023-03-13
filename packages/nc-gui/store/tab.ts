@@ -78,6 +78,8 @@ export const useTabs = defineStore('tabStore', () => {
         return tabs.value.findIndex((t) => t.type === TabType.SQL)
       } else if (routeName.includes('projectType-projectId-index-index-erd-baseId')) {
         return tabs.value.findIndex((t) => t.id === `${TabType.ERD}-${route.params.baseId}`)
+      } else if (routeName.includes('projectType-projectId-index-index-doc')) {
+        return tabs.value.findIndex((t) => t.id === route.params.projectId)
       }
 
       // by default, it's showing Team & Auth
@@ -92,7 +94,10 @@ export const useTabs = defineStore('tabStore', () => {
         if (!tab) return
 
         if(tab.projectId) {
-          projectStore.loadProject(true, tab.projectId).then(() => projectStore.loadTables()).then(() => {
+          projectStore.loadProject(true, tab.projectId).then(() => {
+            if(tab.type !== TabType.DOCUMENT)
+            projectStore.loadTables()
+          }).then(() => {
             navigateToTab(tab)
           })
         }else{
@@ -118,12 +123,13 @@ export const useTabs = defineStore('tabStore', () => {
       activeTabIndex.value = tabIndex
     }
 
-
     // if tab not found add it
     else {
       if(tabMeta.projectId) {
         await projectStore.loadProject(false, tabMeta.projectId)
-        await projectStore.loadTables()
+        if(tabMeta.type !== TabType.DOCUMENT) {
+          await projectStore.loadTables()
+        }
       }
       const currentTable = tables.find((t) => t.id === tabMeta.id || t.title === tabMeta.id)
       const currentBase = projectStore.bases.find((b) => b.id === currentTable?.base_id)
@@ -173,6 +179,8 @@ export const useTabs = defineStore('tabStore', () => {
         return navigateTo(`/ws/${workspaceId}/${projectType}/${tab.projectId}/sql`)
       case TabType.ERD:
         return navigateTo(`/ws/${workspaceId}/${projectType}/${tab.projectId}/erd/${tab?.tabMeta?.base.id}`)
+ case TabType.DOCUMENT:
+        return navigateTo(`/ws/${workspaceId}/${projectType}/${tab.projectId}/doc`)
     }
   }
 

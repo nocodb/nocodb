@@ -4,7 +4,7 @@ definePageMeta({
   requiresAuth: false,
   key: 'true',
   hideHeader: true,
-  layout: 'docs',
+  // layout: 'docs',
 })
 
 const { nestedPages, navigateToFirstPage, routePageSlugs, nestedPublicParentPage, openedPage } = useDocs()

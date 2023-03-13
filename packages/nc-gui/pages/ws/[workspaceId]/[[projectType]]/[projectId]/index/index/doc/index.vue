@@ -4,13 +4,13 @@ import {storeToRefs} from "pinia";
 definePageMeta({
   key: 'true',
   hideHeader: true,
-  layout: 'docs',
+  // layout: 'docs',
 })
 
 const route = useRoute()
 const { isOpen: isSidebarOpen, toggleHasSidebar, toggle } = useSidebar('nc-left-sidebar')
 const projectStore = useProject()
-const {  loadBookProject, loadBookPublicProject } = projectStore
+const { loadBookProject, loadBookPublicProject } = projectStore
 const { project, isLoading: isProjectLoading } = storeToRefs(projectStore)
 const { fetchNestedPages, openChildPageTabsOfRootPages, isErrored, isPublic, nestedPublicParentPage, isFetching } = useDocs()
 
@@ -102,10 +102,9 @@ watch(
 </script>
 
 <template>
-  <NuxtLayout id="content" :key="route.params.projectId as string" class="flex">
-    <template v-if="isSidebarOpen" #sidebar>
-      <DocsSideBar :key="isPublic.toString()" />
-    </template>
+  <NuxtLayout id="content" :key="route.params.projectId" class="flex">
+<!--    <template v-if="isSidebarOpen" #sidebar>-->
+<!--    </template>-->
     <div v-if="isErrored">
       <DocsError />
     </div>

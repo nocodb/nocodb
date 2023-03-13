@@ -355,7 +355,7 @@ const onShare = async (page: PageSidebarNode) => {
         </a-tabs>
       </div>
     </div>
-    <DocsBookPublishModal :model-value="showPublishModal" @update:model-value="showPublishModal = $event" />
+<!--    <DocsBookPublishModal :model-value="showPublishModal" @update:model-value="showPublishModal = $event" />-->
     <a-modal
       :visible="magicModalOpen"
       :closable="false"

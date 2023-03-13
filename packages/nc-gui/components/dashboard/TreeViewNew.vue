@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import type { BaseType, TableType } from 'nocodb-sdk'
+import type {BaseType, ProjectType, TableType} from 'nocodb-sdk'
 import type { Input } from 'ant-design-vue'
 import { Dropdown, Tooltip, message } from 'ant-design-vue'
 import Sortable from 'sortablejs'
@@ -47,9 +47,29 @@ const { loadProjectTables, loadProject } = projectsStore
 
 const { projectTableList, projects } = storeToRefs(projectsStore)
 
-const loadProjectAndTableList = async (projectId: string) => {
-  await loadProject(projectId)
-  await loadProjectTables(projectId)
+const loadProjectAndTableList = async (project: ProjectType) => {
+
+  if(!project){
+    return
+  }
+
+  // if document project, add a document tab and route to the page
+  switch(project.type){
+    case 'documentation':
+      addTab({
+        id: project.id,
+         title: project.title,
+        type: TabType.DOCUMENT,
+        projectId: project.id,
+      })
+      $e('c:document:open', project.id)
+      break
+    default:
+      await loadProject(project.id)
+      await loadProjectTables(project.id)
+      break
+
+  }
 }
 
 const projectStore = useProject()
@@ -416,7 +436,7 @@ const selectedKey = useState('tree-view', () => [])
         v-for="project in workspaceProjects"
         :key="project.id"
         class="py-1 nc-project-sub-menu"
-        @titleClick="loadProjectAndTableList(project.id)"
+        @titleClick="loadProjectAndTableList(project)"
       >
         <template #icon>
           <GeneralProjectIcon :type="project.type" />
@@ -431,8 +451,11 @@ const selectedKey = useState('tree-view', () => [])
           <!--            {{ table.title }} -->
           <!--          </a-menu-item> -->
 
+<div v-if="project.type === 'documentation'">
+          <DocsSideBarNew  :project="project"/>
+</div>
           <a-dropdown
-            v-if="project && projects[project.id] && projects[project.id].bases"
+            v-else-if="project && projects[project.id] && projects[project.id].bases"
             :trigger="['contextmenu']"
             overlay-class-name="nc-dropdown-tree-view-context-menu"
           >
@@ -440,122 +463,6 @@ const selectedKey = useState('tree-view', () => [])
               class="pt-2 pl-2 pb-2 flex-1 overflow-y-auto flex flex-col scrollbar-thin-dull"
               :class="{ 'mb-[20px]': isSharedBase }"
             >
-              <!--              <div -->
-              <!--                v-if=" projects[project.id].bases[0] &&  projects[project.id].bases[0].enabled && ! projects[project.id].bases.slice(1).filter((el) => el.enabled)?.length" -->
-              <!--                class="base-context min-h-[36px] py-1 px-3 flex w-full items-center gap-1 cursor-pointer" -->
-              <!--                @contextmenu="setMenuContext('base',  projects[project.id].bases[0])" -->
-              <!--              > -->
-              <!--                <Transition name="slide-left" mode="out-in">
-                  <a-input
-                    v-if="searchActive"
-                    :ref="searchInputRef"
-                    v-model:value="filterQuery"
-                    class="flex-1 rounded"
-                    :placeholder="$t('placeholder.searchProjectTree')"
-                  />
-
-                  <span v-else class="flex-1 text-bold uppercase nc-project-tree text-gray-500 font-weight-bold">
-                    {{ $t('objects.tables') }}
-
-                    <template v-if="tables.filter((table) => table.base_id === projects[project.id].bases[0].id)?.length">
-                      ({{ tables.filter((table) => table.base_id === projects[project.id].bases[0].id).length }})
-                    </template>
-                  </span>
-                </Transition>
-
-                <Transition name="layout" mode="out-in">
-                  <MdiClose v-if="searchActive" class="text-gray-500 text-lg mx-1 mt-0.5" @click="onSearchCloseIconClick" />
-                  <IcRoundSearch v-else class="text-gray-500 text-lg mx-1 mt-0.5" @click="toggleSearchActive(true)" />
-                </Transition>
-              </div> -->
-              <!--              <div
-                class="min-h-[36px] py-1 px-3 flex w-full items-center gap-1 cursor-pointer"
-                @contextmenu="setMenuContext('main')"
-              >
-                <Transition name="slide-left" mode="out-in">
-                  <a-input
-                    v-if="searchActive"
-                    :ref="searchInputRef"
-                    v-model:value="filterQuery"
-                    class="flex-1 rounded"
-                    :placeholder="$t('placeholder.searchProjectTree')"
-                  />
-
-                  <span v-else class="flex-1 text-bold uppercase nc-project-tree text-gray-500 font-weight-bold">
-                    BASES
-                    <template v-if="tables.filter((table) => table.base_id ===  projects[project.id].bases[0].id)?.length">
-                      ({{ bases.filter((el) => el.enabled).length }})
-                    </template>
-                  </span>
-                </Transition>
-
-                <Transition name="slide-right" mode="out-in">
-                  <MdiClose v-if="searchActive" class="text-gray-500 text-lg mx-1 mt-0.5" @click="onSearchCloseIconClick" />
-                  <IcRoundSearch v-else class="text-gray-500 text-lg mx-1 mt-0.5" @click="onSearchIconClick" />
-                </Transition>
-
-                <a-dropdown v-if="!isSharedBase" :trigger="['click']" overlay-class-name="nc-dropdown-import-menu" @click.stop>
-                  <Transition name="slide-right" mode="out-in">
-                    <MdiDotsVertical v-if="!searchActive" class="hover:text-accent outline-0" />
-                  </Transition>
-
-                  <template #overlay>
-                    <a-menu class="!py-0 rounded text-sm">
-                      <a-menu-item-group title="Connect to new datasource" class="!px-0 !mx-0">
-                        <a-menu-item key="connect-new-source" @click="toggleDialog(true, 'dataSources', ClientType.MYSQL)">
-                          <div class="color-transition nc-project-menu-item group">
-                            <LogosMysqlIcon class="group-hover:text-accent" />
-                            MySQL
-                          </div>
-                        </a-menu-item>
-                        <a-menu-item key="connect-new-source" @click="toggleDialog(true, 'dataSources', ClientType.PG)">
-                          <div class="color-transition nc-project-menu-item group">
-                            <LogosPostgresql class="group-hover:text-accent" />
-                            Postgres
-                          </div>
-                        </a-menu-item>
-                        <a-menu-item key="connect-new-source" @click="toggleDialog(true, 'dataSources', ClientType.SQLITE)">
-                          <div class="color-transition nc-project-menu-item group">
-                            <VscodeIconsFileTypeSqlite class="group-hover:text-accent" />
-                            SQLite
-                          </div>
-                        </a-menu-item>
-                        <a-menu-item key="connect-new-source" @click="toggleDialog(true, 'dataSources', ClientType.MSSQL)">
-                          <div class="color-transition nc-project-menu-item group">
-                            <SimpleIconsMicrosoftsqlserver class="group-hover:text-accent" />
-                            MSSQL
-                          </div>
-                        </a-menu-item>
-                        <a-menu-item
-                          v-if="appInfo.ee"
-                          key="connect-new-source"
-                          @click="toggleDialog(true, 'dataSources', ClientType.SNOWFLAKE)"
-                        >
-                          <div class="color-transition nc-project-menu-item group">
-                            <LogosSnowflakeIcon class="group-hover:text-accent" />
-                            Snowflake
-                          </div>
-                        </a-menu-item>
-                      </a-menu-item-group>
-
-                      <a-menu-divider class="my-0" />
-
-                      <a-menu-item v-if="isUIAllowed('importRequest')" key="add-new-table" class="py-1 rounded-b">
-                        <a
-                          v-e="['e:datasource:import-request']"
-                          href="https://github.com/nocodb/nocodb/issues/2052"
-                          target="_blank"
-                          class="prose-sm hover:(!text-primary !opacity-100) color-transition nc-project-menu-item group after:(!rounded-b)"
-                        >
-                          <MdiOpenInNew class="group-hover:text-accent" />
-                          &lt;!&ndash; Request a data source you need? &ndash;&gt;
-                          {{ $t('labels.requestDataSource') }}
-                        </a>
-                      </a-menu-item>
-                    </a-menu>
-                  </template>
-                </a-dropdown>
-              </div> -->
 
               <div
                 v-if="

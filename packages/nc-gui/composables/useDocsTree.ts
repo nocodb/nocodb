@@ -1,0 +1,642 @@
+import { message } from 'ant-design-vue'
+import type { DocsPageType, ProjectType } from 'nocodb-sdk'
+import gh from 'parse-github-url'
+import { extractSdkResponseErrorMsg, useNuxtApp } from '#imports'
+import type { PageSidebarNode } from '~~/lib'
+import { ProjectRole } from '~/lib/enums'
+
+ const PAGES_PER_PAGE_LIST = 10
+
+export const useDocsTree = (project: ProjectType) => {
+  const route = useRoute()
+  const { $api } = useNuxtApp()
+  const { appInfo } = $(useGlobal())
+  const { projectRoles } = useRoles()
+
+  const isPublic = computed<boolean>(() => !!route.meta.public)
+  const isEditAllowed = computed<boolean>(
+    () =>
+      !isPublic.value &&
+      !!(
+        projectRoles.value[ProjectRole.Creator] ||
+        projectRoles.value[ProjectRole.Owner] ||
+        projectRoles.value[ProjectRole.Editor]
+      ),
+  )
+
+  const projectId = $(computed(() => project.id))
+
+  const isPageErrored = ref<boolean>(false)
+
+  const isFetching = ref({
+    nestedPages: true,
+    page: true,
+  })
+
+  const isErrored = computed<boolean>(() => {
+    return isPageErrored.value
+  })
+
+  const slugs = computed<string[]>(() => {
+    const slugs = route.params.slugs
+
+    return Array.isArray(slugs) ? slugs.filter((slug) => slug !== '') : []
+  })
+
+  const routePageSlugs = computed<string[]>(() => {
+    return slugs.value.filter((slug) => slug !== '')
+  })
+
+  const isNoPageOpen = computed<boolean>(() => {
+    return routePageSlugs.value.length === 0
+  })
+
+  const openedTabs = ref<string[]>([])
+
+  const openedPage = ref<PageSidebarNode | undefined>(undefined)
+
+  const nestedPublicParentPage = ref<PageSidebarNode | undefined>(undefined)
+  const isNestedPublicPage = computed<boolean>(() => isPublic.value && !!nestedPublicParentPage.value)
+
+  // Pages tree used in sidebar
+  const nestedPages = ref<PageSidebarNode[]>([])
+
+  // Opened page in `nestedPages` tree used in sidebar
+  const openedPageInSidebar = computed(() => {
+    if (routePageSlugs.value.length === 0) return undefined
+    if (isFetching.value.nestedPages) return undefined
+
+    if (isNestedPublicPage.value) {
+      if (routePageSlugs.value.length < 3) return findPage(nestedPages.value, routePageSlugs.value[0])
+      return findPage(nestedPages.value, routePageSlugs.value[2])
+    }
+
+    return findPage(nestedPages.value, isNestedPublicPage.value ? routePageSlugs.value[2] : routePageSlugs.value[0])
+  })
+
+  watch(
+    openedPageInSidebar,
+    () => {
+      if (!openedPage.value) return
+
+      openedPage.value = {
+        ...openedPageInSidebar.value,
+        content: openedPage.value.content,
+        title: openedPage.value.title,
+      } as PageSidebarNode
+    },
+    {
+      deep: true,
+    },
+  )
+
+  // verify if the levels of nested pages are correct
+  // if not, set the correct level
+  watch(
+    nestedPages,
+    () => {
+      if (nestedPages.value.length === 0) return
+
+      let isTreeCorrect = true
+      const verifyLevelAndIsLeaf = (tree: PageSidebarNode[], level: number) => {
+        tree.forEach((node) => {
+          if (node.level !== level) {
+            isTreeCorrect = false
+          }
+
+          if (node.isLeaf === false && node.children && node.children.length > 0) {
+            isTreeCorrect = false
+          }
+
+          if (node.children && node.children.length === 0 && node.isLeaf !== true) {
+            isTreeCorrect = false
+          }
+
+          if (node.children) {
+            verifyLevelAndIsLeaf(node.children, level + 1)
+          }
+        })
+      }
+
+      verifyLevelAndIsLeaf(nestedPages.value, 0)
+
+      if (isTreeCorrect) return
+
+      const traverse = (tree: PageSidebarNode[], level: number) => {
+        tree.forEach((node) => {
+          node.level = level
+          if (node.children && node.children.length > 0) {
+            traverse(node.children, level + 1)
+            node.isLeaf = false
+          } else {
+            node.isLeaf = true
+          }
+        })
+      }
+
+      traverse(nestedPages.value, 0)
+    },
+    {
+      deep: true,
+    },
+  )
+
+  const flattenedNestedPages = computed(() => {
+    if (nestedPages.value.length === 0) return []
+
+    // nestedPagesTree to array
+    const flatten = (tree: PageSidebarNode[]): PageSidebarNode[] => {
+      const result: PageSidebarNode[] = []
+
+      tree.forEach((node) => {
+        result.push(node)
+        if (node.children) {
+          result.push(...flatten(node.children))
+        }
+      })
+
+      return result
+    }
+
+    return flatten(nestedPages.value)
+  })
+
+  const openedPageId = computed(() => {
+    if (routePageSlugs.value.length === 0) return undefined
+
+    if (isNestedPublicPage.value) {
+      if (routePageSlugs.value.length < 3) return routePageSlugs.value[0]
+      return routePageSlugs.value[2]
+    }
+
+    return routePageSlugs.value[0]
+  })
+
+  const openedPageWithParents = computed(() => (openedPageInSidebar.value ? getPageWithParents(openedPageInSidebar.value) : []))
+
+  // Is any of the parent pages of the opened page nested published
+  const parentWhichIsNestedPublished = computed(() => {
+    if (!openedPage.value) return false
+
+    const pageWithParents = getPageWithParents(openedPage.value!)
+    return pageWithParents?.find((page) => page.is_nested_published)
+  })
+
+  async function fetchNestedPages() {
+    isFetching.value.nestedPages = true
+    try {
+      const nestedDocTree = isPublic.value
+        ? await $api.nocoDocs.listPublicPages({
+            projectId: projectId!,
+            parent_page_id: openedPageId.value,
+          })
+        : await $api.nocoDocs.listPages({
+            projectId: projectId!,
+          })
+
+      // traverse tree and add `isLeaf` and `key` properties
+      const traverse = (parentNode: any, pages: PageSidebarNode[], level: number) => {
+        pages.forEach((p) => {
+          p.isLeaf = !p.is_parent
+          p.key = p.id!
+          p.parentNodeId = parentNode?.id
+          p.level = level
+
+          if (p.children) traverse(p, p.children, level + 1)
+        })
+      }
+
+      traverse(undefined, nestedDocTree as any, 0)
+
+      nestedPages.value = nestedDocTree as any
+
+      return nestedDocTree
+    } catch (e) {
+      console.log(e)
+      message.error(await extractSdkResponseErrorMsg(e as any))
+    } finally {
+      isFetching.value.nestedPages = false
+    }
+  }
+
+  const fetchPage = async ({ page }: { page?: PageSidebarNode } = {}) => {
+    const pageId = page?.id || openedPageId.value
+    if (!pageId) throw new Error('No page id or slug provided')
+
+    try {
+      return isPublic.value
+        ? await $api.nocoDocs.getPublicPage(pageId, {
+            projectId: projectId!,
+            nestedPageId: routePageSlugs.value[0],
+          })
+        : await $api.nocoDocs.getPage(pageId, {
+            projectId: projectId!,
+          })
+    } catch (e) {
+      console.log(e)
+      isPageErrored.value = true
+      return undefined
+    }
+  }
+
+  const createPage = async ({ page, nodeOverrides }: { page: DocsPageType; nodeOverrides?: Record<string, any> }) => {
+    try {
+      let createdPageData = await $api.nocoDocs.createPage({
+        attributes: page,
+        projectId: projectId!,
+      })
+
+      if (nodeOverrides) createdPageData = { ...createdPageData, ...nodeOverrides }
+
+      if (page.parent_page_id) {
+        const parentPage = findPage(nestedPages.value, page.parent_page_id)
+        if (!parentPage) return
+
+        if (!parentPage.children) parentPage.children = []
+        parentPage.children?.push({
+          ...createdPageData,
+          isLeaf: !createdPageData.is_parent,
+          key: createdPageData.id!,
+          parentNodeId: parentPage.id,
+          level: Number(parentPage.level) + 1,
+          children: [],
+        })
+        parentPage.isLeaf = false
+      } else {
+        nestedPages.value.push({
+          ...createdPageData,
+          isLeaf: !createdPageData.is_parent,
+          key: createdPageData.id!,
+          parentNodeId: undefined,
+          children: [],
+        })
+      }
+
+      openedPage.value = findPage(nestedPages.value, createdPageData.id!)
+      await navigateTo(nestedUrl(createdPageData.id!))
+
+      if (!openedTabs.value.includes(createdPageData.id!)) {
+        openedTabs.value.push(createdPageData.id!)
+      }
+    } catch (e) {
+      console.log(e)
+      message.error(await extractSdkResponseErrorMsg(e as any))
+    }
+  }
+
+  const addNewPage = async (parentPageId?: string) => {
+    let dummyTitle = 'Page'
+    let conflictCount = 0
+    const parentPage = parentPageId && findPage(nestedPages.value, parentPageId)
+    const _pages = parentPage ? parentPage.children : nestedPages.value
+
+    while (_pages?.find((page) => page.title === dummyTitle)) {
+      conflictCount++
+      dummyTitle = `Page ${conflictCount}`
+    }
+
+    isFetching.value.page = true
+    await createPage({
+      page: {
+        title: dummyTitle,
+        parent_page_id: parentPageId,
+        content: '',
+      },
+      nodeOverrides: {
+        new: true,
+      },
+    })
+    isFetching.value.page = false
+  }
+
+  const deletePage = async ({ pageId }: { pageId: string }) => {
+    try {
+      const page = findPage(nestedPages.value, pageId)
+
+      if (page?.parent_page_id) {
+        const parentPage = findPage(nestedPages.value, page.parent_page_id)
+        if (!parentPage) return
+
+        parentPage.children = parentPage.children?.filter((p) => p.id !== pageId)
+        parentPage.isLeaf = parentPage.children?.length === 0
+        navigateTo(nestedUrl(page?.parent_page_id))
+      } else {
+        nestedPages.value = nestedPages.value.filter((p) => p.id !== pageId)
+        if (nestedPages.value.length === 0) return navigateTo(projectUrl())
+
+        const siblingPage = nestedPages.value[0]
+        navigateTo(nestedUrl(siblingPage.id))
+      }
+
+      await $api.nocoDocs.deletePage(pageId, { projectId: projectId! })
+    } catch (e) {
+      console.log(e)
+      message.error(await extractSdkResponseErrorMsg(e as any))
+    }
+  }
+
+  function nestedSlugsFromPageId(id: string | undefined) {
+    if (!id) return []
+
+    const page = findPage(nestedPages.value, id)!
+    const slugs = []
+    let parentPage = page
+    while (parentPage?.parentNodeId) {
+      slugs.unshift(parentPage!.slug!)
+      parentPage = findPage(nestedPages.value, parentPage.parentNodeId)!
+    }
+    slugs.unshift(parentPage.slug!)
+
+    return slugs
+  }
+
+  function projectUrl() {
+    return isPublic.value ? `/ws/ws_dcbedpvdulwlla/nc/${projectId!}/doc/s` : `/ws/ws_dcbedpvdulwlla/nc/${projectId!}/doc`
+  }
+
+  function nestedUrl(id: string | undefined, { completeUrl = false, publicUrl = false } = {}) {
+    const nestedSlugs = nestedSlugsFromPageId(id)
+
+    const publicMode = isPublic.value || publicUrl
+    // We use nestedPublicParentPage when we are actually rendering the nested public page
+    // And we use openedPage when we are generating the url for the nested public page
+    const isNestedPublicMode = isNestedPublicPage.value || openedPage.value?.is_nested_published
+    let url: string
+    if (publicMode && isNestedPublicMode) {
+      url = `/ws/ws_dcbedpvdulwlla/nc/${projectId!}/doc/s/${nestedPublicParentPage.value?.id ?? id}/${nestedSlugs[0]}/${id}/${nestedSlugs
+        .filter((_, i) => i > 0)
+        .join('/')}`
+    } else if (publicMode) {
+      url = `/ws/ws_dcbedpvdulwlla/nc/${projectId!}/doc/s/${id}/${nestedSlugs.join('/')}`
+    } else {
+      url = `/ws/ws_dcbedpvdulwlla/nc/${projectId!}/doc/p/${id}/${nestedSlugs.join('/')}`
+    }
+
+    return completeUrl ? `${window.location.origin}/#${url}` : url
+  }
+
+  const createMagic = async (title: string) => {
+    try {
+      await $api.nocoDocs.createNestedPagesMagic({
+        projectId: projectId!,
+        title,
+      } as any)
+    } catch (e) {
+      message.warning('NocoAI failed for the demo reasons. Please try again.')
+    }
+  }
+
+  const createImport = async (url: string, type: 'md' | 'nuxt' | 'docusaurus' = 'md', from: 'github' | 'file' = 'github') => {
+    try {
+      const rs = gh(url)
+      await $api.nocoDocs.importPages({
+        user: rs!.owner!,
+        repo: rs!.name!,
+        branch: rs!.branch!,
+        path: rs!.path!.replace(`${rs?.repo}/tree/${rs?.branch}/`, ''),
+        projectId: projectId!,
+        type,
+        from,
+      } as any)
+    } catch (e) {
+      console.log(e)
+      message.error(await extractSdkResponseErrorMsg(e as any))
+    }
+  }
+
+  const updatePage = async ({ pageId, page }: { pageId: string; page: Partial<PageSidebarNode> }) => {
+    const foundPage = findPage(nestedPages.value, pageId)!
+    if (page.title) foundPage.title = page.title
+    if (page?.title?.length === 0) page.title = foundPage.title
+
+    const updatedPage = await $api.nocoDocs.updatePage(pageId, {
+      attributes: page as any,
+      projectId: projectId!,
+    })
+
+    if (page.title) {
+      // todo: Update the page in a better way
+      foundPage.slug = updatedPage.slug
+      foundPage.updated_at = updatedPage.updated_at
+      foundPage.last_updated_by_id = updatedPage.last_updated_by_id
+
+      if (foundPage.new) foundPage.new = false
+
+      await navigateTo(nestedUrl(updatedPage.id!))
+    } else {
+      Object.assign(foundPage, page)
+    }
+  }
+
+  const updateContent = async ({ pageId, content }: { pageId: string; content: string }) => {
+    try {
+      await $api.nocoDocs.updatePage(pageId, {
+        attributes: { content } as any,
+        projectId: projectId!,
+      })
+    } catch (e) {
+      console.log(e)
+      message.error(await extractSdkResponseErrorMsg(e as any))
+    }
+  }
+
+  const reorderPages = async ({
+    sourceNodeId,
+    targetNodeId,
+    index,
+  }: {
+    sourceNodeId: string
+    targetNodeId?: string
+    index: number
+  }) => {
+    const sourceNode = findPage(nestedPages.value, sourceNodeId)!
+    const targetNode = targetNodeId ? findPage(nestedPages.value, targetNodeId) : undefined
+
+    const sourceParentNode = findPage(nestedPages.value, sourceNode.parent_page_id!)
+    const sourceNodeSiblings = sourceParentNode ? sourceParentNode.children! : nestedPages.value
+
+    sourceNodeSiblings.splice(
+      sourceNodeSiblings.findIndex((node) => node.id === sourceNode.id),
+      1,
+    )
+    if (sourceParentNode) sourceParentNode.isLeaf = sourceParentNode.children?.length === 0
+
+    if (targetNode && !targetNode.children) targetNode.children = []
+
+    const targetNodeSiblings = targetNode ? targetNode.children! : nestedPages.value
+
+    sourceNode.parent_page_id = targetNode?.id
+    sourceNode.parentNodeId = targetNode?.id
+    targetNodeSiblings.splice(index, 0, sourceNode)
+
+    const node = findPage(nestedPages.value, sourceNodeId)!
+    await updatePage({ pageId: sourceNodeId, page: { order: index + 1, parent_page_id: targetNode?.id ?? null } as any })
+
+    navigateTo(nestedUrl(node.id!))
+    const openedPages = [...getPageWithParents(node), node]
+    for (const page of openedPages) {
+      if (!openedTabs.value.includes(page.id!)) {
+        openedTabs.value.push(page.id!)
+      }
+    }
+  }
+
+  function getPageWithParents(page: PageSidebarNode): PageSidebarNode[] {
+    const parents: PageSidebarNode[] = [page]
+    let parent: PageSidebarNode | undefined = page
+    while (parent.parent_page_id) {
+      parent = findPage(nestedPages.value, parent.parent_page_id!)
+      if (!parent) break
+
+      parents.push(parent)
+    }
+    return parents
+  }
+
+  const getChildrenOfPage = (pageId?: string) => {
+    if (!pageId) return nestedPages.value
+
+    const page = findPage(nestedPages.value, pageId!)
+    if (!page) return []
+
+    return page.children || []
+  }
+
+  const openChildPageTabsOfRootPages = async () => {
+    for (const page of nestedPages.value) {
+      if (!page.is_parent) continue
+
+      if (!openedTabs.value.includes(page.id!)) {
+        openedTabs.value.push(page.id!)
+      }
+    }
+  }
+
+  const expandTabOfOpenedPage = () => {
+    if (!openedPageInSidebar.value) throw new Error('openedPage is not defined')
+
+    const pagesWithParents = getPageWithParents(openedPageInSidebar.value)
+    for (const page of pagesWithParents) {
+      if (!openedTabs.value.includes(page.id!)) {
+        openedTabs.value.push(page.id!)
+      }
+    }
+    openedTabs.value = [...openedTabs.value]
+  }
+
+  const openPage = async (page: PageSidebarNode) => {
+    const url = nestedUrl(page.id!)
+
+    await navigateTo(url)
+  }
+
+  const uploadFile = async (file: File) => {
+    // todo: use a better id
+    const randomId = Math.random().toString(36).substring(2, 15) + Math.random().toString(36).substring(2, 15)
+    const data = await $api.storage.upload(
+      {
+        path: [NOCO, projectId, randomId].join('/'),
+      },
+      {
+        files: file,
+        json: '{}',
+      },
+    )
+
+    return data[0]?.path ? `${appInfo.ncSiteUrl}/${data[0].path}` : ''
+  }
+
+  async function navigateToFirstPage() {
+    const page = nestedPages.value[0]
+    await navigateTo(nestedUrl(page.id!))
+  }
+
+  const magicExpand = async (text: string, pageId?: string) => {
+    const id = pageId || openedPageInSidebar.value!.id!
+    const response = await $api.nocoDocs.magicExpandText({
+      projectId: projectId!,
+      pageId: id,
+      text,
+    })
+    return response
+  }
+
+  const magicOutline = async (pageId?: string) => {
+    const id = pageId || openedPageInSidebar.value!.id!
+    const response = await $api.nocoDocs.magicOutlinePage({
+      projectId: projectId!,
+      pageId: id,
+    })
+    return response
+  }
+
+  const getParentOfPage = (pageId: string) => {
+    const page = findPage(nestedPages.value, pageId)
+    if (!page) return undefined
+    if (!page.parent_page_id) return undefined
+
+    return findPage(nestedPages.value, page.parent_page_id)
+  }
+
+  function findPage(_nestedPages: PageSidebarNode[], pageId: string) {
+    // traverse the tree and find the parent page
+    const findPageInTree = (_pages: PageSidebarNode[], _pageId: string): PageSidebarNode | undefined => {
+      if (!_pages) {
+        console.error('nestedPages is undefined:', { _pageId, pageId, _pages })
+      }
+      for (const page of _pages) {
+        if (page.id === _pageId) return page
+
+        if (page.children) {
+          const foundPage = findPageInTree(page.children, _pageId)
+          if (foundPage) return foundPage
+        }
+      }
+    }
+
+    return findPageInTree(_nestedPages, pageId)
+  }
+
+  return {
+    isPageErrored,
+    isFetching,
+    nestedPages,
+    openedTabs,
+    isErrored,
+    routePageSlugs,
+    flattenedNestedPages,
+    openedPageInSidebar,
+    openedPage,
+    isNoPageOpen,
+    openedPageId,
+    fetchPage,
+    openPage,
+    openChildPageTabsOfRootPages,
+    fetchNestedPages,
+    createPage,
+    updatePage,
+    deletePage,
+    addNewPage,
+    createMagic,
+    updateContent,
+    getChildrenOfPage,
+    createImport,
+    reorderPages,
+    uploadFile,
+    navigateToFirstPage,
+    magicExpand,
+    magicOutline,
+    getParentOfPage,
+    nestedUrl,
+    nestedSlugsFromPageId,
+    projectUrl,
+    expandTabOfOpenedPage,
+    openedPageWithParents,
+    isPublic,
+    getPageWithParents,
+    nestedPublicParentPage,
+    parentWhichIsNestedPublished,
+    findPage,
+    isEditAllowed,
+  }
+}

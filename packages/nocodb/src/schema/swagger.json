@@ -6021,7 +6021,26 @@
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/FormReq"
+                "$ref": "#/components/schemas/FormUpdateReq"
+              },
+              "examples": {
+                "Example 1": {
+                  "value": {
+                    "banner_image_url": null,
+                    "email": "user@example.com",
+                    "heading": "My Form",
+                    "lock_type": "collaborative",
+                    "logo_url": null,
+                    "meta": null,
+                    "redirect_after_secs": null,
+                    "redirect_url": null,
+                    "show_blank_form": 0,
+                    "subheading": "My Form Subheading",
+                    "submit_another_form": 0,
+                    "success_msg": "Thank you for the submission.",
+                    "title": "Form View 1"
+                  }
+                }
               }
             }
           }

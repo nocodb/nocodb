@@ -38,7 +38,7 @@ export async function viewUpdate(param: {
   viewId: string;
   view: ViewUpdateReqType;
 }) {
-  validatePayload('swagger.json#/components/schemas/ViewReq', param.view);
+  validatePayload('swagger.json#/components/schemas/ViewUpdateReq', param.view);
   const result = await View.update(param.viewId, param.view);
   T.emit('evt', { evt_type: 'vtable:updated', show_as: result.type });
   return result;

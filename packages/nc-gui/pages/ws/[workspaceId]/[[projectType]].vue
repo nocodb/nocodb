@@ -1,6 +1,5 @@
 <script lang="ts" setup>
-import { onMounted, useRouter, useWorkspace } from '#imports'
-import {storeToRefs} from "pinia";
+import { onMounted, useRouter, useWorkspace, storeToRefs } from '#imports'
 import {useProject} from "~/store/project";
 
 const router = useRouter()
@@ -9,6 +8,8 @@ const route = $(router.currentRoute)
 const { project }= storeToRefs(useProject())
 
 const workspaceStore = useWorkspace()
+
+const {workspace} = storeToRefs(workspaceStore)
 
 onMounted(async () => {
   await workspaceStore.loadWorkspace(route.params.workspaceId as string)
@@ -87,13 +88,13 @@ const currentVersion = ref('')
               class="group cursor-pointer flex gap-1 items-center nc-project-menu overflow-hidden"
             >
               <template v-if="isOpen">
-                <a-tooltip v-if="project?.title?.length > 12" placement="bottom">
-                  <div class="text-md font-semibold truncate">{{ project.title }}</div>
+                <a-tooltip v-if="workspace?.title?.length > 12" placement="bottom">
+                  <div class="text-md font-semibold truncate">{{ workspace.title }}</div>
                   <template #title>
-                    <div class="text-sm">{{ project?.title }}</div>
+                    <div class="text-sm">{{ workspace?.title }}</div>
                   </template>
                 </a-tooltip>
-                <div v-else class="text-md font-semibold truncate capitalize">{{ project?.title }}</div>
+                <div v-else class="text-md font-semibold truncate capitalize">{{ workspace?.title }}</div>
 
                 <MdiChevronDown class="min-w-[17px] group-hover:text-accent text-md" />
               </template>

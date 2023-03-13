@@ -122,7 +122,7 @@ export const useTabs = defineStore('tabStore', () => {
     // if tab not found add it
     else {
       if(tabMeta.projectId) {
-        await projectStore.loadProject(true, tabMeta.projectId)
+        await projectStore.loadProject(false, tabMeta.projectId)
         await projectStore.loadTables()
       }
       const currentTable = tables.find((t) => t.id === tabMeta.id || t.title === tabMeta.id)

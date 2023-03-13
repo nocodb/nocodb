@@ -12,7 +12,7 @@ export const useProjects = defineStore('projectsStore', () => {
   // actions
   const loadProject = async (projectId: string) => {
     const project = await api.project.read(projectId)
-    projects.value={...project.value, [projectId]: project}
+    projects.value={ ...projects.value, [projectId]: project }
   }
 
   const loadProjectTables = async (projectId: string) => {

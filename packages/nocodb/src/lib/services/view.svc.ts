@@ -2,7 +2,7 @@ import { T } from 'nc-help';
 import { validatePayload } from '../meta/api/helpers';
 import { Model, View } from '../models';
 import { xcVisibilityMetaGet } from './modelVisibility.svc';
-import type { SharedViewReqType, ViewReqType } from 'nocodb-sdk';
+import type { SharedViewReqType, ViewUpdateReqType } from 'nocodb-sdk';
 
 export async function viewList(param: {
   tableId: string;
@@ -34,7 +34,10 @@ export async function shareView(param: { viewId: string }) {
   return await View.share(param.viewId);
 }
 
-export async function viewUpdate(param: { viewId: string; view: ViewReqType }) {
+export async function viewUpdate(param: {
+  viewId: string;
+  view: ViewUpdateReqType;
+}) {
   validatePayload('swagger.json#/components/schemas/ViewReq', param.view);
   const result = await View.update(param.viewId, param.view);
   T.emit('evt', { evt_type: 'vtable:updated', show_as: result.type });

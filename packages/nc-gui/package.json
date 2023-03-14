@@ -20,6 +20,7 @@
     "build": "nuxi build",
     "dev": "nuxi dev",
     "generate": "nuxi generate",
+    "prepare": "nuxi prepare",
     "start": "node .output/server/index.mjs",
     "lint": "eslint --ext \".js,.jsx,.ts,.tsx,.vue\" --fix --ignore-path .gitignore .",
     "test": "vitest -c test/vite.config.ts",

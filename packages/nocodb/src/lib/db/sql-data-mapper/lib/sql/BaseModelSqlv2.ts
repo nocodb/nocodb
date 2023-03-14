@@ -324,7 +324,14 @@ class BaseModelSqlv2 {
     qb.count(sanitize(this.model.primaryKey?.column_name) || '*', {
       as: 'count',
     }).first();
-    const res = (await this.dbDriver.raw(unsanitize(qb.toQuery()))) as any;
+
+    let sql = sanitize(qb.toQuery());
+    if (!this.isPg && !this.isMssql && !this.isSnowflake) {
+      sql = unsanitize(qb.toQuery());
+    }
+
+    const res = (await this.dbDriver.raw(sql)) as any;
+
     return (this.isPg || this.isSnowflake ? res.rows[0] : res[0][0] ?? res[0])
       .count;
   }

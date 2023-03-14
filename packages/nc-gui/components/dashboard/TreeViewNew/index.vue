@@ -31,6 +31,7 @@ import {
 } from '#imports'
 import MdiView from '~icons/mdi/eye-circle-outline'
 import MdiTableLarge from '~icons/mdi/table-large'
+import PhTableThin from '~icons/ph/table-thin'
 
 const { addTab, updateTab } = useTabs()
 
@@ -188,7 +189,7 @@ watchEffect(() => {
 
 const icon = (table: TableType) => {
   if (table.type === 'table') {
-    return MdiTableLarge
+    return PhTableThin
   }
   if (table.type === 'view') {
     return MdiView
@@ -461,6 +462,10 @@ const createProject = async (type) => {
               ref="projectNodeRefs"
               :project="projects[project.id] ?? project" />
         </template>
+
+        <template #expandIcon>
+          <PhCaretDownThin/>
+        </template>
         <a-menu-item-group key="g1">
           <!--          <a-menu-item v-for="table of projectTableList[project.id] ?? []" :key="table.id" @click="addTableTab(table)"> -->
           <!--            {{ table.title }} -->
@@ -491,14 +496,14 @@ const createProject = async (type) => {
                   class="group flex items-center gap-2 pl-2 pr-3 py-2 text-primary/70 hover:(text-primary/100) cursor-pointer select-none"
                   @click="openTableCreateDialog(projects[project.id].bases[0].id, project.id)"
                 >
-                  <MdiPlus class="w-5" />
+                  <PhPlusThin class="w-5" />
 
                   <span class="text-gray-500 group-hover:(text-primary/100) flex-1 nc-add-new-table">{{
                     $t('tooltip.addTable')
                   }}</span>
 
                   <a-dropdown v-if="!isSharedBase" :trigger="['click']" overlay-class-name="nc-dropdown-import-menu" @click.stop>
-                    <MdiDotsVertical class="transition-opacity opacity-0 group-hover:opacity-100 nc-import-menu outline-0" />
+                    <PhDotsThreeOutlineVerticalThin class="transition-opacity opacity-0 group-hover:opacity-100 nc-import-menu outline-0 text-xs" />
 
                     <template #overlay>
                       <a-menu class="!py-0 rounded text-sm">

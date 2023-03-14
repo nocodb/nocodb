@@ -56,25 +56,25 @@ useEventListener(document, 'keydown', async (e: KeyboardEvent) => {
       <a-menu>
         <a-menu-item @click="navigateToCreateProject(NcProjectType.DB)">
           <div class="py-4 px-1 flex items-center gap-4">
-            <MdiDatabaseOutline class="text-[#2824FB] text-lg" />
+            <GeneralProjectIcon :type="NcProjectType.DB" class="text-[#2824FB] text-lg" />
             Database
           </div>
         </a-menu-item>
         <a-menu-item @click="navigateToCreateProject(NcProjectType.DOCS)">
           <div class="py-4 px-1 flex items-center gap-4">
-            <MaterialSymbolsDocs class="text-[#247727] text-lg" />
+            <GeneralProjectIcon :type="NcProjectType.DOCS" class="text-[#247727] text-lg" />
             Documentation
           </div>
         </a-menu-item>
         <a-menu-item @click="navigateToCreateProject(NcProjectType.AUTOMATION)">
           <div class="py-4 px-1 flex items-center gap-4">
-            <MdiTransitConnectionVariant class="text-[#DDB00F] text-lg" />
+            <GeneralProjectIcon :type="NcProjectType.AUTOMATION" class="text-[#DDB00F] text-lg" />
             Automation
           </div>
         </a-menu-item>
         <a-menu-item @click="navigateToCreateProject(NcProjectType.COWRITER)">
           <div class="py-4 px-1 flex items-center gap-4">
-            <MdiVectorTriangle class="text-[#8626FF] text-lg" />
+            <GeneralProjectIcon :type="NcProjectType.COWRITER" class="text-[#8626FF] text-lg" />
             Cowriter
           </div>
         </a-menu-item>

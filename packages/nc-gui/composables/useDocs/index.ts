@@ -439,7 +439,15 @@ const [setup, use] = useInjectionState(() => {
     }
   }
 
-  const updatePage = async ({ pageId, page }: { pageId: string; page: Partial<PageSidebarNode> }) => {
+  const updatePage = async ({
+    pageId,
+    page,
+    disableLocalSync,
+  }: {
+    pageId: string
+    page: Partial<PageSidebarNode>
+    disableLocalSync?: boolean
+  }) => {
     const foundPage = findPage(nestedPages.value, pageId)!
     if (page.title) foundPage.title = page.title
     if (page?.title?.length === 0) page.title = foundPage.title
@@ -458,7 +466,7 @@ const [setup, use] = useInjectionState(() => {
       if (foundPage.new) foundPage.new = false
 
       await navigateTo(nestedUrl(updatedPage.id!))
-    } else {
+    } else if (!disableLocalSync) {
       Object.assign(foundPage, page)
     }
 

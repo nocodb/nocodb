@@ -21,7 +21,31 @@ const {
 
 const wrapperRef = ref<HTMLDivElement | undefined>()
 
-const content = computed(() => openedPage.value?.content || '')
+const content = computed(() => {
+  const emptyContent = {
+    type: 'doc',
+    content: [
+      {
+        type: 'dBlock',
+        content: [
+          {
+            type: 'paragraph',
+          },
+        ],
+      },
+    ],
+  }
+
+  if (openedPage.value?.content?.length) {
+    try {
+      return JSON.parse(openedPage.value.content)
+    } catch (e) {
+      console.error(e)
+    }
+  }
+
+  return emptyContent
+})
 
 const breadCrumbs = computed(() => {
   const pagesBreadcrumbs = openedPageWithParents.value
@@ -79,25 +103,24 @@ watch(
 )
 
 watch(
-  () => content.value,
-  () => {
+  () => [openedPage.value?.id, editor.value],
+  ([newId], oldVal) => {
+    if (oldVal === undefined) return
+    const [oldId, oldEditor] = oldVal
+
     if (!editor.value) return
+    if (!openedPage.value?.id) return
 
-    if (content.value !== JSON.stringify(editor.value?.getJSON())) {
-      ;(editor.value.state as any).history$.prevRanges = null
-      ;(editor.value.state as any).history$.done.eventCount = 0
+    if (newId === oldId && oldEditor) return
+    ;(editor.value.state as any).history$.prevRanges = null
+    ;(editor.value.state as any).history$.done.eventCount = 0
 
-      let contentJSON = {}
-      try {
-        contentJSON = JSON.parse(String(content.value).length > 0 ? String(content.value) : '{}')
-      } catch (e) {
-        console.error('Failed to parse content JSON', content.value.length, '||')
-        console.error(e)
-      }
-
-      const selection = editor.value.view.state.selection
-      editor.value.chain().setContent(contentJSON).setTextSelection(selection.to).run()
-    }
+    const selection = editor.value.view.state.selection
+    editor.value.chain().setContent(content.value).setTextSelection(selection.to).run()
+  },
+  {
+    immediate: true,
+    deep: true,
   },
 )
 
@@ -105,7 +128,7 @@ watchDebounced(
   () => [openedPage.value?.id, openedPage.value?.content],
   ([newId, newContent], [oldId, oldContent]) => {
     if (isEditAllowed && openedPage.value?.id && newId === oldId && newContent !== oldContent) {
-      updatePage({ pageId: openedPage.value?.id, page: { content: openedPage.value!.content } })
+      updatePage({ pageId: openedPage.value?.id, page: { content: openedPage.value!.content }, disableLocalSync: true })
     }
   },
   {
@@ -177,6 +200,7 @@ watchDebounced(
           />
           <EditorContent
             v-else
+            :key="isEditAllowed ? 'edit' : 'view'"
             :editor="editor"
             class="px-2 !mb-48"
             :class="{

@@ -62,33 +62,6 @@ const tiptapExtensions = (isPublic: boolean): Extensions => {
     Task,
     Ordered,
     Bullet,
-    // OrderedList.extend({
-    //   addKeyboardShortcuts() {
-    //     return {
-    //       'Ctrl-Alt-3': () => {
-    //         this.editor.chain().focus().setNode('orderedList').run()
-    //         return (this.editor.chain().focus() as any).toggleOrderedList().run()
-    //       },
-    //     }
-    //   },
-    // }),
-    // TaskList.extend({
-    //   addKeyboardShortcuts() {
-    //     return {
-    //       'Ctrl-Alt-1': () => {
-    //         this.editor.chain().focus().setNode('taskList').run()
-    //         return (this.editor.chain().focus() as any).toggleTaskList().run()
-    //       },
-    //     }
-    //   },
-    // }).configure({
-    //   HTMLAttributes: {
-    //     class: 'nc-docs-task-list',
-    //   },
-    // }),
-    // TaskItem.configure({
-    //   nested: true,
-    // }),
     HorizontalRule.extend({
       addKeyboardShortcuts() {
         return {

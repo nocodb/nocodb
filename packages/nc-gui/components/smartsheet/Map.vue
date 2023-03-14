@@ -4,7 +4,7 @@ import L, { LatLng } from 'leaflet'
 import 'leaflet.markercluster'
 import { ViewTypes } from 'nocodb-sdk'
 import { IsPublicInj, OpenNewRecordFormHookInj, latLongToJoinedString, onMounted, provide, ref } from '#imports'
-import type { Row, Row as RowType } from '~/lib'
+import type { Row } from '~/lib'
 
 const route = useRoute()
 
@@ -37,7 +37,7 @@ const openNewRecordFormHook = inject(OpenNewRecordFormHookInj, createEventHook()
 
 const expandedFormDlg = ref(false)
 
-const expandedFormRow = ref<RowType>()
+const expandedFormRow = ref<Row>()
 
 const expandedFormRowState = ref<Record<string, any>>()
 
@@ -51,7 +51,7 @@ const getMapZoomLocalStorageKey = (viewId: string) => {
 }
 const getMapCenterLocalStorageKey = (viewId: string) => `mapView.${viewId}.center`
 
-const expandForm = (row: RowType, state?: Record<string, any>) => {
+const expandForm = (row: Row, state?: Record<string, any>) => {
   const rowId = extractPkFromRow(row.row, meta.value!.columns!)
   if (rowId) {
     router.push({
@@ -87,7 +87,7 @@ const expandedFormOnRowIdDlg = computed({
   },
 })
 
-const addMarker = (lat: number, long: number, row: RowType) => {
+const addMarker = (lat: number, long: number, row: Row) => {
   if (markersClusterGroupRef.value == null) {
     throw new Error('Marker cluster is null')
   }

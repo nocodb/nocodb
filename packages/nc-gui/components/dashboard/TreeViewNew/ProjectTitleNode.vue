@@ -10,7 +10,7 @@ const props = defineProps<{
 
 const projectStore = useProjects()
 
-const { updateProject } = projectStore
+const { updateProject, deleteProject } = projectStore
 
 const editMode = ref(false)
 
@@ -55,6 +55,21 @@ onMounted(() => {
   }
 })
 
+const confirmDeleteProject = () =>{
+  Modal.confirm({
+    title: 'Delete Project',
+    content: 'Are you sure you want to delete this project?',
+    onOk: async () => {
+      try {
+        await deleteProject(props.project.id!)
+        message.success('Project deleted successfully')
+      } catch (e: any) {
+        message.error(await extractSdkResponseErrorMsg(e))
+      }
+    },
+  })
+}
+
 </script>
 
 <template>
@@ -82,7 +97,7 @@ onMounted(() => {
               Edit
             </div>
           </a-menu-item>
-          <a-menu-item>
+          <a-menu-item @click="confirmDeleteProject">
             <div class="py-2">
               <MdiDeleteOutline />
               Delete

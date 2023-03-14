@@ -6,7 +6,9 @@ import { invokeWebhook } from '../meta/helpers/webhookHelpers';
 import populateSamplePayload from '../meta/helpers/populateSamplePayload';
 import type { HookReqType, HookTestReqType } from 'nocodb-sdk';
 
-function validateHookPayload(notificationJsonOrObject: string | object) {
+function validateHookPayload(
+  notificationJsonOrObject: string | Record<string, any>
+) {
   let notification: { type?: string } = {};
   try {
     notification =

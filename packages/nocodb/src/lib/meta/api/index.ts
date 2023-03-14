@@ -33,7 +33,6 @@ import modelVisibilityController from '../../controllers/modelVisibility.ctl';
 import metaDiffController from '../../controllers/metaDiff.ctl';
 import cacheController from '../../controllers/cache.ctl';
 import apiTokenController from '../../controllers/apiToken.ctl';
-import hookFilterController from '../../controllers/hookFilter.ctl';
 import testController from '../../controllers/test.ctl';
 import {
   bulkDataAliasController,
@@ -100,7 +99,6 @@ export default function (router: Router, server) {
   router.use(metaDiffController);
   router.use(cacheController);
   router.use(apiTokenController);
-  router.use(hookFilterController);
   router.use(swaggerController);
   router.use(syncSourceController);
   router.use(kanbanViewController);

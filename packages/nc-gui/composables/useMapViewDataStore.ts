@@ -74,8 +74,6 @@ const [useProvideMapViewStore, useMapViewStore] = useInjectionState(
       if (!viewMeta?.value?.id || !meta?.value?.columns) return
       mapMetaData.value = isPublic.value ? (sharedView.value?.view as MapType) : await $api.dbView.mapRead(viewMeta.value.id)
 
-      // if (!viewMeta?.value?.id || !meta?.value?.columns) return
-      // mapMetaData.value = await $api.dbView.mapRead(viewMeta.value.id)
       geoDataFieldColumn.value =
         (meta.value.columns as ColumnType[]).filter((f) => f.id === mapMetaData.value.fk_geo_data_col_id)[0] || {}
     }

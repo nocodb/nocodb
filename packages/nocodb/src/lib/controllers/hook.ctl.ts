@@ -11,7 +11,6 @@ export async function hookList(
   req: Request<any, any, any>,
   res: Response<HookListType>
 ) {
-  // todo: pagination
   res.json(
     new PagedResponseImpl(
       await hookService.hookList({ tableId: req.params.tableId })
@@ -51,18 +50,17 @@ export async function hookTest(req: Request<any, any>, res: Response) {
     hookTest: req.body,
     tableId: req.params.tableId,
   });
-  res.json({ msg: 'Success' });
+  res.json({ msg: 'The hook has been tested successfully' });
 }
 
 export async function tableSampleData(req: Request, res: Response) {
-  res // todo: pagination
-    .json(
-      await hookService.tableSampleData({
-        tableId: req.params.tableId,
-        // todo: replace any with type
-        operation: req.params.operation as any,
-      })
-    );
+  res.json(
+    await hookService.tableSampleData({
+      tableId: req.params.tableId,
+      // todo: replace any with type
+      operation: req.params.operation as any,
+    })
+  );
 }
 
 const router = Router({ mergeParams: true });

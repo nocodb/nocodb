@@ -1,5 +1,4 @@
 import autoBind from 'auto-bind';
-
 import GqlBaseResolver from './GqlBaseResolver';
 import GqlMiddleware from './GqlMiddleware';
 import type { Acls } from '../../../interface/config';

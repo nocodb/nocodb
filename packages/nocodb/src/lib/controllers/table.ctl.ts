@@ -58,14 +58,13 @@ export async function tableReorder(req: Request, res: Response) {
   );
 }
 
-// todo: move to table service
 export async function tableUpdate(req: Request<any, any>, res) {
   await tableService.tableUpdate({
     tableId: req.params.tableId,
     table: req.body,
     projectId: (req as any).ncProjectId,
   });
-  res.json({ msg: 'success' });
+  res.json({ msg: 'The table has been updated successfully' });
 }
 
 const router = Router({ mergeParams: true });

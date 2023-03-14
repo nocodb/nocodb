@@ -6,6 +6,7 @@ import {
   h,
   message,
   onMounted,
+  storeToRefs,
   useGlobal,
   useI18n,
   useNuxtApp,
@@ -20,7 +21,7 @@ const { t } = useI18n()
 
 const { $api, $e } = useNuxtApp()
 
-const { project } = useProject()
+const { project } = storeToRefs(useProject())
 
 const { includeM2M } = useGlobal()
 

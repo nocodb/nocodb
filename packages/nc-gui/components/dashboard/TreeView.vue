@@ -17,6 +17,7 @@ import {
   reactive,
   ref,
   resolveComponent,
+  storeToRefs,
   useDialog,
   useGlobal,
   useNuxtApp,
@@ -35,9 +36,12 @@ const { addTab, updateTab } = useTabs()
 
 const { $api, $e } = useNuxtApp()
 
-const { bases, tables, loadTables, isSharedBase } = useProject()
+const projectStore = useProject()
 
-const { activeTab } = useTabs()
+const { loadTables } = projectStore
+const { bases, tables, isSharedBase } = storeToRefs(projectStore)
+
+const { activeTab } = storeToRefs(useTabs())
 
 const { deleteTable } = useTable()
 

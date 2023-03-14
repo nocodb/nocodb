@@ -1,7 +1,7 @@
 import { reactive } from 'vue'
 import type { ComputedRef, Ref } from 'vue'
 import type { ColumnType, MapType, PaginatedType, TableType, ViewType } from 'nocodb-sdk'
-import { IsPublicInj, ref, useInjectionState, useMetas, useProject } from '#imports'
+import { IsPublicInj, ref, storeToRefs, useInjectionState, useMetas, useProject } from '#imports'
 import type { Row } from '~/lib'
 
 const storedValue = localStorage.getItem('geodataToggleState')
@@ -23,7 +23,7 @@ const formatData = (list: Record<string, any>[]) =>
 const [useProvideMapViewStore, useMapViewStore] = useInjectionState(
   (
     meta: Ref<MapType | undefined>,
-    viewMeta: Ref<ViewType | MapType | undefined> | ComputedRef<(ViewType & { id: string }) | undefined>,
+    viewMeta: Ref<(ViewType | MapType | undefined) & { id: string }> | ComputedRef<(ViewType & { id: string }) | undefined>,
     shared = false,
     where?: ComputedRef<string | undefined>,
   ) => {
@@ -37,7 +37,7 @@ const [useProvideMapViewStore, useMapViewStore] = useInjectionState(
 
     const { api } = useApi()
 
-    const { project } = useProject()
+    const { project } = storeToRefs(useProject())
 
     const { $api } = useNuxtApp()
 
@@ -91,15 +91,12 @@ const [useProvideMapViewStore, useMapViewStore] = useInjectionState(
           })
         : await fetchSharedViewData({ sortsArr: sorts.value, filtersArr: nestedFilters.value })
 
-      formattedData.value = formatData(res.list)
+      formattedData.value = formatData(res!.list)
     }
 
     async function updateMapMeta(updateObj: Partial<MapType>) {
       if (!viewMeta?.value?.id || !isUIAllowed('xcDatatableEditable')) return
-      await $api.dbView.mapUpdate(viewMeta.value.id, {
-        ...mapMetaData.value,
-        ...updateObj,
-      })
+      await $api.dbView.mapUpdate(viewMeta.value.id, updateObj)
     }
 
     const { getMeta } = useMetas()
@@ -110,7 +107,7 @@ const [useProvideMapViewStore, useMapViewStore] = useInjectionState(
       {
         metaValue = meta.value,
         viewMetaValue = viewMeta.value,
-      }: { metaValue?: MapType; viewMetaValue?: ViewType | MapType } = {},
+      }: { metaValue?: MapType & { id: string }; viewMetaValue?: (ViewType | MapType) & { id: string } } = {},
     ) {
       const row = currentRow.row
       if (currentRow.rowMeta) currentRow.rowMeta.saving = true

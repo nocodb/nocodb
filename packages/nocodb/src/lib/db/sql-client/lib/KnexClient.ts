@@ -4,7 +4,6 @@ import { promisify } from 'util';
 import path from 'path';
 import { knex } from 'knex';
 import { T } from 'nc-help';
-
 import findIndex from 'lodash/findIndex';
 import find from 'lodash/find';
 import jsonfile from 'jsonfile';
@@ -15,6 +14,7 @@ import Debug from '../../util/Debug';
 import * as dataHelp from './data.helper';
 import SqlClient from './SqlClient';
 import type { Knex } from 'knex';
+
 const evt = new Emit();
 
 const log = new Debug('KnexClient');

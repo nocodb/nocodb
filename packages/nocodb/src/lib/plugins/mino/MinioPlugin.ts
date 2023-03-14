@@ -1,5 +1,4 @@
 import { XcStoragePlugin } from 'nc-plugin';
-
 import Minio from './Minio';
 import type { IStorageAdapterV2 } from 'nc-plugin';
 

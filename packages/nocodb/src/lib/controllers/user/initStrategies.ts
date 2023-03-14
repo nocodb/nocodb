@@ -5,6 +5,12 @@ import passport from 'passport';
 import passportJWT from 'passport-jwt';
 import { Strategy as AuthTokenStrategy } from 'passport-auth-token';
 import { Strategy as GoogleStrategy } from 'passport-google-oauth20';
+import bcrypt from 'bcryptjs';
+import NocoCache from '../../cache/NocoCache';
+import { ApiToken, Plugin, Project, ProjectUser, User } from '../../models';
+import Noco from '../../Noco';
+import { CacheGetType, CacheScope } from '../../utils/globals';
+import { userService } from '../../services';
 
 const ExtractJwt = passportJWT.ExtractJwt;
 const JwtStrategy = passportJWT.Strategy;
@@ -13,12 +19,6 @@ const jwtOptions = {
   jwtFromRequest: ExtractJwt.fromHeader('xc-auth'),
 };
 
-import bcrypt from 'bcryptjs';
-import NocoCache from '../../cache/NocoCache';
-import { ApiToken, Plugin, Project, ProjectUser, User } from '../../models';
-import Noco from '../../Noco';
-import { CacheGetType, CacheScope } from '../../utils/globals';
-import { userService } from '../../services';
 const PassportLocalStrategy = require('passport-local').Strategy;
 
 export function initStrategies(router): void {

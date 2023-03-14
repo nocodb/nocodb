@@ -1,6 +1,5 @@
 import type { GqlApiBuilder } from '../../v1-legacy/gql/GqlApiBuilder';
 import type { RestApiBuilder } from '../../v1-legacy/rest/RestApiBuilder';
-
 import type XcProcedure from './XcProcedure';
 
 export default class BaseProcedure {

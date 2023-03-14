@@ -6,7 +6,6 @@ import ncAttachmentUpgrader_0104002 from './ncAttachmentUpgrader_0104002';
 import ncStickyColumnUpgrader from './ncStickyColumnUpgrader';
 import ncFilterUpgrader_0104004 from './ncFilterUpgrader_0104004';
 import ncFilterUpgrader_0105003 from './ncFilterUpgrader_0105003';
-
 import ncFilterUpgrader from './ncFilterUpgrader';
 import ncProjectRolesUpgrader from './ncProjectRolesUpgrader';
 import ncDataTypesUpgrader from './ncDataTypesUpgrader';
@@ -15,6 +14,7 @@ import ncProjectEnvUpgrader0011045 from './ncProjectEnvUpgrader0011045';
 import ncProjectEnvUpgrader from './ncProjectEnvUpgrader';
 import type { NcConfig } from '../../interface/config';
 import type NcMetaIO from '../meta/NcMetaIO';
+
 const log = debug('nc:version-upgrader');
 
 export interface NcUpgraderCtx {

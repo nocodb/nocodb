@@ -333,8 +333,7 @@ export default {
                 :ref="i ? null : (el) => (cellWrapperEl = el)"
                 class="!bg-white rounded px-1 min-h-[35px] flex items-center mt-2 relative"
               >
-                <LazySmartsheetVirtualCell v-if="isVirtualCol(col)" v-model="row.row[col.title]" :row="row"
-                                           :column="col" />
+                <LazySmartsheetVirtualCell v-if="isVirtualCol(col)" v-model="row.row[col.title]" :row="row" :column="col" />
 
                 <LazySmartsheetCell
                   v-else

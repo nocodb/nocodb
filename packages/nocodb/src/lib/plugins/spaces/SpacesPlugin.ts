@@ -1,5 +1,4 @@
 import { XcStoragePlugin } from 'nc-plugin';
-
 import Spaces from './Spaces';
 import type { IStorageAdapterV2 } from 'nc-plugin';
 

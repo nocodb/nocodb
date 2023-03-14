@@ -14,7 +14,6 @@ import Noco from '../Noco';
 import { MetaTable } from '../utils/globals';
 import { NcError } from '../meta/helpers/catchError';
 import { extractProps } from '../meta/helpers/extractProps';
-import { PagedResponseImpl } from '../meta/helpers/PagedResponse';
 import { randomTokenString } from '../meta/helpers/stringHelpers';
 import { sendInviteEmail } from './projectUser.svc';
 import type { UserType } from 'nocodb-sdk';
@@ -23,12 +22,7 @@ export async function userList(param: {
   // todo: add better typing
   query: Record<string, any>;
 }) {
-  const { query = {} } = param;
-
-  return new PagedResponseImpl(await User.list(query), {
-    ...query,
-    count: await User.count(query),
-  });
+  return await User.list(param.query);
 }
 
 export async function userUpdate(param: {

@@ -1,11 +1,11 @@
 import type { BaseType, OracleUi, ProjectType, TableType } from 'nocodb-sdk'
 import { SqlUiFactory } from 'nocodb-sdk'
 import { isString } from '@vueuse/core'
+import { defineStore } from 'pinia'
 import {
   ClientType,
   computed,
   createEventHook,
-  createSharedComposable,
   ref,
   useApi,
   useGlobal,
@@ -16,7 +16,7 @@ import {
 } from '#imports'
 import type { ProjectMetaInfo, ThemeConfig } from '~/lib'
 
-export const useProject = createSharedComposable(() => {
+export const useProject = defineStore('projectStore', () => {
   const { $e } = useNuxtApp()
 
   const { api, isLoading } = useApi()
@@ -186,6 +186,10 @@ export const useProject = createSharedComposable(() => {
     setTheme()
   }
 
+  const setProject = (projectVal: ProjectType) => {
+    project.value = projectVal
+  }
+
   watch(
     () => route.params.projectType,
     (n) => {
@@ -217,5 +221,6 @@ export const useProject = createSharedComposable(() => {
     lastOpenedViewMap,
     isXcdbBase,
     hasEmptyOrNullFilters,
+    setProject,
   }
 })

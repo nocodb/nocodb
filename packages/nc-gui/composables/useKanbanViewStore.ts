@@ -154,7 +154,7 @@ const [useProvideKanbanViewStore, useKanbanViewStore] = useInjectionState(
         )
       }
 
-      for (const data of groupData) {
+      for (const data of groupData ?? []) {
         const key = data.key
         formattedData.value.set(key, formatData(data.value.list))
         countByStack.value.set(key, data.value.pageInfo.totalRows || 0)
@@ -176,9 +176,16 @@ const [useProvideKanbanViewStore, useKanbanViewStore] = useInjectionState(
             ...(isUIAllowed('filterSync') ? {} : { filterArrJson: JSON.stringify(nestedFilters.value) }),
             where,
           })
-        : await fetchSharedViewData({ sortsArr: sorts.value, filtersArr: nestedFilters.value, offset: params.offset })
+        : await fetchSharedViewData({
+            ...{ where: xWhere.value },
+            ...params,
+            sortsArr: sorts.value,
+            filtersArr: nestedFilters.value,
+            offset: params.offset,
+            where,
+          })
 
-      formattedData.value.set(stackTitle, [...formattedData.value.get(stackTitle)!, ...formatData(response!.list)])
+      formattedData.value.set(stackTitle, [...formattedData.value.get(stackTitle)!, ...formatData(response!.list!)])
     }
 
     async function loadKanbanMeta() {

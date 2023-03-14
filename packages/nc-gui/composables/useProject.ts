@@ -125,10 +125,13 @@ export const useProject = createSharedComposable(() => {
     }
     projectId = projectId || (route.params.projectId as string)
 
-    if (projectId) {
-      project.value = await api.project.read(projectId)
+    if (!projectId) throw new Error('Project id not found')
+
+    const loadProj = async () => {
+      project.value = await api.project.read(projectId!)
     }
-    await loadProjectRoles(project.value.id!)
+
+    await Promise.all([loadProj(), loadProjectRoles(projectId!)])
   }
 
   async function loadProject(withTheme = true, forcedId?: string) {

@@ -1548,7 +1548,10 @@ async function createLTARColumn(param: {
 
       // todo: create index for virtual relations as well
       // create index for foreign key in pg
-      if (param.base.type === 'pg') {
+      if (
+        param.base.type === 'pg' ||
+        (param.column as LinkToAnotherColumnReqType).virtual
+      ) {
         await createColumnIndex({
           column: new Column({
             ...newColumn,

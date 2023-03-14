@@ -55,6 +55,7 @@ export async function appInfo(param: { req: { ncSiteUrl: string } }) {
     ee: Noco.isEE(),
     ncAttachmentFieldSize: NC_ATTACHMENT_FIELD_SIZE,
     ncMaxAttachmentsAllowed: +(process.env.NC_MAX_ATTACHMENTS_ALLOWED || 10),
+    isCloud: process.env.NC_CLOUD === 'true',
   };
 
   return result;

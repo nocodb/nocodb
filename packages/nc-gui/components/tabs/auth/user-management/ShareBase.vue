@@ -1,5 +1,15 @@
 <script setup lang="ts">
-import { extractSdkResponseErrorMsg, message, onMounted, useCopy, useDashboard, useI18n, useNuxtApp, useProject } from '#imports'
+import {
+  extractSdkResponseErrorMsg,
+  message,
+  onMounted,
+  storeToRefs,
+  useCopy,
+  useDashboard,
+  useI18n,
+  useNuxtApp,
+  useProject,
+} from '#imports'
 
 interface ShareBase {
   uuid?: string
@@ -22,7 +32,7 @@ let base = $ref<null | ShareBase>(null)
 
 const showEditBaseDropdown = $ref(false)
 
-const { project } = useProject()
+const { project } = storeToRefs(useProject())
 
 const { copy } = useCopy()
 

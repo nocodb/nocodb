@@ -7,7 +7,7 @@ import Metadata from './Metadata.vue'
 import UIAcl from './UIAcl.vue'
 import Erd from './Erd.vue'
 import { ClientType, DataSourcesSubTab } from '~/lib'
-import { useNuxtApp, useProject } from '#imports'
+import { storeToRefs, useNuxtApp, useProject } from '#imports'
 
 interface Props {
   state: string
@@ -23,8 +23,9 @@ const vState = useVModel(props, 'state', emits)
 const vReload = useVModel(props, 'reload', emits)
 
 const { $api, $e } = useNuxtApp()
-
-const { project, loadProject } = useProject()
+const projectStore = useProject()
+const { loadProject } = projectStore
+const { project } = storeToRefs(projectStore)
 
 let sources = $ref<BaseType[]>([])
 

@@ -299,7 +299,7 @@ export async function importLTARData({
               );
 
               await bulkDataService.bulkDataInsert({
-                projectName: projectName,
+                projectName,
                 tableName: assocMeta.modelMeta.title,
                 body: insertArray,
                 cookie: {},

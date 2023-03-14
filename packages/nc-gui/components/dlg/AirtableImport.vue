@@ -12,6 +12,7 @@ import {
   onBeforeUnmount,
   onMounted,
   ref,
+  storeToRefs,
   useGlobal,
   useNuxtApp,
   useProject,
@@ -31,7 +32,11 @@ const baseURL = appInfo.ncSiteUrl
 
 const { $state } = useNuxtApp()
 
-const { project, loadTables } = useProject()
+const projectStore = useProject()
+
+const { loadTables } = projectStore
+
+const { project } = storeToRefs(projectStore)
 
 const showGoToDashboardButton = ref(false)
 

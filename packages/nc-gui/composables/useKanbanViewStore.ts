@@ -13,6 +13,7 @@ import {
   message,
   provide,
   ref,
+  storeToRefs,
   useApi,
   useFieldQuery,
   useI18n,
@@ -40,7 +41,7 @@ const [useProvideKanbanViewStore, useKanbanViewStore] = useInjectionState(
 
     const { api } = useApi()
 
-    const { project } = useProject()
+    const { project, sqlUis } = storeToRefs(useProject())
 
     const { $e, $api } = useNuxtApp()
 
@@ -55,8 +56,6 @@ const [useProvideKanbanViewStore, useKanbanViewStore] = useInjectionState(
     const password = ref<string | null>(null)
 
     const { search } = useFieldQuery()
-
-    const { sqlUis } = useProject()
 
     const sqlUi = ref(
       (meta.value as TableType)?.base_id ? sqlUis.value[(meta.value as TableType).base_id!] : Object.values(sqlUis.value)[0],

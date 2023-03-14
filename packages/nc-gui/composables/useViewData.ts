@@ -12,6 +12,7 @@ import {
   message,
   populateInsertObject,
   ref,
+  storeToRefs,
   until,
   useApi,
   useGlobal,
@@ -70,7 +71,7 @@ export function useViewData(
 
   const isPublic = inject(IsPublicInj, ref(false))
 
-  const { project, isSharedBase } = useProject()
+  const { project, isSharedBase } = storeToRefs(useProject())
 
   const { sharedView, fetchSharedViewData, paginationData: sharedPaginationData } = useSharedView()
 

@@ -7,6 +7,7 @@ import {
   inject,
   message,
   ref,
+  storeToRefs,
   useNuxtApp,
   useProject,
   useSharedView,
@@ -24,7 +25,7 @@ export function useViewSorts(view: Ref<ViewType | undefined>, reloadData?: () =>
 
   const { isUIAllowed } = useUIPermission()
 
-  const { isSharedBase } = useProject()
+  const { isSharedBase } = storeToRefs(useProject())
 
   const reloadHook = inject(ReloadViewDataHookInj)
 

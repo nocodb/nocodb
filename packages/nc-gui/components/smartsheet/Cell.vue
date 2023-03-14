@@ -39,6 +39,7 @@ import {
   isYear,
   provide,
   ref,
+  storeToRefs,
   toRef,
   useDebounceFn,
   useProject,
@@ -85,7 +86,7 @@ const isLocked = inject(IsLockedInj, ref(false))
 
 const { currentRow } = useSmartsheetRowStoreOrThrow()
 
-const { sqlUis } = useProject()
+const { sqlUis } = storeToRefs(useProject())
 
 const sqlUi = ref(column.value?.base_id ? sqlUis.value[column.value?.base_id] : Object.values(sqlUis.value)[0])
 

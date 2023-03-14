@@ -11,6 +11,7 @@ import {
   inject,
   message,
   ref,
+  storeToRefs,
   useDebounceFn,
   useMetas,
   useNuxtApp,
@@ -35,7 +36,7 @@ export function useViewFilters(
 
   const { nestedFilters } = useSmartsheetStoreOrThrow()
 
-  const { projectMeta } = useProject()
+  const { projectMeta } = storeToRefs(useProject())
 
   const isPublic = inject(IsPublicInj, ref(false))
 

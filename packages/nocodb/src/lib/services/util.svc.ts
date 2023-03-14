@@ -1,5 +1,4 @@
 import { compareVersions, validate } from 'compare-versions';
-
 import { ViewTypes } from 'nocodb-sdk';
 import axios from 'axios';
 import { Project } from '../models';
@@ -50,8 +49,8 @@ export async function appInfo(param: { req: { ncSiteUrl: string } }) {
     ),
     timezone: defaultConnectionConfig.timezone,
     ncMin: !!process.env.NC_MIN,
-    teleEnabled: process.env.NC_DISABLE_TELE === 'true' ? false : true,
-    auditEnabled: process.env.NC_DISABLE_AUDIT === 'true' ? false : true,
+    teleEnabled: process.env.NC_DISABLE_TELE !== 'true',
+    auditEnabled: process.env.NC_DISABLE_AUDIT !== 'true',
     ncSiteUrl: (param.req as any).ncSiteUrl,
     ee: Noco.isEE(),
     ncAttachmentFieldSize: NC_ATTACHMENT_FIELD_SIZE,

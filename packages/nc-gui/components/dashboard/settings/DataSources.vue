@@ -19,6 +19,7 @@ const props = defineProps<Props>()
 const emits = defineEmits(['update:state', 'update:reload', 'awaken'])
 
 const vState = useVModel(props, 'state', emits)
+
 const vReload = useVModel(props, 'reload', emits)
 
 const { $api, $e } = useNuxtApp()
@@ -27,10 +28,15 @@ const { loadProject } = projectStore
 const { project } = storeToRefs(projectStore)
 
 let sources = $ref<BaseType[]>([])
+
 let activeBaseId = $ref('')
+
 let metadiffbases = $ref<string[]>([])
+
 let clientType = $ref<ClientType>(ClientType.MYSQL)
+
 let isReloading = $ref(false)
+
 let forceAwakened = $ref(false)
 
 async function loadBases() {
@@ -40,8 +46,8 @@ async function loadBases() {
     isReloading = true
     vReload.value = true
     const baseList = await $api.base.list(project.value?.id)
-    if (baseList.bases.list && baseList.bases.list.length) {
-      sources = baseList.bases.list
+    if (baseList.list && baseList.list.length) {
+      sources = baseList.list
     }
   } catch (e) {
     console.error(e)
@@ -247,7 +253,7 @@ watch(
                       @click="baseAction(sources[0].id, DataSourcesSubTab.Metadata)"
                     >
                       <div class="flex items-center gap-2 text-gray-600 font-light">
-                        <a-tooltip v-if="metadiffbases.includes(sources[0].id as string)">
+                        <a-tooltip v-if="metadiffbases.includes(sources[0].id)">
                           <template #title>Out of sync</template>
                           <MdiDatabaseAlert class="text-lg group-hover:text-accent text-primary" />
                         </a-tooltip>
@@ -316,7 +322,7 @@ watch(
                       @click="baseAction(base.id, DataSourcesSubTab.Metadata)"
                     >
                       <div class="flex items-center gap-2 text-gray-600 font-light">
-                        <a-tooltip v-if="metadiffbases.includes(base.id as string)">
+                        <a-tooltip v-if="metadiffbases.includes(base.id)">
                           <template #title>Out of sync</template>
                           <MdiDatabaseAlert class="text-lg group-hover:text-accent text-primary" />
                         </a-tooltip>

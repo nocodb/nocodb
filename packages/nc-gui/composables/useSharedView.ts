@@ -56,7 +56,7 @@ export function useSharedView() {
     }
 
     if (localPassword) password.value = localPassword
-    sharedView.value = { title: '', ...viewMeta }
+    sharedView.value = { title: '', ...viewMeta } as ViewType
     meta.value = { ...viewMeta.model }
 
     let order = 1
@@ -83,29 +83,34 @@ export function useSharedView() {
     Object.keys(relatedMetas).forEach((key) => setMeta(relatedMetas[key]))
   }
 
-  const fetchSharedViewData = async ({
-    sortsArr,
-    filtersArr,
-    offset,
-  }: {
+  const fetchSharedViewData = async (param: {
     sortsArr: SortType[]
     filtersArr: FilterType[]
+    fields?: any[]
+    sort?: any[]
+    where?: string
+    /** Query params for nested data */
+    nested?: any
     offset?: number
   }) => {
-    if (!sharedView.value) return
+    if (!sharedView.value)
+      return {
+        list: [],
+        pageInfo: {},
+      }
 
-    if (!offset) {
+    if (!param.offset) {
       const page = paginationData.value.page || 1
       const pageSize = paginationData.value.pageSize || appInfoDefaultLimit
-      offset = (page - 1) * pageSize
+      param.offset = (page - 1) * pageSize
     }
 
-    const { data } = await $api.public.dataList(
+    return await $api.public.dataList(
       sharedView.value.uuid!,
       {
-        offset,
-        filterArrJson: JSON.stringify(filtersArr ?? nestedFilters.value),
-        sortArrJson: JSON.stringify(sortsArr ?? sorts.value),
+        ...param,
+        filterArrJson: JSON.stringify(param.filtersArr ?? nestedFilters.value),
+        sortArrJson: JSON.stringify(param.sortsArr ?? sorts.value),
       } as any,
       {
         headers: {
@@ -113,7 +118,6 @@ export function useSharedView() {
         },
       },
     )
-    return data
   }
 
   const fetchSharedViewGroupedData = async (

@@ -199,7 +199,11 @@ defineExpose({
 <template>
   <div
     class="p-4 menu-filter-dropdown bg-gray-50 !border"
-    :class="{  'min-w-[430px]': filters.length, 'shadow max-h-[max(80vh,500px)] overflow-auto': !nested, 'border-1 w-full': nested }"
+    :class="{
+      'min-w-[430px]': filters.length,
+      'shadow max-h-[max(80vh,500px)] overflow-auto': !nested,
+      'border-1 w-full': nested,
+    }"
   >
     <div
       v-if="filters && filters.length"

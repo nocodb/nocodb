@@ -2,7 +2,6 @@
 import fs from 'fs';
 import path from 'path';
 import { promisify } from 'util';
-
 import * as Sentry from '@sentry/node';
 import bodyParser from 'body-parser';
 import clear from 'clear';
@@ -14,14 +13,12 @@ import morgan from 'morgan';
 import NcToolGui from 'nc-lib-gui';
 import requestIp from 'request-ip';
 import { v4 as uuidv4 } from 'uuid';
-
 import { T } from 'nc-help';
 import mkdirp from 'mkdirp';
 import { NC_LICENSE_KEY } from './constants';
 import Migrator from './db/sql-migrator/lib/KnexMigrator';
 import Store from './models/Store';
 import NcConfigFactory from './utils/NcConfigFactory';
-
 import NcProjectBuilderCE from './v1-legacy/NcProjectBuilder';
 import NcProjectBuilderEE from './v1-legacy/NcProjectBuilderEE';
 import NcMetaImplCE from './meta/NcMetaIOImpl';

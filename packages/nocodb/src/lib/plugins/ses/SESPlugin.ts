@@ -1,5 +1,4 @@
 import { XcEmailPlugin } from 'nc-plugin';
-
 import SES from './SES';
 import type { IEmailAdapter } from 'nc-plugin';
 

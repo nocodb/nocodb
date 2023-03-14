@@ -50,7 +50,7 @@ export function useViewSorts(view: Ref<ViewType | undefined>, reloadData?: () =>
         }
       }
       if (!view?.value) return
-      sorts.value = (await $api.dbTableSort.list(view.value!.id!)).sorts?.list || []
+      sorts.value = (await $api.dbTableSort.list(view.value!.id!)).list as SortType[]
     } catch (e: any) {
       console.error(e)
       message.error(await extractSdkResponseErrorMsg(e))

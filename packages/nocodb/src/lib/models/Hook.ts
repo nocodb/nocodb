@@ -113,15 +113,7 @@ export default class Hook implements HookType {
     return hooks?.map((h) => new Hook(h));
   }
 
-  public static async insert(
-    hook: Partial<
-      Hook & {
-        created_at?;
-        updated_at?;
-      }
-    >,
-    ncMeta = Noco.ncMeta
-  ) {
+  public static async insert(hook: Partial<Hook>, ncMeta = Noco.ncMeta) {
     const insertObj = extractProps(hook, [
       'fk_model_id',
       'title',
@@ -140,8 +132,6 @@ export default class Hook implements HookType {
       'active',
       'project_id',
       'base_id',
-      'created_at',
-      'updated_at',
     ]);
 
     if (insertObj.event) {

@@ -35,13 +35,13 @@ export function useViewColumns(
   const metaColumnById = computed<Record<string, ColumnType>>(() => {
     if (!meta.value?.columns) return {}
 
-    return meta.value.columns.reduce(
+    return (meta.value.columns as ColumnType[]).reduce(
       (acc, curr) => ({
         ...acc,
         [curr.id!]: curr,
       }),
       {},
-    )
+    ) as Record<string, ColumnType>
   })
 
   const loadViewColumns = async () => {
@@ -50,7 +50,7 @@ export function useViewColumns(
     let order = 1
 
     if (view.value?.id) {
-      const data = (isPublic.value ? meta.value?.columns : await $api.dbViewColumn.list(view.value.id)) as any[]
+      const data = (isPublic.value ? meta.value?.columns : (await $api.dbViewColumn.list(view.value.id)).list) as any[]
 
       const fieldById = data.reduce<Record<string, any>>((acc, curr) => {
         curr.show = !!curr.show
@@ -162,7 +162,7 @@ export function useViewColumns(
 
   const showSystemFields = computed({
     get() {
-      return view.value?.show_system_fields || false
+      return (view.value?.show_system_fields as boolean) || false
     },
     set(v: boolean) {
       if (view?.value?.id) {

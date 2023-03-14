@@ -77,6 +77,11 @@ const inviteUser = async (user: User) => {
   try {
     if (!project.value?.id) return
 
+    if (!user.roles) {
+      // mark it as editor by default
+      user.roles = 'editor'
+    }
+
     await api.auth.projectUserAdd(project.value.id, user)
 
     // Successfully added user to project

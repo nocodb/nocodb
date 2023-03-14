@@ -1,6 +1,5 @@
 import { promisify } from 'util';
 import * as ejs from 'ejs';
-
 import passport from 'passport';
 import catchError, { NcError } from '../../meta/helpers/catchError';
 import extractProjectIdAndAuthenticate from '../../meta/helpers/extractProjectIdAndAuthenticate';
@@ -132,7 +131,7 @@ async function passwordChange(req: Request<any, any>, res): Promise<any> {
     body: req.body,
   });
 
-  res.json({ msg: 'Password updated successfully' });
+  res.json({ msg: 'Password has been updated successfully' });
 }
 
 async function passwordForgot(req: Request<any, any>, res): Promise<any> {
@@ -149,7 +148,7 @@ async function tokenValidate(req, res): Promise<any> {
   await userService.tokenValidate({
     token: req.params.tokenId,
   });
-  res.json(true);
+  res.json({ msg: 'Token has been validated successfully' });
 }
 
 async function passwordReset(req, res): Promise<any> {
@@ -159,7 +158,7 @@ async function passwordReset(req, res): Promise<any> {
     req,
   });
 
-  res.json({ msg: 'Password reset successful' });
+  res.json({ msg: 'Password has been reset successfully' });
 }
 
 async function emailVerification(req, res): Promise<any> {
@@ -168,7 +167,7 @@ async function emailVerification(req, res): Promise<any> {
     req,
   });
 
-  res.json({ msg: 'Email verified successfully' });
+  res.json({ msg: 'Email has been verified successfully' });
 }
 
 async function renderPasswordReset(req, res): Promise<any> {

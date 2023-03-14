@@ -24,9 +24,6 @@ export default class Project implements ProjectType {
   public is_meta = false;
   public bases?: Base[];
 
-  created_at: any;
-  updated_at: any;
-
   // shared base props
   uuid?: string;
   password?: string;
@@ -37,10 +34,7 @@ export default class Project implements ProjectType {
   }
 
   public static async createProject(
-    project: ProjectType & {
-      created_at?;
-      updated_at?;
-    },
+    project: Partial<ProjectType>,
     ncMeta = Noco.ncMeta
   ): Promise<Project> {
     const insertObj = extractProps(project, [
@@ -49,8 +43,6 @@ export default class Project implements ProjectType {
       'prefix',
       'description',
       'is_meta',
-      'created_at',
-      'updated_at',
     ]);
 
     const { id: projectId } = await ncMeta.metaInsert2(

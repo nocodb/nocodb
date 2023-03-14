@@ -1,9 +1,7 @@
 import autoBind from 'auto-bind';
 import type { Router } from 'express';
-
 import type { Acls } from '../../../interface/config';
 import type { BaseModelSql } from '../../db/sql-data-mapper';
-
 import type { BaseModelSqlv2 } from '../../db/sql-data-mapper/lib/sql/BaseModelSqlv2';
 // import { nocoExecute } from '../v1-legacy-resolver/NocoExecute';
 

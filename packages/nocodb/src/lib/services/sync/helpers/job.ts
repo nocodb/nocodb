@@ -1,20 +1,15 @@
 import { promisify } from 'util';
 import { UITypes } from 'nocodb-sdk';
-// import * as sMap from './syncMap';
-
 import { Api } from 'nocodb-sdk';
-
 import Airtable from 'airtable';
 import jsonfile from 'jsonfile';
 import hash from 'object-hash';
 import { T } from 'nc-help';
-
 import dayjs from 'dayjs';
 import utc from 'dayjs/plugin/utc';
 import tinycolor from 'tinycolor2';
 import FetchAT from './fetchAT';
 import { importData, importLTARData } from './readAndProcessData';
-
 import EntityMap from './EntityMap';
 
 const writeJsonFileAsync = promisify(jsonfile.writeFile);

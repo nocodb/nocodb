@@ -34,7 +34,6 @@ import KanbanView from '../models/KanbanView';
 import Model from '../models/Model';
 import Noco from '../Noco';
 import NcConnectionMgrv2 from '../utils/common/NcConnectionMgrv2';
-
 import { MetaTable } from '../utils/globals';
 import type Project from '../models/Project';
 import type LinkToAnotherRecordColumn from '../models/LinkToAnotherRecordColumn';

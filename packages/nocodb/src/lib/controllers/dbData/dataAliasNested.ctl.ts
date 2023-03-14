@@ -77,7 +77,7 @@ async function relationDataRemove(req, res) {
     refRowId: req.params.refRowId,
   });
 
-  res.json({ msg: 'success' });
+  res.json({ msg: 'The relation data has been deleted successfully' });
 }
 
 //@ts-ignore
@@ -92,7 +92,7 @@ async function relationDataAdd(req, res) {
     refRowId: req.params.refRowId,
   });
 
-  res.json({ msg: 'success' });
+  res.json({ msg: 'The relation data has been created successfully' });
 }
 
 const router = Router({ mergeParams: true });

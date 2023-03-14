@@ -2,12 +2,13 @@ import { T } from 'nc-help';
 import { validatePayload } from '../meta/api/helpers';
 import { NcError } from '../meta/helpers/catchError';
 import { Hook, Model } from '../models';
-
 import { invokeWebhook } from '../meta/helpers/webhookHelpers';
 import populateSamplePayload from '../meta/helpers/populateSamplePayload';
 import type { HookReqType, HookTestReqType } from 'nocodb-sdk';
 
-function validateHookPayload(notificationJsonOrObject: string | object) {
+function validateHookPayload(
+  notificationJsonOrObject: string | Record<string, any>
+) {
   let notification: { type?: string } = {};
   try {
     notification =
@@ -22,7 +23,6 @@ function validateHookPayload(notificationJsonOrObject: string | object) {
 }
 
 export async function hookList(param: { tableId: string }) {
-  // todo: pagination
   return await Hook.list({ fk_model_id: param.tableId });
 }
 

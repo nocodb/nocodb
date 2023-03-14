@@ -104,7 +104,7 @@ const [useProvideExpandedFormStore, useExpandedFormStore] = useInjectionState((m
           fk_model_id: meta.value.id as string,
           comments_only: commentsOnly.value,
         })
-      )?.reverse?.() || []
+      ).list?.reverse?.() || []
   }
 
   const isYou = (email: string) => {

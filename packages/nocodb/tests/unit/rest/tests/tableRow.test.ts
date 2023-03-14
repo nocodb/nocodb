@@ -2176,7 +2176,7 @@ function tableTest() {
       throw new Error('Was not deleted');
     }
 
-    if (response.body['msg'] !== 'success') {
+    if (response.body['msg'] !== 'The relation data has been deleted successfully') {
       throw new Error('Response incorrect');
     }
   });

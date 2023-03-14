@@ -1,5 +1,4 @@
 import { XcWebhookNotificationPlugin } from 'nc-plugin';
-
 import Mattermost from './Mattermost';
 import type { IWebhookNotificationAdapter } from 'nc-plugin';
 

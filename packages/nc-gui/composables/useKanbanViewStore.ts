@@ -153,7 +153,7 @@ const [useProvideKanbanViewStore, useKanbanViewStore] = useInjectionState(
         )
       }
 
-      for (const data of groupData) {
+      for (const data of groupData ?? []) {
         const key = data.key
         formattedData.value.set(key, formatData(data.value.list))
         countByStack.value.set(key, data.value.pageInfo.totalRows || 0)
@@ -167,17 +167,26 @@ const [useProvideKanbanViewStore, useKanbanViewStore] = useInjectionState(
         where = `(${groupingField.value},is,null)`
       }
 
+      if (xWhere.value) {
+        where = `${where} and ${xWhere.value}`
+      }
+
       const response = !isPublic.value
         ? await api.dbViewRow.list('noco', project.value.id!, meta.value!.id!, viewMeta.value!.id!, {
-            ...{ where: xWhere.value },
             ...params,
             ...(isUIAllowed('sortSync') ? {} : { sortArrJson: JSON.stringify(sorts.value) }),
             ...(isUIAllowed('filterSync') ? {} : { filterArrJson: JSON.stringify(nestedFilters.value) }),
             where,
           })
-        : await fetchSharedViewData({ sortsArr: sorts.value, filtersArr: nestedFilters.value, offset: params.offset })
+        : await fetchSharedViewData({
+            ...params,
+            sortsArr: sorts.value,
+            filtersArr: nestedFilters.value,
+            offset: params.offset,
+            where,
+          })
 
-      formattedData.value.set(stackTitle, [...formattedData.value.get(stackTitle)!, ...formatData(response.list)])
+      formattedData.value.set(stackTitle, [...formattedData.value.get(stackTitle)!, ...formatData(response!.list!)])
     }
 
     async function loadKanbanMeta() {
@@ -299,10 +308,7 @@ const [useProvideKanbanViewStore, useKanbanViewStore] = useInjectionState(
 
     async function updateKanbanMeta(updateObj: Partial<KanbanType>) {
       if (!viewMeta?.value?.id || !isUIAllowed('xcDatatableEditable')) return
-      await $api.dbView.kanbanUpdate(viewMeta.value.id, {
-        ...kanbanMetaData.value,
-        ...updateObj,
-      })
+      await $api.dbView.kanbanUpdate(viewMeta.value.id, updateObj)
     }
 
     async function insertRow(row: Record<string, any>, rowIndex = formattedData.value.get(null)!.length) {

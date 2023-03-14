@@ -163,7 +163,7 @@ const deleteNode = () => {
 
       <NodeViewContent class="node-view-drag-content" />
     </div>
-    <NodeViewContent class="node-view-drag-content" />
+    <NodeViewContent v-else class="node-view-drag-content my-2" />
   </NodeViewWrapper>
 </template>
 

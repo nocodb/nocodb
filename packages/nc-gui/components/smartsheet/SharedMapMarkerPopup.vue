@@ -124,7 +124,7 @@ const { row } = useProvideSmartsheetRowStore(meta as Ref<TableType>, currentRow)
     <a-card
       hoverable
       class="!rounded-lg h-full overflow-hidden break-all max-w-[450px]"
-      :data-testid="`nc-gallery-card-${row.row.id}`"
+      :data-testid="`nc-shared-map-marker-popup-card-${row.row.id}`"
     >
       <template v-if="galleryData?.fk_cover_image_col_id" #cover>
         <a-carousel v-if="!reloadAttachments && attachments(row).length" autoplay class="gallery-carousel" arrows>

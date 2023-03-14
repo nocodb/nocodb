@@ -7,7 +7,9 @@ definePageMeta({
 
 const { project, loadBookProject, isLoading: isProjectLoading } = useProject()
 const { toggleHasSidebar, toggle } = useSidebar('nc-left-sidebar')
-const { openedPageId, projectId, fetchNestedPages, openChildPageTabsOfRootPages, isPublic } = useDocs()
+const { openedPageId, projectId, fetchNestedPages, openChildPageTabsOfRootPages } = useDocs()
+
+const isLoading = ref(false)
 
 const toggleSidebar = (isOpen: boolean) => {
   if (isOpen) {
@@ -38,7 +40,14 @@ const onCompositePageIdChange = async () => {
 }
 
 onMounted(async () => {
-  await onCompositePageIdChange()
+  isLoading.value = true
+  try {
+    await onCompositePageIdChange()
+  } catch (error) {
+    console.error(error)
+  } finally {
+    isLoading.value = false
+  }
 })
 
 watch(
@@ -54,6 +63,9 @@ watch(
 </script>
 
 <template>
-  <DocsPageView v-if="project?.id && openedPageId" :key="project?.id" />
-  <DocsBookView v-else-if="project?.id" />
+  <div v-if="isLoading"></div>
+  <template v-else>
+    <DocsPageView v-if="project?.id && openedPageId" :key="project?.id" />
+    <DocsBookView v-else-if="project?.id" />
+  </template>
 </template>

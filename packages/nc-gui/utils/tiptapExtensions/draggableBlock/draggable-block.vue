@@ -9,6 +9,11 @@ const isPublic = !editor.view.editable
 const dragClicked = ref(false)
 const optionsPopoverRef = ref()
 
+const childNodeType = computed(() => {
+  const { content } = node.content as any
+  return content[0].type.name
+})
+
 const optionWrapperStyle = computed(() => {
   const { content } = node.content as any
 
@@ -163,7 +168,7 @@ const deleteNode = () => {
 
       <NodeViewContent class="node-view-drag-content" />
     </div>
-    <NodeViewContent class="node-view-drag-content" />
+    <NodeViewContent v-else class="node-view-drag-content mb-2 !ml-1.3" />
   </NodeViewWrapper>
 </template>
 

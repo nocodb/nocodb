@@ -263,6 +263,11 @@ const onShare = async (page: PageSidebarNode) => {
                 <a-spin size="large" :indicator="indicator" />
               </div>
             </div>
+            <div v-else-if="pages.length === 0 && activeTabKey === 'shared'">
+              <div class="flex flex-col gap-y-3 items-center mt-56">
+                <div class="flex text-gray-500">You have not shared any pages yet</div>
+              </div>
+            </div>
             <div v-else-if="pages.length === 0" class="h-full flex flex-col justify-center -mt-6">
               <div class="flex flex-col gap-y-3 items-center">
                 <img src="~/assets/img/add-page.svg" class="flex h-12" />

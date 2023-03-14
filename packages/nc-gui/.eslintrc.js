@@ -9,6 +9,7 @@ const baseRules = {
     { argsIgnorePattern: '^_', varsIgnorePattern: '^_', caughtErrorsIgnorePattern: '^_' },
   ],
   'prettier/prettier': ['error', {}, { usePrettierrc: true }],
+  'antfu/generic-spacing': 'off',
 }
 
 module.exports = {

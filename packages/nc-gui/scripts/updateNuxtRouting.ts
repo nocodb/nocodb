@@ -1,9 +1,8 @@
 /** A temporary solution to enable hash based routing until
  * nuxt-team merges - https://github.com/nuxt/framework/pull/6980
  */
-
-const fs = require('fs')
-const path = require('path')
+import fs from 'node:fs'
+import path from 'node:path'
 
 const filePath = path.join(__dirname, '..', 'node_modules', 'nuxt', 'dist', 'pages', 'runtime', 'router.mjs')
 

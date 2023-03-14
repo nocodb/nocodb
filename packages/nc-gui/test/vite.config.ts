@@ -1,15 +1,12 @@
-/// <reference types="vitest" />
-
-import path from 'path'
-import vueI18n from '@intlify/vite-plugin-vue-i18n'
+import path from 'node:path'
 import Icons from 'unplugin-icons/vite'
 import { defineConfig } from 'vite'
-import Vue from '@vitejs/plugin-vue'
+import VueI18nPlugin from '@intlify/unplugin-vue-i18n/vite'
 
 export default defineConfig({
   plugins: [
-    Vue(),
-    vueI18n({
+    // Vue(),
+    VueI18nPlugin({
       include: path.resolve(__dirname, '../lang'),
     }),
     Icons({
@@ -17,10 +14,6 @@ export default defineConfig({
       compiler: 'vue3',
     }),
   ],
-  test: {
-    globals: true,
-    environment: 'happy-dom',
-  },
 
   resolve: {
     alias: {

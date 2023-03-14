@@ -1,6 +1,6 @@
 import type { Socket } from 'socket.io-client'
 import io from 'socket.io-client'
-import { defineNuxtPlugin, useGlobal, useRouter, watch } from '#imports'
+import { useGlobal, useRouter, watch } from '#imports'
 
 // todo: ignore init if tele disabled
 export default defineNuxtPlugin(async (nuxtApp) => {

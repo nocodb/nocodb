@@ -1,5 +1,4 @@
 import { dirname, resolve } from 'node:path'
-import vueI18n from '@intlify/vite-plugin-vue-i18n'
 import Icons from 'unplugin-icons/vite'
 import IconsResolver from 'unplugin-icons/resolver'
 import Components from 'unplugin-vue-components/vite'
@@ -7,12 +6,22 @@ import { AntDesignVueResolver } from 'unplugin-vue-components/resolvers'
 import monacoEditorPlugin from 'vite-plugin-monaco-editor'
 import { NodeModulesPolyfillPlugin } from '@esbuild-plugins/node-modules-polyfill'
 import { FileSystemIconLoader } from 'unplugin-icons/loaders'
-
+import VueI18nPlugin from '@intlify/unplugin-vue-i18n/vite'
 import PurgeIcons from 'vite-plugin-purge-icons'
 
 // https://v3.nuxtjs.org/api/configuration/nuxt.config
 export default defineNuxtConfig({
-  modules: ['@vueuse/nuxt', 'nuxt-windicss', '@nuxt/image-edge', '@pinia/nuxt'],
+  modules: [
+    '@vueuse/nuxt',
+    'nuxt-windicss',
+    '@nuxt/image-edge',
+    [
+      '@pinia/nuxt',
+      {
+        autoImports: ['defineStore', 'storeToRefs', 'mapState', 'mapWritableState'],
+      },
+    ],
+  ],
 
   ssr: false,
 
@@ -32,6 +41,28 @@ export default defineNuxtConfig({
 
     /** In production build we need to load assets using relative path, to achieve the result we are using cdnURL */
     cdnURL: process.env.NODE_ENV === 'production' ? '.' : undefined,
+    head: {
+      title: 'NocoDB',
+      charset: 'utf-8',
+      meta: [
+        {
+          name: 'viewport',
+          content: 'width=device-width, initial-scale=1',
+        },
+        {
+          hid: 'description',
+          name: 'description',
+          content: process.env.npm_package_description || '',
+        },
+      ],
+      link: [
+        {
+          rel: 'icon',
+          type: 'image/x-icon',
+          href: './favicon.ico',
+        },
+      ],
+    },
   },
 
   css: [
@@ -48,38 +79,9 @@ export default defineNuxtConfig({
     },
   },
 
-  meta: {
-    title: 'NocoDB',
-    link: [
-      {
-        rel: 'icon',
-        type: 'image/x-icon',
-        href: './favicon.ico',
-      },
-    ],
-    meta: [
-      { charset: 'utf-8' },
-      {
-        name: 'viewport',
-        content: 'width=device-width, initial-scale=1',
-      },
-      {
-        hid: 'description',
-        name: 'description',
-        content: process.env.npm_package_description || '',
-      },
-    ],
-  },
-
-  build: {
-    splitChunks: {
-      pages: true,
-      layouts: true,
-    },
-  },
-
   vite: {
     build: {
+      target: 'esnext',
       commonjsOptions: {
         ignoreTryCatch: true,
       },
@@ -100,7 +102,7 @@ export default defineNuxtConfig({
       },
     },
     plugins: [
-      vueI18n({
+      VueI18nPlugin({
         include: [resolve(dirname('./lang/**'))],
         runtimeOnly: false,
       }),
@@ -183,6 +185,7 @@ export default defineNuxtConfig({
 
   experimental: {
     reactivityTransform: true,
+    payloadExtraction: false,
   },
 
   image: {
@@ -191,6 +194,8 @@ export default defineNuxtConfig({
 
   imports: {
     dirs: ['./context', './utils/**', './lib', './composables/**', './store/**'],
+    global: true,
+    injectAtEnd: true,
     imports: [
       { name: 'useI18n', from: 'vue-i18n' },
       { name: 'message', from: 'ant-design-vue/es' },
@@ -198,7 +203,6 @@ export default defineNuxtConfig({
       { name: 'Empty', from: 'ant-design-vue/es' },
       { name: 'Form', from: 'ant-design-vue/es' },
       { name: 'useJwt', from: '@vueuse/integrations/useJwt' },
-      { name: 'storeToRefs', from: 'pinia' },
     ],
   },
 })

@@ -1,5 +1,6 @@
 import { createI18n } from 'vue-i18n'
 import { isClient } from '@vueuse/core'
+import messages from '@intlify/unplugin-vue-i18n/messages'
 import { applyLanguageDirection, defineNuxtPlugin, isRtlLang, nextTick } from '#imports'
 import type { Language, NocoI18n } from '~/lib'
 import { LanguageAlias } from '~/lib'
@@ -14,7 +15,8 @@ export const createI18nPlugin = async (): Promise<NocoI18n> =>
 
     legacy: false, // disable legacy API (we use the composition API and inject utilities)
 
-    globalInjection: true, // enable global injection, so all utilities are injected into all components
+    globalInjection: true, // enable global injection, so all utilities are injected into all components,
+    messages,
   })
 
 export const getI18n = () => globalI18n

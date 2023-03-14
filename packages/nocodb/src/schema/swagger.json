@@ -4558,7 +4558,7 @@
         }
       ],
       "get": {
-        "summary": "List views",
+        "summary": "List Views",
         "operationId": "db-view-list",
         "responses": {
           "200": {
@@ -7702,7 +7702,8 @@
                       },
                       "description": "Paginated Info"
                     }
-                  }
+                  },
+                  "required": ["list", "pageInfo"]
                 },
                 "examples": {
                   "Example 1": {
@@ -8442,7 +8443,8 @@
                       },
                       "description": "Paginated Info"
                     }
-                  }
+                  },
+                  "required": ["list", "pageInfo"]
                 },
                 "examples": {
                   "Example 1": {
@@ -10364,6 +10366,7 @@
                           "id": "0xsi3jvwn7duo"
                         },
                         "description": "the paginated result of the given key",
+                        "required": ["list", "pageInfo"],
                         "properties": {
                           "list": {
                             "type": "array",
@@ -10382,11 +10385,13 @@
                             "$ref": "#/components/schemas/Paginated",
                             "x-stoplight": {
                               "id": "1gsbgwi9bg8s5"
-                            }
+                            },
+                            "description": "Paginated Info"
                           }
                         }
                       }
-                    }
+                    },
+                    "required": ["key", "value"]
                   }
                 },
                 "examples": {
@@ -10822,7 +10827,8 @@
                       },
                       "description": "Paginated info"
                     }
-                  }
+                  },
+                  "required": ["list", "pageInfo"]
                 },
                 "examples": {
                   "Example 1": {
@@ -11296,7 +11302,8 @@
                         }
                       }
                     }
-                  }
+                  },
+                  "required": ["list"]
                 },
                 "examples": {
                   "Example 1": {
@@ -11478,7 +11485,8 @@
                         "description": "Row ID",
                         "example": "1"
                       }
-                    }
+                    },
+                    "required": ["count", "row_id"]
                   }
                 },
                 "examples": {
@@ -13546,7 +13554,8 @@
             },
             "description": "Model for Paginated"
           }
-        }
+        },
+        "required": ["list", "pageInfo"]
       },
       "Attachment": {
         "description": "Model for Attachment",
@@ -13948,7 +13957,8 @@
             "$ref": "#/components/schemas/Paginated",
             "x-stoplight": {
               "id": "xqwcniocq37hk"
-            }
+            },
+            "description": "Paginated Info"
           }
         },
         "required": ["list", "pageInfo"]
@@ -17793,7 +17803,8 @@
             }
           },
           "pageInfo": {
-            "$ref": "#/components/schemas/Paginated"
+            "$ref": "#/components/schemas/Paginated",
+            "description": "Paginated Info"
           }
         },
         "required": ["list", "pageInfo"]
@@ -18610,7 +18621,8 @@
             }
           },
           "pageInfo": {
-            "$ref": "#/components/schemas/Paginated"
+            "$ref": "#/components/schemas/Paginated",
+            "description": "Paginated Info"
           }
         },
         "required": ["list", "pageInfo"]
@@ -18915,7 +18927,8 @@
             "$ref": "#/components/schemas/Paginated",
             "x-stoplight": {
               "id": "0d98n6sfxfvft"
-            }
+            },
+            "description": "Paginated Info"
           }
         },
         "required": ["list", "pageInfo"]
@@ -19150,7 +19163,8 @@
             }
           },
           "pageInfo": {
-            "$ref": "#/components/schemas/Paginated"
+            "$ref": "#/components/schemas/Paginated",
+            "description": "Paginated Info"
           }
         },
         "required": ["list", "pageInfo"]
@@ -19829,7 +19843,8 @@
                   },
                   "example": "BadRequest [Error]: <ERROR MESSAGE>"
                 }
-              }
+              },
+              "required": ["msg"]
             },
             "examples": {
               "Example 1": {

@@ -1,4 +1,4 @@
-import type {
+import {
   ExportTypes,
   FilterType,
   KanbanType,
@@ -8,11 +8,12 @@ import type {
   SortType,
   TableType,
   ViewType,
+  ViewTypes,
 } from 'nocodb-sdk'
 import { UITypes } from 'nocodb-sdk'
 import { computed, storeToRefs, useGlobal, useMetas, useNuxtApp, useState } from '#imports'
 
-export function useSharedView(limit?: number) {
+export function useSharedView() {
   const nestedFilters = ref<(FilterType & { status?: 'update' | 'delete' | 'create'; parentId?: string })[]>([])
 
   const { appInfo } = $(useGlobal())
@@ -121,7 +122,7 @@ export function useSharedView(limit?: number) {
     return await $api.public.dataList(
       sharedView.value.uuid!,
       {
-        limit,
+        limit: sharedView.value?.type === ViewTypes.MAP ? 1000 : undefined,
         ...param,
         filterArrJson: JSON.stringify(param.filtersArr ?? nestedFilters.value),
         sortArrJson: JSON.stringify(param.sortsArr ?? sorts.value),

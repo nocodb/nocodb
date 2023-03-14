@@ -47,7 +47,7 @@ const [useProvideMapViewStore, useMapViewStore] = useInjectionState(
 
     const { sorts, nestedFilters } = useSmartsheetStoreOrThrow()
 
-    const { sharedView, fetchSharedViewData } = useSharedView(defaultPageSize)
+    const { sharedView, fetchSharedViewData } = useSharedView()
 
     const mapMetaData = ref<MapType>({})
 

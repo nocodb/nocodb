@@ -189,7 +189,7 @@ docker-compose up -d
 
 # GUI
 
-Access Dashboard using: [http://localhost:8080/dashboard](http://localhost:8080/dashboard)](http://localhost:8080/dashboard)
+Access Dashboard using: [http://localhost:8080/dashboard](http://localhost:8080/dashboard)
 
 # Screenshots
 
@@ -241,7 +241,7 @@ Access Dashboard using: [http://localhost:8080/dashboard](http://localhost:8080/
 - ⚡ &nbsp;Multiple Views Types: Grid (By default), Gallery, Form View and Kanban View
 - ⚡ &nbsp;View Permissions Types: Collaborative Views, & Locked Views
 - ⚡ &nbsp;Share Bases / Views: either Public or Private (with Password Protected)
-- ⚡ &nbsp;Variant Cell Types: ID, LinkToAnotherRecord, Lookup, Rollup, SingleLineText, Attachement, Currency, Formula and etc
+- ⚡ &nbsp;Variant Cell Types: ID, LinkToAnotherRecord, Lookup, Rollup, SingleLineText, Attachment, Currency, Formula, etc
 - ⚡ &nbsp;Access Control with Roles: Fine-grained Access Control at different levels
 - ⚡ &nbsp;and more ...
 

@@ -325,17 +325,11 @@ async function loadPluginList() {
         ...(p as any),
       }
       plugin.tags = p.tags ? p.tags.split(',') : []
-      plugin.parsedInput = p.input && JSON.parse(p.input)
+      plugin.parsedInput = typeof p.input === 'string' ? JSON.parse(p.input) : p.input
       o[plugin.title] = plugin
 
       return o
     }, {} as Record<string, any>)
-
-    if (hook.event && hook.operation) {
-      hook.eventOperation = `${hook.event} ${hook.operation}`
-    }
-
-    onNotTypeChange()
   } catch (e: any) {
     message.error(await extractSdkResponseErrorMsg(e))
   }
@@ -422,7 +416,15 @@ watch(
   { immediate: true },
 )
 
-onMounted(loadPluginList)
+onMounted(async () => {
+  await loadPluginList()
+
+  if (hook.event && hook.operation) {
+    hook.eventOperation = `${hook.event} ${hook.operation}`
+  }
+
+  onNotTypeChange()
+})
 </script>
 
 <template>

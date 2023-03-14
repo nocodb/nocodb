@@ -1,5 +1,4 @@
 import { XcStoragePlugin } from 'nc-plugin';
-
 import Gcs from './Gcs';
 import type { IStorageAdapterV2 } from 'nc-plugin';
 

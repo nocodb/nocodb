@@ -11,6 +11,7 @@ import {
   message,
   populateInsertObject,
   ref,
+  storeToRefs,
   useApi,
   useI18n,
   useInjectionState,
@@ -42,7 +43,7 @@ const [useProvideExpandedFormStore, useExpandedFormStore] = useInjectionState((m
 
   const changedColumns = ref(new Set<string>())
 
-  const { project } = useProject()
+  const { project } = storeToRefs(useProject())
 
   const rowStore = useProvideSmartsheetRowStore(meta, row)
 
@@ -103,7 +104,7 @@ const [useProvideExpandedFormStore, useExpandedFormStore] = useInjectionState((m
           fk_model_id: meta.value.id as string,
           comments_only: commentsOnly.value,
         })
-      )?.reverse?.() || []
+      ).list?.reverse?.() || []
   }
 
   const isYou = (email: string) => {

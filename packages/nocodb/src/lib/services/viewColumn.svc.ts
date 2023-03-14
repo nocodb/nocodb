@@ -1,14 +1,13 @@
 import { T } from 'nc-help';
 import { validatePayload } from '../meta/api/helpers';
 import { View } from '../models';
-import type { ViewColumnReqType } from 'nocodb-sdk';
+import type { ViewColumnReqType, ViewColumnUpdateReqType } from 'nocodb-sdk';
 
 export async function columnList(param: { viewId: string }) {
   return await View.getColumns(param.viewId);
 }
 export async function columnAdd(param: {
   viewId: string;
-  columnId: string;
   column: ViewColumnReqType;
 }) {
   validatePayload(
@@ -18,8 +17,11 @@ export async function columnAdd(param: {
 
   const viewColumn = await View.insertOrUpdateColumn(
     param.viewId,
-    param.columnId,
-    param.column
+    param.column.fk_column_id,
+    {
+      order: param.column.order,
+      show: param.column.show,
+    }
   );
   T.emit('evt', { evt_type: 'viewColumn:inserted' });
 
@@ -29,9 +31,13 @@ export async function columnAdd(param: {
 export async function columnUpdate(param: {
   viewId: string;
   columnId: string;
-  // todo: add proper type for grid column in swagger
-  column: any;
+  column: ViewColumnUpdateReqType;
 }) {
+  validatePayload(
+    'swagger.json#/components/schemas/ViewColumnUpdateReq',
+    param.column
+  );
+
   const result = await View.updateColumn(
     param.viewId,
     param.columnId,

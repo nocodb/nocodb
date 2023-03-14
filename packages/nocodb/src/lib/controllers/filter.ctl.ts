@@ -1,32 +1,33 @@
 import { Router } from 'express';
 import ncMetaAclMw from '../meta/helpers/ncMetaAclMw';
 import { metaApiMetrics } from '../meta/helpers/apiMetrics';
-
+import { PagedResponseImpl } from '../meta/helpers/PagedResponse';
 import { filterService } from '../services';
-import type { FilterReqType } from 'nocodb-sdk';
+import type { FilterListType, FilterReqType } from 'nocodb-sdk';
 import type { Request, Response } from 'express';
 
-// @ts-ignore
 export async function filterGet(req: Request, res: Response) {
   res.json(await filterService.filterGet({ filterId: req.params.filterId }));
 }
 
-// @ts-ignore
-export async function filterList(req: Request, res: Response) {
+export async function filterList(req: Request, res: Response<FilterListType>) {
   res.json(
-    await filterService.filterList({
-      viewId: req.params.viewId,
-    })
+    new PagedResponseImpl(
+      await filterService.filterList({
+        viewId: req.params.viewId,
+      })
+    )
   );
 }
 
-// @ts-ignore
 export async function filterChildrenRead(req: Request, res: Response) {
-  const filter = await filterService.filterChildrenList({
-    filterId: req.params.filterParentId,
-  });
-
-  res.json(filter);
+  res.json(
+    new PagedResponseImpl(
+      await filterService.filterChildrenList({
+        filterId: req.params.filterParentId,
+      })
+    )
+  );
 }
 
 export async function filterCreate(req: Request<any, any, FilterReqType>, res) {
@@ -54,9 +55,11 @@ export async function filterDelete(req: Request, res: Response) {
 
 export async function hookFilterList(req: Request, res: Response) {
   res.json(
-    await filterService.hookFilterList({
-      hookId: req.params.hookId,
-    })
+    new PagedResponseImpl(
+      await filterService.hookFilterList({
+        hookId: req.params.hookId,
+      })
+    )
   );
 }
 

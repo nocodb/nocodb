@@ -1,5 +1,4 @@
 import { XcWebhookNotificationPlugin } from 'nc-plugin';
-
 import Discord from './Discord';
 import type { IWebhookNotificationAdapter } from 'nc-plugin';
 

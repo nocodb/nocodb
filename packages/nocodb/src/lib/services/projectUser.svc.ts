@@ -149,7 +149,7 @@ export async function userInvite(param: {
 
   if (emails.length === 1) {
     return {
-      msg: 'success',
+      msg: 'The user has been invited successfully',
     };
   } else {
     return { invite_token, emails, error };
@@ -210,7 +210,7 @@ export async function projectUserUpdate(param: {
   });
 
   return {
-    msg: 'User details updated successfully',
+    msg: 'User has been updated successfully',
   };
 }
 

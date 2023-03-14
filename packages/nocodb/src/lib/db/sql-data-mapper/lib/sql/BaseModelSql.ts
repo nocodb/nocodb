@@ -1,7 +1,8 @@
 import autoBind from 'auto-bind';
-import _ from 'lodash';
+import groupBy from 'lodash/groupBy';
+import isEmpty from 'lodash/isEmpty';
+import difference from 'lodash/difference';
 import Validator from 'validator';
-
 import Papaparse from 'papaparse';
 import BaseModel from '../BaseModel';
 import formulaQueryBuilder from './formulaQueryBuilderFromString';
@@ -316,7 +317,7 @@ class BaseModelSql extends BaseModel {
             : response?.[ai._cn],
           this.defaultNestedBtQueryParams
         );
-        response = !_.isEmpty(nestedResponse) ? nestedResponse : response;
+        response = !isEmpty(nestedResponse) ? nestedResponse : response;
       }
 
       if (Array.isArray(response)) {
@@ -1214,7 +1215,7 @@ class BaseModelSql extends BaseModel {
   private _buildDistinctQuery(columns: string[]) {
     const query = this.$db;
     const formulaColumns = this.filterFormulaColumns(columns);
-    const otherColumns = _.difference(columns, formulaColumns);
+    const otherColumns = difference(columns, formulaColumns);
     if (!otherColumns.length && !formulaColumns.length) {
       query.distinct(this.selectQuery('')).distinct(...this.selectFormulas);
     }
@@ -1331,7 +1332,7 @@ class BaseModelSql extends BaseModel {
       )
     );
 
-    const gs = _.groupBy(childs, _cn);
+    const gs = groupBy(childs, _cn);
     parent.forEach((row) => {
       row[`${this.dbModels?.[child]?._tn || child}List`] =
         gs[row[_cn] || row[this.pks[0]._cn]] || [];
@@ -1409,7 +1410,7 @@ class BaseModelSql extends BaseModel {
       )
     );
 
-    const gs = _.groupBy(childs, `${tn}_${vcn}`);
+    const gs = groupBy(childs, `${tn}_${vcn}`);
     return parentIds.map((id) => gs[id] || []);
   }
 
@@ -2005,7 +2006,7 @@ class BaseModelSql extends BaseModel {
         .whereIn(rcn, parentIds)
     );
 
-    const gs = _.groupBy(
+    const gs = groupBy(
       parents,
       this.dbModels[parent]?.columnToAlias?.[rcn] || rcn
     );
@@ -2084,8 +2085,8 @@ class BaseModelSql extends BaseModel {
         )
       );
 
-      // return _.groupBy(childs, cn);
-      return _.groupBy(childs, this.dbModels?.[child]?.columnToAlias[cn]);
+      // return groupBy(childs, cn);
+      return groupBy(childs, this.dbModels?.[child]?.columnToAlias[cn]);
     } catch (e) {
       console.log(e);
       throw e;
@@ -2134,7 +2135,7 @@ class BaseModelSql extends BaseModel {
       );
 
       return childs.map(({ count }) => count);
-      // return _.groupBy(childs, cn);
+      // return groupBy(childs, cn);
     } catch (e) {
       console.log(e);
       throw e;

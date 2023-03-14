@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { Empty, extractSdkResponseErrorMsg, h, message, useI18n, useNuxtApp, useProject } from '#imports'
+import { Empty, extractSdkResponseErrorMsg, h, message, storeToRefs, useI18n, useNuxtApp, useProject } from '#imports'
 
 const props = defineProps<{
   baseId: string
@@ -9,7 +9,9 @@ const emit = defineEmits(['baseSynced'])
 
 const { $api } = useNuxtApp()
 
-const { project, loadTables } = useProject()
+const projectStore = useProject()
+const { loadTables } = projectStore
+const { project } = storeToRefs(projectStore)
 
 const { t } = useI18n()
 

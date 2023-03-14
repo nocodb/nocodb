@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import type { ColumnType } from 'nocodb-sdk'
+import { storeToRefs } from 'pinia'
 import {
   ColumnInj,
   EditModeInj,
@@ -83,7 +84,8 @@ const checkTypeFunctions = {
 
 type FilterType = keyof typeof checkTypeFunctions
 
-const { sqlUi } = $(useProject())
+// todo: replace with sqlUis
+const { sqlUi } = $(storeToRefs(useProject()))
 
 const abstractType = $computed(() => (column.value?.dt && sqlUi ? sqlUi.getAbstractType(column.value) : null))
 

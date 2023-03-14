@@ -12,8 +12,8 @@ export async function xcVisibilityMetaSetAll(param: {
   validatePayload(
     'swagger.json#/components/schemas/VisibilityRuleReq',
     param.visibilityRule
-  ),
-    T.emit('evt', { evt_type: 'uiAcl:updated' });
+  );
+  T.emit('evt', { evt_type: 'uiAcl:updated' });
   for (const d of param.visibilityRule) {
     for (const role of Object.keys(d.disabled)) {
       const view = await View.get(d.id);

@@ -7,6 +7,7 @@ import {
   inject,
   message,
   ref,
+  storeToRefs,
   useNuxtApp,
   useProject,
   useSharedView,
@@ -24,7 +25,7 @@ export function useViewSorts(view: Ref<ViewType | undefined>, reloadData?: () =>
 
   const { isUIAllowed } = useUIPermission()
 
-  const { isSharedBase } = useProject()
+  const { isSharedBase } = storeToRefs(useProject())
 
   const reloadHook = inject(ReloadViewDataHookInj)
 
@@ -49,7 +50,7 @@ export function useViewSorts(view: Ref<ViewType | undefined>, reloadData?: () =>
         }
       }
       if (!view?.value) return
-      sorts.value = (await $api.dbTableSort.list(view.value!.id!)).sorts?.list || []
+      sorts.value = (await $api.dbTableSort.list(view.value!.id!)).list as SortType[]
     } catch (e: any) {
       console.error(e)
       message.error(await extractSdkResponseErrorMsg(e))

@@ -1,14 +1,11 @@
 import fs from 'fs';
 import path from 'path';
 import { promisify } from 'util';
-
 import axios from 'axios';
 import { Router } from 'express';
-
 import { T } from 'nc-help';
 import SqlClientFactory from '../db/sql-client/lib/SqlClientFactory';
 import Migrator from '../db/sql-migrator/lib/KnexMigrator';
-
 import { XCEeError } from '../meta/NcMetaMgr';
 import NcConnectionMgr from '../utils/common/NcConnectionMgr';
 import { GqlApiBuilder } from './gql/GqlApiBuilder';

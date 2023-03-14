@@ -1,10 +1,6 @@
 import { promises as fs } from 'fs';
 import axios from 'axios';
 import { knex } from 'knex';
-
-// const util = require('util');
-// const exec = util.promisify(require('child_process').exec);
-
 import Audit from '../../../models/Audit';
 import type Project from '../../../models/Project';
 

@@ -2,7 +2,7 @@ import { ViewTypes } from 'nocodb-sdk';
 import { T } from 'nc-help';
 import { validatePayload } from '../../meta/api/helpers';
 import { GalleryView, View } from '../../models';
-import type { GalleryReqType } from 'nocodb-sdk';
+import type { GalleryUpdateReqType, ViewCreateReqType } from 'nocodb-sdk';
 
 export async function galleryViewGet(param: { galleryViewId: string }) {
   return await GalleryView.get(param.galleryViewId);
@@ -10,9 +10,12 @@ export async function galleryViewGet(param: { galleryViewId: string }) {
 
 export async function galleryViewCreate(param: {
   tableId: string;
-  gallery: GalleryReqType;
+  gallery: ViewCreateReqType;
 }) {
-  validatePayload('swagger.json#/components/schemas/GalleryReq', param.gallery);
+  validatePayload(
+    'swagger.json#/components/schemas/ViewCreateReq',
+    param.gallery
+  );
 
   T.emit('evt', { evt_type: 'vtable:created', show_as: 'gallery' });
   const view = await View.insert({
@@ -26,10 +29,13 @@ export async function galleryViewCreate(param: {
 
 export async function galleryViewUpdate(param: {
   galleryViewId: string;
-  gallery: GalleryReqType;
+  gallery: GalleryUpdateReqType;
 }) {
-  validatePayload('swagger.json#/components/schemas/GalleryReq', param.gallery);
+  validatePayload(
+    'swagger.json#/components/schemas/GalleryUpdateReq',
+    param.gallery
+  );
 
   T.emit('evt', { evt_type: 'view:updated', type: 'gallery' });
-  await GalleryView.update(param.galleryViewId, param.gallery);
+  return await GalleryView.update(param.galleryViewId, param.gallery);
 }

@@ -1,5 +1,4 @@
 import { XcStoragePlugin } from 'nc-plugin';
-
 import S3 from './S3';
 import type { IStorageAdapterV2 } from 'nc-plugin';
 

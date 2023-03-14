@@ -188,6 +188,7 @@ declare module '@vue/runtime-core' {
     MdiFunction: typeof import('~icons/mdi/function')['default']
     MdiGestureDoubleTap: typeof import('~icons/mdi/gesture-double-tap')['default']
     MdiGithub: typeof import('~icons/mdi/github')['default']
+    MdiGpsFixed: typeof import('~icons/mdi/gps-fixed')['default']
     MdiGraphOutline: typeof import('~icons/mdi/graph-outline')['default']
     MdiHeart: typeof import('~icons/mdi/heart')['default']
     MdiHook: typeof import('~icons/mdi/hook')['default']

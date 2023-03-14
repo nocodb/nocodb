@@ -25,7 +25,6 @@ import pluginController from '../../controllers/plugin.ctl';
 import gridViewColumnController from '../../controllers/views/gridViewColumn.ctl';
 import kanbanViewController from '../../controllers/views/kanbanView.ctl';
 import { userController } from '../../controllers/user';
-// import extractProjectIdAndAuthenticate from './helpers/extractProjectIdAndAuthenticate';
 import utilController from '../../controllers/util.ctl';
 import projectUserController from '../../controllers/projectUser.ctl';
 import sharedBaseController from '../../controllers/sharedBase.ctl';
@@ -34,7 +33,6 @@ import modelVisibilityController from '../../controllers/modelVisibility.ctl';
 import metaDiffController from '../../controllers/metaDiff.ctl';
 import cacheController from '../../controllers/cache.ctl';
 import apiTokenController from '../../controllers/apiToken.ctl';
-import hookFilterController from '../../controllers/hookFilter.ctl';
 import testController from '../../controllers/test.ctl';
 import {
   bulkDataAliasController,
@@ -49,7 +47,6 @@ import {
   publicDataExportController,
   publicMetaController,
 } from '../../controllers/publicControllers';
-
 import swaggerController from '../../controllers/apiDocs';
 import { importController, syncSourceController } from '../../controllers/sync';
 import mapViewController from '../../controllers/views/mapView.ctl';
@@ -102,7 +99,6 @@ export default function (router: Router, server) {
   router.use(metaDiffController);
   router.use(cacheController);
   router.use(apiTokenController);
-  router.use(hookFilterController);
   router.use(swaggerController);
   router.use(syncSourceController);
   router.use(kanbanViewController);

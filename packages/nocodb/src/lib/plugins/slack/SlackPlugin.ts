@@ -1,5 +1,4 @@
 import { XcWebhookNotificationPlugin } from 'nc-plugin';
-
 import Slack from './Slack';
 import type { IWebhookNotificationAdapter } from 'nc-plugin';
 

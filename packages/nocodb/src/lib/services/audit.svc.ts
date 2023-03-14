@@ -3,7 +3,6 @@ import DOMPurify from 'isomorphic-dompurify';
 import { validatePayload } from '../meta/api/helpers';
 import Audit from '../models/Audit';
 import Model from '../models/Model';
-import { PagedResponseImpl } from '../meta/helpers/PagedResponse';
 import type { AuditRowUpdateReqType } from 'nocodb-sdk';
 
 export async function commentRow(param: {
@@ -11,10 +10,7 @@ export async function commentRow(param: {
   body: AuditRowUpdateReqType;
   user: any;
 }) {
-  await validatePayload(
-    'swagger.json#/components/schemas/CommentReq',
-    param.body
-  );
+  validatePayload('swagger.json#/components/schemas/CommentReq', param.body);
 
   return await Audit.insert({
     ...param.body,
@@ -27,7 +23,7 @@ export async function auditRowUpdate(param: {
   rowId: string;
   body: AuditRowUpdateReqType;
 }) {
-  await validatePayload(
+  validatePayload(
     'swagger.json#/components/schemas/AuditRowUpdateReq',
     param.body
   );
@@ -54,13 +50,7 @@ export async function commentList(param: { query: any }) {
 }
 
 export async function auditList(param: { query: any; projectId: string }) {
-  return new PagedResponseImpl(
-    await Audit.projectAuditList(param.projectId, param.query),
-    {
-      count: await Audit.projectAuditCount(param.projectId),
-      ...param.query,
-    }
-  );
+  return await Audit.projectAuditList(param.projectId, param.query);
 }
 
 export async function commentsCount(param: {

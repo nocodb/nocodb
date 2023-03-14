@@ -7,6 +7,7 @@ import {
   inject,
   ref,
   resolveComponent,
+  storeToRefs,
   useDialog,
   useNuxtApp,
   useRoute,
@@ -21,11 +22,11 @@ const meta = inject(MetaInj, ref())
 
 const activeView = inject(ActiveViewInj, ref())
 
-const { activeTab } = useTabs()
+const { activeTab } = storeToRefs(useTabs())
 
 const { views, loadViews, isLoading } = useViews(meta)
 
-const { lastOpenedViewMap } = useProject()
+const { lastOpenedViewMap } = storeToRefs(useProject())
 
 const setLastOpenedViewId = (viewId?: string) => {
   if (viewId && activeTab.value?.id) {

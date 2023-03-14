@@ -1,5 +1,4 @@
 import { promisify } from 'util';
-
 import passport from 'passport';
 import Model from '../../models/Model';
 import View from '../../models/View';

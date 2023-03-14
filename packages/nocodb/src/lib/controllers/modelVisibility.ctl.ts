@@ -9,7 +9,7 @@ async function xcVisibilityMetaSetAll(req, res) {
     projectId: req.params.projectId,
   });
 
-  res.json({ msg: 'success' });
+  res.json({ msg: 'UI ACL has been created successfully' });
 }
 
 const router = Router({ mergeParams: true });

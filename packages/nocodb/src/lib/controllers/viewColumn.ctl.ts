@@ -2,20 +2,21 @@ import { Router } from 'express';
 import ncMetaAclMw from '../meta/helpers/ncMetaAclMw';
 import { metaApiMetrics } from '../meta/helpers/apiMetrics';
 import { viewColumnService } from '../services';
+import { PagedResponseImpl } from '../meta/helpers/PagedResponse';
 import type { Request, Response } from 'express';
 
 export async function columnList(req: Request, res: Response) {
-  res.json(await viewColumnService.columnList({ viewId: req.params.viewId }));
+  res.json(
+    new PagedResponseImpl(
+      await viewColumnService.columnList({ viewId: req.params.viewId })
+    )
+  );
 }
 
 export async function columnAdd(req: Request, res: Response) {
   const viewColumn = await viewColumnService.columnAdd({
     viewId: req.params.viewId,
-    columnId: req.body.fk_column_id,
-    column: {
-      ...req.body,
-      view_id: req.params.viewId,
-    },
+    column: req.body,
   });
   res.json(viewColumn);
 }

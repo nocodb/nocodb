@@ -48,9 +48,9 @@ export interface ApiTokenListType {
    * List of api token objects
    * @example [{"list":[{"id":"1","fk_user_id":"us_b3xo2i44nx5y9l","description":"This API Token is for ABC application","token":"DYh540o8hbWpUGdarekECKLdN5OhlgCUWutVJYX2"}],"pageInfo":{"isFirstPage":true,"isLastPage":true,"page":1,"pageSize":10,"totalRows":1}}]
    */
-  list?: ApiTokenType[];
+  list: ApiTokenType[];
   /** Model for Paginated */
-  pageInfo?: PaginatedType;
+  pageInfo: PaginatedType;
 }
 
 /**
@@ -260,7 +260,7 @@ export interface BaseType {
 export interface BaseListType {
   /** List of base objects */
   list: BaseType[];
-  /** Model for Paginated */
+  /** Paginated Info */
   pageInfo: PaginatedType;
 }
 
@@ -1899,7 +1899,7 @@ export type SharedViewType = ViewType;
 export interface SharedViewListType {
   /** List of shared view objects */
   list: SharedViewType[];
-  /** Model for Paginated */
+  /** Paginated Info */
   pageInfo: PaginatedType;
 }
 
@@ -2047,7 +2047,7 @@ export interface TableType {
 export interface TableListType {
   /** List of table objects */
   list: TableType[];
-  /** Model for Paginated */
+  /** Paginated Info */
   pageInfo: PaginatedType;
 }
 
@@ -2137,7 +2137,7 @@ export interface UserInfoType {
 export interface UserListType {
   /** List of user objects */
   list: UserType[];
-  /** Model for Paginated */
+  /** Paginated Info */
   pageInfo: PaginatedType;
 }
 
@@ -2187,7 +2187,7 @@ export interface ViewType {
 export interface ViewListType {
   /** List of view objects */
   list: ViewType[];
-  /** Model for Paginated */
+  /** Paginated Info */
   pageInfo: PaginatedType;
 }
 
@@ -2524,7 +2524,7 @@ export class Api<
 }` OK
  * @response `400` `{
   \** @example BadRequest [Error]: <ERROR MESSAGE> *\
-  msg?: string,
+  msg: string,
 
 }`
  */
@@ -2539,7 +2539,7 @@ export class Api<
         },
         {
           /** @example BadRequest [Error]: <ERROR MESSAGE> */
-          msg?: string;
+          msg: string;
         }
       >({
         path: `/api/v1/auth/user/signout`,
@@ -2565,7 +2565,7 @@ export class Api<
 }` OK
  * @response `400` `{
   \** @example BadRequest [Error]: <ERROR MESSAGE> *\
-  msg?: string,
+  msg: string,
 
 }`
  */
@@ -2580,7 +2580,7 @@ export class Api<
         },
         {
           /** @example BadRequest [Error]: <ERROR MESSAGE> */
-          msg?: string;
+          msg: string;
         }
       >({
         path: `/api/v1/auth/user/signin`,
@@ -2601,7 +2601,7 @@ export class Api<
  * @response `200` `UserInfoType` OK
  * @response `400` `{
   \** @example BadRequest [Error]: <ERROR MESSAGE> *\
-  msg?: string,
+  msg: string,
 
 }`
  */
@@ -2616,7 +2616,7 @@ export class Api<
         UserInfoType,
         {
           /** @example BadRequest [Error]: <ERROR MESSAGE> */
-          msg?: string;
+          msg: string;
         }
       >({
         path: `/api/v1/auth/user/me`,
@@ -2643,7 +2643,7 @@ export class Api<
 }` OK
  * @response `400` `{
   \** @example BadRequest [Error]: <ERROR MESSAGE> *\
-  msg?: string,
+  msg: string,
 
 }`
  */
@@ -2658,7 +2658,7 @@ export class Api<
         },
         {
           /** @example BadRequest [Error]: <ERROR MESSAGE> */
-          msg?: string;
+          msg: string;
         }
       >({
         path: `/api/v1/auth/password/forgot`,
@@ -2683,7 +2683,7 @@ export class Api<
 }` OK
  * @response `400` `{
   \** @example BadRequest [Error]: <ERROR MESSAGE> *\
-  msg?: string,
+  msg: string,
 
 }`
  */
@@ -2695,7 +2695,7 @@ export class Api<
         },
         {
           /** @example BadRequest [Error]: <ERROR MESSAGE> */
-          msg?: string;
+          msg: string;
         }
       >({
         path: `/api/v1/auth/password/change`,
@@ -2723,7 +2723,7 @@ export class Api<
 }` OK
  * @response `400` `{
   \** @example BadRequest [Error]: <ERROR MESSAGE> *\
-  msg?: string,
+  msg: string,
 
 }`
  */
@@ -2738,7 +2738,7 @@ export class Api<
         },
         {
           /** @example BadRequest [Error]: <ERROR MESSAGE> */
-          msg?: string;
+          msg: string;
         }
       >({
         path: `/api/v1/auth/token/validate/${token}`,
@@ -2764,7 +2764,7 @@ export class Api<
 }` OK
  * @response `400` `{
   \** @example BadRequest [Error]: <ERROR MESSAGE> *\
-  msg?: string,
+  msg: string,
 
 }`
  */
@@ -2779,7 +2779,7 @@ export class Api<
         },
         {
           /** @example BadRequest [Error]: <ERROR MESSAGE> */
-          msg?: string;
+          msg: string;
         }
       >({
         path: `/api/v1/auth/email/validate/${token}`,
@@ -2805,7 +2805,7 @@ export class Api<
 }` OK
  * @response `400` `{
   \** @example BadRequest [Error]: <ERROR MESSAGE> *\
-  msg?: string,
+  msg: string,
 
 }`
  */
@@ -2824,7 +2824,7 @@ export class Api<
         },
         {
           /** @example BadRequest [Error]: <ERROR MESSAGE> */
-          msg?: string;
+          msg: string;
         }
       >({
         path: `/api/v1/auth/password/reset/${token}`,
@@ -2852,7 +2852,7 @@ export class Api<
 }` OK
  * @response `400` `{
   \** @example BadRequest [Error]: <ERROR MESSAGE> *\
-  msg?: string,
+  msg: string,
 
 }`
  */
@@ -2867,7 +2867,7 @@ export class Api<
         },
         {
           /** @example BadRequest [Error]: <ERROR MESSAGE> */
-          msg?: string;
+          msg: string;
         }
       >({
         path: `/api/v1/auth/token/refresh`,
@@ -2894,7 +2894,7 @@ export class Api<
 }` OK
  * @response `400` `{
   \** @example BadRequest [Error]: <ERROR MESSAGE> *\
-  msg?: string,
+  msg: string,
 
 }`
  */
@@ -2909,7 +2909,7 @@ export class Api<
         },
         {
           /** @example BadRequest [Error]: <ERROR MESSAGE> */
-          msg?: string;
+          msg: string;
         }
       >({
         path: `/api/v1/db/meta/projects/${projectId}/users`,
@@ -2935,7 +2935,7 @@ export class Api<
 }` OK
  * @response `400` `{
   \** @example BadRequest [Error]: <ERROR MESSAGE> *\
-  msg?: string,
+  msg: string,
 
 }`
  */
@@ -2954,7 +2954,7 @@ export class Api<
         },
         {
           /** @example BadRequest [Error]: <ERROR MESSAGE> */
-          msg?: string;
+          msg: string;
         }
       >({
         path: `/api/v1/db/meta/projects/${projectId}/users`,
@@ -2982,7 +2982,7 @@ export class Api<
 }` OK
  * @response `400` `{
   \** @example BadRequest [Error]: <ERROR MESSAGE> *\
-  msg?: string,
+  msg: string,
 
 }`
  */
@@ -3002,7 +3002,7 @@ export class Api<
         },
         {
           /** @example BadRequest [Error]: <ERROR MESSAGE> */
-          msg?: string;
+          msg: string;
         }
       >({
         path: `/api/v1/db/meta/projects/${projectId}/users/${userId}`,
@@ -3030,7 +3030,7 @@ export class Api<
 }` OK
  * @response `400` `{
   \** @example BadRequest [Error]: <ERROR MESSAGE> *\
-  msg?: string,
+  msg: string,
 
 }`
  */
@@ -3049,7 +3049,7 @@ export class Api<
         },
         {
           /** @example BadRequest [Error]: <ERROR MESSAGE> */
-          msg?: string;
+          msg: string;
         }
       >({
         path: `/api/v1/db/meta/projects/${projectId}/users/${userId}`,
@@ -3075,7 +3075,7 @@ export class Api<
 }` OK
  * @response `400` `{
   \** @example BadRequest [Error]: <ERROR MESSAGE> *\
-  msg?: string,
+  msg: string,
 
 }`
  */
@@ -3094,7 +3094,7 @@ export class Api<
         },
         {
           /** @example BadRequest [Error]: <ERROR MESSAGE> */
-          msg?: string;
+          msg: string;
         }
       >({
         path: `/api/v1/db/meta/projects/${projectId}/users/${userId}/resend-invite`,
@@ -3114,7 +3114,7 @@ export class Api<
  * @response `200` `ApiTokenListType` OK
  * @response `400` `{
   \** @example BadRequest [Error]: <ERROR MESSAGE> *\
-  msg?: string,
+  msg: string,
 
 }`
  */
@@ -3123,7 +3123,7 @@ export class Api<
         ApiTokenListType,
         {
           /** @example BadRequest [Error]: <ERROR MESSAGE> */
-          msg?: string;
+          msg: string;
         }
       >({
         path: `/api/v1/tokens`,
@@ -3142,7 +3142,7 @@ export class Api<
  * @response `200` `ApiTokenType` OK
  * @response `400` `{
   \** @example BadRequest [Error]: <ERROR MESSAGE> *\
-  msg?: string,
+  msg: string,
 
 }`
  */
@@ -3151,7 +3151,7 @@ export class Api<
         ApiTokenType,
         {
           /** @example BadRequest [Error]: <ERROR MESSAGE> */
-          msg?: string;
+          msg: string;
         }
       >({
         path: `/api/v1/tokens`,
@@ -3172,7 +3172,7 @@ export class Api<
  * @response `200` `number` OK
  * @response `400` `{
   \** @example BadRequest [Error]: <ERROR MESSAGE> *\
-  msg?: string,
+  msg: string,
 
 }`
  */
@@ -3181,7 +3181,7 @@ export class Api<
         number,
         {
           /** @example BadRequest [Error]: <ERROR MESSAGE> */
-          msg?: string;
+          msg: string;
         }
       >({
         path: `/api/v1/tokens/${token}`,
@@ -3205,7 +3205,7 @@ export class Api<
 }` OK
  * @response `400` `{
   \** @example BadRequest [Error]: <ERROR MESSAGE> *\
-  msg?: string,
+  msg: string,
 
 }`
  */
@@ -3217,7 +3217,7 @@ export class Api<
         },
         {
           /** @example BadRequest [Error]: <ERROR MESSAGE> */
-          msg?: string;
+          msg: string;
         }
       >({
         path: `/api/v1/license`,
@@ -3240,7 +3240,7 @@ export class Api<
 }` OK
  * @response `400` `{
   \** @example BadRequest [Error]: <ERROR MESSAGE> *\
-  msg?: string,
+  msg: string,
 
 }`
  */
@@ -3252,7 +3252,7 @@ export class Api<
         },
         {
           /** @example BadRequest [Error]: <ERROR MESSAGE> */
-          msg?: string;
+          msg: string;
         }
       >({
         path: `/api/v1/license`,
@@ -3281,7 +3281,7 @@ export class Api<
 }` OK
  * @response `400` `{
   \** @example BadRequest [Error]: <ERROR MESSAGE> *\
-  msg?: string,
+  msg: string,
 
 }`
  */
@@ -3296,7 +3296,7 @@ export class Api<
         },
         {
           /** @example BadRequest [Error]: <ERROR MESSAGE> */
-          msg?: string;
+          msg: string;
         }
       >({
         path: `/api/v1/app-settings`,
@@ -3319,7 +3319,7 @@ export class Api<
 }` OK
  * @response `400` `{
   \** @example BadRequest [Error]: <ERROR MESSAGE> *\
-  msg?: string,
+  msg: string,
 
 }`
  */
@@ -3340,7 +3340,7 @@ export class Api<
         },
         {
           /** @example BadRequest [Error]: <ERROR MESSAGE> */
-          msg?: string;
+          msg: string;
         }
       >({
         path: `/api/v1/app-settings`,
@@ -3362,7 +3362,7 @@ export class Api<
  * @response `200` `UserListType` OK
  * @response `400` `{
   \** @example BadRequest [Error]: <ERROR MESSAGE> *\
-  msg?: string,
+  msg: string,
 
 }`
  */
@@ -3371,7 +3371,7 @@ export class Api<
         UserListType,
         {
           /** @example BadRequest [Error]: <ERROR MESSAGE> */
-          msg?: string;
+          msg: string;
         }
       >({
         path: `/api/v1/users`,
@@ -3399,7 +3399,7 @@ export class Api<
 }` OK
  * @response `400` `{
   \** @example BadRequest [Error]: <ERROR MESSAGE> *\
-  msg?: string,
+  msg: string,
 
 }`
  */
@@ -3416,7 +3416,7 @@ export class Api<
         },
         {
           /** @example BadRequest [Error]: <ERROR MESSAGE> */
-          msg?: string;
+          msg: string;
         }
       >({
         path: `/api/v1/users`,
@@ -3441,7 +3441,7 @@ export class Api<
 }` OK
  * @response `400` `{
   \** @example BadRequest [Error]: <ERROR MESSAGE> *\
-  msg?: string,
+  msg: string,
 
 }`
  */
@@ -3457,7 +3457,7 @@ export class Api<
         },
         {
           /** @example BadRequest [Error]: <ERROR MESSAGE> */
-          msg?: string;
+          msg: string;
         }
       >({
         path: `/api/v1/users/${userId}`,
@@ -3485,7 +3485,7 @@ export class Api<
 }` OK
  * @response `400` `{
   \** @example BadRequest [Error]: <ERROR MESSAGE> *\
-  msg?: string,
+  msg: string,
 
 }`
  */
@@ -3500,7 +3500,7 @@ export class Api<
         },
         {
           /** @example BadRequest [Error]: <ERROR MESSAGE> */
-          msg?: string;
+          msg: string;
         }
       >({
         path: `/api/v1/users/${userId}`,
@@ -3526,7 +3526,7 @@ export class Api<
 }` OK
  * @response `400` `{
   \** @example BadRequest [Error]: <ERROR MESSAGE> *\
-  msg?: string,
+  msg: string,
 
 }`
  */
@@ -3541,7 +3541,7 @@ export class Api<
         },
         {
           /** @example BadRequest [Error]: <ERROR MESSAGE> */
-          msg?: string;
+          msg: string;
         }
       >({
         path: `/api/v1/users/${userId}/resend-invite`,
@@ -3566,7 +3566,7 @@ export class Api<
 }` OK
  * @response `400` `{
   \** @example BadRequest [Error]: <ERROR MESSAGE> *\
-  msg?: string,
+  msg: string,
 
 }`
  */
@@ -3580,7 +3580,7 @@ export class Api<
         },
         {
           /** @example BadRequest [Error]: <ERROR MESSAGE> */
-          msg?: string;
+          msg: string;
         }
       >({
         path: `/api/v1/users/${userId}/generate-reset-url`,
@@ -3642,7 +3642,7 @@ export class Api<
 }` OK
  * @response `400` `{
   \** @example BadRequest [Error]: <ERROR MESSAGE> *\
-  msg?: string,
+  msg: string,
 
 }`
  */
@@ -3692,7 +3692,7 @@ export class Api<
         },
         {
           /** @example BadRequest [Error]: <ERROR MESSAGE> */
-          msg?: string;
+          msg: string;
         }
       >({
         path: `/api/v1/db/meta/projects/${projectId}/info`,
@@ -3711,7 +3711,7 @@ export class Api<
  * @response `200` `(any)[]` OK
  * @response `400` `{
   \** @example BadRequest [Error]: <ERROR MESSAGE> *\
-  msg?: string,
+  msg: string,
 
 }`
  */
@@ -3726,7 +3726,7 @@ export class Api<
         any[],
         {
           /** @example BadRequest [Error]: <ERROR MESSAGE> */
-          msg?: string;
+          msg: string;
         }
       >({
         path: `/api/v1/db/meta/projects/${projectId}/visibility-rules`,
@@ -3750,7 +3750,7 @@ export class Api<
 }` OK
  * @response `400` `{
   \** @example BadRequest [Error]: <ERROR MESSAGE> *\
-  msg?: string,
+  msg: string,
 
 }`
  */
@@ -3766,7 +3766,7 @@ export class Api<
         },
         {
           /** @example BadRequest [Error]: <ERROR MESSAGE> */
-          msg?: string;
+          msg: string;
         }
       >({
         path: `/api/v1/db/meta/projects/${projectId}/visibility-rules`,
@@ -3787,7 +3787,7 @@ export class Api<
  * @response `200` `ProjectListType` OK
  * @response `400` `{
   \** @example BadRequest [Error]: <ERROR MESSAGE> *\
-  msg?: string,
+  msg: string,
 
 }`
  */
@@ -3796,7 +3796,7 @@ export class Api<
         ProjectListType,
         {
           /** @example BadRequest [Error]: <ERROR MESSAGE> */
-          msg?: string;
+          msg: string;
         }
       >({
         path: `/api/v1/db/meta/projects/`,
@@ -3815,7 +3815,7 @@ export class Api<
  * @response `200` `ProjectReqType` OK
  * @response `400` `{
   \** @example BadRequest [Error]: <ERROR MESSAGE> *\
-  msg?: string,
+  msg: string,
 
 }`
  */
@@ -3830,7 +3830,7 @@ export class Api<
         ProjectReqType,
         {
           /** @example BadRequest [Error]: <ERROR MESSAGE> */
-          msg?: string;
+          msg: string;
         }
       >({
         path: `/api/v1/db/meta/projects/`,
@@ -3851,7 +3851,7 @@ export class Api<
  * @response `200` `ProjectType` OK
  * @response `400` `{
   \** @example BadRequest [Error]: <ERROR MESSAGE> *\
-  msg?: string,
+  msg: string,
 
 }`
  */
@@ -3860,7 +3860,7 @@ export class Api<
         ProjectType,
         {
           /** @example BadRequest [Error]: <ERROR MESSAGE> */
-          msg?: string;
+          msg: string;
         }
       >({
         path: `/api/v1/db/meta/projects/${projectId}`,
@@ -3879,7 +3879,7 @@ export class Api<
  * @response `200` `boolean` OK
  * @response `400` `{
   \** @example BadRequest [Error]: <ERROR MESSAGE> *\
-  msg?: string,
+  msg: string,
 
 }`
  */
@@ -3888,7 +3888,7 @@ export class Api<
         boolean,
         {
           /** @example BadRequest [Error]: <ERROR MESSAGE> */
-          msg?: string;
+          msg: string;
         }
       >({
         path: `/api/v1/db/meta/projects/${projectId}`,
@@ -3907,7 +3907,7 @@ export class Api<
  * @response `200` `void` OK
  * @response `400` `{
   \** @example BadRequest [Error]: <ERROR MESSAGE> *\
-  msg?: string,
+  msg: string,
 
 }`
  */
@@ -3916,7 +3916,7 @@ export class Api<
         void,
         {
           /** @example BadRequest [Error]: <ERROR MESSAGE> */
-          msg?: string;
+          msg: string;
         }
       >({
         path: `/api/v1/db/meta/projects/${projectId}`,
@@ -3947,7 +3947,7 @@ export class Api<
 }` OK
  * @response `400` `{
   \** @example BadRequest [Error]: <ERROR MESSAGE> *\
-  msg?: string,
+  msg: string,
 
 }`
  */
@@ -3966,7 +3966,7 @@ export class Api<
         },
         {
           /** @example BadRequest [Error]: <ERROR MESSAGE> */
-          msg?: string;
+          msg: string;
         }
       >({
         path: `/api/v1/db/meta/projects/${projectId}/shared`,
@@ -3985,7 +3985,7 @@ export class Api<
  * @response `200` `boolean` OK
  * @response `400` `{
   \** @example BadRequest [Error]: <ERROR MESSAGE> *\
-  msg?: string,
+  msg: string,
 
 }`
  */
@@ -3994,7 +3994,7 @@ export class Api<
         boolean,
         {
           /** @example BadRequest [Error]: <ERROR MESSAGE> */
-          msg?: string;
+          msg: string;
         }
       >({
         path: `/api/v1/db/meta/projects/${projectId}/shared`,
@@ -4019,7 +4019,7 @@ export class Api<
 }` OK
  * @response `400` `{
   \** @example BadRequest [Error]: <ERROR MESSAGE> *\
-  msg?: string,
+  msg: string,
 
 }`
  */
@@ -4037,7 +4037,7 @@ export class Api<
         },
         {
           /** @example BadRequest [Error]: <ERROR MESSAGE> */
-          msg?: string;
+          msg: string;
         }
       >({
         path: `/api/v1/db/meta/projects/${projectId}/shared`,
@@ -4069,7 +4069,7 @@ export class Api<
 }` OK
  * @response `400` `{
   \** @example BadRequest [Error]: <ERROR MESSAGE> *\
-  msg?: string,
+  msg: string,
 
 }`
  */
@@ -4092,7 +4092,7 @@ export class Api<
         },
         {
           /** @example BadRequest [Error]: <ERROR MESSAGE> */
-          msg?: string;
+          msg: string;
         }
       >({
         path: `/api/v1/db/meta/projects/${projectId}/shared`,
@@ -4113,7 +4113,7 @@ export class Api<
  * @response `200` `object` OK
  * @response `400` `{
   \** @example BadRequest [Error]: <ERROR MESSAGE> *\
-  msg?: string,
+  msg: string,
 
 }`
  */
@@ -4122,7 +4122,7 @@ export class Api<
         object,
         {
           /** @example BadRequest [Error]: <ERROR MESSAGE> */
-          msg?: string;
+          msg: string;
         }
       >({
         path: `/api/v1/db/meta/projects/${projectId}/cost`,
@@ -4145,7 +4145,7 @@ export class Api<
 }` OK
  * @response `400` `{
   \** @example BadRequest [Error]: <ERROR MESSAGE> *\
-  msg?: string,
+  msg: string,
 
 }`
  */
@@ -4157,7 +4157,7 @@ export class Api<
         },
         {
           /** @example BadRequest [Error]: <ERROR MESSAGE> */
-          msg?: string;
+          msg: string;
         }
       >({
         path: `/api/v1/db/meta/projects/${projectId}/meta-diff`,
@@ -4195,7 +4195,7 @@ export class Api<
 })[]` OK
  * @response `400` `{
   \** @example BadRequest [Error]: <ERROR MESSAGE> *\
-  msg?: string,
+  msg: string,
 
 }`
  */
@@ -4222,7 +4222,7 @@ export class Api<
         }[],
         {
           /** @example BadRequest [Error]: <ERROR MESSAGE> */
-          msg?: string;
+          msg: string;
         }
       >({
         path: `/api/v1/db/meta/projects/${projectId}/meta-diff`,
@@ -4241,7 +4241,7 @@ export class Api<
  * @response `200` `any` OK
  * @response `400` `{
   \** @example BadRequest [Error]: <ERROR MESSAGE> *\
-  msg?: string,
+  msg: string,
 
 }`
  */
@@ -4250,7 +4250,7 @@ export class Api<
         any,
         {
           /** @example BadRequest [Error]: <ERROR MESSAGE> */
-          msg?: string;
+          msg: string;
         }
       >({
         path: `/api/v1/db/meta/projects/${projectId}/has-empty-or-null-filters`,
@@ -4274,7 +4274,7 @@ export class Api<
 }` OK
  * @response `400` `{
   \** @example BadRequest [Error]: <ERROR MESSAGE> *\
-  msg?: string,
+  msg: string,
 
 }`
  */
@@ -4296,7 +4296,7 @@ export class Api<
         },
         {
           /** @example BadRequest [Error]: <ERROR MESSAGE> */
-          msg?: string;
+          msg: string;
         }
       >({
         path: `/api/v1/db/meta/projects/${projectId}/audits`,
@@ -4317,7 +4317,7 @@ export class Api<
  * @response `200` `BaseType` OK
  * @response `400` `{
   \** @example BadRequest [Error]: <ERROR MESSAGE> *\
-  msg?: string,
+  msg: string,
 
 }`
  */
@@ -4326,7 +4326,7 @@ export class Api<
         BaseType,
         {
           /** @example BadRequest [Error]: <ERROR MESSAGE> */
-          msg?: string;
+          msg: string;
         }
       >({
         path: `/api/v1/db/meta/projects/${projectId}/bases/${baseId}`,
@@ -4345,7 +4345,7 @@ export class Api<
  * @response `200` `boolean` OK
  * @response `400` `{
   \** @example BadRequest [Error]: <ERROR MESSAGE> *\
-  msg?: string,
+  msg: string,
 
 }`
  */
@@ -4354,7 +4354,7 @@ export class Api<
         boolean,
         {
           /** @example BadRequest [Error]: <ERROR MESSAGE> */
-          msg?: string;
+          msg: string;
         }
       >({
         path: `/api/v1/db/meta/projects/${projectId}/bases/${baseId}`,
@@ -4373,7 +4373,7 @@ export class Api<
  * @response `200` `object` OK
  * @response `400` `{
   \** @example BadRequest [Error]: <ERROR MESSAGE> *\
-  msg?: string,
+  msg: string,
 
 }`
  */
@@ -4387,7 +4387,7 @@ export class Api<
         object,
         {
           /** @example BadRequest [Error]: <ERROR MESSAGE> */
-          msg?: string;
+          msg: string;
         }
       >({
         path: `/api/v1/db/meta/projects/${projectId}/bases/${baseId}`,
@@ -4408,7 +4408,7 @@ export class Api<
  * @response `200` `BaseListType` OK
  * @response `400` `{
   \** @example BadRequest [Error]: <ERROR MESSAGE> *\
-  msg?: string,
+  msg: string,
 
 }`
  */
@@ -4417,7 +4417,7 @@ export class Api<
         BaseListType,
         {
           /** @example BadRequest [Error]: <ERROR MESSAGE> */
-          msg?: string;
+          msg: string;
         }
       >({
         path: `/api/v1/db/meta/projects/${projectId}/bases/`,
@@ -4436,7 +4436,7 @@ export class Api<
  * @response `200` `BaseType` OK
  * @response `400` `{
   \** @example BadRequest [Error]: <ERROR MESSAGE> *\
-  msg?: string,
+  msg: string,
 
 }`
  */
@@ -4451,7 +4451,7 @@ export class Api<
         BaseType,
         {
           /** @example BadRequest [Error]: <ERROR MESSAGE> */
-          msg?: string;
+          msg: string;
         }
       >({
         path: `/api/v1/db/meta/projects/${projectId}/bases/`,
@@ -4472,7 +4472,7 @@ export class Api<
  * @response `200` `TableListType`
  * @response `400` `{
   \** @example BadRequest [Error]: <ERROR MESSAGE> *\
-  msg?: string,
+  msg: string,
 
 }`
  */
@@ -4491,7 +4491,7 @@ export class Api<
         TableListType,
         {
           /** @example BadRequest [Error]: <ERROR MESSAGE> */
-          msg?: string;
+          msg: string;
         }
       >({
         path: `/api/v1/db/meta/projects/${projectId}/${baseId}/tables`,
@@ -4510,7 +4510,7 @@ export class Api<
  * @response `200` `TableType` OK
  * @response `400` `{
   \** @example BadRequest [Error]: <ERROR MESSAGE> *\
-  msg?: string,
+  msg: string,
 
 }`
  */
@@ -4524,7 +4524,7 @@ export class Api<
         TableType,
         {
           /** @example BadRequest [Error]: <ERROR MESSAGE> */
-          msg?: string;
+          msg: string;
         }
       >({
         path: `/api/v1/db/meta/projects/${projectId}/${baseId}/tables`,
@@ -4549,7 +4549,7 @@ export class Api<
 }` OK
  * @response `400` `{
   \** @example BadRequest [Error]: <ERROR MESSAGE> *\
-  msg?: string,
+  msg: string,
 
 }`
  */
@@ -4565,7 +4565,7 @@ export class Api<
         },
         {
           /** @example BadRequest [Error]: <ERROR MESSAGE> */
-          msg?: string;
+          msg: string;
         }
       >({
         path: `/api/v1/db/meta/projects/${projectId}/meta-diff/${baseId}`,
@@ -4603,7 +4603,7 @@ export class Api<
 })[]` OK
  * @response `400` `{
   \** @example BadRequest [Error]: <ERROR MESSAGE> *\
-  msg?: string,
+  msg: string,
 
 }`
  */
@@ -4634,7 +4634,7 @@ export class Api<
         }[],
         {
           /** @example BadRequest [Error]: <ERROR MESSAGE> */
-          msg?: string;
+          msg: string;
         }
       >({
         path: `/api/v1/db/meta/projects/${projectId}/meta-diff/${baseId}`,
@@ -4654,7 +4654,7 @@ export class Api<
  * @response `200` `TableType` OK
  * @response `400` `{
   \** @example BadRequest [Error]: <ERROR MESSAGE> *\
-  msg?: string,
+  msg: string,
 
 }`
  */
@@ -4667,7 +4667,7 @@ export class Api<
         TableType,
         {
           /** @example BadRequest [Error]: <ERROR MESSAGE> */
-          msg?: string;
+          msg: string;
         }
       >({
         path: `/api/v1/db/meta/projects/${projectId}/tables`,
@@ -4688,7 +4688,7 @@ export class Api<
  * @response `200` `TableListType`
  * @response `400` `{
   \** @example BadRequest [Error]: <ERROR MESSAGE> *\
-  msg?: string,
+  msg: string,
 
 }`
  */
@@ -4706,7 +4706,7 @@ export class Api<
         TableListType,
         {
           /** @example BadRequest [Error]: <ERROR MESSAGE> */
-          msg?: string;
+          msg: string;
         }
       >({
         path: `/api/v1/db/meta/projects/${projectId}/tables`,
@@ -4725,7 +4725,7 @@ export class Api<
  * @response `200` `TableType` OK
  * @response `400` `{
   \** @example BadRequest [Error]: <ERROR MESSAGE> *\
-  msg?: string,
+  msg: string,
 
 }`
  */
@@ -4734,7 +4734,7 @@ export class Api<
         TableType,
         {
           /** @example BadRequest [Error]: <ERROR MESSAGE> */
-          msg?: string;
+          msg: string;
         }
       >({
         path: `/api/v1/db/meta/tables/${tableId}`,
@@ -4757,7 +4757,7 @@ export class Api<
 }` OK
  * @response `400` `{
   \** @example BadRequest [Error]: <ERROR MESSAGE> *\
-  msg?: string,
+  msg: string,
 
 }`
  */
@@ -4791,7 +4791,7 @@ export class Api<
         },
         {
           /** @example BadRequest [Error]: <ERROR MESSAGE> */
-          msg?: string;
+          msg: string;
         }
       >({
         path: `/api/v1/db/meta/tables/${tableId}`,
@@ -4812,7 +4812,7 @@ export class Api<
  * @response `200` `boolean` OK
  * @response `400` `{
   \** @example BadRequest [Error]: <ERROR MESSAGE> *\
-  msg?: string,
+  msg: string,
 
 }`
  */
@@ -4821,7 +4821,7 @@ export class Api<
         boolean,
         {
           /** @example BadRequest [Error]: <ERROR MESSAGE> */
-          msg?: string;
+          msg: string;
         }
       >({
         path: `/api/v1/db/meta/tables/${tableId}`,
@@ -4840,7 +4840,7 @@ export class Api<
  * @response `200` `boolean` OK
  * @response `400` `{
   \** @example BadRequest [Error]: <ERROR MESSAGE> *\
-  msg?: string,
+  msg: string,
 
 }`
  */
@@ -4855,7 +4855,7 @@ export class Api<
         boolean,
         {
           /** @example BadRequest [Error]: <ERROR MESSAGE> */
-          msg?: string;
+          msg: string;
         }
       >({
         path: `/api/v1/db/meta/tables/${tableId}/reorder`,
@@ -4877,7 +4877,7 @@ export class Api<
  * @response `200` `void` OK
  * @response `400` `{
   \** @example BadRequest [Error]: <ERROR MESSAGE> *\
-  msg?: string,
+  msg: string,
 
 }`
  */
@@ -4890,7 +4890,7 @@ export class Api<
         void,
         {
           /** @example BadRequest [Error]: <ERROR MESSAGE> */
-          msg?: string;
+          msg: string;
         }
       >({
         path: `/api/v1/db/meta/tables/${tableId}/columns`,
@@ -4910,7 +4910,7 @@ export class Api<
  * @response `200` `ColumnType` OK
  * @response `400` `{
   \** @example BadRequest [Error]: <ERROR MESSAGE> *\
-  msg?: string,
+  msg: string,
 
 }`
  */
@@ -4923,7 +4923,7 @@ export class Api<
         ColumnType,
         {
           /** @example BadRequest [Error]: <ERROR MESSAGE> */
-          msg?: string;
+          msg: string;
         }
       >({
         path: `/api/v1/db/meta/columns/${columnId}`,
@@ -4944,7 +4944,7 @@ export class Api<
  * @response `200` `void` OK
  * @response `400` `{
   \** @example BadRequest [Error]: <ERROR MESSAGE> *\
-  msg?: string,
+  msg: string,
 
 }`
  */
@@ -4953,7 +4953,7 @@ export class Api<
         void,
         {
           /** @example BadRequest [Error]: <ERROR MESSAGE> */
-          msg?: string;
+          msg: string;
         }
       >({
         path: `/api/v1/db/meta/columns/${columnId}`,
@@ -4971,7 +4971,7 @@ export class Api<
  * @response `200` `void` OK
  * @response `400` `{
   \** @example BadRequest [Error]: <ERROR MESSAGE> *\
-  msg?: string,
+  msg: string,
 
 }`
  */
@@ -4980,7 +4980,7 @@ export class Api<
         void,
         {
           /** @example BadRequest [Error]: <ERROR MESSAGE> */
-          msg?: string;
+          msg: string;
         }
       >({
         path: `/api/v1/db/meta/columns/${columnId}`,
@@ -4998,7 +4998,7 @@ export class Api<
  * @response `200` `boolean` OK
  * @response `400` `{
   \** @example BadRequest [Error]: <ERROR MESSAGE> *\
-  msg?: string,
+  msg: string,
 
 }`
  */
@@ -5007,7 +5007,7 @@ export class Api<
         boolean,
         {
           /** @example BadRequest [Error]: <ERROR MESSAGE> */
-          msg?: string;
+          msg: string;
         }
       >({
         path: `/api/v1/db/meta/columns/${columnId}/primary`,
@@ -5022,12 +5022,12 @@ export class Api<
  * 
  * @tags DB View
  * @name List
- * @summary List views
+ * @summary List Views
  * @request GET:/api/v1/db/meta/tables/{tableId}/views
  * @response `200` `ViewListType` OK
  * @response `400` `{
   \** @example BadRequest [Error]: <ERROR MESSAGE> *\
-  msg?: string,
+  msg: string,
 
 }`
  */
@@ -5036,7 +5036,7 @@ export class Api<
         ViewListType,
         {
           /** @example BadRequest [Error]: <ERROR MESSAGE> */
-          msg?: string;
+          msg: string;
         }
       >({
         path: `/api/v1/db/meta/tables/${tableId}/views`,
@@ -5055,7 +5055,7 @@ export class Api<
  * @response `200` `ViewType` OK
  * @response `400` `{
   \** @example BadRequest [Error]: <ERROR MESSAGE> *\
-  msg?: string,
+  msg: string,
 
 }`
  */
@@ -5068,7 +5068,7 @@ export class Api<
         ViewType,
         {
           /** @example BadRequest [Error]: <ERROR MESSAGE> */
-          msg?: string;
+          msg: string;
         }
       >({
         path: `/api/v1/db/meta/views/${viewId}`,
@@ -5089,7 +5089,7 @@ export class Api<
  * @response `200` `boolean` OK
  * @response `400` `{
   \** @example BadRequest [Error]: <ERROR MESSAGE> *\
-  msg?: string,
+  msg: string,
 
 }`
  */
@@ -5098,7 +5098,7 @@ export class Api<
         boolean,
         {
           /** @example BadRequest [Error]: <ERROR MESSAGE> */
-          msg?: string;
+          msg: string;
         }
       >({
         path: `/api/v1/db/meta/views/${viewId}`,
@@ -5117,7 +5117,7 @@ export class Api<
  * @response `200` `boolean` OK
  * @response `400` `{
   \** @example BadRequest [Error]: <ERROR MESSAGE> *\
-  msg?: string,
+  msg: string,
 
 }`
  */
@@ -5132,7 +5132,7 @@ export class Api<
         boolean,
         {
           /** @example BadRequest [Error]: <ERROR MESSAGE> */
-          msg?: string;
+          msg: string;
         }
       >({
         path: `/api/v1/db/meta/views/${viewId}/show-all`,
@@ -5152,7 +5152,7 @@ export class Api<
  * @response `200` `boolean` OK
  * @response `400` `{
   \** @example BadRequest [Error]: <ERROR MESSAGE> *\
-  msg?: string,
+  msg: string,
 
 }`
  */
@@ -5167,7 +5167,7 @@ export class Api<
         boolean,
         {
           /** @example BadRequest [Error]: <ERROR MESSAGE> */
-          msg?: string;
+          msg: string;
         }
       >({
         path: `/api/v1/db/meta/views/${viewId}/hide-all`,
@@ -5187,7 +5187,7 @@ export class Api<
  * @response `200` `ViewType` OK
  * @response `400` `{
   \** @example BadRequest [Error]: <ERROR MESSAGE> *\
-  msg?: string,
+  msg: string,
 
 }`
  */
@@ -5200,7 +5200,7 @@ export class Api<
         ViewType,
         {
           /** @example BadRequest [Error]: <ERROR MESSAGE> */
-          msg?: string;
+          msg: string;
         }
       >({
         path: `/api/v1/db/meta/tables/${tableId}/grids`,
@@ -5221,7 +5221,7 @@ export class Api<
  * @response `200` `ViewType` OK
  * @response `400` `{
   \** @example BadRequest [Error]: <ERROR MESSAGE> *\
-  msg?: string,
+  msg: string,
 
 }`
  */
@@ -5234,7 +5234,7 @@ export class Api<
         ViewType,
         {
           /** @example BadRequest [Error]: <ERROR MESSAGE> */
-          msg?: string;
+          msg: string;
         }
       >({
         path: `/api/v1/db/meta/tables/${tableId}/forms`,
@@ -5255,7 +5255,7 @@ export class Api<
  * @response `200` `number` OK
  * @response `400` `{
   \** @example BadRequest [Error]: <ERROR MESSAGE> *\
-  msg?: string,
+  msg: string,
 
 }`
  */
@@ -5268,7 +5268,7 @@ export class Api<
         number,
         {
           /** @example BadRequest [Error]: <ERROR MESSAGE> */
-          msg?: string;
+          msg: string;
         }
       >({
         path: `/api/v1/db/meta/forms/${formViewId}`,
@@ -5289,7 +5289,7 @@ export class Api<
  * @response `200` `FormType` OK
  * @response `400` `{
   \** @example BadRequest [Error]: <ERROR MESSAGE> *\
-  msg?: string,
+  msg: string,
 
 }`
  */
@@ -5298,7 +5298,7 @@ export class Api<
         FormType,
         {
           /** @example BadRequest [Error]: <ERROR MESSAGE> */
-          msg?: string;
+          msg: string;
         }
       >({
         path: `/api/v1/db/meta/forms/${formViewId}`,
@@ -5317,7 +5317,7 @@ export class Api<
  * @response `200` `FormColumnReqType` OK
  * @response `400` `{
   \** @example BadRequest [Error]: <ERROR MESSAGE> *\
-  msg?: string,
+  msg: string,
 
 }`
  */
@@ -5330,7 +5330,7 @@ export class Api<
         FormColumnReqType,
         {
           /** @example BadRequest [Error]: <ERROR MESSAGE> */
-          msg?: string;
+          msg: string;
         }
       >({
         path: `/api/v1/db/meta/form-columns/${formViewColumnId}`,
@@ -5351,7 +5351,7 @@ export class Api<
  * @response `200` `number` OK
  * @response `400` `{
   \** @example BadRequest [Error]: <ERROR MESSAGE> *\
-  msg?: string,
+  msg: string,
 
 }`
  */
@@ -5364,7 +5364,7 @@ export class Api<
         number,
         {
           /** @example BadRequest [Error]: <ERROR MESSAGE> */
-          msg?: string;
+          msg: string;
         }
       >({
         path: `/api/v1/db/meta/grids/${viewId}`,
@@ -5385,7 +5385,7 @@ export class Api<
  * @response `200` `(GridColumnType)[]` OK
  * @response `400` `{
   \** @example BadRequest [Error]: <ERROR MESSAGE> *\
-  msg?: string,
+  msg: string,
 
 }`
  */
@@ -5394,7 +5394,7 @@ export class Api<
         GridColumnType[],
         {
           /** @example BadRequest [Error]: <ERROR MESSAGE> */
-          msg?: string;
+          msg: string;
         }
       >({
         path: `/api/v1/db/meta/grids/${gridId}/grid-columns`,
@@ -5413,7 +5413,7 @@ export class Api<
  * @response `200` `number` OK
  * @response `400` `{
   \** @example BadRequest [Error]: <ERROR MESSAGE> *\
-  msg?: string,
+  msg: string,
 
 }`
  */
@@ -5426,7 +5426,7 @@ export class Api<
         number,
         {
           /** @example BadRequest [Error]: <ERROR MESSAGE> */
-          msg?: string;
+          msg: string;
         }
       >({
         path: `/api/v1/db/meta/grid-columns/${columnId}`,
@@ -5447,7 +5447,7 @@ export class Api<
  * @response `200` `ViewType` OK
  * @response `400` `{
   \** @example BadRequest [Error]: <ERROR MESSAGE> *\
-  msg?: string,
+  msg: string,
 
 }`
  */
@@ -5460,7 +5460,7 @@ export class Api<
         ViewType,
         {
           /** @example BadRequest [Error]: <ERROR MESSAGE> */
-          msg?: string;
+          msg: string;
         }
       >({
         path: `/api/v1/db/meta/tables/${tableId}/galleries`,
@@ -5481,7 +5481,7 @@ export class Api<
  * @response `200` `number` OK
  * @response `400` `{
   \** @example BadRequest [Error]: <ERROR MESSAGE> *\
-  msg?: string,
+  msg: string,
 
 }`
  */
@@ -5494,7 +5494,7 @@ export class Api<
         number,
         {
           /** @example BadRequest [Error]: <ERROR MESSAGE> */
-          msg?: string;
+          msg: string;
         }
       >({
         path: `/api/v1/db/meta/galleries/${galleryViewId}`,
@@ -5515,7 +5515,7 @@ export class Api<
  * @response `200` `GalleryType` OK
  * @response `400` `{
   \** @example BadRequest [Error]: <ERROR MESSAGE> *\
-  msg?: string,
+  msg: string,
 
 }`
  */
@@ -5524,7 +5524,7 @@ export class Api<
         GalleryType,
         {
           /** @example BadRequest [Error]: <ERROR MESSAGE> */
-          msg?: string;
+          msg: string;
         }
       >({
         path: `/api/v1/db/meta/galleries/${galleryViewId}`,
@@ -5543,7 +5543,7 @@ export class Api<
  * @response `200` `ViewType` OK
  * @response `400` `{
   \** @example BadRequest [Error]: <ERROR MESSAGE> *\
-  msg?: string,
+  msg: string,
 
 }`
  */
@@ -5556,7 +5556,7 @@ export class Api<
         ViewType,
         {
           /** @example BadRequest [Error]: <ERROR MESSAGE> */
-          msg?: string;
+          msg: string;
         }
       >({
         path: `/api/v1/db/meta/tables/${tableId}/kanbans`,
@@ -5577,7 +5577,7 @@ export class Api<
  * @response `200` `number` OK
  * @response `400` `{
   \** @example BadRequest [Error]: <ERROR MESSAGE> *\
-  msg?: string,
+  msg: string,
 
 }`
  */
@@ -5590,7 +5590,7 @@ export class Api<
         number,
         {
           /** @example BadRequest [Error]: <ERROR MESSAGE> */
-          msg?: string;
+          msg: string;
         }
       >({
         path: `/api/v1/db/meta/kanbans/${kanbanViewId}`,
@@ -5611,7 +5611,7 @@ export class Api<
  * @response `200` `KanbanType` OK
  * @response `400` `{
   \** @example BadRequest [Error]: <ERROR MESSAGE> *\
-  msg?: string,
+  msg: string,
 
 }`
  */
@@ -5620,7 +5620,7 @@ export class Api<
         KanbanType,
         {
           /** @example BadRequest [Error]: <ERROR MESSAGE> */
-          msg?: string;
+          msg: string;
         }
       >({
         path: `/api/v1/db/meta/kanbans/${kanbanViewId}`,
@@ -5639,7 +5639,7 @@ export class Api<
  * @response `200` `ViewType` OK
  * @response `400` `{
   \** @example BadRequest [Error]: <ERROR MESSAGE> *\
-  msg?: string,
+  msg: string,
 
 }`
  */
@@ -5652,7 +5652,7 @@ export class Api<
         ViewType,
         {
           /** @example BadRequest [Error]: <ERROR MESSAGE> */
-          msg?: string;
+          msg: string;
         }
       >({
         path: `/api/v1/db/meta/tables/${tableId}/maps`,
@@ -5673,7 +5673,7 @@ export class Api<
  * @response `200` `number` OK
  * @response `400` `{
   \** @example BadRequest [Error]: <ERROR MESSAGE> *\
-  msg?: string,
+  msg: string,
 
 }`
  */
@@ -5686,7 +5686,7 @@ export class Api<
         number,
         {
           /** @example BadRequest [Error]: <ERROR MESSAGE> */
-          msg?: string;
+          msg: string;
         }
       >({
         path: `/api/v1/db/meta/maps/${mapViewId}`,
@@ -5707,7 +5707,7 @@ export class Api<
  * @response `200` `MapType` OK
  * @response `400` `{
   \** @example BadRequest [Error]: <ERROR MESSAGE> *\
-  msg?: string,
+  msg: string,
 
 }`
  */
@@ -5716,7 +5716,7 @@ export class Api<
         MapType,
         {
           /** @example BadRequest [Error]: <ERROR MESSAGE> */
-          msg?: string;
+          msg: string;
         }
       >({
         path: `/api/v1/db/meta/maps/${mapViewId}`,
@@ -5736,7 +5736,7 @@ export class Api<
  * @response `200` `SharedViewListType` OK
  * @response `400` `{
   \** @example BadRequest [Error]: <ERROR MESSAGE> *\
-  msg?: string,
+  msg: string,
 
 }`
  */
@@ -5745,7 +5745,7 @@ export class Api<
         SharedViewListType,
         {
           /** @example BadRequest [Error]: <ERROR MESSAGE> */
-          msg?: string;
+          msg: string;
         }
       >({
         path: `/api/v1/db/meta/tables/${tableId}/share`,
@@ -5764,7 +5764,7 @@ export class Api<
  * @response `200` `SharedViewReqType` OK
  * @response `400` `{
   \** @example BadRequest [Error]: <ERROR MESSAGE> *\
-  msg?: string,
+  msg: string,
 
 }`
  */
@@ -5773,7 +5773,7 @@ export class Api<
         SharedViewReqType,
         {
           /** @example BadRequest [Error]: <ERROR MESSAGE> */
-          msg?: string;
+          msg: string;
         }
       >({
         path: `/api/v1/db/meta/views/${viewId}/share`,
@@ -5792,7 +5792,7 @@ export class Api<
  * @response `200` `SharedViewType` OK
  * @response `400` `{
   \** @example BadRequest [Error]: <ERROR MESSAGE> *\
-  msg?: string,
+  msg: string,
 
 }`
  */
@@ -5805,7 +5805,7 @@ export class Api<
         SharedViewType,
         {
           /** @example BadRequest [Error]: <ERROR MESSAGE> */
-          msg?: string;
+          msg: string;
         }
       >({
         path: `/api/v1/db/meta/views/${viewId}/share`,
@@ -5826,7 +5826,7 @@ export class Api<
  * @response `200` `boolean` OK
  * @response `400` `{
   \** @example BadRequest [Error]: <ERROR MESSAGE> *\
-  msg?: string,
+  msg: string,
 
 }`
  */
@@ -5835,7 +5835,7 @@ export class Api<
         boolean,
         {
           /** @example BadRequest [Error]: <ERROR MESSAGE> */
-          msg?: string;
+          msg: string;
         }
       >({
         path: `/api/v1/db/meta/views/${viewId}/share`,
@@ -5855,7 +5855,7 @@ export class Api<
  * @response `200` `ColumnListType` OK
  * @response `400` `{
   \** @example BadRequest [Error]: <ERROR MESSAGE> *\
-  msg?: string,
+  msg: string,
 
 }`
  */
@@ -5864,7 +5864,7 @@ export class Api<
         ColumnListType,
         {
           /** @example BadRequest [Error]: <ERROR MESSAGE> */
-          msg?: string;
+          msg: string;
         }
       >({
         path: `/api/v1/db/meta/views/${viewId}/columns`,
@@ -5883,7 +5883,7 @@ export class Api<
  * @response `200` `ColumnType` OK
  * @response `400` `{
   \** @example BadRequest [Error]: <ERROR MESSAGE> *\
-  msg?: string,
+  msg: string,
 
 }`
  */
@@ -5896,7 +5896,7 @@ export class Api<
         ColumnType,
         {
           /** @example BadRequest [Error]: <ERROR MESSAGE> */
-          msg?: string;
+          msg: string;
         }
       >({
         path: `/api/v1/db/meta/views/${viewId}/columns`,
@@ -5917,7 +5917,7 @@ export class Api<
  * @response `200` `number` OK
  * @response `400` `{
   \** @example BadRequest [Error]: <ERROR MESSAGE> *\
-  msg?: string,
+  msg: string,
 
 }`
  */
@@ -5931,7 +5931,7 @@ export class Api<
         number,
         {
           /** @example BadRequest [Error]: <ERROR MESSAGE> */
-          msg?: string;
+          msg: string;
         }
       >({
         path: `/api/v1/db/meta/views/${viewId}/columns/${columnId}`,
@@ -5953,7 +5953,7 @@ export class Api<
  * @response `200` `SortListType` OK
  * @response `400` `{
   \** @example BadRequest [Error]: <ERROR MESSAGE> *\
-  msg?: string,
+  msg: string,
 
 }`
  */
@@ -5962,7 +5962,7 @@ export class Api<
         SortListType,
         {
           /** @example BadRequest [Error]: <ERROR MESSAGE> */
-          msg?: string;
+          msg: string;
         }
       >({
         path: `/api/v1/db/meta/views/${viewId}/sorts`,
@@ -5981,7 +5981,7 @@ export class Api<
  * @response `200` `number` OK
  * @response `400` `{
   \** @example BadRequest [Error]: <ERROR MESSAGE> *\
-  msg?: string,
+  msg: string,
 
 }`
  */
@@ -6000,7 +6000,7 @@ export class Api<
         number,
         {
           /** @example BadRequest [Error]: <ERROR MESSAGE> */
-          msg?: string;
+          msg: string;
         }
       >({
         path: `/api/v1/db/meta/views/${viewId}/sorts`,
@@ -6021,7 +6021,7 @@ export class Api<
  * @response `200` `SortType` OK
  * @response `400` `{
   \** @example BadRequest [Error]: <ERROR MESSAGE> *\
-  msg?: string,
+  msg: string,
 
 }`
  */
@@ -6030,7 +6030,7 @@ export class Api<
         SortType,
         {
           /** @example BadRequest [Error]: <ERROR MESSAGE> */
-          msg?: string;
+          msg: string;
         }
       >({
         path: `/api/v1/db/meta/sorts/${sortId}`,
@@ -6049,7 +6049,7 @@ export class Api<
  * @response `200` `number` OK
  * @response `400` `{
   \** @example BadRequest [Error]: <ERROR MESSAGE> *\
-  msg?: string,
+  msg: string,
 
 }`
  */
@@ -6058,7 +6058,7 @@ export class Api<
         number,
         {
           /** @example BadRequest [Error]: <ERROR MESSAGE> */
-          msg?: string;
+          msg: string;
         }
       >({
         path: `/api/v1/db/meta/sorts/${sortId}`,
@@ -6079,7 +6079,7 @@ export class Api<
  * @response `200` `boolean` OK
  * @response `400` `{
   \** @example BadRequest [Error]: <ERROR MESSAGE> *\
-  msg?: string,
+  msg: string,
 
 }`
  */
@@ -6088,7 +6088,7 @@ export class Api<
         boolean,
         {
           /** @example BadRequest [Error]: <ERROR MESSAGE> */
-          msg?: string;
+          msg: string;
         }
       >({
         path: `/api/v1/db/meta/sorts/${sortId}`,
@@ -6108,7 +6108,7 @@ export class Api<
  * @response `200` `FilterListType` OK
  * @response `400` `{
   \** @example BadRequest [Error]: <ERROR MESSAGE> *\
-  msg?: string,
+  msg: string,
 
 }`
  */
@@ -6117,7 +6117,7 @@ export class Api<
         FilterListType,
         {
           /** @example BadRequest [Error]: <ERROR MESSAGE> */
-          msg?: string;
+          msg: string;
         }
       >({
         path: `/api/v1/db/meta/views/${viewId}/filters`,
@@ -6136,7 +6136,7 @@ export class Api<
  * @response `200` `FilterType` OK
  * @response `400` `{
   \** @example BadRequest [Error]: <ERROR MESSAGE> *\
-  msg?: string,
+  msg: string,
 
 }`
  */
@@ -6145,7 +6145,7 @@ export class Api<
         FilterType,
         {
           /** @example BadRequest [Error]: <ERROR MESSAGE> */
-          msg?: string;
+          msg: string;
         }
       >({
         path: `/api/v1/db/meta/views/${viewId}/filters`,
@@ -6166,7 +6166,7 @@ export class Api<
  * @response `200` `FilterType` OK
  * @response `400` `{
   \** @example BadRequest [Error]: <ERROR MESSAGE> *\
-  msg?: string,
+  msg: string,
 
 }`
  */
@@ -6175,7 +6175,7 @@ export class Api<
         FilterType,
         {
           /** @example BadRequest [Error]: <ERROR MESSAGE> */
-          msg?: string;
+          msg: string;
         }
       >({
         path: `/api/v1/db/meta/filters/${filterId}`,
@@ -6194,7 +6194,7 @@ export class Api<
  * @response `200` `number` OK
  * @response `400` `{
   \** @example BadRequest [Error]: <ERROR MESSAGE> *\
-  msg?: string,
+  msg: string,
 
 }`
  */
@@ -6207,7 +6207,7 @@ export class Api<
         number,
         {
           /** @example BadRequest [Error]: <ERROR MESSAGE> */
-          msg?: string;
+          msg: string;
         }
       >({
         path: `/api/v1/db/meta/filters/${filterId}`,
@@ -6228,7 +6228,7 @@ export class Api<
  * @response `200` `boolean` OK
  * @response `400` `{
   \** @example BadRequest [Error]: <ERROR MESSAGE> *\
-  msg?: string,
+  msg: string,
 
 }`
  */
@@ -6237,7 +6237,7 @@ export class Api<
         boolean,
         {
           /** @example BadRequest [Error]: <ERROR MESSAGE> */
-          msg?: string;
+          msg: string;
         }
       >({
         path: `/api/v1/db/meta/filters/${filterId}`,
@@ -6256,7 +6256,7 @@ export class Api<
  * @response `200` `FilterListType` OK
  * @response `400` `{
   \** @example BadRequest [Error]: <ERROR MESSAGE> *\
-  msg?: string,
+  msg: string,
 
 }`
  */
@@ -6265,7 +6265,7 @@ export class Api<
         FilterListType,
         {
           /** @example BadRequest [Error]: <ERROR MESSAGE> */
-          msg?: string;
+          msg: string;
         }
       >({
         path: `/api/v1/db/meta/filters/${filterGroupId}/children`,
@@ -6285,7 +6285,7 @@ export class Api<
  * @response `200` `FilterListType` OK
  * @response `400` `{
   \** @example BadRequest [Error]: <ERROR MESSAGE> *\
-  msg?: string,
+  msg: string,
 
 }`
  */
@@ -6294,7 +6294,7 @@ export class Api<
         FilterListType,
         {
           /** @example BadRequest [Error]: <ERROR MESSAGE> */
-          msg?: string;
+          msg: string;
         }
       >({
         path: `/api/v1/db/meta/hooks/${hookId}/filters`,
@@ -6313,7 +6313,7 @@ export class Api<
  * @response `200` `FilterType` OK
  * @response `400` `{
   \** @example BadRequest [Error]: <ERROR MESSAGE> *\
-  msg?: string,
+  msg: string,
 
 }`
  */
@@ -6322,7 +6322,7 @@ export class Api<
         FilterType,
         {
           /** @example BadRequest [Error]: <ERROR MESSAGE> */
-          msg?: string;
+          msg: string;
         }
       >({
         path: `/api/v1/db/meta/hooks/${hookId}/filters`,
@@ -6343,14 +6343,14 @@ export class Api<
  * @request GET:/api/v1/db/data/{orgs}/{projectName}/{tableName}
  * @response `200` `{
   \** List of data objects *\
-  list?: (object)[],
+  list: (object)[],
   \** Paginated Info *\
-  pageInfo?: PaginatedType,
+  pageInfo: PaginatedType,
 
 }` OK
  * @response `400` `{
   \** @example BadRequest [Error]: <ERROR MESSAGE> *\
-  msg?: string,
+  msg: string,
 
 }`
  */
@@ -6385,13 +6385,13 @@ export class Api<
       this.request<
         {
           /** List of data objects */
-          list?: object[];
+          list: object[];
           /** Paginated Info */
-          pageInfo?: PaginatedType;
+          pageInfo: PaginatedType;
         },
         {
           /** @example BadRequest [Error]: <ERROR MESSAGE> */
-          msg?: string;
+          msg: string;
         }
       >({
         path: `/api/v1/db/data/${orgs}/${projectName}/${tableName}`,
@@ -6411,7 +6411,7 @@ export class Api<
  * @response `200` `any` OK
  * @response `400` `{
   \** @example BadRequest [Error]: <ERROR MESSAGE> *\
-  msg?: string,
+  msg: string,
 
 }`
  */
@@ -6426,7 +6426,7 @@ export class Api<
         any,
         {
           /** @example BadRequest [Error]: <ERROR MESSAGE> */
-          msg?: string;
+          msg: string;
         }
       >({
         path: `/api/v1/db/data/${orgs}/${projectName}/${tableName}`,
@@ -6447,7 +6447,7 @@ export class Api<
  * @response `200` `object` OK
  * @response `400` `{
   \** @example BadRequest [Error]: <ERROR MESSAGE> *\
-  msg?: string,
+  msg: string,
 
 }`
  */
@@ -6466,7 +6466,7 @@ export class Api<
         object,
         {
           /** @example BadRequest [Error]: <ERROR MESSAGE> */
-          msg?: string;
+          msg: string;
         }
       >({
         path: `/api/v1/db/data/${orgs}/${projectName}/${tableName}/find-one`,
@@ -6519,7 +6519,7 @@ export class Api<
  * @response `200` `(any)[]` OK
  * @response `400` `{
   \** @example BadRequest [Error]: <ERROR MESSAGE> *\
-  msg?: string,
+  msg: string,
 
 }`
  */
@@ -6541,7 +6541,7 @@ export class Api<
         any[],
         {
           /** @example BadRequest [Error]: <ERROR MESSAGE> */
-          msg?: string;
+          msg: string;
         }
       >({
         path: `/api/v1/db/data/${orgs}/${projectName}/${tableName}/group/${columnId}`,
@@ -6561,7 +6561,7 @@ export class Api<
  * @response `200` `object` OK
  * @response `400` `{
   \** @example BadRequest [Error]: <ERROR MESSAGE> *\
-  msg?: string,
+  msg: string,
 
 }`
  */
@@ -6576,7 +6576,7 @@ export class Api<
         object,
         {
           /** @example BadRequest [Error]: <ERROR MESSAGE> */
-          msg?: string;
+          msg: string;
         }
       >({
         path: `/api/v1/db/data/${orgs}/${projectName}/${tableName}/${rowId}`,
@@ -6595,7 +6595,7 @@ export class Api<
  * @response `200` `object` OK
  * @response `400` `{
   \** @example BadRequest [Error]: <ERROR MESSAGE> *\
-  msg?: string,
+  msg: string,
 
 }`
  */
@@ -6611,7 +6611,7 @@ export class Api<
         object,
         {
           /** @example BadRequest [Error]: <ERROR MESSAGE> */
-          msg?: string;
+          msg: string;
         }
       >({
         path: `/api/v1/db/data/${orgs}/${projectName}/${tableName}/${rowId}`,
@@ -6632,7 +6632,7 @@ export class Api<
  * @response `200` `number` OK
  * @response `400` `{
   \** @example BadRequest [Error]: <ERROR MESSAGE> *\
-  msg?: string,
+  msg: string,
 
 }`
  */
@@ -6647,7 +6647,7 @@ export class Api<
         number,
         {
           /** @example BadRequest [Error]: <ERROR MESSAGE> */
-          msg?: string;
+          msg: string;
         }
       >({
         path: `/api/v1/db/data/${orgs}/${projectName}/${tableName}/${rowId}`,
@@ -6666,7 +6666,7 @@ export class Api<
  * @response `200` `number` OK
  * @response `400` `{
   \** @example BadRequest [Error]: <ERROR MESSAGE> *\
-  msg?: string,
+  msg: string,
 
 }`
  */
@@ -6681,7 +6681,7 @@ export class Api<
         number,
         {
           /** @example BadRequest [Error]: <ERROR MESSAGE> */
-          msg?: string;
+          msg: string;
         }
       >({
         path: `/api/v1/db/data/${orgs}/${projectName}/${tableName}/${rowId}/exist`,
@@ -6703,7 +6703,7 @@ export class Api<
 })[]` OK
  * @response `400` `{
   \** @example BadRequest [Error]: <ERROR MESSAGE> *\
-  msg?: string,
+  msg: string,
 
 }`
  */
@@ -6720,7 +6720,7 @@ export class Api<
         }[],
         {
           /** @example BadRequest [Error]: <ERROR MESSAGE> */
-          msg?: string;
+          msg: string;
         }
       >({
         path: `/api/v1/db/data/bulk/${orgs}/${projectName}/${tableName}`,
@@ -6741,7 +6741,7 @@ export class Api<
  * @response `200` `(number)[]` OK
  * @response `400` `{
   \** @example BadRequest [Error]: <ERROR MESSAGE> *\
-  msg?: string,
+  msg: string,
 
 }`
  */
@@ -6756,7 +6756,7 @@ export class Api<
         number[],
         {
           /** @example BadRequest [Error]: <ERROR MESSAGE> */
-          msg?: string;
+          msg: string;
         }
       >({
         path: `/api/v1/db/data/bulk/${orgs}/${projectName}/${tableName}`,
@@ -6777,7 +6777,7 @@ export class Api<
  * @response `200` `(number)[]` OK
  * @response `400` `{
   \** @example BadRequest [Error]: <ERROR MESSAGE> *\
-  msg?: string,
+  msg: string,
 
 }`
  */
@@ -6792,7 +6792,7 @@ export class Api<
         number[],
         {
           /** @example BadRequest [Error]: <ERROR MESSAGE> */
-          msg?: string;
+          msg: string;
         }
       >({
         path: `/api/v1/db/data/bulk/${orgs}/${projectName}/${tableName}`,
@@ -6813,7 +6813,7 @@ export class Api<
  * @response `200` `any` OK
  * @response `400` `{
   \** @example BadRequest [Error]: <ERROR MESSAGE> *\
-  msg?: string,
+  msg: string,
 
 }`
  */
@@ -6831,7 +6831,7 @@ export class Api<
         any,
         {
           /** @example BadRequest [Error]: <ERROR MESSAGE> */
-          msg?: string;
+          msg: string;
         }
       >({
         path: `/api/v1/db/data/bulk/${orgs}/${projectName}/${tableName}/all`,
@@ -6853,7 +6853,7 @@ export class Api<
  * @response `200` `(object)[]` OK
  * @response `400` `{
   \** @example BadRequest [Error]: <ERROR MESSAGE> *\
-  msg?: string,
+  msg: string,
 
 }`
  */
@@ -6871,7 +6871,7 @@ export class Api<
         object[],
         {
           /** @example BadRequest [Error]: <ERROR MESSAGE> */
-          msg?: string;
+          msg: string;
         }
       >({
         path: `/api/v1/db/data/bulk/${orgs}/${projectName}/${tableName}/all`,
@@ -6893,7 +6893,7 @@ export class Api<
  * @response `200` `any` OK
  * @response `400` `{
   \** @example BadRequest [Error]: <ERROR MESSAGE> *\
-  msg?: string,
+  msg: string,
 
 }`
  */
@@ -6908,7 +6908,7 @@ export class Api<
         any,
         {
           /** @example BadRequest [Error]: <ERROR MESSAGE> */
-          msg?: string;
+          msg: string;
         }
       >({
         path: `/api/v1/db/data/${orgs}/${projectName}/${tableName}/export/${type}`,
@@ -6927,7 +6927,7 @@ export class Api<
  * @response `200` `any` OK
  * @response `400` `{
   \** @example BadRequest [Error]: <ERROR MESSAGE> *\
-  msg?: string,
+  msg: string,
 
 }`
  */
@@ -6951,7 +6951,7 @@ export class Api<
         any,
         {
           /** @example BadRequest [Error]: <ERROR MESSAGE> */
-          msg?: string;
+          msg: string;
         }
       >({
         path: `/api/v1/db/data/${orgs}/${projectName}/${tableName}/${rowId}/${relationType}/${columnName}`,
@@ -6975,7 +6975,7 @@ export class Api<
 }` OK
  * @response `400` `{
   \** @example BadRequest [Error]: <ERROR MESSAGE> *\
-  msg?: string,
+  msg: string,
 
 }`
  */
@@ -7018,7 +7018,7 @@ export class Api<
         },
         {
           /** @example BadRequest [Error]: <ERROR MESSAGE> */
-          msg?: string;
+          msg: string;
         }
       >({
         path: `/api/v1/db/data/${orgs}/${projectName}/${tableName}/${rowId}/${relationType}/${columnName}/${refRowId}`,
@@ -7042,7 +7042,7 @@ export class Api<
 }` OK
  * @response `400` `{
   \** @example BadRequest [Error]: <ERROR MESSAGE> *\
-  msg?: string,
+  msg: string,
 
 }`
  */
@@ -7063,7 +7063,7 @@ export class Api<
         },
         {
           /** @example BadRequest [Error]: <ERROR MESSAGE> */
-          msg?: string;
+          msg: string;
         }
       >({
         path: `/api/v1/db/data/${orgs}/${projectName}/${tableName}/${rowId}/${relationType}/${columnName}/${refRowId}`,
@@ -7082,7 +7082,7 @@ export class Api<
  * @response `200` `any` OK
  * @response `400` `{
   \** @example BadRequest [Error]: <ERROR MESSAGE> *\
-  msg?: string,
+  msg: string,
 
 }`
  */
@@ -7106,7 +7106,7 @@ export class Api<
         any,
         {
           /** @example BadRequest [Error]: <ERROR MESSAGE> */
-          msg?: string;
+          msg: string;
         }
       >({
         path: `/api/v1/db/data/${orgs}/${projectName}/${tableName}/${rowId}/${relationType}/${columnName}/exclude`,
@@ -7127,7 +7127,7 @@ export class Api<
  * @response `200` `(any)[]` OK
  * @response `400` `{
   \** @example BadRequest [Error]: <ERROR MESSAGE> *\
-  msg?: string,
+  msg: string,
 
 }`
  */
@@ -7150,7 +7150,7 @@ export class Api<
         any[],
         {
           /** @example BadRequest [Error]: <ERROR MESSAGE> */
-          msg?: string;
+          msg: string;
         }
       >({
         path: `/api/v1/db/data/${orgs}/${projectName}/${tableName}/views/${viewName}/group/${columnId}`,
@@ -7169,14 +7169,14 @@ export class Api<
  * @request GET:/api/v1/db/data/{orgs}/{projectName}/{tableName}/views/{viewName}
  * @response `200` `{
   \** List of table view rows *\
-  list?: (object)[],
+  list: (object)[],
   \** Paginated Info *\
-  pageInfo?: PaginatedType,
+  pageInfo: PaginatedType,
 
 }` OK
  * @response `400` `{
   \** @example BadRequest [Error]: <ERROR MESSAGE> *\
-  msg?: string,
+  msg: string,
 
 }`
  */
@@ -7198,13 +7198,13 @@ export class Api<
       this.request<
         {
           /** List of table view rows */
-          list?: object[];
+          list: object[];
           /** Paginated Info */
-          pageInfo?: PaginatedType;
+          pageInfo: PaginatedType;
         },
         {
           /** @example BadRequest [Error]: <ERROR MESSAGE> */
-          msg?: string;
+          msg: string;
         }
       >({
         path: `/api/v1/db/data/${orgs}/${projectName}/${tableName}/views/${viewName}`,
@@ -7224,7 +7224,7 @@ export class Api<
  * @response `200` `object` OK
  * @response `400` `{
   \** @example BadRequest [Error]: <ERROR MESSAGE> *\
-  msg?: string,
+  msg: string,
 
 }`
  */
@@ -7240,7 +7240,7 @@ export class Api<
         object,
         {
           /** @example BadRequest [Error]: <ERROR MESSAGE> */
-          msg?: string;
+          msg: string;
         }
       >({
         path: `/api/v1/db/data/${orgs}/${projectName}/${tableName}/views/${viewName}`,
@@ -7261,7 +7261,7 @@ export class Api<
  * @response `200` `object` OK
  * @response `400` `{
   \** @example BadRequest [Error]: <ERROR MESSAGE> *\
-  msg?: string,
+  msg: string,
 
 }`
  */
@@ -7283,7 +7283,7 @@ export class Api<
         object,
         {
           /** @example BadRequest [Error]: <ERROR MESSAGE> */
-          msg?: string;
+          msg: string;
         }
       >({
         path: `/api/v1/db/data/${orgs}/${projectName}/${tableName}/views/${viewName}/find-one`,
@@ -7303,7 +7303,7 @@ export class Api<
  * @response `200` `any` OK
  * @response `400` `{
   \** @example BadRequest [Error]: <ERROR MESSAGE> *\
-  msg?: string,
+  msg: string,
 
 }`
  */
@@ -7328,7 +7328,7 @@ export class Api<
         any,
         {
           /** @example BadRequest [Error]: <ERROR MESSAGE> */
-          msg?: string;
+          msg: string;
         }
       >({
         path: `/api/v1/db/data/${orgs}/${projectName}/${tableName}/views/${viewName}/groupby`,
@@ -7385,7 +7385,7 @@ export class Api<
  * @response `200` `object` OK
  * @response `400` `{
   \** @example BadRequest [Error]: <ERROR MESSAGE> *\
-  msg?: string,
+  msg: string,
 
 }`
  */
@@ -7401,7 +7401,7 @@ export class Api<
         object,
         {
           /** @example BadRequest [Error]: <ERROR MESSAGE> */
-          msg?: string;
+          msg: string;
         }
       >({
         path: `/api/v1/db/data/${orgs}/${projectName}/${tableName}/views/${viewName}/${rowId}`,
@@ -7420,7 +7420,7 @@ export class Api<
  * @response `200` `object` OK
  * @response `400` `{
   \** @example BadRequest [Error]: <ERROR MESSAGE> *\
-  msg?: string,
+  msg: string,
 
 }`
  */
@@ -7437,7 +7437,7 @@ export class Api<
         object,
         {
           /** @example BadRequest [Error]: <ERROR MESSAGE> */
-          msg?: string;
+          msg: string;
         }
       >({
         path: `/api/v1/db/data/${orgs}/${projectName}/${tableName}/views/${viewName}/${rowId}`,
@@ -7458,7 +7458,7 @@ export class Api<
  * @response `200` `number` OK
  * @response `400` `{
   \** @example BadRequest [Error]: <ERROR MESSAGE> *\
-  msg?: string,
+  msg: string,
 
 }`
  */
@@ -7474,7 +7474,7 @@ export class Api<
         number,
         {
           /** @example BadRequest [Error]: <ERROR MESSAGE> */
-          msg?: string;
+          msg: string;
         }
       >({
         path: `/api/v1/db/data/${orgs}/${projectName}/${tableName}/views/${viewName}/${rowId}`,
@@ -7493,7 +7493,7 @@ export class Api<
  * @response `201` `number` Created
  * @response `400` `{
   \** @example BadRequest [Error]: <ERROR MESSAGE> *\
-  msg?: string,
+  msg: string,
 
 }`
  */
@@ -7509,7 +7509,7 @@ export class Api<
         number,
         {
           /** @example BadRequest [Error]: <ERROR MESSAGE> */
-          msg?: string;
+          msg: string;
         }
       >({
         path: `/api/v1/db/data/${orgs}/${projectName}/${tableName}/views/${viewName}/${rowId}/exist`,
@@ -7528,7 +7528,7 @@ export class Api<
  * @response `200` `any` OK
  * @response `400` `{
   \** @example BadRequest [Error]: <ERROR MESSAGE> *\
-  msg?: string,
+  msg: string,
 
 }`
  */
@@ -7544,7 +7544,7 @@ export class Api<
         any,
         {
           /** @example BadRequest [Error]: <ERROR MESSAGE> */
-          msg?: string;
+          msg: string;
         }
       >({
         path: `/api/v1/db/data/${orgs}/${projectName}/${tableName}/views/${viewName}/export/${type}`,
@@ -7563,20 +7563,20 @@ export class Api<
  * @request GET:/api/v1/db/public/shared-view/{sharedViewUuid}/group/{columnId}
  * @response `200` `({
   \** The Grouped Key *\
-  key?: string,
+  key: string,
   \** the paginated result of the given key *\
-  value?: {
+  value: {
   \** List of the target data *\
-  list?: (object)[],
-  \** Model for Paginated *\
-  pageInfo?: PaginatedType,
+  list: (object)[],
+  \** Paginated Info *\
+  pageInfo: PaginatedType,
 
 },
 
 })[]` OK
  * @response `400` `{
   \** @example BadRequest [Error]: <ERROR MESSAGE> *\
-  msg?: string,
+  msg: string,
 
 }`
  */
@@ -7610,18 +7610,18 @@ export class Api<
       this.request<
         {
           /** The Grouped Key */
-          key?: string;
+          key: string;
           /** the paginated result of the given key */
-          value?: {
+          value: {
             /** List of the target data */
-            list?: object[];
-            /** Model for Paginated */
-            pageInfo?: PaginatedType;
+            list: object[];
+            /** Paginated Info */
+            pageInfo: PaginatedType;
           };
         }[],
         {
           /** @example BadRequest [Error]: <ERROR MESSAGE> */
-          msg?: string;
+          msg: string;
         }
       >({
         path: `/api/v1/db/public/shared-view/${sharedViewUuid}/group/${columnId}`,
@@ -7641,7 +7641,7 @@ export class Api<
  * @response `200` `SharedViewListType` OK
  * @response `400` `{
   \** @example BadRequest [Error]: <ERROR MESSAGE> *\
-  msg?: string,
+  msg: string,
 
 }`
  */
@@ -7675,7 +7675,7 @@ export class Api<
         SharedViewListType,
         {
           /** @example BadRequest [Error]: <ERROR MESSAGE> */
-          msg?: string;
+          msg: string;
         }
       >({
         path: `/api/v1/db/public/shared-view/${sharedViewUuid}/rows`,
@@ -7695,7 +7695,7 @@ export class Api<
  * @response `200` `object` OK
  * @response `400` `{
   \** @example BadRequest [Error]: <ERROR MESSAGE> *\
-  msg?: string,
+  msg: string,
 
 }`
  */
@@ -7708,7 +7708,7 @@ export class Api<
         object,
         {
           /** @example BadRequest [Error]: <ERROR MESSAGE> */
-          msg?: string;
+          msg: string;
         }
       >({
         path: `/api/v1/db/public/shared-view/${sharedViewUuid}/rows`,
@@ -7728,14 +7728,14 @@ export class Api<
  * @request GET:/api/v1/db/public/shared-view/{sharedViewUuid}/rows/{rowId}/{relationType}/{columnName}
  * @response `200` `{
   \** List of data objects *\
-  list?: (object)[],
+  list: (object)[],
   \** Paginated info *\
-  pageInfo?: PaginatedType,
+  pageInfo: PaginatedType,
 
 }` OK
  * @response `400` `{
   \** @example BadRequest [Error]: <ERROR MESSAGE> *\
-  msg?: string,
+  msg: string,
 
 }`
  */
@@ -7771,13 +7771,13 @@ export class Api<
       this.request<
         {
           /** List of data objects */
-          list?: object[];
+          list: object[];
           /** Paginated info */
-          pageInfo?: PaginatedType;
+          pageInfo: PaginatedType;
         },
         {
           /** @example BadRequest [Error]: <ERROR MESSAGE> */
-          msg?: string;
+          msg: string;
         }
       >({
         path: `/api/v1/db/public/shared-view/${sharedViewUuid}/rows/${rowId}/${relationType}/${columnName}`,
@@ -7797,7 +7797,7 @@ export class Api<
  * @response `200` `any` OK
  * @response `400` `{
   \** @example BadRequest [Error]: <ERROR MESSAGE> *\
-  msg?: string,
+  msg: string,
 
 }`
  */
@@ -7810,7 +7810,7 @@ export class Api<
         any,
         {
           /** @example BadRequest [Error]: <ERROR MESSAGE> */
-          msg?: string;
+          msg: string;
         }
       >({
         path: `/api/v1/db/public/shared-view/${sharedViewUuid}/rows/export/${type}`,
@@ -7829,7 +7829,7 @@ export class Api<
  * @response `200` `any` OK
  * @response `400` `{
   \** @example BadRequest [Error]: <ERROR MESSAGE> *\
-  msg?: string,
+  msg: string,
 
 }`
  */
@@ -7864,7 +7864,7 @@ export class Api<
         any,
         {
           /** @example BadRequest [Error]: <ERROR MESSAGE> */
-          msg?: string;
+          msg: string;
         }
       >({
         path: `/api/v1/db/public/shared-view/${sharedViewUuid}/nested/${columnName}`,
@@ -7888,7 +7888,7 @@ export class Api<
 }` OK
  * @response `400` `{
   \** @example BadRequest [Error]: <ERROR MESSAGE> *\
-  msg?: string,
+  msg: string,
 
 }`
  */
@@ -7900,7 +7900,7 @@ export class Api<
         },
         {
           /** @example BadRequest [Error]: <ERROR MESSAGE> */
-          msg?: string;
+          msg: string;
         }
       >({
         path: `/api/v1/db/public/shared-base/${sharedBaseUuid}/meta`,
@@ -7930,7 +7930,7 @@ export class Api<
 })` OK
  * @response `400` `{
   \** @example BadRequest [Error]: <ERROR MESSAGE> *\
-  msg?: string,
+  msg: string,
 
 }`
  */
@@ -7958,7 +7958,7 @@ export class Api<
         },
         {
           /** @example BadRequest [Error]: <ERROR MESSAGE> */
-          msg?: string;
+          msg: string;
         }
       >({
         path: `/api/v1/db/public/shared-view/${sharedViewUuid}/meta`,
@@ -7976,12 +7976,12 @@ export class Api<
  * @summary List Comments in Audit
  * @request GET:/api/v1/db/meta/audits/comments
  * @response `200` `{
-  list?: (AuditType)[],
+  list: (AuditType)[],
 
 }` OK
  * @response `400` `{
   \** @example BadRequest [Error]: <ERROR MESSAGE> *\
-  msg?: string,
+  msg: string,
 
 }`
  */
@@ -8007,11 +8007,11 @@ export class Api<
     ) =>
       this.request<
         {
-          list?: AuditType[];
+          list: AuditType[];
         },
         {
           /** @example BadRequest [Error]: <ERROR MESSAGE> */
-          msg?: string;
+          msg: string;
         }
       >({
         path: `/api/v1/db/meta/audits/comments`,
@@ -8031,7 +8031,7 @@ export class Api<
  * @response `200` `AuditType` OK
  * @response `400` `{
   \** @example BadRequest [Error]: <ERROR MESSAGE> *\
-  msg?: string,
+  msg: string,
 
 }`
  */
@@ -8040,7 +8040,7 @@ export class Api<
         AuditType,
         {
           /** @example BadRequest [Error]: <ERROR MESSAGE> */
-          msg?: string;
+          msg: string;
         }
       >({
         path: `/api/v1/db/meta/audits/comments`,
@@ -8063,17 +8063,17 @@ export class Api<
    * The number of comments
    * @example 4
    *\
-  count?: string,
+  count: string,
   \**
    * Row ID
    * @example 1
    *\
-  row_id?: string,
+  row_id: string,
 
 })[]` OK
  * @response `400` `{
   \** @example BadRequest [Error]: <ERROR MESSAGE> *\
-  msg?: string,
+  msg: string,
 
 }`
  */
@@ -8092,16 +8092,16 @@ export class Api<
            * The number of comments
            * @example 4
            */
-          count?: string;
+          count: string;
           /**
            * Row ID
            * @example 1
            */
-          row_id?: string;
+          row_id: string;
         }[],
         {
           /** @example BadRequest [Error]: <ERROR MESSAGE> */
-          msg?: string;
+          msg: string;
         }
       >({
         path: `/api/v1/db/meta/audits/comments/count`,
@@ -8121,7 +8121,7 @@ export class Api<
  * @response `200` `AuditType` OK
  * @response `400` `{
   \** @example BadRequest [Error]: <ERROR MESSAGE> *\
-  msg?: string,
+  msg: string,
 
 }`
  */
@@ -8134,7 +8134,7 @@ export class Api<
         AuditType,
         {
           /** @example BadRequest [Error]: <ERROR MESSAGE> */
-          msg?: string;
+          msg: string;
         }
       >({
         path: `/api/v1/db/meta/audits/rows/${rowId}/update`,
@@ -8160,7 +8160,7 @@ export class Api<
 }` OK
  * @response `400` `{
   \** @example BadRequest [Error]: <ERROR MESSAGE> *\
-  msg?: string,
+  msg: string,
 
 }`
  */
@@ -8197,7 +8197,7 @@ export class Api<
         },
         {
           /** @example BadRequest [Error]: <ERROR MESSAGE> */
-          msg?: string;
+          msg: string;
         }
       >({
         path: `/api/v1/db/meta/connection/test`,
@@ -8239,7 +8239,7 @@ export class Api<
 }` OK
  * @response `400` `{
   \** @example BadRequest [Error]: <ERROR MESSAGE> *\
-  msg?: string,
+  msg: string,
 
 }`
  */
@@ -8283,7 +8283,7 @@ export class Api<
         },
         {
           /** @example BadRequest [Error]: <ERROR MESSAGE> */
-          msg?: string;
+          msg: string;
         }
       >({
         path: `/api/v1/url_to_config`,
@@ -8323,7 +8323,7 @@ export class Api<
 }` OK
  * @response `400` `{
   \** @example BadRequest [Error]: <ERROR MESSAGE> *\
-  msg?: string,
+  msg: string,
 
 }`
  */
@@ -8350,7 +8350,7 @@ export class Api<
         },
         {
           /** @example BadRequest [Error]: <ERROR MESSAGE> */
-          msg?: string;
+          msg: string;
         }
       >({
         path: `/api/v1/db/meta/nocodb/info`,
@@ -8369,7 +8369,7 @@ export class Api<
  * @response `200` `object` OK
  * @response `400` `{
   \** @example BadRequest [Error]: <ERROR MESSAGE> *\
-  msg?: string,
+  msg: string,
 
 }`
  */
@@ -8378,7 +8378,7 @@ export class Api<
         object,
         {
           /** @example BadRequest [Error]: <ERROR MESSAGE> */
-          msg?: string;
+          msg: string;
         }
       >({
         path: `/api/v1/db/meta/axiosRequestMake`,
@@ -8411,7 +8411,7 @@ export class Api<
 }` OK
  * @response `400` `{
   \** @example BadRequest [Error]: <ERROR MESSAGE> *\
-  msg?: string,
+  msg: string,
 
 }`
  */
@@ -8431,7 +8431,7 @@ export class Api<
         },
         {
           /** @example BadRequest [Error]: <ERROR MESSAGE> */
-          msg?: string;
+          msg: string;
         }
       >({
         path: `/api/v1/version`,
@@ -8458,7 +8458,7 @@ export class Api<
 }` OK
  * @response `400` `{
   \** @example BadRequest [Error]: <ERROR MESSAGE> *\
-  msg?: string,
+  msg: string,
 
 }`
  */
@@ -8474,7 +8474,7 @@ export class Api<
         },
         {
           /** @example BadRequest [Error]: <ERROR MESSAGE> */
-          msg?: string;
+          msg: string;
         }
       >({
         path: `/api/v1/health`,
@@ -8550,7 +8550,7 @@ export class Api<
 }` OK
  * @response `400` `{
   \** @example BadRequest [Error]: <ERROR MESSAGE> *\
-  msg?: string,
+  msg: string,
 
 }`
  */
@@ -8611,7 +8611,7 @@ export class Api<
         },
         {
           /** @example BadRequest [Error]: <ERROR MESSAGE> */
-          msg?: string;
+          msg: string;
         }
       >({
         path: `/api/v1/aggregated-meta-info`,
@@ -8645,7 +8645,7 @@ export class Api<
  * @response `200` `boolean` OK
  * @response `400` `{
   \** @example BadRequest [Error]: <ERROR MESSAGE> *\
-  msg?: string,
+  msg: string,
 
 }`
  */
@@ -8654,7 +8654,7 @@ export class Api<
         boolean,
         {
           /** @example BadRequest [Error]: <ERROR MESSAGE> */
-          msg?: string;
+          msg: string;
         }
       >({
         path: `/api/v1/db/meta/cache`,
@@ -8674,7 +8674,7 @@ export class Api<
  * @response `200` `HookListType` OK
  * @response `400` `{
   \** @example BadRequest [Error]: <ERROR MESSAGE> *\
-  msg?: string,
+  msg: string,
 
 }`
  */
@@ -8683,7 +8683,7 @@ export class Api<
         HookListType,
         {
           /** @example BadRequest [Error]: <ERROR MESSAGE> */
-          msg?: string;
+          msg: string;
         }
       >({
         path: `/api/v1/db/meta/tables/${tableId}/hooks`,
@@ -8702,7 +8702,7 @@ export class Api<
  * @response `200` `HookReqType` OK
  * @response `400` `{
   \** @example BadRequest [Error]: <ERROR MESSAGE> *\
-  msg?: string,
+  msg: string,
 
 }`
  */
@@ -8711,7 +8711,7 @@ export class Api<
         HookReqType,
         {
           /** @example BadRequest [Error]: <ERROR MESSAGE> */
-          msg?: string;
+          msg: string;
         }
       >({
         path: `/api/v1/db/meta/tables/${tableId}/hooks`,
@@ -8736,7 +8736,7 @@ export class Api<
 }` OK
  * @response `400` `{
   \** @example BadRequest [Error]: <ERROR MESSAGE> *\
-  msg?: string,
+  msg: string,
 
 }`
  */
@@ -8752,7 +8752,7 @@ export class Api<
         },
         {
           /** @example BadRequest [Error]: <ERROR MESSAGE> */
-          msg?: string;
+          msg: string;
         }
       >({
         path: `/api/v1/db/meta/tables/${tableId}/hooks/test`,
@@ -8777,7 +8777,7 @@ export class Api<
 }` OK
  * @response `400` `{
   \** @example BadRequest [Error]: <ERROR MESSAGE> *\
-  msg?: string,
+  msg: string,
 
 }`
  */
@@ -8793,7 +8793,7 @@ export class Api<
         },
         {
           /** @example BadRequest [Error]: <ERROR MESSAGE> */
-          msg?: string;
+          msg: string;
         }
       >({
         path: `/api/v1/db/meta/tables/${tableId}/hooks/samplePayload/${operation}`,
@@ -8812,7 +8812,7 @@ export class Api<
  * @response `200` `HookType` OK
  * @response `400` `{
   \** @example BadRequest [Error]: <ERROR MESSAGE> *\
-  msg?: string,
+  msg: string,
 
 }`
  */
@@ -8821,7 +8821,7 @@ export class Api<
         HookType,
         {
           /** @example BadRequest [Error]: <ERROR MESSAGE> */
-          msg?: string;
+          msg: string;
         }
       >({
         path: `/api/v1/db/meta/hooks/${hookId}`,
@@ -8842,7 +8842,7 @@ export class Api<
  * @response `200` `boolean` OK
  * @response `400` `{
   \** @example BadRequest [Error]: <ERROR MESSAGE> *\
-  msg?: string,
+  msg: string,
 
 }`
  */
@@ -8851,7 +8851,7 @@ export class Api<
         boolean,
         {
           /** @example BadRequest [Error]: <ERROR MESSAGE> */
-          msg?: string;
+          msg: string;
         }
       >({
         path: `/api/v1/db/meta/hooks/${hookId}`,
@@ -8876,7 +8876,7 @@ export class Api<
 }` OK
  * @response `400` `{
   \** @example BadRequest [Error]: <ERROR MESSAGE> *\
-  msg?: string,
+  msg: string,
 
 }`
  */
@@ -8889,7 +8889,7 @@ export class Api<
         },
         {
           /** @example BadRequest [Error]: <ERROR MESSAGE> */
-          msg?: string;
+          msg: string;
         }
       >({
         path: `/api/v1/db/meta/plugins`,
@@ -8908,7 +8908,7 @@ export class Api<
  * @response `200` `boolean` OK
  * @response `400` `{
   \** @example BadRequest [Error]: <ERROR MESSAGE> *\
-  msg?: string,
+  msg: string,
 
 }`
  */
@@ -8917,7 +8917,7 @@ export class Api<
         boolean,
         {
           /** @example BadRequest [Error]: <ERROR MESSAGE> */
-          msg?: string;
+          msg: string;
         }
       >({
         path: `/api/v1/db/meta/plugins/${pluginTitle}/status`,
@@ -8936,7 +8936,7 @@ export class Api<
  * @response `200` `any` OK
  * @response `400` `{
   \** @example BadRequest [Error]: <ERROR MESSAGE> *\
-  msg?: string,
+  msg: string,
 
 }`
  */
@@ -8945,7 +8945,7 @@ export class Api<
         any,
         {
           /** @example BadRequest [Error]: <ERROR MESSAGE> */
-          msg?: string;
+          msg: string;
         }
       >({
         path: `/api/v1/db/meta/plugins/test`,
@@ -8966,7 +8966,7 @@ export class Api<
  * @response `200` `any` OK
  * @response `400` `{
   \** @example BadRequest [Error]: <ERROR MESSAGE> *\
-  msg?: string,
+  msg: string,
 
 }`
  */
@@ -8979,7 +8979,7 @@ export class Api<
         any,
         {
           /** @example BadRequest [Error]: <ERROR MESSAGE> */
-          msg?: string;
+          msg: string;
         }
       >({
         path: `/api/v1/db/meta/plugins/${pluginId}`,
@@ -9000,7 +9000,7 @@ export class Api<
  * @response `200` `PluginType` OK
  * @response `400` `{
   \** @example BadRequest [Error]: <ERROR MESSAGE> *\
-  msg?: string,
+  msg: string,
 
 }`
  */
@@ -9009,7 +9009,7 @@ export class Api<
         PluginType,
         {
           /** @example BadRequest [Error]: <ERROR MESSAGE> */
-          msg?: string;
+          msg: string;
         }
       >({
         path: `/api/v1/db/meta/plugins/${pluginId}`,
@@ -9029,7 +9029,7 @@ export class Api<
  * @response `200` `ApiTokenListType` OK
  * @response `400` `{
   \** @example BadRequest [Error]: <ERROR MESSAGE> *\
-  msg?: string,
+  msg: string,
 
 }`
  */
@@ -9038,7 +9038,7 @@ export class Api<
         ApiTokenListType,
         {
           /** @example BadRequest [Error]: <ERROR MESSAGE> */
-          msg?: string;
+          msg: string;
         }
       >({
         path: `/api/v1/db/meta/projects/${projectId}/api-tokens`,
@@ -9057,7 +9057,7 @@ export class Api<
  * @response `200` `ApiTokenType` OK
  * @response `400` `{
   \** @example BadRequest [Error]: <ERROR MESSAGE> *\
-  msg?: string,
+  msg: string,
 
 }`
  */
@@ -9070,7 +9070,7 @@ export class Api<
         ApiTokenType,
         {
           /** @example BadRequest [Error]: <ERROR MESSAGE> */
-          msg?: string;
+          msg: string;
         }
       >({
         path: `/api/v1/db/meta/projects/${projectId}/api-tokens`,
@@ -9091,7 +9091,7 @@ export class Api<
  * @response `200` `number` OK
  * @response `400` `{
   \** @example BadRequest [Error]: <ERROR MESSAGE> *\
-  msg?: string,
+  msg: string,
 
 }`
  */
@@ -9100,7 +9100,7 @@ export class Api<
         number,
         {
           /** @example BadRequest [Error]: <ERROR MESSAGE> */
-          msg?: string;
+          msg: string;
         }
       >({
         path: `/api/v1/db/meta/projects/${projectId}/api-tokens/${token}`,

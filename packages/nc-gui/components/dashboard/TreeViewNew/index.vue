@@ -1,6 +1,5 @@
 <script setup lang="ts">
-import type {BaseType, ProjectType, TableType} from 'nocodb-sdk'
-import type { Input } from 'ant-design-vue'
+import type { BaseType, ProjectType, TableType } from 'nocodb-sdk'
 import { Dropdown, Tooltip, message } from 'ant-design-vue'
 import Sortable from 'sortablejs'
 import { Icon as IconifyIcon } from '@iconify/vue'
@@ -48,17 +47,16 @@ const { loadProjectTables, loadProject } = projectsStore
 const { projectTableList, projects } = storeToRefs(projectsStore)
 
 const loadProjectAndTableList = async (project: ProjectType) => {
-
-  if(!project){
+  if (!project) {
     return
   }
 
   // if document project, add a document tab and route to the page
-  switch(project.type){
+  switch (project.type) {
     case 'documentation':
       addTab({
         id: project.id,
-         title: project.title,
+        title: project.title,
         type: TabType.DOCUMENT,
         projectId: project.id,
       })
@@ -68,14 +66,13 @@ const loadProjectAndTableList = async (project: ProjectType) => {
       await loadProject(project.id)
       await loadProjectTables(project.id)
       break
-
   }
 }
 
 const projectStore = useProject()
 //
 // const { loadTables } = projectStore
-const {  isSharedBase } = storeToRefs(projectStore)
+const { isSharedBase } = storeToRefs(projectStore)
 
 const { activeTab } = storeToRefs(useTabs())
 
@@ -104,14 +101,17 @@ let filterQuery = $ref('')
 const activeTable = computed(() => ([TabType.TABLE, TabType.VIEW].includes(activeTab.value?.type) ? activeTab.value.id : null))
 
 const tablesById = $computed(() =>
-  Object.values(projectTableList.value).flat()?.reduce<Record<string, TableType>>((acc, table) => {
-    acc[table.id!] = table
+  Object.values(projectTableList.value)
+    .flat()
+    ?.reduce<Record<string, TableType>>((acc, table) => {
+      acc[table.id!] = table
 
-    return acc
-  }, {}),
+      return acc
+    }, {}),
 )
 
-const filteredTables = $computed(() => []
+const filteredTables = $computed(
+  () => [],
   // tables.value?.filter(
   //   (table) => !searchActive.value || !filterQuery || table.title.toLowerCase().includes(filterQuery.toLowerCase()),
   // ),
@@ -219,7 +219,7 @@ function openRenameTableDialog(table: TableType, baseId?: string, rightClick = f
   const { close } = useDialog(resolveComponent('DlgTableRename'), {
     'modelValue': isOpen,
     'tableMeta': table,
-    'baseId': baseId, //|| bases.value[0].id,
+    'baseId': baseId, // || bases.value[0].id,
     'onUpdate:modelValue': closeDialog,
   })
 
@@ -238,7 +238,7 @@ function openQuickImportDialog(type: string, baseId?: string) {
   const { close } = useDialog(resolveComponent('DlgQuickImport'), {
     'modelValue': isOpen,
     'importType': type,
-    'baseId': baseId, //|| bases.value[0].id,
+    'baseId': baseId, // || bases.value[0].id,
     'onUpdate:modelValue': closeDialog,
   })
 
@@ -256,7 +256,7 @@ function openAirtableImportDialog(baseId?: string) {
 
   const { close } = useDialog(resolveComponent('DlgAirtableImport'), {
     'modelValue': isOpen,
-    'baseId': baseId ,//|| bases.value[0].id,
+    'baseId': baseId, // || bases.value[0].id,
     'onUpdate:modelValue': closeDialog,
   })
 
@@ -274,7 +274,7 @@ function openTableCreateDialog(baseId?: string, projectId?: string) {
 
   const { close } = useDialog(resolveComponent('DlgTableCreate'), {
     'modelValue': isOpen,
-    'baseId': baseId,// || bases.value[0].id,
+    'baseId': baseId, // || bases.value[0].id,
     'projectId': projectId || projects.value[0].id,
     'onUpdate:modelValue': closeDialog,
   })
@@ -293,7 +293,7 @@ function openTableCreateMagicDialog(baseId?: string) {
 
   const { close } = useDialog(resolveComponent('DlgTableMagic'), {
     'modelValue': isOpen,
-    'baseId': baseId,// || bases.value[0].id,
+    'baseId': baseId, // || bases.value[0].id,
     'onUpdate:modelValue': closeDialog,
   })
 
@@ -311,7 +311,7 @@ function openSchemaMagicDialog(baseId?: string) {
 
   const { close } = useDialog(resolveComponent('DlgSchemaMagic'), {
     'modelValue': isOpen,
-    'baseId': baseId,// || bases.value[0].id,
+    'baseId': baseId, // || bases.value[0].id,
     'onUpdate:modelValue': closeDialog,
   })
 
@@ -425,13 +425,23 @@ useEventListener(document, 'contextmenu', handleContext, true)
 const menu = useState('tree-view', () => [])
 const selectedKey = useState('tree-view', () => [])
 
+const createProject = async () => {
+  const { close } = useDialog(resolveComponent('DlgCreateProject'), {
+    'modelValue': true,
+    'onUpdate:modelValue': closeDialog,
+  })
+
+  function closeDialog() {
+    close(1000)
+  }
+}
+
+const projectEditMode = reactive({})
 </script>
 
 <template>
   <div class="nc-treeview-container flex flex-col">
-    <a-menu v-model:openKeys="menu"
-            v-model:selectedKeys="selectedKey"
-            mode="inline" class="flex-grow min-h-50 overflow-y-auto">
+    <a-menu v-model:openKeys="menu" v-model:selectedKeys="selectedKey" mode="inline" class="flex-grow min-h-50 overflow-y-auto">
       <a-sub-menu
         v-for="project in workspaceProjects"
         :key="project.id"
@@ -442,18 +452,16 @@ const selectedKey = useState('tree-view', () => [])
           <GeneralProjectIcon :type="project.type" />
         </template>
         <template #title>
-          <span class="capitalize">
-            {{ project.title }}
-          </span>
+          <DashboardTreeViewNewProjectTitleNode :project="projects[project.id] ?? project" />
         </template>
         <a-menu-item-group key="g1">
           <!--          <a-menu-item v-for="table of projectTableList[project.id] ?? []" :key="table.id" @click="addTableTab(table)"> -->
           <!--            {{ table.title }} -->
           <!--          </a-menu-item> -->
 
-<div v-if="project.type === 'documentation'">
-          <DocsSideBarNew  :project="project"/>
-</div>
+          <div v-if="project.type === 'documentation'">
+            <DocsSideBarNew v-if="menu?.includes(project.id)" :project="project" />
+          </div>
           <a-dropdown
             v-else-if="project && projects[project.id] && projects[project.id].bases"
             :trigger="['contextmenu']"
@@ -463,7 +471,6 @@ const selectedKey = useState('tree-view', () => [])
               class="pt-2 pl-2 pb-2 flex-1 overflow-y-auto flex flex-col scrollbar-thin-dull"
               :class="{ 'mb-[20px]': isSharedBase }"
             >
-
               <div
                 v-if="
                   projects[project.id].bases[0] &&
@@ -680,7 +687,7 @@ const selectedKey = useState('tree-view', () => [])
                                         :class="{ 'group-hover:text-gray-500': isUIAllowed('treeview-drag-n-drop') }"
                                       />
 
-                                      <template v-if="isUIAllowed('tableIconCustomisation')" #title>Change icon</template>
+                                      <template v-if="isUIAllowed('tableIconCustomisation')" #title>Change icon </template>
                                     </component>
                                   </div>
                                   <template v-if="isUIAllowed('tableIconCustomisation')" #overlay>
@@ -763,7 +770,9 @@ const selectedKey = useState('tree-view', () => [])
                             @contextmenu="setMenuContext('base', base)"
                           >
                             <GeneralBaseLogo :base-type="base.type" />
-                            Default ({{ projectTableList[project.id]?.filter((table) => table.base_id === base.id).length || '0' }})
+                            Default ({{
+                              projectTableList[project.id]?.filter((table) => table.base_id === base.id).length || '0'
+                            }})
                           </div>
                           <div
                             v-else
@@ -1057,7 +1066,7 @@ const selectedKey = useState('tree-view', () => [])
                                           :class="{ 'group-hover:text-gray-500': isUIAllowed('treeview-drag-n-drop') }"
                                         />
 
-                                        <template v-if="isUIAllowed('tableIconCustomisation')" #title>Change icon</template>
+                                        <template v-if="isUIAllowed('tableIconCustomisation')" #title>Change icon </template>
                                       </component>
                                     </div>
                                     <template v-if="isUIAllowed('tableIconCustomisation')" #overlay>
@@ -1155,7 +1164,9 @@ const selectedKey = useState('tree-view', () => [])
       </a-sub-menu>
     </a-menu>
 
-
+    <div class="flex items-center py-2 justify-center">
+      <WorkspaceCreateProjectBtn emit-event @create="createProject" />
+    </div>
     <a-divider class="!my-0" />
 
     <div class="flex items-start flex-col justify-start px-2 py-3 gap-2">
@@ -1297,11 +1308,11 @@ const selectedKey = useState('tree-view', () => [])
   @apply !py-0;
 }
 
-:deep(.nc-project-sub-menu .ant-menu-submenu-title){
-  @apply !pr-1 !pl-3
+:deep(.nc-project-sub-menu .ant-menu-submenu-title) {
+  @apply !pr-1 !pl-3;
 }
 
-:deep( .ant-menu-inline .ant-menu-submenu-title){
-  @apply !h-28px
+:deep(.ant-menu-inline .ant-menu-submenu-title) {
+  @apply !h-28px;
 }
 </style>

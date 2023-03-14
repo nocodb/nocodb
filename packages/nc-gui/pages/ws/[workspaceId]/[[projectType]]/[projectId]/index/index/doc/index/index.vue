@@ -11,5 +11,5 @@ const { project } = storeToRefs(useProject())
 </script>
 
 <template>
-  <DocsBookView v-if="project?.id" :key="project?.id" />
+  <DocsBookViewNew v-if="project?.id" :key="project?.id" />
 </template>

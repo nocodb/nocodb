@@ -3,21 +3,30 @@ import { NcProjectType, useRouter } from '#imports'
 
 const props = defineProps<{
   activeWorkspaceId: string
+  emitEvent?:boolean
 }>()
 
 const router = useRouter()
+
+const emit = defineEmits<{
+  (event: 'createProject', type: NcProjectType): void
+}>()
 
 const navigateToCreateProject = (type: NcProjectType) => {
   if (type === NcProjectType.AUTOMATION) {
     return message.info('Automation is not available at the moment')
   } else {
-    router.push({
-      path: '/create',
-      query: {
-        type,
-        workspaceId: props.activeWorkspaceId,
-      },
-    })
+    if(props.emitEvent){
+      emit('createProject', type)
+    }else {
+      router.push({
+        path: '/create',
+        query: {
+          type,
+          workspaceId: props.activeWorkspaceId,
+        },
+      })
+    }
   }
 }
 

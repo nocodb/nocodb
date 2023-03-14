@@ -167,16 +167,18 @@ const [useProvideKanbanViewStore, useKanbanViewStore] = useInjectionState(
         where = `(${groupingField.value},is,null)`
       }
 
+      if (xWhere.value) {
+        where = `${where} and ${xWhere.value}`
+      }
+
       const response = !isPublic.value
         ? await api.dbViewRow.list('noco', project.value.id!, meta.value!.id!, viewMeta.value!.id!, {
-            ...{ where: xWhere.value },
             ...params,
             ...(isUIAllowed('sortSync') ? {} : { sortArrJson: JSON.stringify(sorts.value) }),
             ...(isUIAllowed('filterSync') ? {} : { filterArrJson: JSON.stringify(nestedFilters.value) }),
             where,
           })
         : await fetchSharedViewData({
-            ...{ where: xWhere.value },
             ...params,
             sortsArr: sorts.value,
             filtersArr: nestedFilters.value,

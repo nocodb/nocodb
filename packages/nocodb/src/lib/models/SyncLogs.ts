@@ -26,15 +26,7 @@ export default class SyncLogs {
     return syncLogs?.map((h) => new SyncLogs(h));
   }
 
-  public static async insert(
-    syncLog: Partial<
-      SyncLogs & {
-        created_at?;
-        updated_at?;
-      }
-    >,
-    ncMeta = Noco.ncMeta
-  ) {
+  public static async insert(syncLog: Partial<SyncLogs>, ncMeta = Noco.ncMeta) {
     const insertObj = extractProps(syncLog, [
       'project_id',
       'fk_sync_source_id',

@@ -34,7 +34,6 @@ import KanbanView from '../models/KanbanView';
 import Model from '../models/Model';
 import Noco from '../Noco';
 import NcConnectionMgrv2 from '../utils/common/NcConnectionMgrv2';
-
 import { MetaTable } from '../utils/globals';
 import type Project from '../models/Project';
 import type LinkToAnotherRecordColumn from '../models/LinkToAnotherRecordColumn';
@@ -1549,7 +1548,10 @@ async function createLTARColumn(param: {
 
       // todo: create index for virtual relations as well
       // create index for foreign key in pg
-      if (param.base.type === 'pg') {
+      if (
+        param.base.type === 'pg' ||
+        (param.column as LinkToAnotherColumnReqType).virtual
+      ) {
         await createColumnIndex({
           column: new Column({
             ...newColumn,

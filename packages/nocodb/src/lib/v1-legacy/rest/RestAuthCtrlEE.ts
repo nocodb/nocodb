@@ -3,9 +3,7 @@ import { Strategy } from 'passport-jwt';
 import { v4 as uuidv4 } from 'uuid';
 import validator from 'validator';
 import { T } from 'nc-help';
-
 import XcCache from '../plugins/adapters/cache/XcCache';
-
 import RestAuthCtrl from './RestAuthCtrl';
 
 export default class RestAuthCtrlEE extends RestAuthCtrl {

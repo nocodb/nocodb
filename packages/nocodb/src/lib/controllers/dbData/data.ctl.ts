@@ -118,10 +118,9 @@ async function relationDataDelete(req, res) {
     cookie: req,
   });
 
-  res.json({ msg: 'success' });
+  res.json({ msg: 'The relation data has been deleted successfully' });
 }
 
-//@ts-ignore
 async function relationDataAdd(req, res) {
   await dataService.relationDataAdd({
     viewId: req.params.viewId,
@@ -131,7 +130,7 @@ async function relationDataAdd(req, res) {
     cookie: req,
   });
 
-  res.json({ msg: 'success' });
+  res.json({ msg: 'The relation data has been created successfully' });
 }
 
 const router = Router({ mergeParams: true });

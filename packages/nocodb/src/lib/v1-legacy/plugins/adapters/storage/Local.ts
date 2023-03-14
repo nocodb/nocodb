@@ -1,9 +1,7 @@
 import fs from 'fs';
 import path from 'path';
 import { promisify } from 'util';
-
 import mkdirp from 'mkdirp';
-
 import axios from 'axios';
 import NcConfigFactory from '../../../../utils/NcConfigFactory';
 import type { IStorageAdapterV2, XcFile } from 'nc-plugin';

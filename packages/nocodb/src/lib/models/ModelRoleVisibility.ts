@@ -127,12 +127,7 @@ export default class ModelRoleVisibility implements ModelRoleVisibilityType {
   }
 
   static async insert(
-    body: Partial<
-      ModelRoleVisibilityType & {
-        created_at?;
-        updated_at?;
-      }
-    >,
+    body: Partial<ModelRoleVisibilityType>,
     ncMeta = Noco.ncMeta
   ) {
     const insertObj = extractProps(body, [
@@ -141,8 +136,6 @@ export default class ModelRoleVisibility implements ModelRoleVisibilityType {
       'fk_view_id',
       'project_id',
       'base_id',
-      'created_at',
-      'updated_at',
     ]);
 
     if (!(insertObj.project_id && insertObj.base_id)) {

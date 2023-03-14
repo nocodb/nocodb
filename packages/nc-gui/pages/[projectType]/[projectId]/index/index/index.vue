@@ -5,6 +5,7 @@ import {
   message,
   ref,
   resolveComponent,
+  storeToRefs,
   useDialog,
   useDropZone,
   useFileDialog,
@@ -20,7 +21,9 @@ const { isOverDropZone } = useDropZone(dropZone, onDrop)
 
 const { files, open, reset } = useFileDialog()
 
-const { bases, isSharedBase } = useProject()
+const projectStore = useProject()
+
+const { bases, isSharedBase } = storeToRefs(projectStore)
 
 const { isUIAllowed } = useUIPermission()
 

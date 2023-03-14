@@ -1,5 +1,4 @@
 import { XcStoragePlugin } from 'nc-plugin';
-
 import ScalewayObjectStorage from './ScalewayObjectStorage';
 import type { IStorageAdapterV2 } from 'nc-plugin';
 

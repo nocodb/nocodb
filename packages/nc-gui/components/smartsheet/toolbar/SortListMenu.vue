@@ -30,7 +30,6 @@ const removeIcon = ref<HTMLElement>()
 const addSort = () => {
   _addSort()
   nextTick(() => {
-    console.log(removeIcon.value)
     removeIcon.value?.[removeIcon.value?.length - 1]?.$el?.scrollIntoView()
   })
 }

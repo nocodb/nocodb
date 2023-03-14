@@ -1,8 +1,6 @@
 import autoBind from 'auto-bind';
-
 import BaseProcedure from '../../utils/common/BaseProcedure';
 import XcProcedure from '../../utils/common/XcProcedure';
-
 import GqlBaseResolver from './GqlBaseResolver';
 import type { GqlApiBuilder } from './GqlApiBuilder';
 

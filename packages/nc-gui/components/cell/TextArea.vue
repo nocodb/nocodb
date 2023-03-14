@@ -45,6 +45,7 @@ const focus: VNodeRef = (el) => (el as HTMLTextAreaElement)?.focus()
 
   <span v-else>{{ vModel }}</span>
 </template>
+
 <style>
 textarea:focus {
   box-shadow: none;

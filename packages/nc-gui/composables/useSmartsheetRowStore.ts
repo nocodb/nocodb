@@ -13,6 +13,7 @@ import {
   isMm,
   message,
   ref,
+  storeToRefs,
   unref,
   useI18n,
   useInjectionState,
@@ -28,7 +29,7 @@ const [useProvideSmartsheetRowStore, useSmartsheetRowStore] = useInjectionState(
 
     const { t } = useI18n()
 
-    const { project } = useProject()
+    const { project } = storeToRefs(useProject())
 
     const { metas } = useMetas()
 

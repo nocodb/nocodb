@@ -9,6 +9,7 @@ import {
   message,
   projectThemeColors,
   ref,
+  storeToRefs,
   useCopy,
   useDashboard,
   useI18n,
@@ -32,7 +33,7 @@ const { dashboardUrl } = useDashboard()
 
 const { isUIAllowed } = useUIPermission()
 
-const { isSharedBase } = useProject()
+const { isSharedBase } = storeToRefs(useProject())
 
 const { isMobileMode } = useGlobal()
 

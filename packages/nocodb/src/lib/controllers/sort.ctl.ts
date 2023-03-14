@@ -2,25 +2,23 @@ import { Router } from 'express';
 import { PagedResponseImpl } from '../meta/helpers/PagedResponse';
 import ncMetaAclMw from '../meta/helpers/ncMetaAclMw';
 import { metaApiMetrics } from '../meta/helpers/apiMetrics';
-
 import { sortService } from '../services';
 import type { SortListType, SortReqType } from 'nocodb-sdk';
 import type { Request, Response } from 'express';
 
-// @ts-ignore
 export async function sortList(
   req: Request<any, any, any>,
   res: Response<SortListType>
 ) {
-  const sortList = await sortService.sortList({
-    viewId: req.params.viewId,
-  });
-  res.json({
-    sorts: new PagedResponseImpl(sortList),
-  });
+  res.json(
+    new PagedResponseImpl(
+      await sortService.sortList({
+        viewId: req.params.viewId,
+      })
+    )
+  );
 }
 
-// @ts-ignore
 export async function sortCreate(req: Request<any, any, SortReqType>, res) {
   const sort = await sortService.sortCreate({
     sort: req.body,
@@ -43,6 +41,7 @@ export async function sortDelete(req: Request, res: Response) {
   });
   res.json(sort);
 }
+
 export async function sortGet(req: Request, res: Response) {
   const sort = await sortService.sortGet({
     sortId: req.params.sortId,

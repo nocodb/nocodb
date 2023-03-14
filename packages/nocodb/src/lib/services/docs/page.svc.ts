@@ -34,9 +34,8 @@ export async function get(param: {
 }
 
 export async function list(param: { projectId: string }) {
-  return await Page.nestedList({
+  return await Page.nestedListAll({
     projectId: param.projectId as string,
-    fetchAll: true,
   });
 }
 
@@ -55,15 +54,6 @@ export async function update(param: {
   pageId: string;
 }) {
   return await Page.update(param);
-}
-
-export async function search(param: {
-  projectId: string;
-  query: string;
-  pageNumber: number;
-}) {
-  // todo: pagination
-  return await Page.search(param);
 }
 
 export async function deletePage(param: { id: string; projectId: string }) {
@@ -167,38 +157,6 @@ export async function magicOutline(param: {
   }
 
   return { text: response.data?.choices[0]?.text };
-}
-
-export async function paginate(param: {
-  projectId: string;
-  pageNumber: number;
-  perPage: number;
-  sortOrder: string;
-  sortField: string;
-  filterField: string;
-  filterFieldValue: string;
-}) {
-  const {
-    projectId,
-    pageNumber,
-    perPage,
-    filterField,
-    filterFieldValue,
-    sortField,
-    sortOrder,
-  } = param;
-
-  if (sortOrder && sortOrder !== 'asc' && sortOrder !== 'desc')
-    throw new Error('sortOrder must be asc or desc');
-
-  return await Page.paginate({
-    projectId,
-    pageNumber: pageNumber,
-    perPage: perPage,
-    condition: filterField ? { [filterField]: filterFieldValue } : {},
-    order: sortOrder as any,
-    orderBy: sortField,
-  });
 }
 
 export async function pageParents(param: {

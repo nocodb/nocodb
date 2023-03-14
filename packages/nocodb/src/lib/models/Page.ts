@@ -188,23 +188,19 @@ export default class Page {
       id,
       projectId,
       fields,
-      withoutCache,
     }: {
       id: string;
       projectId: string;
       fields?: string[];
-      withoutCache?: boolean;
     },
     ncMeta = Noco.ncMeta
   ): Promise<DocsPageType | undefined> {
     if (!id) throw new Error('Page id is required');
 
-    let page = withoutCache
-      ? undefined
-      : await NocoCache.get(
-          `${CacheScope.DOCS_PAGE}:${projectId}:${id}`,
-          CacheGetType.TYPE_OBJECT
-        );
+    let page = await NocoCache.get(
+      `${CacheScope.DOCS_PAGE}:${projectId}:${id}`,
+      CacheGetType.TYPE_OBJECT
+    );
 
     if (page) {
       // Remove fields that are not requested
@@ -265,11 +261,18 @@ export default class Page {
       pageId
     );
 
-    // Will also update the cache
-    return await this.get(
-      { id: pageId, projectId, withoutCache: true },
-      ncMeta
-    );
+    // get existing cache
+    const key = `${CacheScope.DOCS_PAGE}:${projectId}:${pageId}`;
+    let o = await NocoCache.get(key, CacheGetType.TYPE_OBJECT);
+    if (o) {
+      // update data
+      o = { ...o, ...attributes };
+
+      // set cache
+      await NocoCache.set(key, o);
+    }
+
+    return await this.get({ id: pageId, projectId }, ncMeta);
   }
 
   public static async update(
@@ -412,26 +415,20 @@ export default class Page {
     return nestedPagesWithChildren;
   }
 
-  static async _allPagesNestedList({
+  public static async nestedListAll({
     projectId,
-    parent_page_id,
-    onlyPublished = false,
     fields,
   }: {
     projectId: string;
-    parent_page_id?: string;
-    onlyPublished?: boolean;
     fields?: string[];
   }) {
-    const nestedList = await this.list({
+    const allPages = await this.list({
       projectId,
-      parent_page_id,
       fetchAll: true,
-      onlyPublished,
       fields,
     });
 
-    if (!nestedList || nestedList.length === 0) return [];
+    if (!allPages || allPages.length === 0) return [];
 
     const arrayToTree = (
       arr: DocsPageType[],
@@ -446,7 +443,7 @@ export default class Page {
 
     const nestedListWithChildren: Array<
       DocsPageType & { children: any[]; isLeaf: boolean }
-    > = arrayToTree(nestedList, parent_page_id);
+    > = arrayToTree(allPages, undefined);
 
     return nestedListWithChildren;
   }
@@ -455,20 +452,11 @@ export default class Page {
     projectId,
     parent_page_id,
     fields,
-    fetchAll = true,
   }: {
     projectId: string;
     parent_page_id?: string;
     fields?: string[];
-    fetchAll?: boolean;
   }): Promise<Array<DocsPageType & { children: any[]; isLeaf: boolean }>> {
-    if (fetchAll) {
-      return await this._allPagesNestedList({
-        projectId,
-        parent_page_id,
-        fields,
-      });
-    }
     const parentPage: DocsPageType & { children: any[]; isLeaf: boolean } =
       (await this.get({
         id: parent_page_id,
@@ -675,66 +663,6 @@ export default class Page {
     }
 
     return false;
-  }
-
-  static async paginate({
-    projectId,
-    pageNumber = 1,
-    perPage = 10,
-    orderBy = 'updated_at',
-    order = 'desc',
-    condition = {},
-  }: {
-    projectId: string;
-    pageNumber?: number;
-    perPage?: number;
-    orderBy?: string;
-    order?: 'asc' | 'desc';
-    condition?: any;
-  }) {
-    const knex = Noco.ncMeta.knex;
-    const pages = await knex(Page.tableName({ projectId }))
-      .where(condition)
-      .orderBy(orderBy, order)
-      .offset((pageNumber - 1) * perPage)
-      .limit(perPage);
-
-    const total = await knex(Page.tableName({ projectId }))
-      .where(condition)
-      .count('id as total')
-      .first();
-
-    return {
-      pages,
-      total: total.total,
-    };
-  }
-
-  static async search({
-    projectId,
-    query,
-    pageNumber = 1,
-    perPage = 10,
-    orderBy = 'updated_at',
-    order = 'desc',
-  }: {
-    projectId: string;
-    query: string;
-    pageNumber?: number;
-    perPage?: number;
-    orderBy?: string;
-    order?: 'asc' | 'desc';
-  }) {
-    const knex = Noco.ncMeta.knex;
-    const pages = await knex(Page.tableName({ projectId }))
-      .whereILike('title', `%${query}%`)
-      .orderBy(orderBy, order)
-      .offset((pageNumber - 1) * perPage)
-      .limit(perPage);
-
-    return {
-      pages,
-    };
   }
 
   static async dropPageTable(

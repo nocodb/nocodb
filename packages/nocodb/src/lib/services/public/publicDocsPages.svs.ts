@@ -54,6 +54,5 @@ export async function list(param: { projectId: string; parentPageId: string }) {
   return await Page.nestedList({
     projectId: param.projectId,
     parent_page_id: param.parentPageId,
-    fetchAll: false,
   });
 }

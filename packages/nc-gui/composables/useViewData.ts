@@ -58,7 +58,7 @@ export function useViewData(
 
   const _paginationData = ref<PaginatedType>({ page: 1, pageSize: appInfoDefaultLimit })
 
-  const aggCommentCount = ref<{ row_id: string; count: number }[]>([])
+  const aggCommentCount = ref<{ row_id: string; count: string }[]>([])
 
   const galleryData = ref<GalleryType>()
 
@@ -182,7 +182,7 @@ export function useViewData(
 
     for (const row of formattedData.value) {
       const id = extractPkFromRow(row.row, meta.value?.columns as ColumnType[])
-      row.rowMeta.commentCount = aggCommentCount.value?.find((c: Record<string, any>) => c.row_id === id)?.count || 0
+      row.rowMeta.commentCount = +(aggCommentCount.value?.find((c: Record<string, any>) => c.row_id === id)?.count || 0)
     }
   }
 

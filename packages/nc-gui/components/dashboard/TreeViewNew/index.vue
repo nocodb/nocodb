@@ -42,7 +42,8 @@ const { projects: workspaceProjects } = storeToRefs(workspaceStore)
 
 const projectsStore = useProjects()
 
-const { loadProjectTables, loadProject } = projectsStore
+const { loadProjectTables, loadProject,
+  createProject:_createProject, } = projectsStore
 
 const { projectTableList, projects } = storeToRefs(projectsStore)
 
@@ -425,18 +426,22 @@ useEventListener(document, 'contextmenu', handleContext, true)
 const menu = useState('tree-view', () => [])
 const selectedKey = useState('tree-view', () => [])
 
-const createProject = async () => {
-  const { close } = useDialog(resolveComponent('DlgCreateProject'), {
-    'modelValue': true,
-    'onUpdate:modelValue': closeDialog,
+
+const projectNodeRefs = ref([])
+const createProject = async (type) => {
+  const project = await _createProject({
+    type,
+    title: 'Untitled',
+    workspaceId: workspaceStore.workspace.id,
   })
 
-  function closeDialog() {
-    close(1000)
-  }
+  await workspaceStore.loadProjects()
+
+  nextTick(() => {
+    projectNodeRefs?.value?.[projectNodeRefs?.value?.length - 1]?.enableEditMode()
+  })
 }
 
-const projectEditMode = reactive({})
 </script>
 
 <template>
@@ -452,7 +457,9 @@ const projectEditMode = reactive({})
           <GeneralProjectIcon :type="project.type" />
         </template>
         <template #title>
-          <DashboardTreeViewNewProjectTitleNode :project="projects[project.id] ?? project" />
+          <DashboardTreeViewNewProjectNode
+              ref="projectNodeRefs"
+              :project="projects[project.id] ?? project" />
         </template>
         <a-menu-item-group key="g1">
           <!--          <a-menu-item v-for="table of projectTableList[project.id] ?? []" :key="table.id" @click="addTableTab(table)"> -->
@@ -1165,7 +1172,7 @@ const projectEditMode = reactive({})
     </a-menu>
 
     <div class="flex items-center py-2 justify-center">
-      <WorkspaceCreateProjectBtn emit-event @create="createProject" />
+      <WorkspaceCreateProjectBtn emit-event @createProject="createProject" />
     </div>
     <a-divider class="!my-0" />
 

@@ -70,6 +70,11 @@ const confirmDeleteProject = () =>{
   })
 }
 
+
+defineExpose({
+  enableEditMode
+})
+
 </script>
 
 <template>

@@ -62,6 +62,7 @@ export const useProjects = defineStore('projectsStore', () => {
     })
 
     projects.value = { ...projects.value, [result.id]: result }
+    return result;
   }
 
   const deleteProject = async (projectId: string) => {

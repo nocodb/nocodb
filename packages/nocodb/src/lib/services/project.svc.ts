@@ -80,7 +80,8 @@ export async function projectCreate(param: {
   }
 
   if (await Project.getByTitle(projectBody?.title)) {
-    NcError.badRequest('Project title already in use');
+    // todo: allow duplicate project name
+    // NcError.badRequest('Project title already in use');
   }
 
   projectBody.title = DOMPurify.sanitize(projectBody.title);
@@ -150,7 +151,8 @@ export async function projectUpdate(param: {
     project.title !== data.title &&
     (await Project.getByTitle(data.title))
   ) {
-    NcError.badRequest('Project title already in use');
+    // todo: allow duplicate project name
+    // NcError.badRequest('Project title already in use');
   }
 
   const result = await Project.update(param.projectId, data);

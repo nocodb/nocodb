@@ -1,5 +1,6 @@
 import { Node, mergeAttributes, wrappingInputRule } from '@tiptap/core'
 import { Slice } from 'prosemirror-model'
+import { Plugin, PluginKey } from 'prosemirror-state'
 import { getTextAsParagraphFromSliceJson, getTextFromSliceJson, isSelectionOfType, onEnter } from './helper'
 
 export interface ListOptions {
@@ -19,7 +20,6 @@ const inputRegex = /^\s*([-+*])\s$/g
 
 export const Bullet = Node.create<ListOptions>({
   name: 'bullet',
-
   addOptions() {
     return {
       HTMLAttributes: {},
@@ -122,6 +122,33 @@ export const Bullet = Node.create<ListOptions>({
       wrappingInputRule({
         find: inputRegex,
         type: this.type,
+      }),
+    ]
+  },
+
+  addProseMirrorPlugins() {
+    const plugin = new PluginKey(this.name)
+    return [
+      new Plugin({
+        key: plugin,
+        state: {
+          init() {
+            return {
+              active: false,
+            }
+          },
+          apply(tr, prev, oldState, newState) {
+            if (isSelectionOfType(newState, 'bullet')) {
+              return {
+                active: true,
+              }
+            } else {
+              return {
+                active: false,
+              }
+            }
+          },
+        },
       }),
     ]
   },

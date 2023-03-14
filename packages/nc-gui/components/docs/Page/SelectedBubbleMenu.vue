@@ -39,6 +39,21 @@ const showMenu = computed(() => {
 })
 const showMenuDebounced = ref(false)
 
+const isBulletActive = computed(() => {
+  const plugin = editor.state.plugins.find((plugin) => (plugin as any).key.includes('bullet'))
+  return plugin?.getState(editor.state).active
+})
+
+const isOrderedActive = computed(() => {
+  const plugin = editor.state.plugins.find((plugin) => (plugin as any).key.includes('ordered'))
+  return plugin?.getState(editor.state).active
+})
+
+const isCheckboxActive = computed(() => {
+  const plugin = editor.state.plugins.find((plugin) => (plugin as any).key.includes('task'))
+  return plugin?.getState(editor.state).active
+})
+
 const expandText = async () => {
   if (isMagicExpandLoading.value) return
 
@@ -171,7 +186,7 @@ const onToggleLink = () => {
       <div class="divider"></div>
       <a-button
         type="text"
-        :class="{ 'is-active': editor.isActive('task') }"
+        :class="{ 'is-active': isCheckboxActive }"
         class="menu-button"
         @click="editor!.chain().focus().toggleTask().run()"
       >
@@ -179,7 +194,7 @@ const onToggleLink = () => {
       </a-button>
       <a-button
         type="text"
-        :class="{ 'is-active': editor.isActive('bullet') }"
+        :class="{ 'is-active': isBulletActive }"
         class="menu-button"
         @click="editor!.chain().focus().toggleBullet().run()"
       >
@@ -187,7 +202,7 @@ const onToggleLink = () => {
       </a-button>
       <a-button
         type="text"
-        :class="{ 'is-active': editor.isActive('ordered') }"
+        :class="{ 'is-active': isOrderedActive }"
         class="menu-button"
         @click="editor!.chain().focus().toggleOrdered().run()"
       >

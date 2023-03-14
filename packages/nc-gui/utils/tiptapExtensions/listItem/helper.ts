@@ -63,13 +63,24 @@ export const isSelectionOfType = (state: EditorState, type: string) => {
     const slice = state.doc.slice(topDBlockPos, bottomDBlockPos)
     const sliceJson = slice.toJSON()
 
+    let count = 0
     for (const node of sliceJson.content) {
-      if (node.type === 'dBlock') {
-        for (const child of node.content) {
-          if (child.type !== type) {
-            return false
-          }
+      count = count + 1
+      if (node.type !== 'dBlock') {
+        return false
+      }
+
+      for (const child of node.content) {
+        if (child.type === type) {
+          continue
         }
+
+        if (count === sliceJson.content.length && child.type === 'paragraph' && !child.content) {
+          // Last node is paragraph and it's empty
+          return true
+        }
+
+        return false
       }
     }
 

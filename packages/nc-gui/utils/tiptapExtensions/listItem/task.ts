@@ -1,6 +1,7 @@
 import { Node, mergeAttributes, wrappingInputRule } from '@tiptap/core'
 import type { Node as ProseMirrorNode } from 'prosemirror-model'
 import { Slice } from 'prosemirror-model'
+import { Plugin, PluginKey } from 'prosemirror-state'
 import { getTextAsParagraphFromSliceJson, getTextFromSliceJson, isSelectionOfType, onEnter } from './helper'
 
 export interface TaskOptions {
@@ -278,6 +279,33 @@ export const Task = Node.create<TaskOptions>({
       wrappingInputRule({
         find: inputRegex,
         type: this.type,
+      }),
+    ]
+  },
+
+  addProseMirrorPlugins() {
+    const plugin = new PluginKey(this.name)
+    return [
+      new Plugin({
+        key: plugin,
+        state: {
+          init() {
+            return {
+              active: false,
+            }
+          },
+          apply(tr, prev, oldState, newState) {
+            if (isSelectionOfType(newState, 'task')) {
+              return {
+                active: true,
+              }
+            } else {
+              return {
+                active: false,
+              }
+            }
+          },
+        },
       }),
     ]
   },

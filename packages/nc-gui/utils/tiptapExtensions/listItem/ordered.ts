@@ -1,7 +1,7 @@
 import { Node, mergeAttributes, nodePasteRule, wrappingInputRule } from '@tiptap/core'
 import { Slice } from 'prosemirror-model'
+import { Plugin, PluginKey } from 'prosemirror-state'
 import { getTextAsParagraphFromSliceJson, getTextFromSliceJson, isSelectionOfType, onEnter } from './helper'
-
 export interface OrderItemsOptions {
   number: string
   HTMLAttributes: Record<string, any>
@@ -173,6 +173,33 @@ export const Ordered = Node.create<OrderItemsOptions>({
       nodePasteRule({
         find: inputRegex,
         type: this.type,
+      }),
+    ]
+  },
+
+  addProseMirrorPlugins() {
+    const plugin = new PluginKey(this.name)
+    return [
+      new Plugin({
+        key: plugin,
+        state: {
+          init() {
+            return {
+              active: false,
+            }
+          },
+          apply(tr, prev, oldState, newState) {
+            if (isSelectionOfType(newState, 'ordered')) {
+              return {
+                active: true,
+              }
+            } else {
+              return {
+                active: false,
+              }
+            }
+          },
+        },
       }),
     ]
   },

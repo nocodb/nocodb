@@ -117,7 +117,7 @@ export async function importData({
               let insertArray = tempData.splice(0, tempData.length);
 
               await bulkDataService.bulkDataInsert({
-                projectName: projectName,
+                projectName,
                 tableName: table.title,
                 body: insertArray,
                 cookie: {},
@@ -144,7 +144,7 @@ export async function importData({
         await Promise.all(promises);
         if (tempData.length > 0) {
           await bulkDataService.bulkDataInsert({
-            projectName: projectName,
+            projectName,
             tableName: table.title,
             body: tempData,
             cookie: {},
@@ -327,7 +327,7 @@ export async function importLTARData({
           );
 
           await bulkDataService.bulkDataInsert({
-            projectName: projectName,
+            projectName,
             tableName: assocMeta.modelMeta.title,
             body: assocTableData,
             cookie: {},

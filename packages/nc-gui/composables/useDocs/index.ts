@@ -151,6 +151,24 @@ const [setup, use] = useInjectionState(() => {
     },
   )
 
+  watch(
+    openedPage,
+    () => {
+      if (!openedPageInSidebar.value?.id) return
+      if (!openedPage.value) return
+      if (isPublic.value) return
+
+      const page = findPage(nestedPages.value, openedPageInSidebar.value.id)
+      if (!page) return
+
+      page.title = openedPage.value.title!
+      page.icon = openedPage.value.icon
+    },
+    {
+      deep: true,
+    },
+  )
+
   // verify if the levels of nested pages are correct
   // if not, set the correct level
   watch(

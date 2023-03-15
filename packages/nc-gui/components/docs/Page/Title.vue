@@ -63,16 +63,13 @@ const setIcon = async (icon: string) => {
 
 watchDebounced(
   () => [openedPage.value?.id, openedPage.value?.title],
-  async ([oldPageId], [newPageId]) => {
+  async ([newPageId, newTitle], [oldPageId, oldTitle]) => {
     if (!isEditAllowed.value) return
     if (!openedPage.value) return
 
     if (oldPageId !== newPageId) return
 
-    if (
-      findPage(nestedPages.value, openedPage.value.id!) &&
-      findPage(nestedPages.value, openedPage.value.id!)?.title === openedPage.value.title
-    ) {
+    if (newTitle === oldTitle) {
       return
     }
 

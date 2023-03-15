@@ -428,21 +428,28 @@ const menu = useState('tree-view', () => [])
 const selectedKey = useState('tree-view', () => [])
 
 
+const activeProjectId = computed(() => route.params.projectId)
+
 const projectNodeRefs = ref([])
 
 </script>
 
 <template>
   <div class="nc-treeview-container flex flex-col">
-    <a-menu v-model:openKeys="menu" v-model:selectedKeys="selectedKey" mode="inline" class="flex-grow min-h-50 overflow-y-auto">
+    <a-menu
+
+        v-model:openKeys="menu"
+        v-model:selectedKeys="selectedKey"
+        mode="inline" class="flex-grow min-h-50 overflow-y-auto overflow-x-hidden">
       <a-sub-menu
         v-for="project in workspaceProjects"
         :key="project.id"
         class="py-1 nc-project-sub-menu"
+        :class="{ active : project.id === activeProjectId }"
         @titleClick="loadProjectAndTableList(project)"
       >
         <template #icon>
-          <GeneralProjectIcon :type="project.type" />
+          <GeneralProjectIcon class="ml-2" :type="project.type" />
         </template>
         <template #title>
           <DashboardTreeViewNewProjectNode
@@ -452,7 +459,7 @@ const projectNodeRefs = ref([])
 
         <template #expandIcon>
           <span></span>
-          <!--          <PhCaretDownThin/>-->
+<!--                    <PhCaretDownThin/>-->
         </template>
         <a-menu-item-group key="g1">
           <!--          <a-menu-item v-for="table of projectTableList[project.id] ?? []" :key="table.id" @click="addTableTab(table)"> -->
@@ -468,7 +475,7 @@ const projectNodeRefs = ref([])
             overlay-class-name="nc-dropdown-tree-view-context-menu"
           >
             <div
-              class="pt-2 pl-2 pb-2 flex-1 overflow-y-auto flex flex-col scrollbar-thin-dull"
+              class="pt-2 pl-2 pb-2 flex-1 overflow-y-auto  flex flex-col"
               :class="{ 'mb-[20px]': isSharedBase }"
             >
               <div
@@ -623,7 +630,7 @@ const projectNodeRefs = ref([])
                   </a-dropdown>
                 </div>
 
-                <div class="transition-height duration-200">
+                <div class="transition-height duration-200 ml-2">
                   <div class="border-none sortable-list">
                     <div v-if="projects[project.id].bases[0]" :key="`base-${projects[project.id].bases[0].id}`">
                       <div
@@ -744,7 +751,7 @@ const projectNodeRefs = ref([])
                   v-if="!projectTableList[project.id]?.length"
                   class="mt-0.5 pt-16 mx-3 flex flex-col items-center border-t-1 border-gray-50"
                 >
-                  <a-empty :image="Empty.PRESENTED_IMAGE_SIMPLE" />
+                  <a-empty :image="Empty.PRESENTED_IMAGE_SIMPLE" description="Empty Database" />
                 </div>
               </div>
 
@@ -1165,7 +1172,9 @@ const projectNodeRefs = ref([])
     </a-menu>
 
     <div class="flex items-center py-2 justify-center">
-      <WorkspaceCreateProjectBtn modal/>
+      <WorkspaceCreateProjectBtn modal type="ghost">
+        <PhPlusThin/> Add New
+      </WorkspaceCreateProjectBtn>
     </div>
     <a-divider class="!my-0" />
 
@@ -1315,4 +1324,8 @@ const projectNodeRefs = ref([])
 :deep(.ant-menu-inline .ant-menu-submenu-title) {
   @apply !h-28px;
 }
+:deep(.nc-project-sub-menu.active){
+  //@apply bg-primary bg-opacity-20;
+}
+
 </style>

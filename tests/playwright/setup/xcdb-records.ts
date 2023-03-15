@@ -41,6 +41,7 @@ const rowMixedValue = (column: ColumnType, index: number) => {
   const decimals = [33.3, 456.34, 333.3, null, 267.5674, 34.0, 8754.0, 3234.547, 44.2647, 33.98, null];
   const duration = [60, 120, 180, 3600, 3660, 3720, null, 3780, 60, 120, null];
   const rating = [0, 1, 2, 3, null, 0, 4, 5, 0, 1, null];
+  const years = [2023, null, 1956, 2023, 1967, 2024, 1954, 1924, 2044, 1923, null];
 
   // Array of random sample email strings (not more than 100 characters)
   const emails = [
@@ -131,6 +132,8 @@ const rowMixedValue = (column: ColumnType, index: number) => {
       return singleSelect[index % singleSelect.length];
     case UITypes.MultiSelect:
       return multiSelect[index % multiSelect.length];
+    case UITypes.Year:
+      return years[index % years.length];
     default:
       return `test-${index}`;
   }

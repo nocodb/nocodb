@@ -90,6 +90,11 @@ export class ToolbarFilterPage extends BasePage {
     if (value) {
       let fillFilter: any = null;
       switch (dataType) {
+        case UITypes.Year:
+          await this.get().locator('.nc-filter-value-select').click();
+          await this.rootPage.locator(`.ant-picker-dropdown:visible`);
+          await this.rootPage.locator(`.ant-picker-cell-inner:has-text("${value}")`).click();
+          break;
         case UITypes.Date:
           if (opSubType === 'exact date') {
             await this.get().locator('.nc-filter-value-select').click();
@@ -104,7 +109,6 @@ export class ToolbarFilterPage extends BasePage {
             });
             await this.toolbar.parent.dashboard.waitForLoaderToDisappear();
             await this.toolbar.parent.waitLoading();
-            break;
           }
           break;
         case UITypes.Duration:

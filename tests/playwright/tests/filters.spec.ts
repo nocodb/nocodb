@@ -13,6 +13,7 @@ let records: Record<string, any>;
 
 const skipList = {
   Number: ['is null', 'is not null'],
+  Year: ['is null', 'is not null'],
   Decimal: ['is null', 'is not null'],
   Percent: ['is null', 'is not null'],
   Currency: ['is null', 'is not null'],
@@ -255,6 +256,11 @@ test.describe('Filter Tests: Numerical', () => {
         title: 'Rating',
         uidt: UITypes.Rating,
       },
+      {
+        column_name: 'Year',
+        title: 'Year',
+        uidt: UITypes.Year,
+      },
     ];
 
     try {
@@ -274,6 +280,7 @@ test.describe('Filter Tests: Numerical', () => {
           Percent: rowMixedValue(columns[4], i),
           Duration: rowMixedValue(columns[5], i),
           Rating: rowMixedValue(columns[6], i),
+          Year: rowMixedValue(columns[7], i),
         };
         rowAttributes.push(row);
       }
@@ -307,6 +314,10 @@ test.describe('Filter Tests: Numerical', () => {
 
   test('Filter: Duration', async () => {
     await numBasedFilterTest('Duration', '00:01', '01:03');
+  });
+
+  test('Filter: Year', async () => {
+    await numBasedFilterTest('Year', '2023', '2024');
   });
 });
 

@@ -220,7 +220,7 @@ onMounted(async () => {
                   </div>
                   <template #overlay>
                     <div class="flex flex-col p-1 bg-gray-50 rounded-md">
-                      <GeneralEmojiIcons class="shadow bg-white p-2" @select-icon="setIcon(id, $event)" />
+                      <GeneralEmojiIcons class="shadow  p-2" @select-icon="setIcon(id, $event)" />
                     </div>
                   </template>
                 </a-dropdown>
@@ -371,7 +371,7 @@ onMounted(async () => {
       @apply !text-gray-300;
     }
     .ant-tree-treenode {
-      @apply !bg-white !hover:bg-gray-100;
+      @apply  !hover:bg-gray-100;
       transition: all 0.3s, border 0s, line-height 0s, box-shadow 0s;
       transition-duration: 0.3s, 0s, 0s, 0s;
       transition-timing-function: ease, ease, ease, ease;

@@ -103,15 +103,15 @@ const isSharedBase = false
             <div class="pt-2 pb-2 text-gray-400 font-weight-bold text-xs px-3">Workspaces</div>
 
 
-<div class="max-h-300px overflow-y-auto">
-            <a-menu-item v-for="workspace of workspaces" @click="navigateTo(`/ws/${workspace.id}`)">
-              <div class="nc-project-menu-item group">
-                <PhBrowserThin/>
+            <div class="max-h-300px overflow-y-auto">
+              <a-menu-item v-for="workspace of workspaces" @click="navigateTo(`/ws/${workspace.id}`)">
+                <div class="nc-project-menu-item group">
+                  <PhBrowserThin/>
 
-                {{ workspace.title }}
-              </div>
-            </a-menu-item>
-</div>
+                  {{ workspace.title }}
+                </div>
+              </a-menu-item>
+            </div>
             <a-menu-divider class="my-2"/>
 
             <a-menu-item @click="createDlg = true">
@@ -335,7 +335,7 @@ const isSharedBase = false
         width="80%"
         :footer="null"
     >
-      <a-tabs v-model:activeKey="tab" >
+      <a-tabs v-model:activeKey="tab">
         <!--        <a-tab-pane key="projects" tab="All Projects" class="w-full">-->
         <!--          <WorkspaceProjectList class="h-full" />-->
         <!--        </a-tab-pane>-->
@@ -345,7 +345,7 @@ const isSharedBase = false
           </a-tab-pane>
           <a-tab-pane key="settings" tab="Settings" class="w-full">
             <div class="min-h-50 flex items-center justify-center">
-            Not available
+              Not available
             </div>
           </a-tab-pane>
         </template>

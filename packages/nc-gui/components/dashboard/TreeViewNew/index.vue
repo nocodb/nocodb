@@ -43,15 +43,18 @@ const { projects: workspaceProjects } = storeToRefs(workspaceStore)
 
 const projectsStore = useProjects()
 
-const { loadProjectTables, loadProject,
-  createProject:_createProject, } = projectsStore
+const { loadProjectTables, loadProject, createProject: _createProject } = projectsStore
 
 const { projectTableList, projects } = storeToRefs(projectsStore)
+
+const minimisedProjRefs = reactive({})
 
 const loadProjectAndTableList = async (project: ProjectType) => {
   if (!project) {
     return
   }
+
+  minimisedProjRefs[project.id] = !minimisedProjRefs[project.id]
 
   // if document project, add a document tab and route to the page
   switch (project.type) {
@@ -424,60 +427,43 @@ const handleContext = (e: MouseEvent) => {
 }
 
 useEventListener(document, 'contextmenu', handleContext, true)
-const menu = useState('tree-view', () => [])
-const selectedKey = useState('tree-view', () => [])
-
 
 const activeProjectId = computed(() => route.params.projectId)
 
-const projectNodeRefs = ref([])
-
+const projectNodeRefs = useState('tree-view', () => ({}))
 </script>
 
 <template>
   <div class="nc-treeview-container flex flex-col">
-    <a-menu
-
-        v-model:openKeys="menu"
-        v-model:selectedKeys="selectedKey"
-        mode="inline" class="flex-grow min-h-50 overflow-y-auto overflow-x-hidden">
-      <a-sub-menu
+    <div mode="inline" class="flex-grow min-h-50 overflow-y-auto overflow-x-hidden">
+      <div
         v-for="project in workspaceProjects"
         :key="project.id"
-        class="py-1 nc-project-sub-menu"
-        :class="{ active : project.id === activeProjectId }"
-        @titleClick="loadProjectAndTableList(project)"
+        class="m-2 py-1 nc-project-sub-menu"
+        :class="{ active: project.id === activeProjectId }"
       >
-        <template #icon>
+        <div class="flex items-center gap-2 py-1 cursor-pointer" @click="loadProjectAndTableList(project)">
+
           <GeneralProjectIcon class="ml-2" :type="project.type" />
-        </template>
-        <template #title>
-          <DashboardTreeViewNewProjectNode
-              ref="projectNodeRefs"
-              :project="projects[project.id] ?? project" />
-        </template>
 
-        <template #expandIcon>
-          <span></span>
-<!--                    <PhCaretDownThin/>-->
-        </template>
-        <a-menu-item-group key="g1">
-          <!--          <a-menu-item v-for="table of projectTableList[project.id] ?? []" :key="table.id" @click="addTableTab(table)"> -->
-          <!--            {{ table.title }} -->
-          <!--          </a-menu-item> -->
+          <DashboardTreeViewNewProjectNode ref="projectNodeRefs" class="flex-grow" :project="projects[project.id] ?? project" />
 
+        </div>
+
+        <div
+          key="g1"
+          class="overflow-y-auto transition-max-height"
+          :class="{ 'max-h-0': !minimisedProjRefs[project.id], 'max-h-500': minimisedProjRefs[project.id] }"
+        >
           <div v-if="project.type === 'documentation'">
-            <DocsSideBarNew v-if="menu?.includes(project.id)" :project="project" />
+            <DocsSideBarNew v-if="minimisedProjRefs[project.id]" :project="project" />
           </div>
           <a-dropdown
             v-else-if="project && projects[project.id] && projects[project.id].bases"
             :trigger="['contextmenu']"
             overlay-class-name="nc-dropdown-tree-view-context-menu"
           >
-            <div
-              class="pt-2 pl-2 pb-2 flex-1 overflow-y-auto  flex flex-col"
-              :class="{ 'mb-[20px]': isSharedBase }"
-            >
+            <div class="pt-2 pl-2 pb-2 flex-1 overflow-y-auto flex flex-col" :class="{ 'mb-[20px]': isSharedBase }">
               <div
                 v-if="
                   projects[project.id].bases[0] &&
@@ -491,14 +477,16 @@ const projectNodeRefs = ref([])
                   class="group flex items-center gap-2 pl-2 pr-3 py-2 text-primary/70 hover:(text-primary/100) cursor-pointer select-none"
                   @click="openTableCreateDialog(projects[project.id].bases[0].id, project.id)"
                 >
-                  <PhPlusThin class="w-5" />
+                  <PhPlusThin class="w-5 ml-2" />
 
                   <span class="text-gray-500 group-hover:(text-primary/100) flex-1 nc-add-new-table">{{
                     $t('tooltip.addTable')
                   }}</span>
 
                   <a-dropdown v-if="!isSharedBase" :trigger="['click']" overlay-class-name="nc-dropdown-import-menu" @click.stop>
-                    <PhDotsThreeOutlineVerticalThin class="transition-opacity opacity-0 group-hover:opacity-100 nc-import-menu outline-0 text-xs" />
+                    <PhDotsThreeOutlineVerticalThin
+                      class="transition-opacity opacity-0 group-hover:opacity-100 nc-import-menu outline-0 text-xs"
+                    />
 
                     <template #overlay>
                       <a-menu class="!py-0 rounded text-sm">
@@ -621,7 +609,7 @@ const projectNodeRefs = ref([])
                             class="prose-sm hover:(!text-primary !opacity-100) color-transition nc-project-menu-item group after:(!rounded-b)"
                           >
                             <MdiOpenInNew class="group-hover:text-accent" />
-                            &lt;!&ndash; Request a data source you need? &ndash;&gt;
+                            <!-- Request a data source you need? -->
                             {{ $t('labels.requestDataSource') }}
                           </a>
                         </a-menu-item>
@@ -650,8 +638,10 @@ const projectNodeRefs = ref([])
                           :key="table.id"
                           v-e="['a:table:open']"
                           :class="[
+                              // todo: table filter
                             // { hidden: !filteredTables?.includes(table), active: activeTable === table.id },
                             `nc-project-tree-tbl nc-project-tree-tbl-${table.title}`,
+                            { active: activeTable === table.id }
                           ]"
                           class="nc-tree-item text-sm cursor-pointer group"
                           :data-order="table.order"
@@ -1167,13 +1157,14 @@ const projectNodeRefs = ref([])
               </a-menu>
             </template>
           </a-dropdown>
-        </a-menu-item-group>
-      </a-sub-menu>
-    </a-menu>
+        </div>
+      </div>
+    </div>
 
     <div class="flex items-center py-2 justify-center">
       <WorkspaceCreateProjectBtn modal type="ghost">
-        <PhPlusThin/> Add New
+        <PhPlusThin />
+        Add New
       </WorkspaceCreateProjectBtn>
     </div>
     <a-divider class="!my-0" />
@@ -1255,7 +1246,7 @@ const projectNodeRefs = ref([])
 }
 
 .nc-tree-item {
-  @apply relative cursor-pointer after:(pointer-events-none content-[''] absolute top-0 left-0  w-full h-full right-0 !bg-current transition transition-opactity duration-100 opacity-0);
+  @apply mr-2 relative cursor-pointer after:(pointer-events-none content-[''] rounded absolute top-0 left-0  w-full h-full right-0 !bg-current transition transition-opactity duration-100 opacity-0);
 }
 
 .nc-tree-item svg {
@@ -1264,7 +1255,7 @@ const projectNodeRefs = ref([])
 
 .nc-tree-item.active {
   @apply text-primary font-weight-bold after:(!opacity-20);
-  @apply border-r-3 border-primary;
+  //@apply border-r-3 border-primary;
 
   svg {
     @apply text-primary !text-opacity-100;
@@ -1324,8 +1315,8 @@ const projectNodeRefs = ref([])
 :deep(.ant-menu-inline .ant-menu-submenu-title) {
   @apply !h-28px;
 }
-:deep(.nc-project-sub-menu.active){
-  //@apply bg-primary bg-opacity-20;
-}
 
+:deep(.nc-project-sub-menu.active) {
+  @apply bg-primary bg-opacity-8 rounded;
+}
 </style>

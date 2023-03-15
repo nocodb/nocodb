@@ -629,6 +629,7 @@ const preloadColumn = ref<Partial<any>>()
 
 const predictNextColumn = async () => {
   if (predictingNextColumn.value) return
+  predictedNextColumn.value = []
   predictingNextColumn.value = true
   try {
     if (meta.value && meta.value.columns) {
@@ -686,7 +687,10 @@ const loadColumn = (title: string, tp: string, colOptions?: any) => {
 }
 
 async function reloadViewDataHandler(shouldShowLoading: boolean | void) {
-  predictedNextColumn.value = undefined
+  if (predictedNextColumn.value?.length) {
+    const fieldsAvailable = meta.value?.columns?.map((c) => c.title)
+    predictedNextColumn.value = predictedNextColumn.value.filter((c) => !fieldsAvailable?.includes(c.title))
+  }
   // set value if spinner should be hidden
   showLoading.value = !!shouldShowLoading
   await loadData()
@@ -872,7 +876,7 @@ function openGenerateDialog(target: any) {
 
                   <template v-if="persistMenu" #overlay>
                     <a-menu>
-                      <a-sub-menu v-if="predictedNextColumn" key="predict-column">
+                      <a-sub-menu v-if="predictedNextColumn?.length" key="predict-column">
                         <template #title>
                           <div class="flex flex-row items-center py-3">
                             <MdiTableColumnPlusAfter class="flex h-[1rem] text-gray-500" />
@@ -889,6 +893,14 @@ function openGenerateDialog(target: any) {
                               </div>
                             </a-menu-item>
                           </template>
+                          <a-menu-item>
+                            <div class="flex flex-row items-center py-3" @click="predictNextColumn">
+                              <div class="text-red-500 text-xs pl-2">
+                                <MdiReload />
+                                Generate Again
+                              </div>
+                            </div>
+                          </a-menu-item>
                         </a-menu>
                       </a-sub-menu>
                       <a-menu-item v-else>

@@ -111,7 +111,8 @@ const [setup, use] = useInjectionState(() => {
         return
       }
 
-      if (openedPage.value?.new) return
+      // if the page is new, don't fetch it
+      if (openedPage.value?.new && openedPage.value.id === openedPageId.value) return
 
       if (oldId) {
         const page = findPage(nestedPages.value, oldId)
@@ -135,16 +136,39 @@ const [setup, use] = useInjectionState(() => {
     },
   )
 
+  // Sync opened page in sidebar with opened page
   watch(
     openedPageInSidebar,
     () => {
       if (!openedPage.value) return
       if (isPublic.value) return
+      if (openedPage.value?.new) return
 
       openedPage.value = {
         ...openedPage.value,
         ...openedPageInSidebar.value,
       } as PageSidebarNode
+    },
+    {
+      deep: true,
+    },
+  )
+
+  // Sync opened page title and icon with sidebar
+  watch(
+    openedPage,
+    () => {
+      if (isPublic.value) return
+
+      if (!openedPageInSidebar.value?.id) return
+      if (!openedPage.value) return
+      if (openedPage.value?.id !== openedPageInSidebar.value?.id) return
+
+      const page = findPage(nestedPages.value, openedPageInSidebar.value.id)
+      if (!page) return
+
+      page.title = openedPage.value.title
+      page.icon = openedPage.value.icon
     },
     {
       deep: true,
@@ -353,6 +377,7 @@ const [setup, use] = useInjectionState(() => {
   const deletePage = async ({ pageId }: { pageId: string }) => {
     try {
       const page = findPage(nestedPages.value, pageId)
+      await $api.nocoDocs.deletePage(pageId, { projectId: projectId! })
 
       if (page?.parent_page_id) {
         const parentPage = findPage(nestedPages.value, page.parent_page_id)
@@ -368,8 +393,6 @@ const [setup, use] = useInjectionState(() => {
         const siblingPage = nestedPages.value[0]
         navigateTo(nestedUrl(siblingPage.id))
       }
-
-      await $api.nocoDocs.deletePage(pageId, { projectId: projectId! })
     } catch (e) {
       console.log(e)
       message.error(await extractSdkResponseErrorMsg(e as any))

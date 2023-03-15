@@ -412,33 +412,6 @@ function docTests() {
     expect(response2.body.page.title).to.equal(page1.title)
   })
 
-  it('Pagination', async () => {
-    // Create 10 pages
-    for (let i = 0; i < 10; i++) {      
-      await createPage({
-        project: project,
-        
-        attributes: {
-          title: 'test' + i,
-        },
-        user: context.user,
-      });
-    }
-
-    const response = await request(context.app)
-      .get(`/api/v1/docs/pages/paginate`)
-      .query({
-        projectId: project.id,
-        
-        pageNumber: 1,
-        perPage: 5,
-      })
-      .set('xc-auth', context.token)
-      .expect(200)
-    
-    expect(response.body.pages.length).to.equal(5)
-  })
-
   it('Parents', async () => {
     const parentPage = await createPage({
       project: project,
@@ -483,87 +456,6 @@ function docTests() {
     expect(response.body.length).to.equal(2)
     expect(response.body[0].id).to.equal(parentPage2.id)
     expect(response.body[1].id).to.equal(parentPage.id)
-  })
-
-  it('Sort by title', async () => {
-    const pageC = await createPage({
-      project: project,
-      
-      user: context.user,
-      attributes: {
-        title: 'testC',
-      },
-    })
-    const pageA = await createPage({
-      project: project,
-      
-      user: context.user,
-      attributes: {
-        title: 'testA',
-      }
-    })
-    const pageB = await createPage({
-      project: project,
-      
-      user: context.user,
-      attributes: {
-        title: 'testB',
-      }
-    })
-
-    const response = await request(context.app)
-      .get(`/api/v1/docs/pages/paginate`)
-      .query({
-        projectId: project.id,
-        
-        pageNumber: 1,
-        perPage: 5,
-        sortField: 'title',
-        sortOrder: 'asc',
-      })
-      .set('xc-auth', context.token)
-      .expect(200)
-    
-    expect(response.body.pages.length).to.equal(3)
-    expect(response.body.pages[0].id).to.equal(pageA.id)
-    expect(response.body.pages[1].id).to.equal(pageB.id)
-    expect(response.body.pages[2].id).to.equal(pageC.id)
-  })
-
-  it('Search pages', async () => {
-    const page1 = await createPage({
-      project: project,
-      
-      attributes: {
-        title: 'test1',
-        content: 'test1',
-      },
-      user: context.user,
-    });
-    const page2 = await createPage({
-      project: project,
-      
-      attributes: {
-        title: 'test2',
-        content: 'test2',
-      },
-      user: context.user,
-    });
-
-    const response = await request(context.app)
-      .get(`/api/v1/docs/pages/search`)
-      .query({
-        projectId: project.id,
-        
-        query: 'test1',
-      })
-      .set('xc-auth', context.token)
-      .expect(200)
-    
-    console.log(response.body)
-
-    expect(response.body.pages.length).to.equal(1)
-    expect(response.body.pages[0].id).to.equal(page1.id)
   })
 }
 

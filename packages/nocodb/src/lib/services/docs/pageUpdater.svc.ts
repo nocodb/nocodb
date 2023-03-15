@@ -67,11 +67,14 @@ export const updatePageService = async (
   //// Post update logic
 
   if (attributes.order) {
-    await reorderPage({
-      projectId,
-      parent_page_id: attributes.parent_page_id,
-      keepPageId: pageId,
-    });
+    await reorderPage(
+      {
+        projectId,
+        parent_page_id: attributes.parent_page_id,
+        keepPageId: pageId,
+      },
+      ncMeta
+    );
   }
 
   // Handle parent page change
@@ -337,7 +340,7 @@ async function reorderPage(
     parent_page_id?: string;
     keepPageId?: string;
   },
-  ncMeta = Noco.ncMeta
+  ncMeta
 ) {
   const pages = await Page.list({ parent_page_id, projectId }, ncMeta);
 

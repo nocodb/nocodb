@@ -56,22 +56,6 @@ async function update(
   res.json(page);
 }
 
-async function search(
-  req: Request<any> & { user: { id: string; roles: string } },
-  res: Response
-) {
-  const pages = await docsPageService.search({
-    projectId: req.query?.projectId as string,
-    query: req.query?.query as string,
-    pageNumber: req.query?.pageNumber
-      ? parseInt(req.query?.pageNumber as string)
-      : 1,
-  });
-
-  res // todo: pagination
-    .json(pages);
-}
-
 async function deletePage(
   req: Request<any> & { user: { id: string; roles: string } },
   res: Response
@@ -107,25 +91,6 @@ async function magicOutline(
   });
 
   res.json(response);
-}
-
-async function paginate(
-  req: Request<any> & { user: { id: string; roles: string } },
-  res: Response
-) {
-  const data = await docsPageService.paginate({
-    projectId: req.query?.projectId as string,
-    pageNumber: req.query?.pageNumber
-      ? parseInt(req.query?.pageNumber as string)
-      : 1,
-    perPage: req.query?.perPage ? parseInt(req.query?.perPage as string) : 10,
-    sortOrder: req.query?.sortOrder as 'asc' | 'desc',
-    sortField: req.query?.sortField as string,
-    filterField: req.query?.filterField as string,
-    filterFieldValue: req.query?.filterFieldValue as string,
-  });
-
-  res.json(data);
 }
 
 async function pageParents(
@@ -172,11 +137,6 @@ const router = Router({ mergeParams: true });
 // table data crud apis
 router.get('/api/v1/docs/page/:id', apiMetrics, ncMetaAclMw(get, 'pageGet'));
 router.get(
-  '/api/v1/docs/pages/search',
-  apiMetrics,
-  ncMetaAclMw(search, 'pageSearch')
-);
-router.get(
   '/api/v1/docs/page-parents',
   apiMetrics,
   ncMetaAclMw(pageParents, 'pageParents')
@@ -203,11 +163,6 @@ router.post(
   '/api/v1/docs/page/magic-outline',
   apiMetrics,
   ncMetaAclMw(magicOutline, 'pageMagicOutline')
-);
-router.get(
-  '/api/v1/docs/pages/paginate',
-  apiMetrics,
-  ncMetaAclMw(paginate, 'pagePaginate')
 );
 router.post(
   '/api/v1/docs/pages/magic',

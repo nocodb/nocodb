@@ -1,11 +1,18 @@
 <script setup lang="ts">
+import {
+  ref,
+  storeToRefs,
+  useProject,
+} from '#imports'
+
 definePageMeta({
   key: 'true',
   hideHeader: true,
   layout: 'docs',
 })
 
-const { project, loadBookProject, isLoading: isProjectLoading } = useProject()
+const { loadBookProject } = useProject()
+const { project, isLoading: isProjectLoading } = storeToRefs(useProject())
 const { toggleHasSidebar, toggle } = useSidebar('nc-left-sidebar')
 const { openedPageId, projectId, fetchNestedPages, openChildPageTabsOfRootPages } = useDocs()
 

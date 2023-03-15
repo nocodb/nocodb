@@ -3,10 +3,14 @@ import { ref } from 'vue'
 import type { TreeProps } from 'ant-design-vue'
 import type { AntTreeNodeDropEvent } from 'ant-design-vue/lib/tree'
 import { Icon as IconifyIcon } from '@iconify/vue'
+import {
+  storeToRefs,
+  useProject,
+} from '#imports'
 
 const MAX_NESTED_LEVEL = 5
 
-const { project } = useProject()
+const { project } = storeToRefs(useProject())
 const {
   nestedPages,
   openedPageInSidebar,

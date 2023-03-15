@@ -111,7 +111,8 @@ const [setup, use] = useInjectionState(() => {
         return
       }
 
-      if (openedPage.value?.new) return
+      // if the page is new, don't fetch it
+      if (openedPage.value?.new && openedPage.value.id === openedPageId.value) return
 
       if (oldId) {
         const page = findPage(nestedPages.value, oldId)
@@ -135,11 +136,13 @@ const [setup, use] = useInjectionState(() => {
     },
   )
 
+  // Sync opened page in sidebar with opened page
   watch(
     openedPageInSidebar,
     () => {
       if (!openedPage.value) return
       if (isPublic.value) return
+      if (openedPage.value?.new) return
 
       openedPage.value = {
         ...openedPage.value,
@@ -151,17 +154,20 @@ const [setup, use] = useInjectionState(() => {
     },
   )
 
+  // Sync opened page title and icon with sidebar
   watch(
     openedPage,
     () => {
+      if (isPublic.value) return
+
       if (!openedPageInSidebar.value?.id) return
       if (!openedPage.value) return
-      if (isPublic.value) return
+      if (openedPage.value?.id !== openedPageInSidebar.value?.id) return
 
       const page = findPage(nestedPages.value, openedPageInSidebar.value.id)
       if (!page) return
 
-      page.title = openedPage.value.title!
+      page.title = openedPage.value.title
       page.icon = openedPage.value.icon
     },
     {

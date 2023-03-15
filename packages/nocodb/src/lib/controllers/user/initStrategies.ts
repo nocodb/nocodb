@@ -7,10 +7,19 @@ import { Strategy as AuthTokenStrategy } from 'passport-auth-token';
 import { Strategy as GoogleStrategy } from 'passport-google-oauth20';
 import { Strategy as OidcStrategy } from '@techpass/passport-openidconnect';
 import bcrypt from 'bcryptjs';
+import { v4 as uuidv4 } from 'uuid';
 import NocoCache from '../../cache/NocoCache';
-import { ApiToken, Plugin, Project, ProjectUser, User } from '../../models';
+import {
+  ApiToken,
+  Base,
+  Plugin,
+  Project,
+  ProjectUser,
+  User,
+  WorkspaceUser,
+} from '../../models';
 import Noco from '../../Noco';
-import { CacheGetType, CacheScope } from '../../utils/globals';
+import { CacheGetType } from '../../utils/globals';
 import { userService } from '../../services';
 
 const ExtractJwt = passportJWT.ExtractJwt;

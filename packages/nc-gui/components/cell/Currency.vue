@@ -35,7 +35,7 @@ const currencyMeta = computed(() => {
   return {
     currency_locale: 'en-US',
     currency_code: 'USD',
-    ...(column.value.meta ? column.value.meta : {}),
+    ...((typeof column.value.meta === 'string' ? JSON.parse(column.value.meta) : column.value.meta) || {}),
   }
 })
 

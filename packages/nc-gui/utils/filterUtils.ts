@@ -1,7 +1,7 @@
 import { isNumericCol, numericUITypes, UITypes } from 'nocodb-sdk'
 
 const getEqText = (fieldUiType: UITypes) => {
-  if (isNumericCol(fieldUiType) || UITypes.Time) {
+  if (isNumericCol(fieldUiType) || fieldUiType === UITypes.Time) {
     return '='
   } else if (
     [UITypes.SingleSelect, UITypes.Collaborator, UITypes.LinkToAnotherRecord, UITypes.Date, UITypes.DateTime].includes(
@@ -14,7 +14,7 @@ const getEqText = (fieldUiType: UITypes) => {
 }
 
 const getNeqText = (fieldUiType: UITypes) => {
-  if (isNumericCol(fieldUiType) || UITypes.Time) {
+  if (isNumericCol(fieldUiType) || fieldUiType === UITypes.Time) {
     return '!='
   } else if (
     [UITypes.SingleSelect, UITypes.Collaborator, UITypes.LinkToAnotherRecord, UITypes.Date, UITypes.DateTime].includes(

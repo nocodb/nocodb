@@ -1,6 +1,6 @@
 import type { ExportTypes, FilterType, KanbanType, PaginatedType, RequestParams, SortType, TableType, ViewType } from 'nocodb-sdk'
 import { UITypes } from 'nocodb-sdk'
-import { computed, storeToRefs, useGlobal, useMetas, useNuxtApp, useState } from '#imports'
+import { computed, parseProp, storeToRefs, useGlobal, useMetas, useNuxtApp, useState } from '#imports'
 
 export function useSharedView() {
   const nestedFilters = ref<(FilterType & { status?: 'update' | 'delete' | 'create'; parentId?: string })[]>([])
@@ -50,7 +50,7 @@ export function useSharedView() {
       },
     })
     try {
-      allowCSVDownload.value = (typeof viewMeta.meta === 'string' ? JSON.parse(viewMeta.meta) : viewMeta.meta)?.allowCSVDownload
+      allowCSVDownload.value = parseProp(viewMeta.meta)?.allowCSVDownload
     } catch {
       allowCSVDownload.value = false
     }

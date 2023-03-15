@@ -11,6 +11,7 @@ import {
   message,
   navigateTo,
   onBeforeMount,
+  parseProp,
   projectThemeColors,
   ref,
   themeV2Colors,
@@ -80,7 +81,7 @@ const handleProjectColor = async (projectId: string, color: string) => {
 
     const project: ProjectType = await $api.project.read(projectId)
 
-    const meta = project?.meta && typeof project.meta === 'string' ? JSON.parse(project.meta) : project.meta || {}
+    const meta = parseProp(project?.meta)
 
     await $api.project.update(projectId, {
       color,
@@ -113,7 +114,7 @@ const handleProjectColor = async (projectId: string, color: string) => {
 const getProjectPrimary = (project: ProjectType) => {
   if (!project) return
 
-  const meta = project.meta && typeof project.meta === 'string' ? JSON.parse(project.meta) : project.meta || {}
+  const meta = parseProp(project.meta)
 
   return meta.theme?.primaryColor || themeV2Colors['royal-blue'].DEFAULT
 }

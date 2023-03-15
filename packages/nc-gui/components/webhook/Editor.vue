@@ -10,6 +10,7 @@ import {
   inject,
   message,
   onMounted,
+  parseProp,
   reactive,
   ref,
   useApi,
@@ -328,7 +329,7 @@ async function loadPluginList() {
         ...(p as any),
       }
       plugin.tags = p.tags ? p.tags.split(',') : []
-      plugin.parsedInput = typeof p.input === 'string' ? JSON.parse(p.input) : p.input
+      plugin.parsedInput = parseProp(p.input)
       o[plugin.title] = plugin
 
       return o

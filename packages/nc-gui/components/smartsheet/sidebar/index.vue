@@ -10,7 +10,6 @@ import {
   resolveComponent,
   storeToRefs,
   useDialog,
-  useGlobal,
   useNuxtApp,
   useRoute,
   useRouter,
@@ -23,8 +22,6 @@ import {
 const meta = inject(MetaInj, ref())
 
 const activeView = inject(ActiveViewInj, ref())
-
-const { isMobileMode } = useGlobal()
 
 const { activeTab } = storeToRefs(useTabs())
 

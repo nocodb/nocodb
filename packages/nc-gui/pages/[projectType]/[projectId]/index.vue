@@ -42,6 +42,8 @@ const { t } = useI18n()
 
 const { $e } = useNuxtApp()
 
+const { betaFeatureToggleState } = useBetaFeatureToggle()
+
 const route = useRoute()
 
 const router = useRouter()
@@ -399,7 +401,7 @@ useEventListener(document, 'keydown', async (e: KeyboardEvent) => {
                     </a-menu-item>
 
                     <!-- Mobile Mode -->
-                    <a-menu-item key="mobile-mode">
+                    <a-menu-item v-if="betaFeatureToggleState.show || isMobileMode" key="mobile-mode">
                       <div
                         v-e="['e:set-mobile-mode']"
                         class="nc-project-menu-item group"

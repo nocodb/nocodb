@@ -1,7 +1,7 @@
 import { UITypes, isNumericCol, numericUITypes } from 'nocodb-sdk'
 
 const getEqText = (fieldUiType: UITypes) => {
-  if (isNumericCol(fieldUiType)) {
+  if (isNumericCol(fieldUiType) || UITypes.Time) {
     return '='
   } else if (
     [UITypes.SingleSelect, UITypes.Collaborator, UITypes.LinkToAnotherRecord, UITypes.Date, UITypes.DateTime].includes(
@@ -14,7 +14,7 @@ const getEqText = (fieldUiType: UITypes) => {
 }
 
 const getNeqText = (fieldUiType: UITypes) => {
-  if (isNumericCol(fieldUiType)) {
+  if (isNumericCol(fieldUiType) || UITypes.Time) {
     return '!='
   } else if (
     [UITypes.SingleSelect, UITypes.Collaborator, UITypes.LinkToAnotherRecord, UITypes.Date, UITypes.DateTime].includes(
@@ -112,6 +112,7 @@ export const comparisonOpList = (
       UITypes.Collaborator,
       UITypes.Date,
       UITypes.DateTime,
+      UITypes.Time,
       ...numericUITypes,
     ],
   },
@@ -126,6 +127,7 @@ export const comparisonOpList = (
       UITypes.Collaborator,
       UITypes.Date,
       UITypes.DateTime,
+      UITypes.Time,
       ...numericUITypes,
     ],
   },
@@ -225,25 +227,25 @@ export const comparisonOpList = (
     text: getGtText(fieldUiType),
     value: 'gt',
     ignoreVal: false,
-    includedTypes: [...numericUITypes, UITypes.Date, UITypes.DateTime],
+    includedTypes: [...numericUITypes, UITypes.Date, UITypes.DateTime, UITypes.Time],
   },
   {
     text: getLtText(fieldUiType),
     value: 'lt',
     ignoreVal: false,
-    includedTypes: [...numericUITypes, UITypes.Date, UITypes.DateTime],
+    includedTypes: [...numericUITypes, UITypes.Date, UITypes.DateTime, UITypes.Time],
   },
   {
     text: getGteText(fieldUiType),
     value: 'gte',
     ignoreVal: false,
-    includedTypes: [...numericUITypes, UITypes.Date, UITypes.DateTime],
+    includedTypes: [...numericUITypes, UITypes.Date, UITypes.DateTime, UITypes.Time],
   },
   {
     text: getLteText(fieldUiType),
     value: 'lte',
     ignoreVal: false,
-    includedTypes: [...numericUITypes, UITypes.Date, UITypes.DateTime],
+    includedTypes: [...numericUITypes, UITypes.Date, UITypes.DateTime, UITypes.Time],
   },
   {
     text: 'is within',

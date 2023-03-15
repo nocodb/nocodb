@@ -50,7 +50,7 @@ const currentVersion = ref('')
         <div
           style="height: var(--header-height); border-bottom-width: 1px"
           :class="isOpen ? 'pl-4' : ''"
-          class="flex items-center text-primary px-1 gap-1 nc-sidebar-header"
+          class="flex items-center px-1 gap-1 nc-sidebar-header"
         >
           <div
             v-if="isOpen && !isSharedBase"

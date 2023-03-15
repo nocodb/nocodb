@@ -47,12 +47,12 @@ const isSharedBase = false
           <a-tooltip v-if="workspace?.title?.length > 12" placement="bottom">
             <div class="text-md font-semibold truncate">{{ workspace.title }}</div>
             <template #title>
-              <div class="text-sm">{{ workspace?.title }}</div>
+              <div class="text-sm !text-red-500">{{ workspace?.title }}</div>
             </template>
           </a-tooltip>
           <div v-else class="text-md font-semibold truncate capitalize">{{ workspace?.title }}</div>
 
-          <MdiChevronDown class="min-w-[17px] group-hover:text-accent text-md"/>
+          <MdiChevronDown class="min-w-[17px] text-md"/>
         </template>
 
         <template v-else>
@@ -83,6 +83,7 @@ const isSharedBase = false
                 </div>
               </div>
             </template>
+            <div class="pt-2 pb-2 text-gray-400 font-weight-bold text-xs px-3">Workspace Options</div>
 
             <a-menu-item @click="workspaceModalVisible = true">
               <div class="nc-project-menu-item group">
@@ -97,7 +98,11 @@ const isSharedBase = false
               </div>
             </a-menu-item>
 
-            <a-menu-divider/>
+            <a-menu-divider class="my-2"/>
+
+            <div class="pt-2 pb-2 text-gray-400 font-weight-bold text-xs px-3">Workspaces</div>
+
+
 <div class="max-h-300px overflow-y-auto">
             <a-menu-item v-for="workspace of workspaces" @click="navigateTo(`/ws/${workspace.id}`)">
               <div class="nc-project-menu-item group">
@@ -106,7 +111,8 @@ const isSharedBase = false
                 {{ workspace.title }}
               </div>
             </a-menu-item>
-</div>       <a-menu-divider/>
+</div>
+            <a-menu-divider class="my-2"/>
 
             <a-menu-item @click="createDlg = true">
               <div class="nc-project-menu-item group">
@@ -329,7 +335,7 @@ const isSharedBase = false
         width="80%"
         :footer="null"
     >
-      <a-tabs v-model:activeKey="tab">
+      <a-tabs v-model:activeKey="tab" >
         <!--        <a-tab-pane key="projects" tab="All Projects" class="w-full">-->
         <!--          <WorkspaceProjectList class="h-full" />-->
         <!--        </a-tab-pane>-->
@@ -338,7 +344,9 @@ const isSharedBase = false
             <WorkspaceCollaboratorsList class="h-full overflow-auto"/>
           </a-tab-pane>
           <a-tab-pane key="settings" tab="Settings" class="w-full">
+            <div class="min-h-50 flex items-center justify-center">
             Not available
+            </div>
           </a-tab-pane>
         </template>
       </a-tabs>

@@ -3,7 +3,7 @@ import { NcProjectType, useRouter } from '#imports'
 
 const props = defineProps<{
   activeWorkspaceId: string
-  emitEvent?:boolean
+  modal?:boolean
 }>()
 
 const router = useRouter()
@@ -12,12 +12,16 @@ const emit = defineEmits<{
   (event: 'createProject', type: NcProjectType): void
 }>()
 
+const projectCreateDlg = ref(false)
+const projectType = ref(NcProjectType.DB)
+
 const navigateToCreateProject = (type: NcProjectType) => {
   if (type === NcProjectType.AUTOMATION) {
     return message.info('Automation is not available at the moment')
   } else {
-    if(props.emitEvent){
-      emit('createProject', type)
+    if(props.modal){
+      projectType.value = type
+      projectCreateDlg.value = true
     }else {
       router.push({
         path: '/create',
@@ -42,9 +46,11 @@ useEventListener(document, 'keydown', async (e: KeyboardEvent) => {
     }
   }
 })
+
 </script>
 
 <template>
+<div>
   <a-dropdown>
     <a-button type="primary">
       <div class="flex items-center gap-2">
@@ -81,6 +87,8 @@ useEventListener(document, 'keydown', async (e: KeyboardEvent) => {
       </a-menu>
     </template>
   </a-dropdown>
+  <WorkspaceCreateProjectDlg v-model="projectCreateDlg" :type="projectType"/>
+</div>
 </template>
 
 <style scoped></style>

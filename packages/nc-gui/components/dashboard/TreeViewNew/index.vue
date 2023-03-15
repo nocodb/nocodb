@@ -429,19 +429,6 @@ const selectedKey = useState('tree-view', () => [])
 
 
 const projectNodeRefs = ref([])
-const createProject = async (type) => {
-  const project = await _createProject({
-    type,
-    title: 'Untitled',
-    workspaceId: workspaceStore.workspace.id,
-  })
-
-  await workspaceStore.loadProjects()
-
-  nextTick(() => {
-    projectNodeRefs?.value?.[projectNodeRefs?.value?.length - 1]?.enableEditMode()
-  })
-}
 
 </script>
 
@@ -464,7 +451,8 @@ const createProject = async (type) => {
         </template>
 
         <template #expandIcon>
-          <PhCaretDownThin/>
+          <span></span>
+          <!--          <PhCaretDownThin/>-->
         </template>
         <a-menu-item-group key="g1">
           <!--          <a-menu-item v-for="table of projectTableList[project.id] ?? []" :key="table.id" @click="addTableTab(table)"> -->
@@ -1177,7 +1165,7 @@ const createProject = async (type) => {
     </a-menu>
 
     <div class="flex items-center py-2 justify-center">
-      <WorkspaceCreateProjectBtn emit-event @createProject="createProject" />
+      <WorkspaceCreateProjectBtn modal/>
     </div>
     <a-divider class="!my-0" />
 

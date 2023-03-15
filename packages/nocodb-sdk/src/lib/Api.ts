@@ -5314,6 +5314,58 @@ export class Api<
       }),
 
     /**
+     * No description
+     *
+     * @tags Base
+     * @name TableMagic
+     * @request POST:/api/v1/db/meta/projects/{projectId}/{baseId}/tables/magic
+     * @response `200` `TableType` OK
+     */
+    tableMagic: (
+      projectId: string,
+      baseId: string,
+      data: {
+        table_name: string;
+        title: string;
+      },
+      params: RequestParams = {}
+    ) =>
+      this.request<TableType, any>({
+        path: `/api/v1/db/meta/projects/${projectId}/${baseId}/tables/magic`,
+        method: 'POST',
+        body: data,
+        type: ContentType.Json,
+        format: 'json',
+        ...params,
+      }),
+
+    /**
+     * No description
+     *
+     * @tags Base
+     * @name SchemaMagic
+     * @request POST:/api/v1/db/meta/projects/{projectId}/{baseId}/schema/magic
+     * @response `200` `TableType` OK
+     */
+    schemaMagic: (
+      projectId: string,
+      baseId: string,
+      data: {
+        schema_name: string;
+        title: string;
+      },
+      params: RequestParams = {}
+    ) =>
+      this.request<TableType, any>({
+        path: `/api/v1/db/meta/projects/${projectId}/${baseId}/schema/magic`,
+        method: 'POST',
+        body: data,
+        type: ContentType.Json,
+        format: 'json',
+        ...params,
+      }),
+
+    /**
  * @description Synchronise the meta data difference between NC_DB and external data sources in a given Base
  * 
  * @tags Base

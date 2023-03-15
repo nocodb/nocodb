@@ -19,6 +19,7 @@ const skipList = {
   Currency: ['is null', 'is not null'],
   Rating: ['is null', 'is not null', 'is blank', 'is not blank'],
   Duration: ['is null', 'is not null'],
+  Time: ['is null', 'is not null'],
   SingleLineText: [],
   MultiLineText: [],
   Email: [],
@@ -261,6 +262,11 @@ test.describe('Filter Tests: Numerical', () => {
         title: 'Year',
         uidt: UITypes.Year,
       },
+      {
+        column_name: 'Time',
+        title: 'Time',
+        uidt: UITypes.Time,
+      },
     ];
 
     try {
@@ -281,6 +287,7 @@ test.describe('Filter Tests: Numerical', () => {
           Duration: rowMixedValue(columns[5], i),
           Rating: rowMixedValue(columns[6], i),
           Year: rowMixedValue(columns[7], i),
+          Time: rowMixedValue(columns[8], i),
         };
         rowAttributes.push(row);
       }
@@ -318,6 +325,10 @@ test.describe('Filter Tests: Numerical', () => {
 
   test('Filter: Year', async () => {
     await numBasedFilterTest('Year', '2023', '2024');
+  });
+
+  test('Filter: Time', async () => {
+    await numBasedFilterTest('Time', '02:02:00', '04:04:00');
   });
 });
 

@@ -40,6 +40,19 @@ const rowMixedValue = (column: ColumnType, index: number) => {
   const numbers = [33, null, 456, 333, 267, 34, 8754, 3234, 44, 33, null];
   const decimals = [33.3, 456.34, 333.3, null, 267.5674, 34.0, 8754.0, 3234.547, 44.2647, 33.98, null];
   const duration = [60, 120, 180, 3600, 3660, 3720, null, 3780, 60, 120, null];
+  const time = [
+    '02:02:00',
+    '20:20:20',
+    '04:04:00',
+    '02:02:00',
+    '20:20:20',
+    '18:18:18',
+    null,
+    '02:02:00',
+    '20:20:20',
+    '18:18:18',
+    null,
+  ];
   const rating = [0, 1, 2, 3, null, 0, 4, 5, 0, 1, null];
   const years = [2023, null, 1956, 2023, 1967, 2024, 1954, 1924, 2044, 1923, null];
 
@@ -134,6 +147,8 @@ const rowMixedValue = (column: ColumnType, index: number) => {
       return multiSelect[index % multiSelect.length];
     case UITypes.Year:
       return years[index % years.length];
+    case UITypes.Time:
+      return time[index % time.length];
     default:
       return `test-${index}`;
   }

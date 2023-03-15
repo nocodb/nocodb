@@ -54,7 +54,7 @@ const openedProjectId = ref()
 
 const projectElRefs = ref()
 
-const loadProjectAndTableList = async (project: ProjectType) => {
+const loadProjectAndTableList = async (project: ProjectType, projIndex: number) => {
   if (!project) {
     return
   }
@@ -62,13 +62,12 @@ const loadProjectAndTableList = async (project: ProjectType) => {
   openedProjectId.value = project.id
 
   nextTick(() => {
-    const projIndex = projects.value?.findIndex((p) => p.id === project.id)
     const el = projectElRefs.value[projIndex]
 
     console.log(projectElRefs.value)
 
     if (el) {
-      el.scrollIntoView({ behavior: 'smooth', block: 'center' })
+      el.scrollIntoView({ block: 'nearest' })
     }
   })
 
@@ -463,13 +462,13 @@ watch(
   <div class="nc-treeview-container flex flex-col">
     <div mode="inline" class="flex-grow min-h-50 overflow-y-auto overflow-x-hidden">
       <div
-        v-for="project in workspaceProjects"
+        v-for="(project, i) of workspaceProjects"
         :key="project.id"
         ref="projectElRefs"
         class="m-2 py-1 nc-project-sub-menu"
         :class="{ active: project.id === activeProjectId }"
       >
-        <div class="flex items-center gap-2 py-1 cursor-pointer" @click="loadProjectAndTableList(project)">
+        <div class="flex items-center gap-2 py-1 cursor-pointer" @click="loadProjectAndTableList(project, i)">
           <GeneralProjectIcon class="ml-2" :type="project.type" />
 
           <DashboardTreeViewNewProjectNode ref="projectNodeRefs" class="flex-grow" :project="projects[project.id] ?? project" />

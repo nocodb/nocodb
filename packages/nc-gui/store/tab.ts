@@ -18,6 +18,10 @@ export const useTabs = defineStore('tabStore', () => {
 
   const route = $(router.currentRoute)
 
+  const { t } = useI18n()
+
+  const { isUIAllowed } = useUIPermission()
+
   const projectStore = useProject()
 
   const projectType = $computed(() => route.params.projectType as string)
@@ -56,8 +60,8 @@ export const useTabs = defineStore('tabStore', () => {
         }
 
         return index
-      } else if (routeName.startsWith('nc-projectId-index-index-auth')) {
-        return tabs.value.findIndex((t) => t.type === 'auth')
+      } else if (routeName.startsWith('projectType-projectId-index-index-auth')) {
+        return tabs.value.findIndex((t) => t.type === TabType.AUTH)
       }
 
       // by default, it's showing Team & Auth
@@ -155,6 +159,23 @@ export const useTabs = defineStore('tabStore', () => {
         })
     }
   }
+
+  watch(
+    () => route.name,
+    (n, o) => {
+      if (n === o) return
+      if (!n || !/^projectType-projectId-index-index/.test(n.toString())) return
+      const activeTabRoute = n.toString().replace('projectType-projectId-index-index-', '')
+      switch (activeTabRoute) {
+        case TabType.AUTH:
+          if (isUIAllowed('teamAndAuth')) addTab({ id: TabType.AUTH, type: TabType.AUTH, title: t('title.teamAndAuth') })
+          break
+        default:
+          break
+      }
+    },
+    { immediate: true },
+  )
 
   return { tabs, addTab, activeTabIndex, activeTab, clearTabs, closeTab, updateTab }
 })

@@ -3,6 +3,7 @@ import type { BaseType, ProjectType, TableType } from 'nocodb-sdk'
 import { Dropdown, Tooltip, message } from 'ant-design-vue'
 import Sortable from 'sortablejs'
 import { Icon as IconifyIcon } from '@iconify/vue'
+import { nextTick, onMounted } from '@vue/runtime-core'
 import type { VNodeRef } from '#imports'
 
 import {
@@ -49,12 +50,27 @@ const { projectTableList, projects } = storeToRefs(projectsStore)
 
 const minimisedProjRefs = reactive({})
 
+const openedProjectId = ref()
+
+const projectElRefs = ref()
+
 const loadProjectAndTableList = async (project: ProjectType) => {
   if (!project) {
     return
   }
 
-  minimisedProjRefs[project.id] = !minimisedProjRefs[project.id]
+  openedProjectId.value = project.id
+
+  nextTick(() => {
+    const projIndex = projects.value?.findIndex((p) => p.id === project.id)
+    const el = projectElRefs.value[projIndex]
+
+    console.log(projectElRefs.value)
+
+    if (el) {
+      el.scrollIntoView({ behavior: 'smooth', block: 'center' })
+    }
+  })
 
   // if document project, add a document tab and route to the page
   switch (project.type) {
@@ -430,7 +446,17 @@ useEventListener(document, 'contextmenu', handleContext, true)
 
 const activeProjectId = computed(() => route.params.projectId)
 
-const projectNodeRefs = useState('tree-view', () => ({}))
+watch(
+  () => route.params.projectId,
+  async (newId, oldId) => {
+    if (newId && newId !== oldId) {
+      openedProjectId.value = newId
+      await loadProject(newId)
+      await loadProjectTables(newId)
+    }
+  },
+  { immediate: true },
+)
 </script>
 
 <template>
@@ -439,24 +465,23 @@ const projectNodeRefs = useState('tree-view', () => ({}))
       <div
         v-for="project in workspaceProjects"
         :key="project.id"
+        ref="projectElRefs"
         class="m-2 py-1 nc-project-sub-menu"
         :class="{ active: project.id === activeProjectId }"
       >
         <div class="flex items-center gap-2 py-1 cursor-pointer" @click="loadProjectAndTableList(project)">
-
           <GeneralProjectIcon class="ml-2" :type="project.type" />
 
           <DashboardTreeViewNewProjectNode ref="projectNodeRefs" class="flex-grow" :project="projects[project.id] ?? project" />
-
         </div>
 
         <div
           key="g1"
           class="overflow-y-auto transition-max-height"
-          :class="{ 'max-h-0': !minimisedProjRefs[project.id], 'max-h-500': minimisedProjRefs[project.id] }"
+          :class="{ 'max-h-0': openedProjectId !== project.id, 'max-h-500': openedProjectId === project.id }"
         >
           <div v-if="project.type === 'documentation'">
-            <DocsSideBarNew v-if="minimisedProjRefs[project.id]" :project="project" />
+            <DocsSideBarNew v-if="openedProjectId === project.id" :project="project" />
           </div>
           <a-dropdown
             v-else-if="project && projects[project.id] && projects[project.id].bases"
@@ -638,10 +663,10 @@ const projectNodeRefs = useState('tree-view', () => ({}))
                           :key="table.id"
                           v-e="['a:table:open']"
                           :class="[
-                              // todo: table filter
+                            // todo: table filter
                             // { hidden: !filteredTables?.includes(table), active: activeTable === table.id },
                             `nc-project-tree-tbl nc-project-tree-tbl-${table.title}`,
-                            { active: activeTable === table.id }
+                            { active: activeTable === table.id },
                           ]"
                           class="nc-tree-item text-sm cursor-pointer group"
                           :data-order="table.order"

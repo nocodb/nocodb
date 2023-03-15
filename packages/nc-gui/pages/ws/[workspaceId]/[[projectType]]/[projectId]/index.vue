@@ -59,7 +59,7 @@ const { isUIAllowed } = useUIPermission()
 const { copy } = useCopy(true)
 
 // create a new sidebar state
-const { isOpen, toggle, toggleHasSidebar } = useSidebar('nc-left-sidebar', { hasSidebar: false, isOpen: false })
+const { isOpen, toggle, toggleHasSidebar } = useSidebar('nc-left-sidebar', { hasSidebar: true, isOpen: true })
 
 const dialogOpen = ref(false)
 

@@ -1,10 +1,33 @@
 import type { Ref } from 'vue'
 import rfdc from 'rfdc'
-import { createSharedComposable, ref } from '#imports'
+import { createSharedComposable, ref, useRouter } from '#imports'
 import type { UndoRedoAction } from '~/lib'
 
 export const useUndoRedo = createSharedComposable(() => {
   const clone = rfdc()
+
+  const router = useRouter()
+
+  const route = $(router.currentRoute)
+
+  const scope = computed<string[]>(() => {
+    let tempScope = ['root']
+    for (const param of Object.values(route.params)) {
+      if (Array.isArray(param)) {
+        tempScope = tempScope.concat(param)
+      } else {
+        tempScope.push(param)
+      }
+    }
+    if (
+      Object.keys(route.params).includes('viewTitle') &&
+      Object.keys(route.params).includes('title') &&
+      route.params.viewTitle.length
+    ) {
+      tempScope.splice(tempScope.indexOf(route.params.title as string), 1)
+    }
+    return tempScope
+  })
 
   const undoQueue: Ref<UndoRedoAction[]> = ref([])
 
@@ -19,7 +42,24 @@ export const useUndoRedo = createSharedComposable(() => {
   }
 
   const undo = () => {
-    const action = undoQueue.value.pop()
+    let actionIndex = -1
+    for (let i = undoQueue.value.length - 1; i >= 0; i--) {
+      if (Array.isArray(undoQueue.value[i].scope)) {
+        if (scope.value.some((s) => undoQueue.value[i].scope?.includes(s))) {
+          actionIndex = i
+          break
+        }
+      } else {
+        if (scope.value.includes((undoQueue.value[i].scope as string) || 'root')) {
+          actionIndex = i
+          break
+        }
+      }
+    }
+
+    if (actionIndex === -1) return
+
+    const action = undoQueue.value.splice(actionIndex, 1)[0]
     if (action) {
       action.undo.fn.apply(action, action.undo.args)
       addRedo(action)
@@ -27,7 +67,24 @@ export const useUndoRedo = createSharedComposable(() => {
   }
 
   const redo = () => {
-    const action = redoQueue.value.pop()
+    let actionIndex = -1
+    for (let i = redoQueue.value.length - 1; i >= 0; i--) {
+      if (Array.isArray(redoQueue.value[i].scope)) {
+        if (scope.value.some((s) => redoQueue.value[i].scope?.includes(s))) {
+          actionIndex = i
+          break
+        }
+      } else {
+        if (scope.value.includes((redoQueue.value[i].scope as string) || 'root')) {
+          actionIndex = i
+          break
+        }
+      }
+    }
+
+    if (actionIndex === -1) return
+
+    const action = redoQueue.value.splice(actionIndex, 1)[0]
     if (action) {
       action.redo.fn.apply(action, action.redo.args)
       addUndo(action)

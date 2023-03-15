@@ -276,14 +276,15 @@ const [useProvideLTARStore, useLTARStore] = useInjectionState(
         if (!undo) {
           addUndo({
             redo: {
-              fn: (row: Record<string, any>, { metaValue }: { metaValue?: TableType } = {}) => unlink(row, { metaValue }, true),
-              args: [clone(row), clone({ metaValue })],
+              fn: (row: Record<string, any>) => unlink(row, {}, true),
+              args: [clone(row)],
             },
             undo: {
               // eslint-disable-next-line @typescript-eslint/no-use-before-define
-              fn: (row: Record<string, any>, { metaValue }: { metaValue?: TableType } = {}) => link(row, { metaValue }, true),
-              args: [clone(row), clone({ metaValue })],
+              fn: (row: Record<string, any>) => link(row, {}, true),
+              args: [clone(row)],
             },
+            scope: metaValue.id,
           })
         }
       } catch (e: any) {
@@ -322,13 +323,14 @@ const [useProvideLTARStore, useLTARStore] = useInjectionState(
         if (!undo) {
           addUndo({
             redo: {
-              fn: (row: Record<string, any>, { metaValue }: { metaValue?: TableType } = {}) => link(row, { metaValue }, true),
-              args: [clone(row), clone({ metaValue })],
+              fn: (row: Record<string, any>) => link(row, {}, true),
+              args: [clone(row)],
             },
             undo: {
-              fn: (row: Record<string, any>, { metaValue }: { metaValue?: TableType } = {}) => unlink(row, { metaValue }, true),
-              args: [clone(row), clone({ metaValue })],
+              fn: (row: Record<string, any>) => unlink(row, {}, true),
+              args: [clone(row)],
             },
+            scope: metaValue.id,
           })
         }
       } catch (e: any) {

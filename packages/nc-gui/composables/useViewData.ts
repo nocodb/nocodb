@@ -256,30 +256,22 @@ export function useViewData(
 
         addUndo({
           redo: {
-            fn: async function redo(
-              this: UndoRedoAction,
-              row: Row,
-              ltarState: Record<string, any>,
-              { metaValue, viewMetaValue }: { metaValue?: TableType; viewMetaValue?: ViewType },
-            ) {
+            fn: async function redo(this: UndoRedoAction, row: Row, ltarState: Record<string, any>) {
               const pkData = rowPkData(row.row, metaValue?.columns as ColumnType[])
               row.row = { ...pkData, ...row.row }
-              await insertRow(row, ltarState, { metaValue, viewMetaValue }, true)
+              await insertRow(row, ltarState, undefined, true)
               loadData()
             },
-            args: [clone(currentRow), clone(ltarState), clone({ metaValue, viewMetaValue })],
+            args: [clone(currentRow), clone(ltarState)],
           },
           undo: {
-            fn: async function undo(
-              this: UndoRedoAction,
-              id: string,
-              { metaValue, viewMetaValue }: { metaValue?: TableType; viewMetaValue?: ViewType } = {},
-            ) {
-              await deleteRowById(id, { metaValue, viewMetaValue })
+            fn: async function undo(this: UndoRedoAction, id: string) {
+              await deleteRowById(id)
               loadData()
             },
-            args: [id, clone({ metaValue, viewMetaValue })],
+            args: [id],
           },
+          scope: viewMeta.value?.is_default ? [viewMeta.value.fk_model_id, viewMeta.value.title] : viewMeta.value?.title,
         })
       }
 
@@ -338,30 +330,23 @@ export function useViewData(
       if (!undo) {
         addUndo({
           redo: {
-            fn: async function redo(
-              toUpdate: Row,
-              property: string,
-              { metaValue, viewMetaValue }: { metaValue?: TableType; viewMetaValue?: ViewType } = {},
-            ) {
-              await updateRowProperty(toUpdate, property, { metaValue, viewMetaValue }, true)
+            fn: async function redo(toUpdate: Row, property: string) {
+              await updateRowProperty(toUpdate, property, undefined, true)
             },
-            args: [clone(toUpdate), property, clone({ metaValue, viewMetaValue })],
+            args: [clone(toUpdate), property],
           },
           undo: {
-            fn: async function undo(
-              toUpdate: Row,
-              property: string,
-              { metaValue, viewMetaValue }: { metaValue?: TableType; viewMetaValue?: ViewType } = {},
-            ) {
+            fn: async function undo(toUpdate: Row, property: string) {
               await updateRowProperty(
                 { row: toUpdate.oldRow, oldRow: toUpdate.row, rowMeta: toUpdate.rowMeta },
                 property,
-                { metaValue, viewMetaValue },
+                undefined,
                 true,
               )
             },
-            args: [clone(toUpdate), property, clone({ metaValue, viewMetaValue })],
+            args: [clone(toUpdate), property],
           },
+          scope: viewMeta.value?.is_default ? [viewMeta.value.fk_model_id, viewMeta.value.title] : viewMeta.value?.title,
         })
 
         /** update row data(to sync formula and other related columns)
@@ -461,34 +446,24 @@ export function useViewData(
           .join('___')
 
         if (!undo) {
-          const metaValue = meta.value
-          const viewMetaValue = viewMeta.value
           addUndo({
             redo: {
-              fn: async function undo(
-                this: UndoRedoAction,
-                id: string,
-                { metaValue, viewMetaValue }: { metaValue?: TableType; viewMetaValue?: ViewType } = {},
-              ) {
-                await deleteRowById(id, { metaValue, viewMetaValue })
+              fn: async function undo(this: UndoRedoAction, id: string) {
+                await deleteRowById(id)
                 loadData()
               },
-              args: [id, clone({ metaValue, viewMetaValue })],
+              args: [id],
             },
             undo: {
-              fn: async function redo(
-                this: UndoRedoAction,
-                row: Row,
-                ltarState: Record<string, any>,
-                { metaValue, viewMetaValue }: { metaValue?: TableType; viewMetaValue?: ViewType },
-              ) {
-                const pkData = rowPkData(row.row, metaValue?.columns as ColumnType[])
+              fn: async function redo(this: UndoRedoAction, row: Row, ltarState: Record<string, any>) {
+                const pkData = rowPkData(row.row, meta.value?.columns as ColumnType[])
                 row.row = { ...pkData, ...row.row }
-                await insertRow(row, ltarState, { metaValue, viewMetaValue }, true)
+                await insertRow(row, ltarState, {}, true)
                 loadData()
               },
-              args: [clone(row), {}, clone({ metaValue, viewMetaValue })],
+              args: [clone(row), {}],
             },
+            scope: viewMeta.value?.is_default ? [viewMeta.value.fk_model_id, viewMeta.value.title] : viewMeta.value?.title,
           })
         }
 

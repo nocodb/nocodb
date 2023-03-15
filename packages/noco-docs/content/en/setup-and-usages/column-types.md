@@ -325,7 +325,22 @@ For more about rollup, please visit [here](./rollup).
 |**SQL Server**|geometry|
 |**SQLite**|text|
 
-<!-- TODO: add GeoData -->
+
+### GeoData
+
+Encodes a geographic location which consists of a latitude and a longitude. 
+Both are internally stored as one string, where latitude and longitude are separated by ';'
+Example: "52.2134;29.1442"
+
+#### Available Database Types
+
+|Database| Types|
+|-----|----------|
+|**MySQL**|char, varchar, nchar, text, tinytext, mediumtext, longtext|
+|**PostgreSQL**|char, character, character varying, text|
+|**SQL Server**|decimal, float|
+|**SQLite**|character, text, varchar|
+
 
 ### JSON
 

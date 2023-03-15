@@ -2,6 +2,8 @@
 import type { SelectProps } from 'ant-design-vue'
 import { ref } from 'vue'
 import { StreamBarcodeReader } from 'vue-barcode-reader'
+import type { ColumnType } from 'nocodb-sdk'
+import { UITypes } from 'nocodb-sdk'
 import { NOCO } from '#imports'
 import QrCodeScan from '~icons/mdi/qrcode-scan'
 
@@ -18,20 +20,48 @@ const { isMobileMode } = useGlobal()
 
 const view = inject(ActiveViewInj, ref())
 
-const codeFieldOptions = computed<SelectProps['options']>(
+const fieldOptionsOfSupportedColumnsToScanFor = computed<SelectProps['options']>(
   () =>
-    meta?.value?.columns!.map((field) => {
-      return {
-        value: field.id,
-        label: field.title,
-      }
-    }) || [],
+    meta?.value
+      ?.columns!.filter((column) => column.uidt && [UITypes.QrCode, UITypes.Barcode].includes(column.uidt))
+      .map((field) => {
+        return {
+          value: field.id,
+          label: field.title,
+        }
+      }) || [],
 )
+
+const getColumnToSearchForByBarOrQrCodeColumnId = (columnId: string): ColumnType => {
+  const qrOrBarcodeColumn = meta.value?.columns?.find((column) => column.id === columnId)
+  if (!qrOrBarcodeColumn) {
+    throw new Error('QrCode or BarCode Column not found')
+  }
+  let columnIdToSearchFor: string
+  if (qrOrBarcodeColumn.uidt === UITypes.QrCode) {
+    columnIdToSearchFor = (qrOrBarcodeColumn.colOptions as any).fk_qr_value_column_id
+  } else if (qrOrBarcodeColumn.uidt === UITypes.Barcode) {
+    columnIdToSearchFor = (qrOrBarcodeColumn.colOptions as any).fk_barcode_value_column_id
+  } else {
+    throw new Error('Column to scan for is not of supported type')
+  }
+  const columnToSearchFor = meta.value?.columns?.find((column) => column.id === columnIdToSearchFor)
+  if (!columnToSearchFor) {
+    throw new Error('Column to search for not found')
+  }
+  return columnToSearchFor
+}
 
 const showCodeScannerOverlay = ref(false)
 
-const selectedCodeColumnIdToScanFor = ref('')
+const idOfSelectedColumnToScanFor = ref('')
 const lastScannedCode = ref('')
+
+watch(fieldOptionsOfSupportedColumnsToScanFor, () => {
+  if (fieldOptionsOfSupportedColumnsToScanFor.value?.every((option) => option.value !== idOfSelectedColumnToScanFor.value)) {
+    idOfSelectedColumnToScanFor.value = ''
+  }
+})
 
 const scannerIsReady = ref(false)
 
@@ -39,21 +69,19 @@ const onLoaded = async () => {
   scannerIsReady.value = true
 }
 
-const showScannerField = computed(() => scannerIsReady.value && selectedCodeColumnIdToScanFor.value !== '')
-const showPleaseSelectColumnMessage = computed(() => !selectedCodeColumnIdToScanFor.value)
-const showScannerIsLoadingMessage = computed(() => !!selectedCodeColumnIdToScanFor.value && !scannerIsReady.value)
+const showScannerField = computed(() => scannerIsReady.value && idOfSelectedColumnToScanFor.value !== '')
+const showPleaseSelectColumnMessage = computed(() => !idOfSelectedColumnToScanFor.value)
+const showScannerIsLoadingMessage = computed(() => !!idOfSelectedColumnToScanFor.value && !scannerIsReady.value)
 
 const onDecode = async (codeValue: string) => {
   if (!showScannerField.value || codeValue === lastScannedCode.value) {
     return
   }
   try {
-    const nameOfSelectedColumnToScanFor = meta.value?.columns?.find(
-      (column) => column.id === selectedCodeColumnIdToScanFor.value,
-    )?.title
-    const whereClause = `(${nameOfSelectedColumnToScanFor},eq,${codeValue})`
+    const selectedColumnToScanFor = getColumnToSearchForByBarOrQrCodeColumnId(idOfSelectedColumnToScanFor.value)
+    const whereClause = `(${selectedColumnToScanFor?.title},eq,${codeValue})`
     const foundRowsForCode = (
-      await $api.dbViewRow.list(NOCO, project.value!.id!, meta.value!.id!, view.value!.title!, {
+      await $api.dbViewRow.list(NOCO, project.id!, meta.value!.id!, view.value!.title!, {
         where: whereClause,
       })
     ).list
@@ -112,7 +140,11 @@ const onDecode = async (codeValue: string) => {
     >
       <div class="relative flex flex-col h-full">
         <a-form-item :label="$t('labels.columnToScanFor')" class="nc-dropdown-scanner-column-id">
-          <a-select v-model:value="selectedCodeColumnIdToScanFor" class="w-full" :options="codeFieldOptions" />
+          <a-select
+            v-model:value="idOfSelectedColumnToScanFor"
+            class="w-full"
+            :options="fieldOptionsOfSupportedColumnsToScanFor"
+          />
         </a-form-item>
 
         <div>

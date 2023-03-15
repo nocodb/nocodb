@@ -24,6 +24,7 @@ export interface AppInfo {
   ee?: boolean
   ncAttachmentFieldSize: number
   ncMaxAttachmentsAllowed: number
+  isCloud: boolean
 }
 
 export interface StoredState {

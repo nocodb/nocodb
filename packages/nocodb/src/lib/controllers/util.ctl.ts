@@ -1,4 +1,3 @@
-// // Project CRUD
 import ncMetaAclMw from '../meta/helpers/ncMetaAclMw';
 import catchError from '../meta/helpers/catchError';
 import { utilService } from '../services';

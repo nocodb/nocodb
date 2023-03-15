@@ -1,5 +1,4 @@
 import { XcWebhookNotificationPlugin } from 'nc-plugin';
-
 import Twilio from './Twilio';
 import type { IWebhookNotificationAdapter } from 'nc-plugin';
 

@@ -182,7 +182,7 @@ export default class FormViewColumn implements FormColumnType {
     }
 
     // update meta
-    await ncMeta.metaUpdate(
+    return await ncMeta.metaUpdate(
       null,
       null,
       MetaTable.FORM_VIEW_COLUMNS,

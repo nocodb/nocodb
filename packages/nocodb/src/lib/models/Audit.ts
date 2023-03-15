@@ -78,12 +78,7 @@ export default class Audit implements AuditType {
 
   // Will only await for Audit insertion if `forceAwait` is true, which will be true in test environment by default
   public static async insert(
-    audit: Partial<
-      Audit & {
-        created_at?;
-        updated_at?;
-      }
-    >,
+    audit: Partial<Audit>,
     ncMeta = Noco.ncMeta,
     { forceAwait }: { forceAwait: boolean } = {
       forceAwait: process.env['TEST'] === 'true',
@@ -105,8 +100,6 @@ export default class Audit implements AuditType {
         'status',
         'description',
         'details',
-        'created_at',
-        'updated_at',
       ]);
       if (!insertObj.project_id && insertObj.fk_model_id) {
         insertObj.project_id = (
@@ -120,7 +113,7 @@ export default class Audit implements AuditType {
     if (forceAwait) {
       return await insertAudit();
     } else {
-      insertAudit();
+      return insertAudit();
     }
   }
 

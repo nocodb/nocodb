@@ -1,7 +1,6 @@
 import { PagedResponseImpl } from '../meta/helpers/PagedResponse';
 import ncMetaAclMw from '../meta/helpers/ncMetaAclMw';
 import { metaApiMetrics } from '../meta/helpers/apiMetrics';
-
 import { baseService } from '../services';
 import type Base from '../models/Base';
 import type { BaseListType } from 'nocodb-sdk';
@@ -32,13 +31,12 @@ async function baseList(
     projectId: req.params.projectId,
   });
 
-  res // todo: pagination
-    .json({
-      bases: new PagedResponseImpl(bases, {
-        count: bases.length,
-        limit: bases.length,
-      }),
-    });
+  res.json(
+    new PagedResponseImpl(bases, {
+      count: bases.length,
+      limit: bases.length,
+    })
+  );
 }
 
 export async function baseDelete(

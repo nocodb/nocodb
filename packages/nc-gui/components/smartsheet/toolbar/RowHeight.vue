@@ -1,8 +1,8 @@
 <script setup lang="ts">
 import type { GridType } from 'nocodb-sdk'
-import { ActiveViewInj, IsLockedInj, inject, ref, useMenuCloseOnEsc } from '#imports'
+import { ActiveViewInj, IsLockedInj, inject, ref, storeToRefs, useMenuCloseOnEsc } from '#imports'
 
-const { isSharedBase } = useProject()
+const { isSharedBase } = storeToRefs(useProject())
 
 const view = inject(ActiveViewInj, ref())
 

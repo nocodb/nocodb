@@ -39,6 +39,7 @@ import {
   isYear,
   provide,
   ref,
+  storeToRefs,
   toRef,
   useDebounceFn,
   useProject,
@@ -85,7 +86,7 @@ const isLocked = inject(IsLockedInj, ref(false))
 
 const { currentRow } = useSmartsheetRowStoreOrThrow()
 
-const { sqlUis } = useProject()
+const { sqlUis } = storeToRefs(useProject())
 
 const sqlUi = ref(column.value?.base_id ? sqlUis.value[column.value?.base_id] : Object.values(sqlUis.value)[0])
 
@@ -139,6 +140,15 @@ const isNumericField = computed(() => {
     isDuration(column.value)
   )
 })
+
+// disable contexxtmenu event propagation when cell is in
+// editable state and typable (e.g. text area)
+// this is to prevent the custom grid view context menu from opening
+const onContextmenu = (e: MouseEvent) => {
+  if (props.editEnabled && isTypableInputColumn(column.value)) {
+    e.stopPropagation()
+  }
+}
 </script>
 
 <template>
@@ -151,6 +161,7 @@ const isNumericField = computed(() => {
     ]"
     @keydown.enter.exact="syncAndNavigate(NavigateDir.NEXT, $event)"
     @keydown.shift.enter.exact="syncAndNavigate(NavigateDir.PREV, $event)"
+    @contextmenu="onContextmenu"
   >
     <template v-if="column">
       <LazyCellTextArea v-if="isTextArea(column)" v-model="vModel" />

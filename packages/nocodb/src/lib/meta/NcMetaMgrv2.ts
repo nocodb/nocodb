@@ -1,7 +1,6 @@
 import bodyParser from 'body-parser';
 import { Router } from 'express';
 import multer from 'multer';
-
 import ProjectMgr from '../db/sql-mgr/ProjectMgr';
 import { packageVersion } from '../utils/packageVersion';
 import projectAcl from '../utils/projectAcl';
@@ -13,7 +12,6 @@ import type NcMetaIO from './NcMetaIO';
 import type Noco from '../Noco';
 import type { NcConfig } from '../../interface/config';
 import type { Handler } from 'express';
-// import ncGetMeta from './handlersv2/ncGetMeta';
 
 export default class NcMetaMgrv2 {
   public projectConfigs = {};

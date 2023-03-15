@@ -1,13 +1,11 @@
 import fs from 'fs';
 import path from 'path';
 import { promisify } from 'util';
-
 import { URL } from 'url';
 import * as ejs from 'ejs';
 import { Router } from 'express';
 import { glob } from 'glob';
 import mkdirp from 'mkdirp';
-
 import debug from 'debug';
 import autoBind from 'auto-bind';
 import ModelXcMetaFactory from '../../db/sql-mgr/code/models/xc/ModelXcMetaFactory';
@@ -24,7 +22,6 @@ import BaseApiBuilder, {
 import Column from '../../models/Column';
 import { MetaTable } from '../../utils/globals';
 import { RestCtrl } from './RestCtrl';
-
 import { RestCtrlBelongsTo } from './RestCtrlBelongsTo';
 import { RestCtrlCustom } from './RestCtrlCustom';
 import { RestCtrlHasMany } from './RestCtrlHasMany';
@@ -35,15 +32,11 @@ import type {
   XcTablesPopulateParams,
 } from '../../utils/common/BaseApiBuilder';
 import type Noco from '../../Noco';
-// import NocoTypeGenerator from '../v1-legacy-resolver/NocoTypeGenerator';
-// import NocoResolverGenerator from '../v1-legacy-resolver/NocoResolverGenerator';
-// import { RestCtrlv2 } from './RestCtrlv2';
-// import registerRestCtrl from './registerRestCtrl';
 import type { DbConfig, NcConfig } from '../../../interface/config';
 import type NcProjectBuilder from '../NcProjectBuilder';
-// import { BaseModelSqlv2 } from '../../sql-data-mapper/lib/sql/BaseModelSqlv2';
 
 const log = debug('nc:api:rest');
+
 const NC_CUSTOM_ROUTE_KEY = '__xc_custom';
 
 export class RestApiBuilder extends BaseApiBuilder<Noco> {

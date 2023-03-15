@@ -8,6 +8,7 @@ import {
   message,
   nextTick,
   reactive,
+  storeToRefs,
   useCommandPalette,
   useI18n,
   useMetas,
@@ -39,7 +40,9 @@ const dialogShow = useVModel(props, 'modelValue', emit)
 
 const { updateTab } = useTabs()
 
-const { loadTables, tables, project, isMysql, isMssql, isPg } = useProject()
+const projectStore = useProject()
+const { loadTables, isMysql, isMssql, isPg } = projectStore
+const { project } = storeToRefs(projectStore)
 
 const { refreshCommandPalette } = useCommandPalette()
 

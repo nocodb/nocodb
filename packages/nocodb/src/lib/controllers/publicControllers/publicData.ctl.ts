@@ -11,7 +11,7 @@ export async function dataList(req: Request, res: Response) {
     password: req.headers?.['xc-password'] as string,
     sharedViewUuid: req.params.sharedViewUuid,
   });
-  res.json({ data: pagedResponse });
+  res.json(pagedResponse);
 }
 
 // todo: Handle the error case where view doesnt belong to model

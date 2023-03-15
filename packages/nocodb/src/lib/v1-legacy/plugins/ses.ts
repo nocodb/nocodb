@@ -1,5 +1,4 @@
 // @wingkwong: Deprecated. Moved to nocodb/packages/nocodb/src/plugins/ses instead. Keep this file for migration only.
-
 import { XcActionType, XcType } from 'nocodb-sdk';
 import type { XcForm } from 'nocodb-sdk';
 

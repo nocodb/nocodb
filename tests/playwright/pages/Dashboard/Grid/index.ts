@@ -283,6 +283,9 @@ export class GridPage extends BasePage {
     });
     await expect(await cell.locator('input')).toBeVisible();
 
+    // press escape to exit edit mode
+    await cell.press('Escape');
+
     // right click menu
     await this.get().locator(`td[data-testid="cell-${columnHeader}-0"]`).click({
       button: 'right',

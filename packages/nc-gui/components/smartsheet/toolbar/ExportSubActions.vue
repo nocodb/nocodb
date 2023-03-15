@@ -10,6 +10,7 @@ import {
   inject,
   message,
   ref,
+  storeToRefs,
   useI18n,
   useNuxtApp,
   useProject,
@@ -22,7 +23,7 @@ const isPublicView = inject(IsPublicInj, ref(false))
 
 const fields = inject(FieldsInj, ref([]))
 
-const { project } = useProject()
+const { project } = storeToRefs(useProject())
 
 const { $api } = useNuxtApp()
 

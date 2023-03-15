@@ -1,7 +1,6 @@
 import fs from 'fs';
 import { URL } from 'url';
 import { promisify } from 'util';
-
 import * as path from 'path';
 import parseDbUrl from 'parse-database-url';
 import SqlClientFactory from '../db/sql-client/lib/SqlClientFactory';

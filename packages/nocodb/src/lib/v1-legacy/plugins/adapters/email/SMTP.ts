@@ -1,7 +1,6 @@
 // @ts-ignore
 import nodemailer from 'nodemailer';
 import type Mail from 'nodemailer/lib/mailer';
-
 import type { XcEmail } from '../../../../../interface/IEmailAdapter';
 import type IEmailAdapter from '../../../../../interface/IEmailAdapter';
 

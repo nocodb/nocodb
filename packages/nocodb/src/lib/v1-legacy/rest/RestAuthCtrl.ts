@@ -20,8 +20,11 @@ import type NcMetaIO from '../../meta/NcMetaIO';
 import type IEmailAdapter from '../../../interface/IEmailAdapter';
 
 const autoBind = require('auto-bind');
+
 const PassportLocalStrategy = require('passport-local').Strategy;
+
 const { v4: uuidv4 } = require('uuid');
+
 const { isEmail } = require('validator');
 
 passport.serializeUser(function (
@@ -1017,7 +1020,7 @@ export default class RestAuthCtrl {
           });
       }
 
-      res.json({ msg: 'Success' });
+      res.json({ msg: 'Signed out successfully' });
     } catch (e) {
       console.log(e);
       next(e);

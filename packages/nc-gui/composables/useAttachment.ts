@@ -16,13 +16,17 @@ const useAttachment = () => {
     }
     const sources = getPossibleAttachmentSrc(item)
     for (const source of sources) {
-      // test if the source is accessible or not
-      const res = await fetch(source, { method: 'HEAD' })
-      if (res.ok) {
-        return source
-      }
+      try {
+        // test if the source is accessible or not
+        const res = await fetch(source, { method: 'HEAD' })
+        if (res.ok) {
+          return source
+        }
+      } catch {}
     }
-    return null
+    // if no source can be fetched, it could be probably blocked by CORS
+    // return original url or built url anyway
+    return item.url || `${appInfo.value.ncSiteUrl}/${item.path}`
   }
 
   const openAttachment = async (item: Record<string, any>) => {

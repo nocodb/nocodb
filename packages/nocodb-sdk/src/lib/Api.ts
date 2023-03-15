@@ -1697,7 +1697,9 @@ export interface PluginTestReqType {
   /** Plugin Title */
   title: string;
   /** Plugin Input as JSON string */
-  input: string;
+  input: string | object;
+  /** @example Email */
+  category: string;
 }
 
 /**

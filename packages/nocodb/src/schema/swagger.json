@@ -4239,517 +4239,6 @@
         "description": "List all tables in a given project"
       }
     },
-    "/api/v1/db/meta/tables/{tableId}": {
-      "parameters": [
-        {
-          "schema": {
-            "$ref": "#/components/schemas/Id",
-            "example": "md_w9gpnaousnfss1",
-            "type": "string"
-          },
-          "name": "tableId",
-          "in": "path",
-          "required": true,
-          "description": "Unique Table ID"
-        }
-      ],
-      "get": {
-        "summary": "Read Table",
-        "operationId": "db-table-read",
-        "responses": {
-          "200": {
-            "description": "OK",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/Table"
-                },
-                "examples": {
-                  "Example 1": {
-                    "value": {
-                      "id": "md_rsu68aqjsbyqtl",
-                      "base_id": "ds_g4ccx6e77h1dmi",
-                      "project_id": "p_xm3thidrblw4n7",
-                      "table_name": "nc_vm5q___Table1",
-                      "title": "Table1",
-                      "type": "table",
-                      "meta": null,
-                      "schema": null,
-                      "enabled": 1,
-                      "mm": 0,
-                      "tags": null,
-                      "pinned": null,
-                      "deleted": null,
-                      "order": 1,
-                      "created_at": "2023-03-02 17:04:06",
-                      "updated_at": "2023-03-02 17:04:08",
-                      "columns": [
-                        {
-                          "id": "cl_phvuuwjrzcdo0g",
-                          "base_id": "ds_g4ccx6e77h1dmi",
-                          "project_id": "p_xm3thidrblw4n7",
-                          "fk_model_id": "md_rsu68aqjsbyqtl",
-                          "title": "Id",
-                          "column_name": "id",
-                          "uidt": "ID",
-                          "dt": "int",
-                          "np": "10",
-                          "ns": "0",
-                          "clen": null,
-                          "cop": "1",
-                          "pk": 1,
-                          "pv": null,
-                          "rqd": 1,
-                          "un": 1,
-                          "ct": "int unsigned",
-                          "ai": 1,
-                          "unique": 0,
-                          "cdf": null,
-                          "cc": "",
-                          "csn": null,
-                          "dtx": "specificType",
-                          "dtxp": "",
-                          "dtxs": "0",
-                          "au": 0,
-                          "validate": null,
-                          "virtual": null,
-                          "deleted": null,
-                          "system": 0,
-                          "order": 1,
-                          "created_at": "2023-03-02 17:04:06",
-                          "updated_at": "2023-03-02 17:04:06",
-                          "meta": null
-                        },
-                        {
-                          "id": "cl_c5knoi4xs4sfpt",
-                          "base_id": "ds_g4ccx6e77h1dmi",
-                          "project_id": "p_xm3thidrblw4n7",
-                          "fk_model_id": "md_rsu68aqjsbyqtl",
-                          "title": "Title",
-                          "column_name": "title",
-                          "uidt": "SingleLineText",
-                          "dt": "varchar",
-                          "np": null,
-                          "ns": null,
-                          "clen": "45",
-                          "cop": "2",
-                          "pk": 0,
-                          "pv": 1,
-                          "rqd": 0,
-                          "un": 0,
-                          "ct": "varchar(45)",
-                          "ai": 0,
-                          "unique": 0,
-                          "cdf": null,
-                          "cc": "",
-                          "csn": "utf8mb4",
-                          "dtx": "specificType",
-                          "dtxp": "45",
-                          "dtxs": null,
-                          "au": 0,
-                          "validate": null,
-                          "virtual": null,
-                          "deleted": null,
-                          "system": 0,
-                          "order": 2,
-                          "created_at": "2023-03-02 17:04:06",
-                          "updated_at": "2023-03-02 17:04:06",
-                          "meta": null
-                        },
-                        {
-                          "id": "cl_jpl0qu4gj4rexq",
-                          "base_id": "ds_g4ccx6e77h1dmi",
-                          "project_id": "p_xm3thidrblw4n7",
-                          "fk_model_id": "md_rsu68aqjsbyqtl",
-                          "title": "CreatedAt",
-                          "column_name": "created_at",
-                          "uidt": "DateTime",
-                          "dt": "timestamp",
-                          "np": null,
-                          "ns": null,
-                          "clen": null,
-                          "cop": "3",
-                          "pk": 0,
-                          "pv": null,
-                          "rqd": 0,
-                          "un": 0,
-                          "ct": "timestamp",
-                          "ai": 0,
-                          "unique": 0,
-                          "cdf": "CURRENT_TIMESTAMP",
-                          "cc": "",
-                          "csn": null,
-                          "dtx": "specificType",
-                          "dtxp": "0",
-                          "dtxs": null,
-                          "au": 0,
-                          "validate": null,
-                          "virtual": null,
-                          "deleted": null,
-                          "system": 0,
-                          "order": 3,
-                          "created_at": "2023-03-02 17:04:06",
-                          "updated_at": "2023-03-02 17:04:06",
-                          "meta": null
-                        },
-                        {
-                          "id": "cl_m4wkaqgqqjzoeh",
-                          "base_id": "ds_g4ccx6e77h1dmi",
-                          "project_id": "p_xm3thidrblw4n7",
-                          "fk_model_id": "md_rsu68aqjsbyqtl",
-                          "title": "UpdatedAt",
-                          "column_name": "updated_at",
-                          "uidt": "DateTime",
-                          "dt": "timestamp",
-                          "np": null,
-                          "ns": null,
-                          "clen": null,
-                          "cop": "4",
-                          "pk": 0,
-                          "pv": null,
-                          "rqd": 0,
-                          "un": 0,
-                          "ct": "timestamp",
-                          "ai": 0,
-                          "unique": 0,
-                          "cdf": "CURRENT_TIMESTAMP on update CURRENT_TIMESTAMP",
-                          "cc": "",
-                          "csn": null,
-                          "dtx": "specificType",
-                          "dtxp": "0",
-                          "dtxs": null,
-                          "au": 0,
-                          "validate": null,
-                          "virtual": null,
-                          "deleted": null,
-                          "system": 0,
-                          "order": 4,
-                          "created_at": "2023-03-02 17:04:06",
-                          "updated_at": "2023-03-02 17:04:06",
-                          "meta": null
-                        }
-                      ],
-                      "views": [
-                        {
-                          "ptn": "nc_vm5q___Table1",
-                          "_ptn": "Table1",
-                          "ptype": "table",
-                          "tn": "Table1",
-                          "_tn": "Table1",
-                          "table_meta": null,
-                          "id": "vw_p2jcatxz4mvcfw",
-                          "base_id": "ds_g4ccx6e77h1dmi",
-                          "project_id": "p_xm3thidrblw4n7",
-                          "fk_model_id": "md_rsu68aqjsbyqtl",
-                          "title": "Table1",
-                          "type": 3,
-                          "is_default": 1,
-                          "show_system_fields": null,
-                          "lock_type": "collaborative",
-                          "uuid": null,
-                          "password": null,
-                          "show": 1,
-                          "order": 1,
-                          "created_at": "2023-03-02 17:04:06",
-                          "updated_at": "2023-03-02 17:04:06",
-                          "meta": {},
-                          "view": {
-                            "fk_view_id": "vw_p2jcatxz4mvcfw",
-                            "base_id": "ds_g4ccx6e77h1dmi",
-                            "project_id": "p_xm3thidrblw4n7",
-                            "uuid": null,
-                            "created_at": "2023-03-02 17:04:06",
-                            "updated_at": "2023-03-02 17:04:06",
-                            "meta": null,
-                            "row_height": null
-                          },
-                          "disabled": {
-                            "owner": false,
-                            "creator": false,
-                            "viewer": false,
-                            "editor": false,
-                            "commenter": false,
-                            "guest": false
-                          }
-                        }
-                      ],
-                      "columnsById": {
-                        "cl_phvuuwjrzcdo0g": {
-                          "id": "cl_phvuuwjrzcdo0g",
-                          "base_id": "ds_g4ccx6e77h1dmi",
-                          "project_id": "p_xm3thidrblw4n7",
-                          "fk_model_id": "md_rsu68aqjsbyqtl",
-                          "title": "Id",
-                          "column_name": "id",
-                          "uidt": "ID",
-                          "dt": "int",
-                          "np": "10",
-                          "ns": "0",
-                          "clen": null,
-                          "cop": "1",
-                          "pk": 1,
-                          "pv": null,
-                          "rqd": 1,
-                          "un": 1,
-                          "ct": "int unsigned",
-                          "ai": 1,
-                          "unique": 0,
-                          "cdf": null,
-                          "cc": "",
-                          "csn": null,
-                          "dtx": "specificType",
-                          "dtxp": "",
-                          "dtxs": "0",
-                          "au": 0,
-                          "validate": null,
-                          "virtual": null,
-                          "deleted": null,
-                          "system": 0,
-                          "order": 1,
-                          "created_at": "2023-03-02 17:04:06",
-                          "updated_at": "2023-03-02 17:04:06",
-                          "meta": null
-                        },
-                        "cl_c5knoi4xs4sfpt": {
-                          "id": "cl_c5knoi4xs4sfpt",
-                          "base_id": "ds_g4ccx6e77h1dmi",
-                          "project_id": "p_xm3thidrblw4n7",
-                          "fk_model_id": "md_rsu68aqjsbyqtl",
-                          "title": "Title",
-                          "column_name": "title",
-                          "uidt": "SingleLineText",
-                          "dt": "varchar",
-                          "np": null,
-                          "ns": null,
-                          "clen": "45",
-                          "cop": "2",
-                          "pk": 0,
-                          "pv": 1,
-                          "rqd": 0,
-                          "un": 0,
-                          "ct": "varchar(45)",
-                          "ai": 0,
-                          "unique": 0,
-                          "cdf": null,
-                          "cc": "",
-                          "csn": "utf8mb4",
-                          "dtx": "specificType",
-                          "dtxp": "45",
-                          "dtxs": null,
-                          "au": 0,
-                          "validate": null,
-                          "virtual": null,
-                          "deleted": null,
-                          "system": 0,
-                          "order": 2,
-                          "created_at": "2023-03-02 17:04:06",
-                          "updated_at": "2023-03-02 17:04:06",
-                          "meta": null
-                        },
-                        "cl_jpl0qu4gj4rexq": {
-                          "id": "cl_jpl0qu4gj4rexq",
-                          "base_id": "ds_g4ccx6e77h1dmi",
-                          "project_id": "p_xm3thidrblw4n7",
-                          "fk_model_id": "md_rsu68aqjsbyqtl",
-                          "title": "CreatedAt",
-                          "column_name": "created_at",
-                          "uidt": "DateTime",
-                          "dt": "timestamp",
-                          "np": null,
-                          "ns": null,
-                          "clen": null,
-                          "cop": "3",
-                          "pk": 0,
-                          "pv": null,
-                          "rqd": 0,
-                          "un": 0,
-                          "ct": "timestamp",
-                          "ai": 0,
-                          "unique": 0,
-                          "cdf": "CURRENT_TIMESTAMP",
-                          "cc": "",
-                          "csn": null,
-                          "dtx": "specificType",
-                          "dtxp": "0",
-                          "dtxs": null,
-                          "au": 0,
-                          "validate": null,
-                          "virtual": null,
-                          "deleted": null,
-                          "system": 0,
-                          "order": 3,
-                          "created_at": "2023-03-02 17:04:06",
-                          "updated_at": "2023-03-02 17:04:06",
-                          "meta": null
-                        },
-                        "cl_m4wkaqgqqjzoeh": {
-                          "id": "cl_m4wkaqgqqjzoeh",
-                          "base_id": "ds_g4ccx6e77h1dmi",
-                          "project_id": "p_xm3thidrblw4n7",
-                          "fk_model_id": "md_rsu68aqjsbyqtl",
-                          "title": "UpdatedAt",
-                          "column_name": "updated_at",
-                          "uidt": "DateTime",
-                          "dt": "timestamp",
-                          "np": null,
-                          "ns": null,
-                          "clen": null,
-                          "cop": "4",
-                          "pk": 0,
-                          "pv": null,
-                          "rqd": 0,
-                          "un": 0,
-                          "ct": "timestamp",
-                          "ai": 0,
-                          "unique": 0,
-                          "cdf": "CURRENT_TIMESTAMP on update CURRENT_TIMESTAMP",
-                          "cc": "",
-                          "csn": null,
-                          "dtx": "specificType",
-                          "dtxp": "0",
-                          "dtxs": null,
-                          "au": 0,
-                          "validate": null,
-                          "virtual": null,
-                          "deleted": null,
-                          "system": 0,
-                          "order": 4,
-                          "created_at": "2023-03-02 17:04:06",
-                          "updated_at": "2023-03-02 17:04:06",
-                          "meta": null
-                        }
-                      }
-                    }
-                  }
-                }
-              }
-            }
-          },
-          "400": {
-            "$ref": "#/components/responses/BadRequest"
-          }
-        },
-        "tags": ["DB Table"],
-        "description": "Read the table meta data by the given table ID",
-        "parameters": [
-          {
-            "$ref": "#/components/parameters/xc-auth"
-          }
-        ]
-      },
-      "patch": {
-        "summary": "Update Table",
-        "operationId": "db-table-update",
-        "responses": {
-          "200": {
-            "description": "OK",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "object",
-                  "properties": {
-                    "msg": {
-                      "type": "string",
-                      "x-stoplight": {
-                        "id": "5a0g9yvs4e678"
-                      },
-                      "example": "The table has been updated successfully"
-                    }
-                  }
-                },
-                "examples": {
-                  "Example 1": {
-                    "value": {
-                      "msg": "The table has been updated successfully"
-                    }
-                  }
-                }
-              }
-            }
-          },
-          "400": {
-            "$ref": "#/components/responses/BadRequest"
-          }
-        },
-        "tags": ["DB Table"],
-        "requestBody": {
-          "content": {
-            "application/json": {
-              "schema": {
-                "type": "object",
-                "properties": {
-                  "table_name": {
-                    "type": "string",
-                    "description": "Table name",
-                    "example": "users"
-                  },
-                  "title": {
-                    "type": "string",
-                    "description": "Table title",
-                    "example": "Users"
-                  },
-                  "project_id": {
-                    "type": "string",
-                    "description": "Project ID",
-                    "example": "p_124hhlkbeasewh"
-                  },
-                  "meta": {
-                    "$ref": "#/components/schemas/Meta"
-                  }
-                }
-              },
-              "examples": {
-                "Example 1": {
-                  "value": {
-                    "table_name": "users",
-                    "title": "Users",
-                    "project_id": "p_124hhlkbeasewh",
-                    "meta": null
-                  }
-                }
-              }
-            }
-          }
-        },
-        "description": "Update the table meta data by the given table ID",
-        "parameters": [
-          {
-            "$ref": "#/components/parameters/xc-auth"
-          }
-        ]
-      },
-      "delete": {
-        "summary": "Delete Table",
-        "operationId": "db-table-delete",
-        "responses": {
-          "200": {
-            "description": "OK",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "boolean"
-                },
-                "examples": {
-                  "Example 1": {
-                    "value": true
-                  }
-                }
-              }
-            }
-          },
-          "400": {
-            "$ref": "#/components/responses/BadRequest"
-          }
-        },
-        "tags": ["DB Table"],
-        "description": "Delete the table meta data by the given table ID",
-        "parameters": [
-          {
-            "$ref": "#/components/parameters/xc-auth"
-          }
-        ]
-      }
-    },
     "/api/v1/db/meta/projects/{projectId}/{baseId}/tables": {
       "parameters": [
         {
@@ -5310,6 +4799,639 @@
         },
         "tags": ["Base"],
         "description": "Create a new table in a given Project and Base",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/xc-auth"
+          }
+        ]
+      }
+    },
+    "/api/v1/db/meta/projects/{projectId}/{baseId}/tables/magic": {
+      "parameters": [
+        {
+          "schema": {
+            "type": "string"
+          },
+          "name": "projectId",
+          "in": "path",
+          "required": true
+        },
+        {
+          "schema": {
+            "type": "string"
+          },
+          "name": "baseId",
+          "in": "path",
+          "required": true
+        }
+      ],
+      "post": {
+        "summary": "",
+        "operationId": "table-magic",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Table"
+                }
+              }
+            }
+          }
+        },
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "title": "table-seed",
+                "type": "object",
+                "properties": {
+                  "table_name": {
+                    "type": "string"
+                  },
+                  "title": {
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "table_name",
+                  "title"
+                ]
+              }
+            }
+          }
+        },
+        "tags": [
+          "Base"
+        ]
+      }
+    },
+    "/api/v1/db/meta/projects/{projectId}/{baseId}/schema/magic": {
+      "parameters": [
+        {
+          "schema": {
+            "type": "string"
+          },
+          "name": "projectId",
+          "in": "path",
+          "required": true
+        },
+        {
+          "schema": {
+            "type": "string"
+          },
+          "name": "baseId",
+          "in": "path",
+          "required": true
+        }
+      ],
+      "post": {
+        "summary": "",
+        "operationId": "schema-magic",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Table"
+                }
+              }
+            }
+          }
+        },
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "title": "schema-seed",
+                "type": "object",
+                "properties": {
+                  "schema_name": {
+                    "type": "string"
+                  },
+                  "title": {
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "schema_name",
+                  "title"
+                ]
+              }
+            }
+          }
+        },
+        "tags": [
+          "Base"
+        ]
+      }
+    },
+    "/api/v1/db/meta/tables/{tableId}": {
+      "parameters": [
+        {
+          "schema": {
+            "$ref": "#/components/schemas/Id",
+            "example": "md_w9gpnaousnfss1",
+            "type": "string"
+          },
+          "name": "tableId",
+          "in": "path",
+          "required": true,
+          "description": "Unique Table ID"
+        }
+      ],
+      "get": {
+        "summary": "Read Table",
+        "operationId": "db-table-read",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Table"
+                },
+                "examples": {
+                  "Example 1": {
+                    "value": {
+                      "id": "md_rsu68aqjsbyqtl",
+                      "base_id": "ds_g4ccx6e77h1dmi",
+                      "project_id": "p_xm3thidrblw4n7",
+                      "table_name": "nc_vm5q___Table1",
+                      "title": "Table1",
+                      "type": "table",
+                      "meta": null,
+                      "schema": null,
+                      "enabled": 1,
+                      "mm": 0,
+                      "tags": null,
+                      "pinned": null,
+                      "deleted": null,
+                      "order": 1,
+                      "created_at": "2023-03-02 17:04:06",
+                      "updated_at": "2023-03-02 17:04:08",
+                      "columns": [
+                        {
+                          "id": "cl_phvuuwjrzcdo0g",
+                          "base_id": "ds_g4ccx6e77h1dmi",
+                          "project_id": "p_xm3thidrblw4n7",
+                          "fk_model_id": "md_rsu68aqjsbyqtl",
+                          "title": "Id",
+                          "column_name": "id",
+                          "uidt": "ID",
+                          "dt": "int",
+                          "np": "10",
+                          "ns": "0",
+                          "clen": null,
+                          "cop": "1",
+                          "pk": 1,
+                          "pv": null,
+                          "rqd": 1,
+                          "un": 1,
+                          "ct": "int unsigned",
+                          "ai": 1,
+                          "unique": 0,
+                          "cdf": null,
+                          "cc": "",
+                          "csn": null,
+                          "dtx": "specificType",
+                          "dtxp": "",
+                          "dtxs": "0",
+                          "au": 0,
+                          "validate": null,
+                          "virtual": null,
+                          "deleted": null,
+                          "system": 0,
+                          "order": 1,
+                          "created_at": "2023-03-02 17:04:06",
+                          "updated_at": "2023-03-02 17:04:06",
+                          "meta": null
+                        },
+                        {
+                          "id": "cl_c5knoi4xs4sfpt",
+                          "base_id": "ds_g4ccx6e77h1dmi",
+                          "project_id": "p_xm3thidrblw4n7",
+                          "fk_model_id": "md_rsu68aqjsbyqtl",
+                          "title": "Title",
+                          "column_name": "title",
+                          "uidt": "SingleLineText",
+                          "dt": "varchar",
+                          "np": null,
+                          "ns": null,
+                          "clen": "45",
+                          "cop": "2",
+                          "pk": 0,
+                          "pv": 1,
+                          "rqd": 0,
+                          "un": 0,
+                          "ct": "varchar(45)",
+                          "ai": 0,
+                          "unique": 0,
+                          "cdf": null,
+                          "cc": "",
+                          "csn": "utf8mb4",
+                          "dtx": "specificType",
+                          "dtxp": "45",
+                          "dtxs": null,
+                          "au": 0,
+                          "validate": null,
+                          "virtual": null,
+                          "deleted": null,
+                          "system": 0,
+                          "order": 2,
+                          "created_at": "2023-03-02 17:04:06",
+                          "updated_at": "2023-03-02 17:04:06",
+                          "meta": null
+                        },
+                        {
+                          "id": "cl_jpl0qu4gj4rexq",
+                          "base_id": "ds_g4ccx6e77h1dmi",
+                          "project_id": "p_xm3thidrblw4n7",
+                          "fk_model_id": "md_rsu68aqjsbyqtl",
+                          "title": "CreatedAt",
+                          "column_name": "created_at",
+                          "uidt": "DateTime",
+                          "dt": "timestamp",
+                          "np": null,
+                          "ns": null,
+                          "clen": null,
+                          "cop": "3",
+                          "pk": 0,
+                          "pv": null,
+                          "rqd": 0,
+                          "un": 0,
+                          "ct": "timestamp",
+                          "ai": 0,
+                          "unique": 0,
+                          "cdf": "CURRENT_TIMESTAMP",
+                          "cc": "",
+                          "csn": null,
+                          "dtx": "specificType",
+                          "dtxp": "0",
+                          "dtxs": null,
+                          "au": 0,
+                          "validate": null,
+                          "virtual": null,
+                          "deleted": null,
+                          "system": 0,
+                          "order": 3,
+                          "created_at": "2023-03-02 17:04:06",
+                          "updated_at": "2023-03-02 17:04:06",
+                          "meta": null
+                        },
+                        {
+                          "id": "cl_m4wkaqgqqjzoeh",
+                          "base_id": "ds_g4ccx6e77h1dmi",
+                          "project_id": "p_xm3thidrblw4n7",
+                          "fk_model_id": "md_rsu68aqjsbyqtl",
+                          "title": "UpdatedAt",
+                          "column_name": "updated_at",
+                          "uidt": "DateTime",
+                          "dt": "timestamp",
+                          "np": null,
+                          "ns": null,
+                          "clen": null,
+                          "cop": "4",
+                          "pk": 0,
+                          "pv": null,
+                          "rqd": 0,
+                          "un": 0,
+                          "ct": "timestamp",
+                          "ai": 0,
+                          "unique": 0,
+                          "cdf": "CURRENT_TIMESTAMP on update CURRENT_TIMESTAMP",
+                          "cc": "",
+                          "csn": null,
+                          "dtx": "specificType",
+                          "dtxp": "0",
+                          "dtxs": null,
+                          "au": 0,
+                          "validate": null,
+                          "virtual": null,
+                          "deleted": null,
+                          "system": 0,
+                          "order": 4,
+                          "created_at": "2023-03-02 17:04:06",
+                          "updated_at": "2023-03-02 17:04:06",
+                          "meta": null
+                        }
+                      ],
+                      "views": [
+                        {
+                          "ptn": "nc_vm5q___Table1",
+                          "_ptn": "Table1",
+                          "ptype": "table",
+                          "tn": "Table1",
+                          "_tn": "Table1",
+                          "table_meta": null,
+                          "id": "vw_p2jcatxz4mvcfw",
+                          "base_id": "ds_g4ccx6e77h1dmi",
+                          "project_id": "p_xm3thidrblw4n7",
+                          "fk_model_id": "md_rsu68aqjsbyqtl",
+                          "title": "Table1",
+                          "type": 3,
+                          "is_default": 1,
+                          "show_system_fields": null,
+                          "lock_type": "collaborative",
+                          "uuid": null,
+                          "password": null,
+                          "show": 1,
+                          "order": 1,
+                          "created_at": "2023-03-02 17:04:06",
+                          "updated_at": "2023-03-02 17:04:06",
+                          "meta": {},
+                          "view": {
+                            "fk_view_id": "vw_p2jcatxz4mvcfw",
+                            "base_id": "ds_g4ccx6e77h1dmi",
+                            "project_id": "p_xm3thidrblw4n7",
+                            "uuid": null,
+                            "created_at": "2023-03-02 17:04:06",
+                            "updated_at": "2023-03-02 17:04:06",
+                            "meta": null,
+                            "row_height": null
+                          },
+                          "disabled": {
+                            "owner": false,
+                            "creator": false,
+                            "viewer": false,
+                            "editor": false,
+                            "commenter": false,
+                            "guest": false
+                          }
+                        }
+                      ],
+                      "columnsById": {
+                        "cl_phvuuwjrzcdo0g": {
+                          "id": "cl_phvuuwjrzcdo0g",
+                          "base_id": "ds_g4ccx6e77h1dmi",
+                          "project_id": "p_xm3thidrblw4n7",
+                          "fk_model_id": "md_rsu68aqjsbyqtl",
+                          "title": "Id",
+                          "column_name": "id",
+                          "uidt": "ID",
+                          "dt": "int",
+                          "np": "10",
+                          "ns": "0",
+                          "clen": null,
+                          "cop": "1",
+                          "pk": 1,
+                          "pv": null,
+                          "rqd": 1,
+                          "un": 1,
+                          "ct": "int unsigned",
+                          "ai": 1,
+                          "unique": 0,
+                          "cdf": null,
+                          "cc": "",
+                          "csn": null,
+                          "dtx": "specificType",
+                          "dtxp": "",
+                          "dtxs": "0",
+                          "au": 0,
+                          "validate": null,
+                          "virtual": null,
+                          "deleted": null,
+                          "system": 0,
+                          "order": 1,
+                          "created_at": "2023-03-02 17:04:06",
+                          "updated_at": "2023-03-02 17:04:06",
+                          "meta": null
+                        },
+                        "cl_c5knoi4xs4sfpt": {
+                          "id": "cl_c5knoi4xs4sfpt",
+                          "base_id": "ds_g4ccx6e77h1dmi",
+                          "project_id": "p_xm3thidrblw4n7",
+                          "fk_model_id": "md_rsu68aqjsbyqtl",
+                          "title": "Title",
+                          "column_name": "title",
+                          "uidt": "SingleLineText",
+                          "dt": "varchar",
+                          "np": null,
+                          "ns": null,
+                          "clen": "45",
+                          "cop": "2",
+                          "pk": 0,
+                          "pv": 1,
+                          "rqd": 0,
+                          "un": 0,
+                          "ct": "varchar(45)",
+                          "ai": 0,
+                          "unique": 0,
+                          "cdf": null,
+                          "cc": "",
+                          "csn": "utf8mb4",
+                          "dtx": "specificType",
+                          "dtxp": "45",
+                          "dtxs": null,
+                          "au": 0,
+                          "validate": null,
+                          "virtual": null,
+                          "deleted": null,
+                          "system": 0,
+                          "order": 2,
+                          "created_at": "2023-03-02 17:04:06",
+                          "updated_at": "2023-03-02 17:04:06",
+                          "meta": null
+                        },
+                        "cl_jpl0qu4gj4rexq": {
+                          "id": "cl_jpl0qu4gj4rexq",
+                          "base_id": "ds_g4ccx6e77h1dmi",
+                          "project_id": "p_xm3thidrblw4n7",
+                          "fk_model_id": "md_rsu68aqjsbyqtl",
+                          "title": "CreatedAt",
+                          "column_name": "created_at",
+                          "uidt": "DateTime",
+                          "dt": "timestamp",
+                          "np": null,
+                          "ns": null,
+                          "clen": null,
+                          "cop": "3",
+                          "pk": 0,
+                          "pv": null,
+                          "rqd": 0,
+                          "un": 0,
+                          "ct": "timestamp",
+                          "ai": 0,
+                          "unique": 0,
+                          "cdf": "CURRENT_TIMESTAMP",
+                          "cc": "",
+                          "csn": null,
+                          "dtx": "specificType",
+                          "dtxp": "0",
+                          "dtxs": null,
+                          "au": 0,
+                          "validate": null,
+                          "virtual": null,
+                          "deleted": null,
+                          "system": 0,
+                          "order": 3,
+                          "created_at": "2023-03-02 17:04:06",
+                          "updated_at": "2023-03-02 17:04:06",
+                          "meta": null
+                        },
+                        "cl_m4wkaqgqqjzoeh": {
+                          "id": "cl_m4wkaqgqqjzoeh",
+                          "base_id": "ds_g4ccx6e77h1dmi",
+                          "project_id": "p_xm3thidrblw4n7",
+                          "fk_model_id": "md_rsu68aqjsbyqtl",
+                          "title": "UpdatedAt",
+                          "column_name": "updated_at",
+                          "uidt": "DateTime",
+                          "dt": "timestamp",
+                          "np": null,
+                          "ns": null,
+                          "clen": null,
+                          "cop": "4",
+                          "pk": 0,
+                          "pv": null,
+                          "rqd": 0,
+                          "un": 0,
+                          "ct": "timestamp",
+                          "ai": 0,
+                          "unique": 0,
+                          "cdf": "CURRENT_TIMESTAMP on update CURRENT_TIMESTAMP",
+                          "cc": "",
+                          "csn": null,
+                          "dtx": "specificType",
+                          "dtxp": "0",
+                          "dtxs": null,
+                          "au": 0,
+                          "validate": null,
+                          "virtual": null,
+                          "deleted": null,
+                          "system": 0,
+                          "order": 4,
+                          "created_at": "2023-03-02 17:04:06",
+                          "updated_at": "2023-03-02 17:04:06",
+                          "meta": null
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          }
+        },
+        "tags": ["DB Table"],
+        "description": "Read the table meta data by the given table ID",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/xc-auth"
+          }
+        ]
+      },
+      "patch": {
+        "summary": "Update Table",
+        "operationId": "db-table-update",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "msg": {
+                      "type": "string",
+                      "x-stoplight": {
+                        "id": "5a0g9yvs4e678"
+                      },
+                      "example": "The table has been updated successfully"
+                    }
+                  }
+                },
+                "examples": {
+                  "Example 1": {
+                    "value": {
+                      "msg": "The table has been updated successfully"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          }
+        },
+        "tags": ["DB Table"],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "table_name": {
+                    "type": "string",
+                    "description": "Table name",
+                    "example": "users"
+                  },
+                  "title": {
+                    "type": "string",
+                    "description": "Table title",
+                    "example": "Users"
+                  },
+                  "project_id": {
+                    "type": "string",
+                    "description": "Project ID",
+                    "example": "p_124hhlkbeasewh"
+                  },
+                  "meta": {
+                    "$ref": "#/components/schemas/Meta"
+                  }
+                }
+              },
+              "examples": {
+                "Example 1": {
+                  "value": {
+                    "table_name": "users",
+                    "title": "Users",
+                    "project_id": "p_124hhlkbeasewh",
+                    "meta": null
+                  }
+                }
+              }
+            }
+          }
+        },
+        "description": "Update the table meta data by the given table ID",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/xc-auth"
+          }
+        ]
+      },
+      "delete": {
+        "summary": "Delete Table",
+        "operationId": "db-table-delete",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "boolean"
+                },
+                "examples": {
+                  "Example 1": {
+                    "value": true
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          }
+        },
+        "tags": ["DB Table"],
+        "description": "Delete the table meta data by the given table ID",
         "parameters": [
           {
             "$ref": "#/components/parameters/xc-auth"

@@ -28,7 +28,7 @@ export const useWorkspace = defineStore('workspaceStore', () => {
 
   const activeWorkspace = computed(() => {
     return (
-      workspaces.value?.find((w) => w.id === route.query.workspaceId) ??
+      workspaces.value?.find((w) => w.id === route.query.workspaceId||w.id === route.params.workspaceId) ??
       (activePage.value === 'workspace' ? workspaces.value?.[0] : null)
     )
   })
@@ -79,8 +79,9 @@ export const useWorkspace = defineStore('workspaceStore', () => {
       }
 
       // todo: pagination
-      await $api.workspace.create(reqPayload)
+      const workspaceRes = await $api.workspace.create(reqPayload)
       refreshCommandPalette()
+      return workspaceRes
     } catch (e: any) {
       message.error(await extractSdkResponseErrorMsg(e))
     }
@@ -106,12 +107,12 @@ export const useWorkspace = defineStore('workspaceStore', () => {
   }
 
   const loadProjects = async (page?: 'recent' | 'shared' | 'starred' | 'workspace') => {
-    if ((!page || page === 'workspace') && !workspace.value?.id) {
+    if ((!page || page === 'workspace') && !workspace.value?.id && !activeWorkspace.value?.id) {
       throw new Error('Workspace not selected')
     }
 
     if (workspace.value?.id) {
-      const { list } = await $api.workspaceProject.list(workspace.value?.id)
+      const { list } = await $api.workspaceProject.list(activeWorkspace.value?.id ?? workspace.value?.id)
       projects.value = list
     } else {
       const { list } = await $api.project.list(

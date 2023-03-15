@@ -4,10 +4,13 @@ import type { ProjectType } from 'nocodb-sdk'
 import { WorkspaceUserRoles } from 'nocodb-sdk'
 import tinycolor from 'tinycolor2'
 import { nextTick } from '@vue/runtime-core'
-import { NcProjectType, navigateTo, projectThemeColors, timeAgo, useWorkspaceStoreOrThrow } from '#imports'
+import { NcProjectType, navigateTo, projectThemeColors, timeAgo, useWorkspace } from '#imports'
 import { useNuxtApp } from '#app'
+import {storeToRefs} from "pinia";
 
-const { projects, addToFavourite, removeFromFavourite, updateProjectTitle, activePage } = useWorkspaceStoreOrThrow()
+const workspaceStore = useWorkspace()
+const { addToFavourite, removeFromFavourite, updateProjectTitle } = workspaceStore
+const { projects, activePage } = storeToRefs(workspaceStore)
 
 // const filteredProjects = computed(() => projects.value?.filter((p) => !p.deleted) || [])
 
@@ -18,15 +21,16 @@ const { isUIAllowed } = useUIPermission()
 const openProject = async (project: ProjectType) => {
   switch (project.type) {
     case NcProjectType.DOCS:
-      await navigateTo(`/nc/doc/p/${project.id}`)
+      await navigateTo(`/ws/${project.fk_workspace_id}/nc/${project.id}/doc`)
+      // await navigateTo(`/nc/doc/p/${project.id}`)
       // todo: Hack
       window.location.reload()
       break
     case NcProjectType.COWRITER:
-      await navigateTo(`/nc/cowriter/${project.id}`)
+      await navigateTo(`/ws/${project.fk_workspace_id}/nc/${project.id}/cowriter`)
       break
     default:
-      await navigateTo(`/nc/${project.id}`)
+      await navigateTo(`/ws/${project.fk_workspace_id}/nc/${project.id}`)
       break
   }
 }

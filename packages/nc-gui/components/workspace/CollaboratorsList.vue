@@ -1,7 +1,8 @@
 <script lang="ts" setup>
 import { WorkspaceUserRoles } from 'nocodb-sdk'
 import { Empty } from 'ant-design-vue'
-import { stringToColour, timeAgo, useWorkspaceStoreOrThrow } from '#imports'
+import { stringToColour, timeAgo, useWorkspaceStoreOrThrow, useWorkspace } from '#imports'
+import {storeToRefs} from "pinia";
 
 const rolesLabel = {
   [WorkspaceUserRoles.CREATOR]: 'Creator',
@@ -9,12 +10,18 @@ const rolesLabel = {
   [WorkspaceUserRoles.VIEWER]: 'Viewer',
 }
 
+
+const workspaceStore = useWorkspace()
+
 const {
-  collaborators,
   removeCollaborator,
   updateCollaborator: _updateCollaborator,
+} = workspaceStore
+
+const {
+  collaborators,
   isWorkspaceOwner,
-} = useWorkspaceStoreOrThrow()
+} = storeToRefs(workspaceStore)
 
 const getRolesLabel = (roles?: string) => {
   return (

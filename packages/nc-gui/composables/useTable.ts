@@ -31,14 +31,14 @@ export function useTable(onTableCreate?: (tableMeta: TableType) => void, baseId?
 
   const { getMeta, removeMeta } = useMetas()
 
-  const { loadTables, sqlUis, project, tables } = useProject()
+  const { loadTables } = useProject()
 
   const { closeTab } = useTabs()
-    
-  const { refreshCommandPalette } = useCommandPalette()
-    
+
   const projectStore = useProject()
   const { sqlUis, project, tables } = storeToRefs(projectStore)
+
+  const { refreshCommandPalette } = useCommandPalette()
 
   const sqlUi = computed(() => (baseId && sqlUis.value[baseId] ? sqlUis.value[baseId] : Object.values(sqlUis.value)[0]))
 

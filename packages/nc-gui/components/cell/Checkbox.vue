@@ -35,7 +35,7 @@ const checkboxMeta = $computed(() => {
       unchecked: 'mdi-checkbox-blank-circle-outline',
     },
     color: 'primary',
-    ...(column?.value?.meta || {}),
+    ...(typeof column?.value?.meta === 'string' ? JSON.parse(column?.value?.meta) : column?.value?.meta || {}),
   }
 })
 

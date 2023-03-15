@@ -3,6 +3,7 @@ import type { ColumnType, GalleryType, KanbanType } from 'nocodb-sdk'
 import { UITypes, ViewTypes, isVirtualCol } from 'nocodb-sdk'
 import Draggable from 'vuedraggable'
 import type { SelectProps } from 'ant-design-vue'
+import type { CheckboxChangeEvent } from 'ant-design-vue/es/checkbox/interface'
 import {
   ActiveViewInj,
   FieldsInj,
@@ -18,6 +19,7 @@ import {
   useMenuCloseOnEsc,
   useNuxtApp,
   useSmartsheetStoreOrThrow,
+  useUndoRedo,
   useViewColumns,
   watch,
 } from '#imports'
@@ -55,6 +57,8 @@ const {
 
 const { eventBus } = useSmartsheetStoreOrThrow()
 
+const { addUndo } = useUndoRedo()
+
 eventBus.on((event) => {
   if (event === SmartsheetStoreEvents.FIELD_RELOAD) {
     loadViewColumns()
@@ -79,9 +83,43 @@ const gridDisplayValueField = computed(() => {
   return filteredFieldList.value?.find((field) => field.fk_column_id === pvCol?.id)
 })
 
-const onMove = (_event: { moved: { newIndex: number } }) => {
+const onMove = (_event: { moved: { newIndex: number; oldIndex: number } }, undo = false) => {
   // todo : sync with server
   if (!fields.value) return
+
+  if (!undo) {
+    addUndo({
+      undo: {
+        fn: () => {
+          if (!fields.value) return
+          const temp = fields.value[_event.moved.newIndex]
+          fields.value[_event.moved.newIndex] = fields.value[_event.moved.oldIndex]
+          fields.value[_event.moved.oldIndex] = temp
+          onMove(
+            {
+              moved: {
+                newIndex: _event.moved.oldIndex,
+                oldIndex: _event.moved.newIndex,
+              },
+            },
+            true,
+          )
+        },
+        args: [],
+      },
+      redo: {
+        fn: () => {
+          if (!fields.value) return
+          const temp = fields.value[_event.moved.oldIndex]
+          fields.value[_event.moved.oldIndex] = fields.value[_event.moved.newIndex]
+          fields.value[_event.moved.newIndex] = temp
+          onMove(_event, true)
+        },
+        args: [],
+      },
+      scope: activeView.value?.is_default ? [activeView.value.fk_model_id, activeView.value.title] : activeView.value?.title,
+    })
+  }
 
   if (fields.value.length < 2) return
 
@@ -149,6 +187,45 @@ const getIcon = (c: ColumnType) =>
 
 const open = ref(false)
 
+const toggleFieldVisibility = (e: CheckboxChangeEvent, field: any, index: number) => {
+  addUndo({
+    undo: {
+      fn: (v: boolean) => {
+        field.show = !v
+        saveOrUpdate(field, index)
+      },
+      args: [e.target.checked],
+    },
+    redo: {
+      fn: (v: boolean) => {
+        field.show = v
+        saveOrUpdate(field, index)
+      },
+      args: [e.target.checked],
+    },
+    scope: activeView.value?.is_default ? [activeView.value.fk_model_id, activeView.value.title] : activeView.value?.title,
+  })
+  saveOrUpdate(field, index)
+}
+
+const toggleSystemFields = (e: CheckboxChangeEvent) => {
+  addUndo({
+    undo: {
+      fn: (v: boolean) => {
+        showSystemFields.value = !v
+      },
+      args: [e.target.checked],
+    },
+    redo: {
+      fn: (v: boolean) => {
+        showSystemFields.value = v
+      },
+      args: [e.target.checked],
+    },
+    scope: activeView.value?.is_default ? [activeView.value.fk_model_id, activeView.value.title] : activeView.value?.title,
+  })
+}
+
 useMenuCloseOnEsc(open)
 </script>
 
@@ -208,7 +285,7 @@ useMenuCloseOnEsc(open)
                   v-e="['a:fields:show-hide']"
                   class="shrink"
                   :disabled="field.isViewEssentialField"
-                  @change="saveOrUpdate(field, index)"
+                  @change="toggleFieldVisibility($event, field, index)"
                 >
                   <div class="flex items-center">
                     <component :is="getIcon(metaColumnById[field.fk_column_id])" />
@@ -253,7 +330,7 @@ useMenuCloseOnEsc(open)
         <a-divider class="!my-2" />
 
         <div v-if="!isPublic" class="p-2 py-1 flex nc-fields-show-system-fields" @click.stop>
-          <a-checkbox v-model:checked="showSystemFields" class="!items-center">
+          <a-checkbox v-model:checked="showSystemFields" class="!items-center" @change="toggleSystemFields">
             <span class="text-xs"> {{ $t('activity.showSystemFields') }}</span>
           </a-checkbox>
         </div>

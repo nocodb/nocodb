@@ -353,6 +353,7 @@ const [setup, use] = useInjectionState(() => {
   const deletePage = async ({ pageId }: { pageId: string }) => {
     try {
       const page = findPage(nestedPages.value, pageId)
+      await $api.nocoDocs.deletePage(pageId, { projectId: projectId! })
 
       if (page?.parent_page_id) {
         const parentPage = findPage(nestedPages.value, page.parent_page_id)
@@ -368,8 +369,6 @@ const [setup, use] = useInjectionState(() => {
         const siblingPage = nestedPages.value[0]
         navigateTo(nestedUrl(siblingPage.id))
       }
-
-      await $api.nocoDocs.deletePage(pageId, { projectId: projectId! })
     } catch (e) {
       console.log(e)
       message.error(await extractSdkResponseErrorMsg(e as any))

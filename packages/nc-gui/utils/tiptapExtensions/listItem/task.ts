@@ -1,7 +1,7 @@
 import { Node, mergeAttributes, wrappingInputRule } from '@tiptap/core'
 import type { Node as ProseMirrorNode } from 'prosemirror-model'
 import { Slice } from 'prosemirror-model'
-import { Plugin, PluginKey } from 'prosemirror-state'
+import { NodeSelection, Plugin, PluginKey, TextSelection } from 'prosemirror-state'
 import { getTextAsParagraphFromSliceJson, getTextFromSliceJson, isSelectionOfType, onEnter } from './helper'
 
 export interface TaskOptions {
@@ -137,12 +137,24 @@ export const Task = Node.create<TaskOptions>({
 
   onUpdate() {
     const selection = this.editor.state.selection
+    const doc = this.editor.state.doc
 
     const parentNode = selection.$from.node(-1)
     if (parentNode.type.name !== 'bullet') return false
 
-    const parentNodePos = selection.$from.before(2)
-    const currentNode = selection.$from.node()
+    let currentPos = selection.$from.before(1)
+    let currentNode = doc.nodeAt(currentPos)
+    let attempt = 1
+    while (currentNode && currentNode.type.name !== 'bullet' && attempt < 10) {
+      try {
+        currentPos = selection.$from.before(attempt)
+        currentNode = doc.nodeAt(currentPos)
+      } finally {
+        attempt++
+      }
+    }
+
+    if (currentNode?.type.name !== 'bullet') return false
 
     const currentNodeText = currentNode.textContent.trimStart().toLowerCase()
 
@@ -152,9 +164,9 @@ export const Task = Node.create<TaskOptions>({
       this.editor
         .chain()
         .focus()
-        .setNodeSelection(parentNodePos)
+        .setNodeSelection(currentPos)
         .deleteSelection()
-        .insertContentAt(parentNodePos, {
+        .insertContentAt(currentPos - 1, {
           type: 'task',
           content: [
             {
@@ -171,7 +183,7 @@ export const Task = Node.create<TaskOptions>({
             },
           ],
         })
-        .setTextSelection({ from: parentNodePos + 1, to: parentNodePos + 2 })
+        .setTextSelection({ from: currentPos + 1, to: currentPos + 2 })
         .deleteSelection()
         .run()
     }
@@ -179,6 +191,31 @@ export const Task = Node.create<TaskOptions>({
 
   addKeyboardShortcuts() {
     return {
+      'Backspace': () => {
+        const { selection } = this.editor.state
+        const { $from } = selection
+
+        const node = $from.node(-1)
+        const parentNode = $from.node(-2)
+        if (node.type.name !== 'task' && parentNode.type.name !== 'tableCell') return false
+
+        const nodeTextContent = node.textContent.trimStart().toLowerCase()
+        if (nodeTextContent.length !== 0) return false
+
+        this.editor
+          .chain()
+          .focus()
+          .command(({ tr }) => {
+            tr.setSelection(NodeSelection.create(this.editor.state.doc, selection.from - 2))
+            tr.replaceSelectionWith(this.editor.state.schema.nodes.paragraph.create())
+
+            return true
+          })
+          .setTextSelection(selection.from - 2)
+          .run()
+
+        return true
+      },
       'Ctrl-Alt-1': () => {
         ;(this.editor.chain().focus() as any).toggleTask().run()
         return true

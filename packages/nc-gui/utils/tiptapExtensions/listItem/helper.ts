@@ -96,6 +96,7 @@ export const onEnter = (editor: Editor, nodeType: 'bullet' | 'ordered' | 'task')
   const parentNode = selection.$from.node(-1)
   if (parentNode.type.name !== nodeType) return false
   const currentNode = selection.$from.node()
+  const parentParentNode = selection.$from.node(-2)
 
   // Delete the bullet point if it's empty
   const currentNodeIsEmpty = currentNode.textContent.length === 0
@@ -132,26 +133,45 @@ export const onEnter = (editor: Editor, nodeType: 'bullet' | 'ordered' | 'task')
 
   const sliceToBeMovedContent = !isOnEndOfLine ? sliceToBeMoved.toJSON().content : []
 
+  const newDblockContent = {
+    type: 'dBlock',
+    content: [
+      {
+        type: nodeType,
+        attrs: {
+          number: nodeType === 'ordered' ? String(Number(parentNode.attrs.number) + 1) : undefined,
+          checked: nodeType === 'task' ? false : undefined,
+        },
+        content: [
+          {
+            type: 'paragraph',
+            content: isMultiSelect ? [] : sliceToBeMovedContent,
+          },
+        ],
+      },
+    ],
+  }
+
   editor
     .chain()
-    .insertContentAt(currentNodeEndPos + 2, {
-      type: 'dBlock',
-      content: [
-        {
-          type: nodeType,
-          attrs: {
-            number: nodeType === 'ordered' ? String(Number(parentNode.attrs.number) + 1) : undefined,
-            checked: nodeType === 'task' ? false : undefined,
-          },
-          content: [
-            {
-              type: 'paragraph',
-              content: isMultiSelect ? [] : sliceToBeMovedContent,
+    .insertContentAt(
+      currentNodeEndPos + 2,
+      parentParentNode.type.name === 'dBlock'
+        ? newDblockContent
+        : {
+            type: nodeType,
+            attrs: {
+              number: nodeType === 'ordered' ? String(Number(parentNode.attrs.number) + 1) : undefined,
+              checked: nodeType === 'task' ? false : undefined,
             },
-          ],
-        },
-      ],
-    })
+            content: [
+              {
+                type: 'paragraph',
+                content: isMultiSelect ? [] : sliceToBeMovedContent,
+              },
+            ],
+          },
+    )
     .setTextSelection(currentNodeEndPos + 1)
     .deleteRange({ from, to: currentNodeEndPos })
     .run()

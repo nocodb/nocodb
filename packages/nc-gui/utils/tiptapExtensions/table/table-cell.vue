@@ -149,10 +149,10 @@ onMounted(() => {
 
 <template>
   <NodeViewWrapper class="vue-component group relative p-0" as="td">
-    <div ref="cellRef" class="group table-cell overflow-visible flex">
+    <div ref="cellRef" class="group tiptap-table-cell overflow-visible flex">
       <div
         v-if="isFirstCell && !isPublic && !isFirstRowCell"
-        class="flex flex-col justify-center absolute h-full -left-3 z-50 min-w-4 min-h-4 !group-[.table-cell]:hover:opacity-100"
+        class="flex flex-col justify-center absolute h-full -left-3 z-50 min-w-4 min-h-4 !group-[.tiptap-table-cell]:hover:opacity-100"
       >
         <div
           class="absolute flex border-gray-200 border-1 bg-white hover:bg-gray-100 py-0.5 rounded-md row-drag-handle hidden cursor-pointer"
@@ -192,7 +192,7 @@ onMounted(() => {
       </div>
       <div
         v-if="isFirstRowCell && !isPublic && !isSingleColumn"
-        class="flex flex-row justify-center absolute h-full z-50 -top-4 !w-full justify-center min-w-4 min-h-4 !group-[.table-cell]:hover:opacity-100"
+        class="flex flex-row justify-center absolute h-8 z-50 -top-4 !w-full justify-center min-w-4 min-h-4 !group-[.tiptap-table-cell]:hover:opacity-100"
       >
         <div
           class="flex flex-row absolute tiptap-column-options mt-1.5"
@@ -236,7 +236,7 @@ onMounted(() => {
         </div>
       </div>
 
-      <NodeViewContent class="node-view-content py-1.5 px-3" />
+      <NodeViewContent class="node-view-content py-1.5 px-3 !w-full" />
     </div>
   </NodeViewWrapper>
 </template>
@@ -283,5 +283,8 @@ onMounted(() => {
   .ant-popover-inner {
     @apply !shadow-none !bg-gray-100 !p-1 !rounded-md;
   }
+}
+.tiptap-table-cell {
+  @apply w-full;
 }
 </style>

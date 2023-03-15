@@ -504,6 +504,12 @@ watchDebounced(
     }
   }
 
+  .tiptap-table-cell {
+    [data-type='bullet'] {
+      margin-left: 0.7rem;
+    }
+  }
+
   [data-type='ordered'] {
     @apply flex flex-row items-center gap-x-1;
     .tiptap-list-item-start > span::before {
@@ -538,6 +544,12 @@ watchDebounced(
 
   div.callout-wrapper {
     @apply my-2.5;
+  }
+
+  div.callout {
+    [data-type='bullet'] {
+      margin-left: 0.7rem;
+    }
   }
 
   div.info-callout {

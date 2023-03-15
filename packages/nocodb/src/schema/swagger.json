@@ -12211,6 +12211,15 @@
             "application/json": {
               "schema": {
                 "$ref": "#/components/schemas/PluginTestReq"
+              },
+              "examples": {
+                "Example 1": {
+                  "value": {
+                    "title": "Plugin Foo",
+                    "input": "{\"bucket\":\"my-bucket\",\"region\":\"us-west-004\",\"access_key\":\"redacted\",\"access_secret\":\"redacted\"}",
+                    "category": "Email"
+                  }
+                }
               }
             }
           }
@@ -17211,7 +17220,8 @@
         "examples": [
           {
             "title": "Plugin Foo",
-            "input": "{\"bucket\":\"my-bucket\",\"region\":\"us-west-004\",\"access_key\":\"redacted\",\"access_secret\":\"redacted\"}"
+            "input": "{\"bucket\":\"my-bucket\",\"region\":\"us-west-004\",\"access_key\":\"redacted\",\"access_secret\":\"redacted\"}",
+            "category": "Email"
           }
         ],
         "title": "Plugin Test Request Model",
@@ -17229,12 +17239,20 @@
                 "description": "Plugin Input as JSON string"
               },
               {
-                "description": "Plugin Input"
+                "description": "Plugin Input",
+                "type": "object"
               }
             ]
+          },
+          "category": {
+            "x-stoplight": {
+              "id": "rg3i3ov9rs6d0"
+            },
+            "type": "string",
+            "example": "Email"
           }
         },
-        "required": ["title", "input"]
+        "required": ["title", "input", "category"]
       },
       "Project": {
         "description": "Model for Project",

@@ -24,9 +24,10 @@
     "lint": "eslint --cache --ext \".js,.jsx,.ts,.tsx,.vue\" --fix --ignore-path .gitignore .",
     "format": "prettier --write --cache \"./**/*.{vue,js,ts,md}\"",
     "typecheck": "tsc --noEmit",
-    "test": "vitest -c test/vite.config.ts",
-    "test:ui": "vitest -c test/vite.config.ts --ui",
-    "coverage": "vitest -c test/vite.config.ts run --coverage",
+    "test": "vitest run",
+    "test:watch": "vitest --watch",
+    "test:ui": "vitest --ui",
+    "coverage": "vitest run --coverage",
     "build:copy": "npm run generate; rm -rf ../nc-lib-gui/lib/dist/; rsync -rvzh ./dist/ ../nc-lib-gui/lib/dist/",
     "build:copy:publish": "npm run generate; rm -rf ../nc-lib-gui/lib/dist/; rsync -rvzh ./dist/ ../nc-lib-gui/lib/dist/; npm publish ../nc-lib-gui",
     "ci:run": "export NODE_OPTIONS=\"--max_old_space_size=16384\"; npm install; NUXT_PAGE_TRANSITION_DISABLE=true npm run build; NUXT_PUBLIC_NC_BACKEND_URL=http://localhost:8080 npm run start &"

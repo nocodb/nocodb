@@ -1,4 +1,4 @@
-import { UITypes, isNumericCol, numericUITypes } from 'nocodb-sdk'
+import { isNumericCol, numericUITypes, UITypes } from 'nocodb-sdk'
 
 const getEqText = (fieldUiType: UITypes) => {
   if (isNumericCol(fieldUiType) || UITypes.Time) {
@@ -145,6 +145,7 @@ export const comparisonOpList = (
       UITypes.Lookup,
       UITypes.Date,
       UITypes.DateTime,
+      UITypes.Time,
       ...numericUITypes,
     ],
   },
@@ -162,6 +163,7 @@ export const comparisonOpList = (
       UITypes.Lookup,
       UITypes.Date,
       UITypes.DateTime,
+      UITypes.Time,
       ...numericUITypes,
     ],
   },
@@ -180,6 +182,7 @@ export const comparisonOpList = (
       UITypes.Lookup,
       UITypes.Date,
       UITypes.DateTime,
+      UITypes.Time,
     ],
   },
   {
@@ -197,6 +200,7 @@ export const comparisonOpList = (
       UITypes.Lookup,
       UITypes.Date,
       UITypes.DateTime,
+      UITypes.Time,
     ],
   },
   {

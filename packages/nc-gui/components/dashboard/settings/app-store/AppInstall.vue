@@ -1,7 +1,6 @@
 <script setup lang="ts">
-import type { PluginType } from 'nocodb-sdk'
+import type { PluginTestReqType, PluginType } from 'nocodb-sdk'
 import { extractSdkResponseErrorMsg, message, onMounted, ref, useI18n, useNuxtApp } from '#imports'
-import { PluginTestReqType } from 'nocodb-sdk'
 
 const { id } = defineProps<{
   id: string

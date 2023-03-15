@@ -1,6 +1,4 @@
 import Noco from '../Noco';
-import Model from './Model';
-import Column from './Column';
 import {
   CacheDelDirection,
   CacheGetType,
@@ -8,7 +6,10 @@ import {
   MetaTable,
 } from '../utils/globals';
 import NocoCache from '../cache/NocoCache';
-import { SortType } from 'nocodb-sdk';
+import { extractProps } from '../meta/helpers/extractProps';
+import Model from './Model';
+import Column from './Column';
+import type { SortType } from 'nocodb-sdk';
 
 export default class Sort {
   id: string;
@@ -35,11 +36,20 @@ export default class Sort {
   }
 
   public static async insert(
-    sortObj: Partial<Sort> & { push_to_top?: boolean },
+    sortObj: Partial<Sort> & { push_to_top?: boolean; order?: number },
     ncMeta = Noco.ncMeta
   ) {
+    const insertObj = extractProps(sortObj, [
+      'id',
+      'fk_view_id',
+      'fk_column_id',
+      'direction',
+      'project_id',
+      'base_id',
+    ]);
+
     // todo: implement a generic function
-    const order = sortObj.push_to_top
+    insertObj.order = sortObj.push_to_top
       ? 1
       : (+(
           await ncMeta
@@ -50,16 +60,6 @@ export default class Sort {
             })
             .first()
         )?.order || 0) + 1;
-
-    const insertObj = {
-      id: sortObj.id,
-      fk_view_id: sortObj.fk_view_id,
-      fk_column_id: sortObj.fk_column_id,
-      direction: sortObj.direction,
-      project_id: sortObj.project_id,
-      base_id: sortObj.base_id,
-      order,
-    };
     if (!(sortObj.project_id && sortObj.base_id)) {
       const model = await Column.get({ colId: sortObj.fk_column_id }, ncMeta);
       insertObj.project_id = model.project_id;
@@ -144,7 +144,7 @@ export default class Sort {
       await NocoCache.set(key, o);
     }
     // set meta
-    await ncMeta.metaUpdate(
+    return await ncMeta.metaUpdate(
       null,
       null,
       MetaTable.SORT,

@@ -65,23 +65,18 @@ export default class SyncSource {
   }
 
   public static async insert(
-    syncSource: Partial<
-      SyncSource & {
-        created_at?;
-        updated_at?;
-      }
-    >,
+    syncSource: Partial<SyncSource>,
     ncMeta = Noco.ncMeta
   ) {
-    const insertObj = {
-      id: syncSource?.id,
-      title: syncSource?.title,
-      type: syncSource?.type,
-      details: syncSource?.details,
-      project_id: syncSource?.project_id,
-      base_id: syncSource?.base_id,
-      fk_user_id: syncSource?.fk_user_id,
-    };
+    const insertObj = extractProps(syncSource, [
+      'id',
+      'title',
+      'type',
+      'details',
+      'project_id',
+      'base_id',
+      'fk_user_id',
+    ]);
 
     if (insertObj.details && typeof insertObj.details === 'object') {
       insertObj.details = JSON.stringify(insertObj.details);

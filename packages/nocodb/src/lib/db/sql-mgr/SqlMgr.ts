@@ -2,22 +2,17 @@ import fs from 'fs';
 import path from 'path';
 import url from 'url';
 import { promisify } from 'util';
-
 import fsExtra from 'fs-extra';
 import importFresh from 'import-fresh';
 import inflection from 'inflection';
 import slash from 'slash';
-import { Tele } from 'nc-help';
-import SqlClientFactory from '../sql-client/lib/SqlClientFactory';
-// import debug from 'debug';
-
-import KnexMigrator from '../sql-migrator/lib/KnexMigrator';
-// import {XKnex} from "../sql-data-mapper";
-import NcConnectionMgr from '../../utils/common/NcConnectionMgr';
+import { T } from 'nc-help';
 import { customAlphabet } from 'nanoid';
+import SqlClientFactory from '../sql-client/lib/SqlClientFactory';
+import KnexMigrator from '../sql-migrator/lib/KnexMigrator';
+import NcConnectionMgr from '../../utils/common/NcConnectionMgr';
 import Debug from '../util/Debug';
 import Result from '../util/Result';
-
 import type MssqlClient from '../sql-client/lib/mssql/MssqlClient';
 import type MysqlClient from '../sql-client/lib/mysql/MysqlClient';
 import type OracleClient from '../sql-client/lib/oracle/OracleClient';
@@ -26,6 +21,7 @@ import type SnowflakeClient from '../sql-client/lib/snowflake/SnowflakeClient';
 import type SqliteClient from '../sql-client/lib/sqlite/SqliteClient';
 
 const randomID = customAlphabet('1234567890abcdefghijklmnopqrstuvwxyz_', 20);
+
 const log = new Debug('SqlMgr');
 
 const ToolOps = {
@@ -345,7 +341,16 @@ export default class SqlMgr {
    * @returns
    * @memberof SqlMgr
    */
-  public async projectGetSqlClient(args): Promise<SnowflakeClient | MysqlClient | SqliteClient | MssqlClient | OracleClient | PGClient> {
+  public async projectGetSqlClient(
+    args
+  ): Promise<
+    | SnowflakeClient
+    | MysqlClient
+    | SqliteClient
+    | MssqlClient
+    | OracleClient
+    | PGClient
+  > {
     const func = this.projectGetSqlClient.name;
     log.api(`${func}:args:`, args);
 
@@ -1038,7 +1043,7 @@ export default class SqlMgr {
     // t = process.hrtime();
     const data = await require('axios')(...apiMeta);
 
-    Tele.emit('evt', { evt_type: 'import:excel:url' });
+    T.emit('evt', { evt_type: 'import:excel:url' });
     return data.data;
   }
 

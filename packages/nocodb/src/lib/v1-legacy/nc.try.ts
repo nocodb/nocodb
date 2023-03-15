@@ -1,8 +1,6 @@
 import cors from 'cors';
 import express from 'express';
-
 import NcConfigFactory from '../utils/NcConfigFactory';
-
 import Noco from '../Noco';
 
 export default async function (dbUrl): Promise<void> {

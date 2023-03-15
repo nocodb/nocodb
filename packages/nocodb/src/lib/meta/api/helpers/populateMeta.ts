@@ -1,19 +1,19 @@
-import Project from '../../../models/Project';
+import { ModelTypes, UITypes, ViewTypes } from 'nocodb-sdk';
 import Column from '../../../models/Column';
 import Model from '../../../models/Model';
 import NcHelp from '../../../utils/NcHelp';
-import Base from '../../../models/Base';
 import View from '../../../models/View';
 import NcConnectionMgrv2 from '../../../utils/common/NcConnectionMgrv2';
 import getTableNameAlias, {
   getColumnNameAlias,
 } from '../../helpers/getTableName';
-import LinkToAnotherRecordColumn from '../../../models/LinkToAnotherRecordColumn';
 import getColumnUiType from '../../helpers/getColumnUiType';
 import mapDefaultDisplayValue from '../../helpers/mapDefaultDisplayValue';
-import { extractAndGenerateManyToManyRelations } from '../metaDiffApis';
-import { ModelTypes, UITypes, ViewTypes } from 'nocodb-sdk';
+import { extractAndGenerateManyToManyRelations } from '../../../services/metaDiff.svc';
 import { IGNORE_TABLES } from '../../../utils/common/BaseApiBuilder';
+import type LinkToAnotherRecordColumn from '../../../models/LinkToAnotherRecordColumn';
+import type Base from '../../../models/Base';
+import type Project from '../../../models/Project';
 
 export async function populateMeta(base: Base, project: Project): Promise<any> {
   const info = {
@@ -22,7 +22,7 @@ export async function populateMeta(base: Base, project: Project): Promise<any> {
     tablesCount: 0,
     relationsCount: 0,
     viewsCount: 0,
-    client: base?.getConnectionConfig()?.client,
+    client: (await base?.getConnectionConfig())?.client,
     timeTaken: 0,
   };
 
@@ -228,6 +228,8 @@ export async function populateMeta(base: Base, project: Project): Promise<any> {
     return async () => {
       const columns = (await sqlClient.columnList({ tn: table.table_name }))
         ?.data?.list;
+
+      mapDefaultDisplayValue(columns);
 
       /* create nc_models and its rows if it doesn't exists  */
       models2[table.table_name] = await Model.insert(project.id, base.id, {

@@ -18,6 +18,7 @@ import {
   message,
   reactive,
   ref,
+  storeToRefs,
   useI18n,
   useProject,
   useVModel,
@@ -31,13 +32,13 @@ interface Props {
   importDataOnly?: boolean
 }
 
-const { importType, importDataOnly = false, ...rest } = defineProps<Props>()
+const { importType, importDataOnly = false, baseId, ...rest } = defineProps<Props>()
 
 const emit = defineEmits(['update:modelValue'])
 
 const { t } = useI18n()
 
-const { tables } = useProject()
+const { tables } = storeToRefs(useProject())
 
 const activeKey = ref('uploadTab')
 
@@ -61,7 +62,7 @@ const isParsingData = ref(false)
 
 const useForm = Form.useForm
 
-const importState = reactive({
+const defaultImportState = {
   fileList: [] as importFileList | streamImportFileList,
   url: '',
   jsonEditor: {},
@@ -72,7 +73,8 @@ const importState = reactive({
     firstRowAsHeaders: true,
     shouldImportData: true,
   },
-})
+}
+const importState = reactive(defaultImportState)
 
 const isImportTypeJson = computed(() => importType === 'json')
 
@@ -176,6 +178,8 @@ async function handleImport() {
     return message.error(await extractSdkResponseErrorMsg(e))
   } finally {
     importLoading.value = false
+    templateEditorModal.value = false
+    Object.assign(importState, defaultImportState)
   }
   dialogShow.value = false
 }

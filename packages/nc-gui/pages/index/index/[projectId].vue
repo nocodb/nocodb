@@ -10,13 +10,17 @@ import {
   projectTitleValidator,
   reactive,
   ref,
+  storeToRefs,
   useProject,
   useRoute,
 } from '#imports'
 
 const route = useRoute()
 
-const { project, loadProject, updateProject, isLoading } = useProject()
+const projectStore = useProject()
+
+const { loadProject, updateProject } = projectStore
+const { project, isLoading } = storeToRefs(projectStore)
 
 const nameValidationRules = [
   {

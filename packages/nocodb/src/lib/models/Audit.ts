@@ -1,7 +1,52 @@
-import { AuditOperationTypes, AuditType } from 'nocodb-sdk';
+import { AuditOperationTypes } from 'nocodb-sdk';
 import { MetaTable } from '../utils/globals';
 import Noco from '../Noco';
+import { extractProps } from '../meta/helpers/extractProps';
 import Model from './Model';
+import type { AuditType } from 'nocodb-sdk';
+
+const opTypes = <const>[
+  'COMMENT',
+  'DATA',
+  'PROJECT',
+  'VIRTUAL_RELATION',
+  'RELATION',
+  'TABLE_VIEW',
+  'TABLE',
+  'VIEW',
+  'META',
+  'WEBHOOKS',
+  'AUTHENTICATION',
+  'TABLE_COLUMN',
+  'ORG_USER',
+];
+
+const opSubTypes = <const>[
+  'UPDATE',
+  'INSERT',
+  'BULK_INSERT',
+  'BULK_UPDATE',
+  'BULK_DELETE',
+  'LINK_RECORD',
+  'UNLINK_RECORD',
+  'DELETE',
+  'CREATED',
+  'DELETED',
+  'RENAMED',
+  'IMPORT_FROM_ZIP',
+  'EXPORT_TO_FS',
+  'EXPORT_TO_ZIP',
+  'UPDATED',
+  'SIGNIN',
+  'SIGNUP',
+  'PASSWORD_RESET',
+  'PASSWORD_FORGOT',
+  'PASSWORD_CHANGE',
+  'EMAIL_VERIFICATION',
+  'ROLES_MANAGEMENT',
+  'INVITE',
+  'RESEND_INVITE',
+];
 
 export default class Audit implements AuditType {
   id?: string;
@@ -11,8 +56,8 @@ export default class Audit implements AuditType {
   project_id?: string;
   fk_model_id?: string;
   row_id?: string;
-  op_type?: string;
-  op_sub_type?: string;
+  op_type?: typeof opTypes[number];
+  op_sub_type?: typeof opSubTypes[number];
   status?: string;
   description?: string;
   details?: string;
@@ -33,12 +78,7 @@ export default class Audit implements AuditType {
 
   // Will only await for Audit insertion if `forceAwait` is true, which will be true in test environment by default
   public static async insert(
-    audit: Partial<
-      Audit & {
-        created_at?;
-        updated_at?;
-      }
-    >,
+    audit: Partial<Audit>,
     ncMeta = Noco.ncMeta,
     { forceAwait }: { forceAwait: boolean } = {
       forceAwait: process.env['TEST'] === 'true',
@@ -48,33 +88,32 @@ export default class Audit implements AuditType {
       return;
     }
     const insertAudit = async () => {
-      if (!audit.project_id && audit.fk_model_id) {
-        audit.project_id = (
-          await Model.getByIdOrName({ id: audit.fk_model_id }, ncMeta)
+      const insertObj = extractProps(audit, [
+        'user',
+        'ip',
+        'base_id',
+        'project_id',
+        'row_id',
+        'fk_model_id',
+        'op_type',
+        'op_sub_type',
+        'status',
+        'description',
+        'details',
+      ]);
+      if (!insertObj.project_id && insertObj.fk_model_id) {
+        insertObj.project_id = (
+          await Model.getByIdOrName({ id: insertObj.fk_model_id }, ncMeta)
         ).project_id;
       }
 
-      return await ncMeta.metaInsert2(null, null, MetaTable.AUDIT, {
-        user: audit.user,
-        ip: audit.ip,
-        base_id: audit.base_id,
-        project_id: audit.project_id,
-        row_id: audit.row_id,
-        fk_model_id: audit.fk_model_id,
-        op_type: audit.op_type,
-        op_sub_type: audit.op_sub_type,
-        status: audit.status,
-        description: audit.description,
-        details: audit.details,
-        created_at: audit.created_at,
-        updated_at: audit.updated_at,
-      });
+      return await ncMeta.metaInsert2(null, null, MetaTable.AUDIT, insertObj);
     };
 
     if (forceAwait) {
       return await insertAudit();
     } else {
-      insertAudit();
+      return insertAudit();
     }
   }
 

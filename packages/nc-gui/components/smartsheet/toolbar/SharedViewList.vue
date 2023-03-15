@@ -34,7 +34,7 @@ const { dashboardUrl } = useDashboard()
 const sharedViewList = ref<SharedViewType[]>()
 
 const loadSharedViewsList = async () => {
-  sharedViewList.value = await $api.dbViewShare.list(meta.value?.id as string)
+  sharedViewList.value = (await $api.dbViewShare.list(meta.value?.id as string)).list as SharedViewType[]
 
   // todo: show active view in list separately
   // const index = sharedViewList.value.findIndex((v) => {
@@ -55,6 +55,9 @@ const sharedViewUrl = (view: SharedViewType) => {
   switch (view.type) {
     case ViewTypes.FORM:
       viewType = 'form'
+      break
+    case ViewTypes.MAP:
+      viewType = 'map'
       break
     case ViewTypes.KANBAN:
       viewType = 'kanban'

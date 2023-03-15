@@ -1,35 +1,28 @@
 import autoBind from 'auto-bind';
-import _ from 'lodash';
-
-import Model from '../../../../models/Model';
-import SelectOption from '../../../../models/SelectOption';
-import { XKnex } from '../../index';
-import LinkToAnotherRecordColumn from '../../../../models/LinkToAnotherRecordColumn';
-import RollupColumn from '../../../../models/RollupColumn';
-import LookupColumn from '../../../../models/LookupColumn';
+import groupBy from 'lodash/groupBy';
 import DataLoader from 'dataloader';
-import Column from '../../../../models/Column';
-import { XcFilter, XcFilterWithAlias } from '../BaseModel';
-import conditionV2 from './conditionV2';
-import Filter from '../../../../models/Filter';
-import sortV2 from './sortV2';
-import Sort from '../../../../models/Sort';
-import FormulaColumn from '../../../../models/FormulaColumn';
-import genRollupSelectv2 from './genRollupSelectv2';
-import formulaQueryBuilderv2 from './formulav2/formulaQueryBuilderv2';
-import { Knex } from 'knex';
-import View from '../../../../models/View';
 import {
   AuditOperationSubTypes,
   AuditOperationTypes,
   isVirtualCol,
   RelationTypes,
-  SortType,
   UITypes,
   ViewTypes,
 } from 'nocodb-sdk';
-import formSubmissionEmailTemplate from '../../../../utils/common/formSubmissionEmailTemplate';
 import ejs from 'ejs';
+import Validator from 'validator';
+import { customAlphabet } from 'nanoid';
+import DOMPurify from 'isomorphic-dompurify';
+import Model from '../../../../models/Model';
+import Column from '../../../../models/Column';
+import Filter, {
+  COMPARISON_OPS,
+  COMPARISON_SUB_OPS,
+  IS_WITHIN_COMPARISON_SUB_OPS,
+} from '../../../../models/Filter';
+import Sort from '../../../../models/Sort';
+import View from '../../../../models/View';
+import formSubmissionEmailTemplate from '../../../../utils/common/formSubmissionEmailTemplate';
 import Audit from '../../../../models/Audit';
 import FormView from '../../../../models/FormView';
 import Hook from '../../../../models/Hook';
@@ -38,14 +31,24 @@ import {
   _transformSubmittedFormDataForEmail,
   invokeWebhook,
 } from '../../../../meta/helpers/webhookHelpers';
-import Validator from 'validator';
-import { customValidators } from './customValidators';
 import { NcError } from '../../../../meta/helpers/catchError';
-import { customAlphabet } from 'nanoid';
-import DOMPurify from 'isomorphic-dompurify';
+import { customValidators } from './customValidators';
+import formulaQueryBuilderv2 from './formulav2/formulaQueryBuilderv2';
+import genRollupSelectv2 from './genRollupSelectv2';
+import sortV2 from './sortV2';
+import conditionV2 from './conditionV2';
 import { sanitize, unsanitize } from './helpers/sanitize';
-import QrCodeColumn from '../../../../models/QrCodeColumn';
-import BarcodeColumn from '../../../../models/BarcodeColumn';
+import type { SortType } from 'nocodb-sdk';
+import type { Knex } from 'knex';
+import type FormulaColumn from '../../../../models/FormulaColumn';
+import type { XcFilter, XcFilterWithAlias } from '../BaseModel';
+import type LookupColumn from '../../../../models/LookupColumn';
+import type RollupColumn from '../../../../models/RollupColumn';
+import type LinkToAnotherRecordColumn from '../../../../models/LinkToAnotherRecordColumn';
+import type { XKnex } from '../../index';
+import type SelectOption from '../../../../models/SelectOption';
+import type QrCodeColumn from '../../../../models/QrCodeColumn';
+import type BarcodeColumn from '../../../../models/BarcodeColumn';
 
 const GROUP_COL = '__nc_group_id';
 
@@ -320,7 +323,14 @@ class BaseModelSqlv2 {
     qb.count(sanitize(this.model.primaryKey?.column_name) || '*', {
       as: 'count',
     }).first();
-    const res = (await this.dbDriver.raw(unsanitize(qb.toQuery()))) as any;
+
+    let sql = sanitize(qb.toQuery());
+    if (!this.isPg && !this.isMssql && !this.isSnowflake) {
+      sql = unsanitize(qb.toQuery());
+    }
+
+    const res = (await this.dbDriver.raw(sql)) as any;
+
     return (this.isPg || this.isSnowflake ? res.rows[0] : res[0][0] ?? res[0])
       .count;
   }
@@ -433,7 +443,7 @@ class BaseModelSqlv2 {
         })
       ).getProto();
 
-      return _.groupBy(
+      return groupBy(
         children.map((c) => {
           c.__proto__ = proto;
           return c;
@@ -601,7 +611,6 @@ class BaseModelSqlv2 {
         .first();
       const { count } = await query;
       return count;
-      // return _.groupBy(children, cn);
     } catch (e) {
       console.log(e);
       throw e;
@@ -679,7 +688,7 @@ class BaseModelSqlv2 {
         dbDriver: this.dbDriver,
       })
     ).getProto();
-    const gs = _.groupBy(
+    const gs = groupBy(
       children.map((c) => {
         c.__proto__ = proto;
         return c;
@@ -796,7 +805,7 @@ class BaseModelSqlv2 {
       !this.isSqlite
     );
 
-    const gs = _.groupBy(children, GROUP_COL);
+    const gs = groupBy(children, GROUP_COL);
     return parentIds.map((id) => gs?.[id]?.[0] || []);
   }
 
@@ -1358,7 +1367,7 @@ class BaseModelSqlv2 {
                     },
                     true
                   );
-                  const gs = _.groupBy(data, pCol.title);
+                  const gs = groupBy(data, pCol.title);
                   return ids.map(async (id: string) => gs?.[id]?.[0]);
                 } catch (e) {
                   console.log(e);
@@ -2934,6 +2943,7 @@ function extractFilterFromXwhere(
   if (openIndex === -1) openIndex = str.indexOf('(~');
 
   let nextOpenIndex = openIndex;
+
   let closingIndex = str.indexOf('))');
 
   // if it's a simple query simply return array of conditions
@@ -2986,15 +2996,54 @@ function extractFilterFromXwhere(
   return nestedArrayConditions;
 }
 
+// mark `op` and `sub_op` any for being assignable to parameter of type
+function validateFilterComparison(uidt: UITypes, op: any, sub_op?: any) {
+  if (!COMPARISON_OPS.includes(op)) {
+    NcError.badRequest(`${op} is not supported.`);
+  }
+
+  if (sub_op) {
+    if (![UITypes.Date, UITypes.DateTime].includes(uidt)) {
+      NcError.badRequest(`'${sub_op}' is not supported for UI Type'${uidt}'.`);
+    }
+    if (!COMPARISON_SUB_OPS.includes(sub_op)) {
+      NcError.badRequest(`'${sub_op}' is not supported.`);
+    }
+    if (
+      (op === 'isWithin' && !IS_WITHIN_COMPARISON_SUB_OPS.includes(sub_op)) ||
+      (op !== 'isWithin' && IS_WITHIN_COMPARISON_SUB_OPS.includes(sub_op))
+    ) {
+      NcError.badRequest(`'${sub_op}' is not supported for '${op}'`);
+    }
+  }
+}
+
 function extractCondition(nestedArrayConditions, aliasColObjMap) {
   return nestedArrayConditions?.map((str) => {
     // eslint-disable-next-line prefer-const
     let [logicOp, alias, op, value] =
       str.match(/(?:~(and|or|not))?\((.*?),(\w+),(.*)\)/)?.slice(1) || [];
-    if (op === 'in') value = value.split(',');
+    let sub_op = null;
+
+    if (aliasColObjMap[alias]) {
+      if (
+        [UITypes.Date, UITypes.DateTime].includes(aliasColObjMap[alias].uidt)
+      ) {
+        value = value.split(',');
+        // the first element would be sub_op
+        sub_op = value[0];
+        // remove the first element which is sub_op
+        value.shift();
+      } else if (op === 'in') {
+        value = value.split(',');
+      }
+
+      validateFilterComparison(aliasColObjMap[alias].uidt, op, sub_op);
+    }
 
     return new Filter({
       comparison_op: op,
+      ...(sub_op && { comparison_sub_op: sub_op }),
       fk_column_id: aliasColObjMap[alias]?.id,
       logical_op: logicOp,
       value,

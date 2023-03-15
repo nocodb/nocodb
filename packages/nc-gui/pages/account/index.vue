@@ -2,7 +2,10 @@
 import { navigateTo, useUIPermission } from '#imports'
 
 const { isUIAllowed } = useUIPermission()
+
 const $route = useRoute()
+
+const { appInfo } = useGlobal()
 
 const selectedKeys = computed(() => [
   /^\/account\/users\/?$/.test($route.fullPath)
@@ -68,7 +71,7 @@ const openKeys = ref([/^\/account\/users/.test($route.fullPath) && 'users'])
               </div>
             </a-menu-item>
             <a-menu-item
-              v-if="isUIAllowed('appStore')"
+              v-if="isUIAllowed('appStore') && !appInfo.isCloud"
               key="apps"
               class="group active:(!ring-0) hover:(!bg-primary !bg-opacity-25)"
               @click="navigateTo('/account/apps')"

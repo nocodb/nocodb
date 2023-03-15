@@ -8,6 +8,7 @@ import { CheckboxCellPageObject } from './CheckboxCell';
 import { RatingCellPageObject } from './RatingCell';
 import { DateCellPageObject } from './DateCell';
 import { DateTimeCellPageObject } from './DateTimeCell';
+import { GeoDataCellPageObject } from './GeoDataCell';
 
 export interface CellProps {
   index?: number;
@@ -20,6 +21,7 @@ export class CellPageObject extends BasePage {
   readonly attachment: AttachmentCellPageObject;
   readonly checkbox: CheckboxCellPageObject;
   readonly rating: RatingCellPageObject;
+  readonly geoData: GeoDataCellPageObject;
   readonly date: DateCellPageObject;
   readonly dateTime: DateTimeCellPageObject;
 
@@ -30,6 +32,7 @@ export class CellPageObject extends BasePage {
     this.attachment = new AttachmentCellPageObject(this);
     this.checkbox = new CheckboxCellPageObject(this);
     this.rating = new RatingCellPageObject(this);
+    this.geoData = new GeoDataCellPageObject(this);
     this.date = new DateCellPageObject(this);
     this.dateTime = new DateTimeCellPageObject(this);
   }
@@ -136,6 +139,33 @@ export class CellPageObject extends BasePage {
     } else {
       await _verify(value);
     }
+  }
+
+  async verifyGeoDataCell({
+    index,
+    columnHeader,
+    lat,
+    long,
+  }: {
+    index: number;
+    columnHeader: string;
+    lat: string;
+    long: string;
+  }) {
+    const _verify = async expectedValue => {
+      await expect
+        .poll(async () => {
+          const cell = await this.get({
+            index,
+            columnHeader,
+          }).locator(`[data-testid="nc-geo-data-lat-long-set"]`);
+          return await cell.textContent(); //.getAttribute('title');
+        })
+        .toEqual(expectedValue);
+    };
+
+    const value = `${lat}; ${long}`;
+    await _verify(value);
   }
 
   async verifyDateCell({ index, columnHeader, value }: { index: number; columnHeader: string; value: string }) {
@@ -259,8 +289,11 @@ export class CellPageObject extends BasePage {
     // editable cell
     await cell.dblclick();
     await expect(await cell.locator(`input`)).toHaveCount(param.role === 'creator' || param.role === 'editor' ? 1 : 0);
-    // right click context menu
-    await cell.click({ button: 'right' });
+
+    // press escape to close the input
+    await cell.press('Escape');
+
+    await cell.click({ button: 'right', clickCount: 1 });
     await expect(await this.rootPage.locator(`.nc-dropdown-grid-context-menu:visible`)).toHaveCount(
       param.role === 'creator' || param.role === 'editor' ? 1 : 0
     );

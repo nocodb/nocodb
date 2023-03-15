@@ -55,6 +55,8 @@ const { eventBus } = useSmartsheetStoreOrThrow()
 eventBus.on((event) => {
   if (event === SmartsheetStoreEvents.FIELD_RELOAD) {
     loadViewColumns()
+  } else if (event === SmartsheetStoreEvents.MAPPED_BY_COLUMN_CHANGE) {
+    loadViewColumns()
   }
 })
 
@@ -123,13 +125,11 @@ const coverImageColumnId = computed({
     ) {
       if (activeView.value?.type === ViewTypes.GALLERY) {
         await $api.dbView.galleryUpdate(activeView.value?.id, {
-          ...activeView.value?.view,
           fk_cover_image_col_id: val,
         })
         ;(activeView.value.view as GalleryType).fk_cover_image_col_id = val
       } else if (activeView.value?.type === ViewTypes.KANBAN) {
         await $api.dbView.kanbanUpdate(activeView.value?.id, {
-          ...activeView.value?.view,
           fk_cover_image_col_id: val,
         })
         ;(activeView.value.view as KanbanType).fk_cover_image_col_id = val
@@ -204,6 +204,7 @@ useMenuCloseOnEsc(open)
                   v-model:checked="field.show"
                   v-e="['a:fields:show-hide']"
                   class="shrink"
+                  :disabled="field.isViewEssentialField"
                   @change="saveOrUpdate(field, index)"
                 >
                   <div class="flex items-center">

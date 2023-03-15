@@ -2,50 +2,47 @@
 import fs from 'fs';
 import path from 'path';
 import { promisify } from 'util';
-
 import * as Sentry from '@sentry/node';
 import bodyParser from 'body-parser';
 import clear from 'clear';
 import cookieParser from 'cookie-parser';
 import debug from 'debug';
 import * as express from 'express';
-import { Router } from 'express';
 import importFresh from 'import-fresh';
 import morgan from 'morgan';
 import NcToolGui from 'nc-lib-gui';
 import requestIp from 'request-ip';
 import { v4 as uuidv4 } from 'uuid';
-
-import { NcConfig } from '../interface/config';
+import { T } from 'nc-help';
+import mkdirp from 'mkdirp';
 import { NC_LICENSE_KEY } from './constants';
 import Migrator from './db/sql-migrator/lib/KnexMigrator';
 import Store from './models/Store';
 import NcConfigFactory from './utils/NcConfigFactory';
-import { Tele } from 'nc-help';
-
 import NcProjectBuilderCE from './v1-legacy/NcProjectBuilder';
 import NcProjectBuilderEE from './v1-legacy/NcProjectBuilderEE';
-import { GqlApiBuilder } from './v1-legacy/gql/GqlApiBuilder';
-import NcMetaIO from './meta/NcMetaIO';
 import NcMetaImplCE from './meta/NcMetaIOImpl';
 import NcMetaImplEE from './meta/NcMetaIOImplEE';
-import NcMetaMgrCE from './meta/NcMetaMgr';
-import NcMetaMgrEE from './meta/NcMetaMgrEE';
-import { RestApiBuilder } from './v1-legacy/rest/RestApiBuilder';
 import RestAuthCtrlCE from './v1-legacy/rest/RestAuthCtrl';
 import RestAuthCtrlEE from './v1-legacy/rest/RestAuthCtrlEE';
-import mkdirp from 'mkdirp';
 import MetaAPILogger from './meta/MetaAPILogger';
 import NcUpgrader from './version-upgrader/NcUpgrader';
-import NcMetaMgrv2 from './meta/NcMetaMgrv2';
 import NocoCache from './cache/NocoCache';
 import registerMetaApis from './meta/api';
 import NcPluginMgrv2 from './meta/helpers/NcPluginMgrv2';
 import User from './models/User';
-import * as http from 'http';
 import weAreHiring from './utils/weAreHiring';
 import getInstance from './utils/getInstance';
-import initAdminFromEnv from './meta/api/userApi/initAdminFromEnv';
+import initAdminFromEnv from './services/user/initAdminFromEnv';
+import type * as http from 'http';
+import type NcMetaMgrv2 from './meta/NcMetaMgrv2';
+import type { RestApiBuilder } from './v1-legacy/rest/RestApiBuilder';
+import type NcMetaMgrEE from './meta/NcMetaMgrEE';
+import type NcMetaMgrCE from './meta/NcMetaMgr';
+import type NcMetaIO from './meta/NcMetaIO';
+import type { GqlApiBuilder } from './v1-legacy/gql/GqlApiBuilder';
+import type { NcConfig } from '../interface/config';
+import type { Router } from 'express';
 
 const log = debug('nc:app');
 require('dotenv').config();
@@ -105,7 +102,7 @@ export default class Noco {
   constructor() {
     process.env.PORT = process.env.PORT || '8080';
     // todo: move
-    process.env.NC_VERSION = '0104004';
+    process.env.NC_VERSION = '0105003';
 
     // if env variable NC_MINIMAL_DBS is set, then disable project creation with external sources
     if (process.env.NC_MINIMAL_DBS) {
@@ -275,10 +272,10 @@ export default class Noco {
       }
       next();
     });
-    Tele.init({
+    T.init({
       instance: getInstance,
     });
-    Tele.emit('evt_app_started', await User.count());
+    T.emit('evt_app_started', await User.count());
     console.log(`App started successfully.\nVisit -> ${Noco.dashboardUrl}`);
     weAreHiring();
     return this.router;
@@ -531,7 +528,7 @@ export default class Noco {
     if (!serverId) {
       await Noco._ncMeta.metaInsert('', '', 'nc_store', {
         key: 'nc_server_id',
-        value: (serverId = Tele.id),
+        value: (serverId = T.id),
       });
     }
     process.env.NC_SERVER_UUID = serverId;

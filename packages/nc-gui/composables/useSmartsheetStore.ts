@@ -1,7 +1,17 @@
 import { ViewTypes } from 'nocodb-sdk'
 import type { FilterType, KanbanType, SortType, TableType, ViewType } from 'nocodb-sdk'
 import type { Ref } from 'vue'
-import { computed, ref, unref, useEventBus, useFieldQuery, useInjectionState, useNuxtApp, useProject } from '#imports'
+import {
+  computed,
+  ref,
+  storeToRefs,
+  unref,
+  useEventBus,
+  useFieldQuery,
+  useInjectionState,
+  useNuxtApp,
+  useProject,
+} from '#imports'
 import type { SmartsheetStoreEvents } from '~/lib'
 
 const [useProvideSmartsheetStore, useSmartsheetStore] = useInjectionState(
@@ -14,7 +24,9 @@ const [useProvideSmartsheetStore, useSmartsheetStore] = useInjectionState(
   ) => {
     const { $api } = useNuxtApp()
 
-    const { sqlUis } = useProject()
+    const projectStore = useProject()
+
+    const { sqlUis } = storeToRefs(projectStore)
 
     const sqlUi = ref(
       (meta.value as TableType)?.base_id ? sqlUis.value[(meta.value as TableType).base_id!] : Object.values(sqlUis.value)[0],
@@ -26,13 +38,13 @@ const [useProvideSmartsheetStore, useSmartsheetStore] = useInjectionState(
 
     const eventBus = useEventBus<SmartsheetStoreEvents>(Symbol('SmartsheetStore'))
 
-    // getters
     const isLocked = computed(() => view.value?.lock_type === 'locked')
     const isPkAvail = computed(() => (meta.value as TableType)?.columns?.some((c) => c.pk))
     const isGrid = computed(() => view.value?.type === ViewTypes.GRID)
     const isForm = computed(() => view.value?.type === ViewTypes.FORM)
     const isGallery = computed(() => view.value?.type === ViewTypes.GALLERY)
     const isKanban = computed(() => view.value?.type === ViewTypes.KANBAN)
+    const isMap = computed(() => view.value?.type === ViewTypes.MAP)
     const isSharedForm = computed(() => isForm.value && shared)
     const xWhere = computed(() => {
       let where
@@ -51,7 +63,7 @@ const [useProvideSmartsheetStore, useSmartsheetStore] = useInjectionState(
     })
 
     const isSqlView = computed(() => (meta.value as TableType)?.type === 'view')
-    const sorts = ref<Required<SortType>[]>((unref(initialSorts) as Required<SortType>[]) ?? [])
+    const sorts = ref<SortType[]>(unref(initialSorts) ?? [])
     const nestedFilters = ref<FilterType[]>(unref(initialFilters) ?? [])
 
     return {
@@ -65,6 +77,7 @@ const [useProvideSmartsheetStore, useSmartsheetStore] = useInjectionState(
       isGrid,
       isGallery,
       isKanban,
+      isMap,
       cellRefs,
       isSharedForm,
       sorts,

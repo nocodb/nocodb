@@ -1,4 +1,4 @@
-import BaseApiBuilder from './BaseApiBuilder';
+import type BaseApiBuilder from './BaseApiBuilder';
 
 export default class XcProcedure {
   private builder: BaseApiBuilder<any>;

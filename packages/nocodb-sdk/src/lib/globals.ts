@@ -3,6 +3,7 @@ export enum ViewTypes {
   GALLERY = 2,
   GRID = 3,
   KANBAN = 4,
+  MAP = 5,
 }
 
 export enum RelationTypes {
@@ -54,7 +55,7 @@ export enum AuditOperationSubTypes {
   EXPORT_TO_ZIP = 'EXPORT_TO_ZIP',
   UPDATED = 'UPDATED',
   SIGNIN = 'SIGNIN',
-  SIGN = 'SIGN',
+  SIGNUP = 'SIGNUP',
   PASSWORD_RESET = 'PASSWORD_RESET',
   PASSWORD_FORGOT = 'PASSWORD_FORGOT',
   PASSWORD_CHANGE = 'PASSWORD_CHANGE',

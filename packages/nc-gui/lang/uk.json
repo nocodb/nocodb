@@ -74,7 +74,8 @@
     "insertBefore": "Вставити перед",
     "hideField": "Приховати поле",
     "sortAsc": "За зростанням",
-    "sortDesc": "За спаданням"
+    "sortDesc": "За спаданням",
+    "geoDataField": "GeoData Field"
   },
   "objects": {
     "project": "Проєкт",
@@ -98,7 +99,8 @@
       "gallery": "Галерея",
       "form": "Форма",
       "kanban": "Канбан",
-      "calendar": "Календар"
+      "calendar": "Календар",
+      "map": "Map"
     },
     "user": "Користувач",
     "users": "Користувачі",
@@ -136,6 +138,7 @@
     "Currency": "Валюта",
     "Percent": "Відсоток",
     "Duration": "Тривалість",
+    "GeoData": "GeoData",
     "Rating": "Рейтинг",
     "Formula": "Формула",
     "Rollup": "Накопичення",
@@ -232,6 +235,7 @@
     "action": "Дія",
     "actions": "Дії",
     "operation": "Операція",
+    "operationSub": "Sub Operation",
     "operationType": "Тип операції",
     "operationSubType": "Підтип операції",
     "description": "Опис",
@@ -253,6 +257,9 @@
     "barcodeFormat": "Формат штрих-коду",
     "qrCodeValueTooLong": "Забагато символів для QR-коду",
     "barcodeValueTooLong": "Забагато символів для штрих-коду",
+    "yourLocation": "Your Location",
+    "lng": "Lng",
+    "lat": "Lat",
     "aggregateFunction": "Агрегатна функція",
     "dbCreateIfNotExists": "База даних: створити, якщо не існує",
     "clientKey": "Ключ клієнта",
@@ -452,6 +459,10 @@
       "stackedBy": "Групувати по",
       "chooseGroupingField": "Виберіть поле групування",
       "addOrEditStack": "Додавання/Редагування Стеку"
+    },
+    "map": {
+      "mappedBy": "Mapped By",
+      "chooseMappingField": "Choose a Mapping Field"
     }
   },
   "tooltip": {
@@ -517,6 +528,11 @@
       "roles": {
         "orgCreator": "Розробник може створювати нові проєкти та мати доступ до будь-якого відкритого проєкту.",
         "orgViewer": "Глядач не може створювати нові проєкти, але він може отримати доступ до будь-якого відкритого проєкту."
+      },
+      "map": {
+        "overLimit": "You're over the limit.",
+        "closeLimit": "You're getting close to the limit.",
+        "limitNumber": "The limit of markers shown in a Map View is 1000 records."
       },
       "footerInfo": "Рядків на сторінці",
       "upload": "Виберіть файл для завантаження",
@@ -600,6 +616,7 @@
         "gallery": "Додати вигляд галереї",
         "form": "Додати вигляд форми",
         "kanban": "Додати вигляд Kanban",
+        "map": "Add Map View",
         "calendar": "Додати вигляд календаря"
       },
       "tablesMetadataInSync": "Таблиці метаданих синхронізуються",
@@ -690,6 +707,7 @@
       "nameShouldStartWithAnAlphabetOr_": "Ім'я повинно починатися з літери або _",
       "followingCharactersAreNotAllowed": "Наступні символи не допускаються",
       "columnNameRequired": "Ім'я стовпця є обов'язковим",
+      "columnNameExceedsCharacters": "The length of column name exceeds the max {value} characters",
       "projectNameExceeds50Characters": "Назва проєкту перевищує 50 символів",
       "projectNameCannotStartWithSpace": "Назва проєкту не може починатися з пробілу",
       "requiredField": "Обов'язкове поле",

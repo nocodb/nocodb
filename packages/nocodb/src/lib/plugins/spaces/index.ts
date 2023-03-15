@@ -1,7 +1,6 @@
 import { XcActionType, XcType } from 'nocodb-sdk';
-import { XcPluginConfig } from 'nc-plugin';
-
 import SpacesPlugin from './SpacesPlugin';
+import type { XcPluginConfig } from 'nc-plugin';
 
 const config: XcPluginConfig = {
   builder: SpacesPlugin,

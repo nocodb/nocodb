@@ -1,8 +1,11 @@
 import Noco from '../Noco';
 import NocoCache from '../cache/NocoCache';
 import { CacheGetType, CacheScope, MetaTable } from '../utils/globals';
+import { extractProps } from '../meta/helpers/extractProps';
+import type { SelectOptionType } from 'nocodb-sdk';
 
-export default class SelectOption {
+export default class SelectOption implements SelectOptionType {
+  id: string;
   title: string;
   fk_column_id: string;
   color: string;
@@ -16,11 +19,19 @@ export default class SelectOption {
     data: Partial<SelectOption>,
     ncMeta = Noco.ncMeta
   ) {
+    const insertObj = extractProps(data, [
+      'id',
+      'title',
+      'fk_column_id',
+      'color',
+      'order',
+    ]);
+
     const { id } = await ncMeta.metaInsert2(
       null,
       null,
       MetaTable.COL_SELECT_OPTIONS,
-      data
+      insertObj
     );
 
     await NocoCache.appendToList(
@@ -101,6 +112,4 @@ export default class SelectOption {
 
     return data && new SelectOption(data);
   }
-
-  id: string;
 }

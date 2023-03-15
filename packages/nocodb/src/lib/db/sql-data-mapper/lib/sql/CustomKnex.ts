@@ -1,12 +1,12 @@
 import { Knex, knex } from 'knex';
 import { SnowflakeClient } from 'nc-help';
+import Filter from '../../../../models/Filter';
+import type { FilterType } from 'nocodb-sdk';
+import type { BaseModelSql } from './BaseModelSql';
 
 const types = require('pg').types;
 // override parsing date column to Date()
 types.setTypeParser(1082, (val) => val);
-
-import { BaseModelSql } from './BaseModelSql';
-import Filter from '../../../../models/Filter';
 
 const opMappingGen = {
   eq: '=',
@@ -1248,7 +1248,13 @@ knex.QueryBuilder.extend('conditionv2', function (conditionObj: Filter) {
   return parseConditionv2(conditionObj, this);
 } as any);
 
-const parseConditionv2 = (obj: Filter, qb: Knex.QueryBuilder) => {
+const parseConditionv2 = (_obj: Filter | FilterType, qb: Knex.QueryBuilder) => {
+  let obj: Filter;
+  if (_obj instanceof Filter) {
+    obj = _obj;
+  } else {
+    obj = new Filter(_obj);
+  }
   if (obj.is_group) {
     qb = qb.where(function () {
       const children = obj.children;

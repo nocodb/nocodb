@@ -1,4 +1,4 @@
-import { BaseModelSql } from '../../db/sql-data-mapper';
+import type { BaseModelSql } from '../../db/sql-data-mapper';
 
 export const m2mNotChildren = ({
   models = {},

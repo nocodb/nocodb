@@ -1,13 +1,13 @@
 import Noco from '../Noco';
 import { CacheGetType, CacheScope, MetaTable } from '../utils/globals';
-import { GridColumnType } from 'nocodb-sdk';
 import { extractProps } from '../meta/helpers/extractProps';
-import View from './View';
 import NocoCache from '../cache/NocoCache';
+import View from './View';
+import type { BoolType, GridColumnType } from 'nocodb-sdk';
 
 export default class GridViewColumn implements GridColumnType {
   id: string;
-  show: boolean;
+  show: BoolType;
   order: number;
   width?: string;
 
@@ -67,18 +67,21 @@ export default class GridViewColumn implements GridColumnType {
   }
 
   static async insert(column: Partial<GridViewColumn>, ncMeta = Noco.ncMeta) {
-    const insertObj = {
-      fk_view_id: column.fk_view_id,
-      fk_column_id: column.fk_column_id,
-      order:
-        column?.order ??
-        (await ncMeta.metaGetNextOrder(MetaTable.GRID_VIEW_COLUMNS, {
-          fk_view_id: column.fk_view_id,
-        })),
-      show: column.show,
-      project_id: column.project_id,
-      base_id: column.base_id,
-    };
+    const insertObj = extractProps(column, [
+      'fk_view_id',
+      'fk_column_id',
+      'show',
+      'project_id',
+      'base_id',
+      'order',
+      'width',
+    ]);
+
+    insertObj.order =
+      column?.order ??
+      (await ncMeta.metaGetNextOrder(MetaTable.GRID_VIEW_COLUMNS, {
+        fk_view_id: column.fk_view_id,
+      }));
 
     if (!(column.project_id && column.base_id)) {
       const viewRef = await View.get(column.fk_view_id, ncMeta);
@@ -130,7 +133,7 @@ export default class GridViewColumn implements GridColumnType {
       await NocoCache.set(key, o);
     }
     // set meta
-    await ncMeta.metaUpdate(
+    return await ncMeta.metaUpdate(
       null,
       null,
       MetaTable.GRID_VIEW_COLUMNS,

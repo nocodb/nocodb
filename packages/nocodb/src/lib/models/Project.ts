@@ -1,6 +1,4 @@
-import Base from './/Base';
 import Noco from '../Noco';
-import { ProjectType } from 'nocodb-sdk';
 import {
   CacheDelDirection,
   CacheGetType,
@@ -9,6 +7,9 @@ import {
 } from '../utils/globals';
 import { extractProps } from '../meta/helpers/extractProps';
 import NocoCache from '../cache/NocoCache';
+import Base from './/Base';
+import type { BoolType, MetaType, ProjectType } from 'nocodb-sdk';
+import type { DB_TYPES } from './/Base';
 
 export default class Project implements ProjectType {
   public id: string;
@@ -16,15 +17,12 @@ export default class Project implements ProjectType {
   public prefix: string;
   public status: string;
   public description: string;
-  public meta: string;
+  public meta: MetaType;
   public color: string;
-  public deleted: string;
+  public deleted: BoolType;
   public order: number;
   public is_meta = false;
   public bases?: Base[];
-
-  created_at: any;
-  updated_at: any;
 
   // shared base props
   uuid?: string;
@@ -36,25 +34,22 @@ export default class Project implements ProjectType {
   }
 
   public static async createProject(
-    projectBody: ProjectType & {
-      created_at?;
-      updated_at?;
-    },
+    project: Partial<ProjectType>,
     ncMeta = Noco.ncMeta
   ): Promise<Project> {
+    const insertObj = extractProps(project, [
+      'id',
+      'title',
+      'prefix',
+      'description',
+      'is_meta',
+    ]);
+
     const { id: projectId } = await ncMeta.metaInsert2(
       null,
       null,
       MetaTable.PROJECT,
-      {
-        id: projectBody?.id,
-        title: projectBody.title,
-        prefix: projectBody.prefix,
-        description: projectBody.description,
-        is_meta: projectBody.is_meta,
-        created_at: projectBody.created_at,
-        updated_at: projectBody.updated_at,
-      }
+      insertObj
     );
 
     await NocoCache.appendToList(
@@ -63,10 +58,10 @@ export default class Project implements ProjectType {
       `${CacheScope.PROJECT}:${projectId}`
     );
 
-    for (const base of projectBody.bases) {
+    for (const base of project.bases) {
       await Base.createBase(
         {
-          type: base.config?.client,
+          type: base.config?.client as typeof DB_TYPES[number],
           ...base,
           projectId,
         },

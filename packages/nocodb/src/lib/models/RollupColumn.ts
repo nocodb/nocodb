@@ -1,16 +1,26 @@
 import Noco from '../Noco';
-import Column from './Column';
 import { CacheGetType, CacheScope, MetaTable } from '../utils/globals';
 import NocoCache from '../cache/NocoCache';
+import { extractProps } from '../meta/helpers/extractProps';
+import Column from './Column';
+import type { RollupType } from 'nocodb-sdk';
 
-export default class RollupColumn {
+export const ROLLUP_FUNCTIONS = <const>[
+  'count',
+  'min',
+  'max',
+  'avg',
+  'countDistinct',
+  'sumDistinct',
+  'avgDistinct',
+];
+
+export default class RollupColumn implements RollupType {
+  id: string;
   fk_column_id;
   fk_relation_column_id;
   fk_rollup_column_id;
-
-  rollup_function: string;
-
-  id: string;
+  rollup_function: typeof ROLLUP_FUNCTIONS[number];
 
   constructor(data: Partial<RollupColumn>) {
     Object.assign(this, data);
@@ -20,12 +30,13 @@ export default class RollupColumn {
     data: Partial<RollupColumn>,
     ncMeta = Noco.ncMeta
   ) {
-    await ncMeta.metaInsert2(null, null, MetaTable.COL_ROLLUP, {
-      fk_column_id: data.fk_column_id,
-      fk_relation_column_id: data.fk_relation_column_id,
-      fk_rollup_column_id: data.fk_rollup_column_id,
-      rollup_function: data.rollup_function,
-    });
+    const insertObj = extractProps(data, [
+      'fk_column_id',
+      'fk_relation_column_id',
+      'fk_rollup_column_id',
+      'rollup_function',
+    ]);
+    await ncMeta.metaInsert2(null, null, MetaTable.COL_ROLLUP, insertObj);
 
     await NocoCache.appendToList(
       CacheScope.COL_ROLLUP,

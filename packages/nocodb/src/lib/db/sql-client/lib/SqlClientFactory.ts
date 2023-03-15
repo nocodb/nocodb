@@ -1,3 +1,5 @@
+import fs from 'fs';
+import { promisify } from 'util';
 import Noco from '../../../Noco';
 import SqlClientFactoryEE from './ee/SqlClientFactoryEE';
 import MySqlClient from './mysql/MysqlClient';
@@ -8,9 +10,6 @@ import PgClient from './pg/PgClient';
 import YugabyteClient from './pg/YugabyteClient';
 import TidbClient from './mysql/TidbClient';
 import VitessClient from './mysql/VitessClient';
-
-import fs from 'fs';
-import { promisify } from 'util';
 
 export class SqlClientFactory {
   static create(connectionConfig) {

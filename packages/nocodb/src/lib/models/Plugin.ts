@@ -1,7 +1,8 @@
-import { PluginType } from 'nocodb-sdk';
 import { CacheGetType, CacheScope, MetaTable } from '../utils/globals';
 import Noco from '../Noco';
 import NocoCache from '../cache/NocoCache';
+import { extractProps } from '../meta/helpers/extractProps';
+import type { PluginType } from 'nocodb-sdk';
 
 export default class Plugin implements PluginType {
   id?: string;
@@ -18,7 +19,7 @@ export default class Plugin implements PluginType {
   tags?: string;
   category?: string;
   input_schema?: string;
-  input?: string;
+  input?: string | null;
   creator?: string;
   creator_website?: string;
   price?: string;
@@ -56,13 +57,12 @@ export default class Plugin implements PluginType {
   }
 
   public static async update(pluginId: string, plugin: Partial<PluginType>) {
-    const updateObj = {
-      input:
-        plugin.input && typeof plugin.input === 'object'
-          ? JSON.stringify(plugin.input)
-          : plugin.input,
-      active: plugin.active,
-    };
+    const updateObj = extractProps(plugin, ['input', 'active']);
+
+    if (updateObj.input && typeof updateObj.input === 'object') {
+      updateObj.input = JSON.stringify(updateObj.input);
+    }
+
     // get existing cache
     const key = `${CacheScope.PLUGIN}:${pluginId}`;
     let o = await NocoCache.get(key, CacheGetType.TYPE_OBJECT);

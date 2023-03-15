@@ -89,7 +89,7 @@ useSelectedCellKeyupListener(active, (e) => {
 
 <style scoped lang="scss">
 .nc-cell-hover-show {
-  opacity: 0;
+  opacity: 0.3;
   transition: 0.3s opacity;
 
   &:hover {

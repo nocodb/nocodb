@@ -379,6 +379,8 @@ const isCreateTableAllowed = computed(
     route.name !== 'index-user-index',
 )
 
+const activeProjectId = computed(() => route.params.projectId)
+
 useEventListener(document, 'keydown', async (e: KeyboardEvent) => {
   const cmdOrCtrl = isMac() ? e.metaKey : e.ctrlKey
   if (e.altKey && !e.shiftKey && !cmdOrCtrl) {
@@ -389,7 +391,9 @@ useEventListener(document, 'keydown', async (e: KeyboardEvent) => {
           // prevent the key `T` is inputted to table title input
           e.preventDefault()
           $e('c:shortcut', { key: 'ALT + T' })
-          openTableCreateDialog()
+          const projectId = openedProjectId.value! || activeProjectId.value
+          if(projectId)
+          openTableCreateDialog(projects.value?.[projectId]?.bases?.[0].id, projectId)
         }
         break
       }
@@ -442,8 +446,6 @@ const handleContext = (e: MouseEvent) => {
 }
 
 useEventListener(document, 'contextmenu', handleContext, true)
-
-const activeProjectId = computed(() => route.params.projectId)
 
 watch(
   () => route.params.projectId,

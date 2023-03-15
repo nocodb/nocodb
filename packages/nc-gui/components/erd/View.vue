@@ -2,11 +2,11 @@
 import type { BaseType, LinkToAnotherRecordType, TableType } from 'nocodb-sdk'
 import { UITypes } from 'nocodb-sdk'
 import type { ERDConfig } from './utils'
-import { reactive, ref, useMetas, useProject, watch } from '#imports'
+import { reactive, ref, storeToRefs, useMetas, useProject, watch } from '#imports'
 
 const props = defineProps<{ table?: TableType; baseId?: string }>()
 
-const { bases, tables: projectTables } = useProject()
+const { bases, tables: projectTables } = storeToRefs(useProject())
 
 const { metas, getMeta } = useMetas()
 

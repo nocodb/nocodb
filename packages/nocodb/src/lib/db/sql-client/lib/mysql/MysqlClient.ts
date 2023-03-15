@@ -1,7 +1,6 @@
 import path from 'path';
 import { promisify } from 'util';
 import knex from 'knex';
-
 import isEmpty from 'lodash/isEmpty';
 import mapKeys from 'lodash/mapKeys';
 import find from 'lodash/find';
@@ -12,10 +11,8 @@ import levenshtein from 'fast-levenshtein';
 import Debug from '../../../util/Debug';
 import Emit from '../../../util/emit';
 import Result from '../../../util/Result';
-
 import KnexClient from '../KnexClient';
 import queries from './mysql.queries';
-
 import fakerFunctionList from './fakerFunctionList';
 import * as findDataType from './findDataTypeMapping';
 

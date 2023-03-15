@@ -1,6 +1,5 @@
 import autoBind from 'auto-bind';
 import Handlebars from 'handlebars';
-
 import type { Acls } from '../../../interface/config';
 
 export default class GqlMiddleware {

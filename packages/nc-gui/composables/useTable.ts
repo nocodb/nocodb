@@ -7,6 +7,7 @@ import {
   generateUniqueTitle as generateTitle,
   message,
   reactive,
+  storeToRefs,
   useCommandPalette,
   useI18n,
   useMetas,
@@ -30,9 +31,12 @@ export function useTable(onTableCreate?: (tableMeta: TableType) => void, baseId?
 
   const { getMeta, removeMeta } = useMetas()
 
-  const { loadTables, sqlUis, project, tables } = useProject()
+  const { loadTables } = useProject()
 
   const { closeTab } = useTabs()
+
+  const projectStore = useProject()
+  const { sqlUis, project, tables } = storeToRefs(projectStore)
 
   const { refreshCommandPalette } = useCommandPalette()
 

@@ -1,6 +1,5 @@
 import autoBind from 'auto-bind';
 import type { Request, Response, Router } from 'express';
-
 import type { Acls } from '../../../interface/config';
 import type { BaseModelSql } from '../../db/sql-data-mapper';
 

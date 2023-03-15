@@ -1,11 +1,7 @@
 import { CronJob } from 'cron';
-
 import type { NcConfig } from '../../../interface/config';
 import type Noco from '../../Noco';
-
 import type BaseApiBuilder from './BaseApiBuilder';
-
-// import * as tsc from "typescript";
 
 export class XcCron {
   // @ts-ignore

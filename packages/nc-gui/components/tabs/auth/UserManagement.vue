@@ -7,6 +7,7 @@ import {
   onBeforeMount,
   projectRoleTagColors,
   ref,
+  storeToRefs,
   useApi,
   useCopy,
   useDashboard,
@@ -24,7 +25,7 @@ const { $e } = useNuxtApp()
 
 const { api } = useApi()
 
-const { project } = useProject()
+const { project } = storeToRefs(useProject())
 
 const { copy } = useCopy()
 
@@ -75,6 +76,11 @@ const loadUsers = async (page = currentPage, limit = currentLimit) => {
 const inviteUser = async (user: User) => {
   try {
     if (!project.value?.id) return
+
+    if (!user.roles) {
+      // mark it as editor by default
+      user.roles = 'editor'
+    }
 
     await api.auth.projectUserAdd(project.value.id, user)
 

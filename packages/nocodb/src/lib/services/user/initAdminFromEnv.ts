@@ -1,6 +1,5 @@
 import { promisify } from 'util';
 import { v4 as uuidv4 } from 'uuid';
-
 import bcrypt from 'bcryptjs';
 import { validatePassword } from 'nocodb-sdk';
 import boxen from 'boxen';
@@ -11,6 +10,7 @@ import Noco from '../../Noco';
 import { CacheScope, MetaTable } from '../../utils/globals';
 
 const { isEmail } = require('validator');
+
 const rolesLevel = { owner: 0, creator: 1, editor: 2, commenter: 3, viewer: 4 };
 
 export default async function initAdminFromEnv(_ncMeta = Noco.ncMeta) {

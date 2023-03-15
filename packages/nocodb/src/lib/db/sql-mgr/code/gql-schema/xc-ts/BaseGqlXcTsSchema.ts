@@ -1,7 +1,5 @@
-import lodash from 'lodash';
-
+import uniqBy from 'lodash/uniqBy';
 import BaseRender from '../../BaseRender';
-
 import { AGG_DEFAULT_COLS, GROUPBY_DEFAULT_COLS } from './schemaHelp';
 
 abstract class BaseGqlXcTsSchema extends BaseRender {
@@ -142,7 +140,7 @@ abstract class BaseGqlXcTsSchema extends BaseRender {
 
     let hasManyRelations = args.hasMany;
     if (hasManyRelations.length > 1) {
-      hasManyRelations = lodash.uniqBy(hasManyRelations, (e) => {
+      hasManyRelations = uniqBy(hasManyRelations, (e) => {
         return [e.tn, e.rtn].join();
       });
     }
@@ -161,7 +159,7 @@ abstract class BaseGqlXcTsSchema extends BaseRender {
 
     let belongsToRelations = args.belongsTo;
     if (belongsToRelations.length > 1) {
-      belongsToRelations = lodash.uniqBy(belongsToRelations, (e) => {
+      belongsToRelations = uniqBy(belongsToRelations, (e) => {
         return [e.tn, e.rtn].join();
       });
     }

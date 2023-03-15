@@ -6,14 +6,6 @@ import passportJWT from 'passport-jwt';
 import { Strategy as AuthTokenStrategy } from 'passport-auth-token';
 import { Strategy as GoogleStrategy } from 'passport-google-oauth20';
 import { Strategy as OidcStrategy } from '@techpass/passport-openidconnect';
-
-const ExtractJwt = passportJWT.ExtractJwt;
-const JwtStrategy = passportJWT.Strategy;
-
-const jwtOptions = {
-  jwtFromRequest: ExtractJwt.fromHeader('xc-auth'),
-};
-
 import bcrypt from 'bcryptjs';
 import { v4 as uuidv4 } from 'uuid';
 import NocoCache from '../../cache/NocoCache';
@@ -29,6 +21,14 @@ import {
 import Noco from '../../Noco';
 import { CacheGetType } from '../../utils/globals';
 import { userService } from '../../services';
+
+const ExtractJwt = passportJWT.ExtractJwt;
+const JwtStrategy = passportJWT.Strategy;
+
+const jwtOptions = {
+  jwtFromRequest: ExtractJwt.fromHeader('xc-auth'),
+};
+
 const PassportLocalStrategy = require('passport-local').Strategy;
 
 export function initStrategies(router): void {

@@ -20,7 +20,7 @@ const fetchPluginApps = async () => {
     apps = plugins.map((p) => ({
       ...p,
       tags: p.tags ? p.tags.split(',') : [],
-      parsedInput: p.input && JSON.parse(p.input),
+      parsedInput: p.input && JSON.parse(p.input as string),
     }))
   } catch (e: any) {
     message.error(await extractSdkResponseErrorMsg(e))

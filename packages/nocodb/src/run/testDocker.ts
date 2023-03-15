@@ -1,9 +1,9 @@
 import axios from 'axios';
 import cors from 'cors';
 import express from 'express';
-
 import Noco from '../lib/Noco';
 import User from '../lib/models/User';
+
 process.env.NC_VERSION = '0009044';
 
 const server = express();

@@ -3,7 +3,6 @@ import {
   XcStoragePlugin,
   XcWebhookNotificationPlugin,
 } from 'nc-plugin';
-
 import BackblazePluginConfig from '../../plugins/backblaze';
 import DiscordPluginConfig from '../../plugins/discord';
 import GcsPluginConfig from '../../plugins/gcs';
@@ -26,7 +25,6 @@ import SESPluginConfig from '../../plugins/ses';
 import Local from './adapters/storage/Local';
 import type Noco from '../../Noco';
 import type NcMetaIO from '../../meta/NcMetaIO';
-
 import type {
   IEmailAdapter,
   IStorageAdapter,

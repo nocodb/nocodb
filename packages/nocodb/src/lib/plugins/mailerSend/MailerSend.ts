@@ -1,6 +1,5 @@
 import MailerSend, { EmailParams, Recipient } from 'mailersend';
 import type { IEmailAdapter } from 'nc-plugin';
-
 import type { XcEmail } from '../../../interface/IEmailAdapter';
 
 export default class Mailer implements IEmailAdapter {

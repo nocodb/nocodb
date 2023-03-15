@@ -13,6 +13,7 @@ import {
   reactive,
   ref,
   useApi,
+  useGlobal,
   useI18n,
   useNuxtApp,
   watch,
@@ -31,6 +32,8 @@ const { t } = useI18n()
 const { $e } = useNuxtApp()
 
 const { api, isLoading: loading } = useApi()
+
+const { appInfo } = $(useGlobal())
 
 const meta = inject(MetaInj, ref())
 
@@ -170,16 +173,20 @@ const eventList = [
   { text: ['After', 'Delete'], value: ['after', 'delete'] },
 ]
 
-const notificationList = [
-  { type: 'URL' },
-  { type: 'Email' },
-  { type: 'Slack' },
-  { type: 'Microsoft Teams' },
-  { type: 'Discord' },
-  { type: 'Mattermost' },
-  { type: 'Twilio' },
-  { type: 'Whatsapp Twilio' },
-]
+const notificationList = computed(() => {
+  return appInfo.isCloud
+    ? [{ type: 'URL' }]
+    : [
+        { type: 'URL' },
+        { type: 'Email' },
+        { type: 'Slack' },
+        { type: 'Microsoft Teams' },
+        { type: 'Discord' },
+        { type: 'Mattermost' },
+        { type: 'Twilio' },
+        { type: 'Whatsapp Twilio' },
+      ]
+})
 
 const methodList = [
   { title: 'GET' },
@@ -306,6 +313,7 @@ async function onEventChange() {
 }
 
 async function loadPluginList() {
+  if (appInfo.isCloud) return
   try {
     const plugins = (await api.plugin.list()).list!
 
@@ -653,6 +661,7 @@ onMounted(loadPluginList)
             <LazySmartsheetToolbarColumnFilter
               v-if="hook.condition"
               ref="filterRef"
+              class="mt-4"
               :auto-save="false"
               :show-loading="false"
               :hook-id="hook.id"

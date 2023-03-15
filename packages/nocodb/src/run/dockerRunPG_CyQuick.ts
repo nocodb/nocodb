@@ -1,6 +1,5 @@
 import cors from 'cors';
 import express from 'express';
-
 import Noco from '../lib/Noco';
 
 const server = express();

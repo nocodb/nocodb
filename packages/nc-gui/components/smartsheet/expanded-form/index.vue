@@ -141,8 +141,22 @@ const onDuplicateRow = () => {
 }
 
 const onNext = async () => {
-  await save()
-  emits('next')
+  if (changedColumns.value.size > 0) {
+    await Modal.confirm({
+      title: 'Do you want to save the changes?',
+      okText: 'Save',
+      cancelText: 'Discard',
+      onOk: async () => {
+        await save()
+        emits('next')
+      },
+      onCancel: () => {
+        emits('next')
+      },
+    })
+  } else {
+    emits('next')
+  }
 }
 
 const reloadParentRowHook = inject(ReloadRowDataHookInj, createEventHook())
@@ -196,7 +210,7 @@ useActiveKeyupListener(
       emits('prev')
     } else if (e.key === 'ArrowRight') {
       e.stopPropagation()
-      emits('next')
+      onNext()
     }
     // on alt + s save record
     else if (e.code === 'KeyS') {

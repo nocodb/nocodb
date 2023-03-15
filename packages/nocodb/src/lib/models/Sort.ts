@@ -144,7 +144,7 @@ export default class Sort {
       await NocoCache.set(key, o);
     }
     // set meta
-    await ncMeta.metaUpdate(
+    return await ncMeta.metaUpdate(
       null,
       null,
       MetaTable.SORT,

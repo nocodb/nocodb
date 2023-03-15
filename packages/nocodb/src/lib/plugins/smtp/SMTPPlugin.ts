@@ -1,5 +1,4 @@
 import { XcEmailPlugin } from 'nc-plugin';
-
 import SMTP from './SMTP';
 import type { IEmailAdapter } from 'nc-plugin';
 

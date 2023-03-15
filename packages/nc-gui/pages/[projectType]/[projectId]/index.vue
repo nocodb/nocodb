@@ -17,6 +17,7 @@ import {
   projectThemeColors,
   ref,
   resolveComponent,
+  storeToRefs,
   useCopy,
   useDialog,
   useGlobal,
@@ -46,7 +47,10 @@ const router = useRouter()
 
 const { appInfo, token, signOut, signedIn, user, currentVersion } = useGlobal()
 
-const { project, isSharedBase, loadProjectMetaInfo, projectMetaInfo, saveTheme, loadProject, reset } = useProject()
+const projectStore = useProject()
+
+const { loadProjectMetaInfo, saveTheme, loadProject, reset } = projectStore
+const { project, isSharedBase, projectMetaInfo } = storeToRefs(projectStore)
 
 const { clearTabs, addTab } = useTabs()
 
@@ -581,9 +585,7 @@ useEventListener(document, 'keydown', async (e: KeyboardEvent) => {
         v-model:open-key="openDialogKey"
         v-model:data-sources-state="dataSourcesState"
       />
-
       <NuxtPage :page-key="$route.params.projectId" />
-
       <LazyGeneralPreviewAs float />
     </div>
   </NuxtLayout>

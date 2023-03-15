@@ -1,6 +1,5 @@
 import { v4 as uuidv4 } from 'uuid';
 import { T } from 'nc-help';
-
 import NcMetaMgr from './NcMetaMgr';
 
 export default class NcMetaMgrEE extends NcMetaMgr {

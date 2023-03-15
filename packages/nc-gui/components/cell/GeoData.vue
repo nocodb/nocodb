@@ -49,14 +49,14 @@ const clear = () => {
 
 const onClickSetCurrentLocation = () => {
   isLoading = true
-  const onSuccess = (position) => {
+  const onSuccess = (position: GeolocationPosition) => {
     const crd = position.coords
-    formState.latitude = crd.latitude
-    formState.longitude = crd.longitude
+    formState.latitude = `${crd.latitude}`
+    formState.longitude = `${crd.longitude}`
     isLoading = false
   }
 
-  const onError = (err) => {
+  const onError = (err: GeolocationPositionError) => {
     console.error(`ERROR(${err.code}): ${err.message}`)
     isLoading = false
   }

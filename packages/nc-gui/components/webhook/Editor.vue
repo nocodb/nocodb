@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import type { Ref } from 'vue'
-import type { AuditType } from 'nocodb-sdk'
+import type { AuditType, HookType } from 'nocodb-sdk'
 import {
   Form,
   MetaInj,
@@ -18,7 +18,6 @@ import {
   useNuxtApp,
   watch,
 } from '#imports'
-import { HookType } from 'nocodb-sdk'
 
 interface Props {
   hook?: HookType

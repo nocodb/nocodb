@@ -5,7 +5,6 @@ import { StreamBarcodeReader } from 'vue-barcode-reader'
 import type { ColumnType } from 'nocodb-sdk'
 import { UITypes } from 'nocodb-sdk'
 import { NOCO, storeToRefs } from '#imports'
-import QrCodeScan from '~icons/mdi/qrcode-scan'
 
 const meta = inject(MetaInj, ref())
 
@@ -126,7 +125,7 @@ const onDecode = async (codeValue: string) => {
   <div>
     <a-button class="nc-btn-find-row-by-scan nc-toolbar-btn" @click="showCodeScannerOverlay = true">
       <div class="flex items-center gap-1">
-        <QrCodeScan />
+        <MdiQrcodeScan />
         <span v-if="!isMobileMode" class="!text-xs font-weight-normal"> {{ $t('activity.findRowByCodeScan') }}</span>
       </div>
     </a-button>

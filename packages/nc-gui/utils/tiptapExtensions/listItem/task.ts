@@ -194,7 +194,17 @@ export const Task = Node.create<TaskOptions>({
         return true
       },
       'Ctrl-Alt-1': () => {
-        ;(this.editor.chain().focus() as any).toggleTask().run()
+        const selection = this.editor.state.selection
+
+        if (!selection.empty) {
+          this.editor.chain().focus().toggleTask().run()
+          return true
+        }
+
+        const from = selection.$from.before(selection.$from.depth) + 1
+        const to = selection.$from.after(selection.$from.depth)
+
+        this.editor.chain().focus().setTextSelection({ from, to }).toggleTask().run()
         return true
       },
       'Enter': () => {

@@ -173,7 +173,7 @@ const items = [
     title: 'Task list',
     class: 'text-xs',
     command: ({ editor, range }: { editor: Editor; range: Range }) => {
-      editor.chain().focus().deleteRange(range).setParagraph().selectParentNode().toggleTask().run()
+      editor.chain().focus().deleteRange(range).setParagraph().toggleTask().run()
     },
     icon: MdiTaskList,
     iconClass: '',
@@ -183,7 +183,7 @@ const items = [
     title: 'Bullet List',
     class: 'text-xs',
     command: ({ editor, range }: { editor: Editor; range: Range }) => {
-      editor.chain().focus().deleteRange(range).setParagraph().selectParentNode().toggleBullet().run()
+      editor.chain().focus().deleteRange(range).setParagraph().toggleBullet().run()
     },
     icon: MdiBulletList,
     iconClass: '',

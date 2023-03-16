@@ -137,7 +137,17 @@ export const Ordered = Node.create<OrderItemsOptions>({
   addKeyboardShortcuts() {
     return {
       'Ctrl-Alt-3': () => {
-        ;(this.editor.chain().focus() as any).toggleOrdered().run()
+        const selection = this.editor.state.selection
+
+        if (!selection.empty) {
+          this.editor.chain().focus().toggleOrdered().run()
+          return true
+        }
+
+        const from = selection.$from.before(selection.$from.depth) + 1
+        const to = selection.$from.after(selection.$from.depth)
+
+        this.editor.chain().focus().setTextSelection({ from, to }).toggleOrdered().run()
         return true
       },
       'Enter': () => {

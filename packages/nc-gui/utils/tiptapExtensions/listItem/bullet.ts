@@ -86,7 +86,17 @@ export const Bullet = Node.create<ListOptions>({
   addKeyboardShortcuts() {
     return {
       'Ctrl-Alt-2': () => {
-        this.editor.chain().focus().toggleBullet().run()
+        const selection = this.editor.state.selection
+
+        if (!selection.empty) {
+          this.editor.chain().focus().toggleBullet().run()
+          return true
+        }
+
+        const from = selection.$from.before(selection.$from.depth) + 1
+        const to = selection.$from.after(selection.$from.depth)
+
+        this.editor.chain().focus().setTextSelection({ from, to }).toggleBullet().run()
         return true
       },
       'Enter': () => {

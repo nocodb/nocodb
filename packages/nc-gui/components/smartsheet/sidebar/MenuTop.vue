@@ -228,7 +228,7 @@ const setIcon = async (icon: string, view: ViewType) => {
     })
 
     $e('a:view:icon:sidebar', { icon })
-  } catch (e) {
+  } catch (e: any) {
     message.error(await extractSdkResponseErrorMsg(e))
   }
 }

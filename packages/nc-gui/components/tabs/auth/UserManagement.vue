@@ -153,7 +153,7 @@ const copyInviteUrl = async (user: User) => {
 
     // Invite URL copied to clipboard
     message.success(t('msg.success.inviteURLCopied'))
-  } catch (e) {
+  } catch (e: any) {
     message.error(e.message)
   }
   $e('c:user:copy-url')

@@ -131,7 +131,7 @@ const copyUrl = async () => {
 
     // Copied shareable base url to clipboard!
     message.success(t('msg.success.shareableURLCopied'))
-  } catch (e) {
+  } catch (e: any) {
     message.error(e.message)
   }
   $e('c:shared-base:copy-url')

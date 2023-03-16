@@ -14,6 +14,7 @@ import {
   extractSdkResponseErrorMsg,
   isDrawerOrModalExist,
   isMac,
+  parseProp,
   reactive,
   ref,
   resolveComponent,
@@ -312,7 +313,7 @@ watch(
 const setIcon = async (icon: string, table: TableType) => {
   try {
     table.meta = {
-      ...(table.meta || {}),
+      ...parseProp(table.meta),
       icon,
     }
     tables.value.splice(tables.value.indexOf(table), 1, { ...table })
@@ -324,7 +325,7 @@ const setIcon = async (icon: string, table: TableType) => {
     })
 
     $e('a:table:icon:navdraw', { icon })
-  } catch (e) {
+  } catch (e: any) {
     message.error(await extractSdkResponseErrorMsg(e))
   }
 }

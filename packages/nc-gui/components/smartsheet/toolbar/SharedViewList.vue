@@ -83,7 +83,7 @@ const copyLink = (view: SharedViewType) => {
     copy(`${dashboardUrl?.value as string}#${sharedViewUrl(view)}`)
     // Copied to clipboard
     message.success(t('msg.info.copiedToClipboard'))
-  } catch (e) {
+  } catch (e: any) {
     message.error(e.message)
   }
 }

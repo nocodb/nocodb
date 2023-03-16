@@ -147,24 +147,36 @@ const onDecode = async (scannedCodeValue: string) => {
                   </div>
 
                   <div>
-                    <LazySmartsheetVirtualCell
-                      v-if="isVirtualCol(field)"
-                      :model-value="null"
-                      class="mt-0 nc-input nc-cell"
-                      :data-testid="`nc-form-input-cell-${field.label || field.title}`"
-                      :class="`nc-form-input-${field.title?.replaceAll(' ', '')}`"
-                      :column="field"
-                    />
+                    <div class="flex">
+                      <LazySmartsheetVirtualCell
+                        v-if="isVirtualCol(field)"
+                        :model-value="null"
+                        class="mt-0 nc-input nc-cell"
+                        :data-testid="`nc-form-input-cell-${field.label || field.title}`"
+                        :class="`nc-form-input-${field.title?.replaceAll(' ', '')}`"
+                        :column="field"
+                      />
 
-                    <LazySmartsheetCell
-                      v-else
-                      v-model="formState[field.title]"
-                      class="nc-input"
-                      :data-testid="`nc-form-input-cell-${field.label || field.title}`"
-                      :class="`nc-form-input-${field.title?.replaceAll(' ', '')}`"
-                      :column="field"
-                      :edit-enabled="true"
-                    />
+                      <LazySmartsheetCell
+                        v-else
+                        v-model="formState[field.title]"
+                        class="nc-input"
+                        :data-testid="`nc-form-input-cell-${field.label || field.title}`"
+                        :class="`nc-form-input-${field.title?.replaceAll(' ', '')}`"
+                        :column="field"
+                        :edit-enabled="true"
+                      />
+                      <a-button
+                        v-if="field.enable_scanner"
+                        class="nc-btn-fill-form-column-by-scan nc-toolbar-btn"
+                        :alt="$t('activity.fillByCodeScan')"
+                        @click="showCodeScannerForFieldTitle(field.title)"
+                      >
+                        <div class="flex items-center gap-1">
+                          <QrCodeScan />
+                        </div>
+                      </a-button>
+                    </div>
 
                     <div class="flex flex-col gap-2 text-slate-500 dark:text-slate-300 text-[0.75rem] my-2 px-1">
                       <div v-for="error of v$.localState[field.title]?.$errors" :key="error" class="text-red-500">
@@ -173,18 +185,6 @@ const onDecode = async (scannedCodeValue: string) => {
 
                       {{ field.description }}
                     </div>
-
-                    <a-button
-                      v-if="field.enable_scanner"
-                      class="nc-btn-fill-form-column-by-scan nc-toolbar-btn"
-                      @click="showCodeScannerForFieldTitle(field.title)"
-                    >
-                      <div class="flex items-center gap-1">
-                        <QrCodeScan />
-                        <span class="!text-xs font-weight-normal"> {{ $t('activity.fillByCodeScan') }}</span>
-                      </div>
-                    </a-button>
-
                   </div>
                 </div>
               </div>
@@ -214,5 +214,9 @@ const onDecode = async (scannedCodeValue: string) => {
 <style lang="scss" scoped>
 :deep(.nc-cell .nc-action-icon) {
   @apply !text-white-500 !bg-white/50 !rounded-full !p-1 !text-xs !w-7 !h-7 !flex !items-center !justify-center !cursor-pointer !hover: !bg-white-600 !hover: !text-white-600 !transition;
+}
+.nc-btn-fill-form-column-by-scan {
+  @apply h-auto;
+  @apply ml-1;
 }
 </style>

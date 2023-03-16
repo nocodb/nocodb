@@ -55,37 +55,55 @@ export const getTextAsParagraphFromSliceJson = (sliceJson: any) => {
 
 export const isSelectionOfType = (state: EditorState, type: string) => {
   try {
-    const { selection } = state
+    const selection = state.selection
+    const selectionSlice = state.doc.slice(selection.from - 2, selection.to)
+    const selectionSliceJson = selectionSlice.toJSON()
 
-    const topDBlockPos = selection.$from.before(1)
+    const isSelectionInOneDBlock = (selectionSliceJson.content as any[]).some((node) => node.type === 'dBlock')
 
-    const bottomDBlockPos = selection.$to.after(1)
+    const activeInDBlocks = () => {
+      const topDBlockPos = selection.$from.before(1)
+      const bottomDBlockPos = selection.$to.after(1)
 
-    const slice = state.doc.slice(topDBlockPos, bottomDBlockPos)
-    const sliceJson = slice.toJSON()
+      const slice = state.doc.slice(topDBlockPos, bottomDBlockPos)
+      const sliceJson = slice.toJSON()
 
-    let count = 0
-    for (const node of sliceJson.content) {
-      count = count + 1
-      if (node.type !== 'dBlock') {
-        return false
+      let count = 0
+      for (const node of sliceJson.content) {
+        count = count + 1
+        if (node.type !== 'dBlock') {
+          return false
+        }
+
+        for (const child of node.content) {
+          if (child.type === type) {
+            continue
+          }
+
+          if (count === sliceJson.content.length && child.type === 'paragraph' && !child.content) {
+            // Last node is paragraph and it's empty
+            return true
+          }
+
+          return false
+        }
       }
+      return true
+    }
 
-      for (const child of node.content) {
+    const activeInListItems = () => {
+      for (const child of selectionSliceJson.content) {
         if (child.type === type) {
           continue
         }
 
-        if (count === sliceJson.content.length && child.type === 'paragraph' && !child.content) {
-          // Last node is paragraph and it's empty
-          return true
-        }
-
         return false
       }
+
+      return true
     }
 
-    return true
+    return isSelectionInOneDBlock ? activeInDBlocks() : activeInListItems()
   } catch (error) {
     return false
   }

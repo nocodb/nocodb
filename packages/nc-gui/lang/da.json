@@ -257,7 +257,7 @@
     "barcodeFormat": "Stregkodeformat",
     "qrCodeValueTooLong": "For mange tegn til en QR-kode",
     "barcodeValueTooLong": "For mange tegn til en stregkode",
-    "yourLocation": "Din Placering",
+    "currentLocation": "Current Location",
     "lng": "Lng",
     "lat": "Lat",
     "aggregateFunction": "Aggregate Function.",
@@ -462,7 +462,9 @@
     },
     "map": {
       "mappedBy": "Kortlagt af",
-      "chooseMappingField": "Vælg et kortlægningsfelt"
+      "chooseMappingField": "Vælg et kortlægningsfelt",
+      "openInGoogleMaps": "Google Maps",
+      "openInOpenStreetMap": "OSM"
     }
   },
   "tooltip": {

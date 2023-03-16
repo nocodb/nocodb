@@ -257,7 +257,7 @@
     "barcodeFormat": "Barcode formaat",
     "qrCodeValueTooLong": "Te veel tekens voor een QR-code",
     "barcodeValueTooLong": "Te veel tekens voor een streepjescode",
-    "yourLocation": "Your Location",
+    "currentLocation": "Current Location",
     "lng": "Lng",
     "lat": "Lat",
     "aggregateFunction": "Geaggregeerde functie",
@@ -462,7 +462,9 @@
     },
     "map": {
       "mappedBy": "Mapped By",
-      "chooseMappingField": "Choose a Mapping Field"
+      "chooseMappingField": "Choose a Mapping Field",
+      "openInGoogleMaps": "Google Maps",
+      "openInOpenStreetMap": "OSM"
     }
   },
   "tooltip": {

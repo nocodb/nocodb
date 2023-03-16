@@ -1,8 +1,8 @@
 import { Node, mergeAttributes, wrappingInputRule } from '@tiptap/core'
 import type { Node as ProseMirrorNode } from 'prosemirror-model'
-import { Slice } from 'prosemirror-model'
-import { Plugin, PluginKey } from 'prosemirror-state'
-import { getTextAsParagraphFromSliceJson, getTextFromSliceJson, isSelectionOfType, onEnter } from './helper'
+
+import { NodeSelection, Plugin, PluginKey } from 'prosemirror-state'
+import { getTextAsParagraphFromSliceJson, isSelectionOfType, onEnter, toggleItem } from './helper'
 
 export interface TaskOptions {
   HTMLAttributes: Record<string, any>
@@ -90,59 +90,48 @@ export const Task = Node.create<TaskOptions>({
       toggleTask:
         () =>
         ({ chain, state }: any) => {
-          const { selection } = state
+          const toggleListItemInSliceJson = (content: any[]) => {
+            for (const child of content) {
+              if (child.type !== this.name) {
+                child.content = [getTextAsParagraphFromSliceJson(child)]
+                child.type = this.name
+              } else {
+                child.type = 'paragraph'
 
-          const topDBlockPos = selection.$from.before(1)
-
-          const bottomDBlockPos = selection.$to.after(1)
-
-          const slice = state.doc.slice(topDBlockPos, bottomDBlockPos)
-          const sliceJson = slice.toJSON()
-
-          // Toggle a task under `dblock` nodes in slice
-          for (const node of sliceJson.content) {
-            if (node.type === 'dBlock') {
-              for (const child of node.content) {
-                if (child.type !== this.name) {
-                  child.content = [getTextAsParagraphFromSliceJson(child)]
-                  child.type = this.name
+                if (child.content?.length === 1) {
+                  child.content = child.content[0].content
                 } else {
-                  child.type = 'paragraph'
-
-                  if (child.content?.length === 1) {
-                    child.content = child.content[0].content
-                  } else {
-                    child.content = []
-                  }
+                  child.content = []
                 }
               }
             }
           }
 
-          const newSlice = Slice.fromJSON(state.schema, sliceJson)
-          const isEmpty = getTextFromSliceJson(sliceJson).length === 0
-
-          return chain()
-            .command(() => {
-              const tr = state.tr
-              tr.replaceRange(topDBlockPos, bottomDBlockPos, newSlice)
-
-              return true
-            })
-            .setTextSelection(topDBlockPos + newSlice.size - 1)
-            .setTextSelection(isEmpty ? topDBlockPos + newSlice.size - 1 : topDBlockPos + newSlice.size - 2)
+          toggleItem(state, chain, toggleListItemInSliceJson)
         },
     } as any
   },
 
   onUpdate() {
     const selection = this.editor.state.selection
+    const doc = this.editor.state.doc
 
     const parentNode = selection.$from.node(-1)
     if (parentNode.type.name !== 'bullet') return false
 
-    const parentNodePos = selection.$from.before(2)
-    const currentNode = selection.$from.node()
+    let currentPos = selection.$from.before(1)
+    let currentNode = doc.nodeAt(currentPos)
+    let attempt = 1
+    while (currentNode && currentNode.type.name !== 'bullet' && attempt < 10) {
+      try {
+        currentPos = selection.$from.before(attempt)
+        currentNode = doc.nodeAt(currentPos)
+      } finally {
+        attempt++
+      }
+    }
+
+    if (currentNode?.type.name !== 'bullet') return false
 
     const currentNodeText = currentNode.textContent.trimStart().toLowerCase()
 
@@ -152,9 +141,9 @@ export const Task = Node.create<TaskOptions>({
       this.editor
         .chain()
         .focus()
-        .setNodeSelection(parentNodePos)
+        .setNodeSelection(currentPos)
         .deleteSelection()
-        .insertContentAt(parentNodePos, {
+        .insertContentAt(currentPos - 1, {
           type: 'task',
           content: [
             {
@@ -171,7 +160,7 @@ export const Task = Node.create<TaskOptions>({
             },
           ],
         })
-        .setTextSelection({ from: parentNodePos + 1, to: parentNodePos + 2 })
+        .setTextSelection({ from: currentPos + 1, to: currentPos + 2 })
         .deleteSelection()
         .run()
     }
@@ -179,6 +168,31 @@ export const Task = Node.create<TaskOptions>({
 
   addKeyboardShortcuts() {
     return {
+      'Backspace': () => {
+        const { selection } = this.editor.state
+        const { $from } = selection
+
+        const node = $from.node(-1)
+        const parentNode = $from.node(-2)
+        if (node.type.name !== 'task' && parentNode.type.name !== 'tableCell') return false
+
+        const nodeTextContent = node.textContent.trimStart().toLowerCase()
+        if (nodeTextContent.length !== 0) return false
+
+        this.editor
+          .chain()
+          .focus()
+          .command(({ tr }) => {
+            tr.setSelection(NodeSelection.create(this.editor.state.doc, selection.from - 2))
+            tr.replaceSelectionWith(this.editor.state.schema.nodes.paragraph.create())
+
+            return true
+          })
+          .setTextSelection(selection.from - 1)
+          .run()
+
+        return true
+      },
       'Ctrl-Alt-1': () => {
         ;(this.editor.chain().focus() as any).toggleTask().run()
         return true

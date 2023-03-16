@@ -19,7 +19,7 @@ test.describe('Map View', () => {
     dashboard = new DashboardPage(page, context.project);
     toolbar = dashboard.map.toolbar;
 
-    await dashboard.viewSidebar.changeBetaFeatureToggleValue({ toggleValue: true });
+    await dashboard.viewSidebar.changeBetaFeatureToggleValue();
 
     // close 'Team & Auth' tab
     await dashboard.closeTab({ title: 'Team & Auth' });

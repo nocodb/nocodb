@@ -37,9 +37,9 @@ export class ViewSidebarPage extends BasePage {
     }
   }
 
-  async changeBetaFeatureToggleValue({ toggleValue }: { toggleValue: boolean }) {
+  async changeBetaFeatureToggleValue() {
     await this.dashboard.rootPage.evaluate(_ => {
-      window.localStorage.setItem('betaFeatureToggleState', toggleValue ? 'true' : 'false');
+      window.localStorage.setItem('betaFeatureToggleState', 'true');
     });
     await this.rootPage.goto(this.rootPage.url());
   }

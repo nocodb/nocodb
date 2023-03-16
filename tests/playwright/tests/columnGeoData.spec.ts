@@ -20,7 +20,7 @@ test.describe('Geo Data column', () => {
 
     await dashboard.treeView.openTable({ title: 'City' });
 
-    await dashboard.viewSidebar.changeBetaFeatureToggleValue({ toggleValue: true });
+    await dashboard.viewSidebar.changeBetaFeatureToggleValue();
 
     await grid.column.create({
       title: 'GeoData1',

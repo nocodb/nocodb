@@ -18,7 +18,7 @@ test.describe('Mobile Mode', () => {
   });
 
   test('activating and deactivating Mobile Mode results correct behavior', async () => {
-    await dashboard.viewSidebar.changeBetaFeatureToggleValue({ toggleValue: true });
+    await dashboard.viewSidebar.changeBetaFeatureToggleValue();
 
     // in non-mobile mode, all menu items are visible
     await dashboard.verifyTeamAndSettingsLinkIsVisible();

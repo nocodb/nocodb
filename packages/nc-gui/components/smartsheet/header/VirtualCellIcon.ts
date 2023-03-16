@@ -83,7 +83,9 @@ export default defineComponent({
       if (column && column.value) {
         if (isMm(column.value) || isHm(column.value) || isBt(column.value) || isLookup(column.value) || isRollup(column.value)) {
           const meta = inject(MetaInj, ref())
-          relationColumn = meta.value?.columns?.find((c) => c.id === column.value?.colOptions?.fk_relation_column_id)!
+          relationColumn = meta.value?.columns?.find(
+            (c) => c.id === column.value?.colOptions?.fk_relation_column_id,
+          ) as ColumnType
         }
       }
 

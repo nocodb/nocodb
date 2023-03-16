@@ -20,7 +20,6 @@ import {
   useNuxtApp,
   useProject,
   useProjects,
-  useRoute,
   useTable,
   useTabs,
   useToggle,

@@ -20,9 +20,9 @@ const props = withDefaults(
   { baseIndex: 0 },
 )
 
-const project = toRef(props, 'project')
-const table = toRef(props, 'table')
-const baseIndex = toRef(props, 'baseIndex')
+const project = $(toRef(props, 'project'))
+const table = $(toRef(props, 'table'))
+const baseIndex = $(toRef(props, 'baseIndex'))
 
 const { isUIAllowed } = useUIPermission()
 
@@ -30,6 +30,9 @@ const tabStore = useTabs()
 const { addTab, updateTab } = tabStore
 const { activeTab } = storeToRefs(tabStore)
 const { $e, $api } = useNuxtApp()
+
+// todo: temp
+const { projectTableList } = storeToRefs(useProjects())
 
 const activeTable = computed(() => ([TabType.TABLE, TabType.VIEW].includes(activeTab.value?.type) ? activeTab.value.id : null))
 
@@ -45,14 +48,14 @@ const icon = (table: TableType) => {
 const setIcon = async (icon: string, table: TableType) => {
   try {
     table.meta = {
-      ...(table.meta || {}),
+      ...((table.meta as object) || {}),
       icon,
     }
-    tables.value.splice(tables.value.indexOf(table), 1, { ...table })
+    projectTableList.value[project.id!].splice(projectTableList.value[project.id!].indexOf(table), 1, { ...table })
 
     updateTab({ id: table.id }, { meta: table.meta })
 
-    $api.dbTable.update(table.id as string, {
+    await $api.dbTable.update(table.id as string, {
       meta: table.meta,
     })
 
@@ -62,11 +65,9 @@ const setIcon = async (icon: string, table: TableType) => {
   }
 }
 
-
 // Todo: temp
 
-const {isSharedBase} = useProject()
-
+const { isSharedBase } = useProject()
 </script>
 
 <template>

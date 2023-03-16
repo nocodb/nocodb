@@ -215,7 +215,7 @@ useActiveKeyupListener(
     // on alt + s save record
     else if (e.code === 'KeyS') {
       // remove focus from the active input if any
-      document.activeElement?.blur()
+      (document.activeElement as HTMLElement)?.blur()
 
       e.stopPropagation()
 

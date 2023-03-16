@@ -246,6 +246,10 @@ function createNewBlockOnEnteringOnEmptyLine(editor: Editor) {
     return handleCodeblockLastLineEnter(editor)
   }
 
+  if (parentType === 'blockquote') {
+    return handleBlockquote(editor)
+  }
+
   if (
     parentType !== 'blockquote' &&
     parentType !== 'infoCallout' &&
@@ -275,6 +279,25 @@ function createNewBlockOnEnteringOnEmptyLine(editor: Editor) {
     .deleteSelection()
     .focus(nextNodePos)
     .run()
+  return true
+}
+
+function handleBlockquote(editor: Editor) {
+  const state = editor.state
+
+  const currentNode = state.selection.$from.node()
+
+  if (currentNode?.textContent?.length !== 0) {
+    editor.chain().insertContentAt(state.selection.$from.pos, { type: 'paragraph', text: '\n' }).run()
+    return true
+  }
+
+  editor
+    .chain()
+    .setTextSelection({ from: state.selection.$from.pos - 1, to: state.selection.$from.pos })
+    .deleteSelection()
+    .run()
+
   return true
 }
 

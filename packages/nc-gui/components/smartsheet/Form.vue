@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import Draggable from 'vuedraggable'
-import { RelationTypes, UITypes, ViewTypes, getSystemColumns, isVirtualCol, ColumnType } from 'nocodb-sdk'
+import { RelationTypes, UITypes, ViewTypes, getSystemColumns, isVirtualCol } from 'nocodb-sdk'
 import {
   ActiveViewInj,
   IsFormInj,
@@ -98,6 +98,8 @@ const submitted = ref(false)
 const activeRow = ref('')
 
 const { t } = useI18n()
+
+const { betaFeatureToggleState } = useBetaFeatureToggle()
 
 const updateView = useDebounceFn(
   () => {
@@ -361,7 +363,9 @@ function handleMouseUp(col: Record<string, any>, hiddenColIndex: number) {
   }
 }
 
-const columnSupportsScanning = (elementType: UITypes) => [UITypes.SingleLineText, UITypes.Number].includes(elementType)
+const columnSupportsScanning = (elementType: UITypes) =>
+  betaFeatureToggleState.show &&
+  [UITypes.SingleLineText, UITypes.Number, UITypes.Email, UITypes.URL, UITypes.LongText].includes(elementType)
 
 onClickOutside(draggableRef, () => {
   activeRow.value = ''
@@ -853,7 +857,7 @@ watch(view, (nextView) => {
     @apply px-4 min-h-[75px] w-full h-full;
 
     .nc-attachment {
-      @apply md:(w-[50px] h-[50px]) lg:(w-[75px] h-[75px]) min-h-[50px] min-w-[50px];
+      @apply md: (w-[50px] h-[50px]) lg:(w-[75px] h-[75px]) min-h-[50px] min-w-[50px];
     }
 
     .nc-attachment-cell-dropzone {

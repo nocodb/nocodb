@@ -128,7 +128,7 @@ export const DraggableBlock = Node.create<DBlockOptions>({
     return {
       'Mod-Alt-0': () => this.editor.commands.setDBlock(),
       'Enter': ({ editor }) => {
-        if (createNewBlockOnEnteringOnEmptyLine(editor as any)) return true
+        if (handleForQuoteAndCodeNode(editor as any)) return true
 
         const {
           selection: { $head, from, to },
@@ -231,11 +231,12 @@ function focusCurrentDraggableBlock(state) {
   }
 }
 
-function createNewBlockOnEnteringOnEmptyLine(editor: Editor) {
+function handleForQuoteAndCodeNode(editor: Editor) {
   const state = editor.state
   const { from, to } = editor.state.selection
 
   if (from !== to) return false
+
   const parentNode = state.selection.$from.node(-1)
   const currentNode = state.selection.$from.node()
 
@@ -246,35 +247,29 @@ function createNewBlockOnEnteringOnEmptyLine(editor: Editor) {
     return handleCodeblockLastLineEnter(editor)
   }
 
-  if (
-    parentType !== 'blockquote' &&
-    parentType !== 'infoCallout' &&
-    parentType !== 'warningCallout' &&
-    parentType !== 'tipCallout'
-  ) {
-    return false
+  if (parentType === 'blockquote') {
+    return handleBlockquote(editor)
   }
 
-  if (parentNode?.textContent?.length === 0) {
-    editor
-      .chain()
-      .insertContentAt(state.selection.$from.pos - 1, { type: 'paragraph', text: '\n' })
-      .run()
+  return false
+}
+
+function handleBlockquote(editor: Editor) {
+  const state = editor.state
+
+  const currentNode = state.selection.$from.node()
+
+  if (currentNode?.textContent?.length !== 0) {
+    editor.chain().insertContentAt(state.selection.$from.pos, { type: 'paragraph', text: '\n' }).run()
+    return true
   }
-
-  const node = state.selection.$from.node()
-
-  const nextNodePos = state.selection.$from.pos + node.nodeSize + 1
-  const nextNode = state.doc.nodeAt(nextNodePos)
-
-  if (nextNode?.type.name !== 'dBlock') return false
 
   editor
     .chain()
-    .setNodeSelection(from - 1)
+    .setTextSelection({ from: state.selection.$from.pos - 1, to: state.selection.$from.pos })
     .deleteSelection()
-    .focus(nextNodePos)
     .run()
+
   return true
 }
 

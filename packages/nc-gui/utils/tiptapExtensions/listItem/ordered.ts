@@ -1,3 +1,4 @@
+import type { ChainedCommands } from '@tiptap/core'
 import { Node, mergeAttributes, nodePasteRule, wrappingInputRule } from '@tiptap/core'
 import { Plugin, PluginKey } from 'prosemirror-state'
 import { getTextAsParagraphFromSliceJson, getTextFromSliceJson, isSelectionOfType, onEnter, toggleItem } from './helper'
@@ -10,6 +11,7 @@ declare module '@tiptap/core' {
   interface Commands<ReturnType> {
     ordered: {
       toggleOrdered: () => ReturnType
+      insertOrdered: () => ReturnType
       isSelectionTypeOrdered: () => boolean
     }
   }
@@ -85,6 +87,21 @@ export const Ordered = Node.create<OrderItemsOptions>({
         ({ state }: any) => {
           return isSelectionOfType(state, this.name)
         },
+      insertOrdered:
+        () =>
+        ({ chain }: any) => {
+          return (chain() as ChainedCommands).insertContent({
+            type: this.name,
+            attrs: {
+              number: '1',
+            },
+            content: [
+              {
+                type: 'paragraph',
+              },
+            ],
+          })
+        },
       toggleOrdered:
         () =>
         ({ chain, state }: any) => {
@@ -120,7 +137,17 @@ export const Ordered = Node.create<OrderItemsOptions>({
   addKeyboardShortcuts() {
     return {
       'Ctrl-Alt-3': () => {
-        ;(this.editor.chain().focus() as any).toggleOrdered().run()
+        const selection = this.editor.state.selection
+
+        if (!selection.empty) {
+          this.editor.chain().focus().toggleOrdered().run()
+          return true
+        }
+
+        const from = selection.$from.before(selection.$from.depth) + 1
+        const to = selection.$from.after(selection.$from.depth)
+
+        this.editor.chain().focus().setTextSelection({ from, to }).toggleOrdered().run()
         return true
       },
       'Enter': () => {

@@ -214,10 +214,14 @@ export const onEnter = (editor: Editor, nodeType: 'bullet' | 'ordered' | 'task')
 export const toggleItem = (state: EditorState, chain: any, toggleListItemInSliceJson: any) => {
   const { selection } = state
 
-  const selectionSlice = state.doc.slice(selection.from, selection.to)
-  const selectionSliceJson = selectionSlice.toJSON()
-
-  const isDBlockSelected = (selectionSliceJson.content as any[]).some((node) => node.type === 'dBlock')
+  let isDBlockSelected = false
+  try {
+    const parentNode = selection.$from.node(-1)
+    const parentParentNode = selection.$from.node(-2)
+    isDBlockSelected =
+      parentNode.type.name === 'dBlock' ||
+      (parentParentNode.type.name === 'dBlock' && ['bullet', 'ordered', 'task'].includes(parentNode.type.name))
+  } catch {}
 
   if (isDBlockSelected) {
     const topDBlockPos = selection.$from.before(1)
@@ -245,18 +249,35 @@ export const toggleItem = (state: EditorState, chain: any, toggleListItemInSlice
         return true
       })
       .setTextSelection(isEmpty ? topDBlockPos + newSlice.size - 1 : topDBlockPos + newSlice.size - 2)
-  } else {
-    toggleListItemInSliceJson(selectionSliceJson.content)
-
-    const newSlice = Slice.fromJSON(state.schema, { ...selectionSliceJson, openStart: 0 })
-
-    return (chain() as ChainedCommands)
-      .command(() => {
-        const tr = state.tr
-        tr.replaceRange(selection.from, selection.to, newSlice)
-
-        return true
-      })
-      .setTextSelection(selection.from + 1)
   }
+
+  let listItemStartPos = selection.from
+
+  let selectionSlice = state.doc.slice(listItemStartPos, selection.to)
+  let selectionSliceJson = selectionSlice.toJSON()
+
+  // Handle the case of selecting a single list item
+  // As then only text node will be selected
+  // Without the list item node
+  const parentNodePos = selection.$from.before(selection.$from.depth - 1)
+  const parentNode = state.doc.nodeAt(parentNodePos)
+  if (selectionSliceJson.content.length === 1 && parentNode && ['bullet', 'ordered', 'task'].includes(parentNode.type.name)) {
+    listItemStartPos = selection.$from.before(selection.$from.depth - 1)
+
+    selectionSlice = state.doc.slice(listItemStartPos, selection.to)
+    selectionSliceJson = selectionSlice.toJSON()
+  }
+
+  toggleListItemInSliceJson(selectionSliceJson.content)
+
+  const newSlice = Slice.fromJSON(state.schema, { ...selectionSliceJson, openStart: 0 })
+
+  return (chain() as ChainedCommands)
+    .command(() => {
+      const tr = state.tr
+      tr.replaceRange(selection.from, selection.to, newSlice)
+
+      return true
+    })
+    .setTextSelection(selection.from + 1)
 }

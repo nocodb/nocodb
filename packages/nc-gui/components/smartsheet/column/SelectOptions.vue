@@ -1,8 +1,7 @@
 <script setup lang="ts">
 import Draggable from 'vuedraggable'
 import { UITypes } from 'nocodb-sdk'
-import { IsKanbanInj, enumColor, onMounted, useColumnCreateStoreOrThrow, useVModel, watch } from '#imports'
-import {storeToRefs} from "pinia";
+import { IsKanbanInj, enumColor, onMounted, storeToRefs, useColumnCreateStoreOrThrow, useVModel, watch } from '#imports'
 
 interface Option {
   color: string

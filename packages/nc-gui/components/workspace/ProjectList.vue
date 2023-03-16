@@ -4,9 +4,8 @@ import type { ProjectType } from 'nocodb-sdk'
 import { WorkspaceUserRoles } from 'nocodb-sdk'
 import tinycolor from 'tinycolor2'
 import { nextTick } from '@vue/runtime-core'
-import { NcProjectType, navigateTo, projectThemeColors, timeAgo, useWorkspace } from '#imports'
+import { NcProjectType, navigateTo, projectThemeColors, storeToRefs, timeAgo, useWorkspace } from '#imports'
 import { useNuxtApp } from '#app'
-import {storeToRefs} from "pinia";
 
 const workspaceStore = useWorkspace()
 const { addToFavourite, removeFromFavourite, updateProjectTitle } = workspaceStore

@@ -2,6 +2,7 @@ import { compareVersions, validate } from 'compare-versions';
 import JSON5 from 'json5';
 import { identify } from 'sql-query-identifier';
 import { ViewTypes } from 'nocodb-sdk';
+import axios from 'axios';
 import { Base, Project, User } from '../models';
 import { NcError } from '../meta/helpers/catchError';
 import Noco from '../Noco';

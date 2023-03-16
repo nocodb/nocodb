@@ -1,9 +1,5 @@
 <script setup lang="ts">
-import {
-  ref,
-  storeToRefs,
-  useProject,
-} from '#imports'
+import { ref, storeToRefs, useProject } from '#imports'
 
 definePageMeta({
   key: 'true',

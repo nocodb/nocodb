@@ -4,7 +4,6 @@ import type { ColumnType, LinkToAnotherRecordType, TableType } from 'nocodb-sdk'
 import { UITypes, isSystemColumn, isVirtualCol } from 'nocodb-sdk'
 import { getRelationName } from './utils'
 import { MetaInj, inject, ref, storeToRefs, useColumnCreateStoreOrThrow, useMetas, useProject, useVModel } from '#imports'
-import {storeToRefs} from "pinia";
 
 const props = defineProps<{
   value: any

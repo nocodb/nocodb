@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import {storeToRefs} from "pinia";
+import { storeToRefs } from 'pinia'
 
 definePageMeta({
   key: 'true',
@@ -103,8 +103,8 @@ watch(
 
 <template>
   <NuxtLayout id="content" :key="route.params.projectId" class="flex">
-<!--    <template v-if="isSidebarOpen" #sidebar>-->
-<!--    </template>-->
+    <!--    <template v-if="isSidebarOpen" #sidebar> -->
+    <!--    </template> -->
     <div v-if="isErrored">
       <DocsError />
     </div>

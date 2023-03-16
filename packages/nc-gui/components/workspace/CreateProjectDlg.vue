@@ -52,7 +52,7 @@ const createProject = async () => {
     navigateToProject({
       projectId: project.id!,
       workspaceId: workspaceStore.workspace!.id!,
-      type:  props.type,
+      type: props.type,
     })
     dialogShow.value = false
   } catch (e: any) {
@@ -77,7 +77,7 @@ function navigateToProject(param: { projectId: string; workspaceId: string; type
 const input: VNodeRef = ref<typeof Input>()
 
 watch(dialogShow, async (n, o) => {
-  if(n===o && !n) return
+  if (n === o && !n) return
   formState.title = await generateUniqueName()
   await nextTick()
   input.value?.$el?.focus()
@@ -117,7 +117,13 @@ watch(dialogShow, async (n, o) => {
         @finish="createProject"
       >
         <a-form-item :label="$t('labels.projName')" name="title" :rules="nameValidationRules" class="m-10">
-          <a-input ref="input" v-model:value="formState.title" name="title" class="nc-metadb-project-name" @keyup.enter="createProject" />
+          <a-input
+            ref="input"
+            v-model:value="formState.title"
+            name="title"
+            class="nc-metadb-project-name"
+            @keyup.enter="createProject"
+          />
         </a-form-item>
       </a-form>
     </div>

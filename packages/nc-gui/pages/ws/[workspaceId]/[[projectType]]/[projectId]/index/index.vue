@@ -48,7 +48,6 @@ function onEdit(targetKey: number, action: 'add' | 'remove' | string) {
             :class="{ 'rotate-180': !isOpen }"
             @click="toggle(!isOpen)"
           />
-
         </div>
 
         <a-tabs v-model:activeKey="activeTabIndex" class="nc-root-tabs min-w-[500px]" type="editable-card" @edit="onEdit">

@@ -7,10 +7,7 @@ import MdiFileDocumentOutline from '~icons/mdi/file-document-outline'
 import MdiFilterVariant from '~icons/mdi/filter-variant'
 import MaterialSymbolsPublic from '~icons/material-symbols/public'
 import type { PageSidebarNode } from '~composables/docs/useDocs'
-import {
-  storeToRefs,
-  useProject,
-} from '#imports'
+import { storeToRefs, useProject } from '#imports'
 
 const { showShareModal } = useShare()
 
@@ -355,7 +352,7 @@ const onShare = async (page: PageSidebarNode) => {
         </a-tabs>
       </div>
     </div>
-<!--    <DocsBookPublishModal :model-value="showPublishModal" @update:model-value="showPublishModal = $event" />-->
+    <!--    <DocsBookPublishModal :model-value="showPublishModal" @update:model-value="showPublishModal = $event" /> -->
     <a-modal
       :visible="magicModalOpen"
       :closable="false"

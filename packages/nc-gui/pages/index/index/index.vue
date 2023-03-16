@@ -7,11 +7,11 @@ import { WorkspaceUserRoles } from 'nocodb-sdk'
 import tinycolor from 'tinycolor2'
 import Sortable from 'sortablejs'
 import { useRoute } from 'vue-router'
-import { storeToRefs } from 'pinia'
 import {
   computed,
   onMounted,
   projectThemeColors,
+  storeToRefs,
   stringToColour,
   useRouter,
   useSidebar,
@@ -31,7 +31,7 @@ const workspaceStore = useWorkspace()
 
 const { deleteWorkspace: _deleteWorkspace, loadWorkspaceList, updateWorkspace } = workspaceStore
 
-const { workspaces, activeWorkspace, isWorkspaceOwner, activePage,  } = storeToRefs(workspaceStore)
+const { workspaces, activeWorkspace, isWorkspaceOwner, activePage } = storeToRefs(workspaceStore)
 
 const { $e } = useNuxtApp()
 

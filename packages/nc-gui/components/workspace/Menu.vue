@@ -1,10 +1,9 @@
 <script lang="ts" setup>
 import { storeToRefs } from 'pinia'
 import type { WorkspaceType } from 'nocodb-sdk'
+import { useDebounceFn } from '@vueuse/core'
 import { onMounted, ref, useWorkspace } from '#imports'
 import { navigateTo } from '#app'
-import {useDebounce} from "@vueuse/shared";
-import {useDebounceFn} from "@vueuse/core";
 
 const props = defineProps<{
   isOpen: boolean
@@ -14,9 +13,7 @@ const workspaceStore = useWorkspace()
 
 const { workspace, workspaces, isWorkspaceOwner } = storeToRefs(workspaceStore)
 
-
 const { appInfo, token, signOut, signedIn, user, currentVersion } = useGlobal()
-
 
 const { isUIAllowed } = useUIPermission()
 
@@ -60,17 +57,17 @@ const modalVisible = false
         class="group cursor-pointer flex gap-1 items-center nc-project-menu overflow-hidden"
       >
         <template v-if="props.isOpen">
-         <div class="flex-grow min-w-10">
-           <a-tooltip v-if="workspace?.title?.length > 12" placement="bottom">
-            <div class="text-md truncate">{{ workspace.title }}</div>
-            <template #title>
-              <div class="text-sm !text-red-500">{{ workspace?.title }}</div>
-            </template>
-          </a-tooltip>
-          <div v-else class="text-md truncate capitalize">{{ workspace?.title }}</div>
-         </div>
+          <div class="flex-grow min-w-10">
+            <a-tooltip v-if="workspace?.title?.length > 12" placement="bottom">
+              <div class="text-md truncate">{{ workspace.title }}</div>
+              <template #title>
+                <div class="text-sm !text-red-500">{{ workspace?.title }}</div>
+              </template>
+            </a-tooltip>
+            <div v-else class="text-md truncate capitalize">{{ workspace?.title }}</div>
+          </div>
 
-          <PhCodeSimpleThin class="min-w-[17px] text-md transform rotate-90"/>
+          <PhCodeSimpleThin class="min-w-[17px] text-md transform rotate-90" />
         </template>
 
         <template v-else>
@@ -81,12 +78,10 @@ const modalVisible = false
       <template #overlay>
         <a-menu class="!ml-4 !w-[300px] !text-sm">
           <a-menu-item-group>
-              <div class="group select-none flex items-center gap-4 p-2">
-
-                <input @input="updateWorkspaceTitle" v-model="workspace.title" class="nc-workspace-title-input text-current"/>
-
-              </div>
-            <a-menu-divider/>
+            <div class="group select-none flex items-center gap-4 p-2">
+              <input v-model="workspace.title" class="nc-workspace-title-input text-current" @input="updateWorkspaceTitle" />
+            </div>
+            <a-menu-divider />
             <div class="nc-menu-sub-head">Workspace Options</div>
 
             <a-menu-item @click="workspaceModalVisible = true">
@@ -103,7 +98,6 @@ const modalVisible = false
             </a-menu-item>
 
             <a-menu-divider class="mt-2" />
-
 
             <div class="nc-menu-sub-head">Workspaces</div>
 
@@ -126,7 +120,6 @@ const modalVisible = false
               </div>
             </a-menu-item>
             <template v-if="!isSharedBase">
-
               <!-- Copy Auth Token -->
               <a-menu-item key="copy">
                 <div v-e="['a:navbar:user:copy-auth-token']" class="nc-workspace-menu-item group" @click.stop="copyAuthToken">
@@ -317,15 +310,15 @@ const modalVisible = false
 </template>
 
 <style scoped>
-.nc-workspace-title-input{
-  @apply flex-grow p-2 outline-none hover:(bg-gray-100) focus:(bg-gray-100) rounded text-md text-defaault
+.nc-workspace-title-input {
+  @apply flex-grow p-2 outline-none hover:(bg-gray-100) focus:(bg-gray-100) rounded text-md text-defaault;
 }
 
-.nc-menu-sub-head{
-  @apply pt-4 pb-2 text-gray-500 text-sm px-5
+.nc-menu-sub-head {
+  @apply pt-4 pb-2 text-gray-500 text-sm px-5;
 }
 
-.nc-workspace-menu-item{
-  @apply flex items-center pl-2 py-2 text-sm gap-2
+.nc-workspace-menu-item {
+  @apply flex items-center pl-2 py-2 text-sm gap-2;
 }
 </style>

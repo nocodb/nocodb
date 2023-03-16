@@ -1,7 +1,6 @@
 <script setup lang="ts">
 import type { ApiTokenType } from 'nocodb-sdk'
 import { extractSdkResponseErrorMsg, message, onMounted, storeToRefs, useCopy, useI18n, useNuxtApp, useProject } from '#imports'
-import {storeToRefs} from "pinia";
 
 interface ApiToken extends ApiTokenType {
   show?: boolean

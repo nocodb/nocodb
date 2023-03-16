@@ -19,10 +19,10 @@ const inputEl = ref<HTMLInputElement>()
 
 const { addTab } = useTabs()
 
-const { loadTables, isMysql, isMssql, isPg , loadProject} = useProject()
+const { loadTables, isMysql, isMssql, isPg, loadProject } = useProject()
 
 const { table, createTable, generateUniqueTitle, tables, project } = useTableNew({
-  async onTableCreate (table){
+  async onTableCreate(table) {
     // await loadProject(props.projectId)
 
     addTab({
@@ -32,8 +32,6 @@ const { table, createTable, generateUniqueTitle, tables, project } = useTableNew
       projectId: props.projectId,
       // baseId: props.baseId,
     })
-
-
 
     dialogShow.value = false
   },

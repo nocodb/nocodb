@@ -1,6 +1,5 @@
 <script lang="ts" setup>
 import { computed, navigateTo, storeToRefs, useGlobal, useProject, useRoute, useSidebar } from '#imports'
-import {storeToRefs} from "pinia";
 
 const { signOut, signedIn, user, currentVersion } = useGlobal()
 

@@ -21,7 +21,6 @@ import { LockType } from '~/lib'
 import MdiLockOutlineIcon from '~icons/mdi/lock-outline'
 import MdiAccountIcon from '~icons/mdi/account'
 import MdiAccountGroupIcon from '~icons/mdi/account-group'
-import {storeToRefs} from "pinia";
 
 const { t } = useI18n()
 

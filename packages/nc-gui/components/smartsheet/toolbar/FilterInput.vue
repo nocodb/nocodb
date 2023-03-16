@@ -1,6 +1,5 @@
 <script setup lang="ts">
 import type { ColumnType } from 'nocodb-sdk'
-import { storeToRefs } from 'pinia'
 import {
   ColumnInj,
   EditModeInj,
@@ -23,6 +22,7 @@ import {
   isYear,
   provide,
   ref,
+  storeToRefs,
   toRef,
   useProject,
 } from '#imports'
@@ -41,7 +41,6 @@ import Decimal from '~/components/cell/Decimal.vue'
 import Integer from '~/components/cell/Integer.vue'
 import Float from '~/components/cell/Float.vue'
 import Text from '~/components/cell/Text.vue'
-import {storeToRefs} from "pinia";
 
 interface Props {
   column: ColumnType

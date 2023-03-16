@@ -128,8 +128,6 @@ const handleThemeColor = async (mode: 'swatch' | 'primary' | 'accent', color?: s
   }
 }
 
-
-
 const copyAuthToken = async () => {
   try {
     if (await copy(token.value!)) {
@@ -233,7 +231,7 @@ useEventListener(document, 'keydown', async (e: KeyboardEvent) => {
 
 <template>
   <div>
-<!--    <template #sidebar>
+    <!--    <template #sidebar>
       <a-layout-sider
         ref="sidebar"
         :collapsed="!isOpen"
@@ -559,7 +557,7 @@ useEventListener(document, 'keydown', async (e: KeyboardEvent) => {
 
         <LazyDashboardTreeView @create-base-dlg="toggleDialog(true, 'dataSources')" />
       </a-layout-sider>
-    </template>-->
+    </template> -->
 
     <div>
       <LazyDashboardSettingsModal

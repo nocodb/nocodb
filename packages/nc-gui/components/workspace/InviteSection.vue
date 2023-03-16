@@ -2,18 +2,16 @@
 import { WorkspaceUserRoles } from 'nocodb-sdk'
 import { useWorkspaceStoreOrThrow } from '~/composables/useWorkspaceStore'
 import { extractSdkResponseErrorMsg } from '~/utils'
-import {useWorkspace} from "~/store/workspace";
-import {storeToRefs} from "pinia";
+import { useWorkspace } from '~/store/workspace'
 
 const inviteData = reactive({
   email: '',
   roles: WorkspaceUserRoles.VIEWER,
 })
 
-
 const workspaceStore = useWorkspace()
 
-const {inviteCollaborator: _inviteCollaborator } = (workspaceStore)
+const { inviteCollaborator: _inviteCollaborator } = workspaceStore
 
 const inviteCollaborator = async () => {
   try {

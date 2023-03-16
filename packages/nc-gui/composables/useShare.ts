@@ -1,4 +1,4 @@
-import {storeToRefs} from "pinia";
+import { storeToRefs } from 'pinia'
 
 const [setup, use] = useInjectionState(() => {
   const visibility = ref<'public' | 'private' | 'none'>('none')

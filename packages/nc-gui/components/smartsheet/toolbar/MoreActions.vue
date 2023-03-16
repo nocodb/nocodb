@@ -1,7 +1,6 @@
 <script lang="ts" setup>
 import type { RequestParams } from 'nocodb-sdk'
 import { ExportTypes } from 'nocodb-sdk'
-import { storeToRefs } from 'pinia'
 import {
   ActiveViewInj,
   FieldsInj,
@@ -12,6 +11,7 @@ import {
   inject,
   message,
   ref,
+  storeToRefs,
   useI18n,
   useNuxtApp,
   useProject,
@@ -19,7 +19,6 @@ import {
   useSmartsheetStoreOrThrow,
   useUIPermission,
 } from '#imports'
-import {storeToRefs} from "pinia";
 
 const { t } = useI18n()
 

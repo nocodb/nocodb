@@ -1,6 +1,6 @@
 <script setup lang="ts">
+import { storeToRefs } from 'pinia'
 import { TabType } from '~/lib'
-import {storeToRefs} from "pinia";
 
 const route = useRoute()
 
@@ -9,8 +9,8 @@ const { bases } = storeToRefs(useProject())
 useMetas()
 
 const tabStore = useTabs()
-const {  addTab } = tabStore
-const { activeTab, } = storeToRefs(tabStore)
+const { addTab } = tabStore
+const { activeTab } = storeToRefs(tabStore)
 
 watch(
   () => route.params.baseId,

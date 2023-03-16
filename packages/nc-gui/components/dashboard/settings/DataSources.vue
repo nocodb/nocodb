@@ -8,7 +8,6 @@ import UIAcl from './UIAcl.vue'
 import Erd from './Erd.vue'
 import { ClientType, DataSourcesSubTab } from '~/lib'
 import { storeToRefs, useCommandPalette, useNuxtApp, useProject } from '#imports'
-import {storeToRefs} from "pinia";
 
 interface Props {
   state: string

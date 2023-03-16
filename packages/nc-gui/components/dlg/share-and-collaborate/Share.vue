@@ -1,5 +1,5 @@
 <script lang="ts" setup>
-import {storeToRefs} from "pinia";
+import { storeToRefs } from 'pinia'
 
 interface Emits {
   (event: 'close'): void

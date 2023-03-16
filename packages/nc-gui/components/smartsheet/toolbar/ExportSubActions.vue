@@ -16,7 +16,6 @@ import {
   useProject,
   useSmartsheetStoreOrThrow,
 } from '#imports'
-import {storeToRefs} from "pinia";
 
 const { t } = useI18n()
 

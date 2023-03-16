@@ -3,9 +3,9 @@ import type { Ref } from 'vue'
 import type { ModalFuncProps, SelectProps } from 'ant-design-vue'
 import type { ColumnType } from 'nocodb-sdk'
 import { message } from 'ant-design-vue'
+import { storeToRefs } from 'pinia'
 import MdiHammer from '~icons/mdi/hammer'
 import { useNuxtApp, useProject, useSqlEditor, useUIPermission } from '#imports'
-import {storeToRefs} from "pinia";
 
 const { bases, tables } = storeToRefs(useProject())
 

@@ -20,7 +20,6 @@ import {
   watch,
 } from '#imports'
 import type { SharedView } from '~/lib'
-import {storeToRefs} from "pinia";
 
 const { t } = useI18n()
 

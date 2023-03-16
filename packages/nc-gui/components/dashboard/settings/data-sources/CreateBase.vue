@@ -27,7 +27,6 @@ import {
   useNuxtApp,
   watch,
 } from '#imports'
-import {storeToRefs} from "pinia";
 
 const { connectionType } = defineProps<{ connectionType: ClientType }>()
 

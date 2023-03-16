@@ -3,12 +3,12 @@ import dayjs from 'dayjs'
 import type { Ref } from 'vue'
 // import InfiniteLoading from 'v3-infinite-loading'
 import { Loading3QuartersOutlined } from '@ant-design/icons-vue'
+import { storeToRefs } from 'pinia'
+import { onMounted } from '@vue/runtime-core'
 import MdiFileDocumentOutline from '~icons/mdi/file-document-outline'
 import MdiFilterVariant from '~icons/mdi/filter-variant'
 import type { PageSidebarNode } from '~composables/docs/useDocs'
-import {storeToRefs} from "pinia";
-import {useProject} from '#imports'
-import {onMounted} from "@vue/runtime-core";
+import { useProject } from '#imports'
 
 const { project } = storeToRefs(useProject())
 const {
@@ -251,7 +251,6 @@ const closeMagicModal = () => {
 onMounted(() => {
   fetchNestedPages()
 })
-
 </script>
 
 <template>
@@ -411,7 +410,7 @@ onMounted(() => {
         </a-tabs>
       </div>
     </div>
-<!--    <DocsBookPublishModal :model-value="showPublishModal" @update:model-value="showPublishModal = $event" />-->
+    <!--    <DocsBookPublishModal :model-value="showPublishModal" @update:model-value="showPublishModal = $event" /> -->
     <a-modal
       :visible="magicModalOpen"
       :closable="false"

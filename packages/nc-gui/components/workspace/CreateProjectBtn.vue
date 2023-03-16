@@ -59,8 +59,7 @@ useEventListener(document, 'keydown', async (e: KeyboardEvent) => {
     <a-dropdown>
       <a-button :type="props.type ?? 'primary'">
         <div class="flex items-center gap-2">
-          <slot>New Project
-            <MdiMenuDown /></slot>
+          <slot>New Project <MdiMenuDown /></slot>
         </div>
       </a-button>
       <template #overlay>
@@ -69,7 +68,7 @@ useEventListener(document, 'keydown', async (e: KeyboardEvent) => {
             <div class="py-4 px-1 flex items-center gap-4">
               <GeneralProjectIcon :type="NcProjectType.DB" class="text-[#2824FB] text-lg" />
               Database
-              <span class="flex-grow"/>
+              <span class="flex-grow" />
               <GeneralShortcutLabel class="justify-center" :keys="['Alt', 'D']" />
             </div>
           </a-menu-item>
@@ -77,12 +76,11 @@ useEventListener(document, 'keydown', async (e: KeyboardEvent) => {
             <div class="py-4 px-1 flex items-center gap-4">
               <GeneralProjectIcon :type="NcProjectType.DOCS" class="text-[#247727] text-lg" />
               Documentation
-              <span class="flex-grow"/>
+              <span class="flex-grow" />
               <GeneralShortcutLabel class="justify-center" :keys="['Alt', 'B']" />
-
             </div>
           </a-menu-item>
-<!--          <a-menu-item @click="navigateToCreateProject(NcProjectType.AUTOMATION)">
+          <!--          <a-menu-item @click="navigateToCreateProject(NcProjectType.AUTOMATION)">
             <div class="py-4 px-1 flex items-center gap-4">
               <GeneralProjectIcon :type="NcProjectType.AUTOMATION" class="text-[#DDB00F] text-lg" />
               Automation
@@ -93,7 +91,7 @@ useEventListener(document, 'keydown', async (e: KeyboardEvent) => {
               <GeneralProjectIcon :type="NcProjectType.COWRITER" class="text-[#8626FF] text-lg" />
               Cowriter
             </div>
-          </a-menu-item>-->
+          </a-menu-item> -->
         </a-menu>
       </template>
     </a-dropdown>

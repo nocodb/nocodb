@@ -1,7 +1,7 @@
 <script lang="ts" setup>
 import type { ProjectType } from 'nocodb-sdk'
 import { nextTick, toRef } from '@vue/runtime-core'
-import { useProjects, openLink } from '#imports'
+import { openLink, useProjects } from '#imports'
 import { extractSdkResponseErrorMsg } from '~/utils'
 
 const props = defineProps<{

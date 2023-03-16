@@ -35,14 +35,14 @@ export function useTable(onTableCreate?: (tableMeta: TableType) => void, baseId?
 
   const { closeTab } = useTabs()
 
-  const projectStore = (useProject())
+  const projectStore = useProject()
   const { sqlUis, project, tables } = storeToRefs(projectStore)
 
   const { refreshCommandPalette } = useCommandPalette()
 
   const sqlUi = computed(() => (baseId && sqlUis.value[baseId] ? sqlUis.value[baseId] : Object.values(sqlUis.value)[0]))
 
-  const createTable = async (projectId?:string) => {
+  const createTable = async (projectId?: string) => {
     if (!baseId) {
       baseId = project.value.bases?.[0].id
     }
@@ -59,10 +59,14 @@ export function useTable(onTableCreate?: (tableMeta: TableType) => void, baseId?
     })
 
     try {
-      const tableMeta = await $api.base.tableCreate(projectId ?? project?.value?.id as string, (baseId || project?.value?.bases?.[0].id)!, {
-        ...table,
-        columns,
-      })
+      const tableMeta = await $api.base.tableCreate(
+        projectId ?? (project?.value?.id as string),
+        (baseId || project?.value?.bases?.[0].id)!,
+        {
+          ...table,
+          columns,
+        },
+      )
       $e('a:table:create')
       onTableCreate?.(tableMeta)
       refreshCommandPalette()

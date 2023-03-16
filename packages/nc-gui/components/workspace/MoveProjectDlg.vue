@@ -1,9 +1,7 @@
 <script setup lang="ts">
 import type { ProjectType } from 'nocodb-sdk'
 import { WorkspaceUserRoles } from 'nocodb-sdk'
-import { ref, useVModel } from '#imports'
-import { useWorkspaceStoreOrThrow } from '~/composables/useWorkspaceStore'
-import {storeToRefs} from "pinia";
+import { ref, storeToRefs, useVModel } from '#imports'
 
 const props = defineProps<{
   modelValue: boolean

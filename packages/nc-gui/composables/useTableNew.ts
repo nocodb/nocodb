@@ -1,5 +1,6 @@
-import type {ColumnType, LinkToAnotherRecordType, TableType} from 'nocodb-sdk'
-import {UITypes, isSystemColumn} from 'nocodb-sdk'
+import type { ColumnType, LinkToAnotherRecordType, TableType } from 'nocodb-sdk'
+import { UITypes, isSystemColumn } from 'nocodb-sdk'
+import { computed } from '@vue/reactivity'
 import {
   Modal,
   SYSTEM_COLUMNS,
@@ -16,31 +17,28 @@ import {
   useTabs,
   watch,
 } from '#imports'
-import {TabType} from '~/lib'
-import {computed} from "@vue/reactivity";
+import { TabType } from '~/lib'
 
-export function useTableNew(param: {
-  onTableCreate?: (tableMeta: TableType) => void, projectId: string, baseId: string
-}) {
+export function useTableNew(param: { onTableCreate?: (tableMeta: TableType) => void; projectId: string; baseId: string }) {
   const table = reactive<{ title: string; table_name: string; columns: string[] }>({
     title: '',
     table_name: '',
     columns: SYSTEM_COLUMNS,
   })
 
-  const {t} = useI18n()
+  const { t } = useI18n()
 
-  const {$e, $api} = useNuxtApp()
+  const { $e, $api } = useNuxtApp()
 
-  const {getMeta, removeMeta} = useMetas()
+  const { getMeta, removeMeta } = useMetas()
 
-  const {closeTab} = useTabs()
+  const { closeTab } = useTabs()
 
-  const {refreshCommandPalette} = useCommandPalette()
+  const { refreshCommandPalette } = useCommandPalette()
 
   const projectsStore = useProjects()
 
-  const {projects,projectTableList} = storeToRefs(projectsStore)
+  const { projects, projectTableList } = storeToRefs(projectsStore)
 
   // const projectStore = useProject()
 
@@ -49,7 +47,7 @@ export function useTableNew(param: {
   // const sqlUi = computed(() => (baseId && sqlUis.value[baseId] ? sqlUis.value[baseId] : Object.values(sqlUis.value)[0]))
 
   const createTable = async () => {
-    let {onTableCreate, projectId, baseId} = param
+    let { onTableCreate, projectId, baseId } = param
 
     if (!(projectId in projects.value)) {
       await projectsStore.loadProject(projectId)
@@ -64,7 +62,7 @@ export function useTableNew(param: {
     if (!sqlUi) return
     const columns = sqlUi?.getNewTableColumns().filter((col: ColumnType) => {
       if (col.column_name === 'id' && table.columns.includes('id_ag')) {
-        Object.assign(col, sqlUi?.getDataTypeForUiType({uidt: UITypes.ID}, 'AG'))
+        Object.assign(col, sqlUi?.getDataTypeForUiType({ uidt: UITypes.ID }, 'AG'))
         col.dtxp = sqlUi?.getDefaultLengthForDatatype(col.dt)
         col.dtxs = sqlUi?.getDefaultScaleForDatatype(col.dt)
         return true
@@ -73,14 +71,10 @@ export function useTableNew(param: {
     })
 
     try {
-      const tableMeta = await $api.base.tableCreate(
-        projectId ,
-        (baseId)!,
-        {
-          ...table,
-          columns,
-        },
-      )
+      const tableMeta = await $api.base.tableCreate(projectId, baseId!, {
+        ...table,
+        columns,
+      })
       $e('a:table:create')
       onTableCreate?.(tableMeta)
       refreshCommandPalette()
@@ -89,11 +83,10 @@ export function useTableNew(param: {
     }
   }
 
-  const tables = computed(() => projectTableList.value[param.projectId]|| [])
-  const project = computed(() => projects.value[param.projectId]|| {})
+  const tables = computed(() => projectTableList.value[param.projectId] || [])
+  const project = computed(() => projects.value[param.projectId] || {})
 
-
-/*  const createTableMagic = async () => {
+  /*  const createTableMagic = async () => {
     if (!sqlUi?.value) return
 
     try {
@@ -142,7 +135,7 @@ export function useTableNew(param: {
     } catch (e: any) {
       message.warning(e)
     }
-  }*/
+  } */
 
   watch(
     () => table.title,

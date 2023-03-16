@@ -20,7 +20,6 @@ import {
 } from '#imports'
 import type { User } from '~/lib'
 import { ProjectRole } from '~/lib'
-import {storeToRefs} from "pinia";
 
 interface Props {
   show: boolean

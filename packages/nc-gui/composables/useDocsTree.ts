@@ -5,7 +5,7 @@ import { extractSdkResponseErrorMsg, useNuxtApp } from '#imports'
 import type { PageSidebarNode } from '~~/lib'
 import { ProjectRole } from '~/lib/enums'
 
- const PAGES_PER_PAGE_LIST = 10
+const PAGES_PER_PAGE_LIST = 10
 
 export const useDocsTree = (project: ProjectType) => {
   const route = useRoute()
@@ -363,9 +363,9 @@ export const useDocsTree = (project: ProjectType) => {
     const isNestedPublicMode = isNestedPublicPage.value || openedPage.value?.is_nested_published
     let url: string
     if (publicMode && isNestedPublicMode) {
-      url = `/ws/ws_dcbedpvdulwlla/nc/${projectId!}/doc/s/${nestedPublicParentPage.value?.id ?? id}/${nestedSlugs[0]}/${id}/${nestedSlugs
-        .filter((_, i) => i > 0)
-        .join('/')}`
+      url = `/ws/ws_dcbedpvdulwlla/nc/${projectId!}/doc/s/${nestedPublicParentPage.value?.id ?? id}/${
+        nestedSlugs[0]
+      }/${id}/${nestedSlugs.filter((_, i) => i > 0).join('/')}`
     } else if (publicMode) {
       url = `/ws/ws_dcbedpvdulwlla/nc/${projectId!}/doc/s/${id}/${nestedSlugs.join('/')}`
     } else {

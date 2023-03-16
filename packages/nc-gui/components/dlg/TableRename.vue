@@ -19,7 +19,6 @@ import {
   validateTableName,
   watchEffect,
 } from '#imports'
-import {storeToRefs} from "pinia";
 
 interface Props {
   modelValue?: boolean

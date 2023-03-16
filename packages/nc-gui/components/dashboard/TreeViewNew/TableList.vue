@@ -53,7 +53,9 @@ const initSortable = (el: Element) => {
   if (sortable) sortable.destroy()
   Sortable.create(el as HTMLLIElement, {
     onEnd: async (evt) => {
-      const offset = projectTableList.value[project.value.id!].findIndex((table) => table.base_id === project.value.bases![baseIndex.value].id)
+      const offset = projectTableList.value[project.value.id!].findIndex(
+        (table) => table.base_id === project.value.bases![baseIndex.value].id,
+      )
 
       const { newIndex = 0, oldIndex = 0 } = evt
 
@@ -103,13 +105,11 @@ const initSortable = (el: Element) => {
   })
 }
 
-const menuRef = (divEl:HTMLDivElement) => {
+const menuRef = (divEl: HTMLDivElement) => {
   if (divEl) {
     initSortable(divEl)
   }
 }
-
-
 </script>
 
 <template>

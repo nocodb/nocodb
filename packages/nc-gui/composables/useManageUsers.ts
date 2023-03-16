@@ -1,6 +1,6 @@
 import type { RequestParams } from 'nocodb-sdk'
+import { storeToRefs } from 'pinia'
 import type { User } from '~/lib'
-import {storeToRefs} from "pinia";
 
 const [setup, use] = useInjectionState(() => {
   const { api } = useApi()

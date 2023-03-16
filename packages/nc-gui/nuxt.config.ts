@@ -7,12 +7,21 @@ import { AntDesignVueResolver } from 'unplugin-vue-components/resolvers'
 import monacoEditorPlugin from 'vite-plugin-monaco-editor'
 import { NodeModulesPolyfillPlugin } from '@esbuild-plugins/node-modules-polyfill'
 import { FileSystemIconLoader } from 'unplugin-icons/loaders'
-
 import PurgeIcons from 'vite-plugin-purge-icons'
 
 // https://v3.nuxtjs.org/api/configuration/nuxt.config
 export default defineNuxtConfig({
-  modules: ['@vueuse/nuxt', 'nuxt-windicss', '@nuxt/image-edge', '@pinia/nuxt'],
+  modules: [
+    '@vueuse/nuxt',
+    'nuxt-windicss',
+    '@nuxt/image-edge',
+    [
+      '@pinia/nuxt',
+      {
+        autoImports: ['defineStore', 'storeToRefs', 'mapState'],
+      },
+    ],
+  ],
 
   ssr: false,
 
@@ -71,19 +80,11 @@ export default defineNuxtConfig({
     ],
   },
 
-  build: {
-    splitChunks: {
-      pages: true,
-      layouts: true,
-    },
-  },
-
   vite: {
     build: {
       commonjsOptions: {
         ignoreTryCatch: true,
       },
-      minify: true,
       rollupOptions: {
         output: {
           manualChunks(id) {
@@ -198,7 +199,6 @@ export default defineNuxtConfig({
       { name: 'Empty', from: 'ant-design-vue/es' },
       { name: 'Form', from: 'ant-design-vue/es' },
       { name: 'useJwt', from: '@vueuse/integrations/useJwt' },
-      { name: 'storeToRefs', from: 'pinia' },
     ],
   },
 })

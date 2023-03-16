@@ -163,7 +163,6 @@ export class DashboardPage extends BasePage {
 
   async signOut() {
     await this.rootPage.getByTestId('nc-project-menu').click();
-    // await this.projectMenuLink.click();
     const projMenu = this.rootPage.locator('.nc-dropdown-project-menu');
     await projMenu.locator('[data-menu-id="account"]:visible').click();
     await this.rootPage.locator('div.nc-project-menu-item:has-text("Sign Out"):visible').click();

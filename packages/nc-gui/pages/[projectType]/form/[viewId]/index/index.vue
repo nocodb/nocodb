@@ -33,7 +33,6 @@ const onLoaded = async () => {
 }
 
 const showCodeScannerForFieldTitle = (fieldTitle: string) => {
-  // findColumnByTitle(fieldTitle)?.enable_scanner
   showCodeScannerOverlay.value = true
   fieldTitleForCurrentScan.value = fieldTitle
 }

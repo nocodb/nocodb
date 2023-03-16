@@ -83,7 +83,7 @@ const onDecode = async (codeValue: string) => {
     const selectedColumnToScanFor = getColumnToSearchForByBarOrQrCodeColumnId(idOfSelectedColumnToScanFor.value)
     const whereClause = `(${selectedColumnToScanFor?.title},eq,${codeValue})`
     const foundRowsForCode = (
-      await $api.dbViewRow.list(NOCO, project.id!, meta.value!.id!, view.value!.title!, {
+      await $api.dbViewRow.list(NOCO, project.value.id!, meta.value!.id!, view.value!.title!, {
         where: whereClause,
       })
     ).list

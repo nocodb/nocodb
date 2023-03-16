@@ -10,10 +10,13 @@ import QrCodeScan from '~icons/mdi/qrcode-scan'
 const meta = inject(MetaInj, ref())
 
 const { t } = useI18n()
+
 const route = useRoute()
+
 const router = useRouter()
 
 const { $api } = useNuxtApp()
+
 const { project } = storeToRefs(useProject())
 
 const { isMobileMode } = useGlobal()

@@ -21,7 +21,7 @@ export interface ProjectMetaInfo {
   Platform?: string
   Docker?: boolean
   Database?: string
-  ProjectOnRootDB?: string
+  ProjectOnRootDB?: boolean
   RootDB?: string
   PackageVersion?: string
 }

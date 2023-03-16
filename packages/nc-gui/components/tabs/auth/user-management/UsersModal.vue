@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import type { Input } from 'ant-design-vue'
+import type { ProjectUserReqType } from 'nocodb-sdk'
 import {
   Form,
   computed,
@@ -107,10 +108,11 @@ const saveUser = async () => {
       const res = await $api.auth.projectUserAdd(project.value.id, {
         roles: usersData.role,
         email: usersData.emails,
-        project_id: project.value.id,
-        projectName: project.value.title,
-      })
-      usersData.invitationToken = res.invite_token
+      } as ProjectUserReqType)
+
+      // for inviting one user, invite_token will only be returned when invitation email fails to send
+      // for inviting multiple users, invite_token will be returned anyway
+      usersData.invitationToken = res?.invite_token
     }
     emit('reload')
 

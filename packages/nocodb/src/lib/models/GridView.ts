@@ -1,18 +1,17 @@
 import Noco from '../Noco';
 import { CacheGetType, CacheScope, MetaTable } from '../utils/globals';
-import GridViewColumn from './GridViewColumn';
-import View from './View';
 import NocoCache from '../cache/NocoCache';
 import { extractProps } from '../meta/helpers/extractProps';
+import GridViewColumn from './GridViewColumn';
+import View from './View';
+import type { GridType, MetaType } from 'nocodb-sdk';
 
-export default class GridView {
+export default class GridView implements GridType {
   fk_view_id: string;
   project_id?: string;
   base_id?: string;
-
-  meta?: string;
+  meta?: MetaType;
   row_height?: number;
-
   columns?: GridViewColumn[];
 
   constructor(data: GridView) {
@@ -72,7 +71,12 @@ export default class GridView {
     // get existing cache
     const key = `${CacheScope.GRID_VIEW}:${viewId}`;
     let o = await NocoCache.get(key, CacheGetType.TYPE_OBJECT);
-    const updateObj = extractProps(body, ['row_height']);
+    const updateObj = extractProps(body, ['row_height', 'meta']);
+
+    if (updateObj.meta && typeof updateObj.meta === 'object') {
+      updateObj.meta = JSON.stringify(updateObj.meta ?? {});
+    }
+
     if (o) {
       o = { ...o, ...updateObj };
       // set cache

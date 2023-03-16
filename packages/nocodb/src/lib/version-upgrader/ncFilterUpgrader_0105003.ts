@@ -1,9 +1,9 @@
-import { NcUpgraderCtx } from './NcUpgrader';
+import { UITypes } from 'nocodb-sdk';
 import { MetaTable } from '../utils/globals';
-import NcMetaIO from '../meta/NcMetaIO';
 import Column from '../models/Column';
 import Filter from '../models/Filter';
-import { UITypes } from 'nocodb-sdk';
+import type { NcUpgraderCtx } from './NcUpgrader';
+import type NcMetaIO from '../meta/NcMetaIO';
 
 // as of 0.105.3, date / datetime filters include `is like` and `is not like` which are not practical
 // `removeLikeAndNlikeFilters` in this upgrader is simply to remove them
@@ -21,7 +21,7 @@ import { UITypes } from 'nocodb-sdk';
 //   - add `exact date` in comparison_sub_op for existing filters `eq` and `neq`
 
 function removeLikeAndNlikeFilters(filter: Filter, ncMeta: NcMetaIO) {
-  let actions = [];
+  const actions = [];
   // remove `is like` and `is not like`
   if (['like', 'nlike'].includes(filter.comparison_op)) {
     actions.push(Filter.delete(filter.id, ncMeta));
@@ -30,7 +30,7 @@ function removeLikeAndNlikeFilters(filter: Filter, ncMeta: NcMetaIO) {
 }
 
 function migrateEqAndNeqFilters(filter: Filter, ncMeta: NcMetaIO) {
-  let actions = [];
+  const actions = [];
   // remove `is like` and `is not like`
   if (['eq', 'neq'].includes(filter.comparison_op)) {
     actions.push(
@@ -47,7 +47,7 @@ function migrateEqAndNeqFilters(filter: Filter, ncMeta: NcMetaIO) {
 }
 
 function migrateEmptyAndNullFilters(filter: Filter, ncMeta: NcMetaIO) {
-  let actions = [];
+  const actions = [];
   // remove `is like` and `is not like`
   if (['empty', 'null'].includes(filter.comparison_op)) {
     // migrate to blank

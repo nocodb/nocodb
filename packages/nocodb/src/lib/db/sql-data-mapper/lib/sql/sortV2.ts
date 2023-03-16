@@ -1,14 +1,14 @@
-import { Knex } from 'knex';
-import { XKnex } from '../../index';
-import Sort from '../../../../models/Sort';
-import LinkToAnotherRecordColumn from '../../../../models/LinkToAnotherRecordColumn';
-import genRollupSelectv2 from './genRollupSelectv2';
-import RollupColumn from '../../../../models/RollupColumn';
-import LookupColumn from '../../../../models/LookupColumn';
-import formulaQueryBuilderv2 from './formulav2/formulaQueryBuilderv2';
-import FormulaColumn from '../../../../models/FormulaColumn';
 import { RelationTypes, UITypes } from 'nocodb-sdk';
+import Sort from '../../../../models/Sort';
+import genRollupSelectv2 from './genRollupSelectv2';
+import formulaQueryBuilderv2 from './formulav2/formulaQueryBuilderv2';
 import { sanitize } from './helpers/sanitize';
+import type { Knex } from 'knex';
+import type { XKnex } from '../../index';
+import type LinkToAnotherRecordColumn from '../../../../models/LinkToAnotherRecordColumn';
+import type RollupColumn from '../../../../models/RollupColumn';
+import type LookupColumn from '../../../../models/LookupColumn';
+import type FormulaColumn from '../../../../models/FormulaColumn';
 
 export default async function sortV2(
   sortList: Sort[],

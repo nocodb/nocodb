@@ -90,7 +90,7 @@ const filterUpdateCondition = (filter: FilterType, i: number) => {
     // since `blank`, `empty`, `null` doesn't require value,
     // hence remove the previous value
     filter.value = null
-    filter.comparison_sub_op = ''
+    filter.comparison_sub_op = null
   } else if ([UITypes.Date, UITypes.DateTime].includes(col.uidt as UITypes)) {
     // for date / datetime,
     // the input type could be decimal or datepicker / datetime picker
@@ -177,7 +177,7 @@ const selectFilterField = (filter: Filter, index: number) => {
     }
   } else {
     // reset
-    filter.comparison_sub_op = ''
+    filter.comparison_sub_op = null
   }
 
   // reset filter value as well
@@ -198,10 +198,19 @@ defineExpose({
 
 <template>
   <div
-    class="p-4 menu-filter-dropdown bg-gray-50 !border mt-4"
-    :class="{ 'shadow min-w-[430px] max-h-[max(80vh,500px)] overflow-auto': !nested, 'border-1 w-full': nested }"
+    class="p-4 menu-filter-dropdown bg-gray-50 !border"
+    :class="{
+      'min-w-[430px]': filters.length,
+      'shadow max-h-[max(80vh,500px)] overflow-auto': !nested,
+      'border-1 w-full': nested,
+    }"
   >
-    <div v-if="filters && filters.length" class="nc-filter-grid mb-2" @click.stop>
+    <div
+      v-if="filters && filters.length"
+      class="nc-filter-grid mb-2"
+      :class="{ 'max-h-420px overflow-y-auto': !nested }"
+      @click.stop
+    >
       <template v-for="(filter, i) in filters" :key="i">
         <template v-if="filter.status !== 'delete'">
           <template v-if="filter.is_group">
@@ -230,7 +239,7 @@ defineExpose({
               </a-select>
             </div>
             <span class="col-span-3" />
-            <div class="col-span-5">
+            <div class="col-span-6">
               <LazySmartsheetToolbarColumnFilter
                 v-if="filter.id || filter.children"
                 :key="filter.id ?? i"

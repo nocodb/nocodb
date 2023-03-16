@@ -218,7 +218,7 @@ const listRow = async ({
   const bases = await project.getBases();
   const baseModel = await Model.getBaseModelSQL({
     id: table.id,
-    dbDriver: NcConnectionMgrv2.get(bases[0]!),
+    dbDriver: await NcConnectionMgrv2.get(bases[0]!),
   });
 
   const ignorePagination = !options;

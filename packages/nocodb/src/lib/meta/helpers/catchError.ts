@@ -1,3 +1,5 @@
+import type { ErrorObject } from 'ajv';
+
 enum DBError {
   TABLE_EXIST = 'TABLE_EXIST',
   TABLE_NOT_EXIST = 'TABLE_NOT_EXIST',
@@ -5,6 +7,7 @@ enum DBError {
   COLUMN_NOT_EXIST = 'COLUMN_NOT_EXIST',
   CONSTRAINT_EXIST = 'CONSTRAINT_EXIST',
   CONSTRAINT_NOT_EXIST = 'CONSTRAINT_NOT_EXIST',
+  COLUMN_NOT_NULL = 'COLUMN_NOT_NULL',
 }
 
 // extract db errors using database error code
@@ -20,6 +23,7 @@ function extractDBError(error): {
   let extra: Record<string, any>;
   let type: DBError;
 
+  // todo: handle not null constraint error for all databases
   switch (error.code) {
     // sqlite errors
     case 'SQLITE_BUSY':
@@ -172,6 +176,19 @@ function extractDBError(error): {
       break;
     case 'ER_BAD_NULL_ERROR':
       message = 'A null value is not allowed for this field.';
+      {
+        const extractColNameMatch = error.message.match(
+          /Column '(\w+)' cannot be null/i
+        );
+        if (extractColNameMatch && extractColNameMatch[1]) {
+          message = `The column '${extractColNameMatch[1]}' cannot be null.`;
+          type = DBError.COLUMN_NOT_NULL;
+          extra = {
+            column: extractColNameMatch[1],
+          };
+        }
+      }
+
       break;
     case 'ER_DATA_TOO_LONG':
       message = 'The data entered is too long for this field.';
@@ -394,6 +411,8 @@ export default function (
         return res.status(500).json({ msg: e.message });
       } else if (e instanceof NotImplemented) {
         return res.status(501).json({ msg: e.message });
+      } else if (e instanceof AjvError) {
+        return res.status(400).json({ msg: e.message, errors: e.errors });
       }
       next(e);
     }
@@ -411,6 +430,15 @@ class NotFound extends Error {}
 class InternalServerError extends Error {}
 
 class NotImplemented extends Error {}
+
+class AjvError extends Error {
+  constructor(param: { message: string; errors: ErrorObject[] }) {
+    super(param.message);
+    this.errors = param.errors;
+  }
+
+  errors: ErrorObject[];
+}
 
 export class NcError {
   static notFound(message = 'Not found') {
@@ -435,5 +463,9 @@ export class NcError {
 
   static notImplemented(message = 'Not implemented') {
     throw new NotImplemented(message);
+  }
+
+  static ajvValidationError(param: { message: string; errors: ErrorObject[] }) {
+    throw new AjvError(param);
   }
 }

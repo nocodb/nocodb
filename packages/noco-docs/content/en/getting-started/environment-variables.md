@@ -43,7 +43,6 @@ For production usecases, it is **recommended** to configure
 | NC_REDIS_URL | Custom Redis URL. Example: `redis://:authpassword@127.0.0.1:6380/4` | Meta data will be stored in memory |  |
 | NC_DISABLE_ERR_REPORT | Disable error reporting |  |  |
 | NC_DISABLE_CACHE | To be used only while debugging. On setting this to `true` - meta data be fetched from db instead of redis/cache. | `false` |  |
-| NC_BASEURL_INTERNAL | Used as base url for internal(server) API calls | Default value in docker will be `http://localhost:$PORT` and in all other case it's populated from request object |  |
 | AWS_ACCESS_KEY_ID | For Litestream - S3 access key id | If Litestream is configured and `NC_DB` is not present. SQLite gets backed up to S3 |  |
 | AWS_SECRET_ACCESS_KEY | For Litestream - S3 secret access key | If Litestream is configured and `NC_DB` is not present. SQLite gets backed up to S3 |  |
 | AWS_BUCKET | For Litestream - S3 bucket | If Litestream is configured and `NC_DB` is not present. SQLite gets backed up to S3 |  |

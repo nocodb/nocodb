@@ -1,13 +1,13 @@
 import Noco from '../Noco';
 import { CacheGetType, CacheScope, MetaTable } from '../utils/globals';
-import { GridColumnType } from 'nocodb-sdk';
 import { extractProps } from '../meta/helpers/extractProps';
-import View from './View';
 import NocoCache from '../cache/NocoCache';
+import View from './View';
+import type { BoolType, GridColumnType } from 'nocodb-sdk';
 
 export default class GridViewColumn implements GridColumnType {
   id: string;
-  show: boolean;
+  show: BoolType;
   order: number;
   width?: string;
 
@@ -73,6 +73,8 @@ export default class GridViewColumn implements GridColumnType {
       'show',
       'project_id',
       'base_id',
+      'order',
+      'width',
     ]);
 
     insertObj.order =
@@ -131,7 +133,7 @@ export default class GridViewColumn implements GridColumnType {
       await NocoCache.set(key, o);
     }
     // set meta
-    await ncMeta.metaUpdate(
+    return await ncMeta.metaUpdate(
       null,
       null,
       MetaTable.GRID_VIEW_COLUMNS,

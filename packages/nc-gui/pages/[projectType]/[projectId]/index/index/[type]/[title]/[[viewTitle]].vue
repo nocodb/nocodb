@@ -1,10 +1,11 @@
 <script setup lang="ts">
 import type { TabItem } from '~/lib'
-import { TabMetaInj, computed, inject, ref, until, useMetas, useProject, useRoute } from '#imports'
+import { TabMetaInj, computed, inject, ref, storeToRefs, until, useMetas, useProject, useRoute } from '#imports'
 
 const { getMeta } = useMetas()
 
-const { tables } = useProject()
+const projectStore = useProject()
+const { tables } = storeToRefs(projectStore)
 
 const route = useRoute()
 

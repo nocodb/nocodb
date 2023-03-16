@@ -1,18 +1,19 @@
+import { UITypes } from 'nocodb-sdk';
 import Noco from '../Noco';
-import Model from './Model';
-import Column from './Column';
-import Hook from './Hook';
 import {
   CacheDelDirection,
   CacheGetType,
   CacheScope,
   MetaTable,
 } from '../utils/globals';
-import View from './View';
-import { BoolType, FilterType, UITypes } from 'nocodb-sdk';
 import NocoCache from '../cache/NocoCache';
 import { NcError } from '../meta/helpers/catchError';
 import { extractProps } from '../meta/helpers/extractProps';
+import Model from './Model';
+import Column from './Column';
+import Hook from './Hook';
+import View from './View';
+import type { BoolType, FilterType } from 'nocodb-sdk';
 
 export const COMPARISON_OPS = <const>[
   'eq',
@@ -71,7 +72,7 @@ export const COMPARISON_SUB_OPS = <const>[
   ...IS_WITHIN_COMPARISON_SUB_OPS,
 ];
 
-export default class Filter {
+export default class Filter implements FilterType {
   id: string;
 
   fk_model_id?: string;
@@ -85,7 +86,7 @@ export default class Filter {
 
   value?: string;
 
-  logical_op?: string;
+  logical_op?: 'and' | 'or' | 'not';
   is_group?: BoolType;
   children?: Filter[];
   project_id?: string;
@@ -271,7 +272,13 @@ export default class Filter {
       await NocoCache.set(key, o);
     }
     // set meta
-    await ncMeta.metaUpdate(null, null, MetaTable.FILTER_EXP, updateObj, id);
+    return await ncMeta.metaUpdate(
+      null,
+      null,
+      MetaTable.FILTER_EXP,
+      updateObj,
+      id
+    );
   }
 
   static async delete(id: string, ncMeta = Noco.ncMeta) {
@@ -383,7 +390,7 @@ export default class Filter {
     const result: FilterType = {
       is_group: true,
       children: [],
-      logical_op: 'AND',
+      logical_op: 'and',
     };
 
     const grouped = {};

@@ -1,13 +1,12 @@
 import { Knex, knex } from 'knex';
 import { SnowflakeClient } from 'nc-help';
-import { FilterType } from 'nocodb-sdk';
+import Filter from '../../../../models/Filter';
+import type { FilterType } from 'nocodb-sdk';
+import type { BaseModelSql } from './BaseModelSql';
 
 const types = require('pg').types;
 // override parsing date column to Date()
 types.setTypeParser(1082, (val) => val);
-
-import { BaseModelSql } from './BaseModelSql';
-import Filter from '../../../../models/Filter';
 
 const opMappingGen = {
   eq: '=',

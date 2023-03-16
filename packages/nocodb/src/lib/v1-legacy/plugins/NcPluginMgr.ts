@@ -1,13 +1,8 @@
 import {
-  IEmailAdapter,
-  IStorageAdapter,
-  IWebhookNotificationAdapter,
   XcEmailPlugin,
-  XcPlugin,
   XcStoragePlugin,
   XcWebhookNotificationPlugin,
 } from 'nc-plugin';
-
 import BackblazePluginConfig from '../../plugins/backblaze';
 import DiscordPluginConfig from '../../plugins/discord';
 import GcsPluginConfig from '../../plugins/gcs';
@@ -27,10 +22,15 @@ import TwilioWhatsappPluginConfig from '../../plugins/twilioWhatsapp';
 import UpcloudPluginConfig from '../../plugins/upcloud';
 import VultrPluginConfig from '../../plugins/vultr';
 import SESPluginConfig from '../../plugins/ses';
-import Noco from '../../Noco';
-import NcMetaIO from '../../meta/NcMetaIO';
-
 import Local from './adapters/storage/Local';
+import type Noco from '../../Noco';
+import type NcMetaIO from '../../meta/NcMetaIO';
+import type {
+  IEmailAdapter,
+  IStorageAdapter,
+  IWebhookNotificationAdapter,
+  XcPlugin,
+} from 'nc-plugin';
 
 const defaultPlugins = [
   SlackPluginConfig,

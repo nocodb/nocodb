@@ -1,3 +1,4 @@
+import { NormalColumnRequestType } from '../Api'
 import UITypes from '../UITypes';
 import { IDType } from './index';
 
@@ -794,7 +795,10 @@ export class OracleUi {
     }
   }
 
-  static getDataTypeForUiType(col: { uidt: UITypes }, idType?: IDType) {
+  static getDataTypeForUiType(
+    col: { uidt: UITypes | NormalColumnRequestType['uidt'] },
+    idType?: IDType
+  ) {
     const colProp: any = {};
     switch (col.uidt) {
       case 'ID':
@@ -820,6 +824,9 @@ export class OracleUi {
         break;
       case 'Attachment':
         colProp.dt = 'clob';
+        break;
+      case 'GeoData':
+        colProp.dt = 'varchar';
         break;
       case 'Checkbox':
         colProp.dt = 'tinyint';

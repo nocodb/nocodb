@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { ModelTypes, MssqlUi, SqliteUi } from 'nocodb-sdk'
-import { MetaInj, inject, ref, useProject, useVModel } from '#imports'
+import { MetaInj, inject, ref, storeToRefs, useProject, useVModel } from '#imports'
 import MdiPlusIcon from '~icons/mdi/plus-circle-outline'
 import MdiMinusIcon from '~icons/mdi/minus-circle-outline'
 
@@ -10,13 +10,15 @@ const props = defineProps<{
 
 const emit = defineEmits(['update:value'])
 
+const { appInfo } = $(useGlobal())
+
 const vModel = useVModel(props, 'value', emit)
 
 const meta = $(inject(MetaInj, ref()))
 
 const { setAdditionalValidations, validateInfos, onDataTypeChange, sqlUi } = useColumnCreateStoreOrThrow()
 
-const { tables } = $(useProject())
+const { tables } = $(storeToRefs(useProject()))
 
 setAdditionalValidations({
   childId: [{ required: true, message: 'Required' }],
@@ -31,10 +33,10 @@ if (!vModel.value.childTable) vModel.value.childTable = meta?.table_name
 if (!vModel.value.parentTable) vModel.value.parentTable = vModel.value.rtn || ''
 if (!vModel.value.parentColumn) vModel.value.parentColumn = vModel.value.rcn || ''
 
-if (!vModel.value.type) vModel.value.type = 'hm'
+if (!vModel.value.type) vModel.value.type = 'mm'
 if (!vModel.value.onUpdate) vModel.value.onUpdate = onUpdateDeleteOptions[0]
 if (!vModel.value.onDelete) vModel.value.onDelete = onUpdateDeleteOptions[0]
-if (!vModel.value.virtual) vModel.value.virtual = sqlUi === SqliteUi
+if (!vModel.value.virtual) vModel.value.virtual = appInfo.isCloud || sqlUi === SqliteUi
 if (!vModel.value.alias) vModel.value.alias = vModel.value.column_name
 
 const advancedOptions = $(ref(false))
@@ -55,7 +57,7 @@ const filterOption = (value: string, option: { key: string }) => option.key.toLo
     <div class="border-2 p-6">
       <a-form-item v-bind="validateInfos.type" class="nc-ltar-relation-type">
         <a-radio-group v-model:value="vModel.type" name="type" v-bind="validateInfos.type">
-          <a-radio value="hm">Has Many</a-radio>
+          <a-radio value="hm" :disabled="appInfo.isCloud">Has Many</a-radio>
           <a-radio value="mm">Many To Many</a-radio>
         </a-radio-group>
       </a-form-item>
@@ -127,7 +129,9 @@ const filterOption = (value: string, option: { key: string }) => option.key.toLo
 
       <div class="flex flex-row">
         <a-form-item>
-          <a-checkbox v-model:checked="vModel.virtual" name="virtual" @change="onDataTypeChange">Virtual Relation</a-checkbox>
+          <a-checkbox v-model:checked="vModel.virtual" :disabled="appInfo.isCloud" name="virtual" @change="onDataTypeChange"
+            >Virtual Relation</a-checkbox
+          >
         </a-form-item>
       </div>
     </div>

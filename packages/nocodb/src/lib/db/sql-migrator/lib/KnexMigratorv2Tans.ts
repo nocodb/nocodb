@@ -4,13 +4,12 @@
  * @class KnexMigrator
  * @extends {SqlMigrator}
  */
-import KnexMigratorv2 from './KnexMigratorv2';
-import Base from '../../../models/Base';
 import NcConnectionMgrv2 from '../../../utils/common/NcConnectionMgrv2';
 import Noco from '../../../Noco';
-import { XKnex } from '../../sql-data-mapper';
-import NcMetaIO from '../../../meta/NcMetaIO';
-
+import KnexMigratorv2 from './KnexMigratorv2';
+import type Base from '../../../models/Base';
+import type { XKnex } from '../../sql-data-mapper';
+import type NcMetaIO from '../../../meta/NcMetaIO';
 import type MssqlClient from '../../sql-client/lib/mssql/MssqlClient';
 import type MysqlClient from '../../sql-client/lib/mysql/MysqlClient';
 import type OracleClient from '../../sql-client/lib/oracle/OracleClient';

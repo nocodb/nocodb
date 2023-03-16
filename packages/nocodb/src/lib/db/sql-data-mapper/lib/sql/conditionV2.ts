@@ -1,17 +1,17 @@
-import Filter from '../../../../models/Filter';
-import LinkToAnotherRecordColumn from '../../../../models/LinkToAnotherRecordColumn';
-import { Knex } from 'knex';
-import { XKnex } from '../../index';
-import Column from '../../../../models/Column';
-import LookupColumn from '../../../../models/LookupColumn';
-import genRollupSelectv2 from './genRollupSelectv2';
-import RollupColumn from '../../../../models/RollupColumn';
-import formulaQueryBuilderv2 from './formulav2/formulaQueryBuilderv2';
-import FormulaColumn from '../../../../models/FormulaColumn';
 import { isNumericCol, RelationTypes, UITypes } from 'nocodb-sdk';
-import { sanitize } from './helpers/sanitize';
 import dayjs, { extend } from 'dayjs';
 import customParseFormat from 'dayjs/plugin/customParseFormat.js';
+import Filter from '../../../../models/Filter';
+import genRollupSelectv2 from './genRollupSelectv2';
+import formulaQueryBuilderv2 from './formulav2/formulaQueryBuilderv2';
+import { sanitize } from './helpers/sanitize';
+import type LinkToAnotherRecordColumn from '../../../../models/LinkToAnotherRecordColumn';
+import type { Knex } from 'knex';
+import type { XKnex } from '../../index';
+import type Column from '../../../../models/Column';
+import type LookupColumn from '../../../../models/LookupColumn';
+import type RollupColumn from '../../../../models/RollupColumn';
+import type FormulaColumn from '../../../../models/FormulaColumn';
 
 extend(customParseFormat);
 
@@ -577,44 +577,53 @@ const parseConditionV2 = async (
             }
             break;
           case 'gt':
-            const gt_op = customWhereClause ? '<' : '>';
-            qb = qb.where(field, gt_op, val);
-            if (column.uidt === UITypes.Rating) {
-              // unset rating is considered as NULL
-              if (gt_op === '<' && val > 0) {
-                qb = qb.orWhereNull(field);
+            {
+              const gt_op = customWhereClause ? '<' : '>';
+              qb = qb.where(field, gt_op, val);
+              if (column.uidt === UITypes.Rating) {
+                // unset rating is considered as NULL
+                if (gt_op === '<' && val > 0) {
+                  qb = qb.orWhereNull(field);
+                }
               }
             }
             break;
           case 'ge':
           case 'gte':
-            const ge_op = customWhereClause ? '<=' : '>=';
-            qb = qb.where(field, ge_op, val);
-            if (column.uidt === UITypes.Rating) {
-              // unset rating is considered as NULL
-              if (ge_op === '<=' || (ge_op === '>=' && val === 0)) {
-                qb = qb.orWhereNull(field);
+            {
+              const ge_op = customWhereClause ? '<=' : '>=';
+              qb = qb.where(field, ge_op, val);
+              if (column.uidt === UITypes.Rating) {
+                // unset rating is considered as NULL
+                if (ge_op === '<=' || (ge_op === '>=' && val === 0)) {
+                  qb = qb.orWhereNull(field);
+                }
               }
             }
             break;
           case 'lt':
-            const lt_op = customWhereClause ? '>' : '<';
-            qb = qb.where(field, lt_op, val);
-            if (column.uidt === UITypes.Rating) {
-              // unset number is considered as NULL
-              if (lt_op === '<' && val > 0) {
-                qb = qb.orWhereNull(field);
+            {
+              const lt_op = customWhereClause ? '>' : '<';
+              qb = qb.where(field, lt_op, val);
+              if (column.uidt === UITypes.Rating) {
+                // unset number is considered as NULL
+                if (lt_op === '<' && val > 0) {
+                  qb = qb.orWhereNull(field);
+                }
               }
             }
             break;
+
           case 'le':
           case 'lte':
-            const le_op = customWhereClause ? '>=' : '<=';
-            qb = qb.where(field, le_op, val);
-            if (column.uidt === UITypes.Rating) {
-              // unset number is considered as NULL
-              if (le_op === '<=' || (le_op === '>=' && val === 0)) {
-                qb = qb.orWhereNull(field);
+            {
+              const le_op = customWhereClause ? '>=' : '<=';
+              qb = qb.where(field, le_op, val);
+              if (column.uidt === UITypes.Rating) {
+                // unset number is considered as NULL
+                if (le_op === '<=' || (le_op === '>=' && val === 0)) {
+                  qb = qb.orWhereNull(field);
+                }
               }
             }
             break;
@@ -720,7 +729,7 @@ const parseConditionV2 = async (
           case 'nbtw':
             qb = qb.whereNotBetween(field, val.split(','));
             break;
-          case 'isWithin':
+          case 'isWithin': {
             let now = dayjs(new Date()).format(dateFormat).toString();
             now = column.uidt === UITypes.Date ? now.substring(0, 10) : now;
             switch (filter.comparison_sub_op) {
@@ -737,6 +746,7 @@ const parseConditionV2 = async (
                 qb = qb.whereBetween(field, [now, val]);
                 break;
             }
+          }
         }
       };
     }

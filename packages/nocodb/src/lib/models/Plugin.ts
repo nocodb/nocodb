@@ -1,8 +1,8 @@
-import { PluginType } from 'nocodb-sdk';
 import { CacheGetType, CacheScope, MetaTable } from '../utils/globals';
 import Noco from '../Noco';
 import NocoCache from '../cache/NocoCache';
 import { extractProps } from '../meta/helpers/extractProps';
+import type { PluginType } from 'nocodb-sdk';
 
 export default class Plugin implements PluginType {
   id?: string;
@@ -19,7 +19,7 @@ export default class Plugin implements PluginType {
   tags?: string;
   category?: string;
   input_schema?: string;
-  input?: string;
+  input?: string | null;
   creator?: string;
   creator_website?: string;
   price?: string;

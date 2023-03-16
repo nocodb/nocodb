@@ -19,6 +19,11 @@ async function editHook(hook: Record<string, any>) {
   editOrAdd.value = true
   currentHook.value = hook
 }
+
+async function addHook() {
+  editOrAdd.value = true
+  currentHook.value = undefined
+}
 </script>
 
 <template>
@@ -35,7 +40,7 @@ async function editHook(hook: Record<string, any>) {
       <a-layout-content class="px-10 py-5 scrollbar-thin-primary">
         <LazyWebhookEditor v-if="editOrAdd" :hook="currentHook" @back-to-list="editOrAdd = false" />
 
-        <LazyWebhookList v-else @edit="editHook" @add="editOrAdd = true" />
+        <LazyWebhookList v-else @edit="editHook" @add="addHook" />
       </a-layout-content>
 
       <a-layout-footer class="!bg-white border-t flex">

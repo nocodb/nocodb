@@ -30,6 +30,7 @@ import {
   isTime,
   isURL,
   isYear,
+  storeToRefs,
   toRef,
   useProject,
 } from '#imports'
@@ -123,7 +124,7 @@ export default defineComponent({
 
     const column = inject(ColumnInj, columnMeta)
 
-    const { sqlUis } = useProject()
+    const { sqlUis } = storeToRefs(useProject())
 
     const sqlUi = ref(column.value?.base_id ? sqlUis.value[column.value?.base_id] : Object.values(sqlUis.value)[0])
 

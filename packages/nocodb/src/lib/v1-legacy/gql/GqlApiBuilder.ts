@@ -3,27 +3,24 @@ import debug from 'debug';
 import { Router } from 'express';
 import { execute } from 'graphql';
 import { GraphQLJSON } from 'graphql-type-json';
-import _ from 'lodash';
+import groupBy from 'lodash/groupBy';
 import { BaseType } from 'xc-core-ts';
-
-import XcMetaMgr from '../../../interface/XcMetaMgr';
-import { DbConfig, NcConfig } from '../../../interface/config';
 import ExpressXcTsPolicyGql from '../../db/sql-mgr/code/gql-policies/xc-ts/ExpressXcTsPolicyGql';
 import GqlXcSchemaFactory from '../../db/sql-mgr/code/gql-schema/xc-ts/GqlXcSchemaFactory';
 import ModelXcMetaFactory from '../../db/sql-mgr/code/models/xc/ModelXcMetaFactory';
 import NcHelp from '../../utils/NcHelp';
-import NcProjectBuilder from '../NcProjectBuilder';
-import Noco from '../../Noco';
-import BaseApiBuilder, {
-  XcTablesPopulateParams,
-} from '../../utils/common/BaseApiBuilder';
-import NcMetaIO from '../../meta/NcMetaIO';
-
+import BaseApiBuilder from '../../utils/common/BaseApiBuilder';
 import { m2mNotChildren, m2mNotChildrenCount } from './GqlCommonResolvers';
 import GqlMiddleware from './GqlMiddleware';
 import { GqlProcedureResolver } from './GqlProcedureResolver';
 import GqlResolver from './GqlResolver';
 import commonSchema from './common.schema';
+import type NcMetaIO from '../../meta/NcMetaIO';
+import type { XcTablesPopulateParams } from '../../utils/common/BaseApiBuilder';
+import type Noco from '../../Noco';
+import type NcProjectBuilder from '../NcProjectBuilder';
+import type { DbConfig, NcConfig } from '../../../interface/config';
+import type XcMetaMgr from '../../../interface/XcMetaMgr';
 
 const log = debug('nc:api:gql');
 
@@ -719,7 +716,7 @@ export class GqlApiBuilder extends BaseApiBuilder<Noco> implements XcMetaMgr {
               limit: ids.length,
               where: `(${belongsToRel.rcn},in,${ids.join(',')})`,
             });
-            const gs = _.groupBy(data, rcolNameAlias);
+            const gs = groupBy(data, rcolNameAlias);
             return ids.map(
               async (id: string) =>
                 gs?.[id]?.[0] && new self.types[belongsToRel.rtn](gs[id][0])
@@ -2105,7 +2102,7 @@ export class GqlApiBuilder extends BaseApiBuilder<Noco> implements XcMetaMgr {
               where: `(${currentRelation.rcn},in,${ids.join(',')})`,
               limit: ids.length
             })
-            const gs = _.groupBy(data, currentRelation.rcn);
+            const gs = groupBy(data, currentRelation.rcn);
             return ids.map(async id => gs?.[id]?.[0] && new self.types[currentRelation.rtn](gs[id][0]))
           },
           [mw.postLoaderMiddleware]
@@ -2732,8 +2729,7 @@ export class GqlApiBuilder extends BaseApiBuilder<Noco> implements XcMetaMgr {
 
   private generateLoaderFromStringBody(fnBody: string[]): any {
     this.log(`generateLoaderFromStringBody : `);
-    // @ts-ignore
-    const _ = require('lodash');
+
     if (!(fnBody && Array.isArray(fnBody) && fnBody.length)) {
       return;
     }

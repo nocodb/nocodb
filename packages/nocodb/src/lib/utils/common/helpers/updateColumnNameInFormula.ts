@@ -1,4 +1,4 @@
-import jsepTreeToFormula from './jsepTreeToFormula';
+import { jsepTreeToFormula } from 'nocodb-sdk';
 
 export default function (args: {
   virtualColumns;

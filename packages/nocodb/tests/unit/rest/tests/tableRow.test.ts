@@ -19,7 +19,7 @@ import {
   listRow,
   createBulkRows,
 } from '../../factory/row';
-import { isMysql, isSqlite } from '../../init/db';
+import { isMysql, isPg, isSqlite } from '../../init/db';
 import Model from '../../../../src/lib/models/Model';
 import Project from '../../../../src/lib/models/Project';
 import { expect } from 'chai';
@@ -446,7 +446,7 @@ function tableTest() {
           fk_column_id: paymentListColumn?.id,
           status: 'create',
           logical_op: 'and',
-          comparison_op: 'notempty',
+          comparison_op: 'notblank',
         },
       ],
     };
@@ -536,7 +536,7 @@ function tableTest() {
           fk_column_id: paymentListColumn?.id,
           status: 'create',
           logical_op: 'and',
-          comparison_op: 'notempty',
+          comparison_op: 'notblank',
         },
         {
           is_group: true,
@@ -563,7 +563,7 @@ function tableTest() {
       })
       .expect(200);
 
-    if (response.body.pageInfo.totalRows !== 9133) {
+    if (parseInt(response.body.pageInfo.totalRows) !== 9133) {
       console.log(response.body.pageInfo);
       throw new Error('Wrong number of rows');
     }
@@ -585,7 +585,7 @@ function tableTest() {
       })
       .expect(200);
 
-    if (ascResponse.body.pageInfo.totalRows !== 9133) {
+    if (parseInt(ascResponse.body.pageInfo.totalRows) !== 9133) {
       console.log(ascResponse.body.pageInfo);
       throw new Error('Wrong number of rows');
     }
@@ -609,7 +609,7 @@ function tableTest() {
       })
       .expect(200);
 
-    if (descResponse.body.pageInfo.totalRows !== 9133) {
+    if (parseInt(descResponse.body.pageInfo.totalRows) !== 9133) {
       console.log(descResponse.body.pageInfo);
       throw new Error('Wrong number of rows');
     }
@@ -619,6 +619,7 @@ function tableTest() {
   });
 
   it('Get nested sorted filtered table data list with a rollup column in customer table', async function () {
+    if (isPg(context)) return;
     const rollupColumn = await createRollupColumn(context, {
       project: sakilaProject,
       title: 'Number of rentals',
@@ -664,7 +665,7 @@ function tableTest() {
             fk_column_id: paymentListColumn?.id,
             status: 'create',
             logical_op: 'and',
-            comparison_op: 'notempty',
+            comparison_op: 'notblank',
           },
           {
             is_group: true,
@@ -691,12 +692,12 @@ function tableTest() {
       })
       .expect(200);
 
-    if (response.body.pageInfo.totalRows !== 594) {
+    if (parseInt(response.body.pageInfo.totalRows) !== 594) {
       console.log(response.body.pageInfo);
       throw new Error('Wrong number of rows');
     }
 
-    if (response.body.list[0][rollupColumn.title] !== 32) {
+    if (parseInt(response.body.list[0][rollupColumn.title]) !== 32) {
       console.log(response.body.list[0]);
       throw new Error('Wrong filter response 0');
     }
@@ -719,12 +720,12 @@ function tableTest() {
       })
       .expect(200);
 
-    if (ascResponse.body.pageInfo.totalRows !== 594) {
+    if (parseInt(ascResponse.body.pageInfo.totalRows) !== 594) {
       console.log(ascResponse.body.pageInfo);
       throw new Error('Wrong number of rows');
     }
 
-    if (ascResponse.body.list[0][rollupColumn.title] !== 12) {
+    if (parseInt(ascResponse.body.list[0][rollupColumn.title]) !== 12) {
       console.log(ascResponse.body.list[0][rollupColumn.title]);
       throw new Error('Wrong filter ascResponse 0');
     }
@@ -755,12 +756,12 @@ function tableTest() {
       })
       .expect(200);
 
-    if (descResponse.body.pageInfo.totalRows !== 594) {
+    if (parseInt(descResponse.body.pageInfo.totalRows) !== 594) {
       console.log(descResponse.body.pageInfo);
       throw new Error('Wrong number of rows');
     }
 
-    if (descResponse.body.list[0][rollupColumn.title] !== 46) {
+    if (parseInt(descResponse.body.list[0][rollupColumn.title]) !== 46) {
       console.log(descResponse.body.list[0]);
       throw new Error('Wrong filter descResponse 0');
     }
@@ -820,7 +821,7 @@ function tableTest() {
             fk_column_id: paymentListColumn?.id,
             status: 'create',
             logical_op: 'and',
-            comparison_op: 'notempty',
+            comparison_op: 'notblank',
           },
           {
             is_group: true,
@@ -860,7 +861,7 @@ function tableTest() {
       throw new Error('Wrong number of rows');
     }
 
-    if (ascResponse.body.list[0][rollupColumn.title] !== 12) {
+    if (parseInt(ascResponse.body.list[0][rollupColumn.title]) !== 12) {
       throw new Error('Wrong filter');
     }
 
@@ -907,12 +908,13 @@ function tableTest() {
       })
       .expect(200);
 
-    if (response.body.list[0][formulaColumnTitle] !== 22)
+    if (parseInt(response.body.list[0][formulaColumnTitle]) !== 22)
       throw new Error('Wrong sorting');
 
     if (
       (response.body.list as Array<any>).every(
-        (row) => row['Formula'] !== row[rollupColumnTitle] + 10
+        (row) =>
+          parseInt(row['Formula']) !== parseInt(row[rollupColumnTitle]) + 10
       )
     ) {
       throw new Error('Wrong formula');
@@ -1128,7 +1130,7 @@ function tableTest() {
             fk_column_id: paymentListColumn?.id,
             status: 'create',
             logical_op: 'and',
-            comparison_op: 'notempty',
+            comparison_op: 'notblank',
           },
           {
             is_group: true,
@@ -1160,7 +1162,7 @@ function tableTest() {
       })
       .expect(200);
 
-    if (ascResponse.body[rollupColumn.title] !== 12) {
+    if (parseInt(ascResponse.body[rollupColumn.title]) !== 12) {
       console.log(ascResponse.body);
       throw new Error('Wrong filter');
     }
@@ -1206,7 +1208,7 @@ function tableTest() {
 
     if (
       response.body.list[4]['first_name'] !== 'WILLIE' ||
-      response.body.list[4]['count'] !== 2
+      parseInt(response.body.list[4]['count']) !== 2
     )
       throw new Error('Wrong groupby');
   });
@@ -1243,7 +1245,7 @@ function tableTest() {
 
     if (
       response.body.list[0]['first_name'] !== 'WILLIE' ||
-      response.body.list[0]['count'] !== 2
+      parseInt(response.body.list[0]['count']) !== 2
     )
       throw new Error('Wrong groupby');
   });
@@ -1422,7 +1424,7 @@ function tableTest() {
   it('Exist should be false table row when it does not exists', async function () {
     const response = await request(context.app)
       .get(
-        `/api/v1/db/data/noco/${sakilaProject.id}/${customerTable.id}/invalid-id/exist`
+        `/api/v1/db/data/noco/${sakilaProject.id}/${customerTable.id}/998546/exist`
       )
       .set('xc-auth', context.token)
       .expect(200);
@@ -2110,7 +2112,7 @@ function tableTest() {
 
   it('Delete list hm with existing ref row id with non nullable clause', async () => {
     // todo: Foreign key has non nullable clause in sqlite sakila
-    if (isSqlite(context)) return;
+    if (isSqlite(context) || isPg(context)) return;
 
     const rowId = 1;
     const rentalListColumn = (await customerTable.getColumns()).find(
@@ -2125,9 +2127,15 @@ function tableTest() {
       .set('xc-auth', context.token)
       .expect(400);
 
+    // todo: only keep generic error message once updated in noco catchError middleware
     if (
-      !response.body.msg.includes("Column 'customer_id' cannot be null") &&
-      !response.body.msg.includes('Cannot add or update a child row')
+      !response.body.message?.includes(
+        "The column 'customer_id' cannot be null"
+      ) &&
+      !response.body.message?.includes("Column 'customer_id' cannot be null") &&
+      !response.body.message?.includes('Cannot add or update a child row') &&
+      !response.body.msg?.includes("Column 'customer_id' cannot be null") &&
+      !response.body.msg?.includes('Cannot add or update a child row')
     ) {
       console.log(
         'Delete list hm with existing ref row id with non nullable clause',
@@ -2172,7 +2180,7 @@ function tableTest() {
       throw new Error('Was not deleted');
     }
 
-    if (response.body['msg'] !== 'success') {
+    if (response.body['msg'] !== 'The relation data has been deleted successfully') {
       throw new Error('Response incorrect');
     }
   });

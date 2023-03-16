@@ -1,4 +1,4 @@
-import { MapFnArgs } from '../mapFunctionName';
+import type { MapFnArgs } from '../mapFunctionName';
 
 export default {
   // todo: handle default case

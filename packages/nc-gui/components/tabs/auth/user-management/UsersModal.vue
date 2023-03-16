@@ -9,6 +9,7 @@ import {
   projectRoleTagColors,
   projectRoles,
   ref,
+  storeToRefs,
   useActiveKeyupListener,
   useCopy,
   useDashboard,
@@ -37,7 +38,7 @@ const emit = defineEmits(['closed', 'reload'])
 
 const { t } = useI18n()
 
-const { project } = useProject()
+const { project } = storeToRefs(useProject())
 
 const { isMobileMode } = useGlobal()
 

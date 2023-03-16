@@ -1,4 +1,3 @@
-import { HookType } from 'nocodb-sdk';
 import {
   CacheDelDirection,
   CacheGetType,
@@ -6,11 +5,12 @@ import {
   MetaTable,
 } from '../utils/globals';
 import Noco from '../Noco';
-import Model from './Model';
 import NocoCache from '../cache/NocoCache';
+import { extractProps } from '../meta/helpers/extractProps';
+import Model from './Model';
 import Filter from './Filter';
 import HookFilter from './HookFilter';
-import { extractProps } from '../meta/helpers/extractProps';
+import type { BoolType, HookReqType, HookType } from 'nocodb-sdk';
 
 export default class Hook implements HookType {
   id?: string;
@@ -21,21 +21,21 @@ export default class Hook implements HookType {
   type?: string;
   event?: 'after' | 'before';
   operation?: 'insert' | 'delete' | 'update';
-  async?: boolean;
+  async?: BoolType;
   payload?: string;
   url?: string;
   headers?: string;
-  condition?: boolean;
-  notification?: string;
+  condition?: BoolType;
+  notification?: string | Record<string, any>;
   retries?: number;
   retry_interval?: number;
   timeout?: number;
-  active?: boolean;
+  active?: BoolType;
 
   project_id?: string;
   base_id?: string;
 
-  constructor(hook: Partial<Hook>) {
+  constructor(hook: Partial<Hook | HookReqType>) {
     Object.assign(this, hook);
   }
 
@@ -113,15 +113,7 @@ export default class Hook implements HookType {
     return hooks?.map((h) => new Hook(h));
   }
 
-  public static async insert(
-    hook: Partial<
-      Hook & {
-        created_at?;
-        updated_at?;
-      }
-    >,
-    ncMeta = Noco.ncMeta
-  ) {
+  public static async insert(hook: Partial<Hook>, ncMeta = Noco.ncMeta) {
     const insertObj = extractProps(hook, [
       'fk_model_id',
       'title',
@@ -140,8 +132,6 @@ export default class Hook implements HookType {
       'active',
       'project_id',
       'base_id',
-      'created_at',
-      'updated_at',
     ]);
 
     if (insertObj.event) {

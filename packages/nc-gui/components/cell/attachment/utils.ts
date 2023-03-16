@@ -13,6 +13,7 @@ import {
   isImage,
   message,
   ref,
+  storeToRefs,
   useApi,
   useAttachment,
   useFileDialog,
@@ -51,7 +52,7 @@ export const [useProvideAttachmentCell, useAttachmentCell] = useInjectionState(
     /** for image carousel */
     const selectedImage = ref()
 
-    const { project } = useProject()
+    const { project } = storeToRefs(useProject())
 
     const { api, isLoading } = useApi()
 

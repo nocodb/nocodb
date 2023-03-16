@@ -1,7 +1,7 @@
 import { ViewTypes, isSystemColumn } from 'nocodb-sdk'
 import type { ColumnType, MapType, TableType, ViewType } from 'nocodb-sdk'
 import type { ComputedRef, Ref } from 'vue'
-import { IsPublicInj, computed, inject, ref, useNuxtApp, useProject, useUIPermission, watch } from '#imports'
+import { IsPublicInj, computed, inject, ref, storeToRefs, useNuxtApp, useProject, useUIPermission, watch } from '#imports'
 import type { Field } from '~/lib'
 
 export function useViewColumns(
@@ -19,7 +19,7 @@ export function useViewColumns(
 
   const { isUIAllowed } = useUIPermission()
 
-  const { isSharedBase } = useProject()
+  const { isSharedBase } = storeToRefs(useProject())
 
   const isLocalMode = computed(
     () => isPublic.value || !isUIAllowed('hideAllColumns') || !isUIAllowed('showAllColumns') || isSharedBase.value,
@@ -35,13 +35,13 @@ export function useViewColumns(
   const metaColumnById = computed<Record<string, ColumnType>>(() => {
     if (!meta.value?.columns) return {}
 
-    return meta.value.columns.reduce(
+    return (meta.value.columns as ColumnType[]).reduce(
       (acc, curr) => ({
         ...acc,
         [curr.id!]: curr,
       }),
       {},
-    )
+    ) as Record<string, ColumnType>
   })
 
   const loadViewColumns = async () => {
@@ -50,7 +50,7 @@ export function useViewColumns(
     let order = 1
 
     if (view.value?.id) {
-      const data = (isPublic.value ? meta.value?.columns : await $api.dbViewColumn.list(view.value.id)) as any[]
+      const data = (isPublic.value ? meta.value?.columns : (await $api.dbViewColumn.list(view.value.id)).list) as any[]
 
       const fieldById = data.reduce<Record<string, any>>((acc, curr) => {
         curr.show = !!curr.show
@@ -162,7 +162,7 @@ export function useViewColumns(
 
   const showSystemFields = computed({
     get() {
-      return view.value?.show_system_fields || false
+      return (view.value?.show_system_fields as boolean) || false
     },
     set(v: boolean) {
       if (view?.value?.id) {

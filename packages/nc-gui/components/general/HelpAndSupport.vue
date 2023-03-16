@@ -1,11 +1,11 @@
 <script lang="ts" setup>
-import { ref, useGlobal, useProject, useRoute } from '#imports'
+import { ref, storeToRefs, useGlobal, useProject, useRoute } from '#imports'
 
 const showDrawer = ref(false)
 
 const { appInfo } = useGlobal()
 
-const { project } = useProject()
+const { project } = storeToRefs(useProject())
 
 const route = useRoute()
 

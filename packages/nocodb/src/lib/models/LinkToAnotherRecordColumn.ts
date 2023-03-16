@@ -1,10 +1,10 @@
-import { BoolType } from 'nocodb-sdk';
 import Noco from '../Noco';
-import Column from './Column';
-import Model from './Model';
 import { CacheGetType, CacheScope, MetaTable } from '../utils/globals';
 import NocoCache from '../cache/NocoCache';
 import { extractProps } from '../meta/helpers/extractProps';
+import Model from './Model';
+import Column from './Column';
+import type { BoolType } from 'nocodb-sdk';
 
 export default class LinkToAnotherRecordColumn {
   fk_column_id?: string;

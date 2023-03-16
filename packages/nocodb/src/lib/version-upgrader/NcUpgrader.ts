@@ -1,22 +1,21 @@
-import { NcConfig } from '../../interface/config';
-
 import debug from 'debug';
-import NcMetaIO from '../meta/NcMetaIO';
-import { Tele } from 'nc-help';
-import ncProjectEnvUpgrader from './ncProjectEnvUpgrader';
-import ncProjectEnvUpgrader0011045 from './ncProjectEnvUpgrader0011045';
-import ncProjectUpgraderV2_0090000 from './ncProjectUpgraderV2_0090000';
-import ncDataTypesUpgrader from './ncDataTypesUpgrader';
-import ncProjectRolesUpgrader from './ncProjectRolesUpgrader';
-import ncFilterUpgrader from './ncFilterUpgrader';
+import { T } from 'nc-help';
+import boxen from 'boxen';
 import ncAttachmentUpgrader from './ncAttachmentUpgrader';
 import ncAttachmentUpgrader_0104002 from './ncAttachmentUpgrader_0104002';
 import ncStickyColumnUpgrader from './ncStickyColumnUpgrader';
 import ncFilterUpgrader_0104004 from './ncFilterUpgrader_0104004';
 import ncFilterUpgrader_0105003 from './ncFilterUpgrader_0105003';
+import ncFilterUpgrader from './ncFilterUpgrader';
+import ncProjectRolesUpgrader from './ncProjectRolesUpgrader';
+import ncDataTypesUpgrader from './ncDataTypesUpgrader';
+import ncProjectUpgraderV2_0090000 from './ncProjectUpgraderV2_0090000';
+import ncProjectEnvUpgrader0011045 from './ncProjectEnvUpgrader0011045';
+import ncProjectEnvUpgrader from './ncProjectEnvUpgrader';
+import type { NcConfig } from '../../interface/config';
+import type NcMetaIO from '../meta/NcMetaIO';
 
 const log = debug('nc:version-upgrader');
-import boxen from 'boxen';
 
 export interface NcUpgraderCtx {
   ncMeta: NcMetaIO;
@@ -107,14 +106,14 @@ export default class NcUpgrader {
         }
       }
       await ctx.ncMeta.commit();
-      Tele.emit('evt', {
+      T.emit('evt', {
         evt_type: 'appMigration:upgraded',
         from: oldVersion,
         to: process.env.NC_VERSION,
       });
     } catch (e) {
       await ctx.ncMeta.rollback(e);
-      Tele.emit('evt', {
+      T.emit('evt', {
         evt_type: 'appMigration:failed',
         from: oldVersion,
         to: process.env.NC_VERSION,

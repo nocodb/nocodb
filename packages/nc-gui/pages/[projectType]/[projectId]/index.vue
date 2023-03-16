@@ -18,6 +18,7 @@ import {
   projectThemeColors,
   ref,
   resolveComponent,
+  storeToRefs,
   useCopy,
   useDialog,
   useGlobal,
@@ -47,7 +48,10 @@ const router = useRouter()
 
 const { appInfo, token, signOut, signedIn, user, currentVersion, isMobileMode, setIsMobileMode } = useGlobal()
 
-const { project, isSharedBase, loadProjectMetaInfo, projectMetaInfo, saveTheme, loadProject, reset } = useProject()
+const projectStore = useProject()
+
+const { loadProjectMetaInfo, saveTheme, loadProject, reset } = projectStore
+const { project, isSharedBase, projectMetaInfo } = storeToRefs(projectStore)
 
 const { clearTabs, addTab } = useTabs()
 
@@ -167,8 +171,6 @@ onKeyStroke(
   { eventName: 'keydown' },
 )
 
-clearTabs()
-
 onBeforeMount(async () => {
   try {
     await loadProject()
@@ -182,8 +184,8 @@ onBeforeMount(async () => {
     message.error(await extractSdkResponseErrorMsg(e))
   }
 
-  if (!route.params.type && isUIAllowed('teamAndAuth')) {
-    addTab({ type: TabType.AUTH, title: t('title.teamAndAuth') })
+  if (route.name === 'projectType-projectId-index-index' && isUIAllowed('teamAndAuth')) {
+    addTab({ id: TabType.AUTH, type: TabType.AUTH, title: t('title.teamAndAuth') })
   }
 
   /** If v1 url found navigate to corresponding new url */
@@ -198,7 +200,10 @@ onMounted(() => {
   toggleHasSidebar(true)
 })
 
-onBeforeUnmount(reset)
+onBeforeUnmount(() => {
+  clearTabs()
+  reset()
+})
 
 function openKeyboardShortcutDialog() {
   $e('a:actions:keyboard-shortcut')
@@ -598,9 +603,7 @@ useEventListener(document, 'keydown', async (e: KeyboardEvent) => {
         v-model:open-key="openDialogKey"
         v-model:data-sources-state="dataSourcesState"
       />
-
       <NuxtPage :page-key="$route.params.projectId" />
-
       <LazyGeneralPreviewAs float />
     </div>
   </NuxtLayout>

@@ -1,6 +1,6 @@
-import { IStorageAdapterV2, XcStoragePlugin } from 'nc-plugin';
-
+import { XcStoragePlugin } from 'nc-plugin';
 import LinodeObjectStorage from './LinodeObjectStorage';
+import type { IStorageAdapterV2 } from 'nc-plugin';
 
 class LinodeObjectStoragePlugin extends XcStoragePlugin {
   private static storageAdapter: LinodeObjectStorage;

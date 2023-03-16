@@ -686,6 +686,9 @@ export class SnowflakeUi {
       case 'Attachment':
         colProp.dt = 'TEXT';
         break;
+      case 'GeoData':
+        colProp.dt = 'TEXT';
+        break;
       case 'Checkbox':
         colProp.dt = 'BOOLEAN';
         colProp.cdf = '0';
@@ -802,9 +805,7 @@ export class SnowflakeUi {
         if (idType === 'AG') {
           return ['VARCHAR'];
         } else if (idType === 'AI') {
-          return [
-            'NUMBER'
-          ];
+          return ['NUMBER'];
         } else {
           return dbTypes;
         }
@@ -814,6 +815,7 @@ export class SnowflakeUi {
       case 'SingleLineText':
       case 'LongText':
       case 'Collaborator':
+      case 'GeoData':
         return ['CHAR', 'CHARACTER', 'VARCHAR', 'TEXT'];
 
       case 'Attachment':
@@ -822,13 +824,7 @@ export class SnowflakeUi {
       case 'JSON':
         return ['TEXT'];
       case 'Checkbox':
-        return [
-          'BIT',
-          'BOOLEAN',
-          'TINYINT',
-          'INT',
-          'BIGINT',
-        ];
+        return ['BIT', 'BOOLEAN', 'TINYINT', 'INT', 'BIGINT'];
 
       case 'MultiSelect':
         return ['TEXT'];
@@ -840,10 +836,7 @@ export class SnowflakeUi {
         return ['INT'];
 
       case 'Time':
-        return [
-          'TIMESTAMP',
-          'VARCHAR',
-        ];
+        return ['TIMESTAMP', 'VARCHAR'];
 
       case 'PhoneNumber':
       case 'Email':
@@ -872,7 +865,14 @@ export class SnowflakeUi {
         ];
 
       case 'Decimal':
-        return ['DOUBLE', 'DOUBLE PRECISION', 'FLOAT', 'FLOAT4', 'FLOAT8', 'NUMERIC'];
+        return [
+          'DOUBLE',
+          'DOUBLE PRECISION',
+          'FLOAT',
+          'FLOAT4',
+          'FLOAT8',
+          'NUMERIC',
+        ];
 
       case 'Currency':
         return [
@@ -941,44 +941,27 @@ export class SnowflakeUi {
         return ['VARCHAR'];
 
       case 'Count':
-        return [
-          'NUMBER',
-          'INT',
-          'INTEGER',
-          'BIGINT',
-        ];
+        return ['NUMBER', 'INT', 'INTEGER', 'BIGINT'];
 
       case 'Lookup':
         return ['VARCHAR'];
 
       case 'Date':
-        return [
-          'DATE',
-          'TIMESTAMP',
-        ];
+        return ['DATE', 'TIMESTAMP'];
 
       case 'DateTime':
       case 'CreateTime':
       case 'LastModifiedTime':
-        return [
-          'TIMESTAMP',
-        ];
+        return ['TIMESTAMP'];
 
       case 'AutoNumber':
-        return [
-          'NUMBER',
-          'INT',
-          'INTEGER',
-          'BIGINT',
-        ];
+        return ['NUMBER', 'INT', 'INTEGER', 'BIGINT'];
 
       case 'Barcode':
         return ['VARCHAR'];
 
       case 'Geometry':
-        return [
-          'TEXT',
-        ];
+        return ['TEXT'];
 
       case 'Button':
       default:

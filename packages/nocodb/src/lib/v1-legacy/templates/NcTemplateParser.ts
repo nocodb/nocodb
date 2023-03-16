@@ -1,12 +1,5 @@
-import {
-  MssqlUi,
-  MysqlUi,
-  OracleUi,
-  PgUi,
-  SqliteUi,
-  SqlUiFactory,
-  UITypes,
-} from 'nocodb-sdk';
+import { SqlUiFactory, UITypes } from 'nocodb-sdk';
+import type { MssqlUi, MysqlUi, OracleUi, PgUi, SqliteUi } from 'nocodb-sdk';
 
 export default class NcTemplateParser {
   sqlUi:

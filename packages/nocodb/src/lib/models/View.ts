@@ -1,3 +1,4 @@
+import { isSystemColumn, UITypes, ViewTypes } from 'nocodb-sdk';
 import Noco from '../Noco';
 import {
   CacheDelDirection,
@@ -6,6 +7,8 @@ import {
   MetaTable,
 } from '../utils/globals';
 import { parseMetaProp, stringifyMetaProp } from '../utils/modelUtils';
+import NocoCache from '../cache/NocoCache';
+import { extractProps } from '../meta/helpers/extractProps';
 import Model from './Model';
 import FormView from './FormView';
 import GridView from './GridView';
@@ -14,21 +17,13 @@ import GalleryView from './GalleryView';
 import GridViewColumn from './GridViewColumn';
 import Sort from './Sort';
 import Filter from './Filter';
-import {
-  ColumnReqType,
-  isSystemColumn,
-  UITypes,
-  ViewType,
-  ViewTypes,
-} from 'nocodb-sdk';
 import GalleryViewColumn from './GalleryViewColumn';
 import FormViewColumn from './FormViewColumn';
 import KanbanViewColumn from './KanbanViewColumn';
 import Column from './Column';
-import NocoCache from '../cache/NocoCache';
-import { extractProps } from '../meta/helpers/extractProps';
 import MapView from './MapView';
 import MapViewColumn from './MapViewColumn';
+import type { BoolType, ColumnReqType, ViewType } from 'nocodb-sdk';
 
 const { v4: uuidv4 } = require('uuid');
 export default class View implements ViewType {
@@ -251,8 +246,6 @@ export default class View implements ViewType {
       Partial<FormView | GridView | GalleryView | KanbanView | MapView> & {
         copy_from_id?: string;
         fk_grp_col_id?: string;
-        created_at?;
-        updated_at?;
       },
     ncMeta = Noco.ncMeta
   ) {
@@ -264,8 +257,6 @@ export default class View implements ViewType {
       'fk_model_id',
       'project_id',
       'base_id',
-      'created_at',
-      'updated_at',
       'meta',
     ]);
 
@@ -661,11 +652,10 @@ export default class View implements ViewType {
     colId: string,
     colData: {
       order?: number;
-      show?: boolean;
+      show?: BoolType;
     },
     ncMeta = Noco.ncMeta
-  ): Promise<Array<GridViewColumn | any>> {
-    const columns: Array<GridViewColumn | any> = [];
+  ) {
     const view = await this.get(viewId, ncMeta);
     let table;
     let cacheScope;
@@ -731,17 +721,15 @@ export default class View implements ViewType {
       await NocoCache.set(key, o);
     }
     // set meta
-    await ncMeta.metaUpdate(null, null, table, updateObj, colId);
-
-    return columns;
+    return await ncMeta.metaUpdate(null, null, table, updateObj, colId);
   }
 
   static async insertOrUpdateColumn(
     viewId: string,
     fkColId: string,
     colData: {
-      order: number;
-      show: boolean;
+      order?: number;
+      show?: BoolType;
     },
     ncMeta = Noco.ncMeta
   ): Promise<
@@ -754,7 +742,6 @@ export default class View implements ViewType {
   > {
     const view = await this.get(viewId);
     const table = this.extractViewColumnsTableName(view);
-    console.log(table);
 
     const existingCol = await ncMeta.metaGet2(null, null, table, {
       fk_view_id: viewId,
@@ -942,7 +929,7 @@ export default class View implements ViewType {
     body: {
       title?: string;
       order?: number;
-      show_system_fields?: boolean;
+      show_system_fields?: BoolType;
       lock_type?: string;
       password?: string;
       uuid?: string;

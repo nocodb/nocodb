@@ -18,6 +18,7 @@ import {
   message,
   reactive,
   ref,
+  storeToRefs,
   useI18n,
   useProject,
   useVModel,
@@ -37,7 +38,7 @@ const emit = defineEmits(['update:modelValue'])
 
 const { t } = useI18n()
 
-const { tables } = useProject()
+const { tables } = storeToRefs(useProject())
 
 const activeKey = ref('uploadTab')
 

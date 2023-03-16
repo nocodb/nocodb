@@ -141,6 +141,7 @@ const onDecode = async (codeValue: string) => {
       @cancel="scannerIsReady = false"
     >
       <div class="relative flex flex-col h-full">
+        <div class="text-left text-wrap mt-2 text-xl mb-4">{{ $t('title.findRowByScanningCode') }}</div>
         <a-form-item :label="$t('labels.columnToScanFor')" class="nc-dropdown-scanner-column-id">
           <a-select
             v-model:value="idOfSelectedColumnToScanFor"

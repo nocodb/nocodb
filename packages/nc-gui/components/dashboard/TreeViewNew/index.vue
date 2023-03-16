@@ -2,7 +2,9 @@
 import type { BaseType, ProjectType, TableType } from 'nocodb-sdk'
 import { message } from 'ant-design-vue'
 import Sortable from 'sortablejs'
-import { nextTick, } from '@vue/runtime-core'
+import { nextTick } from '@vue/runtime-core'
+import AddNewTableNode from './AddNewTableNode'
+import TableList from './TableList'
 import type { VNodeRef } from '#imports'
 
 import {
@@ -30,9 +32,7 @@ import MdiView from '~icons/mdi/eye-circle-outline'
 import MdiTableLarge from '~icons/mdi/table-large'
 import PhTableThin from '~icons/ph/table-thin'
 
-import AddNewTableNode from './AddNewTableNode'
-import TableList from './TableList'
-import {useRouter} from "#app";
+import { useRouter } from '#app'
 
 const { addTab, updateTab } = useTabs()
 
@@ -104,7 +104,6 @@ const router = useRouter()
 const route = $(router.currentRoute)
 
 const [searchActive, toggleSearchActive] = useToggle()
-
 
 const keys = $ref<Record<string, number>>({})
 
@@ -388,8 +387,7 @@ useEventListener(document, 'keydown', async (e: KeyboardEvent) => {
           e.preventDefault()
           $e('c:shortcut', { key: 'ALT + T' })
           const projectId = openedProjectId.value! || activeProjectId.value
-          if(projectId)
-          openTableCreateDialog(projects.value?.[projectId]?.bases?.[0].id, projectId)
+          if (projectId) openTableCreateDialog(projects.value?.[projectId]?.bases?.[0].id, projectId)
         }
         break
       }
@@ -454,6 +452,8 @@ watch(
   },
   { immediate: true },
 )
+
+const settingsDialog = reactive({})
 </script>
 
 <template>
@@ -492,11 +492,14 @@ watch(
                 "
                 class="flex-1 ml-1"
               >
-
-                <AddNewTableNode :project="project" :base-index="0" @openTableCreateDialog="openTableCreateDialog(projects[project.id].bases[0].id, project.id)"/>
+                <AddNewTableNode
+                  :project="project"
+                  :base-index="0"
+                  @openTableCreateDialog="openTableCreateDialog(projects[project.id].bases[0].id, project.id)"
+                />
 
                 <div class="transition-height duration-200 ml-2">
-                  <TableList :project="projects[project.id]" :base-index="0"/>
+                  <TableList :project="projects[project.id]" :base-index="0" />
                 </div>
 
                 <div
@@ -763,7 +766,7 @@ watch(
                                     class="prose-sm hover:(!text-primary !opacity-100) color-transition nc-project-menu-item group after:(!rounded-b)"
                                   >
                                     <MdiOpenInNew class="group-hover:text-accent" />
-                                    &lt;!&ndash; Request a data source you need? &ndash;&gt;
+                                    <!-- Request a data source you need? -->
                                     {{ $t('labels.requestDataSource') }}
                                   </a>
                                 </a-menu-item>
@@ -776,104 +779,7 @@ watch(
                           :key="`sortable-${base.id}-${base.id && base.id in keys ? keys[base.id] : '0'}`"
                           :nc-base="base.id"
                         >
-
-                          <TableList :project="projects[project.id]" :base-index="baseIndex"/>
-<!--                          <div
-                            v-for="table of projectTableList[project.id].filter((table) => table.base_id === base.id)"
-                            :key="table.id"
-                            v-e="['a:table:open']"
-                            :class="[
-                              { hidden: !filteredTables?.includes(table), active: activeTable === table.id },
-                              `nc-project-tree-tbl nc-project-tree-tbl-${table.title}`,
-                            ]"
-                            class="nc-tree-item text-sm cursor-pointer group"
-                            :data-order="table.order"
-                            :data-id="table.id"
-                            :data-testid="`tree-view-table-${table.title}`"
-                            @click="addTableTab(table)"
-                          >
-                            <GeneralTooltip class="pl-8 pr-3 py-2" modifier-key="Alt">
-                              <template #title>{{ table.table_name }}</template>
-                              <div
-                                class="table-context flex items-center gap-2 h-full"
-                                @contextmenu="setMenuContext('table', table)"
-                              >
-                                <div class="flex w-auto" :data-testid="`tree-view-table-draggable-handle-${table.title}`">
-                                  <component
-                                    :is="isUIAllowed('tableIconCustomisation') ? Dropdown : 'div'"
-                                    trigger="click"
-                                    destroy-popup-on-hide
-                                    class="flex items-center"
-                                    @click.stop
-                                  >
-                                    <div class="flex items-center" @click.stop>
-                                      <component :is="isUIAllowed('tableIconCustomisation') ? Tooltip : 'div'">
-                                        <span
-                                          v-if="table.meta?.icon"
-                                          :key="table.meta?.icon"
-                                          class="nc-table-icon flex items-center"
-                                        >
-                                          <IconifyIcon
-                                            :key="table.meta?.icon"
-                                            :data-testid="`nc-icon-${table.meta?.icon}`"
-                                            class="text-xl"
-                                            :icon="table.meta?.icon"
-                                          ></IconifyIcon>
-                                        </span>
-                                        <component
-                                          :is="icon(table)"
-                                          v-else
-                                          class="nc-table-icon nc-view-icon w-5"
-                                          :class="{ 'group-hover:text-gray-500': isUIAllowed('treeview-drag-n-drop') }"
-                                        />
-
-                                        <template v-if="isUIAllowed('tableIconCustomisation')" #title>Change icon </template>
-                                      </component>
-                                    </div>
-                                    <template v-if="isUIAllowed('tableIconCustomisation')" #overlay>
-                                      <GeneralEmojiIcons class="shadow bg-white p-2" @select-icon="setIcon($event, table)" />
-                                    </template>
-                                  </component>
-                                </div>
-
-                                <div class="nc-tbl-title flex-1">
-                                  <GeneralTruncateText>{{ table.title }}</GeneralTruncateText>
-                                </div>
-
-                                <a-dropdown
-                                  v-if="!isSharedBase && (isUIAllowed('table-rename') || isUIAllowed('table-delete'))"
-                                  :trigger="['click']"
-                                  @click.stop
-                                >
-                                  <MdiDotsVertical class="transition-opacity opacity-0 group-hover:opacity-100 outline-0" />
-
-                                  <template #overlay>
-                                    <a-menu class="!py-0 rounded text-sm">
-                                      <a-menu-item
-                                        v-if="isUIAllowed('table-rename')"
-                                        :data-testid="`sidebar-table-rename-${table.title}`"
-                                        @click="openRenameTableDialog(table, base.id)"
-                                      >
-                                        <div class="nc-project-menu-item">
-                                          {{ $t('general.rename') }}
-                                        </div>
-                                      </a-menu-item>
-
-                                      <a-menu-item
-                                        v-if="isUIAllowed('table-delete')"
-                                        :data-testid="`sidebar-table-delete-${table.title}`"
-                                        @click="deleteTable(table)"
-                                      >
-                                        <div class="nc-project-menu-item">
-                                          {{ $t('general.delete') }}
-                                        </div>
-                                      </a-menu-item>
-                                    </a-menu>
-                                  </template>
-                                </a-dropdown>
-                              </div>
-                            </GeneralTooltip>
-                          </div>-->
+                          <TableList :project="projects[project.id]" :base-index="baseIndex" />
                         </div>
                       </a-collapse-panel>
                     </a-collapse>
@@ -926,7 +832,7 @@ watch(
     </div>
 
     <div class="flex items-center py-2 justify-center">
-      <WorkspaceCreateProjectBtn modal type="ghost" :activeWorkspaceId="route.params.workspaceId">
+      <WorkspaceCreateProjectBtn modal type="ghost" :active-workspace-id="route.params.workspaceId">
         <PhPlusThin />
         Add New
       </WorkspaceCreateProjectBtn>
@@ -934,10 +840,14 @@ watch(
     <a-divider class="!my-0" />
 
     <div class="flex items-start flex-col justify-start px-2 py-3 gap-2">
-
       <GeneralJoinCloud class="color-transition px-2 text-gray-500 cursor-pointer select-none hover:text-accent" />
-
     </div>
+
+    <LazyDashboardSettingsModal
+      v-model:model-value="settingsDialog.show"
+      v-model:open-key="settingsDialog.openKey"
+      v-model:data-sources-state="settingsDialog.dataSourcesState"
+    />
   </div>
 </template>
 
@@ -986,8 +896,6 @@ watch(
     @apply !bg-primary bg-opacity-25 text-primary;
   }
 }
-
-
 
 .nc-tree-item:hover {
   @apply text-primary after:(!opacity-5);

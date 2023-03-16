@@ -150,7 +150,7 @@ export const useProject = defineStore('projectStore', () => {
     if (data.meta && typeof data.meta === 'string') {
       await api.project.update(projectId.value, data)
     } else {
-      await api.project.update(projectId.value, { ...data, meta: JSON.stringify(data.meta) })
+      await api.project.update(projectId.value, { ...data, meta: stringifyProp(data.meta) })
     }
   }
 

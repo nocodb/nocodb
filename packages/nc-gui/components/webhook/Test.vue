@@ -1,8 +1,9 @@
 <script setup lang="ts">
+import type { HookTestReqType, HookType } from 'nocodb-sdk'
 import { MetaInj, extractSdkResponseErrorMsg, inject, message, onMounted, ref, useI18n, useNuxtApp, watch } from '#imports'
 
 interface Props {
-  hook: Record<string, any>
+  hook: HookType
 }
 
 const { hook } = defineProps<Props>()
@@ -33,10 +34,13 @@ async function loadSampleData() {
 
 async function testWebhook() {
   try {
-    await $api.dbTableWebhook.test(meta.value?.id as string, {
-      hook,
-      payload: sampleData.value,
-    })
+    await $api.dbTableWebhook.test(
+      meta.value?.id as string,
+      {
+        hook,
+        payload: sampleData.value,
+      } as HookTestReqType,
+    )
 
     // Webhook tested successfully
     message.success(t('msg.success.webhookTested'))

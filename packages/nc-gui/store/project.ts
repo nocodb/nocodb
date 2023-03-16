@@ -98,7 +98,7 @@ export const useProject = defineStore('projectStore', () => {
 
   async function loadProjectMetaInfo(force?: boolean) {
     if (!projectMetaInfo.value || force) {
-      projectMetaInfo.value = await api.project.metaGet(project.value.id!, {}, {})
+      projectMetaInfo.value = await api.project.metaGet(project.value.id!, {})
     }
   }
 

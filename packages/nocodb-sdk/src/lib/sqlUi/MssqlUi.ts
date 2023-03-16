@@ -983,7 +983,6 @@ export class MssqlUi {
         break;
       case 'Date':
         colProp.dt = 'date';
-
         break;
       case 'Year':
         colProp.dt = 'int';
@@ -1093,6 +1092,7 @@ export class MssqlUi {
       case 'LongText':
       case 'Attachment':
       case 'Collaborator':
+      case 'GeoData':
         return ['char', 'ntext', 'text', 'varchar', 'nvarchar'];
 
       case 'JSON':
@@ -1134,9 +1134,6 @@ export class MssqlUi {
         ];
 
       case 'Decimal':
-        return ['decimal', 'float'];
-
-      case 'GeoData':
         return ['decimal', 'float'];
 
       case 'Currency':

@@ -5,6 +5,7 @@ import type { SelectProps } from 'ant-design-vue'
 import {
   ActiveViewInj,
   IsLockedInj,
+  IsPublicInj,
   MetaInj,
   ReloadViewDataHookInj,
   computed,
@@ -23,6 +24,8 @@ const activeView = inject(ActiveViewInj, ref())
 const reloadDataHook = inject(ReloadViewDataHookInj)!
 
 const isLocked = inject(IsLockedInj, ref(false))
+
+const IsPublic = inject(IsPublicInj, ref(false))
 
 const { fields, loadViewColumns, metaColumnById } = useViewColumns(activeView, meta, () => reloadDataHook.trigger())
 
@@ -72,7 +75,7 @@ const handleChange = () => {
 </script>
 
 <template>
-  <a-dropdown v-model:visible="mappedByDropdown" :trigger="['click']">
+  <a-dropdown v-if="!IsPublic" v-model:visible="mappedByDropdown" :trigger="['click']">
     <div class="nc-map-btn">
       <a-button v-e="['c:map:change-grouping-field']" class="nc-map-stacked-by-menu-btn nc-toolbar-btn" :disabled="isLocked">
         <div class="flex items-center gap-1">

@@ -257,7 +257,7 @@
     "barcodeFormat": "Formato del código de barras",
     "qrCodeValueTooLong": "Demasiados caracteres para un código QR",
     "barcodeValueTooLong": "Demasiados caracteres para un código de barras",
-    "yourLocation": "Your Location",
+    "currentLocation": "Current Location",
     "lng": "Lng",
     "lat": "Lat",
     "aggregateFunction": "Función agregada",
@@ -462,7 +462,9 @@
     },
     "map": {
       "mappedBy": "Mapped By",
-      "chooseMappingField": "Choose a Mapping Field"
+      "chooseMappingField": "Choose a Mapping Field",
+      "openInGoogleMaps": "Google Maps",
+      "openInOpenStreetMap": "OSM"
     }
   },
   "tooltip": {

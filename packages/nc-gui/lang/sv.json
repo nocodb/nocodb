@@ -257,7 +257,7 @@
     "barcodeFormat": "Streckkodsformat",
     "qrCodeValueTooLong": "För många tecken för en QR-kod",
     "barcodeValueTooLong": "För många tecken för en streckkod",
-    "yourLocation": "Your Location",
+    "currentLocation": "Current Location",
     "lng": "Lng",
     "lat": "Lat",
     "aggregateFunction": "Aggregatfunktion",
@@ -462,7 +462,9 @@
     },
     "map": {
       "mappedBy": "Mapped By",
-      "chooseMappingField": "Choose a Mapping Field"
+      "chooseMappingField": "Choose a Mapping Field",
+      "openInGoogleMaps": "Google Maps",
+      "openInOpenStreetMap": "OSM"
     }
   },
   "tooltip": {

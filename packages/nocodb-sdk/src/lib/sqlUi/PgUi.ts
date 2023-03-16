@@ -1594,6 +1594,9 @@ export class PgUi {
       case 'Attachment':
         colProp.dt = 'text';
         break;
+      case 'GeoData':
+        colProp.dt = 'text';
+        break;
       case 'Checkbox':
         colProp.dt = 'bool';
         colProp.cdf = 'false';
@@ -1734,6 +1737,7 @@ export class PgUi {
       case 'SingleLineText':
       case 'LongText':
       case 'Collaborator':
+      case 'GeoData':
         return ['char', 'character', 'character varying', 'text'];
 
       case 'Attachment':

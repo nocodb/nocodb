@@ -67,7 +67,7 @@ const modalVisible = false
               <div class="text-sm !text-red-500">{{ workspace?.title }}</div>
             </template>
           </a-tooltip>
-          <div v-else class="text-md font-semibold truncate capitalize">{{ workspace?.title }}</div>
+          <div v-else class="text-md truncate capitalize">{{ workspace?.title }}</div>
          </div>
 
           <PhCodeSimpleThin class="min-w-[17px] text-md transform rotate-90"/>

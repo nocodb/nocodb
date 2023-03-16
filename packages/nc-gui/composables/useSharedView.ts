@@ -1,4 +1,4 @@
-import {
+import type {
   ExportTypes,
   FilterType,
   KanbanType,
@@ -8,9 +8,8 @@ import {
   SortType,
   TableType,
   ViewType,
-  ViewTypes,
 } from 'nocodb-sdk'
-import { UITypes } from 'nocodb-sdk'
+import { UITypes, ViewTypes } from 'nocodb-sdk'
 import { computed, storeToRefs, useGlobal, useMetas, useNuxtApp, useState } from '#imports'
 
 export function useSharedView() {

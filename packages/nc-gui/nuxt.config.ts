@@ -201,4 +201,13 @@ export default defineNuxtConfig({
       { name: 'useJwt', from: '@vueuse/integrations/useJwt' },
     ],
   },
+
+  typescript: {
+    tsConfig: {
+      vueCompilerOptions: {
+        jsxTemplates: true,
+        experimentalRfc436: true,
+      },
+    },
+  },
 })

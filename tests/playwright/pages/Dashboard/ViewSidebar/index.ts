@@ -39,7 +39,7 @@ export class ViewSidebarPage extends BasePage {
 
   async activateGeoDataEasterEgg() {
     await this.dashboard.rootPage.evaluate(_ => {
-      window.localStorage.setItem('geodataToggleState', 'true');
+      window.localStorage.setItem('betaFeatureToggleState', 'true');
     });
     await this.rootPage.goto(this.rootPage.url());
   }

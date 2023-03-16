@@ -1,7 +1,7 @@
 <script lang="ts" setup>
 import type { ProjectType } from 'nocodb-sdk'
 import { nextTick, toRef } from '@vue/runtime-core'
-import { useProjects } from '#imports'
+import { useProjects, openLink } from '#imports'
 import { extractSdkResponseErrorMsg } from '~/utils'
 
 const props = defineProps<{
@@ -13,6 +13,8 @@ const project = $(toRef(props, 'project'))
 const projectsStore = useProjects()
 
 const { updateProject, deleteProject, getProjectMetaInfo } = projectsStore
+
+const { appInfo } = useGlobal()
 
 const editMode = ref(false)
 
@@ -151,18 +153,10 @@ const isSharedBase = ref(false)
                   v-if="isUIAllowed('apiDocs')"
                   v-e="['e:api-docs']"
                   class="nc-project-menu-item group"
-                  @click.stop="openLink(`/api/v1/db/meta/projects/${route.params.projectId}/swagger`, appInfo.ncSiteUrl)"
+                  @click.stop="openLink(`/api/v1/db/meta/projects/${project.id}/swagger`, appInfo.ncSiteUrl)"
                 >
                   <MdiApi class="group-hover:text-accent" />
                   {{ $t('activity.account.swagger') }}
-                </div>
-              </a-menu-item>
-
-              <!-- Copy Auth Token -->
-              <a-menu-item key="copy">
-                <div v-e="['a:navbar:user:copy-auth-token']" class="nc-project-menu-item group" @click.stop="copyAuthToken">
-                  <MdiScriptTextKeyOutline class="group-hover:text-accent" />
-                  {{ $t('activity.account.authToken') }}
                 </div>
               </a-menu-item>
 

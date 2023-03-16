@@ -128,6 +128,13 @@ test.describe('Filter Tests: Numerical', () => {
       isLikeStringDerived = parseInt(isLikeString.split(':')[0]) * 3600 + parseInt(isLikeString.split(':')[1]) * 60;
     }
 
+    // convert r[Time] in format 2021-01-01 00:00:00+05.30 to 00:00:00
+    if (dataType === 'Time') {
+      records.list.forEach(r => {
+        if (r[dataType]?.length > 8) r[dataType] = r[dataType]?.split(' ')[1]?.split('+')[0];
+      });
+    }
+
     const filterList = [
       {
         op: '=',
@@ -152,12 +159,12 @@ test.describe('Filter Tests: Numerical', () => {
       {
         op: 'is blank',
         value: '',
-        rowCount: records.list.filter(r => r[dataType] === null).length,
+        rowCount: records.list.filter(r => r[dataType] === null || r[dataType] === undefined).length,
       },
       {
         op: 'is not blank',
         value: '',
-        rowCount: records.list.filter(r => r[dataType] !== null).length,
+        rowCount: records.list.filter(r => r[dataType] !== null && r[dataType] !== undefined).length,
       },
       {
         op: '>',

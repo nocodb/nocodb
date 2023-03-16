@@ -125,6 +125,7 @@
     "vite-plugin-monaco-editor": "^1.1.0",
     "vite-plugin-purge-icons": "^0.9.0",
     "vitest": "^0.18.0",
+    "vue-tsc": "^1.2.0",
     "windicss": "^3.5.6"
   },
   "overrides": {

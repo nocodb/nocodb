@@ -257,7 +257,7 @@
     "barcodeFormat": "Formát čiarového kódu",
     "qrCodeValueTooLong": "Príliš veľa znakov pre kód QR",
     "barcodeValueTooLong": "Príliš veľa znakov pre čiarový kód",
-    "yourLocation": "Your Location",
+    "currentLocation": "Current Location",
     "lng": "Lng",
     "lat": "Lat",
     "aggregateFunction": "Súhrnná funkcia",

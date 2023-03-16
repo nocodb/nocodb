@@ -257,7 +257,7 @@
     "barcodeFormat": "Формат штрих-коду",
     "qrCodeValueTooLong": "Забагато символів для QR-коду",
     "barcodeValueTooLong": "Забагато символів для штрих-коду",
-    "yourLocation": "Your Location",
+    "currentLocation": "Current Location",
     "lng": "Lng",
     "lat": "Lat",
     "aggregateFunction": "Агрегатна функція",

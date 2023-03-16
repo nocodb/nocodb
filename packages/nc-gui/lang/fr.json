@@ -257,7 +257,7 @@
     "barcodeFormat": "Format du code-barres",
     "qrCodeValueTooLong": "Trop de caractères pour un code QR",
     "barcodeValueTooLong": "Trop de caractères pour un code-barres",
-    "yourLocation": "Your Location",
+    "currentLocation": "Current Location",
     "lng": "Lng",
     "lat": "Lat",
     "aggregateFunction": "Fonction agrégée",

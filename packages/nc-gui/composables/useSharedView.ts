@@ -1,4 +1,15 @@
-import type { ExportTypes, FilterType, KanbanType, PaginatedType, RequestParams, SortType, TableType, ViewType } from 'nocodb-sdk'
+import {
+  ExportTypes,
+  FilterType,
+  KanbanType,
+  MapType,
+  PaginatedType,
+  RequestParams,
+  SortType,
+  TableType,
+  ViewType,
+  ViewTypes,
+} from 'nocodb-sdk'
 import { UITypes } from 'nocodb-sdk'
 import { computed, storeToRefs, useGlobal, useMetas, useNuxtApp, useState } from '#imports'
 
@@ -11,7 +22,10 @@ export function useSharedView() {
 
   const appInfoDefaultLimit = appInfo.defaultLimit || 25
 
-  const paginationData = useState<PaginatedType>('paginationData', () => ({ page: 1, pageSize: appInfoDefaultLimit }))
+  const paginationData = useState<PaginatedType>('paginationData', () => ({
+    page: 1,
+    pageSize: appInfoDefaultLimit,
+  }))
 
   const sharedView = useState<ViewType | undefined>('sharedView', () => undefined)
 
@@ -21,7 +35,7 @@ export function useSharedView() {
 
   const allowCSVDownload = useState<boolean>('allowCSVDownload', () => false)
 
-  const meta = useState<TableType | KanbanType | undefined>('meta', () => undefined)
+  const meta = useState<TableType | KanbanType | MapType | undefined>('meta', () => undefined)
 
   const formColumns = computed(
     () =>
@@ -108,6 +122,7 @@ export function useSharedView() {
     return await $api.public.dataList(
       sharedView.value.uuid!,
       {
+        limit: sharedView.value?.type === ViewTypes.MAP ? 1000 : undefined,
         ...param,
         filterArrJson: JSON.stringify(param.filtersArr ?? nestedFilters.value),
         sortArrJson: JSON.stringify(param.sortsArr ?? sorts.value),

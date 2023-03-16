@@ -15,6 +15,7 @@ import * as nc_024_barcode_column_type from './v2/nc_024_barcode_column_type';
 import * as nc_025_add_row_height from './v2/nc_025_add_row_height';
 import * as nc_026_map_view from './v2/nc_026_map_view';
 import * as nc_027_add_comparison_sub_op from './v2/nc_027_add_comparison_sub_op';
+import * as nc_028_add_enable_scanner_in_form_columns_meta_table from './v2/nc_026_add_enable_scanner_in_form_columns_meta_table';
 
 // Create a custom migration source class
 export default class XcMigrationSourcev2 {
@@ -41,6 +42,7 @@ export default class XcMigrationSourcev2 {
       'nc_025_add_row_height',
       'nc_026_map_view',
       'nc_027_add_comparison_sub_op',
+      'nc_028_add_enable_scanner_in_form_columns_meta_table',
     ]);
   }
 
@@ -84,6 +86,8 @@ export default class XcMigrationSourcev2 {
         return nc_026_map_view;
       case 'nc_027_add_comparison_sub_op':
         return nc_027_add_comparison_sub_op;
+      case 'nc_028_add_enable_scanner_in_form_columns_meta_table':
+        return nc_028_add_enable_scanner_in_form_columns_meta_table;
     }
   }
 }

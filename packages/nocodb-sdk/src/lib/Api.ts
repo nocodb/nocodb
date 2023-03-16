@@ -815,6 +815,11 @@ export interface FormColumnType {
   required?: BoolType;
   /** Is this column shown in Form? */
   show?: BoolType;
+  /**
+   * Indicates whether the 'Fill by scan' button is visible for this column or not.
+   * @example true
+   */
+  enable_scanner?: BoolType;
   /** Form Column UUID (Not in use) */
   uuid?: StringOrNullType;
 }

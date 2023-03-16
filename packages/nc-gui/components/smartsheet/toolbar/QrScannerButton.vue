@@ -4,7 +4,7 @@ import { ref } from 'vue'
 import { StreamBarcodeReader } from 'vue-barcode-reader'
 import type { ColumnType } from 'nocodb-sdk'
 import { UITypes } from 'nocodb-sdk'
-import { NOCO } from '#imports'
+import { NOCO, storeToRefs } from '#imports'
 import QrCodeScan from '~icons/mdi/qrcode-scan'
 
 const meta = inject(MetaInj, ref())
@@ -14,7 +14,7 @@ const route = useRoute()
 const router = useRouter()
 
 const { $api } = useNuxtApp()
-const { project } = useProject()
+const { project } = storeToRefs(useProject())
 
 const { isMobileMode } = useGlobal()
 

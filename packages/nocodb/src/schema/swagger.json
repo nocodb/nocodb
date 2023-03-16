@@ -1461,15 +1461,74 @@
                       "x-stoplight": {
                         "id": "waau9tvy75zsd"
                       },
-                      "description": "Success Message",
+                      "description": "Success Message for inviting single email",
                       "example": "The user has been invited successfully"
+                    },
+                    "invite_token": {
+                      "type": "string",
+                      "x-stoplight": {
+                        "id": "yx0s35u8ds3p7"
+                      },
+                      "example": "8354ddba-a769-4d64-8397-eccb2e2b3c06"
+                    },
+                    "error": {
+                      "type": "array",
+                      "x-stoplight": {
+                        "id": "yhfi6wzhr6zr1"
+                      },
+                      "items": {
+                        "x-stoplight": {
+                          "id": "ce0hlv3d0f96j"
+                        },
+                        "type": "object",
+                        "properties": {
+                          "email": {
+                            "type": "string",
+                            "x-stoplight": {
+                              "id": "dgnh01j4lxvl1"
+                            },
+                            "example": "w@nocodb.com"
+                          },
+                          "error": {
+                            "type": "string",
+                            "x-stoplight": {
+                              "id": "7dgttqiijg8no"
+                            },
+                            "example": "<ERROR_MESSAGE>"
+                          }
+                        }
+                      }
+                    },
+                    "email": {
+                      "type": "string",
+                      "x-stoplight": {
+                        "id": "08pqst2q30vot"
+                      },
+                      "example": "w@nocodb.com"
                     }
                   }
                 },
                 "examples": {
-                  "Example 1": {
+                  "Inviting a user without any errors": {
                     "value": {
                       "msg": "The user has been invited successfully"
+                    }
+                  },
+                  "Inviting a user but invitation email failed to send": {
+                    "value": {
+                      "invite_token": "8354ddba-a769-4d64-8397-eccb2e2b3c06",
+                      "email": "w@nocodb.com"
+                    }
+                  },
+                  "Inviting multiple users": {
+                    "value": {
+                      "invite_token": "8354ddba-a769-4d64-8397-eccb2e2b3c06",
+                      "error": [
+                        {
+                          "email": "w@nocodb.com",
+                          "error": "<ERROR MESSAGE>"
+                        }
+                      ]
                     }
                   }
                 }

@@ -211,7 +211,7 @@ export const Task = Node.create<TaskOptions>({
 
             return true
           })
-          .setTextSelection(selection.from - 2)
+          .setTextSelection(selection.from - 1)
           .run()
 
         return true

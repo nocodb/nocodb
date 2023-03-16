@@ -100,6 +100,11 @@ export const onEnter = (editor: Editor, nodeType: 'bullet' | 'ordered' | 'task')
 
   // Delete the bullet point if it's empty
   const currentNodeIsEmpty = currentNode.textContent.length === 0
+
+  if (currentNodeIsEmpty && parentParentNode.type.name !== 'dBlock') {
+    return false
+  }
+
   if (currentNodeIsEmpty) {
     editor
       .chain()
@@ -175,6 +180,10 @@ export const onEnter = (editor: Editor, nodeType: 'bullet' | 'ordered' | 'task')
     .setTextSelection(currentNodeEndPos + 1)
     .deleteRange({ from, to: currentNodeEndPos })
     .run()
+
+  if (isOnEndOfLine && parentParentNode.type.name !== 'dBlock') {
+    return false
+  }
 
   if (isOnEndOfLine) {
     const pos = currentNodeEndPos + 6

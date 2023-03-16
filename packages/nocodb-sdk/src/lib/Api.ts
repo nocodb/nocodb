@@ -2947,10 +2947,21 @@ export class Api<
  * @request POST:/api/v1/db/meta/projects/{projectId}/users
  * @response `200` `{
   \**
-   * Success Message
+   * Success Message for inviting single email
    * @example The user has been invited successfully
    *\
   msg?: string,
+  \** @example 8354ddba-a769-4d64-8397-eccb2e2b3c06 *\
+  invite_token?: string,
+  error?: ({
+  \** @example w@nocodb.com *\
+  email?: string,
+  \** @example <ERROR_MESSAGE> *\
+  error?: string,
+
+})[],
+  \** @example w@nocodb.com *\
+  email?: string,
 
 }` OK
  * @response `400` `{
@@ -2967,10 +2978,20 @@ export class Api<
       this.request<
         {
           /**
-           * Success Message
+           * Success Message for inviting single email
            * @example The user has been invited successfully
            */
           msg?: string;
+          /** @example 8354ddba-a769-4d64-8397-eccb2e2b3c06 */
+          invite_token?: string;
+          error?: {
+            /** @example w@nocodb.com */
+            email?: string;
+            /** @example <ERROR_MESSAGE> */
+            error?: string;
+          }[];
+          /** @example w@nocodb.com */
+          email?: string;
         },
         {
           /** @example BadRequest [Error]: <ERROR MESSAGE> */

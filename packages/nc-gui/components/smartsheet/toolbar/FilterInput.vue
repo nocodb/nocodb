@@ -84,10 +84,11 @@ const checkTypeFunctions = {
 
 type FilterType = keyof typeof checkTypeFunctions
 
-// todo: replace with sqlUis
-const { sqlUi } = $(storeToRefs(useProject()))
+const { sqlUis } = storeToRefs(useProject())
 
-const abstractType = $computed(() => (column.value?.dt && sqlUi ? sqlUi.getAbstractType(column.value) : null))
+const sqlUi = ref(column.value?.base_id ? sqlUis.value[column.value?.base_id] : Object.values(sqlUis.value)[0])
+
+const abstractType = computed(() => column.value && sqlUi.value.getAbstractType(column.value))
 
 const checkType = (filterType: FilterType) => {
   const checkTypeFunction = checkTypeFunctions[filterType]

@@ -12654,6 +12654,12 @@
                     },
                     "ncMaxAttachmentsAllowed": {
                       "type": "number"
+                    },
+                    "isCloud": {
+                      "type": "boolean",
+                      "x-stoplight": {
+                        "id": "bstdkpky2131f"
+                      }
                     }
                   }
                 },
@@ -12676,7 +12682,8 @@
                       "ncSiteUrl": "http://localhost:8080",
                       "ee": false,
                       "ncAttachmentFieldSize": 20971520,
-                      "ncMaxAttachmentsAllowed": 10
+                      "ncMaxAttachmentsAllowed": 10,
+                      "isCloud": false
                     }
                   }
                 }

@@ -257,7 +257,7 @@
     "barcodeFormat": "Barkod formatı",
     "qrCodeValueTooLong": "QR kodu için çok fazla karakter",
     "barcodeValueTooLong": "Barkod için çok fazla karakter",
-    "yourLocation": "Your Location",
+    "currentLocation": "Current Location",
     "lng": "Lng",
     "lat": "Lat",
     "aggregateFunction": "Birleştirme fonksiyonu",

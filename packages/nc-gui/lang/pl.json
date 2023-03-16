@@ -257,7 +257,7 @@
     "barcodeFormat": "Format kodu kreskowego",
     "qrCodeValueTooLong": "Zbyt wiele znaków dla kodu QR",
     "barcodeValueTooLong": "Zbyt wiele znaków dla kodu kreskowego",
-    "yourLocation": "Your Location",
+    "currentLocation": "Current Location",
     "lng": "Lng",
     "lat": "Lat",
     "aggregateFunction": "Funkcja agregacji",

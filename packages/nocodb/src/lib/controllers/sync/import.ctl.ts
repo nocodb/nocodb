@@ -105,9 +105,7 @@ export default (
 
       // if environment value avail use it
       // or if it's docker construct using `PORT`
-      if (process.env.NC_BASEURL_INTERNAL) {
-        baseURL = process.env.NC_BASEURL_INTERNAL;
-      } else if (process.env.NC_DOCKER) {
+      if (process.env.NC_DOCKER) {
         baseURL = `http://localhost:${process.env.PORT || 8080}`;
       }
 
@@ -119,6 +117,7 @@ export default (
           baseId: syncSource.base_id,
           authToken: token,
           baseURL,
+          user: user,
         });
       }, 1000);
 

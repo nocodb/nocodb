@@ -3,7 +3,6 @@ import path from 'path';
 import { promisify } from 'util';
 import CryptoJS from 'crypto-js';
 import mkdirp from 'mkdirp';
-
 import archiver from 'archiver';
 import axios from 'axios';
 import bodyParser from 'body-parser';
@@ -18,7 +17,6 @@ import { ncp } from 'ncp';
 import { UITypes } from 'nocodb-sdk';
 import { T } from 'nc-help';
 import { Result } from '../../interface/config';
-
 import SqlClientFactory from '../db/sql-client/lib/SqlClientFactory';
 import { NcConfigFactory } from '../index';
 import ProjectMgr from '../db/sql-mgr/ProjectMgr';
@@ -46,7 +44,9 @@ import type IStorageAdapter from '../../interface/IStorageAdapter';
 import type IEmailAdapter from '../../interface/IEmailAdapter';
 import type express from 'express';
 import type { Handler } from 'express';
+
 const randomID = customAlphabet('1234567890abcdefghijklmnopqrstuvwxyz_', 10);
+
 const XC_PLUGIN_DET = 'XC_PLUGIN_DET';
 
 const NOCO_RELEASE = 'NOCO_RELEASE';

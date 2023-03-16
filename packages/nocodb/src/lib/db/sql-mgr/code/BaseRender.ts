@@ -1,16 +1,3 @@
-// import path from "path";
-// import mkdirp from "mkdirp";
-// import {promisify} from "util";
-//
-// import ejs from "ejs";
-// import fs from "fs";
-// import js_beautify from "js-beautify";
-// import fsExtra from "fs-extra";
-// import md5 from "md5";
-// import dayjs from "dayjs";import Emit from "../../sql-migrator/util/emit";
-
-// const beautify = js_beautify.js;
-
 import Debug from '../../util/Debug';
 import Emit from '../../util/emit';
 

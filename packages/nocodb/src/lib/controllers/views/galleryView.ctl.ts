@@ -14,12 +14,13 @@ export async function galleryViewGet(req: Request, res: Response<GalleryType>) {
 }
 
 export async function galleryViewCreate(req: Request<any, any>, res) {
-  const view = await galleryViewService.galleryViewCreate({
-    gallery: req.body,
-    // todo: sanitize
-    tableId: req.params.tableId,
-  });
-  res.json(view);
+  res.json(
+    await galleryViewService.galleryViewCreate({
+      gallery: req.body,
+      // todo: sanitize
+      tableId: req.params.tableId,
+    })
+  );
 }
 
 export async function galleryViewUpdate(req, res) {

@@ -9,6 +9,7 @@ import {
   inject,
   message,
   ref,
+  storeToRefs,
   useI18n,
   useMenuCloseOnEsc,
   useNuxtApp,
@@ -58,7 +59,7 @@ const quickImportDialogs: Record<typeof quickImportDialogTypes[number], Ref<bool
 
 const { isUIAllowed } = useUIPermission()
 
-const { isSharedBase } = useProject()
+const { isSharedBase } = storeToRefs(useProject())
 
 const meta = inject(MetaInj, ref())
 

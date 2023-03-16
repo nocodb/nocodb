@@ -1,21 +1,31 @@
 import { promisify } from 'util';
 import { UITypes } from 'nocodb-sdk';
-// import * as sMap from './syncMap';
-
-import { Api } from 'nocodb-sdk';
-
 import Airtable from 'airtable';
 import jsonfile from 'jsonfile';
 import hash from 'object-hash';
 import { T } from 'nc-help';
-
 import dayjs from 'dayjs';
 import utc from 'dayjs/plugin/utc';
 import tinycolor from 'tinycolor2';
+import {
+  attachmentService,
+  columnService,
+  filterService,
+  formViewColumnService,
+  formViewService,
+  galleryViewService,
+  gridViewService,
+  projectService,
+  projectUserService,
+  sortService,
+  tableService,
+  viewColumnService,
+  viewService,
+} from '../..';
 import FetchAT from './fetchAT';
 import { importData, importLTARData } from './readAndProcessData';
-
 import EntityMap from './EntityMap';
+import type { UserType } from 'nocodb-sdk';
 
 const writeJsonFileAsync = promisify(jsonfile.writeFile);
 
@@ -74,6 +84,9 @@ export default async (
 ) => {
   const sMapEM = new EntityMap('aTblId', 'ncId', 'ncName', 'ncParent');
   await sMapEM.init();
+  const userRole = syncDB.user.roles
+    .split(',')
+    .reduce((rolesObj, role) => ({ [role]: true, ...rolesObj }), {});
 
   const sMap = {
     // static mapping records between aTblId && ncId
@@ -121,7 +134,6 @@ export default async (
   const enableErrorLogs = false;
   const generate_migrationStats = true;
   const debugMode = false;
-  let api: Api<any>;
   let g_aTblSchema = [];
   let ncCreatedProjectSchema: any = {};
   const ncLinkMappingTable: any[] = [];
@@ -291,16 +303,6 @@ export default async (
     };
   }
 
-  // aTbl: retrieve table name from table ID
-  //
-  // @ts-ignore
-  function aTbl_getTableName(tblId) {
-    const sheetObj = g_aTblSchema.find((tbl) => tbl.id === tblId);
-    return {
-      tn: sheetObj.name,
-    };
-  }
-
   const ncSchema = {
     tables: [],
     tablesById: {},
@@ -325,12 +327,24 @@ export default async (
   // @ts-ignore
   async function nc_DumpTableSchema() {
     console.log('[');
-    const ncTblList = await api.base.tableList(
-      ncCreatedProjectSchema.id,
-      syncDB.baseId
-    );
+    // const ncTblList = await api.base.tableList(
+    //   ncCreatedProjectSchema.id,
+    //   syncDB.baseId
+    // );
+
+    const ncTblList = { list: [] };
+    ncTblList['list'] = await tableService.getAccessibleTables({
+      projectId: ncCreatedProjectSchema.id,
+      baseId: syncDB.baseId,
+      roles: userRole,
+    });
+
     for (let i = 0; i < ncTblList.list.length; i++) {
-      const ncTbl = await api.dbTable.read(ncTblList.list[i].id);
+      // const ncTbl = await api.dbTable.read(ncTblList.list[i].id);
+      const ncTbl = await tableService.getTableWithAccessibleViews({
+        tableId: ncTblList.list[i].id,
+        user: syncDB.user,
+      });
       console.log(JSON.stringify(ncTbl, null, 2));
       console.log(',');
     }
@@ -340,13 +354,6 @@ export default async (
   // retrieve nc column schema from using aTbl field ID as reference
   //
   async function nc_getColumnSchema(aTblFieldId) {
-    // let ncTblList = await api.dbTable.list(ncCreatedProjectSchema.id);
-    // let aTblField = aTbl_getColumnName(aTblFieldId);
-    // let ncTblId = ncTblList.list.filter(x => x.title === aTblField.tn)[0].id;
-    // let ncTbl = await api.dbTable.read(ncTblId);
-    // let ncCol = ncTbl.columns.find(x => x.title === aTblField.cn);
-    // return ncCol;
-
     const ncTblId = await sMap.getNcParentFromAtId(aTblFieldId);
     const ncColId = await sMap.getNcIdFromAtId(aTblFieldId);
 
@@ -360,11 +367,6 @@ export default async (
   // optimize: create a look-up table & re-use information
   //
   async function nc_getTableSchema(tableName) {
-    // let ncTblList = await api.dbTable.list(ncCreatedProjectSchema.id);
-    // let ncTblId = ncTblList.list.filter(x => x.title === tableName)[0].id;
-    // let ncTbl = await api.dbTable.read(ncTblId);
-    // return ncTbl;
-
     return ncSchema.tables.find((x) => x.title === tableName);
   }
 
@@ -376,11 +378,16 @@ export default async (
     projectId?: string;
   }) {
     // delete 'sample' project if already exists
-    const x = await api.project.list();
+    const x = { list: [] };
+    x['list'] = await projectService.projectList({
+      user: { id: syncDB.user.id, roles: syncDB.user.roles },
+    });
 
     const sampleProj = x.list.find((a) => a.title === projectName);
     if (sampleProj) {
-      await api.project.delete(sampleProj.id);
+      await projectService.projectSoftDelete({
+        projectId: sampleProj.id,
+      });
     }
     logDetailed('Init');
   }
@@ -426,11 +433,6 @@ export default async (
       case 'date':
         if (col.typeOptions?.isDateTime) ncType = UITypes.DateTime;
         break;
-
-      // case 'barcode':
-      // case 'button':
-      //   ncType = UITypes.SingleLineText;
-      //   break;
     }
 
     return ncType;
@@ -457,7 +459,9 @@ export default async (
             (value as any).name = 'nc_empty';
           }
           // enumerate duplicates (we don't allow them)
-          // TODO fix record mapping (this causes every record to map first option, we can't handle them using data api as they don't provide option id within data we might instead get the correct mapping from schema file )
+          // TODO fix record mapping (this causes every record to map first option,
+          //  we can't handle them using data api as they don't provide option id
+          //  within data we might instead get the correct mapping from schema file )
           let dupNo = 1;
           const defaultName = (value as any).name;
           while (
@@ -567,13 +571,6 @@ export default async (
           continue;
         }
 
-        // populate cdf (column default value) if configured
-        // if (col?.default) {
-        //   if (typeof col.default === 'string')
-        //     ncCol.cdf = `'${col.default.replace?.(/'/g, "\\'")}'`;
-        //   else ncCol.cdf = col.default;
-        // }
-
         // change from default 'tinytext' as airtable allows more than 255 characters
         // for single line text column type
         if (col.type === 'text') ncCol.dt = 'text';
@@ -630,11 +627,12 @@ export default async (
       logDetailed(`NC API: base.tableCreate ${tables[idx].title}`);
 
       let _perfStart = recordPerfStart();
-      const table: any = await api.base.tableCreate(
-        ncCreatedProjectSchema.id,
-        syncDB.baseId,
-        tables[idx]
-      );
+      const table = await tableService.tableCreate({
+        baseId: syncDB.baseId,
+        projectId: ncCreatedProjectSchema.id,
+        table: tables[idx],
+        user: syncDB.user,
+      });
       recordPerfStats(_perfStart, 'dbTable.create');
 
       updateNcTblSchema(table);
@@ -658,14 +656,19 @@ export default async (
       // update default view name- to match it to airtable view name
       logDetailed(`NC API: dbView.list ${table.id}`);
       _perfStart = recordPerfStart();
-      const view = await api.dbView.list(table.id);
+      const view = { list: [] };
+      view['list'] = await viewService.viewList({
+        tableId: table.id,
+        user: { roles: userRole },
+      });
       recordPerfStats(_perfStart, 'dbView.list');
 
       const aTbl_grid = aTblSchema[idx].views.find((x) => x.type === 'grid');
       logDetailed(`NC API: dbView.update ${view.list[0].id} ${aTbl_grid.name}`);
       _perfStart = recordPerfStart();
-      await api.dbView.update(view.list[0].id, {
-        title: aTbl_grid.name,
+      await viewService.viewUpdate({
+        viewId: view.list[0].id,
+        view: { title: aTbl_grid.name },
       });
       recordPerfStats(_perfStart, 'dbView.update');
 
@@ -713,7 +716,6 @@ export default async (
           // check if link already established?
           if (!nc_isLinkExists(aTblLinkColumns[i].id)) {
             // parent table ID
-            // let srcTableId = (await nc_getTableSchema(aTblSchema[idx].name)).id;
             const srcTableId = await sMap.getNcIdFromAtId(aTblSchema[idx].id);
 
             // find child table name from symmetric column ID specified
@@ -730,7 +732,10 @@ export default async (
 
             // check if already a column exists with this name?
             let _perfStart = recordPerfStart();
-            const srcTbl: any = await api.dbTable.read(srcTableId);
+            const srcTbl: any = await tableService.getTableWithAccessibleViews({
+              tableId: srcTableId,
+              user: syncDB.user,
+            });
             recordPerfStats(_perfStart, 'dbTable.read');
 
             // create link
@@ -747,16 +752,20 @@ export default async (
               `NC API: dbTableColumn.create LinkToAnotherRecord ${ncName.title}`
             );
             _perfStart = recordPerfStart();
-            const ncTbl: any = await api.dbTableColumn.create(srcTableId, {
-              uidt: UITypes.LinkToAnotherRecord,
-              title: ncName.title,
-              column_name: ncName.column_name,
-              parentId: srcTableId,
-              childId: childTableId,
-              type: 'mm',
-              // aTblLinkColumns[i].typeOptions.relationship === 'many'
-              //   ? 'mm'
-              //   : 'hm'
+            const ncTbl: any = await columnService.columnAdd({
+              tableId: srcTableId,
+              column: {
+                uidt: UITypes.LinkToAnotherRecord,
+                title: ncName.title,
+                column_name: ncName.column_name,
+                parentId: srcTableId,
+                childId: childTableId,
+                type: 'mm',
+              },
+              req: {
+                user: syncDB.user.email,
+                clientIp: '',
+              },
             });
             recordPerfStats(_perfStart, 'dbTableColumn.create');
 
@@ -804,20 +813,20 @@ export default async (
             );
 
             let _perfStart = recordPerfStart();
-            const childTblSchema: any = await api.dbTable.read(
-              ncLinkMappingTable[x].nc.childId
-            );
+            const childTblSchema: any =
+              await tableService.getTableWithAccessibleViews({
+                tableId: ncLinkMappingTable[x].nc.childId,
+                user: syncDB.user,
+              });
             recordPerfStats(_perfStart, 'dbTable.read');
 
             _perfStart = recordPerfStart();
-            const parentTblSchema: any = await api.dbTable.read(
-              ncLinkMappingTable[x].nc.parentId
-            );
+            const parentTblSchema: any =
+              await tableService.getTableWithAccessibleViews({
+                tableId: ncLinkMappingTable[x].nc.parentId,
+                user: syncDB.user,
+              });
             recordPerfStats(_perfStart, 'dbTable.read');
-
-            // fix me
-            // let childTblSchema = ncSchema.tablesById[ncLinkMappingTable[x].nc.childId]
-            // let parentTblSchema = ncSchema.tablesById[ncLinkMappingTable[x].nc.parentId]
 
             let parentLinkColumn = parentTblSchema.columns.find(
               (col) => col.title === ncLinkMappingTable[x].nc.title
@@ -891,14 +900,14 @@ export default async (
               `NC API: dbTableColumn.update rename symmetric column ${ncName.title}`
             );
             _perfStart = recordPerfStart();
-            const ncTbl: any = await api.dbTableColumn.update(
-              childLinkColumn.id,
-              {
+            const ncTbl: any = await columnService.columnUpdate({
+              columnId: childLinkColumn.id,
+              column: {
                 ...childLinkColumn,
                 title: ncName.title,
                 column_name: ncName.column_name,
-              }
-            );
+              },
+            });
             recordPerfStats(_perfStart, 'dbTableColumn.update');
 
             updateNcTblSchema(ncTbl);
@@ -912,8 +921,6 @@ export default async (
               aTblLinkColumns[i].name + suffix,
               ncTbl.id
             );
-
-            // console.log(res.columns.find(x => x.title === aTblLinkColumns[i].name))
           }
         }
       }
@@ -928,7 +935,6 @@ export default async (
       );
 
       // parent table ID
-      // let srcTableId = (await nc_getTableSchema(aTblSchema[idx].name)).id;
       const srcTableId = await sMap.getNcIdFromAtId(aTblSchema[idx].id);
       const srcTableSchema = ncSchema.tablesById[srcTableId];
 
@@ -980,12 +986,19 @@ export default async (
 
           logDetailed(`NC API: dbTableColumn.create LOOKUP ${ncName.title}`);
           const _perfStart = recordPerfStart();
-          const ncTbl: any = await api.dbTableColumn.create(srcTableId, {
-            uidt: UITypes.Lookup,
-            title: ncName.title,
-            column_name: ncName.column_name,
-            fk_relation_column_id: ncRelationColumnId,
-            fk_lookup_column_id: ncLookupColumnId,
+          const ncTbl: any = await columnService.columnAdd({
+            tableId: srcTableId,
+            column: {
+              uidt: UITypes.Lookup,
+              title: ncName.title,
+              column_name: ncName.column_name,
+              fk_relation_column_id: ncRelationColumnId,
+              fk_lookup_column_id: ncLookupColumnId,
+            },
+            req: {
+              user: syncDB.user.email,
+              clientIp: '',
+            },
           });
           recordPerfStats(_perfStart, 'dbTableColumn.create');
 
@@ -1060,12 +1073,19 @@ export default async (
 
         logDetailed(`NC API: dbTableColumn.create LOOKUP ${ncName.title}`);
         const _perfStart = recordPerfStart();
-        const ncTbl: any = await api.dbTableColumn.create(srcTableId, {
-          uidt: UITypes.Lookup,
-          title: ncName.title,
-          column_name: ncName.column_name,
-          fk_relation_column_id: ncRelationColumnId,
-          fk_lookup_column_id: ncLookupColumnId,
+        const ncTbl: any = await columnService.columnAdd({
+          tableId: srcTableId,
+          column: {
+            uidt: UITypes.Lookup,
+            title: ncName.title,
+            column_name: ncName.column_name,
+            fk_relation_column_id: ncRelationColumnId,
+            fk_lookup_column_id: ncLookupColumnId,
+          },
+          req: {
+            user: syncDB.user.email,
+            clientIp: '',
+          },
         });
         recordPerfStats(_perfStart, 'dbTableColumn.create');
 
@@ -1118,7 +1138,6 @@ export default async (
       );
 
       // parent table ID
-      // let srcTableId = (await nc_getTableSchema(aTblSchema[idx].name)).id;
       const srcTableId = await sMap.getNcIdFromAtId(aTblSchema[idx].id);
       const srcTableSchema = ncSchema.tablesById[srcTableId];
 
@@ -1136,7 +1155,6 @@ export default async (
           const ncRollupFn = getRollupNcFunction(
             aTblColumns[i].typeOptions.formulaTextParsed
           );
-          // const ncRollupFn = '';
 
           if (ncRollupFn === '' || ncRollupFn === undefined) {
             updateMigrationSkipLog(
@@ -1203,13 +1221,20 @@ export default async (
 
           logDetailed(`NC API: dbTableColumn.create ROLLUP ${ncName.title}`);
           const _perfStart = recordPerfStart();
-          const ncTbl: any = await api.dbTableColumn.create(srcTableId, {
-            uidt: UITypes.Rollup,
-            title: ncName.title,
-            column_name: ncName.column_name,
-            fk_relation_column_id: ncRelationColumnId,
-            fk_rollup_column_id: ncRollupColumnId,
-            rollup_function: ncRollupFn,
+          const ncTbl: any = await columnService.columnAdd({
+            tableId: srcTableId,
+            column: {
+              uidt: UITypes.Rollup,
+              title: ncName.title,
+              column_name: ncName.column_name,
+              fk_relation_column_id: ncRelationColumnId,
+              fk_rollup_column_id: ncRollupColumnId,
+              rollup_function: ncRollupFn,
+            },
+            req: {
+              user: syncDB.user.email,
+              clientIp: '',
+            },
           });
           recordPerfStats(_perfStart, 'dbTableColumn.create');
 
@@ -1261,12 +1286,19 @@ export default async (
 
       logDetailed(`NC API: dbTableColumn.create LOOKUP ${ncName.title}`);
       const _perfStart = recordPerfStart();
-      const ncTbl: any = await api.dbTableColumn.create(srcTableId, {
-        uidt: UITypes.Lookup,
-        title: ncName.title,
-        column_name: ncName.column_name,
-        fk_relation_column_id: ncRelationColumnId,
-        fk_lookup_column_id: ncLookupColumnId,
+      const ncTbl: any = await columnService.columnAdd({
+        tableId: srcTableId,
+        column: {
+          uidt: UITypes.Lookup,
+          title: ncName.title,
+          column_name: ncName.column_name,
+          fk_relation_column_id: ncRelationColumnId,
+          fk_lookup_column_id: ncLookupColumnId,
+        },
+        req: {
+          user: syncDB.user.email,
+          clientIp: '',
+        },
       });
       recordPerfStats(_perfStart, 'dbTableColumn.create');
 
@@ -1302,7 +1334,7 @@ export default async (
       if (ncColId) {
         logDetailed(`NC API: dbTableColumn.primaryColumnSet`);
         const _perfStart = recordPerfStart();
-        await api.dbTableColumn.primaryColumnSet(ncColId);
+        await columnService.columnSetAsPrimary({ columnId: ncColId });
         recordPerfStats(_perfStart, 'dbTableColumn.primaryColumnSet');
 
         // update schema
@@ -1319,13 +1351,16 @@ export default async (
 
     const _perfStart = recordPerfStart();
     if (viewType === 'form') {
-      viewDetails = (await api.dbView.formRead(viewId)).columns;
+      viewDetails = (await formViewService.formViewGet({ formViewId: viewId }))
+        .columns;
       recordPerfStats(_perfStart, 'dbView.formRead');
     } else if (viewType === 'gallery') {
-      viewDetails = (await api.dbView.galleryRead(viewId)).columns;
+      viewDetails = (
+        await galleryViewService.galleryViewGet({ galleryViewId: viewId })
+      ).columns;
       recordPerfStats(_perfStart, 'dbView.galleryRead');
     } else {
-      viewDetails = await api.dbView.gridColumnsList(viewId);
+      viewDetails = await viewColumnService.columnList({ viewId: viewId });
       recordPerfStats(_perfStart, 'dbView.gridColumnsList');
     }
 
@@ -1453,17 +1488,15 @@ export default async (
                   ?.map((a) => a.filename?.split('?')?.[0])
                   .join(', ')}`
               );
-              tempArr = await api.storage.uploadByUrl(
-                {
-                  path: `noco/${sDB.projectName}/${table.title}/${key}`,
-                },
-                value?.map((attachment) => ({
+              tempArr = await attachmentService.uploadViaURL({
+                path: `noco/${sDB.projectName}/${table.title}/${key}`,
+                urls: value?.map((attachment) => ({
                   fileName: attachment.filename?.split('?')?.[0],
                   url: attachment.url,
                   size: attachment.size,
                   mimetype: attachment.type,
-                }))
-              );
+                })),
+              });
             } catch (e) {
               console.log(e);
             }
@@ -1502,8 +1535,6 @@ export default async (
         })
         .eachPage(
           async function page(records, fetchNextPage) {
-            // console.log(JSON.stringify(records, null, 2));
-
             // This function (`page`) will get called for each page of records.
             // records.forEach(record => callback(table, record));
             logBasic(
@@ -1543,9 +1574,12 @@ export default async (
     // create empty project (XC-DB)
     logDetailed(`Create Project: ${projName}`);
     const _perfStart = recordPerfStart();
-    ncCreatedProjectSchema = await api.project.create({
-      title: projName,
+
+    ncCreatedProjectSchema = await projectService.projectCreate({
+      project: { title: projName },
+      user: { id: syncDB.user.id },
     });
+
     recordPerfStats(_perfStart, 'project.create');
   }
 
@@ -1553,7 +1587,9 @@ export default async (
     // create empty project (XC-DB)
     logDetailed(`Getting project meta: ${projId}`);
     const _perfStart = recordPerfStart();
-    ncCreatedProjectSchema = await api.project.read(projId);
+    ncCreatedProjectSchema = await projectService.getProjectWithInfo({
+      projectId: projId,
+    });
     recordPerfStats(_perfStart, 'project.read');
   }
 
@@ -1585,13 +1621,15 @@ export default async (
 
         logDetailed(`NC API dbView.galleryCreate :: ${viewName}`);
         const _perfStart = recordPerfStart();
-        await api.dbView.galleryCreate(tblId, { title: viewName });
+        await galleryViewService.galleryViewCreate({
+          tableId: tblId,
+          gallery: {
+            title: viewName,
+          },
+        });
         recordPerfStats(_perfStart, 'dbView.galleryCreate');
 
         await updateNcTblSchemaById(tblId);
-        // syncLog(`[${idx+1}/${aTblSchema.length}][Gallery View][${i+1}/${galleryViews.length}] Create ${viewName}`)
-
-        // await nc_configureFields(g.id, vData, aTblSchema[idx].name, viewName, 'gallery');
       }
     }
   }
@@ -1646,7 +1684,11 @@ export default async (
 
         logDetailed(`NC API dbView.formCreate :: ${viewName}`);
         const _perfStart = recordPerfStart();
-        const f = await api.dbView.formCreate(tblId, formData);
+        // const f = await api.dbView.formCreate(tblId, formData);
+        const f = await formViewService.formViewCreate({
+          tableId: tblId,
+          body: formData,
+        });
         recordPerfStats(_perfStart, 'dbView.formCreate');
 
         logDetailed(
@@ -1689,7 +1731,12 @@ export default async (
           (x) => x.id === gridViews[i].id
         )?.name;
         const _perfStart = recordPerfStart();
-        const viewList: any = await api.dbView.list(tblId);
+        // const viewList: any = await api.dbView.list(tblId);
+        const viewList = { list: [] };
+        viewList['list'] = await viewService.viewList({
+          tableId: tblId,
+          user: { roles: userRole },
+        });
         recordPerfStats(_perfStart, 'dbView.list');
 
         let ncViewId = viewList?.list?.find((x) => x.tn === viewName)?.id;
@@ -1704,8 +1751,11 @@ export default async (
         if (i > 0) {
           logDetailed(`NC API dbView.gridCreate :: ${viewName}`);
           const _perfStart = recordPerfStart();
-          const viewCreated = await api.dbView.gridCreate(tblId, {
-            title: viewName,
+          const viewCreated = await gridViewService.gridViewCreate({
+            tableId: tblId,
+            grid: {
+              title: viewName,
+            },
           });
           recordPerfStats(_perfStart, 'dbView.gridCreate');
 
@@ -1716,11 +1766,9 @@ export default async (
             viewName,
             tblId
           );
-          // syncLog(`[${idx+1}/${aTblSchema.length}][Grid View][${i+1}/${gridViews.length}] Create ${viewName}`)
           ncViewId = viewCreated.id;
         }
 
-        // syncLog(`[${idx+1}/${aTblSchema.length}][Grid View][${i+1}/${gridViews.length}] Hide columns ${viewName}`)
         logDetailed(`   Configure show/hide columns`);
         await nc_configureFields(
           ncViewId,
@@ -1732,7 +1780,6 @@ export default async (
 
         // configure filters
         if (vData?.filters) {
-          // syncLog(`[${idx+1}/${aTblSchema.length}][Grid View][${i+1}/${gridViews.length}] Configure filters ${viewName}`)
           logDetailed(`   Configure filter set`);
 
           // skip filters if nested
@@ -1743,7 +1790,6 @@ export default async (
 
         // configure sort
         if (vData?.lastSortsApplied?.sortSet.length) {
-          // syncLog(`[${idx+1}/${aTblSchema.length}][Grid View][${i+1}/${gridViews.length}] Configure sort ${viewName}`)
           logDetailed(`   Configure sort set`);
           await nc_configureSort(ncViewId, vData.lastSortsApplied);
         }
@@ -1773,10 +1819,14 @@ export default async (
       );
       const _perfStart = recordPerfStart();
       insertJobs.push(
-        api.auth
-          .projectUserAdd(ncCreatedProjectSchema.id, {
-            email: value.email,
-            roles: userRoles[value.permissionLevel],
+        projectUserService
+          .userInvite({
+            projectId: ncCreatedProjectSchema.id,
+            projectUser: {
+              email: value.email,
+              roles: userRoles[value.permissionLevel],
+            },
+            req: { user: syncDB.user, clientIp: '' },
           })
           .catch((e) =>
             e.response?.data?.msg
@@ -1803,7 +1853,10 @@ export default async (
 
   async function updateNcTblSchemaById(tblId) {
     const _perfStart = recordPerfStart();
-    const ncTbl = await api.dbTable.read(tblId);
+    const ncTbl: any = await tableService.getTableWithAccessibleViews({
+      tableId: tblId,
+      user: syncDB.user,
+    });
     recordPerfStats(_perfStart, 'dbTable.read');
 
     updateNcTblSchema(ncTbl);
@@ -2060,8 +2113,9 @@ export default async (
       // insert filters
       for (let i = 0; i < ncFilters.length; i++) {
         const _perfStart = recordPerfStart();
-        await api.dbTableFilter.create(viewId, {
-          ...ncFilters[i],
+        await filterService.filterCreate({
+          viewId: viewId,
+          filter: ncFilters[i],
         });
         recordPerfStats(_perfStart, 'dbTableFilter.create');
 
@@ -2076,9 +2130,12 @@ export default async (
 
       if (columnId) {
         const _perfStart = recordPerfStart();
-        await api.dbTableSort.create(viewId, {
-          fk_column_id: columnId,
-          direction: s.sortSet[i].ascending ? 'asc' : 'desc',
+        await sortService.sortCreate({
+          viewId: viewId,
+          sort: {
+            fk_column_id: columnId,
+            direction: s.sortSet[i].ascending ? 'asc' : 'desc',
+          },
         });
         recordPerfStats(_perfStart, 'dbTableSort.create');
       }
@@ -2100,13 +2157,18 @@ export default async (
 
     const _perfStart = recordPerfStart();
     if (viewType === 'form') {
-      viewDetails = (await api.dbView.formRead(viewId)).columns;
+      viewDetails = (await formViewService.formViewGet({ formViewId: viewId }))
+        .columns;
       recordPerfStats(_perfStart, 'dbView.formRead');
     } else if (viewType === 'gallery') {
-      viewDetails = (await api.dbView.galleryRead(viewId)).columns;
+      viewDetails = (
+        await galleryViewService.galleryViewGet({
+          galleryViewId: viewId,
+        })
+      ).columns;
       recordPerfStats(_perfStart, 'dbView.galleryRead');
     } else {
-      viewDetails = await api.dbView.gridColumnsList(viewId);
+      viewDetails = await viewColumnService.columnList({ viewId: viewId });
       recordPerfStats(_perfStart, 'dbView.gridColumnsList');
     }
 
@@ -2118,18 +2180,17 @@ export default async (
       const ncViewColumnId = viewDetails.find(
         (x) => x.fk_column_id === ncColumnId
       )?.id;
-      // const ncViewColumnId = await nc_getViewColumnId(
-      //   viewId,
-      //   viewType,
-      //   ncColumnId
-      // );
       if (ncViewColumnId === undefined) continue;
 
       // first two positions held by record id & record hash
       const _perfStart = recordPerfStart();
-      await api.dbViewColumn.update(viewId, ncViewColumnId, {
-        show: false,
-        order: j + 1 + c.length,
+      await viewColumnService.columnUpdate({
+        viewId: viewId,
+        columnId: ncViewColumnId,
+        column: {
+          show: false,
+          order: j + 1 + c.length,
+        },
       });
       recordPerfStats(_perfStart, 'dbViewColumn.update');
     }
@@ -2154,12 +2215,19 @@ export default async (
           if (x?.required) formData[`required`] = x.required;
           if (x?.description) formData[`description`] = x.description;
           const _perfStart = recordPerfStart();
-          await api.dbView.formColumnUpdate(ncViewColumnId, formData);
+          await formViewColumnService.columnUpdate({
+            formViewColumnId: ncViewColumnId,
+            formViewColumn: formData,
+          });
           recordPerfStats(_perfStart, 'dbView.formColumnUpdate');
         }
       }
       const _perfStart = recordPerfStart();
-      await api.dbViewColumn.update(viewId, ncViewColumnId, configData);
+      await viewColumnService.columnUpdate({
+        viewId: viewId,
+        columnId: ncViewColumnId,
+        column: configData,
+      });
       recordPerfStats(_perfStart, 'dbViewColumn.update');
     }
   }
@@ -2168,13 +2236,6 @@ export default async (
   let recordCnt = 0;
   try {
     logBasic('SDK initialized');
-    api = new Api({
-      baseURL: syncDB.baseURL,
-      headers: {
-        'xc-auth': syncDB.authToken,
-      },
-    });
-
     logDetailed('Project initialization started');
     // delete project if already exists
     if (debugMode) await init(syncDB);
@@ -2254,10 +2315,12 @@ export default async (
       try {
         // await nc_DumpTableSchema();
         const _perfStart = recordPerfStart();
-        const ncTblList = await api.base.tableList(
-          ncCreatedProjectSchema.id,
-          syncDB.baseId
-        );
+        const ncTblList = { list: [] };
+        ncTblList['list'] = await tableService.getAccessibleTables({
+          projectId: ncCreatedProjectSchema.id,
+          baseId: syncDB.baseId,
+          roles: userRole,
+        });
         recordPerfStats(_perfStart, 'base.tableList');
 
         logBasic('Reading Records...');
@@ -2273,17 +2336,18 @@ export default async (
             continue;
 
           const _perfStart = recordPerfStart();
-          const ncTbl = await api.dbTable.read(ncTblList.list[i].id);
+          const ncTbl: any = await tableService.getTableWithAccessibleViews({
+            tableId: ncTblList.list[i].id,
+            user: syncDB.user,
+          });
           recordPerfStats(_perfStart, 'dbTable.read');
 
           recordCnt = 0;
-          // await nocoReadData(syncDB, ncTbl);
 
           recordsMap[ncTbl.id] = await importData({
             projectName: syncDB.projectName,
             table: ncTbl,
             base,
-            api,
             logBasic,
             nocoBaseDataProcessing_v2,
             sDB: syncDB,
@@ -2303,12 +2367,15 @@ export default async (
           )
             continue;
 
-          const ncTbl = await api.dbTable.read(ncTblList.list[i].id);
+          // const ncTbl = await api.dbTable.read(ncTblList.list[i].id);
+          const ncTbl: any = await tableService.getTableWithAccessibleViews({
+            tableId: ncTblList.list[i].id,
+            user: syncDB.user,
+          });
 
           rtc.data.nestedLinks += await importLTARData({
             table: ncTbl,
             projectName: syncDB.projectName,
-            api,
             base,
             fields: null, //Object.values(tblLinkGroup).flat(),
             logBasic,
@@ -2317,60 +2384,8 @@ export default async (
             records: recordsMap[ncTbl.id],
             atNcAliasRef,
             ncLinkMappingTable,
+            syncDB,
           });
-        }
-
-        if (storeLinks) {
-          // const insertJobs: Promise<any>[] = [];
-          // for (const [pTitle, v] of Object.entries(ncLinkDataStore)) {
-          //   logBasic(`:: ${pTitle}`);
-          //   for (const [, record] of Object.entries(v)) {
-          //     const tbl = ncTblList.list.find(a => a.title === pTitle);
-          //     await nocoLinkProcessing(syncDB.projectName, tbl, record, 0);
-          //     // insertJobs.push(
-          //     //   nocoLinkProcessing(syncDB.projectName, tbl, record, 0)
-          //     // );
-          //   }
-          // }
-          // await Promise.all(insertJobs);
-          // await nocoLinkProcessing(syncDB.projectName, 0, 0, 0);
-        } else {
-          // // create link groups (table: link fields)
-          //           // const tblLinkGroup = {};
-          //           // for (let idx = 0; idx < ncLinkMappingTable.length; idx++) {
-          //           //   const x = ncLinkMappingTable[idx];
-          //           //   if (tblLinkGroup[x.aTbl.tblId] === undefined)
-          //           //     tblLinkGroup[x.aTbl.tblId] = [x.aTbl.name];
-          //           //   else tblLinkGroup[x.aTbl.tblId].push(x.aTbl.name);
-          //           // }
-          //           //
-          //           // const ncTbl = await nc_getTableSchema(aTbl_getTableName(k).tn);
-          //           //
-          //           // await importLTARData({
-          //           //   table: ncTbl,
-          //           //   projectName: syncDB.projectName,
-          //           //   api,
-          //           //   base,
-          //           //   fields: Object.values(tblLinkGroup).flat(),
-          //           //   logBasic
-          //           // });
-          // for (const [k, v] of Object.entries(tblLinkGroup)) {
-          //   const ncTbl = await nc_getTableSchema(aTbl_getTableName(k).tn);
-          //
-          //   // not a migrated table, skip
-          //   if (undefined === aTblSchema.find(x => x.name === ncTbl.title))
-          //     continue;
-          //
-          //   recordCnt = 0;
-          //   await nocoReadDataSelected(
-          //     syncDB.projectName,
-          //     ncTbl,
-          //     async (projName, table, record, _field) => {
-          //       await nocoLinkProcessing(projName, table, record, _field);
-          //     },
-          //     v
-          //   );
-          // }
         }
       } catch (error) {
         logDetailed(
@@ -2417,6 +2432,7 @@ export interface AirtableSyncConfig {
   baseId?: string;
   apiKey: string;
   shareId: string;
+  user: UserType;
   options: {
     syncViews: boolean;
     syncData: boolean;

@@ -12,6 +12,7 @@ import {
   message,
   populateInsertObject,
   ref,
+  storeToRefs,
   until,
   useApi,
   useGlobal,
@@ -26,7 +27,7 @@ import {
 } from '#imports'
 import type { Row } from '~/lib'
 
-const formatData = (list: Row[]) =>
+const formatData = (list: Record<string, any>[]) =>
   list.map((row) => ({
     row: { ...row },
     oldRow: { ...row },
@@ -58,7 +59,7 @@ export function useViewData(
 
   const _paginationData = ref<PaginatedType>({ page: 1, pageSize: appInfoDefaultLimit })
 
-  const aggCommentCount = ref<{ row_id: string; count: number }[]>([])
+  const aggCommentCount = ref<{ row_id: string; count: string }[]>([])
 
   const galleryData = ref<GalleryType>()
 
@@ -70,7 +71,7 @@ export function useViewData(
 
   const isPublic = inject(IsPublicInj, ref(false))
 
-  const { project, isSharedBase } = useProject()
+  const { project, isSharedBase } = storeToRefs(useProject())
 
   const { sharedView, fetchSharedViewData, paginationData: sharedPaginationData } = useSharedView()
 
@@ -182,7 +183,7 @@ export function useViewData(
 
     for (const row of formattedData.value) {
       const id = extractPkFromRow(row.row, meta.value?.columns as ColumnType[])
-      row.rowMeta.commentCount = aggCommentCount.value?.find((c: Record<string, any>) => c.row_id === id)?.count || 0
+      row.rowMeta.commentCount = +(aggCommentCount.value?.find((c: Record<string, any>) => c.row_id === id)?.count || 0)
     }
   }
 
@@ -197,6 +198,7 @@ export function useViewData(
           where: where?.value,
         })
       : await fetchSharedViewData({ sortsArr: sorts.value, filtersArr: nestedFilters.value })
+
     formattedData.value = formatData(response.list)
     paginationData.value = response.pageInfo
 

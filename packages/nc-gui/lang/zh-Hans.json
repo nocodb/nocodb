@@ -257,7 +257,7 @@
     "barcodeFormat": "条形码码制",
     "qrCodeValueTooLong": "字数超出二维码容量",
     "barcodeValueTooLong": "字数超出条形码容量",
-    "currentLocation": "Current Location",
+    "currentLocation": "您所在的位置",
     "lng": "经度",
     "lat": "纬度",
     "aggregateFunction": "汇总功能",

@@ -1,5 +1,3 @@
-// // Project CRUD
-
 import { T } from 'nc-help';
 import { isVirtualCol, ModelTypes, RelationTypes, UITypes } from 'nocodb-sdk';
 import NcConnectionMgrv2 from '../utils/common/NcConnectionMgrv2';

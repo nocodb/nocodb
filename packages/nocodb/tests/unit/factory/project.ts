@@ -4,7 +4,10 @@ import Project from '../../../src/lib/models/Project';
 const sakilaProjectConfig = (context) => {
   let base;
 
-  if (context.sakilaDbConfig.client === 'mysql2') {
+  if (
+    context.sakilaDbConfig.client === 'mysql2' ||
+    context.sakilaDbConfig.client === 'pg'
+  ) {
     base = {
       type: context.sakilaDbConfig.client,
       config: {

@@ -10,9 +10,8 @@
 </h1>
 
 <p align="center">
-Turns any MySQL, PostgreSQL, SQL Server, SQLite & MariaDB into a smart-spreadsheet.
+Turns any MySQL, PostgreSQL, SQL Server, SQLite & MariaDB into a smart spreadsheet.
 </p>
-
 
 <div align="center">
  
@@ -29,7 +28,7 @@ Turns any MySQL, PostgreSQL, SQL Server, SQLite & MariaDB into a smart-spreadshe
     <a href="https://twitter.com/nocodb"><b>Twitter</b></a> •
     <a href="https://www.reddit.com/r/NocoDB/"><b>Reddit</b></a> •
     <a href="https://docs.nocodb.com/"><b>Documentation</b></a>
-</p>  
+</p>
 
 ![All Views](https://user-images.githubusercontent.com/35857179/194825053-3aa3373d-3e0f-4b42-b3f1-42928332054a.gif)
 
@@ -47,12 +46,12 @@ Turns any MySQL, PostgreSQL, SQL Server, SQLite & MariaDB into a smart-spreadshe
 
 </div>
 
-
 <p align="center"><a href="markdown/readme/languages/README.md"><b>See other languages »</b></a></p>
 
 <img src="https://static.scarf.sh/a.png?x-pxid=c12a77cc-855e-4602-8a0f-614b2d0da56a" />
 
 # Join Our Team
+
 <p align=""><a href="http://careers.nocodb.com" target="_blank"><img src="https://user-images.githubusercontent.com/61551451/169663818-45643495-e95b-48e2-be13-01d6a77dc2fd.png" width="250"/></a></p>
 
 # Join Our Community
@@ -65,14 +64,14 @@ Turns any MySQL, PostgreSQL, SQL Server, SQLite & MariaDB into a smart-spreadshe
 <img src="https://i2.wp.com/www.feverbee.com/wp-content/uploads/2018/07/logo-discourse.png" alt="">
 </a>
  -->
-[![Stargazers repo roster for @nocodb/nocodb](https://reporoster.com/stars/nocodb/nocodb)](https://github.com/nocodb/nocodb/stargazers)
 
+[![Stargazers repo roster for @nocodb/nocodb](https://reporoster.com/stars/nocodb/nocodb)](https://github.com/nocodb/nocodb/stargazers)
 
 # Quick try
 
 ## NPX
 
-You can run below command if you need an interactive configuration.
+You can run the below command if you need an interactive configuration.
 
 ```
 npx create-nocodb-app
@@ -91,7 +90,7 @@ npm install
 npm start
 ```
 
-## Docker 
+## Docker
 
 ```bash
 # for SQLite
@@ -130,32 +129,40 @@ nocodb/nocodb:latest
 > If you plan to input some special characters, you may need to change the character set and collation yourself when creating the database. Please check out the examples for [MySQL Docker](https://github.com/nocodb/nocodb/issues/1340#issuecomment-1049481043).
 
 ## Binaries
+
 ##### MacOS (x64)
+
 ```bash
 curl http://get.nocodb.com/macos-x64 -o nocodb -L && chmod +x nocodb && ./nocodb
 ```
 
 ##### MacOS (arm64)
+
 ```bash
 curl http://get.nocodb.com/macos-arm64 -o nocodb -L && chmod +x nocodb && ./nocodb
 ```
 
 ##### Linux (x64)
+
 ```bash
 curl http://get.nocodb.com/linux-x64 -o nocodb -L && chmod +x nocodb && ./nocodb
 ```
+
 ##### Linux (arm64)
+
 ```bash
 curl http://get.nocodb.com/linux-arm64 -o nocodb -L && chmod +x nocodb && ./nocodb
 ```
 
 ##### Windows (x64)
+
 ```bash
 iwr http://get.nocodb.com/win-x64.exe
 .\Noco-win-x64.exe
 ```
 
 ##### Windows (arm64)
+
 ```bash
 iwr http://get.nocodb.com/win-arm64.exe
 .\Noco-win-arm64.exe
@@ -182,7 +189,7 @@ docker-compose up -d
 
 # GUI
 
-Access Dashboard using : [http://localhost:8080/dashboard](http://localhost:8080/dashboard)
+Access Dashboard using: [http://localhost:8080/dashboard](http://localhost:8080/dashboard)
 
 # Screenshots
 
@@ -202,22 +209,22 @@ Access Dashboard using : [http://localhost:8080/dashboard](http://localhost:8080
 # Table of Contents
 
 - [Quick try](#quick-try)
-  * [NPX](#npx)
-  * [Node Application](#node-application)
-  * [Docker](#docker)
-  * [Docker Compose](#docker-compose)
+  - [NPX](#npx)
+  - [Node Application](#node-application)
+  - [Docker](#docker)
+  - [Docker Compose](#docker-compose)
 - [GUI](#gui)
 - [Join Our Community](#join-our-community)
 - [Screenshots](#screenshots)
 - [Table of Contents](#table-of-contents)
 - [Features](#features)
-    + [Rich Spreadsheet Interface](#rich-spreadsheet-interface)
-    + [App Store for Workflow Automations](#app-store-for-workflow-automations)
-    + [Programmatic Access](#programmatic-access)
-    + [Sync Schema](#sync-schema)
-    + [Audit](#audit)
+  - [Rich Spreadsheet Interface](#rich-spreadsheet-interface)
+  - [App Store for Workflow Automations](#app-store-for-workflow-automations)
+  - [Programmatic Access](#programmatic-access)
+  - [Sync Schema](#sync-schema)
+  - [Audit](#audit)
 - [Production Setup](#production-setup)
-  * [Environment variables](#environment-variables)
+  - [Environment variables](#environment-variables)
 - [Development Setup](#development-setup)
 - [Contributing](#contributing)
 - [Why are we building this?](#why-are-we-building-this)
@@ -229,47 +236,47 @@ Access Dashboard using : [http://localhost:8080/dashboard](http://localhost:8080
 
 ### Rich Spreadsheet Interface
 
-- ⚡ &nbsp;Basic Operations: Create, Read, Update and Delete on Tables, Columns, and Rows
+- ⚡ &nbsp;Basic Operations: Create, Read, Update and Delete Tables, Columns, and Rows
 - ⚡ &nbsp;Fields Operations: Sort, Filter, Hide / Unhide Columns
 - ⚡ &nbsp;Multiple Views Types: Grid (By default), Gallery, Form View and Kanban View
-- ⚡ &nbsp;View Permissions Types: Collaborative Views, & Locked Views 
+- ⚡ &nbsp;View Permissions Types: Collaborative Views, & Locked Views
 - ⚡ &nbsp;Share Bases / Views: either Public or Private (with Password Protected)
-- ⚡ &nbsp;Variant Cell Types: ID, LinkToAnotherRecord, Lookup, Rollup, SingleLineText, Attachement, Currency, Formula and etc
-- ⚡ &nbsp;Access Control with Roles : Fine-grained Access Control at different levels
+- ⚡ &nbsp;Variant Cell Types: ID, LinkToAnotherRecord, Lookup, Rollup, SingleLineText, Attachment, Currency, Formula, etc
+- ⚡ &nbsp;Access Control with Roles: Fine-grained Access Control at different levels
 - ⚡ &nbsp;and more ...
 
 ### App Store for Workflow Automations
 
 We provide different integrations in three main categories. See <a href="https://docs.nocodb.com/setup-and-usages/app-store" target="_blank">App Store</a> for details.
 
-- ⚡ &nbsp;Chat : Slack, Discord, Mattermost, and etc
-- ⚡ &nbsp;Email : AWS SES, SMTP, MailerSend, and etc
-- ⚡ &nbsp;Storage : AWS S3, Google Cloud Storage, Minio, and etc
+- ⚡ &nbsp;Chat: Slack, Discord, Mattermost, and etc
+- ⚡ &nbsp;Email: AWS SES, SMTP, MailerSend, and etc
+- ⚡ &nbsp;Storage: AWS S3, Google Cloud Storage, Minio, and etc
 
 ### Programmatic Access
 
-We provide the following ways to let users to invoke actions in a programmatic way. You can use a token (either JWT or Social Auth) to sign your requests for authorization to NocoDB. 
+We provide the following ways to let users programmatically invoke actions. You can use a token (either JWT or Social Auth) to sign your requests for authorization to NocoDB.
 
 - ⚡ &nbsp;REST APIs
 - ⚡ &nbsp;NocoDB SDK
 
 ### Sync Schema
 
-We allow you to sync schema changes if you have made changes outside NocoDB GUI. However, it has to be noted then you will have to bring your own schema migrations for moving from environment to others. See <a href="https://docs.nocodb.com/setup-and-usages/sync-schema/" target="_blank">Sync Schema</a> for details.
+We allow you to sync schema changes if you have made changes outside NocoDB GUI. However, it has to be noted then you will have to bring your own schema migrations for moving from one environment to another. See <a href="https://docs.nocodb.com/setup-and-usages/sync-schema/" target="_blank">Sync Schema</a> for details.
 
-### Audit 
+### Audit
 
-We are keeping all the user operation logs under one place. See <a href="https://docs.nocodb.com/setup-and-usages/audit" target="_blank">Audit</a> for details.
+We are keeping all the user operation logs in one place. See <a href="https://docs.nocodb.com/setup-and-usages/audit" target="_blank">Audit</a> for details.
 
-# Production Setup 
+# Production Setup
 
-By default, SQLite is used for storing meta data. However, you can specify your own database. The connection params for this database can be specified in `NC_DB` environment variable. Moreover, we also provide the below environment variables for configuration.
+By default, SQLite is used for storing metadata. However, you can specify your database. The connection parameters for this database can be specified in `NC_DB` environment variable. Moreover, we also provide the below environment variables for configuration.
 
-## Environment variables 
+## Environment variables
 
-Please refer to [Environment variables](https://docs.nocodb.com/getting-started/environment-variables)
+Please refer to the [Environment variables](https://docs.nocodb.com/getting-started/environment-variables)
 
-# Development Setup 
+# Development Setup
 
 Please refer to [Development Setup](https://docs.nocodb.com/engineering/development-setup)
 
@@ -278,12 +285,15 @@ Please refer to [Development Setup](https://docs.nocodb.com/engineering/developm
 Please refer to [Contribution Guide](https://github.com/nocodb/nocodb/blob/master/.github/CONTRIBUTING.md).
 
 # Why are we building this?
-Most internet businesses equip themselves with either spreadsheet or a database to solve their business needs. Spreadsheets are used by a Billion+ humans collaboratively every single day. However, we are way off working at similar speeds on databases which are way more powerful tools when it comes to computing. Attempts to solve this with SaaS offerings has meant horrible access controls, vendor lockin, data lockin, abrupt price changes & most importantly a glass ceiling on what's possible in future.
+
+Most internet businesses equip themselves with either spreadsheet or a database to solve their business needs. Spreadsheets are used by Billion+ humans collaboratively every single day. However, we are way off working at similar speeds on databases which are way more powerful tools when it comes to computing. Attempts to solve this with SaaS offerings have meant horrible access controls, vendor lock-in, data lock-in, abrupt price changes & most importantly a glass ceiling on what's possible in the future.
 
 # Our Mission
-Our mission is to provide the most powerful no-code interface for databases which is open source to every single internet business in the world. This would not only democratise access to a powerful computing tool but also bring forth a billion+ people who will have radical tinkering-and-building abilities on internet. 
 
-# License 
+Our mission is to provide the most powerful no-code interface for databases that is open source to every single internet business in the world. This would not only democratise access to a powerful computing tool but also bring forth a billion+ people who will have radical tinkering-and-building abilities on the internet.
+
+# License
+
 <p>
 This project is licensed under <a href="./LICENSE">AGPLv3</a>.
 </p>

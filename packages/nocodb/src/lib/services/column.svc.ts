@@ -34,7 +34,6 @@ import KanbanView from '../models/KanbanView';
 import Model from '../models/Model';
 import Noco from '../Noco';
 import NcConnectionMgrv2 from '../utils/common/NcConnectionMgrv2';
-
 import { MetaTable } from '../utils/globals';
 import type Project from '../models/Project';
 import type LinkToAnotherRecordColumn from '../models/LinkToAnotherRecordColumn';
@@ -836,7 +835,7 @@ export async function columnSetAsPrimary(param: { columnId: string }) {
 }
 
 export async function columnAdd(param: {
-  req?: any;
+  req: any;
   tableId: string;
   column: ColumnReqType;
 }) {
@@ -1111,7 +1110,7 @@ export async function columnAdd(param: {
     project_id: base.project_id,
     op_type: AuditOperationTypes.TABLE_COLUMN,
     op_sub_type: AuditOperationSubTypes.CREATED,
-    user: param?.req?.user?.email,
+    user: param?.req.user?.email,
     description: `created column ${colBody.column_name} with alias ${colBody.title} from table ${table.table_name}`,
     ip: param?.req.clientIp,
   }).then(() => {});
@@ -1549,7 +1548,10 @@ async function createLTARColumn(param: {
 
       // todo: create index for virtual relations as well
       // create index for foreign key in pg
-      if (param.base.type === 'pg') {
+      if (
+        param.base.type === 'pg' ||
+        (param.column as LinkToAnotherColumnReqType).virtual
+      ) {
         await createColumnIndex({
           column: new Column({
             ...newColumn,

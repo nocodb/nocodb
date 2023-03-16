@@ -14,6 +14,8 @@ const { showNull } = useGlobal()
 
 const editEnabled = inject(EditModeInj)
 
+const rowHeight = inject(RowHeightInj)
+
 const readonly = inject(ReadonlyInj, ref(false))
 
 const vModel = useVModel(props, 'modelValue', emits)
@@ -42,5 +44,5 @@ const focus: VNodeRef = (el) => {
 
   <span v-else-if="vModel === null && showNull" class="nc-null">NULL</span>
 
-  <LazyCellClampedText v-else :value="vModel" :lines="1" />
+  <LazyCellClampedText v-else :value="vModel" :lines="rowHeight" />
 </template>

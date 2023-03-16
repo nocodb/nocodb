@@ -2,7 +2,6 @@ import { Knex, knex } from 'knex';
 import { SnowflakeClient } from 'nc-help';
 import Filter from '../../../../models/Filter';
 import type { FilterType } from 'nocodb-sdk';
-
 import type { BaseModelSql } from './BaseModelSql';
 
 const types = require('pg').types;

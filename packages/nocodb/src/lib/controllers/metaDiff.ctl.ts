@@ -18,7 +18,7 @@ export async function baseMetaDiff(req, res) {
 
 export async function metaDiffSync(req, res) {
   await metaDiffService.metaDiffSync({ projectId: req.params.projectId });
-  res.json({ msg: 'success' });
+  res.json({ msg: 'The meta has been synchronized successfully' });
 }
 
 export async function baseMetaDiffSync(req, res) {
@@ -27,7 +27,7 @@ export async function baseMetaDiffSync(req, res) {
     baseId: req.params.baseId,
   });
 
-  res.json({ msg: 'success' });
+  res.json({ msg: 'The base meta has been synchronized successfully' });
 }
 
 const router = Router();

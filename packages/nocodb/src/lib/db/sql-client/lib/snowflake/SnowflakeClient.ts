@@ -1,11 +1,11 @@
 import { nanoid } from 'nanoid';
-
-import _ from 'lodash';
-import lodash from 'lodash';
+import find from 'lodash/find';
+import isEmpty from 'lodash/isEmpty';
 import KnexClient from '../KnexClient';
 import Debug from '../../../util/Debug';
 import Result from '../../../util/Result';
 import queries from './snowflake.queries';
+
 const log = new Debug('SnowflakeClient');
 
 const rowsToLower = (arr) => {
@@ -1341,7 +1341,7 @@ class SnowflakeClient extends KnexClient {
    */
   async _getQuery(args) {
     try {
-      if (_.isEmpty(this._version)) {
+      if (isEmpty(this._version)) {
         const result = await this.version();
         this._version = result.data.object;
         log.debug(
@@ -1349,8 +1349,6 @@ class SnowflakeClient extends KnexClient {
           this._version
         );
       }
-
-      // log.debug(this._version, args);
 
       if (this._version.key in this.queries[args.func]) {
         return this.queries[args.func][this._version.key].sql;
@@ -1831,7 +1829,7 @@ class SnowflakeClient extends KnexClient {
       let downQuery = '';
 
       for (let i = 0; i < args.columns.length; ++i) {
-        const oldColumn = lodash.find(originalColumns, {
+        const oldColumn = find(originalColumns, {
           cn: args.columns[i].cno,
         });
 
@@ -2640,7 +2638,6 @@ function getDefaultValue(n) {
     case 'dec':
       return n.cdf;
       break;
-
     case 'datetime':
     case 'timestamp':
     case 'date':
@@ -2651,10 +2648,8 @@ function getDefaultValue(n) {
       ) {
         return n.cdf;
       }
-      // return JSON.stringify(n.cdf);
       break;
     default:
-      // return JSON.stringify(n.cdf);
       break;
   }
   return n.cdf;

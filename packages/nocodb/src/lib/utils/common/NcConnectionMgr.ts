@@ -5,7 +5,6 @@ import { XKnex } from '../../db/sql-data-mapper';
 import { defaultConnectionConfig } from '../NcConfigFactory';
 import type { NcConfig } from '../../../interface/config';
 import type { Knex } from 'knex';
-
 import type NcMetaIO from '../../meta/NcMetaIO';
 
 export default class NcConnectionMgr {

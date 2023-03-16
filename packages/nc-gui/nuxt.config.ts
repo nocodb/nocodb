@@ -12,7 +12,7 @@ import PurgeIcons from 'vite-plugin-purge-icons'
 
 // https://v3.nuxtjs.org/api/configuration/nuxt.config
 export default defineNuxtConfig({
-  modules: ['@vueuse/nuxt', 'nuxt-windicss', '@nuxt/image-edge'],
+  modules: ['@vueuse/nuxt', 'nuxt-windicss', '@nuxt/image-edge', '@pinia/nuxt'],
 
   ssr: false,
 
@@ -190,7 +190,7 @@ export default defineNuxtConfig({
   },
 
   imports: {
-    dirs: ['./context', './utils/**', './lib', './composables/**'],
+    dirs: ['./context', './utils/**', './lib', './composables/**', './store/**'],
     imports: [
       { name: 'useI18n', from: 'vue-i18n' },
       { name: 'message', from: 'ant-design-vue/es' },
@@ -198,6 +198,7 @@ export default defineNuxtConfig({
       { name: 'Empty', from: 'ant-design-vue/es' },
       { name: 'Form', from: 'ant-design-vue/es' },
       { name: 'useJwt', from: '@vueuse/integrations/useJwt' },
+      { name: 'storeToRefs', from: 'pinia' },
     ],
   },
 })

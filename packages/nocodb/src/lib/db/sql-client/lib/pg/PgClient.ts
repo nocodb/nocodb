@@ -1,5 +1,4 @@
 import { nanoid } from 'nanoid';
-
 import knex from 'knex';
 import isEmpty from 'lodash/isEmpty';
 import mapKeys from 'lodash/mapKeys';
@@ -8,6 +7,7 @@ import KnexClient from '../KnexClient';
 import Debug from '../../../util/Debug';
 import Result from '../../../util/Result';
 import queries from './pg.queries';
+
 const log = new Debug('PGClient');
 
 class PGClient extends KnexClient {

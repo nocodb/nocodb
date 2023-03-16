@@ -49,14 +49,14 @@ const clear = () => {
 
 const onClickSetCurrentLocation = () => {
   isLoading = true
-  const onSuccess = (position) => {
+  const onSuccess: PositionCallback = (position: GeolocationPosition) => {
     const crd = position.coords
-    formState.latitude = crd.latitude
-    formState.longitude = crd.longitude
+    formState.latitude = `${crd.latitude}`
+    formState.longitude = `${crd.longitude}`
     isLoading = false
   }
 
-  const onError = (err) => {
+  const onError: PositionErrorCallback = (err) => {
     console.error(`ERROR(${err.code}): ${err.message}`)
     isLoading = false
   }
@@ -68,13 +68,25 @@ const onClickSetCurrentLocation = () => {
   }
   navigator.geolocation.getCurrentPosition(onSuccess, onError, options)
 }
+
+const openInGoogleMaps = () => {
+  const [latitude, longitude] = (vModel.value || '').split(';')
+  const url = `https://www.google.com/maps/search/?api=1&query=${latitude},${longitude}`
+  window.open(url, '_blank')
+}
+
+const openInOSM = () => {
+  const [latitude, longitude] = (vModel.value || '').split(';')
+  const url = `https://www.openstreetmap.org/?mlat=${latitude}&mlon=${longitude}#map=15/${latitude}/${longitude}`
+  window.open(url, '_blank')
+}
 </script>
 
 <template>
   <a-dropdown :is="isExpanded ? AModal : 'div'" v-model:visible="isExpanded" trigger="click">
     <div
       v-if="!isLocationSet"
-      class="group cursor-pointer flex gap-1 items-center mx-auto max-w-32 justify-center active:(ring ring-accent ring-opacity-100) rounded border-1 p-1 shadow-sm hover:(bg-primary bg-opacity-10) dark:(!bg-slate-500)"
+      class="group cursor-pointer flex gap-1 items-center mx-auto max-w-64 justify-center active:(ring ring-accent ring-opacity-100) rounded border-1 p-1 shadow-sm hover:(bg-primary bg-opacity-10) dark:(!bg-slate-500)"
     >
       <div class="flex items-center gap-2" data-testid="nc-geo-data-set-location-button">
         <MdiMapMarker class="transform dark:(!text-white) group-hover:(!text-accent scale-120) text-gray-500 text-[0.75rem]" />
@@ -85,7 +97,7 @@ const onClickSetCurrentLocation = () => {
     </div>
     <div v-else data-testid="nc-geo-data-lat-long-set">{{ latLongStr }}</div>
     <template #overlay>
-      <a-form :model="formState" class="flex flex-col" @finish="handleFinish">
+      <a-form :model="formState" class="flex flex-col w-max-64" @finish="handleFinish">
         <a-form-item>
           <div class="flex mt-4 items-center mx-2">
             <div class="mr-2">{{ $t('labels.lat') }}:</div>
@@ -122,13 +134,21 @@ const onClickSetCurrentLocation = () => {
           </div>
         </a-form-item>
         <a-form-item>
-          <div class="flex items-center mr-2">
+          <div class="mr-2 flex flex-col items-end gap-1 text-left">
             <MdiReload v-if="isLoading" :class="{ 'animate-infinite animate-spin text-gray-500': isLoading }" />
-            <a-button class="ml-2" @click="onClickSetCurrentLocation">{{ $t('labels.yourLocation') }}</a-button>
+            <a-button class="ml-2" @click="onClickSetCurrentLocation"
+              ><MdiGpsFixed class="mr-2" />{{ $t('labels.currentLocation') }}</a-button
+            >
+          </div>
+        </a-form-item>
+        <a-form-item v-if="vModel">
+          <div class="mr-2 flex flex-row items-end gap-1 text-left">
+            <a-button @click="openInOSM"><MdiOpenInNew class="mr-2" />{{ $t('activity.map.openInOpenStreetMap') }}</a-button>
+            <a-button @click="openInGoogleMaps"><MdiOpenInNew class="mr-2" />{{ $t('activity.map.openInGoogleMaps') }}</a-button>
           </div>
         </a-form-item>
         <a-form-item>
-          <div class="ml-auto mr-2">
+          <div class="ml-auto mr-2 w-auto">
             <a-button type="text" @click="clear">{{ $t('general.cancel') }}</a-button>
             <a-button type="primary" html-type="submit" data-testid="nc-geo-data-save">{{ $t('general.submit') }}</a-button>
           </div>

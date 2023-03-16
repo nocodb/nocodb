@@ -1,5 +1,6 @@
 import type { WritableComputedRef } from '@vue/reactivity'
-import { computed, createSharedComposable, navigateTo, ref, useProject, useRouter, watch } from '#imports'
+import { defineStore } from 'pinia'
+import { computed, navigateTo, ref, useProject, useRouter, watch } from '#imports'
 import type { TabItem } from '~/lib'
 import { TabType } from '~/lib'
 
@@ -10,14 +11,18 @@ function getPredicate(key: Partial<TabItem>) {
     (!('type' in key) || tab.type === key.type)
 }
 
-export const useTabs = createSharedComposable(() => {
+export const useTabs = defineStore('tabStore', () => {
   const tabs = ref<TabItem[]>([])
 
   const router = useRouter()
 
   const route = $(router.currentRoute)
 
-  const { bases, tables } = useProject()
+  const { t } = useI18n()
+
+  const { isUIAllowed } = useUIPermission()
+
+  const projectStore = useProject()
 
   const projectType = $computed(() => route.params.projectType as string)
 
@@ -26,14 +31,14 @@ export const useTabs = createSharedComposable(() => {
     get() {
       const routeName = route.name as string
 
-      if (routeName.startsWith('projectType-projectId-index-index-type-title-viewTitle') && tables.value.length) {
+      if (routeName.startsWith('projectType-projectId-index-index-type-title-viewTitle') && projectStore.tables.length) {
         const tab: TabItem = { type: route.params.type as TabType, title: route.params.title as string }
 
-        const currentTable = tables.value.find((t) => t.id === tab.title || t.title === tab.title)
+        const currentTable = projectStore.tables.find((t) => t.id === tab.title || t.title === tab.title)
 
         if (!currentTable) return -1
 
-        const currentBase = bases.value.find((b) => b.id === currentTable.base_id)
+        const currentBase = projectStore.bases.find((b) => b.id === currentTable.base_id)
 
         tab.id = currentTable.id
 
@@ -44,7 +49,7 @@ export const useTabs = createSharedComposable(() => {
         tab.meta = currentTable.meta
 
         // append base alias to tab title if duplicate titles exist on other bases
-        if (tables.value.find((t) => t.title === currentTable?.title && t.base_id !== currentTable?.base_id))
+        if (projectStore.tables.find((t) => t.title === currentTable?.title && t.base_id !== currentTable?.base_id))
           tab.title = `${tab.title}${currentBase?.alias ? ` (${currentBase.alias})` : ``}`
 
         if (index === -1) {
@@ -55,8 +60,8 @@ export const useTabs = createSharedComposable(() => {
         }
 
         return index
-      } else if (routeName.startsWith('nc-projectId-index-index-auth')) {
-        return tabs.value.findIndex((t) => t.type === 'auth')
+      } else if (routeName.startsWith('projectType-projectId-index-index-auth')) {
+        return tabs.value.findIndex((t) => t.type === TabType.AUTH)
       }
 
       // by default, it's showing Team & Auth
@@ -91,13 +96,13 @@ export const useTabs = createSharedComposable(() => {
     }
     // if tab not found add it
     else {
-      const currentTable = tables.value.find((t) => t.id === tabMeta.id || t.title === tabMeta.id)
-      const currentBase = bases.value.find((b) => b.id === currentTable?.base_id)
+      const currentTable = projectStore.tables.find((t) => t.id === tabMeta.id || t.title === tabMeta.id)
+      const currentBase = projectStore.bases.find((b) => b.id === currentTable?.base_id)
 
       tabMeta.meta = currentTable?.meta
 
       // append base alias to tab title if duplicate titles exist on other bases
-      if (tables.value.find((t) => t.title === currentTable?.title && t.base_id !== currentTable?.base_id))
+      if (projectStore.tables.find((t) => t.title === currentTable?.title && t.base_id !== currentTable?.base_id))
         tabMeta.title = `${tabMeta.title}${currentBase?.alias ? ` (${currentBase.alias})` : ``}`
 
       tabs.value = [...(tabs.value || []), tabMeta]
@@ -154,6 +159,23 @@ export const useTabs = createSharedComposable(() => {
         })
     }
   }
+
+  watch(
+    () => route.name,
+    (n, o) => {
+      if (n === o) return
+      if (!n || !/^projectType-projectId-index-index/.test(n.toString())) return
+      const activeTabRoute = n.toString().replace('projectType-projectId-index-index-', '')
+      switch (activeTabRoute) {
+        case TabType.AUTH:
+          if (isUIAllowed('teamAndAuth')) addTab({ id: TabType.AUTH, type: TabType.AUTH, title: t('title.teamAndAuth') })
+          break
+        default:
+          break
+      }
+    },
+    { immediate: true },
+  )
 
   return { tabs, addTab, activeTabIndex, activeTab, clearTabs, closeTab, updateTab }
 })

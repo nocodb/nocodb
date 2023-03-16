@@ -117,7 +117,6 @@ const onDecode = async (scannedCodeValue: string) => {
           >
             <div class="relative flex flex-col h-full">
               <StreamBarcodeReader v-show="scannerIsReady" @decode="onDecode" @loaded="onLoaded"> </StreamBarcodeReader>
-              <a-button @click="() => onDecode('1234')">Simulate scan</a-button>
             </div>
           </a-modal>
           <GeneralOverlay class="bg-gray-400/75" :model-value="isLoading" inline transition>

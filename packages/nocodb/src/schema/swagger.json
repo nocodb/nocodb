@@ -2149,7 +2149,20 @@
         "operationId": "project-update",
         "responses": {
           "200": {
-            "description": "OK"
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "number",
+                  "example": 1
+                },
+                "examples": {
+                  "Example 1": {
+                    "value": 1
+                  }
+                }
+              }
+            }
           },
           "400": {
             "$ref": "#/components/responses/BadRequest"
@@ -2160,11 +2173,15 @@
           "content": {
             "application/json": {
               "schema": {
-                "type": "number"
+                "$ref": "#/components/schemas/ProjectUpdateReq"
               },
               "examples": {
                 "Example 1": {
-                  "value": 1
+                  "value": {
+                    "color": "#24716E",
+                    "meta": null,
+                    "title": "My Project"
+                  }
                 }
               }
             }
@@ -17483,6 +17500,43 @@
         "required": ["title"],
         "title": "Project Request Model",
         "type": "object"
+      },
+      "ProjectUpdateReq": {
+        "description": "Model for Project Update Request",
+        "x-stoplight": {
+          "id": "4zgrec70wyz4c"
+        },
+        "examples": [
+          {
+            "color": "#24716E",
+            "meta": null,
+            "title": "My Project"
+          }
+        ],
+        "title": "Project Update Request Model",
+        "type": "object",
+        "properties": {
+          "color": {
+            "description": "Primary Theme Color",
+            "example": "#24716E",
+            "maxLength": 50,
+            "type": "string"
+          },
+          "meta": {
+            "$ref": "#/components/schemas/Meta",
+            "description": "Project Meta",
+            "x-stoplight": {
+              "id": "m05w9sbwqgul3"
+            }
+          },
+          "title": {
+            "description": "Project Title",
+            "example": "My Project",
+            "maxLength": 128,
+            "minLength": 1,
+            "type": "string"
+          }
+        }
       },
       "ProjectUserReq": {
         "description": "Model for Project User Request",

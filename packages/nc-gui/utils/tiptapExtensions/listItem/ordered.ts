@@ -1,3 +1,4 @@
+import type { ChainedCommands } from '@tiptap/core'
 import { Node, mergeAttributes, nodePasteRule, wrappingInputRule } from '@tiptap/core'
 import { Plugin, PluginKey } from 'prosemirror-state'
 import { getTextAsParagraphFromSliceJson, getTextFromSliceJson, isSelectionOfType, onEnter, toggleItem } from './helper'
@@ -10,6 +11,7 @@ declare module '@tiptap/core' {
   interface Commands<ReturnType> {
     ordered: {
       toggleOrdered: () => ReturnType
+      insertOrdered: () => ReturnType
       isSelectionTypeOrdered: () => boolean
     }
   }
@@ -84,6 +86,21 @@ export const Ordered = Node.create<OrderItemsOptions>({
         () =>
         ({ state }: any) => {
           return isSelectionOfType(state, this.name)
+        },
+      insertOrdered:
+        () =>
+        ({ chain }: any) => {
+          return (chain() as ChainedCommands).insertContent({
+            type: this.name,
+            attrs: {
+              number: '1',
+            },
+            content: [
+              {
+                type: 'paragraph',
+              },
+            ],
+          })
         },
       toggleOrdered:
         () =>

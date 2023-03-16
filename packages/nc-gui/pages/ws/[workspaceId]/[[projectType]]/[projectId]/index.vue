@@ -128,25 +128,7 @@ const handleThemeColor = async (mode: 'swatch' | 'primary' | 'accent', color?: s
   }
 }
 
-const copyProjectInfo = async () => {
-  try {
-    await loadProjectMetaInfo()
 
-    if (
-      await copy(
-        Object.entries(projectMetaInfo.value!)
-          .map(([k, v]) => `${k}: **${v}**`)
-          .join('\n'),
-      )
-    ) {
-      // Copied to clipboard
-      message.info(t('msg.info.copiedToClipboard'))
-    }
-  } catch (e) {
-    console.error(e)
-    message.error(e.message)
-  }
-}
 
 const copyAuthToken = async () => {
   try {

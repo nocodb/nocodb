@@ -1,6 +1,6 @@
 <script lang="ts" setup>
 import type { ProjectType } from 'nocodb-sdk'
-import { nextTick } from '@vue/runtime-core'
+import { nextTick, toRef } from '@vue/runtime-core'
 import { useProjects } from '#imports'
 import { extractSdkResponseErrorMsg } from '~/utils'
 
@@ -8,13 +8,17 @@ const props = defineProps<{
   project: ProjectType
 }>()
 
-const projectStore = useProjects()
+const project = $(toRef(props, 'project'))
 
-const { updateProject, deleteProject } = projectStore
+const projectsStore = useProjects()
+
+const { updateProject, deleteProject, getProjectMetaInfo } = projectsStore
 
 const editMode = ref(false)
 
 const tempTitle = ref('')
+
+const { t } = useI18n()
 
 const input = ref<HTMLInputElement>()
 
@@ -47,7 +51,6 @@ const closeEditMode = () => {
   tempTitle.value = ''
 }
 
-
 const confirmDeleteProject = () => {
   Modal.confirm({
     title: 'Delete Project',
@@ -61,6 +64,26 @@ const confirmDeleteProject = () => {
       }
     },
   })
+}
+
+const { copy } = useCopy(true)
+
+const copyProjectInfo = async () => {
+  try {
+    if (
+      await copy(
+        Object.entries(await getProjectMetaInfo(project.id!)!)
+          .map(([k, v]) => `${k}: **${v}**`)
+          .join('\n'),
+      )
+    ) {
+      // Copied to clipboard
+      message.info(t('msg.info.copiedToClipboard'))
+    }
+  } catch (e) {
+    console.error(e)
+    message.error(e.message)
+  }
 }
 
 defineExpose({
@@ -92,8 +115,6 @@ const isSharedBase = ref(false)
       <MdiDotsHorizontal class="mr-2 opacity-0 group-hover:opacity-100" @click.stop />
       <template #overlay>
         <a-menu>
-
-
           <!--          <a-menu class="!ml-1 !w-[300px] !text-sm"> -->
           <a-menu-item-group>
             <template #title>
@@ -237,15 +258,13 @@ const isSharedBase = ref(false)
               <a-menu-divider />
 
               <a-menu-item @click="enableEditMode">
-                <div
-                  class="nc-project-menu-item group">
+                <div class="nc-project-menu-item group">
                   <MdiPencilOutline />
                   Edit
                 </div>
               </a-menu-item>
               <a-menu-item @click="confirmDeleteProject">
-                <div
-                  class="nc-project-menu-item group">
+                <div class="nc-project-menu-item group">
                   <MdiDeleteOutline />
                   Delete
                 </div>

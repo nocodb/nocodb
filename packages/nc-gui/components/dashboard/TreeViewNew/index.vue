@@ -1,9 +1,8 @@
 <script setup lang="ts">
 import type { BaseType, ProjectType, TableType } from 'nocodb-sdk'
-import { Dropdown, Tooltip, message } from 'ant-design-vue'
+import { message } from 'ant-design-vue'
 import Sortable from 'sortablejs'
-import { Icon as IconifyIcon } from '@iconify/vue'
-import { nextTick, onMounted } from '@vue/runtime-core'
+import { nextTick, } from '@vue/runtime-core'
 import type { VNodeRef } from '#imports'
 
 import {

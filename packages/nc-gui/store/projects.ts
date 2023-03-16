@@ -10,7 +10,7 @@ export const useProjects = defineStore('projectsStore', () => {
 
   const { api, isLoading } = useApi()
 
-  const worspaceStore = useWorkspace();
+  const worspaceStore = useWorkspace()
 
   // actions
   const loadProject = async (projectId: string) => {
@@ -62,14 +62,18 @@ export const useProjects = defineStore('projectsStore', () => {
     })
 
     projects.value = { ...projects.value, [result.id]: result }
-    return result;
+    return result
   }
 
   const deleteProject = async (projectId: string) => {
     await api.project.delete(projectId)
     delete projects.value[projectId]
     delete projectTableList.value[projectId]
-    await worspaceStore.loadProjects();
+    await worspaceStore.loadProjects()
+  }
+
+  async function getProjectMetaInfo(projectId: string) {
+    return await api.project.metaGet(projectId!, {}, {})
   }
 
   return {
@@ -83,5 +87,6 @@ export const useProjects = defineStore('projectsStore', () => {
     updateProject,
     createProject,
     deleteProject,
+    getProjectMetaInfo,
   }
 })

@@ -1,8 +1,8 @@
 import { Node, mergeAttributes, wrappingInputRule } from '@tiptap/core'
 import type { Node as ProseMirrorNode } from 'prosemirror-model'
-import { Slice } from 'prosemirror-model'
-import { NodeSelection, Plugin, PluginKey, TextSelection } from 'prosemirror-state'
-import { getTextAsParagraphFromSliceJson, getTextFromSliceJson, isSelectionOfType, onEnter } from './helper'
+
+import { NodeSelection, Plugin, PluginKey } from 'prosemirror-state'
+import { getTextAsParagraphFromSliceJson, isSelectionOfType, onEnter, toggleItem } from './helper'
 
 export interface TaskOptions {
   HTMLAttributes: Record<string, any>
@@ -90,47 +90,24 @@ export const Task = Node.create<TaskOptions>({
       toggleTask:
         () =>
         ({ chain, state }: any) => {
-          const { selection } = state
+          const toggleListItemInSliceJson = (content: any[]) => {
+            for (const child of content) {
+              if (child.type !== this.name) {
+                child.content = [getTextAsParagraphFromSliceJson(child)]
+                child.type = this.name
+              } else {
+                child.type = 'paragraph'
 
-          const topDBlockPos = selection.$from.before(1)
-
-          const bottomDBlockPos = selection.$to.after(1)
-
-          const slice = state.doc.slice(topDBlockPos, bottomDBlockPos)
-          const sliceJson = slice.toJSON()
-
-          // Toggle a task under `dblock` nodes in slice
-          for (const node of sliceJson.content) {
-            if (node.type === 'dBlock') {
-              for (const child of node.content) {
-                if (child.type !== this.name) {
-                  child.content = [getTextAsParagraphFromSliceJson(child)]
-                  child.type = this.name
+                if (child.content?.length === 1) {
+                  child.content = child.content[0].content
                 } else {
-                  child.type = 'paragraph'
-
-                  if (child.content?.length === 1) {
-                    child.content = child.content[0].content
-                  } else {
-                    child.content = []
-                  }
+                  child.content = []
                 }
               }
             }
           }
 
-          const newSlice = Slice.fromJSON(state.schema, sliceJson)
-          const isEmpty = getTextFromSliceJson(sliceJson).length === 0
-
-          return chain()
-            .command(() => {
-              const tr = state.tr
-              tr.replaceRange(topDBlockPos, bottomDBlockPos, newSlice)
-
-              return true
-            })
-            .setTextSelection(topDBlockPos + newSlice.size - 1)
-            .setTextSelection(isEmpty ? topDBlockPos + newSlice.size - 1 : topDBlockPos + newSlice.size - 2)
+          toggleItem(state, chain, toggleListItemInSliceJson)
         },
     } as any
   },

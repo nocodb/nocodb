@@ -1,7 +1,6 @@
 import { Node, mergeAttributes, nodePasteRule, wrappingInputRule } from '@tiptap/core'
-import { Slice } from 'prosemirror-model'
 import { Plugin, PluginKey } from 'prosemirror-state'
-import { getTextAsParagraphFromSliceJson, getTextFromSliceJson, isSelectionOfType, onEnter } from './helper'
+import { getTextAsParagraphFromSliceJson, getTextFromSliceJson, isSelectionOfType, onEnter, toggleItem } from './helper'
 export interface OrderItemsOptions {
   number: string
   HTMLAttributes: Record<string, any>
@@ -89,53 +88,31 @@ export const Ordered = Node.create<OrderItemsOptions>({
       toggleOrdered:
         () =>
         ({ chain, state }: any) => {
-          const { selection } = state
+          const toggleListItemInSliceJson = (content: any[]) => {
+            let prevOrderedListNodeNumber = 0
+            for (const child of content) {
+              if (child.type !== this.name && getTextFromSliceJson(child).length > 0) {
+                child.content = [getTextAsParagraphFromSliceJson(child)]
+                child.type = this.name
+                child.attrs = {
+                  number: String(prevOrderedListNodeNumber + 1),
+                }
 
-          const topDBlockPos = selection.$from.before(1)
+                prevOrderedListNodeNumber = prevOrderedListNodeNumber + 1
+              } else {
+                prevOrderedListNodeNumber = 0
+                child.type = 'paragraph'
 
-          const bottomDBlockPos = selection.$to.after(1)
-
-          const slice = state.doc.slice(topDBlockPos, bottomDBlockPos)
-          const sliceJson = slice.toJSON()
-
-          let prevOrderedListNodeNumber = 0
-          // Toggle a bullet under `dblock` nodes in slice
-          for (const node of sliceJson.content) {
-            if (node.type === 'dBlock') {
-              for (const child of node.content) {
-                if (child.type !== this.name && getTextFromSliceJson(child).length > 0) {
-                  child.content = [getTextAsParagraphFromSliceJson(child)]
-                  child.type = this.name
-                  child.attrs = {
-                    number: String(prevOrderedListNodeNumber + 1),
-                  }
-
-                  prevOrderedListNodeNumber = prevOrderedListNodeNumber + 1
+                if (child.content?.length === 1) {
+                  child.content = child.content[0].content
                 } else {
-                  prevOrderedListNodeNumber = 0
-                  child.type = 'paragraph'
-
-                  if (child.content?.length === 1) {
-                    child.content = child.content[0].content
-                  } else {
-                    child.content = []
-                  }
+                  child.content = []
                 }
               }
             }
           }
 
-          const newSlice = Slice.fromJSON(state.schema, sliceJson)
-          const isEmpty = getTextFromSliceJson(sliceJson).length === 0
-
-          return chain()
-            .command(() => {
-              const tr = state.tr
-              tr.replaceRange(topDBlockPos, bottomDBlockPos, newSlice)
-
-              return true
-            })
-            .setTextSelection(isEmpty ? topDBlockPos + newSlice.size - 1 : topDBlockPos + newSlice.size - 2)
+          toggleItem(state, chain, toggleListItemInSliceJson)
         },
     } as any
   },

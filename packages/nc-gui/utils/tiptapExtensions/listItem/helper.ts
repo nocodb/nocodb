@@ -1,6 +1,7 @@
 import type { EditorState, Transaction } from 'prosemirror-state'
 import type { Fragment } from 'prosemirror-model'
-import type { Editor } from '@tiptap/core'
+import type { ChainedCommands, Editor } from '@tiptap/core'
+import { Slice } from 'prosemirror-model'
 
 export const addPastedContentToTransaction = (transaction: Transaction, state: EditorState, fragments: Fragment[]) => {
   const { selection } = state
@@ -190,4 +191,54 @@ export const onEnter = (editor: Editor, nodeType: 'bullet' | 'ordered' | 'task')
     editor.chain().focus().setTextSelection(pos).run()
   }
   return true
+}
+
+export const toggleItem = (state: EditorState, chain: any, toggleListItemInSliceJson: any) => {
+  const { selection } = state
+
+  const selectionSlice = state.doc.slice(selection.from, selection.to)
+  const selectionSliceJson = selectionSlice.toJSON()
+
+  const isDBlockSelected = (selectionSliceJson.content as any[]).some((node) => node.type === 'dBlock')
+
+  if (isDBlockSelected) {
+    const topDBlockPos = selection.$from.before(1)
+
+    const bottomDBlockPos = selection.$to.after(1)
+
+    const slice = state.doc.slice(topDBlockPos, bottomDBlockPos)
+    const sliceJson = slice.toJSON()
+
+    // Toggle a bullet under `dblock` nodes in slice
+    for (const node of sliceJson.content) {
+      if (node.type === 'dBlock') {
+        toggleListItemInSliceJson(node.content)
+      }
+    }
+
+    const newSlice = Slice.fromJSON(state.schema, sliceJson)
+    const isEmpty = getTextFromSliceJson(sliceJson).length === 0
+
+    return chain()
+      .command(() => {
+        const tr = state.tr
+        tr.replaceRange(topDBlockPos, bottomDBlockPos, newSlice)
+
+        return true
+      })
+      .setTextSelection(isEmpty ? topDBlockPos + newSlice.size - 1 : topDBlockPos + newSlice.size - 2)
+  } else {
+    toggleListItemInSliceJson(selectionSliceJson.content)
+
+    const newSlice = Slice.fromJSON(state.schema, { ...selectionSliceJson, openStart: 0 })
+
+    return (chain() as ChainedCommands)
+      .command(() => {
+        const tr = state.tr
+        tr.replaceRange(selection.from, selection.to, newSlice)
+
+        return true
+      })
+      .setTextSelection(selection.from + 1)
+  }
 }

@@ -1,5 +1,5 @@
 export function parseProp(v: any): any {
-  if (!v) return
+  if (!v) return {}
   try {
     return typeof v === 'string' ? JSON.parse(v) : v
   } catch {
@@ -7,8 +7,8 @@ export function parseProp(v: any): any {
   }
 }
 
-export function stringifyProp(v: any): string | void {
-  if (!v) return
+export function stringifyProp(v: any): string | undefined {
+  if (!v) return undefined
   try {
     return typeof v === 'string' ? v : JSON.stringify(v)
   } catch {

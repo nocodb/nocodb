@@ -1778,6 +1778,24 @@ export interface ProjectReqType {
 }
 
 /**
+ * Model for Project Update Request
+ */
+export interface ProjectUpdateReqType {
+  /**
+   * Primary Theme Color
+   * @example #24716E
+   */
+  color?: string;
+  /** Project Meta */
+  meta?: MetaType;
+  /**
+   * Project Title
+   * @example My Project
+   */
+  title?: string;
+}
+
+/**
  * Model for Project User Request
  */
 export interface ProjectUserReqType {
@@ -3906,16 +3924,20 @@ export class Api<
  * @name Update
  * @summary Update Project
  * @request PATCH:/api/v1/db/meta/projects/{projectId}
- * @response `200` `void` OK
+ * @response `200` `number` OK
  * @response `400` `{
   \** @example BadRequest [Error]: <ERROR MESSAGE> *\
   msg: string,
 
 }`
  */
-    update: (projectId: IdType, data: number, params: RequestParams = {}) =>
+    update: (
+      projectId: IdType,
+      data: ProjectUpdateReqType,
+      params: RequestParams = {}
+    ) =>
       this.request<
-        void,
+        number,
         {
           /** @example BadRequest [Error]: <ERROR MESSAGE> */
           msg: string;
@@ -3925,6 +3947,7 @@ export class Api<
         method: 'PATCH',
         body: data,
         type: ContentType.Json,
+        format: 'json',
         ...params,
       }),
 
@@ -8321,6 +8344,7 @@ export class Api<
   ee?: boolean,
   ncAttachmentFieldSize?: number,
   ncMaxAttachmentsAllowed?: number,
+  isCloud?: boolean,
 
 }` OK
  * @response `400` `{
@@ -8349,6 +8373,7 @@ export class Api<
           ee?: boolean;
           ncAttachmentFieldSize?: number;
           ncMaxAttachmentsAllowed?: number;
+          isCloud?: boolean;
         },
         {
           /** @example BadRequest [Error]: <ERROR MESSAGE> */

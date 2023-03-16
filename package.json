@@ -2,6 +2,9 @@
   "name": "nocodb-root",
   "description": "NocoDB Root",
   "private": true,
+  "workspaces": [
+    "packages/*"
+  ],
   "author": {
     "name": "NocoDB Inc",
     "url": "https://nocodb.com/"

@@ -1,7 +1,7 @@
 import useVuelidate from '@vuelidate/core'
 import { helpers, minLength, required } from '@vuelidate/validators'
 import type { Ref } from 'vue'
-import type { ColumnType, FormType, LinkToAnotherRecordType, TableType, ViewType } from 'nocodb-sdk'
+import type { BoolType, ColumnType, FormType, LinkToAnotherRecordType, StringOrNullType, TableType, ViewType } from 'nocodb-sdk'
 import { ErrorMessages, RelationTypes, UITypes, isVirtualCol } from 'nocodb-sdk'
 import { isString } from '@vueuse/core'
 import {
@@ -37,7 +37,8 @@ const [useProvideSharedFormStore, useSharedFormStore] = useInjectionState((share
   const sharedView = ref<ViewType>()
   const sharedFormView = ref<FormType>()
   const meta = ref<TableType>()
-  const columns = ref<(ColumnType & { required?: boolean; show?: boolean; label?: string; enable_scanner?: boolean })[]>()
+  const columns =
+    ref<(ColumnType & { required?: BoolType; show?: BoolType; label?: StringOrNullType; enable_scanner?: BoolType })[]>()
   const sharedViewMeta = ref<SharedViewMeta>({})
   const formResetHook = createEventHook<void>()
 

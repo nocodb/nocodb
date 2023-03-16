@@ -1,5 +1,5 @@
 import type { WritableComputedRef } from '@vue/reactivity'
-import {defineStore, storeToRefs} from 'pinia'
+import { defineStore, storeToRefs } from 'pinia'
 import { computed, navigateTo, ref, useProject, useRouter, watch } from '#imports'
 import type { TabItem } from '~/lib'
 import { TabType } from '~/lib'
@@ -26,7 +26,7 @@ export const useTabs = defineStore('tabStore', () => {
   const { project, tables } = $(storeToRefs(projectStore))
   const projectsStore = useProjects()
 
-  const projectType = $computed(() => route.params.projectType as string  ||  'nc')
+  const projectType = $computed(() => (route.params.projectType as string) || 'nc')
 
   // todo: new-layout
   const workspaceId = $computed(() => route.params.workspaceId as string)
@@ -39,13 +39,14 @@ export const useTabs = defineStore('tabStore', () => {
       console.log(project)
 
       // todo: new-layout
-      if (routeName.includes('projectType-projectId-index-index-type-title-viewTitle') && (tables.length
-      || projectsStore.projectTableList[project?.id!]?.length)) {
-
+      if (
+        routeName.includes('projectType-projectId-index-index-type-title-viewTitle') &&
+        (tables.length || projectsStore.projectTableList[project?.id!]?.length)
+      ) {
         const tab: TabItem = { type: route.params.type as TabType, title: route.params.title as string }
 
         const currentTable = (tables ?? projectsStore.projectTableList[project?.id!]).find((t) => {
-         return  t.id === tab.title || t.title === tab.title
+          return t.id === tab.title || t.title === tab.title
         })
 
         if (!currentTable) return -1
@@ -87,23 +88,27 @@ export const useTabs = defineStore('tabStore', () => {
     },
     set(index: number) {
       if (index === -1) {
-        navigateTo(`/ws/${workspaceId}/${projectType}/${project?.id!}`)
+        navigateTo({
+          path: `/ws/${workspaceId}/${projectType}/${project?.id!}`,
+          query: route.query,
+        })
       } else {
         const tab = tabs.value[index]
 
         if (!tab) return
 
-        if(tab.projectId) {
-          projectStore.loadProject(true, tab.projectId).then(() => {
-            if(tab.type !== TabType.DOCUMENT)
-            projectStore.loadTables()
-          }).then(() => {
-            navigateToTab(tab)
-          })
-        }else{
+        if (tab.projectId) {
+          projectStore
+            .loadProject(true, tab.projectId)
+            .then(() => {
+              if (tab.type !== TabType.DOCUMENT) projectStore.loadTables()
+            })
+            .then(() => {
+              navigateToTab(tab)
+            })
+        } else {
           navigateToTab(tab)
         }
-
       }
     },
   })
@@ -125,9 +130,9 @@ export const useTabs = defineStore('tabStore', () => {
 
     // if tab not found add it
     else {
-      if(tabMeta.projectId) {
+      if (tabMeta.projectId) {
         await projectStore.loadProject(false, tabMeta.projectId)
-        if(tabMeta.type !== TabType.DOCUMENT) {
+        if (tabMeta.type !== TabType.DOCUMENT) {
           await projectStore.loadTables()
         }
       }
@@ -158,7 +163,10 @@ export const useTabs = defineStore('tabStore', () => {
       if (newTabIndex < 0 && tabs.value?.length > 1) newTabIndex = index + 1
 
       if (newTabIndex === -1) {
-        await navigateTo(`/ws/${workspaceId}/${projectType}/${route.params.projectId}`)
+        await navigateTo({
+          path: `/ws/${workspaceId}/${projectType}/${route.params.projectId}`,
+          query: route.query,
+        })
       } else {
         await navigateToTab(tabs.value?.[newTabIndex])
       }
@@ -170,17 +178,26 @@ export const useTabs = defineStore('tabStore', () => {
   function navigateToTab(tab: TabItem) {
     switch (tab.type) {
       case TabType.TABLE:
-        return navigateTo(`/ws/${workspaceId}/${projectType}/${tab.projectId}/table/${tab?.id}${tab.viewTitle ? `/${tab.viewTitle}` : ''}`)
+        return navigateTo({
+          path: `/ws/${workspaceId}/${projectType}/${tab.projectId}/table/${tab?.id}${tab.viewTitle ? `/${tab.viewTitle}` : ''}`,
+          query: route.query,
+        })
       case TabType.VIEW:
-        return navigateTo(`/ws/${workspaceId}/${projectType}/${tab.projectId}/view/${tab?.id}${tab.viewTitle ? `/${tab.viewTitle}` : ''}`)
+        return navigateTo({
+          path: `/ws/${workspaceId}/${projectType}/${tab.projectId}/view/${tab?.id}${tab.viewTitle ? `/${tab.viewTitle}` : ''}`,
+          query: route.query,
+        })
       case TabType.AUTH:
-        return navigateTo(`/ws/${workspaceId}/${projectType}/${tab.projectId}/auth`)
+        return navigateTo({ path: `/ws/${workspaceId}/${projectType}/${tab.projectId}/auth`, query: route.query })
       case TabType.SQL:
-        return navigateTo(`/ws/${workspaceId}/${projectType}/${tab.projectId}/sql`)
+        return navigateTo({ path: `/ws/${workspaceId}/${projectType}/${tab.projectId}/sql`, query: route.query })
       case TabType.ERD:
-        return navigateTo(`/ws/${workspaceId}/${projectType}/${tab.projectId}/erd/${tab?.tabMeta?.base.id}`)
- case TabType.DOCUMENT:
-        return navigateTo(`/ws/${workspaceId}/${projectType}/${tab.projectId}/doc`)
+        return navigateTo({
+          path: `/ws/${workspaceId}/${projectType}/${tab.projectId}/erd/${tab?.tabMeta?.base.id}`,
+          query: route.query,
+        })
+      case TabType.DOCUMENT:
+        return navigateTo({ path: `/ws/${workspaceId}/${projectType}/${tab.projectId}/doc`, query: route.query })
     }
   }
 

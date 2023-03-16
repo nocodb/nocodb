@@ -61,6 +61,10 @@ const loadProjectAndTableList = async (project: ProjectType, projIndex: number) 
 
   openedProjectId.value = project.id
 
+  if (project.id === activeProjectId.value) {
+    return
+  }
+
   nextTick(() => {
     const el = projectElRefs.value[projIndex]
 
@@ -391,6 +395,18 @@ useEventListener(document, 'keydown', async (e: KeyboardEvent) => {
         }
         break
       }
+      // ALT + L - only show active project
+      case 76: {
+        if (route.params.projectId) {
+          router.push({
+            query: {
+              ...route.query,
+              clear: route.query.clear === '1' ? undefined : '1',
+            },
+          })
+        }
+        break
+      }
     }
   }
 })
@@ -454,13 +470,15 @@ watch(
 )
 
 const settingsDialog = reactive({})
+
+const isClearMode = computed(() => route.query.clear === '1' && route.params.projectId)
 </script>
 
 <template>
   <div class="nc-treeview-container flex flex-col">
     <div mode="inline" class="flex-grow min-h-50 overflow-y-auto overflow-x-hidden">
       <div
-        v-for="(project, i) of workspaceProjects"
+        v-for="(project, i) of workspaceProjects.filter((p) => !isClearMode || p.id === activeProjectId)"
         :key="project.id"
         ref="projectElRefs"
         class="m-2 py-1 nc-project-sub-menu"

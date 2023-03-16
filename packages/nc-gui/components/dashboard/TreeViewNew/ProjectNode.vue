@@ -73,6 +73,8 @@ const isSharedBase = ref(false)
 
 <template>
   <div class="project-title-node group flex items-center">
+    <GeneralProjectIcon class="mx-2" :type="project.type" />
+
     <input
       v-if="editMode"
       ref="input"

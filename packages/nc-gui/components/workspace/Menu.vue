@@ -31,6 +31,7 @@ const onWorkspaceCreate = async (workspace: WorkspaceType) => {
 
 // todo: temp
 const isSharedBase = false
+const modalVisible = false
 </script>
 
 <template>

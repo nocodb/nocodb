@@ -19,7 +19,7 @@ test.describe('Map View', () => {
     dashboard = new DashboardPage(page, context.project);
     toolbar = dashboard.map.toolbar;
 
-    await dashboard.viewSidebar.activateGeoDataEasterEgg();
+    await dashboard.viewSidebar.changeBetaFeatureToggleValue({ toggleValue: true });
 
     // close 'Team & Auth' tab
     await dashboard.closeTab({ title: 'Team & Auth' });

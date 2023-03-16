@@ -137,7 +137,7 @@ const copyProjectMeta = async () => {
     const aggregatedMetaInfo = await $api.utils.aggregatedMetaInfo()
     await copy(JSON.stringify(aggregatedMetaInfo))
     message.info('Copied aggregated project meta to clipboard')
-  } catch (e) {
+  } catch (e: any) {
     message.error(await extractSdkResponseErrorMsg(e))
   }
 }

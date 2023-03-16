@@ -560,7 +560,7 @@ watch(
                             overlay-class-name="nc-dropdown-import-menu"
                             @click.stop
                           >
-                            <MdiDotsVertical
+                            <PhDotsThreeOutlineVerticalThin
                               class="transition-opacity opacity-0 group-hover:opacity-100 nc-import-menu outline-0"
                             />
 

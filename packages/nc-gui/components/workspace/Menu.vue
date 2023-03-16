@@ -1,8 +1,10 @@
 <script lang="ts" setup>
-import {onMounted, ref, useWorkspace} from '#imports'
-import {storeToRefs} from 'pinia'
-import {WorkspaceType} from "nocodb-sdk";
-import {navigateTo} from "#app";
+import { storeToRefs } from 'pinia'
+import type { WorkspaceType } from 'nocodb-sdk'
+import { onMounted, ref, useWorkspace } from '#imports'
+import { navigateTo } from '#app'
+import {useDebounce} from "@vueuse/shared";
+import {useDebounceFn} from "@vueuse/core";
 
 const props = defineProps<{
   isOpen: boolean
@@ -10,24 +12,33 @@ const props = defineProps<{
 
 const workspaceStore = useWorkspace()
 
-const {workspace, workspaces, isWorkspaceOwner} = storeToRefs(workspaceStore)
+const { workspace, workspaces, isWorkspaceOwner } = storeToRefs(workspaceStore)
 
+
+const { appInfo, token, signOut, signedIn, user, currentVersion } = useGlobal()
+
+
+const { isUIAllowed } = useUIPermission()
 
 onMounted(async () => {
   await workspaceStore.loadWorkspaceList()
-});
-
+})
 
 const workspaceModalVisible = ref(false)
 
 const createDlg = ref(false)
-
 
 const onWorkspaceCreate = async (workspace: WorkspaceType) => {
   createDlg.value = false
   await workspaceStore.loadWorkspaceList()
   navigateTo(`/ws/${workspace.id}`)
 }
+
+const updateWorkspaceTitle = useDebounceFn(async () => {
+  await workspaceStore.updateWorkspace(workspace.value!.id!, {
+    title: workspace.value!.title,
+  })
+}, 500)
 
 // todo: temp
 const isSharedBase = false
@@ -36,324 +47,285 @@ const modalVisible = false
 
 <template>
   <div class="flex-grow min-w-20">
-    <a-dropdown class="h-full min-w-0 flex-1" :trigger="['click']" placement="bottom"
-                overlay-class-name="nc-dropdown-project-menu">
+    <a-dropdown
+      class="h-full min-w-0 flex-1"
+      :trigger="['click']"
+      placement="bottom"
+      overlay-class-name="nc-dropdown-project-menu"
+    >
       <div
-          :style="{ width: props.isOpen ? 'calc(100% - 40px) pr-2' : '100%' }"
-          :class="[props.isOpen ? '' : 'justify-center']"
-          data-testid="nc-project-menu"
-          class="group cursor-pointer flex gap-1 items-center nc-project-menu overflow-hidden"
+        :style="{ width: props.isOpen ? 'calc(100% - 40px) pr-2' : '100%' }"
+        :class="[props.isOpen ? '' : 'justify-center']"
+        data-testid="nc-project-menu"
+        class="group cursor-pointer flex gap-1 items-center nc-project-menu overflow-hidden"
       >
         <template v-if="props.isOpen">
-          <a-tooltip v-if="workspace?.title?.length > 12" placement="bottom">
-            <div class="text-md font-semibold truncate">{{ workspace.title }}</div>
+         <div class="flex-grow min-w-10">
+           <a-tooltip v-if="workspace?.title?.length > 12" placement="bottom">
+            <div class="text-md truncate">{{ workspace.title }}</div>
             <template #title>
               <div class="text-sm !text-red-500">{{ workspace?.title }}</div>
             </template>
           </a-tooltip>
           <div v-else class="text-md font-semibold truncate capitalize">{{ workspace?.title }}</div>
+         </div>
 
-          <MdiChevronDown class="min-w-[17px] text-md"/>
+          <PhCodeSimpleThin class="min-w-[17px] text-md transform rotate-90"/>
         </template>
 
         <template v-else>
-          <MdiFolder class="text-primary cursor-pointer transform hover:scale-105 text-2xl"/>
+          <MdiFolder class="text-primary cursor-pointer transform hover:scale-105 text-2xl" />
         </template>
       </div>
 
       <template #overlay>
-
-        <a-menu class="!ml-1 !w-[300px] !text-sm">
-
-
+        <a-menu class="!ml-4 !w-[300px] !text-sm">
           <a-menu-item-group>
-            <template #title>
-              <div class="group select-none flex items-center gap-4 py-1">
-                <MdiFolder class="group-hover:text-accent text-xl"/>
+              <div class="group select-none flex items-center gap-4 p-2">
 
-                <div class="flex flex-col">
-                  <div class="text-lg group-hover:(!text-primary) font-semibold capitalize">
-                    <GeneralTruncateText>{{ workspace.title }}</GeneralTruncateText>
-                  </div>
+                <input @input="updateWorkspaceTitle" v-model="workspace.title" class="nc-workspace-title-input text-current"/>
 
-                  <div v-if="!isSharedBase" class="flex items-center gap-1">
-                    <div class="group-hover:(!text-primary)">ID:</div>
-
-                    <div class="text-xs group-hover:text-accent truncate font-italic">{{ workspace.id }}</div>
-                  </div>
-                </div>
               </div>
-            </template>
-            <div class="pt-2 pb-2 text-gray-400 font-weight-bold text-xs px-3">Workspace Options</div>
+            <a-menu-divider/>
+            <div class="nc-menu-sub-head">Workspace Options</div>
 
             <a-menu-item @click="workspaceModalVisible = true">
-              <div class="nc-project-menu-item group">
-                <PhUserCircleThin/>
+              <div class="nc-workspace-menu-item group">
+                <PhUserCircleThin />
                 Collaborators
               </div>
             </a-menu-item>
             <a-menu-item @click="workspaceModalVisible = true">
-              <div class="nc-project-menu-item group">
-                <PhFadersThin/>
+              <div class="nc-workspace-menu-item group">
+                <PhFadersThin />
                 Settings
               </div>
             </a-menu-item>
 
-            <a-menu-divider class="my-2"/>
+            <a-menu-divider class="mt-2" />
 
-            <div class="pt-2 pb-2 text-gray-400 font-weight-bold text-xs px-3">Workspaces</div>
 
+            <div class="nc-menu-sub-head">Workspaces</div>
 
             <div class="max-h-300px overflow-y-auto">
               <a-menu-item v-for="workspace of workspaces" @click="navigateTo(`/ws/${workspace.id}`)">
-                <div class="nc-project-menu-item group">
-                  <PhBrowserThin/>
+                <div class="nc-workspace-menu-item group">
+                  <PhBrowserThin />
 
                   {{ workspace.title }}
                 </div>
               </a-menu-item>
             </div>
-            <a-menu-divider class="my-2"/>
+            <a-menu-divider />
 
             <a-menu-item @click="createDlg = true">
-              <div class="nc-project-menu-item group">
-                <PhPlusThin/>
+              <div class="nc-workspace-menu-item group">
+                <PhPlusThin />
 
                 Add new workspace
               </div>
             </a-menu-item>
-            <!--
-                      <template v-if="!isSharedBase">
-                        &lt;!&ndash; Copy Project Info &ndash;&gt;
-                        <a-menu-item key="copy">
-                          <div v-e="['c:navbar:user:copy-proj-info']" class="nc-project-menu-item group" @click.stop="copyProjectInfo">
-                            <MdiContentCopy class="group-hover:text-accent" />
-                            {{ $t('activity.account.projInfo') }}
-                          </div>
-                        </a-menu-item>
+            <template v-if="!isSharedBase">
 
-                        <a-menu-divider />
+              <!-- Copy Auth Token -->
+              <a-menu-item key="copy">
+                <div v-e="['a:navbar:user:copy-auth-token']" class="nc-workspace-menu-item group" @click.stop="copyAuthToken">
+                  <MdiScriptTextKeyOutline class="group-hover:text-accent" />
+                  {{ $t('activity.account.authToken') }}
+                </div>
+              </a-menu-item>
 
-                        &lt;!&ndash; Swagger: Rest APIs &ndash;&gt;
-                        <a-menu-item key="api">
-                          <div
-                            v-if="isUIAllowed('apiDocs')"
-                            v-e="['e:api-docs']"
-                            class="nc-project-menu-item group"
-                            @click.stop="openLink(`/api/v1/db/meta/projects/${route.params.projectId}/swagger`, appInfo.ncSiteUrl)"
-                          >
-                            <MdiApi class="group-hover:text-accent" />
-                            {{ $t('activity.account.swagger') }}
-                          </div>
-                        </a-menu-item>
+              <a-menu-divider />
 
-                        &lt;!&ndash; Copy Auth Token &ndash;&gt;
-                        <a-menu-item key="copy">
-                          <div v-e="['a:navbar:user:copy-auth-token']" class="nc-project-menu-item group" @click.stop="copyAuthToken">
-                            <MdiScriptTextKeyOutline class="group-hover:text-accent" />
-                            {{ $t('activity.account.authToken') }}
-                          </div>
-                        </a-menu-item>
+              <!-- Theme -->
+              <template v-if="isUIAllowed('projectTheme')">
+                <a-sub-menu key="theme">
+                  <template #title>
+                    <div class="nc-workspace-menu-item group">
+                      <ClarityImageLine class="group-hover:text-accent" />
+                      {{ $t('activity.account.themes') }}
 
-                        <a-menu-divider />
+                      <div class="flex-1" />
 
-                        &lt;!&ndash; Team & Settings &ndash;&gt;
-                        <a-menu-item key="teamAndSettings">
-                          <div
-                            v-if="isUIAllowed('settings')"
-                            v-e="['c:navdraw:project-settings']"
-                            class="nc-project-menu-item group"
-                            @click="toggleDialog(true, 'teamAndAuth')"
-                          >
-                            <MdiCog class="group-hover:text-accent" />
-                            {{ $t('title.teamAndSettings') }}
-                          </div>
-                        </a-menu-item>
+                      <MaterialSymbolsChevronRightRounded
+                        class="transform group-hover:(scale-115 text-accent) text-xl text-gray-400"
+                      />
+                    </div>
+                  </template>
 
-                        &lt;!&ndash; Theme &ndash;&gt;
-                        <template v-if="isUIAllowed('projectTheme')">
-                          <a-sub-menu key="theme">
-                            <template #title>
-                              <div class="nc-project-menu-item group">
-                                <ClarityImageLine class="group-hover:text-accent" />
-                                {{ $t('activity.account.themes') }}
+                  <template #expandIcon></template>
 
-                                <div class="flex-1" />
+                  <LazyGeneralColorPicker
+                    :model-value="theme.primaryColor"
+                    :colors="projectThemeColors"
+                    :row-size="9"
+                    :advanced="false"
+                    class="rounded-t"
+                    @input="handleThemeColor('swatch', $event)"
+                  />
 
-                                <MaterialSymbolsChevronRightRounded
-                                  class="transform group-hover:(scale-115 text-accent) text-xl text-gray-400"
-                                />
-                              </div>
-                            </template>
+                  <!-- Custom Theme -->
+                  <a-sub-menu key="theme-2">
+                    <template #title>
+                      <div class="nc-workspace-menu-item group">
+                        {{ $t('labels.customTheme') }}
 
-                            <template #expandIcon></template>
+                        <div class="flex-1" />
 
-                            <LazyGeneralColorPicker
-                              :model-value="theme.primaryColor"
-                              :colors="projectThemeColors"
-                              :row-size="9"
-                              :advanced="false"
-                              class="rounded-t"
-                              @input="handleThemeColor('swatch', $event)"
-                            />
+                        <MaterialSymbolsChevronRightRounded
+                          class="transform group-hover:(scale-115 text-accent) text-xl text-gray-400"
+                        />
+                      </div>
+                    </template>
 
-                            &lt;!&ndash; Custom Theme &ndash;&gt;
-                            <a-sub-menu key="theme-2">
-                              <template #title>
-                                <div class="nc-project-menu-item group">
-                                  {{ $t('labels.customTheme') }}
+                    <!-- Primary Color -->
+                    <template #expandIcon></template>
 
-                                  <div class="flex-1" />
-
-                                  <MaterialSymbolsChevronRightRounded
-                                    class="transform group-hover:(scale-115 text-accent) text-xl text-gray-400"
-                                  />
-                                </div>
-                              </template>
-
-                              &lt;!&ndash; Primary Color &ndash;&gt;
-                              <template #expandIcon></template>
-
-                              <a-sub-menu key="pick-primary">
-                                <template #title>
-                                  <div class="nc-project-menu-item group">
-                                    <ClarityColorPickerSolid class="group-hover:text-accent" />
-                                    {{ $t('labels.primaryColor') }}
-                                  </div>
-                                </template>
-
-                                <template #expandIcon></template>
-
-                                <LazyGeneralChromeWrapper @input="handleThemeColor('primary', $event)" />
-                              </a-sub-menu>
-
-                              &lt;!&ndash; Accent Color &ndash;&gt;
-                              <a-sub-menu key="pick-accent">
-                                <template #title>
-                                  <div class="nc-project-menu-item group">
-                                    <ClarityColorPickerSolid class="group-hover:text-accent" />
-                                    {{ $t('labels.accentColor') }}
-                                  </div>
-                                </template>
-
-                                <template #expandIcon></template>
-
-                                <LazyGeneralChromeWrapper @input="handleThemeColor('accent', $event)" />
-                              </a-sub-menu>
-                            </a-sub-menu>
-                          </a-sub-menu>
-                        </template>
-
-                        <a-menu-divider />
-
-                        &lt;!&ndash; Preview As &ndash;&gt;
-                        <a-sub-menu v-if="isUIAllowed('previewAs')" key="preview-as">
-                          <template #title>
-                            <div v-e="['c:navdraw:preview-as']" class="nc-project-menu-item group">
-                              <MdiFileEyeOutline class="group-hover:text-accent" />
-                              {{ $t('activity.previewAs') }}
-
-                              <div class="flex-1" />
-
-                              <MaterialSymbolsChevronRightRounded
-                                class="transform group-hover:(scale-115 text-accent) text-xl text-gray-400"
-                              />
-                            </div>
-                          </template>
-
-                          <template #expandIcon></template>
-
-                          <LazyGeneralPreviewAs />
-                        </a-sub-menu>
+                    <a-sub-menu key="pick-primary">
+                      <template #title>
+                        <div class="nc-workspace-menu-item group">
+                          <ClarityColorPickerSolid class="group-hover:text-accent" />
+                          {{ $t('labels.primaryColor') }}
+                        </div>
                       </template>
-                      &lt;!&ndash; Language &ndash;&gt;
-                      <a-sub-menu
-                        key="language"
-                        class="lang-menu !py-0"
-                        popup-class-name="scrollbar-thin-dull min-w-50 max-h-90vh !overflow-auto"
-                      >
-                        <template #title>
-                          <div class="nc-project-menu-item group">
-                            <MaterialSymbolsTranslate class="group-hover:text-accent nc-language" />
-                            {{ $t('labels.language') }}
-                            <div class="flex items-center text-gray-400 text-xs">(Community Translated)</div>
-                            <div class="flex-1" />
 
-                            <MaterialSymbolsChevronRightRounded class="transform group-hover:(scale-115 text-accent) text-xl text-gray-400" />
-                          </div>
-                        </template>
+                      <template #expandIcon></template>
 
-                        <template #expandIcon></template>
+                      <LazyGeneralChromeWrapper @input="handleThemeColor('primary', $event)" />
+                    </a-sub-menu>
 
-                        <LazyGeneralLanguageMenu />
-                      </a-sub-menu>
+                    <!-- Accent Color -->
+                    <a-sub-menu key="pick-accent">
+                      <template #title>
+                        <div class="nc-workspace-menu-item group">
+                          <ClarityColorPickerSolid class="group-hover:text-accent" />
+                          {{ $t('labels.accentColor') }}
+                        </div>
+                      </template>
 
-                      &lt;!&ndash; Account &ndash;&gt;
-                      <template v-if="signedIn && !isSharedBase">
-                        <a-sub-menu key="account">
-                          <template #title>
-                            <div class="nc-project-menu-item group">
-                              <MdiAccount class="group-hover:text-accent" />
-                              {{ $t('labels.account') }}
-                              <div class="flex-1" />
+                      <template #expandIcon></template>
 
-                              <MaterialSymbolsChevronRightRounded
-                                class="transform group-hover:(scale-115 text-accent) text-xl text-gray-400"
-                              />
-                            </div>
-                          </template>
+                      <LazyGeneralChromeWrapper @input="handleThemeColor('accent', $event)" />
+                    </a-sub-menu>
+                  </a-sub-menu>
+                </a-sub-menu>
+              </template>
 
-                          <template #expandIcon></template>
+              <a-menu-divider />
 
-                          <a-menu-item key="0" class="!rounded-t">
-                            <nuxt-link v-e="['c:navbar:user:email']" class="nc-project-menu-item group !no-underline" to="/account/users">
-                              <MdiAt class="mt-1 group-hover:text-accent" />&nbsp;
-                              <div class="prose-sm group-hover:text-primary">
-                                <div>Account</div>
-                                <div class="text-xs text-gray-500">{{ email }}</div>
-                              </div>
-                            </nuxt-link>
-                          </a-menu-item>
+              <!-- Preview As -->
+              <a-sub-menu v-if="isUIAllowed('previewAs')" key="preview-as">
+                <template #title>
+                  <div v-e="['c:navdraw:preview-as']" class="nc-workspace-menu-item group">
+                    <MdiFileEyeOutline class="group-hover:text-accent" />
+                    {{ $t('activity.previewAs') }}
 
-                          <a-menu-item key="1" class="!rounded-b">
-                            <div v-e="['a:navbar:user:sign-out']" class="nc-project-menu-item group" @click="logout">
-                              <MdiLogout class="group-hover:(!text-accent)" />&nbsp;
+                    <div class="flex-1" />
 
-                              <span class="prose-sm nc-user-menu-signout">
-                                {{ $t('general.signOut') }}
-                              </span>
-                            </div>
-                          </a-menu-item>
-                        </a-sub-menu>
-                      </template>-->
+                    <MaterialSymbolsChevronRightRounded
+                      class="transform group-hover:(scale-115 text-accent) text-xl text-gray-400"
+                    />
+                  </div>
+                </template>
+
+                <template #expandIcon></template>
+
+                <LazyGeneralPreviewAs />
+              </a-sub-menu>
+            </template>
+            <!-- Language -->
+            <a-sub-menu
+              key="language"
+              class="lang-menu !py-0"
+              popup-class-name="scrollbar-thin-dull min-w-50 max-h-90vh !overflow-auto"
+            >
+              <template #title>
+                <div class="nc-workspace-menu-item group">
+                  <MaterialSymbolsTranslate class="group-hover:text-accent nc-language" />
+                  {{ $t('labels.language') }}
+                  <div class="flex items-center text-gray-400 text-xs">(Community Translated)</div>
+                  <div class="flex-1" />
+
+                  <MaterialSymbolsChevronRightRounded
+                    class="transform group-hover:(scale-115 text-accent) text-xl text-gray-400"
+                  />
+                </div>
+              </template>
+
+              <template #expandIcon></template>
+
+              <LazyGeneralLanguageMenu />
+            </a-sub-menu>
+
+            <!-- Account -->
+            <template v-if="signedIn && !isSharedBase">
+              <a-sub-menu key="account">
+                <template #title>
+                  <div class="nc-workspace-menu-item group">
+                    <MdiAccount class="group-hover:text-accent" />
+                    {{ $t('labels.account') }}
+                    <div class="flex-1" />
+
+                    <MaterialSymbolsChevronRightRounded
+                      class="transform group-hover:(scale-115 text-accent) text-xl text-gray-400"
+                    />
+                  </div>
+                </template>
+
+                <template #expandIcon></template>
+
+                <a-menu-item key="0" class="!rounded-t">
+                  <nuxt-link v-e="['c:navbar:user:email']" class="nc-workspace-menu-item group !no-underline" to="/account/users">
+                    <MdiAt class="mt-1 group-hover:text-accent" />&nbsp;
+                    <div class="prose-sm group-hover:text-primary">
+                      <div>Account</div>
+                      <div class="text-xs text-gray-500">{{ email }}</div>
+                    </div>
+                  </nuxt-link>
+                </a-menu-item>
+
+                <a-menu-item key="1" class="!rounded-b">
+                  <div v-e="['a:navbar:user:sign-out']" class="nc-workspace-menu-item group" @click="logout">
+                    <MdiLogout class="group-hover:(!text-accent)" />&nbsp;
+
+                    <span class="prose-sm nc-user-menu-signout">
+                      {{ $t('general.signOut') }}
+                    </span>
+                  </div>
+                </a-menu-item>
+              </a-sub-menu>
+            </template>
           </a-menu-item-group>
         </a-menu>
       </template>
     </a-dropdown>
-    <a-modal
-        v-model:visible="workspaceModalVisible"
-        :class="{ active: modalVisible }"
-        width="80%"
-        :footer="null"
-    >
+    <a-modal v-model:visible="workspaceModalVisible" :class="{ active: modalVisible }" width="80%" :footer="null">
       <a-tabs v-model:activeKey="tab">
-        <!--        <a-tab-pane key="projects" tab="All Projects" class="w-full">-->
-        <!--          <WorkspaceProjectList class="h-full" />-->
-        <!--        </a-tab-pane>-->
         <template v-if="isWorkspaceOwner">
           <a-tab-pane key="collab" tab="Collaborators" class="w-full">
-            <WorkspaceCollaboratorsList class="h-full overflow-auto"/>
+            <WorkspaceCollaboratorsList class="h-full overflow-auto" />
           </a-tab-pane>
           <a-tab-pane key="settings" tab="Settings" class="w-full">
-            <div class="min-h-50 flex items-center justify-center">
-              Not available
-            </div>
+            <div class="min-h-50 flex items-center justify-center">Not available</div>
           </a-tab-pane>
         </template>
       </a-tabs>
-
     </a-modal>
 
-    <WorkspaceCreateDlg v-model="createDlg" @success="onWorkspaceCreate"/>
+    <WorkspaceCreateDlg v-model="createDlg" @success="onWorkspaceCreate" />
   </div>
 </template>
+
+<style scoped>
+.nc-workspace-title-input{
+  @apply flex-grow p-2 outline-none hover:(bg-gray-100) focus:(bg-gray-100) rounded text-md text-defaault
+}
+
+.nc-menu-sub-head{
+  @apply pt-4 pb-2 text-gray-500 text-sm px-5
+}
+
+.nc-workspace-menu-item{
+  @apply flex items-center pl-2 py-2 text-sm gap-2
+}
+</style>

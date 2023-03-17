@@ -218,10 +218,10 @@ function escapeLiteral(v: string) {
   return (
     v
       // replace \ to \\
-      .replace(/\\/g, '\\\\')
+      .replace(/\\/g, `\\\\`)
       // replace " to \"
-      .replace(/"/g, '\\"')
+      .replace(/"/g, `\\"`)
       // replace ' to \'
-      .replace(/'/g, '\\"')
+      .replace(/'/g, `\\'`)
   );
 }

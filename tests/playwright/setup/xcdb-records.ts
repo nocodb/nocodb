@@ -39,7 +39,7 @@ const rowMixedValue = (column: ColumnType, index: number) => {
   // compute timezone offset
   const offset = new Date().getTimezoneOffset();
   const timezoneOffset =
-    (offset < 0 ? '+' : '-') +
+    (offset <= 0 ? '+' : '-') +
     String(Math.abs(Math.round(offset / 60))).padStart(2, '0') +
     ':' +
     String(Math.abs(offset % 60)).padStart(2, '0');

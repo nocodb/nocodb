@@ -34,12 +34,13 @@ export async function hookCreate(param: {
 
   validateHookPayload(param.hook.notification);
 
-  T.emit('evt', { evt_type: 'webhooks:created' });
-  // todo: type correction
   const hook = await Hook.insert({
     ...param.hook,
     fk_model_id: param.tableId,
   } as any);
+
+  T.emit('evt', { evt_type: 'webhooks:created' });
+
   return hook;
 }
 

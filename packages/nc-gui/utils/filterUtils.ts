@@ -1,4 +1,4 @@
-import { isNumericCol, numericUITypes, UITypes } from 'nocodb-sdk'
+import { UITypes, isNumericCol, numericUITypes } from 'nocodb-sdk'
 
 const getEqText = (fieldUiType: UITypes) => {
   if (isNumericCol(fieldUiType) || fieldUiType === UITypes.Time) {

@@ -86,7 +86,7 @@ const createProject = async () => {
     switch (route.query.type) {
       case NcProjectType.DOCS:
         await loadProject(true, result.id)
-        await navigateTo(`/nc/doc/p/${result.id}`)
+        await navigateTo(`/ws/${route.query.workspaceId}/nc/${result.id}/doc/p/${result.id}`)
         // todo: Hack. Remove
         setTimeout(() => {
           window.location.reload()
@@ -106,7 +106,8 @@ const createProject = async () => {
         break
       }
       default:
-        await navigateTo(`/nc/${result.id}`)
+        await navigateTo(`/ws/${route.query.workspaceId}/nc/${result.id}`)
+
     }
   } catch (e: any) {
     message.error(await extractSdkResponseErrorMsg(e))

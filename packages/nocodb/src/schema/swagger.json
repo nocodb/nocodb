@@ -11881,7 +11881,8 @@
                     "retries": 10,
                     "retry_interval": 60000,
                     "timeout": 60000,
-                    "title": "My Webhook"
+                    "title": "My Webhook",
+                    "condition": false
                   }
                 }
               }
@@ -16055,7 +16056,8 @@
             "retries": 10,
             "retry_interval": 60000,
             "timeout": 60000,
-            "title": "My Webhook"
+            "title": "My Webhook",
+            "condition": false
           }
         ],
         "title": "Hook Request Model",
@@ -16126,6 +16128,13 @@
           "type": {
             "type": ["string", "null"],
             "description": "Hook Type"
+          },
+          "condition": {
+            "$ref": "#/components/schemas/Bool",
+            "x-stoplight": {
+              "id": "wwzoum7rrlwun"
+            },
+            "description": "Is this hook assoicated with some filters"
           }
         },
         "required": ["event", "notification", "operation", "title"]

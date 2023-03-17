@@ -1,18 +1,13 @@
 <script setup lang="ts">
-import { storeToRefs } from 'pinia'
-
 definePageMeta({
   key: 'true',
-  hideHeader: true,
+  // hideHeader: true,
   // layout: 'docs',
 })
 
 const route = useRoute()
 const { isOpen: isSidebarOpen, toggleHasSidebar, toggle } = useSidebar('nc-left-sidebar')
-const projectStore = useProject()
-const { loadBookProject, loadBookPublicProject } = projectStore
-const { project, isLoading: isProjectLoading } = storeToRefs(projectStore)
-const { fetchNestedPages, openChildPageTabsOfRootPages, isErrored, isPublic, nestedPublicParentPage, isFetching } = useDocs()
+const { isErrored, isFetching, isPublic } = useDocs()
 
 const toggleSidebar = (isOpen: boolean) => {
   if (isOpen) {
@@ -24,62 +19,11 @@ const toggleSidebar = (isOpen: boolean) => {
   }
 }
 
-onMounted(async () => {
-  if (isPublic.value) toggleSidebar(false)
-
-  if (!project.value.id && !isProjectLoading.value) {
-    if (isPublic.value) {
-      await loadBookPublicProject()
-    } else {
-      await loadBookProject()
-    }
-
-    await fetchNestedPages()
-
-    await openChildPageTabsOfRootPages()
-  }
-})
-
-const isNestedPage = computed(() => {
-  return !!nestedPublicParentPage.value?.is_nested_published
-})
-
-const isProjectPublic = computed(() => {
-  if (typeof project.value.meta === 'string') {
-    return JSON.parse(project.value.meta)?.isPublic
-  }
-
-  return (project.value.meta as any)?.isPublic
-})
-
 watch(
-  [isErrored, isFetching, isNestedPage, isProjectPublic],
+  [isErrored, isFetching],
   () => {
-    if ((!isPublic.value || isProjectPublic.value) && !isErrored.value) {
-      toggleSidebar(true)
-      return
-    }
-
-    let projectMeta
-    if (typeof project.value.meta === 'string') {
-      projectMeta = JSON.parse(project.value.meta)
-    } else {
-      projectMeta = project.value.meta
-    }
-
-    if (isErrored.value && !isFetching.value.nestedPages) {
+    if (isErrored.value) {
       toggleSidebar(false)
-    } else {
-      const isPublicProject = isPublic.value && projectMeta?.isPublic
-      const isNestedPages = isPublic.value && nestedPublicParentPage.value?.is_nested_published
-      const isSinglePage = !isPublicProject && !isNestedPages
-
-      if (isSinglePage) {
-        toggleSidebar(false)
-        return
-      }
-
-      toggleSidebar(true)
     }
   },
   {
@@ -102,9 +46,10 @@ watch(
 </script>
 
 <template>
-  <NuxtLayout id="content" :key="route.params.projectId" class="flex">
-    <!--    <template v-if="isSidebarOpen" #sidebar> -->
-    <!--    </template> -->
+  <NuxtLayout id="content" :key="route.params.projectId as string" class="flex">
+    <template v-if="isSidebarOpen" #sidebar>
+      <DocsSideBar :key="isPublic.toString()" />
+    </template>
     <div v-if="isErrored">
       <DocsError />
     </div>

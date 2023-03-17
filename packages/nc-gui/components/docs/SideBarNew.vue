@@ -4,12 +4,14 @@ import type { TreeProps } from 'ant-design-vue'
 import type { AntTreeNodeDropEvent } from 'ant-design-vue/lib/tree'
 import { Icon as IconifyIcon } from '@iconify/vue'
 import type { ProjectType } from 'nocodb-sdk'
-import { onMounted } from '@vue/runtime-core'
+import { onMounted, toRef } from '@vue/runtime-core'
 import { useDocsTree } from '~/composables/useDocsTree'
 
 const props = defineProps<{
   project: ProjectType
 }>()
+
+const project = toRef(props, 'project')
 
 const MAX_NESTED_LEVEL = 5
 
@@ -296,7 +298,12 @@ onMounted(async () => {
   </div>
 </template>
 
-<style lang="scss">
+<style scoped lang="scss">
+:deep(.ant-tree) {
+  @apply !bg-transparent;
+  background: transparent !important;
+}
+
 .docs-page-icon-change-popover {
   .ant-popover-inner {
     padding: 0 !important;

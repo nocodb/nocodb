@@ -425,11 +425,10 @@ const [setup, use] = useInjectionState(() => {
 
     const publicMode = isPublic.value || publicUrl
     let url: string
-    if (publicMode) url = `/ws/${workspaceId}/nc/${projectId}/doc/s/${id}/${nestedSlugs.join('/')}`
     if (publicMode) {
       url = `/nc/doc/s/${slug}-${id}-${projectId}`
     } else {
-      url = `/ws/${workspaceId}/nc/${projectId}/doc/p/${id}/${nestedSlugs.join('/')}`
+      url = `/ws/${workspaceId}/nc/${projectId}/doc/p/${slug}-${id}-${projectId}`
       // url = `/nc/doc/p/${slug}-${id}-${projectId}`
     }
 

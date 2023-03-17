@@ -1,13 +1,18 @@
 import { message } from 'ant-design-vue'
 import type { DocsPageType, ProjectType } from 'nocodb-sdk'
 import gh from 'parse-github-url'
+import type { MaybeRef } from '@vueuse/core'
 import { extractSdkResponseErrorMsg, useNuxtApp } from '#imports'
 import type { PageSidebarNode } from '~~/lib'
 import { ProjectRole } from '~/lib/enums'
 
 const PAGES_PER_PAGE_LIST = 10
 
-export const useDocsTree = (project: ProjectType) => {
+// todo: merge with useDocs
+
+export const useDocsTree = (_project: MaybeRef<ProjectType>) => {
+  const project = $ref(_project)
+
   const route = useRoute()
   const { $api } = useNuxtApp()
   const { appInfo } = $(useGlobal())
@@ -351,25 +356,29 @@ export const useDocsTree = (project: ProjectType) => {
   }
 
   function projectUrl() {
-    return isPublic.value ? `/ws/ws_dcbedpvdulwlla/nc/${projectId!}/doc/s` : `/ws/ws_dcbedpvdulwlla/nc/${projectId!}/doc`
+    return isPublic.value
+      ? `/ws/ws_dcbedpvdulwlla/nc/${projectId!}/doc/s`
+      : `/ws/${route.params.workspaceId}/nc/${projectId!}/doc/p/${projectId!}`
   }
 
   function nestedUrl(id: string | undefined, { completeUrl = false, publicUrl = false } = {}) {
     const nestedSlugs = nestedSlugsFromPageId(id)
 
+    const slug = findPage(nestedPages.value, id)?.slug ?? ''
     const publicMode = isPublic.value || publicUrl
     // We use nestedPublicParentPage when we are actually rendering the nested public page
     // And we use openedPage when we are generating the url for the nested public page
     const isNestedPublicMode = isNestedPublicPage.value || openedPage.value?.is_nested_published
     let url: string
     if (publicMode && isNestedPublicMode) {
+      // todo: update
       url = `/ws/ws_dcbedpvdulwlla/nc/${projectId!}/doc/s/${nestedPublicParentPage.value?.id ?? id}/${
         nestedSlugs[0]
       }/${id}/${nestedSlugs.filter((_, i) => i > 0).join('/')}`
     } else if (publicMode) {
       url = `/ws/ws_dcbedpvdulwlla/nc/${projectId!}/doc/s/${id}/${nestedSlugs.join('/')}`
     } else {
-      url = `/ws/ws_dcbedpvdulwlla/nc/${projectId!}/doc/p/${id}/${nestedSlugs.join('/')}`
+      url = `/ws/${route.params.workspaceId}/nc/${projectId!}/doc/p/${slug}-${id}-${projectId}`
     }
 
     return completeUrl ? `${window.location.origin}/#${url}` : url

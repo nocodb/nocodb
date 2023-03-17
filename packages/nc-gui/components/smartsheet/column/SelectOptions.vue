@@ -142,10 +142,12 @@ const optionsMagic = async () => {
 
     if (res.length) {
       for (const op of res) {
-        options.push({
+        const option = {
           title: op,
           color: getNextColor(),
-        })
+        }
+        options.push(option)
+        renderedOptions.push(option)
       }
     }
   } catch (e) {

@@ -701,7 +701,7 @@ const predictFunction = async () => {
       vModel.value.formula_raw = res.data
     }
   } catch (e) {
-    message.warning('NocoAI failed for the demo reasons. Please try again.')
+    message.warning('NocoAI: Underlying GPT API are busy. Please try after sometime.')
   }
   loadMagic.value = false
 }

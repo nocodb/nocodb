@@ -98,7 +98,7 @@ onMounted(() => {
     <template #footer>
       <a-button key="back" size="large" @click="dialogShow = false">{{ $t('general.cancel') }}</a-button>
 
-      <a-button key="submit" size="large" type="primary" @click="_createTable">{{ $t('general.submit') }}</a-button>
+      <a-button key="submit" size="large" :loading="loadMagic" type="primary" @click="_createTable">{{ $t('general.submit') }}</a-button>
     </template>
 
     <div class="pl-10 pr-10 pt-5">

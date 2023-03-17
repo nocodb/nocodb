@@ -88,7 +88,7 @@ export function useTable(onTableCreate?: (tableMeta: TableType) => void, baseId?
       onTableCreate?.(tableMeta as TableType)
       refreshCommandPalette()
     } catch (e: any) {
-      message.warning('NocoAI failed for the demo reasons. Please try again.')
+      message.warning('NocoAI: Underlying GPT API are busy. Please try after sometime.')
     }
   }
 
@@ -105,7 +105,7 @@ export function useTable(onTableCreate?: (tableMeta: TableType) => void, baseId?
       onTableCreate?.(tableMeta as TableType)
       refreshCommandPalette()
     } catch (e: any) {
-      message.warning('NocoAI failed for the demo reasons. Please try again.')
+      message.warning('NocoAI: Underlying GPT API are busy. Please try after sometime.')
     }
   }
 

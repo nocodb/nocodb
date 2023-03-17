@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import type { HookType } from 'nocodb-sdk'
+import type { FilterReqType, HookReqType, HookType } from 'nocodb-sdk'
 import { MetaInj, extractSdkResponseErrorMsg, inject, message, onMounted, parseProp, ref, useI18n, useNuxtApp } from '#imports'
 
 const emit = defineEmits(['edit', 'add'])
@@ -8,13 +8,13 @@ const { t } = useI18n()
 
 const { $api, $e } = useNuxtApp()
 
-const hooks = ref<Record<string, any>[]>([])
+const hooks = ref<HookType[]>([])
 
 const meta = inject(MetaInj, ref())
 
 async function loadHooksList() {
   try {
-    const hookList = (await $api.dbTableWebhook.list(meta.value?.id as string)).list as HookType[]
+    const hookList = (await $api.dbTableWebhook.list(meta.value?.id as string)).list
     hooks.value = hookList.map((hook) => {
       hook.notification = parseProp(hook.notification)
       return hook
@@ -24,7 +24,7 @@ async function loadHooksList() {
   }
 }
 
-async function deleteHook(item: Record<string, any>, index: number) {
+async function deleteHook(item: HookType, index: number) {
   try {
     if (item.id) {
       await $api.dbTableWebhook.delete(item.id)
@@ -43,6 +43,37 @@ async function deleteHook(item: Record<string, any>, index: number) {
   }
 
   $e('a:webhook:delete')
+}
+
+async function copyHook(hook: HookType) {
+  try {
+    const newHook = await $api.dbTableWebhook.create(hook.fk_model_id!, {
+      ...hook,
+      title: `${hook.title} - Copy`,
+      active: false,
+    } as HookReqType)
+
+    if (newHook) {
+      $e('a:webhook:copy')
+      // create the corresponding filters
+      const hookFilters = (await $api.dbTableWebhookFilter.read(hook.id!, {})).list
+      for (const hookFilter of hookFilters) {
+        await $api.dbTableWebhookFilter.create(newHook.id!, {
+          comparison_op: hookFilter.comparison_op,
+          comparison_sub_op: hookFilter.comparison_sub_op,
+          fk_column_id: hookFilter.fk_column_id,
+          fk_parent_id: hookFilter.fk_parent_id,
+          is_group: hookFilter.is_group,
+          logical_op: hookFilter.logical_op,
+          value: hookFilter.value,
+        } as FilterReqType)
+      }
+      newHook.notification = parseProp(newHook.notification)
+      hooks.value.push(newHook)
+    }
+  } catch (e: any) {
+    message.error(await extractSdkResponseErrorMsg(e))
+  }
 }
 
 onMounted(() => {
@@ -84,8 +115,11 @@ onMounted(() => {
               </template>
 
               <template #avatar>
-                <div class="mt-4">
+                <div class="my-1 px-2">
                   <MdiHook class="text-xl" />
+                </div>
+                <div class="px-2 text-white rounded" :class="{ 'bg-green-500': item.active, 'bg-gray-500': !item.active }">
+                  {{ item.active ? 'ON' : 'OFF' }}
                 </div>
               </template>
             </a-list-item-meta>
@@ -96,7 +130,19 @@ onMounted(() => {
                 <div class="mr-2">{{ $t('labels.notifyVia') }} : {{ item?.notification?.type }}</div>
 
                 <div class="float-right pt-2 pr-1">
-                  <MdiDeleteOutline class="text-xl nc-hook-delete-icon" @click.stop="deleteHook(item, index)" />
+                  <a-tooltip placement="left">
+                    <template #title>
+                      {{ $t('activity.copyWebhook') }}
+                    </template>
+                    <MdiContentCopy class="text-xl nc-hook-copy-icon" @click.stop="copyHook(item)" />
+                  </a-tooltip>
+
+                  <a-tooltip placement="left">
+                    <template #title>
+                      {{ $t('activity.deleteWebhook') }}
+                    </template>
+                    <MdiDeleteOutline class="text-xl nc-hook-delete-icon" @click.stop="deleteHook(item, index)" />
+                  </a-tooltip>
                 </div>
               </div>
             </template>

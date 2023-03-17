@@ -170,7 +170,7 @@ export const useProject = defineStore('projectStore', () => {
 
     await loadTables()
 
-    if (withTheme) setTheme(projectMeta.value?.theme)
+    // if (withTheme) setTheme(projectMeta.value?.theme)
 
     return projectLoadedHook.trigger(project.value)
   }
@@ -203,7 +203,7 @@ export const useProject = defineStore('projectStore', () => {
       },
     })
 
-    setTheme(fullTheme)
+    // setTheme(fullTheme)
 
     $e('c:themes:change')
   }

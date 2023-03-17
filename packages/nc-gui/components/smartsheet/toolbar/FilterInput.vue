@@ -1,6 +1,5 @@
 <script setup lang="ts">
 import type { ColumnType } from 'nocodb-sdk'
-import { storeToRefs } from 'pinia'
 import {
   ColumnInj,
   EditModeInj,
@@ -23,6 +22,7 @@ import {
   isYear,
   provide,
   ref,
+  storeToRefs,
   toRef,
   useProject,
 } from '#imports'

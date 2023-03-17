@@ -1,8 +1,7 @@
 <script setup lang="ts">
 import { message } from 'ant-design-vue'
 import InputOrTags from './InputOrTags'
-import { Form, ref, useVModel } from '#imports'
-import { useWorkspaceStoreOrThrow } from '~/composables/useWorkspaceStore'
+import { Form, ref, useVModel, useWorkspace } from '#imports'
 import { extractSdkResponseErrorMsg } from '~/utils'
 
 const props = defineProps<{
@@ -13,7 +12,7 @@ const emit = defineEmits(['update:modelValue', 'success'])
 
 const dialogShow = useVModel(props, 'modelValue', emit)
 
-const { createWorkspace } = useWorkspaceStoreOrThrow()
+const { createWorkspace } = useWorkspace()
 
 const workspace = ref({})
 
@@ -47,8 +46,8 @@ const _createWorkspace = async () => {
     if (e.errorFields.length) return
   }
   try {
-    await createWorkspace(workspace.value)
-    emit('success')
+    const workspaceRes = await createWorkspace(workspace.value)
+    emit('success', workspaceRes)
   } catch (e: any) {
     message.error(await extractSdkResponseErrorMsg(e))
   }

@@ -11,10 +11,11 @@ import {
   computed,
   onMounted,
   projectThemeColors,
+  storeToRefs,
   stringToColour,
-  useProvideWorkspaceStore,
   useRouter,
   useSidebar,
+  useWorkspace,
 } from '#imports'
 import { extractSdkResponseErrorMsg } from '~/utils'
 
@@ -26,17 +27,11 @@ const roleAlias = {
   [WorkspaceUserRoles.CREATOR]: 'Creator',
 }
 
-// todo: make it customizable
+const workspaceStore = useWorkspace()
 
-const {
-  deleteWorkspace: _deleteWorkspace,
-  loadWorkspaceList,
-  workspaces,
-  activeWorkspace,
-  isWorkspaceOwner,
-  updateWorkspace,
-  activePage,
-} = useProvideWorkspaceStore()
+const { deleteWorkspace: _deleteWorkspace, loadWorkspaceList, updateWorkspace } = workspaceStore
+
+const { workspaces, activeWorkspace, isWorkspaceOwner, activePage } = storeToRefs(workspaceStore)
 
 const { $e } = useNuxtApp()
 

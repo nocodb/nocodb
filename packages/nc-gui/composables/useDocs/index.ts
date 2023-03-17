@@ -46,6 +46,7 @@ const [setup, use] = useInjectionState(() => {
 
     return pageId.split('-')[pageId.split('-').length - 2]
   })
+  const workspaceId = $(computed(() => route.params.workspaceId as string))
 
   const isPageErrored = ref<boolean>(false)
 
@@ -415,7 +416,7 @@ const [setup, use] = useInjectionState(() => {
   }
 
   function projectUrl() {
-    return isPublic.value ? `/nc/doc/s/${projectId!}` : `/nc/doc/p/${projectId!}`
+    return isPublic.value ? `/nc/doc/${projectId!}/s` : `/nc/doc/${projectId!}`
   }
 
   function nestedUrl(id: string | undefined, { completeUrl = false, publicUrl = false } = {}) {
@@ -427,7 +428,8 @@ const [setup, use] = useInjectionState(() => {
     if (publicMode) {
       url = `/nc/doc/s/${slug}-${id}-${projectId}`
     } else {
-      url = `/nc/doc/p/${slug}-${id}-${projectId}`
+      url = `/ws/${workspaceId}/nc/${projectId}/doc/p/${slug}-${id}-${projectId}`
+      // url = `/nc/doc/p/${slug}-${id}-${projectId}`
     }
 
     return completeUrl ? `${window.location.origin}/#${url}` : url

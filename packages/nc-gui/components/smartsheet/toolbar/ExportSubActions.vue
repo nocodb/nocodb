@@ -23,7 +23,7 @@ const isPublicView = inject(IsPublicInj, ref(false))
 
 const fields = inject(FieldsInj, ref([]))
 
-const { project } = storeToRefs(useProject())
+const { project } = $(storeToRefs(useProject()))
 
 const { $api } = useNuxtApp()
 

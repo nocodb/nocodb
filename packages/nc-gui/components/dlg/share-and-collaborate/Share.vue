@@ -1,9 +1,15 @@
 <script lang="ts" setup>
+import { storeToRefs } from 'pinia'
+
 interface Emits {
   (event: 'close'): void
 }
 
 const emits = defineEmits<Emits>()
+
+const projectStore = useProject()
+const { updateProject, loadBookProject } = projectStore
+const { project } = storeToRefs(projectStore)
 
 const { openedPage, updatePage, nestedUrl, nestedPublicParentPage } = useDocs()
 

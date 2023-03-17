@@ -27,7 +27,6 @@ const { $api, $e } = useNuxtApp()
 const projectStore = useProject()
 const { loadProject } = projectStore
 const { project } = storeToRefs(projectStore)
-
 const { refreshCommandPalette } = useCommandPalette()
 
 let sources = $ref<BaseType[]>([])

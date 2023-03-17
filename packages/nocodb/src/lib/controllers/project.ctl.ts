@@ -69,7 +69,7 @@ export async function projectDelete(req: Request<any>, res: Response<boolean>) {
 async function projectCreate(req: Request<any, any>, res) {
   const project = await projectService.projectCreate({
     project: req.body,
-    user: req['user'],
+    user: req['user']
   });
 
   res.json(project);

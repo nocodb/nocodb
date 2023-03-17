@@ -4,6 +4,7 @@ import { Icon as IconifyIcon } from '@iconify/vue'
 import { useShortcuts } from '../utils'
 import tiptapExtensions from '~~/utils/tiptapExtensions'
 
+const { project } = useProject()
 useShortcuts()
 
 const {

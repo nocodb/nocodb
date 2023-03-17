@@ -1,10 +1,12 @@
 <script setup lang="ts">
 import { Form, computed, nextTick, onMounted, ref, useProject, useTable, useTabs, useVModel, validateTableName } from '#imports'
 import { TabType } from '~/lib'
+import { useTableNew } from '~/composables/useTableNew'
 
 const props = defineProps<{
   modelValue: boolean
   baseId: string
+  projectId: string
 }>()
 
 const emit = defineEmits(['update:modelValue'])
@@ -17,19 +19,25 @@ const inputEl = ref<HTMLInputElement>()
 
 const { addTab } = useTabs()
 
-const { loadTables, isMysql, isMssql, isPg } = useProject()
+const { loadTables, isMysql, isMssql, isPg, loadProject } = useProject()
 
-const { table, createTable, generateUniqueTitle, tables, project } = useTable(async (table) => {
-  await loadTables()
+const { table, createTable, generateUniqueTitle, tables, project } = useTableNew({
+  async onTableCreate(table) {
+    // await loadProject(props.projectId)
 
-  addTab({
-    id: table.id as string,
-    title: table.title,
-    type: TabType.TABLE,
-  })
+    addTab({
+      id: table.id as string,
+      title: table.title,
+      type: TabType.TABLE,
+      projectId: props.projectId,
+      // baseId: props.baseId,
+    })
 
-  dialogShow.value = false
-}, props.baseId)
+    dialogShow.value = false
+  },
+  baseId: props.baseId,
+  projectId: props.projectId,
+})
 
 const useForm = Form.useForm
 
@@ -84,7 +92,7 @@ const _createTable = async () => {
   try {
     creating.value = true
     await validate()
-    await createTable()
+    await createTable(props.projectId)
   } catch (e: any) {
     e.errorFields.map((f: Record<string, any>) => message.error(f.errors.join(',')))
     if (e.errorFields.length) return

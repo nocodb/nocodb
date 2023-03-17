@@ -7,7 +7,7 @@ definePageMeta({
 
 const route = useRoute()
 const { isOpen: isSidebarOpen, toggleHasSidebar, toggle } = useSidebar('nc-left-sidebar')
-const { isErrored, isPublic, isFetching } = useDocs()
+const { isErrored, isFetching, isPublic } = useDocs()
 
 const toggleSidebar = (isOpen: boolean) => {
   if (isOpen) {

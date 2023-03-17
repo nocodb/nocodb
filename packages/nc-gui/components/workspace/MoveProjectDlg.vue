@@ -1,8 +1,7 @@
 <script setup lang="ts">
 import type { ProjectType } from 'nocodb-sdk'
 import { WorkspaceUserRoles } from 'nocodb-sdk'
-import { ref, useVModel } from '#imports'
-import { useWorkspaceStoreOrThrow } from '~/composables/useWorkspaceStore'
+import { ref, storeToRefs, useVModel } from '#imports'
 
 const props = defineProps<{
   modelValue: boolean
@@ -13,7 +12,9 @@ const emit = defineEmits(['update:modelValue', 'success'])
 
 const dialogShow = useVModel(props, 'modelValue', emit)
 
-const { workspaces, moveWorkspace } = useWorkspaceStoreOrThrow()
+const workspaceStore = useWorkspace()
+const { moveWorkspace } = workspaceStore
+const { workspaces } = storeToRefs(workspaceStore)
 
 const workspaceId = ref()
 

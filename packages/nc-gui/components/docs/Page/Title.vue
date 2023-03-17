@@ -1,5 +1,6 @@
 <script lang="ts" setup>
 import { Icon as IconifyIcon } from '@iconify/vue'
+import { useDocs } from '#imports'
 
 const emit = defineEmits(['focusEditor'])
 

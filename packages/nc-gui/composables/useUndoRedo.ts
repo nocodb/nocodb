@@ -96,6 +96,7 @@ export const useUndoRedo = createSharedComposable(() => {
     if (cmdOrCtrl && !e.altKey) {
       switch (e.keyCode) {
         case 90: {
+          e.preventDefault()
           // CMD + z and CMD + shift + z
           if (!e.shiftKey) {
             if (undoQueue.value.length) {

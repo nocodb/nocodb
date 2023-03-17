@@ -125,6 +125,7 @@ export default class Hook implements HookType {
       'async',
       'url',
       'headers',
+      'condition',
       'notification',
       'retries',
       'retry_interval',

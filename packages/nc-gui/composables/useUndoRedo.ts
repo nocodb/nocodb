@@ -41,7 +41,7 @@ export const useUndoRedo = createSharedComposable(() => {
     redoQueue.value.push(action)
   }
 
-  const undo = () => {
+  const undo = async () => {
     let actionIndex = -1
     for (let i = undoQueue.value.length - 1; i >= 0; i--) {
       if (Array.isArray(undoQueue.value[i].scope)) {
@@ -61,12 +61,12 @@ export const useUndoRedo = createSharedComposable(() => {
 
     const action = undoQueue.value.splice(actionIndex, 1)[0]
     if (action) {
-      action.undo.fn.apply(action, action.undo.args)
+      await action.undo.fn.apply(action, action.undo.args)
       addRedo(action)
     }
   }
 
-  const redo = () => {
+  const redo = async () => {
     let actionIndex = -1
     for (let i = redoQueue.value.length - 1; i >= 0; i--) {
       if (Array.isArray(redoQueue.value[i].scope)) {
@@ -86,7 +86,7 @@ export const useUndoRedo = createSharedComposable(() => {
 
     const action = redoQueue.value.splice(actionIndex, 1)[0]
     if (action) {
-      action.redo.fn.apply(action, action.redo.args)
+      await action.redo.fn.apply(action, action.redo.args)
       addUndo(action)
     }
   }

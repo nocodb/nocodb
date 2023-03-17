@@ -14958,6 +14958,11 @@
             "value": "foo"
           }
         ],
+        "title": "Filter Request Model",
+        "type": "object",
+        "x-stoplight": {
+          "id": "3rypg89wx0qp1"
+        },
         "properties": {
           "comparison_op": {
             "description": "Comparison Operator",
@@ -15030,7 +15035,7 @@
             "description": "Foreign Key to Column"
           },
           "fk_parent_id": {
-            "$ref": "#/components/schemas/Id",
+            "$ref": "#/components/schemas/StringOrNull",
             "description": "Belong to which filter ID"
           },
           "is_group": {
@@ -15046,12 +15051,7 @@
             "description": "The filter value. Can be NULL for some operators."
           }
         },
-        "readOnly": true,
-        "title": "Filter Request Model",
-        "type": "object",
-        "x-stoplight": {
-          "id": "3rypg89wx0qp1"
-        }
+        "readOnly": true
       },
       "Form": {
         "description": "Model for Form",

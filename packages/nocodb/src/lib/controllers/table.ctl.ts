@@ -67,6 +67,34 @@ export async function tableUpdate(req: Request<any, any>, res) {
   res.json({ msg: 'The table has been updated successfully' });
 }
 
+export async function tableCreateMagic(
+  req: Request<any, any, TableReqType>,
+  res
+) {
+  res.json(
+    await tableService.tableCreateMagic({
+      projectId: req.params.projectId,
+      baseId: req.params.baseId,
+      title: req.body.title,
+      tableName: req.body.table_name,
+    })
+  );
+}
+
+export async function schemaMagic(
+  req: Request<any, any, { title: string; schema_name: string }>,
+  res
+) {
+  res.json(
+    await tableService.schemaMagic({
+      projectId: req.params.projectId,
+      baseId: req.params.baseId,
+      title: req.body.title,
+      schemaName: req.body.schema_name,
+    })
+  );
+}
+
 const router = Router({ mergeParams: true });
 router.get(
   '/api/v1/db/meta/projects/:projectId/tables',
@@ -107,5 +135,16 @@ router.post(
   '/api/v1/db/meta/tables/:tableId/reorder',
   metaApiMetrics,
   ncMetaAclMw(tableReorder, 'tableReorder')
+);
+
+router.post(
+  '/api/v1/db/meta/projects/:projectId/:baseId/tables/magic',
+  metaApiMetrics,
+  ncMetaAclMw(tableCreateMagic, 'tableCreateMagic')
+);
+router.post(
+  '/api/v1/db/meta/projects/:projectId/:baseId/schema/magic',
+  metaApiMetrics,
+  ncMetaAclMw(schemaMagic, 'schemaMagic')
 );
 export default router;

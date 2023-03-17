@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import type { HookType } from 'nocodb-sdk'
-import { MetaInj, extractSdkResponseErrorMsg, inject, message, onMounted, ref, useI18n, useNuxtApp } from '#imports'
+import { MetaInj, extractSdkResponseErrorMsg, inject, message, onMounted, parseProp, ref, useI18n, useNuxtApp } from '#imports'
 
 const emit = defineEmits(['edit', 'add'])
 
@@ -16,7 +16,7 @@ async function loadHooksList() {
   try {
     const hookList = (await $api.dbTableWebhook.list(meta.value?.id as string)).list as HookType[]
     hooks.value = hookList.map((hook) => {
-      hook.notification = typeof hook.notification === 'string' ? JSON.parse(hook.notification) : hook.notification
+      hook.notification = parseProp(hook.notification)
       return hook
     })
   } catch (e: any) {

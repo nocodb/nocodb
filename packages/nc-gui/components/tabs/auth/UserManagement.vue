@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { OrgUserRoles } from 'nocodb-sdk'
-import type { RequestParams } from 'nocodb-sdk'
+import type { ProjectUserReqType, RequestParams } from 'nocodb-sdk'
 import {
   extractSdkResponseErrorMsg,
   message,
@@ -82,7 +82,7 @@ const inviteUser = async (user: User) => {
       user.roles = 'editor'
     }
 
-    await api.auth.projectUserAdd(project.value.id, user)
+    await api.auth.projectUserAdd(project.value.id, user as ProjectUserReqType)
 
     // Successfully added user to project
     message.success(t('msg.success.userAddedToProject'))
@@ -153,7 +153,7 @@ const copyInviteUrl = async (user: User) => {
 
     // Invite URL copied to clipboard
     message.success(t('msg.success.inviteURLCopied'))
-  } catch (e) {
+  } catch (e: any) {
     message.error(e.message)
   }
   $e('c:user:copy-url')

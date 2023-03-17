@@ -109,7 +109,7 @@ const copyUrl = async () => {
 
     // Copied shareable base url to clipboard!
     message.success(t('msg.success.shareableURLCopied'))
-  } catch (e) {
+  } catch (e: any) {
     message.error(e.message)
   }
 
@@ -137,7 +137,7 @@ style="background: transparent; border: 1px solid #ddd"></iframe>`)
 
     // Copied embeddable html code!
     message.success(t('msg.success.embeddableHTMLCodeCopied'))
-  } catch (e) {
+  } catch (e: any) {
     message.error(e.message)
   }
   $e('c:shared-base:copy-embed-frame')

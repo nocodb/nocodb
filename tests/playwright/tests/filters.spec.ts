@@ -13,11 +13,13 @@ let records: Record<string, any>;
 
 const skipList = {
   Number: ['is null', 'is not null'],
+  Year: ['is null', 'is not null'],
   Decimal: ['is null', 'is not null'],
   Percent: ['is null', 'is not null'],
   Currency: ['is null', 'is not null'],
   Rating: ['is null', 'is not null', 'is blank', 'is not blank'],
   Duration: ['is null', 'is not null'],
+  Time: ['is null', 'is not null'],
   SingleLineText: [],
   MultiLineText: [],
   Email: [],
@@ -126,6 +128,13 @@ test.describe('Filter Tests: Numerical', () => {
       isLikeStringDerived = parseInt(isLikeString.split(':')[0]) * 3600 + parseInt(isLikeString.split(':')[1]) * 60;
     }
 
+    // convert r[Time] in format 2021-01-01 00:00:00+05.30 to 00:00:00
+    if (dataType === 'Time') {
+      records.list.forEach(r => {
+        if (r[dataType]?.length > 8) r[dataType] = r[dataType]?.split(' ')[1]?.split(/[+-]/)[0];
+      });
+    }
+
     const filterList = [
       {
         op: '=',
@@ -150,12 +159,12 @@ test.describe('Filter Tests: Numerical', () => {
       {
         op: 'is blank',
         value: '',
-        rowCount: records.list.filter(r => r[dataType] === null).length,
+        rowCount: records.list.filter(r => r[dataType] === null || r[dataType] === undefined).length,
       },
       {
         op: 'is not blank',
         value: '',
-        rowCount: records.list.filter(r => r[dataType] !== null).length,
+        rowCount: records.list.filter(r => r[dataType] !== null && r[dataType] !== undefined).length,
       },
       {
         op: '>',
@@ -255,6 +264,16 @@ test.describe('Filter Tests: Numerical', () => {
         title: 'Rating',
         uidt: UITypes.Rating,
       },
+      {
+        column_name: 'Year',
+        title: 'Year',
+        uidt: UITypes.Year,
+      },
+      {
+        column_name: 'Time',
+        title: 'Time',
+        uidt: UITypes.Time,
+      },
     ];
 
     try {
@@ -274,6 +293,8 @@ test.describe('Filter Tests: Numerical', () => {
           Percent: rowMixedValue(columns[4], i),
           Duration: rowMixedValue(columns[5], i),
           Rating: rowMixedValue(columns[6], i),
+          Year: rowMixedValue(columns[7], i),
+          Time: rowMixedValue(columns[8], i, context.dbType),
         };
         rowAttributes.push(row);
       }
@@ -307,6 +328,14 @@ test.describe('Filter Tests: Numerical', () => {
 
   test('Filter: Duration', async () => {
     await numBasedFilterTest('Duration', '00:01', '01:03');
+  });
+
+  test('Filter: Year', async () => {
+    await numBasedFilterTest('Year', '2023', '2024');
+  });
+
+  test('Filter: Time', async () => {
+    await numBasedFilterTest('Time', '02:02:00', '04:04:00');
   });
 });
 

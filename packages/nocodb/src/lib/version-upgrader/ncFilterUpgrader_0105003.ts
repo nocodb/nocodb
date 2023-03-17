@@ -5,7 +5,7 @@ import Filter from '../models/Filter';
 import type { NcUpgraderCtx } from './NcUpgrader';
 import type NcMetaIO from '../meta/NcMetaIO';
 
-// as of 0.105.3, date / datetime filters include `is like` and `is not like` which are not practical
+// as of 0.105.3, year, time, date and datetime filters include `is like` and `is not like` which are not practical
 // `removeLikeAndNlikeFilters` in this upgrader is simply to remove them
 
 // besides, `null` and `empty` will be migrated to `blank` in `migrateEmptyAndNullFilters`
@@ -19,6 +19,9 @@ import type NcMetaIO from '../meta/NcMetaIO';
 //   - remove `is like` and `is not like`
 //   - migrate `null` or `empty` filters to `blank`
 //   - add `exact date` in comparison_sub_op for existing filters `eq` and `neq`
+// - Year / Time columns:
+//   - remove `is like` and `is not like`
+//   - migrate `null` or `empty` filters to `blank`
 
 function removeLikeAndNlikeFilters(filter: Filter, ncMeta: NcMetaIO) {
   const actions = [];
@@ -87,6 +90,11 @@ export default async function ({ ncMeta }: NcUpgraderCtx) {
         ...removeLikeAndNlikeFilters(filter, ncMeta),
         ...migrateEmptyAndNullFilters(filter, ncMeta),
         ...migrateEqAndNeqFilters(filter, ncMeta),
+      ]);
+    } else if ([UITypes.Time, UITypes.Year].includes(col.uidt)) {
+      await Promise.all([
+        ...removeLikeAndNlikeFilters(filter, ncMeta),
+        ...migrateEmptyAndNullFilters(filter, ncMeta),
       ]);
     }
   }

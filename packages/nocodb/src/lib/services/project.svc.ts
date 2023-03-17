@@ -11,7 +11,7 @@ import Project from '../models/Project';
 import syncMigration from '../meta/helpers/syncMigration';
 import { populateMeta, validatePayload } from '../meta/api/helpers';
 import { extractPropsAndSanitize } from '../meta/helpers/extractProps';
-import type { ProjectReqType } from 'nocodb-sdk';
+import type { ProjectReqType, ProjectUpdateReqType } from 'nocodb-sdk';
 
 export async function projectCreate(param: {
   project: ProjectReqType;
@@ -136,8 +136,13 @@ export function sanitizeProject(project: any) {
 
 export async function projectUpdate(param: {
   projectId: string;
-  project: ProjectReqType;
+  project: ProjectUpdateReqType;
 }) {
+  validatePayload(
+    'swagger.json#/components/schemas/ProjectUpdateReq',
+    param.project
+  );
+
   const project = await Project.getWithInfo(param.projectId);
 
   const data: Partial<Project> = extractPropsAndSanitize(

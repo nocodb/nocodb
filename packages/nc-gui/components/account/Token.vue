@@ -1,4 +1,5 @@
 <script lang="ts" setup>
+import type { VNodeRef } from '@vue/runtime-core'
 import { Empty, Modal, message } from 'ant-design-vue'
 import type { ApiTokenType, RequestParams, UserType } from 'nocodb-sdk'
 import { extractSdkResponseErrorMsg, useApi, useCopy, useNuxtApp } from '#imports'
@@ -42,7 +43,7 @@ const loadTokens = async (page = currentPage, limit = currentLimit) => {
     pagination.pageSize = 10
 
     tokens = response.list as UserType[]
-  } catch (e) {
+  } catch (e: any) {
     message.error(await extractSdkResponseErrorMsg(e))
   }
 }
@@ -55,11 +56,10 @@ const deleteToken = async (token: string) => {
     type: 'warn',
     onOk: async () => {
       try {
-        // todo: delete token
         await api.orgTokens.delete(token)
         message.success(t('msg.success.tokenDeleted'))
         await loadTokens()
-      } catch (e) {
+      } catch (e: any) {
         message.error(await extractSdkResponseErrorMsg(e))
       }
       $e('a:account:token:delete')
@@ -75,7 +75,7 @@ const generateToken = async () => {
     message.success(t('msg.success.tokenGenerated'))
     selectedTokenData = {}
     await loadTokens()
-  } catch (e) {
+  } catch (e: any) {
     message.error(await extractSdkResponseErrorMsg(e))
   }
   $e('a:api-token:generate')
@@ -90,14 +90,12 @@ const copyToken = async (token: string | undefined) => {
     message.info(t('msg.info.copiedToClipboard'))
 
     $e('c:api-token:copy')
-  } catch (e) {
+  } catch (e: any) {
     message.error(e.message)
   }
 }
 
-const descriptionInput = (el) => {
-  el?.focus()
-}
+const descriptionInput: VNodeRef = (el) => (el as HTMLInputElement)?.focus()
 </script>
 
 <template>

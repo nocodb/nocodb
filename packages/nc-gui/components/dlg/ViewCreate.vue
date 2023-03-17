@@ -75,9 +75,7 @@ const viewNameRules = [
   {
     validator: (_: unknown, v: string) =>
       new Promise((resolve, reject) => {
-        views.every((v1) => ((v1 as GridType | KanbanType | GalleryType | MapType).alias || v1.title) !== v)
-          ? resolve(true)
-          : reject(new Error(`View name should be unique`))
+        views.every((v1) => v1.title !== v) ? resolve(true) : reject(new Error(`View name should be unique`))
       }),
     message: 'View name should be unique',
   },

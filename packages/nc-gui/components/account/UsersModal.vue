@@ -1,5 +1,6 @@
 <script setup lang="ts">
-import type { UserType } from 'nocodb-sdk'
+import type { VNodeRef } from '@vue/runtime-core'
+import type { OrgUserReqType } from 'nocodb-sdk'
 import {
   Form,
   computed,
@@ -72,11 +73,10 @@ const saveUser = async () => {
   await formRef.value?.validateFields()
 
   try {
-    // todo: update sdk(swagger.json)
     const res = await $api.orgUsers.add({
       roles: usersData.role,
       email: usersData.emails,
-    } as unknown as UserType)
+    } as unknown as OrgUserReqType)
 
     usersData.invitationToken = res.invite_token
     emit('reload')
@@ -98,7 +98,7 @@ const copyUrl = async () => {
 
     // Copied shareable base url to clipboard!
     message.success(t('msg.success.shareableURLCopied'))
-  } catch (e) {
+  } catch (e: any) {
     message.error(e.message)
   }
   $e('c:shared-base:copy-url')
@@ -110,9 +110,8 @@ const clickInviteMore = () => {
   usersData.role = Role.OrgLevelViewer
   usersData.emails = ''
 }
-const emailInput = ref((el) => {
-  el?.focus()
-})
+
+const emailInput: VNodeRef = (el) => (el as HTMLInputElement)?.focus()
 </script>
 
 <template>

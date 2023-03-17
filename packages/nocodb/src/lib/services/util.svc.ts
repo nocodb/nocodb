@@ -417,10 +417,10 @@ async function selectOptionsMagic(param: {
   return JSON5.parse(response.data.choices[0].text);
 }
 
-async function predictColumnType(param: { data: any }) {
+async function predictColumnType(param: { title: any }) {
   const response = await openai.createCompletion({
     model: 'text-davinci-003',
-    prompt: `Within types: ID,LinkToAnotherRecord,ForeignKey,SingleLineText,LongText,Attachment,Checkbox,MultiSelect,SingleSelect,Date,Year,Time,PhoneNumber,Email,URL,Number,Decimal,Currency,Percent,Duration,Rating,Formula,QR,Barcode,Count,DateTime,CreateTime,AutoNumber,Geometry select most appropiate type for '${param.data.title}' column:`,
+    prompt: `Within types: ID,LinkToAnotherRecord,ForeignKey,SingleLineText,LongText,Attachment,Checkbox,MultiSelect,SingleSelect,Date,Year,Time,PhoneNumber,Email,URL,Number,Decimal,Currency,Percent,Duration,Rating,Formula,QR,Barcode,Count,DateTime,CreateTime,AutoNumber,Geometry select most appropiate type for '${param.title}' column:`,
     temperature: 0.7,
     max_tokens: 200,
     top_p: 1,

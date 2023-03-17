@@ -56,8 +56,7 @@ export async function hookUpdate(param: { hookId: string; hook: HookReqType }) {
 
   validateHookPayload(param.hook.notification);
 
-  // todo: correction in swagger
-  return await Hook.update(param.hookId, param.hook as any);
+  return await Hook.update(param.hookId, param.hook);
 }
 
 export async function hookTest(param: {

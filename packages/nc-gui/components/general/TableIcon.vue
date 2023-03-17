@@ -18,5 +18,3 @@ const { meta: tableMeta } = defineProps<{
   <MdiEyeCircleOutline v-else-if="tableMeta?.type === 'view'" class="w-5" />
   <MdiTableLarge v-else class="w-5" />
 </template>
-
-<style scoped></style>

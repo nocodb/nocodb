@@ -50,7 +50,7 @@ const loadUsers = async (page = currentPage, limit = currentLimit) => {
     pagination.pageSize = 10
 
     users = response.list as UserType[]
-  } catch (e) {
+  } catch (e: any) {
     message.error(await extractSdkResponseErrorMsg(e))
   }
 }
@@ -65,7 +65,7 @@ const updateRole = async (userId: string, roles: Role) => {
     message.success(t('msg.success.roleUpdated'))
 
     $e('a:org-user:role-updated', { role: roles })
-  } catch (e) {
+  } catch (e: any) {
     message.error(await extractSdkResponseErrorMsg(e))
   }
 }
@@ -80,7 +80,7 @@ const deleteUser = async (userId: string) => {
         message.success(t('msg.success.userDeleted'))
         await loadUsers()
         $e('a:org-user:user-deleted')
-      } catch (e) {
+      } catch (e: any) {
         message.error(await extractSdkResponseErrorMsg(e))
       }
     },
@@ -94,7 +94,7 @@ const resendInvite = async (user: User) => {
     // Invite email sent successfully
     message.success(t('msg.success.inviteEmailSent'))
     await loadUsers()
-  } catch (e) {
+  } catch (e: any) {
     message.error(await extractSdkResponseErrorMsg(e))
   }
 
@@ -108,7 +108,7 @@ const copyInviteUrl = async (user: User) => {
 
     // Invite URL copied to clipboard
     message.success(t('msg.success.inviteURLCopied'))
-  } catch (e) {
+  } catch (e: any) {
     message.error(e.message)
   }
   $e('c:user:copy-url')
@@ -123,7 +123,7 @@ const copyPasswordResetUrl = async (user: User) => {
     // Invite URL copied to clipboard
     message.success(t('msg.success.passwordResetURLCopied'))
     $e('c:user:copy-url')
-  } catch (e) {
+  } catch (e: any) {
     message.error(await extractSdkResponseErrorMsg(e))
   }
 }

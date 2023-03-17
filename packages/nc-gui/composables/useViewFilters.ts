@@ -162,10 +162,9 @@ export function useViewFilters(
 
   const placeholderFilter = (): Filter => {
     return {
-      // TODO: fix type
       comparison_op: comparisonOpList(options.value?.[0].uidt as UITypes).filter((compOp) =>
         isComparisonOpAllowed({ fk_column_id: options.value?.[0].id }, compOp),
-      )?.[0].value,
+      )?.[0].value as FilterType['comparison_op'],
       value: '',
       status: 'create',
       logical_op: 'and',
@@ -281,7 +280,6 @@ export function useViewFilters(
           comparison: filter.comparison_op,
         })
       } else {
-        // todo: return type of dbTableFilter is void?
         filters.value[i] = await $api.dbTableFilter.create(view.value.id!, {
           ...filter,
           fk_parent_id: parentId,

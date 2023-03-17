@@ -132,7 +132,7 @@ const onCopyToClipboard = async () => {
     await copy(code)
     // Copied to clipboard
     message.info(t('msg.info.copiedToClipboard'))
-  } catch (e) {
+  } catch (e: any) {
     message.error(e.message)
   }
 }

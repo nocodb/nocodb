@@ -195,7 +195,7 @@ const copyLink = async () => {
 
       // Copied to clipboard
       message.success(t('msg.info.copiedToClipboard'))
-    } catch (e) {
+    } catch (e: any) {
       message.error(e.message)
     }
   }
@@ -230,7 +230,7 @@ const copyIframeCode = async () => {
 
       // Copied to clipboard
       message.success(t('msg.info.copiedToClipboard'))
-    } catch (e) {
+    } catch (e: any) {
       message.error(e.message)
     }
   }

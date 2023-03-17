@@ -3,7 +3,10 @@ import type { VNodeRef } from '@vue/runtime-core'
 import { EditModeInj, inject, useVModel } from '#imports'
 
 interface Props {
-  modelValue?: number | null
+  // when we set a number, then it is number type
+  // for sqlite, when we clear a cell or empty the cell, it returns ""
+  // otherwise, it is null type
+  modelValue?: number | null | string
 }
 
 interface Emits {
@@ -22,8 +25,10 @@ const _vModel = useVModel(props, 'modelValue', emits)
 
 const vModel = computed({
   get: () => _vModel.value,
-  set: (value: string) => {
+  set: (value) => {
     if (value === '') {
+      // if we clear / empty a cell in sqlite,
+      // the value is considered as ''
       _vModel.value = null
     } else {
       _vModel.value = value

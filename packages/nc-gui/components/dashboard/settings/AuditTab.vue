@@ -28,8 +28,8 @@ async function loadAudits(page = currentPage, limit = currentLimit) {
     isLoading = true
 
     const { list, pageInfo } = await $api.project.auditList(project.value?.id, {
-      offset: (limit * (page - 1)).toString(),
-      limit: limit.toString(),
+      offset: limit * (page - 1),
+      limit,
     })
 
     audits = list

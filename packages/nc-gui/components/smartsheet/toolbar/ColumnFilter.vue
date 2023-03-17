@@ -109,7 +109,7 @@ const filterUpdateCondition = (filter: FilterType, i: number) => {
     }
   }
   saveOrUpdate(filter, i)
-  filterPrevComparisonOp.value[filter.id] = filter.comparison_op
+  filterPrevComparisonOp.value[filter.id!] = filter.comparison_op!
   $e('a:filter:update', {
     logical: filter.logical_op,
     comparison: filter.comparison_op,
@@ -165,11 +165,10 @@ const selectFilterField = (filter: Filter, index: number) => {
   // since the existing one may not be supported for the new field
   // e.g. `eq` operator is not supported in checkbox field
   // hence, get the first option of the supported operators of the new field
-  filter.comparison_op = comparisonOpList(col.uidt as UITypes).filter((compOp) =>
-    isComparisonOpAllowed(filter, compOp),
-  )?.[0].value
+  filter.comparison_op = comparisonOpList(col.uidt as UITypes).find((compOp) => isComparisonOpAllowed(filter, compOp))
+    ?.value as FilterType['comparison_op']
 
-  if ([UITypes.Date, UITypes.DateTime].includes(col.uidt as UITypes) && !['blank', 'notblank'].includes(filter.comparison_op)) {
+  if ([UITypes.Date, UITypes.DateTime].includes(col.uidt as UITypes) && !['blank', 'notblank'].includes(filter.comparison_op!)) {
     if (filter.comparison_op === 'isWithin') {
       filter.comparison_sub_op = 'pastNumberOfDays'
     } else {

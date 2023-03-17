@@ -12,6 +12,7 @@ import {
   inject,
   isImage,
   message,
+  parseProp,
   ref,
   storeToRefs,
   useApi,
@@ -102,7 +103,7 @@ export const [useProvideAttachmentCell, useAttachmentCell] = useInjectionState(
 
       const attachmentMeta = {
         ...defaultAttachmentMeta,
-        ...(typeof column.value?.meta === 'string' ? JSON.parse(column.value.meta) : column.value?.meta),
+        ...parseProp(column?.value?.meta),
       }
 
       const newAttachments = []

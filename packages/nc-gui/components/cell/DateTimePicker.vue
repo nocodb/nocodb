@@ -7,6 +7,7 @@ import {
   dateFormats,
   inject,
   isDrawerOrModalExist,
+  parseProp,
   ref,
   timeFormats,
   useProject,
@@ -38,8 +39,8 @@ const column = inject(ColumnInj)!
 let isDateInvalid = $ref(false)
 
 const dateTimeFormat = $computed(() => {
-  const dateFormat = column?.value?.meta?.date_format ?? dateFormats[0]
-  const timeFormat = column?.value?.meta?.time_format ?? timeFormats[0]
+  const dateFormat = parseProp(column?.value?.meta)?.date_format ?? dateFormats[0]
+  const timeFormat = parseProp(column?.value?.meta)?.time_format ?? timeFormats[0]
   return `${dateFormat} ${timeFormat}`
 })
 

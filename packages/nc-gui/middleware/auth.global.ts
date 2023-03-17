@@ -102,8 +102,8 @@ async function tryGoogleAuth(api: Api<any>, signIn: Actions['signIn']) {
       )
 
       signIn(token)
-    } catch (e) {
-      message.error({ content: await extractSdkResponseErrorMsg(e) })
+    } catch (e: any) {
+      message.error(await extractSdkResponseErrorMsg(e))
     }
 
     const newURL = window.location.href.split('?')[0]

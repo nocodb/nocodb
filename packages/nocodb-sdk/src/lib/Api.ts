@@ -690,7 +690,7 @@ export interface FilterReqType {
   /** Foreign Key to Column */
   fk_column_id?: IdType;
   /** Belong to which filter ID */
-  fk_parent_id?: IdType;
+  fk_parent_id?: StringOrNullType;
   /** Is this filter grouped? */
   is_group?: BoolType;
   /** Logical Operator */
@@ -1147,6 +1147,8 @@ export interface HookReqType {
   title: string;
   /** Hook Type */
   type?: string | null;
+  /** Is this hook assoicated with some filters */
+  condition?: BoolType;
 }
 
 /**

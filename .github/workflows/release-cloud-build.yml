@@ -13,6 +13,9 @@ jobs:
     runs-on: ubuntu-latest
     env:
       working-directory: ./packages/nocodb
+      AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+      AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+      AWS_DEFAULT_REGION: us-east-2
     steps:
       - name: Setup Node
         uses: actions/setup-node@v3
@@ -21,6 +24,10 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v3
 
+      - name: Set outputs
+        id: vars
+        run: echo "release_version=$(date +%Y%m%d%H%M%S)" >> $GITHUB_OUTPUT
+
       - name: build nocodb-sdk
         run: |
           # build nocodb-sdk
@@ -28,6 +35,8 @@ jobs:
           cd packages/nocodb-sdk &&
           npm ci && npm run build
       - name: build nc-gui and copy to nocodb
+        env:
+          NC_CDN_URL: "${{ secrets.CDN_URL }}/${{ steps.vars.outputs.release_version }}"
         run: |
           export NODE_OPTIONS="--max_old_space_size=16384"
           # generate static build of nc-gui
@@ -53,6 +62,20 @@ jobs:
           aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           aws-region: us-east-2
+
+      - name: Move files to release version folder
+        run: |
+          mkdir -p packages/nc-gui/build/${{ steps.vars.outputs.release_version }}
+          mv packages/nc-gui/dist/* packages/nc-gui/build/${{ steps.vars.outputs.release_version }}
+
+
+      - name: Deploy
+        uses: lbertenasco/s3-deploy@v1
+        with:
+          folder: packages/nc-gui/build/
+          bucket: ${{ secrets.CDN_BUCKET }}
+          dist-id: ${{ secrets.CDN_DIST_ID }}
+          invalidation: /${{ steps.vars.outputs.release_version }}/*
 
       - name: Login to Amazon ECR
         id: login-ecr

@@ -1,6 +1,6 @@
 import { ColumnType, UITypes } from 'nocodb-sdk';
 
-const rowMixedValue = (column: ColumnType, index: number) => {
+const rowMixedValue = (column: ColumnType, index: number, db?: string) => {
   // Array of country names
   const countries = [
     'Afghanistan',
@@ -39,7 +39,7 @@ const rowMixedValue = (column: ColumnType, index: number) => {
   // compute timezone offset
   const offset = new Date().getTimezoneOffset();
   const timezoneOffset =
-    (offset <= 0 ? '+' : '-') +
+    (db === 'mysql' ? (offset < 0 ? '+' : '-') : offset <= 0 ? '+' : '-') +
     String(Math.abs(Math.round(offset / 60))).padStart(2, '0') +
     ':' +
     String(Math.abs(offset % 60)).padStart(2, '0');

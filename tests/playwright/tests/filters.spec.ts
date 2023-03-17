@@ -294,7 +294,7 @@ test.describe('Filter Tests: Numerical', () => {
           Duration: rowMixedValue(columns[5], i),
           Rating: rowMixedValue(columns[6], i),
           Year: rowMixedValue(columns[7], i),
-          Time: rowMixedValue(columns[8], i),
+          Time: rowMixedValue(columns[8], i, context.dbType),
         };
         rowAttributes.push(row);
       }

@@ -55,6 +55,7 @@ const hook = reactive<Record<string, any>>({
     },
   },
   condition: false,
+  active: true,
 })
 
 const urlTabKey = ref('body')
@@ -458,6 +459,21 @@ onMounted(async () => {
   <a-divider />
 
   <a-form :model="hook" name="create-or-edit-webhook">
+    <a-form-item>
+      <a-row type="flex">
+        <a-col :span="24">
+          <a-card>
+            <a-checkbox
+              :checked="Boolean(hook.active)"
+              class="nc-check-box-enable-webhook"
+              @update:checked="hook.active = $event"
+            >
+              Enable Webhook
+            </a-checkbox>
+          </a-card>
+        </a-col>
+      </a-row>
+    </a-form-item>
     <a-form-item>
       <a-row type="flex">
         <a-col :span="24">

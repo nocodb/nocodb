@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import type { Ref } from 'vue'
-import type { AuditType, HookType } from 'nocodb-sdk'
+import type { HookReqType, HookType } from 'nocodb-sdk'
 import {
   Form,
   MetaInj,
@@ -369,7 +369,7 @@ async function saveHooks() {
           ...hook.notification,
           payload: hook.notification.payload,
         },
-      } as AuditType)
+      } as HookReqType)
     }
 
     if (!hook.id && res) {

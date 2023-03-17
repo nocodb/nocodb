@@ -131,7 +131,7 @@ test.describe('Filter Tests: Numerical', () => {
     // convert r[Time] in format 2021-01-01 00:00:00+05.30 to 00:00:00
     if (dataType === 'Time') {
       records.list.forEach(r => {
-        if (r[dataType]?.length > 8) r[dataType] = r[dataType]?.split(' ')[1]?.split('+')[0];
+        if (r[dataType]?.length > 8) r[dataType] = r[dataType]?.split(' ')[1]?.split(/[+-]/)[0];
       });
     }
 

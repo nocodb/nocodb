@@ -46,7 +46,7 @@ export function useGlobalActions(state: State): Actions {
           message.error(err.message || t('msg.error.youHaveBeenSignedOut'))
           await signOut()
         })
-        .finally(() => resolve)
+        .finally(() => resolve())
     })
   }
 

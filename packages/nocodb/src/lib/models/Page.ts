@@ -8,6 +8,7 @@ import {
 } from '../utils/globals';
 import NocoCache from '../cache/NocoCache';
 import { updatePageService } from '../services/docs/pageUpdater.svc';
+import Project from './Project';
 import type { DocsPageType, UserType } from 'nocodb-sdk';
 import type NcMetaIO from '../meta/NcMetaIO';
 const { v4: uuidv4 } = require('uuid');
@@ -25,17 +26,35 @@ export default class Page {
     Object.assign(this, attr);
   }
 
-  public static tableName({ projectId }: { projectId: string }) {
-    return `nc_d_page_${projectId}`;
+  public static async tableName({
+    projectId,
+    workspaceId,
+  }: {
+    projectId: string;
+    workspaceId?: string;
+  }) {
+    const prefix = 'nc_d_page_';
+    if (workspaceId) return `${prefix}${workspaceId}`;
+
+    const project = await Project.get(projectId);
+    return `${prefix}${project.fk_workspace_id}`;
   }
 
   static async createPageTable(
-    { projectId }: { projectId: string },
+    { projectId, workspaceId }: { projectId: string; workspaceId?: string },
     ncMeta = Noco.ncMeta
   ) {
     const knex = ncMeta.knex;
-    await knex.schema.createTable(Page.tableName({ projectId }), (table) => {
+    const pageTableName = await Page.tableName({ projectId, workspaceId });
+
+    await knex.schema.createTable(pageTableName, (table) => {
       table.string('id', 20).primary().notNullable();
+
+      table.string('project_id', 20).notNullable();
+      table
+        .foreign('project_id')
+        .references(`${MetaTable.PROJECT}.id`)
+        .withKeyName(`nc_page_fk_project_id_${uuidv4()}`);
 
       table.string('title', 150).notNullable();
       table.string('published_title', 150);
@@ -49,7 +68,7 @@ export default class Page {
       table.string('parent_page_id', 20).nullable();
       table
         .foreign('parent_page_id')
-        .references(`${Page.tableName({ projectId })}.id`)
+        .references(`${pageTableName}.id`)
         .withKeyName(`nc_page_parent_${uuidv4()}`);
 
       table.boolean('is_published').defaultTo(false);
@@ -63,7 +82,7 @@ export default class Page {
       table.string('nested_published_parent_id', 20).nullable();
       table
         .foreign('nested_published_parent_id')
-        .references(`${Page.tableName({ projectId })}.id`)
+        .references(`${pageTableName}.id`)
         .withKeyName(`nc_p_nest_publish_parent_id_${uuidv4()}`);
 
       table.string('last_updated_by_id', 20).nullable();
@@ -127,8 +146,9 @@ export default class Page {
     const { id: createdPageId } = await ncMeta.metaInsert2(
       null,
       null,
-      Page.tableName({ projectId }),
+      await Page.tableName({ projectId }),
       {
+        project_id: projectId,
         title: title,
         description: description,
         content: content,
@@ -188,7 +208,7 @@ export default class Page {
     const createdPage = await ncMeta.metaGet2(
       null,
       null,
-      Page.tableName({ projectId }),
+      await Page.tableName({ projectId }),
       createdPageId
     );
 
@@ -228,6 +248,10 @@ export default class Page {
       CacheGetType.TYPE_OBJECT
     );
 
+    if (page && page?.project_id !== projectId) {
+      return undefined;
+    }
+
     if (page) {
       // Remove fields that are not requested
       if (!fields) {
@@ -245,7 +269,7 @@ export default class Page {
     page = await ncMeta.metaGet2(
       null,
       null,
-      Page.tableName({ projectId }),
+      await Page.tableName({ projectId }),
       id,
       fields
     );
@@ -254,9 +278,13 @@ export default class Page {
       const pageWithAllFields = await ncMeta.metaGet2(
         null,
         null,
-        Page.tableName({ projectId }),
+        await Page.tableName({ projectId }),
         id
       );
+
+      if (pageWithAllFields?.project_id !== projectId) {
+        return undefined;
+      }
 
       await NocoCache.set(
         `${CacheScope.DOCS_PAGE}:${projectId}:${id}`,
@@ -282,7 +310,7 @@ export default class Page {
     await ncMeta.metaUpdate(
       null,
       null,
-      Page.tableName({ projectId }),
+      await Page.tableName({ projectId }),
       { ...attributes },
       pageId
     );
@@ -290,7 +318,7 @@ export default class Page {
     const updatedPage = await ncMeta.metaGet2(
       null,
       null,
-      Page.tableName({ projectId }),
+      await Page.tableName({ projectId }),
       pageId
     );
 
@@ -378,9 +406,10 @@ export default class Page {
       pageList = await ncMeta.metaList2(
         null,
         null,
-        Page.tableName({ projectId }),
+        await Page.tableName({ projectId }),
         {
           condition: {
+            project_id: projectId,
             parent_page_id: parent_page_id,
             ...condition,
           },
@@ -421,6 +450,8 @@ export default class Page {
     ncMeta = Noco.ncMeta
   ): Promise<DocsPageType[]> {
     const condition: any = {};
+    condition.project_id = projectId;
+
     if (!fetchAll) {
       condition.parent_page_id = parent_page_id ?? null;
     }
@@ -456,7 +487,7 @@ export default class Page {
       pageList = await ncMeta.metaList2(
         null,
         null,
-        Page.tableName({ projectId }),
+        await Page.tableName({ projectId }),
         {
           condition,
           fields: fields ?? [
@@ -601,7 +632,7 @@ export default class Page {
     return await Noco.ncMeta.metaCount(
       null,
       null,
-      Page.tableName({ projectId }),
+      await Page.tableName({ projectId }),
       {}
     );
   }
@@ -612,6 +643,8 @@ export default class Page {
   ): Promise<void> {
     const page = await this.get({ id, projectId }, ncMeta);
     if (!page) throw new Error('Page not found');
+
+    if (page.project_id !== projectId) throw new Error('Page not found');
 
     const childPages = await this.getChildPages({
       parent_page_id: id,
@@ -626,7 +659,7 @@ export default class Page {
       );
     }
 
-    await ncMeta.metaDelete(null, null, Page.tableName({ projectId }), {
+    await ncMeta.metaDelete(null, null, await Page.tableName({ projectId }), {
       id,
     });
 
@@ -685,7 +718,7 @@ export default class Page {
     const count = await ncMeta.metaCount(
       null,
       null,
-      Page.tableName({ projectId }),
+      await Page.tableName({ projectId }),
       {
         condition: {
           slug,
@@ -704,7 +737,7 @@ export default class Page {
       slugCount = await ncMeta.metaCount(
         null,
         null,
-        Page.tableName({ projectId }),
+        await Page.tableName({ projectId }),
         {
           condition: {
             slug: newSlug,
@@ -819,6 +852,6 @@ export default class Page {
     ncMeta = Noco.ncMeta
   ) {
     const knex = ncMeta.knex;
-    await knex.schema.dropTable(Page.tableName({ projectId }));
+    await knex.schema.dropTable(await Page.tableName({ projectId }));
   }
 }

@@ -3,17 +3,20 @@ import 'mocha';
 import request from 'supertest';
 import { createPage, getPage, listPages, updatePage } from '../../../factory/page';
 import { createProject, updateProject } from '../../../factory/project';
+import { createWorkspace } from '../../../factory/workspace';
 import init, { NcUnitContext } from '../../../init';
 
 function docTests() {
   let context: NcUnitContext;
+  let workspace;
   let project;
   let parentPage1, parentPage2, childPage1, childPage2, childPage3, childPage4;
   let childPage1Child, childPage2Child, childPage3Child, childPage4Child;
 
   beforeEach(async function () {
     context = await init();
-    project = await createProject(context, { title: 'test', type: 'documentation' });
+    workspace = await createWorkspace(context);
+    project = await createProject(context, { title: 'test', type: 'documentation', fk_workspace_id: workspace.id } as any);
 
     const _createPage = async (attributes) => createPage({ project, attributes, user: context.user });
     

@@ -4,18 +4,21 @@ import request from 'supertest';
 import NocoCache from '../../../../src/lib/cache/NocoCache';
 import { createPage, getPage, listPages, updatePage } from '../../factory/page';
 import { createProject, updateProject } from '../../factory/project';
+import { createWorkspace } from '../../factory/workspace';
 import init, { NcUnitContext } from '../../init';
 import pageUpdateTest from './docs/pageUpdate.test';
 
 function docTests() {
   let context: NcUnitContext;
+  let workspace;
   let project;
 
   pageUpdateTest()
 
   beforeEach(async function () {
     context = await init();
-    project = await createProject(context, { title: 'test', type: 'documentation' });
+    workspace = await createWorkspace(context);
+    project = await createProject(context, { title: 'test', type: 'documentation', fk_workspace_id: workspace.id } as any);
   });
 
   it('Create and get page and verify cache', async () => {
@@ -83,6 +86,38 @@ function docTests() {
     expect(response3.body).to.have.property('content');
     expect(response3.body).to.have.property('order');
   })  
+
+  it('Page in one project should not be visible in another project', async () => {
+    const { body: page1 } = await request(context.app)
+      .post(`/api/v1/docs/page`)
+      .set('xc-auth', context.token)
+      .send({
+        projectId: project.id,
+        attributes: {
+          title: 'test1',
+          content: 'test1',
+        }
+      })
+
+    const project2 = await createProject(context, { title: 'test2', type: 'documentation', fk_workspace_id: workspace.id } as any);
+
+    await request(context.app)
+      .get(`/api/v1/docs/page/${page1.id}`)
+      .set('xc-auth', context.token)
+      .query({
+        projectId: project2.id,
+      })
+      .expect(404)
+    
+      const { body: pages } = await request(context.app)
+      .get(`/api/v1/docs/pages`)
+      .set('xc-auth', context.token)
+      .query({
+        projectId: project2.id,
+      })
+      .expect(200)
+    expect(pages.length).to.equal(0);
+  })
 
   it('Create page under a top level nested published page', async () => {
     const parentPage = await createPage({

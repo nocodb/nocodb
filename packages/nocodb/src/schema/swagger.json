@@ -16383,6 +16383,9 @@
           "parent_page_id": {
             "type": "string"
           },
+          "project_id": {
+            "type": "string"
+          },
           "published_content": {
             "type": "string"
           },

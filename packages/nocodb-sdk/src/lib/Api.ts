@@ -546,6 +546,7 @@ export interface DocsPageType {
   metaJson?: object | string;
   order?: number;
   parent_page_id?: string;
+  project_id?: string;
   published_content?: string;
   published_title?: string;
   slug?: string;
@@ -2796,76 +2797,6 @@ export class Api<
     ) =>
       this.request<DocsPageType[], any>({
         path: `/api/v1/docs/page-parents`,
-        method: 'GET',
-        query: query,
-        format: 'json',
-        ...params,
-      }),
-
-    /**
-     * @description Search pages
-     *
-     * @tags Noco docs
-     * @name SearchPages
-     * @summary Search pages
-     * @request GET:/api/v1/docs/pages/search
-     * @response `200` `(DocsPageType)[]` OK
-     */
-    searchPages: (
-      query: {
-        /** Page number */
-        projectId: string;
-        /** Search */
-        query: string;
-      },
-      params: RequestParams = {}
-    ) =>
-      this.request<DocsPageType[], any>({
-        path: `/api/v1/docs/pages/search`,
-        method: 'GET',
-        query: query,
-        format: 'json',
-        ...params,
-      }),
-
-    /**
- * @description Paginate pages
- * 
- * @tags Noco docs
- * @name PaginatePages
- * @summary Paginate pages
- * @request GET:/api/v1/docs/pages/paginate
- * @response `200` `{
-  pages?: (DocsPageType)[],
-
-}` OK
- */
-    paginatePages: (
-      query: {
-        /** Page number */
-        projectId: string;
-        /** pageNumber */
-        pageNumber: number;
-        /** perPage */
-        perPage?: number;
-        /** filterField */
-        filterField?: string;
-        /** filterFieldValue */
-        filterFieldValue?: string;
-        /** sortField */
-        sortField?: string;
-        /** sortOrder */
-        sortOrder?: string;
-      },
-      params: RequestParams = {}
-    ) =>
-      this.request<
-        {
-          pages?: DocsPageType[];
-        },
-        any
-      >({
-        path: `/api/v1/docs/pages/paginate`,
         method: 'GET',
         query: query,
         format: 'json',

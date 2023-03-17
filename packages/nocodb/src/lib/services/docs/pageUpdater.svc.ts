@@ -19,6 +19,8 @@ export const updatePageService = async (
   const oldPage = await Page.get({ id: pageId, projectId });
   if (!oldPage) throw new Error('Page not found');
 
+  if (oldPage.project_id !== projectId) throw new Error('Page not found');
+
   attributes.last_updated_by_id = user.id;
 
   sanitizeAttributes(attributes, oldPage);
@@ -187,6 +189,8 @@ function sanitizeAttributes(
   }
 
   if (attributes.title === oldPage.title) delete attributes.title;
+
+  if ('project_id' in attributes) delete attributes.project_id;
 
   return attributes;
 }

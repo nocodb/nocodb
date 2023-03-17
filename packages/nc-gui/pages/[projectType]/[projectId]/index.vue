@@ -145,7 +145,7 @@ const copyProjectInfo = async () => {
       // Copied to clipboard
       message.info(t('msg.info.copiedToClipboard'))
     }
-  } catch (e) {
+  } catch (e: any) {
     console.error(e)
     message.error(e.message)
   }

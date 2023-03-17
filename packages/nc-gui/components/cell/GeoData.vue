@@ -56,7 +56,7 @@ const onClickSetCurrentLocation = () => {
     isLoading = false
   }
 
-  const onError: PositionErrorCallback = (err) => {
+  const onError: PositionErrorCallback = (err: GeolocationPositionError) => {
     console.error(`ERROR(${err.code}): ${err.message}`)
     isLoading = false
   }

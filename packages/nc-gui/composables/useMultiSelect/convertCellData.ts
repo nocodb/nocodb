@@ -2,6 +2,7 @@ import dayjs from 'dayjs'
 import type { ColumnType } from 'nocodb-sdk'
 import { UITypes } from 'nocodb-sdk'
 import type { AppInfo } from '~/composables/useGlobal'
+import { parseProp } from '#imports'
 
 export default function convertCellData(
   args: { from: UITypes; to: UITypes; value: any; column: ColumnType; appInfo: AppInfo },
@@ -73,7 +74,7 @@ export default function convertCellData(
     case UITypes.Attachment: {
       let parsedVal
       try {
-        parsedVal = typeof value === 'string' ? JSON.parse(value) : value
+        parsedVal = parseProp(value)
         parsedVal = Array.isArray(parsedVal) ? parsedVal : [parsedVal]
       } catch (e) {
         throw new Error('Invalid attachment data')
@@ -94,7 +95,7 @@ export default function convertCellData(
 
       const attachmentMeta = {
         ...defaultAttachmentMeta,
-        ...(typeof args.column?.meta === 'string' ? JSON.parse(args.column.meta) : args.column?.meta),
+        ...parseProp(args.column?.meta),
       }
 
       const attachments = []

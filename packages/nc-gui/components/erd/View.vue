@@ -40,8 +40,8 @@ const populateTables = async () => {
     // if table is provided only get the table and its related tables
     localTables = projectTables.value.filter(
       (t) =>
-        t.id === props.table.id ||
-        props.table.columns?.find(
+        t.id === props.table?.id ||
+        props.table?.columns?.find(
           (column) =>
             column.uidt === UITypes.LinkToAnotherRecord &&
             (column.colOptions as LinkToAnotherRecordType)?.fk_related_model_id === t.id,

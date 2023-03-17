@@ -1,4 +1,4 @@
-import type { Actions, State } from './types'
+import type { Actions, AppInfo, State } from './types'
 import { message, useNuxtApp } from '#imports'
 
 export function useGlobalActions(state: State): Actions {
@@ -11,10 +11,8 @@ export function useGlobalActions(state: State): Actions {
     state.token.value = null
     state.user.value = null
     try {
-      if (state.token.value) {
-        const nuxtApp = useNuxtApp()
-        await nuxtApp.$api.auth.signout()
-      }
+      const nuxtApp = useNuxtApp()
+      await nuxtApp.$api.auth.signout()
     } catch {}
   }
 
@@ -52,14 +50,14 @@ export function useGlobalActions(state: State): Actions {
           message.error(err.message || t('msg.error.youHaveBeenSignedOut'))
           await signOut()
         })
-        .finally(resolve)
+        .finally(() => resolve())
     })
   }
 
   const loadAppInfo = async () => {
     try {
       const nuxtApp = useNuxtApp()
-      state.appInfo.value = await nuxtApp.$api.utils.appInfo()
+      state.appInfo.value = (await nuxtApp.$api.utils.appInfo()) as AppInfo
     } catch (e) {
       console.error(e)
     }

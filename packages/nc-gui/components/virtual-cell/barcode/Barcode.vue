@@ -22,7 +22,7 @@ const showBarcodeModal = () => {
 const barcodeMeta = $computed(() => {
   return {
     barcodeFormat: 'CODE128',
-    ...(column?.value?.meta || {}),
+    ...parseProp(column?.value?.meta),
   }
 })
 

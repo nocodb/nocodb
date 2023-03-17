@@ -8747,16 +8747,16 @@ export class Api<
  * @name Create
  * @summary Create Table Hook
  * @request POST:/api/v1/db/meta/tables/{tableId}/hooks
- * @response `200` `HookReqType` OK
+ * @response `200` `HookType` OK
  * @response `400` `{
   \** @example BadRequest [Error]: <ERROR MESSAGE> *\
   msg: string,
 
 }`
  */
-    create: (tableId: IdType, data: AuditType, params: RequestParams = {}) =>
+    create: (tableId: IdType, data: HookReqType, params: RequestParams = {}) =>
       this.request<
-        HookReqType,
+        HookType,
         {
           /** @example BadRequest [Error]: <ERROR MESSAGE> */
           msg: string;

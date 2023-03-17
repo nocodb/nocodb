@@ -424,6 +424,8 @@
     "openTab": "Open new tab",
     "iFrame": "Copy embeddable HTML code",
     "addWebhook": "Add New Webhook",
+    "enableWebhook": "Enable Webhook",
+    "testWebhook": "Test Webhook",
     "newToken": "Add New Token",
     "exportZip": "Export zip",
     "importZip": "Import zip",

@@ -441,8 +441,7 @@ onMounted(async () => {
       <a-button class="mr-3 nc-btn-webhook-test" size="large" @click="testWebhook">
         <div class="flex items-center">
           <MdiGestureDoubleTap class="mr-2" />
-          <!-- TODO: i18n -->
-          Test Webhook
+          {{ $t('activity.testWebhook') }}
         </div>
       </a-button>
 
@@ -468,7 +467,7 @@ onMounted(async () => {
               class="nc-check-box-enable-webhook"
               @update:checked="hook.active = $event"
             >
-              Enable Webhook
+              {{ $t('activity.enableWebhook') }}
             </a-checkbox>
           </a-card>
         </a-col>

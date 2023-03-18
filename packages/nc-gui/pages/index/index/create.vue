@@ -80,7 +80,7 @@ const createProject = async () => {
         },
         ...(route.query.type === NcProjectType.COWRITER && { prompt_statement: '' }),
       }),
-    }) as Partial<ProjectType>
+    })) as Partial<ProjectType>
 
     refreshCommandPalette()
 
@@ -108,7 +108,6 @@ const createProject = async () => {
       }
       default:
         await navigateTo(`/ws/${route.query.workspaceId}/nc/${result.id}`)
-
     }
   } catch (e: any) {
     message.error(await extractSdkResponseErrorMsg(e))

@@ -13,7 +13,7 @@ const { showShareModal } = useShare()
 
 const { project } = storeToRefs(useProject())
 
-const { isEditAllowed, flattenedNestedPages } = storeToRefs(useDocStore())
+const { isEditAllowed, flattenedNestedPages, isOpenedNestedPageLoading } = storeToRefs(useDocStore())
 
 const {
   fetchNestedPages,
@@ -259,8 +259,7 @@ const onShare = async (page: PageSidebarNode) => {
                 </div>
               </div>
             </template>
-            <!-- TODO: temp -->
-            <div v-if="false">
+            <div v-if="isOpenedNestedPageLoading">
               <div class="flex flex-col mt-64">
                 <a-spin size="large" :indicator="indicator" />
               </div>

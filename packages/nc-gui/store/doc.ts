@@ -32,6 +32,8 @@ export const useDocStore = defineStore('docStore', () => {
    *
    */
 
+  const isOpenedNestedPageLoading = computed<boolean>(() => isNestedPageFetching.value[openedProjectId.value] ?? true)
+
   const isEditAllowed = computed<boolean>(
     () =>
       !isPublic.value &&
@@ -761,5 +763,6 @@ export const useDocStore = defineStore('docStore', () => {
     uploadFile,
     loadPublicPageAndProject,
     isNestedPublicPage,
+    isOpenedNestedPageLoading,
   }
 })

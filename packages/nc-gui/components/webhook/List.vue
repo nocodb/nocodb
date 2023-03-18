@@ -69,7 +69,7 @@ async function copyHook(hook: HookType) {
         } as FilterReqType)
       }
       newHook.notification = parseProp(newHook.notification)
-      hooks.value.push(newHook)
+      hooks.value = [newHook, ...hooks.value]
     }
   } catch (e: any) {
     message.error(await extractSdkResponseErrorMsg(e))

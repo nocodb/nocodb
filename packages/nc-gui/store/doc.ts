@@ -367,6 +367,59 @@ export const useDocStore = defineStore('docStore', () => {
     return page.children || []
   }
 
+  const createMagic = async ({ title, projectId }: { title: string; projectId: string }) => {
+    try {
+      await $api.nocoDocs.createNestedPagesMagic({
+        projectId: projectId!,
+        title,
+      } as any)
+    } catch (e) {
+      message.warning('NocoAI failed for the demo reasons. Please try again.')
+    }
+  }
+
+  const createImport = async (
+    projectId: string,
+    url: string,
+    type: 'md' | 'nuxt' | 'docusaurus' = 'md',
+    from: 'github' | 'file' = 'github',
+  ) => {
+    try {
+      const rs = gh(url)
+      await $api.nocoDocs.importPages({
+        user: rs!.owner!,
+        repo: rs!.name!,
+        branch: rs!.branch!,
+        path: rs!.path!.replace(`${rs?.repo}/tree/${rs?.branch}/`, ''),
+        projectId: projectId!,
+        type,
+        from,
+      } as any)
+    } catch (e) {
+      console.log(e)
+      message.error(await extractSdkResponseErrorMsg(e as any))
+    }
+  }
+
+  const openPage = async ({ page, projectId }: { page: PageSidebarNode; projectId: string }) => {
+    const url = nestedUrl({ id: page.id!, projectId })
+
+    await navigateTo(url)
+  }
+
+  const openChildPageTabsOfRootPages = async ({ projectId }: { projectId: string }) => {
+    const nestedPages = nestedPagesOfProjects.value[projectId]
+    const openedTabs = openedTabsOfProjects.value[projectId]
+
+    for (const page of nestedPages) {
+      if (!page.is_parent) continue
+
+      if (!openedTabs.includes(page.id!)) {
+        openedTabs.push(page.id!)
+      }
+    }
+  }
+
   return {
     isPublic,
     openedPageInSidebar,
@@ -385,5 +438,9 @@ export const useDocStore = defineStore('docStore', () => {
     isEditAllowed,
     expandTabOfOpenedPage,
     getChildrenOfPage,
+    createMagic,
+    createImport,
+    openPage,
+    openChildPageTabsOfRootPages,
   }
 })

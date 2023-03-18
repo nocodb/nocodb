@@ -12,17 +12,39 @@ import { storeToRefs, useProject } from '#imports'
 const { showShareModal } = useShare()
 
 const { project } = storeToRefs(useProject())
+
+const { isEditAllowed, nestedPagesOfProjects } = storeToRefs(useDocStore())
+
 const {
-  createMagic,
   fetchNestedPages,
   addNewPage: _addNewPage,
+  createMagic,
   createImport,
-  flattenedNestedPages,
   openPage,
-  isFetching,
   openChildPageTabsOfRootPages,
-  isEditAllowed,
-} = useDocs()
+} = useDocStore()
+
+const flattenedNestedPages = computed(() => {
+  const nestedPages = nestedPagesOfProjects.value[project.value.id!]
+  if (!nestedPages) return []
+  if (nestedPages.length === 0) return []
+
+  // nestedPagesTree to array
+  const flatten = (tree: PageSidebarNode[]): PageSidebarNode[] => {
+    const result: PageSidebarNode[] = []
+
+    tree.forEach((node) => {
+      result.push(node)
+      if (node.children) {
+        result.push(...flatten(node.children))
+      }
+    })
+
+    return result
+  }
+
+  return flatten(nestedPages)
+})
 
 const indicator = h(Loading3QuartersOutlined, {
   style: {
@@ -31,8 +53,6 @@ const indicator = h(Loading3QuartersOutlined, {
   },
   spin: true,
 })
-
-const showPublishModal = ref(false)
 
 const activeTabKey = ref('all')
 // const activeTabPagination = ref(1)
@@ -126,10 +146,10 @@ const openImportModal = () => {
 const onMagic = async () => {
   isMagicLoading.value = true
   try {
-    await createMagic(magicFormData.value.title)
+    await createMagic({ title: magicFormData.value.title, projectId: project.value.id! })
     magicFormData.value.title = ''
-    await fetchNestedPages()
-    await openChildPageTabsOfRootPages()
+    await fetchNestedPages({ projectId: project.value.id! })
+    await openChildPageTabsOfRootPages({ projectId: project.value.id! })
   } catch (e) {
     console.error(e)
   } finally {
@@ -141,9 +161,9 @@ const onMagic = async () => {
 const onImport = async () => {
   isImporting.value = true
   try {
-    await createImport(importFormData.value.title, 'nuxt')
-    await fetchNestedPages()
-    await openChildPageTabsOfRootPages()
+    await createImport(project.value.id!, importFormData.value.title, 'nuxt')
+    await fetchNestedPages({ projectId: project.value.id! })
+    await openChildPageTabsOfRootPages({ projectId: project.value.id! })
   } catch (e) {
     console.error(e)
   } finally {
@@ -153,7 +173,9 @@ const onImport = async () => {
 }
 
 const addNewPage = () => {
-  _addNewPage()
+  _addNewPage({
+    projectId: project.value.id!,
+  })
 }
 
 const closeMagicModal = () => {
@@ -163,7 +185,7 @@ const closeMagicModal = () => {
 }
 
 const onShare = async (page: PageSidebarNode) => {
-  await openPage(page)
+  await openPage({ page, projectId: project.value.id! })
 
   setTimeout(() => {
     showShareModal.value = true
@@ -259,7 +281,8 @@ const onShare = async (page: PageSidebarNode) => {
                 </div>
               </div>
             </template>
-            <div v-if="isFetching.nestedPages">
+            <!-- TODO: temp -->
+            <div v-if="false">
               <div class="flex flex-col mt-64">
                 <a-spin size="large" :indicator="indicator" />
               </div>
@@ -306,7 +329,7 @@ const onShare = async (page: PageSidebarNode) => {
                   :key="index"
                   class="flex flex-row w-full items-center cursor-pointer px-5 mx-1 py-3 rounded-md border-gray-50 border-1 hover:bg-gray-50 shadow-gray-50 shadow-sm"
                 >
-                  <div class="flex flex-col gap-y-2" @click="() => openPage(page)">
+                  <div class="flex flex-col gap-y-2" @click="() => openPage({page, projectId: project.id!})">
                     <div style="font-weight: 450; font-size: 0.9rem">
                       {{ page?.title }}
                     </div>
@@ -315,7 +338,7 @@ const onShare = async (page: PageSidebarNode) => {
                       Updated {{ dayjs(page!.updated_at!).local().fromNow() }}
                     </div>
                   </div>
-                  <div class="flex-grow" @click="() => openPage(page)"></div>
+                  <div class="flex-grow" @click="() => openPage({page, projectId: project.id!})"></div>
                   <a-dropdown trigger="click" placement="bottomRight">
                     <div
                       class="nc-docs-sidebar-page-options flex px-1 py-1 hover:( !bg-gray-300 !bg-opacity-30 rounded-md text-gray-600) cursor-pointer select-none group-hover:block text-gray-500"

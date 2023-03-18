@@ -39,6 +39,7 @@
     "signIn": "Zaloguj",
     "signOut": "Wyloguj",
     "required": "Wymagany",
+    "enableScanner": "Enable Scanner for filling",
     "preferred": "Preferowany",
     "mandatory": "Obowiązkowy",
     "loading": "Ładowanie ...",
@@ -209,7 +210,8 @@
     "advancedSettings": "Ustawienia zaawansowane",
     "codeSnippet": "Snippet",
     "keyboardShortcut": "Skróty klawiaturowe",
-    "generateRandomName": "Generate Random Name"
+    "generateRandomName": "Generate Random Name",
+    "findRowByScanningCode": "Find row by scanning a QR or Barcode"
   },
   "labels": {
     "createdBy": "Stworzony przez",
@@ -219,6 +221,7 @@
     "viewName": "Nazwa widoku",
     "viewLink": "Zobacz link",
     "columnName": "Nazwa kolumny",
+    "columnToScanFor": "Column to scan",
     "columnType": "Typ kolumny",
     "roleName": "Nazwa roli",
     "roleDescription": "Opisy roli",
@@ -393,8 +396,8 @@
     "saveAndExit": "Zapisz i wyjdź",
     "saveAndStay": "Oszczędzaj i zostań",
     "insertRow": "Wstaw nowy rząd",
-    "deleteRow": "Usuń rząd",
     "duplicateRow": "Duplicate Row",
+    "deleteRow": "Usuń rząd",
     "deleteSelectedRow": "Usuń wybrane wiersze",
     "importExcel": "Importuj Excel.",
     "importCSV": "Importuj z CSV",
@@ -409,6 +412,8 @@
     "changePwd": "Zmień hasło",
     "createView": "Utwórz widok",
     "shareView": "Widok udostępniania",
+    "findRowByCodeScan": "Find row by scan",
+    "fillByCodeScan": "Fill by scan",
     "listSharedView": "Wspólna lista widoków",
     "ListView": "Lista widoków",
     "copyView": "Widok kopiowania",
@@ -465,7 +470,8 @@
       "chooseMappingField": "Choose a Mapping Field",
       "openInGoogleMaps": "Google Maps",
       "openInOpenStreetMap": "OSM"
-    }
+    },
+    "toggleMobileMode": "Toggle Mobile Mode"
   },
   "tooltip": {
     "saveChanges": "Zapisz zmiany",
@@ -530,6 +536,12 @@
       "roles": {
         "orgCreator": "Twórca może tworzyć nowe projekty i mieć dostęp do każdego zaproszonego projektu.",
         "orgViewer": "Widz nie może tworzyć nowych projektów, ale może mieć dostęp do każdego zaproszonego projektu."
+      },
+      "codeScanner": {
+        "loadingScanner": "Loading the scanner...",
+        "selectColumn": "Select a column (QR code or Barcode) that you want to use for finding a row by scanning.",
+        "moreThanOneRowFoundForCode": "More than one row found for this code. Currently only unique codes are supported.",
+        "noRowFoundForCode": "No row found for this code for the selected column"
       },
       "map": {
         "overLimit": "You're over the limit.",

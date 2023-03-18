@@ -40,7 +40,7 @@ export const useTabs = defineStore('tabStore', () => {
         routeName.includes('projectType-projectId-index-index-type-title-viewTitle') &&
         (tables?.length || projectsStore.projectTableList[project?.id!]?.length)
       ) {
-        const tab: TabItem = { type: route.params.type as TabType, title: route.params.title as string }
+        const tab: TabItem = { projectId: route.params.projectId,type: route.params.type as TabType, title: route.params.title as string }
 
         const currentTable = (tables ?? projectsStore.projectTableList[project?.id!]).find((t) => {
           return t.id === tab.title || t.title === tab.title
@@ -56,7 +56,7 @@ export const useTabs = defineStore('tabStore', () => {
 
         tab.title = currentTable.title
 
-        tab.meta = currentTable.meta
+        tab.meta = currentTable.meta as Record<string, any>
 
         // append base alias to tab title if duplicate titles exist on other bases
         if (tables.find((t) => t.title === currentTable?.title && t.base_id !== currentTable?.base_id))
@@ -86,7 +86,7 @@ export const useTabs = defineStore('tabStore', () => {
     set(index: number) {
       if (index === -1) {
         navigateTo({
-          path: `/ws/${workspaceId}/${projectType}/${project?.id!}`,
+          path: `/ws/${workspaceId}/${projectType}/${project?.id}`,
           query: route.query,
         })
       } else {

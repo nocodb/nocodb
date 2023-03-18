@@ -56,6 +56,8 @@ export const useProject = defineStore('projectStore', () => {
 
   // const project = ref<ProjectType>({})
   // const tables = ref<TableType[]>([])
+
+  // todo: new-layout
   const project = computed<ProjectType>(() => projectsStore.projects[projectId.value] || {})
   const tables = computed<TableType[]>(() => projectsStore.projectTableList[projectId.value] || [])
 
@@ -119,7 +121,7 @@ export const useProject = defineStore('projectStore', () => {
   async function loadTables(){
     if (project.value.id) {
       projectsStore.loadProjectTables(project.value.id, true)
-      tables.value = projectsStore.projectTableList[project.value.id]
+      // tables.value = projectsStore.projectTableList[project.value.id]
       //   await api.dbTable.list(project.value.id, {
       //   includeM2M: includeM2M.value,
       // })
@@ -160,7 +162,7 @@ export const useProject = defineStore('projectStore', () => {
       }
     } else if (projectId.value) {
       await projectsStore.loadProject(projectId.value)
-      project.value = projectsStore.projects[projectId.value]//await api.project.read(projectId.value)
+      // project.value = projectsStore.projects[projectId.value] // await api.project.read(projectId.value)
     } else {
       console.warn('Project id not found')
       return

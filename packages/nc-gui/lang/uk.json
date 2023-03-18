@@ -39,6 +39,7 @@
     "signIn": "Увійти",
     "signOut": "Вийти",
     "required": "Обов'язково",
+    "enableScanner": "Enable Scanner for filling",
     "preferred": "Бажане",
     "mandatory": "Обов’язкове",
     "loading": "Завантаження ...",
@@ -209,7 +210,8 @@
     "advancedSettings": "Додаткові налаштування",
     "codeSnippet": "Фрагмент коду",
     "keyboardShortcut": "Клавіатурні скорочення",
-    "generateRandomName": "Згенерувати випадкове ім’я"
+    "generateRandomName": "Згенерувати випадкове ім’я",
+    "findRowByScanningCode": "Find row by scanning a QR or Barcode"
   },
   "labels": {
     "createdBy": "Автор",
@@ -219,6 +221,7 @@
     "viewName": "Назва вигляду",
     "viewLink": "Вигляд посилання",
     "columnName": "Назва стовпця",
+    "columnToScanFor": "Column to scan",
     "columnType": "Тип стовпця",
     "roleName": "Ім'я ролі",
     "roleDescription": "Опис ролі",
@@ -393,8 +396,8 @@
     "saveAndExit": "Зберегти та вийти",
     "saveAndStay": "Зберегти та залишитись",
     "insertRow": "Вставити новий рядок",
-    "deleteRow": "Видалити рядок",
     "duplicateRow": "Duplicate Row",
+    "deleteRow": "Видалити рядок",
     "deleteSelectedRow": "Видалити вибрані рядки",
     "importExcel": "Імпортувати з Excel",
     "importCSV": "Імпортувати з CSV",
@@ -409,6 +412,8 @@
     "changePwd": "Змінити пароль",
     "createView": "Створити вигляд",
     "shareView": "Поділитися виглядом",
+    "findRowByCodeScan": "Find row by scan",
+    "fillByCodeScan": "Fill by scan",
     "listSharedView": "Список спільних виглядів",
     "ListView": "Список виглядів",
     "copyView": "Копіювати вигляд",
@@ -465,7 +470,8 @@
       "chooseMappingField": "Choose a Mapping Field",
       "openInGoogleMaps": "Google Maps",
       "openInOpenStreetMap": "OSM"
-    }
+    },
+    "toggleMobileMode": "Toggle Mobile Mode"
   },
   "tooltip": {
     "saveChanges": "Зберегти зміни",
@@ -530,6 +536,12 @@
       "roles": {
         "orgCreator": "Розробник може створювати нові проєкти та мати доступ до будь-якого відкритого проєкту.",
         "orgViewer": "Глядач не може створювати нові проєкти, але він може отримати доступ до будь-якого відкритого проєкту."
+      },
+      "codeScanner": {
+        "loadingScanner": "Loading the scanner...",
+        "selectColumn": "Select a column (QR code or Barcode) that you want to use for finding a row by scanning.",
+        "moreThanOneRowFoundForCode": "More than one row found for this code. Currently only unique codes are supported.",
+        "noRowFoundForCode": "No row found for this code for the selected column"
       },
       "map": {
         "overLimit": "You're over the limit.",

@@ -7,11 +7,10 @@ interface Emits {
 
 const emits = defineEmits<Emits>()
 
-const projectStore = useProject()
-const { updateProject, loadBookProject } = projectStore
-const { project } = storeToRefs(projectStore)
+const { project } = storeToRefs(useProject())
 
-const { openedPage, updatePage, nestedUrl, nestedPublicParentPage } = useDocs()
+const { openedPage, nestedPublicParentPage } = storeToRefs(useDocStore())
+const { updatePage, nestedUrl } = useDocStore()
 
 const isPagePublishing = ref(false)
 
@@ -23,7 +22,9 @@ const isCopied = ref({
 const copyPageUrl = async () => {
   isCopied.value.link = false
 
-  await navigator.clipboard.writeText(nestedUrl(openedPage.value!.id!, { completeUrl: true, publicUrl: true }))
+  await navigator.clipboard.writeText(
+    nestedUrl({ projectId: project.value.id!, id: openedPage.value!.id!, completeUrl: true, publicUrl: true }),
+  )
 
   setTimeout(() => {
     isCopied.value.link = true
@@ -31,12 +32,17 @@ const copyPageUrl = async () => {
 }
 
 const openPageUrl = async () => {
-  window.open(nestedUrl(openedPage.value!.id!, { completeUrl: true, publicUrl: true }), '_blank')
+  window.open(
+    nestedUrl({ projectId: project.value.id!, id: openedPage.value!.id!, completeUrl: true, publicUrl: true }),
+    '_blank',
+  )
 }
 
 const embedPageHtml = async () => {
   await navigator.clipboard.writeText(
-    `<iframe src="${nestedUrl(openedPage.value!.id!, {
+    `<iframe src="${nestedUrl({
+      projectId: project.value.id!,
+      id: openedPage.value!.id!,
       completeUrl: true,
       publicUrl: true,
     })}" width="100%" height="100%" style="border: none;"></iframe>`,
@@ -64,6 +70,7 @@ const togglePagePublishedState = async () => {
     await updatePage({
       pageId: openedPage.value!.id!,
       page: pageUpdates,
+      projectId: project.value.id!,
     })
   } finally {
     isPagePublishing.value = false
@@ -71,7 +78,12 @@ const togglePagePublishedState = async () => {
 }
 
 const openParentPageLink = async () => {
-  await navigateTo(nestedUrl(nestedPublicParentPage.value!.id!, {}))
+  await navigateTo(
+    nestedUrl({
+      projectId: project.value.id!,
+      id: nestedPublicParentPage.value!.id!,
+    }),
+  )
   emits('close')
 }
 

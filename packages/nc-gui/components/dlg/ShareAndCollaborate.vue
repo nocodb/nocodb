@@ -20,7 +20,7 @@ const { formStatus } = useManageUsers()
 
 const vModel = useVModel(props, 'modelValue', emits)
 
-const { openedPage } = useDocs()
+const { openedPage } = storeToRefs(useDocStore())
 
 const indicator = h(LoadingOutlined, {
   style: {

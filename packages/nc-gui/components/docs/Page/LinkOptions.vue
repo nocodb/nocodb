@@ -6,7 +6,11 @@ import { getMarkRange } from '@tiptap/core'
 import type { Mark } from 'prosemirror-model'
 
 const { editor } = defineProps<Props>()
-const { flattenedNestedPages, nestedSlugsFromPageId, nestedUrl } = useDocs()
+
+const { project } = storeToRefs(useProject())
+
+const { flattenedNestedPages } = storeToRefs(useDocStore())
+const { nestedSlugsFromPageId, nestedUrl } = useDocStore()
 interface Props {
   editor: Editor
 }
@@ -110,7 +114,8 @@ const onDelete = () => {
 }
 
 const onPageClick = (page: any) => {
-  href.value = `/#${nestedUrl(page.id)}`
+  const url = nestedUrl({ id: page.id, projectId: project.value.id! })
+  href.value = `/#${url}`
 
   onChange()
 
@@ -276,7 +281,7 @@ const openLink = () => {
                 {{ page.title }}
               </div>
               <div class="flex text-xs text-gray-400">
-                {{ nestedSlugsFromPageId(page.id!).join('/') }}
+                {{ nestedSlugsFromPageId({ id: page.id!, projectId: project.id! }).join('/') }}
               </div>
             </div>
           </div>

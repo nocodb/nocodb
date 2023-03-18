@@ -197,7 +197,7 @@ export const useTabs = defineStore('tabStore', () => {
         })
       case TabType.DOCUMENT:
         return navigateTo({
-          path: `/ws/${workspaceId}/${projectType}/${tab.projectId}/doc/p/${tab.projectId}`,
+          path: `/ws/${workspaceId}/${projectType}/${tab.projectId}/doc`,
           query: route.query,
         })
     }

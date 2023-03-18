@@ -1,12 +1,15 @@
 <script lang="ts" setup>
 import { Icon as IconifyIcon } from '@iconify/vue'
-import { useDocs } from '#imports'
 
 const emit = defineEmits(['focusEditor'])
 
 const MAX_TITLE_LENGTH = 150
 
-const { updatePage, isPublic, openedPage, findPage, nestedPages, isEditAllowed } = useDocs()
+const { project } = useProject()
+
+const { openedPage, isPublic, isEditAllowed } = storeToRefs(useDocStore())
+
+const { updatePage } = useDocStore()
 
 const titleInputRef = ref<HTMLInputElement>()
 
@@ -56,7 +59,7 @@ const onTitleKeyDown = (e: KeyboardEvent) => {
 const setIcon = async (icon: string) => {
   try {
     openedPage.value!.icon = icon
-    await updatePage({ pageId: openedPage.value!.id!, page: { icon } })
+    await updatePage({ pageId: openedPage.value!.id!, page: { icon }, projectId: project.id! })
   } catch (e: any) {
     message.error(await extractSdkResponseErrorMsg(e))
   }
@@ -74,7 +77,7 @@ watchDebounced(
       return
     }
 
-    await updatePage({ pageId: openedPage.value!.id!, page: { title: openedPage.value?.title } as any })
+    await updatePage({ pageId: openedPage.value!.id!, page: { title: openedPage.value?.title } as any, projectId: project.id! })
   },
   {
     debounce: 500,

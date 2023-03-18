@@ -1,7 +1,10 @@
 import { onKeyStroke } from '@vueuse/core'
 
 const useShortcuts = () => {
-  const { openedPage, addNewPage, getParentOfPage, isEditAllowed } = useDocs()
+  const { project } = storeToRefs(useProject())
+
+  const { openedPage, isEditAllowed } = storeToRefs(useDocStore())
+  const { addNewPage, getParentOfPage } = useDocStore()
 
   const shortCuts = [
     {
@@ -9,7 +12,7 @@ const useShortcuts = () => {
       action: (e: KeyboardEvent) => {
         e.preventDefault()
 
-        addNewPage(openedPage.value?.parent_page_id)
+        addNewPage({ parentPageId: openedPage.value?.parent_page_id, projectId: project.value.id! })
       },
     },
     {
@@ -17,7 +20,7 @@ const useShortcuts = () => {
       action: (e: KeyboardEvent) => {
         e.preventDefault()
 
-        addNewPage(openedPage.value?.id)
+        addNewPage({ parentPageId: openedPage.value?.id, projectId: project.value.id! })
       },
     },
     {
@@ -25,8 +28,10 @@ const useShortcuts = () => {
       action: (e: KeyboardEvent) => {
         e.preventDefault()
 
-        const parentPage = openedPage.value?.parent_page_id ? getParentOfPage(openedPage.value.parent_page_id) : null
-        addNewPage(parentPage?.id)
+        const parentPage = openedPage.value?.parent_page_id
+          ? getParentOfPage({ pageId: openedPage.value.parent_page_id, projectId: project.value.id! })
+          : null
+        addNewPage({ parentPageId: parentPage?.id, projectId: project.value.id! })
       },
     },
   ]

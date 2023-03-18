@@ -32,7 +32,7 @@ import { TrailingNode } from './trailingNode'
 import { Placeholder } from './placeholder'
 
 const tiptapExtensions = (isPublic: boolean): Extensions => {
-  const { uploadFile } = useDocs()
+  const { uploadFile } = useDocStore()
 
   return [
     Document,

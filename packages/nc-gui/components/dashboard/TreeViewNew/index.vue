@@ -494,7 +494,7 @@ const isClearMode = computed(() => route.query.clear === '1' && route.params.pro
           :class="{ 'max-h-0': openedProjectId !== project.id, 'max-h-500': openedProjectId === project.id }"
         >
           <div v-if="project.type === 'documentation'">
-            <DocsSideBarNew v-if="openedProjectId === project.id" :project="project" />
+            <DocsSideBar v-if="openedProjectId === project.id" :project="project" />
           </div>
           <a-dropdown
             v-else-if="project && projects[project.id] && projects[project.id].bases"

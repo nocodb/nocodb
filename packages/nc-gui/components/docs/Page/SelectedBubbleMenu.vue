@@ -12,7 +12,9 @@ import MdiFormatListCheckbox from '~icons/mdi/format-list-checkbox'
 
 const { editor } = defineProps<Props>()
 
-const { magicExpand } = useDocs()
+const { project } = storeToRefs(useProject())
+
+const { magicExpand } = useDocStore()
 
 interface Props {
   editor: Editor
@@ -66,7 +68,7 @@ const expandText = async () => {
     converter.setOption('noHeaderId', true)
 
     const markdown = converter.makeMarkdown(selectedHtml)
-    const response: any = await magicExpand(markdown)
+    const response: any = await magicExpand({ text: markdown, projectId: project.value.id! })
 
     editor
       ?.chain()

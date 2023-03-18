@@ -9,12 +9,12 @@ import Sortable from 'sortablejs'
 import { useRoute } from 'vue-router'
 import {
   computed,
-  onMounted,
   definePageMeta,
   extractSdkResponseErrorMsg,
   message,
   navigateTo,
   onBeforeMount,
+  onMounted,
   parseProp,
   projectThemeColors,
   storeToRefs,

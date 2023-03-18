@@ -38,7 +38,7 @@ export const useTabs = defineStore('tabStore', () => {
       // todo: new-layout
       if (
         routeName.includes('projectType-projectId-index-index-type-title-viewTitle') &&
-        (tables.length || projectsStore.projectTableList[project?.id!]?.length)
+        (tables?.length || projectsStore.projectTableList[project?.id!]?.length)
       ) {
         const tab: TabItem = { type: route.params.type as TabType, title: route.params.title as string }
 

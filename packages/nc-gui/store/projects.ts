@@ -2,24 +2,36 @@ import { defineStore } from 'pinia'
 import type { OracleUi, ProjectType, TableType } from 'nocodb-sdk'
 import { SqlUiFactory } from 'nocodb-sdk'
 import { NcProjectType } from '~/utils'
+import { useWorkspace } from '~/store/workspace'
 
 export const useProjects = defineStore('projectsStore', () => {
   // state
+  // todo: rename to projectMap
   const projects = ref<Record<string, ProjectType>>({})
+  // todo: rename to projectTablesMap
   const projectTableList = ref<Record<string, TableType[]>>({})
 
   const { api, isLoading } = useApi()
 
   const worspaceStore = useWorkspace()
 
+  const { includeM2M } = useGlobal()
+
   // actions
-  const loadProject = async (projectId: string) => {
+  const loadProject = async (projectId: string, force = false) => {
+    if (!force && projects.value[projectId]) return projects.value[projectId]
+
     const project = await api.project.read(projectId)
     projects.value = { ...projects.value, [projectId]: project }
   }
 
-  const loadProjectTables = async (projectId: string) => {
-    const tables = await api.dbTable.list(projectId)
+  const loadProjectTables = async (projectId: string, force = false) => {
+    if (!force && projectTableList.value[projectId]) return projectTableList.value[projectId]
+
+    const tables = await api.dbTable.list(projectId, {
+      includeM2M: includeM2M.value,
+    })
+
     projectTableList.value = { ...projectTableList.value, [projectId]: tables.list || [] }
   }
 

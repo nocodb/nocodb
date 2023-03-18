@@ -113,7 +113,7 @@
                       "$ref": "#/components/schemas/Project"
                     }
                   }
-                }                
+                }
               }
             }
           }
@@ -2780,7 +2780,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/ProjectReq"
+                  "$ref": "#/components/schemas/Project"
                 }
               }
             }
@@ -2795,7 +2795,7 @@
               "schema": {
                 "allOf": [
                   {
-                    "$ref": "#/components/schemas/Project"
+                    "$ref": "#/components/schemas/ProjectReq"
                   },
                   {
                     "type": "object",

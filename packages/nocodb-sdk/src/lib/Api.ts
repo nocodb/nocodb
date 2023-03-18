@@ -4472,7 +4472,7 @@ export class Api<
  * @name Create
  * @summary Create Project
  * @request POST:/api/v1/db/meta/projects/
- * @response `200` `ProjectReqType` OK
+ * @response `200` `ProjectType` OK
  * @response `400` `{
   \** @example BadRequest [Error]: <ERROR MESSAGE> *\
   msg: string,
@@ -4480,14 +4480,14 @@ export class Api<
 }`
  */
     create: (
-      data: ProjectType & {
+      data: ProjectReqType & {
         /** If true, the project will us an external database else it will use the root database */
         external?: boolean;
       },
       params: RequestParams = {}
     ) =>
       this.request<
-        ProjectReqType,
+        ProjectType,
         {
           /** @example BadRequest [Error]: <ERROR MESSAGE> */
           msg: string;

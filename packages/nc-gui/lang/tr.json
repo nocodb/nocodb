@@ -39,6 +39,7 @@
     "signIn": "KAYIT OL",
     "signOut": "Oturumu Kapat",
     "required": "Gerekli",
+    "enableScanner": "Enable Scanner for filling",
     "preferred": "Tercihen",
     "mandatory": "Zorunlu",
     "loading": "Yükleniyor ...",
@@ -209,7 +210,8 @@
     "advancedSettings": "Gelişmiş Ayarlar",
     "codeSnippet": "Kod Parçacığı",
     "keyboardShortcut": "Klavye Kısayolları",
-    "generateRandomName": "Generate Random Name"
+    "generateRandomName": "Generate Random Name",
+    "findRowByScanningCode": "Find row by scanning a QR or Barcode"
   },
   "labels": {
     "createdBy": "Tarafından Oluşturuldu",
@@ -219,6 +221,7 @@
     "viewName": "Görünüm adı",
     "viewLink": "Görünüm Linki",
     "columnName": "Sütun Adı",
+    "columnToScanFor": "Column to scan",
     "columnType": "Sütun Tipi",
     "roleName": "Rol Adı",
     "roleDescription": "Rol Tanımı",
@@ -393,8 +396,8 @@
     "saveAndExit": "Kaydet ve Çık",
     "saveAndStay": "Kaydet ve Kal",
     "insertRow": "Yeni Satır Ekle",
-    "deleteRow": "Satırı Sil",
     "duplicateRow": "Duplicate Row",
+    "deleteRow": "Satırı Sil",
     "deleteSelectedRow": "Seçilen Satırları Sil",
     "importExcel": "Excel içe aktar",
     "importCSV": "CSV içe aktar",
@@ -409,6 +412,8 @@
     "changePwd": "Şifre değiştir",
     "createView": "Bir görünüm oluştur",
     "shareView": "Görünümü paylaş",
+    "findRowByCodeScan": "Find row by scan",
+    "fillByCodeScan": "Fill by scan",
     "listSharedView": "Paylaşılan Görünümler",
     "ListView": "Görünüm Listesi",
     "copyView": "Görünümü kopyala",
@@ -465,7 +470,8 @@
       "chooseMappingField": "Choose a Mapping Field",
       "openInGoogleMaps": "Google Maps",
       "openInOpenStreetMap": "OSM"
-    }
+    },
+    "toggleMobileMode": "Toggle Mobile Mode"
   },
   "tooltip": {
     "saveChanges": "Değişiklikleri Kaydet",
@@ -530,6 +536,12 @@
       "roles": {
         "orgCreator": "İçerik oluşturucu yeni projeler oluşturabilir ve davet edilen herhangi bir projeye erişebilir.",
         "orgViewer": "İzleyicinin yeni proje oluşturmasına izin verilmez ancak davet edilen herhangi bir projeye erişebilir."
+      },
+      "codeScanner": {
+        "loadingScanner": "Loading the scanner...",
+        "selectColumn": "Select a column (QR code or Barcode) that you want to use for finding a row by scanning.",
+        "moreThanOneRowFoundForCode": "More than one row found for this code. Currently only unique codes are supported.",
+        "noRowFoundForCode": "No row found for this code for the selected column"
       },
       "map": {
         "overLimit": "You're over the limit.",

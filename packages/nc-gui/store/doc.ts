@@ -7,6 +7,7 @@ export const useDocStore = defineStore('docStore', () => {
   const route = $(router.currentRoute)
 
   const { $api } = useNuxtApp()
+  const { appInfo } = $(useGlobal())
   const { projectRoles } = useRoles()
 
   const isPublic = computed<boolean>(() => !!route.meta.public)
@@ -53,6 +54,52 @@ export const useDocStore = defineStore('docStore', () => {
 
   const openedPageWithParents = computed(() =>
     openedPageInSidebar.value ? getPageWithParents({ page: openedPageInSidebar.value, projectId: openedProjectId.value }) : [],
+  )
+
+  const nestedPublicParentPage = computed<PageSidebarNode | undefined>(() => {
+    const nestedPages = nestedPagesOfProjects.value[openedProjectId.value]
+
+    return openedPage.value?.nested_published_parent_id
+      ? findPage(nestedPages, openedPage.value?.nested_published_parent_id)
+      : undefined
+  })
+
+  const flattenedNestedPages = computed(() => {
+    if (!openedProjectId.value) return []
+
+    const nestedPages = nestedPagesOfProjects.value[openedProjectId.value!]
+    if (!nestedPages) return []
+    if (nestedPages.length === 0) return []
+
+    // nestedPagesTree to array
+    const flatten = (tree: PageSidebarNode[]): PageSidebarNode[] => {
+      const result: PageSidebarNode[] = []
+
+      tree.forEach((node) => {
+        result.push(node)
+        if (node.children) {
+          result.push(...flatten(node.children))
+        }
+      })
+
+      return result
+    }
+
+    return flatten(nestedPages)
+  })
+
+  const isNestedPublicPage = computed<boolean>(
+    () =>
+      !!(
+        openedPage.value?.is_published &&
+        openedPage.value?.nested_published_parent_id &&
+        openedPage.value?.nested_published_parent_id !== openedPage.value.id
+      ) ||
+      !!(
+        openedPage.value?.is_published &&
+        openedPage.value?.nested_published_parent_id === openedPage.value.id &&
+        openedPage.value.is_parent
+      ),
   )
 
   /***
@@ -608,6 +655,79 @@ export const useDocStore = defineStore('docStore', () => {
     }
   }
 
+  const getParentOfPage = ({ pageId, projectId }: { pageId: string; projectId: string }) => {
+    const nestedPages = nestedPagesOfProjects.value[projectId]
+
+    const page = findPage(nestedPages, pageId)
+    if (!page) return undefined
+    if (!page.parent_page_id) return undefined
+
+    return findPage(nestedPages, page.parent_page_id)
+  }
+
+  function nestedSlugsFromPageId({ projectId, id }: { id: string; projectId: string }) {
+    const nestedPages = nestedPagesOfProjects.value[projectId]
+
+    const page = findPage(nestedPages, id)!
+    const slugs = []
+    let parentPage = page
+    while (parentPage?.parentNodeId) {
+      slugs.unshift(parentPage!.slug!)
+      parentPage = findPage(nestedPages, parentPage.parentNodeId)!
+    }
+    slugs.unshift(parentPage.slug!)
+
+    return slugs
+  }
+
+  const magicExpand = async ({ projectId, text, pageId }: { text: string; pageId?: string; projectId: string }) => {
+    const id = pageId || openedPageInSidebar.value!.id!
+    const response = await $api.nocoDocs.magicExpandText({
+      projectId: projectId!,
+      pageId: id,
+      text,
+    })
+    return response
+  }
+
+  const uploadFile = async (file: File) => {
+    // todo: use a better id
+    const randomId = Math.random().toString(36).substring(2, 15) + Math.random().toString(36).substring(2, 15)
+    const data = await $api.storage.upload(
+      {
+        path: [NOCO, openedProjectId, randomId].join('/'),
+      },
+      {
+        files: file as any,
+        json: '{}',
+      } as any,
+    )
+
+    return data[0]?.path ? `${appInfo.ncSiteUrl}/${data[0].path}` : ''
+  }
+
+  // todo: Temp
+  const loadPublicPageAndProject = async () => {
+    if (!openedPageId.value) throw new Error('openedPageId is not defined')
+
+    const projectId = route.params.projectId as string
+
+    isPageFetching.value = true
+    try {
+      const response = await $api.nocoDocs.getPublicPage(openedPageId.value!, {
+        projectId,
+      })
+
+      openedPage.value = response.page as any
+      // project.value = response.project as any
+    } catch (error) {
+      console.error(error)
+      isPageErrored.value = true
+    } finally {
+      isPageFetching.value = false
+    }
+  }
+
   return {
     isPublic,
     openedPageInSidebar,
@@ -633,5 +753,13 @@ export const useDocStore = defineStore('docStore', () => {
     isPageFetching,
     openedPageWithParents,
     openedPage,
+    nestedPublicParentPage,
+    getParentOfPage,
+    flattenedNestedPages,
+    nestedSlugsFromPageId,
+    magicExpand,
+    uploadFile,
+    loadPublicPageAndProject,
+    isNestedPublicPage,
   }
 })

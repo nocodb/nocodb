@@ -1,9 +1,9 @@
 import { storeToRefs } from 'pinia'
 
 const [setup, use] = useInjectionState(() => {
-  const visibility = ref<'public' | 'private' | 'none'>('none')
+  const visibility = ref<'public' | 'private' | 'none' | 'hidden'>('none')
   const { project } = storeToRefs(useProject())
-  const { openedPage, parentWhichIsNestedPublished, isEditAllowed } = useDocs()
+  const { openedPage, isEditAllowed } = storeToRefs(useDocStore())
 
   const showShareModal = ref(false)
 

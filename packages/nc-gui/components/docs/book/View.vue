@@ -13,7 +13,7 @@ const { showShareModal } = useShare()
 
 const { project } = storeToRefs(useProject())
 
-const { isEditAllowed, nestedPagesOfProjects } = storeToRefs(useDocStore())
+const { isEditAllowed, flattenedNestedPages } = storeToRefs(useDocStore())
 
 const {
   fetchNestedPages,
@@ -23,28 +23,6 @@ const {
   openPage,
   openChildPageTabsOfRootPages,
 } = useDocStore()
-
-const flattenedNestedPages = computed(() => {
-  const nestedPages = nestedPagesOfProjects.value[project.value.id!]
-  if (!nestedPages) return []
-  if (nestedPages.length === 0) return []
-
-  // nestedPagesTree to array
-  const flatten = (tree: PageSidebarNode[]): PageSidebarNode[] => {
-    const result: PageSidebarNode[] = []
-
-    tree.forEach((node) => {
-      result.push(node)
-      if (node.children) {
-        result.push(...flatten(node.children))
-      }
-    })
-
-    return result
-  }
-
-  return flatten(nestedPages)
-})
 
 const indicator = h(Loading3QuartersOutlined, {
   style: {

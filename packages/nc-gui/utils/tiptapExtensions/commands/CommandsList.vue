@@ -45,7 +45,8 @@ interface Props {
 
 const { command, query, editor } = defineProps<Props>()
 
-const { magicOutline, openedPage } = useDocs()
+const { openedPage } = storeToRefs(useDocStore())
+const { magicOutline } = useDuseDocStoreocs()
 
 const isLinkInputFormState = ref(false)
 const isLinkInputFormErrored = ref(false)

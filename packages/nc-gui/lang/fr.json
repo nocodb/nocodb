@@ -39,6 +39,7 @@
     "signIn": "Connexion",
     "signOut": "Se déconnecter",
     "required": "Requise",
+    "enableScanner": "Enable Scanner for filling",
     "preferred": "Préférée",
     "mandatory": "Obligatoire",
     "loading": "Chargement ...",
@@ -209,7 +210,8 @@
     "advancedSettings": "Paramètres avancés",
     "codeSnippet": "Extrait de code",
     "keyboardShortcut": "Raccourcis clavier",
-    "generateRandomName": "Generate Random Name"
+    "generateRandomName": "Generate Random Name",
+    "findRowByScanningCode": "Find row by scanning a QR or Barcode"
   },
   "labels": {
     "createdBy": "Créé par",
@@ -219,6 +221,7 @@
     "viewName": "Vue",
     "viewLink": "Lien de vue",
     "columnName": "Nom de la colonne",
+    "columnToScanFor": "Column to scan",
     "columnType": "Type de colonne",
     "roleName": "Nom de rôle",
     "roleDescription": "Description du rôle",
@@ -393,8 +396,8 @@
     "saveAndExit": "Enregistrer et quitter",
     "saveAndStay": "Enregistrer et rester",
     "insertRow": "Insérer une nouvelle ligne",
-    "deleteRow": "Supprimer la ligne",
     "duplicateRow": "Duplicate Row",
+    "deleteRow": "Supprimer la ligne",
     "deleteSelectedRow": "Supprimer les lignes sélectionnées",
     "importExcel": "Importer depuis Excel",
     "importCSV": "Importer un fichier CSV",
@@ -409,6 +412,8 @@
     "changePwd": "Changer le mot de passe",
     "createView": "Créer une vue",
     "shareView": "Partager la vue",
+    "findRowByCodeScan": "Find row by scan",
+    "fillByCodeScan": "Fill by scan",
     "listSharedView": "Liste de vues partagées",
     "ListView": "Liste des vues",
     "copyView": "Copier la vue",
@@ -465,7 +470,8 @@
       "chooseMappingField": "Choose a Mapping Field",
       "openInGoogleMaps": "Google Maps",
       "openInOpenStreetMap": "OSM"
-    }
+    },
+    "toggleMobileMode": "Toggle Mobile Mode"
   },
   "tooltip": {
     "saveChanges": "Sauvegarder les modifications",
@@ -530,6 +536,12 @@
       "roles": {
         "orgCreator": "Le créateur peut créer de nouveaux projets et accéder à tout projet invité.",
         "orgViewer": "Le visualisateur n'est pas autorisé à créer de nouveaux projets mais il peut accéder à tout projet invité."
+      },
+      "codeScanner": {
+        "loadingScanner": "Loading the scanner...",
+        "selectColumn": "Select a column (QR code or Barcode) that you want to use for finding a row by scanning.",
+        "moreThanOneRowFoundForCode": "More than one row found for this code. Currently only unique codes are supported.",
+        "noRowFoundForCode": "No row found for this code for the selected column"
       },
       "map": {
         "overLimit": "You're over the limit.",

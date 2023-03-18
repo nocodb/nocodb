@@ -39,6 +39,7 @@
     "signIn": "KIRJAUDU SISÄÄN",
     "signOut": "Kirjaudu ulos",
     "required": "Vaaditaan",
+    "enableScanner": "Enable Scanner for filling",
     "preferred": "Edullinen",
     "mandatory": "Pakollinen",
     "loading": "Ladataan ...",
@@ -209,7 +210,8 @@
     "advancedSettings": "Lisäasetukset",
     "codeSnippet": "Koodinpätkä",
     "keyboardShortcut": "Näppäimistön pikanäppäimet",
-    "generateRandomName": "Generate Random Name"
+    "generateRandomName": "Generate Random Name",
+    "findRowByScanningCode": "Find row by scanning a QR or Barcode"
   },
   "labels": {
     "createdBy": "Luonut",
@@ -219,6 +221,7 @@
     "viewName": "Näytä nimi",
     "viewLink": "Näytä linkki",
     "columnName": "Sarakkeen nimi",
+    "columnToScanFor": "Column to scan",
     "columnType": "Sarakkeiden tyyppi",
     "roleName": "Roolinimi",
     "roleDescription": "Roolin kuvaus",
@@ -393,8 +396,8 @@
     "saveAndExit": "Tallenna & poistu",
     "saveAndStay": "Save & Stay",
     "insertRow": "Lisää uusi rivi",
-    "deleteRow": "Poista rivi",
     "duplicateRow": "Duplicate Row",
+    "deleteRow": "Poista rivi",
     "deleteSelectedRow": "Poista valitut rivit",
     "importExcel": "Tuonti excel",
     "importCSV": "Tuo CSV",
@@ -409,6 +412,8 @@
     "changePwd": "Vaihda salasana",
     "createView": "Luo näkymä",
     "shareView": "Jaa näkymä",
+    "findRowByCodeScan": "Find row by scan",
+    "fillByCodeScan": "Fill by scan",
     "listSharedView": "Jaettu näkymäluettelo",
     "ListView": "Näkymät",
     "copyView": "Kopionä näkymä",
@@ -465,7 +470,8 @@
       "chooseMappingField": "Choose a Mapping Field",
       "openInGoogleMaps": "Google Maps",
       "openInOpenStreetMap": "OSM"
-    }
+    },
+    "toggleMobileMode": "Toggle Mobile Mode"
   },
   "tooltip": {
     "saveChanges": "Tallenna muutokset",
@@ -530,6 +536,12 @@
       "roles": {
         "orgCreator": "Luoja voi luoda uusia projekteja ja käyttää kaikkia kutsuttuja projekteja.",
         "orgViewer": "Katsoja ei saa luoda uusia projekteja, mutta hän voi käyttää mitä tahansa kutsuttua projektia."
+      },
+      "codeScanner": {
+        "loadingScanner": "Loading the scanner...",
+        "selectColumn": "Select a column (QR code or Barcode) that you want to use for finding a row by scanning.",
+        "moreThanOneRowFoundForCode": "More than one row found for this code. Currently only unique codes are supported.",
+        "noRowFoundForCode": "No row found for this code for the selected column"
       },
       "map": {
         "overLimit": "You're over the limit.",

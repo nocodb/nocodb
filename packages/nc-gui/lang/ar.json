@@ -39,6 +39,7 @@
     "signIn": "تسجيل الدخول",
     "signOut": "تسجيل الخروج",
     "required": "مطلوب",
+    "enableScanner": "Enable Scanner for filling",
     "preferred": "المفضل",
     "mandatory": "إلزامي",
     "loading": "تحميل ...",
@@ -209,7 +210,8 @@
     "advancedSettings": "الإعدادات المتقدمة",
     "codeSnippet": "كتلة برمجية",
     "keyboardShortcut": "Keyboard Shortcuts",
-    "generateRandomName": "Generate Random Name"
+    "generateRandomName": "Generate Random Name",
+    "findRowByScanningCode": "Find row by scanning a QR or Barcode"
   },
   "labels": {
     "createdBy": "Created By",
@@ -219,6 +221,7 @@
     "viewName": "عرض الاسم",
     "viewLink": "عرض الرابط",
     "columnName": "اسم العمود",
+    "columnToScanFor": "Column to scan",
     "columnType": "نوع العمود",
     "roleName": "اسم الدور",
     "roleDescription": "وصف الدور",
@@ -393,8 +396,8 @@
     "saveAndExit": "Save & Exit",
     "saveAndStay": "Save & Stay",
     "insertRow": "إدراج صف جديد",
-    "deleteRow": "حذف الصف",
     "duplicateRow": "Duplicate Row",
+    "deleteRow": "حذف الصف",
     "deleteSelectedRow": "حذف الصفوف المحددة",
     "importExcel": "استيراد Excel",
     "importCSV": "استيراد CSV",
@@ -409,6 +412,8 @@
     "changePwd": "تغيير كلمة المرور",
     "createView": "إنشاء طريقة عرض",
     "shareView": "مشاركة عرض",
+    "findRowByCodeScan": "Find row by scan",
+    "fillByCodeScan": "Fill by scan",
     "listSharedView": "قائمة العرض المشتركة",
     "ListView": "قائمة المشاهدات",
     "copyView": "نسخ العرض",
@@ -465,7 +470,8 @@
       "chooseMappingField": "Choose a Mapping Field",
       "openInGoogleMaps": "Google Maps",
       "openInOpenStreetMap": "OSM"
-    }
+    },
+    "toggleMobileMode": "Toggle Mobile Mode"
   },
   "tooltip": {
     "saveChanges": "حفظ التغييرات",
@@ -530,6 +536,12 @@
       "roles": {
         "orgCreator": "Creator can create new projects and access any invited project.",
         "orgViewer": "Viewer is not allowed to create new projects but they can access any invited project."
+      },
+      "codeScanner": {
+        "loadingScanner": "Loading the scanner...",
+        "selectColumn": "Select a column (QR code or Barcode) that you want to use for finding a row by scanning.",
+        "moreThanOneRowFoundForCode": "More than one row found for this code. Currently only unique codes are supported.",
+        "noRowFoundForCode": "No row found for this code for the selected column"
       },
       "map": {
         "overLimit": "You're over the limit.",

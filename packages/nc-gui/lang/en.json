@@ -398,7 +398,6 @@
     "insertRow": "Insert New Row",
     "duplicateRow": "Duplicate Row",
     "deleteRow": "Delete Row",
-    "duplicateRow": "Duplicate Row",
     "deleteSelectedRow": "Delete Selected Rows",
     "importExcel": "Import Excel",
     "importCSV": "Import CSV",

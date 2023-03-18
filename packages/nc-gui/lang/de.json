@@ -39,6 +39,7 @@
     "signIn": "Einloggen",
     "signOut": "Ausloggen",
     "required": "Erforderlich",
+    "enableScanner": "Enable Scanner for filling",
     "preferred": "Bevorzugt",
     "mandatory": "Verpflichtend",
     "loading": "Wird geladen ...",
@@ -209,7 +210,8 @@
     "advancedSettings": "Erweiterte Einstellungen",
     "codeSnippet": "Code Ausschnitt",
     "keyboardShortcut": "Tastenkürzel",
-    "generateRandomName": "Generate Random Name"
+    "generateRandomName": "Generate Random Name",
+    "findRowByScanningCode": "Find row by scanning a QR or Barcode"
   },
   "labels": {
     "createdBy": "Erstellt von",
@@ -219,6 +221,7 @@
     "viewName": "Namen anzeigen",
     "viewLink": "Link anzeigen",
     "columnName": "Spaltenname",
+    "columnToScanFor": "Column to scan",
     "columnType": "Spaltentyp",
     "roleName": "Rollenname",
     "roleDescription": "Rollenbeschreibung",
@@ -393,8 +396,8 @@
     "saveAndExit": "Speichern & Verlassen",
     "saveAndStay": "Speichern & Bleiben",
     "insertRow": "Neue Zeile einfügen",
-    "deleteRow": "Zeile löschen",
     "duplicateRow": "Duplicate Row",
+    "deleteRow": "Zeile löschen",
     "deleteSelectedRow": "Ausgewählte Zeilen löschen",
     "importExcel": "Excel-Datei importieren",
     "importCSV": "CSV-Datei importieren",
@@ -409,6 +412,8 @@
     "changePwd": "Kennwort ändern",
     "createView": "Ansicht erstellen",
     "shareView": "Ansicht teilen",
+    "findRowByCodeScan": "Find row by scan",
+    "fillByCodeScan": "Fill by scan",
     "listSharedView": "Geteilte Ansichtenliste",
     "ListView": "Ansichtenliste",
     "copyView": "Ansicht kopieren",
@@ -465,7 +470,8 @@
       "chooseMappingField": "Choose a Mapping Field",
       "openInGoogleMaps": "Google Maps",
       "openInOpenStreetMap": "OSM"
-    }
+    },
+    "toggleMobileMode": "Toggle Mobile Mode"
   },
   "tooltip": {
     "saveChanges": "Änderungen speichern",
@@ -530,6 +536,12 @@
       "roles": {
         "orgCreator": "Der Ersteller kann neue Projekte erstellen und auf alle eingeladenen Projekte zugreifen.",
         "orgViewer": "Betrachter können keine neuen Projekte erstellen, aber sie können auf alle eingeladenen Projekte zugreifen."
+      },
+      "codeScanner": {
+        "loadingScanner": "Loading the scanner...",
+        "selectColumn": "Select a column (QR code or Barcode) that you want to use for finding a row by scanning.",
+        "moreThanOneRowFoundForCode": "More than one row found for this code. Currently only unique codes are supported.",
+        "noRowFoundForCode": "No row found for this code for the selected column"
       },
       "map": {
         "overLimit": "You're over the limit.",

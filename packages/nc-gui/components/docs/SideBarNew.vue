@@ -5,7 +5,6 @@ import type { AntTreeNodeDropEvent } from 'ant-design-vue/lib/tree'
 import { Icon as IconifyIcon } from '@iconify/vue'
 import type { ProjectType } from 'nocodb-sdk'
 import { onMounted, toRef } from '@vue/runtime-core'
-import { useDocsTree } from '~/composables/useDocsTree'
 
 const props = defineProps<{
   project: ProjectType
@@ -15,24 +14,24 @@ const project = toRef(props, 'project')
 
 const MAX_NESTED_LEVEL = 5
 
+const { isPublic, openedPageInSidebar, nestedPagesOfProjects, openedTabsOfProjects, openedPageId, isEditAllowed } = storeToRefs(
+  useDocStore(),
+)
+
 const {
-  nestedPages,
-  openedPageInSidebar,
-  openedTabs,
+  fetchNestedPages,
   nestedUrl,
   deletePage,
-  reorderPages,
-  addNewPage,
-  getChildrenOfPage,
-  updatePage,
-  isNoPageOpen,
   projectUrl,
+  reorderPages,
+  updatePage,
+  addNewPage,
   expandTabOfOpenedPage,
-  isPublic,
-  isEditAllowed,
-  fetchPage,
-  fetchNestedPages,
-} = useDocsTree(props.project)
+  getChildrenOfPage,
+} = useDocStore()
+
+const nestedPages = computed(() => nestedPagesOfProjects.value[project.value.id!])
+const openedTabs = computed(() => openedTabsOfProjects.value[project.value.id!])
 
 const deleteModalOpen = ref(false)
 const selectedPageId = ref()
@@ -75,7 +74,7 @@ const onDrop = async (info: AntTreeNodeDropEvent) => {
 
   if (info.dragNode.dataRef!.parent_page_id === info.node.dataRef!.parent_page_id) {
     const parentId: string | undefined = info.dragNode.dataRef!.parent_page_id
-    const siblings: any[] = getChildrenOfPage(parentId)
+    const siblings: any[] = getChildrenOfPage({ pageId: parentId, projectId: project.value.id! })
     const targetNodeIndex = siblings.findIndex((node) => node.id === info.node.dataRef!.id)
     const dragNodeIndex = siblings.findIndex((node) => node.id === info.dragNode.dataRef!.id)
 
@@ -88,6 +87,7 @@ const onDrop = async (info: AntTreeNodeDropEvent) => {
     sourceNodeId: info.dragNode.dataRef!.id!,
     targetNodeId: info.dropToGap ? info.node.dataRef!.parent_page_id : info.node.dataRef!.id,
     index: info.dropToGap ? info.dropPosition : 0,
+    projectId: project.value.id!,
   })
 }
 
@@ -108,19 +108,19 @@ const onTabSelect = (_: any, e: { selected: boolean; selectedNodes: any; node: a
 
   const id = e.node.dataRef!.id
 
-  navigateTo(nestedUrl(id))
+  navigateTo(nestedUrl({ id, projectId: project.value.id! }))
 }
 
 const setIcon = async (id: string, icon: string) => {
   try {
-    await updatePage({ pageId: id, page: { icon } })
+    await updatePage({ pageId: id, page: { icon }, projectId: project.value.id! })
   } catch (e: any) {
     message.error(await extractSdkResponseErrorMsg(e))
   }
 }
 
 const navigateToHome = () => {
-  navigateTo(projectUrl())
+  navigateTo(projectUrl(project.value.id!))
 }
 
 watch(
@@ -128,7 +128,9 @@ watch(
   () => {
     if (!openedPageInSidebar.value) return
 
-    expandTabOfOpenedPage()
+    expandTabOfOpenedPage({
+      projectId: project.value.id!,
+    })
   },
   {
     immediate: true,
@@ -142,14 +144,14 @@ onKeyStroke('Enter', () => {
 })
 
 onMounted(async () => {
-  await fetchNestedPages()
+  await fetchNestedPages({ projectId: project.value.id! })
 
   // await openChildPageTabsOfRootPages()
 })
 </script>
 
 <template>
-  <div>
+  <div v-if="nestedPages">
     <a-layout-sider
       :collapsed="false"
       width="250"
@@ -162,12 +164,12 @@ onMounted(async () => {
       <div
         v-if="!isPublic"
         class="flex flex-row justify-between items-center pr-2 pl-4.5 py-2 border-b-gray-100 border-b-1 hover:(bg-gray-100 cursor-pointer)"
-        :class="{ 'bg-primary-selected hover:(!bg-primary-selected bg-opacity-20)': isNoPageOpen, '': !isNoPageOpen }"
+        :class="{ 'bg-primary-selected hover:(!bg-primary-selected bg-opacity-20)': !openedPageId, '': openedPageId }"
         @click.self="navigateToHome"
       >
         <div
           class="flex flex-row text-xs font-semibold items-center gap-x-3 h-6.5"
-          :class="{ 'text-primary': isNoPageOpen }"
+          :class="{ 'text-primary': !openedPageId }"
           @click="navigateToHome"
         >
           <div v-if="project.title" class="flex pop-in-animation">

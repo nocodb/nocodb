@@ -358,7 +358,7 @@ export const useDocsTree = (_project: MaybeRef<ProjectType>) => {
   function projectUrl() {
     return isPublic.value
       ? `/ws/ws_dcbedpvdulwlla/nc/${projectId!}/doc/s`
-      : `/ws/${route.params.workspaceId}/nc/${projectId!}/doc/p/${projectId!}`
+      : `/ws/${route.params.workspaceId}/nc/${projectId!}/doc`
   }
 
   function nestedUrl(id: string | undefined, { completeUrl = false, publicUrl = false } = {}) {

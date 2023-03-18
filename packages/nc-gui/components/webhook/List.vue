@@ -25,24 +25,33 @@ async function loadHooksList() {
 }
 
 async function deleteHook(item: HookType, index: number) {
-  try {
-    if (item.id) {
-      await $api.dbTableWebhook.delete(item.id)
-      hooks.value.splice(index, 1)
-    } else {
-      hooks.value.splice(index, 1)
-    }
+  Modal.confirm({
+    title: `Do you want to delete '${item.title}'?`,
+    wrapClassName: 'nc-modal-hook-delete',
+    okText: 'Yes',
+    okType: 'danger',
+    cancelText: 'No',
+    async onOk() {
+      try {
+        if (item.id) {
+          await $api.dbTableWebhook.delete(item.id)
+          hooks.value.splice(index, 1)
+        } else {
+          hooks.value.splice(index, 1)
+        }
 
-    // Hook deleted successfully
-    message.success(t('msg.success.webhookDeleted'))
-    if (!hooks.value.length) {
-      hooks.value = []
-    }
-  } catch (e: any) {
-    message.error(await extractSdkResponseErrorMsg(e))
-  }
+        // Hook deleted successfully
+        message.success(t('msg.success.webhookDeleted'))
+        if (!hooks.value.length) {
+          hooks.value = []
+        }
+      } catch (e: any) {
+        message.error(await extractSdkResponseErrorMsg(e))
+      }
 
-  $e('a:webhook:delete')
+      $e('a:webhook:delete')
+    },
+  })
 }
 
 async function copyHook(hook: HookType) {

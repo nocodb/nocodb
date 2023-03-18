@@ -39,6 +39,7 @@
     "signIn": "LOGGA IN",
     "signOut": "Logga ut",
     "required": "Nödvändig",
+    "enableScanner": "Enable Scanner for filling",
     "preferred": "Föredraget",
     "mandatory": "Obligatorisk",
     "loading": "Läser in ...",
@@ -209,7 +210,8 @@
     "advancedSettings": "Avancerade inställningar",
     "codeSnippet": "Kodutdrag",
     "keyboardShortcut": "Tangentbordsgenvägar",
-    "generateRandomName": "Generate Random Name"
+    "generateRandomName": "Generate Random Name",
+    "findRowByScanningCode": "Find row by scanning a QR or Barcode"
   },
   "labels": {
     "createdBy": "Skapad av",
@@ -219,6 +221,7 @@
     "viewName": "Visa namn",
     "viewLink": "Visa länk",
     "columnName": "Kolumnnamn",
+    "columnToScanFor": "Column to scan",
     "columnType": "Kolumntyp",
     "roleName": "Rollnamn",
     "roleDescription": "Rollbeskrivning",
@@ -393,8 +396,8 @@
     "saveAndExit": "Spara och avsluta",
     "saveAndStay": "Spara och stanna",
     "insertRow": "Infoga ny rad",
-    "deleteRow": "Radera raden",
     "duplicateRow": "Duplicate Row",
+    "deleteRow": "Radera raden",
     "deleteSelectedRow": "Ta bort valda rader",
     "importExcel": "Import excel",
     "importCSV": "Importera CSV",
@@ -409,6 +412,8 @@
     "changePwd": "Ändra lösenord",
     "createView": "Skapa en vy",
     "shareView": "Visa vy",
+    "findRowByCodeScan": "Find row by scan",
+    "fillByCodeScan": "Fill by scan",
     "listSharedView": "Delad visningslista",
     "ListView": "Visningar lista",
     "copyView": "Kopiera",
@@ -465,7 +470,8 @@
       "chooseMappingField": "Choose a Mapping Field",
       "openInGoogleMaps": "Google Maps",
       "openInOpenStreetMap": "OSM"
-    }
+    },
+    "toggleMobileMode": "Toggle Mobile Mode"
   },
   "tooltip": {
     "saveChanges": "Spara ändringar",
@@ -530,6 +536,12 @@
       "roles": {
         "orgCreator": "Skaparen kan skapa nya projekt och få tillgång till alla inbjudna projekt.",
         "orgViewer": "Visaren får inte skapa nya projekt, men kan få tillgång till alla inbjudna projekt."
+      },
+      "codeScanner": {
+        "loadingScanner": "Loading the scanner...",
+        "selectColumn": "Select a column (QR code or Barcode) that you want to use for finding a row by scanning.",
+        "moreThanOneRowFoundForCode": "More than one row found for this code. Currently only unique codes are supported.",
+        "noRowFoundForCode": "No row found for this code for the selected column"
       },
       "map": {
         "overLimit": "You're over the limit.",

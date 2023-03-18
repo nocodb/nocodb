@@ -70,7 +70,7 @@ jobs:
 
 
       - name: Deploy
-        uses: pranavxc/s3-deploy
+        uses: pranavxc/s3-deploy@17556ef576d985aa5a5f5a6a2981865774062c86
         with:
           folder: packages/nc-gui/build/
           bucket: ${{ secrets.CDN_BUCKET }}

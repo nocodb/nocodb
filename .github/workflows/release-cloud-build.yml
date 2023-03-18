@@ -70,7 +70,7 @@ jobs:
 
 
       - name: Deploy
-        uses: lbertenasco/s3-deploy@v1
+        uses: pranavxc/s3-deploy
         with:
           folder: packages/nc-gui/build/
           bucket: ${{ secrets.CDN_BUCKET }}

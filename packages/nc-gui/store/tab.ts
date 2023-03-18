@@ -33,8 +33,6 @@ export const useTabs = defineStore('tabStore', () => {
   const previousActiveTabIndex = ref(-1)
   const activeTabIndex: WritableComputedRef<number> = computed({
     get() {
-      debugger
-
       const routeName = route.name as string
 
       // todo: new-layout
@@ -90,8 +88,6 @@ export const useTabs = defineStore('tabStore', () => {
       return 0
     },
     set(index: number) {
-      debugger
-
       if (index === -1) {
         navigateTo({
           path: `/ws/${workspaceId}/${projectType}/${project?.id}`,
@@ -136,9 +132,9 @@ export const useTabs = defineStore('tabStore', () => {
     // if tab not found add it
     else {
       if (tabMeta.projectId) {
-        await projectStore.loadProject(false, tabMeta.projectId)
+        await projectsStore.loadProject(tabMeta.projectId)
         if (tabMeta.type !== TabType.DOCUMENT) {
-          await projectStore.loadTables()
+          await projectsStore.loadProjectTables(tabMeta.projectId)
         }
       }
       const currentTable = tables.find((t) => t.id === tabMeta.id || t.title === tabMeta.id)

@@ -15,7 +15,7 @@ import {
   useTheme,
 } from '#imports'
 import type { ProjectMetaInfo, ThemeConfig } from '~/lib'
-import {useProjects} from "~/store/projects";
+import { useProjects } from '~/store/projects'
 
 export const useProject = defineStore('projectStore', () => {
   const { $e } = useNuxtApp()
@@ -26,7 +26,6 @@ export const useProject = defineStore('projectStore', () => {
 
   const route = $(router.currentRoute)
 
-
   const { setTheme, theme } = useTheme()
 
   const { projectRoles, loadProjectRoles } = useRoles()
@@ -35,9 +34,7 @@ export const useProject = defineStore('projectStore', () => {
 
   const projectLoadedHook = createEventHook<ProjectType>()
 
-
   const bases = computed<BaseType[]>(() => project.value?.bases || [])
-
 
   const projectMetaInfo = ref<ProjectMetaInfo | undefined>()
 
@@ -50,9 +47,7 @@ export const useProject = defineStore('projectStore', () => {
   // todo: refactor path param name and variable name
   const projectType = $computed(() => route.params.projectType as string)
 
-
   const projectsStore = useProjects()
-
 
   // const project = ref<ProjectType>({})
   // const tables = ref<TableType[]>([])
@@ -60,8 +55,6 @@ export const useProject = defineStore('projectStore', () => {
   // todo: new-layout
   const project = computed<ProjectType>(() => projectsStore.projects[projectId.value] || {})
   const tables = computed<TableType[]>(() => projectsStore.projectTableList[projectId.value] || [])
-
-
 
   const projectMeta = computed<Record<string, any>>(() => {
     const defaultMeta = {
@@ -118,7 +111,7 @@ export const useProject = defineStore('projectStore', () => {
   }
 
   // todo: add force parameter
-  async function loadTables(){
+  async function loadTables() {
     if (project.value.id) {
       projectsStore.loadProjectTables(project.value.id, true)
       // tables.value = projectsStore.projectTableList[project.value.id]

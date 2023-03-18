@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import {Form, computed, nextTick, onMounted, ref, useProject, useTable, useVModel, validateTableName} from '#imports'
+import { Form, computed, nextTick, onMounted, ref, useProject, useTable, useVModel, validateTableName } from '#imports'
 
 const props = defineProps<{
   modelValue: boolean
@@ -12,9 +12,9 @@ const dialogShow = useVModel(props, 'modelValue', emit)
 
 const inputEl = ref<HTMLInputElement>()
 
-const {loadTables, isMysql, isMssql, isPg} = useProject()
+const { loadTables, isMysql, isMssql, isPg } = useProject()
 
-const {table, createSchemaMagic, generateUniqueTitle, tables, project} = useTable(async () => {
+const { table, createSchemaMagic, generateUniqueTitle, tables, project } = useTable(async () => {
   await loadTables()
   dialogShow.value = false
 }, props.baseId)
@@ -62,7 +62,7 @@ const validators = computed(() => {
   }
 })
 
-const {validate, validateInfos} = useForm(table, validators)
+const { validate, validateInfos } = useForm(table, validators)
 
 const _createTable = async () => {
   try {
@@ -97,19 +97,18 @@ onMounted(() => {
 
 <template>
   <a-modal
-      v-model:visible="dialogShow"
-      :class="{ active: dialogShow }"
-      width="max(30vw, 600px)"
-      centered
-      wrap-class-name="nc-modal-table-create"
-      @keydown.esc="dialogShow = false"
+    v-model:visible="dialogShow"
+    :class="{ active: dialogShow }"
+    width="max(30vw, 600px)"
+    centered
+    wrap-class-name="nc-modal-table-create"
+    @keydown.esc="dialogShow = false"
   >
     <template #footer>
       <a-button key="back" size="large" @click="dialogShow = false">{{ $t('general.cancel') }}</a-button>
 
-      <a-button key="submit" size="large" :loading="loadMagic" type="primary" @click="_createTable">{{
-          $t('general.submit')
-        }}
+      <a-button key="submit" size="large" :loading="loadMagic" type="primary" @click="_createTable"
+        >{{ $t('general.submit') }}
       </a-button>
     </template>
 
@@ -118,7 +117,7 @@ onMounted(() => {
         <!-- Create A New Table -->
         <div class="flex prose-xl font-bold self-center my-4 items-center">
           Create schema using
-          <PhSparkleFill :class="{ 'nc-animation-pulse': loadMagic }" class="ml-2 text-orange-400"/>
+          <PhSparkleFill :class="{ 'nc-animation-pulse': loadMagic }" class="ml-2 text-orange-400" />
         </div>
 
         <!-- hint="Enter table name" -->
@@ -127,12 +126,12 @@ onMounted(() => {
 
         <a-form-item v-bind="validateInfos.title">
           <a-input
-              ref="inputEl"
-              v-model:value="table.title"
-              size="large"
-              hide-details
-              data-testid="create-table-title-input"
-              placeholder="Enter schema name"
+            ref="inputEl"
+            v-model:value="table.title"
+            size="large"
+            hide-details
+            data-testid="create-table-title-input"
+            placeholder="Enter schema name"
           />
         </a-form-item>
       </a-form>

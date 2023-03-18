@@ -1,17 +1,6 @@
 <script setup lang="ts">
-import {
-  Form,
-  computed,
-  nextTick,
-  onMounted,
-  ref,
-  useProject,
-  useTable,
-  useTabs,
-  useVModel,
-  validateTableName
-} from '#imports'
-import {TabType} from '~/lib'
+import { Form, computed, nextTick, onMounted, ref, useProject, useTable, useTabs, useVModel, validateTableName } from '#imports'
+import { TabType } from '~/lib'
 
 const props = defineProps<{
   modelValue: boolean
@@ -26,11 +15,11 @@ const inputEl = ref<HTMLInputElement>()
 
 const loadMagic = ref(false)
 
-const {addTab} = useTabs()
+const { addTab } = useTabs()
 
-const {loadTables, isMysql, isMssql, isPg} = useProject()
+const { loadTables, isMysql, isMssql, isPg } = useProject()
 
-const {table, createTableMagic, generateUniqueTitle, tables, project} = useTable(async (table) => {
+const { table, createTableMagic, generateUniqueTitle, tables, project } = useTable(async (table) => {
   await loadTables()
 
   addTab({
@@ -83,7 +72,7 @@ const validators = computed(() => {
   }
 })
 
-const {validate, validateInfos} = useForm(table, validators)
+const { validate, validateInfos } = useForm(table, validators)
 
 const _createTable = async () => {
   try {
@@ -114,12 +103,12 @@ onMounted(() => {
 
 <template>
   <a-modal
-      v-model:visible="dialogShow"
-      :class="{ active: dialogShow }"
-      width="max(30vw, 600px)"
-      centered
-      wrap-class-name="nc-modal-table-create"
-      @keydown.esc="dialogShow = false"
+    v-model:visible="dialogShow"
+    :class="{ active: dialogShow }"
+    width="max(30vw, 600px)"
+    centered
+    wrap-class-name="nc-modal-table-create"
+    @keydown.esc="dialogShow = false"
   >
     <template #footer>
       <a-button key="back" size="large" @click="dialogShow = false">{{ $t('general.cancel') }}</a-button>
@@ -134,7 +123,7 @@ onMounted(() => {
         <!-- Create A New Table -->
         <div class="flex prose-xl font-bold self-center my-4 items-center">
           Create table using
-          <PhSparkleFill :class="{ 'nc-animation-pulse': loadMagic }" class="ml-2 text-orange-400"/>
+          <PhSparkleFill :class="{ 'nc-animation-pulse': loadMagic }" class="ml-2 text-orange-400" />
         </div>
 
         <!-- hint="Enter table name" -->
@@ -143,12 +132,12 @@ onMounted(() => {
 
         <a-form-item v-bind="validateInfos.title">
           <a-input
-              ref="inputEl"
-              v-model:value="table.title"
-              size="large"
-              hide-details
-              data-testid="create-table-title-input"
-              :placeholder="$t('msg.info.enterTableName')"
+            ref="inputEl"
+            v-model:value="table.title"
+            size="large"
+            hide-details
+            data-testid="create-table-title-input"
+            :placeholder="$t('msg.info.enterTableName')"
           />
         </a-form-item>
       </a-form>

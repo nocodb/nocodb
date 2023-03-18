@@ -257,7 +257,7 @@
     "barcodeFormat": "Формат штрих-кода",
     "qrCodeValueTooLong": "Слишком много символов для QR-кода",
     "barcodeValueTooLong": "Слишком много символов для штрихкода",
-    "yourLocation": "Your Location",
+    "currentLocation": "Current Location",
     "lng": "Lng",
     "lat": "Lat",
     "aggregateFunction": "Агрегатная функция",
@@ -462,7 +462,9 @@
     },
     "map": {
       "mappedBy": "Mapped By",
-      "chooseMappingField": "Choose a Mapping Field"
+      "chooseMappingField": "Choose a Mapping Field",
+      "openInGoogleMaps": "Google Maps",
+      "openInOpenStreetMap": "OSM"
     }
   },
   "tooltip": {

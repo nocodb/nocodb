@@ -4,9 +4,13 @@ import L, { LatLng } from 'leaflet'
 import 'leaflet.markercluster'
 import { ViewTypes } from 'nocodb-sdk'
 import { IsPublicInj, OpenNewRecordFormHookInj, latLongToJoinedString, onMounted, provide, ref } from '#imports'
-import type { Row as RowType } from '~/lib'
+import type { Row } from '~/lib'
 
 const route = useRoute()
+
+const popupIsOpen = ref(false)
+const popUpRow = ref<Row>()
+const fields = inject(FieldsInj, ref([]))
 
 const router = useRouter()
 
@@ -33,7 +37,7 @@ const openNewRecordFormHook = inject(OpenNewRecordFormHookInj, createEventHook()
 
 const expandedFormDlg = ref(false)
 
-const expandedFormRow = ref<RowType>()
+const expandedFormRow = ref<Row>()
 
 const expandedFormRowState = ref<Record<string, any>>()
 
@@ -47,7 +51,7 @@ const getMapZoomLocalStorageKey = (viewId: string) => {
 }
 const getMapCenterLocalStorageKey = (viewId: string) => `mapView.${viewId}.center`
 
-const expandForm = (row: RowType, state?: Record<string, any>) => {
+const expandForm = (row: Row, state?: Record<string, any>) => {
   const rowId = extractPkFromRow(row.row, meta.value!.columns!)
   if (rowId) {
     router.push({
@@ -83,14 +87,19 @@ const expandedFormOnRowIdDlg = computed({
   },
 })
 
-const addMarker = (lat: number, long: number, row: RowType) => {
+const addMarker = (lat: number, long: number, row: Row) => {
   if (markersClusterGroupRef.value == null) {
     throw new Error('Marker cluster is null')
   }
   const newMarker = L.marker([lat, long], {
     alt: `${lat}, ${long}`,
   }).on('click', () => {
-    expandForm(row)
+    if (newMarker && isPublic.value) {
+      popUpRow.value = row
+      popupIsOpen.value = true
+    } else {
+      expandForm(row)
+    }
   })
   markersClusterGroupRef.value?.addLayer(newMarker)
 }
@@ -188,9 +197,7 @@ watch([formattedData, mapMetaData, markersClusterGroupRef], () => {
     if (primaryGeoDataValue == null) {
       return
     }
-
     const [lat, long] = primaryGeoDataValue.split(';').map(parseFloat)
-
     addMarker(lat, long, row)
   })
 })
@@ -206,6 +213,10 @@ const count = computed(() => paginationData.value.totalRows)
 </script>
 
 <template>
+  <a-modal v-model:visible="popupIsOpen" :footer="null" centered :closable="false" @close="popupIsOpen = false">
+    <LazySmartsheetSharedMapMarkerPopup v-if="popUpRow" :fields="fields" :row="popUpRow"></LazySmartsheetSharedMapMarkerPopup>
+  </a-modal>
+
   <div class="flex flex-col h-full w-full no-underline" data-testid="nc-map-wrapper">
     <div id="mapContainer" ref="mapContainerRef" class="w-full h-screen">
       <a-tooltip placement="bottom" class="h-2 w-auto max-w-fit-content absolute top-3 right-3 p-2 z-500 cursor-default">
@@ -259,8 +270,16 @@ const count = computed(() => paginationData.value.totalRows)
 .no-underline a {
   text-decoration: none !important;
 }
+
 .leaflet-popup-content-wrapper {
   max-height: 255px;
   overflow: scroll;
+}
+
+.popup-content {
+  user-select: text;
+  display: flex;
+  gap: 10px;
+  flex-direction: column;
 }
 </style>

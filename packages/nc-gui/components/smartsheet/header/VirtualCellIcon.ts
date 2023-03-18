@@ -1,5 +1,5 @@
 import type { PropType } from '@vue/runtime-core'
-import type { ColumnType, LinkToAnotherRecordType, LookupType } from 'nocodb-sdk'
+import type { ColumnType, LinkToAnotherRecordType, LookupType, RollupType } from 'nocodb-sdk'
 import type { Ref } from 'vue'
 import { RelationTypes, UITypes } from 'nocodb-sdk'
 import { ColumnInj, MetaInj, defineComponent, h, inject, isBt, isHm, isLookup, isMm, isRollup, ref, toRef } from '#imports'
@@ -73,9 +73,9 @@ export default defineComponent({
   setup(props) {
     const columnMeta = toRef(props, 'columnMeta')
 
-    const column = inject(ColumnInj, columnMeta) as Ref<ColumnType & { colOptions: LookupType }>
+    const column = inject(ColumnInj, columnMeta) as Ref<ColumnType & { colOptions: LookupType | RollupType }>
 
-    let relationColumn: ColumnType & { colOptions: LookupType }
+    let relationColumn: ColumnType
 
     return () => {
       if (!column.value) return null
@@ -83,12 +83,9 @@ export default defineComponent({
       if (column && column.value) {
         if (isMm(column.value) || isHm(column.value) || isBt(column.value) || isLookup(column.value) || isRollup(column.value)) {
           const meta = inject(MetaInj, ref())
-
           relationColumn = meta.value?.columns?.find(
             (c) => c.id === column.value?.colOptions?.fk_relation_column_id,
-          ) as ColumnType & {
-            colOptions: LinkToAnotherRecordType
-          }
+          ) as ColumnType
         }
       }
 

@@ -125,6 +125,7 @@
     "@intlify/vite-plugin-vue-i18n": "^6.0.1",
     "@nuxt/image-edge": "^1.0.0-27657146.da85542",
     "@types/axios": "^0.14.0",
+    "@types/d3-scale": "^4.0.3",
     "@types/dagre": "^0.7.48",
     "@types/file-saver": "^2.0.5",
     "@types/leaflet": "^1.9.0",

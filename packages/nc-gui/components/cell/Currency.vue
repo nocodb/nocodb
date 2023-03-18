@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import type { VNodeRef } from '@vue/runtime-core'
-import { ColumnInj, EditModeInj, computed, inject, useVModel } from '#imports'
+import { ColumnInj, EditModeInj, computed, inject, parseProp, useVModel } from '#imports'
 
 interface Props {
   modelValue: number | null | undefined
@@ -35,7 +35,7 @@ const currencyMeta = computed(() => {
   return {
     currency_locale: 'en-US',
     currency_code: 'USD',
-    ...(column.value.meta ? column.value.meta : {}),
+    ...parseProp(column?.value?.meta),
   }
 })
 

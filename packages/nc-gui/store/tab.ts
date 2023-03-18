@@ -24,7 +24,6 @@ export const useTabs = defineStore('tabStore', () => {
 
   const projectStore = useProject()
   const { project, tables } = $(storeToRefs(projectStore))
-  const projectsStore = useProjects()
 
   const projectType = $computed(() => (route.params.projectType as string) || 'nc')
 

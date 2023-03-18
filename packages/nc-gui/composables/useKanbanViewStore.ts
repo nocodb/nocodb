@@ -11,6 +11,7 @@ import {
   getHTMLEncodedText,
   inject,
   message,
+  parseProp,
   provide,
   ref,
   storeToRefs,
@@ -198,8 +199,7 @@ const [useProvideKanbanViewStore, useKanbanViewStore] = useInjectionState(
       // set groupingField
       groupingFieldColumn.value = !isPublic.value
         ? (meta.value.columns as ColumnType[]).filter((f) => f.id === kanbanMetaData.value.fk_grp_col_id)[0] || {}
-        : ((typeof sharedView.value?.meta === 'string' ? JSON.parse(sharedView.value?.meta) : sharedView.value?.meta)
-            .groupingFieldColumn! as ColumnType)
+        : (parseProp(sharedView.value?.meta).groupingFieldColumn! as ColumnType)
 
       groupingField.value = groupingFieldColumn.value.title!
 

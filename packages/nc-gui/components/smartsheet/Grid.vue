@@ -974,7 +974,7 @@ function openGenerateDialog(target: any) {
                         class="nc-row-no text-xs text-gray-500"
                         :class="{ toggle: !readOnly, hidden: row.rowMeta.selected }"
                       >
-                        {{ ((paginationData.page ?? 1) - 1) * 25 + rowIndex + 1 }}
+                        {{ ((paginationData.page ?? 1) - 1) * (paginationData.pageSize ?? 25) + rowIndex + 1 }}
                       </div>
                       <div
                         v-if="!readOnly"

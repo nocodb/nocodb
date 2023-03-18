@@ -1756,7 +1756,9 @@ export interface PluginTestReqType {
   /** Plugin Title */
   title: string;
   /** Plugin Input as JSON string */
-  input: string;
+  input: string | object;
+  /** @example Email */
+  category: string;
 }
 
 /**
@@ -1833,6 +1835,24 @@ export interface ProjectReqType {
    * @example My Project
    */
   title: string;
+}
+
+/**
+ * Model for Project Update Request
+ */
+export interface ProjectUpdateReqType {
+  /**
+   * Primary Theme Color
+   * @example #24716E
+   */
+  color?: string;
+  /** Project Meta */
+  meta?: MetaType;
+  /**
+   * Project Title
+   * @example My Project
+   */
+  title?: string;
 }
 
 /**
@@ -3368,10 +3388,21 @@ export class Api<
  * @request POST:/api/v1/db/meta/projects/{projectId}/users
  * @response `200` `{
   \**
-   * Success Message
+   * Success Message for inviting single email
    * @example The user has been invited successfully
    *\
   msg?: string,
+  \** @example 8354ddba-a769-4d64-8397-eccb2e2b3c06 *\
+  invite_token?: string,
+  error?: ({
+  \** @example w@nocodb.com *\
+  email?: string,
+  \** @example <ERROR_MESSAGE> *\
+  error?: string,
+
+})[],
+  \** @example w@nocodb.com *\
+  email?: string,
 
 }` OK
  * @response `400` `{
@@ -3388,10 +3419,20 @@ export class Api<
       this.request<
         {
           /**
-           * Success Message
+           * Success Message for inviting single email
            * @example The user has been invited successfully
            */
           msg?: string;
+          /** @example 8354ddba-a769-4d64-8397-eccb2e2b3c06 */
+          invite_token?: string;
+          error?: {
+            /** @example w@nocodb.com */
+            email?: string;
+            /** @example <ERROR_MESSAGE> */
+            error?: string;
+          }[];
+          /** @example w@nocodb.com */
+          email?: string;
         },
         {
           /** @example BadRequest [Error]: <ERROR MESSAGE> */
@@ -4523,16 +4564,20 @@ export class Api<
  * @name Update
  * @summary Update Project
  * @request PATCH:/api/v1/db/meta/projects/{projectId}
- * @response `200` `void` OK
+ * @response `200` `number` OK
  * @response `400` `{
   \** @example BadRequest [Error]: <ERROR MESSAGE> *\
   msg: string,
 
 }`
  */
-    update: (projectId: IdType, data: number, params: RequestParams = {}) =>
+    update: (
+      projectId: IdType,
+      data: ProjectUpdateReqType,
+      params: RequestParams = {}
+    ) =>
       this.request<
-        void,
+        number,
         {
           /** @example BadRequest [Error]: <ERROR MESSAGE> */
           msg: string;
@@ -4542,6 +4587,7 @@ export class Api<
         method: 'PATCH',
         body: data,
         type: ContentType.Json,
+        format: 'json',
         ...params,
       }),
 
@@ -9164,6 +9210,7 @@ export class Api<
   ee?: boolean,
   ncAttachmentFieldSize?: number,
   ncMaxAttachmentsAllowed?: number,
+  isCloud?: boolean,
 
 }` OK
  * @response `400` `{
@@ -9192,6 +9239,7 @@ export class Api<
           ee?: boolean;
           ncAttachmentFieldSize?: number;
           ncMaxAttachmentsAllowed?: number;
+          isCloud?: boolean;
         },
         {
           /** @example BadRequest [Error]: <ERROR MESSAGE> */

@@ -103,7 +103,7 @@ export const useProject = defineStore('projectStore', () => {
 
   async function loadProjectMetaInfo(force?: boolean) {
     if (!projectMetaInfo.value || force) {
-      projectMetaInfo.value = await api.project.metaGet(project.value.id!, {}, {})
+      projectMetaInfo.value = await api.project.metaGet(project.value.id!, {})
     }
   }
 
@@ -182,7 +182,7 @@ export const useProject = defineStore('projectStore', () => {
     if (data.meta && typeof data.meta === 'string') {
       await api.project.update(projectId.value, data)
     } else {
-      await api.project.update(projectId.value, { ...data, meta: JSON.stringify(data.meta) })
+      await api.project.update(projectId.value, { ...data, meta: stringifyProp(data.meta) })
     }
 
     refreshCommandPalette()

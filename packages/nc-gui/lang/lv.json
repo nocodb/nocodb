@@ -39,6 +39,7 @@
     "signIn": "PIESLĒGTIES",
     "signOut": "Atteikties",
     "required": "Obligāts",
+    "enableScanner": "Enable Scanner for filling",
     "preferred": "Vēlams",
     "mandatory": "Obligāts",
     "loading": "Uzgaidiet ...",
@@ -209,7 +210,8 @@
     "advancedSettings": "Izvērstie iestatījumi",
     "codeSnippet": "Koda fragments",
     "keyboardShortcut": "Tastatūras saīsnes",
-    "generateRandomName": "Generate Random Name"
+    "generateRandomName": "Generate Random Name",
+    "findRowByScanningCode": "Find row by scanning a QR or Barcode"
   },
   "labels": {
     "createdBy": "Izveidoja",
@@ -219,6 +221,7 @@
     "viewName": "Skata nosaukums",
     "viewLink": "Skata saite",
     "columnName": "Kolonnas nosaukums",
+    "columnToScanFor": "Column to scan",
     "columnType": "Kolonnas tips",
     "roleName": "Lomas nosaukums",
     "roleDescription": "Lomas apraksts",
@@ -393,8 +396,8 @@
     "saveAndExit": "Saglabāt un iziet",
     "saveAndStay": "Saglabāt un palikt",
     "insertRow": "Pievienot jaunu ierakstu",
-    "deleteRow": "Dzēst ierakstu",
     "duplicateRow": "Duplicate Row",
+    "deleteRow": "Dzēst ierakstu",
     "deleteSelectedRow": "Dzēst izvēlētos ierakstus",
     "importExcel": "Importēt Excel",
     "importCSV": "CSV importēšana",
@@ -409,6 +412,8 @@
     "changePwd": "Mainīt paroli",
     "createView": "Veidot skatu",
     "shareView": "Koplietot skatu",
+    "findRowByCodeScan": "Find row by scan",
+    "fillByCodeScan": "Fill by scan",
     "listSharedView": "Koplietoto skatu saraksts",
     "ListView": "Skatu saraksts",
     "copyView": "Kopēt skatu",
@@ -465,7 +470,8 @@
       "chooseMappingField": "Choose a Mapping Field",
       "openInGoogleMaps": "Google Maps",
       "openInOpenStreetMap": "OSM"
-    }
+    },
+    "toggleMobileMode": "Toggle Mobile Mode"
   },
   "tooltip": {
     "saveChanges": "Saglabāt izmaiņas",
@@ -530,6 +536,12 @@
       "roles": {
         "orgCreator": "Radītājs var izveidot jaunus projektus un piekļūt jebkuram uzaicinātajam projektam.",
         "orgViewer": "Skatītājs nedrīkst veidot jaunus projektus, bet var piekļūt jebkuram uzaicinātajam projektam."
+      },
+      "codeScanner": {
+        "loadingScanner": "Loading the scanner...",
+        "selectColumn": "Select a column (QR code or Barcode) that you want to use for finding a row by scanning.",
+        "moreThanOneRowFoundForCode": "More than one row found for this code. Currently only unique codes are supported.",
+        "noRowFoundForCode": "No row found for this code for the selected column"
       },
       "map": {
         "overLimit": "You're over the limit.",

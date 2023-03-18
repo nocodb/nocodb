@@ -39,6 +39,7 @@
     "signIn": "INICIAR SESIÓN",
     "signOut": "Desconectar",
     "required": "Requerido",
+    "enableScanner": "Enable Scanner for filling",
     "preferred": "Preferido",
     "mandatory": "Obligatorio",
     "loading": "Cargando...",
@@ -209,7 +210,8 @@
     "advancedSettings": "Ajustes avanzados",
     "codeSnippet": "Fragmento de código",
     "keyboardShortcut": "Atajos de teclado",
-    "generateRandomName": "Generate Random Name"
+    "generateRandomName": "Generate Random Name",
+    "findRowByScanningCode": "Find row by scanning a QR or Barcode"
   },
   "labels": {
     "createdBy": "Creado por",
@@ -219,6 +221,7 @@
     "viewName": "Nombre de la vista",
     "viewLink": "Ver enlace",
     "columnName": "Nombre de columna",
+    "columnToScanFor": "Column to scan",
     "columnType": "Tipo de columna",
     "roleName": "Nombre de rol",
     "roleDescription": "Descripción del rol",
@@ -393,8 +396,8 @@
     "saveAndExit": "Guardar y salir",
     "saveAndStay": "Ahorrar y quedarse",
     "insertRow": "Insertar nueva fila",
-    "deleteRow": "Borrar fila",
     "duplicateRow": "Duplicate Row",
+    "deleteRow": "Borrar fila",
     "deleteSelectedRow": "Eliminar filas seleccionadas",
     "importExcel": "Importar Excel",
     "importCSV": "Importar CSV",
@@ -409,6 +412,8 @@
     "changePwd": "Cambia la contraseña",
     "createView": "Crear una Vista",
     "shareView": "Compartir vista",
+    "findRowByCodeScan": "Find row by scan",
+    "fillByCodeScan": "Fill by scan",
     "listSharedView": "Lista de vistas compartidas",
     "ListView": "Lista de vistas",
     "copyView": "Copiar vista",
@@ -465,7 +470,8 @@
       "chooseMappingField": "Choose a Mapping Field",
       "openInGoogleMaps": "Google Maps",
       "openInOpenStreetMap": "OSM"
-    }
+    },
+    "toggleMobileMode": "Toggle Mobile Mode"
   },
   "tooltip": {
     "saveChanges": "Guardar cambios",
@@ -530,6 +536,12 @@
       "roles": {
         "orgCreator": "El creador puede crear nuevos proyectos y acceder a cualquier proyecto invitado.",
         "orgViewer": "El espectador no puede crear nuevos proyectos, pero puede acceder a cualquier proyecto invitado."
+      },
+      "codeScanner": {
+        "loadingScanner": "Loading the scanner...",
+        "selectColumn": "Select a column (QR code or Barcode) that you want to use for finding a row by scanning.",
+        "moreThanOneRowFoundForCode": "More than one row found for this code. Currently only unique codes are supported.",
+        "noRowFoundForCode": "No row found for this code for the selected column"
       },
       "map": {
         "overLimit": "You're over the limit.",

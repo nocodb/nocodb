@@ -14,9 +14,8 @@ let key = $ref('')
 const loadLicense = async () => {
   try {
     const response = await api.orgLicense.get()
-
-    key = response.key
-  } catch (e) {
+    key = response.key!
+  } catch (e: any) {
     message.error(await extractSdkResponseErrorMsg(e))
   }
 }
@@ -25,7 +24,7 @@ const setLicense = async () => {
     await api.orgLicense.set({ key: key })
     message.success('License key updated')
     await loadAppInfo()
-  } catch (e) {
+  } catch (e: any) {
     message.error(await extractSdkResponseErrorMsg(e))
   }
   $e('a:account:license')
@@ -45,5 +44,3 @@ loadLicense()
     </div>
   </div>
 </template>
-
-<style scoped></style>

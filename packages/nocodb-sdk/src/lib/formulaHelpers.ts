@@ -179,7 +179,7 @@ export function jsepTreeToFormula(node) {
 
   if (node.type === 'Literal') {
     if (typeof node.value === 'string') {
-      return String.raw`"${escapeDoubleQuotes(node.value)}"`;
+      return String.raw`"${escapeLiteral(node.value)}"`;
     }
     return '' + node.value;
   }
@@ -214,6 +214,14 @@ export function jsepTreeToFormula(node) {
   return '';
 }
 
-function escapeDoubleQuotes(v: string) {
-  return v.replace(/"/g, '\\"');
+function escapeLiteral(v: string) {
+  return (
+    v
+      // replace \ to \\
+      .replace(/\\/g, `\\\\`)
+      // replace " to \"
+      .replace(/"/g, `\\"`)
+      // replace ' to \'
+      .replace(/'/g, `\\'`)
+  );
 }

@@ -1,4 +1,5 @@
 <script lang="ts" setup>
+import type { ProjectType } from 'nocodb-sdk'
 import type { SelectHandler } from 'ant-design-vue/es/vc-select/Select'
 import type { DefaultConnection, ProjectCreateForm } from '#imports'
 import {
@@ -233,7 +234,7 @@ const createProject = async () => {
 
     const config = { ...formState.dataSource, connection }
 
-    const result = await api.project.create({
+    const result = (await api.project.create({
       title: formState.title,
       bases: [
         {
@@ -244,7 +245,7 @@ const createProject = async () => {
         },
       ],
       external: true,
-    })
+    })) as Partial<ProjectType>
 
     $e('a:project:create:extdb')
 

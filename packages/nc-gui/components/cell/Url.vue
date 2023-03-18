@@ -8,6 +8,7 @@ import {
   inject,
   isValidURL,
   message,
+  parseProp,
   ref,
   useCellUrlConfig,
   useI18n,
@@ -39,7 +40,7 @@ const vModel = computed({
   get: () => value,
   set: (val) => {
     localState.value = val
-    if (!column.value.meta?.validate || (val && isValidURL(val)) || !val) {
+    if (!parseProp(column.value.meta)?.validate || (val && isValidURL(val)) || !val) {
       emit('update:modelValue', val)
     }
   },
@@ -63,7 +64,7 @@ const focus: VNodeRef = (el) => (el as HTMLInputElement)?.focus()
 watch(
   () => editEnabled.value,
   () => {
-    if (column.value.meta?.validate && !editEnabled.value && localState.value && !isValidURL(localState.value)) {
+    if (parseProp(column.value.meta)?.validate && !editEnabled.value && localState.value && !isValidURL(localState.value)) {
       message.error(t('msg.error.invalidURL'))
       localState.value = undefined
       return
@@ -126,6 +127,3 @@ watch(
     </div>
   </div>
 </template>
-
-<!--
--->

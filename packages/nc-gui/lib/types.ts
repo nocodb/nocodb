@@ -1,4 +1,4 @@
-import type { DocsPageType, FilterType, ViewTypes } from 'nocodb-sdk'
+import type { DocsPageType, FilterType, MetaType, ViewTypes } from 'nocodb-sdk'
 import type { I18n } from 'vue-i18n'
 import type { Theme as AntTheme } from 'ant-design-vue/es/config-provider'
 import type { UploadFile } from 'ant-design-vue'
@@ -21,7 +21,7 @@ export interface ProjectMetaInfo {
   Platform?: string
   Docker?: boolean
   Database?: string
-  ProjectOnRootDB?: string
+  ProjectOnRootDB?: boolean
   RootDB?: string
   PackageVersion?: string
 }
@@ -79,7 +79,7 @@ export interface TabItem {
   viewId?: string
   sortsState?: Map<string, any>
   filterState?: Map<string, any>
-  meta?: Record<string, any>
+  meta?: MetaType
   tabMeta?: any
   projectId?: string
 }

@@ -9,7 +9,13 @@ import Sortable from 'sortablejs'
 import { useRoute } from 'vue-router'
 import {
   computed,
+  definePageMeta,
+  extractSdkResponseErrorMsg,
+  message,
+  navigateTo,
+  onBeforeMount,
   onMounted,
+  parseProp,
   projectThemeColors,
   storeToRefs,
   stringToColour,
@@ -17,7 +23,6 @@ import {
   useSidebar,
   useWorkspace,
 } from '#imports'
-import { extractSdkResponseErrorMsg } from '~/utils'
 
 const router = useRouter()
 
@@ -127,7 +132,7 @@ const handleWorkspaceColor = async (workspaceId: string, color: string) => {
 
     // Update local workspace meta
     workspace.meta = {
-      ...(meta || {}),
+      ...parseProp(meta),
       color,
     }
 

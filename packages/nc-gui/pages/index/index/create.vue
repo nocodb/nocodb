@@ -3,6 +3,7 @@ import { customAlphabet } from 'nanoid'
 import type { Form, Input } from 'ant-design-vue'
 import type { RuleObject } from 'ant-design-vue/es/form'
 import type { VNodeRef } from '@vue/runtime-core'
+import type { ProjectType } from 'nocodb-sdk'
 import tinycolor from 'tinycolor2'
 import {
   extractSdkResponseErrorMsg,
@@ -67,7 +68,7 @@ const createProject = async () => {
     // todo: provide proper project type
     creating.value = true
 
-    const result = await api.project.create({
+    const result = (await api.project.create({
       title: formState.title,
       fk_workspace_id: route.query.workspaceId,
       type: route.query.type ?? NcProjectType.DB,
@@ -79,7 +80,7 @@ const createProject = async () => {
         },
         ...(route.query.type === NcProjectType.COWRITER && { prompt_statement: '' }),
       }),
-    })
+    })) as Partial<ProjectType>
 
     refreshCommandPalette()
 
@@ -107,7 +108,6 @@ const createProject = async () => {
       }
       default:
         await navigateTo(`/ws/${route.query.workspaceId}/nc/${result.id}`)
-
     }
   } catch (e: any) {
     message.error(await extractSdkResponseErrorMsg(e))

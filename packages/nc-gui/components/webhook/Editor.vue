@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import type { Ref } from 'vue'
-import type { AuditType } from 'nocodb-sdk'
+import type { AuditType, HookType } from 'nocodb-sdk'
 import {
   Form,
   MetaInj,
@@ -10,6 +10,7 @@ import {
   inject,
   message,
   onMounted,
+  parseProp,
   reactive,
   ref,
   useApi,
@@ -20,7 +21,7 @@ import {
 } from '#imports'
 
 interface Props {
-  hook?: Record<string, any>
+  hook?: HookType
 }
 
 const props = defineProps<Props>()
@@ -39,11 +40,13 @@ const meta = inject(MetaInj, ref())
 
 const useForm = Form.useForm
 
-const hook = reactive<Record<string, any>>({
+const hook = reactive<
+  Omit<HookType, 'notification'> & { notification: Record<string, any>; eventOperation: string; condition: boolean }
+>({
   id: '',
   title: '',
-  event: '',
-  operation: '',
+  event: undefined,
+  operation: undefined,
   eventOperation: '',
   notification: {
     type: 'URL',
@@ -256,12 +259,13 @@ function onNotTypeChange(reset = false) {
   }
 }
 
-function setHook(newHook: any) {
+function setHook(newHook: HookType) {
+  const notification = newHook.notification as Record<string, any>
   Object.assign(hook, {
     ...newHook,
     notification: {
-      ...newHook.notification,
-      payload: newHook.notification.payload,
+      ...notification,
+      payload: notification.payload,
     },
   })
 }
@@ -325,17 +329,11 @@ async function loadPluginList() {
         ...(p as any),
       }
       plugin.tags = p.tags ? p.tags.split(',') : []
-      plugin.parsedInput = p.input && JSON.parse(p.input)
+      plugin.parsedInput = parseProp(p.input)
       o[plugin.title] = plugin
 
       return o
     }, {} as Record<string, any>)
-
-    if (hook.event && hook.operation) {
-      hook.eventOperation = `${hook.event} ${hook.operation}`
-    }
-
-    onNotTypeChange()
   } catch (e: any) {
     message.error(await extractSdkResponseErrorMsg(e))
   }
@@ -406,8 +404,8 @@ watch(
     if (!hook.eventOperation) return
 
     const [event, operation] = hook.eventOperation.split(' ')
-    hook.event = event
-    hook.operation = operation
+    hook.event = event as HookType['event']
+    hook.operation = operation as HookType['operation']
   },
 )
 
@@ -422,7 +420,15 @@ watch(
   { immediate: true },
 )
 
-onMounted(loadPluginList)
+onMounted(async () => {
+  await loadPluginList()
+
+  if (hook.event && hook.operation) {
+    hook.eventOperation = `${hook.event} ${hook.operation}`
+  }
+
+  onNotTypeChange()
+})
 </script>
 
 <template>

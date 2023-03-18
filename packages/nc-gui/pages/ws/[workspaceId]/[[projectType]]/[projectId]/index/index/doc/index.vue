@@ -1,7 +1,8 @@
 <script setup lang="ts">
-const { project } = storeToRefs(useProject())
+const route = useRoute()
 </script>
 
 <template>
-  <DocsBookView v-if="project?.id" />
+  <DocsBookView v-if="!route.params.pageId" />
+  <NuxtPage v-else />
 </template>

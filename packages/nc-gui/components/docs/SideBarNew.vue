@@ -182,7 +182,7 @@ onMounted(async () => {
         <div v-if="project.title && isEditAllowed" class="flex flex-row justify-between items-center">
           <div
             class="flex select-none p-1 rounded-md hover:(text-primary/100 !bg-gray-200 !bg-opacity-60) cursor-pointer pop-in-animation"
-            @click="() => addNewPage()"
+            @click="() => addNewPage({projectId: project.id!})"
           >
             <MdiPlus />
           </div>
@@ -209,7 +209,7 @@ onMounted(async () => {
               <div class="flex flex-shrink-0">
                 <a-popover placement="bottom" overlay-class-name="docs-page-icon-change-popover" color="#000000">
                   <template #content> Change Icon </template>
-                  <a-dropdown v-if="isEditAllowed" placement="bottom" trigger="click">
+                  <a-dropdown v-if="isEditAllowed || true" placement="bottom" trigger="click">
                     <div class="flex px-0.5 pt-0.75 text-gray-500 rounded-md hover:bg-gray-200 cursor-pointer">
                       <IconifyIcon
                         v-if="icon"
@@ -236,6 +236,7 @@ onMounted(async () => {
                         :icon="icon"
                       ></IconifyIcon>
                     </div>
+                    <MdiFileDocumentOutline v-else />
                   </template>
                 </a-popover>
               </div>
@@ -279,7 +280,7 @@ onMounted(async () => {
               <div
                 v-if="level < MAX_NESTED_LEVEL"
                 class="flex px-0.5 hover:( !bg-gray-300 !bg-opacity-30 rounded-md) cursor-pointer select-none hidden group-hover:block"
-                @click="() => addNewPage(id)"
+                @click="() => addNewPage({parentPageId: id, projectId: project.id!})"
               >
                 <MdiPlus />
               </div>

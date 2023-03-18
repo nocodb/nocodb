@@ -7,18 +7,10 @@ import tiptapExtensions from '~~/utils/tiptapExtensions'
 const { project } = useProject()
 useShortcuts()
 
-const {
-  openedPage,
-  openedPageInSidebar,
-  updatePage,
-  openedPageWithParents,
-  nestedUrl,
-  openPage,
-  openedPageId,
-  isPublic,
-  isEditAllowed,
-  isFetching,
-} = useDocs()
+const { openedPageId, openedPage, openedPageInSidebar, openedPageWithParents, isPublic, isEditAllowed, isPageFetching } =
+  storeToRefs(useDocStore())
+
+const { updatePage, nestedUrl, openPage } = useDocStore()
 
 const wrapperRef = ref<HTMLDivElement | undefined>()
 
@@ -52,7 +44,7 @@ const breadCrumbs = computed(() => {
   const pagesBreadcrumbs = openedPageWithParents.value
     .map((page) => ({
       title: page.title,
-      href: nestedUrl(page.id!),
+      href: nestedUrl({ id: page.id!, projectId: project.id! }),
       icon: page.icon,
       id: page.id,
     }))
@@ -129,7 +121,12 @@ watchDebounced(
   () => [openedPage.value?.id, openedPage.value?.content],
   ([newId, newContent], [oldId, oldContent]) => {
     if (isEditAllowed && openedPage.value?.id && newId === oldId && newContent !== oldContent) {
-      updatePage({ pageId: openedPage.value?.id, page: { content: openedPage.value!.content }, disableLocalSync: true })
+      updatePage({
+        pageId: openedPage.value?.id,
+        page: { content: openedPage.value!.content },
+        disableLocalSync: true,
+        projectId: project.id!,
+      })
     }
   },
   {
@@ -145,32 +142,30 @@ watchDebounced(
       <div class="flex flex-col w-full">
         <div class="flex flex-row justify-between items-center pl-6 pt-2.5">
           <div class="flex flex-row h-6">
-            <template v-if="!isFetching.nestedPages">
-              <div v-for="({ href, title, icon, id }, index) of breadCrumbs" :key="id" class="flex">
-                <NuxtLink
-                  class="text-sm !hover:text-black docs-breadcrumb-item !underline-transparent"
-                  :to="href"
-                  :class="{
-                    '!text-gray-600 ': index === breadCrumbs.length - 1,
-                    '!text-gray-400 ': index !== breadCrumbs.length - 1,
-                  }"
-                >
-                  <div class="flex flex-row items-center gap-x-1.5">
-                    <IconifyIcon
-                      v-if="icon"
-                      :key="icon"
-                      :data-testid="`nc-doc-page-icon-${icon}`"
-                      class="text-sm pop-in-animation"
-                      :icon="icon"
-                    ></IconifyIcon>
-                    <div class="pop-in-animation">
-                      {{ title }}
-                    </div>
+            <div v-for="({ href, title, icon, id }, index) of breadCrumbs" :key="id" class="flex">
+              <NuxtLink
+                class="text-sm !hover:text-black docs-breadcrumb-item !underline-transparent"
+                :to="href"
+                :class="{
+                  '!text-gray-600 ': index === breadCrumbs.length - 1,
+                  '!text-gray-400 ': index !== breadCrumbs.length - 1,
+                }"
+              >
+                <div class="flex flex-row items-center gap-x-1.5">
+                  <IconifyIcon
+                    v-if="icon"
+                    :key="icon"
+                    :data-testid="`nc-doc-page-icon-${icon}`"
+                    class="text-sm pop-in-animation"
+                    :icon="icon"
+                  ></IconifyIcon>
+                  <div class="pop-in-animation">
+                    {{ title }}
                   </div>
-                </NuxtLink>
-                <div v-if="index !== breadCrumbs.length - 1" class="flex text-gray-400 text-sm px-2">/</div>
-              </div>
-            </template>
+                </div>
+              </NuxtLink>
+              <div v-if="index !== breadCrumbs.length - 1" class="flex text-gray-400 text-sm px-2">/</div>
+            </div>
           </div>
           <div v-if="!isPublic" class="flex flex-row items-center"></div>
         </div>
@@ -183,7 +178,7 @@ watchDebounced(
           }"
         >
           <a-skeleton-input
-            v-if="isFetching.page && !isPublic"
+            v-if="isPageFetching && !isPublic"
             :active="true"
             size="large"
             class="docs-page-title-skelton !mt-4 !max-w-156 mb-3 -ml-3"
@@ -194,7 +189,7 @@ watchDebounced(
           <DocsPageSelectedBubbleMenu v-if="editor" :editor="editor" />
           <DocsPageLinkOptions v-if="editor" :editor="editor" />
           <a-skeleton-input
-            v-if="isFetching.page && !isPublic"
+            v-if="isPageFetching && !isPublic"
             :active="true"
             size="small"
             class="docs-page-title-skelton !max-w-102 mb-3 mt-1 -ml-3"
@@ -210,14 +205,14 @@ watchDebounced(
             }"
           />
           <div
-            v-if="(openedPageInSidebar?.children ?? []).length > 0 && !isFetching.page"
+            v-if="(openedPageInSidebar?.children ?? []).length > 0 && !isPageFetching"
             class="flex flex-col py-12 border-b-1 border-t-1 border-gray-200 mt-12 mb-4 gap-y-6 pop-in-animation"
           >
             <div
               v-for="page of openedPageInSidebar?.children"
               :key="page.id"
               class="flex flex-row items-center gap-x-2 cursor-pointer text-gray-600 hover:text-black"
-              @click="openPage(page)"
+              @click="openPage({ page, projectId: project.id! })"
             >
               <div v-if="page.icon" class="flex">
                 <IconifyIcon

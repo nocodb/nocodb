@@ -8,7 +8,7 @@ const { wrapperRef } = defineProps<{
   wrapperRef: HTMLDivElement | undefined
 }>()
 
-const { openedPage, isPublic } = useDocs()
+const { openedPage, isPublic } = storeToRefs(useDocStore())
 
 const showPageSubHeadings = ref(isPublic.value)
 const pageSubHeadings = ref<Array<{ type: string; text: string; active: boolean }>>([])

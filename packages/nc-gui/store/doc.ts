@@ -3,7 +3,9 @@ import type { DocsPageType } from 'nocodb-sdk'
 import type { PageSidebarNode } from '~~/lib'
 
 export const useDocStore = defineStore('docStore', () => {
-  const route = useRoute()
+  const router = useRouter()
+  const route = $(router.currentRoute)
+
   const { $api } = useNuxtApp()
   const { projectRoles } = useRoles()
 
@@ -13,11 +15,21 @@ export const useDocStore = defineStore('docStore', () => {
   const openedPageId = computed<string>(() => route.params.pageId as string)
   const openedWorkspaceId = computed<string>(() => route.params.workspaceId as string)
 
-  const nestedPagesOfProjects = ref<Record<string, PageSidebarNode[]>>({})
   const isNestedPageFetching = ref<Record<string, boolean>>({})
+  const isPageFetching = ref<boolean>(true)
+  const isPageErrored = ref<boolean>(false)
+
+  const nestedPagesOfProjects = ref<Record<string, PageSidebarNode[]>>({})
   const openedTabsOfProjects = ref<Record<string, string[]>>({})
 
   const openedPage = ref<PageSidebarNode | undefined>(undefined)
+
+  /***
+   *
+   *
+   * Computed
+   *
+   */
 
   const isEditAllowed = computed<boolean>(
     () =>
@@ -28,6 +40,170 @@ export const useDocStore = defineStore('docStore', () => {
         projectRoles.value[ProjectRole.Editor]
       ),
   )
+
+  const nestedPagesOfOpenedProject = computed<PageSidebarNode[]>(() => nestedPagesOfProjects.value[openedProjectId.value] || [])
+
+  const openedPageInSidebar = computed(() => {
+    if (!openedPageId.value) return undefined
+    if (isNestedPageFetching.value[openedProjectId.value]) return undefined
+    if (!nestedPagesOfProjects.value[openedProjectId.value]) return undefined
+
+    return findPage(nestedPagesOfProjects.value[openedProjectId.value], openedPageId.value)
+  })
+
+  const openedPageWithParents = computed(() =>
+    openedPageInSidebar.value ? getPageWithParents({ page: openedPageInSidebar.value, projectId: openedProjectId.value }) : [],
+  )
+
+  /***
+   *
+   *
+   *
+   * Watchers
+   *
+   *
+   */
+
+  watch(
+    openedPageId,
+    async (_, oldId) => {
+      if (!openedPageId.value) {
+        openedPage.value = undefined
+        return
+      }
+
+      const nestedPages = nestedPagesOfProjects.value[openedProjectId.value]
+
+      // if the page is new, don't fetch it
+      if (openedPage.value?.new && openedPage.value.id === openedPageId.value) return
+
+      if (oldId) {
+        const page = findPage(nestedPages, oldId)
+        if (page?.new) {
+          page.new = false
+        }
+      }
+
+      isPageFetching.value = true
+      openedPage.value = undefined
+
+      const newPage = (await fetchPage({
+        projectId: openedProjectId.value,
+      })) as any
+
+      if (newPage?.id !== openedPageId.value) return
+
+      openedPage.value = newPage
+
+      isPageFetching.value = false
+    },
+    {
+      immediate: true,
+      deep: true,
+    },
+  )
+
+  // Sync opened page in sidebar with opened page
+  watch(
+    openedPageInSidebar,
+    () => {
+      if (!openedPage.value) return
+      if (isPublic.value) return
+      if (openedPage.value?.new) return
+
+      openedPage.value = {
+        ...openedPage.value,
+        ...openedPageInSidebar.value,
+      } as PageSidebarNode
+    },
+    {
+      deep: true,
+    },
+  )
+
+  // Sync opened page title and icon with sidebar
+  watch(
+    openedPage,
+    () => {
+      if (isPublic.value) return
+
+      if (!openedPageInSidebar.value?.id) return
+      if (!openedPage.value) return
+      if (openedPage.value?.id !== openedPageInSidebar.value?.id) return
+
+      const nestedPages = nestedPagesOfProjects.value[openedProjectId.value]
+
+      const page = findPage(nestedPages, openedPageInSidebar.value.id)
+      if (!page) return
+
+      page.title = openedPage.value.title
+      page.icon = openedPage.value.icon
+    },
+    {
+      deep: true,
+    },
+  )
+
+  // verify if the levels of nested pages are correct
+  // if not, set the correct level
+  watch(
+    nestedPagesOfOpenedProject,
+    () => {
+      if (nestedPagesOfOpenedProject.value.length === 0) return
+
+      let isTreeCorrect = true
+      const verifyLevelAndIsLeaf = (tree: PageSidebarNode[], level: number) => {
+        tree.forEach((node) => {
+          if (node.level !== level) {
+            isTreeCorrect = false
+          }
+
+          if (node.isLeaf === false && node.children && node.children.length > 0) {
+            isTreeCorrect = false
+          }
+
+          if (node.children && node.children.length === 0 && node.isLeaf !== true) {
+            isTreeCorrect = false
+          }
+
+          if (node.children) {
+            verifyLevelAndIsLeaf(node.children, level + 1)
+          }
+        })
+      }
+
+      verifyLevelAndIsLeaf(nestedPagesOfOpenedProject.value, 0)
+
+      if (isTreeCorrect) return
+
+      const traverse = (tree: PageSidebarNode[], level: number) => {
+        tree.forEach((node) => {
+          node.level = level
+          if (node.children && node.children.length > 0) {
+            traverse(node.children, level + 1)
+            node.isLeaf = false
+          } else {
+            node.isLeaf = true
+          }
+        })
+      }
+
+      traverse(nestedPagesOfOpenedProject.value, 0)
+    },
+    {
+      deep: true,
+    },
+  )
+
+  /***
+   *
+   *
+   *
+   * Actions
+   *
+   *
+   *
+   */
 
   async function fetchNestedPages({ withoutLoading, projectId }: { projectId: string; withoutLoading?: boolean }) {
     if (!withoutLoading) isNestedPageFetching.value[projectId] = true
@@ -65,14 +241,6 @@ export const useDocStore = defineStore('docStore', () => {
       if (!withoutLoading) isNestedPageFetching.value[projectId] = false
     }
   }
-
-  const openedPageInSidebar = computed(() => {
-    if (!openedPageId.value) return undefined
-    if (isNestedPageFetching.value[openedProjectId.value]) return undefined
-    if (!nestedPagesOfProjects.value[openedProjectId.value]) return undefined
-
-    return findPage(nestedPagesOfProjects.value[openedProjectId.value], openedPageId.value)
-  })
 
   function findPage(_nestedPages: PageSidebarNode[], pageId: string) {
     // traverse the tree and find the parent page
@@ -121,6 +289,25 @@ export const useDocStore = defineStore('docStore', () => {
 
   function projectUrl(projectId: string) {
     return isPublic.value ? `/nc/doc/${projectId!}/s` : `/ws/${openedWorkspaceId.value}/nc/${projectId}/doc`
+  }
+
+  async function fetchPage({ page, projectId }: { page?: PageSidebarNode; projectId: string }) {
+    const pageId = page?.id || openedPageId.value
+    if (!pageId) throw new Error('No page id or slug provided')
+
+    try {
+      return isPublic.value
+        ? await $api.nocoDocs.getPublicPage(pageId, {
+            projectId: projectId!,
+          })
+        : await $api.nocoDocs.getPage(pageId, {
+            projectId: projectId!,
+          })
+    } catch (e) {
+      console.log(e)
+      isPageErrored.value = true
+      return undefined
+    }
   }
 
   async function createPage({
@@ -348,7 +535,8 @@ export const useDocStore = defineStore('docStore', () => {
     if (!openedPageInSidebar.value) throw new Error('openedPage is not defined')
 
     const pagesWithParents = getPageWithParents({ page: openedPageInSidebar.value, projectId })
-    const openedTabs = openedTabsOfProjects.value[projectId]
+    const openedTabs = openedTabsOfProjects.value[projectId] || []
+
     for (const page of pagesWithParents) {
       if (!openedTabs.includes(page.id!)) {
         openedTabs.push(page.id!)
@@ -442,5 +630,8 @@ export const useDocStore = defineStore('docStore', () => {
     createImport,
     openPage,
     openChildPageTabsOfRootPages,
+    isPageFetching,
+    openedPageWithParents,
+    openedPage,
   }
 })

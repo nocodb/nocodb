@@ -338,7 +338,7 @@ const onShare = async (page: PageSidebarNode) => {
                       Updated {{ dayjs(page!.updated_at!).local().fromNow() }}
                     </div>
                   </div>
-                  <div class="flex-grow" @click="() => openPage({page, projectId: project.id!})"></div>
+                  <div class="flex flex-grow h-12" @click="() => openPage({page, projectId: project.id!})"></div>
                   <a-dropdown trigger="click" placement="bottomRight">
                     <div
                       class="nc-docs-sidebar-page-options flex px-1 py-1 hover:( !bg-gray-300 !bg-opacity-30 rounded-md text-gray-600) cursor-pointer select-none group-hover:block text-gray-500"

@@ -39,6 +39,7 @@
     "signIn": "साइन इन करें",
     "signOut": "साइन आउट",
     "required": "आवश्यक",
+    "enableScanner": "Enable Scanner for filling",
     "preferred": "पसंदीदा",
     "mandatory": "अनिवार्य",
     "loading": "लोड हो रहा है ...",
@@ -209,7 +210,8 @@
     "advancedSettings": "Advanced Settings",
     "codeSnippet": "Code Snippet",
     "keyboardShortcut": "Keyboard Shortcuts",
-    "generateRandomName": "Generate Random Name"
+    "generateRandomName": "Generate Random Name",
+    "findRowByScanningCode": "Find row by scanning a QR or Barcode"
   },
   "labels": {
     "createdBy": "Created By",
@@ -219,6 +221,7 @@
     "viewName": "नाम देखें",
     "viewLink": "लिंक देखें",
     "columnName": "आम नाम",
+    "columnToScanFor": "Column to scan",
     "columnType": "स्तंभ प्रकार",
     "roleName": "भूमिका का नाम",
     "roleDescription": "भूमिका विवरण",
@@ -393,8 +396,8 @@
     "saveAndExit": "Save & Exit",
     "saveAndStay": "Save & Stay",
     "insertRow": "नई पंक्ति डालें",
-    "deleteRow": "पंक्ति को हटाएं",
     "duplicateRow": "Duplicate Row",
+    "deleteRow": "पंक्ति को हटाएं",
     "deleteSelectedRow": "चयनित पंक्तियों को हटा दें",
     "importExcel": "आयात एक्सेल",
     "importCSV": "Import CSV",
@@ -409,6 +412,8 @@
     "changePwd": "पासवर्ड बदलें",
     "createView": "एक दृश्य बनाएं",
     "shareView": "शेयर दृश्य",
+    "findRowByCodeScan": "Find row by scan",
+    "fillByCodeScan": "Fill by scan",
     "listSharedView": "साझा दृश्य सूची",
     "ListView": "दृश्य सूची",
     "copyView": "प्रतिलिपि दृश्य",
@@ -465,7 +470,8 @@
       "chooseMappingField": "Choose a Mapping Field",
       "openInGoogleMaps": "Google Maps",
       "openInOpenStreetMap": "OSM"
-    }
+    },
+    "toggleMobileMode": "Toggle Mobile Mode"
   },
   "tooltip": {
     "saveChanges": "परिवर्तनों को सुरक्षित करें",
@@ -530,6 +536,12 @@
       "roles": {
         "orgCreator": "Creator can create new projects and access any invited project.",
         "orgViewer": "Viewer is not allowed to create new projects but they can access any invited project."
+      },
+      "codeScanner": {
+        "loadingScanner": "Loading the scanner...",
+        "selectColumn": "Select a column (QR code or Barcode) that you want to use for finding a row by scanning.",
+        "moreThanOneRowFoundForCode": "More than one row found for this code. Currently only unique codes are supported.",
+        "noRowFoundForCode": "No row found for this code for the selected column"
       },
       "map": {
         "overLimit": "You're over the limit.",

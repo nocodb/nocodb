@@ -33,6 +33,8 @@ export const useTabs = defineStore('tabStore', () => {
   const previousActiveTabIndex = ref(-1)
   const activeTabIndex: WritableComputedRef<number> = computed({
     get() {
+      debugger
+
       const routeName = route.name as string
 
       // todo: new-layout
@@ -40,7 +42,11 @@ export const useTabs = defineStore('tabStore', () => {
         routeName.includes('projectType-projectId-index-index-type-title-viewTitle') &&
         (tables?.length || projectsStore.projectTableList[project?.id!]?.length)
       ) {
-        const tab: TabItem = { projectId: route.params.projectId,type: route.params.type as TabType, title: route.params.title as string }
+        const tab: TabItem = {
+          projectId: route.params.projectId,
+          type: route.params.type as TabType,
+          title: route.params.title as string,
+        }
 
         const currentTable = (tables ?? projectsStore.projectTableList[project?.id!]).find((t) => {
           return t.id === tab.title || t.title === tab.title
@@ -84,6 +90,8 @@ export const useTabs = defineStore('tabStore', () => {
       return 0
     },
     set(index: number) {
+      debugger
+
       if (index === -1) {
         navigateTo({
           path: `/ws/${workspaceId}/${projectType}/${project?.id}`,
@@ -226,10 +234,16 @@ export const useTabs = defineStore('tabStore', () => {
       const activeTabRoute = n.toString().replace(/ws-workspaceId-projectType-projectId-index-index-/, '')
       switch (activeTabRoute) {
         case TabType.SQL:
-          addTab({ id: TabType.SQL, type: TabType.SQL, title: 'SQL Editor' })
+          addTab({ id: TabType.SQL, type: TabType.SQL, title: 'SQL Editor', projectId: route.params.projectId as string })
           break
         case TabType.AUTH:
-          if (isUIAllowed('teamAndAuth')) addTab({ id: TabType.AUTH, type: TabType.AUTH, title: t('title.teamAndAuth') })
+          if (isUIAllowed('teamAndAuth'))
+            addTab({
+              id: TabType.AUTH,
+              type: TabType.AUTH,
+              title: t('title.teamAndAuth'),
+              projectId: route.params.projectId as string,
+            })
           break
         default:
           break

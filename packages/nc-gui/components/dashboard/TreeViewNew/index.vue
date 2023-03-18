@@ -485,7 +485,7 @@ const isClearMode = computed(() => route.query.clear === '1' && route.params.pro
         :key="project.id"
         ref="projectElRefs"
         class="m-2 py-1 nc-project-sub-menu"
-        :class="{ active: project.id === activeProjectId }"
+        :class="{ active: project.id === openedProjectId }"
       >
         <div class="flex items-center gap-2 py-1 cursor-pointer" @click="loadProjectAndTableList(project, i)">
           <DashboardTreeViewNewProjectNode ref="projectNodeRefs" class="flex-grow" :project="projects[project.id] ?? project" />

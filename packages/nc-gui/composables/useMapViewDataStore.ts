@@ -1,14 +1,7 @@
-import { reactive } from 'vue'
 import type { ComputedRef, Ref } from 'vue'
-import type { ColumnType, MapType, PaginatedType, ViewType } from 'nocodb-sdk'
+import type { ColumnType, MapType, PaginatedType, TableType, ViewType } from 'nocodb-sdk'
 import { IsPublicInj, ref, storeToRefs, useInjectionState, useMetas, useProject } from '#imports'
 import type { Row } from '~/lib'
-
-const storedValue = localStorage.getItem('geodataToggleState')
-
-const initialState = storedValue ? JSON.parse(storedValue) : false
-
-export const geodataToggleState = reactive({ show: initialState })
 
 const formatData = (list: Record<string, any>[]) =>
   list.map(
@@ -22,7 +15,7 @@ const formatData = (list: Record<string, any>[]) =>
 
 const [useProvideMapViewStore, useMapViewStore] = useInjectionState(
   (
-    meta: Ref<MapType | undefined>,
+    meta: Ref<(MapType & { id: string }) | undefined>,
     viewMeta: Ref<(ViewType | MapType | undefined) & { id: string }> | ComputedRef<(ViewType & { id: string }) | undefined>,
     shared = false,
     where?: ComputedRef<string | undefined>,
@@ -111,7 +104,7 @@ const [useProvideMapViewStore, useMapViewStore] = useInjectionState(
       if (currentRow.rowMeta) currentRow.rowMeta.saving = true
       try {
         const { missingRequiredColumns, insertObj } = await populateInsertObject({
-          meta: metaValue!,
+          meta: metaValue as TableType,
           ltarState,
           getMeta,
           row,
@@ -162,7 +155,6 @@ const [useProvideMapViewStore, useMapViewStore] = useInjectionState(
       geoDataFieldColumn,
       addEmptyRow,
       insertRow,
-      geodataToggleState,
       syncCount,
       paginationData,
     }

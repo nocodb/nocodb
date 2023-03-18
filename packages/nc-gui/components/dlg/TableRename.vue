@@ -41,7 +41,7 @@ const { updateTab } = useTabs()
 
 const projectStore = useProject()
 const { loadTables, isMysql, isMssql, isPg } = projectStore
-const { project } = storeToRefs(projectStore)
+const { tables, project } = storeToRefs(projectStore)
 
 const inputEl = $ref<ComponentPublicInstance>()
 

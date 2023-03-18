@@ -1,5 +1,5 @@
 import { RelationTypes, UITypes } from 'nocodb-sdk'
-import type { ColumnType, LinkToAnotherRecordType, TableInfoType, TableType } from 'nocodb-sdk'
+import type { ColumnType, LinkToAnotherRecordType, TableType } from 'nocodb-sdk'
 
 export const extractPkFromRow = (row: Record<string, any>, columns: ColumnType[]) => {
   return (
@@ -21,7 +21,7 @@ export async function populateInsertObject({
 }: {
   meta: TableType
   ltarState: Record<string, any>
-  getMeta: (tableIdOrTitle: string, force?: boolean) => Promise<TableType | TableInfoType | null>
+  getMeta: (tableIdOrTitle: string, force?: boolean) => Promise<TableType | null>
   row: Record<string, any>
   throwError?: boolean
 }) {

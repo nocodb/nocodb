@@ -67,6 +67,10 @@ export class ToolbarPage extends BasePage {
     if (menuOpen) await this.fields.get().waitFor({ state: 'hidden' });
   }
 
+  async clickFindRowByScanButton() {
+    await this.get().locator(`button.nc-btn-find-row-by-scan`).click();
+  }
+
   async clickSort() {
     const menuOpen = await this.sort.get().isVisible();
 
@@ -74,6 +78,18 @@ export class ToolbarPage extends BasePage {
 
     // Wait for the menu to close
     if (menuOpen) await this.sort.get().waitFor({ state: 'hidden' });
+  }
+
+  async verifyFieldsButtonIsVisibleWithTextAndIcon() {
+    await expect(this.get().locator(`button.nc-fields-menu-btn`)).toBeVisible();
+    await expect(this.get().locator(`button.nc-fields-menu-btn`)).toHaveText('Fields');
+    expect(await this.get().locator(`button.nc-fields-menu-btn`).locator(`svg`).count()).toBe(2);
+  }
+
+  async verifyFieldsButtonIsVisibleWithoutTextButIcon() {
+    await expect(this.get().locator(`button.nc-fields-menu-btn`)).toBeVisible();
+    await expect(this.get().locator(`button.nc-fields-menu-btn`)).not.toHaveText('Fields');
+    expect(await this.get().locator(`button.nc-fields-menu-btn`).locator(`svg`).count()).toBe(2);
   }
 
   async clickFilter({

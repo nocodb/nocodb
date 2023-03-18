@@ -1461,15 +1461,74 @@
                       "x-stoplight": {
                         "id": "waau9tvy75zsd"
                       },
-                      "description": "Success Message",
+                      "description": "Success Message for inviting single email",
                       "example": "The user has been invited successfully"
+                    },
+                    "invite_token": {
+                      "type": "string",
+                      "x-stoplight": {
+                        "id": "yx0s35u8ds3p7"
+                      },
+                      "example": "8354ddba-a769-4d64-8397-eccb2e2b3c06"
+                    },
+                    "error": {
+                      "type": "array",
+                      "x-stoplight": {
+                        "id": "yhfi6wzhr6zr1"
+                      },
+                      "items": {
+                        "x-stoplight": {
+                          "id": "ce0hlv3d0f96j"
+                        },
+                        "type": "object",
+                        "properties": {
+                          "email": {
+                            "type": "string",
+                            "x-stoplight": {
+                              "id": "dgnh01j4lxvl1"
+                            },
+                            "example": "w@nocodb.com"
+                          },
+                          "error": {
+                            "type": "string",
+                            "x-stoplight": {
+                              "id": "7dgttqiijg8no"
+                            },
+                            "example": "<ERROR_MESSAGE>"
+                          }
+                        }
+                      }
+                    },
+                    "email": {
+                      "type": "string",
+                      "x-stoplight": {
+                        "id": "08pqst2q30vot"
+                      },
+                      "example": "w@nocodb.com"
                     }
                   }
                 },
                 "examples": {
-                  "Example 1": {
+                  "Inviting a user without any errors": {
                     "value": {
                       "msg": "The user has been invited successfully"
+                    }
+                  },
+                  "Inviting a user but invitation email failed to send": {
+                    "value": {
+                      "invite_token": "8354ddba-a769-4d64-8397-eccb2e2b3c06",
+                      "email": "w@nocodb.com"
+                    }
+                  },
+                  "Inviting multiple users": {
+                    "value": {
+                      "invite_token": "8354ddba-a769-4d64-8397-eccb2e2b3c06",
+                      "error": [
+                        {
+                          "email": "w@nocodb.com",
+                          "error": "<ERROR MESSAGE>"
+                        }
+                      ]
                     }
                   }
                 }
@@ -2149,7 +2208,20 @@
         "operationId": "project-update",
         "responses": {
           "200": {
-            "description": "OK"
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "number",
+                  "example": 1
+                },
+                "examples": {
+                  "Example 1": {
+                    "value": 1
+                  }
+                }
+              }
+            }
           },
           "400": {
             "$ref": "#/components/responses/BadRequest"
@@ -2160,11 +2232,15 @@
           "content": {
             "application/json": {
               "schema": {
-                "type": "number"
+                "$ref": "#/components/schemas/ProjectUpdateReq"
               },
               "examples": {
                 "Example 1": {
-                  "value": 1
+                  "value": {
+                    "color": "#24716E",
+                    "meta": null,
+                    "title": "My Project"
+                  }
                 }
               }
             }
@@ -12211,6 +12287,15 @@
             "application/json": {
               "schema": {
                 "$ref": "#/components/schemas/PluginTestReq"
+              },
+              "examples": {
+                "Example 1": {
+                  "value": {
+                    "title": "Plugin Foo",
+                    "input": "{\"bucket\":\"my-bucket\",\"region\":\"us-west-004\",\"access_key\":\"redacted\",\"access_secret\":\"redacted\"}",
+                    "category": "Email"
+                  }
+                }
               }
             }
           }
@@ -12628,6 +12713,12 @@
                     },
                     "ncMaxAttachmentsAllowed": {
                       "type": "number"
+                    },
+                    "isCloud": {
+                      "type": "boolean",
+                      "x-stoplight": {
+                        "id": "bstdkpky2131f"
+                      }
                     }
                   }
                 },
@@ -12650,7 +12741,8 @@
                       "ncSiteUrl": "http://localhost:8080",
                       "ee": false,
                       "ncAttachmentFieldSize": 20971520,
-                      "ncMaxAttachmentsAllowed": 10
+                      "ncMaxAttachmentsAllowed": 10,
+                      "isCloud": false
                     }
                   }
                 }
@@ -15120,6 +15212,7 @@
             "order": 1,
             "required": false,
             "show": 1,
+            "enable_scanner": true,
             "updated_at": "2022-02-15 12:39:16",
             "uuid": null
           }
@@ -15165,6 +15258,11 @@
           "show": {
             "$ref": "#/components/schemas/Bool",
             "description": "Is this column shown in Form?"
+          },
+          "enable_scanner": {
+            "$ref": "#/components/schemas/Bool",
+            "description": "Indicates whether the 'Fill by scan' button is visible for this column or not.",
+            "example": true
           },
           "uuid": {
             "$ref": "#/components/schemas/StringOrNull",
@@ -17211,7 +17309,8 @@
         "examples": [
           {
             "title": "Plugin Foo",
-            "input": "{\"bucket\":\"my-bucket\",\"region\":\"us-west-004\",\"access_key\":\"redacted\",\"access_secret\":\"redacted\"}"
+            "input": "{\"bucket\":\"my-bucket\",\"region\":\"us-west-004\",\"access_key\":\"redacted\",\"access_secret\":\"redacted\"}",
+            "category": "Email"
           }
         ],
         "title": "Plugin Test Request Model",
@@ -17229,12 +17328,20 @@
                 "description": "Plugin Input as JSON string"
               },
               {
-                "description": "Plugin Input"
+                "description": "Plugin Input",
+                "type": "object"
               }
             ]
+          },
+          "category": {
+            "x-stoplight": {
+              "id": "rg3i3ov9rs6d0"
+            },
+            "type": "string",
+            "example": "Email"
           }
         },
-        "required": ["title", "input"]
+        "required": ["title", "input", "category"]
       },
       "Project": {
         "description": "Model for Project",
@@ -17465,6 +17572,43 @@
         "required": ["title"],
         "title": "Project Request Model",
         "type": "object"
+      },
+      "ProjectUpdateReq": {
+        "description": "Model for Project Update Request",
+        "x-stoplight": {
+          "id": "4zgrec70wyz4c"
+        },
+        "examples": [
+          {
+            "color": "#24716E",
+            "meta": null,
+            "title": "My Project"
+          }
+        ],
+        "title": "Project Update Request Model",
+        "type": "object",
+        "properties": {
+          "color": {
+            "description": "Primary Theme Color",
+            "example": "#24716E",
+            "maxLength": 50,
+            "type": "string"
+          },
+          "meta": {
+            "$ref": "#/components/schemas/Meta",
+            "description": "Project Meta",
+            "x-stoplight": {
+              "id": "m05w9sbwqgul3"
+            }
+          },
+          "title": {
+            "description": "Project Title",
+            "example": "My Project",
+            "maxLength": 128,
+            "minLength": 1,
+            "type": "string"
+          }
+        }
       },
       "ProjectUserReq": {
         "description": "Model for Project User Request",

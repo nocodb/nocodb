@@ -2,6 +2,7 @@
 import type { Form, Input } from 'ant-design-vue'
 import type { RuleObject } from 'ant-design-vue/es/form'
 import type { VNodeRef } from '@vue/runtime-core'
+import type { ProjectType } from 'nocodb-sdk'
 import {
   extractSdkResponseErrorMsg,
   generateUniqueName,
@@ -44,9 +45,9 @@ const createProject = async () => {
   try {
     creating.value = true
 
-    const result = await api.project.create({
+    const result = (await api.project.create({
       title: formState.title,
-    })
+    })) as Partial<ProjectType>
 
     await navigateTo(`/nc/${result.id}`)
   } catch (e: any) {

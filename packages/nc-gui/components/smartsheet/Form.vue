@@ -99,6 +99,8 @@ const activeRow = ref('')
 
 const { t } = useI18n()
 
+const { betaFeatureToggleState } = useBetaFeatureToggle()
+
 const updateView = useDebounceFn(
   () => {
     if ((formViewData.value?.subheading?.length || 0) > 255) {
@@ -361,6 +363,10 @@ function handleMouseUp(col: Record<string, any>, hiddenColIndex: number) {
   }
 }
 
+const columnSupportsScanning = (elementType: UITypes) =>
+  betaFeatureToggleState.show &&
+  [UITypes.SingleLineText, UITypes.Number, UITypes.Email, UITypes.URL, UITypes.LongText].includes(elementType)
+
 onClickOutside(draggableRef, () => {
   activeRow.value = ''
 })
@@ -616,6 +622,30 @@ watch(view, (nextView) => {
                       />
                     </div>
 
+                    <a-form-item v-if="columnSupportsScanning(element.uidt)" class="my-0 w-1/2 !mb-1">
+                      <div class="flex gap-2 items-center">
+                        <span
+                          class="text-gray-500 mr-2 nc-form-input-required"
+                          data-testid="nc-form-input-enable-scanner"
+                          @click="
+                            () => {
+                              element.general.enable_scanner = !element.general.enable_scanner
+                              updateColMeta(element)
+                            }
+                          "
+                        >
+                          {{ $t('general.enableScanner') }}
+                        </span>
+
+                        <a-switch
+                          v-model:checked="element.enable_scanner"
+                          v-e="['a:form-view:field:mark-enable-scaner']"
+                          size="small"
+                          @change="updateColMeta(element)"
+                        />
+                      </div>
+                    </a-form-item>
+
                     <a-form-item class="my-0 w-1/2 !mb-1">
                       <a-input
                         v-model:value="element.label"
@@ -827,7 +857,7 @@ watch(view, (nextView) => {
     @apply px-4 min-h-[75px] w-full h-full;
 
     .nc-attachment {
-      @apply md:(w-[50px] h-[50px]) lg:(w-[75px] h-[75px]) min-h-[50px] min-w-[50px];
+      @apply md: (w-[50px] h-[50px]) lg:(w-[75px] h-[75px]) min-h-[50px] min-w-[50px];
     }
 
     .nc-attachment-cell-dropzone {

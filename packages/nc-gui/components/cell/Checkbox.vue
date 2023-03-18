@@ -1,5 +1,14 @@
 <script setup lang="ts">
-import { ActiveCellInj, ColumnInj, IsFormInj, ReadonlyInj, getMdiIcon, inject, useSelectedCellKeyupListener } from '#imports'
+import {
+  ActiveCellInj,
+  ColumnInj,
+  IsFormInj,
+  ReadonlyInj,
+  getMdiIcon,
+  inject,
+  parseProp,
+  useSelectedCellKeyupListener,
+} from '#imports'
 
 interface Props {
   // If the previous cell value was a text, the initial checkbox value is a string type
@@ -35,7 +44,7 @@ const checkboxMeta = $computed(() => {
       unchecked: 'mdi-checkbox-blank-circle-outline',
     },
     color: 'primary',
-    ...(column?.value?.meta || {}),
+    ...parseProp(column?.value?.meta),
   }
 })
 

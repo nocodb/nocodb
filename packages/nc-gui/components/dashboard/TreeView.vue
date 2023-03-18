@@ -14,6 +14,7 @@ import {
   extractSdkResponseErrorMsg,
   isDrawerOrModalExist,
   isMac,
+  parseProp,
   reactive,
   ref,
   resolveComponent,
@@ -31,6 +32,8 @@ import {
 } from '#imports'
 import MdiView from '~icons/mdi/eye-circle-outline'
 import MdiTableLarge from '~icons/mdi/table-large'
+
+const { isMobileMode } = useGlobal()
 
 const { addTab, updateTab } = useTabs()
 
@@ -312,7 +315,7 @@ watch(
 const setIcon = async (icon: string, table: TableType) => {
   try {
     table.meta = {
-      ...(table.meta || {}),
+      ...parseProp(table.meta),
       icon,
     }
     tables.value.splice(tables.value.indexOf(table), 1, { ...table })
@@ -324,7 +327,7 @@ const setIcon = async (icon: string, table: TableType) => {
     })
 
     $e('a:table:icon:navdraw', { icon })
-  } catch (e) {
+  } catch (e: any) {
     message.error(await extractSdkResponseErrorMsg(e))
   }
 }
@@ -1018,9 +1021,10 @@ const setIcon = async (icon: string, table: TableType) => {
 
       <LazyGeneralHelpAndSupport class="color-transition px-2 text-gray-500 cursor-pointer select-none hover:text-accent" />
 
-      <GeneralJoinCloud class="color-transition px-2 text-gray-500 cursor-pointer select-none hover:text-accent" />
+      <GeneralJoinCloud v-if="!isMobileMode" class="color-transition px-2 text-gray-500 cursor-pointer select-none hover:text-accent" />
 
       <GithubButton
+        v-if="!isMobileMode"
         class="ml-2 py-1"
         href="https://github.com/nocodb/nocodb"
         data-icon="octicon-star"

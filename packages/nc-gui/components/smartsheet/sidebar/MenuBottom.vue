@@ -12,6 +12,8 @@ const { $e } = useNuxtApp()
 
 const { isSqlView } = useSmartsheetStoreOrThrow()
 
+const { betaFeatureToggleState } = useBetaFeatureToggle()
+
 function onOpenModal(type: ViewTypes, title = '') {
   $e('c:view:create', { view: type })
   emits('openModal', { type, title })
@@ -113,7 +115,7 @@ function onOpenModal(type: ViewTypes, title = '') {
       </a-tooltip>
     </a-menu-item>
     <a-menu-item
-      v-if="geodataToggleState.show"
+      v-if="betaFeatureToggleState.show"
       key="map"
       class="group !flex !items-center !my-0 !h-2.5rem nc-create-map-view"
       @click="onOpenModal(ViewTypes.MAP)"

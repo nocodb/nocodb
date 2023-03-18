@@ -21,7 +21,7 @@ const activeView = inject(ActiveViewInj, ref())
 
 const isPublic = inject(IsPublicInj, ref(false))
 
-const { filterAutoSave } = useGlobal()
+const { filterAutoSave, isMobileMode } = useGlobal()
 
 const filterComp = ref<typeof ColumnFilter>()
 
@@ -76,7 +76,7 @@ useMenuCloseOnEsc(open)
         <div class="flex items-center gap-1">
           <MdiFilterOutline />
           <!-- Filter -->
-          <span class="text-capitalize !text-xs font-weight-normal">{{ $t('activity.filter') }}</span>
+          <span v-if="!isMobileMode" class="text-capitalize !text-xs font-weight-normal">{{ $t('activity.filter') }}</span>
           <MdiMenuDown class="text-grey" />
 
           <span v-if="filtersLength" class="nc-count-badge">{{ filtersLength }}</span>

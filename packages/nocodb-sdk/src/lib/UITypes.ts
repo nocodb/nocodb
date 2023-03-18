@@ -48,6 +48,7 @@ export const numericUITypes = [
   UITypes.Decimal,
   UITypes.Rating,
   UITypes.Rollup,
+  UITypes.Year,
 ];
 
 export function isNumericCol(

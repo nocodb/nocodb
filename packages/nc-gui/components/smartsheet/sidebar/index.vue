@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import type { ViewType, ViewTypes } from 'nocodb-sdk'
+import type { Ref } from 'vue'
 import {
   ActiveViewInj,
   MetaInj,
@@ -48,7 +49,7 @@ const { isOpen } = useSidebar('nc-right-sidebar')
 const sidebarCollapsed = computed(() => !isOpen.value)
 
 /** Sidebar ref */
-const sidebar = ref()
+const sidebar: Ref<Element | null> = ref(null)
 
 /** Watch route param and change active view based on `viewTitle` */
 watch(

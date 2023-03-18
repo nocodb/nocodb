@@ -15212,6 +15212,7 @@
             "order": 1,
             "required": false,
             "show": 1,
+            "enable_scanner": true,
             "updated_at": "2022-02-15 12:39:16",
             "uuid": null
           }
@@ -15257,6 +15258,11 @@
           "show": {
             "$ref": "#/components/schemas/Bool",
             "description": "Is this column shown in Form?"
+          },
+          "enable_scanner": {
+            "$ref": "#/components/schemas/Bool",
+            "description": "Indicates whether the 'Fill by scan' button is visible for this column or not.",
+            "example": true
           },
           "uuid": {
             "$ref": "#/components/schemas/StringOrNull",

@@ -33,6 +33,8 @@ import {
 import MdiView from '~icons/mdi/eye-circle-outline'
 import MdiTableLarge from '~icons/mdi/table-large'
 
+const { isMobileMode } = useGlobal()
+
 const { addTab, updateTab } = useTabs()
 
 const { $api, $e } = useNuxtApp()
@@ -1019,9 +1021,10 @@ const setIcon = async (icon: string, table: TableType) => {
 
       <LazyGeneralHelpAndSupport class="color-transition px-2 text-gray-500 cursor-pointer select-none hover:text-accent" />
 
-      <GeneralJoinCloud class="color-transition px-2 text-gray-500 cursor-pointer select-none hover:text-accent" />
+      <GeneralJoinCloud v-if="!isMobileMode" class="color-transition px-2 text-gray-500 cursor-pointer select-none hover:text-accent" />
 
       <GithubButton
+        v-if="!isMobileMode"
         class="ml-2 py-1"
         href="https://github.com/nocodb/nocodb"
         data-icon="octicon-star"

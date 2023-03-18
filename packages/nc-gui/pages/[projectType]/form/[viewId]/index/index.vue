@@ -1,5 +1,8 @@
 <script lang="ts" setup>
+import type { ColumnType } from 'nocodb-sdk'
 import { RelationTypes, UITypes, isVirtualCol } from 'nocodb-sdk'
+import { ref } from 'vue'
+import { StreamBarcodeReader } from 'vue-barcode-reader'
 import { useSharedFormStoreOrThrow } from '#imports'
 
 const { sharedFormView, submitForm, v$, formState, notFound, formColumns, submitted, secondsRemain, isLoading } =
@@ -16,6 +19,51 @@ function isRequired(_columnObj: Record<string, any>, required = false) {
   }
 
   return !!(required || (columnObj && columnObj.rqd && !columnObj.cdf))
+}
+
+const fieldTitleForCurrentScan = ref('')
+
+const scannerIsReady = ref(false)
+
+const showCodeScannerOverlay = ref(false)
+
+const onLoaded = async () => {
+  scannerIsReady.value = true
+}
+
+const showCodeScannerForFieldTitle = (fieldTitle: string) => {
+  showCodeScannerOverlay.value = true
+  fieldTitleForCurrentScan.value = fieldTitle
+}
+
+const findColumnByTitle = (title: string) => formColumns.value?.find((el: ColumnType) => el.title === title)
+
+const getScannedValueTransformerByFieldType = (fieldType: UITypes) => {
+  switch (fieldType) {
+    case UITypes.Number:
+      return (originalVal: string) => parseInt(originalVal)
+    default:
+      return (originalVal: string) => originalVal
+  }
+}
+
+const onDecode = async (scannedCodeValue: string) => {
+  if (!showCodeScannerOverlay.value) {
+    return
+  }
+  try {
+    const fieldForCurrentScan = findColumnByTitle(fieldTitleForCurrentScan.value)
+    if (fieldForCurrentScan == null) {
+      throw new Error(`Field with title ${fieldTitleForCurrentScan.value} not found`)
+    }
+    const transformedVal =
+      getScannedValueTransformerByFieldType(fieldForCurrentScan.uidt as UITypes)(scannedCodeValue) || scannedCodeValue
+    formState.value[fieldTitleForCurrentScan.value] = transformedVal
+    fieldTitleForCurrentScan.value = ''
+    showCodeScannerOverlay.value = false
+  } catch (error) {
+    console.error(error)
+  }
 }
 </script>
 
@@ -55,6 +103,20 @@ function isRequired(_columnObj: Record<string, any>, required = false) {
         </template>
 
         <template v-else>
+          <a-modal
+            v-model:visible="showCodeScannerOverlay"
+            :closable="false"
+            width="28rem"
+            centered
+            :footer="null"
+            wrap-class-name="nc-modal-generate-token"
+            destroy-on-close
+            @cancel="scannerIsReady = false"
+          >
+            <div class="relative flex flex-col h-full">
+              <StreamBarcodeReader v-show="scannerIsReady" @decode="onDecode" @loaded="onLoaded"> </StreamBarcodeReader>
+            </div>
+          </a-modal>
           <GeneralOverlay class="bg-gray-400/75" :model-value="isLoading" inline transition>
             <div class="w-full h-full flex items-center justify-center">
               <a-spin size="large" />
@@ -82,24 +144,36 @@ function isRequired(_columnObj: Record<string, any>, required = false) {
                   </div>
 
                   <div>
-                    <LazySmartsheetVirtualCell
-                      v-if="isVirtualCol(field)"
-                      :model-value="null"
-                      class="mt-0 nc-input nc-cell"
-                      :data-testid="`nc-form-input-cell-${field.label || field.title}`"
-                      :class="`nc-form-input-${field.title?.replaceAll(' ', '')}`"
-                      :column="field"
-                    />
+                    <div class="flex">
+                      <LazySmartsheetVirtualCell
+                        v-if="isVirtualCol(field)"
+                        :model-value="null"
+                        class="mt-0 nc-input nc-cell"
+                        :data-testid="`nc-form-input-cell-${field.label || field.title}`"
+                        :class="`nc-form-input-${field.title?.replaceAll(' ', '')}`"
+                        :column="field"
+                      />
 
-                    <LazySmartsheetCell
-                      v-else
-                      v-model="formState[field.title]"
-                      class="nc-input"
-                      :data-testid="`nc-form-input-cell-${field.label || field.title}`"
-                      :class="`nc-form-input-${field.title?.replaceAll(' ', '')}`"
-                      :column="field"
-                      :edit-enabled="true"
-                    />
+                      <LazySmartsheetCell
+                        v-else
+                        v-model="formState[field.title]"
+                        class="nc-input"
+                        :data-testid="`nc-form-input-cell-${field.label || field.title}`"
+                        :class="`nc-form-input-${field.title?.replaceAll(' ', '')}`"
+                        :column="field"
+                        :edit-enabled="true"
+                      />
+                      <a-button
+                        v-if="field.enable_scanner"
+                        class="nc-btn-fill-form-column-by-scan nc-toolbar-btn"
+                        :alt="$t('activity.fillByCodeScan')"
+                        @click="showCodeScannerForFieldTitle(field.title)"
+                      >
+                        <div class="flex items-center gap-1">
+                          <mdi-qrcode-scan class="h-5 w-5" />
+                        </div>
+                      </a-button>
+                    </div>
 
                     <div class="flex flex-col gap-2 text-slate-500 dark:text-slate-300 text-[0.75rem] my-2 px-1">
                       <div v-for="error of v$.localState[field.title]?.$errors" :key="error" class="text-red-500">
@@ -136,6 +210,10 @@ function isRequired(_columnObj: Record<string, any>, required = false) {
 
 <style lang="scss" scoped>
 :deep(.nc-cell .nc-action-icon) {
-  @apply !text-white-500 !bg-white/50 !rounded-full !p-1 !text-xs !w-7 !h-7 !flex !items-center !justify-center !cursor-pointer !hover:!bg-white-600 !hover:!text-white-600 !transition;
+  @apply !text-white-500 !bg-white/50 !rounded-full !p-1 !text-xs !w-7 !h-7 !flex !items-center !justify-center !cursor-pointer !hover: !bg-white-600 !hover: !text-white-600 !transition;
+}
+.nc-btn-fill-form-column-by-scan {
+  @apply h-auto;
+  @apply ml-1;
 }
 </style>

@@ -35,6 +35,8 @@ const { isUIAllowed } = useUIPermission()
 
 const { isSharedBase } = storeToRefs(useProject())
 
+const { isMobileMode } = useGlobal()
+
 let showShareModel = $ref(false)
 
 const passwordProtected = ref(false)
@@ -249,7 +251,7 @@ const copyIframeCode = async () => {
       <div class="flex items-center gap-1">
         <MdiOpenInNew />
         <!-- Share View -->
-        <span class="!text-xs font-weight-normal"> {{ $t('activity.shareView') }}</span>
+        <span v-if="!isMobileMode" class="!text-xs font-weight-normal"> {{ $t('activity.shareView') }}</span>
       </div>
     </a-button>
 

@@ -41,6 +41,8 @@ const { t } = useI18n()
 
 const { project } = storeToRefs(useProject())
 
+const { isMobileMode } = useGlobal()
+
 const { $api, $e } = useNuxtApp()
 
 const { copy } = useCopy()
@@ -183,7 +185,7 @@ watch(
   >
     <div class="flex flex-col" data-testid="invite-user-and-share-base-modal">
       <div class="flex flex-row justify-between items-center pb-1.5 mb-2 border-b-1 w-full">
-        <a-typography-title class="select-none" :level="4"> {{ $t('activity.share') }}: {{ project.title }} </a-typography-title>
+        <a-typography-title v-if="!isMobileMode" class="select-none" :level="4"> {{ $t('activity.share') }}: {{ project.title }} </a-typography-title>
 
         <a-button
           type="text"

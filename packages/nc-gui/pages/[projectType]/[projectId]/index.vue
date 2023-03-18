@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import tinycolor from 'tinycolor2'
+import type { TableType } from 'nocodb-sdk'
 import {
   TabType,
   computed,
@@ -41,11 +42,13 @@ const { t } = useI18n()
 
 const { $e } = useNuxtApp()
 
+const { betaFeatureToggleState } = useBetaFeatureToggle()
+
 const route = useRoute()
 
 const router = useRouter()
 
-const { appInfo, token, signOut, signedIn, user, currentVersion } = useGlobal()
+const { appInfo, token, signOut, signedIn, user, currentVersion, isMobileMode, setIsMobileMode } = useGlobal()
 
 const projectStore = useProject()
 
@@ -360,7 +363,7 @@ useEventListener(document, 'keydown', async (e: KeyboardEvent) => {
                     <!-- Swagger: Rest APIs -->
                     <a-menu-item key="api">
                       <div
-                        v-if="isUIAllowed('apiDocs')"
+                        v-if="isUIAllowed('apiDocs') && !isMobileMode"
                         v-e="['e:api-docs']"
                         class="nc-project-menu-item group"
                         @click.stop="openLink(`/api/v1/db/meta/projects/${route.params.projectId}/swagger`, appInfo.ncSiteUrl)"
@@ -372,7 +375,12 @@ useEventListener(document, 'keydown', async (e: KeyboardEvent) => {
 
                     <!-- Copy Auth Token -->
                     <a-menu-item key="copy">
-                      <div v-e="['a:navbar:user:copy-auth-token']" class="nc-project-menu-item group" @click.stop="copyAuthToken">
+                      <div
+                        v-if="!isMobileMode"
+                        v-e="['a:navbar:user:copy-auth-token']"
+                        class="nc-project-menu-item group"
+                        @click.stop="copyAuthToken"
+                      >
                         <MdiScriptTextKeyOutline class="group-hover:text-accent" />
                         {{ $t('activity.account.authToken') }}
                       </div>
@@ -383,13 +391,25 @@ useEventListener(document, 'keydown', async (e: KeyboardEvent) => {
                     <!-- Team & Settings -->
                     <a-menu-item key="teamAndSettings">
                       <div
-                        v-if="isUIAllowed('settings')"
+                        v-if="isUIAllowed('settings') && !isMobileMode"
                         v-e="['c:navdraw:project-settings']"
                         class="nc-project-menu-item group"
                         @click="toggleDialog(true, 'teamAndAuth')"
                       >
                         <MdiCog class="group-hover:text-accent" />
                         {{ $t('title.teamAndSettings') }}
+                      </div>
+                    </a-menu-item>
+
+                    <!-- Mobile Mode -->
+                    <a-menu-item v-if="betaFeatureToggleState.show || isMobileMode" key="mobile-mode">
+                      <div
+                        v-e="['e:set-mobile-mode']"
+                        class="nc-project-menu-item group"
+                        @click.stop="setIsMobileMode(!isMobileMode)"
+                      >
+                        <MaterialSymbolsMobileFriendly class="group-hover:text-accent" />
+                        {{ $t('activity.toggleMobileMode') }}
                       </div>
                     </a-menu-item>
 
@@ -470,7 +490,7 @@ useEventListener(document, 'keydown', async (e: KeyboardEvent) => {
                     <a-menu-divider />
 
                     <!-- Preview As -->
-                    <a-sub-menu v-if="isUIAllowed('previewAs')" key="preview-as">
+                    <a-sub-menu v-if="isUIAllowed('previewAs') && !isMobileMode" key="preview-as">
                       <template #title>
                         <div v-e="['c:navdraw:preview-as']" class="nc-project-menu-item group">
                           <MdiFileEyeOutline class="group-hover:text-accent" />

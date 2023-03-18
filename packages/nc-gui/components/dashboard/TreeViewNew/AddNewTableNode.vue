@@ -32,24 +32,6 @@ const projectStore = useProject()
 
 const { isSharedBase } = storeToRefs(projectStore)
 
-function openTableCreateMagicDialog(baseId?: string) {
-  $e('c:table:create:navdraw')
-
-  const isOpen = ref(true)
-
-  const { close } = useDialog(resolveComponent('DlgTableMagic'), {
-    'modelValue': isOpen,
-    'baseId': baseId, // || bases.value[0].id,
-    'onUpdate:modelValue': closeDialog,
-  })
-
-  function closeDialog() {
-    isOpen.value = false
-
-    close(1000)
-  }
-}
-
 function openSchemaMagicDialog(baseId?: string) {
   $e('c:table:create:navdraw')
 
@@ -57,7 +39,7 @@ function openSchemaMagicDialog(baseId?: string) {
 
   const { close } = useDialog(resolveComponent('DlgSchemaMagic'), {
     'modelValue': isOpen,
-    'baseId': baseId, // || bases.value[0].id,
+    'baseId': baseId,
     'onUpdate:modelValue': closeDialog,
   })
 
@@ -76,7 +58,7 @@ function openQuickImportDialog(type: string, baseId?: string) {
   const { close } = useDialog(resolveComponent('DlgQuickImport'), {
     'modelValue': isOpen,
     'importType': type,
-    'baseId': baseId, // || bases.value[0].id,
+    'baseId': baseId,
     'onUpdate:modelValue': closeDialog,
   })
 
@@ -94,7 +76,7 @@ function openAirtableImportDialog(baseId?: string) {
 
   const { close } = useDialog(resolveComponent('DlgAirtableImport'), {
     'modelValue': isOpen,
-    'baseId': baseId, // || bases.value[0].id,
+    'baseId': baseId,
     'onUpdate:modelValue': closeDialog,
   })
 
@@ -105,8 +87,23 @@ function openAirtableImportDialog(baseId?: string) {
   }
 }
 
-// todo: temp
+function openTableCreateMagicDialog(baseId?: string) {
+  $e('c:table:create:navdraw')
 
+  const isOpen = ref(true)
+
+  const { close } = useDialog(resolveComponent('DlgTableMagic'), {
+    'modelValue': isOpen,
+    'baseId': baseId,
+    'onUpdate:modelValue': closeDialog,
+  })
+
+  function closeDialog() {
+    isOpen.value = false
+
+    close(1000)
+  }
+}
 const { appInfo } = useGlobal()
 
 const { selectedBase } = useSqlEditor()

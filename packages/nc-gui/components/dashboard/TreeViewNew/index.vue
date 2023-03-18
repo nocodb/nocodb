@@ -514,7 +514,7 @@ const isClearMode = computed(() => route.query.clear === '1' && route.params.pro
                 class="flex-1 ml-1"
               >
                 <AddNewTableNode
-                  :project="project"
+                  :project="projects[project.id]"
                   :base-index="0"
                   @openTableCreateDialog="openTableCreateDialog(projects[project.id].bases[0].id, project.id)"
                 />

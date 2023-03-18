@@ -343,6 +343,7 @@ declare module '@vue/runtime-core' {
     PhSparkleFill: typeof import('~icons/ph/sparkle-fill')['default']
     PhSparkleThin: typeof import('~icons/ph/sparkle-thin')['default']
     PhUploadSimpleFill: typeof import('~icons/ph/upload-simple-fill')['default']
+    PhUserCircleThin: typeof import('~icons/ph/user-circle-thin')['default']
     RiExternalLinkLine: typeof import('~icons/ri/external-link-line')['default']
     RiLineHeight: typeof import('~icons/ri/line-height')['default']
     RiTeamFill: typeof import('~icons/ri/team-fill')['default']

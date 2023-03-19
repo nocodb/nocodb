@@ -114,7 +114,7 @@ const toggleDialog = inject(ToggleDialogInj, () => {})
 <template>
   <div
     v-if="isUIAllowed('table-create')"
-    class="group flex items-center gap-2 pl-2 pr-3 py-2 text-primary/70 hover:(text-primary/100) cursor-pointer select-none"
+    class="group flex items-center gap-2 pl-2 pr-5 py-2 text-primary/70 hover:(text-primary/100) cursor-pointer select-none"
     @click="emit('openTableCreateDialog')"
   >
     <PhPlusThin class="w-5 ml-2" />

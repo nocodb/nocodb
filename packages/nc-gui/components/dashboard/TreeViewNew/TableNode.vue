@@ -132,7 +132,7 @@ const { isSharedBase } = useProject()
           :trigger="['click']"
           @click.stop
         >
-          <MdiDotsVertical class="transition-opacity opacity-0 group-hover:opacity-100 outline-0" />
+          <PhDotsThreeOutlineVerticalThin class="transition-opacity opacity-0 group-hover:opacity-100 outline-0" />
 
           <template #overlay>
             <a-menu class="!py-0 rounded text-sm">

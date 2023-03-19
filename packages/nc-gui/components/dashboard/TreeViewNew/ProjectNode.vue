@@ -114,7 +114,7 @@ const isSharedBase = ref(false)
     </span>
     <span :class="{ 'flex-grow': !editMode }"></span>
     <a-dropdown>
-      <MdiDotsHorizontal class="mr-2 opacity-0 group-hover:opacity-100" @click.stop />
+      <PhDotsThreeOutlineVerticalThin class="mr-5 opacity-0 group-hover:opacity-100" @click.stop />
       <template #overlay>
         <a-menu>
           <!--          <a-menu class="!ml-1 !w-[300px] !text-sm"> -->

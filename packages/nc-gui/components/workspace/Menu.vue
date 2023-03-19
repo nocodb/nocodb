@@ -78,11 +78,11 @@ const modalVisible = false
       <template #overlay>
         <a-menu class="!ml-4 !w-[300px] !text-sm">
           <a-menu-item-group>
+
+            <div class="nc-menu-sub-head">Current Workspace</div>
             <div class="group select-none flex items-center gap-4 p-2">
               <input v-model="workspace.title" class="nc-workspace-title-input text-current" @input="updateWorkspaceTitle" />
             </div>
-            <a-menu-divider />
-            <div class="nc-menu-sub-head">Workspace Options</div>
 
             <a-menu-item @click="workspaceModalVisible = true">
               <div class="nc-workspace-menu-item group">
@@ -110,7 +110,7 @@ const modalVisible = false
                 </div>
               </a-menu-item>
             </div>
-            <a-menu-divider />
+            <a-menu-divider class="mt-2" />
 
             <a-menu-item @click="createDlg = true">
               <div class="nc-workspace-menu-item group">
@@ -311,7 +311,7 @@ const modalVisible = false
 
 <style scoped>
 .nc-workspace-title-input {
-  @apply flex-grow p-2 outline-none hover:(bg-gray-100) focus:(bg-gray-100) rounded text-md text-defaault;
+  @apply flex-grow py-2 px-3 outline-none hover:(bg-gray-100) focus:(bg-gray-100) rounded text-md text-defaault;
 }
 
 .nc-menu-sub-head {

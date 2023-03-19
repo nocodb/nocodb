@@ -522,7 +522,9 @@ useEventListener(document, 'contextmenu', handleContext, true)
             <span class="text-gray-500 group-hover:(text-primary/100) flex-1 nc-add-new-table">{{ $t('tooltip.addTable') }}</span>
 
             <a-dropdown v-if="!isSharedBase" :trigger="['click']" overlay-class-name="nc-dropdown-import-menu" @click.stop>
-              <PhDotsThreeOutlineVerticalThin class="transition-opacity opacity-0 group-hover:opacity-100 nc-import-menu outline-0" />
+              <PhDotsThreeOutlineVerticalThin
+                class="transition-opacity opacity-0 group-hover:opacity-100 nc-import-menu outline-0"
+              />
 
               <template #overlay>
                 <a-menu class="!py-0 rounded text-sm">
@@ -725,7 +727,9 @@ useEventListener(document, 'contextmenu', handleContext, true)
                           :trigger="['click']"
                           @click.stop
                         >
-                          <PhDotsThreeOutlineVerticalThin class="transition-opacity opacity-0 group-hover:opacity-100 outline-0" />
+                          <PhDotsThreeOutlineVerticalThin
+                            class="transition-opacity opacity-0 group-hover:opacity-100 outline-0"
+                          />
 
                           <template #overlay>
                             <a-menu class="!py-0 rounded text-sm">
@@ -812,7 +816,9 @@ useEventListener(document, 'contextmenu', handleContext, true)
                       overlay-class-name="nc-dropdown-import-menu"
                       @click.stop
                     >
-                      <PhDotsThreeOutlineVerticalThin class="transition-opacity opacity-0 group-hover:opacity-100 nc-import-menu outline-0" />
+                      <PhDotsThreeOutlineVerticalThin
+                        class="transition-opacity opacity-0 group-hover:opacity-100 nc-import-menu outline-0"
+                      />
 
                       <template #overlay>
                         <a-menu class="!py-0 rounded text-sm">
@@ -921,7 +927,9 @@ useEventListener(document, 'contextmenu', handleContext, true)
                       overlay-class-name="nc-dropdown-import-menu"
                       @click.stop
                     >
-                      <PhDotsThreeOutlineVerticalThin class="transition-opacity opacity-0 group-hover:opacity-100 nc-import-menu outline-0" />
+                      <PhDotsThreeOutlineVerticalThin
+                        class="transition-opacity opacity-0 group-hover:opacity-100 nc-import-menu outline-0"
+                      />
 
                       <template #overlay>
                         <a-menu class="!py-0 rounded text-sm">
@@ -1078,7 +1086,9 @@ useEventListener(document, 'contextmenu', handleContext, true)
                             :trigger="['click']"
                             @click.stop
                           >
-                            <PhDotsThreeOutlineVerticalThin class="transition-opacity opacity-0 group-hover:opacity-100 outline-0" />
+                            <PhDotsThreeOutlineVerticalThin
+                              class="transition-opacity opacity-0 group-hover:opacity-100 outline-0"
+                            />
 
                             <template #overlay>
                               <a-menu class="!py-0 rounded text-sm">

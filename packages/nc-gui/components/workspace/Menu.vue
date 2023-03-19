@@ -78,7 +78,6 @@ const modalVisible = false
       <template #overlay>
         <a-menu class="!ml-4 !w-[300px] !text-sm">
           <a-menu-item-group>
-
             <div class="nc-menu-sub-head">Current Workspace</div>
             <div class="group select-none flex items-center gap-4 p-2">
               <input v-model="workspace.title" class="nc-workspace-title-input text-current" @input="updateWorkspaceTitle" />

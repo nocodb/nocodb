@@ -31,6 +31,8 @@ const { addTab, updateTab } = tabStore
 const { activeTab } = storeToRefs(tabStore)
 const { $e, $api } = useNuxtApp()
 
+const { deleteTable } = useTable()
+
 // todo: temp
 const { projectTableList } = storeToRefs(useProjects())
 
@@ -62,6 +64,25 @@ const setIcon = async (icon: string, table: TableType) => {
     $e('a:table:icon:navdraw', { icon })
   } catch (e) {
     message.error(await extractSdkResponseErrorMsg(e))
+  }
+}
+
+function openRenameTableDialog(table: TableType, baseId?: string, rightClick = false) {
+  $e(rightClick ? 'c:table:rename:navdraw:right-click' : 'c:table:rename:navdraw:options')
+
+  const isOpen = ref(true)
+
+  const { close } = useDialog(resolveComponent('DlgTableRename'), {
+    'modelValue': isOpen,
+    'tableMeta': table,
+    'baseId': baseId,
+    'onUpdate:modelValue': closeDialog,
+  })
+
+  function closeDialog() {
+    isOpen.value = false
+
+    close(1000)
   }
 }
 

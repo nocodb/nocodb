@@ -210,7 +210,7 @@
     "advancedSettings": "Advanced Settings",
     "codeSnippet": "Code Snippet",
     "keyboardShortcut": "Keyboard Shortcuts",
-    "generateRandomName": "Generate Random Name", 
+    "generateRandomName": "Generate Random Name",
     "findRowByScanningCode": "Find row by scanning a QR or Barcode"
   },
   "labels": {

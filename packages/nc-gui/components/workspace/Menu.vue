@@ -2,7 +2,8 @@
 import { storeToRefs } from 'pinia'
 import type { WorkspaceType } from 'nocodb-sdk'
 import { useDebounceFn } from '@vueuse/core'
-import { onMounted, ref, useWorkspace } from '#imports'
+import tinycolor from 'tinycolor2'
+import { onMounted, projectThemeColors, ref, useWorkspace } from '#imports'
 import { navigateTo } from '#app'
 
 const props = defineProps<{
@@ -11,11 +12,16 @@ const props = defineProps<{
 
 const workspaceStore = useWorkspace()
 
+const { saveTheme } = workspaceStore
 const { workspace, workspaces, isWorkspaceOwner } = storeToRefs(workspaceStore)
 
 const { appInfo, token, signOut, signedIn, user, currentVersion } = useGlobal()
 
+const email = computed(() => user.value?.email ?? '---')
+
 const { isUIAllowed } = useUIPermission()
+
+const { theme, defaultTheme } = useTheme()
 
 onMounted(async () => {
   await workspaceStore.loadWorkspaceList()
@@ -36,6 +42,53 @@ const updateWorkspaceTitle = useDebounceFn(async () => {
     title: workspace.value!.title,
   })
 }, 500)
+
+const handleThemeColor = async (mode: 'swatch' | 'primary' | 'accent', color?: string) => {
+  switch (mode) {
+    case 'swatch': {
+      if (color === defaultTheme.primaryColor) {
+        return await saveTheme(defaultTheme)
+      }
+
+      const tcolor = tinycolor(color)
+      if (tcolor.isValid()) {
+        const complement = tcolor.complement()
+
+        await saveTheme({
+          primaryColor: color,
+          accentColor: complement.toHex8String(),
+        })
+      }
+      break
+    }
+    case 'primary': {
+      const tcolor = tinycolor(color)
+
+      if (tcolor.isValid()) {
+        await saveTheme({
+          primaryColor: color,
+        })
+      }
+      break
+    }
+    case 'accent': {
+      const tcolor = tinycolor(color)
+
+      if (tcolor.isValid()) {
+        await saveTheme({
+          accentColor: color,
+        })
+      }
+      break
+    }
+  }
+}
+
+const logout = async () => {
+  await signOut()
+  navigateTo('/signin')
+}
+
 
 // todo: temp
 const isSharedBase = false
@@ -320,6 +373,7 @@ const modalVisible = false
 .nc-workspace-menu-item {
   @apply flex items-center pl-2 py-2 gap-2 text-sm;
 }
+
 :deep(.ant-dropdown-menu-submenu-title) {
   @apply !py-0;
   .nc-icon {

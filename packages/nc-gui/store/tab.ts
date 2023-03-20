@@ -1,6 +1,6 @@
 import type { WritableComputedRef } from '@vue/reactivity'
 import { defineStore, storeToRefs } from 'pinia'
-import { computed, navigateTo, ref, useProject, useRouter, watch } from '#imports'
+import { computed, navigateTo, ref, useProject,useProjects, useRouter, watch } from '#imports'
 import type { TabItem } from '~/lib'
 import { TabType } from '~/lib'
 
@@ -21,6 +21,8 @@ export const useTabs = defineStore('tabStore', () => {
   const { t } = useI18n()
 
   const { isUIAllowed } = useUIPermission()
+
+  const projectsStore = useProjects()
 
   const projectStore = useProject()
   const { project, tables } = $(storeToRefs(projectStore))

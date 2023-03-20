@@ -4,6 +4,7 @@ import type { OrgUserReqType } from 'nocodb-sdk'
 import {
   Form,
   computed,
+  emailValidator,
   extractSdkResponseErrorMsg,
   message,
   ref,
@@ -11,7 +12,6 @@ import {
   useDashboard,
   useI18n,
   useNuxtApp,
-  validateEmail,
 } from '#imports'
 import type { User } from '~/lib'
 import { Role } from '~/lib'
@@ -44,24 +44,10 @@ const usersData = $ref<Users>({ emails: '', role: Role.OrgLevelViewer, invitatio
 const formRef = ref()
 
 const useForm = Form.useForm
+
 const validators = computed(() => {
   return {
-    emails: [
-      {
-        validator: (rule: any, value: string, callback: (errMsg?: string) => void) => {
-          if (!value || value.length === 0) {
-            callback('Email is required')
-            return
-          }
-          const invalidEmails = (value || '').split(/\s*,\s*/).filter((e: string) => !validateEmail(e))
-          if (invalidEmails.length > 0) {
-            callback(`${invalidEmails.length > 1 ? ' Invalid emails:' : 'Invalid email:'} ${invalidEmails.join(', ')} `)
-          } else {
-            callback()
-          }
-        },
-      },
-    ],
+    emails: [emailValidator],
   }
 })
 

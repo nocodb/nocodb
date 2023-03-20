@@ -9,6 +9,7 @@ import {
   ReloadViewDataHookInj,
   computed,
   createEventHook,
+  emailValidator,
   extractSdkResponseErrorMsg,
   inject,
   message,
@@ -23,7 +24,6 @@ import {
   useUIPermission,
   useViewColumns,
   useViewData,
-  validateEmail,
   watch,
 } from '#imports'
 import type { Permission } from '~/lib'
@@ -103,22 +103,7 @@ const { t } = useI18n()
 const { betaFeatureToggleState } = useBetaFeatureToggle()
 
 const formRules = {
-  email: [
-    {
-      validator: (rule: any, value: string, callback: (errMsg?: string) => void) => {
-        if (!value || value.length === 0) {
-          callback('Email is required')
-          return
-        }
-        const invalidEmails = (value || '').split(/\s*,\s*/).filter((e: string) => !validateEmail(e))
-        if (invalidEmails.length > 0) {
-          callback(`${invalidEmails.length > 1 ? ' Invalid emails:' : 'Invalid email:'} ${invalidEmails.join(', ')} `)
-        } else {
-          callback()
-        }
-      },
-    },
-  ],
+  email: [emailValidator],
 }
 
 const updateView = useDebounceFn(

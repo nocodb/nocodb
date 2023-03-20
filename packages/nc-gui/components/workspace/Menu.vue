@@ -76,10 +76,10 @@ const modalVisible = false
       </div>
 
       <template #overlay>
-        <a-menu class="!ml-4 !w-[300px] !text-sm">
+        <a-menu class="!ml-4 !w-[300px]">
           <a-menu-item-group>
-<!--            <div class="nc-menu-sub-head">Current Workspace</div>-->
-            <div class="group select-none flex items-center gap-4 p-2">
+            <!--  <div class="nc-menu-sub-head">Current Workspace</div> -->
+            <div class="group select-none flex items-center gap-4 p-2 pb-0">
               <input v-model="workspace.title" class="nc-workspace-title-input text-current" @input="updateWorkspaceTitle" />
             </div>
 
@@ -96,7 +96,7 @@ const modalVisible = false
               </div>
             </a-menu-item>
 
-            <a-menu-divider class="mt-2" />
+            <a-menu-divider />
 
             <div class="nc-menu-sub-head">Workspaces</div>
 
@@ -109,7 +109,7 @@ const modalVisible = false
                 </div>
               </a-menu-item>
             </div>
-            <a-menu-divider class="mt-2" />
+            <a-menu-divider />
 
             <a-menu-item @click="createDlg = true">
               <div class="nc-workspace-menu-item group">
@@ -308,16 +308,22 @@ const modalVisible = false
   </div>
 </template>
 
-<style scoped>
+<style scoped lang="scss">
 .nc-workspace-title-input {
   @apply flex-grow py-2 px-3 outline-none hover:(bg-gray-100) focus:(bg-gray-100) rounded text-md text-defaault;
 }
 
 .nc-menu-sub-head {
-  @apply pt-4 pb-2 text-gray-500 text-sm px-5;
+  @apply pt-2 pb-2 text-gray-500 text-sm px-5;
 }
 
 .nc-workspace-menu-item {
-  @apply flex items-center pl-2 py-2 text-sm gap-2;
+  @apply flex items-center pl-2 py-2 gap-2 text-sm;
+}
+:deep(.ant-dropdown-menu-submenu-title) {
+  @apply !py-0;
+  .nc-icon {
+    @apply !text-xs;
+  }
 }
 </style>

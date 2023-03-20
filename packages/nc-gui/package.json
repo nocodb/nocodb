@@ -28,7 +28,6 @@
     "coverage": "vitest -c test/vite.config.ts run --coverage",
     "build:copy": "npm run generate; rm -rf ../nc-lib-gui/lib/dist/; rsync -rvzh ./dist/ ../nc-lib-gui/lib/dist/",
     "build:copy:publish": "npm run generate; rm -rf ../nc-lib-gui/lib/dist/; rsync -rvzh ./dist/ ../nc-lib-gui/lib/dist/; npm publish ../nc-lib-gui",
-    "postinstall": "node scripts/updateNuxtRouting.js",
     "ci:run": "export NODE_OPTIONS=\"--max_old_space_size=16384\"; npm install; NUXT_PAGE_TRANSITION_DISABLE=true npm run build; NUXT_PUBLIC_NC_BACKEND_URL=http://localhost:8080 npm run start &"
   },
   "dependencies": {

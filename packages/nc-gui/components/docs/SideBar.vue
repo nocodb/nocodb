@@ -151,44 +151,15 @@ onMounted(async () => {
 </script>
 
 <template>
-  <div v-if="nestedPages">
+  <template v-if="nestedPages">
     <a-layout-sider
       :collapsed="false"
-      width="250"
       collapsed-width="50"
-      class="relative h-full z-1 nc-docs-left-sidebar"
+      class="relative h-full z-1 nc-docs-left-sidebar !w-full !min-w-full !max-w-full pb-1"
       :trigger="null"
       collapsible
       theme="light"
     >
-      <div
-        v-if="!isPublic"
-        class="flex flex-row justify-between items-center pr-2 pl-4.5 py-2 border-b-gray-100 border-b-1 hover:(bg-gray-100 cursor-pointer)"
-        :class="{ 'bg-primary-selected hover:(!bg-primary-selected bg-opacity-20)': !openedPageId, '': openedPageId }"
-        @click.self="navigateToHome"
-      >
-        <div
-          class="flex flex-row text-xs font-semibold items-center gap-x-3 h-6.5"
-          :class="{ 'text-primary': !openedPageId }"
-          @click="navigateToHome"
-        >
-          <div v-if="project.title" class="flex pop-in-animation">
-            <MdiBookOpenOutline />
-          </div>
-          <div v-if="project.title" class="flex text-sm pop-in-animation">
-            {{ project.title }}
-          </div>
-        </div>
-        <div v-if="project.title && isEditAllowed" class="flex flex-row justify-between items-center">
-          <div
-            class="flex select-none p-1 rounded-md hover:(text-primary/100 !bg-gray-200 !bg-opacity-60) cursor-pointer pop-in-animation"
-            @click="() => addNewPage({projectId: project.id!})"
-          >
-            <MdiPlus />
-          </div>
-        </div>
-      </div>
-      <div v-else class="flex"></div>
       <a-tree
         v-model:expandedKeys="openedTabs"
         v-model:selectedKeys="openPageTabKeys"
@@ -196,7 +167,7 @@ onMounted(async () => {
         :tree-data="nestedPages"
         :draggable="isEditAllowed"
         :on-drop="onDrop"
-        class="!w-full h-full overflow-y-scroll !overflow-x-hidden pb-20"
+        class="!w-full h-full overflow-y-scroll !overflow-x-hidden"
         @dragenter="onDragEnter"
         @select="onTabSelect"
       >
@@ -209,6 +180,7 @@ onMounted(async () => {
               <div class="flex flex-shrink-0">
                 <a-popover placement="bottom" overlay-class-name="docs-page-icon-change-popover" color="#000000">
                   <template #content> Change Icon </template>
+                  <!-- TODO: temp -->
                   <a-dropdown v-if="isEditAllowed || true" placement="bottom" trigger="click">
                     <div class="flex px-0.5 pt-0.75 text-gray-500 rounded-md hover:bg-gray-200 cursor-pointer">
                       <IconifyIcon
@@ -288,6 +260,14 @@ onMounted(async () => {
           </div>
         </template>
       </a-tree>
+      <div
+        v-if="!isPublic"
+        class="py-1 flex flex-row pl-7 items-center gap-x-2 cursor-pointer hover:text-black text-gray-600 text-sm"
+        @click="() => addNewPage({parentPageId: undefined, projectId: project.id!})"
+      >
+        <MdiPlus />
+        <div class="flex">Create New Page</div>
+      </div>
     </a-layout-sider>
     <a-modal v-model:visible="deleteModalOpen" centered :closable="false" :footer="false">
       <div class="flex flex-col">
@@ -298,7 +278,7 @@ onMounted(async () => {
         </div>
       </div>
     </a-modal>
-  </div>
+  </template>
 </template>
 
 <style lang="scss">
@@ -319,9 +299,6 @@ onMounted(async () => {
 .nc-docs-left-sidebar {
   .ant-tree-node-content-wrapper {
     min-width: 0 !important;
-  }
-  .ant-tree-list-holder-inner {
-    @apply mx-2.5;
   }
 
   .ant-tree {
@@ -374,7 +351,7 @@ onMounted(async () => {
     @apply w-full mr-2 pl-0.5 !important;
   }
   .ant-tree-list {
-    @apply pt-0.5 last:pb-3;
+    @apply pt-0.5 last:pb-1;
     .ant-tree-switcher {
       @apply mt-1 !important;
     }

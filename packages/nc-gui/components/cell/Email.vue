@@ -30,7 +30,7 @@ const focus: VNodeRef = (el) => (el as HTMLInputElement)?.focus()
     v-if="editEnabled"
     :ref="focus"
     v-model="vModel"
-    class="outline-none text-sm px-2"
+    class="w-full outline-none text-sm px-2"
     @blur="editEnabled = false"
     @keydown.down.stop
     @keydown.left.stop

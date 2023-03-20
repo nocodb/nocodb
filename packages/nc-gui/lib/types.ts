@@ -89,6 +89,7 @@ export interface SharedViewMeta extends Record<string, any> {
   theme?: Partial<ThemeConfig>
   allowCSVDownload?: boolean
   rtl?: boolean
+  preFilledMode?: string
 }
 
 export interface SharedView {

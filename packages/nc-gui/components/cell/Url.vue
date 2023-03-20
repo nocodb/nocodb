@@ -5,6 +5,7 @@ import {
   ColumnInj,
   EditModeInj,
   computed,
+  ReadonlyInj,
   inject,
   isValidURL,
   message,
@@ -35,6 +36,8 @@ const disableOverlay = inject(CellUrlDisableOverlayInj, ref(false))
 
 // Used in the logic of when to display error since we are not storing the url if it's not valid
 const localState = ref(value)
+
+const readonly = inject(ReadonlyInj, ref(false))
 
 const vModel = computed({
   get: () => value,
@@ -77,7 +80,7 @@ watch(
 <template>
   <div class="flex flex-row items-center justify-between w-full h-full">
     <input
-      v-if="editEnabled"
+      v-if="!readonly && editEnabled"
       :ref="focus"
       v-model="vModel"
       class="outline-none text-sm w-full px-2 bg-transparent h-full"

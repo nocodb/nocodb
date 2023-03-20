@@ -1,6 +1,6 @@
 <script lang="ts" setup>
 import type { VNodeRef } from '@vue/runtime-core'
-import { EditModeInj, computed, inject, useVModel, validateEmail } from '#imports'
+import { EditModeInj, computed, ReadonlyInj, inject, useVModel, validateEmail } from '#imports'
 
 interface Props {
   modelValue: string | null | undefined
@@ -18,6 +18,8 @@ const { showNull } = useGlobal()
 
 const editEnabled = inject(EditModeInj)
 
+const readonly = inject(ReadonlyInj, ref(false))
+
 const vModel = useVModel(props, 'modelValue', emits)
 
 const validEmail = computed(() => vModel.value && validateEmail(vModel.value))
@@ -27,7 +29,7 @@ const focus: VNodeRef = (el) => (el as HTMLInputElement)?.focus()
 
 <template>
   <input
-    v-if="editEnabled"
+    v-if="!readonly && editEnabled"
     :ref="focus"
     v-model="vModel"
     class="outline-none text-sm px-2"

@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import type { VNodeRef } from '@vue/runtime-core'
-import { EditModeInj, RowHeightInj, inject, useVModel } from '#imports'
+import { EditModeInj, RowHeightInj, ReadonlyInj, inject, useVModel } from '#imports'
 
 const props = defineProps<{
   modelValue?: string | number
@@ -14,6 +14,8 @@ const rowHeight = inject(RowHeightInj)
 
 const { showNull } = useGlobal()
 
+const readonly = inject(ReadonlyInj, ref(false))
+
 const vModel = useVModel(props, 'modelValue', emits, { defaultValue: '' })
 
 const focus: VNodeRef = (el) => (el as HTMLTextAreaElement)?.focus()
@@ -21,7 +23,7 @@ const focus: VNodeRef = (el) => (el as HTMLTextAreaElement)?.focus()
 
 <template>
   <textarea
-    v-if="editEnabled"
+    v-if="!readonly && editEnabled"
     :ref="focus"
     v-model="vModel"
     rows="4"

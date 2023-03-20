@@ -85,6 +85,14 @@ const viewTheme = computed({
   },
 })
 
+const preFilledMode = computed({
+  get: () => shared.value.meta?.preFilledMode || "default",
+  set: (preFilled) => {
+    shared.value.meta = { ...shared.value.meta, preFilledMode: preFilled }
+    savePreFilledMode()
+  },
+})
+
 const genShareLink = async () => {
   if (!view.value?.id) return
 
@@ -142,6 +150,11 @@ async function saveSurveyMode() {
 async function saveTheme() {
   await updateSharedViewMeta()
   $e(`a:view:share:${viewTheme.value ? 'enable' : 'disable'}-theme`)
+}
+
+async function savePreFilledMode() {
+  await updateSharedViewMeta()
+  $e(`a:view:share:${preFilledMode.value}-prefilled-mode`)
 }
 
 // const saveTransitionDuration = useDebounceFn(updateSharedViewMeta, 1000, { maxWait: 2000 })
@@ -396,6 +409,38 @@ const copyIframeCode = async () => {
               <!-- todo i18n -->
               RTL Orientation
             </a-checkbox>
+          </div>
+
+          <div v-if="shared.type === ViewTypes.FORM" class="flex flex-col">
+            <!-- pre-filled fields - todo: i18n -->
+            <div class="ml-1 mb-1 text-xs text-gray-500">Pre-filled Fields</div>
+
+            <a-select v-model:value="preFilledMode">
+              <a-select-option value="default">
+                <div class="flex flex-row h-full justify-start items-center">
+                  <!-- todo i18n -->
+                  Allow pre-filling fields
+                </div>
+              </a-select-option>
+              <a-select-option value="none">
+                <div class="flex flex-row h-full justify-start items-center">
+                  <!-- todo i18n -->
+                  Disable pre-filling fields
+                </div>
+              </a-select-option>
+              <a-select-option value="lock">
+                <div class="flex flex-row h-full justify-start items-center">
+                  <!-- todo i18n -->
+                  Lock pre-filled fields as read-only
+                </div>
+              </a-select-option>
+              <a-select-option value="hide">
+                <div class="flex flex-row h-full justify-start items-center">
+                  <!-- todo i18n -->
+                  Hide pre-filled fields
+                </div>
+              </a-select-option>
+            </a-select>
           </div>
         </div>
       </div>

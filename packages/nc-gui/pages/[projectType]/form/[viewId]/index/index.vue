@@ -5,8 +5,31 @@ import { ref } from 'vue'
 import { StreamBarcodeReader } from 'vue-barcode-reader'
 import { useSharedFormStoreOrThrow } from '#imports'
 
-const { sharedFormView, submitForm, v$, formState, notFound, formColumns, submitted, secondsRemain, isLoading } =
+const { sharedFormView, submitForm, v$, formState, notFound, formColumns, submitted, secondsRemain, isLoading, sharedViewMeta } =
   useSharedFormStoreOrThrow()
+
+const route = useRoute()
+
+if(formColumns.value && sharedViewMeta.value.preFilledMode !== "none" && Object.keys(route.query).length > 0) {
+  for (const column of formColumns.value) {
+    if(column.title && route.query[column.title]) {
+      if(isVirtualCol(column)) {
+        let virtData = (<string>route.query[column.title]).split(';')
+        if(virtData.length) {
+          formState.value[column.title] = []
+          virtData.forEach(virtItem => {
+            let virtRow = virtItem.split('|')
+            formState.value[column.title] = [...formState.value[column.title], {Id: virtRow[0], Title: virtRow[1]}]
+          })
+        }
+      } else {
+        formState.value[column.title] = route.query[column.title]
+      }
+      if(sharedViewMeta.value.preFilledMode === "hide") column.show = false
+      if(sharedViewMeta.value.preFilledMode === "lock") column.read_only = true
+    }
+  }
+}
 
 function isRequired(_columnObj: Record<string, any>, required = false) {
   let columnObj = _columnObj
@@ -147,7 +170,7 @@ const onDecode = async (scannedCodeValue: string) => {
                     <div class="flex">
                       <LazySmartsheetVirtualCell
                         v-if="isVirtualCol(field)"
-                        :model-value="null"
+                        v-model="formState[field.title]"
                         class="mt-0 nc-input nc-cell"
                         :data-testid="`nc-form-input-cell-${field.label || field.title}`"
                         :class="`nc-form-input-${field.title?.replaceAll(' ', '')}`"
@@ -162,6 +185,7 @@ const onDecode = async (scannedCodeValue: string) => {
                         :class="`nc-form-input-${field.title?.replaceAll(' ', '')}`"
                         :column="field"
                         :edit-enabled="true"
+                        :read-only="field.read_only"
                       />
                       <a-button
                         v-if="field.enable_scanner"

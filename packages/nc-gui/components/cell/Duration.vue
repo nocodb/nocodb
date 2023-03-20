@@ -7,6 +7,7 @@ import {
   convertDurationToSeconds,
   convertMS2Duration,
   durationOptions,
+  ReadonlyInj,
   inject,
   parseProp,
   ref,
@@ -32,6 +33,8 @@ const showWarningMessage = ref(false)
 const durationInMS = ref(0)
 
 const isEdited = ref(false)
+
+const readonly = inject(ReadonlyInj, ref(false))
 
 const durationType = computed(() => parseProp(column?.value?.meta)?.duration || 0)
 
@@ -79,7 +82,7 @@ const focus: VNodeRef = (el) => (el as HTMLInputElement)?.focus()
 <template>
   <div class="duration-cell-wrapper">
     <input
-      v-if="editEnabled"
+      v-if="!readonly && editEnabled"
       :ref="focus"
       v-model="localState"
       class="w-full !border-none p-0"

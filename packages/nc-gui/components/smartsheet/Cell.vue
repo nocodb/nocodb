@@ -66,7 +66,7 @@ const column = toRef(props, 'column')
 
 const active = toRef(props, 'active', false)
 
-const readOnly = toRef(props, 'readOnly', undefined)
+const readOnly = toRef(props, 'readOnly', false)
 
 provide(ColumnInj, column)
 
@@ -158,6 +158,7 @@ const onContextmenu = (e: MouseEvent) => {
       `nc-cell-${(column?.uidt || 'default').toLowerCase()}`,
       { 'text-blue-600': isPrimary(column) && !props.virtual && !isForm },
       { 'nc-grid-numeric-cell': isGrid && !isForm && isNumericField },
+      { 'h-[40px]': !props.editEnabled && isForm }
     ]"
     @keydown.enter.exact="syncAndNavigate(NavigateDir.NEXT, $event)"
     @keydown.shift.enter.exact="syncAndNavigate(NavigateDir.PREV, $event)"

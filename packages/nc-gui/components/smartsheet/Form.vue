@@ -23,6 +23,7 @@ import {
   useUIPermission,
   useViewColumns,
   useViewData,
+  validateEmail,
   watch,
 } from '#imports'
 import type { Permission } from '~/lib'
@@ -100,6 +101,25 @@ const activeRow = ref('')
 const { t } = useI18n()
 
 const { betaFeatureToggleState } = useBetaFeatureToggle()
+
+const formRules = {
+  email: [
+    {
+      validator: (rule: any, value: string, callback: (errMsg?: string) => void) => {
+        if (!value || value.length === 0) {
+          callback('Email is required')
+          return
+        }
+        const invalidEmails = (value || '').split(/\s*,\s*/).filter((e: string) => !validateEmail(e))
+        if (invalidEmails.length > 0) {
+          callback(`${invalidEmails.length > 1 ? ' Invalid emails:' : 'Invalid email:'} ${invalidEmails.join(', ')} `)
+        } else {
+          callback()
+        }
+      },
+    },
+  ],
+}
 
 const updateView = useDebounceFn(
   () => {
@@ -719,6 +739,7 @@ watch(view, (nextView) => {
                         required: isRequired(element, element.required),
                         message: `${element.label || element.title} is required`,
                       },
+                      ...(element.uidt === UITypes.Email && formRules.email),
                     ]"
                   >
                     <LazySmartsheetCell

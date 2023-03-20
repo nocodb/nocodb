@@ -589,14 +589,14 @@ onMounted(async () => {
             </a-tab-pane>
 
             <!-- No in use at this moment -->
-            <!--            <a-tab-pane key="auth" tab="Auth">-->
-            <!--              <LazyMonacoEditor v-model="hook.notification.payload.auth" class="min-h-60 max-h-80" />-->
+            <!--            <a-tab-pane key="auth" tab="Auth"> -->
+            <!--              <LazyMonacoEditor v-model="hook.notification.payload.auth" class="min-h-60 max-h-80" /> -->
 
-            <!--              <span class="text-gray-500 prose-sm p-2">-->
-            <!--                For more about auth option refer-->
-            <!--                <a class="prose-sm" href  ="https://github.com/axios/axios#request-config" target="_blank">axios docs</a>.-->
-            <!--              </span>-->
-            <!--            </a-tab-pane>-->
+            <!--              <span class="text-gray-500 prose-sm p-2"> -->
+            <!--                For more about auth option refer -->
+            <!--                <a class="prose-sm" href  ="https://github.com/axios/axios#request-config" target="_blank">axios docs</a>. -->
+            <!--              </span> -->
+            <!--            </a-tab-pane> -->
           </a-tabs>
         </a-col>
       </a-row>

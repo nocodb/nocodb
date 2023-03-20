@@ -85,8 +85,7 @@ export default defineNuxtConfig({
       commonjsOptions: {
         ignoreTryCatch: true,
       },
-      // todo: temp
-      minify: false,
+      minify: true,
       rollupOptions: {
         output: {
           manualChunks(id) {

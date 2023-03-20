@@ -5,10 +5,10 @@ import type { TabItem } from '~/lib'
 import { TabType } from '~/lib'
 
 function getPredicate(key: Partial<TabItem>) {
-  return (tab: TabItem) =>
-    (!('id' in key) || tab.id === key.id) &&
-    (!('title' in key) || tab.title === key.title) &&
-    (!('type' in key) || tab.type === key.type)
+  // todo: temp
+  // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+  // @ts-expect-error
+  return (tab: TabItem) => (Object.keys(key)).every((k) => tab[k] === key[k])
 }
 
 export const useTabs = defineStore('tabStore', () => {
@@ -211,7 +211,7 @@ export const useTabs = defineStore('tabStore', () => {
     const tab = typeof key === 'number' ? tabs.value[key] : tabs.value.find(getPredicate(key))
 
     if (tab) {
-      const isActive = tabs.value.indexOf(tab) === previousActiveTabIndex.value
+      const isActive = tabs.value.indexOf(tab) === activeTabIndex.value
 
       Object.assign(tab, newTabItemProps)
 

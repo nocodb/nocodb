@@ -2247,8 +2247,6 @@ class BaseModelSqlv2 {
   }
 
   private async handleHooks(hookName, data, req): Promise<void> {
-    // const data = _data;
-
     const view = await View.get(this.viewId);
 
     // handle form view data submission
@@ -2329,7 +2327,9 @@ class BaseModelSqlv2 {
         operation,
       });
       for (const hook of hooks) {
-        invokeWebhook(hook, this.model, data, req?.user);
+        if (hook.active) {
+          invokeWebhook(hook, this.model, data, req?.user);
+        }
       }
     } catch (e) {
       console.log('hooks :: error', hookName, e);

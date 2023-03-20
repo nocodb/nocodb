@@ -690,7 +690,7 @@ export interface FilterReqType {
   /** Foreign Key to Column */
   fk_column_id?: IdType;
   /** Belong to which filter ID */
-  fk_parent_id?: IdType;
+  fk_parent_id?: StringOrNullType;
   /** Is this filter grouped? */
   is_group?: BoolType;
   /** Logical Operator */
@@ -1152,6 +1152,8 @@ export interface HookReqType {
   title: string;
   /** Hook Type */
   type?: string | null;
+  /** Is this hook assoicated with some filters */
+  condition?: BoolType;
 }
 
 /**
@@ -8752,16 +8754,16 @@ export class Api<
  * @name Create
  * @summary Create Table Hook
  * @request POST:/api/v1/db/meta/tables/{tableId}/hooks
- * @response `200` `HookReqType` OK
+ * @response `200` `HookType` OK
  * @response `400` `{
   \** @example BadRequest [Error]: <ERROR MESSAGE> *\
   msg: string,
 
 }`
  */
-    create: (tableId: IdType, data: AuditType, params: RequestParams = {}) =>
+    create: (tableId: IdType, data: HookReqType, params: RequestParams = {}) =>
       this.request<
-        HookReqType,
+        HookType,
         {
           /** @example BadRequest [Error]: <ERROR MESSAGE> */
           msg: string;

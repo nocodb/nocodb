@@ -124,9 +124,11 @@ export class WebhookFormPage extends BasePage {
     await this.toolbar.actions.click('Webhooks');
 
     await this.get().locator(`.nc-hook-delete-icon`).nth(index).click();
+    await this.rootPage.locator('.ant-modal-confirm-confirm button:has-text("Yes")').click();
     await this.verifyToast({ message: 'Hook deleted successfully' });
 
     // click escape to close the drawer
+    await this.get().click();
     await this.get().press('Escape');
   }
 

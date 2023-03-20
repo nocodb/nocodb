@@ -14,6 +14,7 @@ import {
   useMetas,
   useNuxtApp,
   useProject,
+  useProjects,
   useTabs,
   useVModel,
   validateTableName,
@@ -39,6 +40,8 @@ const { setMeta } = useMetas()
 const dialogShow = useVModel(props, 'modelValue', emit)
 
 const { updateTab } = useTabs()
+
+const projectsStore = useProjects()
 
 const projectStore = useProject()
 const { loadTables, isMysql, isMssql, isPg } = projectStore
@@ -129,7 +132,7 @@ const renameTable = async () => {
 
     dialogShow.value = false
 
-    await loadTables()
+    await projectsStore.loadProjectTables(tableMeta.project_id!, true)
 
     // update metas
     const newMeta = await $api.dbTable.read(tableMeta.id as string)

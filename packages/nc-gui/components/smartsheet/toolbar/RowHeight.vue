@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import type { GridType } from 'nocodb-sdk'
-import { ActiveViewInj, IsLockedInj, iconMap, inject, ref, storeToRefs, useMenuCloseOnEsc } from '#imports'
+import { ActiveViewInj, IsLockedInj, iconMap, inject, ref, storeToRefs, useMenuCloseOnEsc, useUndoRedo } from '#imports'
 
 const { isSharedBase } = storeToRefs(useProject())
 
@@ -12,11 +12,28 @@ const isLocked = inject(IsLockedInj, ref(false))
 
 const { $api } = useNuxtApp()
 
+const { addUndo } = useUndoRedo()
+
 const open = ref(false)
 
-const updateRowHeight = async (rh: number) => {
+const updateRowHeight = async (rh: number, undo = false) => {
   if (view.value?.id) {
     if (rh === (view.value.view as GridType).row_height) return
+
+    if (!undo) {
+      addUndo({
+        redo: {
+          fn: (r: number) => updateRowHeight(r, true),
+          args: [rh],
+        },
+        undo: {
+          fn: (r: number) => updateRowHeight(r, true),
+          args: [(view.value.view as GridType).row_height],
+        },
+        scope: view.value?.is_default ? [view.value.fk_model_id, view.value.title] : view.value?.title,
+      })
+    }
+
     try {
       if (!isPublic.value && !isSharedBase.value) {
         await $api.dbView.gridUpdate(view.value.id, {

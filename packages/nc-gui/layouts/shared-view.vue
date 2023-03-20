@@ -30,6 +30,13 @@ onMounted(() => {
       if (href) notifyLocationChange(href)
     })
   }
+
+  // handle meta title
+  if (sharedView.value?.title) {
+    document.title = `${sharedView.value.title} | NocoDB`
+  } else {
+    document.title = 'NocoDB'
+  }
 })
 </script>
 

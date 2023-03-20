@@ -35,8 +35,6 @@ export const useTabs = defineStore('tabStore', () => {
   const activeTabIndex: WritableComputedRef<number> = computed({
     get() {
       const routeName = route.name as string
-      console.log(tables)
-      console.log(project)
 
       // todo: new-layout
       if (

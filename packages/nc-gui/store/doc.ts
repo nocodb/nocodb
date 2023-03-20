@@ -121,10 +121,10 @@ export const useDocStore = defineStore('docStore', () => {
         return
       }
 
-      const nestedPages = nestedPagesOfProjects.value[openedProjectId.value]
-
       // if the page is new, don't fetch it
       if (openedPage.value?.new && openedPage.value.id === openedPageId.value) return
+
+      const nestedPages = nestedPagesOfProjects.value[openedProjectId.value]
 
       if (oldId) {
         const page = findPage(nestedPages, oldId)
@@ -140,7 +140,10 @@ export const useDocStore = defineStore('docStore', () => {
         projectId: openedProjectId.value,
       })) as any
 
-      if (newPage?.id !== openedPageId.value) return
+      if (newPage?.id !== openedPageId.value) {
+        isPageFetching.value = false
+        return
+      }
 
       openedPage.value = newPage
 

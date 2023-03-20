@@ -730,6 +730,15 @@ export const useDocStore = defineStore('docStore', () => {
     }
   }
 
+  const magicOutline = async ({ pageId, projectId }: { pageId?: string; projectId: string }) => {
+    const id = pageId || openedPageInSidebar.value!.id!
+    const response = await $api.nocoDocs.magicOutlinePage({
+      projectId: projectId!,
+      pageId: id,
+    })
+    return response
+  }
+
   return {
     isPublic,
     openedPageInSidebar,
@@ -764,5 +773,6 @@ export const useDocStore = defineStore('docStore', () => {
     loadPublicPageAndProject,
     isNestedPublicPage,
     isOpenedNestedPageLoading,
+    magicOutline,
   }
 })

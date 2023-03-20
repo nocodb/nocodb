@@ -4,6 +4,7 @@ import { SqlUiFactory } from 'nocodb-sdk'
 import { NcProjectType } from '~/utils'
 import { useWorkspace } from '~/store/workspace'
 
+// todo: merge with project store
 export const useProjects = defineStore('projectsStore', () => {
   // state
   // todo: rename to projectMap

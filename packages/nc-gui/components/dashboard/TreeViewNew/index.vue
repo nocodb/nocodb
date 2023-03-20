@@ -484,7 +484,7 @@ const isClearMode = computed(() => route.query.clear === '1' && route.params.pro
       <ProjectWrapper
         v-for="(project, i) of workspaceProjects.filter((p) => !isClearMode || p.id === activeProjectId)"
         :key="project.id"
-        :project-role="project.project_role"
+        :project-role="[project.project_role, project.role]"
       >
         <div ref="projectElRefs" class="m-2 py-1 nc-project-sub-menu" :class="{ active: project.id === openedProjectId }">
           <div class="flex items-center gap-2 py-1 cursor-pointer" @click="loadProjectAndTableList(project, i)">

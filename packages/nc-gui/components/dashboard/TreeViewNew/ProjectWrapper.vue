@@ -2,7 +2,7 @@
 import { ProjectRoleInj } from '#imports'
 
 const props = defineProps<{
-  projectRole: string
+  projectRole: string | string[]
 }>()
 
 const projectRole = toRef(props, 'projectRole')

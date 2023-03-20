@@ -1,5 +1,16 @@
 <script setup lang="ts">
-import { Form, computed, nextTick, onMounted, ref, useProject, useTable, useTabs, useVModel, validateTableName } from '#imports'
+import {
+  Form,
+  computed,
+  nextTick,
+  onMounted,
+  ref,
+  useProject,
+  useProjects,
+  useTabs,
+  useVModel,
+  validateTableName,
+} from '#imports'
 import { TabType } from '~/lib'
 import { useTableNew } from '~/composables/useTableNew'
 
@@ -21,6 +32,8 @@ const { addTab } = useTabs()
 
 const { loadTables, isMysql, isMssql, isPg, loadProject } = useProject()
 
+const { loadProjectTables } = useProjects()
+
 const { table, createTable, generateUniqueTitle, tables, project } = useTableNew({
   async onTableCreate(table) {
     // await loadProject(props.projectId)
@@ -32,6 +45,8 @@ const { table, createTable, generateUniqueTitle, tables, project } = useTableNew
       projectId: props.projectId,
       // baseId: props.baseId,
     })
+
+    await loadProjectTables(props.projectId, true)
 
     dialogShow.value = false
   },

@@ -9,9 +9,9 @@ import NotebookOutline from '~icons/mdi/notebook-outline'
 import FolderCog from '~icons/mdi/folder-cog'
 
 interface Props {
-  modelValue: boolean
-  openKey: string
-  dataSourcesState: string
+  modelValue?: boolean
+  openKey?: string
+  dataSourcesState?: string
 }
 
 interface SubTabGroup {

@@ -1,8 +1,8 @@
-import type {WritableComputedRef} from '@vue/reactivity'
-import {defineStore, storeToRefs} from 'pinia'
-import {computed, navigateTo, ref, useProject, useRouter, watch} from '#imports'
-import type {TabItem} from '~/lib'
-import {TabType} from '~/lib'
+import type { WritableComputedRef } from '@vue/reactivity'
+import { defineStore, storeToRefs } from 'pinia'
+import { computed, navigateTo, ref, useProject, useRouter, watch } from '#imports'
+import type { TabItem } from '~/lib'
+import { TabType } from '~/lib'
 
 function getPredicate(key: Partial<TabItem>) {
   return (tab: TabItem) =>
@@ -18,12 +18,12 @@ export const useTabs = defineStore('tabStore', () => {
 
   const route = $(router.currentRoute)
 
-  const {t} = useI18n()
+  const { t } = useI18n()
 
-  const {isUIAllowed} = useUIPermission()
+  const { isUIAllowed } = useUIPermission()
 
   const projectStore = useProject()
-  const {project, tables} = $(storeToRefs(projectStore))
+  const { project, tables } = $(storeToRefs(projectStore))
 
   const projectType = $computed(() => (route.params.projectType as string) || 'nc')
 
@@ -189,9 +189,9 @@ export const useTabs = defineStore('tabStore', () => {
           query: route.query,
         })
       case TabType.AUTH:
-        return navigateTo({path: `/ws/${workspaceId}/${projectType}/${tab.projectId}/auth`, query: route.query})
+        return navigateTo({ path: `/ws/${workspaceId}/${projectType}/${tab.projectId}/auth`, query: route.query })
       case TabType.SQL:
-        return navigateTo({path: `/ws/${workspaceId}/${projectType}/${tab.projectId}/sql`, query: route.query})
+        return navigateTo({ path: `/ws/${workspaceId}/${projectType}/${tab.projectId}/sql`, query: route.query })
       case TabType.ERD:
         return navigateTo({
           path: `/ws/${workspaceId}/${projectType}/${tab.projectId}/erd/${tab?.tabMeta?.base.id}`,
@@ -230,7 +230,7 @@ export const useTabs = defineStore('tabStore', () => {
       const activeTabRoute = n.toString().replace(/ws-workspaceId-projectType-projectId-index-index-/, '')
       switch (activeTabRoute) {
         case TabType.SQL:
-          addTab({id: TabType.SQL, type: TabType.SQL, title: 'SQL Editor', projectId: route.params.projectId as string})
+          addTab({ id: TabType.SQL, type: TabType.SQL, title: 'SQL Editor', projectId: route.params.projectId as string })
           break
         case TabType.AUTH:
           if (isUIAllowed('teamAndAuth'))
@@ -245,8 +245,8 @@ export const useTabs = defineStore('tabStore', () => {
           break
       }
     },
-    {immediate: true},
+    { immediate: true },
   )
 
-  return {tabs, addTab, activeTabIndex, activeTab, clearTabs, closeTab, updateTab}
+  return { tabs, addTab, activeTabIndex, activeTab, clearTabs, closeTab, updateTab }
 })

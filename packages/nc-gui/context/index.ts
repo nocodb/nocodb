@@ -37,3 +37,4 @@ export const CellClickHookInj: InjectionKey<EventHook<MouseEvent> | undefined> =
 export const SaveRowInj: InjectionKey<(() => void) | undefined> = Symbol('save-row-injection')
 
 export const DocsLocalPageInj: InjectionKey<Ref<PageSidebarNode | undefined>> = Symbol('docs-local-page-injection')
+export const ProjectRoleInj: InjectionKey<Ref<string>> = Symbol('project-roles-injection')

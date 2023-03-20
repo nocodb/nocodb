@@ -33,6 +33,7 @@ import MdiTableLarge from '~icons/mdi/table-large'
 import PhTableThin from '~icons/ph/table-thin'
 
 import { useRouter } from '#app'
+import ProjectWrapper from '~/components/dashboard/TreeViewNew/ProjectWrapper.vue'
 
 const { addTab, updateTab } = useTabs()
 
@@ -480,376 +481,376 @@ const isClearMode = computed(() => route.query.clear === '1' && route.params.pro
 <template>
   <div class="nc-treeview-container flex flex-col">
     <div mode="inline" class="flex-grow min-h-50 overflow-y-auto overflow-x-hidden">
-      <div
+      <ProjectWrapper
         v-for="(project, i) of workspaceProjects.filter((p) => !isClearMode || p.id === activeProjectId)"
         :key="project.id"
-        ref="projectElRefs"
-        class="m-2 py-1 nc-project-sub-menu"
-        :class="{ active: project.id === openedProjectId }"
+        :project-role="project.project_role"
       >
-        <div class="flex items-center gap-2 py-1 cursor-pointer" @click="loadProjectAndTableList(project, i)">
-          <DashboardTreeViewNewProjectNode ref="projectNodeRefs" class="flex-grow" :project="projects[project.id] ?? project" />
-        </div>
-
-        <div
-          key="g1"
-          class="overflow-y-auto transition-max-height"
-          :class="{ 'max-h-0': openedProjectId !== project.id, 'max-h-500': openedProjectId === project.id }"
-        >
-          <div v-if="project.type === 'documentation'">
-            <DocsSideBar v-if="openedProjectId === project.id" :project="project" />
+        <div ref="projectElRefs" class="m-2 py-1 nc-project-sub-menu" :class="{ active: project.id === openedProjectId }">
+          <div class="flex items-center gap-2 py-1 cursor-pointer" @click="loadProjectAndTableList(project, i)">
+            <DashboardTreeViewNewProjectNode ref="projectNodeRefs" class="flex-grow" :project="projects[project.id] ?? project" />
           </div>
-          <a-dropdown
-            v-else-if="project && projects[project.id] && projects[project.id].bases"
-            :trigger="['contextmenu']"
-            overlay-class-name="nc-dropdown-tree-view-context-menu"
+
+          <div
+            key="g1"
+            class="overflow-y-auto transition-max-height"
+            :class="{ 'max-h-0': openedProjectId !== project.id, 'max-h-500': openedProjectId === project.id }"
           >
-            <div class="pt-2 pl-2 pb-2 flex-1 overflow-y-auto flex flex-col" :class="{ 'mb-[20px]': isSharedBase }">
-              <div
-                v-if="
-                  projects[project.id].bases[0] &&
-                  projects[project.id].bases[0].enabled &&
-                  !projects[project.id].bases.slice(1).filter((el) => el.enabled)?.length
-                "
-                class="flex-1 ml-1"
-              >
-                <AddNewTableNode
-                  :project="projects[project.id]"
-                  :base-index="0"
-                  @openTableCreateDialog="openTableCreateDialog(projects[project.id].bases[0].id, project.id)"
-                />
-
-                <div class="transition-height duration-200 ml-2">
-                  <TableList :project="projects[project.id]" :base-index="0" />
-                </div>
-
+            <div v-if="project.type === 'documentation'">
+            <DocsSideBar v-if="openedProjectId === project.id" :project="project" />
+            </div>
+            <a-dropdown
+              v-else-if="project && projects[project.id] && projects[project.id].bases"
+              :trigger="['contextmenu']"
+              overlay-class-name="nc-dropdown-tree-view-context-menu"
+            >
+              <div class="pt-2 pl-2 pb-2 flex-1 overflow-y-auto flex flex-col" :class="{ 'mb-[20px]': isSharedBase }">
                 <div
-                  v-if="!projectTableList[project.id]?.length"
-                  class="mt-0.5 pt-16 mx-3 flex flex-col items-center border-t-1 border-gray-50"
+                  v-if="
+                    projects[project.id].bases[0] &&
+                    projects[project.id].bases[0].enabled &&
+                    !projects[project.id].bases.slice(1).filter((el) => el.enabled)?.length
+                  "
+                  class="flex-1 ml-1"
                 >
-                  <a-empty :image="Empty.PRESENTED_IMAGE_SIMPLE" description="Empty Database" />
+                  <AddNewTableNode
+                    :project="projects[project.id]"
+                    :base-index="0"
+                    @openTableCreateDialog="openTableCreateDialog(projects[project.id].bases[0].id, project.id)"
+                  />
+
+                  <div class="transition-height duration-200 ml-2">
+                    <TableList :project="projects[project.id]" :base-index="0" />
+                  </div>
+
+                  <div
+                    v-if="!projectTableList[project.id]?.length"
+                    class="mt-0.5 pt-16 mx-3 flex flex-col items-center border-t-1 border-gray-50"
+                  >
+                    <a-empty :image="Empty.PRESENTED_IMAGE_SIMPLE" description="Empty Database" />
+                  </div>
                 </div>
-              </div>
 
-              <div v-else class="transition-height duration-200">
-                <div class="border-none sortable-list">
-                  <div v-for="(base, baseIndex) of bases" :key="`base-${base.id}`">
-                    <a-collapse
-                      v-if="base && base.enabled"
-                      v-model:activeKey="activeKey"
-                      :class="[
-                        { hidden: searchActive && !!filterQuery && !filteredTables?.find((el) => el.base_id === base.id) },
-                      ]"
-                      expand-icon-position="right"
-                      :bordered="false"
-                      :accordion="!searchActive"
-                      ghost
-                    >
-                      <a-collapse-panel :key="`collapse-${base.id}`">
-                        <template #header>
+                <div v-else class="transition-height duration-200">
+                  <div class="border-none sortable-list">
+                    <div v-for="(base, baseIndex) of bases" :key="`base-${base.id}`">
+                      <a-collapse
+                        v-if="base && base.enabled"
+                        v-model:activeKey="activeKey"
+                        :class="[
+                          { hidden: searchActive && !!filterQuery && !filteredTables?.find((el) => el.base_id === base.id) },
+                        ]"
+                        expand-icon-position="right"
+                        :bordered="false"
+                        :accordion="!searchActive"
+                        ghost
+                      >
+                        <a-collapse-panel :key="`collapse-${base.id}`">
+                          <template #header>
+                            <div
+                              v-if="baseIndex === '0'"
+                              class="base-context flex items-center gap-2 text-gray-500 font-bold"
+                              @contextmenu="setMenuContext('base', base)"
+                            >
+                              <GeneralBaseLogo :base-type="base.type" />
+                              Default ({{
+                                projectTableList[project.id]?.filter((table) => table.base_id === base.id).length || '0'
+                              }})
+                            </div>
+                            <div
+                              v-else
+                              class="base-context flex items-center gap-2 text-gray-500 font-bold"
+                              @contextmenu="setMenuContext('base', base)"
+                            >
+                              <GeneralBaseLogo :base-type="base.type" />
+                              {{ base.alias || '' }}
+                              ({{ projectTableList[project.id].filter((table) => table.base_id === base.id).length || '0' }})
+                            </div>
+                          </template>
                           <div
-                            v-if="baseIndex === '0'"
-                            class="base-context flex items-center gap-2 text-gray-500 font-bold"
-                            @contextmenu="setMenuContext('base', base)"
+                            v-if="baseIndex === '0' && isUIAllowed('table-create')"
+                            class="group flex items-center gap-2 pl-8 pr-3 py-2 text-primary/70 hover:(text-primary/100) cursor-pointer select-none"
+                            @click="openTableCreateDialog(projects[project.id].bases[0].id)"
                           >
-                            <GeneralBaseLogo :base-type="base.type" />
-                            Default ({{
-                              projectTableList[project.id]?.filter((table) => table.base_id === base.id).length || '0'
-                            }})
+                            <MdiPlus />
+
+                            <span class="text-gray-500 group-hover:(text-primary/100) flex-1 nc-add-new-table">{{
+                              $t('tooltip.addTable')
+                            }}</span>
+
+                            <a-dropdown
+                              v-if="!isSharedBase"
+                              :trigger="['click']"
+                              overlay-class-name="nc-dropdown-import-menu"
+                              @click.stop
+                            >
+                              <PhDotsThreeOutlineVerticalThin
+                                class="transition-opacity opacity-0 group-hover:opacity-100 nc-import-menu outline-0"
+                              />
+
+                              <template #overlay>
+                                <a-menu class="!py-0 rounded text-sm">
+                                  <a-menu-item-group class="!px-0 !mx-0">
+                                    <template #title>
+                                      <div class="flex items-center">
+                                        Noco
+                                        <PhSparkleFill class="ml-1 text-orange-400" />
+                                      </div>
+                                    </template>
+                                    <a-menu-item
+                                      key="table-magic"
+                                      @click="openTableCreateMagicDialog(projects[project.id].bases[0].id)"
+                                    >
+                                      <div class="color-transition nc-project-menu-item group">
+                                        <MdiMagicStaff class="group-hover:text-accent" />
+                                        Create table
+                                      </div>
+                                    </a-menu-item>
+                                    <a-menu-item
+                                      key="schema-magic"
+                                      @click="openSchemaMagicDialog(projects[project.id].bases[0].id)"
+                                    >
+                                      <div class="color-transition nc-project-menu-item group">
+                                        <MdiMagicStaff class="group-hover:text-accent" />
+                                        Create schema
+                                      </div>
+                                    </a-menu-item>
+                                  </a-menu-item-group>
+
+                                  <a-menu-divider class="my-0" />
+
+                                  &lt;!&ndash; Quick Import From &ndash;&gt;
+                                  <a-menu-item-group :title="$t('title.quickImportFrom')" class="!px-0 !mx-0">
+                                    <a-menu-item
+                                      v-if="isUIAllowed('airtableImport')"
+                                      key="quick-import-airtable"
+                                      @click="openAirtableImportDialog(projects[project.id].bases[0].id)"
+                                    >
+                                      <div class="color-transition nc-project-menu-item group">
+                                        <MdiTableLarge class="group-hover:text-accent" />
+                                        Airtable
+                                      </div>
+                                    </a-menu-item>
+
+                                    <a-menu-item
+                                      v-if="isUIAllowed('csvImport')"
+                                      key="quick-import-csv"
+                                      @click="openQuickImportDialog('csv', projects[project.id].bases[0].id)"
+                                    >
+                                      <div class="color-transition nc-project-menu-item group">
+                                        <MdiFileDocumentOutline class="group-hover:text-accent" />
+                                        CSV file
+                                      </div>
+                                    </a-menu-item>
+
+                                    <a-menu-item
+                                      v-if="isUIAllowed('jsonImport')"
+                                      key="quick-import-json"
+                                      @click="openQuickImportDialog('json', projects[project.id].bases[0].id)"
+                                    >
+                                      <div class="color-transition nc-project-menu-item group">
+                                        <MdiCodeJson class="group-hover:text-accent" />
+                                        JSON file
+                                      </div>
+                                    </a-menu-item>
+
+                                    <a-menu-item
+                                      v-if="isUIAllowed('excelImport')"
+                                      key="quick-import-excel"
+                                      @click="openQuickImportDialog('excel', projects[project.id].bases[0].id)"
+                                    >
+                                      <div class="color-transition nc-project-menu-item group">
+                                        <MdiFileExcel class="group-hover:text-accent" />
+                                        Microsoft Excel
+                                      </div>
+                                    </a-menu-item>
+                                  </a-menu-item-group>
+
+                                  <a-menu-divider class="my-0" />
+
+                                  <a-menu-item v-if="isUIAllowed('importRequest')" key="add-new-table" class="py-1 rounded-b">
+                                    <a
+                                      v-e="['e:datasource:import-request']"
+                                      href="https://github.com/nocodb/nocodb/issues/2052"
+                                      target="_blank"
+                                      class="prose-sm hover:(!text-primary !opacity-100) color-transition nc-project-menu-item group after:(!rounded-b)"
+                                    >
+                                      <MdiOpenInNew class="group-hover:text-accent" />
+                                      &lt;!&ndash; Request a data source you need? &ndash;&gt;
+                                      {{ $t('labels.requestDataSource') }}
+                                    </a>
+                                  </a-menu-item>
+                                </a-menu>
+                              </template>
+                            </a-dropdown>
                           </div>
                           <div
-                            v-else
-                            class="base-context flex items-center gap-2 text-gray-500 font-bold"
-                            @contextmenu="setMenuContext('base', base)"
+                            v-else-if="isUIAllowed('table-create')"
+                            class="group flex items-center gap-2 pl-8 pr-3 py-2 text-primary/70 hover:(text-primary/100) cursor-pointer select-none"
+                            @click="openTableCreateDialog(base.id)"
                           >
-                            <GeneralBaseLogo :base-type="base.type" />
-                            {{ base.alias || '' }}
-                            ({{ projectTableList[project.id].filter((table) => table.base_id === base.id).length || '0' }})
+                            <MdiPlus />
+
+                            <span class="text-gray-500 group-hover:(text-primary/100) flex-1 nc-add-new-table">{{
+                              $t('tooltip.addTable')
+                            }}</span>
+
+                            <a-dropdown
+                              v-if="!isSharedBase"
+                              :trigger="['click']"
+                              overlay-class-name="nc-dropdown-import-menu"
+                              @click.stop
+                            >
+                              <MdiDotsVertical
+                                class="transition-opacity opacity-0 group-hover:opacity-100 nc-import-menu outline-0"
+                              />
+
+                              <template #overlay>
+                                <a-menu class="!py-0 rounded text-sm">
+                                  <a-menu-item-group class="!px-0 !mx-0">
+                                    <template #title>
+                                      <div class="flex items-center">
+                                        Noco
+                                        <PhSparkleFill class="ml-1 text-orange-400" />
+                                      </div>
+                                    </template>
+                                    <a-menu-item key="table-magic" @click="openTableCreateMagicDialog(base.id)">
+                                      <div class="color-transition nc-project-menu-item group">
+                                        <MdiMagicStaff class="group-hover:text-accent" />
+                                        Create table
+                                      </div>
+                                    </a-menu-item>
+                                    <a-menu-item key="schema-magic" @click="openSchemaMagicDialog(base.id)">
+                                      <div class="color-transition nc-project-menu-item group">
+                                        <MdiMagicStaff class="group-hover:text-accent" />
+                                        Create schema
+                                      </div>
+                                    </a-menu-item>
+                                  </a-menu-item-group>
+
+                                  <a-menu-divider class="my-0" />
+
+                                  &lt;!&ndash; Quick Import From &ndash;&gt;
+                                  <a-menu-item-group :title="$t('title.quickImportFrom')" class="!px-0 !mx-0">
+                                    <a-menu-item
+                                      v-if="isUIAllowed('airtableImport')"
+                                      key="quick-import-airtable"
+                                      @click="openAirtableImportDialog(base.id)"
+                                    >
+                                      <div class="color-transition nc-project-menu-item group">
+                                        <MdiTableLarge class="group-hover:text-accent" />
+                                        Airtable
+                                      </div>
+                                    </a-menu-item>
+
+                                    <a-menu-item
+                                      v-if="isUIAllowed('csvImport')"
+                                      key="quick-import-csv"
+                                      @click="openQuickImportDialog('csv', base.id)"
+                                    >
+                                      <div class="color-transition nc-project-menu-item group">
+                                        <MdiFileDocumentOutline class="group-hover:text-accent" />
+                                        CSV file
+                                      </div>
+                                    </a-menu-item>
+
+                                    <a-menu-item
+                                      v-if="isUIAllowed('jsonImport')"
+                                      key="quick-import-json"
+                                      @click="openQuickImportDialog('json', base.id)"
+                                    >
+                                      <div class="color-transition nc-project-menu-item group">
+                                        <MdiCodeJson class="group-hover:text-accent" />
+                                        JSON file
+                                      </div>
+                                    </a-menu-item>
+
+                                    <a-menu-item
+                                      v-if="isUIAllowed('excelImport')"
+                                      key="quick-import-excel"
+                                      @click="openQuickImportDialog('excel', base.id)"
+                                    >
+                                      <div class="color-transition nc-project-menu-item group">
+                                        <MdiFileExcel class="group-hover:text-accent" />
+                                        Microsoft Excel
+                                      </div>
+                                    </a-menu-item>
+                                  </a-menu-item-group>
+
+                                  <a-menu-divider class="my-0" />
+
+                                  <a-menu-item v-if="isUIAllowed('importRequest')" key="add-new-table" class="py-1 rounded-b">
+                                    <a
+                                      v-e="['e:datasource:import-request']"
+                                      href="https://github.com/nocodb/nocodb/issues/2052"
+                                      target="_blank"
+                                      class="prose-sm hover:(!text-primary !opacity-100) color-transition nc-project-menu-item group after:(!rounded-b)"
+                                    >
+                                      <MdiOpenInNew class="group-hover:text-accent" />
+                                      <!-- Request a data source you need? -->
+                                      {{ $t('labels.requestDataSource') }}
+                                    </a>
+                                  </a-menu-item>
+                                </a-menu>
+                              </template>
+                            </a-dropdown>
                           </div>
-                        </template>
-                        <div
-                          v-if="baseIndex === '0' && isUIAllowed('table-create')"
-                          class="group flex items-center gap-2 pl-8 pr-3 py-2 text-primary/70 hover:(text-primary/100) cursor-pointer select-none"
-                          @click="openTableCreateDialog(projects[project.id].bases[0].id)"
-                        >
-                          <MdiPlus />
-
-                          <span class="text-gray-500 group-hover:(text-primary/100) flex-1 nc-add-new-table">{{
-                            $t('tooltip.addTable')
-                          }}</span>
-
-                          <a-dropdown
-                            v-if="!isSharedBase"
-                            :trigger="['click']"
-                            overlay-class-name="nc-dropdown-import-menu"
-                            @click.stop
+                          <div
+                            ref="menuRefs"
+                            :key="`sortable-${base.id}-${base.id && base.id in keys ? keys[base.id] : '0'}`"
+                            :nc-base="base.id"
                           >
-                            <PhDotsThreeOutlineVerticalThin
-                              class="transition-opacity opacity-0 group-hover:opacity-100 nc-import-menu outline-0"
-                            />
-
-                            <template #overlay>
-                              <a-menu class="!py-0 rounded text-sm">
-                                <a-menu-item-group class="!px-0 !mx-0">
-                                  <template #title>
-                                    <div class="flex items-center">
-                                      Noco
-                                      <PhSparkleFill class="ml-1 text-orange-400" />
-                                    </div>
-                                  </template>
-                                  <a-menu-item
-                                    key="table-magic"
-                                    @click="openTableCreateMagicDialog(projects[project.id].bases[0].id)"
-                                  >
-                                    <div class="color-transition nc-project-menu-item group">
-                                      <MdiMagicStaff class="group-hover:text-accent" />
-                                      Create table
-                                    </div>
-                                  </a-menu-item>
-                                  <a-menu-item
-                                    key="schema-magic"
-                                    @click="openSchemaMagicDialog(projects[project.id].bases[0].id)"
-                                  >
-                                    <div class="color-transition nc-project-menu-item group">
-                                      <MdiMagicStaff class="group-hover:text-accent" />
-                                      Create schema
-                                    </div>
-                                  </a-menu-item>
-                                </a-menu-item-group>
-
-                                <a-menu-divider class="my-0" />
-
-                                &lt;!&ndash; Quick Import From &ndash;&gt;
-                                <a-menu-item-group :title="$t('title.quickImportFrom')" class="!px-0 !mx-0">
-                                  <a-menu-item
-                                    v-if="isUIAllowed('airtableImport')"
-                                    key="quick-import-airtable"
-                                    @click="openAirtableImportDialog(projects[project.id].bases[0].id)"
-                                  >
-                                    <div class="color-transition nc-project-menu-item group">
-                                      <MdiTableLarge class="group-hover:text-accent" />
-                                      Airtable
-                                    </div>
-                                  </a-menu-item>
-
-                                  <a-menu-item
-                                    v-if="isUIAllowed('csvImport')"
-                                    key="quick-import-csv"
-                                    @click="openQuickImportDialog('csv', projects[project.id].bases[0].id)"
-                                  >
-                                    <div class="color-transition nc-project-menu-item group">
-                                      <MdiFileDocumentOutline class="group-hover:text-accent" />
-                                      CSV file
-                                    </div>
-                                  </a-menu-item>
-
-                                  <a-menu-item
-                                    v-if="isUIAllowed('jsonImport')"
-                                    key="quick-import-json"
-                                    @click="openQuickImportDialog('json', projects[project.id].bases[0].id)"
-                                  >
-                                    <div class="color-transition nc-project-menu-item group">
-                                      <MdiCodeJson class="group-hover:text-accent" />
-                                      JSON file
-                                    </div>
-                                  </a-menu-item>
-
-                                  <a-menu-item
-                                    v-if="isUIAllowed('excelImport')"
-                                    key="quick-import-excel"
-                                    @click="openQuickImportDialog('excel', projects[project.id].bases[0].id)"
-                                  >
-                                    <div class="color-transition nc-project-menu-item group">
-                                      <MdiFileExcel class="group-hover:text-accent" />
-                                      Microsoft Excel
-                                    </div>
-                                  </a-menu-item>
-                                </a-menu-item-group>
-
-                                <a-menu-divider class="my-0" />
-
-                                <a-menu-item v-if="isUIAllowed('importRequest')" key="add-new-table" class="py-1 rounded-b">
-                                  <a
-                                    v-e="['e:datasource:import-request']"
-                                    href="https://github.com/nocodb/nocodb/issues/2052"
-                                    target="_blank"
-                                    class="prose-sm hover:(!text-primary !opacity-100) color-transition nc-project-menu-item group after:(!rounded-b)"
-                                  >
-                                    <MdiOpenInNew class="group-hover:text-accent" />
-                                    &lt;!&ndash; Request a data source you need? &ndash;&gt;
-                                    {{ $t('labels.requestDataSource') }}
-                                  </a>
-                                </a-menu-item>
-                              </a-menu>
-                            </template>
-                          </a-dropdown>
-                        </div>
-                        <div
-                          v-else-if="isUIAllowed('table-create')"
-                          class="group flex items-center gap-2 pl-8 pr-3 py-2 text-primary/70 hover:(text-primary/100) cursor-pointer select-none"
-                          @click="openTableCreateDialog(base.id)"
-                        >
-                          <MdiPlus />
-
-                          <span class="text-gray-500 group-hover:(text-primary/100) flex-1 nc-add-new-table">{{
-                            $t('tooltip.addTable')
-                          }}</span>
-
-                          <a-dropdown
-                            v-if="!isSharedBase"
-                            :trigger="['click']"
-                            overlay-class-name="nc-dropdown-import-menu"
-                            @click.stop
-                          >
-                            <MdiDotsVertical
-                              class="transition-opacity opacity-0 group-hover:opacity-100 nc-import-menu outline-0"
-                            />
-
-                            <template #overlay>
-                              <a-menu class="!py-0 rounded text-sm">
-                                <a-menu-item-group class="!px-0 !mx-0">
-                                  <template #title>
-                                    <div class="flex items-center">
-                                      Noco
-                                      <PhSparkleFill class="ml-1 text-orange-400" />
-                                    </div>
-                                  </template>
-                                  <a-menu-item key="table-magic" @click="openTableCreateMagicDialog(base.id)">
-                                    <div class="color-transition nc-project-menu-item group">
-                                      <MdiMagicStaff class="group-hover:text-accent" />
-                                      Create table
-                                    </div>
-                                  </a-menu-item>
-                                  <a-menu-item key="schema-magic" @click="openSchemaMagicDialog(base.id)">
-                                    <div class="color-transition nc-project-menu-item group">
-                                      <MdiMagicStaff class="group-hover:text-accent" />
-                                      Create schema
-                                    </div>
-                                  </a-menu-item>
-                                </a-menu-item-group>
-
-                                <a-menu-divider class="my-0" />
-
-                                &lt;!&ndash; Quick Import From &ndash;&gt;
-                                <a-menu-item-group :title="$t('title.quickImportFrom')" class="!px-0 !mx-0">
-                                  <a-menu-item
-                                    v-if="isUIAllowed('airtableImport')"
-                                    key="quick-import-airtable"
-                                    @click="openAirtableImportDialog(base.id)"
-                                  >
-                                    <div class="color-transition nc-project-menu-item group">
-                                      <MdiTableLarge class="group-hover:text-accent" />
-                                      Airtable
-                                    </div>
-                                  </a-menu-item>
-
-                                  <a-menu-item
-                                    v-if="isUIAllowed('csvImport')"
-                                    key="quick-import-csv"
-                                    @click="openQuickImportDialog('csv', base.id)"
-                                  >
-                                    <div class="color-transition nc-project-menu-item group">
-                                      <MdiFileDocumentOutline class="group-hover:text-accent" />
-                                      CSV file
-                                    </div>
-                                  </a-menu-item>
-
-                                  <a-menu-item
-                                    v-if="isUIAllowed('jsonImport')"
-                                    key="quick-import-json"
-                                    @click="openQuickImportDialog('json', base.id)"
-                                  >
-                                    <div class="color-transition nc-project-menu-item group">
-                                      <MdiCodeJson class="group-hover:text-accent" />
-                                      JSON file
-                                    </div>
-                                  </a-menu-item>
-
-                                  <a-menu-item
-                                    v-if="isUIAllowed('excelImport')"
-                                    key="quick-import-excel"
-                                    @click="openQuickImportDialog('excel', base.id)"
-                                  >
-                                    <div class="color-transition nc-project-menu-item group">
-                                      <MdiFileExcel class="group-hover:text-accent" />
-                                      Microsoft Excel
-                                    </div>
-                                  </a-menu-item>
-                                </a-menu-item-group>
-
-                                <a-menu-divider class="my-0" />
-
-                                <a-menu-item v-if="isUIAllowed('importRequest')" key="add-new-table" class="py-1 rounded-b">
-                                  <a
-                                    v-e="['e:datasource:import-request']"
-                                    href="https://github.com/nocodb/nocodb/issues/2052"
-                                    target="_blank"
-                                    class="prose-sm hover:(!text-primary !opacity-100) color-transition nc-project-menu-item group after:(!rounded-b)"
-                                  >
-                                    <MdiOpenInNew class="group-hover:text-accent" />
-                                    <!-- Request a data source you need? -->
-                                    {{ $t('labels.requestDataSource') }}
-                                  </a>
-                                </a-menu-item>
-                              </a-menu>
-                            </template>
-                          </a-dropdown>
-                        </div>
-                        <div
-                          ref="menuRefs"
-                          :key="`sortable-${base.id}-${base.id && base.id in keys ? keys[base.id] : '0'}`"
-                          :nc-base="base.id"
-                        >
-                          <TableList :project="projects[project.id]" :base-index="baseIndex" />
-                        </div>
-                      </a-collapse-panel>
-                    </a-collapse>
+                            <TableList :project="projects[project.id]" :base-index="baseIndex" />
+                          </div>
+                        </a-collapse-panel>
+                      </a-collapse>
+                    </div>
                   </div>
                 </div>
               </div>
-            </div>
 
-            <template v-if="!isSharedBase" #overlay>
-              <a-menu class="!py-0 rounded text-sm">
-                <template v-if="contextMenuTarget.type === 'base'">
-                  <a-menu-item v-if="isUIAllowed('sqlEditor')" @click="openSqlEditor(contextMenuTarget.value)">
-                    <div class="nc-project-menu-item">SQL Editor</div>
-                  </a-menu-item>
+              <template v-if="!isSharedBase" #overlay>
+                <a-menu class="!py-0 rounded text-sm">
+                  <template v-if="contextMenuTarget.type === 'base'">
+                    <a-menu-item v-if="isUIAllowed('sqlEditor')" @click="openSqlEditor(contextMenuTarget.value)">
+                      <div class="nc-project-menu-item">SQL Editor</div>
+                    </a-menu-item>
 
-                  <a-menu-item @click="openErdView(contextMenuTarget.value)">
-                    <div class="nc-project-menu-item">ERD View</div>
-                  </a-menu-item>
-                </template>
+                    <a-menu-item @click="openErdView(contextMenuTarget.value)">
+                      <div class="nc-project-menu-item">ERD View</div>
+                    </a-menu-item>
+                  </template>
 
-                <template v-else-if="contextMenuTarget.type === 'table'">
-                  <a-menu-item
-                    v-if="isUIAllowed('table-rename')"
-                    @click="openRenameTableDialog(contextMenuTarget.value, projects[project.id].bases[0].id, true)"
-                  >
-                    <div class="nc-project-menu-item">
-                      {{ $t('general.rename') }}
-                    </div>
-                  </a-menu-item>
+                  <template v-else-if="contextMenuTarget.type === 'table'">
+                    <a-menu-item
+                      v-if="isUIAllowed('table-rename')"
+                      @click="openRenameTableDialog(contextMenuTarget.value, projects[project.id].bases[0].id, true)"
+                    >
+                      <div class="nc-project-menu-item">
+                        {{ $t('general.rename') }}
+                      </div>
+                    </a-menu-item>
 
-                  <a-menu-item v-if="isUIAllowed('table-delete')" @click="deleteTable(contextMenuTarget.value)">
-                    <div class="nc-project-menu-item">
-                      {{ $t('general.delete') }}
-                    </div>
-                  </a-menu-item>
-                </template>
+                    <a-menu-item v-if="isUIAllowed('table-delete')" @click="deleteTable(contextMenuTarget.value)">
+                      <div class="nc-project-menu-item">
+                        {{ $t('general.delete') }}
+                      </div>
+                    </a-menu-item>
+                  </template>
 
-                <template v-else>
-                  <a-menu-item @click="reloadTables">
-                    <div class="nc-project-menu-item">
-                      {{ $t('general.reload') }}
-                    </div>
-                  </a-menu-item>
-                </template>
-              </a-menu>
-            </template>
-          </a-dropdown>
+                  <template v-else>
+                    <a-menu-item @click="reloadTables">
+                      <div class="nc-project-menu-item">
+                        {{ $t('general.reload') }}
+                      </div>
+                    </a-menu-item>
+                  </template>
+                </a-menu>
+              </template>
+            </a-dropdown>
+          </div>
         </div>
-      </div>
+      </ProjectWrapper>
     </div>
 
     <div class="flex items-center py-2 justify-center">

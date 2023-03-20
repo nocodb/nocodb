@@ -7,6 +7,7 @@ import { ref } from 'vue'
 import { useUIPermission } from '~/composables/useUIPermission'
 import { useDialog } from '~/composables/useDialog'
 import { ClientType } from '~/lib'
+import { ProjectRoleInj } from '~/context'
 
 const props = withDefaults(
   defineProps<{
@@ -31,6 +32,8 @@ const { $e } = useNuxtApp()
 const projectStore = useProject()
 
 const { isSharedBase } = storeToRefs(projectStore)
+
+const projectRole = inject(ProjectRoleInj)
 
 function openSchemaMagicDialog(baseId?: string) {
   $e('c:table:create:navdraw')
@@ -113,7 +116,7 @@ const toggleDialog = inject(ToggleDialogInj, () => {})
 
 <template>
   <div
-    v-if="isUIAllowed('table-create')"
+    v-if="isUIAllowed('table-create', false, projectRole)"
     class="group flex items-center gap-2 pl-2 pr-5 py-2 text-primary/70 hover:(text-primary/100) cursor-pointer select-none"
     @click="emit('openTableCreateDialog')"
   >
@@ -154,7 +157,7 @@ const toggleDialog = inject(ToggleDialogInj, () => {})
           <!-- Quick Import From -->
           <a-menu-item-group :title="$t('title.quickImportFrom')" class="!px-0 !mx-0">
             <a-menu-item
-              v-if="isUIAllowed('airtableImport')"
+              v-if="isUIAllowed('airtableImport', false, projectRole)"
               key="quick-import-airtable"
               @click="openAirtableImportDialog(project.bases[baseIndex].id)"
             >
@@ -165,7 +168,7 @@ const toggleDialog = inject(ToggleDialogInj, () => {})
             </a-menu-item>
 
             <a-menu-item
-              v-if="isUIAllowed('csvImport')"
+              v-if="isUIAllowed('csvImport', false, projectRole)"
               key="quick-import-csv"
               @click="openQuickImportDialog('csv', project.bases[baseIndex].id)"
             >
@@ -176,7 +179,7 @@ const toggleDialog = inject(ToggleDialogInj, () => {})
             </a-menu-item>
 
             <a-menu-item
-              v-if="isUIAllowed('jsonImport')"
+              v-if="isUIAllowed('jsonImport', false, projectRole)"
               key="quick-import-json"
               @click="openQuickImportDialog('json', project.bases[baseIndex].id)"
             >
@@ -187,7 +190,7 @@ const toggleDialog = inject(ToggleDialogInj, () => {})
             </a-menu-item>
 
             <a-menu-item
-              v-if="isUIAllowed('excelImport')"
+              v-if="isUIAllowed('excelImport', false, projectRole)"
               key="quick-import-excel"
               @click="openQuickImportDialog('excel', project.bases[baseIndex].id)"
             >
@@ -239,7 +242,7 @@ const toggleDialog = inject(ToggleDialogInj, () => {})
 
           <a-menu-divider class="my-0" />
 
-          <a-menu-item v-if="isUIAllowed('importRequest')" key="add-new-table" class="py-1 rounded-b">
+          <a-menu-item v-if="isUIAllowed('importRequest', false, projectRole)" key="add-new-table" class="py-1 rounded-b">
             <a
               v-e="['e:datasource:import-request']"
               href="https://github.com/nocodb/nocodb/issues/2052"

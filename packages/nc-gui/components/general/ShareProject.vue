@@ -23,17 +23,18 @@ useEventListener(document, 'keydown', async (e: KeyboardEvent) => {
 </script>
 
 <template>
-  <div
-    v-if="visibility !== 'hidden'"
-    class="my-auto h-8 flex flex-row items-center gap-x-1.5 bg-primary text-white hover:bg-opacity-80 py-1.5 px-2.5 rounded-md cursor-pointer !pl-3"
-    :class="{
-      '!pl-3': visibility === 'none',
-    }"
-    @click="showShareModal = true"
-  >
-    <MaterialSymbolsPublic v-if="visibility === 'public'" class="h-3.5" />
-    <MaterialSymbolsLockOutline v-else-if="visibility === 'private'" class="h-3.5" />
-    <div class="flex">Share</div>
+  <div v-if="visibility !== 'hidden'" class="flex flex-col justify-center h-full">
+    <div
+      class="flex flex-row items-center gap-x-1.5 bg-primary text-white hover:bg-opacity-80 py-1 px-2.5 rounded-md cursor-pointer !pl-3"
+      :class="{
+        '!pl-3': visibility === 'none',
+      }"
+      @click="showShareModal = true"
+    >
+      <MaterialSymbolsPublic v-if="visibility === 'public'" class="h-3.5" />
+      <MaterialSymbolsLockOutline v-else-if="visibility === 'private'" class="h-3.5" />
+      <div class="flex">Share</div>
+    </div>
   </div>
 
   <LazyDlgShareAndCollaborate v-model:model-value="showShareModal" />

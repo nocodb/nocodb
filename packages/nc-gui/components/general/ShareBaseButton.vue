@@ -9,6 +9,8 @@ const { isUIAllowed } = useUIPermission()
 
 const { $e } = useNuxtApp()
 
+const { project } = storeToRefs(useProject())
+
 const isShareBaseAllowed = computed(
   () =>
     isUIAllowed('newUser') &&
@@ -37,7 +39,10 @@ useEventListener(document, 'keydown', async (e: KeyboardEvent) => {
 </script>
 
 <template>
-  <div class="flex items-center h-full" @click="showUserModal = true">
+  <template v-if="project.type === 'documentation'">
+    <LazyGeneralShareProject />
+  </template>
+  <div v-else class="flex items-center h-full" @click="showUserModal = true">
     <div v-if="isShareBaseAllowed">
       <a-tooltip placement="left">
         <template #title>

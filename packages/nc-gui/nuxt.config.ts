@@ -140,6 +140,7 @@ export default defineNuxtConfig({
               'vscode-icons',
               'simple-icons',
               'nc-icons',
+              'ion',
             ],
           }),
         ],

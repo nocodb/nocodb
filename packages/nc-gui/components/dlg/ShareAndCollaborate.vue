@@ -53,7 +53,7 @@ watch(formStatus, (val) => {
     :class="{ active: vModel }"
     wrap-class-name="nc-modal-share-collaborate"
     :closable="false"
-    :mask-closable="formStatus === 'collaborateSaved' ? true : false"
+    :mask-closable="formStatus === 'collaborateSaving' ? false : true"
     :ok-button-props="{ hidden: true } as any"
     :cancel-button-props="{ hidden: true } as any"
     :footer="null"
@@ -76,9 +76,6 @@ watch(formStatus, (val) => {
         <div class="flex text-lg py-1" style="font-weight: 500">
           <template v-if="formStatus === 'manageCollaborators'"> Manage Collaborators </template>
           <template v-if="formStatus === 'collaborate' || formStatus === 'share'"> Share </template>
-        </div>
-        <div class="flex hover:bg-gray-50 -ml-1 p-1 rounded-md cursor-pointer" @click="vModel = false">
-          <MdiClose class="my-auto" />
         </div>
       </div>
       <ManageUsers v-if="formStatus === 'manageCollaborators'" @close="formStatus = 'collaborate'" />

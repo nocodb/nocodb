@@ -1,4 +1,5 @@
 <script lang="ts" setup>
+import type { VNodeRef } from '@vue/runtime-core'
 import type { KanbanType, ViewType, ViewTypes } from 'nocodb-sdk'
 import type { WritableComputedRef } from '@vue/reactivity'
 import { Tooltip } from 'ant-design-vue'
@@ -93,9 +94,7 @@ onKeyStroke('Enter', (event) => {
   }
 })
 
-function focusInput(el: HTMLInputElement) {
-  if (el) el.focus()
-}
+const focusInput: VNodeRef = (el) => (el as HTMLInputElement)?.focus()
 
 /** Duplicate a view */
 // todo: This is not really a duplication, maybe we need to implement a true duplication?
@@ -183,7 +182,7 @@ function onStopEdit() {
         v-if="isEditing"
         :ref="focusInput"
         v-model:value="vModel.title"
-        @blur="onCancel"
+        @blur="onRename"
         @keydown.stop="onKeyDown($event)"
       />
 

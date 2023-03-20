@@ -19505,6 +19505,10 @@
             "$ref": "#/components/schemas/Bool",
             "description": "Should show system fields in this view?"
           },
+          "is_default": {
+            "$ref": "#/components/schemas/Bool",
+            "description": "Is this view default view for the model?"
+          },
           "title": {
             "description": "View Title",
             "type": "string"

@@ -2203,6 +2203,8 @@ export interface ViewType {
   show: BoolType;
   /** Should show system fields in this view? */
   show_system_fields?: BoolType;
+  /** Is this view default view for the model? */
+  is_default?: BoolType;
   /** View Title */
   title: string;
   /** View Type */

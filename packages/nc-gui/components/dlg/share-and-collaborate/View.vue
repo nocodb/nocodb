@@ -2,6 +2,7 @@
 import { LoadingOutlined } from '@ant-design/icons-vue'
 import ManageUsers from './ManageUsers.vue'
 import ShareProject from './ShareProject.vue'
+import SharePage from './SharePage.vue'
 
 const { copy } = useCopy()
 const { dashboardUrl } = $(useDashboard())
@@ -118,6 +119,7 @@ watch(showShareModal, (val) => {
               </div>
             </div>
           </template>
+          <SharePage />
         </a-collapse-panel>
       </a-collapse>
       <div class="flex flex-row justify-end mx-3 mt-6 mb-2 border-t-1 !border-gray-100 pt-4 gap-x-2">

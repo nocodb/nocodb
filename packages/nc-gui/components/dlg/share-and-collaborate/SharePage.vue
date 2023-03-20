@@ -100,28 +100,25 @@ watch(
 </script>
 
 <template>
-  <div class="flex flex-col">
-    <div v-if="openedPage" class="flex flex-col w-full px-3.5 py-3.5 border-gray-200 border-1 rounded-md gap-y-2">
+  <div class="flex flex-col py-2 px-3 mb-1">
+    <div v-if="openedPage" class="flex flex-col w-full mt-2.5 px-3 py-1.5 border-gray-200 border-1 rounded-md gap-y-2">
       <div class="flex flex-row w-full justify-between">
-        <div class="flex" :style="{ fontWeight: 500 }">Share current page</div>
+        <div class="flex" :style="{ fontWeight: 500 }">Enable public viewing</div>
         <a-switch
           :checked="!!openedPage?.is_published"
           :loading="isPagePublishing"
-          class="docs-share-public-toggle"
+          class="docs-share-public-toggle !mt-0.25"
           :disabled="openedPage.is_published && !isNestedParent"
           @click="togglePagePublishedState"
         />
       </div>
-      <div class="flex text-xs">
-        <template v-if="openedPage.is_published && !isNestedParent">
-          Shared through page
-          <span class="text-blue-600 underline pl-1 cursor-pointer mr-1" @click="openParentPageLink">
-            {{ nestedPublicParentPage?.title }}</span
-          >
-        </template>
-        <template v-else>Share only the current selected page </template>
+      <div v-if="openedPage.is_published && !isNestedParent" class="flex text-xs">
+        Shared through page
+        <span class="text-blue-600 underline pl-1 cursor-pointer mr-1" @click="openParentPageLink">
+          {{ nestedPublicParentPage?.title }}</span
+        >
       </div>
-      <div v-if="openedPage?.is_published" class="flex flex-row justify-end text-gray-600 gap-x-1.5">
+      <div v-if="openedPage?.is_published" class="flex flex-row justify-end text-gray-600 gap-x-1.5 my-0.5">
         <div class="flex py-1.5 px-1.5 hover:bg-gray-100 cursor-pointer rounded-md border-1 border-gray-300" @click="openPageUrl">
           <RiExternalLinkLine class="h-3.75" />
         </div>
@@ -145,11 +142,6 @@ watch(
             <template v-else> Copy link </template>
           </div>
         </div>
-      </div>
-    </div>
-    <div class="flex flex-row mt-6 mb-1 pt-3 border-t-1 border-gray-200 justify-end">
-      <div class="flex !rounded-md border-1 border-gray-200 px-2.5 py-1 hover:bg-gray-50 cursor-pointer" @click="emits('close')">
-        Cancel
       </div>
     </div>
   </div>

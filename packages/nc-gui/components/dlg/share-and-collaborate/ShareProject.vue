@@ -1,6 +1,5 @@
 <script setup lang="ts">
 import Collaborate from './Collaborate.vue'
-import PublicShare from './PublicShare.vue'
 
 const { formStatus } = useShare()
 
@@ -28,7 +27,6 @@ onMounted(async () => {
             <div>Share Public Viewing</div>
           </div>
         </template>
-        <PublicShare />
       </a-tab-pane>
     </a-tabs>
   </div>

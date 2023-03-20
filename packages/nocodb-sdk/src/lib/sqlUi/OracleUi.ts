@@ -825,6 +825,9 @@ export class OracleUi {
       case 'Attachment':
         colProp.dt = 'clob';
         break;
+      case 'GeoData':
+        colProp.dt = 'varchar';
+        break;
       case 'Checkbox':
         colProp.dt = 'tinyint';
         colProp.dtxp = 1;

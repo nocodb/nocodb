@@ -39,6 +39,7 @@
     "signIn": "ĐĂNG NHẬP",
     "signOut": "Đăng xuất",
     "required": "Yêu cầu",
+    "enableScanner": "Enable Scanner for filling",
     "preferred": "Ưu tiên",
     "mandatory": "Bắt buộc",
     "loading": "Đang tải ...",
@@ -209,7 +210,8 @@
     "advancedSettings": "Cài đặt Nâng cao",
     "codeSnippet": "Thư viện mã",
     "keyboardShortcut": "Keyboard Shortcuts",
-    "generateRandomName": "Generate Random Name"
+    "generateRandomName": "Generate Random Name",
+    "findRowByScanningCode": "Find row by scanning a QR or Barcode"
   },
   "labels": {
     "createdBy": "Đã tạo bởi",
@@ -219,6 +221,7 @@
     "viewName": "Xem tên.",
     "viewLink": "Xem liên kết",
     "columnName": "Tên cột dọc",
+    "columnToScanFor": "Column to scan",
     "columnType": "Loại cột.",
     "roleName": "Tên vai trò.",
     "roleDescription": "Mô tả vai trò",
@@ -257,7 +260,7 @@
     "barcodeFormat": "Barcode format",
     "qrCodeValueTooLong": "Too many characters for a QR code",
     "barcodeValueTooLong": "Too many characters for a barcode",
-    "yourLocation": "Your Location",
+    "currentLocation": "Current Location",
     "lng": "Lng",
     "lat": "Lat",
     "aggregateFunction": "Chức năng tổng hợp",
@@ -393,8 +396,8 @@
     "saveAndExit": "Save & Exit",
     "saveAndStay": "Save & Stay",
     "insertRow": "Chèn hàng mới",
-    "deleteRow": "Xóa hàng",
     "duplicateRow": "Duplicate Row",
+    "deleteRow": "Xóa hàng",
     "deleteSelectedRow": "Xóa các hàng đã chọn",
     "importExcel": "Nhập Excel.",
     "importCSV": "Import CSV",
@@ -409,6 +412,8 @@
     "changePwd": "Đổi mật khẩu",
     "createView": "Tạo một cái nhìn",
     "shareView": "Chia sẻ lượt xem.",
+    "findRowByCodeScan": "Find row by scan",
+    "fillByCodeScan": "Fill by scan",
     "listSharedView": "Chia sẻ danh sách xem",
     "ListView": "Lượt xem danh sách",
     "copyView": "Sao chép View.",
@@ -462,8 +467,11 @@
     },
     "map": {
       "mappedBy": "Mapped By",
-      "chooseMappingField": "Choose a Mapping Field"
-    }
+      "chooseMappingField": "Choose a Mapping Field",
+      "openInGoogleMaps": "Google Maps",
+      "openInOpenStreetMap": "OSM"
+    },
+    "toggleMobileMode": "Toggle Mobile Mode"
   },
   "tooltip": {
     "saveChanges": "Lưu thay đổi",
@@ -528,6 +536,12 @@
       "roles": {
         "orgCreator": "Creator can create new projects and access any invited project.",
         "orgViewer": "Viewer is not allowed to create new projects but they can access any invited project."
+      },
+      "codeScanner": {
+        "loadingScanner": "Loading the scanner...",
+        "selectColumn": "Select a column (QR code or Barcode) that you want to use for finding a row by scanning.",
+        "moreThanOneRowFoundForCode": "More than one row found for this code. Currently only unique codes are supported.",
+        "noRowFoundForCode": "No row found for this code for the selected column"
       },
       "map": {
         "overLimit": "You're over the limit.",

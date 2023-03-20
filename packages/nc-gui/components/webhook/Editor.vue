@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import type { Ref } from 'vue'
-import type { AuditType } from 'nocodb-sdk'
+import type { HookReqType, HookType } from 'nocodb-sdk'
 import {
   Form,
   MetaInj,
@@ -10,6 +10,7 @@ import {
   inject,
   message,
   onMounted,
+  parseProp,
   reactive,
   ref,
   useApi,
@@ -20,7 +21,7 @@ import {
 } from '#imports'
 
 interface Props {
-  hook?: Record<string, any>
+  hook?: HookType
 }
 
 const props = defineProps<Props>()
@@ -39,11 +40,13 @@ const meta = inject(MetaInj, ref())
 
 const useForm = Form.useForm
 
-const hook = reactive<Record<string, any>>({
+const hook = reactive<
+  Omit<HookType, 'notification'> & { notification: Record<string, any>; eventOperation: string; condition: boolean }
+>({
   id: '',
   title: '',
-  event: '',
-  operation: '',
+  event: undefined,
+  operation: undefined,
   eventOperation: '',
   notification: {
     type: 'URL',
@@ -55,6 +58,7 @@ const hook = reactive<Record<string, any>>({
     },
   },
   condition: false,
+  active: true,
 })
 
 const urlTabKey = ref('body')
@@ -256,12 +260,13 @@ function onNotTypeChange(reset = false) {
   }
 }
 
-function setHook(newHook: any) {
+function setHook(newHook: HookType) {
+  const notification = newHook.notification as Record<string, any>
   Object.assign(hook, {
     ...newHook,
     notification: {
-      ...newHook.notification,
-      payload: newHook.notification.payload,
+      ...notification,
+      payload: notification.payload,
     },
   })
 }
@@ -325,17 +330,11 @@ async function loadPluginList() {
         ...(p as any),
       }
       plugin.tags = p.tags ? p.tags.split(',') : []
-      plugin.parsedInput = p.input && JSON.parse(p.input)
+      plugin.parsedInput = parseProp(p.input)
       o[plugin.title] = plugin
 
       return o
     }, {} as Record<string, any>)
-
-    if (hook.event && hook.operation) {
-      hook.eventOperation = `${hook.event} ${hook.operation}`
-    }
-
-    onNotTypeChange()
   } catch (e: any) {
     message.error(await extractSdkResponseErrorMsg(e))
   }
@@ -370,7 +369,7 @@ async function saveHooks() {
           ...hook.notification,
           payload: hook.notification.payload,
         },
-      } as AuditType)
+      } as HookReqType)
     }
 
     if (!hook.id && res) {
@@ -406,8 +405,8 @@ watch(
     if (!hook.eventOperation) return
 
     const [event, operation] = hook.eventOperation.split(' ')
-    hook.event = event
-    hook.operation = operation
+    hook.event = event as HookType['event']
+    hook.operation = operation as HookType['operation']
   },
 )
 
@@ -422,7 +421,15 @@ watch(
   { immediate: true },
 )
 
-onMounted(loadPluginList)
+onMounted(async () => {
+  await loadPluginList()
+
+  if (hook.event && hook.operation) {
+    hook.eventOperation = `${hook.event} ${hook.operation}`
+  }
+
+  onNotTypeChange()
+})
 </script>
 
 <template>
@@ -438,8 +445,7 @@ onMounted(loadPluginList)
       <a-button class="mr-3 nc-btn-webhook-test" size="large" @click="testWebhook">
         <div class="flex items-center">
           <MdiGestureDoubleTap class="mr-2" />
-          <!-- TODO: i18n -->
-          Test Webhook
+          {{ $t('activity.testWebhook') }}
         </div>
       </a-button>
 
@@ -456,6 +462,21 @@ onMounted(loadPluginList)
   <a-divider />
 
   <a-form :model="hook" name="create-or-edit-webhook">
+    <a-form-item>
+      <a-row type="flex">
+        <a-col :span="24">
+          <a-card>
+            <a-checkbox
+              :checked="Boolean(hook.active)"
+              class="nc-check-box-enable-webhook"
+              @update:checked="hook.active = $event"
+            >
+              {{ $t('activity.enableWebhook') }}
+            </a-checkbox>
+          </a-card>
+        </a-col>
+      </a-row>
+    </a-form-item>
     <a-form-item>
       <a-row type="flex">
         <a-col :span="24">
@@ -567,14 +588,15 @@ onMounted(loadPluginList)
               <LazyApiClientHeaders v-model="hook.notification.payload.headers" />
             </a-tab-pane>
 
-            <a-tab-pane key="auth" tab="Auth">
-              <LazyMonacoEditor v-model="hook.notification.payload.auth" class="min-h-60 max-h-80" />
+            <!-- No in use at this moment -->
+            <!--            <a-tab-pane key="auth" tab="Auth">-->
+            <!--              <LazyMonacoEditor v-model="hook.notification.payload.auth" class="min-h-60 max-h-80" />-->
 
-              <span class="text-gray-500 prose-sm p-2">
-                For more about auth option refer
-                <a class="prose-sm" href="https://github.com/axios/axios#request-config" target="_blank">axios docs</a>.
-              </span>
-            </a-tab-pane>
+            <!--              <span class="text-gray-500 prose-sm p-2">-->
+            <!--                For more about auth option refer-->
+            <!--                <a class="prose-sm" href  ="https://github.com/axios/axios#request-config" target="_blank">axios docs</a>.-->
+            <!--              </span>-->
+            <!--            </a-tab-pane>-->
           </a-tabs>
         </a-col>
       </a-row>

@@ -39,6 +39,7 @@
     "signIn": "PRIHLÁSENIE",
     "signOut": "Odhlásiť sa",
     "required": "Požadované",
+    "enableScanner": "Enable Scanner for filling",
     "preferred": "Uprednostňované",
     "mandatory": "Povinné",
     "loading": "Načítanie ...",
@@ -209,7 +210,8 @@
     "advancedSettings": "Rozšírené nastavenia",
     "codeSnippet": "Úryvok kódu",
     "keyboardShortcut": "Klávesové skratky",
-    "generateRandomName": "Generate Random Name"
+    "generateRandomName": "Generate Random Name",
+    "findRowByScanningCode": "Find row by scanning a QR or Barcode"
   },
   "labels": {
     "createdBy": "Vytvoril",
@@ -219,6 +221,7 @@
     "viewName": "Zobraziť názov",
     "viewLink": "Zobraziť odkaz",
     "columnName": "Názov stĺpca",
+    "columnToScanFor": "Column to scan",
     "columnType": "Typ stĺpca",
     "roleName": "Názov úlohy",
     "roleDescription": "Popis úlohy",
@@ -257,7 +260,7 @@
     "barcodeFormat": "Formát čiarového kódu",
     "qrCodeValueTooLong": "Príliš veľa znakov pre kód QR",
     "barcodeValueTooLong": "Príliš veľa znakov pre čiarový kód",
-    "yourLocation": "Your Location",
+    "currentLocation": "Current Location",
     "lng": "Lng",
     "lat": "Lat",
     "aggregateFunction": "Súhrnná funkcia",
@@ -393,8 +396,8 @@
     "saveAndExit": "Uložiť a ukončiť",
     "saveAndStay": "Uložiť a zostať",
     "insertRow": "Vložiť nový riadok",
-    "deleteRow": "Odstrániť riadok",
     "duplicateRow": "Duplicate Row",
+    "deleteRow": "Odstrániť riadok",
     "deleteSelectedRow": "Odstránenie vybraných riadkov",
     "importExcel": "Importovať aplikáciu Excel",
     "importCSV": "Import CSV",
@@ -409,6 +412,8 @@
     "changePwd": "Zmena hesla",
     "createView": "Vytvorenie zobrazenia",
     "shareView": "Zdieľať pohľad",
+    "findRowByCodeScan": "Find row by scan",
+    "fillByCodeScan": "Fill by scan",
     "listSharedView": "Zoznam zdieľaných zobrazení",
     "ListView": "Zoznam zobrazení",
     "copyView": "Zobrazenie kópie",
@@ -462,8 +467,11 @@
     },
     "map": {
       "mappedBy": "Mapped By",
-      "chooseMappingField": "Choose a Mapping Field"
-    }
+      "chooseMappingField": "Choose a Mapping Field",
+      "openInGoogleMaps": "Google Maps",
+      "openInOpenStreetMap": "OSM"
+    },
+    "toggleMobileMode": "Toggle Mobile Mode"
   },
   "tooltip": {
     "saveChanges": "Uloženie zmien",
@@ -528,6 +536,12 @@
       "roles": {
         "orgCreator": "Creator môže vytvárať nové projekty a pristupovať k ľubovoľnému pozvanému projektu.",
         "orgViewer": "Prehliadač nemôže vytvárať nové projekty, ale môže pristupovať k ľubovoľnému pozvanému projektu."
+      },
+      "codeScanner": {
+        "loadingScanner": "Loading the scanner...",
+        "selectColumn": "Select a column (QR code or Barcode) that you want to use for finding a row by scanning.",
+        "moreThanOneRowFoundForCode": "More than one row found for this code. Currently only unique codes are supported.",
+        "noRowFoundForCode": "No row found for this code for the selected column"
       },
       "map": {
         "overLimit": "You're over the limit.",

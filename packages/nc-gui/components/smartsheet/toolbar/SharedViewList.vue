@@ -5,6 +5,7 @@ import {
   extractSdkResponseErrorMsg,
   message,
   onMounted,
+  parseProp,
   ref,
   useCopy,
   useDashboard,
@@ -70,7 +71,7 @@ const sharedViewUrl = (view: SharedViewType) => {
 
 const renderAllowCSVDownload = (view: SharedViewType) => {
   if (view.type === ViewTypes.GRID) {
-    view.meta = (view.meta && typeof view.meta === 'string' ? JSON.parse(view.meta) : view.meta) as Record<string, any>
+    view.meta = (view.meta && parseProp(view.meta)) as Record<string, any>
     return view.meta?.allowCSVDownload ? '✔️' : '❌'
   } else {
     return 'N/A'
@@ -82,7 +83,7 @@ const copyLink = (view: SharedViewType) => {
     copy(`${dashboardUrl?.value as string}#${sharedViewUrl(view)}`)
     // Copied to clipboard
     message.success(t('msg.info.copiedToClipboard'))
-  } catch (e) {
+  } catch (e: any) {
     message.error(e.message)
   }
 }

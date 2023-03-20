@@ -39,6 +39,7 @@
     "signIn": "MASUK",
     "signOut": "Keluar",
     "required": "Yg dibutuhkan",
+    "enableScanner": "Enable Scanner for filling",
     "preferred": "Lebih disukai",
     "mandatory": "Wajib",
     "loading": "Memuat ...",
@@ -209,7 +210,8 @@
     "advancedSettings": "Pengaturan Lanjutan",
     "codeSnippet": "Cuplikan Kode",
     "keyboardShortcut": "Pintasan Papan Ketik",
-    "generateRandomName": "Generate Random Name"
+    "generateRandomName": "Generate Random Name",
+    "findRowByScanningCode": "Find row by scanning a QR or Barcode"
   },
   "labels": {
     "createdBy": "Dibuat oleh",
@@ -219,6 +221,7 @@
     "viewName": "Lihat nama",
     "viewLink": "Lihat Tautan",
     "columnName": "Nama kolom",
+    "columnToScanFor": "Column to scan",
     "columnType": "Jenis kolom.",
     "roleName": "Nama peran",
     "roleDescription": "Deskripsi peran",
@@ -257,7 +260,7 @@
     "barcodeFormat": "Format kode batang",
     "qrCodeValueTooLong": "Terlalu banyak karakter untuk kode QR",
     "barcodeValueTooLong": "Terlalu banyak karakter untuk barcode",
-    "yourLocation": "Your Location",
+    "currentLocation": "Current Location",
     "lng": "Lng",
     "lat": "Lat",
     "aggregateFunction": "Fungsi agregat.",
@@ -393,8 +396,8 @@
     "saveAndExit": "Simpan & Keluar",
     "saveAndStay": "Simpan & Menginap",
     "insertRow": "Masukkan baris baru.",
-    "deleteRow": "Hapus Baris",
     "duplicateRow": "Duplicate Row",
+    "deleteRow": "Hapus Baris",
     "deleteSelectedRow": "Hapus baris yang dipilih",
     "importExcel": "Impor Excel.",
     "importCSV": "Impor CSV",
@@ -409,6 +412,8 @@
     "changePwd": "Ganti kata sandi",
     "createView": "Buat tampilan",
     "shareView": "Bagikan Lihat",
+    "findRowByCodeScan": "Find row by scan",
+    "fillByCodeScan": "Fill by scan",
     "listSharedView": "Daftar Tampilan Bersama",
     "ListView": "Tampilan daftar",
     "copyView": "Salin Lihat",
@@ -462,8 +467,11 @@
     },
     "map": {
       "mappedBy": "Mapped By",
-      "chooseMappingField": "Choose a Mapping Field"
-    }
+      "chooseMappingField": "Choose a Mapping Field",
+      "openInGoogleMaps": "Google Maps",
+      "openInOpenStreetMap": "OSM"
+    },
+    "toggleMobileMode": "Toggle Mobile Mode"
   },
   "tooltip": {
     "saveChanges": "Simpan perubahan",
@@ -528,6 +536,12 @@
       "roles": {
         "orgCreator": "Kreator dapat membuat proyek baru dan mengakses proyek yang diundang.",
         "orgViewer": "Penonton tidak diizinkan untuk membuat proyek baru, tetapi mereka dapat mengakses proyek yang diundang."
+      },
+      "codeScanner": {
+        "loadingScanner": "Loading the scanner...",
+        "selectColumn": "Select a column (QR code or Barcode) that you want to use for finding a row by scanning.",
+        "moreThanOneRowFoundForCode": "More than one row found for this code. Currently only unique codes are supported.",
+        "noRowFoundForCode": "No row found for this code for the selected column"
       },
       "map": {
         "overLimit": "You're over the limit.",

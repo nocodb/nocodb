@@ -1,4 +1,4 @@
-import type { LinkToAnotherRecordType, TableType } from 'nocodb-sdk'
+import type { ColumnType, LinkToAnotherRecordType, TableType } from 'nocodb-sdk'
 import { UITypes, isSystemColumn } from 'nocodb-sdk'
 import {
   Modal,
@@ -40,14 +40,14 @@ export function useTable(onTableCreate?: (tableMeta: TableType) => void, baseId?
 
   const createTable = async () => {
     if (!sqlUi?.value) return
-    const columns = sqlUi?.value?.getNewTableColumns().filter((col) => {
+    const columns = sqlUi?.value?.getNewTableColumns().filter((col: ColumnType) => {
       if (col.column_name === 'id' && table.columns.includes('id_ag')) {
         Object.assign(col, sqlUi?.value?.getDataTypeForUiType({ uidt: UITypes.ID }, 'AG'))
         col.dtxp = sqlUi?.value?.getDefaultLengthForDatatype(col.dt)
         col.dtxs = sqlUi?.value?.getDefaultScaleForDatatype(col.dt)
         return true
       }
-      return table.columns.includes(col.column_name)
+      return table.columns.includes(col.column_name!)
     })
 
     try {

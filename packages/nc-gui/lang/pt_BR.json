@@ -39,6 +39,7 @@
     "signIn": "AUTENTIQUE-SE",
     "signOut": "Sair",
     "required": "Obrigatório",
+    "enableScanner": "Enable Scanner for filling",
     "preferred": "Preferencial",
     "mandatory": "Obrigatoriedade",
     "loading": "Carregando ...",
@@ -209,7 +210,8 @@
     "advancedSettings": "Configurações avançadas",
     "codeSnippet": "Código Snippet",
     "keyboardShortcut": "Atalhos de teclado",
-    "generateRandomName": "Generate Random Name"
+    "generateRandomName": "Generate Random Name",
+    "findRowByScanningCode": "Find row by scanning a QR or Barcode"
   },
   "labels": {
     "createdBy": "Criado por",
@@ -219,6 +221,7 @@
     "viewName": "Visualizar nome",
     "viewLink": "View link.",
     "columnName": "Nome da coluna",
+    "columnToScanFor": "Column to scan",
     "columnType": "Tipo de coluna.",
     "roleName": "Nome do papel",
     "roleDescription": "Descrição do papel",
@@ -257,7 +260,7 @@
     "barcodeFormat": "Formato do código de barras",
     "qrCodeValueTooLong": "Demasiados caracteres para um código QR",
     "barcodeValueTooLong": "Demasiados caracteres para um código de barras",
-    "yourLocation": "Your Location",
+    "currentLocation": "Current Location",
     "lng": "Lng",
     "lat": "Lat",
     "aggregateFunction": "Função agregada",
@@ -393,8 +396,8 @@
     "saveAndExit": "Salvar & Sair",
     "saveAndStay": "Salvar & Ficar",
     "insertRow": "Insira a nova linha",
-    "deleteRow": "Excluir linha",
     "duplicateRow": "Duplicate Row",
+    "deleteRow": "Excluir linha",
     "deleteSelectedRow": "Excluir linhas selecionadas",
     "importExcel": "Importar Excel.",
     "importCSV": "Importar CSV",
@@ -409,6 +412,8 @@
     "changePwd": "Alterar a senha",
     "createView": "Criar uma vizualização",
     "shareView": "Compartilhar Vizualização",
+    "findRowByCodeScan": "Find row by scan",
+    "fillByCodeScan": "Fill by scan",
     "listSharedView": "Lista de visualização compartilhada",
     "ListView": "Lista de Vizualizações",
     "copyView": "Copiar vizualização",
@@ -462,8 +467,11 @@
     },
     "map": {
       "mappedBy": "Mapped By",
-      "chooseMappingField": "Choose a Mapping Field"
-    }
+      "chooseMappingField": "Choose a Mapping Field",
+      "openInGoogleMaps": "Google Maps",
+      "openInOpenStreetMap": "OSM"
+    },
+    "toggleMobileMode": "Toggle Mobile Mode"
   },
   "tooltip": {
     "saveChanges": "Salvar alterações",
@@ -528,6 +536,12 @@
       "roles": {
         "orgCreator": "O criador pode criar novos projectos e aceder a qualquer projecto convidado.",
         "orgViewer": "O espectador não está autorizado a criar novos projectos, mas pode aceder a qualquer projecto convidado."
+      },
+      "codeScanner": {
+        "loadingScanner": "Loading the scanner...",
+        "selectColumn": "Select a column (QR code or Barcode) that you want to use for finding a row by scanning.",
+        "moreThanOneRowFoundForCode": "More than one row found for this code. Currently only unique codes are supported.",
+        "noRowFoundForCode": "No row found for this code for the selected column"
       },
       "map": {
         "overLimit": "You're over the limit.",

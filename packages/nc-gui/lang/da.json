@@ -39,6 +39,7 @@
     "signIn": "LOG IND",
     "signOut": "Log ud",
     "required": "Påkrævet",
+    "enableScanner": "Enable Scanner for filling",
     "preferred": "Foretrukne",
     "mandatory": "Obligatorisk",
     "loading": "Indlæser ...",
@@ -209,7 +210,8 @@
     "advancedSettings": "Avancerede indstillinger",
     "codeSnippet": "Kodeuddrag",
     "keyboardShortcut": "Tastaturgenveje",
-    "generateRandomName": "Generér Tilfældigt Navn"
+    "generateRandomName": "Generér Tilfældigt Navn",
+    "findRowByScanningCode": "Find row by scanning a QR or Barcode"
   },
   "labels": {
     "createdBy": "Oprettet af",
@@ -219,6 +221,7 @@
     "viewName": "Se navn",
     "viewLink": "Vis Link",
     "columnName": "Kolonne navn",
+    "columnToScanFor": "Column to scan",
     "columnType": "Kolonne type",
     "roleName": "Rolle navn",
     "roleDescription": "Rollebeskrivelsen",
@@ -257,7 +260,7 @@
     "barcodeFormat": "Stregkodeformat",
     "qrCodeValueTooLong": "For mange tegn til en QR-kode",
     "barcodeValueTooLong": "For mange tegn til en stregkode",
-    "yourLocation": "Din Placering",
+    "currentLocation": "Current Location",
     "lng": "Lng",
     "lat": "Lat",
     "aggregateFunction": "Aggregate Function.",
@@ -393,8 +396,8 @@
     "saveAndExit": "Gem og afslutning",
     "saveAndStay": "Gem og bliv",
     "insertRow": "Indsæt ny række",
-    "deleteRow": "Slet Række",
     "duplicateRow": "Dupliker Række",
+    "deleteRow": "Slet Række",
     "deleteSelectedRow": "Slet de valgte rækker",
     "importExcel": "Import Excel.",
     "importCSV": "Import CSV.",
@@ -409,6 +412,8 @@
     "changePwd": "Skift kodeord",
     "createView": "Opret en visning",
     "shareView": "Del Visning",
+    "findRowByCodeScan": "Find row by scan",
+    "fillByCodeScan": "Fill by scan",
     "listSharedView": "Shared View List.",
     "ListView": "Visninger List",
     "copyView": "Kopi visning",
@@ -462,8 +467,11 @@
     },
     "map": {
       "mappedBy": "Kortlagt af",
-      "chooseMappingField": "Vælg et kortlægningsfelt"
-    }
+      "chooseMappingField": "Vælg et kortlægningsfelt",
+      "openInGoogleMaps": "Google Maps",
+      "openInOpenStreetMap": "OSM"
+    },
+    "toggleMobileMode": "Toggle Mobile Mode"
   },
   "tooltip": {
     "saveChanges": "Gem ændringer",
@@ -528,6 +536,12 @@
       "roles": {
         "orgCreator": "Skaberen kan oprette nye projekter og få adgang til alle inviterede projekter.",
         "orgViewer": "Seeren har ikke lov til at oprette nye projekter, men kan få adgang til alle inviterede projekter."
+      },
+      "codeScanner": {
+        "loadingScanner": "Loading the scanner...",
+        "selectColumn": "Select a column (QR code or Barcode) that you want to use for finding a row by scanning.",
+        "moreThanOneRowFoundForCode": "More than one row found for this code. Currently only unique codes are supported.",
+        "noRowFoundForCode": "No row found for this code for the selected column"
       },
       "map": {
         "overLimit": "Du er over grænsen.",

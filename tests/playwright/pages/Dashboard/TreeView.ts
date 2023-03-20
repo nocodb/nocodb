@@ -40,11 +40,17 @@ export class TreeViewPage extends BasePage {
     title,
     mode = 'standard',
     networkResponse = true,
+    mobileMode = false,
   }: {
     title: string;
     mode?: string;
     networkResponse?: boolean;
+    mobileMode?: boolean;
   }) {
+    if (mobileMode) {
+      await this.rootPage.locator('.h-full > div > .nc-sidebar-left-toggle-icon').click();
+    }
+
     if ((await this.get().locator('.active.nc-project-tree-tbl').count()) > 0) {
       if ((await this.get().locator('.active.nc-project-tree-tbl').innerText()) === title) {
         // table already open

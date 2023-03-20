@@ -39,6 +39,7 @@
     "signIn": "로그인",
     "signOut": "로그아웃",
     "required": "필수의",
+    "enableScanner": "Enable Scanner for filling",
     "preferred": "우선의",
     "mandatory": "필수적인",
     "loading": "불러오는 중 ...",
@@ -209,7 +210,8 @@
     "advancedSettings": "Advanced Settings",
     "codeSnippet": "Code Snippet",
     "keyboardShortcut": "Keyboard Shortcuts",
-    "generateRandomName": "Generate Random Name"
+    "generateRandomName": "Generate Random Name",
+    "findRowByScanningCode": "Find row by scanning a QR or Barcode"
   },
   "labels": {
     "createdBy": "Created By",
@@ -219,6 +221,7 @@
     "viewName": "이름 보기",
     "viewLink": "링크 보기",
     "columnName": "열 이름",
+    "columnToScanFor": "Column to scan",
     "columnType": "열 유형",
     "roleName": "역할 이름",
     "roleDescription": "역할 설명",
@@ -257,7 +260,7 @@
     "barcodeFormat": "Barcode format",
     "qrCodeValueTooLong": "Too many characters for a QR code",
     "barcodeValueTooLong": "Too many characters for a barcode",
-    "yourLocation": "Your Location",
+    "currentLocation": "Current Location",
     "lng": "Lng",
     "lat": "Lat",
     "aggregateFunction": "집합 함수",
@@ -393,8 +396,8 @@
     "saveAndExit": "Save & Exit",
     "saveAndStay": "Save & Stay",
     "insertRow": "행 삽입",
-    "deleteRow": "행 삭제",
     "duplicateRow": "Duplicate Row",
+    "deleteRow": "행 삭제",
     "deleteSelectedRow": "선택한 행 삭제",
     "importExcel": "엑셀 가져오기",
     "importCSV": "CSV 가져오기",
@@ -409,6 +412,8 @@
     "changePwd": "암호 변경",
     "createView": "뷰 생성",
     "shareView": "뷰 공유",
+    "findRowByCodeScan": "Find row by scan",
+    "fillByCodeScan": "Fill by scan",
     "listSharedView": "공유 뷰 목록",
     "ListView": "뷰 목록",
     "copyView": "뷰 복사",
@@ -462,8 +467,11 @@
     },
     "map": {
       "mappedBy": "Mapped By",
-      "chooseMappingField": "Choose a Mapping Field"
-    }
+      "chooseMappingField": "Choose a Mapping Field",
+      "openInGoogleMaps": "Google Maps",
+      "openInOpenStreetMap": "OSM"
+    },
+    "toggleMobileMode": "Toggle Mobile Mode"
   },
   "tooltip": {
     "saveChanges": "변경 사항 저장",
@@ -528,6 +536,12 @@
       "roles": {
         "orgCreator": "Creator can create new projects and access any invited project.",
         "orgViewer": "Viewer is not allowed to create new projects but they can access any invited project."
+      },
+      "codeScanner": {
+        "loadingScanner": "Loading the scanner...",
+        "selectColumn": "Select a column (QR code or Barcode) that you want to use for finding a row by scanning.",
+        "moreThanOneRowFoundForCode": "More than one row found for this code. Currently only unique codes are supported.",
+        "noRowFoundForCode": "No row found for this code for the selected column"
       },
       "map": {
         "overLimit": "You're over the limit.",

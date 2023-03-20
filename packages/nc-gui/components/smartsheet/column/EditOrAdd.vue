@@ -41,6 +41,8 @@ const { $e } = useNuxtApp()
 
 const { appInfo } = useGlobal()
 
+const { betaFeatureToggleState } = useBetaFeatureToggle()
+
 const meta = inject(MetaInj, ref())
 
 const isForm = inject(IsFormInj, ref(false))
@@ -57,8 +59,8 @@ const columnToValidate = [UITypes.Email, UITypes.URL, UITypes.PhoneNumber]
 
 const onlyNameUpdateOnEditColumns = [UITypes.LinkToAnotherRecord, UITypes.Lookup, UITypes.Rollup]
 
-const geoDataToggleCondition = (t) => {
-  return geodataToggleState.show ? geodataToggleState.show : !t.name.includes(UITypes.GeoData)
+const geoDataToggleCondition = (t: { name: UITypes }) => {
+  return betaFeatureToggleState.show ? betaFeatureToggleState.show : !t.name.includes(UITypes.GeoData)
 }
 
 const uiTypesOptions = computed<typeof uiTypes>(() => {

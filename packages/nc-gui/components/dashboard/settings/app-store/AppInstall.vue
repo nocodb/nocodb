@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import type { PluginType } from 'nocodb-sdk'
+import type { PluginTestReqType, PluginType } from 'nocodb-sdk'
 import { extractSdkResponseErrorMsg, message, onMounted, ref, useI18n, useNuxtApp } from '#imports'
 
 const { id } = defineProps<{
@@ -64,19 +64,20 @@ const testSettings = async () => {
   loadingAction = Action.Test
 
   try {
-    const res = await $api.plugin.test({
-      input: pluginFormData,
-      id: plugin?.id,
-      category: plugin?.category,
-      title: plugin?.title,
-    })
+    if (plugin) {
+      const res = await $api.plugin.test({
+        input: JSON.stringify(pluginFormData),
+        title: plugin.title,
+        category: plugin.category,
+      } as PluginTestReqType)
 
-    if (res) {
-      // Successfully tested plugin settings
-      message.success(t('msg.success.pluginTested'))
-    } else {
-      // Invalid credentials
-      message.info(t('msg.info.invalidCredentials'))
+      if (res) {
+        // Successfully tested plugin settings
+        message.success(t('msg.success.pluginTested'))
+      } else {
+        // Invalid credentials
+        message.info(t('msg.info.invalidCredentials'))
+      }
     }
   } catch (e: any) {
     message.error(await extractSdkResponseErrorMsg(e))
@@ -106,7 +107,7 @@ const readPluginDetails = async () => {
     const res = await $api.plugin.read(id)
     const formDetails = JSON.parse(res.input_schema ?? '{}')
     const emptyParsedInput = formDetails.array ? [{}] : {}
-    const parsedInput = res.input ? JSON.parse(res.input) : emptyParsedInput
+    const parsedInput = typeof res.input === 'string' ? JSON.parse(res.input) : emptyParsedInput
 
     // the type of 'secure' was XcType.SingleLineText in 0.0.1
     // and it has been changed to XcType.Checkbox, since 0.0.2

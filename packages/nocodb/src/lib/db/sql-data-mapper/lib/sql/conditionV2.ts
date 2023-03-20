@@ -691,7 +691,9 @@ const parseConditionV2 = async (
               qb = qb.whereNull(customWhereClause || field);
               if (
                 !isNumericCol(column.uidt) &&
-                ![UITypes.Date, UITypes.DateTime].includes(column.uidt)
+                ![UITypes.Date, UITypes.DateTime, UITypes.Time].includes(
+                  column.uidt
+                )
               ) {
                 qb = qb.orWhere(field, '');
               }
@@ -707,7 +709,9 @@ const parseConditionV2 = async (
               qb = qb.whereNotNull(customWhereClause || field);
               if (
                 !isNumericCol(column.uidt) &&
-                ![UITypes.Date, UITypes.DateTime].includes(column.uidt)
+                ![UITypes.Date, UITypes.DateTime, UITypes.Time].includes(
+                  column.uidt
+                )
               ) {
                 qb = qb.whereNot(field, '');
               }

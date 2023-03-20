@@ -8,7 +8,7 @@ const tabStore = useTabs()
 const { closeTab } = tabStore
 const { tabs, activeTabIndex, activeTab } = storeToRefs(tabStore)
 
-const { isLoading } = useGlobal()
+const { isLoading, isMobileMode } = useGlobal()
 
 provide(TabMetaInj, activeTab)
 
@@ -27,6 +27,12 @@ const { isOpen, toggle } = useSidebar('nc-left-sidebar')
 
 function onEdit(targetKey: number, action: 'add' | 'remove' | string) {
   if (action === 'remove') closeTab(targetKey)
+}
+
+const hideSidebarOnClickOrTouchIfMobileMode = () => {
+  if (isMobileMode.value && isOpen.value) {
+    toggle(false)
+  }
 }
 </script>
 
@@ -81,10 +87,10 @@ function onEdit(targetKey: number, action: 'add' | 'remove' | string) {
         </div>
 
         <LazyGeneralShareBaseButton class="mb-1px" />
-        <LazyGeneralFullScreen class="nc-fullscreen-icon mb-1px" />
+        <LazyGeneralFullScreen v-if="!isMobileMode" class="nc-fullscreen-icon mb-1px" />
       </div>
 
-      <div class="w-full min-h-[300px] flex-auto">
+      <div class="w-full min-h-[300px] flex-auto" @click="hideSidebarOnClickOrTouchIfMobileMode">
         <NuxtPage :page-key="`${$route.params.projectId}.${$route.name}`" />
       </div>
     </div>

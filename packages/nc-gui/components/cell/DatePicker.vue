@@ -8,6 +8,7 @@ import {
   computed,
   inject,
   isDrawerOrModalExist,
+  parseProp,
   ref,
   useSelectedCellKeyupListener,
   watch,
@@ -34,7 +35,7 @@ const editable = inject(EditModeInj, ref(false))
 
 let isDateInvalid = $ref(false)
 
-const dateFormat = $computed(() => columnMeta?.value?.meta?.date_format ?? 'YYYY-MM-DD')
+const dateFormat = $computed(() => parseProp(columnMeta?.value?.meta)?.date_format ?? 'YYYY-MM-DD')
 
 let localState = $computed({
   get() {

@@ -10,6 +10,7 @@ import {
   inject,
   message,
   onMounted,
+  parseProp,
   ref,
   resolveComponent,
   useApi,
@@ -218,7 +219,7 @@ const setIcon = async (icon: string, view: ViewType) => {
   try {
     // modify the icon property in meta
     view.meta = {
-      ...(view.meta || {}),
+      ...parseProp(view.meta),
       icon,
     }
 
@@ -227,7 +228,7 @@ const setIcon = async (icon: string, view: ViewType) => {
     })
 
     $e('a:view:icon:sidebar', { icon })
-  } catch (e) {
+  } catch (e: any) {
     message.error(await extractSdkResponseErrorMsg(e))
   }
 }

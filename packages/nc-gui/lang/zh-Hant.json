@@ -39,6 +39,7 @@
     "signIn": "登入",
     "signOut": "登出",
     "required": "必填",
+    "enableScanner": "Enable Scanner for filling",
     "preferred": "首選",
     "mandatory": "強制的",
     "loading": "載入中...",
@@ -209,7 +210,8 @@
     "advancedSettings": "進階設定",
     "codeSnippet": "程式碼片段",
     "keyboardShortcut": "Keyboard Shortcuts",
-    "generateRandomName": "Generate Random Name"
+    "generateRandomName": "Generate Random Name",
+    "findRowByScanningCode": "Find row by scanning a QR or Barcode"
   },
   "labels": {
     "createdBy": "Created By",
@@ -219,6 +221,7 @@
     "viewName": "檢視名稱",
     "viewLink": "查看鏈接",
     "columnName": "列名稱",
+    "columnToScanFor": "Column to scan",
     "columnType": "列類型",
     "roleName": "角色名稱",
     "roleDescription": "角色描述",
@@ -257,7 +260,7 @@
     "barcodeFormat": "Barcode format",
     "qrCodeValueTooLong": "Too many characters for a QR code",
     "barcodeValueTooLong": "Too many characters for a barcode",
-    "yourLocation": "Your Location",
+    "currentLocation": "Current Location",
     "lng": "Lng",
     "lat": "Lat",
     "aggregateFunction": "匯總功能",
@@ -393,8 +396,8 @@
     "saveAndExit": "儲存並結束",
     "saveAndStay": "Save & Stay",
     "insertRow": "插入新行",
-    "deleteRow": "刪除行",
     "duplicateRow": "Duplicate Row",
+    "deleteRow": "刪除行",
     "deleteSelectedRow": "刪除所選行",
     "importExcel": "匯入 Excel",
     "importCSV": "匯入 CSV",
@@ -409,6 +412,8 @@
     "changePwd": "更改密碼",
     "createView": "建立檢視",
     "shareView": "分享檢視",
+    "findRowByCodeScan": "Find row by scan",
+    "fillByCodeScan": "Fill by scan",
     "listSharedView": "共享視圖列表",
     "ListView": "檢視表清單",
     "copyView": "複製檢視",
@@ -462,8 +467,11 @@
     },
     "map": {
       "mappedBy": "Mapped By",
-      "chooseMappingField": "Choose a Mapping Field"
-    }
+      "chooseMappingField": "Choose a Mapping Field",
+      "openInGoogleMaps": "Google Maps",
+      "openInOpenStreetMap": "OSM"
+    },
+    "toggleMobileMode": "Toggle Mobile Mode"
   },
   "tooltip": {
     "saveChanges": "儲存更動",
@@ -528,6 +536,12 @@
       "roles": {
         "orgCreator": "建立者可以建立專案與存取任何受邀請的專案",
         "orgViewer": "檢視者不能建立專案但可以存取任何受邀請的專案"
+      },
+      "codeScanner": {
+        "loadingScanner": "Loading the scanner...",
+        "selectColumn": "Select a column (QR code or Barcode) that you want to use for finding a row by scanning.",
+        "moreThanOneRowFoundForCode": "More than one row found for this code. Currently only unique codes are supported.",
+        "noRowFoundForCode": "No row found for this code for the selected column"
       },
       "map": {
         "overLimit": "You're over the limit.",

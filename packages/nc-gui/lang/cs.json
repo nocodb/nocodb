@@ -39,6 +39,7 @@
     "signIn": "PŘIHLÁSIT SE",
     "signOut": "Odhlásit se",
     "required": "Vyžadováno",
+    "enableScanner": "Enable Scanner for filling",
     "preferred": "Preferováno",
     "mandatory": "Povinné",
     "loading": "Načítání ...",
@@ -209,7 +210,8 @@
     "advancedSettings": "Pokročilá nastavení",
     "codeSnippet": "Úryvek kódu",
     "keyboardShortcut": "Klávesové zkratky",
-    "generateRandomName": "Vytvořit náhodné jméno"
+    "generateRandomName": "Vytvořit náhodné jméno",
+    "findRowByScanningCode": "Find row by scanning a QR or Barcode"
   },
   "labels": {
     "createdBy": "Vytvořil/a",
@@ -219,6 +221,7 @@
     "viewName": "Název zobrazení",
     "viewLink": "Zobrazit odkaz",
     "columnName": "Název sloupce",
+    "columnToScanFor": "Column to scan",
     "columnType": "Typ sloupce",
     "roleName": "Název role",
     "roleDescription": "Popis role",
@@ -257,7 +260,7 @@
     "barcodeFormat": "Formát čárového kódu",
     "qrCodeValueTooLong": "Příliš mnoho znaků pro QR kód",
     "barcodeValueTooLong": "Příliš mnoho znaků pro čárový kód",
-    "yourLocation": "Your Location",
+    "currentLocation": "Current Location",
     "lng": "Lng",
     "lat": "Lat",
     "aggregateFunction": "Agregační funkce",
@@ -393,8 +396,8 @@
     "saveAndExit": "Uložit a odejít",
     "saveAndStay": "Uložit a zůstat",
     "insertRow": "Vložit nový řádek",
-    "deleteRow": "Odstranit řádek",
     "duplicateRow": "Duplicate Row",
+    "deleteRow": "Odstranit řádek",
     "deleteSelectedRow": "Odstranit vybrané řádky",
     "importExcel": "Importovat Excel",
     "importCSV": "Importovat CSV",
@@ -409,6 +412,8 @@
     "changePwd": "Změnit heslo",
     "createView": "Vytvořit pohled",
     "shareView": "Sdílet pohled",
+    "findRowByCodeScan": "Find row by scan",
+    "fillByCodeScan": "Fill by scan",
     "listSharedView": "Seznam sdílených zobrazení",
     "ListView": "Seznam pohledů",
     "copyView": "Kopírovat pohled",
@@ -462,8 +467,11 @@
     },
     "map": {
       "mappedBy": "Mapped By",
-      "chooseMappingField": "Choose a Mapping Field"
-    }
+      "chooseMappingField": "Choose a Mapping Field",
+      "openInGoogleMaps": "Google Maps",
+      "openInOpenStreetMap": "OSM"
+    },
+    "toggleMobileMode": "Toggle Mobile Mode"
   },
   "tooltip": {
     "saveChanges": "Uložení změn",
@@ -528,6 +536,12 @@
       "roles": {
         "orgCreator": "Tvůrce může vytvářet nové projekty a přistupovat k jakémukoli pozvanému projektu.",
         "orgViewer": "Prohlížeč nemůže vytvářet nové projekty, ale může přistupovat k jakémukoli pozvanému projektu."
+      },
+      "codeScanner": {
+        "loadingScanner": "Loading the scanner...",
+        "selectColumn": "Select a column (QR code or Barcode) that you want to use for finding a row by scanning.",
+        "moreThanOneRowFoundForCode": "More than one row found for this code. Currently only unique codes are supported.",
+        "noRowFoundForCode": "No row found for this code for the selected column"
       },
       "map": {
         "overLimit": "You're over the limit.",

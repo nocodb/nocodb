@@ -30,7 +30,7 @@ const updateRowHeight = async (rh: number, undo = false) => {
           fn: (r: number) => updateRowHeight(r, true),
           args: [(view.value.view as GridType).row_height],
         },
-        scope: view.value?.is_default ? [view.value.fk_model_id, view.value.title] : view.value?.title,
+        scope: view.value?.title,
       })
     }
 

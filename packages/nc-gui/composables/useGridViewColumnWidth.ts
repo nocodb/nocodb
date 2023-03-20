@@ -78,7 +78,7 @@ export function useGridViewColumnWidth(view: Ref<ViewType | undefined>) {
           fn: (w: string) => updateWidth(id, w, true),
           args: [gridViewCols.value[id].width],
         },
-        scope: view.value?.is_default ? [view.value.fk_model_id, view.value.title] : view.value?.title,
+        scope: view.value?.title,
       })
     }
 

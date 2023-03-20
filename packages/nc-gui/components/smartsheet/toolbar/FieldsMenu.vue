@@ -117,7 +117,7 @@ const onMove = (_event: { moved: { newIndex: number; oldIndex: number } }, undo 
         },
         args: [],
       },
-      scope: activeView.value?.is_default ? [activeView.value.fk_model_id, activeView.value.title] : activeView.value?.title,
+      scope: activeView.value?.title,
     })
   }
 
@@ -203,7 +203,7 @@ const toggleFieldVisibility = (e: CheckboxChangeEvent, field: any, index: number
       },
       args: [e.target.checked],
     },
-    scope: activeView.value?.is_default ? [activeView.value.fk_model_id, activeView.value.title] : activeView.value?.title,
+    scope: activeView.value?.title,
   })
   saveOrUpdate(field, index)
 }
@@ -222,7 +222,7 @@ const toggleSystemFields = (e: CheckboxChangeEvent) => {
       },
       args: [e.target.checked],
     },
-    scope: activeView.value?.is_default ? [activeView.value.fk_model_id, activeView.value.title] : activeView.value?.title,
+    scope: activeView.value?.title,
   })
 }
 

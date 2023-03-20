@@ -271,7 +271,7 @@ export function useViewData(
             },
             args: [id],
           },
-          scope: viewMeta.value?.is_default ? [viewMeta.value.fk_model_id, viewMeta.value.title] : viewMeta.value?.title,
+          scope: viewMeta.value?.title,
         })
       }
 
@@ -346,7 +346,7 @@ export function useViewData(
             },
             args: [clone(toUpdate), property],
           },
-          scope: viewMeta.value?.is_default ? [viewMeta.value.fk_model_id, viewMeta.value.title] : viewMeta.value?.title,
+          scope: viewMeta.value?.title,
         })
 
         /** update row data(to sync formula and other related columns)
@@ -463,7 +463,7 @@ export function useViewData(
               },
               args: [clone(row), {}],
             },
-            scope: viewMeta.value?.is_default ? [viewMeta.value.fk_model_id, viewMeta.value.title] : viewMeta.value?.title,
+            scope: viewMeta.value?.title,
           })
         }
 

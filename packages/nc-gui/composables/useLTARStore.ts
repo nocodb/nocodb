@@ -43,6 +43,8 @@ const [useProvideLTARStore, useLTARStore] = useInjectionState(
 
     const { $api } = useNuxtApp()
 
+    const activeView = inject(ActiveViewInj, ref())
+
     const { addUndo, clone } = useUndoRedo()
 
     const sharedViewPassword = inject(SharedViewPasswordInj, ref(null))
@@ -284,7 +286,7 @@ const [useProvideLTARStore, useLTARStore] = useInjectionState(
               fn: (row: Record<string, any>) => link(row, {}, true),
               args: [clone(row)],
             },
-            scope: metaValue.id,
+            scope: activeView.value?.title,
           })
         }
       } catch (e: any) {
@@ -330,7 +332,7 @@ const [useProvideLTARStore, useLTARStore] = useInjectionState(
               fn: (row: Record<string, any>) => unlink(row, {}, true),
               args: [clone(row)],
             },
-            scope: metaValue.id,
+            scope: activeView.value?.title,
           })
         }
       } catch (e: any) {

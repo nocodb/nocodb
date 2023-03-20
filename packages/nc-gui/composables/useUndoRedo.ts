@@ -10,6 +10,8 @@ export const useUndoRedo = createSharedComposable(() => {
 
   const route = $(router.currentRoute)
 
+  const activeView = inject(ActiveViewInj, ref())
+
   const scope = computed<string[]>(() => {
     let tempScope = ['root']
     for (const param of Object.values(route.params)) {
@@ -19,13 +21,12 @@ export const useUndoRedo = createSharedComposable(() => {
         tempScope.push(param)
       }
     }
-    if (
-      Object.keys(route.params).includes('viewTitle') &&
-      Object.keys(route.params).includes('title') &&
-      route.params.viewTitle.length
-    ) {
-      tempScope.splice(tempScope.indexOf(route.params.title as string), 1)
+
+    // if the current view is the default view, add it to the scope (as viewTitle might be missing)
+    if (activeView.value?.is_default) {
+      tempScope.push(activeView.value.title)
     }
+
     return tempScope
   })
 

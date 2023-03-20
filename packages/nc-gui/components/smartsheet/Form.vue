@@ -102,10 +102,6 @@ const { t } = useI18n()
 
 const { betaFeatureToggleState } = useBetaFeatureToggle()
 
-const formRules = {
-  email: [emailValidator],
-}
-
 const updateView = useDebounceFn(
   () => {
     if ((formViewData.value?.subheading?.length || 0) > 255) {
@@ -386,6 +382,8 @@ watch(view, (nextView) => {
     reloadEventHook.trigger()
   }
 })
+
+const editEnabled = ref({})
 </script>
 
 <template>
@@ -724,7 +722,6 @@ watch(view, (nextView) => {
                         required: isRequired(element, element.required),
                         message: `${element.label || element.title} is required`,
                       },
-                      ...(element.uidt === UITypes.Email && formRules.email),
                     ]"
                   >
                     <LazySmartsheetCell
@@ -733,7 +730,10 @@ watch(view, (nextView) => {
                       :class="`nc-form-input-${element.title.replaceAll(' ', '')}`"
                       :data-testid="`nc-form-input-${element.title.replaceAll(' ', '')}`"
                       :column="element"
-                      :edit-enabled="true"
+                      :edit-enabled="editEnabled[index] ?? true"
+                      @click="editEnabled[index] = true"
+                      @cancel="editEnabled[index] = false"
+                      @update:edit-enabled="editEnabled[index] = $event"
                       @click.stop.prevent
                     />
                   </a-form-item>

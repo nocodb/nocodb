@@ -18,6 +18,7 @@ import {
   useI18n,
   useNuxtApp,
   useRouter,
+  useUndoRedo,
   viewTypeAlias,
   watch,
 } from '#imports'
@@ -45,6 +46,8 @@ const activeView = inject(ActiveViewInj, ref())
 const { api } = useApi()
 
 const router = useRouter()
+
+const { addUndo } = useUndoRedo()
 
 /** Selected view(s) for menu */
 const selected = ref<string[]>([])
@@ -165,7 +168,7 @@ function changeView(view: ViewType) {
 }
 
 /** Rename a view */
-async function onRename(view: ViewType) {
+async function onRename(view: ViewType, originalTitle?: string, undo = false) {
   try {
     await api.dbView.update(view.id!, {
       title: view.title,
@@ -177,6 +180,28 @@ async function onRename(view: ViewType) {
         viewTitle: view.title,
       },
     })
+
+    if (!undo) {
+      addUndo({
+        redo: {
+          fn: (v: ViewType, title: string) => {
+            const tempTitle = v.title
+            v.title = title
+            onRename(v, tempTitle, true)
+          },
+          args: [view, view.title],
+        },
+        undo: {
+          fn: (v: ViewType, title: string) => {
+            const tempTitle = v.title
+            v.title = title
+            onRename(v, tempTitle, true)
+          },
+          args: [view, originalTitle],
+        },
+        scope: activeView.value?.fk_model_id,
+      })
+    }
 
     // View renamed successfully
     message.success(t('msg.success.viewRenamed'))

@@ -20,7 +20,7 @@ import {
   watch,
 } from '#imports'
 import { TabMetaInj } from '~/context'
-import type { Filter, TabItem } from '~/lib'
+import type { Filter, TabItem, UndoRedoAction } from '~/lib'
 
 export function useViewFilters(
   view: Ref<ViewType | undefined>,
@@ -45,6 +45,8 @@ export function useViewFilters(
   const { isUIAllowed } = useUIPermission()
 
   const { metas } = useMetas()
+
+  const { addUndo, clone } = useUndoRedo()
 
   const _filters = ref<Filter[]>([])
 
@@ -106,6 +108,19 @@ export function useViewFilters(
       return obj
     }, {})
   })
+
+  const lastFilters = ref<Filter[]>([])
+
+  watchOnce(filters, (filters: Filter[]) => {
+    lastFilters.value = clone(filters)
+  })
+
+  // get delta between two objects and return the changed fields (value is from b)
+  const getFieldDelta = (a: any, b: any) => {
+    return Object.entries(b)
+      .filter(([key, val]) => a[key] !== val && key in a)
+      .reduce((a, [key, v]) => ({ ...a, [key]: v }), {})
+  }
 
   const isComparisonOpAllowed = (
     filter: FilterType,
@@ -230,7 +245,90 @@ export function useViewFilters(
     }
   }
 
-  const deleteFilter = async (filter: Filter, i: number) => {
+  const saveOrUpdate = async (filter: Filter, i: number, force = false, undo = false) => {
+    if (!view.value) return
+
+    if (!undo) {
+      const lastFilter = lastFilters.value[i]
+      if (lastFilter) {
+        const delta = clone(getFieldDelta(filter, lastFilter))
+        if (Object.keys(delta).length > 0) {
+          addUndo({
+            undo: {
+              fn: (prop: string, data: any) => {
+                const f = filters.value[i]
+                if (f) {
+                  f[prop as keyof Filter] = data
+                  saveOrUpdate(f, i, force, true)
+                }
+              },
+              args: [Object.keys(delta)[0], Object.values(delta)[0]],
+            },
+            redo: {
+              fn: (prop: string, data: any) => {
+                const f = filters.value[i]
+                if (f) {
+                  f[prop as keyof Filter] = data
+                  saveOrUpdate(f, i, force, true)
+                }
+              },
+              args: [Object.keys(delta)[0], filter[Object.keys(delta)[0] as keyof Filter]],
+            },
+          })
+        }
+      }
+    }
+
+    try {
+      if (nestedMode.value) {
+        filters.value[i] = { ...filter }
+        filters.value = [...filters.value]
+      } else if (!autoApply?.value && !force) {
+        filter.status = filter.id ? 'update' : 'create'
+      } else if (filter.id && filter.status !== 'create') {
+        await $api.dbTableFilter.update(filter.id, {
+          ...filter,
+          fk_parent_id: parentId,
+        })
+        $e('a:filter:update', {
+          logical: filter.logical_op,
+          comparison: filter.comparison_op,
+        })
+      } else {
+        filters.value[i] = await $api.dbTableFilter.create(view.value.id!, {
+          ...filter,
+          fk_parent_id: parentId,
+        })
+      }
+    } catch (e: any) {
+      console.log(e)
+      message.error(await extractSdkResponseErrorMsg(e))
+    }
+
+    lastFilters.value = clone(filters.value)
+
+    reloadData?.()
+  }
+
+  const deleteFilter = async (filter: Filter, i: number, undo = false) => {
+    if (!undo && !filter.is_group) {
+      addUndo({
+        undo: {
+          fn: async (fl: Filter) => {
+            fl.status = 'create'
+            filters.value.splice(i, 0, fl)
+            await saveOrUpdate(fl, i, false, true)
+          },
+          args: [clone(filter)],
+        },
+        redo: {
+          fn: async (index: number) => {
+            await deleteFilter(filters.value[index], index, true)
+          },
+          args: [i],
+        },
+      })
+    }
     // if shared or sync permission not allowed simply remove it from array
     if (nestedMode.value) {
       filters.value.splice(i, 1)
@@ -261,42 +359,32 @@ export function useViewFilters(
     }
   }
 
-  const saveOrUpdate = async (filter: Filter, i: number, force = false) => {
-    if (!view.value) return
-
-    try {
-      if (nestedMode.value) {
-        filters.value[i] = { ...filter }
-        filters.value = [...filters.value]
-      } else if (!autoApply?.value && !force) {
-        filter.status = filter.id ? 'update' : 'create'
-      } else if (filter.id) {
-        await $api.dbTableFilter.update(filter.id, {
-          ...filter,
-          fk_parent_id: parentId,
-        })
-        $e('a:filter:update', {
-          logical: filter.logical_op,
-          comparison: filter.comparison_op,
-        })
-      } else {
-        filters.value[i] = await $api.dbTableFilter.create(view.value.id!, {
-          ...filter,
-          fk_parent_id: parentId,
-        })
-      }
-    } catch (e: any) {
-      console.log(e)
-      message.error(await extractSdkResponseErrorMsg(e))
-    }
-
-    reloadData?.()
-  }
-
   const saveOrUpdateDebounced = useDebounceFn(saveOrUpdate, 500)
 
-  const addFilter = () => {
+  const addFilter = async (undo = false) => {
     filters.value.push(placeholderFilter())
+    if (!undo) {
+      addUndo({
+        undo: {
+          fn: async function undo(this: UndoRedoAction, i: number) {
+            this.redo.args = [i, clone(filters.value[i])]
+            await deleteFilter(filters.value[i], i, true)
+          },
+          args: [filters.value.length - 1],
+        },
+        redo: {
+          fn: async (i: number, fl: Filter) => {
+            fl.status = 'create'
+            filters.value.splice(i, 0, fl)
+            await saveOrUpdate(fl, i, false, true)
+          },
+          args: [],
+        },
+      })
+    }
+
+    lastFilters.value = clone(filters.value)
+
     $e('a:filter:add', { length: filters.value.length })
   }
 
@@ -316,6 +404,8 @@ export function useViewFilters(
     const index = filters.value.length - 1
 
     await saveOrUpdate(filters.value[index], index, true)
+
+    lastFilters.value = clone(filters.value)
 
     $e('a:filter:add', { length: filters.value.length, group: true })
   }

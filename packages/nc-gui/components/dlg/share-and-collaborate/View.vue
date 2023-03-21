@@ -135,7 +135,7 @@ watch(showShareModal, (val) => {
         <a-button
           v-if="formStatus !== 'project-collaborate'"
           type="text"
-          class="!border-1 !border-gray-100 !rounded-md"
+          class="!border-1 !border-gray-200 !rounded-md"
           @click="showShareModal = false"
         >
           Finish

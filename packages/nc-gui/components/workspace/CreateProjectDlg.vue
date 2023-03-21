@@ -2,6 +2,7 @@
 import type { RuleObject } from 'ant-design-vue/es/form'
 import type { Form, Input } from 'ant-design-vue'
 import type { VNodeRef } from '@vue/runtime-core'
+import { computed } from '@vue/reactivity'
 import { NcProjectType, extractSdkResponseErrorMsg } from '~/utils'
 import { ref, useVModel } from '#imports'
 import { useWorkspace } from '~/store/workspace'
@@ -83,6 +84,17 @@ watch(dialogShow, async (n, o) => {
   input.value?.$el?.focus()
   input.value?.$el?.select()
 })
+
+const typeLabel = computed(() => {
+  switch (props.type) {
+    case NcProjectType.DOCS:
+      return 'Book'
+    case NcProjectType.DB:
+      return 'Database'
+    default:
+      return ''
+  }
+})
 </script>
 
 <template>
@@ -104,7 +116,7 @@ watch(dialogShow, async (n, o) => {
 
     <div class="pl-10 pr-10 pt-5">
       <!-- Create A New Table -->
-      <div class="prose-xl font-bold self-center my-4">{{ $t('activity.createProject') }}</div>
+      <div class="prose-xl font-bold self-center my-4">Create {{ typeLabel }} Project</div>
 
       <a-form
         ref="form"
@@ -117,12 +129,7 @@ watch(dialogShow, async (n, o) => {
         @finish="createProject"
       >
         <a-form-item :label="$t('labels.projName')" name="title" :rules="nameValidationRules" class="m-10">
-          <a-input
-            ref="input"
-            v-model:value="formState.title"
-            name="title"
-            class="nc-metadb-project-name"
-          />
+          <a-input ref="input" v-model:value="formState.title" name="title" class="nc-metadb-project-name" />
         </a-form-item>
       </a-form>
     </div>

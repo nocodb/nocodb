@@ -86,7 +86,7 @@ watch(
 
 <template>
   <div class="flex flex-col mb-1">
-    <div class="flex flex-col w-full px-3 py-1.5 border-gray-200 border-1 rounded-md gap-y-2">
+    <div class="flex flex-col w-full px-3 py-2.5 border-gray-200 border-1 rounded-md gap-y-2">
       <div class="flex flex-row w-full justify-between">
         <div class="flex" :style="{ fontWeight: 500 }">Enable public viewing</div>
         <a-switch

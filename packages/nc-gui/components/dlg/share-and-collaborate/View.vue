@@ -46,7 +46,7 @@ const copyInvitationLink = async () => {
 watch(showShareModal, (val) => {
   if (!val) {
     setTimeout(() => {
-      formStatus.value = 'collaborate'
+      formStatus.value = 'project-collaborate'
     }, 500)
   }
 })
@@ -98,7 +98,7 @@ watch(showShareModal, (val) => {
       <div class="flex flex-row justify-between items-center pb-1.5 mx-4">
         <div class="flex text-lg py-1" style="font-weight: 500">Share</div>
       </div>
-      <a-collapse v-model:active-key="expandedSharedType" expand-icon-position="right" class="!mx-3">
+      <a-collapse v-model:active-key="expandedSharedType" expand-icon-position="right" class="!mx-3" :accordion="true">
         <a-collapse-panel key="project" class="share-collapse-item">
           <template #header>
             <div class="flex flex-row items-center gap-x-2">

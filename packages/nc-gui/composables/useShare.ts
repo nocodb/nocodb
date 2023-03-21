@@ -55,6 +55,7 @@ const [setup, use] = useInjectionState(() => {
     formStatus,
     invitationValid,
     invitationUsersData,
+    isProjectPublic,
   }
 }, 'useShare')
 

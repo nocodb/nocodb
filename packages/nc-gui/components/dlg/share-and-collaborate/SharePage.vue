@@ -8,7 +8,7 @@ interface Emits {
 const emits = defineEmits<Emits>()
 
 const { project } = storeToRefs(useProject())
-
+const { isProjectPublic } = useShare()
 const { openedPage, nestedPublicParentPage } = storeToRefs(useDocStore())
 const { updatePage, nestedUrl } = useDocStore()
 
@@ -101,18 +101,22 @@ watch(
 
 <template>
   <div class="flex flex-col py-2 px-3 mb-1">
-    <div v-if="openedPage" class="flex flex-col w-full mt-2.5 px-3 py-1.5 border-gray-200 border-1 rounded-md gap-y-2">
+    <div v-if="openedPage" class="flex flex-col w-full mt-2.5 px-3 py-2.5 border-gray-200 border-1 rounded-md gap-y-2">
       <div class="flex flex-row w-full justify-between">
         <div class="flex" :style="{ fontWeight: 500 }">Enable public viewing</div>
         <a-switch
-          :checked="!!openedPage?.is_published"
+          :checked="isProjectPublic || !!openedPage?.is_published"
           :loading="isPagePublishing"
           class="docs-share-public-toggle !mt-0.25"
-          :disabled="openedPage.is_published && !isNestedParent"
+          :disabled="isProjectPublic || (openedPage.is_published && !isNestedParent)"
           @click="togglePagePublishedState"
         />
       </div>
-      <div v-if="openedPage.is_published && !isNestedParent" class="flex text-xs">
+      <div v-if="isProjectPublic" class="flex text-xs items-center">
+        Shared through project
+        <span class="ml-1.5 px-1.5 py-0.5 bg-gray-100 rounded-md capitalize">{{ project.title }}</span>
+      </div>
+      <div v-else-if="openedPage.is_published && !isNestedParent" class="flex text-xs">
         Shared through page
         <span class="text-blue-600 underline pl-1 cursor-pointer mr-1" @click="openParentPageLink">
           {{ nestedPublicParentPage?.title }}</span

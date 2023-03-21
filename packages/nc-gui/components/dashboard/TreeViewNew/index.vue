@@ -485,10 +485,11 @@ const isClearMode = computed(() => route.query.clear === '1' && route.params.pro
         v-for="(project, i) of workspaceProjects.filter((p) => !isClearMode || p.id === activeProjectId)"
         :key="project.id"
         :project-role="[project.project_role, project.role]"
+        :project="projects[project.id] ?? project"
       >
         <div ref="projectElRefs" class="m-2 py-1 nc-project-sub-menu" :class="{ active: project.id === openedProjectId }">
           <div class="flex items-center gap-2 py-1 cursor-pointer" @click="loadProjectAndTableList(project, i)">
-            <DashboardTreeViewNewProjectNode ref="projectNodeRefs" class="flex-grow" :project="projects[project.id] ?? project" />
+            <DashboardTreeViewNewProjectNode ref="projectNodeRefs" class="flex-grow"/>
           </div>
 
           <div

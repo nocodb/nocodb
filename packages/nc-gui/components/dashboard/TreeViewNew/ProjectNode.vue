@@ -1,14 +1,10 @@
 <script lang="ts" setup>
-import type { ProjectType } from 'nocodb-sdk'
-import { nextTick, toRef } from '@vue/runtime-core'
+import { nextTick } from '@vue/runtime-core'
 import { openLink, useProjects } from '#imports'
 import { extractSdkResponseErrorMsg } from '~/utils'
+import {ProjectInj, ToggleDialogInj} from '~/context'
 
-const props = defineProps<{
-  project: ProjectType
-}>()
-
-const project = $(toRef(props, 'project'))
+const project = inject(ProjectInj, ref({}))!
 
 const projectsStore = useProjects()
 
@@ -26,9 +22,12 @@ const input = ref<HTMLInputElement>()
 
 const { isUIAllowed } = useUIPermission()
 
+
+const toggleDialog = inject(ToggleDialogInj)
+
 const enableEditMode = () => {
   editMode.value = true
-  tempTitle.value = props.project.title!
+  tempTitle.value = project.value.title!
   nextTick(() => {
     input.value?.focus()
     input.value?.select()
@@ -38,7 +37,7 @@ const enableEditMode = () => {
 
 const updateProjectTitle = async () => {
   try {
-    await updateProject(props.project.id!, {
+    await updateProject(project.value.id!, {
       title: tempTitle.value,
     })
     editMode.value = false
@@ -59,7 +58,7 @@ const confirmDeleteProject = () => {
     content: 'Are you sure you want to delete this project?',
     onOk: async () => {
       try {
-        await deleteProject(props.project.id!)
+        await deleteProject(project.value.id!)
         message.success('Project deleted successfully')
       } catch (e: any) {
         message.error(await extractSdkResponseErrorMsg(e))
@@ -74,7 +73,7 @@ const copyProjectInfo = async () => {
   try {
     if (
       await copy(
-        Object.entries(await getProjectMetaInfo(project.id!)!)
+        Object.entries(await getProjectMetaInfo(project.value.id!)!)
           .map(([k, v]) => `${k}: **${v}**`)
           .join('\n'),
       )
@@ -91,6 +90,8 @@ const copyProjectInfo = async () => {
 defineExpose({
   enableEditMode,
 })
+
+
 
 // todo: temp
 const isSharedBase = ref(false)

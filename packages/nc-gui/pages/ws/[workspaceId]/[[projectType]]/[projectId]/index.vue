@@ -61,12 +61,6 @@ const { copy } = useCopy(true)
 // create a new sidebar state
 const { isOpen, toggle, toggleHasSidebar } = useSidebar('nc-left-sidebar', { hasSidebar: true, isOpen: true })
 
-const dialogOpen = ref(false)
-
-const openDialogKey = ref<string>('')
-
-const dataSourcesState = ref<string>('')
-
 const dropdownOpen = ref(false)
 
 /** Sidebar ref */
@@ -79,13 +73,6 @@ const logout = async () => {
   navigateTo('/signin')
 }
 
-function toggleDialog(value?: boolean, key?: string, dsState?: string) {
-  dialogOpen.value = value ?? !dialogOpen.value
-  openDialogKey.value = key || ''
-  dataSourcesState.value = dsState || ''
-}
-
-provide(ToggleDialogInj, toggleDialog)
 
 const handleThemeColor = async (mode: 'swatch' | 'primary' | 'accent', color?: string) => {
   switch (mode) {
@@ -560,11 +547,6 @@ useEventListener(document, 'keydown', async (e: KeyboardEvent) => {
     </template> -->
 
     <div>
-      <LazyDashboardSettingsModal
-        v-model:model-value="dialogOpen"
-        v-model:open-key="openDialogKey"
-        v-model:data-sources-state="dataSourcesState"
-      />
       <NuxtPage />
       <LazyGeneralPreviewAs float />
     </div>

@@ -534,7 +534,7 @@ const isClearMode = computed(() => route.query.clear === '1' && route.params.pro
 
                 <div v-else class="transition-height duration-200">
                   <div class="border-none sortable-list">
-                    <div v-for="(base, baseIndex) of bases" :key="`base-${base.id}`">
+                    <div v-for="(base, baseIndex) of projects[project.id].bases" :key="`base-${base.id}`">
                       <a-collapse
                         v-if="base && base.enabled"
                         v-model:activeKey="activeKey"
@@ -565,7 +565,7 @@ const isClearMode = computed(() => route.query.clear === '1' && route.params.pro
                             >
                               <GeneralBaseLogo :base-type="base.type" />
                               {{ base.alias || '' }}
-                              ({{ projectTableList[project.id].filter((table) => table.base_id === base.id).length || '0' }})
+                              ({{ projectTableList[project.id]?.filter((table) => table.base_id === base.id).length || '0' }})
                             </div>
                           </template>
                           <div
@@ -685,117 +685,12 @@ const isClearMode = computed(() => route.query.clear === '1' && route.params.pro
                               </template>
                             </a-dropdown>
                           </div>
-                          <div
-                            v-else-if="isUIAllowed('table-create')"
-                            class="group flex items-center gap-2 pl-8 pr-3 py-2 text-primary/70 hover:(text-primary/100) cursor-pointer select-none"
-                            @click="openTableCreateDialog(base.id)"
-                          >
-                            <MdiPlus />
+                          <AddNewTableNode
+                              :project="projects[project.id]"
+                              :base-index="baseIndex"
+                              @openTableCreateDialog="openTableCreateDialog(base.id, project.id)"
+                          />
 
-                            <span class="text-gray-500 group-hover:(text-primary/100) flex-1 nc-add-new-table">{{
-                              $t('tooltip.addTable')
-                            }}</span>
-
-                            <a-dropdown
-                              v-if="!isSharedBase"
-                              :trigger="['click']"
-                              overlay-class-name="nc-dropdown-import-menu"
-                              @click.stop
-                            >
-                              <MdiDotsVertical
-                                class="transition-opacity opacity-0 group-hover:opacity-100 nc-import-menu outline-0"
-                              />
-
-                              <template #overlay>
-                                <a-menu class="!py-0 rounded text-sm">
-                                  <a-menu-item-group class="!px-0 !mx-0">
-                                    <template #title>
-                                      <div class="flex items-center">
-                                        Noco
-                                        <PhSparkleFill class="ml-1 text-orange-400" />
-                                      </div>
-                                    </template>
-                                    <a-menu-item key="table-magic" @click="openTableCreateMagicDialog(base.id)">
-                                      <div class="color-transition nc-project-menu-item group">
-                                        <MdiMagicStaff class="group-hover:text-accent" />
-                                        Create table
-                                      </div>
-                                    </a-menu-item>
-                                    <a-menu-item key="schema-magic" @click="openSchemaMagicDialog(base.id)">
-                                      <div class="color-transition nc-project-menu-item group">
-                                        <MdiMagicStaff class="group-hover:text-accent" />
-                                        Create schema
-                                      </div>
-                                    </a-menu-item>
-                                  </a-menu-item-group>
-
-                                  <a-menu-divider class="my-0" />
-
-                                  &lt;!&ndash; Quick Import From &ndash;&gt;
-                                  <a-menu-item-group :title="$t('title.quickImportFrom')" class="!px-0 !mx-0">
-                                    <a-menu-item
-                                      v-if="isUIAllowed('airtableImport')"
-                                      key="quick-import-airtable"
-                                      @click="openAirtableImportDialog(base.id)"
-                                    >
-                                      <div class="color-transition nc-project-menu-item group">
-                                        <MdiTableLarge class="group-hover:text-accent" />
-                                        Airtable
-                                      </div>
-                                    </a-menu-item>
-
-                                    <a-menu-item
-                                      v-if="isUIAllowed('csvImport')"
-                                      key="quick-import-csv"
-                                      @click="openQuickImportDialog('csv', base.id)"
-                                    >
-                                      <div class="color-transition nc-project-menu-item group">
-                                        <MdiFileDocumentOutline class="group-hover:text-accent" />
-                                        CSV file
-                                      </div>
-                                    </a-menu-item>
-
-                                    <a-menu-item
-                                      v-if="isUIAllowed('jsonImport')"
-                                      key="quick-import-json"
-                                      @click="openQuickImportDialog('json', base.id)"
-                                    >
-                                      <div class="color-transition nc-project-menu-item group">
-                                        <MdiCodeJson class="group-hover:text-accent" />
-                                        JSON file
-                                      </div>
-                                    </a-menu-item>
-
-                                    <a-menu-item
-                                      v-if="isUIAllowed('excelImport')"
-                                      key="quick-import-excel"
-                                      @click="openQuickImportDialog('excel', base.id)"
-                                    >
-                                      <div class="color-transition nc-project-menu-item group">
-                                        <MdiFileExcel class="group-hover:text-accent" />
-                                        Microsoft Excel
-                                      </div>
-                                    </a-menu-item>
-                                  </a-menu-item-group>
-
-                                  <a-menu-divider class="my-0" />
-
-                                  <a-menu-item v-if="isUIAllowed('importRequest')" key="add-new-table" class="py-1 rounded-b">
-                                    <a
-                                      v-e="['e:datasource:import-request']"
-                                      href="https://github.com/nocodb/nocodb/issues/2052"
-                                      target="_blank"
-                                      class="prose-sm hover:(!text-primary !opacity-100) color-transition nc-project-menu-item group after:(!rounded-b)"
-                                    >
-                                      <MdiOpenInNew class="group-hover:text-accent" />
-                                      <!-- Request a data source you need? -->
-                                      {{ $t('labels.requestDataSource') }}
-                                    </a>
-                                  </a-menu-item>
-                                </a-menu>
-                              </template>
-                            </a-dropdown>
-                          </div>
                           <div
                             ref="menuRefs"
                             :key="`sortable-${base.id}-${base.id && base.id in keys ? keys[base.id] : '0'}`"

@@ -12,15 +12,12 @@ const { isOpen: isSidebarOpen, toggleHasSidebar, toggle } = useSidebar('nc-left-
 
 const route = useRoute()
 
-const { isNestedFetchErrored, isPageErrored, openedProjectId, nestedPagesOfProjects, openedPageId } = storeToRefs(useDocStore())
+const { isNestedFetchErrored, isPageErrored, openedProjectId, nestedPagesOfProjects, openedPageId, flattenedNestedPages } =
+  storeToRefs(useDocStore())
 
 const { fetchNestedPages, navigateToFirstPage } = useDocStore()
 
 const isFetching = ref(true)
-
-const openedNestedPages = computed(() => {
-  return openedProjectId.value ? nestedPagesOfProjects.value[openedProjectId.value] : []
-})
 
 const isErrored = computed(() => {
   return isNestedFetchErrored.value || isPageErrored.value
@@ -38,9 +35,9 @@ onMounted(async () => {
 })
 
 watch(
-  () => openedNestedPages.value?.length ?? 0,
+  () => flattenedNestedPages.value?.length ?? 0,
   () => {
-    if (openedNestedPages.value?.length > 1) {
+    if (flattenedNestedPages.value?.length > 1) {
       toggle(true)
       toggleHasSidebar(true)
     } else {
@@ -48,7 +45,7 @@ watch(
       toggleHasSidebar(false)
     }
 
-    if (openedNestedPages.value?.length > 0 && !openedPageId.value) {
+    if (flattenedNestedPages.value?.length > 0 && !openedPageId.value) {
       navigateToFirstPage()
     }
   },

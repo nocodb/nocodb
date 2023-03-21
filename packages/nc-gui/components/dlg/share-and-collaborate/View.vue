@@ -131,7 +131,9 @@ watch(showShareModal, (val) => {
         >
           Cancel
         </a-button>
-        <a-button type="text" class="!border-1 !border-gray-200 !rounded-md">Manage project access</a-button>
+        <a-button type="text" class="!border-1 !border-gray-200 !rounded-md" @click="formStatus = 'manageCollaborators'"
+          >Manage project access</a-button
+        >
         <a-button
           v-if="formStatus !== 'project-collaborate'"
           type="text"

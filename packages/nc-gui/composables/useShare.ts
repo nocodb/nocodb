@@ -39,11 +39,6 @@ const [setup, use] = useInjectionState(() => {
         return
       }
 
-      if (!openedPage.value && !isProjectPublic.value) {
-        visibility.value = 'none'
-        return
-      }
-
       visibility.value = openedPage.value?.is_published || isProjectPublic.value ? 'public' : 'private'
     },
     { immediate: true, deep: true },

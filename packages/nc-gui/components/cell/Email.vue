@@ -1,6 +1,6 @@
 <script lang="ts" setup>
 import type { VNodeRef } from '@vue/runtime-core'
-import { EditModeInj, computed, inject, useI18n, validateEmail } from '#imports'
+import { EditModeInj, IsSurveyFormInj, computed, inject, useI18n, validateEmail } from '#imports'
 
 interface Props {
   modelValue: string | null | undefined
@@ -21,11 +21,13 @@ const column = inject(ColumnInj)!
 // Used in the logic of when to display error since we are not storing the email if it's not valid
 const localState = ref(value)
 
+const isSurveyForm = inject(IsSurveyFormInj, ref(false))
+
 const vModel = computed({
   get: () => value,
   set: (val) => {
     localState.value = val
-    if (!parseProp(column.value.meta)?.validate || (val && validateEmail(val)) || !val) {
+    if (!parseProp(column.value.meta)?.validate || (val && validateEmail(val)) || !val || isSurveyForm.value) {
       emit('update:modelValue', val)
     }
   },

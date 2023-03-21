@@ -1,5 +1,5 @@
 <script lang="ts" setup>
-import { computed, navigateTo, ref, useGlobal, useNuxtApp, useRoute, useSidebar } from '#imports'
+import { computed, navigateTo, ref, useGlobal, useNuxtApp, useRoute, useSidebar, useCustomization } from '#imports'
 
 const { signOut, signedIn, isLoading, user, currentVersion } = useGlobal()
 
@@ -28,6 +28,8 @@ hooks.hook('page:finish', () => {
     hasSider.value = sidebar.value?.children.length > 0
   }
 })
+
+useCustomization()
 </script>
 
 <template>

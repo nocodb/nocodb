@@ -33,6 +33,7 @@ export const rolePermissions = {
       superAdminUserManagement: true,
       superAdminAppSettings: true,
       appLicense: true,
+      appCustomization: true,
     },
   },
   [ProjectRole.Owner]: {
@@ -41,6 +42,7 @@ export const rolePermissions = {
       superAdminUserManagement: true,
       superAdminAppSettings: true,
       appLicense: true,
+      appCustomization: true,
     },
   },
   [ProjectRole.Editor]: {

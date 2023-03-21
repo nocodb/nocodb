@@ -83,6 +83,18 @@ const openKeys = ref([/^\/account\/users/.test($route.fullPath) && 'users'])
               </div>
             </a-menu-item>
             <a-menu-item
+              v-if="isUIAllowed('customization')"
+              key="customization"
+              class="group active:(!ring-0) hover:(!bg-primary !bg-opacity-25)"
+              @click="navigateTo('/account/customization')"
+            >
+              <div class="flex items-center space-x-2">
+                <MdiBrush />
+
+                <div class="select-none">Customization</div>
+              </div>
+            </a-menu-item>
+            <a-menu-item
               v-if="isUIAllowed('license')"
               key="license"
               class="group active:(!ring-0) hover:(!bg-primary !bg-opacity-25)"

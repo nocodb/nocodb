@@ -3311,6 +3311,83 @@ export class Api<
         ...params,
       }),
   };
+  orgCustomization = {
+    /**
+ * @description Get custom CSS & Javascript. Exclusive for super admin.
+ * 
+ * @tags Org Customization
+ * @name Get
+ * @summary Get App Customization
+ * @request GET:/api/v1/customization
+ * @response `200` `{
+  \** Custom CSS code *\
+  css?: string,
+  \** Custom JavaScript code *\
+  js?: string,
+
+}` OK
+ * @response `400` `{
+  \** @example BadRequest [Error]: <ERROR MESSAGE> *\
+  msg: string,
+
+}`
+ */
+    get: (params: RequestParams = {}) =>
+      this.request<
+        {
+          /** Custom CSS code */
+          css?: string;
+          /** Custom JavaScript code */
+          js?: string;
+        },
+        {
+          /** @example BadRequest [Error]: <ERROR MESSAGE> */
+          msg: string;
+        }
+      >({
+        path: `/api/v1/customization`,
+        method: 'GET',
+        format: 'json',
+        ...params,
+      }),
+
+    /**
+ * @description Set custom CSS & Javascript. Exclusive for super admin.
+ * 
+ * @tags Org Customization
+ * @name Set
+ * @summary Set custom CSS & Javascript
+ * @request POST:/api/v1/customization
+ * @response `200` `{
+  \** @example The customization has been saved *\
+  msg?: string,
+
+}` OK
+ * @response `400` `{
+  \** @example BadRequest [Error]: <ERROR MESSAGE> *\
+  msg: string,
+
+}`
+ */
+    set: (data: any, params: RequestParams = {}) =>
+      this.request<
+        {
+          /** @example The customization has been saved */
+          msg?: string;
+        },
+        {
+          /** @example BadRequest [Error]: <ERROR MESSAGE> */
+          msg: string;
+        }
+      >({
+        path: `/api/v1/customization`,
+        method: 'POST',
+        body: data,
+        type: ContentType.Json,
+        format: 'json',
+        ...params,
+      }),
+  };
   orgAppSettings = {
     /**
  * @description Get the application settings. Exclusive for super admin.

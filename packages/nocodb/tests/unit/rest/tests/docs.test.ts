@@ -412,6 +412,65 @@ function docTests() {
     expect(response2.body.page.title).to.equal(page1.title)
   })
 
+  it('Public project page list and get api', async () => {
+    const publicProject = await createProject(
+      context,
+      {
+        title: 'test',
+        meta: {
+          isPublic: true,
+        },
+        type: 'documentation'
+      },
+    );
+
+    const page1 = await createPage({
+      project: publicProject,
+      
+      attributes: {
+        title: 'test1',
+      },
+      user: context.user,
+    });
+    const childPage1 = await createPage({
+      project: publicProject,
+      attributes: {
+        parent_page_id: page1.id,
+        title: 'child test 1',
+      },
+      user: context.user,
+    });
+
+    const page2 = await createPage({
+      project: publicProject,
+      
+      attributes: {
+        title: 'test2',
+      },
+      user: context.user,
+    });
+
+    const response = await request(context.app)
+      .get(`/api/v1/public/docs/pages`)
+      .query({
+        projectId: publicProject.id,
+        parent_page_id: page1.id,
+      })
+      .expect(200)
+
+    expect(response.body.length).to.equal(2)
+    expect(response.body[0].title).to.equal(page1.title)
+    expect(response.body[0].children.length).to.equal(1)
+
+    const response2 = await request(context.app)
+      .get(`/api/v1/public/docs/page/${page1.id}`)
+      .query({
+        projectId: publicProject.id,
+      })
+      .expect(200)
+    expect(response2.body.page.title).to.equal(page1.title)
+  })
+
   it('Parents', async () => {
     const parentPage = await createPage({
       project: project,

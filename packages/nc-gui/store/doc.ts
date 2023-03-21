@@ -11,19 +11,10 @@ export const useDocStore = defineStore('docStore', () => {
   const { appInfo } = $(useGlobal())
   const { projectRoles } = useRoles()
 
-  const isPublic = computed<boolean>(() => !!route.meta.public)
-
-  const openedProjectId = computed<string>(() =>
-    isPublic.value ? projectIdFromCompositePageId(route.params.compositePageId as string)! : (route.params.projectId as string),
-  )
-  const openedPageId = computed<string | null>(() =>
-    isPublic.value ? pageIdFromCompisitePageId(route.params.compositePageId as string) : (route.params.pageId as string),
-  )
-  const openedWorkspaceId = computed<string>(() => route.params.workspaceId as string)
-
   const isNestedPageFetching = ref<Record<string, boolean>>({})
   const isPageFetching = ref<boolean>(true)
   const isPageErrored = ref<boolean>(false)
+  const isNestedFetchErrored = ref<boolean>(false)
 
   const nestedPagesOfProjects = ref<Record<string, PageSidebarNode[]>>({})
   const openedTabsOfProjects = ref<Record<string, string[]>>({})
@@ -36,6 +27,15 @@ export const useDocStore = defineStore('docStore', () => {
    * Computed
    *
    */
+
+  const isPublic = computed<boolean>(() => !!route.meta.public)
+  const openedProjectId = computed<string>(() =>
+    isPublic.value ? projectIdFromCompositePageId(route.params.compositePageId as string)! : (route.params.projectId as string),
+  )
+  const openedPageId = computed<string | null>(() =>
+    isPublic.value ? pageIdFromCompositePageId(route.params.compositePageId as string) : (route.params.pageId as string),
+  )
+  const openedWorkspaceId = computed<string>(() => route.params.workspaceId as string)
 
   const isOpenedNestedPageLoading = computed<boolean>(() => isNestedPageFetching.value[openedProjectId.value] ?? true)
 
@@ -293,6 +293,7 @@ export const useDocStore = defineStore('docStore', () => {
       return nestedDocTree
     } catch (e) {
       console.log(e)
+      isNestedFetchErrored.value = true
       message.error(await extractSdkResponseErrorMsg(e as any))
     } finally {
       if (!withoutLoading) isNestedPageFetching.value[projectId] = false
@@ -345,8 +346,11 @@ export const useDocStore = defineStore('docStore', () => {
     return completeUrl ? `${window.location.origin}/#${url}` : url
   }
 
-  function projectUrl(projectId: string) {
-    return isPublic.value ? `/nc/doc/${projectId!}/s` : `/ws/${openedWorkspaceId.value}/nc/${projectId}/doc`
+  function projectUrl(projectId: string, { completeUrl, publicMode }: { completeUrl?: boolean; publicMode?: boolean } = {}) {
+    const path = publicMode || isPublic.value ? `/nc/doc/s/${projectId!}` : `/ws/${openedWorkspaceId.value}/nc/${projectId}/doc`
+    if (completeUrl) return `${window.location.origin}/#${path}`
+
+    return path
   }
 
   async function fetchPage({ page, projectId }: { page?: PageSidebarNode; projectId: string }) {
@@ -751,6 +755,17 @@ export const useDocStore = defineStore('docStore', () => {
     return response
   }
 
+  async function navigateToFirstPage({ projectId }: { projectId?: string } = {}) {
+    projectId = projectId || openedProjectId.value
+    const nestedPages = nestedPagesOfProjects.value[projectId]
+
+    const page = nestedPages[0]
+
+    if (!page) return
+
+    await navigateTo(nestedUrl({ id: page.id!, projectId: projectId! }))
+  }
+
   return {
     isPublic,
     openedPageInSidebar,
@@ -787,10 +802,13 @@ export const useDocStore = defineStore('docStore', () => {
     isNestedPublicPage,
     isOpenedNestedPageLoading,
     magicOutline,
+    navigateToFirstPage,
+    isNestedFetchErrored,
+    isPageErrored,
   }
 })
 
-function pageIdFromCompisitePageId(compositePageId: string) {
+function pageIdFromCompositePageId(compositePageId: string) {
   const ids = compositePageId.split('-')
   if (ids.length < 3) return null
 

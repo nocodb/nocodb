@@ -6,17 +6,25 @@ definePageMeta({
   public: true,
   requiresAuth: false,
 })
-
-const { setProject, project } = useProject()
+const { project } = storeToRefs(useProject())
+const { setProject } = useProject()
 const { isOpen: isSidebarOpen, toggleHasSidebar, toggle } = useSidebar('nc-left-sidebar')
 
 const route = useRoute()
 
-const { isErrored, openedProjectId, isNestedPublicPage } = storeToRefs(useDocStore())
+const { isNestedFetchErrored, isPageErrored, openedProjectId, nestedPagesOfProjects, openedPageId } = storeToRefs(useDocStore())
 
-const { fetchNestedPages } = useDocStore()
+const { fetchNestedPages, navigateToFirstPage } = useDocStore()
 
 const isFetching = ref(true)
+
+const openedNestedPages = computed(() => {
+  return openedProjectId.value ? nestedPagesOfProjects.value[openedProjectId.value] : []
+})
+
+const isErrored = computed(() => {
+  return isNestedFetchErrored.value || isPageErrored.value
+})
 
 onMounted(async () => {
   isFetching.value = true
@@ -29,15 +37,22 @@ onMounted(async () => {
   isFetching.value = false
 })
 
-watch(isNestedPublicPage, (val) => {
-  if (val) {
-    toggleHasSidebar(true)
-    toggle(true)
-  } else {
-    toggleHasSidebar(false)
-    toggle(false)
-  }
-})
+watch(
+  () => openedNestedPages.value?.length ?? 0,
+  () => {
+    if (openedNestedPages.value?.length > 1) {
+      toggle(true)
+      toggleHasSidebar(true)
+    } else {
+      toggle(false)
+      toggleHasSidebar(false)
+    }
+
+    if (openedNestedPages.value?.length > 0 && !openedPageId.value) {
+      navigateToFirstPage()
+    }
+  },
+)
 </script>
 
 <template>

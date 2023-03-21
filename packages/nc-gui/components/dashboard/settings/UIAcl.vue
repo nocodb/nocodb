@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { inject } from '@vue/runtime-core'
 import {
   Empty,
   computed,
@@ -12,8 +13,7 @@ import {
   useNuxtApp,
   useProject,
 } from '#imports'
-import {ProjectIdInj} from "~/context";
-import {inject} from "@vue/runtime-core";
+import { ProjectIdInj } from '~/context'
 
 const props = defineProps<{
   baseId: string

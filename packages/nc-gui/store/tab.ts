@@ -8,7 +8,7 @@ function getPredicate(key: Partial<TabItem>) {
   // todo: temp
   // eslint-disable-next-line @typescript-eslint/ban-ts-comment
   // @ts-expect-error
-  return (tab: TabItem) => (Object.keys(key)).every((k) => tab[k] === key[k])
+  return (tab: TabItem) => Object.keys(key).every((k) => tab[k] === key[k])
 }
 
 export const useTabs = defineStore('tabStore', () => {
@@ -40,10 +40,10 @@ export const useTabs = defineStore('tabStore', () => {
       // todo: new-layout
       if (
         routeName.includes('projectType-projectId-index-index-type-title-viewTitle') &&
-        (tables?.length || projectsStore.projectTableList[project?.id!]?.length)
+        (tables?.length || projectsStore.projectTableList[project?.id || '']?.length)
       ) {
         const tab: TabItem = {
-          projectId: route.params.projectId,
+          projectId: route.params.projectId as string,
           type: route.params.type as TabType,
           title: route.params.title as string,
         }

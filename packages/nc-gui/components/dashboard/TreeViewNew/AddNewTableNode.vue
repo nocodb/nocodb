@@ -109,8 +109,6 @@ function openTableCreateMagicDialog(baseId?: string) {
 }
 const { appInfo } = useGlobal()
 
-const { selectedBase } = useSqlEditor()
-
 const toggleDialog = inject(ToggleDialogInj, () => {})
 </script>
 

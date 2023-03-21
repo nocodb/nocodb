@@ -25,7 +25,6 @@ const vReload = useVModel(props, 'reload', emits)
 
 const { $api, $e } = useNuxtApp()
 
-
 const projectStore = useProject()
 const { loadProject } = projectStore
 const { project } = storeToRefs(projectStore)

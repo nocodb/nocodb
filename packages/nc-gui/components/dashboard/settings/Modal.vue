@@ -7,7 +7,7 @@ import TeamFillIcon from '~icons/ri/team-fill'
 import MultipleTableIcon from '~icons/mdi/table-multiple'
 import NotebookOutline from '~icons/mdi/notebook-outline'
 import FolderCog from '~icons/mdi/folder-cog'
-import {ProjectIdInj} from "~/context";
+import { ProjectIdInj } from '~/context'
 
 interface Props {
   modelValue?: boolean

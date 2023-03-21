@@ -286,7 +286,7 @@ export const useWorkspace = defineStore('workspaceStore', () => {
 
     await updateWorkspace(workspace.value!.id!, {
       meta: {
-        ...(workspaceMeta.value),
+        ...workspaceMeta.value,
         theme: fullTheme,
       },
     })

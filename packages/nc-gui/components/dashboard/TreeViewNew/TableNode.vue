@@ -28,7 +28,7 @@ const baseIndex = $(toRef(props, 'baseIndex'))
 const { isUIAllowed } = useUIPermission()
 
 const tabStore = useTabs()
-const { addTab, updateTab } = tabStore
+const { updateTab } = tabStore
 const { activeTab } = storeToRefs(tabStore)
 const { $e, $api } = useNuxtApp()
 

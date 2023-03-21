@@ -2,7 +2,7 @@
 import { Tooltip as ATooltip, Empty } from 'ant-design-vue'
 import type { AuditType } from 'nocodb-sdk'
 import { h, onMounted, storeToRefs, timeAgo, useGlobal, useI18n, useNuxtApp, useProject } from '#imports'
-import {ProjectIdInj} from "~/context";
+import { ProjectIdInj } from '~/context'
 
 const { $api } = useNuxtApp()
 

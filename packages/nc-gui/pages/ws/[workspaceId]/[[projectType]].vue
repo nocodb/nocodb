@@ -114,10 +114,10 @@ const currentVersion = ref('')
     </template>
     <NuxtPage />
     <LazyDashboardSettingsModal
-        v-model:model-value="dialogOpen"
-        v-model:open-key="openDialogKey"
-        v-model:data-sources-state="dataSourcesState"
-        :project-id="projectId"
+      v-model:model-value="dialogOpen"
+      v-model:open-key="openDialogKey"
+      v-model:data-sources-state="dataSourcesState"
+      :project-id="projectId"
     />
   </NuxtLayout>
 </template>

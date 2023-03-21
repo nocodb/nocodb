@@ -27,7 +27,7 @@ import {
   useNuxtApp,
   watch,
 } from '#imports'
-import {ProjectIdInj} from "~/context";
+import { ProjectIdInj } from '~/context'
 
 const { connectionType } = defineProps<{ connectionType: ClientType }>()
 

@@ -2,7 +2,7 @@
 import { nextTick } from '@vue/runtime-core'
 import { openLink, useProjects } from '#imports'
 import { extractSdkResponseErrorMsg } from '~/utils'
-import {ProjectInj, ToggleDialogInj} from '~/context'
+import { ProjectInj, ToggleDialogInj } from '~/context'
 
 const project = inject(ProjectInj, ref({}))!
 
@@ -21,7 +21,6 @@ const { t } = useI18n()
 const input = ref<HTMLInputElement>()
 
 const { isUIAllowed } = useUIPermission()
-
 
 const toggleDialog = inject(ToggleDialogInj)
 
@@ -90,8 +89,6 @@ const copyProjectInfo = async () => {
 defineExpose({
   enableEditMode,
 })
-
-
 
 // todo: temp
 const isSharedBase = ref(false)

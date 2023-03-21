@@ -49,8 +49,6 @@ const { loadProjectTables, loadProject, createProject: _createProject } = projec
 
 const { projectTableList, projects } = storeToRefs(projectsStore)
 
-const minimisedProjRefs = reactive({})
-
 const openedProjectId = ref()
 
 const projectElRefs = ref()
@@ -62,12 +60,14 @@ const loadProjectAndTableList = async (project: ProjectType, projIndex: number) 
     return
   }
 
-  if(openedProjectId.value === project.id){
+  if (openedProjectId.value === project.id) {
     openedProjectId.value = null
     return
   }
 
   openedProjectId.value = project.id
+
+  const activeProjectId = computed(() => route.params.projectId)
 
   if (project.id === activeProjectId.value) {
     return
@@ -124,7 +124,7 @@ const activeKey = ref<string[]>([])
 
 const menuRefs = $ref<HTMLElement[] | HTMLElement>()
 
-let filterQuery = $ref('')
+const filterQuery = $ref('')
 
 const activeTable = computed(() => ([TabType.TABLE, TabType.VIEW].includes(activeTab.value?.type) ? activeTab.value.id : null))
 
@@ -212,15 +212,6 @@ watchEffect(() => {
     }
   }
 })
-
-const icon = (table: TableType) => {
-  if (table.type === 'table') {
-    return PhTableThin
-  }
-  if (table.type === 'view') {
-    return MdiView
-  }
-}
 
 const contextMenuTarget = reactive<{ type?: 'base' | 'table' | 'main'; value?: any }>({})
 
@@ -361,21 +352,21 @@ function openErdView(base?: BaseType) {
   // navigateTo(`/${route.params.projectType}/${route.params.projectId}/erd/${base.id}`)
 }
 
-const searchInputRef: VNodeRef = (vnode: typeof Input) => vnode?.$el?.focus()
+// const searchInputRef: VNodeRef = (vnode: typeof Input) => vnode?.$el?.focus()
 
 const beforeSearch = ref<string[]>([])
-
-const onSearchCloseIconClick = () => {
-  filterQuery = ''
-  toggleSearchActive(false)
-  activeKey.value = beforeSearch.value
-}
-
-const onSearchIconClick = () => {
-  beforeSearch.value = activeKey.value
-  toggleSearchActive(true)
-  activeKey.value = bases.value.filter((el) => el.enabled).map((el) => `collapse-${el.id}`)
-}
+//
+// const onSearchCloseIconClick = () => {
+//   filterQuery = ''
+//   toggleSearchActive(false)
+//   activeKey.value = beforeSearch.value
+// }
+//
+// const onSearchIconClick = () => {
+//   beforeSearch.value = activeKey.value
+//   toggleSearchActive(true)
+//   activeKey.value = bases.value.filter((el) => el.enabled).map((el) => `collapse-${el.id}`)
+// }
 
 const isCreateTableAllowed = computed(
   () =>
@@ -386,8 +377,6 @@ const isCreateTableAllowed = computed(
     route.name !== 'index-index-create-external' &&
     route.name !== 'index-user-index',
 )
-
-const activeProjectId = computed(() => route.params.projectId)
 
 useEventListener(document, 'keydown', async (e: KeyboardEvent) => {
   const cmdOrCtrl = isMac() ? e.metaKey : e.ctrlKey
@@ -490,9 +479,13 @@ const isClearMode = computed(() => route.query.clear === '1' && route.params.pro
         :project-role="[project.project_role, project.role]"
         :project="projects[project.id] ?? project"
       >
-        <div ref="projectElRefs" class="m-2 py-1 nc-project-sub-menu" :class="{ active: project.id === (openedProjectId ?? activeProjectId) }">
+        <div
+          ref="projectElRefs"
+          class="m-2 py-1 nc-project-sub-menu"
+          :class="{ active: project.id === (openedProjectId ?? activeProjectId) }"
+        >
           <div class="flex items-center gap-2 py-1 cursor-pointer" @click="loadProjectAndTableList(project, i)">
-            <DashboardTreeViewNewProjectNode ref="projectNodeRefs" class="flex-grow"/>
+            <DashboardTreeViewNewProjectNode ref="projectNodeRefs" class="flex-grow" />
           </div>
 
           <div
@@ -520,7 +513,7 @@ const isClearMode = computed(() => route.query.clear === '1' && route.params.pro
                   <AddNewTableNode
                     :project="projects[project.id]"
                     :base-index="0"
-                    @openTableCreateDialog="openTableCreateDialog(projects[project.id].bases[0].id, project.id)"
+                    @open-table-create-dialog="openTableCreateDialog(projects[project.id].bases[0].id, project.id)"
                   />
 
                   <div class="transition-height duration-200 ml-2">
@@ -689,9 +682,9 @@ const isClearMode = computed(() => route.query.clear === '1' && route.params.pro
                             </a-dropdown>
                           </div>
                           <AddNewTableNode
-                              :project="projects[project.id]"
-                              :base-index="baseIndex"
-                              @openTableCreateDialog="openTableCreateDialog(base.id, project.id)"
+                            :project="projects[project.id]"
+                            :base-index="baseIndex"
+                            @open-table-create-dialog="openTableCreateDialog(base.id, project.id)"
                           />
 
                           <div

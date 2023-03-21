@@ -104,7 +104,7 @@ const systemColumnsCheckboxInfo = SYSTEM_COLUMNS.map((c, index) => ({
 const creating = ref(false)
 
 const _createTable = async () => {
-  if(creating.value) return
+  if (creating.value) return
   try {
     creating.value = true
     await validate()

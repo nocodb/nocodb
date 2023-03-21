@@ -1,7 +1,6 @@
 <script setup lang="ts">
 import tinycolor from 'tinycolor2'
 import {
-  TabType,
   computed,
   definePageMeta,
   extractSdkResponseErrorMsg,
@@ -13,8 +12,6 @@ import {
   onBeforeUnmount,
   onKeyStroke,
   onMounted,
-  openLink,
-  projectThemeColors,
   ref,
   resolveComponent,
   storeToRefs,
@@ -26,7 +23,6 @@ import {
   useRoute,
   useRouter,
   useSidebar,
-  useTabs,
   useTheme,
   useUIPermission,
 } from '#imports'
@@ -45,14 +41,11 @@ const route = useRoute()
 
 const router = useRouter()
 
-const { appInfo, token, signOut, signedIn, user, currentVersion } = useGlobal()
+const { token, signOut, user, } = useGlobal()
 
 const projectStore = useProject()
 
-const { loadProjectMetaInfo, saveTheme, loadProject, reset } = projectStore
-const { project, isSharedBase, projectMetaInfo } = storeToRefs(projectStore)
-
-const { clearTabs, addTab } = useTabs()
+const {  saveTheme, loadProject, reset } = projectStore
 
 const { isUIAllowed } = useUIPermission()
 
@@ -72,7 +65,6 @@ const logout = async () => {
   await signOut()
   navigateTo('/signin')
 }
-
 
 const handleThemeColor = async (mode: 'swatch' | 'primary' | 'accent', color?: string) => {
   switch (mode) {

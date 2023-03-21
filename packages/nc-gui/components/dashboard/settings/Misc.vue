@@ -1,21 +1,33 @@
 <script setup lang="ts">
 import type { CheckboxChangeEvent } from 'ant-design-vue/es/checkbox/interface'
+import { isString } from '@vueuse/core'
+import { onMounted } from '@vue/runtime-core'
 import { storeToRefs, useGlobal, useProject, watch } from '#imports'
-import {ProjectIdInj} from "~/context";
+import { ProjectIdInj } from '~/context'
 
 const { includeM2M, showNull } = useGlobal()
 
 const projectStore = useProject()
+const projectsStore = useProjects()
 const { updateProject, loadTables, hasEmptyOrNullFilters } = projectStore
 const { project, projectMeta } = storeToRefs(projectStore)
-const _projectId = $(inject(ProjectIdInj))
-const projectId = $computed(() => _projectId ?? project.value?.id)
+const _projectId = inject(ProjectIdInj)
+const projectId = computed(() => _projectId?.value ?? project.value?.id)
 
 watch(includeM2M, async () => await loadTables())
 
-const showNullAndEmptyInFilter = ref(projectMeta.value.showNullAndEmptyInFilter)
+const showNullAndEmptyInFilter = ref()
+
+onMounted(async () => {
+  await projectsStore.loadProject(projectId.value!, true)
+  showNullAndEmptyInFilter.value = projectsStore.getProjectMeta(projectId.value!)?.showNullAndEmptyInFilter
+})
 
 async function showNullAndEmptyInFilterOnChange(evt: CheckboxChangeEvent) {
+  const project = projectsStore.projects[projectId.value!]
+
+  const meta = projectsStore.getProjectMeta(projectId.value!) ?? {}
+
   // users cannot hide null & empty option if there is existing null / empty filters
   if (!evt.target.checked) {
     if (await hasEmptyOrNullFilters()) {
@@ -24,13 +36,13 @@ async function showNullAndEmptyInFilterOnChange(evt: CheckboxChangeEvent) {
     }
   }
   const newProjectMeta = {
-    ...projectMeta.value,
+    ...meta,
     showNullAndEmptyInFilter: showNullAndEmptyInFilter.value,
   }
   // update local state
-  project.value.meta = newProjectMeta
+  project.meta = newProjectMeta
   // update db
-  await updateProject({
+  await projectsStore.updateProject(projectId.value!, {
     meta: newProjectMeta,
   })
 }

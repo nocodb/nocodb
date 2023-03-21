@@ -32,6 +32,16 @@ export const useProject = defineStore('projectStore', () => {
 
   const { refreshCommandPalette } = useCommandPalette()
 
+  const forcedProjectId = ref<string>()
+
+  const projectId = computed(() => forcedProjectId.value || (route.params.projectId as string))
+
+  const projectsStore = useProjects()
+
+  // todo: new-layout
+  const project = computed<ProjectType>(() => projectsStore.projects[projectId.value] || {})
+  const tables = computed<TableType[]>(() => projectsStore.projectTableList[projectId.value] || [])
+
   const projectLoadedHook = createEventHook<ProjectType>()
 
   const bases = computed<BaseType[]>(() => project.value?.bases || [])
@@ -40,21 +50,11 @@ export const useProject = defineStore('projectStore', () => {
 
   const lastOpenedViewMap = ref<Record<string, string>>({})
 
-  const forcedProjectId = ref<string>()
-
-  const projectId = computed(() => forcedProjectId.value || (route.params.projectId as string))
 
   // todo: refactor path param name and variable name
   const projectType = $computed(() => route.params.projectType as string)
 
-  const projectsStore = useProjects()
 
-  // const project = ref<ProjectType>({})
-  // const tables = ref<TableType[]>([])
-
-  // todo: new-layout
-  const project = computed<ProjectType>(() => projectsStore.projects[projectId.value] || {})
-  const tables = computed<TableType[]>(() => projectsStore.projectTableList[projectId.value] || [])
 
   const projectMeta = computed<Record<string, any>>(() => {
     const defaultMeta = {

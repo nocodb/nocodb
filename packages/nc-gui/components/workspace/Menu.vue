@@ -89,7 +89,6 @@ const logout = async () => {
   navigateTo('/signin')
 }
 
-
 // todo: temp
 const isSharedBase = false
 const modalVisible = false

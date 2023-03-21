@@ -1,6 +1,7 @@
 import { defineStore } from 'pinia'
 import type { OracleUi, ProjectType, TableType } from 'nocodb-sdk'
 import { SqlUiFactory } from 'nocodb-sdk'
+import { isString } from '@vueuse/core'
 import { NcProjectType } from '~/utils'
 import { useWorkspace } from '~/store/workspace'
 
@@ -85,6 +86,19 @@ export const useProjects = defineStore('projectsStore', () => {
     await worspaceStore.loadProjects()
   }
 
+  const getProjectMeta = (projectId: string) => {
+    const project = projects.value[projectId]
+
+    let meta = {
+      showNullAndEmptyInFilter: false,
+    }
+    try {
+      meta = (isString(project.meta) ? JSON.parse(project.meta) : project.meta) ?? meta
+    } catch {}
+
+    return meta
+  }
+
   async function getProjectMetaInfo(projectId: string) {
     return await api.project.metaGet(projectId!, {}, {})
   }
@@ -101,5 +115,6 @@ export const useProjects = defineStore('projectsStore', () => {
     createProject,
     deleteProject,
     getProjectMetaInfo,
+    getProjectMeta,
   }
 })

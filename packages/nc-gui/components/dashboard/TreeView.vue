@@ -42,7 +42,7 @@ const { $api, $e } = useNuxtApp()
 const projectStore = useProject()
 
 const { loadTables } = projectStore
-const { bases, tables, isSharedBase } = storeToRefs(projectStore)
+const { bases, tables, isSharedBase, project } = storeToRefs(projectStore)
 
 const { activeTab } = storeToRefs(useTabs())
 
@@ -297,16 +297,28 @@ useEventListener(document, 'keydown', async (e: KeyboardEvent) => {
 watch(
   activeTable,
   (value, oldValue) => {
+    let tableTitle
     if (value) {
       if (value !== oldValue) {
         const fndTable = tables.value.find((el) => el.id === value)
         if (fndTable) {
           activeKey.value = [`collapse-${fndTable.base_id}`]
+          tableTitle = fndTable.title
         }
       }
     } else {
-      if (bases.value.filter((el) => el.enabled)[0]?.id)
-        activeKey.value = [`collapse-${bases.value.filter((el) => el.enabled)[0].id}`]
+      const table = bases.value.filter((el) => el.enabled)[0]
+      if (table?.id) {
+        activeKey.value = [`collapse-${table.id}`]
+      }
+      if (table?.title) {
+        tableTitle = table.title
+      }
+    }
+    if (project.value.title && tableTitle) {
+      document.title = `${project.value.title}: ${tableTitle} | NocoDB`
+    } else {
+      document.title = 'NocoDB'
     }
   },
   { immediate: true },
@@ -1021,7 +1033,10 @@ const setIcon = async (icon: string, table: TableType) => {
 
       <LazyGeneralHelpAndSupport class="color-transition px-2 text-gray-500 cursor-pointer select-none hover:text-accent" />
 
-      <GeneralJoinCloud v-if="!isMobileMode" class="color-transition px-2 text-gray-500 cursor-pointer select-none hover:text-accent" />
+      <GeneralJoinCloud
+        v-if="!isMobileMode"
+        class="color-transition px-2 text-gray-500 cursor-pointer select-none hover:text-accent"
+      />
 
       <GithubButton
         v-if="!isMobileMode"

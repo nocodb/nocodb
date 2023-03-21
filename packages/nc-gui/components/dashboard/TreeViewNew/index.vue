@@ -765,6 +765,7 @@ const isClearMode = computed(() => route.query.clear === '1' && route.params.pro
       v-model:model-value="settingsDialog.show"
       v-model:open-key="settingsDialog.openKey"
       v-model:data-sources-state="settingsDialog.dataSourcesState"
+      v-model:project-id="settingsDialog.projectId"
     />
   </div>
 </template>

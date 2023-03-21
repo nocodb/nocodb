@@ -104,10 +104,11 @@ const systemColumnsCheckboxInfo = SYSTEM_COLUMNS.map((c, index) => ({
 const creating = ref(false)
 
 const _createTable = async () => {
+  if(creating.value) return
   try {
     creating.value = true
     await validate()
-    await createTable(props.projectId)
+    await createTable(props.projectId!)
   } catch (e: any) {
     e.errorFields.map((f: Record<string, any>) => message.error(f.errors.join(',')))
     if (e.errorFields.length) return
@@ -143,7 +144,7 @@ onMounted(() => {
     </template>
 
     <div class="pl-10 pr-10 pt-5">
-      <a-form :model="table" name="create-new-table-form" @keydown.enter="_createTable">
+      <a-form :model="table" name="create-new-table-form" @keydown.enter.stop="_createTable">
         <!-- Create A New Table -->
         <div class="prose-xl font-bold self-center my-4">{{ $t('activity.createTable') }}</div>
 

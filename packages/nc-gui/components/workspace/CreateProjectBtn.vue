@@ -39,13 +39,15 @@ useEventListener(document, 'keydown', async (e: KeyboardEvent) => {
   const cmdOrCtrl = isMac() ? e.metaKey : e.ctrlKey
   if (e.altKey && !e.shiftKey && !cmdOrCtrl) {
     switch (e.keyCode) {
-      case 68: {
         // ALT + D
+      case 68: {
+        e.stopPropagation()
         navigateToCreateProject(NcProjectType.DB)
         break
       }
       // ALT + B
       case 66: {
+        e.stopPropagation()
         navigateToCreateProject(NcProjectType.DOCS)
         break
       }

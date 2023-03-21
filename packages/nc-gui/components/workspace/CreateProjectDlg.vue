@@ -122,7 +122,6 @@ watch(dialogShow, async (n, o) => {
             v-model:value="formState.title"
             name="title"
             class="nc-metadb-project-name"
-            @keyup.enter="createProject"
           />
         </a-form-item>
       </a-form>

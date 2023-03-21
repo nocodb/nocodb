@@ -12,6 +12,7 @@ import { storeToRefs, useCommandPalette, useNuxtApp, useProject } from '#imports
 interface Props {
   state: string
   reload: boolean
+  projectId?: string
 }
 
 const props = defineProps<Props>()
@@ -24,10 +25,14 @@ const vReload = useVModel(props, 'reload', emits)
 
 const { $api, $e } = useNuxtApp()
 
+const projectsStore = useProjects()
+
 const projectStore = useProject()
 const { loadProject } = projectStore
 const { project } = storeToRefs(projectStore)
 const { refreshCommandPalette } = useCommandPalette()
+
+
 
 let sources = $ref<BaseType[]>([])
 
@@ -43,13 +48,13 @@ let forceAwakened = $ref(false)
 
 async function loadBases(changed?: boolean) {
   try {
-    if (!project.value?.id) return
+    if (!props.projectId  && !project.value?.id) return
 
     if (changed) refreshCommandPalette()
 
     isReloading = true
     vReload.value = true
-    const baseList = await $api.base.list(project.value?.id)
+    const baseList = await $api.base.list(props.projectId ?? project.value?.id)
     if (baseList.list && baseList.list.length) {
       sources = baseList.list
     }

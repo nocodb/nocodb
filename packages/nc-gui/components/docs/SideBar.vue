@@ -144,6 +144,8 @@ onKeyStroke('Enter', () => {
 })
 
 onMounted(async () => {
+  if (isPublic.value) return
+
   await fetchNestedPages({ projectId: project.value.id! })
 
   // await openChildPageTabsOfRootPages()

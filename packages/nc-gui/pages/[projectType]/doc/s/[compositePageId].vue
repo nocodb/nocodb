@@ -7,27 +7,43 @@ definePageMeta({
   requiresAuth: false,
 })
 
-const { setProject } = useProject()
+const { setProject, project } = useProject()
 const { isOpen: isSidebarOpen, toggleHasSidebar, toggle } = useSidebar('nc-left-sidebar')
 
 const route = useRoute()
 
-const { isErrored, isFetching, openedProjectId } = storeToRefs(useDocStore())
+const { isErrored, openedProjectId, isNestedPublicPage } = storeToRefs(useDocStore())
 
 const { fetchNestedPages } = useDocStore()
 
-onMounted(() => {
+const isFetching = ref(true)
+
+onMounted(async () => {
+  isFetching.value = true
+
   setProject({ id: openedProjectId.value })
-  fetchNestedPages({
+  await fetchNestedPages({
     projectId: openedProjectId.value as string,
   })
+
+  isFetching.value = false
+})
+
+watch(isNestedPublicPage, (val) => {
+  if (val) {
+    toggleHasSidebar(true)
+    toggle(true)
+  } else {
+    toggleHasSidebar(false)
+    toggle(false)
+  }
 })
 </script>
 
 <template>
   <NuxtLayout id="content" :key="route.params.projectId as string" class="flex">
-    <template v-if="isSidebarOpen" #sidebar>
-      <DocsSideBar :project="{}" />
+    <template v-if="isSidebarOpen && !isFetching" #sidebar>
+      <DocsSideBar :project="{ id: openedProjectId }" />
     </template>
     <div v-if="isErrored">
       <DocsError />

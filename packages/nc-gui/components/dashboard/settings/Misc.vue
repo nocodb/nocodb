@@ -9,8 +9,8 @@ const { includeM2M, showNull } = useGlobal()
 
 const projectStore = useProject()
 const projectsStore = useProjects()
-const { updateProject, loadTables, hasEmptyOrNullFilters } = projectStore
-const { project, projectMeta } = storeToRefs(projectStore)
+const { loadTables, hasEmptyOrNullFilters } = projectStore
+const { project } = storeToRefs(projectStore)
 const _projectId = inject(ProjectIdInj)
 const projectId = computed(() => _projectId?.value ?? project.value?.id)
 

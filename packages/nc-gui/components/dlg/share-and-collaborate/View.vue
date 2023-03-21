@@ -113,7 +113,7 @@ watch(showShareModal, (val) => {
         <a-collapse-panel key="page" class="share-collapse-item">
           <template #header>
             <div class="flex flex-row items-center gap-x-2">
-              <IonDocumentOutline />
+              <IonDocumentOutline/>
               <div>
                 Share Page <span class="ml-10.5 py-1 px-2 rounded-md bg-gray-100 capitalize">{{ page.title }}</span>
               </div>

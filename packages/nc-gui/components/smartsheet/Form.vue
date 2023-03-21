@@ -9,7 +9,6 @@ import {
   ReloadViewDataHookInj,
   computed,
   createEventHook,
-  emailValidator,
   extractSdkResponseErrorMsg,
   inject,
   message,
@@ -97,6 +96,8 @@ const emailMe = ref(false)
 const submitted = ref(false)
 
 const activeRow = ref('')
+
+const editEnabled = ref<boolean[]>([])
 
 const { t } = useI18n()
 
@@ -284,6 +285,8 @@ function setFormData() {
     .sort((a, b) => a.order - b.order)
     .map((c) => ({ ...c, required: !!c.required }))
 
+  editEnabled.value = new Array(localColumns.value.length).fill(false)
+
   systemFieldsIds.value = getSystemColumns(col).map((c) => c.fk_column_id)
 
   hiddenColumns.value = col.filter(
@@ -382,8 +385,6 @@ watch(view, (nextView) => {
     reloadEventHook.trigger()
   }
 })
-
-const editEnabled = ref({})
 </script>
 
 <template>
@@ -730,7 +731,7 @@ const editEnabled = ref({})
                       :class="`nc-form-input-${element.title.replaceAll(' ', '')}`"
                       :data-testid="`nc-form-input-${element.title.replaceAll(' ', '')}`"
                       :column="element"
-                      :edit-enabled="editEnabled[index] ?? true"
+                      :edit-enabled="editEnabled[index]"
                       @click="editEnabled[index] = true"
                       @cancel="editEnabled[index] = false"
                       @update:edit-enabled="editEnabled[index] = $event"

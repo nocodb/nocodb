@@ -4,6 +4,10 @@ import Project from '../../models/Project';
 
 export async function get(param: { projectId: string; pageId: string }) {
   const project = await Project.getWithInfo(param.projectId as string);
+  const projectMeta =
+    typeof project?.meta === 'string'
+      ? JSON.parse(project?.meta)
+      : project?.meta;
 
   const page = await Page.get({
     id: param.pageId,
@@ -13,7 +17,7 @@ export async function get(param: { projectId: string; pageId: string }) {
   if (!page) NcError.notFound('Page not found');
 
   // if page and project is not public, check if the given parent page is published with nested pages
-  if (!page.is_published) {
+  if (!page.is_published && !projectMeta?.isPublic) {
     NcError.notFound('Page is not found.');
   }
 
@@ -40,6 +44,18 @@ export async function get(param: { projectId: string; pageId: string }) {
 }
 
 export async function list(param: { projectId: string; parentPageId: string }) {
+  const project = await Project.getWithInfo(param.projectId as string);
+  const projectMeta =
+    typeof project?.meta === 'string'
+      ? JSON.parse(project?.meta)
+      : project?.meta;
+
+  if (projectMeta?.isPublic) {
+    return await Page.nestedListAll({
+      projectId: param.projectId,
+    });
+  }
+
   const page = await Page.get({
     id: param.parentPageId,
     projectId: param.projectId,

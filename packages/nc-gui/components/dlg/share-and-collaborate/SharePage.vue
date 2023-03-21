@@ -8,8 +8,8 @@ interface Emits {
 const emits = defineEmits<Emits>()
 
 const { project } = storeToRefs(useProject())
-
-const { openedPage, nestedPublicParentPage } = storeToRefs(useDocStore())
+const { isProjectPublic } = useShare()
+const { openedPage, nestedPublicParentPage, nestedPagesOfProjects } = storeToRefs(useDocStore())
 const { updatePage, nestedUrl } = useDocStore()
 
 const isPagePublishing = ref(false)
@@ -19,11 +19,13 @@ const isCopied = ref({
   embed: false,
 })
 
+const page = computed(() => openedPage.value ?? nestedPagesOfProjects.value[project.value.id!]?.[0])
+
 const copyPageUrl = async () => {
   isCopied.value.link = false
 
   await navigator.clipboard.writeText(
-    nestedUrl({ projectId: project.value.id!, id: openedPage.value!.id!, completeUrl: true, publicUrl: true }),
+    nestedUrl({ projectId: project.value.id!, id: page.value!.id!, completeUrl: true, publicUrl: true }),
   )
 
   setTimeout(() => {
@@ -32,17 +34,14 @@ const copyPageUrl = async () => {
 }
 
 const openPageUrl = async () => {
-  window.open(
-    nestedUrl({ projectId: project.value.id!, id: openedPage.value!.id!, completeUrl: true, publicUrl: true }),
-    '_blank',
-  )
+  window.open(nestedUrl({ projectId: project.value.id!, id: page.value!.id!, completeUrl: true, publicUrl: true }), '_blank')
 }
 
 const embedPageHtml = async () => {
   await navigator.clipboard.writeText(
     `<iframe src="${nestedUrl({
       projectId: project.value.id!,
-      id: openedPage.value!.id!,
+      id: page.value!.id!,
       completeUrl: true,
       publicUrl: true,
     })}" width="100%" height="100%" style="border: none;"></iframe>`,
@@ -50,13 +49,13 @@ const embedPageHtml = async () => {
   isCopied.value.embed = true
 }
 
-const isNestedParent = computed(() => nestedPublicParentPage.value?.id === openedPage.value!.id)
+const isNestedParent = computed(() => nestedPublicParentPage.value?.id === page.value!.id)
 
 const togglePagePublishedState = async () => {
   isPagePublishing.value = true
 
   let pageUpdates
-  if (openedPage.value!.is_published) {
+  if (page.value!.is_published) {
     pageUpdates = {
       is_published: false,
     }
@@ -68,7 +67,7 @@ const togglePagePublishedState = async () => {
 
   try {
     await updatePage({
-      pageId: openedPage.value!.id!,
+      pageId: page.value!.id!,
       page: pageUpdates,
       projectId: project.value.id!,
     })
@@ -100,28 +99,29 @@ watch(
 </script>
 
 <template>
-  <div class="flex flex-col">
-    <div v-if="openedPage" class="flex flex-col w-full px-3.5 py-3.5 border-gray-200 border-1 rounded-md gap-y-2">
+  <div class="flex flex-col py-2 px-3 mb-1">
+    <div v-if="page" class="flex flex-col w-full mt-2.5 px-3 py-2.5 border-gray-200 border-1 rounded-md gap-y-2">
       <div class="flex flex-row w-full justify-between">
-        <div class="flex" :style="{ fontWeight: 500 }">Share current page</div>
+        <div class="flex" :style="{ fontWeight: 500 }">Enable public viewing</div>
         <a-switch
-          :checked="!!openedPage?.is_published"
+          :checked="isProjectPublic || !!page?.is_published"
           :loading="isPagePublishing"
-          class="docs-share-public-toggle"
-          :disabled="openedPage.is_published && !isNestedParent"
+          class="docs-share-public-toggle !mt-0.25"
+          :disabled="isProjectPublic || (page.is_published && !isNestedParent)"
           @click="togglePagePublishedState"
         />
       </div>
-      <div class="flex text-xs">
-        <template v-if="openedPage.is_published && !isNestedParent">
-          Shared through page
-          <span class="text-blue-600 underline pl-1 cursor-pointer mr-1" @click="openParentPageLink">
-            {{ nestedPublicParentPage?.title }}</span
-          >
-        </template>
-        <template v-else>Share only the current selected page </template>
+      <div v-if="isProjectPublic" class="flex text-xs items-center">
+        Shared through project
+        <span class="ml-1.5 px-1.5 py-0.5 bg-gray-100 rounded-md capitalize">{{ project.title }}</span>
       </div>
-      <div v-if="openedPage?.is_published" class="flex flex-row justify-end text-gray-600 gap-x-1.5">
+      <div v-else-if="page.is_published && !isNestedParent" class="flex text-xs">
+        Shared through page
+        <span class="text-blue-600 underline pl-1 cursor-pointer mr-1" @click="openParentPageLink">
+          {{ nestedPublicParentPage?.title }}</span
+        >
+      </div>
+      <div v-if="page?.is_published" class="flex flex-row justify-end text-gray-600 gap-x-1.5 my-0.5">
         <div class="flex py-1.5 px-1.5 hover:bg-gray-100 cursor-pointer rounded-md border-1 border-gray-300" @click="openPageUrl">
           <RiExternalLinkLine class="h-3.75" />
         </div>
@@ -145,11 +145,6 @@ watch(
             <template v-else> Copy link </template>
           </div>
         </div>
-      </div>
-    </div>
-    <div class="flex flex-row mt-6 mb-1 pt-3 border-t-1 border-gray-200 justify-end">
-      <div class="flex !rounded-md border-1 border-gray-200 px-2.5 py-1 hover:bg-gray-50 cursor-pointer" @click="emits('close')">
-        Cancel
       </div>
     </div>
   </div>

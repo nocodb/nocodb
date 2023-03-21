@@ -7,6 +7,7 @@ const [setup, use] = useInjectionState(() => {
   const { project } = storeToRefs(useProject())
   const { t } = useI18n()
   const { $e } = useNuxtApp()
+  const { formStatus, invitationUsersData } = useShare()
 
   const currentPage = ref(1)
   const currentLimit = ref(10)
@@ -15,9 +16,6 @@ const [setup, use] = useInjectionState(() => {
   const lastFetchedUsers = ref<null | User[]>(null)
   const totalUsers = ref(0)
   const isBatchUpdating = ref(false)
-  const formStatus = ref<'collaborate' | 'collaborateSaving' | 'collaborateSaved' | 'manageCollaborators' | 'share'>(
-    'collaborate',
-  )
   // todo: Only tracks roles updates
   const editedUsers = computed(() => {
     if (!users.value || !lastFetchedUsers.value) return []
@@ -58,11 +56,17 @@ const [setup, use] = useInjectionState(() => {
   }
 
   const inviteUser = async (user: Partial<User>) => {
-    formStatus.value = 'collaborateSaving'
+    formStatus.value = 'project-collaborateSaving'
     try {
       if (!project.value?.id) return
 
-      await api.auth.projectUserAdd(project.value.id, { ...user, project_id: project.value.id, projectName: project.value.title })
+      const res = await api.auth.projectUserAdd(project.value.id, {
+        ...user,
+        project_id: project.value!.id!,
+        projectName: project.value.title,
+      } as any)
+
+      invitationUsersData.value.invitationToken = (res as any).invite_token
 
       currentPage.value = 1
       users.value = []
@@ -75,7 +79,7 @@ const [setup, use] = useInjectionState(() => {
       return
     }
 
-    formStatus.value = 'collaborateSaved'
+    formStatus.value = 'project-collaborateSaved'
     $e('a:user:add')
   }
 
@@ -116,7 +120,6 @@ const [setup, use] = useInjectionState(() => {
     editedUsers,
     updateEditedUsers,
     isBatchUpdating,
-    formStatus,
   }
 }, 'useManageUsers')
 

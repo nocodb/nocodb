@@ -54,6 +54,8 @@ const openedProjectId = ref()
 
 const projectElRefs = ref()
 
+const { projectUrl } = useDocStore()
+
 const loadProjectAndTableList = async (project: ProjectType, projIndex: number) => {
   if (!project) {
     return
@@ -85,6 +87,7 @@ const loadProjectAndTableList = async (project: ProjectType, projIndex: number) 
         projectId: project.id,
       })
       $e('c:document:open', project.id)
+      navigateTo(projectUrl(project.id))
       break
     default:
       await loadProject(project.id!)

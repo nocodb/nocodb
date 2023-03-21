@@ -13,41 +13,19 @@ const { updatePage } = useDocStore()
 
 const titleInputRef = ref<HTMLInputElement>()
 
-const title = ref('')
-
-watch(
-  () => openedPage.value?.id,
-  (oldId, newId) => {
-    if (!openedPage.value) return
-    if (oldId === newId) return
-
-    title.value = openedPage.value.new ? '' : openedPage.value?.title || ''
-
-    if (openedPage.value?.new) {
-      nextTick(() => {
-        titleInputRef.value?.focus()
-      })
-    }
-  },
-  {
-    immediate: true,
-  },
-)
-
-watch(
-  title,
-  (value) => {
-    if (title.value.length > MAX_TITLE_LENGTH) {
-      title.value = title.value.slice(0, MAX_TITLE_LENGTH)
-      return
+const _title = ref('')
+const title = computed({
+  get: () => _title.value,
+  set: (value) => {
+    if (value.length > MAX_TITLE_LENGTH) {
+      value = value.slice(0, MAX_TITLE_LENGTH)
     }
 
-    openedPage.value = { ...openedPage.value!, title: value, new: false }
+    _title.value = value
+
+    openedPage.value = { ...openedPage.value!, title: title.value, new: false }
   },
-  {
-    immediate: true,
-  },
-)
+})
 
 const onTitleKeyDown = (e: KeyboardEvent) => {
   if (e.key === 'Enter') {
@@ -64,6 +42,46 @@ const setIcon = async (icon: string) => {
     message.error(await extractSdkResponseErrorMsg(e))
   }
 }
+
+// TODO: Find the reason why
+// `nextTick(() => {
+//    titleInputRef.value?.focus()
+//  })`
+// does not work. Some where the page is re-rendered and the focus is lost.
+// Used to work
+const focusTitle = () => {
+  for (let i = 1; i <= 5; i++) {
+    if (titleInputRef.value) {
+      titleInputRef.value.focus()
+      return
+    }
+    setTimeout(() => {
+      focusTitle()
+    }, 100 * i)
+  }
+}
+
+watch(
+  () => openedPage.value?.id,
+  (oldId, newId) => {
+    if (!openedPage.value) return
+    if (oldId === newId) return
+
+    if (openedPage.value?.new) {
+      // So that we do not reset `new` flag of opened page to false
+      _title.value = ''
+    } else {
+      title.value = openedPage.value?.title || ''
+    }
+
+    if (openedPage.value?.new) {
+      focusTitle()
+    }
+  },
+  {
+    immediate: true,
+  },
+)
 
 watchDebounced(
   () => [openedPage.value?.id, openedPage.value?.title],

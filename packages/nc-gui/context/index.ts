@@ -39,3 +39,4 @@ export const SaveRowInj: InjectionKey<(() => void) | undefined> = Symbol('save-r
 export const DocsLocalPageInj: InjectionKey<Ref<PageSidebarNode | undefined>> = Symbol('docs-local-page-injection')
 export const ProjectRoleInj: InjectionKey<Ref<string>> = Symbol('project-roles-injection')
 export const ProjectInj: InjectionKey<Ref<ProjectType>> = Symbol('project-injection')
+export const ProjectIdInj: InjectionKey<Ref<string>> = Symbol('project-id-injection')

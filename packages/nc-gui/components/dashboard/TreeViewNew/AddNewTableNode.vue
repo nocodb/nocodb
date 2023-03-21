@@ -204,25 +204,25 @@ const toggleDialog = inject(ToggleDialogInj, () => {})
           <a-menu-divider class="my-0" />
 
           <a-menu-item-group title="Connect to new datasource" class="!px-0 !mx-0">
-            <a-menu-item key="connect-new-source" @click="toggleDialog(true, 'dataSources', ClientType.MYSQL)">
+            <a-menu-item key="connect-new-source" @click="toggleDialog(true, 'dataSources', ClientType.MYSQL, project.id)">
               <div class="color-transition nc-project-menu-item group">
                 <LogosMysqlIcon class="group-hover:text-accent" />
                 MySQL
               </div>
             </a-menu-item>
-            <a-menu-item key="connect-new-source" @click="toggleDialog(true, 'dataSources', ClientType.PG)">
+            <a-menu-item key="connect-new-source" @click="toggleDialog(true, 'dataSources', ClientType.PG, project.id)">
               <div class="color-transition nc-project-menu-item group">
                 <LogosPostgresql class="group-hover:text-accent" />
                 Postgres
               </div>
             </a-menu-item>
-            <a-menu-item key="connect-new-source" @click="toggleDialog(true, 'dataSources', ClientType.SQLITE)">
+            <a-menu-item key="connect-new-source" @click="toggleDialog(true, 'dataSources', ClientType.SQLITE, project.id)">
               <div class="color-transition nc-project-menu-item group">
                 <VscodeIconsFileTypeSqlite class="group-hover:text-accent" />
                 SQLite
               </div>
             </a-menu-item>
-            <a-menu-item key="connect-new-source" @click="toggleDialog(true, 'dataSources', ClientType.MSSQL)">
+            <a-menu-item key="connect-new-source" @click="toggleDialog(true, 'dataSources', ClientType.MSSQL, project.id)">
               <div class="color-transition nc-project-menu-item group">
                 <SimpleIconsMicrosoftsqlserver class="group-hover:text-accent" />
                 MSSQL
@@ -231,7 +231,7 @@ const toggleDialog = inject(ToggleDialogInj, () => {})
             <a-menu-item
               v-if="appInfo.ee"
               key="connect-new-source"
-              @click="toggleDialog(true, 'dataSources', ClientType.SNOWFLAKE)"
+              @click="toggleDialog(true, 'dataSources', ClientType.SNOWFLAKE, project.id)"
             >
               <div class="color-transition nc-project-menu-item group">
                 <LogosSnowflakeIcon class="group-hover:text-accent" />

@@ -197,7 +197,7 @@ useEventListener(document, 'keydown', async (e: KeyboardEvent) => {
         if (isUIAllowed('settings') && !isDrawerOrModalExist()) {
           e.preventDefault()
           $e('c:shortcut', { key: 'ALT + ,' })
-          toggleDialog(true, 'teamAndAuth')
+          toggleDialog(true, 'teamAndAuth', null, projectId)
         }
         break
       }

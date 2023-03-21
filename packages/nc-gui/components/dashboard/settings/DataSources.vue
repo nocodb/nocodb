@@ -8,11 +8,11 @@ import UIAcl from './UIAcl.vue'
 import Erd from './Erd.vue'
 import { ClientType, DataSourcesSubTab } from '~/lib'
 import { storeToRefs, useCommandPalette, useNuxtApp, useProject } from '#imports'
+import { ProjectIdInj } from '~/context'
 
 interface Props {
   state: string
   reload: boolean
-  projectId?: string
 }
 
 const props = defineProps<Props>()
@@ -25,14 +25,14 @@ const vReload = useVModel(props, 'reload', emits)
 
 const { $api, $e } = useNuxtApp()
 
-const projectsStore = useProjects()
 
 const projectStore = useProject()
 const { loadProject } = projectStore
 const { project } = storeToRefs(projectStore)
 const { refreshCommandPalette } = useCommandPalette()
 
-
+const _projectId = $(inject(ProjectIdInj))
+const projectId = $computed(() => _projectId ?? project.value?.id)
 
 let sources = $ref<BaseType[]>([])
 
@@ -48,13 +48,13 @@ let forceAwakened = $ref(false)
 
 async function loadBases(changed?: boolean) {
   try {
-    if (!props.projectId  && !project.value?.id) return
+    if (!projectId) return
 
     if (changed) refreshCommandPalette()
 
     isReloading = true
     vReload.value = true
-    const baseList = await $api.base.list(props.projectId ?? project.value?.id)
+    const baseList = await $api.base.list(projectId)
     if (baseList.list && baseList.list.length) {
       sources = baseList.list
     }
@@ -68,11 +68,11 @@ async function loadBases(changed?: boolean) {
 
 async function loadMetaDiff() {
   try {
-    if (!project.value?.id) return
+    if (!projectId) return
 
     metadiffbases = []
 
-    const metadiff = await $api.project.metaDiffGet(project.value?.id)
+    const metadiff = await $api.project.metaDiffGet(projectId)
     for (const model of metadiff) {
       if (model.detectedChanges?.length > 0) {
         metadiffbases.push(model.base_id)

@@ -169,7 +169,7 @@ const isSharedBase = ref(false)
                   v-if="isUIAllowed('settings')"
                   v-e="['c:navdraw:project-settings']"
                   class="nc-project-menu-item group"
-                  @click="toggleDialog(true, 'teamAndAuth')"
+                  @click="toggleDialog(true, 'teamAndAuth', undefined, project.id)"
                 >
                   <MdiCog class="group-hover:text-accent" />
                   {{ $t('title.teamAndSettings') }}

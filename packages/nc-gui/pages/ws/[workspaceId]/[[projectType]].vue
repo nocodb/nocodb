@@ -21,14 +21,16 @@ const openDialogKey = ref<string>('')
 
 const dataSourcesState = ref<string>('')
 
-function toggleDialog(value?: boolean, key?: string, dsState?: string) {
+const projectId = ref<string>()
+
+function toggleDialog(value?: boolean, key?: string, dsState?: string, pId?: string) {
   dialogOpen.value = value ?? !dialogOpen.value
   openDialogKey.value = key || ''
   dataSourcesState.value = dsState || ''
+  projectId.value = pId || ''
 }
 
 provide(ToggleDialogInj, toggleDialog)
-
 
 onMounted(async () => {
   await workspaceStore.loadWorkspace(route.params.workspaceId as string)
@@ -107,16 +109,15 @@ const currentVersion = ref('')
           </div>
         </div>
 
-        <LazyDashboardTreeViewNew @create-base-dlg="toggleDialog(true, 'dataSources')" />
+        <LazyDashboardTreeViewNew @create-base-dlg="toggleDialog(true, 'dataSources', null, projectId)" />
       </a-layout-sider>
     </template>
-
     <NuxtPage />
-
     <LazyDashboardSettingsModal
         v-model:model-value="dialogOpen"
         v-model:open-key="openDialogKey"
         v-model:data-sources-state="dataSourcesState"
+        :project-id="projectId"
     />
   </NuxtLayout>
 </template>

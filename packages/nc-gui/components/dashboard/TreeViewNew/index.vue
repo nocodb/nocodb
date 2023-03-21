@@ -478,8 +478,6 @@ watch(
   { immediate: true },
 )
 
-const settingsDialog = reactive({})
-
 const isClearMode = computed(() => route.query.clear === '1' && route.params.projectId)
 </script>
 
@@ -765,13 +763,6 @@ const isClearMode = computed(() => route.query.clear === '1' && route.params.pro
     <div class="flex items-start flex-col justify-start px-2 py-3 gap-2">
       <GeneralJoinCloud class="color-transition px-2 text-gray-500 cursor-pointer select-none hover:text-accent" />
     </div>
-
-    <LazyDashboardSettingsModal
-      v-model:model-value="settingsDialog.show"
-      v-model:open-key="settingsDialog.openKey"
-      v-model:data-sources-state="settingsDialog.dataSourcesState"
-      v-model:project-id="settingsDialog.projectId"
-    />
   </div>
 </template>
 

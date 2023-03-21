@@ -25,6 +25,7 @@ import {
   useNuxtApp,
   watch,
 } from '#imports'
+import {ProjectIdInj} from "~/context";
 
 const props = defineProps<{
   baseId: string
@@ -33,8 +34,11 @@ const props = defineProps<{
 const emit = defineEmits(['baseUpdated'])
 
 const projectStore = useProject()
-const { loadProject } = projectStore
+const projectsStore = useProjects()
 const { project } = storeToRefs(projectStore)
+
+const _projectId = inject(ProjectIdInj)
+const projectId = computed(() => _projectId?.value ?? project.value?.id)
 
 const useForm = Form.useForm
 
@@ -225,10 +229,10 @@ const editBase = async () => {
 
     $e('a:base:edit:extdb')
 
-    await loadProject()
+    await projectsStore.loadProject(projectId.value!, true)
     emit('baseUpdated')
     message.success('Base updated!')
-    toggleDialog(true, 'dataSources', '')
+    toggleDialog(true, 'dataSources', '', projectId)
   } catch (e: any) {
     message.error(await extractSdkResponseErrorMsg(e))
   }

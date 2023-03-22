@@ -564,123 +564,6 @@ const isClearMode = computed(() => route.query.clear === '1' && route.params.pro
                               ({{ projectTableList[project.id]?.filter((table) => table.base_id === base.id).length || '0' }})
                             </div>
                           </template>
-                          <div
-                            v-if="baseIndex === '0' && isUIAllowed('table-create')"
-                            class="group flex items-center gap-2 pl-8 pr-3 py-2 text-primary/70 hover:(text-primary/100) cursor-pointer select-none"
-                            @click="openTableCreateDialog(projects[project.id].bases[0].id)"
-                          >
-                            <MdiPlus />
-
-                            <span class="text-gray-500 group-hover:(text-primary/100) flex-1 nc-add-new-table">{{
-                              $t('tooltip.addTable')
-                            }}</span>
-
-                            <a-dropdown
-                              v-if="!isSharedBase"
-                              :trigger="['click']"
-                              overlay-class-name="nc-dropdown-import-menu"
-                              @click.stop
-                            >
-                              <PhDotsThreeOutlineVerticalThin
-                                class="transition-opacity opacity-0 group-hover:opacity-100 nc-import-menu outline-0"
-                              />
-
-                              <template #overlay>
-                                <a-menu class="!py-0 rounded text-sm">
-                                  <a-menu-item-group class="!px-0 !mx-0">
-                                    <template #title>
-                                      <div class="flex items-center">
-                                        Noco
-                                        <PhSparkleFill class="ml-1 text-orange-400" />
-                                      </div>
-                                    </template>
-                                    <a-menu-item
-                                      key="table-magic"
-                                      @click="openTableCreateMagicDialog(projects[project.id].bases[0].id)"
-                                    >
-                                      <div class="color-transition nc-project-menu-item group">
-                                        <MdiMagicStaff class="group-hover:text-accent" />
-                                        Create table
-                                      </div>
-                                    </a-menu-item>
-                                    <a-menu-item
-                                      key="schema-magic"
-                                      @click="openSchemaMagicDialog(projects[project.id].bases[0].id)"
-                                    >
-                                      <div class="color-transition nc-project-menu-item group">
-                                        <MdiMagicStaff class="group-hover:text-accent" />
-                                        Create schema
-                                      </div>
-                                    </a-menu-item>
-                                  </a-menu-item-group>
-
-                                  <a-menu-divider class="my-0" />
-
-                                  &lt;!&ndash; Quick Import From &ndash;&gt;
-                                  <a-menu-item-group :title="$t('title.quickImportFrom')" class="!px-0 !mx-0">
-                                    <a-menu-item
-                                      v-if="isUIAllowed('airtableImport')"
-                                      key="quick-import-airtable"
-                                      @click="openAirtableImportDialog(projects[project.id].bases[0].id)"
-                                    >
-                                      <div class="color-transition nc-project-menu-item group">
-                                        <MdiTableLarge class="group-hover:text-accent" />
-                                        Airtable
-                                      </div>
-                                    </a-menu-item>
-
-                                    <a-menu-item
-                                      v-if="isUIAllowed('csvImport')"
-                                      key="quick-import-csv"
-                                      @click="openQuickImportDialog('csv', projects[project.id].bases[0].id)"
-                                    >
-                                      <div class="color-transition nc-project-menu-item group">
-                                        <MdiFileDocumentOutline class="group-hover:text-accent" />
-                                        CSV file
-                                      </div>
-                                    </a-menu-item>
-
-                                    <a-menu-item
-                                      v-if="isUIAllowed('jsonImport')"
-                                      key="quick-import-json"
-                                      @click="openQuickImportDialog('json', projects[project.id].bases[0].id)"
-                                    >
-                                      <div class="color-transition nc-project-menu-item group">
-                                        <MdiCodeJson class="group-hover:text-accent" />
-                                        JSON file
-                                      </div>
-                                    </a-menu-item>
-
-                                    <a-menu-item
-                                      v-if="isUIAllowed('excelImport')"
-                                      key="quick-import-excel"
-                                      @click="openQuickImportDialog('excel', projects[project.id].bases[0].id)"
-                                    >
-                                      <div class="color-transition nc-project-menu-item group">
-                                        <MdiFileExcel class="group-hover:text-accent" />
-                                        Microsoft Excel
-                                      </div>
-                                    </a-menu-item>
-                                  </a-menu-item-group>
-
-                                  <a-menu-divider class="my-0" />
-
-                                  <a-menu-item v-if="isUIAllowed('importRequest')" key="add-new-table" class="py-1 rounded-b">
-                                    <a
-                                      v-e="['e:datasource:import-request']"
-                                      href="https://github.com/nocodb/nocodb/issues/2052"
-                                      target="_blank"
-                                      class="prose-sm hover:(!text-primary !opacity-100) color-transition nc-project-menu-item group after:(!rounded-b)"
-                                    >
-                                      <MdiOpenInNew class="group-hover:text-accent" />
-                                      &lt;!&ndash; Request a data source you need? &ndash;&gt;
-                                      {{ $t('labels.requestDataSource') }}
-                                    </a>
-                                  </a-menu-item>
-                                </a-menu>
-                              </template>
-                            </a-dropdown>
-                          </div>
                           <AddNewTableNode
                             :project="projects[project.id]"
                             :base-index="baseIndex"
@@ -692,7 +575,7 @@ const isClearMode = computed(() => route.query.clear === '1' && route.params.pro
                             :key="`sortable-${base.id}-${base.id && base.id in keys ? keys[base.id] : '0'}`"
                             :nc-base="base.id"
                           >
-                            <TableList :project="projects[project.id]" :base-index="baseIndex" />
+                            <TableList class="pl-2" :project="projects[project.id]" :base-index="baseIndex" />
                           </div>
                         </a-collapse-panel>
                       </a-collapse>

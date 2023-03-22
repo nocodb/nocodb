@@ -941,18 +941,8 @@
           }
         },
         "description": "Get custom CSS & Javascript. Exclusive for super admin.",
-        "tags": ["Org Customization"],
-        "parameters": [
-          {
-            "$ref": "#/components/parameters/xc-auth"
-          }
-        ]
+        "tags": ["Org Customization"]
       },
-      "parameters": [
-        {
-          "$ref": "#/components/parameters/xc-auth"
-        }
-      ],
       "post": {
         "summary": "Set custom CSS & Javascript",
         "operationId": "org-customization-set",

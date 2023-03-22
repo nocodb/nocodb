@@ -17,10 +17,7 @@ const router = Router({ mergeParams: true });
 router.get(
   '/api/v1/customization',
   metaApiMetrics,
-  ncMetaAclMw(customizationGet, 'customizationGet', {
-    allowedRoles: [OrgUserRoles.SUPER_ADMIN],
-    blockApiTokenAccess: true,
-  })
+  customizationGet
 );
 router.post(
   '/api/v1/customization',

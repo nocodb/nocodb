@@ -107,6 +107,20 @@ export const ExternalContent = Node.create({
             const type = getExternalContentType(url)
             if (!type) return false
 
+            const selection = this.editor.state.selection
+            const currentNode = selection.$from.node()
+            const parentNode = selection.$from.node(-1)
+
+            if (!currentNode || !parentNode) return false
+            if (
+              currentNode.type.name !== 'paragraph' ||
+              parentNode.type.name !== 'dBlock' ||
+              currentNode.textContent.length > 0 ||
+              parentNode.childCount > 1
+            ) {
+              return false
+            }
+
             _setExternalContent({ editor: this.editor as any, options: { url, type } })
             return true
           },

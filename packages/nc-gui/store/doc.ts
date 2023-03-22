@@ -289,6 +289,7 @@ export const useDocStore = defineStore('docStore', () => {
       traverse(undefined, nestedDocTree as any, 0)
 
       nestedPagesOfProjects.value[projectId] = nestedDocTree as any
+      openedTabsOfProjects.value[projectId] = flattenedNestedPages.value.map((p) => p.id) as any
 
       return nestedDocTree
     } catch (e) {

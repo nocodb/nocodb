@@ -14,24 +14,21 @@ const project = toRef(props, 'project')
 
 const MAX_NESTED_LEVEL = 5
 
-const { isPublic, openedPageInSidebar, nestedPagesOfProjects, openedTabsOfProjects, openedPageId, isEditAllowed } = storeToRefs(
-  useDocStore(),
-)
+const { isPublic, openedPageInSidebar, nestedPagesOfProjects, isEditAllowed } = storeToRefs(useDocStore())
 
 const {
   fetchNestedPages,
   nestedUrl,
   deletePage,
-  projectUrl,
   reorderPages,
   updatePage,
   addNewPage,
   expandTabOfOpenedPage,
   getChildrenOfPage,
+  openChildPageTabsOfRootPages,
 } = useDocStore()
 
 const nestedPages = computed(() => nestedPagesOfProjects.value[project.value.id!])
-const openedTabs = computed(() => openedTabsOfProjects.value[project.value.id!])
 
 const deleteModalOpen = ref(false)
 const selectedPageId = ref()
@@ -45,7 +42,7 @@ const onLoadData: TreeProps['loadData'] = async (treeNode) => {
 }
 
 const openPageTabKeys = computed({
-  get: () => [openedPageInSidebar.value?.id],
+  get: () => (openedPageInSidebar.value?.id ? [openedPageInSidebar.value?.id] : null),
   set: () => {},
 })
 
@@ -119,10 +116,6 @@ const setIcon = async (id: string, icon: string) => {
   }
 }
 
-const navigateToHome = () => {
-  navigateTo(projectUrl(project.value.id!))
-}
-
 watch(
   openedPageInSidebar,
   () => {
@@ -148,7 +141,9 @@ onMounted(async () => {
 
   await fetchNestedPages({ projectId: project.value.id! })
 
-  // await openChildPageTabsOfRootPages()
+  await openChildPageTabsOfRootPages({
+    projectId: project.value.id!,
+  })
 })
 </script>
 
@@ -166,7 +161,6 @@ onMounted(async () => {
       theme="light"
     >
       <a-tree
-        v-model:expandedKeys="openedTabs"
         v-model:selectedKeys="openPageTabKeys"
         :load-data="onLoadData"
         :tree-data="nestedPages"

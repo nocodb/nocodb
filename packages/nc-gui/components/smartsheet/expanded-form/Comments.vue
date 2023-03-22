@@ -8,7 +8,7 @@ const commentsWrapperEl = ref<HTMLDivElement>()
 
 await loadCommentsAndLogs()
 
-const showborder = ref(false)
+const showBorder = ref(false)
 
 watch(
   commentsAndLogs,
@@ -72,9 +72,9 @@ watch(
           v-model:value="comment"
           class="!text-xs nc-comment-box"
           ghost
-          :class="{ focus: showborder }"
-          @focusin="showborder = true"
-          @focusout="showborder = false"
+          :class="{ focus: showBorder }"
+          @focusin="showBorder = true"
+          @focusout="showBorder = false"
           @keyup.enter.prevent="saveComment"
         >
           <template #addonBefore>

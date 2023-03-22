@@ -96,6 +96,7 @@ declare module '@vue/runtime-core' {
     IcBaselineDragIndicator: typeof import('~icons/ic/baseline-drag-indicator')['default']
     IcBaselineErrorOutline: typeof import('~icons/ic/baseline-error-outline')['default']
     IcBaselineMoreVert: typeof import('~icons/ic/baseline-more-vert')['default']
+    IconifyIcon: typeof import('~icons/ic/onify-icon')['default']
     IcOutlineInfo: typeof import('~icons/ic/outline-info')['default']
     IcOutlineInsertDriveFile: typeof import('~icons/ic/outline-insert-drive-file')['default']
     IcRoundEdit: typeof import('~icons/ic/round-edit')['default']

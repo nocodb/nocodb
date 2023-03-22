@@ -41,11 +41,11 @@ const route = useRoute()
 
 const router = useRouter()
 
-const { token, signOut, user, } = useGlobal()
+const { token, signOut, user } = useGlobal()
 
 const projectStore = useProject()
 
-const {  saveTheme, loadProject, reset } = projectStore
+const { saveTheme, loadProject, reset } = projectStore
 
 const { isUIAllowed } = useUIPermission()
 

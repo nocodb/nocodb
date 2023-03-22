@@ -50,11 +50,8 @@ export const useProject = defineStore('projectStore', () => {
 
   const lastOpenedViewMap = ref<Record<string, string>>({})
 
-
   // todo: refactor path param name and variable name
   const projectType = $computed(() => route.params.projectType as string)
-
-
 
   const projectMeta = computed<Record<string, any>>(() => {
     const defaultMeta = {

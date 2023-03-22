@@ -53,10 +53,8 @@ export const useProjects = defineStore('projectsStore', () => {
 
   const updateProject = async (projectId: string, projectUpdatePayload: ProjectType) => {
     await api.project.update(projectId, projectUpdatePayload)
-    if (!projects.value[projectId]) await loadProject(projectId)
-    if (!projects.value[projectId]) return
-    const project = projects.value[projectId]
-    projects.value = { ...projects.value, [projectId]: { ...project, ...projectUpdatePayload } }
+    // todo: update project in store
+    await loadProject(projectId, true)
   }
 
   const createProject = async (projectPayload: { title: string; workspaceId: string; type: string }) => {

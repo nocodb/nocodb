@@ -698,6 +698,7 @@
         "allowedSpecialCharList": "Daftar karakter khusus yang diizinkan"
       },
       "invalidURL": "URL tidak valid",
+      "invalidEmail": "Invalid Email",
       "internalError": "Beberapa kesalahan internal terjadi",
       "templateGeneratorNotFound": "Pembuat Templat tidak dapat ditemukan!",
       "fileUploadFailed": "Gagal mengunggah file",

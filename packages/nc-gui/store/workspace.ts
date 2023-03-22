@@ -46,6 +46,7 @@ export const useWorkspace = defineStore('workspaceStore', () => {
   const activeWorkspace = computed(() => {
     return (
       workspaces.value?.find((w) => w.id === route.query.workspaceId || w.id === route.params.workspaceId) ??
+      workspace.value?.id ??
       (activePage.value === 'workspace' ? workspaces.value?.[0] : null)
     )
   })
@@ -126,7 +127,7 @@ export const useWorkspace = defineStore('workspaceStore', () => {
       throw new Error('Workspace not selected')
     }
 
-    if (workspace.value?.id) {
+    if (activeWorkspace.value?.id) {
       const { list } = await $api.workspaceProject.list(activeWorkspace.value?.id ?? workspace.value?.id)
       projects.value = list
     } else {

@@ -223,8 +223,8 @@ function openKeyboardShortcutDialog() {
 useEventListener(document, 'keydown', async (e: KeyboardEvent) => {
   const cmdOrCtrl = isMac() ? e.metaKey : e.ctrlKey
   if (e.altKey && !e.shiftKey && !cmdOrCtrl) {
-    switch (e.code) {
-      case 'Comma': {
+    switch (e.keyCode) {
+      case 188: {
         // ALT + ,
         if (isUIAllowed('settings') && !isDrawerOrModalExist()) {
           e.preventDefault()
@@ -236,8 +236,8 @@ useEventListener(document, 'keydown', async (e: KeyboardEvent) => {
     }
   }
   if (cmdOrCtrl) {
-    switch (e.code) {
-      case 'Slash':
+    switch (e.key) {
+      case '/':
         if (!isDrawerOrModalExist()) {
           $e('c:shortcut', { key: 'CTRL + /' })
           openKeyboardShortcutDialog()

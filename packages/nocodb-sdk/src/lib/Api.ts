@@ -546,6 +546,7 @@ export interface DocsPageType {
   metaJson?: object | string;
   order?: number;
   parent_page_id?: string;
+  project_id?: string;
   published_content?: string;
   published_title?: string;
   slug?: string;

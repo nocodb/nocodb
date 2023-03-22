@@ -8,7 +8,6 @@ import {
 import { extractProps } from '../meta/helpers/extractProps';
 import NocoCache from '../cache/NocoCache';
 import Base from './/Base';
-import Page from './Page';
 import type { BoolType, MetaType, ProjectType } from 'nocodb-sdk';
 import type { DB_TYPES } from './/Base';
 
@@ -74,12 +73,6 @@ export default class Project implements ProjectType {
         },
         ncMeta
       );
-    }
-
-    if (insertObj.type === 'documentation') {
-      await Page.createPageTable({
-        projectId,
-      });
     }
 
     await NocoCache.del(CacheScope.INSTANCE_META);

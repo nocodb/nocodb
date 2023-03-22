@@ -698,6 +698,7 @@
         "allowedSpecialCharList": "Liste over tilladte specialtegn"
       },
       "invalidURL": "Ugyldig URL",
+      "invalidEmail": "Invalid Email",
       "internalError": "Der er opstået en intern fejl",
       "templateGeneratorNotFound": "Template Generator kan ikke findes!",
       "fileUploadFailed": "Det er ikke lykkedes at uploade filen",

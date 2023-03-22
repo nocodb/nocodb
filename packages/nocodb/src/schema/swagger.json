@@ -929,7 +929,7 @@
                   "Example 1": {
                     "value": {
                       "css": "div[data-testid=\"projects-container\"] h1 { color: rgba(var(--color-primary),var(--tw-text-opacity)); }",
-                      "js": "/* Add a print button */ let node=document.querySelector(\".nc-tab-bar .nc-fullscreen-btn\"),newNode=document.createElement(\"div\");newNode.classList=\"flex items-center h-full mb-1px\",newNode.innerHTML='<div><button class=\"ant-btn ant-btn-primary !rounded-md mr-1\" type=\"button\" onclick=\"window.print()\"><div class=\"flex items-center space-x-1 cursor-pointer text-xs font-weight-bold\"><svg class=\"nc-icon mr-1 nc-share-base hover:text-accent text-sm\" preserveAspectRatio=\"xMidYMid meet\" viewBox=\"0 0 48 48\" width=\"1.2em\" height=\"1.2em\"><path fill=\"currentColor\" d=\"M32.9 15.6V9H15.1v6.6h-3V6h23.8v9.6ZM7 18.6h34-28.9Zm29.95 4.75q.6 0 1.05-.45.45-.45.45-1.05 0-.6-.45-1.05-.45-.45-1.05-.45-.6 0-1.05.45-.45.45-.45 1.05 0 .6.45 1.05.45.45 1.05.45ZM32.9 39v-9.6H15.1V39Zm3 3H12.1v-8.8H4V20.9q0-2.25 1.525-3.775T9.3 15.6h29.4q2.25 0 3.775 1.525T44 20.9v12.3h-8.1ZM41 30.2v-9.3q0-1-.65-1.65-.65-.65-1.65-.65H9.3q-1 0-1.65.65Q7 19.9 7 20.9v9.3h5.1v-3.8h23.8v3.8Z\"/></svg>Print</div></button></div>',node.parentNode.insertBefore(newNode,node);"
+                      "js": "https://gist.github.com/rallisf1/8815b82d9657eab60e5eb66e3142fab0"
                     }
                   }
                 }
@@ -997,7 +997,7 @@
                 "Example 1": {
                   "value": {
                     "css": "div[data-testid=\"projects-container\"] h1 { color: rgba(var(--color-primary),var(--tw-text-opacity)); }",
-                    "js": "/* Add a print button */ let node=document.querySelector(\".nc-tab-bar .nc-fullscreen-btn\"),newNode=document.createElement(\"div\");newNode.classList=\"flex items-center h-full mb-1px\",newNode.innerHTML='<div><button class=\"ant-btn ant-btn-primary !rounded-md mr-1\" type=\"button\" onclick=\"window.print()\"><div class=\"flex items-center space-x-1 cursor-pointer text-xs font-weight-bold\"><svg class=\"nc-icon mr-1 nc-share-base hover:text-accent text-sm\" preserveAspectRatio=\"xMidYMid meet\" viewBox=\"0 0 48 48\" width=\"1.2em\" height=\"1.2em\"><path fill=\"currentColor\" d=\"M32.9 15.6V9H15.1v6.6h-3V6h23.8v9.6ZM7 18.6h34-28.9Zm29.95 4.75q.6 0 1.05-.45.45-.45.45-1.05 0-.6-.45-1.05-.45-.45-1.05-.45-.6 0-1.05.45-.45.45-.45 1.05 0 .6.45 1.05.45.45 1.05.45ZM32.9 39v-9.6H15.1V39Zm3 3H12.1v-8.8H4V20.9q0-2.25 1.525-3.775T9.3 15.6h29.4q2.25 0 3.775 1.525T44 20.9v12.3h-8.1ZM41 30.2v-9.3q0-1-.65-1.65-.65-.65-1.65-.65H9.3q-1 0-1.65.65Q7 19.9 7 20.9v9.3h5.1v-3.8h23.8v3.8Z\"/></svg>Print</div></button></div>',node.parentNode.insertBefore(newNode,node);"
+                    "js": "https://gist.github.com/rallisf1/8815b82d9657eab60e5eb66e3142fab0"
                   }
                 }
               }
@@ -16726,7 +16726,7 @@
         "examples": [
           {
 			      "css": "div[data-testid=\"projects-container\"] h1 { color: rgba(var(--color-primary),var(--tw-text-opacity)); }",
-            "js": "/* Add a print button */ let node=document.querySelector(\".nc-tab-bar .nc-fullscreen-btn\"),newNode=document.createElement(\"div\");newNode.classList=\"flex items-center h-full mb-1px\",newNode.innerHTML='<div><button class=\"ant-btn ant-btn-primary !rounded-md mr-1\" type=\"button\" onclick=\"window.print()\"><div class=\"flex items-center space-x-1 cursor-pointer text-xs font-weight-bold\"><svg class=\"nc-icon mr-1 nc-share-base hover:text-accent text-sm\" preserveAspectRatio=\"xMidYMid meet\" viewBox=\"0 0 48 48\" width=\"1.2em\" height=\"1.2em\"><path fill=\"currentColor\" d=\"M32.9 15.6V9H15.1v6.6h-3V6h23.8v9.6ZM7 18.6h34-28.9Zm29.95 4.75q.6 0 1.05-.45.45-.45.45-1.05 0-.6-.45-1.05-.45-.45-1.05-.45-.6 0-1.05.45-.45.45-.45 1.05 0 .6.45 1.05.45.45 1.05.45ZM32.9 39v-9.6H15.1V39Zm3 3H12.1v-8.8H4V20.9q0-2.25 1.525-3.775T9.3 15.6h29.4q2.25 0 3.775 1.525T44 20.9v12.3h-8.1ZM41 30.2v-9.3q0-1-.65-1.65-.65-.65-1.65-.65H9.3q-1 0-1.65.65Q7 19.9 7 20.9v9.3h5.1v-3.8h23.8v3.8Z\"/></svg>Print</div></button></div>',node.parentNode.insertBefore(newNode,node);"
+            "js": "https://gist.github.com/rallisf1/8815b82d9657eab60e5eb66e3142fab0"
           }
         ],
         "properties": {
@@ -16739,7 +16739,7 @@
           },
           "js": {
             "description": "Custom Javascript code",
-            "example": "/* Add a print button */ let node=document.querySelector(\".nc-tab-bar .nc-fullscreen-btn\"),newNode=document.createElement(\"div\");newNode.classList=\"flex items-center h-full mb-1px\",newNode.innerHTML='<div><button class=\"ant-btn ant-btn-primary !rounded-md mr-1\" type=\"button\" onclick=\"window.print()\"><div class=\"flex items-center space-x-1 cursor-pointer text-xs font-weight-bold\"><svg class=\"nc-icon mr-1 nc-share-base hover:text-accent text-sm\" preserveAspectRatio=\"xMidYMid meet\" viewBox=\"0 0 48 48\" width=\"1.2em\" height=\"1.2em\"><path fill=\"currentColor\" d=\"M32.9 15.6V9H15.1v6.6h-3V6h23.8v9.6ZM7 18.6h34-28.9Zm29.95 4.75q.6 0 1.05-.45.45-.45.45-1.05 0-.6-.45-1.05-.45-.45-1.05-.45-.6 0-1.05.45-.45.45-.45 1.05 0 .6.45 1.05.45.45 1.05.45ZM32.9 39v-9.6H15.1V39Zm3 3H12.1v-8.8H4V20.9q0-2.25 1.525-3.775T9.3 15.6h29.4q2.25 0 3.775 1.525T44 20.9v12.3h-8.1ZM41 30.2v-9.3q0-1-.65-1.65-.65-.65-1.65-.65H9.3q-1 0-1.65.65Q7 19.9 7 20.9v9.3h5.1v-3.8h23.8v3.8Z\"/></svg>Print</div></button></div>',node.parentNode.insertBefore(newNode,node);",
+            "example": "https://gist.github.com/rallisf1/8815b82d9657eab60e5eb66e3142fab0",
             "maxLength": 4096,
             "minLength": 0,
             "type": "string"

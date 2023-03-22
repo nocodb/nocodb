@@ -1271,7 +1271,7 @@ export interface KanbanUpdateReqType {
 }
 
 /**
- * Model for Kanban Request
+ * Model for License Request
  */
 export interface LicenseReqType {
   /**
@@ -1279,6 +1279,22 @@ export interface LicenseReqType {
    * @example 1234567890
    */
   key?: string;
+}
+
+/**
+ * Model for Customization Request
+ */
+export interface CustomizationReqType {
+  /**
+   * Custom CSS code
+   * @example div[data-testid="projects-container"] h1 { color: rgba(var(--color-primary),var(--tw-text-opacity)); }
+   */
+  css?: string;
+  /**
+   * Custom Javascript code
+   * @example https://gist.github.com/rallisf1/8815b82d9657eab60e5eb66e3142fab0
+   */
+  js?: string;
 }
 
 /**
@@ -3369,7 +3385,7 @@ export class Api<
 
 }`
  */
-    set: (data: any, params: RequestParams = {}) =>
+    set: (data: CustomizationReqType, params: RequestParams = {}) =>
       this.request<
         {
           /** @example The customization has been saved */

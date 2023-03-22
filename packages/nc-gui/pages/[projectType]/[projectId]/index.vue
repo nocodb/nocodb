@@ -1,6 +1,5 @@
 <script setup lang="ts">
 import tinycolor from 'tinycolor2'
-import type { TableType } from 'nocodb-sdk'
 import {
   TabType,
   computed,
@@ -224,8 +223,8 @@ function openKeyboardShortcutDialog() {
 useEventListener(document, 'keydown', async (e: KeyboardEvent) => {
   const cmdOrCtrl = isMac() ? e.metaKey : e.ctrlKey
   if (e.altKey && !e.shiftKey && !cmdOrCtrl) {
-    switch (e.keyCode) {
-      case 188: {
+    switch (e.code) {
+      case 'Comma': {
         // ALT + ,
         if (isUIAllowed('settings') && !isDrawerOrModalExist()) {
           e.preventDefault()
@@ -237,8 +236,8 @@ useEventListener(document, 'keydown', async (e: KeyboardEvent) => {
     }
   }
   if (cmdOrCtrl) {
-    switch (e.key) {
-      case '/':
+    switch (e.code) {
+      case 'Slash':
         if (!isDrawerOrModalExist()) {
           $e('c:shortcut', { key: 'CTRL + /' })
           openKeyboardShortcutDialog()

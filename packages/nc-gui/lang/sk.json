@@ -698,6 +698,7 @@
         "allowedSpecialCharList": "Zoznam povolených špeciálnych znakov"
       },
       "invalidURL": "Neplatná adresa URL",
+      "invalidEmail": "Invalid Email",
       "internalError": "Vyskytla sa nejaká vnútorná chyba",
       "templateGeneratorNotFound": "Generátor šablón nemožno nájsť!",
       "fileUploadFailed": "Nepodarilo sa nahrať súbor",

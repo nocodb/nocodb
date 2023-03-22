@@ -698,6 +698,7 @@
         "allowedSpecialCharList": "允许的特殊字符列表"
       },
       "invalidURL": "无效的 URL",
+      "invalidEmail": "Invalid Email",
       "internalError": "发生了一些内部错误",
       "templateGeneratorNotFound": "模板生成器无法找到！",
       "fileUploadFailed": "文件上传失败",

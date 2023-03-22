@@ -30,6 +30,15 @@ export async function commentList(req: Request<any, any, any>, res) {
   );
 }
 
+export async function commentUpdate(req: Request<any, any>, res) {
+  res.json(
+    await auditService.commentUpdate({
+      auditId: req.params.auditId,
+      body: req.body,
+    })
+  );
+}
+
 export async function auditList(req: Request, res: Response) {
   res.json(
     new PagedResponseImpl(
@@ -64,6 +73,11 @@ router.get(
 router.post(
   '/api/v1/db/meta/audits/comments',
   ncMetaAclMw(commentRow, 'commentRow')
+);
+
+router.patch(
+  '/api/v1/db/meta/audits/:auditId/comment',
+  ncMetaAclMw(commentUpdate, 'commentUpdate')
 );
 
 router.post(

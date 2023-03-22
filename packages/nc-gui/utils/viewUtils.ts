@@ -41,10 +41,6 @@ export function applyLanguageDirection(dir: typeof rtl | typeof ltr) {
   document.body.style.direction = dir
 }
 
-export function applyNonSelectable() {
-  document.body.classList.add('non-selectable')
-}
-
 export const getViewIcon = (key?: string | number) => {
   if (!key) return
 

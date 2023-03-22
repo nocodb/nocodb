@@ -1,6 +1,5 @@
 <script setup lang="ts">
 import tinycolor from 'tinycolor2'
-import type { TableType } from 'nocodb-sdk'
 import {
   TabType,
   computed,

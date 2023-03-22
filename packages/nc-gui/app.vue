@@ -10,8 +10,8 @@ useTheme()
 useEventListener(document, 'keydown', async (e: KeyboardEvent) => {
   const cmdOrCtrl = isMac() ? e.metaKey : e.ctrlKey
   if (cmdOrCtrl) {
-    switch (e.code) {
-      case 'KeyA':
+    switch (e.key.toLowerCase()) {
+      case 'a':
         // prevent Ctrl + A selection for non-editable nodes
         if (!['input', 'textarea'].includes((e.target as any).nodeName.toLowerCase())) {
           e.preventDefault()

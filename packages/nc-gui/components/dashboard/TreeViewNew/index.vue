@@ -5,7 +5,8 @@ import Sortable from 'sortablejs'
 import { nextTick } from '@vue/runtime-core'
 import AddNewTableNode from './AddNewTableNode'
 import TableList from './TableList'
-import type { VNodeRef } from '#imports'
+import ProjectWrapper from './ProjectWrapper.vue'
+import EmptyWorkspacePlaceholder from './EmptyWorkspacePlaceholder.vue'
 
 import {
   TabType,
@@ -28,12 +29,8 @@ import {
   useWorkspace,
   watchEffect,
 } from '#imports'
-import MdiView from '~icons/mdi/eye-circle-outline'
-import MdiTableLarge from '~icons/mdi/table-large'
-import PhTableThin from '~icons/ph/table-thin'
 
 import { useRouter } from '#app'
-import ProjectWrapper from '~/components/dashboard/TreeViewNew/ProjectWrapper.vue'
 
 const { addTab, updateTab } = useTabs()
 
@@ -475,6 +472,7 @@ const isClearMode = computed(() => route.query.clear === '1' && route.params.pro
     <div mode="inline" class="flex-grow min-h-50 overflow-y-auto overflow-x-hidden">
       <ProjectWrapper
         v-for="(project, i) of workspaceProjects.filter((p) => !isClearMode || p.id === activeProjectId)"
+        v-if="workspaceProjects.length"
         :key="project.id"
         :project-role="[project.project_role, project.role]"
         :project="projects[project.id] ?? project"
@@ -626,6 +624,8 @@ const isClearMode = computed(() => route.query.clear === '1' && route.params.pro
           </div>
         </div>
       </ProjectWrapper>
+
+      <EmptyWorkspacePlaceholder v-else />
     </div>
 
     <div class="flex items-center py-2 justify-center">

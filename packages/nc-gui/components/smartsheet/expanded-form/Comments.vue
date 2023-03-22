@@ -154,12 +154,12 @@ watch(
               <a-menu v-if="log.op_type === 'COMMENT'" @click="contextMenu = false">
                 <a-menu-item key="copy-comment" @click="copyComment(log.description)">
                   <div v-e="['a:comment:copy']" class="nc-project-menu-item">
-                    {{ t('activity.copyComment') }}
+                    {{ t('general.copy') }}
                   </div>
                 </a-menu-item>
                 <a-menu-item key="edit-comment" @click="editComment(log)">
                   <div v-e="['a:comment:edit']" class="nc-project-menu-item">
-                    {{ t('activity.editComment') }}
+                    {{ t('general.edit') }}
                   </div>
                 </a-menu-item>
               </a-menu>

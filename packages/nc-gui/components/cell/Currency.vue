@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import type { VNodeRef } from '@vue/runtime-core'
-import { ColumnInj, EditModeInj, computed, ReadonlyInj, inject, parseProp, useVModel } from '#imports'
+import { ColumnInj, EditModeInj, ReadonlyInj, computed, inject, parseProp, useVModel } from '#imports'
 
 interface Props {
   modelValue: number | null | undefined

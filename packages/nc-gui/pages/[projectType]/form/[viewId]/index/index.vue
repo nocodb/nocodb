@@ -10,23 +10,23 @@ const { sharedFormView, submitForm, v$, formState, notFound, formColumns, submit
 
 const route = useRoute()
 
-if(formColumns.value && sharedViewMeta.value.preFilledMode !== "none" && Object.keys(route.query).length > 0) {
+if (formColumns.value && sharedViewMeta.value.preFilledMode !== 'none' && Object.keys(route.query).length > 0) {
   for (const column of formColumns.value) {
-    if(column.title && route.query[column.title]) {
-      if(isVirtualCol(column)) {
-        let virtData = (<string>route.query[column.title]).split(';')
-        if(virtData.length) {
+    if (column.title && route.query[column.title]) {
+      if (isVirtualCol(column)) {
+        const virtData = (route.query[column.title] as string).split(';')
+        if (virtData.length) {
           formState.value[column.title] = []
-          virtData.forEach(virtItem => {
-            let virtRow = virtItem.split('|')
-            formState.value[column.title] = [...formState.value[column.title], {Id: virtRow[0], Title: virtRow[1]}]
+          virtData.forEach((virtItem) => {
+            const virtRow = virtItem.split('|')
+            formState.value[column.title] = [...formState.value[column.title], { Id: virtRow[0], Title: virtRow[1] }]
           })
         }
       } else {
         formState.value[column.title] = route.query[column.title]
       }
-      if(sharedViewMeta.value.preFilledMode === "hide") column.show = false
-      if(sharedViewMeta.value.preFilledMode === "lock") column.read_only = true
+      if (sharedViewMeta.value.preFilledMode === 'hide') column.show = false
+      if (sharedViewMeta.value.preFilledMode === 'lock') column.read_only = true
     }
   }
 }

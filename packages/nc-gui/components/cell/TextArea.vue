@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import type { VNodeRef } from '@vue/runtime-core'
-import { EditModeInj, RowHeightInj, ReadonlyInj, inject, useVModel } from '#imports'
+import { EditModeInj, ReadonlyInj, RowHeightInj, inject, useVModel } from '#imports'
 
 const props = defineProps<{
   modelValue?: string | number

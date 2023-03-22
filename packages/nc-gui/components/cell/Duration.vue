@@ -3,11 +3,11 @@ import type { VNodeRef } from '@vue/runtime-core'
 import {
   ColumnInj,
   EditModeInj,
+  ReadonlyInj,
   computed,
   convertDurationToSeconds,
   convertMS2Duration,
   durationOptions,
-  ReadonlyInj,
   inject,
   parseProp,
   ref,

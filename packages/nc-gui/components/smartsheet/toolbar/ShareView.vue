@@ -86,7 +86,7 @@ const viewTheme = computed({
 })
 
 const preFilledMode = computed({
-  get: () => shared.value.meta?.preFilledMode || "default",
+  get: () => shared.value.meta?.preFilledMode || 'default',
   set: (preFilled) => {
     shared.value.meta = { ...shared.value.meta, preFilledMode: preFilled }
     savePreFilledMode()
@@ -410,37 +410,41 @@ const copyIframeCode = async () => {
               RTL Orientation
             </a-checkbox>
           </div>
+        </div>
 
-          <div v-if="shared.type === ViewTypes.FORM" class="flex flex-col">
-            <!-- pre-filled fields - todo: i18n -->
-            <div class="ml-1 mb-1 text-xs text-gray-500">Pre-filled Fields</div>
+        <div v-if="shared.type === ViewTypes.FORM" class="flex flex-col gap-3">
+          <!-- pre-filled fields - todo: i18n -->
+          <div class="text-gray-500 border-b-1">Pre-filled Fields</div>
 
-            <a-select v-model:value="preFilledMode">
-              <a-select-option value="default">
-                <div class="flex flex-row h-full justify-start items-center">
-                  <!-- todo i18n -->
-                  Allow pre-filling fields
-                </div>
-              </a-select-option>
-              <a-select-option value="none">
-                <div class="flex flex-row h-full justify-start items-center">
-                  <!-- todo i18n -->
-                  Disable pre-filling fields
-                </div>
-              </a-select-option>
-              <a-select-option value="lock">
-                <div class="flex flex-row h-full justify-start items-center">
-                  <!-- todo i18n -->
-                  Lock pre-filled fields as read-only
-                </div>
-              </a-select-option>
-              <a-select-option value="hide">
-                <div class="flex flex-row h-full justify-start items-center">
-                  <!-- todo i18n -->
-                  Hide pre-filled fields
-                </div>
-              </a-select-option>
-            </a-select>
+          <div class="px-1 flex flex-col gap-2">
+            <div>
+              <a-select v-model:value="preFilledMode" class="w-full">
+                <a-select-option value="default">
+                  <div class="flex flex-row h-full justify-start items-center">
+                    <!-- todo i18n -->
+                    Allow pre-filling fields
+                  </div>
+                </a-select-option>
+                <a-select-option value="none">
+                  <div class="flex flex-row h-full justify-start items-center">
+                    <!-- todo i18n -->
+                    Disable pre-filling fields
+                  </div>
+                </a-select-option>
+                <a-select-option value="lock">
+                  <div class="flex flex-row h-full justify-start items-center">
+                    <!-- todo i18n -->
+                    Lock pre-filled fields as read-only
+                  </div>
+                </a-select-option>
+                <a-select-option value="hide">
+                  <div class="flex flex-row h-full justify-start items-center">
+                    <!-- todo i18n -->
+                    Hide pre-filled fields
+                  </div>
+                </a-select-option>
+              </a-select>
+            </div>
           </div>
         </div>
       </div>

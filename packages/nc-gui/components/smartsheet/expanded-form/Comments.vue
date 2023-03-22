@@ -1,7 +1,9 @@
 <script setup lang="ts">
+import type { VNodeRef } from '@vue/runtime-core'
+import type { AuditType } from 'nocodb-sdk'
 import { enumColor, ref, timeAgo, useCopy, useExpandedFormStoreOrThrow, useI18n, watch } from '#imports'
 
-const { loadCommentsAndLogs, commentsAndLogs, isCommentsLoading, commentsOnly, saveComment, isYou, comment } =
+const { loadCommentsAndLogs, commentsAndLogs, isCommentsLoading, commentsOnly, saveComment, isYou, comment, updateComment } =
   useExpandedFormStoreOrThrow()
 
 const commentsWrapperEl = ref<HTMLDivElement>()
@@ -17,6 +19,57 @@ const { t } = useI18n()
 const { isUIAllowed } = useUIPermission()
 
 const hasEditPermission = $computed(() => isUIAllowed('commentEditable'))
+
+let editLog = $ref<AuditType>()
+
+let isEditing = $ref<boolean>(false)
+
+const focusInput: VNodeRef = (el) => (el as HTMLInputElement)?.focus()
+
+function onKeyDown(event: KeyboardEvent) {
+  if (event.key === 'Escape') {
+    onKeyEsc(event)
+  } else if (event.key === 'Enter') {
+    onKeyEnter(event)
+  }
+}
+
+function onKeyEnter(event: KeyboardEvent) {
+  event.stopImmediatePropagation()
+  event.preventDefault()
+  onEditComment()
+}
+
+function onKeyEsc(event: KeyboardEvent) {
+  event.stopImmediatePropagation()
+  event.preventDefault()
+  onCancel()
+}
+
+async function onEditComment() {
+  if (!isEditing || !editLog) return
+  await updateComment(editLog.id!, {
+    description: editLog.description,
+  })
+  onStopEdit()
+}
+
+function onCancel() {
+  if (!isEditing) return
+  editLog = undefined
+  onStopEdit()
+}
+
+function onStopEdit() {
+  isEditing = false
+  editLog = undefined
+}
+
+onKeyStroke('Enter', (event) => {
+  if (isEditing) {
+    onKeyEnter(event)
+  }
+})
 
 const _contextMenu = ref(false)
 
@@ -37,6 +90,11 @@ async function copyComment(val: string) {
   } catch (e: any) {
     message.error(e.message)
   }
+}
+
+function editComment(log: AuditType) {
+  editLog = log
+  isEditing = true
 }
 
 watch(
@@ -67,13 +125,22 @@ watch(
                   {{ log.op_type === 'COMMENT' ? 'commented' : log.op_sub_type === 'INSERT' ? 'created' : 'edited' }}
                 </p>
 
-                <p
-                  v-if="log.op_type === 'COMMENT'"
-                  class="block caption my-2 nc-chip w-full min-h-20px p-2 rounded"
-                  :style="{ backgroundColor: enumColor.light[2] }"
-                >
-                  {{ log.description }}
-                </p>
+                <div v-if="log.op_type === 'COMMENT'">
+                  <a-input
+                    v-if="log.id === editLog?.id"
+                    :ref="focusInput"
+                    v-model:value="editLog.description"
+                    @blur="onCancel"
+                    @keydown.stop="onKeyDown($event)"
+                  />
+                  <p
+                    v-else
+                    class="block caption my-2 nc-chip w-full min-h-20px p-2 rounded"
+                    :style="{ backgroundColor: enumColor.light[2] }"
+                  >
+                    {{ log.description }}
+                  </p>
+                </div>
 
                 <p v-else v-dompurify-html="log.details" class="caption my-3" style="word-break: break-all" />
 
@@ -90,7 +157,7 @@ watch(
                     {{ t('activity.copyComment') }}
                   </div>
                 </a-menu-item>
-                <a-menu-item key="edit-comment">
+                <a-menu-item key="edit-comment" @click="editComment(log)">
                   <div v-e="['a:comment:edit']" class="nc-project-menu-item">
                     {{ t('activity.editComment') }}
                   </div>

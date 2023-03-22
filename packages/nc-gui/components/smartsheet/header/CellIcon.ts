@@ -34,29 +34,29 @@ import {
   toRef,
   useProject,
 } from '#imports'
-import FilePhoneIcon from '~icons/mdi/file-phone'
-import KeyIcon from '~icons/mdi/key-variant'
-import JSONIcon from '~icons/mdi/code-json'
-import ClockIcon from '~icons/mdi/clock-time-five'
-import WebIcon from '~icons/mdi/web'
-import TextAreaIcon from '~icons/mdi/card-text-outline'
-import StringIcon from '~icons/mdi/alpha-a-box-outline'
-import BooleanIcon from '~icons/mdi/check-box-outline'
-import CalendarIcon from '~icons/mdi/calendar'
-import SingleSelectIcon from '~icons/mdi/arrow-down-drop-circle'
-import MultiSelectIcon from '~icons/mdi/format-list-bulleted-square'
-import DatetimeIcon from '~icons/mdi/calendar-clock'
-import GeoDataIcon from '~icons/mdi/map-marker'
-import RatingIcon from '~icons/mdi/star'
-import GenericIcon from '~icons/mdi/square-rounded'
-import NumericIcon from '~icons/mdi/numeric'
-import AttachmentIcon from '~icons/mdi/image-multiple-outline'
-import EmailIcon from '~icons/mdi/email'
-import CurrencyIcon from '~icons/mdi/currency-usd-circle-outline'
-import PercentIcon from '~icons/mdi/percent-outline'
+import FilePhoneIcon from '~icons/ph/text-align-left-thin'
+import KeyIcon from '~icons/ph/text-align-left-thin'
+import JSONIcon from '~icons/ph/text-align-left-thin'
+import ClockIcon from '~icons/ph/alarm-thin'
+import WebIcon from '~icons/ph/planet-thin'
+import TextAreaIcon from '~icons/ph/text-align-left-thin'
+import StringIcon from '~icons/ph/text-aa-thin'
+import BooleanIcon from '~icons/ph/check-square-thin'
+import CalendarIcon from '~icons/ph/calendar-blank-thin'
+import SingleSelectIcon from '~icons/ph/caret-circle-down-thin'
+import MultiSelectIcon from '~icons/ph/list-bullets-thin'
+import DatetimeIcon from '~icons/ph/calendar-thin'
+import GeoDataIcon from '~icons/ph/map-pin-thin'
+import RatingIcon from '~icons/ph/star-thin'
+import GenericIcon from '~icons/ph/square-thin'
+import NumericIcon from '~icons/ph/number-square-one-thin'
+import AttachmentIcon from '~icons/ph/image-thin'
+import EmailIcon from '~icons/ph/envelope-thin'
+import CurrencyIcon from '~icons/ph/currency-circle-dollar-thin'
+import PercentIcon from '~icons/ph/percent-thin'
 import DecimalIcon from '~icons/mdi/decimal'
-import SpecificDBTypeIcon from '~icons/mdi/database-settings'
-import DurationIcon from '~icons/mdi/timer-outline'
+import SpecificDBTypeIcon from '~icons/ph/database-thin'
+import DurationIcon from '~icons/ph/clock-clockwise-thin'
 
 const renderIcon = (column: ColumnType, abstractType: any) => {
   if (isPrimaryKey(column)) {
@@ -133,7 +133,7 @@ export default defineComponent({
     return () => {
       if (!column.value) return null
 
-      return h(renderIcon(column.value, abstractType.value), { class: 'text-grey mx-1 !text-xs' })
+      return h(renderIcon(column.value, abstractType.value), { class: 'text-black mx-1', style:{ fontSize: '16px'} })
     }
   },
 })

@@ -2,9 +2,9 @@
 import { onUnmounted, ref, useEventListener, useGlobal, useI18n, useNuxtApp, watch } from '#imports'
 import MdiAccountStar from '~icons/mdi/account-star'
 import MdiAccountHardHat from '~icons/mdi/account-hard-hat'
-import MdiAccountEdit from '~icons/mdi/account-edit'
-import MdiEyeOutline from '~icons/mdi/eye-outline'
-import MdiCommentAccountOutline from '~icons/mdi/comment-account-outline'
+import MdiAccountEdit from '~icons/ph/pencil-circle-thin'
+import MdiEyeOutline from '~icons/ph/eye-thin'
+import MdiCommentAccountOutline from '~icons/ph/chat-teardrop-text-thin'
 import { ProjectRole } from '~/lib'
 
 const { float } = defineProps<{ float?: boolean }>()

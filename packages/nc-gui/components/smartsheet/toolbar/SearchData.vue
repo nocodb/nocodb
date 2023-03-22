@@ -11,6 +11,8 @@ import {
   useSmartsheetStoreOrThrow,
 } from '#imports'
 
+import { iconMap } from '~/utils';
+
 const reloadData = inject(ReloadViewDataHookInj)!
 
 const { meta } = useSmartsheetStoreOrThrow()
@@ -55,7 +57,8 @@ function onPressEnter() {
       :class="{ '!bg-gray-100 ': isDropdownOpen }"
       @click="isDropdownOpen = !isDropdownOpen"
     >
-      <MdiMagnify class="text-grey" />
+      <component :is="
+iconMap['search']" class="text-grey" />
 
       <MdiMenuDown class="text-grey" />
 

@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { iconMap } from '~/utils'
 import MdiLockOutlineIcon from '~icons/mdi/lock-outline'
 import MdiAccountIcon from '~icons/mdi/account'
 import MdiAccountGroupIcon from '~icons/mdi/account-group'
@@ -12,17 +13,17 @@ const emit = defineEmits(['select'])
 const types = {
   [LockType.Personal]: {
     title: 'title.personalView',
-    icon: MdiAccountIcon,
+    icon: iconMap['account-icon'],
     subtitle: 'msg.info.personalView',
   },
   [LockType.Collaborative]: {
     title: 'title.collabView',
-    icon: MdiAccountGroupIcon,
+    icon: iconMap['users-icon'],
     subtitle: 'msg.info.collabView',
   },
   [LockType.Locked]: {
     title: 'title.lockedView',
-    icon: MdiLockOutlineIcon,
+    icon: iconMap['lock-icon'],
     subtitle: 'msg.info.lockedView',
   },
 }

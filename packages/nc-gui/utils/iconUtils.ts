@@ -18,6 +18,21 @@ import MdiAccountGroup from '~icons/mdi/account-group'
 import PhEyeThin from '~icons/ph/EyeThin'
 import PhTableThin from '~icons/ph/TableThin'
 
+import PhLockIcon from '~icons/ph/lock-key-thin'
+import PhAccountIcon from '~icons/ph/user'
+import PhUsersThreeThin from '~icons/ph/users-three-thin'
+import PhDownloadThin from '~icons/ph/arrow-line-down-thin'
+import PhUploadThin from '~icons/ph/arrow-line-up-thin'
+import PhHookThin from '~icons/ph/anchor-thin'
+import PhFlowThin from '~icons/ph/flow-arrow-thin'
+import PhPlusThin from '~icons/ph/plus-thin'
+import PhSearchThin from '~icons/ph/magnifying-glass-thin'
+import PhCopySimpleThin from '~icons/ph/copy-simple-thin'
+import PhClipboardThin from '~icons/ph/clipboard-text-thin'
+import PhGearThin from '~icons/ph/gear-thin'
+import PhImageThin from '~icons/ph/image-thin'
+
+
 export const iconMap = {
   'mdi-check-bold': MdiCheckBold,
   'mdi-crop-square': MdiCropSquare,
@@ -35,7 +50,21 @@ export const iconMap = {
   'mdi-flag-outline': MdiFlagOutline,
   'mdi-table-large': PhTableThin,
   'mdi-eye-circle-outline': PhEyeThin,
-  'mdi-account-group': MdiAccountGroup,
+  'mdi-account-group': PhUsersThreeThin,
+
+  'lock-icon': PhLockIcon,
+  'account-icon': PhAccountIcon,
+  'users-icon': PhUsersThreeThin,
+  'download': PhDownloadThin,
+  'upload': PhUploadThin,
+  'hook': PhHookThin,
+  'erd': PhFlowThin,
+  'plus': PhPlusThin,
+  'search': PhSearchThin,
+  'copy': PhCopySimpleThin,
+  'clipboard': PhClipboardThin,
+  'settings': PhGearThin,
+  'image': PhImageThin,
 } as const
 
 export const getMdiIcon = (type: string): any => {

@@ -32,6 +32,7 @@ import {
 } from '#imports'
 import PhEyeThin from '~icons/ph/EyeThin'
 import PhTableThin from '~icons/ph/TableThin'
+import { iconMap } from '~/utils';
 
 const { isMobileMode } = useGlobal()
 
@@ -374,7 +375,7 @@ const setIcon = async (icon: string, table: TableType) => {
 
           <Transition name="layout" mode="out-in">
             <MdiClose v-if="searchActive" class="text-gray-500 text-lg mx-1 mt-0.5" @click="onSearchCloseIconClick" />
-            <IcRoundSearch v-else class="text-gray-500 text-lg mx-1 mt-0.5" @click="toggleSearchActive(true)" />
+            <component :is="iconMap['search']" v-else class="text-gray-500 text-lg mx-1 mt-0.5" @click="toggleSearchActive(true)" />
           </Transition>
         </div>
         <div
@@ -471,9 +472,8 @@ const setIcon = async (icon: string, table: TableType) => {
           <div
             v-if="isUIAllowed('table-create')"
             class="group flex items-center gap-2 pl-2 pr-3 py-2 text-primary/70 hover:(text-primary/100) cursor-pointer select-none"
-            @click="openTableCreateDialog(bases[0].id)"
-          >
-            <MdiPlus class="w-5" />
+            @click="openTableCreateDialog(bases[0].id)">
+            <component :is="iconMap['plus']" class="w-5" />
 
             <span class="text-gray-500 group-hover:(text-primary/100) flex-1 nc-add-new-table">{{ $t('tooltip.addTable') }}</span>
 
@@ -724,8 +724,8 @@ const setIcon = async (icon: string, table: TableType) => {
                     v-if="index === '0' && isUIAllowed('table-create')"
                     class="group flex items-center gap-2 pl-8 pr-3 py-2 text-primary/70 hover:(text-primary/100) cursor-pointer select-none"
                     @click="openTableCreateDialog(bases[0].id)"
-                  >
-                    <MdiPlus />
+                    >
+                    <component :is="iconMap['plus']" />
 
                     <span class="text-gray-500 group-hover:(text-primary/100) flex-1 nc-add-new-table">{{
                       $t('tooltip.addTable')
@@ -811,7 +811,8 @@ const setIcon = async (icon: string, table: TableType) => {
                     class="group flex items-center gap-2 pl-8 pr-3 py-2 text-primary/70 hover:(text-primary/100) cursor-pointer select-none"
                     @click="openTableCreateDialog(base.id)"
                   >
-                    <MdiPlus />
+                    <component :is="
+iconMap['plus']" />
 
                     <span class="text-gray-500 group-hover:(text-primary/100) flex-1 nc-add-new-table">{{
                       $t('tooltip.addTable')
@@ -1028,7 +1029,7 @@ const setIcon = async (icon: string, table: TableType) => {
 
     <div class="flex items-start flex-col justify-start px-2 py-3 gap-2">
       <LazyGeneralAddBaseButton
-        class="color-transition py-1.5 px-2 font-bold cursor-pointer select-none hover:text-primary"
+        class="color-transition py-1.5 px-2 cursor-pointer select-none hover:text-primary"
       />
 
       <LazyGeneralHelpAndSupport class="color-transition px-2 text-gray-500 cursor-pointer select-none hover:text-accent" />

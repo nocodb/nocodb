@@ -26,7 +26,7 @@ const onClick = () => {
     <template #title> {{ $t('general.reload') }} </template>
 
     <div class="nc-toolbar-btn flex min-w-32px w-32px h-32px items-center">
-      <MdiReload
+      <PhArrowClockwiseThin
         class="w-full h-full cursor-pointer text-gray-500 group-hover:(text-primary) nc-toolbar-reload-btn"
         :class="isReloading ? 'animate-spin' : ''"
         @click="onClick"

@@ -43,8 +43,7 @@ useMenuCloseOnEsc(open)
     <div>
       <a-button v-e="['c:row-height']" class="nc-height-menu-btn nc-toolbar-btn" :disabled="isLocked">
         <div class="flex items-center gap-1">
-          <RiLineHeight />
-
+          <PhSplitVerticalThin />
           <!-- Row Height -->
           <MdiMenuDown class="text-grey" />
         </div>

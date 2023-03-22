@@ -44,7 +44,7 @@ const hideSidebarOnClickOrTouchIfMobileMode = () => {
           v-if="!isOpen"
           class="nc-sidebar-left-toggle-icon hover:after:(bg-primary bg-opacity-75) group nc-sidebar-add-row py-2 px-3 mb-1"
         >
-          <MdiMenu
+          <PhCaretDoubleLeftThin
             v-e="['c:grid:toggle-navdraw']"
             class="cursor-pointer transform transition-transform duration-500 text-gray-500/80 hover:text-gray-500"
             :class="{ 'rotate-180': !isOpen }"

@@ -16,6 +16,7 @@ import {
   useProject,
   useSmartsheetStoreOrThrow,
 } from '#imports'
+import { iconMap } from '~/utils';
 
 const { t } = useI18n()
 
@@ -99,7 +100,8 @@ const exportFile = async (exportType: ExportTypes) => {
 <template>
   <a-menu-item>
     <div v-e="['a:actions:download-csv']" class="nc-project-menu-item" @click="exportFile(ExportTypes.CSV)">
-      <MdiDownloadOutline class="text-gray-500" />
+      <component :is="
+iconMap.download" class="text-gray-500" />
       <!-- Download as CSV -->
       {{ $t('activity.downloadCSV') }}
     </div>
@@ -107,7 +109,8 @@ const exportFile = async (exportType: ExportTypes) => {
 
   <a-menu-item>
     <div v-e="['a:actions:download-excel']" class="nc-project-menu-item" @click="exportFile(ExportTypes.EXCEL)">
-      <MdiDownloadOutline class="text-gray-500" />
+      <component :is="
+iconMap.download" class="text-gray-500" />
       <!-- Download as XLSX -->
       {{ $t('activity.downloadExcel') }}
     </div>

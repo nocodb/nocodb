@@ -249,7 +249,7 @@ const copyIframeCode = async () => {
       @click="genShareLink"
     >
       <div class="flex items-center gap-1">
-        <MdiOpenInNew />
+        <PhShareThin />
         <!-- Share View -->
         <span v-if="!isMobileMode" class="!text-xs font-weight-normal"> {{ $t('activity.shareView') }}</span>
       </div>

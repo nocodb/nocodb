@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { applyNonSelectable, computed, useRoute, useTheme } from '#imports'
+import { computed, useRoute, useTheme } from '#imports'
 
 const route = useRoute()
 
@@ -7,7 +7,18 @@ const disableBaseLayout = computed(() => route.path.startsWith('/nc/view') || ro
 
 useTheme()
 
-applyNonSelectable()
+useEventListener(document, 'keydown', async (e: KeyboardEvent) => {
+  const cmdOrCtrl = isMac() ? e.metaKey : e.ctrlKey
+  if (cmdOrCtrl) {
+    switch (e.code) {
+      case 'KeyA':
+        // prevent Ctrl + A selection for non-editable nodes
+        if (!['input', 'textarea'].includes((e.target as any).nodeName.toLowerCase())) {
+          e.preventDefault()
+        }
+    }
+  }
+})
 
 // TODO: Remove when https://github.com/vuejs/core/issues/5513 fixed
 const key = ref(0)

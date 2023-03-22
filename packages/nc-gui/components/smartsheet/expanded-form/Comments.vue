@@ -84,7 +84,7 @@ watch(
             </div>
 
             <template #overlay>
-              <a-menu @click="contextMenu = false">
+              <a-menu v-if="log.op_type === 'COMMENT'" @click="contextMenu = false">
                 <a-menu-item key="copy-comment" @click="copyComment(log.description)">
                   <div v-e="['a:comment:copy']" class="nc-project-menu-item">
                     {{ t('activity.copyComment') }}

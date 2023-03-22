@@ -41,13 +41,13 @@ const meta = inject(MetaInj, ref())
 const useForm = Form.useForm
 
 const hook = reactive<
-  Omit<HookType, 'notification'> & { notification: Record<string, any>; eventOperation: string; condition: boolean }
+  Omit<HookType, 'notification'> & { notification: Record<string, any>; eventOperation?: string; condition: boolean }
 >({
   id: '',
   title: '',
   event: undefined,
   operation: undefined,
-  eventOperation: '',
+  eventOperation: undefined,
   notification: {
     type: 'URL',
     payload: {
@@ -496,6 +496,7 @@ onMounted(async () => {
           <a-form-item v-bind="validateInfos.eventOperation">
             <a-select
               v-model:value="hook.eventOperation"
+              mode="multiple"
               size="large"
               :placeholder="$t('general.event')"
               class="nc-text-field-hook-event"

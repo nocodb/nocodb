@@ -698,6 +698,7 @@
         "allowedSpecialCharList": "Lijst met toegestane speciale tekens"
       },
       "invalidURL": "Ongeldige URL",
+      "invalidEmail": "Invalid Email",
       "internalError": "Er is een interne fout opgetreden",
       "templateGeneratorNotFound": "Sjabloongenerator kan niet worden gevonden!",
       "fileUploadFailed": "Bestand niet geüpload",

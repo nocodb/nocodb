@@ -11,6 +11,7 @@ import Project from '../models/Project';
 import validateParams from '../meta/helpers/validateParams';
 import ProjectUser from '../models/ProjectUser';
 import type { UserType, WorkspaceType } from 'nocodb-sdk';
+import {parseMetaProp} from "../utils/modelUtils";
 
 export const workspaceCreate = async (param: {
   workspaces: WorkspaceType;
@@ -215,6 +216,11 @@ export const workspaceProjectList = async (param: {
     param.workspaceId,
     param.userId
   );
+
+  // parse meta
+  for (const project of projects) {
+    project.meta = parseMetaProp(project);
+  }
 
   return new PagedResponseImpl<WorkspaceType>(projects, {
     count: projects.length,

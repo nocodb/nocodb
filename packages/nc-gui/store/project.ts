@@ -9,13 +9,13 @@ import {
   ref,
   useApi,
   useCommandPalette,
-  useGlobal,
   useNuxtApp,
   useRoles,
   useRouter,
   useTheme,
 } from '#imports'
 import type { ProjectMetaInfo, ThemeConfig } from '~/lib'
+import { useProjects } from '~/store/projects'
 
 export const useProject = defineStore('projectStore', () => {
   const { $e } = useNuxtApp()
@@ -26,29 +26,29 @@ export const useProject = defineStore('projectStore', () => {
 
   const route = $(router.currentRoute)
 
-  const { includeM2M } = useGlobal()
-
   const { setTheme, theme } = useTheme()
 
   const { projectRoles, loadProjectRoles } = useRoles()
 
   const { refreshCommandPalette } = useCommandPalette()
 
+  const forcedProjectId = ref<string>()
+
+  const projectId = computed(() => forcedProjectId.value || (route.params.projectId as string))
+
+  const projectsStore = useProjects()
+
+  // todo: new-layout
+  const project = computed<ProjectType>(() => projectsStore.projects[projectId.value] || {})
+  const tables = computed<TableType[]>(() => projectsStore.projectTableList[projectId.value] || [])
+
   const projectLoadedHook = createEventHook<ProjectType>()
 
-  const project = ref<ProjectType>({})
-
   const bases = computed<BaseType[]>(() => project.value?.bases || [])
-
-  const tables = ref<TableType[]>([])
 
   const projectMetaInfo = ref<ProjectMetaInfo | undefined>()
 
   const lastOpenedViewMap = ref<Record<string, string>>({})
-
-  const forcedProjectId = ref<string>()
-
-  const projectId = computed(() => forcedProjectId.value || (route.params.projectId as string))
 
   // todo: refactor path param name and variable name
   const projectType = $computed(() => route.params.projectType as string)
@@ -107,15 +107,18 @@ export const useProject = defineStore('projectStore', () => {
     }
   }
 
+  // todo: add force parameter
   async function loadTables() {
     if (project.value.id) {
-      const tablesResponse = await api.dbTable.list(project.value.id, {
-        includeM2M: includeM2M.value,
-      })
+      projectsStore.loadProjectTables(project.value.id, true)
+      // tables.value = projectsStore.projectTableList[project.value.id]
+      //   await api.dbTable.list(project.value.id, {
+      //   includeM2M: includeM2M.value,
+      // })
 
-      if (tablesResponse.list) {
-        tables.value = tablesResponse.list
-      }
+      // if (tablesResponse.list) {
+      //   tables.value = tablesResponse.list
+      // }
     }
   }
 
@@ -148,7 +151,8 @@ export const useProject = defineStore('projectStore', () => {
         throw e
       }
     } else if (projectId.value) {
-      project.value = await api.project.read(projectId.value)
+      await projectsStore.loadProject(projectId.value)
+      // project.value = projectsStore.projects[projectId.value] // await api.project.read(projectId.value)
     } else {
       console.warn('Project id not found')
       return

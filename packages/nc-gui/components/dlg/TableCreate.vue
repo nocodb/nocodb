@@ -1,5 +1,16 @@
 <script setup lang="ts">
-import { Form, computed, nextTick, onMounted, ref, useProject, useTable, useTabs, useVModel, validateTableName } from '#imports'
+import {
+  Form,
+  computed,
+  nextTick,
+  onMounted,
+  ref,
+  useProject,
+  useProjects,
+  useTabs,
+  useVModel,
+  validateTableName,
+} from '#imports'
 import { TabType } from '~/lib'
 import { useTableNew } from '~/composables/useTableNew'
 
@@ -21,6 +32,8 @@ const { addTab } = useTabs()
 
 const { loadTables, isMysql, isMssql, isPg, loadProject } = useProject()
 
+const { loadProjectTables } = useProjects()
+
 const { table, createTable, generateUniqueTitle, tables, project } = useTableNew({
   async onTableCreate(table) {
     // await loadProject(props.projectId)
@@ -32,6 +45,8 @@ const { table, createTable, generateUniqueTitle, tables, project } = useTableNew
       projectId: props.projectId,
       // baseId: props.baseId,
     })
+
+    await loadProjectTables(props.projectId, true)
 
     dialogShow.value = false
   },
@@ -89,10 +104,11 @@ const systemColumnsCheckboxInfo = SYSTEM_COLUMNS.map((c, index) => ({
 const creating = ref(false)
 
 const _createTable = async () => {
+  if (creating.value) return
   try {
     creating.value = true
     await validate()
-    await createTable(props.projectId)
+    await createTable(props.projectId!)
   } catch (e: any) {
     e.errorFields.map((f: Record<string, any>) => message.error(f.errors.join(',')))
     if (e.errorFields.length) return
@@ -128,7 +144,7 @@ onMounted(() => {
     </template>
 
     <div class="pl-10 pr-10 pt-5">
-      <a-form :model="table" name="create-new-table-form" @keydown.enter="_createTable">
+      <a-form :model="table" name="create-new-table-form" @keydown.enter.stop="_createTable">
         <!-- Create A New Table -->
         <div class="prose-xl font-bold self-center my-4">{{ $t('activity.createTable') }}</div>
 

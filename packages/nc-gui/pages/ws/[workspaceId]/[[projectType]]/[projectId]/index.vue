@@ -1,7 +1,6 @@
 <script setup lang="ts">
 import tinycolor from 'tinycolor2'
 import {
-  TabType,
   computed,
   definePageMeta,
   extractSdkResponseErrorMsg,
@@ -13,8 +12,6 @@ import {
   onBeforeUnmount,
   onKeyStroke,
   onMounted,
-  openLink,
-  projectThemeColors,
   ref,
   resolveComponent,
   storeToRefs,
@@ -26,7 +23,6 @@ import {
   useRoute,
   useRouter,
   useSidebar,
-  useTabs,
   useTheme,
   useUIPermission,
 } from '#imports'
@@ -45,14 +41,11 @@ const route = useRoute()
 
 const router = useRouter()
 
-const { appInfo, token, signOut, signedIn, user, currentVersion } = useGlobal()
+const { token, signOut, user } = useGlobal()
 
 const projectStore = useProject()
 
-const { loadProjectMetaInfo, saveTheme, loadProject, reset } = projectStore
-const { project, isSharedBase, projectMetaInfo } = storeToRefs(projectStore)
-
-const { clearTabs, addTab } = useTabs()
+const { saveTheme, loadProject, reset } = projectStore
 
 const { isUIAllowed } = useUIPermission()
 
@@ -60,12 +53,6 @@ const { copy } = useCopy(true)
 
 // create a new sidebar state
 const { isOpen, toggle, toggleHasSidebar } = useSidebar('nc-left-sidebar', { hasSidebar: true, isOpen: true })
-
-const dialogOpen = ref(false)
-
-const openDialogKey = ref<string>('')
-
-const dataSourcesState = ref<string>('')
 
 const dropdownOpen = ref(false)
 
@@ -78,14 +65,6 @@ const logout = async () => {
   await signOut()
   navigateTo('/signin')
 }
-
-function toggleDialog(value?: boolean, key?: string, dsState?: string) {
-  dialogOpen.value = value ?? !dialogOpen.value
-  openDialogKey.value = key || ''
-  dataSourcesState.value = dsState || ''
-}
-
-provide(ToggleDialogInj, toggleDialog)
 
 const handleThemeColor = async (mode: 'swatch' | 'primary' | 'accent', color?: string) => {
   switch (mode) {
@@ -210,7 +189,7 @@ useEventListener(document, 'keydown', async (e: KeyboardEvent) => {
         if (isUIAllowed('settings') && !isDrawerOrModalExist()) {
           e.preventDefault()
           $e('c:shortcut', { key: 'ALT + ,' })
-          toggleDialog(true, 'teamAndAuth')
+          toggleDialog(true, 'teamAndAuth', null, projectId)
         }
         break
       }
@@ -560,11 +539,6 @@ useEventListener(document, 'keydown', async (e: KeyboardEvent) => {
     </template> -->
 
     <div>
-      <LazyDashboardSettingsModal
-        v-model:model-value="dialogOpen"
-        v-model:open-key="openDialogKey"
-        v-model:data-sources-state="dataSourcesState"
-      />
       <NuxtPage />
       <LazyGeneralPreviewAs float />
     </div>

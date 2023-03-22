@@ -1,14 +1,13 @@
 <script lang="ts" setup>
+import { Icon as IconifyIcon } from '@iconify/vue'
+import { nextTick } from '@vue/runtime-core'
+import { Dropdown, Tooltip, message } from 'ant-design-vue'
 import type { ProjectType } from 'nocodb-sdk'
-import { nextTick, toRef } from '@vue/runtime-core'
 import { openLink, useProjects } from '#imports'
 import { extractSdkResponseErrorMsg } from '~/utils'
+import { ProjectInj, ProjectRoleInj, ToggleDialogInj } from '~/context'
 
-const props = defineProps<{
-  project: ProjectType
-}>()
-
-const project = $(toRef(props, 'project'))
+const project = inject(ProjectInj, ref({}))!
 
 const projectsStore = useProjects()
 
@@ -26,9 +25,15 @@ const input = ref<HTMLInputElement>()
 
 const { isUIAllowed } = useUIPermission()
 
+const projectRole = inject(ProjectRoleInj)
+
+const toggleDialog = inject(ToggleDialogInj)
+
+const { $e } = useNuxtApp()
+
 const enableEditMode = () => {
   editMode.value = true
-  tempTitle.value = props.project.title!
+  tempTitle.value = project.value.title!
   nextTick(() => {
     input.value?.focus()
     input.value?.select()
@@ -38,7 +43,7 @@ const enableEditMode = () => {
 
 const updateProjectTitle = async () => {
   try {
-    await updateProject(props.project.id!, {
+    await updateProject(project.value.id!, {
       title: tempTitle.value,
     })
     editMode.value = false
@@ -59,7 +64,7 @@ const confirmDeleteProject = () => {
     content: 'Are you sure you want to delete this project?',
     onOk: async () => {
       try {
-        await deleteProject(props.project.id!)
+        await deleteProject(project.value.id!)
         message.success('Project deleted successfully')
       } catch (e: any) {
         message.error(await extractSdkResponseErrorMsg(e))
@@ -74,7 +79,7 @@ const copyProjectInfo = async () => {
   try {
     if (
       await copy(
-        Object.entries(await getProjectMetaInfo(project.id!)!)
+        Object.entries(await getProjectMetaInfo(project.value.id!)!)
           .map(([k, v]) => `${k}: **${v}**`)
           .join('\n'),
       )
@@ -92,13 +97,56 @@ defineExpose({
   enableEditMode,
 })
 
+const setIcon = async (icon: string, project: ProjectType) => {
+  try {
+    const meta = {
+      ...((project.meta as object) || {}),
+      icon,
+    }
+
+    projectsStore.updateProject(project.id!, { meta: JSON.stringify(meta) })
+
+    $e('a:project:icon:navdraw', { icon })
+  } catch (e) {
+    message.error(await extractSdkResponseErrorMsg(e))
+  }
+}
+
 // todo: temp
 const isSharedBase = ref(false)
 </script>
 
 <template>
   <div class="project-title-node group flex items-center">
-    <GeneralProjectIcon class="mx-2" :type="project.type" />
+    <!--    <GeneralProjectIcon class="mx-2" :type="project.type" /> -->
+
+    <component
+      :is="isUIAllowed('projectIconCustomisation', false, projectRole) ? Dropdown : 'div'"
+      trigger="click"
+      destroy-popup-on-hide
+      class="flex items-center mx-2"
+      @click.stop
+    >
+      <div class="flex items-center" @click.stop>
+        <component :is="isUIAllowed('projectIconCustomisation', false, projectRole) ? Tooltip : 'div'">
+          <span v-if="project.meta?.icon" :key="project.meta?.icon" class="nc-table-icon flex items-center">
+            <IconifyIcon
+              :key="project.meta?.icon"
+              :data-testid="`nc-icon-${project.meta?.icon}`"
+              class="text-xl"
+              :icon="project.meta?.icon"
+            ></IconifyIcon>
+          </span>
+
+          <GeneralProjectIcon v-else :type="project.type" />
+
+          <template v-if="isUIAllowed('projectIconCustomisation', false, projectRole)" #title>Change icon</template>
+        </component>
+      </div>
+      <template v-if="isUIAllowed('projectIconCustomisation', false, projectRole)" #overlay>
+        <GeneralEmojiIcons class="shadow bg-white p-2" @select-icon="setIcon($event, project)" />
+      </template>
+    </component>
 
     <input
       v-if="editMode"
@@ -114,7 +162,7 @@ const isSharedBase = ref(false)
     </span>
     <span :class="{ 'flex-grow': !editMode }"></span>
     <a-dropdown>
-      <MdiDotsHorizontal class="mr-2 opacity-0 group-hover:opacity-100" @click.stop />
+      <PhDotsThreeOutlineVerticalThin class="mr-5 opacity-0 group-hover:opacity-100" @click.stop />
       <template #overlay>
         <a-menu>
           <!--          <a-menu class="!ml-1 !w-[300px] !text-sm"> -->
@@ -168,7 +216,7 @@ const isSharedBase = ref(false)
                   v-if="isUIAllowed('settings')"
                   v-e="['c:navdraw:project-settings']"
                   class="nc-project-menu-item group"
-                  @click="toggleDialog(true, 'teamAndAuth')"
+                  @click="toggleDialog(true, 'teamAndAuth', undefined, project.id)"
                 >
                   <MdiCog class="group-hover:text-accent" />
                   {{ $t('title.teamAndSettings') }}

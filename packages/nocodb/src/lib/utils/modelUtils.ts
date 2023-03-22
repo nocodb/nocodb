@@ -1,9 +1,12 @@
-export function parseMetaProp(model: { meta: any }): any {
+export function parseMetaProp(model: { meta?: any }): any {
   if (!model) return;
 
   // parse meta property
   try {
-    return typeof model.meta === 'string' ? JSON.parse(model.meta) : model.meta;
+    return (
+      (typeof model.meta === 'string' ? JSON.parse(model.meta) : model.meta) ??
+      {}
+    );
   } catch {
     return {};
   }

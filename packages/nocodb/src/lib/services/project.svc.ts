@@ -11,6 +11,7 @@ import Project from '../models/Project';
 import syncMigration from '../meta/helpers/syncMigration';
 import { populateMeta, validatePayload } from '../meta/api/helpers';
 import { extractPropsAndSanitize } from '../meta/helpers/extractProps';
+import { parseMetaProp } from '../utils/modelUtils';
 import type { ProjectReqType, ProjectUpdateReqType } from 'nocodb-sdk';
 
 export async function projectCreate(param: {
@@ -118,6 +119,10 @@ const nanoid = customAlphabet('1234567890abcdefghijklmnopqrstuvwxyz_', 4);
 
 export async function getProjectWithInfo(param: { projectId: string }) {
   const project = await Project.getWithInfo(param.projectId);
+
+  // parse meta
+  project.meta = parseMetaProp(project);
+
   return project;
 }
 
@@ -173,6 +178,11 @@ export async function projectList(param: {
   const projects = param.user?.roles?.includes(OrgUserRoles.SUPER_ADMIN)
     ? await Project.list(param.query)
     : await ProjectUser.getProjectsList(param.user.id, param.query);
+
+  // parse meta
+  for (const project of projects) {
+    project.meta = parseMetaProp(project);
+  }
 
   return projects;
 }

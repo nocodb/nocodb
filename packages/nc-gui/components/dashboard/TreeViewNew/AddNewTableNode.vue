@@ -7,6 +7,7 @@ import { ref } from 'vue'
 import { useUIPermission } from '~/composables/useUIPermission'
 import { useDialog } from '~/composables/useDialog'
 import { ClientType } from '~/lib'
+import { ProjectRoleInj } from '~/context'
 
 const props = withDefaults(
   defineProps<{
@@ -32,23 +33,7 @@ const projectStore = useProject()
 
 const { isSharedBase } = storeToRefs(projectStore)
 
-function openTableCreateMagicDialog(baseId?: string) {
-  $e('c:table:create:navdraw')
-
-  const isOpen = ref(true)
-
-  const { close } = useDialog(resolveComponent('DlgTableMagic'), {
-    'modelValue': isOpen,
-    'baseId': baseId, // || bases.value[0].id,
-    'onUpdate:modelValue': closeDialog,
-  })
-
-  function closeDialog() {
-    isOpen.value = false
-
-    close(1000)
-  }
-}
+const projectRole = inject(ProjectRoleInj)
 
 function openSchemaMagicDialog(baseId?: string) {
   $e('c:table:create:navdraw')
@@ -57,7 +42,7 @@ function openSchemaMagicDialog(baseId?: string) {
 
   const { close } = useDialog(resolveComponent('DlgSchemaMagic'), {
     'modelValue': isOpen,
-    'baseId': baseId, // || bases.value[0].id,
+    'baseId': baseId,
     'onUpdate:modelValue': closeDialog,
   })
 
@@ -76,7 +61,7 @@ function openQuickImportDialog(type: string, baseId?: string) {
   const { close } = useDialog(resolveComponent('DlgQuickImport'), {
     'modelValue': isOpen,
     'importType': type,
-    'baseId': baseId, // || bases.value[0].id,
+    'baseId': baseId,
     'onUpdate:modelValue': closeDialog,
   })
 
@@ -94,7 +79,7 @@ function openAirtableImportDialog(baseId?: string) {
 
   const { close } = useDialog(resolveComponent('DlgAirtableImport'), {
     'modelValue': isOpen,
-    'baseId': baseId, // || bases.value[0].id,
+    'baseId': baseId,
     'onUpdate:modelValue': closeDialog,
   })
 
@@ -105,19 +90,32 @@ function openAirtableImportDialog(baseId?: string) {
   }
 }
 
-// todo: temp
+function openTableCreateMagicDialog(baseId?: string) {
+  $e('c:table:create:navdraw')
 
+  const isOpen = ref(true)
+
+  const { close } = useDialog(resolveComponent('DlgTableMagic'), {
+    'modelValue': isOpen,
+    'baseId': baseId,
+    'onUpdate:modelValue': closeDialog,
+  })
+
+  function closeDialog() {
+    isOpen.value = false
+
+    close(1000)
+  }
+}
 const { appInfo } = useGlobal()
-
-const { selectedBase } = useSqlEditor()
 
 const toggleDialog = inject(ToggleDialogInj, () => {})
 </script>
 
 <template>
   <div
-    v-if="isUIAllowed('table-create')"
-    class="group flex items-center gap-2 pl-2 pr-3 py-2 text-primary/70 hover:(text-primary/100) cursor-pointer select-none"
+    v-if="isUIAllowed('table-create', false, projectRole)"
+    class="group flex items-center gap-2 pl-2 pr-5 py-2 text-primary/70 hover:(text-primary/100) cursor-pointer select-none"
     @click="emit('openTableCreateDialog')"
   >
     <PhPlusThin class="w-5 ml-2" />
@@ -157,7 +155,7 @@ const toggleDialog = inject(ToggleDialogInj, () => {})
           <!-- Quick Import From -->
           <a-menu-item-group :title="$t('title.quickImportFrom')" class="!px-0 !mx-0">
             <a-menu-item
-              v-if="isUIAllowed('airtableImport')"
+              v-if="isUIAllowed('airtableImport', false, projectRole)"
               key="quick-import-airtable"
               @click="openAirtableImportDialog(project.bases[baseIndex].id)"
             >
@@ -168,7 +166,7 @@ const toggleDialog = inject(ToggleDialogInj, () => {})
             </a-menu-item>
 
             <a-menu-item
-              v-if="isUIAllowed('csvImport')"
+              v-if="isUIAllowed('csvImport', false, projectRole)"
               key="quick-import-csv"
               @click="openQuickImportDialog('csv', project.bases[baseIndex].id)"
             >
@@ -179,7 +177,7 @@ const toggleDialog = inject(ToggleDialogInj, () => {})
             </a-menu-item>
 
             <a-menu-item
-              v-if="isUIAllowed('jsonImport')"
+              v-if="isUIAllowed('jsonImport', false, projectRole)"
               key="quick-import-json"
               @click="openQuickImportDialog('json', project.bases[baseIndex].id)"
             >
@@ -190,7 +188,7 @@ const toggleDialog = inject(ToggleDialogInj, () => {})
             </a-menu-item>
 
             <a-menu-item
-              v-if="isUIAllowed('excelImport')"
+              v-if="isUIAllowed('excelImport', false, projectRole)"
               key="quick-import-excel"
               @click="openQuickImportDialog('excel', project.bases[baseIndex].id)"
             >
@@ -204,25 +202,25 @@ const toggleDialog = inject(ToggleDialogInj, () => {})
           <a-menu-divider class="my-0" />
 
           <a-menu-item-group title="Connect to new datasource" class="!px-0 !mx-0">
-            <a-menu-item key="connect-new-source" @click="toggleDialog(true, 'dataSources', ClientType.MYSQL)">
+            <a-menu-item key="connect-new-source" @click="toggleDialog(true, 'dataSources', ClientType.MYSQL, project.id)">
               <div class="color-transition nc-project-menu-item group">
                 <LogosMysqlIcon class="group-hover:text-accent" />
                 MySQL
               </div>
             </a-menu-item>
-            <a-menu-item key="connect-new-source" @click="toggleDialog(true, 'dataSources', ClientType.PG)">
+            <a-menu-item key="connect-new-source" @click="toggleDialog(true, 'dataSources', ClientType.PG, project.id)">
               <div class="color-transition nc-project-menu-item group">
                 <LogosPostgresql class="group-hover:text-accent" />
                 Postgres
               </div>
             </a-menu-item>
-            <a-menu-item key="connect-new-source" @click="toggleDialog(true, 'dataSources', ClientType.SQLITE)">
+            <a-menu-item key="connect-new-source" @click="toggleDialog(true, 'dataSources', ClientType.SQLITE, project.id)">
               <div class="color-transition nc-project-menu-item group">
                 <VscodeIconsFileTypeSqlite class="group-hover:text-accent" />
                 SQLite
               </div>
             </a-menu-item>
-            <a-menu-item key="connect-new-source" @click="toggleDialog(true, 'dataSources', ClientType.MSSQL)">
+            <a-menu-item key="connect-new-source" @click="toggleDialog(true, 'dataSources', ClientType.MSSQL, project.id)">
               <div class="color-transition nc-project-menu-item group">
                 <SimpleIconsMicrosoftsqlserver class="group-hover:text-accent" />
                 MSSQL
@@ -231,7 +229,7 @@ const toggleDialog = inject(ToggleDialogInj, () => {})
             <a-menu-item
               v-if="appInfo.ee"
               key="connect-new-source"
-              @click="toggleDialog(true, 'dataSources', ClientType.SNOWFLAKE)"
+              @click="toggleDialog(true, 'dataSources', ClientType.SNOWFLAKE, project.id)"
             >
               <div class="color-transition nc-project-menu-item group">
                 <LogosSnowflakeIcon class="group-hover:text-accent" />
@@ -242,7 +240,7 @@ const toggleDialog = inject(ToggleDialogInj, () => {})
 
           <a-menu-divider class="my-0" />
 
-          <a-menu-item v-if="isUIAllowed('importRequest')" key="add-new-table" class="py-1 rounded-b">
+          <a-menu-item v-if="isUIAllowed('importRequest', false, projectRole)" key="add-new-table" class="py-1 rounded-b">
             <a
               v-e="['e:datasource:import-request']"
               href="https://github.com/nocodb/nocodb/issues/2052"

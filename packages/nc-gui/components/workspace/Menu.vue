@@ -2,7 +2,8 @@
 import { storeToRefs } from 'pinia'
 import type { WorkspaceType } from 'nocodb-sdk'
 import { useDebounceFn } from '@vueuse/core'
-import { onMounted, ref, useWorkspace } from '#imports'
+import tinycolor from 'tinycolor2'
+import { onMounted, projectThemeColors, ref, useWorkspace } from '#imports'
 import { navigateTo } from '#app'
 
 const props = defineProps<{
@@ -11,11 +12,16 @@ const props = defineProps<{
 
 const workspaceStore = useWorkspace()
 
+const { saveTheme } = workspaceStore
 const { workspace, workspaces, isWorkspaceOwner } = storeToRefs(workspaceStore)
 
 const { appInfo, token, signOut, signedIn, user, currentVersion } = useGlobal()
 
+const email = computed(() => user.value?.email ?? '---')
+
 const { isUIAllowed } = useUIPermission()
+
+const { theme, defaultTheme } = useTheme()
 
 onMounted(async () => {
   await workspaceStore.loadWorkspaceList()
@@ -36,6 +42,52 @@ const updateWorkspaceTitle = useDebounceFn(async () => {
     title: workspace.value!.title,
   })
 }, 500)
+
+const handleThemeColor = async (mode: 'swatch' | 'primary' | 'accent', color?: string) => {
+  switch (mode) {
+    case 'swatch': {
+      if (color === defaultTheme.primaryColor) {
+        return await saveTheme(defaultTheme)
+      }
+
+      const tcolor = tinycolor(color)
+      if (tcolor.isValid()) {
+        const complement = tcolor.complement()
+
+        await saveTheme({
+          primaryColor: color,
+          accentColor: complement.toHex8String(),
+        })
+      }
+      break
+    }
+    case 'primary': {
+      const tcolor = tinycolor(color)
+
+      if (tcolor.isValid()) {
+        await saveTheme({
+          primaryColor: color,
+        })
+      }
+      break
+    }
+    case 'accent': {
+      const tcolor = tinycolor(color)
+
+      if (tcolor.isValid()) {
+        await saveTheme({
+          accentColor: color,
+        })
+      }
+      break
+    }
+  }
+}
+
+const logout = async () => {
+  await signOut()
+  navigateTo('/signin')
+}
 
 // todo: temp
 const isSharedBase = false
@@ -76,13 +128,12 @@ const modalVisible = false
       </div>
 
       <template #overlay>
-        <a-menu class="!ml-4 !w-[300px] !text-sm">
+        <a-menu class="!ml-4 !w-[300px]">
           <a-menu-item-group>
-            <div class="group select-none flex items-center gap-4 p-2">
+            <!--  <div class="nc-menu-sub-head">Current Workspace</div> -->
+            <div class="group select-none flex items-center gap-4 p-2 pb-0">
               <input v-model="workspace.title" class="nc-workspace-title-input text-current" @input="updateWorkspaceTitle" />
             </div>
-            <a-menu-divider />
-            <div class="nc-menu-sub-head">Workspace Options</div>
 
             <a-menu-item @click="workspaceModalVisible = true">
               <div class="nc-workspace-menu-item group">
@@ -97,7 +148,7 @@ const modalVisible = false
               </div>
             </a-menu-item>
 
-            <a-menu-divider class="mt-2" />
+            <a-menu-divider />
 
             <div class="nc-menu-sub-head">Workspaces</div>
 
@@ -309,16 +360,23 @@ const modalVisible = false
   </div>
 </template>
 
-<style scoped>
+<style scoped lang="scss">
 .nc-workspace-title-input {
-  @apply flex-grow p-2 outline-none hover:(bg-gray-100) focus:(bg-gray-100) rounded text-md text-defaault;
+  @apply flex-grow py-2 px-3 outline-none hover:(bg-gray-100) focus:(bg-gray-100) rounded text-md text-defaault;
 }
 
 .nc-menu-sub-head {
-  @apply pt-4 pb-2 text-gray-500 text-sm px-5;
+  @apply pt-2 pb-2 text-gray-500 text-sm px-5;
 }
 
 .nc-workspace-menu-item {
-  @apply flex items-center pl-2 py-2 text-sm gap-2;
+  @apply flex items-center pl-2 py-2 gap-2 text-sm;
+}
+
+:deep(.ant-dropdown-menu-submenu-title) {
+  @apply !py-0;
+  .nc-icon {
+    @apply !text-xs;
+  }
 }
 </style>

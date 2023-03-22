@@ -2,7 +2,9 @@ import type { ProjectType, WorkspaceType, WorkspaceUserType } from 'nocodb-sdk'
 import { WorkspaceUserRoles } from 'nocodb-sdk'
 import { defineStore } from 'pinia'
 import { message } from 'ant-design-vue'
-import { computed, ref, useCommandPalette, useNuxtApp, useRouter } from '#imports'
+import { isString } from '@vueuse/core'
+import { computed, ref, useCommandPalette, useNuxtApp, useRouter, useTheme } from '#imports'
+import type { ThemeConfig } from '~/lib'
 
 export const useWorkspace = defineStore('workspaceStore', () => {
   const workspaces = ref<(WorkspaceType & { edit?: boolean; temp_title?: string | null; roles?: string })[]>([])
@@ -14,6 +16,8 @@ export const useWorkspace = defineStore('workspaceStore', () => {
 
   const collaborators = ref<WorkspaceUserType[] | null>()
 
+  const workspace = ref<WorkspaceType>()
+
   const router = useRouter()
 
   const route = $(router.currentRoute)
@@ -22,18 +26,30 @@ export const useWorkspace = defineStore('workspaceStore', () => {
 
   const { refreshCommandPalette } = useCommandPalette()
 
+  const { setTheme, theme } = useTheme()
+
+  const { $e } = useNuxtApp()
+
   const activePage = computed<'workspace' | 'recent' | 'shared' | 'starred'>(
     () => (route.query.page as 'workspace' | 'recent' | 'shared' | 'starred') ?? 'workspace',
   )
 
+  const workspaceMeta = computed<Record<string, any>>(() => {
+    const defaultMeta = {}
+    if (!workspace.value) return defaultMeta
+    try {
+      return (isString(workspace.value.meta) ? JSON.parse(workspace.value.meta) : workspace.value.meta) ?? defaultMeta
+    } catch (e) {
+      return defaultMeta
+    }
+  })
   const activeWorkspace = computed(() => {
     return (
       workspaces.value?.find((w) => w.id === route.query.workspaceId || w.id === route.params.workspaceId) ??
+      workspace.value?.id ??
       (activePage.value === 'workspace' ? workspaces.value?.[0] : null)
     )
   })
-
-  const workspace = ref<WorkspaceType>()
 
   /** getters */
   const isWorkspaceCreator = computed(() => {
@@ -111,7 +127,7 @@ export const useWorkspace = defineStore('workspaceStore', () => {
       throw new Error('Workspace not selected')
     }
 
-    if (workspace.value?.id) {
+    if (activeWorkspace.value?.id) {
       const { list } = await $api.workspaceProject.list(activeWorkspace.value?.id ?? workspace.value?.id)
       projects.value = list
     } else {
@@ -259,6 +275,26 @@ export const useWorkspace = defineStore('workspaceStore', () => {
 
   const loadWorkspace = async (workspaceId: string) => {
     workspace.value = await $api.workspace.read(workspaceId)
+    setTheme(workspaceMeta.value?.theme)
+  }
+
+  async function saveTheme(_theme: Partial<ThemeConfig>) {
+    const fullTheme = {
+      primaryColor: theme.value.primaryColor,
+      accentColor: theme.value.accentColor,
+      ..._theme,
+    }
+
+    await updateWorkspace(workspace.value!.id!, {
+      meta: {
+        ...workspaceMeta.value,
+        theme: fullTheme,
+      },
+    })
+
+    setTheme(fullTheme)
+
+    $e('c:themes:change')
   }
 
   return {
@@ -284,5 +320,7 @@ export const useWorkspace = defineStore('workspaceStore', () => {
     moveWorkspace,
     loadWorkspace,
     workspace,
+    saveTheme,
+    workspaceMeta,
   }
 })

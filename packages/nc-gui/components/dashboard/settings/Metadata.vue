@@ -1,5 +1,7 @@
 <script setup lang="ts">
+import { inject } from '@vue/runtime-core'
 import { Empty, extractSdkResponseErrorMsg, h, message, storeToRefs, useI18n, useNuxtApp, useProject } from '#imports'
+import { ProjectIdInj } from '~/context'
 
 const props = defineProps<{
   baseId: string
@@ -12,6 +14,8 @@ const { $api } = useNuxtApp()
 const projectStore = useProject()
 const { loadTables } = projectStore
 const { project } = storeToRefs(projectStore)
+const _projectId = $(inject(ProjectIdInj))
+const projectId = $computed(() => _projectId ?? project.value?.id)
 
 const { t } = useI18n()
 
@@ -23,11 +27,11 @@ let metadiff = $ref<any[]>([])
 
 async function loadMetaDiff() {
   try {
-    if (!project.value?.id) return
+    if (!projectId) return
 
     isLoading = true
     isDifferent = false
-    metadiff = await $api.base.metaDiffGet(project.value?.id, props.baseId)
+    metadiff = await $api.base.metaDiffGet(projectId, props.baseId)
     for (const model of metadiff) {
       if (model.detectedChanges?.length > 0) {
         model.syncState = model.detectedChanges.map((el: any) => el?.msg).join(', ')
@@ -43,10 +47,10 @@ async function loadMetaDiff() {
 
 async function syncMetaDiff() {
   try {
-    if (!project.value?.id || !isDifferent) return
+    if (!projectId || !isDifferent) return
 
     isLoading = true
-    await $api.base.metaDiffSync(project.value.id, props.baseId)
+    await $api.base.metaDiffSync(projectId, props.baseId)
     // Table metadata recreated successfully
     message.info(t('msg.info.metaDataRecreated'))
     await loadTables()

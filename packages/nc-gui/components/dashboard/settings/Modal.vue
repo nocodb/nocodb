@@ -7,11 +7,13 @@ import TeamFillIcon from '~icons/ri/team-fill'
 import MultipleTableIcon from '~icons/mdi/table-multiple'
 import NotebookOutline from '~icons/mdi/notebook-outline'
 import FolderCog from '~icons/mdi/folder-cog'
+import { ProjectIdInj } from '~/context'
 
 interface Props {
-  modelValue: boolean
-  openKey: string
-  dataSourcesState: string
+  modelValue?: boolean
+  openKey?: string
+  dataSourcesState?: string
+  projectId?: string
 }
 
 interface SubTabGroup {
@@ -40,6 +42,10 @@ const vModel = useVModel(props, 'modelValue', emits)
 const vOpenKey = useVModel(props, 'openKey', emits)
 
 const vDataState = useVModel(props, 'dataSourcesState', emits)
+
+const projectId = toRef(props, 'projectId')
+
+provide(ProjectIdInj, projectId)
 
 const { isUIAllowed } = useUIPermission()
 
@@ -259,12 +265,14 @@ watch(
             v-model:reload="dataSourcesReload"
             class="px-2 pb-2"
             :data-testid="`nc-settings-subtab-${selectedSubTab.title}`"
+            :project-id="projectId"
             @awaken="handleAwaken"
           />
           <component
             :is="selectedSubTab?.body"
             v-else
             class="px-2 py-6"
+            :project-id="projectId"
             :data-testid="`nc-settings-subtab-${selectedSubTab.title}`"
           />
         </div>

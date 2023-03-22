@@ -10,6 +10,7 @@ import MdiView from '~icons/mdi/eye-circle-outline'
 import PhTableThin from '~icons/ph/table-thin'
 import { useTabs } from '~/store/tab'
 import { useNuxtApp } from '#app'
+import { ProjectRoleInj } from '~/context'
 
 const props = withDefaults(
   defineProps<{
@@ -27,9 +28,13 @@ const baseIndex = $(toRef(props, 'baseIndex'))
 const { isUIAllowed } = useUIPermission()
 
 const tabStore = useTabs()
-const { addTab, updateTab } = tabStore
+const { updateTab } = tabStore
 const { activeTab } = storeToRefs(tabStore)
 const { $e, $api } = useNuxtApp()
+
+const { deleteTable } = useTable()
+
+const projectRole = inject(ProjectRoleInj)
 
 // todo: temp
 const { projectTableList } = storeToRefs(useProjects())
@@ -65,6 +70,25 @@ const setIcon = async (icon: string, table: TableType) => {
   }
 }
 
+function openRenameTableDialog(table: TableType, baseId?: string, rightClick = false) {
+  $e(rightClick ? 'c:table:rename:navdraw:right-click' : 'c:table:rename:navdraw:options')
+
+  const isOpen = ref(true)
+
+  const { close } = useDialog(resolveComponent('DlgTableRename'), {
+    'modelValue': isOpen,
+    'tableMeta': table,
+    'baseId': baseId,
+    'onUpdate:modelValue': closeDialog,
+  })
+
+  function closeDialog() {
+    isOpen.value = false
+
+    close(1000)
+  }
+}
+
 // Todo: temp
 
 const { isSharedBase } = useProject()
@@ -89,14 +113,14 @@ const { isSharedBase } = useProject()
       <div class="table-context flex items-center gap-2 h-full" @contextmenu="setMenuContext('table', table)">
         <div class="flex w-auto" :data-testid="`tree-view-table-draggable-handle-${table.title}`">
           <component
-            :is="isUIAllowed('tableIconCustomisation') ? Dropdown : 'div'"
+            :is="isUIAllowed('tableIconCustomisation', false, projectRole) ? Dropdown : 'div'"
             trigger="click"
             destroy-popup-on-hide
             class="flex items-center"
             @click.stop
           >
             <div class="flex items-center" @click.stop>
-              <component :is="isUIAllowed('tableIconCustomisation') ? Tooltip : 'div'">
+              <component :is="isUIAllowed('tableIconCustomisation', false, projectRole) ? Tooltip : 'div'">
                 <span v-if="table.meta?.icon" :key="table.meta?.icon" class="nc-table-icon flex items-center">
                   <IconifyIcon
                     :key="table.meta?.icon"
@@ -109,13 +133,13 @@ const { isSharedBase } = useProject()
                   :is="icon(table)"
                   v-else
                   class="nc-table-icon nc-view-icon w-5"
-                  :class="{ 'group-hover:text-gray-500': isUIAllowed('treeview-drag-n-drop') }"
+                  :class="{ 'group-hover:text-gray-500': isUIAllowed('treeview-drag-n-drop', false, projectRole) }"
                 />
 
-                <template v-if="isUIAllowed('tableIconCustomisation')" #title>Change icon</template>
+                <template v-if="isUIAllowed('tableIconCustomisation', false, projectRole)" #title>Change icon</template>
               </component>
             </div>
-            <template v-if="isUIAllowed('tableIconCustomisation')" #overlay>
+            <template v-if="isUIAllowed('tableIconCustomisation', false, projectRole)" #overlay>
               <GeneralEmojiIcons class="shadow bg-white p-2" @select-icon="setIcon($event, table)" />
             </template>
           </component>
@@ -128,22 +152,27 @@ const { isSharedBase } = useProject()
         </div>
 
         <a-dropdown
-          v-if="!isSharedBase && (isUIAllowed('table-rename') || isUIAllowed('table-delete'))"
+          v-if="
+            !isSharedBase && (isUIAllowed('table-rename', false, projectRole) || isUIAllowed('table-delete', false, projectRole))
+          "
           :trigger="['click']"
           @click.stop
         >
-          <MdiDotsVertical class="transition-opacity opacity-0 group-hover:opacity-100 outline-0" />
+          <PhDotsThreeOutlineVerticalThin class="transition-opacity opacity-0 group-hover:opacity-100 outline-0" />
 
           <template #overlay>
             <a-menu class="!py-0 rounded text-sm">
-              <a-menu-item v-if="isUIAllowed('table-rename')" @click="openRenameTableDialog(table, project.bases[baseIndex].id)">
+              <a-menu-item
+                v-if="isUIAllowed('table-rename', false, projectRole)"
+                @click="openRenameTableDialog(table, project.bases[baseIndex].id)"
+              >
                 <div class="nc-project-menu-item" :data-testid="`sidebar-table-rename-${table.title}`">
                   {{ $t('general.rename') }}
                 </div>
               </a-menu-item>
 
               <a-menu-item
-                v-if="isUIAllowed('table-delete')"
+                v-if="isUIAllowed('table-delete', false, projectRole)"
                 :data-testid="`sidebar-table-delete-${table.title}`"
                 @click="deleteTable(table)"
               >

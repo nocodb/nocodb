@@ -1,25 +1,39 @@
 import { defineStore } from 'pinia'
 import type { OracleUi, ProjectType, TableType } from 'nocodb-sdk'
 import { SqlUiFactory } from 'nocodb-sdk'
+import { isString } from '@vueuse/core'
 import { NcProjectType } from '~/utils'
+import { useWorkspace } from '~/store/workspace'
 
+// todo: merge with project store
 export const useProjects = defineStore('projectsStore', () => {
   // state
+  // todo: rename to projectMap
   const projects = ref<Record<string, ProjectType>>({})
+  // todo: rename to projectTablesMap
   const projectTableList = ref<Record<string, TableType[]>>({})
 
   const { api, isLoading } = useApi()
 
   const worspaceStore = useWorkspace()
 
+  const { includeM2M } = useGlobal()
+
   // actions
-  const loadProject = async (projectId: string) => {
+  const loadProject = async (projectId: string, force = false) => {
+    if (!force && projects.value[projectId]) return projects.value[projectId]
+
     const project = await api.project.read(projectId)
     projects.value = { ...projects.value, [projectId]: project }
   }
 
-  const loadProjectTables = async (projectId: string) => {
-    const tables = await api.dbTable.list(projectId)
+  const loadProjectTables = async (projectId: string, force = false) => {
+    if (!force && projectTableList.value[projectId]) return projectTableList.value[projectId]
+
+    const tables = await api.dbTable.list(projectId, {
+      includeM2M: includeM2M.value,
+    })
+
     projectTableList.value = { ...projectTableList.value, [projectId]: tables.list || [] }
   }
 
@@ -39,10 +53,8 @@ export const useProjects = defineStore('projectsStore', () => {
 
   const updateProject = async (projectId: string, projectUpdatePayload: ProjectType) => {
     await api.project.update(projectId, projectUpdatePayload)
-    if (!projects.value[projectId]) await loadProject(projectId)
-    if (!projects.value[projectId]) return
-    const project = projects.value[projectId]
-    projects.value = { ...projects.value, [projectId]: { ...project, ...projectUpdatePayload } }
+    // todo: update project in store
+    await loadProject(projectId, true)
   }
 
   const createProject = async (projectPayload: { title: string; workspaceId: string; type: string }) => {
@@ -72,6 +84,19 @@ export const useProjects = defineStore('projectsStore', () => {
     await worspaceStore.loadProjects()
   }
 
+  const getProjectMeta = (projectId: string) => {
+    const project = projects.value[projectId]
+
+    let meta = {
+      showNullAndEmptyInFilter: false,
+    }
+    try {
+      meta = (isString(project.meta) ? JSON.parse(project.meta) : project.meta) ?? meta
+    } catch {}
+
+    return meta
+  }
+
   async function getProjectMetaInfo(projectId: string) {
     return await api.project.metaGet(projectId!, {}, {})
   }
@@ -88,5 +113,6 @@ export const useProjects = defineStore('projectsStore', () => {
     createProject,
     deleteProject,
     getProjectMetaInfo,
+    getProjectMeta,
   }
 })

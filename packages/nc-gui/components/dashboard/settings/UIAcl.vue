@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { inject } from '@vue/runtime-core'
 import {
   Empty,
   computed,
@@ -12,6 +13,7 @@ import {
   useNuxtApp,
   useProject,
 } from '#imports'
+import { ProjectIdInj } from '~/context'
 
 const props = defineProps<{
   baseId: string
@@ -22,6 +24,9 @@ const { t } = useI18n()
 const { $api, $e } = useNuxtApp()
 
 const { project } = storeToRefs(useProject())
+
+const _projectId = $(inject(ProjectIdInj))
+const projectId = $computed(() => _projectId ?? project.value?.id)
 
 const { includeM2M } = useGlobal()
 
@@ -44,11 +49,11 @@ const filteredTables = computed(() =>
 
 async function loadTableList() {
   try {
-    if (!project.value?.id) return
+    if (!projectId) return
 
     isLoading = true
 
-    tables = await $api.project.modelVisibilityList(project.value?.id, {
+    tables = await $api.project.modelVisibilityList(projectId, {
       includeM2M: includeM2M.value,
     })
   } catch (e) {
@@ -60,10 +65,10 @@ async function loadTableList() {
 
 async function saveUIAcl() {
   try {
-    if (!project.value?.id) return
+    if (!projectId) return
 
     await $api.project.modelVisibilitySet(
-      project.value.id,
+      projectId,
       tables.filter((t) => t.edited),
     )
     // Updated UI ACL for tables successfully

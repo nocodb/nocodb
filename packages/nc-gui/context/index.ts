@@ -1,4 +1,4 @@
-import type { ColumnType, TableType, ViewType } from 'nocodb-sdk'
+import type { ColumnType, ProjectType, TableType, ViewType } from 'nocodb-sdk'
 import type { ComputedRef, InjectionKey, Ref } from 'vue'
 import type { EventHook } from '@vueuse/core'
 import type { useViewData } from '#imports'
@@ -37,3 +37,6 @@ export const CellClickHookInj: InjectionKey<EventHook<MouseEvent> | undefined> =
 export const SaveRowInj: InjectionKey<(() => void) | undefined> = Symbol('save-row-injection')
 
 export const DocsLocalPageInj: InjectionKey<Ref<PageSidebarNode | undefined>> = Symbol('docs-local-page-injection')
+export const ProjectRoleInj: InjectionKey<Ref<string>> = Symbol('project-roles-injection')
+export const ProjectInj: InjectionKey<Ref<ProjectType>> = Symbol('project-injection')
+export const ProjectIdInj: InjectionKey<Ref<string>> = Symbol('project-id-injection')

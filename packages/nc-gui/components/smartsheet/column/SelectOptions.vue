@@ -142,14 +142,16 @@ const optionsMagic = async () => {
 
     if (res.length) {
       for (const op of res) {
-        options.push({
+        const option = {
           title: op,
           color: getNextColor(),
-        })
+        }
+        options.push(option)
+        renderedOptions.push(option)
       }
     }
   } catch (e) {
-    message.warning('NocoAI failed for the demo reasons. Please try again.')
+    message.warning('NocoAI: Underlying GPT API are busy. Please try after sometime.')
   }
   loadMagic.value = false
 }

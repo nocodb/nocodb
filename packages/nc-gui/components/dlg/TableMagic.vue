@@ -81,9 +81,14 @@ const _createTable = async () => {
     e.errorFields.map((f: Record<string, any>) => message.error(f.errors.join(',')))
     if (e.errorFields.length) return
   }
-  loadMagic.value = true
-  await createTableMagic()
-  loadMagic.value = false
+  try {
+    loadMagic.value = true
+    await createTableMagic()
+  } catch {
+    message.warning('NocoAI: Underlying GPT API are busy. Please try after sometime.')
+  } finally {
+    loadMagic.value = false
+  }
 }
 
 onMounted(() => {
@@ -108,14 +113,17 @@ onMounted(() => {
     <template #footer>
       <a-button key="back" size="large" @click="dialogShow = false">{{ $t('general.cancel') }}</a-button>
 
-      <a-button key="submit" size="large" type="primary" @click="_createTable">{{ $t('general.submit') }}</a-button>
+      <a-button key="submit" size="large" type="primary" :loading="loadMagic" @click="_createTable">
+        {{ $t('general.submit') }}
+      </a-button>
     </template>
 
     <div class="pl-10 pr-10 pt-5">
       <a-form :model="table" name="create-new-table-form" @keydown.enter="_createTable">
         <!-- Create A New Table -->
         <div class="flex prose-xl font-bold self-center my-4 items-center">
-          Create table using <PhSparkleFill :class="{ 'nc-animation-pulse': loadMagic }" class="ml-2 text-orange-400" />
+          Create table using
+          <PhSparkleFill :class="{ 'nc-animation-pulse': loadMagic }" class="ml-2 text-orange-400" />
         </div>
 
         <!-- hint="Enter table name" -->

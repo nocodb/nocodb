@@ -1,5 +1,5 @@
 <script lang="ts" setup>
-import { computed, navigateTo, storeToRefs, useGlobal, useProject, useRoute, useSidebar } from '#imports'
+import { computed, iconMap, navigateTo, storeToRefs, useGlobal, useProject, useRoute, useSidebar } from '#imports'
 
 const { signOut, signedIn, user, currentVersion } = useGlobal()
 
@@ -84,7 +84,7 @@ const logout = async () => {
                   class="group flex items-center gap-2 py-2 hover:text-primary"
                   @click="navigateTo('/project/create')"
                 >
-                  <MdiPlus class="text-lg group-hover:text-accent" />
+                  <component :is="iconMap.plus" class="text-lg group-hover:text-accent" />
                   {{ $t('activity.createProject') }}
                 </div>
               </a-menu-item>

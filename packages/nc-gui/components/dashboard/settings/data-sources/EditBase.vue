@@ -15,6 +15,7 @@ import {
   fieldRequiredValidator,
   getDefaultConnectionConfig,
   getTestDatabaseName,
+  iconMap,
   onMounted,
   projectTitleValidator,
   readFile,
@@ -541,7 +542,7 @@ onMounted(async () => {
                   </div>
                 </div>
                 <a-button type="dashed" class="w-full caption mt-2" @click="addNewParam">
-                  <div class="flex items-center justify-center"><MdiPlus /></div>
+                  <div class="flex items-center justify-center"><component :is="iconMap.plus" /></div>
                 </a-button>
               </a-card>
             </a-form-item>

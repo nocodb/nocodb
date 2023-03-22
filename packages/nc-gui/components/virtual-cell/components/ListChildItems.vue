@@ -10,6 +10,7 @@ import {
   ReadonlyInj,
   computed,
   h,
+  iconMap,
   inject,
   ref,
   useLTARStoreOrThrow,
@@ -156,7 +157,8 @@ const onClick = (row: Row) => {
                   data-testid="nc-child-list-icon-unlink"
                   @click.stop="unlinkRow(row)"
                 />
-                <MdiDeleteOutline
+                <component
+                  :is="iconMap.delete"
                   v-if="!readonly && !isPublic"
                   class="text-xs text-grey hover:(!text-red-500) cursor-pointer"
                   data-testid="nc-child-list-icon-delete"

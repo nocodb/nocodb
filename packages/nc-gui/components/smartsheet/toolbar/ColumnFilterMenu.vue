@@ -14,6 +14,7 @@ import {
   useViewFilters,
   watch,
 } from '#imports'
+import { iconMap } from '~/utils'
 
 const isLocked = inject(IsLockedInj, ref(false))
 
@@ -74,10 +75,10 @@ useMenuCloseOnEsc(open)
     <div :class="{ 'nc-active-btn': filtersLength }">
       <a-button v-e="['c:filter']" class="nc-filter-menu-btn nc-toolbar-btn txt-sm" :disabled="isLocked">
         <div class="flex items-center gap-1">
-          <PhFunnelThin/>
+          <PhFunnelThin />
           <!-- Filter -->
           <span v-if="!isMobileMode" class="text-capitalize !text-xs font-weight-normal">{{ $t('activity.filter') }}</span>
-          <MdiMenuDown class="text-grey" />
+          <component :is="iconMap['arrow-down']" class="text-grey !text-0.5rem" />
 
           <span v-if="filtersLength" class="nc-count-badge">{{ filtersLength }}</span>
         </div>

@@ -8,6 +8,7 @@ import {
   ReloadViewDataHookInj,
   computed,
   getSortDirectionOptions,
+  iconMap,
   inject,
   ref,
   useMenuCloseOnEsc,
@@ -75,11 +76,11 @@ useMenuCloseOnEsc(open)
     <div :class="{ 'nc-badge nc-active-btn': sorts?.length }">
       <a-button v-e="['c:sort']" class="nc-sort-menu-btn nc-toolbar-btn" :disabled="isLocked">
         <div class="flex items-center gap-1">
-          <PhSortAscendingThin/>
+          <PhSortAscendingThin />
 
           <!-- Sort -->
           <span v-if="!isMobileMode" class="text-capitalize !text-xs font-weight-normal">{{ $t('activity.sort') }}</span>
-          <MdiMenuDown class="text-grey" />
+          <component :is="iconMap['arrow-down']" class="text-grey !text-0.5rem" />
 
           <span v-if="sorts?.length" class="nc-count-badge">{{ sorts.length }}</span>
         </div>
@@ -131,7 +132,7 @@ useMenuCloseOnEsc(open)
 
         <a-button class="text-capitalize mb-1 mt-4" type="primary" ghost @click.stop="addSort">
           <div class="flex gap-1 items-center">
-            <MdiPlus />
+            <component :is="iconMap.plus" />
             <!-- Add Sort Option -->
             {{ $t('activity.addSort') }}
           </div>

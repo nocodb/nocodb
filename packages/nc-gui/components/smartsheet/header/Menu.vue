@@ -11,6 +11,7 @@ import {
   SmartsheetStoreEvents,
   extractSdkResponseErrorMsg,
   getUniqueColumnName,
+  iconMap,
   inject,
   message,
   useI18n,
@@ -213,13 +214,16 @@ const hideField = async () => {
 
 <template>
   <a-dropdown v-if="!isLocked" placement="bottomRight" :trigger="['click']" overlay-class-name="nc-dropdown-column-operations">
-    <MdiMenuDown class="h-full text-grey nc-ui-dt-dropdown cursor-pointer outline-0" />
+    <component
+      :is="iconMap['arrow-down']"
+      class="text-grey !text-0.5rem h-full text-grey nc-ui-dt-dropdown cursor-pointer outline-0 mr-2"
+    />
 
     <template #overlay>
       <a-menu class="shadow bg-white">
         <a-menu-item @click="emit('edit')">
           <div class="nc-column-edit nc-header-menu-item">
-            <MdiPencil class="text-primary" />
+            <component :is="iconMap.edit" class="text-primary" />
             <!-- Edit -->
             {{ $t('general.edit') }}
           </div>
@@ -290,7 +294,7 @@ const hideField = async () => {
 
         <a-menu-item v-if="!column?.pv" @click="deleteColumn">
           <div class="nc-column-delete nc-header-menu-item">
-            <MdiDeleteOutline class="text-error" />
+            <component :is="iconMap.delete" class="text-error" />
             <!-- Delete -->
             {{ $t('general.delete') }}
           </div>

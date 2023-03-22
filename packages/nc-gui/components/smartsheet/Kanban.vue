@@ -12,6 +12,7 @@ import {
   IsPublicInj,
   MetaInj,
   OpenNewRecordFormHookInj,
+  iconMap,
   inject,
   isImage,
   isLTAR,
@@ -382,7 +383,7 @@ watch(view, async (nextView) => {
                               "
                             >
                               <div class="py-2 flex gap-2 items-center">
-                                <mdi-plus class="text-gray-500" />
+                                <component :is="iconMap.plus" class="text-gray-500" />
                                 {{ $t('activity.addNewRecord') }}
                               </div>
                             </a-menu-item>
@@ -524,7 +525,8 @@ watch(view, async (nextView) => {
                   <a-layout-footer>
                     <div v-if="formattedData.get(stack.title) && countByStack.get(stack.title) >= 0" class="mt-5 text-center">
                       <!-- Stack Title -->
-                      <mdi-plus
+                      <component
+                        :is="iconMap.plus"
                         v-if="!isPublic && !isLocked"
                         class="text-pint-500 text-lg text-primary cursor-pointer"
                         @click="
@@ -594,7 +596,7 @@ watch(view, async (nextView) => {
             <a-divider class="!m-0 !p-0" />
             <a-menu-item v-if="contextMenuTarget" @click="deleteRow(contextMenuTarget)">
               <div v-e="['a:kanban:delete-record']" class="nc-project-menu-item nc-kanban-context-menu-item">
-                <MdiDeleteOutline class="flex" />
+                <component :is="iconMap.delete" class="flex" />
                 <!-- Delete Record -->
                 {{ $t('activity.deleteRecord') }}
               </div>

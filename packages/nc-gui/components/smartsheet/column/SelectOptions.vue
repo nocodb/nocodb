@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import Draggable from 'vuedraggable'
 import { UITypes } from 'nocodb-sdk'
-import { IsKanbanInj, enumColor, onMounted, useColumnCreateStoreOrThrow, useVModel, watch } from '#imports'
+import { IsKanbanInj, enumColor, iconMap, onMounted, useColumnCreateStoreOrThrow, useVModel, watch } from '#imports'
 
 interface Option {
   color: string
@@ -231,7 +231,7 @@ watch(inputs, () => {
     </div>
     <a-button type="dashed" class="w-full caption mt-2" @click="addNewOption()">
       <div class="flex items-center">
-        <MdiPlus />
+        <component :is="iconMap.plus" />
         <span class="flex-auto">Add option</span>
       </div>
     </a-button>

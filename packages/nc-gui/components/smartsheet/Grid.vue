@@ -23,6 +23,7 @@ import {
   createEventHook,
   enumColor,
   extractPkFromRow,
+  iconMap,
   inject,
   isColumnRequiredAndNull,
   isDrawerOrModalExist,
@@ -762,7 +763,7 @@ const closeAddColumnDropdown = () => {
                   overlay-class-name="nc-dropdown-grid-add-column"
                 >
                   <div class="h-full w-[60px] flex items-center justify-center">
-                    <MdiPlus class="text-sm nc-column-add" />
+                    <component :is="iconMap.plus" class="text-sm nc-column-add" />
                   </div>
 
                   <template #overlay>
@@ -900,7 +901,7 @@ const closeAddColumnDropdown = () => {
                 @click="addEmptyRow()"
               >
                 <div class="px-2 w-full flex items-center text-gray-500">
-                  <MdiPlus class="text-pint-500 text-xs ml-2 text-primary" />
+                  <component :is="iconMap.plus" class="text-pint-500 text-xs ml-2 text-primary" />
 
                   <span class="ml-1">
                     {{ $t('activity.addRow') }}

@@ -11,7 +11,7 @@ import {
   useSmartsheetStoreOrThrow,
 } from '#imports'
 
-import { iconMap } from '~/utils';
+import { iconMap } from '~/utils'
 
 const reloadData = inject(ReloadViewDataHookInj)!
 
@@ -57,10 +57,9 @@ function onPressEnter() {
       :class="{ '!bg-gray-100 ': isDropdownOpen }"
       @click="isDropdownOpen = !isDropdownOpen"
     >
-      <component :is="
-iconMap['search']" class="text-grey" />
+      <component :is="iconMap.search" class="text-grey" />
 
-      <MdiMenuDown class="text-grey" />
+      <component :is="iconMap['arrow-down']" class="text-grey !text-0.5rem" />
 
       <a-select
         v-model:value="search.field"

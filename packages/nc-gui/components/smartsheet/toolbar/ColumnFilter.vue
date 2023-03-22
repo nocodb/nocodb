@@ -363,7 +363,7 @@ defineExpose({
     <div class="flex gap-2 mb-2 mt-4">
       <a-button class="elevation-0 text-capitalize" type="primary" ghost @click.stop="addFilter">
         <div class="flex items-center gap-1">
-          <MdiPlus />
+          <component :is="iconMap.plus" />
           <!-- Add Filter -->
           {{ $t('activity.addFilter') }}
         </div>
@@ -372,7 +372,7 @@ defineExpose({
       <a-button v-if="!webHook" class="text-capitalize !text-gray-500" @click.stop="addFilterGroup">
         <div class="flex items-center gap-1">
           <!-- Add Filter Group -->
-          <MdiPlus />
+          <component :is="iconMap.plus" />
           {{ $t('activity.addFilterGroup') }}
         </div>
       </a-button>

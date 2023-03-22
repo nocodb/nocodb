@@ -1,9 +1,7 @@
 <script lang="ts" setup>
 import type { ProjectType } from 'nocodb-sdk'
-import { navigateTo, useColors, useNuxtApp } from '#imports'
+import { iconMap, navigateTo, useColors, useNuxtApp } from '#imports'
 import MdiMenuDown from '~icons/mdi/menu-down'
-import MdiDeleteOutline from '~icons/mdi/delete-outline'
-import MdiPlus from '~icons/mdi/plus'
 import MdiDatabaseOutline from '~icons/mdi/database-outline'
 import MdiEditOutline from '~icons/mdi/edit-outline'
 
@@ -42,7 +40,7 @@ const formatTitle = (title?: string) =>
             :style="{ '--thumbnail-color': '#1348ba' }"
             @click="props.onClick"
           >
-            <MdiPlus />
+            <component :is="iconMap.plus" />
           </div>
           <div class="prose-lg font-semibold">
             {{ $t('title.newProj') }}
@@ -53,7 +51,7 @@ const formatTitle = (title?: string) =>
             class="grid grid-cols-12 cursor-pointer hover:bg-gray-200 flex items-center p-2"
             @click="navigateTo('/project/create')"
           >
-            <MdiPlus class="col-span-2 mr-1 mt-[1px] text-primary text-lg" />
+            <component :is="iconMap.plus" class="col-span-2 mr-1 mt-[1px] text-primary text-lg" />
             <div class="col-span-10 text-sm xl:text-md">{{ $t('activity.createProject') }}</div>
           </div>
           <div
@@ -76,7 +74,7 @@ const formatTitle = (title?: string) =>
             <a-menu>
               <a-menu-item @click.stop="emit('delete-project', project)">
                 <div class="grid grid-cols-6 cursor-pointer flex items-center p-2">
-                  <MdiDeleteOutline class="col-span-2 mr-1 mt-[1px] text-red text-lg" />
+                  <component :is="iconMap.delete" class="col-span-2 mr-1 mt-[1px] text-red text-lg" />
                   <div class="col-span-4 text-sm xl:text-md">{{ $t('general.delete') }}</div>
                 </div>
               </a-menu-item>

@@ -118,7 +118,7 @@ useMenuCloseOnEsc(open)
 
           <component :is="Icon" class="text-gray-500" :class="`nc-icon-${selectedView?.lock_type}`" />
 
-          <MdiMenuDown class="text-grey" />
+          <component :is="iconMap['arrow-down']" class="text-grey !text-0.5rem" />
         </div>
       </a-button>
 
@@ -225,7 +225,7 @@ useMenuCloseOnEsc(open)
                 class="py-2 flex gap-2 items-center"
                 @click="showWebhookDrawer = true"
               >
-                <component :is="iconMap['hook']" class="text-gray-500" />
+                <component :is="iconMap.hook" class="text-gray-500" />
                 {{ $t('objects.webhooks') }}
               </div>
             </a-menu-item>

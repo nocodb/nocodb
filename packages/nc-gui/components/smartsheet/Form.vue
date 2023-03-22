@@ -10,6 +10,7 @@ import {
   computed,
   createEventHook,
   extractSdkResponseErrorMsg,
+  iconMap,
   inject,
   message,
   onClickOutside,
@@ -490,7 +491,7 @@ watch(view, (nextView) => {
           <a-dropdown v-model:visible="showColumnDropdown" :trigger="['click']" overlay-class-name="nc-dropdown-form-add-column">
             <button type="button" class="group w-full mt-2" @click.stop="showColumnDropdown = true">
               <span class="flex items-center flex-wrap justify-center gap-2 prose-sm text-gray-400">
-                <MdiPlus class="color-transition transform group-hover:(text-accent scale-125)" />
+                <component :is="iconMap.plus" class="color-transition transform group-hover:(text-accent scale-125)" />
                 <!-- Add new field to this table -->
                 <span class="color-transition group-hover:text-primary break-words">
                   {{ $t('activity.addField') }}

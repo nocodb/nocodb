@@ -8,6 +8,7 @@ import {
   computed,
   definePageMeta,
   extractSdkResponseErrorMsg,
+  iconMap,
   message,
   navigateTo,
   onBeforeMount,
@@ -261,7 +262,8 @@ const copyProjectMeta = async () => {
           <div class="flex items-center gap-2">
             <MdiEditOutline v-e="['c:project:edit:rename']" class="nc-action-btn" @click.stop="navigateTo(`/${text}`)" />
 
-            <MdiDeleteOutline
+            <component
+              :is="iconMap.delete"
               class="nc-action-btn"
               :data-testid="`delete-project-${record.title}`"
               @click.stop="deleteProject(record)"

@@ -1,6 +1,16 @@
 <script setup lang="ts">
 import type { ApiTokenType } from 'nocodb-sdk'
-import { extractSdkResponseErrorMsg, message, onMounted, storeToRefs, useCopy, useI18n, useNuxtApp, useProject } from '#imports'
+import {
+  extractSdkResponseErrorMsg,
+  iconMap,
+  message,
+  onMounted,
+  storeToRefs,
+  useCopy,
+  useI18n,
+  useNuxtApp,
+  useProject,
+} from '#imports'
 
 interface ApiToken extends ApiTokenType {
   show?: boolean
@@ -167,7 +177,7 @@ onMounted(() => {
           <!--        Add New Token -->
           <a-button size="middle" type="primary" ghost @click="openNewTokenModal">
             <div class="flex flex-row justify-center items-center caption capitalize space-x-1">
-              <MdiPlus />
+              <component :is="iconMap.plus" />
               <div>{{ $t('activity.newToken') }}</div>
             </div>
           </a-button>
@@ -212,7 +222,7 @@ onMounted(() => {
 
                 <a-button type="text" class="!rounded-md" @click="copyToken(item.token)">
                   <template #icon>
-                    <MdiContentCopy class="flex mx-auto h-[1rem]" />
+                    <component :is="iconMap.copy" class="flex mx-auto h-[1rem]" />
                   </template>
                 </a-button>
               </a-tooltip>
@@ -235,7 +245,7 @@ onMounted(() => {
                   <a-menu>
                     <a-menu-item>
                       <div class="flex flex-row items-center py-3 h-[1rem]" @click="openDeleteModal(item)">
-                        <MdiDeleteOutline class="flex" />
+                        <component :is="iconMap.delete" class="flex" />
                         <div class="text-xs pl-2">{{ $t('general.remove') }}</div>
                       </div>
                     </a-menu-item>

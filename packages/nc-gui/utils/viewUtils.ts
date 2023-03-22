@@ -1,13 +1,8 @@
 import { ViewTypes } from 'nocodb-sdk'
 import { themeV2Colors } from '#imports'
 
-import MdiGridIcon from '~icons/mdi/grid-large'
-import MdiFormIcon from '~icons/mdi/form-select'
 import MdiCalendarIcon from '~icons/mdi/calendar'
-import MdiGalleryIcon from '~icons/mdi/camera-image'
-import MdiKanbanIcon from '~icons/mdi/tablet-dashboard'
 import MdiMapIcon from '~icons/mdi/map-outline'
-import MdiEyeIcon from '~icons/mdi/eye-circle-outline'
 import type { Language } from '~/lib'
 import PhTableThin from '~icons/ph/TableThin'
 import PhImageThin from '~icons/ph/ImageThin'

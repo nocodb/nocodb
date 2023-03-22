@@ -13,7 +13,7 @@ const onClick = () => {
 <template>
   <a-tooltip placement="bottom">
     <template #title> {{ $t('activity.addRow') }} </template>
-    <IonImageOutline/>
+    <IonImageOutline />
     <div
       v-e="['c:row:add:grid-top']"
       :class="{ 'group': !isLocked, 'disabled-ring': isLocked }"

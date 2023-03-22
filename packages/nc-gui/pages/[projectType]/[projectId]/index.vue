@@ -382,8 +382,7 @@ useEventListener(document, 'keydown', async (e: KeyboardEvent) => {
                         class="nc-project-menu-item group"
                         @click.stop="copyAuthToken"
                       >
-                        <component :is="
-iconMap['copy']" class="group-hover:text-accent" />
+                        <component :is="iconMap.copy" class="group-hover:text-accent" />
                         {{ $t('activity.account.authToken') }}
                       </div>
                     </a-menu-item>

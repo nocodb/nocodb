@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import type { GridType } from 'nocodb-sdk'
-import { ActiveViewInj, IsLockedInj, inject, ref, storeToRefs, useMenuCloseOnEsc } from '#imports'
+import { ActiveViewInj, IsLockedInj, iconMap, inject, ref, storeToRefs, useMenuCloseOnEsc } from '#imports'
 
 const { isSharedBase } = storeToRefs(useProject())
 
@@ -45,7 +45,7 @@ useMenuCloseOnEsc(open)
         <div class="flex items-center gap-1">
           <PhSplitVerticalThin />
           <!-- Row Height -->
-          <MdiMenuDown class="text-grey" />
+          <component :is="iconMap['arrow-down']" class="text-grey !text-0.5rem" />
         </div>
       </a-button>
     </div>

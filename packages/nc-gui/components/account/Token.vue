@@ -2,7 +2,7 @@
 import type { VNodeRef } from '@vue/runtime-core'
 import { Empty, Modal, message } from 'ant-design-vue'
 import type { ApiTokenType, RequestParams, UserType } from 'nocodb-sdk'
-import { extractSdkResponseErrorMsg, useApi, useCopy, useNuxtApp } from '#imports'
+import { extractSdkResponseErrorMsg, iconMap, useApi, useCopy, useNuxtApp } from '#imports'
 
 const { api, isLoading } = useApi()
 
@@ -175,7 +175,7 @@ const descriptionInput: VNodeRef = (el) => (el as HTMLInputElement)?.focus()
 
                 <a-button type="text" class="!rounded-md" @click="copyToken(record.token)">
                   <template #icon>
-                    <MdiContentCopy class="flex mx-auto h-[1rem]" />
+                    <component :is="iconMap.copy" class="flex mx-auto h-[1rem]" />
                   </template>
                 </a-button>
               </a-tooltip>
@@ -198,7 +198,7 @@ const descriptionInput: VNodeRef = (el) => (el as HTMLInputElement)?.focus()
                   <a-menu data-testid="nc-token-row-action-icon">
                     <a-menu-item>
                       <div class="flex flex-row items-center py-3 h-[1rem] nc-delete-token" @click="deleteToken(record.token)">
-                        <MdiDeleteOutline class="flex" />
+                        <component :is="iconMap.delete" class="flex" />
                         <div class="text-xs pl-2">{{ $t('general.remove') }}</div>
                       </div>
                     </a-menu-item>

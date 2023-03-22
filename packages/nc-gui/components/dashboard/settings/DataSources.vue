@@ -7,7 +7,7 @@ import Metadata from './Metadata.vue'
 import UIAcl from './UIAcl.vue'
 import Erd from './Erd.vue'
 import { ClientType, DataSourcesSubTab } from '~/lib'
-import { storeToRefs, useNuxtApp, useProject } from '#imports'
+import { iconMap, storeToRefs, useNuxtApp, useProject } from '#imports'
 
 interface Props {
   state: string
@@ -357,7 +357,7 @@ watch(
                     </a-button>
                     <a-button v-if="!base.is_meta" class="nc-action-btn cursor-pointer outline-0" @click="deleteBase(base)">
                       <div class="flex items-center gap-2 text-red-500 font-light">
-                        <MdiDeleteOutline class="text-lg group-hover:text-accent" />
+                        <component :is="iconMap.delete" class="text-lg group-hover:text-accent" />
                         Delete
                       </div>
                     </a-button>

@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { extractSdkResponseErrorMsg, message, onMounted, useI18n, useNuxtApp } from '#imports'
+import { extractSdkResponseErrorMsg, iconMap, message, onMounted, useI18n, useNuxtApp } from '#imports'
 
 const { t } = useI18n()
 
@@ -132,7 +132,7 @@ onMounted(async () => {
 
           <a-button v-else size="small" type="primary" @click="showInstallPluginModal(app)">
             <div class="flex flex-row justify-center items-center caption capitalize nc-app-store-card-install">
-              <MdiPlus />
+              <component :is="iconMap.plus" />
               Install
             </div>
           </a-button>

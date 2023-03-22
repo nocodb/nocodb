@@ -3,6 +3,7 @@ import { message } from 'ant-design-vue'
 import type { ViewType } from 'nocodb-sdk'
 import {
   ReloadRowDataHookInj,
+  iconMap,
   isMac,
   useExpandedFormStoreOrThrow,
   useSmartsheetRowStoreOrThrow,
@@ -156,7 +157,7 @@ const onConfirmDeleteRowClick = async () => {
     </a-dropdown-button>
 
     <a-dropdown>
-      <MdiDotsVertical class="nc-icon-transition" />
+      <component :is="iconMap['three-dot-vertical']" class="nc-icon-transition" />
       <template #overlay>
         <a-menu>
           <a-menu-item v-if="!isNew" @click="loadRow">
@@ -167,13 +168,19 @@ const onConfirmDeleteRowClick = async () => {
           </a-menu-item>
           <a-menu-item v-if="isUIAllowed('xcDatatableEditable') && !isNew" @click="!isNew && emit('duplicateRow')">
             <div v-e="['c:row-expand:duplicate']" class="py-2 flex gap-2 a">
-              <MdiContentCopy class="nc-icon-transition cursor-pointer select-none nc-duplicate-row text-gray-500 mx-1 min-w-4" />
+              <component
+                :is="iconMap.copy"
+                class="nc-icon-transition cursor-pointer select-none nc-duplicate-row text-gray-500 mx-1 min-w-4"
+              />
               {{ $t('activity.duplicateRow') }}
             </div>
           </a-menu-item>
           <a-menu-item v-if="isUIAllowed('xcDatatableEditable') && !isNew" @click="!isNew && onDeleteRowClick()">
             <div v-e="['c:row-expand:delete']" class="py-2 flex gap-2 items-center">
-              <MdiDeleteOutline class="nc-icon-transition cursor-pointer select-none nc-delete-row text-gray-500 mx-1 min-w-4" />
+              <component
+                :is="iconMap.delete"
+                class="nc-icon-transition cursor-pointer select-none nc-delete-row text-gray-500 mx-1 min-w-4"
+              />
               {{ $t('activity.deleteRow') }}
             </div>
           </a-menu-item>

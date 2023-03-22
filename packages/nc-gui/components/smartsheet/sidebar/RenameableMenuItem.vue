@@ -3,7 +3,17 @@ import type { VNodeRef } from '@vue/runtime-core'
 import type { KanbanType, ViewType, ViewTypes } from 'nocodb-sdk'
 import type { WritableComputedRef } from '@vue/reactivity'
 import { Tooltip } from 'ant-design-vue'
-import { IsLockedInj, inject, message, onKeyStroke, useDebounceFn, useNuxtApp, useUIPermission, useVModel } from '#imports'
+import {
+  IsLockedInj,
+  iconMap,
+  inject,
+  message,
+  onKeyStroke,
+  useDebounceFn,
+  useNuxtApp,
+  useUIPermission,
+  useVModel,
+} from '#imports'
 
 interface Props {
   view: ViewType
@@ -199,7 +209,11 @@ function onStopEdit() {
               {{ $t('activity.copyView') }}
             </template>
 
-            <MdiContentCopy class="!hidden !group-hover:block text-gray-500 nc-view-copy-icon" @click.stop="onDuplicate" />
+            <component
+              :is="iconMap.copy"
+              class="!hidden !group-hover:block text-gray-500 nc-view-copy-icon"
+              @click.stop="onDuplicate"
+            />
           </a-tooltip>
 
           <template v-if="!vModel.is_default">

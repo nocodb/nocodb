@@ -17,6 +17,7 @@ import {
   getDateFormat,
   getDateTimeFormat,
   getUIDTIcon,
+  iconMap,
   inject,
   message,
   nextTick,
@@ -888,7 +889,7 @@ function isSelectDisabled(uidt: string, disableSelect = false) {
 
                 <a-button class="group" @click="addNewColumnRow(tableIdx, 'SingleLineText')">
                   <div class="flex items-center gap-1">
-                    <mdi-plus class="group-hover:!text-accent text-lg" />
+                    <component :is="iconMap.plus" class="group-hover:!text-accent text-lg" />
                   </div>
                 </a-button>
               </a-tooltip>

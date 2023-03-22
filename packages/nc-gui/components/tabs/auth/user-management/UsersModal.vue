@@ -6,6 +6,7 @@ import {
   computed,
   emailValidator,
   extractSdkResponseErrorMsg,
+  iconMap,
   message,
   onMounted,
   projectRoleTagColors,
@@ -204,7 +205,7 @@ watch(
 
                   <a-button type="text" class="!rounded-md -mt-0.5" @click="copyUrl">
                     <template #icon>
-                      <MdiContentCopy class="flex mx-auto text-green-700 h-[1rem]" />
+                      <component :is="iconMap.copy" class="flex mx-auto text-green-700 h-[1rem]" />
                     </template>
                   </a-button>
                 </div>

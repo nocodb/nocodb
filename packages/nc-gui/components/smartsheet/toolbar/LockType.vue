@@ -1,8 +1,5 @@
 <script setup lang="ts">
 import { iconMap } from '~/utils'
-import MdiLockOutlineIcon from '~icons/mdi/lock-outline'
-import MdiAccountIcon from '~icons/mdi/account'
-import MdiAccountGroupIcon from '~icons/mdi/account-group'
 import { LockType } from '~/lib'
 import { ActiveViewInj, inject } from '#imports'
 

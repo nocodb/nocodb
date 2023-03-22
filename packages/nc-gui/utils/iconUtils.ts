@@ -31,7 +31,42 @@ import PhCopySimpleThin from '~icons/ph/copy-simple-thin'
 import PhClipboardThin from '~icons/ph/clipboard-text-thin'
 import PhGearThin from '~icons/ph/gear-thin'
 import PhImageThin from '~icons/ph/image-thin'
-
+import PhHardDriveThin from '~icons/ph/hard-drives-thin'
+import PhBookThin from '~icons/ph/book-bookmark-thin'
+import PhCaretDownLight from '~icons/ph/caret-down-light'
+import PhDotsThreeOutlineVerticalThin from '~icons/ph/dots-three-outline-vertical-thin'
+import PhExcelThin from '~icons/ph/microsoft-excel-logo-thin'
+import PhCsvThin from '~icons/ph/file-csv-thin'
+import PhBracketsCurlyThin from '~icons/ph/brackets-curly-thin'
+import PhTrashThin from '~icons/ph/trash-thin'
+import PhPencilSimpleThin from '~icons/ph/pencil-simple-thin'
+import PhLinkSimpleThin from '~icons/ph/link-simple-thin'
+import PhListMagnifyingGlassThin from '~icons/ph/list-magnifying-glass-thin'
+import PhStringIcon from '~icons/ph/text-aa-thin'
+import PhTextAreaIcon from '~icons/ph/text-align-left-thin'
+import FilePhoneIcon from '~icons/ph/phone-call-thin'
+import KeyIcon from '~icons/ph/key-thin'
+import ClockIcon from '~icons/ph/alarm-thin'
+import WebIcon from '~icons/ph/planet-thin'
+import BooleanIcon from '~icons/ph/check-square-thin'
+import CalendarIcon from '~icons/ph/calendar-blank-thin'
+import SingleSelectIcon from '~icons/ph/caret-circle-down-thin'
+import MultiSelectIcon from '~icons/ph/list-bullets-thin'
+import DatetimeIcon from '~icons/ph/calendar-thin'
+import GeoDataIcon from '~icons/ph/map-pin-thin'
+import RatingIcon from '~icons/ph/star-thin'
+import GenericIcon from '~icons/ph/square-thin'
+import NumericIcon from '~icons/ph/number-square-one-thin'
+import EmailIcon from '~icons/ph/envelope-thin'
+import CurrencyIcon from '~icons/ph/currency-circle-dollar-thin'
+import PercentIcon from '~icons/ph/percent-thin'
+import DecimalIcon from '~icons/mdi/decimal'
+import SpecificDBTypeIcon from '~icons/ph/database-thin'
+import DurationIcon from '~icons/ph/clock-clockwise-thin'
+import PhFunctionDuotone from '~icons/ph/function-duotone'
+import PhQrCodeThin from '~icons/ph/qr-code-thin'
+import PhBarcodeThin from '~icons/ph/barcode-thin'
+import PhCalculatorThin from '~icons/ph/calculator-thin'
 
 export const iconMap = {
   'mdi-check-bold': MdiCheckBold,
@@ -65,6 +100,44 @@ export const iconMap = {
   'clipboard': PhClipboardThin,
   'settings': PhGearThin,
   'image': PhImageThin,
+  'datasource': PhHardDriveThin,
+  'book': PhBookThin,
+  'arrow-down': PhCaretDownLight,
+  'three-dot-vertical': PhDotsThreeOutlineVerticalThin,
+  'table': PhTableThin,
+  'excel': PhExcelThin,
+  'csv': PhCsvThin,
+  'code': PhBracketsCurlyThin,
+  'delete': PhTrashThin,
+  'edit': PhPencilSimpleThin,
+  'link': PhLinkSimpleThin,
+  'lookup': PhListMagnifyingGlassThin,
+  'text': PhStringIcon,
+  'long-text': PhTextAreaIcon,
+  'clock': ClockIcon,
+  'web': WebIcon,
+  'boolean': BooleanIcon,
+  'calendar': CalendarIcon,
+  'single-select': SingleSelectIcon,
+  'multi-select': MultiSelectIcon,
+  'datetime': DatetimeIcon,
+  'geo-data': GeoDataIcon,
+  'rating': RatingIcon,
+  'generic': GenericIcon,
+  'numeric': NumericIcon,
+  'email': EmailIcon,
+  'currency': CurrencyIcon,
+  'percent': PercentIcon,
+  'decimal': DecimalIcon,
+  'specific-db-type': SpecificDBTypeIcon,
+  'duration': DurationIcon,
+  'file-phone': FilePhoneIcon,
+  'formula': PhFunctionDuotone,
+  'key': KeyIcon,
+  'json': PhBracketsCurlyThin,
+  'qr-code': PhQrCodeThin,
+  'bar-code': PhBarcodeThin,
+  'calculator': PhCalculatorThin,
 } as const
 
 export const getMdiIcon = (type: string): any => {

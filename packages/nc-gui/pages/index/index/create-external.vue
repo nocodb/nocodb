@@ -15,6 +15,7 @@ import {
   generateUniqueName,
   getDefaultConnectionConfig,
   getTestDatabaseName,
+  iconMap,
   message,
   navigateTo,
   nextTick,
@@ -563,7 +564,7 @@ onMounted(async () => {
                 </div>
                 <a-button type="dashed" class="w-full caption mt-2" @click="addNewParam">
                   <div class="flex items-center justify-center">
-                    <MdiPlus />
+                    <component :is="iconMap.plus" />
                   </div>
                 </a-button>
               </a-card>

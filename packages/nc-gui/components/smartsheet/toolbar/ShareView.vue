@@ -5,6 +5,7 @@ import tinycolor from 'tinycolor2'
 import {
   computed,
   extractSdkResponseErrorMsg,
+  iconMap,
   isRtlLang,
   message,
   projectThemeColors,
@@ -275,7 +276,12 @@ const copyIframeCode = async () => {
           <MdiOpenInNew class="text-sm text-gray-500" />
         </a>
 
-        <MdiContentCopy v-e="['c:view:share:copy-url']" class="text-gray-500 text-sm cursor-pointer" @click="copyLink" />
+        <component
+          :is="iconMap.copy"
+          v-e="['c:view:share:copy-url']"
+          class="text-gray-500 text-sm cursor-pointer"
+          @click="copyLink"
+        />
       </div>
 
       <div

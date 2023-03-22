@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import {
   extractSdkResponseErrorMsg,
+  iconMap,
   message,
   onMounted,
   storeToRefs,
@@ -181,7 +182,7 @@ onMounted(() => {
 
           <a-button type="text" class="!rounded-md mr-1 -mt-1.5 h-[1rem]" @click="copyUrl">
             <template #icon>
-              <MdiContentCopy class="flex mx-auto text-gray-600" />
+              <component :is="iconMap.copy" class="flex mx-auto text-gray-600" />
             </template>
           </a-button>
         </a-tooltip>

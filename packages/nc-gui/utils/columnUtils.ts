@@ -1,122 +1,96 @@
 import type { ColumnType, LinkToAnotherRecordType } from 'nocodb-sdk'
 import { RelationTypes, UITypes } from 'nocodb-sdk'
+import { iconMap } from '~/utils/iconUtils'
 import LinkVariant from '~icons/mdi/link-variant'
-import QrCodeScan from '~icons/mdi/qrcode-scan'
-import BarcodeScan from '~icons/mdi/barcode-scan'
-import FormatColorText from '~icons/mdi/format-color-text'
-import TextSubject from '~icons/mdi/text-subject'
-import JSONIcon from '~icons/mdi/code-json'
-import SpecificDBTypeIcon from '~icons/mdi/database-settings'
-import Attachment from '~icons/mdi/attachment'
-import Marker from '~icons/mdi/map-marker'
-import CheckboxMarkedOutline from '~icons/mdi/checkbox-marked-outline'
-import FormatListBulletedSquare from '~icons/mdi/format-list-bulleted-square'
-import ArrowDownDropCircle from '~icons/mdi/arrow-down-drop-circle'
-import CalendarMonth from '~icons/mdi/calendar-month'
-import Calendar from '~icons/mdi/calendar'
-import Clock from '~icons/mdi/clock'
-import FilePhone from '~icons/mdi/file-phone'
-import Email from '~icons/mdi/email'
-import Web from '~icons/mdi/web'
-import Numeric from '~icons/mdi/numeric'
-import Decimal from '~icons/mdi/decimal'
-import CurrencyUsdCircleOutline from '~icons/mdi/currency-usd-circle-outline'
-import PercentOutline from '~icons/mdi/percent-outline'
-import TimerOutline from '~icons/mdi/timer-outline'
-import Star from '~icons/mdi/star'
-import MathIntegral from '~icons/mdi/math-integral'
 import MovieRoll from '~icons/mdi/movie-roll'
-import CalendarClock from '~icons/mdi/calendar-clock'
 import ID from '~icons/mdi/identifier'
-import RulerSquareCompass from '~icons/mdi/ruler-square-compass'
-import MdiTextSearchVariant from '~icons/mdi/text-search-variant'
 
 const uiTypes = [
   {
     name: UITypes.LinkToAnotherRecord,
-    icon: LinkVariant,
+    icon: iconMap.link,
     virtual: 1,
   },
   {
     name: UITypes.Lookup,
-    icon: MdiTextSearchVariant,
+    icon: iconMap.lookup,
     virtual: 1,
   },
   {
     name: UITypes.SingleLineText,
-    icon: FormatColorText,
+    icon: iconMap.text,
   },
   {
     name: UITypes.LongText,
-    icon: TextSubject,
+    icon: iconMap['long-text'],
   },
   {
     name: UITypes.Attachment,
-    icon: Attachment,
+    icon: iconMap.image,
   },
   {
     name: UITypes.Checkbox,
-    icon: CheckboxMarkedOutline,
+    icon: iconMap.boolean,
   },
   {
     name: UITypes.MultiSelect,
-    icon: FormatListBulletedSquare,
+    icon: iconMap['multi-select'],
   },
   {
     name: UITypes.SingleSelect,
-    icon: ArrowDownDropCircle,
+    icon: iconMap['single-select'],
   },
   {
     name: UITypes.Date,
-    icon: CalendarMonth,
+    icon: iconMap.calendar,
   },
   {
     name: UITypes.Year,
-    icon: Calendar,
+    icon: iconMap.calendar,
   },
   {
     name: UITypes.Time,
-    icon: Clock,
+    icon: iconMap.clock,
   },
   {
     name: UITypes.PhoneNumber,
-    icon: FilePhone,
+    icon: iconMap['file-phone'],
   },
   {
     name: UITypes.Email,
-    icon: Email,
+    icon: iconMap.email,
   },
   {
     name: UITypes.URL,
-    icon: Web,
+    icon: iconMap.web,
   },
   {
     name: UITypes.Number,
-    icon: Numeric,
+    icon: iconMap.numeric,
   },
   {
     name: UITypes.Decimal,
-    icon: Decimal,
+    icon: iconMap.decimal,
   },
   {
     name: UITypes.Currency,
-    icon: CurrencyUsdCircleOutline,
+    icon: iconMap.currency,
   },
   {
     name: UITypes.Percent,
-    icon: PercentOutline,
+    icon: iconMap.percent,
   },
   {
     name: UITypes.Duration,
-    icon: TimerOutline,
+    icon: iconMap.duration,
   },
   {
     name: UITypes.Rating,
-    icon: Star,
+    icon: iconMap.rating,
   },
   {
     name: UITypes.Formula,
-    icon: MathIntegral,
+    icon: iconMap.formula,
     virtual: 1,
   },
   {
@@ -126,34 +100,34 @@ const uiTypes = [
   },
   {
     name: UITypes.DateTime,
-    icon: CalendarClock,
+    icon: iconMap.datetime,
   },
   {
     name: UITypes.QrCode,
-    icon: QrCodeScan,
+    icon: iconMap['qr-code'],
     virtual: 1,
   },
   {
     name: UITypes.Barcode,
-    icon: BarcodeScan,
+    icon: iconMap['bar-code'],
     virtual: 1,
   },
   {
     name: UITypes.Geometry,
-    icon: RulerSquareCompass,
+    icon: iconMap.calculator,
   },
 
   {
     name: UITypes.GeoData,
-    icon: Marker,
+    icon: iconMap['geo-data'],
   },
   {
     name: UITypes.JSON,
-    icon: JSONIcon,
+    icon: iconMap.json,
   },
   {
     name: UITypes.SpecificDBType,
-    icon: SpecificDBTypeIcon,
+    icon: iconMap['specific-db-type'],
   },
 ]
 
@@ -163,7 +137,7 @@ const getUIDTIcon = (uidt: UITypes | string) => {
       ...uiTypes,
       {
         name: UITypes.CreateTime,
-        icon: CalendarClock,
+        icon: iconMap.calendar,
       },
       {
         name: UITypes.ID,

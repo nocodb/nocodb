@@ -32,7 +32,7 @@ import {
 } from '#imports'
 import PhEyeThin from '~icons/ph/EyeThin'
 import PhTableThin from '~icons/ph/TableThin'
-import { iconMap } from '~/utils';
+import { iconMap } from '~/utils'
 
 const { isMobileMode } = useGlobal()
 
@@ -375,7 +375,7 @@ const setIcon = async (icon: string, table: TableType) => {
 
           <Transition name="layout" mode="out-in">
             <MdiClose v-if="searchActive" class="text-gray-500 text-lg mx-1 mt-0.5" @click="onSearchCloseIconClick" />
-            <component :is="iconMap['search']" v-else class="text-gray-500 text-lg mx-1 mt-0.5" @click="toggleSearchActive(true)" />
+            <component :is="iconMap.search" v-else class="text-gray-500 text-lg mx-1 mt-0.5" @click="toggleSearchActive(true)" />
           </Transition>
         </div>
         <div
@@ -407,7 +407,7 @@ const setIcon = async (icon: string, table: TableType) => {
 
           <a-dropdown v-if="!isSharedBase" :trigger="['click']" overlay-class-name="nc-dropdown-import-menu" @click.stop>
             <Transition name="slide-right" mode="out-in">
-              <MdiDotsVertical v-if="!searchActive" class="hover:text-accent outline-0" />
+              <component :is="iconMap['three-dot-vertical']" v-if="!searchActive" class="hover:text-accent outline-0" />
             </Transition>
 
             <template #overlay>
@@ -472,13 +472,17 @@ const setIcon = async (icon: string, table: TableType) => {
           <div
             v-if="isUIAllowed('table-create')"
             class="group flex items-center gap-2 pl-2 pr-3 py-2 text-primary/70 hover:(text-primary/100) cursor-pointer select-none"
-            @click="openTableCreateDialog(bases[0].id)">
-            <component :is="iconMap['plus']" class="w-5" />
+            @click="openTableCreateDialog(bases[0].id)"
+          >
+            <component :is="iconMap.plus" class="w-5" />
 
             <span class="text-gray-500 group-hover:(text-primary/100) flex-1 nc-add-new-table">{{ $t('tooltip.addTable') }}</span>
 
             <a-dropdown v-if="!isSharedBase" :trigger="['click']" overlay-class-name="nc-dropdown-import-menu" @click.stop>
-              <MdiDotsVertical class="transition-opacity opacity-0 group-hover:opacity-100 nc-import-menu outline-0" />
+              <component
+                :is="iconMap['three-dot-vertical']"
+                class="transition-opacity opacity-0 group-hover:opacity-100 nc-import-menu outline-0"
+              />
 
               <template #overlay>
                 <a-menu class="!py-0 rounded text-sm">
@@ -490,7 +494,7 @@ const setIcon = async (icon: string, table: TableType) => {
                       @click="openAirtableImportDialog(bases[0].id)"
                     >
                       <div class="color-transition nc-project-menu-item group">
-                        <MdiTableLarge class="group-hover:text-accent" />
+                        <component :is="iconMap.table" class="group-hover:text-accent" />
                         Airtable
                       </div>
                     </a-menu-item>
@@ -501,7 +505,7 @@ const setIcon = async (icon: string, table: TableType) => {
                       @click="openQuickImportDialog('csv', bases[0].id)"
                     >
                       <div class="color-transition nc-project-menu-item group">
-                        <MdiFileDocumentOutline class="group-hover:text-accent" />
+                        <component :is="iconMap.csv" class="group-hover:text-accent" />
                         CSV file
                       </div>
                     </a-menu-item>
@@ -512,7 +516,7 @@ const setIcon = async (icon: string, table: TableType) => {
                       @click="openQuickImportDialog('json', bases[0].id)"
                     >
                       <div class="color-transition nc-project-menu-item group">
-                        <MdiCodeJson class="group-hover:text-accent" />
+                        <component :is="iconMap.code" class="group-hover:text-accent" />
                         JSON file
                       </div>
                     </a-menu-item>
@@ -523,7 +527,7 @@ const setIcon = async (icon: string, table: TableType) => {
                       @click="openQuickImportDialog('excel', bases[0].id)"
                     >
                       <div class="color-transition nc-project-menu-item group">
-                        <MdiFileExcel class="group-hover:text-accent" />
+                        <component :is="iconMap.excel" class="group-hover:text-accent" />
                         Microsoft Excel
                       </div>
                     </a-menu-item>
@@ -658,7 +662,10 @@ const setIcon = async (icon: string, table: TableType) => {
                           :trigger="['click']"
                           @click.stop
                         >
-                          <MdiDotsVertical class="transition-opacity opacity-0 group-hover:opacity-100 outline-0" />
+                          <component
+                            :is="iconMap['three-dot-vertical']"
+                            class="transition-opacity opacity-0 group-hover:opacity-100 outline-0"
+                          />
 
                           <template #overlay>
                             <a-menu class="!py-0 rounded text-sm">
@@ -724,8 +731,8 @@ const setIcon = async (icon: string, table: TableType) => {
                     v-if="index === '0' && isUIAllowed('table-create')"
                     class="group flex items-center gap-2 pl-8 pr-3 py-2 text-primary/70 hover:(text-primary/100) cursor-pointer select-none"
                     @click="openTableCreateDialog(bases[0].id)"
-                    >
-                    <component :is="iconMap['plus']" />
+                  >
+                    <component :is="iconMap.plus" />
 
                     <span class="text-gray-500 group-hover:(text-primary/100) flex-1 nc-add-new-table">{{
                       $t('tooltip.addTable')
@@ -737,7 +744,10 @@ const setIcon = async (icon: string, table: TableType) => {
                       overlay-class-name="nc-dropdown-import-menu"
                       @click.stop
                     >
-                      <MdiDotsVertical class="transition-opacity opacity-0 group-hover:opacity-100 nc-import-menu outline-0" />
+                      <component
+                        :is="iconMap['three-dot-vertical']"
+                        class="transition-opacity opacity-0 group-hover:opacity-100 nc-import-menu outline-0"
+                      />
 
                       <template #overlay>
                         <a-menu class="!py-0 rounded text-sm">
@@ -811,8 +821,7 @@ const setIcon = async (icon: string, table: TableType) => {
                     class="group flex items-center gap-2 pl-8 pr-3 py-2 text-primary/70 hover:(text-primary/100) cursor-pointer select-none"
                     @click="openTableCreateDialog(base.id)"
                   >
-                    <component :is="
-iconMap['plus']" />
+                    <component :is="iconMap.plus" />
 
                     <span class="text-gray-500 group-hover:(text-primary/100) flex-1 nc-add-new-table">{{
                       $t('tooltip.addTable')
@@ -824,7 +833,10 @@ iconMap['plus']" />
                       overlay-class-name="nc-dropdown-import-menu"
                       @click.stop
                     >
-                      <MdiDotsVertical class="transition-opacity opacity-0 group-hover:opacity-100 nc-import-menu outline-0" />
+                      <component
+                        :is="iconMap['three-dot-vertical']"
+                        class="transition-opacity opacity-0 group-hover:opacity-100 nc-import-menu outline-0"
+                      />
 
                       <template #overlay>
                         <a-menu class="!py-0 rounded text-sm">
@@ -958,7 +970,10 @@ iconMap['plus']" />
                             :trigger="['click']"
                             @click.stop
                           >
-                            <MdiDotsVertical class="transition-opacity opacity-0 group-hover:opacity-100 outline-0" />
+                            <component
+                              :is="iconMap['three-dot-vertical']"
+                              class="transition-opacity opacity-0 group-hover:opacity-100 outline-0"
+                            />
 
                             <template #overlay>
                               <a-menu class="!py-0 rounded text-sm">
@@ -1028,9 +1043,7 @@ iconMap['plus']" />
     <a-divider class="!my-0" />
 
     <div class="flex items-start flex-col justify-start px-2 py-3 gap-2">
-      <LazyGeneralAddBaseButton
-        class="color-transition py-1.5 px-2 cursor-pointer select-none hover:text-primary"
-      />
+      <LazyGeneralAddBaseButton class="color-transition py-1.5 px-2 cursor-pointer select-none hover:text-primary" />
 
       <LazyGeneralHelpAndSupport class="color-transition px-2 text-gray-500 cursor-pointer select-none hover:text-accent" />
 

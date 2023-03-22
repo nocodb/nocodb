@@ -2,11 +2,8 @@
 import type { FunctionalComponent, SVGAttributes } from 'vue'
 import DataSources from './DataSources.vue'
 import Misc from './Misc.vue'
+import { iconMap } from '~/utils'
 import { DataSourcesSubTab, useI18n, useNuxtApp, useUIPermission, useVModel, watch } from '#imports'
-import TeamFillIcon from '~icons/ri/team-fill'
-import MultipleTableIcon from '~icons/mdi/table-multiple'
-import NotebookOutline from '~icons/mdi/notebook-outline'
-import FolderCog from '~icons/mdi/folder-cog'
 
 interface Props {
   modelValue: boolean
@@ -54,7 +51,7 @@ const dataSourcesAwakened = ref(false)
 const tabsInfo: TabGroup = {
   teamAndAuth: {
     title: t('title.teamAndAuth'),
-    icon: TeamFillIcon,
+    icon: iconMap['users-icon'],
     subTabs: {
       ...(isUIAllowed('userMgmtTab')
         ? {
@@ -82,7 +79,7 @@ const tabsInfo: TabGroup = {
   dataSources: {
     // Data Sources
     title: 'Data Sources',
-    icon: MultipleTableIcon,
+    icon: iconMap.datasource,
     subTabs: {
       dataSources: {
         title: 'Data Sources',
@@ -97,7 +94,7 @@ const tabsInfo: TabGroup = {
   audit: {
     // Audit
     title: t('title.audit'),
-    icon: NotebookOutline,
+    icon: iconMap.book,
     subTabs: {
       audit: {
         // Audit
@@ -112,7 +109,7 @@ const tabsInfo: TabGroup = {
   projectSettings: {
     // Project Settings
     title: 'Project Settings',
-    icon: FolderCog,
+    icon: iconMap.settings,
     subTabs: {
       misc: {
         // Misc

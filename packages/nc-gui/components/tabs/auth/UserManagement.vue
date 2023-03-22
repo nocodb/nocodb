@@ -3,6 +3,7 @@ import { OrgUserRoles } from 'nocodb-sdk'
 import type { ProjectUserReqType, RequestParams } from 'nocodb-sdk'
 import {
   extractSdkResponseErrorMsg,
+  iconMap,
   message,
   onBeforeMount,
   projectRoleTagColors,
@@ -311,7 +312,7 @@ const isSuperAdmin = (user: { main_roles?: string }) => {
 
               <a-button type="text" class="!rounded-md nc-user-invite" @click="inviteUser(user)">
                 <template #icon>
-                  <MdiPlus class="flex mx-auto h-[1.1rem] text-gray-500" />
+                  <component :is="iconMap.plus" class="flex mx-auto h-[1.1rem] text-gray-500" />
                 </template>
               </a-button>
             </a-tooltip>
@@ -324,7 +325,7 @@ const isSuperAdmin = (user: { main_roles?: string }) => {
 
               <a-button v-e="['c:user:delete']" type="text" class="!rounded-md nc-user-delete" @click="onDelete(user)">
                 <template #icon>
-                  <MdiDeleteOutline class="flex mx-auto h-[1.1rem] text-gray-500" />
+                  <component :is="iconMap.delete" class="flex mx-auto h-[1.1rem] text-gray-500" />
                 </template>
               </a-button>
             </a-tooltip>
@@ -355,7 +356,7 @@ const isSuperAdmin = (user: { main_roles?: string }) => {
                   </a-menu-item>
                   <a-menu-item>
                     <div class="flex flex-row items-center py-3" @click="copyInviteUrl(user)">
-                      <MdiContentCopy class="flex h-[1rem] text-gray-500" />
+                      <component :is="iconMap.copy" class="flex h-[1rem] text-gray-500" />
                       <div class="text-xs pl-2">{{ $t('activity.copyInviteURL') }}</div>
                     </div>
                   </a-menu-item>

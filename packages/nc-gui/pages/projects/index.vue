@@ -2,10 +2,9 @@
 import { Modal, message } from 'ant-design-vue'
 import type { ProjectType } from 'nocodb-sdk'
 import { useI18n } from 'vue-i18n'
-import { extractSdkResponseErrorMsg, navigateTo, useNuxtApp, useRoute } from '#imports'
+import { extractSdkResponseErrorMsg, iconMap, navigateTo, useNuxtApp, useRoute } from '#imports'
 import MaterialSymbolsFormatListBulletedRounded from '~icons/material-symbols/format-list-bulleted-rounded'
 import MaterialSymbolsGridView from '~icons/material-symbols/grid-view'
-import MdiPlus from '~icons/mdi/plus'
 import MdiDatabaseOutline from '~icons/mdi/database-outline'
 import MdiFolderOutline from '~icons/mdi/folder-outline'
 
@@ -69,7 +68,7 @@ const deleteProject = (project: ProjectType) => {
                 class="color-transition hover:(bg-gray-100) mr-auto select-none flex items-center gap-2 leading-8 cursor-pointer rounded-full border-1 border-gray-300 px-5 py-2 shadow prose-lg font-semibold"
                 @click="props.onClick"
               >
-                <MdiPlus class="text-primary text-2xl" />
+                <component :is="iconMap.plus" class="text-primary text-2xl" />
                 {{ $t('title.newProj') }}
               </div>
             </template>
@@ -79,7 +78,7 @@ const deleteProject = (project: ProjectType) => {
                 class="grid grid-cols-12 cursor-pointer hover:bg-gray-200 flex items-center p-2"
                 @click="navigateTo('/project/create')"
               >
-                <MdiPlus class="col-span-2 mr-1 mt-[1px] text-primary text-lg" />
+                <component :is="iconMap.plus" class="col-span-2 mr-1 mt-[1px] text-primary text-lg" />
                 <div class="col-span-10 text-sm xl:text-md">{{ $t('activity.createProject') }}</div>
               </div>
               <div

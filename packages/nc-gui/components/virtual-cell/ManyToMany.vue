@@ -12,6 +12,7 @@ import {
   RowInj,
   computed,
   createEventHook,
+  iconMap,
   inject,
   ref,
   useProvideLTARStore,
@@ -120,7 +121,8 @@ useSelectedCellKeyupListener(inject(ActiveCellInj, ref(false)), (e: KeyboardEven
           @click.stop="childListDlg = true"
         />
 
-        <MdiPlus
+        <component
+          :is="iconMap.plus"
           v-if="!readOnly && isUIAllowed('xcDatatableEditable')"
           class="text-sm nc-action-icon text-gray-500/50 hover:text-gray-500 nc-plus"
           @click.stop="listItemsDlg = true"

@@ -371,7 +371,7 @@ onMounted(() => {
                         v-if="v$.localState[field.title]?.$error || columnValidationError"
                         class="text-red-500 md:text-md"
                       />
-                      <MdiCheck v-else class="text-white md:text-md" />
+                      <component :is="iconMap.check" v-else class="text-white md:text-md" />
                     </Transition>
                   </button>
                 </a-tooltip>

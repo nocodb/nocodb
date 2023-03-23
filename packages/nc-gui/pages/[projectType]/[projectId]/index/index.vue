@@ -83,7 +83,7 @@ const hideSidebarOnClickOrTouchIfMobileMode = () => {
           <div v-if="isLoading" class="flex items-center gap-2 ml-3 text-gray-200" data-testid="nc-loading">
             {{ $t('general.loading') }}
 
-            <MdiLoading class="animate-infinite animate-spin" />
+            <component :is="iconMap.loading" class="animate-infinite animate-spin" />
           </div>
         </div>
 

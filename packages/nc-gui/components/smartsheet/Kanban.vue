@@ -367,7 +367,7 @@ watch(view, async (nextView) => {
                         >
                           <LazyGeneralTruncateText>{{ stack.title ?? 'uncategorized' }}</LazyGeneralTruncateText>
                           <span v-if="!isLocked" class="w-full flex w-[15px]">
-                            <mdi-menu-down class="text-grey text-lg ml-auto" />
+                            <component :is="iconMap.arrowDown" class="text-grey text-lg ml-auto" />
                           </span>
                         </div>
                         <template v-if="!isLocked" #overlay>
@@ -389,7 +389,7 @@ watch(view, async (nextView) => {
                             </a-menu-item>
                             <a-menu-item v-e="['c:kanban:collapse-stack']" @click="handleCollapseStack(stackIdx)">
                               <div class="py-2 flex gap-2 items-center">
-                                <mdi-arrow-collapse class="text-gray-500" />
+                                <component :is="iconMap.arrowCollapse" class="text-gray-500" />
                                 {{ $t('activity.kanban.collapseStack') }}
                               </div>
                             </a-menu-item>
@@ -399,7 +399,7 @@ watch(view, async (nextView) => {
                               @click="handleDeleteStackClick(stack.title, stackIdx)"
                             >
                               <div class="py-2 flex gap-2 items-center">
-                                <mdi-delete class="text-gray-500" />
+                                <component :is="iconMap.delete" class="text-gray-500" />
                                 {{ $t('activity.kanban.deleteStack') }}
                               </div>
                             </a-menu-item>
@@ -572,7 +572,7 @@ watch(view, async (nextView) => {
                       :class="{ capitalize: stack.title === null }"
                     >
                       <LazyGeneralTruncateText>{{ stack.title ?? 'uncategorized' }}</LazyGeneralTruncateText>
-                      <mdi-menu-down class="text-grey text-lg" />
+                      <component :is="iconMap.arrowDown" class="text-grey text-lg" />
                     </div>
                     <!-- Record Count -->
                     {{ formattedData.get(stack.title).length }} / {{ countByStack.get(stack.title) }}

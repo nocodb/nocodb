@@ -429,7 +429,7 @@ onBeforeUnmount(() => {
             class="flex items-center"
           >
             <!--            Importing -->
-            <MdiLoading class="text-green-500 animate-spin" />
+            <component :is="iconMap.loading" class="text-green-500 animate-spin" />
             <span class="text-green-500 ml-2"> {{ $t('labels.importing') }}</span>
           </div>
         </a-card>

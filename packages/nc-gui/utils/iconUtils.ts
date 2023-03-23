@@ -139,12 +139,21 @@ import MdiLinkVariantRemove from '~icons/mdi/link-variant-remove'
 import MdiChevronLeft from '~icons/mdi/chevron-left'
 import MdiChevronRight from '~icons/mdi/chevron-right'
 import MdiFileImageBox from '~icons/mdi/file-image-box'
+import MdiStorefrontOutline from '~icons/mdi/storefront-outline'
+import MdiLoading from '~icons/mdi/loading'
+import MdiArrowCollapse from '~icons/mdi/arrow-collpse'
+import MdiInformationOutline from '~icons/mdi/information-outline'
+import MdiMapMarkerAlert from '~icons/mdi/map-marker-alert'
 
 export const iconMap = {
+  info: MdiInformationOutline,
+  loading: MdiLoading,
+  arrowCollapse: MdiArrowCollapse,
+  markerAlert: MdiMapMarkerAlert,
+  appstore: MdiStorefrontOutline,
   chevronLeft: MdiChevronLeft,
   chevronRight: MdiChevronRight,
   imagePlaceholder: MdiFileImageBox,
-
   linkRemove: MdiLinkVariantRemove,
   closeThick: MdiCloseThick,
   role: MdiDramaMasks,

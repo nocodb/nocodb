@@ -37,6 +37,7 @@ const formatTitle = (title?: string) =>
             :style="{ '--thumbnail-color': '#1348ba' }"
             @click="props.onClick"
           >
+            a
             <component :is="iconMap.plus" />
           </div>
           <div class="prose-lg font-semibold">

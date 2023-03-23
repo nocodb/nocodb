@@ -1,5 +1,5 @@
 <script lang="ts" setup>
-import { navigateTo, useUIPermission } from '#imports'
+import { iconMap, navigateTo, useUIPermission } from '#imports'
 
 const { isUIAllowed } = useUIPermission()
 
@@ -77,7 +77,7 @@ const openKeys = ref([/^\/account\/users/.test($route.fullPath) && 'users'])
               @click="navigateTo('/account/apps')"
             >
               <div class="flex items-center space-x-2">
-                <MdiStorefrontOutline />
+                <component :is="iconMap.appstore" />
 
                 <div class="select-none">App Store</div>
               </div>

@@ -121,11 +121,10 @@ const vModel = computed({
   },
 })
 
-const syncAndNavigate = (dir: NavigateDir, e: KeyboardEvent) => {
+const navigate = (dir: NavigateDir, e: KeyboardEvent) => {
   if (isJSON(column.value)) return
 
   if (currentRow.value.rowMeta.changed || currentRow.value.rowMeta.new) {
-    emit('save')
     currentRow.value.rowMeta.changed = false
   }
   emit('navigate', dir)
@@ -163,8 +162,8 @@ const onContextmenu = (e: MouseEvent) => {
       { 'nc-grid-numeric-cell': isGrid && !isForm && isNumericField },
       { 'h-[40px]': !props.editEnabled && isForm && !isSurveyForm },
     ]"
-    @keydown.enter.exact="syncAndNavigate(NavigateDir.NEXT, $event)"
-    @keydown.shift.enter.exact="syncAndNavigate(NavigateDir.PREV, $event)"
+    @keydown.enter.exact="navigate(NavigateDir.NEXT, $event)"
+    @keydown.shift.enter.exact="navigate(NavigateDir.PREV, $event)"
     @contextmenu="onContextmenu"
   >
     <template v-if="column">

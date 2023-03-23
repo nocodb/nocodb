@@ -22,6 +22,11 @@ const { isUIAllowed } = useUIPermission()
 
 const hasEditPermission = $computed(() => isUIAllowed('commentEditable'))
 
+// currently, edit option is disable on purpose
+// since the current update wouldn't keep track of the previous values
+// need history of edit feature in order to enable it back
+const disableEditOption = ref(true)
+
 let editLog = $ref<AuditType>()
 
 let isEditing = $ref<boolean>(false)
@@ -168,7 +173,7 @@ watch(
                     {{ t('general.copy') }}
                   </div>
                 </a-menu-item>
-                <a-menu-item v-if="log.user === user.email" key="edit-comment" @click="editComment(log)">
+                <a-menu-item v-if="log.user === user.email && !disableEditOption" key="edit-comment" @click="editComment(log)">
                   <div v-e="['a:comment:edit']" class="nc-project-menu-item">
                     {{ t('general.edit') }}
                   </div>

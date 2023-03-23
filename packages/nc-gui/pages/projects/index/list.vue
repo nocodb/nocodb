@@ -1,7 +1,6 @@
 <script lang="ts" setup>
 import type { ProjectType } from 'nocodb-sdk'
 import { iconMap, navigateTo } from '#imports'
-import MdiEditOutline from '~icons/mdi/edit-outline'
 
 interface Props {
   projects?: ProjectType[]
@@ -42,7 +41,11 @@ const openProject = async (project: ProjectType) => {
             class="text-gray-500 hover:text-red-500 mr-2"
             @click.stop="emit('delete-project', project)"
           />
-          <MdiEditOutline class="text-gray-500 hover:text-primary mr-2" @click.stop="navigateTo(`/project/${project.id}`)" />
+          <component
+            :is="iconMap.edit"
+            class="text-gray-500 hover:text-primary mr-2"
+            @click.stop="navigateTo(`/project/${project.id}`)"
+          />
         </div>
       </div>
       <div class="col-span-3 w-full h-[1px] bg-gray-500/30" />

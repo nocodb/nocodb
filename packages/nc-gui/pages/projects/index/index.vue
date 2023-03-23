@@ -1,9 +1,6 @@
 <script lang="ts" setup>
 import type { ProjectType } from 'nocodb-sdk'
 import { iconMap, navigateTo, useColors, useNuxtApp } from '#imports'
-import MdiMenuDown from '~icons/mdi/menu-down'
-import MdiDatabaseOutline from '~icons/mdi/database-outline'
-import MdiEditOutline from '~icons/mdi/edit-outline'
 
 interface Props {
   projects?: ProjectType[]
@@ -58,7 +55,7 @@ const formatTitle = (title?: string) =>
             class="grid grid-cols-12 cursor-pointer hover:bg-gray-200 flex items-center p-2"
             @click="navigateTo('/project/create-external')"
           >
-            <MdiDatabaseOutline class="col-span-2 mr-1 mt-[1px] text-green-500 text-lg" />
+            <component :is="iconMap.dtabase" class="col-span-2 mr-1 mt-[1px] text-green-500 text-lg" />
             <div class="col-span-10 text-sm xl:text-md" v-html="$t('activity.createProjectExtended.extDB')" />
           </div>
         </v-list>
@@ -69,7 +66,7 @@ const formatTitle = (title?: string) =>
       <div class="thumbnail" :style="{ '--thumbnail-color': getColorByIndex(i) }" @click="openProject(project)">
         {{ formatTitle(project.title) }}
         <a-dropdown overlay-class-name="nc-dropdown-project-operations" @click.stop>
-          <MdiMenuDown class="menu-icon" />
+          <component :is="iconMap.arrowDown" class="menu-icon" />
           <template #overlay>
             <a-menu>
               <a-menu-item @click.stop="emit('delete-project', project)">
@@ -80,7 +77,7 @@ const formatTitle = (title?: string) =>
               </a-menu-item>
               <a-menu-item @click.stop="navigateTo(`/project/${project.id}`)">
                 <div class="grid grid-cols-6 cursor-pointer flex items-center p-2">
-                  <MdiEditOutline class="col-span-2 mr-1 mt-[1px] text-primary text-lg" />
+                  <component :is="iconMap.edit" class="col-span-2 mr-1 mt-[1px] text-primary text-lg" />
                   <div class="col-span-4 text-sm xl:text-md">{{ $t('general.edit') }}</div>
                 </div>
               </a-menu-item>

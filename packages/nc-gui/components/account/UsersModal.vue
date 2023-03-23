@@ -166,7 +166,7 @@ const emailInput: VNodeRef = (el) => (el as HTMLInputElement)?.focus()
 
         <div v-else class="flex flex-col pb-4">
           <div class="flex flex-row items-center pl-2 pb-1 h-[1rem]">
-            <MdiAccountOutline />
+            <component :is="iconMap.account" />
             <div class="text-xs ml-0.5 mt-0.5">{{ $t('activity.inviteUser') }}</div>
           </div>
 

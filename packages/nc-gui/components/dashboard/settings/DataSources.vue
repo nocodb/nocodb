@@ -308,7 +308,7 @@ watch(
             <template #item="{ element: base, index }">
               <div v-if="index !== 0" class="ds-table-row border-gray-200">
                 <div class="ds-table-col ds-table-name">
-                  <MdiDragVertical v-if="sources.length > 2" small class="ds-table-handle" />
+                  <component :is="iconMap.dragVertical" v-if="sources.length > 2" small class="ds-table-handle" />
                   <div class="flex items-center gap-1">
                     <GeneralBaseLogo :base-type="base.type" />
                     {{ base.is_meta ? 'BASE' : base.alias }} <span class="text-gray-400 text-xs">({{ base.type }})</span>

@@ -53,7 +53,6 @@ import CalendarIcon from '~icons/ph/calendar-blank-light'
 import SingleSelectIcon from '~icons/ph/caret-circle-down-light'
 import DatetimeIcon from '~icons/ph/calendar-light'
 import GeoDataIcon from '~icons/ph/map-pin-light'
-import RatingIcon from '~icons/ph/star-light'
 import GenericIcon from '~icons/ph/square-light'
 import NumericIcon from '~icons/ph/number-square-one-light'
 import EmailIcon from '~icons/ph/envelope-light'
@@ -63,6 +62,7 @@ import DecimalIcon from '~icons/mdi/decimal'
 import DurationIcon from '~icons/ph/clock-clockwise-light'
 import PhFunctiontone from '~icons/ph/function-light'
 import PhQrCodeThin from '~icons/ph/qr-code-light'
+import MdiQrcodeScan from '~icons/mdi/qrcode-scan'
 import PhBarcodeThin from '~icons/ph/barcode-light'
 import PhCalculatorThin from '~icons/ph/calculator-light'
 import PhEyeSlashThin from '~icons/ph/eye-slash-light'
@@ -116,10 +116,50 @@ import PhCloudLightningThin from '~icons/ph/cloud-lightning-light'
 import PhListBulletsThin from '~icons/ph/list-bullets-light'
 import PhBracketsAngleThin from '~icons/ph/brackets-angle-light'
 import MdiExitToApp from '~icons/mdi/exit-to-app'
+import MdiKeyChange from '~icons/mdi/key-change'
+import MdiMapMarker from '~icons/mdi/map-marker'
+import MdiGpsFixed from '~icons/mdi/gps-fixed'
+import MdiPlusThick from '~icons/mdi/plus-thick'
+import MdiDragVertical from '~icons/mdi/drag-vertical'
+import MdiFileUploadOutline from '~icons/mdi/file-upload-outline'
+import MdiDrag from '~icons/mdi/drag'
+import MdiCommentTextOutline from '~icons/mdi/comment-text-outline'
+import MdiContentSave from '~icons/mdi/content-save'
+import MdiContentSaveEdit from '~icons/mdi/content-save-edit'
+import PhSortDescendingThin from '~icons/ph/sort-descending-light'
+import PhStar from '~icons/ph/star-light'
+import MdiTableColumnPlusAfter from '~icons/mdi/table-column-plus-after'
+import MdiTableColumnPlusBefore from '~icons/mdi/table-column-plus-before'
+import PhExportLight from '~icons/ph/export-light'
+import MdiTableKey from '~icons/mdi/table-key'
+import MdiDramaMasks from '~icons/mdi/drama-masks'
+import MdiEmailArrowRightOutline from '~icons/mdi/email-arrow-right-outline'
+import MdiCloseThick from '~icons/mdi/close-thick'
+import MdiLinkVariantRemove from '~icons/mdi/link-variant-remove'
+import MdiChevronLeft from '~icons/mdi/chevron-left'
+import MdiChevronRight from '~icons/mdi/chevron-right'
+import MdiFileImageBox from '~icons/mdi/file-image-box'
 
 export const iconMap = {
+  chevronLeft: MdiChevronLeft,
+  chevronRight: MdiChevronRight,
+  imagePlaceholder: MdiFileImageBox,
+
+  linkRemove: MdiLinkVariantRemove,
+  closeThick: MdiCloseThick,
+  role: MdiDramaMasks,
+  tableKey: MdiTableKey,
+  export: PhExportLight,
+  colInsertAfter: MdiTableColumnPlusAfter,
+  colInsertBefore: MdiTableColumnPlusBefore,
+  star: PhStar,
+  sortAsc: PhSortAscendingThin,
+  sortDesc: PhSortDescendingThin,
+  contentSaveExit: MdiContentSave,
+  contentSaveStay: MdiContentSaveEdit,
   exit: MdiExitToApp,
   snippet: PhBracketsAngleThin,
+  embed: PhBracketsAngleThin,
   list: PhListBulletsThin,
   cloud: PhCloudLightningThin,
   apiAndSupport: PhChatTextThin,
@@ -152,6 +192,7 @@ export const iconMap = {
   plus: PhPlusThin,
   search: PhSearchThin,
   copy: PhCopySimpleThin,
+  duplicate: PhCopySimpleThin,
   clipboard: PhClipboardThin,
   settings: PhGearThin,
   image: PhImageThin,
@@ -179,10 +220,11 @@ export const iconMap = {
   multiSelect: PhListBulletsThin,
   datetime: DatetimeIcon,
   geoData: GeoDataIcon,
-  rating: RatingIcon,
+  rating: PhStar,
   generic: GenericIcon,
   numeric: NumericIcon,
   email: EmailIcon,
+  sendEmail: MdiEmailArrowRightOutline,
   currency: CurrencyIcon,
   percent: PercentIcon,
   decimal: DecimalIcon,
@@ -190,9 +232,11 @@ export const iconMap = {
   duration: DurationIcon,
   phone: FilePhoneIcon,
   formula: PhFunctiontone,
+  function: PhFunctiontone,
   key: KeyIcon,
   json: PhBracketsCurlyThin,
   qrCode: PhQrCodeThin,
+  qrCodeScan: MdiQrcodeScan,
   barCode: PhBarcodeThin,
   calculator: PhCalculatorThin,
   rollup: PhLifebuoyThin,
@@ -223,6 +267,15 @@ export const iconMap = {
   mm: MMIcon,
   hm: HMIcon,
   bt: BTIcon,
+  passwordChange: MdiKeyChange,
+  mapMarker: MdiMapMarker,
+  currentLocation: MdiGpsFixed,
+  plusThick: MdiPlusThick,
+  dragVertical: MdiDragVertical,
+  databaseSync: MdiDatabaseSync,
+  fileUpload: MdiFileUploadOutline,
+  drag: MdiDrag,
+  comment: MdiCommentTextOutline,
 } as const
 
 export const getMdiIcon = (type: string): any => {

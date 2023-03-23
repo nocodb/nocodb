@@ -288,7 +288,7 @@ const copyIframeCode = async () => {
         class="flex gap-1 items-center pb-1 text-gray-500 cursor-pointer font-weight-medium mb-2 mt-4 pl-1"
         @click="copyIframeCode"
       >
-        <MdiCodeTags class="text-gray-500" />
+        <component :is="iconMap.embed" class="text-gray-500" />
         Embed this view in your site
       </div>
 

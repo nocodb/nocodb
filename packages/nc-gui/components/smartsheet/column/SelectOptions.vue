@@ -172,7 +172,8 @@ watch(inputs, () => {
               :data-testid="`select-column-option-${index}`"
               :class="{ removed: element.status === 'remove' }"
             >
-              <MdiDragVertical
+              <component
+                :is="iconMap.dragVertical"
                 v-if="!isKanban"
                 small
                 class="nc-child-draggable-icon handle"

@@ -165,7 +165,8 @@ const copyProjectMeta = async () => {
           class="transition-all duration-200 h-full flex-0 flex items-center group hover:ring active:(ring ring-accent) rounded-full mt-1"
           :class="isLoading ? 'animate-spin ring ring-gray-200' : ''"
         >
-          <MdiRefresh
+          <component
+            :is="iconMap.reload"
             v-e="['a:project:refresh']"
             class="text-xl text-gray-500 group-hover:text-accent cursor-pointer"
             :class="isLoading ? '!text-primary' : ''"
@@ -260,7 +261,12 @@ const copyProjectMeta = async () => {
       <a-table-column key="id" :title="$t('labels.actions')" data-index="id">
         <template #default="{ text, record }">
           <div class="flex items-center gap-2">
-            <MdiEditOutline v-e="['c:project:edit:rename']" class="nc-action-btn" @click.stop="navigateTo(`/${text}`)" />
+            <component
+              :is="iconMap.edit"
+              v-e="['c:project:edit:rename']"
+              class="nc-action-btn"
+              @click.stop="navigateTo(`/${text}`)"
+            />
 
             <component
               :is="iconMap.delete"

@@ -232,14 +232,14 @@ const hideField = async () => {
           <a-divider class="!my-0" />
           <a-menu-item @click="sortByColumn('asc')">
             <div v-e="['a:field:sort', { dir: 'asc' }]" class="nc-column-insert-after nc-header-menu-item">
-              <MdiSortAscending class="text-primary" />
+              <component :is="iconMap.sortAsc" class="text-primary" />
               <!-- Sort Ascending -->
               {{ $t('general.sortAsc') }}
             </div>
           </a-menu-item>
           <a-menu-item @click="sortByColumn('desc')">
             <div v-e="['a:field:sort', { dir: 'desc' }]" class="nc-column-insert-before nc-header-menu-item">
-              <MdiSortDescending class="text-primary" />
+              <component :is="iconMap.sortDesc" class="text-primary" />
               <!-- Sort Descending -->
               {{ $t('general.sortDesc') }}
             </div>
@@ -261,21 +261,21 @@ const hideField = async () => {
           @click="duplicateColumn"
         >
           <div v-e="['a:field:duplicate']" class="nc-column-duplicate nc-header-menu-item">
-            <MdiFileReplaceOutline class="text-primary" />
+            <component :is="iconMap.duplicate" class="text-primary" />
             <!-- Duplicate -->
             {{ t('general.duplicate') }}
           </div>
         </a-menu-item>
         <a-menu-item @click="addColumn()">
           <div v-e="['a:field:insert:after']" class="nc-column-insert-after nc-header-menu-item">
-            <MdiTableColumnPlusAfter class="text-primary" />
+            <component :is="iconMap.colInsertAfter" class="text-primary" />
             <!-- Insert After -->
             {{ t('general.insertAfter') }}
           </div>
         </a-menu-item>
         <a-menu-item v-if="!column?.pv" @click="addColumn(true)">
           <div v-e="['a:field:insert:before']" class="nc-column-insert-before nc-header-menu-item">
-            <MdiTableColumnPlusBefore class="text-primary" />
+            <component :is="iconMap.colInsertBefore" class="text-primary" />
             <!-- Insert Before -->
             {{ t('general.insertBefore') }}
           </div>
@@ -284,7 +284,7 @@ const hideField = async () => {
 
         <a-menu-item v-if="(!virtual || column?.uidt === UITypes.Formula) && !column?.pv" @click="setAsDisplayValue">
           <div class="nc-column-set-primary nc-header-menu-item">
-            <MdiStar class="text-primary" />
+            <component :is="iconMap.star" class="text-primary" />
 
             <!--       todo : tooltip -->
             <!-- Set as Display value -->

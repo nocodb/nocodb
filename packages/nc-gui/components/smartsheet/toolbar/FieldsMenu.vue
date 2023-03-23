@@ -219,7 +219,7 @@ useMenuCloseOnEsc(open)
 
                 <div class="flex-1" />
 
-                <MdiDrag class="cursor-move" />
+                <component :is="iconMap.drag" class="cursor-move" />
               </div>
             </template>
             <template v-if="activeView?.type === ViewTypes.GRID" #header>
@@ -235,7 +235,7 @@ useMenuCloseOnEsc(open)
                     <span class="text-sm">Display Value</span>
                   </template>
 
-                  <MdiTableKey class="text-xs" />
+                  <component :is="iconMap.tableKey" class="text-xs" />
                 </a-tooltip>
 
                 <div class="flex items-center px-[8px]">

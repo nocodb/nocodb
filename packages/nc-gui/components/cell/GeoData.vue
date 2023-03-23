@@ -89,7 +89,10 @@ const openInOSM = () => {
       class="group cursor-pointer flex gap-1 items-center mx-auto max-w-64 justify-center active:(ring ring-accent ring-opacity-100) rounded border-1 p-1 shadow-sm hover:(bg-primary bg-opacity-10) dark:(!bg-slate-500)"
     >
       <div class="flex items-center gap-2" data-testid="nc-geo-data-set-location-button">
-        <MdiMapMarker class="transform dark:(!text-white) group-hover:(!text-accent scale-120) text-gray-500 text-[0.75rem]" />
+        <component
+          :is="iconMap.mapMarker"
+          class="transform dark:(!text-white) group-hover:(!text-accent scale-120) text-gray-500 text-[0.75rem]"
+        />
         <div class="group-hover:text-primary text-gray-500 dark:text-gray-200 dark:group-hover:!text-white text-xs">
           {{ latLongStr }}
         </div>
@@ -141,14 +144,18 @@ const openInOSM = () => {
               :class="{ 'animate-infinite animate-spin text-gray-500': isLoading }"
             />
             <a-button class="ml-2" @click="onClickSetCurrentLocation"
-              ><MdiGpsFixed class="mr-2" />{{ $t('labels.currentLocation') }}</a-button
+              ><component :is="iconMap.currentLocation" class="mr-2" />{{ $t('labels.currentLocation') }}</a-button
             >
           </div>
         </a-form-item>
         <a-form-item v-if="vModel">
           <div class="mr-2 flex flex-row items-end gap-1 text-left">
-            <a-button @click="openInOSM"><MdiOpenInNew class="mr-2" />{{ $t('activity.map.openInOpenStreetMap') }}</a-button>
-            <a-button @click="openInGoogleMaps"><MdiOpenInNew class="mr-2" />{{ $t('activity.map.openInGoogleMaps') }}</a-button>
+            <a-button @click="openInOSM"
+              ><component :is="iconMap.openInNew" class="mr-2" />{{ $t('activity.map.openInOpenStreetMap') }}</a-button
+            >
+            <a-button @click="openInGoogleMaps"
+              ><component :is="iconMap.openInNew" class="mr-2" />{{ $t('activity.map.openInGoogleMaps') }}</a-button
+            >
           </div>
         </a-form-item>
         <a-form-item>

@@ -227,7 +227,7 @@ watch(
                 @click="vDataState = DataSourcesSubTab.New"
               >
                 <div v-if="vDataState === ''" class="flex items-center gap-2 text-primary font-light">
-                  <MdiDatabasePlusOutline class="text-lg group-hover:text-accent" />
+                  <component :is="iconMap.plusCircle" class="text-lg group-hover:text-accent" />
                   New
                 </div>
               </a-button>

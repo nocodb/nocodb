@@ -89,7 +89,7 @@ hooks.hook('page:finish', () => {
               <a-menu class="!py-0 leading-8 !rounded">
                 <a-menu-item key="0" data-testid="nc-menu-accounts__user-settings" class="!rounded-t">
                   <nuxt-link v-e="['c:navbar:user:email']" class="nc-project-menu-item group !no-underline" to="/account/users">
-                    <MdiAccountCircleOutline class="mt-1 group-hover:text-accent" />&nbsp;
+                    <component :is="iconMap.accountCircle" class="mt-1 group-hover:text-accent" />&nbsp;
                     <div class="prose group-hover:text-primary">
                       <div>Account</div>
                       <div class="text-xs text-gray-500">{{ email }}</div>
@@ -115,7 +115,7 @@ hooks.hook('page:finish', () => {
 
                 <a-menu-item key="1" class="!rounded-b group">
                   <div v-e="['a:navbar:user:sign-out']" class="nc-project-menu-item group" @click="logout">
-                    <MdiLogout class="group-hover:text-accent" />&nbsp;
+                    <component :is="iconMap.signout" class="group-hover:text-accent" />&nbsp;
 
                     <span class="prose group-hover:text-primary">
                       {{ $t('general.signOut') }}

@@ -135,7 +135,7 @@ const columns = [
       <div v-if="isDifferent">
         <a-button v-e="['a:proj-meta:meta-data:sync']" class="nc-btn-metasync-sync-now" type="primary" @click="syncMetaDiff">
           <div class="flex items-center gap-2">
-            <MdiDatabaseSync />
+            <component :is="iconMap.databaseSync" />
             {{ $t('activity.metaSync') }}
           </div>
         </a-button>

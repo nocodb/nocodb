@@ -445,7 +445,11 @@ onMounted(() => {
               data-testid="nc-survey-form__icon-prev"
               @click="goPrevious()"
             >
-              <MdiChevronLeft :class="isFirst ? 'text-gray-300' : 'group-hover:text-accent'" class="text-2xl md:text-md" />
+              <component
+                :is="iconMap.chevronLeft"
+                :class="isFirst ? 'text-gray-300' : 'group-hover:text-accent'"
+                class="text-2xl md:text-md"
+              />
             </button>
           </a-tooltip>
 
@@ -464,7 +468,8 @@ onMounted(() => {
               data-testid="nc-survey-form__icon-next"
               @click="goNext()"
             >
-              <MdiChevronRight
+              <component
+                :is="iconMap.chevronRight"
                 :class="[isLast || v$.localState[field.title]?.$error ? 'text-gray-300' : 'group-hover:text-accent']"
                 class="text-2xl md:text-md"
               />

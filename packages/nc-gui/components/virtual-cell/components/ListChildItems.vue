@@ -130,7 +130,7 @@ const onClick = (row: Row) => {
           @click="emit('attachRecord')"
         >
           <div class="flex items-center gap-1">
-            <MdiLinkVariant class="text-xs" type="primary" />
+            <component :is="iconMap.link" class="text-xs" type="primary" />
             Link to '
             <GeneralTableIcon :meta="relatedTableMeta" class="-mx-1 w-5" />
             {{ relatedTableMeta.title }}'
@@ -153,7 +153,8 @@ const onClick = (row: Row) => {
               </div>
 
               <div v-if="!readonly" class="flex gap-2">
-                <MdiLinkVariantRemove
+                <component
+                  :is="iconMap.linkRemove"
                   class="text-xs text-grey hover:(!text-red-500) cursor-pointer"
                   data-testid="nc-child-list-icon-unlink"
                   @click.stop="unlinkRow(row)"

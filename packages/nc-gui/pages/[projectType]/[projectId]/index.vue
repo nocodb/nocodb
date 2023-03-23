@@ -316,8 +316,7 @@ useEventListener(document, 'keydown', async (e: KeyboardEvent) => {
                   </template>
                 </a-tooltip>
                 <div v-else class="text-md font-semibold truncate capitalize">{{ project.title }}</div>
-
-                <MdiChevronDown class="min-w-[17px] group-hover:text-accent text-md" />
+                <component :is="iconMap.arrowDown" class="min-w-[17px] group-hover:text-accent text-md" />
               </template>
 
               <template v-else>

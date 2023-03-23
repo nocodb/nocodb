@@ -64,7 +64,7 @@ watch(previewAs, (newRole) => {
     class="floating-reset-btn nc-floating-preview-btn p-4"
     :style="{ top: position.y, left: position.x }"
   >
-    <MdiDrag class="cursor-move text-white" @mousedown="mouseDown" />
+    <component :is="iconMap.drag" class="cursor-move text-white" @mousedown="mouseDown" />
 
     <div class="divider" />
 

@@ -471,7 +471,7 @@ watch(view, async (nextView) => {
                                     </template>
                                   </a-carousel>
 
-                                  <MdiFileImageBox v-else class="w-full h-48 my-4 text-cool-gray-200" />
+                                  <component :is="iconMap.imagePlaceholder" v-else class="w-full h-48 my-4 text-cool-gray-200" />
                                 </template>
                                 <div
                                   v-for="col in fieldsWithoutCover"

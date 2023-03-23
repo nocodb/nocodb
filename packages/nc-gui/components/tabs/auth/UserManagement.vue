@@ -245,7 +245,7 @@ const isSuperAdmin = (user: { main_roles?: string }) => {
           @click="onInvite"
         >
           <div class="flex flex-row justify-center items-center caption capitalize space-x-1">
-            <MdiAccountPlusOutline class="mr-1" />
+            <component :is="iconMap.accountPlus" class="mr-1" />
             <div>{{ $t('activity.inviteTeam') }}</div>
           </div>
         </a-button>
@@ -255,12 +255,12 @@ const isSuperAdmin = (user: { main_roles?: string }) => {
     <div class="px-5">
       <div class="flex flex-row border-b-1 pb-2 px-2">
         <div class="flex flex-row w-4/6 space-x-1 items-center pl-1">
-          <EvaEmailOutline class="flex text-gray-500 -mt-0.5" />
+          <component :is="iconMap.email" class="flex text-gray-500 -mt-0.5" />
 
           <div class="text-gray-600 text-xs space-x-1">{{ $t('labels.email') }}</div>
         </div>
         <div class="flex flex-row justify-center w-1/6 space-x-1 items-center pl-1">
-          <MdiDramaMasks class="flex text-gray-500 -mt-0.5" />
+          <component :is="iconMap.role" class="flex text-gray-500 -mt-0.5" />
 
           <div class="text-gray-600 text-xs">{{ $t('objects.role') }}</div>
         </div>
@@ -350,7 +350,7 @@ const isSuperAdmin = (user: { main_roles?: string }) => {
                   <a-menu-item>
                     <!--                  Resend invite Email -->
                     <div class="flex flex-row items-center py-3" @click="resendInvite(user)">
-                      <MdiEmailArrowRightOutline class="flex h-[1rem] text-gray-500" />
+                      <component :is="iconMap.sendEmail" class="flex h-[1rem] text-gray-500" />
                       <div class="text-xs pl-2">{{ $t('activity.resendInvite') }}</div>
                     </div>
                   </a-menu-item>

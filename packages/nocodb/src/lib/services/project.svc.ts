@@ -9,7 +9,7 @@ import Noco from '../Noco';
 import ProjectUser from '../models/ProjectUser';
 import Project from '../models/Project';
 import syncMigration from '../meta/helpers/syncMigration';
-import { validatePayload } from '../meta/api/helpers';
+import { populateMeta, validatePayload } from '../meta/api/helpers';
 import { extractPropsAndSanitize } from '../meta/helpers/extractProps';
 import { parseMetaProp } from '../utils/modelUtils';
 import type { ProjectReqType, ProjectUpdateReqType } from 'nocodb-sdk';
@@ -98,12 +98,14 @@ export async function projectCreate(param: {
   await syncMigration(project);
 
   // populate metadata if existing table
-  // for (const base of await project.getBases()) {
-  //   const info = await populateMeta(base, project);
+  if (process.env.NC_CLOUD !== 'true' && !project.is_meta) {
+    for (const base of await project.getBases()) {
+      const info = await populateMeta(base, project);
 
-  //   T.emit('evt_api_created', info);
-  //   delete base.config;
-  // }
+      T.emit('evt_api_created', info);
+      delete base.config;
+    }
+  }
 
   T.emit('evt', {
     evt_type: 'project:created',

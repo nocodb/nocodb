@@ -114,7 +114,16 @@ watch(
 <template>
   <div class="h-full flex flex-col w-full bg-[#eceff1] p-2">
     <div ref="commentsWrapperEl" class="flex-1 min-h-[100px] overflow-y-auto scrollbar-thin-dull p-2 space-y-2">
-      <a-skeleton v-if="isCommentsLoading && !commentsAndLogs" type="list-item-avatar-two-line@8" />
+      <a-skeleton v-if="isCommentsLoading" type="list-item-avatar-two-line@8" />
+      <template v-else-if="commentsAndLogs.length === 0">
+        <div class="flex flex-col text-center justify-center h-full">
+          <div class="text-center text-3xl">
+            <MdiChatProcessingOutline />
+          </div>
+          <div class="font-bold text-center my-1">Start a conversation</div>
+          <div>NocoDB allows you to inquire, monitor progress updates, and collaborate with your team members.</div>
+        </div>
+      </template>
       <template v-else>
         <div v-for="(log, idx) of commentsAndLogs" :key="log.id">
           <a-dropdown :trigger="['contextmenu']" :overlay-class-name="`nc-dropdown-comment-context-menu-${idx}`">

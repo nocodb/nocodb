@@ -64,7 +64,7 @@ function onEdit(targetKey: number, action: 'add' | 'remove' | string) {
                   <component :is="icon(tab)" v-else class="text-sm" />
                 </div>
 
-                <div class="flex flex-row" :data-testid="`nc-root-tabs-${tab.title}`">
+                <div :data-testid="`nc-root-tabs-${tab.title}`">
                   <GeneralTruncateText :key="tab.title" :length="12">
                     {{ tab.title }}
                   </GeneralTruncateText>

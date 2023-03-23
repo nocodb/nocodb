@@ -779,6 +779,7 @@
       "userDeletedFromProject": "專案移除使用者成功",
       "inviteEmailSent": "邀請郵件發送成功",
       "inviteURLCopied": "邀請連結已複製到剪貼簿",
+      "commentCopied": "Comment copied to clipboard",
       "passwordResetURLCopied": "密碼重置連結已複製到剪貼簿",
       "shareableURLCopied": "Copied shareable base URL to clipboard!",
       "embeddableHTMLCodeCopied": "Copied embeddable HTML code!",

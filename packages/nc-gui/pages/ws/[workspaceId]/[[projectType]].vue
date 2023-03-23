@@ -4,6 +4,7 @@ import { useProject } from '~/store/project'
 
 definePageMeta({
   hideHeader: true,
+  hasSidebar: true,
 })
 
 const router = useRouter()
@@ -37,20 +38,17 @@ onMounted(async () => {
   await workspaceStore.loadProjects()
 })
 
+
+// create a new sidebar state
+const { isOpen, toggle } = useSidebar('nc-left-sidebar', { hasSidebar: true, isOpen: true })
+
 // todo:
-const isOpen = ref(true)
 const isSharedBase = ref(false)
 const currentVersion = ref('')
 </script>
 
 <template>
   <NuxtLayout>
-    <!--    Workspace -->
-
-    <!--    {{ workspaceStore.workspace }} -->
-    <!--    {{ workspaceStore.projects }} -->
-
-    <!--    <nuxt-page/> -->
     <template #sidebar>
       <a-layout-sider
         ref="sidebar"

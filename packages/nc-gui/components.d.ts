@@ -311,6 +311,7 @@ declare module '@vue/runtime-core' {
     NcIconsDb: typeof import('~icons/nc-icons/db')['default']
     NcIconsDoc: typeof import('~icons/nc-icons/doc')['default']
     NcIconsDocs: typeof import('~icons/nc-icons/docs')['default']
+    NcIconsInbox: typeof import('~icons/nc-icons/inbox')['default']
     NcIconsRowHeightExtraTall: typeof import('~icons/nc-icons/row-height-extra-tall')['default']
     NcIconsRowHeightMedium: typeof import('~icons/nc-icons/row-height-medium')['default']
     NcIconsRowHeightShort: typeof import('~icons/nc-icons/row-height-short')['default']

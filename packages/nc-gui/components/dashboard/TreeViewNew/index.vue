@@ -48,6 +48,8 @@ const { projectTableList, projects } = storeToRefs(projectsStore)
 
 const openedProjectId = ref()
 
+const activeProjectId = computed(() => route.params.projectId)
+
 const projectElRefs = ref()
 
 const { projectUrl } = useDocStore()
@@ -629,7 +631,12 @@ const isClearMode = computed(() => route.query.clear === '1' && route.params.pro
     </div>
 
     <div class="flex items-center py-2 justify-center">
-      <WorkspaceCreateProjectBtn modal type="ghost" :active-workspace-id="route.params.workspaceId">
+      <WorkspaceCreateProjectBtn
+        modal
+        type="ghost"
+        class="h-auto w-full nc-create-project-btn"
+        :active-workspace-id="route.params.workspaceId"
+      >
         <PhPlusThin />
         Add New
       </WorkspaceCreateProjectBtn>
@@ -744,5 +751,15 @@ const isClearMode = computed(() => route.query.clear === '1' && route.params.pro
 
 :deep(.nc-project-sub-menu.active) {
   @apply bg-primary bg-opacity-8 rounded;
+}
+
+.nc-create-project-btn {
+  @apply px-2;
+  :deep(.ant-btn) {
+    @apply w-full !text-center justify-center h-auto rounded py-2 px-4 border-gray-200;
+    & > div {
+      @apply !justify-center;
+    }
+  }
 }
 </style>

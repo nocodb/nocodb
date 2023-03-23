@@ -98,13 +98,14 @@ export async function projectCreate(param: {
   await syncMigration(project);
 
   // populate metadata if existing table
-  if (process.env.NC_CLOUD !== 'true' && !project.is_meta) {
-    for (const base of await project.getBases()) {
+  for (const base of await project.getBases()) {
+    if (process.env.NC_CLOUD !== 'true' && !project.is_meta) {
       const info = await populateMeta(base, project);
 
       T.emit('evt_api_created', info);
-      delete base.config;
     }
+
+    delete base.config;
   }
 
   T.emit('evt', {

@@ -698,6 +698,7 @@
         "allowedSpecialCharList": "Dozwolona lista znaków specjalnych"
       },
       "invalidURL": "Nieprawidłowy adres URL",
+      "invalidEmail": "Invalid Email",
       "internalError": "Wystąpił błąd wewnętrzny",
       "templateGeneratorNotFound": "Nie można znaleźć generatora szablonów!",
       "fileUploadFailed": "Nie udało się przesłać pliku",

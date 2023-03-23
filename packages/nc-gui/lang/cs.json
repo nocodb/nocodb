@@ -698,6 +698,7 @@
         "allowedSpecialCharList": "Seznam povolených speciálních znaků"
       },
       "invalidURL": "Neplatná adresa URL",
+      "invalidEmail": "Invalid Email",
       "internalError": "Došlo k nějaké interní chybě",
       "templateGeneratorNotFound": "Generátor šablon nelze najít!",
       "fileUploadFailed": "Nepodařilo se nahrát soubor",

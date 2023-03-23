@@ -698,6 +698,7 @@
         "allowedSpecialCharList": "Список разрешенных специальных символов"
       },
       "invalidURL": "Неверный URL",
+      "invalidEmail": "Invalid Email",
       "internalError": "Произошла какая-то внутренняя ошибка",
       "templateGeneratorNotFound": "Генератор шаблонов не найден!",
       "fileUploadFailed": "Не удалось загрузить файл",

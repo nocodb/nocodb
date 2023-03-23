@@ -698,6 +698,7 @@
         "allowedSpecialCharList": "Elenco dei caratteri speciali consentiti"
       },
       "invalidURL": "URL non valido",
+      "invalidEmail": "Invalid Email",
       "internalError": "Si è verificato un errore interno",
       "templateGeneratorNotFound": "Il generatore di modelli non può essere trovato!",
       "fileUploadFailed": "Non è riuscito a caricare il file",

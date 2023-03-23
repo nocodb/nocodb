@@ -64,7 +64,7 @@ export class FormPage extends BasePage {
   }
 
   getFormFieldsRequired() {
-    return this.get().locator('[data-testid="nc-form-input-required"]');
+    return this.get().locator('[data-testid="nc-form-input-required"] + button');
   }
 
   getFormFieldsInputLabel() {
@@ -154,6 +154,9 @@ export class FormPage extends BasePage {
   async fillForm(param: { field: string; value: string }[]) {
     for (let i = 0; i < param.length; i++) {
       await this.get()
+        .locator(`[data-testid="nc-form-input-${param[i].field.replace(' ', '')}"]`)
+        .click();
+      await this.get()
         .locator(`[data-testid="nc-form-input-${param[i].field.replace(' ', '')}"] >> input`)
         .fill(param[i].value);
     }
@@ -177,9 +180,7 @@ export class FormPage extends BasePage {
     await this.getFormFieldsInputLabel().fill(label);
     await this.getFormFieldsInputHelpText().fill(helpText);
     if (required) {
-      await this.get()
-        .locator(`.nc-form-drag-${field.replace(' ', '')}`)
-        .click();
+      await this.getFormFieldsRequired().click();
     }
     await this.formHeading.click();
   }

@@ -698,6 +698,7 @@
         "allowedSpecialCharList": "Atļauto īpašo rakstzīmju saraksts"
       },
       "invalidURL": "Nederīgs URL",
+      "invalidEmail": "Invalid Email",
       "internalError": "Notika kāda iekšēja kļūda",
       "templateGeneratorNotFound": "Šablonu ģenerators nav atrodams!",
       "fileUploadFailed": "Fail to upload file",

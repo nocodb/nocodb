@@ -238,7 +238,7 @@ watch(
                 @click="dataSourcesReload = true"
               >
                 <div class="flex items-center gap-2 text-gray-600 font-light">
-                  <MdiReload :class="{ 'animate-infinite animate-spin !text-success': dataSourcesReload }" />
+                  <component :is="iconMap.reload" :class="{ 'animate-infinite animate-spin !text-success': dataSourcesReload }" />
                   {{ $t('general.reload') }}
                 </div>
               </a-button>

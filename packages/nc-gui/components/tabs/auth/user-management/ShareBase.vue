@@ -154,7 +154,7 @@ onMounted(() => {
 <template>
   <div class="flex flex-col w-full" data-testid="nc-share-base-sub-modal">
     <div class="flex flex-row items-center space-x-0.5 pl-2 h-[0.8rem]">
-      <MdiOpenInNew />
+      <component :is="iconMap.share" />
 
       <div class="text-xs">{{ $t('activity.shareBase.link') }}</div>
     </div>
@@ -170,7 +170,7 @@ onMounted(() => {
 
           <a-button type="text" class="!rounded-md mr-1 -mt-1.5 h-[1rem]" @click="recreate">
             <template #icon>
-              <MdiReload class="flex mx-auto text-gray-600" />
+              <component :is="iconMap.reload" class="flex mx-auto text-gray-600" />
             </template>
           </a-button>
         </a-tooltip>
@@ -194,7 +194,7 @@ onMounted(() => {
 
           <a-button type="text" class="!rounded-md mr-1 -mt-1.5 h-[1rem]" @click="navigateToSharedBase">
             <template #icon>
-              <MdiOpenInNew class="flex mx-auto text-gray-600" />
+              <component :is="iconMap.share"  class="flex mx-auto text-gray-600" />
             </template>
           </a-button>
         </a-tooltip>
@@ -206,7 +206,7 @@ onMounted(() => {
 
           <a-button type="text" class="!rounded-md mr-1 -mt-1.5 h-[1rem]" @click="generateEmbeddableIframe">
             <template #icon>
-              <MdiXml class="flex mx-auto text-gray-600" />
+             <component :is="iconMap.xml" class="flex mx-auto text-gray-600" />
             </template>
           </a-button>
         </a-tooltip>

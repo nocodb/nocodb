@@ -144,7 +144,7 @@ const copyPasswordResetUrl = async (user: User) => {
         >
         </a-input-search>
         <div class="flex-grow"></div>
-        <MdiReload class="cursor-pointer" @click="loadUsers" />
+        <component :is="iconMap.reload" class="cursor-pointer" @click="loadUsers" />
         <a-button
           data-testid="nc-super-user-invite"
           size="small"

@@ -230,7 +230,7 @@ const isSuperAdmin = (user: { main_roles?: string }) => {
       <div class="flex flex-row space-x-1">
         <a-button v-e="['a:user:reload']" size="middle" type="text" @click="loadUsers()">
           <div class="flex flex-row justify-center items-center caption capitalize space-x-1">
-            <MdiReload class="text-gray-500" />
+            <component :is="iconMap.reload" class="text-gray-500" />
             <div class="text-gray-500">{{ $t('general.reload') }}</div>
           </div>
         </a-button>

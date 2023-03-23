@@ -250,7 +250,7 @@ const copyIframeCode = async () => {
       @click="genShareLink"
     >
       <div class="flex items-center gap-1">
-        <PhShareThin />
+        <component :is="iconMap.share" />
         <!-- Share View -->
         <span v-if="!isMobileMode" class="!text-xs font-weight-normal"> {{ $t('activity.shareView') }}</span>
       </div>
@@ -273,7 +273,7 @@ const copyIframeCode = async () => {
         <div class="flex-1 h-min text-xs text-gray-500">{{ sharedViewUrl }}</div>
 
         <a v-e="['c:view:share:open-url']" :href="sharedViewUrl" target="_blank">
-          <MdiOpenInNew class="text-sm text-gray-500" />
+          <component :is="iconMap.share" class="text-sm text-gray-500" />
         </a>
 
         <component

@@ -104,7 +104,7 @@ const descriptionInput: VNodeRef = (el) => (el as HTMLInputElement)?.focus()
     <div class="max-w-[900px] mx-auto p-4" data-testid="nc-token-list">
       <div class="py-2 flex gap-4 items-center">
         <div class="flex-grow"></div>
-        <MdiReload class="cursor-pointer" @click="loadTokens" />
+        <component :is="iconMap.reload" class="cursor-pointer" @click="loadTokens" />
         <a-button data-testid="nc-token-create" size="small" type="primary" @click="showNewTokenModal = true">
           <div class="flex items-center gap-1">
             <MdiAdd />

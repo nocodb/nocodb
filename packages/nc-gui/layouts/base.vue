@@ -1,5 +1,5 @@
 <script lang="ts" setup>
-import { computed, navigateTo, ref, useGlobal, useNuxtApp, useRoute, useSidebar } from '#imports'
+import { computed, navigateTo, ref, useGlobal, useNuxtApp, useRoute, useSidebar, iconMap } from '#imports'
 
 const { signOut, signedIn, isLoading, user, currentVersion } = useGlobal()
 
@@ -60,7 +60,7 @@ hooks.hook('page:finish', () => {
           <div v-show="isLoading" class="flex items-center gap-2 ml-3" data-testid="nc-loading">
             {{ $t('general.loading') }}
 
-            <MdiReload :class="{ 'animate-infinite animate-spin': isLoading }" />
+            <component :is="iconMap.reload" :class="{ 'animate-infinite animate-spin': isLoading }" />
           </div>
         </div>
 

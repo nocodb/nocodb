@@ -77,6 +77,9 @@ import PhWarningThin from '~icons/ph/warning-thin'
 import HMIcon from '~icons/mdi/table-arrow-right'
 import BTIcon from '~icons/mdi/table-arrow-left'
 import MMIcon from '~icons/mdi/table-network'
+import PhShareThin from '~icons/ph/share-thin'
+import PhReloadThin from '~icons/ph/arrow-clockwise-thin'
+import PhCodeThin from '~icons/ph/code-thin'
 
 export const iconMap = {
   lock: PhLockIcon,
@@ -138,6 +141,9 @@ export const iconMap = {
   acl: PhFolderLockThin,
   sync: MdiDatabaseSync,
   warning: PhWarningThin,
+  share: PhShareThin,
+  reload: PhReloadThin,
+  xml: PhCodeThin,
 
   mm: MMIcon,
   hm: HMIcon,

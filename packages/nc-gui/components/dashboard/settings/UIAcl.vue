@@ -8,6 +8,7 @@ import {
   onMounted,
   storeToRefs,
   useGlobal,
+  iconMap,
   useI18n,
   useNuxtApp,
   useProject,
@@ -126,7 +127,7 @@ const columns = [
 
         <a-button class="self-start nc-acl-reload" @click="loadTableList">
           <div class="flex items-center gap-2 text-gray-600 font-light">
-            <MdiReload :class="{ 'animate-infinite animate-spin !text-success': isLoading }" />
+            <component :is="iconMap.reload" :class="{ 'animate-infinite animate-spin !text-success': isLoading }" />
             Reload
           </div>
         </a-button>

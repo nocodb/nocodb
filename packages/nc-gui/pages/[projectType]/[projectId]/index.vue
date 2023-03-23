@@ -1,12 +1,11 @@
 <script setup lang="ts">
 import tinycolor from 'tinycolor2'
-import { iconMap } from '#imports';
-
 import {
   TabType,
   computed,
   definePageMeta,
   extractSdkResponseErrorMsg,
+  iconMap,
   isDrawerOrModalExist,
   isMac,
   message,

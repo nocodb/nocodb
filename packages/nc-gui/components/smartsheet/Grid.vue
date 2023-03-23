@@ -830,7 +830,8 @@ const closeAddColumnDropdown = () => {
                             v-else
                             class="cursor-pointer flex items-center border-1 active:ring rounded p-1 hover:(bg-primary bg-opacity-10)"
                           >
-                            <MdiArrowExpand
+                            <component
+                              :is="iconMap.expand"
                               v-e="['c:row-expand']"
                               class="select-none transform hover:(text-accent scale-120) nc-row-expand"
                               @click="expandForm(row, state)"

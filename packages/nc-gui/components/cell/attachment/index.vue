@@ -7,6 +7,7 @@ import {
   DropZoneRef,
   IsGalleryInj,
   IsKanbanInj,
+  iconMap,
   inject,
   isImage,
   nextTick,
@@ -243,7 +244,8 @@ useSelectedCellKeyupListener(inject(ActiveCellInj, ref(false)), (e) => {
         <a-tooltip v-else placement="bottom">
           <template #title> View attachments</template>
 
-          <MdiArrowExpand
+          <component
+            :is="iconMap.expand"
             class="transform dark:(!text-white) group-hover:(!text-accent scale-120) text-gray-500 text-[0.75rem]"
             @click.stop="modalVisible = true"
           />

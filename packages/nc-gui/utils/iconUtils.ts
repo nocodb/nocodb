@@ -15,7 +15,6 @@ import MdiFlagOutline from '~icons/mdi/flag-outline'
 import MdiTableLarge from '~icons/mdi/table-large'
 import MdiEyeCircleOutline from '~icons/mdi/eye-circle-outline'
 import MdiAccountGroup from '~icons/mdi/account-group'
-import PhEyeThin from '~icons/ph/EyeThin'
 import PhTableThin from '~icons/ph/TableThin'
 
 import PhLockIcon from '~icons/ph/lock-key-thin'
@@ -67,6 +66,9 @@ import PhFunctionDuotone from '~icons/ph/function-duotone'
 import PhQrCodeThin from '~icons/ph/qr-code-thin'
 import PhBarcodeThin from '~icons/ph/barcode-thin'
 import PhCalculatorThin from '~icons/ph/calculator-thin'
+import PhEyeSlashThin from '~icons/ph/eye-slash-thin'
+import PhEyeThin from '~icons/ph/eye-thin'
+import PhExpandThin from '~icons/ph/arrows-out-simple-thin'
 
 export const iconMap = {
   'mdi-check-bold': MdiCheckBold,
@@ -138,6 +140,9 @@ export const iconMap = {
   'qr-code': PhQrCodeThin,
   'bar-code': PhBarcodeThin,
   'calculator': PhCalculatorThin,
+  'eye': PhEyeThin,
+  'eye-slash': PhEyeSlashThin,
+  'expand': PhExpandThin,
 } as const
 
 export const getMdiIcon = (type: string): any => {

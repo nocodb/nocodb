@@ -588,7 +588,7 @@ watch(view, async (nextView) => {
           <a-menu class="shadow !rounded !py-0" @click="contextMenu = false">
             <a-menu-item v-if="contextMenuTarget" @click="expandForm(contextMenuTarget)">
               <div v-e="['a:kanban:expand-record']" class="nc-project-menu-item nc-kanban-context-menu-item">
-                <MdiArrowExpand class="flex" />
+                <component :is="iconMap.expand" class="flex" />
                 <!-- Expand Record -->
                 {{ $t('activity.expandRecord') }}
               </div>

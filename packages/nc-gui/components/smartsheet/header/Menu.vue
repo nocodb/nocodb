@@ -248,7 +248,7 @@ const hideField = async () => {
         <a-divider class="!my-0" />
         <a-menu-item v-if="!column?.pv" @click="hideField">
           <div v-e="['a:field:hide']" class="nc-column-insert-before nc-header-menu-item">
-            <MdiEyeOffOutline class="text-primary" />
+            <component :is="iconMap.eye" class="text-primary" />
             <!-- Hide Field -->
             {{ $t('general.hideField') }}
           </div>

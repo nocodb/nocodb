@@ -597,7 +597,8 @@ watch(view, (nextView) => {
                     v-if="isUIAllowed('editFormView') && !isRequired(element, element.required)"
                     class="absolute flex top-2 right-2"
                   >
-                    <MdiEyeOffOutline
+                    <component
+                      :is="iconMap['eye-slash']"
                       class="opacity-0 nc-field-remove-icon"
                       data-testid="nc-field-remove-icon"
                       @click.stop="hideColumn(index)"

@@ -12,6 +12,7 @@ import {
   RowInj,
   computed,
   createEventHook,
+  iconMap,
   inject,
   ref,
   useProvideLTARStore,
@@ -19,8 +20,6 @@ import {
   useSmartsheetRowStoreOrThrow,
   useUIPermission,
 } from '#imports'
-import MdiArrowExpand from '~icons/mdi/arrow-expand'
-import MdiPlus from '~icons/mdi/plus'
 
 const column = inject(ColumnInj)!
 
@@ -53,7 +52,7 @@ const { loadRelatedTableMeta, relatedTableDisplayValueProp, unlink } = useProvid
 
 await loadRelatedTableMeta()
 
-const addIcon = computed(() => (cellValue?.value ? MdiArrowExpand : MdiPlus))
+const addIcon = computed(() => (cellValue?.value ? iconMap.expand : iconMap.plus))
 
 const value = computed(() => {
   if (cellValue?.value) {

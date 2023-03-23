@@ -1,9 +1,9 @@
 <script lang="ts" setup>
 import { onUnmounted, ref, useEventListener, useGlobal, useI18n, useNuxtApp, watch } from '#imports'
+import { iconMap } from '~/utils'
 import MdiAccountStar from '~icons/mdi/account-star'
 import MdiAccountHardHat from '~icons/mdi/account-hard-hat'
 import MdiAccountEdit from '~icons/ph/pencil-circle-thin'
-import MdiEyeOutline from '~icons/ph/eye-thin'
 import MdiCommentAccountOutline from '~icons/ph/chat-teardrop-text-thin'
 import { ProjectRole } from '~/lib'
 
@@ -25,7 +25,7 @@ const roleIcon = {
   owner: MdiAccountStar,
   creator: MdiAccountHardHat,
   editor: MdiAccountEdit,
-  viewer: MdiEyeOutline,
+  viewer: iconMap.eye,
   commenter: MdiCommentAccountOutline,
 }
 

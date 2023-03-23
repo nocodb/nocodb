@@ -211,7 +211,7 @@
     "codeSnippet": "代码片段",
     "keyboardShortcut": "快捷键",
     "generateRandomName": "随机名称",
-    "findRowByScanningCode": "Find row by scanning a QR or Barcode"
+    "findRowByScanningCode": "通过扫描二维码或条码查找行"
   },
   "labels": {
     "createdBy": "创建自",
@@ -779,6 +779,7 @@
       "userDeletedFromProject": "踢出用户成功",
       "inviteEmailSent": "邀请邮件发送成功",
       "inviteURLCopied": "邀请URL已复制到剪贴板",
+      "commentCopied": "Comment copied to clipboard",
       "passwordResetURLCopied": "密码重置网址已复制到剪贴板",
       "shareableURLCopied": "已将可共享的基础URL复制到剪贴板！",
       "embeddableHTMLCodeCopied": "已复制可嵌入的 HTML 代码！",

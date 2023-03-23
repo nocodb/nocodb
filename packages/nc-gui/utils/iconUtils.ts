@@ -23,7 +23,7 @@ import PhUsersThreeThin from '~icons/ph/users-three-thin'
 import PhDownloadThin from '~icons/ph/arrow-line-down-thin'
 import PhUploadThin from '~icons/ph/arrow-line-up-thin'
 import PhHookThin from '~icons/ph/anchor-thin'
-import PhFlowThin from '~icons/ph/flow-arrow-thin'
+import PhTreeThin from '~icons/ph/tree-structure-thin'
 import PhPlusThin from '~icons/ph/plus-thin'
 import PhSearchThin from '~icons/ph/magnifying-glass-thin'
 import PhCopySimpleThin from '~icons/ph/copy-simple-thin'
@@ -62,13 +62,21 @@ import PercentIcon from '~icons/ph/percent-thin'
 import DecimalIcon from '~icons/mdi/decimal'
 import SpecificDBTypeIcon from '~icons/ph/database-thin'
 import DurationIcon from '~icons/ph/clock-clockwise-thin'
-import PhFunctionDuotone from '~icons/ph/function-duotone'
+import PhFunctiontone from '~icons/ph/function-thin'
 import PhQrCodeThin from '~icons/ph/qr-code-thin'
 import PhBarcodeThin from '~icons/ph/barcode-thin'
 import PhCalculatorThin from '~icons/ph/calculator-thin'
 import PhEyeSlashThin from '~icons/ph/eye-slash-thin'
 import PhEyeThin from '~icons/ph/eye-thin'
 import PhExpandThin from '~icons/ph/arrows-out-simple-thin'
+import PhLifebuoyThin from '~icons/ph/lifebuoy-thin'
+import PhCheckThin from '~icons/ph/check-thin'
+import PhFolderLockThin from '~icons/ph/folder-simple-lock-thin'
+import MdiDatabaseSync from '~icons/mdi/database-sync'
+import PhWarningThin from '~icons/ph/warning-thin'
+import HMIcon from '~icons/mdi/table-arrow-right'
+import BTIcon from '~icons/mdi/table-arrow-left'
+import MMIcon from '~icons/mdi/table-network'
 
 export const iconMap = {
   'mdi-check-bold': MdiCheckBold,
@@ -95,7 +103,7 @@ export const iconMap = {
   'download': PhDownloadThin,
   'upload': PhUploadThin,
   'hook': PhHookThin,
-  'erd': PhFlowThin,
+  'erd': PhTreeThin,
   'plus': PhPlusThin,
   'search': PhSearchThin,
   'copy': PhCopySimpleThin,
@@ -134,15 +142,24 @@ export const iconMap = {
   'specific-db-type': SpecificDBTypeIcon,
   'duration': DurationIcon,
   'file-phone': FilePhoneIcon,
-  'formula': PhFunctionDuotone,
+  'formula': PhFunctiontone,
   'key': KeyIcon,
   'json': PhBracketsCurlyThin,
   'qr-code': PhQrCodeThin,
   'bar-code': PhBarcodeThin,
   'calculator': PhCalculatorThin,
+  'rollup': PhLifebuoyThin,
   'eye': PhEyeThin,
   'eye-slash': PhEyeSlashThin,
   'expand': PhExpandThin,
+  'check': PhCheckThin,
+  'acl': PhFolderLockThin,
+  'sync': MdiDatabaseSync,
+  'warning': PhWarningThin,
+
+  'mm': MMIcon,
+  'hm': HMIcon,
+  'bt': BTIcon,
 } as const
 
 export const getMdiIcon = (type: string): any => {

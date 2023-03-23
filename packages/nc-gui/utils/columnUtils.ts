@@ -2,7 +2,6 @@ import type { ColumnType, LinkToAnotherRecordType } from 'nocodb-sdk'
 import { RelationTypes, UITypes } from 'nocodb-sdk'
 import { iconMap } from '~/utils/iconUtils'
 import LinkVariant from '~icons/mdi/link-variant'
-import MovieRoll from '~icons/mdi/movie-roll'
 import ID from '~icons/mdi/identifier'
 
 const uiTypes = [
@@ -95,7 +94,7 @@ const uiTypes = [
   },
   {
     name: UITypes.Rollup,
-    icon: MovieRoll,
+    icon: iconMap.rollup,
     virtual: 1,
   },
   {

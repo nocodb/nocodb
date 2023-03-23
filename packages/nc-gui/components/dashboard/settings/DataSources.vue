@@ -255,9 +255,9 @@ watch(
                       <div class="flex items-center gap-2 text-gray-600 font-light">
                         <a-tooltip v-if="metadiffbases.includes(sources[0].id)">
                           <template #title>Out of sync</template>
-                          <MdiDatabaseAlert class="text-lg group-hover:text-accent text-primary" />
+                          <component :is="iconMap.warning" class="text-lg group-hover:text-accent text-primary" />
                         </a-tooltip>
-                        <MdiDatabaseSync v-else class="text-lg group-hover:text-accent" />
+                        <component :is="iconMap.sync" v-else class="text-lg group-hover:text-accent" />
                         Sync Metadata
                       </div>
                     </a-button>
@@ -266,7 +266,7 @@ watch(
                       @click="baseAction(sources[0].id, DataSourcesSubTab.UIAcl)"
                     >
                       <div class="flex items-center gap-2 text-gray-600 font-light">
-                        <MdiDatabaseLockOutline class="text-lg group-hover:text-accent" />
+                        <component :is="iconMap.acl" class="text-lg group-hover:text-accent" />
                         UI ACL
                       </div>
                     </a-button>
@@ -275,7 +275,7 @@ watch(
                       @click="baseAction(sources[0].id, DataSourcesSubTab.ERD)"
                     >
                       <div class="flex items-center gap-2 text-gray-600 font-light">
-                        <MdiGraphOutline class="text-lg group-hover:text-accent" />
+                        <component :is="iconMap.erd" class="text-lg group-hover:text-accent" />
                         ERD
                       </div>
                     </a-button>
@@ -285,7 +285,7 @@ watch(
                       @click="baseAction(sources[0].id, DataSourcesSubTab.Edit)"
                     >
                       <div class="flex items-center gap-2 text-gray-600 font-light">
-                        <MdiEditOutline class="text-lg group-hover:text-accent" />
+                        <component :is="iconMap.edit" class="text-lg group-hover:text-accent" />
                         Edit
                       </div>
                     </a-button>
@@ -324,9 +324,9 @@ watch(
                       <div class="flex items-center gap-2 text-gray-600 font-light">
                         <a-tooltip v-if="metadiffbases.includes(base.id)">
                           <template #title>Out of sync</template>
-                          <MdiDatabaseAlert class="text-lg group-hover:text-accent text-primary" />
+                          <component :is="iconMap.warning" class="text-lg group-hover:text-accent text-primary" />
                         </a-tooltip>
-                        <MdiDatabaseSync v-else class="text-lg group-hover:text-accent" />
+                        <component :is="iconMap.sync" v-else class="text-lg group-hover:text-accent" />
                         Sync Metadata
                       </div>
                     </a-button>
@@ -335,13 +335,13 @@ watch(
                       @click="baseAction(base.id, DataSourcesSubTab.UIAcl)"
                     >
                       <div class="flex items-center gap-2 text-gray-600 font-light">
-                        <MdiDatabaseLockOutline class="text-lg group-hover:text-accent" />
+                        <component :is="iconMap.acl" class="text-lg group-hover:text-accent" />
                         UI ACL
                       </div>
                     </a-button>
                     <a-button class="nc-action-btn cursor-pointer outline-0" @click="baseAction(base.id, DataSourcesSubTab.ERD)">
                       <div class="flex items-center gap-2 text-gray-600 font-light">
-                        <MdiGraphOutline class="text-lg group-hover:text-accent" />
+                        <component :is="iconMap.erd" class="text-lg group-hover:text-accent" />
                         ERD
                       </div>
                     </a-button>
@@ -351,7 +351,7 @@ watch(
                       @click="baseAction(base.id, DataSourcesSubTab.Edit)"
                     >
                       <div class="flex items-center gap-2 text-gray-600 font-light">
-                        <MdiEditOutline class="text-lg group-hover:text-accent" />
+                        <component :is="iconMap.edit" class="text-lg group-hover:text-accent" />
                         Edit
                       </div>
                     </a-button>

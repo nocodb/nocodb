@@ -779,6 +779,7 @@
       "userDeletedFromProject": "Uspešno izbrisan uporabnik iz projekta",
       "inviteEmailSent": "Uspešno poslano e-poštno sporočilo z vabilom",
       "inviteURLCopied": "URL vabila kopiran v odložišče",
+      "commentCopied": "Comment copied to clipboard",
       "passwordResetURLCopied": "URL za ponastavitev gesla kopiran v odložišče",
       "shareableURLCopied": "V odložišče kopirajte osnovni naslov URL, ki ga je mogoče deliti!",
       "embeddableHTMLCodeCopied": "Kopiranje kode HTML, ki jo je mogoče vgraditi!",

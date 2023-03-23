@@ -2325,7 +2325,7 @@ class BaseModelSqlv2 {
       });
       for (const hook of hooks) {
         if (hook.active) {
-          invokeWebhook(hook, this.model, data, req?.user);
+          invokeWebhook(hook, this.model, view, data, req?.user);
         }
       }
     } catch (e) {

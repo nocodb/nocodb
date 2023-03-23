@@ -598,7 +598,7 @@ watch(view, (nextView) => {
                     class="absolute flex top-2 right-2"
                   >
                     <component
-                      :is="iconMap['eye-slash']"
+                      :is="iconMap.eyeSlash"
                       class="opacity-0 nc-field-remove-icon"
                       data-testid="nc-field-remove-icon"
                       @click.stop="hideColumn(index)"

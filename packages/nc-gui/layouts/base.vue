@@ -79,7 +79,7 @@ hooks.hook('page:finish', () => {
         <template v-if="signedIn">
           <a-dropdown :trigger="['click']" overlay-class-name="nc-dropdown-user-accounts-menu">
             <component
-              :is="iconMap['three-dot-vertical']"
+              :is="iconMap.threeDotVertical"
               data-testid="nc-menu-accounts"
               class="md:text-xl cursor-pointer hover:text-accent nc-menu-accounts"
               @click.prevent

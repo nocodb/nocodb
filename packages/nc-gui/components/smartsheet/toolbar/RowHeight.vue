@@ -45,7 +45,7 @@ useMenuCloseOnEsc(open)
         <div class="flex items-center gap-1">
           <PhSplitVerticalThin />
           <!-- Row Height -->
-          <component :is="iconMap['arrow-down']" class="text-grey !text-0.5rem" />
+          <component :is="iconMap.arrowDown" class="text-grey !text-0.5rem" />
         </div>
       </a-button>
     </div>

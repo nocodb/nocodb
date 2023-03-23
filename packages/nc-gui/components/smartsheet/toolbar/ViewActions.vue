@@ -6,6 +6,7 @@ import {
   IsPublicInj,
   MetaInj,
   extractSdkResponseErrorMsg,
+  iconMap,
   inject,
   message,
   ref,
@@ -15,7 +16,7 @@ import {
   useNuxtApp,
   useProject,
   useSmartsheetStoreOrThrow,
-  useUIPermission,iconMap
+  useUIPermission,
 } from '#imports'
 import { LockType } from '~/lib'
 
@@ -67,12 +68,12 @@ const currentBaseId = computed(() => meta.value?.base_id)
 const Icon = computed(() => {
   switch (selectedView.value?.lock_type) {
     case LockType.Personal:
-      return iconMap['account-icon']
+      return iconMap.account
     case LockType.Locked:
-      return iconMap['lock-icon']
+      return iconMap.lock
     case LockType.Collaborative:
     default:
-      return iconMap['users-icon']
+      return iconMap.users
   }
 })
 
@@ -117,7 +118,7 @@ useMenuCloseOnEsc(open)
 
           <component :is="Icon" class="text-gray-500" :class="`nc-icon-${selectedView?.lock_type}`" />
 
-          <component :is="iconMap['arrow-down']" class="text-grey !text-0.5rem" />
+          <component :is="iconMap.arrowDown" class="text-grey !text-0.5rem" />
         </div>
       </a-button>
 

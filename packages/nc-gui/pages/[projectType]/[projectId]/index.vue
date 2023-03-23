@@ -538,7 +538,7 @@ useEventListener(document, 'keydown', async (e: KeyboardEvent) => {
                     <a-sub-menu key="account">
                       <template #title>
                         <div class="nc-project-menu-item group">
-                          <component :is="iconMap['account-icon']" class="group-hover:text-accent" />
+                          <component :is="iconMap.account" class="group-hover:text-accent" />
                           {{ $t('labels.account') }}
                           <div class="flex-1" />
 

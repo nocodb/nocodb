@@ -162,7 +162,7 @@ useMenuCloseOnEsc(open)
           <!-- Fields -->
           <span v-if="!isMobileMode" class="text-capitalize !text-xs font-weight-normal">{{ $t('objects.fields') }}</span>
 
-          <component :is="iconMap['arrow-down']" class="text-grey !text-0.5rem" />
+          <component :is="iconMap.arrowDown" class="text-grey !text-0.5rem" />
 
           <span v-if="numberOfHiddenFields" class="nc-count-badge">{{ numberOfHiddenFields }}</span>
         </div>

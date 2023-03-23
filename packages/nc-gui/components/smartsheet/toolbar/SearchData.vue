@@ -4,14 +4,13 @@ import {
   ActiveViewInj,
   ReloadViewDataHookInj,
   computed,
+  iconMap,
   inject,
   onClickOutside,
   ref,
   useFieldQuery,
-  iconMap,
   useSmartsheetStoreOrThrow,
 } from '#imports'
-
 
 const reloadData = inject(ReloadViewDataHookInj)!
 
@@ -59,7 +58,7 @@ function onPressEnter() {
     >
       <component :is="iconMap.search" class="text-grey" />
 
-      <component :is="iconMap['arrow-down']" class="text-grey !text-0.5rem" />
+      <component :is="iconMap.arrowDown" class="text-grey !text-0.5rem" />
 
       <a-select
         v-model:value="search.field"

@@ -21,7 +21,7 @@ const uiTypes = [
   },
   {
     name: UITypes.LongText,
-    icon: iconMap['long-text'],
+    icon: iconMap.longText,
   },
   {
     name: UITypes.Attachment,
@@ -33,11 +33,11 @@ const uiTypes = [
   },
   {
     name: UITypes.MultiSelect,
-    icon: iconMap['multi-select'],
+    icon: iconMap.multiSelect,
   },
   {
     name: UITypes.SingleSelect,
-    icon: iconMap['single-select'],
+    icon: iconMap.singleSelect,
   },
   {
     name: UITypes.Date,
@@ -53,7 +53,7 @@ const uiTypes = [
   },
   {
     name: UITypes.PhoneNumber,
-    icon: iconMap['file-phone'],
+    icon: iconMap.phone,
   },
   {
     name: UITypes.Email,
@@ -103,12 +103,12 @@ const uiTypes = [
   },
   {
     name: UITypes.QrCode,
-    icon: iconMap['qr-code'],
+    icon: iconMap.qrCode,
     virtual: 1,
   },
   {
     name: UITypes.Barcode,
-    icon: iconMap['bar-code'],
+    icon: iconMap.barCode,
     virtual: 1,
   },
   {
@@ -118,7 +118,7 @@ const uiTypes = [
 
   {
     name: UITypes.GeoData,
-    icon: iconMap['geo-data'],
+    icon: iconMap.geoData,
   },
   {
     name: UITypes.JSON,
@@ -126,7 +126,7 @@ const uiTypes = [
   },
   {
     name: UITypes.SpecificDBType,
-    icon: iconMap['specific-db-type'],
+    icon: iconMap.specificDbType,
   },
 ]
 

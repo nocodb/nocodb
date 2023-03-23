@@ -5,6 +5,7 @@ import {
   computed,
   defineComponent,
   h,
+  iconMap,
   inject,
   isAttachment,
   isBoolean,
@@ -33,14 +34,13 @@ import {
   storeToRefs,
   toRef,
   useProject,
-  iconMap
 } from '#imports'
 
 const renderIcon = (column: ColumnType, abstractType: any) => {
   if (isPrimaryKey(column)) {
     return iconMap.key
   } else if (isSpecificDBType(column)) {
-    return iconMap['specific-db-type']
+    return iconMap.specificDbType
   } else if (isJSON(column)) {
     return iconMap.json
   } else if (isDate(column, abstractType)) {
@@ -48,15 +48,15 @@ const renderIcon = (column: ColumnType, abstractType: any) => {
   } else if (isDateTime(column, abstractType)) {
     return iconMap.datetime
   } else if (isGeoData(column)) {
-    return iconMap['geo-data']
+    return iconMap.geoData
   } else if (isSet(column)) {
-    return iconMap['multi-select']
+    return iconMap.multiSelect
   } else if (isSingleSelect(column)) {
-    return iconMap['single-select']
+    return iconMap.singleSelect
   } else if (isBoolean(column, abstractType)) {
     return iconMap.boolean
   } else if (isTextArea(column)) {
-    return iconMap['long-text']
+    return iconMap.longText
   } else if (isEmail(column)) {
     return iconMap.email
   } else if (isYear(column, abstractType)) {
@@ -70,7 +70,7 @@ const renderIcon = (column: ColumnType, abstractType: any) => {
   } else if (isDecimal(column)) {
     return iconMap.decimal
   } else if (isPhoneNumber(column)) {
-    return iconMap['file-phone']
+    return iconMap.phone
   } else if (isURL(column)) {
     return iconMap.web
   } else if (isCurrency(column)) {

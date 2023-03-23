@@ -12,6 +12,7 @@ import {
   TabType,
   computed,
   extractSdkResponseErrorMsg,
+  iconMap,
   isDrawerOrModalExist,
   isMac,
   parseProp,
@@ -29,7 +30,6 @@ import {
   useToggle,
   useUIPermission,
   watchEffect,
-  iconMap
 } from '#imports'
 import PhEyeThin from '~icons/ph/EyeThin'
 import PhTableThin from '~icons/ph/TableThin'
@@ -407,7 +407,7 @@ const setIcon = async (icon: string, table: TableType) => {
 
           <a-dropdown v-if="!isSharedBase" :trigger="['click']" overlay-class-name="nc-dropdown-import-menu" @click.stop>
             <Transition name="slide-right" mode="out-in">
-              <component :is="iconMap['three-dot-vertical']" v-if="!searchActive" class="hover:text-accent outline-0" />
+              <component :is="iconMap.threeDotVertical" v-if="!searchActive" class="hover:text-accent outline-0" />
             </Transition>
 
             <template #overlay>
@@ -480,7 +480,7 @@ const setIcon = async (icon: string, table: TableType) => {
 
             <a-dropdown v-if="!isSharedBase" :trigger="['click']" overlay-class-name="nc-dropdown-import-menu" @click.stop>
               <component
-                :is="iconMap['three-dot-vertical']"
+                :is="iconMap.threeDotVertical"
                 class="transition-opacity opacity-0 group-hover:opacity-100 nc-import-menu outline-0"
               />
 
@@ -663,7 +663,7 @@ const setIcon = async (icon: string, table: TableType) => {
                           @click.stop
                         >
                           <component
-                            :is="iconMap['three-dot-vertical']"
+                            :is="iconMap.threeDotVertical"
                             class="transition-opacity opacity-0 group-hover:opacity-100 outline-0"
                           />
 
@@ -745,7 +745,7 @@ const setIcon = async (icon: string, table: TableType) => {
                       @click.stop
                     >
                       <component
-                        :is="iconMap['three-dot-vertical']"
+                        :is="iconMap.threeDotVertical"
                         class="transition-opacity opacity-0 group-hover:opacity-100 nc-import-menu outline-0"
                       />
 
@@ -834,7 +834,7 @@ const setIcon = async (icon: string, table: TableType) => {
                       @click.stop
                     >
                       <component
-                        :is="iconMap['three-dot-vertical']"
+                        :is="iconMap.threeDotVertical"
                         class="transition-opacity opacity-0 group-hover:opacity-100 nc-import-menu outline-0"
                       />
 
@@ -971,7 +971,7 @@ const setIcon = async (icon: string, table: TableType) => {
                             @click.stop
                           >
                             <component
-                              :is="iconMap['three-dot-vertical']"
+                              :is="iconMap.threeDotVertical"
                               class="transition-opacity opacity-0 group-hover:opacity-100 outline-0"
                             />
 

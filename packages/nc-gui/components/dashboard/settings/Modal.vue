@@ -2,7 +2,7 @@
 import type { FunctionalComponent, SVGAttributes } from 'vue'
 import DataSources from './DataSources.vue'
 import Misc from './Misc.vue'
-import { DataSourcesSubTab,iconMap, useI18n, useNuxtApp, useUIPermission, useVModel, watch } from '#imports'
+import { DataSourcesSubTab, iconMap, useI18n, useNuxtApp, useUIPermission, useVModel, watch } from '#imports'
 
 interface Props {
   modelValue: boolean
@@ -50,7 +50,7 @@ const dataSourcesAwakened = ref(false)
 const tabsInfo: TabGroup = {
   teamAndAuth: {
     title: t('title.teamAndAuth'),
-    icon: iconMap['users-icon'],
+    icon: iconMap.users,
     subTabs: {
       ...(isUIAllowed('userMgmtTab')
         ? {

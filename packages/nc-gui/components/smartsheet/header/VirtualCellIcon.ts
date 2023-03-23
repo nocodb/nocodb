@@ -2,7 +2,21 @@ import type { PropType } from '@vue/runtime-core'
 import type { ColumnType, LinkToAnotherRecordType, LookupType, RollupType } from 'nocodb-sdk'
 import type { Ref } from 'vue'
 import { RelationTypes, UITypes } from 'nocodb-sdk'
-import { ColumnInj, MetaInj, defineComponent, h, inject, isBt, isHm, isLookup, isMm, isRollup, ref, toRef, iconMap} from '#imports'
+import {
+  ColumnInj,
+  MetaInj,
+  defineComponent,
+  h,
+  iconMap,
+  inject,
+  isBt,
+  isHm,
+  isLookup,
+  isMm,
+  isRollup,
+  ref,
+  toRef,
+} from '#imports'
 import CountIcon from '~icons/mdi/counter'
 
 const renderIcon = (column: ColumnType, relationColumn?: ColumnType) => {
@@ -18,13 +32,13 @@ const renderIcon = (column: ColumnType, relationColumn?: ColumnType) => {
       }
       break
     case UITypes.SpecificDBType:
-      return { icon: iconMap['specific-db-type'], color: 'text-grey' }
+      return { icon: iconMap.specificDbType, color: 'text-grey' }
     case UITypes.Formula:
       return { icon: iconMap.formula, color: 'text-grey' }
     case UITypes.QrCode:
-      return { icon: iconMap['qr-code'], color: 'text-grey' }
+      return { icon: iconMap.qrCode, color: 'text-grey' }
     case UITypes.Barcode:
-      return { icon: iconMap['qr-code'], color: 'text-grey' }
+      return { icon: iconMap.qrCode, color: 'text-grey' }
     case UITypes.Lookup:
       switch ((relationColumn?.colOptions as LinkToAnotherRecordType)?.type) {
         case RelationTypes.MANY_TO_MANY:

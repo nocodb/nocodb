@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { LockType } from '~/lib'
-import { ActiveViewInj, inject, iconMap } from '#imports'
+import { ActiveViewInj, iconMap, inject } from '#imports'
 
 const { type, hideTick } = defineProps<{ hideTick?: boolean; type: LockType }>()
 
@@ -9,17 +9,17 @@ const emit = defineEmits(['select'])
 const types = {
   [LockType.Personal]: {
     title: 'title.personalView',
-    icon: iconMap['account-icon'],
+    icon: iconMap.account,
     subtitle: 'msg.info.personalView',
   },
   [LockType.Collaborative]: {
     title: 'title.collabView',
-    icon: iconMap['users-icon'],
+    icon: iconMap.users,
     subtitle: 'msg.info.collabView',
   },
   [LockType.Locked]: {
     title: 'title.lockedView',
-    icon: iconMap['lock-icon'],
+    icon: iconMap.lock,
     subtitle: 'msg.info.lockedView',
   },
 }

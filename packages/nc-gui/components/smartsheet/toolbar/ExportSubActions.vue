@@ -7,6 +7,7 @@ import {
   IsPublicInj,
   MetaInj,
   extractSdkResponseErrorMsg,
+  iconMap,
   inject,
   message,
   ref,
@@ -15,7 +16,6 @@ import {
   useNuxtApp,
   useProject,
   useSmartsheetStoreOrThrow,
-  iconMap
 } from '#imports'
 
 const { t } = useI18n()

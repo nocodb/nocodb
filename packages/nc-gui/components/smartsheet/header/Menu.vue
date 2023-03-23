@@ -215,7 +215,7 @@ const hideField = async () => {
 <template>
   <a-dropdown v-if="!isLocked" placement="bottomRight" :trigger="['click']" overlay-class-name="nc-dropdown-column-operations">
     <component
-      :is="iconMap['arrow-down']"
+      :is="iconMap.arrowDown"
       class="text-grey !text-0.5rem h-full text-grey nc-ui-dt-dropdown cursor-pointer outline-0 mr-2"
     />
 

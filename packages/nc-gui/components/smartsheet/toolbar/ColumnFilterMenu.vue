@@ -5,6 +5,7 @@ import {
   IsLockedInj,
   IsPublicInj,
   computed,
+  iconMap,
   inject,
   ref,
   useGlobal,
@@ -13,7 +14,6 @@ import {
   useSmartsheetStoreOrThrow,
   useViewFilters,
   watch,
-  iconMap
 } from '#imports'
 
 const isLocked = inject(IsLockedInj, ref(false))
@@ -78,7 +78,7 @@ useMenuCloseOnEsc(open)
           <PhFunnelThin />
           <!-- Filter -->
           <span v-if="!isMobileMode" class="text-capitalize !text-xs font-weight-normal">{{ $t('activity.filter') }}</span>
-          <component :is="iconMap['arrow-down']" class="text-grey !text-0.5rem" />
+          <component :is="iconMap.arrowDown" class="text-grey !text-0.5rem" />
 
           <span v-if="filtersLength" class="nc-count-badge">{{ filtersLength }}</span>
         </div>

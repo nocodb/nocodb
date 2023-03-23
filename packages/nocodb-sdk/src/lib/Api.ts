@@ -500,6 +500,17 @@ export interface CommentReqType {
 }
 
 /**
+ * Model for Comment Update Request
+ */
+export interface CommentUpdateReqType {
+  /**
+   * Description for the target row
+   * @example This is the comment for the row
+   */
+  description?: string;
+}
+
+/**
  * Model for Filter
  */
 export interface FilterType {
@@ -8098,6 +8109,29 @@ export class Api<
       >({
         path: `/api/v1/db/meta/audits/comments`,
         method: 'POST',
+        body: data,
+        type: ContentType.Json,
+        format: 'json',
+        ...params,
+      }),
+
+    /**
+     * @description Update comment in Audit
+     *
+     * @tags Utils
+     * @name CommentUpdate
+     * @summary Update Comment in Audit
+     * @request PATCH:/api/v1/db/meta/audits/{auditId}/comment
+     * @response `200` `number` OK
+     */
+    commentUpdate: (
+      auditId: string,
+      data: CommentUpdateReqType,
+      params: RequestParams = {}
+    ) =>
+      this.request<number, any>({
+        path: `/api/v1/db/meta/audits/${auditId}/comment`,
+        method: 'PATCH',
         body: data,
         type: ContentType.Json,
         format: 'json',

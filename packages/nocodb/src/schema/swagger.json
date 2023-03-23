@@ -11523,6 +11523,69 @@
         ]
       }
     },
+    "/api/v1/db/meta/audits/{auditId}/comment": {
+      "parameters": [
+        {
+          "schema": {
+            "type": "string",
+            "example": "adt_zlskd6rlf3liay"
+          },
+          "name": "auditId",
+          "in": "path",
+          "required": true,
+          "description": "Audit ID"
+        },
+        {
+          "name": "xc-auth",
+          "in": "header",
+          "required": false,
+          "schema": {
+            "type": "string"
+          },
+          "description": "Auth Token is a JWT Token generated based on the logged-in user. By default, the token is only valid for 10 hours. However, you can change the value by defining it using environment variable NC_JWT_EXPIRES_IN."
+        }
+      ],
+      "patch": {
+        "summary": "Update Comment in Audit",
+        "operationId": "utils-comment-update",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "number",
+                  "example": 1
+                },
+                "examples": {
+                  "Example 1": {
+                    "value": 1
+                  }
+                }
+              }
+            }
+          }
+        },
+        "tags": ["Utils"],
+        "description": "Update comment in Audit",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CommentUpdateReq"
+              },
+              "examples": {
+                "Example 1": {
+                  "value": {
+                    "description": "This is the comment for the row"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/v1/db/meta/audits/comments/count": {
       "parameters": [
         {
@@ -13583,7 +13646,7 @@
           }
         },
         "x-stoplight": {
-          "id": "q8h78qib3l9ko"
+          "id": "zc9ztw0ih4ttt"
         }
       },
       "ApiTokenReq": {
@@ -13604,13 +13667,13 @@
           }
         },
         "x-stoplight": {
-          "id": "insn8kf1n4s6k"
+          "id": "t9dpbaw4dhpx3"
         }
       },
       "ApiTokenList": {
         "description": "Model for API Token List",
         "x-stoplight": {
-          "id": "r482re16lknrx"
+          "id": "dgoo5jfkvypld"
         },
         "examples": [
           {
@@ -13715,7 +13778,7 @@
           }
         },
         "x-stoplight": {
-          "id": "g4rbip7xwyo6c"
+          "id": "9uff8of377ouf"
         }
       },
       "AttachmentReq": {
@@ -13753,7 +13816,7 @@
           }
         },
         "x-stoplight": {
-          "id": "13qyneoxa9jal"
+          "id": "7mvkmys63d0bx"
         }
       },
       "Audit": {
@@ -13878,7 +13941,7 @@
           }
         },
         "x-stoplight": {
-          "id": "l0ptb1ze54xw8"
+          "id": "dz9hjvx07jaje"
         }
       },
       "AuditRowUpdateReq": {
@@ -13918,7 +13981,7 @@
           }
         },
         "x-stoplight": {
-          "id": "56u0jsmndirwt"
+          "id": "t4l2bqjgukcr1"
         }
       },
       "Base": {
@@ -13995,7 +14058,7 @@
           }
         },
         "x-stoplight": {
-          "id": "af5ft42zw0uds"
+          "id": "l5nhyvoa0dfag"
         }
       },
       "BaseList": {
@@ -14097,7 +14160,7 @@
         },
         "required": ["list", "pageInfo"],
         "x-stoplight": {
-          "id": "ixksiq5jlmtt8"
+          "id": "pn96b18y3k0je"
         }
       },
       "BaseReq": {
@@ -14153,7 +14216,7 @@
         "title": "Base Request",
         "type": "object",
         "x-stoplight": {
-          "id": "noplj8yr34xzd"
+          "id": "gebxq2b5pp1a3"
         }
       },
       "Bool": {
@@ -14175,7 +14238,7 @@
         ],
         "title": "Bool Model",
         "x-stoplight": {
-          "id": "1mdcm71g7euvt"
+          "id": "6qmxbfclxa8em"
         }
       },
       "Column": {
@@ -14463,7 +14526,7 @@
           }
         },
         "x-stoplight": {
-          "id": "jcj9uwgl3rnum"
+          "id": "0nszsk1q6done"
         }
       },
       "ColumnList": {
@@ -14571,7 +14634,7 @@
         },
         "required": ["list", "pageInfo"],
         "x-stoplight": {
-          "id": "vs478sn3czrc2"
+          "id": "fjqsqgw1ahlon"
         }
       },
       "ColumnReq": {
@@ -14663,7 +14726,7 @@
         "title": "Column Request Model",
         "type": "object",
         "x-stoplight": {
-          "id": "gz9531uzue95g"
+          "id": "fw6an7vvhpqfu"
         }
       },
       "CommentReq": {
@@ -14696,7 +14759,27 @@
         },
         "required": ["fk_model_id", "row_id"],
         "x-stoplight": {
-          "id": "bsshnshrcy8f7"
+          "id": "k7vnf7oc33p6m"
+        }
+      },
+      "CommentUpdateReq": {
+        "description": "Model for Comment Update Request",
+        "x-stoplight": {
+          "id": "wan84coiq9lyn"
+        },
+        "examples": [
+          {
+            "description": "This is the comment for the row"
+          }
+        ],
+        "title": "Comment Update Request Model",
+        "type": "object",
+        "properties": {
+          "description": {
+            "type": "string",
+            "description": "Description for the target row",
+            "example": "This is the comment for the row"
+          }
         }
       },
       "Filter": {
@@ -14855,7 +14938,7 @@
         "title": "Filter Model",
         "type": "object",
         "x-stoplight": {
-          "id": "ugwuw0aemt5y2"
+          "id": "goytqs4ua69w0"
         }
       },
       "FilterList": {
@@ -14944,7 +15027,7 @@
         },
         "required": ["list", "pageInfo"],
         "x-stoplight": {
-          "id": "5wly9iyeixwxs"
+          "id": "wzp2nwu7k19uj"
         }
       },
       "FilterReq": {
@@ -14962,7 +15045,7 @@
         "title": "Filter Request Model",
         "type": "object",
         "x-stoplight": {
-          "id": "3rypg89wx0qp1"
+          "id": "viq9ex4d7k8k2"
         },
         "properties": {
           "comparison_op": {
@@ -15183,7 +15266,7 @@
           }
         },
         "x-stoplight": {
-          "id": "luvu108gux43l"
+          "id": "bjh5qbmqyzy1k"
         }
       },
       "FormUpdateReq": {
@@ -15254,7 +15337,7 @@
           }
         },
         "x-stoplight": {
-          "id": "j9hvt9lds2o4q"
+          "id": "76m5jsz93rjsc"
         }
       },
       "FormColumn": {
@@ -15348,7 +15431,7 @@
           }
         },
         "x-stoplight": {
-          "id": "uga344v068snf"
+          "id": "liiv7vd1hgeqf"
         }
       },
       "FormColumnReq": {
@@ -15415,7 +15498,7 @@
           }
         },
         "x-stoplight": {
-          "id": "7x7zkufy7a93t"
+          "id": "21k1kvmq14s9a"
         }
       },
       "Formula": {
@@ -15456,7 +15539,7 @@
           }
         },
         "x-stoplight": {
-          "id": "3h68x9a08nvlu"
+          "id": "8ahp8va0147v1"
         }
       },
       "FormulaColumnReq": {
@@ -15493,7 +15576,7 @@
           }
         },
         "x-stoplight": {
-          "id": "rd9929r4qa3c0"
+          "id": "s3c9yjip3dank"
         }
       },
       "Gallery": {
@@ -15587,7 +15670,7 @@
         "title": "Gallery Model",
         "type": "object",
         "x-stoplight": {
-          "id": "at47gz5aqeuv5"
+          "id": "e1o8q9fieshbc"
         }
       },
       "GalleryColumn": {
@@ -15622,13 +15705,13 @@
         "title": "Gallery Column Model",
         "type": "object",
         "x-stoplight": {
-          "id": "4mx8vfd16y55g"
+          "id": "llcstnvsjdgz0"
         }
       },
       "GalleryUpdateReq": {
         "description": "Model for Gallery View Update Request",
         "x-stoplight": {
-          "id": "uiz5gs88mmt1a"
+          "id": "5cxhum5vh2nr2"
         },
         "examples": [
           {
@@ -15681,7 +15764,7 @@
         "title": "Geo Location Model",
         "type": "object",
         "x-stoplight": {
-          "id": "cphi852bw9h6n"
+          "id": "hwuzujovr9qwx"
         }
       },
       "Grid": {
@@ -15791,7 +15874,7 @@
           }
         },
         "x-stoplight": {
-          "id": "b84k9hlbnco1o"
+          "id": "xntep33dod0ys"
         }
       },
       "GridColumn": {
@@ -15875,7 +15958,7 @@
           }
         },
         "x-stoplight": {
-          "id": "r2fo58lue2zws"
+          "id": "2go3w0igl2243"
         }
       },
       "GridColumnReq": {
@@ -15913,13 +15996,13 @@
         "title": "Grid Column Request Model",
         "type": "object",
         "x-stoplight": {
-          "id": "1viyr55m2bzy3"
+          "id": "2j3uyoabzmsrz"
         }
       },
       "GridUpdateReq": {
         "description": "Model for Grid View Update",
         "x-stoplight": {
-          "id": "rmiv1e1jrzj71"
+          "id": "2q9ya4zmyr5x7"
         },
         "examples": [
           {
@@ -16039,13 +16122,13 @@
           }
         },
         "x-stoplight": {
-          "id": "0rlu88fc7ctax"
+          "id": "q8cxkpronjmyx"
         }
       },
       "HookReq": {
         "description": "Model for Hook",
         "x-stoplight": {
-          "id": "yogkf6qrh2el9"
+          "id": "4zlzrppfjxrqb"
         },
         "examples": [
           {
@@ -16223,7 +16306,7 @@
         },
         "required": ["list", "pageInfo"],
         "x-stoplight": {
-          "id": "xhy5z4cp53e19"
+          "id": "2tsq8h6hjctju"
         }
       },
       "HookLog": {
@@ -16304,7 +16387,7 @@
           }
         },
         "x-stoplight": {
-          "id": "uwhlr759v7ftb"
+          "id": "t3hlkw7zdqpom"
         }
       },
       "HookTestReq": {
@@ -16358,7 +16441,7 @@
         },
         "required": ["hook", "payload"],
         "x-stoplight": {
-          "id": "7fzbka372uhws"
+          "id": "p2t60nmuy6x26"
         }
       },
       "Id": {
@@ -16369,7 +16452,7 @@
         "title": "ID Model",
         "type": "string",
         "x-stoplight": {
-          "id": "q0pbjcp2vwe2s"
+          "id": "srvzhcm5j7d65"
         }
       },
       "Kanban": {
@@ -16436,7 +16519,7 @@
           }
         },
         "x-stoplight": {
-          "id": "y0wib3uswcjv3"
+          "id": "1jq82nu2uugxr"
         }
       },
       "KanbanColumn": {
@@ -16509,7 +16592,7 @@
           }
         },
         "x-stoplight": {
-          "id": "jq9x7ac9cr56v"
+          "id": "ipigcz5c7b5qy"
         }
       },
       "KanbanUpdateReq": {
@@ -16586,7 +16669,7 @@
           }
         },
         "x-stoplight": {
-          "id": "ds5bt314hgogd"
+          "id": "ufp4dyqfvlk6a"
         }
       },
       "LicenseReq": {
@@ -16608,7 +16691,7 @@
         "title": "License Key Request Model",
         "type": "object",
         "x-stoplight": {
-          "id": "ydf14317b0zdt"
+          "id": "2hys6jqfbam2w"
         }
       },
       "LinkToAnotherColumnReq": {
@@ -16657,7 +16740,7 @@
         "title": "LinkToAnotherColumn Request Model",
         "type": "object",
         "x-stoplight": {
-          "id": "72l8lzwwxd36o"
+          "id": "nx1h0s2wseid0"
         }
       },
       "LinkToAnotherRecord": {
@@ -16733,7 +16816,7 @@
         "title": "LinkToAnotherRecord Model",
         "type": "object",
         "x-stoplight": {
-          "id": "dyp9tqjqy0vjn"
+          "id": "845623nb0zp0w"
         }
       },
       "Lookup": {
@@ -16773,7 +16856,7 @@
           }
         },
         "x-stoplight": {
-          "id": "oin5vuleupbau"
+          "id": "22i9gmsgqt79n"
         }
       },
       "LookupColumnReq": {
@@ -16810,7 +16893,7 @@
           }
         },
         "x-stoplight": {
-          "id": "pas3o57wv14yl"
+          "id": "dhmss9g7ljbw7"
         }
       },
       "Map": {
@@ -16887,13 +16970,13 @@
         "title": "Map Model",
         "type": "object",
         "x-stoplight": {
-          "id": "g54ldc4p8ukcb"
+          "id": "2gkbn859ho3ct"
         }
       },
       "MapUpdateReq": {
         "description": "Model for Map",
         "x-stoplight": {
-          "id": "np6n7vwe0bpbc"
+          "id": "u7xywz40dryws"
         },
         "examples": [
           {
@@ -16968,7 +17051,7 @@
         "title": "Map Column Model",
         "type": "object",
         "x-stoplight": {
-          "id": "jwohh924xkrki"
+          "id": "ftaul6uruvc4z"
         }
       },
       "Meta": {
@@ -16987,7 +17070,7 @@
         ],
         "title": "Meta Model",
         "x-stoplight": {
-          "id": "3bua8s1l4ia18"
+          "id": "pqxyr0shwtrp5"
         }
       },
       "ModelRoleVisibility": {
@@ -17030,7 +17113,7 @@
         "title": "ModelRoleVisibility Model",
         "type": "object",
         "x-stoplight": {
-          "id": "qd2r14lgbgil5"
+          "id": "d3j1x4pulo4ng"
         }
       },
       "NormalColumnRequest": {
@@ -17209,7 +17292,7 @@
         "type": "object",
         "required": ["column_name"],
         "x-stoplight": {
-          "id": "lbdjjckrjmr9a"
+          "id": "uzaqliigop3nw"
         }
       },
       "OrgUserReq": {
@@ -17234,7 +17317,7 @@
         "title": "Organisation User Request Model",
         "type": "object",
         "x-stoplight": {
-          "id": "odog9hoqfpbii"
+          "id": "pk8a8itnqcis1"
         }
       },
       "Paginated": {
@@ -17276,7 +17359,7 @@
         "title": "Paginated Model",
         "type": "object",
         "x-stoplight": {
-          "id": "x9joizn5gys68"
+          "id": "a5zhehpll01cm"
         }
       },
       "Password": {
@@ -17287,7 +17370,7 @@
         "title": "Password Model",
         "type": "string",
         "x-stoplight": {
-          "id": "bn4nxlclrh5pl"
+          "id": "mleq9lljoh76x"
         }
       },
       "PasswordChangeReq": {
@@ -17311,7 +17394,7 @@
         "title": "Password Change Request Model",
         "type": "object",
         "x-stoplight": {
-          "id": "0bt6ueal1r1ai"
+          "id": "8a21c5za82w87"
         }
       },
       "PasswordForgotReq": {
@@ -17332,7 +17415,7 @@
         "title": "Password Forgot Request Model",
         "type": "object",
         "x-stoplight": {
-          "id": "ucprs67a4yk4e"
+          "id": "ggt9lpf2gz2va"
         }
       },
       "PasswordResetReq": {
@@ -17354,7 +17437,7 @@
         "title": "Password Reset Request Model",
         "type": "object",
         "x-stoplight": {
-          "id": "kgww333t4d6oi"
+          "id": "f63x3tpb8ti9r"
         }
       },
       "Plugin": {
@@ -17471,7 +17554,7 @@
           }
         },
         "x-stoplight": {
-          "id": "yddgye9ktoowm"
+          "id": "0atoct4o6csg1"
         }
       },
       "PluginReq": {
@@ -17495,7 +17578,7 @@
           }
         },
         "x-stoplight": {
-          "id": "8n2qkaa4mmbwk"
+          "id": "w6jwfvgpbhmt0"
         }
       },
       "PluginTestReq": {
@@ -17537,7 +17620,7 @@
         },
         "required": ["title", "input", "category"],
         "x-stoplight": {
-          "id": "xburi6p29sjxt"
+          "id": "yye6yekmme06k"
         }
       },
       "Project": {
@@ -17627,7 +17710,7 @@
           }
         },
         "x-stoplight": {
-          "id": "mws3mrzua4dgn"
+          "id": "xzqakuahxm8d1"
         }
       },
       "ProjectList": {
@@ -17723,7 +17806,7 @@
         },
         "required": ["list", "pageInfo"],
         "x-stoplight": {
-          "id": "xyl4jpahycz9z"
+          "id": "rb5o2yaf8ue64"
         }
       },
       "ProjectReq": {
@@ -17776,13 +17859,13 @@
         "title": "Project Request Model",
         "type": "object",
         "x-stoplight": {
-          "id": "q30kb0cjsqejc"
+          "id": "km2fj1ebsroys"
         }
       },
       "ProjectUpdateReq": {
         "description": "Model for Project Update Request",
         "x-stoplight": {
-          "id": "c3vcm2zuncet0"
+          "id": "ou8zri28ak9yl"
         },
         "examples": [
           {
@@ -17847,7 +17930,7 @@
         },
         "required": ["email", "roles"],
         "x-stoplight": {
-          "id": "9t06rq4mfxpsi"
+          "id": "9pgemwq7iirkp"
         }
       },
       "Rollup": {
@@ -17896,7 +17979,7 @@
           }
         },
         "x-stoplight": {
-          "id": "vx9w2nz7au6ra"
+          "id": "rq1o1yy2htfv0"
         }
       },
       "RollupColumnReq": {
@@ -17947,7 +18030,7 @@
           }
         },
         "x-stoplight": {
-          "id": "4dhjg4qtqyxgt"
+          "id": "8yc4ashgpj37h"
         }
       },
       "SelectOption": {
@@ -17989,7 +18072,7 @@
           }
         },
         "x-stoplight": {
-          "id": "phvjpv4bedapu"
+          "id": "sc5hl2s3rm8x7"
         }
       },
       "SelectOptions": {
@@ -18020,7 +18103,7 @@
         },
         "required": ["options"],
         "x-stoplight": {
-          "id": "kjpgrmx40vtbs"
+          "id": "r6d5rziqt288w"
         }
       },
       "SharedBaseReq": {
@@ -18048,7 +18131,7 @@
           }
         },
         "x-stoplight": {
-          "id": "oinjv6cau9px7"
+          "id": "ybt81tfrpfvd2"
         }
       },
       "SharedView": {
@@ -18086,7 +18169,7 @@
           }
         ],
         "x-stoplight": {
-          "id": "80fgtmpmd1hxi"
+          "id": "9wxqjviu1tfd4"
         }
       },
       "SharedViewList": {
@@ -18180,7 +18263,7 @@
         },
         "required": ["list", "pageInfo"],
         "x-stoplight": {
-          "id": "4nhixasc8ncwz"
+          "id": "jtlp6vswbc96e"
         }
       },
       "SharedViewReq": {
@@ -18204,7 +18287,7 @@
           }
         },
         "x-stoplight": {
-          "id": "bnn8fqklepl7j"
+          "id": "zja4lmiol065l"
         }
       },
       "SignInReq": {
@@ -18230,7 +18313,7 @@
         "title": "Signin Request Model",
         "type": "object",
         "x-stoplight": {
-          "id": "u8vbpvxi9gs2z"
+          "id": "2m1y6fuop0adc"
         }
       },
       "SignUpReq": {
@@ -18289,7 +18372,7 @@
         },
         "required": ["email", "password"],
         "x-stoplight": {
-          "id": "tw6fyw78ih8dx"
+          "id": "t7stkblz9wllz"
         }
       },
       "Sort": {
@@ -18342,7 +18425,7 @@
           }
         },
         "x-stoplight": {
-          "id": "9vo9f9qec4rwf"
+          "id": "tlcmtmjzcyhm6"
         }
       },
       "SortList": {
@@ -18423,7 +18506,7 @@
         },
         "required": ["list", "pageInfo"],
         "x-stoplight": {
-          "id": "wwcmyc9odjaxt"
+          "id": "7j3nbohh43tyy"
         }
       },
       "SortReq": {
@@ -18449,7 +18532,7 @@
           }
         },
         "x-stoplight": {
-          "id": "g320wvsh90rcp"
+          "id": "shzdd8k3xswo9"
         }
       },
       "StringOrNull": {
@@ -18466,7 +18549,7 @@
         ],
         "title": "StringOrNull Model",
         "x-stoplight": {
-          "id": "n57pb7pryq2zm"
+          "id": "1lecfrpmnndhi"
         }
       },
       "Table": {
@@ -18895,7 +18978,7 @@
         },
         "required": ["table_name", "title"],
         "x-stoplight": {
-          "id": "jnbkhtbvk6np6"
+          "id": "986a3bp33neka"
         }
       },
       "TableList": {
@@ -19025,7 +19108,7 @@
         },
         "required": ["list", "pageInfo"],
         "x-stoplight": {
-          "id": "dki89c4lat66i"
+          "id": "gemdr6sjuj4gl"
         }
       },
       "TableReq": {
@@ -19166,7 +19249,7 @@
         "title": "Table Request Model",
         "type": "object",
         "x-stoplight": {
-          "id": "rx8c69o5719vx"
+          "id": "3i0r55tix0aso"
         }
       },
       "User": {
@@ -19218,7 +19301,7 @@
         },
         "required": ["email", "email_verified", "firstname", "id", "lastname"],
         "x-stoplight": {
-          "id": "cls6abm42ey04"
+          "id": "2uxbpdjvs379s"
         }
       },
       "UserInfo": {
@@ -19262,7 +19345,7 @@
         "title": "User Info Model",
         "type": "object",
         "x-stoplight": {
-          "id": "tvl09i4n62jnc"
+          "id": "uatcf3jcnna1t"
         }
       },
       "UserList": {
@@ -19343,7 +19426,7 @@
         },
         "required": ["list", "pageInfo"],
         "x-stoplight": {
-          "id": "kxaws22o5xk74"
+          "id": "ygjybmp21hdgp"
         }
       },
       "View": {
@@ -19457,7 +19540,7 @@
         },
         "required": ["fk_model_id", "show", "title", "type"],
         "x-stoplight": {
-          "id": "t38y987y9rgv5"
+          "id": "66ki9gaxq3kwg"
         }
       },
       "ViewList": {
@@ -19585,13 +19668,13 @@
         },
         "required": ["list", "pageInfo"],
         "x-stoplight": {
-          "id": "kjdjlqsioesz5"
+          "id": "2iat5dhhl4hoa"
         }
       },
       "ViewCreateReq": {
         "type": "object",
         "x-stoplight": {
-          "id": "cuum3lv94tb57"
+          "id": "venaxkw5uod3n"
         },
         "title": "ViewCreateReq",
         "description": "Model for View Create Request",
@@ -19660,7 +19743,7 @@
       "ViewUpdateReq": {
         "description": "Model for View Update Request",
         "x-stoplight": {
-          "id": "zlgpq6n2pg2rj"
+          "id": "bo1mzzdpk82z0"
         },
         "examples": [
           {
@@ -19725,7 +19808,7 @@
       "ViewColumnUpdateReq": {
         "description": "Model for View Column Update Request",
         "x-stoplight": {
-          "id": "zt66lex00hzth"
+          "id": "jmhr4prd02ssy"
         },
         "examples": [
           {
@@ -19754,7 +19837,7 @@
       "ViewColumnReq": {
         "description": "Model for View Column Request",
         "x-stoplight": {
-          "id": "chpsc3sgvhehw"
+          "id": "05tr5rxotp432"
         },
         "examples": [
           {
@@ -19845,7 +19928,7 @@
         "title": "Visibility Rule Request Model",
         "type": "array",
         "x-stoplight": {
-          "id": "bmgsfkt8woxh5"
+          "id": "c6q9v9rtiduxg"
         }
       }
     },

@@ -99,9 +99,12 @@ export async function projectCreate(param: {
 
   // populate metadata if existing table
   for (const base of await project.getBases()) {
-    const info = await populateMeta(base, project);
+    if (process.env.NC_CLOUD !== 'true' && !project.is_meta) {
+      const info = await populateMeta(base, project);
 
-    T.emit('evt_api_created', info);
+      T.emit('evt_api_created', info);
+    }
+
     delete base.config;
   }
 

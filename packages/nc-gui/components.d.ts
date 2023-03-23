@@ -137,6 +137,7 @@ declare module '@vue/runtime-core' {
     MdiCardsHeart: typeof import('~icons/mdi/cards-heart')['default']
     MdiCellphoneMessage: typeof import('~icons/mdi/cellphone-message')['default']
     MdiChat: typeof import('~icons/mdi/chat')['default']
+    MdiChatProcessingOutline: typeof import('~icons/mdi/chat-processing-outline')['default']
     MdiCheck: typeof import('~icons/mdi/check')['default']
     MdiChevronDown: typeof import('~icons/mdi/chevron-down')['default']
     MdiChevronLeft: typeof import('~icons/mdi/chevron-left')['default']

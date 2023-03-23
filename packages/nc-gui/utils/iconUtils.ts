@@ -80,6 +80,8 @@ import MMIcon from '~icons/mdi/table-network'
 import PhShareThin from '~icons/ph/share-thin'
 import PhReloadThin from '~icons/ph/arrow-clockwise-thin'
 import PhCodeThin from '~icons/ph/code-thin'
+import PhGridNineThinThin from '~icons/ph/grid-nine-thin'
+
 
 export const iconMap = {
   lock: PhLockIcon,
@@ -144,6 +146,7 @@ export const iconMap = {
   share: PhShareThin,
   reload: PhReloadThin,
   xml: PhCodeThin,
+  airtable:PhGridNineThinThin,
 
   mm: MMIcon,
   hm: HMIcon,

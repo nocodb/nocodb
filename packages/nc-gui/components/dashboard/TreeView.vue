@@ -759,7 +759,7 @@ const setIcon = async (icon: string, table: TableType) => {
                               @click="openAirtableImportDialog(bases[0].id)"
                             >
                               <div class="color-transition nc-project-menu-item group">
-                                <MdiTableLarge class="group-hover:text-accent" />
+                                <component :is="iconMap.airtable" class="group-hover:text-accent" />
                                 Airtable
                               </div>
                             </a-menu-item>
@@ -770,7 +770,7 @@ const setIcon = async (icon: string, table: TableType) => {
                               @click="openQuickImportDialog('csv', bases[0].id)"
                             >
                               <div class="color-transition nc-project-menu-item group">
-                                <MdiFileDocumentOutline class="group-hover:text-accent" />
+                                <component :is="iconMap.csv" class="group-hover:text-accent" />
                                 CSV file
                               </div>
                             </a-menu-item>
@@ -781,7 +781,7 @@ const setIcon = async (icon: string, table: TableType) => {
                               @click="openQuickImportDialog('json', bases[0].id)"
                             >
                               <div class="color-transition nc-project-menu-item group">
-                                <MdiCodeJson class="group-hover:text-accent" />
+                                <component :is="iconMap.json" class="group-hover:text-accent" />
                                 JSON file
                               </div>
                             </a-menu-item>
@@ -792,7 +792,7 @@ const setIcon = async (icon: string, table: TableType) => {
                               @click="openQuickImportDialog('excel', bases[0].id)"
                             >
                               <div class="color-transition nc-project-menu-item group">
-                                <MdiFileExcel class="group-hover:text-accent" />
+                                <component :is="iconMap.excel" class="group-hover:text-accent" />
                                 Microsoft Excel
                               </div>
                             </a-menu-item>
@@ -807,7 +807,7 @@ const setIcon = async (icon: string, table: TableType) => {
                               target="_blank"
                               class="prose-sm hover:(!text-primary !opacity-100) color-transition nc-project-menu-item group after:(!rounded-b)"
                             >
-                              <MdiOpenInNew class="group-hover:text-accent" />
+                              <component :is="iconMap.share" class="group-hover:text-accent" />
                               <!-- Request a data source you need? -->
                               {{ $t('labels.requestDataSource') }}
                             </a>

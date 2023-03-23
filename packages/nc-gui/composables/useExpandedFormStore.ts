@@ -1,5 +1,5 @@
 import { UITypes, ViewTypes } from 'nocodb-sdk'
-import type { ColumnType, TableType } from 'nocodb-sdk'
+import type { AuditType, ColumnType, TableType } from 'nocodb-sdk'
 import type { Ref } from 'vue'
 import dayjs from 'dayjs'
 import {
@@ -229,6 +229,10 @@ const [useProvideExpandedFormStore, useExpandedFormStore] = useInjectionState((m
     })
   }
 
+  const updateComment = async (auditId: string, audit: Partial<AuditType>) => {
+    return await $api.utils.commentUpdate(auditId, audit)
+  }
+
   return {
     ...rowStore,
     commentsOnly,
@@ -247,6 +251,7 @@ const [useProvideExpandedFormStore, useExpandedFormStore] = useInjectionState((m
     loadRow,
     primaryKey,
     saveRowAndStay,
+    updateComment,
   }
 }, 'expanded-form-store')
 

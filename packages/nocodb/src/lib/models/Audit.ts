@@ -157,6 +157,7 @@ export default class Audit implements AuditType {
       offset,
     });
   }
+
   static async projectAuditCount(projectId: string): Promise<number> {
     return (
       await Noco.ncMeta
@@ -171,5 +172,20 @@ export default class Audit implements AuditType {
     return ncMeta.metaDelete(null, null, MetaTable.AUDIT, {
       fk_model_id,
     });
+  }
+
+  static async commentUpdate(
+    auditId: string,
+    audit: Partial<AuditType>,
+    ncMeta = Noco.ncMeta
+  ) {
+    const updateObj = extractProps(audit, ['description']);
+    return await ncMeta.metaUpdate(
+      null,
+      null,
+      MetaTable.AUDIT,
+      updateObj,
+      auditId
+    );
   }
 }

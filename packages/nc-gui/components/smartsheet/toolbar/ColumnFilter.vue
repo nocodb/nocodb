@@ -2,6 +2,7 @@
 import type { ColumnType, FilterType } from 'nocodb-sdk'
 import { UITypes } from 'nocodb-sdk'
 import {
+  iconMap,
   ActiveViewInj,
   MetaInj,
   ReloadViewDataHookInj,
@@ -213,7 +214,7 @@ defineExpose({
       <template v-for="(filter, i) in filters" :key="i">
         <template v-if="filter.status !== 'delete'">
           <template v-if="filter.is_group">
-            <MdiCloseBox
+            <component :is="iconMap.closeBox"
               v-if="!filter.readOnly"
               :key="i"
               small
@@ -251,7 +252,7 @@ defineExpose({
             </div>
           </template>
           <template v-else>
-            <MdiCloseBox
+            <component :is="iconMap.closeBox"
               v-if="!filter.readOnly"
               class="nc-filter-item-remove-btn text-grey self-center"
               @click.stop="deleteFilter(filter, i)"

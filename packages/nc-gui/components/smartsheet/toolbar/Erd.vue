@@ -1,4 +1,6 @@
 <script lang="ts" setup>
+import {iconMap} from '#imports'
+
 interface Props {
   modelValue: boolean
 }
@@ -32,7 +34,7 @@ const selectedView = inject(ActiveViewInj)
       </div>
 
       <div class="flex h-full items-center justify-center rounded group" @click="vModel = false">
-        <MdiClose class="cursor-pointer mt-1 nc-modal-close group-hover:text-accent text-opacity-100" />
+        <component :is="iconMap.close" class="cursor-pointer mt-1 nc-modal-close group-hover:text-accent text-opacity-100" />
       </div>
     </div>
 

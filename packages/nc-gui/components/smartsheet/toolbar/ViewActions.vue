@@ -134,9 +134,7 @@ useMenuCloseOnEsc(open)
                 <div v-e="['c:navdraw:preview-as']" class="nc-project-menu-item group px-0 !py-0">
                   <LazySmartsheetToolbarLockType hide-tick :type="lockType" />
 
-                  <MaterialSymbolsChevronRightRounded
-                    class="transform group-hover:(scale-115 text-accent) text-xl text-gray-400"
-                  />
+                  <component :is="iconMap.arrowRight" class="transform group-hover:(scale-115 text-accent) text-gray-400" />
                 </div>
               </template>
 
@@ -164,9 +162,7 @@ useMenuCloseOnEsc(open)
                   {{ $t('general.download') }}
                   <div class="flex-1" />
 
-                  <MaterialSymbolsChevronRightRounded
-                    class="transform group-hover:(scale-115 text-accent) text-xl text-gray-400"
-                  />
+                  <component :is="iconMap.arrowRight" class="transform group-hover:(scale-115 text-accent) text-gray-400" />
                 </div>
               </template>
 
@@ -184,9 +180,7 @@ useMenuCloseOnEsc(open)
                     {{ $t('general.upload') }}
                     <div class="flex-1" />
 
-                    <MaterialSymbolsChevronRightRounded
-                      class="transform group-hover:(scale-115 text-accent) text-xl text-gray-400"
-                    />
+                    <component :is="iconMap.arrowRight" class="transform group-hover:(scale-115 text-accent) text-gray-400" />
                   </div>
                 </template>
 

@@ -104,7 +104,7 @@ watch(previewAs, (newRole) => {
     <template v-if="previewAs">
       <a-menu-item @click="previewAs = null">
         <div class="nc-project-menu-item group">
-          <MdiClose class="group-hover:text-accent" />
+          <component :is="iconMap.close" class="group-hover:text-accent" />
           <!-- Reset Preview -->
           <span class="text-capitalize text-xs whitespace-nowrap">
             {{ $t('activity.resetReview') }}

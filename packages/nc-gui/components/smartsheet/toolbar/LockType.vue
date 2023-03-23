@@ -31,7 +31,7 @@ const selectedView = inject(ActiveViewInj)
   <div class="nc-locked-menu-item" @click="emit('select', type)">
     <div :class="{ 'show-tick': !hideTick }">
       <template v-if="!hideTick">
-        <MdiCheck v-if="selectedView?.lock_type === type" />
+        <component :is="iconMap.check" v-if="selectedView?.lock_type === type" />
 
         <span v-else />
       </template>

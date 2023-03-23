@@ -89,7 +89,7 @@ const openKeys = ref([/^\/account\/users/.test($route.fullPath) && 'users'])
               @click="navigateTo('/account/license')"
             >
               <div class="flex items-center space-x-2">
-                <MdiKey />
+                <component :is="iconMap.key" />
 
                 <div class="select-none">License</div>
               </div>

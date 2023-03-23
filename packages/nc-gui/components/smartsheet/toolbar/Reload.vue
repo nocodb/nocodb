@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ReloadViewDataHookInj, inject, ref, useNuxtApp, watch } from '#imports'
+import { ReloadViewDataHookInj, iconMap, inject, ref, useNuxtApp, watch } from '#imports'
 
 const { $e, $state } = useNuxtApp()
 
@@ -26,7 +26,8 @@ const onClick = () => {
     <template #title> {{ $t('general.reload') }} </template>
 
     <div class="nc-toolbar-btn flex min-w-32px w-32px h-32px items-center">
-      <PhArrowClockwiseThin
+      <component
+        :is="iconMap.reload"
         class="w-full h-full cursor-pointer text-gray-500 group-hover:(text-primary) nc-toolbar-reload-btn"
         :class="isReloading ? 'animate-spin' : ''"
         @click="onClick"

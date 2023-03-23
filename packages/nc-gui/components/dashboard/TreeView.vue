@@ -31,8 +31,6 @@ import {
   useUIPermission,
   watchEffect,
 } from '#imports'
-import PhEyeThin from '~icons/ph/EyeThin'
-import PhTableThin from '~icons/ph/TableThin'
 
 const { isMobileMode } = useGlobal()
 
@@ -153,10 +151,10 @@ watchEffect(() => {
 
 const icon = (table: TableType) => {
   if (table.type === 'table') {
-    return PhTableThin
+    return iconMap.table
   }
   if (table.type === 'view') {
-    return PhEyeThin
+    return iconMap.view
   }
 }
 
@@ -374,7 +372,7 @@ const setIcon = async (icon: string, table: TableType) => {
           </Transition>
 
           <Transition name="layout" mode="out-in">
-            <MdiClose v-if="searchActive" class="text-gray-500 text-lg mx-1 mt-0.5" @click="onSearchCloseIconClick" />
+            <component :is="iconMap.close" v-if="searchActive" class="text-gray-500 text-lg mx-1 mt-0.5" @click="onSearchCloseIconClick" />
             <component :is="iconMap.search" v-else class="text-gray-500 text-lg mx-1 mt-0.5" @click="toggleSearchActive(true)" />
           </Transition>
         </div>
@@ -401,8 +399,8 @@ const setIcon = async (icon: string, table: TableType) => {
           </Transition>
 
           <Transition name="slide-right" mode="out-in">
-            <MdiClose v-if="searchActive" class="text-gray-500 text-lg mx-1 mt-0.5" @click="onSearchCloseIconClick" />
-            <IcRoundSearch v-else class="text-gray-500 text-lg mx-1 mt-0.5" @click="onSearchIconClick" />
+            <component :is="iconMap.close" v-if="searchActive" class="text-gray-500 text-lg mx-1 mt-0.5" @click="onSearchCloseIconClick" />
+            <component :is="iconMap.search" v-else class="text-gray-500 text-lg mx-1 mt-0.5" @click="onSearchIconClick" />
           </Transition>
 
           <a-dropdown v-if="!isSharedBase" :trigger="['click']" overlay-class-name="nc-dropdown-import-menu" @click.stop>

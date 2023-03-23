@@ -3,6 +3,7 @@ import type { ColumnType, LinkToAnotherRecordType } from 'nocodb-sdk'
 import { RelationTypes, UITypes, isVirtualCol } from 'nocodb-sdk'
 import { SwipeDirection, breakpointsTailwind } from '@vueuse/core'
 import {
+  iconMap,
   DropZoneRef,
   IsSurveyFormInj,
   computed,
@@ -365,7 +366,7 @@ onMounted(() => {
                     </Transition>
 
                     <Transition name="slide-right" mode="out-in">
-                      <MdiCloseCircleOutline
+                      <component :is="iconMap.closeCircle"
                         v-if="v$.localState[field.title]?.$error || columnValidationError"
                         class="text-red-500 md:text-md"
                       />

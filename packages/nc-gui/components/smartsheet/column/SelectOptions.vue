@@ -208,7 +208,7 @@ watch(inputs, () => {
               />
             </div>
 
-            <MdiClose
+            <component :is="iconMap.close"
               v-if="element.status !== 'remove'"
               class="ml-2 hover:!text-black-500 text-gray-500 cursor-pointer"
               :data-testid="`select-column-option-remove-${index}`"

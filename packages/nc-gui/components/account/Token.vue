@@ -107,7 +107,7 @@ const descriptionInput: VNodeRef = (el) => (el as HTMLInputElement)?.focus()
         <component :is="iconMap.reload" class="cursor-pointer" @click="loadTokens" />
         <a-button data-testid="nc-token-create" size="small" type="primary" @click="showNewTokenModal = true">
           <div class="flex items-center gap-1">
-            <MdiAdd />
+            <component :is="iconMap.plus" />
             Add new token
           </div>
         </a-button>

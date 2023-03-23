@@ -75,7 +75,7 @@ useMenuCloseOnEsc(open)
     <div :class="{ 'nc-active-btn': filtersLength }">
       <a-button v-e="['c:filter']" class="nc-filter-menu-btn nc-toolbar-btn txt-sm" :disabled="isLocked">
         <div class="flex items-center gap-1">
-          <PhFunnelThin />
+          <component :is="iconMap.filter" />
           <!-- Filter -->
           <span v-if="!isMobileMode" class="text-capitalize !text-xs font-weight-normal">{{ $t('activity.filter') }}</span>
           <component :is="iconMap.arrowDown" class="text-grey !text-0.5rem" />

@@ -170,7 +170,7 @@ watch(
         data-testid="settings-modal-close-button"
         @click="vModel = false"
       >
-        <MdiClose class="cursor-pointer nc-modal-close w-4" />
+        <component :is="iconMap.close" class="cursor-pointer nc-modal-close w-4" />
       </a-button>
     </div>
 

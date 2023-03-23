@@ -94,7 +94,7 @@ useMenuCloseOnEsc(open)
       >
         <div v-if="sorts?.length" class="sort-grid mb-2 max-h-420px overflow-y-auto" @click.stop>
           <template v-for="(sort, i) of sorts" :key="i">
-            <MdiCloseBox
+            <component :is="iconMap.closeBox"
               ref="removeIcon"
               class="nc-sort-item-remove-btn text-grey self-center"
               small

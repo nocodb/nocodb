@@ -186,7 +186,7 @@ const onConfirmDeleteRowClick = async () => {
           </a-menu-item>
           <a-menu-item @click="emit('cancel')">
             <div v-e="['c:row-expand:delete']" class="py-2 flex gap-2 items-center">
-              <MdiCloseCircleOutline
+              <component :is="iconMap.closeCircle"
                 class="nc-icon-transition cursor-pointer select-none nc-delete-row text-gray-500 mx-1 min-w-4"
               />
               {{ $t('general.close') }}

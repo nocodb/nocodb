@@ -538,7 +538,7 @@ onMounted(async () => {
 
                     <a-input v-model:value="item.value" />
 
-                    <MdiClose :style="{ 'font-size': '1.5em', 'color': 'red' }" @click="removeParam(index)" />
+                    <component :is="iconMap.close" :style="{ 'font-size': '1.5em', 'color': 'red' }" @click="removeParam(index)" />
                   </div>
                 </div>
                 <a-button type="dashed" class="w-full caption mt-2" @click="addNewParam">

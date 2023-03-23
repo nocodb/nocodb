@@ -15,76 +15,83 @@ import MdiFlagOutline from '~icons/mdi/flag-outline'
 import MdiTableLarge from '~icons/mdi/table-large'
 import MdiEyeCircleOutline from '~icons/mdi/eye-circle-outline'
 import MdiAccountGroup from '~icons/mdi/account-group'
-import PhTableThin from '~icons/ph/TableThin'
+import PhTableThin from '~icons/ph/table-light'
 
-import PhLockIcon from '~icons/ph/lock-key-thin'
-import PhAccountIcon from '~icons/ph/user'
-import PhUsersThreeThin from '~icons/ph/users-three-thin'
-import PhDownloadThin from '~icons/ph/arrow-line-down-thin'
-import PhUploadThin from '~icons/ph/arrow-line-up-thin'
-import PhHookThin from '~icons/ph/anchor-thin'
-import PhTreeThin from '~icons/ph/tree-structure-thin'
-import PhPlusThin from '~icons/ph/plus-thin'
-import PhSearchThin from '~icons/ph/magnifying-glass-thin'
-import PhCopySimpleThin from '~icons/ph/copy-simple-thin'
-import PhClipboardThin from '~icons/ph/clipboard-text-thin'
-import PhGearThin from '~icons/ph/gear-thin'
-import PhImageThin from '~icons/ph/image-thin'
-import PhHardDriveThin from '~icons/ph/hard-drives-thin'
-import PhBookThin from '~icons/ph/book-bookmark-thin'
+import PhLockIcon from '~icons/ph/lock-key-light'
+import PhAccountIcon from '~icons/ph/user-light'
+import PhUsersThreeThin from '~icons/ph/users-three-light'
+import PhDownloadThin from '~icons/ph/arrow-line-down-light'
+import PhUploadThin from '~icons/ph/arrow-line-up-light'
+import PhHookThin from '~icons/ph/anchor-light'
+import PhTreeThin from '~icons/ph/tree-structure-light'
+import PhPlusThin from '~icons/ph/plus-light'
+import PhSearchThin from '~icons/ph/magnifying-glass-light'
+import PhCopySimpleThin from '~icons/ph/copy-simple-light'
+import PhClipboardThin from '~icons/ph/clipboard-text-light'
+import PhGearThin from '~icons/ph/gear-light'
+import PhImageThin from '~icons/ph/image-light'
+import PhHardDriveThin from '~icons/ph/hard-drives-light'
+import PhBookThin from '~icons/ph/book-bookmark-light'
 import PhCaretDownLight from '~icons/ph/caret-down-light'
-import PhDotsThreeOutlineVerticalThin from '~icons/ph/dots-three-outline-vertical-thin'
-import PhExcelThin from '~icons/ph/microsoft-excel-logo-thin'
-import PhCsvThin from '~icons/ph/file-csv-thin'
-import PhBracketsCurlyThin from '~icons/ph/brackets-curly-thin'
-import PhTrashThin from '~icons/ph/trash-thin'
-import PhPencilSimpleThin from '~icons/ph/pencil-simple-thin'
-import PhLinkSimpleThin from '~icons/ph/link-simple-thin'
-import PhListMagnifyingGlassThin from '~icons/ph/list-magnifying-glass-thin'
-import PhStringIcon from '~icons/ph/text-aa-thin'
-import PhTextAreaIcon from '~icons/ph/text-align-left-thin'
-import FilePhoneIcon from '~icons/ph/phone-call-thin'
-import KeyIcon from '~icons/ph/key-thin'
-import ClockIcon from '~icons/ph/alarm-thin'
-import WebIcon from '~icons/ph/planet-thin'
-import BooleanIcon from '~icons/ph/check-square-thin'
-import CalendarIcon from '~icons/ph/calendar-blank-thin'
-import SingleSelectIcon from '~icons/ph/caret-circle-down-thin'
-import MultiSelectIcon from '~icons/ph/list-bullets-thin'
-import DatetimeIcon from '~icons/ph/calendar-thin'
-import GeoDataIcon from '~icons/ph/map-pin-thin'
-import RatingIcon from '~icons/ph/star-thin'
-import GenericIcon from '~icons/ph/square-thin'
-import NumericIcon from '~icons/ph/number-square-one-thin'
-import EmailIcon from '~icons/ph/envelope-thin'
-import CurrencyIcon from '~icons/ph/currency-circle-dollar-thin'
-import PercentIcon from '~icons/ph/percent-thin'
+import PhCaretRightLight from '~icons/ph/caret-right-light'
+import PhDotsThreeOutlineVerticalThin from '~icons/ph/dots-three-outline-vertical-light'
+import PhDotsThreeOutlineThin from '~icons/ph/dots-three-outline-light'
+import PhExcelThin from '~icons/ph/microsoft-excel-logo-light'
+import PhCsvThin from '~icons/ph/file-csv-light'
+import PhBracketsCurlyThin from '~icons/ph/brackets-curly-light'
+import PhTrashThin from '~icons/ph/trash-light'
+import PhPencilSimpleThin from '~icons/ph/pencil-simple-light'
+import PhLinkSimpleThin from '~icons/ph/link-simple-light'
+import PhListMagnifyingGlassThin from '~icons/ph/list-magnifying-glass-light'
+import PhStringIcon from '~icons/ph/text-aa-light'
+import PhTextAreaIcon from '~icons/ph/text-align-left-light'
+import FilePhoneIcon from '~icons/ph/phone-call-light'
+import KeyIcon from '~icons/ph/key-light'
+import ClockIcon from '~icons/ph/alarm-light'
+import WebIcon from '~icons/ph/planet-light'
+import BooleanIcon from '~icons/ph/check-square-light'
+import CalendarIcon from '~icons/ph/calendar-blank-light'
+import SingleSelectIcon from '~icons/ph/caret-circle-down-light'
+import MultiSelectIcon from '~icons/ph/list-bullets-light'
+import DatetimeIcon from '~icons/ph/calendar-light'
+import GeoDataIcon from '~icons/ph/map-pin-light'
+import RatingIcon from '~icons/ph/star-light'
+import GenericIcon from '~icons/ph/square-light'
+import NumericIcon from '~icons/ph/number-square-one-light'
+import EmailIcon from '~icons/ph/envelope-light'
+import CurrencyIcon from '~icons/ph/currency-circle-dollar-light'
+import PercentIcon from '~icons/ph/percent-light'
 import DecimalIcon from '~icons/mdi/decimal'
-import SpecificDBTypeIcon from '~icons/ph/database-thin'
-import DurationIcon from '~icons/ph/clock-clockwise-thin'
-import PhFunctiontone from '~icons/ph/function-thin'
-import PhQrCodeThin from '~icons/ph/qr-code-thin'
-import PhBarcodeThin from '~icons/ph/barcode-thin'
-import PhCalculatorThin from '~icons/ph/calculator-thin'
-import PhEyeSlashThin from '~icons/ph/eye-slash-thin'
-import PhEyeThin from '~icons/ph/eye-thin'
-import PhExpandThin from '~icons/ph/arrows-out-simple-thin'
-import PhLifebuoyThin from '~icons/ph/lifebuoy-thin'
-import PhCheckThin from '~icons/ph/check-thin'
-import PhFolderLockThin from '~icons/ph/folder-simple-lock-thin'
+import DurationIcon from '~icons/ph/clock-clockwise-light'
+import PhFunctiontone from '~icons/ph/function-light'
+import PhQrCodeThin from '~icons/ph/qr-code-light'
+import PhBarcodeThin from '~icons/ph/barcode-light'
+import PhCalculatorThin from '~icons/ph/calculator-light'
+import PhEyeSlashThin from '~icons/ph/eye-slash-light'
+import PhEyeThin from '~icons/ph/eye-light'
+import PhExpandThin from '~icons/ph/arrows-out-simple-light'
+import PhLifebuoyThin from '~icons/ph/lifebuoy-light'
+import PhCheckThin from '~icons/ph/check-light'
+import PhFolderLockThin from '~icons/ph/folder-simple-lock-light'
 import MdiDatabaseSync from '~icons/mdi/database-sync'
-import PhWarningThin from '~icons/ph/warning-thin'
+import PhWarningThin from '~icons/ph/warning-light'
 import HMIcon from '~icons/mdi/table-arrow-right'
 import BTIcon from '~icons/mdi/table-arrow-left'
 import MMIcon from '~icons/mdi/table-network'
-import PhShareThin from '~icons/ph/share-thin'
-import PhReloadThin from '~icons/ph/arrow-clockwise-thin'
-import PhCodeThin from '~icons/ph/code-thin'
-import PhGridNineThin from '~icons/ph/grid-nine-thin'
-import PhGridThin from '~icons/ph/grid-four-thin'
-import PhComputerTowerThin from '~icons/ph/ComputerTowerThin'
-import PhSquareHalfBottomThin from '~icons/ph/SquareHalfBottomThin'
+import PhShareThin from '~icons/ph/share-light'
+import PhReloadThin from '~icons/ph/arrow-clockwise-light'
+import PhCodeThin from '~icons/ph/code-light'
+import PhFunnelThin from '~icons/ph/funnel-light'
+import PhGridNineThin from '~icons/ph/grid-nine-light'
+import PhSplitVerticalThin from '~icons/ph/split-vertical-light'
+import PhGridThin from '~icons/ph/grid-four'
+import PhComputerTowerThin from '~icons/ph/computer-tower-light'
+import PhSquareHalfBottomThin from '~icons/ph/square-half-bottom-light'
 import MdiMapIcon from '~icons/mdi/map-outline'
+import MdiDatabaseSettingsOutline from '~icons/mdi/database-settings-outline'
+import PhXCircleLight from '~icons/ph/x-circle-light'
+import PhXLight from '~icons/ph/x-light'
+import PhXSquareLight from '~icons/ph/x-square-light'
 
 export const iconMap = {
   lock: PhLockIcon,
@@ -103,7 +110,9 @@ export const iconMap = {
   datasource: PhHardDriveThin,
   book: PhBookThin,
   arrowDown: PhCaretDownLight,
+  arrowRight: PhCaretRightLight,
   threeDotVertical: PhDotsThreeOutlineVerticalThin,
+  threeDotHorizontal: PhDotsThreeOutlineThin,
   table: PhTableThin,
   excel: PhExcelThin,
   csv: PhCsvThin,
@@ -129,7 +138,7 @@ export const iconMap = {
   currency: CurrencyIcon,
   percent: PercentIcon,
   decimal: DecimalIcon,
-  specificDbType: SpecificDBTypeIcon,
+  specificDbType: MdiDatabaseSettingsOutline,
   duration: DurationIcon,
   phone: FilePhoneIcon,
   formula: PhFunctiontone,
@@ -156,6 +165,12 @@ export const iconMap = {
   map: MdiMapIcon,
   kanban: PhSquareHalfBottomThin,
   view: PhEyeThin,
+  rowHeight: PhSplitVerticalThin,
+  filter: PhFunnelThin,
+  closeCircle: PhXCircleLight,
+  closeBox: PhXSquareLight,
+  close: PhXLight,
+
   mm: MMIcon,
   hm: HMIcon,
   bt: BTIcon,

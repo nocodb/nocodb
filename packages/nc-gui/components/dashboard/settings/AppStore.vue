@@ -125,7 +125,7 @@ onMounted(async () => {
 
           <a-button v-if="app.parsedInput" size="small" outlined @click="showResetPluginModal(app)">
             <div class="flex flex-row justify-center items-center caption capitalize nc-app-store-card-reset">
-              <MdiCloseCircleOutline />
+              <component :is="iconMap.closeCircle" />
               <div class="flex ml-0.5">Reset</div>
             </div>
           </a-button>

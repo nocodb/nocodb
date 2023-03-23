@@ -35,6 +35,7 @@ export class LinkRecord extends BasePage {
   }
 
   async select(cardTitle: string) {
+    await this.rootPage.waitForTimeout(100);
     await this.get().locator(`.ant-card:has-text("${cardTitle}"):visible`).click();
   }
 

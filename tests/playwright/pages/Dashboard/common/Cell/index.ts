@@ -280,7 +280,7 @@ export class CellPageObject extends BasePage {
   async unlinkVirtualCell({ index, columnHeader }: CellProps) {
     const cell = this.get({ index, columnHeader });
     await cell.click();
-    await cell.locator('.nc-icon.unlink-icon').click();
+    await cell.locator('.nc-icon.unlink-icon').first().click();
   }
 
   async verifyRoleAccess(param: { role: string }) {

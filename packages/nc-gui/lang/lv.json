@@ -779,6 +779,7 @@
       "userDeletedFromProject": "Veiksmīgi dzēsts lietotājs no projekta",
       "inviteEmailSent": "Uzaicinājuma e-pasta vēstule ir veiksmīgi nosūtīta",
       "inviteURLCopied": "Uzaicinājuma URL nokopēts uz starpliktuvi",
+      "commentCopied": "Comment copied to clipboard",
       "passwordResetURLCopied": "Paroles atiestatīšanas URL nokopēts uz starpliktuvi",
       "shareableURLCopied": "Kopēts koplietojamais bāzes URL uz starpliktuvi!",
       "embeddableHTMLCodeCopied": "Kopēts HTML kods, ko var ievietot!",

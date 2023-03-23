@@ -17,7 +17,6 @@ const meta = inject(MetaInj, ref())
 const sampleData = ref({
   data: {},
 })
-const activeKey = ref(0)
 
 watch(
   () => hook?.operation,
@@ -59,9 +58,6 @@ onMounted(async () => {
 </script>
 
 <template>
-  <a-collapse v-model:activeKey="activeKey" ghost>
-    <a-collapse-panel key="1" header="Sample Payload">
-      <LazyMonacoEditor v-model="sampleData" class="min-h-60 max-h-80" />
-    </a-collapse-panel>
-  </a-collapse>
+  <div class="mb-4 font-weight-medium">Sample Payload</div>
+  <LazyMonacoEditor v-model="sampleData" class="min-h-60 max-h-80" />
 </template>

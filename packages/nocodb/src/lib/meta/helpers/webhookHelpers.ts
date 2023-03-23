@@ -1,10 +1,10 @@
 import Handlebars from 'handlebars';
 import Filter from '../../models/Filter';
-import Model from '../../models/Model';
-import View from '../../models/View';
-import Hook from '../../models/Hook';
 import HookLog from '../../models/HookLog';
 import NcPluginMgrv2 from './NcPluginMgrv2';
+import type Model from '../../models/Model';
+import type View from '../../models/View';
+import type Hook from '../../models/Hook';
 import type Column from '../../models/Column';
 import type { HookLogType } from 'nocodb-sdk';
 import type FormView from '../../models/FormView';
@@ -134,7 +134,7 @@ export async function validateCondition(filters: Filter[], data: any) {
   return isValid;
 }
 
-export function constructWebHookData(hook, model, view, data) {
+export function constructWebHookData(hook, model, view, prevData, newData) {
   // extend in the future - currently only support records
   const scope = 'records';
 
@@ -146,7 +146,8 @@ export function constructWebHookData(hook, model, view, data) {
       table_name: model.title,
       view_id: view.id,
       view_name: view.title,
-      rows: [data],
+      ...(prevData && { previous_rows: prevData }),
+      rows: [newData],
     },
   };
 }
@@ -157,11 +158,14 @@ export async function handleHttpWebHook(
   view,
   apiMeta,
   user,
-  data
+  prevData,
+  newData
 ) {
-  data = constructWebHookData(hook, model, view, data);
-  console.log(data);
-  const req = axiosRequestMake(apiMeta, user, data);
+  const req = axiosRequestMake(
+    apiMeta,
+    user,
+    constructWebHookData(hook, model, view, prevData, newData)
+  );
   await require('axios')(req);
 }
 
@@ -228,7 +232,8 @@ export async function invokeWebhook(
   hook: Hook,
   model: Model,
   view: View,
-  data,
+  prevData,
+  newData,
   user,
   testFilters = null,
   throwErrorOnFailure = false
@@ -246,7 +251,7 @@ export async function invokeWebhook(
       if (
         !(await validateCondition(
           testFilters || (await hook.getFilters()),
-          data
+          newData
         ))
       ) {
         return;
@@ -259,9 +264,9 @@ export async function invokeWebhook(
           const res = await (
             await NcPluginMgrv2.emailAdapter()
           )?.mailSend({
-            to: parseBody(notification?.payload?.to, data),
-            subject: parseBody(notification?.payload?.subject, data),
-            html: parseBody(notification?.payload?.body, data),
+            to: parseBody(notification?.payload?.to, newData),
+            subject: parseBody(notification?.payload?.subject, newData),
+            html: parseBody(notification?.payload?.body, newData),
           });
           hookLog = {
             ...hook,
@@ -280,7 +285,8 @@ export async function invokeWebhook(
             view,
             notification?.payload,
             user,
-            data
+            prevData,
+            newData
           );
 
           hookLog = {
@@ -297,9 +303,11 @@ export async function invokeWebhook(
           const res = await (
             await NcPluginMgrv2.webhookNotificationAdapters(notification.type)
           ).sendMessage(
-            parseBody(notification?.payload?.body, data),
+            parseBody(notification?.payload?.body, newData),
             JSON.parse(JSON.stringify(notification?.payload), (_key, value) => {
-              return typeof value === 'string' ? parseBody(value, data) : value;
+              return typeof value === 'string'
+                ? parseBody(value, newData)
+                : value;
             })
           );
 

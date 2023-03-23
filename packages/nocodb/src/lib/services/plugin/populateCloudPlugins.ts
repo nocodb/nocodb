@@ -17,24 +17,34 @@ export const populatePluginsForCloud = async ({ ncMeta = Noco.ncMeta }) => {
     title: S3PluginConfig.title,
   });
 
-  if (s3PluginData) {
+  if (!s3PluginData) throw new Error('S3 plugin not found');
+
+  const s3PluginFromDb = s3PluginData.input
+    ? JSON.parse(s3PluginData.input)
+    : {};
+
+  const s3PluginFromEnv = {
+    access_key: process.env.NC_CLOUD_S3_ACCESS_KEY,
+    access_secret: process.env.NC_CLOUD_S3_ACCESS_SECRET,
+    bucket: process.env.NC_CLOUD_S3_BUCKET_NAME,
+    region: process.env.NC_CLOUD_S3_REGION,
+  };
+
+  const isS3PluginUpdateNeeded = Object.keys(s3PluginFromEnv).some(
+    (key) => s3PluginFromDb[key] !== s3PluginFromEnv[key]
+  );
+
+  if (isS3PluginUpdateNeeded) {
     await ncMeta.metaUpdate(
       null,
       null,
       MetaTable.PLUGIN,
       {
-        input: JSON.stringify({
-          access_key: process.env.NC_CLOUD_S3_ACCESS_KEY,
-          access_secret: process.env.NC_CLOUD_S3_ACCESS_SECRET,
-          bucket: process.env.NC_CLOUD_S3_BUCKET_NAME,
-          region: process.env.NC_CLOUD_S3_REGION,
-        }),
+        input: JSON.stringify(s3PluginFromEnv),
         active: true,
       },
       s3PluginData.id
     );
-  } else {
-    throw new Error('S3 plugin not found');
   }
 
   // SES
@@ -53,18 +63,28 @@ export const populatePluginsForCloud = async ({ ncMeta = Noco.ncMeta }) => {
 
   if (!sesPluginData) throw new Error('SES plugin not found');
 
-  if (sesPluginData) {
+  const sesPluginFromDb = sesPluginData.input
+    ? JSON.parse(sesPluginData.input)
+    : {};
+
+  const sesPluginFromEnv = {
+    access_key: process.env.NC_CLOUD_SES_ACCESS_KEY,
+    access_secret: process.env.NC_CLOUD_SES_ACCESS_SECRET,
+    region: process.env.NC_CLOUD_SES_REGION,
+    from: process.env.NC_CLOUD_SES_FROM,
+  };
+
+  const isSESPluginUpdateNeeded = Object.keys(sesPluginFromEnv).some(
+    (key) => sesPluginFromDb[key] !== sesPluginFromEnv[key]
+  );
+
+  if (isSESPluginUpdateNeeded) {
     await ncMeta.metaUpdate(
       null,
       null,
       MetaTable.PLUGIN,
       {
-        input: JSON.stringify({
-          access_key: process.env.NC_CLOUD_SES_ACCESS_KEY,
-          access_secret: process.env.NC_CLOUD_SES_ACCESS_SECRET,
-          region: process.env.NC_CLOUD_SES_REGION,
-          from: process.env.NC_CLOUD_SES_FROM,
-        }),
+        input: JSON.stringify(sesPluginFromEnv),
         active: true,
       },
       sesPluginData.id

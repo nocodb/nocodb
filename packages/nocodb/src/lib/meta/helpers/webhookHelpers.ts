@@ -146,8 +146,12 @@ export function constructWebHookData(hook, model, view, prevData, newData) {
       table_name: model.title,
       view_id: view.id,
       view_name: view.title,
-      ...(prevData && { previous_rows: prevData }),
-      rows: [newData],
+      ...(prevData && {
+        [hook.operation === 'delete' ? 'deleted_rows' : 'previous_rows']: [
+          prevData,
+        ],
+      }),
+      ...(newData && { rows: [newData] }),
     },
   };
 }

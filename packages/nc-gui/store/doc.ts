@@ -750,6 +750,8 @@ export const useDocStore = defineStore('docStore', () => {
       } as any,
     )
 
+    if (data[0]?.url) return data[0].url
+
     return data[0]?.path ? `${appInfo.ncSiteUrl}/${data[0].path}` : ''
   }
 

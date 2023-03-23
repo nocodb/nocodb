@@ -66,7 +66,7 @@ const deleteParamRow = (i: number) => vModel.value.splice(i, 1)
 
         <tr>
           <td :colspan="12" class="text-center">
-            <a-button type="default" class="!bg-gray-100 rounded-md border-none mr-1" @click="addParamRow">
+            <a-button type="default" class="!bg-gray-100 rounded-md border-none mr-1 mb-3" @click="addParamRow">
               <template #icon>
                 <MdiPlus class="flex mx-auto" />
               </template>

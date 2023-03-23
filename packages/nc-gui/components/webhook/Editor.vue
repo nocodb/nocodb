@@ -496,7 +496,6 @@ onMounted(async () => {
           <a-form-item v-bind="validateInfos.eventOperation">
             <a-select
               v-model:value="hook.eventOperation"
-              mode="multiple"
               size="large"
               :placeholder="$t('general.event')"
               class="nc-text-field-hook-event"

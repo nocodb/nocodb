@@ -1,14 +1,14 @@
 import { MetaTable } from '../../utils/globals';
 import S3PluginConfig from '../../plugins/s3';
-import SMTPPluginConfig from '../../plugins/smtp';
+import SESPluginConfig from '../../plugins/ses';
 import Noco from '../..';
 
 export const populatePluginsForCloud = async ({ ncMeta = Noco.ncMeta }) => {
   if (
-    !process.env.NC_ClOUD_S3_ACCESS_KEY ||
-    !process.env.NC_ClOUD_S3_ACCESS_SECRET ||
-    !process.env.NC_ClOUD_S3_BUCKET_NAME ||
-    !process.env.NC_ClOUD_S3_REGION
+    !process.env.NC_CLOUD_S3_ACCESS_KEY ||
+    !process.env.NC_CLOUD_S3_ACCESS_SECRET ||
+    !process.env.NC_CLOUD_S3_BUCKET_NAME ||
+    !process.env.NC_CLOUD_S3_REGION
   ) {
     throw new Error('S3 env variables not found');
   }
@@ -24,10 +24,10 @@ export const populatePluginsForCloud = async ({ ncMeta = Noco.ncMeta }) => {
       MetaTable.PLUGIN,
       {
         input: JSON.stringify({
-          access_key: process.env.NC_ClOUD_S3_ACCESS_KEY,
-          access_secret: process.env.NC_ClOUD_S3_ACCESS_SECRET,
-          bucket: process.env.NC_ClOUD_S3_BUCKET_NAME,
-          region: process.env.NC_ClOUD_S3_REGION,
+          access_key: process.env.NC_CLOUD_S3_ACCESS_KEY,
+          access_secret: process.env.NC_CLOUD_S3_ACCESS_SECRET,
+          bucket: process.env.NC_CLOUD_S3_BUCKET_NAME,
+          region: process.env.NC_CLOUD_S3_REGION,
         }),
         active: true,
       },
@@ -37,46 +37,37 @@ export const populatePluginsForCloud = async ({ ncMeta = Noco.ncMeta }) => {
     throw new Error('S3 plugin not found');
   }
 
-  // SMTP
+  // SES
   if (
-    !process.env.NC_ClOUD_SMTP_FROM ||
-    !process.env.NC_ClOUD_SMTP_HOST ||
-    !process.env.NC_ClOUD_SMTP_PORT ||
-    !process.env.NC_ClOUD_SMTP_SECURE ||
-    !process.env.NC_ClOUD_SMTP_IGNORE_TLS ||
-    !process.env.NC_ClOUD_SMTP_REJECT_UNAUTHORIZED ||
-    !process.env.NC_ClOUD_SMTP_USERNAME ||
-    !process.env.NC_ClOUD_SMTP_PASSWORD
+    !process.env.NC_CLOUD_SES_ACCESS_KEY ||
+    !process.env.NC_CLOUD_SES_ACCESS_SECRET ||
+    !process.env.NC_CLOUD_SES_REGION ||
+    !process.env.NC_CLOUD_SES_FROM
   ) {
-    throw new Error('SMTP env variables not found');
+    throw new Error('SES env variables not found');
   }
 
-  const smtpPluginData = await ncMeta.metaGet2(null, null, MetaTable.PLUGIN, {
-    title: SMTPPluginConfig.title,
+  const sesPluginData = await ncMeta.metaGet2(null, null, MetaTable.PLUGIN, {
+    title: SESPluginConfig.title,
   });
 
-  if (smtpPluginData) {
+  if (!sesPluginData) throw new Error('SES plugin not found');
+
+  if (sesPluginData) {
     await ncMeta.metaUpdate(
       null,
       null,
       MetaTable.PLUGIN,
       {
         input: JSON.stringify({
-          from: process.env.NC_ClOUD_SMTP_FROM,
-          host: process.env.NC_ClOUD_SMTP_HOST,
-          port: process.env.NC_ClOUD_SMTP_PORT,
-          secure: process.env.NC_ClOUD_SMTP_SECURE === 'true',
-          ignoreTLS: process.env.NC_ClOUD_SMTP_IGNORE_TLS === 'true',
-          rejectUnauthorized:
-            process.env.NC_ClOUD_SMTP_REJECT_UNAUTHORIZED === 'true',
-          username: process.env.NC_ClOUD_SMTP_USERNAME,
-          password: process.env.NC_ClOUD_SMTP_PASSWORD,
+          access_key: process.env.NC_CLOUD_SES_ACCESS_KEY,
+          access_secret: process.env.NC_CLOUD_SES_ACCESS_SECRET,
+          region: process.env.NC_CLOUD_SES_REGION,
+          from: process.env.NC_CLOUD_SES_FROM,
         }),
         active: true,
       },
-      smtpPluginData.id
+      sesPluginData.id
     );
-  } else {
-    throw new Error('SMTP plugin not found');
   }
 };

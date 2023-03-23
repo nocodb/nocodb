@@ -5,10 +5,10 @@ import type { ColumnType, LinkToAnotherRecordType } from 'nocodb-sdk'
 import {
   ColumnInj,
   Empty,
-  iconMap,
   IsPublicInj,
   SaveRowInj,
   computed,
+  iconMap,
   inject,
   isDrawerExist,
   ref,

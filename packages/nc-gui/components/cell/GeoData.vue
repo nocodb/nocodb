@@ -1,6 +1,6 @@
 <script lang="ts" setup>
 import type { GeoLocationType } from 'nocodb-sdk'
-import { Modal as AModal, latLongToJoinedString, useVModel, iconMap } from '#imports'
+import { Modal as AModal, iconMap, latLongToJoinedString, useVModel } from '#imports'
 
 interface Props {
   modelValue?: string | null
@@ -135,7 +135,11 @@ const openInOSM = () => {
         </a-form-item>
         <a-form-item>
           <div class="mr-2 flex flex-col items-end gap-1 text-left">
-            <component :is="iconMap.reload" v-if="isLoading" :class="{ 'animate-infinite animate-spin text-gray-500': isLoading }" />
+            <component
+              :is="iconMap.reload"
+              v-if="isLoading"
+              :class="{ 'animate-infinite animate-spin text-gray-500': isLoading }"
+            />
             <a-button class="ml-2" @click="onClickSetCurrentLocation"
               ><MdiGpsFixed class="mr-2" />{{ $t('labels.currentLocation') }}</a-button
             >

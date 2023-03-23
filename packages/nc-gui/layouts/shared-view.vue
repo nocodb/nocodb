@@ -1,5 +1,5 @@
 <script lang="ts" setup>
-import { navigateTo, useEventListener, useRouter , iconMap} from '#imports'
+import { iconMap, navigateTo, useEventListener, useRouter } from '#imports'
 
 const { isLoading, appInfo } = useGlobal()
 

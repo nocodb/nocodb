@@ -112,7 +112,8 @@ const onClick = (row: Row) => {
     <div class="max-h-[max(calc(100vh_-_300px)_,500px)] flex flex-col py-6">
       <div class="flex mb-4 items-center gap-2 px-12">
         <div class="flex-1" />
-        <component :is="iconMap.reload"
+        <component
+          :is="iconMap.reload"
           v-if="!isForm"
           class="cursor-pointer text-gray-500"
           data-testid="nc-child-list-reload"

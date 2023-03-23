@@ -194,7 +194,7 @@ onMounted(() => {
 
           <a-button type="text" class="!rounded-md mr-1 -mt-1.5 h-[1rem]" @click="navigateToSharedBase">
             <template #icon>
-              <component :is="iconMap.share"  class="flex mx-auto text-gray-600" />
+              <component :is="iconMap.share" class="flex mx-auto text-gray-600" />
             </template>
           </a-button>
         </a-tooltip>
@@ -206,7 +206,7 @@ onMounted(() => {
 
           <a-button type="text" class="!rounded-md mr-1 -mt-1.5 h-[1rem]" @click="generateEmbeddableIframe">
             <template #icon>
-             <component :is="iconMap.xml" class="flex mx-auto text-gray-600" />
+              <component :is="iconMap.xml" class="flex mx-auto text-gray-600" />
             </template>
           </a-button>
         </a-tooltip>

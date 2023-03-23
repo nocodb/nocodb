@@ -742,7 +742,7 @@ export const useDocStore = defineStore('docStore', () => {
     const randomId = Math.random().toString(36).substring(2, 15) + Math.random().toString(36).substring(2, 15)
     const data = await $api.storage.upload(
       {
-        path: [NOCO, openedProjectId, randomId].join('/'),
+        path: [NOCO, openedProjectId.value, randomId].join('/'),
       },
       {
         files: file as any,

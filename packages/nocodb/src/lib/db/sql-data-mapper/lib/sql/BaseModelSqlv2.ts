@@ -1696,15 +1696,17 @@ class BaseModelSqlv2 {
 
       await this.beforeUpdate(data, trx, cookie);
 
+      const prevData = await this.readByPk(id);
+
       const query = this.dbDriver(this.tnPath)
         .update(updateObj)
         .where(await this._wherePk(id));
 
       await this.execAndParse(query);
 
-      const response = await this.readByPk(id);
-      await this.afterUpdate(response, trx, cookie);
-      return response;
+      const newData = await this.readByPk(id);
+      await this.afterUpdate(prevData, newData, trx, cookie);
+      return newData;
     } catch (e) {
       console.log(e);
       await this.errorUpdate(e, data, trx, cookie);
@@ -2122,11 +2124,11 @@ class BaseModelSqlv2 {
    * */
 
   public async beforeInsert(data: any, _trx: any, req): Promise<void> {
-    await this.handleHooks('Before.insert', data, req);
+    await this.handleHooks('Before.insert', null, data, req);
   }
 
   public async afterInsert(data: any, _trx: any, req): Promise<void> {
-    await this.handleHooks('After.insert', data, req);
+    await this.handleHooks('After.insert', null, data, req);
     // if (req?.headers?.['xc-gui']) {
     const id = this._extractPksValues(data);
     await Audit.insert({
@@ -2194,12 +2196,18 @@ class BaseModelSqlv2 {
       }
     }
     if (ignoreWebhook === undefined || ignoreWebhook === 'false') {
-      await this.handleHooks('Before.update', data, req);
+      await this.handleHooks('Before.update', null, data, req);
     }
   }
 
-  public async afterUpdate(data: any, _trx: any, req): Promise<void> {
-    const id = this._extractPksValues(data);
+  public async afterUpdate(
+    prevData: any,
+    newData: any,
+    _trx: any,
+    req
+  ): Promise<void> {
+    const id = this._extractPksValues(newData);
+
     await Audit.insert({
       fk_model_id: this.model.id,
       row_id: id,
@@ -2218,12 +2226,12 @@ class BaseModelSqlv2 {
       }
     }
     if (ignoreWebhook === undefined || ignoreWebhook === 'false') {
-      await this.handleHooks('After.update', data, req);
+      await this.handleHooks('After.update', prevData, newData, req);
     }
   }
 
   public async beforeDelete(data: any, _trx: any, req): Promise<void> {
-    await this.handleHooks('Before.delete', data, req);
+    await this.handleHooks('Before.delete', null, data, req);
   }
 
   public async afterDelete(data: any, _trx: any, req): Promise<void> {
@@ -2240,10 +2248,10 @@ class BaseModelSqlv2 {
       user: req?.user?.email,
     });
     // }
-    await this.handleHooks('After.delete', data, req);
+    await this.handleHooks('After.delete', null, data, req);
   }
 
-  private async handleHooks(hookName, data, req): Promise<void> {
+  private async handleHooks(hookName, prevData, newData, req): Promise<void> {
     const view = await View.get(this.viewId);
 
     // handle form view data submission
@@ -2297,7 +2305,7 @@ class BaseModelSqlv2 {
           .map((a) => a[0]);
         if (emails?.length) {
           const transformedData = _transformSubmittedFormDataForEmail(
-            data,
+            newData,
             formView,
             filteredColumns
           );
@@ -2325,7 +2333,7 @@ class BaseModelSqlv2 {
       });
       for (const hook of hooks) {
         if (hook.active) {
-          invokeWebhook(hook, this.model, view, data, req?.user);
+          invokeWebhook(hook, this.model, view, prevData, newData, req?.user);
         }
       }
     } catch (e) {

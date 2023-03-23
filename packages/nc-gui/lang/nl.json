@@ -779,6 +779,7 @@
       "userDeletedFromProject": "Gebruiker succesvol verwijderd uit project",
       "inviteEmailSent": "Uitnodigingsmail succesvol verzonden",
       "inviteURLCopied": "Uitnodiging URL gekopieerd naar klembord",
+      "commentCopied": "Comment copied to clipboard",
       "passwordResetURLCopied": "Wachtwoord reset URL gekopieerd naar klembord",
       "shareableURLCopied": "Deelbare basis URL gekopieerd naar klembord!",
       "embeddableHTMLCodeCopied": "Gekopieerde insluitbare HTML-code!",

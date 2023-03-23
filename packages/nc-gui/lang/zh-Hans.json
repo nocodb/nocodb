@@ -39,7 +39,7 @@
     "signIn": "登录",
     "signOut": "登出",
     "required": "必填项",
-    "enableScanner": "Enable Scanner for filling",
+    "enableScanner": "启用扫描仪来填充",
     "preferred": "首选",
     "mandatory": "强制的",
     "loading": "加载中...",
@@ -101,7 +101,7 @@
       "form": "表单",
       "kanban": "看板",
       "calendar": "日历",
-      "map": "Map"
+      "map": "地图"
     },
     "user": "用户",
     "users": "用户",
@@ -260,7 +260,7 @@
     "barcodeFormat": "条形码码制",
     "qrCodeValueTooLong": "字数超出二维码容量",
     "barcodeValueTooLong": "字数超出条形码容量",
-    "currentLocation": "Current Location",
+    "currentLocation": "当前位置",
     "lng": "经度",
     "lat": "纬度",
     "aggregateFunction": "汇总功能",
@@ -429,10 +429,10 @@
     "openTab": "打开新标签",
     "iFrame": "复制可嵌入的 HTML 代码",
     "addWebhook": "添加新的 Webhook",
-    "enableWebhook": "Enable Webhook",
+    "enableWebhook": "启用 Webhook",
     "testWebhook": "Test Webhook",
-    "copyWebhook": "Copy Webhook",
-    "deleteWebhook": "Delete Webhook",
+    "copyWebhook": "复制 Webhook",
+    "deleteWebhook": "删除 Webhook",
     "newToken": "添加新 Token",
     "exportZip": "导出为 zip 格式",
     "importZip": "导入 zip 格式",
@@ -472,7 +472,7 @@
     "map": {
       "mappedBy": "Mapped By",
       "chooseMappingField": "Choose a Mapping Field",
-      "openInGoogleMaps": "Google Maps",
+      "openInGoogleMaps": "谷歌地图",
       "openInOpenStreetMap": "OSM"
     },
     "toggleMobileMode": "Toggle Mobile Mode"
@@ -545,7 +545,7 @@
         "loadingScanner": "Loading the scanner...",
         "selectColumn": "Select a column (QR code or Barcode) that you want to use for finding a row by scanning.",
         "moreThanOneRowFoundForCode": "More than one row found for this code. Currently only unique codes are supported.",
-        "noRowFoundForCode": "No row found for this code for the selected column"
+        "noRowFoundForCode": "所选列没有找到此代码行"
       },
       "map": {
         "overLimit": "你已经超出了限制。",
@@ -698,7 +698,7 @@
         "allowedSpecialCharList": "允许的特殊字符列表"
       },
       "invalidURL": "无效的 URL",
-      "invalidEmail": "Invalid Email",
+      "invalidEmail": "无效的电子邮件",
       "internalError": "发生了一些内部错误",
       "templateGeneratorNotFound": "模板生成器无法找到！",
       "fileUploadFailed": "文件上传失败",

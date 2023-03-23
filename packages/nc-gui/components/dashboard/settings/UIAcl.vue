@@ -121,7 +121,7 @@ const columns = [
       <div class="flex flex-row items-center w-full mb-4 gap-2">
         <a-input v-model:value="searchInput" placeholder="Search models" class="nc-acl-search">
           <template #prefix>
-            <MdiMagnify />
+            <component :is="iconMap.search" />
           </template>
         </a-input>
 
@@ -134,7 +134,7 @@ const columns = [
 
         <a-button class="self-start nc-acl-save" @click="saveUIAcl">
           <div class="flex items-center gap-2 text-gray-600 font-light">
-            <MdiContentSave />
+            <component :is="iconMap.save" />
             Save
           </div>
         </a-button>

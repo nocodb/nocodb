@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import type { VNodeRef } from '@vue/runtime-core'
 import type { AuditType } from 'nocodb-sdk'
-import { enumColor, ref, timeAgo, useCopy, useExpandedFormStoreOrThrow, useGlobal, useI18n, watch } from '#imports'
+import { enumColor, iconMap, ref, timeAgo, useCopy, useExpandedFormStoreOrThrow, useGlobal, useI18n, watch } from '#imports'
 
 const { loadCommentsAndLogs, commentsAndLogs, isCommentsLoading, commentsOnly, saveComment, isYou, comment, updateComment } =
   useExpandedFormStoreOrThrow()
@@ -133,7 +133,11 @@ watch(
         <div v-for="(log, idx) of commentsAndLogs" :key="log.id">
           <a-dropdown :trigger="['contextmenu']" :overlay-class-name="`nc-dropdown-comment-context-menu-${idx}`">
             <div class="flex gap-1 text-xs">
-              <MdiAccountCircle class="row-span-2" :class="isYou(log.user) ? 'text-pink-300' : 'text-blue-300 '" />
+              <component
+            :is="iconMap.accountCircle"
+            class="row-span-2"
+            :class="isYou(log.user) ? 'text-pink-300' : 'text-blue-300 '"
+          />
 
               <div class="flex-1">
                 <p class="mb-1 caption edited-text text-[10px] text-gray-500">
@@ -208,12 +212,12 @@ watch(
         >
           <template #addonBefore>
             <div class="flex items-center">
-              <mdi-account-circle class="text-lg text-pink-300" small @click="saveComment" />
+              <component :is="iconMap.accountCircle" class="text-lg text-pink-300" small @click="saveComment" />
             </div>
           </template>
 
           <template #suffix>
-            <mdi-keyboard-return v-if="comment" class="text-sm" small @click="saveComment" />
+            <component :is="iconMap.returnKey" v-if="comment" class="text-sm" small @click="saveComment" />
           </template>
         </a-input>
       </div>

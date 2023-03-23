@@ -2,7 +2,7 @@
 import { onKeyDown } from '@vueuse/core'
 import { useAttachmentCell } from './utils'
 import { useSortable } from './sort'
-import { isImage, ref, useAttachment, useDropZone, useUIPermission, watch , iconMap} from '#imports'
+import { iconMap, isImage, ref, useAttachment, useDropZone, useUIPermission, watch } from '#imports'
 
 const { isUIAllowed } = useUIPermission()
 
@@ -133,7 +133,8 @@ function onRemoveFileClick(title: any, i: number) {
 
             <a-tooltip v-if="!readOnly">
               <template #title> Remove File </template>
-              <component :is="iconMap.closeCircle"
+              <component
+                :is="iconMap.closeCircle"
                 v-if="isSharedForm || (isUIAllowed('tableAttachment') && !isPublic && !isLocked)"
                 class="nc-attachment-remove"
                 @click.stop="onRemoveFileClick(item.title, i)"

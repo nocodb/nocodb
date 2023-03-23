@@ -206,7 +206,7 @@ useMenuCloseOnEsc(open)
 
             <a-menu-item v-if="isUIAllowed('SharedViewList') && !isView && !isPublicView">
               <div v-e="['a:actions:shared-view-list']" class="py-2 flex gap-2 items-center" @click="sharedViewListDlg = true">
-                <PhListBulletsThin class="text-gray-500" />
+                <component :is="iconMap.list" class="text-gray-500" />
                 <!-- Shared View List -->
                 {{ $t('activity.listSharedView') }}
               </div>
@@ -226,7 +226,7 @@ useMenuCloseOnEsc(open)
 
             <a-menu-item v-if="!isSharedBase && !isPublicView && !isMobileMode">
               <div v-e="['c:snippet:open']" class="py-2 flex gap-2 items-center" @click="showApiSnippetDrawer = true">
-                <PhBracketsAngleThin class="text-gray-500" />
+                <component :is="iconMap.snippet" class="text-gray-500" />
                 <!-- Get API Snippet -->
                 {{ $t('activity.getApiSnippet') }}
               </div>

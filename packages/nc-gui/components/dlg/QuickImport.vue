@@ -12,6 +12,7 @@ import {
   computed,
   extractSdkResponseErrorMsg,
   fieldRequiredValidator,
+  iconMap,
   importCsvUrlValidator,
   importExcelUrlValidator,
   importUrlValidator,
@@ -413,7 +414,7 @@ const beforeUpload = (file: UploadFile) => {
             <a-tab-pane v-if="isImportTypeJson" key="jsonEditorTab" :closable="false">
               <template #tab>
                 <span class="flex items-center gap-2">
-                  <MdiCodeJson />
+                  <component :is="iconMap.json" />
                   JSON Editor
                 </span>
               </template>

@@ -372,7 +372,12 @@ const setIcon = async (icon: string, table: TableType) => {
           </Transition>
 
           <Transition name="layout" mode="out-in">
-            <component :is="iconMap.close" v-if="searchActive" class="text-gray-500 text-lg mx-1 mt-0.5" @click="onSearchCloseIconClick" />
+            <component
+              :is="iconMap.close"
+              v-if="searchActive"
+              class="text-gray-500 text-lg mx-1 mt-0.5"
+              @click="onSearchCloseIconClick"
+            />
             <component :is="iconMap.search" v-else class="text-gray-500 text-lg mx-1 mt-0.5" @click="toggleSearchActive(true)" />
           </Transition>
         </div>
@@ -399,7 +404,12 @@ const setIcon = async (icon: string, table: TableType) => {
           </Transition>
 
           <Transition name="slide-right" mode="out-in">
-            <component :is="iconMap.close" v-if="searchActive" class="text-gray-500 text-lg mx-1 mt-0.5" @click="onSearchCloseIconClick" />
+            <component
+              :is="iconMap.close"
+              v-if="searchActive"
+              class="text-gray-500 text-lg mx-1 mt-0.5"
+              @click="onSearchCloseIconClick"
+            />
             <component :is="iconMap.search" v-else class="text-gray-500 text-lg mx-1 mt-0.5" @click="onSearchIconClick" />
           </Transition>
 
@@ -456,7 +466,7 @@ const setIcon = async (icon: string, table: TableType) => {
                     target="_blank"
                     class="prose-sm hover:(!text-primary !opacity-100) color-transition nc-project-menu-item group after:(!rounded-b)"
                   >
-                    <MdiOpenInNew class="group-hover:text-accent" />
+                    <component :is="iconMap.openInNew" class="group-hover:text-accent" />
                     <!-- Request a data source you need? -->
                     {{ $t('labels.requestDataSource') }}
                   </a>
@@ -579,7 +589,7 @@ const setIcon = async (icon: string, table: TableType) => {
                       target="_blank"
                       class="prose-sm hover:(!text-primary !opacity-100) color-transition nc-project-menu-item group after:(!rounded-b)"
                     >
-                      <MdiOpenInNew class="group-hover:text-accent" />
+                      <component :is="iconMap.openInNew" class="group-hover:text-accent" />
                       <!-- Request a data source you need? -->
                       {{ $t('labels.requestDataSource') }}
                     </a>
@@ -846,7 +856,7 @@ const setIcon = async (icon: string, table: TableType) => {
                               @click="openAirtableImportDialog(base.id)"
                             >
                               <div class="color-transition nc-project-menu-item group">
-                                <MdiTableLarge class="group-hover:text-accent" />
+                                <component :is="iconMap.airtable" class="group-hover:text-accent" />
                                 Airtable
                               </div>
                             </a-menu-item>
@@ -857,7 +867,7 @@ const setIcon = async (icon: string, table: TableType) => {
                               @click="openQuickImportDialog('csv', base.id)"
                             >
                               <div class="color-transition nc-project-menu-item group">
-                                <MdiFileDocumentOutline class="group-hover:text-accent" />
+                                <component :is="iconMap.csv" class="group-hover:text-accent" />
                                 CSV file
                               </div>
                             </a-menu-item>
@@ -868,7 +878,7 @@ const setIcon = async (icon: string, table: TableType) => {
                               @click="openQuickImportDialog('json', base.id)"
                             >
                               <div class="color-transition nc-project-menu-item group">
-                                <MdiCodeJson class="group-hover:text-accent" />
+                                <component :is="iconMap.json" class="group-hover:text-accent" />
                                 JSON file
                               </div>
                             </a-menu-item>
@@ -879,7 +889,7 @@ const setIcon = async (icon: string, table: TableType) => {
                               @click="openQuickImportDialog('excel', base.id)"
                             >
                               <div class="color-transition nc-project-menu-item group">
-                                <MdiFileExcel class="group-hover:text-accent" />
+                                <component :is="iconMap.excel" class="group-hover:text-accent" />
                                 Microsoft Excel
                               </div>
                             </a-menu-item>
@@ -894,7 +904,7 @@ const setIcon = async (icon: string, table: TableType) => {
                               target="_blank"
                               class="prose-sm hover:(!text-primary !opacity-100) color-transition nc-project-menu-item group after:(!rounded-b)"
                             >
-                              <MdiOpenInNew class="group-hover:text-accent" />
+                              <component :is="iconMap.openInNew" class="group-hover:text-accent" />
                               <!-- Request a data source you need? -->
                               {{ $t('labels.requestDataSource') }}
                             </a>

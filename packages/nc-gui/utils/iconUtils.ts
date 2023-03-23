@@ -41,7 +41,6 @@ import PhCsvThin from '~icons/ph/file-csv-light'
 import PhBracketsCurlyThin from '~icons/ph/brackets-curly-light'
 import PhTrashThin from '~icons/ph/trash-light'
 import PhPencilSimpleThin from '~icons/ph/pencil-simple-light'
-import PhLinkSimpleThin from '~icons/ph/link-simple-light'
 import PhListMagnifyingGlassThin from '~icons/ph/list-magnifying-glass-light'
 import PhStringIcon from '~icons/ph/text-aa-light'
 import PhTextAreaIcon from '~icons/ph/text-align-left-light'
@@ -52,7 +51,6 @@ import WebIcon from '~icons/ph/planet-light'
 import BooleanIcon from '~icons/ph/check-square-light'
 import CalendarIcon from '~icons/ph/calendar-blank-light'
 import SingleSelectIcon from '~icons/ph/caret-circle-down-light'
-import MultiSelectIcon from '~icons/ph/list-bullets-light'
 import DatetimeIcon from '~icons/ph/calendar-light'
 import GeoDataIcon from '~icons/ph/map-pin-light'
 import RatingIcon from '~icons/ph/star-light'
@@ -92,10 +90,60 @@ import MdiDatabaseSettingsOutline from '~icons/mdi/database-settings-outline'
 import PhXCircleLight from '~icons/ph/x-circle-light'
 import PhXLight from '~icons/ph/x-light'
 import PhXSquareLight from '~icons/ph/x-square-light'
+import PhSignInLight from '~icons/ph/sign-in-light'
+import PhSignOutLight from '~icons/ph/sign-out-light'
+import PhCaretDoubleLeftLight from '~icons/ph/caret-double-left-light'
+import MdiOpenInNew from '~icons/mdi/open-in-new'
+import PhFloppyDiskLight from '~icons/ph/floppy-disk-light'
+import PhPlusCircleLight from '~icons/ph/plus-circle-light'
+import PhMinusCircleLight from '~icons/ph/minus-circle-light'
+import PhAtLight from '~icons/ph/at-light'
+import PhDatabaseLight from '~icons/ph/database-light'
+import PhUserPlusLight from '~icons/ph/user-plus-light'
+import PhDiscordLogoLight from '~icons/ph/discord-logo-light'
+import PhRedditLogoLight from '~icons/ph/reddit-logo-light'
+import PhTwitterLogoLight from '~icons/ph/twitter-logo-light'
+import PhGithubLogoLight from '~icons/ph/github-logo-light'
+import PhKeyboardLight from '~icons/ph/keyboard-light'
+import PhUserCircleLight from '~icons/ph/user-circle-light'
+import PhKeyReturnThin from '~icons/ph/key-return-light'
+import PhLinkSimpleHorizontalLight from '~icons/ph/link-simple-horizontal-light'
+import PhPresentationThin from '~icons/ph/presentation-light'
+import PhTranslateThin from '~icons/ph/translate-light'
+import PhSortAscendingThin from '~icons/ph/sort-ascending-light'
+import PhChatTextThin from '~icons/ph/chat-text-light'
+import PhCloudLightningThin from '~icons/ph/cloud-lightning-light'
+import PhListBulletsThin from '~icons/ph/list-bullets-light'
+import PhBracketsAngleThin from '~icons/ph/brackets-angle-light'
+import MdiExitToApp from '~icons/mdi/exit-to-app'
 
 export const iconMap = {
+  exit: MdiExitToApp,
+  snippet: PhBracketsAngleThin,
+  list: PhListBulletsThin,
+  cloud: PhCloudLightningThin,
+  apiAndSupport: PhChatTextThin,
+  sort: PhSortAscendingThin,
+  translate: PhTranslateThin,
+  preview: PhPresentationThin,
+  link: PhLinkSimpleHorizontalLight,
+  returnKey: PhKeyReturnThin,
+  keyboard: PhKeyboardLight,
+  accountPlus: PhUserPlusLight,
+  database: PhDatabaseLight,
+  discord: PhDiscordLogoLight,
+  reddit: PhRedditLogoLight,
+  github: PhGithubLogoLight,
+  twitter: PhTwitterLogoLight,
+  at: PhAtLight,
+  plusCircle: PhPlusCircleLight,
+  minusCircle: PhMinusCircleLight,
+  save: PhFloppyDiskLight,
+  signin: PhSignInLight,
+  signout: PhSignOutLight,
   lock: PhLockIcon,
   account: PhAccountIcon,
+  accountCircle: PhUserCircleLight,
   users: PhUsersThreeThin,
   download: PhDownloadThin,
   upload: PhUploadThin,
@@ -111,6 +159,7 @@ export const iconMap = {
   book: PhBookThin,
   arrowDown: PhCaretDownLight,
   arrowRight: PhCaretRightLight,
+  arrowDoubleLeft: PhCaretDoubleLeftLight,
   threeDotVertical: PhDotsThreeOutlineVerticalThin,
   threeDotHorizontal: PhDotsThreeOutlineThin,
   table: PhTableThin,
@@ -119,7 +168,6 @@ export const iconMap = {
   code: PhBracketsCurlyThin,
   delete: PhTrashThin,
   edit: PhPencilSimpleThin,
-  link: PhLinkSimpleThin,
   lookup: PhListMagnifyingGlassThin,
   text: PhStringIcon,
   longText: PhTextAreaIcon,
@@ -128,7 +176,7 @@ export const iconMap = {
   boolean: BooleanIcon,
   calendar: CalendarIcon,
   singleSelect: SingleSelectIcon,
-  multiSelect: MultiSelectIcon,
+  multiSelect: PhListBulletsThin,
   datetime: DatetimeIcon,
   geoData: GeoDataIcon,
   rating: RatingIcon,
@@ -171,6 +219,7 @@ export const iconMap = {
   closeBox: PhXSquareLight,
   close: PhXLight,
 
+  openInNew: MdiOpenInNew,
   mm: MMIcon,
   hm: HMIcon,
   bt: BTIcon,

@@ -1,5 +1,5 @@
 <script lang="ts" setup>
-import {iconMap} from '#imports'
+import { iconMap } from '#imports'
 
 interface Props {
   modelValue: boolean

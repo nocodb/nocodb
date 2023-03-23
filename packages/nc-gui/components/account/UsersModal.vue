@@ -6,12 +6,12 @@ import {
   computed,
   emailValidator,
   extractSdkResponseErrorMsg,
+  iconMap,
   message,
   ref,
   useCopy,
   useDashboard,
   useI18n,
-  iconMap,
   useNuxtApp,
 } from '#imports'
 import type { User } from '~/lib'

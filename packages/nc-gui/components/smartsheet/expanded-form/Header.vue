@@ -107,7 +107,8 @@ const onConfirmDeleteRowClick = async () => {
         <!-- todo: i18n -->
         <div class="text-center w-full">Copy record URL</div>
       </template>
-      <mdi-link
+      <component
+        :is="iconMap.link"
         v-if="!isNew"
         class="nc-icon-transition cursor-pointer select-none text-gray-500 mx-1 nc-copy-row-url min-w-4"
         @click="copyRecordUrl"
@@ -186,7 +187,8 @@ const onConfirmDeleteRowClick = async () => {
           </a-menu-item>
           <a-menu-item @click="emit('cancel')">
             <div v-e="['c:row-expand:delete']" class="py-2 flex gap-2 items-center">
-              <component :is="iconMap.closeCircle"
+              <component
+                :is="iconMap.closeCircle"
                 class="nc-icon-transition cursor-pointer select-none nc-delete-row text-gray-500 mx-1 min-w-4"
               />
               {{ $t('general.close') }}

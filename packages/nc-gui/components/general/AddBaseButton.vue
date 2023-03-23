@@ -1,4 +1,6 @@
 <script setup lang="ts">
+import { iconMap } from '#imports'
+
 const { isUIAllowed } = useUIPermission()
 
 const { t } = useI18n()
@@ -14,7 +16,7 @@ const toggleDialog = inject(ToggleDialogInj, () => {})
   >
     <div>
       <div class="flex items-center space-x-1">
-        <PhUsersThreeThin class="mr-1 nc-new-base" />
+        <component :is="iconMap.users" class="mr-1 nc-new-base" />
         <div>{{ t('title.teamAndSettings') }}</div>
       </div>
     </div>

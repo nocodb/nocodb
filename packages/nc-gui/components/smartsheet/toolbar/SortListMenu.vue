@@ -76,7 +76,7 @@ useMenuCloseOnEsc(open)
     <div :class="{ 'nc-badge nc-active-btn': sorts?.length }">
       <a-button v-e="['c:sort']" class="nc-sort-menu-btn nc-toolbar-btn" :disabled="isLocked">
         <div class="flex items-center gap-1">
-          <PhSortAscendingThin />
+          <component :is="iconMap.sort" />
 
           <!-- Sort -->
           <span v-if="!isMobileMode" class="text-capitalize !text-xs font-weight-normal">{{ $t('activity.sort') }}</span>
@@ -94,7 +94,8 @@ useMenuCloseOnEsc(open)
       >
         <div v-if="sorts?.length" class="sort-grid mb-2 max-h-420px overflow-y-auto" @click.stop>
           <template v-for="(sort, i) of sorts" :key="i">
-            <component :is="iconMap.closeBox"
+            <component
+              :is="iconMap.closeBox"
               ref="removeIcon"
               class="nc-sort-item-remove-btn text-grey self-center"
               small

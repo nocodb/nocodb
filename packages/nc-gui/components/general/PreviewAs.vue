@@ -82,7 +82,7 @@ watch(previewAs, (newRole) => {
 
       <!-- Close -->
       <div class="flex items-center gap-2 cursor-pointer nc-preview-btn-exit-to-app" @click="previewAs = null">
-        <MdiExitToApp />
+        <component :is="iconMap.exit" />
         {{ $t('general.close') }}
       </div>
     </div>

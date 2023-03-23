@@ -2,13 +2,13 @@
 import type { ColumnType, FilterType } from 'nocodb-sdk'
 import { UITypes } from 'nocodb-sdk'
 import {
-  iconMap,
   ActiveViewInj,
   MetaInj,
   ReloadViewDataHookInj,
   comparisonOpList,
   comparisonSubOpList,
   computed,
+  iconMap,
   inject,
   ref,
   useNuxtApp,
@@ -214,7 +214,8 @@ defineExpose({
       <template v-for="(filter, i) in filters" :key="i">
         <template v-if="filter.status !== 'delete'">
           <template v-if="filter.is_group">
-            <component :is="iconMap.closeBox"
+            <component
+              :is="iconMap.closeBox"
               v-if="!filter.readOnly"
               :key="i"
               small
@@ -252,7 +253,8 @@ defineExpose({
             </div>
           </template>
           <template v-else>
-            <component :is="iconMap.closeBox"
+            <component
+              :is="iconMap.closeBox"
               v-if="!filter.readOnly"
               class="nc-filter-item-remove-btn text-grey self-center"
               @click.stop="deleteFilter(filter, i)"

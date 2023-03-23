@@ -429,6 +429,10 @@
     "openTab": "Apri una nuova scheda",
     "iFrame": "Copia codice HTML incorporabile",
     "addWebhook": "Aggiungi nuovo webhook.",
+    "enableWebhook": "Enable Webhook",
+    "testWebhook": "Test Webhook",
+    "copyWebhook": "Copy Webhook",
+    "deleteWebhook": "Delete Webhook",
     "newToken": "Aggiungi nuovo token.",
     "exportZip": "Esporta zip",
     "importZip": "Importa zip",
@@ -694,6 +698,7 @@
         "allowedSpecialCharList": "Elenco dei caratteri speciali consentiti"
       },
       "invalidURL": "URL non valido",
+      "invalidEmail": "Invalid Email",
       "internalError": "Si è verificato un errore interno",
       "templateGeneratorNotFound": "Il generatore di modelli non può essere trovato!",
       "fileUploadFailed": "Non è riuscito a caricare il file",

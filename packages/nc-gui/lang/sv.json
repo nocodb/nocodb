@@ -429,6 +429,10 @@
     "openTab": "Öppna ny flik",
     "iFrame": "Kopiera inbäddbar HTML-kod",
     "addWebhook": "Lägg till ny webhook",
+    "enableWebhook": "Enable Webhook",
+    "testWebhook": "Test Webhook",
+    "copyWebhook": "Copy Webhook",
+    "deleteWebhook": "Delete Webhook",
     "newToken": "Lägg till ny token",
     "exportZip": "Exportera zip",
     "importZip": "Importera zip",
@@ -694,6 +698,7 @@
         "allowedSpecialCharList": "Förteckning över tillåtna specialtecken"
       },
       "invalidURL": "Ogiltig URL",
+      "invalidEmail": "Invalid Email",
       "internalError": "Ett internt fel har uppstått.",
       "templateGeneratorNotFound": "Mallgeneratorn kan inte hittas!",
       "fileUploadFailed": "Uppladdning av filen misslyckades",

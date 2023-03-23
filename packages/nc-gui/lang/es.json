@@ -429,6 +429,10 @@
     "openTab": "Abrir nueva pestaña",
     "iFrame": "Copiar código HTML incrustable",
     "addWebhook": "Añadir nuevo webhook",
+    "enableWebhook": "Enable Webhook",
+    "testWebhook": "Test Webhook",
+    "copyWebhook": "Copy Webhook",
+    "deleteWebhook": "Delete Webhook",
     "newToken": "Añadir nuevo token",
     "exportZip": "Exportar a zip",
     "importZip": "Importar zip",
@@ -694,6 +698,7 @@
         "allowedSpecialCharList": "Lista de caracteres especiales permitidos"
       },
       "invalidURL": "URL no válida",
+      "invalidEmail": "Invalid Email",
       "internalError": "Se ha producido algún error interno",
       "templateGeneratorNotFound": "¡No se encuentra el generador de plantillas!",
       "fileUploadFailed": "Fallo al cargar el archivo",

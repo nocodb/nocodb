@@ -429,6 +429,10 @@
     "openTab": "開啟新分頁",
     "iFrame": "複製嵌入式 HTML 程式碼",
     "addWebhook": "新增 webhook",
+    "enableWebhook": "Enable Webhook",
+    "testWebhook": "Test Webhook",
+    "copyWebhook": "Copy Webhook",
+    "deleteWebhook": "Delete Webhook",
     "newToken": "新增權杖",
     "exportZip": "匯出 ZIP",
     "importZip": "匯入 ZIP",
@@ -694,6 +698,7 @@
         "allowedSpecialCharList": "允許特殊字元列表"
       },
       "invalidURL": "無效的連結",
+      "invalidEmail": "Invalid Email",
       "internalError": "發生內部錯誤",
       "templateGeneratorNotFound": "Template Generator cannot be found!",
       "fileUploadFailed": "上傳文件失敗",

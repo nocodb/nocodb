@@ -71,7 +71,7 @@ hooks.hook('page:finish', () => {
         <a-tooltip placement="bottom" :mouse-enter-delay="1">
           <template #title> Switch language</template>
 
-          <div class="flex pr-4 items-center text-white">
+          <div class="flex pr-4 items-center">
             <LazyGeneralLanguage class="cursor-pointer text-2xl hover:text-accent" />
           </div>
         </a-tooltip>

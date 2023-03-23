@@ -429,6 +429,10 @@
     "openTab": "नया टैब खोलें",
     "iFrame": "एम्बेडेबल HTML कोड कॉपी करें",
     "addWebhook": "नया वेबहूक जोड़ें",
+    "enableWebhook": "Enable Webhook",
+    "testWebhook": "Test Webhook",
+    "copyWebhook": "Copy Webhook",
+    "deleteWebhook": "Delete Webhook",
     "newToken": "नया टोकन जोड़ें",
     "exportZip": "निर्यात ज़िप",
     "importZip": "आयात ज़िप",
@@ -694,6 +698,7 @@
         "allowedSpecialCharList": "Allowed special character list"
       },
       "invalidURL": "Invalid URL",
+      "invalidEmail": "Invalid Email",
       "internalError": "Some internal error occurred",
       "templateGeneratorNotFound": "Template Generator cannot be found!",
       "fileUploadFailed": "Failed to upload file",

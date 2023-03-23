@@ -429,6 +429,10 @@
     "openTab": "Yeni sekme aç",
     "iFrame": "Gömülü HTML kodunu kopyalayın",
     "addWebhook": "Yeni Webhook ekle",
+    "enableWebhook": "Enable Webhook",
+    "testWebhook": "Test Webhook",
+    "copyWebhook": "Copy Webhook",
+    "deleteWebhook": "Delete Webhook",
     "newToken": "Yeni Token ekle",
     "exportZip": "Zip olarak dışa aktar",
     "importZip": "Zip olarak içe aktar",
@@ -694,6 +698,7 @@
         "allowedSpecialCharList": "İzin verilen özel karakter listesi"
       },
       "invalidURL": "Geçersiz URL",
+      "invalidEmail": "Invalid Email",
       "internalError": "Bazı dahili hatalar oluştu",
       "templateGeneratorNotFound": "Şablon Oluşturucu bulunamıyor!",
       "fileUploadFailed": "Dosya yüklenemedi",

@@ -4,6 +4,7 @@ import type { ProjectUserReqType } from 'nocodb-sdk'
 import {
   Form,
   computed,
+  emailValidator,
   extractSdkResponseErrorMsg,
   message,
   onMounted,
@@ -17,7 +18,6 @@ import {
   useI18n,
   useNuxtApp,
   useProject,
-  validateEmail,
 } from '#imports'
 import type { User } from '~/lib'
 import { ProjectRole } from '~/lib'
@@ -54,24 +54,10 @@ let usersData = $ref<Users>({ emails: undefined, role: ProjectRole.Viewer, invit
 const formRef = ref()
 
 const useForm = Form.useForm
+
 const validators = computed(() => {
   return {
-    emails: [
-      {
-        validator: (rule: any, value: string, callback: (errMsg?: string) => void) => {
-          if (!value || value.length === 0) {
-            callback('Email is required')
-            return
-          }
-          const invalidEmails = (value || '').split(/\s*,\s*/).filter((e: string) => !validateEmail(e))
-          if (invalidEmails.length > 0) {
-            callback(`${invalidEmails.length > 1 ? ' Invalid emails:' : 'Invalid email:'} ${invalidEmails.join(', ')} `)
-          } else {
-            callback()
-          }
-        },
-      },
-    ],
+    emails: [emailValidator],
   }
 })
 
@@ -185,7 +171,9 @@ watch(
   >
     <div class="flex flex-col" data-testid="invite-user-and-share-base-modal">
       <div class="flex flex-row justify-between items-center pb-1.5 mb-2 border-b-1 w-full">
-        <a-typography-title v-if="!isMobileMode" class="select-none" :level="4"> {{ $t('activity.share') }}: {{ project.title }} </a-typography-title>
+        <a-typography-title v-if="!isMobileMode" class="select-none" :level="4">
+          {{ $t('activity.share') }}: {{ project.title }}
+        </a-typography-title>
 
         <a-button
           type="text"

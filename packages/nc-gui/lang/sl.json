@@ -429,6 +429,10 @@
     "openTab": "Odprite novo TAB.",
     "iFrame": "Kopiranje vgrajenega HTML kode",
     "addWebhook": "Dodaj novo Webhook.",
+    "enableWebhook": "Enable Webhook",
+    "testWebhook": "Test Webhook",
+    "copyWebhook": "Copy Webhook",
+    "deleteWebhook": "Delete Webhook",
     "newToken": "Dodajte nov žeton",
     "exportZip": "Izvozi zip",
     "importZip": "Uvozi zip",
@@ -694,6 +698,7 @@
         "allowedSpecialCharList": "Seznam dovoljenih posebnih znakov"
       },
       "invalidURL": "Nepravilen URL",
+      "invalidEmail": "Invalid Email",
       "internalError": "Zgodila se je neka notranja napaka",
       "templateGeneratorNotFound": "Generatorja predlog ni mogoče najti!",
       "fileUploadFailed": "Ni uspelo naložiti datoteke",

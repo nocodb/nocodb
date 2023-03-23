@@ -429,6 +429,10 @@
     "openTab": "새 탭 열기",
     "iFrame": "임베드 가능한 HTML 코드 복사",
     "addWebhook": "새 웹훅 추가",
+    "enableWebhook": "Enable Webhook",
+    "testWebhook": "Test Webhook",
+    "copyWebhook": "Copy Webhook",
+    "deleteWebhook": "Delete Webhook",
     "newToken": "새 토큰 추가",
     "exportZip": "zip 파일 내보내기",
     "importZip": "zip 파일 가져오기",
@@ -694,6 +698,7 @@
         "allowedSpecialCharList": "Allowed special character list"
       },
       "invalidURL": "Invalid URL",
+      "invalidEmail": "Invalid Email",
       "internalError": "Some internal error occurred",
       "templateGeneratorNotFound": "Template Generator cannot be found!",
       "fileUploadFailed": "Failed to upload file",

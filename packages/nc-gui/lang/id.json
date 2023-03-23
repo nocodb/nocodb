@@ -429,6 +429,10 @@
     "openTab": "Buka tab baru.",
     "iFrame": "Salin kode HTML yang dapat disematkan",
     "addWebhook": "Tambahkan WebHook Baru",
+    "enableWebhook": "Enable Webhook",
+    "testWebhook": "Test Webhook",
+    "copyWebhook": "Copy Webhook",
+    "deleteWebhook": "Delete Webhook",
     "newToken": "Tambahkan Token Baru.",
     "exportZip": "Ekspor Zip.",
     "importZip": "Impor Zip.",
@@ -694,6 +698,7 @@
         "allowedSpecialCharList": "Daftar karakter khusus yang diizinkan"
       },
       "invalidURL": "URL tidak valid",
+      "invalidEmail": "Invalid Email",
       "internalError": "Beberapa kesalahan internal terjadi",
       "templateGeneratorNotFound": "Pembuat Templat tidak dapat ditemukan!",
       "fileUploadFailed": "Gagal mengunggah file",

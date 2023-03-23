@@ -429,6 +429,10 @@
     "openTab": "Avaa uusi välilehti",
     "iFrame": "Kopioi Embeddable HTML-koodi",
     "addWebhook": "Lisää uusi webhotok",
+    "enableWebhook": "Enable Webhook",
+    "testWebhook": "Test Webhook",
+    "copyWebhook": "Copy Webhook",
+    "deleteWebhook": "Delete Webhook",
     "newToken": "Lisää uusi merkki",
     "exportZip": "Vie Zip",
     "importZip": "Tuo zip",
@@ -694,6 +698,7 @@
         "allowedSpecialCharList": "Sallittujen erikoismerkkien luettelo"
       },
       "invalidURL": "Virheellinen URL-osoite",
+      "invalidEmail": "Invalid Email",
       "internalError": "Tapahtui jokin sisäinen virhe",
       "templateGeneratorNotFound": "Template Generatoria ei löydy!",
       "fileUploadFailed": "Tiedoston lataaminen epäonnistui",

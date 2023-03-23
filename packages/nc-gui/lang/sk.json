@@ -429,6 +429,10 @@
     "openTab": "Otvoriť novú kartu",
     "iFrame": "Kopírovanie vložiteľného kódu HTML",
     "addWebhook": "Pridanie nového webového háčika",
+    "enableWebhook": "Enable Webhook",
+    "testWebhook": "Test Webhook",
+    "copyWebhook": "Copy Webhook",
+    "deleteWebhook": "Delete Webhook",
     "newToken": "Pridanie nového tokenu",
     "exportZip": "Export zip",
     "importZip": "Import zip",
@@ -694,6 +698,7 @@
         "allowedSpecialCharList": "Zoznam povolených špeciálnych znakov"
       },
       "invalidURL": "Neplatná adresa URL",
+      "invalidEmail": "Invalid Email",
       "internalError": "Vyskytla sa nejaká vnútorná chyba",
       "templateGeneratorNotFound": "Generátor šablón nemožno nájsť!",
       "fileUploadFailed": "Nepodarilo sa nahrať súbor",

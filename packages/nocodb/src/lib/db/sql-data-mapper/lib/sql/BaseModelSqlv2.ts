@@ -1631,7 +1631,7 @@ class BaseModelSqlv2 {
 
   async delByPk(id, trx?, cookie?) {
     try {
-      // retrieve data for handling paramas in hook
+      // retrieve data for handling params in hook
       const data = await this.readByPk(id);
       await this.beforeDelete(id, trx, cookie);
       const response = await this.dbDriver(this.tnPath)
@@ -2248,7 +2248,7 @@ class BaseModelSqlv2 {
       user: req?.user?.email,
     });
     // }
-    await this.handleHooks('After.delete', null, data, req);
+    await this.handleHooks('After.delete', data, null, req);
   }
 
   private async handleHooks(hookName, prevData, newData, req): Promise<void> {

@@ -1,23 +1,17 @@
 import { ViewTypes } from 'nocodb-sdk'
 import { themeV2Colors } from '#imports'
+import { iconMap } from '~/utils/iconUtils'
 
-import MdiCalendarIcon from '~icons/mdi/calendar'
-import MdiMapIcon from '~icons/mdi/map-outline'
 import type { Language } from '~/lib'
-import PhTableThin from '~icons/ph/TableThin'
-import PhImageThin from '~icons/ph/ImageThin'
-import PhComputerTowerThin from '~icons/ph/ComputerTowerThin'
-import PhSquareHalfBottomThin from '~icons/ph/SquareHalfBottomThin'
-import PhEyeThin from '~icons/ph/EyeThin'
 
 export const viewIcons: Record<number | string, { icon: any; color: string }> = {
-  [ViewTypes.GRID]: { icon: PhTableThin, color: '#8f96f2' },
-  [ViewTypes.FORM]: { icon: PhComputerTowerThin, color: themeV2Colors.pink['500'] },
-  calendar: { icon: MdiCalendarIcon, color: 'purple' },
-  [ViewTypes.GALLERY]: { icon: PhImageThin, color: 'orange' },
-  [ViewTypes.MAP]: { icon: MdiMapIcon, color: 'blue' },
-  [ViewTypes.KANBAN]: { icon: PhSquareHalfBottomThin, color: 'green' },
-  view: { icon: PhEyeThin, color: 'blue' },
+  [ViewTypes.GRID]: { icon: iconMap.grid, color: '#8f96f2' },
+  [ViewTypes.FORM]: { icon: iconMap.form, color: themeV2Colors.pink['500'] },
+  calendar: { icon: iconMap.calendar, color: 'purple' },
+  [ViewTypes.GALLERY]: { icon: iconMap.gallery, color: 'orange' },
+  [ViewTypes.MAP]: { icon: iconMap.map, color: 'blue' },
+  [ViewTypes.KANBAN]: { icon: iconMap.kanban, color: 'green' },
+  view: { icon: iconMap.view, color: 'blue' },
 }
 
 export const viewTypeAlias: Record<number, string> = {

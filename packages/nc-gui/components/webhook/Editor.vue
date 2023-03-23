@@ -61,7 +61,7 @@ const hook = reactive<
   active: true,
 })
 
-const urlTabKey = ref('body')
+const urlTabKey = ref('params')
 
 const apps: Record<string, any> = ref()
 

@@ -78,4 +78,20 @@ export class ToolbarFieldsPage extends BasePage {
     });
     await this.toolbar.clickFields();
   }
+
+  async getFieldsTitles() {
+    let fields: string[] = await this.rootPage.locator(`.nc-grid-header`).allInnerTexts();
+
+    fields = fields[0].split('\n');
+    // for each entry in fields, remove \n, \t, and \r
+    fields = fields.map(field => field.replace(/[\n\t\r]/g, ''));
+    // remove first entry, which is the row number
+    fields.shift();
+    // remove empty strings from array
+    fields = fields.filter(field => field !== '');
+
+    console.log(fields);
+
+    return fields;
+  }
 }

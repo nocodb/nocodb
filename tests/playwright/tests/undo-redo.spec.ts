@@ -4,9 +4,11 @@ import setup from '../setup';
 import { Api, UITypes } from 'nocodb-sdk';
 import { rowMixedValue } from '../setup/xcdb-records';
 import { GridPage } from '../pages/Dashboard/Grid';
+import { ToolbarPage } from '../pages/Dashboard/common/Toolbar';
 
 let dashboard: DashboardPage,
   grid: GridPage,
+  toolbar: ToolbarPage,
   context: any,
   api: Api<any>,
   records: Record<string, any>,
@@ -20,13 +22,13 @@ let dashboard: DashboardPage,
  Scope	      Actions
  ------------------------------
  Row	        Create, Update, Delete
- LTAR	      Link, Unlink
- Fields	    Show/hide, Reorder
- Sort	      Add, Update, Delete
+ LTAR	        Link, Unlink
+ Fields	      Show/hide, Reorder
+ Sort	        Add, Update, Delete
  Filters	    Add, Update, Delete (Excluding Filter Groups)
- Row Height	Update
+ Row Height	  Update
  Column width	Update
- View	      Rename
+ View	        Rename
  Table	      Rename
 
  **/
@@ -36,6 +38,7 @@ test.describe('Undo Redo', () => {
     context = await setup({ page, isEmptyProject: true });
     dashboard = new DashboardPage(page, context.project);
     grid = dashboard.grid;
+    toolbar = dashboard.grid.toolbar;
 
     api = new Api({
       baseURL: `http://localhost:8080/`,
@@ -54,6 +57,7 @@ test.describe('Undo Redo', () => {
         column_name: 'Number',
         title: 'Number',
         uidt: UITypes.Number,
+        pv: true,
       },
       {
         column_name: 'Decimal',
@@ -104,7 +108,7 @@ test.describe('Undo Redo', () => {
     expect(currentRecords.list.map(r => parseInt(r.Number))).toEqual(expectedValues);
   }
 
-  async function undo({ page, values }: { page: Page; values: number[] }) {
+  async function undo({ page }: { page: Page }) {
     const isMac = await grid.isMacOs();
     await dashboard.grid.waitForResponse({
       uiAction: () => page.keyboard.press(isMac ? 'Meta+z' : 'Control+z'),
@@ -112,7 +116,6 @@ test.describe('Undo Redo', () => {
       requestUrlPathToMatch: `/api/v1/db/data/noco/`,
       responseJsonMatcher: json => json.pageInfo,
     });
-    await verifyRecords(values);
   }
 
   test('Row: Create, Update, Delete', async ({ page }) => {
@@ -135,16 +138,66 @@ test.describe('Undo Redo', () => {
     await verifyRecords([]);
 
     // Undo : Row.Delete
-    await undo({ page, values: [666] });
-    await undo({ page, values: [555, 666] });
+    await undo({ page });
+    await verifyRecords([666]);
+    await undo({ page });
+    await verifyRecords([555, 666]);
 
     // Undo : Row.Update
-    await undo({ page, values: [555, 444] });
-    await undo({ page, values: [333, 444] });
+    await undo({ page });
+    await verifyRecords([555, 444]);
+    await undo({ page });
+    await verifyRecords([333, 444]);
 
     // Undo : Row.Create
-    await undo({ page, values: [333] });
-    await undo({ page, values: [] });
+    await undo({ page });
+    await verifyRecords([333]);
+    await undo({ page });
+    await verifyRecords([]);
+  });
+
+  test('Fields: Hide, Show, Reorder', async ({ page }) => {
+    async function verifyFieldsOrder(fields: string[]) {
+      const fieldTitles = await toolbar.fields.getFieldsTitles();
+      expect(fieldTitles).toEqual(fields);
+    }
+
+    await dashboard.closeTab({ title: 'Team & Auth' });
+    await dashboard.treeView.openTable({ title: 'numberBased' });
+
+    await verifyFieldsOrder(['Number', 'Decimal', 'Currency']);
+
+    // Hide Decimal
+    await toolbar.fields.toggle({ title: 'Decimal', isLocallySaved: false });
+    await verifyFieldsOrder(['Number', 'Currency']);
+
+    // Hide Currency
+    await toolbar.fields.toggle({ title: 'Currency', isLocallySaved: false });
+    await verifyFieldsOrder(['Number']);
+
+    // Un hide Decimal
+    await toolbar.fields.toggle({ title: 'Decimal', isLocallySaved: false });
+    await verifyFieldsOrder(['Number', 'Decimal']);
+
+    // Un hide Currency
+    await toolbar.fields.toggle({ title: 'Currency', isLocallySaved: false });
+    await verifyFieldsOrder(['Number', 'Decimal', 'Currency']);
+
+    // Undo : un hide Currency
+    await undo({ page });
+    await verifyFieldsOrder(['Number', 'Decimal']);
+
+    // Undo : un hide Decimal
+    await undo({ page });
+    await verifyFieldsOrder(['Number']);
+
+    // Undo : hide Currency
+    await undo({ page });
+    await verifyFieldsOrder(['Number', 'Currency']);
+
+    // Undo : hide Decimal
+    await undo({ page });
+    await verifyFieldsOrder(['Number', 'Decimal', 'Currency']);
   });
 });
 

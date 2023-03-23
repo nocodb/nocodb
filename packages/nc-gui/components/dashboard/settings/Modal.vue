@@ -2,8 +2,7 @@
 import type { FunctionalComponent, SVGAttributes } from 'vue'
 import DataSources from './DataSources.vue'
 import Misc from './Misc.vue'
-import { iconMap } from '~/utils'
-import { DataSourcesSubTab, useI18n, useNuxtApp, useUIPermission, useVModel, watch } from '#imports'
+import { DataSourcesSubTab,iconMap, useI18n, useNuxtApp, useUIPermission, useVModel, watch } from '#imports'
 
 interface Props {
   modelValue: boolean

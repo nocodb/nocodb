@@ -15,10 +15,9 @@ import {
   useNuxtApp,
   useProject,
   useSmartsheetStoreOrThrow,
-  useUIPermission,
+  useUIPermission,iconMap
 } from '#imports'
 import { LockType } from '~/lib'
-import { iconMap } from '~/utils'
 
 const { t } = useI18n()
 

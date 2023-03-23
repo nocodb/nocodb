@@ -15,8 +15,8 @@ import {
   useNuxtApp,
   useProject,
   useSmartsheetStoreOrThrow,
+  iconMap
 } from '#imports'
-import { iconMap } from '~/utils'
 
 const { t } = useI18n()
 

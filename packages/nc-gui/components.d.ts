@@ -259,7 +259,6 @@ declare module '@vue/runtime-core' {
     NcIconsRowHeightMedium: typeof import('~icons/nc-icons/row-height-medium')['default']
     NcIconsRowHeightShort: typeof import('~icons/nc-icons/row-height-short')['default']
     NcIconsRowHeightTall: typeof import('~icons/nc-icons/row-height-tall')['default']
-    'Ph:clockClockwiseThin': typeof import('~icons/ph/clock-clockwise-thin')['default']
     PhArrowClockwiseThin: typeof import('~icons/ph/arrow-clockwise-thin')['default']
     PhAtThin: typeof import('~icons/ph/at-thin')['default']
     PhBracketsAngleThin: typeof import('~icons/ph/brackets-angle-thin')['default']

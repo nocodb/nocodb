@@ -15,11 +15,11 @@ provide(TabMetaInj, activeTab)
 const icon = (tab: TabItem) => {
   switch (tab.type) {
     case TabType.TABLE:
-      return iconMap['mdi-table-large']
+      return iconMap['table']
     case TabType.VIEW:
-      return iconMap['mdi-eye-circle-outline']
+      return iconMap['eye']
     case TabType.AUTH:
-      return iconMap['mdi-account-group']
+      return iconMap['users-icon']
   }
 }
 

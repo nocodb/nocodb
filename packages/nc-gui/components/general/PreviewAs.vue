@@ -1,10 +1,9 @@
 <script lang="ts" setup>
-import { onUnmounted, ref, useEventListener, useGlobal, useI18n, useNuxtApp, watch } from '#imports'
-import { iconMap } from '~/utils'
+import { onUnmounted, ref, useEventListener, useGlobal, useI18n, useNuxtApp, watch,iconMap } from '#imports'
 import MdiAccountStar from '~icons/mdi/account-star'
 import MdiAccountHardHat from '~icons/mdi/account-hard-hat'
-import MdiAccountEdit from '~icons/ph/pencil-circle-thin'
-import MdiCommentAccountOutline from '~icons/ph/chat-teardrop-text-thin'
+import PhPencilCircleThin from '~icons/ph/pencil-circle-thin'
+import PhChtTeardropTextThin from '~icons/ph/chat-teardrop-text-thin'
 import { ProjectRole } from '~/lib'
 
 const { float } = defineProps<{ float?: boolean }>()
@@ -24,9 +23,9 @@ const roleList = [
 const roleIcon = {
   owner: MdiAccountStar,
   creator: MdiAccountHardHat,
-  editor: MdiAccountEdit,
+  editor: PhPencilCircleThin,
   viewer: iconMap.eye,
-  commenter: MdiCommentAccountOutline,
+  commenter: PhChtTeardropTextThin,
 }
 
 const position = ref({

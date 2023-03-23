@@ -33,8 +33,8 @@ import {
   storeToRefs,
   toRef,
   useProject,
+  iconMap
 } from '#imports'
-import { iconMap } from '~/utils'
 
 const renderIcon = (column: ColumnType, abstractType: any) => {
   if (isPrimaryKey(column)) {

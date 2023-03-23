@@ -8,10 +8,10 @@ import {
   onClickOutside,
   ref,
   useFieldQuery,
+  iconMap,
   useSmartsheetStoreOrThrow,
 } from '#imports'
 
-import { iconMap } from '~/utils'
 
 const reloadData = inject(ReloadViewDataHookInj)!
 

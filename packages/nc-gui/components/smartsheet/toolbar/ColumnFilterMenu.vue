@@ -13,8 +13,8 @@ import {
   useSmartsheetStoreOrThrow,
   useViewFilters,
   watch,
+  iconMap
 } from '#imports'
-import { iconMap } from '~/utils'
 
 const isLocked = inject(IsLockedInj, ref(false))
 

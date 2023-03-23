@@ -79,24 +79,6 @@ import BTIcon from '~icons/mdi/table-arrow-left'
 import MMIcon from '~icons/mdi/table-network'
 
 export const iconMap = {
-  'mdi-check-bold': MdiCheckBold,
-  'mdi-crop-square': MdiCropSquare,
-  'mdi-check-circle-outline': MdiCheckCircleOutline,
-  'mdi-checkbox-blank-circle-outline': MdiCheckboxBlankCircleOutline,
-  'mdi-star': MdiStar,
-  'mdi-star-outline': MdiStarOutline,
-  'mdi-heart': MdiHeart,
-  'mdi-heart-outline': MdiHeartOutline,
-  'mdi-moon-full': MdiMoonFull,
-  'mdi-moon-new': MdiMoonNew,
-  'mdi-thumb-up': MdiThumbUp,
-  'mdi-thumb-up-outline': MdiThumbUpOutline,
-  'mdi-flag': MdiFlag,
-  'mdi-flag-outline': MdiFlagOutline,
-  'mdi-table-large': PhTableThin,
-  'mdi-eye-circle-outline': PhEyeThin,
-  'mdi-account-group': PhUsersThreeThin,
-
   'lock-icon': PhLockIcon,
   'account-icon': PhAccountIcon,
   'users-icon': PhUsersThreeThin,

@@ -29,10 +29,10 @@ import {
   useToggle,
   useUIPermission,
   watchEffect,
+  iconMap
 } from '#imports'
 import PhEyeThin from '~icons/ph/EyeThin'
 import PhTableThin from '~icons/ph/TableThin'
-import { iconMap } from '~/utils'
 
 const { isMobileMode } = useGlobal()
 

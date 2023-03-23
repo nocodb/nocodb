@@ -698,6 +698,7 @@
         "allowedSpecialCharList": "İzin verilen özel karakter listesi"
       },
       "invalidURL": "Geçersiz URL",
+      "invalidEmail": "Invalid Email",
       "internalError": "Bazı dahili hatalar oluştu",
       "templateGeneratorNotFound": "Şablon Oluşturucu bulunamıyor!",
       "fileUploadFailed": "Dosya yüklenemedi",

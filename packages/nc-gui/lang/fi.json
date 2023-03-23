@@ -698,6 +698,7 @@
         "allowedSpecialCharList": "Sallittujen erikoismerkkien luettelo"
       },
       "invalidURL": "Virheellinen URL-osoite",
+      "invalidEmail": "Invalid Email",
       "internalError": "Tapahtui jokin sisäinen virhe",
       "templateGeneratorNotFound": "Template Generatoria ei löydy!",
       "fileUploadFailed": "Tiedoston lataaminen epäonnistui",

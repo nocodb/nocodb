@@ -27,6 +27,8 @@ const scannerIsReady = ref(false)
 
 const showCodeScannerOverlay = ref(false)
 
+const editEnabled = ref<boolean[]>([])
+
 const onLoaded = async () => {
   scannerIsReady.value = true
 }
@@ -161,7 +163,10 @@ const onDecode = async (scannedCodeValue: string) => {
                         :data-testid="`nc-form-input-cell-${field.label || field.title}`"
                         :class="`nc-form-input-${field.title?.replaceAll(' ', '')}`"
                         :column="field"
-                        :edit-enabled="true"
+                        :edit-enabled="editEnabled[index]"
+                        @click="editEnabled[index] = true"
+                        @cancel="editEnabled[index] = false"
+                        @update:edit-enabled="editEnabled[index] = $event"
                       />
                       <a-button
                         v-if="field.enable_scanner"

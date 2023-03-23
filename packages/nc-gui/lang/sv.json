@@ -698,6 +698,7 @@
         "allowedSpecialCharList": "Förteckning över tillåtna specialtecken"
       },
       "invalidURL": "Ogiltig URL",
+      "invalidEmail": "Invalid Email",
       "internalError": "Ett internt fel har uppstått.",
       "templateGeneratorNotFound": "Mallgeneratorn kan inte hittas!",
       "fileUploadFailed": "Uppladdning av filen misslyckades",

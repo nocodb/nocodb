@@ -779,6 +779,7 @@
       "userDeletedFromProject": "Berhasil menghapus pengguna dari proyek",
       "inviteEmailSent": "Email undangan berhasil dikirim",
       "inviteURLCopied": "Mengundang URL yang disalin ke papan klip",
+      "commentCopied": "Comment copied to clipboard",
       "passwordResetURLCopied": "URL pengaturan ulang kata sandi disalin ke papan klip",
       "shareableURLCopied": "Menyalin URL dasar yang dapat dibagikan ke papan klip!",
       "embeddableHTMLCodeCopied": "Menyalin kode HTML yang dapat disematkan!",

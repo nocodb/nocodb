@@ -3,6 +3,7 @@ import DOMPurify from 'isomorphic-dompurify';
 import { validatePayload } from '../meta/api/helpers';
 import Audit from '../models/Audit';
 import Model from '../models/Model';
+import { NcError } from '../meta/helpers/catchError';
 import type { AuditRowUpdateReqType, CommentUpdateReqType } from 'nocodb-sdk';
 
 export async function commentRow(param: {
@@ -65,6 +66,7 @@ export async function commentsCount(param: {
 
 export async function commentUpdate(param: {
   auditId: string;
+  userEmail: string;
   body: CommentUpdateReqType;
 }) {
   validatePayload(
@@ -72,5 +74,10 @@ export async function commentUpdate(param: {
     param.body
   );
 
+  const log = await Audit.get(param.auditId);
+
+  if (log.user !== param.userEmail) {
+    NcError.unauthorized('Unauthorized access');
+  }
   return await Audit.commentUpdate(param.auditId, param.body);
 }

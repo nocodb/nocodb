@@ -30,10 +30,11 @@ export async function commentList(req: Request<any, any, any>, res) {
   );
 }
 
-export async function commentUpdate(req: Request<any, any>, res) {
+export async function commentUpdate(req, res) {
   res.json(
     await auditService.commentUpdate({
       auditId: req.params.auditId,
+      userEmail: req?.session?.passport?.user.email,
       body: req.body,
     })
   );

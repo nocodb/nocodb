@@ -779,6 +779,7 @@
       "userDeletedFromProject": "Benutzer erfolgreich aus dem Projekt gelöscht",
       "inviteEmailSent": "Einladungs-E-Mail erfolgreich gesendet",
       "inviteURLCopied": "Einladungslink wurde in Zwischenablage kopiert",
+      "commentCopied": "Comment copied to clipboard",
       "passwordResetURLCopied": "URL zum Zurücksetzen des Passworts in die Zwischenablage kopiert",
       "shareableURLCopied": "Kopieren Sie die Basis-URL für die Freigabe in die Zwischenablage!",
       "embeddableHTMLCodeCopied": "Kopierter, einbettbarer HTML-Code!",

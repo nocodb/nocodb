@@ -867,7 +867,7 @@ function pageIdFromCompositePageId(compositePageId: string) {
   const ids = compositePageId.split('-')
   if (ids.length < 3) return null
 
-  return ids[1]
+  return ids[ids.length - 2]
 }
 
 function projectIdFromCompositePageId(compositePageId: string) {

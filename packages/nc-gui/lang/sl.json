@@ -698,6 +698,7 @@
         "allowedSpecialCharList": "Seznam dovoljenih posebnih znakov"
       },
       "invalidURL": "Nepravilen URL",
+      "invalidEmail": "Invalid Email",
       "internalError": "Zgodila se je neka notranja napaka",
       "templateGeneratorNotFound": "Generatorja predlog ni mogoče najti!",
       "fileUploadFailed": "Ni uspelo naložiti datoteke",

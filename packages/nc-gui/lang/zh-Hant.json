@@ -698,6 +698,7 @@
         "allowedSpecialCharList": "允許特殊字元列表"
       },
       "invalidURL": "無效的連結",
+      "invalidEmail": "Invalid Email",
       "internalError": "發生內部錯誤",
       "templateGeneratorNotFound": "Template Generator cannot be found!",
       "fileUploadFailed": "上傳文件失敗",

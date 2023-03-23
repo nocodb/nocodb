@@ -698,6 +698,7 @@
         "allowedSpecialCharList": "Erlaubte Sonderzeichenliste"
       },
       "invalidURL": "Ungültige URL",
+      "invalidEmail": "Invalid Email",
       "internalError": "Interner Fehler aufgetreten",
       "templateGeneratorNotFound": "Template-Generator kann nicht gefunden werden!",
       "fileUploadFailed": "Fehler beim Hochladen der Datei",

@@ -698,6 +698,7 @@
         "allowedSpecialCharList": "قائمة الأحرف الخاصة المسموح بها"
       },
       "invalidURL": "رابط غير صالح",
+      "invalidEmail": "Invalid Email",
       "internalError": "حدث خطأ داخلي",
       "templateGeneratorNotFound": "لا يمكن العثور على مولد القالب!",
       "fileUploadFailed": "فشل في رفع الملف",

@@ -698,6 +698,7 @@
         "allowedSpecialCharList": "利用できる記号の一覧"
       },
       "invalidURL": "無効なURL",
+      "invalidEmail": "Invalid Email",
       "internalError": "内部エラーが発生しました",
       "templateGeneratorNotFound": "テンプレートジェネレーターが見つかりません！",
       "fileUploadFailed": "ファイルのアップロードに失敗しました",

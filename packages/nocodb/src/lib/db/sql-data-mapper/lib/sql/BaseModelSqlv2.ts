@@ -1560,9 +1560,6 @@ class BaseModelSqlv2 {
         await this.beforeInsert(insertObj, trx, cookie);
       }
 
-      // if ('beforeInsert' in this) {
-      //   await this.beforeInsert(insertObj, trx, cookie);
-      // }
       await this.model.getColumns();
       let response;
       // const driver = trx ? trx : this.dbDriver;

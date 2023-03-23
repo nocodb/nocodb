@@ -703,7 +703,7 @@ onMounted(async () => {
               <template #title>
                 <span> <strong>data</strong> : Row data <br /> </span>
               </template>
-              < <component :is="iconMap.info" class="ml-2" />
+               <component :is="iconMap.info" class="ml-2" />
             </a-tooltip>
 
             <div class="mt-3">

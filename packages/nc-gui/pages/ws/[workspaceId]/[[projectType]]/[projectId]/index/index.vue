@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { Icon } from '@iconify/vue'
+import { Icon, Icon as IconifyIcon } from '@iconify/vue'
 import type { TabItem } from '~/lib'
 import { TabType } from '~/lib'
 import { TabMetaInj, iconMap, provide, storeToRefs, useGlobal, useSidebar, useTabs } from '#imports'
@@ -64,7 +64,7 @@ function onEdit(targetKey: number, action: 'add' | 'remove' | string) {
                   <component :is="icon(tab)" v-else class="text-sm" />
                 </div>
 
-                <div :data-testid="`nc-root-tabs-${tab.title}`">
+                <div class="flex flex-row" :data-testid="`nc-root-tabs-${tab.title}`">
                   <GeneralTruncateText :key="tab.title" :length="12">
                     {{ tab.title }}
                   </GeneralTruncateText>

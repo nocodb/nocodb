@@ -22,6 +22,7 @@ const userNameEmpty = (user: User) => {
 }
 
 const loadListData = async ($state: any) => {
+  const prevUsersCount = users.value?.length || 0
   if (users.value?.length === totalUsers.value) {
     $state.complete()
     return
@@ -29,9 +30,13 @@ const loadListData = async ($state: any) => {
   $state.loading()
   // const oldPagesCount = currentPage.value || 0
 
-  currentPage.value += 1
   await loadUsers()
+  currentPage.value += 1
 
+  if (prevUsersCount === users.value?.length) {
+    $state.complete()
+    return
+  }
   $state.loaded()
 }
 </script>
@@ -77,10 +82,7 @@ const loadListData = async ($state: any) => {
         >
           <a-select-option v-for="(role, index) in docsProjectRoles" :key="index" :value="role" class="nc-role-option">
             <div class="flex flex-row h-full justify-start items-center">
-              <div
-                class="px-2 py-1 flex rounded-full text-xs capitalize"
-                :style="{ backgroundColor: projectRoleTagColors[role] }"
-              >
+              <div class="px-2 py-1 flex rounded-full text-xs capitalize">
                 {{ role }}
               </div>
             </div>

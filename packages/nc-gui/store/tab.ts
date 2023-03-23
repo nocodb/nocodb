@@ -22,6 +22,9 @@ export const useTabs = defineStore('tabStore', () => {
 
   const { isUIAllowed } = useUIPermission()
 
+  const { openedPageId } = storeToRefs(useDocStore())
+  const { nestedUrl } = useDocStore()
+
   const projectsStore = useProjects()
 
   const projectStore = useProject()
@@ -36,6 +39,10 @@ export const useTabs = defineStore('tabStore', () => {
   const activeTabIndex: WritableComputedRef<number> = computed({
     get() {
       const routeName = route.name as string
+
+      if (routeName.includes('doc-index-pageId')) {
+        return tabs.value.findIndex((tab) => tab.id === openedPageId.value)
+      }
 
       // todo: new-layout
       if (
@@ -123,6 +130,18 @@ export const useTabs = defineStore('tabStore', () => {
   const activeTab = computed(() => tabs.value?.[activeTabIndex.value])
 
   const addTab = async (tabMeta: TabItem) => {
+    if (tabMeta.type === TabType.DOCUMENT) {
+      const index = tabs.value.findIndex((tab) => tab.id === tabMeta.id)
+      if (index > -1) {
+        activeTabIndex.value = index
+        return
+      }
+
+      tabs.value = [...(tabs.value || []), tabMeta]
+      activeTabIndex.value = tabs.value.length - 1
+      return
+    }
+
     tabMeta.sortsState = tabMeta.sortsState || new Map()
     tabMeta.filterState = tabMeta.filterState || new Map()
     const tabIndex = tabs.value.findIndex((tab) => tab.id === tabMeta.id)
@@ -201,7 +220,10 @@ export const useTabs = defineStore('tabStore', () => {
         })
       case TabType.DOCUMENT:
         return navigateTo({
-          path: `/ws/${workspaceId}/${projectType}/${tab.projectId}/doc`,
+          path: nestedUrl({
+            projectId: tab.projectId!,
+            id: tab.id!,
+          }),
           query: route.query,
         })
     }
@@ -215,12 +237,13 @@ export const useTabs = defineStore('tabStore', () => {
 
       Object.assign(tab, newTabItemProps)
 
-      if (isActive && tab.id)
+      if (isActive && tab.id && tab.type !== TabType.DOCUMENT) {
         router.replace({
           params: {
             title: tab.id,
           },
         })
+      }
     }
   }
 

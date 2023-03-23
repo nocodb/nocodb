@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import type { VNodeRef } from '@vue/runtime-core'
 import type { AuditType } from 'nocodb-sdk'
-import { enumColor, ref, timeAgo, useCopy, useExpandedFormStoreOrThrow, useI18n, watch } from '#imports'
+import { enumColor, ref, timeAgo, useCopy, useExpandedFormStoreOrThrow, useGlobal, useI18n, watch } from '#imports'
 
 const { loadCommentsAndLogs, commentsAndLogs, isCommentsLoading, commentsOnly, saveComment, isYou, comment, updateComment } =
   useExpandedFormStoreOrThrow()
@@ -15,6 +15,8 @@ const showBorder = ref(false)
 const { copy } = useCopy()
 
 const { t } = useI18n()
+
+const { user } = useGlobal()
 
 const { isUIAllowed } = useUIPermission()
 
@@ -157,7 +159,7 @@ watch(
                     {{ t('general.copy') }}
                   </div>
                 </a-menu-item>
-                <a-menu-item key="edit-comment" @click="editComment(log)">
+                <a-menu-item v-if="log.user === user.email" key="edit-comment" @click="editComment(log)">
                   <div v-e="['a:comment:edit']" class="nc-project-menu-item">
                     {{ t('general.edit') }}
                   </div>

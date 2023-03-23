@@ -147,6 +147,9 @@ export class ProjectsPage extends BasePage {
     });
     await projRow.locator('.nc-action-btn').nth(0).click();
 
+    // there is a flicker; add delay to avoid flakiness
+    await this.rootPage.waitForTimeout(1000);
+
     await project.locator('input.nc-metadb-project-name').fill(newTitle);
     // press enter to save
     const submitAction = () => project.locator('input.nc-metadb-project-name').press('Enter');

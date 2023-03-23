@@ -26,6 +26,7 @@ const {
   expandTabOfOpenedPage,
   getChildrenOfPage,
   openChildPageTabsOfRootPages,
+  openPage,
 } = useDocStore()
 
 const nestedPages = computed(() => nestedPagesOfProjects.value[project.value.id!])
@@ -103,9 +104,10 @@ const onTabSelect = (_: any, e: { selected: boolean; selectedNodes: any; node: a
     return
   }
 
-  const id = e.node.dataRef!.id
-
-  navigateTo(nestedUrl({ id, projectId: project.value.id! }))
+  openPage({
+    page: e.node.dataRef,
+    projectId: project.value.id!,
+  })
 }
 
 const setIcon = async (id: string, icon: string) => {

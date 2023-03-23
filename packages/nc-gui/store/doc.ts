@@ -152,6 +152,10 @@ export const useDocStore = defineStore('docStore', () => {
 
       openedPage.value = newPage
 
+      addTabWhenNestedPagesIsPopulated({
+        projectId: openedProjectId.value,
+      })
+
       isPageFetching.value = false
     },
     {
@@ -195,6 +199,18 @@ export const useDocStore = defineStore('docStore', () => {
 
       page.title = openedPage.value.title
       page.icon = openedPage.value.icon
+
+      const { updateTab } = useTabs()
+
+      updateTab(
+        { id: page.id! },
+        {
+          title: openedPage.value.title,
+          meta: {
+            icon: openedPage.value.icon,
+          },
+        },
+      )
     },
     {
       deep: true,
@@ -425,6 +441,15 @@ export const useDocStore = defineStore('docStore', () => {
       if (!openedTabs.includes(createdPageData.id!)) {
         openedTabs.push(createdPageData.id!)
       }
+
+      const { addTab } = useTabs()
+
+      addTab({
+        id: createdPageData.id!,
+        title: createdPageData.title,
+        type: TabType.DOCUMENT,
+        projectId,
+      })
     } catch (e) {
       console.log(e)
       message.error(await extractSdkResponseErrorMsg(e as any))
@@ -480,6 +505,9 @@ export const useDocStore = defineStore('docStore', () => {
         const siblingPage = updatedNestedPages[0]
         navigateTo(nestedUrl({ id: siblingPage.id!, projectId }))
       }
+
+      const { closeTab } = useTabs()
+      closeTab({ id: pageId })
     } catch (e) {
       console.log(e)
       message.error(await extractSdkResponseErrorMsg(e as any))
@@ -765,6 +793,30 @@ export const useDocStore = defineStore('docStore', () => {
     if (!page) return
 
     await navigateTo(nestedUrl({ id: page.id!, projectId: projectId! }))
+  }
+
+  async function addTabWhenNestedPagesIsPopulated({ projectId }: { projectId: string }) {
+    const nestedPages = nestedPagesOfProjects.value[projectId]
+    if (!nestedPages) {
+      setTimeout(() => {
+        addTabWhenNestedPagesIsPopulated({ projectId })
+      }, 100)
+      return
+    }
+
+    if (!openedPageId.value) return
+
+    const { addTab } = useTabs()
+
+    addTab({
+      id: openedPage.value!.id!,
+      title: openedPage.value!.title,
+      type: TabType.DOCUMENT,
+      projectId: openedProjectId.value,
+      meta: {
+        icon: openedPage.value!.icon,
+      },
+    })
   }
 
   return {

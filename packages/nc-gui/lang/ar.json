@@ -779,6 +779,7 @@
       "userDeletedFromProject": "تم حذف المستخدم بنجاح من المشروع",
       "inviteEmailSent": "دعوة البريد الإلكتروني مرسلة بنجاح",
       "inviteURLCopied": "تم نسخ عنوان URL الدعوة إلى الحافظة",
+      "commentCopied": "Comment copied to clipboard",
       "passwordResetURLCopied": "Password reset URL copied to clipboard",
       "shareableURLCopied": "تم نسخ عنوان URL الأساسي القابل للمشاركة إلى الحافظة!",
       "embeddableHTMLCodeCopied": "تم نسخ رمز HTML القابل للدمج!",

@@ -1,10 +1,11 @@
 import Handlebars from 'handlebars';
 import Filter from '../../models/Filter';
+import Model from '../../models/Model';
+import View from '../../models/View';
+import Hook from '../../models/Hook';
 import HookLog from '../../models/HookLog';
 import NcPluginMgrv2 from './NcPluginMgrv2';
-import type Model from '../../models/Model';
 import type Column from '../../models/Column';
-import type Hook from '../../models/Hook';
 import type { HookLogType } from 'nocodb-sdk';
 import type FormView from '../../models/FormView';
 
@@ -133,13 +134,35 @@ export async function validateCondition(filters: Filter[], data: any) {
   return isValid;
 }
 
-export async function handleHttpWebHook(apiMeta, user, data) {
-  // try {
+export function constructWebHookData(hook, model, view, data) {
+  // extend in the future - currently only support records
+  const scope = 'records';
+
+  return {
+    type: `${scope}.${hook.event}.${hook.operation}`,
+    id: 'TBC',
+    data: {
+      table_id: model.id,
+      table_name: model.title,
+      view_id: view.id,
+      view_name: view.title,
+      rows: [data],
+    },
+  };
+}
+
+export async function handleHttpWebHook(
+  hook,
+  model,
+  view,
+  apiMeta,
+  user,
+  data
+) {
+  data = constructWebHookData(hook, model, view, data);
+  console.log(data);
   const req = axiosRequestMake(apiMeta, user, data);
   await require('axios')(req);
-  // } catch (e) {
-  //   console.log(e);
-  // }
 }
 
 export function axiosRequestMake(_apiMeta, _user, data) {
@@ -203,7 +226,8 @@ export function axiosRequestMake(_apiMeta, _user, data) {
 
 export async function invokeWebhook(
   hook: Hook,
-  _model: Model,
+  model: Model,
+  view: View,
   data,
   user,
   testFilters = null,
@@ -251,6 +275,9 @@ export async function invokeWebhook(
       case 'URL':
         {
           const res = await handleHttpWebHook(
+            hook,
+            model,
+            view,
             notification?.payload,
             user,
             data

@@ -18,6 +18,7 @@ import {
   useMetas,
   useNuxtApp,
   useSmartsheetStoreOrThrow,
+  useUndoRedo,
 } from '#imports'
 
 const { virtual = false } = defineProps<{ virtual?: boolean }>()
@@ -41,6 +42,8 @@ const { $api, $e } = useNuxtApp()
 const { t } = useI18n()
 
 const { getMeta } = useMetas()
+
+const { addUndo } = useUndoRedo()
 
 const deleteColumn = () =>
   Modal.confirm({
@@ -69,6 +72,8 @@ const deleteColumn = () =>
 
 const setAsDisplayValue = async () => {
   try {
+    const currentDisplayValue = meta?.value?.columns?.find((f) => f.pv)
+
     await $api.dbTableColumn.primaryColumnSet(column?.value?.id as string)
 
     await getMeta(meta?.value?.id as string, true)
@@ -79,6 +84,36 @@ const setAsDisplayValue = async () => {
     message.success(t('msg.success.primaryColumnUpdated'))
 
     $e('a:column:set-primary')
+
+    addUndo({
+      redo: {
+        fn: async (id: string) => {
+          await $api.dbTableColumn.primaryColumnSet(id)
+
+          await getMeta(meta?.value?.id as string, true)
+
+          eventBus.emit(SmartsheetStoreEvents.FIELD_RELOAD)
+
+          // Successfully updated as primary column
+          message.success(t('msg.success.primaryColumnUpdated'))
+        },
+        args: [column?.value?.id as string],
+      },
+      undo: {
+        fn: async (id: string) => {
+          await $api.dbTableColumn.primaryColumnSet(id)
+
+          await getMeta(meta?.value?.id as string, true)
+
+          eventBus.emit(SmartsheetStoreEvents.FIELD_RELOAD)
+
+          // Successfully updated as primary column
+          message.success(t('msg.success.primaryColumnUpdated'))
+        },
+        args: [currentDisplayValue?.id],
+      },
+      scope: meta.value?.id,
+    })
   } catch (e) {
     message.error(t('msg.error.primaryColumnUpdateFailed'))
   }

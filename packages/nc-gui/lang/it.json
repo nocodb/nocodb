@@ -779,6 +779,7 @@
       "userDeletedFromProject": "L'utente è stato eliminato con successo dal progetto",
       "inviteEmailSent": "L'e-mail di invito è stata inviata con successo",
       "inviteURLCopied": "URL dell'invito copiato negli appunti",
+      "commentCopied": "Comment copied to clipboard",
       "passwordResetURLCopied": "URL di reimpostazione della password copiato negli appunti",
       "shareableURLCopied": "Copia l'URL della base condivisibile negli appunti!",
       "embeddableHTMLCodeCopied": "Codice HTML incorporabile copiato!",

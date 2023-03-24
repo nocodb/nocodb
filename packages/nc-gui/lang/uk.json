@@ -779,6 +779,7 @@
       "userDeletedFromProject": "Користувача успішно видалено з проєкту",
       "inviteEmailSent": "Лист запрошення успішно відправлено на електронну пошту",
       "inviteURLCopied": "URL запрошення скопійоване в буфер обміну",
+      "commentCopied": "Comment copied to clipboard",
       "passwordResetURLCopied": "URL-адресу скидання пароля скопійовано в буфер обміну",
       "shareableURLCopied": "URL адресу спільної бази скопійовано в буфер обміну!",
       "embeddableHTMLCodeCopied": "Скопійовано вбудований HTML-код!",

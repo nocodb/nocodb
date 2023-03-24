@@ -1,4 +1,5 @@
 import Handlebars from 'handlebars';
+import { v4 as uuidv4 } from 'uuid';
 import Filter from '../../models/Filter';
 import HookLog from '../../models/HookLog';
 import NcPluginMgrv2 from './NcPluginMgrv2';
@@ -140,7 +141,7 @@ export function constructWebHookData(hook, model, view, prevData, newData) {
 
   return {
     type: `${scope}.${hook.event}.${hook.operation}`,
-    id: 'TBC',
+    id: uuidv4(),
     data: {
       table_id: model.id,
       table_name: model.title,

@@ -2003,7 +2003,7 @@ class BaseModelSqlv2 {
     data,
     { cookie }: { cookie?: any } = {}
   ) {
-    let queryResponse;
+    let res = [];
     try {
       const updateData = await this.model.mapAliasToColumn(data);
       await this.validate(updateData);
@@ -2035,13 +2035,19 @@ class BaseModelSqlv2 {
         );
 
         qb.update(updateData);
-        queryResponse = (await qb) as any;
+
+        if (this.isPg || this.isMssql) {
+          qb.returning(
+            `${this.model.primaryKey.column_name} as ${this.model.primaryKey.title}`
+          );
+        }
+
+        res = (await qb) as any;
       }
 
-      const count = queryResponse ?? 0;
-      await this.afterBulkUpdate(queryResponse, this.dbDriver, cookie);
+      await this.afterBulkUpdate(res, this.dbDriver, cookie);
 
-      return count;
+      return res.length;
     } catch (e) {
       throw e;
     }

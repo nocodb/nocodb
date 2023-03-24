@@ -189,6 +189,17 @@ export const DraggableBlock = Node.create<DBlockOptions>({
       'Backspace': ({ editor }) => {
         // Delete prev node if image or embed if cursor is at the start of the node
         const state = editor.state
+
+        // Handle delete on first empty line
+        const currentNode = state.selection.$from.node()
+        const from = state.selection.$from.pos
+        const firstLinePos = 2
+        if (from === firstLinePos && currentNode.textContent === '' && currentNode.type.name === 'paragraph') {
+          // Delete the node
+          editor.view.dispatch(state.tr.delete(from - 2, from + 1))
+          return true
+        }
+
         if (state.selection.$from.parentOffset !== 0) return false
         const parentNode = state.selection.$from.node(-1)
         if (!parentNode) return false

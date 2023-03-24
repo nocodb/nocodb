@@ -226,6 +226,44 @@ const toggleSystemFields = (e: CheckboxChangeEvent) => {
   })
 }
 
+const onShowAll = () => {
+  addUndo({
+    undo: {
+      fn: async () => {
+        await hideAll()
+      },
+      args: [],
+    },
+    redo: {
+      fn: async () => {
+        await showAll()
+      },
+      args: [],
+    },
+    scope: activeView.value?.title,
+  })
+  showAll()
+}
+
+const onHideAll = () => {
+  addUndo({
+    undo: {
+      fn: async () => {
+        await showAll()
+      },
+      args: [],
+    },
+    redo: {
+      fn: async () => {
+        await hideAll()
+      },
+      args: [],
+    },
+    scope: activeView.value?.title,
+  })
+  hideAll()
+}
+
 useMenuCloseOnEsc(open)
 </script>
 
@@ -336,12 +374,12 @@ useMenuCloseOnEsc(open)
         </div>
 
         <div class="p-2 flex gap-2" @click.stop>
-          <a-button size="small" class="!text-xs text-gray-500 text-capitalize" @click.stop="showAll()">
+          <a-button size="small" class="!text-xs text-gray-500 text-capitalize" @click.stop="onShowAll">
             <!-- Show All -->
             {{ $t('general.showAll') }}
           </a-button>
 
-          <a-button size="small" class="!text-xs text-gray-500 text-capitalize" @click.stop="hideAll()">
+          <a-button size="small" class="!text-xs text-gray-500 text-capitalize" @click.stop="onHideAll">
             <!-- Hide All -->
             {{ $t('general.hideAll') }}
           </a-button>

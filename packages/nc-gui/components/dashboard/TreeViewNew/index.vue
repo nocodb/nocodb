@@ -6,7 +6,6 @@ import { nextTick } from '@vue/runtime-core'
 import AddNewTableNode from './AddNewTableNode'
 import TableList from './TableList'
 import ProjectWrapper from './ProjectWrapper.vue'
-import EmptyWorkspacePlaceholder from './EmptyWorkspacePlaceholder.vue'
 
 import {
   TabType,
@@ -627,7 +626,7 @@ const isClearMode = computed(() => route.query.clear === '1' && route.params.pro
         </div>
       </ProjectWrapper>
 
-      <EmptyWorkspacePlaceholder v-else />
+      <WorkspaceEmptyPlaceholder v-else />
     </div>
 
     <div class="flex items-center py-2 justify-center">

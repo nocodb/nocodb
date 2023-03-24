@@ -1,20 +1,18 @@
-<template>
-  <div>
-    <div>
-  <div class="w-full h-full nc-container">
-  <WorkspaceWelcomeScreen/>
-  </div>
-  </div>
-  </div>
-</template>
 <script lang="ts" setup>
-
 definePageMeta({
   hideHeader: true,
 })
-
-const { isOpen, toggle } = useSidebar('nc-left-sidebar')
 </script>
+
+<template>
+  <div>
+    <div>
+      <div class="w-full h-full nc-container">
+        <WorkspaceEmptyPlaceholder buttons />
+      </div>
+    </div>
+  </div>
+</template>
 
 <style scoped>
 .nc-container {

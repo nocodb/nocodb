@@ -500,62 +500,6 @@ export interface CommentReqType {
 }
 
 /**
- * Cowriter Model
- */
-export interface CowriterType {
-  created_at?: string;
-  created_by?: string;
-  fk_model_id?: string;
-  id?: string;
-  is_read?: boolean;
-  meta?: any;
-  output?: string;
-  prompt_statement?: string;
-  prompt_statement_template?: string;
-  updated_at?: string;
-}
-
-export interface CowriterListType {
-  list?: CowriterType[];
-  /** Model for Paginated */
-  pageInfo?: PaginatedType;
-}
-
-/**
- * Page of Noco docs
- */
-export interface DocsPageType {
-  archived_by_id?: string;
-  /** @format date */
-  archived_date?: string;
-  content: string;
-  /** @format date */
-  created_at?: string;
-  created_by_id?: string;
-  description?: string;
-  icon?: string;
-  /** Unique identifier for the given page. */
-  id?: string;
-  is_parent?: boolean;
-  is_published?: boolean;
-  nested_published_parent_id?: string | null;
-  last_published_by_id?: string;
-  /** @format date */
-  last_published_date?: string;
-  last_updated_by_id?: string;
-  metaJson?: object | string;
-  order?: number;
-  parent_page_id?: string;
-  project_id?: string;
-  published_content?: string;
-  published_title?: string;
-  slug?: string;
-  title: string;
-  /** @format date */
-  updated_at?: string;
-}
-
-/**
  * Model for Filter
  */
 export interface FilterType {
@@ -746,7 +690,7 @@ export interface FilterReqType {
   /** Foreign Key to Column */
   fk_column_id?: IdType;
   /** Belong to which filter ID */
-  fk_parent_id?: IdType;
+  fk_parent_id?: StringOrNullType;
   /** Is this filter grouped? */
   is_group?: BoolType;
   /** Logical Operator */
@@ -875,6 +819,11 @@ export interface FormColumnType {
   required?: BoolType;
   /** Is this column shown in Form? */
   show?: BoolType;
+  /**
+   * Indicates whether the 'Fill by scan' button is visible for this column or not.
+   * @example true
+   */
+  enable_scanner?: BoolType;
   /** Form Column UUID (Not in use) */
   uuid?: StringOrNullType;
 }
@@ -1207,6 +1156,8 @@ export interface HookReqType {
   title: string;
   /** Hook Type */
   type?: string | null;
+  /** Is this hook assoicated with some filters */
+  condition?: BoolType;
 }
 
 /**
@@ -2631,7 +2582,7 @@ export class Api<
 
     /**
  * No description
- * 
+ *
  * @tags Noco docs
  * @name GetPublicPage
  * @summary get public page
@@ -2944,8 +2895,8 @@ export class Api<
   };
   auth = {
     /**
- * @description Create a new user with provided email and password and first user is marked as super admin. 
- * 
+ * @description Create a new user with provided email and password and first user is marked as super admin.
+ *
  * @tags Auth
  * @name Signup
  * @summary Signup
@@ -2986,7 +2937,7 @@ export class Api<
 
     /**
  * @description Clear refresh token from the database and cookie.
- * 
+ *
  * @tags Auth
  * @name Signout
  * @summary Signout
@@ -3026,8 +2977,8 @@ export class Api<
       }),
 
     /**
- * @description Authenticate existing user with their email and password. Successful login will return a JWT access-token. 
- * 
+ * @description Authenticate existing user with their email and password. Successful login will return a JWT access-token.
+ *
  * @tags Auth
  * @name Signin
  * @summary Signin
@@ -3070,7 +3021,7 @@ export class Api<
 
     /**
  * @description Returns authenticated user info
- * 
+ *
  * @tags Auth
  * @name Me
  * @summary Get User Info
@@ -3105,7 +3056,7 @@ export class Api<
 
     /**
  * @description Emails user with a reset url.
- * 
+ *
  * @tags Auth
  * @name PasswordForgot
  * @summary Forget Password
@@ -3148,7 +3099,7 @@ export class Api<
 
     /**
  * @description Change password of authenticated user with a new one.
- * 
+ *
  * @tags Auth
  * @name PasswordChange
  * @summary Change Password
@@ -3185,7 +3136,7 @@ export class Api<
 
     /**
  * @description Validate password reset url token.
- * 
+ *
  * @tags Auth
  * @name PasswordResetTokenValidate
  * @summary Verify Reset Token
@@ -3226,7 +3177,7 @@ export class Api<
 
     /**
  * @description Api for verifying email where token need to be passed which is shared to user email.
- * 
+ *
  * @tags Auth
  * @name EmailValidate
  * @summary Verify Email
@@ -3267,7 +3218,7 @@ export class Api<
 
     /**
  * @description Update user password to new by using reset token.
- * 
+ *
  * @tags Auth
  * @name PasswordReset
  * @summary Reset Password
@@ -3314,7 +3265,7 @@ export class Api<
 
     /**
  * @description Regenerate user refresh token
- * 
+ *
  * @tags Auth
  * @name TokenRefresh
  * @summary Refresh Token
@@ -3355,7 +3306,7 @@ export class Api<
 
     /**
  * @description List all users in the given project.
- * 
+ *
  * @tags Auth
  * @name ProjectUserList
  * @summary List Project Users
@@ -3397,7 +3348,7 @@ export class Api<
 
     /**
  * @description Create a user and add it to the given project
- * 
+ *
  * @tags Auth
  * @name ProjectUserAdd
  * @summary Create Project User
@@ -3465,7 +3416,7 @@ export class Api<
 
     /**
  * @description Update a given user in a given project. Exclusive for Super Admin. Access with API Tokens will be blocked.
- * 
+ *
  * @tags Auth
  * @name ProjectUserUpdate
  * @summary Update Project User
@@ -3513,7 +3464,7 @@ export class Api<
 
     /**
  * @description Delete a given user in a given project. Exclusive for Super Admin. Access with API Tokens will be blocked.
- * 
+ *
  * @tags Auth
  * @name ProjectUserRemove
  * @summary Delete Project User
@@ -3558,7 +3509,7 @@ export class Api<
 
     /**
  * @description Resend Invitation to a specific user
- * 
+ *
  * @tags Auth
  * @name ProjectUserResendInvite
  * @summary Resend User Invitation
@@ -3604,7 +3555,7 @@ export class Api<
   orgTokens = {
     /**
  * @description List all organisation API tokens.  Access with API tokens will be blocked.
- * 
+ *
  * @tags Org Tokens
  * @name List
  * @summary List Organisation API Tokens
@@ -3632,7 +3583,7 @@ export class Api<
 
     /**
  * @description Creat an organisation API token. Access with API tokens will be blocked.
- * 
+ *
  * @tags Org Tokens
  * @name Create
  * @summary Create Organisation API Token
@@ -3662,7 +3613,7 @@ export class Api<
 
     /**
  * @description Delete an organisation API token. Access with API tokens will be blocked.
- * 
+ *
  * @tags Org Tokens
  * @name Delete
  * @summary Delete Organisation API Tokens
@@ -3691,7 +3642,7 @@ export class Api<
   orgLicense = {
     /**
  * @description Get the application license key. Exclusive for super admin.
- * 
+ *
  * @tags Org License
  * @name Get
  * @summary Get App License
@@ -3726,7 +3677,7 @@ export class Api<
 
     /**
  * @description Set the application license key. Exclusive for super admin.
- * 
+ *
  * @tags Org License
  * @name Set
  * @summary Create App License
@@ -3764,7 +3715,7 @@ export class Api<
   orgAppSettings = {
     /**
  * @description Get the application settings. Exclusive for super admin.
- * 
+ *
  * @tags Org App Settings
  * @name Get
  * @summary Get App Settings
@@ -3805,7 +3756,7 @@ export class Api<
 
     /**
  * @description Update the application settings. Exclusive for super admin.
- * 
+ *
  * @tags Org App Settings
  * @name Set
  * @summary Create App Settings
@@ -3852,7 +3803,7 @@ export class Api<
   orgUsers = {
     /**
  * @description List all organisation users. Exclusive for Super Admin. Access with API Tokens will be blocked.
- * 
+ *
  * @tags Org Users
  * @name List
  * @summary List Organisation Users
@@ -3880,7 +3831,7 @@ export class Api<
 
     /**
  * @description Create an organisation user. Exclusive for Super Admin. Access with API Tokens will be blocked.
- * 
+ *
  * @tags Org Users
  * @name Add
  * @summary Create Organisation User
@@ -3927,7 +3878,7 @@ export class Api<
 
     /**
  * @description Update an organisation user by User ID. Exclusive for Super Admin. Access with API Tokens will be blocked.
- * 
+ *
  * @tags Org Users
  * @name Update
  * @summary Update Organisation User
@@ -3968,7 +3919,7 @@ export class Api<
 
     /**
  * @description Delete an organisation user by User ID. Exclusive for Super Admin. Access with API Tokens will be blocked.
- * 
+ *
  * @tags Org Users
  * @name Delete
  * @summary Delete Organisation User
@@ -4026,7 +3977,7 @@ export class Api<
 
     /**
  * @description Resend Invitation to a specific user. Exclusive for Super Admin. Access with API Tokens will be blocked.
- * 
+ *
  * @tags Org Users
  * @name ResendInvite
  * @summary Invite Organisation User
@@ -4228,7 +4179,7 @@ export class Api<
 
     /**
  * @description Generate Password Reset Token for Organisation User. Exclusive for Super Admin. Access with API Tokens will be blocked.
- * 
+ *
  * @tags Org Users
  * @name GeneratePasswordResetToken
  * @summary Generate Organisation User Password Reset Token
@@ -4268,7 +4219,7 @@ export class Api<
   project = {
     /**
  * @description Get info such as node version, arch, platform, is docker, rootdb and package version of a given project
- * 
+ *
  * @tags Project
  * @name MetaGet
  * @summary Get Project info
@@ -4379,7 +4330,7 @@ export class Api<
 
     /**
  * @description Hide / show views based on user role
- * 
+ *
  * @tags Project
  * @name ModelVisibilityList
  * @summary Get UI ACL
@@ -4414,7 +4365,7 @@ export class Api<
 
     /**
  * @description Hide / show views based on user role
- * 
+ *
  * @tags Project
  * @name ModelVisibilitySet
  * @summary Create UI ACL
@@ -4455,7 +4406,7 @@ export class Api<
 
     /**
  * @description List all project meta data
- * 
+ *
  * @tags Project
  * @name List
  * @summary List Projects
@@ -4483,7 +4434,7 @@ export class Api<
 
     /**
  * @description Create a new project
- * 
+ *
  * @tags Project
  * @name Create
  * @summary Create Project
@@ -4519,7 +4470,7 @@ export class Api<
 
     /**
  * @description Get the info of a given project
- * 
+ *
  * @tags Project
  * @name Read
  * @summary Get Project
@@ -4547,7 +4498,7 @@ export class Api<
 
     /**
  * @description Delete the given project
- * 
+ *
  * @tags Project
  * @name Delete
  * @summary Delete Project
@@ -4575,7 +4526,7 @@ export class Api<
 
     /**
  * @description Update the given project
- * 
+ *
  * @tags Project
  * @name Update
  * @summary Update Project
@@ -4631,7 +4582,7 @@ export class Api<
 
     /**
  * @description Get Project Shared Base
- * 
+ *
  * @tags Project
  * @name SharedBaseGet
  * @summary Get Project Shared Base
@@ -4680,7 +4631,7 @@ export class Api<
 
     /**
  * @description Delete Project Shared Base
- * 
+ *
  * @tags Project
  * @name SharedBaseDisable
  * @summary Delete Project Shared Base
@@ -4708,7 +4659,7 @@ export class Api<
 
     /**
  * @description Create Project Shared Base
- * 
+ *
  * @tags Project
  * @name SharedBaseCreate
  * @summary Create Project Shared Base
@@ -4753,7 +4704,7 @@ export class Api<
 
     /**
  * @description Update Project Shared Base
- * 
+ *
  * @tags Project
  * @name SharedBaseUpdate
  * @summary Update Project Shared Base
@@ -4808,7 +4759,7 @@ export class Api<
 
     /**
  * @description Calculate the Project Cost
- * 
+ *
  * @tags Project
  * @name Cost
  * @summary Project Cost
@@ -4835,8 +4786,8 @@ export class Api<
       }),
 
     /**
- * @description Synchronise the meta data difference between NC_DB and external data sources 
- * 
+ * @description Synchronise the meta data difference between NC_DB and external data sources
+ *
  * @tags Project
  * @name MetaDiffSync
  * @summary Sync Meta
@@ -4870,8 +4821,8 @@ export class Api<
       }),
 
     /**
- * @description Get the meta data difference between NC_DB and external data sources 
- * 
+ * @description Get the meta data difference between NC_DB and external data sources
+ *
  * @tags Project
  * @name MetaDiffGet
  * @summary Meta Diff
@@ -4936,7 +4887,7 @@ export class Api<
 
     /**
  * @description Check if a project contains empty and null filters. Used in `Show NULL and EMPTY in Filter` in Project Setting.
- * 
+ *
  * @tags Project
  * @name HasEmptyOrNullFilters
  * @summary List Empty & Null Filter
@@ -4964,7 +4915,7 @@ export class Api<
 
     /**
  * @description List all audit data in the given project
- * 
+ *
  * @tags Project
  * @name AuditList
  * @summary List Audits in Project
@@ -5012,7 +4963,7 @@ export class Api<
   base = {
     /**
  * @description Get the base details of a given project
- * 
+ *
  * @tags Base
  * @name Read
  * @summary Get Base
@@ -5040,7 +4991,7 @@ export class Api<
 
     /**
  * @description Delete the base details of a given project
- * 
+ *
  * @tags Base
  * @name Delete
  * @summary Delete Base
@@ -5068,7 +5019,7 @@ export class Api<
 
     /**
  * @description Update the base details of a given project
- * 
+ *
  * @tags Base
  * @name Update
  * @summary Update Base
@@ -5130,7 +5081,7 @@ export class Api<
 
     /**
  * @description Get project base list
- * 
+ *
  * @tags Base
  * @name List
  * @summary List Bases
@@ -5158,7 +5109,7 @@ export class Api<
 
     /**
  * @description Create a new base on a given project
- * 
+ *
  * @tags Base
  * @name Create
  * @summary Create Base
@@ -5230,7 +5181,7 @@ export class Api<
 
     /**
  * @description List all tables in a given Project and Base
- * 
+ *
  * @tags Base
  * @name TableList
  * @summary List Tables
@@ -5268,7 +5219,7 @@ export class Api<
 
     /**
  * @description Create a new table in a given Project and Base
- * 
+ *
  * @tags Base
  * @name TableCreate
  * @summary Create Table
@@ -5355,7 +5306,7 @@ export class Api<
 
     /**
  * @description Synchronise the meta data difference between NC_DB and external data sources in a given Base
- * 
+ *
  * @tags Base
  * @name MetaDiffSync
  * @summary Synchronise Base Meta
@@ -5394,7 +5345,7 @@ export class Api<
 
     /**
  * @description Get the meta data difference between NC_DB and external data sources in a given Base
- * 
+ *
  * @tags Base
  * @name MetaDiffGet
  * @summary Base Meta Diff
@@ -5464,7 +5415,7 @@ export class Api<
   dbTable = {
     /**
  * @description Create a new table in a given project
- * 
+ *
  * @tags DB Table
  * @name Create
  * @summary Create Table
@@ -5498,7 +5449,7 @@ export class Api<
 
     /**
  * @description List all tables in a given project
- * 
+ *
  * @tags DB Table
  * @name List
  * @summary List Tables
@@ -5535,7 +5486,7 @@ export class Api<
 
     /**
  * @description Read the table meta data by the given table ID
- * 
+ *
  * @tags DB Table
  * @name Read
  * @summary Read Table
@@ -5563,7 +5514,7 @@ export class Api<
 
     /**
  * @description Update the table meta data by the given table ID
- * 
+ *
  * @tags DB Table
  * @name Update
  * @summary Update Table
@@ -5622,7 +5573,7 @@ export class Api<
 
     /**
  * @description Delete the table meta data by the given table ID
- * 
+ *
  * @tags DB Table
  * @name Delete
  * @summary Delete Table
@@ -5650,7 +5601,7 @@ export class Api<
 
     /**
  * @description Update the order of the given Table
- * 
+ *
  * @tags DB Table
  * @name Reorder
  * @summary Reorder Table
@@ -5687,7 +5638,7 @@ export class Api<
   dbTableColumn = {
     /**
  * @description Create a new column in a given Table
- * 
+ *
  * @tags DB Table Column
  * @name Create
  * @summary Create Column
@@ -5720,7 +5671,7 @@ export class Api<
 
     /**
  * @description Update the existing column by the given column ID
- * 
+ *
  * @tags DB Table Column
  * @name Update
  * @summary Update Column
@@ -5754,7 +5705,7 @@ export class Api<
 
     /**
  * @description Delete the existing column by the given column ID
- * 
+ *
  * @tags DB Table Column
  * @name Delete
  * @summary Delete Column
@@ -5781,7 +5732,7 @@ export class Api<
 
     /**
  * @description Get the existing column by the given column ID
- * 
+ *
  * @tags DB Table Column
  * @name Get
  * @summary Get Column
@@ -5808,7 +5759,7 @@ export class Api<
 
     /**
  * @description Set a primary value on a given column
- * 
+ *
  * @tags DB Table Column
  * @name PrimaryColumnSet
  * @summary Create Primary Value
@@ -5837,7 +5788,7 @@ export class Api<
   dbView = {
     /**
  * @description List all views in a given Table.
- * 
+ *
  * @tags DB View
  * @name List
  * @summary List Views
@@ -5865,7 +5816,7 @@ export class Api<
 
     /**
  * @description Update the view with the given view Id.
- * 
+ *
  * @tags DB View
  * @name Update
  * @summary Update View
@@ -5899,7 +5850,7 @@ export class Api<
 
     /**
  * @description Delete the view with the given view Id.
- * 
+ *
  * @tags DB View
  * @name Delete
  * @summary Delete View
@@ -5927,7 +5878,7 @@ export class Api<
 
     /**
  * @description Show All Columns in a given View
- * 
+ *
  * @tags DB View
  * @name ShowAllColumn
  * @summary Show All Columns In View
@@ -5962,7 +5913,7 @@ export class Api<
 
     /**
  * @description Hide All Columns in a given View
- * 
+ *
  * @tags DB View
  * @name HideAllColumn
  * @summary Hide All Columns In View
@@ -5997,7 +5948,7 @@ export class Api<
 
     /**
  * @description Create a new grid view in a given Table
- * 
+ *
  * @tags DB View
  * @name GridCreate
  * @summary Create Grid View
@@ -6031,7 +5982,7 @@ export class Api<
 
     /**
  * @description Create a new form view in a given Table
- * 
+ *
  * @tags DB View
  * @name FormCreate
  * @summary Create Form View
@@ -6065,7 +6016,7 @@ export class Api<
 
     /**
  * @description Update the form data by Form ID
- * 
+ *
  * @tags DB View
  * @name FormUpdate
  * @summary Update Form View
@@ -6099,7 +6050,7 @@ export class Api<
 
     /**
  * @description Get the form data by Form ID
- * 
+ *
  * @tags DB View
  * @name FormRead
  * @summary Get Form
@@ -6127,7 +6078,7 @@ export class Api<
 
     /**
  * @description Update the form column(s) by Form View Column ID
- * 
+ *
  * @tags DB View
  * @name FormColumnUpdate
  * @summary Update Form Column
@@ -6161,7 +6112,7 @@ export class Api<
 
     /**
  * @description Update Grid View
- * 
+ *
  * @tags DB View
  * @name GridUpdate
  * @summary Update Grid View
@@ -6195,7 +6146,7 @@ export class Api<
 
     /**
  * @description List all columns in the given Grid
- * 
+ *
  * @tags DB View
  * @name GridColumnsList
  * @summary List Grid Columns
@@ -6223,7 +6174,7 @@ export class Api<
 
     /**
  * @description Update grid column(s) in the given Grid
- * 
+ *
  * @tags DB View
  * @name GridColumnUpdate
  * @summary Update Grid Column
@@ -6257,7 +6208,7 @@ export class Api<
 
     /**
  * No description
- * 
+ *
  * @tags DB View
  * @name GalleryCreate
  * @summary Create Gallery View
@@ -6291,7 +6242,7 @@ export class Api<
 
     /**
  * @description Update the Gallery View data with Gallery ID
- * 
+ *
  * @tags DB View
  * @name GalleryUpdate
  * @summary Update Gallery View
@@ -6325,7 +6276,7 @@ export class Api<
 
     /**
  * @description Get the Gallery View data with Gallery ID
- * 
+ *
  * @tags DB View
  * @name GalleryRead
  * @summary Get Gallery View
@@ -6353,7 +6304,7 @@ export class Api<
 
     /**
  * @description Create a new Kanban View
- * 
+ *
  * @tags DB View
  * @name KanbanCreate
  * @summary Create Kanban View
@@ -6387,7 +6338,7 @@ export class Api<
 
     /**
  * @description Update the Kanban View data with Kanban ID
- * 
+ *
  * @tags DB View
  * @name KanbanUpdate
  * @summary Update Kanban View
@@ -6421,7 +6372,7 @@ export class Api<
 
     /**
  * @description Get the Kanban View data by Kanban ID
- * 
+ *
  * @tags DB View
  * @name KanbanRead
  * @summary Get Kanban View
@@ -6449,7 +6400,7 @@ export class Api<
 
     /**
  * @description Create a new Map View
- * 
+ *
  * @tags DB View
  * @name MapCreate
  * @summary Create Map View
@@ -6483,7 +6434,7 @@ export class Api<
 
     /**
  * @description Update the Map View data by Map ID
- * 
+ *
  * @tags DB View
  * @name MapUpdate
  * @summary Update Map View
@@ -6517,7 +6468,7 @@ export class Api<
 
     /**
  * @description Get the Map View data by Map ID
- * 
+ *
  * @tags DB View
  * @name MapRead
  * @summary Get Map View
@@ -6546,7 +6497,7 @@ export class Api<
   dbViewShare = {
     /**
  * @description List all shared views in a given Table
- * 
+ *
  * @tags DB View Share
  * @name List
  * @summary List Shared Views
@@ -6574,7 +6525,7 @@ export class Api<
 
     /**
  * @description Create a shared view in a given View..
- * 
+ *
  * @tags DB View Share
  * @name Create
  * @summary Create Shared View
@@ -6602,7 +6553,7 @@ export class Api<
 
     /**
  * @description Update a shared view in a given View..
- * 
+ *
  * @tags DB View Share
  * @name Update
  * @summary Update Shared View
@@ -6636,7 +6587,7 @@ export class Api<
 
     /**
  * @description Delete a shared view in a given View.
- * 
+ *
  * @tags DB View Share
  * @name Delete
  * @summary Delete Shared View
@@ -6665,7 +6616,7 @@ export class Api<
   dbViewColumn = {
     /**
  * @description List all columns by ViewID
- * 
+ *
  * @tags DB View Column
  * @name List
  * @summary List Columns In View
@@ -6693,7 +6644,7 @@ export class Api<
 
     /**
  * @description Create a new column in a given View
- * 
+ *
  * @tags DB View Column
  * @name Create
  * @summary Create Column in View
@@ -6727,7 +6678,7 @@ export class Api<
 
     /**
  * @description Update a column in a View
- * 
+ *
  * @tags DB View Column
  * @name Update
  * @summary Update View Column
@@ -6763,7 +6714,7 @@ export class Api<
   dbTableSort = {
     /**
  * @description List all the sort data in a given View
- * 
+ *
  * @tags DB Table Sort
  * @name List
  * @summary List View Sorts
@@ -6791,7 +6742,7 @@ export class Api<
 
     /**
  * @description Update the sort data in a given View
- * 
+ *
  * @tags DB Table Sort
  * @name Create
  * @summary Update View Sort
@@ -6831,7 +6782,7 @@ export class Api<
 
     /**
  * @description Get the sort data by Sort ID
- * 
+ *
  * @tags DB Table Sort
  * @name Get
  * @summary Get Sort
@@ -6859,7 +6810,7 @@ export class Api<
 
     /**
  * @description Update the sort data by Sort ID
- * 
+ *
  * @tags DB Table Sort
  * @name Update
  * @summary Update Sort
@@ -6889,7 +6840,7 @@ export class Api<
 
     /**
  * @description Delete the sort data by Sort ID
- * 
+ *
  * @tags DB Table Sort
  * @name Delete
  * @summary Delete Sort
@@ -6918,7 +6869,7 @@ export class Api<
   dbTableFilter = {
     /**
  * @description Get the filter data in a given View
- * 
+ *
  * @tags DB Table Filter
  * @name Read
  * @summary Get View Filter
@@ -6946,7 +6897,7 @@ export class Api<
 
     /**
  * @description Update the filter data in a given View
- * 
+ *
  * @tags DB Table Filter
  * @name Create
  * @summary Create View Filter
@@ -6976,7 +6927,7 @@ export class Api<
 
     /**
  * @description Get the filter data with a given Filter ID
- * 
+ *
  * @tags DB Table Filter
  * @name Get
  * @summary Get Filter
@@ -7004,7 +6955,7 @@ export class Api<
 
     /**
  * @description Update the filter data with a given Filter ID
- * 
+ *
  * @tags DB Table Filter
  * @name Update
  * @summary Update Filter
@@ -7038,7 +6989,7 @@ export class Api<
 
     /**
  * @description Delete the filter data with a given Filter ID
- * 
+ *
  * @tags DB Table Filter
  * @name Delete
  * @summary Delete Filter
@@ -7066,7 +7017,7 @@ export class Api<
 
     /**
  * @description Get Filter Group Children of a given group ID
- * 
+ *
  * @tags DB Table Filter
  * @name ChildrenRead
  * @summary Get Filter Group Children
@@ -7095,7 +7046,7 @@ export class Api<
   dbTableWebhookFilter = {
     /**
  * @description Get the filter data in a given Hook
- * 
+ *
  * @tags DB Table Webhook Filter
  * @name Read
  * @summary Get Hook Filter
@@ -7123,7 +7074,7 @@ export class Api<
 
     /**
  * @description Create filter(s) in a given Hook
- * 
+ *
  * @tags DB Table Webhook Filter
  * @name Create
  * @summary Create Hook Filter
@@ -7154,7 +7105,7 @@ export class Api<
   dbTableRow = {
     /**
  * @description List all table rows in a given table and project
- * 
+ *
  * @tags DB Table Row
  * @name List
  * @summary List Table Rows
@@ -7221,7 +7172,7 @@ export class Api<
 
     /**
  * @description Create a new row in a given table and project.
- * 
+ *
  * @tags DB Table Row
  * @name Create
  * @summary Create Table Row
@@ -7257,7 +7208,7 @@ export class Api<
 
     /**
  * @description Return the first result of the target Table Row
- * 
+ *
  * @tags DB Table Row
  * @name FindOne
  * @summary Find One Table Row
@@ -7329,7 +7280,7 @@ export class Api<
 
     /**
  * @description Get the grouped data By Column ID. Used in Kanban View.
- * 
+ *
  * @tags DB Table Row
  * @name GroupedDataList
  * @summary Table Group by Column
@@ -7371,7 +7322,7 @@ export class Api<
 
     /**
  * @description Get the Table Row by Row ID
- * 
+ *
  * @tags DB Table Row
  * @name Read
  * @summary Get Table Row
@@ -7405,7 +7356,7 @@ export class Api<
 
     /**
  * @description Update the Table Row
- * 
+ *
  * @tags DB Table Row
  * @name Update
  * @summary Update Table Row
@@ -7442,7 +7393,7 @@ export class Api<
 
     /**
  * @description Delete the Table Row
- * 
+ *
  * @tags DB Table Row
  * @name Delete
  * @summary Delete Table Row
@@ -7476,7 +7427,7 @@ export class Api<
 
     /**
  * @description check row with provided primary key exists or not
- * 
+ *
  * @tags DB Table Row
  * @name Exist
  * @summary Does Table Row Exist
@@ -7510,7 +7461,7 @@ export class Api<
 
     /**
  * @description Bulk insert table rows in one go.
- * 
+ *
  * @tags DB Table Row
  * @name BulkCreate
  * @summary Bulk Insert Table Rows
@@ -7551,7 +7502,7 @@ export class Api<
 
     /**
  * @description Bulk Update Table Rows by given IDs
- * 
+ *
  * @tags DB Table Row
  * @name BulkUpdate
  * @summary Bulk Update Table Rows by IDs
@@ -7587,7 +7538,7 @@ export class Api<
 
     /**
  * @description Bulk Delete Table Rows by given IDs
- * 
+ *
  * @tags DB Table Row
  * @name BulkDelete
  * @summary Bulk Delete Table Rows by IDs
@@ -7623,7 +7574,7 @@ export class Api<
 
     /**
  * @description Bulk Update all Table Rows if the condition is true
- * 
+ *
  * @tags DB Table Row
  * @name BulkUpdateAll
  * @summary Bulk Update Table Rows with Conditions
@@ -7663,7 +7614,7 @@ export class Api<
 
     /**
  * @description Bulk Delete all Table Rows if the condition is true
- * 
+ *
  * @tags DB Table Row
  * @name BulkDeleteAll
  * @summary Bulk Delete Table Rows with Conditions
@@ -7703,7 +7654,7 @@ export class Api<
 
     /**
  * @description Export Table View Rows by CSV or Excel
- * 
+ *
  * @tags DB Table Row
  * @name CsvExport
  * @summary Export Table View Rows
@@ -7737,7 +7688,7 @@ export class Api<
 
     /**
  * @description List all nested relations rows
- * 
+ *
  * @tags DB Table Row
  * @name NestedList
  * @summary List Nested Relations Rows
@@ -7781,7 +7732,7 @@ export class Api<
 
     /**
  * @description Create a new nested relations row
- * 
+ *
  * @tags DB Table Row
  * @name NestedAdd
  * @summary Create Nested Relations Row
@@ -7848,7 +7799,7 @@ export class Api<
 
     /**
  * @description Delete a new nested relations row
- * 
+ *
  * @tags DB Table Row
  * @name NestedRemove
  * @summary Delete Nested Relations Row
@@ -7892,7 +7843,7 @@ export class Api<
 
     /**
  * @description Get the table rows but exculding the current record's children and parent
- * 
+ *
  * @tags DB Table Row
  * @name NestedChildrenExcludedList
  * @summary Referenced Table Rows Excluding Current Record's Children / Parent
@@ -7937,7 +7888,7 @@ export class Api<
   dbViewRow = {
     /**
  * @description Get the grouped data By Column ID. Used in Kanban View.
- * 
+ *
  * @tags DB View Row
  * @name GroupedDataList
  * @summary Table Group by Column
@@ -7980,7 +7931,7 @@ export class Api<
 
     /**
  * @description List all table view rows
- * 
+ *
  * @tags DB View Row
  * @name List
  * @summary List Table View Rows
@@ -8034,7 +7985,7 @@ export class Api<
 
     /**
  * @description Create a new row in the given Table View
- * 
+ *
  * @tags DB View Row
  * @name Create
  * @summary Create Table View Row
@@ -8071,7 +8022,7 @@ export class Api<
 
     /**
  * @description Return the first result of table view rows with the given query
- * 
+ *
  * @tags DB View Row
  * @name FindOne
  * @summary Find One Table View Row
@@ -8113,7 +8064,7 @@ export class Api<
 
     /**
  * @description Get the table view rows groupe by the given query
- * 
+ *
  * @tags DB View Row
  * @name GroupBy
  * @summary Group By Table View Row
@@ -8158,7 +8109,7 @@ export class Api<
 
     /**
  * @description Count how many rows in the given Table View
- * 
+ *
  * @tags DB View Row
  * @name Count
  * @summary Count Table View Rows
@@ -8195,7 +8146,7 @@ export class Api<
 
     /**
  * @description Get the target Table View Row
- * 
+ *
  * @tags DB View Row
  * @name Read
  * @summary Get Table View Row
@@ -8230,7 +8181,7 @@ export class Api<
 
     /**
  * @description Update the target Table View Row
- * 
+ *
  * @tags DB View Row
  * @name Update
  * @summary Update Table View Row
@@ -8268,7 +8219,7 @@ export class Api<
 
     /**
  * @description Delete the target Table View Row
- * 
+ *
  * @tags DB View Row
  * @name Delete
  * @summary Delete Table View Row
@@ -8303,7 +8254,7 @@ export class Api<
 
     /**
  * @description Check row with provided primary key exists or not
- * 
+ *
  * @tags DB View Row
  * @name Exist
  * @summary Does Table View Row Exist
@@ -8338,7 +8289,7 @@ export class Api<
 
     /**
  * @description Export Table View Rows by CSV or Excel
- * 
+ *
  * @tags DB View Row
  * @name Export
  * @summary Export Table View Rows
@@ -8374,7 +8325,7 @@ export class Api<
   public = {
     /**
  * @description List Shared View Grouped Data
- * 
+ *
  * @tags Public
  * @name GroupedDataList
  * @summary List Shared View Grouped Data
@@ -8451,7 +8402,7 @@ export class Api<
 
     /**
  * @description List all shared view rows
- * 
+ *
  * @tags Public
  * @name DataList
  * @summary List Shared View Rows
@@ -8505,7 +8456,7 @@ export class Api<
 
     /**
  * @description Create a new row for the target shared view
- * 
+ *
  * @tags Public
  * @name DataCreate
  * @summary Create Share View Row
@@ -8539,7 +8490,7 @@ export class Api<
 
     /**
  * @description List all nested list data in a given shared view
- * 
+ *
  * @tags Public
  * @name DataNestedList
  * @summary List Nested List Data
@@ -8607,7 +8558,7 @@ export class Api<
 
     /**
  * @description Export all rows in Share View in a CSV / Excel Format
- * 
+ *
  * @tags Public
  * @name CsvExport
  * @summary Export Rows in Share View
@@ -8639,7 +8590,7 @@ export class Api<
 
     /**
  * @description List Nested Data Relation
- * 
+ *
  * @tags Public
  * @name DataRelationList
  * @summary List Nested Data Relation
@@ -8694,7 +8645,7 @@ export class Api<
 
     /**
  * @description Get Share Base Meta
- * 
+ *
  * @tags Public
  * @name SharedBaseGet
  * @summary Get Share Base Meta
@@ -8729,7 +8680,7 @@ export class Api<
 
     /**
  * @description Get Share View Meta
- * 
+ *
  * @tags Public
  * @name SharedViewMetaGet
  * @summary Get Share View Meta
@@ -8802,7 +8753,7 @@ export class Api<
   utils = {
     /**
  * @description List all comments
- * 
+ *
  * @tags Utils
  * @name CommentList
  * @summary List Comments in Audit
@@ -8855,7 +8806,7 @@ export class Api<
 
     /**
  * @description Create a new comment in a row. Logged in Audit.
- * 
+ *
  * @tags Utils
  * @name CommentRow
  * @summary Comment Rows
@@ -8884,8 +8835,31 @@ export class Api<
       }),
 
     /**
+     * @description Update comment in Audit
+     *
+     * @tags Utils
+     * @name CommentUpdate
+     * @summary Update Comment in Audit
+     * @request PATCH:/api/v1/db/meta/audits/{auditId}/comment
+     * @response `200` `number` OK
+     */
+    commentUpdate: (
+      auditId: string,
+      data: CommentUpdateReqType,
+      params: RequestParams = {}
+    ) =>
+      this.request<number, any>({
+        path: `/api/v1/db/meta/audits/${auditId}/comment`,
+        method: 'PATCH',
+        body: data,
+        type: ContentType.Json,
+        format: 'json',
+        ...params,
+      }),
+
+    /**
  * @description Return the number of comments in the given query.
- * 
+ *
  * @tags Utils
  * @name CommentCount
  * @summary Count Comments
@@ -8945,7 +8919,7 @@ export class Api<
 
     /**
  * @description Update Audit Row
- * 
+ *
  * @tags Utils
  * @name AuditRowUpdate
  * @summary Update Audit Row
@@ -8979,7 +8953,7 @@ export class Api<
 
     /**
  * @description Test the DB Connection
- * 
+ *
  * @tags Utils
  * @name TestConnection
  * @summary Test DB Connection
@@ -9113,7 +9087,7 @@ export class Api<
 
     /**
  * @description Extract XC URL From JDBC and parse to connection config
- * 
+ *
  * @tags Utils
  * @name UrlToConfig
  * @summary Convert JDBC URL to Config
@@ -9199,7 +9173,7 @@ export class Api<
 
     /**
  * @description Get the application info such as authType, defaultLimit, version and etc.
- * 
+ *
  * @tags Utils
  * @name AppInfo
  * @summary Get App Info
@@ -9266,7 +9240,7 @@ export class Api<
 
     /**
  * @description Generic Axios Call
- * 
+ *
  * @tags Utils
  * @name AxiosRequestMake
  * @summary Axios Request
@@ -9296,7 +9270,7 @@ export class Api<
 
     /**
  * @description Get the application version
- * 
+ *
  * @tags Utils
  * @name AppVersion
  * @summary Get App Version
@@ -9347,7 +9321,7 @@ export class Api<
 
     /**
  * @description Get Application Health Status
- * 
+ *
  * @tags Utils
  * @name AppHealth
  * @summary Get Application Health Status
@@ -9390,7 +9364,7 @@ export class Api<
 
     /**
  * @description Get Aggregated Meta Info such as tableCount, dbViewCount, viewCount and etc.
- * 
+ *
  * @tags Utils
  * @name AggregatedMetaInfo
  * @summary Get Aggregated Meta Info
@@ -9542,7 +9516,7 @@ export class Api<
 
     /**
  * @description Delete All K/V pairs in NocoCache
- * 
+ *
  * @tags Utils
  * @name CacheDelete
  * @summary Delete Cache
@@ -9571,7 +9545,7 @@ export class Api<
   dbTableWebhook = {
     /**
  * @description List all hook records in the given Table
- * 
+ *
  * @tags DB Table Webhook
  * @name List
  * @summary List Table Hooks
@@ -9599,21 +9573,21 @@ export class Api<
 
     /**
  * @description Create a hook in the given table
- * 
+ *
  * @tags DB Table Webhook
  * @name Create
  * @summary Create Table Hook
  * @request POST:/api/v1/db/meta/tables/{tableId}/hooks
- * @response `200` `HookReqType` OK
+ * @response `200` `HookType` OK
  * @response `400` `{
   \** @example BadRequest [Error]: <ERROR MESSAGE> *\
   msg: string,
 
 }`
  */
-    create: (tableId: IdType, data: AuditType, params: RequestParams = {}) =>
+    create: (tableId: IdType, data: HookReqType, params: RequestParams = {}) =>
       this.request<
-        HookReqType,
+        HookType,
         {
           /** @example BadRequest [Error]: <ERROR MESSAGE> */
           msg: string;
@@ -9629,7 +9603,7 @@ export class Api<
 
     /**
  * @description Test the hook in the given Table
- * 
+ *
  * @tags DB Table Webhook
  * @name Test
  * @summary Test Hook
@@ -9670,7 +9644,7 @@ export class Api<
 
     /**
  * @description Get the sample hook payload
- * 
+ *
  * @tags DB Table Webhook
  * @name SamplePayloadGet
  * @summary Get Sample Hook Payload
@@ -9709,7 +9683,7 @@ export class Api<
 
     /**
  * @description Update the exsiting hook by its ID
- * 
+ *
  * @tags DB Table Webhook
  * @name Update
  * @summary Update Hook
@@ -9739,7 +9713,7 @@ export class Api<
 
     /**
  * @description Delete the exsiting hook by its ID
- * 
+ *
  * @tags DB Table Webhook
  * @name Delete
  * @summary Delete Hook
@@ -9892,7 +9866,7 @@ export class Api<
   plugin = {
     /**
  * @description List all plugins
- * 
+ *
  * @tags Plugin
  * @name List
  * @summary List Plugins
@@ -9929,7 +9903,7 @@ export class Api<
 
     /**
  * @description Check plugin is active or not
- * 
+ *
  * @tags Plugin
  * @name Status
  * @summary Get Plugin Status
@@ -9957,7 +9931,7 @@ export class Api<
 
     /**
  * @description Test if the plugin is working with the given configurations
- * 
+ *
  * @tags Plugin
  * @name Test
  * @summary Test Plugin
@@ -9987,7 +9961,7 @@ export class Api<
 
     /**
  * @description Update the plugin data by ID
- * 
+ *
  * @tags Plugin
  * @name Update
  * @summary Update Plugin
@@ -10021,7 +9995,7 @@ export class Api<
 
     /**
  * @description Get the plugin data by ID
- * 
+ *
  * @tags Plugin
  * @name Read
  * @summary Get Plugin
@@ -10050,7 +10024,7 @@ export class Api<
   apiToken = {
     /**
  * @description List API Tokens in the given project
- * 
+ *
  * @tags API Token
  * @name List
  * @summary List API Tokens in Project
@@ -10078,7 +10052,7 @@ export class Api<
 
     /**
  * @description Create API Token in a project
- * 
+ *
  * @tags API Token
  * @name Create
  * @summary Create API Token
@@ -10112,7 +10086,7 @@ export class Api<
 
     /**
  * @description Delete the given API Token in project
- * 
+ *
  * @tags API Token
  * @name Delete
  * @summary Delete API Token

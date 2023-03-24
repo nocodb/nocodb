@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { useVModel } from '#imports'
+import { iconMap, useVModel } from '#imports'
 
 const props = defineProps<{
   modelValue: any[]
@@ -59,7 +59,7 @@ const deleteParamRow = (i: number) => vModel.value.splice(i, 1)
 
           <td class="relative">
             <div v-if="idx !== 0" class="absolute flex flex-col justify-start mt-2 -right-6 top-0">
-              <MdiDeleteOutline class="cursor-pointer" @click="deleteParamRow(idx)" />
+              <component :is="iconMap.delete" class="cursor-pointer" @click="deleteParamRow(idx)" />
             </div>
           </td>
         </tr>
@@ -68,7 +68,7 @@ const deleteParamRow = (i: number) => vModel.value.splice(i, 1)
           <td :colspan="12" class="text-center">
             <a-button type="default" class="!bg-gray-100 rounded-md border-none mr-1" @click="addParamRow">
               <template #icon>
-                <MdiPlus class="flex mx-auto" />
+                <component :is="iconMap.plus" class="flex mx-auto" />
               </template>
             </a-button>
           </td>

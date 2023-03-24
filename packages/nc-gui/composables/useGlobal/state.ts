@@ -66,6 +66,7 @@ export function useGlobalState(storageKey = 'nocodb-gui-v2'): State {
     currentVersion: null,
     latestRelease: null,
     hiddenRelease: null,
+    isMobileMode: null,
   }
 
   /** saves a reactive state, any change to these values will write/delete to localStorage */

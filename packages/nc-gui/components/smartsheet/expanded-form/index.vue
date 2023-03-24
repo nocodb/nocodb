@@ -11,6 +11,7 @@ import {
   ReloadRowDataHookInj,
   computedInject,
   createEventHook,
+  iconMap,
   inject,
   message,
   provide,
@@ -301,7 +302,7 @@ export default {
 
                 <GeneralShortcutLabel class="justify-center" :keys="['Alt', '←']" />
               </template>
-              <MdiChevronLeft class="cursor-pointer nc-prev-arrow" @click="$emit('prev')" />
+              <component :is="iconMap.chevronLeft" class="cursor-pointer nc-prev-arrow" @click="$emit('prev')" />
             </a-tooltip>
 
             <a-tooltip v-if="!props.lastRow" placement="bottom">
@@ -309,7 +310,7 @@ export default {
                 {{ $t('labels.nextRow') }}
                 <GeneralShortcutLabel class="justify-center" :keys="['Alt', '→']" />
               </template>
-              <MdiChevronRight class="cursor-pointer nc-next-arrow" @click="onNext" />
+              <component :is="iconMap.chevronRight" class="cursor-pointer nc-next-arrow" @click="onNext" />
             </a-tooltip>
           </template>
           <div class="w-[500px] mx-auto">

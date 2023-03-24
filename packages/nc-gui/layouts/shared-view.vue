@@ -1,5 +1,5 @@
 <script lang="ts" setup>
-import { navigateTo, useEventListener, useRouter } from '#imports'
+import { iconMap, navigateTo, useEventListener, useRouter } from '#imports'
 
 const { isLoading, appInfo } = useGlobal()
 
@@ -30,6 +30,13 @@ onMounted(() => {
       if (href) notifyLocationChange(href)
     })
   }
+
+  // handle meta title
+  if (sharedView.value?.title) {
+    document.title = `${sharedView.value.title} | NocoDB`
+  } else {
+    document.title = 'NocoDB'
+  }
 })
 </script>
 
@@ -58,7 +65,7 @@ export default {
               <template v-if="isLoading">
                 <span class="text-white" data-testid="nc-loading">{{ $t('general.loading') }}</span>
 
-                <MdiReload :class="{ 'animate-infinite animate-spin ': isLoading }" />
+                <component :is="iconMap.reload" :class="{ 'animate-infinite animate-spin ': isLoading }" />
               </template>
 
               <div v-else class="text-xl font-semibold truncate text-white nc-shared-view-title flex gap-2 items-center">

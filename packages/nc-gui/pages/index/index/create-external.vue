@@ -15,6 +15,7 @@ import {
   generateUniqueName,
   getDefaultConnectionConfig,
   getTestDatabaseName,
+  iconMap,
   message,
   navigateTo,
   nextTick,
@@ -370,7 +371,7 @@ onMounted(async () => {
       class="color-transition transform group absolute top-5 left-5 text-4xl rounded-full cursor-pointer"
       @click="navigateTo('/')"
     >
-      <MdiChevronLeft class="text-black group-hover:(text-accent scale-110)" />
+      <component :is="iconMap.chevronLeft" class="text-black group-hover:(text-accent scale-110)" />
     </div>
 
     <h1 class="prose-2xl font-bold self-center my-4">{{ $t('activity.createProject') }}</h1>
@@ -558,12 +559,16 @@ onMounted(async () => {
 
                     <a-input v-model:value="item.value" />
 
-                    <MdiClose :style="{ 'font-size': '1.5em', 'color': 'red' }" @click="removeParam(index)" />
+                    <component
+                      :is="iconMap.close"
+                      :style="{ 'font-size': '1.5em', 'color': 'red' }"
+                      @click="removeParam(index)"
+                    />
                   </div>
                 </div>
                 <a-button type="dashed" class="w-full caption mt-2" @click="addNewParam">
                   <div class="flex items-center justify-center">
-                    <MdiPlus />
+                    <component :is="iconMap.plus" />
                   </div>
                 </a-button>
               </a-card>

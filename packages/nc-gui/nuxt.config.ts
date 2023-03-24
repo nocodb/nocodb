@@ -51,7 +51,6 @@ export default defineNuxtConfig({
   },
 
   meta: {
-    title: 'NocoDB',
     link: [
       {
         rel: 'icon',

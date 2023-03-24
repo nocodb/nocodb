@@ -1,6 +1,17 @@
 <script setup lang="ts">
 import type { RuleObject } from 'ant-design-vue/es/form'
-import { definePageMeta, navigateTo, reactive, ref, useApi, useGlobal, useI18n, useSidebar, validateEmail } from '#imports'
+import {
+  definePageMeta,
+  iconMap,
+  navigateTo,
+  reactive,
+  ref,
+  useApi,
+  useGlobal,
+  useI18n,
+  useSidebar,
+  validateEmail,
+} from '#imports'
 
 definePageMeta({
   requiresAuth: false,
@@ -118,7 +129,7 @@ function resetError() {
           <div class="self-center flex flex-col flex-wrap gap-4 items-center mt-4 justify-center">
             <button data-testid="nc-form-signin__submit" class="scaling-btn bg-opacity-100" type="submit">
               <span class="flex items-center gap-2">
-                <MdiLogin />
+                <component :is="iconMap.signin" />
                 {{ $t('general.signIn') }}
               </span>
             </button>

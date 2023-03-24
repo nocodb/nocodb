@@ -21,6 +21,7 @@ export default class FormViewColumn implements FormColumnType {
   help?: StringOrNullType;
   description?: StringOrNullType;
   required?: BoolType;
+  enable_scanner?: BoolType;
   uuid?: StringOrNullType;
   show?: BoolType;
   order?: number;
@@ -68,6 +69,7 @@ export default class FormViewColumn implements FormColumnType {
       'help',
       'description',
       'required',
+      'enable_scanner',
       'meta',
     ]);
 
@@ -166,6 +168,7 @@ export default class FormViewColumn implements FormColumnType {
       'show',
       'order',
       'meta',
+      'enable_scanner',
     ]);
 
     // get existing cache

@@ -39,6 +39,7 @@
     "signIn": "PŘIHLÁSIT SE",
     "signOut": "Odhlásit se",
     "required": "Vyžadováno",
+    "enableScanner": "Enable Scanner for filling",
     "preferred": "Preferováno",
     "mandatory": "Povinné",
     "loading": "Načítání ...",
@@ -209,7 +210,8 @@
     "advancedSettings": "Pokročilá nastavení",
     "codeSnippet": "Úryvek kódu",
     "keyboardShortcut": "Klávesové zkratky",
-    "generateRandomName": "Vytvořit náhodné jméno"
+    "generateRandomName": "Vytvořit náhodné jméno",
+    "findRowByScanningCode": "Find row by scanning a QR or Barcode"
   },
   "labels": {
     "createdBy": "Vytvořil/a",
@@ -219,6 +221,7 @@
     "viewName": "Název zobrazení",
     "viewLink": "Zobrazit odkaz",
     "columnName": "Název sloupce",
+    "columnToScanFor": "Column to scan",
     "columnType": "Typ sloupce",
     "roleName": "Název role",
     "roleDescription": "Popis role",
@@ -393,8 +396,8 @@
     "saveAndExit": "Uložit a odejít",
     "saveAndStay": "Uložit a zůstat",
     "insertRow": "Vložit nový řádek",
-    "deleteRow": "Odstranit řádek",
     "duplicateRow": "Duplicate Row",
+    "deleteRow": "Odstranit řádek",
     "deleteSelectedRow": "Odstranit vybrané řádky",
     "importExcel": "Importovat Excel",
     "importCSV": "Importovat CSV",
@@ -409,6 +412,8 @@
     "changePwd": "Změnit heslo",
     "createView": "Vytvořit pohled",
     "shareView": "Sdílet pohled",
+    "findRowByCodeScan": "Find row by scan",
+    "fillByCodeScan": "Fill by scan",
     "listSharedView": "Seznam sdílených zobrazení",
     "ListView": "Seznam pohledů",
     "copyView": "Kopírovat pohled",
@@ -424,6 +429,10 @@
     "openTab": "Otevřít novou kartu",
     "iFrame": "Kopírování vložitelného kódu HTML",
     "addWebhook": "Přidat nový webhook",
+    "enableWebhook": "Enable Webhook",
+    "testWebhook": "Test Webhook",
+    "copyWebhook": "Copy Webhook",
+    "deleteWebhook": "Delete Webhook",
     "newToken": "Přidat nový token",
     "exportZip": "Exportovat zip archív",
     "importZip": "Importovat zip archív",
@@ -465,7 +474,8 @@
       "chooseMappingField": "Choose a Mapping Field",
       "openInGoogleMaps": "Google Maps",
       "openInOpenStreetMap": "OSM"
-    }
+    },
+    "toggleMobileMode": "Toggle Mobile Mode"
   },
   "tooltip": {
     "saveChanges": "Uložení změn",
@@ -530,6 +540,12 @@
       "roles": {
         "orgCreator": "Tvůrce může vytvářet nové projekty a přistupovat k jakémukoli pozvanému projektu.",
         "orgViewer": "Prohlížeč nemůže vytvářet nové projekty, ale může přistupovat k jakémukoli pozvanému projektu."
+      },
+      "codeScanner": {
+        "loadingScanner": "Loading the scanner...",
+        "selectColumn": "Select a column (QR code or Barcode) that you want to use for finding a row by scanning.",
+        "moreThanOneRowFoundForCode": "More than one row found for this code. Currently only unique codes are supported.",
+        "noRowFoundForCode": "No row found for this code for the selected column"
       },
       "map": {
         "overLimit": "You're over the limit.",
@@ -682,6 +698,7 @@
         "allowedSpecialCharList": "Seznam povolených speciálních znaků"
       },
       "invalidURL": "Neplatná adresa URL",
+      "invalidEmail": "Invalid Email",
       "internalError": "Došlo k nějaké interní chybě",
       "templateGeneratorNotFound": "Generátor šablon nelze najít!",
       "fileUploadFailed": "Nepodařilo se nahrát soubor",
@@ -762,6 +779,7 @@
       "userDeletedFromProject": "Úspěšné odstranění uživatele z projektu",
       "inviteEmailSent": "E-mail s pozvánkou byl úspěšně odeslán",
       "inviteURLCopied": "Adresa URL pozvánky zkopírovaná do schránky",
+      "commentCopied": "Comment copied to clipboard",
       "passwordResetURLCopied": "Adresa URL pro resetování hesla zkopírovaná do schránky",
       "shareableURLCopied": "Zkopírovaná sdílená základní adresa URL do schránky!",
       "embeddableHTMLCodeCopied": "Zkopírovaný vložitelný kód HTML!",

@@ -14,6 +14,7 @@ import {
   enumColor,
   extractSdkResponseErrorMsg,
   h,
+  iconMap,
   inject,
   isDrawerOrModalExist,
   onMounted,
@@ -367,7 +368,7 @@ useEventListener(document, 'click', handleClose, true)
         :value="searchVal"
       >
         <div class="flex gap-2 text-gray-500 items-center h-full">
-          <MdiPlusThick class="min-w-4" />
+          <component :is="iconMap.plusThick" class="min-w-4" />
           <div class="text-xs whitespace-normal">
             Create new option named <strong>{{ searchVal }}</strong>
           </div>

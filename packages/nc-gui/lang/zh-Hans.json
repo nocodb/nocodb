@@ -39,6 +39,7 @@
     "signIn": "登录",
     "signOut": "登出",
     "required": "必填项",
+    "enableScanner": "启用扫描仪来填充",
     "preferred": "首选",
     "mandatory": "强制的",
     "loading": "加载中...",
@@ -100,7 +101,7 @@
       "form": "表单",
       "kanban": "看板",
       "calendar": "日历",
-      "map": "Map"
+      "map": "地图"
     },
     "user": "用户",
     "users": "用户",
@@ -209,7 +210,8 @@
     "advancedSettings": "高级设置",
     "codeSnippet": "代码片段",
     "keyboardShortcut": "快捷键",
-    "generateRandomName": "随机名称"
+    "generateRandomName": "随机名称",
+    "findRowByScanningCode": "通过扫描二维码或条码查找行"
   },
   "labels": {
     "createdBy": "创建自",
@@ -219,6 +221,7 @@
     "viewName": "查看名称",
     "viewLink": "查看链接",
     "columnName": "列名",
+    "columnToScanFor": "Column to scan",
     "columnType": "列类型",
     "roleName": "权限组",
     "roleDescription": "权限描述",
@@ -257,7 +260,7 @@
     "barcodeFormat": "条形码码制",
     "qrCodeValueTooLong": "字数超出二维码容量",
     "barcodeValueTooLong": "字数超出条形码容量",
-    "currentLocation": "您所在的位置",
+    "currentLocation": "当前位置",
     "lng": "经度",
     "lat": "纬度",
     "aggregateFunction": "汇总功能",
@@ -393,8 +396,8 @@
     "saveAndExit": "保存并退出",
     "saveAndStay": "保存并留在此页",
     "insertRow": "插入新行",
-    "deleteRow": "删除行",
     "duplicateRow": "复制该行",
+    "deleteRow": "删除行",
     "deleteSelectedRow": "删除所选行",
     "importExcel": "导入 Excel",
     "importCSV": "导入 CSV",
@@ -409,6 +412,8 @@
     "changePwd": "更改密码",
     "createView": "创建视图",
     "shareView": "分享视图",
+    "findRowByCodeScan": "Find row by scan",
+    "fillByCodeScan": "Fill by scan",
     "listSharedView": "共享视图列表",
     "ListView": "视图列表",
     "copyView": "复制视图",
@@ -424,6 +429,10 @@
     "openTab": "打开新标签",
     "iFrame": "复制可嵌入的 HTML 代码",
     "addWebhook": "添加新的 Webhook",
+    "enableWebhook": "启用 Webhook",
+    "testWebhook": "Test Webhook",
+    "copyWebhook": "复制 Webhook",
+    "deleteWebhook": "删除 Webhook",
     "newToken": "添加新 Token",
     "exportZip": "导出为 zip 格式",
     "importZip": "导入 zip 格式",
@@ -463,9 +472,10 @@
     "map": {
       "mappedBy": "Mapped By",
       "chooseMappingField": "Choose a Mapping Field",
-      "openInGoogleMaps": "Google Maps",
+      "openInGoogleMaps": "谷歌地图",
       "openInOpenStreetMap": "OSM"
-    }
+    },
+    "toggleMobileMode": "Toggle Mobile Mode"
   },
   "tooltip": {
     "saveChanges": "保存更改",
@@ -530,6 +540,12 @@
       "roles": {
         "orgCreator": "创始人可以创建新项目，访问受邀项目。",
         "orgViewer": "游客不能创建新项目，仅允许访问受邀项目。"
+      },
+      "codeScanner": {
+        "loadingScanner": "Loading the scanner...",
+        "selectColumn": "Select a column (QR code or Barcode) that you want to use for finding a row by scanning.",
+        "moreThanOneRowFoundForCode": "More than one row found for this code. Currently only unique codes are supported.",
+        "noRowFoundForCode": "所选列没有找到此代码行"
       },
       "map": {
         "overLimit": "你已经超出了限制。",
@@ -682,6 +698,7 @@
         "allowedSpecialCharList": "允许的特殊字符列表"
       },
       "invalidURL": "无效的 URL",
+      "invalidEmail": "无效的电子邮件",
       "internalError": "发生了一些内部错误",
       "templateGeneratorNotFound": "模板生成器无法找到！",
       "fileUploadFailed": "文件上传失败",
@@ -762,6 +779,7 @@
       "userDeletedFromProject": "踢出用户成功",
       "inviteEmailSent": "邀请邮件发送成功",
       "inviteURLCopied": "邀请URL已复制到剪贴板",
+      "commentCopied": "Comment copied to clipboard",
       "passwordResetURLCopied": "密码重置网址已复制到剪贴板",
       "shareableURLCopied": "已将可共享的基础URL复制到剪贴板！",
       "embeddableHTMLCodeCopied": "已复制可嵌入的 HTML 代码！",

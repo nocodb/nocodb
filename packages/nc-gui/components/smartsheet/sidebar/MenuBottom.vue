@@ -1,6 +1,6 @@
 <script lang="ts" setup>
 import { ViewTypes } from 'nocodb-sdk'
-import { useNuxtApp, useSmartsheetStoreOrThrow, viewIcons } from '#imports'
+import { iconMap, useNuxtApp, useSmartsheetStoreOrThrow, viewIcons } from '#imports'
 
 const emits = defineEmits<Emits>()
 
@@ -11,6 +11,8 @@ interface Emits {
 const { $e } = useNuxtApp()
 
 const { isSqlView } = useSmartsheetStoreOrThrow()
+
+const { betaFeatureToggleState } = useBetaFeatureToggle()
 
 function onOpenModal(type: ViewTypes, title = '') {
   $e('c:view:create', { view: type })
@@ -41,7 +43,7 @@ function onOpenModal(type: ViewTypes, title = '') {
 
           <div class="flex-1" />
 
-          <mdi-plus class="group-hover:text-primary" />
+          <component :is="iconMap.plus" class="group-hover:text-primary" />
         </div>
       </a-tooltip>
     </a-menu-item>
@@ -63,7 +65,7 @@ function onOpenModal(type: ViewTypes, title = '') {
 
           <div class="flex-1" />
 
-          <mdi-plus class="group-hover:text-primary" />
+          <component :is="iconMap.plus" class="group-hover:text-primary" />
         </div>
       </a-tooltip>
     </a-menu-item>
@@ -86,7 +88,7 @@ function onOpenModal(type: ViewTypes, title = '') {
 
           <div class="flex-1" />
 
-          <mdi-plus class="group-hover:text-primary" />
+          <component :is="iconMap.plus" class="group-hover:text-primary" />
         </div>
       </a-tooltip>
     </a-menu-item>
@@ -108,12 +110,12 @@ function onOpenModal(type: ViewTypes, title = '') {
 
           <div class="flex-1" />
 
-          <mdi-plus class="group-hover:text-primary" />
+          <component :is="iconMap.plus" class="group-hover:text-primary" />
         </div>
       </a-tooltip>
     </a-menu-item>
     <a-menu-item
-      v-if="geodataToggleState.show"
+      v-if="betaFeatureToggleState.show"
       key="map"
       class="group !flex !items-center !my-0 !h-2.5rem nc-create-map-view"
       @click="onOpenModal(ViewTypes.MAP)"
@@ -130,7 +132,7 @@ function onOpenModal(type: ViewTypes, title = '') {
 
           <div class="flex-1" />
 
-          <mdi-plus class="group-hover:text-primary" />
+          <component :is="iconMap.plus" class="group-hover:text-primary" />
         </div>
       </a-tooltip>
     </a-menu-item>

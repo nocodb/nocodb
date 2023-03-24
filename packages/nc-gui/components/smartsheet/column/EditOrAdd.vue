@@ -42,6 +42,8 @@ const { $api, $e } = useNuxtApp()
 
 const { appInfo } = useGlobal()
 
+const { betaFeatureToggleState } = useBetaFeatureToggle()
+
 const meta = inject(MetaInj, ref())
 
 const isForm = inject(IsFormInj, ref(false))
@@ -61,7 +63,7 @@ const onlyNameUpdateOnEditColumns = [UITypes.LinkToAnotherRecord, UITypes.Lookup
 const loadMagic = ref(false)
 
 const geoDataToggleCondition = (t: { name: UITypes }) => {
-  return geodataToggleState.show ? geodataToggleState.show : !t.name.includes(UITypes.GeoData)
+  return betaFeatureToggleState.show ? betaFeatureToggleState.show : !t.name.includes(UITypes.GeoData)
 }
 
 const uiTypesOptions = computed<typeof uiTypes>(() => {

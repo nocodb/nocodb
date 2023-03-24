@@ -39,6 +39,7 @@
     "signIn": "AANMELDEN",
     "signOut": "Afmelden",
     "required": "Verplicht",
+    "enableScanner": "Enable Scanner for filling",
     "preferred": "Gewenst",
     "mandatory": "Verplicht",
     "loading": "Bezig met laden ...",
@@ -209,7 +210,8 @@
     "advancedSettings": "Geavanceerde instellingen",
     "codeSnippet": "Codefragment",
     "keyboardShortcut": "Sneltoetsen",
-    "generateRandomName": "Generate Random Name"
+    "generateRandomName": "Generate Random Name",
+    "findRowByScanningCode": "Find row by scanning a QR or Barcode"
   },
   "labels": {
     "createdBy": "Gemaakt door",
@@ -219,6 +221,7 @@
     "viewName": "Weergavenaam",
     "viewLink": "Toon Link",
     "columnName": "Kolomnaam",
+    "columnToScanFor": "Column to scan",
     "columnType": "Kolomtype",
     "roleName": "Rolnaam",
     "roleDescription": "Rolbeschrijving",
@@ -393,8 +396,8 @@
     "saveAndExit": "Opslaan en afsluiten",
     "saveAndStay": "Sparen & Blijven",
     "insertRow": "Voeg nieuwe rij toe",
-    "deleteRow": "Verwijder rij",
     "duplicateRow": "Duplicate Row",
+    "deleteRow": "Verwijder rij",
     "deleteSelectedRow": "Verwijder geselecteerde rijen",
     "importExcel": "Excel importeren",
     "importCSV": "CSV importeren",
@@ -409,6 +412,8 @@
     "changePwd": "Wachtwoord wijzigen",
     "createView": "Maak een weergave",
     "shareView": "Deel weergave",
+    "findRowByCodeScan": "Find row by scan",
+    "fillByCodeScan": "Fill by scan",
     "listSharedView": "Lijst van gedeelde weergaven",
     "ListView": "Weergavelijst",
     "copyView": "Kopieer weergave",
@@ -424,6 +429,10 @@
     "openTab": "Open nieuw tabblad",
     "iFrame": "Insluitbare HTML-code kopiëren",
     "addWebhook": "Webhook toevoegen",
+    "enableWebhook": "Enable Webhook",
+    "testWebhook": "Test Webhook",
+    "copyWebhook": "Copy Webhook",
+    "deleteWebhook": "Delete Webhook",
     "newToken": "Token toevoegen",
     "exportZip": "Exporteer als zip",
     "importZip": "Importeer van zip",
@@ -465,7 +474,8 @@
       "chooseMappingField": "Choose a Mapping Field",
       "openInGoogleMaps": "Google Maps",
       "openInOpenStreetMap": "OSM"
-    }
+    },
+    "toggleMobileMode": "Toggle Mobile Mode"
   },
   "tooltip": {
     "saveChanges": "Wijzigingen opslaan",
@@ -530,6 +540,12 @@
       "roles": {
         "orgCreator": "Creator kan nieuwe projecten aanmaken en heeft toegang tot elk uitgenodigd project.",
         "orgViewer": "De Viewer mag geen nieuwe projecten aanmaken, maar heeft wel toegang tot elk uitgenodigd project."
+      },
+      "codeScanner": {
+        "loadingScanner": "Loading the scanner...",
+        "selectColumn": "Select a column (QR code or Barcode) that you want to use for finding a row by scanning.",
+        "moreThanOneRowFoundForCode": "More than one row found for this code. Currently only unique codes are supported.",
+        "noRowFoundForCode": "No row found for this code for the selected column"
       },
       "map": {
         "overLimit": "You're over the limit.",
@@ -682,6 +698,7 @@
         "allowedSpecialCharList": "Lijst met toegestane speciale tekens"
       },
       "invalidURL": "Ongeldige URL",
+      "invalidEmail": "Invalid Email",
       "internalError": "Er is een interne fout opgetreden",
       "templateGeneratorNotFound": "Sjabloongenerator kan niet worden gevonden!",
       "fileUploadFailed": "Bestand niet geüpload",
@@ -762,6 +779,7 @@
       "userDeletedFromProject": "Gebruiker succesvol verwijderd uit project",
       "inviteEmailSent": "Uitnodigingsmail succesvol verzonden",
       "inviteURLCopied": "Uitnodiging URL gekopieerd naar klembord",
+      "commentCopied": "Comment copied to clipboard",
       "passwordResetURLCopied": "Wachtwoord reset URL gekopieerd naar klembord",
       "shareableURLCopied": "Deelbare basis URL gekopieerd naar klembord!",
       "embeddableHTMLCodeCopied": "Gekopieerde insluitbare HTML-code!",

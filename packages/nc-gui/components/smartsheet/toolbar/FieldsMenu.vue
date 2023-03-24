@@ -11,6 +11,7 @@ import {
   MetaInj,
   ReloadViewDataHookInj,
   computed,
+  iconMap,
   inject,
   ref,
   resolveComponent,
@@ -30,6 +31,8 @@ const reloadDataHook = inject(ReloadViewDataHookInj)!
 const reloadViewMetaHook = inject(ReloadViewMetaHookInj, undefined)!
 
 const rootFields = inject(FieldsInj)
+
+const { isMobileMode } = useGlobal()
 
 const isLocked = inject(IsLockedInj, ref(false))
 
@@ -154,12 +157,12 @@ useMenuCloseOnEsc(open)
     <div :class="{ 'nc-active-btn': numberOfHiddenFields }">
       <a-button v-e="['c:fields']" class="nc-fields-menu-btn nc-toolbar-btn" :disabled="isLocked">
         <div class="flex items-center gap-1">
-          <MdiEyeOffOutline />
+          <component :is="iconMap.eye" />
 
           <!-- Fields -->
-          <span class="text-capitalize !text-xs font-weight-normal">{{ $t('objects.fields') }}</span>
+          <span v-if="!isMobileMode" class="text-capitalize !text-xs font-weight-normal">{{ $t('objects.fields') }}</span>
 
-          <MdiMenuDown class="text-grey" />
+          <component :is="iconMap.arrowDown" class="text-grey" />
 
           <span v-if="numberOfHiddenFields" class="nc-count-badge">{{ numberOfHiddenFields }}</span>
         </div>
@@ -216,7 +219,7 @@ useMenuCloseOnEsc(open)
 
                 <div class="flex-1" />
 
-                <MdiDrag class="cursor-move" />
+                <component :is="iconMap.drag" class="cursor-move" />
               </div>
             </template>
             <template v-if="activeView?.type === ViewTypes.GRID" #header>
@@ -232,7 +235,7 @@ useMenuCloseOnEsc(open)
                     <span class="text-sm">Display Value</span>
                   </template>
 
-                  <MdiTableKey class="text-xs" />
+                  <component :is="iconMap.tableKey" class="text-xs" />
                 </a-tooltip>
 
                 <div class="flex items-center px-[8px]">

@@ -34,12 +34,13 @@ export async function hookCreate(param: {
 
   validateHookPayload(param.hook.notification);
 
-  T.emit('evt', { evt_type: 'webhooks:created' });
-  // todo: type correction
   const hook = await Hook.insert({
     ...param.hook,
     fk_model_id: param.tableId,
   } as any);
+
+  T.emit('evt', { evt_type: 'webhooks:created' });
+
   return hook;
 }
 
@@ -56,8 +57,7 @@ export async function hookUpdate(param: { hookId: string; hook: HookReqType }) {
 
   validateHookPayload(param.hook.notification);
 
-  // todo: correction in swagger
-  return await Hook.update(param.hookId, param.hook as any);
+  return await Hook.update(param.hookId, param.hook);
 }
 
 export async function hookTest(param: {

@@ -39,6 +39,7 @@
     "signIn": "התחבר",
     "signOut": "התנתק",
     "required": "נדרש",
+    "enableScanner": "Enable Scanner for filling",
     "preferred": "מועדף",
     "mandatory": "חובה",
     "loading": "טעינה ...",
@@ -209,7 +210,8 @@
     "advancedSettings": "Advanced Settings",
     "codeSnippet": "Code Snippet",
     "keyboardShortcut": "Keyboard Shortcuts",
-    "generateRandomName": "Generate Random Name"
+    "generateRandomName": "Generate Random Name",
+    "findRowByScanningCode": "Find row by scanning a QR or Barcode"
   },
   "labels": {
     "createdBy": "Created By",
@@ -219,6 +221,7 @@
     "viewName": "ראה שם",
     "viewLink": "ראה קישור",
     "columnName": "שם עמודה",
+    "columnToScanFor": "Column to scan",
     "columnType": "סוג עמודה",
     "roleName": "שם תפקיד",
     "roleDescription": "תיאור תפקיד",
@@ -393,8 +396,8 @@
     "saveAndExit": "Save & Exit",
     "saveAndStay": "Save & Stay",
     "insertRow": "הכנס שורה חדשה",
-    "deleteRow": "מחק שורה",
     "duplicateRow": "Duplicate Row",
+    "deleteRow": "מחק שורה",
     "deleteSelectedRow": "מחק את השורות שנבחרו",
     "importExcel": "ייבוא ​​Excel",
     "importCSV": "Import CSV",
@@ -409,6 +412,8 @@
     "changePwd": "שנה סיסמא",
     "createView": "צור תצוגה",
     "shareView": "שיתוף View.",
+    "findRowByCodeScan": "Find row by scan",
+    "fillByCodeScan": "Fill by scan",
     "listSharedView": "רשימת תצוגה משותפת",
     "ListView": "רשימת צפיות",
     "copyView": "העתק View.",
@@ -424,6 +429,10 @@
     "openTab": "פתח כרטיסייה חדשה",
     "iFrame": "העתק קוד HTML Embeddable",
     "addWebhook": "הוסף Webhook חדש",
+    "enableWebhook": "Enable Webhook",
+    "testWebhook": "Test Webhook",
+    "copyWebhook": "Copy Webhook",
+    "deleteWebhook": "Delete Webhook",
     "newToken": "הוסף אסימון חדש",
     "exportZip": "ייצוא zip.",
     "importZip": "ייבוא ​​zip.",
@@ -465,7 +474,8 @@
       "chooseMappingField": "Choose a Mapping Field",
       "openInGoogleMaps": "Google Maps",
       "openInOpenStreetMap": "OSM"
-    }
+    },
+    "toggleMobileMode": "Toggle Mobile Mode"
   },
   "tooltip": {
     "saveChanges": "שמור שינויים",
@@ -530,6 +540,12 @@
       "roles": {
         "orgCreator": "Creator can create new projects and access any invited project.",
         "orgViewer": "Viewer is not allowed to create new projects but they can access any invited project."
+      },
+      "codeScanner": {
+        "loadingScanner": "Loading the scanner...",
+        "selectColumn": "Select a column (QR code or Barcode) that you want to use for finding a row by scanning.",
+        "moreThanOneRowFoundForCode": "More than one row found for this code. Currently only unique codes are supported.",
+        "noRowFoundForCode": "No row found for this code for the selected column"
       },
       "map": {
         "overLimit": "You're over the limit.",
@@ -682,6 +698,7 @@
         "allowedSpecialCharList": "Allowed special character list"
       },
       "invalidURL": "Invalid URL",
+      "invalidEmail": "Invalid Email",
       "internalError": "Some internal error occurred",
       "templateGeneratorNotFound": "Template Generator cannot be found!",
       "fileUploadFailed": "Failed to upload file",
@@ -762,6 +779,7 @@
       "userDeletedFromProject": "Successfully deleted user from project",
       "inviteEmailSent": "Invite Email sent successfully",
       "inviteURLCopied": "Invite URL copied to clipboard",
+      "commentCopied": "Comment copied to clipboard",
       "passwordResetURLCopied": "Password reset URL copied to clipboard",
       "shareableURLCopied": "Copied shareable base URL to clipboard!",
       "embeddableHTMLCodeCopied": "Copied embeddable HTML code!",

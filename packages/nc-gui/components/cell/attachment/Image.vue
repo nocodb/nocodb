@@ -21,5 +21,5 @@ const onError = () => index.value++
     quality="75"
     @error="onError"
   />
-  <MdiFileImageBox v-else />
+  <component :is="iconMap.imagePlaceholder" v-else />
 </template>

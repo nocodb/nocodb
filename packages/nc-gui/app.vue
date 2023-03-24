@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { applyNonSelectable, computed, useCommandPalette, useRouter, useTheme } from '#imports'
+import { computed, useCommandPalette, useRouter, useTheme } from '#imports'
 
 const router = useRouter()
 
@@ -12,6 +12,18 @@ useTheme()
 const { cmdPalette, cmdData, cmdPlaceholder, cmdOnSelected, cmdOnChange, activeScope } = useCommandPalette()
 
 applyNonSelectable()
+useEventListener(document, 'keydown', async (e: KeyboardEvent) => {
+  const cmdOrCtrl = isMac() ? e.metaKey : e.ctrlKey
+  if (cmdOrCtrl) {
+    switch (e.key.toLowerCase()) {
+      case 'a':
+        // prevent Ctrl + A selection for non-editable nodes
+        if (!['input', 'textarea'].includes((e.target as any).nodeName.toLowerCase())) {
+          e.preventDefault()
+        }
+    }
+  }
+})
 
 // TODO: Remove when https://github.com/vuejs/core/issues/5513 fixed
 const key = ref(0)

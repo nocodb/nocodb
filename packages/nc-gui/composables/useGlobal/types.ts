@@ -38,6 +38,7 @@ export interface StoredState {
   currentVersion: string | null
   latestRelease: string | null
   hiddenRelease: string | null
+  isMobileMode: boolean | null
 }
 
 export type State = ToRefs<Omit<StoredState, 'token'>> & {
@@ -61,6 +62,7 @@ export interface Actions {
   signIn: (token: string) => void
   refreshToken: () => void
   loadAppInfo: () => void
+  setIsMobileMode: (isMobileMode: boolean) => void
 }
 
 export type ReadonlyState = Readonly<Pick<State, 'token' | 'user'>> & Omit<State, 'token' | 'user'>

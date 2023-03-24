@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import type { PluginTestReqType, PluginType } from 'nocodb-sdk'
-import { extractSdkResponseErrorMsg, message, onMounted, ref, useI18n, useNuxtApp } from '#imports'
+import { extractSdkResponseErrorMsg, iconMap, message, onMounted, ref, useI18n, useNuxtApp } from '#imports'
 
 const { id } = defineProps<{
   id: string
@@ -209,7 +209,11 @@ onMounted(async () => {
                       v-if="itemIndex !== 0 && columnIndex === plugin.formDetails.items.length - 1"
                       class="absolute flex flex-col justify-start mt-2 -right-6 top-0"
                     >
-                      <MdiDeleteOutline class="hover:text-red-400 cursor-pointer" @click="deleteFormRow(itemIndex)" />
+                      <component
+                        :is="iconMap.delete"
+                        class="hover:text-red-400 cursor-pointer"
+                        @click="deleteFormRow(itemIndex)"
+                      />
                     </div>
                   </a-form-item>
                 </td>
@@ -220,7 +224,7 @@ onMounted(async () => {
               <td :colspan="plugin.formDetails.items.length" class="text-center">
                 <a-button type="default" class="!bg-gray-100 rounded-md border-none mr-1" @click="addSetting">
                   <template #icon>
-                    <MdiPlus class="flex mx-auto" />
+                    <component :is="iconMap.plus" class="flex mx-auto" />
                   </template>
                 </a-button>
               </td>

@@ -173,3 +173,20 @@ export const extraParameterValidator = {
     })
   },
 }
+
+export const emailValidator = {
+  validator: (_: unknown, value: string) => {
+    return new Promise((resolve, reject) => {
+      if (!value || value.length === 0) {
+        return reject(new Error('Email is required'))
+      }
+      const invalidEmails = (value || '').split(/\s*,\s*/).filter((e: string) => !validateEmail(e))
+      if (invalidEmails.length > 0) {
+        return reject(
+          new Error(`${invalidEmails.length > 1 ? ' Invalid emails:' : 'Invalid email:'} ${invalidEmails.join(', ')} `),
+        )
+      }
+      return resolve(true)
+    })
+  },
+}

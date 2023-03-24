@@ -39,6 +39,7 @@
     "signIn": "ĐĂNG NHẬP",
     "signOut": "Đăng xuất",
     "required": "Yêu cầu",
+    "enableScanner": "Enable Scanner for filling",
     "preferred": "Ưu tiên",
     "mandatory": "Bắt buộc",
     "loading": "Đang tải ...",
@@ -209,7 +210,8 @@
     "advancedSettings": "Cài đặt Nâng cao",
     "codeSnippet": "Thư viện mã",
     "keyboardShortcut": "Keyboard Shortcuts",
-    "generateRandomName": "Generate Random Name"
+    "generateRandomName": "Generate Random Name",
+    "findRowByScanningCode": "Find row by scanning a QR or Barcode"
   },
   "labels": {
     "createdBy": "Đã tạo bởi",
@@ -219,6 +221,7 @@
     "viewName": "Xem tên.",
     "viewLink": "Xem liên kết",
     "columnName": "Tên cột dọc",
+    "columnToScanFor": "Column to scan",
     "columnType": "Loại cột.",
     "roleName": "Tên vai trò.",
     "roleDescription": "Mô tả vai trò",
@@ -393,8 +396,8 @@
     "saveAndExit": "Save & Exit",
     "saveAndStay": "Save & Stay",
     "insertRow": "Chèn hàng mới",
-    "deleteRow": "Xóa hàng",
     "duplicateRow": "Duplicate Row",
+    "deleteRow": "Xóa hàng",
     "deleteSelectedRow": "Xóa các hàng đã chọn",
     "importExcel": "Nhập Excel.",
     "importCSV": "Import CSV",
@@ -409,6 +412,8 @@
     "changePwd": "Đổi mật khẩu",
     "createView": "Tạo một cái nhìn",
     "shareView": "Chia sẻ lượt xem.",
+    "findRowByCodeScan": "Find row by scan",
+    "fillByCodeScan": "Fill by scan",
     "listSharedView": "Chia sẻ danh sách xem",
     "ListView": "Lượt xem danh sách",
     "copyView": "Sao chép View.",
@@ -424,6 +429,10 @@
     "openTab": "Mở tab mới",
     "iFrame": "Sao chép mã HTML có thể nhúng",
     "addWebhook": "Thêm webhook mới",
+    "enableWebhook": "Enable Webhook",
+    "testWebhook": "Test Webhook",
+    "copyWebhook": "Copy Webhook",
+    "deleteWebhook": "Delete Webhook",
     "newToken": "Thêm mã thông báo mới",
     "exportZip": "Xuất khẩu ZIP.",
     "importZip": "Nhập khẩu zip.",
@@ -465,7 +474,8 @@
       "chooseMappingField": "Choose a Mapping Field",
       "openInGoogleMaps": "Google Maps",
       "openInOpenStreetMap": "OSM"
-    }
+    },
+    "toggleMobileMode": "Toggle Mobile Mode"
   },
   "tooltip": {
     "saveChanges": "Lưu thay đổi",
@@ -530,6 +540,12 @@
       "roles": {
         "orgCreator": "Creator can create new projects and access any invited project.",
         "orgViewer": "Viewer is not allowed to create new projects but they can access any invited project."
+      },
+      "codeScanner": {
+        "loadingScanner": "Loading the scanner...",
+        "selectColumn": "Select a column (QR code or Barcode) that you want to use for finding a row by scanning.",
+        "moreThanOneRowFoundForCode": "More than one row found for this code. Currently only unique codes are supported.",
+        "noRowFoundForCode": "No row found for this code for the selected column"
       },
       "map": {
         "overLimit": "You're over the limit.",
@@ -682,6 +698,7 @@
         "allowedSpecialCharList": "Allowed special character list"
       },
       "invalidURL": "Invalid URL",
+      "invalidEmail": "Invalid Email",
       "internalError": "Some internal error occurred",
       "templateGeneratorNotFound": "Template Generator cannot be found!",
       "fileUploadFailed": "Failed to upload file",
@@ -762,6 +779,7 @@
       "userDeletedFromProject": "Successfully deleted user from project",
       "inviteEmailSent": "Invite Email sent successfully",
       "inviteURLCopied": "Invite URL copied to clipboard",
+      "commentCopied": "Comment copied to clipboard",
       "passwordResetURLCopied": "Password reset URL copied to clipboard",
       "shareableURLCopied": "Copied shareable base URL to clipboard!",
       "embeddableHTMLCodeCopied": "Copied embeddable HTML code!",

@@ -4,6 +4,7 @@ import {
   IsFormInj,
   IsLockedInj,
   ReadonlyInj,
+  iconMap,
   inject,
   ref,
   useExpandedFormDetached,
@@ -62,7 +63,11 @@ export default {
     <span class="name">{{ value }}</span>
 
     <div v-show="active || isForm" v-if="!readOnly && !isLocked && isUIAllowed('xcDatatableEditable')" class="flex items-center">
-      <MdiCloseThick class="unlink-icon text-xs text-gray-500/50 group-hover:text-gray-500" @click.stop="emit('unlink')" />
+      <component
+        :is="iconMap.closeThick"
+        class="unlink-icon text-xs text-gray-500/50 group-hover:text-gray-500"
+        @click.stop="emit('unlink')"
+      />
     </div>
   </div>
 </template>

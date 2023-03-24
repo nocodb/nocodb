@@ -8,6 +8,7 @@ import {
   IsPublicInj,
   SaveRowInj,
   computed,
+  iconMap,
   inject,
   isDrawerExist,
   ref,
@@ -210,7 +211,7 @@ watch(vModel, (nextVal) => {
 
         <div class="flex-1" />
 
-        <MdiReload class="cursor-pointer text-gray-500 nc-reload" @click="loadChildrenExcludedList" />
+        <component :is="iconMap.reload" class="cursor-pointer text-gray-500 nc-reload" @click="loadChildrenExcludedList" />
 
         <!--        Add new record -->
         <a-button v-if="!isPublic" type="primary" size="small" @click="expandedFormDlg = true">

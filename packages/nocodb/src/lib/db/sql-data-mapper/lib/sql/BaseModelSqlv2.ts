@@ -1982,13 +1982,11 @@ class BaseModelSqlv2 {
           continue;
         }
         const wherePk = await this._wherePk(pkValues);
-        const response = await transaction(this.tnPath)
-          .update(d)
-          .where(wherePk);
-        res.push(response);
+        await transaction(this.tnPath).update(d).where(wherePk);
+        res.push(wherePk);
       }
 
-      await this.afterBulkUpdate(updateDatas.length, this.dbDriver, cookie);
+      await this.afterBulkUpdate(res, this.dbDriver, cookie);
       transaction.commit();
 
       return res;
@@ -2041,7 +2039,7 @@ class BaseModelSqlv2 {
       }
 
       const count = queryResponse ?? 0;
-      await this.afterBulkUpdate(count, this.dbDriver, cookie);
+      await this.afterBulkUpdate(queryResponse, this.dbDriver, cookie);
 
       return count;
     } catch (e) {
@@ -2146,13 +2144,15 @@ class BaseModelSqlv2 {
     // }
   }
 
-  public async afterBulkUpdate(count: number, _trx: any, req): Promise<void> {
+  public async afterBulkUpdate(data: any, _trx: any, req): Promise<void> {
+    await this.handleHooks('After.update', null, data, req);
+
     await Audit.insert({
       fk_model_id: this.model.id,
       op_type: AuditOperationTypes.DATA,
       op_sub_type: AuditOperationSubTypes.BULK_UPDATE,
       description: DOMPurify.sanitize(
-        `${count} records bulk updated in ${this.model.title}`
+        `${data.length} records bulk updated in ${this.model.title}`
       ),
       // details: JSON.stringify(data),
       ip: req?.clientIp,

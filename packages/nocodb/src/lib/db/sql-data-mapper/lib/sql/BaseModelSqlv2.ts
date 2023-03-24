@@ -1954,7 +1954,7 @@ class BaseModelSqlv2 {
               chunkSize
             );
 
-      await this.afterBulkInsert(insertDatas, this.dbDriver, cookie);
+      await this.afterBulkInsert(response, this.dbDriver, cookie);
 
       return response;
     } catch (e) {
@@ -2175,6 +2175,8 @@ class BaseModelSqlv2 {
   }
 
   public async afterBulkInsert(data: any[], _trx: any, req): Promise<void> {
+    await this.handleHooks('After.insert', null, data, req);
+
     await Audit.insert({
       fk_model_id: this.model.id,
       op_type: AuditOperationTypes.DATA,

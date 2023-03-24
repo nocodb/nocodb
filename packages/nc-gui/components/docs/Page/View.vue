@@ -7,8 +7,16 @@ import tiptapExtensions from '~~/utils/tiptapExtensions'
 const { project } = useProject()
 useShortcuts()
 
-const { openedPageId, openedPage, openedPageInSidebar, openedPageWithParents, isPublic, isEditAllowed, isPageFetching } =
-  storeToRefs(useDocStore())
+const {
+  openedPageId,
+  openedPage,
+  openedPageInSidebar,
+  openedPageWithParents,
+  isPublic,
+  isEditAllowed,
+  isPageFetching,
+  flattenedNestedPages,
+} = storeToRefs(useDocStore())
 
 const { updatePage, nestedUrl, openPage } = useDocStore()
 
@@ -142,30 +150,32 @@ watchDebounced(
       <div class="flex flex-col w-full">
         <div class="flex flex-row justify-between items-center pl-6 pt-2.5">
           <div class="flex flex-row h-6">
-            <div v-for="({ href, title, icon, id }, index) of breadCrumbs" :key="id" class="flex">
-              <NuxtLink
-                class="text-sm !hover:text-black docs-breadcrumb-item !underline-transparent"
-                :to="href"
-                :class="{
-                  '!text-gray-600 ': index === breadCrumbs.length - 1,
-                  '!text-gray-400 ': index !== breadCrumbs.length - 1,
-                }"
-              >
-                <div class="flex flex-row items-center gap-x-1.5">
-                  <IconifyIcon
-                    v-if="icon"
-                    :key="icon"
-                    :data-testid="`nc-doc-page-icon-${icon}`"
-                    class="text-sm pop-in-animation"
-                    :icon="icon"
-                  ></IconifyIcon>
-                  <div class="pop-in-animation">
-                    {{ title }}
+            <template v-if="flattenedNestedPages.length !== 1">
+              <div v-for="({ href, title, icon, id }, index) of breadCrumbs" :key="id" class="flex">
+                <NuxtLink
+                  class="text-sm !hover:text-black docs-breadcrumb-item !underline-transparent"
+                  :to="href"
+                  :class="{
+                    '!text-gray-600 ': index === breadCrumbs.length - 1,
+                    '!text-gray-400 ': index !== breadCrumbs.length - 1,
+                  }"
+                >
+                  <div class="flex flex-row items-center gap-x-1.5">
+                    <IconifyIcon
+                      v-if="icon"
+                      :key="icon"
+                      :data-testid="`nc-doc-page-icon-${icon}`"
+                      class="text-sm pop-in-animation"
+                      :icon="icon"
+                    ></IconifyIcon>
+                    <div class="pop-in-animation">
+                      {{ title }}
+                    </div>
                   </div>
-                </div>
-              </NuxtLink>
-              <div v-if="index !== breadCrumbs.length - 1" class="flex text-gray-400 text-sm px-2">/</div>
-            </div>
+                </NuxtLink>
+                <div v-if="index !== breadCrumbs.length - 1" class="flex text-gray-400 text-sm px-2">/</div>
+              </div>
+            </template>
           </div>
           <div v-if="!isPublic" class="flex flex-row items-center"></div>
         </div>
@@ -184,7 +194,7 @@ watchDebounced(
             class="docs-page-title-skelton !mt-4 !max-w-156 mb-3 -ml-3"
           />
           <DocsPageTitle v-else-if="openedPage" @focus-editor="focusEditor" />
-          <div class="flex !mb-6"></div>
+          <div class="flex !mb-4.5"></div>
 
           <DocsPageSelectedBubbleMenu v-if="editor" :editor="editor" />
           <DocsPageLinkOptions v-if="editor" :editor="editor" />
@@ -390,6 +400,8 @@ watchDebounced(
 
   p {
     font-weight: 400;
+    color: #000000;
+    font-size: 1rem;
     margin-top: 0.25rem;
     margin-bottom: 0.25rem;
   }

@@ -48,7 +48,7 @@ const optionWrapperStyle = computed(() => {
     }
   } else if (content[0].type.name === 'paragraph') {
     return {
-      marginTop: '0.15rem',
+      marginTop: '0.2rem',
     }
   } else if (content[0].type.name === 'image') {
     return {

@@ -34,6 +34,7 @@ import User from './models/User';
 import weAreHiring from './utils/weAreHiring';
 import getInstance from './utils/getInstance';
 import initAdminFromEnv from './services/user/initAdminFromEnv';
+import { populatePluginsForCloud } from './services/plugin/populateCloudPlugins';
 import type * as http from 'http';
 import type NcMetaMgrv2 from './meta/NcMetaMgrv2';
 import type { RestApiBuilder } from './v1-legacy/rest/RestApiBuilder';
@@ -252,6 +253,10 @@ export default class Noco {
     // await this.metaMgrv2.initHandler(this.router);
 
     await NcPluginMgrv2.init(Noco.ncMeta);
+    if (process.env.NC_CLOUD === 'true') {
+      await populatePluginsForCloud({ ncMeta: Noco.ncMeta });
+    }
+
     registerMetaApis(this.router, server);
 
     // this.router.use(

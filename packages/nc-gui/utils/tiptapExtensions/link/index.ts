@@ -6,7 +6,7 @@ export const Link = ({ isPublic }: { isPublic?: boolean }) =>
   TiptapLink.extend({
     addKeyboardShortcuts() {
       return {
-        'Mod-k': () => {
+        'Ctrl-k': () => {
           const to = this.editor.view.state.selection.to
           this.editor
             .chain()

@@ -95,6 +95,9 @@ test.describe('Undo Redo', () => {
     } catch (e) {
       console.log(e);
     }
+
+    // reload page after api calls
+    await page.reload();
   });
 
   async function verifyRecords(values: any[] = []) {
@@ -444,6 +447,9 @@ test.describe('Undo Redo - 2', () => {
     } catch (e) {
       console.log(e);
     }
+
+    // reload page after api calls
+    await page.reload();
   });
 
   async function verifyRecords(values: any[] = []) {

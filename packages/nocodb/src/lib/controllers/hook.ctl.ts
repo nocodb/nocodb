@@ -4,7 +4,7 @@ import { PagedResponseImpl } from '../meta/helpers/PagedResponse';
 import ncMetaAclMw from '../meta/helpers/ncMetaAclMw';
 import { metaApiMetrics } from '../meta/helpers/apiMetrics';
 import { hookService } from '../services';
-import type { HookListType, HookType } from 'nocodb-sdk';
+import type { HookListType, HookLogListType, HookType } from 'nocodb-sdk';
 import type { Request, Response } from 'express';
 
 export async function hookList(
@@ -63,12 +63,25 @@ export async function tableSampleData(req: Request, res: Response) {
   );
 }
 
+export async function hookLogList(
+  req: Request<any, any, any>,
+  res: Response<HookLogListType>
+) {
+  res.json(
+    new PagedResponseImpl(
+      await hookService.hookLogList({ tableId: req.params.hookId })
+    )
+  );
+}
+
 const router = Router({ mergeParams: true });
+
 router.get(
   '/api/v1/db/meta/tables/:tableId/hooks',
   metaApiMetrics,
   ncMetaAclMw(hookList, 'hookList')
 );
+
 router.post(
   '/api/v1/db/meta/tables/:tableId/hooks/test',
   metaApiMetrics,
@@ -94,4 +107,11 @@ router.get(
   metaApiMetrics,
   catchError(tableSampleData)
 );
+
+router.get(
+  '/api/v1/db/meta/hooks/:hookId/logs',
+  metaApiMetrics,
+  ncMetaAclMw(hookLogList, 'hookLogList')
+);
+
 export default router;

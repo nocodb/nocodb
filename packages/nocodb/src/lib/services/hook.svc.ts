@@ -1,7 +1,7 @@
 import { T } from 'nc-help';
 import { validatePayload } from '../meta/api/helpers';
 import { NcError } from '../meta/helpers/catchError';
-import { Hook, Model } from '../models';
+import { Hook, HookLog, Model } from '../models';
 import { invokeWebhook } from '../meta/helpers/webhookHelpers';
 import populateSamplePayload from '../meta/helpers/populateSamplePayload';
 import type { HookReqType, HookTestReqType } from 'nocodb-sdk';
@@ -24,6 +24,10 @@ function validateHookPayload(
 
 export async function hookList(param: { tableId: string }) {
   return await Hook.list({ fk_model_id: param.tableId });
+}
+
+export async function hookLogList(param: { hookId: string }) {
+  return await HookLog.list({ fk_hook_id: param.hookId });
 }
 
 export async function hookCreate(param: {

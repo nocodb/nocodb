@@ -2,7 +2,14 @@ import { Node, mergeAttributes, wrappingInputRule } from '@tiptap/core'
 import type { Node as ProseMirrorNode } from 'prosemirror-model'
 
 import { NodeSelection, Plugin, PluginKey } from 'prosemirror-state'
-import { getTextAsParagraphFromSliceJson, isSelectionOfType, onEnter, toggleItem } from './helper'
+import {
+  changeLevel,
+  getTextAsParagraphFromSliceJson,
+  isSelectionOfType,
+  onBackspaceWithNestedList,
+  onEnter,
+  toggleItem,
+} from './helper'
 
 export interface TaskOptions {
   HTMLAttributes: Record<string, any>
@@ -47,6 +54,10 @@ export const Task = Node.create<TaskOptions>({
         default: null,
         parseHTML: (element) => element.getAttribute('checked') === 'true',
       },
+      level: {
+        default: null,
+        parseHTML: (element) => element.getAttribute('data-level'),
+      },
     }
   },
 
@@ -64,6 +75,8 @@ export const Task = Node.create<TaskOptions>({
       'div',
       mergeAttributes(this.options.HTMLAttributes, HTMLAttributes, {
         'data-type': this.name,
+        'data-level': node.attrs.level,
+        'style': `padding-left: ${Number(node.attrs.level)}rem;`,
       }),
       [
         'label',
@@ -169,6 +182,8 @@ export const Task = Node.create<TaskOptions>({
   addKeyboardShortcuts() {
     return {
       'Backspace': () => {
+        if (onBackspaceWithNestedList(this.editor, this.name as any)) return true
+
         const { selection } = this.editor.state
         const { $from } = selection
 
@@ -210,6 +225,12 @@ export const Task = Node.create<TaskOptions>({
       'Enter': () => {
         return onEnter(this.editor, this.name as any)
       },
+      'Tab': () => {
+        return changeLevel(this.editor, this.name, 'forward')
+      },
+      'Shift-Tab': () => {
+        return changeLevel(this.editor, this.name, 'backward')
+      },
     }
   },
 
@@ -217,6 +238,9 @@ export const Task = Node.create<TaskOptions>({
     return ({ node, HTMLAttributes, getPos, editor }) => {
       const listItem = document.createElement('div')
       listItem.setAttribute('data-type', 'task')
+      listItem.setAttribute('data-level', node.attrs.level.toString())
+      listItem.style.paddingLeft = `${Number(node.attrs.level)}rem`
+
       const checkboxWrapper = document.createElement('label')
       const checkboxStyler = document.createElement('span')
       const checkbox = document.createElement('input')
@@ -291,6 +315,9 @@ export const Task = Node.create<TaskOptions>({
           } else {
             checkbox.removeAttribute('checked')
           }
+
+          listItem.setAttribute('data-level', updatedNode.attrs.level.toString())
+          listItem.style.paddingLeft = `${Number(updatedNode.attrs.level)}rem`
 
           return true
         },

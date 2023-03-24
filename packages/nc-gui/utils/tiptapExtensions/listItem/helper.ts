@@ -124,6 +124,16 @@ export const onEnter = (editor: Editor, nodeType: 'bullet' | 'ordered' | 'task')
     return false
   }
 
+  const level = Number(parentNode.attrs.level)
+  if (currentNodeIsEmpty && level > 0) {
+    const newLevel = level - 1
+    const parentNodePos = selection.$from.before(selection.$from.depth - 1)
+
+    editor.view.dispatch(editor.view.state.tr.setNodeAttribute(parentNodePos, 'level', Number(newLevel)))
+
+    return true
+  }
+
   if (currentNodeIsEmpty) {
     editor
       .chain()
@@ -165,6 +175,7 @@ export const onEnter = (editor: Editor, nodeType: 'bullet' | 'ordered' | 'task')
         attrs: {
           number: nodeType === 'ordered' ? String(Number(parentNode.attrs.number) + 1) : undefined,
           checked: nodeType === 'task' ? false : undefined,
+          level,
         },
         content: [
           {
@@ -187,6 +198,7 @@ export const onEnter = (editor: Editor, nodeType: 'bullet' | 'ordered' | 'task')
             attrs: {
               number: nodeType === 'ordered' ? String(Number(parentNode.attrs.number) + 1) : undefined,
               checked: nodeType === 'task' ? false : undefined,
+              level,
             },
             content: [
               {
@@ -280,4 +292,79 @@ export const toggleItem = (state: EditorState, chain: any, toggleListItemInSlice
       return true
     })
     .setTextSelection(selection.from + 1)
+}
+
+export const onBackspaceWithNestedList = (editor: Editor, nodeType: string) => {
+  const selection = editor.state.selection
+
+  if (!selection.empty) return false
+
+  const parentNodePos = selection.$from.before(selection.$from.depth - 1)
+  const parentNode = editor.state.selection.$from.node(-1)
+  const currentNode = editor.state.selection.$from.node()
+
+  if (parentNode.type.name !== nodeType) return false
+
+  if (Number(parentNode.attrs.level) < 1) return false
+  if (currentNode.textContent.length > 0) return false
+
+  const view = editor.view
+  const { tr } = view.state
+
+  view.dispatch(tr.setNodeAttribute(parentNodePos, 'level', Number(parentNode.attrs.level) - 1))
+
+  return true
+}
+
+export const changeLevel = (editor: Editor, nodeType: string, direction: 'forward' | 'backward') => {
+  const selection = editor.state.selection
+
+  if (selection.empty) {
+    const currentNodePos = selection.$from.before(selection.$from.depth - 1)
+    const currentNode = editor.state.selection.$from.node(-1)
+
+    if (currentNode.type.name !== nodeType) return false
+
+    const view = editor.view
+    const { tr } = view.state
+
+    let newLevel = Number(currentNode.attrs.level) + (direction === 'forward' ? 1 : -1)
+    newLevel = newLevel < 0 ? 0 : newLevel
+
+    view.dispatch(tr.setNodeAttribute(currentNodePos, 'level', Number(newLevel)))
+
+    return true
+  } else {
+    const state = editor.state
+    const tr = state.tr
+    const view = editor.view
+
+    const topDBlockPos = selection.$from.before(selection.$from.depth - 1)
+
+    const bottomDBlockPos = selection.$to.after(selection.$to.depth - 1)
+
+    let found = false
+    // traverse through the slice and change the level of the list items
+    state.doc.descendants((node, pos) => {
+      if (pos >= topDBlockPos && pos < bottomDBlockPos) {
+        if (node.type.name === nodeType) {
+          found = true
+
+          let newLevel = Number(node.attrs.level) + (direction === 'forward' ? 1 : -1)
+          newLevel = newLevel < 0 ? 0 : newLevel
+          tr.setNodeAttribute(pos, 'level', Number(newLevel))
+
+          return false
+        }
+      }
+
+      return true
+    })
+
+    if (!found) return false
+
+    view.dispatch(tr)
+
+    return true
+  }
 }

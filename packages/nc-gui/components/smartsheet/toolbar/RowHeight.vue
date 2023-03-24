@@ -28,7 +28,7 @@ const updateRowHeight = async (rh: number, undo = false) => {
         },
         undo: {
           fn: (r: number) => updateRowHeight(r, true),
-          args: [(view.value.view as GridType).row_height],
+          args: [(view.value.view as GridType).row_height || 0],
         },
         scope: view.value?.title,
       })

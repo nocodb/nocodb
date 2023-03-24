@@ -14,7 +14,7 @@ const project = toRef(props, 'project')
 
 const MAX_NESTED_LEVEL = 5
 
-const { isPublic, openedPageInSidebar, nestedPagesOfProjects, isEditAllowed } = storeToRefs(useDocStore())
+const { isPublic, openedPageInSidebar, nestedPagesOfProjects, isEditAllowed, openedTabsOfProjects } = storeToRefs(useDocStore())
 
 const {
   fetchNestedPages,
@@ -30,6 +30,8 @@ const {
 } = useDocStore()
 
 const nestedPages = computed(() => nestedPagesOfProjects.value[project.value.id!])
+
+const openedTabs = ref<string[]>([])
 
 const deleteModalOpen = ref(false)
 const selectedPageId = ref()
@@ -132,6 +134,17 @@ watch(
   },
 )
 
+watch(
+  () => openedTabsOfProjects.value[project.value.id!],
+  (val) => {
+    openedTabs.value = val ?? []
+  },
+  {
+    immediate: true,
+    deep: true,
+  },
+)
+
 onKeyStroke('Enter', () => {
   if (deleteModalOpen.value) {
     onDeletePage()
@@ -163,6 +176,7 @@ onMounted(async () => {
       theme="light"
     >
       <a-tree
+        v-model:expanded-keys="openedTabs"
         v-model:selectedKeys="openPageTabKeys"
         :load-data="onLoadData"
         :tree-data="nestedPages"

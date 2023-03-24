@@ -62,8 +62,12 @@ export const useUndoRedo = createSharedComposable(() => {
 
     const action = undoQueue.value.splice(actionIndex, 1)[0]
     if (action) {
-      await action.undo.fn.apply(action, action.undo.args)
-      addRedo(action)
+      try {
+        await action.undo.fn.apply(action, action.undo.args)
+        addRedo(action)
+      } catch (e) {
+        message.warn('Error while undoing action, it is skipped.')
+      }
     }
   }
 
@@ -87,8 +91,12 @@ export const useUndoRedo = createSharedComposable(() => {
 
     const action = redoQueue.value.splice(actionIndex, 1)[0]
     if (action) {
-      await action.redo.fn.apply(action, action.redo.args)
-      addUndo(action)
+      try {
+        await action.redo.fn.apply(action, action.redo.args)
+        addUndo(action)
+      } catch (e) {
+        message.warn('Error while redoing action, it is skipped.')
+      }
     }
   }
 

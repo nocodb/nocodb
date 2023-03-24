@@ -15,16 +15,33 @@ export class ToolbarFieldsPage extends BasePage {
   }
 
   // todo: Click and toggle are similar method. Remove one of them
-  async toggle({ title, isLocallySaved }: { title: string; isLocallySaved?: boolean }) {
+  async toggle({
+    title,
+    isLocallySaved,
+    validateResponse = true,
+  }: {
+    title: string;
+    isLocallySaved?: boolean;
+    validateResponse?: boolean;
+  }) {
     await this.toolbar.clickFields();
+
+    // hack
+    await this.rootPage.waitForTimeout(100);
+
     const toggleColumn = () =>
       this.get().locator(`[data-testid="nc-fields-menu-${title}"]`).locator('input[type="checkbox"]').click();
 
-    await this.waitForResponse({
-      uiAction: toggleColumn,
-      requestUrlPathToMatch: isLocallySaved ? '/api/v1/db/public/' : '/api/v1/db/data/noco/',
-      httpMethodsToMatch: ['GET'],
-    });
+    if (validateResponse) {
+      await this.waitForResponse({
+        uiAction: toggleColumn,
+        requestUrlPathToMatch: isLocallySaved ? '/api/v1/db/public/' : '/api/v1/db/data/noco/',
+        httpMethodsToMatch: ['GET'],
+      });
+    } else {
+      await toggleColumn();
+    }
+
     await this.toolbar.parent.dashboard.waitForLoaderToDisappear();
     await this.toolbar.clickFields();
   }
@@ -90,8 +107,18 @@ export class ToolbarFieldsPage extends BasePage {
     // remove empty strings from array
     fields = fields.filter(field => field !== '');
 
-    console.log(fields);
-
     return fields;
+  }
+
+  async dragDropFields(param: { from: number; to: number }) {
+    await this.toolbar.clickFields();
+    const { from, to } = param;
+    const [fromStack, toStack] = await Promise.all([
+      this.get().locator(`.nc-icon.cursor-move`).nth(from),
+      this.get().locator(`.nc-icon.cursor-move`).nth(to),
+    ]);
+
+    await fromStack.dragTo(toStack);
+    await this.toolbar.clickFields();
   }
 }

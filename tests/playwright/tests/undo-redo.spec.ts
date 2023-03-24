@@ -16,6 +16,8 @@ let dashboard: DashboardPage,
   cityTable: any,
   countryTable: any;
 
+const validateResponse = true;
+
 /**
  This change provides undo/redo on multiple actions over UI.
 
@@ -110,12 +112,18 @@ test.describe('Undo Redo', () => {
 
   async function undo({ page }: { page: Page }) {
     const isMac = await grid.isMacOs();
-    await dashboard.grid.waitForResponse({
-      uiAction: () => page.keyboard.press(isMac ? 'Meta+z' : 'Control+z'),
-      httpMethodsToMatch: ['GET'],
-      requestUrlPathToMatch: `/api/v1/db/data/noco/`,
-      responseJsonMatcher: json => json.pageInfo,
-    });
+
+    if (validateResponse) {
+      await dashboard.grid.waitForResponse({
+        uiAction: () => page.keyboard.press(isMac ? 'Meta+z' : 'Control+z'),
+        httpMethodsToMatch: ['GET'],
+        requestUrlPathToMatch: `/api/v1/db/data/noco/`,
+        responseJsonMatcher: json => json.pageInfo,
+      });
+    } else {
+      await page.keyboard.press(isMac ? 'Meta+z' : 'Control+z');
+      await page.waitForTimeout(100);
+    }
   }
 
   test('Row: Create, Update, Delete', async ({ page }) => {
@@ -196,6 +204,14 @@ test.describe('Undo Redo', () => {
     await verifyFieldsOrder(['Number', 'Currency']);
 
     // Undo : hide Decimal
+    await undo({ page });
+    await verifyFieldsOrder(['Number', 'Decimal', 'Currency']);
+
+    // reorder test
+    await toolbar.fields.dragDropFields({ from: 1, to: 0 });
+    await verifyFieldsOrder(['Number', 'Currency', 'Decimal']);
+
+    // Undo : reorder
     await undo({ page });
     await verifyFieldsOrder(['Number', 'Decimal', 'Currency']);
   });

@@ -629,19 +629,19 @@ const isClearMode = computed(() => route.query.clear === '1' && route.params.pro
       <WorkspaceEmptyPlaceholder v-else />
     </div>
 
-    <div class="flex items-center py-2 justify-center">
+
+    <a-divider class="!my-0" />
+    <div class="flex items-center mt-4 justify-center mx-2">
       <WorkspaceCreateProjectBtn
-        modal
-        type="ghost"
-        class="h-auto w-full nc-create-project-btn"
-        :active-workspace-id="route.params.workspaceId"
+          modal
+          type="ghost"
+          class="h-auto w-full nc-create-project-btn"
+          :active-workspace-id="route.params.workspaceId"
       >
         <PhPlusThin />
         Add New
       </WorkspaceCreateProjectBtn>
     </div>
-    <a-divider class="!my-0" />
-
     <div class="flex items-start flex-col justify-start px-2 py-3 gap-2">
       <GeneralJoinCloud class="color-transition px-2 text-gray-500 cursor-pointer select-none hover:text-accent" />
     </div>

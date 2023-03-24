@@ -24,8 +24,8 @@ export default class HookLog implements HookLogType {
   response?: string;
   triggered_by?: string;
 
-  constructor(hook: Partial<HookLog>) {
-    Object.assign(this, hook);
+  constructor(hookLog: Partial<HookLog>) {
+    Object.assign(this, hookLog);
   }
 
   static async list(
@@ -36,31 +36,11 @@ export default class HookLog implements HookLogType {
     },
     ncMeta = Noco.ncMeta
   ) {
-    // todo: redis cache ??
-    // let hooks = await NocoCache.getList(CacheScope.HOOK, [param.fk_model_id]);
-    // if (!hooks.length) {
     const hookLogs = await ncMeta.metaList(null, null, MetaTable.HOOK_LOGS, {
       condition: {
         fk_hook_id: param.fk_hook_id,
-        // ...(param.event ? { event: param.event?.toLowerCase?.() } : {}),
-        // ...(param.operation
-        //   ? { operation: param.operation?.toLowerCase?.() }
-        //   : {})
       },
     });
-    //   await NocoCache.setList(CacheScope.HOOK, [param.fk_model_id], hooks);
-    // }
-    // // filter event & operation
-    // if (param.event) {
-    //   hooks = hooks.filter(
-    //     h => h.event?.toLowerCase() === param.event?.toLowerCase()
-    //   );
-    // }
-    // if (param.operation) {
-    //   hooks = hooks.filter(
-    //     h => h.operation?.toLowerCase() === param.operation?.toLowerCase()
-    //   );
-    // }
     return hookLogs?.map((h) => new HookLog(h));
   }
 

@@ -9,9 +9,10 @@ import type SelectOption from '../../models/SelectOption';
 export default async function populateSamplePayload(
   viewOrModel: View | Model,
   includeNested = false,
-  operation = 'insert'
+  operation = 'insert',
+  scope = 'records'
 ) {
-  const out = {};
+  const rows = {};
   let columns: Column[] = [];
   let model: Model;
   if (viewOrModel instanceof View) {
@@ -26,6 +27,18 @@ export default async function populateSamplePayload(
     model = viewOrModel;
   }
 
+  await model.getViews();
+
+  const samplePayload = {
+    type: `${scope}.after.${operation}`,
+    data: {
+      table_id: model.id,
+      table_name: model.title,
+      view_id: model.views[0].id,
+      view_name: model.views[0].title,
+    },
+  };
+
   for (const column of columns) {
     if (
       !includeNested &&
@@ -33,13 +46,23 @@ export default async function populateSamplePayload(
     )
       continue;
 
-    if (operation === 'delete' && model.primaryKey?.title !== column.title)
-      continue;
-
-    out[column.title] = await getSampleColumnValue(column);
+    rows[column.title] = await getSampleColumnValue(column);
   }
 
-  return out;
+  let prevRows;
+  if (operation !== 'insert') {
+    prevRows = rows;
+  }
+
+  samplePayload.data = {
+    ...samplePayload.data,
+    ...(prevRows && {
+      [operation === 'delete' ? 'deleted_rows' : 'previous_rows']: [prevRows],
+    }),
+    ...(operation !== 'delete' && rows && { rows: [rows] }),
+  };
+
+  return samplePayload;
 }
 
 async function getSampleColumnValue(column: Column): Promise<any> {

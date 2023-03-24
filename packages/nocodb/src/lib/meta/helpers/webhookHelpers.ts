@@ -245,20 +245,44 @@ export async function invokeWebhook(
   let hookLog: HookLogType;
   const startTime = process.hrtime();
   try {
-    // for (const hook of hooks) {
     const notification =
       typeof hook.notification === 'string'
         ? JSON.parse(hook.notification)
         : hook.notification;
 
+    const isBulkOperation = Array.isArray(newData);
+
+    if (isBulkOperation && notification?.type !== 'URL') {
+      // only URL hook is supported for bulk operations
+      return;
+    }
+
     if (hook.condition) {
-      if (
-        !(await validateCondition(
-          testFilters || (await hook.getFilters()),
-          newData
-        ))
-      ) {
-        return;
+      if (isBulkOperation) {
+        const filteredData = [];
+        for (const data of newData) {
+          if (
+            await validateCondition(
+              testFilters || (await hook.getFilters()),
+              data
+            )
+          ) {
+            filteredData.push(data);
+          }
+          if (!filteredData.length) {
+            return;
+          }
+          newData = filteredData;
+        }
+      } else {
+        if (
+          !(await validateCondition(
+            testFilters || (await hook.getFilters()),
+            newData
+          ))
+        ) {
+          return;
+        }
       }
     }
 

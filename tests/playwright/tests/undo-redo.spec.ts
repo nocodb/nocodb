@@ -315,6 +315,23 @@ test.describe('Undo Redo', () => {
     await new Promise(resolve => setTimeout(resolve, timeOut));
     await verifyRowHeight({ height: '1.5rem' });
   });
+
+  test('Column width', async ({ page }) => {
+    // close 'Team & Auth' tab
+    await dashboard.closeTab({ title: 'Team & Auth' });
+    await dashboard.treeView.openTable({ title: 'numberBased' });
+
+    const originalWidth = await dashboard.grid.column.getWidth({ title: 'Number' });
+
+    await dashboard.grid.column.resize({ src: 'Number', dst: 'Decimal' });
+    await dashboard.rootPage.waitForTimeout(100);
+
+    const modifiedWidth = await dashboard.grid.column.getWidth({ title: 'Number' });
+    expect(modifiedWidth).toBeGreaterThan(originalWidth);
+
+    await undo({ page });
+    expect(await dashboard.grid.column.getWidth({ title: 'Number' })).toBe(originalWidth);
+  });
 });
 
 test.describe('Undo Redo - 2', () => {

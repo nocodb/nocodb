@@ -31,16 +31,17 @@ const selectedView = inject(ActiveViewInj)
   <div class="nc-locked-menu-item" @click="emit('select', type)">
     <div :class="{ 'show-tick': !hideTick }">
       <template v-if="!hideTick">
-        <component :is="iconMap.check" v-if="selectedView?.lock_type === type" />
+        <GeneralIcon v-if="selectedView?.lock_type === type" icon="check" />
 
         <span v-else />
       </template>
 
       <div>
-        <component :is="types[type].icon" class="text-gray-500" />
+        <div class="flex items-center gap-1">
+          <component :is="types[type].icon" class="text-gray-500" />
 
-        {{ $t(types[type].title) }}
-
+          {{ $t(types[type].title) }}
+        </div>
         <div class="nc-subtitle whitespace-normal">
           {{ $t(types[type].subtitle) }}
         </div>

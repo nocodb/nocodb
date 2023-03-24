@@ -15,141 +15,23 @@ import MdiFlagOutline from '~icons/mdi/flag-outline'
 import MdiTableLarge from '~icons/mdi/table-large'
 import MdiEyeCircleOutline from '~icons/mdi/eye-circle-outline'
 import MdiAccountGroup from '~icons/mdi/account-group'
-import PhTableThin from '~icons/ph/table-light'
-
-import PhLockIcon from '~icons/ph/lock-key-light'
-import PhAccountIcon from '~icons/ph/user-light'
-import PhUsersThreeThin from '~icons/ph/users-three-light'
-import PhDownloadThin from '~icons/ph/arrow-line-down-light'
-import PhUploadThin from '~icons/ph/arrow-line-up-light'
-import PhHookThin from '~icons/ph/anchor-light'
-import PhTreeThin from '~icons/ph/tree-structure-light'
-import PhPlusThin from '~icons/ph/plus-light'
-import PhSearchThin from '~icons/ph/magnifying-glass-light'
-import PhCopySimpleThin from '~icons/ph/copy-simple-light'
-import PhClipboardThin from '~icons/ph/clipboard-text-light'
-import PhGearThin from '~icons/ph/gear-light'
-import PhImageThin from '~icons/ph/image-light'
-import PhHardDriveThin from '~icons/ph/hard-drives-light'
-import PhBookThin from '~icons/ph/book-bookmark-light'
-import PhCaretDownLight from '~icons/ph/caret-down-light'
-import PhCaretRightLight from '~icons/ph/caret-right-light'
 import PhDotsThreeOutlineVerticalThin from '~icons/ph/dots-three-outline-vertical-light'
 import PhDotsThreeOutlineThin from '~icons/ph/dots-three-outline-light'
 import PhExcelThin from '~icons/ph/microsoft-excel-logo-light'
 import PhCsvThin from '~icons/ph/file-csv-light'
-import PhBracketsCurlyThin from '~icons/ph/brackets-curly-light'
-import PhTrashThin from '~icons/ph/trash-light'
-import PhPencilSimpleThin from '~icons/ph/pencil-simple-light'
-import PhListMagnifyingGlassThin from '~icons/ph/list-magnifying-glass-light'
-import PhStringIcon from '~icons/ph/text-aa-light'
-import PhTextAreaIcon from '~icons/ph/text-align-left-light'
-import FilePhoneIcon from '~icons/ph/phone-call-light'
-import KeyIcon from '~icons/ph/key-light'
-import ClockIcon from '~icons/ph/alarm-light'
-import WebIcon from '~icons/ph/planet-light'
-import BooleanIcon from '~icons/ph/check-square-light'
-import CalendarIcon from '~icons/ph/calendar-blank-light'
-import SingleSelectIcon from '~icons/ph/caret-circle-down-light'
-import DatetimeIcon from '~icons/ph/calendar-light'
-import GeoDataIcon from '~icons/ph/map-pin-light'
-import GenericIcon from '~icons/ph/square-light'
-import NumericIcon from '~icons/ph/number-square-one-light'
-import EmailIcon from '~icons/ph/envelope-light'
-import CurrencyIcon from '~icons/ph/currency-circle-dollar-light'
-import PercentIcon from '~icons/ph/percent-light'
-import DecimalIcon from '~icons/mdi/decimal'
-import DurationIcon from '~icons/ph/clock-clockwise-light'
-import PhFunctiontone from '~icons/ph/function-light'
-import PhQrCodeThin from '~icons/ph/qr-code-light'
-import MdiQrcodeScan from '~icons/mdi/qrcode-scan'
-import PhBarcodeThin from '~icons/ph/barcode-light'
-import PhCalculatorThin from '~icons/ph/calculator-light'
-import PhEyeSlashThin from '~icons/ph/eye-slash-light'
-import PhEyeThin from '~icons/ph/eye-light'
-import PhExpandThin from '~icons/ph/arrows-out-simple-light'
-import PhLifebuoyThin from '~icons/ph/lifebuoy-light'
-import PhCheckThin from '~icons/ph/check-light'
-import PhFolderLockThin from '~icons/ph/folder-simple-lock-light'
-import MdiDatabaseSync from '~icons/mdi/database-sync'
-import PhWarningThin from '~icons/ph/warning-light'
-import HMIcon from '~icons/mdi/table-arrow-right'
-import BTIcon from '~icons/mdi/table-arrow-left'
-import MMIcon from '~icons/mdi/table-network'
-import PhShareThin from '~icons/ph/share-light'
-import PhReloadThin from '~icons/ph/arrow-clockwise-light'
-import PhCodeThin from '~icons/ph/code-light'
-import PhFunnelThin from '~icons/ph/funnel-light'
-import PhGridNineThin from '~icons/ph/grid-nine-light'
 import PhSplitVerticalThin from '~icons/ph/split-vertical-light'
-import PhGridThin from '~icons/ph/grid-four'
-import PhComputerTowerThin from '~icons/ph/computer-tower-light'
-import PhSquareHalfBottomThin from '~icons/ph/square-half-bottom-light'
-import MdiMapIcon from '~icons/mdi/map-outline'
-import MdiDatabaseSettingsOutline from '~icons/mdi/database-settings-outline'
-import PhXCircleLight from '~icons/ph/x-circle-light'
-import PhXLight from '~icons/ph/x-light'
-import PhXSquareLight from '~icons/ph/x-square-light'
-import PhSignInLight from '~icons/ph/sign-in-light'
-import PhSignOutLight from '~icons/ph/sign-out-light'
-import PhCaretDoubleLeftLight from '~icons/ph/caret-double-left-light'
-import MdiOpenInNew from '~icons/mdi/open-in-new'
-import PhFloppyDiskLight from '~icons/ph/floppy-disk-light'
-import PhPlusCircleLight from '~icons/ph/plus-circle-light'
-import PhMinusCircleLight from '~icons/ph/minus-circle-light'
-import PhAtLight from '~icons/ph/at-light'
-import PhDatabaseLight from '~icons/ph/database-light'
-import PhUserPlusLight from '~icons/ph/user-plus-light'
 import PhDiscordLogoLight from '~icons/ph/discord-logo-light'
 import PhRedditLogoLight from '~icons/ph/reddit-logo-light'
 import PhTwitterLogoLight from '~icons/ph/twitter-logo-light'
 import PhGithubLogoLight from '~icons/ph/github-logo-light'
-import PhKeyboardLight from '~icons/ph/keyboard-light'
-import PhUserCircleLight from '~icons/ph/user-circle-light'
-import PhKeyReturnThin from '~icons/ph/key-return-light'
-import PhLinkSimpleHorizontalLight from '~icons/ph/link-simple-horizontal-light'
-import PhPresentationThin from '~icons/ph/presentation-light'
-import PhTranslateThin from '~icons/ph/translate-light'
-import PhSortAscendingThin from '~icons/ph/sort-ascending-light'
-import PhChatTextThin from '~icons/ph/chat-text-light'
-import PhCloudLightningThin from '~icons/ph/cloud-lightning-light'
-import PhListBulletsThin from '~icons/ph/list-bullets-light'
-import PhBracketsAngleThin from '~icons/ph/brackets-angle-light'
-import MdiExitToApp from '~icons/mdi/exit-to-app'
-import MdiKeyChange from '~icons/mdi/key-change'
-import MdiMapMarker from '~icons/mdi/map-marker'
-import MdiGpsFixed from '~icons/mdi/gps-fixed'
-import MdiPlusThick from '~icons/mdi/plus-thick'
-import MdiDragVertical from '~icons/mdi/drag-vertical'
-import MdiFileUploadOutline from '~icons/mdi/file-upload-outline'
-import MdiDrag from '~icons/mdi/drag'
-import MdiCommentTextOutline from '~icons/mdi/comment-text-outline'
-import MdiContentSave from '~icons/mdi/content-save'
-import MdiContentSaveEdit from '~icons/mdi/content-save-edit'
-import PhSortDescendingThin from '~icons/ph/sort-descending-light'
-import PhStar from '~icons/ph/star-light'
-import MdiTableColumnPlusAfter from '~icons/mdi/table-column-plus-after'
-import MdiTableColumnPlusBefore from '~icons/mdi/table-column-plus-before'
-import PhExportLight from '~icons/ph/export-light'
-import MdiTableKey from '~icons/mdi/table-key'
-import MdiDramaMasks from '~icons/mdi/drama-masks'
-import MdiEmailArrowRightOutline from '~icons/mdi/email-arrow-right-outline'
-import MdiCloseThick from '~icons/mdi/close-thick'
-import MdiLinkVariantRemove from '~icons/mdi/link-variant-remove'
-import MdiChevronLeft from '~icons/mdi/chevron-left'
-import MdiChevronRight from '~icons/mdi/chevron-right'
-import MdiFileImageBox from '~icons/mdi/file-image-box'
-import MdiStorefrontOutline from '~icons/mdi/storefront-outline'
-import MdiLoading from '~icons/mdi/loading'
-import MdiArrowCollapse from '~icons/mdi/arrow-collapse'
-import MdiInformationOutline from '~icons/mdi/information-outline'
-import MdiMapMarkerAlert from '~icons/mdi/map-marker-alert'
 import NcIconsRowHeightMedium from '~icons/nc-icons/row-height-medium'
 import NcIconsRowHeightShort from '~icons/nc-icons/row-height-short'
 import NcIconsRowHeightTall from '~icons/nc-icons/row-height-tall'
 import NcIconsRowHeightExtraTall from '~icons/nc-icons/row-height-extra-tall'
 
-export const iconMapOld = {
+// keep it for reference
+// todo: remove it after all icons are migrated
+/* export const iconMapOld = {
   info: MdiInformationOutline,
   loading: MdiLoading,
   arrowCollapse: MdiArrowCollapse,
@@ -213,7 +95,7 @@ export const iconMapOld = {
   book: PhBookThin,
   arrowDown: PhCaretDownLight,
   arrowRight: PhCaretRightLight,
-  arrowDoubleLeft: PhCaretDoubleLeftLight,
+  sidebarMinimise: PhCaretDoubleLeftLight,
   threeDotVertical: PhDotsThreeOutlineVerticalThin,
   threeDotHorizontal: PhDotsThreeOutlineThin,
   table: PhTableThin,
@@ -292,7 +174,7 @@ export const iconMapOld = {
   heightMedium: NcIconsRowHeightMedium,
   heightTall: NcIconsRowHeightTall,
   heightExtra: NcIconsRowHeightExtraTall,
-} as const
+} as const */
 
 export const iconMap = {
   info: h('span', { class: 'material-symbols-outlined' }, 'info_outline'),
@@ -354,14 +236,13 @@ export const iconMap = {
   clipboard: h('span', { class: 'material-symbols-outlined' }, 'content_paste'),
   settings: h('span', { class: 'material-symbols-outlined' }, 'settings'),
   image: h('span', { class: 'material-symbols-outlined' }, 'image'),
-  datasource: h('span', { class: 'material-symbols-outlined' }, 'data_usage'),
+  datasource: h('span', { class: 'material-symbols-outlined' }, 'hard_drive'),
   book: h('span', { class: 'material-symbols-outlined' }, 'menu_book'),
   arrowDown: h('span', { class: 'material-symbols-outlined', style: { fontSize: '.8rem' } }, 'keyboard_arrow_down'),
   arrowRight: h('span', { class: 'material-symbols-outlined' }, 'keyboard_arrow_right'),
-  arrowDoubleLeft: h('span', { class: 'material-symbols-outlined' }, 'first_page'),
+  sidebarMinimise: h('span', { class: 'material-symbols-outlined' }, 'left_panel_close'),
   // threeDotVertical: h('span', { class: 'material-symbols-outlined' }, 'more_vert'),
   // threeDotHorizontal: h('span', { class: 'material-symbols-outlined' }, 'more_horiz'),
-
   threeDotVertical: PhDotsThreeOutlineVerticalThin,
   threeDotHorizontal: PhDotsThreeOutlineThin,
   table: h('span', { class: 'material-symbols-outlined' }, 'table_chart'),
@@ -388,19 +269,19 @@ export const iconMap = {
   sendEmail: h('span', { class: 'material-symbols-outlined' }, 'email'),
   currency: h('span', { class: 'material-symbols-outlined' }, 'attach_money'),
   percent: h('span', { class: 'material-symbols-outlined' }, 'percent'),
-  decimal: h('span', { class: 'material-symbols-outlined' }, 'functions'),
-  specificDbType: h('span', { class: 'material-symbols-outlined' }, 'storage'),
-  duration: h('span', { class: 'material-symbols-outlined' }, 'accesstime'),
+  decimal: h('span', { class: 'material-symbols-outlined' }, 'decimal_increase'),
+  specificDbType: h('span', { class: 'material-symbols-outlined' }, 'inbox_customize'),
+  duration: h('span', { class: 'material-symbols-outlined' }, 'timer'),
   phone: h('span', { class: 'material-symbols-outlined' }, 'phone'),
   formula: h('span', { class: 'material-symbols-outlined' }, 'function'),
   function: h('span', { class: 'material-symbols-outlined' }, 'functions'),
   key: h('span', { class: 'material-symbols-outlined' }, 'key'),
   json: h('span', { class: 'material-symbols-outlined' }, 'code'),
-  qrCode: h('span', { class: 'material-symbols-outlined' }, 'qrcode'),
-  qrCodeScan: h('span', { class: 'material-symbols-outlined' }, 'qrcodescanner'),
+  qrCode: h('span', { class: 'material-symbols-outlined' }, 'qr_code'),
+  qrCodeScan: h('span', { class: 'material-symbols-outlined' }, 'qr_code_scanner'),
   barCode: h('span', { class: 'material-symbols-outlined' }, 'barcode'),
-  calculator: h('span', { class: 'material-symbols-outlined' }, 'calculator'),
-  rollup: h('span', { class: 'material-symbols-outlined' }, 'aggregate'),
+  calculator: h('span', { class: 'material-symbols-outlined' }, 'calculate'),
+  rollup: h('span', { class: 'material-symbols-outlined' }, 'group_work'),
   eye: h('span', { class: 'material-symbols-outlined' }, 'visibility'),
   eyeSlash: h('span', { class: 'material-symbols-outlined' }, 'visibility_off'),
   expand: h('span', { class: 'material-symbols-outlined' }, 'open_in_full'),
@@ -413,7 +294,7 @@ export const iconMap = {
   xml: h('span', { class: 'material-symbols-outlined' }, 'code'),
   airtable: h('span', { class: 'material-symbols-outlined' }, 'grid_on'),
   grid: h('span', { class: 'material-symbols-outlined' }, 'grid_on'),
-  gallery: h('span', { class: 'material-symbols-outlined' }, 'view_module'),
+  gallery: h('span', { class: 'material-symbols-outlined' }, 'image'),
   form: h('span', { class: 'material-symbols-outlined' }, 'receipt'),
   map: h('span', { class: 'material-symbols-outlined' }, 'map'),
   kanban: h('span', { class: 'material-symbols-outlined' }, 'view_column'),

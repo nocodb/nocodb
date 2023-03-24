@@ -214,11 +214,7 @@ const hideField = async () => {
 
 <template>
   <a-dropdown v-if="!isLocked" placement="bottomRight" :trigger="['click']" overlay-class-name="nc-dropdown-column-operations">
-    <component
-      :is="iconMap.arrowDown"
-      class="text-grey !text-0.5rem h-full text-grey nc-ui-dt-dropdown cursor-pointer outline-0 mr-2"
-    />
-
+    <div><GeneralIcon icon="arrowDown" class="text-grey h-full text-grey nc-ui-dt-dropdown cursor-pointer outline-0 mr-2" /></div>
     <template #overlay>
       <a-menu class="shadow bg-white">
         <a-menu-item @click="emit('edit')">
@@ -284,7 +280,7 @@ const hideField = async () => {
 
         <a-menu-item v-if="(!virtual || column?.uidt === UITypes.Formula) && !column?.pv" @click="setAsDisplayValue">
           <div class="nc-column-set-primary nc-header-menu-item">
-            <component :is="iconMap.star" class="text-primary" />
+            <GeneralIcon icon="star" class="text-primary" />
 
             <!--       todo : tooltip -->
             <!-- Set as Display value -->

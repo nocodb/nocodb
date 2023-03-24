@@ -7,5 +7,5 @@ const props = defineProps<{
 </script>
 
 <template>
-  <component :is="iconMap[props.icon]"/>
+  <component :is="iconMap[props.icon]" />
 </template>

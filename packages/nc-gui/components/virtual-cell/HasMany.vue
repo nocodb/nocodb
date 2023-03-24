@@ -122,8 +122,8 @@ useSelectedCellKeyupListener(inject(ActiveCellInj, ref(false)), (e: KeyboardEven
         />
 
         <GeneralIcon
-          icon="plus"
           v-if="!readOnly && isUIAllowed('xcDatatableEditable')"
+          icon="plus"
           class="select-none text-sm nc-action-icon text-gray-500/50 hover:text-gray-500 nc-plus"
           @click.stop="listItemsDlg = true"
         />

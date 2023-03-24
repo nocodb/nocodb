@@ -52,7 +52,7 @@ const { loadRelatedTableMeta, relatedTableDisplayValueProp, unlink } = useProvid
 
 await loadRelatedTableMeta()
 
-const addIcon = computed(() => (cellValue?.value ?'expand' : 'plus'))
+const addIcon = computed(() => (cellValue?.value ? 'expand' : 'plus'))
 
 const value = computed(() => {
   if (cellValue?.value) {

@@ -1,5 +1,4 @@
 import { ViewTypes } from 'nocodb-sdk'
-import { themeV2Colors } from '#imports'
 import { iconMap } from '~/utils/iconUtils'
 
 import type { Language } from '~/lib'

@@ -372,13 +372,13 @@ const setIcon = async (icon: string, table: TableType) => {
           </Transition>
 
           <Transition name="layout" mode="out-in">
-            <component
-              :is="iconMap.close"
+            <GeneralIcon
               v-if="searchActive"
+              icon="close"
               class="text-gray-500 text-lg mx-1 mt-0.5"
               @click="onSearchCloseIconClick"
             />
-            <component :is="iconMap.search" v-else class="text-gray-500 text-lg mx-1 mt-0.5" @click="toggleSearchActive(true)" />
+            <GeneralIcon v-else icon="search" class="text-gray-500 text-lg mx-1 mt-0.5" @click="toggleSearchActive(true)" />
           </Transition>
         </div>
         <div
@@ -404,9 +404,9 @@ const setIcon = async (icon: string, table: TableType) => {
           </Transition>
 
           <Transition name="slide-right" mode="out-in">
-            <component
-              :is="iconMap.close"
+            <GeneralIcon
               v-if="searchActive"
+              icon="close"
               class="text-gray-500 text-lg mx-1 mt-0.5"
               @click="onSearchCloseIconClick"
             />
@@ -415,7 +415,7 @@ const setIcon = async (icon: string, table: TableType) => {
 
           <a-dropdown v-if="!isSharedBase" :trigger="['click']" overlay-class-name="nc-dropdown-import-menu" @click.stop>
             <Transition name="slide-right" mode="out-in">
-              <component :is="iconMap.threeDotVertical" v-if="!searchActive" class="hover:text-accent outline-0" />
+              <GeneralIcon v-if="!searchActive" icon="threeDotVertical" class="hover:text-accent outline-0" />
             </Transition>
 
             <template #overlay>
@@ -466,7 +466,7 @@ const setIcon = async (icon: string, table: TableType) => {
                     target="_blank"
                     class="prose-sm hover:(!text-primary !opacity-100) color-transition nc-project-menu-item group after:(!rounded-b)"
                   >
-                    <component :is="iconMap.openInNew" class="group-hover:text-accent" />
+                    <GeneralIcon icon="openInNew" class="group-hover:text-accent" />
                     <!-- Request a data source you need? -->
                     {{ $t('labels.requestDataSource') }}
                   </a>
@@ -482,13 +482,13 @@ const setIcon = async (icon: string, table: TableType) => {
             class="group flex items-center gap-2 pl-2 pr-3 py-2 text-primary/70 hover:(text-primary/100) cursor-pointer select-none"
             @click="openTableCreateDialog(bases[0].id)"
           >
-            <component :is="iconMap.plus" class="w-5" />
+            <GeneralIcon icon="plus" class="w-5" />
 
             <span class="text-gray-500 group-hover:(text-primary/100) flex-1 nc-add-new-table">{{ $t('tooltip.addTable') }}</span>
 
             <a-dropdown v-if="!isSharedBase" :trigger="['click']" overlay-class-name="nc-dropdown-import-menu" @click.stop>
-              <component
-                :is="iconMap.threeDotVertical"
+              <GeneralIcon
+                icon="threeDotVertical"
                 class="transition-opacity opacity-0 group-hover:opacity-100 nc-import-menu outline-0"
               />
 
@@ -502,7 +502,7 @@ const setIcon = async (icon: string, table: TableType) => {
                       @click="openAirtableImportDialog(bases[0].id)"
                     >
                       <div class="color-transition nc-project-menu-item group">
-                        <component :is="iconMap.table" class="group-hover:text-accent" />
+                        <GeneralIcon icon="table" class="group-hover:text-accent" />
                         Airtable
                       </div>
                     </a-menu-item>
@@ -513,7 +513,7 @@ const setIcon = async (icon: string, table: TableType) => {
                       @click="openQuickImportDialog('csv', bases[0].id)"
                     >
                       <div class="color-transition nc-project-menu-item group">
-                        <component :is="iconMap.csv" class="group-hover:text-accent" />
+                        <GeneralIcon icon="csv" class="group-hover:text-accent" />
                         CSV file
                       </div>
                     </a-menu-item>
@@ -524,7 +524,7 @@ const setIcon = async (icon: string, table: TableType) => {
                       @click="openQuickImportDialog('json', bases[0].id)"
                     >
                       <div class="color-transition nc-project-menu-item group">
-                        <component :is="iconMap.code" class="group-hover:text-accent" />
+                        <GeneralIcon icon="code" class="group-hover:text-accent" />
                         JSON file
                       </div>
                     </a-menu-item>
@@ -535,7 +535,7 @@ const setIcon = async (icon: string, table: TableType) => {
                       @click="openQuickImportDialog('excel', bases[0].id)"
                     >
                       <div class="color-transition nc-project-menu-item group">
-                        <component :is="iconMap.excel" class="group-hover:text-accent" />
+                        <GeneralIcon icon="excel" class="group-hover:text-accent" />
                         Microsoft Excel
                       </div>
                     </a-menu-item>
@@ -589,7 +589,7 @@ const setIcon = async (icon: string, table: TableType) => {
                       target="_blank"
                       class="prose-sm hover:(!text-primary !opacity-100) color-transition nc-project-menu-item group after:(!rounded-b)"
                     >
-                      <component :is="iconMap.openInNew" class="group-hover:text-accent" />
+                      <GeneralIcon icon="openInNew" class="group-hover:text-accent" />
                       <!-- Request a data source you need? -->
                       {{ $t('labels.requestDataSource') }}
                     </a>
@@ -670,8 +670,8 @@ const setIcon = async (icon: string, table: TableType) => {
                           :trigger="['click']"
                           @click.stop
                         >
-                          <component
-                            :is="iconMap.threeDotVertical"
+                          <GeneralIcon
+                            icon="threeDotVertical"
                             class="transition-opacity opacity-0 group-hover:opacity-100 outline-0"
                           />
 

@@ -14,9 +14,7 @@ const { $api } = useNuxtApp()
 
 const meta = inject(MetaInj, ref())
 
-const sampleData = ref({
-  data: {},
-})
+const sampleData = ref()
 
 watch(
   () => hook?.operation,
@@ -26,9 +24,7 @@ watch(
 )
 
 async function loadSampleData() {
-  sampleData.value = {
-    data: await $api.dbTableWebhook.samplePayloadGet(meta?.value?.id as string, hook?.operation || 'insert'),
-  }
+  sampleData.value = await $api.dbTableWebhook.samplePayloadGet(meta?.value?.id as string, hook?.operation || 'insert')
 }
 
 async function testWebhook() {

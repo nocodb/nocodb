@@ -2066,15 +2066,15 @@ class BaseModelSqlv2 {
       const res = [];
       for (const d of deleteIds) {
         if (Object.keys(d).length) {
-          const response = await transaction(this.tnPath).del().where(d);
-          res.push(response);
+          await transaction(this.tnPath).del().where(d);
+          res.push(d);
         }
       }
       // await this.afterDeleteb(res, transaction);
 
       transaction.commit();
 
-      await this.afterBulkDelete(ids.length, this.dbDriver, cookie);
+      await this.afterBulkDelete(res, this.dbDriver, cookie);
 
       return res;
     } catch (e) {
@@ -2112,7 +2112,15 @@ class BaseModelSqlv2 {
         qb,
         this.dbDriver
       );
+
       qb.del();
+
+      if (this.isPg || this.isMssql) {
+        qb.returning(
+          `${this.model.primaryKey.column_name} as ${this.model.primaryKey.title}`
+        );
+      }
+
       const count = (await qb) as any;
 
       await this.afterBulkDelete(count, this.dbDriver, cookie);
@@ -2166,13 +2174,15 @@ class BaseModelSqlv2 {
     });
   }
 
-  public async afterBulkDelete(count: number, _trx: any, req): Promise<void> {
+  public async afterBulkDelete(data: any, _trx: any, req): Promise<void> {
+    await this.handleHooks('After.delete', data, null, req);
+
     await Audit.insert({
       fk_model_id: this.model.id,
       op_type: AuditOperationTypes.DATA,
       op_sub_type: AuditOperationSubTypes.BULK_DELETE,
       description: DOMPurify.sanitize(
-        `${count} records bulk deleted in ${this.model.title}`
+        `${data.length} records bulk deleted in ${this.model.title}`
       ),
       // details: JSON.stringify(data),
       ip: req?.clientIp,

@@ -170,7 +170,7 @@ export async function handleHttpWebHook(
     user,
     constructWebHookData(hook, model, view, prevData, newData)
   );
-  await require('axios')(req);
+  return require('axios')(req);
 }
 
 export function axiosRequestMake(_apiMeta, _user, data) {
@@ -321,7 +321,18 @@ export async function invokeWebhook(
             ...hook,
             type: notification.type,
             payload: JSON.stringify(notification?.payload),
-            response: JSON.stringify(res),
+            response: JSON.stringify({
+              status: res.status,
+              statusText: res.statusText,
+              headers: res.headers,
+              config: {
+                url: res.config.url,
+                method: res.config.method,
+                data: res.config.data,
+                headers: res.config.headers,
+                params: res.config.params,
+              },
+            }),
             triggered_by: user?.email,
           };
         }

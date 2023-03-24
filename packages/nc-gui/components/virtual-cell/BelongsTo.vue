@@ -12,7 +12,6 @@ import {
   RowInj,
   computed,
   createEventHook,
-  iconMap,
   inject,
   ref,
   useProvideLTARStore,

@@ -10,7 +10,6 @@ import {
   ReloadRowDataHookInj,
   RowInj,
   computed,
-  iconMap,
   inject,
   ref,
   useProvideLTARStore,
@@ -18,7 +17,6 @@ import {
   useSmartsheetRowStoreOrThrow,
   useUIPermission,
 } from '#imports'
-import General from '~/layouts/general.vue'
 
 const column = inject(ColumnInj)!
 

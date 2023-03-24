@@ -140,7 +140,7 @@ export function useViewColumns(
   }
 
   const saveOrUpdate = async (field: any, index: number) => {
-    if (isLocalMode.value && fields.value && !isUIAllowed('fieldsSync')) {
+    if (isLocalMode.value && fields.value) {
       fields.value[index] = field
       meta.value!.columns = meta.value!.columns?.map((column: ColumnType) => {
         if (column.id === field.fk_column_id) {
@@ -154,10 +154,6 @@ export function useViewColumns(
       })
 
       localChanges.value.push(field)
-
-      await loadViewColumns()
-      reloadData?.()
-      return
     }
 
     if (isUIAllowed('fieldsSync')) {
@@ -172,6 +168,7 @@ export function useViewColumns(
         return insertedField
       }
     }
+
     await loadViewColumns()
     reloadData?.()
   }

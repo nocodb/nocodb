@@ -193,6 +193,7 @@ declare module '@vue/runtime-core' {
     MdiGpsFixed: typeof import('~icons/mdi/gps-fixed')['default']
     MdiGraphOutline: typeof import('~icons/mdi/graph-outline')['default']
     MdiHeart: typeof import('~icons/mdi/heart')['default']
+    MdiHistory: typeof import('~icons/mdi/history')['default']
     MdiHook: typeof import('~icons/mdi/hook')['default']
     MdiInformation: typeof import('~icons/mdi/information')['default']
     MdiJson: typeof import('~icons/mdi/json')['default']

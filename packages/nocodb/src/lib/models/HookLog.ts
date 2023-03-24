@@ -6,13 +6,12 @@ import type { HookLogType } from 'nocodb-sdk';
 
 export default class HookLog implements HookLogType {
   id?: string;
-
   base_id?: string;
   project_id?: string;
   fk_hook_id?: string;
   type?: string;
-  event?: string;
-  operation?: string;
+  event?: 'after' | 'before';
+  operation?: 'insert' | 'update' | 'delete';
   test_call?: boolean;
   payload?: string;
   conditions?: string;

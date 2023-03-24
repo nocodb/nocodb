@@ -712,14 +712,14 @@ onMounted(async () => {
       </a-form>
     </a-tab-pane>
 
-    <a-tab-pane key="hook-log" class="nc-hook-log">
+    <a-tab-pane key="hook-log" class="nc-hook-log" :disabled="!props.hook">
       <template #tab>
         <span>
           <MdiHistory />
           Call Log
         </span>
       </template>
-      <LazyWebhookCallLog />
+      <LazyWebhookCallLog :hook="hook" />
     </a-tab-pane>
   </a-tabs>
 </template>

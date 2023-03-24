@@ -77,7 +77,7 @@ const openKeys = ref([/^\/account\/users/.test($route.fullPath) && 'users'])
               @click="navigateTo('/account/apps')"
             >
               <div class="flex items-center space-x-2">
-                <component :is="iconMap.appstore" />
+                <component :is="iconMap.appStore" />
 
                 <div class="select-none">App Store</div>
               </div>

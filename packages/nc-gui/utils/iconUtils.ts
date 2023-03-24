@@ -150,7 +150,7 @@ export const iconMap = {
   loading: MdiLoading,
   arrowCollapse: MdiArrowCollapse,
   markerAlert: MdiMapMarkerAlert,
-  appstore: MdiStorefrontOutline,
+  appStore: MdiStorefrontOutline,
   chevronLeft: MdiChevronLeft,
   chevronRight: MdiChevronRight,
   imagePlaceholder: MdiFileImageBox,
@@ -271,7 +271,6 @@ export const iconMap = {
   closeCircle: PhXCircleLight,
   closeBox: PhXSquareLight,
   close: PhXLight,
-
   openInNew: MdiOpenInNew,
   mm: MMIcon,
   hm: HMIcon,

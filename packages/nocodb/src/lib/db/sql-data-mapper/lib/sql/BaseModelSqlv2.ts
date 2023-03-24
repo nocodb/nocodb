@@ -1890,21 +1890,14 @@ class BaseModelSqlv2 {
         rowId =
           response[this.model.primaryKey.title] ||
           response[this.model.primaryKey.column_name];
-      await Promise.all(postInsertOps.map((f) => f()));
 
-      // if (!trx) {
-      //   await driver.commit();
-      // }
+      await Promise.all(postInsertOps.map((f) => f()));
 
       await this.afterInsert(response, this.dbDriver, cookie);
 
       return response;
     } catch (e) {
       console.log(e);
-      // await this.errorInsert(e, data, trx, cookie);
-      // if (!trx) {
-      //   await driver.rollback(e);
-      // }
       throw e;
     }
   }
@@ -1932,11 +1925,6 @@ class BaseModelSqlv2 {
       for (const data of datas) {
         await this.validate(data);
       }
-      // let chunkSize = 50;
-      //
-      // if (this.isSqlite && datas[0]) {
-      //   chunkSize = Math.max(1, Math.floor(999 / Object.keys(datas[0]).length));
-      // }
 
       // fallbacks to `10` if database client is sqlite
       // to avoid `too many SQL variables` error
@@ -1992,8 +1980,6 @@ class BaseModelSqlv2 {
       return res;
     } catch (e) {
       if (transaction) transaction.rollback();
-      // console.log(e);
-      // await this.errorUpdateb(e, data, null);
       throw e;
     }
   }
@@ -2061,7 +2047,6 @@ class BaseModelSqlv2 {
       );
 
       transaction = await this.dbDriver.transaction();
-      // await this.beforeDeleteb(ids, transaction);
 
       const res = [];
       for (const d of deleteIds) {
@@ -2070,7 +2055,6 @@ class BaseModelSqlv2 {
           res.push(d);
         }
       }
-      // await this.afterDeleteb(res, transaction);
 
       transaction.commit();
 
@@ -2080,7 +2064,6 @@ class BaseModelSqlv2 {
     } catch (e) {
       if (transaction) transaction.rollback();
       console.log(e);
-      // await this.errorDeleteb(e, ids);
       throw e;
     }
   }
@@ -2141,7 +2124,6 @@ class BaseModelSqlv2 {
 
   public async afterInsert(data: any, _trx: any, req): Promise<void> {
     await this.handleHooks('After.insert', null, data, req);
-    // if (req?.headers?.['xc-gui']) {
     const id = this._extractPksValues(data);
     await Audit.insert({
       fk_model_id: this.model.id,
@@ -2155,7 +2137,6 @@ class BaseModelSqlv2 {
       ip: req?.clientIp,
       user: req?.user?.email,
     });
-    // }
   }
 
   public async afterBulkUpdate(data: any, _trx: any, req): Promise<void> {
@@ -2253,7 +2234,6 @@ class BaseModelSqlv2 {
   }
 
   public async afterDelete(data: any, _trx: any, req): Promise<void> {
-    // if (req?.headers?.['xc-gui']) {
     const id = req?.params?.id;
     await Audit.insert({
       fk_model_id: this.model.id,
@@ -2265,7 +2245,6 @@ class BaseModelSqlv2 {
       ip: req?.clientIp,
       user: req?.user?.email,
     });
-    // }
     await this.handleHooks('After.delete', data, null, req);
   }
 

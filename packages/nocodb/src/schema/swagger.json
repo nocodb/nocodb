@@ -38,7 +38,7 @@
     },
     {
       "name": "Organisation APIs",
-      "tags": ["Org App Settings", "Org License", "Org Tokens", "Org Users"]
+      "tags": ["Org App Settings", "Org License", "Org Tokens", "Org Users", "Org Customization"]
     }
   ],
   "servers": [
@@ -896,6 +896,106 @@
         },
         "tags": ["Org License"],
         "description": "Set the application license key. Exclusive for super admin.",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/xc-auth"
+          }
+        ]
+      }
+    },
+    "/api/v1/customization": {
+      "get": {
+        "summary": "Get App Customization",
+        "operationId": "org-customization-get",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "css": {
+                      "type": "string",
+                      "description": "Custom CSS code"
+                    },
+                    "js": {
+                      "type": "string",
+                      "description": "Custom JavaScript code"
+                    }
+                  }
+                },
+                "examples": {
+                  "Example 1": {
+                    "value": {
+                      "css": "div[data-testid=\"projects-container\"] h1 { color: rgba(var(--color-primary),var(--tw-text-opacity)); }",
+                      "js": "https://gist.github.com/rallisf1/8815b82d9657eab60e5eb66e3142fab0"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          }
+        },
+        "description": "Get custom CSS & Javascript. Exclusive for super admin.",
+        "tags": ["Org Customization"]
+      },
+      "post": {
+        "summary": "Set custom CSS & Javascript",
+        "operationId": "org-customization-set",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "msg": {
+                      "type": "string",
+                      "x-stoplight": {
+                        "id": "n7ahrs0n8lcwf"
+                      },
+                      "example": "The customization has been saved"
+                    }
+                  }
+                },
+                "examples": {
+                  "Example 1": {
+                    "value": {
+                      "msg": "The customization has been saved"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          }
+        },
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CustomizationReq"
+              },
+              "examples": {
+                "Example 1": {
+                  "value": {
+                    "css": "div[data-testid=\"projects-container\"] h1 { color: rgba(var(--color-primary),var(--tw-text-opacity)); }",
+                    "js": "https://gist.github.com/rallisf1/8815b82d9657eab60e5eb66e3142fab0"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "tags": ["Org Customization"],
+        "description": "Set custom CSS & Javascript. Exclusive for super admin.",
         "parameters": [
           {
             "$ref": "#/components/parameters/xc-auth"
@@ -16673,7 +16773,7 @@
         }
       },
       "LicenseReq": {
-        "description": "Model for Kanban Request",
+        "description": "Model for License Request",
         "examples": [
           {
             "key": "1234567890"
@@ -16692,6 +16792,36 @@
         "type": "object",
         "x-stoplight": {
           "id": "2hys6jqfbam2w"
+        }
+      },
+      "CustomizationReq": {
+        "description": "Model for Customization Request",
+        "examples": [
+          {
+			      "css": "div[data-testid=\"projects-container\"] h1 { color: rgba(var(--color-primary),var(--tw-text-opacity)); }",
+            "js": "https://gist.github.com/rallisf1/8815b82d9657eab60e5eb66e3142fab0"
+          }
+        ],
+        "properties": {
+          "css": {
+            "description": "Custom CSS code",
+            "example": "div[data-testid=\"projects-container\"] h1 { color: rgba(var(--color-primary),var(--tw-text-opacity)); }",
+            "maxLength": 4096,
+            "minLength": 0,
+            "type": "string"
+          },
+          "js": {
+            "description": "Custom Javascript code",
+            "example": "https://gist.github.com/rallisf1/8815b82d9657eab60e5eb66e3142fab0",
+            "maxLength": 4096,
+            "minLength": 0,
+            "type": "string"
+          }
+        },
+        "title": "Customization Request Model",
+        "type": "object",
+        "x-stoplight": {
+          "id": "l60h6z6x2rt5e"
         }
       },
       "LinkToAnotherColumnReq": {

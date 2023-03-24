@@ -22,6 +22,7 @@ export * as modelVisibilityService from './modelVisibility.svc';
 export * as sharedBaseService from './sharedBase.svc';
 export * as orgUserService from './orgUser.svc';
 export * as orgLicenseService from './orgLicense.svc';
+export * as orgCustomizationService from './orgCustomization.svc';
 export * as projectUserService from './projectUser.svc';
 export * as attachmentService from './attachment.svc';
 export * as hookFilterService from './hookFilter.svc';

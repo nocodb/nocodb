@@ -3,6 +3,7 @@ import { T } from 'nc-help';
 import { Server } from 'socket.io';
 import passport from 'passport';
 import orgLicenseController from '../../controllers/orgLicense.ctl';
+import orgCustomizationController from '../../controllers/orgCustomization.ctl';
 import orgTokenController from '../../controllers/orgToken.ctl';
 import orgUserController from '../../controllers/orgUser.ctl';
 import projectController from '../../controllers/project.ctl';
@@ -94,6 +95,7 @@ export default function (router: Router, server) {
   router.use(orgUserController);
   router.use(orgTokenController);
   router.use(orgLicenseController);
+  router.use(orgCustomizationController);
   router.use(sharedBaseController);
   router.use(modelVisibilityController);
   router.use(metaDiffController);

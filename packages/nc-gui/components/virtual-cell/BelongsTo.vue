@@ -52,7 +52,7 @@ const { loadRelatedTableMeta, relatedTableDisplayValueProp, unlink } = useProvid
 
 await loadRelatedTableMeta()
 
-const addIcon = computed(() => (cellValue?.value ? iconMap.expand : iconMap.plus))
+const addIcon = computed(() => (cellValue?.value ?'expand' : 'plus'))
 
 const value = computed(() => {
   if (cellValue?.value) {
@@ -93,8 +93,8 @@ useSelectedCellKeyupListener(active, (e: KeyboardEvent) => {
       v-if="!readOnly && !isLocked && (isUIAllowed('xcDatatableEditable') || isForm)"
       class="flex justify-end gap-1 min-h-[30px] items-center"
     >
-      <component
-        :is="addIcon"
+      <GeneralIcon
+        :icon="addIcon"
         class="text-sm nc-action-icon text-gray-500/50 hover:text-gray-500 select-none group-hover:(text-gray-500) nc-plus"
         @click.stop="listItemsDlg = true"
       />

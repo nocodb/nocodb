@@ -1,5 +1,3 @@
-@import 'material-symbols/outlined.css';
-
 /* inter-100 - vietnamese_latin-ext_latin_greek-ext_greek_cyrillic-ext_cyrillic */
 @font-face {
   font-display: swap; /* Check https://developer.mozilla.org/en-US/docs/Web/CSS/@font-face/font-display for other options. */
@@ -152,12 +150,44 @@
   font-display: swap;
 }
 
-.material-symbols-outlined {
-  font-size: 1.3rem;
 
-    font-variation-settings:
-           'FILL' 0,
-           'wght' 200,
-           'GRAD' 0,
-           'opsz' 20
+/* material-symbols-outlined-200 - latin */
+@font-face {
+  font-family: 'Material Symbols Outlined';
+  font-style: normal;
+  font-weight: 200;
+  src: url('./material-symbols/material-symbols-outlined-v92-latin-200.eot'); /* IE9 Compat Modes */
+  src: url('./material-symbols/material-symbols-outlined-v92-latin-200.eot?#iefix') format('embedded-opentype'), /* IE6-IE8 */
+  url('./material-symbols/material-symbols-outlined-v92-latin-200.woff2') format('woff2'), /* Super Modern Browsers */
+  url('./material-symbols/material-symbols-outlined-v92-latin-200.woff') format('woff'), /* Modern Browsers */
+  url('./material-symbols/material-symbols-outlined-v92-latin-200.ttf') format('truetype'), /* Safari, Android, iOS */
+  url('./material-symbols/material-symbols-outlined-v92-latin-200.svg#MaterialSymbolsOutlined') format('svg'); /* Legacy iOS */
+}
+
+/*      //   href: 'https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20,200,0,-25',
+*/
+
+/* fallback */
+@font-face {
+  font-family: 'Material Symbols Outlined';
+  font-style: normal;
+  font-weight: 200;
+  src: url(./material.woff2) format('woff2');
+}
+
+.material-symbols-outlined {
+  font-family: 'Material Symbols Outlined';
+  font-weight: normal;
+  font-style: normal;
+  line-height: 1;
+  letter-spacing: normal;
+  text-transform: none;
+  display: inline-block;
+  white-space: nowrap;
+  word-wrap: normal;
+  direction: ltr;
+  -webkit-font-feature-settings: 'liga';
+  -webkit-font-smoothing: antialiased;
+  font-size: 20px  !important;
+
 }

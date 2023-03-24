@@ -116,14 +116,14 @@ useSelectedCellKeyupListener(inject(ActiveCellInj, ref(false)), (e: KeyboardEven
       </div>
 
       <div v-if="!isLocked" class="flex justify-end gap-1 min-h-[30px] items-center">
-        <component
-          :is="iconMap.expand"
+        <GeneralIcon
+          icon="expand"
           class="text-sm nc-action-icon text-gray-500/50 hover:text-gray-500 nc-arrow-expand"
           @click.stop="childListDlg = true"
         />
 
-        <component
-          :is="iconMap.plus"
+        <GeneralIcon
+          icon="plus"
           v-if="!readOnly && isUIAllowed('xcDatatableEditable')"
           class="text-sm nc-action-icon text-gray-500/50 hover:text-gray-500 nc-plus"
           @click.stop="listItemsDlg = true"

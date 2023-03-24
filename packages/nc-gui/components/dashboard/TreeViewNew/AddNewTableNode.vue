@@ -115,7 +115,7 @@ const toggleDialog = inject(ToggleDialogInj, () => {})
 <template>
   <div
     v-if="isUIAllowed('table-create', false, projectRole)"
-    class="group flex items-center gap-2 pl-2 pr-5 py-2 text-primary/70 hover:(text-primary/100) cursor-pointer select-none"
+    class="group flex items-center gap-2 pl-2 pr-4.75 py-1 text-primary/70 hover:(text-primary/100) cursor-pointer select-none"
     @click="emit('openTableCreateDialog')"
   >
     <PhPlusThin class="w-5 ml-2" />
@@ -123,9 +123,7 @@ const toggleDialog = inject(ToggleDialogInj, () => {})
     <span class="text-gray-500 group-hover:(text-primary/100) flex-1 nc-add-new-table">{{ $t('tooltip.addTable') }}</span>
 
     <a-dropdown v-if="!isSharedBase" :trigger="['click']" overlay-class-name="nc-dropdown-import-menu" @click.stop>
-      <PhDotsThreeOutlineVerticalThin
-        class="transition-opacity opacity-0 group-hover:opacity-100 nc-import-menu outline-0 text-xs"
-      />
+      <MdiDotsVertical class="transition-opacity opacity-0 group-hover:opacity-100 nc-import-menu outline-0" />
 
       <template #overlay>
         <a-menu class="!py-0 rounded text-sm">

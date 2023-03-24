@@ -174,7 +174,7 @@ const deleteNode = () => {
 
 <style lang="scss" scoped>
 .block-button {
-  @apply opacity-0 group-hover:opacity-100 !group-focus:opacity-100 !group-active:opacity-100 hover:bg-gray-50 rounded-sm text-lg h-6;
+  @apply opacity-0 group-hover:opacity-100 !group-focus:opacity-100 !group-active:opacity-100 hover:bg-gray-50 rounded-sm text-lg h-6 duration-150 transition-opacity;
   color: rgb(203, 203, 203);
 }
 

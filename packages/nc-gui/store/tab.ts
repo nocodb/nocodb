@@ -219,6 +219,8 @@ export const useTabs = defineStore('tabStore', () => {
           query: route.query,
         })
       case TabType.DOCUMENT:
+        if (tab.id === tab.projectId) return
+
         return navigateTo({
           path: nestedUrl({
             projectId: tab.projectId!,

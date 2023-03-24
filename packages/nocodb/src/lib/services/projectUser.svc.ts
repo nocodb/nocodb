@@ -15,7 +15,8 @@ import { CacheGetType, CacheScope, MetaTable } from '../utils/globals';
 import NcPluginMgrv2 from '../meta/helpers/NcPluginMgrv2';
 import Noco from '../Noco';
 import { randomTokenString } from '../meta/helpers/stringHelpers';
-import type { ProjectUserReqType } from 'nocodb-sdk';
+import { extractProps } from '../meta/helpers/extractProps';
+import type { ProjectUserMetaReqType, ProjectUserReqType } from 'nocodb-sdk';
 
 export async function userList(param: { projectId: string; query: any }) {
   return new PagedResponseImpl(
@@ -319,4 +320,36 @@ export async function sendInviteEmail(
     );
     throw e;
   }
+}
+
+export async function projectUserMetaUpdate(param: {
+  projectId: string;
+  userId: string;
+  meta: ProjectUserMetaReqType;
+}) {
+  validatePayload(
+    'swagger.json#/components/schemas/ProjectUserMetaReq',
+    param.meta
+  );
+
+  // update project user data
+  const projectUserData = extractProps(param.meta, [
+    'starred',
+    'order',
+    'hidden',
+  ]);
+
+  if (Object.keys(projectUserData).length) {
+    // create new project user if it doesn't exist
+    if (!(await ProjectUser.get(param.projectId, param.userId))) {
+      await ProjectUser.insert({
+        ...projectUserData,
+        project_id: param.projectId,
+        fk_user_id: param.userId,
+      });
+    } else {
+      await ProjectUser.update(param.projectId, param.userId, projectUserData);
+    }
+  }
+  return true;
 }

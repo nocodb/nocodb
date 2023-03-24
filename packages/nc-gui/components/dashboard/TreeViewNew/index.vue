@@ -6,7 +6,6 @@ import { nextTick } from '@vue/runtime-core'
 import AddNewTableNode from './AddNewTableNode'
 import TableList from './TableList'
 import ProjectWrapper from './ProjectWrapper.vue'
-import EmptyWorkspacePlaceholder from './EmptyWorkspacePlaceholder.vue'
 
 import {
   TabType,
@@ -48,16 +47,19 @@ const { projectTableList, projects } = storeToRefs(projectsStore)
 
 const openedProjectId = ref()
 
+const activeProjectId = computed(() => route.params.projectId)
+
 const projectElRefs = ref()
 
 const { projectUrl } = useDocStore()
 
 const loadProjectAndTableList = async (project: ProjectType, projIndex: number) => {
+  console.log('loadProjectAndTableList', project, projIndex)
   if (!project) {
     return
   }
 
-  if (openedProjectId.value === project.id) {
+  if (openedProjectId.value === project.id && project.type !== 'documentation') {
     openedProjectId.value = null
     return
   }
@@ -66,7 +68,7 @@ const loadProjectAndTableList = async (project: ProjectType, projIndex: number) 
 
   const activeProjectId = computed(() => route.params.projectId)
 
-  if (project.id === activeProjectId.value) {
+  if (project.id === activeProjectId.value && project.type !== 'documentation') {
     return
   }
 
@@ -89,8 +91,9 @@ const loadProjectAndTableList = async (project: ProjectType, projIndex: number) 
         type: TabType.DOCUMENT,
         projectId: project.id,
       })
+      console.log('open doc', project.id)
       $e('c:document:open', project.id)
-      navigateTo(projectUrl(project.id))
+      navigateTo(projectUrl(project.id!))
       break
     default:
       await loadProject(project.id!)
@@ -479,10 +482,10 @@ const isClearMode = computed(() => route.query.clear === '1' && route.params.pro
       >
         <div
           ref="projectElRefs"
-          class="m-2 py-1 nc-project-sub-menu"
+          class="m-2 py-1 nc-project-sub-menu hover:bg-gray-100 rounded-md"
           :class="{ active: project.id === (openedProjectId ?? activeProjectId) }"
         >
-          <div class="flex items-center gap-2 py-1 cursor-pointer" @click="loadProjectAndTableList(project, i)">
+          <div class="flex items-center gap-2 py-0.5 cursor-pointer" @click="loadProjectAndTableList(project, i)">
             <DashboardTreeViewNewProjectNode ref="projectNodeRefs" class="flex-grow" />
           </div>
 
@@ -499,7 +502,7 @@ const isClearMode = computed(() => route.query.clear === '1' && route.params.pro
               :trigger="['contextmenu']"
               overlay-class-name="nc-dropdown-tree-view-context-menu"
             >
-              <div class="pt-2 pl-2 pb-2 flex-1 overflow-y-auto flex flex-col" :class="{ 'mb-[20px]': isSharedBase }">
+              <div class="pt-1.5 pl-1 pb-1 flex-1 overflow-y-auto flex flex-col" :class="{ 'mb-[20px]': isSharedBase }">
                 <div
                   v-if="
                     projects[project.id].bases[0] &&
@@ -514,7 +517,7 @@ const isClearMode = computed(() => route.query.clear === '1' && route.params.pro
                     @open-table-create-dialog="openTableCreateDialog(projects[project.id].bases[0].id, project.id)"
                   />
 
-                  <div class="transition-height duration-200 ml-2">
+                  <div class="transition-height duration-200">
                     <TableList :project="projects[project.id]" :base-index="0" />
                   </div>
 
@@ -625,17 +628,21 @@ const isClearMode = computed(() => route.query.clear === '1' && route.params.pro
         </div>
       </ProjectWrapper>
 
-      <EmptyWorkspacePlaceholder v-else />
+      <WorkspaceEmptyPlaceholder v-else />
     </div>
 
-    <div class="flex items-center py-2 justify-center">
-      <WorkspaceCreateProjectBtn modal type="ghost" :active-workspace-id="route.params.workspaceId">
+    <a-divider class="!my-0" />
+    <div class="flex items-center mt-4 justify-center mx-2">
+      <WorkspaceCreateProjectBtn
+        modal
+        type="ghost"
+        class="h-auto w-full nc-create-project-btn"
+        :active-workspace-id="route.params.workspaceId"
+      >
         <PhPlusThin />
         Add New
       </WorkspaceCreateProjectBtn>
     </div>
-    <a-divider class="!my-0" />
-
     <div class="flex items-start flex-col justify-start px-2 py-3 gap-2">
       <GeneralJoinCloud class="color-transition px-2 text-gray-500 cursor-pointer select-none hover:text-accent" />
     </div>
@@ -743,6 +750,16 @@ const isClearMode = computed(() => route.query.clear === '1' && route.params.pro
 }
 
 :deep(.nc-project-sub-menu.active) {
-  @apply bg-primary bg-opacity-8 rounded;
+  @apply !bg-gray-400 bg-opacity-8 rounded-lg;
+}
+
+.nc-create-project-btn {
+  @apply px-2;
+  :deep(.ant-btn) {
+    @apply w-full !text-center justify-center h-auto rounded py-2 px-4 border-gray-200;
+    & > div {
+      @apply !justify-center;
+    }
+  }
 }
 </style>

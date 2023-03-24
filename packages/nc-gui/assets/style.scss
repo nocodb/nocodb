@@ -384,3 +384,9 @@ ninja-keys {
   -webkit-animation: pop-in 0.15s cubic-bezier(0, 0, 0.6, -0.13);
   animation: pop-in 0.15s cubic-bezier(0, 0, 0.6, -0.13);
 }
+
+
+// button
+.nc-btn{
+  @apply rounded py-2 px-4 border-gray-200 h-auto
+}

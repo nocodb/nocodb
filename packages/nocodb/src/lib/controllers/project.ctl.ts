@@ -9,7 +9,7 @@ import Noco from '../Noco';
 import Project from '../models/Project';
 import { metaApiMetrics } from '../meta/helpers/apiMetrics';
 import Filter from '../models/Filter';
-import { projectService } from '../services';
+import { projectService, projectUserService } from '../services';
 import type { ProjectListType } from 'nocodb-sdk';
 import type { ProjectType } from 'nocodb-sdk';
 import type { Request, Response } from 'express';
@@ -124,6 +124,19 @@ export async function hasEmptyOrNullFilters(req, res) {
   res.json(await Filter.hasEmptyOrNullFilters(req.params.projectId));
 }
 
+export async function projectUserMetaUpdate(
+  req: Request<any, any, any>,
+  res: Response
+) {
+  await projectUserService.projectUserMetaUpdate({
+    projectId: req.params.projectId,
+    userId: req['user']?.id,
+    meta: req.body,
+  });
+
+  res.json({ msg: 'Project meta updated successfully' });
+}
+
 export default (router) => {
   router.get(
     '/api/v1/db/meta/projects/:projectId/info',
@@ -164,5 +177,12 @@ export default (router) => {
     '/api/v1/db/meta/projects/:projectId/has-empty-or-null-filters',
     metaApiMetrics,
     ncMetaAclMw(hasEmptyOrNullFilters, 'hasEmptyOrNullFilters')
+  );
+
+  router.patch(
+    '/api/v1/db/meta/projects/:projectId/user',
+    metaApiMetrics,
+    // todo: refactor method name and path
+    ncMetaAclMw(projectUserMetaUpdate, 'projectUserMetaUpdate')
   );
 };

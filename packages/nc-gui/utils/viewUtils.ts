@@ -5,19 +5,19 @@ import { iconMap } from '~/utils/iconUtils'
 import type { Language } from '~/lib'
 
 export const viewIcons: Record<number | string, { icon: any; color: string }> = {
-  [ViewTypes.GRID]: { icon: iconMap.grid, color: '#8f96f2' },
-  [ViewTypes.FORM]: { icon: iconMap.form, color: themeV2Colors.pink['500'] },
+  [ViewTypes.GRID]: { icon: iconMap.grid, color: '#2b39f3' },
+  [ViewTypes.FORM]: { icon: iconMap.form, color: '#c00145' },
   calendar: { icon: iconMap.calendar, color: 'purple' },
-  [ViewTypes.GALLERY]: { icon: iconMap.gallery, color: 'orange' },
+  [ViewTypes.GALLERY]: { icon: iconMap.gallery, color: '#bd4200' },
   [ViewTypes.MAP]: { icon: iconMap.map, color: 'blue' },
-  [ViewTypes.KANBAN]: { icon: iconMap.kanban, color: 'green' },
+  [ViewTypes.KANBAN]: { icon: iconMap.kanban, color: '#007300' },
   view: { icon: iconMap.view, color: 'blue' },
 }
 
 export const viewTypeAlias: Record<number, string> = {
   [ViewTypes.GRID]: 'grid',
   [ViewTypes.FORM]: 'form',
-  [ViewTypes.GALLERY]: 'gallery',
+  [ViewTypes.GALLERY]: 'gaallery',
   [ViewTypes.KANBAN]: 'kanban',
   [ViewTypes.MAP]: 'map',
 }

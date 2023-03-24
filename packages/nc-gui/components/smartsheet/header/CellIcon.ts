@@ -80,7 +80,7 @@ const renderIcon = (column: ColumnType, abstractType: any) => {
   } else if (isPercent(column)) {
     return iconMap.percent
   } else if (isInt(column, abstractType) || isFloat(column, abstractType)) {
-    return iconMap.numeric
+    return iconMap.number
   } else if (isString(column, abstractType)) {
     return iconMap.text
   } else {
@@ -111,7 +111,7 @@ export default defineComponent({
     return () => {
       if (!column.value) return null
 
-      return h(renderIcon(column.value, abstractType.value), { class: 'text-gray-500 mx-1', style: { fontSize: '16px' } })
+      return h(renderIcon(column.value, abstractType.value), { class: 'text-gray-500 mx-1' })
     }
   },
 })

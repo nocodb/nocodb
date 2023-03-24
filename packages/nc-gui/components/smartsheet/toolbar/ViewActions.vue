@@ -118,7 +118,7 @@ useMenuCloseOnEsc(open)
 
           <component :is="Icon" class="text-gray-500" :class="`nc-icon-${selectedView?.lock_type}`" />
 
-          <component :is="iconMap.arrowDown" class="text-grey !text-0.5rem" />
+          <component :is="iconMap.arrowDown" class="text-grey" />
         </div>
       </a-button>
 

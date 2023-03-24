@@ -78,7 +78,7 @@ useMenuCloseOnEsc(open)
           <component :is="iconMap.filter" />
           <!-- Filter -->
           <span v-if="!isMobileMode" class="text-capitalize !text-xs font-weight-normal">{{ $t('activity.filter') }}</span>
-          <component :is="iconMap.arrowDown" class="text-grey !text-0.5rem" />
+          <component :is="iconMap.arrowDown" class="text-grey" />
 
           <span v-if="filtersLength" class="nc-count-badge">{{ filtersLength }}</span>
         </div>

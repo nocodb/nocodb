@@ -65,7 +65,7 @@ const uiTypes = [
   },
   {
     name: UITypes.Number,
-    icon: iconMap.numeric,
+    icon: iconMap.number,
   },
   {
     name: UITypes.Decimal,

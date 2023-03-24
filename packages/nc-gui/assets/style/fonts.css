@@ -1,3 +1,5 @@
+@import 'material-symbols/outlined.css';
+
 /* inter-100 - vietnamese_latin-ext_latin_greek-ext_greek_cyrillic-ext_cyrillic */
 @font-face {
   font-display: swap; /* Check https://developer.mozilla.org/en-US/docs/Web/CSS/@font-face/font-display for other options. */
@@ -148,4 +150,14 @@
   font-weight: 900;
   font-style: normal;
   font-display: swap;
+}
+
+.material-symbols-outlined {
+  font-size: 1.3rem;
+
+    font-variation-settings:
+           'FILL' 0,
+           'wght' 200,
+           'GRAD' 0,
+           'opsz' 20
 }

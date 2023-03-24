@@ -58,7 +58,7 @@ function onPressEnter() {
     >
       <component :is="iconMap.search" class="text-grey" />
 
-      <component :is="iconMap.arrowDown" class="text-grey !text-0.5rem" />
+      <component :is="iconMap.arrowDown" class="text-grey" />
 
       <a-select
         v-model:value="search.field"

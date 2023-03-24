@@ -1,5 +1,17 @@
 <script setup lang="ts">
-import { Form, computed, nextTick, onMounted, ref, useProject, useTable, useTabs, useVModel, validateTableName } from '#imports'
+import {
+  Form,
+  computed,
+  iconMap,
+  nextTick,
+  onMounted,
+  ref,
+  useProject,
+  useTable,
+  useTabs,
+  useVModel,
+  validateTableName,
+} from '#imports'
 import { TabType } from '~/lib'
 
 const props = defineProps<{
@@ -143,8 +155,8 @@ onMounted(() => {
           <div class="pointer flex flex-row items-center gap-x-1" @click="isAdvanceOptVisible = !isAdvanceOptVisible">
             {{ isAdvanceOptVisible ? $t('general.hideAll') : $t('general.showMore') }}
 
-            <MdiMinusCircleOutline v-if="isAdvanceOptVisible" class="text-gray-500" />
-            <MdiPlusCircleOutline v-else class="text-gray-500" />
+            <component :is="iconMap.minusCircle" v-if="isAdvanceOptVisible" class="text-gray-500" />
+            <component :is="iconMap.plusCircle" v-else class="text-gray-500" />
           </div>
         </div>
         <div class="nc-table-advanced-options" :class="{ active: isAdvanceOptVisible }">

@@ -3,7 +3,7 @@ import type { ColumnType } from 'nocodb-sdk'
 import { RelationTypes, UITypes, isVirtualCol } from 'nocodb-sdk'
 import { ref } from 'vue'
 import { StreamBarcodeReader } from 'vue-barcode-reader'
-import { useSharedFormStoreOrThrow } from '#imports'
+import { iconMap, useSharedFormStoreOrThrow } from '#imports'
 
 const { sharedFormView, submitForm, v$, formState, notFound, formColumns, submitted, secondsRemain, isLoading } =
   useSharedFormStoreOrThrow()
@@ -175,7 +175,7 @@ const onDecode = async (scannedCodeValue: string) => {
                         @click="showCodeScannerForFieldTitle(field.title)"
                       >
                         <div class="flex items-center gap-1">
-                          <mdi-qrcode-scan class="h-5 w-5" />
+                          <component :is="iconMap.qrCodeScan" class="h-5 w-5" />
                         </div>
                       </a-button>
                     </div>

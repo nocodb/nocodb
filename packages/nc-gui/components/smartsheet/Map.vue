@@ -3,7 +3,7 @@ import 'leaflet/dist/leaflet.css'
 import L, { LatLng } from 'leaflet'
 import 'leaflet.markercluster'
 import { ViewTypes } from 'nocodb-sdk'
-import { IsPublicInj, OpenNewRecordFormHookInj, latLongToJoinedString, onMounted, provide, ref } from '#imports'
+import { IsPublicInj, OpenNewRecordFormHookInj, iconMap, latLongToJoinedString, onMounted, provide, ref } from '#imports'
 import type { Row } from '~/lib'
 
 const route = useRoute()
@@ -228,7 +228,7 @@ const count = computed(() => paginationData.value.totalRows)
 
         <div v-if="count > 900" class="nc-warning-info flex min-w-32px h-32px items-center gap-1 px-2 bg-white">
           <div>{{ count }} {{ $t('objects.records') }}</div>
-          <mdi-map-marker-alert />
+          <component :is="iconMap.markerAlert" />
         </div>
       </a-tooltip>
     </div>

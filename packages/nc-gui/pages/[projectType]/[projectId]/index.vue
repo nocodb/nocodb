@@ -5,6 +5,7 @@ import {
   computed,
   definePageMeta,
   extractSdkResponseErrorMsg,
+  iconMap,
   isDrawerOrModalExist,
   isMac,
   message,
@@ -315,12 +316,11 @@ useEventListener(document, 'keydown', async (e: KeyboardEvent) => {
                   </template>
                 </a-tooltip>
                 <div v-else class="text-md font-semibold truncate capitalize">{{ project.title }}</div>
-
-                <MdiChevronDown class="min-w-[17px] group-hover:text-accent text-md" />
+                <component :is="iconMap.arrowDown" class="min-w-[17px] group-hover:text-accent text-md" />
               </template>
 
               <template v-else>
-                <MdiFolder class="text-primary cursor-pointer transform hover:scale-105 text-2xl" />
+                <component :is="iconMap.folder" class="text-primary cursor-pointer transform hover:scale-105 text-2xl" />
               </template>
             </div>
 
@@ -329,7 +329,7 @@ useEventListener(document, 'keydown', async (e: KeyboardEvent) => {
                 <a-menu-item-group>
                   <template #title>
                     <div class="group select-none flex items-center gap-4 py-1">
-                      <MdiFolder class="group-hover:text-accent text-xl" />
+                      <component :is="iconMap.folder" class="group-hover:text-accent text-xl" />
 
                       <div class="flex flex-col">
                         <div class="text-lg group-hover:(!text-primary) font-semibold capitalize">
@@ -352,7 +352,7 @@ useEventListener(document, 'keydown', async (e: KeyboardEvent) => {
                         class="nc-project-menu-item group"
                         @click.stop="copyProjectInfo"
                       >
-                        <MdiContentCopy class="group-hover:text-accent" />
+                        <component :is="iconMap.copy" class="group-hover:text-accent" />
                         {{ $t('activity.account.projInfo') }}
                       </div>
                     </a-menu-item>
@@ -367,7 +367,7 @@ useEventListener(document, 'keydown', async (e: KeyboardEvent) => {
                         class="nc-project-menu-item group"
                         @click.stop="openLink(`/api/v1/db/meta/projects/${route.params.projectId}/swagger`, appInfo.ncSiteUrl)"
                       >
-                        <MdiApi class="group-hover:text-accent" />
+                        <component :is="iconMap.json" class="group-hover:text-accent" />
                         {{ $t('activity.account.swagger') }}
                       </div>
                     </a-menu-item>
@@ -380,7 +380,7 @@ useEventListener(document, 'keydown', async (e: KeyboardEvent) => {
                         class="nc-project-menu-item group"
                         @click.stop="copyAuthToken"
                       >
-                        <MdiScriptTextKeyOutline class="group-hover:text-accent" />
+                        <component :is="iconMap.copy" class="group-hover:text-accent" />
                         {{ $t('activity.account.authToken') }}
                       </div>
                     </a-menu-item>
@@ -395,7 +395,7 @@ useEventListener(document, 'keydown', async (e: KeyboardEvent) => {
                         class="nc-project-menu-item group"
                         @click="toggleDialog(true, 'teamAndAuth')"
                       >
-                        <MdiCog class="group-hover:text-accent" />
+                        <component :is="iconMap.settings" class="group-hover:text-accent" />
                         {{ $t('title.teamAndSettings') }}
                       </div>
                     </a-menu-item>
@@ -417,7 +417,7 @@ useEventListener(document, 'keydown', async (e: KeyboardEvent) => {
                       <a-sub-menu key="theme">
                         <template #title>
                           <div class="nc-project-menu-item group">
-                            <ClarityImageLine class="group-hover:text-accent" />
+                            <component :is="iconMap.image" class="group-hover:text-accent" />
                             {{ $t('activity.account.themes') }}
 
                             <div class="flex-1" />
@@ -492,7 +492,7 @@ useEventListener(document, 'keydown', async (e: KeyboardEvent) => {
                     <a-sub-menu v-if="isUIAllowed('previewAs') && !isMobileMode" key="preview-as">
                       <template #title>
                         <div v-e="['c:navdraw:preview-as']" class="nc-project-menu-item group">
-                          <MdiFileEyeOutline class="group-hover:text-accent" />
+                          <component :is="iconMap.preview" class="group-hover:text-accent" />
                           {{ $t('activity.previewAs') }}
 
                           <div class="flex-1" />
@@ -516,7 +516,7 @@ useEventListener(document, 'keydown', async (e: KeyboardEvent) => {
                   >
                     <template #title>
                       <div class="nc-project-menu-item group">
-                        <MaterialSymbolsTranslate class="group-hover:text-accent nc-language" />
+                        <component :is="iconMap.translate" class="group-hover:text-accent nc-language" />
                         {{ $t('labels.language') }}
                         <div class="flex items-center text-gray-400 text-xs">(Community Translated)</div>
                         <div class="flex-1" />
@@ -537,7 +537,7 @@ useEventListener(document, 'keydown', async (e: KeyboardEvent) => {
                     <a-sub-menu key="account">
                       <template #title>
                         <div class="nc-project-menu-item group">
-                          <MdiAccount class="group-hover:text-accent" />
+                          <component :is="iconMap.account" class="group-hover:text-accent" />
                           {{ $t('labels.account') }}
                           <div class="flex-1" />
 
@@ -555,7 +555,7 @@ useEventListener(document, 'keydown', async (e: KeyboardEvent) => {
                           class="nc-project-menu-item group !no-underline"
                           to="/account/users"
                         >
-                          <MdiAt class="mt-1 group-hover:text-accent" />&nbsp;
+                          <component :is="iconMap.at" class="mt-1 group-hover:text-accent" />&nbsp;
                           <div class="prose-sm group-hover:text-primary">
                             <div>Account</div>
                             <div class="text-xs text-gray-500">{{ email }}</div>
@@ -565,7 +565,7 @@ useEventListener(document, 'keydown', async (e: KeyboardEvent) => {
 
                       <a-menu-item key="1" class="!rounded-b">
                         <div v-e="['a:navbar:user:sign-out']" class="nc-project-menu-item group" @click="logout">
-                          <MdiLogout class="group-hover:(!text-accent)" />&nbsp;
+                          <component :is="iconMap.signout" class="group-hover:(!text-accent)" />&nbsp;
 
                           <span class="prose-sm nc-user-menu-signout">
                             {{ $t('general.signOut') }}
@@ -582,7 +582,8 @@ useEventListener(document, 'keydown', async (e: KeyboardEvent) => {
           <div
             class="nc-sidebar-left-toggle-icon hover:after:(bg-primary bg-opacity-75) group nc-sidebar-add-row flex items-center px-2"
           >
-            <MdiBackburger
+            <component
+              :is="iconMap.sidebarMinimise"
               v-e="['c:grid:toggle-navdraw']"
               class="cursor-pointer transform transition-transform duration-500"
               :class="{ 'rotate-180': !isOpen }"

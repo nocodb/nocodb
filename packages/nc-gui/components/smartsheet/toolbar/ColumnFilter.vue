@@ -8,6 +8,7 @@ import {
   comparisonOpList,
   comparisonSubOpList,
   computed,
+  iconMap,
   inject,
   ref,
   useNuxtApp,
@@ -213,7 +214,8 @@ defineExpose({
       <template v-for="(filter, i) in filters" :key="i">
         <template v-if="filter.status !== 'delete'">
           <template v-if="filter.is_group">
-            <MdiCloseBox
+            <component
+              :is="iconMap.closeBox"
               v-if="!filter.readOnly"
               :key="i"
               small
@@ -251,7 +253,8 @@ defineExpose({
             </div>
           </template>
           <template v-else>
-            <MdiCloseBox
+            <component
+              :is="iconMap.closeBox"
               v-if="!filter.readOnly"
               class="nc-filter-item-remove-btn text-grey self-center"
               @click.stop="deleteFilter(filter, i)"
@@ -363,7 +366,7 @@ defineExpose({
     <div class="flex gap-2 mb-2 mt-4">
       <a-button class="elevation-0 text-capitalize" type="primary" ghost @click.stop="addFilter">
         <div class="flex items-center gap-1">
-          <MdiPlus />
+          <component :is="iconMap.plus" />
           <!-- Add Filter -->
           {{ $t('activity.addFilter') }}
         </div>
@@ -372,7 +375,7 @@ defineExpose({
       <a-button v-if="!webHook" class="text-capitalize !text-gray-500" @click.stop="addFilterGroup">
         <div class="flex items-center gap-1">
           <!-- Add Filter Group -->
-          <MdiPlus />
+          <component :is="iconMap.plus" />
           {{ $t('activity.addFilterGroup') }}
         </div>
       </a-button>

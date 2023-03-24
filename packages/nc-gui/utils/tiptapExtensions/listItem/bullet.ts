@@ -1,7 +1,14 @@
 import { Node, mergeAttributes, wrappingInputRule } from '@tiptap/core'
 
 import { Plugin, PluginKey } from 'prosemirror-state'
-import { getTextAsParagraphFromSliceJson, isSelectionOfType, onEnter, toggleItem } from './helper'
+import {
+  changeLevel,
+  getTextAsParagraphFromSliceJson,
+  isSelectionOfType,
+  onBackspaceWithNestedList,
+  onEnter,
+  toggleItem,
+} from './helper'
 
 export interface ListOptions {
   HTMLAttributes: Record<string, any>
@@ -26,6 +33,15 @@ export const Bullet = Node.create<ListOptions>({
     }
   },
 
+  addAttributes() {
+    return {
+      level: {
+        default: null,
+        parseHTML: (element) => element.getAttribute('data-level'),
+      },
+    }
+  },
+
   group: 'block',
 
   content() {
@@ -46,6 +62,8 @@ export const Bullet = Node.create<ListOptions>({
       'div',
       mergeAttributes(this.options.HTMLAttributes, HTMLAttributes, {
         'data-type': node.type.name,
+        'data-level': node.attrs.level,
+        'style': `padding-left: ${Number(node.attrs.level)}rem;`,
       }),
       ['div', { class: 'tiptap-list-item-content' }, 0],
     ]
@@ -101,6 +119,15 @@ export const Bullet = Node.create<ListOptions>({
       },
       'Enter': () => {
         return onEnter(this.editor, this.name as any)
+      },
+      'Tab': () => {
+        return changeLevel(this.editor, this.name, 'forward')
+      },
+      'Shift-Tab': () => {
+        return changeLevel(this.editor, this.name, 'backward')
+      },
+      'Backspace': () => {
+        return onBackspaceWithNestedList(this.editor, this.name as any)
       },
     }
   },

@@ -1,7 +1,15 @@
 import type { ChainedCommands } from '@tiptap/core'
 import { Node, mergeAttributes, nodePasteRule, wrappingInputRule } from '@tiptap/core'
 import { Plugin, PluginKey } from 'prosemirror-state'
-import { getTextAsParagraphFromSliceJson, getTextFromSliceJson, isSelectionOfType, onEnter, toggleItem } from './helper'
+import {
+  changeLevel,
+  getTextAsParagraphFromSliceJson,
+  getTextFromSliceJson,
+  isSelectionOfType,
+  onBackspaceWithNestedList,
+  onEnter,
+  toggleItem,
+} from './helper'
 export interface OrderItemsOptions {
   number: string
   HTMLAttributes: Record<string, any>
@@ -54,6 +62,10 @@ export const Ordered = Node.create<OrderItemsOptions>({
           return value || ''
         },
       },
+      level: {
+        default: null,
+        parseHTML: (element) => element.getAttribute('data-level'),
+      },
     }
   },
 
@@ -63,6 +75,8 @@ export const Ordered = Node.create<OrderItemsOptions>({
       mergeAttributes(this.options.HTMLAttributes, HTMLAttributes, {
         'data-type': node.type.name,
         'data-number': node.attrs.number,
+        'data-level': node.attrs.level,
+        'style': `padding-left: ${Number(node.attrs.level)}rem;`,
       }),
       [
         'div',
@@ -152,6 +166,15 @@ export const Ordered = Node.create<OrderItemsOptions>({
       },
       'Enter': () => {
         return onEnter(this.editor, this.name as any)
+      },
+      'Tab': () => {
+        return changeLevel(this.editor, this.name, 'forward')
+      },
+      'Shift-Tab': () => {
+        return changeLevel(this.editor, this.name, 'backward')
+      },
+      'Backspace': () => {
+        return onBackspaceWithNestedList(this.editor, this.name as any)
       },
     }
   },

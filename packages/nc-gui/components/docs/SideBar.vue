@@ -167,7 +167,7 @@ onMounted(async () => {
     <a-layout-sider
       :collapsed="false"
       collapsed-width="50"
-      class="relative h-full z-1 nc-docs-left-sidebar !w-full !min-w-full !max-w-full pb-1"
+      class="relative h-full z-1 nc-docs-left-sidebar !min-w-56 pb-1 !bg-inherit pl-2"
       :class="{
         'px-1': isPublic,
       }"
@@ -182,7 +182,7 @@ onMounted(async () => {
         :tree-data="nestedPages"
         :draggable="isEditAllowed"
         :on-drop="onDrop"
-        class="!w-full h-full overflow-y-scroll !overflow-x-hidden"
+        class="!w-full h-full overflow-y-scroll !overflow-x-hidden !bg-inherit"
         @dragenter="onDragEnter"
         @select="onTabSelect"
       >
@@ -360,10 +360,11 @@ onMounted(async () => {
     }
   }
   .ant-tree-treenode {
-    @apply w-full rounded-md mt-0.5 !important;
+    @apply w-full rounded-md mt-0.65 !important;
   }
   .ant-tree-node-content-wrapper {
-    @apply w-full mr-2 pl-0.5 !important;
+    @apply w-full mr-2 pl-0.5 bg-inherit transition-none !important;
+    transition: none !important;
   }
   .ant-tree-list {
     @apply pt-0.5 last:pb-1;
@@ -374,26 +375,19 @@ onMounted(async () => {
       @apply !text-gray-300;
     }
     .ant-tree-treenode {
-      @apply !hover:bg-gray-100;
-      transition: all 0.3s, border 0s, line-height 0s, box-shadow 0s;
-      transition-duration: 0.3s, 0s, 0s, 0s;
-      transition-timing-function: ease, ease, ease, ease;
-      transition-delay: 0s, 0s, 0s, 0s;
-      transition-property: all, border, line-height, box-shadow;
+      @apply !hover:bg-gray-200;
+      transition: none !important;
     }
     .ant-tree-treenode-selected {
-      @apply !bg-primary-selected !hover:bg-primary-selected;
-      transition: all 0.3s, border 0s, line-height 0s, box-shadow 0s;
-      transition-duration: 0.3s, 0s, 0s, 0s;
-      transition-timing-function: ease, ease, ease, ease;
-      transition-delay: 0s, 0s, 0s, 0s;
-      transition-property: all, border, line-height, box-shadow;
+      @apply !bg-primary-selected-sidebar !hover:bg-primary-selected-sidebar;
+      transition: none !important;
     }
     .ant-tree-node-selected {
-      @apply !bg-primary-selected !hover:bg-primary-selected;
+      transition: none !important;
+      @apply !bg-primary-selected-sidebar !hover:bg-primary-selected-sidebar;
     }
     // .ant-tree-treenode-selected {
-    //   @apply !bg-primary-selected;
+    //   @apply !bg-primary-selected-sidebar;
     // }
     .ant-tree-indent-unit {
       @apply w-4 !important;

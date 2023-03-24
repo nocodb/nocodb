@@ -333,6 +333,7 @@ declare module '@vue/runtime-core' {
     PhDotsThreeOutlineThin: typeof import('~icons/ph/dots-three-outline-thin')['default']
     PhDotsThreeOutlineVerticalFill: typeof import('~icons/ph/dots-three-outline-vertical-fill')['default']
     PhDotsThreeOutlineVerticalThin: typeof import('~icons/ph/dots-three-outline-vertical-thin')['default']
+    PhDotsThreeVertical: typeof import('~icons/ph/dots-three-vertical')['default']
     PhDotsThreeVerticalThin: typeof import('~icons/ph/dots-three-vertical-thin')['default']
     PhDownloadSimpleFill: typeof import('~icons/ph/download-simple-fill')['default']
     PhFadersThin: typeof import('~icons/ph/faders-thin')['default']

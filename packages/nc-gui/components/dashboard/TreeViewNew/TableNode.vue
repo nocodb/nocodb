@@ -108,7 +108,13 @@ const { isSharedBase } = useProject()
       { active: activeTable === table.id },
     ]"
   >
-    <GeneralTooltip class="pl-2 pr-3 py-2" modifier-key="Alt">
+    <GeneralTooltip
+      class="pl-4 pr-3 py-1.5 mt-0.65 rounded-md"
+      :class="{
+        'hover:bg-gray-200': activeTable !== table.id,
+      }"
+      modifier-key="Alt"
+    >
       <template #title>{{ table.table_name }}</template>
       <div class="table-context flex items-center gap-2 h-full" @contextmenu="setMenuContext('table', table)">
         <div class="flex w-auto" :data-testid="`tree-view-table-draggable-handle-${table.title}`">
@@ -158,7 +164,12 @@ const { isSharedBase } = useProject()
           :trigger="['click']"
           @click.stop
         >
-          <PhDotsThreeOutlineVerticalThin class="transition-opacity opacity-0 group-hover:opacity-100 outline-0" />
+          <MdiDotsVertical
+            class="transition-opacity opacity-0 group-hover:opacity-100 outline-0"
+            :class="{
+              '!text-gray-600': activeTable !== table.id,
+            }"
+          />
 
           <template #overlay>
             <a-menu class="!py-0 rounded text-sm">
@@ -198,11 +209,11 @@ const { isSharedBase } = useProject()
 }
 
 .nc-tree-item.active {
-  @apply text-primary font-weight-bold after:(!opacity-20);
+  @apply !bg-primary-selected-sidebar font-weight-bold rounded-md;
   //@apply border-r-3 border-primary;
 
   svg {
-    @apply text-primary !text-opacity-100;
+    @apply !text-opacity-100;
   }
 }
 </style>

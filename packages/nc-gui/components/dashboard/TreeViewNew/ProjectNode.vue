@@ -117,7 +117,7 @@ const isSharedBase = ref(false)
 </script>
 
 <template>
-  <div class="project-title-node group flex items-center">
+  <div class="project-title-node group flex items-center w-full px-0.5 py-0.5">
     <!--    <GeneralProjectIcon class="mx-2" :type="project.type" /> -->
 
     <component
@@ -162,7 +162,7 @@ const isSharedBase = ref(false)
     </span>
     <span :class="{ 'flex-grow': !editMode }"></span>
     <a-dropdown>
-      <PhDotsThreeOutlineVerticalThin class="mr-5 opacity-0 group-hover:opacity-100" @click.stop />
+      <MdiDotsVertical class="mr-1.5 opacity-0 group-hover:opacity-100" @click.stop />
       <template #overlay>
         <a-menu>
           <!--          <a-menu class="!ml-1 !w-[300px] !text-sm"> -->

@@ -215,6 +215,71 @@ test.describe('Undo Redo', () => {
     await undo({ page });
     await verifyFieldsOrder(['Number', 'Decimal', 'Currency']);
   });
+
+  test('Fields: Sort', async ({ page }) => {
+    await dashboard.closeTab({ title: 'Team & Auth' });
+    await dashboard.treeView.openTable({ title: 'numberBased' });
+
+    async function verifyRecords({ sorted }: { sorted: boolean }) {
+      // inserted values
+      const expectedSorted = [NaN, 33, 33, 34, 44, 267, 333, 456, 3234, 8754];
+      const expectedUnsorted = [33, NaN, 456, 333, 267, 34, 8754, 3234, 44, 33];
+
+      const currentRecords: Record<string, any> = await api.dbTableRow.list('noco', context.project.id, table.id, {
+        fields: ['Number'],
+        limit: 100,
+        sort: sorted ? ['Number'] : [],
+      });
+
+      // verify if expectedValues are same as currentRecords
+      expect(currentRecords.list.map(r => parseInt(r.Number))).toEqual(sorted ? expectedSorted : expectedUnsorted);
+    }
+
+    await toolbar.sort.add({ title: 'Number', ascending: true, locallySaved: false });
+    await verifyRecords({ sorted: true });
+    await toolbar.sort.reset();
+    await verifyRecords({ sorted: false });
+
+    await undo({ page });
+    await verifyRecords({ sorted: true });
+    await undo({ page });
+    await verifyRecords({ sorted: false });
+  });
+
+  test('Fields: Filter', async ({ page }) => {
+    await dashboard.closeTab({ title: 'Team & Auth' });
+    await dashboard.treeView.openTable({ title: 'numberBased' });
+
+    async function verifyRecords({ filtered }: { filtered: boolean }) {
+      // inserted values
+      const expectedFiltered = [33, 33];
+      const expectedUnfiltered = [33, NaN, 456, 333, 267, 34, 8754, 3234, 44, 33];
+
+      const currentRecords: Record<string, any> = await api.dbTableRow.list('noco', context.project.id, table.id, {
+        fields: ['Number'],
+        limit: 100,
+        where: filtered ? '(Number,eq,33)' : '',
+      });
+
+      // verify if expectedValues are same as currentRecords
+      expect(currentRecords.list.map(r => parseInt(r.Number))).toEqual(
+        filtered ? expectedFiltered : expectedUnfiltered
+      );
+    }
+
+    await toolbar.clickFilter();
+    await toolbar.filter.add({ title: 'Number', operation: '=', value: '33' });
+    await toolbar.clickFilter();
+
+    await verifyRecords({ filtered: true });
+    await toolbar.filter.reset();
+    await verifyRecords({ filtered: false });
+
+    await undo({ page });
+    await verifyRecords({ filtered: true });
+    await undo({ page });
+    await verifyRecords({ filtered: false });
+  });
 });
 
 test.describe('Undo Redo - 2', () => {

@@ -69,7 +69,7 @@ export async function hookLogList(
 ) {
   res.json(
     new PagedResponseImpl(
-      await hookService.hookLogList({ tableId: req.params.hookId })
+      await hookService.hookLogList({ hookId: req.params.hookId })
     )
   );
 }

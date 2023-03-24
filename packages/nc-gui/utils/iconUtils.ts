@@ -141,7 +141,7 @@ import MdiChevronRight from '~icons/mdi/chevron-right'
 import MdiFileImageBox from '~icons/mdi/file-image-box'
 import MdiStorefrontOutline from '~icons/mdi/storefront-outline'
 import MdiLoading from '~icons/mdi/loading'
-import MdiArrowCollapse from '~icons/mdi/arrow-collpse'
+import MdiArrowCollapse from '~icons/mdi/arrow-collapse'
 import MdiInformationOutline from '~icons/mdi/information-outline'
 import MdiMapMarkerAlert from '~icons/mdi/map-marker-alert'
 

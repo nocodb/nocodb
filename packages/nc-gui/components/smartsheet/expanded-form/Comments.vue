@@ -134,10 +134,10 @@ watch(
           <a-dropdown :trigger="['contextmenu']" :overlay-class-name="`nc-dropdown-comment-context-menu-${idx}`">
             <div class="flex gap-1 text-xs">
               <component
-            :is="iconMap.accountCircle"
-            class="row-span-2"
-            :class="isYou(log.user) ? 'text-pink-300' : 'text-blue-300 '"
-          />
+                :is="iconMap.accountCircle"
+                class="row-span-2"
+                :class="isYou(log.user) ? 'text-pink-300' : 'text-blue-300 '"
+              />
 
               <div class="flex-1">
                 <p class="mb-1 caption edited-text text-[10px] text-gray-500">

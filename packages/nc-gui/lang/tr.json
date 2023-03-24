@@ -779,6 +779,7 @@
       "userDeletedFromProject": "Kullanıcı projeden başarıyla silindi",
       "inviteEmailSent": "Davet E-postası başarıyla gönderildi",
       "inviteURLCopied": "Panoya kopyalanan davet URL'si",
+      "commentCopied": "Comment copied to clipboard",
       "passwordResetURLCopied": "Panoya kopyalanan parola sıfırlama URL'si",
       "shareableURLCopied": "Paylaşılabilir temel URL panoya kopyalandı!",
       "embeddableHTMLCodeCopied": "Yerleştirilebilir HTML kodu kopyalandı!",

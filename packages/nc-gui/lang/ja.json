@@ -779,6 +779,7 @@
       "userDeletedFromProject": "プロジェクトからユーザーを削除しました",
       "inviteEmailSent": "招待メールを送信しました",
       "inviteURLCopied": "招待 URL をクリップボードにコピーしました",
+      "commentCopied": "Comment copied to clipboard",
       "passwordResetURLCopied": "パスワードリセット URL をクリップボードにコピーしました",
       "shareableURLCopied": "共有可能なベースURLをクリップボードにコピーしました。",
       "embeddableHTMLCodeCopied": "埋め込み用 HTML をコピーしました",

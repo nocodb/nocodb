@@ -779,6 +779,7 @@
       "userDeletedFromProject": "Användaren har framgångsrikt tagits bort från projektet",
       "inviteEmailSent": "Inbjudningsmejl skickat framgångsrikt",
       "inviteURLCopied": "URL för inbjudan kopieras till urklipp",
+      "commentCopied": "Comment copied to clipboard",
       "passwordResetURLCopied": "URL för återställning av lösenord kopieras till urklipp",
       "shareableURLCopied": "Kopierade delbar bas-URL till urklipp!",
       "embeddableHTMLCodeCopied": "Kopierad inbäddningsbar HTML-kod!",

@@ -779,6 +779,7 @@
       "userDeletedFromProject": "Käyttäjä poistettiin onnistuneesti projektista",
       "inviteEmailSent": "Kutsu Sähköposti lähetetty onnistuneesti",
       "inviteURLCopied": "Kutsun URL-osoite kopioitu leikepöydälle",
+      "commentCopied": "Comment copied to clipboard",
       "passwordResetURLCopied": "Salasanan palautus URL-osoite kopioitu leikepöydälle",
       "shareableURLCopied": "Kopioi jaettavan pohjan URL-osoite leikepöydälle!",
       "embeddableHTMLCodeCopied": "Kopioitu upotettava HTML-koodi!",

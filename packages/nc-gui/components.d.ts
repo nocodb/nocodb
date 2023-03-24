@@ -330,6 +330,7 @@ declare module '@vue/runtime-core' {
     PhCloudLightningThin: typeof import('~icons/ph/cloud-lightning-thin')['default']
     PhCodeSimpleThin: typeof import('~icons/ph/code-simple-thin')['default']
     PhDatabaseThin: typeof import('~icons/ph/database-thin')['default']
+    PhDotsThreeOutlineVerticalThin: typeof import('~icons/ph/dots-three-outline-vertical-thin')['default']
     PhDownloadSimpleFill: typeof import('~icons/ph/download-simple-fill')['default']
     PhFadersThin: typeof import('~icons/ph/faders-thin')['default']
     PhFileCsv: typeof import('~icons/ph/file-csv')['default']

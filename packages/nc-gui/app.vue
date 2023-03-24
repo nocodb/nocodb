@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, useCommandPalette, useRouter, useTheme } from '#imports'
+import { applyNonSelectable, computed, useCommandPalette, useRouter, useTheme } from '#imports'
 
 const router = useRouter()
 

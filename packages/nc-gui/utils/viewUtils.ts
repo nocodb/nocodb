@@ -39,3 +39,7 @@ export const getViewIcon = (key?: string | number) => {
 
   return viewIcons[key]
 }
+
+export function applyNonSelectable() {
+  document.body.classList.add('non-selectable')
+}

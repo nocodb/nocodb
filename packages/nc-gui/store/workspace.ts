@@ -46,8 +46,7 @@ export const useWorkspace = defineStore('workspaceStore', () => {
   const activeWorkspace = computed(() => {
     return (
       workspaces.value?.find((w) => w.id === route.query.workspaceId || w.id === route.params.workspaceId) ??
-      workspace.value?.id ??
-      (activePage.value === 'workspace' ? workspaces.value?.[0] : null)
+      (activePage.value === 'workspace' ? workspaces.value?.[0] : workspace.value)
     )
   })
 

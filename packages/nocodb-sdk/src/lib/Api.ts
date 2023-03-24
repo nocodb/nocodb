@@ -1870,6 +1870,21 @@ export interface ProjectUserReqType {
 }
 
 /**
+ * Model for Project User Meta Request
+ */
+export interface ProjectUserMetaReqType {
+  /** Star Project */
+  starred?: BoolType;
+  /**
+   * The order among the projects
+   * @example 1
+   */
+  order?: number;
+  /** Model for Bool */
+  hidden?: BoolType;
+}
+
+/**
  * Model for Rollup
  */
 export interface RollupType {
@@ -4603,11 +4618,7 @@ export class Api<
      */
     userMetaUpdate: (
       projectId: string,
-      data: {
-        starred?: boolean;
-        order?: number;
-        hidden?: boolean;
-      },
+      data: ProjectUserMetaReqType,
       params: RequestParams = {}
     ) =>
       this.request<void, any>({

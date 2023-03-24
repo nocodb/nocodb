@@ -3034,18 +3034,7 @@
           "content": {
             "application/json": {
               "schema": {
-                "type": "object",
-                "properties": {
-                  "starred": {
-                    "type": "boolean"
-                  },
-                  "order": {
-                    "type": "number"
-                  },
-                  "hidden": {
-                    "type": "boolean"
-                  }
-                }
+                "$ref": "#/components/schemas/ProjectUserMetaReq"
               }
             }
           }
@@ -19590,6 +19579,32 @@
           }
         },
         "required": ["email", "roles"]
+      },
+      "ProjectUserMetaReq": {
+        "description": "Model for Project User Meta Request",
+        "examples": [
+          {
+            "starred": true,
+            "order": 1,
+            "hidden": true
+          }
+        ],
+        "title": "Project User Meta Request Model",
+        "type": "object",
+        "properties": {
+          "starred": {
+            "$ref": "#/components/schemas/Bool",
+            "description": "Star Project"
+          },
+          "order": {
+            "type": "number",
+            "description": "The order among the projects",
+            "example": 1
+          },
+          "hidden": {
+            "$ref": "#/components/schemas/Bool"
+          }
+        }
       },
       "Rollup": {
         "description": "Model for Rollup",

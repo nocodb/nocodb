@@ -1,4 +1,4 @@
-import { ProjectRoles, WorkspaceUserRoles } from 'nocodb-sdk';
+import {BoolType, ProjectRoles, WorkspaceUserRoles} from 'nocodb-sdk';
 import {
   // CacheDelDirection,
   CacheGetType,
@@ -15,6 +15,9 @@ export default class ProjectUser {
   project_id: string;
   fk_user_id: string;
   roles?: string;
+  order?: number;
+  starred?: BoolType;
+  hidden?: BoolType;
 
   constructor(data: ProjectUser) {
     Object.assign(this, data);

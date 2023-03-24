@@ -20,6 +20,7 @@ import {
   useSmartsheetStoreOrThrow,
   useUndoRedo,
 } from '#imports'
+import { UndoRedoAction } from '~~/lib';
 
 const { virtual = false } = defineProps<{ virtual?: boolean }>()
 
@@ -122,11 +123,37 @@ const setAsDisplayValue = async () => {
 const sortByColumn = async (direction: 'asc' | 'desc') => {
   try {
     $e('a:sort:add', { from: 'column-menu' })
-    await $api.dbTableSort.create(view.value?.id as string, {
+    const data: any = await $api.dbTableSort.create(view.value?.id as string, {
       fk_column_id: column!.value.id,
       direction,
       push_to_top: true,
     })
+
+    addUndo({
+      redo: {
+        fn: async function redo(this: UndoRedoAction) {
+          const data: any = await $api.dbTableSort.create(view.value?.id as string, {
+            fk_column_id: column!.value.id,
+            direction,
+            push_to_top: true,
+          })
+          this.undo.args = [data.id]
+          eventBus.emit(SmartsheetStoreEvents.SORT_RELOAD)
+          reloadDataHook?.trigger()
+        },
+        args: [],
+      },
+      undo: {
+        fn: async function undo(id: string) {
+          await $api.dbTableSort.delete(id)
+          eventBus.emit(SmartsheetStoreEvents.SORT_RELOAD)
+          reloadDataHook?.trigger()
+        },
+        args: [data.id],
+      },
+      scope: view.value?.title,
+    })
+
     eventBus.emit(SmartsheetStoreEvents.SORT_RELOAD)
     reloadDataHook?.trigger()
   } catch (e: any) {
@@ -244,6 +271,24 @@ const hideField = async () => {
 
   await $api.dbViewColumn.update(view.value!.id!, currentColumn!.id!, { show: false })
   eventBus.emit(SmartsheetStoreEvents.FIELD_RELOAD)
+
+  addUndo({
+    redo: {
+      fn: async function redo(id: string) {
+        await $api.dbViewColumn.update(view.value!.id!, id, { show: false })
+        eventBus.emit(SmartsheetStoreEvents.FIELD_RELOAD)
+      },
+      args: [currentColumn!.id],
+    },
+    undo: {
+      fn: async function undo(id: string) {
+        await $api.dbViewColumn.update(view.value!.id!, id, { show: true })
+        eventBus.emit(SmartsheetStoreEvents.FIELD_RELOAD)
+      },
+      args: [currentColumn!.id],
+    },
+    scope: view.value?.title,
+  })
 }
 </script>
 

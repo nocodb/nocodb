@@ -332,6 +332,29 @@ test.describe('Undo Redo', () => {
     await undo({ page });
     expect(await dashboard.grid.column.getWidth({ title: 'Number' })).toBe(originalWidth);
   });
+
+  test('Table & View rename', async ({ page }) => {
+    // close 'Team & Auth' tab
+    await dashboard.closeTab({ title: 'Team & Auth' });
+    await dashboard.treeView.openTable({ title: 'numberBased' });
+
+    await dashboard.viewSidebar.renameView({
+      title: 'numberBased',
+      newTitle: 'newNameForTest',
+    });
+    await dashboard.viewSidebar.verifyView({
+      title: 'newNameForTest',
+      index: 0,
+    });
+    await dashboard.rootPage.waitForTimeout(100);
+
+    await undo({ page });
+    await dashboard.rootPage.waitForTimeout(100);
+    await dashboard.viewSidebar.verifyView({
+      title: 'numberBased',
+      index: 0,
+    });
+  });
 });
 
 test.describe('Undo Redo - 2', () => {

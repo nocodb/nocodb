@@ -623,6 +623,16 @@ export interface FilterListType {
 }
 
 /**
+ * Model for Filter Log List
+ */
+export interface FilterLogListType {
+  /** List of filter objects */
+  list: FilterType[];
+  /** Model for Paginated */
+  pageInfo: PaginatedType;
+}
+
+/**
  * Model for Filter Request
  */
 export interface FilterReqType {
@@ -984,6 +994,29 @@ export interface GridType {
 }
 
 /**
+ * Model for Grid
+ */
+export interface GridCopyType {
+  /** Unique ID */
+  id?: IdType;
+  /** Project ID */
+  project_id?: IdType;
+  /** Base ID */
+  base_id?: IdType;
+  /** Foreign Key to View */
+  fk_view_id?: IdType;
+  /**
+   * Row Height
+   * @example 1
+   */
+  row_height?: number;
+  /** Meta info for Grid Model */
+  meta?: MetaType;
+  /** Grid View Columns */
+  columns?: GridColumnType[];
+}
+
+/**
  * Model for Grid Column
  */
 export interface GridColumnType {
@@ -1181,26 +1214,71 @@ export interface HookListType {
  * Model for Hook Log
  */
 export interface HookLogType {
+  /**
+   * Unique Base ID
+   * @example ds_jxuewivwbxeum2
+   */
   base_id?: string;
+  /** Hook Conditions */
   conditions?: string;
-  error?: string;
-  error_code?: string;
-  error_message?: string;
-  event?: string;
+  /** Error */
+  error?: StringOrNullType;
+  /** Error Code */
+  error_code?: StringOrNullType;
+  /** Error Message */
+  error_message?: StringOrNullType;
+  /**
+   * Hook Event
+   * @example after
+   */
+  event?: 'after' | 'before';
+  /**
+   * Execution Time in milliseconds
+   * @example 98
+   */
   execution_time?: string;
-  /** Model for StringOrNull */
+  /** Foreign Key to Hook */
   fk_hook_id?: StringOrNullType;
   /** Unique ID */
-  id?: IdType;
+  id?: StringOrNullType;
+  /** Hook Notification */
   notifications?: string;
-  operation?: string;
-  payload?: any;
+  /**
+   * Hook Operation
+   * @example insert
+   */
+  operation?: 'insert' | 'update' | 'delete';
+  /**
+   * Hook Payload
+   * @example {"method":"POST","body":"{{ json data }}","headers":[{}],"parameters":[{}],"auth":"","path":"https://webhook.site/6eb45ce5-b611-4be1-8b96-c2965755662b"}
+   */
+  payload?: string;
+  /**
+   * Project ID
+   * @example p_tbhl1hnycvhe5l
+   */
   project_id?: string;
-  response?: string;
-  /** Model for Bool */
+  /** Hook Response */
+  response?: StringOrNullType;
+  /** Is this testing hook call? */
   test_call?: BoolType;
-  triggered_by?: string;
+  /** Who triggered the hook? */
+  triggered_by?: StringOrNullType;
+  /**
+   * Hook Type
+   * @example URL
+   */
   type?: string;
+}
+
+/**
+ * Model for Hook Log List
+ */
+export interface HookLogListType {
+  /** List of hook objects */
+  list: HookLogType[];
+  /** Model for Paginated */
+  pageInfo: PaginatedType;
 }
 
 /**
@@ -6393,6 +6471,35 @@ export class Api<
         method: 'POST',
         body: data,
         type: ContentType.Json,
+        format: 'json',
+        ...params,
+      }),
+  };
+  dbTableWebhookLogs = {
+    /**
+ * @description Get the log data in a given Hook
+ * 
+ * @tags DB Table Webhook Logs
+ * @name List
+ * @summary Get Hook Logs
+ * @request GET:/api/v1/db/meta/hooks/{hookId}/logs
+ * @response `200` `HookLogListType` OK
+ * @response `400` `{
+  \** @example BadRequest [Error]: <ERROR MESSAGE> *\
+  msg: string,
+
+}`
+ */
+    list: (hookId: IdType, params: RequestParams = {}) =>
+      this.request<
+        HookLogListType,
+        {
+          /** @example BadRequest [Error]: <ERROR MESSAGE> */
+          msg: string;
+        }
+      >({
+        path: `/api/v1/db/meta/hooks/${hookId}/logs`,
+        method: 'GET',
         format: 'json',
         ...params,
       }),

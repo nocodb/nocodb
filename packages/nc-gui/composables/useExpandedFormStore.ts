@@ -21,8 +21,9 @@ import {
   useProject,
   useProvideSmartsheetRowStore,
   useSharedView,
+  useUndoRedo,
 } from '#imports'
-import type { Row } from '~/lib'
+import type { Row, UndoRedoAction } from '~/lib'
 
 const [useProvideExpandedFormStore, useExpandedFormStore] = useInjectionState((meta: Ref<TableType>, row: Ref<Row>) => {
   const { $e, $state, $api } = useNuxtApp()
@@ -50,6 +51,10 @@ const [useProvideExpandedFormStore, useExpandedFormStore] = useInjectionState((m
   const activeView = inject(ActiveViewInj, ref())
 
   const { sharedView } = useSharedView()
+
+  const { addUndo, clone } = useUndoRedo()
+
+  const reloadTrigger = inject(ReloadRowDataHookInj, createEventHook())
 
   // getters
   const displayValue = computed(() => {
@@ -135,7 +140,7 @@ const [useProvideExpandedFormStore, useExpandedFormStore] = useInjectionState((m
     $e('a:row-expand:comment')
   }
 
-  const save = async (ltarState: Record<string, any> = {}) => {
+  const save = async (ltarState: Record<string, any> = {}, undo = false) => {
     let data
     try {
       const isNewRow = row.value.rowMeta?.new ?? false
@@ -155,6 +160,40 @@ const [useProvideExpandedFormStore, useExpandedFormStore] = useInjectionState((m
 
         data = await $api.dbTableRow.create('noco', project.value.title as string, meta.value.title, insertObj)
 
+        if (!undo) {
+          const id = extractPkFromRow(data, meta.value?.columns as ColumnType[])
+
+          // TODO remove linked record
+          addUndo({
+            redo: {
+              fn: async function redo(this: UndoRedoAction, row: Row) {
+                const pkData = rowPkData(row.row, meta.value?.columns as ColumnType[])
+                row.row = { ...pkData, ...row.row }
+                await $api.dbTableRow.create('noco', project.value.title as string, meta.value.title, row.row)
+                reloadTrigger?.trigger()
+              },
+              args: [clone(row.value)],
+            },
+            undo: {
+              fn: async function undo(this: UndoRedoAction, id: string) {
+                const res: any = await $api.dbViewRow.delete(
+                  'noco',
+                  project.value.id as string,
+                  meta.value?.id as string,
+                  activeView.value?.id as string,
+                  id,
+                )
+                if (res.message) {
+                  throw new Error(res.message)
+                }
+                reloadTrigger?.trigger()
+              },
+              args: [id],
+            },
+            scope: activeView.value?.title,
+          })
+        }
+
         Object.assign(row.value, {
           row: data,
           rowMeta: {},
@@ -173,6 +212,31 @@ const [useProvideExpandedFormStore, useExpandedFormStore] = useInjectionState((m
           }
 
           await $api.dbTableRow.update(NOCO, project.value.title as string, meta.value.title, id, updateOrInsertObj)
+
+          if (!undo) {
+            const undoObject = [...changedColumns.value].reduce((obj, col) => {
+              obj[col] = row.value.oldRow[col]
+              return obj
+            }, {} as Record<string, any>)
+
+            addUndo({
+              redo: {
+                fn: async (id: string, data: Record<string, any>) => {
+                  await $api.dbTableRow.update(NOCO, project.value.title as string, meta.value.title, id, data)
+                  reloadTrigger?.trigger()
+                },
+                args: [id, clone(updateOrInsertObj)],
+              },
+              undo: {
+                fn: async (id: string, data: Record<string, any>) => {
+                  await $api.dbTableRow.update(NOCO, project.value.title as string, meta.value.title, id, data)
+                  reloadTrigger?.trigger()
+                },
+                args: [id, clone(undoObject)],
+              },
+              scope: activeView.value?.title,
+            })
+          }
 
           for (const key of Object.keys(updateOrInsertObj)) {
             // audit

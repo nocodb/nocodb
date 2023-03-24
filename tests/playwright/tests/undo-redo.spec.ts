@@ -354,6 +354,15 @@ test.describe('Undo Redo', () => {
       title: 'numberBased',
       index: 0,
     });
+
+    // tabel rename
+    await dashboard.treeView.renameTable({ title: 'numberBased', newTitle: 'newNameForTest' });
+    await dashboard.treeView.verifyTable({ title: 'newNameForTest' });
+    await dashboard.rootPage.waitForTimeout(100);
+
+    await undo({ page });
+    await dashboard.rootPage.waitForTimeout(100);
+    await dashboard.treeView.verifyTable({ title: 'numberBased' });
   });
 });
 

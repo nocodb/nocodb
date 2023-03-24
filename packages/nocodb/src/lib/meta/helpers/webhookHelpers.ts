@@ -319,6 +319,7 @@ export async function invokeWebhook(
 
           hookLog = {
             ...hook,
+            fk_hook_id: hook.id,
             type: notification.type,
             payload: JSON.stringify(notification?.payload),
             response: JSON.stringify({
@@ -352,6 +353,7 @@ export async function invokeWebhook(
 
           hookLog = {
             ...hook,
+            fk_hook_id: hook.id,
             type: notification.type,
             payload: JSON.stringify(notification?.payload),
             response: JSON.stringify(res),

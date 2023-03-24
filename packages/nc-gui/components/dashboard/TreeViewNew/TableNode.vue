@@ -43,10 +43,10 @@ const activeTable = computed(() => ([TabType.TABLE, TabType.VIEW].includes(activ
 
 const icon = (table: TableType) => {
   if (table.type === 'table') {
-    return PhTableThin
+    return iconMap.table
   }
   if (table.type === 'view') {
-    return MdiView
+    return iconMap.view
   }
 }
 

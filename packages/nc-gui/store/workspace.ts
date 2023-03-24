@@ -46,7 +46,7 @@ export const useWorkspace = defineStore('workspaceStore', () => {
   const activeWorkspace = computed(() => {
     return (
       workspaces.value?.find((w) => w.id === route.query.workspaceId || w.id === route.params.workspaceId) ??
-      (activePage.value === 'workspace' ? workspaces.value?.[0] : workspace.value)
+      (activePage.value === 'workspace' ? workspaces.value?.[0] : null)
     )
   })
 
@@ -133,7 +133,9 @@ export const useWorkspace = defineStore('workspaceStore', () => {
       const { list } = await $api.project.list(
         page
           ? {
+              query: {
               [page]: true,
+               }
             }
           : {},
       )

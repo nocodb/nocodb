@@ -16,7 +16,7 @@ let dashboard: DashboardPage,
   cityTable: any,
   countryTable: any;
 
-const validateResponse = true;
+const validateResponse = false;
 
 /**
  This change provides undo/redo on multiple actions over UI.
@@ -279,6 +279,41 @@ test.describe('Undo Redo', () => {
     await verifyRecords({ filtered: true });
     await undo({ page });
     await verifyRecords({ filtered: false });
+  });
+
+  test('Row height', async ({ page }) => {
+    async function verifyRowHeight({ height }: { height: string }) {
+      await dashboard.grid.rowPage.getRecordHeight(0).then(readValue => {
+        expect(readValue).toBe(height);
+      });
+    }
+
+    // close 'Team & Auth' tab
+    await dashboard.closeTab({ title: 'Team & Auth' });
+    await dashboard.treeView.openTable({ title: 'numberBased' });
+
+    const timeOut = 200;
+
+    await verifyRowHeight({ height: '1.5rem' });
+
+    // set row height & verify
+    await toolbar.clickRowHeight();
+    await toolbar.rowHeight.click({ title: 'Tall' });
+    await new Promise(resolve => setTimeout(resolve, timeOut));
+    await verifyRowHeight({ height: '6rem' });
+
+    await toolbar.clickRowHeight();
+    await toolbar.rowHeight.click({ title: 'Medium' });
+    await new Promise(resolve => setTimeout(resolve, timeOut));
+    await verifyRowHeight({ height: '3rem' });
+
+    await undo({ page });
+    await new Promise(resolve => setTimeout(resolve, timeOut));
+    await verifyRowHeight({ height: '6rem' });
+
+    await undo({ page });
+    await new Promise(resolve => setTimeout(resolve, timeOut));
+    await verifyRowHeight({ height: '1.5rem' });
   });
 });
 

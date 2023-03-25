@@ -2,7 +2,8 @@
 import {
   Form,
   computed,
- iconMap, nextTick,
+  iconMap,
+  nextTick,
   onMounted,
   ref,
   useProject,

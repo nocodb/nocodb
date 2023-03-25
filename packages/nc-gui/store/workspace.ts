@@ -134,8 +134,8 @@ export const useWorkspace = defineStore('workspaceStore', () => {
         page
           ? {
               query: {
-              [page]: true,
-               }
+                [page]: true,
+              },
             }
           : {},
       )

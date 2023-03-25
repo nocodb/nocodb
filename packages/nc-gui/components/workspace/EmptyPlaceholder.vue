@@ -24,7 +24,7 @@ watch(
     }
     loading.value = false
   },
-    {immediate: true}
+  { immediate: true },
 )
 
 const openCreateProjectDlg = (type: NcProjectType) => {
@@ -35,7 +35,7 @@ const openCreateProjectDlg = (type: NcProjectType) => {
 
 <template>
   <div class="flex items-center justify-center h-full">
-    <div class="flex flex-col gap-4 items-center" v-if="!loading">
+    <div v-if="!loading" class="flex flex-col gap-4 items-center">
       <NcIconsInbox />
       <div class="font-weight-medium">No Projects</div>
       <template v-if="props.buttons">

@@ -31,7 +31,7 @@ onBeforeMount(async () => {
           <div class="font-weight-medium flex">
             <div class="flex-1">records.{{ hookLog.event }}.{{ hookLog.operation }} ({{ timeAgo(hookLog.created_at) }})</div>
             <div
-              class="mx-1 px-2 py-1 text-white rounded bg-red-500"
+              class="mx-1 px-2 py-1 text-white rounded bg-red-500 text-xs"
               :class="{ '!bg-green-500': parseProp(hookLog.response).status === 200 }"
             >
               {{ parseProp(hookLog.response).status }}
@@ -68,7 +68,7 @@ onBeforeMount(async () => {
 <style scoped lang="scss">
 .nc-hook-log-collapse {
   .nc-hook-pre-title {
-    @apply font-weight-medium mb-2;
+    @apply font-bold mb-2;
   }
   .nc-hook-pre {
     @apply bg-gray-100;

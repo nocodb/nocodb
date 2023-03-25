@@ -178,9 +178,12 @@ export async function projectList(param: {
   user: { id: string; roles: string };
   query?: any;
 }) {
-  const projects = param.user?.roles?.includes(OrgUserRoles.SUPER_ADMIN)
-    ? await Project.list(param.query)
-    : await ProjectUser.getProjectsList(param.user.id, param.query);
+  // todo: su
+  const projects =
+    param.user?.roles?.includes(OrgUserRoles.SUPER_ADMIN) &&
+    !['shared', 'starred', 'recent'].some((k) => k in param.query)
+      ? await Project.list(param.query)
+      : await ProjectUser.getProjectsList(param.user.id, param.query);
 
   // parse meta
   for (const project of projects) {

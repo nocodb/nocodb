@@ -101,6 +101,10 @@ export const useProjects = defineStore('projectsStore', () => {
     return await api.project.metaGet(projectId!, {}, {})
   }
 
+  async function setProject(projectId: string, meta: any) {
+    projects.value[projectId] = meta
+  }
+
   return {
     projects,
     projectTableList,
@@ -114,5 +118,6 @@ export const useProjects = defineStore('projectsStore', () => {
     deleteProject,
     getProjectMetaInfo,
     getProjectMeta,
+    setProject
   }
 })

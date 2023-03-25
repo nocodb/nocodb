@@ -1942,7 +1942,7 @@ class BaseModelSqlv2 {
               chunkSize
             );
 
-      await this.afterBulkInsert(response, this.dbDriver, cookie);
+      await this.afterBulkInsert(response, insertDatas, this.dbDriver, cookie);
 
       return response;
     } catch (e) {
@@ -1989,8 +1989,8 @@ class BaseModelSqlv2 {
     data,
     { cookie }: { cookie?: any } = {}
   ) {
-    let res = [];
     try {
+      let count = 0;
       const updateData = await this.model.mapAliasToColumn(data);
       await this.validate(updateData);
       const pkValues = await this._extractPksValues(updateData);
@@ -2022,18 +2022,12 @@ class BaseModelSqlv2 {
 
         qb.update(updateData);
 
-        if (this.isPg || this.isMssql) {
-          qb.returning(
-            `${this.model.primaryKey.column_name} as ${this.model.primaryKey.title}`
-          );
-        }
-
-        res = (await qb) as any;
+        count = (await qb) as any;
       }
 
-      await this.afterBulkUpdate(res, this.dbDriver, cookie);
+      await this.afterBulkUpdate(count, this.dbDriver, cookie, true);
 
-      return res.length;
+      return count;
     } catch (e) {
       throw e;
     }
@@ -2098,15 +2092,9 @@ class BaseModelSqlv2 {
 
       qb.del();
 
-      if (this.isPg || this.isMssql) {
-        qb.returning(
-          `${this.model.primaryKey.column_name} as ${this.model.primaryKey.title}`
-        );
-      }
-
       const count = (await qb) as any;
 
-      await this.afterBulkDelete(count, this.dbDriver, cookie);
+      await this.afterBulkDelete(count, this.dbDriver, cookie, true);
 
       return count;
     } catch (e) {
@@ -2139,15 +2127,24 @@ class BaseModelSqlv2 {
     });
   }
 
-  public async afterBulkUpdate(data: any, _trx: any, req): Promise<void> {
-    await this.handleHooks('After.update', null, data, req);
+  public async afterBulkUpdate(
+    data: any,
+    _trx: any,
+    req,
+    isBulkAllOperation = false
+  ): Promise<void> {
+    let noOfUpdatedRecords = data;
+    if (!isBulkAllOperation) {
+      noOfUpdatedRecords = data.length;
+      await this.handleHooks('After.update', null, data, req);
+    }
 
     await Audit.insert({
       fk_model_id: this.model.id,
       op_type: AuditOperationTypes.DATA,
       op_sub_type: AuditOperationSubTypes.BULK_UPDATE,
       description: DOMPurify.sanitize(
-        `${data.length} records bulk updated in ${this.model.title}`
+        `${noOfUpdatedRecords} records bulk updated in ${this.model.title}`
       ),
       // details: JSON.stringify(data),
       ip: req?.clientIp,
@@ -2155,15 +2152,24 @@ class BaseModelSqlv2 {
     });
   }
 
-  public async afterBulkDelete(data: any, _trx: any, req): Promise<void> {
-    await this.handleHooks('After.delete', data, null, req);
+  public async afterBulkDelete(
+    data: any,
+    _trx: any,
+    req,
+    isBulkAllOperation = false
+  ): Promise<void> {
+    let noOfDeletedRecords = data;
+    if (!isBulkAllOperation) {
+      noOfDeletedRecords = data.length;
+      await this.handleHooks('After.delete', data, null, req);
+    }
 
     await Audit.insert({
       fk_model_id: this.model.id,
       op_type: AuditOperationTypes.DATA,
       op_sub_type: AuditOperationSubTypes.BULK_DELETE,
       description: DOMPurify.sanitize(
-        `${data.length} records bulk deleted in ${this.model.title}`
+        `${noOfDeletedRecords} records bulk deleted in ${this.model.title}`
       ),
       // details: JSON.stringify(data),
       ip: req?.clientIp,
@@ -2171,8 +2177,13 @@ class BaseModelSqlv2 {
     });
   }
 
-  public async afterBulkInsert(data: any[], _trx: any, req): Promise<void> {
-    await this.handleHooks('After.insert', null, data, req);
+  public async afterBulkInsert(
+    response: any,
+    data: any[],
+    _trx: any,
+    req
+  ): Promise<void> {
+    await this.handleHooks('After.insert', null, response, req);
 
     await Audit.insert({
       fk_model_id: this.model.id,

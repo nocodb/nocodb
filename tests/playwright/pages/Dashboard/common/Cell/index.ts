@@ -292,6 +292,7 @@ export class CellPageObject extends BasePage {
 
     // press escape to close the input
     await cell.press('Escape');
+    await cell.press('Escape');
 
     await cell.click({ button: 'right', clickCount: 1 });
     await expect(await this.rootPage.locator(`.nc-dropdown-grid-context-menu:visible`)).toHaveCount(

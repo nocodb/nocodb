@@ -254,7 +254,7 @@ export class ColumnPageObject extends BasePage {
   }
 
   async delete({ title }: { title: string }) {
-    await this.getColumnHeader(title).locator('svg.ant-dropdown-trigger').click();
+    await this.getColumnHeader(title).locator('div.ant-dropdown-trigger').locator('.nc-ui-dt-dropdown').click();
     // await this.rootPage.locator('li[role="menuitem"]:has-text("Delete")').waitFor();
     await this.rootPage.locator('li[role="menuitem"]:has-text("Delete")').click();
 

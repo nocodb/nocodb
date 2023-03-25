@@ -29,7 +29,8 @@ export class ToolbarShareViewPage extends BasePage {
   }
 
   async getShareLink() {
-    return await this.get().locator(`[data-testid="nc-modal-share-view__link"]`).innerText();
+    // http://localhost:3000/#/nc/view/35231cff-05c5-49ab-9045-f410db79ba5a
+    return (await this.get().locator(`[data-testid="nc-modal-share-view__link"]`).innerText()).slice(0, 68);
   }
 
   async close() {

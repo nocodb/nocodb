@@ -135,7 +135,7 @@ onMounted(() => {
               </template>
 
               <template #avatar>
-                <div class="my-1 px-2">
+                <div class="px-2">
                   <component :is="iconMap.hook" class="text-xl" />
                 </div>
                 <div class="px-2 text-white rounded" :class="{ 'bg-green-500': item.active, 'bg-gray-500': !item.active }">

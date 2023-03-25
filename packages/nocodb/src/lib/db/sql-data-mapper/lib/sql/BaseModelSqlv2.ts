@@ -2107,11 +2107,11 @@ class BaseModelSqlv2 {
    * */
 
   public async beforeInsert(data: any, _trx: any, req): Promise<void> {
-    await this.handleHooks('Before.insert', null, data, req);
+    await this.handleHooks('before.insert', null, data, req);
   }
 
   public async afterInsert(data: any, _trx: any, req): Promise<void> {
-    await this.handleHooks('After.insert', null, data, req);
+    await this.handleHooks('after.insert', null, data, req);
     const id = this._extractPksValues(data);
     await Audit.insert({
       fk_model_id: this.model.id,
@@ -2136,7 +2136,7 @@ class BaseModelSqlv2 {
     let noOfUpdatedRecords = data;
     if (!isBulkAllOperation) {
       noOfUpdatedRecords = data.length;
-      await this.handleHooks('After.update', null, data, req);
+      await this.handleHooks('after.update', null, data, req);
     }
 
     await Audit.insert({
@@ -2161,7 +2161,7 @@ class BaseModelSqlv2 {
     let noOfDeletedRecords = data;
     if (!isBulkAllOperation) {
       noOfDeletedRecords = data.length;
-      await this.handleHooks('After.delete', data, null, req);
+      await this.handleHooks('after.delete', data, null, req);
     }
 
     await Audit.insert({
@@ -2183,7 +2183,7 @@ class BaseModelSqlv2 {
     _trx: any,
     req
   ): Promise<void> {
-    await this.handleHooks('After.insert', null, response, req);
+    await this.handleHooks('after.insert', null, response, req);
 
     await Audit.insert({
       fk_model_id: this.model.id,
@@ -2206,7 +2206,7 @@ class BaseModelSqlv2 {
       }
     }
     if (ignoreWebhook === undefined || ignoreWebhook === 'false') {
-      await this.handleHooks('Before.update', null, data, req);
+      await this.handleHooks('before.update', null, data, req);
     }
   }
 
@@ -2236,12 +2236,12 @@ class BaseModelSqlv2 {
       }
     }
     if (ignoreWebhook === undefined || ignoreWebhook === 'false') {
-      await this.handleHooks('After.update', prevData, newData, req);
+      await this.handleHooks('after.update', prevData, newData, req);
     }
   }
 
   public async beforeDelete(data: any, _trx: any, req): Promise<void> {
-    await this.handleHooks('Before.delete', null, data, req);
+    await this.handleHooks('before.delete', null, data, req);
   }
 
   public async afterDelete(data: any, _trx: any, req): Promise<void> {
@@ -2256,14 +2256,14 @@ class BaseModelSqlv2 {
       ip: req?.clientIp,
       user: req?.user?.email,
     });
-    await this.handleHooks('After.delete', data, null, req);
+    await this.handleHooks('after.delete', data, null, req);
   }
 
   private async handleHooks(hookName, prevData, newData, req): Promise<void> {
     const view = await View.get(this.viewId);
 
     // handle form view data submission
-    if (hookName === 'After.insert' && view.type === ViewTypes.FORM) {
+    if (hookName === 'after.insert' && view.type === ViewTypes.FORM) {
       try {
         const formView = await view.getView<FormView>();
         const { columns } = await FormView.getWithInfo(formView.fk_view_id);

@@ -302,7 +302,7 @@ export const iconMap = {
   form: h('span', { class: 'material-symbols-outlined' }, 'receipt'),
   map: h('span', { class: 'material-symbols-outlined' }, 'map'),
   kanban: h('span', { class: 'material-symbols-outlined' }, 'view_column'),
-  view: h('span', { class: 'material-symbols-outlined' }, 'view_list'),
+  view: h('span', { class: 'material-symbols-outlined' }, 'visibility'),
   // rowHeight: h('span', { class: 'material-symbols-outlined' }, 'height'),
   rowHeight: h(PhSplitVerticalThin, { style: { fontSize: '14px' } }),
   filter: h('span', { class: 'material-symbols-outlined' }, 'filter_list'),

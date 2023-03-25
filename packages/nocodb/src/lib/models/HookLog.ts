@@ -39,6 +39,9 @@ export default class HookLog implements HookLogType {
       condition: {
         fk_hook_id: param.fk_hook_id,
       },
+      orderBy: {
+        created_at: 'desc',
+      },
     });
     return hookLogs?.map((h) => new HookLog(h));
   }

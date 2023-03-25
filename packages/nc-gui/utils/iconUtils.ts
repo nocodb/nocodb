@@ -324,6 +324,7 @@ export const iconMap = {
   drag: h('span', { class: 'material-symbols-outlined' }, 'drag_handle'),
   comment: h('span', { class: 'material-symbols-outlined' }, 'comment'),
   doc: h('span', { class: 'material-symbols-outlined' }, 'menu_book'),
+  move: h('span', { class: 'material-symbols-outlined' }, 'drive_file_move'),
 
   heightShort: NcIconsRowHeightShort,
   heightMedium: NcIconsRowHeightMedium,

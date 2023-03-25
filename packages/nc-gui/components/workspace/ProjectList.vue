@@ -249,10 +249,7 @@ function onProjectTitleClick(index: number) {
           <div class="flex items-center nc-project-title gap-2 max-w-full">
             <div class="flex items-center gap-2 text-center">
               <!-- todo: replace with switch -->
-              <MaterialSymbolsDocs v-if="record.type === NcProjectType.DOCS" class="text-[#247727] text-sm" />
-              <MdiVectorTriangle v-else-if="record.type === NcProjectType.COWRITER" class="text-[#8626FF] text-sm" />
-              <MdiTransitConnectionVariant v-else-if="record.type === NcProjectType.AUTOMATION" class="text-[#DDB00F] text-sm" />
-              <MdiDatabaseOutline v-else class="text-[#2824FB] text-sm" />
+         <GeneralProjectIcon :type="record.type"/>
             </div>
 
             <div class="min-w-10">
@@ -359,13 +356,13 @@ function onProjectTitleClick(index: number) {
               :trigger="['click']"
             >
               <div @click.stop>
-                <MdiDotsHorizontal class="outline-0 nc-workspace-menu nc-click-transition" />
+                <GeneralIcon icon="threeDotHorizontal" class="outline-0 nc-workspace-menu nc-click-transition" />
               </div>
               <template #overlay>
                 <a-menu>
                   <a-menu-item @click="enableEdit(i)">
                     <div class="nc-menu-item-wrapper">
-                      <MdiEdit class="text-gray-500" />
+                      <GeneralIcon icon="edit" class="text-gray-500" />
                       Rename Project
                     </div>
                   </a-menu-item>
@@ -374,13 +371,13 @@ function onProjectTitleClick(index: number) {
                     @click="moveProject(record)"
                   >
                     <div class="nc-menu-item-wrapper">
-                      <MdiFolderMove class="text-gray-500" />
+                      <GeneralIcon icon="move" class="text-gray-500" />
                       Move Project
                     </div>
                   </a-menu-item>
                   <a-menu-item @click="deleteProject(record)">
                     <div class="nc-menu-item-wrapper">
-                      <MdiDeleteOutline class="text-gray-500" />
+                      <GeneralIcon icon="delete" class="text-gray-500" />
                       Delete Project
                     </div>
                   </a-menu-item>

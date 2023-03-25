@@ -146,6 +146,27 @@ const coverOptions = computed<SelectProps['options']>(() => {
   return [{ value: null, label: 'No Image' }, ...filterFields]
 })
 
+const updateCoverImage = async (val?: string | null) => {
+  if (
+    (activeView.value?.type === ViewTypes.GALLERY || activeView.value?.type === ViewTypes.KANBAN) &&
+    activeView.value?.id &&
+    activeView.value?.view
+  ) {
+    if (activeView.value?.type === ViewTypes.GALLERY) {
+      await $api.dbView.galleryUpdate(activeView.value?.id, {
+        fk_cover_image_col_id: val,
+      })
+      ;(activeView.value.view as GalleryType).fk_cover_image_col_id = val
+    } else if (activeView.value?.type === ViewTypes.KANBAN) {
+      await $api.dbView.kanbanUpdate(activeView.value?.id, {
+        fk_cover_image_col_id: val,
+      })
+      ;(activeView.value.view as KanbanType).fk_cover_image_col_id = val
+    }
+    reloadViewMetaHook?.trigger()
+  }
+}
+
 const coverImageColumnId = computed({
   get: () => {
     const fk_cover_image_col_id =
@@ -159,23 +180,19 @@ const coverImageColumnId = computed({
     return null
   },
   set: async (val) => {
-    if (
-      (activeView.value?.type === ViewTypes.GALLERY || activeView.value?.type === ViewTypes.KANBAN) &&
-      activeView.value?.id &&
-      activeView.value?.view
-    ) {
-      if (activeView.value?.type === ViewTypes.GALLERY) {
-        await $api.dbView.galleryUpdate(activeView.value?.id, {
-          fk_cover_image_col_id: val,
-        })
-        ;(activeView.value.view as GalleryType).fk_cover_image_col_id = val
-      } else if (activeView.value?.type === ViewTypes.KANBAN) {
-        await $api.dbView.kanbanUpdate(activeView.value?.id, {
-          fk_cover_image_col_id: val,
-        })
-        ;(activeView.value.view as KanbanType).fk_cover_image_col_id = val
-      }
-      reloadViewMetaHook?.trigger()
+    if (val !== coverImageColumnId.value) {
+      addUndo({
+        undo: {
+          fn: await updateCoverImage,
+          args: [coverImageColumnId.value],
+        },
+        redo: {
+          fn: await updateCoverImage,
+          args: [val],
+        },
+      })
+
+      await updateCoverImage(val)
     }
   },
 })

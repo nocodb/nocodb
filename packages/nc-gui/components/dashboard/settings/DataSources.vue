@@ -263,9 +263,9 @@ watch(
                       <div class="flex items-center gap-2 text-gray-600 font-light">
                         <a-tooltip v-if="metadiffbases.includes(sources[0].id)">
                           <template #title>Out of sync</template>
-                          <MdiDatabaseAlert class="text-lg group-hover:text-accent text-primary" />
+                          <GeneralIcon icon="warning" class="group-hover:text-accent text-primary" />
                         </a-tooltip>
-                        <MdiDatabaseSync v-else class="text-lg group-hover:text-accent" />
+                        <GeneralIcon v-else icon="sync" class="group-hover:text-accent" />
                         Sync Metadata
                       </div>
                     </a-button>
@@ -274,7 +274,7 @@ watch(
                       @click="baseAction(sources[0].id, DataSourcesSubTab.UIAcl)"
                     >
                       <div class="flex items-center gap-2 text-gray-600 font-light">
-                        <MdiDatabaseLockOutline class="text-lg group-hover:text-accent" />
+                        <GeneralIcon icon="acl" class="group-hover:text-accent" />
                         UI ACL
                       </div>
                     </a-button>
@@ -283,7 +283,7 @@ watch(
                       @click="baseAction(sources[0].id, DataSourcesSubTab.ERD)"
                     >
                       <div class="flex items-center gap-2 text-gray-600 font-light">
-                        <MdiGraphOutline class="text-lg group-hover:text-accent" />
+                        <GeneralIcon icon="erd" class="group-hover:text-accent" />
                         ERD
                       </div>
                     </a-button>
@@ -293,7 +293,7 @@ watch(
                       @click="baseAction(sources[0].id, DataSourcesSubTab.Edit)"
                     >
                       <div class="flex items-center gap-2 text-gray-600 font-light">
-                        <MdiEditOutline class="text-lg group-hover:text-accent" />
+                        <GeneralIcon icon="edit" class="group-hover:text-accent" />
                         Edit
                       </div>
                     </a-button>
@@ -316,7 +316,7 @@ watch(
             <template #item="{ element: base, index }">
               <div v-if="index !== 0" class="ds-table-row border-gray-200">
                 <div class="ds-table-col ds-table-name">
-                  <MdiDragVertical v-if="sources.length > 2" small class="ds-table-handle" />
+                  <GeneralIcon v-if="sources.length > 2" icon="dragVertical" small class="ds-table-handle" />
                   <div class="flex items-center gap-1">
                     <GeneralBaseLogo :base-type="base.type" />
                     {{ base.is_meta ? 'BASE' : base.alias }} <span class="text-gray-400 text-xs">({{ base.type }})</span>
@@ -332,9 +332,9 @@ watch(
                       <div class="flex items-center gap-2 text-gray-600 font-light">
                         <a-tooltip v-if="metadiffbases.includes(base.id)">
                           <template #title>Out of sync</template>
-                          <MdiDatabaseAlert class="text-lg group-hover:text-accent text-primary" />
+                          <GeneralIcon icon="warning" class="group-hover:text-accent text-primary" />
                         </a-tooltip>
-                        <MdiDatabaseSync v-else class="text-lg group-hover:text-accent" />
+                        <GeneralIcon v-else icon="sync" class="group-hover:text-accent" />
                         Sync Metadata
                       </div>
                     </a-button>
@@ -343,13 +343,13 @@ watch(
                       @click="baseAction(base.id, DataSourcesSubTab.UIAcl)"
                     >
                       <div class="flex items-center gap-2 text-gray-600 font-light">
-                        <MdiDatabaseLockOutline class="text-lg group-hover:text-accent" />
+                        <GeneralIcon icon="acl" class="group-hover:text-accent" />
                         UI ACL
                       </div>
                     </a-button>
                     <a-button class="nc-action-btn cursor-pointer outline-0" @click="baseAction(base.id, DataSourcesSubTab.ERD)">
                       <div class="flex items-center gap-2 text-gray-600 font-light">
-                        <MdiGraphOutline class="text-lg group-hover:text-accent" />
+                        <GeneralIcon icon="erd" class="group-hover:text-accent" />
                         ERD
                       </div>
                     </a-button>
@@ -359,13 +359,13 @@ watch(
                       @click="baseAction(base.id, DataSourcesSubTab.Edit)"
                     >
                       <div class="flex items-center gap-2 text-gray-600 font-light">
-                        <MdiEditOutline class="text-lg group-hover:text-accent" />
+                        <GeneralIcon icon="edit" class="group-hover:text-accent" />
                         Edit
                       </div>
                     </a-button>
                     <a-button v-if="!base.is_meta" class="nc-action-btn cursor-pointer outline-0" @click="deleteBase(base)">
                       <div class="flex items-center gap-2 text-red-500 font-light">
-                        <MdiDeleteOutline class="text-lg group-hover:text-accent" />
+                        <GeneralIcon icon="delete" class="group-hover:text-accent" />
                         Delete
                       </div>
                     </a-button>

@@ -1,12 +1,13 @@
 <script setup lang="ts">
 import type { Ref } from 'vue'
-import type { AuditType, HookType } from 'nocodb-sdk'
+import type { HookReqType, HookType } from 'nocodb-sdk'
 import {
   Form,
   MetaInj,
   computed,
   extractSdkResponseErrorMsg,
   fieldRequiredValidator,
+  iconMap,
   inject,
   message,
   onMounted,
@@ -58,6 +59,7 @@ const hook = reactive<
     },
   },
   condition: false,
+  active: true,
 })
 
 const urlTabKey = ref('body')
@@ -368,7 +370,7 @@ async function saveHooks() {
           ...hook.notification,
           payload: hook.notification.payload,
         },
-      } as AuditType)
+      } as HookReqType)
     }
 
     if (!hook.id && res) {
@@ -444,14 +446,13 @@ onMounted(async () => {
       <a-button class="mr-3 nc-btn-webhook-test" size="large" @click="testWebhook">
         <div class="flex items-center">
           <MdiGestureDoubleTap class="mr-2" />
-          <!-- TODO: i18n -->
-          Test Webhook
+          {{ $t('activity.testWebhook') }}
         </div>
       </a-button>
 
       <a-button class="nc-btn-webhook-save" type="primary" size="large" @click.prevent="saveHooks">
         <div class="flex items-center">
-          <MdiContentSave class="mr-2" />
+          <component :is="iconMap.save" class="mr-2" />
           <!-- Save -->
           {{ $t('general.save') }}
         </div>
@@ -462,6 +463,21 @@ onMounted(async () => {
   <a-divider />
 
   <a-form :model="hook" name="create-or-edit-webhook">
+    <a-form-item>
+      <a-row type="flex">
+        <a-col :span="24">
+          <a-card>
+            <a-checkbox
+              :checked="Boolean(hook.active)"
+              class="nc-check-box-enable-webhook"
+              @update:checked="hook.active = $event"
+            >
+              {{ $t('activity.enableWebhook') }}
+            </a-checkbox>
+          </a-card>
+        </a-col>
+      </a-row>
+    </a-form-item>
     <a-form-item>
       <a-row type="flex">
         <a-col :span="24">
@@ -505,9 +521,9 @@ onMounted(async () => {
             >
               <a-select-option v-for="(notificationOption, i) in notificationList" :key="i" :value="notificationOption.type">
                 <div class="flex items-center">
-                  <MdiLink v-if="notificationOption.type === 'URL'" class="mr-2" />
+                  <component :is="iconMap.link" v-if="notificationOption.type === 'URL'" class="mr-2" />
 
-                  <MdiEmail v-if="notificationOption.type === 'Email'" class="mr-2" />
+                  <component :is="iconMap.email" v-if="notificationOption.type === 'Email'" class="mr-2" />
 
                   <MdiSlack v-if="notificationOption.type === 'Slack'" class="mr-2" />
 
@@ -573,14 +589,15 @@ onMounted(async () => {
               <LazyApiClientHeaders v-model="hook.notification.payload.headers" />
             </a-tab-pane>
 
-            <a-tab-pane key="auth" tab="Auth">
-              <LazyMonacoEditor v-model="hook.notification.payload.auth" class="min-h-60 max-h-80" />
+            <!-- No in use at this moment -->
+            <!--            <a-tab-pane key="auth" tab="Auth"> -->
+            <!--              <LazyMonacoEditor v-model="hook.notification.payload.auth" class="min-h-60 max-h-80" /> -->
 
-              <span class="text-gray-500 prose-sm p-2">
-                For more about auth option refer
-                <a class="prose-sm" href="https://github.com/axios/axios#request-config" target="_blank">axios docs</a>.
-              </span>
-            </a-tab-pane>
+            <!--              <span class="text-gray-500 prose-sm p-2"> -->
+            <!--                For more about auth option refer -->
+            <!--                <a class="prose-sm" href  ="https://github.com/axios/axios#request-config" target="_blank">axios docs</a>. -->
+            <!--              </span> -->
+            <!--            </a-tab-pane> -->
           </a-tabs>
         </a-col>
       </a-row>
@@ -686,7 +703,7 @@ onMounted(async () => {
               <template #title>
                 <span> <strong>data</strong> : Row data <br /> </span>
               </template>
-              <MdiInformation class="ml-2" />
+              <component :is="iconMap.info" class="ml-2" />
             </a-tooltip>
 
             <div class="mt-3">

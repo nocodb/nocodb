@@ -39,6 +39,7 @@
     "signIn": "เข้าสู่ระบบ",
     "signOut": "ออกจากระบบ",
     "required": "ที่จำเป็น",
+    "enableScanner": "Enable Scanner for filling",
     "preferred": "ที่ชอบ",
     "mandatory": "บังคับ",
     "loading": "กำลังโหลด ...",
@@ -209,7 +210,8 @@
     "advancedSettings": "Advanced Settings",
     "codeSnippet": "Code Snippet",
     "keyboardShortcut": "Keyboard Shortcuts",
-    "generateRandomName": "Generate Random Name"
+    "generateRandomName": "Generate Random Name",
+    "findRowByScanningCode": "Find row by scanning a QR or Barcode"
   },
   "labels": {
     "createdBy": "Created By",
@@ -219,6 +221,7 @@
     "viewName": "ดูชื่อ",
     "viewLink": "ดูลิงค์",
     "columnName": "ชื่อคอลัมน์",
+    "columnToScanFor": "Column to scan",
     "columnType": "ประเภทคอลัมน์",
     "roleName": "ชื่อบทบาท",
     "roleDescription": "คำอธิบายบทบาท",
@@ -393,8 +396,8 @@
     "saveAndExit": "Save & Exit",
     "saveAndStay": "Save & Stay",
     "insertRow": "แทรกแถวใหม่",
-    "deleteRow": "ลบแถว",
     "duplicateRow": "Duplicate Row",
+    "deleteRow": "ลบแถว",
     "deleteSelectedRow": "ลบแถวที่เลือก",
     "importExcel": "นำเข้า Excel",
     "importCSV": "Import CSV",
@@ -409,6 +412,8 @@
     "changePwd": "เปลี่ยนรหัสผ่าน",
     "createView": "สร้างมุมมอง",
     "shareView": "แบ่งปันมุมมอง",
+    "findRowByCodeScan": "Find row by scan",
+    "fillByCodeScan": "Fill by scan",
     "listSharedView": "รายการมุมมองที่ใช้ร่วมกัน",
     "ListView": "รายการมุมมอง",
     "copyView": "คัดลอกมุมมอง",
@@ -424,6 +429,10 @@
     "openTab": "เปิดแท็บใหม่",
     "iFrame": "คัดลอกรหัส HTML ที่ฝังได้",
     "addWebhook": "เพิ่ม webhook ใหม่",
+    "enableWebhook": "Enable Webhook",
+    "testWebhook": "Test Webhook",
+    "copyWebhook": "Copy Webhook",
+    "deleteWebhook": "Delete Webhook",
     "newToken": "เพิ่มโทเค็นใหม่",
     "exportZip": "ส่งออกซิป",
     "importZip": "zip นำเข้า",
@@ -465,7 +474,8 @@
       "chooseMappingField": "Choose a Mapping Field",
       "openInGoogleMaps": "Google Maps",
       "openInOpenStreetMap": "OSM"
-    }
+    },
+    "toggleMobileMode": "Toggle Mobile Mode"
   },
   "tooltip": {
     "saveChanges": "บันทึกการเปลี่ยนแปลง",
@@ -530,6 +540,12 @@
       "roles": {
         "orgCreator": "Creator can create new projects and access any invited project.",
         "orgViewer": "Viewer is not allowed to create new projects but they can access any invited project."
+      },
+      "codeScanner": {
+        "loadingScanner": "Loading the scanner...",
+        "selectColumn": "Select a column (QR code or Barcode) that you want to use for finding a row by scanning.",
+        "moreThanOneRowFoundForCode": "More than one row found for this code. Currently only unique codes are supported.",
+        "noRowFoundForCode": "No row found for this code for the selected column"
       },
       "map": {
         "overLimit": "You're over the limit.",
@@ -682,6 +698,7 @@
         "allowedSpecialCharList": "Allowed special character list"
       },
       "invalidURL": "Invalid URL",
+      "invalidEmail": "Invalid Email",
       "internalError": "Some internal error occurred",
       "templateGeneratorNotFound": "Template Generator cannot be found!",
       "fileUploadFailed": "Failed to upload file",
@@ -762,6 +779,7 @@
       "userDeletedFromProject": "Successfully deleted user from project",
       "inviteEmailSent": "Invite Email sent successfully",
       "inviteURLCopied": "Invite URL copied to clipboard",
+      "commentCopied": "Comment copied to clipboard",
       "passwordResetURLCopied": "Password reset URL copied to clipboard",
       "shareableURLCopied": "Copied shareable base URL to clipboard!",
       "embeddableHTMLCodeCopied": "Copied embeddable HTML code!",

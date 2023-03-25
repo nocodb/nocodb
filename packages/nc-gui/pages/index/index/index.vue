@@ -38,7 +38,7 @@ const { workspaces, activeWorkspace, isWorkspaceOwner, activePage } = storeToRef
 
 const { $e } = useNuxtApp()
 
-const route = useRoute()
+const route = $(router.currentRoute)
 
 const selectedWorkspaceIndex = computed<number[]>({
   get() {

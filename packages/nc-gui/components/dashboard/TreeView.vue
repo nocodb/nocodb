@@ -12,6 +12,7 @@ import {
   TabType,
   computed,
   extractSdkResponseErrorMsg,
+  iconMap,
   isDrawerOrModalExist,
   isMac,
   parseProp,
@@ -31,8 +32,8 @@ import {
   useUIPermission,
   watchEffect,
 } from '#imports'
-import MdiView from '~icons/mdi/eye-circle-outline'
-import MdiTableLarge from '~icons/mdi/table-large'
+
+const { isMobileMode } = useGlobal()
 
 const { addTab, updateTab } = useTabs()
 
@@ -41,7 +42,7 @@ const { $api, $e } = useNuxtApp()
 const projectStore = useProject()
 
 const { loadTables } = projectStore
-const { bases, tables, isSharedBase } = storeToRefs(projectStore)
+const { bases, tables, isSharedBase, project } = storeToRefs(projectStore)
 
 const { activeTab } = storeToRefs(useTabs())
 
@@ -153,10 +154,10 @@ watchEffect(() => {
 
 const icon = (table: TableType) => {
   if (table.type === 'table') {
-    return MdiTableLarge
+    return iconMap.table
   }
   if (table.type === 'view') {
-    return MdiView
+    return iconMap.view
   }
 }
 
@@ -345,16 +346,28 @@ useEventListener(document, 'keydown', async (e: KeyboardEvent) => {
 watch(
   activeTable,
   (value, oldValue) => {
+    let tableTitle
     if (value) {
       if (value !== oldValue) {
         const fndTable = tables.value.find((el) => el.id === value)
         if (fndTable) {
           activeKey.value = [`collapse-${fndTable.base_id}`]
+          tableTitle = fndTable.title
         }
       }
     } else {
-      if (bases.value.filter((el) => el.enabled)[0]?.id)
-        activeKey.value = [`collapse-${bases.value.filter((el) => el.enabled)[0].id}`]
+      const table = bases.value.filter((el) => el.enabled)[0]
+      if (table?.id) {
+        activeKey.value = [`collapse-${table.id}`]
+      }
+      if (table?.title) {
+        tableTitle = table.title
+      }
+    }
+    if (project.value.title && tableTitle) {
+      document.title = `${project.value.title}: ${tableTitle} | NocoDB`
+    } else {
+      document.title = 'NocoDB'
     }
   },
   { immediate: true },
@@ -417,8 +430,13 @@ useEventListener(document, 'contextmenu', handleContext, true)
           </Transition>
 
           <Transition name="layout" mode="out-in">
-            <MdiClose v-if="searchActive" class="text-gray-500 text-lg mx-1 mt-0.5" @click="onSearchCloseIconClick" />
-            <IcRoundSearch v-else class="text-gray-500 text-lg mx-1 mt-0.5" @click="toggleSearchActive(true)" />
+            <GeneralIcon
+              v-if="searchActive"
+              icon="close"
+              class="text-gray-500 text-lg mx-1 mt-0.5"
+              @click="onSearchCloseIconClick"
+            />
+            <GeneralIcon v-else icon="search" class="text-gray-500 text-lg mx-1 mt-0.5" @click="toggleSearchActive(true)" />
           </Transition>
         </div>
         <div
@@ -444,13 +462,18 @@ useEventListener(document, 'contextmenu', handleContext, true)
           </Transition>
 
           <Transition name="slide-right" mode="out-in">
-            <MdiClose v-if="searchActive" class="text-gray-500 text-lg mx-1 mt-0.5" @click="onSearchCloseIconClick" />
-            <IcRoundSearch v-else class="text-gray-500 text-lg mx-1 mt-0.5" @click="onSearchIconClick" />
+            <GeneralIcon
+              v-if="searchActive"
+              icon="close"
+              class="text-gray-500 text-lg mx-1 mt-0.5"
+              @click="onSearchCloseIconClick"
+            />
+            <component :is="iconMap.search" v-else class="text-gray-500 text-lg mx-1 mt-0.5" @click="onSearchIconClick" />
           </Transition>
 
           <a-dropdown v-if="!isSharedBase" :trigger="['click']" overlay-class-name="nc-dropdown-import-menu" @click.stop>
             <Transition name="slide-right" mode="out-in">
-              <PhDotsThreeOutlineVerticalThin v-if="!searchActive" class="hover:text-accent outline-0" />
+              <GeneralIcon v-if="!searchActive" icon="threeDotVertical" class="hover:text-accent outline-0" />
             </Transition>
 
             <template #overlay>
@@ -501,7 +524,7 @@ useEventListener(document, 'contextmenu', handleContext, true)
                     target="_blank"
                     class="prose-sm hover:(!text-primary !opacity-100) color-transition nc-project-menu-item group after:(!rounded-b)"
                   >
-                    <MdiOpenInNew class="group-hover:text-accent" />
+                    <GeneralIcon icon="openInNew" class="group-hover:text-accent" />
                     <!-- Request a data source you need? -->
                     {{ $t('labels.requestDataSource') }}
                   </a>
@@ -517,12 +540,13 @@ useEventListener(document, 'contextmenu', handleContext, true)
             class="group flex items-center gap-2 pl-2 pr-3 py-2 text-primary/70 hover:(text-primary/100) cursor-pointer select-none"
             @click="openTableCreateDialog(bases[0].id)"
           >
-            <MdiPlus class="w-5" />
+            <GeneralIcon icon="plus" class="w-5" />
 
             <span class="text-gray-500 group-hover:(text-primary/100) flex-1 nc-add-new-table">{{ $t('tooltip.addTable') }}</span>
 
             <a-dropdown v-if="!isSharedBase" :trigger="['click']" overlay-class-name="nc-dropdown-import-menu" @click.stop>
-              <PhDotsThreeOutlineVerticalThin
+              <GeneralIcon
+                icon="threeDotVertical"
                 class="transition-opacity opacity-0 group-hover:opacity-100 nc-import-menu outline-0"
               />
 
@@ -532,18 +556,18 @@ useEventListener(document, 'contextmenu', handleContext, true)
                     <template #title>
                       <div class="flex items-center">
                         Noco
-                        <PhSparkleFill class="ml-1 text-orange-400" />
+                        <GeneralIcon icon="magic" class="ml-1 text-orange-400" />
                       </div>
                     </template>
                     <a-menu-item key="table-magic" @click="openTableCreateMagicDialog(bases[0].id)">
                       <div class="color-transition nc-project-menu-item group">
-                        <MdiMagicStaff class="group-hover:text-accent" />
+                        <GeneralIcon icon="magic1" class="group-hover:text-accent" />
                         Create table
                       </div>
                     </a-menu-item>
                     <a-menu-item key="schema-magic" @click="openSchemaMagicDialog(bases[0].id)">
                       <div class="color-transition nc-project-menu-item group">
-                        <MdiMagicStaff class="group-hover:text-accent" />
+                        <GeneralIcon icon="magic1" class="group-hover:text-accent" />
                         Create schema
                       </div>
                     </a-menu-item>
@@ -559,7 +583,7 @@ useEventListener(document, 'contextmenu', handleContext, true)
                       @click="openAirtableImportDialog(bases[0].id)"
                     >
                       <div class="color-transition nc-project-menu-item group">
-                        <MdiTableLarge class="group-hover:text-accent" />
+                        <GeneralIcon icon="table" class="group-hover:text-accent" />
                         Airtable
                       </div>
                     </a-menu-item>
@@ -570,7 +594,7 @@ useEventListener(document, 'contextmenu', handleContext, true)
                       @click="openQuickImportDialog('csv', bases[0].id)"
                     >
                       <div class="color-transition nc-project-menu-item group">
-                        <MdiFileDocumentOutline class="group-hover:text-accent" />
+                        <GeneralIcon icon="csv" class="group-hover:text-accent" />
                         CSV file
                       </div>
                     </a-menu-item>
@@ -581,7 +605,7 @@ useEventListener(document, 'contextmenu', handleContext, true)
                       @click="openQuickImportDialog('json', bases[0].id)"
                     >
                       <div class="color-transition nc-project-menu-item group">
-                        <MdiCodeJson class="group-hover:text-accent" />
+                        <GeneralIcon icon="code" class="group-hover:text-accent" />
                         JSON file
                       </div>
                     </a-menu-item>
@@ -592,7 +616,7 @@ useEventListener(document, 'contextmenu', handleContext, true)
                       @click="openQuickImportDialog('excel', bases[0].id)"
                     >
                       <div class="color-transition nc-project-menu-item group">
-                        <MdiFileExcel class="group-hover:text-accent" />
+                        <GeneralIcon icon="excel" class="group-hover:text-accent" />
                         Microsoft Excel
                       </div>
                     </a-menu-item>
@@ -646,7 +670,7 @@ useEventListener(document, 'contextmenu', handleContext, true)
                       target="_blank"
                       class="prose-sm hover:(!text-primary !opacity-100) color-transition nc-project-menu-item group after:(!rounded-b)"
                     >
-                      <MdiOpenInNew class="group-hover:text-accent" />
+                      <GeneralIcon icon="openInNew" class="group-hover:text-accent" />
                       <!-- Request a data source you need? -->
                       {{ $t('labels.requestDataSource') }}
                     </a>
@@ -727,7 +751,8 @@ useEventListener(document, 'contextmenu', handleContext, true)
                           :trigger="['click']"
                           @click.stop
                         >
-                          <PhDotsThreeOutlineVerticalThin
+                          <GeneralIcon
+                            icon="threeDotVertical"
                             class="transition-opacity opacity-0 group-hover:opacity-100 outline-0"
                           />
 
@@ -804,7 +829,7 @@ useEventListener(document, 'contextmenu', handleContext, true)
                     class="group flex items-center gap-2 pl-8 pr-3 py-2 text-primary/70 hover:(text-primary/100) cursor-pointer select-none"
                     @click="openTableCreateDialog(bases[0].id)"
                   >
-                    <MdiPlus />
+                    <component :is="iconMap.plus" />
 
                     <span class="text-gray-500 group-hover:(text-primary/100) flex-1 nc-add-new-table">{{
                       $t('tooltip.addTable')
@@ -816,7 +841,8 @@ useEventListener(document, 'contextmenu', handleContext, true)
                       overlay-class-name="nc-dropdown-import-menu"
                       @click.stop
                     >
-                      <PhDotsThreeOutlineVerticalThin
+                      <component
+                        :is="iconMap.threeDotVertical"
                         class="transition-opacity opacity-0 group-hover:opacity-100 nc-import-menu outline-0"
                       />
 
@@ -826,18 +852,18 @@ useEventListener(document, 'contextmenu', handleContext, true)
                             <template #title>
                               <div class="flex items-center">
                                 Noco
-                                <PhSparkleFill class="ml-1 text-orange-400" />
+                                <GeneralIcon icon="magic" class="ml-1 text-orange-400" />
                               </div>
                             </template>
                             <a-menu-item key="table-magic" @click="openTableCreateMagicDialog(bases[0].id)">
                               <div class="color-transition nc-project-menu-item group">
-                                <MdiMagicStaff class="group-hover:text-accent" />
+                                <GeneralIcon icon="magic1" class="group-hover:text-accent" />
                                 Create table
                               </div>
                             </a-menu-item>
                             <a-menu-item key="schema-magic" @click="openSchemaMagicDialog(bases[0].id)">
                               <div class="color-transition nc-project-menu-item group">
-                                <MdiMagicStaff class="group-hover:text-accent" />
+                                <GeneralIcon icon="magic1" class="group-hover:text-accent" />
                                 Create schema
                               </div>
                             </a-menu-item>
@@ -853,7 +879,7 @@ useEventListener(document, 'contextmenu', handleContext, true)
                               @click="openAirtableImportDialog(bases[0].id)"
                             >
                               <div class="color-transition nc-project-menu-item group">
-                                <MdiTableLarge class="group-hover:text-accent" />
+                                <component :is="iconMap.airtable" class="group-hover:text-accent" />
                                 Airtable
                               </div>
                             </a-menu-item>
@@ -864,7 +890,7 @@ useEventListener(document, 'contextmenu', handleContext, true)
                               @click="openQuickImportDialog('csv', bases[0].id)"
                             >
                               <div class="color-transition nc-project-menu-item group">
-                                <MdiFileDocumentOutline class="group-hover:text-accent" />
+                                <component :is="iconMap.csv" class="group-hover:text-accent" />
                                 CSV file
                               </div>
                             </a-menu-item>
@@ -875,7 +901,7 @@ useEventListener(document, 'contextmenu', handleContext, true)
                               @click="openQuickImportDialog('json', bases[0].id)"
                             >
                               <div class="color-transition nc-project-menu-item group">
-                                <MdiCodeJson class="group-hover:text-accent" />
+                                <component :is="iconMap.json" class="group-hover:text-accent" />
                                 JSON file
                               </div>
                             </a-menu-item>
@@ -886,7 +912,7 @@ useEventListener(document, 'contextmenu', handleContext, true)
                               @click="openQuickImportDialog('excel', bases[0].id)"
                             >
                               <div class="color-transition nc-project-menu-item group">
-                                <MdiFileExcel class="group-hover:text-accent" />
+                                <component :is="iconMap.excel" class="group-hover:text-accent" />
                                 Microsoft Excel
                               </div>
                             </a-menu-item>
@@ -901,7 +927,7 @@ useEventListener(document, 'contextmenu', handleContext, true)
                               target="_blank"
                               class="prose-sm hover:(!text-primary !opacity-100) color-transition nc-project-menu-item group after:(!rounded-b)"
                             >
-                              <MdiOpenInNew class="group-hover:text-accent" />
+                              <component :is="iconMap.share" class="group-hover:text-accent" />
                               <!-- Request a data source you need? -->
                               {{ $t('labels.requestDataSource') }}
                             </a>
@@ -915,7 +941,7 @@ useEventListener(document, 'contextmenu', handleContext, true)
                     class="group flex items-center gap-2 pl-8 pr-3 py-2 text-primary/70 hover:(text-primary/100) cursor-pointer select-none"
                     @click="openTableCreateDialog(base.id)"
                   >
-                    <MdiPlus />
+                    <component :is="iconMap.plus" />
 
                     <span class="text-gray-500 group-hover:(text-primary/100) flex-1 nc-add-new-table">{{
                       $t('tooltip.addTable')
@@ -927,7 +953,8 @@ useEventListener(document, 'contextmenu', handleContext, true)
                       overlay-class-name="nc-dropdown-import-menu"
                       @click.stop
                     >
-                      <PhDotsThreeOutlineVerticalThin
+                      <component
+                        :is="iconMap.threeDotVertical"
                         class="transition-opacity opacity-0 group-hover:opacity-100 nc-import-menu outline-0"
                       />
 
@@ -937,18 +964,18 @@ useEventListener(document, 'contextmenu', handleContext, true)
                             <template #title>
                               <div class="flex items-center">
                                 Noco
-                                <PhSparkleFill class="ml-1 text-orange-400" />
+                                <GeneralIcon icon="magic" class="ml-1 text-orange-400" />
                               </div>
                             </template>
                             <a-menu-item key="table-magic" @click="openTableCreateMagicDialog(base.id)">
                               <div class="color-transition nc-project-menu-item group">
-                                <MdiMagicStaff class="group-hover:text-accent" />
+                                <GeneralIcon icon="magic1" class="group-hover:text-accent" />
                                 Create table
                               </div>
                             </a-menu-item>
                             <a-menu-item key="schema-magic" @click="openSchemaMagicDialog(base.id)">
                               <div class="color-transition nc-project-menu-item group">
-                                <MdiMagicStaff class="group-hover:text-accent" />
+                                <GeneralIcon icon="magic1" class="group-hover:text-accent" />
                                 Create schema
                               </div>
                             </a-menu-item>
@@ -964,7 +991,7 @@ useEventListener(document, 'contextmenu', handleContext, true)
                               @click="openAirtableImportDialog(base.id)"
                             >
                               <div class="color-transition nc-project-menu-item group">
-                                <MdiTableLarge class="group-hover:text-accent" />
+                                <component :is="iconMap.airtable" class="group-hover:text-accent" />
                                 Airtable
                               </div>
                             </a-menu-item>
@@ -975,7 +1002,7 @@ useEventListener(document, 'contextmenu', handleContext, true)
                               @click="openQuickImportDialog('csv', base.id)"
                             >
                               <div class="color-transition nc-project-menu-item group">
-                                <MdiFileDocumentOutline class="group-hover:text-accent" />
+                                <component :is="iconMap.csv" class="group-hover:text-accent" />
                                 CSV file
                               </div>
                             </a-menu-item>
@@ -986,7 +1013,7 @@ useEventListener(document, 'contextmenu', handleContext, true)
                               @click="openQuickImportDialog('json', base.id)"
                             >
                               <div class="color-transition nc-project-menu-item group">
-                                <MdiCodeJson class="group-hover:text-accent" />
+                                <component :is="iconMap.json" class="group-hover:text-accent" />
                                 JSON file
                               </div>
                             </a-menu-item>
@@ -997,7 +1024,7 @@ useEventListener(document, 'contextmenu', handleContext, true)
                               @click="openQuickImportDialog('excel', base.id)"
                             >
                               <div class="color-transition nc-project-menu-item group">
-                                <MdiFileExcel class="group-hover:text-accent" />
+                                <component :is="iconMap.excel" class="group-hover:text-accent" />
                                 Microsoft Excel
                               </div>
                             </a-menu-item>
@@ -1012,7 +1039,7 @@ useEventListener(document, 'contextmenu', handleContext, true)
                               target="_blank"
                               class="prose-sm hover:(!text-primary !opacity-100) color-transition nc-project-menu-item group after:(!rounded-b)"
                             >
-                              <MdiOpenInNew class="group-hover:text-accent" />
+                              <component :is="iconMap.openInNew" class="group-hover:text-accent" />
                               <!-- Request a data source you need? -->
                               {{ $t('labels.requestDataSource') }}
                             </a>
@@ -1086,7 +1113,8 @@ useEventListener(document, 'contextmenu', handleContext, true)
                             :trigger="['click']"
                             @click.stop
                           >
-                            <PhDotsThreeOutlineVerticalThin
+                            <component
+                              :is="iconMap.threeDotVertical"
                               class="transition-opacity opacity-0 group-hover:opacity-100 outline-0"
                             />
 
@@ -1168,18 +1196,20 @@ useEventListener(document, 'contextmenu', handleContext, true)
     <a-divider class="!my-0" />
 
     <div class="flex items-start flex-col justify-start px-2 py-3 gap-2">
-      <LazyGeneralAddBaseButton
-        class="color-transition py-1.5 px-2 text-primary font-bold cursor-pointer select-none hover:text-accent"
-      />
+      <LazyGeneralAddBaseButton class="color-transition py-1.5 px-2 cursor-pointer select-none hover:text-primary" />
 
       <LazyGeneralHelpAndSupport class="color-transition px-2 text-gray-500 cursor-pointer select-none hover:text-accent" />
 
-      <GeneralJoinCloud class="color-transition px-2 text-gray-500 cursor-pointer select-none hover:text-accent" />
+      <GeneralJoinCloud
+        v-if="!isMobileMode"
+        class="color-transition px-2 text-gray-500 cursor-pointer select-none hover:text-accent"
+      />
       <!--
            todo: enable it back later
            disable at the moment to avoid issue with navigation
 
            <GithubButton
+        v-if="!isMobileMode"
               class="ml-2 py-1"
               href="https://github.com/nocodb/nocodb"
               data-icon="octicon-star"

@@ -4,15 +4,20 @@ import { RelationTypes, UITypes, isVirtualCol } from 'nocodb-sdk'
 import { SwipeDirection, breakpointsTailwind } from '@vueuse/core'
 import {
   DropZoneRef,
+  IsSurveyFormInj,
   computed,
+  iconMap,
+  isValidURL,
   onKeyStroke,
   onMounted,
   provide,
   ref,
   useBreakpoints,
+  useI18n,
   usePointerSwipe,
   useSharedFormStoreOrThrow,
   useStepper,
+  validateEmail,
 } from '#imports'
 
 enum TransitionDirection {
@@ -32,6 +37,8 @@ const { md } = useBreakpoints(breakpointsTailwind)
 const { v$, formState, formColumns, submitForm, submitted, secondsRemain, sharedFormView, sharedViewMeta, onReset } =
   useSharedFormStoreOrThrow()
 
+const { t } = useI18n()
+
 const isTransitioning = ref(false)
 
 const transitionName = ref<TransitionDirection>(TransitionDirection.Left)
@@ -40,9 +47,13 @@ const animationTarget = ref<AnimationTarget>(AnimationTarget.ArrowRight)
 
 const isAnimating = ref(false)
 
+const editEnabled = ref<boolean[]>([])
+
 const el = ref<HTMLDivElement>()
 
 provide(DropZoneRef, el)
+
+provide(IsSurveyFormInj, ref(true))
 
 const transitionDuration = computed(() => sharedViewMeta.value.transitionDuration || 50)
 
@@ -63,6 +74,8 @@ const steps = computed(() => {
 const { index, goToPrevious, goToNext, isFirst, isLast, goTo } = useStepper(steps)
 
 const field = computed(() => formColumns.value?.[index.value])
+
+const columnValidationError = ref(false)
 
 function isRequired(column: ColumnType, required = false) {
   let columnObj = column
@@ -105,7 +118,29 @@ function animate(target: AnimationTarget) {
   }, transitionDuration.value / 2)
 }
 
+async function validateColumn() {
+  const f = field.value!
+  if (parseProp(f.meta)?.validate && formState.value[f.title!]) {
+    if (f.uidt === UITypes.Email) {
+      if (!validateEmail(formState.value[f.title!])) {
+        columnValidationError.value = true
+        message.error(t('msg.error.invalidEmail'))
+        return false
+      }
+    } else if (f.uidt === UITypes.URL) {
+      if (!isValidURL(formState.value[f.title!])) {
+        columnValidationError.value = true
+        message.error(t('msg.error.invalidURL'))
+        return false
+      }
+    }
+  }
+  return true
+}
+
 async function goNext(animationTarget?: AnimationTarget) {
+  columnValidationError.value = false
+
   if (isLast.value || submitted.value) return
 
   if (!field.value || !field.value.title) return
@@ -116,6 +151,8 @@ async function goNext(animationTarget?: AnimationTarget) {
     const isValid = await validationField.$validate()
     if (!isValid) return
   }
+
+  if (!(await validateColumn())) return
 
   animate(animationTarget || AnimationTarget.ArrowRight)
 
@@ -159,9 +196,8 @@ function resetForm() {
   goTo(steps.value[0])
 }
 
-function submit() {
-  if (submitted.value) return
-
+async function submit() {
+  if (submitted.value || !(await validateColumn())) return
   submitForm()
 }
 
@@ -177,7 +213,7 @@ onKeyStroke(['Enter', 'Space'], () => {
   if (isLast.value) {
     submit()
   } else {
-    goNext(AnimationTarget.OkButton)
+    goNext(AnimationTarget.OkButton, true)
   }
 })
 
@@ -263,7 +299,10 @@ onMounted(() => {
                 class="nc-input"
                 :data-testid="`nc-survey-form__input-${field.title.replaceAll(' ', '')}`"
                 :column="field"
-                :edit-enabled="true"
+                :edit-enabled="editEnabled[index]"
+                @click="editEnabled[index] = true"
+                @cancel="editEnabled[index] = false"
+                @update:edit-enabled="editEnabled[index] = $event"
               />
 
               <div class="flex flex-col gap-2 text-slate-500 dark:text-slate-300 text-[0.75rem] my-2 px-1">
@@ -315,7 +354,7 @@ onMounted(() => {
                     class="bg-opacity-100 scaling-btn flex items-center gap-1"
                     data-testid="nc-survey-form__btn-next"
                     :class="[
-                      v$.localState[field.title]?.$error ? 'after:!bg-gray-100 after:!ring-red-500' : '',
+                      v$.localState[field.title]?.$error || columnValidationError ? 'after:!bg-gray-100 after:!ring-red-500' : '',
                       animationTarget === AnimationTarget.OkButton && isAnimating
                         ? 'transform translate-y-[2px] translate-x-[2px] after:(!ring !ring-accent !ring-opacity-100)'
                         : '',
@@ -327,8 +366,12 @@ onMounted(() => {
                     </Transition>
 
                     <Transition name="slide-right" mode="out-in">
-                      <MdiCloseCircleOutline v-if="v$.localState[field.title]?.$error" class="text-red-500 md:text-md" />
-                      <MdiCheck v-else class="text-white md:text-md" />
+                      <component
+                        :is="iconMap.closeCircle"
+                        v-if="v$.localState[field.title]?.$error || columnValidationError"
+                        class="text-red-500 md:text-md"
+                      />
+                      <component :is="iconMap.check" v-else class="text-white md:text-md" />
                     </Transition>
                   </button>
                 </a-tooltip>
@@ -402,7 +445,11 @@ onMounted(() => {
               data-testid="nc-survey-form__icon-prev"
               @click="goPrevious()"
             >
-              <MdiChevronLeft :class="isFirst ? 'text-gray-300' : 'group-hover:text-accent'" class="text-2xl md:text-md" />
+              <component
+                :is="iconMap.chevronLeft"
+                :class="isFirst ? 'text-gray-300' : 'group-hover:text-accent'"
+                class="text-2xl md:text-md"
+              />
             </button>
           </a-tooltip>
 
@@ -421,7 +468,8 @@ onMounted(() => {
               data-testid="nc-survey-form__icon-next"
               @click="goNext()"
             >
-              <MdiChevronRight
+              <component
+                :is="iconMap.chevronRight"
                 :class="[isLast || v$.localState[field.title]?.$error ? 'text-gray-300' : 'group-hover:text-accent']"
                 class="text-2xl md:text-md"
               />

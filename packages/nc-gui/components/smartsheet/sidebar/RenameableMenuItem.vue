@@ -1,8 +1,19 @@
 <script lang="ts" setup>
+import type { VNodeRef } from '@vue/runtime-core'
 import type { KanbanType, ViewType, ViewTypes } from 'nocodb-sdk'
 import type { WritableComputedRef } from '@vue/reactivity'
 import { Tooltip } from 'ant-design-vue'
-import { IsLockedInj, inject, message, onKeyStroke, useDebounceFn, useNuxtApp, useUIPermission, useVModel } from '#imports'
+import {
+  IsLockedInj,
+  iconMap,
+  inject,
+  message,
+  onKeyStroke,
+  useDebounceFn,
+  useNuxtApp,
+  useUIPermission,
+  useVModel,
+} from '#imports'
 
 interface Props {
   view: ViewType
@@ -33,7 +44,7 @@ const { $e } = useNuxtApp()
 
 const { isUIAllowed } = useUIPermission()
 
-const isLocked = inject(IsLockedInj)
+const isLocked = inject(IsLockedInj, ref(false))
 
 /** Is editing the view name enabled */
 let isEditing = $ref<boolean>(false)
@@ -93,9 +104,7 @@ onKeyStroke('Enter', (event) => {
   }
 })
 
-function focusInput(el: HTMLInputElement) {
-  if (el) el.focus()
-}
+const focusInput: VNodeRef = (el) => (el as HTMLInputElement)?.focus()
 
 /** Duplicate a view */
 // todo: This is not really a duplication, maybe we need to implement a true duplication?
@@ -183,7 +192,7 @@ function onStopEdit() {
         v-if="isEditing"
         :ref="focusInput"
         v-model:value="vModel.title"
-        @blur="onCancel"
+        @blur="onRename"
         @keydown.stop="onKeyDown($event)"
       />
 
@@ -200,7 +209,11 @@ function onStopEdit() {
               {{ $t('activity.copyView') }}
             </template>
 
-            <MdiContentCopy class="!hidden !group-hover:block text-gray-500 nc-view-copy-icon" @click.stop="onDuplicate" />
+            <component
+              :is="iconMap.copy"
+              class="!hidden !group-hover:block text-gray-500 nc-view-copy-icon"
+              @click.stop="onDuplicate"
+            />
           </a-tooltip>
 
           <template v-if="!vModel.is_default">
@@ -209,7 +222,11 @@ function onStopEdit() {
                 {{ $t('activity.deleteView') }}
               </template>
 
-              <MdiTrashCan class="!hidden !group-hover:block text-red-500 nc-view-delete-icon" @click.stop="onDelete" />
+              <component
+                :is="iconMap.delete"
+                class="!hidden !group-hover:block text-red-500 nc-view-delete-icon"
+                @click.stop="onDelete"
+              />
             </a-tooltip>
           </template>
         </div>

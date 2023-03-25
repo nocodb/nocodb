@@ -162,14 +162,14 @@ const isSharedBase = ref(false)
     </span>
     <span :class="{ 'flex-grow': !editMode }"></span>
     <a-dropdown>
-      <MdiDotsVertical class="mr-1.5 opacity-0 group-hover:opacity-100" @click.stop />
+      <GeneralIcon icon="threeDotVertical" class="mr-1.5 opacity-0 group-hover:opacity-100" @click.stop />
       <template #overlay>
         <a-menu>
           <!--          <a-menu class="!ml-1 !w-[300px] !text-sm"> -->
           <a-menu-item-group>
             <template #title>
               <div class="group select-none flex items-center gap-4 py-1">
-                <MdiFolder class="group-hover:text-accent text-xl" />
+                <GeneralIcon icon="folder" class="group-hover:text-accent text-xl" />
 
                 <div class="flex flex-col">
                   <div class="text-lg group-hover:(!text-primary) font-semibold capitalize">
@@ -188,7 +188,7 @@ const isSharedBase = ref(false)
               <!-- Copy Project Info -->
               <a-menu-item key="copy">
                 <div v-e="['c:navbar:user:copy-proj-info']" class="nc-project-menu-item group" @click.stop="copyProjectInfo">
-                  <MdiContentCopy class="group-hover:text-accent" />
+                  <GeneralIcon icon="copy" class="group-hover:text-accent" />
                   {{ $t('activity.account.projInfo') }}
                 </div>
               </a-menu-item>
@@ -203,7 +203,7 @@ const isSharedBase = ref(false)
                   class="nc-project-menu-item group"
                   @click.stop="openLink(`/api/v1/db/meta/projects/${project.id}/swagger`, appInfo.ncSiteUrl)"
                 >
-                  <MdiApi class="group-hover:text-accent" />
+                  <GeneralIcon icon="json" class="group-hover:text-accent" />
                   {{ $t('activity.account.swagger') }}
                 </div>
               </a-menu-item>
@@ -218,7 +218,7 @@ const isSharedBase = ref(false)
                   class="nc-project-menu-item group"
                   @click="toggleDialog(true, 'teamAndAuth', undefined, project.id)"
                 >
-                  <MdiCog class="group-hover:text-accent" />
+                  <GeneralIcon icon="settings" class="group-hover:text-accent" />
                   {{ $t('title.teamAndSettings') }}
                 </div>
               </a-menu-item>
@@ -227,13 +227,13 @@ const isSharedBase = ref(false)
 
               <a-menu-item @click="enableEditMode">
                 <div class="nc-project-menu-item group">
-                  <MdiPencilOutline />
+                  <GeneralIcon icon="edit" />
                   Edit
                 </div>
               </a-menu-item>
               <a-menu-item @click="confirmDeleteProject">
                 <div class="nc-project-menu-item group">
-                  <MdiDeleteOutline />
+                  <GeneralIcon icon="delete" />
                   Delete
                 </div>
               </a-menu-item>

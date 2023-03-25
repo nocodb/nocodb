@@ -39,6 +39,7 @@
     "signIn": "PIESLĒGTIES",
     "signOut": "Atteikties",
     "required": "Obligāts",
+    "enableScanner": "Enable Scanner for filling",
     "preferred": "Vēlams",
     "mandatory": "Obligāts",
     "loading": "Uzgaidiet ...",
@@ -209,7 +210,8 @@
     "advancedSettings": "Izvērstie iestatījumi",
     "codeSnippet": "Koda fragments",
     "keyboardShortcut": "Tastatūras saīsnes",
-    "generateRandomName": "Generate Random Name"
+    "generateRandomName": "Generate Random Name",
+    "findRowByScanningCode": "Find row by scanning a QR or Barcode"
   },
   "labels": {
     "createdBy": "Izveidoja",
@@ -219,6 +221,7 @@
     "viewName": "Skata nosaukums",
     "viewLink": "Skata saite",
     "columnName": "Kolonnas nosaukums",
+    "columnToScanFor": "Column to scan",
     "columnType": "Kolonnas tips",
     "roleName": "Lomas nosaukums",
     "roleDescription": "Lomas apraksts",
@@ -393,8 +396,8 @@
     "saveAndExit": "Saglabāt un iziet",
     "saveAndStay": "Saglabāt un palikt",
     "insertRow": "Pievienot jaunu ierakstu",
-    "deleteRow": "Dzēst ierakstu",
     "duplicateRow": "Duplicate Row",
+    "deleteRow": "Dzēst ierakstu",
     "deleteSelectedRow": "Dzēst izvēlētos ierakstus",
     "importExcel": "Importēt Excel",
     "importCSV": "CSV importēšana",
@@ -409,6 +412,8 @@
     "changePwd": "Mainīt paroli",
     "createView": "Veidot skatu",
     "shareView": "Koplietot skatu",
+    "findRowByCodeScan": "Find row by scan",
+    "fillByCodeScan": "Fill by scan",
     "listSharedView": "Koplietoto skatu saraksts",
     "ListView": "Skatu saraksts",
     "copyView": "Kopēt skatu",
@@ -424,6 +429,10 @@
     "openTab": "Atvērt jaunā cilnē",
     "iFrame": "Kopēt ieguļamo HTML kodu",
     "addWebhook": "Pievienot Webhook",
+    "enableWebhook": "Enable Webhook",
+    "testWebhook": "Test Webhook",
+    "copyWebhook": "Copy Webhook",
+    "deleteWebhook": "Delete Webhook",
     "newToken": "Jauns talons",
     "exportZip": "Eksportēt zip",
     "importZip": "Importēt zip",
@@ -465,7 +474,8 @@
       "chooseMappingField": "Choose a Mapping Field",
       "openInGoogleMaps": "Google Maps",
       "openInOpenStreetMap": "OSM"
-    }
+    },
+    "toggleMobileMode": "Toggle Mobile Mode"
   },
   "tooltip": {
     "saveChanges": "Saglabāt izmaiņas",
@@ -530,6 +540,12 @@
       "roles": {
         "orgCreator": "Radītājs var izveidot jaunus projektus un piekļūt jebkuram uzaicinātajam projektam.",
         "orgViewer": "Skatītājs nedrīkst veidot jaunus projektus, bet var piekļūt jebkuram uzaicinātajam projektam."
+      },
+      "codeScanner": {
+        "loadingScanner": "Loading the scanner...",
+        "selectColumn": "Select a column (QR code or Barcode) that you want to use for finding a row by scanning.",
+        "moreThanOneRowFoundForCode": "More than one row found for this code. Currently only unique codes are supported.",
+        "noRowFoundForCode": "No row found for this code for the selected column"
       },
       "map": {
         "overLimit": "You're over the limit.",
@@ -682,6 +698,7 @@
         "allowedSpecialCharList": "Atļauto īpašo rakstzīmju saraksts"
       },
       "invalidURL": "Nederīgs URL",
+      "invalidEmail": "Invalid Email",
       "internalError": "Notika kāda iekšēja kļūda",
       "templateGeneratorNotFound": "Šablonu ģenerators nav atrodams!",
       "fileUploadFailed": "Fail to upload file",
@@ -762,6 +779,7 @@
       "userDeletedFromProject": "Veiksmīgi dzēsts lietotājs no projekta",
       "inviteEmailSent": "Uzaicinājuma e-pasta vēstule ir veiksmīgi nosūtīta",
       "inviteURLCopied": "Uzaicinājuma URL nokopēts uz starpliktuvi",
+      "commentCopied": "Comment copied to clipboard",
       "passwordResetURLCopied": "Paroles atiestatīšanas URL nokopēts uz starpliktuvi",
       "shareableURLCopied": "Kopēts koplietojamais bāzes URL uz starpliktuvi!",
       "embeddableHTMLCodeCopied": "Kopēts HTML kods, ko var ievietot!",

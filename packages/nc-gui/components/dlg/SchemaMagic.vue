@@ -117,7 +117,7 @@ onMounted(() => {
         <!-- Create A New Table -->
         <div class="flex prose-xl font-bold self-center my-4 items-center">
           Create schema using
-          <PhSparkleFill :class="{ 'nc-animation-pulse': loadMagic }" class="ml-2 text-orange-400" />
+          <GeneralIcon icon="magic" :class="{ 'nc-animation-pulse': loadMagic }" class="ml-2 text-orange-400" />
         </div>
 
         <!-- hint="Enter table name" -->

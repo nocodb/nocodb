@@ -43,10 +43,10 @@ const activeTable = computed(() => ([TabType.TABLE, TabType.VIEW].includes(activ
 
 const icon = (table: TableType) => {
   if (table.type === 'table') {
-    return PhTableThin
+    return iconMap.table
   }
   if (table.type === 'view') {
-    return MdiView
+    return iconMap.view
   }
 }
 
@@ -164,7 +164,8 @@ const { isSharedBase } = useProject()
           :trigger="['click']"
           @click.stop
         >
-          <MdiDotsVertical
+          <GeneralIcon
+            icon="threeDotVertical"
             class="transition-opacity opacity-0 group-hover:opacity-100 outline-0"
             :class="{
               '!text-gray-600': activeTable !== table.id,

@@ -14,6 +14,7 @@ export const PaginationDataInj: InjectionKey<ReturnType<typeof useViewData>['pag
   Symbol('pagination-data-injection')
 export const ChangePageInj: InjectionKey<ReturnType<typeof useViewData>['changePage']> = Symbol('pagination-data-injection')
 export const IsFormInj: InjectionKey<Ref<boolean>> = Symbol('is-form-injection')
+export const IsSurveyFormInj: InjectionKey<Ref<boolean>> = Symbol('is-survey-form-injection')
 export const IsGridInj: InjectionKey<Ref<boolean>> = Symbol('is-grid-injection')
 export const IsGalleryInj: InjectionKey<Ref<boolean>> = Symbol('is-gallery-injection')
 export const IsKanbanInj: InjectionKey<Ref<boolean>> = Symbol('is-kanban-injection')

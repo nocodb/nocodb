@@ -39,6 +39,7 @@
     "signIn": "ACCEDI",
     "signOut": "Esci",
     "required": "Richiesto",
+    "enableScanner": "Enable Scanner for filling",
     "preferred": "Preferito",
     "mandatory": "Obbligatorio",
     "loading": "Caricamento ...",
@@ -209,7 +210,8 @@
     "advancedSettings": "Impostazioni Avanzate",
     "codeSnippet": "Snippet di codice",
     "keyboardShortcut": "Scorciatoie da tastiera",
-    "generateRandomName": "Generate Random Name"
+    "generateRandomName": "Generate Random Name",
+    "findRowByScanningCode": "Find row by scanning a QR or Barcode"
   },
   "labels": {
     "createdBy": "Creato da",
@@ -219,6 +221,7 @@
     "viewName": "Visualizza nome",
     "viewLink": "Visualizza link",
     "columnName": "Nome della colonna",
+    "columnToScanFor": "Column to scan",
     "columnType": "Tipo di colonna",
     "roleName": "Nome del ruolo",
     "roleDescription": "Descrizione del ruolo",
@@ -393,8 +396,8 @@
     "saveAndExit": "Salvare e uscire",
     "saveAndStay": "Risparmia e resta",
     "insertRow": "Inserisci nuova riga",
-    "deleteRow": "Elimina riga.",
     "duplicateRow": "Duplicate Row",
+    "deleteRow": "Elimina riga.",
     "deleteSelectedRow": "Elimina righe selezionate",
     "importExcel": "Importa Excel.",
     "importCSV": "Importazione CSV",
@@ -409,6 +412,8 @@
     "changePwd": "Cambia password",
     "createView": "Crea una vista",
     "shareView": "Condividi vista",
+    "findRowByCodeScan": "Find row by scan",
+    "fillByCodeScan": "Fill by scan",
     "listSharedView": "Elenco di visualizzazione condivisa",
     "ListView": "Lista viste",
     "copyView": "Copia vista",
@@ -424,6 +429,10 @@
     "openTab": "Apri una nuova scheda",
     "iFrame": "Copia codice HTML incorporabile",
     "addWebhook": "Aggiungi nuovo webhook.",
+    "enableWebhook": "Enable Webhook",
+    "testWebhook": "Test Webhook",
+    "copyWebhook": "Copy Webhook",
+    "deleteWebhook": "Delete Webhook",
     "newToken": "Aggiungi nuovo token.",
     "exportZip": "Esporta zip",
     "importZip": "Importa zip",
@@ -465,7 +474,8 @@
       "chooseMappingField": "Choose a Mapping Field",
       "openInGoogleMaps": "Google Maps",
       "openInOpenStreetMap": "OSM"
-    }
+    },
+    "toggleMobileMode": "Toggle Mobile Mode"
   },
   "tooltip": {
     "saveChanges": "Salva le modifiche",
@@ -530,6 +540,12 @@
       "roles": {
         "orgCreator": "Il Creatore può creare nuovi progetti e accedere a qualsiasi progetto invitato.",
         "orgViewer": "Il visualizzatore non può creare nuovi progetti, ma può accedere a qualsiasi progetto invitato."
+      },
+      "codeScanner": {
+        "loadingScanner": "Loading the scanner...",
+        "selectColumn": "Select a column (QR code or Barcode) that you want to use for finding a row by scanning.",
+        "moreThanOneRowFoundForCode": "More than one row found for this code. Currently only unique codes are supported.",
+        "noRowFoundForCode": "No row found for this code for the selected column"
       },
       "map": {
         "overLimit": "You're over the limit.",
@@ -682,6 +698,7 @@
         "allowedSpecialCharList": "Elenco dei caratteri speciali consentiti"
       },
       "invalidURL": "URL non valido",
+      "invalidEmail": "Invalid Email",
       "internalError": "Si è verificato un errore interno",
       "templateGeneratorNotFound": "Il generatore di modelli non può essere trovato!",
       "fileUploadFailed": "Non è riuscito a caricare il file",
@@ -762,6 +779,7 @@
       "userDeletedFromProject": "L'utente è stato eliminato con successo dal progetto",
       "inviteEmailSent": "L'e-mail di invito è stata inviata con successo",
       "inviteURLCopied": "URL dell'invito copiato negli appunti",
+      "commentCopied": "Comment copied to clipboard",
       "passwordResetURLCopied": "URL di reimpostazione della password copiato negli appunti",
       "shareableURLCopied": "Copia l'URL della base condivisibile negli appunti!",
       "embeddableHTMLCodeCopied": "Codice HTML incorporabile copiato!",

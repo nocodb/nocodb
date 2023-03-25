@@ -5,6 +5,7 @@ import tinycolor from 'tinycolor2'
 import {
   computed,
   extractSdkResponseErrorMsg,
+  iconMap,
   isRtlLang,
   message,
   projectThemeColors,
@@ -34,6 +35,8 @@ const { dashboardUrl } = useDashboard()
 const { isUIAllowed } = useUIPermission()
 
 const { isSharedBase } = storeToRefs(useProject())
+
+const { isMobileMode } = useGlobal()
 
 let showShareModel = $ref(false)
 
@@ -247,9 +250,9 @@ const copyIframeCode = async () => {
       @click="genShareLink"
     >
       <div class="flex items-center gap-1">
-        <MdiOpenInNew />
+        <component :is="iconMap.share" />
         <!-- Share View -->
-        <span class="!text-xs font-weight-normal"> {{ $t('activity.shareView') }}</span>
+        <span v-if="!isMobileMode" class="!text-xs font-weight-normal"> {{ $t('activity.shareView') }}</span>
       </div>
     </a-button>
 
@@ -270,17 +273,22 @@ const copyIframeCode = async () => {
         <div class="flex-1 h-min text-xs text-gray-500">{{ sharedViewUrl }}</div>
 
         <a v-e="['c:view:share:open-url']" :href="sharedViewUrl" target="_blank">
-          <MdiOpenInNew class="text-sm text-gray-500" />
+          <component :is="iconMap.share" class="text-sm text-gray-500" />
         </a>
 
-        <MdiContentCopy v-e="['c:view:share:copy-url']" class="text-gray-500 text-sm cursor-pointer" @click="copyLink" />
+        <component
+          :is="iconMap.copy"
+          v-e="['c:view:share:copy-url']"
+          class="text-gray-500 text-sm cursor-pointer"
+          @click="copyLink"
+        />
       </div>
 
       <div
         class="flex gap-1 items-center pb-1 text-gray-500 cursor-pointer font-weight-medium mb-2 mt-4 pl-1"
         @click="copyIframeCode"
       >
-        <MdiCodeTags class="text-gray-500" />
+        <component :is="iconMap.embed" class="text-gray-500" />
         Embed this view in your site
       </div>
 

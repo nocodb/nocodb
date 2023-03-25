@@ -11,6 +11,7 @@ import {
   SmartsheetStoreEvents,
   extractSdkResponseErrorMsg,
   getUniqueColumnName,
+  iconMap,
   inject,
   message,
   useI18n,
@@ -213,13 +214,12 @@ const hideField = async () => {
 
 <template>
   <a-dropdown v-if="!isLocked" placement="bottomRight" :trigger="['click']" overlay-class-name="nc-dropdown-column-operations">
-    <MdiMenuDown class="h-full text-grey nc-ui-dt-dropdown cursor-pointer outline-0" />
-
+    <div><GeneralIcon icon="arrowDown" class="text-grey h-full text-grey nc-ui-dt-dropdown cursor-pointer outline-0 mr-2" /></div>
     <template #overlay>
       <a-menu class="shadow bg-white">
         <a-menu-item @click="emit('edit')">
           <div class="nc-column-edit nc-header-menu-item">
-            <MdiPencil class="text-primary" />
+            <component :is="iconMap.edit" class="text-primary" />
             <!-- Edit -->
             {{ $t('general.edit') }}
           </div>
@@ -228,14 +228,14 @@ const hideField = async () => {
           <a-divider class="!my-0" />
           <a-menu-item @click="sortByColumn('asc')">
             <div v-e="['a:field:sort', { dir: 'asc' }]" class="nc-column-insert-after nc-header-menu-item">
-              <MdiSortAscending class="text-primary" />
+              <component :is="iconMap.sortAsc" class="text-primary" />
               <!-- Sort Ascending -->
               {{ $t('general.sortAsc') }}
             </div>
           </a-menu-item>
           <a-menu-item @click="sortByColumn('desc')">
             <div v-e="['a:field:sort', { dir: 'desc' }]" class="nc-column-insert-before nc-header-menu-item">
-              <MdiSortDescending class="text-primary" />
+              <component :is="iconMap.sortDesc" class="text-primary" />
               <!-- Sort Descending -->
               {{ $t('general.sortDesc') }}
             </div>
@@ -244,7 +244,7 @@ const hideField = async () => {
         <a-divider class="!my-0" />
         <a-menu-item v-if="!column?.pv" @click="hideField">
           <div v-e="['a:field:hide']" class="nc-column-insert-before nc-header-menu-item">
-            <MdiEyeOffOutline class="text-primary" />
+            <component :is="iconMap.eye" class="text-primary" />
             <!-- Hide Field -->
             {{ $t('general.hideField') }}
           </div>
@@ -257,21 +257,21 @@ const hideField = async () => {
           @click="duplicateColumn"
         >
           <div v-e="['a:field:duplicate']" class="nc-column-duplicate nc-header-menu-item">
-            <MdiFileReplaceOutline class="text-primary" />
+            <component :is="iconMap.duplicate" class="text-primary" />
             <!-- Duplicate -->
             {{ t('general.duplicate') }}
           </div>
         </a-menu-item>
         <a-menu-item @click="addColumn()">
           <div v-e="['a:field:insert:after']" class="nc-column-insert-after nc-header-menu-item">
-            <MdiTableColumnPlusAfter class="text-primary" />
+            <component :is="iconMap.colInsertAfter" class="text-primary" />
             <!-- Insert After -->
             {{ t('general.insertAfter') }}
           </div>
         </a-menu-item>
         <a-menu-item v-if="!column?.pv" @click="addColumn(true)">
           <div v-e="['a:field:insert:before']" class="nc-column-insert-before nc-header-menu-item">
-            <MdiTableColumnPlusBefore class="text-primary" />
+            <component :is="iconMap.colInsertBefore" class="text-primary" />
             <!-- Insert Before -->
             {{ t('general.insertBefore') }}
           </div>
@@ -280,7 +280,7 @@ const hideField = async () => {
 
         <a-menu-item v-if="(!virtual || column?.uidt === UITypes.Formula) && !column?.pv" @click="setAsDisplayValue">
           <div class="nc-column-set-primary nc-header-menu-item">
-            <MdiStar class="text-primary" />
+            <GeneralIcon icon="star" class="text-primary" />
 
             <!--       todo : tooltip -->
             <!-- Set as Display value -->
@@ -290,7 +290,7 @@ const hideField = async () => {
 
         <a-menu-item v-if="!column?.pv" @click="deleteColumn">
           <div class="nc-column-delete nc-header-menu-item">
-            <MdiDeleteOutline class="text-error" />
+            <component :is="iconMap.delete" class="text-error" />
             <!-- Delete -->
             {{ $t('general.delete') }}
           </div>

@@ -39,6 +39,7 @@
     "signIn": "LOGG INN",
     "signOut": "Logg ut",
     "required": "Kreves",
+    "enableScanner": "Enable Scanner for filling",
     "preferred": "Foretrukket",
     "mandatory": "Påbudt, bindende",
     "loading": "Laster ...",
@@ -209,7 +210,8 @@
     "advancedSettings": "Advanced Settings",
     "codeSnippet": "Code Snippet",
     "keyboardShortcut": "Keyboard Shortcuts",
-    "generateRandomName": "Generate Random Name"
+    "generateRandomName": "Generate Random Name",
+    "findRowByScanningCode": "Find row by scanning a QR or Barcode"
   },
   "labels": {
     "createdBy": "Created By",
@@ -219,6 +221,7 @@
     "viewName": "Se navn",
     "viewLink": "Vis lenke",
     "columnName": "Kolonne navn",
+    "columnToScanFor": "Column to scan",
     "columnType": "Kolonne TYPE",
     "roleName": "Rollenavn",
     "roleDescription": "Rollbeskrivelse",
@@ -393,8 +396,8 @@
     "saveAndExit": "Save & Exit",
     "saveAndStay": "Save & Stay",
     "insertRow": "Sett inn ny rad",
-    "deleteRow": "Slett rad",
     "duplicateRow": "Duplicate Row",
+    "deleteRow": "Slett rad",
     "deleteSelectedRow": "Slett utvalgte rader",
     "importExcel": "Importer Excel.",
     "importCSV": "Import CSV",
@@ -409,6 +412,8 @@
     "changePwd": "Bytt passord",
     "createView": "Opprett en visning",
     "shareView": "Del visning",
+    "findRowByCodeScan": "Find row by scan",
+    "fillByCodeScan": "Fill by scan",
     "listSharedView": "Felles visningsliste",
     "ListView": "Visningsliste",
     "copyView": "Kopier visning",
@@ -424,6 +429,10 @@
     "openTab": "Åpne ny fanering",
     "iFrame": "Kopier EmbedDable HTML-kode",
     "addWebhook": "Legg til ny webhook.",
+    "enableWebhook": "Enable Webhook",
+    "testWebhook": "Test Webhook",
+    "copyWebhook": "Copy Webhook",
+    "deleteWebhook": "Delete Webhook",
     "newToken": "Legg til nytt Token.",
     "exportZip": "Eksporter zip",
     "importZip": "Importer zip",
@@ -465,7 +474,8 @@
       "chooseMappingField": "Choose a Mapping Field",
       "openInGoogleMaps": "Google Maps",
       "openInOpenStreetMap": "OSM"
-    }
+    },
+    "toggleMobileMode": "Toggle Mobile Mode"
   },
   "tooltip": {
     "saveChanges": "Lagre endringer",
@@ -530,6 +540,12 @@
       "roles": {
         "orgCreator": "Creator can create new projects and access any invited project.",
         "orgViewer": "Viewer is not allowed to create new projects but they can access any invited project."
+      },
+      "codeScanner": {
+        "loadingScanner": "Loading the scanner...",
+        "selectColumn": "Select a column (QR code or Barcode) that you want to use for finding a row by scanning.",
+        "moreThanOneRowFoundForCode": "More than one row found for this code. Currently only unique codes are supported.",
+        "noRowFoundForCode": "No row found for this code for the selected column"
       },
       "map": {
         "overLimit": "You're over the limit.",
@@ -682,6 +698,7 @@
         "allowedSpecialCharList": "Allowed special character list"
       },
       "invalidURL": "Invalid URL",
+      "invalidEmail": "Invalid Email",
       "internalError": "Some internal error occurred",
       "templateGeneratorNotFound": "Template Generator cannot be found!",
       "fileUploadFailed": "Failed to upload file",
@@ -762,6 +779,7 @@
       "userDeletedFromProject": "Successfully deleted user from project",
       "inviteEmailSent": "Invite Email sent successfully",
       "inviteURLCopied": "Invite URL copied to clipboard",
+      "commentCopied": "Comment copied to clipboard",
       "passwordResetURLCopied": "Password reset URL copied to clipboard",
       "shareableURLCopied": "Copied shareable base URL to clipboard!",
       "embeddableHTMLCodeCopied": "Copied embeddable HTML code!",

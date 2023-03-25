@@ -8,6 +8,7 @@ import tinycolor from 'tinycolor2'
 import {
   extractSdkResponseErrorMsg,
   generateUniqueName,
+  iconMap,
   message,
   navigateTo,
   nextTick,
@@ -138,7 +139,7 @@ onMounted(async () => {
           class="color-transition transform group absolute top-5 left-5 text-4xl rounded-full cursor-pointer"
           @click="navigateTo('/')"
         >
-          <MdiChevronLeft class="text-black group-hover:(text-accent scale-110)" />
+          <component :is="iconMap.chevronLeft" class="text-black group-hover:(text-accent scale-110)" />
         </div>
 
         <h1 class="prose-2xl font-bold self-center my-4">{{ $t('activity.createProject') }}</h1>

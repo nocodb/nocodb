@@ -23,6 +23,7 @@ import {
   createEventHook,
   enumColor,
   extractPkFromRow,
+  iconMap,
   inject,
   isColumnRequiredAndNull,
   isDrawerOrModalExist,
@@ -870,8 +871,8 @@ function openGenerateDialog(target: any) {
                   @visible-change="persistMenu = altModifier"
                 >
                   <div class="h-full w-[60px] flex items-center justify-center">
-                    <PhSparkleFill v-if="altModifier || persistMenu" class="text-sm text-orange-400" />
-                    <MdiPlus v-else class="text-sm nc-column-add" />
+                    <GeneralIcon v-if="altModifier || persistMenu" icon="magic" class="text-sm text-orange-400" />
+                    <component :is="iconMap.plus" class="text-sm nc-column-add" />
                   </div>
 
                   <template v-if="persistMenu" #overlay>
@@ -1009,7 +1010,8 @@ function openGenerateDialog(target: any) {
                             v-else
                             class="cursor-pointer flex items-center border-1 active:ring rounded p-1 hover:(bg-primary bg-opacity-10)"
                           >
-                            <MdiArrowExpand
+                            <component
+                              :is="iconMap.expand"
                               v-e="['c:row-expand']"
                               class="select-none transform hover:(text-accent scale-120) nc-row-expand"
                               @click="expandForm(row, state)"
@@ -1083,7 +1085,7 @@ function openGenerateDialog(target: any) {
                 @click="addEmptyRow()"
               >
                 <div class="px-2 w-full flex items-center text-gray-500">
-                  <MdiPlus class="text-pint-500 text-xs ml-2 text-primary" />
+                  <component :is="iconMap.plus" class="text-pint-500 text-xs ml-2 text-primary" />
 
                   <span class="ml-1">
                     {{ $t('activity.addRow') }}
@@ -1139,7 +1141,7 @@ function openGenerateDialog(target: any) {
             <a-sub-menu v-if="contextMenuTarget" title="NocoAI">
               <a-menu-item @click="openGenerateDialog(contextMenuTarget)">
                 <div class="color-transition nc-project-menu-item group">
-                  <MdiMagicStaff class="group-hover:text-accent" />
+                  <GeneralIcon icon="magic1" class="group-hover:text-accent" />
                   Generate
                 </div>
               </a-menu-item>

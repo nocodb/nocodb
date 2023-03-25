@@ -79,7 +79,7 @@ async function createColumn() {
       <a-form :model="formState" name="create-new-workspace-form" @keydown.enter="createColumn">
         <div class="prose-xl font-bold self-center my-4">
           <div class="flex items-center py-3">
-            <PhSparkleFill class="mr-2 text-orange-400" />
+            <GeneralIcon icon="magic" class="mr-2 text-orange-400" />
             Add New Column Using AI for
           </div>
         </div>

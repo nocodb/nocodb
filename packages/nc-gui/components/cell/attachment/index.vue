@@ -7,6 +7,7 @@ import {
   DropZoneRef,
   IsGalleryInj,
   IsKanbanInj,
+  iconMap,
   inject,
   isImage,
   nextTick,
@@ -188,7 +189,7 @@ useSelectedCellKeyupListener(inject(ActiveCellInj, ref(false)), (e) => {
       data-testid="attachment-cell-file-picker-button"
       @click.stop="open"
     >
-      <MdiReload v-if="isLoading" :class="{ 'animate-infinite animate-spin': isLoading }" />
+      <component :is="iconMap.reload" v-if="isLoading" :class="{ 'animate-infinite animate-spin': isLoading }" />
 
       <a-tooltip v-else placement="bottom">
         <template #title> Click or drop a file into cell</template>
@@ -238,12 +239,13 @@ useSelectedCellKeyupListener(inject(ActiveCellInj, ref(false)), (e) => {
       <div
         class="group cursor-pointer flex gap-1 items-center active:(ring ring-accent ring-opacity-100) rounded border-1 p-1 shadow-sm hover:(bg-primary bg-opacity-10) dark:(!bg-slate-500)"
       >
-        <MdiReload v-if="isLoading" :class="{ 'animate-infinite animate-spin': isLoading }" />
+        <component :is="iconMap.reload" v-if="isLoading" :class="{ 'animate-infinite animate-spin': isLoading }" />
 
         <a-tooltip v-else placement="bottom">
           <template #title> View attachments</template>
 
-          <MdiArrowExpand
+          <component
+            :is="iconMap.expand"
             class="transform dark:(!text-white) group-hover:(!text-accent scale-120) text-gray-500 text-[0.75rem]"
             @click.stop="modalVisible = true"
           />

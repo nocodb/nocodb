@@ -8,6 +8,7 @@ import {
   ReloadViewDataHookInj,
   computed,
   getSortDirectionOptions,
+  iconMap,
   inject,
   ref,
   useMenuCloseOnEsc,
@@ -33,6 +34,8 @@ const addSort = () => {
     removeIcon.value?.[removeIcon.value?.length - 1]?.$el?.scrollIntoView()
   })
 }
+
+const { isMobileMode } = useGlobal()
 
 eventBus.on((event) => {
   if (event === SmartsheetStoreEvents.SORT_RELOAD) {
@@ -73,11 +76,11 @@ useMenuCloseOnEsc(open)
     <div :class="{ 'nc-badge nc-active-btn': sorts?.length }">
       <a-button v-e="['c:sort']" class="nc-sort-menu-btn nc-toolbar-btn" :disabled="isLocked">
         <div class="flex items-center gap-1">
-          <MdiSort />
+          <component :is="iconMap.sort" />
 
           <!-- Sort -->
-          <span class="text-capitalize !text-xs font-weight-normal">{{ $t('activity.sort') }}</span>
-          <MdiMenuDown class="text-grey" />
+          <span v-if="!isMobileMode" class="text-capitalize !text-xs font-weight-normal">{{ $t('activity.sort') }}</span>
+          <component :is="iconMap.arrowDown" class="text-grey" />
 
           <span v-if="sorts?.length" class="nc-count-badge">{{ sorts.length }}</span>
         </div>
@@ -91,7 +94,8 @@ useMenuCloseOnEsc(open)
       >
         <div v-if="sorts?.length" class="sort-grid mb-2 max-h-420px overflow-y-auto" @click.stop>
           <template v-for="(sort, i) of sorts" :key="i">
-            <MdiCloseBox
+            <component
+              :is="iconMap.closeBox"
               ref="removeIcon"
               class="nc-sort-item-remove-btn text-grey self-center"
               small
@@ -129,7 +133,7 @@ useMenuCloseOnEsc(open)
 
         <a-button class="text-capitalize mb-1 mt-4" type="primary" ghost @click.stop="addSort">
           <div class="flex gap-1 items-center">
-            <MdiPlus />
+            <component :is="iconMap.plus" />
             <!-- Add Sort Option -->
             {{ $t('activity.addSort') }}
           </div>

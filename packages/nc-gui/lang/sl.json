@@ -39,6 +39,7 @@
     "signIn": "PRIJAVITI SE",
     "signOut": "Odjava",
     "required": "Obvezno",
+    "enableScanner": "Enable Scanner for filling",
     "preferred": "Prednost",
     "mandatory": "Obvezno",
     "loading": "Nalaganje ...",
@@ -209,7 +210,8 @@
     "advancedSettings": "Napredne nastavitve",
     "codeSnippet": "Odlomek kode",
     "keyboardShortcut": "Bližnjice na tipkovnici",
-    "generateRandomName": "Generate Random Name"
+    "generateRandomName": "Generate Random Name",
+    "findRowByScanningCode": "Find row by scanning a QR or Barcode"
   },
   "labels": {
     "createdBy": "Ustvaril je",
@@ -219,6 +221,7 @@
     "viewName": "Ogled imena",
     "viewLink": "Ogled povezave",
     "columnName": "Ime stolpca",
+    "columnToScanFor": "Column to scan",
     "columnType": "Tip stolpca",
     "roleName": "Ime vloge.",
     "roleDescription": "Opis vlog",
@@ -393,8 +396,8 @@
     "saveAndExit": "Shranjevanje in izhod",
     "saveAndStay": "Shranjevanje in bivanje",
     "insertRow": "Vstavite novo vrstico",
-    "deleteRow": "Izbriši vrstico",
     "duplicateRow": "Duplicate Row",
+    "deleteRow": "Izbriši vrstico",
     "deleteSelectedRow": "Izbrišite izbrane vrstice",
     "importExcel": "Uvoz Excel.",
     "importCSV": "Uvoz CSV",
@@ -409,6 +412,8 @@
     "changePwd": "Spremeni geslo",
     "createView": "Ustvari pogled",
     "shareView": "Deli pogled",
+    "findRowByCodeScan": "Find row by scan",
+    "fillByCodeScan": "Fill by scan",
     "listSharedView": "Seznam v skupni rabi",
     "ListView": "Seznam pogledov",
     "copyView": "Kopiraj pogled",
@@ -424,6 +429,10 @@
     "openTab": "Odprite novo TAB.",
     "iFrame": "Kopiranje vgrajenega HTML kode",
     "addWebhook": "Dodaj novo Webhook.",
+    "enableWebhook": "Enable Webhook",
+    "testWebhook": "Test Webhook",
+    "copyWebhook": "Copy Webhook",
+    "deleteWebhook": "Delete Webhook",
     "newToken": "Dodajte nov žeton",
     "exportZip": "Izvozi zip",
     "importZip": "Uvozi zip",
@@ -465,7 +474,8 @@
       "chooseMappingField": "Choose a Mapping Field",
       "openInGoogleMaps": "Google Maps",
       "openInOpenStreetMap": "OSM"
-    }
+    },
+    "toggleMobileMode": "Toggle Mobile Mode"
   },
   "tooltip": {
     "saveChanges": "Shrani spremembe",
@@ -530,6 +540,12 @@
       "roles": {
         "orgCreator": "Ustvarjalec lahko ustvarja nove projekte in dostopa do vseh povabljenih projektov.",
         "orgViewer": "Pregledovalec ne sme ustvarjati novih projektov, lahko pa dostopa do vseh povabljenih projektov."
+      },
+      "codeScanner": {
+        "loadingScanner": "Loading the scanner...",
+        "selectColumn": "Select a column (QR code or Barcode) that you want to use for finding a row by scanning.",
+        "moreThanOneRowFoundForCode": "More than one row found for this code. Currently only unique codes are supported.",
+        "noRowFoundForCode": "No row found for this code for the selected column"
       },
       "map": {
         "overLimit": "You're over the limit.",
@@ -682,6 +698,7 @@
         "allowedSpecialCharList": "Seznam dovoljenih posebnih znakov"
       },
       "invalidURL": "Nepravilen URL",
+      "invalidEmail": "Invalid Email",
       "internalError": "Zgodila se je neka notranja napaka",
       "templateGeneratorNotFound": "Generatorja predlog ni mogoče najti!",
       "fileUploadFailed": "Ni uspelo naložiti datoteke",
@@ -762,6 +779,7 @@
       "userDeletedFromProject": "Uspešno izbrisan uporabnik iz projekta",
       "inviteEmailSent": "Uspešno poslano e-poštno sporočilo z vabilom",
       "inviteURLCopied": "URL vabila kopiran v odložišče",
+      "commentCopied": "Comment copied to clipboard",
       "passwordResetURLCopied": "URL za ponastavitev gesla kopiran v odložišče",
       "shareableURLCopied": "V odložišče kopirajte osnovni naslov URL, ki ga je mogoče deliti!",
       "embeddableHTMLCodeCopied": "Kopiranje kode HTML, ki jo je mogoče vgraditi!",

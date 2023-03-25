@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import type { RuleObject } from 'ant-design-vue/es/form'
-import { definePageMeta, reactive, ref, useApi, useI18n, validateEmail } from '#imports'
+import { definePageMeta, iconMap, reactive, ref, useApi, useI18n, validateEmail } from '#imports'
 
 definePageMeta({
   requiresAuth: false,
@@ -96,7 +96,7 @@ function resetError() {
           <div class="self-center flex flex-col gap-4 items-center justify-center w-full">
             <button class="scaling-btn bg-opacity-100" type="submit">
               <span class="flex items-center gap-2">
-                <MdiLogin />
+                <component :is="iconMap.signin" />
                 {{ $t('activity.sendEmail') }}
               </span>
             </button>

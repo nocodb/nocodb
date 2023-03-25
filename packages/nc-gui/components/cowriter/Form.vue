@@ -196,7 +196,7 @@ watch(cowriterFormView, async () => {
             </a-menu-item>
             <a-menu-item key="add-column-using-ai" @click="isCreateColumnUsingAIDlgOpen = true">
               <div class="flex items-center py-3">
-                <PhSparkleFill class="mr-2 text-orange-400" />
+                <GeneralIcon icon="magic" class="mr-2 text-orange-400" />
                 Add New Column Using AI
               </div>
             </a-menu-item>

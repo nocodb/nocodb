@@ -1,7 +1,7 @@
 <script lang="ts" setup>
 import { Modal, message } from 'ant-design-vue'
 import type { OrgUserReqType, RequestParams, UserType } from 'nocodb-sdk'
-import { Role, extractSdkResponseErrorMsg, useApi, useCopy, useDashboard, useNuxtApp } from '#imports'
+import { Role, extractSdkResponseErrorMsg, iconMap, useApi, useCopy, useDashboard, useNuxtApp } from '#imports'
 import type { User } from '~/lib'
 
 const { api, isLoading } = useApi()
@@ -144,7 +144,7 @@ const copyPasswordResetUrl = async (user: User) => {
         >
         </a-input-search>
         <div class="flex-grow"></div>
-        <MdiReload class="cursor-pointer" @click="loadUsers" />
+        <component :is="iconMap.reload" class="cursor-pointer" @click="loadUsers" />
         <a-button
           data-testid="nc-super-user-invite"
           size="small"
@@ -157,7 +157,7 @@ const copyPasswordResetUrl = async (user: User) => {
           "
         >
           <div class="flex items-center gap-1">
-            <MdiAdd />
+            <component :is="iconMap.plus" />
             Invite new user
           </div>
         </a-button>
@@ -239,7 +239,7 @@ const copyPasswordResetUrl = async (user: User) => {
                 <div class="flex flex-row items-center">
                   <a-button type="text" class="!px-0">
                     <div class="flex flex-row items-center h-[1.2rem]">
-                      <MdiDotsHorizontal class="nc-user-row-action" />
+                      <component :is="iconMap.threeDotHorizontal" class="nc-user-row-action" />
                     </div>
                   </a-button>
                 </div>
@@ -250,26 +250,26 @@ const copyPasswordResetUrl = async (user: User) => {
                       <a-menu-item>
                         <!-- Resend invite Email -->
                         <div class="flex flex-row items-center py-3" @click="resendInvite(record)">
-                          <MdiEmailArrowRightOutline class="flex h-[1rem] text-gray-500" />
+                          <component :is="iconMap.email" class="flex h-[1rem] text-gray-500" />
                           <div class="text-xs pl-2">{{ $t('activity.resendInvite') }}</div>
                         </div>
                       </a-menu-item>
                       <a-menu-item>
                         <div class="flex flex-row items-center py-3" @click="copyInviteUrl(record)">
-                          <MdiContentCopy class="flex h-[1rem] text-gray-500" />
+                          <component :is="iconMap.copy" class="flex h-[1rem] text-gray-500" />
                           <div class="text-xs pl-2">{{ $t('activity.copyInviteURL') }}</div>
                         </div>
                       </a-menu-item>
                     </template>
                     <a-menu-item>
                       <div class="flex flex-row items-center py-3" @click="copyPasswordResetUrl(record)">
-                        <MdiContentCopy class="flex h-[1rem] text-gray-500" />
+                        <component :is="iconMap.copy" class="flex h-[1rem] text-gray-500" />
                         <div class="text-xs pl-2">{{ $t('activity.copyPasswordResetURL') }}</div>
                       </div>
                     </a-menu-item>
                     <a-menu-item>
                       <div class="flex flex-row items-center py-3" @click="deleteUser(text)">
-                        <MdiDeleteOutline data-testid="nc-super-user-delete" class="flex h-[1rem] text-gray-500" />
+                        <component :is="iconMap.delete" data-testid="nc-super-user-delete" class="flex h-[1rem] text-gray-500" />
                         <div class="text-xs pl-2">{{ $t('general.delete') }}</div>
                       </div>
                     </a-menu-item>

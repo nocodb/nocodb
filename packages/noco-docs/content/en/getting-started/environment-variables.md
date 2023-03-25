@@ -5,8 +5,6 @@ position: 15
 category: 'Getting started'
 ---
 
-## Environment Variables
-
 For production usecases, it is **recommended** to configure 
 - `NC_DB`, 
 - `NC_AUTH_JWT_SECRET`, 

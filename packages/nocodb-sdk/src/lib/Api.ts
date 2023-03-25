@@ -500,6 +500,17 @@ export interface CommentReqType {
 }
 
 /**
+ * Model for Comment Update Request
+ */
+export interface CommentUpdateReqType {
+  /**
+   * Description for the target row
+   * @example This is the comment for the row
+   */
+  description?: string;
+}
+
+/**
  * Cowriter Model
  */
 export interface CowriterType {
@@ -746,7 +757,7 @@ export interface FilterReqType {
   /** Foreign Key to Column */
   fk_column_id?: IdType;
   /** Belong to which filter ID */
-  fk_parent_id?: IdType;
+  fk_parent_id?: StringOrNullType;
   /** Is this filter grouped? */
   is_group?: BoolType;
   /** Logical Operator */
@@ -875,6 +886,11 @@ export interface FormColumnType {
   required?: BoolType;
   /** Is this column shown in Form? */
   show?: BoolType;
+  /**
+   * Indicates whether the 'Fill by scan' button is visible for this column or not.
+   * @example true
+   */
+  enable_scanner?: BoolType;
   /** Form Column UUID (Not in use) */
   uuid?: StringOrNullType;
 }
@@ -1207,6 +1223,8 @@ export interface HookReqType {
   title: string;
   /** Hook Type */
   type?: string | null;
+  /** Is this hook assoicated with some filters */
+  condition?: BoolType;
 }
 
 /**
@@ -8884,6 +8902,29 @@ export class Api<
       }),
 
     /**
+     * @description Update comment in Audit
+     *
+     * @tags Utils
+     * @name CommentUpdate
+     * @summary Update Comment in Audit
+     * @request PATCH:/api/v1/db/meta/audits/{auditId}/comment
+     * @response `200` `number` OK
+     */
+    commentUpdate: (
+      auditId: string,
+      data: CommentUpdateReqType,
+      params: RequestParams = {}
+    ) =>
+      this.request<number, any>({
+        path: `/api/v1/db/meta/audits/${auditId}/comment`,
+        method: 'PATCH',
+        body: data,
+        type: ContentType.Json,
+        format: 'json',
+        ...params,
+      }),
+
+    /**
  * @description Return the number of comments in the given query.
  * 
  * @tags Utils
@@ -9604,16 +9645,16 @@ export class Api<
  * @name Create
  * @summary Create Table Hook
  * @request POST:/api/v1/db/meta/tables/{tableId}/hooks
- * @response `200` `HookReqType` OK
+ * @response `200` `HookType` OK
  * @response `400` `{
   \** @example BadRequest [Error]: <ERROR MESSAGE> *\
   msg: string,
 
 }`
  */
-    create: (tableId: IdType, data: AuditType, params: RequestParams = {}) =>
+    create: (tableId: IdType, data: HookReqType, params: RequestParams = {}) =>
       this.request<
-        HookReqType,
+        HookType,
         {
           /** @example BadRequest [Error]: <ERROR MESSAGE> */
           msg: string;

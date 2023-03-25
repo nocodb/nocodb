@@ -2,6 +2,10 @@ import type { Actions, AppInfo, State } from './types'
 import { message, useNuxtApp } from '#imports'
 
 export function useGlobalActions(state: State): Actions {
+  const setIsMobileMode = (isMobileMode: boolean) => {
+    state.isMobileMode.value = isMobileMode
+  }
+
   /** Sign out by deleting the token from localStorage */
   const signOut: Actions['signOut'] = async () => {
     state.token.value = null
@@ -59,5 +63,5 @@ export function useGlobalActions(state: State): Actions {
     }
   }
 
-  return { signIn, signOut, refreshToken, loadAppInfo }
+  return { signIn, signOut, refreshToken, loadAppInfo, setIsMobileMode }
 }

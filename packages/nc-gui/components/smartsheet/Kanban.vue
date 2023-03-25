@@ -12,6 +12,7 @@ import {
   IsPublicInj,
   MetaInj,
   OpenNewRecordFormHookInj,
+  iconMap,
   inject,
   isImage,
   isLTAR,
@@ -366,7 +367,7 @@ watch(view, async (nextView) => {
                         >
                           <LazyGeneralTruncateText>{{ stack.title ?? 'uncategorized' }}</LazyGeneralTruncateText>
                           <span v-if="!isLocked" class="w-full flex w-[15px]">
-                            <mdi-menu-down class="text-grey text-lg ml-auto" />
+                            <component :is="iconMap.arrowDown" class="text-grey text-lg ml-auto" />
                           </span>
                         </div>
                         <template v-if="!isLocked" #overlay>
@@ -382,13 +383,13 @@ watch(view, async (nextView) => {
                               "
                             >
                               <div class="py-2 flex gap-2 items-center">
-                                <mdi-plus class="text-gray-500" />
+                                <component :is="iconMap.plus" class="text-gray-500" />
                                 {{ $t('activity.addNewRecord') }}
                               </div>
                             </a-menu-item>
                             <a-menu-item v-e="['c:kanban:collapse-stack']" @click="handleCollapseStack(stackIdx)">
                               <div class="py-2 flex gap-2 items-center">
-                                <mdi-arrow-collapse class="text-gray-500" />
+                                <component :is="iconMap.arrowCollapse" class="text-gray-500" />
                                 {{ $t('activity.kanban.collapseStack') }}
                               </div>
                             </a-menu-item>
@@ -398,7 +399,7 @@ watch(view, async (nextView) => {
                               @click="handleDeleteStackClick(stack.title, stackIdx)"
                             >
                               <div class="py-2 flex gap-2 items-center">
-                                <mdi-delete class="text-gray-500" />
+                                <component :is="iconMap.delete" class="text-gray-500" />
                                 {{ $t('activity.kanban.deleteStack') }}
                               </div>
                             </a-menu-item>
@@ -470,7 +471,7 @@ watch(view, async (nextView) => {
                                     </template>
                                   </a-carousel>
 
-                                  <MdiFileImageBox v-else class="w-full h-48 my-4 text-cool-gray-200" />
+                                  <component :is="iconMap.imagePlaceholder" v-else class="w-full h-48 my-4 text-cool-gray-200" />
                                 </template>
                                 <div
                                   v-for="col in fieldsWithoutCover"
@@ -524,7 +525,8 @@ watch(view, async (nextView) => {
                   <a-layout-footer>
                     <div v-if="formattedData.get(stack.title) && countByStack.get(stack.title) >= 0" class="mt-5 text-center">
                       <!-- Stack Title -->
-                      <mdi-plus
+                      <component
+                        :is="iconMap.plus"
                         v-if="!isPublic && !isLocked"
                         class="text-pint-500 text-lg text-primary cursor-pointer"
                         @click="
@@ -570,7 +572,7 @@ watch(view, async (nextView) => {
                       :class="{ capitalize: stack.title === null }"
                     >
                       <LazyGeneralTruncateText>{{ stack.title ?? 'uncategorized' }}</LazyGeneralTruncateText>
-                      <mdi-menu-down class="text-grey text-lg" />
+                      <component :is="iconMap.arrowDown" class="text-grey text-lg" />
                     </div>
                     <!-- Record Count -->
                     {{ formattedData.get(stack.title).length }} / {{ countByStack.get(stack.title) }}
@@ -586,7 +588,7 @@ watch(view, async (nextView) => {
           <a-menu class="shadow !rounded !py-0" @click="contextMenu = false">
             <a-menu-item v-if="contextMenuTarget" @click="expandForm(contextMenuTarget)">
               <div v-e="['a:kanban:expand-record']" class="nc-project-menu-item nc-kanban-context-menu-item">
-                <MdiArrowExpand class="flex" />
+                <component :is="iconMap.expand" class="flex" />
                 <!-- Expand Record -->
                 {{ $t('activity.expandRecord') }}
               </div>
@@ -594,7 +596,7 @@ watch(view, async (nextView) => {
             <a-divider class="!m-0 !p-0" />
             <a-menu-item v-if="contextMenuTarget" @click="deleteRow(contextMenuTarget)">
               <div v-e="['a:kanban:delete-record']" class="nc-project-menu-item nc-kanban-context-menu-item">
-                <MdiDeleteOutline class="flex" />
+                <component :is="iconMap.delete" class="flex" />
                 <!-- Delete Record -->
                 {{ $t('activity.deleteRecord') }}
               </div>

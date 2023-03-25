@@ -1,29 +1,22 @@
 import { ViewTypes } from 'nocodb-sdk'
-import { themeV2Colors } from '#imports'
+import { iconMap } from '~/utils/iconUtils'
 
-import MdiGridIcon from '~icons/mdi/grid-large'
-import MdiFormIcon from '~icons/mdi/form-select'
-import MdiCalendarIcon from '~icons/mdi/calendar'
-import MdiGalleryIcon from '~icons/mdi/camera-image'
-import MdiKanbanIcon from '~icons/mdi/tablet-dashboard'
-import MdiMapIcon from '~icons/mdi/map-outline'
-import MdiEyeIcon from '~icons/mdi/eye-circle-outline'
 import type { Language } from '~/lib'
 
 export const viewIcons: Record<number | string, { icon: any; color: string }> = {
-  [ViewTypes.GRID]: { icon: MdiGridIcon, color: '#8f96f2' },
-  [ViewTypes.FORM]: { icon: MdiFormIcon, color: themeV2Colors.pink['500'] },
-  calendar: { icon: MdiCalendarIcon, color: 'purple' },
-  [ViewTypes.GALLERY]: { icon: MdiGalleryIcon, color: 'orange' },
-  [ViewTypes.MAP]: { icon: MdiMapIcon, color: 'blue' },
-  [ViewTypes.KANBAN]: { icon: MdiKanbanIcon, color: 'green' },
-  view: { icon: MdiEyeIcon, color: 'blue' },
+  [ViewTypes.GRID]: { icon: iconMap.grid, color: '#2b39f3' },
+  [ViewTypes.FORM]: { icon: iconMap.form, color: '#c00145' },
+  calendar: { icon: iconMap.calendar, color: 'purple' },
+  [ViewTypes.GALLERY]: { icon: iconMap.gallery, color: '#bd4200' },
+  [ViewTypes.MAP]: { icon: iconMap.map, color: 'blue' },
+  [ViewTypes.KANBAN]: { icon: iconMap.kanban, color: '#007300' },
+  view: { icon: iconMap.view, color: 'blue' },
 }
 
 export const viewTypeAlias: Record<number, string> = {
   [ViewTypes.GRID]: 'grid',
   [ViewTypes.FORM]: 'form',
-  [ViewTypes.GALLERY]: 'gallery',
+  [ViewTypes.GALLERY]: 'gaallery',
   [ViewTypes.KANBAN]: 'kanban',
   [ViewTypes.MAP]: 'map',
 }
@@ -41,12 +34,12 @@ export function applyLanguageDirection(dir: typeof rtl | typeof ltr) {
   document.body.style.direction = dir
 }
 
-export function applyNonSelectable() {
-  document.body.classList.add('non-selectable')
-}
-
 export const getViewIcon = (key?: string | number) => {
   if (!key) return
 
   return viewIcons[key]
+}
+
+export function applyNonSelectable() {
+  document.body.classList.add('non-selectable')
 }

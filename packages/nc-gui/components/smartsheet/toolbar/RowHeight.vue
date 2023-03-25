@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import type { GridType } from 'nocodb-sdk'
-import { ActiveViewInj, IsLockedInj, inject, ref, storeToRefs, useMenuCloseOnEsc } from '#imports'
+import { ActiveViewInj, IsLockedInj, iconMap, inject, ref, storeToRefs, useMenuCloseOnEsc } from '#imports'
 
 const { isSharedBase } = storeToRefs(useProject())
 
@@ -43,10 +43,9 @@ useMenuCloseOnEsc(open)
     <div>
       <a-button v-e="['c:row-height']" class="nc-height-menu-btn nc-toolbar-btn" :disabled="isLocked">
         <div class="flex items-center gap-1">
-          <RiLineHeight />
-
+          <component :is="iconMap.rowHeight" />
           <!-- Row Height -->
-          <MdiMenuDown class="text-grey" />
+          <component :is="iconMap.arrowDown" class="text-grey" />
         </div>
       </a-button>
     </div>
@@ -55,19 +54,19 @@ useMenuCloseOnEsc(open)
         <div class="text-gray-500 !text-xs px-4 py-2">Select a row height</div>
         <div class="flex flex-col w-full text-sm" @click.stop>
           <div class="nc-row-height-option" @click="updateRowHeight(0)">
-            <NcIconsRowHeightShort class="nc-row-height-icon" />
+            <GeneralIcon icon="heightShort" class="nc-row-height-icon" />
             Short
           </div>
           <div class="nc-row-height-option" @click="updateRowHeight(1)">
-            <NcIconsRowHeightMedium class="nc-row-height-icon" />
+            <GeneralIcon icon="heightMedium" class="nc-row-height-icon" />
             Medium
           </div>
           <div class="nc-row-height-option" @click="updateRowHeight(2)">
-            <NcIconsRowHeightTall class="nc-row-height-icon" />
+            <GeneralIcon icon="heightTall" class="nc-row-height-icon" />
             Tall
           </div>
           <div class="nc-row-height-option" @click="updateRowHeight(3)">
-            <NcIconsRowHeightExtraTall class="nc-row-height-icon" />
+            <GeneralIcon icon="heightExtra" class="nc-row-height-icon" />
             Extra
           </div>
         </div>

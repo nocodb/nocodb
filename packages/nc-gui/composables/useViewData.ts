@@ -541,6 +541,7 @@ export function useViewData(
     changePage,
     addEmptyRow,
     deleteRow,
+    deleteRowById,
     deleteSelectedRows,
     updateOrSaveRow,
     selectedAllRecords,
@@ -557,7 +558,6 @@ export function useViewData(
     removeLastEmptyRow,
     removeRowIfNew,
     navigateToSiblingRow,
-    deleteRowById,
     getExpandedRowIndex,
   }
 }

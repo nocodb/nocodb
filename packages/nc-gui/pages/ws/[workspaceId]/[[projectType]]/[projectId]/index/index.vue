@@ -15,15 +15,15 @@ provide(TabMetaInj, activeTab)
 const icon = (tab: TabItem) => {
   switch (tab.type) {
     case TabType.TABLE:
-      return iconMap['mdi-table-large']
+      return iconMap.table
     case TabType.VIEW:
-      return iconMap['mdi-eye-circle-outline']
+      return iconMap.view
     case TabType.AUTH:
-      return iconMap['mdi-account-group']
+      return iconMap.account
     case TabType.SQL:
-      return iconMap['mdi-database-search']
+      return iconMap.databaseSearch
     case TabType.ERD:
-      return iconMap['mdi-graph-outline']
+      return iconMap.erd
   }
 }
 
@@ -42,8 +42,9 @@ function onEdit(targetKey: number, action: 'add' | 'remove' | string) {
           v-if="!isOpen"
           class="nc-sidebar-left-toggle-icon hover:after:(bg-primary bg-opacity-75) group nc-sidebar-add-row py-2 px-3 mb-1"
         >
-          <MdiMenu
+          <GeneralIcon
             v-e="['c:grid:toggle-navdraw']"
+            icon="sidebarMinimise"
             class="cursor-pointer transform transition-transform duration-500 text-gray-500/80 hover:text-gray-500"
             :class="{ 'rotate-180': !isOpen }"
             @click="toggle(!isOpen)"

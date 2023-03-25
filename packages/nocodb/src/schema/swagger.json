@@ -12561,6 +12561,69 @@
         ]
       }
     },
+    "/api/v1/db/meta/audits/{auditId}/comment": {
+      "parameters": [
+        {
+          "schema": {
+            "type": "string",
+            "example": "adt_zlskd6rlf3liay"
+          },
+          "name": "auditId",
+          "in": "path",
+          "required": true,
+          "description": "Audit ID"
+        },
+        {
+          "name": "xc-auth",
+          "in": "header",
+          "required": false,
+          "schema": {
+            "type": "string"
+          },
+          "description": "Auth Token is a JWT Token generated based on the logged-in user. By default, the token is only valid for 10 hours. However, you can change the value by defining it using environment variable NC_JWT_EXPIRES_IN."
+        }
+      ],
+      "patch": {
+        "summary": "Update Comment in Audit",
+        "operationId": "utils-comment-update",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "number",
+                  "example": 1
+                },
+                "examples": {
+                  "Example 1": {
+                    "value": 1
+                  }
+                }
+              }
+            }
+          }
+        },
+        "tags": ["Utils"],
+        "description": "Update comment in Audit",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CommentUpdateReq"
+              },
+              "examples": {
+                "Example 1": {
+                  "value": {
+                    "description": "This is the comment for the row"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/v1/db/meta/audits/comments/count": {
       "parameters": [
         {
@@ -12867,7 +12930,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/HookReq"
+                  "$ref": "#/components/schemas/Hook"
                 },
                 "examples": {
                   "Example 1": {
@@ -12901,7 +12964,28 @@
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/Audit"
+                "$ref": "#/components/schemas/HookReq"
+              },
+              "examples": {
+                "Example 1": {
+                  "value": {
+                    "active": 0,
+                    "async": 0,
+                    "description": "This is my hook description",
+                    "env": "all",
+                    "event": "after",
+                    "fk_model_id": "md_rsu68aqjsbyqtl",
+                    "id": "string",
+                    "notification": "{\"type\":\"URL\",\"payload\":{\"method\":\"POST\",\"body\":\"{{ json data }}\",\"headers\":[{}],\"parameters\":[{}],\"auth\":\"\",\"path\":\"http://example.com\"}}",
+                    "null": null,
+                    "operation": "insert",
+                    "retries": 10,
+                    "retry_interval": 60000,
+                    "timeout": 60000,
+                    "title": "My Webhook",
+                    "condition": false
+                  }
+                }
               }
             }
           }
@@ -15262,6 +15346,9 @@
             "description": "API Token",
             "example": "DYh540o8hbWpUGdarekECKLdN5OhlgCUWutVJYX2"
           }
+        },
+        "x-stoplight": {
+          "id": "zc9ztw0ih4ttt"
         }
       },
       "ApiTokenReq": {
@@ -15280,12 +15367,15 @@
             "type": "string",
             "example": "This API Token is for ABC application"
           }
+        },
+        "x-stoplight": {
+          "id": "t9dpbaw4dhpx3"
         }
       },
       "ApiTokenList": {
         "description": "Model for API Token List",
         "x-stoplight": {
-          "id": "5llg0az9z4tjc"
+          "id": "dgoo5jfkvypld"
         },
         "examples": [
           {
@@ -15388,6 +15478,9 @@
             "type": "string",
             "description": "Attachment URL"
           }
+        },
+        "x-stoplight": {
+          "id": "9uff8of377ouf"
         }
       },
       "AttachmentReq": {
@@ -15423,6 +15516,9 @@
             "type": "string",
             "description": "Attachment URL to be uploaded via upload-by-url"
           }
+        },
+        "x-stoplight": {
+          "id": "7mvkmys63d0bx"
         }
       },
       "Audit": {
@@ -15545,6 +15641,9 @@
             "description": "Detail",
             "example": "<span class=\"\">Date</span>   : <span class=\"text-decoration-line-through red px-2 lighten-4 black--text\">2023-03-12</span>   <span class=\"black--text green lighten-4 px-2\"></span>"
           }
+        },
+        "x-stoplight": {
+          "id": "dz9hjvx07jaje"
         }
       },
       "AuditRowUpdateReq": {
@@ -15582,6 +15681,9 @@
           "value": {
             "description": "The current value after the action"
           }
+        },
+        "x-stoplight": {
+          "id": "t4l2bqjgukcr1"
         }
       },
       "Base": {
@@ -15656,6 +15758,9 @@
             "example": "mysql2",
             "type": "string"
           }
+        },
+        "x-stoplight": {
+          "id": "l5nhyvoa0dfag"
         }
       },
       "BaseList": {
@@ -15755,7 +15860,10 @@
             "description": "Paginated Info"
           }
         },
-        "required": ["list", "pageInfo"]
+        "required": ["list", "pageInfo"],
+        "x-stoplight": {
+          "id": "pn96b18y3k0je"
+        }
       },
       "BaseReq": {
         "description": "Model for Base Request",
@@ -15808,7 +15916,10 @@
           }
         },
         "title": "Base Request",
-        "type": "object"
+        "type": "object",
+        "x-stoplight": {
+          "id": "gebxq2b5pp1a3"
+        }
       },
       "Bool": {
         "description": "Model for Bool",
@@ -15827,7 +15938,10 @@
             "type": "null"
           }
         ],
-        "title": "Bool Model"
+        "title": "Bool Model",
+        "x-stoplight": {
+          "id": "6qmxbfclxa8em"
+        }
       },
       "Column": {
         "description": "Model for Column",
@@ -16112,6 +16226,9 @@
             "$ref": "#/components/schemas/Bool",
             "description": "Is Visible?"
           }
+        },
+        "x-stoplight": {
+          "id": "0nszsk1q6done"
         }
       },
       "ColumnList": {
@@ -16217,7 +16334,10 @@
             }
           }
         },
-        "required": ["list", "pageInfo"]
+        "required": ["list", "pageInfo"],
+        "x-stoplight": {
+          "id": "fjqsqgw1ahlon"
+        }
       },
       "ColumnReq": {
         "allOf": [
@@ -16306,7 +16426,10 @@
           }
         ],
         "title": "Column Request Model",
-        "type": "object"
+        "type": "object",
+        "x-stoplight": {
+          "id": "fw6an7vvhpqfu"
+        }
       },
       "CommentReq": {
         "description": "Model for Comment Request",
@@ -16336,7 +16459,30 @@
             "example": "3"
           }
         },
-        "required": ["fk_model_id", "row_id"]
+        "required": ["fk_model_id", "row_id"],
+        "x-stoplight": {
+          "id": "k7vnf7oc33p6m"
+        }
+      },
+      "CommentUpdateReq": {
+        "description": "Model for Comment Update Request",
+        "x-stoplight": {
+          "id": "wan84coiq9lyn"
+        },
+        "examples": [
+          {
+            "description": "This is the comment for the row"
+          }
+        ],
+        "title": "Comment Update Request Model",
+        "type": "object",
+        "properties": {
+          "description": {
+            "type": "string",
+            "description": "Description for the target row",
+            "example": "This is the comment for the row"
+          }
+        }
       },
       "Cowriter": {
         "description": "Cowriter Model",
@@ -16646,7 +16792,10 @@
         },
         "readOnly": true,
         "title": "Filter Model",
-        "type": "object"
+        "type": "object",
+        "x-stoplight": {
+          "id": "goytqs4ua69w0"
+        }
       },
       "FilterList": {
         "description": "Model for Filter List",
@@ -16732,7 +16881,10 @@
             }
           }
         },
-        "required": ["list", "pageInfo"]
+        "required": ["list", "pageInfo"],
+        "x-stoplight": {
+          "id": "wzp2nwu7k19uj"
+        }
       },
       "FilterReq": {
         "description": "Model for Filter Request",
@@ -16746,6 +16898,11 @@
             "value": "foo"
           }
         ],
+        "title": "Filter Request Model",
+        "type": "object",
+        "x-stoplight": {
+          "id": "viq9ex4d7k8k2"
+        },
         "properties": {
           "comparison_op": {
             "description": "Comparison Operator",
@@ -16818,7 +16975,7 @@
             "description": "Foreign Key to Column"
           },
           "fk_parent_id": {
-            "$ref": "#/components/schemas/Id",
+            "$ref": "#/components/schemas/StringOrNull",
             "description": "Belong to which filter ID"
           },
           "is_group": {
@@ -16834,9 +16991,7 @@
             "description": "The filter value. Can be NULL for some operators."
           }
         },
-        "readOnly": true,
-        "title": "Filter Request Model",
-        "type": "object"
+        "readOnly": true
       },
       "Follower": {
         "properties": {
@@ -16977,6 +17132,9 @@
             "description": "Form View Title",
             "example": "Form View 1"
           }
+        },
+        "x-stoplight": {
+          "id": "bjh5qbmqyzy1k"
         }
       },
       "FormUpdateReq": {
@@ -17045,6 +17203,9 @@
             "$ref": "#/components/schemas/StringOrNull",
             "description": "Custom message after the form is successfully submitted"
           }
+        },
+        "x-stoplight": {
+          "id": "76m5jsz93rjsc"
         }
       },
       "FormColumn": {
@@ -17080,6 +17241,7 @@
             "order": 1,
             "required": false,
             "show": 1,
+            "enable_scanner": true,
             "updated_at": "2022-02-15 12:39:16",
             "uuid": null
           }
@@ -17126,10 +17288,18 @@
             "$ref": "#/components/schemas/Bool",
             "description": "Is this column shown in Form?"
           },
+          "enable_scanner": {
+            "$ref": "#/components/schemas/Bool",
+            "description": "Indicates whether the 'Fill by scan' button is visible for this column or not.",
+            "example": true
+          },
           "uuid": {
             "$ref": "#/components/schemas/StringOrNull",
             "description": "Form Column UUID (Not in use)"
           }
+        },
+        "x-stoplight": {
+          "id": "liiv7vd1hgeqf"
         }
       },
       "FormColumnReq": {
@@ -17194,6 +17364,9 @@
             "$ref": "#/components/schemas/Bool",
             "description": "Is this column shown in Form?"
           }
+        },
+        "x-stoplight": {
+          "id": "21k1kvmq14s9a"
         }
       },
       "Formula": {
@@ -17232,6 +17405,9 @@
             "type": "string",
             "description": "Error Message"
           }
+        },
+        "x-stoplight": {
+          "id": "8ahp8va0147v1"
         }
       },
       "FormulaColumnReq": {
@@ -17266,6 +17442,9 @@
             "type": "string",
             "description": "UI Data Type"
           }
+        },
+        "x-stoplight": {
+          "id": "s3c9yjip3dank"
         }
       },
       "Formula": {
@@ -17431,7 +17610,10 @@
           }
         },
         "title": "Gallery Model",
-        "type": "object"
+        "type": "object",
+        "x-stoplight": {
+          "id": "e1o8q9fieshbc"
+        }
       },
       "GalleryColumn": {
         "description": "Model for Gallery Column",
@@ -17463,12 +17645,15 @@
           }
         },
         "title": "Gallery Column Model",
-        "type": "object"
+        "type": "object",
+        "x-stoplight": {
+          "id": "llcstnvsjdgz0"
+        }
       },
       "GalleryUpdateReq": {
         "description": "Model for Gallery View Update Request",
         "x-stoplight": {
-          "id": "mgch3vcokvxml"
+          "id": "5cxhum5vh2nr2"
         },
         "examples": [
           {
@@ -17519,7 +17704,10 @@
           }
         },
         "title": "Geo Location Model",
-        "type": "object"
+        "type": "object",
+        "x-stoplight": {
+          "id": "hwuzujovr9qwx"
+        }
       },
       "Grid": {
         "description": "Model for Grid",
@@ -17626,6 +17814,9 @@
               }
             }
           }
+        },
+        "x-stoplight": {
+          "id": "xntep33dod0ys"
         }
       },
       "GridColumn": {
@@ -17707,6 +17898,9 @@
               "id": "azwh6zn37qzkc"
             }
           }
+        },
+        "x-stoplight": {
+          "id": "2go3w0igl2243"
         }
       },
       "GridColumnReq": {
@@ -17742,12 +17936,15 @@
           }
         },
         "title": "Grid Column Request Model",
-        "type": "object"
+        "type": "object",
+        "x-stoplight": {
+          "id": "2j3uyoabzmsrz"
+        }
       },
       "GridUpdateReq": {
         "description": "Model for Grid View Update",
         "x-stoplight": {
-          "id": "d7x12vwf1fgz4"
+          "id": "2q9ya4zmyr5x7"
         },
         "examples": [
           {
@@ -17865,12 +18062,15 @@
             "type": "string",
             "description": "Hook Type"
           }
+        },
+        "x-stoplight": {
+          "id": "q8cxkpronjmyx"
         }
       },
       "HookReq": {
         "description": "Model for Hook",
         "x-stoplight": {
-          "id": "8yxb4tz9u2ahz"
+          "id": "4zlzrppfjxrqb"
         },
         "examples": [
           {
@@ -17887,7 +18087,8 @@
             "retries": 10,
             "retry_interval": 60000,
             "timeout": 60000,
-            "title": "My Webhook"
+            "title": "My Webhook",
+            "condition": false
           }
         ],
         "title": "Hook Request Model",
@@ -17958,6 +18159,13 @@
           "type": {
             "type": ["string", "null"],
             "description": "Hook Type"
+          },
+          "condition": {
+            "$ref": "#/components/schemas/Bool",
+            "x-stoplight": {
+              "id": "wwzoum7rrlwun"
+            },
+            "description": "Is this hook assoicated with some filters"
           }
         },
         "required": ["event", "notification", "operation", "title"]
@@ -18038,7 +18246,10 @@
             "$ref": "#/components/schemas/Paginated"
           }
         },
-        "required": ["list", "pageInfo"]
+        "required": ["list", "pageInfo"],
+        "x-stoplight": {
+          "id": "2tsq8h6hjctju"
+        }
       },
       "HookLog": {
         "description": "Model for Hook Log",
@@ -18116,6 +18327,9 @@
           "type": {
             "type": "string"
           }
+        },
+        "x-stoplight": {
+          "id": "t3hlkw7zdqpom"
         }
       },
       "HookTestReq": {
@@ -18167,7 +18381,10 @@
             "description": "Payload to be sent"
           }
         },
-        "required": ["hook", "payload"]
+        "required": ["hook", "payload"],
+        "x-stoplight": {
+          "id": "p2t60nmuy6x26"
+        }
       },
       "Id": {
         "description": "Model for ID",
@@ -18175,7 +18392,10 @@
         "maxLength": 20,
         "minLength": 0,
         "title": "ID Model",
-        "type": "string"
+        "type": "string",
+        "x-stoplight": {
+          "id": "srvzhcm5j7d65"
+        }
       },
       "Kanban": {
         "description": "Model for Kanban",
@@ -18239,6 +18459,9 @@
             "description": "Kanban Title",
             "example": "My Kanban"
           }
+        },
+        "x-stoplight": {
+          "id": "1jq82nu2uugxr"
         }
       },
       "KanbanColumn": {
@@ -18309,6 +18532,9 @@
             "example": 1,
             "description": "Column Order"
           }
+        },
+        "x-stoplight": {
+          "id": "ipigcz5c7b5qy"
         }
       },
       "KanbanUpdateReq": {
@@ -18383,6 +18609,9 @@
             },
             "description": "Meta Info"
           }
+        },
+        "x-stoplight": {
+          "id": "ufp4dyqfvlk6a"
         }
       },
       "LicenseReq": {
@@ -18402,7 +18631,10 @@
           }
         },
         "title": "License Key Request Model",
-        "type": "object"
+        "type": "object",
+        "x-stoplight": {
+          "id": "2hys6jqfbam2w"
+        }
       },
       "LinkToAnotherColumnReq": {
         "description": "Model for LinkToAnotherColumn Request",
@@ -18448,7 +18680,10 @@
         },
         "required": ["childId", "parentId", "title", "type", "uidt"],
         "title": "LinkToAnotherColumn Request Model",
-        "type": "object"
+        "type": "object",
+        "x-stoplight": {
+          "id": "nx1h0s2wseid0"
+        }
       },
       "LinkToAnotherRecord": {
         "description": "Model for LinkToAnotherRecord",
@@ -18521,7 +18756,10 @@
           }
         },
         "title": "LinkToAnotherRecord Model",
-        "type": "object"
+        "type": "object",
+        "x-stoplight": {
+          "id": "845623nb0zp0w"
+        }
       },
       "Lookup": {
         "description": "Model for Lookup",
@@ -18558,6 +18796,9 @@
             "description": "The order among the list",
             "example": 1
           }
+        },
+        "x-stoplight": {
+          "id": "22i9gmsgqt79n"
         }
       },
       "LookupColumnReq": {
@@ -18592,6 +18833,9 @@
             "type": "string",
             "description": "UI DataType"
           }
+        },
+        "x-stoplight": {
+          "id": "dhmss9g7ljbw7"
         }
       },
       "Map": {
@@ -18666,12 +18910,15 @@
           }
         },
         "title": "Map Model",
-        "type": "object"
+        "type": "object",
+        "x-stoplight": {
+          "id": "2gkbn859ho3ct"
+        }
       },
       "MapUpdateReq": {
         "description": "Model for Map",
         "x-stoplight": {
-          "id": "o1v53xl8b6hn9"
+          "id": "u7xywz40dryws"
         },
         "examples": [
           {
@@ -18744,7 +18991,10 @@
           }
         },
         "title": "Map Column Model",
-        "type": "object"
+        "type": "object",
+        "x-stoplight": {
+          "id": "ftaul6uruvc4z"
+        }
       },
       "Meta": {
         "description": "Model for Meta",
@@ -18760,7 +19010,10 @@
             "type": "string"
           }
         ],
-        "title": "Meta Model"
+        "title": "Meta Model",
+        "x-stoplight": {
+          "id": "pqxyr0shwtrp5"
+        }
       },
       "ModelRoleVisibility": {
         "description": "Model for ModelRoleVisibility",
@@ -18800,7 +19053,10 @@
           }
         },
         "title": "ModelRoleVisibility Model",
-        "type": "object"
+        "type": "object",
+        "x-stoplight": {
+          "id": "d3j1x4pulo4ng"
+        }
       },
       "NormalColumnRequest": {
         "description": "Model for Normal Column Request",
@@ -18976,7 +19232,10 @@
         },
         "title": "Normal Column Request Model",
         "type": "object",
-        "required": ["column_name"]
+        "required": ["column_name"],
+        "x-stoplight": {
+          "id": "uzaqliigop3nw"
+        }
       },
       "OrgUserReq": {
         "description": "Model for Organisation User Update Request",
@@ -18998,7 +19257,10 @@
           }
         },
         "title": "Organisation User Request Model",
-        "type": "object"
+        "type": "object",
+        "x-stoplight": {
+          "id": "pk8a8itnqcis1"
+        }
       },
       "Paginated": {
         "description": "Model for Paginated",
@@ -19037,7 +19299,10 @@
           }
         },
         "title": "Paginated Model",
-        "type": "object"
+        "type": "object",
+        "x-stoplight": {
+          "id": "a5zhehpll01cm"
+        }
       },
       "Password": {
         "description": "Model for Password",
@@ -19045,7 +19310,10 @@
         "examples": ["password123456789"],
         "minLength": 8,
         "title": "Password Model",
-        "type": "string"
+        "type": "string",
+        "x-stoplight": {
+          "id": "mleq9lljoh76x"
+        }
       },
       "PasswordChangeReq": {
         "description": "Model for Password Change Request",
@@ -19066,7 +19334,10 @@
         },
         "required": ["currentPassword", "newPassword"],
         "title": "Password Change Request Model",
-        "type": "object"
+        "type": "object",
+        "x-stoplight": {
+          "id": "8a21c5za82w87"
+        }
       },
       "PasswordForgotReq": {
         "description": "Model for Password Forgot Request",
@@ -19084,7 +19355,10 @@
         },
         "required": ["email"],
         "title": "Password Forgot Request Model",
-        "type": "object"
+        "type": "object",
+        "x-stoplight": {
+          "id": "ggt9lpf2gz2va"
+        }
       },
       "PasswordResetReq": {
         "description": "Model for Password Reset Request",
@@ -19103,7 +19377,10 @@
         },
         "required": ["password"],
         "title": "Password Reset Request Model",
-        "type": "object"
+        "type": "object",
+        "x-stoplight": {
+          "id": "f63x3tpb8ti9r"
+        }
       },
       "Plugin": {
         "description": "Model for Plugin",
@@ -19217,6 +19494,9 @@
             "description": "Plugin Version",
             "example": "0.0.1"
           }
+        },
+        "x-stoplight": {
+          "id": "0atoct4o6csg1"
         }
       },
       "PluginReq": {
@@ -19238,6 +19518,9 @@
             "$ref": "#/components/schemas/StringOrNull",
             "description": "Plugin Input"
           }
+        },
+        "x-stoplight": {
+          "id": "w6jwfvgpbhmt0"
         }
       },
       "PluginTestReq": {
@@ -19277,7 +19560,10 @@
             "example": "Email"
           }
         },
-        "required": ["title", "input", "category"]
+        "required": ["title", "input", "category"],
+        "x-stoplight": {
+          "id": "yye6yekmme06k"
+        }
       },
       "Project": {
         "description": "Model for Project",
@@ -19367,6 +19653,9 @@
             "example": "my-project",
             "type": "string"
           }
+        },
+        "x-stoplight": {
+          "id": "xzqakuahxm8d1"
         }
       },
       "ProjectList": {
@@ -19460,7 +19749,10 @@
             "description": "Pagination Info"
           }
         },
-        "required": ["list", "pageInfo"]
+        "required": ["list", "pageInfo"],
+        "x-stoplight": {
+          "id": "rb5o2yaf8ue64"
+        }
       },
       "ProjectReq": {
         "description": "Model for Project Request",
@@ -19510,12 +19802,15 @@
         },
         "required": ["title"],
         "title": "Project Request Model",
-        "type": "object"
+        "type": "object",
+        "x-stoplight": {
+          "id": "km2fj1ebsroys"
+        }
       },
       "ProjectUpdateReq": {
         "description": "Model for Project Update Request",
         "x-stoplight": {
-          "id": "4zgrec70wyz4c"
+          "id": "ou8zri28ak9yl"
         },
         "examples": [
           {
@@ -19578,7 +19873,10 @@
             "description": "Project User Role"
           }
         },
-        "required": ["email", "roles"]
+        "required": ["email", "roles"],
+        "x-stoplight": {
+          "id": "9pgemwq7iirkp"
+        }
       },
       "ProjectUserMetaReq": {
         "description": "Model for Project User Meta Request",
@@ -19650,6 +19948,9 @@
               "avgDistinct"
             ]
           }
+        },
+        "x-stoplight": {
+          "id": "rq1o1yy2htfv0"
         }
       },
       "RollupColumnReq": {
@@ -19698,6 +19999,9 @@
             "type": "string",
             "description": "UI DataType"
           }
+        },
+        "x-stoplight": {
+          "id": "8yc4ashgpj37h"
         }
       },
       "SelectOption": {
@@ -19737,6 +20041,9 @@
             "description": "The order among the options",
             "example": 1
           }
+        },
+        "x-stoplight": {
+          "id": "sc5hl2s3rm8x7"
         }
       },
       "SelectOptions": {
@@ -19765,7 +20072,10 @@
             }
           }
         },
-        "required": ["options"]
+        "required": ["options"],
+        "x-stoplight": {
+          "id": "r6d5rziqt288w"
+        }
       },
       "SharedBaseReq": {
         "description": "Model for Shared Base Request",
@@ -19790,6 +20100,9 @@
             "description": "The role given the target user",
             "example": "editor"
           }
+        },
+        "x-stoplight": {
+          "id": "ybt81tfrpfvd2"
         }
       },
       "SharedView": {
@@ -19825,7 +20138,10 @@
               "uuid": null
             }
           }
-        ]
+        ],
+        "x-stoplight": {
+          "id": "9wxqjviu1tfd4"
+        }
       },
       "SharedViewList": {
         "description": "Model for Shared View List",
@@ -19916,7 +20232,10 @@
             "description": "Paginated Info"
           }
         },
-        "required": ["list", "pageInfo"]
+        "required": ["list", "pageInfo"],
+        "x-stoplight": {
+          "id": "jtlp6vswbc96e"
+        }
       },
       "SharedViewReq": {
         "description": "Model for Shared View Request",
@@ -19937,6 +20256,9 @@
             "$ref": "#/components/schemas/StringOrNull",
             "description": "Password to restrict access"
           }
+        },
+        "x-stoplight": {
+          "id": "zja4lmiol065l"
         }
       },
       "SignInReq": {
@@ -19960,7 +20282,10 @@
         },
         "required": ["email", "password"],
         "title": "Signin Request Model",
-        "type": "object"
+        "type": "object",
+        "x-stoplight": {
+          "id": "2m1y6fuop0adc"
+        }
       },
       "SignUpReq": {
         "description": "Model for Signup Request",
@@ -20016,7 +20341,10 @@
             "description": "Ignore Subscription"
           }
         },
-        "required": ["email", "password"]
+        "required": ["email", "password"],
+        "x-stoplight": {
+          "id": "t7stkblz9wllz"
+        }
       },
       "Sort": {
         "description": "Model for Sort",
@@ -20066,6 +20394,9 @@
             "example": "p_9sx43moxhqtjm3",
             "readOnly": true
           }
+        },
+        "x-stoplight": {
+          "id": "tlcmtmjzcyhm6"
         }
       },
       "SortList": {
@@ -20144,7 +20475,10 @@
             }
           }
         },
-        "required": ["list", "pageInfo"]
+        "required": ["list", "pageInfo"],
+        "x-stoplight": {
+          "id": "7j3nbohh43tyy"
+        }
       },
       "SortReq": {
         "description": "Model for Sort Request",
@@ -20167,6 +20501,9 @@
             "enum": ["asc", "desc"],
             "type": "string"
           }
+        },
+        "x-stoplight": {
+          "id": "shzdd8k3xswo9"
         }
       },
       "StringOrNull": {
@@ -20181,7 +20518,10 @@
             "type": "null"
           }
         ],
-        "title": "StringOrNull Model"
+        "title": "StringOrNull Model",
+        "x-stoplight": {
+          "id": "1lecfrpmnndhi"
+        }
       },
       "Table": {
         "description": "Model for Table",
@@ -20607,7 +20947,10 @@
             "type": "string"
           }
         },
-        "required": ["table_name", "title"]
+        "required": ["table_name", "title"],
+        "x-stoplight": {
+          "id": "986a3bp33neka"
+        }
       },
       "TableList": {
         "description": "Model for Table List",
@@ -20734,7 +21077,10 @@
             "description": "Paginated Info"
           }
         },
-        "required": ["list", "pageInfo"]
+        "required": ["list", "pageInfo"],
+        "x-stoplight": {
+          "id": "gemdr6sjuj4gl"
+        }
       },
       "TableReq": {
         "description": "Model for Table Request",
@@ -20872,7 +21218,10 @@
         },
         "required": ["columns", "table_name"],
         "title": "Table Request Model",
-        "type": "object"
+        "type": "object",
+        "x-stoplight": {
+          "id": "3i0r55tix0aso"
+        }
       },
       "User": {
         "description": "Model for User",
@@ -20942,7 +21291,10 @@
           "id",
           "email",
           "email_verified"
-        ]
+        ],
+        "x-stoplight": {
+          "id": "2uxbpdjvs379s"
+        }
       },
       "UserInfo": {
         "description": "Model for User Info",
@@ -20983,7 +21335,10 @@
           }
         },
         "title": "User Info Model",
-        "type": "object"
+        "type": "object",
+        "x-stoplight": {
+          "id": "uatcf3jcnna1t"
+        }
       },
       "UserList": {
         "description": "Model for User List",
@@ -21061,7 +21416,10 @@
             "description": "Paginated Info"
           }
         },
-        "required": ["list", "pageInfo"]
+        "required": ["list", "pageInfo"],
+        "x-stoplight": {
+          "id": "ygjybmp21hdgp"
+        }
       },
       "View": {
         "description": "Model for View",
@@ -21172,7 +21530,10 @@
             "description": "Associated View Model"
           }
         },
-        "required": ["fk_model_id", "show", "title", "type"]
+        "required": ["fk_model_id", "show", "title", "type"],
+        "x-stoplight": {
+          "id": "66ki9gaxq3kwg"
+        }
       },
       "ViewList": {
         "description": "Model for View List",
@@ -21297,12 +21658,15 @@
             "description": "Paginated Info"
           }
         },
-        "required": ["list", "pageInfo"]
+        "required": ["list", "pageInfo"],
+        "x-stoplight": {
+          "id": "2iat5dhhl4hoa"
+        }
       },
       "ViewCreateReq": {
         "type": "object",
         "x-stoplight": {
-          "id": "36edbe4aa5d24"
+          "id": "venaxkw5uod3n"
         },
         "title": "ViewCreateReq",
         "description": "Model for View Create Request",
@@ -21371,7 +21735,7 @@
       "ViewUpdateReq": {
         "description": "Model for View Update Request",
         "x-stoplight": {
-          "id": "1f9fe53ec13a2"
+          "id": "bo1mzzdpk82z0"
         },
         "examples": [
           {
@@ -21436,7 +21800,7 @@
       "ViewColumnUpdateReq": {
         "description": "Model for View Column Update Request",
         "x-stoplight": {
-          "id": "xyhyykbk7kw0a"
+          "id": "jmhr4prd02ssy"
         },
         "examples": [
           {
@@ -21465,7 +21829,7 @@
       "ViewColumnReq": {
         "description": "Model for View Column Request",
         "x-stoplight": {
-          "id": "94h1qcjiv7yex"
+          "id": "05tr5rxotp432"
         },
         "examples": [
           {
@@ -21554,7 +21918,10 @@
           "type": "object"
         },
         "title": "Visibility Rule Request Model",
-        "type": "array"
+        "type": "array",
+        "x-stoplight": {
+          "id": "c6q9v9rtiduxg"
+        }
       },
       "Webhook": {
         "properties": {

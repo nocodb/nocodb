@@ -123,7 +123,10 @@ const toggleDialog = inject(ToggleDialogInj, () => {})
     <span class="text-gray-500 group-hover:(text-primary/100) flex-1 nc-add-new-table">{{ $t('tooltip.addTable') }}</span>
 
     <a-dropdown v-if="!isSharedBase" :trigger="['click']" overlay-class-name="nc-dropdown-import-menu" @click.stop>
-      <MdiDotsVertical class="transition-opacity opacity-0 group-hover:opacity-100 nc-import-menu outline-0" />
+      <GeneralIcon
+        icon="threeDotVertical"
+        class="transition-opacity opacity-0 group-hover:opacity-100 nc-import-menu outline-0"
+      />
 
       <template #overlay>
         <a-menu class="!py-0 rounded text-sm">
@@ -131,18 +134,18 @@ const toggleDialog = inject(ToggleDialogInj, () => {})
             <template #title>
               <div class="flex items-center">
                 Noco
-                <PhSparkleFill class="ml-1 text-orange-400" />
+                <GeneralIcon icon="magic" class="ml-1 text-orange-400" />
               </div>
             </template>
             <a-menu-item key="table-magic" @click="openTableCreateMagicDialog(project.bases[baseIndex].id)">
               <div class="color-transition nc-project-menu-item group">
-                <MdiMagicStaff class="group-hover:text-accent" />
+                <GeneralIcon icon="magic1" class="group-hover:text-accent" />
                 Create table
               </div>
             </a-menu-item>
             <a-menu-item key="schema-magic" @click="openSchemaMagicDialog(project.bases[baseIndex].id)">
               <div class="color-transition nc-project-menu-item group">
-                <MdiMagicStaff class="group-hover:text-accent" />
+                <GeneralIcon icon="magic1" class="group-hover:text-accent" />
                 Create schema
               </div>
             </a-menu-item>
@@ -158,7 +161,7 @@ const toggleDialog = inject(ToggleDialogInj, () => {})
               @click="openAirtableImportDialog(project.bases[baseIndex].id)"
             >
               <div class="color-transition nc-project-menu-item group">
-                <MdiTableLarge class="group-hover:text-accent" />
+                <GeneralIcon icon="airtable" class="group-hover:text-accent" />
                 Airtable
               </div>
             </a-menu-item>
@@ -169,7 +172,7 @@ const toggleDialog = inject(ToggleDialogInj, () => {})
               @click="openQuickImportDialog('csv', project.bases[baseIndex].id)"
             >
               <div class="color-transition nc-project-menu-item group">
-                <MdiFileDocumentOutline class="group-hover:text-accent" />
+                <GeneralIcon icon="csv" class="group-hover:text-accent" />
                 CSV file
               </div>
             </a-menu-item>
@@ -180,7 +183,7 @@ const toggleDialog = inject(ToggleDialogInj, () => {})
               @click="openQuickImportDialog('json', project.bases[baseIndex].id)"
             >
               <div class="color-transition nc-project-menu-item group">
-                <MdiCodeJson class="group-hover:text-accent" />
+                <GeneralIcon icon="json" class="group-hover:text-accent" />
                 JSON file
               </div>
             </a-menu-item>
@@ -191,7 +194,7 @@ const toggleDialog = inject(ToggleDialogInj, () => {})
               @click="openQuickImportDialog('excel', project.bases[baseIndex].id)"
             >
               <div class="color-transition nc-project-menu-item group">
-                <MdiFileExcel class="group-hover:text-accent" />
+                <GeneralIcon icon="excel" class="group-hover:text-accent" />
                 Microsoft Excel
               </div>
             </a-menu-item>
@@ -245,7 +248,7 @@ const toggleDialog = inject(ToggleDialogInj, () => {})
               target="_blank"
               class="prose-sm hover:(!text-primary !opacity-100) color-transition nc-project-menu-item group after:(!rounded-b)"
             >
-              <MdiOpenInNew class="group-hover:text-accent" />
+              <GeneralIcon icon="openInNew" class="group-hover:text-accent" />
               <!-- Request a data source you need? -->
               {{ $t('labels.requestDataSource') }}
             </a>

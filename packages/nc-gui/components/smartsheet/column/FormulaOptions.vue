@@ -711,7 +711,8 @@ const predictFunction = async () => {
 <template>
   <div class="formula-wrapper">
     <a-form-item v-bind="validateInfos.formula_raw" label="Formula">
-      <PhSparkleFill
+      <GeneralIcon
+        icon="magic"
         :class="{ 'nc-animation-pulse': loadMagic }"
         class="text-orange-400 cursor-pointer absolute right-1 top-1 z-10"
         @click="predictFunction()"

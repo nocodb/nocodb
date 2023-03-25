@@ -231,7 +231,7 @@ const onToggleLink = () => {
         @click="expandText"
       >
         <div class="flex flex-row items-center pr-0.5">
-          <PhSparkleFill v-if="!isMagicExpandLoading" class="text-orange-400 h-3.5" />
+          <GeneralIcon v-if="!isMagicExpandLoading" icon="magic" class="text-orange-400 h-3.5" />
           <div class="!text-xs !ml-1">Expand</div>
         </div>
       </a-button>

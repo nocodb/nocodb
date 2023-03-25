@@ -871,7 +871,7 @@ function openGenerateDialog(target: any) {
                   @visible-change="persistMenu = altModifier"
                 >
                   <div class="h-full w-[60px] flex items-center justify-center">
-                    <PhSparkleFill v-if="altModifier || persistMenu" class="text-sm text-orange-400" />
+                    <GeneralIcon v-if="altModifier || persistMenu" icon="magic" class="text-sm text-orange-400" />
                     <component :is="iconMap.plus" class="text-sm nc-column-add" />
                   </div>
 
@@ -1141,7 +1141,7 @@ function openGenerateDialog(target: any) {
             <a-sub-menu v-if="contextMenuTarget" title="NocoAI">
               <a-menu-item @click="openGenerateDialog(contextMenuTarget)">
                 <div class="color-transition nc-project-menu-item group">
-                  <MdiMagicStaff class="group-hover:text-accent" />
+                  <GeneralIcon icon="magic1" class="group-hover:text-accent" />
                   Generate
                 </div>
               </a-menu-item>

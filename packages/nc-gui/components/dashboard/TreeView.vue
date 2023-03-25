@@ -556,18 +556,18 @@ useEventListener(document, 'contextmenu', handleContext, true)
                     <template #title>
                       <div class="flex items-center">
                         Noco
-                        <PhSparkleFill class="ml-1 text-orange-400" />
+                        <GeneralIcon icon="magic" class="ml-1 text-orange-400" />
                       </div>
                     </template>
                     <a-menu-item key="table-magic" @click="openTableCreateMagicDialog(bases[0].id)">
                       <div class="color-transition nc-project-menu-item group">
-                        <MdiMagicStaff class="group-hover:text-accent" />
+                        <GeneralIcon icon="magic1" class="group-hover:text-accent" />
                         Create table
                       </div>
                     </a-menu-item>
                     <a-menu-item key="schema-magic" @click="openSchemaMagicDialog(bases[0].id)">
                       <div class="color-transition nc-project-menu-item group">
-                        <MdiMagicStaff class="group-hover:text-accent" />
+                        <GeneralIcon icon="magic1" class="group-hover:text-accent" />
                         Create schema
                       </div>
                     </a-menu-item>
@@ -852,18 +852,18 @@ useEventListener(document, 'contextmenu', handleContext, true)
                             <template #title>
                               <div class="flex items-center">
                                 Noco
-                                <PhSparkleFill class="ml-1 text-orange-400" />
+                                <GeneralIcon icon="magic" class="ml-1 text-orange-400" />
                               </div>
                             </template>
                             <a-menu-item key="table-magic" @click="openTableCreateMagicDialog(bases[0].id)">
                               <div class="color-transition nc-project-menu-item group">
-                                <MdiMagicStaff class="group-hover:text-accent" />
+                                <GeneralIcon icon="magic1" class="group-hover:text-accent" />
                                 Create table
                               </div>
                             </a-menu-item>
                             <a-menu-item key="schema-magic" @click="openSchemaMagicDialog(bases[0].id)">
                               <div class="color-transition nc-project-menu-item group">
-                                <MdiMagicStaff class="group-hover:text-accent" />
+                                <GeneralIcon icon="magic1" class="group-hover:text-accent" />
                                 Create schema
                               </div>
                             </a-menu-item>
@@ -964,18 +964,18 @@ useEventListener(document, 'contextmenu', handleContext, true)
                             <template #title>
                               <div class="flex items-center">
                                 Noco
-                                <PhSparkleFill class="ml-1 text-orange-400" />
+                                <GeneralIcon icon="magic" class="ml-1 text-orange-400" />
                               </div>
                             </template>
                             <a-menu-item key="table-magic" @click="openTableCreateMagicDialog(base.id)">
                               <div class="color-transition nc-project-menu-item group">
-                                <MdiMagicStaff class="group-hover:text-accent" />
+                                <GeneralIcon icon="magic1" class="group-hover:text-accent" />
                                 Create table
                               </div>
                             </a-menu-item>
                             <a-menu-item key="schema-magic" @click="openSchemaMagicDialog(base.id)">
                               <div class="color-transition nc-project-menu-item group">
-                                <MdiMagicStaff class="group-hover:text-accent" />
+                                <GeneralIcon icon="magic1" class="group-hover:text-accent" />
                                 Create schema
                               </div>
                             </a-menu-item>

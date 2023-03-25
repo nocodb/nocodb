@@ -28,10 +28,11 @@ import NcIconsRowHeightMedium from '~icons/nc-icons/row-height-medium'
 import NcIconsRowHeightShort from '~icons/nc-icons/row-height-short'
 import NcIconsRowHeightTall from '~icons/nc-icons/row-height-tall'
 import NcIconsRowHeightExtraTall from '~icons/nc-icons/row-height-extra-tall'
+import PhSparkleFill from '~icons/ph/sparkle-fill'
 
 import MdiDatabaseSearch from '~icons/mdi/database-search'
-import MdiGraphOutline from '~icons/mdi/graph-outline'
-
+import MdiMagicStaff from '~icons/mdi/magic-staff'
+import PhCaretDoubleLeftThin from '~icons/ph/caret-double-left-light'
 
 // keep it for reference
 // todo: remove it after all icons are migrated
@@ -214,7 +215,7 @@ export const iconMap = {
   returnKey: h('span', { class: 'material-symbols-outlined' }, 'keyboard_return'),
   keyboard: h('span', { class: 'material-symbols-outlined' }, 'keyboard'),
   accountPlus: h('span', { class: 'material-symbols-outlined' }, 'person_add'),
-  database: h('span', { class: 'material-symbols-outlined' }, 'storage'),
+  database: h('span', { class: 'material-symbols-outlined' }, 'database'),
   discord: PhDiscordLogoLight,
   reddit: PhRedditLogoLight,
   github: PhGithubLogoLight,
@@ -244,7 +245,7 @@ export const iconMap = {
   book: h('span', { class: 'material-symbols-outlined' }, 'menu_book'),
   arrowDown: h('span', { class: 'material-symbols-outlined', style: { fontSize: '.8rem' } }, 'keyboard_arrow_down'),
   arrowRight: h('span', { class: 'material-symbols-outlined' }, 'keyboard_arrow_right'),
-  sidebarMinimise: h('span', { class: 'material-symbols-outlined' }, 'left_panel_close'),
+  sidebarMinimise: PhCaretDoubleLeftThin, // h('span', { class: 'material-symbols-outlined' }, 'left_panel_close'),
   // threeDotVertical: h('span', { class: 'material-symbols-outlined' }, 'more_vert'),
   // threeDotHorizontal: h('span', { class: 'material-symbols-outlined' }, 'more_horiz'),
   threeDotVertical: PhDotsThreeOutlineVerticalThin,
@@ -322,15 +323,17 @@ export const iconMap = {
   fileUpload: h('span', { class: 'material-symbols-outlined' }, 'cloud_upload'),
   drag: h('span', { class: 'material-symbols-outlined' }, 'drag_handle'),
   comment: h('span', { class: 'material-symbols-outlined' }, 'comment'),
+  doc: h('span', { class: 'material-symbols-outlined' }, 'menu_book'),
 
   heightShort: NcIconsRowHeightShort,
   heightMedium: NcIconsRowHeightMedium,
   heightTall: NcIconsRowHeightTall,
   heightExtra: NcIconsRowHeightExtraTall,
+  databaseSearch: MdiDatabaseSearch,
 
-  // todo: refactor
-  'mdi-database-search': MdiDatabaseSearch,
-  'mdi-graph-outline': MdiGraphOutline,
+  magic: PhSparkleFill,
+  magic1: MdiMagicStaff,
+  workspace: h('span', { class: 'material-symbols-outlined' }, 'dataset'),
 }
 
 export const getMdiIcon = (type: string): any => {

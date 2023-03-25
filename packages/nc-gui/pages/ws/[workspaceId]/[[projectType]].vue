@@ -38,7 +38,6 @@ onMounted(async () => {
   await workspaceStore.loadProjects()
 })
 
-
 // create a new sidebar state
 const { isOpen, toggle } = useSidebar('nc-left-sidebar', { hasSidebar: true, isOpen: true })
 
@@ -98,8 +97,9 @@ const currentVersion = ref('')
           <div
             class="nc-sidebar-left-toggle-icon hover:after:(bg-primary bg-opacity-75) group nc-sidebar-add-row flex items-center px-2"
           >
-            <PhCaretDoubleLeftThin
+            <GeneralIcon
               v-e="['c:grid:toggle-navdraw']"
+              icon="sidebarMinimise"
               class="cursor-pointer transform transition-transform duration-500"
               :class="{ 'rotate-180': !isOpen }"
               @click="toggle(!isOpen)"

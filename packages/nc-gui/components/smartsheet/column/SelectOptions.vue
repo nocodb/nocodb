@@ -273,7 +273,7 @@ watch(inputs, () => {
       </div>
     </a-button>
     <div class="w-full cursor-pointer" @click="optionsMagic()">
-      <PhSparkleFill :class="{ 'nc-animation-pulse': loadMagic }" class="w-full flex mt-2 text-orange-400" />
+      <GeneralIcon icon="magic" :class="{ 'nc-animation-pulse': loadMagic }" class="w-full flex mt-2 text-orange-400" />
     </div>
   </div>
 </template>

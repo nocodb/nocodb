@@ -155,7 +155,7 @@ const modalVisible = false
             <div class="max-h-300px overflow-y-auto">
               <a-menu-item v-for="workspace of workspaces" @click="navigateTo(`/ws/${workspace.id}`)">
                 <div class="nc-workspace-menu-item group">
-                  <PhBrowserThin />
+                  <GeneralIcon icon="workspace" />
 
                   {{ workspace.title }}
                 </div>
@@ -165,7 +165,7 @@ const modalVisible = false
 
             <a-menu-item @click="createDlg = true">
               <div class="nc-workspace-menu-item group">
-                <PhPlusThin />
+                <GeneralIcon icon="plus" />
 
                 Add new workspace
               </div>
@@ -174,7 +174,7 @@ const modalVisible = false
               <!-- Copy Auth Token -->
               <a-menu-item key="copy">
                 <div v-e="['a:navbar:user:copy-auth-token']" class="nc-workspace-menu-item group" @click.stop="copyAuthToken">
-                  <MdiScriptTextKeyOutline class="group-hover:text-accent" />
+                  <GeneralIcon icon="copy" class="group-hover:text-accent" />
                   {{ $t('activity.account.authToken') }}
                 </div>
               </a-menu-item>
@@ -186,7 +186,7 @@ const modalVisible = false
                 <a-sub-menu key="theme">
                   <template #title>
                     <div class="nc-workspace-menu-item group">
-                      <ClarityImageLine class="group-hover:text-accent" />
+                      <GeneralIcon icon="image" class="group-hover:text-accent" />
                       {{ $t('activity.account.themes') }}
 
                       <div class="flex-1" />
@@ -261,7 +261,7 @@ const modalVisible = false
               <a-sub-menu v-if="isUIAllowed('previewAs')" key="preview-as">
                 <template #title>
                   <div v-e="['c:navdraw:preview-as']" class="nc-workspace-menu-item group">
-                    <MdiFileEyeOutline class="group-hover:text-accent" />
+                    <GeneralIcon icon="preview" class="group-hover:text-accent" />
                     {{ $t('activity.previewAs') }}
 
                     <div class="flex-1" />
@@ -285,7 +285,7 @@ const modalVisible = false
             >
               <template #title>
                 <div class="nc-workspace-menu-item group">
-                  <MaterialSymbolsTranslate class="group-hover:text-accent nc-language" />
+                  <GeneralIcon icon="translate" class="group-hover:text-accent nc-language" />
                   {{ $t('labels.language') }}
                   <div class="flex items-center text-gray-400 text-xs">(Community Translated)</div>
                   <div class="flex-1" />
@@ -306,7 +306,7 @@ const modalVisible = false
               <a-sub-menu key="account">
                 <template #title>
                   <div class="nc-workspace-menu-item group">
-                    <MdiAccount class="group-hover:text-accent" />
+                    <GeneralIcon icon="account" class="group-hover:text-accent" />
                     {{ $t('labels.account') }}
                     <div class="flex-1" />
 
@@ -320,7 +320,7 @@ const modalVisible = false
 
                 <a-menu-item key="0" class="!rounded-t">
                   <nuxt-link v-e="['c:navbar:user:email']" class="nc-workspace-menu-item group !no-underline" to="/account/users">
-                    <MdiAt class="mt-1 group-hover:text-accent" />&nbsp;
+                    <GeneralIcon icon="at" class="mt-1 group-hover:text-accent" />&nbsp;
                     <div class="prose-sm group-hover:text-primary">
                       <div>Account</div>
                       <div class="text-xs text-gray-500">{{ email }}</div>
@@ -330,7 +330,7 @@ const modalVisible = false
 
                 <a-menu-item key="1" class="!rounded-b">
                   <div v-e="['a:navbar:user:sign-out']" class="nc-workspace-menu-item group" @click="logout">
-                    <MdiLogout class="group-hover:(!text-accent)" />&nbsp;
+                    <GeneralIcon icon="signout" class="group-hover:(!text-accent)" />&nbsp;
 
                     <span class="prose-sm nc-user-menu-signout">
                       {{ $t('general.signOut') }}

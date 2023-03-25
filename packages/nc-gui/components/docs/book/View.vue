@@ -219,7 +219,7 @@ const onShare = async (page: PageSidebarNode) => {
                     class="flex flex-row items-start text-xs gap-x-2 p-1.5 cursor-pointer rounded-md hover:bg-gray-200"
                     @click="openMagicModal"
                   >
-                    <PhSparkleFill class="flex text-orange-400 mt-0.5" />
+                    <GeneralIcon icon="magic" class="flex text-orange-400 mt-0.5" />
                     <div class="flex flex-col">
                       <div class="flex">Create Pages with Prompt</div>
                       <div class="flex text-gray-500" :style="{ fontSize: '0.6rem' }">
@@ -242,7 +242,7 @@ const onShare = async (page: PageSidebarNode) => {
             <!-- <a-button type="text" class="!px-2 !border-1 !border-gray-100 !rounded-md" @click="() => openMagicModal()">
               <div class="flex flex-row gap-x-1 items-center">
                 <div class="flex pl-1">Create Pages with</div>
-                <PhSparkleFill class="text-orange-400 h-3.5" />
+                <GeneralIcon icon="magic"  class="text-orange-400 h-3.5" />
               </div>
             </a-button> -->
           </div>
@@ -294,7 +294,7 @@ const onShare = async (page: PageSidebarNode) => {
                     @click="openMagicModal"
                   >
                     <div>Create Pages using AI</div>
-                    <PhSparkleFill class="flex text-orange-400 h-3.5" />
+                    <GeneralIcon icon="magic" class="flex text-orange-400 h-3.5" />
                   </div>
                 </div>
               </div>
@@ -367,7 +367,11 @@ const onShare = async (page: PageSidebarNode) => {
         <div class="flex flex-row items-center justify-between mx-1.5 border-b-1 border-gray-100 pb-2 pt-0.5">
           <div class="flex flex-row ml-1 font-semibold items-center">
             <div class="flex">Create pages with prompt</div>
-            <PhSparkleFill :class="{ 'nc-animation-pulse': isMagicLoading }" class="flex ml-2 -mt-0.5 text-orange-400" />
+            <GeneralIcon
+              icon="magic"
+              :class="{ 'nc-animation-pulse': isMagicLoading }"
+              class="flex ml-2 -mt-0.5 text-orange-400"
+            />
           </div>
           <div
             class="flex hover:bg-gray-50 p-1 rounded-md cursor-pointer"

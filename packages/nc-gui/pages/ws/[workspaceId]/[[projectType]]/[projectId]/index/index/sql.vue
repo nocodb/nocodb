@@ -327,7 +327,9 @@ onMounted(() => {
                 </a-menu-item>
               </a-menu>
             </template>
-            <template #icon><PhSparkleFill :class="{ 'nc-animation-pulse': loadMagic }" class="text-orange-400" /></template>
+            <template #icon
+              ><GeneralIcon icon="magic" :class="{ 'nc-animation-pulse': loadMagic }" class="text-orange-400"
+            /></template>
           </a-dropdown-button>
           <a-button type="primary" class="!flex items-center" :loading="loadSQL" :disabled="!rawSql?.length" @click="runSQL">
             <template #icon><MdiPlay class="mr-1" /></template>

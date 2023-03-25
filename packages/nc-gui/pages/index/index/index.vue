@@ -38,7 +38,7 @@ const { workspaces, activeWorkspace, isWorkspaceOwner, activePage } = storeToRef
 
 const { $e } = useNuxtApp()
 
-const route = useRoute()
+const route = $(router.currentRoute)
 
 const selectedWorkspaceIndex = computed<number[]>({
   get() {
@@ -236,9 +236,9 @@ const projectListType = computed(() => {
       <div class="h-full flex flex-col min-h-[400px] overflow-auto">
         <div class="nc-workspace-group overflow-auto mt-2">
           <div
-              class="nc-workspace-group-item"
-              :class="{ active: activePage === 'recent' }"
-              @click="
+            class="nc-workspace-group-item"
+            :class="{ active: activePage === 'recent' }"
+            @click="
               navigateTo({
                 query: {
                   page: 'recent',
@@ -250,9 +250,9 @@ const projectListType = computed(() => {
             <span>Recent</span>
           </div>
           <div
-              class="nc-workspace-group-item"
-              :class="{ active: activePage === 'shared' }"
-              @click="
+            class="nc-workspace-group-item"
+            :class="{ active: activePage === 'shared' }"
+            @click="
               navigateTo({
                 query: {
                   page: 'shared',
@@ -264,9 +264,9 @@ const projectListType = computed(() => {
             <span>Shared with me</span>
           </div>
           <div
-              class="nc-workspace-group-item"
-              :class="{ active: activePage === 'starred' }"
-              @click="
+            class="nc-workspace-group-item"
+            :class="{ active: activePage === 'starred' }"
+            @click="
               navigateTo({
                 query: {
                   page: 'starred',
@@ -288,11 +288,11 @@ const projectListType = computed(() => {
           <a-empty v-if="!workspaces?.length" :image="Empty.PRESENTED_IMAGE_SIMPLE" />
 
           <a-menu
-              v-else
-              :ref="menu"
-              v-model:selected-keys="selectedWorkspaceIndex"
-              class="nc-workspace-list"
-              trigger-sub-menu-action="click"
+            v-else
+            :ref="menu"
+            v-model:selected-keys="selectedWorkspaceIndex"
+            class="nc-workspace-list"
+            trigger-sub-menu-action="click"
           >
             <a-menu-item v-for="(workspace, i) of workspaces" :key="i">
               <div class="nc-workspace-list-item flex items-center h-full group" :data-id="workspace.id">
@@ -300,9 +300,9 @@ const projectListType = computed(() => {
                   <div>
                     <span class="color-band" :style="{ backgroundColor: getWorkspaceColor(workspace) }" />
                     <div
-                        :key="workspace.meta?.color"
-                        class="nc-workspace-avatar nc-click-transition-1"
-                        :style="{ backgroundColor: getWorkspaceColor(workspace) }"
+                      :key="workspace.meta?.color"
+                      class="nc-workspace-avatar nc-click-transition-1"
+                      :style="{ backgroundColor: getWorkspaceColor(workspace) }"
                     >
                       {{ workspace.title?.slice(0, 2) }}
                     </div>
@@ -311,11 +311,11 @@ const projectListType = computed(() => {
                   <template #overlay>
                     <a-menu trigger-sub-menu-action="click">
                       <LazyGeneralColorPicker
-                          :model-value="getWorkspaceColor(workspace)"
-                          :colors="projectThemeColors"
-                          :row-size="9"
-                          :advanced="false"
-                          @input="handleWorkspaceColor(workspace.id, $event)"
+                        :model-value="getWorkspaceColor(workspace)"
+                        :colors="projectThemeColors"
+                        :row-size="9"
+                        :advanced="false"
+                        @input="handleWorkspaceColor(workspace.id, $event)"
                       />
                       <a-sub-menu key="pick-primary">
                         <template #title>
@@ -333,25 +333,25 @@ const projectListType = computed(() => {
                   </template>
                 </a-dropdown>
                 <input
-                    v-if="workspace.edit"
-                    ref="renameInput"
-                    v-model="workspace.temp_title"
-                    class="!leading-none outline-none bg-transparent"
-                    autofocus
-                    @blur="disableEdit(i)"
-                    @keydown.enter="updateWorkspaceTitle(workspace)"
-                    @keydown.esc="disableEdit(i)"
+                  v-if="workspace.edit"
+                  ref="renameInput"
+                  v-model="workspace.temp_title"
+                  class="!leading-none outline-none bg-transparent"
+                  autofocus
+                  @blur="disableEdit(i)"
+                  @keydown.enter="updateWorkspaceTitle(workspace)"
+                  @keydown.esc="disableEdit(i)"
                 />
                 <div v-else class="nc-workspace-title shrink min-w-4 flex items-center gap-1">
                   <span
-                      class="shrink min-w-0 overflow-ellipsis overflow-hidden"
-                      :class="{ '!font-weight-bold': selectedWorkspaceIndex[0] === i }"
-                      :title="workspace.title"
-                      @dblclick="enableEdit(i)"
-                  >{{ workspace.title }}</span
+                    class="shrink min-w-0 overflow-ellipsis overflow-hidden"
+                    :class="{ '!font-weight-bold': selectedWorkspaceIndex[0] === i }"
+                    :title="workspace.title"
+                    @dblclick="enableEdit(i)"
+                    >{{ workspace.title }}</span
                   >
                   <span v-if="workspace.roles" class="text-[0.7rem] text-gray-500 hidden group-hover:inline"
-                  >({{ roleAlias[workspace.roles] }})</span
+                    >({{ roleAlias[workspace.roles] }})</span
                   >
                 </div>
                 <div class="flex-grow"></div>

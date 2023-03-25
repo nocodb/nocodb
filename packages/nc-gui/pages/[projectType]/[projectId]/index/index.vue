@@ -22,9 +22,9 @@ const icon = (tab: TabItem) => {
       return iconMap.users
     // todo: iconmap key
     case TabType.SQL:
-      return iconMap['mdi-database-search']
+      return iconMap.databaseSearch
     case TabType.ERD:
-      return iconMap['mdi-graph-outline']
+      return iconMap.erd
   }
 }
 

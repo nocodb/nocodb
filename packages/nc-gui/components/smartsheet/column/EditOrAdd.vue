@@ -224,7 +224,7 @@ useEventListener('keydown', (e: KeyboardEvent) => {
             </a-select>
           </a-form-item>
           <div class="mt-2 cursor-pointer" @click="predictColumnType()">
-            <PhSparkleFill :class="{ 'nc-animation-pulse': loadMagic }" class="w-full flex mt-2 text-orange-400" />
+            <GeneralIcon icon="magic" :class="{ 'nc-animation-pulse': loadMagic }" class="w-full flex mt-2 text-orange-400" />
           </div>
         </div>
 

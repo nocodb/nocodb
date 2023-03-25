@@ -170,6 +170,10 @@ const [useProvideExpandedFormStore, useExpandedFormStore] = useInjectionState((m
                 const pkData = rowPkData(row.row, meta.value?.columns as ColumnType[])
                 row.row = { ...pkData, ...row.row }
                 await $api.dbTableRow.create('noco', project.value.title as string, meta.value.title, row.row)
+                if (activeView.value?.type === ViewTypes.KANBAN) {
+                  const { loadKanbanData } = useKanbanViewStoreOrThrow()
+                  await loadKanbanData()
+                }
                 reloadTrigger?.trigger()
               },
               args: [clone(row.value)],
@@ -185,6 +189,10 @@ const [useProvideExpandedFormStore, useExpandedFormStore] = useInjectionState((m
                 )
                 if (res.message) {
                   throw new Error(res.message)
+                }
+                if (activeView.value?.type === ViewTypes.KANBAN) {
+                  const { loadKanbanData } = useKanbanViewStoreOrThrow()
+                  await loadKanbanData()
                 }
                 reloadTrigger?.trigger()
               },
@@ -223,6 +231,10 @@ const [useProvideExpandedFormStore, useExpandedFormStore] = useInjectionState((m
               redo: {
                 fn: async (id: string, data: Record<string, any>) => {
                   await $api.dbTableRow.update(NOCO, project.value.title as string, meta.value.title, id, data)
+                  if (activeView.value?.type === ViewTypes.KANBAN) {
+                    const { loadKanbanData } = useKanbanViewStoreOrThrow()
+                    await loadKanbanData()
+                  }
                   reloadTrigger?.trigger()
                 },
                 args: [id, clone(updateOrInsertObj)],
@@ -230,6 +242,10 @@ const [useProvideExpandedFormStore, useExpandedFormStore] = useInjectionState((m
               undo: {
                 fn: async (id: string, data: Record<string, any>) => {
                   await $api.dbTableRow.update(NOCO, project.value.title as string, meta.value.title, id, data)
+                  if (activeView.value?.type === ViewTypes.KANBAN) {
+                    const { loadKanbanData } = useKanbanViewStoreOrThrow()
+                    await loadKanbanData()
+                  }
                   reloadTrigger?.trigger()
                 },
                 args: [id, clone(undoObject)],

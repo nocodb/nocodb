@@ -4,7 +4,7 @@ import { onBeforeMount, parseProp, timeAgo, useApi } from '#imports'
 
 const props = defineProps<Props>()
 
-const { api } = useApi()
+const { api, isLoading } = useApi()
 
 const hookLogs = ref<HookLogType[]>([])
 
@@ -24,7 +24,8 @@ onBeforeMount(async () => {
 </script>
 
 <template>
-  <a-collapse v-model:activeKey="activeKey" class="nc-hook-log-collapse">
+  <a-skeleton v-if="isLoading" />
+  <a-collapse v-else v-model:activeKey="activeKey" class="nc-hook-log-collapse">
     <a-collapse-panel v-for="(hookLog, idx) of hookLogs" :key="idx">
       <template #header>
         <div class="w-full cursor-pointer">

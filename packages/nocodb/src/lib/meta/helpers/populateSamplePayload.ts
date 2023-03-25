@@ -1,4 +1,5 @@
 import { RelationTypes, UITypes } from 'nocodb-sdk';
+import { v4 as uuidv4 } from 'uuid';
 import View from '../../models/View';
 import Column from '../../models/Column';
 import Model from '../../models/Model';
@@ -31,6 +32,7 @@ export default async function populateSamplePayload(
 
   const samplePayload = {
     type: `${scope}.after.${operation}`,
+    id: uuidv4(),
     data: {
       table_id: model.id,
       table_name: model.title,

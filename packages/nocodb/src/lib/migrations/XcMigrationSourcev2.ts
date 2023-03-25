@@ -15,7 +15,7 @@ import * as nc_024_barcode_column_type from './v2/nc_024_barcode_column_type';
 import * as nc_025_add_row_height from './v2/nc_025_add_row_height';
 import * as nc_026_map_view from './v2/nc_026_map_view';
 import * as nc_027_add_comparison_sub_op from './v2/nc_027_add_comparison_sub_op';
-import * as nc_028_add_enable_scanner_in_form_columns_meta_table from './v2/nc_026_add_enable_scanner_in_form_columns_meta_table';
+import * as nc_028_add_enable_scanner_in_form_columns_meta_table from './v2/nc_028_add_enable_scanner_in_form_columns_meta_table';
 import * as nc_029_alter_hooklog_response_types from './v2/nc_029_alter_hooklog_response_types';
 
 // Create a custom migration source class

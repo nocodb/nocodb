@@ -17,7 +17,7 @@ const icon = (tab: TabItem) => {
     case TabType.TABLE:
       return iconMap.table
     case TabType.VIEW:
-      return iconMap.eye
+      return iconMap.view
     case TabType.AUTH:
       return iconMap.users
   }

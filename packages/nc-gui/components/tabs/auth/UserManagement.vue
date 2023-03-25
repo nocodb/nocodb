@@ -3,6 +3,7 @@ import { OrgUserRoles } from 'nocodb-sdk'
 import type { ProjectUserReqType, RequestParams } from 'nocodb-sdk'
 import {
   extractSdkResponseErrorMsg,
+  iconMap,
   message,
   onBeforeMount,
   projectRoleTagColors,
@@ -229,7 +230,7 @@ const isSuperAdmin = (user: { main_roles?: string }) => {
       <div class="flex flex-row space-x-1">
         <a-button v-e="['a:user:reload']" size="middle" type="text" @click="loadUsers()">
           <div class="flex flex-row justify-center items-center caption capitalize space-x-1">
-            <MdiReload class="text-gray-500" />
+            <component :is="iconMap.reload" class="text-gray-500" />
             <div class="text-gray-500">{{ $t('general.reload') }}</div>
           </div>
         </a-button>
@@ -244,7 +245,7 @@ const isSuperAdmin = (user: { main_roles?: string }) => {
           @click="onInvite"
         >
           <div class="flex flex-row justify-center items-center caption capitalize space-x-1">
-            <MdiAccountPlusOutline class="mr-1" />
+            <component :is="iconMap.accountPlus" class="mr-1" />
             <div>{{ $t('activity.inviteTeam') }}</div>
           </div>
         </a-button>
@@ -254,12 +255,12 @@ const isSuperAdmin = (user: { main_roles?: string }) => {
     <div class="px-5">
       <div class="flex flex-row border-b-1 pb-2 px-2">
         <div class="flex flex-row w-4/6 space-x-1 items-center pl-1">
-          <EvaEmailOutline class="flex text-gray-500 -mt-0.5" />
+          <component :is="iconMap.email" class="flex text-gray-500 -mt-0.5" />
 
           <div class="text-gray-600 text-xs space-x-1">{{ $t('labels.email') }}</div>
         </div>
         <div class="flex flex-row justify-center w-1/6 space-x-1 items-center pl-1">
-          <MdiDramaMasks class="flex text-gray-500 -mt-0.5" />
+          <component :is="iconMap.role" class="flex text-gray-500 -mt-0.5" />
 
           <div class="text-gray-600 text-xs">{{ $t('objects.role') }}</div>
         </div>
@@ -311,7 +312,7 @@ const isSuperAdmin = (user: { main_roles?: string }) => {
 
               <a-button type="text" class="!rounded-md nc-user-invite" @click="inviteUser(user)">
                 <template #icon>
-                  <MdiPlus class="flex mx-auto h-[1.1rem] text-gray-500" />
+                  <component :is="iconMap.plus" class="flex mx-auto h-[1.1rem] text-gray-500" />
                 </template>
               </a-button>
             </a-tooltip>
@@ -324,7 +325,7 @@ const isSuperAdmin = (user: { main_roles?: string }) => {
 
               <a-button v-e="['c:user:delete']" type="text" class="!rounded-md nc-user-delete" @click="onDelete(user)">
                 <template #icon>
-                  <MdiDeleteOutline class="flex mx-auto h-[1.1rem] text-gray-500" />
+                  <component :is="iconMap.delete" class="flex mx-auto h-[1.1rem] text-gray-500" />
                 </template>
               </a-button>
             </a-tooltip>
@@ -349,13 +350,13 @@ const isSuperAdmin = (user: { main_roles?: string }) => {
                   <a-menu-item>
                     <!--                  Resend invite Email -->
                     <div class="flex flex-row items-center py-3" @click="resendInvite(user)">
-                      <MdiEmailArrowRightOutline class="flex h-[1rem] text-gray-500" />
+                      <component :is="iconMap.sendEmail" class="flex h-[1rem] text-gray-500" />
                       <div class="text-xs pl-2">{{ $t('activity.resendInvite') }}</div>
                     </div>
                   </a-menu-item>
                   <a-menu-item>
                     <div class="flex flex-row items-center py-3" @click="copyInviteUrl(user)">
-                      <MdiContentCopy class="flex h-[1rem] text-gray-500" />
+                      <component :is="iconMap.copy" class="flex h-[1rem] text-gray-500" />
                       <div class="text-xs pl-2">{{ $t('activity.copyInviteURL') }}</div>
                     </div>
                   </a-menu-item>

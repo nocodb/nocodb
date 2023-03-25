@@ -453,7 +453,7 @@ onMounted(async () => {
 
       <a-button class="nc-btn-webhook-save" type="primary" size="large" @click.prevent="saveHooks">
         <div class="flex items-center">
-          <MdiContentSave class="mr-2" />
+          <component :is="iconMap.save" class="mr-2" />
           <!-- Save -->
           {{ $t('general.save') }}
         </div>
@@ -530,9 +530,9 @@ onMounted(async () => {
                 >
                   <a-select-option v-for="(notificationOption, i) in notificationList" :key="i" :value="notificationOption.type">
                     <div class="flex items-center">
-                      <MdiLink v-if="notificationOption.type === 'URL'" class="mr-2" />
+                      <component :is="iconMap.link" v-if="notificationOption.type === 'URL'" class="mr-2" />
 
-                      <MdiEmail v-if="notificationOption.type === 'Email'" class="mr-2" />
+                      <component :is="iconMap.email" v-if="notificationOption.type === 'Email'" class="mr-2" />
 
                       <MdiSlack v-if="notificationOption.type === 'Slack'" class="mr-2" />
 

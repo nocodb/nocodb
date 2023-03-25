@@ -1,6 +1,17 @@
 <script setup lang="ts">
 import type { FilterReqType, HookReqType, HookType } from 'nocodb-sdk'
-import { MetaInj, extractSdkResponseErrorMsg, inject, message, onMounted, parseProp, ref, useI18n, useNuxtApp } from '#imports'
+import {
+  MetaInj,
+  extractSdkResponseErrorMsg,
+  iconMap,
+  inject,
+  message,
+  onMounted,
+  parseProp,
+  ref,
+  useI18n,
+  useNuxtApp,
+} from '#imports'
 
 const emit = defineEmits(['edit', 'add'])
 
@@ -125,7 +136,7 @@ onMounted(() => {
 
               <template #avatar>
                 <div class="my-1 px-2">
-                  <MdiHook class="text-xl" />
+                  <component :is="iconMap.hook" class="text-xl" />
                 </div>
                 <div class="px-2 text-white rounded" :class="{ 'bg-green-500': item.active, 'bg-gray-500': !item.active }">
                   {{ item.active ? 'ON' : 'OFF' }}
@@ -143,14 +154,14 @@ onMounted(() => {
                     <template #title>
                       {{ $t('activity.copyWebhook') }}
                     </template>
-                    <MdiContentCopy class="text-xl nc-hook-copy-icon" @click.stop="copyHook(item)" />
+                    <component :is="iconMap.copy" class="text-xl nc-hook-copy-icon" @click.stop="copyHook(item)" />
                   </a-tooltip>
 
                   <a-tooltip placement="left">
                     <template #title>
                       {{ $t('activity.deleteWebhook') }}
                     </template>
-                    <MdiDeleteOutline class="text-xl nc-hook-delete-icon" @click.stop="deleteHook(item, index)" />
+                    <component :is="iconMap.delete" class="text-xl nc-hook-delete-icon" @click.stop="deleteHook(item, index)" />
                   </a-tooltip>
                 </div>
               </div>

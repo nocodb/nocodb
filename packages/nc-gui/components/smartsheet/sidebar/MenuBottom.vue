@@ -1,6 +1,6 @@
 <script lang="ts" setup>
 import { ViewTypes } from 'nocodb-sdk'
-import { useNuxtApp, useSmartsheetStoreOrThrow, viewIcons } from '#imports'
+import { iconMap, useNuxtApp, useSmartsheetStoreOrThrow, viewIcons } from '#imports'
 
 const emits = defineEmits<Emits>()
 
@@ -43,7 +43,7 @@ function onOpenModal(type: ViewTypes, title = '') {
 
           <div class="flex-1" />
 
-          <mdi-plus class="group-hover:text-primary" />
+          <component :is="iconMap.plus" class="group-hover:text-primary" />
         </div>
       </a-tooltip>
     </a-menu-item>
@@ -65,7 +65,7 @@ function onOpenModal(type: ViewTypes, title = '') {
 
           <div class="flex-1" />
 
-          <mdi-plus class="group-hover:text-primary" />
+          <component :is="iconMap.plus" class="group-hover:text-primary" />
         </div>
       </a-tooltip>
     </a-menu-item>
@@ -88,7 +88,7 @@ function onOpenModal(type: ViewTypes, title = '') {
 
           <div class="flex-1" />
 
-          <mdi-plus class="group-hover:text-primary" />
+          <component :is="iconMap.plus" class="group-hover:text-primary" />
         </div>
       </a-tooltip>
     </a-menu-item>
@@ -110,7 +110,7 @@ function onOpenModal(type: ViewTypes, title = '') {
 
           <div class="flex-1" />
 
-          <mdi-plus class="group-hover:text-primary" />
+          <component :is="iconMap.plus" class="group-hover:text-primary" />
         </div>
       </a-tooltip>
     </a-menu-item>
@@ -132,7 +132,7 @@ function onOpenModal(type: ViewTypes, title = '') {
 
           <div class="flex-1" />
 
-          <mdi-plus class="group-hover:text-primary" />
+          <component :is="iconMap.plus" class="group-hover:text-primary" />
         </div>
       </a-tooltip>
     </a-menu-item>

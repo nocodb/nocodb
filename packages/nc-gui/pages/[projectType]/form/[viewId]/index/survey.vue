@@ -6,6 +6,7 @@ import {
   DropZoneRef,
   IsSurveyFormInj,
   computed,
+  iconMap,
   isValidURL,
   onKeyStroke,
   onMounted,
@@ -365,11 +366,12 @@ onMounted(() => {
                     </Transition>
 
                     <Transition name="slide-right" mode="out-in">
-                      <MdiCloseCircleOutline
+                      <component
+                        :is="iconMap.closeCircle"
                         v-if="v$.localState[field.title]?.$error || columnValidationError"
                         class="text-red-500 md:text-md"
                       />
-                      <MdiCheck v-else class="text-white md:text-md" />
+                      <component :is="iconMap.check" v-else class="text-white md:text-md" />
                     </Transition>
                   </button>
                 </a-tooltip>
@@ -443,7 +445,11 @@ onMounted(() => {
               data-testid="nc-survey-form__icon-prev"
               @click="goPrevious()"
             >
-              <MdiChevronLeft :class="isFirst ? 'text-gray-300' : 'group-hover:text-accent'" class="text-2xl md:text-md" />
+              <component
+                :is="iconMap.chevronLeft"
+                :class="isFirst ? 'text-gray-300' : 'group-hover:text-accent'"
+                class="text-2xl md:text-md"
+              />
             </button>
           </a-tooltip>
 
@@ -462,7 +468,8 @@ onMounted(() => {
               data-testid="nc-survey-form__icon-next"
               @click="goNext()"
             >
-              <MdiChevronRight
+              <component
+                :is="iconMap.chevronRight"
                 :class="[isLast || v$.localState[field.title]?.$error ? 'text-gray-300' : 'group-hover:text-accent']"
                 class="text-2xl md:text-md"
               />

@@ -9,6 +9,7 @@ import {
   MetaInj,
   ReloadViewDataHookInj,
   computed,
+  iconMap,
   inject,
   ref,
   useKanbanViewStoreOrThrow,
@@ -94,7 +95,7 @@ const handleChange = () => {
             {{ $t('activity.kanban.stackedBy') }}
             <span class="font-bold">{{ groupingField }}</span>
           </span>
-          <MdiMenuDown class="text-grey" />
+          <component :is="iconMap.arrowDown" class="text-grey" />
         </div>
       </a-button>
     </div>

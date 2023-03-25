@@ -1,5 +1,5 @@
 <script lang="ts" setup>
-import { ref, storeToRefs, useGlobal, useProject, useRoute } from '#imports'
+import { iconMap, ref, storeToRefs, useGlobal, useProject, useRoute } from '#imports'
 
 const showDrawer = ref(false)
 
@@ -19,7 +19,7 @@ const openSwaggerLink = () => {
     class="flex items-center space-x-1 w-full cursor-pointer pl-3 py-1.5 hover:(text-primary bg-primary bg-opacity-5)"
     @click="showDrawer = true"
   >
-    <MdiCommentTextOutline class="mr-1" />
+    <component :is="iconMap.apiAndSupport" class="mr-1" />
 
     <!-- APIs & Support -->
     <div>{{ $t('title.APIsAndSupport') }}</div>

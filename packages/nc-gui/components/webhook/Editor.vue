@@ -18,6 +18,7 @@ import {
   useI18n,
   useNuxtApp,
   watch,
+  iconMap,
 } from '#imports'
 
 interface Props {

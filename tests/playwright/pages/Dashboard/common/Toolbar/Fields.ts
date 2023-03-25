@@ -97,16 +97,7 @@ export class ToolbarFieldsPage extends BasePage {
   }
 
   async getFieldsTitles() {
-    let fields: string[] = await this.rootPage.locator(`.nc-grid-header`).allInnerTexts();
-
-    fields = fields[0].split('\n');
-    // for each entry in fields, remove \n, \t, and \r
-    fields = fields.map(field => field.replace(/[\n\t\r]/g, ''));
-    // remove first entry, which is the row number
-    fields.shift();
-    // remove empty strings from array
-    fields = fields.filter(field => field !== '');
-
+    let fields: string[] = await this.rootPage.locator(`.nc-grid-header .name`).allTextContents();
     return fields;
   }
 
@@ -114,8 +105,8 @@ export class ToolbarFieldsPage extends BasePage {
     await this.toolbar.clickFields();
     const { from, to } = param;
     const [fromStack, toStack] = await Promise.all([
-      this.get().locator(`.nc-icon.cursor-move`).nth(from),
-      this.get().locator(`.nc-icon.cursor-move`).nth(to),
+      this.get().locator(`.cursor-move`).nth(from),
+      this.get().locator(`.cursor-move`).nth(to),
     ]);
 
     await fromStack.dragTo(toStack);

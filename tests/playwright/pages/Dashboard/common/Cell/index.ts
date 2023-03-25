@@ -273,7 +273,7 @@ export class CellPageObject extends BasePage {
 
     // verify only the elements that are passed in
     for (let i = 0; i < value.length; ++i) {
-      await expect(await chips.nth(i)).toHaveText(value[i]);
+      await expect(await chips.nth(i).locator('.name')).toHaveText(value[i]);
     }
   }
 

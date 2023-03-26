@@ -925,6 +925,10 @@ test.describe('Filter Tests: Date based', () => {
       });
     }
   }
+  test.beforeAll(async () => {
+    // Set timeout for this hook.
+    test.setTimeout(180000);
+  });
 
   test.beforeEach(async ({ page }) => {
     context = await setup({ page });

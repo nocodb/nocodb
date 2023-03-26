@@ -62,6 +62,9 @@ const [useProvideKanbanViewStore, useKanbanViewStore] = useInjectionState(
 
     const { addUndo, clone } = useUndoRedo()
 
+    // save history of stack changes for undo/redo
+    const moveHistory = ref<{ op: 'added' | 'removed'; pk: string; stack: string; index: number }[]>([])
+
     const sqlUi = ref(
       (meta.value as TableType)?.base_id ? sqlUis.value[(meta.value as TableType).base_id!] : Object.values(sqlUis.value)[0],
     )
@@ -315,6 +318,17 @@ const [useProvideKanbanViewStore, useKanbanViewStore] = useInjectionState(
       await $api.dbView.kanbanUpdate(viewMeta.value.id, updateObj)
     }
 
+    function findRowInState(rowData: Record<string, any>) {
+      const pk: Record<string, string> = rowPkData(rowData, meta?.value?.columns as ColumnType[])
+      for (const rows of formattedData.value.values()) {
+        for (const row of rows) {
+          if (Object.keys(pk).every((k) => pk[k] === row.row[k])) {
+            return row
+          }
+        }
+      }
+    }
+
     async function insertRow(row: Record<string, any>, rowIndex = formattedData.value.get(null)!.length, undo = false) {
       try {
         const insertObj = (meta?.value?.columns as ColumnType[]).reduce((o: Record<string, any>, col) => {
@@ -341,28 +355,27 @@ const [useProvideKanbanViewStore, useKanbanViewStore] = useInjectionState(
                 const pkData = rowPkData(row.row, meta.value?.columns as ColumnType[])
                 row.row = { ...pkData, ...row.row }
                 await insertRow(row, rowIndex, true)
-                await loadKanbanMeta()
-                await loadKanbanData()
+                addOrEditStackRow(row, true)
               },
               args: [clone(row), rowIndex],
             },
             undo: {
               fn: async function undo(this: UndoRedoAction, id: string) {
                 await deleteRowById(id)
-                await loadKanbanMeta()
-                await loadKanbanData()
+                const row = findRowInState(insertedData)
+                if (row) removeRowFromTargetStack(row)
               },
               args: [id],
             },
             scope: viewMeta.value?.title,
           })
-        }
 
-        formattedData.value.get(null)?.splice(rowIndex ?? 0, 1, {
-          row: insertedData,
-          rowMeta: {},
-          oldRow: { ...insertedData },
-        })
+          formattedData.value.get(null)?.splice(rowIndex ?? 0, 1, {
+            row: insertedData,
+            rowMeta: {},
+            oldRow: { ...insertedData },
+          })
+        }
 
         return insertedData
       } catch (error: any) {
@@ -398,16 +411,36 @@ const [useProvideKanbanViewStore, useKanbanViewStore] = useInjectionState(
         })
 
         if (!undo) {
+          const oldRowIndex = moveHistory.value.find((ele) => ele.op === 'removed' && ele.pk === id)
+          const nextRowIndex = moveHistory.value.find((ele) => ele.op === 'added' && ele.pk === id)
           addUndo({
             redo: {
               fn: async function redo(toUpdate: Row, property: string) {
-                await updateRowProperty(toUpdate, property, true)
+                const updatedData = await updateRowProperty(toUpdate, property, true)
+                const row = findRowInState(toUpdate.row)
+                if (row) {
+                  Object.assign(row.row, updatedData)
+                  if (row.row[groupingField.value] !== row.oldRow[groupingField.value])
+                    addOrEditStackRow(row, false, nextRowIndex?.index)
+                  Object.assign(row.oldRow, updatedData)
+                }
               },
               args: [clone(toUpdate), property],
             },
             undo: {
               fn: async function undo(toUpdate: Row, property: string) {
-                await updateRowProperty({ row: toUpdate.oldRow, oldRow: toUpdate.row, rowMeta: toUpdate.rowMeta }, property, true)
+                const updatedData = await updateRowProperty(
+                  { row: toUpdate.oldRow, oldRow: toUpdate.row, rowMeta: toUpdate.rowMeta },
+                  property,
+                  true,
+                )
+                const row = findRowInState(toUpdate.row)
+                if (row) {
+                  Object.assign(row.row, updatedData)
+                  if (row.row[groupingField.value] !== row.oldRow[groupingField.value])
+                    addOrEditStackRow(row, false, oldRowIndex?.index)
+                  Object.assign(row.oldRow, updatedData)
+                }
               },
               args: [clone(toUpdate), property],
             },
@@ -417,19 +450,9 @@ const [useProvideKanbanViewStore, useKanbanViewStore] = useInjectionState(
           /** update row data(to sync formula and other related columns) */
           Object.assign(toUpdate.row, updatedRowData)
           Object.assign(toUpdate.oldRow, updatedRowData)
-        } else {
-          const pk: Record<string, string> = rowPkData(toUpdate.row, meta?.value?.columns as ColumnType[])
-          for (const rows of formattedData.value.values()) {
-            for (const row of rows) {
-              if (Object.keys(pk).every((k) => pk[k] === row.row[k])) {
-                Object.assign(row.row, updatedRowData)
-                addOrEditStackRow(row, false)
-                Object.assign(row.oldRow, updatedRowData)
-                break
-              }
-            }
-          }
         }
+
+        return updatedRowData
       } catch (e: any) {
         message.error(`${t('msg.error.rowUpdateFailed')} ${await extractSdkResponseErrorMsg(e)}`)
       }
@@ -523,7 +546,7 @@ const [useProvideKanbanViewStore, useKanbanViewStore] = useInjectionState(
       return formattedData.value.get(null)![addAfter]
     }
 
-    function addOrEditStackRow(row: Row, isNewRow: boolean) {
+    function addOrEditStackRow(row: Row, isNewRow: boolean, rowIndex?: number) {
       const stackTitle = row.row[groupingField.value]
       const oldStackTitle = row.oldRow[groupingField.value]
 
@@ -531,7 +554,11 @@ const [useProvideKanbanViewStore, useKanbanViewStore] = useInjectionState(
         // add a new record
         if (stackTitle) {
           // push the row to target stack
-          formattedData.value.get(stackTitle)!.push(row)
+          if (rowIndex !== undefined) {
+            formattedData.value.get(stackTitle)!.splice(rowIndex, 0, row)
+          } else {
+            formattedData.value.get(stackTitle)!.push(row)
+          }
           // increase the current count in the target stack by 1
           countByStack.value.set(stackTitle, countByStack.value.get(stackTitle)! + 1)
           // clear the one under uncategorized since we don't reload the view
@@ -556,11 +583,25 @@ const [useProvideKanbanViewStore, useKanbanViewStore] = useInjectionState(
 
             // add new row to countByStack & formattedData
             countByStack.value.set(stackTitle, countByStack.value.get(stackTitle)! + 1)
-            formattedData.value.set(stackTitle, [...formattedData.value.get(stackTitle)!, row])
+
+            if (rowIndex !== undefined) {
+              const targetStack = formattedData.value.get(stackTitle)!
+              targetStack.splice(rowIndex, 0, row)
+              formattedData.value.set(stackTitle, targetStack)
+            } else {
+              formattedData.value.set(stackTitle, [...formattedData.value.get(stackTitle)!, row])
+            }
           } else {
             // update the row in formattedData
             const updatedRow = formattedData.value.get(stackTitle)!
-            updatedRow[idxToUpdateOrDelete] = row
+
+            if (rowIndex !== undefined) {
+              updatedRow.splice(idxToUpdateOrDelete, 1)
+              updatedRow.splice(rowIndex, 0, row)
+            } else {
+              updatedRow[idxToUpdateOrDelete] = row
+            }
+
             formattedData.value.set(oldStackTitle, updatedRow)
           }
         }
@@ -605,8 +646,7 @@ const [useProvideKanbanViewStore, useKanbanViewStore] = useInjectionState(
                 const pkData = rowPkData(row.row, meta.value?.columns as ColumnType[])
                 row.row = { ...pkData, ...row.row }
                 await insertRow(row.row, undefined, true)
-                await loadKanbanMeta()
-                await loadKanbanData()
+                addOrEditStackRow(row, true)
               },
               args: [clone(row)],
             },
@@ -676,6 +716,7 @@ const [useProvideKanbanViewStore, useKanbanViewStore] = useInjectionState(
       removeRowFromUncategorizedStack,
       shouldScrollToRight,
       deleteRow,
+      moveHistory,
     }
   },
   'kanban-view-store',

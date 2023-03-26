@@ -12,6 +12,7 @@ import {
   IsPublicInj,
   MetaInj,
   OpenNewRecordFormHookInj,
+  extractPkFromRow,
   iconMap,
   inject,
   isImage,
@@ -76,6 +77,7 @@ const {
   deleteStack,
   shouldScrollToRight,
   deleteRow,
+  moveHistory,
 } = useKanbanViewStoreOrThrow()
 
 const { isUIAllowed } = useUIPermission()
@@ -227,11 +229,25 @@ async function onMoveStack(event: any) {
 async function onMove(event: any, stackKey: string) {
   if (event.added) {
     const ele = event.added.element
+
+    moveHistory.value.unshift({
+      op: 'added',
+      pk: extractPkFromRow(event.added.element.row, meta.value!.columns!),
+      index: event.added.newIndex,
+      stack: stackKey,
+    })
+
     ele.row[groupingField.value] = stackKey
     countByStack.value.set(stackKey, countByStack.value.get(stackKey)! + 1)
     await updateOrSaveRow(ele)
   } else if (event.removed) {
     countByStack.value.set(stackKey, countByStack.value.get(stackKey)! - 1)
+    moveHistory.value.unshift({
+      op: 'removed',
+      pk: extractPkFromRow(event.removed.element.row, meta.value!.columns!),
+      index: event.removed.oldIndex,
+      stack: stackKey,
+    })
   }
 }
 

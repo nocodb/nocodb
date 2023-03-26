@@ -1,5 +1,6 @@
 import BasePage from '../../../Base';
 import { ToolbarPage } from './index';
+import { getTextExcludeIconText } from '../../../../tests/utils/general';
 
 export class ToolbarShareViewPage extends BasePage {
   readonly toolbar: ToolbarPage;
@@ -29,8 +30,9 @@ export class ToolbarShareViewPage extends BasePage {
   }
 
   async getShareLink() {
-    // http://localhost:3000/#/nc/view/35231cff-05c5-49ab-9045-f410db79ba5a
-    return (await this.get().locator(`[data-testid="nc-modal-share-view__link"]`).innerText()).slice(0, 68);
+    const locator = this.get().locator(`[data-testid="nc-modal-share-view__link"]`);
+    const linkText = getTextExcludeIconText(locator);
+    return linkText;
   }
 
   async close() {

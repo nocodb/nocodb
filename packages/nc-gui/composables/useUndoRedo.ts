@@ -34,7 +34,9 @@ export const useUndoRedo = createSharedComposable(() => {
 
   const redoQueue: Ref<UndoRedoAction[]> = ref([])
 
-  const addUndo = (action: UndoRedoAction) => {
+  const addUndo = (action: UndoRedoAction, fromRedo = false) => {
+    // remove all redo actions that are in the same scope
+    if (!fromRedo) redoQueue.value = redoQueue.value.filter((a) => a.scope !== action.scope)
     undoQueue.value.push(action)
   }
 
@@ -93,7 +95,7 @@ export const useUndoRedo = createSharedComposable(() => {
     if (action) {
       try {
         await action.redo.fn.apply(action, action.redo.args)
-        addUndo(action)
+        addUndo(action, true)
       } catch (e) {
         message.warn('Error while redoing action, it is skipped.')
       }

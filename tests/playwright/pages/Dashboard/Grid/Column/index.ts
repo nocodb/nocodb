@@ -3,6 +3,7 @@ import { GridPage } from '..';
 import BasePage from '../../../Base';
 import { SelectOptionColumnPageObject } from './SelectOptionColumn';
 import { AttachmentColumnPageObject } from './Attachment';
+import { getTextExcludeIconText } from '../../../../tests/utils/general';
 
 export class ColumnPageObject extends BasePage {
   readonly grid: GridPage;
@@ -183,14 +184,15 @@ export class ColumnPageObject extends BasePage {
 
     // verify column inserted after the target column
     if (insertAfterColumnTitle) {
-      const headersText = await this.grid.get().locator(`th`).allTextContents();
-
-      await expect(
-        this.grid
-          .get()
-          .locator(`th`)
-          .nth(headersText.findIndex(title => title.startsWith(insertAfterColumnTitle)) + 1)
-      ).toHaveText(title);
+      const headersText = [];
+      const locator = this.grid.get().locator(`th`);
+      const count = await locator.count();
+      for (let i = 0; i < count; i++) {
+        const header = locator.nth(i);
+        const text = await getTextExcludeIconText(header);
+        headersText.push(text);
+      }
+      expect(headersText[headersText.findIndex(title => title.startsWith(insertAfterColumnTitle)) + 1]).toBe(title);
     }
 
     // verify column inserted before the target column

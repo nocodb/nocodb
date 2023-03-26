@@ -52,7 +52,7 @@ const [useProvideExpandedFormStore, useExpandedFormStore] = useInjectionState((m
 
   const { sharedView } = useSharedView()
 
-  const { addUndo, clone } = useUndoRedo()
+  const { addUndo, clone, defineViewScope } = useUndoRedo()
 
   const reloadTrigger = inject(ReloadRowDataHookInj, createEventHook())
 
@@ -198,7 +198,7 @@ const [useProvideExpandedFormStore, useExpandedFormStore] = useInjectionState((m
               },
               args: [id],
             },
-            scope: activeView.value?.title,
+            scope: defineViewScope({ view: activeView.value }),
           })
         }
 
@@ -250,7 +250,7 @@ const [useProvideExpandedFormStore, useExpandedFormStore] = useInjectionState((m
                 },
                 args: [id, clone(undoObject)],
               },
-              scope: activeView.value?.title,
+              scope: defineViewScope({ view: activeView.value }),
             })
           }
 

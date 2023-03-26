@@ -108,5 +108,5 @@ export type Nullable<T> = { [K in keyof T]: T[K] | null }
 export interface UndoRedoAction {
   undo: { fn: Function; args: any[] }
   redo: { fn: Function; args: any[] }
-  scope?: string | string[]
+  scope?: { key: string; param: string }[]
 }

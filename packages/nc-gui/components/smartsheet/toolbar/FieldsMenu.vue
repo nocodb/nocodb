@@ -57,7 +57,7 @@ const {
 
 const { eventBus } = useSmartsheetStoreOrThrow()
 
-const { addUndo } = useUndoRedo()
+const { addUndo, defineViewScope } = useUndoRedo()
 
 eventBus.on((event) => {
   if (event === SmartsheetStoreEvents.FIELD_RELOAD) {
@@ -117,7 +117,7 @@ const onMove = (_event: { moved: { newIndex: number; oldIndex: number } }, undo 
         },
         args: [],
       },
-      scope: activeView.value?.title,
+      scope: defineViewScope({ view: activeView.value }),
     })
   }
 
@@ -220,7 +220,7 @@ const toggleFieldVisibility = (e: CheckboxChangeEvent, field: any, index: number
       },
       args: [e.target.checked],
     },
-    scope: activeView.value?.title,
+    scope: defineViewScope({ view: activeView.value }),
   })
   saveOrUpdate(field, index)
 }
@@ -239,7 +239,7 @@ const toggleSystemFields = (e: CheckboxChangeEvent) => {
       },
       args: [e.target.checked],
     },
-    scope: activeView.value?.title,
+    scope: defineViewScope({ view: activeView.value }),
   })
 }
 
@@ -257,7 +257,7 @@ const onShowAll = () => {
       },
       args: [],
     },
-    scope: activeView.value?.title,
+    scope: defineViewScope({ view: activeView.value }),
   })
   showAll()
 }
@@ -276,7 +276,7 @@ const onHideAll = () => {
       },
       args: [],
     },
-    scope: activeView.value?.title,
+    scope: defineViewScope({ view: activeView.value }),
   })
   hideAll()
 }

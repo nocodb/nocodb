@@ -20,7 +20,7 @@ import {
   useSmartsheetStoreOrThrow,
   useUndoRedo,
 } from '#imports'
-import { UndoRedoAction } from '~~/lib';
+import type { UndoRedoAction } from '~~/lib'
 
 const { virtual = false } = defineProps<{ virtual?: boolean }>()
 
@@ -44,7 +44,7 @@ const { t } = useI18n()
 
 const { getMeta } = useMetas()
 
-const { addUndo } = useUndoRedo()
+const { addUndo, defineModelScope, defineViewScope } = useUndoRedo()
 
 const deleteColumn = () =>
   Modal.confirm({
@@ -113,7 +113,7 @@ const setAsDisplayValue = async () => {
         },
         args: [currentDisplayValue?.id],
       },
-      scope: meta.value?.id,
+      scope: defineModelScope({ model: meta.value }),
     })
   } catch (e) {
     message.error(t('msg.error.primaryColumnUpdateFailed'))
@@ -151,7 +151,7 @@ const sortByColumn = async (direction: 'asc' | 'desc') => {
         },
         args: [data.id],
       },
-      scope: view.value?.title,
+      scope: defineViewScope({ view: view.value }),
     })
 
     eventBus.emit(SmartsheetStoreEvents.SORT_RELOAD)
@@ -287,7 +287,7 @@ const hideField = async () => {
       },
       args: [currentColumn!.id],
     },
-    scope: view.value?.title,
+    scope: defineViewScope({ view: view.value }),
   })
 }
 </script>

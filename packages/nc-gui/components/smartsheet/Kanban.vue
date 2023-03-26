@@ -85,7 +85,7 @@ const { isUIAllowed } = useUIPermission()
 
 const { appInfo } = $(useGlobal())
 
-const { addUndo } = useUndoRedo()
+const { addUndo, defineViewScope } = useUndoRedo()
 
 provide(IsFormInj, ref(false))
 
@@ -244,7 +244,7 @@ async function onMoveStack(event: any, undo = false) {
           },
           args: [{ moved: { oldIndex, newIndex } }, true],
         },
-        scope: view.value?.title,
+        scope: defineViewScope({ view: view.value }),
       })
     }
   }

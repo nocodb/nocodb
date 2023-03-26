@@ -56,7 +56,7 @@ export function useViewData(
 
   const { getMeta } = useMetas()
 
-  const { addUndo, clone } = useUndoRedo()
+  const { addUndo, clone, defineViewScope } = useUndoRedo()
 
   const appInfoDefaultLimit = appInfo.defaultLimit || 25
 
@@ -303,7 +303,7 @@ export function useViewData(
             },
             args: [id],
           },
-          scope: viewMeta.value?.title,
+          scope: defineViewScope({ view: viewMeta.value }),
         })
 
         Object.assign(currentRow, {
@@ -402,7 +402,7 @@ export function useViewData(
             },
             args: [clone(toUpdate), property, { page: paginationData.value.page, pageSize: paginationData.value.pageSize }],
           },
-          scope: viewMeta.value?.title,
+          scope: defineViewScope({ view: viewMeta.value }),
         })
 
         /** update row data(to sync formula and other related columns)
@@ -534,7 +534,7 @@ export function useViewData(
               },
               args: [clone(row), {}, { page: paginationData.value.page, pageSize: paginationData.value.pageSize }],
             },
-            scope: viewMeta.value?.title,
+            scope: defineViewScope({ view: viewMeta.value }),
           })
         }
 

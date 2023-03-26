@@ -44,7 +44,7 @@ const projectStore = useProject()
 const { loadTables, isMysql, isMssql, isPg } = projectStore
 const { tables, project } = storeToRefs(projectStore)
 
-const { addUndo } = useUndoRedo()
+const { addUndo, defineProjectScope } = useUndoRedo()
 
 const inputEl = $ref<ComponentPublicInstance>()
 
@@ -145,7 +145,7 @@ const renameTable = async (undo = false) => {
           },
           args: [tableMeta.title],
         },
-        scope: tableMeta.project_id,
+        scope: defineProjectScope({ model: tableMeta }),
       })
     }
 

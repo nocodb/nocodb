@@ -12,7 +12,7 @@ const isLocked = inject(IsLockedInj, ref(false))
 
 const { $api } = useNuxtApp()
 
-const { addUndo } = useUndoRedo()
+const { addUndo, defineViewScope } = useUndoRedo()
 
 const open = ref(false)
 
@@ -30,7 +30,7 @@ const updateRowHeight = async (rh: number, undo = false) => {
           fn: (r: number) => updateRowHeight(r, true),
           args: [(view.value.view as GridType).row_height || 0],
         },
-        scope: view.value?.title,
+        scope: defineViewScope({ view: view.value }),
       })
     }
 

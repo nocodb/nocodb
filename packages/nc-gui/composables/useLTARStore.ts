@@ -45,7 +45,7 @@ const [useProvideLTARStore, useLTARStore] = useInjectionState(
 
     const activeView = inject(ActiveViewInj, ref())
 
-    const { addUndo, clone } = useUndoRedo()
+    const { addUndo, clone, defineViewScope } = useUndoRedo()
 
     const sharedViewPassword = inject(SharedViewPasswordInj, ref(null))
 
@@ -286,7 +286,7 @@ const [useProvideLTARStore, useLTARStore] = useInjectionState(
               fn: (row: Record<string, any>) => link(row, {}, true),
               args: [clone(row)],
             },
-            scope: activeView.value?.title,
+            scope: defineViewScope({ view: activeView.value }),
           })
         }
       } catch (e: any) {
@@ -332,7 +332,7 @@ const [useProvideLTARStore, useLTARStore] = useInjectionState(
               fn: (row: Record<string, any>) => unlink(row, {}, true),
               args: [clone(row)],
             },
-            scope: activeView.value?.title,
+            scope: defineViewScope({ view: activeView.value }),
           })
         }
       } catch (e: any) {

@@ -60,7 +60,7 @@ const [useProvideKanbanViewStore, useKanbanViewStore] = useInjectionState(
 
     const { search } = useFieldQuery()
 
-    const { addUndo, clone } = useUndoRedo()
+    const { addUndo, clone, defineViewScope } = useUndoRedo()
 
     // save history of stack changes for undo/redo
     const moveHistory = ref<{ op: 'added' | 'removed'; pk: string; stack: string; index: number }[]>([])
@@ -367,7 +367,7 @@ const [useProvideKanbanViewStore, useKanbanViewStore] = useInjectionState(
               },
               args: [id],
             },
-            scope: viewMeta.value?.title,
+            scope: defineViewScope({ view: viewMeta.value as ViewType }),
           })
 
           formattedData.value.get(null)?.splice(rowIndex ?? 0, 1, {
@@ -444,7 +444,7 @@ const [useProvideKanbanViewStore, useKanbanViewStore] = useInjectionState(
               },
               args: [clone(toUpdate), property],
             },
-            scope: viewMeta.value?.title,
+            scope: defineViewScope({ view: viewMeta.value as ViewType }),
           })
 
           /** update row data(to sync formula and other related columns) */
@@ -650,7 +650,7 @@ const [useProvideKanbanViewStore, useKanbanViewStore] = useInjectionState(
               },
               args: [clone(row)],
             },
-            scope: viewMeta.value?.title,
+            scope: defineViewScope({ view: viewMeta.value as ViewType }),
           })
         }
 

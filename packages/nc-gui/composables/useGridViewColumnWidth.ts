@@ -22,7 +22,7 @@ export function useGridViewColumnWidth(view: Ref<ViewType | undefined>) {
 
   const { metas } = useMetas()
 
-  const { addUndo } = useUndoRedo()
+  const { addUndo, defineViewScope } = useUndoRedo()
 
   const gridViewCols = ref<Record<string, GridColumnType>>({})
   const resizingCol = ref('')
@@ -78,7 +78,7 @@ export function useGridViewColumnWidth(view: Ref<ViewType | undefined>) {
           fn: (w: string) => updateWidth(id, w, true),
           args: [gridViewCols.value[id].width],
         },
-        scope: view.value?.title,
+        scope: defineViewScope({ view: view.value }),
       })
     }
 

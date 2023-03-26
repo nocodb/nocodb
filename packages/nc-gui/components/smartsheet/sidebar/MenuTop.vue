@@ -47,7 +47,7 @@ const { api } = useApi()
 
 const router = useRouter()
 
-const { addUndo } = useUndoRedo()
+const { addUndo, defineModelScope } = useUndoRedo()
 
 /** Selected view(s) for menu */
 const selected = ref<string[]>([])
@@ -86,6 +86,8 @@ function validate(view: ViewType) {
 
   return true
 }
+
+let sortable: Sortable
 
 function onSortStart(evt: SortableEvent) {
   evt.stopImmediatePropagation()
@@ -137,8 +139,6 @@ async function onSortEnd(evt: SortableEvent) {
 
   $e('a:view:reorder')
 }
-
-let sortable: Sortable
 
 const initSortable = (el: HTMLElement) => {
   if (sortable) sortable.destroy()
@@ -199,7 +199,7 @@ async function onRename(view: ViewType, originalTitle?: string, undo = false) {
           },
           args: [view, originalTitle],
         },
-        scope: activeView.value?.fk_model_id,
+        scope: defineModelScope({ view: activeView.value }),
       })
     }
 

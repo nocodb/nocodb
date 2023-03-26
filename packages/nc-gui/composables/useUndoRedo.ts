@@ -1,5 +1,6 @@
 import type { Ref } from 'vue'
 import rfdc from 'rfdc'
+import type { ProjectType, TableType, ViewType } from 'nocodb-sdk'
 import { createSharedComposable, ref, useRouter } from '#imports'
 import type { UndoRedoAction } from '~/lib'
 
@@ -10,25 +11,29 @@ export const useUndoRedo = createSharedComposable(() => {
 
   const route = $(router.currentRoute)
 
-  const activeView = inject(ActiveViewInj, ref())
-
-  const scope = computed<string[]>(() => {
-    let tempScope = ['root']
-    for (const param of Object.values(route.params)) {
+  // keys: projectType | projectId | type | title | viewTitle
+  const scope = computed<{ key: string; param: string }[]>(() => {
+    const tempScope: { key: string; param: string }[] = [{ key: 'root', param: 'root' }]
+    for (const [key, param] of Object.entries(route.params)) {
       if (Array.isArray(param)) {
-        tempScope = tempScope.concat(param)
+        tempScope.push({ key, param: param.join(',') })
       } else {
-        tempScope.push(param)
+        tempScope.push({ key, param })
       }
-    }
-
-    // if the current view is the default view, add it to the scope (as viewTitle might be missing)
-    if (activeView.value?.is_default) {
-      tempScope.push(activeView.value.title)
     }
 
     return tempScope
   })
+
+  const isSameScope = (sc: { key: string; param: string }[]) => {
+    return sc.every((s) => {
+      return scope.value.some(
+        // viewTitle is optional for default view
+        (s2) =>
+          (s.key === 'viewTitle' && s2.key === 'viewTitle' && s2.param === '') || (s.key === s2.key && s.param === s2.param),
+      )
+    })
+  }
 
   const undoQueue: Ref<UndoRedoAction[]> = ref([])
 
@@ -36,7 +41,7 @@ export const useUndoRedo = createSharedComposable(() => {
 
   const addUndo = (action: UndoRedoAction, fromRedo = false) => {
     // remove all redo actions that are in the same scope
-    if (!fromRedo) redoQueue.value = redoQueue.value.filter((a) => a.scope !== action.scope)
+    if (!fromRedo) redoQueue.value = redoQueue.value.filter((a) => !isSameScope(a.scope || []))
     undoQueue.value.push(action)
   }
 
@@ -47,16 +52,10 @@ export const useUndoRedo = createSharedComposable(() => {
   const undo = async () => {
     let actionIndex = -1
     for (let i = undoQueue.value.length - 1; i >= 0; i--) {
-      if (Array.isArray(undoQueue.value[i].scope)) {
-        if (scope.value.some((s) => undoQueue.value[i].scope?.includes(s))) {
-          actionIndex = i
-          break
-        }
-      } else {
-        if (scope.value.includes((undoQueue.value[i].scope as string) || 'root')) {
-          actionIndex = i
-          break
-        }
+      const elScope = undoQueue.value[i].scope || [{ key: 'root', param: 'root' }]
+      if (isSameScope(elScope)) {
+        actionIndex = i
+        break
       }
     }
 
@@ -76,16 +75,10 @@ export const useUndoRedo = createSharedComposable(() => {
   const redo = async () => {
     let actionIndex = -1
     for (let i = redoQueue.value.length - 1; i >= 0; i--) {
-      if (Array.isArray(redoQueue.value[i].scope)) {
-        if (scope.value.some((s) => redoQueue.value[i].scope?.includes(s))) {
-          actionIndex = i
-          break
-        }
-      } else {
-        if (scope.value.includes((redoQueue.value[i].scope as string) || 'root')) {
-          actionIndex = i
-          break
-        }
+      const elScope = redoQueue.value[i].scope || [{ key: 'root', param: 'root' }]
+      if (isSameScope(elScope)) {
+        actionIndex = i
+        break
       }
     }
 
@@ -99,6 +92,57 @@ export const useUndoRedo = createSharedComposable(() => {
       } catch (e) {
         message.warn('Error while redoing action, it is skipped.')
       }
+    }
+  }
+
+  const defineRootScope = () => {
+    return [{ key: 'root', param: 'root' }]
+  }
+
+  const defineProjectScope = (param: { project?: ProjectType; model?: TableType; view?: ViewType; project_id?: string }) => {
+    if (param.project) {
+      return [{ key: 'projectId', param: param.project.id! }]
+    } else if (param.model) {
+      return [{ key: 'projectId', param: param.model.project_id! }]
+    } else if (param.view) {
+      return [{ key: 'projectId', param: param.view.project_id! }]
+    } else {
+      return [{ key: 'projectId', param: param.project_id! }]
+    }
+  }
+
+  const defineModelScope = (param: { model?: TableType; view?: ViewType; project_id?: string; model_id?: string }) => {
+    if (param.model) {
+      return [
+        { key: 'projectId', param: param.model.project_id! },
+        { key: 'title', param: param.model.id! },
+      ]
+    } else if (param.view) {
+      return [
+        { key: 'projectId', param: param.view.project_id! },
+        { key: 'title', param: param.view.fk_model_id! },
+      ]
+    } else {
+      return [
+        { key: 'projectId', param: param.project_id! },
+        { key: 'title', param: param.model_id! },
+      ]
+    }
+  }
+
+  const defineViewScope = (param: { view?: ViewType; project_id?: string; model_id?: string; title?: string }) => {
+    if (param.view) {
+      return [
+        { key: 'projectId', param: param.view.project_id! },
+        { key: 'title', param: param.view.fk_model_id! },
+        { key: 'viewTitle', param: param.view.title! },
+      ]
+    } else {
+      return [
+        { key: 'projectId', param: param.project_id! },
+        { key: 'title', param: param.model_id! },
+        { key: 'viewTitle', param: param.title! },
+      ]
     }
   }
 
@@ -128,5 +172,9 @@ export const useUndoRedo = createSharedComposable(() => {
     addUndo,
     undo,
     clone,
+    defineRootScope,
+    defineProjectScope,
+    defineModelScope,
+    defineViewScope,
   }
 })

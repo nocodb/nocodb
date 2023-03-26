@@ -182,29 +182,23 @@ export class ColumnPageObject extends BasePage {
 
     await this.save();
 
+    const headersText = [];
+    const locator = this.grid.get().locator(`th`);
+    const count = await locator.count();
+    for (let i = 0; i < count; i++) {
+      const header = locator.nth(i);
+      const text = await getTextExcludeIconText(header);
+      headersText.push(text);
+    }
+
     // verify column inserted after the target column
     if (insertAfterColumnTitle) {
-      const headersText = [];
-      const locator = this.grid.get().locator(`th`);
-      const count = await locator.count();
-      for (let i = 0; i < count; i++) {
-        const header = locator.nth(i);
-        const text = await getTextExcludeIconText(header);
-        headersText.push(text);
-      }
       expect(headersText[headersText.findIndex(title => title.startsWith(insertAfterColumnTitle)) + 1]).toBe(title);
     }
 
     // verify column inserted before the target column
     if (insertBeforeColumnTitle) {
-      const headersText = await this.grid.get().locator(`th`).allTextContents();
-
-      await expect(
-        this.grid
-          .get()
-          .locator(`th`)
-          .nth(headersText.findIndex(title => title.startsWith(insertBeforeColumnTitle)) - 1)
-      ).toHaveText(title);
+      expect(headersText[headersText.findIndex(title => title.startsWith(insertBeforeColumnTitle)) - 1]).toBe(title);
     }
   }
 

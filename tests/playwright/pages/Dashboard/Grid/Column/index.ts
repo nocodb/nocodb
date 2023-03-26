@@ -3,6 +3,7 @@ import { GridPage } from '..';
 import BasePage from '../../../Base';
 import { SelectOptionColumnPageObject } from './SelectOptionColumn';
 import { AttachmentColumnPageObject } from './Attachment';
+import { getTextExcludeIconText } from '../../../../tests/utils/general';
 
 export class ColumnPageObject extends BasePage {
   readonly grid: GridPage;
@@ -181,28 +182,23 @@ export class ColumnPageObject extends BasePage {
 
     await this.save();
 
+    const headersText = [];
+    const locator = this.grid.get().locator(`th`);
+    const count = await locator.count();
+    for (let i = 0; i < count; i++) {
+      const header = locator.nth(i);
+      const text = await getTextExcludeIconText(header);
+      headersText.push(text);
+    }
+
     // verify column inserted after the target column
     if (insertAfterColumnTitle) {
-      const headersText = await this.grid.get().locator(`th`).allTextContents();
-
-      await expect(
-        this.grid
-          .get()
-          .locator(`th`)
-          .nth(headersText.findIndex(title => title.startsWith(insertAfterColumnTitle)) + 1)
-      ).toHaveText(title);
+      expect(headersText[headersText.findIndex(title => title.startsWith(insertAfterColumnTitle)) + 1]).toBe(title);
     }
 
     // verify column inserted before the target column
     if (insertBeforeColumnTitle) {
-      const headersText = await this.grid.get().locator(`th`).allTextContents();
-
-      await expect(
-        this.grid
-          .get()
-          .locator(`th`)
-          .nth(headersText.findIndex(title => title.startsWith(insertBeforeColumnTitle)) - 1)
-      ).toHaveText(title);
+      expect(headersText[headersText.findIndex(title => title.startsWith(insertBeforeColumnTitle)) - 1]).toBe(title);
     }
   }
 
@@ -254,7 +250,7 @@ export class ColumnPageObject extends BasePage {
   }
 
   async delete({ title }: { title: string }) {
-    await this.getColumnHeader(title).locator('svg.ant-dropdown-trigger').click();
+    await this.getColumnHeader(title).locator('div.ant-dropdown-trigger').locator('.nc-ui-dt-dropdown').click();
     // await this.rootPage.locator('li[role="menuitem"]:has-text("Delete")').waitFor();
     await this.rootPage.locator('li[role="menuitem"]:has-text("Delete")').click();
 

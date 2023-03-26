@@ -2,6 +2,7 @@ import { expect } from '@playwright/test';
 import BasePage from '../../../Base';
 import { ToolbarPage } from './index';
 import { UITypes } from 'nocodb-sdk';
+import { getTextExcludeIconText } from '../../../../tests/utils/general';
 
 export class ToolbarFilterPage extends BasePage {
   readonly toolbar: ToolbarPage;
@@ -16,7 +17,10 @@ export class ToolbarFilterPage extends BasePage {
   }
 
   async verify({ index, column, operator, value }: { index: number; column: string; operator: string; value: string }) {
-    await expect(this.get().locator('.nc-filter-field-select').nth(index)).toHaveText(column);
+    const fieldLocator = await this.get().locator('.nc-filter-field-select').nth(index);
+    const fieldText = await getTextExcludeIconText(fieldLocator);
+    await expect(fieldText).toBe(column);
+
     await expect(this.get().locator('.nc-filter-operation-select').nth(index)).toHaveText(operator);
     await expect
       .poll(async () => await this.get().locator('.nc-filter-value-select > input').nth(index).inputValue())

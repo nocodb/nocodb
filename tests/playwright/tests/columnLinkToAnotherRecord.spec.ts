@@ -43,7 +43,7 @@ test.describe('LTAR create & update', () => {
     });
     await dashboard.closeTab({ title: 'Sheet1' });
 
-    await dashboard.treeView.openTable({ title: 'Sheet2' });
+    await dashboard.treeView.openTable({ title: 'Sheet2', networkResponse: false });
     await dashboard.grid.column.create({
       title: 'Link2-1hm',
       type: 'LinkToAnotherRecord',
@@ -116,6 +116,9 @@ test.describe('LTAR create & update', () => {
       value: '2c',
       type: 'text',
     });
+
+    await dashboard.rootPage.waitForTimeout(1000);
+
     await dashboard.expandedForm.save();
 
     const expected = [

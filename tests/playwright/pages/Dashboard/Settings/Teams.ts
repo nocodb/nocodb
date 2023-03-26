@@ -44,7 +44,8 @@ export class TeamsPage extends BasePage {
     await this.inviteTeamModal.locator(`button:has-text("Invite")`).click();
     await this.verifyToast({ message: 'Successfully updated the user details' });
 
-    return await this.inviteTeamModal.locator(`.ant-alert-message`).innerText();
+    // http://localhost:3000/#/signup/a5e7bf3a-cbb0-46bc-87f7-c2ae21796707
+    return (await this.inviteTeamModal.locator(`.ant-alert-message`).innerText()).slice(0, 67);
   }
 
   async closeInvite() {

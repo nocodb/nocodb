@@ -209,7 +209,7 @@ const onSelect = () => {
   isOpen.value = false
 }
 
-const cellClickHook = inject(CellClickHookInj)
+const cellClickHook = inject(CellClickHookInj, null)
 
 const toggleMenu = (e: Event) => {
   // todo: refactor

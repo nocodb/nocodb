@@ -22,6 +22,7 @@ import {
   provide,
   useAttachment,
   useKanbanViewStoreOrThrow,
+  useUndoRedo,
 } from '#imports'
 import type { Row as RowType } from '~/lib'
 
@@ -83,6 +84,8 @@ const {
 const { isUIAllowed } = useUIPermission()
 
 const { appInfo } = $(useGlobal())
+
+const { addUndo } = useUndoRedo()
 
 provide(IsFormInj, ref(false))
 
@@ -212,7 +215,7 @@ function onMoveCallback(event: { draggedContext: { futureIndex: number } }) {
   }
 }
 
-async function onMoveStack(event: any) {
+async function onMoveStack(event: any, undo = false) {
   if (event.moved) {
     const { oldIndex, newIndex } = event.moved
     const { fk_grp_col_id, meta: stack_meta } = kanbanMetaData.value
@@ -223,6 +226,27 @@ async function onMoveStack(event: any) {
     await updateKanbanMeta({
       meta: stackMetaObj,
     })
+    if (!undo) {
+      addUndo({
+        undo: {
+          fn: async (e: any) => {
+            const temp = groupingFieldColOptions.value.splice(e.moved.newIndex, 1)
+            groupingFieldColOptions.value.splice(e.moved.oldIndex, 0, temp[0])
+            await onMoveStack(e, true)
+          },
+          args: [{ moved: { oldIndex, newIndex } }],
+        },
+        redo: {
+          fn: async (e: any) => {
+            const temp = groupingFieldColOptions.value.splice(e.moved.oldIndex, 1)
+            groupingFieldColOptions.value.splice(e.moved.newIndex, 0, temp[0])
+            await onMoveStack(e, true)
+          },
+          args: [{ moved: { oldIndex, newIndex } }, true],
+        },
+        scope: view.value?.title,
+      })
+    }
   }
 }
 

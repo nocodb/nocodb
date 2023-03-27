@@ -24,7 +24,7 @@ watch(
 )
 
 async function loadSampleData() {
-  sampleData.value = await $api.dbTableWebhook.samplePayloadGet(meta?.value?.id as string, hook?.operation || 'insert')
+  sampleData.value = await $api.dbTableWebhook.samplePayloadGet(meta?.value?.id as string, hook?.operation || 'insert', hook.version)
 }
 
 async function testWebhook() {

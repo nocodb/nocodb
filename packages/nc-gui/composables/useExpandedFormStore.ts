@@ -160,23 +160,28 @@ const [useProvideExpandedFormStore, useExpandedFormStore] = useInjectionState((m
 
         data = await $api.dbTableRow.create('noco', project.value.title as string, meta.value.title, insertObj)
 
+        Object.assign(row.value, {
+          row: data,
+          rowMeta: {},
+          oldRow: { ...data },
+        })
+
         if (!undo) {
           const id = extractPkFromRow(data, meta.value?.columns as ColumnType[])
+          const pkData = rowPkData(row.value.row, meta.value?.columns as ColumnType[])
 
           // TODO remove linked record
           addUndo({
             redo: {
-              fn: async function redo(this: UndoRedoAction, row: Row) {
-                const pkData = rowPkData(row.row, meta.value?.columns as ColumnType[])
-                row.row = { ...pkData, ...row.row }
-                await $api.dbTableRow.create('noco', project.value.title as string, meta.value.title, row.row)
+              fn: async function redo(this: UndoRedoAction, rowData: any) {
+                await $api.dbTableRow.create('noco', project.value.title as string, meta.value.title, { ...pkData, ...rowData })
                 if (activeView.value?.type === ViewTypes.KANBAN) {
                   const { loadKanbanData } = useKanbanViewStoreOrThrow()
                   await loadKanbanData()
                 }
                 reloadTrigger?.trigger()
               },
-              args: [clone(row.value)],
+              args: [clone(insertObj)],
             },
             undo: {
               fn: async function undo(this: UndoRedoAction, id: string) {
@@ -201,12 +206,6 @@ const [useProvideExpandedFormStore, useExpandedFormStore] = useInjectionState((m
             scope: defineViewScope({ view: activeView.value }),
           })
         }
-
-        Object.assign(row.value, {
-          row: data,
-          rowMeta: {},
-          oldRow: { ...data },
-        })
       } else {
         const updateOrInsertObj = [...changedColumns.value].reduce((obj, col) => {
           obj[col] = row.value.row[col]

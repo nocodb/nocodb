@@ -369,13 +369,13 @@ const [useProvideKanbanViewStore, useKanbanViewStore] = useInjectionState(
             },
             scope: defineViewScope({ view: viewMeta.value as ViewType }),
           })
-
-          formattedData.value.get(null)?.splice(rowIndex ?? 0, 1, {
-            row: insertedData,
-            rowMeta: {},
-            oldRow: { ...insertedData },
-          })
         }
+
+        formattedData.value.get(null)?.splice(rowIndex ?? 0, 1, {
+          row: insertedData,
+          rowMeta: {},
+          oldRow: { ...insertedData },
+        })
 
         return insertedData
       } catch (error: any) {

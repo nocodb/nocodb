@@ -31,16 +31,23 @@ onBeforeMount(async () => {
       <template #header>
         <div class="w-full cursor-pointer">
           <div class="font-weight-medium flex">
-            <div class="flex-1">records.{{ hookLog.event }}.{{ hookLog.operation }} ({{ timeAgo(hookLog.created_at) }})</div>
+            <div class="flex-1">
+              {{ hookLog.type }}: records.{{ hookLog.event }}.{{ hookLog.operation }} ({{ timeAgo(hookLog.created_at) }})
+            </div>
             <div
+              v-if="hookLog.type === 'URL'"
               class="mx-1 px-2 py-1 text-white rounded bg-red-500 text-xs"
               :class="{ '!bg-green-500': parseProp(hookLog.response).status === 200 }"
             >
               {{ parseProp(hookLog.response).status }}
               {{ parseProp(hookLog.response).statusText }}
             </div>
+            <div v-if="hookLog.type === 'Email'">
+              <div v-if="hookLog.error_message" class="mx-1 px-2 py-1 text-white rounded text-xs bg-red-500">ERROR</div>
+              <div v-else class="mx-1 px-2 py-1 text-white rounded text-xs bg-green-500">OK</div>
+            </div>
           </div>
-          <div>
+          <div v-if="hookLog.type === 'URL'">
             <span class="font-weight-medium text-primary">
               {{ parseProp(hookLog.payload).method }}
             </span>
@@ -49,19 +56,31 @@ onBeforeMount(async () => {
         </div>
       </template>
 
-      <div class="nc-hook-log-request">
-        <div class="nc-hook-pre-title">Request</div>
-        <pre class="nc-hook-pre">{{ parseProp(hookLog.response).config.headers }}</pre>
+      <div v-if="hookLog.type === 'URL'">
+        <div class="nc-hook-log-request">
+          <div class="nc-hook-pre-title">Request</div>
+          <pre class="nc-hook-pre">{{ parseProp(hookLog.response).config.headers }}</pre>
+        </div>
+
+        <div class="nc-hook-log-response">
+          <div class="nc-hook-pre-title">Response</div>
+          <pre class="nc-hook-pre">{{ parseProp(hookLog.response).headers }}</pre>
+        </div>
+
+        <div class="nc-hook-log-payload">
+          <div class="nc-hook-pre-title">Payload</div>
+          <pre class="nc-hook-pre">{{ parseProp(parseProp(hookLog.response).config.data) }}</pre>
+        </div>
       </div>
 
-      <div class="nc-hook-log-response">
-        <div class="nc-hook-pre-title">Response</div>
-        <pre class="nc-hook-pre">{{ parseProp(hookLog.response).headers }}</pre>
-      </div>
-
-      <div class="nc-hook-log-payload">
-        <div class="nc-hook-pre-title">Payload</div>
-        <pre class="nc-hook-pre">{{ parseProp(parseProp(hookLog.response).config.data) }}</pre>
+      <div v-else-if="hookLog.type === 'Email'">
+        <div v-if="hookLog.error_message" class="mb-4">
+          {{ hookLog.error_message }}
+        </div>
+        <div class="nc-hook-log-payload">
+          <div class="nc-hook-pre-title">Payload</div>
+          <pre class="nc-hook-pre">{{ parseProp(hookLog.payload) }}</pre>
+        </div>
       </div>
     </a-collapse-panel>
   </a-collapse>

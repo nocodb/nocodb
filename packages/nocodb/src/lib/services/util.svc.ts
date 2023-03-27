@@ -56,6 +56,7 @@ export async function appInfo(param: { req: { ncSiteUrl: string } }) {
     ncAttachmentFieldSize: NC_ATTACHMENT_FIELD_SIZE,
     ncMaxAttachmentsAllowed: +(process.env.NC_MAX_ATTACHMENTS_ALLOWED || 10),
     isCloud: process.env.NC_CLOUD === 'true',
+    automationLogLevel: process.env.NC_AUTOMATION_LOG_LEVEL,
   };
 
   return result;

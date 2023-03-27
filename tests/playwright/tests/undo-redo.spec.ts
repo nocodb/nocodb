@@ -337,41 +337,119 @@ test.describe('Undo Redo', () => {
     await undo({ page });
     expect(await dashboard.grid.column.getWidth({ title: 'Number' })).toBe(originalWidth);
   });
+});
+
+test.describe('Undo Redo - Table & view rename operations', () => {
+  test.beforeEach(async ({ page }) => {
+    context = await setup({ page, isEmptyProject: true });
+    dashboard = new DashboardPage(page, context.project);
+    grid = dashboard.grid;
+    toolbar = dashboard.grid.toolbar;
+
+    api = new Api({
+      baseURL: `http://localhost:8080/`,
+      headers: {
+        'xc-auth': context.token,
+      },
+    });
+
+    const columns = [
+      {
+        column_name: 'Id',
+        title: 'Id',
+        uidt: UITypes.ID,
+      },
+      {
+        column_name: 'Number',
+        title: 'Number',
+        uidt: UITypes.Number,
+        pv: true,
+      },
+      {
+        column_name: 'SingleSelect',
+        title: 'SingleSelect',
+        uidt: UITypes.SingleSelect,
+        dtxp: "'jan','feb','mar','apr','may','jun','jul','aug','sep','oct','nov','dec'",
+      },
+    ];
+
+    try {
+      const project = await api.project.read(context.project.id);
+      table = await api.base.tableCreate(context.project.id, project.bases?.[0].id, {
+        table_name: 'selectBased',
+        title: 'selectBased',
+        columns: columns,
+      });
+      const rowAttributes = [];
+      for (let i = 0; i < 10; i++) {
+        const row = {
+          Number: rowMixedValue(columns[1], i),
+          SingleSelect: rowMixedValue(columns[2], i),
+        };
+        rowAttributes.push(row);
+      }
+
+      await api.dbTableRow.bulkCreate('noco', context.project.id, table.id, rowAttributes);
+      records = await api.dbTableRow.list('noco', context.project.id, table.id, { limit: 100 });
+    } catch (e) {
+      console.log(e);
+    }
+
+    // reload page after api calls
+    await page.reload();
+  });
 
   test('Table & View rename', async ({ page }) => {
     // close 'Team & Auth' tab
     await dashboard.closeTab({ title: 'Team & Auth' });
-    await dashboard.treeView.openTable({ title: 'numberBased' });
+    await dashboard.treeView.openTable({ title: 'selectBased' });
 
-    await dashboard.viewSidebar.renameView({
-      title: 'numberBased',
-      newTitle: 'newNameForTest',
-    });
-    await dashboard.viewSidebar.verifyView({
-      title: 'newNameForTest',
-      index: 0,
-    });
-    await dashboard.rootPage.waitForTimeout(100);
-
-    await undo({ page });
-    await dashboard.rootPage.waitForTimeout(100);
-    await dashboard.viewSidebar.verifyView({
-      title: 'numberBased',
-      index: 0,
-    });
-
-    // tabel rename
-    await dashboard.treeView.renameTable({ title: 'numberBased', newTitle: 'newNameForTest' });
+    // table rename
+    await dashboard.treeView.renameTable({ title: 'selectBased', newTitle: 'newNameForTest' });
     await dashboard.treeView.verifyTable({ title: 'newNameForTest' });
     await dashboard.rootPage.waitForTimeout(100);
 
     await undo({ page });
     await dashboard.rootPage.waitForTimeout(100);
-    await dashboard.treeView.verifyTable({ title: 'numberBased' });
+    await dashboard.treeView.verifyTable({ title: 'selectBased' });
+
+    // View rename
+    const viewTypes = ['Grid', 'Gallery', 'Form', 'Kanban'];
+    for (let i = 0; i < viewTypes.length; i++) {
+      switch (viewTypes[i]) {
+        case 'Grid':
+          await dashboard.viewSidebar.createGridView({
+            title: 'Grid',
+          });
+          break;
+        case 'Gallery':
+          await dashboard.viewSidebar.createGalleryView({
+            title: 'Gallery',
+          });
+          break;
+        case 'Form':
+          await dashboard.viewSidebar.createFormView({
+            title: 'Form',
+          });
+          break;
+        case 'Kanban':
+          await dashboard.viewSidebar.createKanbanView({
+            title: 'Kanban',
+          });
+          break;
+        default:
+          break;
+      }
+      await dashboard.viewSidebar.renameView({ title: viewTypes[i], newTitle: 'newNameForTest' });
+      await dashboard.viewSidebar.verifyView({ title: 'newNameForTest', index: 1 });
+      await undo({ page });
+      await dashboard.viewSidebar.verifyView({ title: viewTypes[i], index: 1 });
+      await dashboard.viewSidebar.deleteView({ title: viewTypes[i] });
+    }
   });
 });
 
-test.describe('Undo Redo - 2', () => {
+test.describe('Undo Redo - LTAR', () => {
   test.beforeEach(async ({ page }) => {
     context = await setup({ page, isEmptyProject: true });
     dashboard = new DashboardPage(page, context.project);
@@ -504,7 +582,7 @@ test.describe('Undo Redo - 2', () => {
   });
 });
 
-test.describe('Undo Redo - 3', () => {
+test.describe('Undo Redo - Select based', () => {
   test.beforeEach(async ({ page }) => {
     context = await setup({ page, isEmptyProject: true });
     dashboard = new DashboardPage(page, context.project);

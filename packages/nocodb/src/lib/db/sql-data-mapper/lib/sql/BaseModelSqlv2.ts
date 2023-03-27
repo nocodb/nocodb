@@ -2161,7 +2161,7 @@ class BaseModelSqlv2 {
     let noOfDeletedRecords = data;
     if (!isBulkAllOperation) {
       noOfDeletedRecords = data.length;
-      await this.handleHooks('after.delete', data, null, req);
+      await this.handleHooks('after.delete', null, data, req);
     }
 
     await Audit.insert({
@@ -2256,7 +2256,7 @@ class BaseModelSqlv2 {
       ip: req?.clientIp,
       user: req?.user?.email,
     });
-    await this.handleHooks('after.delete', data, null, req);
+    await this.handleHooks('after.delete', null, data, req);
   }
 
   private async handleHooks(hookName, prevData, newData, req): Promise<void> {

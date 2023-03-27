@@ -94,10 +94,8 @@ export async function populateSamplePayloadV2(
 
   samplePayload.data = {
     ...samplePayload.data,
-    ...(prevRows && {
-      [operation === 'delete' ? 'deleted_rows' : 'previous_rows']: [prevRows],
-    }),
-    ...(operation !== 'delete' && rows && { rows: [rows] }),
+    ...(prevRows && { previous_rows: [prevRows] }),
+    ...(rows && { rows: [rows] }),
   };
 
   return samplePayload;

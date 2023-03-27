@@ -503,7 +503,7 @@ export function useViewData(
         if (!undo) {
           addUndo({
             redo: {
-              fn: async function undo(this: UndoRedoAction, id: string) {
+              fn: async function redo(this: UndoRedoAction, id: string) {
                 await deleteRowById(id)
                 const pk: Record<string, string> = rowPkData(row.row, meta?.value?.columns as ColumnType[])
                 const rowIndex = findIndexByPk(pk)
@@ -513,7 +513,7 @@ export function useViewData(
               args: [id],
             },
             undo: {
-              fn: async function redo(
+              fn: async function undo(
                 this: UndoRedoAction,
                 row: Row,
                 ltarState: Record<string, any>,
@@ -554,6 +554,7 @@ export function useViewData(
 
   async function deleteSelectedRows() {
     let row = formattedData.value.length
+    const removedRowsData: { id?: string; row: Row; rowIndex: number }[] = []
     while (row--) {
       try {
         const { row: rowObj, rowMeta } = formattedData.value[row] as Record<string, any>
@@ -570,12 +571,53 @@ export function useViewData(
           if (!successfulDeletion) {
             continue
           }
+          removedRowsData.push({ id, row: clone(formattedData.value[row]), rowIndex: row })
         }
         formattedData.value.splice(row, 1)
       } catch (e: any) {
         return message.error(`${t('msg.error.deleteRowFailed')}: ${await extractSdkResponseErrorMsg(e)}`)
       }
     }
+
+    addUndo({
+      redo: {
+        fn: async function redo(this: UndoRedoAction, removedRowsData: { id?: string; row: Row; rowIndex: number }[]) {
+          for (const { id, row } of removedRowsData) {
+            await deleteRowById(id as string)
+            const pk: Record<string, string> = rowPkData(row.row, meta?.value?.columns as ColumnType[])
+            const rowIndex = findIndexByPk(pk)
+            if (rowIndex) formattedData.value.splice(rowIndex, 1)
+            paginationData.value.totalRows = paginationData.value.totalRows! - 1
+          }
+          await syncPagination()
+        },
+        args: [removedRowsData],
+      },
+      undo: {
+        fn: async function undo(
+          this: UndoRedoAction,
+          removedRowsData: { id?: string; row: Row; rowIndex: number }[],
+          pg: { page: number; pageSize: number },
+        ) {
+          for (const { row, rowIndex } of removedRowsData.slice().reverse()) {
+            const pkData = rowPkData(row.row, meta.value?.columns as ColumnType[])
+            row.row = { ...pkData, ...row.row }
+            await insertRow(row, {}, {}, true)
+            if (pg.pageSize === paginationData.value.pageSize) {
+              if (pg.page === paginationData.value.page) {
+                formattedData.value.splice(rowIndex, 0, row)
+              } else {
+                await changePage(pg.page)
+              }
+            } else {
+              await loadData()
+            }
+          }
+        },
+        args: [removedRowsData, { page: paginationData.value.page, pageSize: paginationData.value.pageSize }],
+      },
+      scope: defineViewScope({ view: viewMeta.value }),
+    })
 
     await syncCount()
     await syncPagination()

@@ -15,7 +15,7 @@ const up = async (knex: Knex) => {
     });
   }
 
-  await knex.schema.alterTable(MetaTable.COLUMNS, (table) => {
+  await knex.schema.alterTable(MetaTable.HOOKS, (table) => {
     table.string('version');
   });
 };
@@ -27,7 +27,7 @@ const down = async (knex) => {
     });
   }
 
-  await knex.schema.alterTable(MetaTable.COLUMNS, (table) => {
+  await knex.schema.alterTable(MetaTable.HOOKS, (table) => {
     table.dropColumn('version');
   });
 };

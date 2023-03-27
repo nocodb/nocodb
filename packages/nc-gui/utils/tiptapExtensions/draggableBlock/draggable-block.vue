@@ -126,21 +126,33 @@ const deleteNode = () => {
   editor.commands.deleteRange(editor.state.selection)
   dragClicked.value = false
 }
+
+const isDragging = ref(false)
+
+watch(
+  () => editor.view.dragging,
+  () => {
+    if (!editor.view.dragging) {
+      isDragging.value = false
+    }
+  },
+)
 </script>
 
 <template>
   <NodeViewWrapper class="vue-component group draggable-block-wrapper">
     <div v-if="!isPublic" class="flex flex-row gap-0.5 group w-full items-start" tiptap-draghandle-wrapper="true">
       <div class="flex flex-row relative" :style="optionWrapperStyle">
-        <div type="button" class="block-button cursor-pointer" @click="createNodeAfter">
+        <div v-if="!isDragging" type="button" class="absolute -left-4.5 block-button cursor-pointer w-5" @click="createNodeAfter">
           <MdiPlus />
         </div>
+        <div v-else class="absolute -left-5 h-4 w-5 hidden"></div>
 
         <div
           ref="optionsPopoverRef"
           class="flex flex-col absolute -left-10 bg-gray-100 rounded-md p-1 text-sm z-40 -top-0.75"
           :class="{
-            hidden: !dragClicked,
+            hidden: !dragClicked || isDragging,
             visible: dragClicked,
           }"
           :contenteditable="false"
@@ -155,12 +167,14 @@ const deleteNode = () => {
         </div>
 
         <div
-          class="block-button cursor-pointer group"
+          class="block-button cursor-pointer group ml-1"
           contenteditable="false"
           :draggable="true"
           :data-drag-handle="true"
           :tiptap-draghandle="true"
           @click="onDragClick"
+          @dragstart="isDragging = true"
+          @dragend="isDragging = false"
         >
           <IcBaselineDragIndicator :tiptap-draghandle="true" />
         </div>

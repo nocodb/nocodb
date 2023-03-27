@@ -3,25 +3,36 @@ import type { ColumnType } from 'nocodb-sdk'
 import { RelationTypes, UITypes, isVirtualCol } from 'nocodb-sdk'
 import { ref } from 'vue'
 import { StreamBarcodeReader } from 'vue-barcode-reader'
-import { useSharedFormStoreOrThrow } from '#imports'
+import { useSharedFormStoreOrThrow, isBt, isHm, isMm, useMetas } from '#imports'
 
 const { sharedFormView, submitForm, v$, formState, notFound, formColumns, submitted, secondsRemain, isLoading, sharedViewMeta } =
   useSharedFormStoreOrThrow()
+
+const { getMeta } = useMetas()
 
 const route = useRoute()
 
 if (formColumns.value && sharedViewMeta.value.preFilledMode !== 'none' && Object.keys(route.query).length > 0) {
   for (const column of formColumns.value) {
     if (column.title && route.query[column.title]) {
-      if (isVirtualCol(column)) {
-        const virtData = (route.query[column.title] as string).split(';')
-        if (virtData.length) {
-          formState.value[column.title] = []
-          virtData.forEach((virtItem) => {
-            const virtRow = virtItem.split('|')
-            formState.value[column.title] = [...formState.value[column.title], { Id: virtRow[0], Title: virtRow[1] }]
-          })
-        }
+      if (isVirtualCol(column) && (isBt(column) || isHm(column) || isMm(column))) {
+        let pk = '', pv = ''
+        getMeta(column.colOptions?.fk_related_model_id as string).then(rel => {
+          pk = rel?.columns?.find(c => c.pk === 1)?.title || ''
+          pv = rel?.columns?.find(c => c.pv === 1)?.title || ''
+          const virtData = (route.query[column.title] as string).split(';')
+          if (virtData.length) {
+            formState.value[column.title] = []
+            virtData.forEach((virtItem) => {
+              const virtRow = virtItem.split('|')
+              if(isBt(column)){
+                formState.value[column.title] = { [pk]: virtRow[0], [pv]: virtRow[1] }
+              } else {
+                formState.value[column.title] = [...formState.value[column.title], { [pk]: virtRow[0], [pv]: virtRow[1] }]
+              }
+            })
+          }
+        })
       } else {
         formState.value[column.title] = route.query[column.title]
       }
@@ -170,7 +181,7 @@ const onDecode = async (scannedCodeValue: string) => {
                     <div class="flex">
                       <LazySmartsheetVirtualCell
                         v-if="isVirtualCol(field)"
-                        v-model="formState[field.title]"
+                        :model-value="formState[field.title]"
                         class="mt-0 nc-input nc-cell"
                         :data-testid="`nc-form-input-cell-${field.label || field.title}`"
                         :class="`nc-form-input-${field.title?.replaceAll(' ', '')}`"

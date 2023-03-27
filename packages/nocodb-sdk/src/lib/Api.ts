@@ -1142,7 +1142,7 @@ export interface HookType {
    * Hook Version
    * @example v2
    */
-  version?: string;
+  version?: 'v1' | 'v2';
 }
 
 /**
@@ -8970,7 +8970,7 @@ export class Api<
  * @tags DB Table Webhook
  * @name SamplePayloadGet
  * @summary Get Sample Hook Payload
- * @request GET:/api/v1/db/meta/tables/{tableId}/hooks/samplePayload/{operation}
+ * @request GET:/api/v1/db/meta/tables/{tableId}/hooks/samplePayload/{operation}/{version}
  * @response `200` `{
   \** Sample Payload Data *\
   data?: object,
@@ -8985,6 +8985,7 @@ export class Api<
     samplePayloadGet: (
       tableId: IdType,
       operation: 'update' | 'delete' | 'insert',
+      version: 'v1' | 'v2',
       params: RequestParams = {}
     ) =>
       this.request<
@@ -8997,7 +8998,7 @@ export class Api<
           msg: string;
         }
       >({
-        path: `/api/v1/db/meta/tables/${tableId}/hooks/samplePayload/${operation}`,
+        path: `/api/v1/db/meta/tables/${tableId}/hooks/samplePayload/${operation}/${version}`,
         method: 'GET',
         format: 'json',
         ...params,

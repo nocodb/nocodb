@@ -413,7 +413,7 @@ const copyIframeCode = async () => {
           </div>
         </div>
 
-        <div v-if="shared.type === ViewTypes.FORM" class="flex flex-col gap-3">
+        <div v-if="shared.type === ViewTypes.FORM && !surveyMode" class="flex flex-col gap-3">
           <!-- pre-filled fields - todo: i18n -->
           <div class="text-gray-500 border-b-1">Pre-filled Fields</div>
 

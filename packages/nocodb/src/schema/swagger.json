@@ -1,8 +1,5 @@
 {
   "openapi": "3.1.0",
-  "x-stoplight": {
-    "id": "ayhjcuoo4l66r"
-  },
   "info": {
     "title": "nocodb",
     "version": "1.0",
@@ -12887,6 +12884,14 @@
                       "x-stoplight": {
                         "id": "bstdkpky2131f"
                       }
+                    },
+                    "automationLogLevel": {
+                      "type": "string",
+                      "x-stoplight": {
+                        "id": "uc3vaotye2eu8"
+                      },
+                      "enum": ["OFF", "ERROR", "ALL"],
+                      "example": "OFF"
                     }
                   }
                 },
@@ -12910,7 +12915,8 @@
                       "ee": false,
                       "ncAttachmentFieldSize": 20971520,
                       "ncMaxAttachmentsAllowed": 10,
-                      "isCloud": false
+                      "isCloud": false,
+                      "automationLogLevel": "OFF"
                     }
                   }
                 }

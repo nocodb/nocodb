@@ -42,11 +42,13 @@ const [setup, use] = useInjectionState(() => {
       } as RequestParams)
       if (!response.users) return
 
-      totalUsers.value = response.users.pageInfo.totalRows ?? 0
+      const removedUser = response.users.list.filter((u: User) => !u.roles)
 
-      if (!users.value) users.value = response.users.list as User[]
+      totalUsers.value = (response.users.pageInfo.totalRows ?? 0) - Number(removedUser?.length)
+
+      if (!users.value) users.value = response.users.list.filter((u: User) => u.roles) as User[]
       else {
-        users.value = [...users.value, ...(response.users.list as User[])]
+        users.value = [...users.value, ...(response.users.list.filter((u: User) => u.roles) as User[])]
       }
 
       lastFetchedUsers.value = JSON.parse(JSON.stringify(users.value))
@@ -88,19 +90,29 @@ const [setup, use] = useInjectionState(() => {
     isBatchUpdating.value = true
     try {
       await Promise.all(
-        _editedUsers.map(async (user) => {
-          await api.auth.projectUserUpdate(project.value!.id!, user.id, {
-            email: user.email,
-            roles: user.roles,
-            project_id: project.value.id,
-            projectName: project.value.title,
-          })
-          const savedUser = users.value?.find((u) => u.id === user.id)
-          if (savedUser) {
-            savedUser.roles = user.roles
-          }
-        }),
+        _editedUsers
+          .filter((user) => user.roles !== 'No access')
+          .map(async (user) => {
+            await api.auth.projectUserUpdate(project.value!.id!, user.id, {
+              email: user.email,
+              roles: user.roles,
+              project_id: project.value.id,
+              projectName: project.value.title,
+            })
+            const savedUser = users.value?.find((u) => u.id === user.id)
+            if (savedUser) {
+              savedUser.roles = user.roles
+            }
+          }),
       )
+      await Promise.all(
+        _editedUsers
+          .filter((user) => user.roles === 'No access')
+          .map(async (user) => {
+            await api.auth.projectUserRemove(project.value!.id!, user.id)
+          }),
+      )
+      users.value = users.value?.filter((user) => user.roles !== 'No access') ?? []
       lastFetchedUsers.value = JSON.parse(JSON.stringify(users.value))
     } catch (e: any) {
       message.error(await extractSdkResponseErrorMsg(e))

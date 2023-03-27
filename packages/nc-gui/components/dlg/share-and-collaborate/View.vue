@@ -13,7 +13,7 @@ const { formStatus, showShareModal, invitationValid, invitationUsersData } = use
 const { inviteUser } = useManageUsers()
 
 const isInvitationLinkCopied = ref(false)
-const expandedSharedType = ref<'none' | 'project' | 'page'>('none')
+const expandedSharedType = ref<'none' | 'project' | 'page'>('project')
 
 const page = computed(() => openedPage.value ?? nestedPagesOfProjects.value[project.value.id!]?.[0])
 

@@ -111,6 +111,9 @@ test.describe('Undo Redo', () => {
 
     // verify if expectedValues are same as currentRecords
     expect(currentRecords.list.map(r => parseInt(r.Number))).toEqual(expectedValues);
+
+    // verify row count
+    await dashboard.grid.verifyTotalRowCount({ count: expectedValues.length });
   }
 
   async function undo({ page }: { page: Page }) {

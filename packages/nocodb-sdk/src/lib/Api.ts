@@ -1138,6 +1138,11 @@ export interface HookType {
   title?: string;
   /** Hook Type */
   type?: string;
+  /**
+   * Hook Version
+   * @example v2
+   */
+  version?: string;
 }
 
 /**
@@ -6477,11 +6482,11 @@ export class Api<
   };
   dbTableWebhookLogs = {
     /**
- * @description Get the log data in a given Hook
+ * @description List the log data in a given Hook
  * 
  * @tags DB Table Webhook Logs
  * @name List
- * @summary Get Hook Logs
+ * @summary List Hook Logs
  * @request GET:/api/v1/db/meta/hooks/{hookId}/logs
  * @response `200` `HookLogListType` OK
  * @response `400` `{

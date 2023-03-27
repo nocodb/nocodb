@@ -130,8 +130,8 @@ onMounted(() => {
 
               <template #title>
                 <div class="text-xl normal-case">
-                  {{ item.title }}
                   <span class="text-gray-400 text-sm"> ({{ item.version }}) </span>
+                  {{ item.title }}
                 </div>
               </template>
 

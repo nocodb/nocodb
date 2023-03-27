@@ -8519,6 +8519,8 @@ export class Api<
   ncAttachmentFieldSize?: number,
   ncMaxAttachmentsAllowed?: number,
   isCloud?: boolean,
+  \** @example OFF *\
+  automationLogLevel?: "OFF" | "ERROR" | "ALL",
 
 }` OK
  * @response `400` `{
@@ -8548,6 +8550,8 @@ export class Api<
           ncAttachmentFieldSize?: number;
           ncMaxAttachmentsAllowed?: number;
           isCloud?: boolean;
+          /** @example OFF */
+          automationLogLevel?: 'OFF' | 'ERROR' | 'ALL';
         },
         {
           /** @example BadRequest [Error]: <ERROR MESSAGE> */

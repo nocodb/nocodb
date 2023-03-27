@@ -82,6 +82,7 @@ const {
 } = useProvideExpandedFormStore(meta, row)
 
 const duplicatingRowInProgress = ref(false)
+const addNewRowInProgress = ref(false)
 
 if (props.loadRow) {
   await loadRow()
@@ -138,6 +139,16 @@ const onDuplicateRow = () => {
     row.value = newRow
     duplicatingRowInProgress.value = false
     message.success(t('msg.success.rowDuplicatedWithoutSavedYet'))
+  }, 500)
+}
+
+const addNewEmptyForm = () => {
+  addNewRowInProgress.value = true
+  const newRow = { row: {}, oldRow: {}, rowMeta: { new: true } }
+  setTimeout(async () => {
+    row.value = newRow
+    addNewRowInProgress.value = false
+    message.success('New blank Record created')
   }, 500)
 }
 
@@ -290,7 +301,12 @@ export default {
     class="nc-drawer-expanded-form"
     :class="{ active: isExpanded }"
   >
-    <SmartsheetExpandedFormHeader :view="props.view" @cancel="onClose" @duplicate-row="onDuplicateRow" />
+    <SmartsheetExpandedFormHeader
+      :view="props.view"
+      @cancel="onClose"
+      @duplicate-row="onDuplicateRow"
+      @save-add-another="addNewEmptyForm"
+    />
 
     <div :key="key" class="!bg-gray-100 rounded flex-1">
       <div class="flex h-full nc-form-wrapper items-stretch min-h-[max(70vh,100%)]">

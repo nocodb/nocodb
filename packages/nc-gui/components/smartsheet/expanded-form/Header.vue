@@ -5,6 +5,7 @@ import {
   ReloadRowDataHookInj,
   iconMap,
   isMac,
+  ref,
   useExpandedFormStoreOrThrow,
   useSmartsheetRowStoreOrThrow,
   useSmartsheetStoreOrThrow,
@@ -13,7 +14,7 @@ import {
 
 const props = defineProps<{ view?: ViewType }>()
 
-const emit = defineEmits(['cancel', 'duplicateRow'])
+const emit = defineEmits(['cancel', 'duplicateRow', 'saveAddAnother'])
 
 const route = useRoute()
 
@@ -33,9 +34,15 @@ const save = async () => {
     await syncLTARRefs(data)
     reloadTrigger?.trigger()
   } else {
-    await _save()
     reloadTrigger?.trigger()
   }
+
+  if (saveRowAndStay.value === 2) {
+    await _save(state.value)
+    reloadTrigger?.trigger()
+    emit('saveAddAnother')
+  }
+
   if (!saveRowAndStay.value) {
     emit('cancel')
   }
@@ -146,6 +153,12 @@ const onConfirmDeleteRowClick = async () => {
               {{ $t('activity.saveAndStay') }}
             </div>
           </a-menu-item>
+          <a-menu-item key="1" class="!py-2 flex gap-2 items-center" @click="saveRowAndStay = 2">
+            <div class="flex items-center">
+              <MdiContentSaveEdit class="mr-1" />
+              Save & Add Another
+            </div>
+          </a-menu-item>
         </a-menu>
       </template>
       <div v-if="saveRowAndStay === 0" class="flex items-center">
@@ -155,6 +168,10 @@ const onConfirmDeleteRowClick = async () => {
       <div v-if="saveRowAndStay === 1" class="flex items-center">
         <component :is="iconMap.contentSaveStay" class="mr-1" />
         {{ $t('activity.saveAndStay') }}
+      </div>
+      <div v-if="saveRowAndStay === 2" class="flex items-center" @click="emit('saveAddAnother')">
+        <MdiContentSaveEdit class="mr-1" />
+        Save & Add Another
       </div>
     </a-dropdown-button>
 

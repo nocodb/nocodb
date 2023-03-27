@@ -14,6 +14,10 @@ const up = async (knex: Knex) => {
       table.text('response').alter();
     });
   }
+
+  await knex.schema.alterTable(MetaTable.COLUMNS, (table) => {
+    table.string('version');
+  });
 };
 
 const down = async (knex) => {
@@ -22,6 +26,10 @@ const down = async (knex) => {
       table.boolean('response').alter();
     });
   }
+
+  await knex.schema.alterTable(MetaTable.COLUMNS, (table) => {
+    table.dropColumn('version');
+  });
 };
 
 export { up, down };

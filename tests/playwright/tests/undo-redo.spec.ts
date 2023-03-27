@@ -34,6 +34,21 @@ const validateResponse = false;
  Table	      Rename
 
  **/
+async function undo({ page }: { page: Page }) {
+  const isMac = await grid.isMacOs();
+
+  if (validateResponse) {
+    await dashboard.grid.waitForResponse({
+      uiAction: () => page.keyboard.press(isMac ? 'Meta+z' : 'Control+z'),
+      httpMethodsToMatch: ['GET'],
+      requestUrlPathToMatch: `/api/v1/db/data/noco/`,
+      responseJsonMatcher: json => json.pageInfo,
+    });
+  } else {
+    await page.keyboard.press(isMac ? 'Meta+z' : 'Control+z');
+    await page.waitForTimeout(100);
+  }
+}
 
 test.describe('Undo Redo', () => {
   test.beforeEach(async ({ page }) => {
@@ -114,22 +129,6 @@ test.describe('Undo Redo', () => {
 
     // verify row count
     await dashboard.grid.verifyTotalRowCount({ count: expectedValues.length });
-  }
-
-  async function undo({ page }: { page: Page }) {
-    const isMac = await grid.isMacOs();
-
-    if (validateResponse) {
-      await dashboard.grid.waitForResponse({
-        uiAction: () => page.keyboard.press(isMac ? 'Meta+z' : 'Control+z'),
-        httpMethodsToMatch: ['GET'],
-        requestUrlPathToMatch: `/api/v1/db/data/noco/`,
-        responseJsonMatcher: json => json.pageInfo,
-      });
-    } else {
-      await page.keyboard.press(isMac ? 'Meta+z' : 'Control+z');
-      await page.waitForTimeout(100);
-    }
   }
 
   test('Row: Create, Update, Delete', async ({ page }) => {
@@ -502,5 +501,105 @@ test.describe('Undo Redo - 2', () => {
     await undo({ page, values: ['Mumbai', 'Delhi'] });
     await undo({ page, values: ['Mumbai'] });
     await undo({ page, values: [] });
+  });
+});
+
+test.describe('Undo Redo - 3', () => {
+  test.beforeEach(async ({ page }) => {
+    context = await setup({ page, isEmptyProject: true });
+    dashboard = new DashboardPage(page, context.project);
+    grid = dashboard.grid;
+
+    api = new Api({
+      baseURL: `http://localhost:8080/`,
+      headers: {
+        'xc-auth': context.token,
+      },
+    });
+
+    const columns = [
+      {
+        column_name: 'Id',
+        title: 'Id',
+        uidt: UITypes.ID,
+      },
+      {
+        column_name: 'Title',
+        title: 'Title',
+        uidt: UITypes.SingleLineText,
+        pv: true,
+      },
+      {
+        column_name: 'select',
+        title: 'select',
+        uidt: UITypes.SingleSelect,
+        dtxp: "'jan','feb','mar','apr','may','jun','jul','aug','sep','oct','nov','dec'",
+      },
+    ];
+
+    try {
+      const project = await api.project.read(context.project.id);
+      table = await api.base.tableCreate(context.project.id, project.bases?.[0].id, {
+        table_name: 'selectSample',
+        title: 'selectSample',
+        columns,
+      });
+
+      const RowAttributes = [
+        { Title: 'Mumbai', select: 'jan' },
+        { Title: 'Pune', select: 'feb' },
+        { Title: 'Delhi', select: 'mar' },
+        { Title: 'Bangalore', select: 'jan' },
+      ];
+      await api.dbTableRow.bulkCreate('noco', context.project.id, table.id, RowAttributes);
+    } catch (e) {
+      console.log(e);
+    }
+
+    // reload page after api calls
+    await page.reload();
+  });
+
+  test.skip('Kanban', async ({ page }) => {
+    await dashboard.closeTab({ title: 'Team & Auth' });
+    await dashboard.treeView.openTable({ title: 'selectSample' });
+
+    await dashboard.viewSidebar.createKanbanView({
+      title: 'Kanban',
+    });
+
+    const kanban = dashboard.kanban;
+
+    // Drag drop stack
+    await kanban.verifyStackOrder({
+      order: ['Uncategorized', 'jan', 'feb', 'mar', 'apr', 'may', 'jun', 'jul', 'aug', 'sep', 'oct', 'nov', 'dec'],
+    });
+    // verify drag drop stack
+    await kanban.dragDropStack({
+      from: 1, // jan
+      to: 2, // feb
+    });
+    await kanban.verifyStackOrder({
+      order: ['Uncategorized', 'feb', 'jan', 'mar', 'apr', 'may', 'jun', 'jul', 'aug', 'sep', 'oct', 'nov', 'dec'],
+    });
+    // undo drag drop stack
+    await undo({ page });
+    await kanban.verifyStackOrder({
+      order: ['Uncategorized', 'jan', 'feb', 'mar', 'apr', 'may', 'jun', 'jul', 'aug', 'sep', 'oct', 'nov', 'dec'],
+    });
+
+    // drag drop card
+    await kanban.verifyCardCount({
+      count: [0, 2, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+    });
+    await kanban.dragDropCard({ from: { stack: 1, card: 0 }, to: { stack: 2, card: 0 } });
+    await kanban.verifyCardCount({
+      count: [0, 1, 2, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+    });
+    // undo drag drop card
+    await undo({ page });
+    await kanban.verifyCardCount({
+      count: [0, 2, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+    });
   });
 });

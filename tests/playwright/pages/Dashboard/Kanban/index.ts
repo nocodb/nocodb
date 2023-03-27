@@ -29,20 +29,21 @@ export class KanbanPage extends BasePage {
   // todo: Implement
   async addOption() {}
 
-  // todo: Implement
-  async dragDropCard(param: { from: string; to: string }) {
-    // const { from, to } = param;
-    // const srcStack = await this.get().locator(`.nc-kanban-stack`).nth(1);
-    // const dstStack = await this.get().locator(`.nc-kanban-stack`).nth(2);
-    // const fromCard = await srcStack.locator(`.nc-kanban-item`).nth(1);
-    // const toCard = await dstStack.locator(`.nc-kanban-item`).nth(1);
-    // const [fromCard, toCard] = await Promise.all([
-    //   srcStack.locator(`.nc-kanban-item[data-draggable="true"]`).nth(0),
-    //   dstStack.locator(`.nc-kanban-item[data-draggable="true"]`).nth(0),
-    // ]);
-    // const fromCard = await this.get().locator(`.nc-kanban-item`).nth(0);
-    // const toCard = await this.get().locator(`.nc-kanban-item`).nth(25);
-    // await fromCard.dragTo(toCard);
+  async dragDropCard(param: { from: { stack: number; card: number }; to: { stack: number; card: number } }) {
+    const { from, to } = param;
+    const srcStack = await this.get().locator(`.nc-kanban-stack`).nth(from.stack);
+    const dstStack = await this.get().locator(`.nc-kanban-stack`).nth(to.stack);
+    const fromCard = await srcStack.locator(`.nc-kanban-item`).nth(from.card);
+    const toCard = await dstStack.locator(`.nc-kanban-item`).nth(to.card);
+
+    console.log(await fromCard.allTextContents());
+    console.log(await toCard.allTextContents());
+
+    await fromCard.dragTo(toCard, {
+      force: true,
+      sourcePosition: { x: 10, y: 10 },
+      targetPosition: { x: 10, y: 10 },
+    });
   }
 
   async dragDropStack(param: { from: number; to: number }) {

@@ -260,6 +260,12 @@ export function useViewData(
       )
 
       if (!undo) {
+        Object.assign(currentRow, {
+          row: { ...insertedData, ...row },
+          rowMeta: { ...(currentRow.rowMeta || {}), new: undefined },
+          oldRow: { ...insertedData },
+        })
+
         const id = extractPkFromRow(insertedData, metaValue?.columns as ColumnType[])
         const pkData = rowPkData(insertedData, metaValue?.columns as ColumnType[])
         const rowIndex = findIndexByPk(pkData)
@@ -297,19 +303,11 @@ export function useViewData(
           undo: {
             fn: async function undo(this: UndoRedoAction, id: string) {
               await deleteRowById(id)
-              const pk: Record<string, string> = rowPkData(row.row, meta?.value?.columns as ColumnType[])
-              const rowIndex = findIndexByPk(pk)
               if (rowIndex) formattedData.value.splice(rowIndex, 1)
             },
             args: [id],
           },
           scope: defineViewScope({ view: viewMeta.value }),
-        })
-
-        Object.assign(currentRow, {
-          row: { ...insertedData, ...row },
-          rowMeta: { ...(currentRow.rowMeta || {}), new: undefined },
-          oldRow: { ...insertedData },
         })
       }
 

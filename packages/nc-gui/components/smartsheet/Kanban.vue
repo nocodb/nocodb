@@ -313,7 +313,7 @@ const openNewRecordFormHookHandler = async () => {
   const newRow = await addEmptyRow()
   // preset the grouping field value
   newRow.row = {
-    [groupingField.value]: selectedStackTitle.value,
+    [groupingField.value]: selectedStackTitle.value === '' ? null : selectedStackTitle.value,
   }
   // increase total count by 1
   countByStack.value.set(null, countByStack.value.get(null)! + 1)

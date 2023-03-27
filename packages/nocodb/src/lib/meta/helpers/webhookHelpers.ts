@@ -370,10 +370,12 @@ export async function invokeWebhook(
     hookLog = {
       ...hook,
       type: notification.type,
+      payload: JSON.stringify(notification?.payload),
       fk_hook_id: hook.id,
       error_code: e.error_code,
       error_message: e.message,
       error: JSON.stringify(e),
+      triggered_by: user?.email,
     };
     if (throwErrorOnFailure) throw e;
   } finally {

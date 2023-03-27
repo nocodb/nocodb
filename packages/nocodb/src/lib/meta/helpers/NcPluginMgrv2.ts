@@ -181,7 +181,7 @@ class NcPluginMgrv2 {
       active: true,
     });
 
-    if (!pluginData) return null;
+    if (!pluginData) throw new Error('Plugin not configured / active');
 
     const pluginConfig = defaultPlugins.find(
       (c) => c.title === pluginData.title && c.category === PluginCategory.EMAIL
@@ -205,7 +205,7 @@ class NcPluginMgrv2 {
       active: true,
     });
 
-    if (!pluginData) throw new Error('Plugin not configured/active');
+    if (!pluginData) throw new Error('Plugin not configured / active');
 
     const pluginConfig = defaultPlugins.find(
       (c) => c.title === pluginData.title

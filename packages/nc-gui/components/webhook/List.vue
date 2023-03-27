@@ -151,7 +151,7 @@ onMounted(() => {
                 <div class="mr-2">{{ $t('labels.notifyVia') }} : {{ item?.notification?.type }}</div>
 
                 <div class="float-right pt-2 pr-1">
-                  <a-tooltip placement="left" v-if="item.version === 'v2'">
+                  <a-tooltip v-if="item.version === 'v2'" placement="left">
                     <template #title>
                       {{ $t('activity.copyWebhook') }}
                     </template>

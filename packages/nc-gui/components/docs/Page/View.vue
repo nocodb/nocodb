@@ -179,21 +179,14 @@ watchDebounced(
           </div>
           <div v-if="!isPublic" class="flex flex-row items-center"></div>
         </div>
-        <div
-          :key="openedPageId"
-          class="mx-auto pr-6 pt-16 flex flex-col"
-          :style="{
-            width: '64rem',
-            maxWidth: '45vw',
-          }"
-        >
+        <div :key="openedPageId" class="pt-16 flex flex-col">
           <a-skeleton-input
             v-if="isPageFetching && !isPublic"
             :active="true"
             size="large"
             class="docs-page-title-skelton !mt-4 !max-w-156 mb-3 -ml-3"
           />
-          <DocsPageTitle v-else-if="openedPage" @focus-editor="focusEditor" />
+          <DocsPageTitle v-else-if="openedPage" class="docs-page-title" @focus-editor="focusEditor" />
           <div class="flex !mb-4.5"></div>
 
           <DocsPageSelectedBubbleMenu v-if="editor" :editor="editor" />
@@ -204,24 +197,15 @@ watchDebounced(
             size="small"
             class="docs-page-title-skelton !max-w-102 mb-3 mt-1 -ml-3"
           />
-          <EditorContent
-            v-else
-            :key="isEditAllowed ? 'edit' : 'view'"
-            :editor="editor"
-            class="px-2 !mb-48"
-            :class="{
-              '-ml-1': !isEditAllowed,
-              '-ml-12.5': isEditAllowed,
-            }"
-          />
+          <EditorContent v-else :key="isEditAllowed ? 'edit' : 'view'" :editor="editor" />
           <div
             v-if="(openedPageInSidebar?.children ?? []).length > 0 && !isPageFetching"
-            class="flex flex-col py-12 border-b-1 border-t-1 border-gray-200 mt-12 mb-4 gap-y-6 pop-in-animation"
+            class="docs-page-child-pages flex flex-col py-12 border-b-1 border-t-1 border-gray-200 mt-12 mb-4 gap-y-6 pop-in-animation"
           >
             <div
               v-for="page of openedPageInSidebar?.children"
               :key="page.id"
-              class="flex flex-row items-center gap-x-2 cursor-pointer text-gray-600 hover:text-black"
+              class="px-6 flex flex-row items-center gap-x-2 cursor-pointer text-gray-600 hover:text-black"
               @click="openPage({ page, projectId: project.id! })"
             >
               <div v-if="page.icon" class="flex">
@@ -240,14 +224,47 @@ watchDebounced(
           </div>
         </div>
       </div>
-      <div class="sticky top-0 pt-1.5 flex flex-col mr-3">
-        <DocsPageOutline v-if="openedPage" :wrapper-ref="wrapperRef" />
-      </div>
+    </div>
+    <div class="absolute right-0 top-0 pt-1.5 mr-3">
+      <DocsPageOutline v-if="openedPage && wrapperRef" :key="openedPage.id" :wrapper-ref="wrapperRef" />
     </div>
   </a-layout-content>
 </template>
 
 <style lang="scss">
+div.ProseMirror {
+  min-height: 77vh;
+  width: 100%;
+  padding-left: max(25%, 18vw);
+  padding-right: max(25%, 18vw);
+  padding-bottom: 35%;
+}
+
+.docs-page-title {
+  width: max(65vw, 54rem);
+  padding-left: min(40%, 22vw);
+}
+
+.docs-page-child-pages {
+  width: 55%;
+  margin-left: min(45%, 24vw);
+}
+
+@media (max-width: 1600px) {
+  div.ProseMirror {
+    padding-left: max(10%, 14vw) !important;
+    padding-right: max(30%, 24vw) !important;
+  }
+  .docs-page-title {
+    width: max(55vw, 34rem) !important;
+    padding-left: min(30%, 14vw) !important;
+  }
+
+  .docs-page-child-pages {
+    margin-left: min(30%, 14vw);
+  }
+}
+
 ::-moz-selection {
   /* Code for Firefox */
   color: black;

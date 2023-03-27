@@ -105,9 +105,9 @@ watchDebounced(
 </script>
 
 <template>
-  <div class="flex flex-row">
+  <div class="flex flex-row ml-7 gap-x-2">
     <a-dropdown v-if="isEditAllowed && openedPage?.icon" placement="bottom" trigger="click">
-      <div class="flex flex-col justify-center h-16 ml-2 px-2 text-gray-500 rounded-md hover:bg-gray-100 cursor-pointer">
+      <div class="flex flex-col justify-center h-16 px-2 text-gray-500 rounded-md hover:bg-gray-100 cursor-pointer">
         <IconifyIcon
           v-if="openedPage?.icon"
           :key="openedPage.icon"
@@ -123,7 +123,7 @@ watchDebounced(
       </template>
     </a-dropdown>
     <template v-else>
-      <div v-if="openedPage?.icon" class="flex flex-col justify-center h-16 pl-4 pr-2">
+      <div v-if="openedPage?.icon" class="flex flex-col justify-center h-16">
         <IconifyIcon
           v-if="openedPage?.icon"
           :key="openedPage.icon"
@@ -136,7 +136,7 @@ watchDebounced(
     <a-textarea
       ref="titleInputRef"
       v-model:value="title"
-      class="!text-5xl font-semibold !px-1.5"
+      class="!text-5xl font-semibold !p-0"
       :bordered="false"
       :readonly="isPublic"
       placeholder="Title"

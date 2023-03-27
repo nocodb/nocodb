@@ -304,6 +304,7 @@ export function useViewData(
             fn: async function undo(this: UndoRedoAction, id: string) {
               await deleteRowById(id)
               if (rowIndex) formattedData.value.splice(rowIndex, 1)
+              paginationData.value.totalRows = paginationData.value.totalRows! - 1
             },
             args: [id],
           },
@@ -507,6 +508,7 @@ export function useViewData(
                 const pk: Record<string, string> = rowPkData(row.row, meta?.value?.columns as ColumnType[])
                 const rowIndex = findIndexByPk(pk)
                 if (rowIndex) formattedData.value.splice(rowIndex, 1)
+                paginationData.value.totalRows = paginationData.value.totalRows! - 1
               },
               args: [id],
             },

@@ -65,7 +65,7 @@ export default {
     <div v-show="active || isForm" v-if="!readOnly && !isLocked && isUIAllowed('xcDatatableEditable')" class="flex items-center">
       <component
         :is="iconMap.closeThick"
-        class="unlink-icon text-xs text-gray-500/50 group-hover:text-gray-500"
+        class="nc-icon unlink-icon text-xs text-gray-500/50 group-hover:text-gray-500"
         @click.stop="emit('unlink')"
       />
     </div>

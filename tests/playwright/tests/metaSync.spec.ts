@@ -39,6 +39,8 @@ test.describe('Meta sync', () => {
     await dbExec(`CREATE TABLE table2 (id INT NOT NULL, col1 INT NULL, PRIMARY KEY (id))`);
 
     await settings.dataSources.metaData.clickReload();
+    await dashboard.rootPage.waitForTimeout(1000);
+
     await settings.dataSources.metaData.verifyRow({
       index: isPg(context) ? 21 : 16,
       model: `table1`,

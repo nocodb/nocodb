@@ -2,6 +2,7 @@ import { expect, Locator } from '@playwright/test';
 import BasePage from '../../Base';
 import { DashboardPage } from '..';
 import { ToolbarPage } from '../common/Toolbar';
+import { getTextExcludeIconText } from '../../../tests/utils/general';
 
 export class WebhookFormPage extends BasePage {
   readonly dashboard: DashboardPage;
@@ -181,9 +182,11 @@ export class WebhookFormPage extends BasePage {
   }) {
     await expect.poll(async () => await this.get().locator('input.nc-text-field-hook-title').inputValue()).toBe(title);
     await expect(this.get().locator('.nc-text-field-hook-event >> .ant-select-selection-item')).toHaveText(hookEvent);
-    await expect(this.get().locator('.nc-select-hook-notification-type >> .ant-select-selection-item')).toHaveText(
-      notificationType
-    );
+
+    const locator = this.get().locator('.nc-select-hook-notification-type >> .ant-select-selection-item');
+    const text = await getTextExcludeIconText(locator);
+    await expect(text).toBe(notificationType);
+
     await expect(this.get().locator('.nc-select-hook-url-method >> .ant-select-selection-item')).toHaveText(urlMethod);
     await expect.poll(async () => await this.get().locator('input.nc-text-field-hook-url-path').inputValue()).toBe(url);
 

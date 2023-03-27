@@ -3,7 +3,7 @@ import type { ColumnType } from 'nocodb-sdk'
 import { RelationTypes, UITypes, isVirtualCol } from 'nocodb-sdk'
 import { ref } from 'vue'
 import { StreamBarcodeReader } from 'vue-barcode-reader'
-import { useSharedFormStoreOrThrow, isBt, isHm, isMm, useMetas } from '#imports'
+import { isBt, isHm, isMm, preFilledModes, useMetas, useSharedFormStoreOrThrow } from '#imports'
 
 const { sharedFormView, submitForm, v$, formState, notFound, formColumns, submitted, secondsRemain, isLoading, sharedViewMeta } =
   useSharedFormStoreOrThrow()
@@ -12,7 +12,7 @@ const { getMeta } = useMetas()
 
 const route = useRoute()
 
-if (formColumns.value && sharedViewMeta.value.preFilledMode !== 'none' && Object.keys(route.query).length > 0) {
+if (formColumns.value && sharedViewMeta.value.preFilledMode !== preFilledModes.Disabled && Object.keys(route.query).length > 0) {
   for (const column of formColumns.value) {
     if (column.title && route.query[column.title]) {
       if (isVirtualCol(column) && (isBt(column) || isHm(column) || isMm(column))) {
@@ -36,8 +36,8 @@ if (formColumns.value && sharedViewMeta.value.preFilledMode !== 'none' && Object
       } else {
         formState.value[column.title] = route.query[column.title]
       }
-      if (sharedViewMeta.value.preFilledMode === 'hide') column.show = false
-      if (sharedViewMeta.value.preFilledMode === 'lock') column.read_only = true
+      if (sharedViewMeta.value.preFilledMode === preFilledModes.Hidden) column.show = false
+      if (sharedViewMeta.value.preFilledMode === preFilledModes.Locked) column.read_only = true
     }
   }
 }

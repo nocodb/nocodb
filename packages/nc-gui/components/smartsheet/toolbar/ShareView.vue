@@ -7,6 +7,7 @@ import {
   extractSdkResponseErrorMsg,
   isRtlLang,
   message,
+  preFilledModes,
   projectThemeColors,
   ref,
   storeToRefs,
@@ -419,25 +420,25 @@ const copyIframeCode = async () => {
           <div class="px-1 flex flex-col gap-2">
             <div>
               <a-select v-model:value="preFilledMode" class="w-full">
-                <a-select-option value="default">
+                <a-select-option :value="preFilledModes.Default">
                   <div class="flex flex-row h-full justify-start items-center">
                     <!-- todo i18n -->
                     Allow pre-filling fields
                   </div>
                 </a-select-option>
-                <a-select-option value="none">
+                <a-select-option :value="preFilledModes.Disabled">
                   <div class="flex flex-row h-full justify-start items-center">
                     <!-- todo i18n -->
                     Disable pre-filling fields
                   </div>
                 </a-select-option>
-                <a-select-option value="lock">
+                <a-select-option :value="preFilledModes.Locked">
                   <div class="flex flex-row h-full justify-start items-center">
                     <!-- todo i18n -->
                     Lock pre-filled fields as read-only
                   </div>
                 </a-select-option>
-                <a-select-option value="hide">
+                <a-select-option :value="preFilledModes.Hidden">
                   <div class="flex flex-row h-full justify-start items-center">
                     <!-- todo i18n -->
                     Hide pre-filled fields

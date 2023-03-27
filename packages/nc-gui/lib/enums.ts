@@ -99,3 +99,10 @@ export enum DataSourcesSubTab {
   Misc = 'Misc',
   Edit = 'Edit',
 }
+
+export enum preFilledModes {
+  Default = 'default',
+  Disabled = 'disabled',
+  Locked = 'locked',
+  Hidden = 'hidden',
+}

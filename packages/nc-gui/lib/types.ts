@@ -2,7 +2,7 @@ import type { FilterType, MetaType, ViewTypes } from 'nocodb-sdk'
 import type { I18n } from 'vue-i18n'
 import type { Theme as AntTheme } from 'ant-design-vue/es/config-provider'
 import type { UploadFile } from 'ant-design-vue'
-import type { ProjectRole, Role, TabType } from './enums'
+import type { ProjectRole, Role, TabType, preFilledModes } from './enums'
 import type { rolePermissions } from './constants'
 
 export interface User {
@@ -89,7 +89,7 @@ export interface SharedViewMeta extends Record<string, any> {
   theme?: Partial<ThemeConfig>
   allowCSVDownload?: boolean
   rtl?: boolean
-  preFilledMode?: 'default' | 'none' | 'lock' | 'hide'
+  preFilledMode?: preFilledModes
 }
 
 export interface SharedView {

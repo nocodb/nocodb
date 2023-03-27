@@ -43,7 +43,7 @@ export async function populateSamplePayload(
   return out;
 }
 
-export default async function populateSamplePayloadV2(
+export async function populateSamplePayloadV2(
   viewOrModel: View | Model,
   includeNested = false,
   operation = 'insert',

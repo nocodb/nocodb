@@ -42,8 +42,6 @@ export default class HookLog implements HookLogType {
       orderBy: {
         created_at: 'desc',
       },
-      // only fetch the latest 10 records
-      limit: 10,
     });
     return hookLogs?.map((h) => new HookLog(h));
   }

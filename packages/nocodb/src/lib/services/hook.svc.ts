@@ -3,7 +3,10 @@ import { validatePayload } from '../meta/api/helpers';
 import { NcError } from '../meta/helpers/catchError';
 import { Hook, HookLog, Model } from '../models';
 import { invokeWebhook } from '../meta/helpers/webhookHelpers';
-import populateSamplePayload from '../meta/helpers/populateSamplePayload';
+import {
+  populateSamplePayload,
+  populateSamplePayloadV2,
+} from '../meta/helpers/populateSamplePayload';
 import type { HookReqType, HookTestReqType } from 'nocodb-sdk';
 
 function validateHookPayload(
@@ -98,8 +101,12 @@ export async function hookTest(param: {
 export async function tableSampleData(param: {
   tableId: string;
   operation: 'insert' | 'update';
+  version: 'v1' | 'v2';
 }) {
   const model = await Model.getByIdOrName({ id: param.tableId });
 
-  return await populateSamplePayload(model, false, param.operation);
+  if (param.version === 'v1') {
+    return await populateSamplePayload(model, false, param.operation);
+  }
+  return await populateSamplePayloadV2(model, false, param.operation);
 }

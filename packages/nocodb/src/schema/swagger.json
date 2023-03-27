@@ -1,5 +1,8 @@
 {
   "openapi": "3.1.0",
+  "x-stoplight": {
+    "id": "ayhjcuoo4l66r"
+  },
   "info": {
     "title": "nocodb",
     "version": "1.0",
@@ -12130,7 +12133,7 @@
         ]
       }
     },
-    "/api/v1/db/meta/tables/{tableId}/hooks/samplePayload/{operation}": {
+    "/api/v1/db/meta/tables/{tableId}/hooks/samplePayload/{operation}/{version}": {
       "parameters": [
         {
           "schema": {
@@ -12150,7 +12153,18 @@
           },
           "name": "operation",
           "in": "path",
-          "required": true
+          "required": true,
+          "description": "Hook Operation"
+        },
+        {
+          "schema": {
+            "type": "string",
+            "enum": ["v1", "v2"]
+          },
+          "name": "version",
+          "in": "path",
+          "required": true,
+          "description": "Hook Version"
         }
       ],
       "get": {
@@ -16398,7 +16412,8 @@
               "id": "socewqvadj91n"
             },
             "example": "v2",
-            "description": "Hook Version"
+            "description": "Hook Version",
+            "enum": ["v1", "v2"]
           }
         }
       },

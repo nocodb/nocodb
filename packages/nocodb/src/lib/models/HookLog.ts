@@ -39,6 +39,13 @@ export default class HookLog implements HookLogType {
       condition: {
         fk_hook_id: param.fk_hook_id,
       },
+      ...(process.env.NC_AUTOMATION_LOG_LEVEL === 'ERROR' && {
+        xcCondition: {
+          error_message: {
+            neq: null,
+          },
+        },
+      }),
       orderBy: {
         created_at: 'desc',
       },

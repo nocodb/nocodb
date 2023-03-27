@@ -25,6 +25,7 @@ onBeforeMount(async () => {
 
 <template>
   <a-skeleton v-if="isLoading" />
+  <a-empty v-else-if="!hookLogs.length" />
   <a-collapse v-else v-model:activeKey="activeKey" class="nc-hook-log-collapse">
     <a-collapse-panel v-for="(hookLog, idx) of hookLogs" :key="idx">
       <template #header>

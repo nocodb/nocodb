@@ -414,34 +414,30 @@ const copyIframeCode = async () => {
         </div>
 
         <div v-if="shared.type === ViewTypes.FORM && !surveyMode" class="flex flex-col gap-3">
-          <!-- pre-filled fields - todo: i18n -->
-          <div class="text-gray-500 border-b-1">Pre-filled Fields</div>
+          <!-- pre-filled fields -->
+          <div class="text-gray-500 border-b-1">{{ $t('msg.info.preFilledFields.title') }}</div>
 
           <div class="px-1 flex flex-col gap-2">
             <div>
               <a-select v-model:value="preFilledMode" class="w-full">
                 <a-select-option :value="preFilledModes.Default">
                   <div class="flex flex-row h-full justify-start items-center">
-                    <!-- todo i18n -->
-                    Allow pre-filling fields
+                    {{ $t('msg.info.preFilledFields.optionAllow') }}
                   </div>
                 </a-select-option>
                 <a-select-option :value="preFilledModes.Disabled">
                   <div class="flex flex-row h-full justify-start items-center">
-                    <!-- todo i18n -->
-                    Disable pre-filling fields
+                    {{ $t('msg.info.preFilledFields.optionDisable') }}
                   </div>
                 </a-select-option>
                 <a-select-option :value="preFilledModes.Locked">
                   <div class="flex flex-row h-full justify-start items-center">
-                    <!-- todo i18n -->
-                    Lock pre-filled fields as read-only
+                    {{ $t('msg.info.preFilledFields.optionLock') }}
                   </div>
                 </a-select-option>
                 <a-select-option :value="preFilledModes.Hidden">
                   <div class="flex flex-row h-full justify-start items-center">
-                    <!-- todo i18n -->
-                    Hide pre-filled fields
+                    {{ $t('msg.info.preFilledFields.optionHide') }}
                   </div>
                 </a-select-option>
               </a-select>

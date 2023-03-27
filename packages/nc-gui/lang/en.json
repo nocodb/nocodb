@@ -674,7 +674,14 @@
       "deleteKanbanStackConfirmation": "Deleting this stack will also remove the select option `{stackToBeDeleted}` from the `{groupingField}`. The records will move to the uncategorized stack.",
       "computedFieldEditWarning": "Computed field: contents are read-only. Use column edit menu to reconfigure",
       "computedFieldDeleteWarning": "Computed field: contents are read-only. Unable to clear content.",
-      "noMoreRecords": "No more records"
+      "noMoreRecords": "No more records",
+      "preFilledFields": {
+        "title": "Pre-filled Fields",
+        "optionAllow": "Allow pre-filling fields",
+        "optionDisable": "Disable pre-filling fields",
+        "optionLock": "Lock pre-filled fields as read-only",
+        "optionHide": "Hide pre-filled fields"
+      }
     },
     "error": {
       "searchProject": "Your search for {search} found no results",

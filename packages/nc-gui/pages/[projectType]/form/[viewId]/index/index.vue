@@ -23,12 +23,14 @@ if (formColumns.value && sharedViewMeta.value.preFilledMode !== preFilledModes.D
           const virtData = (route.query[column.title] as string).split(';')
           if (virtData.length) {
             formState.value[column.title] = []
-            virtData.forEach((virtItem) => {
+            virtData.every((virtItem) => {
               const virtRow = virtItem.split('|')
               if(isBt(column)){
                 formState.value[column.title] = { [pk]: virtRow[0], [pv]: virtRow[1] }
+                return false
               } else {
                 formState.value[column.title] = [...formState.value[column.title], { [pk]: virtRow[0], [pv]: virtRow[1] }]
+                return true
               }
             })
           }

@@ -7,7 +7,43 @@ import type LinkToAnotherRecordColumn from '../../models/LinkToAnotherRecordColu
 import type LookupColumn from '../../models/LookupColumn';
 import type SelectOption from '../../models/SelectOption';
 
-export default async function populateSamplePayload(
+export async function populateSamplePayload(
+  viewOrModel: View | Model,
+  includeNested = false,
+  operation = 'insert'
+) {
+  const out = {};
+  let columns: Column[] = [];
+  let model: Model;
+  if (viewOrModel instanceof View) {
+    const viewColumns = await viewOrModel.getColumns();
+    for (const col of viewColumns) {
+      if (col.show) columns.push(await Column.get({ colId: col.fk_column_id }));
+    }
+    model = await viewOrModel.getModel();
+    await model.getColumns();
+  } else if (viewOrModel instanceof Model) {
+    columns = await viewOrModel.getColumns();
+    model = viewOrModel;
+  }
+
+  for (const column of columns) {
+    if (
+      !includeNested &&
+      [UITypes.LinkToAnotherRecord, UITypes.Lookup].includes(column.uidt)
+    )
+      continue;
+
+    if (operation === 'delete' && model.primaryKey?.title !== column.title)
+      continue;
+
+    out[column.title] = await getSampleColumnValue(column);
+  }
+
+  return out;
+}
+
+export default async function populateSamplePayloadV2(
   viewOrModel: View | Model,
   includeNested = false,
   operation = 'insert',

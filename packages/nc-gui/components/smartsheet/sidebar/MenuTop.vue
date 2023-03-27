@@ -95,16 +95,44 @@ function onSortStart(evt: SortableEvent) {
   dragging = true
 }
 
-async function onSortEnd(evt: SortableEvent) {
-  evt.stopImmediatePropagation()
-  evt.preventDefault()
-  dragging = false
+async function onSortEnd(evt: SortableEvent, undo = false) {
+  if (!undo) {
+    evt.stopImmediatePropagation()
+    evt.preventDefault()
+    dragging = false
+  }
 
   if (views.length < 2) return
 
   const { newIndex = 0, oldIndex = 0 } = evt
 
   if (newIndex === oldIndex) return
+
+  if (!undo) {
+    addUndo({
+      redo: {
+        fn: async () => {
+          const ord = sortable.toArray()
+          const temp = ord.splice(oldIndex, 1)
+          ord.splice(newIndex, 0, temp[0])
+          sortable.sort(ord)
+          await onSortEnd(evt, true)
+        },
+        args: [],
+      },
+      undo: {
+        fn: async () => {
+          const ord = sortable.toArray()
+          const temp = ord.splice(newIndex, 1)
+          ord.splice(oldIndex, 0, temp[0])
+          sortable.sort(ord)
+          await onSortEnd({ ...evt, oldIndex: newIndex, newIndex: oldIndex }, true)
+        },
+        args: [],
+      },
+      scope: defineModelScope({ view: activeView.value }),
+    })
+  }
 
   const children = evt.to.children as unknown as HTMLLIElement[]
 

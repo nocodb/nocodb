@@ -136,25 +136,30 @@ export async function validateCondition(filters: Filter[], data: any) {
 }
 
 export function constructWebHookData(hook, model, view, prevData, newData) {
-  // extend in the future - currently only support records
-  const scope = 'records';
+  if (hook.version === 'v2') {
+    // extend in the future - currently only support records
+    const scope = 'records';
 
-  return {
-    type: `${scope}.${hook.event}.${hook.operation}`,
-    id: uuidv4(),
-    data: {
-      table_id: model.id,
-      table_name: model.title,
-      view_id: view.id,
-      view_name: view.title,
-      ...(prevData && {
-        [hook.operation === 'delete' ? 'deleted_rows' : 'previous_rows']: [
-          prevData,
-        ],
-      }),
-      ...(newData && { rows: [newData] }),
-    },
-  };
+    return {
+      type: `${scope}.${hook.event}.${hook.operation}`,
+      id: uuidv4(),
+      data: {
+        table_id: model.id,
+        table_name: model.title,
+        view_id: view.id,
+        view_name: view.title,
+        ...(prevData && {
+          [hook.operation === 'delete' ? 'deleted_rows' : 'previous_rows']: [
+            prevData,
+          ],
+        }),
+        ...(newData && { rows: [newData] }),
+      },
+    };
+  }
+
+  // for v1, keep it as it is
+  return newData;
 }
 
 export async function handleHttpWebHook(

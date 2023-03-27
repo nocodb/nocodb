@@ -34,7 +34,7 @@ export default class Hook implements HookType {
 
   project_id?: string;
   base_id?: string;
-  version?: string;
+  version?: 'v1' | 'v2';
 
   constructor(hook: Partial<Hook | HookReqType>) {
     Object.assign(this, hook);

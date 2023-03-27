@@ -245,8 +245,9 @@ export async function invokeWebhook(
 ) {
   let hookLog: HookLogType;
   const startTime = process.hrtime();
+  let notification;
   try {
-    const notification =
+    notification =
       typeof hook.notification === 'string'
         ? JSON.parse(hook.notification)
         : hook.notification;
@@ -299,6 +300,7 @@ export async function invokeWebhook(
           });
           hookLog = {
             ...hook,
+            fk_hook_id: hook.id,
             type: notification.type,
             payload: JSON.stringify(notification?.payload),
             response: JSON.stringify(res),
@@ -367,6 +369,8 @@ export async function invokeWebhook(
     console.log(e);
     hookLog = {
       ...hook,
+      type: notification.type,
+      fk_hook_id: hook.id,
       error_code: e.error_code,
       error_message: e.message,
       error: JSON.stringify(e),

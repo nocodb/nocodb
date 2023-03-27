@@ -129,9 +129,10 @@ onMounted(() => {
               </template>
 
               <template #title>
-                <span class="text-xl normal-case">
+                <div class="text-xl normal-case">
                   {{ item.title }}
-                </span>
+                  <span class="text-gray-400 text-sm"> ({{ item.version }}) </span>
+                </div>
               </template>
 
               <template #avatar>
@@ -150,7 +151,7 @@ onMounted(() => {
                 <div class="mr-2">{{ $t('labels.notifyVia') }} : {{ item?.notification?.type }}</div>
 
                 <div class="float-right pt-2 pr-1">
-                  <a-tooltip placement="left">
+                  <a-tooltip placement="left" v-if="item.version === 'v2'">
                     <template #title>
                       {{ $t('activity.copyWebhook') }}
                     </template>

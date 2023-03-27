@@ -58,6 +58,7 @@ export async function tableSampleData(req: Request, res: Response) {
     await hookService.tableSampleData({
       tableId: req.params.tableId,
       operation: req.params.operation as 'insert' | 'update',
+      version: req.params.version as 'v1' | 'v2',
     })
   );
 }
@@ -102,7 +103,7 @@ router.patch(
   ncMetaAclMw(hookUpdate, 'hookUpdate')
 );
 router.get(
-  '/api/v1/db/meta/tables/:tableId/hooks/samplePayload/:operation',
+  '/api/v1/db/meta/tables/:tableId/hooks/samplePayload/:operation/:version',
   metaApiMetrics,
   catchError(tableSampleData)
 );

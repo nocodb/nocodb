@@ -30,6 +30,43 @@ menuTitle: "Share View"
 
 ![image](https://user-images.githubusercontent.com/35857179/194690197-8474381f-98ca-43e7-a343-99cd738f4b25.png)
 
+## Form Share View
+
+Additionally for Form Views you can:
+
+- `Use Survey Mode` to publish the form as a step by step questionnaire, similar to Typeform
+
+![energetic_slug2-Sheet-1-NocoDB](https://user-images.githubusercontent.com/8031572/227976189-b0660071-4501-4fe3-a1bf-cfb7dea1c1c4.png)
+
+- Utilize `Pre-Filled Fields` to autocomplete form fields from url query parameters.
+
+![energetic_slug2-Sheet-1-NocoDB-2](https://user-images.githubusercontent.com/8031572/227976746-9be1ff0c-2b35-4c28-b15a-438965672d12.png)
+
+The 4 options available are:
+
+1. `Allow pre-filling fields`, which is the default and keeps the fields editable
+2. `Disable pre-filling fields`, which disables this feature
+3. `Lock pre-filled fields as read-only`, which prevents the user from changing the values of pre-filled fields
+4. `Hide pre-filled fields`, which hides the pre-filled fields from the form
+
+_Note: Survey mode cannot be combined with pre-filled fields at this time_
+
+__Usage__
+
+Add `fieldname=value` parameters to the form url. Spaces and special characters work as expected in modern browsers (they handle the URL parsing). 
+
+Special fields:
+
+- `checkbox=1`
+- `multiselect=option1,option2`
+- `date=2025-01-10` only accepts ISO format
+- `duration=18000` must be in milliseconds
+- `linkToAnotherField=id1|Title1;id2|Title2` `|` splits id from title and `;` splits multiple values
+
+_Note: `linkToAnotherField` works for HasMany, ManytoMany, and BelongsTo which accepts only the first value even when multiple are given_
+
+Example url: `http://localhost:3000/#/nc/form/d49639a7-537b-4ff9-82a4-1b1d3d310545?Title=New Record&active=1`
+
 ## Access Share View
 
 - Access the link. If it is password-protected, enter the password to unlock.

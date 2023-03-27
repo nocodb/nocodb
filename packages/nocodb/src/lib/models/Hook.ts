@@ -34,6 +34,7 @@ export default class Hook implements HookType {
 
   project_id?: string;
   base_id?: string;
+  version?: string;
 
   constructor(hook: Partial<Hook | HookReqType>) {
     Object.assign(this, hook);
@@ -155,6 +156,9 @@ export default class Hook implements HookType {
       insertObj.project_id = model.project_id;
       insertObj.base_id = model.base_id;
     }
+
+    // new hook will set as version 2
+    insertObj.version = 'v2';
 
     const { id } = await ncMeta.metaInsert2(
       null,

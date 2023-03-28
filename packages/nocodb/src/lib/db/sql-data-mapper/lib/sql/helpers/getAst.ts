@@ -95,16 +95,18 @@ const getAst = async ({
         .getColOptions<LinkToAnotherRecordColumn>()
         .then((colOpt) => colOpt.getRelatedTable());
 
-      value = await getAst({
-        model,
-        query: query?.nested?.[col.title],
-        extractOnlyPrimaries: nestedFields !== '*',
-        dependencyFields: (dependencyFields.nested[col.title] = dependencyFields
-          .nested[col.title] || {
-          nested: {},
-          fields: new Set(),
-        }),
-      });
+      value = (
+        await getAst({
+          model,
+          query: query?.nested?.[col.title],
+          extractOnlyPrimaries: nestedFields !== '*',
+          dependencyFields: (dependencyFields.nested[col.title] =
+            dependencyFields.nested[col.title] || {
+              nested: {},
+              fields: new Set(),
+            }),
+        })
+      ).ast;
     }
 
     const isRequested =

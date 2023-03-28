@@ -29,8 +29,8 @@ export async function hookList(param: { tableId: string }) {
   return await Hook.list({ fk_model_id: param.tableId });
 }
 
-export async function hookLogList(param: { hookId: string }) {
-  return await HookLog.list({ fk_hook_id: param.hookId });
+export async function hookLogList(param: { query: any; hookId: string }) {
+  return await HookLog.list({ fk_hook_id: param.hookId }, param.query);
 }
 
 export async function hookCreate(param: {
@@ -109,4 +109,8 @@ export async function tableSampleData(param: {
     return await populateSamplePayload(model, false, param.operation);
   }
   return await populateSamplePayloadV2(model, false, param.operation);
+}
+
+export async function hookLogCount(param: { hookId: string }) {
+  return await HookLog.count({ hookId: param.hookId });
 }

@@ -195,13 +195,14 @@ class BaseModelSqlv2 {
       filterArr?: Filter[];
       sortArr?: Sort[];
       sort?: string | string[];
+      fieldsSet?:Set<string>
     } = {},
     ignoreViewFilterAndSort = false
   ): Promise<any> {
     const { where, fields, ...rest } = this._getListArgs(args as any);
 
     const qb = this.dbDriver(this.tnPath);
-    await this.selectObject({ qb, fields, viewId: this.viewId });
+    await this.selectObject({ qb, fieldsSet: args.fieldsSet, viewId: this.viewId });
     if (+rest?.shuffle) {
       await this.shuffle({ qb });
     }
@@ -272,6 +273,9 @@ class BaseModelSqlv2 {
 
     if (!ignoreViewFilterAndSort) applyPaginate(qb, rest);
     const proto = await this.getProto();
+
+    console.log('list query', qb.toQuery())
+
     const data = await this.execAndParse(qb);
 
     // console.log(qb.toQuery());
@@ -1456,7 +1460,9 @@ class BaseModelSqlv2 {
     fields: _fields,
     extractPkAndPv,
     viewId,
+    fieldsSet
   }: {
+    fieldsSet?: Set<string>;
     qb: Knex.QueryBuilder;
     columns?: Column[];
     fields?: string[] | string;
@@ -1480,6 +1486,7 @@ class BaseModelSqlv2 {
       // hide if column marked as hidden in view
       // of if column is system field and system field is hidden
       if (
+        (!fieldsSet || !fieldsSet.has(column.title)) &&
         !extractPkAndPv &&
         !(viewOrTableColumn instanceof Column) &&
         (!(viewOrTableColumn as GridViewColumn)?.show ||
@@ -2716,7 +2723,7 @@ class BaseModelSqlv2 {
       qb.limit(+rest?.limit || 25);
       qb.offset(+rest?.offset || 0);
 
-      await this.selectObject({ qb });
+      await this.selectObject({ qb, extractPkAndPv:true });
 
       // todo: refactor and move to a method (applyFilterAndSort)
       const aliasColObjMap = await this.model.getAliasColObjMap();

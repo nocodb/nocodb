@@ -59,20 +59,25 @@ export async function dataList(param: {
   let count = 0;
 
   try {
+    const { ast } = await getAst({
+      query: param.query,
+      model,
+      view,
+    })
+
     data = await nocoExecute(
-      await getAst({
-        query: param.query,
-        model,
-        view,
-      }),
+      ast,
       await baseModel.list(listArgs),
       {},
       listArgs
     );
     count = await baseModel.count(listArgs);
   } catch (e) {
+    console.log(e)
     // show empty result instead of throwing error here
     // e.g. search some text in a numeric field
+
+    NcError.internalServerError('Please try after some time')
   }
 
   return new PagedResponseImpl(data, { ...param.query, count });
@@ -128,7 +133,7 @@ async function getGroupedDataList(param: {
     dbDriver: await NcConnectionMgrv2.get(base),
   });
 
-  const requestObj = await getAst({ model, query: param.query, view });
+  const { ast } = await getAst({ model, query: param.query, view });
 
   const listArgs: any = { ...query };
   try {
@@ -149,7 +154,7 @@ async function getGroupedDataList(param: {
       groupColumnId,
     });
     data = await nocoExecute(
-      { key: 1, value: requestObj },
+      { key: 1, value: ast },
       groupedData,
       {},
       listArgs
@@ -304,7 +309,7 @@ export async function relDataList(param: {
     dbDriver: await NcConnectionMgrv2.get(base),
   });
 
-  const requestObj = await getAst({
+  const { ast } = await getAst({
     query: param.query,
     model,
     extractOnlyPrimaries: true,
@@ -314,7 +319,7 @@ export async function relDataList(param: {
   let count = 0;
   try {
     data = data = await nocoExecute(
-      requestObj,
+      ast,
       await baseModel.list(param.query),
       {},
       param.query

@@ -114,9 +114,10 @@ export async function getDataList(param: {
     dbDriver: await NcConnectionMgrv2.get(base),
   });
 
-  const requestObj = await getAst({ model, query, view });
+  const { ast, dependencyFields } = await getAst({ model, query, view });
 
-  const listArgs: any = { ...query };
+
+  const listArgs: any = { ...query, fieldsSet: dependencyFields?.fields };
   try {
     listArgs.filterArr = JSON.parse(listArgs.filterArrJson);
   } catch (e) {}
@@ -128,7 +129,7 @@ export async function getDataList(param: {
   let count = 0;
   try {
     data = await nocoExecute(
-      requestObj,
+      ast,
       await baseModel.list(listArgs),
       {},
       listArgs
@@ -170,10 +171,12 @@ export async function getFindOne(param: {
     args.sortArr = JSON.parse(args.sortArrJson);
   } catch (e) {}
 
+  const {ast} = await getAst({ model, query: args, view })
+
   const data = await baseModel.findOne(args);
   return data
     ? await nocoExecute(
-        await getAst({ model, query: args, view }),
+        ast,
         data,
         {},
         {}
@@ -225,8 +228,10 @@ export async function dataRead(
     NcError.notFound('Row not found');
   }
 
+  const { ast } = await getAst({ model, query: param.query, view })
+
   return await nocoExecute(
-    await getAst({ model, query: param.query, view }),
+    ast,
     row,
     {},
     param.query
@@ -279,7 +284,7 @@ export async function getGroupedDataList(param: {
     dbDriver: await NcConnectionMgrv2.get(base),
   });
 
-  const requestObj = await getAst({ model, query, view });
+  const { ast } = await getAst({ model, query, view });
 
   const listArgs: any = { ...query };
   try {
@@ -299,7 +304,7 @@ export async function getGroupedDataList(param: {
     groupColumnId: param.columnId,
   });
   data = await nocoExecute(
-    { key: 1, value: requestObj },
+    { key: 1, value: ast },
     groupedData,
     {},
     listArgs
@@ -650,8 +655,10 @@ export async function dataReadByViewId(param: {
       dbDriver: await NcConnectionMgrv2.get(base),
     });
 
+    const { ast } = await getAst({ model, query: param.query })
+
     return await nocoExecute(
-      await getAst({ model, query: param.query }),
+      ast,
       await baseModel.readByPk(param.rowId),
       {},
       {}

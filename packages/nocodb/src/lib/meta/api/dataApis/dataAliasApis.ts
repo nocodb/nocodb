@@ -157,9 +157,11 @@ async function getFindOne(model, view: View, req) {
   } catch (e) {}
 
   const data = await baseModel.findOne(args);
+
+  const { ast } = await getAst({ model, query: args, view })
   return data
     ? await nocoExecute(
-        await getAst({ model, query: args, view }),
+        ast,
         data,
         {},
         {}
@@ -197,9 +199,11 @@ async function dataRead(req: Request, res: Response) {
     dbDriver: NcConnectionMgrv2.get(base),
   });
 
+  const { ast } = await getAst({ model, query: req.query, view })
+
   res.json(
     await nocoExecute(
-      await getAst({ model, query: req.query, view }),
+      ast,
       await baseModel.readByPk(req.params.rowId),
       {},
       {}

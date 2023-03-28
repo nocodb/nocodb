@@ -1,6 +1,7 @@
 import autoBind from 'auto-bind';
 import groupBy from 'lodash/groupBy';
 import DataLoader from 'dataloader';
+import { nocoExecute } from 'nc-help';
 import {
   AuditOperationSubTypes,
   AuditOperationTypes,
@@ -13,8 +14,10 @@ import ejs from 'ejs';
 import Validator from 'validator';
 import { customAlphabet } from 'nanoid';
 import DOMPurify from 'isomorphic-dompurify';
+import { getViewAndModelByAliasOrId } from '../../../../services/dbData/helpers';
 import Model from '../../../../models/Model';
 import Column from '../../../../models/Column';
+import Project from '../../../../models/Project';
 import Filter, {
   COMPARISON_OPS,
   COMPARISON_SUB_OPS,
@@ -32,6 +35,7 @@ import {
   invokeWebhook,
 } from '../../../../meta/helpers/webhookHelpers';
 import { NcError } from '../../../../meta/helpers/catchError';
+import getAst from './helpers/getAst';
 import { customValidators } from './customValidators';
 import formulaQueryBuilderv2 from './formulav2/formulaQueryBuilderv2';
 import genRollupSelectv2 from './genRollupSelectv2';
@@ -104,12 +108,20 @@ class BaseModelSqlv2 {
 
     qb.where(_wherePk(this.model.primaryKeys, id));
 
-    const data = (await this.execAndParse(qb))?.[0];
+    let data = (await this.execAndParse(qb))?.[0];
 
     if (data) {
       const proto = await this.getProto();
       data.__proto__ = proto;
     }
+
+    // retrieve virtual column data as well
+    const project = await Project.get(this.model.project_id);
+    const { model, view } = await getViewAndModelByAliasOrId({
+      projectName: project.title,
+      tableName: this.model.title,
+    });
+    data = await nocoExecute(await getAst({ model, view }), data, {});
     return data;
   }
 
@@ -1942,7 +1954,7 @@ class BaseModelSqlv2 {
               chunkSize
             );
 
-      await this.afterBulkInsert(response, insertDatas, this.dbDriver, cookie);
+      await this.afterBulkInsert(insertDatas, this.dbDriver, cookie);
 
       return response;
     } catch (e) {
@@ -1961,6 +1973,8 @@ class BaseModelSqlv2 {
       transaction = await this.dbDriver.transaction();
 
       // await this.beforeUpdateb(updateDatas, transaction);
+      const prevData = [];
+      const newData = [];
       const res = [];
       for (const d of updateDatas) {
         await this.validate(d);
@@ -1969,12 +1983,14 @@ class BaseModelSqlv2 {
           // pk not specified - bypass
           continue;
         }
+        prevData.push(await this.readByPk(pkValues));
         const wherePk = await this._wherePk(pkValues);
         await transaction(this.tnPath).update(d).where(wherePk);
         res.push(wherePk);
+        newData.push(await this.readByPk(pkValues));
       }
 
-      await this.afterBulkUpdate(res, this.dbDriver, cookie);
+      await this.afterBulkUpdate(prevData, newData, this.dbDriver, cookie);
       transaction.commit();
 
       return res;
@@ -2128,15 +2144,16 @@ class BaseModelSqlv2 {
   }
 
   public async afterBulkUpdate(
-    data: any,
+    prevData: any,
+    newData: any,
     _trx: any,
     req,
     isBulkAllOperation = false
   ): Promise<void> {
-    let noOfUpdatedRecords = data;
+    let noOfUpdatedRecords = newData;
     if (!isBulkAllOperation) {
-      noOfUpdatedRecords = data.length;
-      await this.handleHooks('after.update', null, data, req);
+      noOfUpdatedRecords = newData.length;
+      await this.handleHooks('after.update', prevData, newData, req);
     }
 
     await Audit.insert({
@@ -2177,13 +2194,8 @@ class BaseModelSqlv2 {
     });
   }
 
-  public async afterBulkInsert(
-    response: any,
-    data: any[],
-    _trx: any,
-    req
-  ): Promise<void> {
-    await this.handleHooks('after.insert', null, response, req);
+  public async afterBulkInsert(data: any[], _trx: any, req): Promise<void> {
+    await this.handleHooks('after.insert', null, data, req);
 
     await Audit.insert({
       fk_model_id: this.model.id,

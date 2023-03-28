@@ -3,17 +3,17 @@ import groupBy from 'lodash/groupBy';
 import DataLoader from 'dataloader';
 import {
   AuditOperationSubTypes,
-  AuditOperationTypes, isSystemColumn,
+  AuditOperationTypes,
+  isSystemColumn,
   isVirtualCol,
   RelationTypes,
   UITypes,
   ViewTypes,
-} from 'nocodb-sdk'
+} from 'nocodb-sdk';
 import ejs from 'ejs';
 import Validator from 'validator';
 import { customAlphabet } from 'nanoid';
 import DOMPurify from 'isomorphic-dompurify';
-import { GridViewColumn } from '../../../../models'
 import Model from '../../../../models/Model';
 import Column from '../../../../models/Column';
 import Filter, {
@@ -39,6 +39,7 @@ import genRollupSelectv2 from './genRollupSelectv2';
 import sortV2 from './sortV2';
 import conditionV2 from './conditionV2';
 import { sanitize, unsanitize } from './helpers/sanitize';
+import type { GridViewColumn } from '../../../../models';
 import type { SortType } from 'nocodb-sdk';
 import type { Knex } from 'knex';
 import type FormulaColumn from '../../../../models/FormulaColumn';
@@ -195,14 +196,18 @@ class BaseModelSqlv2 {
       filterArr?: Filter[];
       sortArr?: Sort[];
       sort?: string | string[];
-      fieldsSet?:Set<string>
+      fieldsSet?: Set<string>;
     } = {},
     ignoreViewFilterAndSort = false
   ): Promise<any> {
     const { where, fields, ...rest } = this._getListArgs(args as any);
 
     const qb = this.dbDriver(this.tnPath);
-    await this.selectObject({ qb, fieldsSet: args.fieldsSet, viewId: this.viewId });
+    await this.selectObject({
+      qb,
+      fieldsSet: args.fieldsSet,
+      viewId: this.viewId,
+    });
     if (+rest?.shuffle) {
       await this.shuffle({ qb });
     }
@@ -274,7 +279,7 @@ class BaseModelSqlv2 {
     if (!ignoreViewFilterAndSort) applyPaginate(qb, rest);
     const proto = await this.getProto();
 
-    console.log('list query', qb.toQuery())
+    console.log('list query', qb.toQuery());
 
     const data = await this.execAndParse(qb);
 
@@ -401,7 +406,7 @@ class BaseModelSqlv2 {
     return await qb;
   }
 
-  async multipleHmList({ colId, ids }, args: { limit?; offset? } = {}) {
+  async multipleHmList({ colId, ids }, args: { limit?; offset?; fieldsSet?:Set<string> } = {}) {
     try {
       const { where, sort, ...rest } = this._getListArgs(args as any);
       // todo: get only required fields
@@ -429,7 +434,7 @@ class BaseModelSqlv2 {
       const parentTn = this.getTnPath(parentTable);
 
       const qb = this.dbDriver(childTn);
-      await childModel.selectObject({ qb, extractPkAndPv: true });
+      await childModel.selectObject({ qb, extractPkAndPv: true, fieldsSet: args.fieldsSet });
       await this.applySortAndFilter({ table: childTable, where, qb, sort });
 
       const childQb = this.dbDriver.queryBuilder().from(
@@ -457,7 +462,6 @@ class BaseModelSqlv2 {
           .as('list')
       );
 
-
       // console.log(childQb.toQuery())
 
       const children = await this.execAndParse(childQb, childTable);
@@ -467,7 +471,6 @@ class BaseModelSqlv2 {
           dbDriver: this.dbDriver,
         })
       ).getProto();
-
 
       return groupBy(
         children.map((c) => {
@@ -546,7 +549,10 @@ class BaseModelSqlv2 {
     }
   }
 
-  async hmList({ colId, id }, args: { limit?; offset? } = {}) {
+  async hmList(
+    { colId, id },
+    args: { limit?; offset?; fieldSet?: Set<string> } = {}
+  ) {
     try {
       const { where, sort, ...rest } = this._getListArgs(args as any);
       // todo: get only required fields
@@ -586,7 +592,7 @@ class BaseModelSqlv2 {
       qb.limit(+rest?.limit || 25);
       qb.offset(+rest?.offset || 0);
 
-      await childModel.selectObject({ qb });
+      await childModel.selectObject({ qb, fieldsSet: args.fieldSet });
 
       const children = await this.execAndParse(qb, childTable);
 
@@ -645,7 +651,7 @@ class BaseModelSqlv2 {
 
   public async multipleMmList(
     { colId, parentIds },
-    args: { limit?; offset? } = {}
+    args: { limit?; offset?; fieldsSet?: Set<string> } = {}
   ) {
     const { where, sort, ...rest } = this._getListArgs(args as any);
     const relColumn = (await this.model.getColumns()).find(
@@ -678,7 +684,7 @@ class BaseModelSqlv2 {
 
     const qb = this.dbDriver(rtn).join(vtn, `${vtn}.${vrcn}`, `${rtn}.${rcn}`);
 
-    await childModel.selectObject({ qb });
+    await childModel.selectObject({ qb, fieldsSet: args.fieldsSet });
 
     await this.applySortAndFilter({ table: childTable, where, qb, sort });
 
@@ -724,7 +730,10 @@ class BaseModelSqlv2 {
     return parentIds.map((id) => gs[id] || []);
   }
 
-  public async mmList({ colId, parentId }, args: { limit?; offset? } = {}) {
+  public async mmList(
+    { colId, parentId },
+    args: { limit?; offset?; fieldsSet?: Set<string> } = {}
+  ) {
     const { where, sort, ...rest } = this._getListArgs(args as any);
     const relColumn = (await this.model.getColumns()).find(
       (c) => c.id === colId
@@ -764,7 +773,7 @@ class BaseModelSqlv2 {
           .where(_wherePk(parentTable.primaryKeys, parentId))
       );
 
-    await childModel.selectObject({ qb });
+    await childModel.selectObject({ qb, fieldsSet: args.fieldsSet });
 
     await this.applySortAndFilter({ table: childTable, where, qb, sort });
 
@@ -1390,6 +1399,7 @@ class BaseModelSqlv2 {
                     {
                       // limit: ids.length,
                       where: `(${pCol.column_name},in,${ids.join(',')})`,
+                      fieldsSet: (readLoader as any).args?.fieldsSet
                     },
                     true
                   );
@@ -1402,12 +1412,14 @@ class BaseModelSqlv2 {
               });
 
               // defining HasMany count method within GQL Type class
-              proto[column.title] = async function () {
+              proto[column.title] = async function (args?:any) {
                 if (
                   this?.[cCol?.title] === null ||
                   this?.[cCol?.title] === undefined
                 )
                   return null;
+
+                (readLoader as any).args = args;
 
                 return await readLoader.load(this?.[cCol?.title]);
               };
@@ -1460,7 +1472,7 @@ class BaseModelSqlv2 {
     fields: _fields,
     extractPkAndPv,
     viewId,
-    fieldsSet
+    fieldsSet,
   }: {
     fieldsSet?: Set<string>;
     qb: Knex.QueryBuilder;
@@ -1475,7 +1487,8 @@ class BaseModelSqlv2 {
     const res = {};
     // const columns = _columns ?? (await this.model.getColumns());
     // for (const column of columns) {
-    const viewOrTableColumns = _columns || viewColumns || (await this.model.getColumns());
+    const viewOrTableColumns =
+      _columns || viewColumns || (await this.model.getColumns());
     for (const viewOrTableColumn of viewOrTableColumns) {
       const column =
         viewOrTableColumn instanceof Column
@@ -1486,14 +1499,14 @@ class BaseModelSqlv2 {
       // hide if column marked as hidden in view
       // of if column is system field and system field is hidden
       if (
-        (!fieldsSet || !fieldsSet.has(column.title)) &&
+        fieldsSet ? !fieldsSet.has(column.title) : (
         !extractPkAndPv &&
         !(viewOrTableColumn instanceof Column) &&
         (!(viewOrTableColumn as GridViewColumn)?.show ||
           (!view?.show_system_fields &&
             column.uidt !== UITypes.ForeignKey &&
             !column.pk &&
-            isSystemColumn(column)))
+            isSystemColumn(column))) )
       )
         continue;
 
@@ -2723,7 +2736,7 @@ class BaseModelSqlv2 {
       qb.limit(+rest?.limit || 25);
       qb.offset(+rest?.offset || 0);
 
-      await this.selectObject({ qb, extractPkAndPv:true });
+      await this.selectObject({ qb, extractPkAndPv: true });
 
       // todo: refactor and move to a method (applyFilterAndSort)
       const aliasColObjMap = await this.model.getAliasColObjMap();

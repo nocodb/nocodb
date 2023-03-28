@@ -117,7 +117,7 @@ export async function getDataList(param: {
   const { ast, dependencyFields } = await getAst({ model, query, view });
 
 
-  const listArgs: any = { ...query, fieldsSet: dependencyFields?.fields };
+  const listArgs: any = dependencyFields;
   try {
     listArgs.filterArr = JSON.parse(listArgs.filterArrJson);
   } catch (e) {}

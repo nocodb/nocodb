@@ -14,8 +14,8 @@ const getAst = async ({
   model,
   view,
   dependencyFields = {
-    nested: {},
-    fields: new Set(),
+    nested: { ...(query?.nested || {}) },
+    fieldsSet: new Set(),
   },
 }: {
   query?: RequestQuery;
@@ -77,7 +77,7 @@ const getAst = async ({
           dependencyFields: (dependencyFields.nested[col.title] =
             dependencyFields.nested[col.title] || {
               nested: {},
-              fields: new Set(),
+              fieldsSet: new Set(),
             }),
         });
 
@@ -103,7 +103,7 @@ const getAst = async ({
           dependencyFields: (dependencyFields.nested[col.title] =
             dependencyFields.nested[col.title] || {
               nested: {},
-              fields: new Set(),
+              fieldsSet: new Set(),
             }),
         })
       ).ast;
@@ -133,7 +133,7 @@ const extractDependencies = async (
   column: Column,
   dependencyFields: DependantFields = {
     nested: {},
-    fields: new Set(),
+    fieldsSet: new Set(),
   }
 ) => {
   switch (column.uidt) {
@@ -144,7 +144,7 @@ const extractDependencies = async (
       await extractRelationDependencies(column, dependencyFields);
       break;
     default:
-      dependencyFields.fields.add(column.title);
+      dependencyFields.fieldsSet.add(column.title);
       break;
   }
 };
@@ -153,7 +153,7 @@ const extractLookupDependencies = async (
   lookUpColumn: Column<LookupColumn>,
   dependencyFields: DependantFields = {
     nested: {},
-    fields: new Set(),
+    fieldsSet: new Set(),
   }
 ) => {
   const lookupColumnOpts = await lookUpColumn.getColOptions();
@@ -165,7 +165,7 @@ const extractLookupDependencies = async (
       relationColumn.title
     ] || {
       nested: {},
-      fields: new Set(),
+      fieldsSet: new Set(),
     })
   );
 };
@@ -174,20 +174,20 @@ const extractRelationDependencies = async (
   relationColumn: Column<LinkToAnotherRecordColumn>,
   dependencyFields: DependantFields = {
     nested: {},
-    fields: new Set(),
+    fieldsSet: new Set(),
   }
 ) => {
   const relationColumnOpts = await relationColumn.getColOptions();
 
   switch (relationColumnOpts.type) {
     case RelationTypes.HAS_MANY:
-      dependencyFields.fields.add(
+      dependencyFields.fieldsSet.add(
         await relationColumnOpts.getParentColumn().then((col) => col.title)
       );
       break;
     case RelationTypes.BELONGS_TO:
     case RelationTypes.MANY_TO_MANY:
-      dependencyFields.fields.add(
+      dependencyFields.fieldsSet.add(
         await relationColumnOpts.getChildColumn().then((col) => col.title)
       );
 
@@ -204,7 +204,7 @@ type RequestQuery = {
 };
 
 interface DependantFields {
-  fields?: Set<string>;
+  fieldsSet?: Set<string>;
   nested?: DependantFields;
 }
 

@@ -1,14 +1,15 @@
-import { Request, Response, Router } from 'express';
-import Model from '../../../models/Model';
+import { Router } from 'express';
 import { nocoExecute } from 'nc-help';
+import Model from '../../../models/Model';
 import Base from '../../../models/Base';
 import NcConnectionMgrv2 from '../../../utils/common/NcConnectionMgrv2';
 import { PagedResponseImpl } from '../../helpers/PagedResponse';
-import View from '../../../models/View';
 import ncMetaAclMw from '../../helpers/ncMetaAclMw';
-import { getViewAndModelFromRequestByAliasOrId } from './helpers';
 import apiMetrics from '../../helpers/apiMetrics';
 import getAst from '../../../db/sql-data-mapper/lib/sql/helpers/getAst';
+import { getViewAndModelFromRequestByAliasOrId } from './helpers';
+import type View from '../../../models/View';
+import type { Request, Response } from 'express';
 
 async function dataList(req: Request, res: Response) {
   const { model, view } = await getViewAndModelFromRequestByAliasOrId(req);
@@ -158,15 +159,8 @@ async function getFindOne(model, view: View, req) {
 
   const data = await baseModel.findOne(args);
 
-  const { ast } = await getAst({ model, query: args, view })
-  return data
-    ? await nocoExecute(
-        ast,
-        data,
-        {},
-        {}
-      )
-    : {};
+  const { ast } = await getAst({ model, query: args, view });
+  return data ? await nocoExecute(ast, data, {}, {}) : {};
 }
 
 async function getDataGroupBy(model, view: View, req) {
@@ -199,15 +193,10 @@ async function dataRead(req: Request, res: Response) {
     dbDriver: NcConnectionMgrv2.get(base),
   });
 
-  const { ast } = await getAst({ model, query: req.query, view })
+  const { ast } = await getAst({ model, query: req.query, view });
 
   res.json(
-    await nocoExecute(
-      ast,
-      await baseModel.readByPk(req.params.rowId),
-      {},
-      {}
-    )
+    await nocoExecute(ast, await baseModel.readByPk(req.params.rowId), {}, {})
   );
 }
 

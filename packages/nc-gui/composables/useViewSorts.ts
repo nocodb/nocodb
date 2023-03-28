@@ -27,7 +27,7 @@ export function useViewSorts(view: Ref<ViewType | undefined>, reloadData?: () =>
 
   const { isSharedBase } = storeToRefs(useProject())
 
-  const { addUndo, clone } = useUndoRedo()
+  const { addUndo, clone, defineViewScope } = useUndoRedo()
 
   const reloadHook = inject(ReloadViewDataHookInj)
 
@@ -99,6 +99,7 @@ export function useViewSorts(view: Ref<ViewType | undefined>, reloadData?: () =>
               },
               args: [Object.keys(delta)[0], sort[Object.keys(delta)[0]]],
             },
+            scope: defineViewScope({ view: view.value }),
           })
         }
       }
@@ -154,6 +155,7 @@ export function useViewSorts(view: Ref<ViewType | undefined>, reloadData?: () =>
             },
             args: [clone(sort), i],
           },
+          scope: defineViewScope({ view: view.value }),
         })
       }
 
@@ -193,6 +195,7 @@ export function useViewSorts(view: Ref<ViewType | undefined>, reloadData?: () =>
           },
           args: [],
         },
+        scope: defineViewScope({ view: view.value }),
       })
     }
 

@@ -190,6 +190,7 @@ const coverImageColumnId = computed({
           fn: await updateCoverImage,
           args: [val],
         },
+        scope: defineViewScope({ view: activeView.value }),
       })
 
       await updateCoverImage(val)

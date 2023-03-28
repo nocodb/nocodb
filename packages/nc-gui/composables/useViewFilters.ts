@@ -46,7 +46,7 @@ export function useViewFilters(
 
   const { metas } = useMetas()
 
-  const { addUndo, clone } = useUndoRedo()
+  const { addUndo, clone, defineViewScope } = useUndoRedo()
 
   const _filters = ref<Filter[]>([])
 
@@ -274,6 +274,7 @@ export function useViewFilters(
               },
               args: [Object.keys(delta)[0], filter[Object.keys(delta)[0] as keyof Filter]],
             },
+            scope: defineViewScope({ view: activeView.value }),
           })
         }
       }
@@ -327,6 +328,7 @@ export function useViewFilters(
           },
           args: [i],
         },
+        scope: defineViewScope({ view: activeView.value }),
       })
     }
     // if shared or sync permission not allowed simply remove it from array
@@ -380,6 +382,7 @@ export function useViewFilters(
           },
           args: [],
         },
+        scope: defineViewScope({ view: activeView.value }),
       })
     }
 

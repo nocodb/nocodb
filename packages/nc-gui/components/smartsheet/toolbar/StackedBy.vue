@@ -33,7 +33,7 @@ const { fields, loadViewColumns, metaColumnById } = useViewColumns(activeView, m
 
 const { kanbanMetaData, loadKanbanMeta, loadKanbanData, updateKanbanMeta, groupingField } = useKanbanViewStoreOrThrow()
 
-const { addUndo } = useUndoRedo()
+const { addUndo, defineViewScope } = useUndoRedo()
 
 const open = ref(false)
 
@@ -71,6 +71,7 @@ const groupingFieldColumnId = computed({
           fn: await updateGroupingField,
           args: [val],
         },
+        scope: defineViewScope({ view: activeView.value }),
       })
 
       await updateGroupingField(val)

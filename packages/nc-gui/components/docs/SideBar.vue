@@ -169,7 +169,8 @@ onMounted(async () => {
       collapsed-width="50"
       class="relative h-full z-1 nc-docs-left-sidebar !min-w-56.5 pb-1 !bg-inherit pl-2"
       :class="{
-        'px-1': isPublic,
+        'px-1 !min-w-61.5': isPublic,
+        '!min-w-56.5': !isPublic,
       }"
       :trigger="null"
       collapsible
@@ -193,11 +194,20 @@ onMounted(async () => {
               :class="{}"
             >
               <div class="flex flex-shrink-0">
-                <a-popover placement="bottom" overlay-class-name="docs-page-icon-change-popover" color="#000000">
+                <a-popover
+                  :visible="isEditAllowed ? undefined : false"
+                  placement="bottom"
+                  overlay-class-name="docs-page-icon-change-popover"
+                  color="#000000"
+                >
                   <template #content> Change Icon </template>
-                  <!-- TODO: temp -->
-                  <a-dropdown v-if="isEditAllowed || true" placement="bottom" trigger="click">
-                    <div class="flex px-0.5 pt-0.75 text-gray-500 rounded-md hover:bg-gray-200 cursor-pointer">
+                  <a-dropdown placement="bottom" trigger="click" :disabled="!isEditAllowed">
+                    <div
+                      class="flex px-0.75 pt-0.75 text-gray-500 rounded-md"
+                      :class="{
+                        'hover:bg-gray-300 cursor-pointer': isEditAllowed,
+                      }"
+                    >
                       <IconifyIcon
                         v-if="icon"
                         :key="icon"
@@ -213,18 +223,6 @@ onMounted(async () => {
                       </div>
                     </template>
                   </a-dropdown>
-                  <template v-else>
-                    <div v-if="icon" class="flex px-0.5 pt-0.75">
-                      <IconifyIcon
-                        v-if="icon"
-                        :key="icon"
-                        :data-testid="`nc-doc-page-icon-${icon}`"
-                        class="flex text-lg"
-                        :icon="icon"
-                      ></IconifyIcon>
-                    </div>
-                    <MdiFileDocumentOutline v-else />
-                  </template>
                 </a-popover>
               </div>
               <span

@@ -21,6 +21,8 @@ export async function get(param: { projectId: string; pageId: string }) {
     NcError.notFound('Page is not found.');
   }
 
+  await new Promise((resolve) => setTimeout(resolve, 1000));
+
   return {
     page: {
       id: page.id,
@@ -39,6 +41,7 @@ export async function get(param: { projectId: string; pageId: string }) {
     project: {
       id: project.id,
       title: project.title,
+      meta: project.meta,
     },
   };
 }
@@ -63,12 +66,14 @@ export async function list(param: { projectId: string; parentPageId: string }) {
 
   if (!page) NcError.notFound('Page not found');
 
-  if (!page.is_published || page.id !== page.nested_published_parent_id) {
+  if (!page.is_published) {
     NcError.notFound('Page is not found.');
   }
 
+  await new Promise((resolve) => setTimeout(resolve, 2000));
+
   return await Page.nestedList({
     projectId: param.projectId,
-    parent_page_id: param.parentPageId,
+    parent_page_id: page.nested_published_parent_id ?? param.parentPageId,
   });
 }

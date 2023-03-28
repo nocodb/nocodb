@@ -39,6 +39,24 @@ const loadListData = async ($state: any) => {
   }
   $state.loaded()
 }
+
+const rolesTypes = [
+  {
+    id: 'Editor',
+    name: 'Editor',
+    value: 'editor',
+  },
+  {
+    id: 'Viewer',
+    name: 'Viewer',
+    value: 'viewer',
+  },
+  {
+    id: 'None',
+    name: 'Remove',
+    value: 'No access',
+  },
+]
 </script>
 
 <template>
@@ -76,17 +94,19 @@ const loadListData = async ($state: any) => {
         </div>
         <a-select
           v-model:value="user.roles"
-          class="flex !rounded-md p-0.5 !bg-white"
+          class="flex !rounded-md p-0.5 !bg-white capitalize"
           dropdown-class-name="nc-dropdown-user-role !rounded-md"
           placeholder="Select role"
+          :options="rolesTypes"
         >
-          <a-select-option v-for="(role, index) in docsProjectRoles" :key="index" :value="role" class="nc-role-option">
-            <div class="flex flex-row h-full justify-start items-center">
-              <div class="px-2 py-1 flex rounded-full text-xs capitalize">
-                {{ role }}
+          <template #option="option">
+            <div class="flex flex-row items-center gap-x-2">
+              <div class="flex flex-col justify-center">
+                <div v-if="option.id !== 'None'" class="flex capitalize">{{ option.name }}</div>
+                <div v-else class="flex text-red-500" :style="{ fontWeight: 500 }">Remove</div>
               </div>
             </div>
-          </a-select-option>
+          </template>
         </a-select>
       </div>
       <InfiniteLoading v-bind="$attrs" @infinite="loadListData">

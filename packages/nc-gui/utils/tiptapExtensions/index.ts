@@ -8,6 +8,7 @@ import Strike from '@tiptap/extension-strike'
 import Code from '@tiptap/extension-code'
 import CodeBlock from '@tiptap/extension-code-block'
 import Blockquote from '@tiptap/extension-blockquote'
+import HardBreak from '@tiptap/extension-hard-break'
 import type { Extensions } from '@tiptap/core'
 import { Bullet } from './listItem/bullet'
 import { Ordered } from './listItem/ordered'
@@ -43,6 +44,7 @@ const tiptapExtensions = (isPublic: boolean): Extensions => {
     Heading,
     Bold,
     Italic,
+    HardBreak,
     DropCursor.configure({
       width: 2,
       class: 'titap-dropcursor',

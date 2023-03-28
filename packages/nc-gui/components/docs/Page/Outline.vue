@@ -23,7 +23,7 @@ let topHeaderHeight = 60
 const selectActiveSubHeading = () => {
   if (pageSubHeadings.value.length === 0) return
 
-  if (Date.now() - lastPageScrollTime < 100) return
+  if (Date.now() - lastPageScrollTime < 10) return
   lastPageScrollTime = Date.now()
 
   const subHeadingDoms = document.querySelectorAll('.ProseMirror [data-tiptap-heading]')
@@ -98,6 +98,9 @@ watch(
       wrapperRef.addEventListener('scroll', selectActiveSubHeading)
     }
   },
+  {
+    immediate: true,
+  },
 )
 
 watch(
@@ -128,13 +131,13 @@ onMounted(() => {
     </div>
   </div>
   <div
-    class="pt-20 flex flex-col w-full mr-12 overflow-hidden"
+    class="pt-20 flex flex-col w-full mr-12 overflow-hidden sm:w-0 md:w-0 lg:w-24 xl:w-36 2xl:w-54"
     :class="{
-      'w-0 opacity-0': !showPageSubHeadings,
-      'w-54': showPageSubHeadings,
+      'opacity-0': !showPageSubHeadings,
+      'opacity-100': showPageSubHeadings,
     }"
     :style="{
-      transition: showPageSubHeadings ? 'width 0.2s ease-in-out, opacity 0.5s ease-in-out' : 'width 0.2s ease-in-out',
+      transition: 'opacity 0.2s ease-in-out',
     }"
   >
     <div class="mb-2 text-gray-400 text-xs font-semibold pop-in-animation-med-delay">Content</div>

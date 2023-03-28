@@ -5999,6 +5999,22 @@
         "description": "List the log data in a given Hook",
         "parameters": [
           {
+            "schema": {
+              "type": "integer",
+              "minimum": 1
+            },
+            "in": "query",
+            "name": "limit"
+          },
+          {
+            "schema": {
+              "type": "integer",
+              "minimum": 0
+            },
+            "in": "query",
+            "name": "offset"
+          },
+          {
             "$ref": "#/components/parameters/xc-auth"
           }
         ]

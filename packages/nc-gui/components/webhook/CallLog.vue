@@ -1,6 +1,10 @@
 <script setup lang="ts">
 import type { HookLogType, HookType } from 'nocodb-sdk'
-import { onBeforeMount, parseProp, timeAgo, useApi } from '#imports'
+import { extractSdkResponseErrorMsg, onBeforeMount, parseProp, timeAgo, useApi } from '#imports'
+
+interface Props {
+  hook: HookType
+}
 
 const props = defineProps<Props>()
 
@@ -10,16 +14,27 @@ const hookLogs = ref<HookLogType[]>([])
 
 const activeKey = ref()
 
-interface Props {
-  hook: HookType
-}
+let totalRows = $ref(0)
 
-async function loadHookLogList() {
-  hookLogs.value = (await api.dbTableWebhookLogs.list(props.hook.id!)).list!
+const currentPage = $ref(1)
+
+const currentLimit = $ref(3)
+
+async function loadHookLogs(page = currentPage, limit = currentLimit) {
+  try {
+    const { list, pageInfo } = await api.dbTableWebhookLogs.list(props.hook.id!, {
+      offset: limit * (page - 1),
+      limit,
+    })
+    hookLogs.value = list
+    totalRows = pageInfo.totalRows ?? 0
+  } catch (e: any) {
+    message.error(await extractSdkResponseErrorMsg(e))
+  }
 }
 
 onBeforeMount(async () => {
-  await loadHookLogList()
+  await loadHookLogs(currentPage, currentLimit)
 })
 </script>
 
@@ -84,6 +99,13 @@ onBeforeMount(async () => {
       </div>
     </a-collapse-panel>
   </a-collapse>
+  <a-pagination
+    v-model:current="currentPage"
+    :page-size="currentLimit"
+    :total="totalRows"
+    show-less-items
+    @change="loadHookLogs"
+  />
 </template>
 
 <style scoped lang="scss">

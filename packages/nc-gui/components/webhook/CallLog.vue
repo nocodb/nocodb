@@ -22,6 +22,8 @@ const currentLimit = $ref(3)
 
 async function loadHookLogs(page = currentPage, limit = currentLimit) {
   try {
+    // cater empty records
+    page = page || 1
     const { list, pageInfo } = await api.dbTableWebhookLogs.list(props.hook.id!, {
       offset: limit * (page - 1),
       limit,

@@ -6495,7 +6495,16 @@ export class Api<
 
 }`
  */
-    list: (hookId: IdType, params: RequestParams = {}) =>
+    list: (
+      hookId: IdType,
+      query?: {
+        /** @min 1 */
+        limit?: number;
+        /** @min 0 */
+        offset?: number;
+      },
+      params: RequestParams = {}
+    ) =>
       this.request<
         HookLogListType,
         {
@@ -6505,6 +6514,7 @@ export class Api<
       >({
         path: `/api/v1/db/meta/hooks/${hookId}/logs`,
         method: 'GET',
+        query: query,
         format: 'json',
         ...params,
       }),

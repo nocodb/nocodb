@@ -33,9 +33,16 @@ export default class HookLog implements HookLogType {
       event?: 'after' | 'before';
       operation?: 'insert' | 'delete' | 'update';
     },
+    {
+      limit = 25,
+      offset = 0,
+    }: {
+      limit?: number;
+      offset?: number;
+    },
     ncMeta = Noco.ncMeta
   ) {
-    const hookLogs = await ncMeta.metaList(null, null, MetaTable.HOOK_LOGS, {
+    const hookLogs = await ncMeta.metaList2(null, null, MetaTable.HOOK_LOGS, {
       condition: {
         fk_hook_id: param.fk_hook_id,
       },
@@ -49,6 +56,8 @@ export default class HookLog implements HookLogType {
       orderBy: {
         created_at: 'desc',
       },
+      limit,
+      offset,
     });
     return hookLogs?.map((h) => new HookLog(h));
   }
@@ -86,5 +95,22 @@ export default class HookLog implements HookLogType {
     insertObj.execution_time = parseInt(insertObj.execution_time) || 0;
 
     return await ncMeta.metaInsert2(null, null, MetaTable.HOOK_LOGS, insertObj);
+  }
+
+  public static async count(
+    { hookId }: { hookId?: string },
+    ncMeta = Noco.ncMeta
+  ) {
+    const qb = ncMeta.knex(MetaTable.HOOK_LOGS);
+
+    if (hookId) {
+      qb.where(`${MetaTable.HOOK_LOGS}.fk_hook_id`, hookId);
+    }
+
+    if (process.env.NC_AUTOMATION_LOG_LEVEL === 'ERROR') {
+      qb.whereNotNull(`${MetaTable.HOOK_LOGS}.error_message`);
+    }
+
+    return (await qb.count('id', { as: 'count' }).first())?.count ?? 0;
   }
 }

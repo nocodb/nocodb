@@ -1,7 +1,11 @@
-import { isSystemColumn, UITypes } from 'nocodb-sdk';
-import View from '../../../../../models/View';
-import type Model from '../../../../../models/Model';
-import type LinkToAnotherRecordColumn from '../../../../../models/LinkToAnotherRecordColumn';
+import { isSystemColumn, RelationTypes, UITypes } from 'nocodb-sdk';
+import { View } from '../../../../../models';
+import type {
+  Column,
+  LinkToAnotherRecordColumn,
+  LookupColumn,
+  Model,
+} from '../../../../../models';
 
 const getAst = async ({
   query,
@@ -34,7 +38,8 @@ const getAst = async ({
     await Promise.all(
       model.primaryKeys.map((c) => extractDependencies(c, dependencyFields))
     );
-    await extractDependencies(model.primaryValue, dependencyFields);
+
+    await extractDependencies(model.displayValue, dependencyFields);
 
     return { ast, dependencyFields };
   }
@@ -94,11 +99,11 @@ const getAst = async ({
         model,
         query: query?.nested?.[col.title],
         extractOnlyPrimaries: nestedFields !== '*',
-        dependencyFields:(dependencyFields.nested[col.title] =
-        dependencyFields.nested[col.title] || {
+        dependencyFields: (dependencyFields.nested[col.title] = dependencyFields
+          .nested[col.title] || {
           nested: {},
           fields: new Set(),
-        })
+        }),
       });
     }
 

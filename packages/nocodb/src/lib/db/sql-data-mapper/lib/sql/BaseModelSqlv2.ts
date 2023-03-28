@@ -3,16 +3,17 @@ import groupBy from 'lodash/groupBy';
 import DataLoader from 'dataloader';
 import {
   AuditOperationSubTypes,
-  AuditOperationTypes,
+  AuditOperationTypes, isSystemColumn,
   isVirtualCol,
   RelationTypes,
   UITypes,
   ViewTypes,
-} from 'nocodb-sdk';
+} from 'nocodb-sdk'
 import ejs from 'ejs';
 import Validator from 'validator';
 import { customAlphabet } from 'nanoid';
 import DOMPurify from 'isomorphic-dompurify';
+import { GridViewColumn } from '../../../../models'
 import Model from '../../../../models/Model';
 import Column from '../../../../models/Column';
 import Filter, {
@@ -1451,7 +1452,6 @@ class BaseModelSqlv2 {
   //  add option to get only pk and pv
   public async selectObject({
     qb,
-    columns: _columns,,
     columns: _columns,
     fields: _fields,
     extractPkAndPv,
@@ -1469,7 +1469,7 @@ class BaseModelSqlv2 {
     const res = {};
     // const columns = _columns ?? (await this.model.getColumns());
     // for (const column of columns) {
-    const viewOrTableColumns = viewColumns || (await this.model.getColumns());
+    const viewOrTableColumns = _columns || viewColumns || (await this.model.getColumns());
     for (const viewOrTableColumn of viewOrTableColumns) {
       const column =
         viewOrTableColumn instanceof Column

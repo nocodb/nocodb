@@ -230,6 +230,7 @@ export function useViewData(
         return parseInt(i)
       }
     }
+    return -1
   }
 
   async function insertRow(
@@ -280,7 +281,7 @@ export function useViewData(
             ) {
               row.row = { ...pkData, ...row.row }
               const insertedData = await insertRow(row, ltarState, undefined, true)
-              if (rowIndex && pg.pageSize === paginationData.value.pageSize) {
+              if (rowIndex !== -1 && pg.pageSize === paginationData.value.pageSize) {
                 if (pg.page === paginationData.value.page) {
                   formattedData.value.splice(rowIndex, 0, {
                     row: { ...row, ...insertedData },
@@ -303,7 +304,7 @@ export function useViewData(
           undo: {
             fn: async function undo(this: UndoRedoAction, id: string) {
               await deleteRowById(id)
-              if (rowIndex) formattedData.value.splice(rowIndex, 1)
+              if (rowIndex !== -1) formattedData.value.splice(rowIndex, 1)
               paginationData.value.totalRows = paginationData.value.totalRows! - 1
             },
             args: [id],
@@ -365,7 +366,7 @@ export function useViewData(
               const updatedData = await updateRowProperty(toUpdate, property, undefined, true)
               if (pg.page === paginationData.value.page && pg.pageSize === paginationData.value.pageSize) {
                 const rowIndex = findIndexByPk(rowPkData(toUpdate.row, meta?.value?.columns as ColumnType[]))
-                if (rowIndex) {
+                if (rowIndex !== -1) {
                   const row = formattedData.value[rowIndex]
                   Object.assign(row.row, updatedData)
                   Object.assign(row.oldRow, updatedData)
@@ -388,7 +389,7 @@ export function useViewData(
               )
               if (pg.page === paginationData.value.page && pg.pageSize === paginationData.value.pageSize) {
                 const rowIndex = findIndexByPk(rowPkData(toUpdate.row, meta?.value?.columns as ColumnType[]))
-                if (rowIndex) {
+                if (rowIndex !== -1) {
                   const row = formattedData.value[rowIndex]
                   Object.assign(row.row, updatedData)
                   Object.assign(row.oldRow, updatedData)
@@ -507,7 +508,7 @@ export function useViewData(
                 await deleteRowById(id)
                 const pk: Record<string, string> = rowPkData(row.row, meta?.value?.columns as ColumnType[])
                 const rowIndex = findIndexByPk(pk)
-                if (rowIndex) formattedData.value.splice(rowIndex, 1)
+                if (rowIndex !== -1) formattedData.value.splice(rowIndex, 1)
                 paginationData.value.totalRows = paginationData.value.totalRows! - 1
               },
               args: [id],
@@ -522,7 +523,7 @@ export function useViewData(
                 const pkData = rowPkData(row.row, meta.value?.columns as ColumnType[])
                 row.row = { ...pkData, ...row.row }
                 await insertRow(row, ltarState, {}, true)
-                if (pg.pageSize === paginationData.value.pageSize) {
+                if (rowIndex !== -1 && pg.pageSize === paginationData.value.pageSize) {
                   if (pg.page === paginationData.value.page) {
                     formattedData.value.splice(rowIndex, 0, row)
                   } else {
@@ -586,7 +587,7 @@ export function useViewData(
             await deleteRowById(id as string)
             const pk: Record<string, string> = rowPkData(row.row, meta?.value?.columns as ColumnType[])
             const rowIndex = findIndexByPk(pk)
-            if (rowIndex) formattedData.value.splice(rowIndex, 1)
+            if (rowIndex !== -1) formattedData.value.splice(rowIndex, 1)
             paginationData.value.totalRows = paginationData.value.totalRows! - 1
           }
           await syncPagination()
@@ -603,7 +604,7 @@ export function useViewData(
             const pkData = rowPkData(row.row, meta.value?.columns as ColumnType[])
             row.row = { ...pkData, ...row.row }
             await insertRow(row, {}, {}, true)
-            if (pg.pageSize === paginationData.value.pageSize) {
+            if (rowIndex !== -1 && pg.pageSize === paginationData.value.pageSize) {
               if (pg.page === paginationData.value.page) {
                 formattedData.value.splice(rowIndex, 0, row)
               } else {

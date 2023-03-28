@@ -3,7 +3,7 @@ import { DashboardPage } from '../pages/Dashboard';
 import setup from '../setup';
 import makeServer from '../setup/server';
 import { WebhookFormPage } from '../pages/Dashboard/WebhookForm';
-import { isSubset } from '../utils';
+import { isSubset } from './utils/general';
 
 const hookPath = 'http://localhost:9090/hook';
 
@@ -95,6 +95,8 @@ test.describe.serial('Webhook', () => {
     await dashboard.closeTab({ title: 'Team & Auth' });
     await dashboard.treeView.createTable({ title: 'Test' });
 
+    // create
+    //
     // hook order
     // hook-1: after insert
     //  - verify trigger after insert
@@ -123,6 +125,8 @@ test.describe.serial('Webhook', () => {
 
     ///////////////////////////////////////////////////////////////////////////
 
+    // update
+    //
     // hook order
     // hook-1: after insert
     // hook-2: after update

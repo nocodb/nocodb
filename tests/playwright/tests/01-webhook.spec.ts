@@ -627,6 +627,14 @@ test.describe.serial('Webhook', () => {
       await api.dbTableRow.nestedAdd('noco', context.project.title, countryTable.title, 1, 'hm', 'CityList', '2');
       await api.dbTableRow.nestedAdd('noco', context.project.title, countryTable.title, 2, 'hm', 'CityList', '3');
       await api.dbTableRow.nestedAdd('noco', context.project.title, countryTable.title, 3, 'hm', 'CityList', '4');
+
+      // create formula column
+      countryTable = await api.dbTableColumn.create(countryTable.id, {
+        column_name: 'CityCodeFormula',
+        title: 'CityCodeFormula',
+        uidt: UITypes.Formula,
+        formula_raw: '({Id} * 100)',
+      });
     } catch (e) {
       console.log(e);
     }
@@ -647,6 +655,7 @@ test.describe.serial('Webhook', () => {
     // edit first record
     await dashboard.grid.editRow({ index: 0, columnHeader: 'Country', value: 'INDIA', networkValidation: false });
     const rsp = await getWebhookResponses({ request, count: 1 });
+    console.log(rsp);
 
     const expectedData = {
       type: 'records.after.update',
@@ -659,6 +668,7 @@ test.describe.serial('Webhook', () => {
             Country: 'India',
             CountryCode: 1,
             CityCodeRollup: 2,
+            CityCodeFormula: 100,
             CityList: [
               {
                 Id: 1,
@@ -678,6 +688,7 @@ test.describe.serial('Webhook', () => {
             Country: 'INDIA',
             CountryCode: 1,
             CityCodeRollup: 2,
+            CityCodeFormula: 100,
             CityList: [
               {
                 Id: 1,

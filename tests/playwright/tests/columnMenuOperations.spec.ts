@@ -66,6 +66,7 @@ test.describe('Column menu operations', () => {
     }
     await dashboard.closeTab({ title: 'Film' });
   });
+
   test('Insert after', async () => {
     await dashboard.treeView.openTable({ title: 'Film' });
 

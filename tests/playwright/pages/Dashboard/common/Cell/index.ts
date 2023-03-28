@@ -273,7 +273,7 @@ export class CellPageObject extends BasePage {
 
     // verify only the elements that are passed in
     for (let i = 0; i < value.length; ++i) {
-      await expect(await chips.nth(i)).toHaveText(value[i]);
+      await expect(await chips.nth(i).locator('.name')).toHaveText(value[i]);
     }
   }
 
@@ -291,6 +291,7 @@ export class CellPageObject extends BasePage {
     await expect(await cell.locator(`input`)).toHaveCount(param.role === 'creator' || param.role === 'editor' ? 1 : 0);
 
     // press escape to close the input
+    await cell.press('Escape');
     await cell.press('Escape');
 
     await cell.click({ button: 'right', clickCount: 1 });

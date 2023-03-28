@@ -17,6 +17,7 @@ import {
   getDateFormat,
   getDateTimeFormat,
   getUIDTIcon,
+  iconMap,
   inject,
   message,
   nextTick,
@@ -635,7 +636,7 @@ function isSelectDisabled(uidt: string, disableSelect = false) {
         <a-collapse-panel v-for="(table, tableIdx) of data.tables" :key="tableIdx">
           <template #header>
             <span class="font-weight-bold text-lg flex items-center gap-2">
-              <mdi-table class="text-primary" />
+              <component :is="iconMap.table" class="text-primary" />
               {{ table.table_name }}
             </span>
           </template>
@@ -646,7 +647,12 @@ function isSelectDisabled(uidt: string, disableSelect = false) {
                 <!-- TODO: i18n -->
                 <span>Delete Table</span>
               </template>
-              <mdi-delete-outline v-if="data.tables.length > 1" class="text-lg mr-8" @click.stop="deleteTable(tableIdx)" />
+              <component
+                :is="iconMap.delete"
+                v-if="data.tables.length > 1"
+                class="text-lg mr-8"
+                @click.stop="deleteTable(tableIdx)"
+              />
             </a-tooltip>
           </template>
 
@@ -726,7 +732,7 @@ function isSelectDisabled(uidt: string, disableSelect = false) {
                 />
               </a-form-item>
               <span v-else class="font-weight-bold text-lg flex items-center gap-2" @click="setEditableTn(tableIdx, true)">
-                <mdi-table class="text-primary" />
+                <component :is="iconMap.table" class="text-primary" />
                 {{ table.table_name }}
               </span>
             </template>
@@ -737,7 +743,12 @@ function isSelectDisabled(uidt: string, disableSelect = false) {
                   <!-- TODO: i18n -->
                   <span>Delete Table</span>
                 </template>
-                <mdi-delete-outline v-if="data.tables.length > 1" class="text-lg mr-8" @click.stop="deleteTable(tableIdx)" />
+                <component
+                  :is="iconMap.delete"
+                  v-if="data.tables.length > 1"
+                  class="text-lg mr-8"
+                  @click.stop="deleteTable(tableIdx)"
+                />
               </a-tooltip>
             </template>
             <a-table
@@ -832,7 +843,7 @@ function isSelectDisabled(uidt: string, disableSelect = false) {
 
                     <a-button type="text" @click="deleteTableColumn(tableIdx, record.key)">
                       <div class="flex items-center">
-                        <mdi-delete-outline class="text-lg" />
+                        <component :is="iconMap.delete" class="text-lg" />
                       </div>
                     </a-button>
                   </a-tooltip>
@@ -849,7 +860,7 @@ function isSelectDisabled(uidt: string, disableSelect = false) {
 
                 <a-button class="group" @click="addNewColumnRow(tableIdx, 'Number')">
                   <div class="flex items-center">
-                    <mdi-numeric class="group-hover:!text-accent flex text-lg" />
+                    <component :is="iconMap.number" class="group-hover:!text-accent flex text-lg" />
                   </div>
                 </a-button>
               </a-tooltip>
@@ -862,7 +873,7 @@ function isSelectDisabled(uidt: string, disableSelect = false) {
 
                 <a-button class="group" @click="addNewColumnRow(tableIdx, 'SingleLineText')">
                   <div class="flex items-center">
-                    <mdi-alpha-a class="group-hover:!text-accent text-lg" />
+                    <component :is="iconMap.text" class="group-hover:!text-accent text-lg" />
                   </div>
                 </a-button>
               </a-tooltip>
@@ -875,7 +886,7 @@ function isSelectDisabled(uidt: string, disableSelect = false) {
 
                 <a-button class="group" @click="addNewColumnRow(tableIdx, 'LongText')">
                   <div class="flex items-center">
-                    <mdi-text class="group-hover:!text-accent text-lg" />
+                    <component :is="iconMap.longText" class="group-hover:!text-accent text-lg" />
                   </div>
                 </a-button>
               </a-tooltip>
@@ -888,7 +899,7 @@ function isSelectDisabled(uidt: string, disableSelect = false) {
 
                 <a-button class="group" @click="addNewColumnRow(tableIdx, 'SingleLineText')">
                   <div class="flex items-center gap-1">
-                    <mdi-plus class="group-hover:!text-accent text-lg" />
+                    <component :is="iconMap.plus" class="group-hover:!text-accent text-lg" />
                   </div>
                 </a-button>
               </a-tooltip>

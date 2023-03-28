@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { isDrawerOrModalExist, isMac, useNuxtApp, useRoute, useUIPermission } from '#imports'
+import { iconMap, isDrawerOrModalExist, isMac, useNuxtApp, useRoute, useUIPermission } from '#imports'
 
 const route = useRoute()
 
@@ -45,7 +45,7 @@ useEventListener(document, 'keydown', async (e: KeyboardEvent) => {
         </template>
         <a-button type="primary" class="!rounded-md mr-1" size="medium">
           <div class="flex items-center space-x-1 cursor-pointer text-xs font-weight-bold">
-            <MdiAccountPlusOutline class="mr-1 nc-share-base hover:text-accent text-sm" />
+            <component :is="iconMap.accountPlus" class="mr-1 nc-share-base hover:text-accent text-sm" />
             {{ $t('activity.share') }}
           </div>
         </a-button>

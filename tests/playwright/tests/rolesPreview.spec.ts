@@ -66,7 +66,7 @@ test.describe('Preview Mode', () => {
 
     await dashboard.rootPage.waitForTimeout(1500);
 
-    await dashboard.treeView.openTable({ title: 'Country' });
+    await dashboard.treeView.openTable({ title: 'Country', networkResponse: false });
 
     await dashboard.viewSidebar.validateRoleAccess({
       role: role.toLowerCase(),

@@ -1,30 +1,55 @@
 <script lang="ts" setup>
 import type { VNodeRef } from '@vue/runtime-core'
-import { EditModeInj, ReadonlyInj, computed, inject, useVModel, validateEmail } from '#imports'
+import { EditModeInj, IsSurveyFormInj, ReadonlyInj, computed, inject, useI18n, validateEmail } from '#imports'
 
 interface Props {
   modelValue: string | null | undefined
 }
 
-interface Emits {
-  (event: 'update:modelValue', model: string): void
-}
+const { modelValue: value } = defineProps<Props>()
 
-const props = defineProps<Props>()
+const emit = defineEmits(['update:modelValue'])
 
-const emits = defineEmits<Emits>()
+const { t } = useI18n()
 
 const { showNull } = useGlobal()
 
-const editEnabled = inject(EditModeInj)
+const editEnabled = inject(EditModeInj)!
+
+const column = inject(ColumnInj)!
+
+// Used in the logic of when to display error since we are not storing the email if it's not valid
+const localState = ref(value)
 
 const readonly = inject(ReadonlyInj, ref(false))
 
-const vModel = useVModel(props, 'modelValue', emits)
+const isSurveyForm = inject(IsSurveyFormInj, ref(false))
+
+const vModel = computed({
+  get: () => value,
+  set: (val) => {
+    localState.value = val
+    if (!parseProp(column.value.meta)?.validate || (val && validateEmail(val)) || !val || isSurveyForm.value) {
+      emit('update:modelValue', val)
+    }
+  },
+})
 
 const validEmail = computed(() => vModel.value && validateEmail(vModel.value))
 
 const focus: VNodeRef = (el) => (el as HTMLInputElement)?.focus()
+
+watch(
+  () => editEnabled.value,
+  () => {
+    if (parseProp(column.value.meta)?.validate && !editEnabled.value && localState.value && !validateEmail(localState.value)) {
+      message.error(t('msg.error.invalidEmail'))
+      localState.value = undefined
+      return
+    }
+    localState.value = value
+  },
+)
 </script>
 
 <template>
@@ -32,7 +57,7 @@ const focus: VNodeRef = (el) => (el as HTMLInputElement)?.focus()
     v-if="!readonly && editEnabled"
     :ref="focus"
     v-model="vModel"
-    class="outline-none text-sm px-2"
+    class="w-full outline-none text-sm px-2"
     @blur="editEnabled = false"
     @keydown.down.stop
     @keydown.left.stop

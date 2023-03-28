@@ -4,7 +4,9 @@ import type { ProjectUserReqType } from 'nocodb-sdk'
 import {
   Form,
   computed,
+  emailValidator,
   extractSdkResponseErrorMsg,
+  iconMap,
   message,
   onMounted,
   projectRoleTagColors,
@@ -17,7 +19,6 @@ import {
   useI18n,
   useNuxtApp,
   useProject,
-  validateEmail,
 } from '#imports'
 import type { User } from '~/lib'
 import { ProjectRole } from '~/lib'
@@ -54,24 +55,10 @@ let usersData = $ref<Users>({ emails: undefined, role: ProjectRole.Viewer, invit
 const formRef = ref()
 
 const useForm = Form.useForm
+
 const validators = computed(() => {
   return {
-    emails: [
-      {
-        validator: (rule: any, value: string, callback: (errMsg?: string) => void) => {
-          if (!value || value.length === 0) {
-            callback('Email is required')
-            return
-          }
-          const invalidEmails = (value || '').split(/\s*,\s*/).filter((e: string) => !validateEmail(e))
-          if (invalidEmails.length > 0) {
-            callback(`${invalidEmails.length > 1 ? ' Invalid emails:' : 'Invalid email:'} ${invalidEmails.join(', ')} `)
-          } else {
-            callback()
-          }
-        },
-      },
-    ],
+    emails: [emailValidator],
   }
 })
 
@@ -205,7 +192,7 @@ watch(
         <template v-if="usersData.invitationToken">
           <div class="flex flex-col mt-1 border-b-1 pb-5">
             <div class="flex flex-row items-center pl-1.5 pb-1 h-[1.1rem]">
-              <MdiAccountOutline />
+              <component :is="iconMap.account" />
               <div class="text-xs ml-0.5 mt-0.5">Copy Invite Token</div>
             </div>
 
@@ -218,7 +205,7 @@ watch(
 
                   <a-button type="text" class="!rounded-md -mt-0.5" @click="copyUrl">
                     <template #icon>
-                      <MdiContentCopy class="flex mx-auto text-green-700 h-[1rem]" />
+                      <component :is="iconMap.copy" class="flex mx-auto text-green-700 h-[1rem]" />
                     </template>
                   </a-button>
                 </div>
@@ -244,7 +231,7 @@ watch(
 
         <div v-else class="flex flex-col pb-4">
           <div class="flex flex-row items-center pl-2 pb-1 h-[1rem]">
-            <MdiAccountOutline />
+            <component :is="iconMap.account" />
             <div class="text-xs ml-0.5 mt-0.5">{{ selectedUser ? $t('activity.editUser') : $t('activity.inviteTeam') }}</div>
           </div>
 

@@ -1,10 +1,9 @@
 <script lang="ts" setup>
-import { onUnmounted, ref, useEventListener, useGlobal, useI18n, useNuxtApp, watch } from '#imports'
+import { iconMap, onUnmounted, ref, useEventListener, useGlobal, useI18n, useNuxtApp, watch } from '#imports'
 import MdiAccountStar from '~icons/mdi/account-star'
 import MdiAccountHardHat from '~icons/mdi/account-hard-hat'
-import MdiAccountEdit from '~icons/mdi/account-edit'
-import MdiEyeOutline from '~icons/mdi/eye-outline'
-import MdiCommentAccountOutline from '~icons/mdi/comment-account-outline'
+import PhPencilCircleThin from '~icons/ph/pencil-circle-thin'
+import PhChtTeardropTextThin from '~icons/ph/chat-teardrop-text-thin'
 import { ProjectRole } from '~/lib'
 
 const { float } = defineProps<{ float?: boolean }>()
@@ -24,9 +23,9 @@ const roleList = [
 const roleIcon = {
   owner: MdiAccountStar,
   creator: MdiAccountHardHat,
-  editor: MdiAccountEdit,
-  viewer: MdiEyeOutline,
-  commenter: MdiCommentAccountOutline,
+  editor: PhPencilCircleThin,
+  viewer: iconMap.eye,
+  commenter: PhChtTeardropTextThin,
 }
 
 const position = ref({
@@ -65,7 +64,7 @@ watch(previewAs, (newRole) => {
     class="floating-reset-btn nc-floating-preview-btn p-4"
     :style="{ top: position.y, left: position.x }"
   >
-    <MdiDrag class="cursor-move text-white" @mousedown="mouseDown" />
+    <component :is="iconMap.drag" class="cursor-move text-white" @mousedown="mouseDown" />
 
     <div class="divider" />
 
@@ -83,7 +82,7 @@ watch(previewAs, (newRole) => {
 
       <!-- Close -->
       <div class="flex items-center gap-2 cursor-pointer nc-preview-btn-exit-to-app" @click="previewAs = null">
-        <MdiExitToApp />
+        <component :is="iconMap.exit" />
         {{ $t('general.close') }}
       </div>
     </div>
@@ -105,7 +104,7 @@ watch(previewAs, (newRole) => {
     <template v-if="previewAs">
       <a-menu-item @click="previewAs = null">
         <div class="nc-project-menu-item group">
-          <MdiClose class="group-hover:text-accent" />
+          <component :is="iconMap.close" class="group-hover:text-accent" />
           <!-- Reset Preview -->
           <span class="text-capitalize text-xs whitespace-nowrap">
             {{ $t('activity.resetReview') }}

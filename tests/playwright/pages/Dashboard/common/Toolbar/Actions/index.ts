@@ -18,10 +18,10 @@ export class ToolbarActionsPage extends BasePage {
 
   // todo: use enum
   async click(label: string) {
-    await this.get().locator(`span:has-text("${label}")`).click();
+    await this.get().locator(`span:has-text("${label}")`).first().click();
   }
 
   async clickDownloadSubmenu(label: string) {
-    await this.rootPage.locator(`div[class="nc-project-menu-item"]:has-text("${label}")`).click();
+    await this.rootPage.locator(`div[class="nc-project-menu-item"]:has-text("${label}")`).first().click();
   }
 }

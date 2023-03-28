@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { enumColor as colors, useDialog, useGlobal, useNuxtApp } from '#imports'
+import { enumColor as colors, iconMap, useDialog, useGlobal, useNuxtApp } from '#imports'
 
 const { $e } = useNuxtApp()
 
@@ -39,7 +39,7 @@ function openKeyboardShortcutDialog() {
           to="https://docs.nocodb.com/"
         >
           <div class="ml-3 flex items-center text-sm">
-            <MdiBookOpenOutline class="text-lg text-accent" />
+            <component :is="iconMap.book" class="text-lg text-accent" />
             <span class="ml-3">{{ $t('labels.documentation') }}</span>
           </div>
         </nuxt-link>
@@ -55,7 +55,7 @@ function openKeyboardShortcutDialog() {
           to="https://apis.nocodb.com/"
         >
           <div class="ml-3 flex items-center text-sm">
-            <MdiJson class="text-lg text-green-500" />
+            <component :is="iconMap.json" class="text-lg text-green-500" />
             <!--            todo:  i18n -->
             <span class="ml-3">API {{ $t('labels.documentation') }}</span>
           </div>
@@ -72,7 +72,7 @@ function openKeyboardShortcutDialog() {
           target="_blank"
         >
           <div class="flex items-center text-sm">
-            <mdi-github class="mx-3 text-lg" />
+            <component :is="iconMap.github" class="mx-3 text-lg" />
             <div v-if="isRtlLang">
               <!-- us on Github -->
               {{ $t('labels.community.starUs2') }}
@@ -101,7 +101,7 @@ function openKeyboardShortcutDialog() {
           target="_blank"
         >
           <div class="flex items-center text-sm">
-            <mdi-calendar-month class="mx-3 text-lg" :color="colors.dark[3 % colors.dark.length]" />
+            <component :is="iconMap.calendar" class="mx-3 text-lg" :color="colors.dark[3 % colors.dark.length]" />
             <!-- Book a Free DEMO -->
             <div>
               {{ $t('labels.community.bookDemo') }}
@@ -120,7 +120,7 @@ function openKeyboardShortcutDialog() {
           target="_blank"
         >
           <div class="flex items-center text-sm">
-            <mdi-discord class="mx-3 text-lg" :color="colors.dark[0 % colors.dark.length]" />
+            <component :is="iconMap.discord" class="mx-3 text-lg" :color="colors.dark[0 % colors.dark.length]" />
             <!-- Get your questions answered -->
             <div>
               {{ $t('labels.community.getAnswered') }}
@@ -139,7 +139,7 @@ function openKeyboardShortcutDialog() {
           target="_blank"
         >
           <div class="flex items-center text-sm">
-            <mdi-twitter class="mx-3 text-lg" :color="colors.dark[1 % colors.dark.length]" />
+            <component :is="iconMap.twitter" class="mx-3 text-lg" :color="colors.dark[1 % colors.dark.length]" />
             <!-- Follow NocoDB -->
             <div>
               {{ $t('labels.community.followNocodb') }}
@@ -176,7 +176,7 @@ function openKeyboardShortcutDialog() {
           to="https://www.reddit.com/r/NocoDB/"
         >
           <div class="ml-3 flex items-center text-sm">
-            <LogosRedditIcon />
+            <component :is="iconMap.reddit" color="red" />
             <span class="ml-4">/r/NocoDB/</span>
           </div>
         </nuxt-link>
@@ -184,7 +184,7 @@ function openKeyboardShortcutDialog() {
 
       <a-list-item @click="openKeyboardShortcutDialog">
         <div class="ml-3 flex items-center text-sm">
-          <MdiKeyboard class="text-lg text-primary" />
+          <component :is="iconMap.keyboard" class="text-lg text-primary" />
           <span class="ml-4">{{ $t('title.keyboardShortcut') }}</span>
         </div>
       </a-list-item>

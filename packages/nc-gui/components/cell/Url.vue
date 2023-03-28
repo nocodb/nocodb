@@ -4,6 +4,7 @@ import {
   CellUrlDisableOverlayInj,
   ColumnInj,
   EditModeInj,
+  IsSurveyFormInj,
   ReadonlyInj,
   computed,
   inject,
@@ -39,11 +40,13 @@ const localState = ref(value)
 
 const readonly = inject(ReadonlyInj, ref(false))
 
+const isSurveyForm = inject(IsSurveyFormInj, ref(false))
+
 const vModel = computed({
   get: () => value,
   set: (val) => {
     localState.value = val
-    if (!parseProp(column.value.meta)?.validate || (val && isValidURL(val)) || !val) {
+    if (!parseProp(column.value.meta)?.validate || (val && isValidURL(val)) || !val || isSurveyForm.value) {
       emit('update:modelValue', val)
     }
   },
@@ -122,7 +125,7 @@ watch(
 
     <div v-if="column.meta?.validate && !isValid && value?.length && !editEnabled" class="mr-1 w-1/10">
       <a-tooltip placement="top">
-        <template #title> Invalid URL </template>
+        <template #title> {{ t('msg.error.invalidURL') }} </template>
         <div class="flex flex-row items-center">
           <MiCircleWarning class="text-red-400 h-4" />
         </div>

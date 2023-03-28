@@ -3,7 +3,7 @@ import type { ColumnType } from 'nocodb-sdk'
 import { RelationTypes, UITypes, isVirtualCol } from 'nocodb-sdk'
 import { ref } from 'vue'
 import { StreamBarcodeReader } from 'vue-barcode-reader'
-import { isBt, isHm, isMm, preFilledModes, useMetas, useSharedFormStoreOrThrow } from '#imports'
+import { iconMap, isBt, isHm, isMm, preFilledModes, useMetas, useSharedFormStoreOrThrow } from '#imports'
 
 const { sharedFormView, submitForm, v$, formState, notFound, formColumns, submitted, secondsRemain, isLoading, sharedViewMeta } =
   useSharedFormStoreOrThrow()
@@ -62,6 +62,8 @@ const fieldTitleForCurrentScan = ref('')
 const scannerIsReady = ref(false)
 
 const showCodeScannerOverlay = ref(false)
+
+const editEnabled = ref<boolean[]>([])
 
 const onLoaded = async () => {
   scannerIsReady.value = true
@@ -197,8 +199,11 @@ const onDecode = async (scannedCodeValue: string) => {
                         :data-testid="`nc-form-input-cell-${field.label || field.title}`"
                         :class="`nc-form-input-${field.title?.replaceAll(' ', '')}`"
                         :column="field"
-                        :edit-enabled="true"
                         :read-only="field.read_only"
+                        :edit-enabled="editEnabled[index]"
+                        @click="editEnabled[index] = true"
+                        @cancel="editEnabled[index] = false"
+                        @update:edit-enabled="editEnabled[index] = $event"
                       />
                       <a-button
                         v-if="field.enable_scanner"
@@ -207,7 +212,7 @@ const onDecode = async (scannedCodeValue: string) => {
                         @click="showCodeScannerForFieldTitle(field.title)"
                       >
                         <div class="flex items-center gap-1">
-                          <mdi-qrcode-scan class="h-5 w-5" />
+                          <component :is="iconMap.qrCodeScan" class="h-5 w-5" />
                         </div>
                       </a-button>
                     </div>

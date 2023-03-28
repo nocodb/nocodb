@@ -10,6 +10,7 @@ import {
   computed,
   createEventHook,
   extractSdkResponseErrorMsg,
+  iconMap,
   inject,
   message,
   onClickOutside,
@@ -96,6 +97,8 @@ const emailMe = ref(false)
 const submitted = ref(false)
 
 const activeRow = ref('')
+
+const editEnabled = ref<boolean[]>([])
 
 const { t } = useI18n()
 
@@ -282,6 +285,8 @@ function setFormData() {
     .filter((f) => f.show && !hiddenColTypes.includes(f.uidt))
     .sort((a, b) => a.order - b.order)
     .map((c) => ({ ...c, required: !!c.required }))
+
+  editEnabled.value = new Array(localColumns.value.length).fill(false)
 
   systemFieldsIds.value = getSystemColumns(col).map((c) => c.fk_column_id)
 
@@ -486,7 +491,7 @@ watch(view, (nextView) => {
           <a-dropdown v-model:visible="showColumnDropdown" :trigger="['click']" overlay-class-name="nc-dropdown-form-add-column">
             <button type="button" class="group w-full mt-2" @click.stop="showColumnDropdown = true">
               <span class="flex items-center flex-wrap justify-center gap-2 prose-sm text-gray-400">
-                <MdiPlus class="color-transition transform group-hover:(text-accent scale-125)" />
+                <component :is="iconMap.plus" class="color-transition transform group-hover:(text-accent scale-125)" />
                 <!-- Add new field to this table -->
                 <span class="color-transition group-hover:text-primary break-words">
                   {{ $t('activity.addField') }}
@@ -592,7 +597,8 @@ watch(view, (nextView) => {
                     v-if="isUIAllowed('editFormView') && !isRequired(element, element.required)"
                     class="absolute flex top-2 right-2"
                   >
-                    <MdiEyeOffOutline
+                    <component
+                      :is="iconMap.eyeSlash"
                       class="opacity-0 nc-field-remove-icon"
                       data-testid="nc-field-remove-icon"
                       @click.stop="hideColumn(index)"
@@ -727,7 +733,10 @@ watch(view, (nextView) => {
                       :class="`nc-form-input-${element.title.replaceAll(' ', '')}`"
                       :data-testid="`nc-form-input-${element.title.replaceAll(' ', '')}`"
                       :column="element"
-                      :edit-enabled="true"
+                      :edit-enabled="editEnabled[index]"
+                      @click="editEnabled[index] = true"
+                      @cancel="editEnabled[index] = false"
+                      @update:edit-enabled="editEnabled[index] = $event"
                       @click.stop.prevent
                     />
                   </a-form-item>

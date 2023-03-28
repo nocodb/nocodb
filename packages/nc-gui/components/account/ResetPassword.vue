@@ -1,5 +1,5 @@
 <script lang="ts" setup>
-import { message, navigateTo, reactive, ref, useApi, useGlobal, useI18n } from '#imports'
+import { iconMap, message, navigateTo, reactive, ref, useApi, useGlobal, useI18n } from '#imports'
 
 const { api, error } = useApi({ useGlobalInstance: true })
 
@@ -121,7 +121,7 @@ const resetError = () => {
       <div class="text-center">
         <button data-testid="nc-user-settings-form__submit" class="scaling-btn bg-opacity-100" type="submit">
           <span class="flex items-center gap-2">
-            <MdiKeyChange />
+            <component :is="iconMap.passwordChange" />
             {{ $t('activity.changePwd') }}
           </span>
         </button>

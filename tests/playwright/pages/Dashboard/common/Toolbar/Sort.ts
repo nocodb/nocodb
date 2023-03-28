@@ -1,6 +1,7 @@
 import { expect } from '@playwright/test';
 import BasePage from '../../../Base';
 import { ToolbarPage } from './index';
+import { getTextExcludeIconText } from '../../../../tests/utils/general';
 
 export class ToolbarSortPage extends BasePage {
   readonly toolbar: ToolbarPage;
@@ -15,7 +16,10 @@ export class ToolbarSortPage extends BasePage {
   }
 
   async verify({ index, column, direction }: { index: number; column: string; direction: string }) {
-    await expect(this.get().locator('.nc-sort-field-select').nth(index)).toHaveText(column);
+    const fieldLocator = await this.get().locator('.nc-sort-field-select').nth(index);
+    const fieldText = await getTextExcludeIconText(fieldLocator);
+    await expect(fieldText).toBe(column);
+
     await expect(
       await this.get().locator('.nc-sort-dir-select >> span.ant-select-selection-item').nth(index)
     ).toHaveText(direction);

@@ -5,7 +5,6 @@ import makeServer from '../setup/server';
 import { WebhookFormPage } from '../pages/Dashboard/WebhookForm';
 import { isSubset } from './utils/general';
 import { Api, UITypes } from 'nocodb-sdk';
-import { rowMixedValue } from '../setup/xcdb-records';
 
 const hookPath = 'http://localhost:9090/hook';
 let api: Api<any>;
@@ -109,7 +108,7 @@ test.describe.serial('Webhook', () => {
   });
 
   test.beforeEach(async ({ page }) => {
-    context = await setup({ page });
+    context = await setup({ page, isEmptyProject: true });
     dashboard = new DashboardPage(page, context.project);
     webhook = dashboard.webhookForm;
 
@@ -524,5 +523,177 @@ test.describe.serial('Webhook', () => {
     await page.reload();
     rsp = await getWebhookResponses({ request, count: 2 });
     await verifyBulkOperationTrigger(rsp, 'records.after.delete', 111);
+  });
+
+  test('Virtual columns', async ({ request, page }) => {
+    let cityTable, countryTable;
+    const cityColumns = [
+      {
+        column_name: 'Id',
+        title: 'Id',
+        uidt: UITypes.ID,
+      },
+      {
+        column_name: 'City',
+        title: 'City',
+        uidt: UITypes.SingleLineText,
+        pv: true,
+      },
+      {
+        column_name: 'CityCode',
+        title: 'CityCode',
+        uidt: UITypes.Number,
+      },
+    ];
+    const countryColumns = [
+      {
+        column_name: 'Id',
+        title: 'Id',
+        uidt: UITypes.ID,
+      },
+      {
+        column_name: 'Country',
+        title: 'Country',
+        uidt: UITypes.SingleLineText,
+        pv: true,
+      },
+      {
+        column_name: 'CountryCode',
+        title: 'CountryCode',
+        uidt: UITypes.Number,
+      },
+    ];
+
+    try {
+      const project = await api.project.read(context.project.id);
+      cityTable = await api.base.tableCreate(context.project.id, project.bases?.[0].id, {
+        table_name: 'City',
+        title: 'City',
+        columns: cityColumns,
+      });
+      countryTable = await api.base.tableCreate(context.project.id, project.bases?.[0].id, {
+        table_name: 'Country',
+        title: 'Country',
+        columns: countryColumns,
+      });
+
+      const cityRowAttributes = [
+        { City: 'Mumbai', CityCode: 23 },
+        { City: 'Pune', CityCode: 33 },
+        { City: 'Delhi', CityCode: 43 },
+        { City: 'Bangalore', CityCode: 53 },
+      ];
+      await api.dbTableRow.bulkCreate('noco', context.project.id, cityTable.id, cityRowAttributes);
+
+      const countryRowAttributes = [
+        { Country: 'India', CountryCode: 1 },
+        { Country: 'USA', CountryCode: 2 },
+        { Country: 'UK', CountryCode: 3 },
+        { Country: 'Australia', CountryCode: 4 },
+      ];
+      await api.dbTableRow.bulkCreate('noco', context.project.id, countryTable.id, countryRowAttributes);
+
+      // create LTAR Country has-many City
+      countryTable = await api.dbTableColumn.create(countryTable.id, {
+        column_name: 'CityList',
+        title: 'CityList',
+        uidt: UITypes.LinkToAnotherRecord,
+        parentId: countryTable.id,
+        childId: cityTable.id,
+        type: 'hm',
+      });
+
+      // Create Lookup column in Country table
+      countryTable = await api.dbTableColumn.create(countryTable.id, {
+        column_name: 'CityCodeLookup',
+        title: 'CityCodeLookup',
+        uidt: UITypes.Lookup,
+        fk_relation_column_id: countryTable.columns.filter(c => c.title === 'CityList')[0].id,
+        fk_lookup_column_id: cityTable.columns.filter(c => c.title === 'CityCode')[0].id,
+      });
+
+      // Create Rollup column in Country table
+      countryTable = await api.dbTableColumn.create(countryTable.id, {
+        column_name: 'CityCodeRollup',
+        title: 'CityCodeRollup',
+        uidt: UITypes.Rollup,
+        fk_relation_column_id: countryTable.columns.filter(c => c.title === 'CityList')[0].id,
+        fk_rollup_column_id: cityTable.columns.filter(c => c.title === 'CityCode')[0].id,
+        rollup_function: 'count',
+      });
+
+      // Create links
+      await api.dbTableRow.nestedAdd('noco', context.project.title, countryTable.title, 1, 'hm', 'CityList', '1');
+      await api.dbTableRow.nestedAdd('noco', context.project.title, countryTable.title, 1, 'hm', 'CityList', '2');
+      await api.dbTableRow.nestedAdd('noco', context.project.title, countryTable.title, 2, 'hm', 'CityList', '3');
+      await api.dbTableRow.nestedAdd('noco', context.project.title, countryTable.title, 3, 'hm', 'CityList', '4');
+    } catch (e) {
+      console.log(e);
+    }
+
+    await page.reload();
+    await dashboard.treeView.openTable({ title: 'Country' });
+
+    // create after update webhook
+    // after update hook
+    await webhook.create({
+      title: 'hook-2',
+      event: 'After Update',
+    });
+
+    // clear server data
+    await clearServerData({ request });
+
+    // edit first record
+    await dashboard.grid.editRow({ index: 0, columnHeader: 'Country', value: 'INDIA', networkValidation: false });
+    const rsp = await getWebhookResponses({ request, count: 1 });
+
+    const expectedData = {
+      type: 'records.after.update',
+      data: {
+        table_name: 'Country',
+        view_name: 'Country',
+        previous_rows: [
+          {
+            Id: 1,
+            Country: 'India',
+            CountryCode: 1,
+            CityCodeRollup: 2,
+            CityList: [
+              {
+                Id: 1,
+                City: 'Mumbai',
+              },
+              {
+                Id: 2,
+                City: 'Pune',
+              },
+            ],
+            CityCodeLookup: [23, 33],
+          },
+        ],
+        rows: [
+          {
+            Id: 1,
+            Country: 'INDIA',
+            CountryCode: 1,
+            CityCodeRollup: 2,
+            CityList: [
+              {
+                Id: 1,
+                City: 'Mumbai',
+              },
+              {
+                Id: 2,
+                City: 'Pune',
+              },
+            ],
+            CityCodeLookup: [23, 33],
+          },
+        ],
+      },
+    };
+
+    await expect(isSubset(rsp[0], expectedData)).toBe(true);
   });
 });

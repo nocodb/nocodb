@@ -654,7 +654,11 @@ const setIcon = async (icon: string, table: TableType) => {
                               </component>
                             </div>
                             <template v-if="isUIAllowed('tableIconCustomisation')" #overlay>
-                              <GeneralEmojiIcons class="shadow bg-white p-2" @select-icon="setIcon($event, table)" />
+                              <GeneralEmojiIcons
+                                class="shadow bg-white p-2"
+                                :show-reset="!!table.meta?.icon"
+                                @select-icon="setIcon($event, table)"
+                              />
                             </template>
                           </component>
                         </div>
@@ -964,7 +968,11 @@ const setIcon = async (icon: string, table: TableType) => {
                                 </component>
                               </div>
                               <template v-if="isUIAllowed('tableIconCustomisation')" #overlay>
-                                <GeneralEmojiIcons class="shadow bg-white p-2" @select-icon="setIcon($event, table)" />
+                                <GeneralEmojiIcons
+                                  class="shadow bg-white p-2"
+                                  :show-reset="!!table.meta?.icon"
+                                  @select-icon="setIcon($event, table)"
+                                />
                               </template>
                             </component>
                           </div>

@@ -36,7 +36,8 @@ export class AccountUsersPage extends BasePage {
     await this.inviteUserModal.locator(`button:has-text("Invite")`).click();
     await this.verifyToast({ message: 'Successfully added user' });
 
-    return await this.inviteUserModal.locator(`.ant-alert-message`).innerText();
+    // http://localhost:3000/#/signup/a5e7bf3a-cbb0-46bc-87f7-c2ae21796707
+    return (await this.inviteUserModal.locator(`.ant-alert-message`).innerText()).slice(0, 67);
   }
 
   prefixEmail(email: string) {

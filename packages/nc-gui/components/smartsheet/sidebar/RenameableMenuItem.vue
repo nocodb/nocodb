@@ -183,7 +183,11 @@ function onStopEdit() {
           </component>
 
           <template v-if="isUIAllowed('viewIconCustomisation')" #overlay>
-            <GeneralEmojiIcons class="shadow bg-white p-2" @select-icon="emits('selectIcon', $event)" />
+            <GeneralEmojiIcons
+              class="shadow bg-white p-2"
+              :show-reset="!!view.meta?.icon"
+              @select-icon="emits('selectIcon', $event)"
+            />
           </template>
         </a-dropdown>
       </div>

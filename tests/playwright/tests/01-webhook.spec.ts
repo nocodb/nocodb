@@ -4,8 +4,11 @@ import setup from '../setup';
 import makeServer from '../setup/server';
 import { WebhookFormPage } from '../pages/Dashboard/WebhookForm';
 import { isSubset } from './utils/general';
+import { Api, UITypes } from 'nocodb-sdk';
+import { rowMixedValue } from '../setup/xcdb-records';
 
 const hookPath = 'http://localhost:9090/hook';
+let api: Api<any>;
 
 // clear server data
 async function clearServerData({ request }) {
@@ -15,6 +18,23 @@ async function clearServerData({ request }) {
   // ensure stored message count is 0
   const response = await request.get(hookPath + '/count');
   await expect(await response.json()).toBe(0);
+}
+
+async function getWebhookResponses({ request, count = 1 }) {
+  let response;
+
+  // retry since there can be lag between the time the hook is triggered and the time the server receives the request
+  for (let i = 0; i < 20; i++) {
+    response = await request.get(hookPath + '/count');
+    if ((await response.json()) === count) {
+      break;
+    }
+    await new Promise(resolve => setTimeout(resolve, 100));
+  }
+  await expect(await response.json()).toBe(count);
+
+  response = await request.get(hookPath + '/all');
+  return await response.json();
 }
 
 async function verifyHookTrigger(count: number, value: string, request, expectedData?: any) {
@@ -92,6 +112,13 @@ test.describe.serial('Webhook', () => {
     context = await setup({ page });
     dashboard = new DashboardPage(page, context.project);
     webhook = dashboard.webhookForm;
+
+    api = new Api({
+      baseURL: `http://localhost:8080/`,
+      headers: {
+        'xc-auth': context.token,
+      },
+    });
   });
 
   test('CRUD', async ({ request, page }) => {
@@ -394,5 +421,108 @@ test.describe.serial('Webhook', () => {
     await dashboard.grid.deleteRow(1);
     await dashboard.grid.deleteRow(0);
     await verifyHookTrigger(6, 'Delaware', request, buildExpectedResponseData('records.after.delete', 'Delaware'));
+  });
+
+  test('Bulk operations', async ({ request, page }) => {
+    async function verifyBulkOperationTrigger(rsp, type, valueCounter, oldValueCounter?) {
+      for (let i = 0; i < rsp.length; i++) {
+        expect(rsp[i].type === type);
+        expect(rsp[i].data.table_name === 'numberBased');
+        expect(rsp[i].data.view_name === 'numberBased');
+        expect(rsp[i].data.rows.length === 25);
+        for (let j = 0; j < rsp[i].data.rows.length; j++) {
+          expect(rsp[i].data.rows[j].Number === (i * 25 + j + 1) * valueCounter);
+        }
+
+        if (oldValueCounter) {
+          expect(rsp[i].data.previous_rows.length === 25);
+          for (let j = 0; j < rsp[i].data.previous_rows.length; j++) {
+            expect(rsp[i].data.previous_rows[j].Number === (i * 25 + j + 1) * oldValueCounter);
+          }
+        }
+      }
+    }
+
+    // Waiting for the server to start
+    await page.waitForTimeout(1000);
+
+    // close 'Team & Auth' tab
+    await dashboard.closeTab({ title: 'Team & Auth' });
+
+    const columns = [
+      {
+        column_name: 'Id',
+        title: 'Id',
+        uidt: UITypes.ID,
+      },
+      {
+        column_name: 'Number',
+        title: 'Number',
+        uidt: UITypes.Number,
+      },
+    ];
+    let project, table;
+
+    try {
+      project = await api.project.read(context.project.id);
+      table = await api.base.tableCreate(context.project.id, project.bases?.[0].id, {
+        table_name: 'numberBased',
+        title: 'numberBased',
+        columns: columns,
+      });
+    } catch (e) {
+      console.error(e);
+    }
+
+    await page.reload();
+    await dashboard.treeView.openTable({ title: 'numberBased' });
+
+    // create after insert webhook
+    await webhook.create({
+      title: 'hook-1',
+      event: 'After Insert',
+    });
+    await webhook.create({
+      title: 'hook-1',
+      event: 'After Update',
+    });
+    await webhook.create({
+      title: 'hook-1',
+      event: 'After Delete',
+    });
+
+    await clearServerData({ request });
+    const rowAttributesForInsert = Array.from({ length: 50 }, (_, i) => ({
+      Id: i + 1,
+      Number: (i + 1) * 100,
+    }));
+    await api.dbTableRow.bulkCreate('noco', context.project.id, table.id, rowAttributesForInsert);
+    await page.reload();
+    // 50 records inserted, we expect 2 webhook responses
+    let rsp = await getWebhookResponses({ request, count: 2 });
+    await verifyBulkOperationTrigger(rsp, 'records.after.insert', 100);
+
+    // bulk update all rows
+    await clearServerData({ request });
+    // build rowAttributes for update to contain all the ids & their value set to 100
+    const rowAttributesForUpdate = Array.from({ length: 50 }, (_, i) => ({
+      Id: i + 1,
+      Number: (i + 1) * 111,
+    }));
+
+    await api.dbTableRow.bulkUpdate('noco', context.project.id, table.id, rowAttributesForUpdate);
+    await page.reload();
+    // 50 records updated, we expect 2 webhook responses
+    rsp = await getWebhookResponses({ request, count: 2 });
+    await verifyBulkOperationTrigger(rsp, 'records.after.update', 111, 100);
+
+    // bulk delete all rows
+    await clearServerData({ request });
+    const rowAttributesForDelete = Array.from({ length: 50 }, (_, i) => ({ Id: i + 1 }));
+
+    await api.dbTableRow.bulkDelete('noco', context.project.id, table.id, rowAttributesForDelete);
+    await page.reload();
+    rsp = await getWebhookResponses({ request, count: 2 });
+    await verifyBulkOperationTrigger(rsp, 'records.after.delete', 111);
   });
 });

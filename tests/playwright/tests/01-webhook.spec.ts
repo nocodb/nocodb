@@ -51,7 +51,7 @@ async function verifyHookTrigger(count: number, value: string, request, expected
   }
 }
 
-async function buildExpectedResponseData(type, value) {
+async function buildExpectedResponseData(type, value, oldValue?) {
   const expectedData = {
     type: 'records.after.insert',
     data: {
@@ -67,6 +67,14 @@ async function buildExpectedResponseData(type, value) {
 
   expectedData.type = type;
   expectedData.data.rows[0].Title = value;
+
+  if (oldValue) {
+    expectedData.data['previous_rows'] = [];
+    expectedData.data['previous_rows'][0] = {
+      Title: oldValue,
+    };
+  }
+
   return expectedData;
 }
 
@@ -148,7 +156,12 @@ test.describe.serial('Webhook', () => {
     });
     await verifyHookTrigger(1, 'Poole', request, buildExpectedResponseData('records.after.insert', 'Poole'));
     await dashboard.grid.editRow({ index: 0, value: 'Delaware' });
-    await verifyHookTrigger(2, 'Delaware', request, buildExpectedResponseData('records.after.update', 'Delaware'));
+    await verifyHookTrigger(
+      2,
+      'Delaware',
+      request,
+      buildExpectedResponseData('records.after.update', 'Delaware', 'Poole')
+    );
     await dashboard.grid.deleteRow(0);
     await verifyHookTrigger(2, 'Delaware', request);
 
@@ -175,7 +188,12 @@ test.describe.serial('Webhook', () => {
     });
     await verifyHookTrigger(1, 'Poole', request, buildExpectedResponseData('records.after.insert', 'Poole'));
     await dashboard.grid.editRow({ index: 0, value: 'Delaware' });
-    await verifyHookTrigger(2, 'Delaware', request, buildExpectedResponseData('records.after.update', 'Delaware'));
+    await verifyHookTrigger(
+      2,
+      'Delaware',
+      request,
+      buildExpectedResponseData('records.after.update', 'Delaware', 'Poole')
+    );
     await dashboard.grid.deleteRow(0);
     await verifyHookTrigger(3, 'Delaware', request, buildExpectedResponseData('records.after.delete', 'Delaware'));
 
@@ -325,7 +343,12 @@ test.describe.serial('Webhook', () => {
     await verifyHookTrigger(1, 'Poole', request, buildExpectedResponseData('records.after.insert', 'Poole'));
     await dashboard.grid.editRow({ index: 0, value: 'Delaware' });
     await dashboard.grid.editRow({ index: 1, value: 'Poole' });
-    await verifyHookTrigger(2, 'Poole', request, buildExpectedResponseData('records.after.update', 'Poole'));
+    await verifyHookTrigger(
+      2,
+      'Poole',
+      request,
+      buildExpectedResponseData('records.after.update', 'Poole', 'Delaware')
+    );
     await dashboard.grid.deleteRow(1);
     await dashboard.grid.deleteRow(0);
     await verifyHookTrigger(3, 'Poole', request, buildExpectedResponseData('records.after.delete', 'Poole'));
@@ -362,7 +385,12 @@ test.describe.serial('Webhook', () => {
     await verifyHookTrigger(2, 'Delaware', request, buildExpectedResponseData('records.after.insert', 'Delaware'));
     await dashboard.grid.editRow({ index: 0, value: 'Delaware' });
     await dashboard.grid.editRow({ index: 1, value: 'Poole' });
-    await verifyHookTrigger(4, 'Poole', request, buildExpectedResponseData('records.after.update', 'Poole'));
+    await verifyHookTrigger(
+      4,
+      'Poole',
+      request,
+      buildExpectedResponseData('records.after.update', 'Poole', 'Delaware')
+    );
     await dashboard.grid.deleteRow(1);
     await dashboard.grid.deleteRow(0);
     await verifyHookTrigger(6, 'Delaware', request, buildExpectedResponseData('records.after.delete', 'Delaware'));

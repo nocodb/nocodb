@@ -12,8 +12,16 @@ const { isOpen: isSidebarOpen, toggleHasSidebar, toggle } = useSidebar('nc-left-
 
 const route = useRoute()
 
-const { isNestedFetchErrored, isPageErrored, openedProjectId, nestedPagesOfProjects, openedPageId, flattenedNestedPages } =
-  storeToRefs(useDocStore())
+const {
+  isNestedFetchErrored,
+  isPageErrored,
+  openedProjectId,
+  nestedPagesOfProjects,
+  openedPageId,
+  flattenedNestedPages,
+  openedPage,
+  isNestedPublicPage,
+} = storeToRefs(useDocStore())
 
 const { fetchNestedPages, navigateToFirstPage } = useDocStore()
 
@@ -26,7 +34,6 @@ const isErrored = computed(() => {
 onMounted(async () => {
   isFetching.value = true
 
-  setProject({ id: openedProjectId.value })
   await fetchNestedPages({
     projectId: openedProjectId.value as string,
   })
@@ -35,14 +42,44 @@ onMounted(async () => {
 })
 
 watch(
-  () => flattenedNestedPages.value?.length ?? 0,
+  [project, isNestedPublicPage],
   () => {
-    if (flattenedNestedPages.value?.length > 1) {
+    let meta = {}
+    try {
+      if (typeof project.value?.meta === 'string') {
+        meta = JSON.parse(project.value?.meta ?? '{}')
+      }
+    } catch (e) {
+      console.error(e)
+    }
+
+    if (isSidebarOpen.value) return
+
+    if ((meta as any).isPublic) {
+      toggle(true)
+      toggleHasSidebar(true)
+      navigateToFirstPage()
+    }
+
+    if (isNestedPublicPage.value) {
       toggle(true)
       toggleHasSidebar(true)
     } else {
       toggle(false)
       toggleHasSidebar(false)
+    }
+  },
+  {
+    deep: true,
+  },
+)
+
+watch(
+  () => flattenedNestedPages.value?.length ?? 0,
+  () => {
+    if (flattenedNestedPages.value?.length > 1) {
+      toggle(true)
+      toggleHasSidebar(true)
     }
 
     if (flattenedNestedPages.value?.length > 0 && !openedPageId.value) {

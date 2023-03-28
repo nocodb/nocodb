@@ -10,6 +10,7 @@ export const useDocStore = defineStore('docStore', () => {
   const { $api } = useNuxtApp()
   const { appInfo } = $(useGlobal())
   const { projectRoles } = useRoles()
+  const { setProject } = useProject()
 
   const isNestedPageFetching = ref<Record<string, boolean>>({})
   const isPageFetching = ref<boolean>(true)
@@ -200,6 +201,7 @@ export const useDocStore = defineStore('docStore', () => {
       page.title = openedPage.value.title
       page.icon = openedPage.value.icon
 
+      if (isPublic.value) return
       const { updateTab } = useTabs()
 
       updateTab(
@@ -375,15 +377,17 @@ export const useDocStore = defineStore('docStore', () => {
     if (!pageId) throw new Error('No page id or slug provided')
 
     try {
-      return isPublic.value
-        ? (
-            await $api.nocoDocs.getPublicPage(pageId, {
-              projectId: projectId!,
-            })
-          ).page
-        : await $api.nocoDocs.getPage(pageId, {
-            projectId: projectId!,
-          })
+      if (isPublic.value) {
+        const response = await $api.nocoDocs.getPublicPage(pageId, {
+          projectId: projectId!,
+        })
+        setProject(response.project!)
+
+        return response.page
+      }
+      return await $api.nocoDocs.getPage(pageId, {
+        projectId: projectId!,
+      })
     } catch (e) {
       console.log(e)
       isPageErrored.value = true
@@ -442,6 +446,7 @@ export const useDocStore = defineStore('docStore', () => {
         openedTabs.push(createdPageData.id!)
       }
 
+      if (isPublic.value) return
       const { addTab } = useTabs()
 
       addTab({
@@ -506,7 +511,9 @@ export const useDocStore = defineStore('docStore', () => {
         navigateTo(nestedUrl({ id: siblingPage.id!, projectId }))
       }
 
+      if (isPublic.value) return
       const { closeTab } = useTabs()
+
       closeTab({ id: pageId })
     } catch (e) {
       console.log(e)
@@ -808,6 +815,7 @@ export const useDocStore = defineStore('docStore', () => {
 
     if (!openedPageId.value) return
 
+    if (isPublic.value) return
     const { addTab } = useTabs()
 
     addTab({

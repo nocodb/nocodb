@@ -301,14 +301,16 @@ export async function invokeWebhook(
             subject: parseBody(notification?.payload?.subject, newData),
             html: parseBody(notification?.payload?.body, newData),
           });
-          hookLog = {
-            ...hook,
-            fk_hook_id: hook.id,
-            type: notification.type,
-            payload: JSON.stringify(notification?.payload),
-            response: JSON.stringify(res),
-            triggered_by: user?.email,
-          };
+          if (process.env.NC_AUTOMATION_LOG_LEVEL === 'ALL') {
+            hookLog = {
+              ...hook,
+              fk_hook_id: hook.id,
+              type: notification.type,
+              payload: JSON.stringify(notification?.payload),
+              response: JSON.stringify(res),
+              triggered_by: user?.email,
+            };
+          }
         }
         break;
       case 'URL':
@@ -323,25 +325,27 @@ export async function invokeWebhook(
             newData
           );
 
-          hookLog = {
-            ...hook,
-            fk_hook_id: hook.id,
-            type: notification.type,
-            payload: JSON.stringify(notification?.payload),
-            response: JSON.stringify({
-              status: res.status,
-              statusText: res.statusText,
-              headers: res.headers,
-              config: {
-                url: res.config.url,
-                method: res.config.method,
-                data: res.config.data,
-                headers: res.config.headers,
-                params: res.config.params,
-              },
-            }),
-            triggered_by: user?.email,
-          };
+          if (process.env.NC_AUTOMATION_LOG_LEVEL === 'ALL') {
+            hookLog = {
+              ...hook,
+              fk_hook_id: hook.id,
+              type: notification.type,
+              payload: JSON.stringify(notification?.payload),
+              response: JSON.stringify({
+                status: res.status,
+                statusText: res.statusText,
+                headers: res.headers,
+                config: {
+                  url: res.config.url,
+                  method: res.config.method,
+                  data: res.config.data,
+                  headers: res.config.headers,
+                  params: res.config.params,
+                },
+              }),
+              triggered_by: user?.email,
+            };
+          }
         }
         break;
       default:
@@ -357,29 +361,33 @@ export async function invokeWebhook(
             })
           );
 
-          hookLog = {
-            ...hook,
-            fk_hook_id: hook.id,
-            type: notification.type,
-            payload: JSON.stringify(notification?.payload),
-            response: JSON.stringify(res),
-            triggered_by: user?.email,
-          };
+          if (process.env.NC_AUTOMATION_LOG_LEVEL === 'ALL') {
+            hookLog = {
+              ...hook,
+              fk_hook_id: hook.id,
+              type: notification.type,
+              payload: JSON.stringify(notification?.payload),
+              response: JSON.stringify(res),
+              triggered_by: user?.email,
+            };
+          }
         }
         break;
     }
   } catch (e) {
     console.log(e);
-    hookLog = {
-      ...hook,
-      type: notification.type,
-      payload: JSON.stringify(notification?.payload),
-      fk_hook_id: hook.id,
-      error_code: e.error_code,
-      error_message: e.message,
-      error: JSON.stringify(e),
-      triggered_by: user?.email,
-    };
+    if (['ERROR', 'ALL'].includes(process.env.NC_AUTOMATION_LOG_LEVEL)) {
+      hookLog = {
+        ...hook,
+        type: notification.type,
+        payload: JSON.stringify(notification?.payload),
+        fk_hook_id: hook.id,
+        error_code: e.error_code,
+        error_message: e.message,
+        error: JSON.stringify(e),
+        triggered_by: user?.email,
+      };
+    }
     if (throwErrorOnFailure) throw e;
   } finally {
     if (hookLog) {

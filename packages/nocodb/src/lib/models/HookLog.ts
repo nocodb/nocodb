@@ -63,6 +63,9 @@ export default class HookLog implements HookLogType {
   }
 
   public static async insert(hookLog: Partial<HookLog>, ncMeta = Noco.ncMeta) {
+    if (process.env.NC_AUTOMATION_LOG_LEVEL === 'OFF') {
+      return;
+    }
     const insertObj: any = extractProps(hookLog, [
       'base_id',
       'project_id',

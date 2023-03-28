@@ -69,7 +69,16 @@ export async function hookLogList(
 ) {
   res.json(
     new PagedResponseImpl(
-      await hookService.hookLogList({ hookId: req.params.hookId })
+      await hookService.hookLogList({
+        query: req.query,
+        hookId: req.params.hookId,
+      }),
+      {
+        ...req.query,
+        count: await hookService.hookLogCount({
+          hookId: req.params.hookId,
+        }),
+      }
     )
   );
 }

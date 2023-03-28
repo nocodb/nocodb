@@ -1,5 +1,5 @@
 <script lang="ts" setup>
-import type { ColumnReqType, ColumnType, GridType, TableType, ViewType } from 'nocodb-sdk'
+import type { ColumnReqType, ColumnType, GridType, PaginatedType, TableType, ViewType } from 'nocodb-sdk'
 import { UITypes, isVirtualCol } from 'nocodb-sdk'
 import {
   ActiveViewInj,
@@ -44,6 +44,7 @@ import {
   useRoute,
   useSmartsheetStoreOrThrow,
   useUIPermission,
+  useUndoRedo,
   useViewData,
   watch,
 } from '#imports'
@@ -72,6 +73,8 @@ const hasEditPermission = $computed(() => isUIAllowed('xcDatatableEditable'))
 
 const route = useRoute()
 const router = useRouter()
+
+const { addUndo, clone, defineViewScope } = useUndoRedo()
 
 // todo: get from parent ( inject or use prop )
 const isView = false
@@ -455,6 +458,61 @@ async function clearCell(ctx: { row: number; col: number } | null, skipUpdate = 
   const columnObj = fields.value[ctx.col]
 
   if (isVirtualCol(columnObj)) {
+    addUndo({
+      undo: {
+        fn: async (ctx: { row: number; col: number }, col: ColumnType, row: Row, pg: PaginatedType) => {
+          if (paginationData.value.pageSize === pg.pageSize) {
+            if (paginationData.value.page !== pg.page) {
+              await changePage(pg.page!)
+            }
+            const rowId = extractPkFromRow(row.row, meta.value?.columns as ColumnType[])
+            const rowObj = data.value[ctx.row]
+            const columnObj = fields.value[ctx.col]
+            if (
+              columnObj.title &&
+              rowId === extractPkFromRow(rowObj.row, meta.value?.columns as ColumnType[]) &&
+              columnObj.id === col.id
+            ) {
+              rowObj.row[columnObj.title] = row.row[columnObj.title]
+              await rowRefs[ctx.row]!.addLTARRef(rowObj.row[columnObj.title], columnObj)
+              await rowRefs[ctx.row]!.syncLTARRefs(rowObj.row)
+              activeCell.col = ctx.col
+              activeCell.row = ctx.row
+              scrollToCell?.()
+            } else {
+              throw new Error('Record could not be found')
+            }
+          } else {
+            throw new Error('Page size changed')
+          }
+        },
+        args: [clone(ctx), clone(columnObj), clone(rowObj), clone(paginationData.value)],
+      },
+      redo: {
+        fn: async (ctx: { row: number; col: number }, col: ColumnType, row: Row, pg: PaginatedType) => {
+          if (paginationData.value.pageSize === pg.pageSize) {
+            if (paginationData.value.page !== pg.page) {
+              await changePage(pg.page!)
+            }
+            const rowId = extractPkFromRow(row.row, meta.value?.columns as ColumnType[])
+            const rowObj = data.value[ctx.row]
+            const columnObj = fields.value[ctx.col]
+            if (rowId === extractPkFromRow(rowObj.row, meta.value?.columns as ColumnType[]) && columnObj.id === col.id) {
+              await rowRefs[ctx.row]!.clearLTARCell(columnObj)
+              activeCell.col = ctx.col
+              activeCell.row = ctx.row
+              scrollToCell?.()
+            } else {
+              throw new Error('Record could not be found')
+            }
+          } else {
+            throw new Error('Page size changed')
+          }
+        },
+        args: [clone(ctx), clone(columnObj), clone(rowObj), clone(paginationData.value)],
+      },
+      scope: defineViewScope({ view: view.value }),
+    })
     await rowRefs[ctx.row]!.clearLTARCell(columnObj)
     return
   }

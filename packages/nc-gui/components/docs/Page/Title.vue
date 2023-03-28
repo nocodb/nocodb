@@ -105,7 +105,13 @@ watchDebounced(
 </script>
 
 <template>
-  <div class="flex flex-row ml-7 gap-x-2">
+  <div
+    class="flex flex-row gap-x-2"
+    :class="{
+      'ml-7': !isPublic,
+      '-ml-0.5': isPublic,
+    }"
+  >
     <a-dropdown v-if="isEditAllowed && openedPage?.icon" placement="bottom" trigger="click">
       <div class="flex flex-col justify-center h-16 px-2 text-gray-500 rounded-md hover:bg-gray-100 cursor-pointer">
         <IconifyIcon
@@ -123,7 +129,7 @@ watchDebounced(
       </template>
     </a-dropdown>
     <template v-else>
-      <div v-if="openedPage?.icon" class="flex flex-col justify-center h-16">
+      <div v-if="openedPage?.icon" class="flex flex-col justify-center h-16 pl-2 pr-2">
         <IconifyIcon
           v-if="openedPage?.icon"
           :key="openedPage.icon"

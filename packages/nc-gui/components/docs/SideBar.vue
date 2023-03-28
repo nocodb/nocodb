@@ -169,7 +169,8 @@ onMounted(async () => {
       collapsed-width="50"
       class="relative h-full z-1 nc-docs-left-sidebar !min-w-56.5 pb-1 !bg-inherit pl-2"
       :class="{
-        'px-1': isPublic,
+        'px-1 !min-w-61.5': isPublic,
+        '!min-w-56.5': !isPublic,
       }"
       :trigger="null"
       collapsible

@@ -1,6 +1,13 @@
 import { Page, selectors } from '@playwright/test';
 import axios from 'axios';
 
+export enum NcProjectType {
+  DB = 'database',
+  DOCS = 'documentation',
+  AUTOMATION = 'automation',
+  COWRITER = 'cowriter',
+}
+
 const workerCount = {};
 
 export interface NcContext {
@@ -13,7 +20,15 @@ export interface NcContext {
 
 selectors.setTestIdAttribute('data-testid');
 
-const setup = async ({ page, isEmptyProject }: { page: Page; isEmptyProject?: boolean }): Promise<NcContext> => {
+const setup = async ({
+  projectType = NcProjectType.DB,
+  page,
+  isEmptyProject,
+}: {
+  projectType?: NcProjectType;
+  page: Page;
+  isEmptyProject?: boolean;
+}): Promise<NcContext> => {
   let dbType = process.env.CI ? process.env.E2E_DB_TYPE : process.env.E2E_DEV_DB_TYPE;
   dbType = dbType || 'sqlite';
 
@@ -35,6 +50,7 @@ const setup = async ({ page, isEmptyProject }: { page: Page; isEmptyProject?: bo
       parallelId: process.env.TEST_PARALLEL_INDEX,
       workerId: workerId,
       dbType,
+      projectType,
       isEmptyProject,
     });
   } catch (e) {
@@ -73,7 +89,22 @@ const setup = async ({ page, isEmptyProject }: { page: Page; isEmptyProject?: bo
 
   const project = response.data.project;
 
-  await page.goto(`/#/nc/${project.id}/auth`, { waitUntil: 'networkidle' });
+  let projectUrl;
+  switch (project.type) {
+    case NcProjectType.DOCS:
+      projectUrl = `/#/ws/${project.fk_workspace_id}/nc/${project.id}/doc`;
+      break;
+    case NcProjectType.DB:
+      projectUrl = `/#/ws/${project.fk_workspace_id}/nc/${project.id}/db`;
+      break;
+    case NcProjectType.COWRITER:
+      projectUrl = `/#/ws/${project.fk_workspace_id}/nc/${project.id}/cowriter`;
+      break;
+    default:
+      throw new Error(`Unknown project type: ${project.type}`);
+  }
+
+  await page.goto(projectUrl, { waitUntil: 'networkidle' });
 
   return { project, token, dbType, workerId } as NcContext;
 };

@@ -23,7 +23,7 @@
   "author": "",
   "license": "ISC",
   "devDependencies": {
-    "@playwright/test": "1.27.1",
+    "@playwright/test": "1.32.1",
     "@typescript-eslint/eslint-plugin": "^4.0.1",
     "@typescript-eslint/parser": "^4.0.1",
     "axios": "^0.24.0",
@@ -46,6 +46,7 @@
     "body-parser": "^1.20.1",
     "express": "^4.18.2",
     "nocodb-sdk": "file:../../packages/nocodb-sdk",
+    "playwright": "^1.32.1",
     "xlsx": "^0.18.5"
   }
 }

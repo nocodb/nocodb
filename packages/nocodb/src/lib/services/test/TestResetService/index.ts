@@ -6,6 +6,7 @@ import User from '../../../models/User';
 import NocoCache from '../../../cache/NocoCache';
 import { CacheScope } from '../../../utils/globals';
 import ProjectUser from '../../../models/ProjectUser';
+import { Workspace } from '../../../models';
 import resetPgSakilaProject from './resetPgSakilaProject';
 import resetMysqlSakilaProject from './resetMysqlSakilaProject';
 import resetMetaSakilaSqliteProject from './resetMetaSakilaSqliteProject';
@@ -33,22 +34,26 @@ export class TestResetService {
   private readonly workerId;
   private readonly dbType;
   private readonly isEmptyProject: boolean;
+  private readonly projectType: string;
 
   constructor({
     parallelId,
     dbType,
     isEmptyProject,
     workerId,
+    projectType,
   }: {
     parallelId: string;
     dbType: string;
     isEmptyProject: boolean;
     workerId: string;
+    projectType: string;
   }) {
     this.parallelId = parallelId;
     this.dbType = dbType;
     this.isEmptyProject = isEmptyProject;
     this.workerId = workerId;
+    this.projectType = projectType;
   }
 
   async process() {
@@ -104,8 +109,15 @@ export class TestResetService {
     parallelId: string;
     workerId: string;
   }) {
+    const workspaceTitle = `ws_${projectTitleByType[dbType]}${parallelId}`;
+    const workspace = await Workspace.getByTitle({ title: workspaceTitle });
+
     const title = `${projectTitleByType[dbType]}${parallelId}`;
     const project: Project | undefined = await Project.getByTitle(title);
+
+    if (workspace) {
+      await Workspace.delete(workspace.id);
+    }
 
     if (project) {
       await removeProjectUsersFromCache(project);
@@ -126,6 +138,8 @@ export class TestResetService {
         title,
         parallelId,
         isEmptyProject: this.isEmptyProject,
+        projectType: this.projectType,
+        workspaceTitle,
       });
     } else if (dbType == 'mysql') {
       await resetMysqlSakilaProject({
@@ -134,6 +148,8 @@ export class TestResetService {
         parallelId,
         oldProject: project,
         isEmptyProject: this.isEmptyProject,
+        projectType: this.projectType,
+        workspaceTitle,
       });
     } else if (dbType == 'pg') {
       await resetPgSakilaProject({
@@ -142,6 +158,8 @@ export class TestResetService {
         parallelId: workerId,
         oldProject: project,
         isEmptyProject: this.isEmptyProject,
+        projectType: this.projectType,
+        workspaceTitle,
       });
     }
 

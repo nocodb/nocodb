@@ -2,6 +2,7 @@ import { promises as fs } from 'fs';
 import axios from 'axios';
 import { knex } from 'knex';
 import Audit from '../../../models/Audit';
+import { Workspace } from '../../../models';
 import type Project from '../../../models/Project';
 
 const config = {
@@ -18,8 +19,10 @@ const config = {
   pool: { min: 0, max: 5 },
 };
 
-const extMysqlProject = (title, parallelId) => ({
+const extPgProject = (workspaceId, title, parallelId, projectType) => ({
+  fk_workspace_id: workspaceId,
   title,
+  type: projectType,
   bases: [
     {
       type: 'pg',
@@ -120,12 +123,16 @@ const resetPgSakilaProject = async ({
   parallelId,
   oldProject,
   isEmptyProject,
+  projectType,
+  workspaceTitle,
 }: {
   token: string;
   title: string;
   parallelId: string;
   oldProject?: Project | undefined;
   isEmptyProject: boolean;
+  projectType: string;
+  workspaceTitle: string;
 }) => {
   const pgknex = knex(config);
 
@@ -141,9 +148,13 @@ const resetPgSakilaProject = async ({
     await resetSakilaPg(parallelId, isEmptyProject);
   }
 
+  const ws = await Workspace.insert({
+    title: workspaceTitle,
+  });
+
   const response = await axios.post(
     'http://localhost:8080/api/v1/db/meta/projects/',
-    extMysqlProject(title, parallelId),
+    extPgProject(ws.id, title, parallelId, projectType),
     {
       headers: {
         'xc-auth': token,

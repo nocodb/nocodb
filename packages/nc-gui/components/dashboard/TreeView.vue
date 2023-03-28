@@ -90,8 +90,6 @@ const initSortable = (el: Element) => {
   if (sortables[base_id]) sortables[base_id].destroy()
   Sortable.create(el as HTMLLIElement, {
     onEnd: async (evt) => {
-      const offset = tables.value.findIndex((table) => table.base_id === base_id)
-
       const { newIndex = 0, oldIndex = 0 } = evt
 
       const itemEl = evt.item as HTMLLIElement
@@ -120,8 +118,19 @@ const initSortable = (el: Element) => {
         item.order = ((itemBefore.order as number) + (itemAfter.order as number)) / 2
       }
 
-      // update the order of the moved item
-      tables.value?.splice(newIndex + offset, 0, ...tables.value?.splice(oldIndex + offset, 1))
+      // find the index of the moved item
+      const itemIndex = tables.value?.findIndex((table) => table.id === item.id)
+
+      // move the item to the new position
+      if (itemBefore) {
+        // find the index of the item before the moved item
+        const itemBeforeIndex = tables.value?.findIndex((table) => table.id === itemBefore.id)
+        tables.value?.splice(itemBeforeIndex + (newIndex > oldIndex ? 0 : 1), 0, ...tables.value?.splice(itemIndex, 1))
+      } else {
+        // if the item before is undefined (moving item to first slot), then find the index of the item after the moved item
+        const itemAfterIndex = tables.value?.findIndex((table) => table.id === itemAfter.id)
+        tables.value?.splice(itemAfterIndex, 0, ...tables.value?.splice(itemIndex, 1))
+      }
 
       // force re-render the list
       if (keys[base_id]) {

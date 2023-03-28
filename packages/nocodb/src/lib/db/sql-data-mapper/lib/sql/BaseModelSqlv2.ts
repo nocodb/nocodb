@@ -64,6 +64,21 @@ async function populatePk(model: Model, insertObj: any) {
   }
 }
 
+function checkColumnRequired(
+  column: Column<any>,
+  fields: string[],
+  extractPkAndPv?: boolean
+) {
+  // if primary key or foreign key included in fields, it's required
+  if (column.pk || column.uidt === UITypes.ForeignKey) return true;
+
+  if (extractPkAndPv && column.pv) return true;
+
+  // check fields defined and if not, then select all
+  // if defined check if it is in the fields
+  return !fields || fields.includes(column.title);
+}
+
 /**
  * Base class for models
  *
@@ -182,10 +197,10 @@ class BaseModelSqlv2 {
     } = {},
     ignoreViewFilterAndSort = false
   ): Promise<any> {
-    const { where, ...rest } = this._getListArgs(args as any);
+    const { where, fields, ...rest } = this._getListArgs(args as any);
 
     const qb = this.dbDriver(this.tnPath);
-    await this.selectObject({ qb });
+    await this.selectObject({ qb, fields, viewId: this.viewId });
     if (+rest?.shuffle) {
       await this.shuffle({ qb });
     }
@@ -257,6 +272,8 @@ class BaseModelSqlv2 {
     if (!ignoreViewFilterAndSort) applyPaginate(qb, rest);
     const proto = await this.getProto();
     const data = await this.execAndParse(qb);
+
+    // console.log(qb.toQuery());
 
     return data?.map((d) => {
       d.__proto__ = proto;
@@ -407,7 +424,7 @@ class BaseModelSqlv2 {
       const parentTn = this.getTnPath(parentTable);
 
       const qb = this.dbDriver(childTn);
-      await childModel.selectObject({ qb });
+      await childModel.selectObject({ qb, extractPkAndPv: true });
       await this.applySortAndFilter({ table: childTable, where, qb, sort });
 
       const childQb = this.dbDriver.queryBuilder().from(
@@ -435,6 +452,9 @@ class BaseModelSqlv2 {
           .as('list')
       );
 
+
+      // console.log(childQb.toQuery())
+
       const children = await this.execAndParse(childQb, childTable);
       const proto = await (
         await Model.getBaseModelSQL({
@@ -442,6 +462,7 @@ class BaseModelSqlv2 {
           dbDriver: this.dbDriver,
         })
       ).getProto();
+
 
       return groupBy(
         children.map((c) => {
@@ -1410,7 +1431,7 @@ class BaseModelSqlv2 {
       this.config.limitMin
     );
     obj.offset = Math.max(+(args.offset || args.o) || 0, 0);
-    obj.fields = args.fields || args.f || '*';
+    obj.fields = args.fields || args.f;
     obj.sort = args.sort || args.s;
     return obj;
   }
@@ -1425,16 +1446,52 @@ class BaseModelSqlv2 {
     }
   }
 
+  // todo:
+  //  pass view id as argument
+  //  add option to get only pk and pv
   public async selectObject({
     qb,
+    columns: _columns,,
     columns: _columns,
+    fields: _fields,
+    extractPkAndPv,
+    viewId,
   }: {
     qb: Knex.QueryBuilder;
     columns?: Column[];
+    fields?: string[] | string;
+    extractPkAndPv?: boolean;
+    viewId?: string;
   }): Promise<void> {
+    const view = await View.get(viewId);
+    const viewColumns = viewId && (await View.getColumns(viewId));
+    const fields = Array.isArray(_fields) ? _fields : _fields?.split(',');
     const res = {};
-    const columns = _columns ?? (await this.model.getColumns());
-    for (const column of columns) {
+    // const columns = _columns ?? (await this.model.getColumns());
+    // for (const column of columns) {
+    const viewOrTableColumns = viewColumns || (await this.model.getColumns());
+    for (const viewOrTableColumn of viewOrTableColumns) {
+      const column =
+        viewOrTableColumn instanceof Column
+          ? viewOrTableColumn
+          : await Column.get({
+              colId: (viewOrTableColumn as GridViewColumn).fk_column_id,
+            });
+      // hide if column marked as hidden in view
+      // of if column is system field and system field is hidden
+      if (
+        !extractPkAndPv &&
+        !(viewOrTableColumn instanceof Column) &&
+        (!(viewOrTableColumn as GridViewColumn)?.show ||
+          (!view?.show_system_fields &&
+            column.uidt !== UITypes.ForeignKey &&
+            !column.pk &&
+            isSystemColumn(column)))
+      )
+        continue;
+
+      if (!checkColumnRequired(column, fields, extractPkAndPv)) continue;
+
       switch (column.uidt) {
         case 'LinkToAnotherRecord':
         case 'Lookup':

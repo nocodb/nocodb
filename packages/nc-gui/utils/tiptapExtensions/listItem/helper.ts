@@ -320,10 +320,15 @@ export const changeLevel = (editor: Editor, nodeType: string, direction: 'forwar
   const selection = editor.state.selection
 
   if (selection.empty) {
-    const currentNodePos = selection.$from.before(selection.$from.depth - 1)
-    const currentNode = editor.state.selection.$from.node(-1)
+    let currentNodePos, currentNode
+    try {
+      currentNodePos = selection.$from.before(selection.$from.depth - 1)
+      currentNode = editor.state.selection.$from.node(-1)
+    } catch (e) {
+      return false
+    }
 
-    if (currentNode.type.name !== nodeType) return false
+    if (currentNode?.type.name !== nodeType) return false
 
     const view = editor.view
     const { tr } = view.state
@@ -339,9 +344,13 @@ export const changeLevel = (editor: Editor, nodeType: string, direction: 'forwar
     const tr = state.tr
     const view = editor.view
 
-    const topDBlockPos = selection.$from.before(selection.$from.depth - 1)
-
-    const bottomDBlockPos = selection.$to.after(selection.$to.depth - 1)
+    let topDBlockPos: number, bottomDBlockPos: number
+    try {
+      topDBlockPos = selection.$from.before(selection.$from.depth - 1)
+      bottomDBlockPos = selection.$to.after(selection.$to.depth - 1)
+    } catch (e) {
+      return false
+    }
 
     let found = false
     // traverse through the slice and change the level of the list items

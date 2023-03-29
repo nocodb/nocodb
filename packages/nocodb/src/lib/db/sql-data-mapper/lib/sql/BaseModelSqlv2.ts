@@ -2208,7 +2208,7 @@ class BaseModelSqlv2 {
   }
 
   public async afterBulkInsert(data: any[], _trx: any, req): Promise<void> {
-    await this.handleHooks('after.insert.bulk', null, data, req);
+    await this.handleHooks('after.bulkInsert', null, data, req);
 
     await Audit.insert({
       fk_model_id: this.model.id,

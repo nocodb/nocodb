@@ -1115,7 +1115,13 @@ export interface HookType {
    * Hook Operation
    * @example insert
    */
-  operation?: 'delete' | 'insert' | 'update';
+  operation?:
+    | 'insert'
+    | 'update'
+    | 'delete'
+    | 'bulkInsert'
+    | 'bulkUpdate'
+    | 'bulkDelete';
   /**
    * Retry Count
    * @example 10
@@ -1178,7 +1184,13 @@ export interface HookReqType {
    * Hook Operation
    * @example insert
    */
-  operation: 'delete' | 'insert' | 'update';
+  operation:
+    | 'insert'
+    | 'update'
+    | 'delete'
+    | 'bulkInsert'
+    | 'bulkUpdate'
+    | 'bulkDelete';
   /**
    * Retry Count
    * @example 10
@@ -1252,7 +1264,13 @@ export interface HookLogType {
    * Hook Operation
    * @example insert
    */
-  operation?: 'insert' | 'update' | 'delete';
+  operation?:
+    | 'insert'
+    | 'update'
+    | 'delete'
+    | 'bulkInsert'
+    | 'bulkUpdate'
+    | 'bulkDelete';
   /**
    * Hook Payload
    * @example {"method":"POST","body":"{{ json data }}","headers":[{}],"parameters":[{}],"auth":"","path":"https://webhook.site/6eb45ce5-b611-4be1-8b96-c2965755662b"}
@@ -8998,7 +9016,13 @@ export class Api<
  */
     samplePayloadGet: (
       tableId: IdType,
-      operation: 'update' | 'delete' | 'insert',
+      operation:
+        | 'insert'
+        | 'update'
+        | 'delete'
+        | 'bulkInsert'
+        | 'bulkUpdate'
+        | 'bulkDelete',
       version: 'v1' | 'v2',
       params: RequestParams = {}
     ) =>

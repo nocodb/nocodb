@@ -12,6 +12,7 @@ import {
   message,
   populateInsertObject,
   ref,
+  rowPkData,
   storeToRefs,
   until,
   useApi,
@@ -25,7 +26,7 @@ import {
   useSmartsheetStoreOrThrow,
   useUIPermission,
 } from '#imports'
-import type { Row } from '~/lib'
+import type { Row, UndoRedoAction } from '~/lib'
 
 const formatData = (list: Record<string, any>[]) =>
   list.map((row) => ({
@@ -54,6 +55,8 @@ export function useViewData(
   const { appInfo } = $(useGlobal())
 
   const { getMeta } = useMetas()
+
+  const { addUndo, clone, defineViewScope } = useUndoRedo()
 
   const appInfoDefaultLimit = appInfo.defaultLimit || 25
 
@@ -221,10 +224,20 @@ export function useViewData(
       : await $api.dbView.galleryRead(viewMeta.value.id)
   }
 
+  const findIndexByPk = (pk: Record<string, string>) => {
+    for (const [i, row] of Object.entries(formattedData.value)) {
+      if (Object.keys(pk).every((k) => pk[k] === row.row[k])) {
+        return parseInt(i)
+      }
+    }
+    return -1
+  }
+
   async function insertRow(
     currentRow: Row,
     ltarState: Record<string, any> = {},
     { metaValue = meta.value, viewMetaValue = viewMeta.value }: { metaValue?: TableType; viewMetaValue?: ViewType } = {},
+    undo = false,
   ) {
     const row = currentRow.row
     if (currentRow.rowMeta) currentRow.rowMeta.saving = true
@@ -234,6 +247,7 @@ export function useViewData(
         ltarState,
         getMeta,
         row,
+        undo,
       })
 
       if (missingRequiredColumns.size) return
@@ -246,11 +260,58 @@ export function useViewData(
         insertObj,
       )
 
-      Object.assign(currentRow, {
-        row: { ...insertedData, ...row },
-        rowMeta: { ...(currentRow.rowMeta || {}), new: undefined },
-        oldRow: { ...insertedData },
-      })
+      if (!undo) {
+        Object.assign(currentRow, {
+          row: { ...insertedData, ...row },
+          rowMeta: { ...(currentRow.rowMeta || {}), new: undefined },
+          oldRow: { ...insertedData },
+        })
+
+        const id = extractPkFromRow(insertedData, metaValue?.columns as ColumnType[])
+        const pkData = rowPkData(insertedData, metaValue?.columns as ColumnType[])
+        const rowIndex = findIndexByPk(pkData)
+
+        addUndo({
+          redo: {
+            fn: async function redo(
+              this: UndoRedoAction,
+              row: Row,
+              ltarState: Record<string, any>,
+              pg: { page: number; pageSize: number },
+            ) {
+              row.row = { ...pkData, ...row.row }
+              const insertedData = await insertRow(row, ltarState, undefined, true)
+              if (rowIndex !== -1 && pg.pageSize === paginationData.value.pageSize) {
+                if (pg.page === paginationData.value.page) {
+                  formattedData.value.splice(rowIndex, 0, {
+                    row: { ...row, ...insertedData },
+                    rowMeta: row.rowMeta,
+                    oldRow: row.oldRow,
+                  })
+                } else {
+                  await changePage(pg.page)
+                }
+              } else {
+                await loadData()
+              }
+            },
+            args: [
+              clone(currentRow),
+              clone(ltarState),
+              { page: paginationData.value.page, pageSize: paginationData.value.pageSize },
+            ],
+          },
+          undo: {
+            fn: async function undo(this: UndoRedoAction, id: string) {
+              await deleteRowById(id)
+              if (rowIndex !== -1) formattedData.value.splice(rowIndex, 1)
+              paginationData.value.totalRows = paginationData.value.totalRows! - 1
+            },
+            args: [id],
+          },
+          scope: defineViewScope({ view: viewMeta.value }),
+        })
+      }
 
       await syncCount()
       return insertedData
@@ -267,6 +328,7 @@ export function useViewData(
     toUpdate: Row,
     property: string,
     { metaValue = meta.value, viewMetaValue = viewMeta.value }: { metaValue?: TableType; viewMetaValue?: ViewType } = {},
+    undo = false,
   ) {
     if (toUpdate.rowMeta) toUpdate.rowMeta.saving = true
 
@@ -297,25 +359,74 @@ export function useViewData(
         prev_value: getHTMLEncodedText(toUpdate.oldRow[property]),
       })
 
-      /** update row data(to sync formula and other related columns)
-       * update only formula, rollup and auto updated datetime columns data to avoid overwriting any changes made by user
-       */
-      Object.assign(
-        toUpdate.row,
-        metaValue!.columns!.reduce<Record<string, any>>((acc: Record<string, any>, col: ColumnType) => {
-          if (
-            col.uidt === UITypes.Formula ||
-            col.uidt === UITypes.QrCode ||
-            col.uidt === UITypes.Barcode ||
-            col.uidt === UITypes.Rollup ||
-            col.au ||
-            col.cdf?.includes(' on update ')
-          )
-            acc[col.title!] = updatedRowData[col.title!]
-          return acc
-        }, {} as Record<string, any>),
-      )
-      Object.assign(toUpdate.oldRow, updatedRowData)
+      if (!undo) {
+        addUndo({
+          redo: {
+            fn: async function redo(toUpdate: Row, property: string, pg: { page: number; pageSize: number }) {
+              const updatedData = await updateRowProperty(toUpdate, property, undefined, true)
+              if (pg.page === paginationData.value.page && pg.pageSize === paginationData.value.pageSize) {
+                const rowIndex = findIndexByPk(rowPkData(toUpdate.row, meta?.value?.columns as ColumnType[]))
+                if (rowIndex !== -1) {
+                  const row = formattedData.value[rowIndex]
+                  Object.assign(row.row, updatedData)
+                  Object.assign(row.oldRow, updatedData)
+                } else {
+                  await loadData()
+                }
+              } else {
+                await changePage(pg.page)
+              }
+            },
+            args: [clone(toUpdate), property, { page: paginationData.value.page, pageSize: paginationData.value.pageSize }],
+          },
+          undo: {
+            fn: async function undo(toUpdate: Row, property: string, pg: { page: number; pageSize: number }) {
+              const updatedData = await updateRowProperty(
+                { row: toUpdate.oldRow, oldRow: toUpdate.row, rowMeta: toUpdate.rowMeta },
+                property,
+                undefined,
+                true,
+              )
+              if (pg.page === paginationData.value.page && pg.pageSize === paginationData.value.pageSize) {
+                const rowIndex = findIndexByPk(rowPkData(toUpdate.row, meta?.value?.columns as ColumnType[]))
+                if (rowIndex !== -1) {
+                  const row = formattedData.value[rowIndex]
+                  Object.assign(row.row, updatedData)
+                  Object.assign(row.oldRow, updatedData)
+                } else {
+                  await loadData()
+                }
+              } else {
+                await changePage(pg.page)
+              }
+            },
+            args: [clone(toUpdate), property, { page: paginationData.value.page, pageSize: paginationData.value.pageSize }],
+          },
+          scope: defineViewScope({ view: viewMeta.value }),
+        })
+
+        /** update row data(to sync formula and other related columns)
+         * update only formula, rollup and auto updated datetime columns data to avoid overwriting any changes made by user
+         */
+        Object.assign(
+          toUpdate.row,
+          metaValue!.columns!.reduce<Record<string, any>>((acc: Record<string, any>, col: ColumnType) => {
+            if (
+              col.uidt === UITypes.Formula ||
+              col.uidt === UITypes.QrCode ||
+              col.uidt === UITypes.Barcode ||
+              col.uidt === UITypes.Rollup ||
+              col.au ||
+              col.cdf?.includes(' on update ')
+            )
+              acc[col.title!] = updatedRowData[col.title!]
+            return acc
+          }, {} as Record<string, any>),
+        )
+        Object.assign(toUpdate.oldRow, updatedRowData)
+      }
+
+      return updatedRowData
     } catch (e: any) {
       message.error(`${t('msg.error.rowUpdateFailed')} ${await extractSdkResponseErrorMsg(e)}`)
     } finally {
@@ -354,7 +465,10 @@ export function useViewData(
     $e('a:grid:pagination')
   }
 
-  async function deleteRowById(id: string) {
+  async function deleteRowById(
+    id: string,
+    { metaValue = meta.value, viewMetaValue = viewMeta.value }: { metaValue?: TableType; viewMetaValue?: ViewType } = {},
+  ) {
     if (!id) {
       throw new Error("Delete not allowed for table which doesn't have primary Key")
     }
@@ -362,8 +476,8 @@ export function useViewData(
     const res: any = await $api.dbViewRow.delete(
       'noco',
       project.value.id as string,
-      meta.value?.id as string,
-      viewMeta.value?.id as string,
+      metaValue?.id as string,
+      viewMetaValue?.id as string,
       id,
     )
 
@@ -378,7 +492,7 @@ export function useViewData(
     return true
   }
 
-  async function deleteRow(rowIndex: number) {
+  async function deleteRow(rowIndex: number, undo?: boolean) {
     try {
       const row = formattedData.value[rowIndex]
       if (!row.rowMeta.new) {
@@ -386,6 +500,44 @@ export function useViewData(
           ?.filter((c) => c.pk)
           .map((c) => row.row[c.title!])
           .join('___')
+
+        if (!undo) {
+          addUndo({
+            redo: {
+              fn: async function redo(this: UndoRedoAction, id: string) {
+                await deleteRowById(id)
+                const pk: Record<string, string> = rowPkData(row.row, meta?.value?.columns as ColumnType[])
+                const rowIndex = findIndexByPk(pk)
+                if (rowIndex !== -1) formattedData.value.splice(rowIndex, 1)
+                paginationData.value.totalRows = paginationData.value.totalRows! - 1
+              },
+              args: [id],
+            },
+            undo: {
+              fn: async function undo(
+                this: UndoRedoAction,
+                row: Row,
+                ltarState: Record<string, any>,
+                pg: { page: number; pageSize: number },
+              ) {
+                const pkData = rowPkData(row.row, meta.value?.columns as ColumnType[])
+                row.row = { ...pkData, ...row.row }
+                await insertRow(row, ltarState, {}, true)
+                if (rowIndex !== -1 && pg.pageSize === paginationData.value.pageSize) {
+                  if (pg.page === paginationData.value.page) {
+                    formattedData.value.splice(rowIndex, 0, row)
+                  } else {
+                    await changePage(pg.page)
+                  }
+                } else {
+                  await loadData()
+                }
+              },
+              args: [clone(row), {}, { page: paginationData.value.page, pageSize: paginationData.value.pageSize }],
+            },
+            scope: defineViewScope({ view: viewMeta.value }),
+          })
+        }
 
         const deleted = await deleteRowById(id as string)
         if (!deleted) {
@@ -403,6 +555,7 @@ export function useViewData(
 
   async function deleteSelectedRows() {
     let row = formattedData.value.length
+    const removedRowsData: { id?: string; row: Row; rowIndex: number }[] = []
     while (row--) {
       try {
         const { row: rowObj, rowMeta } = formattedData.value[row] as Record<string, any>
@@ -419,12 +572,53 @@ export function useViewData(
           if (!successfulDeletion) {
             continue
           }
+          removedRowsData.push({ id, row: clone(formattedData.value[row]), rowIndex: row })
         }
         formattedData.value.splice(row, 1)
       } catch (e: any) {
         return message.error(`${t('msg.error.deleteRowFailed')}: ${await extractSdkResponseErrorMsg(e)}`)
       }
     }
+
+    addUndo({
+      redo: {
+        fn: async function redo(this: UndoRedoAction, removedRowsData: { id?: string; row: Row; rowIndex: number }[]) {
+          for (const { id, row } of removedRowsData) {
+            await deleteRowById(id as string)
+            const pk: Record<string, string> = rowPkData(row.row, meta?.value?.columns as ColumnType[])
+            const rowIndex = findIndexByPk(pk)
+            if (rowIndex !== -1) formattedData.value.splice(rowIndex, 1)
+            paginationData.value.totalRows = paginationData.value.totalRows! - 1
+          }
+          await syncPagination()
+        },
+        args: [removedRowsData],
+      },
+      undo: {
+        fn: async function undo(
+          this: UndoRedoAction,
+          removedRowsData: { id?: string; row: Row; rowIndex: number }[],
+          pg: { page: number; pageSize: number },
+        ) {
+          for (const { row, rowIndex } of removedRowsData.slice().reverse()) {
+            const pkData = rowPkData(row.row, meta.value?.columns as ColumnType[])
+            row.row = { ...pkData, ...row.row }
+            await insertRow(row, {}, {}, true)
+            if (rowIndex !== -1 && pg.pageSize === paginationData.value.pageSize) {
+              if (pg.page === paginationData.value.page) {
+                formattedData.value.splice(rowIndex, 0, row)
+              } else {
+                await changePage(pg.page)
+              }
+            } else {
+              await loadData()
+            }
+          }
+        },
+        args: [removedRowsData, { page: paginationData.value.page, pageSize: paginationData.value.pageSize }],
+      },
+      scope: defineViewScope({ view: viewMeta.value }),
+    })
 
     await syncCount()
     await syncPagination()

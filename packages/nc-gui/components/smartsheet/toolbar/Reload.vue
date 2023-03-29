@@ -28,7 +28,7 @@ const onClick = () => {
     <div class="nc-toolbar-btn flex min-w-32px w-32px h-32px items-center justify-center select-none">
       <component
         :is="iconMap.reload"
-        class="cursor-pointer text-gray-500 group-hover:(text-primary) nc-toolbar-reload-btn"
+        class="cursor-pointer group-hover:(text-primary) nc-toolbar-reload-btn"
         :class="isReloading ? 'animate-spin' : ''"
         @click="onClick"
       />

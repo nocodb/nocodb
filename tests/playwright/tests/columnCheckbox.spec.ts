@@ -22,10 +22,10 @@ test.describe('Checkbox - cell, filter, sort', () => {
   async function verifyFilter(param: { opType: string; value?: string; result: string[] }) {
     await toolbar.clickFilter();
     await toolbar.filter.add({
-      columnTitle: 'checkbox',
-      opType: param.opType,
+      title: 'checkbox',
+      operation: param.opType,
       value: param.value,
-      isLocallySaved: false,
+      locallySaved: false,
       dataType: 'Checkbox',
     });
     await toolbar.clickFilter();
@@ -94,18 +94,18 @@ test.describe('Checkbox - cell, filter, sort', () => {
 
     // Sort column
     await toolbar.sort.add({
-      columnTitle: 'checkbox',
-      isAscending: true,
-      isLocallySaved: false,
+      title: 'checkbox',
+      ascending: true,
+      locallySaved: false,
     });
     await validateRowArray(['1b', '1d', '1e', '1a', '1c', '1f']);
     await toolbar.sort.reset();
 
     // sort descending & validate
     await toolbar.sort.add({
-      columnTitle: 'checkbox',
-      isAscending: false,
-      isLocallySaved: false,
+      title: 'checkbox',
+      ascending: false,
+      locallySaved: false,
     });
     await validateRowArray(['1a', '1c', '1f', '1b', '1d', '1e']);
     await toolbar.sort.reset();

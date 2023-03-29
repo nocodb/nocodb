@@ -714,7 +714,7 @@ onMounted(async () => {
           <a-row>
             <a-col :span="24">
               <div v-if="!(hook.version === 'v2' && hook.type === 'URL')" class="text-gray-600">
-                <div class="flex items-center"></div>
+                <div class="flex items-center">
                   <em>Use context variable <strong>data</strong> to refer the record under consideration</em>
 
                   <a-tooltip bottom>

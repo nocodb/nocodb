@@ -12162,7 +12162,14 @@
         {
           "schema": {
             "type": "string",
-            "enum": ["update", "delete", "insert"]
+            "enum": [
+              "insert",
+              "update",
+              "delete",
+              "bulkInsert",
+              "bulkUpdate",
+              "bulkDelete"
+            ]
           },
           "name": "operation",
           "in": "path",
@@ -16399,7 +16406,14 @@
             "type": ["object", "string"]
           },
           "operation": {
-            "enum": ["delete", "insert", "update"],
+            "enum": [
+              "insert",
+              "update",
+              "delete",
+              "bulkInsert",
+              "bulkUpdate",
+              "bulkDelete"
+            ],
             "type": "string",
             "description": "Hook Operation",
             "example": "insert"
@@ -16503,7 +16517,14 @@
             "type": ["object", "string"]
           },
           "operation": {
-            "enum": ["delete", "insert", "update"],
+            "enum": [
+              "insert",
+              "update",
+              "delete",
+              "bulkInsert",
+              "bulkUpdate",
+              "bulkDelete"
+            ],
             "type": "string",
             "description": "Hook Operation",
             "example": "insert"
@@ -16695,7 +16716,14 @@
           "operation": {
             "type": "string",
             "description": "Hook Operation",
-            "enum": ["insert", "update", "delete"],
+            "enum": [
+              "insert",
+              "update",
+              "delete",
+              "bulkInsert",
+              "bulkUpdate",
+              "bulkDelete"
+            ],
             "example": "insert"
           },
           "payload": {

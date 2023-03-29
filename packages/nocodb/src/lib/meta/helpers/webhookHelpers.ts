@@ -151,7 +151,14 @@ export function constructWebHookData(hook, model, view, prevData, newData) {
         ...(prevData && {
           previous_rows: [prevData],
         }),
-        ...(newData && { rows: [newData] }),
+        ...(hook.operation !== 'bulkInsert' && newData && { rows: [newData] }),
+        ...(hook.operation === 'bulkInsert' && {
+          rows_inserted: Array.isArray(newData)
+            ? newData.length
+            : newData
+            ? 1
+            : 0,
+        }),
       },
     };
   }

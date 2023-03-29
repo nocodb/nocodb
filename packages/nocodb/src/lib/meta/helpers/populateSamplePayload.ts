@@ -95,7 +95,11 @@ export async function populateSamplePayloadV2(
   samplePayload.data = {
     ...samplePayload.data,
     ...(prevRows && { previous_rows: [prevRows] }),
-    ...(rows && { rows: [rows] }),
+    ...(operation !== 'bulkInsert' && rows && { rows: [rows] }),
+    ...(operation === 'bulkInsert' &&
+      rows && {
+        row_inserted: 10,
+      }),
   };
 
   return samplePayload;

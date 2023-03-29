@@ -2058,17 +2058,24 @@ class BaseModelSqlv2 {
 
       transaction = await this.dbDriver.transaction();
 
+      const deleted = [];
       const res = [];
       for (const d of deleteIds) {
-        if (Object.keys(d).length) {
-          await transaction(this.tnPath).del().where(d);
-          res.push(d);
+        await this.validate(d);
+        const pkValues = await this._extractPksValues(d);
+        if (!pkValues) {
+          // pk not specified - bypass
+          continue;
         }
+
+        deleted.push(await this.readByPk(pkValues));
+        await transaction(this.tnPath).del().where(d);
+        res.push(d);
       }
 
       transaction.commit();
 
-      await this.afterBulkDelete(res, this.dbDriver, cookie);
+      await this.afterBulkDelete(deleted, this.dbDriver, cookie);
 
       return res;
     } catch (e) {

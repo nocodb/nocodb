@@ -19,8 +19,8 @@ export default class Hook implements HookType {
   description?: string;
   env?: string;
   type?: string;
-  event?: 'after' | 'before';
-  operation?: 'insert' | 'delete' | 'update';
+  event?: HookType['event'];
+  operation?: HookType['operation'];
   async?: BoolType;
   payload?: string;
   url?: string;
@@ -79,8 +79,8 @@ export default class Hook implements HookType {
   static async list(
     param: {
       fk_model_id: string;
-      event?: 'after' | 'before';
-      operation?: 'insert' | 'delete' | 'update';
+      event?: HookType['event'];
+      operation?: HookType['operation'];
     },
     ncMeta = Noco.ncMeta
   ) {
@@ -136,17 +136,6 @@ export default class Hook implements HookType {
       'base_id',
     ]);
 
-    if (insertObj.event) {
-      insertObj.event = insertObj.event.toLowerCase() as 'after' | 'before';
-    }
-
-    if (insertObj.operation) {
-      insertObj.operation = insertObj.operation.toLowerCase() as
-        | 'insert'
-        | 'delete'
-        | 'update';
-    }
-
     if (insertObj.notification && typeof insertObj.notification === 'object') {
       insertObj.notification = JSON.stringify(insertObj.notification);
     }
@@ -199,17 +188,6 @@ export default class Hook implements HookType {
       'timeout',
       'active',
     ]);
-
-    if (updateObj.event) {
-      updateObj.event = updateObj.event.toLowerCase() as 'after' | 'before';
-    }
-
-    if (updateObj.operation) {
-      updateObj.operation = updateObj.operation.toLowerCase() as
-        | 'insert'
-        | 'delete'
-        | 'update';
-    }
 
     if (updateObj.notification && typeof updateObj.notification === 'object') {
       updateObj.notification = JSON.stringify(updateObj.notification);

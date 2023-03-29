@@ -10,8 +10,8 @@ export default class HookLog implements HookLogType {
   project_id?: string;
   fk_hook_id?: string;
   type?: string;
-  event?: 'after' | 'before';
-  operation?: 'insert' | 'update' | 'delete';
+  event?: HookLogType['event'];
+  operation?: HookLogType['operation'];
   test_call?: boolean;
   payload?: string;
   conditions?: string;
@@ -30,8 +30,8 @@ export default class HookLog implements HookLogType {
   static async list(
     param: {
       fk_hook_id: string;
-      event?: 'after' | 'before';
-      operation?: 'insert' | 'delete' | 'update';
+      event?: HookLogType['event'];
+      operation?: HookLogType['operation'];
     },
     {
       limit = 25,

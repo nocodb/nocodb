@@ -2160,7 +2160,7 @@ class BaseModelSqlv2 {
     let noOfUpdatedRecords = newData;
     if (!isBulkAllOperation) {
       noOfUpdatedRecords = newData.length;
-      await this.handleHooks('after.update', prevData, newData, req);
+      await this.handleHooks('after.bulkUpdate', prevData, newData, req);
     }
 
     await Audit.insert({
@@ -2185,7 +2185,7 @@ class BaseModelSqlv2 {
     let noOfDeletedRecords = data;
     if (!isBulkAllOperation) {
       noOfDeletedRecords = data.length;
-      await this.handleHooks('after.delete', null, data, req);
+      await this.handleHooks('after.bulkDelete', null, data, req);
     }
 
     await Audit.insert({
@@ -2202,7 +2202,7 @@ class BaseModelSqlv2 {
   }
 
   public async afterBulkInsert(data: any[], _trx: any, req): Promise<void> {
-    await this.handleHooks('after.insert', null, data, req);
+    await this.handleHooks('after.insert.bulk', null, data, req);
 
     await Audit.insert({
       fk_model_id: this.model.id,
@@ -2282,7 +2282,10 @@ class BaseModelSqlv2 {
     const view = await View.get(this.viewId);
 
     // handle form view data submission
-    if (hookName === 'after.insert' && view.type === ViewTypes.FORM) {
+    if (
+      (hookName === 'after.insert' || hookName === 'after.bulkInsert') &&
+      view.type === ViewTypes.FORM
+    ) {
       try {
         const formView = await view.getView<FormView>();
         const { columns } = await FormView.getWithInfo(formView.fk_view_id);

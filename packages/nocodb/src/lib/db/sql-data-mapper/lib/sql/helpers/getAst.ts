@@ -26,6 +26,10 @@ const getAst = async ({
   view?: View;
   dependencyFields?: DependantFields;
 }) => {
+  // set default values of dependencyFields and nested
+  dependencyFields.nested = dependencyFields.nested || {};
+  dependencyFields.fieldsSet = dependencyFields.fieldsSet || new Set();
+
   if (!model.columns?.length) await model.getColumns();
 
   // extract only pk and pv

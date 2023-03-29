@@ -10,6 +10,7 @@ import { Workspace } from '../../../models';
 import resetPgSakilaProject from './resetPgSakilaProject';
 import resetMysqlSakilaProject from './resetMysqlSakilaProject';
 import resetMetaSakilaSqliteProject from './resetMetaSakilaSqliteProject';
+import type { UserType } from 'nocodb-sdk';
 
 const workerStatus = {};
 
@@ -19,7 +20,9 @@ const loginRootUser = async () => {
     { email: 'user@nocodb.com', password: 'Password123.' }
   );
 
-  return response.data.token;
+  const user: UserType = (await User.getByEmail('user@nocodb.com')) as any;
+
+  return { user, token: response.data.token };
 };
 
 const projectTitleByType = {
@@ -73,9 +76,10 @@ export class TestResetService {
 
       workerStatus[this.parallelId] = 'processing';
 
-      const token = await loginRootUser();
+      const { token, user } = await loginRootUser();
 
       const { project } = await this.resetProject({
+        user,
         token,
         dbType: this.dbType,
         parallelId: this.parallelId,
@@ -90,7 +94,7 @@ export class TestResetService {
       }
 
       workerStatus[this.parallelId] = 'completed';
-      return { token, project };
+      return { token, project, user };
     } catch (e) {
       console.error('TestResetService:process', e);
       workerStatus[this.parallelId] = 'errored';
@@ -99,11 +103,13 @@ export class TestResetService {
   }
 
   async resetProject({
+    user,
     token,
     dbType,
     parallelId,
     workerId,
   }: {
+    user: UserType;
     token: string;
     dbType: string;
     parallelId: string;
@@ -113,23 +119,33 @@ export class TestResetService {
     const workspace = await Workspace.getByTitle({ title: workspaceTitle });
 
     const title = `${projectTitleByType[dbType]}${parallelId}`;
-    const project: Project | undefined = await Project.getByTitle(title);
+
+    const projects = workspace
+      ? await Project.listByWorkspaceAndUser(workspace?.id, user.id)
+      : [];
+
+    const oldProject = projects.find(
+      (project) => project.title == title && project.type === 'database'
+    );
+
+    await Promise.all(
+      projects.map(async (_project) => {
+        const project = await Project.get(_project.id);
+        await removeProjectUsersFromCache(project);
+
+        const bases = await project.getBases();
+
+        for (const base of bases) {
+          await NcConnectionMgrv2.deleteAwait(base);
+          await base.delete(Noco.ncMeta, { force: true });
+        }
+
+        await Project.delete(project.id);
+      })
+    );
 
     if (workspace) {
       await Workspace.delete(workspace.id);
-    }
-
-    if (project) {
-      await removeProjectUsersFromCache(project);
-
-      const bases = await project.getBases();
-
-      for (const base of bases) {
-        await NcConnectionMgrv2.deleteAwait(base);
-        await base.delete(Noco.ncMeta, { force: true });
-      }
-
-      await Project.delete(project.id);
     }
 
     if (dbType == 'sqlite') {
@@ -146,7 +162,7 @@ export class TestResetService {
         token,
         title,
         parallelId,
-        oldProject: project,
+        oldProject,
         isEmptyProject: this.isEmptyProject,
         projectType: this.projectType,
         workspaceTitle,
@@ -156,7 +172,7 @@ export class TestResetService {
         token,
         title,
         parallelId: workerId,
-        oldProject: project,
+        oldProject,
         isEmptyProject: this.isEmptyProject,
         projectType: this.projectType,
         workspaceTitle,
@@ -165,6 +181,7 @@ export class TestResetService {
 
     return {
       project: await Project.getByTitle(title),
+      workspace: await Workspace.getByTitle({ title: workspaceTitle }),
     };
   }
 }

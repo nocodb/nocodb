@@ -173,11 +173,13 @@ const onShare = async (page: PageSidebarNode) => {
 
 <template>
   <a-layout-content>
-    <div class="flex flex-col mx-20 mt-10.5 px-6">
+    <div class="flex flex-col mx-20 mt-10.5 px-6" data-testid="docs-page-list">
       <div class="flex flex-col h-16">
         <div class="flex flex-row justify-between mt-2 items-center">
           <div class="flex flex-row gap-x-6 items-center">
-            <div class="flex text-4xl font-semibold">{{ project?.title }}</div>
+            <div data-testid="docs-project-title" :data-docs-project-title="project?.title" class="flex text-4xl font-semibold">
+              {{ project?.title }}
+            </div>
             <a-dropdown v-if="isEditAllowed" overlay-class-name="nc-docs-menu" trigger="click">
               <div
                 class="flex flex-row !bg-gray-50 rounded-md hover:( !bg-gray-200 !bg-opacity-60) cursor-pointer select-none p-1.5 h-8 items-center"

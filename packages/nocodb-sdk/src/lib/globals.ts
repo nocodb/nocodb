@@ -6,6 +6,12 @@ export enum ViewTypes {
   MAP = 5,
 }
 
+export enum ProjectTypes {
+  DATABASE = 'database',
+  DOCUMENTATION = 'documentation',
+  COWRITER = 'cowriter',
+}
+
 export enum RelationTypes {
   HAS_MANY = 'hm',
   BELONGS_TO = 'bt',

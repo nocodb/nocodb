@@ -109,7 +109,13 @@ const typeLabel = computed(() => {
     <template #footer>
       <a-button key="back" size="large" @click="dialogShow = false">{{ $t('general.cancel') }}</a-button>
 
-      <a-button key="submit" :disabled="creating" size="large" type="primary" @click="createProject"
+      <a-button
+        key="submit"
+        data-testid="docs-create-proj-dlg-create-btn"
+        :disabled="creating"
+        size="large"
+        type="primary"
+        @click="createProject"
         >{{ $t('general.create') }}
       </a-button>
     </template>

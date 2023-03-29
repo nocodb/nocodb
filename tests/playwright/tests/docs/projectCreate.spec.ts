@@ -1,22 +1,22 @@
-import { expect, test } from '@playwright/test';
+import { test } from '@playwright/test';
+import { ProjectTypes } from 'nocodb-sdk';
 import { DashboardPage } from '../../pages/Dashboard';
-import { GridPage } from '../../pages/Dashboard/Grid';
-import setup, { NcProjectType } from '../../setup';
-import { Api, UITypes } from 'nocodb-sdk';
+import setup from '../../setup';
 
-let api: Api<any>;
-
-test.describe('Verify shortcuts', () => {
-  let dashboard: DashboardPage, grid: GridPage;
+test.describe('Create docs project and verify docs UI', () => {
+  let dashboard: DashboardPage;
   let context: any;
 
   test.beforeEach(async ({ page }) => {
-    context = await setup({ page, projectType: NcProjectType.DOCS });
+    context = await setup({ page, projectType: ProjectTypes.DOCUMENTATION });
     dashboard = new DashboardPage(page, context.project);
-    grid = dashboard.grid;
   });
 
-  test.only('Verify docs project create', async ({ page }) => {
-    console.log('Verify docs project create');
+  test.only('Create docs project', async ({ page }) => {
+    await dashboard.sidebar.createProject({
+      title: 'test-docs',
+      type: ProjectTypes.DOCUMENTATION,
+    });
+    await dashboard.docs.pagesList.verifyProjectTitle({ title: 'test-docs' });
   });
 });

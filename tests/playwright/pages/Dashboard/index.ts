@@ -16,6 +16,8 @@ import { ImportTemplatePage } from './Import/ImportTemplate';
 import { WebhookFormPage } from './WebhookForm';
 import { ProjectsPage } from '../ProjectsPage';
 import { FindRowByScanOverlay } from './FindRowByScanOverlay';
+import { SidebarPage } from './Sidebar';
+import { DocsPageGroup } from './Docs';
 
 export class DashboardPage extends BasePage {
   readonly project: any;
@@ -37,6 +39,8 @@ export class DashboardPage extends BasePage {
   readonly viewSidebar: ViewSidebarPage;
   readonly importAirtable: ImportAirtablePage;
   readonly importTemplate = new ImportTemplatePage(this);
+  readonly sidebar: SidebarPage;
+  readonly docs: DocsPageGroup;
 
   constructor(rootPage: Page, project: any) {
     super(rootPage);
@@ -58,6 +62,8 @@ export class DashboardPage extends BasePage {
     this.settings = new SettingsPage(this);
     this.viewSidebar = new ViewSidebarPage(this);
     this.importAirtable = new ImportAirtablePage(this);
+    this.sidebar = new SidebarPage(this);
+    this.docs = new DocsPageGroup(this);
   }
 
   get() {

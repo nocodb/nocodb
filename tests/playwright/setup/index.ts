@@ -1,12 +1,6 @@
 import { Page, selectors } from '@playwright/test';
 import axios from 'axios';
-
-export enum NcProjectType {
-  DB = 'database',
-  DOCS = 'documentation',
-  AUTOMATION = 'automation',
-  COWRITER = 'cowriter',
-}
+import { ProjectTypes, UserType, WorkspaceType } from 'nocodb-sdk';
 
 const workerCount = {};
 
@@ -16,16 +10,18 @@ export interface NcContext {
   dbType?: string;
   // todo: Hack to resolve issue with pg resetting
   workerId?: string;
+  rootUser: UserType;
+  workspace: WorkspaceType;
 }
 
 selectors.setTestIdAttribute('data-testid');
 
 const setup = async ({
-  projectType = NcProjectType.DB,
+  projectType = ProjectTypes.DATABASE,
   page,
-  isEmptyProject,
+  isEmptyProject = true,
 }: {
-  projectType?: NcProjectType;
+  projectType?: ProjectTypes;
   page: Page;
   isEmptyProject?: boolean;
 }): Promise<NcContext> => {
@@ -88,16 +84,18 @@ const setup = async ({
   );
 
   const project = response.data.project;
+  const rootUser = response.data.user;
+  const workspace = response.data.workspace;
 
   let projectUrl;
   switch (project.type) {
-    case NcProjectType.DOCS:
+    case ProjectTypes.DOCUMENTATION:
       projectUrl = `/#/ws/${project.fk_workspace_id}/nc/${project.id}/doc`;
       break;
-    case NcProjectType.DB:
+    case ProjectTypes.DATABASE:
       projectUrl = `/#/ws/${project.fk_workspace_id}/nc/${project.id}/db`;
       break;
-    case NcProjectType.COWRITER:
+    case ProjectTypes.COWRITER:
       projectUrl = `/#/ws/${project.fk_workspace_id}/nc/${project.id}/cowriter`;
       break;
     default:
@@ -106,7 +104,7 @@ const setup = async ({
 
   await page.goto(projectUrl, { waitUntil: 'networkidle' });
 
-  return { project, token, dbType, workerId } as NcContext;
+  return { project, token, dbType, workerId, rootUser, workspace } as NcContext;
 };
 
 export default setup;

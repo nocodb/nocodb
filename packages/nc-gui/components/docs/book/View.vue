@@ -3,12 +3,14 @@ import dayjs from 'dayjs'
 import type { Ref } from 'vue'
 // import InfiniteLoading from 'v3-infinite-loading'
 import { Loading3QuartersOutlined } from '@ant-design/icons-vue'
+import { useShortcuts } from '../utils'
 import MdiFileDocumentOutline from '~icons/mdi/file-document-outline'
 import MdiFilterVariant from '~icons/mdi/filter-variant'
 import MaterialSymbolsPublic from '~icons/material-symbols/public'
 import type { PageSidebarNode } from '~composables/docs/useDocs'
 import { storeToRefs, useProject } from '#imports'
 
+useShortcuts()
 const { showShareModal } = useShare()
 
 const { project } = storeToRefs(useProject())
@@ -261,17 +263,26 @@ const onShare = async (page: PageSidebarNode) => {
                 </div>
               </div>
             </template>
-            <div v-if="isOpenedNestedPageLoading">
+            <div
+              v-if="isOpenedNestedPageLoading"
+              data-testid="docs-pagelist-container-loader"
+              :data-testActiveTabKey="`docs-pagelist-tab-${activeTabKey}`"
+            >
               <div class="flex flex-col mt-64">
                 <a-spin size="large" :indicator="indicator" />
               </div>
             </div>
-            <div v-else-if="pages.length === 0 && activeTabKey === 'shared'">
+            <div v-else-if="pages.length === 0 && activeTabKey === 'shared'" data-testid="docs-pagelist-container">
               <div class="flex flex-col gap-y-3 items-center mt-56">
                 <div class="flex text-gray-500">You have not shared any pages yet</div>
               </div>
             </div>
-            <div v-else-if="pages.length === 0" class="h-full flex flex-col justify-center -mt-6">
+            <div
+              v-else-if="pages.length === 0"
+              data-testid="docs-pagelist-container"
+              :data-testActiveTabKey="activeTabKey"
+              class="h-full flex flex-col justify-center -mt-6"
+            >
               <div class="flex flex-col gap-y-3 items-center">
                 <img src="~/assets/img/add-page.svg" class="flex h-12" />
                 <div class="flex text-xl font-semibold">Lets get started!</div>
@@ -301,11 +312,18 @@ const onShare = async (page: PageSidebarNode) => {
                 </div>
               </div>
             </div>
-            <div v-else :key="activeTabKey" class="h-full overflow-y-auto docs-book-infinite-list">
+            <div
+              v-else
+              :key="activeTabKey"
+              data-testid="docs-pagelist-container"
+              :data-testActiveTabKey="`docs-pagelist-tab-${activeTabKey}`"
+              class="h-full overflow-y-auto docs-book-infinite-list"
+            >
               <div class="flex flex-col gap-y-4 mt-6 mb-12 px-2">
                 <div
                   v-for="(page, index) of pages"
                   :key="index"
+                  :data-testid="`docs-pagelist-page-${page.id}`"
                   class="flex flex-row w-full items-center cursor-pointer px-5 mx-1 py-3 rounded-md border-gray-50 border-1 hover:bg-gray-50 shadow-gray-50 shadow-sm"
                 >
                   <div class="flex flex-col gap-y-2" @click="() => openPage({page, projectId: project.id!})">

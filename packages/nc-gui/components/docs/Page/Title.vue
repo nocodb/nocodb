@@ -142,6 +142,7 @@ watchDebounced(
     <a-textarea
       ref="titleInputRef"
       v-model:value="title"
+      data-testid="docs-page-title"
       class="!text-5xl font-semibold !p-0"
       :bordered="false"
       :readonly="isPublic"

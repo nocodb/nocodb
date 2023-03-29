@@ -12,11 +12,13 @@ test.describe('Create docs project and verify docs UI', () => {
     dashboard = new DashboardPage(page, context.project);
   });
 
-  test.only('Create docs project', async ({ page }) => {
+  test('Create docs project', async ({ page }) => {
     await dashboard.sidebar.createProject({
       title: 'test-docs',
       type: ProjectTypes.DOCUMENTATION,
     });
     await dashboard.docs.pagesList.verifyProjectTitle({ title: 'test-docs' });
+    await dashboard.docs.pagesList.verifyOpenedTab({ tab: 'all' });
+    await dashboard.shareProjectButton.verifyShareStatus({ visibility: 'private' });
   });
 });

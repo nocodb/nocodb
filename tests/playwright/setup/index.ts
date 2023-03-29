@@ -1,11 +1,11 @@
 import { Page, selectors } from '@playwright/test';
 import axios from 'axios';
-import { ProjectTypes, UserType, WorkspaceType } from 'nocodb-sdk';
+import { ProjectType, ProjectTypes, UserType, WorkspaceType } from 'nocodb-sdk';
 
 const workerCount = {};
 
 export interface NcContext {
-  project: any;
+  project: ProjectType;
   token: string;
   dbType?: string;
   // todo: Hack to resolve issue with pg resetting

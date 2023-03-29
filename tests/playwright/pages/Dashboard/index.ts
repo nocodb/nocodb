@@ -18,6 +18,7 @@ import { ProjectsPage } from '../ProjectsPage';
 import { FindRowByScanOverlay } from './FindRowByScanOverlay';
 import { SidebarPage } from './Sidebar';
 import { DocsPageGroup } from './Docs';
+import { ShareProjectButtonPage } from './ShareProjectButton';
 
 export class DashboardPage extends BasePage {
   readonly project: any;
@@ -39,8 +40,9 @@ export class DashboardPage extends BasePage {
   readonly viewSidebar: ViewSidebarPage;
   readonly importAirtable: ImportAirtablePage;
   readonly importTemplate = new ImportTemplatePage(this);
-  readonly sidebar: SidebarPage;
   readonly docs: DocsPageGroup;
+  readonly sidebar: SidebarPage;
+  readonly shareProjectButton: ShareProjectButtonPage;
 
   constructor(rootPage: Page, project: any) {
     super(rootPage);
@@ -64,6 +66,7 @@ export class DashboardPage extends BasePage {
     this.importAirtable = new ImportAirtablePage(this);
     this.sidebar = new SidebarPage(this);
     this.docs = new DocsPageGroup(this);
+    this.shareProjectButton = new ShareProjectButtonPage(this);
   }
 
   get() {

@@ -18,6 +18,10 @@ export class DocsPageListPage extends BasePage {
     expect(await this.get().getByTestId('docs-project-title').textContent()).toBe(title);
   }
 
+  async verifyOpenedTab({ tab }: { tab: 'all' | 'allByTitle' | 'shared' }) {
+    await expect(this.get().locator(`[data-testActiveTabKey="${tab}"]`)).toBeVisible();
+  }
+
   async waitForOpen({ title }: { title: string }) {
     await this.get().locator(`[data-docs-project-title="${title}"]`).waitFor({ state: 'visible' });
   }

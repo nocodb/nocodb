@@ -172,6 +172,7 @@ onMounted(async () => {
         'px-1 !min-w-61.5': isPublic,
         '!min-w-56.5': !isPublic,
       }"
+      :data-testid="`docs-sidebar-${project.title}`"
       :trigger="null"
       collapsible
       theme="light"
@@ -188,7 +189,11 @@ onMounted(async () => {
         @select="onTabSelect"
       >
         <template #title="{ title, id, icon, level }">
-          <div class="flex flex-row items-center justify-between group pt-1">
+          <div
+            class="flex flex-row items-center justify-between group pt-1"
+            :data-testid="`docs-sidebar-page-${project.title}-${title}`"
+            :data-level="level"
+          >
             <div
               class="flex flex-row gap-x-1 text-ellipsis overflow-clip min-w-0 transition-all duration-200 ease-in-out"
               :class="{}"
@@ -264,7 +269,7 @@ onMounted(async () => {
               </a-dropdown>
               <div
                 v-if="level < MAX_NESTED_LEVEL"
-                class="flex px-0.5 hover:( !bg-gray-300 !bg-opacity-30 rounded-md) cursor-pointer select-none hidden group-hover:block"
+                class="nc-docs-add-child-page flex px-0.5 hover:( !bg-gray-300 !bg-opacity-30 rounded-md) cursor-pointer select-none hidden group-hover:block"
                 @click="() => addNewPage({parentPageId: id, projectId: project.id!})"
               >
                 <MdiPlus />

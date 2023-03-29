@@ -146,7 +146,7 @@ watchDebounced(
 
 <template>
   <a-layout-content>
-    <div ref="wrapperRef" class="nc-docs-page h-full flex flex-row relative">
+    <div ref="wrapperRef" data-testid="docs-opened-page" class="nc-docs-page h-full flex flex-row relative">
       <div class="flex flex-col w-full">
         <div class="flex flex-row justify-between items-center pl-6 pt-2.5">
           <div class="flex flex-row h-6">
@@ -184,7 +184,7 @@ watchDebounced(
             v-if="isPageFetching && !isPublic"
             :active="true"
             size="large"
-            class="docs-page-title-skelton !mt-4 !max-w-156 mb-3 -ml-3"
+            class="docs-page-title-skelton !mt-3 !max-w-156 mb-3 -ml-3 docs-page-skeleton-loading"
           />
           <DocsPageTitle v-else-if="openedPage" class="docs-page-title" @focus-editor="focusEditor" />
           <div class="flex !mb-4.5"></div>
@@ -195,7 +195,7 @@ watchDebounced(
             v-if="isPageFetching && !isPublic"
             :active="true"
             size="small"
-            class="docs-page-title-skelton !max-w-102 mb-3 mt-1 -ml-3"
+            class="docs-page-title-skelton !max-w-102 mb-3 mt-1 docs-page-skeleton-loading"
           />
           <EditorContent v-else :key="isEditAllowed ? 'edit' : 'view'" :editor="editor" />
           <div
@@ -232,6 +232,9 @@ watchDebounced(
 </template>
 
 <style lang="scss">
+.docs-page-skeleton-loading {
+  margin-left: min(45%, 24vw);
+}
 div.ProseMirror {
   min-height: 77vh;
   width: 100%;

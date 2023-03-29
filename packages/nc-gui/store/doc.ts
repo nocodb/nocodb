@@ -13,7 +13,7 @@ export const useDocStore = defineStore('docStore', () => {
   const { setProject } = useProject()
 
   const isNestedPageFetching = ref<Record<string, boolean>>({})
-  const isPageFetching = ref<boolean>(true)
+  const isPageFetching = ref<boolean>(false)
   const isPageErrored = ref<boolean>(false)
   const isNestedFetchErrored = ref<boolean>(false)
 

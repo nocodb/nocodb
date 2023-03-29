@@ -12,13 +12,13 @@ const pg = {
   CEILING: 'ceil',
   POWER: 'pow',
   SQRT: 'sqrt',
-  SEARCH: (args: MapFnArgs) => {
+  SEARCH: async (args: MapFnArgs) => {
     return args.knex.raw(
       `POSITION(${args.knex.raw(
-        args.fn(args.pt.arguments[1]).toQuery()
-      )} in ${args.knex.raw(args.fn(args.pt.arguments[0]).toQuery())})${
-        args.colAlias
-      }`
+        (await args.fn(args.pt.arguments[1])).builder.toQuery()
+      )} in ${args.knex
+        .raw((await args.fn(args.pt.arguments[0])).builder)
+        .toQuery()})${args.colAlias}`
     );
   },
   INT(args: MapFnArgs) {
@@ -51,11 +51,11 @@ const pg = {
       )}')::interval${colAlias}`
     );
   },
-  DATETIME_DIFF: ({ fn, knex, pt, colAlias }: MapFnArgs) => {
+  DATETIME_DIFF: async ({ fn, knex, pt, colAlias }: MapFnArgs) => {
     const datetime_expr1 = fn(pt.arguments[0]);
     const datetime_expr2 = fn(pt.arguments[1]);
     const rawUnit = pt.arguments[2]
-      ? fn(pt.arguments[2]).bindings[0]
+      ? (await fn(pt.arguments[2])).builder.bindings[0]
       : 'seconds';
     let sql;
     const unit = convertUnits(rawUnit, 'pg');
@@ -101,37 +101,39 @@ const pg = {
     }
     return knex.raw(`${sql} ${colAlias}`);
   },
-  WEEKDAY: ({ fn, knex, pt, colAlias }: MapFnArgs) => {
+  WEEKDAY: async ({ fn, knex, pt, colAlias }: MapFnArgs) => {
     // isodow: the day of the week as Monday (1) to Sunday (7)
     // WEEKDAY() returns an index from 0 to 6 for Monday to Sunday
     return knex.raw(
       `(EXTRACT(ISODOW FROM ${
         pt.arguments[0].type === 'Literal'
-          ? `date '${dayjs(fn(pt.arguments[0])).format('YYYY-MM-DD')}'`
+          ? `date '${dayjs((await fn(pt.arguments[0])).builder).format(
+              'YYYY-MM-DD'
+            )}'`
           : fn(pt.arguments[0])
       }) - 1 - ${getWeekdayByText(
         pt?.arguments[1]?.value
       )} % 7 + 7) ::INTEGER % 7 ${colAlias}`
     );
   },
-  AND: (args: MapFnArgs) => {
+  AND: async (args: MapFnArgs) => {
     return args.knex.raw(
       `CASE WHEN ${args.knex
         .raw(
           `${args.pt.arguments
-            .map((ar) => args.fn(ar, '', 'AND').toQuery())
+            .map(async (ar) => (await args.fn(ar, '', 'AND')).builder.toQuery())
             .join(' AND ')}`
         )
         .wrap('(', ')')
         .toQuery()} THEN TRUE ELSE FALSE END ${args.colAlias}`
     );
   },
-  OR: (args: MapFnArgs) => {
+  OR: async (args: MapFnArgs) => {
     return args.knex.raw(
       `CASE WHEN ${args.knex
         .raw(
           `${args.pt.arguments
-            .map((ar) => args.fn(ar, '', 'OR').toQuery())
+            .map(async (ar) => (await args.fn(ar, '', 'OR')).builder.toQuery())
             .join(' OR ')}`
         )
         .wrap('(', ')')

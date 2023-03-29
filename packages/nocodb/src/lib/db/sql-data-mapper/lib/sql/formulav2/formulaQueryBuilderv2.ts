@@ -53,7 +53,7 @@ async function _formulaQueryBuilder(
   alias,
   knex: XKnex,
   model: Model,
-  aliasToColumn = {},
+  aliasToColumn: Record<string, () => Promise<{ builder: any }>> = {},
   tableAlias?: string
 ) {
   // formula may include double curly brackets in previous version
@@ -69,21 +69,25 @@ async function _formulaQueryBuilder(
     switch (col.uidt) {
       case UITypes.Formula:
         {
-          const formulOption = await col.getColOptions<FormulaColumn>();
-          const { builder } = await _formulaQueryBuilder(
-            formulOption.formula,
-            alias,
-            knex,
-            model,
-            { ...aliasToColumn, [col.id]: null },
-            tableAlias
-          );
-          builder.sql = '(' + builder.sql + ')';
-          aliasToColumn[col.id] = builder;
+          aliasToColumn[col.id] = async () => {
+            const formulOption = await col.getColOptions<FormulaColumn>();
+            const { builder } = await _formulaQueryBuilder(
+              formulOption.formula,
+              alias,
+              knex,
+              model,
+              { ...aliasToColumn, [col.id]: null },
+              tableAlias
+            );
+            builder.sql = '(' + builder.sql + ')';
+            return {
+              builder,
+            };
+          };
         }
         break;
       case UITypes.Lookup:
-        {
+        aliasToColumn[col.id] = async (): Promise<any> => {
           let aliasCount = 0;
           let selectQb;
           let isMany = false;
@@ -398,25 +402,27 @@ async function _formulaQueryBuilder(
             }
 
             if (selectQb)
-              aliasToColumn[col.id] =
-                typeof selectQb === 'function'
-                  ? selectQb
-                  : knex.raw(selectQb as any).wrap('(', ')');
+              return {
+                builder:
+                  typeof selectQb === 'function'
+                    ? selectQb
+                    : knex.raw(selectQb as any).wrap('(', ')'),
+              };
           }
-        }
+        };
         break;
       case UITypes.Rollup:
-        {
+        aliasToColumn[col.id] = async (): Promise<any> => {
           const qb = await genRollupSelectv2({
             knex,
             columnOptions: (await col.getColOptions()) as RollupColumn,
             alias: tableAlias,
           });
-          aliasToColumn[col.id] = knex.raw(qb.builder).wrap('(', ')');
-        }
+          return { builder: knex.raw(qb.builder).wrap('(', ')') };
+        };
         break;
       case UITypes.LinkToAnotherRecord:
-        {
+        aliasToColumn[col.id] = async (): Promise<any> => {
           const alias = `__nc_formula_ll`;
           const relation = await col.getColOptions<LinkToAnotherRecordColumn>();
           // if (relation.type !== 'bt') continue;
@@ -520,19 +526,22 @@ async function _formulaQueryBuilder(
                 .wrap('(', ')');
           }
           if (selectQb)
-            aliasToColumn[col.id] =
-              typeof selectQb === 'function'
-                ? selectQb
-                : knex.raw(selectQb as any).wrap('(', ')');
-        }
+            return {
+              builder:
+                typeof selectQb === 'function'
+                  ? selectQb
+                  : knex.raw(selectQb as any).wrap('(', ')'),
+            };
+        };
         break;
       default:
-        aliasToColumn[col.id] = col.column_name;
+        aliasToColumn[col.id] = () =>
+          Promise.resolve({ builder: col.column_name });
         break;
     }
   }
 
-  const fn = (pt, a?, prevBinaryOp?) => {
+  const fn = async (pt, a?, prevBinaryOp?) => {
     const colAlias = a ? ` as ${a}` : '';
     pt.arguments?.forEach?.((arg) => {
       if (arg.fnName) return;
@@ -558,18 +567,6 @@ async function _formulaQueryBuilder(
             return fn(pt.arguments[0], a, prevBinaryOp);
           }
           break;
-        // case 'AVG':
-        //   if (pt.arguments.length > 1) {
-        //     return fn({
-        //       type: 'BinaryExpression',
-        //       operator: '/',
-        //       left: {...pt, callee: {name: 'SUM'}},
-        //       right: {type: 'Literal', value: pt.arguments.length}
-        //     }, a, prevBinaryOp)
-        //   } else {
-        //     return fn(pt.arguments[0], a, prevBinaryOp)
-        //   }
-        //   break;
         case 'CONCAT':
           if (knex.clientType() === 'sqlite3') {
             if (pt.arguments.length > 1) {
@@ -653,8 +650,12 @@ async function _formulaQueryBuilder(
     } else if (pt.type === 'Literal') {
       return knex.raw(`?${colAlias}`, [pt.value]);
     } else if (pt.type === 'Identifier') {
-      if (typeof aliasToColumn?.[pt.name] === 'function') {
-        return knex.raw(`??${colAlias}`, aliasToColumn?.[pt.name](pt.fnName));
+      const { builder } = await aliasToColumn?.[pt.name]()
+      if (typeof builder === 'function') {
+        return knex.raw(
+          `??${colAlias}`,
+          await builder(pt.fnName)
+        );
       }
       return knex.raw(`??${colAlias}`, [aliasToColumn?.[pt.name] || pt.name]);
     } else if (pt.type === 'BinaryExpression') {
@@ -772,7 +773,7 @@ async function _formulaQueryBuilder(
       if (prevBinaryOp && pt.operator !== prevBinaryOp) {
         query.wrap('(', ')');
       }
-      return query;
+      return { builder: query };
     } else if (pt.type === 'UnaryExpression') {
       const query = knex.raw(
         `${pt.operator}${fn(
@@ -784,7 +785,7 @@ async function _formulaQueryBuilder(
       if (prevBinaryOp && pt.operator !== prevBinaryOp) {
         query.wrap('(', ')');
       }
-      return query;
+      return { builder: query };
     }
   };
   return { builder: fn(tree, alias) };

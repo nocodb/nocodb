@@ -21,7 +21,11 @@ const qrCodeOptions: QRCode.QRCodeToDataURLOptions = {
     quality: 1,
   },
 }
-const rowHeight = inject(RowHeightInj)
+
+const rowHeight = inject(
+  RowHeightInj,
+  computed(() => undefined),
+)
 
 const qrCode = useQRCode(qrValue, {
   ...qrCodeOptions,

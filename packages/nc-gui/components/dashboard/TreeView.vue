@@ -29,6 +29,7 @@ import {
   useTabs,
   useToggle,
   useUIPermission,
+  useUndoRedo,
   watchEffect,
 } from '#imports'
 
@@ -54,6 +55,8 @@ const route = useRoute()
 const [searchActive, toggleSearchActive] = useToggle()
 
 const { appInfo } = useGlobal()
+
+const { addUndo, defineProjectScope } = useUndoRedo()
 
 const toggleDialog = inject(ToggleDialogInj, () => {})
 
@@ -94,6 +97,9 @@ const initSortable = (el: Element) => {
 
       const itemEl = evt.item as HTMLLIElement
       const item = tablesById[itemEl.dataset.id as string]
+
+      // store the old order for undo
+      const oldOrder = item.order
 
       // get the html collection of all list items
       const children: HTMLCollection = evt.to.children
@@ -142,6 +148,38 @@ const initSortable = (el: Element) => {
       // update the item order
       await $api.dbTable.reorder(item.id as string, {
         order: item.order,
+      })
+
+      const nextIndex = tables.value?.findIndex((table) => table.id === item.id)
+
+      addUndo({
+        undo: {
+          fn: async (id: string, order: number, index: number) => {
+            const itemIndex = tables.value.findIndex((table) => table.id === id)
+            if (itemIndex < 0) return
+            const item = tables.value[itemIndex]
+            item.order = order
+            tables.value?.splice(index, 0, ...tables.value?.splice(itemIndex, 1))
+            await $api.dbTable.reorder(item.id as string, {
+              order: item.order,
+            })
+          },
+          args: [item.id, oldOrder, itemIndex],
+        },
+        redo: {
+          fn: async (id: string, order: number, index: number) => {
+            const itemIndex = tables.value.findIndex((table) => table.id === id)
+            if (itemIndex < 0) return
+            const item = tables.value[itemIndex]
+            item.order = order
+            tables.value?.splice(index, 0, ...tables.value?.splice(itemIndex, 1))
+            await $api.dbTable.reorder(item.id as string, {
+              order: item.order,
+            })
+          },
+          args: [item.id, item.order, nextIndex],
+        },
+        scope: defineProjectScope({ project: project.value }),
       })
     },
     animation: 150,

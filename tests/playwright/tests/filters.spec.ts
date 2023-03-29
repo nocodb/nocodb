@@ -60,11 +60,11 @@ async function verifyFilter_withFixedModal(param: {
   }
 
   await toolbar.filter.add({
-    columnTitle: param.column,
-    opType: param.opType,
-    opSubType: param.opSubType,
+    title: param.column,
+    operation: param.opType,
+    subOperation: param.opSubType,
     value: param.value,
-    isLocallySaved: false,
+    locallySaved: false,
     dataType: param?.dataType,
     openModal: true,
   });
@@ -90,11 +90,11 @@ async function verifyFilter(param: {
 
   await toolbar.clickFilter();
   await toolbar.filter.add({
-    columnTitle: param.column,
-    opType: param.opType,
-    opSubType: param.opSubType,
+    title: param.column,
+    operation: param.opType,
+    subOperation: param.opSubType,
     value: param.value,
-    isLocallySaved: false,
+    locallySaved: false,
     dataType: param?.dataType,
   });
   await toolbar.clickFilter();
@@ -1271,10 +1271,10 @@ test.describe('Filter Tests: Toggle button', () => {
 
     await toolbar.clickFilter({ networkValidation: false });
     await toolbar.filter.add({
-      columnTitle: 'Country',
-      opType: 'is null',
+      title: 'Country',
+      operation: 'is null',
       value: null,
-      isLocallySaved: false,
+      locallySaved: false,
       dataType: 'SingleLineText',
     });
     await toolbar.clickFilter({ networkValidation: false });

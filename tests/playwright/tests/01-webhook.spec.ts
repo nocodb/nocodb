@@ -3,6 +3,9 @@ import { DashboardPage } from '../pages/Dashboard';
 import setup from '../setup';
 import makeServer from '../setup/server';
 import { WebhookFormPage } from '../pages/Dashboard/WebhookForm';
+import { UITypes } from 'nocodb-sdk';
+import { Api } from 'nocodb-sdk';
+let api: Api<any>;
 
 const hookPath = 'http://localhost:9090/hook';
 
@@ -52,9 +55,16 @@ test.describe.serial('Webhook', () => {
   });
 
   test.beforeEach(async ({ page }) => {
-    context = await setup({ page });
+    context = await setup({ page, isEmptyProject: true });
     dashboard = new DashboardPage(page, context.project);
     webhook = dashboard.webhookForm;
+
+    api = new Api({
+      baseURL: `http://localhost:8080/`,
+      headers: {
+        'xc-auth': context.token,
+      },
+    });
   });
 
   test('CRUD', async ({ request, page }) => {
@@ -258,5 +268,154 @@ test.describe.serial('Webhook', () => {
     await dashboard.grid.deleteRow(1);
     await dashboard.grid.deleteRow(0);
     await verifyHookTrigger(6, 'Delaware', request);
+  });
+
+  test.only('Virtual columns', async ({ request, page }) => {
+    let cityTable, countryTable;
+    const cityColumns = [
+      {
+        column_name: 'Id',
+        title: 'Id',
+        uidt: UITypes.ID,
+      },
+      {
+        column_name: 'City',
+        title: 'City',
+        uidt: UITypes.SingleLineText,
+        pv: true,
+      },
+      {
+        column_name: 'CityCode',
+        title: 'CityCode',
+        uidt: UITypes.Number,
+      },
+    ];
+    const countryColumns = [
+      {
+        column_name: 'Id',
+        title: 'Id',
+        uidt: UITypes.ID,
+      },
+      {
+        column_name: 'Country',
+        title: 'Country',
+        uidt: UITypes.SingleLineText,
+        pv: true,
+      },
+      {
+        column_name: 'CountryCode',
+        title: 'CountryCode',
+        uidt: UITypes.Number,
+      },
+    ];
+
+    try {
+      const project = await api.project.read(context.project.id);
+      cityTable = await api.base.tableCreate(context.project.id, project.bases?.[0].id, {
+        table_name: 'City',
+        title: 'City',
+        columns: cityColumns,
+      });
+      countryTable = await api.base.tableCreate(context.project.id, project.bases?.[0].id, {
+        table_name: 'Country',
+        title: 'Country',
+        columns: countryColumns,
+      });
+
+      const cities = ['Mumbai', 'Pune', 'Delhi', 'Bangalore'];
+      const countries = ['India', 'USA', 'UK', 'Australia'];
+      let cityRowAttributes = [];
+      let countryRowAttributes = [];
+
+      for (let i = 0; i < 50000; i++) {
+        cityRowAttributes = [
+          { City: cities[i % 4], CityCode: (i % 4) + 1 },
+          { City: cities[(i + 1) % 4], CityCode: ((i + 1) % 4) + 1 },
+          { City: cities[(i + 2) % 4], CityCode: ((i + 2) % 4) + 1 },
+          { City: cities[(i + 3) % 4], CityCode: ((i + 3) % 4) + 1 },
+        ];
+      }
+
+      for (let i = 0; i < 50000; i++) {
+        countryRowAttributes = [
+          { Country: countries[i % 4], CountryCode: (i % 4) + 1 },
+          { Country: countries[(i + 1) % 4], CountryCode: ((i + 1) % 4) + 1 },
+          { Country: countries[(i + 2) % 4], CountryCode: ((i + 2) % 4) + 1 },
+          { Country: countries[(i + 3) % 4], CountryCode: ((i + 3) % 4) + 1 },
+        ];
+      }
+
+      await api.dbTableRow.bulkCreate('noco', context.project.id, cityTable.id, cityRowAttributes);
+
+      // const countryRowAttributes = [
+      //   { Country: 'India', CountryCode: 1 },
+      //   { Country: 'USA', CountryCode: 2 },
+      //   { Country: 'UK', CountryCode: 3 },
+      //   { Country: 'Australia', CountryCode: 4 },
+      // ];
+      await api.dbTableRow.bulkCreate('noco', context.project.id, countryTable.id, countryRowAttributes);
+
+      // create LTAR Country has-many City
+      countryTable = await api.dbTableColumn.create(countryTable.id, {
+        column_name: 'CityList',
+        title: 'CityList',
+        uidt: UITypes.LinkToAnotherRecord,
+        parentId: countryTable.id,
+        childId: cityTable.id,
+        type: 'hm',
+      });
+
+      // Create Lookup column in Country table
+      countryTable = await api.dbTableColumn.create(countryTable.id, {
+        column_name: 'CityCodeLookup',
+        title: 'CityCodeLookup',
+        uidt: UITypes.Lookup,
+        fk_relation_column_id: countryTable.columns.filter(c => c.title === 'CityList')[0].id,
+        fk_lookup_column_id: cityTable.columns.filter(c => c.title === 'CityCode')[0].id,
+      });
+
+      // Create Rollup column in Country table
+      countryTable = await api.dbTableColumn.create(countryTable.id, {
+        column_name: 'CityCodeRollup',
+        title: 'CityCodeRollup',
+        uidt: UITypes.Rollup,
+        fk_relation_column_id: countryTable.columns.filter(c => c.title === 'CityList')[0].id,
+        fk_rollup_column_id: cityTable.columns.filter(c => c.title === 'CityCode')[0].id,
+        rollup_function: 'count',
+      });
+
+      // Create links 1-1
+      for (let i = 0; i < 1000; i++) {
+        await api.dbTableRow.nestedAdd(
+          'noco',
+          context.project.id,
+          countryTable.id,
+          i + 1,
+          'hm',
+          'CityList',
+          `${i + 1}`
+        );
+      }
+
+      for (let i = 0; i < 12; i++) {
+        // create formula column
+        countryTable = await api.dbTableColumn.create(countryTable.id, {
+          column_name: `CityCodeFormula${i}`,
+          title: `CityCodeFormula${i}`,
+          uidt: UITypes.Formula,
+          formula_raw: '({Id} * 100)',
+        });
+      }
+
+      // read records
+      const records = await api.dbTableRow.list('noco', context.project.id, countryTable.id, {
+        limit: 1000,
+      });
+      console.log(records.list.length);
+    } catch (e) {
+      console.log(e);
+    }
+
+    await page.reload();
   });
 });

@@ -659,7 +659,7 @@ function getUTCEpochTime(date) {
   return Date.UTC(date.getUTCFullYear(), date.getUTCMonth(), date.getUTCDate(), 0, 0, 0, 0);
 }
 
-test.describe.only('Filter Tests: Date based', () => {
+test.describe('Filter Tests: Date based', () => {
   const today = getUTCEpochTime(new Date());
   const tomorrow = getUTCEpochTime(new Date(new Date().setDate(new Date().getDate() + 1)));
   const yesterday = getUTCEpochTime(new Date(new Date().setDate(new Date().getDate() - 1)));

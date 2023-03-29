@@ -39,7 +39,7 @@
     "signIn": "Увійти",
     "signOut": "Вийти",
     "required": "Обов'язково",
-    "enableScanner": "Enable Scanner for filling",
+    "enableScanner": "Увімкнути сканер для заповнення",
     "preferred": "Бажане",
     "mandatory": "Обов’язкове",
     "loading": "Завантаження ...",
@@ -76,7 +76,7 @@
     "hideField": "Приховати поле",
     "sortAsc": "За зростанням",
     "sortDesc": "За спаданням",
-    "geoDataField": "GeoData Field"
+    "geoDataField": "Поле геоданих"
   },
   "objects": {
     "project": "Проєкт",
@@ -101,7 +101,7 @@
       "form": "Форма",
       "kanban": "Канбан",
       "calendar": "Календар",
-      "map": "Map"
+      "map": "Мапа"
     },
     "user": "Користувач",
     "users": "Користувачі",
@@ -139,7 +139,7 @@
     "Currency": "Валюта",
     "Percent": "Відсоток",
     "Duration": "Тривалість",
-    "GeoData": "GeoData",
+    "GeoData": "Геодані",
     "Rating": "Рейтинг",
     "Formula": "Формула",
     "Rollup": "Накопичення",
@@ -211,7 +211,7 @@
     "codeSnippet": "Фрагмент коду",
     "keyboardShortcut": "Клавіатурні скорочення",
     "generateRandomName": "Згенерувати випадкове ім’я",
-    "findRowByScanningCode": "Find row by scanning a QR or Barcode"
+    "findRowByScanningCode": "Знайти рядок, відсканувавши QR-код або штрих-код"
   },
   "labels": {
     "createdBy": "Автор",
@@ -221,7 +221,7 @@
     "viewName": "Назва вигляду",
     "viewLink": "Вигляд посилання",
     "columnName": "Назва стовпця",
-    "columnToScanFor": "Column to scan",
+    "columnToScanFor": "Стовпець для сканування",
     "columnType": "Тип стовпця",
     "roleName": "Ім'я ролі",
     "roleDescription": "Опис ролі",
@@ -238,7 +238,7 @@
     "action": "Дія",
     "actions": "Дії",
     "operation": "Операція",
-    "operationSub": "Sub Operation",
+    "operationSub": "Субоперація",
     "operationType": "Тип операції",
     "operationSubType": "Підтип операції",
     "description": "Опис",
@@ -260,9 +260,9 @@
     "barcodeFormat": "Формат штрих-коду",
     "qrCodeValueTooLong": "Забагато символів для QR-коду",
     "barcodeValueTooLong": "Забагато символів для штрих-коду",
-    "currentLocation": "Current Location",
+    "currentLocation": "Розташування",
     "lng": "Lng",
-    "lat": "Lat",
+    "lat": "Широта",
     "aggregateFunction": "Агрегатна функція",
     "dbCreateIfNotExists": "База даних: створити, якщо не існує",
     "clientKey": "Ключ клієнта",
@@ -390,13 +390,13 @@
     "renameTable": "Перейменувати таблицю",
     "deleteTable": "Видалити таблицю",
     "addField": "Додати нове поле до цієї таблиці",
-    "setDisplay": "Set as Display value",
+    "setDisplay": "Встановити як основне значення",
     "addRow": "Додати новий рядок",
     "saveRow": "Зберегти рядок",
     "saveAndExit": "Зберегти та вийти",
     "saveAndStay": "Зберегти та залишитись",
     "insertRow": "Вставити новий рядок",
-    "duplicateRow": "Duplicate Row",
+    "duplicateRow": "Дублювати рядок",
     "deleteRow": "Видалити рядок",
     "deleteSelectedRow": "Видалити вибрані рядки",
     "importExcel": "Імпортувати з Excel",
@@ -412,8 +412,8 @@
     "changePwd": "Змінити пароль",
     "createView": "Створити вигляд",
     "shareView": "Поділитися виглядом",
-    "findRowByCodeScan": "Find row by scan",
-    "fillByCodeScan": "Fill by scan",
+    "findRowByCodeScan": "Знайти рядок за скануванням",
+    "fillByCodeScan": "Заповнити за допомогою сканування",
     "listSharedView": "Список спільних виглядів",
     "ListView": "Список виглядів",
     "copyView": "Копіювати вигляд",
@@ -429,10 +429,10 @@
     "openTab": "Відкрийте нову вкладку",
     "iFrame": "Копіювати вбудований HTML-код",
     "addWebhook": "Додати новий Webhook",
-    "enableWebhook": "Enable Webhook",
-    "testWebhook": "Test Webhook",
-    "copyWebhook": "Copy Webhook",
-    "deleteWebhook": "Delete Webhook",
+    "enableWebhook": "Увімкнути webhook",
+    "testWebhook": "Перевірити вебхук",
+    "copyWebhook": "Скопіювати веб-хук",
+    "deleteWebhook": "Видалити веб-хук",
     "newToken": "Додати новий токен",
     "exportZip": "Експорт Zip-файлу",
     "importZip": "Імпорт Zip-файлу",
@@ -471,11 +471,11 @@
     },
     "map": {
       "mappedBy": "Mapped By",
-      "chooseMappingField": "Choose a Mapping Field",
-      "openInGoogleMaps": "Google Maps",
+      "chooseMappingField": "Виберіть поле для мапування",
+      "openInGoogleMaps": "Google Карти",
       "openInOpenStreetMap": "OSM"
     },
-    "toggleMobileMode": "Toggle Mobile Mode"
+    "toggleMobileMode": "Увімкнути мобільний режим"
   },
   "tooltip": {
     "saveChanges": "Зберегти зміни",
@@ -542,7 +542,7 @@
         "orgViewer": "Глядач не може створювати нові проєкти, але він може отримати доступ до будь-якого відкритого проєкту."
       },
       "codeScanner": {
-        "loadingScanner": "Loading the scanner...",
+        "loadingScanner": "Завантаження сканера...",
         "selectColumn": "Select a column (QR code or Barcode) that you want to use for finding a row by scanning.",
         "moreThanOneRowFoundForCode": "More than one row found for this code. Currently only unique codes are supported.",
         "noRowFoundForCode": "No row found for this code for the selected column"

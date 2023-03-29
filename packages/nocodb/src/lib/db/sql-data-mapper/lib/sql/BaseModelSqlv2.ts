@@ -201,7 +201,8 @@ class BaseModelSqlv2 {
       sort?: string | string[];
       fieldsSet?: Set<string>;
     } = {},
-    ignoreViewFilterAndSort = false
+    ignoreViewFilterAndSort = false,
+
   ): Promise<any> {
     const { where, fields, ...rest } = this._getListArgs(args as any);
 
@@ -285,6 +286,8 @@ class BaseModelSqlv2 {
 
     if (!ignoreViewFilterAndSort) applyPaginate(innerQb, rest);
     const proto = await this.getProto();
+
+    console.log(wrapperQb.toQuery())
 
     const data = await this.execAndParse(wrapperQb);
 

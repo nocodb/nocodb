@@ -821,7 +821,7 @@ export default async function formulaQueryBuilderv2(
   model: Model,
   column?: Column,
   aliasToColumn = {},
-  tableAlias?: string
+  tableAlias?: string,
 ) {
   // register jsep curly hook once only
   jsep.plugins.register(jsepCurlyHook);

@@ -14,6 +14,7 @@ const getAst = async ({
   model,
   view,
   dependencyFields = {
+    ...(query || {}),
     nested: { ...(query?.nested || {}) },
     fieldsSet: new Set(),
   },

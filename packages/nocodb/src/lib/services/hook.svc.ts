@@ -7,8 +7,8 @@ import {
   populateSamplePayload,
   populateSamplePayloadV2,
 } from '../meta/helpers/populateSamplePayload';
+import type { HookType } from 'nocodb-sdk';
 import type { HookReqType, HookTestReqType } from 'nocodb-sdk';
-import { HookType } from 'nocodb-sdk';
 
 function validateHookPayload(
   notificationJsonOrObject: string | Record<string, any>

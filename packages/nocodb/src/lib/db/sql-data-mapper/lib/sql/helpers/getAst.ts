@@ -123,7 +123,7 @@ const getAst = async ({
         : fields?.length
         ? fields.includes(col.title) && value
         : value;
-    if (isRequested) await extractDependencies(col, dependencyFields);
+    if (isRequested || col.pk) await extractDependencies(col, dependencyFields);
 
     return {
       ...(await obj),

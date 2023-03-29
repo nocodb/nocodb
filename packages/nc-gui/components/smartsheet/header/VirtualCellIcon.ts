@@ -52,13 +52,13 @@ const renderIcon = (column: ColumnType, relationColumn?: ColumnType) => {
     case UITypes.Rollup:
       switch ((relationColumn?.colOptions as LinkToAnotherRecordType)?.type) {
         case RelationTypes.MANY_TO_MANY:
-          return { icon: iconMap, color: 'text-accent' }
+          return { icon: iconMap.rollup, color: 'text-accent' }
         case RelationTypes.HAS_MANY:
-          return { icon: iconMap, color: 'text-yellow-500' }
+          return { icon: iconMap.rollup, color: 'text-yellow-500' }
         case RelationTypes.BELONGS_TO:
-          return { icon: iconMap, color: 'text-sky-500' }
+          return { icon: iconMap.rollup, color: 'text-sky-500' }
       }
-      return { icon: iconMap, color: 'text-grey' }
+      return { icon: iconMap.rollup, color: 'text-grey' }
     case UITypes.Count:
       return { icon: CountIcon, color: 'text-grey' }
   }

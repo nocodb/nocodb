@@ -789,7 +789,7 @@ const closeAddColumnDropdown = () => {
                   :data-testid="`grid-row-${rowIndex}`"
                 >
                   <td key="row-index" class="caption nc-grid-cell pl-5 pr-1" :data-testid="`cell-Id-${rowIndex}`">
-                    <div class="items-center flex gap-1 min-w-[55px]">
+                    <div class="items-center flex gap-1 min-w-[60px]">
                       <div
                         v-if="!readOnly || !isLocked"
                         class="nc-row-no text-xs text-gray-500"

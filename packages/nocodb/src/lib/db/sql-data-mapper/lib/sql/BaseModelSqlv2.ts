@@ -206,14 +206,14 @@ class BaseModelSqlv2 {
     const { where, fields, ...rest } = this._getListArgs(args as any);
 
     const innerQb = this.dbDriver(this.tnPath);
-    innerQb.select('*')
+    innerQb.select('*');
 
-    const wrapperQb = this.dbDriver.from(innerQb.as(INNER_QUERY_ALIAS))
+    const wrapperQb = this.dbDriver.from(innerQb.as(INNER_QUERY_ALIAS));
     await this.selectObject({
       qb: wrapperQb,
       fieldsSet: args.fieldsSet,
       viewId: this.viewId,
-      alias: INNER_QUERY_ALIAS
+      alias: INNER_QUERY_ALIAS,
     });
     if (+rest?.shuffle) {
       await this.shuffle({ qb: innerQb });
@@ -287,10 +287,6 @@ class BaseModelSqlv2 {
     const proto = await this.getProto();
 
     const data = await this.execAndParse(wrapperQb);
-
-    // todo: remove
-    console.log(wrapperQb.toQuery());
-
 
     return data?.map((d) => {
       d.__proto__ = proto;
@@ -413,7 +409,10 @@ class BaseModelSqlv2 {
     return await qb;
   }
 
-  async multipleHmList({ colId, ids }, args: { limit?; offset?; fieldsSet?:Set<string> } = {}) {
+  async multipleHmList(
+    { colId, ids },
+    args: { limit?; offset?; fieldsSet?: Set<string> } = {}
+  ) {
     try {
       const { where, sort, ...rest } = this._getListArgs(args as any);
       // todo: get only required fields
@@ -441,7 +440,11 @@ class BaseModelSqlv2 {
       const parentTn = this.getTnPath(parentTable);
 
       const qb = this.dbDriver(childTn);
-      await childModel.selectObject({ qb, extractPkAndPv: true, fieldsSet: args.fieldsSet });
+      await childModel.selectObject({
+        qb,
+        extractPkAndPv: true,
+        fieldsSet: args.fieldsSet,
+      });
       await this.applySortAndFilter({ table: childTable, where, qb, sort });
 
       const childQb = this.dbDriver.queryBuilder().from(
@@ -1254,7 +1257,10 @@ class BaseModelSqlv2 {
     });
   }
 
-  private async getSelectQueryBuilderForFormula(column: Column<any>, tableAlias?:string ) {
+  private async getSelectQueryBuilderForFormula(
+    column: Column<any>,
+    tableAlias?: string
+  ) {
     const formula = await column.getColOptions<FormulaColumn>();
     if (formula.error) throw new Error(`Formula error: ${formula.error}`);
     const qb = await formulaQueryBuilderv2(
@@ -1263,7 +1269,7 @@ class BaseModelSqlv2 {
       this.dbDriver,
       this.model,
       column,
-      {  },
+      {},
       tableAlias
     );
     return qb;
@@ -1408,7 +1414,7 @@ class BaseModelSqlv2 {
                     {
                       // limit: ids.length,
                       where: `(${pCol.column_name},in,${ids.join(',')})`,
-                      fieldsSet: (readLoader as any).args?.fieldsSet
+                      fieldsSet: (readLoader as any).args?.fieldsSet,
                     },
                     true
                   );
@@ -1421,7 +1427,7 @@ class BaseModelSqlv2 {
               });
 
               // defining HasMany count method within GQL Type class
-              proto[column.title] = async function (args?:any) {
+              proto[column.title] = async function (args?: any) {
                 if (
                   this?.[cCol?.title] === null ||
                   this?.[cCol?.title] === undefined
@@ -1482,7 +1488,7 @@ class BaseModelSqlv2 {
     extractPkAndPv,
     viewId,
     fieldsSet,
-                              alias
+    alias,
   }: {
     fieldsSet?: Set<string>;
     qb: Knex.QueryBuilder;
@@ -1510,14 +1516,15 @@ class BaseModelSqlv2 {
       // hide if column marked as hidden in view
       // of if column is system field and system field is hidden
       if (
-        fieldsSet ? !fieldsSet.has(column.title) : (
-        !extractPkAndPv &&
-        !(viewOrTableColumn instanceof Column) &&
-        (!(viewOrTableColumn as GridViewColumn)?.show ||
-          (!view?.show_system_fields &&
-            column.uidt !== UITypes.ForeignKey &&
-            !column.pk &&
-            isSystemColumn(column))) )
+        fieldsSet
+          ? !fieldsSet.has(column.title)
+          : !extractPkAndPv &&
+            !(viewOrTableColumn instanceof Column) &&
+            (!(viewOrTableColumn as GridViewColumn)?.show ||
+              (!view?.show_system_fields &&
+                column.uidt !== UITypes.ForeignKey &&
+                !column.pk &&
+                isSystemColumn(column)))
       )
         continue;
 
@@ -1543,7 +1550,7 @@ class BaseModelSqlv2 {
               try {
                 const selectQb = await this.getSelectQueryBuilderForFormula(
                   qrValueColumn,
-                   alias
+                  alias
                 );
                 qb.select({
                   [column.column_name]: selectQb.builder,
@@ -1575,7 +1582,7 @@ class BaseModelSqlv2 {
             case UITypes.Formula:
               try {
                 const selectQb = await this.getSelectQueryBuilderForFormula(
-                  barcodeValueColumn,
+                  barcodeValueColumn
                 );
                 qb.select({
                   [column.column_name]: selectQb.builder,
@@ -1607,8 +1614,8 @@ class BaseModelSqlv2 {
                   sanitize(column.title),
                 ])
               );
-            } catch(e) {
-              console.log(e)
+            } catch (e) {
+              console.log(e);
               // return dummy select
               qb.select(
                 this.dbDriver.raw(`'ERR' as ??`, [sanitize(column.title)])

@@ -88,7 +88,7 @@ export async function populateSamplePayloadV2(
   }
 
   let prevRows;
-  if (operation !== 'insert') {
+  if (['update', 'bulkUpdate'].includes(operation)) {
     prevRows = rows;
   }
 

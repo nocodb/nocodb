@@ -58,6 +58,7 @@ const nanoidv2 = customAlphabet('1234567890abcdefghijklmnopqrstuvwxyz', 14);
 const { v4: uuidv4 } = require('uuid');
 
 const INNER_QUERY_ALIAS = '__nc_inner';
+
 // const WRAPPER_QUERY_ALIAS = '__nc_wrapper';
 
 async function populatePk(model: Model, insertObj: any) {
@@ -202,7 +203,7 @@ class BaseModelSqlv2 {
       fieldsSet?: Set<string>;
     } = {},
     ignoreViewFilterAndSort = false,
-
+    validateFormula = false
   ): Promise<any> {
     const { where, fields, ...rest } = this._getListArgs(args as any);
 
@@ -215,6 +216,7 @@ class BaseModelSqlv2 {
       fieldsSet: args.fieldsSet,
       viewId: this.viewId,
       alias: INNER_QUERY_ALIAS,
+      validateFormula
     });
     if (+rest?.shuffle) {
       await this.shuffle({ qb: innerQb });
@@ -287,10 +289,16 @@ class BaseModelSqlv2 {
     if (!ignoreViewFilterAndSort) applyPaginate(innerQb, rest);
     const proto = await this.getProto();
 
-    console.log(wrapperQb.toQuery())
+    let data;
 
-    const data = await this.execAndParse(wrapperQb);
-
+    try {
+      data = await this.execAndParse(wrapperQb);
+    } catch (e) {
+      if (!validateFormula) {
+        return this.list(args, ignoreViewFilterAndSort, true);
+      }
+      throw e;
+    }
     return data?.map((d) => {
       d.__proto__ = proto;
       return d;
@@ -1262,7 +1270,8 @@ class BaseModelSqlv2 {
 
   private async getSelectQueryBuilderForFormula(
     column: Column<any>,
-    tableAlias?: string
+    tableAlias?: string,
+    validateFormula = false
   ) {
     const formula = await column.getColOptions<FormulaColumn>();
     if (formula.error) throw new Error(`Formula error: ${formula.error}`);
@@ -1273,7 +1282,8 @@ class BaseModelSqlv2 {
       this.model,
       column,
       {},
-      tableAlias
+      tableAlias,
+      validateFormula
     );
     return qb;
   }
@@ -1492,6 +1502,7 @@ class BaseModelSqlv2 {
     viewId,
     fieldsSet,
     alias,
+                              validateFormula
   }: {
     fieldsSet?: Set<string>;
     qb: Knex.QueryBuilder;
@@ -1500,6 +1511,7 @@ class BaseModelSqlv2 {
     extractPkAndPv?: boolean;
     viewId?: string;
     alias?: string;
+    validateFormula?:boolean
   }): Promise<void> {
     const view = await View.get(viewId);
     const viewColumns = viewId && (await View.getColumns(viewId));
@@ -1553,7 +1565,8 @@ class BaseModelSqlv2 {
               try {
                 const selectQb = await this.getSelectQueryBuilderForFormula(
                   qrValueColumn,
-                  alias
+                  alias,
+                  validateFormula
                 );
                 qb.select({
                   [column.column_name]: selectQb.builder,
@@ -1585,7 +1598,9 @@ class BaseModelSqlv2 {
             case UITypes.Formula:
               try {
                 const selectQb = await this.getSelectQueryBuilderForFormula(
-                  barcodeValueColumn
+                  barcodeValueColumn,
+                  alias,
+                  validateFormula
                 );
                 qb.select({
                   [column.column_name]: selectQb.builder,
@@ -1609,7 +1624,8 @@ class BaseModelSqlv2 {
             try {
               const selectQb = await this.getSelectQueryBuilderForFormula(
                 column,
-                alias
+                alias,
+                validateFormula
               );
               qb.select(
                 this.dbDriver.raw(`?? as ??`, [

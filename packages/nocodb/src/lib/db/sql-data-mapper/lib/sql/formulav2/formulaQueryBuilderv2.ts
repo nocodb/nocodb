@@ -822,6 +822,7 @@ export default async function formulaQueryBuilderv2(
   column?: Column,
   aliasToColumn = {},
   tableAlias?: string,
+  validateFormula = false
 ) {
   // register jsep curly hook once only
   jsep.plugins.register(jsepCurlyHook);
@@ -834,6 +835,8 @@ export default async function formulaQueryBuilderv2(
     aliasToColumn,
     tableAlias
   );
+
+  if(!validateFormula) return qb;
 
   try {
     // dry run qb.builder to see if it will break the grid view or not

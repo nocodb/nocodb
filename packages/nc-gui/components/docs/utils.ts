@@ -24,7 +24,7 @@ const useShortcuts = () => {
       },
     },
     {
-      condition: (e: KeyboardEvent) => e.code === 'KeyB' && e.altKey,
+      condition: (e: KeyboardEvent) => e.code === 'KeyH' && e.altKey,
       action: (e: KeyboardEvent) => {
         e.preventDefault()
 

@@ -125,7 +125,7 @@ onMounted(() => {
           <a-list-item class="p-2 nc-hook" @click="emit('edit', item)">
             <a-list-item-meta>
               <template #description>
-                <span class="uppercase"> {{ item.event }} {{ item.operation }}</span>
+                <span class="uppercase"> {{ item.event }} {{ item.operation.replace(/[A-Z]/g, ' $&') }}</span>
               </template>
 
               <template #title>

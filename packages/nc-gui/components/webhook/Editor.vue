@@ -58,6 +58,7 @@ const hook = reactive<
       body: '{{ json data }}',
       headers: [{}],
       parameters: [{}],
+      path: '',
     },
   },
   condition: false,

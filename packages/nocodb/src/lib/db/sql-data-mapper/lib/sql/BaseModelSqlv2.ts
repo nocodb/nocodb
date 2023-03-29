@@ -1517,10 +1517,10 @@ class BaseModelSqlv2 {
 
     const res = {};
     let view: View;
-    let fields: string[] = [];
+    let fields: string[];
 
     if (fieldsSet?.size) {
-      viewOrTableColumns = await this.model.getColumns();
+      viewOrTableColumns = _columns || (await this.model.getColumns());
     } else {
       view = await View.get(viewId);
       const viewColumns = viewId && (await View.getColumns(viewId));

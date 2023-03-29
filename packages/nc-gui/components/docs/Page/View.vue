@@ -186,7 +186,7 @@ watchDebounced(
             size="large"
             class="docs-page-title-skelton !mt-3 !max-w-156 mb-3 -ml-3 docs-page-skeleton-loading"
           />
-          <DocsPageTitle v-else-if="openedPage" class="docs-page-title" @focus-editor="focusEditor" />
+          <DocsPageTitle v-else-if="openedPage" :key="openedPage.id" class="docs-page-title" @focus-editor="focusEditor" />
           <div class="flex !mb-4.5"></div>
 
           <DocsPageSelectedBubbleMenu v-if="editor" :editor="editor" />

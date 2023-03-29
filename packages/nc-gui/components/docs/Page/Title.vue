@@ -84,12 +84,10 @@ watch(
 )
 
 watchDebounced(
-  () => [openedPage.value?.id, openedPage.value?.title],
-  async ([newPageId, newTitle], [oldPageId, oldTitle]) => {
+  title,
+  async (newTitle, oldTitle) => {
     if (!isEditAllowed.value) return
     if (!openedPage.value) return
-
-    if (oldPageId !== newPageId) return
 
     if (newTitle === oldTitle) {
       return

@@ -1975,6 +1975,7 @@ class BaseModelSqlv2 {
       // await this.beforeUpdateb(updateDatas, transaction);
       const prevData = [];
       const newData = [];
+      const updatePkValues = [];
       const res = [];
       for (const d of updateDatas) {
         await this.validate(d);
@@ -1987,11 +1988,16 @@ class BaseModelSqlv2 {
         const wherePk = await this._wherePk(pkValues);
         await transaction(this.tnPath).update(d).where(wherePk);
         res.push(wherePk);
+        updatePkValues.push(pkValues);
+      }
+
+      transaction.commit();
+
+      for (const pkValues of updatePkValues) {
         newData.push(await this.readByPk(pkValues));
       }
 
       await this.afterBulkUpdate(prevData, newData, this.dbDriver, cookie);
-      transaction.commit();
 
       return res;
     } catch (e) {

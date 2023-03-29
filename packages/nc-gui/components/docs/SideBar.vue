@@ -231,7 +231,7 @@ onMounted(async () => {
                 </a-popover>
               </div>
               <span
-                class="text-ellipsis overflow-hidden"
+                class="text-ellipsis overflow-hidden nc-docs-sidebar-page-title"
                 :style="{ wordBreak: 'keep-all', whiteSpace: 'nowrap', display: 'inline' }"
               >
                 {{ title }}

@@ -1,4 +1,4 @@
-import { test } from '@playwright/test';
+import { expect, test } from '@playwright/test';
 import { ProjectType, ProjectTypes } from 'nocodb-sdk';
 import { DashboardPage } from '../../pages/Dashboard';
 import setup, { NcContext } from '../../setup';
@@ -42,7 +42,7 @@ test.describe('Create docs project and verify docs UI', () => {
     });
   });
 
-  test('Shortcuts for page creation', async ({ page }) => {
+  test('Shortcuts for page creation and verify sidebar on reload', async ({ page }) => {
     // root page
     await page.keyboard.press('Alt+N');
     await dashboard.docs.openedPage.waitForRender();
@@ -56,6 +56,12 @@ test.describe('Create docs project and verify docs UI', () => {
       level: 0,
     });
 
+    expect(
+      await dashboard.sidebar.docsSidebar.getTitleOfOpenedPage({
+        projectTitle: project.title as any,
+      })
+    ).toBe('parent');
+
     await page.keyboard.press('Alt+M');
     await dashboard.docs.openedPage.waitForRender();
 
@@ -68,6 +74,12 @@ test.describe('Create docs project and verify docs UI', () => {
       level: 1,
     });
 
+    expect(
+      await dashboard.sidebar.docsSidebar.getTitleOfOpenedPage({
+        projectTitle: project.title as any,
+      })
+    ).toBe('child');
+
     await page.keyboard.press('Alt+H');
     await dashboard.docs.openedPage.waitForRender();
 
@@ -79,5 +91,23 @@ test.describe('Create docs project and verify docs UI', () => {
       projectTitle: project.title as any,
       level: 0,
     });
+
+    expect(
+      await dashboard.sidebar.docsSidebar.getTitleOfOpenedPage({
+        projectTitle: project.title as any,
+      })
+    ).toBe('Parent 1');
+
+    // reload
+
+    await dashboard.docs.openedPage.fillTitle({ title: 'New Parent 1' });
+
+    await page.reload();
+
+    expect(
+      await dashboard.sidebar.docsSidebar.getTitleOfOpenedPage({
+        projectTitle: project.title as any,
+      })
+    ).toBe('New Parent 1');
   });
 });

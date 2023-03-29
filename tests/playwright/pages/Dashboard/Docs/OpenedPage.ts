@@ -25,6 +25,16 @@ export class DocsOpenedPagePage extends BasePage {
       });
   }
 
+  async fillTitle({ title }: { title: string }) {
+    await this.waitForRender();
+
+    await this.waitForResponse({
+      uiAction: () => this.get().getByTestId('docs-page-title').fill(title),
+      httpMethodsToMatch: ['PUT'],
+      requestUrlPathToMatch: `api/v1/docs/page`,
+    });
+  }
+
   async verifyOpenedPageVisible() {
     await expect(this.get()).toBeVisible();
   }

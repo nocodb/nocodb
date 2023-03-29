@@ -85,4 +85,11 @@ export class DocsSidebarPage extends BasePage {
     });
     await this.sidebar.dashboard.waitForTabRender({ title, mode });
   }
+
+  async getTitleOfOpenedPage({ projectTitle }: { projectTitle: string }): Promise<string | null> {
+    return await this.get({ projectTitle })
+      .locator('.ant-tree-node-selected')
+      .locator('.nc-docs-sidebar-page-title')
+      .textContent();
+  }
 }

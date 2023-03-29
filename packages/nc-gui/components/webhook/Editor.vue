@@ -714,14 +714,16 @@ onMounted(async () => {
           <a-row>
             <a-col :span="24">
               <div v-if="!(hook.version === 'v2' && hook.type === 'URL')" class="text-gray-600">
-                <em>Use context variable <strong>data</strong> to refer the record under consideration</em>
+                <div class="flex items-center"></div>
+                  <em>Use context variable <strong>data</strong> to refer the record under consideration</em>
 
-                <a-tooltip bottom>
-                  <template #title>
-                    <span> <strong>data</strong> : Row data <br /> </span>
-                  </template>
-                  <component :is="iconMap.info" class="ml-2" />
-                </a-tooltip>
+                  <a-tooltip bottom>
+                    <template #title>
+                      <span> <strong>data</strong> : Row data <br /> </span>
+                    </template>
+                    <component :is="iconMap.info" class="ml-2" />
+                  </a-tooltip>
+                </div>
 
                 <div class="my-3">
                   <a href="https://docs.nocodb.com/developer-resources/webhooks/" target="_blank">

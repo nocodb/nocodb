@@ -15831,7 +15831,7 @@
             "$ref": "#/components/schemas/Bool"
           },
           "fk_cover_image_col_id": {
-            "type": "string",
+            "$ref": "#/components/schemas/StringOrNull",
             "description": "Foreign Key to Cover Image Column"
           },
           "fk_model_id": {
@@ -16916,7 +16916,7 @@
             "description": "View ID"
           },
           "fk_cover_image_col_id": {
-            "$ref": "#/components/schemas/Id",
+            "$ref": "#/components/schemas/StringOrNull",
             "description": "Cover Image Column ID"
           },
           "columns": {
@@ -19922,6 +19922,10 @@
           "show_system_fields": {
             "$ref": "#/components/schemas/Bool",
             "description": "Should show system fields in this view?"
+          },
+          "is_default": {
+            "$ref": "#/components/schemas/Bool",
+            "description": "Is this view default view for the model?"
           },
           "title": {
             "description": "View Title",

@@ -258,17 +258,17 @@ test.describe('Meta sync', () => {
     await dashboard.grid.toolbar.clickFields();
 
     await dashboard.grid.toolbar.sort.add({
-      columnTitle: 'Col2',
-      isAscending: false,
-      isLocallySaved: false,
+      title: 'Col2',
+      ascending: false,
+      locallySaved: false,
     });
 
     await dashboard.grid.toolbar.clickFilter();
     await dashboard.grid.toolbar.filter.add({
-      columnTitle: 'Col2',
-      opType: '>=',
+      title: 'Col2',
+      operation: '>=',
       value: '5',
-      isLocallySaved: false,
+      locallySaved: false,
     });
     await dashboard.grid.toolbar.clickFilter();
 

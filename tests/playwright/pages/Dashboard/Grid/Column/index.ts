@@ -399,4 +399,20 @@ export class ColumnPageObject extends BasePage {
     // close sort menu
     await this.grid.toolbar.clickSort();
   }
+
+  async resize(param: { src: string; dst: string }) {
+    const { src, dst } = param;
+    const [fromStack, toStack] = await Promise.all([
+      this.rootPage.locator(`[data-title="${src}"] >> .resizer`),
+      this.rootPage.locator(`[data-title="${dst}"] >> .resizer`),
+    ]);
+
+    await fromStack.dragTo(toStack);
+  }
+
+  async getWidth(param: { title: string }) {
+    const { title } = param;
+    const cell = await this.rootPage.locator(`th[data-title="${title}"]`);
+    return await cell.evaluate(el => el.getBoundingClientRect().width);
+  }
 }

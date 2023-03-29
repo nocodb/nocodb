@@ -51,7 +51,11 @@ const [useProvideSmartsheetRowStore, useSmartsheetRowStore] = useInjectionState(
           return message.info(t('msg.info.valueAlreadyInList'))
         }
 
-        state.value[column.title!]!.push(value)
+        if (Array.isArray(value)) {
+          state.value[column.title!]!.push(...value)
+        } else {
+          state.value[column.title!]!.push(value)
+        }
       } else if (isBt(column)) {
         state.value[column.title!] = value
       }
@@ -119,6 +123,9 @@ const [useProvideSmartsheetRowStore, useSmartsheetRowStore] = useInjectionState(
             { metaValue },
           )
         }
+
+        // clear LTAR refs after sync
+        state.value[column.title!] = null
       }
     }
 

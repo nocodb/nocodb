@@ -57,8 +57,8 @@ export async function tableSampleData(req: Request, res: Response) {
   res.json(
     await hookService.tableSampleData({
       tableId: req.params.tableId,
-      operation: req.params.operation as 'insert' | 'update',
-      version: req.params.version as 'v1' | 'v2',
+      operation: req.params.operation as HookType['operation'],
+      version: req.params.version as HookType['version'],
     })
   );
 }

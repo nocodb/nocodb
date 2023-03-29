@@ -8,6 +8,7 @@ import {
   populateSamplePayloadV2,
 } from '../meta/helpers/populateSamplePayload';
 import type { HookReqType, HookTestReqType } from 'nocodb-sdk';
+import { HookType } from 'nocodb-sdk';
 
 function validateHookPayload(
   notificationJsonOrObject: string | Record<string, any>
@@ -100,8 +101,8 @@ export async function hookTest(param: {
 
 export async function tableSampleData(param: {
   tableId: string;
-  operation: 'insert' | 'update';
-  version: 'v1' | 'v2';
+  operation: HookType['operation'];
+  version: HookType['version'];
 }) {
   const model = await Model.getByIdOrName({ id: param.tableId });
 

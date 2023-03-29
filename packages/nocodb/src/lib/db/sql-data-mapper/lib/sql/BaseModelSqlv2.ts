@@ -216,7 +216,7 @@ class BaseModelSqlv2 {
       fieldsSet: args.fieldsSet,
       viewId: this.viewId,
       alias: INNER_QUERY_ALIAS,
-      validateFormula
+      validateFormula,
     });
     if (+rest?.shuffle) {
       await this.shuffle({ qb: innerQb });
@@ -1502,7 +1502,7 @@ class BaseModelSqlv2 {
     viewId,
     fieldsSet,
     alias,
-                              validateFormula
+    validateFormula,
   }: {
     fieldsSet?: Set<string>;
     qb: Knex.QueryBuilder;
@@ -1511,16 +1511,26 @@ class BaseModelSqlv2 {
     extractPkAndPv?: boolean;
     viewId?: string;
     alias?: string;
-    validateFormula?:boolean
+    validateFormula?: boolean;
   }): Promise<void> {
-    const view = await View.get(viewId);
-    const viewColumns = viewId && (await View.getColumns(viewId));
-    const fields = Array.isArray(_fields) ? _fields : _fields?.split(',');
+    let viewOrTableColumns: Column[] | { fk_column_id?: string }[];
+
     const res = {};
-    // const columns = _columns ?? (await this.model.getColumns());
-    // for (const column of columns) {
-    const viewOrTableColumns =
-      _columns || viewColumns || (await this.model.getColumns());
+    let view: View;
+    let fields: string[] = [];
+
+    if (fieldsSet?.size) {
+      viewOrTableColumns = await this.model.getColumns();
+    } else {
+      view = await View.get(viewId);
+      const viewColumns = viewId && (await View.getColumns(viewId));
+      fields = Array.isArray(_fields) ? _fields : _fields?.split(',');
+
+      // const columns = _columns ?? (await this.model.getColumns());
+      // for (const column of columns) {
+      viewOrTableColumns =
+        _columns || viewColumns || (await this.model.getColumns());
+    }
     for (const viewOrTableColumn of viewOrTableColumns) {
       const column =
         viewOrTableColumn instanceof Column

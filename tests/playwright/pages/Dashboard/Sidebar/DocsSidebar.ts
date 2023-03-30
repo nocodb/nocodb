@@ -14,11 +14,9 @@ export class DocsSidebarPage extends BasePage {
     return this.sidebar.get().getByTestId(`docs-sidebar-${projectTitle}`);
   }
 
-  async fillTitle({ projectTitle, title }: { projectTitle: string; title: string }) {
-    await this.get({ projectTitle }).getByTestId('nc-docs-sidebar-page-title').fill(title);
-  }
-
   async createPage({ projectTitle, title }: { projectTitle: string; title?: string }) {
+    await this.get({ projectTitle }).getByTestId('nc-docs-sidebar-add-page').hover();
+
     await this.waitForResponse({
       uiAction: () => this.get({ projectTitle }).getByTestId('nc-docs-sidebar-add-page').click(),
       httpMethodsToMatch: ['POST'],
@@ -28,7 +26,7 @@ export class DocsSidebarPage extends BasePage {
     await this.sidebar.dashboard.docs.openedPage.waitForRender();
 
     if (title) {
-      await this.fillTitle({ projectTitle, title });
+      await this.sidebar.dashboard.docs.openedPage.fillTitle({ title });
     }
   }
 
@@ -50,12 +48,15 @@ export class DocsSidebarPage extends BasePage {
           .click(),
       httpMethodsToMatch: ['POST'],
       requestUrlPathToMatch: `api/v1/docs/page`,
+      debug: true,
+      debugKey: 'createChildPage',
     });
 
     await this.sidebar.dashboard.docs.openedPage.waitForRender();
 
     if (title) {
-      await this.fillTitle({ projectTitle, title });
+      await this.sidebar.dashboard.docs.openedPage.fillTitle({ title });
+      console.log('createChildPage:1');
     }
   }
 
@@ -69,21 +70,18 @@ export class DocsSidebarPage extends BasePage {
     }
   }
 
-  async openPage({ projectTitle, title, mode = 'standard' }: { projectTitle: string; title: string; mode?: string }) {
-    if ((await this.get({ projectTitle }).locator('.active.nc-project-tree-tbl').count()) > 0) {
-      if ((await this.get({ projectTitle }).locator('.active.nc-project-tree-tbl').innerText()) === title) {
-        // table already open
-        return;
-      }
-    }
-
+  async openPage({ projectTitle, title }: { projectTitle: string; title: string }) {
     await this.waitForResponse({
-      uiAction: () => this.get({ projectTitle }).locator(`.nc-project-tree-tbl-${title}`).click(),
+      uiAction: () =>
+        this.get({ projectTitle })
+          .getByTestId(`docs-sidebar-page-${projectTitle}-${title}`)
+          .locator('.nc-docs-sidebar-page-title')
+          .click(),
       httpMethodsToMatch: ['GET'],
-      requestUrlPathToMatch: `/api/v1/db/data/noco/`,
-      responseJsonMatcher: json => json.pageInfo,
+      requestUrlPathToMatch: `api/v1/docs/page`,
     });
-    await this.sidebar.dashboard.waitForTabRender({ title, mode });
+
+    await this.sidebar.dashboard.docs.openedPage.waitForRender();
   }
 
   async getTitleOfOpenedPage({ projectTitle }: { projectTitle: string }): Promise<string | null> {

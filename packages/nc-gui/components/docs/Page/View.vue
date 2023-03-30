@@ -197,7 +197,7 @@ watchDebounced(
             size="small"
             class="docs-page-title-skelton !max-w-102 mb-3 mt-1 docs-page-skeleton-loading"
           />
-          <EditorContent v-else :key="isEditAllowed ? 'edit' : 'view'" :editor="editor" />
+          <EditorContent v-else :key="isEditAllowed ? 'edit' : 'view'" data-testid="docs-page-content" :editor="editor" />
           <div
             v-if="(openedPageInSidebar?.children ?? []).length > 0 && !isPageFetching"
             class="docs-page-child-pages flex flex-col py-12 border-b-1 border-t-1 border-gray-200 mt-12 mb-4 gap-y-6 pop-in-animation"

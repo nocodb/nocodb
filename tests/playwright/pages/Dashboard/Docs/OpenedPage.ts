@@ -28,11 +28,86 @@ export class DocsOpenedPagePage extends BasePage {
   async fillTitle({ title }: { title: string }) {
     await this.waitForRender();
 
+    await this.get().getByTestId('docs-page-title').click();
+
+    await this.get().getByTestId('docs-page-title').fill(title, {
+      force: true,
+    });
+
     await this.waitForResponse({
       uiAction: () => this.get().getByTestId('docs-page-title').fill(title),
       httpMethodsToMatch: ['PUT'],
       requestUrlPathToMatch: `api/v1/docs/page`,
     });
+  }
+
+  async fillContent({ content }: { content: string }) {
+    await this.waitForRender();
+    await this.rootPage.waitForTimeout(1000);
+
+    await this.get().getByTestId('docs-page-content').click();
+    await this.get()
+      .getByTestId('docs-page-content')
+      .locator('.ProseMirror')
+      .elementHandle()
+      .then(async el => {
+        await el?.waitForElementState('stable');
+      });
+
+    await this.get()
+      .getByTestId('docs-page-content')
+      .locator('.ProseMirror > .draggable-block-wrapper:nth-child(1)')
+      .locator('p:nth-child(1)')
+      .click();
+
+    await this.rootPage.waitForTimeout(500);
+
+    for (const char of content) {
+      await this.rootPage.keyboard.press(char);
+    }
+
+    // await this.waitForResponse({
+    //   uiAction: () => this.rootPage.keyboard.insertText(content),
+    //   httpMethodsToMatch: ['PUT'],
+    //   requestUrlPathToMatch: `api/v1/docs/page`,
+    // });
+
+    await this.rootPage.waitForTimeout(1000);
+  }
+
+  async clearContent() {
+    await this.waitForRender();
+    await this.rootPage.waitForTimeout(1000);
+
+    await this.get().getByTestId('docs-page-content').click();
+    await this.get()
+      .getByTestId('docs-page-content')
+      .locator('.ProseMirror')
+      .elementHandle()
+      .then(async el => {
+        await el?.waitForElementState('stable');
+      });
+
+    const firstParagraph = this.get()
+      .getByTestId('docs-page-content')
+      .locator('.ProseMirror > .draggable-block-wrapper:nth-child(1)')
+      .locator('p:nth-child(1)');
+    await firstParagraph.click();
+    await this.rootPage.keyboard.press('Meta+A');
+    await this.rootPage.keyboard.press('Backspace');
+
+    // TODO: fix this
+    await this.rootPage.waitForTimeout(1000);
+
+    // await this.waitForResponse({
+    //   uiAction: () => firstParagraph.clear(),
+    //   httpMethodsToMatch: ['PUT'],
+    //   requestUrlPathToMatch: `api/v1/docs/page`,
+    // });
+  }
+
+  async verifyContent({ content }: { content: string }) {
+    await expect(this.get().getByTestId('docs-page-content').locator('.ProseMirror')).toHaveText(content);
   }
 
   async verifyOpenedPageVisible() {

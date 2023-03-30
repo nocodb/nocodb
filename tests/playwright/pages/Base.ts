@@ -22,11 +22,15 @@ export default abstract class BasePage {
     requestUrlPathToMatch,
     // A function that takes the response body and returns true if the response is the one we are looking for
     responseJsonMatcher,
+    debug = false,
+    debugKey,
   }: {
     uiAction: () => Promise<any>;
     requestUrlPathToMatch: string;
     httpMethodsToMatch?: string[];
     responseJsonMatcher?: ResponseSelector;
+    debug?: boolean;
+    debugKey?: string;
   }) {
     const waitForResponsePromise = this.rootPage.waitForResponse(async res => {
       let isResJsonMatched = true;
@@ -38,16 +42,27 @@ export default abstract class BasePage {
         }
       }
 
-      return (
+      if (debug) {
+        console.log(`${debugKey},waitForResponse`, {
+          resUrl: res.request().url(),
+          resMethod: res.request().method(),
+        });
+        console.log(`${debugKey},result`, {
+          resUrlResult: res.request().url().includes(requestUrlPathToMatch),
+          resMethodResult: httpMethodsToMatch.includes(res.request().method()),
+          resJsonResult: isResJsonMatched,
+        });
+      }
+
+      const found =
         res.request().url().includes(requestUrlPathToMatch) &&
         httpMethodsToMatch.includes(res.request().method()) &&
-        isResJsonMatched
-      );
+        isResJsonMatched;
+
+      return found;
     });
 
-    const uiActionPromise = uiAction();
-
-    await Promise.all([waitForResponsePromise, uiActionPromise]);
+    await Promise.all([waitForResponsePromise, uiAction()]);
   }
 
   async attachFile({ filePickUIAction, filePath }: { filePickUIAction: Promise<any>; filePath: string[] }) {

@@ -34,27 +34,27 @@ const pg = {
     };
   },
   MID: 'SUBSTR',
-  FLOAT: ({ fn, knex, pt, colAlias }: MapFnArgs) => {
+  FLOAT: async ({ fn, knex, pt, colAlias }: MapFnArgs) => {
     return {
       builder: knex
-        .raw(`CAST(${fn(pt.arguments[0])} as DOUBLE PRECISION)${colAlias}`)
+        .raw(`CAST(${(await fn(pt.arguments[0])).builder} as DOUBLE PRECISION)${colAlias}`)
         .wrap('(', ')'),
     };
   },
-  ROUND: ({ fn, knex, pt, colAlias }: MapFnArgs) => {
+  ROUND: async ({ fn, knex, pt, colAlias }: MapFnArgs) => {
     return {
       builder: knex.raw(
-        `ROUND((${fn(pt.arguments[0])})::numeric, ${
-          pt?.arguments[1] ? fn(pt.arguments[1]) : 0
+        `ROUND((${(await fn(pt.arguments[0])).builder})::numeric, ${
+          pt?.arguments[1] ? (await fn(pt.arguments[1])).builder : 0
         }) ${colAlias}`
       ),
     };
   },
-  DATEADD: ({ fn, knex, pt, colAlias }: MapFnArgs) => {
+  DATEADD: async ({ fn, knex, pt, colAlias }: MapFnArgs) => {
     return {
       builder: knex.raw(
-        `${fn(pt.arguments[0])} + (${fn(pt.arguments[1])} || 
-      '${String(fn(pt.arguments[2])).replace(
+        `${(await fn(pt.arguments[0])).builder} + (${(await fn(pt.arguments[1])).builder} || 
+      '${String((await fn(pt.arguments[2])).builder).replace(
         /["']/g,
         ''
       )}')::interval${colAlias}`
@@ -62,8 +62,8 @@ const pg = {
     };
   },
   DATETIME_DIFF: async ({ fn, knex, pt, colAlias }: MapFnArgs) => {
-    const datetime_expr1 = fn(pt.arguments[0]);
-    const datetime_expr2 = fn(pt.arguments[1]);
+    const datetime_expr1 = (await fn(pt.arguments[0])).builder;
+    const datetime_expr2 = (await fn(pt.arguments[1])).builder;
     const rawUnit = pt.arguments[2]
       ? (await fn(pt.arguments[2])).builder.bindings[0]
       : 'seconds';
@@ -121,7 +121,7 @@ const pg = {
             ? `date '${dayjs((await fn(pt.arguments[0])).builder).format(
                 'YYYY-MM-DD'
               )}'`
-            : fn(pt.arguments[0])
+            : (await fn(pt.arguments[0])).builder
         }) - 1 - ${getWeekdayByText(
           pt?.arguments[1]?.value
         )} % 7 + 7) ::INTEGER % 7 ${colAlias}`
@@ -133,10 +133,10 @@ const pg = {
       builder: args.knex.raw(
         `CASE WHEN ${args.knex
           .raw(
-            `${args.pt.arguments
+            `${(await Promise.all(args.pt.arguments
               .map(async (ar) =>
                 (await args.fn(ar, '', 'AND')).builder.toQuery()
-              )
+              )))
               .join(' AND ')}`
           )
           .wrap('(', ')')
@@ -160,10 +160,10 @@ const pg = {
       ),
     };
   },
-  SUBSTR: ({ fn, knex, pt, colAlias }: MapFnArgs) => {
-    const str = fn(pt.arguments[0]);
-    const positionFrom = fn(pt.arguments[1] ?? 1);
-    const numberOfCharacters = fn(pt.arguments[2] ?? '');
+  SUBSTR:async ({ fn, knex, pt, colAlias }: MapFnArgs) => {
+    const str = (await fn(pt.arguments[0])).builder;
+    const positionFrom = (await fn(pt.arguments[1] ?? 1)).builder;
+    const numberOfCharacters = (await fn(pt.arguments[2] ?? '')).builder;
     return {
       builder: knex.raw(
         `SUBSTR(${str}::TEXT, ${positionFrom}${
@@ -172,9 +172,9 @@ const pg = {
       ),
     };
   },
-  MOD: ({ fn, knex, pt, colAlias }: MapFnArgs) => {
-    const x = fn(pt.arguments[0]);
-    const y = fn(pt.arguments[1]);
+  MOD: async ({ fn, knex, pt, colAlias }: MapFnArgs) => {
+    const x = (await fn(pt.arguments[0])).builder;
+    const y = (await fn(pt.arguments[1])).builder;
     return {
       builder: knex.raw(`MOD((${x})::NUMERIC, (${y})::NUMERIC) ${colAlias}`),
     };

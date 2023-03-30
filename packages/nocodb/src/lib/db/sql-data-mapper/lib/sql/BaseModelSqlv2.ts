@@ -2486,7 +2486,7 @@ class BaseModelSqlv2 {
             formView,
             filteredColumns
           );
-          (await NcPluginMgrv2.emailAdapter())?.mailSend({
+          (await NcPluginMgrv2.emailAdapter(false))?.mailSend({
             to: emails.join(','),
             subject: 'NocoDB Form',
             html: ejs.render(formSubmissionEmailTemplate, {

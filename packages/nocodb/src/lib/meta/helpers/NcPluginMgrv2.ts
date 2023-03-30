@@ -174,6 +174,7 @@ class NcPluginMgrv2 {
   }
 
   public static async emailAdapter(
+    isUserInvite = true,
     ncMeta = Noco.ncMeta
   ): Promise<IEmailAdapter> {
     const pluginData = await ncMeta.metaGet2(null, null, MetaTable.PLUGIN, {
@@ -181,7 +182,12 @@ class NcPluginMgrv2 {
       active: true,
     });
 
-    if (!pluginData) throw new Error('Plugin not configured / active');
+    if (!pluginData) {
+      // return null to show the invite link in UI
+      if (isUserInvite) return null;
+      // for webhooks, throw the error
+      throw new Error('Plugin not configured / active');
+    }
 
     const pluginConfig = defaultPlugins.find(
       (c) => c.title === pluginData.title && c.category === PluginCategory.EMAIL

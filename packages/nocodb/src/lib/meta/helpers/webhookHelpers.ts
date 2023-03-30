@@ -302,7 +302,7 @@ export async function invokeWebhook(
       case 'Email':
         {
           const res = await (
-            await NcPluginMgrv2.emailAdapter()
+            await NcPluginMgrv2.emailAdapter(false)
           )?.mailSend({
             to: parseBody(notification?.payload?.to, newData),
             subject: parseBody(notification?.payload?.subject, newData),

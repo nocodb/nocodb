@@ -836,7 +836,7 @@ export default async function formulaQueryBuilderv2(
     tableAlias
   );
 
-  if(!validateFormula) return qb;
+  if (!validateFormula) return qb;
 
   try {
     // dry run qb.builder to see if it will break the grid view or not

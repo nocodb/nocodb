@@ -242,7 +242,7 @@ export async function getDbRows(param: {
       temp = process.hrtime(startTime),
       elapsed = temp[0] * 1000 + temp[1] / 1000000
   ) {
-    const {ast, dependencyFields} = await getAst({
+    const { ast, dependencyFields } = await getAst({
       query: query,
       includePkByDefault: false,
       model: view.model,

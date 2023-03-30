@@ -63,21 +63,16 @@ export async function dataList(param: {
       query: param.query,
       model,
       view,
-    })
+    });
 
-    data = await nocoExecute(
-      ast,
-      await baseModel.list(listArgs),
-      {},
-      listArgs
-    );
+    data = await nocoExecute(ast, await baseModel.list(listArgs), {}, listArgs);
     count = await baseModel.count(listArgs);
   } catch (e) {
-    console.log(e)
+    console.log(e);
     // show empty result instead of throwing error here
     // e.g. search some text in a numeric field
 
-    NcError.internalServerError('Please try after some time')
+    NcError.internalServerError('Please try after some time');
   }
 
   return new PagedResponseImpl(data, { ...param.query, count });
@@ -153,12 +148,7 @@ async function getGroupedDataList(param: {
       ...listArgs,
       groupColumnId,
     });
-    data = await nocoExecute(
-      { key: 1, value: ast },
-      groupedData,
-      {},
-      listArgs
-    );
+    data = await nocoExecute({ key: 1, value: ast }, groupedData, {}, listArgs);
     const countArr = await baseModel.groupedListCount({
       ...listArgs,
       groupColumnId,

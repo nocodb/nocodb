@@ -406,7 +406,7 @@ export default class Column<T = any> implements ColumnType {
     }
   }
 
-  public async getColOptions<T>(ncMeta = Noco.ncMeta): Promise<T> {
+  public async getColOptions<U = T>(ncMeta = Noco.ncMeta): Promise<U> {
     let res: any;
 
     switch (this.uidt) {

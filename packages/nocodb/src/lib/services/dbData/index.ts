@@ -171,9 +171,9 @@ export async function getFindOne(param: {
     args.sortArr = JSON.parse(args.sortArrJson);
   } catch (e) {}
 
-  const {ast} = await getAst({ model, query: args, view })
+  const {ast, dependencyFields} = await getAst({ model, query: args, view })
 
-  const data = await baseModel.findOne(args);
+  const data = await baseModel.findOne({ ...args, dependencyFields });
   return data
     ? await nocoExecute(
         ast,
@@ -228,7 +228,7 @@ export async function dataRead(
     NcError.notFound('Row not found');
   }
 
-  const { ast } = await getAst({ model, query: param.query, view })
+  const { ast, dependencyFields } = await getAst({ model, query: param.query, view })
 
   return await nocoExecute(
     ast,

@@ -242,7 +242,7 @@ export async function getDbRows(param: {
       temp = process.hrtime(startTime),
       elapsed = temp[0] * 1000 + temp[1] / 1000000
   ) {
-    const {ast} = await getAst({
+    const {ast, dependencyFields} = await getAst({
       query: query,
       includePkByDefault: false,
       model: view.model,
@@ -250,7 +250,7 @@ export async function getDbRows(param: {
     });
     const rows = await nocoExecute(
       ast,
-      await baseModel.list({ ...listArgs, offset, limit }),
+      await baseModel.list({ ...listArgs, offset, limit, ...dependencyFields }),
       {},
       query
     );

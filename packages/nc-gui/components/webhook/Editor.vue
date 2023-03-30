@@ -179,9 +179,13 @@ const eventList = [
   { text: ['After', 'Insert'], value: ['after', 'insert'] },
   { text: ['After', 'Update'], value: ['after', 'update'] },
   { text: ['After', 'Delete'], value: ['after', 'delete'] },
-  { text: ['After', 'Bulk Insert'], value: ['after', 'bulkInsert'] },
-  { text: ['After', 'Bulk Update'], value: ['after', 'bulkUpdate'] },
-  { text: ['After', 'Bulk Delete'], value: ['after', 'bulkDelete'] },
+  ...(hook.version === 'v2'
+    ? [
+        { text: ['After', 'Bulk Insert'], value: ['after', 'bulkInsert'] },
+        { text: ['After', 'Bulk Update'], value: ['after', 'bulkUpdate'] },
+        { text: ['After', 'Bulk Delete'], value: ['after', 'bulkDelete'] },
+      ]
+    : []),
 ]
 
 const notificationList = computed(() => {

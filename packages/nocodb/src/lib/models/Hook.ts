@@ -7,6 +7,7 @@ import {
 import Noco from '../Noco';
 import NocoCache from '../cache/NocoCache';
 import { extractProps } from '../meta/helpers/extractProps';
+import { NcError } from '../meta/helpers/catchError';
 import Model from './Model';
 import Filter from './Filter';
 import HookFilter from './HookFilter';
@@ -187,7 +188,17 @@ export default class Hook implements HookType {
       'retry_interval',
       'timeout',
       'active',
+      'version',
     ]);
+
+    if (
+      updateObj.version &&
+      updateObj.operation &&
+      updateObj.version === 'v1' &&
+      ['bulkInsert', 'bulkUpdate', 'bulkDelete'].includes(updateObj.operation)
+    ) {
+      NcError.badRequest(`${updateObj.operation} not supported in v1 hook`);
+    }
 
     if (updateObj.notification && typeof updateObj.notification === 'object') {
       updateObj.notification = JSON.stringify(updateObj.notification);

@@ -2047,7 +2047,7 @@ class BaseModelSqlv2 {
         count = (await qb) as any;
       }
 
-      await this.afterBulkUpdate(count, this.dbDriver, cookie, true);
+      await this.afterBulkUpdate(null, count, this.dbDriver, cookie, true);
 
       return count;
     } catch (e) {

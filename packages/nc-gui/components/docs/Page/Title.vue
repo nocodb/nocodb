@@ -83,23 +83,12 @@ watch(
   },
 )
 
-watchDebounced(
-  title,
-  async (newTitle, oldTitle) => {
-    if (!isEditAllowed.value) return
-    if (!openedPage.value) return
+watch(title, async () => {
+  if (!isEditAllowed.value) return
+  if (!openedPage.value) return
 
-    if (newTitle === oldTitle) {
-      return
-    }
-
-    await updatePage({ pageId: openedPage.value!.id!, page: { title: openedPage.value?.title } as any, projectId: project.id! })
-  },
-  {
-    debounce: 500,
-    maxWait: 700,
-  },
-)
+  await updatePage({ pageId: openedPage.value!.id!, page: { title: openedPage.value?.title } as any, projectId: project.id! })
+})
 </script>
 
 <template>

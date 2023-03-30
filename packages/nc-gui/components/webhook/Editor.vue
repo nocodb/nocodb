@@ -749,7 +749,7 @@ onMounted(async () => {
       </a-form>
     </a-tab-pane>
 
-    <a-tab-pane key="hook-log" class="nc-hook-log h-[60vh]" :disabled="!props.hook">
+    <a-tab-pane key="hook-log" class="nc-hook-log" :disabled="!props.hook">
       <template #tab>
         <span>
           <MdiHistory />

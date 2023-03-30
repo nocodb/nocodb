@@ -438,15 +438,15 @@ test.describe.serial('Webhook', () => {
 
           // verify records
           for (let j = 0; j < rsp[i].data.rows.length; j++) {
-            expect(rsp[i].data.rows[j].Number).toBe(111 * (j + 1));
-            expect(rsp[i].data.previous_rows[j].Number).toBe(100 * (j + 1) - 111);
+            expect(+rsp[i].data.rows[j].Number).toBe(111 * (j + 1));
+            expect(+rsp[i].data.previous_rows[j].Number).toBe(100 * (j + 1));
           }
         } else if (type === 'records.after.bulkDelete') {
           expect(rsp[i].data.rows.length).toBe(50);
 
           // verify records
           for (let j = 0; j < rsp[i].data.rows.length; j++) {
-            expect(rsp[i].data.rows[j].Number).toBe(111 * (j + 1));
+            expect(+rsp[i].data.rows[j].Number).toBe(111 * (j + 1));
           }
         }
       }

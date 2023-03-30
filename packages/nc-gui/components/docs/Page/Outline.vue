@@ -120,11 +120,13 @@ onMounted(() => {
 <template>
   <div class="flex flex-row justify-end cursor-pointer rounded-md">
     <div
+      data-testid="docs-page-outline-toggle"
       class="flex p-1 cursor-pointer rounded-md pop-in-animation-med-delay"
       :class="{
         'bg-gray-100 hover:bg-gray-200': showPageSubHeadings,
         'bg-white hover:bg-gray-100': !showPageSubHeadings,
       }"
+      :aria-expanded="showPageSubHeadings"
       @click="showPageSubHeadings = !showPageSubHeadings"
     >
       <AlignRightIcon />
@@ -136,6 +138,7 @@ onMounted(() => {
       'opacity-0': !showPageSubHeadings,
       'opacity-100': showPageSubHeadings,
     }"
+    data-testid="docs-page-outline-content"
     :style="{
       transition: 'opacity 0.2s ease-in-out',
     }"

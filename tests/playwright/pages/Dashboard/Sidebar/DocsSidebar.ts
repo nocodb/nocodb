@@ -10,11 +10,30 @@ export class DocsSidebarPage extends BasePage {
     this.sidebar = sidebar;
   }
 
-  get({ projectTitle }: { projectTitle: string }) {
+  get({ projectTitle, isPublic }: { projectTitle: string; isPublic?: boolean }) {
+    if (isPublic) {
+      return this.rootPage.getByTestId(`docs-sidebar-${projectTitle}`);
+    }
     return this.sidebar.get().getByTestId(`docs-sidebar-${projectTitle}`);
   }
 
-  async createPage({ projectTitle, title }: { projectTitle: string; title?: string }) {
+  async verifyVisibility({
+    projectTitle,
+    isVisible,
+    isPublic,
+  }: {
+    projectTitle: string;
+    isVisible: boolean;
+    isPublic?: boolean;
+  }) {
+    if (isVisible) {
+      await expect(this.get({ projectTitle, isPublic })).toBeVisible();
+    } else {
+      await expect(this.get({ projectTitle, isPublic })).not.toBeVisible();
+    }
+  }
+
+  async createPage({ projectTitle, title, content }: { projectTitle: string; title?: string; content?: string }) {
     await this.get({ projectTitle }).getByTestId('nc-docs-sidebar-add-page').hover();
 
     await this.waitForResponse({
@@ -28,49 +47,82 @@ export class DocsSidebarPage extends BasePage {
     if (title) {
       await this.sidebar.dashboard.docs.openedPage.fillTitle({ title });
     }
+    if (content) {
+      await this.sidebar.dashboard.docs.openedPage.fillContent({ content });
+    }
   }
 
   async createChildPage({
     projectTitle,
     title,
     parentTitle,
+    content,
   }: {
     projectTitle: string;
     title?: string;
     parentTitle: string;
+    content?: string;
   }) {
-    await this.get({ projectTitle }).getByTestId(`docs-sidebar-page-${projectTitle}-${parentTitle}`).hover();
+    await this.openPage({ projectTitle, title: parentTitle });
+
+    await this.get({ projectTitle })
+      .getByTestId(`docs-sidebar-page-${projectTitle}-${parentTitle}`)
+      .locator('.nc-docs-sidebar-page-title')
+      .hover();
+    const createChildPageButton = this.get({ projectTitle })
+      .getByTestId(`docs-sidebar-page-${projectTitle}-${parentTitle}`)
+      .locator('.nc-docs-add-child-page');
+    await createChildPageButton.hover();
+    await createChildPageButton.waitFor({ state: 'visible' });
+
+    await this.rootPage.waitForTimeout(1000);
+
     await this.waitForResponse({
       uiAction: () =>
-        this.get({ projectTitle })
-          .getByTestId(`docs-sidebar-page-${projectTitle}-${parentTitle}`)
-          .locator('.nc-docs-add-child-page')
-          .click(),
+        createChildPageButton.click({
+          force: true,
+        }),
       httpMethodsToMatch: ['POST'],
       requestUrlPathToMatch: `api/v1/docs/page`,
-      debug: true,
-      debugKey: 'createChildPage',
     });
 
     await this.sidebar.dashboard.docs.openedPage.waitForRender();
 
     if (title) {
       await this.sidebar.dashboard.docs.openedPage.fillTitle({ title });
-      console.log('createChildPage:1');
+    }
+    if (content) {
+      await this.sidebar.dashboard.docs.openedPage.fillContent({ content });
     }
   }
 
-  async verifyPageInSidebar({ projectTitle, title, level }: { projectTitle: string; title: string; level?: number }) {
-    await expect(this.get({ projectTitle }).getByTestId(`docs-sidebar-page-${projectTitle}-${title}`)).toBeVisible();
+  async verifyPageInSidebar({
+    projectTitle,
+    title,
+    level,
+    isPublic,
+  }: {
+    projectTitle: string;
+    title: string;
+    level?: number;
+    isPublic?: boolean;
+  }) {
+    await expect(
+      this.get({ projectTitle, isPublic }).getByTestId(`docs-sidebar-page-${projectTitle}-${title}`)
+    ).toBeVisible();
 
     if (level) {
       await expect(
-        this.get({ projectTitle }).getByTestId(`docs-sidebar-page-${projectTitle}-${title}`)
+        this.get({ projectTitle, isPublic }).getByTestId(`docs-sidebar-page-${projectTitle}-${title}`)
       ).toHaveAttribute('data-level', level.toString());
     }
   }
 
   async openPage({ projectTitle, title }: { projectTitle: string; title: string }) {
+    if ((await this.getTitleOfOpenedPage({ projectTitle })) === title) {
+      return;
+    }
+
     await this.waitForResponse({
       uiAction: () =>
         this.get({ projectTitle })

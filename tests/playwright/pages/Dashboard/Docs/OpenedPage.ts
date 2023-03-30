@@ -30,12 +30,11 @@ export class DocsOpenedPagePage extends BasePage {
 
     await this.get().getByTestId('docs-page-title').click();
 
-    await this.get().getByTestId('docs-page-title').fill(title, {
-      force: true,
-    });
-
     await this.waitForResponse({
-      uiAction: () => this.get().getByTestId('docs-page-title').fill(title),
+      uiAction: () =>
+        this.get().getByTestId('docs-page-title').fill(title, {
+          force: true,
+        }),
       httpMethodsToMatch: ['PUT'],
       requestUrlPathToMatch: `api/v1/docs/page`,
     });
@@ -46,21 +45,23 @@ export class DocsOpenedPagePage extends BasePage {
     await this.rootPage.waitForTimeout(1000);
 
     await this.get().getByTestId('docs-page-content').click();
-    await this.get()
-      .getByTestId('docs-page-content')
-      .locator('.ProseMirror')
-      .elementHandle()
-      .then(async el => {
-        await el?.waitForElementState('stable');
-      });
+    // await this.get()
+    //   .getByTestId('docs-page-content')
+    //   .locator('.ProseMirror')
+    //   .elementHandle()
+    //   .then(async el => {
+    //     await el?.waitForElementState('stable');
+    //   });
 
     await this.get()
       .getByTestId('docs-page-content')
       .locator('.ProseMirror > .draggable-block-wrapper:nth-child(1)')
       .locator('p:nth-child(1)')
-      .click();
+      .click({
+        force: true,
+      });
 
-    await this.rootPage.waitForTimeout(500);
+    await this.rootPage.waitForTimeout(200);
 
     for (const char of content) {
       await this.rootPage.keyboard.press(char);
@@ -72,7 +73,7 @@ export class DocsOpenedPagePage extends BasePage {
     //   requestUrlPathToMatch: `api/v1/docs/page`,
     // });
 
-    await this.rootPage.waitForTimeout(1000);
+    await this.rootPage.waitForTimeout(750);
   }
 
   async clearContent() {
@@ -104,6 +105,22 @@ export class DocsOpenedPagePage extends BasePage {
     //   httpMethodsToMatch: ['PUT'],
     //   requestUrlPathToMatch: `api/v1/docs/page`,
     // });
+  }
+
+  async verifyTitle({ title }: { title: string }) {
+    await expect.poll(() => this.get().getByTestId('docs-page-title').inputValue()).toBe(title);
+  }
+
+  async verifyPageOutlineOpened({ isOpened }: { isOpened: boolean }) {
+    if (isOpened) {
+      await expect(this.rootPage.getByTestId('docs-page-outline-toggle')).toBeVisible();
+      await expect(this.rootPage.getByTestId('docs-page-outline-toggle')).toHaveAttribute('aria-expanded', 'true');
+      await expect(this.rootPage.getByTestId('docs-page-outline-content')).toBeVisible();
+    } else {
+      await expect(this.rootPage.getByTestId('docs-page-outline-toggle')).toBeVisible();
+      await expect(this.rootPage.getByTestId('docs-page-outline-toggle')).toHaveAttribute('aria-expanded', 'false');
+      await expect(this.rootPage.getByTestId('docs-page-outline-content')).not.toBeVisible();
+    }
   }
 
   async verifyContent({ content }: { content: string }) {

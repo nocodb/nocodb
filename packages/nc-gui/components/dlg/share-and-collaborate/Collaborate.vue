@@ -1,5 +1,5 @@
 <script lang="ts" setup>
-const { invitationValid, invitationUsersData } = useShare()
+const { invitationValid, invitationUsersData } = storeToRefs(useShare())
 const { loadUsers, users } = useManageUsers()
 
 const formRef = ref()

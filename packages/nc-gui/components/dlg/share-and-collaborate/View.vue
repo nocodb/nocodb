@@ -9,7 +9,7 @@ const { dashboardUrl } = $(useDashboard())
 const { project } = storeToRefs(useProject())
 const { openedPage, nestedPagesOfProjects } = storeToRefs(useDocStore())
 
-const { formStatus, showShareModal, invitationValid, invitationUsersData } = useShare()
+const { formStatus, showShareModal, invitationValid, invitationUsersData } = storeToRefs(useShare())
 const { inviteUser } = useManageUsers()
 
 const isInvitationLinkCopied = ref(false)
@@ -103,18 +103,18 @@ watch(showShareModal, (val) => {
           <template #header>
             <div class="flex flex-row items-center gap-x-2">
               <PhBook />
-              <div>
+              <div data-testid="docs-share-dlg-share-page">
                 Share Document <span class="ml-2 py-1 px-2 rounded-md bg-gray-100 capitalize">{{ project.title }}</span>
               </div>
             </div>
           </template>
           <ShareProject />
         </a-collapse-panel>
-        <a-collapse-panel key="page" class="share-collapse-item">
+        <a-collapse-panel v-if="page" key="page" class="share-collapse-item">
           <template #header>
             <div class="flex flex-row items-center gap-x-2">
               <IonDocumentOutline />
-              <div>
+              <div data-testid="docs-share-dlg-share-page">
                 Share Page <span class="ml-10.5 py-1 px-2 rounded-md bg-gray-100 capitalize">{{ page.title }}</span>
               </div>
             </div>

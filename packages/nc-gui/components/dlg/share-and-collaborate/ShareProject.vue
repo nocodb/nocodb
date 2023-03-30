@@ -2,7 +2,7 @@
 import Collaborate from './Collaborate.vue'
 import PublicProject from './PublicProject.vue'
 
-const { formStatus } = useShare()
+const { formStatus } = storeToRefs(useShare())
 
 onMounted(async () => {
   formStatus.value = 'project-collaborate'

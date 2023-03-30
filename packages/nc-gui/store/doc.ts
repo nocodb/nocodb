@@ -557,7 +557,16 @@ export const useDocStore = defineStore('docStore', () => {
     }
 
     if ('is_published' in page || 'parent_page_id' in page) {
-      openedPage.value = { ...updatedPage, ...openedPage.value } as any
+      Object.assign(openedPage.value!, updatedPage)
+
+      const pageInNestedPages = findPage(nestedPages, pageId)
+      if (pageInNestedPages) {
+        pageInNestedPages.is_published = updatedPage.is_published
+        pageInNestedPages.parent_page_id = updatedPage.parent_page_id
+        pageInNestedPages.updated_at = updatedPage.updated_at
+        pageInNestedPages.last_updated_by_id = updatedPage.last_updated_by_id
+        pageInNestedPages.nested_published_parent_id = updatedPage.nested_published_parent_id
+      }
 
       await fetchNestedPages({
         projectId,

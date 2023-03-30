@@ -1,19 +1,18 @@
-import { storeToRefs } from 'pinia'
+import { defineStore } from 'pinia'
 import type { Users } from '~~/lib'
-import { ProjectRole } from '~~/lib'
 
-const [setup, use] = useInjectionState(() => {
+export const useShare = defineStore('share', () => {
   const visibility = ref<'public' | 'private' | 'none' | 'hidden'>('none')
-  const { project } = storeToRefs(useProject())
-  const { openedPage, isEditAllowed } = storeToRefs(useDocStore())
+  const { project } = useProject()
+  const { openedPage, isEditAllowed } = useDocStore()
 
   const isProjectPublic = computed(() => {
-    if (typeof project.value?.meta === 'string') {
-      const meta = JSON.parse(project.value.meta)
+    if (typeof project?.meta === 'string') {
+      const meta = JSON.parse(project.meta)
       return meta.isPublic
     }
 
-    return (project.value?.meta as any)?.isPublic
+    return (project?.meta as any)?.isPublic
   })
 
   const formStatus = ref<
@@ -34,12 +33,12 @@ const [setup, use] = useInjectionState(() => {
   watch(
     [openedPage, isEditAllowed, isProjectPublic],
     () => {
-      if (!isEditAllowed.value) {
+      if (!isEditAllowed) {
         visibility.value = 'hidden'
         return
       }
 
-      visibility.value = openedPage.value?.is_published || isProjectPublic.value ? 'public' : 'private'
+      visibility.value = openedPage?.is_published || isProjectPublic.value ? 'public' : 'private'
     },
     { immediate: true, deep: true },
   )
@@ -52,16 +51,4 @@ const [setup, use] = useInjectionState(() => {
     invitationUsersData,
     isProjectPublic,
   }
-}, 'useShare')
-
-export const provideShare = setup
-
-export function useShare() {
-  const state = use()
-
-  if (!state) {
-    return setup()
-  }
-
-  return state
-}
+})

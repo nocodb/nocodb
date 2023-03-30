@@ -8,7 +8,7 @@ interface Emits {
 const emits = defineEmits<Emits>()
 
 const { project } = storeToRefs(useProject())
-const { isProjectPublic } = useShare()
+const { isProjectPublic } = storeToRefs(useShare())
 const { openedPage, nestedPublicParentPage, nestedPagesOfProjects } = storeToRefs(useDocStore())
 const { updatePage, nestedUrl } = useDocStore()
 
@@ -104,6 +104,7 @@ watch(
       <div class="flex flex-row w-full justify-between">
         <div class="flex" :style="{ fontWeight: 500 }">Enable public viewing</div>
         <a-switch
+          data-testid="docs-share-page-toggle"
           :checked="isProjectPublic || !!page?.is_published"
           :loading="isPagePublishing"
           class="docs-share-public-toggle !mt-0.25"
@@ -136,6 +137,7 @@ watch(
         </div>
         <div
           class="flex flex-row py-1 px-1.5 hover:bg-gray-100 cursor-pointer rounded-md border-1 border-gray-300 gap-x-1 items-center"
+          data-testid="docs-share-page-copy-link"
           @click="copyPageUrl"
         >
           <MdiCheck v-if="isCopied.link" class="h-3.5" />

@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { isDrawerOrModalExist, isMac, useNuxtApp } from '#imports'
 
-const { visibility, showShareModal } = useShare()
+const { visibility, showShareModal } = storeToRefs(useShare())
 
 const { $e } = useNuxtApp()
 

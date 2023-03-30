@@ -2676,6 +2676,8 @@ class BaseModelSqlv2 {
         break;
     }
 
+    const response = await this.readByPk(rowId);
+    await this.afterInsert(response, this.dbDriver, cookie);
     await this.afterAddChild(rowId, childId, cookie);
   }
 
@@ -2722,6 +2724,8 @@ class BaseModelSqlv2 {
 
     const childTn = this.getTnPath(childTable);
     const parentTn = this.getTnPath(parentTable);
+
+    const prevData = await this.readByPk(rowId);
 
     switch (colOptions.type) {
       case RelationTypes.MANY_TO_MANY:
@@ -2774,6 +2778,8 @@ class BaseModelSqlv2 {
         break;
     }
 
+    const newData = await this.readByPk(rowId);
+    await this.afterUpdate(prevData, newData, this.dbDriver, cookie);
     await this.afterRemoveChild(rowId, childId, cookie);
   }
 

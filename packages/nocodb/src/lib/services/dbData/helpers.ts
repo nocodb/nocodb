@@ -250,7 +250,7 @@ export async function getDbRows(param: {
     });
     const rows = await nocoExecute(
       ast,
-      await baseModel.list({ ...listArgs, offset, limit, ...dependencyFields }),
+      await baseModel.list({ ...listArgs, ...dependencyFields, offset, limit }),
       {},
       query
     );

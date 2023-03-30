@@ -628,36 +628,35 @@ async function _formulaQueryBuilder(
           break;
       }
 
-      return knex.raw(
-        `${pt.callee.name}(${pt.arguments
-          .map((arg) => {
-            const query = fn(arg).toQuery();
-            if (pt.callee.name === 'CONCAT') {
-              if (knex.clientType() === 'mysql2') {
-                // mysql2: CONCAT() returns NULL if any argument is NULL.
-                // adding IFNULL to convert NULL values to empty strings
-                return `IFNULL(${query}, '')`;
-              } else {
-                // do nothing
-                // pg / mssql: Concatenate all arguments. NULL arguments are ignored.
-                // sqlite3: special handling - See BinaryExpression
+      return {
+        builder: knex.raw(
+          `${pt.callee.name}(${pt.arguments
+            .map((arg) => {
+              const query = fn(arg).toQuery();
+              if (pt.callee.name === 'CONCAT') {
+                if (knex.clientType() === 'mysql2') {
+                  // mysql2: CONCAT() returns NULL if any argument is NULL.
+                  // adding IFNULL to convert NULL values to empty strings
+                  return `IFNULL(${query}, '')`;
+                } else {
+                  // do nothing
+                  // pg / mssql: Concatenate all arguments. NULL arguments are ignored.
+                  // sqlite3: special handling - See BinaryExpression
+                }
               }
-            }
-            return query;
-          })
-          .join()})${colAlias}`.replace(/\?/g, '\\?')
-      );
+              return query;
+            })
+            .join()})${colAlias}`.replace(/\?/g, '\\?')
+        ),
+      };
     } else if (pt.type === 'Literal') {
-      return knex.raw(`?${colAlias}`, [pt.value]);
+      return { builder: knex.raw(`?${colAlias}`, [pt.value]) };
     } else if (pt.type === 'Identifier') {
-      const { builder } = await aliasToColumn?.[pt.name]()
+      const { builder } = await aliasToColumn?.[pt.name]?.();
       if (typeof builder === 'function') {
-        return knex.raw(
-          `??${colAlias}`,
-          await builder(pt.fnName)
-        );
+        return { builder: knex.raw(`??${colAlias}`, await builder(pt.fnName)) };
       }
-      return knex.raw(`??${colAlias}`, [aliasToColumn?.[pt.name] || pt.name]);
+      return { builder: knex.raw(`??${colAlias}`, [builder || pt.name]) };
     } else if (pt.type === 'BinaryExpression') {
       if (pt.operator === '==') {
         pt.operator = '=';
@@ -678,8 +677,8 @@ async function _formulaQueryBuilder(
       pt.left.fnName = pt.left.fnName || 'ARITH';
       pt.right.fnName = pt.right.fnName || 'ARITH';
 
-      const left = fn(pt.left, null, pt.operator).toQuery();
-      const right = fn(pt.right, null, pt.operator).toQuery();
+      const left = (await fn(pt.left, null, pt.operator)).builder.toQuery();
+      const right = (await fn(pt.right, null, pt.operator)).builder.toQuery();
       let sql = `${left} ${pt.operator} ${right}${colAlias}`;
 
       // comparing a date with empty string would throw
@@ -788,7 +787,9 @@ async function _formulaQueryBuilder(
       return { builder: query };
     }
   };
-  return { builder: fn(tree, alias) };
+  const builder = (await fn(tree, alias)).builder;
+
+  return { builder };
 }
 
 function getTnPath(tb: Model, knex, tableAlias?: string) {
@@ -876,4 +877,63 @@ export default async function formulaQueryBuilderv2(
     throw new Error(`Formula error: ${e.message}`);
   }
   return qb;
+}
+
+export async function validateFormula(
+  _tree,
+  alias,
+  knex: XKnex,
+  model: Model,
+  column?: Column,
+  aliasToColumn = {},
+  tableAlias?: string
+) {
+  // register jsep curly hook once only
+  jsep.plugins.register(jsepCurlyHook);
+  // generate qb
+  const qb = await _formulaQueryBuilder(
+    _tree,
+    alias,
+    knex,
+    model,
+    aliasToColumn,
+    tableAlias
+  );
+
+  try {
+    // dry run qb.builder to see if it will break the grid view or not
+    // if so, set formula error and show empty selectQb instead
+    await knex(getTnPath(model, knex, tableAlias))
+      .select(qb.builder)
+      .as('dry-run-only');
+
+    // if column is provided, i.e. formula has been created
+    if (column) {
+      const formula = await column.getColOptions<FormulaColumn>();
+      // clean the previous formula error if the formula works this time
+      if (formula.error) {
+        await FormulaColumn.update(formula.id, {
+          error: null,
+        });
+      }
+    }
+  } catch (e) {
+    console.error(e);
+    if (column) {
+      const formula = await column.getColOptions<FormulaColumn>();
+      // add formula error to show in UI
+      await FormulaColumn.update(formula.id, {
+        error: e.message,
+      });
+      // update cache to reflect the error in UI
+      const key = `${CacheScope.COL_FORMULA}:${column.id}`;
+      let o = await NocoCache.get(key, CacheGetType.TYPE_OBJECT);
+      if (o) {
+        o = { ...o, error: e.message };
+        // set cache
+        await NocoCache.set(key, o);
+      }
+    }
+    throw new Error(`Formula error: ${e.message}`);
+  }
 }

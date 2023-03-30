@@ -28,7 +28,11 @@ export default {
         )
         .toQuery();
     }
-    return args.knex.raw(`CASE ${switchVal} ${query}\n END${args.colAlias}`);
+    return {
+      builder: args.knex.raw(
+        `CASE ${switchVal} ${query}\n END${args.colAlias}`
+      ),
+    };
   },
   IF: async (args: MapFnArgs) => {
     let query = args.knex
@@ -42,62 +46,74 @@ export default {
       .toQuery();
     if (args.pt.arguments[2]) {
       query += args.knex
-        .raw(`\n\tELSE ${(await args.fn(args.pt.arguments[2])).builder.toQuery()}`)
+        .raw(
+          `\n\tELSE ${(await args.fn(args.pt.arguments[2])).builder.toQuery()}`
+        )
         .toQuery();
     }
-    return args.knex.raw(`CASE ${query}\n END${args.colAlias}`);
+    return { builder: args.knex.raw(`CASE ${query}\n END${args.colAlias}`) };
   },
-  TRUE: (_args) => 1,
-  FALSE: (_args) => 0,
+  TRUE: 1,
+  FALSE: 0,
   AND: async (args: MapFnArgs) => {
-    return args.knex.raw(
-      `${args.knex
-        .raw(
-          `${(
-            await Promise.all(
-              args.pt.arguments.map(async (ar) =>
-                (await args.fn(ar)).builder.toQuery()
+    return {
+      builder: args.knex.raw(
+        `${args.knex
+          .raw(
+            `${(
+              await Promise.all(
+                args.pt.arguments.map(async (ar) =>
+                  (await args.fn(ar)).builder.toQuery()
+                )
               )
-            )
-          ).join(' AND ')}`
-        )
-        .wrap('(', ')')
-        .toQuery()}${args.colAlias}`
-    );
+            ).join(' AND ')}`
+          )
+          .wrap('(', ')')
+          .toQuery()}${args.colAlias}`
+      ),
+    };
   },
   OR: async (args: MapFnArgs) => {
-    return args.knex.raw(
-      `${args.knex
-        .raw(
-          `${(
-            await Promise.all(
-              args.pt.arguments.map(async (ar) =>
-                (await args.fn(ar)).builder.toQuery()
+    return {
+      builder: args.knex.raw(
+        `${args.knex
+          .raw(
+            `${(
+              await Promise.all(
+                args.pt.arguments.map(async (ar) =>
+                  (await args.fn(ar)).builder.toQuery()
+                )
               )
-            )
-          ).join(' OR ')}`
-        )
-        .wrap('(', ')')
-        .toQuery()}${args.colAlias}`
-    );
+            ).join(' OR ')}`
+          )
+          .wrap('(', ')')
+          .toQuery()}${args.colAlias}`
+      ),
+    };
   },
   AVG: (args: MapFnArgs) => {
     if (args.pt.arguments.length > 1) {
-      return args.fn(
-        {
-          type: 'BinaryExpression',
-          operator: '/',
-          left: { ...args.pt, callee: { name: 'SUM' } },
-          right: { type: 'Literal', value: args.pt.arguments.length },
-        },
-        args.a,
-        args.prevBinaryOp
-      );
+      return {
+        builder: args.fn(
+          {
+            type: 'BinaryExpression',
+            operator: '/',
+            left: { ...args.pt, callee: { name: 'SUM' } },
+            right: { type: 'Literal', value: args.pt.arguments.length },
+          },
+          args.a,
+          args.prevBinaryOp
+        ),
+      };
     } else {
-      return args.fn(args.pt.arguments[0], args.a, args.prevBinaryOp);
+      return {
+        builder: args.fn(args.pt.arguments[0], args.a, args.prevBinaryOp),
+      };
     }
   },
   FLOAT: async (args: MapFnArgs) => {
-    return (await args.fn(args.pt?.arguments?.[0])).builder.wrap('(', ')');
+    return {
+      builder: (await args.fn(args.pt?.arguments?.[0])).builder.wrap('(', ')'),
+    };
   },
 };

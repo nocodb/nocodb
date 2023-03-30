@@ -149,9 +149,10 @@ export function constructWebHookData(hook, model, view, prevData, newData) {
         view_id: view.id,
         view_name: view.title,
         ...(prevData && {
-          previous_rows: [prevData],
+          previous_rows: Array.isArray(prevData) ? prevData : [prevData],
         }),
-        ...(hook.operation !== 'bulkInsert' && newData && { rows: [newData] }),
+        ...(hook.operation !== 'bulkInsert' &&
+          newData && { rows: Array.isArray(newData) ? newData : [newData] }),
         ...(hook.operation === 'bulkInsert' && {
           rows_inserted: Array.isArray(newData)
             ? newData.length

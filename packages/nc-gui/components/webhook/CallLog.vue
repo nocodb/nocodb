@@ -65,8 +65,8 @@ onBeforeMount(async () => {
         <span v-else> Upgrade to Enterprise Edition to show all the logs. </span>
       </span>
       <span>
-        <!-- TODO: update the link -->
-        For additional configuration options, please refer the documentation <a href="#" target="_blank">here</a>.
+        For additional configuration options, please refer the documentation
+        <a href="https://docs.nocodb.com/developer-resources/webhooks#call-log" target="_blank">here</a>.
       </span>
     </a-card>
 

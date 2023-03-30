@@ -103,7 +103,7 @@ watch(showShareModal, (val) => {
           <template #header>
             <div class="flex flex-row items-center gap-x-2">
               <PhBook />
-              <div data-testid="docs-share-dlg-share-page">
+              <div data-testid="docs-share-dlg-share-project">
                 Share Document <span class="ml-2 py-1 px-2 rounded-md bg-gray-100 capitalize">{{ project.title }}</span>
               </div>
             </div>

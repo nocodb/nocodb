@@ -3,16 +3,16 @@ import type { Users } from '~~/lib'
 
 export const useShare = defineStore('share', () => {
   const visibility = ref<'public' | 'private' | 'none' | 'hidden'>('none')
-  const { project } = useProject()
-  const { openedPage, isEditAllowed } = useDocStore()
+  const { project } = toRefs(useProject())
+  const { openedPage, isEditAllowed } = toRefs(useDocStore())
 
   const isProjectPublic = computed(() => {
-    if (typeof project?.meta === 'string') {
-      const meta = JSON.parse(project.meta)
+    if (typeof project.value?.meta === 'string') {
+      const meta = JSON.parse(project.value?.meta)
       return meta.isPublic
     }
 
-    return (project?.meta as any)?.isPublic
+    return (project.value?.meta as any)?.isPublic
   })
 
   const formStatus = ref<
@@ -38,7 +38,7 @@ export const useShare = defineStore('share', () => {
         return
       }
 
-      visibility.value = openedPage?.is_published || isProjectPublic.value ? 'public' : 'private'
+      visibility.value = openedPage.value?.is_published || isProjectPublic.value ? 'public' : 'private'
     },
     { immediate: true, deep: true },
   )

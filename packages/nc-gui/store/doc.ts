@@ -40,15 +40,16 @@ export const useDocStore = defineStore('docStore', () => {
 
   const isOpenedNestedPageLoading = computed<boolean>(() => isNestedPageFetching.value[openedProjectId.value] ?? true)
 
-  const isEditAllowed = computed<boolean>(
-    () =>
+  const isEditAllowed = computed<boolean>(() => {
+    return (
       !isPublic.value &&
       !!(
         projectRoles.value[ProjectRole.Creator] ||
         projectRoles.value[ProjectRole.Owner] ||
         projectRoles.value[ProjectRole.Editor]
-      ),
-  )
+      )
+    )
+  })
 
   const nestedPagesOfOpenedProject = computed<PageSidebarNode[]>(() => nestedPagesOfProjects.value[openedProjectId.value] || [])
 
@@ -67,7 +68,7 @@ export const useDocStore = defineStore('docStore', () => {
   const nestedPublicParentPage = computed<PageSidebarNode | undefined>(() => {
     const nestedPages = nestedPagesOfProjects.value[openedProjectId.value]
 
-    return openedPage.value?.nested_published_parent_id
+    return openedPage.value?.nested_published_parent_id && nestedPages
       ? findPage(nestedPages, openedPage.value?.nested_published_parent_id)
       : undefined
   })

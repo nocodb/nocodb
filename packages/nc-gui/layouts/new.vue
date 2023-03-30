@@ -4,6 +4,8 @@ import { useGlobal, useI18n, useRoute, useSidebar } from '#imports'
 
 const route = useRoute()
 
+useShare()
+
 const { te, t } = useI18n()
 
 const { hasSidebar, isOpen } = useSidebar('nc-left-sidebar')

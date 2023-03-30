@@ -423,20 +423,30 @@ test.describe.serial('Webhook', () => {
   });
 
   test('Bulk operations', async ({ request, page }) => {
-    async function verifyBulkOperationTrigger(rsp, type, valueCounter, oldValueCounter?) {
+    async function verifyBulkOperationTrigger(rsp, type) {
       for (let i = 0; i < rsp.length; i++) {
-        expect(rsp[i].type === type);
-        expect(rsp[i].data.table_name === 'numberBased');
-        expect(rsp[i].data.view_name === 'numberBased');
-        expect(rsp[i].data.rows.length === 25);
-        for (let j = 0; j < rsp[i].data.rows.length; j++) {
-          expect(rsp[i].data.rows[j].Number === (i * 25 + j + 1) * valueCounter);
-        }
+        expect(rsp[i].type).toBe(type);
+        expect(rsp[i].data.table_name).toBe('numberBased');
+        expect(rsp[i].data.view_name).toBe('numberBased');
 
-        if (oldValueCounter) {
-          expect(rsp[i].data.previous_rows.length === 25);
-          for (let j = 0; j < rsp[i].data.previous_rows.length; j++) {
-            expect(rsp[i].data.previous_rows[j].Number === (i * 25 + j + 1) * oldValueCounter);
+        // only for insert, rows inserted will not be returned in response. just count
+        if (type === 'records.after.bulkInsert') {
+          expect(rsp[i].data.rows_inserted).toBe(50);
+        } else if (type === 'records.after.bulkUpdate') {
+          expect(rsp[i].data.rows.length).toBe(50);
+          expect(rsp[i].data.previous_rows.length).toBe(50);
+
+          // verify records
+          for (let j = 0; j < rsp[i].data.rows.length; j++) {
+            expect(rsp[i].data.rows[j].Number).toBe(111 * (j + 1));
+            expect(rsp[i].data.previous_rows[j].Number).toBe(100 * (j + 1) - 111);
+          }
+        } else if (type === 'records.after.bulkDelete') {
+          expect(rsp[i].data.rows.length).toBe(50);
+
+          // verify records
+          for (let j = 0; j < rsp[i].data.rows.length; j++) {
+            expect(rsp[i].data.rows[j].Number).toBe(111 * (j + 1));
           }
         }
       }
@@ -479,15 +489,15 @@ test.describe.serial('Webhook', () => {
     // create after insert webhook
     await webhook.create({
       title: 'hook-1',
-      event: 'After Insert',
+      event: 'After Bulk Insert',
     });
     await webhook.create({
       title: 'hook-1',
-      event: 'After Update',
+      event: 'After Bulk Update',
     });
     await webhook.create({
       title: 'hook-1',
-      event: 'After Delete',
+      event: 'After Bulk Delete',
     });
 
     await clearServerData({ request });
@@ -498,8 +508,8 @@ test.describe.serial('Webhook', () => {
     await api.dbTableRow.bulkCreate('noco', context.project.id, table.id, rowAttributesForInsert);
     await page.reload();
     // 50 records inserted, we expect 2 webhook responses
-    let rsp = await getWebhookResponses({ request, count: 2 });
-    await verifyBulkOperationTrigger(rsp, 'records.after.insert', 100);
+    let rsp = await getWebhookResponses({ request, count: 1 });
+    await verifyBulkOperationTrigger(rsp, 'records.after.bulkInsert');
 
     // bulk update all rows
     await clearServerData({ request });
@@ -512,8 +522,8 @@ test.describe.serial('Webhook', () => {
     await api.dbTableRow.bulkUpdate('noco', context.project.id, table.id, rowAttributesForUpdate);
     await page.reload();
     // 50 records updated, we expect 2 webhook responses
-    rsp = await getWebhookResponses({ request, count: 2 });
-    await verifyBulkOperationTrigger(rsp, 'records.after.update', 111, 100);
+    rsp = await getWebhookResponses({ request, count: 1 });
+    await verifyBulkOperationTrigger(rsp, 'records.after.bulkUpdate');
 
     // bulk delete all rows
     await clearServerData({ request });
@@ -521,8 +531,8 @@ test.describe.serial('Webhook', () => {
 
     await api.dbTableRow.bulkDelete('noco', context.project.id, table.id, rowAttributesForDelete);
     await page.reload();
-    rsp = await getWebhookResponses({ request, count: 2 });
-    await verifyBulkOperationTrigger(rsp, 'records.after.delete', 111);
+    rsp = await getWebhookResponses({ request, count: 1 });
+    await verifyBulkOperationTrigger(rsp, 'records.after.bulkDelete');
   });
 
   test('Virtual columns', async ({ request, page }) => {
@@ -655,7 +665,6 @@ test.describe.serial('Webhook', () => {
     // edit first record
     await dashboard.grid.editRow({ index: 0, columnHeader: 'Country', value: 'INDIA', networkValidation: false });
     const rsp = await getWebhookResponses({ request, count: 1 });
-    console.log(rsp);
 
     const expectedData = {
       type: 'records.after.update',
@@ -666,8 +675,8 @@ test.describe.serial('Webhook', () => {
           {
             Id: 1,
             Country: 'India',
-            CountryCode: 1,
-            CityCodeRollup: 2,
+            CountryCode: '1',
+            CityCodeRollup: '2',
             CityCodeFormula: 100,
             CityList: [
               {
@@ -679,15 +688,15 @@ test.describe.serial('Webhook', () => {
                 City: 'Pune',
               },
             ],
-            CityCodeLookup: [23, 33],
+            CityCodeLookup: ['23', '33'],
           },
         ],
         rows: [
           {
             Id: 1,
             Country: 'INDIA',
-            CountryCode: 1,
-            CityCodeRollup: 2,
+            CountryCode: '1',
+            CityCodeRollup: '2',
             CityCodeFormula: 100,
             CityList: [
               {
@@ -699,7 +708,7 @@ test.describe.serial('Webhook', () => {
                 City: 'Pune',
               },
             ],
-            CityCodeLookup: [23, 33],
+            CityCodeLookup: ['23', '33'],
           },
         ],
       },

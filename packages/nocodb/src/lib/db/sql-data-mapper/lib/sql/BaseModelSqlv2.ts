@@ -114,14 +114,23 @@ class BaseModelSqlv2 {
     autoBind(this);
   }
 
-  public async readByPk(id?: any): Promise<any> {
+  public async readByPk(id?: any, validateFormula = false): Promise<any> {
     const qb = this.dbDriver(this.tnPath);
 
-    await this.selectObject({ qb });
+    await this.selectObject({ qb, validateFormula });
 
     qb.where(_wherePk(this.model.primaryKeys, id));
 
-    const data = (await this.execAndParse(qb))?.[0];
+    let data;
+
+    try {
+      data = (await this.execAndParse(qb))?.[0];
+    } catch (e) {
+      if (validateFormula || !haveFormulaColumn(await this.model.getColumns()))
+        throw e;
+      console.log(e);
+      return this.readByPk(id, true);
+    }
 
     if (data) {
       const proto = await this.getProto();
@@ -146,11 +155,12 @@ class BaseModelSqlv2 {
       where?: string;
       filterArr?: Filter[];
       sort?: string | string[];
-    } = {}
+    } = {},
+    validateFormula = false
   ): Promise<any> {
     const { where, ...rest } = this._getListArgs(args as any);
     const qb = this.dbDriver(this.tnPath);
-    await this.selectObject({ qb });
+    await this.selectObject({ qb, validateFormula });
 
     const aliasColObjMap = await this.model.getAliasColObjMap();
     const sorts = extractSortsObject(rest?.sort, aliasColObjMap);
@@ -179,7 +189,16 @@ class BaseModelSqlv2 {
       qb.orderBy(this.model.primaryKey.column_name);
     }
 
-    const data = await qb.first();
+    let data;
+
+    try {
+      data = await qb.first();
+    } catch (e) {
+      if (validateFormula || !haveFormulaColumn(await this.model.getColumns()))
+        throw e;
+      console.log(e);
+      return this.findOne(args, true);
+    }
 
     if (data) {
       const proto = await this.getProto();
@@ -287,10 +306,10 @@ class BaseModelSqlv2 {
     try {
       data = await this.execAndParse(qb);
     } catch (e) {
-      if (!validateFormula) {
-        return this.list(args, ignoreViewFilterAndSort, true);
-      }
-      throw e;
+      if (validateFormula || !haveFormulaColumn(await this.model.getColumns()))
+        throw e;
+      console.log(e);
+      return this.list(args, ignoreViewFilterAndSort, true);
     }
     return data?.map((d) => {
       d.__proto__ = proto;
@@ -3196,6 +3215,10 @@ function _wherePk(primaryKeys: Column[], id) {
 
 function getCompositePk(primaryKeys: Column[], row) {
   return primaryKeys.map((c) => row[c.title]).join('___');
+}
+
+function haveFormulaColumn(columns: Column[]) {
+  return columns.some((c) => c.uidt === UITypes.Formula);
 }
 
 export { BaseModelSqlv2 };

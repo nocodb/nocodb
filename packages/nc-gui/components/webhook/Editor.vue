@@ -175,7 +175,14 @@ const formInput = ref({
   ],
 })
 
-const eventList = ref<Record<string, any>[]>([])
+const eventList = ref<Record<string, any>[]>([
+  { text: ['After', 'Insert'], value: ['after', 'insert'] },
+  { text: ['After', 'Update'], value: ['after', 'update'] },
+  { text: ['After', 'Delete'], value: ['after', 'delete'] },
+  { text: ['After', 'Bulk Insert'], value: ['after', 'bulkInsert'] },
+  { text: ['After', 'Bulk Update'], value: ['after', 'bulkUpdate'] },
+  { text: ['After', 'Bulk Delete'], value: ['after', 'bulkDelete'] },
+])
 
 const notificationList = computed(() => {
   return appInfo.isCloud
@@ -271,20 +278,12 @@ function setHook(newHook: HookType) {
   })
   if (hook.version === 'v1') {
     urlTabKey.value = 'body'
+    eventList.value = [
+      { text: ['After', 'Insert'], value: ['after', 'insert'] },
+      { text: ['After', 'Update'], value: ['after', 'update'] },
+      { text: ['After', 'Delete'], value: ['after', 'delete'] },
+    ]
   }
-
-  eventList.value = [
-    { text: ['After', 'Insert'], value: ['after', 'insert'] },
-    { text: ['After', 'Update'], value: ['after', 'update'] },
-    { text: ['After', 'Delete'], value: ['after', 'delete'] },
-    ...(hook.version === 'v2'
-      ? [
-          { text: ['After', 'Bulk Insert'], value: ['after', 'bulkInsert'] },
-          { text: ['After', 'Bulk Update'], value: ['after', 'bulkUpdate'] },
-          { text: ['After', 'Bulk Delete'], value: ['after', 'bulkDelete'] },
-        ]
-      : []),
-  ]
 }
 
 async function onEventChange() {

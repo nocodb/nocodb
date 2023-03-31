@@ -223,10 +223,7 @@ const validators = computed(() => {
       'notification.payload.subject': [fieldRequiredValidator()],
       'notification.payload.body': [fieldRequiredValidator()],
     }),
-    ...((hook.notification.type === 'Slack' ||
-      hook.notification.type === 'Microsoft Teams' ||
-      hook.notification.type === 'Discord' ||
-      hook.notification.type === 'Mattermost') && {
+    ...(['Slack', 'Microsoft Teams', 'Discord', 'Mattermost'].includes(hook.notification.type) && {
       'notification.payload.channels': [fieldRequiredValidator()],
       'notification.payload.body': [fieldRequiredValidator()],
     }),

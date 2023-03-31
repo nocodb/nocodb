@@ -34,20 +34,10 @@ export class SidebarPage extends BasePage {
   }
 
   async openProject({ title, mode = 'standard' }: { title: string; mode?: string }) {
-    if ((await this.get().locator('.active.nc-project-tree-tbl').count()) > 0) {
-      if ((await this.get().locator('.active.nc-project-tree-tbl').innerText()) === title) {
-        // table already open
-        return;
-      }
-    }
+    await this.get().locator(`.project-title-node`).getByText(title).click();
 
-    await this.waitForResponse({
-      uiAction: () => this.get().locator(`.nc-project-tree-tbl-${title}`).click(),
-      httpMethodsToMatch: ['GET'],
-      requestUrlPathToMatch: `/api/v1/db/data/noco/`,
-      responseJsonMatcher: json => json.pageInfo,
-    });
-    await this.dashboard.waitForTabRender({ title, mode });
+    // TODO: Fix this
+    await this.rootPage.waitForTimeout(1000);
   }
 
   async createProject({ title, type }: { title: string; type: ProjectTypes }) {

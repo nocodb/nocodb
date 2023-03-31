@@ -118,6 +118,20 @@ export class DocsSidebarPage extends BasePage {
     }
   }
 
+  async verifyPageIsNotInSidebar({
+    projectTitle,
+    title,
+    isPublic,
+  }: {
+    projectTitle: string;
+    title: string;
+    isPublic?: boolean;
+  }) {
+    await expect(
+      this.get({ projectTitle, isPublic }).getByTestId(`docs-sidebar-page-${projectTitle}-${title}`)
+    ).toBeHidden();
+  }
+
   async openPage({ projectTitle, title }: { projectTitle: string; title: string }) {
     if ((await this.getTitleOfOpenedPage({ projectTitle })) === title) {
       return;
@@ -136,8 +150,14 @@ export class DocsSidebarPage extends BasePage {
     await this.sidebar.dashboard.docs.openedPage.waitForRender();
   }
 
-  async getTitleOfOpenedPage({ projectTitle }: { projectTitle: string }): Promise<string | null> {
-    return await this.get({ projectTitle })
+  async getTitleOfOpenedPage({
+    projectTitle,
+    isPublic,
+  }: {
+    projectTitle: string;
+    isPublic?: boolean;
+  }): Promise<string | null> {
+    return await this.get({ projectTitle, isPublic })
       .locator('.ant-tree-node-selected')
       .locator('.nc-docs-sidebar-page-title')
       .textContent();

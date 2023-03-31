@@ -2,9 +2,9 @@
 import { storeToRefs } from 'pinia'
 
 const { project } = storeToRefs(useProject())
-const { loadProject } = useProject()
-const { updateProject } = useProject()
+const { loadProject, updateProject } = useProject()
 const { projectUrl } = useDocStore()
+const { setProject } = useProjects()
 
 const projectMeta = computed(() => {
   return typeof project.value.meta === 'string' ? JSON.parse(project.value.meta) : project.value.meta ?? {}
@@ -67,6 +67,14 @@ const toggleProjectPublicState = async () => {
     await updateProject({ meta: { ...(meta as any), ...updates } })
 
     await loadProject()
+
+    setProject(project.value.id!, {
+      ...project.value,
+      meta: {
+        ...(meta as any),
+        ...updates,
+      },
+    })
   } finally {
     isProjectUpdating.value = false
   }
@@ -93,6 +101,7 @@ watch(
           :checked="projectMeta?.isPublic"
           :loading="isProjectUpdating"
           class="docs-project-share-public-toggle !mt-0.25"
+          data-testid="docs-project-share-public-toggle"
           @click="toggleProjectPublicState"
         />
       </div>
@@ -111,6 +120,7 @@ watch(
         </div>
         <div
           class="flex flex-row py-1 px-1.5 hover:bg-gray-100 cursor-pointer rounded-md border-1 border-gray-300 gap-x-1 items-center"
+          data-testid="docs-share-project-copy-link"
           @click="copyUrl"
         >
           <MdiCheck v-if="isCopied.link" class="h-3.5" />

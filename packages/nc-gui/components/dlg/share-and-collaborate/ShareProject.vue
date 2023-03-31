@@ -25,7 +25,7 @@ onMounted(async () => {
         <template #tab>
           <div class="flex flex-row items-center text-xs px-2">
             <MdiEarth class="mr-1" />
-            <div>Share Public Viewing</div>
+            <div data-testid="docs-share-dlg-share-project-public">Share Public Viewing</div>
           </div>
         </template>
         <PublicProject />

@@ -2132,7 +2132,7 @@ class BaseModelSqlv2 {
         updatePkValues.push(pkValues);
       }
 
-      transaction.commit();
+      await transaction.commit();
 
       for (const pkValues of updatePkValues) {
         newData.push(await this.readByPk(pkValues));
@@ -2142,7 +2142,7 @@ class BaseModelSqlv2 {
 
       return res;
     } catch (e) {
-      if (transaction) transaction.rollback();
+      if (transaction) await transaction.rollback();
       throw e;
     }
   }
@@ -2220,13 +2220,13 @@ class BaseModelSqlv2 {
         res.push(d);
       }
 
-      transaction.commit();
+      await transaction.commit();
 
       await this.afterBulkDelete(deleted, this.dbDriver, cookie);
 
       return res;
     } catch (e) {
-      if (transaction) transaction.rollback();
+      if (transaction) await transaction.rollback();
       console.log(e);
       throw e;
     }

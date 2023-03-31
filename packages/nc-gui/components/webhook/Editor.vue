@@ -627,7 +627,7 @@ onMounted(async () => {
 
           <a-row v-if="hook.notification.type === 'Slack'" type="flex">
             <a-col :span="24">
-              <a-form-item v-bind="validateInfos['notification.channels']">
+              <a-form-item v-bind="validateInfos['notification.payload.channels']">
                 <LazyWebhookChannelMultiSelect
                   v-model="hook.notification.payload.channels"
                   :selected-channel-list="hook.notification.payload.channels"
@@ -640,7 +640,7 @@ onMounted(async () => {
 
           <a-row v-if="hook.notification.type === 'Microsoft Teams'" type="flex">
             <a-col :span="24">
-              <a-form-item v-bind="validateInfos['notification.channels']">
+              <a-form-item v-bind="validateInfos['notification.payload.channels']">
                 <LazyWebhookChannelMultiSelect
                   v-model="hook.notification.payload.channels"
                   :selected-channel-list="hook.notification.payload.channels"
@@ -653,7 +653,7 @@ onMounted(async () => {
 
           <a-row v-if="hook.notification.type === 'Discord'" type="flex">
             <a-col :span="24">
-              <a-form-item v-bind="validateInfos['notification.channels']">
+              <a-form-item v-bind="validateInfos['notification.payload.channels']">
                 <LazyWebhookChannelMultiSelect
                   v-model="hook.notification.payload.channels"
                   :selected-channel-list="hook.notification.payload.channels"
@@ -666,7 +666,7 @@ onMounted(async () => {
 
           <a-row v-if="hook.notification.type === 'Mattermost'" type="flex">
             <a-col :span="24">
-              <a-form-item v-bind="validateInfos['notification.channels']">
+              <a-form-item v-bind="validateInfos['notification.payload.channels']">
                 <LazyWebhookChannelMultiSelect
                   v-model="hook.notification.payload.channels"
                   :selected-channel-list="hook.notification.payload.channels"

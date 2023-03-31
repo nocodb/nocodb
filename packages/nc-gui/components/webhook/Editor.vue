@@ -63,6 +63,7 @@ const hook = reactive<
   },
   condition: false,
   active: true,
+  version: 'v2',
 })
 
 const urlTabKey = ref('params')
@@ -628,7 +629,6 @@ onMounted(async () => {
             <a-col :span="24">
               <a-form-item v-bind="validateInfos['notification.channels']">
                 <LazyWebhookChannelMultiSelect
-                  v-if="slackChannels.length > 0"
                   v-model="hook.notification.payload.channels"
                   :selected-channel-list="hook.notification.payload.channels"
                   :available-channel-list="slackChannels"
@@ -642,7 +642,6 @@ onMounted(async () => {
             <a-col :span="24">
               <a-form-item v-bind="validateInfos['notification.channels']">
                 <LazyWebhookChannelMultiSelect
-                  v-if="teamsChannels.length > 0"
                   v-model="hook.notification.payload.channels"
                   :selected-channel-list="hook.notification.payload.channels"
                   :available-channel-list="teamsChannels"
@@ -656,7 +655,6 @@ onMounted(async () => {
             <a-col :span="24">
               <a-form-item v-bind="validateInfos['notification.channels']">
                 <LazyWebhookChannelMultiSelect
-                  v-if="discordChannels.length > 0"
                   v-model="hook.notification.payload.channels"
                   :selected-channel-list="hook.notification.payload.channels"
                   :available-channel-list="discordChannels"
@@ -670,7 +668,6 @@ onMounted(async () => {
             <a-col :span="24">
               <a-form-item v-bind="validateInfos['notification.channels']">
                 <LazyWebhookChannelMultiSelect
-                  v-if="mattermostChannels.length > 0"
                   v-model="hook.notification.payload.channels"
                   :selected-channel-list="hook.notification.payload.channels"
                   :available-channel-list="mattermostChannels"
@@ -718,7 +715,7 @@ onMounted(async () => {
 
           <a-row>
             <a-col :span="24">
-              <div v-if="!(hook.version === 'v2' && hook.type === 'URL')" class="text-gray-600">
+              <div v-if="!(hook.version === 'v2' && hook.notification.type === 'URL')" class="text-gray-600">
                 <div class="flex items-center">
                   <em>Use context variable <strong>data</strong> to refer the record under consideration</em>
 

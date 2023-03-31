@@ -12,95 +12,109 @@ const sqlite3 = {
   ...commonFns,
   LEN: 'LENGTH',
   async CEILING(args) {
-    return args.knex.raw(
-      `round(${(await args.fn(args.pt.arguments[0])).builder} + 0.5)${
-        args.colAlias
-      }`
-    );
+    return {
+      builder: args.knex.raw(
+        `round(${(await args.fn(args.pt.arguments[0])).builder} + 0.5)${
+          args.colAlias
+        }`
+      ),
+    };
   },
   async FLOOR(args) {
-    return args.knex.raw(
-      `round(${(await args.fn(args.pt.arguments[0])).builder} - 0.5)${
-        args.colAlias
-      }`
-    );
+    return {
+      builder: args.knex.raw(
+        `round(${(await args.fn(args.pt.arguments[0])).builder} - 0.5)${
+          args.colAlias
+        }`
+      ),
+    };
   },
   MOD: async (args: MapFnArgs) => {
-    return (
-      await args.fn({
-        type: 'BinaryExpression',
-        operator: '%',
-        left: args.pt.arguments[0],
-        right: args.pt.arguments[1],
-      })
-    ).builder;
+    return args.fn({
+      type: 'BinaryExpression',
+      operator: '%',
+      left: args.pt.arguments[0],
+      right: args.pt.arguments[1],
+    });
   },
   async REPEAT(args: MapFnArgs) {
-    return args.knex.raw(
-      `replace(printf('%.' || ${
-        (await args.fn(args.pt.arguments[1])).builder
-      } || 'c', '/'),'/',${(await args.fn(args.pt.arguments[0])).builder})${
-        args.colAlias
-      }`
-    );
+    return {
+      builder: args.knex.raw(
+        `replace(printf('%.' || ${
+          (await args.fn(args.pt.arguments[1])).builder
+        } || 'c', '/'),'/',${(await args.fn(args.pt.arguments[0])).builder})${
+          args.colAlias
+        }`
+      ),
+    };
   },
   NOW: 'DATE',
   SEARCH: 'INSTR',
   async INT(args: MapFnArgs) {
-    return args.knex.raw(
-      `CAST(${(await args.fn(args.pt.arguments[0])).builder} as INTEGER)${
-        args.colAlias
-      }`
-    );
+    return {
+      builder: args.knex.raw(
+        `CAST(${(await args.fn(args.pt.arguments[0])).builder} as INTEGER)${
+          args.colAlias
+        }`
+      ),
+    };
   },
   LEFT: async (args: MapFnArgs) => {
-    return args.knex.raw(
-      `SUBSTR(${(await args.fn(args.pt.arguments[0])).builder},1,${
-        (await args.fn(args.pt.arguments[1])).builder
-      })${args.colAlias}`
-    );
+    return {
+      builder: args.knex.raw(
+        `SUBSTR(${(await args.fn(args.pt.arguments[0])).builder},1,${
+          (await args.fn(args.pt.arguments[1])).builder
+        })${args.colAlias}`
+      ),
+    };
   },
   RIGHT: async (args: MapFnArgs) => {
-    return args.knex.raw(
-      `SUBSTR(${(await args.fn(args.pt.arguments[0])).builder},-(${
-        (await args.fn(args.pt.arguments[1])).builder
-      }))${args.colAlias}`
-    );
+    return {
+      builder: args.knex.raw(
+        `SUBSTR(${(await args.fn(args.pt.arguments[0])).builder},-(${
+          (await args.fn(args.pt.arguments[1])).builder
+        }))${args.colAlias}`
+      ),
+    };
   },
   MID: 'SUBSTR',
   FLOAT: async (args: MapFnArgs) => {
-    return args.knex
-      .raw(
-        `CAST(${(await args.fn(args.pt.arguments[0])).builder} as FLOAT)${
-          args.colAlias
-        }`
-      )
-      .wrap('(', ')');
+    return {
+      builder: args.knex
+        .raw(
+          `CAST(${(await args.fn(args.pt.arguments[0])).builder} as FLOAT)${
+            args.colAlias
+          }`
+        )
+        .wrap('(', ')'),
+    };
   },
   DATEADD: async ({ fn, knex, pt, colAlias }: MapFnArgs) => {
     const dateIN = (await fn(pt.arguments[1])).builder;
-    return knex.raw(
-      `CASE
+    return {
+      builder: knex.raw(
+        `CASE
       WHEN ${(await fn(pt.arguments[0])).builder} LIKE '%:%' THEN
         STRFTIME('%Y-%m-%d %H:%M', DATETIME(DATETIME(${fn(
           pt.arguments[0]
         )}, 'localtime'),
         ${dateIN > 0 ? '+' : ''}${
-        (await fn(pt.arguments[1])).builder
-      } || ' ${String((await fn(pt.arguments[2])).builder).replace(
-        /["']/g,
-        ''
-      )}'))
+          (await fn(pt.arguments[1])).builder
+        } || ' ${String((await fn(pt.arguments[2])).builder).replace(
+          /["']/g,
+          ''
+        )}'))
       ELSE
         DATE(DATETIME(${(await fn(pt.arguments[0])).builder}, 'localtime'),
         ${dateIN > 0 ? '+' : ''}${
-        (await fn(pt.arguments[1])).builder
-      } || ' ${String((await fn(pt.arguments[2])).builder).replace(
-        /["']/g,
-        ''
-      )}')
+          (await fn(pt.arguments[1])).builder
+        } || ' ${String((await fn(pt.arguments[2])).builder).replace(
+          /["']/g,
+          ''
+        )}')
       END${colAlias}`
-    );
+      ),
+    };
   },
   DATETIME_DIFF: async ({ fn, knex, pt, colAlias }: MapFnArgs) => {
     let datetime_expr1 = (await fn(pt.arguments[0])).builder;
@@ -174,54 +188,60 @@ const sqlite3 = {
       default:
         sql = '';
     }
-    return knex.raw(`${sql} ${colAlias}`);
+    return { builder: knex.raw(`${sql} ${colAlias}`) };
   },
   WEEKDAY: async ({ fn, knex, pt, colAlias }: MapFnArgs) => {
     // strftime('%w', date) - day of week 0 - 6 with Sunday == 0
     // WEEKDAY() returns an index from 0 to 6 for Monday to Sunday
-    return knex.raw(
-      `(strftime('%w', ${
-        pt.arguments[0].type === 'Literal'
-          ? `'${dayjs((await fn(pt.arguments[0])).builder).format(
-              'YYYY-MM-DD'
-            )}'`
-          : (await fn(pt.arguments[0])).builder
-      }) - 1 - ${getWeekdayByText(
-        pt?.arguments[1]?.value
-      )} % 7 + 7) % 7 ${colAlias}`
-    );
+    return {
+      builder: knex.raw(
+        `(strftime('%w', ${
+          pt.arguments[0].type === 'Literal'
+            ? `'${dayjs((await fn(pt.arguments[0])).builder).format(
+                'YYYY-MM-DD'
+              )}'`
+            : (await fn(pt.arguments[0])).builder
+        }) - 1 - ${getWeekdayByText(
+          pt?.arguments[1]?.value
+        )} % 7 + 7) % 7 ${colAlias}`
+      ),
+    };
   },
   AND: async (args: MapFnArgs) => {
-    return args.knex.raw(
-      `CASE WHEN ${args.knex
-        .raw(
-          `${(
-            await Promise.all(
-              args.pt.arguments.map(async (ar) =>
-                (await args.fn(ar, '', 'AND')).builder.toQuery()
+    return {
+      builder: args.knex.raw(
+        `CASE WHEN ${args.knex
+          .raw(
+            `${(
+              await Promise.all(
+                args.pt.arguments.map(async (ar) =>
+                  (await args.fn(ar, '', 'AND')).builder.toQuery()
+                )
               )
-            )
-          ).join(' AND ')}`
-        )
-        .wrap('(', ')')
-        .toQuery()} THEN 1 ELSE 0 END ${args.colAlias}`
-    );
+            ).join(' AND ')}`
+          )
+          .wrap('(', ')')
+          .toQuery()} THEN 1 ELSE 0 END ${args.colAlias}`
+      ),
+    };
   },
   OR: async (args: MapFnArgs) => {
-    return args.knex.raw(
-      `CASE WHEN ${args.knex
-        .raw(
-          `${(
-            await Promise.all(
-              args.pt.arguments.map(async (ar) =>
-                (await args.fn(ar, '', 'OR')).builder.toQuery()
+    return {
+      builder: args.knex.raw(
+        `CASE WHEN ${args.knex
+          .raw(
+            `${(
+              await Promise.all(
+                args.pt.arguments.map(async (ar) =>
+                  (await args.fn(ar, '', 'OR')).builder.toQuery()
+                )
               )
-            )
-          ).join(' OR ')}`
-        )
-        .wrap('(', ')')
-        .toQuery()} THEN 1 ELSE 0 END ${args.colAlias}`
-    );
+            ).join(' OR ')}`
+          )
+          .wrap('(', ')')
+          .toQuery()} THEN 1 ELSE 0 END ${args.colAlias}`
+      ),
+    };
   },
 };
 

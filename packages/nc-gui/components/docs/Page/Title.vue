@@ -33,6 +33,15 @@ const onTitleKeyDown = (e: KeyboardEvent) => {
   if (e.key === 'Enter') {
     e.preventDefault()
     emit('focusEditor')
+  } else if (e.key === 'Backspace' || e.key === 'Delete') {
+    const textSelection = window.getSelection()?.toString()
+
+    // TODO: Hack. Bug with ant text area. Does not delete all text when all text is selected
+    if (textSelection?.length === title.value?.length) {
+      e.preventDefault()
+      title.value = ''
+      _title.value = ''
+    }
   }
 }
 

@@ -1283,7 +1283,8 @@ class BaseModelSqlv2 {
   private async getSelectQueryBuilderForFormula(
     column: Column<any>,
     tableAlias?: string,
-    validateFormula = false
+    validateFormula = false,
+    aliasToColumnBuilder = {}
   ) {
     const formula = await column.getColOptions<FormulaColumn>();
     if (formula.error) throw new Error(`Formula error: ${formula.error}`);
@@ -1293,7 +1294,7 @@ class BaseModelSqlv2 {
       this.dbDriver,
       this.model,
       column,
-      {},
+      aliasToColumnBuilder,
       tableAlias,
       validateFormula
     );
@@ -1517,7 +1518,7 @@ class BaseModelSqlv2 {
     validateFormula,
   }: {
     fieldsSet?: Set<string>;
-    qb: Knex.QueryBuilder;
+    qb: Knex.QueryBuilder & Knex.QueryInterface;
     columns?: Column[];
     fields?: string[] | string;
     extractPkAndPv?: boolean;
@@ -1525,6 +1526,8 @@ class BaseModelSqlv2 {
     alias?: string;
     validateFormula?: boolean;
   }): Promise<void> {
+    // keep a common object for all columns to share across all columns
+    const aliasToColumnBuilder = {};
     let viewOrTableColumns: Column[] | { fk_column_id?: string }[];
 
     const res = {};
@@ -1588,7 +1591,8 @@ class BaseModelSqlv2 {
                 const selectQb = await this.getSelectQueryBuilderForFormula(
                   qrValueColumn,
                   alias,
-                  validateFormula
+                  validateFormula,
+                  aliasToColumnBuilder
                 );
                 qb.select({
                   [column.column_name]: selectQb.builder,
@@ -1622,7 +1626,8 @@ class BaseModelSqlv2 {
                 const selectQb = await this.getSelectQueryBuilderForFormula(
                   barcodeValueColumn,
                   alias,
-                  validateFormula
+                  validateFormula,
+                  aliasToColumnBuilder
                 );
                 qb.select({
                   [column.column_name]: selectQb.builder,
@@ -1647,7 +1652,8 @@ class BaseModelSqlv2 {
               const selectQb = await this.getSelectQueryBuilderForFormula(
                 column,
                 alias,
-                validateFormula
+                validateFormula,
+                aliasToColumnBuilder
               );
               qb.select(
                 this.dbDriver.raw(`?? as ??`, [

@@ -241,6 +241,9 @@ const { validate, validateInfos } = useForm(hook, validators)
 function onNotTypeChange(reset = false) {
   if (reset) {
     hook.notification.payload = {} as Record<string, any>
+    if (['Slack', 'Microsoft Teams', 'Discord', 'Mattermost'].includes(hook.notification.type)) {
+      hook.notification.payload.channels = []
+    }
   }
 
   if (hook.notification.type === 'Slack') {
@@ -287,7 +290,7 @@ function setHook(newHook: HookType) {
   }
 }
 
-async function onEventChange() {
+function onEventChange() {
   const { notification: { payload = {}, type = {} } = {} } = hook
 
   Object.assign(hook, {
@@ -300,20 +303,20 @@ async function onEventChange() {
 
   hook.notification.payload = payload
 
-  let channels: Ref<Record<string, any>[] | null> = ref(null)
+  const channels: Ref<Record<string, any>[] | null> = ref(null)
 
   switch (hook.notification.type) {
     case 'Slack':
-      channels = slackChannels
+      channels.value = slackChannels.value
       break
     case 'Microsoft Teams':
-      channels = teamsChannels
+      channels.value = teamsChannels.value
       break
     case 'Discord':
-      channels = discordChannels
+      channels.value = discordChannels.value
       break
     case 'Mattermost':
-      channels = mattermostChannels
+      channels.value = mattermostChannels.value
       break
   }
 

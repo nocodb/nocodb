@@ -212,6 +212,7 @@ onMounted(async () => {
                       :class="{
                         'hover:bg-gray-300 cursor-pointer': isEditAllowed,
                       }"
+                      data-testid="docs-sidebar-emoji-selector"
                     >
                       <IconifyIcon
                         v-if="icon"
@@ -241,6 +242,7 @@ onMounted(async () => {
               <a-dropdown placement="bottom" trigger="click">
                 <div
                   class="nc-docs-sidebar-page-options flex px-0.5 hover:( !bg-gray-300 !bg-opacity-30 rounded-md) cursor-pointer select-none hidden group-hover:block"
+                  data-testid="docs-sidebar-page-options"
                 >
                   <MdiDotsHorizontal />
                 </div>
@@ -248,6 +250,7 @@ onMounted(async () => {
                   <div class="flex flex-col p-1 bg-gray-50 rounded-md w-28 gap-y-0.5 border-1 border-gray-100">
                     <div
                       class="flex items-center cursor-pointer select-none px-1.5 py-1.5 text-xs gap-x-2.5 hover:bg-gray-100 rounded-md !text-red-500"
+                      data-testid="docs-sidebar-page-delete"
                       @click="() => openDeleteModal({ pageId: id })"
                     >
                       <MdiDeleteOutline class="h-3.5" />
@@ -293,7 +296,7 @@ onMounted(async () => {
         <div class="flex">Are you sure you want to delete this page?</div>
         <div class="flex flex-row mt-4 space-x-3 ml-2">
           <a-button type="text" @click="deleteModalOpen = false">Cancel</a-button>
-          <a-button type="danger" @click="onDeletePage">Delete</a-button>
+          <a-button type="danger" data-testid="docs-page-delete-confirmation" @click="onDeletePage">Delete</a-button>
         </div>
       </div>
     </a-modal>

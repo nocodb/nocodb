@@ -495,6 +495,9 @@ export const useDocStore = defineStore('docStore', () => {
       const page = findPage(nestedPages, pageId)
       await $api.nocoDocs.deletePage(pageId, { projectId: projectId! })
 
+      const { closeTab } = useTabs()
+      await closeTab({ id: pageId })
+
       if (page?.parent_page_id) {
         const parentPage = findPage(nestedPages, page.parent_page_id)
         if (!parentPage) return
@@ -511,11 +514,6 @@ export const useDocStore = defineStore('docStore', () => {
         const siblingPage = updatedNestedPages[0]
         navigateTo(nestedUrl({ id: siblingPage.id!, projectId }))
       }
-
-      if (isPublic.value) return
-      const { closeTab } = useTabs()
-
-      closeTab({ id: pageId })
     } catch (e) {
       console.log(e)
       message.error(await extractSdkResponseErrorMsg(e as any))

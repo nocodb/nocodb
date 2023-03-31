@@ -17,6 +17,10 @@ export class DocsSidebarPage extends BasePage {
     return this.sidebar.get().getByTestId(`docs-sidebar-${projectTitle}`);
   }
 
+  pageNodeLocator({ projectTitle, title, isPublic }: { projectTitle: string; title: string; isPublic?: boolean }) {
+    return this.get({ projectTitle, isPublic }).getByTestId(`docs-sidebar-page-${projectTitle}-${title}`);
+  }
+
   async verifyVisibility({
     projectTitle,
     isVisible,
@@ -150,6 +154,85 @@ export class DocsSidebarPage extends BasePage {
     await this.sidebar.dashboard.docs.openedPage.waitForRender();
   }
 
+  async selectEmoji({ projectTitle, title, emoji }: { projectTitle: string; title; emoji: string }) {
+    await this.openPage({ projectTitle, title });
+
+    await this.pageNodeLocator({
+      projectTitle,
+      title,
+    })
+      .getByTestId('docs-sidebar-emoji-selector')
+      .hover();
+    await this.pageNodeLocator({
+      projectTitle,
+      title,
+    })
+      .getByTestId('docs-sidebar-emoji-selector')
+      .click();
+
+    await this.rootPage.getByTestId('nc-emoji-filter').last().type(emoji);
+
+    await this.rootPage.waitForTimeout(500);
+
+    await this.waitForResponse({
+      uiAction: () =>
+        this.rootPage.getByTestId('nc-emoji-container').last().locator(`.nc-emoji-item >> svg`).first().click(),
+      httpMethodsToMatch: ['PUT'],
+      requestUrlPathToMatch: `api/v1/docs/page`,
+    });
+  }
+
+  async verifyEmoji({
+    projectTitle,
+    title,
+    emoji,
+    isPublic,
+  }: {
+    projectTitle: string;
+    title;
+    emoji: string;
+    isPublic?: boolean;
+  }) {
+    await expect(
+      this.pageNodeLocator({
+        projectTitle,
+        title,
+        isPublic,
+      }).getByTestId(`nc-doc-page-icon-emojione:${emoji}`)
+    ).toBeVisible();
+  }
+
+  async deletePage({ projectTitle, title }: { projectTitle: string; title: string }) {
+    await this.openPage({ projectTitle, title });
+
+    await this.pageNodeLocator({
+      projectTitle,
+      title,
+    }).hover();
+
+    await this.pageNodeLocator({
+      projectTitle,
+      title,
+    })
+      .getByTestId('docs-sidebar-page-options')
+      .hover();
+
+    await this.pageNodeLocator({
+      projectTitle,
+      title,
+    })
+      .getByTestId('docs-sidebar-page-options')
+      .click();
+
+    await this.rootPage.getByTestId('docs-sidebar-page-delete').click();
+
+    await this.waitForResponse({
+      uiAction: () => this.rootPage.getByTestId('docs-page-delete-confirmation').last().click(),
+      httpMethodsToMatch: ['DELETE'],
+      requestUrlPathToMatch: `api/v1/docs/page`,
+    });
+  }
+
   async getTitleOfOpenedPage({
     projectTitle,
     isPublic,
@@ -157,6 +240,10 @@ export class DocsSidebarPage extends BasePage {
     projectTitle: string;
     isPublic?: boolean;
   }): Promise<string | null> {
+    if (!(await this.get({ projectTitle, isPublic }).locator('.ant-tree-node-selected').isVisible())) {
+      return null;
+    }
+
     return await this.get({ projectTitle, isPublic })
       .locator('.ant-tree-node-selected')
       .locator('.nc-docs-sidebar-page-title')

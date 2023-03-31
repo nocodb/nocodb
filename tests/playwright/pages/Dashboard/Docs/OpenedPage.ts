@@ -30,11 +30,11 @@ export class DocsOpenedPagePage extends BasePage {
 
     await this.get().getByTestId('docs-page-title').click();
 
+    await this.get().getByTestId('docs-page-title').press('Meta+A');
+    await this.get().getByTestId('docs-page-title').press('Backspace');
+
     await this.waitForResponse({
-      uiAction: () =>
-        this.get().getByTestId('docs-page-title').fill(title, {
-          force: true,
-        }),
+      uiAction: () => this.get().getByTestId('docs-page-title').type(title),
       httpMethodsToMatch: ['PUT'],
       requestUrlPathToMatch: `api/v1/docs/page`,
     });

@@ -37,7 +37,11 @@ const pg = {
   FLOAT: async ({ fn, knex, pt, colAlias }: MapFnArgs) => {
     return {
       builder: knex
-        .raw(`CAST(${(await fn(pt.arguments[0])).builder} as DOUBLE PRECISION)${colAlias}`)
+        .raw(
+          `CAST(${
+            (await fn(pt.arguments[0])).builder
+          } as DOUBLE PRECISION)${colAlias}`
+        )
         .wrap('(', ')'),
     };
   },
@@ -53,7 +57,9 @@ const pg = {
   DATEADD: async ({ fn, knex, pt, colAlias }: MapFnArgs) => {
     return {
       builder: knex.raw(
-        `${(await fn(pt.arguments[0])).builder} + (${(await fn(pt.arguments[1])).builder} || 
+        `${(await fn(pt.arguments[0])).builder} + (${
+          (await fn(pt.arguments[1])).builder
+        } || 
       '${String((await fn(pt.arguments[2])).builder).replace(
         /["']/g,
         ''
@@ -133,11 +139,13 @@ const pg = {
       builder: args.knex.raw(
         `CASE WHEN ${args.knex
           .raw(
-            `${(await Promise.all(args.pt.arguments
-              .map(async (ar) =>
-                (await args.fn(ar, '', 'AND')).builder.toQuery()
-              )))
-              .join(' AND ')}`
+            `${(
+              await Promise.all(
+                args.pt.arguments.map(async (ar) =>
+                  (await args.fn(ar, '', 'AND')).builder.toQuery()
+                )
+              )
+            ).join(' AND ')}`
           )
           .wrap('(', ')')
           .toQuery()} THEN TRUE ELSE FALSE END ${args.colAlias}`
@@ -160,7 +168,7 @@ const pg = {
       ),
     };
   },
-  SUBSTR:async ({ fn, knex, pt, colAlias }: MapFnArgs) => {
+  SUBSTR: async ({ fn, knex, pt, colAlias }: MapFnArgs) => {
     const str = (await fn(pt.arguments[0])).builder;
     const positionFrom = (await fn(pt.arguments[1] ?? 1)).builder;
     const numberOfCharacters = (await fn(pt.arguments[2] ?? '')).builder;

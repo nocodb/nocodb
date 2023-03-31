@@ -240,6 +240,7 @@ function onNotificationTypeChange(reset = false) {
     hook.notification.payload = {} as Record<string, any>
     if (['Slack', 'Microsoft Teams', 'Discord', 'Mattermost'].includes(hook.notification.type)) {
       hook.notification.payload.channels = []
+      hook.notification.payload.body = ''
     }
   }
 
@@ -628,6 +629,7 @@ onMounted(async () => {
           <a-row v-if="hook.notification.type === 'Slack'" type="flex">
             <a-col :span="24">
               <a-form-item v-bind="validateInfos['notification.payload.channels']">
+                {{ hook }}
                 <LazyWebhookChannelMultiSelect
                   v-model="hook.notification.payload.channels"
                   :selected-channel-list="hook.notification.payload.channels"

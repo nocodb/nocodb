@@ -5,6 +5,7 @@ import makeServer from '../setup/server';
 import { WebhookFormPage } from '../pages/Dashboard/WebhookForm';
 import { isSubset } from './utils/general';
 import { Api, UITypes } from 'nocodb-sdk';
+import { isMysql, isPg, isSqlite } from '../setup/db';
 
 const hookPath = 'http://localhost:9090/hook';
 let api: Api<any>;
@@ -713,6 +714,28 @@ test.describe.serial('Webhook', () => {
         ],
       },
     };
+
+    if (isSqlite(context) || isMysql(context)) {
+      // @ts-ignore
+      expectedData.data.previous_rows[0].CountryCode = 1;
+      // @ts-ignore
+      expectedData.data.rows[0].CountryCode = 1;
+      // @ts-ignore
+      expectedData.data.previous_rows[0].CityCodeRollup = 2;
+      // @ts-ignore
+      expectedData.data.rows[0].CityCodeRollup = 2;
+      // @ts-ignore
+      expectedData.data.previous_rows[0].CityCodeLookup = [23, 33];
+      // @ts-ignore
+      expectedData.data.rows[0].CityCodeLookup = [23, 33];
+
+      if (isMysql(context)) {
+        // @ts-ignore
+        expectedData.data.previous_rows[0].CityCodeFormula = '100';
+        // @ts-ignore
+        expectedData.data.rows[0].CityCodeFormula = '100';
+      }
+    }
 
     await expect(isSubset(rsp[0], expectedData)).toBe(true);
   });

@@ -235,7 +235,7 @@ const validators = computed(() => {
 })
 const { validate, validateInfos } = useForm(hook, validators)
 
-function onNotTypeChange(reset = false) {
+function onNotificationTypeChange(reset = false) {
   if (reset) {
     hook.notification.payload = {} as Record<string, any>
     if (['Slack', 'Microsoft Teams', 'Discord', 'Mattermost'].includes(hook.notification.type)) {
@@ -444,7 +444,7 @@ onMounted(async () => {
     hook.eventOperation = `${hook.event} ${hook.operation}`
   }
 
-  onNotTypeChange()
+  onNotificationTypeChange()
 })
 </script>
 
@@ -540,7 +540,7 @@ onMounted(async () => {
                   class="nc-select-hook-notification-type"
                   :placeholder="$t('general.notification')"
                   dropdown-class-name="nc-dropdown-webhook-notification"
-                  @change="onNotTypeChange(true)"
+                  @change="onNotificationTypeChange(true)"
                 >
                   <a-select-option v-for="(notificationOption, i) in notificationList" :key="i" :value="notificationOption.type">
                     <div class="flex items-center">

@@ -613,7 +613,7 @@ async function _formulaQueryBuilder(
           break;
         default:
           {
-            const res = mapFunctionName({
+            const res = await mapFunctionName({
               pt,
               knex,
               alias,
@@ -630,23 +630,25 @@ async function _formulaQueryBuilder(
 
       return {
         builder: knex.raw(
-          `${pt.callee.name}(${pt.arguments
-            .map((arg) => {
-              const query = fn(arg).toQuery();
-              if (pt.callee.name === 'CONCAT') {
-                if (knex.clientType() === 'mysql2') {
-                  // mysql2: CONCAT() returns NULL if any argument is NULL.
-                  // adding IFNULL to convert NULL values to empty strings
-                  return `IFNULL(${query}, '')`;
-                } else {
-                  // do nothing
-                  // pg / mssql: Concatenate all arguments. NULL arguments are ignored.
-                  // sqlite3: special handling - See BinaryExpression
+          `${pt.callee.name}(${(
+            await Promise.all(
+              pt.arguments.map(async (arg) => {
+                const query = (await fn(arg)).builder.toQuery();
+                if (pt.callee.name === 'CONCAT') {
+                  if (knex.clientType() === 'mysql2') {
+                    // mysql2: CONCAT() returns NULL if any argument is NULL.
+                    // adding IFNULL to convert NULL values to empty strings
+                    return `IFNULL(${query}, '')`;
+                  } else {
+                    // do nothing
+                    // pg / mssql: Concatenate all arguments. NULL arguments are ignored.
+                    // sqlite3: special handling - See BinaryExpression
+                  }
                 }
-              }
-              return query;
-            })
-            .join()})${colAlias}`.replace(/\?/g, '\\?')
+                return query;
+              })
+            )
+          ).join()})${colAlias}`.replace(/\?/g, '\\?')
         ),
       };
     } else if (pt.type === 'Literal') {
@@ -844,7 +846,7 @@ export default async function formulaQueryBuilderv2(
     // dry run qb.builder to see if it will break the grid view or not
     // if so, set formula error and show empty selectQb instead
     await knex(getTnPath(model, knex, tableAlias))
-      .select(qb.builder)
+      .select(knex.raw(`?? as ??`, [qb.builder, '__dry_run_alias']))
       .as('dry-run-only');
 
     // if column is provided, i.e. formula has been created
@@ -877,63 +879,4 @@ export default async function formulaQueryBuilderv2(
     throw new Error(`Formula error: ${e.message}`);
   }
   return qb;
-}
-
-export async function validateFormula(
-  _tree,
-  alias,
-  knex: XKnex,
-  model: Model,
-  column?: Column,
-  aliasToColumn = {},
-  tableAlias?: string
-) {
-  // register jsep curly hook once only
-  jsep.plugins.register(jsepCurlyHook);
-  // generate qb
-  const qb = await _formulaQueryBuilder(
-    _tree,
-    alias,
-    knex,
-    model,
-    aliasToColumn,
-    tableAlias
-  );
-
-  try {
-    // dry run qb.builder to see if it will break the grid view or not
-    // if so, set formula error and show empty selectQb instead
-    await knex(getTnPath(model, knex, tableAlias))
-      .select(qb.builder)
-      .as('dry-run-only');
-
-    // if column is provided, i.e. formula has been created
-    if (column) {
-      const formula = await column.getColOptions<FormulaColumn>();
-      // clean the previous formula error if the formula works this time
-      if (formula.error) {
-        await FormulaColumn.update(formula.id, {
-          error: null,
-        });
-      }
-    }
-  } catch (e) {
-    console.error(e);
-    if (column) {
-      const formula = await column.getColOptions<FormulaColumn>();
-      // add formula error to show in UI
-      await FormulaColumn.update(formula.id, {
-        error: e.message,
-      });
-      // update cache to reflect the error in UI
-      const key = `${CacheScope.COL_FORMULA}:${column.id}`;
-      let o = await NocoCache.get(key, CacheGetType.TYPE_OBJECT);
-      if (o) {
-        o = { ...o, error: e.message };
-        // set cache
-        await NocoCache.set(key, o);
-      }
-    }
-    throw new Error(`Formula error: ${e.message}`);
-  }
 }

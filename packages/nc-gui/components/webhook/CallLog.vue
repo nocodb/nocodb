@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import type { HookLogType, HookType } from 'nocodb-sdk'
-import { extractSdkResponseErrorMsg, onBeforeMount, parseProp, timeAgo, useApi, useGlobal } from '#imports'
+import { extractSdkResponseErrorMsg, onBeforeMount, parseProp, timeAgo, useApi, useGlobal, AutomationLogLevel } from '#imports'
 
 interface Props {
   hook: HookType
@@ -23,7 +23,11 @@ const currentPage = $ref(1)
 const currentLimit = $ref(10)
 
 const showLogs = computed(
-  () => !(appInfo.value.automationLogLevel === 'OFF' || (appInfo.value.automationLogLevel === 'ALL' && !appInfo.value.ee)),
+  () =>
+    !(
+      appInfo.value.automationLogLevel === AutomationLogLevel.OFF ||
+      (appInfo.value.automationLogLevel === AutomationLogLevel.ALL && !appInfo.value.ee)
+    ),
 )
 
 async function loadHookLogs(page = currentPage, limit = currentLimit) {
@@ -52,13 +56,13 @@ onBeforeMount(async () => {
   <a-skeleton v-if="isLoading" />
   <div v-else>
     <a-card class="!mb-[20px]" :body-style="{ padding: '10px' }">
-      <span v-if="appInfo.automationLogLevel === 'OFF'">
+      <span v-if="appInfo.automationLogLevel === AutomationLogLevel.OFF">
         The NC_AUTOMATION_LOG_LEVEL is set to “OFF”, no logs will be displayed.
       </span>
-      <span v-if="appInfo.automationLogLevel === 'ERROR'">
+      <span v-if="appInfo.automationLogLevel === AutomationLogLevel.ERROR">
         The NC_AUTOMATION_LOG_LEVEL is set to “ERROR”, only error logs will be displayed.
       </span>
-      <span v-if="appInfo.automationLogLevel === 'ALL'">
+      <span v-if="appInfo.automationLogLevel === AutomationLogLevel.ALL">
         <span v-if="appInfo.ee">
           The NC_AUTOMATION_LOG_LEVEL is set to “ALL”, both error and success logs will be displayed.
         </span>

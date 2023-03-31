@@ -91,24 +91,20 @@ export default {
       ),
     };
   },
-  AVG: (args: MapFnArgs) => {
+  AVG: async (args: MapFnArgs) => {
     if (args.pt.arguments.length > 1) {
-      return {
-        builder: args.fn(
-          {
-            type: 'BinaryExpression',
-            operator: '/',
-            left: { ...args.pt, callee: { name: 'SUM' } },
-            right: { type: 'Literal', value: args.pt.arguments.length },
-          },
-          args.a,
-          args.prevBinaryOp
-        ),
-      };
+      return args.fn(
+        {
+          type: 'BinaryExpression',
+          operator: '/',
+          left: { ...args.pt, callee: { name: 'SUM' } },
+          right: { type: 'Literal', value: args.pt.arguments.length },
+        },
+        args.a,
+        args.prevBinaryOp
+      );
     } else {
-      return {
-        builder: args.fn(args.pt.arguments[0], args.a, args.prevBinaryOp),
-      };
+      return args.fn(args.pt.arguments[0], args.a, args.prevBinaryOp);
     }
   },
   FLOAT: async (args: MapFnArgs) => {

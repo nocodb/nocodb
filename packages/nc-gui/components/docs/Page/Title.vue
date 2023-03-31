@@ -13,17 +13,19 @@ const { updatePage } = useDocStore()
 
 const titleInputRef = ref<HTMLInputElement>()
 
-const _title = ref('')
+const _title = ref<string | undefined>(undefined)
 const title = computed({
   get: () => _title.value,
   set: (value) => {
+    if (!value) return
+
     if (value.length > MAX_TITLE_LENGTH) {
-      value = value.slice(0, MAX_TITLE_LENGTH)
+      value = value?.slice(0, MAX_TITLE_LENGTH)
     }
 
     _title.value = value
 
-    openedPage.value = { ...openedPage.value!, title: title.value, new: false }
+    openedPage.value = { ...openedPage.value!, title: value, new: false }
   },
 })
 
@@ -43,51 +45,32 @@ const setIcon = async (icon: string) => {
   }
 }
 
-// TODO: Find the reason why
-// `nextTick(() => {
-//    titleInputRef.value?.focus()
-//  })`
-// does not work. Some where the page is re-rendered and the focus is lost.
-// Used to work
 const focusTitle = () => {
-  for (let i = 1; i <= 5; i++) {
-    if (titleInputRef.value) {
-      titleInputRef.value.focus()
-      return
-    }
-    setTimeout(() => {
-      focusTitle()
-    }, 100 * i)
-  }
+  nextTick(() => {
+    titleInputRef.value?.focus()
+  })
 }
 
-watch(
-  () => openedPage.value?.id,
-  (oldId, newId) => {
-    if (!openedPage.value) return
-    if (oldId === newId) return
-
-    if (openedPage.value?.new) {
-      // So that we do not reset `new` flag of opened page to false
-      _title.value = ''
-    } else {
-      title.value = openedPage.value?.title || ''
-    }
-
-    if (openedPage.value?.new) {
-      focusTitle()
-    }
-  },
-  {
-    immediate: true,
-  },
-)
-
-watch(title, async () => {
+watch(title, async (newTitle, oldTitle) => {
   if (!isEditAllowed.value) return
   if (!openedPage.value) return
+  if (!oldTitle) return
+  if (newTitle === oldTitle) return
 
   await updatePage({ pageId: openedPage.value!.id!, page: { title: openedPage.value?.title } as any, projectId: project.id! })
+})
+
+onMounted(() => {
+  if (openedPage.value?.new) {
+    // So that we do not reset `new` flag of opened page to false
+    _title.value = ''
+  } else {
+    title.value = openedPage.value!.title
+  }
+
+  if (openedPage.value?.new) {
+    focusTitle()
+  }
 })
 </script>
 

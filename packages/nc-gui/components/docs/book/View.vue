@@ -11,7 +11,7 @@ import type { PageSidebarNode } from '~composables/docs/useDocs'
 import { storeToRefs, useProject } from '#imports'
 
 useShortcuts()
-const { showShareModal } = useShare()
+const { showShareModal } = storeToRefs(useShare())
 
 const { project } = storeToRefs(useProject())
 
@@ -171,6 +171,17 @@ const onShare = async (page: PageSidebarNode) => {
     showShareModal.value = true
   }, 100)
 }
+
+onMounted(() => {
+  const { addTab } = useTabs()
+
+  addTab({
+    id: project.value.id,
+    title: project.value.title!,
+    type: TabType.DOCUMENT,
+    projectId: project.value.id,
+  })
+})
 </script>
 
 <template>

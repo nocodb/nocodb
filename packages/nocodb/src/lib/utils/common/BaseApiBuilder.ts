@@ -1,28 +1,12 @@
-// import * as fs from "fs";
-
 import debug from 'debug';
 import { Router } from 'express';
 import inflection from 'inflection';
-// import Knex from "knex";
-import {
-  MysqlClient,
-  PgClient,
-  SqlClient,
-  // SqlClientFactory,
-} from 'nc-help';
-
-import XcDynamicChanges from '../../../interface/XcDynamicChanges';
-import { Acls, DbConfig, NcConfig } from '../../../interface/config';
-import { BaseModelSql, XKnex } from '../../db/sql-data-mapper';
+import { T } from 'nc-help';
+import { UITypes } from 'nocodb-sdk';
 import ModelXcMetaFactory from '../../db/sql-mgr/code/models/xc/ModelXcMetaFactory';
 import ExpressXcPolicy from '../../db/sql-mgr/code/policies/xc/ExpressXcPolicy';
 import NcHelp from '../NcHelp';
-import NcProjectBuilder from '../../v1-legacy/NcProjectBuilder';
-import Noco from '../../Noco';
-import NcMetaIO from '../../meta/NcMetaIO';
 import XcCache from '../../v1-legacy/plugins/adapters/cache/XcCache';
-import { Tele } from 'nc-help';
-
 import BaseModel from './BaseModel';
 import { XcCron } from './XcCron';
 import NcConnectionMgr from './NcConnectionMgr';
@@ -32,7 +16,13 @@ import ncModelsOrderUpgrader from './jobs/ncModelsOrderUpgrader';
 import ncParentModelTitleUpgrader from './jobs/ncParentModelTitleUpgrader';
 import ncRemoveDuplicatedRelationRows from './jobs/ncRemoveDuplicatedRelationRows';
 import xcMetaDiffSync from './handlers/xcMetaDiffSync';
-import { UITypes } from 'nocodb-sdk';
+import type NcMetaIO from '../../meta/NcMetaIO';
+import type Noco from '../../Noco';
+import type NcProjectBuilder from '../../v1-legacy/NcProjectBuilder';
+import type { BaseModelSql, XKnex } from '../../db/sql-data-mapper';
+import type { Acls, DbConfig, NcConfig } from '../../../interface/config';
+import type XcDynamicChanges from '../../../interface/XcDynamicChanges';
+import type { MysqlClient, PgClient, SqlClient } from 'nc-help';
 
 const log = debug('nc:api:base');
 
@@ -324,7 +314,7 @@ export default abstract class BaseApiBuilder<T extends Noco>
         }
       );
     }
-    Tele.emit('evt', { evt_type: 'relation:created' });
+    T.emit('evt', { evt_type: 'relation:created' });
   }
 
   public async onRelationDelete(
@@ -2979,7 +2969,7 @@ export default abstract class BaseApiBuilder<T extends Noco>
   }
 
   public async onTableCreate(_tn: string, _args?: any) {
-    Tele.emit('evt', { evt_type: 'table:created' });
+    T.emit('evt', { evt_type: 'table:created' });
   }
 
   public onVirtualTableUpdate(args: any) {

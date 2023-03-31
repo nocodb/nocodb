@@ -15,11 +15,13 @@ import {
   generateUniqueName,
   getDefaultConnectionConfig,
   getTestDatabaseName,
+  iconMap,
   nextTick,
   onMounted,
   projectTitleValidator,
   readFile,
   ref,
+  storeToRefs,
   useApi,
   useGlobal,
   useI18n,
@@ -33,7 +35,9 @@ const emit = defineEmits(['baseCreated'])
 
 const { appInfo } = useGlobal()
 
-const { project, loadProject } = useProject()
+const projectStore = useProject()
+const { loadProject } = projectStore
+const { project } = storeToRefs(projectStore)
 
 const useForm = Form.useForm
 
@@ -562,11 +566,15 @@ watch(
 
                     <a-input v-model:value="item.value" />
 
-                    <MdiClose :style="{ 'font-size': '1.5em', 'color': 'red' }" @click="removeParam(index)" />
+                    <component
+                      :is="iconMap.close"
+                      :style="{ 'font-size': '1.5em', 'color': 'red' }"
+                      @click="removeParam(index)"
+                    />
                   </div>
                 </div>
                 <a-button type="dashed" class="w-full caption mt-2" @click="addNewParam">
-                  <div class="flex items-center justify-center"><MdiPlus /></div>
+                  <div class="flex items-center justify-center"><component :is="iconMap.plus" /></div>
                 </a-button>
               </a-card>
             </a-form-item>

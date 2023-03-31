@@ -1,16 +1,17 @@
+import { UITypes } from 'nocodb-sdk';
 import Noco from '../Noco';
-import Model from './Model';
-import Column from './Column';
 import {
   CacheDelDirection,
   CacheGetType,
   CacheScope,
   MetaTable,
 } from '../utils/globals';
-import View from './View';
-import { FilterType, UITypes } from 'nocodb-sdk';
 import NocoCache from '../cache/NocoCache';
 import { extractProps } from '../meta/helpers/extractProps';
+import Model from './Model';
+import Column from './Column';
+import View from './View';
+import type { FilterType } from 'nocodb-sdk';
 
 export default class Filter {
   id: string;
@@ -254,7 +255,7 @@ export default class Filter {
     const result: FilterType = {
       is_group: true,
       children: [],
-      logical_op: 'AND',
+      logical_op: 'and',
     };
 
     const grouped = {};

@@ -8,11 +8,13 @@ import {
   message,
   nextTick,
   reactive,
+  storeToRefs,
   useI18n,
   useMetas,
   useNuxtApp,
   useProject,
   useTabs,
+  useUndoRedo,
   useVModel,
   validateTableName,
   watchEffect,
@@ -38,7 +40,11 @@ const dialogShow = useVModel(props, 'modelValue', emit)
 
 const { updateTab } = useTabs()
 
-const { loadTables, tables, project, isMysql, isMssql, isPg } = useProject()
+const projectStore = useProject()
+const { loadTables, isMysql, isMssql, isPg } = projectStore
+const { tables, project } = storeToRefs(projectStore)
+
+const { addUndo, defineProjectScope } = useUndoRedo()
 
 const inputEl = $ref<ComponentPublicInstance>()
 
@@ -110,7 +116,7 @@ watchEffect(
   { flush: 'post' },
 )
 
-const renameTable = async () => {
+const renameTable = async (undo = false) => {
   if (!tableMeta) return
 
   loading = true
@@ -122,6 +128,26 @@ const renameTable = async () => {
     })
 
     dialogShow.value = false
+
+    if (!undo) {
+      addUndo({
+        redo: {
+          fn: (t: string) => {
+            formState.title = t
+            renameTable(true)
+          },
+          args: [formState.title],
+        },
+        undo: {
+          fn: (t: string) => {
+            formState.title = t
+            renameTable(true)
+          },
+          args: [tableMeta.title],
+        },
+        scope: defineProjectScope({ model: tableMeta }),
+      })
+    }
 
     await loadTables()
 
@@ -158,7 +184,7 @@ const renameTable = async () => {
     <template #footer>
       <a-button key="back" @click="dialogShow = false">{{ $t('general.cancel') }}</a-button>
 
-      <a-button key="submit" type="primary" :loading="loading" @click="renameTable">{{ $t('general.submit') }}</a-button>
+      <a-button key="submit" type="primary" :loading="loading" @click="renameTable()">{{ $t('general.submit') }}</a-button>
     </template>
 
     <div class="pl-10 pr-10 pt-5">
@@ -172,7 +198,7 @@ const renameTable = async () => {
             v-model:value="formState.title"
             hide-details
             :placeholder="$t('msg.info.enterTableName')"
-            @keydown.enter="renameTable"
+            @keydown.enter="renameTable()"
           />
         </a-form-item>
       </a-form>

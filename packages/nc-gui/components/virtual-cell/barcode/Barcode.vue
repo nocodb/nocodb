@@ -22,7 +22,7 @@ const showBarcodeModal = () => {
 const barcodeMeta = $computed(() => {
   return {
     barcodeFormat: 'CODE128',
-    ...(column?.value?.meta || {}),
+    ...parseProp(column?.value?.meta),
   }
 })
 
@@ -32,7 +32,10 @@ const showBarcode = computed(() => barcodeValue?.value.length > 0 && !tooManyCha
 
 const { showEditNonEditableFieldWarning, showClearNonEditableFieldWarning } = useShowNotEditableWarning()
 
-const rowHeight = inject(RowHeightInj)
+const rowHeight = inject(
+  RowHeightInj,
+  computed(() => undefined),
+)
 </script>
 
 <template>

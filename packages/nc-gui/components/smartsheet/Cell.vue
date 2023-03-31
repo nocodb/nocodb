@@ -8,6 +8,7 @@ import {
   IsFormInj,
   IsLockedInj,
   IsPublicInj,
+  IsSurveyFormInj,
   ReadonlyInj,
   computed,
   inject,
@@ -21,6 +22,7 @@ import {
   isDuration,
   isEmail,
   isFloat,
+  isGeoData,
   isInt,
   isJSON,
   isManualSaved,
@@ -38,6 +40,7 @@ import {
   isYear,
   provide,
   ref,
+  storeToRefs,
   toRef,
   useDebounceFn,
   useProject,
@@ -64,7 +67,7 @@ const column = toRef(props, 'column')
 
 const active = toRef(props, 'active', false)
 
-const readOnly = toRef(props, 'readOnly', undefined)
+const readOnly = toRef(props, 'readOnly', false)
 
 provide(ColumnInj, column)
 
@@ -82,9 +85,11 @@ const isPublic = inject(IsPublicInj, ref(false))
 
 const isLocked = inject(IsLockedInj, ref(false))
 
+const isSurveyForm = inject(IsSurveyFormInj, ref(false))
+
 const { currentRow } = useSmartsheetRowStoreOrThrow()
 
-const { sqlUis } = useProject()
+const { sqlUis } = storeToRefs(useProject())
 
 const sqlUi = ref(column.value?.base_id ? sqlUis.value[column.value?.base_id] : Object.values(sqlUis.value)[0])
 
@@ -100,7 +105,9 @@ const syncValue = useDebounceFn(
 )
 
 const vModel = computed({
-  get: () => props.modelValue,
+  get: () => {
+    return props.modelValue
+  },
   set: (val) => {
     if (val !== props.modelValue) {
       currentRow.value.rowMeta.changed = true
@@ -114,11 +121,10 @@ const vModel = computed({
   },
 })
 
-const syncAndNavigate = (dir: NavigateDir, e: KeyboardEvent) => {
+const navigate = (dir: NavigateDir, e: KeyboardEvent) => {
   if (isJSON(column.value)) return
 
   if (currentRow.value.rowMeta.changed || currentRow.value.rowMeta.new) {
-    emit('save')
     currentRow.value.rowMeta.changed = false
   }
   emit('navigate', dir)
@@ -136,21 +142,33 @@ const isNumericField = computed(() => {
     isDuration(column.value)
   )
 })
+
+// disable contexxtmenu event propagation when cell is in
+// editable state and typable (e.g. text area)
+// this is to prevent the custom grid view context menu from opening
+const onContextmenu = (e: MouseEvent) => {
+  if (props.editEnabled && isTypableInputColumn(column.value)) {
+    e.stopPropagation()
+  }
+}
 </script>
 
 <template>
   <div
-    class="nc-cell w-full h-full"
+    class="nc-cell w-full h-full relative"
     :class="[
       `nc-cell-${(column?.uidt || 'default').toLowerCase()}`,
       { 'text-blue-600': isPrimary(column) && !props.virtual && !isForm },
       { 'nc-grid-numeric-cell': isGrid && !isForm && isNumericField },
+      { 'h-[40px]': !props.editEnabled && isForm && !isSurveyForm },
     ]"
-    @keydown.enter.exact="syncAndNavigate(NavigateDir.NEXT, $event)"
-    @keydown.shift.enter.exact="syncAndNavigate(NavigateDir.PREV, $event)"
+    @keydown.enter.exact="navigate(NavigateDir.NEXT, $event)"
+    @keydown.shift.enter.exact="navigate(NavigateDir.PREV, $event)"
+    @contextmenu="onContextmenu"
   >
     <template v-if="column">
       <LazyCellTextArea v-if="isTextArea(column)" v-model="vModel" />
+      <LazyCellGeoData v-else-if="isGeoData(column)" v-model="vModel" />
       <LazyCellCheckbox v-else-if="isBoolean(column, abstractType)" v-model="vModel" />
       <LazyCellAttachment v-else-if="isAttachment(column)" v-model="vModel" :row-index="props.rowIndex" />
       <LazyCellSingleSelect v-else-if="isSingleSelect(column)" v-model="vModel" :row-index="props.rowIndex" />

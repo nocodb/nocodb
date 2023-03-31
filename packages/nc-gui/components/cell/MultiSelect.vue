@@ -14,6 +14,7 @@ import {
   enumColor,
   extractSdkResponseErrorMsg,
   h,
+  iconMap,
   inject,
   isDrawerOrModalExist,
   onMounted,
@@ -32,6 +33,7 @@ interface Props {
   modelValue?: string | string[]
   rowIndex?: number
   disableOptionCreation?: boolean
+  location?: 'cell' | 'filter'
 }
 
 const { modelValue, disableOptionCreation } = defineProps<Props>()
@@ -259,8 +261,7 @@ async function addIfMissingAndSave() {
     } else {
       activeOptCreateInProgress.value--
     }
-  } catch (e) {
-    // todo: handle error
+  } catch (e: any) {
     console.log(e)
     activeOptCreateInProgress.value--
     message.error(await extractSdkResponseErrorMsg(e))
@@ -282,7 +283,7 @@ const onTagClick = (e: Event, onClose: Function) => {
   }
 }
 
-const cellClickHook = inject(CellClickHookInj)
+const cellClickHook = inject(CellClickHookInj, null)
 
 const toggleMenu = () => {
   if (cellClickHook) return
@@ -336,7 +337,7 @@ useEventListener(document, 'click', handleClose, true)
         v-for="op of options"
         :key="op.id || op.title"
         :value="op.title"
-        :data-testid="`select-option-${column.title}-${rowIndex}`"
+        :data-testid="`select-option-${column.title}-${location === 'filter' ? 'filter' : rowIndex}`"
         :class="`nc-select-option-${column.title}-${op.title}`"
         @click.stop
       >
@@ -367,7 +368,7 @@ useEventListener(document, 'click', handleClose, true)
         :value="searchVal"
       >
         <div class="flex gap-2 text-gray-500 items-center h-full">
-          <MdiPlusThick class="min-w-4" />
+          <component :is="iconMap.plusThick" class="min-w-4" />
           <div class="text-xs whitespace-normal">
             Create new option named <strong>{{ searchVal }}</strong>
           </div>

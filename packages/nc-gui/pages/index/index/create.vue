@@ -2,9 +2,11 @@
 import type { Form, Input } from 'ant-design-vue'
 import type { RuleObject } from 'ant-design-vue/es/form'
 import type { VNodeRef } from '@vue/runtime-core'
+import type { ProjectType } from 'nocodb-sdk'
 import {
   extractSdkResponseErrorMsg,
   generateUniqueName,
+  iconMap,
   message,
   navigateTo,
   nextTick,
@@ -37,16 +39,22 @@ const formState = reactive({
   title: '',
 })
 
+const creating = ref(false)
+
 const createProject = async () => {
   $e('a:project:create:xcdb')
   try {
-    const result = await api.project.create({
+    creating.value = true
+
+    const result = (await api.project.create({
       title: formState.title,
-    })
+    })) as Partial<ProjectType>
 
     await navigateTo(`/nc/${result.id}`)
   } catch (e: any) {
     message.error(await extractSdkResponseErrorMsg(e))
+  } finally {
+    creating.value = false
   }
 }
 
@@ -70,7 +78,7 @@ onMounted(async () => {
       class="color-transition transform group absolute top-5 left-5 text-4xl rounded-full cursor-pointer"
       @click="navigateTo('/')"
     >
-      <MdiChevronLeft class="text-black group-hover:(text-accent scale-110)" />
+      <component :is="iconMap.chevronLeft" class="text-black group-hover:(text-accent scale-110)" />
     </div>
 
     <h1 class="prose-2xl font-bold self-center my-4">{{ $t('activity.createProject') }}</h1>
@@ -90,7 +98,8 @@ onMounted(async () => {
       </a-form-item>
 
       <div class="text-center">
-        <button class="scaling-btn bg-opacity-100" type="submit">
+        <a-spin v-if="creating" spinning />
+        <button v-else class="scaling-btn bg-opacity-100" type="submit">
           <span class="flex items-center gap-2">
             <MaterialSymbolsRocketLaunchOutline />
             {{ $t('general.create') }}

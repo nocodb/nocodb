@@ -8,9 +8,11 @@ import {
   computed,
   definePageMeta,
   extractSdkResponseErrorMsg,
+  iconMap,
   message,
   navigateTo,
   onBeforeMount,
+  parseProp,
   projectThemeColors,
   ref,
   themeV2Colors,
@@ -80,7 +82,7 @@ const handleProjectColor = async (projectId: string, color: string) => {
 
     const project: ProjectType = await $api.project.read(projectId)
 
-    const meta = project?.meta && typeof project.meta === 'string' ? JSON.parse(project.meta) : project.meta || {}
+    const meta = parseProp(project?.meta)
 
     await $api.project.update(projectId, {
       color,
@@ -113,7 +115,7 @@ const handleProjectColor = async (projectId: string, color: string) => {
 const getProjectPrimary = (project: ProjectType) => {
   if (!project) return
 
-  const meta = project.meta && typeof project.meta === 'string' ? JSON.parse(project.meta) : project.meta || {}
+  const meta = parseProp(project.meta)
 
   return meta.theme?.primaryColor || themeV2Colors['royal-blue'].DEFAULT
 }
@@ -136,7 +138,7 @@ const copyProjectMeta = async () => {
     const aggregatedMetaInfo = await $api.utils.aggregatedMetaInfo()
     await copy(JSON.stringify(aggregatedMetaInfo))
     message.info('Copied aggregated project meta to clipboard')
-  } catch (e) {
+  } catch (e: any) {
     message.error(await extractSdkResponseErrorMsg(e))
   }
 }
@@ -163,7 +165,8 @@ const copyProjectMeta = async () => {
           class="transition-all duration-200 h-full flex-0 flex items-center group hover:ring active:(ring ring-accent) rounded-full mt-1"
           :class="isLoading ? 'animate-spin ring ring-gray-200' : ''"
         >
-          <MdiRefresh
+          <component
+            :is="iconMap.reload"
             v-e="['a:project:refresh']"
             class="text-xl text-gray-500 group-hover:text-accent cursor-pointer"
             :class="isLoading ? '!text-primary' : ''"
@@ -258,9 +261,15 @@ const copyProjectMeta = async () => {
       <a-table-column key="id" :title="$t('labels.actions')" data-index="id">
         <template #default="{ text, record }">
           <div class="flex items-center gap-2">
-            <MdiEditOutline v-e="['c:project:edit:rename']" class="nc-action-btn" @click.stop="navigateTo(`/${text}`)" />
+            <component
+              :is="iconMap.edit"
+              v-e="['c:project:edit:rename']"
+              class="nc-action-btn"
+              @click.stop="navigateTo(`/${text}`)"
+            />
 
-            <MdiDeleteOutline
+            <component
+              :is="iconMap.delete"
               class="nc-action-btn"
               :data-testid="`delete-project-${record.title}`"
               @click.stop="deleteProject(record)"

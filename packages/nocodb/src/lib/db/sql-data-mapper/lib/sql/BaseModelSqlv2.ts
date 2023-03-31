@@ -1,35 +1,29 @@
 import autoBind from 'auto-bind';
-import _ from 'lodash';
-
-import Model from '../../../../models/Model';
-import SelectOption from '../../../../models/SelectOption';
-import { XKnex } from '../../index';
-import LinkToAnotherRecordColumn from '../../../../models/LinkToAnotherRecordColumn';
-import RollupColumn from '../../../../models/RollupColumn';
-import LookupColumn from '../../../../models/LookupColumn';
+import groupBy from 'lodash/groupBy';
 import DataLoader from 'dataloader';
-import Column from '../../../../models/Column';
-import { XcFilter, XcFilterWithAlias } from '../BaseModel';
-import conditionV2 from './conditionV2';
-import Filter from '../../../../models/Filter';
-import sortV2 from './sortV2';
-import Sort from '../../../../models/Sort';
-import FormulaColumn from '../../../../models/FormulaColumn';
-import genRollupSelectv2 from './genRollupSelectv2';
-import formulaQueryBuilderv2 from './formulav2/formulaQueryBuilderv2';
-import { Knex } from 'knex';
-import View from '../../../../models/View';
 import {
   AuditOperationSubTypes,
   AuditOperationTypes,
+  isSystemColumn,
   isVirtualCol,
   RelationTypes,
-  SortType,
   UITypes,
   ViewTypes,
 } from 'nocodb-sdk';
-import formSubmissionEmailTemplate from '../../../../utils/common/formSubmissionEmailTemplate';
 import ejs from 'ejs';
+import Validator from 'validator';
+import { customAlphabet } from 'nanoid';
+import DOMPurify from 'isomorphic-dompurify';
+import Model from '../../../../models/Model';
+import Column from '../../../../models/Column';
+import Filter, {
+  COMPARISON_OPS,
+  COMPARISON_SUB_OPS,
+  IS_WITHIN_COMPARISON_SUB_OPS,
+} from '../../../../models/Filter';
+import Sort from '../../../../models/Sort';
+import View from '../../../../models/View';
+import formSubmissionEmailTemplate from '../../../../utils/common/formSubmissionEmailTemplate';
 import Audit from '../../../../models/Audit';
 import FormView from '../../../../models/FormView';
 import Hook from '../../../../models/Hook';
@@ -38,14 +32,25 @@ import {
   _transformSubmittedFormDataForEmail,
   invokeWebhook,
 } from '../../../../meta/helpers/webhookHelpers';
-import Validator from 'validator';
-import { customValidators } from './customValidators';
 import { NcError } from '../../../../meta/helpers/catchError';
-import { customAlphabet } from 'nanoid';
-import DOMPurify from 'isomorphic-dompurify';
+import { customValidators } from './customValidators';
+import formulaQueryBuilderv2 from './formulav2/formulaQueryBuilderv2';
+import genRollupSelectv2 from './genRollupSelectv2';
+import sortV2 from './sortV2';
+import conditionV2 from './conditionV2';
 import { sanitize, unsanitize } from './helpers/sanitize';
-import QrCodeColumn from '../../../../models/QrCodeColumn';
-import BarcodeColumn from '../../../../models/BarcodeColumn';
+import type { GridViewColumn } from '../../../../models';
+import type { SortType } from 'nocodb-sdk';
+import type { Knex } from 'knex';
+import type FormulaColumn from '../../../../models/FormulaColumn';
+import type { XcFilter, XcFilterWithAlias } from '../BaseModel';
+import type LookupColumn from '../../../../models/LookupColumn';
+import type RollupColumn from '../../../../models/RollupColumn';
+import type LinkToAnotherRecordColumn from '../../../../models/LinkToAnotherRecordColumn';
+import type { XKnex } from '../../index';
+import type SelectOption from '../../../../models/SelectOption';
+import type QrCodeColumn from '../../../../models/QrCodeColumn';
+import type BarcodeColumn from '../../../../models/BarcodeColumn';
 
 const GROUP_COL = '__nc_group_id';
 
@@ -59,6 +64,21 @@ async function populatePk(model: Model, insertObj: any) {
     insertObj[pkCol.title] =
       pkCol.meta?.ag === 'nc' ? `rc_${nanoidv2()}` : uuidv4();
   }
+}
+
+function checkColumnRequired(
+  column: Column<any>,
+  fields: string[],
+  extractPkAndPv?: boolean
+) {
+  // if primary key or foreign key included in fields, it's required
+  if (column.pk || column.uidt === UITypes.ForeignKey) return true;
+
+  if (extractPkAndPv && column.pv) return true;
+
+  // check fields defined and if not, then select all
+  // if defined check if it is in the fields
+  return !fields || fields.includes(column.title);
 }
 
 /**
@@ -94,14 +114,23 @@ class BaseModelSqlv2 {
     autoBind(this);
   }
 
-  public async readByPk(id?: any): Promise<any> {
+  public async readByPk(id?: any, validateFormula = false): Promise<any> {
     const qb = this.dbDriver(this.tnPath);
 
-    await this.selectObject({ qb });
+    await this.selectObject({ qb, validateFormula });
 
     qb.where(_wherePk(this.model.primaryKeys, id));
 
-    const data = (await this.execAndParse(qb))?.[0];
+    let data;
+
+    try {
+      data = (await this.execAndParse(qb))?.[0];
+    } catch (e) {
+      if (validateFormula || !haveFormulaColumn(await this.model.getColumns()))
+        throw e;
+      console.log(e);
+      return this.readByPk(id, true);
+    }
 
     if (data) {
       const proto = await this.getProto();
@@ -126,11 +155,12 @@ class BaseModelSqlv2 {
       where?: string;
       filterArr?: Filter[];
       sort?: string | string[];
-    } = {}
+    } = {},
+    validateFormula = false
   ): Promise<any> {
     const { where, ...rest } = this._getListArgs(args as any);
     const qb = this.dbDriver(this.tnPath);
-    await this.selectObject({ qb });
+    await this.selectObject({ qb, validateFormula });
 
     const aliasColObjMap = await this.model.getAliasColObjMap();
     const sorts = extractSortsObject(rest?.sort, aliasColObjMap);
@@ -159,7 +189,16 @@ class BaseModelSqlv2 {
       qb.orderBy(this.model.primaryKey.column_name);
     }
 
-    const data = await qb.first();
+    let data;
+
+    try {
+      data = await qb.first();
+    } catch (e) {
+      if (validateFormula || !haveFormulaColumn(await this.model.getColumns()))
+        throw e;
+      console.log(e);
+      return this.findOne(args, true);
+    }
 
     if (data) {
       const proto = await this.getProto();
@@ -176,13 +215,21 @@ class BaseModelSqlv2 {
       filterArr?: Filter[];
       sortArr?: Sort[];
       sort?: string | string[];
+      fieldsSet?: Set<string>;
     } = {},
-    ignoreViewFilterAndSort = false
+    ignoreViewFilterAndSort = false,
+    validateFormula = false
   ): Promise<any> {
-    const { where, ...rest } = this._getListArgs(args as any);
+    const { where, fields, ...rest } = this._getListArgs(args as any);
 
     const qb = this.dbDriver(this.tnPath);
-    await this.selectObject({ qb });
+
+    await this.selectObject({
+      qb,
+      fieldsSet: args.fieldsSet,
+      viewId: this.viewId,
+      validateFormula,
+    });
     if (+rest?.shuffle) {
       await this.shuffle({ qb });
     }
@@ -253,8 +300,17 @@ class BaseModelSqlv2 {
 
     if (!ignoreViewFilterAndSort) applyPaginate(qb, rest);
     const proto = await this.getProto();
-    const data = await this.execAndParse(qb);
 
+    let data;
+
+    try {
+      data = await this.execAndParse(qb);
+    } catch (e) {
+      if (validateFormula || !haveFormulaColumn(await this.model.getColumns()))
+        throw e;
+      console.log(e);
+      return this.list(args, ignoreViewFilterAndSort, true);
+    }
     return data?.map((d) => {
       d.__proto__ = proto;
       return d;
@@ -320,7 +376,14 @@ class BaseModelSqlv2 {
     qb.count(sanitize(this.model.primaryKey?.column_name) || '*', {
       as: 'count',
     }).first();
-    const res = (await this.dbDriver.raw(unsanitize(qb.toQuery()))) as any;
+
+    let sql = sanitize(qb.toQuery());
+    if (!this.isPg && !this.isMssql && !this.isSnowflake) {
+      sql = unsanitize(qb.toQuery());
+    }
+
+    const res = (await this.dbDriver.raw(sql)) as any;
+
     return (this.isPg || this.isSnowflake ? res.rows[0] : res[0][0] ?? res[0])
       .count;
   }
@@ -369,7 +432,10 @@ class BaseModelSqlv2 {
     return await qb;
   }
 
-  async multipleHmList({ colId, ids }, args: { limit?; offset? } = {}) {
+  async multipleHmList(
+    { colId, ids },
+    args: { limit?; offset?; fieldsSet?: Set<string> } = {}
+  ) {
     try {
       const { where, sort, ...rest } = this._getListArgs(args as any);
       // todo: get only required fields
@@ -397,7 +463,11 @@ class BaseModelSqlv2 {
       const parentTn = this.getTnPath(parentTable);
 
       const qb = this.dbDriver(childTn);
-      await childModel.selectObject({ qb });
+      await childModel.selectObject({
+        qb,
+        extractPkAndPv: true,
+        fieldsSet: args.fieldsSet,
+      });
       await this.applySortAndFilter({ table: childTable, where, qb, sort });
 
       const childQb = this.dbDriver.queryBuilder().from(
@@ -425,6 +495,8 @@ class BaseModelSqlv2 {
           .as('list')
       );
 
+      // console.log(childQb.toQuery())
+
       const children = await this.execAndParse(childQb, childTable);
       const proto = await (
         await Model.getBaseModelSQL({
@@ -433,7 +505,7 @@ class BaseModelSqlv2 {
         })
       ).getProto();
 
-      return _.groupBy(
+      return groupBy(
         children.map((c) => {
           c.__proto__ = proto;
           return c;
@@ -510,7 +582,10 @@ class BaseModelSqlv2 {
     }
   }
 
-  async hmList({ colId, id }, args: { limit?; offset? } = {}) {
+  async hmList(
+    { colId, id },
+    args: { limit?; offset?; fieldSet?: Set<string> } = {}
+  ) {
     try {
       const { where, sort, ...rest } = this._getListArgs(args as any);
       // todo: get only required fields
@@ -550,7 +625,7 @@ class BaseModelSqlv2 {
       qb.limit(+rest?.limit || 25);
       qb.offset(+rest?.offset || 0);
 
-      await childModel.selectObject({ qb });
+      await childModel.selectObject({ qb, fieldsSet: args.fieldSet });
 
       const children = await this.execAndParse(qb, childTable);
 
@@ -601,7 +676,6 @@ class BaseModelSqlv2 {
         .first();
       const { count } = await query;
       return count;
-      // return _.groupBy(children, cn);
     } catch (e) {
       console.log(e);
       throw e;
@@ -610,7 +684,7 @@ class BaseModelSqlv2 {
 
   public async multipleMmList(
     { colId, parentIds },
-    args: { limit?; offset? } = {}
+    args: { limit?; offset?; fieldsSet?: Set<string> } = {}
   ) {
     const { where, sort, ...rest } = this._getListArgs(args as any);
     const relColumn = (await this.model.getColumns()).find(
@@ -643,7 +717,7 @@ class BaseModelSqlv2 {
 
     const qb = this.dbDriver(rtn).join(vtn, `${vtn}.${vrcn}`, `${rtn}.${rcn}`);
 
-    await childModel.selectObject({ qb });
+    await childModel.selectObject({ qb, fieldsSet: args.fieldsSet });
 
     await this.applySortAndFilter({ table: childTable, where, qb, sort });
 
@@ -679,7 +753,7 @@ class BaseModelSqlv2 {
         dbDriver: this.dbDriver,
       })
     ).getProto();
-    const gs = _.groupBy(
+    const gs = groupBy(
       children.map((c) => {
         c.__proto__ = proto;
         return c;
@@ -689,7 +763,10 @@ class BaseModelSqlv2 {
     return parentIds.map((id) => gs[id] || []);
   }
 
-  public async mmList({ colId, parentId }, args: { limit?; offset? } = {}) {
+  public async mmList(
+    { colId, parentId },
+    args: { limit?; offset?; fieldsSet?: Set<string> } = {}
+  ) {
     const { where, sort, ...rest } = this._getListArgs(args as any);
     const relColumn = (await this.model.getColumns()).find(
       (c) => c.id === colId
@@ -729,7 +806,7 @@ class BaseModelSqlv2 {
           .where(_wherePk(parentTable.primaryKeys, parentId))
       );
 
-    await childModel.selectObject({ qb });
+    await childModel.selectObject({ qb, fieldsSet: args.fieldsSet });
 
     await this.applySortAndFilter({ table: childTable, where, qb, sort });
 
@@ -796,7 +873,7 @@ class BaseModelSqlv2 {
       !this.isSqlite
     );
 
-    const gs = _.groupBy(children, GROUP_COL);
+    const gs = groupBy(children, GROUP_COL);
     return parentIds.map((id) => gs?.[id]?.[0] || []);
   }
 
@@ -1203,7 +1280,11 @@ class BaseModelSqlv2 {
     });
   }
 
-  private async getSelectQueryBuilderForFormula(column: Column<any>) {
+  private async getSelectQueryBuilderForFormula(
+    column: Column<any>,
+    tableAlias?: string,
+    validateFormula = false
+  ) {
     const formula = await column.getColOptions<FormulaColumn>();
     if (formula.error) throw new Error(`Formula error: ${formula.error}`);
     const qb = await formulaQueryBuilderv2(
@@ -1211,7 +1292,10 @@ class BaseModelSqlv2 {
       null,
       this.dbDriver,
       this.model,
-      column
+      column,
+      {},
+      tableAlias,
+      validateFormula
     );
     return qb;
   }
@@ -1355,10 +1439,11 @@ class BaseModelSqlv2 {
                     {
                       // limit: ids.length,
                       where: `(${pCol.column_name},in,${ids.join(',')})`,
+                      fieldsSet: (readLoader as any).args?.fieldsSet,
                     },
                     true
                   );
-                  const gs = _.groupBy(data, pCol.title);
+                  const gs = groupBy(data, pCol.title);
                   return ids.map(async (id: string) => gs?.[id]?.[0]);
                 } catch (e) {
                   console.log(e);
@@ -1367,12 +1452,14 @@ class BaseModelSqlv2 {
               });
 
               // defining HasMany count method within GQL Type class
-              proto[column.title] = async function () {
+              proto[column.title] = async function (args?: any) {
                 if (
                   this?.[cCol?.title] === null ||
                   this?.[cCol?.title] === undefined
                 )
                   return null;
+
+                (readLoader as any).args = args;
 
                 return await readLoader.load(this?.[cCol?.title]);
               };
@@ -1401,7 +1488,7 @@ class BaseModelSqlv2 {
       this.config.limitMin
     );
     obj.offset = Math.max(+(args.offset || args.o) || 0, 0);
-    obj.fields = args.fields || args.f || '*';
+    obj.fields = args.fields || args.f;
     obj.sort = args.sort || args.s;
     return obj;
   }
@@ -1416,16 +1503,70 @@ class BaseModelSqlv2 {
     }
   }
 
+  // todo:
+  //  pass view id as argument
+  //  add option to get only pk and pv
   public async selectObject({
     qb,
     columns: _columns,
+    fields: _fields,
+    extractPkAndPv,
+    viewId,
+    fieldsSet,
+    alias,
+    validateFormula,
   }: {
+    fieldsSet?: Set<string>;
     qb: Knex.QueryBuilder;
     columns?: Column[];
+    fields?: string[] | string;
+    extractPkAndPv?: boolean;
+    viewId?: string;
+    alias?: string;
+    validateFormula?: boolean;
   }): Promise<void> {
+    let viewOrTableColumns: Column[] | { fk_column_id?: string }[];
+
     const res = {};
-    const columns = _columns ?? (await this.model.getColumns());
-    for (const column of columns) {
+    let view: View;
+    let fields: string[];
+
+    if (fieldsSet?.size) {
+      viewOrTableColumns = _columns || (await this.model.getColumns());
+    } else {
+      view = await View.get(viewId);
+      const viewColumns = viewId && (await View.getColumns(viewId));
+      fields = Array.isArray(_fields) ? _fields : _fields?.split(',');
+
+      // const columns = _columns ?? (await this.model.getColumns());
+      // for (const column of columns) {
+      viewOrTableColumns =
+        _columns || viewColumns || (await this.model.getColumns());
+    }
+    for (const viewOrTableColumn of viewOrTableColumns) {
+      const column =
+        viewOrTableColumn instanceof Column
+          ? viewOrTableColumn
+          : await Column.get({
+              colId: (viewOrTableColumn as GridViewColumn).fk_column_id,
+            });
+      // hide if column marked as hidden in view
+      // of if column is system field and system field is hidden
+      if (
+        fieldsSet
+          ? !fieldsSet.has(column.title)
+          : !extractPkAndPv &&
+            !(viewOrTableColumn instanceof Column) &&
+            (!(viewOrTableColumn as GridViewColumn)?.show ||
+              (!view?.show_system_fields &&
+                column.uidt !== UITypes.ForeignKey &&
+                !column.pk &&
+                isSystemColumn(column)))
+      )
+        continue;
+
+      if (!checkColumnRequired(column, fields, extractPkAndPv)) continue;
+
       switch (column.uidt) {
         case 'LinkToAnotherRecord':
         case 'Lookup':
@@ -1445,7 +1586,9 @@ class BaseModelSqlv2 {
             case UITypes.Formula:
               try {
                 const selectQb = await this.getSelectQueryBuilderForFormula(
-                  qrValueColumn
+                  qrValueColumn,
+                  alias,
+                  validateFormula
                 );
                 qb.select({
                   [column.column_name]: selectQb.builder,
@@ -1477,7 +1620,9 @@ class BaseModelSqlv2 {
             case UITypes.Formula:
               try {
                 const selectQb = await this.getSelectQueryBuilderForFormula(
-                  barcodeValueColumn
+                  barcodeValueColumn,
+                  alias,
+                  validateFormula
                 );
                 qb.select({
                   [column.column_name]: selectQb.builder,
@@ -1500,7 +1645,9 @@ class BaseModelSqlv2 {
           {
             try {
               const selectQb = await this.getSelectQueryBuilderForFormula(
-                column
+                column,
+                alias,
+                validateFormula
               );
               qb.select(
                 this.dbDriver.raw(`?? as ??`, [
@@ -1508,7 +1655,8 @@ class BaseModelSqlv2 {
                   sanitize(column.title),
                 ])
               );
-            } catch {
+            } catch (e) {
+              console.log(e);
               // return dummy select
               qb.select(
                 this.dbDriver.raw(`'ERR' as ??`, [sanitize(column.title)])
@@ -1523,6 +1671,7 @@ class BaseModelSqlv2 {
                 // tn: this.title,
                 knex: this.dbDriver,
                 // column,
+                alias,
                 columnOptions: (await column.getColOptions()) as RollupColumn,
               })
             ).builder.as(sanitize(column.title))
@@ -1530,7 +1679,7 @@ class BaseModelSqlv2 {
           break;
         default:
           res[sanitize(column.title || column.column_name)] = sanitize(
-            `${this.model.table_name}.${column.column_name}`
+            `${alias || this.model.table_name}.${column.column_name}`
           );
           break;
       }
@@ -2238,8 +2387,6 @@ class BaseModelSqlv2 {
   }
 
   private async handleHooks(hookName, data, req): Promise<void> {
-    // const data = _data;
-
     const view = await View.get(this.viewId);
 
     // handle form view data submission
@@ -2320,7 +2467,9 @@ class BaseModelSqlv2 {
         operation,
       });
       for (const hook of hooks) {
-        invokeWebhook(hook, this.model, data, req?.user);
+        if (hook.active) {
+          invokeWebhook(hook, this.model, data, req?.user);
+        }
       }
     } catch (e) {
       console.log('hooks :: error', hookName, e);
@@ -2650,7 +2799,7 @@ class BaseModelSqlv2 {
       qb.limit(+rest?.limit || 25);
       qb.offset(+rest?.offset || 0);
 
-      await this.selectObject({ qb });
+      await this.selectObject({ qb, extractPkAndPv: true });
 
       // todo: refactor and move to a method (applyFilterAndSort)
       const aliasColObjMap = await this.model.getAliasColObjMap();
@@ -2934,6 +3083,7 @@ function extractFilterFromXwhere(
   if (openIndex === -1) openIndex = str.indexOf('(~');
 
   let nextOpenIndex = openIndex;
+
   let closingIndex = str.indexOf('))');
 
   // if it's a simple query simply return array of conditions
@@ -2986,15 +3136,54 @@ function extractFilterFromXwhere(
   return nestedArrayConditions;
 }
 
+// mark `op` and `sub_op` any for being assignable to parameter of type
+function validateFilterComparison(uidt: UITypes, op: any, sub_op?: any) {
+  if (!COMPARISON_OPS.includes(op)) {
+    NcError.badRequest(`${op} is not supported.`);
+  }
+
+  if (sub_op) {
+    if (![UITypes.Date, UITypes.DateTime].includes(uidt)) {
+      NcError.badRequest(`'${sub_op}' is not supported for UI Type'${uidt}'.`);
+    }
+    if (!COMPARISON_SUB_OPS.includes(sub_op)) {
+      NcError.badRequest(`'${sub_op}' is not supported.`);
+    }
+    if (
+      (op === 'isWithin' && !IS_WITHIN_COMPARISON_SUB_OPS.includes(sub_op)) ||
+      (op !== 'isWithin' && IS_WITHIN_COMPARISON_SUB_OPS.includes(sub_op))
+    ) {
+      NcError.badRequest(`'${sub_op}' is not supported for '${op}'`);
+    }
+  }
+}
+
 function extractCondition(nestedArrayConditions, aliasColObjMap) {
   return nestedArrayConditions?.map((str) => {
     // eslint-disable-next-line prefer-const
     let [logicOp, alias, op, value] =
       str.match(/(?:~(and|or|not))?\((.*?),(\w+),(.*)\)/)?.slice(1) || [];
-    if (op === 'in') value = value.split(',');
+    let sub_op = null;
+
+    if (aliasColObjMap[alias]) {
+      if (
+        [UITypes.Date, UITypes.DateTime].includes(aliasColObjMap[alias].uidt)
+      ) {
+        value = value.split(',');
+        // the first element would be sub_op
+        sub_op = value[0];
+        // remove the first element which is sub_op
+        value.shift();
+      } else if (op === 'in') {
+        value = value.split(',');
+      }
+
+      validateFilterComparison(aliasColObjMap[alias].uidt, op, sub_op);
+    }
 
     return new Filter({
       comparison_op: op,
+      ...(sub_op && { comparison_sub_op: sub_op }),
       fk_column_id: aliasColObjMap[alias]?.id,
       logical_op: logicOp,
       value,
@@ -3026,6 +3215,10 @@ function _wherePk(primaryKeys: Column[], id) {
 
 function getCompositePk(primaryKeys: Column[], row) {
   return primaryKeys.map((c) => row[c.title]).join('___');
+}
+
+function haveFormulaColumn(columns: Column[]) {
+  return columns.some((c) => c.uidt === UITypes.Formula);
 }
 
 export { BaseModelSqlv2 };

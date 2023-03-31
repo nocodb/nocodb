@@ -12,11 +12,14 @@ import {
   TabType,
   computed,
   extractSdkResponseErrorMsg,
+  iconMap,
   isDrawerOrModalExist,
   isMac,
+  parseProp,
   reactive,
   ref,
   resolveComponent,
+  storeToRefs,
   useDialog,
   useGlobal,
   useNuxtApp,
@@ -26,18 +29,22 @@ import {
   useTabs,
   useToggle,
   useUIPermission,
+  useUndoRedo,
   watchEffect,
 } from '#imports'
-import MdiView from '~icons/mdi/eye-circle-outline'
-import MdiTableLarge from '~icons/mdi/table-large'
+
+const { isMobileMode } = useGlobal()
 
 const { addTab, updateTab } = useTabs()
 
 const { $api, $e } = useNuxtApp()
 
-const { bases, tables, loadTables, isSharedBase } = useProject()
+const projectStore = useProject()
 
-const { activeTab } = useTabs()
+const { loadTables } = projectStore
+const { bases, tables, isSharedBase, project } = storeToRefs(projectStore)
+
+const { activeTab } = storeToRefs(useTabs())
 
 const { deleteTable } = useTable()
 
@@ -48,6 +55,8 @@ const route = useRoute()
 const [searchActive, toggleSearchActive] = useToggle()
 
 const { appInfo } = useGlobal()
+
+const { addUndo, defineProjectScope } = useUndoRedo()
 
 const toggleDialog = inject(ToggleDialogInj, () => {})
 
@@ -84,12 +93,13 @@ const initSortable = (el: Element) => {
   if (sortables[base_id]) sortables[base_id].destroy()
   Sortable.create(el as HTMLLIElement, {
     onEnd: async (evt) => {
-      const offset = tables.value.findIndex((table) => table.base_id === base_id)
-
       const { newIndex = 0, oldIndex = 0 } = evt
 
       const itemEl = evt.item as HTMLLIElement
       const item = tablesById[itemEl.dataset.id as string]
+
+      // store the old order for undo
+      const oldOrder = item.order
 
       // get the html collection of all list items
       const children: HTMLCollection = evt.to.children
@@ -114,8 +124,19 @@ const initSortable = (el: Element) => {
         item.order = ((itemBefore.order as number) + (itemAfter.order as number)) / 2
       }
 
-      // update the order of the moved item
-      tables.value?.splice(newIndex + offset, 0, ...tables.value?.splice(oldIndex + offset, 1))
+      // find the index of the moved item
+      const itemIndex = tables.value?.findIndex((table) => table.id === item.id)
+
+      // move the item to the new position
+      if (itemBefore) {
+        // find the index of the item before the moved item
+        const itemBeforeIndex = tables.value?.findIndex((table) => table.id === itemBefore.id)
+        tables.value?.splice(itemBeforeIndex + (newIndex > oldIndex ? 0 : 1), 0, ...tables.value?.splice(itemIndex, 1))
+      } else {
+        // if the item before is undefined (moving item to first slot), then find the index of the item after the moved item
+        const itemAfterIndex = tables.value?.findIndex((table) => table.id === itemAfter.id)
+        tables.value?.splice(itemAfterIndex, 0, ...tables.value?.splice(itemIndex, 1))
+      }
 
       // force re-render the list
       if (keys[base_id]) {
@@ -127,6 +148,38 @@ const initSortable = (el: Element) => {
       // update the item order
       await $api.dbTable.reorder(item.id as string, {
         order: item.order,
+      })
+
+      const nextIndex = tables.value?.findIndex((table) => table.id === item.id)
+
+      addUndo({
+        undo: {
+          fn: async (id: string, order: number, index: number) => {
+            const itemIndex = tables.value.findIndex((table) => table.id === id)
+            if (itemIndex < 0) return
+            const item = tables.value[itemIndex]
+            item.order = order
+            tables.value?.splice(index, 0, ...tables.value?.splice(itemIndex, 1))
+            await $api.dbTable.reorder(item.id as string, {
+              order: item.order,
+            })
+          },
+          args: [item.id, oldOrder, itemIndex],
+        },
+        redo: {
+          fn: async (id: string, order: number, index: number) => {
+            const itemIndex = tables.value.findIndex((table) => table.id === id)
+            if (itemIndex < 0) return
+            const item = tables.value[itemIndex]
+            item.order = order
+            tables.value?.splice(index, 0, ...tables.value?.splice(itemIndex, 1))
+            await $api.dbTable.reorder(item.id as string, {
+              order: item.order,
+            })
+          },
+          args: [item.id, item.order, nextIndex],
+        },
+        scope: defineProjectScope({ project: project.value }),
       })
     },
     animation: 150,
@@ -145,10 +198,10 @@ watchEffect(() => {
 
 const icon = (table: TableType) => {
   if (table.type === 'table') {
-    return MdiTableLarge
+    return iconMap.table
   }
   if (table.type === 'view') {
-    return MdiView
+    return iconMap.view
   }
 }
 
@@ -290,16 +343,28 @@ useEventListener(document, 'keydown', async (e: KeyboardEvent) => {
 watch(
   activeTable,
   (value, oldValue) => {
+    let tableTitle
     if (value) {
       if (value !== oldValue) {
         const fndTable = tables.value.find((el) => el.id === value)
         if (fndTable) {
           activeKey.value = [`collapse-${fndTable.base_id}`]
+          tableTitle = fndTable.title
         }
       }
     } else {
-      if (bases.value.filter((el) => el.enabled)[0]?.id)
-        activeKey.value = [`collapse-${bases.value.filter((el) => el.enabled)[0].id}`]
+      const table = bases.value.filter((el) => el.enabled)[0]
+      if (table?.id) {
+        activeKey.value = [`collapse-${table.id}`]
+      }
+      if (table?.title) {
+        tableTitle = table.title
+      }
+    }
+    if (project.value.title && tableTitle) {
+      document.title = `${project.value.title}: ${tableTitle} | NocoDB`
+    } else {
+      document.title = 'NocoDB'
     }
   },
   { immediate: true },
@@ -308,7 +373,7 @@ watch(
 const setIcon = async (icon: string, table: TableType) => {
   try {
     table.meta = {
-      ...(table.meta || {}),
+      ...parseProp(table.meta),
       icon,
     }
     tables.value.splice(tables.value.indexOf(table), 1, { ...table })
@@ -320,7 +385,7 @@ const setIcon = async (icon: string, table: TableType) => {
     })
 
     $e('a:table:icon:navdraw', { icon })
-  } catch (e) {
+  } catch (e: any) {
     message.error(await extractSdkResponseErrorMsg(e))
   }
 }
@@ -354,8 +419,13 @@ const setIcon = async (icon: string, table: TableType) => {
           </Transition>
 
           <Transition name="layout" mode="out-in">
-            <MdiClose v-if="searchActive" class="text-gray-500 text-lg mx-1 mt-0.5" @click="onSearchCloseIconClick" />
-            <IcRoundSearch v-else class="text-gray-500 text-lg mx-1 mt-0.5" @click="toggleSearchActive(true)" />
+            <GeneralIcon
+              v-if="searchActive"
+              icon="close"
+              class="text-gray-500 text-lg mx-1 mt-0.5"
+              @click="onSearchCloseIconClick"
+            />
+            <GeneralIcon v-else icon="search" class="text-gray-500 text-lg mx-1 mt-0.5" @click="toggleSearchActive(true)" />
           </Transition>
         </div>
         <div
@@ -381,13 +451,18 @@ const setIcon = async (icon: string, table: TableType) => {
           </Transition>
 
           <Transition name="slide-right" mode="out-in">
-            <MdiClose v-if="searchActive" class="text-gray-500 text-lg mx-1 mt-0.5" @click="onSearchCloseIconClick" />
-            <IcRoundSearch v-else class="text-gray-500 text-lg mx-1 mt-0.5" @click="onSearchIconClick" />
+            <GeneralIcon
+              v-if="searchActive"
+              icon="close"
+              class="text-gray-500 text-lg mx-1 mt-0.5"
+              @click="onSearchCloseIconClick"
+            />
+            <component :is="iconMap.search" v-else class="text-gray-500 text-lg mx-1 mt-0.5" @click="onSearchIconClick" />
           </Transition>
 
           <a-dropdown v-if="!isSharedBase" :trigger="['click']" overlay-class-name="nc-dropdown-import-menu" @click.stop>
             <Transition name="slide-right" mode="out-in">
-              <MdiDotsVertical v-if="!searchActive" class="hover:text-accent outline-0" />
+              <GeneralIcon v-if="!searchActive" icon="threeDotVertical" class="hover:text-accent outline-0" />
             </Transition>
 
             <template #overlay>
@@ -438,7 +513,7 @@ const setIcon = async (icon: string, table: TableType) => {
                     target="_blank"
                     class="prose-sm hover:(!text-primary !opacity-100) color-transition nc-project-menu-item group after:(!rounded-b)"
                   >
-                    <MdiOpenInNew class="group-hover:text-accent" />
+                    <GeneralIcon icon="openInNew" class="group-hover:text-accent" />
                     <!-- Request a data source you need? -->
                     {{ $t('labels.requestDataSource') }}
                   </a>
@@ -454,12 +529,15 @@ const setIcon = async (icon: string, table: TableType) => {
             class="group flex items-center gap-2 pl-2 pr-3 py-2 text-primary/70 hover:(text-primary/100) cursor-pointer select-none"
             @click="openTableCreateDialog(bases[0].id)"
           >
-            <MdiPlus class="w-5" />
+            <GeneralIcon icon="plus" class="w-5" />
 
             <span class="text-gray-500 group-hover:(text-primary/100) flex-1 nc-add-new-table">{{ $t('tooltip.addTable') }}</span>
 
             <a-dropdown v-if="!isSharedBase" :trigger="['click']" overlay-class-name="nc-dropdown-import-menu" @click.stop>
-              <MdiDotsVertical class="transition-opacity opacity-0 group-hover:opacity-100 nc-import-menu outline-0" />
+              <GeneralIcon
+                icon="threeDotVertical"
+                class="transition-opacity opacity-0 group-hover:opacity-100 nc-import-menu outline-0"
+              />
 
               <template #overlay>
                 <a-menu class="!py-0 rounded text-sm">
@@ -471,7 +549,7 @@ const setIcon = async (icon: string, table: TableType) => {
                       @click="openAirtableImportDialog(bases[0].id)"
                     >
                       <div class="color-transition nc-project-menu-item group">
-                        <MdiTableLarge class="group-hover:text-accent" />
+                        <GeneralIcon icon="table" class="group-hover:text-accent" />
                         Airtable
                       </div>
                     </a-menu-item>
@@ -482,7 +560,7 @@ const setIcon = async (icon: string, table: TableType) => {
                       @click="openQuickImportDialog('csv', bases[0].id)"
                     >
                       <div class="color-transition nc-project-menu-item group">
-                        <MdiFileDocumentOutline class="group-hover:text-accent" />
+                        <GeneralIcon icon="csv" class="group-hover:text-accent" />
                         CSV file
                       </div>
                     </a-menu-item>
@@ -493,7 +571,7 @@ const setIcon = async (icon: string, table: TableType) => {
                       @click="openQuickImportDialog('json', bases[0].id)"
                     >
                       <div class="color-transition nc-project-menu-item group">
-                        <MdiCodeJson class="group-hover:text-accent" />
+                        <GeneralIcon icon="code" class="group-hover:text-accent" />
                         JSON file
                       </div>
                     </a-menu-item>
@@ -504,7 +582,7 @@ const setIcon = async (icon: string, table: TableType) => {
                       @click="openQuickImportDialog('excel', bases[0].id)"
                     >
                       <div class="color-transition nc-project-menu-item group">
-                        <MdiFileExcel class="group-hover:text-accent" />
+                        <GeneralIcon icon="excel" class="group-hover:text-accent" />
                         Microsoft Excel
                       </div>
                     </a-menu-item>
@@ -558,7 +636,7 @@ const setIcon = async (icon: string, table: TableType) => {
                       target="_blank"
                       class="prose-sm hover:(!text-primary !opacity-100) color-transition nc-project-menu-item group after:(!rounded-b)"
                     >
-                      <MdiOpenInNew class="group-hover:text-accent" />
+                      <GeneralIcon icon="openInNew" class="group-hover:text-accent" />
                       <!-- Request a data source you need? -->
                       {{ $t('labels.requestDataSource') }}
                     </a>
@@ -623,7 +701,11 @@ const setIcon = async (icon: string, table: TableType) => {
                               </component>
                             </div>
                             <template v-if="isUIAllowed('tableIconCustomisation')" #overlay>
-                              <GeneralEmojiIcons class="shadow bg-white p-2" @select-icon="setIcon($event, table)" />
+                              <GeneralEmojiIcons
+                                class="shadow bg-white p-2"
+                                :show-reset="!!table.meta?.icon"
+                                @select-icon="setIcon($event, table)"
+                              />
                             </template>
                           </component>
                         </div>
@@ -639,7 +721,10 @@ const setIcon = async (icon: string, table: TableType) => {
                           :trigger="['click']"
                           @click.stop
                         >
-                          <MdiDotsVertical class="transition-opacity opacity-0 group-hover:opacity-100 outline-0" />
+                          <GeneralIcon
+                            icon="threeDotVertical"
+                            class="transition-opacity opacity-0 group-hover:opacity-100 outline-0"
+                          />
 
                           <template #overlay>
                             <a-menu class="!py-0 rounded text-sm">
@@ -706,7 +791,7 @@ const setIcon = async (icon: string, table: TableType) => {
                     class="group flex items-center gap-2 pl-8 pr-3 py-2 text-primary/70 hover:(text-primary/100) cursor-pointer select-none"
                     @click="openTableCreateDialog(bases[0].id)"
                   >
-                    <MdiPlus />
+                    <component :is="iconMap.plus" />
 
                     <span class="text-gray-500 group-hover:(text-primary/100) flex-1 nc-add-new-table">{{
                       $t('tooltip.addTable')
@@ -718,7 +803,10 @@ const setIcon = async (icon: string, table: TableType) => {
                       overlay-class-name="nc-dropdown-import-menu"
                       @click.stop
                     >
-                      <MdiDotsVertical class="transition-opacity opacity-0 group-hover:opacity-100 nc-import-menu outline-0" />
+                      <component
+                        :is="iconMap.threeDotVertical"
+                        class="transition-opacity opacity-0 group-hover:opacity-100 nc-import-menu outline-0"
+                      />
 
                       <template #overlay>
                         <a-menu class="!py-0 rounded text-sm">
@@ -730,7 +818,7 @@ const setIcon = async (icon: string, table: TableType) => {
                               @click="openAirtableImportDialog(bases[0].id)"
                             >
                               <div class="color-transition nc-project-menu-item group">
-                                <MdiTableLarge class="group-hover:text-accent" />
+                                <component :is="iconMap.airtable" class="group-hover:text-accent" />
                                 Airtable
                               </div>
                             </a-menu-item>
@@ -741,7 +829,7 @@ const setIcon = async (icon: string, table: TableType) => {
                               @click="openQuickImportDialog('csv', bases[0].id)"
                             >
                               <div class="color-transition nc-project-menu-item group">
-                                <MdiFileDocumentOutline class="group-hover:text-accent" />
+                                <component :is="iconMap.csv" class="group-hover:text-accent" />
                                 CSV file
                               </div>
                             </a-menu-item>
@@ -752,7 +840,7 @@ const setIcon = async (icon: string, table: TableType) => {
                               @click="openQuickImportDialog('json', bases[0].id)"
                             >
                               <div class="color-transition nc-project-menu-item group">
-                                <MdiCodeJson class="group-hover:text-accent" />
+                                <component :is="iconMap.json" class="group-hover:text-accent" />
                                 JSON file
                               </div>
                             </a-menu-item>
@@ -763,7 +851,7 @@ const setIcon = async (icon: string, table: TableType) => {
                               @click="openQuickImportDialog('excel', bases[0].id)"
                             >
                               <div class="color-transition nc-project-menu-item group">
-                                <MdiFileExcel class="group-hover:text-accent" />
+                                <component :is="iconMap.excel" class="group-hover:text-accent" />
                                 Microsoft Excel
                               </div>
                             </a-menu-item>
@@ -778,7 +866,7 @@ const setIcon = async (icon: string, table: TableType) => {
                               target="_blank"
                               class="prose-sm hover:(!text-primary !opacity-100) color-transition nc-project-menu-item group after:(!rounded-b)"
                             >
-                              <MdiOpenInNew class="group-hover:text-accent" />
+                              <component :is="iconMap.share" class="group-hover:text-accent" />
                               <!-- Request a data source you need? -->
                               {{ $t('labels.requestDataSource') }}
                             </a>
@@ -792,7 +880,7 @@ const setIcon = async (icon: string, table: TableType) => {
                     class="group flex items-center gap-2 pl-8 pr-3 py-2 text-primary/70 hover:(text-primary/100) cursor-pointer select-none"
                     @click="openTableCreateDialog(base.id)"
                   >
-                    <MdiPlus />
+                    <component :is="iconMap.plus" />
 
                     <span class="text-gray-500 group-hover:(text-primary/100) flex-1 nc-add-new-table">{{
                       $t('tooltip.addTable')
@@ -804,7 +892,10 @@ const setIcon = async (icon: string, table: TableType) => {
                       overlay-class-name="nc-dropdown-import-menu"
                       @click.stop
                     >
-                      <MdiDotsVertical class="transition-opacity opacity-0 group-hover:opacity-100 nc-import-menu outline-0" />
+                      <component
+                        :is="iconMap.threeDotVertical"
+                        class="transition-opacity opacity-0 group-hover:opacity-100 nc-import-menu outline-0"
+                      />
 
                       <template #overlay>
                         <a-menu class="!py-0 rounded text-sm">
@@ -816,7 +907,7 @@ const setIcon = async (icon: string, table: TableType) => {
                               @click="openAirtableImportDialog(base.id)"
                             >
                               <div class="color-transition nc-project-menu-item group">
-                                <MdiTableLarge class="group-hover:text-accent" />
+                                <component :is="iconMap.airtable" class="group-hover:text-accent" />
                                 Airtable
                               </div>
                             </a-menu-item>
@@ -827,7 +918,7 @@ const setIcon = async (icon: string, table: TableType) => {
                               @click="openQuickImportDialog('csv', base.id)"
                             >
                               <div class="color-transition nc-project-menu-item group">
-                                <MdiFileDocumentOutline class="group-hover:text-accent" />
+                                <component :is="iconMap.csv" class="group-hover:text-accent" />
                                 CSV file
                               </div>
                             </a-menu-item>
@@ -838,7 +929,7 @@ const setIcon = async (icon: string, table: TableType) => {
                               @click="openQuickImportDialog('json', base.id)"
                             >
                               <div class="color-transition nc-project-menu-item group">
-                                <MdiCodeJson class="group-hover:text-accent" />
+                                <component :is="iconMap.json" class="group-hover:text-accent" />
                                 JSON file
                               </div>
                             </a-menu-item>
@@ -849,7 +940,7 @@ const setIcon = async (icon: string, table: TableType) => {
                               @click="openQuickImportDialog('excel', base.id)"
                             >
                               <div class="color-transition nc-project-menu-item group">
-                                <MdiFileExcel class="group-hover:text-accent" />
+                                <component :is="iconMap.excel" class="group-hover:text-accent" />
                                 Microsoft Excel
                               </div>
                             </a-menu-item>
@@ -864,7 +955,7 @@ const setIcon = async (icon: string, table: TableType) => {
                               target="_blank"
                               class="prose-sm hover:(!text-primary !opacity-100) color-transition nc-project-menu-item group after:(!rounded-b)"
                             >
-                              <MdiOpenInNew class="group-hover:text-accent" />
+                              <component :is="iconMap.openInNew" class="group-hover:text-accent" />
                               <!-- Request a data source you need? -->
                               {{ $t('labels.requestDataSource') }}
                             </a>
@@ -924,7 +1015,11 @@ const setIcon = async (icon: string, table: TableType) => {
                                 </component>
                               </div>
                               <template v-if="isUIAllowed('tableIconCustomisation')" #overlay>
-                                <GeneralEmojiIcons class="shadow bg-white p-2" @select-icon="setIcon($event, table)" />
+                                <GeneralEmojiIcons
+                                  class="shadow bg-white p-2"
+                                  :show-reset="!!table.meta?.icon"
+                                  @select-icon="setIcon($event, table)"
+                                />
                               </template>
                             </component>
                           </div>
@@ -938,7 +1033,10 @@ const setIcon = async (icon: string, table: TableType) => {
                             :trigger="['click']"
                             @click.stop
                           >
-                            <MdiDotsVertical class="transition-opacity opacity-0 group-hover:opacity-100 outline-0" />
+                            <component
+                              :is="iconMap.threeDotVertical"
+                              class="transition-opacity opacity-0 group-hover:opacity-100 outline-0"
+                            />
 
                             <template #overlay>
                               <a-menu class="!py-0 rounded text-sm">
@@ -1008,15 +1106,17 @@ const setIcon = async (icon: string, table: TableType) => {
     <a-divider class="!my-0" />
 
     <div class="flex items-start flex-col justify-start px-2 py-3 gap-2">
-      <LazyGeneralAddBaseButton
-        class="color-transition py-1.5 px-2 text-primary font-bold cursor-pointer select-none hover:text-accent"
-      />
+      <LazyGeneralAddBaseButton class="color-transition py-1.5 px-2 cursor-pointer select-none hover:text-primary" />
 
       <LazyGeneralHelpAndSupport class="color-transition px-2 text-gray-500 cursor-pointer select-none hover:text-accent" />
 
-      <GeneralJoinCloud class="color-transition px-2 text-gray-500 cursor-pointer select-none hover:text-accent" />
+      <GeneralJoinCloud
+        v-if="!isMobileMode"
+        class="color-transition px-2 text-gray-500 cursor-pointer select-none hover:text-accent"
+      />
 
       <GithubButton
+        v-if="!isMobileMode"
         class="ml-2 py-1"
         href="https://github.com/nocodb/nocodb"
         data-icon="octicon-star"
@@ -1032,6 +1132,7 @@ const setIcon = async (icon: string, table: TableType) => {
 <style scoped lang="scss">
 .nc-treeview-container {
   @apply h-[calc(100vh_-_var(--header-height))];
+  border-right: 1px solid var(--navbar-border) !important;
 }
 
 .nc-treeview-footer-item {

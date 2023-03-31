@@ -1,9 +1,10 @@
+import { UITypes } from 'nocodb-sdk';
 import Noco from '../Noco';
-import { KanbanType, UITypes } from 'nocodb-sdk';
 import { CacheGetType, CacheScope, MetaTable } from '../utils/globals';
-import View from './View';
 import NocoCache from '../cache/NocoCache';
 import { extractProps } from '../meta/helpers/extractProps';
+import View from './View';
+import type { BoolType, KanbanType, MetaType } from 'nocodb-sdk';
 
 export default class KanbanView implements KanbanType {
   fk_view_id: string;
@@ -12,16 +13,16 @@ export default class KanbanView implements KanbanType {
   base_id?: string;
   fk_grp_col_id?: string;
   fk_cover_image_col_id?: string;
-  meta?: string | Record<string, any>;
+  meta?: MetaType;
 
   // below fields are not in use at this moment
   // keep them for time being
-  show?: boolean;
+  show?: BoolType;
   order?: number;
   uuid?: string;
-  public?: boolean;
+  public?: BoolType;
   password?: string;
-  show_all_fields?: boolean;
+  show_all_fields?: BoolType;
 
   constructor(data: KanbanView) {
     Object.assign(this, data);
@@ -103,8 +104,8 @@ export default class KanbanView implements KanbanType {
     let o = await NocoCache.get(key, CacheGetType.TYPE_OBJECT);
 
     const updateObj = extractProps(body, [
-      'title',
       'fk_cover_image_col_id',
+      'fk_grp_col_id',
       'meta',
     ]);
 

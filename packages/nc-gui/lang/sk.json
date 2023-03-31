@@ -39,6 +39,7 @@
     "signIn": "PRIHLÁSENIE",
     "signOut": "Odhlásiť sa",
     "required": "Požadované",
+    "enableScanner": "Enable Scanner for filling",
     "preferred": "Uprednostňované",
     "mandatory": "Povinné",
     "loading": "Načítanie ...",
@@ -74,7 +75,8 @@
     "insertBefore": "Vložiť pred",
     "hideField": "Skryť pole",
     "sortAsc": "Zoradiť vzostupne",
-    "sortDesc": "Zoradiť zostupne"
+    "sortDesc": "Zoradiť zostupne",
+    "geoDataField": "GeoData Field"
   },
   "objects": {
     "project": "Projekt",
@@ -98,7 +100,8 @@
       "gallery": "Galéria",
       "form": "Formulár",
       "kanban": "Kanban",
-      "calendar": "Kalendár"
+      "calendar": "Kalendár",
+      "map": "Map"
     },
     "user": "Používateľ",
     "users": "Používatelia",
@@ -136,6 +139,7 @@
     "Currency": "Mena",
     "Percent": "Percentá",
     "Duration": "Trvanie",
+    "GeoData": "GeoData",
     "Rating": "Hodnotenie",
     "Formula": "Vzorec",
     "Rollup": "Rollup",
@@ -206,7 +210,8 @@
     "advancedSettings": "Rozšírené nastavenia",
     "codeSnippet": "Úryvok kódu",
     "keyboardShortcut": "Klávesové skratky",
-    "generateRandomName": "Generate Random Name"
+    "generateRandomName": "Generate Random Name",
+    "findRowByScanningCode": "Find row by scanning a QR or Barcode"
   },
   "labels": {
     "createdBy": "Vytvoril",
@@ -216,6 +221,7 @@
     "viewName": "Zobraziť názov",
     "viewLink": "Zobraziť odkaz",
     "columnName": "Názov stĺpca",
+    "columnToScanFor": "Column to scan",
     "columnType": "Typ stĺpca",
     "roleName": "Názov úlohy",
     "roleDescription": "Popis úlohy",
@@ -232,6 +238,7 @@
     "action": "Akcia",
     "actions": "Činnosti",
     "operation": "Operácia",
+    "operationSub": "Sub Operation",
     "operationType": "Typ operácie",
     "operationSubType": "Podtyp operácie",
     "description": "Popis",
@@ -253,6 +260,9 @@
     "barcodeFormat": "Formát čiarového kódu",
     "qrCodeValueTooLong": "Príliš veľa znakov pre kód QR",
     "barcodeValueTooLong": "Príliš veľa znakov pre čiarový kód",
+    "currentLocation": "Current Location",
+    "lng": "Lng",
+    "lat": "Lat",
     "aggregateFunction": "Súhrnná funkcia",
     "dbCreateIfNotExists": "Databáza : vytvoriť, ak neexistuje",
     "clientKey": "Kľúč klienta",
@@ -386,8 +396,8 @@
     "saveAndExit": "Uložiť a ukončiť",
     "saveAndStay": "Uložiť a zostať",
     "insertRow": "Vložiť nový riadok",
-    "deleteRow": "Odstrániť riadok",
     "duplicateRow": "Duplicate Row",
+    "deleteRow": "Odstrániť riadok",
     "deleteSelectedRow": "Odstránenie vybraných riadkov",
     "importExcel": "Importovať aplikáciu Excel",
     "importCSV": "Import CSV",
@@ -402,6 +412,8 @@
     "changePwd": "Zmena hesla",
     "createView": "Vytvorenie zobrazenia",
     "shareView": "Zdieľať pohľad",
+    "findRowByCodeScan": "Find row by scan",
+    "fillByCodeScan": "Fill by scan",
     "listSharedView": "Zoznam zdieľaných zobrazení",
     "ListView": "Zoznam zobrazení",
     "copyView": "Zobrazenie kópie",
@@ -417,6 +429,10 @@
     "openTab": "Otvoriť novú kartu",
     "iFrame": "Kopírovanie vložiteľného kódu HTML",
     "addWebhook": "Pridanie nového webového háčika",
+    "enableWebhook": "Enable Webhook",
+    "testWebhook": "Test Webhook",
+    "copyWebhook": "Copy Webhook",
+    "deleteWebhook": "Delete Webhook",
     "newToken": "Pridanie nového tokenu",
     "exportZip": "Export zip",
     "importZip": "Import zip",
@@ -452,7 +468,14 @@
       "stackedBy": "Naskladané podľa",
       "chooseGroupingField": "Výber zoskupovacieho poľa",
       "addOrEditStack": "Pridať / upraviť zásobník"
-    }
+    },
+    "map": {
+      "mappedBy": "Mapped By",
+      "chooseMappingField": "Choose a Mapping Field",
+      "openInGoogleMaps": "Google Maps",
+      "openInOpenStreetMap": "OSM"
+    },
+    "toggleMobileMode": "Toggle Mobile Mode"
   },
   "tooltip": {
     "saveChanges": "Uloženie zmien",
@@ -517,6 +540,17 @@
       "roles": {
         "orgCreator": "Creator môže vytvárať nové projekty a pristupovať k ľubovoľnému pozvanému projektu.",
         "orgViewer": "Prehliadač nemôže vytvárať nové projekty, ale môže pristupovať k ľubovoľnému pozvanému projektu."
+      },
+      "codeScanner": {
+        "loadingScanner": "Loading the scanner...",
+        "selectColumn": "Select a column (QR code or Barcode) that you want to use for finding a row by scanning.",
+        "moreThanOneRowFoundForCode": "More than one row found for this code. Currently only unique codes are supported.",
+        "noRowFoundForCode": "No row found for this code for the selected column"
+      },
+      "map": {
+        "overLimit": "You're over the limit.",
+        "closeLimit": "You're getting close to the limit.",
+        "limitNumber": "The limit of markers shown in a Map View is 1000 records."
       },
       "footerInfo": "Riadky na stránku",
       "upload": "Vyberte súbor na odoslanie",
@@ -600,6 +634,7 @@
         "gallery": "Pridanie zobrazenia galérie",
         "form": "Pridanie zobrazenia formulára",
         "kanban": "Pridanie zobrazenia Kanban",
+        "map": "Add Map View",
         "calendar": "Pridanie zobrazenia kalendára"
       },
       "tablesMetadataInSync": "Metadáta tabuliek sú synchronizované",
@@ -663,6 +698,7 @@
         "allowedSpecialCharList": "Zoznam povolených špeciálnych znakov"
       },
       "invalidURL": "Neplatná adresa URL",
+      "invalidEmail": "Invalid Email",
       "internalError": "Vyskytla sa nejaká vnútorná chyba",
       "templateGeneratorNotFound": "Generátor šablón nemožno nájsť!",
       "fileUploadFailed": "Nepodarilo sa nahrať súbor",
@@ -690,6 +726,7 @@
       "nameShouldStartWithAnAlphabetOr_": "Meno by malo začínať abecedou alebo _",
       "followingCharactersAreNotAllowed": "Nasledujúce znaky nie sú povolené",
       "columnNameRequired": "Vyžaduje sa názov stĺpca",
+      "columnNameExceedsCharacters": "The length of column name exceeds the max {value} characters",
       "projectNameExceeds50Characters": "Názov projektu presahuje 50 znakov",
       "projectNameCannotStartWithSpace": "Názov projektu nemôže začínať medzerou",
       "requiredField": "Povinné pole",
@@ -742,6 +779,7 @@
       "userDeletedFromProject": "Úspešné odstránenie používateľa z projektu",
       "inviteEmailSent": "Pozývací e-mail bol úspešne odoslaný",
       "inviteURLCopied": "Adresa URL pozvánky skopírovaná do schránky",
+      "commentCopied": "Comment copied to clipboard",
       "passwordResetURLCopied": "Adresa URL na obnovenie hesla skopírovaná do schránky",
       "shareableURLCopied": "Skopírovaná zdieľateľná základná adresa URL do schránky!",
       "embeddableHTMLCodeCopied": "Skopírovaný vložiteľný kód HTML!",

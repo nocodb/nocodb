@@ -1,14 +1,16 @@
-import { ColumnReqType, SqlUIColumn, SqlUiFactory, UITypes } from 'nocodb-sdk';
-import Base from '../../models/Base';
+import { SqlUiFactory, UITypes } from 'nocodb-sdk';
+import type { ColumnReqType, NormalColumnRequestType } from 'nocodb-sdk';
+import type Base from '../../models/Base';
+import type Column from '../../models/Column';
 
-export default function getColumnPropsFromUIDT(
-  column: SqlUIColumn & { uidt: UITypes } & ColumnReqType,
+export default async function getColumnPropsFromUIDT(
+  column: ColumnReqType & { altered?: number },
   base: Base
 ) {
-  const sqlUi = SqlUiFactory.create(base.getConnectionConfig());
+  const sqlUi = SqlUiFactory.create(await base.getConnectionConfig());
 
   const colProp = sqlUi.getDataTypeForUiType(
-    column,
+    column as Column,
     column?.['meta']?.['ag'] ? 'AG' : 'AI'
   );
   const newColumn = {
@@ -28,9 +30,9 @@ export default function getColumnPropsFromUIDT(
   if (
     column &&
     selectTypes.includes(newColumn.uidt) &&
-    selectTypes.includes(column.uidt)
+    selectTypes.includes(column.uidt as UITypes)
   ) {
-    newColumn.dtxp = column.dtxp;
+    newColumn.dtxp = (column as NormalColumnRequestType).dtxp;
   }
 
   newColumn.altered = column.altered || 2;

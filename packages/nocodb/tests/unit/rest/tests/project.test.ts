@@ -159,7 +159,7 @@ function projectTest() {
       .set('xc-auth', context.token)
       .send({
         roles: 'viewer',
-        password: 'test',
+        password: 'password123',
       })
       .expect(200);
 
@@ -168,7 +168,7 @@ function projectTest() {
     if (
       !updatedProject.uuid ||
       updatedProject.roles !== 'viewer' ||
-      updatedProject.password !== 'test'
+      updatedProject.password !== 'password123'
     ) {
       return new Error('Shared base not configured properly');
     }
@@ -180,7 +180,7 @@ function projectTest() {
       .set('xc-auth', context.token)
       .send({
         roles: 'commenter',
-        password: 'test',
+        password: 'password123',
       })
       .expect(200);
 
@@ -199,7 +199,7 @@ function projectTest() {
       .set('xc-auth', context.token)
       .send({
         roles: 'commenter',
-        password: 'test',
+        password: 'password123',
       })
       .expect(200);
 
@@ -218,7 +218,7 @@ function projectTest() {
       .set('xc-auth', context.token)
       .send({
         roles: 'editor',
-        password: 'test',
+        password: 'password123',
       })
       .expect(200);
     const updatedProject = await Project.getByTitleOrId(project.id);

@@ -287,6 +287,10 @@ a {
   @apply !shadow-none rounded hover:(ring-1 ring-primary ring-opacity-100) focus:(ring-1 ring-accent ring-opacity-100);
 }
 
+.nc-warning-info {
+  @apply !shadow-none rounded ring-1 ring-red-600
+}
+
 .ant-modal {
   @apply !top-[50px];
 }

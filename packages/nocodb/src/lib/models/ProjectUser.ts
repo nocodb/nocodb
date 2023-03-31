@@ -1,4 +1,3 @@
-import { ProjectType } from 'nocodb-sdk';
 import {
   // CacheDelDirection,
   CacheGetType,
@@ -7,8 +6,9 @@ import {
 } from '../utils/globals';
 import Noco from '../Noco';
 import NocoCache from '../cache/NocoCache';
-import User from './User';
 import { extractProps } from '../meta/helpers/extractProps';
+import User from './User';
+import type { ProjectType } from 'nocodb-sdk';
 
 export default class ProjectUser {
   project_id: string;
@@ -20,15 +20,13 @@ export default class ProjectUser {
   }
 
   public static async insert(
-    projectUser: Partial<ProjectUser & { created_at?: any; updated_at?: any }>,
+    projectUser: Partial<ProjectUser>,
     ncMeta = Noco.ncMeta
   ) {
     const insertObj = extractProps(projectUser, [
       'fk_user_id',
       'project_id',
       'roles',
-      'created_at',
-      'updated_at',
     ]);
 
     const { project_id, fk_user_id } = await ncMeta.metaInsert2(
@@ -219,7 +217,7 @@ export default class ProjectUser {
 
   static async getProjectsList(
     userId: string,
-    _params: any,
+    _params?: any,
     ncMeta = Noco.ncMeta
   ): Promise<ProjectType[]> {
     // todo: pagination

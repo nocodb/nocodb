@@ -1,20 +1,78 @@
+import { UITypes } from 'nocodb-sdk';
 import Noco from '../Noco';
-import Model from './Model';
-import Column from './Column';
-import Hook from './Hook';
 import {
   CacheDelDirection,
   CacheGetType,
   CacheScope,
   MetaTable,
 } from '../utils/globals';
-import View from './View';
-import { FilterType, UITypes } from 'nocodb-sdk';
 import NocoCache from '../cache/NocoCache';
 import { NcError } from '../meta/helpers/catchError';
 import { extractProps } from '../meta/helpers/extractProps';
+import Model from './Model';
+import Column from './Column';
+import Hook from './Hook';
+import View from './View';
+import type { BoolType, FilterType } from 'nocodb-sdk';
 
-export default class Filter {
+export const COMPARISON_OPS = <const>[
+  'eq',
+  'neq',
+  'not',
+  'like',
+  'nlike',
+  'empty',
+  'notempty',
+  'null',
+  'notnull',
+  'checked',
+  'notchecked',
+  'blank',
+  'notblank',
+  'allof',
+  'anyof',
+  'nallof',
+  'nanyof',
+  'gt',
+  'lt',
+  'gte',
+  'lte',
+  'ge',
+  'le',
+  'in',
+  'isnot',
+  'is',
+  'isWithin',
+  'btw',
+  'nbtw',
+];
+
+export const IS_WITHIN_COMPARISON_SUB_OPS = <const>[
+  'pastWeek',
+  'pastMonth',
+  'pastYear',
+  'nextWeek',
+  'nextMonth',
+  'nextYear',
+  'pastNumberOfDays',
+  'nextNumberOfDays',
+];
+
+export const COMPARISON_SUB_OPS = <const>[
+  'today',
+  'tomorrow',
+  'yesterday',
+  'oneWeekAgo',
+  'oneWeekFromNow',
+  'oneMonthAgo',
+  'oneMonthFromNow',
+  'daysAgo',
+  'daysFromNow',
+  'exactDate',
+  ...IS_WITHIN_COMPARISON_SUB_OPS,
+];
+
+export default class Filter implements FilterType {
   id: string;
 
   fk_model_id?: string;
@@ -23,39 +81,13 @@ export default class Filter {
   fk_column_id?: string;
   fk_parent_id?: string;
 
-  comparison_op?:
-    | 'eq'
-    | 'neq'
-    | 'not'
-    | 'like'
-    | 'nlike'
-    | 'empty'
-    | 'notempty'
-    | 'null'
-    | 'notnull'
-    | 'checked'
-    | 'notchecked'
-    | 'blank'
-    | 'notblank'
-    | 'allof'
-    | 'anyof'
-    | 'nallof'
-    | 'nanyof'
-    | 'gt'
-    | 'lt'
-    | 'gte'
-    | 'lte'
-    | 'ge'
-    | 'le'
-    | 'in'
-    | 'isnot'
-    | 'is'
-    | 'btw'
-    | 'nbtw';
+  comparison_op?: typeof COMPARISON_OPS[number];
+  comparison_sub_op?: typeof COMPARISON_SUB_OPS[number];
+
   value?: string;
 
-  logical_op?: string;
-  is_group?: boolean;
+  logical_op?: 'and' | 'or' | 'not';
+  is_group?: BoolType;
   children?: Filter[];
   project_id?: string;
   base_id?: string;
@@ -86,6 +118,7 @@ export default class Filter {
       'fk_hook_id',
       'fk_column_id',
       'comparison_op',
+      'comparison_sub_op',
       'value',
       'fk_parent_id',
       'is_group',
@@ -223,6 +256,7 @@ export default class Filter {
     const updateObj = extractProps(filter, [
       'fk_column_id',
       'comparison_op',
+      'comparison_sub_op',
       'value',
       'fk_parent_id',
       'is_group',
@@ -238,7 +272,13 @@ export default class Filter {
       await NocoCache.set(key, o);
     }
     // set meta
-    await ncMeta.metaUpdate(null, null, MetaTable.FILTER_EXP, updateObj, id);
+    return await ncMeta.metaUpdate(
+      null,
+      null,
+      MetaTable.FILTER_EXP,
+      updateObj,
+      id
+    );
   }
 
   static async delete(id: string, ncMeta = Noco.ncMeta) {
@@ -350,7 +390,7 @@ export default class Filter {
     const result: FilterType = {
       is_group: true,
       children: [],
-      logical_op: 'AND',
+      logical_op: 'and',
     };
 
     const grouped = {};

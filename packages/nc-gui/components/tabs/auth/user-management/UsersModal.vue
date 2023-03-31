@@ -1,21 +1,24 @@
 <script setup lang="ts">
 import type { Input } from 'ant-design-vue'
+import type { ProjectUserReqType } from 'nocodb-sdk'
 import {
   Form,
   computed,
+  emailValidator,
   extractSdkResponseErrorMsg,
+  iconMap,
   message,
   onMounted,
   projectRoleTagColors,
   projectRoles,
   ref,
+  storeToRefs,
   useActiveKeyupListener,
   useCopy,
   useDashboard,
   useI18n,
   useNuxtApp,
   useProject,
-  validateEmail,
 } from '#imports'
 import type { User } from '~/lib'
 import { ProjectRole } from '~/lib'
@@ -37,7 +40,9 @@ const emit = defineEmits(['closed', 'reload'])
 
 const { t } = useI18n()
 
-const { project } = useProject()
+const { project } = storeToRefs(useProject())
+
+const { isMobileMode } = useGlobal()
 
 const { $api, $e } = useNuxtApp()
 
@@ -50,24 +55,10 @@ let usersData = $ref<Users>({ emails: undefined, role: ProjectRole.Viewer, invit
 const formRef = ref()
 
 const useForm = Form.useForm
+
 const validators = computed(() => {
   return {
-    emails: [
-      {
-        validator: (rule: any, value: string, callback: (errMsg?: string) => void) => {
-          if (!value || value.length === 0) {
-            callback('Email is required')
-            return
-          }
-          const invalidEmails = (value || '').split(/\s*,\s*/).filter((e: string) => !validateEmail(e))
-          if (invalidEmails.length > 0) {
-            callback(`${invalidEmails.length > 1 ? ' Invalid emails:' : 'Invalid email:'} ${invalidEmails.join(', ')} `)
-          } else {
-            callback()
-          }
-        },
-      },
-    ],
+    emails: [emailValidator],
   }
 })
 
@@ -106,10 +97,11 @@ const saveUser = async () => {
       const res = await $api.auth.projectUserAdd(project.value.id, {
         roles: usersData.role,
         email: usersData.emails,
-        project_id: project.value.id,
-        projectName: project.value.title,
-      })
-      usersData.invitationToken = res.invite_token
+      } as ProjectUserReqType)
+
+      // for inviting one user, invite_token will only be returned when invitation email fails to send
+      // for inviting multiple users, invite_token will be returned anyway
+      usersData.invitationToken = res?.invite_token
     }
     emit('reload')
 
@@ -130,7 +122,7 @@ const copyUrl = async () => {
 
     // Copied shareable base url to clipboard!
     message.success(t('msg.success.shareableURLCopied'))
-  } catch (e) {
+  } catch (e: any) {
     message.error(e.message)
   }
   $e('c:shared-base:copy-url')
@@ -180,7 +172,9 @@ watch(
   >
     <div class="flex flex-col" data-testid="invite-user-and-share-base-modal">
       <div class="flex flex-row justify-between items-center pb-1.5 mb-2 border-b-1 w-full">
-        <a-typography-title class="select-none" :level="4"> {{ $t('activity.share') }}: {{ project.title }} </a-typography-title>
+        <a-typography-title v-if="!isMobileMode" class="select-none" :level="4">
+          {{ $t('activity.share') }}: {{ project.title }}
+        </a-typography-title>
 
         <a-button
           type="text"
@@ -198,7 +192,7 @@ watch(
         <template v-if="usersData.invitationToken">
           <div class="flex flex-col mt-1 border-b-1 pb-5">
             <div class="flex flex-row items-center pl-1.5 pb-1 h-[1.1rem]">
-              <MdiAccountOutline />
+              <component :is="iconMap.account" />
               <div class="text-xs ml-0.5 mt-0.5">Copy Invite Token</div>
             </div>
 
@@ -211,7 +205,7 @@ watch(
 
                   <a-button type="text" class="!rounded-md -mt-0.5" @click="copyUrl">
                     <template #icon>
-                      <MdiContentCopy class="flex mx-auto text-green-700 h-[1rem]" />
+                      <component :is="iconMap.copy" class="flex mx-auto text-green-700 h-[1rem]" />
                     </template>
                   </a-button>
                 </div>
@@ -237,7 +231,7 @@ watch(
 
         <div v-else class="flex flex-col pb-4">
           <div class="flex flex-row items-center pl-2 pb-1 h-[1rem]">
-            <MdiAccountOutline />
+            <component :is="iconMap.account" />
             <div class="text-xs ml-0.5 mt-0.5">{{ selectedUser ? $t('activity.editUser') : $t('activity.inviteTeam') }}</div>
           </div>
 

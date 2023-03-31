@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { Empty, extractSdkResponseErrorMsg, h, message, useI18n, useNuxtApp, useProject } from '#imports'
+import { Empty, extractSdkResponseErrorMsg, h, iconMap, message, storeToRefs, useI18n, useNuxtApp, useProject } from '#imports'
 
 const props = defineProps<{
   baseId: string
@@ -9,7 +9,9 @@ const emit = defineEmits(['baseSynced'])
 
 const { $api } = useNuxtApp()
 
-const { project, loadTables } = useProject()
+const projectStore = useProject()
+const { loadTables } = projectStore
+const { project } = storeToRefs(projectStore)
 
 const { t } = useI18n()
 
@@ -90,7 +92,7 @@ const columns = [
         <!--        Reload -->
         <a-button v-e="['a:proj-meta:meta-data:reload']" class="self-start nc-btn-metasync-reload" @click="loadMetaDiff">
           <div class="flex items-center gap-2 text-gray-600 font-light">
-            <MdiReload :class="{ 'animate-infinite animate-spin !text-success': isLoading }" />
+            <component :is="iconMap.reload" :class="{ 'animate-infinite animate-spin !text-success': isLoading }" />
             {{ $t('general.reload') }}
           </div>
         </a-button>
@@ -133,7 +135,7 @@ const columns = [
       <div v-if="isDifferent">
         <a-button v-e="['a:proj-meta:meta-data:sync']" class="nc-btn-metasync-sync-now" type="primary" @click="syncMetaDiff">
           <div class="flex items-center gap-2">
-            <MdiDatabaseSync />
+            <component :is="iconMap.databaseSync" />
             {{ $t('activity.metaSync') }}
           </div>
         </a-button>

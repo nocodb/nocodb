@@ -5,19 +5,22 @@ import { ToolbarPage } from '../pages/Dashboard/common/Toolbar';
 import { UITypes } from 'nocodb-sdk';
 import { Api } from 'nocodb-sdk';
 import { rowMixedValue } from '../setup/xcdb-records';
+import dayjs from 'dayjs';
 
 let dashboard: DashboardPage, toolbar: ToolbarPage;
 let context: any;
 let api: Api<any>;
-let records = [];
+let records: Record<string, any>;
 
 const skipList = {
   Number: ['is null', 'is not null'],
+  Year: ['is null', 'is not null'],
   Decimal: ['is null', 'is not null'],
   Percent: ['is null', 'is not null'],
   Currency: ['is null', 'is not null'],
   Rating: ['is null', 'is not null', 'is blank', 'is not blank'],
   Duration: ['is null', 'is not null'],
+  Time: ['is null', 'is not null'],
   SingleLineText: [],
   MultiLineText: [],
   Email: [],
@@ -44,9 +47,39 @@ async function validateRowArray(param) {
   await dashboard.grid.verifyTotalRowCount({ count: rowCount });
 }
 
+async function verifyFilter_withFixedModal(param: {
+  column: string;
+  opType: string;
+  opSubType?: string;
+  value?: string;
+  result: { rowCount: number };
+  dataType?: string;
+}) {
+  // if opType was included in skip list, skip it
+  if (skipList[param.column]?.includes(param.opType)) {
+    return;
+  }
+
+  await toolbar.filter.add({
+    title: param.column,
+    operation: param.opType,
+    subOperation: param.opSubType,
+    value: param.value,
+    locallySaved: false,
+    dataType: param?.dataType,
+    openModal: true,
+  });
+
+  // verify filtered rows
+  await validateRowArray({
+    rowCount: param.result.rowCount,
+  });
+}
+
 async function verifyFilter(param: {
   column: string;
   opType: string;
+  opSubType?: string;
   value?: string;
   result: { rowCount: number };
   dataType?: string;
@@ -58,10 +91,11 @@ async function verifyFilter(param: {
 
   await toolbar.clickFilter();
   await toolbar.filter.add({
-    columnTitle: param.column,
-    opType: param.opType,
+    title: param.column,
+    operation: param.opType,
+    subOperation: param.opSubType,
     value: param.value,
-    isLocallySaved: false,
+    locallySaved: false,
     dataType: param?.dataType,
   });
   await toolbar.clickFilter();
@@ -95,6 +129,13 @@ test.describe('Filter Tests: Numerical', () => {
       isLikeStringDerived = parseInt(isLikeString.split(':')[0]) * 3600 + parseInt(isLikeString.split(':')[1]) * 60;
     }
 
+    // convert r[Time] in format 2021-01-01 00:00:00+05.30 to 00:00:00
+    if (dataType === 'Time') {
+      records.list.forEach(r => {
+        if (r[dataType]?.length > 8) r[dataType] = r[dataType]?.split(' ')[1]?.split(/[+-]/)[0];
+      });
+    }
+
     const filterList = [
       {
         op: '=',
@@ -119,12 +160,12 @@ test.describe('Filter Tests: Numerical', () => {
       {
         op: 'is blank',
         value: '',
-        rowCount: records.list.filter(r => r[dataType] === null).length,
+        rowCount: records.list.filter(r => r[dataType] === null || r[dataType] === undefined).length,
       },
       {
         op: 'is not blank',
         value: '',
-        rowCount: records.list.filter(r => r[dataType] !== null).length,
+        rowCount: records.list.filter(r => r[dataType] !== null && r[dataType] !== undefined).length,
       },
       {
         op: '>',
@@ -224,6 +265,16 @@ test.describe('Filter Tests: Numerical', () => {
         title: 'Rating',
         uidt: UITypes.Rating,
       },
+      {
+        column_name: 'Year',
+        title: 'Year',
+        uidt: UITypes.Year,
+      },
+      {
+        column_name: 'Time',
+        title: 'Time',
+        uidt: UITypes.Time,
+      },
     ];
 
     try {
@@ -243,6 +294,8 @@ test.describe('Filter Tests: Numerical', () => {
           Percent: rowMixedValue(columns[4], i),
           Duration: rowMixedValue(columns[5], i),
           Rating: rowMixedValue(columns[6], i),
+          Year: rowMixedValue(columns[7], i),
+          Time: rowMixedValue(columns[8], i, context.dbType),
         };
         rowAttributes.push(row);
       }
@@ -276,6 +329,14 @@ test.describe('Filter Tests: Numerical', () => {
 
   test('Filter: Duration', async () => {
     await numBasedFilterTest('Duration', '00:01', '01:03');
+  });
+
+  test('Filter: Year', async () => {
+    await numBasedFilterTest('Year', '2023', '2024');
+  });
+
+  test('Filter: Time', async () => {
+    await numBasedFilterTest('Time', '02:02:00', '04:04:00');
   });
 });
 
@@ -591,6 +652,343 @@ test.describe('Filter Tests: Select based', () => {
   });
 });
 
+// Date & Time related
+//
+
+function getUTCEpochTime(date) {
+  return Date.UTC(date.getUTCFullYear(), date.getUTCMonth(), date.getUTCDate(), 0, 0, 0, 0);
+}
+
+test.describe('Filter Tests: Date based', () => {
+  const today = getUTCEpochTime(new Date());
+  const tomorrow = getUTCEpochTime(new Date(new Date().setDate(new Date().getDate() + 1)));
+  const yesterday = getUTCEpochTime(new Date(new Date().setDate(new Date().getDate() - 1)));
+  const oneWeekAgo = getUTCEpochTime(new Date(new Date().setDate(new Date().getDate() - 7)));
+  const oneWeekFromNow = getUTCEpochTime(new Date(new Date().setDate(new Date().getDate() + 7)));
+  const oneMonthAgo = getUTCEpochTime(dayjs().subtract(1, 'month').toDate());
+  const oneMonthFromNow = getUTCEpochTime(dayjs().add(1, 'month').toDate());
+  const daysAgo45 = getUTCEpochTime(new Date(new Date().setDate(new Date().getDate() - 45)));
+  const daysFromNow45 = getUTCEpochTime(new Date(new Date().setDate(new Date().getDate() + 45)));
+  const thisMonth15 = getUTCEpochTime(new Date(new Date().setDate(15)));
+  const oneYearAgo = getUTCEpochTime(new Date(new Date().setFullYear(new Date().getFullYear() - 1)));
+  const oneYearFromNow = getUTCEpochTime(new Date(new Date().setFullYear(new Date().getFullYear() + 1)));
+
+  async function dateTimeBasedFilterTest(dataType, setCount) {
+    await dashboard.closeTab({ title: 'Team & Auth' });
+    await dashboard.treeView.openTable({ title: 'dateTimeBased' });
+
+    // Enable NULL & EMPTY filters
+    await dashboard.gotoSettings();
+    await dashboard.settings.toggleNullEmptyFilters();
+
+    // records array with time set to 00:00:00; store time in unix epoch
+    const recordsTimeSetToZero = records.list.map(r => {
+      const date = new Date(r[dataType]);
+      return getUTCEpochTime(date);
+    });
+
+    const isFilterList = [
+      {
+        opSub: 'today',
+        rowCount: recordsTimeSetToZero.filter(r => r === today).length,
+      },
+      {
+        opSub: 'tomorrow',
+        rowCount: recordsTimeSetToZero.filter(r => r === tomorrow).length,
+      },
+      {
+        opSub: 'yesterday',
+        rowCount: recordsTimeSetToZero.filter(r => r === yesterday).length,
+      },
+      {
+        opSub: 'one week ago',
+        rowCount: recordsTimeSetToZero.filter(r => r === oneWeekAgo).length,
+      },
+      {
+        opSub: 'one week from now',
+        rowCount: recordsTimeSetToZero.filter(r => r === oneWeekFromNow).length,
+      },
+      {
+        opSub: 'one month ago',
+        rowCount: recordsTimeSetToZero.filter(r => r === oneMonthAgo).length,
+      },
+      {
+        opSub: 'one month from now',
+        rowCount: recordsTimeSetToZero.filter(r => r === oneMonthFromNow).length,
+      },
+      {
+        opSub: 'number of days ago',
+        value: 45,
+        rowCount: recordsTimeSetToZero.filter(r => r === daysAgo45).length,
+      },
+      {
+        opSub: 'number of days from now',
+        value: 45,
+        rowCount: recordsTimeSetToZero.filter(r => r === daysFromNow45).length,
+      },
+      {
+        opSub: 'exact date',
+        value: 15,
+        rowCount: recordsTimeSetToZero.filter(r => r === thisMonth15).length,
+      },
+    ];
+
+    // "is after" filter list
+    const isAfterFilterList = [
+      {
+        opSub: 'today',
+        rowCount: recordsTimeSetToZero.filter(r => r > today).length,
+      },
+      {
+        opSub: 'tomorrow',
+        rowCount: recordsTimeSetToZero.filter(r => r > tomorrow).length,
+      },
+      {
+        opSub: 'yesterday',
+        rowCount: recordsTimeSetToZero.filter(r => r > yesterday).length,
+      },
+      {
+        opSub: 'one week ago',
+        rowCount: recordsTimeSetToZero.filter(r => r > oneWeekAgo).length,
+      },
+      {
+        opSub: 'one week from now',
+        rowCount: recordsTimeSetToZero.filter(r => r > oneWeekFromNow).length,
+      },
+      {
+        opSub: 'one month ago',
+        rowCount: recordsTimeSetToZero.filter(r => r > oneMonthAgo).length,
+      },
+      {
+        opSub: 'one month from now',
+        rowCount: recordsTimeSetToZero.filter(r => r > oneMonthFromNow).length,
+      },
+      {
+        opSub: 'number of days ago',
+        value: 45,
+        rowCount: recordsTimeSetToZero.filter(r => r > daysAgo45).length,
+      },
+      {
+        opSub: 'number of days from now',
+        value: 45,
+        rowCount: recordsTimeSetToZero.filter(r => r > daysFromNow45).length,
+      },
+      {
+        opSub: 'exact date',
+        value: 15,
+        rowCount: recordsTimeSetToZero.filter(r => r > thisMonth15).length,
+      },
+    ];
+
+    // "is within" filter list
+    const isWithinFilterList = [
+      {
+        opSub: 'the past week',
+        rowCount: recordsTimeSetToZero.filter(r => r >= oneWeekAgo && r <= today).length,
+      },
+      {
+        opSub: 'the past month',
+        rowCount: recordsTimeSetToZero.filter(r => r >= oneMonthAgo && r <= today).length,
+      },
+      {
+        opSub: 'the past year',
+        rowCount: recordsTimeSetToZero.filter(r => r >= oneYearAgo && r <= today).length,
+      },
+      {
+        opSub: 'the next week',
+        rowCount: recordsTimeSetToZero.filter(r => r >= today && r <= oneWeekFromNow).length,
+      },
+      {
+        opSub: 'the next month',
+        rowCount: recordsTimeSetToZero.filter(r => r >= today && r <= oneMonthFromNow).length,
+      },
+      {
+        opSub: 'the next year',
+        rowCount: recordsTimeSetToZero.filter(r => r >= today && r <= oneYearFromNow).length,
+      },
+      {
+        opSub: 'the next number of days',
+        value: 45,
+        rowCount: recordsTimeSetToZero.filter(r => r >= today && r <= daysFromNow45).length,
+      },
+      {
+        opSub: 'the past number of days',
+        value: 45,
+        rowCount: recordsTimeSetToZero.filter(r => r >= daysAgo45 && r <= today).length,
+      },
+    ];
+
+    // rest of the filters (without subop type)
+    const filterList = [
+      {
+        opType: 'is blank',
+        rowCount: records.list.filter(r => r[dataType] === null || r[dataType] === '').length,
+      },
+      {
+        opType: 'is not blank',
+        rowCount: records.list.filter(r => r[dataType] !== null && r[dataType] !== '').length,
+      },
+    ];
+
+    await toolbar.clickFilter();
+    await toolbar.filter.clickAddFilter();
+
+    if (setCount === 0) {
+      // "is" filter list
+      for (let i = 0; i < isFilterList.length; i++) {
+        await verifyFilter_withFixedModal({
+          column: dataType,
+          opType: 'is',
+          opSubType: isFilterList[i].opSub,
+          value: isFilterList[i]?.value?.toString() || '',
+          result: { rowCount: isFilterList[i].rowCount },
+          dataType: dataType,
+        });
+      }
+
+      // mutually exclusive of "is" filter list
+      for (let i = 0; i < isFilterList.length; i++) {
+        await verifyFilter_withFixedModal({
+          column: dataType,
+          opType: 'is not',
+          opSubType: isFilterList[i].opSub,
+          value: isFilterList[i]?.value?.toString() || '',
+          result: { rowCount: 800 - isFilterList[i].rowCount },
+          dataType: dataType,
+        });
+      }
+
+      // "is before" filter list
+      for (let i = 0; i < isAfterFilterList.length; i++) {
+        await verifyFilter_withFixedModal({
+          column: dataType,
+          opType: 'is before',
+          opSubType: isAfterFilterList[i].opSub,
+          value: isAfterFilterList[i]?.value?.toString() || '',
+          result: { rowCount: 800 - isAfterFilterList[i].rowCount - 1 },
+          dataType: dataType,
+        });
+      }
+    } else {
+      // "is on or before" filter list
+      for (let i = 0; i < isAfterFilterList.length; i++) {
+        await verifyFilter_withFixedModal({
+          column: dataType,
+          opType: 'is on or before',
+          opSubType: isAfterFilterList[i].opSub,
+          value: isAfterFilterList[i]?.value?.toString() || '',
+          result: { rowCount: 800 - isAfterFilterList[i].rowCount },
+          dataType: dataType,
+        });
+      }
+
+      // "is after" filter list
+      for (let i = 0; i < isAfterFilterList.length; i++) {
+        await verifyFilter_withFixedModal({
+          column: dataType,
+          opType: 'is after',
+          opSubType: isAfterFilterList[i].opSub,
+          value: isAfterFilterList[i]?.value?.toString() || '',
+          result: { rowCount: isAfterFilterList[i].rowCount },
+          dataType: dataType,
+        });
+      }
+
+      // "is on or after" filter list
+      for (let i = 0; i < isAfterFilterList.length; i++) {
+        await verifyFilter_withFixedModal({
+          column: dataType,
+          opType: 'is on or after',
+          opSubType: isAfterFilterList[i].opSub,
+          value: isAfterFilterList[i]?.value?.toString() || '',
+          result: { rowCount: 1 + isAfterFilterList[i].rowCount },
+          dataType: dataType,
+        });
+      }
+
+      // "is within" filter list
+      for (let i = 0; i < isWithinFilterList.length; i++) {
+        await verifyFilter_withFixedModal({
+          column: dataType,
+          opType: 'is within',
+          opSubType: isWithinFilterList[i].opSub,
+          value: isWithinFilterList[i]?.value?.toString() || '',
+          result: { rowCount: isWithinFilterList[i].rowCount },
+          dataType: dataType,
+        });
+      }
+
+      // "is blank" and "is not blank" filter list
+      for (let i = 0; i < filterList.length; i++) {
+        await verifyFilter_withFixedModal({
+          column: dataType,
+          opType: filterList[i].opType,
+          opSubType: null,
+          value: null,
+          result: { rowCount: filterList[i].rowCount },
+          dataType: dataType,
+        });
+      }
+    }
+  }
+
+  test.beforeEach(async ({ page }) => {
+    context = await setup({ page });
+    dashboard = new DashboardPage(page, context.project);
+    toolbar = dashboard.grid.toolbar;
+
+    api = new Api({
+      baseURL: `http://localhost:8080/`,
+      headers: {
+        'xc-auth': context.token,
+      },
+    });
+
+    const columns = [
+      {
+        column_name: 'Id',
+        title: 'Id',
+        uidt: UITypes.ID,
+      },
+      {
+        column_name: 'Date',
+        title: 'Date',
+        uidt: UITypes.Date,
+      },
+    ];
+
+    try {
+      const project = await api.project.read(context.project.id);
+      const table = await api.base.tableCreate(context.project.id, project.bases?.[0].id, {
+        table_name: 'dateTimeBased',
+        title: 'dateTimeBased',
+        columns: columns,
+      });
+
+      const rowAttributes = [];
+      for (let i = 0; i < 800; i++) {
+        const row = {
+          Date: rowMixedValue(columns[1], i),
+        };
+        rowAttributes.push(row);
+      }
+
+      await api.dbTableRow.bulkCreate('noco', context.project.id, table.id, rowAttributes);
+      records = await api.dbTableRow.list('noco', context.project.id, table.id, { limit: 800 });
+    } catch (e) {
+      console.error(e);
+    }
+  });
+
+  test('Date : filters-1', async () => {
+    await dateTimeBasedFilterTest('Date', 0);
+  });
+
+  test('Date : filters-2', async () => {
+    await dateTimeBasedFilterTest('Date', 1);
+  });
+});
+
 // Misc : Checkbox
 //
 
@@ -877,10 +1275,10 @@ test.describe('Filter Tests: Toggle button', () => {
 
     await toolbar.clickFilter({ networkValidation: false });
     await toolbar.filter.add({
-      columnTitle: 'Country',
-      opType: 'is null',
+      title: 'Country',
+      operation: 'is null',
       value: null,
-      isLocallySaved: false,
+      locallySaved: false,
       dataType: 'SingleLineText',
     });
     await toolbar.clickFilter({ networkValidation: false });

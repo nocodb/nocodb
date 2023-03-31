@@ -1,5 +1,5 @@
 <script lang="ts" setup>
-import type { ColumnReqType, ColumnType, GridType, TableType, ViewType } from 'nocodb-sdk'
+import type { ColumnReqType, ColumnType, GridType, PaginatedType, TableType, ViewType } from 'nocodb-sdk'
 import { UITypes, isVirtualCol } from 'nocodb-sdk'
 import {
   ActiveViewInj,
@@ -23,6 +23,7 @@ import {
   createEventHook,
   enumColor,
   extractPkFromRow,
+  iconMap,
   inject,
   isColumnRequiredAndNull,
   isDrawerOrModalExist,
@@ -43,6 +44,7 @@ import {
   useRoute,
   useSmartsheetStoreOrThrow,
   useUIPermission,
+  useUndoRedo,
   useViewData,
   watch,
 } from '#imports'
@@ -71,6 +73,8 @@ const hasEditPermission = $computed(() => isUIAllowed('xcDatatableEditable'))
 
 const route = useRoute()
 const router = useRouter()
+
+const { addUndo, clone, defineViewScope } = useUndoRedo()
 
 // todo: get from parent ( inject or use prop )
 const isView = false
@@ -118,6 +122,7 @@ const {
   selectedAllRecords,
   removeRowIfNew,
   navigateToSiblingRow,
+  getExpandedRowIndex,
 } = useViewData(meta, view, xWhere)
 
 const { getMeta } = useMetas()
@@ -453,6 +458,61 @@ async function clearCell(ctx: { row: number; col: number } | null, skipUpdate = 
   const columnObj = fields.value[ctx.col]
 
   if (isVirtualCol(columnObj)) {
+    addUndo({
+      undo: {
+        fn: async (ctx: { row: number; col: number }, col: ColumnType, row: Row, pg: PaginatedType) => {
+          if (paginationData.value.pageSize === pg.pageSize) {
+            if (paginationData.value.page !== pg.page) {
+              await changePage(pg.page!)
+            }
+            const rowId = extractPkFromRow(row.row, meta.value?.columns as ColumnType[])
+            const rowObj = data.value[ctx.row]
+            const columnObj = fields.value[ctx.col]
+            if (
+              columnObj.title &&
+              rowId === extractPkFromRow(rowObj.row, meta.value?.columns as ColumnType[]) &&
+              columnObj.id === col.id
+            ) {
+              rowObj.row[columnObj.title] = row.row[columnObj.title]
+              await rowRefs[ctx.row]!.addLTARRef(rowObj.row[columnObj.title], columnObj)
+              await rowRefs[ctx.row]!.syncLTARRefs(rowObj.row)
+              activeCell.col = ctx.col
+              activeCell.row = ctx.row
+              scrollToCell?.()
+            } else {
+              throw new Error('Record could not be found')
+            }
+          } else {
+            throw new Error('Page size changed')
+          }
+        },
+        args: [clone(ctx), clone(columnObj), clone(rowObj), clone(paginationData.value)],
+      },
+      redo: {
+        fn: async (ctx: { row: number; col: number }, col: ColumnType, row: Row, pg: PaginatedType) => {
+          if (paginationData.value.pageSize === pg.pageSize) {
+            if (paginationData.value.page !== pg.page) {
+              await changePage(pg.page!)
+            }
+            const rowId = extractPkFromRow(row.row, meta.value?.columns as ColumnType[])
+            const rowObj = data.value[ctx.row]
+            const columnObj = fields.value[ctx.col]
+            if (rowId === extractPkFromRow(rowObj.row, meta.value?.columns as ColumnType[]) && columnObj.id === col.id) {
+              await rowRefs[ctx.row]!.clearLTARCell(columnObj)
+              activeCell.col = ctx.col
+              activeCell.row = ctx.row
+              scrollToCell?.()
+            } else {
+              throw new Error('Record could not be found')
+            }
+          } else {
+            throw new Error('Page size changed')
+          }
+        },
+        args: [clone(ctx), clone(columnObj), clone(rowObj), clone(paginationData.value)],
+      },
+      scope: defineViewScope({ view: view.value }),
+    })
     await rowRefs[ctx.row]!.clearLTARCell(columnObj)
     return
   }
@@ -761,7 +821,7 @@ const closeAddColumnDropdown = () => {
                   overlay-class-name="nc-dropdown-grid-add-column"
                 >
                   <div class="h-full w-[60px] flex items-center justify-center">
-                    <MdiPlus class="text-sm nc-column-add" />
+                    <component :is="iconMap.plus" class="text-sm nc-column-add" />
                   </div>
 
                   <template #overlay>
@@ -787,13 +847,13 @@ const closeAddColumnDropdown = () => {
                   :data-testid="`grid-row-${rowIndex}`"
                 >
                   <td key="row-index" class="caption nc-grid-cell pl-5 pr-1" :data-testid="`cell-Id-${rowIndex}`">
-                    <div class="items-center flex gap-1 min-w-[55px]">
+                    <div class="items-center flex gap-1 min-w-[60px]">
                       <div
                         v-if="!readOnly || !isLocked"
                         class="nc-row-no text-xs text-gray-500"
                         :class="{ toggle: !readOnly, hidden: row.rowMeta.selected }"
                       >
-                        {{ ((paginationData.page ?? 1) - 1) * 25 + rowIndex + 1 }}
+                        {{ ((paginationData.page ?? 1) - 1) * (paginationData.pageSize ?? 25) + rowIndex + 1 }}
                       </div>
                       <div
                         v-if="!readOnly"
@@ -828,7 +888,8 @@ const closeAddColumnDropdown = () => {
                             v-else
                             class="cursor-pointer flex items-center border-1 active:ring rounded p-1 hover:(bg-primary bg-opacity-10)"
                           >
-                            <MdiArrowExpand
+                            <component
+                              :is="iconMap.expand"
                               v-e="['c:row-expand']"
                               class="select-none transform hover:(text-accent scale-120) nc-row-expand"
                               @click="expandForm(row, state)"
@@ -899,7 +960,7 @@ const closeAddColumnDropdown = () => {
                 @click="addEmptyRow()"
               >
                 <div class="px-2 w-full flex items-center text-gray-500">
-                  <MdiPlus class="text-pint-500 text-xs ml-2 text-primary" />
+                  <component :is="iconMap.plus" class="text-pint-500 text-xs ml-2 text-primary" />
 
                   <span class="ml-1">
                     {{ $t('activity.addRow') }}
@@ -980,6 +1041,8 @@ const closeAddColumnDropdown = () => {
         :row-id="routeQuery.rowId"
         :view="view"
         show-next-prev-icons
+        :first-row="getExpandedRowIndex() === 0"
+        :last-row="getExpandedRowIndex() === data.length - 1"
         @next="navigateToSiblingRow(NavigateDir.NEXT)"
         @prev="navigateToSiblingRow(NavigateDir.PREV)"
       />
@@ -1056,7 +1119,7 @@ const closeAddColumnDropdown = () => {
     position: sticky !important;
     left: 80px;
     z-index: 5;
-    @apply border-r-1 border-r-gray-300;
+    @apply border-r-2 border-r-gray-300;
   }
 
   tbody td:nth-child(2) {
@@ -1064,7 +1127,7 @@ const closeAddColumnDropdown = () => {
     left: 80px;
     z-index: 4;
     background: white;
-    @apply shadow-lg border-r-1 border-r-gray-300;
+    @apply border-r-2 border-r-gray-300;
   }
 }
 

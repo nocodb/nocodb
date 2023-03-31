@@ -1,5 +1,5 @@
 <script lang="ts" setup>
-import { useI18n } from '#imports'
+import { iconMap, useI18n } from '#imports'
 
 const { locale } = useI18n()
 
@@ -19,7 +19,12 @@ const isZhLang = $computed(() => locale.value.startsWith('zh'))
   />
 
   <div v-else class="flex justify-between gap-1 w-full px-2">
-    <MdiDiscord v-e="['e:community:discord']" class="icon text-[#7289DA]" @click="open('https://discord.gg/5RgZmkW')" />
+    <component
+      :is="iconMap.discord"
+      v-e="['e:community:discord']"
+      class="icon text-[#7289DA]"
+      @click="open('https://discord.gg/5RgZmkW')"
+    />
 
     <div
       v-e="['e:community:discourse']"
@@ -29,11 +34,22 @@ const isZhLang = $computed(() => locale.value.startsWith('zh'))
       <div class="discourse" />
     </div>
 
-    <MdiReddit v-e="['e:community:reddit']" class="icon text-[#FF4600]" @click="open('https://www.reddit.com/r/NocoDB/')" />
+    <component
+      :is="iconMap.reddit"
+      v-e="['e:community:reddit']"
+      class="icon text-[#FF4600]"
+      @click="open('https://www.reddit.com/r/NocoDB/')"
+    />
 
-    <MdiTwitter v-e="['e:community:twitter']" class="icon text-[#1DA1F2]" @click="open('https://twitter.com/NocoDB')" />
+    <component
+      :is="iconMap.twitter"
+      v-e="['e:community:twitter']"
+      class="icon text-[#1DA1F2]"
+      @click="open('https://twitter.com/NocoDB')"
+    />
 
-    <MdiCalendarMonth
+    <component
+      :is="iconMap.calendar"
       v-e="['e:community:book-demo']"
       class="icon text-green-500"
       @click="open('https://calendly.com/nocodb-meeting')"

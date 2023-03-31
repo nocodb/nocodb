@@ -1,8 +1,8 @@
-import RollupColumn from '../../../../models/RollupColumn';
-import { XKnex } from '../../index';
-import LinkToAnotherRecordColumn from '../../../../models/LinkToAnotherRecordColumn';
-import { Knex } from 'knex';
 import { RelationTypes } from 'nocodb-sdk';
+import type RollupColumn from '../../../../models/RollupColumn';
+import type { XKnex } from '../../index';
+import type LinkToAnotherRecordColumn from '../../../../models/LinkToAnotherRecordColumn';
+import type { Knex } from 'knex';
 
 export default async function ({
   knex,
@@ -29,7 +29,7 @@ export default async function ({
     case RelationTypes.HAS_MANY:
       return {
         builder: knex(`${childModel?.table_name} as ${refTableAlias}`)
-          [columnOptions.rollup_function]?.(
+          [columnOptions.rollup_function as string]?.(
             knex.ref(`${refTableAlias}.${rollupColumn.column_name}`)
           )
           .where(
@@ -47,7 +47,7 @@ export default async function ({
 
       return {
         builder: knex(`${parentModel?.table_name} as ${refTableAlias}`)
-          [columnOptions.rollup_function]?.(
+          [columnOptions.rollup_function as string]?.(
             knex.ref(`${refTableAlias}.${rollupColumn.column_name}`)
           )
           .innerJoin(

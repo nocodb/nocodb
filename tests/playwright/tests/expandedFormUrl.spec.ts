@@ -151,10 +151,10 @@ test.describe('Expanded record duplicate & delete options', () => {
     // create filter to narrow down the number of records
     await toolbar.clickFilter();
     await toolbar.filter.add({
-      columnTitle: 'FirstName',
-      opType: 'is equal',
+      title: 'FirstName',
+      operation: 'is equal',
       value: 'NICK',
-      isLocallySaved: false,
+      locallySaved: false,
     });
     await toolbar.clickFilter();
 

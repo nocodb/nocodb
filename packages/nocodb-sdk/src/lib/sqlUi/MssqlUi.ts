@@ -978,9 +978,11 @@ export class MssqlUi {
       case 'Collaborator':
         colProp.dt = 'varchar';
         break;
+      case 'GeoData':
+        colProp.dt = 'varchar';
+        break;
       case 'Date':
         colProp.dt = 'date';
-
         break;
       case 'Year':
         colProp.dt = 'int';
@@ -1090,6 +1092,7 @@ export class MssqlUi {
       case 'LongText':
       case 'Attachment':
       case 'Collaborator':
+      case 'GeoData':
         return ['char', 'ntext', 'text', 'varchar', 'nvarchar'];
 
       case 'JSON':

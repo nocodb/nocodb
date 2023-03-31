@@ -1,17 +1,30 @@
-import type { ExportTypes, FilterType, KanbanType, PaginatedType, RequestParams, SortType, TableType, ViewType } from 'nocodb-sdk'
-import { UITypes } from 'nocodb-sdk'
-import { computed, useGlobal, useMetas, useNuxtApp, useState } from '#imports'
+import type {
+  ExportTypes,
+  FilterType,
+  KanbanType,
+  MapType,
+  PaginatedType,
+  RequestParams,
+  SortType,
+  TableType,
+  ViewType,
+} from 'nocodb-sdk'
+import { UITypes, ViewTypes } from 'nocodb-sdk'
+import { computed, parseProp, storeToRefs, useGlobal, useMetas, useNuxtApp, useState } from '#imports'
 
 export function useSharedView() {
   const nestedFilters = ref<(FilterType & { status?: 'update' | 'delete' | 'create'; parentId?: string })[]>([])
 
   const { appInfo } = $(useGlobal())
 
-  const { project } = useProject()
+  const { project } = storeToRefs(useProject())
 
   const appInfoDefaultLimit = appInfo.defaultLimit || 25
 
-  const paginationData = useState<PaginatedType>('paginationData', () => ({ page: 1, pageSize: appInfoDefaultLimit }))
+  const paginationData = useState<PaginatedType>('paginationData', () => ({
+    page: 1,
+    pageSize: appInfoDefaultLimit,
+  }))
 
   const sharedView = useState<ViewType | undefined>('sharedView', () => undefined)
 
@@ -21,7 +34,7 @@ export function useSharedView() {
 
   const allowCSVDownload = useState<boolean>('allowCSVDownload', () => false)
 
-  const meta = useState<TableType | KanbanType | undefined>('meta', () => undefined)
+  const meta = useState<TableType | KanbanType | MapType | undefined>('meta', () => undefined)
 
   const formColumns = computed(
     () =>
@@ -50,13 +63,13 @@ export function useSharedView() {
       },
     })
     try {
-      allowCSVDownload.value = (typeof viewMeta.meta === 'string' ? JSON.parse(viewMeta.meta) : viewMeta.meta)?.allowCSVDownload
+      allowCSVDownload.value = parseProp(viewMeta.meta)?.allowCSVDownload
     } catch {
       allowCSVDownload.value = false
     }
 
     if (localPassword) password.value = localPassword
-    sharedView.value = { title: '', ...viewMeta }
+    sharedView.value = { title: '', ...viewMeta } as ViewType
     meta.value = { ...viewMeta.model }
 
     let order = 1
@@ -83,29 +96,35 @@ export function useSharedView() {
     Object.keys(relatedMetas).forEach((key) => setMeta(relatedMetas[key]))
   }
 
-  const fetchSharedViewData = async ({
-    sortsArr,
-    filtersArr,
-    offset,
-  }: {
+  const fetchSharedViewData = async (param: {
     sortsArr: SortType[]
     filtersArr: FilterType[]
+    fields?: any[]
+    sort?: any[]
+    where?: string
+    /** Query params for nested data */
+    nested?: any
     offset?: number
   }) => {
-    if (!sharedView.value) return
+    if (!sharedView.value)
+      return {
+        list: [],
+        pageInfo: {},
+      }
 
-    if (!offset) {
+    if (!param.offset) {
       const page = paginationData.value.page || 1
       const pageSize = paginationData.value.pageSize || appInfoDefaultLimit
-      offset = (page - 1) * pageSize
+      param.offset = (page - 1) * pageSize
     }
 
-    const { data } = await $api.public.dataList(
+    return await $api.public.dataList(
       sharedView.value.uuid!,
       {
-        offset,
-        filterArrJson: JSON.stringify(filtersArr ?? nestedFilters.value),
-        sortArrJson: JSON.stringify(sortsArr ?? sorts.value),
+        limit: sharedView.value?.type === ViewTypes.MAP ? 1000 : undefined,
+        ...param,
+        filterArrJson: JSON.stringify(param.filtersArr ?? nestedFilters.value),
+        sortArrJson: JSON.stringify(param.sortsArr ?? sorts.value),
       } as any,
       {
         headers: {
@@ -113,7 +132,6 @@ export function useSharedView() {
         },
       },
     )
-    return data
   }
 
   const fetchSharedViewGroupedData = async (

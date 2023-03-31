@@ -41,6 +41,8 @@ const { $e } = useNuxtApp()
 
 const { appInfo } = useGlobal()
 
+const { betaFeatureToggleState } = useBetaFeatureToggle()
+
 const meta = inject(MetaInj, ref())
 
 const isForm = inject(IsFormInj, ref(false))
@@ -57,9 +59,13 @@ const columnToValidate = [UITypes.Email, UITypes.URL, UITypes.PhoneNumber]
 
 const onlyNameUpdateOnEditColumns = [UITypes.LinkToAnotherRecord, UITypes.Lookup, UITypes.Rollup]
 
+const geoDataToggleCondition = (t: { name: UITypes }) => {
+  return betaFeatureToggleState.show ? betaFeatureToggleState.show : !t.name.includes(UITypes.GeoData)
+}
+
 const uiTypesOptions = computed<typeof uiTypes>(() => {
   return [
-    ...uiTypes.filter((t) => !isEdit.value || !t.virtual),
+    ...uiTypes.filter((t) => geoDataToggleCondition(t) && (!isEdit.value || !t.virtual)),
     ...(!isEdit.value && meta?.value?.columns?.every((c) => !c.pk)
       ? [
           {
@@ -80,8 +86,12 @@ const reloadMetaAndData = async () => {
   }
 }
 
+const saving = ref(false)
+
 async function onSubmit() {
+  saving.value = true
   const saved = await addOrUpdate(reloadMetaAndData, props.columnPosition)
+  saving.value = false
 
   if (!saved) return
 
@@ -178,6 +188,7 @@ useEventListener('keydown', (e: KeyboardEvent) => {
         <LazySmartsheetColumnQrCodeOptions v-if="formState.uidt === UITypes.QrCode" v-model="formState" />
         <LazySmartsheetColumnBarcodeOptions v-if="formState.uidt === UITypes.Barcode" v-model="formState" />
         <LazySmartsheetColumnCurrencyOptions v-if="formState.uidt === UITypes.Currency" v-model:value="formState" />
+        <LazySmartsheetColumnGeoDataOptions v-if="formState.uidt === UITypes.GeoData" v-model:value="formState" />
         <LazySmartsheetColumnDurationOptions v-if="formState.uidt === UITypes.Duration" v-model:value="formState" />
         <LazySmartsheetColumnRatingOptions v-if="formState.uidt === UITypes.Rating" v-model:value="formState" />
         <LazySmartsheetColumnCheckboxOptions v-if="formState.uidt === UITypes.Checkbox" v-model:value="formState" />
@@ -223,7 +234,10 @@ useEventListener('keydown', (e: KeyboardEvent) => {
             v-model:value="formState"
           />
 
-          <LazySmartsheetColumnAdvancedOptions v-model:value="formState" :advanced-db-options="advancedDbOptions" />
+          <LazySmartsheetColumnAdvancedOptions
+            v-model:value="formState"
+            :advanced-db-options="advancedDbOptions || formState.uidt === UITypes.SpecificDBType"
+          />
         </div>
       </Transition>
 
@@ -234,7 +248,7 @@ useEventListener('keydown', (e: KeyboardEvent) => {
             {{ $t('general.cancel') }}
           </a-button>
 
-          <a-button html-type="submit" type="primary" @click.prevent="onSubmit">
+          <a-button html-type="submit" type="primary" :loading="saving" @click.prevent="onSubmit">
             <!-- Save -->
             {{ $t('general.save') }}
           </a-button>

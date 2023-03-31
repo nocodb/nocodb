@@ -1,6 +1,4 @@
 import Noco from '../Noco';
-import Model from './Model';
-import Column from './Column';
 import {
   CacheDelDirection,
   CacheGetType,
@@ -8,8 +6,10 @@ import {
   MetaTable,
 } from '../utils/globals';
 import NocoCache from '../cache/NocoCache';
-import { SortType } from 'nocodb-sdk';
 import { extractProps } from '../meta/helpers/extractProps';
+import Model from './Model';
+import Column from './Column';
+import type { SortType } from 'nocodb-sdk';
 
 export default class Sort {
   id: string;
@@ -144,7 +144,7 @@ export default class Sort {
       await NocoCache.set(key, o);
     }
     // set meta
-    await ncMeta.metaUpdate(
+    return await ncMeta.metaUpdate(
       null,
       null,
       MetaTable.SORT,

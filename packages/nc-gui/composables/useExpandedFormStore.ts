@@ -1,5 +1,5 @@
 import { UITypes, ViewTypes } from 'nocodb-sdk'
-import type { ColumnType, TableType } from 'nocodb-sdk'
+import type { AuditType, ColumnType, TableType } from 'nocodb-sdk'
 import type { Ref } from 'vue'
 import dayjs from 'dayjs'
 import {
@@ -11,6 +11,7 @@ import {
   message,
   populateInsertObject,
   ref,
+  storeToRefs,
   useApi,
   useI18n,
   useInjectionState,
@@ -20,8 +21,9 @@ import {
   useProject,
   useProvideSmartsheetRowStore,
   useSharedView,
+  useUndoRedo,
 } from '#imports'
-import type { Row } from '~/lib'
+import type { Row, UndoRedoAction } from '~/lib'
 
 const [useProvideExpandedFormStore, useExpandedFormStore] = useInjectionState((meta: Ref<TableType>, row: Ref<Row>) => {
   const { $e, $state, $api } = useNuxtApp()
@@ -30,23 +32,29 @@ const [useProvideExpandedFormStore, useExpandedFormStore] = useInjectionState((m
 
   const { t } = useI18n()
 
-  const commentsOnly = ref(false)
+  const commentsOnly = ref(true)
 
   const commentsAndLogs = ref<any[]>([])
 
   const comment = ref('')
 
-  const commentsDrawer = ref(false)
+  const commentsDrawer = ref(true)
+
+  const saveRowAndStay = ref(0)
 
   const changedColumns = ref(new Set<string>())
 
-  const { project } = useProject()
+  const { project } = storeToRefs(useProject())
 
   const rowStore = useProvideSmartsheetRowStore(meta, row)
 
   const activeView = inject(ActiveViewInj, ref())
 
   const { sharedView } = useSharedView()
+
+  const { addUndo, clone, defineViewScope } = useUndoRedo()
+
+  const reloadTrigger = inject(ReloadRowDataHookInj, createEventHook())
 
   // getters
   const displayValue = computed(() => {
@@ -101,7 +109,7 @@ const [useProvideExpandedFormStore, useExpandedFormStore] = useInjectionState((m
           fk_model_id: meta.value.id as string,
           comments_only: commentsOnly.value,
         })
-      )?.reverse?.() || []
+      ).list?.reverse?.() || []
   }
 
   const isYou = (email: string) => {
@@ -132,7 +140,7 @@ const [useProvideExpandedFormStore, useExpandedFormStore] = useInjectionState((m
     $e('a:row-expand:comment')
   }
 
-  const save = async (ltarState: Record<string, any> = {}) => {
+  const save = async (ltarState: Record<string, any> = {}, undo = false) => {
     let data
     try {
       const isNewRow = row.value.rowMeta?.new ?? false
@@ -157,6 +165,47 @@ const [useProvideExpandedFormStore, useExpandedFormStore] = useInjectionState((m
           rowMeta: {},
           oldRow: { ...data },
         })
+
+        if (!undo) {
+          const id = extractPkFromRow(data, meta.value?.columns as ColumnType[])
+          const pkData = rowPkData(row.value.row, meta.value?.columns as ColumnType[])
+
+          // TODO remove linked record
+          addUndo({
+            redo: {
+              fn: async function redo(this: UndoRedoAction, rowData: any) {
+                await $api.dbTableRow.create('noco', project.value.title as string, meta.value.title, { ...pkData, ...rowData })
+                if (activeView.value?.type === ViewTypes.KANBAN) {
+                  const { loadKanbanData } = useKanbanViewStoreOrThrow()
+                  await loadKanbanData()
+                }
+                reloadTrigger?.trigger()
+              },
+              args: [clone(insertObj)],
+            },
+            undo: {
+              fn: async function undo(this: UndoRedoAction, id: string) {
+                const res: any = await $api.dbViewRow.delete(
+                  'noco',
+                  project.value.id as string,
+                  meta.value?.id as string,
+                  activeView.value?.id as string,
+                  id,
+                )
+                if (res.message) {
+                  throw new Error(res.message)
+                }
+                if (activeView.value?.type === ViewTypes.KANBAN) {
+                  const { loadKanbanData } = useKanbanViewStoreOrThrow()
+                  await loadKanbanData()
+                }
+                reloadTrigger?.trigger()
+              },
+              args: [id],
+            },
+            scope: defineViewScope({ view: activeView.value }),
+          })
+        }
       } else {
         const updateOrInsertObj = [...changedColumns.value].reduce((obj, col) => {
           obj[col] = row.value.row[col]
@@ -170,6 +219,39 @@ const [useProvideExpandedFormStore, useExpandedFormStore] = useInjectionState((m
           }
 
           await $api.dbTableRow.update(NOCO, project.value.title as string, meta.value.title, id, updateOrInsertObj)
+
+          if (!undo) {
+            const undoObject = [...changedColumns.value].reduce((obj, col) => {
+              obj[col] = row.value.oldRow[col]
+              return obj
+            }, {} as Record<string, any>)
+
+            addUndo({
+              redo: {
+                fn: async (id: string, data: Record<string, any>) => {
+                  await $api.dbTableRow.update(NOCO, project.value.title as string, meta.value.title, id, data)
+                  if (activeView.value?.type === ViewTypes.KANBAN) {
+                    const { loadKanbanData } = useKanbanViewStoreOrThrow()
+                    await loadKanbanData()
+                  }
+                  reloadTrigger?.trigger()
+                },
+                args: [id, clone(updateOrInsertObj)],
+              },
+              undo: {
+                fn: async (id: string, data: Record<string, any>) => {
+                  await $api.dbTableRow.update(NOCO, project.value.title as string, meta.value.title, id, data)
+                  if (activeView.value?.type === ViewTypes.KANBAN) {
+                    const { loadKanbanData } = useKanbanViewStoreOrThrow()
+                    await loadKanbanData()
+                  }
+                  reloadTrigger?.trigger()
+                },
+                args: [id, clone(undoObject)],
+              },
+              scope: defineViewScope({ view: activeView.value }),
+            })
+          }
 
           for (const key of Object.keys(updateOrInsertObj)) {
             // audit
@@ -226,6 +308,10 @@ const [useProvideExpandedFormStore, useExpandedFormStore] = useInjectionState((m
     })
   }
 
+  const updateComment = async (auditId: string, audit: Partial<AuditType>) => {
+    return await $api.utils.commentUpdate(auditId, audit)
+  }
+
   return {
     ...rowStore,
     commentsOnly,
@@ -243,6 +329,8 @@ const [useProvideExpandedFormStore, useExpandedFormStore] = useInjectionState((m
     changedColumns,
     loadRow,
     primaryKey,
+    saveRowAndStay,
+    updateComment,
   }
 }, 'expanded-form-store')
 

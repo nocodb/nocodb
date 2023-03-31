@@ -12,6 +12,7 @@ import {
   formulas,
   getUIDTIcon,
   getWordUntilCaret,
+  iconMap,
   insertAtCursor,
   onMounted,
   useColumnCreateStoreOrThrow,
@@ -742,9 +743,9 @@ onMounted(() => {
               </template>
 
               <template #avatar>
-                <mdi-function v-if="item.type === 'function'" class="text-lg" />
+                <component :is="iconMap.function" v-if="item.type === 'function'" class="text-lg" />
 
-                <mdi-calculator v-if="item.type === 'op'" class="text-lg" />
+                <component :is="iconMap.calculator" v-if="item.type === 'op'" class="text-lg" />
 
                 <component :is="item.icon" v-if="item.type === 'column'" class="text-lg" />
               </template>

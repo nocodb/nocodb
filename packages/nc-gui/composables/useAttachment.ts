@@ -1,4 +1,4 @@
-import { mimeTypes, openLink, useGlobal } from '#imports'
+import { openLink, useGlobal } from '#imports'
 
 const useAttachment = () => {
   const { appInfo } = useGlobal()
@@ -15,15 +15,18 @@ const useAttachment = () => {
       return item.data
     }
     const sources = getPossibleAttachmentSrc(item)
-    const mimeType = mimeTypes[item?.mimetype?.split('/')?.pop() || 'txt']
     for (const source of sources) {
-      // test if the source is accessible or not
-      const res = await fetch(source)
-      if (res.ok && res.headers.get('Content-Type') === mimeType) {
-        return source
-      }
+      try {
+        // test if the source is accessible or not
+        const res = await fetch(source, { method: 'HEAD' })
+        if (res.ok) {
+          return source
+        }
+      } catch {}
     }
-    return null
+    // if no source can be fetched, it could be probably blocked by CORS
+    // return original url or built url anyway
+    return item.url || `${appInfo.value.ncSiteUrl}/${item.path}`
   }
 
   const openAttachment = async (item: Record<string, any>) => {

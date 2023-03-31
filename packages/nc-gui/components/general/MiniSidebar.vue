@@ -1,18 +1,18 @@
 <script lang="ts" setup>
-import { computed, navigateTo, useGlobal, useProject, useRoute, useSidebar } from '#imports'
+import { computed, iconMap, navigateTo, storeToRefs, useGlobal, useProject, useRoute, useSidebar } from '#imports'
 
 const { signOut, signedIn, user, currentVersion } = useGlobal()
 
 const { isOpen } = useSidebar('nc-mini-sidebar', { isOpen: true })
 
-const { project } = useProject()
+const { project } = storeToRefs(useProject())
 
 const route = useRoute()
 
 const email = computed(() => user.value?.email ?? '---')
 
-const logout = () => {
-  signOut()
+const logout = async () => {
+  await signOut()
   navigateTo('/signin')
 }
 </script>
@@ -42,7 +42,7 @@ const logout = () => {
           <a-menu-item-group title="User Settings">
             <a-menu-item key="email" class="!rounded-t">
               <nuxt-link v-e="['c:navbar:user:email']" class="group flex items-center no-underline py-2" to="/user">
-                <MdiAt class="mt-1 group-hover:text-success" />
+                <component :is="iconMap.at" class="mt-1 group-hover:text-success" />
                 &nbsp;
                 <span class="prose group-hover:text-black nc-user-menu-email">{{ email }}</span>
               </nuxt-link>
@@ -52,7 +52,7 @@ const logout = () => {
 
             <a-menu-item key="signout" class="!rounded-b">
               <div v-e="['a:navbar:user:sign-out']" class="group flex items-center py-2" @click="logout">
-                <MdiLogout class="group-hover:(!text-red-500)" />&nbsp;
+                <component :is="iconMap.signout" class="group-hover:(!text-red-500)" />&nbsp;
                 <span class="prose font-semibold text-gray-500 group-hover:text-black nc-user-menu-signout">
                   {{ $t('general.signOut') }}
                 </span>
@@ -66,7 +66,7 @@ const logout = () => {
     <div id="sidebar" ref="sidebar" class="text-white flex-auto flex flex-col items-center w-full">
       <a-dropdown :trigger="['contextmenu']" placement="right" overlay-class-name="nc-dropdown">
         <div :class="[route.name === 'index' ? 'active' : '']" class="nc-mini-sidebar-item" @click="navigateTo('/')">
-          <MdiFolder class="cursor-pointer transform hover:scale-105 text-2xl" />
+          <component :is="iconMap.folder" class="cursor-pointer transform hover:scale-105 text-2xl" />
         </div>
 
         <template #overlay>
@@ -84,7 +84,7 @@ const logout = () => {
                   class="group flex items-center gap-2 py-2 hover:text-primary"
                   @click="navigateTo('/project/create')"
                 >
-                  <MdiPlus class="text-lg group-hover:text-accent" />
+                  <component :is="iconMap.plus" class="text-lg group-hover:text-accent" />
                   {{ $t('activity.createProject') }}
                 </div>
               </a-menu-item>
@@ -95,7 +95,7 @@ const logout = () => {
                   class="group flex items-center gap-2 py-2 hover:text-primary"
                   @click="navigateTo('/project/create-external')"
                 >
-                  <MdiDatabaseOutline class="text-lg group-hover:text-accent" />
+                  <component :is="iconMap.database" class="text-lg group-hover:text-accent" />
                   <div v-html="$t('activity.createProjectExtended.extDB')" />
                 </div>
               </a-menu-item>
@@ -112,7 +112,7 @@ const logout = () => {
           class="nc-mini-sidebar-item"
           @click="navigateTo(`/${route.params.projectType}/${route.params.projectId}`)"
         >
-          <MdiDatabase class="cursor-pointer transform hover:scale-105 text-2xl" />
+          <component :is="iconMap.database" class="cursor-pointer transform hover:scale-105 text-2xl" />
         </div>
       </a-tooltip>
     </div>

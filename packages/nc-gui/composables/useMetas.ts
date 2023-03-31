@@ -1,12 +1,12 @@
 import { message } from 'ant-design-vue'
 import type { WatchStopHandle } from 'vue'
-import type { TableInfoType, TableType } from 'nocodb-sdk'
-import { extractSdkResponseErrorMsg, useNuxtApp, useProject, useState, watch } from '#imports'
+import type { TableType } from 'nocodb-sdk'
+import { extractSdkResponseErrorMsg, storeToRefs, useNuxtApp, useProject, useState, watch } from '#imports'
 
 export function useMetas() {
   const { $api } = useNuxtApp()
 
-  const { tables } = useProject()
+  const { tables } = storeToRefs(useProject())
 
   const metas = useState<{ [idOrTitle: string]: TableType | any }>('metas', () => ({}))
 
@@ -26,7 +26,7 @@ export function useMetas() {
   }
 
   // todo: this needs a proper refactor, arbitrary waiting times are usually not a good idea
-  const getMeta = async (tableIdOrTitle: string, force = false): Promise<TableType | TableInfoType | null> => {
+  const getMeta = async (tableIdOrTitle: string, force = false): Promise<TableType | null> => {
     if (!tableIdOrTitle) return null
     /** wait until loading is finished if requesting same meta */
     if (!force && loadingState.value[tableIdOrTitle]) {

@@ -1,31 +1,35 @@
 import Noco from '../Noco';
 import { CacheGetType, CacheScope, MetaTable } from '../utils/globals';
-import { FormColumnType } from 'nocodb-sdk';
 import { deserializeJSON, serializeJSON } from '../utils/serialize';
-import View from './View';
 import NocoCache from '../cache/NocoCache';
 import { extractProps } from '../meta/helpers/extractProps';
+import View from './View';
+import type {
+  BoolType,
+  FormColumnType,
+  MetaType,
+  StringOrNullType,
+} from 'nocodb-sdk';
 
 export default class FormViewColumn implements FormColumnType {
   id?: string;
-  label?: string;
-  help?: string;
-  description?: string;
-  required?: boolean;
-  show?: boolean;
-  order?: number;
-
   fk_view_id?: string;
   fk_column_id?: string;
   project_id?: string;
   base_id?: string;
-  meta?: string | Record<string, any>;
+  label?: StringOrNullType;
+  help?: StringOrNullType;
+  description?: StringOrNullType;
+  required?: BoolType;
+  enable_scanner?: BoolType;
+  uuid?: StringOrNullType;
+  show?: BoolType;
+  order?: number;
+  meta?: MetaType;
 
   constructor(data: FormViewColumn) {
     Object.assign(this, data);
   }
-
-  uuid?: any;
 
   public static async get(formViewColumnId: string, ncMeta = Noco.ncMeta) {
     let viewColumn =
@@ -65,6 +69,7 @@ export default class FormViewColumn implements FormColumnType {
       'help',
       'description',
       'required',
+      'enable_scanner',
       'meta',
     ]);
 
@@ -163,6 +168,7 @@ export default class FormViewColumn implements FormColumnType {
       'show',
       'order',
       'meta',
+      'enable_scanner',
     ]);
 
     // get existing cache
@@ -179,7 +185,7 @@ export default class FormViewColumn implements FormColumnType {
     }
 
     // update meta
-    await ncMeta.metaUpdate(
+    return await ncMeta.metaUpdate(
       null,
       null,
       MetaTable.FORM_VIEW_COLUMNS,
@@ -187,7 +193,4 @@ export default class FormViewColumn implements FormColumnType {
       columnId
     );
   }
-
-  created_at?: string;
-  updated_at?: string;
 }

@@ -1,6 +1,6 @@
-import { Handler } from 'express';
-import * as e from 'express';
-import { Knex } from 'knex';
+import type { Handler } from 'express';
+import type * as e from 'express';
+import type { Knex } from 'knex';
 
 export interface Route {
   path: string;

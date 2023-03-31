@@ -39,6 +39,7 @@
     "signIn": "KIRJAUDU SISÄÄN",
     "signOut": "Kirjaudu ulos",
     "required": "Vaaditaan",
+    "enableScanner": "Enable Scanner for filling",
     "preferred": "Edullinen",
     "mandatory": "Pakollinen",
     "loading": "Ladataan ...",
@@ -74,7 +75,8 @@
     "insertBefore": "Lisää ennen",
     "hideField": "Piilota kenttä",
     "sortAsc": "Lajittelu nouseva",
-    "sortDesc": "Lajittelu laskeva"
+    "sortDesc": "Lajittelu laskeva",
+    "geoDataField": "GeoData Field"
   },
   "objects": {
     "project": "Hanke",
@@ -98,7 +100,8 @@
       "gallery": "Galleria",
       "form": "Lomake",
       "kanban": "Kanban",
-      "calendar": "Kalenteri"
+      "calendar": "Kalenteri",
+      "map": "Map"
     },
     "user": "Käyttäjä",
     "users": "Käyttäjät",
@@ -136,6 +139,7 @@
     "Currency": "Valuutta",
     "Percent": "Prosentti",
     "Duration": "Kesto",
+    "GeoData": "GeoData",
     "Rating": "Luokitus",
     "Formula": "Kaava",
     "Rollup": "Rullaus",
@@ -206,7 +210,8 @@
     "advancedSettings": "Lisäasetukset",
     "codeSnippet": "Koodinpätkä",
     "keyboardShortcut": "Näppäimistön pikanäppäimet",
-    "generateRandomName": "Generate Random Name"
+    "generateRandomName": "Generate Random Name",
+    "findRowByScanningCode": "Find row by scanning a QR or Barcode"
   },
   "labels": {
     "createdBy": "Luonut",
@@ -216,6 +221,7 @@
     "viewName": "Näytä nimi",
     "viewLink": "Näytä linkki",
     "columnName": "Sarakkeen nimi",
+    "columnToScanFor": "Column to scan",
     "columnType": "Sarakkeiden tyyppi",
     "roleName": "Roolinimi",
     "roleDescription": "Roolin kuvaus",
@@ -232,6 +238,7 @@
     "action": "Toiminta",
     "actions": "Toiminnot",
     "operation": "Operaatio",
+    "operationSub": "Sub Operation",
     "operationType": "Käyttötyyppi",
     "operationSubType": "Käyttö Alatyyppi",
     "description": "Kuvaus",
@@ -253,6 +260,9 @@
     "barcodeFormat": "Viivakoodin muoto",
     "qrCodeValueTooLong": "Liian monta merkkiä QR-koodiin",
     "barcodeValueTooLong": "Liikaa merkkejä viivakoodiin",
+    "currentLocation": "Current Location",
+    "lng": "Lng",
+    "lat": "Lat",
     "aggregateFunction": "Kokonaistoiminto",
     "dbCreateIfNotExists": "Tietokanta: Luo jos ei ole olemassa",
     "clientKey": "Asiakasnäppäin",
@@ -386,8 +396,8 @@
     "saveAndExit": "Tallenna & poistu",
     "saveAndStay": "Save & Stay",
     "insertRow": "Lisää uusi rivi",
-    "deleteRow": "Poista rivi",
     "duplicateRow": "Duplicate Row",
+    "deleteRow": "Poista rivi",
     "deleteSelectedRow": "Poista valitut rivit",
     "importExcel": "Tuonti excel",
     "importCSV": "Tuo CSV",
@@ -402,6 +412,8 @@
     "changePwd": "Vaihda salasana",
     "createView": "Luo näkymä",
     "shareView": "Jaa näkymä",
+    "findRowByCodeScan": "Find row by scan",
+    "fillByCodeScan": "Fill by scan",
     "listSharedView": "Jaettu näkymäluettelo",
     "ListView": "Näkymät",
     "copyView": "Kopionä näkymä",
@@ -417,6 +429,10 @@
     "openTab": "Avaa uusi välilehti",
     "iFrame": "Kopioi Embeddable HTML-koodi",
     "addWebhook": "Lisää uusi webhotok",
+    "enableWebhook": "Enable Webhook",
+    "testWebhook": "Test Webhook",
+    "copyWebhook": "Copy Webhook",
+    "deleteWebhook": "Delete Webhook",
     "newToken": "Lisää uusi merkki",
     "exportZip": "Vie Zip",
     "importZip": "Tuo zip",
@@ -452,7 +468,14 @@
       "stackedBy": "Pinottu by",
       "chooseGroupingField": "Valitse ryhmittelykenttä",
       "addOrEditStack": "Lisää / Muokkaa pinoa"
-    }
+    },
+    "map": {
+      "mappedBy": "Mapped By",
+      "chooseMappingField": "Choose a Mapping Field",
+      "openInGoogleMaps": "Google Maps",
+      "openInOpenStreetMap": "OSM"
+    },
+    "toggleMobileMode": "Toggle Mobile Mode"
   },
   "tooltip": {
     "saveChanges": "Tallenna muutokset",
@@ -517,6 +540,17 @@
       "roles": {
         "orgCreator": "Luoja voi luoda uusia projekteja ja käyttää kaikkia kutsuttuja projekteja.",
         "orgViewer": "Katsoja ei saa luoda uusia projekteja, mutta hän voi käyttää mitä tahansa kutsuttua projektia."
+      },
+      "codeScanner": {
+        "loadingScanner": "Loading the scanner...",
+        "selectColumn": "Select a column (QR code or Barcode) that you want to use for finding a row by scanning.",
+        "moreThanOneRowFoundForCode": "More than one row found for this code. Currently only unique codes are supported.",
+        "noRowFoundForCode": "No row found for this code for the selected column"
+      },
+      "map": {
+        "overLimit": "You're over the limit.",
+        "closeLimit": "You're getting close to the limit.",
+        "limitNumber": "The limit of markers shown in a Map View is 1000 records."
       },
       "footerInfo": "Rivit sivua kohti",
       "upload": "Valitse lataa tiedosto",
@@ -600,6 +634,7 @@
         "gallery": "Lisää galleria-näkymä",
         "form": "Lisää lomake",
         "kanban": "Lisää Kanban View",
+        "map": "Add Map View",
         "calendar": "Lisää kalenteri-näkymä"
       },
       "tablesMetadataInSync": "Taulukot Metatieto on synkronoitu",
@@ -663,6 +698,7 @@
         "allowedSpecialCharList": "Sallittujen erikoismerkkien luettelo"
       },
       "invalidURL": "Virheellinen URL-osoite",
+      "invalidEmail": "Invalid Email",
       "internalError": "Tapahtui jokin sisäinen virhe",
       "templateGeneratorNotFound": "Template Generatoria ei löydy!",
       "fileUploadFailed": "Tiedoston lataaminen epäonnistui",
@@ -690,6 +726,7 @@
       "nameShouldStartWithAnAlphabetOr_": "Nimen on alettava aakkosilla tai _",
       "followingCharactersAreNotAllowed": "Seuraavat merkit eivät ole sallittuja",
       "columnNameRequired": "Sarakkeen nimi vaaditaan",
+      "columnNameExceedsCharacters": "The length of column name exceeds the max {value} characters",
       "projectNameExceeds50Characters": "Hankkeen nimi ylittää 50 merkkiä",
       "projectNameCannotStartWithSpace": "Projektin nimi ei voi alkaa välilyönnillä",
       "requiredField": "Pakollinen kenttä",
@@ -742,6 +779,7 @@
       "userDeletedFromProject": "Käyttäjä poistettiin onnistuneesti projektista",
       "inviteEmailSent": "Kutsu Sähköposti lähetetty onnistuneesti",
       "inviteURLCopied": "Kutsun URL-osoite kopioitu leikepöydälle",
+      "commentCopied": "Comment copied to clipboard",
       "passwordResetURLCopied": "Salasanan palautus URL-osoite kopioitu leikepöydälle",
       "shareableURLCopied": "Kopioi jaettavan pohjan URL-osoite leikepöydälle!",
       "embeddableHTMLCodeCopied": "Kopioitu upotettava HTML-koodi!",

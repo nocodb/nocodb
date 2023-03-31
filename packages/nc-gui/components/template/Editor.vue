@@ -17,6 +17,7 @@ import {
   getDateFormat,
   getDateTimeFormat,
   getUIDTIcon,
+  iconMap,
   inject,
   message,
   nextTick,
@@ -24,6 +25,7 @@ import {
   parseStringDate,
   reactive,
   ref,
+  storeToRefs,
   useI18n,
   useNuxtApp,
   useProject,
@@ -67,7 +69,9 @@ const { $api } = useNuxtApp()
 
 const { addTab } = useTabs()
 
-const { sqlUis, project, loadTables } = useProject()
+const projectStrore = useProject()
+const { loadTables } = projectStrore
+const { sqlUis, project } = storeToRefs(projectStrore)
 
 const sqlUi = ref(sqlUis.value[baseId] || Object.values(sqlUis.value)[0])
 
@@ -405,10 +409,14 @@ async function importTemplate() {
 
       const tableId = meta.value?.id
       const projectName = project.value.title!
+      const table_names = data.tables.map((t: Record<string, any>) => t.table_name)
 
       await Promise.all(
         Object.keys(importData).map((key: string) =>
           (async (k) => {
+            if (!table_names.includes(k)) {
+              return
+            }
             const data = importData[k]
             const total = data.length
 
@@ -458,7 +466,7 @@ async function importTemplate() {
       // Successfully imported table data
       message.success(t('msg.success.tableDataImported'))
     } catch (e: any) {
-      message.error(e.message)
+      message.error(await extractSdkResponseErrorMsg(e))
     } finally {
       isImporting.value = false
     }
@@ -628,9 +636,24 @@ function isSelectDisabled(uidt: string, disableSelect = false) {
         <a-collapse-panel v-for="(table, tableIdx) of data.tables" :key="tableIdx">
           <template #header>
             <span class="font-weight-bold text-lg flex items-center gap-2">
-              <mdi-table class="text-primary" />
+              <component :is="iconMap.table" class="text-primary" />
               {{ table.table_name }}
             </span>
+          </template>
+
+          <template #extra>
+            <a-tooltip bottom>
+              <template #title>
+                <!-- TODO: i18n -->
+                <span>Delete Table</span>
+              </template>
+              <component
+                :is="iconMap.delete"
+                v-if="data.tables.length > 1"
+                class="text-lg mr-8"
+                @click.stop="deleteTable(tableIdx)"
+              />
+            </a-tooltip>
           </template>
 
           <a-table
@@ -709,7 +732,7 @@ function isSelectDisabled(uidt: string, disableSelect = false) {
                 />
               </a-form-item>
               <span v-else class="font-weight-bold text-lg flex items-center gap-2" @click="setEditableTn(tableIdx, true)">
-                <mdi-table class="text-primary" />
+                <component :is="iconMap.table" class="text-primary" />
                 {{ table.table_name }}
               </span>
             </template>
@@ -720,7 +743,12 @@ function isSelectDisabled(uidt: string, disableSelect = false) {
                   <!-- TODO: i18n -->
                   <span>Delete Table</span>
                 </template>
-                <mdi-delete-outline v-if="data.tables.length > 1" class="text-lg mr-8" @click.stop="deleteTable(tableIdx)" />
+                <component
+                  :is="iconMap.delete"
+                  v-if="data.tables.length > 1"
+                  class="text-lg mr-8"
+                  @click.stop="deleteTable(tableIdx)"
+                />
               </a-tooltip>
             </template>
             <a-table
@@ -815,7 +843,7 @@ function isSelectDisabled(uidt: string, disableSelect = false) {
 
                     <a-button type="text" @click="deleteTableColumn(tableIdx, record.key)">
                       <div class="flex items-center">
-                        <mdi-delete-outline class="text-lg" />
+                        <component :is="iconMap.delete" class="text-lg" />
                       </div>
                     </a-button>
                   </a-tooltip>
@@ -832,7 +860,7 @@ function isSelectDisabled(uidt: string, disableSelect = false) {
 
                 <a-button class="group" @click="addNewColumnRow(tableIdx, 'Number')">
                   <div class="flex items-center">
-                    <mdi-numeric class="group-hover:!text-accent flex text-lg" />
+                    <component :is="iconMap.number" class="group-hover:!text-accent flex text-lg" />
                   </div>
                 </a-button>
               </a-tooltip>
@@ -845,7 +873,7 @@ function isSelectDisabled(uidt: string, disableSelect = false) {
 
                 <a-button class="group" @click="addNewColumnRow(tableIdx, 'SingleLineText')">
                   <div class="flex items-center">
-                    <mdi-alpha-a class="group-hover:!text-accent text-lg" />
+                    <component :is="iconMap.text" class="group-hover:!text-accent text-lg" />
                   </div>
                 </a-button>
               </a-tooltip>
@@ -858,7 +886,7 @@ function isSelectDisabled(uidt: string, disableSelect = false) {
 
                 <a-button class="group" @click="addNewColumnRow(tableIdx, 'LongText')">
                   <div class="flex items-center">
-                    <mdi-text class="group-hover:!text-accent text-lg" />
+                    <component :is="iconMap.longText" class="group-hover:!text-accent text-lg" />
                   </div>
                 </a-button>
               </a-tooltip>
@@ -871,7 +899,7 @@ function isSelectDisabled(uidt: string, disableSelect = false) {
 
                 <a-button class="group" @click="addNewColumnRow(tableIdx, 'SingleLineText')">
                   <div class="flex items-center gap-1">
-                    <mdi-plus class="group-hover:!text-accent text-lg" />
+                    <component :is="iconMap.plus" class="group-hover:!text-accent text-lg" />
                   </div>
                 </a-button>
               </a-tooltip>

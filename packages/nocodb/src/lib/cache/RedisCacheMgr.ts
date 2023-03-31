@@ -1,7 +1,7 @@
 import debug from 'debug';
-import CacheMgr from './CacheMgr';
 import Redis from 'ioredis';
 import { CacheDelDirection, CacheGetType, CacheScope } from '../utils/globals';
+import CacheMgr from './CacheMgr';
 
 const log = debug('nc:cache');
 

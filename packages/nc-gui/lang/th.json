@@ -39,6 +39,7 @@
     "signIn": "เข้าสู่ระบบ",
     "signOut": "ออกจากระบบ",
     "required": "ที่จำเป็น",
+    "enableScanner": "Enable Scanner for filling",
     "preferred": "ที่ชอบ",
     "mandatory": "บังคับ",
     "loading": "กำลังโหลด ...",
@@ -74,7 +75,8 @@
     "insertBefore": "Insert Before",
     "hideField": "Hide Field",
     "sortAsc": "Sort Ascending",
-    "sortDesc": "Sort Descending"
+    "sortDesc": "Sort Descending",
+    "geoDataField": "GeoData Field"
   },
   "objects": {
     "project": "โครงการ",
@@ -98,7 +100,8 @@
       "gallery": "แกลลอรี่",
       "form": "รูปร่าง",
       "kanban": "ภาษาคณาตา",
-      "calendar": "ปฏิทิน"
+      "calendar": "ปฏิทิน",
+      "map": "Map"
     },
     "user": "ผู้ใช้",
     "users": "ผู้ใช้",
@@ -136,6 +139,7 @@
     "Currency": "สกุลเงิน",
     "Percent": "ร้อยละ",
     "Duration": "ระยะเวลา",
+    "GeoData": "GeoData",
     "Rating": "การจัดอันดับ",
     "Formula": "สูตร",
     "Rollup": "ม้วน",
@@ -206,7 +210,8 @@
     "advancedSettings": "Advanced Settings",
     "codeSnippet": "Code Snippet",
     "keyboardShortcut": "Keyboard Shortcuts",
-    "generateRandomName": "Generate Random Name"
+    "generateRandomName": "Generate Random Name",
+    "findRowByScanningCode": "Find row by scanning a QR or Barcode"
   },
   "labels": {
     "createdBy": "Created By",
@@ -216,6 +221,7 @@
     "viewName": "ดูชื่อ",
     "viewLink": "ดูลิงค์",
     "columnName": "ชื่อคอลัมน์",
+    "columnToScanFor": "Column to scan",
     "columnType": "ประเภทคอลัมน์",
     "roleName": "ชื่อบทบาท",
     "roleDescription": "คำอธิบายบทบาท",
@@ -232,6 +238,7 @@
     "action": "หนังบู๊",
     "actions": "การกระทำ",
     "operation": "การดำเนินการ",
+    "operationSub": "Sub Operation",
     "operationType": "ประเภทการทำงาน",
     "operationSubType": "การดำเนินงานประเภทย่อย",
     "description": "คำอธิบาย",
@@ -253,6 +260,9 @@
     "barcodeFormat": "Barcode format",
     "qrCodeValueTooLong": "Too many characters for a QR code",
     "barcodeValueTooLong": "Too many characters for a barcode",
+    "currentLocation": "Current Location",
+    "lng": "Lng",
+    "lat": "Lat",
     "aggregateFunction": "ฟังก์ชั่นรวม",
     "dbCreateIfNotExists": "ฐานข้อมูล: สร้างถ้าไม่มีอยู่",
     "clientKey": "รหัสลูกค้า",
@@ -386,8 +396,8 @@
     "saveAndExit": "Save & Exit",
     "saveAndStay": "Save & Stay",
     "insertRow": "แทรกแถวใหม่",
-    "deleteRow": "ลบแถว",
     "duplicateRow": "Duplicate Row",
+    "deleteRow": "ลบแถว",
     "deleteSelectedRow": "ลบแถวที่เลือก",
     "importExcel": "นำเข้า Excel",
     "importCSV": "Import CSV",
@@ -402,6 +412,8 @@
     "changePwd": "เปลี่ยนรหัสผ่าน",
     "createView": "สร้างมุมมอง",
     "shareView": "แบ่งปันมุมมอง",
+    "findRowByCodeScan": "Find row by scan",
+    "fillByCodeScan": "Fill by scan",
     "listSharedView": "รายการมุมมองที่ใช้ร่วมกัน",
     "ListView": "รายการมุมมอง",
     "copyView": "คัดลอกมุมมอง",
@@ -417,6 +429,10 @@
     "openTab": "เปิดแท็บใหม่",
     "iFrame": "คัดลอกรหัส HTML ที่ฝังได้",
     "addWebhook": "เพิ่ม webhook ใหม่",
+    "enableWebhook": "Enable Webhook",
+    "testWebhook": "Test Webhook",
+    "copyWebhook": "Copy Webhook",
+    "deleteWebhook": "Delete Webhook",
     "newToken": "เพิ่มโทเค็นใหม่",
     "exportZip": "ส่งออกซิป",
     "importZip": "zip นำเข้า",
@@ -452,7 +468,14 @@
       "stackedBy": "Stacked By",
       "chooseGroupingField": "Choose a Grouping Field",
       "addOrEditStack": "Add / Edit Stack"
-    }
+    },
+    "map": {
+      "mappedBy": "Mapped By",
+      "chooseMappingField": "Choose a Mapping Field",
+      "openInGoogleMaps": "Google Maps",
+      "openInOpenStreetMap": "OSM"
+    },
+    "toggleMobileMode": "Toggle Mobile Mode"
   },
   "tooltip": {
     "saveChanges": "บันทึกการเปลี่ยนแปลง",
@@ -517,6 +540,17 @@
       "roles": {
         "orgCreator": "Creator can create new projects and access any invited project.",
         "orgViewer": "Viewer is not allowed to create new projects but they can access any invited project."
+      },
+      "codeScanner": {
+        "loadingScanner": "Loading the scanner...",
+        "selectColumn": "Select a column (QR code or Barcode) that you want to use for finding a row by scanning.",
+        "moreThanOneRowFoundForCode": "More than one row found for this code. Currently only unique codes are supported.",
+        "noRowFoundForCode": "No row found for this code for the selected column"
+      },
+      "map": {
+        "overLimit": "You're over the limit.",
+        "closeLimit": "You're getting close to the limit.",
+        "limitNumber": "The limit of markers shown in a Map View is 1000 records."
       },
       "footerInfo": "แถวต่อหน้า",
       "upload": "เลือกไฟล์ที่จะอัปโหลด",
@@ -600,6 +634,7 @@
         "gallery": "เพิ่มมุมมองแกลลอรี่",
         "form": "เพิ่มมุมมองแบบฟอร์ม",
         "kanban": "เพิ่มมุมมอง Kanban",
+        "map": "Add Map View",
         "calendar": "เพิ่มมุมมองปฏิทิน"
       },
       "tablesMetadataInSync": "ตารางเมตาดาต้ากำลังซิงค์",
@@ -663,6 +698,7 @@
         "allowedSpecialCharList": "Allowed special character list"
       },
       "invalidURL": "Invalid URL",
+      "invalidEmail": "Invalid Email",
       "internalError": "Some internal error occurred",
       "templateGeneratorNotFound": "Template Generator cannot be found!",
       "fileUploadFailed": "Failed to upload file",
@@ -690,6 +726,7 @@
       "nameShouldStartWithAnAlphabetOr_": "Name should start with an alphabet or _",
       "followingCharactersAreNotAllowed": "Following characters are not allowed",
       "columnNameRequired": "Column name is required",
+      "columnNameExceedsCharacters": "The length of column name exceeds the max {value} characters",
       "projectNameExceeds50Characters": "Project name exceeds 50 characters",
       "projectNameCannotStartWithSpace": "Project name cannot start with space",
       "requiredField": "Required field",
@@ -742,6 +779,7 @@
       "userDeletedFromProject": "Successfully deleted user from project",
       "inviteEmailSent": "Invite Email sent successfully",
       "inviteURLCopied": "Invite URL copied to clipboard",
+      "commentCopied": "Comment copied to clipboard",
       "passwordResetURLCopied": "Password reset URL copied to clipboard",
       "shareableURLCopied": "Copied shareable base URL to clipboard!",
       "embeddableHTMLCodeCopied": "Copied embeddable HTML code!",

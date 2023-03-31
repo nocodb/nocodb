@@ -39,6 +39,7 @@
     "signIn": "登入",
     "signOut": "登出",
     "required": "必填",
+    "enableScanner": "Enable Scanner for filling",
     "preferred": "首選",
     "mandatory": "強制的",
     "loading": "載入中...",
@@ -74,7 +75,8 @@
     "insertBefore": "Insert Before",
     "hideField": "Hide Field",
     "sortAsc": "Sort Ascending",
-    "sortDesc": "Sort Descending"
+    "sortDesc": "Sort Descending",
+    "geoDataField": "GeoData Field"
   },
   "objects": {
     "project": "項目",
@@ -98,7 +100,8 @@
       "gallery": "相簿",
       "form": "表單",
       "kanban": "看板",
-      "calendar": "日曆"
+      "calendar": "日曆",
+      "map": "Map"
     },
     "user": "使用者",
     "users": "使用者",
@@ -136,6 +139,7 @@
     "Currency": "貨幣",
     "Percent": "百分",
     "Duration": "期間",
+    "GeoData": "GeoData",
     "Rating": "評分",
     "Formula": "公式",
     "Rollup": "捲起",
@@ -206,7 +210,8 @@
     "advancedSettings": "進階設定",
     "codeSnippet": "程式碼片段",
     "keyboardShortcut": "Keyboard Shortcuts",
-    "generateRandomName": "Generate Random Name"
+    "generateRandomName": "Generate Random Name",
+    "findRowByScanningCode": "Find row by scanning a QR or Barcode"
   },
   "labels": {
     "createdBy": "Created By",
@@ -216,6 +221,7 @@
     "viewName": "檢視名稱",
     "viewLink": "查看鏈接",
     "columnName": "列名稱",
+    "columnToScanFor": "Column to scan",
     "columnType": "列類型",
     "roleName": "角色名稱",
     "roleDescription": "角色描述",
@@ -232,6 +238,7 @@
     "action": "行動",
     "actions": "行動",
     "operation": "操作",
+    "operationSub": "Sub Operation",
     "operationType": "操作類型",
     "operationSubType": "操作子類型",
     "description": "描述",
@@ -253,6 +260,9 @@
     "barcodeFormat": "Barcode format",
     "qrCodeValueTooLong": "Too many characters for a QR code",
     "barcodeValueTooLong": "Too many characters for a barcode",
+    "currentLocation": "Current Location",
+    "lng": "Lng",
+    "lat": "Lat",
     "aggregateFunction": "匯總功能",
     "dbCreateIfNotExists": "資料庫：不存在則建立",
     "clientKey": "用戶端金鑰",
@@ -386,8 +396,8 @@
     "saveAndExit": "儲存並結束",
     "saveAndStay": "Save & Stay",
     "insertRow": "插入新行",
-    "deleteRow": "刪除行",
     "duplicateRow": "Duplicate Row",
+    "deleteRow": "刪除行",
     "deleteSelectedRow": "刪除所選行",
     "importExcel": "匯入 Excel",
     "importCSV": "匯入 CSV",
@@ -402,6 +412,8 @@
     "changePwd": "更改密碼",
     "createView": "建立檢視",
     "shareView": "分享檢視",
+    "findRowByCodeScan": "Find row by scan",
+    "fillByCodeScan": "Fill by scan",
     "listSharedView": "共享視圖列表",
     "ListView": "檢視表清單",
     "copyView": "複製檢視",
@@ -417,6 +429,10 @@
     "openTab": "開啟新分頁",
     "iFrame": "複製嵌入式 HTML 程式碼",
     "addWebhook": "新增 webhook",
+    "enableWebhook": "Enable Webhook",
+    "testWebhook": "Test Webhook",
+    "copyWebhook": "Copy Webhook",
+    "deleteWebhook": "Delete Webhook",
     "newToken": "新增權杖",
     "exportZip": "匯出 ZIP",
     "importZip": "匯入 ZIP",
@@ -452,7 +468,14 @@
       "stackedBy": "Stacked By",
       "chooseGroupingField": "Choose a Grouping Field",
       "addOrEditStack": "Add / Edit Stack"
-    }
+    },
+    "map": {
+      "mappedBy": "Mapped By",
+      "chooseMappingField": "Choose a Mapping Field",
+      "openInGoogleMaps": "Google Maps",
+      "openInOpenStreetMap": "OSM"
+    },
+    "toggleMobileMode": "Toggle Mobile Mode"
   },
   "tooltip": {
     "saveChanges": "儲存更動",
@@ -517,6 +540,17 @@
       "roles": {
         "orgCreator": "建立者可以建立專案與存取任何受邀請的專案",
         "orgViewer": "檢視者不能建立專案但可以存取任何受邀請的專案"
+      },
+      "codeScanner": {
+        "loadingScanner": "Loading the scanner...",
+        "selectColumn": "Select a column (QR code or Barcode) that you want to use for finding a row by scanning.",
+        "moreThanOneRowFoundForCode": "More than one row found for this code. Currently only unique codes are supported.",
+        "noRowFoundForCode": "No row found for this code for the selected column"
+      },
+      "map": {
+        "overLimit": "You're over the limit.",
+        "closeLimit": "You're getting close to the limit.",
+        "limitNumber": "The limit of markers shown in a Map View is 1000 records."
       },
       "footerInfo": "每頁行駛",
       "upload": "選擇檔案以上傳",
@@ -600,6 +634,7 @@
         "gallery": "加入相簿檢視",
         "form": "加入表單檢視",
         "kanban": "加入看板檢視",
+        "map": "Add Map View",
         "calendar": "加入日曆檢視"
       },
       "tablesMetadataInSync": "表元數據同步",
@@ -663,6 +698,7 @@
         "allowedSpecialCharList": "允許特殊字元列表"
       },
       "invalidURL": "無效的連結",
+      "invalidEmail": "Invalid Email",
       "internalError": "發生內部錯誤",
       "templateGeneratorNotFound": "Template Generator cannot be found!",
       "fileUploadFailed": "上傳文件失敗",
@@ -690,6 +726,7 @@
       "nameShouldStartWithAnAlphabetOr_": "名稱必須用 英文字母 或 _ 當開頭",
       "followingCharactersAreNotAllowed": "Following characters are not allowed",
       "columnNameRequired": "欄位名稱必填",
+      "columnNameExceedsCharacters": "The length of column name exceeds the max {value} characters",
       "projectNameExceeds50Characters": "專案名稱超過 50 個字元",
       "projectNameCannotStartWithSpace": "專案名稱不能有空白開頭",
       "requiredField": "必填欄位",
@@ -742,6 +779,7 @@
       "userDeletedFromProject": "專案移除使用者成功",
       "inviteEmailSent": "邀請郵件發送成功",
       "inviteURLCopied": "邀請連結已複製到剪貼簿",
+      "commentCopied": "Comment copied to clipboard",
       "passwordResetURLCopied": "密碼重置連結已複製到剪貼簿",
       "shareableURLCopied": "Copied shareable base URL to clipboard!",
       "embeddableHTMLCodeCopied": "Copied embeddable HTML code!",

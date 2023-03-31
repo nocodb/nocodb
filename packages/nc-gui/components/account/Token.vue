@@ -1,7 +1,8 @@
 <script lang="ts" setup>
+import type { VNodeRef } from '@vue/runtime-core'
 import { Empty, Modal, message } from 'ant-design-vue'
 import type { ApiTokenType, RequestParams, UserType } from 'nocodb-sdk'
-import { extractSdkResponseErrorMsg, useApi, useCopy, useNuxtApp } from '#imports'
+import { extractSdkResponseErrorMsg, iconMap, useApi, useCopy, useNuxtApp } from '#imports'
 
 const { api, isLoading } = useApi()
 
@@ -42,7 +43,7 @@ const loadTokens = async (page = currentPage, limit = currentLimit) => {
     pagination.pageSize = 10
 
     tokens = response.list as UserType[]
-  } catch (e) {
+  } catch (e: any) {
     message.error(await extractSdkResponseErrorMsg(e))
   }
 }
@@ -55,11 +56,10 @@ const deleteToken = async (token: string) => {
     type: 'warn',
     onOk: async () => {
       try {
-        // todo: delete token
         await api.orgTokens.delete(token)
         message.success(t('msg.success.tokenDeleted'))
         await loadTokens()
-      } catch (e) {
+      } catch (e: any) {
         message.error(await extractSdkResponseErrorMsg(e))
       }
       $e('a:account:token:delete')
@@ -75,7 +75,7 @@ const generateToken = async () => {
     message.success(t('msg.success.tokenGenerated'))
     selectedTokenData = {}
     await loadTokens()
-  } catch (e) {
+  } catch (e: any) {
     message.error(await extractSdkResponseErrorMsg(e))
   }
   $e('a:api-token:generate')
@@ -90,14 +90,12 @@ const copyToken = async (token: string | undefined) => {
     message.info(t('msg.info.copiedToClipboard'))
 
     $e('c:api-token:copy')
-  } catch (e) {
+  } catch (e: any) {
     message.error(e.message)
   }
 }
 
-const descriptionInput = (el) => {
-  el?.focus()
-}
+const descriptionInput: VNodeRef = (el) => (el as HTMLInputElement)?.focus()
 </script>
 
 <template>
@@ -106,10 +104,10 @@ const descriptionInput = (el) => {
     <div class="max-w-[900px] mx-auto p-4" data-testid="nc-token-list">
       <div class="py-2 flex gap-4 items-center">
         <div class="flex-grow"></div>
-        <MdiReload class="cursor-pointer" @click="loadTokens" />
+        <component :is="iconMap.reload" class="cursor-pointer" @click="loadTokens" />
         <a-button data-testid="nc-token-create" size="small" type="primary" @click="showNewTokenModal = true">
           <div class="flex items-center gap-1">
-            <MdiAdd />
+            <component :is="iconMap.plus" />
             Add new token
           </div>
         </a-button>
@@ -177,7 +175,7 @@ const descriptionInput = (el) => {
 
                 <a-button type="text" class="!rounded-md" @click="copyToken(record.token)">
                   <template #icon>
-                    <MdiContentCopy class="flex mx-auto h-[1rem]" />
+                    <component :is="iconMap.copy" class="flex mx-auto h-[1rem]" />
                   </template>
                 </a-button>
               </a-tooltip>
@@ -200,7 +198,7 @@ const descriptionInput = (el) => {
                   <a-menu data-testid="nc-token-row-action-icon">
                     <a-menu-item>
                       <div class="flex flex-row items-center py-3 h-[1rem] nc-delete-token" @click="deleteToken(record.token)">
-                        <MdiDeleteOutline class="flex" />
+                        <component :is="iconMap.delete" class="flex" />
                         <div class="text-xs pl-2">{{ $t('general.remove') }}</div>
                       </div>
                     </a-menu-item>

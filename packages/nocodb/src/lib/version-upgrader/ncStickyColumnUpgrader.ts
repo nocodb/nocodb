@@ -1,5 +1,5 @@
-import { NcUpgraderCtx } from './NcUpgrader';
 import { MetaTable } from '../utils/globals';
+import type { NcUpgraderCtx } from './NcUpgrader';
 
 // before 0.104.3, display value column can be in any position in table
 // with this upgrade we introduced sticky primary column feature

@@ -1,6 +1,6 @@
 <script lang="ts" setup>
 import type { RuleObject } from 'ant-design-vue/es/form'
-import { message, navigateTo, reactive, ref, useApi, useGlobal, useI18n, useRouter } from '#imports'
+import { iconMap, message, navigateTo, reactive, ref, useApi, useGlobal, useI18n, useRouter } from '#imports'
 
 const router = useRouter()
 
@@ -57,7 +57,7 @@ const passwordChange = async () => {
 
   message.success(t('msg.success.passwordChanged'))
 
-  signOut()
+  await signOut()
 
   navigateTo('/signin')
 }
@@ -78,7 +78,7 @@ const resetError = () => {
       class="color-transition transform group absolute top-5 left-5 text-4xl rounded-full cursor-pointer"
       @click="() => router.back()"
     >
-      <MdiChevronLeft class="text-black group-hover:(text-accent scale-110)" />
+      <component :is="iconMap.chevronLeft" class="text-black group-hover:(text-accent scale-110)" />
     </div>
 
     <h1 class="prose-2xl font-bold self-center my-4">{{ $t('activity.changePwd') }}</h1>
@@ -137,7 +137,7 @@ const resetError = () => {
       <div class="text-center">
         <button data-testid="nc-user-settings-form__submit" class="scaling-btn bg-opacity-100" type="submit">
           <span class="flex items-center gap-2">
-            <MdiKeyChange />
+            <component :is="iconMap.passwordChange" />
             {{ $t('activity.changePwd') }}
           </span>
         </button>

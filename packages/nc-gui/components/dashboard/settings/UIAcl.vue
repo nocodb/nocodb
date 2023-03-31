@@ -4,8 +4,10 @@ import {
   computed,
   extractSdkResponseErrorMsg,
   h,
+  iconMap,
   message,
   onMounted,
+  storeToRefs,
   useGlobal,
   useI18n,
   useNuxtApp,
@@ -20,7 +22,7 @@ const { t } = useI18n()
 
 const { $api, $e } = useNuxtApp()
 
-const { project } = useProject()
+const { project } = storeToRefs(useProject())
 
 const { includeM2M } = useGlobal()
 
@@ -119,20 +121,20 @@ const columns = [
       <div class="flex flex-row items-center w-full mb-4 gap-2">
         <a-input v-model:value="searchInput" placeholder="Search models" class="nc-acl-search">
           <template #prefix>
-            <MdiMagnify />
+            <component :is="iconMap.search" />
           </template>
         </a-input>
 
         <a-button class="self-start nc-acl-reload" @click="loadTableList">
           <div class="flex items-center gap-2 text-gray-600 font-light">
-            <MdiReload :class="{ 'animate-infinite animate-spin !text-success': isLoading }" />
+            <component :is="iconMap.reload" :class="{ 'animate-infinite animate-spin !text-success': isLoading }" />
             Reload
           </div>
         </a-button>
 
         <a-button class="self-start nc-acl-save" @click="saveUIAcl">
           <div class="flex items-center gap-2 text-gray-600 font-light">
-            <MdiContentSave />
+            <component :is="iconMap.save" />
             Save
           </div>
         </a-button>

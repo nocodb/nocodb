@@ -1,12 +1,12 @@
 import fs from 'fs';
 import { promisify } from 'util';
 import AWS from 'aws-sdk';
-import { IStorageAdapterV2, XcFile } from 'nc-plugin';
 import request from 'request';
 import {
-  waitForStreamClose,
   generateTempFilePath,
+  waitForStreamClose,
 } from '../../utils/pluginUtils';
+import type { IStorageAdapterV2, XcFile } from 'nc-plugin';
 
 export default class UpoCloud implements IStorageAdapterV2 {
   private s3Client: AWS.S3;

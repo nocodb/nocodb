@@ -1,7 +1,6 @@
-import lodash from 'lodash';
-
-import { Acl } from '../../../../../../interface/config';
+import uniqBy from 'lodash/uniqBy';
 import BaseRender from '../../BaseRender';
+import type { Acl } from '../../../../../../interface/config';
 
 class ExpressXcMiddleware extends BaseRender {
   /**
@@ -60,7 +59,7 @@ class ExpressXcMiddleware extends BaseRender {
       ? args.relations.filter((r) => r.rtn === args.tn)
       : [];
     if (hmRelations.length > 1)
-      hmRelations = lodash.uniqBy(hmRelations, function (e) {
+      hmRelations = uniqBy(hmRelations, function (e) {
         return [e.tn, e.rtn].join();
       });
     for (let i = 0; i < hmRelations.length; ++i) {
@@ -86,7 +85,7 @@ class ExpressXcMiddleware extends BaseRender {
       ? args.relations.filter((r) => r.tn === args.tn)
       : [];
     if (btRelations.length > 1)
-      btRelations = lodash.uniqBy(btRelations, function (e) {
+      btRelations = uniqBy(btRelations, function (e) {
         return [e.tn, e.rtn].join();
       });
     for (let i = 0; i < btRelations.length; ++i) {

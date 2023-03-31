@@ -2,7 +2,7 @@ import { MetaTable } from '../utils/globals';
 import Noco from '../Noco';
 import { extractProps } from '../meta/helpers/extractProps';
 import Hook from './Hook';
-import { HookLogType } from 'nocodb-sdk';
+import type { HookLogType } from 'nocodb-sdk';
 
 export default class HookLog implements HookLogType {
   id?: string;
@@ -64,15 +64,7 @@ export default class HookLog implements HookLogType {
     return hookLogs?.map((h) => new HookLog(h));
   }
 
-  public static async insert(
-    hookLog: Partial<
-      HookLog & {
-        created_at?;
-        updated_at?;
-      }
-    >,
-    ncMeta = Noco.ncMeta
-  ) {
+  public static async insert(hookLog: Partial<HookLog>, ncMeta = Noco.ncMeta) {
     const insertObj: any = extractProps(hookLog, [
       'base_id',
       'project_id',

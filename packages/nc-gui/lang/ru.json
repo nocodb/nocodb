@@ -39,6 +39,7 @@
     "signIn": "ВОЙТИ",
     "signOut": "Выход",
     "required": "Обязательно",
+    "enableScanner": "Enable Scanner for filling",
     "preferred": "Рекомендовано",
     "mandatory": "Обязательный",
     "loading": "Загрузка ...",
@@ -74,7 +75,8 @@
     "insertBefore": "Вставить перед",
     "hideField": "Скрыть поле",
     "sortAsc": "По Возрастанию",
-    "sortDesc": "По убыванию"
+    "sortDesc": "По убыванию",
+    "geoDataField": "GeoData Field"
   },
   "objects": {
     "project": "Проект",
@@ -98,7 +100,8 @@
       "gallery": "Галерея",
       "form": "Форма",
       "kanban": "Канбан",
-      "calendar": "Календарь"
+      "calendar": "Календарь",
+      "map": "Map"
     },
     "user": "Пользователь",
     "users": "Пользователи",
@@ -136,6 +139,7 @@
     "Currency": "Валюта",
     "Percent": "Процент",
     "Duration": "Интервал времени",
+    "GeoData": "GeoData",
     "Rating": "Рейтинг",
     "Formula": "Формула",
     "Rollup": "Итоги (Rollup)",
@@ -206,7 +210,8 @@
     "advancedSettings": "Расширенные настройки",
     "codeSnippet": "Сниппет кода",
     "keyboardShortcut": "Горячие клавиши",
-    "generateRandomName": "Сгенерировать случайное имя"
+    "generateRandomName": "Сгенерировать случайное имя",
+    "findRowByScanningCode": "Find row by scanning a QR or Barcode"
   },
   "labels": {
     "createdBy": "Автор",
@@ -216,6 +221,7 @@
     "viewName": "Название представления",
     "viewLink": "Ссылка на представление",
     "columnName": "Название столбца",
+    "columnToScanFor": "Column to scan",
     "columnType": "Тип столбца",
     "roleName": "Имя роли",
     "roleDescription": "Описание роли",
@@ -232,6 +238,7 @@
     "action": "Действие",
     "actions": "Действия",
     "operation": "Операция",
+    "operationSub": "Sub Operation",
     "operationType": "Тип операции",
     "operationSubType": "Подтип операции",
     "description": "Описание",
@@ -253,6 +260,9 @@
     "barcodeFormat": "Формат штрих-кода",
     "qrCodeValueTooLong": "Слишком много символов для QR-кода",
     "barcodeValueTooLong": "Слишком много символов для штрихкода",
+    "currentLocation": "Current Location",
+    "lng": "Lng",
+    "lat": "Lat",
     "aggregateFunction": "Агрегатная функция",
     "dbCreateIfNotExists": "База данных: создать, если не существует",
     "clientKey": "Ключ клиента",
@@ -386,8 +396,8 @@
     "saveAndExit": "Сохранить и выйти",
     "saveAndStay": "Сохранить и остаться",
     "insertRow": "Вставить новую строку",
-    "deleteRow": "Удалить строку",
     "duplicateRow": "Duplicate Row",
+    "deleteRow": "Удалить строку",
     "deleteSelectedRow": "Удалить выбранные строки",
     "importExcel": "Импорт из Excel",
     "importCSV": "Импорт CSV",
@@ -402,6 +412,8 @@
     "changePwd": "Изменить пароль",
     "createView": "Создать представление",
     "shareView": "Поделиться представлением",
+    "findRowByCodeScan": "Find row by scan",
+    "fillByCodeScan": "Fill by scan",
     "listSharedView": "Общий список представлений",
     "ListView": "Список представлений",
     "copyView": "Скопировать представление",
@@ -417,6 +429,10 @@
     "openTab": "Открыть новую вкладку",
     "iFrame": "Копировать встраеваемый HTML-код",
     "addWebhook": "Добавить новый Web Hook",
+    "enableWebhook": "Enable Webhook",
+    "testWebhook": "Test Webhook",
+    "copyWebhook": "Copy Webhook",
+    "deleteWebhook": "Delete Webhook",
     "newToken": "Добавить новый токен",
     "exportZip": "Экспорт в zip",
     "importZip": "Импорт из zip",
@@ -452,7 +468,14 @@
       "stackedBy": "Группировка по",
       "chooseGroupingField": "Выберите поле группировки",
       "addOrEditStack": "Добавление / редактирование стека"
-    }
+    },
+    "map": {
+      "mappedBy": "Mapped By",
+      "chooseMappingField": "Choose a Mapping Field",
+      "openInGoogleMaps": "Google Maps",
+      "openInOpenStreetMap": "OSM"
+    },
+    "toggleMobileMode": "Toggle Mobile Mode"
   },
   "tooltip": {
     "saveChanges": "Сохранить изменения",
@@ -517,6 +540,17 @@
       "roles": {
         "orgCreator": "Создатель может создавать новые проекты и получать доступ к любому приглашенному проекту.",
         "orgViewer": "Наблюдатель не может создавать новые проекты, но может получить доступ к любому проекту по приглашению."
+      },
+      "codeScanner": {
+        "loadingScanner": "Loading the scanner...",
+        "selectColumn": "Select a column (QR code or Barcode) that you want to use for finding a row by scanning.",
+        "moreThanOneRowFoundForCode": "More than one row found for this code. Currently only unique codes are supported.",
+        "noRowFoundForCode": "No row found for this code for the selected column"
+      },
+      "map": {
+        "overLimit": "You're over the limit.",
+        "closeLimit": "You're getting close to the limit.",
+        "limitNumber": "The limit of markers shown in a Map View is 1000 records."
       },
       "footerInfo": "Количество строк на странице",
       "upload": "Выберите файл для загрузки",
@@ -600,6 +634,7 @@
         "gallery": "Добавить представление галерея",
         "form": "Добавить представление форма",
         "kanban": "Добавить представление Канбан",
+        "map": "Add Map View",
         "calendar": "Добавить представление календарь"
       },
       "tablesMetadataInSync": "Таблицы метаданные синхронизируются",
@@ -663,6 +698,7 @@
         "allowedSpecialCharList": "Список разрешенных специальных символов"
       },
       "invalidURL": "Неверный URL",
+      "invalidEmail": "Invalid Email",
       "internalError": "Произошла какая-то внутренняя ошибка",
       "templateGeneratorNotFound": "Генератор шаблонов не найден!",
       "fileUploadFailed": "Не удалось загрузить файл",
@@ -690,6 +726,7 @@
       "nameShouldStartWithAnAlphabetOr_": "Имя должно начинаться с алфавита или _",
       "followingCharactersAreNotAllowed": "Нельзя использовать следующие символы",
       "columnNameRequired": "Требуется название столбца",
+      "columnNameExceedsCharacters": "The length of column name exceeds the max {value} characters",
       "projectNameExceeds50Characters": "Название проекта превышает 50 символов",
       "projectNameCannotStartWithSpace": "Название проекта не может начинаться с пробела",
       "requiredField": "Обязательное поле",
@@ -742,6 +779,7 @@
       "userDeletedFromProject": "Успешное удаление пользователя из проекта",
       "inviteEmailSent": "Приглашение по электронной почте отправлено успешно",
       "inviteURLCopied": "URL-адрес приглашения скопирован в буфер обмена",
+      "commentCopied": "Comment copied to clipboard",
       "passwordResetURLCopied": "URL-адрес сброса пароля скопирован в буфер обмена",
       "shareableURLCopied": "Копирование URL базы с возможностью совместного использования в буфер обмена!",
       "embeddableHTMLCodeCopied": "Скопированный встраиваемый HTML-код!",

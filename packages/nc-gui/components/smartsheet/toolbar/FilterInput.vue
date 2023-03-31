@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import type { ColumnType } from 'nocodb-sdk'
+import { storeToRefs } from 'pinia'
 import {
   ColumnInj,
   EditModeInj,
@@ -83,9 +84,11 @@ const checkTypeFunctions = {
 
 type FilterType = keyof typeof checkTypeFunctions
 
-const { sqlUi } = $(useProject())
+const { sqlUis } = storeToRefs(useProject())
 
-const abstractType = $computed(() => (column.value?.dt && sqlUi ? sqlUi.getAbstractType(column.value) : null))
+const sqlUi = ref(column.value?.base_id ? sqlUis.value[column.value?.base_id] : Object.values(sqlUis.value)[0])
+
+const abstractType = computed(() => column.value && sqlUi.value.getAbstractType(column.value))
 
 const checkType = (filterType: FilterType) => {
   const checkTypeFunction = checkTypeFunctions[filterType]
@@ -117,9 +120,13 @@ const componentMap: Partial<Record<FilterType, any>> = $computed(() => {
     // use MultiSelect for SingleSelect columns for anyof / nanyof filters
     isSingleSelect: ['anyof', 'nanyof'].includes(props.filter.comparison_op!) ? MultiSelect : SingleSelect,
     isMultiSelect: MultiSelect,
-    isDate: DatePicker,
+    isDate: ['daysAgo', 'daysFromNow', 'pastNumberOfDays', 'nextNumberOfDays'].includes(props.filter.comparison_sub_op!)
+      ? Decimal
+      : DatePicker,
     isYear: YearPicker,
-    isDateTime: DateTimePicker,
+    isDateTime: ['daysAgo', 'daysFromNow', 'pastNumberOfDays', 'nextNumberOfDays'].includes(props.filter.comparison_sub_op!)
+      ? Decimal
+      : DateTimePicker,
     isTime: TimePicker,
     isRating: Rating,
     isDuration: Duration,
@@ -189,6 +196,7 @@ const hasExtraPadding = $computed(() => {
       :column="column"
       class="flex"
       v-bind="componentProps"
+      location="filter"
     />
   </div>
 </template>

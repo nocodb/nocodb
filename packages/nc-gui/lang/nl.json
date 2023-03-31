@@ -39,6 +39,7 @@
     "signIn": "AANMELDEN",
     "signOut": "Afmelden",
     "required": "Verplicht",
+    "enableScanner": "Enable Scanner for filling",
     "preferred": "Gewenst",
     "mandatory": "Verplicht",
     "loading": "Bezig met laden ...",
@@ -74,7 +75,8 @@
     "insertBefore": "Invoegen voor",
     "hideField": "Verberg veld",
     "sortAsc": "Oplopend sorteren",
-    "sortDesc": "Aflopend sorteren"
+    "sortDesc": "Aflopend sorteren",
+    "geoDataField": "GeoData Field"
   },
   "objects": {
     "project": "Project",
@@ -98,7 +100,8 @@
       "gallery": "Galerij",
       "form": "Formulier",
       "kanban": "Kanban",
-      "calendar": "Kalender"
+      "calendar": "Kalender",
+      "map": "Map"
     },
     "user": "Gebruiker",
     "users": "Gebruikers",
@@ -136,6 +139,7 @@
     "Currency": "Munteenheid",
     "Percent": "Procent",
     "Duration": "Looptijd",
+    "GeoData": "GeoData",
     "Rating": "Beoordeling",
     "Formula": "Formule",
     "Rollup": "Rollup",
@@ -206,7 +210,8 @@
     "advancedSettings": "Geavanceerde instellingen",
     "codeSnippet": "Codefragment",
     "keyboardShortcut": "Sneltoetsen",
-    "generateRandomName": "Generate Random Name"
+    "generateRandomName": "Generate Random Name",
+    "findRowByScanningCode": "Find row by scanning a QR or Barcode"
   },
   "labels": {
     "createdBy": "Gemaakt door",
@@ -216,6 +221,7 @@
     "viewName": "Weergavenaam",
     "viewLink": "Toon Link",
     "columnName": "Kolomnaam",
+    "columnToScanFor": "Column to scan",
     "columnType": "Kolomtype",
     "roleName": "Rolnaam",
     "roleDescription": "Rolbeschrijving",
@@ -232,6 +238,7 @@
     "action": "Actie",
     "actions": "Acties",
     "operation": "Operatie",
+    "operationSub": "Sub Operation",
     "operationType": "Operatietype",
     "operationSubType": "Operatiesubtype",
     "description": "Beschrijving",
@@ -253,6 +260,9 @@
     "barcodeFormat": "Barcode formaat",
     "qrCodeValueTooLong": "Te veel tekens voor een QR-code",
     "barcodeValueTooLong": "Te veel tekens voor een streepjescode",
+    "currentLocation": "Current Location",
+    "lng": "Lng",
+    "lat": "Lat",
     "aggregateFunction": "Geaggregeerde functie",
     "dbCreateIfNotExists": "Database: creëer als het niet bestaat",
     "clientKey": "Klantensleutel",
@@ -386,8 +396,8 @@
     "saveAndExit": "Opslaan en afsluiten",
     "saveAndStay": "Sparen & Blijven",
     "insertRow": "Voeg nieuwe rij toe",
-    "deleteRow": "Verwijder rij",
     "duplicateRow": "Duplicate Row",
+    "deleteRow": "Verwijder rij",
     "deleteSelectedRow": "Verwijder geselecteerde rijen",
     "importExcel": "Excel importeren",
     "importCSV": "CSV importeren",
@@ -402,6 +412,8 @@
     "changePwd": "Wachtwoord wijzigen",
     "createView": "Maak een weergave",
     "shareView": "Deel weergave",
+    "findRowByCodeScan": "Find row by scan",
+    "fillByCodeScan": "Fill by scan",
     "listSharedView": "Lijst van gedeelde weergaven",
     "ListView": "Weergavelijst",
     "copyView": "Kopieer weergave",
@@ -417,6 +429,10 @@
     "openTab": "Open nieuw tabblad",
     "iFrame": "Insluitbare HTML-code kopiëren",
     "addWebhook": "Webhook toevoegen",
+    "enableWebhook": "Enable Webhook",
+    "testWebhook": "Test Webhook",
+    "copyWebhook": "Copy Webhook",
+    "deleteWebhook": "Delete Webhook",
     "newToken": "Token toevoegen",
     "exportZip": "Exporteer als zip",
     "importZip": "Importeer van zip",
@@ -452,7 +468,14 @@
       "stackedBy": "Gestapeld door",
       "chooseGroupingField": "Kies een groepeerveld",
       "addOrEditStack": "Stapel toevoegen / bewerken"
-    }
+    },
+    "map": {
+      "mappedBy": "Mapped By",
+      "chooseMappingField": "Choose a Mapping Field",
+      "openInGoogleMaps": "Google Maps",
+      "openInOpenStreetMap": "OSM"
+    },
+    "toggleMobileMode": "Toggle Mobile Mode"
   },
   "tooltip": {
     "saveChanges": "Wijzigingen opslaan",
@@ -517,6 +540,17 @@
       "roles": {
         "orgCreator": "Creator kan nieuwe projecten aanmaken en heeft toegang tot elk uitgenodigd project.",
         "orgViewer": "De Viewer mag geen nieuwe projecten aanmaken, maar heeft wel toegang tot elk uitgenodigd project."
+      },
+      "codeScanner": {
+        "loadingScanner": "Loading the scanner...",
+        "selectColumn": "Select a column (QR code or Barcode) that you want to use for finding a row by scanning.",
+        "moreThanOneRowFoundForCode": "More than one row found for this code. Currently only unique codes are supported.",
+        "noRowFoundForCode": "No row found for this code for the selected column"
+      },
+      "map": {
+        "overLimit": "You're over the limit.",
+        "closeLimit": "You're getting close to the limit.",
+        "limitNumber": "The limit of markers shown in a Map View is 1000 records."
       },
       "footerInfo": "Rijen per pagina",
       "upload": "Selecteer bestand om te uploaden",
@@ -600,6 +634,7 @@
         "gallery": "Gallerijweergave toevoegen",
         "form": "Formulierweergave toevoegen",
         "kanban": "Kanbanweergave toevoegen",
+        "map": "Add Map View",
         "calendar": "Kalenderweergave toevoegen"
       },
       "tablesMetadataInSync": "Tabelmetadata is gesynchroniseerd",
@@ -663,6 +698,7 @@
         "allowedSpecialCharList": "Lijst met toegestane speciale tekens"
       },
       "invalidURL": "Ongeldige URL",
+      "invalidEmail": "Invalid Email",
       "internalError": "Er is een interne fout opgetreden",
       "templateGeneratorNotFound": "Sjabloongenerator kan niet worden gevonden!",
       "fileUploadFailed": "Bestand niet geüpload",
@@ -690,6 +726,7 @@
       "nameShouldStartWithAnAlphabetOr_": "De naam moet beginnen met een alfabet of _",
       "followingCharactersAreNotAllowed": "De volgende tekens zijn niet toegestaan",
       "columnNameRequired": "Kolomnaam is verplicht",
+      "columnNameExceedsCharacters": "The length of column name exceeds the max {value} characters",
       "projectNameExceeds50Characters": "Projectnaam meer dan 50 tekens",
       "projectNameCannotStartWithSpace": "Projectnaam kan niet beginnen met een spatie",
       "requiredField": "Verplicht veld",
@@ -742,6 +779,7 @@
       "userDeletedFromProject": "Gebruiker succesvol verwijderd uit project",
       "inviteEmailSent": "Uitnodigingsmail succesvol verzonden",
       "inviteURLCopied": "Uitnodiging URL gekopieerd naar klembord",
+      "commentCopied": "Comment copied to clipboard",
       "passwordResetURLCopied": "Wachtwoord reset URL gekopieerd naar klembord",
       "shareableURLCopied": "Deelbare basis URL gekopieerd naar klembord!",
       "embeddableHTMLCodeCopied": "Gekopieerde insluitbare HTML-code!",

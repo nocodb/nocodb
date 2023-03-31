@@ -15,10 +15,12 @@ import {
   fieldRequiredValidator,
   getDefaultConnectionConfig,
   getTestDatabaseName,
+  iconMap,
   onMounted,
   projectTitleValidator,
   readFile,
   ref,
+  storeToRefs,
   useApi,
   useI18n,
   useNuxtApp,
@@ -31,7 +33,9 @@ const props = defineProps<{
 
 const emit = defineEmits(['baseUpdated'])
 
-const { project, loadProject } = useProject()
+const projectStore = useProject()
+const { loadProject } = projectStore
+const { project } = storeToRefs(projectStore)
 
 const useForm = Form.useForm
 
@@ -534,11 +538,15 @@ onMounted(async () => {
 
                     <a-input v-model:value="item.value" />
 
-                    <MdiClose :style="{ 'font-size': '1.5em', 'color': 'red' }" @click="removeParam(index)" />
+                    <component
+                      :is="iconMap.close"
+                      :style="{ 'font-size': '1.5em', 'color': 'red' }"
+                      @click="removeParam(index)"
+                    />
                   </div>
                 </div>
                 <a-button type="dashed" class="w-full caption mt-2" @click="addNewParam">
-                  <div class="flex items-center justify-center"><MdiPlus /></div>
+                  <div class="flex items-center justify-center"><component :is="iconMap.plus" /></div>
                 </a-button>
               </a-card>
             </a-form-item>
@@ -585,7 +593,7 @@ onMounted(async () => {
         </div>
       </a-form-item>
       <div class="w-full flex items-center mt-2 text-[#e65100]">
-        <MdiWarning class="mr-1" />
+        <component :is="iconMap.warning" class="mr-1" />
         Please make sure database you are trying to connect is valid! This operation can cause schema loss!!
       </div>
     </a-form>

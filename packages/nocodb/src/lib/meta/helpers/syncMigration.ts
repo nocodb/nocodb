@@ -1,6 +1,6 @@
 import Migrator from '../../db/sql-migrator/lib/KnexMigratorv2';
-import Project from '../../models/Project';
-import Base from '../../models/Base';
+import type Project from '../../models/Project';
+import type Base from '../../models/Base';
 
 export default async function syncMigration(project: Project): Promise<void> {
   for (const base of await project.getBases()) {

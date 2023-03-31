@@ -1,5 +1,5 @@
-import { NcContextV2 } from '../NcMetaMgrv2';
 import Model from '../../models/Model';
+import type { NcContextV2 } from '../NcMetaMgrv2';
 
 export default async function (this: NcContextV2, { args }: any) {
   const meta = await Model.getByIdOrName({

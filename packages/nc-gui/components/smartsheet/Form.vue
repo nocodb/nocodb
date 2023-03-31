@@ -10,6 +10,7 @@ import {
   computed,
   createEventHook,
   extractSdkResponseErrorMsg,
+  iconMap,
   inject,
   message,
   onClickOutside,
@@ -97,7 +98,11 @@ const submitted = ref(false)
 
 const activeRow = ref('')
 
+const editEnabled = ref<boolean[]>([])
+
 const { t } = useI18n()
+
+const { betaFeatureToggleState } = useBetaFeatureToggle()
 
 const updateView = useDebounceFn(
   () => {
@@ -281,6 +286,8 @@ function setFormData() {
     .sort((a, b) => a.order - b.order)
     .map((c) => ({ ...c, required: !!c.required }))
 
+  editEnabled.value = new Array(localColumns.value.length).fill(false)
+
   systemFieldsIds.value = getSystemColumns(col).map((c) => c.fk_column_id)
 
   hiddenColumns.value = col.filter(
@@ -360,6 +367,10 @@ function handleMouseUp(col: Record<string, any>, hiddenColIndex: number) {
     saveOrUpdate(col, index)
   }
 }
+
+const columnSupportsScanning = (elementType: UITypes) =>
+  betaFeatureToggleState.show &&
+  [UITypes.SingleLineText, UITypes.Number, UITypes.Email, UITypes.URL, UITypes.LongText].includes(elementType)
 
 onClickOutside(draggableRef, () => {
   activeRow.value = ''
@@ -480,7 +491,7 @@ watch(view, (nextView) => {
           <a-dropdown v-model:visible="showColumnDropdown" :trigger="['click']" overlay-class-name="nc-dropdown-form-add-column">
             <button type="button" class="group w-full mt-2" @click.stop="showColumnDropdown = true">
               <span class="flex items-center flex-wrap justify-center gap-2 prose-sm text-gray-400">
-                <MdiPlus class="color-transition transform group-hover:(text-accent scale-125)" />
+                <component :is="iconMap.plus" class="color-transition transform group-hover:(text-accent scale-125)" />
                 <!-- Add new field to this table -->
                 <span class="color-transition group-hover:text-primary break-words">
                   {{ $t('activity.addField') }}
@@ -586,7 +597,8 @@ watch(view, (nextView) => {
                     v-if="isUIAllowed('editFormView') && !isRequired(element, element.required)"
                     class="absolute flex top-2 right-2"
                   >
-                    <MdiEyeOffOutline
+                    <component
+                      :is="iconMap.eyeSlash"
                       class="opacity-0 nc-field-remove-icon"
                       data-testid="nc-field-remove-icon"
                       @click.stop="hideColumn(index)"
@@ -615,6 +627,30 @@ watch(view, (nextView) => {
                         @change="updateColMeta(element)"
                       />
                     </div>
+
+                    <a-form-item v-if="columnSupportsScanning(element.uidt)" class="my-0 w-1/2 !mb-1">
+                      <div class="flex gap-2 items-center">
+                        <span
+                          class="text-gray-500 mr-2 nc-form-input-required"
+                          data-testid="nc-form-input-enable-scanner"
+                          @click="
+                            () => {
+                              element.general.enable_scanner = !element.general.enable_scanner
+                              updateColMeta(element)
+                            }
+                          "
+                        >
+                          {{ $t('general.enableScanner') }}
+                        </span>
+
+                        <a-switch
+                          v-model:checked="element.enable_scanner"
+                          v-e="['a:form-view:field:mark-enable-scaner']"
+                          size="small"
+                          @change="updateColMeta(element)"
+                        />
+                      </div>
+                    </a-form-item>
 
                     <a-form-item class="my-0 w-1/2 !mb-1">
                       <a-input
@@ -697,7 +733,10 @@ watch(view, (nextView) => {
                       :class="`nc-form-input-${element.title.replaceAll(' ', '')}`"
                       :data-testid="`nc-form-input-${element.title.replaceAll(' ', '')}`"
                       :column="element"
-                      :edit-enabled="true"
+                      :edit-enabled="editEnabled[index]"
+                      @click="editEnabled[index] = true"
+                      @cancel="editEnabled[index] = false"
+                      @update:edit-enabled="editEnabled[index] = $event"
                       @click.stop.prevent
                     />
                   </a-form-item>
@@ -827,7 +866,7 @@ watch(view, (nextView) => {
     @apply px-4 min-h-[75px] w-full h-full;
 
     .nc-attachment {
-      @apply md:(w-[50px] h-[50px]) lg:(w-[75px] h-[75px]) min-h-[50px] min-w-[50px];
+      @apply md: (w-[50px] h-[50px]) lg:(w-[75px] h-[75px]) min-h-[50px] min-w-[50px];
     }
 
     .nc-attachment-cell-dropzone {

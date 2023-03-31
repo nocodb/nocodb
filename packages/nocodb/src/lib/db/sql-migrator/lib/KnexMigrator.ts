@@ -1,7 +1,6 @@
 import fs from 'fs';
 import path from 'path';
 import { promisify } from 'util';
-
 import glob from 'glob';
 import Handlebars from 'handlebars';
 import mkdirp from 'mkdirp';
@@ -11,9 +10,8 @@ import Debug from '../../util/Debug';
 import Emit from '../../util/emit';
 import Result from '../../util/Result';
 import * as fileHelp from '../../util/file.help';
-
-import SqlMigrator from './SqlMigrator';
 import NcConfigFactory from '../../../utils/NcConfigFactory';
+import SqlMigrator from './SqlMigrator';
 
 const evt = new Emit();
 const log = new Debug('KnexMigrator');

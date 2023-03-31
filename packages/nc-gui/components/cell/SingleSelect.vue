@@ -15,10 +15,12 @@ import {
   computed,
   enumColor,
   extractSdkResponseErrorMsg,
+  iconMap,
   inject,
   isDrawerOrModalExist,
   ref,
   useEventListener,
+  useProject,
   useRoles,
   useSelectedCellKeyupListener,
   watch,
@@ -207,7 +209,7 @@ const onSelect = () => {
   isOpen.value = false
 }
 
-const cellClickHook = inject(CellClickHookInj)
+const cellClickHook = inject(CellClickHookInj, null)
 
 const toggleMenu = (e: Event) => {
   // todo: refactor
@@ -247,12 +249,12 @@ useEventListener(document, 'click', handleClose, true)
     <a-select
       ref="aselect"
       v-model:value="vModel"
-      class="w-full"
+      class="w-full overflow-hidden"
       :class="{ 'caret-transparent': !hasEditRoles }"
       :allow-clear="!column.rqd && editAllowed"
       :bordered="false"
-      :open="isOpen && (active || editable)"
-      :disabled="readOnly || !(active || editable)"
+      :open="isOpen && editAllowed"
+      :disabled="readOnly || !editAllowed"
       :show-arrow="hasEditRoles && !readOnly && (editable || (active && vModel === null))"
       :dropdown-class-name="`nc-dropdown-single-select-cell ${isOpen && (active || editable) ? 'active' : ''}`"
       :show-search="isOpen && (active || editable)"
@@ -294,7 +296,7 @@ useEventListener(document, 'click', handleClose, true)
         :value="searchVal"
       >
         <div class="flex gap-2 text-gray-500 items-center h-full">
-          <MdiPlusThick class="min-w-4" />
+          <component :is="iconMap.plusThick" class="min-w-4" />
           <div class="text-xs whitespace-normal">
             Create new option named <strong>{{ searchVal }}</strong>
           </div>
@@ -326,6 +328,12 @@ useEventListener(document, 'click', handleClose, true)
 
 :deep(.ant-select-selector) {
   @apply !px-0;
+}
+
+:deep(.ant-select-selection-search) {
+  // following a-select with mode = multiple | tags
+  // initial width will block @mouseover in Grid.vue
+  @apply !w-[5px];
 }
 
 :deep(.ant-select-selection-search-input) {

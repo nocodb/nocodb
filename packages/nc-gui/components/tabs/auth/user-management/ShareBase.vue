@@ -1,5 +1,16 @@
 <script setup lang="ts">
-import { extractSdkResponseErrorMsg, message, onMounted, useCopy, useDashboard, useI18n, useNuxtApp, useProject } from '#imports'
+import {
+  extractSdkResponseErrorMsg,
+  iconMap,
+  message,
+  onMounted,
+  storeToRefs,
+  useCopy,
+  useDashboard,
+  useI18n,
+  useNuxtApp,
+  useProject,
+} from '#imports'
 
 interface ShareBase {
   uuid?: string
@@ -22,7 +33,7 @@ let base = $ref<null | ShareBase>(null)
 
 const showEditBaseDropdown = $ref(false)
 
-const { project } = useProject()
+const { project } = storeToRefs(useProject())
 
 const { copy } = useCopy()
 
@@ -99,7 +110,7 @@ const copyUrl = async () => {
 
     // Copied shareable base url to clipboard!
     message.success(t('msg.success.shareableURLCopied'))
-  } catch (e) {
+  } catch (e: any) {
     message.error(e.message)
   }
 
@@ -127,7 +138,7 @@ style="background: transparent; border: 1px solid #ddd"></iframe>`)
 
     // Copied embeddable html code!
     message.success(t('msg.success.embeddableHTMLCodeCopied'))
-  } catch (e) {
+  } catch (e: any) {
     message.error(e.message)
   }
   $e('c:shared-base:copy-embed-frame')
@@ -143,7 +154,7 @@ onMounted(() => {
 <template>
   <div class="flex flex-col w-full" data-testid="nc-share-base-sub-modal">
     <div class="flex flex-row items-center space-x-0.5 pl-2 h-[0.8rem]">
-      <MdiOpenInNew />
+      <component :is="iconMap.share" />
 
       <div class="text-xs">{{ $t('activity.shareBase.link') }}</div>
     </div>
@@ -159,7 +170,7 @@ onMounted(() => {
 
           <a-button type="text" class="!rounded-md mr-1 -mt-1.5 h-[1rem]" @click="recreate">
             <template #icon>
-              <MdiReload class="flex mx-auto text-gray-600" />
+              <component :is="iconMap.reload" class="flex mx-auto text-gray-600" />
             </template>
           </a-button>
         </a-tooltip>
@@ -171,7 +182,7 @@ onMounted(() => {
 
           <a-button type="text" class="!rounded-md mr-1 -mt-1.5 h-[1rem]" @click="copyUrl">
             <template #icon>
-              <MdiContentCopy class="flex mx-auto text-gray-600" />
+              <component :is="iconMap.copy" class="flex mx-auto text-gray-600" />
             </template>
           </a-button>
         </a-tooltip>
@@ -183,7 +194,7 @@ onMounted(() => {
 
           <a-button type="text" class="!rounded-md mr-1 -mt-1.5 h-[1rem]" @click="navigateToSharedBase">
             <template #icon>
-              <MdiOpenInNew class="flex mx-auto text-gray-600" />
+              <component :is="iconMap.share" class="flex mx-auto text-gray-600" />
             </template>
           </a-button>
         </a-tooltip>
@@ -195,7 +206,7 @@ onMounted(() => {
 
           <a-button type="text" class="!rounded-md mr-1 -mt-1.5 h-[1rem]" @click="generateEmbeddableIframe">
             <template #icon>
-              <MdiXml class="flex mx-auto text-gray-600" />
+              <component :is="iconMap.xml" class="flex mx-auto text-gray-600" />
             </template>
           </a-button>
         </a-tooltip>

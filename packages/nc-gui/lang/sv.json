@@ -39,6 +39,7 @@
     "signIn": "LOGGA IN",
     "signOut": "Logga ut",
     "required": "Nödvändig",
+    "enableScanner": "Enable Scanner for filling",
     "preferred": "Föredraget",
     "mandatory": "Obligatorisk",
     "loading": "Läser in ...",
@@ -74,7 +75,8 @@
     "insertBefore": "Infoga före",
     "hideField": "Dölj fältet",
     "sortAsc": "Sortera i stigande riktning",
-    "sortDesc": "Sortera fallande"
+    "sortDesc": "Sortera fallande",
+    "geoDataField": "GeoData Field"
   },
   "objects": {
     "project": "Projekt",
@@ -98,7 +100,8 @@
       "gallery": "Galleri",
       "form": "Formulär",
       "kanban": "Kanban",
-      "calendar": "Kalender"
+      "calendar": "Kalender",
+      "map": "Map"
     },
     "user": "Användare",
     "users": "Användare",
@@ -136,6 +139,7 @@
     "Currency": "Valuta",
     "Percent": "Procent",
     "Duration": "Varaktighet",
+    "GeoData": "GeoData",
     "Rating": "Betyg",
     "Formula": "Formel",
     "Rollup": "Rulla upp",
@@ -206,7 +210,8 @@
     "advancedSettings": "Avancerade inställningar",
     "codeSnippet": "Kodutdrag",
     "keyboardShortcut": "Tangentbordsgenvägar",
-    "generateRandomName": "Generate Random Name"
+    "generateRandomName": "Generate Random Name",
+    "findRowByScanningCode": "Find row by scanning a QR or Barcode"
   },
   "labels": {
     "createdBy": "Skapad av",
@@ -216,6 +221,7 @@
     "viewName": "Visa namn",
     "viewLink": "Visa länk",
     "columnName": "Kolumnnamn",
+    "columnToScanFor": "Column to scan",
     "columnType": "Kolumntyp",
     "roleName": "Rollnamn",
     "roleDescription": "Rollbeskrivning",
@@ -232,6 +238,7 @@
     "action": "Handling",
     "actions": "Handlingar",
     "operation": "Drift",
+    "operationSub": "Sub Operation",
     "operationType": "Driftstyp",
     "operationSubType": "Driftstyp",
     "description": "Beskrivning",
@@ -253,6 +260,9 @@
     "barcodeFormat": "Streckkodsformat",
     "qrCodeValueTooLong": "För många tecken för en QR-kod",
     "barcodeValueTooLong": "För många tecken för en streckkod",
+    "currentLocation": "Current Location",
+    "lng": "Lng",
+    "lat": "Lat",
     "aggregateFunction": "Aggregatfunktion",
     "dbCreateIfNotExists": "Databas: Skapa om det inte finns",
     "clientKey": "Klientnyckel",
@@ -386,8 +396,8 @@
     "saveAndExit": "Spara och avsluta",
     "saveAndStay": "Spara och stanna",
     "insertRow": "Infoga ny rad",
-    "deleteRow": "Radera raden",
     "duplicateRow": "Duplicate Row",
+    "deleteRow": "Radera raden",
     "deleteSelectedRow": "Ta bort valda rader",
     "importExcel": "Import excel",
     "importCSV": "Importera CSV",
@@ -402,6 +412,8 @@
     "changePwd": "Ändra lösenord",
     "createView": "Skapa en vy",
     "shareView": "Visa vy",
+    "findRowByCodeScan": "Find row by scan",
+    "fillByCodeScan": "Fill by scan",
     "listSharedView": "Delad visningslista",
     "ListView": "Visningar lista",
     "copyView": "Kopiera",
@@ -417,6 +429,10 @@
     "openTab": "Öppna ny flik",
     "iFrame": "Kopiera inbäddbar HTML-kod",
     "addWebhook": "Lägg till ny webhook",
+    "enableWebhook": "Enable Webhook",
+    "testWebhook": "Test Webhook",
+    "copyWebhook": "Copy Webhook",
+    "deleteWebhook": "Delete Webhook",
     "newToken": "Lägg till ny token",
     "exportZip": "Exportera zip",
     "importZip": "Importera zip",
@@ -452,7 +468,14 @@
       "stackedBy": "Staplade av",
       "chooseGroupingField": "Välj ett grupperingsfält",
       "addOrEditStack": "Lägg till/redigera stacken"
-    }
+    },
+    "map": {
+      "mappedBy": "Mapped By",
+      "chooseMappingField": "Choose a Mapping Field",
+      "openInGoogleMaps": "Google Maps",
+      "openInOpenStreetMap": "OSM"
+    },
+    "toggleMobileMode": "Toggle Mobile Mode"
   },
   "tooltip": {
     "saveChanges": "Spara ändringar",
@@ -517,6 +540,17 @@
       "roles": {
         "orgCreator": "Skaparen kan skapa nya projekt och få tillgång till alla inbjudna projekt.",
         "orgViewer": "Visaren får inte skapa nya projekt, men kan få tillgång till alla inbjudna projekt."
+      },
+      "codeScanner": {
+        "loadingScanner": "Loading the scanner...",
+        "selectColumn": "Select a column (QR code or Barcode) that you want to use for finding a row by scanning.",
+        "moreThanOneRowFoundForCode": "More than one row found for this code. Currently only unique codes are supported.",
+        "noRowFoundForCode": "No row found for this code for the selected column"
+      },
+      "map": {
+        "overLimit": "You're over the limit.",
+        "closeLimit": "You're getting close to the limit.",
+        "limitNumber": "The limit of markers shown in a Map View is 1000 records."
       },
       "footerInfo": "Rader per sida",
       "upload": "Välj fil för att ladda upp",
@@ -600,6 +634,7 @@
         "gallery": "Lägg till Gallery View",
         "form": "Lägg till formulärvy",
         "kanban": "Lägg till Kanban View",
+        "map": "Add Map View",
         "calendar": "Lägg till kalendervisning"
       },
       "tablesMetadataInSync": "Tabeller Metadata är synkroniserad",
@@ -663,6 +698,7 @@
         "allowedSpecialCharList": "Förteckning över tillåtna specialtecken"
       },
       "invalidURL": "Ogiltig URL",
+      "invalidEmail": "Invalid Email",
       "internalError": "Ett internt fel har uppstått.",
       "templateGeneratorNotFound": "Mallgeneratorn kan inte hittas!",
       "fileUploadFailed": "Uppladdning av filen misslyckades",
@@ -690,6 +726,7 @@
       "nameShouldStartWithAnAlphabetOr_": "Namnet ska börja med ett alfabet eller _",
       "followingCharactersAreNotAllowed": "Följande tecken är inte tillåtna",
       "columnNameRequired": "Kolumnnamn krävs",
+      "columnNameExceedsCharacters": "The length of column name exceeds the max {value} characters",
       "projectNameExceeds50Characters": "Projektnamnet har mer än 50 tecken",
       "projectNameCannotStartWithSpace": "Projektnamnet kan inte börja med ett mellanslag",
       "requiredField": "Obligatoriskt fält",
@@ -742,6 +779,7 @@
       "userDeletedFromProject": "Användaren har framgångsrikt tagits bort från projektet",
       "inviteEmailSent": "Inbjudningsmejl skickat framgångsrikt",
       "inviteURLCopied": "URL för inbjudan kopieras till urklipp",
+      "commentCopied": "Comment copied to clipboard",
       "passwordResetURLCopied": "URL för återställning av lösenord kopieras till urklipp",
       "shareableURLCopied": "Kopierade delbar bas-URL till urklipp!",
       "embeddableHTMLCodeCopied": "Kopierad inbäddningsbar HTML-kod!",

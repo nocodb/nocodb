@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { extractSdkResponseErrorMsg, message, onMounted, useI18n, useNuxtApp } from '#imports'
+import { extractSdkResponseErrorMsg, iconMap, message, onMounted, useI18n, useNuxtApp } from '#imports'
 
 const { t } = useI18n()
 
@@ -20,7 +20,7 @@ const fetchPluginApps = async () => {
     apps = plugins.map((p) => ({
       ...p,
       tags: p.tags ? p.tags.split(',') : [],
-      parsedInput: p.input && JSON.parse(p.input),
+      parsedInput: p.input && JSON.parse(p.input as string),
     }))
   } catch (e: any) {
     message.error(await extractSdkResponseErrorMsg(e))
@@ -125,14 +125,14 @@ onMounted(async () => {
 
           <a-button v-if="app.parsedInput" size="small" outlined @click="showResetPluginModal(app)">
             <div class="flex flex-row justify-center items-center caption capitalize nc-app-store-card-reset">
-              <MdiCloseCircleOutline />
+              <component :is="iconMap.closeCircle" />
               <div class="flex ml-0.5">Reset</div>
             </div>
           </a-button>
 
           <a-button v-else size="small" type="primary" @click="showInstallPluginModal(app)">
             <div class="flex flex-row justify-center items-center caption capitalize nc-app-store-card-install">
-              <MdiPlus />
+              <component :is="iconMap.plus" />
               Install
             </div>
           </a-button>

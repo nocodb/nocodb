@@ -1,11 +1,11 @@
 <script setup lang="ts">
 import { Tooltip as ATooltip, Empty } from 'ant-design-vue'
 import type { AuditType } from 'nocodb-sdk'
-import { h, onMounted, timeAgo, useGlobal, useI18n, useNuxtApp, useProject } from '#imports'
+import { h, iconMap, onMounted, storeToRefs, timeAgo, useGlobal, useI18n, useNuxtApp, useProject } from '#imports'
 
 const { $api } = useNuxtApp()
 
-const { project } = useProject()
+const { project } = storeToRefs(useProject())
 
 const { t } = useI18n()
 
@@ -28,8 +28,8 @@ async function loadAudits(page = currentPage, limit = currentLimit) {
     isLoading = true
 
     const { list, pageInfo } = await $api.project.auditList(project.value?.id, {
-      offset: (limit * (page - 1)).toString(),
-      limit: limit.toString(),
+      offset: limit * (page - 1),
+      limit,
     })
 
     audits = list
@@ -94,7 +94,7 @@ const columns = [
       <a-button class="self-start" @click="loadAudits">
         <!-- Reload -->
         <div class="flex items-center gap-2 text-gray-600 font-light">
-          <MdiReload :class="{ 'animate-infinite animate-spin !text-success': isLoading }" />
+          <component :is="iconMap.reload" :class="{ 'animate-infinite animate-spin !text-success': isLoading }" />
 
           {{ $t('general.reload') }}
         </div>

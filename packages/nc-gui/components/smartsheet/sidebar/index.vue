@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import type { ViewType, ViewTypes } from 'nocodb-sdk'
+import type { Ref } from 'vue'
 import {
   ActiveViewInj,
   MetaInj,
@@ -7,6 +8,7 @@ import {
   inject,
   ref,
   resolveComponent,
+  storeToRefs,
   useDialog,
   useNuxtApp,
   useRoute,
@@ -21,11 +23,11 @@ const meta = inject(MetaInj, ref())
 
 const activeView = inject(ActiveViewInj, ref())
 
-const { activeTab } = useTabs()
+const { activeTab } = storeToRefs(useTabs())
 
 const { views, loadViews, isLoading } = useViews(meta)
 
-const { lastOpenedViewMap } = useProject()
+const { lastOpenedViewMap } = storeToRefs(useProject())
 
 const setLastOpenedViewId = (viewId?: string) => {
   if (viewId && activeTab.value?.id) {
@@ -47,7 +49,7 @@ const { isOpen } = useSidebar('nc-right-sidebar')
 const sidebarCollapsed = computed(() => !isOpen.value)
 
 /** Sidebar ref */
-const sidebar = ref()
+const sidebar: Ref<Element | null> = ref(null)
 
 /** Watch route param and change active view based on `viewTitle` */
 watch(

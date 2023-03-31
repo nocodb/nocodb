@@ -16,7 +16,6 @@ const megaTblColumns = [
   { type: 'Checkbox', count: 3 },
   { type: 'SingleSelect', count: 3 },
   { type: 'MultiSelect', count: 3 },
-  { type: 'Formula', count: 0 },
 ];
 const megaTblRows = 50000;
 const bulkInsertAfterRows = 1000;
@@ -25,7 +24,7 @@ test.describe.serial('Test table', () => {
   let context: any;
 
   test.beforeEach(async ({ page }) => {
-    context = await setup({ page, isEmptyProject: true });
+    context = await setup({ page });
 
     api = new Api({
       baseURL: `http://localhost:8080/`,
@@ -63,8 +62,6 @@ test.describe.serial('Test table', () => {
         };
         if (megaTblColumns[i].type === 'SingleSelect' || megaTblColumns[i].type === 'MultiSelect') {
           column['dtxp'] = "'jan','feb','mar','apr','may','jun','jul','aug','sep','oct','nov','dec'";
-        } else if (megaTblColumns[i].type === 'Formula') {
-          column['formula_raw'] = '{Id}';
         }
         table_1_columns.push(column);
       }
@@ -76,6 +73,13 @@ test.describe.serial('Test table', () => {
         table_name: 'table_1',
         title: 'table_1',
         columns: table_1_columns,
+      });
+
+      table_1 = await api.dbTableColumn.create(table_1.id, {
+        column_name: 'Formula',
+        title: 'Formula',
+        uidt: UITypes.Formula,
+        formula_raw: '{SingleLineText}',
       });
 
       const table_1_rows = [];

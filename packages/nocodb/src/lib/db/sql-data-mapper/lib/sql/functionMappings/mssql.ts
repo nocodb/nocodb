@@ -14,7 +14,7 @@ const mssql = {
     for (const [i, arg] of Object.entries(args.pt.arguments)) {
       if (+i === args.pt.arguments.length - 1) {
         query += args.knex
-          .raw(`\n\tElse ${(await args.fn(arg)).builder.builder.toQuery()}`)
+          .raw(`\n\tElse ${(await args.fn(arg)).builder.toQuery()}`)
           .toQuery();
       } else {
         query += args.knex

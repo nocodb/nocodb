@@ -242,11 +242,36 @@ const handleClose = (e: MouseEvent) => {
 }
 
 useEventListener(document, 'click', handleClose, true)
+
+const selectedOpt = computed(() => {
+  return options.value.find((o) => o.value === vModel.value)
+})
+
+onMounted(() => {
+  console.log('mounted')
+})
 </script>
 
 <template>
   <div class="h-full w-full flex items-center nc-single-select" :class="{ 'read-only': readOnly }" @click="toggleMenu">
+    <div v-if="!editable && !active">
+      <a-tag v-if="selectedOpt" class="rounded-tag" :color="selectedOpt.color">
+        <span
+          :style="{
+            'color': tinycolor.isReadable(selectedOpt.color || '#ccc', '#fff', { level: 'AA', size: 'large' })
+              ? '#fff'
+              : tinycolor.mostReadable(selectedOpt.color || '#ccc', ['#0b1d05', '#fff']).toHex8String(),
+            'font-size': '13px',
+          }"
+          :class="{ 'text-sm': isKanban }"
+        >
+          {{ selectedOpt.title }}
+        </span>
+      </a-tag>
+    </div>
+
     <a-select
+      v-else
       ref="aselect"
       v-model:value="vModel"
       class="w-full overflow-hidden"

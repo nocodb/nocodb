@@ -81,20 +81,26 @@ export async function hookTest(param: {
 
   const model = await Model.getByIdOrName({ id: param.tableId });
 
+  T.emit('evt', { evt_type: 'webhooks:tested' });
+
   const {
     hook,
     payload: { data, user },
   } = param.hookTest;
-  await invokeWebhook(
-    new Hook(hook),
-    model,
-    data,
-    user,
-    (hook as any)?.filters,
-    true
-  );
-
-  T.emit('evt', { evt_type: 'webhooks:tested' });
+  try {
+    await invokeWebhook(
+      new Hook(hook),
+      model,
+      null,
+      null,
+      data,
+      user,
+      (hook as any)?.filters,
+      true
+    );
+  } catch (e) {
+    throw e;
+  }
 
   return true;
 }

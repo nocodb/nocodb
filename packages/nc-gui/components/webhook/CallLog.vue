@@ -38,11 +38,29 @@ async function loadHookLogs(page = currentPage, limit = currentLimit) {
       offset: limit * (page - 1),
       limit,
     })
-    hookLogs.value = list
+    hookLogs.value = parseHookLog(list)
     totalRows = pageInfo.totalRows ?? 0
   } catch (e: any) {
     message.error(await extractSdkResponseErrorMsg(e))
   }
+}
+
+function parseHookLog(hookLogs: any) {
+  for (const hookLog of hookLogs) {
+    if (hookLog?.response) {
+      hookLog.response = parseProp(hookLog.response)
+    }
+    if (hookLog?.response?.config?.data) {
+      hookLog.response.config.data = parseProp(hookLog.response.config.data)
+    }
+    if (hookLog?.payload) {
+      hookLog.payload = parseProp(hookLog.payload)
+    }
+    if (hookLog?.notification) {
+      hookLog.notification = parseProp(hookLog.notification)
+    }
+  }
+  return hookLogs
 }
 
 onBeforeMount(async () => {
@@ -86,52 +104,53 @@ onBeforeMount(async () => {
                     <div class="flex-1">
                       {{ hookLog.type }}: records.{{ hookLog.event }}.{{ hookLog.operation }} ({{ timeAgo(hookLog.created_at) }})
                     </div>
-                    <div
-                      v-if="hookLog.type === 'URL'"
-                      class="mx-1 px-2 py-1 text-white rounded bg-red-500 text-xs"
-                      :class="{ '!bg-green-500': parseProp(hookLog.response).status === 200 }"
-                    >
-                      {{ parseProp(hookLog.response).status }}
-                      {{ parseProp(hookLog.response).statusText }}
-                    </div>
+
                     <div v-if="hookLog.type === 'Email'">
                       <div v-if="hookLog.error_message" class="mx-1 px-2 py-1 text-white rounded text-xs bg-red-500">ERROR</div>
                       <div v-else class="mx-1 px-2 py-1 text-white rounded text-xs bg-green-500">OK</div>
                     </div>
+                    <div
+                      v-else
+                      class="mx-1 px-2 py-1 text-white rounded bg-red-500 text-xs"
+                      :class="{ '!bg-green-500': hookLog.response?.status === 200 }"
+                    >
+                      {{ hookLog.response?.status }}
+                      {{ hookLog.response?.statusText || (hookLog.response?.status === 200 ? 'OK' : 'ERROR') }}
+                    </div>
                   </div>
                   <div v-if="hookLog.type === 'URL'">
                     <span class="font-weight-medium text-primary">
-                      {{ parseProp(hookLog.payload).method }}
+                      {{ hookLog.payload.method }}
                     </span>
-                    {{ parseProp(hookLog.payload).path }}
+                    {{ hookLog.payload.path }}
                   </div>
                 </div>
               </template>
 
-              <div v-if="hookLog.type === 'URL'">
-                <div class="nc-hook-log-request">
-                  <div class="nc-hook-pre-title">Request</div>
-                  <pre class="nc-hook-pre">{{ parseProp(hookLog.response).config.headers }}</pre>
-                </div>
-
-                <div class="nc-hook-log-response">
-                  <div class="nc-hook-pre-title">Response</div>
-                  <pre class="nc-hook-pre">{{ parseProp(hookLog.response).headers }}</pre>
-                </div>
-
-                <div class="nc-hook-log-payload">
-                  <div class="nc-hook-pre-title">Payload</div>
-                  <pre class="nc-hook-pre">{{ parseProp(parseProp(hookLog.response).config.data) }}</pre>
-                </div>
+              <div v-if="hookLog.error_message" class="mb-4">
+                {{ hookLog.error_message }}
               </div>
 
-              <div v-else-if="hookLog.type === 'Email'">
-                <div v-if="hookLog.error_message" class="mb-4">
-                  {{ hookLog.error_message }}
+              <div v-if="hookLog.type !== 'Email'">
+                <div v-if="hookLog?.response?.config?.headers" class="nc-hook-log-request">
+                  <div class="nc-hook-pre-title">Request</div>
+                  <pre class="nc-hook-pre">{{ hookLog.response.config.headers }}</pre>
                 </div>
-                <div class="nc-hook-log-payload">
+
+                <div v-if="hookLog?.response?.headers" class="nc-hook-log-response">
+                  <div class="nc-hook-pre-title">Response</div>
+                  <pre class="nc-hook-pre">{{ hookLog.response.headers }}</pre>
+                </div>
+
+                <div v-if="hookLog?.response?.config?.data" class="nc-hook-log-payload">
                   <div class="nc-hook-pre-title">Payload</div>
-                  <pre class="nc-hook-pre">{{ parseProp(hookLog.payload) }}</pre>
+                  <pre class="nc-hook-pre">{{ hookLog.response.config.data }}</pre>
+                </div>
+              </div>
+              <div v-else>
+                <div v-if="hookLog?.payload" class="nc-hook-log-payload">
+                  <div class="nc-hook-pre-title">Payload</div>
+                  <pre class="nc-hook-pre">{{ hookLog.payload }}</pre>
                 </div>
               </div>
             </a-collapse-panel>

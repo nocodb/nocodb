@@ -52,23 +52,57 @@ function onNavigate(dir: NavigateDir, e: KeyboardEvent) {
 
   if (!isForm.value) e.stopImmediatePropagation()
 }
+
+const intersected = ref(false)
+
+let intersectionObserver = $ref<IntersectionObserver>()
+
+const elementToObserve = $ref<Element>()
+
+// load the cell only when it is in the viewport
+function initIntersectionObserver() {
+  intersectionObserver = new IntersectionObserver((entries) => {
+    entries.forEach((entry) => {
+      // if the cell is in the viewport, load the cell and disconnect the observer
+      if (entry.isIntersecting) {
+        intersected.value = true
+        intersectionObserver?.disconnect()
+        intersectionObserver = undefined
+      }
+    })
+  })
+}
+
+// observe the cell when it is mounted
+onMounted(() => {
+  initIntersectionObserver()
+  intersectionObserver?.observe(elementToObserve!)
+})
+
+// disconnect the observer when the cell is unmounted
+onUnmounted(() => {
+  intersectionObserver?.disconnect()
+})
 </script>
 
 <template>
   <div
+    ref="elementToObserve"
     class="nc-virtual-cell w-full flex items-center"
     :class="{ 'text-right justify-end': isGrid && !isForm && isRollup(column) }"
     @keydown.enter.exact="onNavigate(NavigateDir.NEXT, $event)"
     @keydown.shift.enter.exact="onNavigate(NavigateDir.PREV, $event)"
   >
-    <LazyVirtualCellHasMany v-if="isHm(column)" />
-    <LazyVirtualCellManyToMany v-else-if="isMm(column)" />
-    <LazyVirtualCellBelongsTo v-else-if="isBt(column)" />
-    <LazyVirtualCellRollup v-else-if="isRollup(column)" />
-    <LazyVirtualCellFormula v-else-if="isFormula(column)" />
-    <LazyVirtualCellQrCode v-else-if="isQrCode(column)" />
-    <LazyVirtualCellBarcode v-else-if="isBarcode(column)" />
-    <LazyVirtualCellCount v-else-if="isCount(column)" />
-    <LazyVirtualCellLookup v-else-if="isLookup(column)" />
+    <template v-if="intersected">
+      <LazyVirtualCellHasMany v-if="isHm(column)" />
+      <LazyVirtualCellManyToMany v-else-if="isMm(column)" />
+      <LazyVirtualCellBelongsTo v-else-if="isBt(column)" />
+      <LazyVirtualCellRollup v-else-if="isRollup(column)" />
+      <LazyVirtualCellFormula v-else-if="isFormula(column)" />
+      <LazyVirtualCellQrCode v-else-if="isQrCode(column)" />
+      <LazyVirtualCellBarcode v-else-if="isBarcode(column)" />
+      <LazyVirtualCellCount v-else-if="isCount(column)" />
+      <LazyVirtualCellLookup v-else-if="isLookup(column)" />
+    </template>
   </div>
 </template>

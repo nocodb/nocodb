@@ -162,8 +162,11 @@ const elementToObserve = $ref<Element>()
 function initIntersectionObserver() {
   intersectionObserver = new IntersectionObserver((entries) => {
     entries.forEach((entry) => {
+      // if the cell is in the viewport, load the cell and disconnect the observer
       if (entry.isIntersecting) {
         intersected.value = true
+        intersectionObserver?.disconnect()
+        intersectionObserver = undefined
       }
     })
   })

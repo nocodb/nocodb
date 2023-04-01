@@ -375,7 +375,18 @@ export async function invokeWebhook(
               fk_hook_id: hook.id,
               type: notification.type,
               payload: JSON.stringify(notification?.payload),
-              response: JSON.stringify(res),
+              response: JSON.stringify({
+                status: res.status,
+                statusText: res.statusText,
+                headers: res.headers,
+                config: {
+                  url: res.config.url,
+                  method: res.config.method,
+                  data: res.config.data,
+                  headers: res.config.headers,
+                  params: res.config.params,
+                },
+              }),
               triggered_by: user?.email,
             };
           }

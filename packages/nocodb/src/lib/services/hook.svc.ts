@@ -96,6 +96,7 @@ export async function hookTest(param: {
       data,
       user,
       (hook as any)?.filters,
+      true,
       true
     );
   } catch (e) {

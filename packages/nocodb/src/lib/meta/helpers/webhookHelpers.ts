@@ -252,7 +252,8 @@ export async function invokeWebhook(
   newData,
   user,
   testFilters = null,
-  throwErrorOnFailure = false
+  throwErrorOnFailure = false,
+  testHook = false
 ) {
   let hookLog: HookLogType;
   const startTime = process.hrtime();
@@ -413,7 +414,7 @@ export async function invokeWebhook(
       hookLog.execution_time = parseHrtimeToMilliSeconds(
         process.hrtime(startTime)
       );
-      HookLog.insert({ ...hookLog, test_call: !!testFilters });
+      HookLog.insert({ ...hookLog, test_call: testHook });
     }
   }
 }

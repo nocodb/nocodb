@@ -20,7 +20,7 @@ const onClick = () => {
     >
       <component
         :is="iconMap.plus"
-        :class="{ 'cursor-pointer text-gray-500 group-hover:(text-primary)': !isLocked, 'disabled': isLocked }"
+        :class="{ 'cursor-pointer group-hover:(text-primary)': !isLocked, 'disabled': isLocked }"
         @click="onClick"
       />
     </div>

@@ -962,7 +962,7 @@ export interface GalleryType {
   /** Model for Bool */
   deleted?: BoolType;
   /** Foreign Key to Cover Image Column */
-  fk_cover_image_col_id?: string;
+  fk_cover_image_col_id?: StringOrNullType;
   /** Foreign Key to Model */
   fk_model_id?: string;
   /** Foreign Key to View */
@@ -1289,7 +1289,7 @@ export interface KanbanType {
   /** View ID */
   fk_view_id?: IdType;
   /** Cover Image Column ID */
-  fk_cover_image_col_id?: IdType;
+  fk_cover_image_col_id?: StringOrNullType;
   /** Kanban Columns */
   columns?: KanbanColumnType[];
   /** Meta Info for Kanban */
@@ -2274,6 +2274,8 @@ export interface ViewType {
   show: BoolType;
   /** Should show system fields in this view? */
   show_system_fields?: BoolType;
+  /** Is this view default view for the model? */
+  is_default?: BoolType;
   /** View Title */
   title: string;
   /** View Type */

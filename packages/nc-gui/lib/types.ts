@@ -122,3 +122,9 @@ export interface AntSidebarNode {
 
 export type PageSidebarNode = DocsPageType & AntSidebarNode
 export type PublishTreeNode = PageSidebarNode & { isSelected: boolean; key: string }
+
+export interface UndoRedoAction {
+  undo: { fn: Function; args: any[] }
+  redo: { fn: Function; args: any[] }
+  scope?: { key: string; param: string }[]
+}

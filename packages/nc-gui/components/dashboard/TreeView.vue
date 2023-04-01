@@ -30,6 +30,7 @@ import {
   useTabs,
   useToggle,
   useUIPermission,
+  useUndoRedo,
   watchEffect,
 } from '#imports'
 
@@ -57,6 +58,8 @@ const [searchActive, toggleSearchActive] = useToggle()
 const { appInfo } = useGlobal()
 
 const { selectedBase } = useSqlEditor()
+
+const { addUndo, defineProjectScope } = useUndoRedo()
 
 const toggleDialog = inject(ToggleDialogInj, () => {})
 
@@ -93,12 +96,13 @@ const initSortable = (el: Element) => {
   if (sortables[base_id]) sortables[base_id].destroy()
   Sortable.create(el as HTMLLIElement, {
     onEnd: async (evt) => {
-      const offset = tables.value.findIndex((table) => table.base_id === base_id)
-
       const { newIndex = 0, oldIndex = 0 } = evt
 
       const itemEl = evt.item as HTMLLIElement
       const item = tablesById[itemEl.dataset.id as string]
+
+      // store the old order for undo
+      const oldOrder = item.order
 
       // get the html collection of all list items
       const children: HTMLCollection = evt.to.children
@@ -123,8 +127,19 @@ const initSortable = (el: Element) => {
         item.order = ((itemBefore.order as number) + (itemAfter.order as number)) / 2
       }
 
-      // update the order of the moved item
-      tables.value?.splice(newIndex + offset, 0, ...tables.value?.splice(oldIndex + offset, 1))
+      // find the index of the moved item
+      const itemIndex = tables.value?.findIndex((table) => table.id === item.id)
+
+      // move the item to the new position
+      if (itemBefore) {
+        // find the index of the item before the moved item
+        const itemBeforeIndex = tables.value?.findIndex((table) => table.id === itemBefore.id)
+        tables.value?.splice(itemBeforeIndex + (newIndex > oldIndex ? 0 : 1), 0, ...tables.value?.splice(itemIndex, 1))
+      } else {
+        // if the item before is undefined (moving item to first slot), then find the index of the item after the moved item
+        const itemAfterIndex = tables.value?.findIndex((table) => table.id === itemAfter.id)
+        tables.value?.splice(itemAfterIndex, 0, ...tables.value?.splice(itemIndex, 1))
+      }
 
       // force re-render the list
       if (keys[base_id]) {
@@ -136,6 +151,38 @@ const initSortable = (el: Element) => {
       // update the item order
       await $api.dbTable.reorder(item.id as string, {
         order: item.order,
+      })
+
+      const nextIndex = tables.value?.findIndex((table) => table.id === item.id)
+
+      addUndo({
+        undo: {
+          fn: async (id: string, order: number, index: number) => {
+            const itemIndex = tables.value.findIndex((table) => table.id === id)
+            if (itemIndex < 0) return
+            const item = tables.value[itemIndex]
+            item.order = order
+            tables.value?.splice(index, 0, ...tables.value?.splice(itemIndex, 1))
+            await $api.dbTable.reorder(item.id as string, {
+              order: item.order,
+            })
+          },
+          args: [item.id, oldOrder, itemIndex],
+        },
+        redo: {
+          fn: async (id: string, order: number, index: number) => {
+            const itemIndex = tables.value.findIndex((table) => table.id === id)
+            if (itemIndex < 0) return
+            const item = tables.value[itemIndex]
+            item.order = order
+            tables.value?.splice(index, 0, ...tables.value?.splice(itemIndex, 1))
+            await $api.dbTable.reorder(item.id as string, {
+              order: item.order,
+            })
+          },
+          args: [item.id, item.order, nextIndex],
+        },
+        scope: defineProjectScope({ project: project.value }),
       })
     },
     animation: 150,
@@ -1235,6 +1282,7 @@ useEventListener(document, 'contextmenu', handleContext, true)
 <style scoped lang="scss">
 .nc-treeview-container {
   @apply h-[calc(100vh_-_var(--header-height))];
+  border-right: 1px solid var(--navbar-border) !important;
 }
 
 .nc-treeview-footer-item {

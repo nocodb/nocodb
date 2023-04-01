@@ -4,6 +4,7 @@ import DataLoader from 'dataloader';
 import {
   AuditOperationSubTypes,
   AuditOperationTypes,
+  isSystemColumn,
   isVirtualCol,
   RelationTypes,
   UITypes,
@@ -38,6 +39,7 @@ import genRollupSelectv2 from './genRollupSelectv2';
 import sortV2 from './sortV2';
 import conditionV2 from './conditionV2';
 import { sanitize, unsanitize } from './helpers/sanitize';
+import type { GridViewColumn } from '../../../../models';
 import type { SortType } from 'nocodb-sdk';
 import type { Knex } from 'knex';
 import type FormulaColumn from '../../../../models/FormulaColumn';
@@ -62,6 +64,21 @@ async function populatePk(model: Model, insertObj: any) {
     insertObj[pkCol.title] =
       pkCol.meta?.ag === 'nc' ? `rc_${nanoidv2()}` : uuidv4();
   }
+}
+
+function checkColumnRequired(
+  column: Column<any>,
+  fields: string[],
+  extractPkAndPv?: boolean
+) {
+  // if primary key or foreign key included in fields, it's required
+  if (column.pk || column.uidt === UITypes.ForeignKey) return true;
+
+  if (extractPkAndPv && column.pv) return true;
+
+  // check fields defined and if not, then select all
+  // if defined check if it is in the fields
+  return !fields || fields.includes(column.title);
 }
 
 /**
@@ -97,14 +114,23 @@ class BaseModelSqlv2 {
     autoBind(this);
   }
 
-  public async readByPk(id?: any): Promise<any> {
+  public async readByPk(id?: any, validateFormula = false): Promise<any> {
     const qb = this.dbDriver(this.tnPath);
 
-    await this.selectObject({ qb });
+    await this.selectObject({ qb, validateFormula });
 
     qb.where(_wherePk(this.model.primaryKeys, id));
 
-    const data = (await this.execAndParse(qb))?.[0];
+    let data;
+
+    try {
+      data = (await this.execAndParse(qb))?.[0];
+    } catch (e) {
+      if (validateFormula || !haveFormulaColumn(await this.model.getColumns()))
+        throw e;
+      console.log(e);
+      return this.readByPk(id, true);
+    }
 
     if (data) {
       const proto = await this.getProto();
@@ -129,11 +155,12 @@ class BaseModelSqlv2 {
       where?: string;
       filterArr?: Filter[];
       sort?: string | string[];
-    } = {}
+    } = {},
+    validateFormula = false
   ): Promise<any> {
     const { where, ...rest } = this._getListArgs(args as any);
     const qb = this.dbDriver(this.tnPath);
-    await this.selectObject({ qb });
+    await this.selectObject({ qb, validateFormula });
 
     const aliasColObjMap = await this.model.getAliasColObjMap();
     const sorts = extractSortsObject(rest?.sort, aliasColObjMap);
@@ -162,7 +189,16 @@ class BaseModelSqlv2 {
       qb.orderBy(this.model.primaryKey.column_name);
     }
 
-    const data = await qb.first();
+    let data;
+
+    try {
+      data = await qb.first();
+    } catch (e) {
+      if (validateFormula || !haveFormulaColumn(await this.model.getColumns()))
+        throw e;
+      console.log(e);
+      return this.findOne(args, true);
+    }
 
     if (data) {
       const proto = await this.getProto();
@@ -179,13 +215,21 @@ class BaseModelSqlv2 {
       filterArr?: Filter[];
       sortArr?: Sort[];
       sort?: string | string[];
+      fieldsSet?: Set<string>;
     } = {},
-    ignoreViewFilterAndSort = false
+    ignoreViewFilterAndSort = false,
+    validateFormula = false
   ): Promise<any> {
-    const { where, ...rest } = this._getListArgs(args as any);
+    const { where, fields, ...rest } = this._getListArgs(args as any);
 
     const qb = this.dbDriver(this.tnPath);
-    await this.selectObject({ qb });
+
+    await this.selectObject({
+      qb,
+      fieldsSet: args.fieldsSet,
+      viewId: this.viewId,
+      validateFormula,
+    });
     if (+rest?.shuffle) {
       await this.shuffle({ qb });
     }
@@ -256,8 +300,17 @@ class BaseModelSqlv2 {
 
     if (!ignoreViewFilterAndSort) applyPaginate(qb, rest);
     const proto = await this.getProto();
-    const data = await this.execAndParse(qb);
 
+    let data;
+
+    try {
+      data = await this.execAndParse(qb);
+    } catch (e) {
+      if (validateFormula || !haveFormulaColumn(await this.model.getColumns()))
+        throw e;
+      console.log(e);
+      return this.list(args, ignoreViewFilterAndSort, true);
+    }
     return data?.map((d) => {
       d.__proto__ = proto;
       return d;
@@ -379,7 +432,10 @@ class BaseModelSqlv2 {
     return await qb;
   }
 
-  async multipleHmList({ colId, ids }, args: { limit?; offset? } = {}) {
+  async multipleHmList(
+    { colId, ids },
+    args: { limit?; offset?; fieldsSet?: Set<string> } = {}
+  ) {
     try {
       const { where, sort, ...rest } = this._getListArgs(args as any);
       // todo: get only required fields
@@ -407,7 +463,11 @@ class BaseModelSqlv2 {
       const parentTn = this.getTnPath(parentTable);
 
       const qb = this.dbDriver(childTn);
-      await childModel.selectObject({ qb });
+      await childModel.selectObject({
+        qb,
+        extractPkAndPv: true,
+        fieldsSet: args.fieldsSet,
+      });
       await this.applySortAndFilter({ table: childTable, where, qb, sort });
 
       const childQb = this.dbDriver.queryBuilder().from(
@@ -434,6 +494,8 @@ class BaseModelSqlv2 {
           )
           .as('list')
       );
+
+      // console.log(childQb.toQuery())
 
       const children = await this.execAndParse(childQb, childTable);
       const proto = await (
@@ -520,7 +582,10 @@ class BaseModelSqlv2 {
     }
   }
 
-  async hmList({ colId, id }, args: { limit?; offset? } = {}) {
+  async hmList(
+    { colId, id },
+    args: { limit?; offset?; fieldSet?: Set<string> } = {}
+  ) {
     try {
       const { where, sort, ...rest } = this._getListArgs(args as any);
       // todo: get only required fields
@@ -560,7 +625,7 @@ class BaseModelSqlv2 {
       qb.limit(+rest?.limit || 25);
       qb.offset(+rest?.offset || 0);
 
-      await childModel.selectObject({ qb });
+      await childModel.selectObject({ qb, fieldsSet: args.fieldSet });
 
       const children = await this.execAndParse(qb, childTable);
 
@@ -619,7 +684,7 @@ class BaseModelSqlv2 {
 
   public async multipleMmList(
     { colId, parentIds },
-    args: { limit?; offset? } = {}
+    args: { limit?; offset?; fieldsSet?: Set<string> } = {}
   ) {
     const { where, sort, ...rest } = this._getListArgs(args as any);
     const relColumn = (await this.model.getColumns()).find(
@@ -652,7 +717,7 @@ class BaseModelSqlv2 {
 
     const qb = this.dbDriver(rtn).join(vtn, `${vtn}.${vrcn}`, `${rtn}.${rcn}`);
 
-    await childModel.selectObject({ qb });
+    await childModel.selectObject({ qb, fieldsSet: args.fieldsSet });
 
     await this.applySortAndFilter({ table: childTable, where, qb, sort });
 
@@ -698,7 +763,10 @@ class BaseModelSqlv2 {
     return parentIds.map((id) => gs[id] || []);
   }
 
-  public async mmList({ colId, parentId }, args: { limit?; offset? } = {}) {
+  public async mmList(
+    { colId, parentId },
+    args: { limit?; offset?; fieldsSet?: Set<string> } = {}
+  ) {
     const { where, sort, ...rest } = this._getListArgs(args as any);
     const relColumn = (await this.model.getColumns()).find(
       (c) => c.id === colId
@@ -738,7 +806,7 @@ class BaseModelSqlv2 {
           .where(_wherePk(parentTable.primaryKeys, parentId))
       );
 
-    await childModel.selectObject({ qb });
+    await childModel.selectObject({ qb, fieldsSet: args.fieldsSet });
 
     await this.applySortAndFilter({ table: childTable, where, qb, sort });
 
@@ -1212,7 +1280,11 @@ class BaseModelSqlv2 {
     });
   }
 
-  private async getSelectQueryBuilderForFormula(column: Column<any>) {
+  private async getSelectQueryBuilderForFormula(
+    column: Column<any>,
+    tableAlias?: string,
+    validateFormula = false
+  ) {
     const formula = await column.getColOptions<FormulaColumn>();
     if (formula.error) throw new Error(`Formula error: ${formula.error}`);
     const qb = await formulaQueryBuilderv2(
@@ -1220,7 +1292,10 @@ class BaseModelSqlv2 {
       null,
       this.dbDriver,
       this.model,
-      column
+      column,
+      {},
+      tableAlias,
+      validateFormula
     );
     return qb;
   }
@@ -1364,6 +1439,7 @@ class BaseModelSqlv2 {
                     {
                       // limit: ids.length,
                       where: `(${pCol.column_name},in,${ids.join(',')})`,
+                      fieldsSet: (readLoader as any).args?.fieldsSet,
                     },
                     true
                   );
@@ -1376,12 +1452,14 @@ class BaseModelSqlv2 {
               });
 
               // defining HasMany count method within GQL Type class
-              proto[column.title] = async function () {
+              proto[column.title] = async function (args?: any) {
                 if (
                   this?.[cCol?.title] === null ||
                   this?.[cCol?.title] === undefined
                 )
                   return null;
+
+                (readLoader as any).args = args;
 
                 return await readLoader.load(this?.[cCol?.title]);
               };
@@ -1410,7 +1488,7 @@ class BaseModelSqlv2 {
       this.config.limitMin
     );
     obj.offset = Math.max(+(args.offset || args.o) || 0, 0);
-    obj.fields = args.fields || args.f || '*';
+    obj.fields = args.fields || args.f;
     obj.sort = args.sort || args.s;
     return obj;
   }
@@ -1425,16 +1503,70 @@ class BaseModelSqlv2 {
     }
   }
 
+  // todo:
+  //  pass view id as argument
+  //  add option to get only pk and pv
   public async selectObject({
     qb,
     columns: _columns,
+    fields: _fields,
+    extractPkAndPv,
+    viewId,
+    fieldsSet,
+    alias,
+    validateFormula,
   }: {
+    fieldsSet?: Set<string>;
     qb: Knex.QueryBuilder;
     columns?: Column[];
+    fields?: string[] | string;
+    extractPkAndPv?: boolean;
+    viewId?: string;
+    alias?: string;
+    validateFormula?: boolean;
   }): Promise<void> {
+    let viewOrTableColumns: Column[] | { fk_column_id?: string }[];
+
     const res = {};
-    const columns = _columns ?? (await this.model.getColumns());
-    for (const column of columns) {
+    let view: View;
+    let fields: string[];
+
+    if (fieldsSet?.size) {
+      viewOrTableColumns = _columns || (await this.model.getColumns());
+    } else {
+      view = await View.get(viewId);
+      const viewColumns = viewId && (await View.getColumns(viewId));
+      fields = Array.isArray(_fields) ? _fields : _fields?.split(',');
+
+      // const columns = _columns ?? (await this.model.getColumns());
+      // for (const column of columns) {
+      viewOrTableColumns =
+        _columns || viewColumns || (await this.model.getColumns());
+    }
+    for (const viewOrTableColumn of viewOrTableColumns) {
+      const column =
+        viewOrTableColumn instanceof Column
+          ? viewOrTableColumn
+          : await Column.get({
+              colId: (viewOrTableColumn as GridViewColumn).fk_column_id,
+            });
+      // hide if column marked as hidden in view
+      // of if column is system field and system field is hidden
+      if (
+        fieldsSet
+          ? !fieldsSet.has(column.title)
+          : !extractPkAndPv &&
+            !(viewOrTableColumn instanceof Column) &&
+            (!(viewOrTableColumn as GridViewColumn)?.show ||
+              (!view?.show_system_fields &&
+                column.uidt !== UITypes.ForeignKey &&
+                !column.pk &&
+                isSystemColumn(column)))
+      )
+        continue;
+
+      if (!checkColumnRequired(column, fields, extractPkAndPv)) continue;
+
       switch (column.uidt) {
         case 'LinkToAnotherRecord':
         case 'Lookup':
@@ -1454,7 +1586,9 @@ class BaseModelSqlv2 {
             case UITypes.Formula:
               try {
                 const selectQb = await this.getSelectQueryBuilderForFormula(
-                  qrValueColumn
+                  qrValueColumn,
+                  alias,
+                  validateFormula
                 );
                 qb.select({
                   [column.column_name]: selectQb.builder,
@@ -1486,7 +1620,9 @@ class BaseModelSqlv2 {
             case UITypes.Formula:
               try {
                 const selectQb = await this.getSelectQueryBuilderForFormula(
-                  barcodeValueColumn
+                  barcodeValueColumn,
+                  alias,
+                  validateFormula
                 );
                 qb.select({
                   [column.column_name]: selectQb.builder,
@@ -1509,7 +1645,9 @@ class BaseModelSqlv2 {
           {
             try {
               const selectQb = await this.getSelectQueryBuilderForFormula(
-                column
+                column,
+                alias,
+                validateFormula
               );
               qb.select(
                 this.dbDriver.raw(`?? as ??`, [
@@ -1517,7 +1655,8 @@ class BaseModelSqlv2 {
                   sanitize(column.title),
                 ])
               );
-            } catch {
+            } catch (e) {
+              console.log(e);
               // return dummy select
               qb.select(
                 this.dbDriver.raw(`'ERR' as ??`, [sanitize(column.title)])
@@ -1532,6 +1671,7 @@ class BaseModelSqlv2 {
                 // tn: this.title,
                 knex: this.dbDriver,
                 // column,
+                alias,
                 columnOptions: (await column.getColOptions()) as RollupColumn,
               })
             ).builder.as(sanitize(column.title))
@@ -1539,7 +1679,7 @@ class BaseModelSqlv2 {
           break;
         default:
           res[sanitize(column.title || column.column_name)] = sanitize(
-            `${this.model.table_name}.${column.column_name}`
+            `${alias || this.model.table_name}.${column.column_name}`
           );
           break;
       }
@@ -2659,7 +2799,7 @@ class BaseModelSqlv2 {
       qb.limit(+rest?.limit || 25);
       qb.offset(+rest?.offset || 0);
 
-      await this.selectObject({ qb });
+      await this.selectObject({ qb, extractPkAndPv: true });
 
       // todo: refactor and move to a method (applyFilterAndSort)
       const aliasColObjMap = await this.model.getAliasColObjMap();
@@ -3075,6 +3215,10 @@ function _wherePk(primaryKeys: Column[], id) {
 
 function getCompositePk(primaryKeys: Column[], row) {
   return primaryKeys.map((c) => row[c.title]).join('___');
+}
+
+function haveFormulaColumn(columns: Column[]) {
+  return columns.some((c) => c.uidt === UITypes.Formula);
 }
 
 export { BaseModelSqlv2 };

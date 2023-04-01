@@ -129,7 +129,16 @@ export async function columnUpdate(param: {
         try {
           // test the query to see if it is valid in db level
           const dbDriver = await NcConnectionMgrv2.get(base);
-          await formulaQueryBuilderv2(colBody.formula, null, dbDriver, table);
+          await formulaQueryBuilderv2(
+            colBody.formula,
+            null,
+            dbDriver,
+            table,
+            null,
+            {},
+            null,
+            true
+          );
         } catch (e) {
           console.error(e);
           NcError.badRequest('Invalid Formula');
@@ -934,7 +943,16 @@ export async function columnAdd(param: {
       try {
         // test the query to see if it is valid in db level
         const dbDriver = await NcConnectionMgrv2.get(base);
-        await formulaQueryBuilderv2(colBody.formula, null, dbDriver, table);
+        await formulaQueryBuilderv2(
+          colBody.formula,
+          null,
+          dbDriver,
+          table,
+          null,
+          {},
+          null,
+          true
+        );
       } catch (e) {
         console.error(e);
         NcError.badRequest('Invalid Formula');

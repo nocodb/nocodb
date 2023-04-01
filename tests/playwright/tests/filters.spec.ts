@@ -5,6 +5,7 @@ import { ToolbarPage } from '../pages/Dashboard/common/Toolbar';
 import { UITypes } from 'nocodb-sdk';
 import { Api } from 'nocodb-sdk';
 import { rowMixedValue } from '../setup/xcdb-records';
+import dayjs from 'dayjs';
 
 let dashboard: DashboardPage, toolbar: ToolbarPage;
 let context: any;
@@ -60,11 +61,11 @@ async function verifyFilter_withFixedModal(param: {
   }
 
   await toolbar.filter.add({
-    columnTitle: param.column,
-    opType: param.opType,
-    opSubType: param.opSubType,
+    title: param.column,
+    operation: param.opType,
+    subOperation: param.opSubType,
     value: param.value,
-    isLocallySaved: false,
+    locallySaved: false,
     dataType: param?.dataType,
     openModal: true,
   });
@@ -90,11 +91,11 @@ async function verifyFilter(param: {
 
   await toolbar.clickFilter();
   await toolbar.filter.add({
-    columnTitle: param.column,
-    opType: param.opType,
-    opSubType: param.opSubType,
+    title: param.column,
+    operation: param.opType,
+    subOperation: param.opSubType,
     value: param.value,
-    isLocallySaved: false,
+    locallySaved: false,
     dataType: param?.dataType,
   });
   await toolbar.clickFilter();
@@ -654,19 +655,23 @@ test.describe('Filter Tests: Select based', () => {
 // Date & Time related
 //
 
+function getUTCEpochTime(date) {
+  return Date.UTC(date.getUTCFullYear(), date.getUTCMonth(), date.getUTCDate(), 0, 0, 0, 0);
+}
+
 test.describe('Filter Tests: Date based', () => {
-  const today = new Date().setHours(0, 0, 0, 0);
-  const tomorrow = new Date(new Date().setDate(new Date().getDate() + 1)).setHours(0, 0, 0, 0);
-  const yesterday = new Date(new Date().setDate(new Date().getDate() - 1)).setHours(0, 0, 0, 0);
-  const oneWeekAgo = new Date(new Date().setDate(new Date().getDate() - 7)).setHours(0, 0, 0, 0);
-  const oneWeekFromNow = new Date(new Date().setDate(new Date().getDate() + 7)).setHours(0, 0, 0, 0);
-  const oneMonthAgo = new Date(new Date().setMonth(new Date().getMonth() - 1)).setHours(0, 0, 0, 0);
-  const oneMonthFromNow = new Date(new Date().setMonth(new Date().getMonth() + 1)).setHours(0, 0, 0, 0);
-  const daysAgo45 = new Date(new Date().setDate(new Date().getDate() - 45)).setHours(0, 0, 0, 0);
-  const daysFromNow45 = new Date(new Date().setDate(new Date().getDate() + 45)).setHours(0, 0, 0, 0);
-  const thisMonth15 = new Date(new Date().setDate(15)).setHours(0, 0, 0, 0);
-  const oneYearAgo = new Date(new Date().setFullYear(new Date().getFullYear() - 1)).setHours(0, 0, 0, 0);
-  const oneYearFromNow = new Date(new Date().setFullYear(new Date().getFullYear() + 1)).setHours(0, 0, 0, 0);
+  const today = getUTCEpochTime(new Date());
+  const tomorrow = getUTCEpochTime(new Date(new Date().setDate(new Date().getDate() + 1)));
+  const yesterday = getUTCEpochTime(new Date(new Date().setDate(new Date().getDate() - 1)));
+  const oneWeekAgo = getUTCEpochTime(new Date(new Date().setDate(new Date().getDate() - 7)));
+  const oneWeekFromNow = getUTCEpochTime(new Date(new Date().setDate(new Date().getDate() + 7)));
+  const oneMonthAgo = getUTCEpochTime(dayjs().subtract(1, 'month').toDate());
+  const oneMonthFromNow = getUTCEpochTime(dayjs().add(1, 'month').toDate());
+  const daysAgo45 = getUTCEpochTime(new Date(new Date().setDate(new Date().getDate() - 45)));
+  const daysFromNow45 = getUTCEpochTime(new Date(new Date().setDate(new Date().getDate() + 45)));
+  const thisMonth15 = getUTCEpochTime(new Date(new Date().setDate(15)));
+  const oneYearAgo = getUTCEpochTime(new Date(new Date().setFullYear(new Date().getFullYear() - 1)));
+  const oneYearFromNow = getUTCEpochTime(new Date(new Date().setFullYear(new Date().getFullYear() + 1)));
 
   async function dateTimeBasedFilterTest(dataType, setCount) {
     await dashboard.closeTab({ title: 'Team & Auth' });
@@ -679,8 +684,7 @@ test.describe('Filter Tests: Date based', () => {
     // records array with time set to 00:00:00; store time in unix epoch
     const recordsTimeSetToZero = records.list.map(r => {
       const date = new Date(r[dataType]);
-      date.setHours(0, 0, 0, 0);
-      return date.getTime();
+      return getUTCEpochTime(date);
     });
 
     const isFilterList = [
@@ -977,11 +981,11 @@ test.describe('Filter Tests: Date based', () => {
   });
 
   test('Date : filters-1', async () => {
-    await dateTimeBasedFilterTest('Date', 1);
+    await dateTimeBasedFilterTest('Date', 0);
   });
 
   test('Date : filters-2', async () => {
-    await dateTimeBasedFilterTest('Date', 2);
+    await dateTimeBasedFilterTest('Date', 1);
   });
 });
 
@@ -1271,10 +1275,10 @@ test.describe('Filter Tests: Toggle button', () => {
 
     await toolbar.clickFilter({ networkValidation: false });
     await toolbar.filter.add({
-      columnTitle: 'Country',
-      opType: 'is null',
+      title: 'Country',
+      operation: 'is null',
       value: null,
-      isLocallySaved: false,
+      locallySaved: false,
       dataType: 'SingleLineText',
     });
     await toolbar.clickFilter({ networkValidation: false });

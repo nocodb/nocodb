@@ -136,7 +136,7 @@ async function getDbRows(model, view: View, req: Request) {
     dbDriver: await NcConnectionMgrv2.get(base),
   });
 
-  const requestObj = await getAst({
+  const { ast } = await getAst({
     query: req.query,
     model,
     view,
@@ -159,7 +159,7 @@ async function getDbRows(model, view: View, req: Request) {
       elapsed = temp[0] * 1000 + temp[1] / 1000000
   ) {
     const rows = await nocoExecute(
-      requestObj,
+      ast,
       await baseModel.list({ ...listArgs, offset, limit }),
       {},
       listArgs

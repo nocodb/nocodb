@@ -42,7 +42,7 @@ export const useProject = defineStore('projectStore', () => {
   let sharedProject = $ref<ProjectType>()
 
   // todo: new-layout
-  const project = computed<ProjectType>(() => projectsStore.projects[projectId.value] || sharedProject ||  {})
+  const project = computed<ProjectType>(() => projectsStore.projects[projectId.value] || sharedProject || {})
   const tables = computed<TableType[]>(() => projectsStore.projectTableList[projectId.value] || [])
 
   const projectLoadedHook = createEventHook<ProjectType>()

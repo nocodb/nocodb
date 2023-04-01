@@ -118,6 +118,6 @@ export const useProjects = defineStore('projectsStore', () => {
     deleteProject,
     getProjectMetaInfo,
     getProjectMeta,
-    setProject
+    setProject,
   }
 })

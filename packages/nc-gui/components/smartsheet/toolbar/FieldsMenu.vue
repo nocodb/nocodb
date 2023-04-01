@@ -3,6 +3,7 @@ import type { ColumnType, GalleryType, KanbanType } from 'nocodb-sdk'
 import { UITypes, ViewTypes, isVirtualCol } from 'nocodb-sdk'
 import Draggable from 'vuedraggable'
 import type { SelectProps } from 'ant-design-vue'
+import type { CheckboxChangeEvent } from 'ant-design-vue/es/checkbox/interface'
 import {
   ActiveViewInj,
   FieldsInj,
@@ -18,6 +19,7 @@ import {
   useMenuCloseOnEsc,
   useNuxtApp,
   useSmartsheetStoreOrThrow,
+  useUndoRedo,
   useViewColumns,
   watch,
 } from '#imports'
@@ -55,6 +57,8 @@ const {
 
 const { eventBus } = useSmartsheetStoreOrThrow()
 
+const { addUndo, defineViewScope } = useUndoRedo()
+
 eventBus.on((event) => {
   if (event === SmartsheetStoreEvents.FIELD_RELOAD) {
     loadViewColumns()
@@ -79,9 +83,43 @@ const gridDisplayValueField = computed(() => {
   return filteredFieldList.value?.find((field) => field.fk_column_id === pvCol?.id)
 })
 
-const onMove = (_event: { moved: { newIndex: number } }) => {
+const onMove = (_event: { moved: { newIndex: number; oldIndex: number } }, undo = false) => {
   // todo : sync with server
   if (!fields.value) return
+
+  if (!undo) {
+    addUndo({
+      undo: {
+        fn: () => {
+          if (!fields.value) return
+          const temp = fields.value[_event.moved.newIndex]
+          fields.value[_event.moved.newIndex] = fields.value[_event.moved.oldIndex]
+          fields.value[_event.moved.oldIndex] = temp
+          onMove(
+            {
+              moved: {
+                newIndex: _event.moved.oldIndex,
+                oldIndex: _event.moved.newIndex,
+              },
+            },
+            true,
+          )
+        },
+        args: [],
+      },
+      redo: {
+        fn: () => {
+          if (!fields.value) return
+          const temp = fields.value[_event.moved.oldIndex]
+          fields.value[_event.moved.oldIndex] = fields.value[_event.moved.newIndex]
+          fields.value[_event.moved.newIndex] = temp
+          onMove(_event, true)
+        },
+        args: [],
+      },
+      scope: defineViewScope({ view: activeView.value }),
+    })
+  }
 
   if (fields.value.length < 2) return
 
@@ -108,6 +146,27 @@ const coverOptions = computed<SelectProps['options']>(() => {
   return [{ value: null, label: 'No Image' }, ...filterFields]
 })
 
+const updateCoverImage = async (val?: string | null) => {
+  if (
+    (activeView.value?.type === ViewTypes.GALLERY || activeView.value?.type === ViewTypes.KANBAN) &&
+    activeView.value?.id &&
+    activeView.value?.view
+  ) {
+    if (activeView.value?.type === ViewTypes.GALLERY) {
+      await $api.dbView.galleryUpdate(activeView.value?.id, {
+        fk_cover_image_col_id: val,
+      })
+      ;(activeView.value.view as GalleryType).fk_cover_image_col_id = val
+    } else if (activeView.value?.type === ViewTypes.KANBAN) {
+      await $api.dbView.kanbanUpdate(activeView.value?.id, {
+        fk_cover_image_col_id: val,
+      })
+      ;(activeView.value.view as KanbanType).fk_cover_image_col_id = val
+    }
+    reloadViewMetaHook?.trigger()
+  }
+}
+
 const coverImageColumnId = computed({
   get: () => {
     const fk_cover_image_col_id =
@@ -121,23 +180,20 @@ const coverImageColumnId = computed({
     return null
   },
   set: async (val) => {
-    if (
-      (activeView.value?.type === ViewTypes.GALLERY || activeView.value?.type === ViewTypes.KANBAN) &&
-      activeView.value?.id &&
-      activeView.value?.view
-    ) {
-      if (activeView.value?.type === ViewTypes.GALLERY) {
-        await $api.dbView.galleryUpdate(activeView.value?.id, {
-          fk_cover_image_col_id: val,
-        })
-        ;(activeView.value.view as GalleryType).fk_cover_image_col_id = val
-      } else if (activeView.value?.type === ViewTypes.KANBAN) {
-        await $api.dbView.kanbanUpdate(activeView.value?.id, {
-          fk_cover_image_col_id: val,
-        })
-        ;(activeView.value.view as KanbanType).fk_cover_image_col_id = val
-      }
-      reloadViewMetaHook?.trigger()
+    if (val !== coverImageColumnId.value) {
+      addUndo({
+        undo: {
+          fn: await updateCoverImage,
+          args: [coverImageColumnId.value],
+        },
+        redo: {
+          fn: await updateCoverImage,
+          args: [val],
+        },
+        scope: defineViewScope({ view: activeView.value }),
+      })
+
+      await updateCoverImage(val)
     }
   },
 })
@@ -148,6 +204,83 @@ const getIcon = (c: ColumnType) =>
   })
 
 const open = ref(false)
+
+const toggleFieldVisibility = (e: CheckboxChangeEvent, field: any, index: number) => {
+  addUndo({
+    undo: {
+      fn: (v: boolean) => {
+        field.show = !v
+        saveOrUpdate(field, index)
+      },
+      args: [e.target.checked],
+    },
+    redo: {
+      fn: (v: boolean) => {
+        field.show = v
+        saveOrUpdate(field, index)
+      },
+      args: [e.target.checked],
+    },
+    scope: defineViewScope({ view: activeView.value }),
+  })
+  saveOrUpdate(field, index)
+}
+
+const toggleSystemFields = (e: CheckboxChangeEvent) => {
+  addUndo({
+    undo: {
+      fn: (v: boolean) => {
+        showSystemFields.value = !v
+      },
+      args: [e.target.checked],
+    },
+    redo: {
+      fn: (v: boolean) => {
+        showSystemFields.value = v
+      },
+      args: [e.target.checked],
+    },
+    scope: defineViewScope({ view: activeView.value }),
+  })
+}
+
+const onShowAll = () => {
+  addUndo({
+    undo: {
+      fn: async () => {
+        await hideAll()
+      },
+      args: [],
+    },
+    redo: {
+      fn: async () => {
+        await showAll()
+      },
+      args: [],
+    },
+    scope: defineViewScope({ view: activeView.value }),
+  })
+  showAll()
+}
+
+const onHideAll = () => {
+  addUndo({
+    undo: {
+      fn: async () => {
+        await showAll()
+      },
+      args: [],
+    },
+    redo: {
+      fn: async () => {
+        await hideAll()
+      },
+      args: [],
+    },
+    scope: defineViewScope({ view: activeView.value }),
+  })
+  hideAll()
+}
 
 useMenuCloseOnEsc(open)
 </script>
@@ -208,7 +341,7 @@ useMenuCloseOnEsc(open)
                   v-e="['a:fields:show-hide']"
                   class="shrink"
                   :disabled="field.isViewEssentialField"
-                  @change="saveOrUpdate(field, index)"
+                  @change="toggleFieldVisibility($event, field, index)"
                 >
                   <div class="flex items-center">
                     <component :is="getIcon(metaColumnById[field.fk_column_id])" />
@@ -253,18 +386,18 @@ useMenuCloseOnEsc(open)
         <a-divider class="!my-2" />
 
         <div v-if="!isPublic" class="p-2 py-1 flex nc-fields-show-system-fields" @click.stop>
-          <a-checkbox v-model:checked="showSystemFields" class="!items-center">
+          <a-checkbox v-model:checked="showSystemFields" class="!items-center" @change="toggleSystemFields">
             <span class="text-xs"> {{ $t('activity.showSystemFields') }}</span>
           </a-checkbox>
         </div>
 
         <div class="p-2 flex gap-2" @click.stop>
-          <a-button size="small" class="!text-xs text-gray-500 text-capitalize" @click.stop="showAll()">
+          <a-button size="small" class="!text-xs text-gray-500 text-capitalize" @click.stop="onShowAll">
             <!-- Show All -->
             {{ $t('general.showAll') }}
           </a-button>
 
-          <a-button size="small" class="!text-xs text-gray-500 text-capitalize" @click.stop="hideAll()">
+          <a-button size="small" class="!text-xs text-gray-500 text-capitalize" @click.stop="onHideAll">
             <!-- Hide All -->
             {{ $t('general.hideAll') }}
           </a-button>

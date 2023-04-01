@@ -23,10 +23,24 @@ export class TreeViewPage extends BasePage {
   }
 
   async verifyVisibility({ isVisible }: { isVisible: boolean }) {
-    if (isVisible) {
-      await expect(this.get()).toBeVisible();
+    await this.rootPage.waitForTimeout(1000);
+
+    const domElement = await this.get();
+    // get width of treeview dom element
+    const width = (await domElement.boundingBox()).width;
+
+    // if (isVisible) {
+    //   await expect(this.get()).toBeVisible();
+    // } else {
+    //   await expect(this.get()).not.toBeVisible();
+    // }
+
+    // border for treeview is 1px
+    // if not-visible, width should be < 5;
+    if (!isVisible) {
+      expect(width).toBeLessThan(5);
     } else {
-      await expect(this.get()).not.toBeVisible();
+      expect(width).toBeGreaterThan(5);
     }
   }
 

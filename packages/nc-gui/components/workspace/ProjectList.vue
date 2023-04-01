@@ -249,7 +249,7 @@ function onProjectTitleClick(index: number) {
           <div class="flex items-center nc-project-title gap-2 max-w-full">
             <div class="flex items-center gap-2 text-center">
               <!-- todo: replace with switch -->
-         <GeneralProjectIcon :type="record.type"/>
+              <GeneralProjectIcon :type="record.type" />
             </div>
 
             <div class="min-w-10">

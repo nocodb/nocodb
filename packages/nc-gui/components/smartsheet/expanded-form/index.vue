@@ -11,7 +11,6 @@ import {
   ReloadRowDataHookInj,
   computedInject,
   createEventHook,
-  iconMap,
   inject,
   message,
   provide,
@@ -302,7 +301,7 @@ export default {
 
                 <GeneralShortcutLabel class="justify-center" :keys="['Alt', '←']" />
               </template>
-              <component :is="iconMap.chevronLeft" class="cursor-pointer nc-prev-arrow" @click="$emit('prev')" />
+              <GeneralIcon icon="chevronLeft" class="cursor-pointer nc-prev-arrow" @click="$emit('prev')" />
             </a-tooltip>
 
             <a-tooltip v-if="!props.lastRow" placement="bottom">
@@ -310,7 +309,7 @@ export default {
                 {{ $t('labels.nextRow') }}
                 <GeneralShortcutLabel class="justify-center" :keys="['Alt', '→']" />
               </template>
-              <component :is="iconMap.chevronRight" class="cursor-pointer nc-next-arrow" @click="onNext" />
+              <GeneralIcon icon="chevronRight" class="cursor-pointer nc-next-arrow" @click="onNext" />
             </a-tooltip>
           </template>
           <div class="w-[500px] mx-auto">
@@ -384,7 +383,7 @@ export default {
 
 .nc-prev-arrow,
 .nc-next-arrow {
-  @apply absolute opacity-70 rounded-full transition-transform transition-background transition-opacity transform bg-white hover:(bg-gray-200) active:(scale-125 opacity-100) text-xl;
+  @apply w-7 h-7 flex items-center justify-center absolute opacity-70 rounded-full transition-transform transition-background transition-opacity transform bg-white hover:(bg-gray-200) active:(scale-125 opacity-100) !text-xl;
 }
 
 .nc-prev-arrow {

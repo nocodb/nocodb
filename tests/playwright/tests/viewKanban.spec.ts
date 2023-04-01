@@ -119,9 +119,9 @@ test.describe('View', () => {
 
     // verify sort
     await toolbar.sort.add({
-      columnTitle: 'Title',
-      isAscending: false,
-      isLocallySaved: false,
+      title: 'Title',
+      ascending: false,
+      locallySaved: false,
     });
     // verify card order
     const order2 = [
@@ -150,10 +150,10 @@ test.describe('View', () => {
       networkValidation: true,
     });
     await toolbar.filter.add({
-      columnTitle: 'Title',
-      opType: 'is like',
+      title: 'Title',
+      operation: 'is like',
       value: 'BA',
-      isLocallySaved: false,
+      locallySaved: false,
     });
     await toolbar.clickFilter();
 
@@ -193,17 +193,17 @@ test.describe('View', () => {
     });
 
     await toolbar.sort.add({
-      columnTitle: 'Title',
-      isAscending: false,
-      isLocallySaved: false,
+      title: 'Title',
+      ascending: false,
+      locallySaved: false,
     });
 
     await toolbar.clickFilter();
     await toolbar.filter.add({
-      columnTitle: 'Title',
-      opType: 'is like',
+      title: 'Title',
+      operation: 'is like',
       value: 'BA',
-      isLocallySaved: false,
+      locallySaved: false,
     });
     await toolbar.clickFilter();
 

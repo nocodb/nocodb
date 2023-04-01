@@ -1,4 +1,4 @@
-import clone from 'just-clone'
+import rfdc from 'rfdc'
 import type { ColumnReqType, ColumnType, TableType } from 'nocodb-sdk'
 import { UITypes } from 'nocodb-sdk'
 import type { Ref } from 'vue'
@@ -17,6 +17,8 @@ import {
   useProject,
   watch,
 } from '#imports'
+
+const clone = rfdc()
 
 const useForm = Form.useForm
 

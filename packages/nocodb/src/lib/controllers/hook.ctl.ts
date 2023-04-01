@@ -46,11 +46,21 @@ export async function hookUpdate(
 }
 
 export async function hookTest(req: Request<any, any>, res: Response) {
-  await hookService.hookTest({
-    hookTest: req.body,
-    tableId: req.params.tableId,
-  });
-  res.json({ msg: 'The hook has been tested successfully' });
+  try {
+    await hookService.hookTest({
+      hookTest: {
+        ...req.body,
+        payload: {
+          ...req.body.payload,
+          user: (req as any)?.user,
+        },
+      },
+      tableId: req.params.tableId,
+    });
+    res.json({ msg: 'The hook has been tested successfully' });
+  } catch (e) {
+    throw e;
+  }
 }
 
 export async function tableSampleData(req: Request, res: Response) {

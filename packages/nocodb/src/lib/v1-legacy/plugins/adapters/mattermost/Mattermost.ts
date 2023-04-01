@@ -14,6 +14,7 @@ export default class Mattermost {
         });
       } catch (e) {
         console.log(e);
+        throw e;
       }
     }
   }

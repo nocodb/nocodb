@@ -14,6 +14,7 @@ export default class Mattermost implements IWebhookNotificationAdapter {
         });
       } catch (e) {
         console.log(e);
+        throw e;
       }
     }
   }

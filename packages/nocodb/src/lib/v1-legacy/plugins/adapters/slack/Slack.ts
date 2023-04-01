@@ -14,6 +14,7 @@ export default class Slack {
         });
       } catch (e) {
         console.log(e);
+        throw e;
       }
     }
   }

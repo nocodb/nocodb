@@ -14,6 +14,7 @@ export default class Discord implements IWebhookNotificationAdapter {
         });
       } catch (e) {
         console.log(e);
+        throw e;
       }
     }
   }

@@ -14,6 +14,7 @@ export default class Discord {
         });
       } catch (e) {
         console.log(e);
+        throw e;
       }
     }
   }

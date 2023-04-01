@@ -9,7 +9,7 @@ export default class Slack {
   ): Promise<any> {
     for (const { webhook_url } of webhooks) {
       try {
-        await axios.post(webhook_url, {
+        return await axios.post(webhook_url, {
           text,
         });
       } catch (e) {

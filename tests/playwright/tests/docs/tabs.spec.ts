@@ -106,11 +106,23 @@ test.describe('Docs Tabs test', () => {
     await dashboard.verifyOpenedTab({ title: project.title as any });
     await dashboard.verifyTabIsNotOpened({ title: 'new-nested-child-single-page' });
 
+    await dashboard.sidebar.docsSidebar.verifyPageIsNotInSidebar({
+      projectTitle: project.title as any,
+      title: 'new-nested-child-single-page',
+    });
+
     // Reload verification
     await dashboard.sidebar.docsSidebar.openPage({
       projectTitle: project.title as any,
       title: 'nested-root-single-page',
     });
+
+    // verify deleted page is not in sidebar
+    await dashboard.sidebar.docsSidebar.verifyPageIsNotInSidebar({
+      projectTitle: project.title as any,
+      title: 'new-nested-child-single-page',
+    });
+
     await dashboard.verifyOpenedTab({ title: 'nested-root-single-page' });
     await dashboard.docs.openedPage.verifyTitle({ title: 'nested-root-single-page' });
 

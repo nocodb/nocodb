@@ -85,6 +85,26 @@ test.describe('Create docs project and verify docs UI', () => {
     await dashboard.sidebar.docsSidebar.createPage({ projectTitle: project.title as any, title: 'root-page' });
     await dashboard.docs.openedPage.verifyOpenedPageVisible();
 
+    await dashboard.sidebar.docsSidebar.selectEmoji({
+      emoji: 'hot-dog',
+      projectTitle: project.title as any,
+      title: 'root-page',
+    });
+    await dashboard.sidebar.docsSidebar.verifyEmoji({
+      emoji: 'hot-dog',
+      projectTitle: project.title as any,
+      title: 'root-page',
+    });
+    await dashboard.docs.openedPage.verifyTitleEmoji({ emoji: 'hot-dog' });
+
+    await dashboard.docs.openedPage.selectEmoji({ emoji: 'rolling-on-the-floor-laughing' });
+    await dashboard.docs.openedPage.verifyTitleEmoji({ emoji: 'rolling-on-the-floor-laughing' });
+    await dashboard.sidebar.docsSidebar.verifyEmoji({
+      emoji: 'rolling-on-the-floor-laughing',
+      projectTitle: project.title as any,
+      title: 'root-page',
+    });
+
     await dashboard.docs.openedPage.fillTitle({ title: 'root-page-1' });
     await dashboard.docs.openedPage.fillContent({ content: 'root-page-1-content' });
     await dashboard.docs.openedPage.verifyContent({ content: 'root-page-1-content' });
@@ -105,10 +125,31 @@ test.describe('Create docs project and verify docs UI', () => {
     await dashboard.docs.openedPage.fillContent({ content: 'child-page-1-content' });
     await dashboard.docs.openedPage.verifyContent({ content: 'child-page-1-content' });
 
+    await dashboard.sidebar.docsSidebar.selectEmoji({
+      emoji: 'hot-dog',
+      projectTitle: project.title as any,
+      title: 'child-page-1',
+    });
+    await dashboard.sidebar.docsSidebar.verifyEmoji({
+      emoji: 'hot-dog',
+      projectTitle: project.title as any,
+      title: 'child-page-1',
+    });
+    await dashboard.docs.openedPage.verifyTitleEmoji({ emoji: 'hot-dog' });
+
+    await dashboard.docs.openedPage.selectEmoji({ emoji: 'rolling-on-the-floor-laughing' });
+    await dashboard.docs.openedPage.verifyTitleEmoji({ emoji: 'rolling-on-the-floor-laughing' });
+    await dashboard.sidebar.docsSidebar.verifyEmoji({
+      emoji: 'rolling-on-the-floor-laughing',
+      projectTitle: project.title as any,
+      title: 'child-page-1',
+    });
+
     await dashboard.sidebar.docsSidebar.verifyPageInSidebar({
       title: 'child-page-1',
       projectTitle: project.title as any,
       level: 1,
+      emoji: 'rolling-on-the-floor-laughing',
     });
 
     await dashboard.sidebar.docsSidebar.openPage({

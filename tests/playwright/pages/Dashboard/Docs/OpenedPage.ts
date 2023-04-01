@@ -64,7 +64,7 @@ export class DocsOpenedPagePage extends BasePage {
     await this.rootPage.waitForTimeout(200);
 
     for (const char of content) {
-      await this.rootPage.keyboard.press(char);
+      await this.rootPage.keyboard.type(char);
     }
 
     // await this.waitForResponse({
@@ -129,5 +129,27 @@ export class DocsOpenedPagePage extends BasePage {
 
   async verifyOpenedPageVisible() {
     await expect(this.get()).toBeVisible();
+  }
+
+  async selectEmoji({ emoji }: { emoji: string }) {
+    await this.get().getByTestId('nc-doc-opened-page-icon-picker').hover();
+    await this.get().getByTestId('nc-doc-opened-page-icon-picker').click();
+
+    await this.rootPage.getByTestId('nc-emoji-filter').last().type(emoji);
+
+    await this.rootPage.waitForTimeout(500);
+
+    await this.waitForResponse({
+      uiAction: () =>
+        this.rootPage.getByTestId('nc-emoji-container').last().locator(`.nc-emoji-item >> svg`).first().click(),
+      httpMethodsToMatch: ['PUT'],
+      requestUrlPathToMatch: `api/v1/docs/page`,
+    });
+  }
+
+  async verifyTitleEmoji({ emoji }: { emoji: string }) {
+    await expect(
+      this.get().getByTestId('docs-page-title-wrapper').getByTestId(`nc-doc-page-icon-emojione:${emoji}`)
+    ).toBeVisible();
   }
 }

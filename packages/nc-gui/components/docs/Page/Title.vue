@@ -90,9 +90,13 @@ onMounted(() => {
       'ml-7': !isPublic,
       '-ml-0.5': isPublic,
     }"
+    data-testid="docs-page-title-wrapper"
   >
     <a-dropdown v-if="isEditAllowed && openedPage?.icon" placement="bottom" trigger="click">
-      <div class="flex flex-col justify-center h-16 px-2 text-gray-500 rounded-md hover:bg-gray-100 cursor-pointer">
+      <div
+        class="flex flex-col justify-center h-16 px-2 text-gray-500 rounded-md hover:bg-gray-100 cursor-pointer"
+        data-testid="nc-doc-opened-page-icon-picker"
+      >
         <IconifyIcon
           v-if="openedPage?.icon"
           :key="openedPage.icon"

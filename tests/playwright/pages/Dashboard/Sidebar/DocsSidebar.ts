@@ -105,11 +105,13 @@ export class DocsSidebarPage extends BasePage {
     title,
     level,
     isPublic,
+    emoji,
   }: {
     projectTitle: string;
     title: string;
     level?: number;
     isPublic?: boolean;
+    emoji?: string;
   }) {
     await expect(
       this.get({ projectTitle, isPublic }).getByTestId(`docs-sidebar-page-${projectTitle}-${title}`)
@@ -119,6 +121,10 @@ export class DocsSidebarPage extends BasePage {
       await expect(
         this.get({ projectTitle, isPublic }).getByTestId(`docs-sidebar-page-${projectTitle}-${title}`)
       ).toHaveAttribute('data-level', level.toString());
+    }
+
+    if (emoji) {
+      await this.verifyEmoji({ projectTitle, title, emoji, isPublic });
     }
   }
 

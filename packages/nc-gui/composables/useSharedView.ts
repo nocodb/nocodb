@@ -21,7 +21,6 @@ export function useSharedView() {
 
   const { project } = storeToRefs(projectStore)
 
-
   const appInfoDefaultLimit = appInfo.defaultLimit || 25
 
   const paginationData = useState<PaginatedType>('paginationData', () => ({

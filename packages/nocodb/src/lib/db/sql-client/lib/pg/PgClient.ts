@@ -474,7 +474,7 @@ class PGClient extends KnexClient {
         ]);
       }
 
-      const schemaName = this.connectionConfig.searchPath?.[0] || 'public'
+      const schemaName = this.connectionConfig.searchPath?.[0] || 'public';
 
       // Check schemaExists because `CREATE SCHEMA IF NOT EXISTS` requires permissions of `CREATE ON DATABASE`
       const schemaExists = !!(

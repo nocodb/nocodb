@@ -151,10 +151,39 @@ const onContextmenu = (e: MouseEvent) => {
     e.stopPropagation()
   }
 }
+
+const intersected = ref(false)
+
+let intersectionObserver = $ref<IntersectionObserver>()
+
+const elementToObserve = $ref<Element>()
+
+// load the cell only when it is in the viewport
+function initIntersectionObserver() {
+  intersectionObserver = new IntersectionObserver((entries) => {
+    entries.forEach((entry) => {
+      if (entry.isIntersecting) {
+        intersected.value = true
+      }
+    })
+  })
+}
+
+// observe the cell when it is mounted
+onMounted(() => {
+  initIntersectionObserver()
+  intersectionObserver?.observe(elementToObserve!)
+})
+
+// disconnect the observer when the cell is unmounted
+onUnmounted(() => {
+  intersectionObserver?.disconnect()
+})
 </script>
 
 <template>
   <div
+    ref="elementToObserve"
     class="nc-cell w-full h-full relative"
     :class="[
       `nc-cell-${(column?.uidt || 'default').toLowerCase()}`,
@@ -167,35 +196,37 @@ const onContextmenu = (e: MouseEvent) => {
     @contextmenu="onContextmenu"
   >
     <template v-if="column">
-      <LazyCellTextArea v-if="isTextArea(column)" v-model="vModel" />
-      <LazyCellGeoData v-else-if="isGeoData(column)" v-model="vModel" />
-      <LazyCellCheckbox v-else-if="isBoolean(column, abstractType)" v-model="vModel" />
-      <LazyCellAttachment v-else-if="isAttachment(column)" v-model="vModel" :row-index="props.rowIndex" />
-      <LazyCellSingleSelect v-else-if="isSingleSelect(column)" v-model="vModel" :row-index="props.rowIndex" />
-      <LazyCellMultiSelect v-else-if="isMultiSelect(column)" v-model="vModel" :row-index="props.rowIndex" />
-      <LazyCellDatePicker v-else-if="isDate(column, abstractType)" v-model="vModel" :is-pk="isPrimaryKey(column)" />
-      <LazyCellYearPicker v-else-if="isYear(column, abstractType)" v-model="vModel" :is-pk="isPrimaryKey(column)" />
-      <LazyCellDateTimePicker v-else-if="isDateTime(column, abstractType)" v-model="vModel" :is-pk="isPrimaryKey(column)" />
-      <LazyCellTimePicker v-else-if="isTime(column, abstractType)" v-model="vModel" :is-pk="isPrimaryKey(column)" />
-      <LazyCellRating v-else-if="isRating(column)" v-model="vModel" />
-      <LazyCellDuration v-else-if="isDuration(column)" v-model="vModel" />
-      <LazyCellEmail v-else-if="isEmail(column)" v-model="vModel" />
-      <LazyCellUrl v-else-if="isURL(column)" v-model="vModel" />
-      <LazyCellPhoneNumber v-else-if="isPhoneNumber(column)" v-model="vModel" />
-      <LazyCellPercent v-else-if="isPercent(column)" v-model="vModel" />
-      <LazyCellCurrency v-else-if="isCurrency(column)" v-model="vModel" @save="emit('save')" />
-      <LazyCellDecimal v-else-if="isDecimal(column)" v-model="vModel" />
-      <LazyCellInteger v-else-if="isInt(column, abstractType)" v-model="vModel" />
-      <LazyCellFloat v-else-if="isFloat(column, abstractType)" v-model="vModel" />
-      <LazyCellText v-else-if="isString(column, abstractType)" v-model="vModel" />
-      <LazyCellJson v-else-if="isJSON(column)" v-model="vModel" />
-      <LazyCellText v-else v-model="vModel" />
-      <div
-        v-if="(isLocked || (isPublic && readOnly && !isForm) || isSystemColumn(column)) && !isAttachment(column)"
-        class="nc-locked-overlay"
-        @click.stop.prevent
-        @dblclick.stop.prevent
-      />
+      <template v-if="intersected">
+        <LazyCellTextArea v-if="isTextArea(column)" v-model="vModel" />
+        <LazyCellGeoData v-else-if="isGeoData(column)" v-model="vModel" />
+        <LazyCellCheckbox v-else-if="isBoolean(column, abstractType)" v-model="vModel" />
+        <LazyCellAttachment v-else-if="isAttachment(column)" v-model="vModel" :row-index="props.rowIndex" />
+        <LazyCellSingleSelect v-else-if="isSingleSelect(column)" v-model="vModel" :row-index="props.rowIndex" />
+        <LazyCellMultiSelect v-else-if="isMultiSelect(column)" v-model="vModel" :row-index="props.rowIndex" />
+        <LazyCellDatePicker v-else-if="isDate(column, abstractType)" v-model="vModel" :is-pk="isPrimaryKey(column)" />
+        <LazyCellYearPicker v-else-if="isYear(column, abstractType)" v-model="vModel" :is-pk="isPrimaryKey(column)" />
+        <LazyCellDateTimePicker v-else-if="isDateTime(column, abstractType)" v-model="vModel" :is-pk="isPrimaryKey(column)" />
+        <LazyCellTimePicker v-else-if="isTime(column, abstractType)" v-model="vModel" :is-pk="isPrimaryKey(column)" />
+        <LazyCellRating v-else-if="isRating(column)" v-model="vModel" />
+        <LazyCellDuration v-else-if="isDuration(column)" v-model="vModel" />
+        <LazyCellEmail v-else-if="isEmail(column)" v-model="vModel" />
+        <LazyCellUrl v-else-if="isURL(column)" v-model="vModel" />
+        <LazyCellPhoneNumber v-else-if="isPhoneNumber(column)" v-model="vModel" />
+        <LazyCellPercent v-else-if="isPercent(column)" v-model="vModel" />
+        <LazyCellCurrency v-else-if="isCurrency(column)" v-model="vModel" @save="emit('save')" />
+        <LazyCellDecimal v-else-if="isDecimal(column)" v-model="vModel" />
+        <LazyCellInteger v-else-if="isInt(column, abstractType)" v-model="vModel" />
+        <LazyCellFloat v-else-if="isFloat(column, abstractType)" v-model="vModel" />
+        <LazyCellText v-else-if="isString(column, abstractType)" v-model="vModel" />
+        <LazyCellJson v-else-if="isJSON(column)" v-model="vModel" />
+        <LazyCellText v-else v-model="vModel" />
+        <div
+          v-if="(isLocked || (isPublic && readOnly && !isForm) || isSystemColumn(column)) && !isAttachment(column)"
+          class="nc-locked-overlay"
+          @click.stop.prevent
+          @dblclick.stop.prevent
+        />
+      </template>
     </template>
   </div>
 </template>

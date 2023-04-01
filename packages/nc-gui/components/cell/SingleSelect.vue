@@ -246,10 +246,6 @@ useEventListener(document, 'click', handleClose, true)
 const selectedOpt = computed(() => {
   return options.value.find((o) => o.value === vModel.value)
 })
-
-onMounted(() => {
-  console.log('mounted')
-})
 </script>
 
 <template>

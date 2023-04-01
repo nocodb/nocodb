@@ -255,4 +255,64 @@ export class DocsSidebarPage extends BasePage {
       .locator('.nc-docs-sidebar-page-title')
       .textContent();
   }
+
+  async verifyParent({
+    projectTitle,
+    title,
+    parentTitle,
+    parentLevel,
+  }: {
+    projectTitle: string;
+    title: string;
+    parentTitle: string;
+    parentLevel: number;
+  }) {
+    await this.verifyPageInSidebar({
+      projectTitle,
+      title,
+      level: parentLevel + 1,
+    });
+
+    await this.verifyPageInSidebar({
+      projectTitle,
+      title: parentTitle,
+      level: parentLevel,
+    });
+  }
+
+  async reorderPage({
+    projectTitle,
+    title,
+    newParentTitle,
+    dragToTop,
+  }: {
+    projectTitle: string;
+    title: string;
+    newParentTitle: string;
+    dragToTop?: boolean;
+  }) {
+    await this.openPage({ projectTitle, title });
+
+    await this.pageNodeLocator({
+      projectTitle,
+      title,
+    }).hover();
+
+    await this.pageNodeLocator({
+      projectTitle,
+      title,
+    }).dragTo(
+      this.pageNodeLocator({
+        projectTitle,
+        title: newParentTitle,
+      }),
+      {
+        targetPosition: {
+          x: 135,
+          y: dragToTop ? 0 : 20,
+        },
+        force: true,
+      }
+    );
+  }
 }

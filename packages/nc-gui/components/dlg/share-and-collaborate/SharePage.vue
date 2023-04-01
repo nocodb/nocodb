@@ -118,7 +118,11 @@ watch(
       </div>
       <div v-else-if="page.is_published && !isNestedParent" class="flex text-xs">
         Shared through page
-        <span class="text-blue-600 underline pl-1 cursor-pointer mr-1" @click="openParentPageLink">
+        <span
+          class="text-blue-600 underline pl-1 cursor-pointer mr-1"
+          :data-testid="`docs-share-page-parent-share-${nestedPublicParentPage?.title}`"
+          @click="openParentPageLink"
+        >
           {{ nestedPublicParentPage?.title }}</span
         >
       </div>

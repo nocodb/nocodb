@@ -62,6 +62,11 @@ export class ShareProjectButtonPage extends BasePage {
     );
   }
 
+  // Verify that opened page is shared through this page
+  async verifyPageSharedParentShare({ parentTitle }: { parentTitle: string }) {
+    await expect(this.rootPage.getByTestId(`docs-share-page-parent-share-${parentTitle}`)).toBeVisible();
+  }
+
   async verifyVisibility({ isVisible }: { isVisible: boolean }) {
     if (isVisible) {
       await expect(this.get()).toBeVisible();

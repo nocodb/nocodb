@@ -10,8 +10,8 @@ import { Workspace } from '../models';
 import Project from '../models/Project';
 import validateParams from '../meta/helpers/validateParams';
 import ProjectUser from '../models/ProjectUser';
+import { parseMetaProp } from '../utils/modelUtils';
 import type { UserType, WorkspaceType } from 'nocodb-sdk';
-import {parseMetaProp} from "../utils/modelUtils";
 
 export const workspaceCreate = async (param: {
   workspaces: WorkspaceType;

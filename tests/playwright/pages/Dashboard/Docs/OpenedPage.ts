@@ -152,4 +152,32 @@ export class DocsOpenedPagePage extends BasePage {
       this.get().getByTestId('docs-page-title-wrapper').getByTestId(`nc-doc-page-icon-emojione:${emoji}`)
     ).toBeVisible();
   }
+
+  async verifyChildPage({ title }: { title: string }) {
+    await this.get()
+      .locator('.docs-page-child-pages')
+      .locator(`.docs-page-child-page >> text=${title}`)
+      .scrollIntoViewIfNeeded();
+
+    await expect(
+      this.get().locator('.docs-page-child-pages').locator(`.docs-page-child-page >> text=${title}`)
+    ).toBeVisible();
+  }
+
+  async verifyChildPagesNotVisible() {
+    await expect(this.get().locator('.docs-page-child-pages')).not.toBeVisible();
+  }
+
+  async verifyTitleIsReadOnly({ editable }: { editable: boolean }) {
+    await expect(this.get().getByTestId('docs-page-title')).toBeEditable({
+      editable: editable,
+    });
+  }
+
+  async verifyContentIsReadOnly({ editable }: { editable: boolean }) {
+    await expect(this.get().getByTestId('docs-page-content').locator('.ProseMirror')).toHaveAttribute(
+      'contenteditable',
+      editable ? 'true' : 'false'
+    );
+  }
 }

@@ -14,6 +14,12 @@ export class ShareProjectButtonPage extends BasePage {
     return this.dashboard.get().getByTestId('share-project-button');
   }
 
+  // Prefixing to differentiate between emails created by the tests which are deleted after the test run
+  prefixEmail(email: string) {
+    const parallelId = process.env.TEST_PARALLEL_INDEX ?? '0';
+    return `nc_test_${parallelId}_${email}`;
+  }
+
   async verifyShareStatus({ visibility }: { visibility: 'public' | 'private' }) {
     await expect(this.rootPage.locator(`[data-sharetype="${visibility}"]`)).toBeVisible();
   }
@@ -33,6 +39,27 @@ export class ShareProjectButtonPage extends BasePage {
 
   async clickShareProjectPublic() {
     await this.rootPage.getByTestId('docs-share-dlg-share-project-public').click();
+  }
+
+  async clickManageAccess() {
+    await this.rootPage.getByTestId('docs-share-manage-access').click();
+  }
+
+  async fillInviteEmail({ email }: { email: string }) {
+    await this.rootPage.getByTestId('docs-share-dlg-share-project-collaborate-emails').fill(this.prefixEmail(email));
+  }
+
+  async selectInviteRole({ role }: { role: 'editor' | 'viewer' }) {
+    await this.rootPage.getByTestId('docs-share-dlg-share-project-collaborate-role').click();
+    await this.rootPage.getByTestId(`nc-share-invite-user-role-option-${role}`).click();
+  }
+
+  async clickShareButton() {
+    await this.rootPage.getByTestId('docs-share-btn').click();
+  }
+
+  async copyInvitationLink() {
+    await this.rootPage.getByTestId('docs-share-invitation-copy').click();
   }
 
   async toggleShareProjectPublic() {

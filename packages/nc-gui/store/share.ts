@@ -33,7 +33,8 @@ export const useShare = defineStore('share', () => {
   watch(
     [openedPage, isEditAllowed, isProjectPublic],
     () => {
-      if (!isEditAllowed) {
+      if (!isEditAllowed.value) {
+        console.log('hidden')
         visibility.value = 'hidden'
         return
       }

@@ -280,6 +280,14 @@ export class DocsSidebarPage extends BasePage {
     });
   }
 
+  async verifyCreatePageButtonVisibility({ projectTitle, isVisible }: { projectTitle: string; isVisible: boolean }) {
+    if (isVisible) {
+      await expect(this.get({ projectTitle }).getByTestId('nc-docs-sidebar-add-page')).toBeVisible();
+    } else {
+      await expect(this.get({ projectTitle }).getByTestId('nc-docs-sidebar-add-page')).toBeHidden();
+    }
+  }
+
   async reorderPage({
     projectTitle,
     title,

@@ -128,7 +128,7 @@ onMounted(() => {
       data-testid="docs-page-title"
       class="!text-5xl font-semibold !p-0"
       :bordered="false"
-      :readonly="isPublic"
+      :readonly="!isEditAllowed"
       placeholder="Title"
       auto-size
       @keydown="onTitleKeyDown"

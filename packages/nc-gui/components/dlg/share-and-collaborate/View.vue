@@ -78,7 +78,12 @@ watch(showShareModal, (val) => {
         </div>
         <div class="flex flex-row mx-3 mt-2.5 pt-3.5 border-t-1 border-gray-100 justify-end gap-x-2">
           <a-button type="text" class="!border-1 !border-gray-200 !rounded-md" @click="showShareModal = false">Close</a-button>
-          <a-button type="text" class="!border-1 !border-gray-200 !rounded-md" @click="copyInvitationLink">
+          <a-button
+            type="text"
+            class="!border-1 !border-gray-200 !rounded-md"
+            data-testid="docs-share-invitation-copy"
+            @click="copyInvitationLink"
+          >
             <div v-if="isInvitationLinkCopied" class="flex flex-row items-center gap-x-1">
               <MdiTick class="h-3.5" />
               Copied invite link
@@ -131,7 +136,11 @@ watch(showShareModal, (val) => {
         >
           Cancel
         </a-button>
-        <a-button type="text" class="!border-1 !border-gray-200 !rounded-md" @click="formStatus = 'manageCollaborators'"
+        <a-button
+          data-testid="docs-share-manage-access"
+          type="text"
+          class="!border-1 !border-gray-200 !rounded-md"
+          @click="formStatus = 'manageCollaborators'"
           >Manage project access</a-button
         >
         <a-button
@@ -144,6 +153,7 @@ watch(showShareModal, (val) => {
         </a-button>
         <a-button
           v-if="formStatus === 'project-collaborate'"
+          data-testid="docs-share-btn"
           class="!border-0 !rounded-md"
           type="primary"
           :disabled="!invitationValid"

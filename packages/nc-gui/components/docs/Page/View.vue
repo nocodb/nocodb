@@ -205,7 +205,7 @@ watchDebounced(
             <div
               v-for="page of openedPageInSidebar?.children"
               :key="page.id"
-              class="px-6 flex flex-row items-center gap-x-2 cursor-pointer text-gray-600 hover:text-black"
+              class="docs-page-child-page px-6 flex flex-row items-center gap-x-2 cursor-pointer text-gray-600 hover:text-black"
               @click="openPage({ page, projectId: project.id! })"
             >
               <div v-if="page.icon" class="flex">

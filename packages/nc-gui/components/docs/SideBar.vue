@@ -282,7 +282,7 @@ onMounted(async () => {
         </template>
       </a-tree>
       <div
-        v-if="!isPublic"
+        v-if="isEditAllowed"
         class="py-1 flex flex-row pl-7 items-center gap-x-2 cursor-pointer hover:text-black text-gray-600 text-sm"
         data-testid="nc-docs-sidebar-add-page"
         @click="() => addNewPage({parentPageId: undefined, projectId: project.id!})"

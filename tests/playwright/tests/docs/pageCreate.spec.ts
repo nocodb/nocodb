@@ -21,6 +21,7 @@ test.describe('Create docs project and verify docs UI', () => {
 
     await page.waitForTimeout(500);
     await page.keyboard.insertText('test-page');
+    await page.waitForTimeout(500);
 
     await dashboard.sidebar.docsSidebar.verifyPageInSidebar({
       title: 'test-page',
@@ -35,11 +36,27 @@ test.describe('Create docs project and verify docs UI', () => {
 
     await page.waitForTimeout(500);
     await page.keyboard.insertText('child-test-page');
+    await page.waitForTimeout(500);
     await dashboard.sidebar.docsSidebar.verifyPageInSidebar({
       title: 'child-test-page',
       projectTitle: project.title as any,
       level: 1,
     });
+
+    await dashboard.sidebar.docsSidebar.openPage({
+      title: 'test-page',
+      projectTitle: project.title as any,
+    });
+    await dashboard.docs.openedPage.verifyOpenedPageVisible();
+    await dashboard.docs.openedPage.verifyChildPage({
+      title: 'child-test-page',
+    });
+
+    await dashboard.sidebar.docsSidebar.openPage({
+      title: 'child-test-page',
+      projectTitle: project.title as any,
+    });
+    await dashboard.docs.openedPage.verifyChildPagesNotVisible();
   });
 
   test('Shortcuts for page creation and verify sidebar on reload', async ({ page }) => {

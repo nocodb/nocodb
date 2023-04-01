@@ -150,11 +150,6 @@ AND t.table_name=?;`,
 
   relationList: {
     default: {
-      -- I'm not sure if this query is relevant to the issue
-      -- It won't execute manually on my PG15 as columns don't exist:
-      -- REFERENCED_TABLE_NAME
-      -- REFERENCED_COLUMN_NAME
-      -- Is it legacy code?
       sql: `SELECT
       kcu.CONSTRAINT_NAME as cstn,
       kcu.TABLE_NAME as tn,

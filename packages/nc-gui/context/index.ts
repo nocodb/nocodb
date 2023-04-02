@@ -42,3 +42,4 @@ export const DocsLocalPageInj: InjectionKey<Ref<PageSidebarNode | undefined>> = 
 export const ProjectRoleInj: InjectionKey<Ref<string>> = Symbol('project-roles-injection')
 export const ProjectInj: InjectionKey<Ref<ProjectType>> = Symbol('project-injection')
 export const ProjectIdInj: InjectionKey<Ref<string>> = Symbol('project-id-injection')
+export const TreeViewSetMenuContextInj: InjectionKey<Function> = Symbol('tree-view-set-menu-context-injection')

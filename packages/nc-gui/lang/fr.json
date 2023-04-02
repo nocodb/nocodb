@@ -101,7 +101,7 @@
       "form": "Formulaire",
       "kanban": "Kanban",
       "calendar": "Calendrier",
-      "map": "Map"
+      "map": "Carte"
     },
     "user": "Utilisateur",
     "users": "Utilisateurs",
@@ -210,7 +210,7 @@
     "advancedSettings": "Paramètres avancés",
     "codeSnippet": "Extrait de code",
     "keyboardShortcut": "Raccourcis clavier",
-    "generateRandomName": "Generate Random Name",
+    "generateRandomName": "Générer un nom aléatoire",
     "findRowByScanningCode": "Find row by scanning a QR or Barcode"
   },
   "labels": {
@@ -396,7 +396,7 @@
     "saveAndExit": "Enregistrer et quitter",
     "saveAndStay": "Enregistrer et rester",
     "insertRow": "Insérer une nouvelle ligne",
-    "duplicateRow": "Duplicate Row",
+    "duplicateRow": "Dupliquer la ligne",
     "deleteRow": "Supprimer la ligne",
     "deleteSelectedRow": "Supprimer les lignes sélectionnées",
     "importExcel": "Importer depuis Excel",
@@ -634,7 +634,7 @@
         "gallery": "Ajouter une vue Galerie",
         "form": "Ajouter une vue Formulaire",
         "kanban": "Ajouter une vue Kanban",
-        "map": "Add Map View",
+        "map": "Ajouter la vue Carte",
         "calendar": "Ajouter une vue Calendrier"
       },
       "tablesMetadataInSync": "Les métadonnées de tables sont en synchronisation",
@@ -698,7 +698,7 @@
         "allowedSpecialCharList": "Liste des caractères spéciaux autorisés"
       },
       "invalidURL": "URL invalide",
-      "invalidEmail": "Invalid Email",
+      "invalidEmail": "Email invalide",
       "internalError": "Une erreur interne est survenue",
       "templateGeneratorNotFound": "Le générateur de modèles est introuvable !",
       "fileUploadFailed": "Échec du téléversement du fichier",
@@ -779,7 +779,7 @@
       "userDeletedFromProject": "Suppression réussie de l'utilisateur du projet",
       "inviteEmailSent": "Email d'invitation envoyé avec succès",
       "inviteURLCopied": "URL de l'invitation copiée dans le presse-papiers",
-      "commentCopied": "Comment copied to clipboard",
+      "commentCopied": "Commentaire copié dans le presse-papier",
       "passwordResetURLCopied": "URL de réinitialisation du mot de passe copiée dans le presse-papiers",
       "shareableURLCopied": "Copie de l'URL de la base partageable dans le presse-papiers !",
       "embeddableHTMLCodeCopied": "Copie du code HTML intégrable !",

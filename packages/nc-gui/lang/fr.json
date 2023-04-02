@@ -221,7 +221,7 @@
     "viewName": "Vue",
     "viewLink": "Lien de vue",
     "columnName": "Nom de la colonne",
-    "columnToScanFor": "Column to scan",
+    "columnToScanFor": "Colonne à scanner",
     "columnType": "Type de colonne",
     "roleName": "Nom de rôle",
     "roleDescription": "Description du rôle",
@@ -548,7 +548,7 @@
         "noRowFoundForCode": "No row found for this code for the selected column"
       },
       "map": {
-        "overLimit": "You're over the limit.",
+        "overLimit": "Vous avez dépassé la limite.",
         "closeLimit": "You're getting close to the limit.",
         "limitNumber": "The limit of markers shown in a Map View is 1000 records."
       },

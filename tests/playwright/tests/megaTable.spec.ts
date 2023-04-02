@@ -11,14 +11,22 @@ let api: Api<any>;
 // Add row count as required to megaTblRows
 
 const megaTblColumns = [
-  { type: 'SingleLineText', count: 3 },
-  { type: 'Number', count: 3 },
-  { type: 'Checkbox', count: 3 },
-  { type: 'SingleSelect', count: 3 },
-  { type: 'MultiSelect', count: 3 },
+  { type: 'SingleLineText', count: 30 },
+  { type: 'LongText', count: 100 },
+  { type: 'Number', count: 30 },
+  { type: 'Checkbox', count: 30 },
+  { type: 'SingleSelect', count: 30 },
+  { type: 'MultiSelect', count: 100 },
+  { type: 'Date', count: 100 },
+  { type: 'DateTime', count: 100 },
+  { type: 'Email', count: 100 },
+  { type: 'Currency', count: 100 },
+  { type: 'Duration', count: 100 },
+  { type: 'Rating', count: 100 },
 ];
-const megaTblRows = 50000;
+const megaTblRows = 1000;
 const bulkInsertAfterRows = 1000;
+const formulaRowCnt = 100;
 
 test.describe.serial('Test table', () => {
   let context: any;
@@ -55,6 +63,8 @@ test.describe.serial('Test table', () => {
 
     for (let i = 0; i < megaTblColumns.length; i++) {
       for (let j = 0; j < megaTblColumns[i].count; j++) {
+        // skip if Formula
+        if (megaTblColumns[i].type === 'Formula') continue;
         const column = {
           column_name: `${megaTblColumns[i].type}${j}`,
           title: `${megaTblColumns[i].type}${j}`,
@@ -62,6 +72,11 @@ test.describe.serial('Test table', () => {
         };
         if (megaTblColumns[i].type === 'SingleSelect' || megaTblColumns[i].type === 'MultiSelect') {
           column['dtxp'] = "'jan','feb','mar','apr','may','jun','jul','aug','sep','oct','nov','dec'";
+        }
+        if (megaTblColumns[i].type === 'Email') {
+          column['meta'] = {
+            validate: true,
+          };
         }
         table_1_columns.push(column);
       }
@@ -75,12 +90,15 @@ test.describe.serial('Test table', () => {
         columns: table_1_columns,
       });
 
-      table_1 = await api.dbTableColumn.create(table_1.id, {
-        column_name: 'Formula',
-        title: 'Formula',
-        uidt: UITypes.Formula,
-        formula_raw: '{SingleLineText}',
-      });
+      // run loop for formula count
+      for (let i = 0; i < formulaRowCnt; i++) {
+        table_1 = await api.dbTableColumn.create(table_1.id, {
+          column_name: `Formula${i}`,
+          title: `Formula${i}`,
+          uidt: UITypes.Formula,
+          formula_raw: '{SingleLineText}',
+        });
+      }
 
       const table_1_rows = [];
       for (let rowCnt = 0; rowCnt < megaTblRows; rowCnt++) {
@@ -89,11 +107,16 @@ test.describe.serial('Test table', () => {
           SingleLineText: `SingleLineText${rowCnt + 1}`,
         };
         for (let colCnt = 0; colCnt < megaTblColumns.length; colCnt++) {
+          if (megaTblColumns[colCnt].type === 'Formula') continue;
           for (let colInstanceCnt = 0; colInstanceCnt < megaTblColumns[colCnt].count; colInstanceCnt++) {
             const columnName = `${megaTblColumns[colCnt].type}${colInstanceCnt}`;
             if (megaTblColumns[colCnt].type === 'SingleLineText') {
               row[columnName] = `SingleLineText${rowCnt + 1}`;
-            } else if (megaTblColumns[colCnt].type === 'Number') {
+            } else if (
+              megaTblColumns[colCnt].type === 'Number' ||
+              megaTblColumns[colCnt].type === 'Currency' ||
+              megaTblColumns[colCnt].type === 'Duration'
+            ) {
               row[columnName] = rowCnt + 1;
             } else if (megaTblColumns[colCnt].type === 'Checkbox') {
               row[columnName] = rowCnt % 2 === 0;
@@ -101,6 +124,16 @@ test.describe.serial('Test table', () => {
               row[columnName] = 'jan';
             } else if (megaTblColumns[colCnt].type === 'MultiSelect') {
               row[columnName] = 'jan,feb,mar,apr';
+            } else if (megaTblColumns[colCnt].type === 'LongText') {
+              row[columnName] = `Some length text here. Some length text here`;
+            } else if (megaTblColumns[colCnt].type === 'DateTime') {
+              row[columnName] = '2023-04-25 16:25:11+05:30';
+            } else if (megaTblColumns[colCnt].type === 'Date') {
+              row[columnName] = '2023-04-25 16:25:11+05:30';
+            } else if (megaTblColumns[colCnt].type === 'Email') {
+              row[columnName] = 'raju@nocodb.com';
+            } else if (megaTblColumns[colCnt].type === 'Rating') {
+              row[columnName] = (rowCnt % 5) + 1;
             }
           }
         }

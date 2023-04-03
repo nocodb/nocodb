@@ -21,7 +21,7 @@ export async function dataList(req: Request, res: Response) {
     dbDriver: await NcConnectionMgrv2.get(base),
   });
 
-  const requestObj = await getAst({
+  const { ast } = await getAst({
     query: req.query,
     model,
     view,
@@ -36,7 +36,7 @@ export async function dataList(req: Request, res: Response) {
   } catch (e) {}
 
   const data = await nocoExecute(
-    requestObj,
+    ast,
     await baseModel.list(listArgs),
     {},
     listArgs
@@ -132,17 +132,14 @@ async function dataRead(req: Request, res: Response) {
     dbDriver: await NcConnectionMgrv2.get(base),
   });
 
+  const { ast } = await getAst({
+    query: req.query,
+    model,
+    view,
+  });
+
   res.json(
-    await nocoExecute(
-      await getAst({
-        query: req.query,
-        model,
-        view,
-      }),
-      await baseModel.readByPk(req.params.rowId),
-      {},
-      {}
-    )
+    await nocoExecute(ast, await baseModel.readByPk(req.params.rowId), {}, {})
   );
 }
 

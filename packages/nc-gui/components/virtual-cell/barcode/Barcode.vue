@@ -32,7 +32,10 @@ const showBarcode = computed(() => barcodeValue?.value.length > 0 && !tooManyCha
 
 const { showEditNonEditableFieldWarning, showClearNonEditableFieldWarning } = useShowNotEditableWarning()
 
-const rowHeight = inject(RowHeightInj)
+const rowHeight = inject(
+  RowHeightInj,
+  computed(() => undefined),
+)
 </script>
 
 <template>

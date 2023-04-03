@@ -364,7 +364,7 @@ defineExpose({
     </div>
 
     <div class="flex gap-2 mb-2 mt-4">
-      <a-button class="elevation-0 text-capitalize" type="primary" ghost @click.stop="addFilter">
+      <a-button class="elevation-0 text-capitalize" type="primary" ghost @click.stop="addFilter()">
         <div class="flex items-center gap-1">
           <component :is="iconMap.plus" />
           <!-- Add Filter -->
@@ -372,7 +372,7 @@ defineExpose({
         </div>
       </a-button>
 
-      <a-button v-if="!webHook" class="text-capitalize !text-gray-500" @click.stop="addFilterGroup">
+      <a-button v-if="!webHook" class="text-capitalize !text-gray-500" @click.stop="addFilterGroup()">
         <div class="flex items-center gap-1">
           <!-- Add Filter Group -->
           <component :is="iconMap.plus" />

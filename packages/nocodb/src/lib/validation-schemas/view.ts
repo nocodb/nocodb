@@ -38,3 +38,8 @@ const update = {
   },
   additionalProperties: false,
 };
+
+export default {
+  insert,
+  update,
+};

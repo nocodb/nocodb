@@ -3,7 +3,7 @@ import { ProjectType, ProjectTypes } from 'nocodb-sdk';
 import { DashboardPage } from '../../pages/Dashboard';
 import setup, { NcContext } from '../../setup';
 
-test.describe('Tit tap', () => {
+test.describe('Tiptap:Tab and multi line test', () => {
   let dashboard: DashboardPage;
   let context: NcContext;
   let project: ProjectType;

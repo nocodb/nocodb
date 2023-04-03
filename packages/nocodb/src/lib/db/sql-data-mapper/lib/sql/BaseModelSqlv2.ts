@@ -2206,21 +2206,24 @@ class BaseModelSqlv2 {
       transaction = await this.dbDriver.transaction();
 
       const deleted = [];
+      const deletePkValues = [];
       const res = [];
       for (const d of deleteIds) {
-        await this.validate(d);
         const pkValues = await this._extractPksValues(d);
         if (!pkValues) {
           // pk not specified - bypass
           continue;
         }
-
-        deleted.push(await this.readByPk(pkValues));
+        deletePkValues.push(pkValues);
         await transaction(this.tnPath).del().where(d);
         res.push(d);
       }
 
       await transaction.commit();
+
+      for (const pkValues of deletePkValues) {
+        deleted.push(await this.readByPk(pkValues));
+      }
 
       await this.afterBulkDelete(deleted, this.dbDriver, cookie);
 

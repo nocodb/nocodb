@@ -562,6 +562,12 @@ div.ProseMirror {
     margin: 1.5em 0;
   }
 
+  hr.ProseMirror-selectednode {
+    // outline with rounded corners
+    outline: 4px solid #e8eafd;
+    border-radius: 4px;
+  }
+
   blockquote {
     border-left: 3px solid #d0d5dd;
     padding: 0 1em;

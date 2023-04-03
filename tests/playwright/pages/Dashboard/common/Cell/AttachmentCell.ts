@@ -52,7 +52,7 @@ export class AttachmentCellPageObject extends BasePage {
     let retryCount = 0;
     while (retryCount < 5) {
       const attachments = await this.get({ index, columnHeader }).locator('.nc-attachment');
-      console.log(await attachments.count());
+      // console.log(await attachments.count());
       if ((await attachments.count()) === count) {
         break;
       }

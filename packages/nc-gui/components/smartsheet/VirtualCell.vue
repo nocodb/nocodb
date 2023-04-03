@@ -53,6 +53,7 @@ function onNavigate(dir: NavigateDir, e: KeyboardEvent) {
   if (!isForm.value) e.stopImmediatePropagation()
 }
 
+// Todo: move intersection logic to a separate component or a vue directive
 const intersected = ref(false)
 
 let intersectionObserver = $ref<IntersectionObserver>()

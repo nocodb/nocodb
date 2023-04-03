@@ -152,6 +152,7 @@ const onContextmenu = (e: MouseEvent) => {
   }
 }
 
+// Todo: move intersection logic to a separate component or a vue directive
 const intersected = ref(false)
 
 let intersectionObserver = $ref<IntersectionObserver>()

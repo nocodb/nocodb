@@ -2,6 +2,22 @@ import { expect } from '@playwright/test';
 import { DashboardPage } from '..';
 import BasePage from '../../Base';
 
+export type TipTapNodes =
+  | 'Heading 1'
+  | 'Heading 2'
+  | 'Heading 3'
+  | 'Paragraph'
+  | 'Quote'
+  | 'Code Block'
+  | 'Bulleted List'
+  | 'Numbered List'
+  | 'Todo List'
+  | 'Horizontal Rule'
+  | 'Image'
+  | 'Table'
+  | 'Link'
+  | 'Emoji';
+
 export class DocsOpenedPagePage extends BasePage {
   readonly dashboard: DashboardPage;
 
@@ -40,9 +56,43 @@ export class DocsOpenedPagePage extends BasePage {
     });
   }
 
-  async fillContent({ content }: { content: string }) {
+  async openCommandMenu({ openOnLastLine = true }: { openOnLastLine?: boolean } = {}) {
+    if (openOnLastLine) {
+      const paragraph = this.get()
+        .getByTestId('docs-page-content')
+        .locator('.ProseMirror > .draggable-block-wrapper:last-child')
+        .locator('p:nth-child(1)');
+      await paragraph.click();
+      await this.rootPage.keyboard.press('/');
+    }
+
+    await this.rootPage.locator('.nc-docs-command-list').waitFor({ state: 'visible' });
+  }
+
+  async addNewNode({ type }: { type: TipTapNodes }) {
+    await this.openCommandMenu();
+    await this.rootPage.getByTestId(`nc-docs-command-list-item-${type}`).click();
+
+    await this.rootPage.locator('.nc-docs-command-list').waitFor({ state: 'hidden' });
+  }
+
+  async fillContent({
+    content,
+    index = 0,
+    waitForNetwork,
+  }: {
+    content: string;
+    index?: number;
+    waitForNetwork?: boolean;
+  }) {
     await this.waitForRender();
     await this.rootPage.waitForTimeout(1000);
+
+    const waitNetwork = waitForNetwork
+      ? this.rootPage.waitForResponse(async response => {
+          return response.url().includes('api/v1/docs/page') && response.request().method() === 'PUT';
+        })
+      : Promise.resolve();
 
     await this.get().getByTestId('docs-page-content').click();
     // await this.get()
@@ -55,25 +105,41 @@ export class DocsOpenedPagePage extends BasePage {
 
     await this.get()
       .getByTestId('docs-page-content')
-      .locator('.ProseMirror > .draggable-block-wrapper:nth-child(1)')
+      .locator(`.ProseMirror > .draggable-block-wrapper:nth-child(${index + 1})`)
       .locator('p:nth-child(1)')
       .click({
         force: true,
       });
 
-    await this.rootPage.waitForTimeout(200);
-
     for (const char of content) {
       await this.rootPage.keyboard.type(char);
     }
 
-    // await this.waitForResponse({
-    //   uiAction: () => this.rootPage.keyboard.insertText(content),
-    //   httpMethodsToMatch: ['PUT'],
-    //   requestUrlPathToMatch: `api/v1/docs/page`,
-    // });
+    await waitNetwork;
+  }
 
-    await this.rootPage.waitForTimeout(750);
+  async clickNode({ index, start }: { index: number; start: boolean }) {
+    await this.get()
+      .getByTestId('docs-page-content')
+      .locator(`.ProseMirror > .draggable-block-wrapper:nth-child(${index + 1})`)
+      .locator('p:first-child')
+      .click({
+        force: true,
+        position: start
+          ? {
+              x: 0,
+              y: 0,
+            }
+          : undefined,
+      });
+  }
+
+  async verifyNode({ index, type, content }: { index: number; type?: TipTapNodes; content: string }) {
+    const node = this.get()
+      .getByTestId('docs-page-content')
+      .locator(`.ProseMirror > .draggable-block-wrapper:nth-child(${index + 1})`);
+
+    await expect(node).toHaveText(content);
   }
 
   async clearContent() {

@@ -45,7 +45,7 @@ interface Props {
 
 const { command, query, editor } = defineProps<Props>()
 
-const { openedPage } = storeToRefs(useDocStore())
+const { openedPage, openedProjectId } = storeToRefs(useDocStore())
 const { magicOutline } = useDocStore()
 
 const isLinkInputFormState = ref(false)
@@ -531,7 +531,10 @@ async function outlinePage(editor: Editor) {
     const converter = new showdown.Converter()
     converter.setOption('noHeaderId', true)
 
-    const response: any = await magicOutline()
+    const response: any = await magicOutline({
+      projectId: openedProjectId.value,
+      pageId: openedPage.value?.id,
+    })
 
     const html = converter
       .makeHtml(
@@ -598,7 +601,7 @@ defineExpose({
 </script>
 
 <template>
-  <div class="items">
+  <div class="items nc-docs-command-list">
     <template v-if="isLinkInputFormState">
       <div class="flex flex-col w-56 mx-1 mt-1 mb-1">
         <div class="w-8 rounded-md my-1 p-1 pl-2 cursor-pointer hover:bg-gray-200" @click="isLinkInputFormState = false">
@@ -629,6 +632,7 @@ defineExpose({
           }"
           type="text"
           :loading="loadingOperationName === item.title"
+          :data-testid="`nc-docs-command-list-item-${item.title}`"
           @click="selectItem(item.title)"
           @mouseenter="() => onHover(index)"
         >

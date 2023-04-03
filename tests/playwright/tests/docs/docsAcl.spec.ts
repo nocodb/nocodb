@@ -1,7 +1,6 @@
-import { expect, test } from '@playwright/test';
+import { test } from '@playwright/test';
 import { ProjectType, ProjectTypes } from 'nocodb-sdk';
 import { DashboardPage } from '../../pages/Dashboard';
-import { LoginPage } from '../../pages/LoginPage';
 import { SignupPage } from '../../pages/SignupPage';
 import { WorkspacePage } from '../../pages/WorkspacePage';
 import setup, { NcContext } from '../../setup';

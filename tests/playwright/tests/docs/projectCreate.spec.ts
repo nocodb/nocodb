@@ -12,7 +12,7 @@ test.describe('Create docs project and verify docs UI', () => {
     dashboard = new DashboardPage(page, context.project);
   });
 
-  test('Create docs project', async ({ page }) => {
+  test('Create docs project', async () => {
     await dashboard.sidebar.createProject({
       title: 'test-docs',
       type: ProjectTypes.DOCUMENTATION,

@@ -1,4 +1,4 @@
-import { expect, test } from '@playwright/test';
+import { test } from '@playwright/test';
 import { ProjectType, ProjectTypes } from 'nocodb-sdk';
 import { DashboardPage } from '../../pages/Dashboard';
 import setup, { NcContext } from '../../setup';
@@ -80,7 +80,7 @@ test.describe('Create docs project and verify docs UI', () => {
     });
   });
 
-  test('Update emoji and content of newly created root page and child page', async ({ page }) => {
+  test('Update emoji and content of newly created root page and child page', async () => {
     // root page
     await dashboard.sidebar.docsSidebar.createPage({ projectTitle: project.title as any, title: 'root-page' });
     await dashboard.docs.openedPage.verifyOpenedPageVisible();

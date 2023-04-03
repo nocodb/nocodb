@@ -2203,10 +2203,7 @@ class BaseModelSqlv2 {
         ids.map((d) => this.model.mapAliasToColumn(d))
       );
 
-      transaction = await this.dbDriver.transaction();
-
       const deleted = [];
-      const deletePkValues = [];
       const res = [];
       for (const d of deleteIds) {
         const pkValues = await this._extractPksValues(d);
@@ -2214,13 +2211,14 @@ class BaseModelSqlv2 {
           // pk not specified - bypass
           continue;
         }
-        deletePkValues.push(pkValues);
-        await transaction(this.tnPath).del().where(d);
+        deleted.push(await this.readByPk(pkValues));
         res.push(d);
       }
 
-      for (const pkValues of deletePkValues) {
-        deleted.push(await this.readByPk(pkValues));
+      transaction = await this.dbDriver.transaction();
+
+      for (const d of res) {
+        await transaction(this.tnPath).del().where(d);
       }
 
       await transaction.commit();

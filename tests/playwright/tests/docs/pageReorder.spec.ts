@@ -14,7 +14,7 @@ test.describe('Docs Page reorder test', () => {
     dashboard = new DashboardPage(page, context.project);
   });
 
-  test('Reorder #1', async ({ page }) => {
+  test('Reorder #1', async () => {
     await dashboard.sidebar.docsSidebar.createPage({ projectTitle: project.title as any, title: 'root-1' });
     await dashboard.sidebar.docsSidebar.createPage({ projectTitle: project.title as any, title: 'root-2-shared' });
 
@@ -45,7 +45,7 @@ test.describe('Docs Page reorder test', () => {
     await dashboard.shareProjectButton.verifyShareStatus({ visibility: 'private' });
   });
 
-  test('Reorder #2', async ({ page }) => {
+  test('Reorder #2', async () => {
     await dashboard.sidebar.docsSidebar.createPage({ projectTitle: project.title as any, title: 'root-1' });
 
     await dashboard.shareProjectButton.open();
@@ -175,7 +175,7 @@ test.describe('Docs Page reorder test', () => {
     await dashboard.shareProjectButton.verifyShareStatus({ visibility: 'private' });
   });
 
-  test('Reorder #3', async ({ page }) => {
+  test('Reorder #3', async () => {
     await dashboard.sidebar.docsSidebar.createPage({ projectTitle: project.title as any, title: 'root-1' });
     await dashboard.sidebar.docsSidebar.createPage({ projectTitle: project.title as any, title: 'root-2' });
 

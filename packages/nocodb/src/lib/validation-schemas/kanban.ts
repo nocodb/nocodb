@@ -1,104 +1,108 @@
 const insert = {
-  type: "object",
-  required: ["fk_view_id", "project_id"],
+  type: 'object',
+  required: ['fk_view_id', 'project_id'],
   properties: {
     fk_view_id: {
-      type: "string",
+      type: 'string',
       maxLength: 20,
     },
     base_id: {
-      type: "string",
+      type: 'string',
       maxLength: 20,
     },
     project_id: {
-      type: "string",
+      type: 'string',
       maxLength: 128,
     },
     show: {
-      type: "boolean",
+      type: 'boolean',
     },
     order: {
-      type: "number",
+      type: 'number',
     },
     uuid: {
-      type: "string",
+      type: 'string',
       maxLength: 255,
     },
     title: {
-      type: "string",
+      type: 'string',
       maxLength: 255,
     },
     public: {
-      type: "boolean",
+      type: 'boolean',
     },
     password: {
-      type: "string",
+      type: 'string',
       maxLength: 255,
     },
     show_all_fields: {
-      type: "boolean",
+      type: 'boolean',
     },
     fk_grp_col_id: {
-      type: "string",
+      type: 'string',
       maxLength: 20,
     },
     fk_cover_image_col_id: {
-      type: "string",
+      type: 'string',
       maxLength: 20,
     },
     meta: {
-      type: "string",
+      type: 'string',
     },
   },
 };
 
 const update = {
-  type: "object",
+  type: 'object',
   properties: {
     base_id: {
-      type: "string",
+      type: 'string',
       maxLength: 20,
     },
     project_id: {
-      type: "string",
+      type: 'string',
       maxLength: 128,
     },
     show: {
-      type: "boolean",
+      type: 'boolean',
     },
     order: {
-      type: "number",
+      type: 'number',
     },
     uuid: {
-      type: "string",
+      type: 'string',
       maxLength: 255,
     },
     title: {
-      type: "string",
+      type: 'string',
       maxLength: 255,
     },
     public: {
-      type: "boolean",
+      type: 'boolean',
     },
     password: {
-      type: "string",
+      type: 'string',
       maxLength: 255,
     },
     show_all_fields: {
-      type: "boolean",
+      type: 'boolean',
     },
     fk_grp_col_id: {
-      type: "string",
+      type: 'string',
       maxLength: 20,
     },
     fk_cover_image_col_id: {
-      type: "string",
+      type: 'string',
       maxLength: 20,
     },
     meta: {
-      type: "string",
+      type: 'string',
     },
   },
   minProperties: 1,
 };
 
+export default {
+  insert,
+  update,
+};

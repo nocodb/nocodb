@@ -1,4 +1,4 @@
-const create = {
+const insert = {
   $schema: 'http://json-schema.org/draft-07/schema#',
   type: 'object',
   properties: {
@@ -49,8 +49,7 @@ const update = {
   additionalProperties: false,
 };
 
-
-export {
-  create,
+export default {
+  insert,
   update,
-}
+};

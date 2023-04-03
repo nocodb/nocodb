@@ -5,52 +5,52 @@ const insert = {
   properties: {
     id: {
       type: 'string',
-      maxLength: 20
+      maxLength: 20,
     },
     base_id: {
       type: 'string',
-      maxLength: 20
+      maxLength: 20,
     },
     project_id: {
       type: 'string',
-      maxLength: 128
+      maxLength: 128,
     },
     fk_view_id: {
       type: 'string',
-      maxLength: 20
+      maxLength: 20,
     },
     fk_column_id: {
       type: 'string',
-      maxLength: 20
+      maxLength: 20,
     },
     uuid: {
       type: 'string',
-      maxLength: 255
+      maxLength: 255,
     },
     label: {
       type: 'string',
-      maxLength: 255
+      maxLength: 255,
     },
     help: {
       type: 'string',
-      maxLength: 255
+      maxLength: 255,
     },
     show: {
-      type: 'boolean'
+      type: 'boolean',
     },
     order: {
-      type: 'number'
+      type: 'number',
     },
     created_at: {
       type: 'string',
-      format: 'date-time'
+      format: 'date-time',
     },
     updated_at: {
       type: 'string',
-      format: 'date-time'
-    }
-  }
-}
+      format: 'date-time',
+    },
+  },
+};
 
 // update schema object
 const update = {
@@ -59,49 +59,54 @@ const update = {
   properties: {
     id: {
       type: 'string',
-      maxLength: 20
+      maxLength: 20,
     },
     base_id: {
       type: 'string',
-      maxLength: 20
+      maxLength: 20,
     },
     project_id: {
       type: 'string',
-      maxLength: 128
+      maxLength: 128,
     },
     fk_view_id: {
       type: 'string',
-      maxLength: 20
+      maxLength: 20,
     },
     fk_column_id: {
       type: 'string',
-      maxLength: 20
+      maxLength: 20,
     },
     uuid: {
       type: 'string',
-      maxLength: 255
+      maxLength: 255,
     },
     label: {
       type: 'string',
-      maxLength: 255
+      maxLength: 255,
     },
     help: {
       type: 'string',
-      maxLength: 255
+      maxLength: 255,
     },
     show: {
-      type: 'boolean'
+      type: 'boolean',
     },
     order: {
-      type: 'number'
+      type: 'number',
     },
     created_at: {
       type: 'string',
-      format: 'date-time'
+      format: 'date-time',
     },
     updated_at: {
       type: 'string',
-      format: 'date-time'
-    }
-  }
-}
+      format: 'date-time',
+    },
+  },
+};
+
+export default {
+  insert,
+  update,
+};

@@ -8,11 +8,11 @@ const insert = {
     created_at: { type: 'string', format: 'date-time' },
     updated_at: { type: 'string', format: 'date-time' },
     meta: { type: 'string' },
-    row_height: { type: 'integer' }
+    row_height: { type: 'integer' },
   },
   required: ['fk_view_id', 'base_id', 'project_id', 'row_height'],
-  additionalProperties: false
-}
+  additionalProperties: false,
+};
 
 const update = {
   type: 'object',
@@ -24,8 +24,13 @@ const update = {
     created_at: { type: 'string', format: 'date-time' },
     updated_at: { type: 'string', format: 'date-time' },
     meta: { type: 'string' },
-    row_height: { type: 'integer' }
+    row_height: { type: 'integer' },
   },
   required: ['fk_view_id', 'base_id', 'project_id', 'row_height'],
-  additionalProperties: false
-}
+  additionalProperties: false,
+};
+
+export default {
+  insert,
+  update,
+};

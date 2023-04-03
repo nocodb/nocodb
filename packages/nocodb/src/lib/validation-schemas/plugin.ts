@@ -1,5 +1,5 @@
 // Insert schema
-const insert= {
+const insert = {
   type: 'object',
   properties: {
     id: { type: 'string', maxLength: 20 },
@@ -23,11 +23,11 @@ const insert= {
     created_at: { type: 'string', format: 'date-time' },
     updated_at: { type: 'string', format: 'date-time' },
   },
-  required: ['id', 'title', 'created_at', 'updated_at']
+  required: ['id', 'title', 'created_at', 'updated_at'],
 };
 
 // Update schema
-const update= {
+const update = {
   type: 'object',
   properties: {
     title: { type: 'string', maxLength: 45 },
@@ -49,5 +49,10 @@ const update= {
     price: { type: 'string', maxLength: 255 },
     updated_at: { type: 'string', format: 'date-time' },
   },
-  minProperties: 1 // require at least one property to update
+  minProperties: 1, // require at least one property to update
+};
+
+export default {
+  insert,
+  update,
 };

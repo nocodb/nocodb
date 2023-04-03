@@ -11,7 +11,7 @@ const insert = {
     created_at: { type: 'string', format: 'date-time' },
     updated_at: { type: 'string', format: 'date-time' },
   },
-  required: ['key', 'value']
+  required: ['key', 'value'],
 };
 
 const update = {
@@ -27,5 +27,10 @@ const update = {
     created_at: { type: 'string', format: 'date-time' },
     updated_at: { type: 'string', format: 'date-time' },
   },
-  minProperties: 1
+  minProperties: 1,
+};
+
+export default {
+  insert,
+  update,
 };

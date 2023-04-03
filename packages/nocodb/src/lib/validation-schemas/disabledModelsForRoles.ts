@@ -95,3 +95,8 @@ const update = {
     'updated_at',
   ],
 };
+
+export default {
+  insert,
+  update,
+};

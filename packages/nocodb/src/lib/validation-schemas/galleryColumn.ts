@@ -28,3 +28,8 @@ const update = {
   },
   minProperties: 1,
 };
+
+export default {
+  insert,
+  update,
+};

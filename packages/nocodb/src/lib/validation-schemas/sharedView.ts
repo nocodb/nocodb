@@ -10,10 +10,10 @@ const insert = {
     allow_copy: { type: 'boolean' },
     password: { type: 'string', maxLength: 255 },
     deleted: { type: 'boolean' },
-    order: { type: 'number' }
+    order: { type: 'number' },
   },
   required: ['fk_view_id', 'view_id'],
-  additionalProperties: false
+  additionalProperties: false,
 };
 
 // Update schema
@@ -28,7 +28,12 @@ const update = {
     allow_copy: { type: 'boolean' },
     password: { type: 'string', maxLength: 255 },
     deleted: { type: 'boolean' },
-    order: { type: 'number' }
+    order: { type: 'number' },
   },
-  additionalProperties: false
+  additionalProperties: false,
+};
+
+export default {
+  insert,
+  update,
 };

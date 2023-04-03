@@ -22,8 +22,16 @@ const insert = {
     timeout: { type: 'integer' },
     active: { type: 'boolean' },
   },
-  required: ['fk_model_id', 'title', 'env', 'type', 'event', 'operation', 'url'],
-  additionalProperties: false
+  required: [
+    'fk_model_id',
+    'title',
+    'env',
+    'type',
+    'event',
+    'operation',
+    'url',
+  ],
+  additionalProperties: false,
 };
 
 // Update schema object
@@ -51,5 +59,10 @@ const update = {
     active: { type: 'boolean' },
   },
   minProperties: 1,
-  additionalProperties: false
+  additionalProperties: false,
+};
+
+export default {
+  insert,
+  update,
 };

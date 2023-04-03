@@ -11,8 +11,8 @@ const insert = {
     color: { type: 'string', maxLength: 255 },
     order: { type: 'number' },
     hidden: { type: 'number' },
-    opened_date: { type: 'string', format: 'date-time' }
-  }
+    opened_date: { type: 'string', format: 'date-time' },
+  },
 };
 
 const update = {
@@ -28,6 +28,11 @@ const update = {
     color: { type: 'string', maxLength: 255 },
     order: { type: 'number' },
     hidden: { type: 'number' },
-    opened_date: { type: 'string', format: 'date-time' }
-  }
+    opened_date: { type: 'string', format: 'date-time' },
+  },
+};
+
+export default {
+  insert,
+  update,
 };

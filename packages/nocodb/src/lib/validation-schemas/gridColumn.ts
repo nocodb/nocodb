@@ -1,5 +1,5 @@
 // AJV schema validation for INSERT operation on nc_grid_view_columns_v2 table
-const insert   = {
+const insert = {
   type: 'object',
   properties: {
     fk_view_id: { type: 'string', minLength: 1 },
@@ -14,11 +14,11 @@ const insert   = {
     order: { type: 'number' },
   },
   required: ['fk_view_id', 'fk_column_id'],
-  additionalProperties: false
+  additionalProperties: false,
 };
 
 // AJV schema validation for UPDATE operation on nc_grid_view_columns_v2 table
-const update   = {
+const update = {
   type: 'object',
   properties: {
     uuid: { type: 'string', maxLength: 255 },
@@ -28,5 +28,10 @@ const update   = {
     show: { type: 'boolean' },
     order: { type: 'number' },
   },
-  additionalProperties: false
+  additionalProperties: false,
+};
+
+export default {
+  insert,
+  update,
 };

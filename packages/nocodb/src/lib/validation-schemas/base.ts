@@ -36,7 +36,7 @@ const update = {
     erd_uuid: { type: 'string', maxLength: 255 },
   },
   additionalProperties: false,
-  "minProperties": 1 // at least one property is required for update
+  minProperties: 1, // at least one property is required for update
 };
 
-export default { create, update }
+export default { create, update };

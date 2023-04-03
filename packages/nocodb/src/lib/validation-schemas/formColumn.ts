@@ -16,10 +16,27 @@ const insert = {
     created_at: { type: 'string', format: 'date-time' },
     updated_at: { type: 'string', format: 'date-time' },
     meta: { type: 'string' },
-    enable_scanner: { type: 'boolean' }
+    enable_scanner: { type: 'boolean' },
   },
-  required: ['id', 'base_id', 'project_id', 'fk_view_id', 'fk_column_id', 'uuid', 'label', 'help', 'description', 'required', 'show', 'order', 'created_at', 'updated_at', 'meta', 'enable_scanner'],
-  additionalProperties: false
+  required: [
+    'id',
+    'base_id',
+    'project_id',
+    'fk_view_id',
+    'fk_column_id',
+    'uuid',
+    'label',
+    'help',
+    'description',
+    'required',
+    'show',
+    'order',
+    'created_at',
+    'updated_at',
+    'meta',
+    'enable_scanner',
+  ],
+  additionalProperties: false,
 };
 
 const update = {
@@ -40,7 +57,12 @@ const update = {
     order: { type: 'number' },
     updated_at: { type: 'string', format: 'date-time' },
     meta: { type: 'string' },
-    enable_scanner: { type: 'boolean' }
+    enable_scanner: { type: 'boolean' },
   },
-  additionalProperties: false
+  additionalProperties: false,
+};
+
+export default {
+  insert,
+  update,
 };

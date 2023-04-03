@@ -16,9 +16,9 @@ const insert = {
     uuid: { type: 'string', maxLength: 255 },
     banner_image_url: { type: 'string', maxLength: 255 },
     logo_url: { type: 'string', maxLength: 255 },
-    meta: { type: 'string' }
+    meta: { type: 'string' },
   },
-  additionalProperties: false
+  additionalProperties: false,
 };
 
 // Update validation schema
@@ -38,8 +38,13 @@ const update = {
     uuid: { type: 'string', maxLength: 255 },
     banner_image_url: { type: 'string', maxLength: 255 },
     logo_url: { type: 'string', maxLength: 255 },
-    meta: { type: 'string' }
+    meta: { type: 'string' },
   },
   minProperties: 1,
-  additionalProperties: false
+  additionalProperties: false,
+};
+
+export default {
+  insert,
+  update,
 };

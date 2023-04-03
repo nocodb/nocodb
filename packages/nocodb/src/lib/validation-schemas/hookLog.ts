@@ -3,76 +3,76 @@ const insert = {
   properties: {
     id: {
       type: 'string',
-      maxLength: 20
+      maxLength: 20,
     },
     base_id: {
       type: 'string',
-      maxLength: 20
+      maxLength: 20,
     },
     project_id: {
       type: 'string',
-      maxLength: 128
+      maxLength: 128,
     },
     fk_hook_id: {
       type: 'string',
-      maxLength: 20
+      maxLength: 20,
     },
     type: {
       type: 'string',
-      maxLength: 255
+      maxLength: 255,
     },
     event: {
       type: 'string',
-      maxLength: 255
+      maxLength: 255,
     },
     operation: {
       type: 'string',
-      maxLength: 255
+      maxLength: 255,
     },
     test_call: {
-      type: 'boolean'
+      type: 'boolean',
     },
     payload: {
-      type: 'boolean'
+      type: 'boolean',
     },
     conditions: {
-      type: 'string'
+      type: 'string',
     },
     notification: {
-      type: 'string'
+      type: 'string',
     },
     error_code: {
       type: 'string',
-      maxLength: 255
+      maxLength: 255,
     },
     error_message: {
       type: 'string',
-      maxLength: 255
+      maxLength: 255,
     },
     error: {
-      type: 'string'
+      type: 'string',
     },
     execution_time: {
-      type: 'integer'
+      type: 'integer',
     },
     response: {
       type: 'string',
-      maxLength: 255
+      maxLength: 255,
     },
     triggered_by: {
       type: 'string',
-      maxLength: 255
+      maxLength: 255,
     },
     created_at: {
       type: 'string',
-      format: 'date-time'
+      format: 'date-time',
     },
     updated_at: {
       type: 'string',
-      format: 'date-time'
-    }
+      format: 'date-time',
+    },
   },
-  required: ['id', 'fk_hook_id']
+  required: ['id', 'fk_hook_id'],
 };
 
 const update = {
@@ -80,54 +80,59 @@ const update = {
   properties: {
     type: {
       type: 'string',
-      maxLength: 255
+      maxLength: 255,
     },
     event: {
       type: 'string',
-      maxLength: 255
+      maxLength: 255,
     },
     operation: {
       type: 'string',
-      maxLength: 255
+      maxLength: 255,
     },
     test_call: {
-      type: 'boolean'
+      type: 'boolean',
     },
     payload: {
-      type: 'boolean'
+      type: 'boolean',
     },
     conditions: {
-      type: 'string'
+      type: 'string',
     },
     notification: {
-      type: 'string'
+      type: 'string',
     },
     error_code: {
       type: 'string',
-      maxLength: 255
+      maxLength: 255,
     },
     error_message: {
       type: 'string',
-      maxLength: 255
+      maxLength: 255,
     },
     error: {
-      type: 'string'
+      type: 'string',
     },
     execution_time: {
-      type: 'integer'
+      type: 'integer',
     },
     response: {
       type: 'string',
-      maxLength: 255
+      maxLength: 255,
     },
     triggered_by: {
       type: 'string',
-      maxLength: 255
+      maxLength: 255,
     },
     updated_at: {
       type: 'string',
-      format: 'date-time'
-    }
+      format: 'date-time',
+    },
   },
-  minLength: 1
+  minLength: 1,
+};
+
+export default {
+  insert,
+  update,
 };

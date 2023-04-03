@@ -16,7 +16,6 @@ export const ajv = new Ajv({ strictSchema: false, strict: false }); // Initializ
 ajv.addSchema(swagger, 'swagger.json');
 addFormats(ajv);
 
-
 // A middleware generator to validate the request body
 export const getAjvValidatorMw = (schema) => {
   return (req: Request, res: Response, next: NextFunction) => {

@@ -44,4 +44,4 @@ const update = {
   minProperties: 1, // at least one property is required for update
 };
 
-export default { create, update }
+export default { create, update };

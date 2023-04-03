@@ -23,6 +23,7 @@ export class RatingCellPageObject extends BasePage {
   }
 
   async verify({ index, columnHeader, rating }: { index?: number; columnHeader: string; rating: number }) {
+    await this.get({ index, columnHeader }).scrollIntoViewIfNeeded();
     await expect(await this.get({ index, columnHeader }).locator(`div[role="radio"][aria-checked="true"]`)).toHaveCount(
       rating
     );

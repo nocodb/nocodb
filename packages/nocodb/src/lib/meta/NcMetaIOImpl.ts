@@ -5,7 +5,11 @@ import XcMigrationSource from '../migrations/XcMigrationSource';
 import NcConnectionMgr from '../utils/common/NcConnectionMgr';
 import { MetaTable } from '../utils/globals';
 import XcMigrationSourcev2 from '../migrations/XcMigrationSourcev2';
+import { modelSchema } from '../validation-schemas';
+import { ajv } from './api/helpers';
+import { NcError } from './helpers/catchError';
 import NcMetaIO, { META_TABLES } from './NcMetaIO';
+import type { ErrorObject } from 'ajv';
 import type Noco from '../Noco';
 import type { Knex } from '../db/sql-data-mapper';
 import type { NcConfig } from '../../interface/config';
@@ -235,13 +239,18 @@ export default class NcMetaIOImpl extends NcMetaIO {
     target: string,
     data: any
   ): Promise<any> {
-    return this.knexConnection(target).insert({
+    const insertObj = {
       db_alias: dbAlias,
       project_id,
       created_at: this.knexConnection?.fn?.now(),
       updated_at: this.knexConnection?.fn?.now(),
       ...data,
-    });
+    };
+
+    // validate insert object before insert
+    await this.validateObject(target, insertObj);
+
+    return this.knexConnection(target).insert(insertObj);
   }
 
   public async metaInsert2(
@@ -258,6 +267,10 @@ export default class NcMetaIOImpl extends NcMetaIO {
     };
     if (base_id !== null) insertObj.base_id = base_id;
     if (project_id !== null) insertObj.project_id = project_id;
+
+    // validate insert object before insert
+    await this.validateObject(target, insertObj);
+
     await this.knexConnection(target).insert({
       ...insertObj,
       created_at: insertObj?.created_at || this.knexConnection?.fn?.now(),
@@ -410,7 +423,12 @@ export default class NcMetaIOImpl extends NcMetaIO {
 
     delete data.created_at;
 
-    query.update({ ...data, updated_at: this.knexConnection?.fn?.now() });
+    const updateObj = { ...data, updated_at: this.knexConnection?.fn?.now() };
+
+    // validate update object before update
+    await this.validateObject(target, updateObj, 'update');
+
+    query.update(updateObj);
     if (typeof idOrCondition !== 'object') {
       query.where('id', idOrCondition);
     } else if (idOrCondition) {
@@ -870,5 +888,28 @@ export default class NcMetaIOImpl extends NcMetaIO {
     }
 
     return `${prefix}${nanoidv2()}`;
+  }
+
+  private async validateObject(
+    target: string,
+    obj: any,
+    opType: 'insert' | 'update' = 'insert'
+  ) {
+    if (!modelSchema[target]?.[opType]) return;
+
+    const schema = modelSchema[target][opType];
+
+    const valid = ajv.validate(schema, obj);
+
+    // If the request body is not valid, throw error
+    if (!valid) {
+      const errors: ErrorObject[] | null | undefined = ajv.errors;
+
+      // If the request body is invalid, throw error with error message  and errors
+      NcError.ajvValidationError({
+        message: `Invalid ${opType} body`,
+        errors,
+      });
+    }
   }
 }

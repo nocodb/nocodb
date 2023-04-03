@@ -27,7 +27,7 @@ async function loadSampleData() {
   sampleData.value = await $api.dbTableWebhook.samplePayloadGet(
     meta?.value?.id as string,
     hook?.operation || 'insert',
-    hook.version,
+    hook.version!,
   )
 }
 

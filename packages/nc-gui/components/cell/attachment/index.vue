@@ -6,8 +6,6 @@ import {
   ActiveCellInj,
   CurrentCellInj,
   DropZoneRef,
-  IsGalleryInj,
-  IsKanbanInj,
   iconMap,
   inject,
   isImage,
@@ -29,13 +27,9 @@ interface Emits {
   (event: 'update:modelValue', value: string | Record<string, any>[]): void
 }
 
-const { modelValue, rowIndex } = defineProps<Props>()
+const { modelValue } = defineProps<Props>()
 
 const emits = defineEmits<Emits>()
-
-const isGallery = inject(IsGalleryInj, ref(false))
-
-const isKanban = inject(IsKanbanInj, ref(false))
 
 const dropZoneInjection = inject(DropZoneRef, ref())
 

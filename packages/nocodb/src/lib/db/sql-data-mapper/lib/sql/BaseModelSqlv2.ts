@@ -2219,11 +2219,11 @@ class BaseModelSqlv2 {
         res.push(d);
       }
 
-      await transaction.commit();
-
       for (const pkValues of deletePkValues) {
         deleted.push(await this.readByPk(pkValues));
       }
+
+      await transaction.commit();
 
       await this.afterBulkDelete(deleted, this.dbDriver, cookie);
 

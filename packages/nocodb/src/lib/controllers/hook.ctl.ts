@@ -59,6 +59,7 @@ export async function hookTest(req: Request<any, any>, res: Response) {
     });
     res.json({ msg: 'The hook has been tested successfully' });
   } catch (e) {
+    console.error(e);
     throw e;
   }
 }

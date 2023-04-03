@@ -20,6 +20,7 @@ import { SidebarPage } from './Sidebar';
 import { DocsPageGroup } from './Docs';
 import { ShareProjectButtonPage } from './ShareProjectButton';
 import { ProjectTypes } from 'nocodb-sdk';
+import { WorkspacePage } from '../WorkspacePage';
 
 export class DashboardPage extends BasePage {
   readonly project: any;
@@ -121,8 +122,8 @@ export class DashboardPage extends BasePage {
 
   async clickHome() {
     await this.rootPage.getByTestId('nc-noco-brand-icon').click();
-    const projectsPage = new ProjectsPage(this.rootPage);
-    await projectsPage.waitToBeRendered();
+    const workspacePage = new WorkspacePage(this.rootPage);
+    await workspacePage.getWorkspaceContainer().waitFor({ state: 'visible' });
   }
 
   private async _waitForDBTabRender({ title, mode }: { title: string; mode: string }) {

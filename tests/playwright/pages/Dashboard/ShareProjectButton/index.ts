@@ -45,6 +45,48 @@ export class ShareProjectButtonPage extends BasePage {
     await this.rootPage.getByTestId('docs-share-manage-access').click();
   }
 
+  async changeRole({
+    email,
+    role,
+    nonEmailPrefixed,
+  }: {
+    email: string;
+    role: 'Editor' | 'Viewer' | 'Remove';
+    nonEmailPrefixed?: boolean;
+  }) {
+    if (!nonEmailPrefixed) email = this.prefixEmail(email);
+    await this.rootPage.getByTestId(`nc-manage-users-${email}`).locator('.nc-dropdown-user-role-container').click();
+    await this.rootPage.getByTestId(`nc-manage-users-role-${role}`).last().click();
+  }
+
+  async submitManageAccess() {
+    await this.waitForResponse({
+      uiAction: () => this.rootPage.getByTestId('nc-manage-users-submit').click(),
+      httpMethodsToMatch: ['PATCH', 'DELETE'],
+      requestUrlPathToMatch: `/users/`,
+    });
+  }
+
+  async verifyUserCount({ count }: { count: number }) {
+    await expect(this.rootPage.getByTestId('nc-manage-user-user-count')).toHaveText(`${count.toString()} users`);
+  }
+
+  async verifyUserInList({
+    email,
+    role,
+    isVisible,
+  }: {
+    email: string;
+    role?: 'Editor' | 'Viewer';
+    isVisible?: boolean;
+  }) {
+    if (isVisible) {
+      await expect(this.rootPage.getByTestId(`nc-manage-users-${email}`)).toBeVisible();
+    } else {
+      await expect(this.rootPage.getByTestId(`nc-manage-users-${email}`)).not.toBeVisible();
+    }
+  }
+
   async fillInviteEmail({ email }: { email: string }) {
     await this.rootPage.getByTestId('docs-share-dlg-share-project-collaborate-emails').fill(this.prefixEmail(email));
   }
@@ -115,8 +157,10 @@ export class ShareProjectButtonPage extends BasePage {
   async close() {
     if (await this.rootPage.getByRole('button', { name: 'Finish' }).isVisible()) {
       await this.rootPage.getByRole('button', { name: 'Finish' }).click();
-    } else {
+    } else if (await this.rootPage.getByRole('button', { name: 'Cancel' }).isVisible()) {
       await this.rootPage.getByRole('button', { name: 'Cancel' }).click();
+    } else {
+      await this.rootPage.getByRole('button', { name: 'Close' }).click();
     }
     await this.rootPage.locator('.nc-modal-share-collaborate').waitFor({ state: 'hidden' });
   }

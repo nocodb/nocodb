@@ -1,4 +1,4 @@
-import { Page } from '@playwright/test';
+import { expect, Page } from '@playwright/test';
 import BasePage from './Base';
 
 export class WorkspacePage extends BasePage {
@@ -15,11 +15,23 @@ export class WorkspacePage extends BasePage {
     await this.get().getByTestId('nc-logout-btn').click();
   }
 
+  getWorkspaceContainer() {
+    return this.get().locator('.nc-workspace-container');
+  }
+
+  getWorkspaceList() {
+    return this.getWorkspaceContainer().locator('.nc-workspace-list');
+  }
+
   async selectProject({ title }: { title: string }) {
     await this.get()
       .locator('.nc-project-title', {
         hasText: title,
       })
       .click();
+  }
+
+  async verifyWorkspaceCount({ count }: { count: number }) {
+    await expect(this.getWorkspaceList().locator('.nc-workspace-list-item')).toHaveCount(count);
   }
 }

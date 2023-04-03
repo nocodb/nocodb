@@ -10,7 +10,7 @@ export interface NcContext {
   dbType?: string;
   // todo: Hack to resolve issue with pg resetting
   workerId?: string;
-  rootUser: UserType;
+  rootUser: UserType & { password: string };
   workspace: WorkspaceType;
 }
 
@@ -84,7 +84,7 @@ const setup = async ({
   );
 
   const project = response.data.project;
-  const rootUser = response.data.user;
+  const rootUser = { ...response.data.user, password: 'Password123.' };
   const workspace = response.data.workspace;
 
   let projectUrl;

@@ -17,7 +17,7 @@ export const handleOnEnterForCallouts = (editor: Editor) => {
   }
 
   const isLastChild = parentNode.childCount === state.selection.$from.index(state.selection.$from.depth - 1) + 1
-  if (!isLastChild) {
+  if (!isLastChild || currentNode.textContent.length !== 0) {
     const parentOffset = selection.$from.parentOffset
     if (parentOffset !== currentNode.textContent.length) return false
 

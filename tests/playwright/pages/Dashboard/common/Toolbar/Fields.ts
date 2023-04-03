@@ -97,7 +97,7 @@ export class ToolbarFieldsPage extends BasePage {
   }
 
   async getFieldsTitles() {
-    let fields: string[] = await this.rootPage.locator(`.nc-grid-header .name`).allTextContents();
+    const fields: string[] = await this.rootPage.locator(`.nc-grid-header .name`).allTextContents();
     return fields;
   }
 

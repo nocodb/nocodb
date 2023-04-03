@@ -19,6 +19,7 @@ Some types of notifications can be triggered by a webhook after a particular eve
 <img width="686" alt="image" src="https://user-images.githubusercontent.com/35857179/194849248-1d0b80c6-f65b-4075-8ebd-af7dc735c2c3.png">
 
 ### Configure Webhook
+
   - General configurations
     - Webhook Name
     - Webhook Trigger
@@ -31,6 +32,16 @@ Some types of notifications can be triggered by a webhook after a particular eve
 
 
 <!-- ![image](https://user-images.githubusercontent.com/35857179/166660248-a3c81a34-4334-48c2-846a-65759d761559.png) -->
+
+## Call Log
+
+Call Log allows user to check the call history of the hook. By default, it has been disabled. However, it can be configured by using environment variable `NC_AUTOMATION_LOG_LEVEL`.
+
+- `NC_AUTOMATION_LOG_LEVEL=OFF`: No logs will be displayed and no history will be inserted to meta database.
+- `NC_AUTOMATION_LOG_LEVEL=ERROR`: only error logs will be displayed and history of error logs will be inserted to meta database.
+- `NC_AUTOMATION_LOG_LEVEL=ALL`: Both error and success logs will be displayed and history of both types of logs will be inserted to meta database. **This option is only available for Enterprise Edition.**
+
+![image](https://user-images.githubusercontent.com/35857179/228790148-1e3f21c7-9385-413a-843f-b93073ca6bea.png)
 
 
 ## Triggers
@@ -58,6 +69,11 @@ The triggers will trigger asynchronously without blocking the actual operation.
 
   
 ## Accessing Data: Handlebars
+
+
+<alert type="warning">
+You can accessing data using handlebars for v1 webhooks only.
+</alert>
 
 The current row data and other details will be available in the hooks payload so the user can use [handlebar syntax](https://handlebarsjs.com/guide/#simple-expressions) to use data.
 
@@ -136,6 +152,7 @@ Detailed procedure for discord webhook described [here](https://support.discord.
 
 
 ## Slack
+
 ### 1. Create WebHook
 -   Details to create slack webhook are captured [here](https://api.slack.com/messaging/webhooks)
 
@@ -196,3 +213,13 @@ Detailed procedure for discord webhook described [here](https://support.discord.
     -   **Body**: Message to be posted over Teams channel, via webhooks on trigger of configured event.
         -   Body can contain plain text &
         -   Handlebars {{ }}
+
+## Webhook V2
+
+Webhook v2 is available after v0.106.0. Here's the differences.
+
+- Response Payload has been predefined and cannot configure in Body using Handlebars. The payload can be referenced under `Sample Payload` in Hook detail page.
+- Support the following bulk operations:
+    -   AFTER BULK INSERT
+    -   AFTER BULK UPDATE
+    -   AFTER BULK DELETE

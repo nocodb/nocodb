@@ -99,3 +99,9 @@ export enum DataSourcesSubTab {
   Misc = 'Misc',
   Edit = 'Edit',
 }
+
+export enum AutomationLogLevel {
+  OFF = 'OFF',
+  ERROR = 'ERROR',
+  ALL = 'ALL',
+}

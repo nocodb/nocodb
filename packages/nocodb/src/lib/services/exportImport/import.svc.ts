@@ -227,6 +227,7 @@ export async function importModels(param: {
   for (const col of sortedReferencedColumnSet) {
     const { colOptions, ...flatCol } = col;
     if (col.uidt === UITypes.Lookup) {
+      if (!idMap.get(colOptions.fk_relation_column_id)) continue;
       const freshModelData = await columnService.columnAdd({
         tableId: idMap.get(getParentIdentifier(col.id)),
         column: withoutId({
@@ -246,6 +247,7 @@ export async function importModels(param: {
         }
       }
     } else if (col.uidt === UITypes.Rollup) {
+      if (!idMap.get(colOptions.fk_relation_column_id)) continue;
       const freshModelData = await columnService.columnAdd({
         tableId: idMap.get(getParentIdentifier(col.id)),
         column: withoutId({

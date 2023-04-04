@@ -3,25 +3,6 @@ import { DashboardPage } from '../..';
 import BasePage from '../../../Base';
 import { TiptapPage } from './Tiptap';
 
-export type TipTapNodes =
-  | 'Heading 1'
-  | 'Heading 2'
-  | 'Heading 3'
-  | 'Paragraph'
-  | 'Quote'
-  | 'Code Block'
-  | 'Bulleted List'
-  | 'Numbered List'
-  | 'Todo List'
-  | 'Horizontal Rule'
-  | 'Image'
-  | 'Table'
-  | 'Link'
-  | 'Emoji'
-  | 'Info notice'
-  | 'Warning notice'
-  | 'Tip notice';
-
 export class DocsOpenedPagePage extends BasePage {
   readonly dashboard: DashboardPage;
   readonly tiptap: TiptapPage;

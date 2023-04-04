@@ -29,7 +29,26 @@ test.describe('Tiptap:Callout', () => {
       type,
     });
 
+    await openedPage.tiptap.verifyNode({
+      index: 0,
+      type: 'Info notice',
+    });
+
     await page.waitForTimeout(100);
     await page.keyboard.press('Backspace');
+    await page.waitForTimeout(100);
+
+    await openedPage.tiptap.addNewNode({
+      type,
+      index: 1,
+    });
+
+    await page.keyboard.type('Callout content');
+
+    await openedPage.tiptap.verifyNode({
+      index: 1,
+      type: 'Info notice',
+      content: 'Callout content',
+    });
   }
 });

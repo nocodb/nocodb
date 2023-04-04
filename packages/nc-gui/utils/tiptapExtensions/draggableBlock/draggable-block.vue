@@ -180,9 +180,13 @@ watch(
         </div>
       </div>
 
-      <NodeViewContent class="node-view-drag-content" />
+      <NodeViewContent class="node-view-drag-content" :data-testid="`nc-docs-tiptap-wrapper-${childNodeType}`" />
     </div>
-    <NodeViewContent v-else class="node-view-drag-content mb-2 !ml-1.3" />
+    <NodeViewContent
+      v-else
+      class="node-view-drag-content mb-2 !ml-1.3"
+      :data-testid="`nc-docs-tiptap-wrapper-${childNodeType}`"
+    />
   </NodeViewWrapper>
 </template>
 

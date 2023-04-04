@@ -1,5 +1,5 @@
 import { expect } from '@playwright/test';
-import { DocsOpenedPagePage, TipTapNodes } from '.';
+import { DocsOpenedPagePage } from '.';
 import BasePage from '../../../Base';
 
 export class TiptapPage extends BasePage {
@@ -14,18 +14,23 @@ export class TiptapPage extends BasePage {
     return this.openedPage.get().getByTestId('docs-page-content').locator('.ProseMirror');
   }
 
-  async openCommandMenu({ openOnLastLine = true }: { openOnLastLine?: boolean } = {}) {
-    if (openOnLastLine) {
+  async openCommandMenu({ index }: { index?: number } = {}) {
+    if (index) {
+      const paragraph = this.get()
+        .locator(`.draggable-block-wrapper:nth-child(${index + 1})`)
+        .locator('p:nth-child(1)');
+      await paragraph.click();
+    } else {
       const paragraph = this.get().locator('.draggable-block-wrapper:last-child').locator('p:nth-child(1)');
       await paragraph.click();
-      await this.rootPage.keyboard.press('/');
     }
+    await this.rootPage.keyboard.press('/');
 
     await this.rootPage.locator('.nc-docs-command-list').waitFor({ state: 'visible' });
   }
 
-  async addNewNode({ type }: { type: TipTapNodes }) {
-    await this.openCommandMenu();
+  async addNewNode({ type, index }: { type: TipTapNodes; index?: number }) {
+    await this.openCommandMenu({ index });
     await this.rootPage.getByTestId(`nc-docs-command-list-item-${type}`).click();
 
     await this.rootPage.locator('.nc-docs-command-list').waitFor({ state: 'hidden' });
@@ -80,10 +85,19 @@ export class TiptapPage extends BasePage {
       });
   }
 
-  async verifyNode({ index, type, content }: { index: number; type?: TipTapNodes; content: string }) {
+  async verifyNode({ index, type, content }: { index: number; type?: TipTapNodes; content?: string }) {
     const node = this.get().locator(`.draggable-block-wrapper:nth-child(${index + 1})`);
 
-    await expect(node).toHaveText(content);
+    if (content) {
+      await expect(node).toContainText(content);
+    }
+
+    if (type) {
+      await expect(node.locator('.node-view-drag-content')).toHaveAttribute(
+        'data-testid',
+        `nc-docs-tiptap-wrapper-${tiptapNodeLabels[type]}`
+      );
+    }
   }
 
   async verifyContent({ content }: { content: string }) {
@@ -116,3 +130,26 @@ export class TiptapPage extends BasePage {
     // });
   }
 }
+
+export type TipTapNodes =
+  | 'Heading 1'
+  | 'Heading 2'
+  | 'Heading 3'
+  | 'Paragraph'
+  | 'Quote'
+  | 'Code Block'
+  | 'Bulleted List'
+  | 'Numbered List'
+  | 'Todo List'
+  | 'Horizontal Rule'
+  | 'Image'
+  | 'Table'
+  | 'Link'
+  | 'Emoji'
+  | 'Info notice'
+  | 'Warning notice'
+  | 'Tip notice';
+
+const tiptapNodeLabels: Record<TipTapNodes, string> = {
+  'Info notice': 'infoCallout',
+};

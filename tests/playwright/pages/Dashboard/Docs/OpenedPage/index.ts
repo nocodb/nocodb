@@ -1,6 +1,7 @@
 import { expect } from '@playwright/test';
-import { DashboardPage } from '..';
-import BasePage from '../../Base';
+import { DashboardPage } from '../..';
+import BasePage from '../../../Base';
+import { TiptapPage } from './Tiptap';
 
 export type TipTapNodes =
   | 'Heading 1'
@@ -16,14 +17,19 @@ export type TipTapNodes =
   | 'Image'
   | 'Table'
   | 'Link'
-  | 'Emoji';
+  | 'Emoji'
+  | 'Info notice'
+  | 'Warning notice'
+  | 'Tip notice';
 
 export class DocsOpenedPagePage extends BasePage {
   readonly dashboard: DashboardPage;
+  readonly tiptap: TiptapPage;
 
   constructor(dashboard: DashboardPage) {
     super(dashboard.rootPage);
     this.dashboard = dashboard;
+    this.tiptap = new TiptapPage(this);
   }
 
   get() {
@@ -56,123 +62,6 @@ export class DocsOpenedPagePage extends BasePage {
     });
   }
 
-  async openCommandMenu({ openOnLastLine = true }: { openOnLastLine?: boolean } = {}) {
-    if (openOnLastLine) {
-      const paragraph = this.get()
-        .getByTestId('docs-page-content')
-        .locator('.ProseMirror > .draggable-block-wrapper:last-child')
-        .locator('p:nth-child(1)');
-      await paragraph.click();
-      await this.rootPage.keyboard.press('/');
-    }
-
-    await this.rootPage.locator('.nc-docs-command-list').waitFor({ state: 'visible' });
-  }
-
-  async addNewNode({ type }: { type: TipTapNodes }) {
-    await this.openCommandMenu();
-    await this.rootPage.getByTestId(`nc-docs-command-list-item-${type}`).click();
-
-    await this.rootPage.locator('.nc-docs-command-list').waitFor({ state: 'hidden' });
-  }
-
-  async fillContent({
-    content,
-    index = 0,
-    waitForNetwork,
-  }: {
-    content: string;
-    index?: number;
-    waitForNetwork?: boolean;
-  }) {
-    await this.waitForRender();
-    await this.rootPage.waitForTimeout(1000);
-
-    const waitNetwork = waitForNetwork
-      ? this.rootPage.waitForResponse(async response => {
-          return response.url().includes('api/v1/docs/page') && response.request().method() === 'PUT';
-        })
-      : Promise.resolve();
-
-    await this.get().getByTestId('docs-page-content').click();
-    // await this.get()
-    //   .getByTestId('docs-page-content')
-    //   .locator('.ProseMirror')
-    //   .elementHandle()
-    //   .then(async el => {
-    //     await el?.waitForElementState('stable');
-    //   });
-
-    await this.get()
-      .getByTestId('docs-page-content')
-      .locator(`.ProseMirror > .draggable-block-wrapper:nth-child(${index + 1})`)
-      .locator('p:nth-child(1)')
-      .click({
-        force: true,
-      });
-
-    for (const char of content) {
-      await this.rootPage.keyboard.type(char);
-    }
-
-    await waitNetwork;
-  }
-
-  async clickNode({ index, start }: { index: number; start: boolean }) {
-    await this.get()
-      .getByTestId('docs-page-content')
-      .locator(`.ProseMirror > .draggable-block-wrapper:nth-child(${index + 1})`)
-      .locator('p:first-child')
-      .click({
-        force: true,
-        position: start
-          ? {
-              x: 0,
-              y: 0,
-            }
-          : undefined,
-      });
-  }
-
-  async verifyNode({ index, type, content }: { index: number; type?: TipTapNodes; content: string }) {
-    const node = this.get()
-      .getByTestId('docs-page-content')
-      .locator(`.ProseMirror > .draggable-block-wrapper:nth-child(${index + 1})`);
-
-    await expect(node).toHaveText(content);
-  }
-
-  async clearContent() {
-    await this.waitForRender();
-    await this.rootPage.waitForTimeout(1000);
-
-    await this.get().getByTestId('docs-page-content').click();
-    await this.get()
-      .getByTestId('docs-page-content')
-      .locator('.ProseMirror')
-      .elementHandle()
-      .then(async el => {
-        await el?.waitForElementState('stable');
-      });
-
-    const firstParagraph = this.get()
-      .getByTestId('docs-page-content')
-      .locator('.ProseMirror > .draggable-block-wrapper:nth-child(1)')
-      .locator('p:nth-child(1)');
-    await firstParagraph.click();
-    await this.rootPage.keyboard.press('Meta+A');
-    await this.rootPage.keyboard.press('Backspace');
-
-    // TODO: fix this
-    await this.rootPage.waitForTimeout(1000);
-
-    // await this.waitForResponse({
-    //   uiAction: () => firstParagraph.clear(),
-    //   httpMethodsToMatch: ['PUT'],
-    //   requestUrlPathToMatch: `api/v1/docs/page`,
-    // });
-  }
-
   async verifyTitle({ title }: { title: string }) {
     await expect.poll(() => this.get().getByTestId('docs-page-title').inputValue()).toBe(title);
   }
@@ -187,10 +76,6 @@ export class DocsOpenedPagePage extends BasePage {
       await expect(this.rootPage.getByTestId('docs-page-outline-toggle')).toHaveAttribute('aria-expanded', 'false');
       await expect(this.rootPage.getByTestId('docs-page-outline-content')).not.toBeVisible();
     }
-  }
-
-  async verifyContent({ content }: { content: string }) {
-    await expect(this.get().getByTestId('docs-page-content').locator('.ProseMirror')).toHaveText(content);
   }
 
   async verifyOpenedPageVisible() {

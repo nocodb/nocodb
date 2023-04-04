@@ -44,7 +44,7 @@ test.describe('Create docs project and verify docs UI', () => {
     await sharedDashboard.docs.openedPage.verifyOpenedPageVisible();
 
     await sharedDashboard.docs.openedPage.verifyTitle({ title: 'root-single-page' });
-    await sharedDashboard.docs.openedPage.verifyContent({ content: 'root-single-page-content' });
+    await sharedDashboard.docs.openedPage.tiptap.verifyContent({ content: 'root-single-page-content' });
     await sharedDashboard.sidebar.docsSidebar.verifyVisibility({
       isVisible: false,
       projectTitle: project.title as any,
@@ -108,7 +108,7 @@ test.describe('Create docs project and verify docs UI', () => {
     await sharedDashboard.docs.openedPage.verifyOpenedPageVisible();
 
     await sharedDashboard.docs.openedPage.verifyTitle({ title: 'nested-root-single-page' });
-    await sharedDashboard.docs.openedPage.verifyContent({ content: 'nested-root-single-page-content' });
+    await sharedDashboard.docs.openedPage.tiptap.verifyContent({ content: 'nested-root-single-page-content' });
     await sharedDashboard.sidebar.docsSidebar.verifyVisibility({
       isVisible: true,
       projectTitle: project.title as any,
@@ -241,7 +241,7 @@ test.describe('Create docs project and verify docs UI', () => {
     await sharedDashboard.docs.openedPage.verifyOpenedPageVisible();
 
     await sharedDashboard.docs.openedPage.verifyTitle({ title: 'nested-root-single-page' });
-    await sharedDashboard.docs.openedPage.verifyContent({ content: 'nested-root-single-page-content' });
+    await sharedDashboard.docs.openedPage.tiptap.verifyContent({ content: 'nested-root-single-page-content' });
     await sharedDashboard.sidebar.docsSidebar.verifyVisibility({
       isVisible: true,
       projectTitle: project.title as any,

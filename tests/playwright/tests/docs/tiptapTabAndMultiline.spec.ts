@@ -21,17 +21,17 @@ test.describe('Tiptap:Tab and multi line test', () => {
       title: 'page',
     });
 
-    await openedPage.fillContent({ content: 'page content', index: 0 });
-    await openedPage.fillContent({ content: 'page content 2', index: 1 });
-    await openedPage.fillContent({ content: 'page content 3', index: 2 });
+    await openedPage.tiptap.fillContent({ content: 'page content', index: 0 });
+    await openedPage.tiptap.fillContent({ content: 'page content 2', index: 1 });
+    await openedPage.tiptap.fillContent({ content: 'page content 3', index: 2 });
 
-    await openedPage.clickNode({ index: 0, start: true });
+    await openedPage.tiptap.clickNode({ index: 0, start: true });
 
     await page.keyboard.press('Tab');
     await page.waitForTimeout(100);
     await page.keyboard.press('1');
 
-    await openedPage.verifyNode({
+    await openedPage.tiptap.verifyNode({
       index: 0,
       content: 'page1 content',
     });
@@ -40,7 +40,7 @@ test.describe('Tiptap:Tab and multi line test', () => {
     await page.waitForTimeout(100);
     await page.keyboard.press('1');
 
-    await openedPage.verifyNode({
+    await openedPage.tiptap.verifyNode({
       index: 0,
       content: 'page1 1content',
     });
@@ -49,7 +49,7 @@ test.describe('Tiptap:Tab and multi line test', () => {
     await page.waitForTimeout(100);
     await page.keyboard.press('1');
 
-    await openedPage.verifyNode({
+    await openedPage.tiptap.verifyNode({
       index: 0,
       content: 'page1 1content1',
     });
@@ -58,28 +58,28 @@ test.describe('Tiptap:Tab and multi line test', () => {
     await page.waitForTimeout(100);
     await page.keyboard.press('1');
 
-    await openedPage.verifyNode({
+    await openedPage.tiptap.verifyNode({
       index: 1,
       content: '1page content 2',
     });
 
     // Verify tab with multi line
-    await openedPage.clickNode({ index: 1, start: false });
+    await openedPage.tiptap.clickNode({ index: 1, start: false });
     await page.keyboard.press('Shift+Enter');
     await page.waitForTimeout(100);
     await page.keyboard.press('2');
 
-    await openedPage.verifyNode({
+    await openedPage.tiptap.verifyNode({
       index: 1,
       content: '1page content 22',
     });
 
-    await openedPage.clickNode({ index: 1, start: false });
+    await openedPage.tiptap.clickNode({ index: 1, start: false });
     await page.keyboard.press('Tab');
     await page.waitForTimeout(100);
     await page.keyboard.press('2');
 
-    await openedPage.verifyNode({
+    await openedPage.tiptap.verifyNode({
       index: 2,
       content: '2page content 3',
     });

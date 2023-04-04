@@ -15,7 +15,7 @@ const insert = {
     public: { type: 'boolean' },
     dimensions: { type: 'string', maxLength: 255 },
     responsive_columns: { type: 'string', maxLength: 255 },
-    meta: { type: 'string' },
+    meta: { type: ['string', 'null'] },
   },
 
   required: ['fk_view_id'],
@@ -37,7 +37,7 @@ const update = {
     public: { type: 'boolean' },
     dimensions: { type: 'string', maxLength: 255 },
     responsive_columns: { type: 'string', maxLength: 255 },
-    meta: { type: 'string' },
+    meta: { type: ['string', 'null'] },
   },
   minProperties: 1,
 

@@ -94,7 +94,7 @@ const insert = {
       type: 'string',
     },
     meta: {
-      type: 'object',
+      type: ['string', 'null'],
     },
 
     virtual: {

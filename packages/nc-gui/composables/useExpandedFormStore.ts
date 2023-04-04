@@ -126,7 +126,7 @@ const [useProvideExpandedFormStore, useExpandedFormStore] = useInjectionState((m
       await api.utils.commentRow({
         fk_model_id: meta.value?.id as string,
         row_id: rowId,
-        description: comment.value,
+        description: `The following comment has been created: ${comment.value}`,
       })
 
       comment.value = ''

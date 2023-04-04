@@ -19,16 +19,10 @@ const insert = {
     order: {
       type: 'number',
     },
-    created_at: {  },
-    updated_at: {  },
+    created_at: {},
+    updated_at: {},
   },
-  required: [
-    'id',
-    'fk_column_id',
-    'title',
-    'color',
-    'order',
-  ],
+  required: ['id', 'fk_column_id', 'title'],
 };
 
 const update = {
@@ -52,16 +46,11 @@ const update = {
     order: {
       type: 'number',
     },
-    created_at: {  },
-    updated_at: {  },
+    created_at: {},
+    updated_at: {},
   },
-  required: [
-    'id',
-    'fk_column_id',
-    'title',
-    'color',
-    'order',
-  ],
+
+  minProperties: 1,
 };
 
 export default {

@@ -16,11 +16,11 @@ const create = {
     pinned: { type: 'boolean' },
     deleted: { type: 'boolean' },
     order: { type: 'number' },
-    created_at: {  },
-    updated_at: {  },
+    created_at: {},
+    updated_at: {},
   },
   required: ['id', 'base_id', 'project_id', 'table_name', 'title'],
-  additionalProperties: false,
+
 };
 
 const update = {
@@ -37,10 +37,10 @@ const update = {
     pinned: { type: 'boolean' },
     deleted: { type: 'boolean' },
     order: { type: 'number' },
-    created_at: {  },
-    updated_at: {  },
+    created_at: {},
+    updated_at: {},
   },
-  additionalProperties: false,
+
   minProperties: 1, // at least one property is required for update
 };
 

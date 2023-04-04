@@ -13,7 +13,7 @@ const insert = {
     order: { type: 'number' },
   },
   required: ['fk_view_id', 'view_id'],
-  additionalProperties: false,
+
 };
 
 // Update schema
@@ -30,7 +30,8 @@ const update = {
     deleted: { type: 'boolean' },
     order: { type: 'number' },
   },
-  additionalProperties: false,
+
+  minProperties: 1,
 };
 
 export default {

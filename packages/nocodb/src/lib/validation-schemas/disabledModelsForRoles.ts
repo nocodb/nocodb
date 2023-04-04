@@ -26,17 +26,10 @@ const insert = {
     disabled: {
       type: 'boolean',
     },
-    created_at: {  },
-    updated_at: {  },
+    created_at: {},
+    updated_at: {},
   },
-  required: [
-    'id',
-    'base_id',
-    'project_id',
-    'fk_view_id',
-    'role',
-    'disabled'
-  ],
+  required: ['id', 'base_id', 'project_id', 'fk_view_id', 'role', 'disabled'],
 };
 
 const update = {
@@ -67,17 +60,10 @@ const update = {
     disabled: {
       type: 'boolean',
     },
-    created_at: {  },
-    updated_at: {  },
+    created_at: {},
+    updated_at: {},
   },
-  required: [
-    'id',
-    'base_id',
-    'project_id',
-    'fk_view_id',
-    'role',
-    'disabled',
-  ],
+  minProperties: 1, // at least one property is required for update
 };
 
 export default {

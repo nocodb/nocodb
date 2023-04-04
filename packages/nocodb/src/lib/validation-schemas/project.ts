@@ -7,11 +7,11 @@ const create = {
     description: { type: 'string' },
     config: { type: 'string' },
     meta: { type: 'string' },
-    created_at: {  },
-    updated_at: {  },
+    created_at: {},
+    updated_at: {},
   },
   required: ['id', 'title'],
-  additionalProperties: false,
+
 };
 
 const update = {
@@ -21,11 +21,11 @@ const update = {
     description: { type: 'string' },
     config: { type: 'string' },
     meta: { type: 'string' },
-    created_at: {  },
-    updated_at: {  },
-    additionalProperties: false,
+    created_at: {},
+    updated_at: {},
+
   },
-  additionalProperties: false,
+
   minProperties: 1, // at least one property is required for update
 };
 

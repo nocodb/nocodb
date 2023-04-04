@@ -1,6 +1,7 @@
 const insert = {
   type: 'object',
   properties: {
+    id: { type: 'string', maxLength: 255 },
     email: { type: 'string', format: 'email', maxLength: 255 },
     password: { type: 'string', maxLength: 255 },
     firstname: { type: 'string', maxLength: 255 },
@@ -8,9 +9,14 @@ const insert = {
     username: { type: 'string', maxLength: 255 },
     roles: { type: 'string', maxLength: 255 },
     token_version: { type: 'string', maxLength: 255 },
+    salt: { type: 'string', maxLength: 255 },
+    email_verification_token: { type: 'string', maxLength: 255 },
+    refresh_token: { type: 'string', maxLength: 255 },
+    created_at: {},
+    updated_at: {},
   },
-  required: ['email', 'password'],
-  additionalProperties: false,
+  required: ['email'],
+
 };
 
 const update = {
@@ -23,8 +29,14 @@ const update = {
     username: { type: 'string', maxLength: 255 },
     roles: { type: 'string', maxLength: 255 },
     token_version: { type: 'string', maxLength: 255 },
+    salt: { type: 'string', maxLength: 255 },
+    email_verification_token: { type: 'string', maxLength: 255 },
+    refresh_token: { type: 'string', maxLength: 255 },
+    created_at: {},
+    updated_at: {},
   },
-  additionalProperties: false,
+
+  minProperties: 1,
 };
 
 export default {

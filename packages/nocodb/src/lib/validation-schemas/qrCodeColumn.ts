@@ -19,16 +19,10 @@ const create = {
     order: {
       type: 'number',
     },
-    created_at: {  },
-    updated_at: {  },
+    created_at: {},
+    updated_at: {},
   },
-  required: [
-    'id',
-    'fk_column_id',
-    'fk_qr_value_column_id',
-    'deleted',
-    'order',
-  ],
+  required: ['id', 'fk_column_id', 'fk_qr_value_column_id', 'deleted', 'order'],
 };
 
 const update = {
@@ -52,16 +46,10 @@ const update = {
     order: {
       type: 'number',
     },
-    created_at: {  },
-    updated_at: {  },
+    created_at: {},
+    updated_at: {},
   },
-  required: [
-    'id',
-    'fk_column_id',
-    'fk_qr_value_column_id',
-    'deleted',
-    'order',
-  ],
+  minProperties: 1,
 };
 
 export default {

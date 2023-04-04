@@ -7,8 +7,8 @@ const insert = {
     time_taken: { type: 'integer' },
     status: { type: 'string', maxLength: 255 },
     status_details: { type: 'string' },
-    created_at: {  },
-    updated_at: {  },
+    created_at: {},
+    updated_at: {},
   },
   required: [
     'id',
@@ -18,7 +18,7 @@ const insert = {
     'status',
     'status_details',
   ],
-  additionalProperties: false,
+
 };
 
 const update = {
@@ -30,20 +30,12 @@ const update = {
     time_taken: { type: 'integer' },
     status: { type: 'string', maxLength: 255 },
     status_details: { type: 'string' },
-    created_at: {  },
-    updated_at: {  },
+    created_at: {},
+    updated_at: {},
   },
-  anyOf: [
-    { required: ['id'] },
-    { required: ['project_id'] },
-    { required: ['fk_sync_source_id'] },
-    { required: ['time_taken'] },
-    { required: ['status'] },
-    { required: ['status_details'] },
-    { required: ['created_at'] },
-    { required: ['updated_at'] },
-  ],
-  additionalProperties: false,
+
+  minProperties: 1,
+
 };
 
 export default {

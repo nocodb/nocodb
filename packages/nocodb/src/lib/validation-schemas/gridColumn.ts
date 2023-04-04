@@ -14,7 +14,7 @@ const insert = {
     order: { type: 'number' },
   },
   required: ['fk_view_id', 'fk_column_id'],
-  additionalProperties: false,
+
 };
 
 // AJV schema validation for UPDATE operation on nc_grid_view_columns_v2 table
@@ -28,7 +28,8 @@ const update = {
     show: { type: 'boolean' },
     order: { type: 'number' },
   },
-  additionalProperties: false,
+
+  minProperties: 1,
 };
 
 export default {

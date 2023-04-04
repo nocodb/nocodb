@@ -19,11 +19,17 @@ const insert = {
     dr: { type: 'string', maxLength: 255 },
     fk_index_name: { type: 'string', maxLength: 255 },
     deleted: { type: 'boolean' },
-    created_at: {  },
-    updated_at: {  },
+    created_at: {},
+    updated_at: {},
   },
-  required: ['id', 'virtual',],
-  additionalProperties: false,
+  required: [
+    'id',
+    'fk_column_id',
+    'fk_related_model_id',
+    'fk_child_column_id',
+    'fk_parent_column_id',
+  ],
+
 };
 
 const update = {
@@ -47,11 +53,11 @@ const update = {
     dr: { type: 'string', maxLength: 255 },
     fk_index_name: { type: 'string', maxLength: 255 },
     deleted: { type: 'boolean' },
-    created_at: {  },
-    updated_at: {  },
+    created_at: {},
+    updated_at: {},
   },
-  required: ['id', 'virtual', ],
-  additionalProperties: false,
+  minProperties: 1,
+
 };
 
 export default {

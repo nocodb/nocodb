@@ -10,12 +10,12 @@ const insert = {
     order: { type: 'number' },
     project_id: { type: 'string', maxLength: 128 },
     fk_user_id: { type: 'string', maxLength: 20 },
-    created_at: {  },
-    updated_at: {  },
+    created_at: {},
+    updated_at: {},
     base_id: { type: 'string', maxLength: 20 },
   },
-  required: ['id', 'project_id', ],
-  additionalProperties: false,
+  required: ['id', 'project_id'],
+
 };
 
 const update = {
@@ -29,11 +29,12 @@ const update = {
     order: { type: 'number' },
     project_id: { type: 'string', maxLength: 128 },
     fk_user_id: { type: 'string', maxLength: 20 },
-    created_at: {  },
-    updated_at: {  },
+    created_at: {},
+    updated_at: {},
     base_id: { type: 'string', maxLength: 20 },
   },
-  additionalProperties: false,
+
+  minProperties: 1,
 };
 
 export default {

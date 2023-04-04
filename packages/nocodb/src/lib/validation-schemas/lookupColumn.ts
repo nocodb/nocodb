@@ -20,15 +20,14 @@ const create = {
     deleted: {
       type: 'boolean',
     },
-    created_at: {  },
-    updated_at: {  },
+    created_at: {},
+    updated_at: {},
   },
   required: [
     'id',
     'fk_column_id',
     'fk_relation_column_id',
     'fk_lookup_column_id',
-    'deleted',
   ],
 };
 
@@ -54,16 +53,10 @@ const update = {
     deleted: {
       type: 'boolean',
     },
-    created_at: {  },
-    updated_at: {  },
+    created_at: {},
+    updated_at: {},
   },
-  required: [
-    'id',
-    'fk_column_id',
-    'fk_relation_column_id',
-    'fk_lookup_column_id',
-    'deleted',
-  ],
+  minProperties: 1,
 };
 
 export default {

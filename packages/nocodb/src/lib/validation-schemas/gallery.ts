@@ -17,7 +17,7 @@ const insert = {
     responsive_columns: { type: 'string', maxLength: 255 },
     meta: { type: 'string' },
   },
-  additionalProperties: false,
+
   required: ['fk_view_id'],
 };
 
@@ -40,7 +40,7 @@ const update = {
     meta: { type: 'string' },
   },
   minProperties: 1,
-  additionalProperties: false,
+
 };
 
 export default {

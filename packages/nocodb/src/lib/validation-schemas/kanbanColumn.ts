@@ -13,7 +13,7 @@ const insert = {
     order: { type: 'number' },
   },
   required: ['fk_view_id', 'fk_column_id', 'uuid', 'label', 'show', 'order'],
-  additionalProperties: false,
+
 };
 
 // update schema
@@ -31,7 +31,7 @@ const update = {
     order: { type: 'number' },
   },
   minProperties: 1, // at least one property is required for update
-  additionalProperties: false,
+
 };
 
 export default {

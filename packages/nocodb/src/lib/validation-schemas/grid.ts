@@ -5,13 +5,13 @@ const insert = {
     base_id: { type: 'string', maxLength: 20 },
     project_id: { type: 'string', maxLength: 128 },
     uuid: { type: 'string', maxLength: 255 },
-    created_at: {  },
-    updated_at: {  },
+    created_at: {},
+    updated_at: {},
     meta: { type: 'string' },
     row_height: { type: 'integer' },
   },
-  required: ['fk_view_id', 'base_id', 'project_id', 'row_height'],
-  additionalProperties: false,
+  required: ['fk_view_id', 'base_id', 'project_id',],
+
 };
 
 const update = {
@@ -21,13 +21,13 @@ const update = {
     base_id: { type: 'string', maxLength: 20 },
     project_id: { type: 'string', maxLength: 128 },
     uuid: { type: 'string', maxLength: 255 },
-    created_at: {  },
-    updated_at: {  },
+    created_at: {},
+    updated_at: {},
     meta: { type: 'string' },
     row_height: { type: 'integer' },
   },
-  required: ['fk_view_id', 'base_id', 'project_id', 'row_height'],
-  additionalProperties: false,
+  minProperties: 1,
+
 };
 
 export default {

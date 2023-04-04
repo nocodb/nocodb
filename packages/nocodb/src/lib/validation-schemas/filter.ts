@@ -1,6 +1,7 @@
 const insert = {
   type: 'object',
   properties: {
+    id: { type: 'string', maxLength: 20 },
     base_id: { type: 'string', maxLength: 20 },
     project_id: { type: 'string', maxLength: 128 },
     fk_view_id: { type: 'string', maxLength: 20 },
@@ -14,15 +15,8 @@ const insert = {
     order: { type: 'number' },
     comparison_sub_op: { type: 'string', maxLength: 255 },
   },
-  additionalProperties: false,
-  required: [
-    'base_id',
-    'project_id',
-    'fk_view_id',
-    'fk_column_id',
-    'is_group',
-    'order',
-  ],
+
+  required: ['base_id', 'project_id', 'fk_view_id', 'fk_column_id'],
 };
 
 const update = {
@@ -41,7 +35,7 @@ const update = {
     order: { type: 'number' },
     comparison_sub_op: { type: 'string', maxLength: 255 },
   },
-  additionalProperties: false,
+
   minProperties: 1,
 };
 

@@ -1,6 +1,6 @@
 const insert = {
   type: 'object',
-  required: ['id', 'base_id', 'project_id', 'fk_view_id', 'fk_column_id'],
+  required: ['id', 'fk_view_id', 'fk_column_id'],
   properties: {
     id: { type: 'string', maxLength: 20 },
     base_id: { type: 'string', maxLength: 20 },
@@ -23,6 +23,8 @@ const update = {
     direction: { type: 'string', maxLength: 255 },
     order: { type: 'number' },
   },
+
+  minProperties: 1,
 };
 
 export default {

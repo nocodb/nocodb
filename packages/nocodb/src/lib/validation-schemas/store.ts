@@ -8,8 +8,8 @@ const insert = {
     type: { type: 'string', maxLength: 255 },
     env: { type: 'string', maxLength: 255 },
     tag: { type: 'string', maxLength: 255 },
-    created_at: {  },
-    updated_at: {  },
+    created_at: {},
+    updated_at: {},
   },
   required: ['key', 'value'],
 };
@@ -24,8 +24,8 @@ const update = {
     type: { type: 'string', maxLength: 255 },
     env: { type: 'string', maxLength: 255 },
     tag: { type: 'string', maxLength: 255 },
-    created_at: {  },
-    updated_at: {  },
+    created_at: {},
+    updated_at: {},
   },
   minProperties: 1,
 };

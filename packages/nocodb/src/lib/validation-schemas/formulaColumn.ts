@@ -23,10 +23,10 @@ const create = {
     order: {
       type: 'number',
     },
-    created_at: {  },
-    updated_at: {  },
+    created_at: {},
+    updated_at: {},
   },
-  required: ['id', 'fk_column_id', 'formula', ],
+  required: ['id', 'fk_column_id', 'formula'],
 };
 const update = {
   type: 'object',
@@ -53,10 +53,10 @@ const update = {
     order: {
       type: 'number',
     },
-    created_at: {  },
-    updated_at: {  },
+    created_at: {},
+    updated_at: {},
   },
-  required: ['id', 'fk_column_id', 'formula', ],
+  minProperties: 1, // at least one property is required for update
 };
 
 export default {

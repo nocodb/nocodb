@@ -18,7 +18,8 @@ const insert = {
     logo_url: { type: 'string', maxLength: 255 },
     meta: { type: 'string' },
   },
-  additionalProperties: false,
+
+  required: ['id', 'base_id', 'project_id', 'fk_view_id'],
 };
 
 // Update validation schema
@@ -41,7 +42,7 @@ const update = {
     meta: { type: 'string' },
   },
   minProperties: 1,
-  additionalProperties: false,
+
 };
 
 export default {

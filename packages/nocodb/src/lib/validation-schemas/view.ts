@@ -13,10 +13,12 @@ const insert = {
     password: { type: 'string', maxLength: 255 },
     show: { type: 'boolean' },
     order: { type: 'number' },
-    meta: { type: 'object' },
+    meta: { type: 'string' },
+    created_at: {},
+    updated_at: {},
   },
   required: ['base_id', 'project_id', 'fk_model_id', 'title'],
-  additionalProperties: false,
+
 };
 
 const update = {
@@ -34,9 +36,12 @@ const update = {
     password: { type: 'string', maxLength: 255 },
     show: { type: 'boolean' },
     order: { type: 'number' },
-    meta: { type: 'object' },
+    meta: { type: 'string' },
+    created_at: {},
+    updated_at: {},
   },
-  additionalProperties: false,
+
+  minProperties: 1,
 };
 
 export default {

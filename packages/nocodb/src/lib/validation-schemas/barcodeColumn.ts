@@ -7,9 +7,11 @@ const create = {
     },
     fk_column_id: {
       type: 'string',
+      maxLength: 20,
     },
     fk_barcode_value_column_id: {
       type: 'string',
+      maxLength: 20,
     },
     barcode_format: {
       type: 'string',
@@ -18,15 +20,14 @@ const create = {
     deleted: {
       type: 'boolean',
     },
-    created_at: {  },
-    updated_at: {  },
+    created_at: {},
+    updated_at: {},
   },
   required: [
     'id',
     'fk_column_id',
     'fk_barcode_value_column_id',
     'barcode_format',
-    'deleted',
   ],
 };
 const update = {
@@ -49,16 +50,10 @@ const update = {
     deleted: {
       type: 'boolean',
     },
-    created_at: {  },
-    updated_at: {  },
+    created_at: {},
+    updated_at: {},
   },
-  required: [
-    'id',
-    'fk_column_id',
-    'fk_barcode_value_column_id',
-    'barcode_format',
-    'deleted',
-  ],
+  minProperties: 1, // at least one property is required for update
 };
 
 export default {

@@ -11,6 +11,7 @@ const insert = {
     show: { type: 'boolean' },
     order: { type: 'number' },
   },
+  required: ['fk_view_id'],
 };
 
 const update = {

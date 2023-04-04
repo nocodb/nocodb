@@ -104,12 +104,6 @@ export const dropImagePlugin = (upload: UploadFn) => {
           if (images.length === 0) return false
           event.preventDefault()
 
-          const coordinates = view.posAtCoords({
-            left: event.clientX,
-            top: event.clientY,
-          })
-          if (!coordinates) return false
-
           images.forEach(async (image) => {
             addImage(image, view, upload)
           })

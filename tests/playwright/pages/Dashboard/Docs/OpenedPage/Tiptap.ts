@@ -33,20 +33,31 @@ export class TiptapPage extends BasePage {
     type,
     index,
     link,
+    filePath,
     noVerify,
   }: {
     type: TipTapNodes;
     index?: number;
     link?: string;
+    filePath?: string;
     noVerify?: boolean;
   }) {
     await this.openCommandMenu({ index });
+    if (type === 'Image') {
+      await this.attachFile({
+        filePath: [filePath],
+        filePickUIAction: this.rootPage.getByTestId(`nc-docs-command-list-item-${type}`).click(),
+      });
+
+      return;
+    }
     await this.rootPage.getByTestId(`nc-docs-command-list-item-${type}`).click();
 
     if (type === 'Embed iframe') {
       await this.rootPage.getByTestId('nc-docs-command-list-link-input').type(link);
       await this.rootPage.getByTestId('nc-docs-command-list-link-input').press('Enter');
     }
+
     if (!noVerify) await this.rootPage.locator('.nc-docs-command-list').waitFor({ state: 'hidden' });
   }
 
@@ -169,18 +180,29 @@ export class TiptapPage extends BasePage {
     content,
     childParagraphCount,
     childParagraph,
+    isUploading,
   }: {
     index: number;
     type?: TipTapNodes;
     content?: string;
     childParagraphCount?: number;
     childParagraph?: { index: number; content: string };
+    isUploading?: boolean;
   }) {
     const node = this.get().locator(`.draggable-block-wrapper:nth-child(${index + 1})`);
 
     if (type === 'Embed iframe') {
       await expect(node.locator('.external-content-wrapper').locator('iframe')).toHaveAttribute('src', content);
       return;
+    }
+
+    if (isUploading) {
+      await expect(
+        node.getByTestId(`nc-docs-tiptap-wrapper-${tiptapNodeLabels[type]}`).locator(tiptapNodeToDomType[type])
+      ).toHaveAttribute('isuploading', 'true');
+      await expect(
+        node.getByTestId(`nc-docs-tiptap-wrapper-${tiptapNodeLabels[type]}`).locator('.image-uploading-wrapper')
+      ).toContainText('Uploading...');
     }
 
     await expect(
@@ -270,6 +292,7 @@ const tiptapNodeLabels: Record<TipTapNodes, string> = {
   'Heading 2': 'heading',
   'Heading 3': 'heading',
   Divider: 'horizontalRule',
+  Image: 'image',
 };
 
 const tiptapNodeToDomType: Record<TipTapNodes, string> = {
@@ -279,4 +302,5 @@ const tiptapNodeToDomType: Record<TipTapNodes, string> = {
   Paragraph: 'p',
   Divider: 'hr',
   'Embed iframe': 'iframe',
+  Image: 'img',
 };

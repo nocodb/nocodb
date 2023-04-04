@@ -1,4 +1,5 @@
 import { Locator, Page } from '@playwright/test';
+import { readFileSync } from 'fs';
 
 type ResponseSelector = (json: any) => boolean;
 
@@ -112,4 +113,49 @@ export default abstract class BasePage {
   async isMacOs() {
     return (await this.os()).includes('Mac');
   }
+
+  async dropFile({ imageFilePath, domSelector }: { imageFilePath?: string; domSelector: string }) {
+    const buffer = readFileSync(imageFilePath).toString('base64');
+
+    const dataTransfer = await this.rootPage.evaluateHandle(
+      async ({ bufferData, localFileName, localFileType }) => {
+        const dt = new DataTransfer();
+
+        const blobData = await fetch(bufferData).then(res => res.blob());
+
+        const file = new File([blobData], localFileName, { type: localFileType });
+        dt.items.add(file);
+        return dt;
+      },
+      {
+        bufferData: `data:application/octet-stream;base64,${buffer}`,
+        localFileName: 'test.png',
+        localFileType: 'image/png',
+      }
+    );
+
+    await this.rootPage.dispatchEvent(domSelector, 'drop', { dataTransfer });
+  }
+
+  // async copyImageToClipboard({ imageFilePath, domSelector }: { imageFilePath?: string; domSelector: string }) {
+  //   const pasteEvent = await this.rootPage.evaluate(async () => {
+  //     const base64 = `data:image/png;base64, iVBORw0KGgoAAAANSUhEUgAAAAUA
+  //     AAAFCAYAAACNbyblAAAAHElEQVQI12P4//8/w38GIAXDIBKE0DHxgljNBAAO
+  //         9TXL0Y4OHwAAAABJRU5ErkJggg==`;
+
+  //     const response = await fetch(base64);
+  //     const blob = await response.blob();
+
+  //     const clipboardData = new DataTransfer();
+  //     clipboardData.items.add(new File([blob], 'foo.png', { type: blob.type }));
+  //     let pasteEvent = new Event('paste', { bubbles: true, cancelable: true });
+  //     pasteEvent = Object.assign(pasteEvent, {
+  //       clipboardData,
+  //     });
+
+  //     return pasteEvent;
+  //   });
+
+  //   await this.rootPage.dispatchEvent(domSelector, 'paste', { pasteEvent });
+  // }
 }

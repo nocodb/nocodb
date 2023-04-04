@@ -313,11 +313,35 @@ const handleClose = (e: MouseEvent) => {
 }
 
 useEventListener(document, 'click', handleClose, true)
+
+// todo: maintain order
+const selectedOpts = computed(() => {
+  return options.value.filter((o) => vModel.value.includes(o.value!))
+})
 </script>
 
 <template>
   <div class="nc-multi-select h-full w-full flex items-center" :class="{ 'read-only': readOnly }" @click="toggleMenu">
+    <div v-if="!editable && !active" class="flex flex-nowrap">
+      <template v-for="selectedOpt of selectedOpts" :key="selectedOpt.value">
+        <a-tag class="rounded-tag" :color="selectedOpt.color">
+          <span
+            :style="{
+              'color': tinycolor.isReadable(selectedOpt.color || '#ccc', '#fff', { level: 'AA', size: 'large' })
+                ? '#fff'
+                : tinycolor.mostReadable(selectedOpt.color || '#ccc', ['#0b1d05', '#fff']).toHex8String(),
+              'font-size': '13px',
+            }"
+            :class="{ 'text-sm': isKanban }"
+          >
+            {{ selectedOpt.title }}
+          </span>
+        </a-tag>
+      </template>
+    </div>
+
     <a-select
+      v-else
       ref="aselect"
       v-model:value="vModel"
       mode="multiple"

@@ -54,6 +54,33 @@ export class TiptapPage extends BasePage {
     await expect(this.rootPage.getByTestId('nc-docs-command-list-link-input-error')).toHaveText(error);
   }
 
+  async verifyHeaderNode({ index, type, content }: { index: number; type: TipTapNodes; content?: string }) {
+    const level = type.split(' ')[1];
+
+    await expect(
+      this.get()
+        .locator(`.draggable-block-wrapper:nth-child(${index + 1})`)
+        .getByTestId(`nc-docs-tiptap-wrapper-${tiptapNodeLabels[type]}`)
+        .locator(`h${level}`)
+    ).toBeVisible();
+
+    if (content) {
+      await expect(
+        this.get()
+          .locator(`.draggable-block-wrapper:nth-child(${index + 1})`)
+          .getByTestId(`nc-docs-tiptap-wrapper-${tiptapNodeLabels[type]}`)
+          .locator(`h${level}`)
+      ).toHaveText(content);
+    } else {
+      await expect(
+        this.get()
+          .locator(`.draggable-block-wrapper:nth-child(${index + 1})`)
+          .getByTestId(`nc-docs-tiptap-wrapper-${tiptapNodeLabels[type]}`)
+          .locator(`h${level}`)
+      ).toHaveAttribute('data-placeholder', `Heading ${level}`);
+    }
+  }
+
   async clickBackButtonLinkCommandMenu() {
     await this.rootPage.getByTestId('nc-docs-command-list-link-back-btn').click();
   }
@@ -70,13 +97,34 @@ export class TiptapPage extends BasePage {
     content,
     index = 0,
     waitForNetwork = true,
+    type = 'Paragraph',
   }: {
     content: string;
     index?: number;
     waitForNetwork?: boolean;
+    type?: TipTapNodes;
   }) {
     await this.openedPage.waitForRender();
     await this.rootPage.waitForTimeout(1000);
+
+    let contentDomType;
+    switch (type) {
+      case 'Paragraph':
+        contentDomType = 'p';
+        break;
+      case 'Heading 1':
+        contentDomType = 'h1';
+        break;
+      case 'Heading 2':
+        contentDomType = 'h2';
+        break;
+      case 'Heading 3':
+        contentDomType = 'h3';
+        break;
+      default:
+        contentDomType = 'p';
+        break;
+    }
 
     const waitNetwork = waitForNetwork
       ? this.rootPage.waitForResponse(async response => {
@@ -88,7 +136,7 @@ export class TiptapPage extends BasePage {
 
     await this.get()
       .locator(`.draggable-block-wrapper:nth-child(${index + 1})`)
-      .locator('p:nth-child(1)')
+      .locator(`${contentDomType}:nth-child(1)`)
       .click({
         force: true,
       });
@@ -163,22 +211,19 @@ export class TiptapPage extends BasePage {
 
   async clearContent() {
     await this.openedPage.waitForRender();
-    await this.rootPage.waitForTimeout(1000);
 
     await this.get().click();
-    await this.get()
-      .elementHandle()
-      .then(async el => {
-        await el?.waitForElementState('stable');
-      });
 
-    const firstParagraph = this.get().locator('.draggable-block-wrapper:nth-child(1)').locator('p:nth-child(1)');
+    const firstParagraph = this.get()
+      .locator('.draggable-block-wrapper:nth-child(1)')
+      .locator('.node-view-drag-content');
     await firstParagraph.click();
+    await this.rootPage.waitForTimeout(500);
     await this.rootPage.keyboard.press('Meta+A');
     await this.rootPage.keyboard.press('Backspace');
 
     // TODO: fix this
-    await this.rootPage.waitForTimeout(1000);
+    await this.rootPage.waitForTimeout(500);
 
     // await this.waitForResponse({
     //   uiAction: () => firstParagraph.clear(),
@@ -213,4 +258,7 @@ const tiptapNodeLabels: Record<TipTapNodes, string> = {
   'Warning notice': 'warningCallout',
   'Tip notice': 'tipCallout',
   Paragraph: 'paragraph',
+  'Heading 1': 'heading',
+  'Heading 2': 'heading',
+  'Heading 3': 'heading',
 };

@@ -3,7 +3,7 @@ import { ProjectType, ProjectTypes } from 'nocodb-sdk';
 import { DashboardPage } from '../../pages/Dashboard';
 import setup, { NcContext } from '../../setup';
 
-test.describe('Tiptap:External link test', () => {
+test.describe('Tiptap:External link test and headers', () => {
   let dashboard: DashboardPage;
   let context: NcContext;
   let project: ProjectType;
@@ -68,6 +68,69 @@ test.describe('Tiptap:External link test', () => {
       index: 0,
       type: 'Embed iframe',
       content: embedUrl,
+    });
+  });
+
+  test('Tiptap:Header test', async () => {
+    const openedPage = await dashboard.docs.openedPage;
+    await dashboard.sidebar.docsSidebar.createPage({
+      projectTitle: project.title as any,
+      title: 'page',
+    });
+
+    await openedPage.tiptap.addNewNode({
+      type: 'Heading 1',
+    });
+
+    await openedPage.tiptap.verifyHeaderNode({
+      index: 0,
+      type: 'Heading 1',
+    });
+
+    await openedPage.tiptap.fillContent({ content: 'Header 1', index: 0, type: 'Heading 1' });
+
+    await openedPage.tiptap.verifyHeaderNode({
+      index: 0,
+      type: 'Heading 1',
+      content: 'Header 1',
+    });
+
+    await openedPage.tiptap.clearContent();
+
+    await openedPage.tiptap.addNewNode({
+      type: 'Heading 2',
+    });
+
+    await openedPage.tiptap.verifyHeaderNode({
+      index: 0,
+      type: 'Heading 2',
+    });
+
+    await openedPage.tiptap.fillContent({ content: 'Header 2', index: 0, type: 'Heading 2' });
+
+    await openedPage.tiptap.verifyHeaderNode({
+      index: 0,
+      type: 'Heading 2',
+      content: 'Header 2',
+    });
+
+    await openedPage.tiptap.clearContent();
+
+    await openedPage.tiptap.addNewNode({
+      type: 'Heading 3',
+    });
+
+    await openedPage.tiptap.verifyHeaderNode({
+      index: 0,
+      type: 'Heading 3',
+    });
+
+    await openedPage.tiptap.fillContent({ content: 'Header 3', index: 0, type: 'Heading 3' });
+
+    await openedPage.tiptap.verifyHeaderNode({
+      index: 0,
+      type: 'Heading 3',
+      content: 'Header 3',
     });
   });
 });

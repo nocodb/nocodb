@@ -23,10 +23,7 @@ const insert = {
       type: 'string',
       maxLength: 20,
     },
-    uuid: {
-      type: 'string',
-      maxLength: 255,
-    },
+    uuid: { type: ['string', 'null'], maxLength: 255 },
     label: {
       type: 'string',
       maxLength: 255,
@@ -71,10 +68,7 @@ const update = {
       type: 'string',
       maxLength: 20,
     },
-    uuid: {
-      type: 'string',
-      maxLength: 255,
-    },
+    uuid: { type: ['string', 'null'], maxLength: 255 },
     label: {
       type: 'string',
       maxLength: 255,

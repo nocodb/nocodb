@@ -14,7 +14,7 @@ const create = {
     updated_at: {},
     enabled: { type: 'boolean', default: true },
     order: { type: 'number' },
-    erd_uuid: { type: 'string', maxLength: 255 },
+    uuid: { type: ['string', 'null'], maxLength: 255 },
   },
   required: ['id', 'project_id'],
 
@@ -33,7 +33,7 @@ const update = {
     updated_at: {},
     enabled: { type: 'boolean', default: true },
     order: { type: 'number' },
-    erd_uuid: { type: 'string', maxLength: 255 },
+    erd_uuid: { type: ['string', 'null'], maxLength: 255 },
   },
 
   minProperties: 1, // at least one property is required for update

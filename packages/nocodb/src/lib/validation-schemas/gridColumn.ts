@@ -6,7 +6,7 @@ const insert = {
     fk_column_id: { type: 'string', minLength: 1 },
     base_id: { type: 'string', minLength: 1 },
     project_id: { type: 'string', minLength: 1 },
-    uuid: { type: 'string', maxLength: 255 },
+    uuid: { type: ['string', 'null'], maxLength: 255 },
     label: { type: 'string', maxLength: 255 },
     help: { type: 'string', maxLength: 255 },
     width: { type: 'string', maxLength: 255 },
@@ -21,7 +21,7 @@ const insert = {
 const update = {
   type: 'object',
   properties: {
-    uuid: { type: 'string', maxLength: 255 },
+    uuid: { type: ['string', 'null'], maxLength: 255 },
     label: { type: 'string', maxLength: 255 },
     help: { type: 'string', maxLength: 255 },
     width: { type: 'string', maxLength: 255 },

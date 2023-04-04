@@ -12,7 +12,7 @@ const insert = {
     show: { type: 'boolean' },
     order: { type: 'number' },
   },
-  required: ['fk_view_id', 'fk_column_id', 'uuid', 'label', 'show', 'order'],
+  required: ['fk_view_id', 'fk_column_id',],
 
 };
 

@@ -21,7 +21,7 @@ const insert = {
       type: 'number',
     },
     uuid: {
-      type: 'string',
+      type: ['string', 'null'],
       maxLength: 255,
     },
     title: {
@@ -70,7 +70,7 @@ const update = {
       type: 'number',
     },
     uuid: {
-      type: 'string',
+      type: ['string', 'null'],
       maxLength: 255,
     },
     title: {

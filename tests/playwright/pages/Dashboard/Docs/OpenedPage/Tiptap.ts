@@ -151,7 +151,7 @@ export class TiptapPage extends BasePage {
   async clickNode({ index, start }: { index: number; start: boolean }) {
     await this.get()
       .locator(`.draggable-block-wrapper:nth-child(${index + 1})`)
-      .locator('p:first-child')
+      .locator('.node-view-drag-content')
       .click({
         force: true,
         position: start
@@ -183,6 +183,10 @@ export class TiptapPage extends BasePage {
       return;
     }
 
+    await expect(
+      node.getByTestId(`nc-docs-tiptap-wrapper-${tiptapNodeLabels[type]}`).locator(tiptapNodeToDomType[type])
+    ).toBeVisible();
+
     if (content) {
       await expect(node).toContainText(content);
     }
@@ -207,6 +211,10 @@ export class TiptapPage extends BasePage {
 
   async verifyContent({ content }: { content: string }) {
     await expect(this.get()).toHaveText(content);
+  }
+
+  async verifyNodeSelected({ index }: { index: number }) {
+    await expect(this.get().locator(`.draggable-block-wrapper:nth-child(${index + 1})`)).toHaveClass(/focused/);
   }
 
   async clearContent() {
@@ -243,7 +251,7 @@ export type TipTapNodes =
   | 'Bulleted List'
   | 'Numbered List'
   | 'Todo List'
-  | 'Horizontal Rule'
+  | 'Divider'
   | 'Image'
   | 'Table'
   | 'Link'
@@ -261,4 +269,14 @@ const tiptapNodeLabels: Record<TipTapNodes, string> = {
   'Heading 1': 'heading',
   'Heading 2': 'heading',
   'Heading 3': 'heading',
+  Divider: 'horizontalRule',
+};
+
+const tiptapNodeToDomType: Record<TipTapNodes, string> = {
+  'Heading 1': 'h1',
+  'Heading 2': 'h2',
+  'Heading 3': 'h3',
+  Paragraph: 'p',
+  Divider: 'hr',
+  'Embed iframe': 'iframe',
 };

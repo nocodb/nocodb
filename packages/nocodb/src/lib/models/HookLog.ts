@@ -6,13 +6,12 @@ import type { HookLogType } from 'nocodb-sdk';
 
 export default class HookLog implements HookLogType {
   id?: string;
-
   base_id?: string;
   project_id?: string;
   fk_hook_id?: string;
   type?: string;
-  event?: string;
-  operation?: string;
+  event?: HookLogType['event'];
+  operation?: HookLogType['operation'];
   test_call?: boolean;
   payload?: string;
   conditions?: string;
@@ -24,47 +23,49 @@ export default class HookLog implements HookLogType {
   response?: string;
   triggered_by?: string;
 
-  constructor(hook: Partial<HookLog>) {
-    Object.assign(this, hook);
+  constructor(hookLog: Partial<HookLog>) {
+    Object.assign(this, hookLog);
   }
 
   static async list(
     param: {
       fk_hook_id: string;
-      event?: 'after' | 'before';
-      operation?: 'insert' | 'delete' | 'update';
+      event?: HookLogType['event'];
+      operation?: HookLogType['operation'];
+    },
+    {
+      limit = 25,
+      offset = 0,
+    }: {
+      limit?: number;
+      offset?: number;
     },
     ncMeta = Noco.ncMeta
   ) {
-    // todo: redis cache ??
-    // let hooks = await NocoCache.getList(CacheScope.HOOK, [param.fk_model_id]);
-    // if (!hooks.length) {
-    const hookLogs = await ncMeta.metaList(null, null, MetaTable.HOOK_LOGS, {
+    const hookLogs = await ncMeta.metaList2(null, null, MetaTable.HOOK_LOGS, {
       condition: {
         fk_hook_id: param.fk_hook_id,
-        // ...(param.event ? { event: param.event?.toLowerCase?.() } : {}),
-        // ...(param.operation
-        //   ? { operation: param.operation?.toLowerCase?.() }
-        //   : {})
       },
+      ...(process.env.NC_AUTOMATION_LOG_LEVEL === 'ERROR' && {
+        xcCondition: {
+          error_message: {
+            neq: null,
+          },
+        },
+      }),
+      orderBy: {
+        created_at: 'desc',
+      },
+      limit,
+      offset,
     });
-    //   await NocoCache.setList(CacheScope.HOOK, [param.fk_model_id], hooks);
-    // }
-    // // filter event & operation
-    // if (param.event) {
-    //   hooks = hooks.filter(
-    //     h => h.event?.toLowerCase() === param.event?.toLowerCase()
-    //   );
-    // }
-    // if (param.operation) {
-    //   hooks = hooks.filter(
-    //     h => h.operation?.toLowerCase() === param.operation?.toLowerCase()
-    //   );
-    // }
     return hookLogs?.map((h) => new HookLog(h));
   }
 
   public static async insert(hookLog: Partial<HookLog>, ncMeta = Noco.ncMeta) {
+    if (process.env.NC_AUTOMATION_LOG_LEVEL === 'OFF') {
+      return;
+    }
     const insertObj: any = extractProps(hookLog, [
       'base_id',
       'project_id',
@@ -97,5 +98,22 @@ export default class HookLog implements HookLogType {
     insertObj.execution_time = parseInt(insertObj.execution_time) || 0;
 
     return await ncMeta.metaInsert2(null, null, MetaTable.HOOK_LOGS, insertObj);
+  }
+
+  public static async count(
+    { hookId }: { hookId?: string },
+    ncMeta = Noco.ncMeta
+  ) {
+    const qb = ncMeta.knex(MetaTable.HOOK_LOGS);
+
+    if (hookId) {
+      qb.where(`${MetaTable.HOOK_LOGS}.fk_hook_id`, hookId);
+    }
+
+    if (process.env.NC_AUTOMATION_LOG_LEVEL === 'ERROR') {
+      qb.whereNotNull(`${MetaTable.HOOK_LOGS}.error_message`);
+    }
+
+    return (await qb.count('id', { as: 'count' }).first())?.count ?? 0;
   }
 }

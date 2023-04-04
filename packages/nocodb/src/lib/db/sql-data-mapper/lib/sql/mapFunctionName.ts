@@ -7,16 +7,19 @@ import type { Knex } from 'knex';
 
 export interface MapFnArgs {
   pt: any;
-  aliasToCol: { [alias: string]: string };
+  aliasToCol: Record<
+    string,
+    (() => Promise<{ builder: any }>) | string | undefined
+  >;
   knex: XKnex;
   alias: string;
   a?: string;
-  fn: (...args: any) => Knex.QueryBuilder | any;
+  fn: (...args: any) => Promise<{ builder: Knex.QueryBuilder | any }>;
   colAlias: string;
   prevBinaryOp?: any;
 }
 
-const mapFunctionName = (args: MapFnArgs): any => {
+const mapFunctionName = async (args: MapFnArgs): Promise<any> => {
   const name = args.pt.callee.name;
   let val;
 

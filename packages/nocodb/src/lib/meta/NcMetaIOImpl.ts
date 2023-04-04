@@ -855,6 +855,9 @@ export default class NcMetaIOImpl extends NcMetaIO {
       case MetaTable.HOOKS:
         prefix = 'hk_';
         break;
+      case MetaTable.HOOK_LOGS:
+        prefix = 'hkl_';
+        break;
       case MetaTable.AUDIT:
         prefix = 'adt_';
         break;

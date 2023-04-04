@@ -123,7 +123,7 @@ const filterOption = (input: string, option: Option) => {
 
         <tr>
           <td :colspan="12" class="text-center">
-            <a-button type="default" class="!bg-gray-100 rounded-md border-none mr-1" @click="addHeaderRow">
+            <a-button type="default" class="!bg-gray-100 rounded-md border-none mr-1 mb-3" @click="addHeaderRow">
               <template #icon>
                 <component :is="iconMap.plus" class="flex mx-auto" />
               </template>

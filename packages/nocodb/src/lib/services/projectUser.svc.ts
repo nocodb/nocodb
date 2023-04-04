@@ -98,7 +98,7 @@ export async function userInvite(param: {
         op_type: AuditOperationTypes.AUTHENTICATION,
         op_sub_type: AuditOperationSubTypes.INVITE,
         user: param.req.user.email,
-        description: `invited ${email} to ${param.projectId} project `,
+        description: `${email} has been invited to ${param.projectId} project`,
         ip: param.req.clientIp,
       });
     } else {
@@ -209,7 +209,7 @@ export async function projectUserUpdate(param: {
     op_type: AuditOperationTypes.AUTHENTICATION,
     op_sub_type: AuditOperationSubTypes.ROLES_MANAGEMENT,
     user: param.req.user.email,
-    description: `updated roles for ${user.email} with ${param.projectUser.roles} `,
+    description: `Roles for ${user.email} with has been updated to ${param.projectUser.roles}`,
     ip: param.req.clientIp,
   });
 
@@ -281,7 +281,7 @@ export async function projectUserInviteResend(param: {
     op_type: AuditOperationTypes.AUTHENTICATION,
     op_sub_type: AuditOperationSubTypes.RESEND_INVITE,
     user: user.email,
-    description: `resent a invite to ${user.email} `,
+    description: `${user.email} has been re-invited`,
     ip: param.req.clientIp,
     project_id: param.projectId,
   });

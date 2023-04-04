@@ -93,7 +93,7 @@ async function signin(req, res, next) {
         info,
         req,
         res,
-        auditDescription: 'signed in',
+        auditDescription: 'User has signed in successfully',
       })
   )(req, res, next);
 }
@@ -112,7 +112,7 @@ async function googleSignin(req, res, next) {
         info,
         req,
         res,
-        auditDescription: 'signed in using Google Auth',
+        auditDescription: 'User has signed in successfully using Google Auth ',
       })
   )(req, res, next);
 }

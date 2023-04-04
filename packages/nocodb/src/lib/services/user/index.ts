@@ -127,7 +127,7 @@ export async function passwordChange(param: {
     op_type: AuditOperationTypes.AUTHENTICATION,
     op_sub_type: AuditOperationSubTypes.PASSWORD_CHANGE,
     user: user.email,
-    description: `changed password `,
+    description: `Password has been changed`,
     ip: param.req?.clientIp,
   });
 
@@ -185,7 +185,7 @@ export async function passwordForgot(param: {
       op_type: AuditOperationTypes.AUTHENTICATION,
       op_sub_type: AuditOperationSubTypes.PASSWORD_FORGOT,
       user: user.email,
-      description: `requested for password reset `,
+      description: `Password Reset has been requested`,
       ip: param.req?.clientIp,
     });
   } else {
@@ -261,7 +261,7 @@ export async function passwordReset(param: {
     op_type: AuditOperationTypes.AUTHENTICATION,
     op_sub_type: AuditOperationSubTypes.PASSWORD_RESET,
     user: user.email,
-    description: `did reset password `,
+    description: `Password has been reset`,
     ip: req.clientIp,
   });
 
@@ -293,7 +293,7 @@ export async function emailVerification(param: {
     op_type: AuditOperationTypes.AUTHENTICATION,
     op_sub_type: AuditOperationSubTypes.EMAIL_VERIFICATION,
     user: user.email,
-    description: `verified email `,
+    description: `Email has been verified`,
     ip: req.clientIp,
   });
 
@@ -449,7 +449,7 @@ export async function signup(param: {
     op_type: AuditOperationTypes.AUTHENTICATION,
     op_sub_type: AuditOperationSubTypes.SIGNUP,
     user: user.email,
-    description: `signed up `,
+    description: `User has signed up`,
     ip: (param.req as any).clientIp,
   });
 

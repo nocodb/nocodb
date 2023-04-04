@@ -147,7 +147,7 @@ export async function userAdd(param: {
           op_type: AuditOperationTypes.ORG_USER,
           op_sub_type: AuditOperationSubTypes.INVITE,
           user: param.req.user.email,
-          description: `invited ${email} to ${param.projectId} project `,
+          description: `${email} has been invited to ${param.projectId} project`,
           ip: param.req.clientIp,
         });
         // in case of single user check for smtp failure
@@ -218,7 +218,7 @@ export async function userInviteResend(param: {
     op_type: AuditOperationTypes.ORG_USER,
     op_sub_type: AuditOperationSubTypes.RESEND_INVITE,
     user: user.email,
-    description: `resent a invite to ${user.email} `,
+    description: `${user.email} has been re-invited`,
     ip: param.req.clientIp,
   });
 

@@ -824,7 +824,7 @@ export async function columnUpdate(param: {
     op_type: AuditOperationTypes.TABLE_COLUMN,
     op_sub_type: AuditOperationSubTypes.UPDATE,
     user: param.req?.user?.email,
-    description: `updated column ${column.column_name} with alias ${column.title} from table ${table.table_name}`,
+    description: `The column ${column.column_name} with alias ${column.title} from table ${table.table_name} has been updated`,
     ip: param.req?.clientIp,
   }).then(() => {});
 
@@ -1129,7 +1129,7 @@ export async function columnAdd(param: {
     op_type: AuditOperationTypes.TABLE_COLUMN,
     op_sub_type: AuditOperationSubTypes.CREATE,
     user: param?.req.user?.email,
-    description: `created column ${colBody.column_name} with alias ${colBody.title} from table ${table.table_name}`,
+    description: `The column ${colBody.column_name} with alias ${colBody.title} from table ${table.table_name} has been created`,
     ip: param?.req.clientIp,
   }).then(() => {});
 
@@ -1341,7 +1341,7 @@ export async function columnDelete(param: { req?: any; columnId: string }) {
     op_type: AuditOperationTypes.TABLE_COLUMN,
     op_sub_type: AuditOperationSubTypes.DELETE,
     user: param?.req?.user?.email,
-    description: `deleted column ${column.column_name} with alias ${column.title} from table ${table.table_name}`,
+    description: `The column ${column.column_name} with alias ${column.title} from table ${table.table_name} has been deleted`,
     ip: param?.req.clientIp,
   }).then(() => {});
 

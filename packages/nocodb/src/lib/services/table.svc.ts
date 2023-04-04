@@ -435,7 +435,7 @@ export async function tableCreate(param: {
     op_type: AuditOperationTypes.TABLE,
     op_sub_type: AuditOperationSubTypes.CREATE,
     user: param.user?.email,
-    description: `created table ${tableCreatePayLoad.table_name} with alias ${tableCreatePayLoad.title}  `,
+    description: `Table ${tableCreatePayLoad.table_name} with alias ${tableCreatePayLoad.title} has been created`,
     ip: param.req?.clientIp,
   }).then(() => {});
 

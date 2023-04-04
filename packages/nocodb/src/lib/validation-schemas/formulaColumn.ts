@@ -23,16 +23,10 @@ const create = {
     order: {
       type: 'number',
     },
-    created_at: {
-      type: 'string',
-      format: 'date-time',
-    },
-    updated_at: {
-      type: 'string',
-      format: 'date-time',
-    },
+    created_at: {  },
+    updated_at: {  },
   },
-  required: ['id', 'fk_column_id', 'formula', 'created_at', 'updated_at'],
+  required: ['id', 'fk_column_id', 'formula', ],
 };
 const update = {
   type: 'object',
@@ -59,16 +53,10 @@ const update = {
     order: {
       type: 'number',
     },
-    created_at: {
-      type: 'string',
-      format: 'date-time',
-    },
-    updated_at: {
-      type: 'string',
-      format: 'date-time',
-    },
+    created_at: {  },
+    updated_at: {  },
   },
-  required: ['id', 'fk_column_id', 'formula', 'created_at', 'updated_at'],
+  required: ['id', 'fk_column_id', 'formula', ],
 };
 
 export default {

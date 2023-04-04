@@ -19,10 +19,10 @@ const insert = {
     dr: { type: 'string', maxLength: 255 },
     fk_index_name: { type: 'string', maxLength: 255 },
     deleted: { type: 'boolean' },
-    created_at: { type: 'string', format: 'date-time' },
-    updated_at: { type: 'string', format: 'date-time' },
+    created_at: {  },
+    updated_at: {  },
   },
-  required: ['id', 'virtual', 'created_at', 'updated_at'],
+  required: ['id', 'virtual',],
   additionalProperties: false,
 };
 
@@ -47,10 +47,10 @@ const update = {
     dr: { type: 'string', maxLength: 255 },
     fk_index_name: { type: 'string', maxLength: 255 },
     deleted: { type: 'boolean' },
-    created_at: { type: 'string', format: 'date-time' },
-    updated_at: { type: 'string', format: 'date-time' },
+    created_at: {  },
+    updated_at: {  },
   },
-  required: ['id', 'virtual', 'created_at', 'updated_at'],
+  required: ['id', 'virtual', ],
   additionalProperties: false,
 };
 

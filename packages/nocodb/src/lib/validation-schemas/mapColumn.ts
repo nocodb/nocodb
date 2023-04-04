@@ -41,14 +41,8 @@ const insert = {
     order: {
       type: 'number',
     },
-    created_at: {
-      type: 'string',
-      format: 'date-time',
-    },
-    updated_at: {
-      type: 'string',
-      format: 'date-time',
-    },
+    created_at: {  },
+    updated_at: {  },
   },
 };
 
@@ -95,14 +89,8 @@ const update = {
     order: {
       type: 'number',
     },
-    created_at: {
-      type: 'string',
-      format: 'date-time',
-    },
-    updated_at: {
-      type: 'string',
-      format: 'date-time',
-    },
+    created_at: {  },
+    updated_at: {  },
   },
 };
 

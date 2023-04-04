@@ -19,14 +19,8 @@ const create = {
     order: {
       type: 'number',
     },
-    created_at: {
-      type: 'string',
-      format: 'date-time',
-    },
-    updated_at: {
-      type: 'string',
-      format: 'date-time',
-    },
+    created_at: {  },
+    updated_at: {  },
   },
   required: [
     'id',
@@ -34,8 +28,6 @@ const create = {
     'fk_qr_value_column_id',
     'deleted',
     'order',
-    'created_at',
-    'updated_at',
   ],
 };
 
@@ -60,14 +52,8 @@ const update = {
     order: {
       type: 'number',
     },
-    created_at: {
-      type: 'string',
-      format: 'date-time',
-    },
-    updated_at: {
-      type: 'string',
-      format: 'date-time',
-    },
+    created_at: {  },
+    updated_at: {  },
   },
   required: [
     'id',
@@ -75,8 +61,6 @@ const update = {
     'fk_qr_value_column_id',
     'deleted',
     'order',
-    'created_at',
-    'updated_at',
   ],
 };
 

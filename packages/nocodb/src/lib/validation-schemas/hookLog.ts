@@ -63,14 +63,8 @@ const insert = {
       type: 'string',
       maxLength: 255,
     },
-    created_at: {
-      type: 'string',
-      format: 'date-time',
-    },
-    updated_at: {
-      type: 'string',
-      format: 'date-time',
-    },
+    created_at: {  },
+    updated_at: {  },
   },
   required: ['id', 'fk_hook_id'],
 };

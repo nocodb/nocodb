@@ -9,8 +9,8 @@ const insert = {
     title: { type: 'string', maxLength: 255 },
     fk_geo_data_col_id: { type: 'string', maxLength: 20 },
     meta: { type: 'string' },
-    created_at: { type: 'string', format: 'date-time' },
-    updated_at: { type: 'string', format: 'date-time' },
+    created_at: {  },
+    updated_at: {  },
   },
   required: [
     'fk_view_id',

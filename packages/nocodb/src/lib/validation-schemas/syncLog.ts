@@ -7,8 +7,8 @@ const insert = {
     time_taken: { type: 'integer' },
     status: { type: 'string', maxLength: 255 },
     status_details: { type: 'string' },
-    created_at: { type: 'string', format: 'date-time' },
-    updated_at: { type: 'string', format: 'date-time' },
+    created_at: {  },
+    updated_at: {  },
   },
   required: [
     'id',
@@ -30,8 +30,8 @@ const update = {
     time_taken: { type: 'integer' },
     status: { type: 'string', maxLength: 255 },
     status_details: { type: 'string' },
-    created_at: { type: 'string', format: 'date-time' },
-    updated_at: { type: 'string', format: 'date-time' },
+    created_at: {  },
+    updated_at: {  },
   },
   anyOf: [
     { required: ['id'] },

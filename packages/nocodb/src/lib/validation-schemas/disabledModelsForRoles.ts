@@ -26,14 +26,8 @@ const insert = {
     disabled: {
       type: 'boolean',
     },
-    created_at: {
-      type: 'string',
-      format: 'date-time',
-    },
-    updated_at: {
-      type: 'string',
-      format: 'date-time',
-    },
+    created_at: {  },
+    updated_at: {  },
   },
   required: [
     'id',
@@ -41,9 +35,7 @@ const insert = {
     'project_id',
     'fk_view_id',
     'role',
-    'disabled',
-    'created_at',
-    'updated_at',
+    'disabled'
   ],
 };
 
@@ -75,14 +67,8 @@ const update = {
     disabled: {
       type: 'boolean',
     },
-    created_at: {
-      type: 'string',
-      format: 'date-time',
-    },
-    updated_at: {
-      type: 'string',
-      format: 'date-time',
-    },
+    created_at: {  },
+    updated_at: {  },
   },
   required: [
     'id',
@@ -91,8 +77,6 @@ const update = {
     'fk_view_id',
     'role',
     'disabled',
-    'created_at',
-    'updated_at',
   ],
 };
 

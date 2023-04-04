@@ -20,14 +20,8 @@ const create = {
     deleted: {
       type: 'boolean',
     },
-    created_at: {
-      type: 'string',
-      format: 'date-time',
-    },
-    updated_at: {
-      type: 'string',
-      format: 'date-time',
-    },
+    created_at: {  },
+    updated_at: {  },
   },
   required: [
     'id',
@@ -35,8 +29,6 @@ const create = {
     'fk_relation_column_id',
     'fk_lookup_column_id',
     'deleted',
-    'created_at',
-    'updated_at',
   ],
 };
 
@@ -62,14 +54,8 @@ const update = {
     deleted: {
       type: 'boolean',
     },
-    created_at: {
-      type: 'string',
-      format: 'date-time',
-    },
-    updated_at: {
-      type: 'string',
-      format: 'date-time',
-    },
+    created_at: {  },
+    updated_at: {  },
   },
   required: [
     'id',
@@ -77,8 +63,6 @@ const update = {
     'fk_relation_column_id',
     'fk_lookup_column_id',
     'deleted',
-    'created_at',
-    'updated_at',
   ],
 };
 

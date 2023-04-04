@@ -20,10 +20,10 @@ const insert = {
     creator: { type: 'string', maxLength: 255 },
     creator_website: { type: 'string', maxLength: 255 },
     price: { type: 'string', maxLength: 255 },
-    created_at: { type: 'string', format: 'date-time' },
-    updated_at: { type: 'string', format: 'date-time' },
+    created_at: {  },
+    updated_at: {  },
   },
-  required: ['id', 'title', 'created_at', 'updated_at'],
+  required: ['id', 'title', ],
 };
 
 // Update schema

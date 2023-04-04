@@ -264,6 +264,8 @@ export default class NcMetaIOImpl extends NcMetaIO {
     const insertObj = {
       ...data,
       ...(ignoreIdGeneration ? {} : { id }),
+      created_at: data?.created_at || this.knexConnection?.fn?.now(),
+      updated_at: data?.updated_at || this.knexConnection?.fn?.now(),
     };
     if (base_id !== null) insertObj.base_id = base_id;
     if (project_id !== null) insertObj.project_id = project_id;
@@ -271,11 +273,7 @@ export default class NcMetaIOImpl extends NcMetaIO {
     // validate insert object before insert
     await this.validateObject(target, insertObj);
 
-    await this.knexConnection(target).insert({
-      ...insertObj,
-      created_at: insertObj?.created_at || this.knexConnection?.fn?.now(),
-      updated_at: insertObj?.updated_at || this.knexConnection?.fn?.now(),
-    });
+    await this.knexConnection(target).insert(insertObj);
     return insertObj;
   }
 

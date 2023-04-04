@@ -8,8 +8,8 @@ const insert = {
     fk_rollup_column_id: { type: 'string', maxLength: 20 },
     rollup_function: { type: 'string', maxLength: 255 },
     deleted: { type: 'boolean' },
-    created_at: { type: 'string', format: 'date-time' },
-    updated_at: { type: 'string', format: 'date-time' },
+    created_at: {  },
+    updated_at: {  },
   },
   required: [
     'id',
@@ -18,8 +18,6 @@ const insert = {
     'fk_rollup_column_id',
     'rollup_function',
     'deleted',
-    'created_at',
-    'updated_at',
   ],
   additionalProperties: false,
 };
@@ -33,8 +31,8 @@ const update = {
     fk_rollup_column_id: { type: 'string', maxLength: 20 },
     rollup_function: { type: 'string', maxLength: 255 },
     deleted: { type: 'boolean' },
-    created_at: { type: 'string', format: 'date-time' },
-    updated_at: { type: 'string', format: 'date-time' },
+    created_at: {  },
+    updated_at: {  },
   },
   required: [
     'id',
@@ -43,8 +41,6 @@ const update = {
     'fk_rollup_column_id',
     'rollup_function',
     'deleted',
-    'created_at',
-    'updated_at',
   ],
   additionalProperties: false,
 };

@@ -18,14 +18,8 @@ const create = {
     deleted: {
       type: 'boolean',
     },
-    created_at: {
-      type: 'string',
-      format: 'date-time',
-    },
-    updated_at: {
-      type: 'string',
-      format: 'date-time',
-    },
+    created_at: {  },
+    updated_at: {  },
   },
   required: [
     'id',
@@ -33,8 +27,6 @@ const create = {
     'fk_barcode_value_column_id',
     'barcode_format',
     'deleted',
-    'created_at',
-    'updated_at',
   ],
 };
 const update = {
@@ -57,14 +49,8 @@ const update = {
     deleted: {
       type: 'boolean',
     },
-    created_at: {
-      type: 'string',
-      format: 'date-time',
-    },
-    updated_at: {
-      type: 'string',
-      format: 'date-time',
-    },
+    created_at: {  },
+    updated_at: {  },
   },
   required: [
     'id',
@@ -72,8 +58,6 @@ const update = {
     'fk_barcode_value_column_id',
     'barcode_format',
     'deleted',
-    'created_at',
-    'updated_at',
   ],
 };
 

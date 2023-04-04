@@ -101,6 +101,10 @@ export default abstract class BasePage {
     return await this.rootPage.evaluate(() => navigator.clipboard.readText());
   }
 
+  async copyToClipboard({ text }: { text: string }) {
+    await this.rootPage.evaluate(text => navigator.clipboard.writeText(text), text);
+  }
+
   async os() {
     return await this.rootPage.evaluate(() => navigator.platform);
   }

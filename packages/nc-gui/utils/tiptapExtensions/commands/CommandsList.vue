@@ -604,7 +604,11 @@ defineExpose({
   <div class="items nc-docs-command-list">
     <template v-if="isLinkInputFormState">
       <div class="flex flex-col w-56 mx-1 mt-1 mb-1">
-        <div class="w-8 rounded-md my-1 p-1 pl-2 cursor-pointer hover:bg-gray-200" @click="isLinkInputFormState = false">
+        <div
+          class="w-8 rounded-md my-1 p-1 pl-2 cursor-pointer hover:bg-gray-200"
+          data-testid="nc-docs-command-list-link-back-btn"
+          @click="isLinkInputFormState = false"
+        >
           <MdiArrowLeft />
         </div>
         <input
@@ -613,9 +617,15 @@ defineExpose({
           class="w-full my-1 py-1 px-2 border-0 bg-gray-100 text-sm rounded-md focus:outline-none !focus:shadow-none !focus:ring-warmGray-50"
           type="text"
           placeholder="Enter link"
+          data-testid="nc-docs-command-list-link-input"
           @keydown.enter="insertLink"
+          @keydown.escape="isLinkInputFormState = false"
         />
-        <div v-if="isLinkInputFormErrored" class="flex flex-row pl-1.5 pr-1 pb-1 text-xs text-red-500">
+        <div
+          v-if="isLinkInputFormErrored"
+          class="flex flex-row pl-1.5 pr-1 pb-1 text-xs text-red-500"
+          data-testid="nc-docs-command-list-link-input-error"
+        >
           Given
           <span v-if="isLinkInputFormType !== 'externalContent'" class="capitalize px-1">{{ isLinkInputFormType }}</span>
           link is not valid

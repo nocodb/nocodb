@@ -29,11 +29,41 @@ export class TiptapPage extends BasePage {
     await this.rootPage.locator('.nc-docs-command-list').waitFor({ state: 'visible' });
   }
 
-  async addNewNode({ type, index }: { type: TipTapNodes; index?: number }) {
+  async addNewNode({
+    type,
+    index,
+    link,
+    noVerify,
+  }: {
+    type: TipTapNodes;
+    index?: number;
+    link?: string;
+    noVerify?: boolean;
+  }) {
     await this.openCommandMenu({ index });
     await this.rootPage.getByTestId(`nc-docs-command-list-item-${type}`).click();
 
-    await this.rootPage.locator('.nc-docs-command-list').waitFor({ state: 'hidden' });
+    if (type === 'Embed iframe') {
+      await this.rootPage.getByTestId('nc-docs-command-list-link-input').type(link);
+      await this.rootPage.getByTestId('nc-docs-command-list-link-input').press('Enter');
+    }
+    if (!noVerify) await this.rootPage.locator('.nc-docs-command-list').waitFor({ state: 'hidden' });
+  }
+
+  async verifyErrorCommandMenu({ error }: { error: string }) {
+    await expect(this.rootPage.getByTestId('nc-docs-command-list-link-input-error')).toHaveText(error);
+  }
+
+  async clickBackButtonLinkCommandMenu() {
+    await this.rootPage.getByTestId('nc-docs-command-list-link-back-btn').click();
+  }
+
+  async verifyCommandMenuOpened({ isVisible }: { isVisible: boolean }) {
+    if (isVisible) {
+      await this.rootPage.locator('.nc-docs-command-list').waitFor({ state: 'visible' });
+    } else {
+      await this.rootPage.locator('.nc-docs-command-list').waitFor({ state: 'hidden' });
+    }
   }
 
   async fillContent({
@@ -99,6 +129,11 @@ export class TiptapPage extends BasePage {
     childParagraph?: { index: number; content: string };
   }) {
     const node = this.get().locator(`.draggable-block-wrapper:nth-child(${index + 1})`);
+
+    if (type === 'Embed iframe') {
+      await expect(node.locator('.external-content-wrapper').locator('iframe')).toHaveAttribute('src', content);
+      return;
+    }
 
     if (content) {
       await expect(node).toContainText(content);
@@ -170,7 +205,8 @@ export type TipTapNodes =
   | 'Emoji'
   | 'Info notice'
   | 'Warning notice'
-  | 'Tip notice';
+  | 'Tip notice'
+  | 'Embed iframe';
 
 const tiptapNodeLabels: Record<TipTapNodes, string> = {
   'Info notice': 'infoCallout',

@@ -41,7 +41,10 @@ export const createImageExtension = (uploadFn: UploadFn) => {
         },
       },
     ],
-    renderHTML: ({ HTMLAttributes }) => ['img', HTMLAttributes],
+    renderHTML: ({ HTMLAttributes }) => [
+      'img',
+      { ...HTMLAttributes, class: HTMLAttributes.class ? `cursor-pointer ${HTMLAttributes.class}` : 'cursor-pointer' },
+    ],
 
     // @ts-expect-error todo: fix this
     addCommands() {

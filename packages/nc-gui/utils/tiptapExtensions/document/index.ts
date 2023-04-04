@@ -1,4 +1,5 @@
 import { Node } from '@tiptap/core'
+import { onBackspaceWithHorizontalRule } from '../horizontalRule'
 
 export const Document = Node.create({
   name: 'doc',
@@ -10,6 +11,9 @@ export const Document = Node.create({
 
   addKeyboardShortcuts() {
     return {
+      Backspace: () => {
+        return onBackspaceWithHorizontalRule(this.editor as any)
+      },
       Tab: () => {
         let nextPos = this.editor.state.selection.$from.pos
 

@@ -299,9 +299,15 @@ export const onBackspaceWithNestedList = (editor: Editor, nodeType: string) => {
 
   if (!selection.empty) return false
 
-  const parentNodePos = selection.$from.before(selection.$from.depth - 1)
-  const parentNode = editor.state.selection.$from.node(-1)
-  const currentNode = editor.state.selection.$from.node()
+  let parentNodePos, parentNode, currentNode
+
+  try {
+    parentNodePos = selection.$from.before(selection.$from.depth - 1)
+    parentNode = editor.state.selection.$from.node(-1)
+    currentNode = editor.state.selection.$from.node()
+  } catch (e) {
+    return false
+  }
 
   if (parentNode.type.name !== nodeType) return false
 

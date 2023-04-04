@@ -16,10 +16,10 @@ const insert = {
     uuid: { type: 'string', maxLength: 255 },
     banner_image_url: { type: 'string', maxLength: 255 },
     logo_url: { type: 'string', maxLength: 255 },
-    meta: { type: 'string' },
+    meta: { type: ['string', 'null'] },
   },
 
-  required: [ 'base_id', 'project_id', 'fk_view_id'],
+  required: ['base_id', 'project_id', 'fk_view_id'],
 };
 
 // Update validation schema
@@ -39,10 +39,9 @@ const update = {
     uuid: { type: 'string', maxLength: 255 },
     banner_image_url: { type: 'string', maxLength: 255 },
     logo_url: { type: 'string', maxLength: 255 },
-    meta: { type: 'string' },
+    meta: { type: ['string', 'null'] },
   },
   minProperties: 1,
-
 };
 
 export default {

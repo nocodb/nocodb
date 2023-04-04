@@ -29,6 +29,24 @@ export const onBackspaceWithHorizontalRule = (editor: Editor) => {
   }
 }
 
+export const onEnterWithHorizontalRule = (editor: Editor) => {
+  try {
+    const currentNode = editor.view.state.selection.$from.node()
+    const childNode = editor.view.state.selection.$from.node().child(0)
+
+    if (currentNode.type.name !== 'horizontalRule' && childNode?.type.name !== 'horizontalRule') return false
+
+    const nextNodePos = editor.view.state.selection.$from.after(editor.view.state.selection.$from.depth)
+
+    return editor
+      .chain()
+      .setTextSelection(nextNodePos + 1)
+      .run()
+  } catch {
+    return false
+  }
+}
+
 export const HorizontalRule = HorizontalTiptapRule.extend({
   addProseMirrorPlugins() {
     const plugin = new PluginKey(this.name)
@@ -38,10 +56,22 @@ export const HorizontalRule = HorizontalTiptapRule.extend({
         props: {
           handleClick: (view, pos) => {
             const currentNode = view.state.doc.nodeAt(pos)
+            const prevNode = view.state.doc.nodeAt(pos - 1)
 
-            if (currentNode?.type.name !== 'horizontalRule') return false
+            if (currentNode?.type.name !== 'horizontalRule' && prevNode?.type.name !== 'horizontalRule') return false
 
-            this.editor.chain().setNodeSelection(pos).run()
+            if (currentNode?.type.name === 'horizontalRule') {
+              this.editor.chain().setNodeSelection(pos).run()
+            } else {
+              setTimeout(() => {
+                this.editor
+                  .chain()
+                  .setNodeSelection(pos - 1)
+                  .run()
+              })
+            }
+
+            return true
           },
         },
       }),

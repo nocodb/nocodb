@@ -3,7 +3,7 @@ const insert = {
   type: 'object',
   properties: {
     fk_view_id: { type: 'string', maxLength: 20 },
-    meta: { type: 'string' },
+    meta: { type: ['string', 'null'] },
     query_params: { type: 'string' },
     view_id: { type: 'string', maxLength: 255 },
     show_all_fields: { type: 'boolean' },
@@ -21,7 +21,7 @@ const update = {
   type: 'object',
   properties: {
     fk_view_id: { type: 'string', maxLength: 20 },
-    meta: { type: 'string' },
+    meta: { type: ['string', 'null'] },
     query_params: { type: 'string' },
     view_id: { type: 'string', maxLength: 255 },
     show_all_fields: { type: 'boolean' },

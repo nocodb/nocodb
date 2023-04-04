@@ -5,7 +5,7 @@ const create = {
     project_id: { type: 'string', maxLength: 128 },
     alias: { type: 'string', maxLength: 255 },
     config: { type: 'string' },
-    meta: { type: 'string' },
+    meta: { type: ['string', 'null'] },
     is_meta: { type: 'boolean' },
     type: { type: 'string', maxLength: 255 },
     inflection_column: { type: 'string', maxLength: 255 },
@@ -24,7 +24,7 @@ const update = {
   properties: {
     alias: { type: 'string', maxLength: 255 },
     config: { type: 'string' },
-    meta: { type: 'string' },
+    meta: { type: ['string','null'] },
     is_meta: { type: 'boolean' },
     type: { type: 'string', maxLength: 255 },
     inflection_column: { type: 'string', maxLength: 255 },

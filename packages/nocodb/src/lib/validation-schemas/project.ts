@@ -6,7 +6,7 @@ const create = {
     status: { type: 'string', maxLength: 255 },
     description: { type: 'string' },
     config: { type: 'string' },
-    meta: { type: 'string' },
+    meta: { type: ['string', 'null'] },
     created_at: {},
     updated_at: {},
   },
@@ -20,7 +20,7 @@ const update = {
     status: { type: 'string', maxLength: 255 },
     description: { type: 'string' },
     config: { type: 'string' },
-    meta: { type: 'string' },
+    meta: { type: ['string', 'null'] },
     created_at: {},
     updated_at: {},
 

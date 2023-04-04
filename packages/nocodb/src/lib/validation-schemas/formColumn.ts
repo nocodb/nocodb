@@ -15,7 +15,7 @@ const insert = {
     order: { type: 'number' },
     created_at: {},
     updated_at: {},
-    meta: { type: 'string' },
+    meta: { type: ['string', 'null'] },
     enable_scanner: { type: 'boolean' },
   },
 
@@ -39,7 +39,7 @@ const update = {
     show: { type: 'boolean' },
     order: { type: 'number' },
     updated_at: { type: 'string', format: 'date-time' },
-    meta: { type: 'string' },
+    meta: { type: ['string', 'null'] },
     enable_scanner: { type: 'boolean' },
   },
 

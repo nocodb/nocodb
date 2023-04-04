@@ -122,13 +122,13 @@ const selectedTitles = computed(() =>
     ? typeof modelValue === 'string'
       ? isMysql(column.value.base_id)
         ? modelValue.split(',').sort((a, b) => {
-            const opa = options.value.find((el) => el.title === a)
-            const opb = options.value.find((el) => el.title === b)
-            if (opa && opb) {
-              return opa.order! - opb.order!
-            }
-            return 0
-          })
+          const opa = options.value.find((el) => el.title === a)
+          const opb = options.value.find((el) => el.title === b)
+          if (opa && opb) {
+            return opa.order! - opb.order!
+          }
+          return 0
+        })
         : modelValue.split(',')
       : modelValue
     : [],
@@ -243,7 +243,7 @@ async function addIfMissingAndSave() {
 
         // Mysql escapes single quotes with backslash so we keep quotes but others have to unescaped
         if (!isMysql(column.value.base_id)) {
-          updatedColMeta.cdf = updatedColMeta.cdf.replace(/''/g, "'")
+          updatedColMeta.cdf = updatedColMeta.cdf.replace(/''/g, '\'')
         }
       }
 
@@ -314,9 +314,14 @@ const handleClose = (e: MouseEvent) => {
 
 useEventListener(document, 'click', handleClose, true)
 
-// todo: maintain order
 const selectedOpts = computed(() => {
-  return options.value.filter((o) => vModel.value.includes(o.value!))
+  return options.value.reduce<(SelectOptionType & { index: number })[]>((selectedOptions, option) => {
+    const index = vModel.value.indexOf(option.value!)
+    if (index !== -1) {
+      selectedOptions.push({ ...option, index })
+    }
+    return selectedOptions
+  }, [])
 })
 </script>
 
@@ -324,7 +329,7 @@ const selectedOpts = computed(() => {
   <div class="nc-multi-select h-full w-full flex items-center" :class="{ 'read-only': readOnly }" @click="toggleMenu">
     <div v-if="!editable && !active" class="flex flex-nowrap">
       <template v-for="selectedOpt of selectedOpts" :key="selectedOpt.value">
-        <a-tag class="rounded-tag" :color="selectedOpt.color">
+        <a-tag class="rounded-tag" :color="selectedOpt.color" :style="{ order: selectedOpt.index }">
           <span
             :style="{
               'color': tinycolor.isReadable(selectedOpt.color || '#ccc', '#fff', { level: 'AA', size: 'large' })

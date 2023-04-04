@@ -19,7 +19,7 @@ const insert = {
     meta: { type: 'string' },
   },
 
-  required: ['id', 'base_id', 'project_id', 'fk_view_id'],
+  required: [ 'base_id', 'project_id', 'fk_view_id'],
 };
 
 // Update validation schema

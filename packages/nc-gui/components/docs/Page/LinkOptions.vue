@@ -79,12 +79,16 @@ const checkLinkMark = (editor: Editor) => {
 
 const onChange = () => {
   const isLinkMarkedStoredInEditor = editor?.state?.storedMarks?.some((mark: Mark) => mark.type.name === 'link')
+  let formatedHref = href.value
+  if (isValidURL(href.value) && href.value.length > 0 && !href.value.startsWith('/') && !href.value.startsWith('http')) {
+    formatedHref = `https://${href.value}`
+  }
 
   if (isLinkMarkedStoredInEditor) {
     editor.view.dispatch(
       editor.view.state.tr
         .removeStoredMark(editor?.schema.marks.link)
-        .addStoredMark(editor?.schema.marks.link.create({ href: href.value })),
+        .addStoredMark(editor?.schema.marks.link.create({ href: formatedHref })),
     )
   } else if (linkNodeMark.value) {
     const selection = editor?.state?.selection
@@ -93,7 +97,7 @@ const onChange = () => {
     editor.view.dispatch(
       editor.view.state.tr
         .removeMark(markSelection.from, markSelection.to, editor?.schema.marks.link)
-        .addMark(markSelection.from, markSelection.to, editor?.schema.marks.link.create({ href: href.value })),
+        .addMark(markSelection.from, markSelection.to, editor?.schema.marks.link.create({ href: formatedHref })),
     )
   }
 }
@@ -161,6 +165,7 @@ const handleKeyDown = (e: any) => {
 }
 
 const onInputBoxEnter = () => {
+  inputRef.value?.blur()
   editor.chain().focus().run()
 }
 
@@ -169,21 +174,6 @@ const handleInputBoxKeyDown = (e: any) => {
     editor.chain().focus().run()
   }
 }
-
-watch(href, () => {
-  selectedIndex.value = 0
-
-  if (
-    isLinkOptionsVisible.value &&
-    isValidURL(href.value) &&
-    href.value.length > 0 &&
-    !href.value.startsWith('/') &&
-    !href.value.startsWith('http')
-  ) {
-    href.value = `https://${href.value}`
-    onChange()
-  }
-})
 
 watch(isLinkOptionsVisible, (value, oldValue) => {
   if (value && !oldValue) {
@@ -242,7 +232,7 @@ const openLink = () => {
           <div
             class="flex ml-0.5 p-0.5 my-0.5 rounded-md cursor-pointer text-gray-600 hover:text-black"
             :class="{
-              '!text-gray-400 cursor-not-allowed': href.length === 0,
+              '!text-gray-300 cursor-not-allowed': href.length === 0,
             }"
             @click="openLink"
           >

@@ -568,6 +568,20 @@ div.ProseMirror {
     border-radius: 4px;
   }
 
+  .selected {
+    .external-content-wrapper {
+      // outline with rounded corners
+      outline: 2px solid #e8eafd;
+      border-radius: 1px;
+    }
+  }
+
+  .external-content-wrapper.ProseMirror-selectednode {
+    // outline with rounded corners
+    outline: 2px solid #e8eafd;
+    border-radius: 1px;
+  }
+
   blockquote {
     border-left: 3px solid #d0d5dd;
     padding: 0 1em;

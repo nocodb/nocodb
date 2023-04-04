@@ -1,9 +1,55 @@
 import TiptapLink from '@tiptap/extension-link'
-import { getAttributes } from '@tiptap/core'
+import { getAttributes, mergeAttributes } from '@tiptap/core'
 import { Plugin } from 'prosemirror-state'
 
 export const Link = ({ isPublic }: { isPublic?: boolean }) =>
   TiptapLink.extend({
+    addOptions() {
+      return {
+        openOnClick: true,
+        linkOnPaste: true,
+        autolink: true,
+        protocols: [],
+        HTMLAttributes: {
+          target: '_blank',
+          rel: 'noopener noreferrer nofollow',
+          class: null,
+        },
+        validate: undefined,
+        internal: false,
+      }
+    },
+    addAttributes() {
+      return {
+        href: {
+          default: null,
+        },
+        target: {
+          default: this.options.HTMLAttributes.target,
+        },
+        class: {
+          default: this.options.HTMLAttributes.class,
+        },
+        internal: {
+          default: this.options.HTMLAttributes.internal,
+          parseHTML: (element) => element.getAttribute('internal') === 'true',
+        },
+        internalUrl: {
+          default: null,
+          parseHTML: (element) => element.getAttribute('internal-url'),
+        },
+      }
+    },
+
+    renderHTML({ HTMLAttributes }) {
+      const attr = mergeAttributes(this.options.HTMLAttributes, HTMLAttributes)
+      if (attr.internal && isPublic) {
+        attr.href = attr.internalUrl
+      }
+
+      return ['a', attr, 0]
+    },
+
     addKeyboardShortcuts() {
       return {
         'Ctrl-k': () => {
@@ -60,27 +106,21 @@ export const Link = ({ isPublic }: { isPublic?: boolean }) =>
         ...(this.parent?.() ?? []),
         new Plugin({
           props: {
-            handleClick(view, pos, event) {
-              const attrs = getAttributes(view.state, 'link')
-
-              if (view.editable && !event.metaKey) {
-                return false
-              }
-
-              const link = (event.target as HTMLElement)?.closest('a')
-
-              if (isPublic) {
-                attrs.href = attrs.href.replace('/nc/doc/p', '/nc/doc/s')
-              }
-
-              if (link && attrs.href) {
-                window.open(attrs.href, attrs.target)
-
-                return true
-              }
-
-              return false
-            },
+            // handleClick(view, pos, event) {
+            //   const attrs = getAttributes(view.state, 'link')
+            //   if (view.editable && !event.metaKey) {
+            //     return false
+            //   }
+            //   const link = (event.target as HTMLElement)?.closest('a')
+            //   if (isPublic) {
+            //     attrs.href = attrs.href.replace('/nc/doc/p', '/nc/doc/s')
+            //   }
+            //   if (link && attrs.href) {
+            //     window.open(attrs.href, attrs.target)
+            //     return true
+            //   }
+            //   return false
+            // },
           },
         }),
       ]

@@ -239,6 +239,34 @@ export class TiptapPage extends BasePage {
     await expect(this.get().locator(`.draggable-block-wrapper:nth-child(${index + 1})`)).toHaveClass(/focused/);
   }
 
+  async verifyLinkNode({ index, placeholder, url }: { index: number; placeholder: string; url: string }) {
+    await expect(
+      this.get()
+        .locator(`.draggable-block-wrapper:nth-child(${index + 1})`)
+        .locator(`.node-view-drag-content`)
+        .locator(`a`)
+    ).toHaveAttribute('href', url);
+
+    await expect(
+      this.get()
+        .locator(`.draggable-block-wrapper:nth-child(${index + 1})`)
+        .locator(`.node-view-drag-content`)
+        .locator(`a`)
+    ).toHaveText(placeholder);
+  }
+
+  async verifyLinkOptionVisible({ visible }: { visible: boolean }) {
+    if (visible) {
+      await expect(this.rootPage.getByTestId('nc-docs-link-options')).toBeVisible();
+    } else {
+      await expect(this.rootPage.getByTestId('nc-docs-link-options')).toBeHidden();
+    }
+  }
+
+  async clickLinkDeleteButton() {
+    await this.rootPage.getByTestId('nc-docs-link-options-open-delete').click();
+  }
+
   async clearContent() {
     await this.openedPage.waitForRender();
 

@@ -212,6 +212,7 @@ const openLink = () => {
         'rounded-lg': filteredPages.length === 0,
         'rounded-t-lg': filteredPages.length > 0,
       }"
+      data-testid="nc-docs-link-options"
       @keydown="handleKeyDown"
     >
       <div class="flex items-center gap-x-1">
@@ -234,6 +235,7 @@ const openLink = () => {
             :class="{
               '!text-gray-300 cursor-not-allowed': href.length === 0,
             }"
+            data-testid="nc-docs-link-options-open-link"
             @click="openLink"
           >
             <IcBaselineArrowOutward />
@@ -241,7 +243,11 @@ const openLink = () => {
         </a-popover>
         <a-popover overlay-class-name="docs-link-options">
           <template #content> Delete link </template>
-          <div class="flex mr-1 p-0.5 my-0.5 rounded-md cursor-pointer hover:text-red-400" @click="onDelete">
+          <div
+            class="flex mr-1 p-0.5 my-0.5 rounded-md cursor-pointer hover:text-red-400"
+            data-testid="nc-docs-link-options-open-delete"
+            @click="onDelete"
+          >
             <MdiDeleteOutline />
           </div>
         </a-popover>

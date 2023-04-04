@@ -7,6 +7,7 @@ import {
 import Noco from '../Noco';
 import NocoCache from '../cache/NocoCache';
 import { extractProps } from '../meta/helpers/extractProps';
+import { NcError } from '../meta/helpers/catchError';
 import Model from './Model';
 import Filter from './Filter';
 import HookFilter from './HookFilter';
@@ -19,8 +20,8 @@ export default class Hook implements HookType {
   description?: string;
   env?: string;
   type?: string;
-  event?: 'after' | 'before';
-  operation?: 'insert' | 'delete' | 'update';
+  event?: HookType['event'];
+  operation?: HookType['operation'];
   async?: BoolType;
   payload?: string;
   url?: string;
@@ -34,6 +35,7 @@ export default class Hook implements HookType {
 
   project_id?: string;
   base_id?: string;
+  version?: 'v1' | 'v2';
 
   constructor(hook: Partial<Hook | HookReqType>) {
     Object.assign(this, hook);
@@ -78,8 +80,8 @@ export default class Hook implements HookType {
   static async list(
     param: {
       fk_model_id: string;
-      event?: 'after' | 'before';
-      operation?: 'insert' | 'delete' | 'update';
+      event?: HookType['event'];
+      operation?: HookType['operation'];
     },
     ncMeta = Noco.ncMeta
   ) {
@@ -135,17 +137,6 @@ export default class Hook implements HookType {
       'base_id',
     ]);
 
-    if (insertObj.event) {
-      insertObj.event = insertObj.event.toLowerCase() as 'after' | 'before';
-    }
-
-    if (insertObj.operation) {
-      insertObj.operation = insertObj.operation.toLowerCase() as
-        | 'insert'
-        | 'delete'
-        | 'update';
-    }
-
     if (insertObj.notification && typeof insertObj.notification === 'object') {
       insertObj.notification = JSON.stringify(insertObj.notification);
     }
@@ -155,6 +146,9 @@ export default class Hook implements HookType {
       insertObj.project_id = model.project_id;
       insertObj.base_id = model.base_id;
     }
+
+    // new hook will set as version 2
+    insertObj.version = 'v2';
 
     const { id } = await ncMeta.metaInsert2(
       null,
@@ -194,17 +188,16 @@ export default class Hook implements HookType {
       'retry_interval',
       'timeout',
       'active',
+      'version',
     ]);
 
-    if (updateObj.event) {
-      updateObj.event = updateObj.event.toLowerCase() as 'after' | 'before';
-    }
-
-    if (updateObj.operation) {
-      updateObj.operation = updateObj.operation.toLowerCase() as
-        | 'insert'
-        | 'delete'
-        | 'update';
+    if (
+      updateObj.version &&
+      updateObj.operation &&
+      updateObj.version === 'v1' &&
+      ['bulkInsert', 'bulkUpdate', 'bulkDelete'].includes(updateObj.operation)
+    ) {
+      NcError.badRequest(`${updateObj.operation} not supported in v1 hook`);
     }
 
     if (updateObj.notification && typeof updateObj.notification === 'object') {

@@ -9,90 +9,110 @@ const mysql2 = {
   LEN: 'CHAR_LENGTH',
   MIN: 'LEAST',
   MAX: 'GREATEST',
-  SEARCH: (args: MapFnArgs) => {
+  SEARCH: async (args: MapFnArgs) => {
     args.pt.callee.name = 'LOCATE';
     const temp = args.pt.arguments[0];
     args.pt.arguments[0] = args.pt.arguments[1];
     args.pt.arguments[1] = temp;
   },
-  INT: (args: MapFnArgs) => {
-    return args.knex.raw(
-      `CAST(${args.fn(args.pt.arguments[0])} as SIGNED)${args.colAlias}`
-    );
-  },
-  LEFT: (args: MapFnArgs) => {
-    return args.knex.raw(
-      `SUBSTR(${args.fn(args.pt.arguments[0])},1,${args.fn(
-        args.pt.arguments[1]
-      )})${args.colAlias}`
-    );
-  },
-  RIGHT: (args: MapFnArgs) => {
-    return args.knex.raw(
-      `SUBSTR(${args.fn(args.pt.arguments[0])}, -(${args.fn(
-        args.pt.arguments[1]
-      )}))${args.colAlias}`
-    );
-  },
-  MID: 'SUBSTR',
-  FLOAT: (args: MapFnArgs) => {
-    return args.knex
-      .raw(
-        `CAST(CAST(${args.fn(args.pt.arguments[0])} as CHAR) AS DOUBLE)${
+  INT: async (args: MapFnArgs) => {
+    return {
+      builder: args.knex.raw(
+        `CAST(${(await args.fn(args.pt.arguments[0])).builder} as SIGNED)${
           args.colAlias
         }`
-      )
-      .wrap('(', ')');
+      ),
+    };
   },
-  DATEADD: ({ fn, knex, pt, colAlias }: MapFnArgs) => {
-    return knex.raw(
-      `CASE
-      WHEN ${fn(pt.arguments[0])} LIKE '%:%' THEN
-        DATE_FORMAT(DATE_ADD(${fn(pt.arguments[0])}, INTERVAL 
-        ${fn(pt.arguments[1])} ${String(fn(pt.arguments[2])).replace(
-        /["']/g,
-        ''
-      )}), '%Y-%m-%d %H:%i')
+  LEFT: async (args: MapFnArgs) => {
+    return {
+      builder: args.knex.raw(
+        `SUBSTR(${(await args.fn(args.pt.arguments[0])).builder},1,${
+          (await args.fn(args.pt.arguments[1])).builder
+        })${args.colAlias}`
+      ),
+    };
+  },
+  RIGHT: async (args: MapFnArgs) => {
+    return {
+      builder: args.knex.raw(
+        `SUBSTR(${(await args.fn(args.pt.arguments[0])).builder}, -(${
+          (await args.fn(args.pt.arguments[1])).builder
+        }))${args.colAlias}`
+      ),
+    };
+  },
+  MID: 'SUBSTR',
+  FLOAT: async (args: MapFnArgs) => {
+    return {
+      builder: args.knex
+        .raw(
+          `CAST(CAST(${
+            (await args.fn(args.pt.arguments[0])).builder
+          } as CHAR) AS DOUBLE)${args.colAlias}`
+        )
+        .wrap('(', ')'),
+    };
+  },
+  DATEADD: async ({ fn, knex, pt, colAlias }: MapFnArgs) => {
+    return {
+      builder: knex.raw(
+        `CASE
+      WHEN ${(await fn(pt.arguments[0])).builder} LIKE '%:%' THEN
+        DATE_FORMAT(DATE_ADD(${(await fn(pt.arguments[0])).builder}, INTERVAL
+        ${(await fn(pt.arguments[1])).builder} ${String(
+          (await fn(pt.arguments[2])).builder
+        ).replace(/["']/g, '')}), '%Y-%m-%d %H:%i')
       ELSE
-        DATE(DATE_ADD(${fn(pt.arguments[0])}, INTERVAL 
-        ${fn(pt.arguments[1])} ${String(fn(pt.arguments[2])).replace(
-        /["']/g,
-        ''
-      )}))
+        DATE(DATE_ADD(${(await fn(pt.arguments[0])).builder}, INTERVAL
+        ${(await fn(pt.arguments[1])).builder} ${String(
+          (await fn(pt.arguments[2])).builder
+        ).replace(/["']/g, '')}))
       END${colAlias}`
-    );
+      ),
+    };
   },
-  DATETIME_DIFF: ({ fn, knex, pt, colAlias }: MapFnArgs) => {
-    const datetime_expr1 = fn(pt.arguments[0]);
-    const datetime_expr2 = fn(pt.arguments[1]);
+  DATETIME_DIFF: async ({ fn, knex, pt, colAlias }: MapFnArgs) => {
+    const datetime_expr1 = (await fn(pt.arguments[0])).builder;
+    const datetime_expr2 = (await fn(pt.arguments[1])).builder;
 
     const unit = convertUnits(
-      pt.arguments[2] ? fn(pt.arguments[2]).bindings[0] : 'seconds',
+      pt.arguments[2]
+        ? (await fn(pt.arguments[2])).builder.bindings[0]
+        : 'seconds',
       'mysql'
     );
 
     if (unit === 'MICROSECOND') {
       // MySQL doesn't support millisecond
       // hence change from MICROSECOND to millisecond manually
-      return knex.raw(
-        `TIMESTAMPDIFF(${unit}, ${datetime_expr2}, ${datetime_expr1}) div 1000 ${colAlias}`
-      );
+      return {
+        builder: knex.raw(
+          `TIMESTAMPDIFF(${unit}, ${datetime_expr2}, ${datetime_expr1}) div 1000 ${colAlias}`
+        ),
+      };
     }
-    return knex.raw(
-      `TIMESTAMPDIFF(${unit}, ${datetime_expr2}, ${datetime_expr1}) ${colAlias}`
-    );
+    return {
+      builder: knex.raw(
+        `TIMESTAMPDIFF(${unit}, ${datetime_expr2}, ${datetime_expr1}) ${colAlias}`
+      ),
+    };
   },
-  WEEKDAY: ({ fn, knex, pt, colAlias }: MapFnArgs) => {
+  WEEKDAY: async ({ fn, knex, pt, colAlias }: MapFnArgs) => {
     // WEEKDAY() returns an index from 0 to 6 for Monday to Sunday
-    return knex.raw(
-      `(WEEKDAY(${
-        pt.arguments[0].type === 'Literal'
-          ? `'${dayjs(fn(pt.arguments[0])).format('YYYY-MM-DD')}'`
-          : fn(pt.arguments[0])
-      }) - ${getWeekdayByText(
-        pt?.arguments[1]?.value
-      )} % 7 + 7) % 7 ${colAlias}`
-    );
+    return {
+      builder: knex.raw(
+        `(WEEKDAY(${
+          pt.arguments[0].type === 'Literal'
+            ? `'${dayjs((await fn(pt.arguments[0])).builder).format(
+                'YYYY-MM-DD'
+              )}'`
+            : (await fn(pt.arguments[0])).builder
+        }) - ${getWeekdayByText(
+          pt?.arguments[1]?.value
+        )} % 7 + 7) % 7 ${colAlias}`
+      ),
+    };
   },
 };
 

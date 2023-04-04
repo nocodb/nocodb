@@ -85,7 +85,19 @@ export class TiptapPage extends BasePage {
       });
   }
 
-  async verifyNode({ index, type, content }: { index: number; type?: TipTapNodes; content?: string }) {
+  async verifyNode({
+    index,
+    type,
+    content,
+    childParagraphCount,
+    childParagraph,
+  }: {
+    index: number;
+    type?: TipTapNodes;
+    content?: string;
+    childParagraphCount?: number;
+    childParagraph?: { index: number; content: string };
+  }) {
     const node = this.get().locator(`.draggable-block-wrapper:nth-child(${index + 1})`);
 
     if (content) {
@@ -97,6 +109,16 @@ export class TiptapPage extends BasePage {
         'data-testid',
         `nc-docs-tiptap-wrapper-${tiptapNodeLabels[type]}`
       );
+    }
+
+    if (childParagraphCount) {
+      await expect(node.locator('.node-view-drag-content').locator('p')).toHaveCount(childParagraphCount);
+    }
+
+    if (childParagraph) {
+      await expect(
+        node.locator('.node-view-drag-content').locator(`p:nth-child(${childParagraph.index + 1})`)
+      ).toHaveText(childParagraph.content);
     }
   }
 
@@ -152,4 +174,7 @@ export type TipTapNodes =
 
 const tiptapNodeLabels: Record<TipTapNodes, string> = {
   'Info notice': 'infoCallout',
+  'Warning notice': 'warningCallout',
+  'Tip notice': 'tipCallout',
+  Paragraph: 'paragraph',
 };

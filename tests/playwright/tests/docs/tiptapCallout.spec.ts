@@ -18,6 +18,14 @@ test.describe('Tiptap:Callout', () => {
     await testCallout('Info notice', page);
   });
 
+  test('Warning Callout', async ({ page }) => {
+    await testCallout('Warning notice', page);
+  });
+
+  test('Tip Callout', async ({ page }) => {
+    await testCallout('Tip notice', page);
+  });
+
   async function testCallout(type: 'Info notice' | 'Warning notice' | 'Tip notice', page: Page) {
     const openedPage = await dashboard.docs.openedPage;
     await dashboard.sidebar.docsSidebar.createPage({
@@ -31,12 +39,10 @@ test.describe('Tiptap:Callout', () => {
 
     await openedPage.tiptap.verifyNode({
       index: 0,
-      type: 'Info notice',
+      type,
     });
 
-    await page.waitForTimeout(100);
     await page.keyboard.press('Backspace');
-    await page.waitForTimeout(100);
 
     await openedPage.tiptap.addNewNode({
       type,
@@ -47,8 +53,80 @@ test.describe('Tiptap:Callout', () => {
 
     await openedPage.tiptap.verifyNode({
       index: 1,
-      type: 'Info notice',
+      type,
       content: 'Callout content',
+    });
+
+    await page.keyboard.press('Enter');
+    await page.keyboard.type('Callout content 2');
+
+    await openedPage.tiptap.verifyNode({
+      index: 1,
+      type,
+      content: 'Callout contentCallout content 2',
+      childParagraphCount: 2,
+    });
+
+    await page.keyboard.press('ArrowLeft');
+    await page.keyboard.press('ArrowLeft');
+    await page.keyboard.press('Enter');
+
+    await page.keyboard.press('ArrowRight');
+    await page.keyboard.press('ArrowRight');
+    await page.keyboard.type('new');
+
+    await openedPage.tiptap.verifyNode({
+      index: 1,
+      type,
+      childParagraphCount: 3,
+      childParagraph: {
+        index: 2,
+        content: '2new',
+      },
+    });
+
+    // Clear 3 child
+    for (let i = 0; i < 5; i++) {
+      await page.keyboard.press('Backspace');
+    }
+    await page.keyboard.press('Backspace');
+
+    await openedPage.tiptap.verifyNode({
+      index: 1,
+      type,
+      childParagraphCount: 2,
+    });
+
+    await page.keyboard.press('Enter');
+
+    await openedPage.tiptap.verifyNode({
+      index: 1,
+      type,
+      childParagraphCount: 3,
+    });
+
+    await page.keyboard.press('Enter');
+
+    await openedPage.tiptap.verifyNode({
+      index: 1,
+      type,
+      childParagraphCount: 2,
+    });
+
+    await openedPage.tiptap.addNewNode({
+      type,
+    });
+
+    await openedPage.tiptap.verifyNode({
+      index: 2,
+      type,
+    });
+
+    await page.keyboard.press('Enter');
+
+    await openedPage.tiptap.verifyNode({
+      index: 2,
+      type: 'Paragraph',
     });
   }
 });

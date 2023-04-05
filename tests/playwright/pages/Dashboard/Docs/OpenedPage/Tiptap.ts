@@ -192,6 +192,7 @@ export class TiptapPage extends BasePage {
     childParagraphCount,
     childParagraph,
     isUploading,
+    placeholder,
   }: {
     index: number;
     type?: TipTapNodes;
@@ -199,6 +200,7 @@ export class TiptapPage extends BasePage {
     childParagraphCount?: number;
     childParagraph?: { index: number; content: string };
     isUploading?: boolean;
+    placeholder?: string;
   }) {
     const node = this.get().locator(`.draggable-block-wrapper:nth-child(${index + 1})`);
 
@@ -239,6 +241,12 @@ export class TiptapPage extends BasePage {
       await expect(
         node.locator('.node-view-drag-content').locator(`p:nth-child(${childParagraph.index + 1})`)
       ).toHaveText(childParagraph.content);
+    }
+
+    if (placeholder) {
+      await expect(
+        node.getByTestId(`nc-docs-tiptap-wrapper-${tiptapNodeLabels[type]}`).locator(tiptapNodeToDomType[type])
+      ).toHaveAttribute('data-placeholder', placeholder);
     }
   }
 

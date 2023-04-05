@@ -1,8 +1,6 @@
 import { test } from '@playwright/test';
 import { ProjectType, ProjectTypes } from 'nocodb-sdk';
 import { DashboardPage } from '../../pages/Dashboard';
-import { SignupPage } from '../../pages/SignupPage';
-import { WorkspacePage } from '../../pages/WorkspacePage';
 import setup, { NcContext } from '../../setup';
 
 test.describe('Tiptap:History and trailing node', () => {

@@ -491,7 +491,7 @@ export class TiptapPage extends BasePage {
           .locator(`.draggable-block-wrapper:nth-child(${index + 1})`)
           .locator(`.node-view-drag-content`)
           .locator(`tr`)
-      ).toHaveLength(rowCount);
+      ).toHaveCount(rowCount);
     }
 
     if (columnCount) {
@@ -501,7 +501,7 @@ export class TiptapPage extends BasePage {
           .locator(`.node-view-drag-content`)
           .locator(`tr:nth-child(1)`)
           .locator(`td`)
-      ).toHaveLength(columnCount);
+      ).toHaveCount(columnCount);
     }
   }
 

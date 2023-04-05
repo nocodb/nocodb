@@ -52,7 +52,7 @@ export class DocsSidebarPage extends BasePage {
       await this.sidebar.dashboard.docs.openedPage.fillTitle({ title });
     }
     if (content) {
-      await this.sidebar.dashboard.docs.openedPage.fillContent({ content });
+      await this.sidebar.dashboard.docs.openedPage.tiptap.fillContent({ content });
     }
   }
 
@@ -96,7 +96,7 @@ export class DocsSidebarPage extends BasePage {
       await this.sidebar.dashboard.docs.openedPage.fillTitle({ title });
     }
     if (content) {
-      await this.sidebar.dashboard.docs.openedPage.fillContent({ content });
+      await this.sidebar.dashboard.docs.openedPage.tiptap.fillContent({ content });
     }
   }
 

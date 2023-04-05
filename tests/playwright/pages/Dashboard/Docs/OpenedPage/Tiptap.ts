@@ -330,9 +330,9 @@ export type TipTapNodes =
   | 'Paragraph'
   | 'Quote'
   | 'Code Block'
-  | 'Bulleted List'
+  | 'Bullet List'
   | 'Numbered List'
-  | 'Todo List'
+  | 'Task List'
   | 'Divider'
   | 'Image'
   | 'Table'
@@ -353,14 +353,23 @@ const tiptapNodeLabels: Record<TipTapNodes, string> = {
   'Heading 3': 'heading',
   Divider: 'horizontalRule',
   Image: 'image',
+  'Bullet List': 'bullet',
+  'Numbered List': 'ordered',
+  'Task List': 'task',
 };
 
 const tiptapNodeToDomType: Record<TipTapNodes, string> = {
   'Heading 1': 'h1',
   'Heading 2': 'h2',
   'Heading 3': 'h3',
+  'Info notice': 'div.info-callout',
+  'Warning notice': 'div.warning-callout',
+  'Tip notice': 'div.tip-callout',
   Paragraph: 'p',
   Divider: 'hr',
   'Embed iframe': 'iframe',
   Image: 'img',
+  'Bullet List': 'div[data-type="bullet"]',
+  'Numbered List': 'div[data-type="ordered"]',
+  'Task List': 'div[data-type="task"]',
 };

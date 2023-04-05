@@ -239,13 +239,15 @@ export class TiptapPage extends BasePage {
     await expect(this.get().locator(`.draggable-block-wrapper:nth-child(${index + 1})`)).toHaveClass(/focused/);
   }
 
-  async verifyLinkNode({ index, placeholder, url }: { index: number; placeholder: string; url: string }) {
-    await expect(
-      this.get()
-        .locator(`.draggable-block-wrapper:nth-child(${index + 1})`)
-        .locator(`.node-view-drag-content`)
-        .locator(`a`)
-    ).toHaveAttribute('href', url);
+  async verifyLinkNode({ index, placeholder, url }: { index: number; placeholder: string; url?: string }) {
+    if (url) {
+      await expect(
+        this.get()
+          .locator(`.draggable-block-wrapper:nth-child(${index + 1})`)
+          .locator(`.node-view-drag-content`)
+          .locator(`a`)
+      ).toHaveAttribute('href', url);
+    }
 
     await expect(
       this.get()
@@ -261,6 +263,36 @@ export class TiptapPage extends BasePage {
     } else {
       await expect(this.rootPage.getByTestId('nc-docs-link-options')).toBeHidden();
     }
+  }
+
+  async verifyLinkOptionSearchResults({ titles, selectedTitle }: { titles?: string[]; selectedTitle?: string }) {
+    if (titles) {
+      for (const title of titles) {
+        await expect(this.rootPage.getByTestId(`nc-docs-link-option-searched-page-${title}`)).toContainText(title);
+      }
+
+      const count = titles.length;
+      await expect(this.rootPage.getByTestId('nc-docs-link-option-searched-pages').locator('.page-item')).toHaveCount(
+        count
+      );
+    }
+
+    if (selectedTitle) {
+      await expect(this.rootPage.getByTestId(`nc-docs-link-option-searched-page-${selectedTitle}`)).toHaveClass(
+        /selected/
+      );
+    }
+  }
+
+  async gotoStoredLink({ index }: { index: number }) {
+    const linkHref = await this.get()
+      .locator(`.draggable-block-wrapper:nth-child(${index + 1})`)
+      .locator(`.node-view-drag-content`)
+      .locator(`a`)
+      .getAttribute('href');
+
+    await this.rootPage.goto(linkHref);
+    await this.openedPage.waitForRender();
   }
 
   async clickLinkDeleteButton() {

@@ -157,6 +157,7 @@ onMounted(() => {
         <div
           class="absolute flex border-gray-200 border-1 bg-white hover:bg-gray-100 py-0.5 rounded-md row-drag-handle hidden cursor-pointer"
           contenteditable="false"
+          data-testid="nc-docs-table-row-drag-handle-wrapper"
           @mouseenter="toggleRowSelection"
           @mouseleave="toggleRowSelection"
         >
@@ -167,17 +168,17 @@ onMounted(() => {
               class="absolute flex flex-col text-sm gap-y-1 -left-10 -top-7 bg-gray-100 p-1 rounded-md row-drag-handle hidden z-10"
             >
               <a-tooltip title="Add row above" placement="left" overlay-class-name="docs-table-row-options ">
-                <div class="button" @click="insertRowBefore">
+                <div class="button" data-testid="nc-docs-table-row-insert-above" @click="insertRowBefore">
                   <MdiArrowUp />
                 </div>
               </a-tooltip>
               <a-tooltip title="Delete row" placement="left" overlay-class-name="docs-table-row-options ">
-                <div class="button !hover:text-red-400" @click="deleteRow">
+                <div class="button !hover:text-red-400" data-testid="nc-docs-table-row-delete" @click="deleteRow">
                   <MdiDeleteOutline />
                 </div>
               </a-tooltip>
               <a-tooltip title="Add row below" placement="left" overlay-class-name="docs-table-row-options ">
-                <div class="button" @click="insertRowAfter">
+                <div class="button" data-testid="nc-docs-table-row-insert-below" @click="insertRowAfter">
                   <MdiArrowDown />
                 </div>
               </a-tooltip>
@@ -202,6 +203,7 @@ onMounted(() => {
         >
           <div
             class="flex flex-row h-5 w-8 justify-center items-center border-gray-200 border-1 bg-white hover:bg-gray-100 rounded-md tiptap-column-options cursor-pointer hidden"
+            data-testid="nc-docs-table-column-drag-handle-wrapper"
             @mouseover="selectColumn"
           >
             <MdiDotsHorizontal class="tiptap-column-drag-handle" />
@@ -212,17 +214,17 @@ onMounted(() => {
               class="absolute flex flex-row text-sm gap-y-1 -left-6.5 -top-10 bg-gray-100 p-1 rounded-md tiptap-column-options hidden z-10"
             >
               <a-tooltip title="Add column left" placement="top" overlay-class-name="docs-table-col-options ">
-                <div class="button" @click="insertColumnBefore">
+                <div class="button" data-testid="nc-docs-table-column-insert-left" @click="insertColumnBefore">
                   <MdiArrowLeft />
                 </div>
               </a-tooltip>
               <a-tooltip title="Delete column" placement="top" overlay-class-name="docs-table-col-options ">
-                <div class="button !hover:text-red-400" @click="deleteColumn">
+                <div class="button !hover:text-red-400" data-testid="nc-docs-table-column-delete" @click="deleteColumn">
                   <MdiDeleteOutline />
                 </div>
               </a-tooltip>
               <a-tooltip title="Add column right" placement="top" overlay-class-name="docs-table-col-options ">
-                <div class="button" @click="insertColumnAfter">
+                <div class="button" data-testid="nc-docs-table-column-insert-right" @click="insertColumnAfter">
                   <MdiArrowRight />
                 </div>
               </a-tooltip>

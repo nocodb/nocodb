@@ -299,6 +299,212 @@ export class TiptapPage extends BasePage {
     }
   }
 
+  async fillTableCell({
+    index,
+    row,
+    column,
+    content,
+  }: {
+    index: number;
+    row: number;
+    column: number;
+    content: string;
+  }) {
+    await this.get()
+      .locator(`.draggable-block-wrapper:nth-child(${index + 1})`)
+      .locator(`.node-view-drag-content`)
+      .locator(`tr:nth-child(${row + 1})`)
+      .locator(`td:nth-child(${column + 1})`)
+      .click({
+        force: true,
+      });
+
+    await this.rootPage.keyboard.type(content);
+  }
+
+  async addTableRow({ index, rowIndex, kind }: { index: number; rowIndex?: number; kind: 'above' | 'below' | 'end' }) {
+    if (kind === 'end') {
+      const addNewRowButton = this.get()
+        .locator(`.draggable-block-wrapper:nth-child(${index + 1})`)
+        .locator(`.tiptap-create-row-btn`);
+
+      await addNewRowButton.hover();
+      await addNewRowButton.click();
+
+      return;
+    }
+
+    await this.get()
+      .locator(`.draggable-block-wrapper:nth-child(${index + 1})`)
+      .locator(`.node-view-drag-content`)
+      .locator(`tr:nth-child(${rowIndex + 1})`)
+      .hover();
+
+    await this.get()
+      .locator(`.draggable-block-wrapper:nth-child(${index + 1})`)
+      .locator(`.node-view-drag-content`)
+      .locator(`tr:nth-child(${rowIndex + 1})`)
+      .getByTestId('nc-docs-table-row-drag-handle-wrapper')
+      .click({
+        force: true,
+      });
+    await this.get()
+      .locator(`.draggable-block-wrapper:nth-child(${index + 1})`)
+      .locator(`.node-view-drag-content`)
+      .locator(`tr:nth-child(${rowIndex + 1})`)
+      .getByTestId(kind === 'above' ? 'nc-docs-table-row-insert-above' : 'nc-docs-table-row-insert-below')
+      .click({
+        force: true,
+      });
+  }
+
+  async addTableColumn({
+    index,
+    columnIndex,
+    kind,
+  }: {
+    index: number;
+    columnIndex?: number;
+    kind: 'left' | 'right' | 'end';
+  }) {
+    if (kind === 'end') {
+      const addNewColumnButton = this.get()
+        .locator(`.draggable-block-wrapper:nth-child(${index + 1})`)
+        .locator(`.tiptap-create-column-btn`);
+
+      await addNewColumnButton.hover();
+      await addNewColumnButton.click();
+
+      return;
+    }
+
+    await this.get()
+      .locator(`.draggable-block-wrapper:nth-child(${index + 1})`)
+      .locator(`.node-view-drag-content`)
+      .locator(`tr:nth-child(1)`)
+      .locator(`td:nth-child(${columnIndex + 1})`)
+      .hover();
+
+    await this.get()
+      .locator(`.draggable-block-wrapper:nth-child(${index + 1})`)
+      .locator(`.node-view-drag-content`)
+      .locator(`tr:nth-child(1)`)
+      .locator(`td:nth-child(${columnIndex + 1})`)
+      .getByTestId('nc-docs-table-column-drag-handle-wrapper')
+      .click({
+        force: true,
+      });
+    await this.get()
+      .locator(`.draggable-block-wrapper:nth-child(${index + 1})`)
+      .locator(`.node-view-drag-content`)
+      .locator(`tr:nth-child(1)`)
+      .locator(`td:nth-child(${columnIndex + 1})`)
+      .getByTestId(kind === 'left' ? 'nc-docs-table-column-insert-left' : 'nc-docs-table-column-insert-right')
+      .click({
+        force: true,
+      });
+  }
+
+  async deleteTableRow({ index, rowIndex }: { index: number; rowIndex?: number }) {
+    await this.get()
+      .locator(`.draggable-block-wrapper:nth-child(${index + 1})`)
+      .locator(`.node-view-drag-content`)
+      .locator(`tr:nth-child(${rowIndex + 1})`)
+      .hover();
+
+    await this.get()
+      .locator(`.draggable-block-wrapper:nth-child(${index + 1})`)
+      .locator(`.node-view-drag-content`)
+      .locator(`tr:nth-child(${rowIndex + 1})`)
+      .getByTestId('nc-docs-table-row-drag-handle-wrapper')
+      .click({
+        force: true,
+      });
+    await this.get()
+      .locator(`.draggable-block-wrapper:nth-child(${index + 1})`)
+      .locator(`.node-view-drag-content`)
+      .locator(`tr:nth-child(${rowIndex + 1})`)
+      .getByTestId('nc-docs-table-row-delete')
+      .click({
+        force: true,
+      });
+  }
+
+  async deleteTableColumn({ index, columnIndex }: { index: number; columnIndex?: number }) {
+    await this.get()
+      .locator(`.draggable-block-wrapper:nth-child(${index + 1})`)
+      .locator(`.node-view-drag-content`)
+      .locator(`tr:nth-child(1)`)
+      .locator(`td:nth-child(${columnIndex + 1})`)
+      .hover();
+
+    await this.get()
+      .locator(`.draggable-block-wrapper:nth-child(${index + 1})`)
+      .locator(`.node-view-drag-content`)
+      .locator(`tr:nth-child(1)`)
+      .locator(`td:nth-child(${columnIndex + 1})`)
+      .getByTestId('nc-docs-table-column-drag-handle-wrapper')
+      .click({
+        force: true,
+      });
+    await this.get()
+      .locator(`.draggable-block-wrapper:nth-child(${index + 1})`)
+      .locator(`.node-view-drag-content`)
+      .locator(`tr:nth-child(1)`)
+      .locator(`td:nth-child(${columnIndex + 1})`)
+      .getByTestId('nc-docs-table-column-delete')
+      .click({
+        force: true,
+      });
+  }
+
+  async verifyTableNode({
+    index,
+    cells,
+    rowCount,
+    columnCount,
+  }: {
+    index: number;
+    cells: {
+      row: number;
+      column: number;
+      content: string;
+    }[];
+    rowCount?: number;
+    columnCount?: number;
+  }) {
+    await this.verifyNode({ index, type: 'Table' });
+
+    for (const cell of cells) {
+      await expect(
+        this.get()
+          .locator(`.draggable-block-wrapper:nth-child(${index + 1})`)
+          .locator(`.node-view-drag-content`)
+          .locator(`tr:nth-child(${cell.row + 1})`)
+          .locator(`td:nth-child(${cell.column + 1})`)
+      ).toHaveText(cell.content);
+    }
+
+    if (rowCount) {
+      await expect(
+        this.get()
+          .locator(`.draggable-block-wrapper:nth-child(${index + 1})`)
+          .locator(`.node-view-drag-content`)
+          .locator(`tr`)
+      ).toHaveLength(rowCount);
+    }
+
+    if (columnCount) {
+      await expect(
+        this.get()
+          .locator(`.draggable-block-wrapper:nth-child(${index + 1})`)
+          .locator(`.node-view-drag-content`)
+          .locator(`tr:nth-child(1)`)
+          .locator(`td`)
+      ).toHaveLength(columnCount);
+    }
+  }
+
   async verifyLinkNode({ index, placeholder, url }: { index: number; placeholder: string; url?: string }) {
     if (url) {
       await expect(
@@ -416,6 +622,7 @@ const tiptapNodeLabels: Record<TipTapNodes, string> = {
   'Bullet List': 'bullet',
   'Numbered List': 'ordered',
   'Task List': 'task',
+  Table: 'table',
 };
 
 const tiptapNodeToDomType: Record<TipTapNodes, string> = {
@@ -432,4 +639,5 @@ const tiptapNodeToDomType: Record<TipTapNodes, string> = {
   'Bullet List': 'div[data-type="bullet"]',
   'Numbered List': 'div[data-type="ordered"]',
   'Task List': 'div[data-type="task"]',
+  Table: 'div.tiptap-table-wrapper',
 };

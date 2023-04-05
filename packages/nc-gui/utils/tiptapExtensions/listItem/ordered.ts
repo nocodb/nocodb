@@ -63,7 +63,7 @@ export const Ordered = Node.create<OrderItemsOptions>({
         },
       },
       level: {
-        default: null,
+        default: 0,
         parseHTML: (element) => element.getAttribute('data-level'),
       },
     }
@@ -90,7 +90,7 @@ export const Ordered = Node.create<OrderItemsOptions>({
           },
         ],
       ],
-      ['div', { class: 'tiptap-list-item-content' }, 0],
+      ['div', { 'class': 'tiptap-list-item-content', 'data-number': node.attrs.number }, 0],
     ]
   },
 

@@ -55,7 +55,7 @@ export const Task = Node.create<TaskOptions>({
         parseHTML: (element) => element.getAttribute('checked') === 'true',
       },
       level: {
-        default: null,
+        default: 0,
         parseHTML: (element) => element.getAttribute('data-level'),
       },
     }
@@ -238,7 +238,7 @@ export const Task = Node.create<TaskOptions>({
     return ({ node, HTMLAttributes, getPos, editor }) => {
       const listItem = document.createElement('div')
       listItem.setAttribute('data-type', 'task')
-      listItem.setAttribute('data-level', node.attrs.level.toString())
+      listItem.setAttribute('data-level', node.attrs.level?.toString())
       listItem.style.paddingLeft = `${Number(node.attrs.level)}rem`
 
       const checkboxWrapper = document.createElement('label')

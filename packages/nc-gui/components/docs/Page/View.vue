@@ -539,11 +539,16 @@ div.ProseMirror {
   }
 
   [data-type='ordered'] {
-    @apply flex flex-row items-center gap-x-1;
+    @apply flex flex-row items-start gap-x-1;
     .tiptap-list-item-start > span::before {
+      margin-top: 6px;
       content: attr(data-number) '. ';
       display: inline-block;
       white-space: nowrap;
+    }
+    .tiptap-list-item-content {
+      @apply flex flex-grow;
+      line-break: anywhere;
     }
   }
 

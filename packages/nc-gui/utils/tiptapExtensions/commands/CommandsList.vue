@@ -171,7 +171,7 @@ const items = [
     shortCutText: isMacOS() ? '⌥ ⌘ C' : 'Alt Ctrl C',
   },
   {
-    title: 'Task list',
+    title: 'Task List',
     class: 'text-xs',
     command: ({ editor, range }: { editor: Editor; range: Range }) => {
       editor.chain().focus().deleteRange(range).setParagraph().toggleTask().run()

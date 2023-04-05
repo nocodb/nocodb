@@ -36,7 +36,7 @@ export const Bullet = Node.create<ListOptions>({
   addAttributes() {
     return {
       level: {
-        default: null,
+        default: 0,
         parseHTML: (element) => element.getAttribute('data-level'),
       },
     }

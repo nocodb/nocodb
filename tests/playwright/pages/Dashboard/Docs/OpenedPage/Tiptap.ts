@@ -143,11 +143,13 @@ export class TiptapPage extends BasePage {
         })
       : Promise.resolve();
 
-    await this.get().click();
+    await this.get().click({
+      force: true,
+    });
 
     await this.get()
       .locator(`.draggable-block-wrapper:nth-child(${index + 1})`)
-      .locator(`${contentDomType}:nth-child(1)`)
+      .locator(`${type ? tiptapNodeToDomType[type] : 'p'}`)
       .click({
         force: true,
       });
@@ -171,6 +173,15 @@ export class TiptapPage extends BasePage {
               y: 0,
             }
           : undefined,
+      });
+  }
+
+  async toggleTaskNode({ index }: { index: number }) {
+    await this.get()
+      .locator(`.draggable-block-wrapper:nth-child(${index + 1})`)
+      .locator('input[type="checkbox"]')
+      .click({
+        force: true,
       });
   }
 
@@ -237,6 +248,47 @@ export class TiptapPage extends BasePage {
 
   async verifyNodeSelected({ index }: { index: number }) {
     await expect(this.get().locator(`.draggable-block-wrapper:nth-child(${index + 1})`)).toHaveClass(/focused/);
+  }
+
+  async verifyListNode({
+    index,
+    level,
+    type,
+    content,
+    nestedIndex,
+    checked,
+  }: {
+    index: number;
+    level: number;
+    type: TipTapNodes;
+    content: string;
+    nestedIndex?: number;
+    checked?: boolean;
+  }) {
+    await this.verifyNode({ index, type, content });
+
+    await expect(
+      this.get()
+        .locator(`.draggable-block-wrapper:nth-child(${index + 1})`)
+        .locator(`[data-type="${tiptapNodeLabels[type]}"]`)
+    ).toHaveCSS('padding-left', `${level * 16}px`);
+
+    if (nestedIndex) {
+      await expect(
+        this.get()
+          .locator(`.draggable-block-wrapper:nth-child(${index + 1})`)
+          .locator(`.node-view-drag-content`)
+          .locator(`.tiptap-list-item-start > span`)
+      ).toHaveAttribute('data-number', `${nestedIndex + 1}`);
+    }
+
+    if (checked !== undefined) {
+      await expect(
+        this.get()
+          .locator(`.draggable-block-wrapper:nth-child(${index + 1})`)
+          .locator(`input[type="checkbox"]`)
+      ).toBeChecked({ checked });
+    }
   }
 
   async verifyLinkNode({ index, placeholder, url }: { index: number; placeholder: string; url?: string }) {

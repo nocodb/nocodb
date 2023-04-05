@@ -118,7 +118,7 @@ export const onEnter = (editor: Editor, nodeType: 'bullet' | 'ordered' | 'task')
   const parentParentNode = selection.$from.node(-2)
 
   // Delete the bullet point if it's empty
-  const currentNodeIsEmpty = currentNode.textContent.length === 0
+  const currentNodeIsEmpty = currentNode.textContent.trim().length === 0
 
   if (currentNodeIsEmpty && parentParentNode.type.name !== 'dBlock') {
     return false

@@ -1,6 +1,8 @@
-import { Injectable } from "@nestjs/common";
+import { Global, Injectable } from '@nestjs/common'
 
 import * as knex from "knex";
+
+@Global()
 
 @Injectable()
 export class Connection {
@@ -13,7 +15,7 @@ export class Connection {
         host: "localhost",
         user: "root",
         password: "password",
-        database: "my_database"
+        database: "sakila"
       }
     });
   }

@@ -11,7 +11,7 @@ export class CreateUserDto {
 }
 
 
-@Controller('auth')
+@Controller('/api/v1/auth/user')
 export class AuthController {
   constructor(private readonly authService: AuthService) {}
 

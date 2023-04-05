@@ -1,4 +1,5 @@
 import { Injectable } from '@nestjs/common';
+import { OrgUserRoles } from 'nocodb-sdk'
 import { UsersService } from '../users/users.service';
 import { promisify } from 'util';
 import bcrypt from 'bcryptjs';
@@ -100,7 +101,7 @@ export class AuthService {
       //   NcError.badRequest('User already exist');
       // }
     } else {
-      await registerNewUserIfAllowed({
+      await this.registerNewUserIfAllowed({
         firstname,
         lastname,
         email,
@@ -191,9 +192,9 @@ export class AuthService {
     //   }
     // }
 
-    const token_version = randomTokenString();
+    const token_version = '' // randomTokenString();
 
-    return await this.co.insert({
+    return await this.usersService.insert({
       firstname,
       lastname,
       email,

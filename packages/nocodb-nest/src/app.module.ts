@@ -8,6 +8,7 @@ import { LocalStrategy } from './local.strategy/local.strategy';
 @Module({
   imports: [AuthModule, UsersModule],
   controllers: [],
-  providers: [Connection, MetaService, LocalStrategy],
+  providers: [Connection, MetaService],
+  exports: [Connection, MetaService],
 })
 export class AppModule {}

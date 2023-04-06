@@ -1,5 +1,5 @@
 import { Injectable } from '@nestjs/common';
-import { MetaService } from '../meta/meta.service';
+import { MetaService, MetaTable } from '../meta/meta.service'
 
 @Injectable()
 export class UsersService {
@@ -8,7 +8,7 @@ export class UsersService {
   }
 
   async findOne(email: string) {
-    const user = await this.metaService.metaGet(null, null, 'users', { email });
+    const user = await this.metaService.metaGet(null, null, MetaTable.USERS, { email });
 
 
     return user;
@@ -16,6 +16,6 @@ export class UsersService {
   }
 
   async insert(param: { token_version: string; firstname: any; password: any; salt: any; email_verification_token: any; roles: string; email: string; lastname: any }) {
-    return this.metaService.metaInsert2(null, null, 'users', param)
+    return this.metaService.metaInsert2(null, null,  MetaTable.USERS, param)
   }
 }

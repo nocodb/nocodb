@@ -2,7 +2,7 @@ import { Injectable } from '@nestjs/common';
 import { OrgUserRoles } from 'nocodb-sdk'
 import { UsersService } from '../users/users.service';
 import { promisify } from 'util';
-import bcrypt from 'bcryptjs';
+import * as bcrypt from 'bcryptjs';
 import { JwtService } from '@nestjs/jwt';
 import { CreateUserDto } from './auth.controller';
 

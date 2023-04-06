@@ -11,7 +11,6 @@ import {
   ReloadRowDataHookInj,
   computedInject,
   createEventHook,
-  iconMap,
   inject,
   message,
   provide,

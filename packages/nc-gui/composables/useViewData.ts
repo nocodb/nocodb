@@ -213,7 +213,7 @@ export function useViewData(
     }
 
     if (viewMeta.value?.type === ViewTypes.GRID) {
-      await loadAggCommentsCount()
+      loadAggCommentsCount()
     }
   }
 

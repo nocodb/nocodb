@@ -32,8 +32,6 @@ const [useProvideSmartsheetStore, useSmartsheetStore] = useInjectionState(
       (meta.value as TableType)?.base_id ? sqlUis.value[(meta.value as TableType).base_id!] : Object.values(sqlUis.value)[0],
     )
 
-    const cellRefs = ref<HTMLTableDataCellElement[]>([])
-
     const { search } = useFieldQuery()
 
     const eventBus = useEventBus<SmartsheetStoreEvents>(Symbol('SmartsheetStore'))
@@ -78,7 +76,6 @@ const [useProvideSmartsheetStore, useSmartsheetStore] = useInjectionState(
       isGallery,
       isKanban,
       isMap,
-      cellRefs,
       isSharedForm,
       sorts,
       nestedFilters,

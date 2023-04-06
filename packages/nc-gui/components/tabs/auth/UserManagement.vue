@@ -369,9 +369,9 @@ const isSuperAdmin = (user: { main_roles?: string }) => {
 
       <a-pagination
         v-model:current="currentPage"
+        v-model:page-size="currentLimit"
         hide-on-single-page
         class="mt-4"
-        :page-size="currentLimit"
         :total="totalRows"
         show-less-items
         @change="loadUsers"

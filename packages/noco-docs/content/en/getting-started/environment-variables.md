@@ -62,3 +62,4 @@ For production usecases, it is **recommended** to configure
 | NODE_OPTIONS | For passing Node.js [options](https://nodejs.org/api/cli.html#node_optionsoptions) to instance |  |  |
 | NC_MINIMAL_DBS | Create a new SQLite file for each project. All the db files are stored in `nc_minimal_dbs` folder in current working directory. (This option restricts project creation on external sources) |  |  |
 | NC_DISABLE_AUDIT | Disable Audit Log | `false` |  |
+| NC_AUTOMATION_LOG_LEVEL | Possible Values: `OFF`, `ERROR`, `ALL`. See [Webhooks](/developer-resources/webhooks#call-log) for details. | `OFF` |  |

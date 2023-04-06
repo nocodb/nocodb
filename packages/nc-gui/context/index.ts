@@ -36,3 +36,4 @@ export const DropZoneRef: InjectionKey<Ref<Element | undefined>> = Symbol('drop-
 export const ToggleDialogInj: InjectionKey<Function> = Symbol('toggle-dialog-injection')
 export const CellClickHookInj: InjectionKey<EventHook<MouseEvent> | undefined> = Symbol('cell-click-injection')
 export const SaveRowInj: InjectionKey<(() => void) | undefined> = Symbol('save-row-injection')
+export const CurrentCellInj: InjectionKey<Ref<Element | undefined>> = Symbol('current-cell-injection')

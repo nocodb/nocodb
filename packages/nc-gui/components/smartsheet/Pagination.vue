@@ -7,14 +7,15 @@ const changePage = inject(ChangePageInj)!
 
 const count = computed(() => paginatedData.value?.totalRows ?? Infinity)
 
-const size = computed(() => paginatedData.value?.pageSize ?? 25)
+const currentLimit = $computed(() => paginatedData.value?.pageSize ?? 25)
 
-const page = computed({
-  get: () => paginatedData?.value?.page ?? 1,
-  set: (p) => {
-    changePage?.(p)
-  },
-})
+const currentPage = $computed(() => paginatedData?.value?.page ?? 1)
+
+function loadData(page = currentPage, limit = currentLimit) {
+  paginatedData.value.pageSize = limit
+  paginatedData.value.page = page
+  changePage?.(page)
+}
 </script>
 
 <template>
@@ -27,19 +28,19 @@ const page = computed({
 
     <a-pagination
       v-if="count !== Infinity"
-      v-model:current="page"
-      v-model:page-size="size"
+      v-model:current="currentPage"
+      v-model:page-size="currentLimit"
       size="small"
       class="!text-xs !m-1 nc-pagination"
       :total="count"
-      show-less-items
-      :show-size-changer="false"
+      show-size-changer
+      @change="loadData"
     />
     <div v-else class="mx-auto flex items-center mt-n1" style="max-width: 250px">
       <span class="text-xs" style="white-space: nowrap"> Change page:</span>
-      <a-input :value="page" size="small" class="ml-1 !text-xs" type="number" @keydown.enter="changePage(page)">
+      <a-input :value="currentPage" size="small" class="ml-1 !text-xs" type="number" @keydown.enter="changePage(currentPage)">
         <template #suffix>
-          <component :is="iconMap.returnKey" class="mt-1" @click="changePage(page)" />
+          <component :is="iconMap.returnKey" class="mt-1" @click="changePage(currentPage)" />
         </template>
       </a-input>
     </div>

@@ -179,7 +179,7 @@ const onClick = (row: Row) => {
             class="mt-2 mx-auto"
             size="small"
             :total="childrenList?.pageInfo.totalRows"
-            show-less-items
+            show-size-changer
           />
         </div>
       </template>

@@ -104,7 +104,7 @@ const columns = [
         v-model:current="currentPage"
         v-model:page-size="currentLimit"
         :total="totalRows"
-        show-less-items
+        show-size-changer
         @change="loadAudits"
       />
     </div>

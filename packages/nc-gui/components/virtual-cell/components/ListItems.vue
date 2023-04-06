@@ -244,7 +244,7 @@ watch(vModel, (nextVal) => {
             class="mt-2 !text-xs"
             size="small"
             :total="childrenExcludedList.pageInfo.totalRows"
-            show-less-items
+            show-size-changer
           />
         </div>
 

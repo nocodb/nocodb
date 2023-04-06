@@ -19,4 +19,23 @@ async function getTextExcludeIconText(selector) {
   return text.trim();
 }
 
-export { getTextExcludeIconText };
+function isSubset(obj, potentialSubset) {
+  for (const prop in potentialSubset) {
+    // eslint-disable-next-line no-prototype-builtins
+    if (potentialSubset.hasOwnProperty(prop)) {
+      const potentialValue = potentialSubset[prop];
+      const objValue = obj[prop];
+      if (typeof potentialValue === 'object' && typeof objValue === 'object') {
+        if (!isSubset(objValue, potentialValue)) {
+          return false;
+        }
+        // eslint-disable-next-line no-prototype-builtins
+      } else if (!obj.hasOwnProperty(prop) || objValue !== potentialValue) {
+        return false;
+      }
+    }
+  }
+  return true;
+}
+
+export { getTextExcludeIconText, isSubset };

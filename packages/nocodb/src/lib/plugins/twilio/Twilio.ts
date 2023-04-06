@@ -23,6 +23,7 @@ export default class Twilio implements IWebhookNotificationAdapter {
         });
       } catch (e) {
         console.log(e);
+        throw e;
       }
     }
   }

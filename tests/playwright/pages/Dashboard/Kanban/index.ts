@@ -65,6 +65,7 @@ export class KanbanPage extends BasePage {
     const stacks = await this.get().locator(`.nc-kanban-stack`).count();
     for (let i = 0; i < stacks; i++) {
       const stack = await this.get().locator(`.nc-kanban-stack`).nth(i);
+      await stack.scrollIntoViewIfNeeded();
       // Since otherwise stack title will be repeated as title is in two divs, with one having hidden class
       const stackTitle = await stack.locator(`.nc-kanban-stack-head >> [data-testid="truncate-label"]`);
       await expect(stackTitle).toHaveText(order[i], { ignoreCase: true });
@@ -76,6 +77,7 @@ export class KanbanPage extends BasePage {
     const stacks = await this.get().locator(`.nc-kanban-stack`).count();
     for (let i = 0; i < stacks; i++) {
       const stack = await this.get().locator(`.nc-kanban-stack`).nth(i);
+      await stack.scrollIntoViewIfNeeded();
       const stackFooter = await stack.locator(`.nc-kanban-data-count`).innerText();
       await expect(stackFooter).toContain(`${count[i]} record${count[i] !== 1 ? 's' : ''}`);
     }
@@ -86,6 +88,7 @@ export class KanbanPage extends BasePage {
     const stacks = await this.get().locator(`.nc-kanban-stack`).count();
     for (let i = 0; i < stacks; i++) {
       const stack = await this.get().locator(`.nc-kanban-stack`).nth(i);
+      await stack.scrollIntoViewIfNeeded();
       const stackCards = stack.locator(`.nc-kanban-item`);
       await expect(stackCards).toHaveCount(count[i]);
     }
@@ -96,6 +99,7 @@ export class KanbanPage extends BasePage {
     const stack = await this.get().locator(`.nc-kanban-stack`).nth(stackIndex);
     for (let i = 0; i < order.length; i++) {
       const card = await stack.locator(`.nc-kanban-item`).nth(i);
+      await card.scrollIntoViewIfNeeded();
       const cardTitle = await card.locator(`.nc-cell`);
       await expect(cardTitle).toHaveText(order[i]);
     }

@@ -101,7 +101,7 @@
       "form": "Formulário",
       "kanban": "Kanban",
       "calendar": "Calendário",
-      "map": "Map"
+      "map": "Mapa"
     },
     "user": "Do utilizador",
     "users": "Comercial",
@@ -210,7 +210,7 @@
     "advancedSettings": "Configurações avançadas",
     "codeSnippet": "Código Snippet",
     "keyboardShortcut": "Atalhos de teclado",
-    "generateRandomName": "Generate Random Name",
+    "generateRandomName": "Gerar um código aleatório",
     "findRowByScanningCode": "Find row by scanning a QR or Barcode"
   },
   "labels": {
@@ -472,7 +472,7 @@
     "map": {
       "mappedBy": "Mapped By",
       "chooseMappingField": "Choose a Mapping Field",
-      "openInGoogleMaps": "Google Maps",
+      "openInGoogleMaps": "Google Mapas",
       "openInOpenStreetMap": "OSM"
     },
     "toggleMobileMode": "Toggle Mobile Mode"

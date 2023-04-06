@@ -125,17 +125,18 @@ onMounted(() => {
           <a-list-item class="p-2 nc-hook" @click="emit('edit', item)">
             <a-list-item-meta>
               <template #description>
-                <span class="uppercase"> {{ item.event }} {{ item.operation }}</span>
+                <span class="uppercase"> {{ item.event }} {{ item.operation.replace(/[A-Z]/g, ' $&') }}</span>
               </template>
 
               <template #title>
-                <span class="text-xl normal-case">
+                <div class="text-xl normal-case">
+                  <span class="text-gray-400 text-sm"> ({{ item.version }}) </span>
                   {{ item.title }}
-                </span>
+                </div>
               </template>
 
               <template #avatar>
-                <div class="my-1 px-2">
+                <div class="px-2">
                   <component :is="iconMap.hook" class="text-xl" />
                 </div>
                 <div class="px-2 text-white rounded" :class="{ 'bg-green-500': item.active, 'bg-gray-500': !item.active }">
@@ -150,7 +151,7 @@ onMounted(() => {
                 <div class="mr-2">{{ $t('labels.notifyVia') }} : {{ item?.notification?.type }}</div>
 
                 <div class="float-right pt-2 pr-1">
-                  <a-tooltip placement="left">
+                  <a-tooltip v-if="item.version === 'v2'" placement="left">
                     <template #title>
                       {{ $t('activity.copyWebhook') }}
                     </template>

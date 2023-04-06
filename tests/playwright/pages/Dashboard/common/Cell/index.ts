@@ -114,6 +114,10 @@ export class CellPageObject extends BasePage {
       // if text is found, return
       // if text is not found, throw error
       let count = 0;
+      await this.get({
+        index,
+        columnHeader,
+      }).scrollIntoViewIfNeeded();
       while (count < 5) {
         const innerTexts = await this.get({
           index,
@@ -265,8 +269,10 @@ export class CellPageObject extends BasePage {
     value: string[];
   }) {
     // const count = value.length;
-    const cell = this.get({ index, columnHeader });
+    const cell = await this.get({ index, columnHeader });
     const chips = cell.locator('.chips > .chip');
+
+    await this.get({ index, columnHeader }).scrollIntoViewIfNeeded();
 
     // verify chip count & contents
     if (count) await expect(chips).toHaveCount(count);
@@ -316,6 +322,7 @@ export class CellPageObject extends BasePage {
   }
 
   async copyToClipboard({ index, columnHeader }: CellProps, ...clickOptions: Parameters<Locator['click']>) {
+    await this.get({ index, columnHeader }).scrollIntoViewIfNeeded();
     await this.get({ index, columnHeader }).click(...clickOptions);
     await (await this.get({ index, columnHeader }).elementHandle()).waitForElementState('stable');
 

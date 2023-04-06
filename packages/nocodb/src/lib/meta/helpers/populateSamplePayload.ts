@@ -1,4 +1,5 @@
 import { RelationTypes, UITypes } from 'nocodb-sdk';
+import { v4 as uuidv4 } from 'uuid';
 import View from '../../models/View';
 import Column from '../../models/Column';
 import Model from '../../models/Model';
@@ -6,7 +7,7 @@ import type LinkToAnotherRecordColumn from '../../models/LinkToAnotherRecordColu
 import type LookupColumn from '../../models/LookupColumn';
 import type SelectOption from '../../models/SelectOption';
 
-export default async function populateSamplePayload(
+export async function populateSamplePayload(
   viewOrModel: View | Model,
   includeNested = false,
   operation = 'insert'
@@ -40,6 +41,68 @@ export default async function populateSamplePayload(
   }
 
   return out;
+}
+
+export async function populateSamplePayloadV2(
+  viewOrModel: View | Model,
+  includeNested = false,
+  operation = 'insert',
+  scope = 'records'
+) {
+  const rows = {};
+  let columns: Column[] = [];
+  let model: Model;
+  if (viewOrModel instanceof View) {
+    const viewColumns = await viewOrModel.getColumns();
+    for (const col of viewColumns) {
+      if (col.show) columns.push(await Column.get({ colId: col.fk_column_id }));
+    }
+    model = await viewOrModel.getModel();
+    await model.getColumns();
+  } else if (viewOrModel instanceof Model) {
+    columns = await viewOrModel.getColumns();
+    model = viewOrModel;
+  }
+
+  await model.getViews();
+
+  const samplePayload = {
+    type: `${scope}.after.${operation}`,
+    id: uuidv4(),
+    data: {
+      table_id: model.id,
+      table_name: model.title,
+      view_id: model.views[0].id,
+      view_name: model.views[0].title,
+    },
+  };
+
+  for (const column of columns) {
+    if (
+      !includeNested &&
+      [UITypes.LinkToAnotherRecord, UITypes.Lookup].includes(column.uidt)
+    )
+      continue;
+
+    rows[column.title] = await getSampleColumnValue(column);
+  }
+
+  let prevRows;
+  if (['update', 'bulkUpdate'].includes(operation)) {
+    prevRows = rows;
+  }
+
+  samplePayload.data = {
+    ...samplePayload.data,
+    ...(prevRows && { previous_rows: [prevRows] }),
+    ...(operation !== 'bulkInsert' && rows && { rows: [rows] }),
+    ...(operation === 'bulkInsert' &&
+      rows && {
+        row_inserted: 10,
+      }),
+  };
+
+  return samplePayload;
 }
 
 async function getSampleColumnValue(column: Column): Promise<any> {

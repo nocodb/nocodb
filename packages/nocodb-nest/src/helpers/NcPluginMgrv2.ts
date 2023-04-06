@@ -1,27 +1,27 @@
 import { PluginCategory } from 'nocodb-sdk';
-import BackblazePluginConfig from '../../plugins/backblaze';
-import DiscordPluginConfig from '../../plugins/discord';
-import GcsPluginConfig from '../../plugins/gcs';
-import LinodePluginConfig from '../../plugins/linode';
-import MattermostPluginConfig from '../../plugins/mattermost';
-import MinioPluginConfig from '../../plugins/mino';
-import OvhCloudPluginConfig from '../../plugins/ovhCloud';
-import S3PluginConfig from '../../plugins/s3';
-import ScalewayPluginConfig from '../../plugins/scaleway';
-import SlackPluginConfig from '../../plugins/slack';
-import SMTPPluginConfig from '../../plugins/smtp';
-import MailerSendConfig from '../../plugins/mailerSend';
-import SpacesPluginConfig from '../../plugins/spaces';
-import TeamsPluginConfig from '../../plugins/teams';
-import TwilioPluginConfig from '../../plugins/twilio';
-import TwilioWhatsappPluginConfig from '../../plugins/twilioWhatsapp';
-import UpcloudPluginConfig from '../../plugins/upcloud';
-import VultrPluginConfig from '../../plugins/vultr';
-import SESPluginConfig from '../../plugins/ses';
-import Noco from '../../Noco';
-import Local from '../../v1-legacy/plugins/adapters/storage/Local';
-import { MetaTable } from '../../utils/globals';
-import Plugin from '../../models/Plugin';
+import BackblazePluginConfig from '../plugins/backblaze';
+import DiscordPluginConfig from '../plugins/discord';
+import GcsPluginConfig from '../plugins/gcs';
+import LinodePluginConfig from '../plugins/linode';
+import MattermostPluginConfig from '../plugins/mattermost';
+import MinioPluginConfig from '../plugins/mino';
+import OvhCloudPluginConfig from '../plugins/ovhCloud';
+import S3PluginConfig from '../plugins/s3';
+import ScalewayPluginConfig from '../plugins/scaleway';
+import SlackPluginConfig from '../plugins/slack';
+import SMTPPluginConfig from '../plugins/smtp';
+import MailerSendConfig from '../plugins/mailerSend';
+import SpacesPluginConfig from '../plugins/spaces';
+import TeamsPluginConfig from '../plugins/teams';
+import TwilioPluginConfig from '../plugins/twilio';
+import TwilioWhatsappPluginConfig from '../plugins/twilioWhatsapp';
+import UpcloudPluginConfig from '../plugins/upcloud';
+import VultrPluginConfig from '../plugins/vultr';
+import SESPluginConfig from '../plugins/ses';
+import Noco from '../Noco';
+import Local from '../plugins/storage/Local';
+import { MetaTable } from '../utils/globals';
+import Plugin from '../models/Plugin';
 import { NcError } from './catchError';
 import type {
   IEmailAdapter,
@@ -95,7 +95,7 @@ class NcPluginMgrv2 {
             category: plugin.category,
             input_schema: JSON.stringify(plugin.inputs),
           },
-          pluginConfig.id
+          pluginConfig.id,
         );
       }
     }
@@ -150,7 +150,7 @@ class NcPluginMgrv2 {
   }
 
   public static async storageAdapter(
-    ncMeta = Noco.ncMeta
+    ncMeta = Noco.ncMeta,
   ): Promise<IStorageAdapterV2> {
     const pluginData = await ncMeta.metaGet2(null, null, MetaTable.PLUGIN, {
       category: PluginCategory.STORAGE,
@@ -161,7 +161,7 @@ class NcPluginMgrv2 {
 
     const pluginConfig = defaultPlugins.find(
       (c) =>
-        c.title === pluginData.title && c.category === PluginCategory.STORAGE
+        c.title === pluginData.title && c.category === PluginCategory.STORAGE,
     );
     const plugin = new pluginConfig.builder(ncMeta, pluginData);
 
@@ -175,7 +175,7 @@ class NcPluginMgrv2 {
 
   public static async emailAdapter(
     isUserInvite = true,
-    ncMeta = Noco.ncMeta
+    ncMeta = Noco.ncMeta,
   ): Promise<IEmailAdapter> {
     const pluginData = await ncMeta.metaGet2(null, null, MetaTable.PLUGIN, {
       category: PluginCategory.EMAIL,
@@ -190,7 +190,8 @@ class NcPluginMgrv2 {
     }
 
     const pluginConfig = defaultPlugins.find(
-      (c) => c.title === pluginData.title && c.category === PluginCategory.EMAIL
+      (c) =>
+        c.title === pluginData.title && c.category === PluginCategory.EMAIL,
     );
     const plugin = new pluginConfig.builder(ncMeta, pluginData);
 
@@ -204,7 +205,7 @@ class NcPluginMgrv2 {
 
   public static async webhookNotificationAdapters(
     title: string,
-    ncMeta = Noco.ncMeta
+    ncMeta = Noco.ncMeta,
   ): Promise<IWebhookNotificationAdapter> {
     const pluginData = await ncMeta.metaGet2(null, null, MetaTable.PLUGIN, {
       title,
@@ -214,7 +215,7 @@ class NcPluginMgrv2 {
     if (!pluginData) throw new Error('Plugin not configured / active');
 
     const pluginConfig = defaultPlugins.find(
-      (c) => c.title === pluginData.title
+      (c) => c.title === pluginData.title,
     );
     const plugin = new pluginConfig.builder(ncMeta, pluginData);
 
@@ -242,7 +243,7 @@ class NcPluginMgrv2 {
       case 'Storage':
         {
           const plugin = defaultPlugins.find(
-            (pluginConfig) => pluginConfig?.title === args.title
+            (pluginConfig) => pluginConfig?.title === args.title,
           );
           const tempPlugin = new plugin.builder(Noco.ncMeta, plugin);
           await tempPlugin.init(args?.input);
@@ -256,7 +257,7 @@ class NcPluginMgrv2 {
       case 'Email':
         {
           const plugin = defaultPlugins.find(
-            (pluginConfig) => pluginConfig?.title === args.title
+            (pluginConfig) => pluginConfig?.title === args.title,
           );
           const tempPlugin = new plugin.builder(Noco.ncMeta, plugin);
           await tempPlugin.init(args?.input);
@@ -269,7 +270,7 @@ class NcPluginMgrv2 {
         break;
       default: {
         const plugin = defaultPlugins.find(
-          (pluginConfig) => pluginConfig?.title === args.title
+          (pluginConfig) => pluginConfig?.title === args.title,
         );
         const tempPlugin = new plugin.builder(Noco.ncMeta, plugin);
         await tempPlugin.init(args?.input);

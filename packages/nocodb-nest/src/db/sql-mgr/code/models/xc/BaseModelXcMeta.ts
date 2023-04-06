@@ -1,6 +1,6 @@
 import { UITypes } from 'nocodb-sdk';
 import BaseRender from '../../BaseRender';
-import mapDefaultDisplayValue from '../../../../../meta/helpers/mapDefaultDisplayValue';
+import mapDefaultDisplayValue from '../../../../../helpers/mapDefaultDisplayValue';
 
 abstract class BaseModelXcMeta extends BaseRender {
   protected abstract _getAbstractType(column: any): any;

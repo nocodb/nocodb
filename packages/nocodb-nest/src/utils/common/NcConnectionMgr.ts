@@ -1,7 +1,7 @@
 import fs from 'fs';
 import { promisify } from 'util';
 import SqlClientFactory from '../../db/sql-client/lib/SqlClientFactory';
-import { XKnex } from '../../db/sql-data-mapper';
+import { XKnex } from '../../db/CustomKnex';
 import { defaultConnectionConfig } from '../NcConfigFactory';
 // import type { NcConfig } from '../../../interface/config';
 import type { Knex } from 'knex';

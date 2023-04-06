@@ -23,20 +23,50 @@ const GROUP_COL = '__nc_group_id';
 const nanoidv2 = customAlphabet('1234567890abcdefghijklmnopqrstuvwxyz', 14);
 import { v4 as uuidv4 } from 'uuid';
 import { NcError } from '../helpers/catchError';
+import getAst from '../helpers/getAst'
+import NcPluginMgrv2 from '../helpers/NcPluginMgrv2'
+import { _transformSubmittedFormDataForEmail, invokeWebhook } from '../helpers/webhookHelpers'
 import {
   Audit,
   BarcodeColumn,
   Column,
   Filter,
+  FormulaColumn, FormView, GridViewColumn, Hook,
   LinkToAnotherRecordColumn,
-  Model,
+  Model, Project, QrCodeColumn, RollupColumn, SelectOption, Sort,
   View,
-} from '../models';
+} from '../models'
+import formulaQueryBuilderv2 from './formulav2/formulaQueryBuilderv2'
+import genRollupSelectv2 from './genRollupSelectv2'
 import { XcFilter, XcFilterWithAlias } from './sql-data-mapper/lib/BaseModel';
 import { sanitize, unsanitize } from 'src/helpers/sqlSanitize';
 import conditionV2 from './conditionV2';
 import sortV2 from './sortV2';
 import { customValidators } from './util/customValidators';
+import { COMPARISON_OPS, COMPARISON_SUB_OPS, IS_WITHIN_COMPARISON_SUB_OPS } from 'src/models/Filter'
+import formSubmissionEmailTemplate from 'src/utils/common/formSubmissionEmailTemplate';
+
+export async function getViewAndModelByAliasOrId(param: {
+  projectName: string;
+  tableName: string;
+  viewName?: string;
+}) {
+  const project = await Project.getWithInfoByTitleOrId(param.projectName);
+
+  const model = await Model.getByAliasOrId({
+    project_id: project.id,
+    aliasOrId: param.tableName,
+  });
+  const view =
+    param.viewName &&
+    (await View.getByTitleOrId({
+      titleOrId: param.viewName,
+      fk_model_id: model.id,
+    }));
+  if (!model) NcError.notFound('Table not found');
+  return { model, view };
+}
+
 
 async function populatePk(model: Model, insertObj: any) {
   await model.getColumns();
@@ -69,7 +99,7 @@ function checkColumnRequired(
  * @classdesc Base class for models
  */
 class BaseModelSqlv2 {
-  protected dbDriver: XKnex;
+  protected dbDriver: Knex;
   protected model: Model;
   protected viewId: string;
   private _proto: any;

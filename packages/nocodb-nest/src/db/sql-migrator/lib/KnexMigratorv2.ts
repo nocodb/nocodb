@@ -11,7 +11,7 @@ import Project from '../../../models/Project';
 import NcConnectionMgrv2 from '../../../utils/common/NcConnectionMgrv2';
 import Result from '../../util/Result';
 import type Base from '../../../models/Base';
-import type { XKnex } from '../../sql-data-mapper';
+import type { XKnex } from '../../CustomKnex';
 import type { Knex } from 'knex';
 
 const evt = new Emit();

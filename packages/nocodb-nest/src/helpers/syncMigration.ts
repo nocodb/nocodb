@@ -1,12 +1,11 @@
-import Migrator from '../../db/sql-migrator/lib/KnexMigratorv2';
-import type Project from '../../models/Project';
-import type Base from '../../models/Base';
+import KnexMigratorv2 from 'src/db/sql-migrator/lib/KnexMigratorv2';
+import { Base, Project } from '../models';
 
 export default async function syncMigration(project: Project): Promise<void> {
   for (const base of await project.getBases()) {
     try {
       /* create sql-migrator */
-      const migrator = new Migrator(project);
+      const migrator = new KnexMigratorv2(project);
 
       await migrator.init(base);
 
@@ -23,11 +22,11 @@ export default async function syncMigration(project: Project): Promise<void> {
 
 export async function syncBaseMigration(
   project: Project,
-  base: Base
+  base: Base,
 ): Promise<void> {
   try {
     /* create sql-migrator */
-    const migrator = new Migrator(project);
+    const migrator = new KnexMigratorv2(project);
 
     await migrator.init(base);
 

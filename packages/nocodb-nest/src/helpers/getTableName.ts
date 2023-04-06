@@ -1,5 +1,5 @@
 import inflection from 'inflection';
-import type Base from '../../models/Base';
+import type Base from '../models/Base';
 
 export default function getTableNameAlias(
   tableName: string,

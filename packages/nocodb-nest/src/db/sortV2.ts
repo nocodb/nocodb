@@ -1,19 +1,21 @@
 import { RelationTypes, UITypes } from 'nocodb-sdk';
-import Sort from '../../../../models/Sort';
+import { Sort } from '../models';
 import genRollupSelectv2 from './genRollupSelectv2';
 import formulaQueryBuilderv2 from './formulav2/formulaQueryBuilderv2';
-import { sanitize } from './helpers/sanitize';
+import { sanitize } from '../helpers/sqlSanitize';
 import type { Knex } from 'knex';
-import type { XKnex } from '../../index';
-import type LinkToAnotherRecordColumn from '../../../../models/LinkToAnotherRecordColumn';
-import type RollupColumn from '../../../../models/RollupColumn';
-import type LookupColumn from '../../../../models/LookupColumn';
-import type FormulaColumn from '../../../../models/FormulaColumn';
+import type { XKnex } from '../db/CustomKnex';
+import {
+  LinkToAnotherRecordColumn,
+  RollupColumn,
+  LookupColumn,
+  FormulaColumn,
+} from '../models';
 
 export default async function sortV2(
   sortList: Sort[],
   qb: Knex.QueryBuilder,
-  knex: XKnex
+  knex: XKnex,
 ) {
   if (!sortList?.length) {
     return;
@@ -55,7 +57,7 @@ export default async function sortV2(
               null,
               knex,
               model,
-              column
+              column,
             )
           ).builder;
           qb.orderBy(builder, sort.direction || 'asc', nulls);
@@ -85,7 +87,7 @@ export default async function sortV2(
                 `${alias}.${parentColumn.column_name}`,
                 knex.raw(`??`, [
                   `${childModel.table_name}.${childColumn.column_name}`,
-                ])
+                ]),
               );
             }
             let lookupColumn = await lookup.getLookupColumn();
@@ -111,7 +113,7 @@ export default async function sortV2(
               selectQb.join(
                 `${parentModel.table_name} as ${nestedAlias}`,
                 `${nestedAlias}.${parentColumn.column_name}`,
-                `${prevAlias}.${childColumn.column_name}`
+                `${prevAlias}.${childColumn.column_name}`,
               );
 
               lookupColumn = await nestedLookup.getLookupColumn();
@@ -151,7 +153,7 @@ export default async function sortV2(
                     .join(
                       `${parentModel.table_name} as ${nestedAlias}`,
                       `${nestedAlias}.${parentColumn.column_name}`,
-                      `${prevAlias}.${childColumn.column_name}`
+                      `${prevAlias}.${childColumn.column_name}`,
                     )
                     .select(parentModel?.displayValue?.column_name);
                 }
@@ -166,7 +168,7 @@ export default async function sortV2(
                       null,
                       knex,
                       model,
-                      column
+                      column,
                     )
                   ).builder;
 
@@ -206,7 +208,7 @@ export default async function sortV2(
               `${parentModel.table_name}.${parentColumn.column_name}`,
               knex.raw(`??`, [
                 `${childModel.table_name}.${childColumn.column_name}`,
-              ])
+              ]),
             );
 
           qb.orderBy(selectQb, sort.direction || 'asc', nulls);
@@ -218,21 +220,21 @@ export default async function sortV2(
           qb.orderBy(
             sanitize(knex.raw('CONCAT(??)', [column.column_name])),
             sort.direction || 'asc',
-            nulls
+            nulls,
           );
         } else if (clientType === 'mssql') {
           qb.orderBy(
             sanitize(
-              knex.raw('CAST(?? AS VARCHAR(MAX))', [column.column_name])
+              knex.raw('CAST(?? AS VARCHAR(MAX))', [column.column_name]),
             ),
             sort.direction || 'asc',
-            nulls
+            nulls,
           );
         } else {
           qb.orderBy(
             sanitize(column.column_name),
             sort.direction || 'asc',
-            nulls
+            nulls,
           );
         }
         break;
@@ -243,21 +245,21 @@ export default async function sortV2(
           qb.orderBy(
             sanitize(knex.raw('CONCAT(??)', [column.column_name])),
             sort.direction || 'asc',
-            nulls
+            nulls,
           );
         } else if (clientType === 'mssql') {
           qb.orderBy(
             sanitize(
-              knex.raw('CAST(?? AS VARCHAR(MAX))', [column.column_name])
+              knex.raw('CAST(?? AS VARCHAR(MAX))', [column.column_name]),
             ),
             sort.direction || 'asc',
-            nulls
+            nulls,
           );
         } else {
           qb.orderBy(
             sanitize(column.column_name),
             sort.direction || 'asc',
-            nulls
+            nulls,
           );
         }
         break;
@@ -266,7 +268,7 @@ export default async function sortV2(
         qb.orderBy(
           sanitize(column.column_name),
           sort.direction || 'asc',
-          nulls
+          nulls,
         );
         break;
     }

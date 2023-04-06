@@ -120,11 +120,12 @@ test.describe('Create docs project and verify docs UI', () => {
     await dashboard.docs.openedPage.fillTitle({ title: 'New Parent 1' });
 
     await page.reload();
+    await dashboard.docs.openedPage.waitForRender();
 
-    expect(
-      await dashboard.sidebar.docsSidebar.getTitleOfOpenedPage({
-        projectTitle: project.title as any,
-      })
-    ).toBe('New Parent 1');
+    await dashboard.sidebar.docsSidebar.verifyPageInSidebar({
+      title: 'New Parent 1',
+      projectTitle: project.title as any,
+      level: 0,
+    });
   });
 });

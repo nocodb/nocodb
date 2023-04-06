@@ -1,6 +1,6 @@
-import { Global, Injectable } from '@nestjs/common'
-import XcMigrationSource from './migrations/XcMigrationSource'
-import XcMigrationSourcev2 from './migrations/XcMigrationSourcev2'
+import { Global, Inject, Injectable, OnApplicationBootstrap, OnModuleInit } from '@nestjs/common'
+import XcMigrationSource from './migrations/XcMigrationSource';
+import XcMigrationSourcev2 from './migrations/XcMigrationSourcev2';
 import { Connection } from '../connection/connection';
 import { customAlphabet } from 'nanoid';
 
@@ -50,7 +50,6 @@ export enum MetaTable {
   MAP_VIEW_COLUMNS = 'nc_map_view_columns_v2',
   STORE = 'nc_store',
 }
-
 
 export const orderedMetaTables = [
   MetaTable.MODEL_ROLE_VISIBILITY,
@@ -171,13 +170,11 @@ const nanoidv2 = customAlphabet('1234567890abcdefghijklmnopqrstuvwxyz', 14);
 
 @Global()
 @Injectable()
-export class MetaService {
-
-  constructor(private connection: Connection) {
-  }
-
+export class MetaService implements OnApplicationBootstrap {
+  constructor(private connection: Connection) {}
 
   public async metaInit(): Promise<boolean> {
+
     await this.connection.knexInstance.migrate.latest({
       migrationSource: new XcMigrationSource(),
       tableName: 'xc_knex_migrations',
@@ -238,7 +235,7 @@ export class MetaService {
     base_id: string,
     target: string,
     data: any,
-    ignoreIdGeneration?: boolean
+    ignoreIdGeneration?: boolean,
   ): Promise<any> {
     const id = data?.id || this.genNanoid(target);
     const insertObj = {
@@ -253,7 +250,6 @@ export class MetaService {
     await this.knexConnection(target).insert(insertObj);
     return insertObj;
   }
-
 
   private genNanoid(target: string) {
     let prefix;
@@ -345,6 +341,10 @@ export class MetaService {
     }
 
     return `${prefix}${nanoidv2()}`;
+  }
+
+  async onApplicationBootstrap(): Promise<void> {
+    await this.metaInit();
   }
 
 }

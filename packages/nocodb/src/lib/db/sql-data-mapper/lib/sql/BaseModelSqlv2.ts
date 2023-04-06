@@ -1864,7 +1864,7 @@ class BaseModelSqlv2 {
       await this.execAndParse(query);
 
       const newData = await this.readByPk(id);
-      await this.afterUpdate(prevData, newData, trx, cookie);
+      await this.afterUpdate(prevData, newData, trx, cookie, updateObj);
       return newData;
     } catch (e) {
       console.log(e);
@@ -2393,18 +2393,32 @@ class BaseModelSqlv2 {
     prevData: any,
     newData: any,
     _trx: any,
-    req
+    req,
+    updateObj?: Record<string, any>
   ): Promise<void> {
     const id = this._extractPksValues(newData);
-
+    let desc = `Record with ID ${id} has been updated in Table ${this.model.title}.`;
+    if (updateObj) {
+      updateObj = await this.model.mapColumnToAlias(updateObj);
+      for (const k of Object.keys(updateObj)) {
+        const prevValue =
+          typeof prevData[k] === 'object'
+            ? JSON.stringify(prevData[k])
+            : prevData[k];
+        const newValue =
+          typeof newData[k] === 'object'
+            ? JSON.stringify(newData[k])
+            : newData[k];
+        desc += `\n`;
+        desc += `Column "${k}" got changed from "${prevValue}" to "${newValue}"`;
+      }
+    }
     await Audit.insert({
       fk_model_id: this.model.id,
       row_id: id,
       op_type: AuditOperationTypes.DATA,
       op_sub_type: AuditOperationSubTypes.UPDATE,
-      description: DOMPurify.sanitize(
-        `Record with ID ${id} has been updated in Table ${this.model.title}`
-      ),
+      description: DOMPurify.sanitize(desc),
       // details: JSON.stringify(data),
       ip: req?.clientIp,
       user: req?.user?.email,

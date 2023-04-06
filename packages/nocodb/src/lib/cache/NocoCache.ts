@@ -56,8 +56,15 @@ export default class NocoCache {
   public static async getList(
     scope: string,
     subKeys: string[]
-  ): Promise<any[]> {
-    if (this.cacheDisabled) return Promise.resolve([]);
+  ): Promise<{
+    list: any[];
+    isEmptyList: boolean;
+  }> {
+    if (this.cacheDisabled)
+      return Promise.resolve({
+        list: [],
+        isEmptyList: true,
+      });
     return this.client.getList(scope, subKeys);
   }
 

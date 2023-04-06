@@ -16,12 +16,6 @@ declare module '@tiptap/core' {
 export const ExternalContent = Node.create({
   name: 'externalContent',
 
-  defaultOptions: {
-    inline: false,
-    HTMLAttributes: {},
-    type: 'externalContent',
-  },
-
   inline() {
     return this.options.inline
   },

@@ -1,4 +1,4 @@
-import { expect } from '@playwright/test';
+import { expect, Locator } from '@playwright/test';
 import { DocsOpenedPagePage } from '.';
 import BasePage from '../../../Base';
 
@@ -14,16 +14,33 @@ export class TiptapPage extends BasePage {
     return this.openedPage.get().getByTestId('docs-page-content').locator('.ProseMirror');
   }
 
+  private async _click(locator: Locator) {
+    await (await locator.elementHandle()).waitForElementState('stable');
+
+    const box = await (await locator.elementHandle()).boundingBox();
+    return this.rootPage.mouse.click(box.x + box.width / 2, box.y + box.height / 2);
+  }
+
+  private async _hover(locator: Locator) {
+    // await (await locator.elementHandle()).waitForElementState('stable');
+
+    const box = await (await locator.elementHandle()).boundingBox();
+    await this.rootPage.mouse.move(box.x + box.width / 2, box.y + box.height / 2);
+  }
+
   async openCommandMenu({ index }: { index?: number } = {}) {
-    if (index) {
-      const paragraph = this.get()
+    let paragraph;
+    if (index !== undefined) {
+      paragraph = this.get()
         .locator(`.draggable-block-wrapper:nth-child(${index + 1})`)
         .locator('p:nth-child(1)');
-      await paragraph.click();
     } else {
-      const paragraph = this.get().locator('.draggable-block-wrapper:last-child').locator('p:nth-child(1)');
-      await paragraph.click();
+      paragraph = this.get().locator('.draggable-block-wrapper:last-child').locator('p:nth-child(1)');
     }
+    await this._click(paragraph);
+
+    await this.rootPage.waitForTimeout(400);
+
     await this.rootPage.keyboard.press('/');
 
     await this.rootPage.locator('.nc-docs-command-list').waitFor({ state: 'visible' });
@@ -46,7 +63,7 @@ export class TiptapPage extends BasePage {
     if (type === 'Image') {
       await this.attachFile({
         filePath: [filePath],
-        filePickUIAction: this.rootPage.getByTestId(`nc-docs-command-list-item-${type}`).click(),
+        filePickUIAction: this._click(this.rootPage.getByTestId(`nc-docs-command-list-item-${type}`)),
       });
 
       return;
@@ -93,7 +110,7 @@ export class TiptapPage extends BasePage {
   }
 
   async clickBackButtonLinkCommandMenu() {
-    await this.rootPage.getByTestId('nc-docs-command-list-link-back-btn').click();
+    await this._click(this.rootPage.getByTestId('nc-docs-command-list-link-back-btn'));
   }
 
   async verifyCommandMenuOpened({ isVisible }: { isVisible: boolean }) {
@@ -208,6 +225,7 @@ export class TiptapPage extends BasePage {
     isUploading?: boolean;
     placeholder?: string;
   }) {
+    type = type || 'Paragraph';
     const node = this.get().locator(`.draggable-block-wrapper:nth-child(${index + 1})`);
 
     if (type === 'Embed iframe') {
@@ -335,33 +353,30 @@ export class TiptapPage extends BasePage {
         .locator(`.tiptap-create-row-btn`);
 
       await addNewRowButton.hover();
-      await addNewRowButton.click();
+      await this._click(addNewRowButton);
 
       return;
     }
 
-    await this.get()
+    const rowLocator = this.get()
       .locator(`.draggable-block-wrapper:nth-child(${index + 1})`)
       .locator(`.node-view-drag-content`)
-      .locator(`tr:nth-child(${rowIndex + 1})`)
-      .hover();
+      .locator(`tr:nth-child(${rowIndex + 1})`);
+    await this._hover(rowLocator);
 
-    await this.get()
+    const rowDragHandle = this.get()
       .locator(`.draggable-block-wrapper:nth-child(${index + 1})`)
       .locator(`.node-view-drag-content`)
       .locator(`tr:nth-child(${rowIndex + 1})`)
-      .getByTestId('nc-docs-table-row-drag-handle-wrapper')
-      .click({
-        force: true,
-      });
-    await this.get()
+      .getByTestId('nc-docs-table-row-drag-handle-wrapper');
+    await this._click(rowDragHandle);
+
+    const insertRowLocator = this.get()
       .locator(`.draggable-block-wrapper:nth-child(${index + 1})`)
       .locator(`.node-view-drag-content`)
       .locator(`tr:nth-child(${rowIndex + 1})`)
-      .getByTestId(kind === 'above' ? 'nc-docs-table-row-insert-above' : 'nc-docs-table-row-insert-below')
-      .click({
-        force: true,
-      });
+      .getByTestId(kind === 'above' ? 'nc-docs-table-row-insert-above' : 'nc-docs-table-row-insert-below');
+    await this._click(insertRowLocator);
   }
 
   async addTableColumn({
@@ -412,56 +427,56 @@ export class TiptapPage extends BasePage {
   }
 
   async deleteTableRow({ index, rowIndex }: { index: number; rowIndex?: number }) {
-    await this.get()
-      .locator(`.draggable-block-wrapper:nth-child(${index + 1})`)
-      .locator(`.node-view-drag-content`)
-      .locator(`tr:nth-child(${rowIndex + 1})`)
-      .hover();
+    await this._hover(
+      this.get()
+        .locator(`.draggable-block-wrapper:nth-child(${index + 1})`)
+        .locator(`.node-view-drag-content`)
+        .locator(`tr:nth-child(${rowIndex + 1})`)
+    );
 
-    await this.get()
-      .locator(`.draggable-block-wrapper:nth-child(${index + 1})`)
-      .locator(`.node-view-drag-content`)
-      .locator(`tr:nth-child(${rowIndex + 1})`)
-      .getByTestId('nc-docs-table-row-drag-handle-wrapper')
-      .click({
-        force: true,
-      });
-    await this.get()
-      .locator(`.draggable-block-wrapper:nth-child(${index + 1})`)
-      .locator(`.node-view-drag-content`)
-      .locator(`tr:nth-child(${rowIndex + 1})`)
-      .getByTestId('nc-docs-table-row-delete')
-      .click({
-        force: true,
-      });
+    await this._click(
+      this.get()
+        .locator(`.draggable-block-wrapper:nth-child(${index + 1})`)
+        .locator(`.node-view-drag-content`)
+        .locator(`tr:nth-child(${rowIndex + 1})`)
+        .getByTestId('nc-docs-table-row-drag-handle-wrapper')
+    );
+
+    await this._click(
+      this.get()
+        .locator(`.draggable-block-wrapper:nth-child(${index + 1})`)
+        .locator(`.node-view-drag-content`)
+        .locator(`tr:nth-child(${rowIndex + 1})`)
+        .getByTestId('nc-docs-table-row-delete')
+    );
   }
 
   async deleteTableColumn({ index, columnIndex }: { index: number; columnIndex?: number }) {
-    await this.get()
-      .locator(`.draggable-block-wrapper:nth-child(${index + 1})`)
-      .locator(`.node-view-drag-content`)
-      .locator(`tr:nth-child(1)`)
-      .locator(`td:nth-child(${columnIndex + 1})`)
-      .hover();
+    await this._hover(
+      this.get()
+        .locator(`.draggable-block-wrapper:nth-child(${index + 1})`)
+        .locator(`.node-view-drag-content`)
+        .locator(`tr:nth-child(1)`)
+        .locator(`td:nth-child(${columnIndex + 1})`)
+    );
 
-    await this.get()
-      .locator(`.draggable-block-wrapper:nth-child(${index + 1})`)
-      .locator(`.node-view-drag-content`)
-      .locator(`tr:nth-child(1)`)
-      .locator(`td:nth-child(${columnIndex + 1})`)
-      .getByTestId('nc-docs-table-column-drag-handle-wrapper')
-      .click({
-        force: true,
-      });
-    await this.get()
-      .locator(`.draggable-block-wrapper:nth-child(${index + 1})`)
-      .locator(`.node-view-drag-content`)
-      .locator(`tr:nth-child(1)`)
-      .locator(`td:nth-child(${columnIndex + 1})`)
-      .getByTestId('nc-docs-table-column-delete')
-      .click({
-        force: true,
-      });
+    await this._click(
+      this.get()
+        .locator(`.draggable-block-wrapper:nth-child(${index + 1})`)
+        .locator(`.node-view-drag-content`)
+        .locator(`tr:nth-child(1)`)
+        .locator(`td:nth-child(${columnIndex + 1})`)
+        .getByTestId('nc-docs-table-column-drag-handle-wrapper')
+    );
+
+    await this._click(
+      this.get()
+        .locator(`.draggable-block-wrapper:nth-child(${index + 1})`)
+        .locator(`.node-view-drag-content`)
+        .locator(`tr:nth-child(1)`)
+        .locator(`td:nth-child(${columnIndex + 1})`)
+        .getByTestId('nc-docs-table-column-delete')
+    );
   }
 
   async verifyTableNode({

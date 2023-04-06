@@ -50,9 +50,11 @@ export class DocsSidebarPage extends BasePage {
 
     if (title) {
       await this.sidebar.dashboard.docs.openedPage.fillTitle({ title });
+      await this.rootPage.waitForTimeout(400);
     }
     if (content) {
       await this.sidebar.dashboard.docs.openedPage.tiptap.fillContent({ content });
+      await this.rootPage.waitForTimeout(400);
     }
   }
 

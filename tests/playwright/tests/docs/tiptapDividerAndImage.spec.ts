@@ -74,6 +74,14 @@ test.describe('Tiptap:Divider and Image', () => {
   });
 
   test('Tiptap:Image', async ({ page }) => {
+    const client = await page.context().newCDPSession(page);
+    await client.send('Network.emulateNetworkConditions', {
+      offline: false,
+      downloadThroughput: (1000 * 1024 * 1024) / 8,
+      uploadThroughput: (30 * 1024 * 1024) / 8,
+      latency: 70,
+    });
+
     const openedPage = await dashboard.docs.openedPage;
     await dashboard.sidebar.docsSidebar.createPage({
       projectTitle: project.title as any,

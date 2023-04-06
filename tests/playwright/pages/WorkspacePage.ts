@@ -29,6 +29,9 @@ export class WorkspacePage extends BasePage {
         hasText: title,
       })
       .click();
+
+    // TODO: Remove this timeout
+    await this.rootPage.waitForTimeout(1500);
   }
 
   async verifyWorkspaceCount({ count }: { count: number }) {

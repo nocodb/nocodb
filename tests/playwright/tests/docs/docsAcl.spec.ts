@@ -98,6 +98,8 @@ test.describe('Docs ACL', () => {
       password: 'password123.',
     });
 
+    await newPage.waitForTimeout(1000);
+
     await workspace.selectProject({ title: project.title as any });
 
     const newDashboard = new DashboardPage(newPage, project);

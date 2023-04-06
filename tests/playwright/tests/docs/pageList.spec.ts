@@ -40,6 +40,8 @@ test.describe('Docs page list', () => {
       title: project.title as any,
     });
 
+    await page.waitForTimeout(1000);
+
     await dashboard.docs.pagesList.verifyPageInList({
       title: 'page-2',
       tab: 'all',

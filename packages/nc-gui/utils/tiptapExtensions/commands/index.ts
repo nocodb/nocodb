@@ -2,7 +2,7 @@ import { Extension } from '@tiptap/core'
 import Suggestion from './extension'
 
 export default Extension.create({
-  name: 'commands',
+  name: 'commandsTiptap',
 
   addOptions() {
     return {

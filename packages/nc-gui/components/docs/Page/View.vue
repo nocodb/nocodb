@@ -150,7 +150,7 @@ watchDebounced(
       <div class="flex flex-col w-full">
         <div class="flex flex-row justify-between items-center pl-6 pt-2.5">
           <div class="flex flex-row h-6">
-            <template v-if="flattenedNestedPages.length !== 1">
+            <template v-if="flattenedNestedPages.length !== 0">
               <div v-for="({ href, title, icon, id }, index) of breadCrumbs" :key="id" class="flex">
                 <NuxtLink
                   class="text-sm !hover:text-black docs-breadcrumb-item !underline-transparent"
@@ -159,6 +159,7 @@ watchDebounced(
                     '!text-gray-600 ': index === breadCrumbs.length - 1,
                     '!text-gray-400 ': index !== breadCrumbs.length - 1,
                   }"
+                  :data-testid="`nc-doc-page-breadcrumb-${index}`"
                 >
                   <div class="flex flex-row items-center gap-x-1.5">
                     <IconifyIcon

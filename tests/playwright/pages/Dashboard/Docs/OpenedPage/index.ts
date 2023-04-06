@@ -112,4 +112,17 @@ export class DocsOpenedPagePage extends BasePage {
       editable ? 'true' : 'false'
     );
   }
+
+  async verifyBreadcrumb({ pages }: { pages: { title: string; emoji?: string }[] }) {
+    for (let index = 0; index < pages.length; index++) {
+      const { title, emoji } = pages[index];
+      await expect(this.get().getByTestId(`nc-doc-page-breadcrumb-${index}`)).toHaveText(title);
+
+      if (emoji) {
+        await expect(
+          this.get().getByTestId(`nc-doc-page-breadcrumb-${index}`).getByTestId(`nc-doc-page-icon-emojione:${emoji}`)
+        ).toBeVisible();
+      }
+    }
+  }
 }

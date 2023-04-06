@@ -15,6 +15,7 @@ test.describe('Create docs project and verify docs UI', () => {
   });
 
   test('Update title page of root and child page and verify', async ({ page }) => {
+    const openedPage = dashboard.docs.openedPage;
     // Page update of root page
     await dashboard.sidebar.docsSidebar.createPage({ projectTitle: project.title as any, title: 'root-page' });
 
@@ -29,6 +30,9 @@ test.describe('Create docs project and verify docs UI', () => {
       title: 'root-page',
       projectTitle: project.title as any,
     });
+
+    await openedPage.verifyTitle({ title: 'root-page' });
+    await openedPage.verifyBreadcrumb({ pages: [{ title: 'root-page' }] });
 
     // Page update of child page
     await dashboard.sidebar.docsSidebar.createChildPage({
@@ -46,6 +50,9 @@ test.describe('Create docs project and verify docs UI', () => {
     await page.reload();
 
     await page.waitForTimeout(1500);
+
+    await openedPage.verifyTitle({ title: 'child-page' });
+    await openedPage.verifyBreadcrumb({ pages: [{ title: 'root-page' }, { title: 'child-page' }] });
 
     await dashboard.sidebar.docsSidebar.verifyPageInSidebar({
       title: 'child-page',
@@ -69,9 +76,13 @@ test.describe('Create docs project and verify docs UI', () => {
       projectTitle: project.title as any,
       level: 1,
     });
+    await openedPage.verifyTitle({ title: 'child-page-1' });
+    await openedPage.verifyBreadcrumb({ pages: [{ title: 'root-page' }, { title: 'child-page-1' }] });
 
     await dashboard.sidebar.docsSidebar.openPage({ title: 'Page', projectTitle: project.title as any });
     await dashboard.docs.openedPage.fillTitle({ title: 'child-page-2' });
+    await openedPage.verifyTitle({ title: 'child-page-2' });
+    await openedPage.verifyBreadcrumb({ pages: [{ title: 'root-page' }, { title: 'child-page-2' }] });
 
     await dashboard.sidebar.docsSidebar.verifyPageInSidebar({
       title: 'child-page-2',
@@ -80,7 +91,8 @@ test.describe('Create docs project and verify docs UI', () => {
     });
   });
 
-  test('Update emoji and content of newly created root page and child page', async () => {
+  test('Update emoji and content of newly created root page and child page', async ({ page }) => {
+    const openedPage = dashboard.docs.openedPage;
     // root page
     await dashboard.sidebar.docsSidebar.createPage({ projectTitle: project.title as any, title: 'root-page' });
     await dashboard.docs.openedPage.verifyOpenedPageVisible();
@@ -96,6 +108,7 @@ test.describe('Create docs project and verify docs UI', () => {
       title: 'root-page',
     });
     await dashboard.docs.openedPage.verifyTitleEmoji({ emoji: 'hot-dog' });
+    await openedPage.verifyBreadcrumb({ pages: [{ title: 'root-page', emoji: 'hot-dog' }] });
 
     await dashboard.docs.openedPage.selectEmoji({ emoji: 'rolling-on-the-floor-laughing' });
     await dashboard.docs.openedPage.verifyTitleEmoji({ emoji: 'rolling-on-the-floor-laughing' });
@@ -104,11 +117,13 @@ test.describe('Create docs project and verify docs UI', () => {
       projectTitle: project.title as any,
       title: 'root-page',
     });
+    await openedPage.verifyBreadcrumb({ pages: [{ title: 'root-page', emoji: 'rolling-on-the-floor-laughing' }] });
 
     await dashboard.docs.openedPage.fillTitle({ title: 'root-page-1' });
     await dashboard.docs.openedPage.tiptap.fillContent({ content: 'root-page-1-content' });
     await dashboard.docs.openedPage.tiptap.verifyContent({ content: 'root-page-1-content' });
 
+    await openedPage.verifyBreadcrumb({ pages: [{ title: 'root-page-1', emoji: 'rolling-on-the-floor-laughing' }] });
     await dashboard.sidebar.docsSidebar.verifyPageInSidebar({
       title: 'root-page-1',
       projectTitle: project.title as any,
@@ -124,6 +139,9 @@ test.describe('Create docs project and verify docs UI', () => {
     await dashboard.docs.openedPage.fillTitle({ title: 'child-page-1' });
     await dashboard.docs.openedPage.tiptap.fillContent({ content: 'child-page-1-content' });
     await dashboard.docs.openedPage.tiptap.verifyContent({ content: 'child-page-1-content' });
+    await openedPage.verifyBreadcrumb({
+      pages: [{ title: 'root-page-1', emoji: 'rolling-on-the-floor-laughing' }, { title: 'child-page-1' }],
+    });
 
     await dashboard.sidebar.docsSidebar.selectEmoji({
       emoji: 'hot-dog',
@@ -136,6 +154,12 @@ test.describe('Create docs project and verify docs UI', () => {
       title: 'child-page-1',
     });
     await dashboard.docs.openedPage.verifyTitleEmoji({ emoji: 'hot-dog' });
+    await openedPage.verifyBreadcrumb({
+      pages: [
+        { title: 'root-page-1', emoji: 'rolling-on-the-floor-laughing' },
+        { title: 'child-page-1', emoji: 'hot-dog' },
+      ],
+    });
 
     await dashboard.docs.openedPage.selectEmoji({ emoji: 'rolling-on-the-floor-laughing' });
     await dashboard.docs.openedPage.verifyTitleEmoji({ emoji: 'rolling-on-the-floor-laughing' });
@@ -143,6 +167,12 @@ test.describe('Create docs project and verify docs UI', () => {
       emoji: 'rolling-on-the-floor-laughing',
       projectTitle: project.title as any,
       title: 'child-page-1',
+    });
+    await openedPage.verifyBreadcrumb({
+      pages: [
+        { title: 'root-page-1', emoji: 'rolling-on-the-floor-laughing' },
+        { title: 'child-page-1', emoji: 'rolling-on-the-floor-laughing' },
+      ],
     });
 
     await dashboard.sidebar.docsSidebar.verifyPageInSidebar({

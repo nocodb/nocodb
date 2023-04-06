@@ -17,13 +17,12 @@ const pageSubHeadings = ref<Array<{ type: string; text: string; active: boolean 
 const isFirstTimePopulatingSubHeadings = ref(true)
 
 let lastPageScrollTime = 0
-let topHeaderHeight = 60
 
 // Highlight the active subheading
-const selectActiveSubHeading = () => {
+const selectActiveSubHeading = (event?: Event) => {
   if (pageSubHeadings.value.length === 0) return
 
-  if (Date.now() - lastPageScrollTime < 10) return
+  if (Date.now() - lastPageScrollTime < 10 && event?.type === 'scroll') return
   lastPageScrollTime = Date.now()
 
   const subHeadingDoms = document.querySelectorAll('.ProseMirror [data-tiptap-heading]')
@@ -32,10 +31,7 @@ const selectActiveSubHeading = () => {
     // Filter out subheadings which are below the viewport
     .filter((h) => {
       const subHeadingDomRect = (h as HTMLElement).getBoundingClientRect()
-      return (
-        subHeadingDomRect.top >= 20 &&
-        subHeadingDomRect.bottom <= (window.innerHeight || document.documentElement.clientHeight) / 3
-      )
+      return subHeadingDomRect.bottom <= (window.innerHeight || document.documentElement.clientHeight) / 3
     })
 
     // So we have the subheadings which are above the top header and nearest to the viewport
@@ -98,6 +94,7 @@ watch(
   () => {
     if (wrapperRef) {
       wrapperRef.addEventListener('scroll', selectActiveSubHeading)
+      wrapperRef.addEventListener('resize', selectActiveSubHeading)
     }
   },
   {
@@ -114,7 +111,6 @@ watch(
 )
 
 onMounted(() => {
-  topHeaderHeight = document.querySelector('.nc-header-content')?.clientHeight || 0
   pollPageRendered()
 })
 </script>

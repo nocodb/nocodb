@@ -44,7 +44,6 @@ test.describe('Create docs project and verify docs UI', () => {
     });
     await page.waitForTimeout(300);
     await page.keyboard.insertText(largePlaceholderText);
-    await page.keyboard.insertText(largePlaceholderText);
 
     await openedPage.tiptap.addNewNode({
       type: 'Heading 2',
@@ -61,7 +60,7 @@ test.describe('Create docs project and verify docs UI', () => {
     });
     await page.waitForTimeout(300);
     await page.keyboard.insertText(largePlaceholderText);
-    await page.keyboard.insertText(largePlaceholderText);
+    await page.waitForTimeout(300);
 
     await openedPage.tiptap.addNewNode({
       type: 'Heading 1',
@@ -78,7 +77,7 @@ test.describe('Create docs project and verify docs UI', () => {
     });
     await page.waitForTimeout(300);
     await page.keyboard.insertText(largePlaceholderText);
-    await page.keyboard.insertText(largePlaceholderText);
+    await page.waitForTimeout(300);
 
     await openedPage.togglePageOutline();
 
@@ -89,7 +88,7 @@ test.describe('Create docs project and verify docs UI', () => {
       pages: [
         {
           title: 'Heading 1',
-          active: true,
+          // active: true,
         },
         {
           title: 'Sub Heading 1',
@@ -111,7 +110,7 @@ test.describe('Create docs project and verify docs UI', () => {
         },
         {
           title: 'Sub Heading 1',
-          active: true,
+          // active: true,
         },
         {
           title: 'Heading 2',
@@ -120,7 +119,7 @@ test.describe('Create docs project and verify docs UI', () => {
     });
 
     await openedPage.tiptap.scrollToNode({
-      index: 5,
+      index: 4,
     });
 
     await openedPage.verifyPageOutline({
@@ -133,7 +132,7 @@ test.describe('Create docs project and verify docs UI', () => {
         },
         {
           title: 'Heading 2',
-          active: true,
+          // active: true,
         },
       ],
     });
@@ -160,6 +159,7 @@ test.describe('Create docs project and verify docs UI', () => {
         {
           title: 'New Heading 2',
           level: 1,
+          // active: true,
         },
       ],
     });

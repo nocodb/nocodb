@@ -614,7 +614,8 @@ export default class NcConfigFactory {
         if (!exists) {
           const fd = fs.openSync(dbPath, "w");
           fs.closeSync(fd);
-        }*/
+        }
+        */
   }
 
   public version = '0.6';

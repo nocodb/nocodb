@@ -267,7 +267,7 @@ onMounted(() => {
         <a-tabs v-model:activeKey="activeTabKey" class="!w-full !overflow-y-hidden">
           <a-tab-pane v-for="tab of tabInfo" :key="tab.key">
             <template #tab>
-              <div class="flex flex-row items-center text-xs px-2">
+              <div class="flex flex-row items-center text-xs px-2" :data-testid="`nc-docs-pagelist-tab-button-${tab.key}`">
                 <component :is="tab.icon()" class="mr-2" />
                 <div>
                   {{ tab.title }}
@@ -277,7 +277,7 @@ onMounted(() => {
             <div
               v-if="isOpenedNestedPageLoading"
               data-testid="docs-pagelist-container-loader"
-              :data-testActiveTabKey="`docs-pagelist-tab-${activeTabKey}`"
+              :data-testActiveTabKey="`${activeTabKey}`"
             >
               <div class="flex flex-col mt-64">
                 <a-spin size="large" :indicator="indicator" />
@@ -291,7 +291,7 @@ onMounted(() => {
             <div
               v-else-if="pages.length === 0"
               data-testid="docs-pagelist-container"
-              :data-testActiveTabKey="activeTabKey"
+              :data-testActiveTabKey="tab.key"
               class="h-full flex flex-col justify-center -mt-6"
             >
               <div class="flex flex-col gap-y-3 items-center">
@@ -327,17 +327,20 @@ onMounted(() => {
               v-else
               :key="activeTabKey"
               data-testid="docs-pagelist-container"
-              :data-testActiveTabKey="`docs-pagelist-tab-${activeTabKey}`"
+              :data-testActiveTabKey="tab.key"
               class="h-full overflow-y-auto docs-book-infinite-list"
             >
               <div class="flex flex-col gap-y-4 mt-6 mb-12 px-2">
                 <div
                   v-for="(page, index) of pages"
                   :key="index"
-                  :data-testid="`docs-pagelist-page-${page.id}`"
-                  class="flex flex-row w-full items-center cursor-pointer px-5 mx-1 py-3 rounded-md border-gray-50 border-1 hover:bg-gray-50 shadow-gray-50 shadow-sm"
+                  class="docs-pagelist-page flex flex-row w-full items-center cursor-pointer px-5 mx-1 py-3 rounded-md border-gray-50 border-1 hover:bg-gray-50 shadow-gray-50 shadow-sm"
                 >
-                  <div class="flex flex-col gap-y-2" @click="() => openPage({page, projectId: project.id!})">
+                  <div
+                    class="flex flex-col gap-y-2"
+                    :data-testid="`docs-pagelist-page-${page.title}`"
+                    @click="() => openPage({page, projectId: project.id!})"
+                  >
                     <div style="font-weight: 450; font-size: 0.9rem">
                       {{ page?.title }}
                     </div>

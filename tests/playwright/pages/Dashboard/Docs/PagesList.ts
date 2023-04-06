@@ -25,4 +25,25 @@ export class DocsPageListPage extends BasePage {
   async waitForOpen({ title }: { title: string }) {
     await this.get().locator(`[data-docs-project-title="${title}"]`).waitFor({ state: 'visible' });
   }
+
+  async openTab({ tab }: { tab: 'all' | 'allByTitle' | 'shared' }) {
+    await this.rootPage.getByTestId(`nc-docs-pagelist-tab-button-${tab}`).click();
+  }
+
+  async verifyPageInList({
+    title,
+    index,
+    tab,
+  }: {
+    title: string;
+    index: number;
+    tab: 'all' | 'allByTitle' | 'shared';
+  }) {
+    await expect(
+      this.get()
+        .locator(`[data-testactivetabkey="${tab}"]`)
+        .locator(`.docs-pagelist-page:nth-child(${index + 1})`)
+        .getByTestId(`docs-pagelist-page-${title}`)
+    ).toBeVisible();
+  }
 }

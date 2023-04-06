@@ -33,7 +33,7 @@ export class SidebarPage extends BasePage {
     }
   }
 
-  async openProject({ title, mode = 'standard' }: { title: string; mode?: string }) {
+  async openProject({ title }: { title: string }) {
     await this.get().locator(`.project-title-node`).getByText(title).click();
 
     // TODO: Fix this

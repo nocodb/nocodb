@@ -484,7 +484,7 @@ class PGClient extends KnexClient {
         )
       ).rows?.[0];
 
-      if(!schemaExists) {
+      if (!schemaExists) {
         await this.sqlClient.raw(
           `CREATE SCHEMA IF NOT EXISTS ??  AUTHORIZATION ?? `,
           [schemaName, this.connectionConfig.connection.user]

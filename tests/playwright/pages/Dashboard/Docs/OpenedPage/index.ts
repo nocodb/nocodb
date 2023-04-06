@@ -113,6 +113,31 @@ export class DocsOpenedPagePage extends BasePage {
     );
   }
 
+  async togglePageOutline() {
+    await this.rootPage.getByTestId('docs-page-outline-toggle').click();
+  }
+
+  async verifyPageOutline({ pages }: { pages: { title: string; active?: boolean; level?: number }[] }) {
+    for (let index = 0; index < pages.length; index++) {
+      const { title, active, level } = pages[index];
+      await expect(this.rootPage.getByTestId(`docs-page-outline-subheading-${index}`)).toHaveText(title);
+
+      if (active) {
+        await expect(this.rootPage.getByTestId(`docs-page-outline-subheading-${index}`)).toHaveAttribute(
+          'aria-current',
+          'page'
+        );
+      }
+
+      if (level) {
+        await expect(this.rootPage.getByTestId(`docs-page-outline-subheading-${index}`)).toHaveAttribute(
+          'aria-level',
+          level.toString()
+        );
+      }
+    }
+  }
+
   async verifyBreadcrumb({ pages }: { pages: { title: string; emoji?: string }[] }) {
     for (let index = 0; index < pages.length; index++) {
       const { title, emoji } = pages[index];

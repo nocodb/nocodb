@@ -152,12 +152,15 @@ onMounted(() => {
       :key="index"
       :href="`#${subHeading.text}`"
       class="flex py-1 !hover:text-primary !underline-transparent max-w-full break-all pop-in-animation-med-delay"
+      :data-testid="`docs-page-outline-subheading-${index}`"
       :class="{
         'font-semibold text-primary': subHeading.active,
         '!text-gray-700': !subHeading.active,
         'ml-2.5': subHeading.type === 'h2',
         'ml-5': subHeading.type === 'h3',
       }"
+      :aria-current="subHeading.active ? 'page' : undefined"
+      :aria-level="subHeading.type[1]"
     >
       {{ subHeading.text }}
     </a>

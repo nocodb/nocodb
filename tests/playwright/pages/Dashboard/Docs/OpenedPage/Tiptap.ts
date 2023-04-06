@@ -161,6 +161,12 @@ export class TiptapPage extends BasePage {
     await waitNetwork;
   }
 
+  async scrollToNode({ index }: { index: number }) {
+    await this.get()
+      .locator(`.draggable-block-wrapper:nth-child(${index + 1})`)
+      .scrollIntoViewIfNeeded();
+  }
+
   async clickNode({ index, start }: { index: number; start: boolean }) {
     await this.get()
       .locator(`.draggable-block-wrapper:nth-child(${index + 1})`)

@@ -200,5 +200,24 @@ test.describe('Create docs project and verify docs UI', () => {
     await dashboard.docs.openedPage.tiptap.clearContent();
     await dashboard.docs.openedPage.tiptap.fillContent({ content: 'new-child-page-1-content' });
     await dashboard.docs.openedPage.tiptap.verifyContent({ content: 'new-child-page-1-content' });
+
+    await page.reload();
+
+    await openedPage.waitForRender();
+    await dashboard.docs.openedPage.tiptap.verifyContent({ content: 'new-child-page-1-content' });
+    await dashboard.sidebar.docsSidebar.verifyPageInSidebar({
+      title: 'child-page-1',
+      projectTitle: project.title as any,
+      level: 1,
+      emoji: 'rolling-on-the-floor-laughing',
+    });
+    await openedPage.verifyBreadcrumb({
+      pages: [
+        { title: 'root-page-1', emoji: 'rolling-on-the-floor-laughing' },
+        { title: 'child-page-1', emoji: 'rolling-on-the-floor-laughing' },
+      ],
+    });
+    await openedPage.verifyTitle({ title: 'child-page-1' });
+    await openedPage.verifyTitleEmoji({ emoji: 'rolling-on-the-floor-laughing' });
   });
 });

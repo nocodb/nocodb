@@ -172,7 +172,10 @@ export const useDocStore = defineStore('docStore', () => {
     () => {
       if (!openedPage.value) return
       if (isPublic.value) return
-      if (openedPage.value?.new) return
+      if (openedPage.value?.new) {
+        openedPage.value.icon = openedPageInSidebar.value?.icon
+        return
+      }
 
       openedPage.value = {
         ...openedPage.value,

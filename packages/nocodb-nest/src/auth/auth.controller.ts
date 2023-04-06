@@ -11,18 +11,18 @@ export class CreateUserDto {
 }
 
 
-@Controller('/api/v1/auth/user')
+@Controller()
 export class AuthController {
   constructor(private readonly authService: AuthService) {}
 
   @UseGuards(AuthGuard('local'))
-  @Post('signin')
+  @Post('/api/v1/auth/user/signin')
   async signin(@Request() req) {
     return this.authService.login(req.user);
   }
 
 
-  @Post('signup')
+  @Post('/api/v1/auth/user/signup')
   async signup(@Body() createUserDto: CreateUserDto) {
     const user = await this.authService.signup(createUserDto);
 

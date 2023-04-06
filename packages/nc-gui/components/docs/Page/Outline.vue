@@ -32,25 +32,27 @@ const selectActiveSubHeading = () => {
     // Filter out subheadings which are below the viewport
     .filter((h) => {
       const subHeadingDomRect = (h as HTMLElement).getBoundingClientRect()
-      return subHeadingDomRect.top < window.innerHeight
+      return (
+        subHeadingDomRect.top >= 20 &&
+        subHeadingDomRect.bottom <= (window.innerHeight || document.documentElement.clientHeight) / 3
+      )
     })
-
-    // Filter out the subheadings which are below the top header(nocohub topbar) within 30px below it
-    .filter((h) => (h as HTMLElement).getBoundingClientRect().top - topHeaderHeight - 30 < 0)
 
     // So we have the subheadings which are above the top header and nearest to the viewport
     .sort((a, b) => a.getBoundingClientRect().top - b.getBoundingClientRect().top)
 
   const activeHeading = subHeadingsThatCouldBeActive[subHeadingsThatCouldBeActive.length - 1] as HTMLElement
 
-  pageSubHeadings.value = pageSubHeadings.value.map((subHeading) => {
-    subHeading.active = subHeading.text === activeHeading?.innerText && subHeading.type === activeHeading?.nodeName.toLowerCase()
-    return subHeading
+  const newSubheadings = pageSubHeadings.value.map((subHeading) => {
+    const newSubheading = { ...subHeading }
+    newSubheading.active =
+      subHeading.text === activeHeading?.innerText && subHeading.type === activeHeading?.nodeName.toLowerCase()
+    return newSubheading
   })
 
-  const noPageActive = pageSubHeadings.value.every((subHeading) => !subHeading.active)
-  if (noPageActive) {
-    pageSubHeadings.value[0].active = true
+  const noPageActive = newSubheadings.every((subHeading) => !subHeading.active)
+  if (!noPageActive) {
+    pageSubHeadings.value = newSubheadings
   }
 }
 

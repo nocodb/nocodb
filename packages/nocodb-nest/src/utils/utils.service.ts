@@ -3,6 +3,7 @@ import axios from 'axios';
 import { compareVersions, validate } from 'compare-versions';
 import { NC_ATTACHMENT_FIELD_SIZE } from '../constants';
 import { NcError } from '../helpers/catchError'
+import { User } from '../models'
 import NcConfigFactory from './NcConfigFactory';
 import { packageVersion } from './packageVersion';
 // import { packageVersion } from '../packageVersion';
@@ -57,7 +58,7 @@ interface AllMeta {
 @Injectable()
 export class UtilsService {
   async info() {
-    const projectHasAdmin = false; //!(await User.isFirst());
+    const projectHasAdmin = !(await User.isFirst());
     const result = {
       authType: 'jwt',
       projectHasAdmin,

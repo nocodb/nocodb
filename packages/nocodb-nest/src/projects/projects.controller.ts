@@ -1,17 +1,20 @@
-import { Body, Controller, Delete, Get, Param, Patch, Post, Query } from '@nestjs/common'
+import { Body, Controller, Delete, Get, Param, Patch, Post, Query, Request, UseGuards } from '@nestjs/common'
+import { AuthGuard } from '@nestjs/passport';
 import isDocker from 'is-docker'
 import Noco from '../Noco'
 import { packageVersion } from '../utils/packageVersion'
 import { ProjectsService } from './projects.service';
 
+
+@UseGuards(AuthGuard('jwt'))
 @Controller()
 export class ProjectsController {
   constructor(private readonly projectsService: ProjectsService) {}
 
   @Get('/api/v1/db/meta/projects/')
-  list(@Query() queryParams: Record<string, any>){
+  list(@Query() queryParams: Record<string, any>, @Request() req){
     return this.projectsService.list({
-      user: { id: '1', roles: 'SUPER_ADMIN' },
+      user: req.user,
       query: queryParams
     });
   }
@@ -76,11 +79,10 @@ export class ProjectsController {
   @Post(
   '/api/v1/db/meta/projects'
 )
-  async  projectCreate(@Body() projectBody: Record<string, any>){
+  async  projectCreate(@Body() projectBody: Record<string, any>, @Request() req){
     const project = await this.projectsService.projectCreate({
       project: projectBody,
-      // todo: user
-      // user: req['user'],
+      user: req['user'],
     });
 
     return project;

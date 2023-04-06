@@ -44,7 +44,7 @@ export default class RedisCacheMgr extends CacheMgr {
   async get(key: string, type: string, config?: any): Promise<any> {
     log(`RedisCacheMgr::get: getting key ${key} with type ${type}`);
     if (type === CacheGetType.TYPE_ARRAY) {
-      return this.client.smembers(key);
+      return await this.client.smembers(key);
     } else if (type === CacheGetType.TYPE_OBJECT) {
       const res = await this.client.get(key);
       try {
@@ -114,7 +114,13 @@ export default class RedisCacheMgr extends CacheMgr {
     );
   }
 
-  async getList(scope: string, subKeys: string[]): Promise<any[]> {
+  async getList(
+    scope: string,
+    subKeys: string[]
+  ): Promise<{
+    list: any[];
+    isEmptyList: boolean;
+  }> {
     // remove null from arrays
     subKeys = subKeys.filter((k) => k);
     // e.g. key = nc:<orgs>:<scope>:<project_id_1>:<base_id_1>:list
@@ -125,9 +131,17 @@ export default class RedisCacheMgr extends CacheMgr {
     // e.g. arr = ["nc:<orgs>:<scope>:<model_id_1>", "nc:<orgs>:<scope>:<model_id_2>"]
     const arr = (await this.get(key, CacheGetType.TYPE_ARRAY)) || [];
     log(`RedisCacheMgr::getList: getting list with key ${key}`);
-    return Promise.all(
-      arr.map(async (k) => await this.get(k, CacheGetType.TYPE_OBJECT))
-    );
+    let list: any[] = [];
+    const isEmptyList = arr[0] === 'NONE';
+    if (!isEmptyList) {
+      list = await Promise.all(
+        arr.map(async (k) => await this.get(k, CacheGetType.TYPE_OBJECT))
+      );
+    }
+    return {
+      list,
+      isEmptyList,
+    };
   }
 
   async setList(
@@ -144,8 +158,7 @@ export default class RedisCacheMgr extends CacheMgr {
         ? `${this.prefix}:${scope}:list`
         : `${this.prefix}:${scope}:${subListKeys.join(':')}:list`;
     if (!list.length) {
-      log(`RedisCacheMgr::setList: List is empty for ${listKey}. Skipping ...`);
-      return Promise.resolve(true);
+      return this.set(listKey, ['NONE']);
     }
     // fetch existing list
     const listOfGetKeys =

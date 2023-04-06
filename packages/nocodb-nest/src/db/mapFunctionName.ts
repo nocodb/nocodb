@@ -2,7 +2,7 @@ import mssql from './functionMappings/mssql';
 import mysql from './functionMappings/mysql';
 import pg from './functionMappings/pg';
 import sqlite from './functionMappings/sqlite';
-import type { XKnex } from '../../index';
+import type { XKnex } from '../db/CustomKnex';
 import type { Knex } from 'knex';
 
 export interface MapFnArgs {

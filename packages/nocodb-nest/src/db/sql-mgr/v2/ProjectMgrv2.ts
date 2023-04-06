@@ -1,6 +1,6 @@
 import SqlMgrv2 from './SqlMgrv2';
 import SqlMgrv2Trans from './SqlMgrv2Trans';
-import type NcMetaIO from '../../../meta/NcMetaIO';
+// import type NcMetaIO from '../../../meta/NcMetaIO';
 import type Base from '../../../models/Base';
 
 export default class ProjectMgrv2 {
@@ -17,7 +17,8 @@ export default class ProjectMgrv2 {
 
   public static async getSqlMgrTrans(
     project: { id: string },
-    ncMeta: NcMetaIO,
+    // todo: tobe changed
+    ncMeta: any,
     base: Base
   ): Promise<SqlMgrv2Trans> {
     const sqlMgr = new SqlMgrv2Trans(project, ncMeta, base);

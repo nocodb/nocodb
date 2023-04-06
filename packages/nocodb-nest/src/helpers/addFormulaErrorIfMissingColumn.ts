@@ -1,5 +1,5 @@
 import jsep from 'jsep';
-import type FormulaColumn from '../../models/FormulaColumn';
+import type FormulaColumn from '../models/FormulaColumn';
 
 export default function addFormulaErrorIfMissingColumn({
   formula,

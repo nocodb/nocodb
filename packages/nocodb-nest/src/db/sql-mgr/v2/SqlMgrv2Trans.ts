@@ -3,12 +3,12 @@ import KnexMigratorv2Tans from '../../sql-migrator/lib/KnexMigratorv2Tans';
 import SqlMgrv2 from './SqlMgrv2';
 import type Base from '../../../models/Base';
 import type { Knex } from 'knex';
-import type { XKnex } from '../../sql-data-mapper';
-import type NcMetaIO from '../../../meta/NcMetaIO';
+import type { XKnex } from '../../CustomKnex';
 
 export default class SqlMgrv2Trans extends SqlMgrv2 {
   protected trx: Knex.Transaction;
-  protected ncMeta: NcMetaIO;
+  // todo: tobe changed
+  protected ncMeta: any // NcMetaIO;
   protected projectId: string;
   protected base: Base;
 
@@ -18,7 +18,8 @@ export default class SqlMgrv2Trans extends SqlMgrv2 {
    * @param {String} args.toolDbPath - path to sqlite file that sql mgr will use
    * @memberof SqlMgr
    */
-  constructor(args: { id: string }, ncMeta: NcMetaIO, base: Base) {
+  // todo: tobe changed
+  constructor(args: { id: string }, ncMeta: any, base: Base) {
     super(args);
     this.projectId = args.id;
     this.ncMeta = ncMeta;

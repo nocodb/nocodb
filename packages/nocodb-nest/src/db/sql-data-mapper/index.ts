@@ -1,5 +1,5 @@
-import XKnex, { Knex } from './lib/sql/CustomKnex';
-
+// import XKnex, { Knex } from './lib/sql/CustomKnex';
+//
 export { DbFactory } from './lib/DbFactory';
-export { BaseModelSql } from './lib/sql/BaseModelSql';
-export { XKnex, Knex };
+// export { BaseModelSql } from './lib/sql/BaseModelSql';
+// export { XKnex, Knex };

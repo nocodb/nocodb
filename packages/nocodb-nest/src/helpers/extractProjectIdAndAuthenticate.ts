@@ -1,15 +1,18 @@
 import { promisify } from 'util';
 import passport from 'passport';
-import Model from '../../models/Model';
-import View from '../../models/View';
-import Hook from '../../models/Hook';
-import GridViewColumn from '../../models/GridViewColumn';
-import FormViewColumn from '../../models/FormViewColumn';
-import GalleryViewColumn from '../../models/GalleryViewColumn';
-import Project from '../../models/Project';
-import Column from '../../models/Column';
-import Filter from '../../models/Filter';
-import Sort from '../../models/Sort';
+
+import {
+  Model,
+  View,
+  Hook,
+  GridViewColumn,
+  FormViewColumn,
+  GalleryViewColumn,
+  Project,
+  Column,
+  Filter,
+  Sort,
+} from '../models';
 
 export default async (req, res, next) => {
   try {
@@ -48,7 +51,7 @@ export default async (req, res, next) => {
         params.formViewId ||
           params.gridViewId ||
           params.kanbanViewId ||
-          params.galleryViewId
+          params.galleryViewId,
       );
       req.ncProjectId = view?.project_id;
     } else if (params.publicDataUuid) {
@@ -65,7 +68,7 @@ export default async (req, res, next) => {
       req.ncProjectId = formViewColumn?.project_id;
     } else if (params.galleryViewColumnId) {
       const galleryViewColumn = await GalleryViewColumn.get(
-        params.galleryViewColumnId
+        params.galleryViewColumnId,
       );
       req.ncProjectId = galleryViewColumn?.project_id;
     } else if (params.columnId) {
@@ -106,7 +109,7 @@ export default async (req, res, next) => {
             {
               session: false,
               optional: false,
-            },
+            } as any,
             (_err, user, _info) => {
               // if (_err) return reject(_err);
               if (user) {
@@ -118,7 +121,7 @@ export default async (req, res, next) => {
               } else {
                 resolve({ roles: 'guest' });
               }
-            }
+            },
           )(req, res, next);
         } else if (req.headers['xc-shared-base-id']) {
           passport.authenticate('baseView', {}, (_err, user, _info) => {

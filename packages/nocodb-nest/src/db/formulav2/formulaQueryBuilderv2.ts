@@ -2,16 +2,16 @@ import jsep from 'jsep';
 import { jsepCurlyHook, UITypes } from 'nocodb-sdk';
 import mapFunctionName from '../mapFunctionName';
 import genRollupSelectv2 from '../genRollupSelectv2';
-import FormulaColumn from '../../../../../models/FormulaColumn';
-import { validateDateWithUnknownFormat } from '../helpers/formulaFnHelper';
-import { CacheGetType, CacheScope } from '../../../../../utils/globals';
-import NocoCache from '../../../../../cache/NocoCache';
-import type Model from '../../../../../models/Model';
-import type Column from '../../../../../models/Column';
-import type RollupColumn from '../../../../../models/RollupColumn';
-import type { XKnex } from '../../../index';
-import type LinkToAnotherRecordColumn from '../../../../../models/LinkToAnotherRecordColumn';
-import type LookupColumn from '../../../../../models/LookupColumn';
+import FormulaColumn from '../../models/FormulaColumn';
+import { validateDateWithUnknownFormat } from '../../helpers/formulaFnHelper';
+import { CacheGetType, CacheScope } from '../../utils/globals';
+import NocoCache from '../../cache/NocoCache';
+import type Model from '../../models/Model';
+import type Column from '../../models/Column';
+import type RollupColumn from '../../models/RollupColumn';
+import type LinkToAnotherRecordColumn from '../../models/LinkToAnotherRecordColumn';
+import type LookupColumn from '../../models/LookupColumn';
+import { XKnex } from '../CustomKnex';
 
 // todo: switch function based on database
 

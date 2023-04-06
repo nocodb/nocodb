@@ -1,7 +1,7 @@
 import { RelationTypes } from 'nocodb-sdk';
-import type RollupColumn from '../../../../models/RollupColumn';
-import type { XKnex } from '../../index';
-import type LinkToAnotherRecordColumn from '../../../../models/LinkToAnotherRecordColumn';
+import type { RollupColumn } from '../models';
+import type { XKnex } from '../db/CustomKnex';
+import type { LinkToAnotherRecordColumn } from '../models';
 import type { Knex } from 'knex';
 
 export default async function ({

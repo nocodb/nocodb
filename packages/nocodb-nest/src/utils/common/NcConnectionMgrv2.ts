@@ -1,5 +1,5 @@
 import SqlClientFactory from '../../db/sql-client/lib/SqlClientFactory';
-import { XKnex } from '../../db/sql-data-mapper';
+import { XKnex } from '../../db/CustomKnex';
 import {
   defaultConnectionConfig,
   defaultConnectionOptions,

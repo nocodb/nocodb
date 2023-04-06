@@ -37,6 +37,7 @@ export default class Twilio {
         });
       } catch (e) {
         console.log(e);
+        throw e;
       }
     }
   }

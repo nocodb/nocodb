@@ -238,7 +238,7 @@
     "action": "操作",
     "actions": "操作",
     "operation": "操作",
-    "operationSub": "Sub Operation",
+    "operationSub": "子操作",
     "operationType": "操作类型",
     "operationSubType": "子操作类型",
     "description": "描述",
@@ -471,11 +471,11 @@
     },
     "map": {
       "mappedBy": "Mapped By",
-      "chooseMappingField": "Choose a Mapping Field",
+      "chooseMappingField": "选择映射字段",
       "openInGoogleMaps": "谷歌地图",
       "openInOpenStreetMap": "OSM"
     },
-    "toggleMobileMode": "Toggle Mobile Mode"
+    "toggleMobileMode": "切换移动模式"
   },
   "tooltip": {
     "saveChanges": "保存更改",
@@ -779,7 +779,7 @@
       "userDeletedFromProject": "踢出用户成功",
       "inviteEmailSent": "邀请邮件发送成功",
       "inviteURLCopied": "邀请URL已复制到剪贴板",
-      "commentCopied": "Comment copied to clipboard",
+      "commentCopied": "已复制评论到剪贴板",
       "passwordResetURLCopied": "密码重置网址已复制到剪贴板",
       "shareableURLCopied": "已将可共享的基础URL复制到剪贴板！",
       "embeddableHTMLCodeCopied": "已复制可嵌入的 HTML 代码！",

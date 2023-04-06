@@ -474,17 +474,22 @@ class PGClient extends KnexClient {
         ]);
       }
 
-      // if (this.connectionConfig.searchPath && this.connectionConfig.searchPath[0]) {
-      await this.sqlClient.raw(
-        ` CREATE SCHEMA IF NOT EXISTS ??  AUTHORIZATION ?? `,
-        [
-          (this.connectionConfig.searchPath &&
-            this.connectionConfig.searchPath[0]) ||
-            'public',
-          this.connectionConfig.connection.user,
-        ]
-      );
-      // }
+      const schemaName = this.connectionConfig.searchPath?.[0] || 'public';
+
+      // Check schemaExists because `CREATE SCHEMA IF NOT EXISTS` requires permissions of `CREATE ON DATABASE`
+      const schemaExists = !!(
+        await this.sqlClient.raw(
+          `SELECT schema_name FROM information_schema.schemata WHERE schema_name = ?`,
+          [schemaName]
+        )
+      ).rows?.[0];
+
+      if (!schemaExists) {
+        await this.sqlClient.raw(
+          `CREATE SCHEMA IF NOT EXISTS ??  AUTHORIZATION ?? `,
+          [schemaName, this.connectionConfig.connection.user]
+        );
+      }
 
       // this.sqlClient = knex(this.connectionConfig);
     } catch (e) {

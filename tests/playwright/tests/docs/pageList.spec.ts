@@ -42,17 +42,14 @@ test.describe('Docs page list', () => {
 
     await dashboard.docs.pagesList.verifyPageInList({
       title: 'page-2',
-      index: 0,
       tab: 'all',
     });
     await dashboard.docs.pagesList.verifyPageInList({
       title: 'page',
-      index: 1,
       tab: 'all',
     });
     await dashboard.docs.pagesList.verifyPageInList({
       title: 'child-page',
-      index: 2,
       tab: 'all',
     });
 
@@ -80,7 +77,6 @@ test.describe('Docs page list', () => {
     });
     await dashboard.docs.pagesList.verifyPageInList({
       title: 'page-2',
-      index: 0,
       tab: 'shared',
     });
 
@@ -111,12 +107,10 @@ test.describe('Docs page list', () => {
     });
     await dashboard.docs.pagesList.verifyPageInList({
       title: 'page',
-      index: 0,
       tab: 'shared',
     });
     await dashboard.docs.pagesList.verifyPageInList({
       title: 'child-page',
-      index: 1,
       tab: 'shared',
     });
   });

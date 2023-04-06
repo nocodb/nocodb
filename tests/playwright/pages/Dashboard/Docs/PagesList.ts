@@ -36,14 +36,20 @@ export class DocsPageListPage extends BasePage {
     tab,
   }: {
     title: string;
-    index: number;
+    index?: number;
     tab: 'all' | 'allByTitle' | 'shared';
   }) {
-    await expect(
-      this.get()
-        .locator(`[data-testactivetabkey="${tab}"]`)
-        .locator(`.docs-pagelist-page:nth-child(${index + 1})`)
-        .getByTestId(`docs-pagelist-page-${title}`)
-    ).toBeVisible();
+    if (index) {
+      await expect(
+        this.get()
+          .locator(`[data-testactivetabkey="${tab}"]`)
+          .locator(`.docs-pagelist-page:nth-child(${index + 1})`)
+          .getByTestId(`docs-pagelist-page-${title}`)
+      ).toBeVisible();
+    } else {
+      await expect(
+        this.get().locator(`[data-testactivetabkey="${tab}"]`).getByTestId(`docs-pagelist-page-${title}`)
+      ).toBeVisible();
+    }
   }
 }

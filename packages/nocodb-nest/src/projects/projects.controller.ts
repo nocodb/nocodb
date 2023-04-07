@@ -1,11 +1,21 @@
-import { Body, Controller, Delete, Get, Param, Patch, Post, Query, Request, UseGuards } from '@nestjs/common'
+import {
+  Body,
+  Controller,
+  Delete,
+  Get,
+  Param,
+  Patch,
+  Post,
+  Query,
+  Request,
+  UseGuards,
+} from '@nestjs/common';
 import { AuthGuard } from '@nestjs/passport';
-import isDocker from 'is-docker'
-import { ProjectReqType } from 'nocodb-sdk'
-import Noco from '../Noco'
-import { packageVersion } from '../utils/packageVersion'
+import isDocker from 'is-docker';
+import { ProjectReqType } from 'nocodb-sdk';
+import Noco from '../Noco';
+import { packageVersion } from '../utils/packageVersion';
 import { ProjectsService } from './projects.service';
-
 
 @UseGuards(AuthGuard('jwt'))
 @Controller()
@@ -13,10 +23,10 @@ export class ProjectsController {
   constructor(private readonly projectsService: ProjectsService) {}
 
   @Get('/api/v1/db/meta/projects/')
-  list(@Query() queryParams: Record<string, any>, @Request() req){
+  list(@Query() queryParams: Record<string, any>, @Request() req) {
     return this.projectsService.list({
       user: req.user,
-      query: queryParams
+      query: queryParams,
     });
   }
 
@@ -29,15 +39,11 @@ export class ProjectsController {
       Docker: isDocker(),
       RootDB: Noco.getConfig()?.meta?.db?.client,
       PackageVersion: packageVersion,
-    }
+    };
   }
 
-
-
   @Get('/api/v1/db/meta/projects/:projectId')
-   async  projectGet(
-    @Param('projectId') projectId: string,
-  ) {
+  async projectGet(@Param('projectId') projectId: string) {
     const project = await this.projectsService.getProjectWithInfo({
       projectId: projectId,
     });
@@ -47,11 +53,8 @@ export class ProjectsController {
     return project;
   }
 
-
-  @Patch(
-  '/api/v1/db/meta/projects/:projectId',
-)
-   async  projectUpdate(
+  @Patch('/api/v1/db/meta/projects/:projectId')
+  async projectUpdate(
     @Param('projectId') projectId: string,
     @Body() body: Record<string, any>,
   ) {
@@ -63,24 +66,17 @@ export class ProjectsController {
     return project;
   }
 
-
-  @Delete(
-  '/api/v1/db/meta/projects/:projectId'
-)
-   async  projectDelete(
-     @Param('projectId') projectId: string,
-     ) {
+  @Delete('/api/v1/db/meta/projects/:projectId')
+  async projectDelete(@Param('projectId') projectId: string) {
     const deleted = await this.projectsService.projectSoftDelete({
-      projectId
+      projectId,
     });
 
-    return deleted
+    return deleted;
   }
 
-  @Post(
-  '/api/v1/db/meta/projects'
-)
-  async  projectCreate(@Body() projectBody: ProjectReqType, @Request() req){
+  @Post('/api/v1/db/meta/projects')
+  async projectCreate(@Body() projectBody: ProjectReqType, @Request() req) {
     const project = await this.projectsService.projectCreate({
       project: projectBody,
       user: req['user'],
@@ -88,12 +84,7 @@ export class ProjectsController {
 
     return project;
   }
-
-
-
-
 }
-
 
 /*
 // // Project CRUD
@@ -157,6 +148,3 @@ export default (router) => {
 };
 
 * */
-
-
-

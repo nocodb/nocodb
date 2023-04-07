@@ -1,7 +1,6 @@
 import Ajv from 'ajv';
 import addFormats from 'ajv-formats';
-// @ts-ignore
-import swagger from '../../../../schema/swagger.json';
+import * as swagger from '../schema/swagger.json';
 import { NcError } from '../helpers/catchError';
 import type { ErrorObject } from 'ajv';
 import type { NextFunction, Request, Response } from 'express';
@@ -22,7 +21,7 @@ export const getAjvValidatorMw = (schema) => {
     // Validate the request body against the schema
     const valid = ajv.validate(
       typeof schema === 'string' ? { $ref: schema } : schema,
-      req.body
+      req.body,
     );
 
     // If the request body is valid, call the next middleware
@@ -45,7 +44,7 @@ export const validatePayload = (schema, payload) => {
   // Validate the request body against the schema
   const valid = ajv.validate(
     typeof schema === 'string' ? { $ref: schema } : schema,
-    payload
+    payload,
   );
 
   // If the request body is not valid, throw error

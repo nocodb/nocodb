@@ -94,4 +94,154 @@ test.describe('Tiptap:Keyboard shortcuts and drag and drop', () => {
       content: 'Heading 1 content',
     });
   });
+
+  test('Tiptap:Keyboard shortcuts', async ({ page }) => {
+    const openedPage = await dashboard.docs.openedPage;
+    await dashboard.sidebar.docsSidebar.createPage({
+      projectTitle: project.title as any,
+      title: 'page',
+    });
+
+    await openedPage.tiptap.clickNode({
+      index: 0,
+      start: true,
+    });
+    await page.keyboard.press('Control+Shift+1');
+    await openedPage.tiptap.verifyNode({
+      index: 0,
+      type: 'Heading 1',
+    });
+
+    await page.waitForTimeout(300);
+
+    await openedPage.tiptap.clickNode({
+      index: 0,
+      start: true,
+    });
+    await page.keyboard.press('Control+Shift+2');
+    await openedPage.tiptap.verifyNode({
+      index: 0,
+      type: 'Heading 2',
+    });
+
+    await page.waitForTimeout(300);
+
+    await openedPage.tiptap.clickNode({
+      index: 0,
+      start: true,
+    });
+    await page.keyboard.press('Control+Shift+3');
+    await openedPage.tiptap.verifyNode({
+      index: 0,
+      type: 'Heading 3',
+    });
+
+    await page.waitForTimeout(300);
+    await openedPage.tiptap.clearContent();
+
+    await openedPage.tiptap.fillContent({
+      content: 'Link content',
+      index: 0,
+    });
+    await page.waitForTimeout(300);
+    await openedPage.tiptap.selectNodes({
+      start: 0,
+      end: 0,
+    });
+    await page.waitForTimeout(300);
+
+    await page.keyboard.press('Control+K');
+    await openedPage.tiptap.verifyLinkOptionVisible({
+      visible: true,
+    });
+    await openedPage.tiptap.verifyLinkNode({
+      index: 0,
+      placeholder: 'Link content',
+    });
+    await page.waitForTimeout(300);
+    await page.keyboard.press('Enter');
+    await openedPage.tiptap.clearContent();
+    await page.waitForTimeout(300);
+
+    await openedPage.tiptap.fillContent({
+      content: 'Quote content',
+      index: 0,
+    });
+    await page.waitForTimeout(300);
+    await page.keyboard.press('Meta+]');
+    await openedPage.tiptap.verifyNode({
+      index: 0,
+      type: 'Quote',
+      content: 'Quote content',
+    });
+
+    await openedPage.tiptap.clearContent();
+    await page.waitForTimeout(300);
+
+    await openedPage.tiptap.fillContent({
+      content: 'Code content',
+      index: 0,
+    });
+    await page.waitForTimeout(300);
+    await page.keyboard.press('Alt+Meta+C');
+    await openedPage.tiptap.verifyTextFormatting({
+      index: 0,
+      formatType: 'code',
+      text: 'Code content',
+    });
+
+    await openedPage.tiptap.clearContent();
+
+    await openedPage.tiptap.fillContent({
+      index: 0,
+      content: 'Bullet content',
+    });
+    await page.waitForTimeout(300);
+    await page.keyboard.press('Control+Alt+2');
+    await openedPage.tiptap.verifyNode({
+      index: 0,
+      type: 'Bullet List',
+      content: 'Bullet content',
+    });
+
+    await openedPage.tiptap.clearContent();
+    await page.waitForTimeout(300);
+
+    await openedPage.tiptap.fillContent({
+      index: 0,
+      content: 'Numbered content',
+    });
+    await page.waitForTimeout(300);
+    await page.keyboard.press('Control+Alt+3');
+    await openedPage.tiptap.verifyNode({
+      index: 0,
+      type: 'Numbered List',
+      content: 'Numbered content',
+    });
+
+    await openedPage.tiptap.clearContent();
+    await page.waitForTimeout(300);
+
+    await openedPage.tiptap.fillContent({
+      index: 0,
+      content: 'Todo content',
+    });
+
+    await page.waitForTimeout(300);
+    await page.keyboard.press('Control+Alt+1');
+    await openedPage.tiptap.verifyNode({
+      index: 0,
+      type: 'Task List',
+      content: 'Todo content',
+    });
+
+    await openedPage.tiptap.clearContent();
+    await page.waitForTimeout(300);
+
+    await page.keyboard.press('Control+Shift+H');
+    await openedPage.tiptap.verifyNode({
+      index: 0,
+      type: 'Divider',
+    });
+  });
 });

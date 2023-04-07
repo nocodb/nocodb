@@ -96,7 +96,7 @@ export const Bullet = Node.create<ListOptions>({
             }
           }
 
-          toggleItem(state, chain, toggleListItemInSliceJson)
+          toggleItem(state, chain, toggleListItemInSliceJson, 'bullet')
         },
     } as any
   },

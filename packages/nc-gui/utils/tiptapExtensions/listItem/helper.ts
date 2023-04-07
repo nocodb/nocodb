@@ -223,7 +223,12 @@ export const onEnter = (editor: Editor, nodeType: 'bullet' | 'ordered' | 'task')
   return true
 }
 
-export const toggleItem = (state: EditorState, chain: any, toggleListItemInSliceJson: any) => {
+export const toggleItem = (
+  state: EditorState,
+  chain: any,
+  toggleListItemInSliceJson: any,
+  type: 'ordered' | 'bullet' | 'task',
+) => {
   const { selection } = state
 
   let isDBlockSelected = false
@@ -244,9 +249,15 @@ export const toggleItem = (state: EditorState, chain: any, toggleListItemInSlice
     const sliceJson = slice.toJSON()
 
     // Toggle a bullet under `dblock` nodes in slice
+    let lastItemNode
     for (const node of sliceJson.content) {
       if (node.type === 'dBlock') {
-        toggleListItemInSliceJson(node.content)
+        toggleListItemInSliceJson(node.content, lastItemNode)
+      }
+
+      const firstChildNode = node.content.length > 0 ? node.content[0] : null
+      if (firstChildNode?.type === 'ordered' && type === 'ordered') {
+        lastItemNode = firstChildNode
       }
     }
 

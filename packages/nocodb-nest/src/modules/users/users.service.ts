@@ -1,5 +1,5 @@
 import { Injectable } from '@nestjs/common';
-import { MetaService, MetaTable } from '../meta/meta.service'
+import { MetaService, MetaTable } from '../../meta/meta.service'
 
 @Injectable()
 export class UsersService {

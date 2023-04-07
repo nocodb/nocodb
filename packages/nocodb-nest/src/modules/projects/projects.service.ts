@@ -3,15 +3,15 @@ import * as DOMPurify from 'isomorphic-dompurify';
 import { customAlphabet } from 'nanoid';
 import { ProjectReqType } from 'nocodb-sdk';
 import { promisify } from 'util';
-import { OrgUserRoles, ProjectUpdateReqType } from '../../../nocodb-sdk';
-import { populateMeta, validatePayload } from '../helpers';
-import { NcError } from '../helpers/catchError';
-import { extractPropsAndSanitize } from '../helpers/extractProps';
-import syncMigration from '../helpers/syncMigration';
-import { Project, ProjectUser } from '../models';
+import { OrgUserRoles, ProjectUpdateReqType } from '../../../../nocodb-sdk';
+import { populateMeta, validatePayload } from '../../helpers';
+import { NcError } from '../../helpers/catchError';
+import { extractPropsAndSanitize } from '../../helpers/extractProps';
+import syncMigration from '../../helpers/syncMigration';
+import { Project, ProjectUser } from '../../models';
 import { T } from 'nc-help';
-import Noco from '../Noco';
-import NcConfigFactory from '../utils/NcConfigFactory';
+import Noco from '../../Noco';
+import NcConfigFactory from '../../utils/NcConfigFactory';
 
 const nanoid = customAlphabet('1234567890abcdefghijklmnopqrstuvwxyz_', 4);
 

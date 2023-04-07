@@ -1,11 +1,11 @@
 import { Injectable } from '@nestjs/common';
 import axios from 'axios';
 import { compareVersions, validate } from 'compare-versions';
-import { NC_ATTACHMENT_FIELD_SIZE } from '../constants';
-import { NcError } from '../helpers/catchError'
-import { User } from '../models'
-import NcConfigFactory from './NcConfigFactory';
-import { packageVersion } from './packageVersion';
+import { NC_ATTACHMENT_FIELD_SIZE } from '../../constants';
+import { NcError } from '../../helpers/catchError';
+import { User } from '../../models';
+import NcConfigFactory from '../../utils/NcConfigFactory';
+import { packageVersion } from '../../utils/packageVersion';
 // import { packageVersion } from '../packageVersion';
 
 const versionCache = {

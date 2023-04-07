@@ -7,7 +7,7 @@ import { JwtService } from '@nestjs/jwt';
 import { CreateUserDto } from './auth.controller';
 
 import { v4 as uuidv4 } from 'uuid';
-import { Connection } from '../connection/connection';
+import { Connection } from '../../connection/connection';
 
 @Injectable()
 export class AuthService {

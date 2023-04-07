@@ -244,4 +244,76 @@ test.describe('Tiptap:Keyboard shortcuts and drag and drop', () => {
       type: 'Divider',
     });
   });
+
+  test('Tiptap:Keyboard shortcuts selection', async ({ page }) => {
+    const openedPage = await dashboard.docs.openedPage;
+    await dashboard.sidebar.docsSidebar.createPage({
+      projectTitle: project.title as any,
+      title: 'page',
+    });
+
+    // Cmd + Left
+    await openedPage.tiptap.fillContent({
+      content: 'Content 1',
+    });
+    await openedPage.tiptap.verifyNode({
+      content: 'Content 1',
+      index: 0,
+    });
+
+    await page.keyboard.press('Meta+ArrowLeft');
+
+    // Cmd + Shift + Right
+    await page.waitForTimeout(300);
+    await page.keyboard.press('Shift+Meta+ArrowRight');
+    await page.waitForTimeout(300);
+
+    await page.keyboard.press('Delete');
+    await page.waitForTimeout(300);
+
+    await openedPage.tiptap.fillContent({
+      index: 0,
+      content: 'New Content 1',
+    });
+    await openedPage.tiptap.verifyNode({
+      content: 'New Content 1',
+      index: 0,
+    });
+
+    await page.keyboard.press('Meta+ArrowLeft');
+    await page.waitForTimeout(300);
+
+    // Cmd + Right
+    await page.keyboard.press('Meta+ArrowRight');
+    await page.waitForTimeout(300);
+
+    // Cmd + Shift + Left
+    await page.keyboard.press('Shift+Meta+ArrowLeft');
+    await page.waitForTimeout(300);
+
+    await page.keyboard.press('Delete');
+    await page.waitForTimeout(300);
+
+    await openedPage.tiptap.fillContent({
+      index: 0,
+      content: 'New New Content 1',
+    });
+    await openedPage.tiptap.verifyNode({
+      content: 'New New Content 1',
+      index: 0,
+    });
+
+    // Cmd + Backspace
+    await page.keyboard.press('Meta+Backspace');
+    await page.waitForTimeout(300);
+
+    await openedPage.tiptap.fillContent({
+      index: 0,
+      content: 'New New New Content 1',
+    });
+    await openedPage.tiptap.verifyNode({
+      content: 'New New New Content 1',
+      index: 0,
+    });
+  });
 });

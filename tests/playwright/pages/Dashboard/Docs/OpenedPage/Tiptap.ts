@@ -518,6 +518,23 @@ export class TiptapPage extends BasePage {
     );
   }
 
+  async verifyTextFormatting({
+    index,
+    text,
+    formatType,
+  }: {
+    index: number;
+    text: string;
+    formatType: 'bold' | 'italic' | 'strike' | 'underline';
+  }) {
+    await expect(
+      this.get()
+        .locator(`.draggable-block-wrapper:nth-child(${index + 1})`)
+        .locator(`.node-view-drag-content`)
+        .locator(`${tiptapTextFormatToDomType[formatType]}`)
+    ).toHaveText(text);
+  }
+
   async verifyTableNode({
     index,
     cells,
@@ -711,4 +728,11 @@ const tiptapNodeToDomType: Record<TipTapNodes, string> = {
   'Numbered List': 'div[data-type="ordered"]',
   'Task List': 'div[data-type="task"]',
   Table: 'div.tiptap-table-wrapper',
+};
+
+const tiptapTextFormatToDomType: Record<'bold' | 'italic' | 'underline' | 'strike', string> = {
+  bold: 'strong',
+  italic: 'em',
+  underline: 'u',
+  strike: 's',
 };

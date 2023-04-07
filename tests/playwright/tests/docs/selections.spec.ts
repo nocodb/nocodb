@@ -113,4 +113,100 @@ test.describe('Selection tests', () => {
       index: 1,
     });
   }
+
+  test('Selection tests: Text format (Bold, Italic, Underline, Strike, Link', async ({ page }) => {
+    await dashboard.sidebar.docsSidebar.createPage({ projectTitle: project.title as any, title: 'test-page' });
+    await dashboard.docs.openedPage.verifyOpenedPageVisible();
+
+    const openedPage = dashboard.docs.openedPage;
+
+    await openedPage.tiptap.fillContent({ content: 'test-content 1', index: 0 });
+
+    // TODO: Waits are for headless mode, where text format bar is not visible sometimes
+    const showFormatBar = async () => {
+      await page.waitForTimeout(400);
+      await openedPage.tiptap.selectNodes({ start: 1, end: 1 });
+      await page.waitForTimeout(400);
+      await openedPage.tiptap.selectNodes({ start: 0, end: 0 });
+      await page.waitForTimeout(400);
+    };
+
+    // TODO: Waits are for headless mode, where text format bar is not visible sometimes
+    const clickTextFormatButton = async (type: TextFormatType) => {
+      await showFormatBar();
+      await openedPage.tiptap.clickTextFormatButton(type);
+      await showFormatBar();
+      await page.waitForTimeout(1000);
+    };
+
+    // Bold
+    await clickTextFormatButton('bold');
+
+    await openedPage.tiptap.verifyTextFormatButtonActive({
+      type: 'bold',
+      active: true,
+    });
+    await openedPage.tiptap.verifyTextFormatting({
+      index: 0,
+      text: 'test-content 1',
+      formatType: 'bold',
+    });
+
+    // Italic
+    await clickTextFormatButton('italic');
+
+    await openedPage.tiptap.verifyTextFormatButtonActive({
+      type: 'italic',
+      active: true,
+    });
+    await openedPage.tiptap.verifyTextFormatting({
+      index: 0,
+      text: 'test-content 1',
+      formatType: 'italic',
+    });
+
+    // Underline
+    await clickTextFormatButton('underline');
+
+    await openedPage.tiptap.verifyTextFormatButtonActive({
+      type: 'underline',
+      active: true,
+    });
+    await openedPage.tiptap.verifyTextFormatting({
+      index: 0,
+      text: 'test-content 1',
+      formatType: 'underline',
+    });
+
+    // Strike
+    await clickTextFormatButton('strike');
+
+    await openedPage.tiptap.verifyTextFormatButtonActive({
+      type: 'strike',
+      active: true,
+    });
+    await openedPage.tiptap.verifyTextFormatting({
+      index: 0,
+      text: 'test-content 1',
+      formatType: 'strike',
+    });
+    await page.waitForTimeout(400);
+
+    // Link
+    await openedPage.tiptap.selectNodes({ start: 1, end: 1 });
+    await openedPage.tiptap.selectNodes({ start: 0, end: 0 });
+    await openedPage.tiptap.clickTextFormatButton('link');
+
+    await openedPage.tiptap.verifyLinkOptionVisible({
+      visible: true,
+    });
+    await page.waitForTimeout(400);
+    await page.keyboard.type('https://www.google.com');
+    await page.keyboard.press('Enter');
+    await openedPage.tiptap.verifyLinkNode({
+      index: 0,
+      url: 'https://www.google.com',
+      placeholder: 'test-content 1',
+    });
+  });
 });

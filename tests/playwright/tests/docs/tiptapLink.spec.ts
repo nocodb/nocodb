@@ -74,6 +74,22 @@ test.describe('Docs Link test', () => {
       type: 'Paragraph',
       content: 'link text nl',
     });
+
+    await openedPage.tiptap.clearContent();
+
+    await openedPage.copyToClipboard({ text: link });
+    await page.waitForTimeout(350);
+    await page.keyboard.press('Meta+v');
+
+    await openedPage.tiptap.verifyLinkOptionVisible({
+      visible: true,
+    });
+
+    await openedPage.tiptap.verifyLinkNode({
+      index: 0,
+      url: link,
+      placeholder: link,
+    });
   });
 
   test('Tiptap: Internal Links', async ({ page }) => {

@@ -160,6 +160,32 @@ export class TiptapPage extends BasePage {
     }
   }
 
+  async dragToNode({
+    fromIndex,
+    toIndex,
+    withoutHandle,
+  }: {
+    fromIndex: number;
+    toIndex: number;
+    withoutHandle?: boolean;
+  }) {
+    await this.openedPage.waitForRender();
+
+    const fromLocator = this.get().locator(`.draggable-block-wrapper:nth-child(${fromIndex + 1})`);
+    const toLocator = this.get().locator(`.draggable-block-wrapper:nth-child(${toIndex + 1})`);
+
+    await this._hover(fromLocator);
+    let dragHandle = this.get()
+      .locator(`.draggable-block-wrapper:nth-child(${fromIndex + 1})`)
+      .locator('div[data-drag-handle="true"][tiptap-draghandle="true"]');
+    if (withoutHandle) {
+      dragHandle = fromLocator;
+    }
+
+    await dragHandle.dragTo(toLocator);
+    await this.rootPage.waitForTimeout(200);
+  }
+
   async fillContent({
     content,
     index = 0,

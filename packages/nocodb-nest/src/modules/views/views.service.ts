@@ -1,9 +1,62 @@
 import { Injectable } from '@nestjs/common';
 import { SharedViewReqType, ViewUpdateReqType } from 'nocodb-sdk';
 import { validatePayload } from '../../helpers';
-import { Model, View } from '../../models'
+import { Model, ModelRoleVisibility, View } from '../../models'
 import { T } from 'nc-help';
 import { TablesService } from '../tables/tables.service';
+
+// todo: move
+ async function xcVisibilityMetaGet(param: {
+  projectId: string;
+  includeM2M?: boolean;
+  models?: Model[];
+}) {
+  const { includeM2M = true, projectId, models: _models } = param ?? {};
+
+  // todo: move to
+  const roles = ['owner', 'creator', 'viewer', 'editor', 'commenter', 'guest'];
+
+  const defaultDisabled = roles.reduce((o, r) => ({ ...o, [r]: false }), {});
+
+  let models =
+    _models ||
+    (await Model.list({
+      project_id: projectId,
+      base_id: undefined,
+    }));
+
+  models = includeM2M ? models : (models.filter((t) => !t.mm) as Model[]);
+
+  const result = await models.reduce(async (_obj, model) => {
+    const obj = await _obj;
+
+    const views = await model.getViews();
+    for (const view of views) {
+      obj[view.id] = {
+        ptn: model.table_name,
+        _ptn: model.title,
+        ptype: model.type,
+        tn: view.title,
+        _tn: view.title,
+        table_meta: model.meta,
+        ...view,
+        disabled: { ...defaultDisabled },
+      };
+    }
+
+    return obj;
+  }, Promise.resolve({}));
+
+  const disabledList = await ModelRoleVisibility.list(projectId);
+
+  for (const d of disabledList) {
+    if (result[d.fk_view_id])
+      result[d.fk_view_id].disabled[d.role] = !!d.disabled;
+  }
+
+  return Object.values(result);
+}
+
 
 @Injectable()
 export class ViewsService {
@@ -17,7 +70,7 @@ export class ViewsService {
   }) {
     const model = await Model.get(param.tableId);
 
-    const viewList = await this.tablesService.xcVisibilityMetaGet({
+    const viewList = await xcVisibilityMetaGet({
       projectId: model.project_id,
       models: [model],
     });

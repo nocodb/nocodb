@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { isDrawerOrModalExist, isMac, useNuxtApp } from '#imports'
 
-const { visibility, showShareModal } = useShare()
+const { visibility, showShareModal } = storeToRefs(useShare())
 
 const { $e } = useNuxtApp()
 
@@ -23,7 +23,12 @@ useEventListener(document, 'keydown', async (e: KeyboardEvent) => {
 </script>
 
 <template>
-  <div v-if="visibility !== 'hidden'" class="flex flex-col justify-center h-full mr-1">
+  <div
+    v-if="visibility !== 'hidden'"
+    class="flex flex-col justify-center h-full mr-1"
+    data-testid="share-project-button"
+    :data-sharetype="visibility"
+  >
     <div
       class="flex flex-row items-center gap-x-1.5 bg-primary text-white hover:bg-opacity-80 py-0.75 px-2 rounded-md cursor-pointer"
       :class="{

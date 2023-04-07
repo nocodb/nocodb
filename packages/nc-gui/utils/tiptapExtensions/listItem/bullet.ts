@@ -36,7 +36,7 @@ export const Bullet = Node.create<ListOptions>({
   addAttributes() {
     return {
       level: {
-        default: null,
+        default: 0,
         parseHTML: (element) => element.getAttribute('data-level'),
       },
     }
@@ -96,7 +96,7 @@ export const Bullet = Node.create<ListOptions>({
             }
           }
 
-          toggleItem(state, chain, toggleListItemInSliceJson)
+          toggleItem(state, chain, toggleListItemInSliceJson, 'bullet')
         },
     } as any
   },

@@ -384,7 +384,7 @@ const projectListType = computed(() => {
       </div>
     </template>
 
-    <div class="w-full h-full overflow-auto">
+    <div class="w-full h-full overflow-auto nc-workspace-container">
       <div v-if="activeWorkspace" class="h-full flex flex-col pt-6">
         <div class="px-6 flex items-center">
           <div class="flex gap-2 items-center mb-4">

@@ -17,13 +17,12 @@ const pageSubHeadings = ref<Array<{ type: string; text: string; active: boolean 
 const isFirstTimePopulatingSubHeadings = ref(true)
 
 let lastPageScrollTime = 0
-let topHeaderHeight = 60
 
 // Highlight the active subheading
-const selectActiveSubHeading = () => {
+const selectActiveSubHeading = (event?: Event) => {
   if (pageSubHeadings.value.length === 0) return
 
-  if (Date.now() - lastPageScrollTime < 10) return
+  if (Date.now() - lastPageScrollTime < 10 && event?.type === 'scroll') return
   lastPageScrollTime = Date.now()
 
   const subHeadingDoms = document.querySelectorAll('.ProseMirror [data-tiptap-heading]')
@@ -32,25 +31,24 @@ const selectActiveSubHeading = () => {
     // Filter out subheadings which are below the viewport
     .filter((h) => {
       const subHeadingDomRect = (h as HTMLElement).getBoundingClientRect()
-      return subHeadingDomRect.top < window.innerHeight
+      return subHeadingDomRect.bottom <= (window.innerHeight || document.documentElement.clientHeight) / 3
     })
-
-    // Filter out the subheadings which are below the top header(nocohub topbar) within 30px below it
-    .filter((h) => (h as HTMLElement).getBoundingClientRect().top - topHeaderHeight - 30 < 0)
 
     // So we have the subheadings which are above the top header and nearest to the viewport
     .sort((a, b) => a.getBoundingClientRect().top - b.getBoundingClientRect().top)
 
   const activeHeading = subHeadingsThatCouldBeActive[subHeadingsThatCouldBeActive.length - 1] as HTMLElement
 
-  pageSubHeadings.value = pageSubHeadings.value.map((subHeading) => {
-    subHeading.active = subHeading.text === activeHeading?.innerText && subHeading.type === activeHeading?.nodeName.toLowerCase()
-    return subHeading
+  const newSubheadings = pageSubHeadings.value.map((subHeading) => {
+    const newSubheading = { ...subHeading }
+    newSubheading.active =
+      subHeading.text === activeHeading?.innerText && subHeading.type === activeHeading?.nodeName.toLowerCase()
+    return newSubheading
   })
 
-  const noPageActive = pageSubHeadings.value.every((subHeading) => !subHeading.active)
-  if (noPageActive) {
-    pageSubHeadings.value[0].active = true
+  const noPageActive = newSubheadings.every((subHeading) => !subHeading.active)
+  if (!noPageActive) {
+    pageSubHeadings.value = newSubheadings
   }
 }
 
@@ -96,6 +94,7 @@ watch(
   () => {
     if (wrapperRef) {
       wrapperRef.addEventListener('scroll', selectActiveSubHeading)
+      wrapperRef.addEventListener('resize', selectActiveSubHeading)
     }
   },
   {
@@ -112,7 +111,6 @@ watch(
 )
 
 onMounted(() => {
-  topHeaderHeight = document.querySelector('.nc-header-content')?.clientHeight || 0
   pollPageRendered()
 })
 </script>
@@ -120,11 +118,13 @@ onMounted(() => {
 <template>
   <div class="flex flex-row justify-end cursor-pointer rounded-md">
     <div
+      data-testid="docs-page-outline-toggle"
       class="flex p-1 cursor-pointer rounded-md pop-in-animation-med-delay"
       :class="{
         'bg-gray-100 hover:bg-gray-200': showPageSubHeadings,
         'bg-white hover:bg-gray-100': !showPageSubHeadings,
       }"
+      :aria-expanded="showPageSubHeadings"
       @click="showPageSubHeadings = !showPageSubHeadings"
     >
       <AlignRightIcon />
@@ -136,6 +136,7 @@ onMounted(() => {
       'opacity-0': !showPageSubHeadings,
       'opacity-100': showPageSubHeadings,
     }"
+    data-testid="docs-page-outline-content"
     :style="{
       transition: 'opacity 0.2s ease-in-out',
     }"
@@ -149,12 +150,15 @@ onMounted(() => {
       :key="index"
       :href="`#${subHeading.text}`"
       class="flex py-1 !hover:text-primary !underline-transparent max-w-full break-all pop-in-animation-med-delay"
+      :data-testid="`docs-page-outline-subheading-${index}`"
       :class="{
         'font-semibold text-primary': subHeading.active,
         '!text-gray-700': !subHeading.active,
         'ml-2.5': subHeading.type === 'h2',
         'ml-5': subHeading.type === 'h3',
       }"
+      :aria-current="subHeading.active ? 'page' : undefined"
+      :aria-level="subHeading.type[1]"
     >
       {{ subHeading.text }}
     </a>

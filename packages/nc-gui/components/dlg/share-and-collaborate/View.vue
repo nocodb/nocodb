@@ -9,7 +9,7 @@ const { dashboardUrl } = $(useDashboard())
 const { project } = storeToRefs(useProject())
 const { openedPage, nestedPagesOfProjects } = storeToRefs(useDocStore())
 
-const { formStatus, showShareModal, invitationValid, invitationUsersData } = useShare()
+const { formStatus, showShareModal, invitationValid, invitationUsersData } = storeToRefs(useShare())
 const { inviteUser } = useManageUsers()
 
 const isInvitationLinkCopied = ref(false)
@@ -78,7 +78,12 @@ watch(showShareModal, (val) => {
         </div>
         <div class="flex flex-row mx-3 mt-2.5 pt-3.5 border-t-1 border-gray-100 justify-end gap-x-2">
           <a-button type="text" class="!border-1 !border-gray-200 !rounded-md" @click="showShareModal = false">Close</a-button>
-          <a-button type="text" class="!border-1 !border-gray-200 !rounded-md" @click="copyInvitationLink">
+          <a-button
+            type="text"
+            class="!border-1 !border-gray-200 !rounded-md"
+            data-testid="docs-share-invitation-copy"
+            @click="copyInvitationLink"
+          >
             <div v-if="isInvitationLinkCopied" class="flex flex-row items-center gap-x-1">
               <MdiTick class="h-3.5" />
               Copied invite link
@@ -103,18 +108,18 @@ watch(showShareModal, (val) => {
           <template #header>
             <div class="flex flex-row items-center gap-x-2">
               <PhBook />
-              <div>
+              <div data-testid="docs-share-dlg-share-project">
                 Share Document <span class="ml-2 py-1 px-2 rounded-md bg-gray-100 capitalize">{{ project.title }}</span>
               </div>
             </div>
           </template>
           <ShareProject />
         </a-collapse-panel>
-        <a-collapse-panel key="page" class="share-collapse-item">
+        <a-collapse-panel v-if="page" key="page" class="share-collapse-item">
           <template #header>
             <div class="flex flex-row items-center gap-x-2">
               <IonDocumentOutline />
-              <div>
+              <div data-testid="docs-share-dlg-share-page">
                 Share Page <span class="ml-10.5 py-1 px-2 rounded-md bg-gray-100 capitalize">{{ page.title }}</span>
               </div>
             </div>
@@ -131,7 +136,11 @@ watch(showShareModal, (val) => {
         >
           Cancel
         </a-button>
-        <a-button type="text" class="!border-1 !border-gray-200 !rounded-md" @click="formStatus = 'manageCollaborators'"
+        <a-button
+          data-testid="docs-share-manage-access"
+          type="text"
+          class="!border-1 !border-gray-200 !rounded-md"
+          @click="formStatus = 'manageCollaborators'"
           >Manage project access</a-button
         >
         <a-button
@@ -144,6 +153,7 @@ watch(showShareModal, (val) => {
         </a-button>
         <a-button
           v-if="formStatus === 'project-collaborate'"
+          data-testid="docs-share-btn"
           class="!border-0 !rounded-md"
           type="primary"
           :disabled="!invitationValid"

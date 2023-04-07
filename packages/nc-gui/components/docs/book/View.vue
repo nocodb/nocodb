@@ -3,13 +3,15 @@ import dayjs from 'dayjs'
 import type { Ref } from 'vue'
 // import InfiniteLoading from 'v3-infinite-loading'
 import { Loading3QuartersOutlined } from '@ant-design/icons-vue'
+import { useShortcuts } from '../utils'
 import MdiFileDocumentOutline from '~icons/mdi/file-document-outline'
 import MdiFilterVariant from '~icons/mdi/filter-variant'
 import MaterialSymbolsPublic from '~icons/material-symbols/public'
 import type { PageSidebarNode } from '~composables/docs/useDocs'
 import { storeToRefs, useProject } from '#imports'
 
-const { showShareModal } = useShare()
+useShortcuts()
+const { showShareModal } = storeToRefs(useShare())
 
 const { project } = storeToRefs(useProject())
 
@@ -169,15 +171,28 @@ const onShare = async (page: PageSidebarNode) => {
     showShareModal.value = true
   }, 100)
 }
+
+onMounted(() => {
+  const { addTab } = useTabs()
+
+  addTab({
+    id: project.value.id,
+    title: project.value.title!,
+    type: TabType.DOCUMENT,
+    projectId: project.value.id,
+  })
+})
 </script>
 
 <template>
   <a-layout-content>
-    <div class="flex flex-col mx-20 mt-10.5 px-6">
+    <div class="flex flex-col mx-20 mt-10.5 px-6" data-testid="docs-page-list">
       <div class="flex flex-col h-16">
         <div class="flex flex-row justify-between mt-2 items-center">
           <div class="flex flex-row gap-x-6 items-center">
-            <div class="flex text-4xl font-semibold">{{ project?.title }}</div>
+            <div data-testid="docs-project-title" :data-docs-project-title="project?.title" class="flex text-4xl font-semibold">
+              {{ project?.title }}
+            </div>
             <a-dropdown v-if="isEditAllowed" overlay-class-name="nc-docs-menu" trigger="click">
               <div
                 class="flex flex-row !bg-gray-50 rounded-md hover:( !bg-gray-200 !bg-opacity-60) cursor-pointer select-none p-1.5 h-8 items-center"
@@ -252,24 +267,33 @@ const onShare = async (page: PageSidebarNode) => {
         <a-tabs v-model:activeKey="activeTabKey" class="!w-full !overflow-y-hidden">
           <a-tab-pane v-for="tab of tabInfo" :key="tab.key">
             <template #tab>
-              <div class="flex flex-row items-center text-xs px-2">
+              <div class="flex flex-row items-center text-xs px-2" :data-testid="`nc-docs-pagelist-tab-button-${tab.key}`">
                 <component :is="tab.icon()" class="mr-2" />
                 <div>
                   {{ tab.title }}
                 </div>
               </div>
             </template>
-            <div v-if="isOpenedNestedPageLoading">
+            <div
+              v-if="isOpenedNestedPageLoading"
+              data-testid="docs-pagelist-container-loader"
+              :data-testActiveTabKey="`${activeTabKey}`"
+            >
               <div class="flex flex-col mt-64">
                 <a-spin size="large" :indicator="indicator" />
               </div>
             </div>
-            <div v-else-if="pages.length === 0 && activeTabKey === 'shared'">
+            <div v-else-if="pages.length === 0 && activeTabKey === 'shared'" data-testid="docs-pagelist-container">
               <div class="flex flex-col gap-y-3 items-center mt-56">
                 <div class="flex text-gray-500">You have not shared any pages yet</div>
               </div>
             </div>
-            <div v-else-if="pages.length === 0" class="h-full flex flex-col justify-center -mt-6">
+            <div
+              v-else-if="pages.length === 0"
+              data-testid="docs-pagelist-container"
+              :data-testActiveTabKey="tab.key"
+              class="h-full flex flex-col justify-center -mt-6"
+            >
               <div class="flex flex-col gap-y-3 items-center">
                 <img src="~/assets/img/add-page.svg" class="flex h-12" />
                 <div class="flex text-xl font-semibold">Lets get started!</div>
@@ -299,14 +323,24 @@ const onShare = async (page: PageSidebarNode) => {
                 </div>
               </div>
             </div>
-            <div v-else :key="activeTabKey" class="h-full overflow-y-auto docs-book-infinite-list">
+            <div
+              v-else
+              :key="activeTabKey"
+              data-testid="docs-pagelist-container"
+              :data-testActiveTabKey="tab.key"
+              class="h-full overflow-y-auto docs-book-infinite-list"
+            >
               <div class="flex flex-col gap-y-4 mt-6 mb-12 px-2">
                 <div
                   v-for="(page, index) of pages"
                   :key="index"
-                  class="flex flex-row w-full items-center cursor-pointer px-5 mx-1 py-3 rounded-md border-gray-50 border-1 hover:bg-gray-50 shadow-gray-50 shadow-sm"
+                  class="docs-pagelist-page flex flex-row w-full items-center cursor-pointer px-5 mx-1 py-3 rounded-md border-gray-50 border-1 hover:bg-gray-50 shadow-gray-50 shadow-sm"
                 >
-                  <div class="flex flex-col gap-y-2" @click="() => openPage({page, projectId: project.id!})">
+                  <div
+                    class="flex flex-col gap-y-2"
+                    :data-testid="`docs-pagelist-page-${page.title}`"
+                    @click="() => openPage({page, projectId: project.id!})"
+                  >
                     <div style="font-weight: 450; font-size: 0.9rem">
                       {{ page?.title }}
                     </div>

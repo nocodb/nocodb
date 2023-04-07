@@ -13,7 +13,7 @@ export const useDocStore = defineStore('docStore', () => {
   const { setProject } = useProject()
 
   const isNestedPageFetching = ref<Record<string, boolean>>({})
-  const isPageFetching = ref<boolean>(true)
+  const isPageFetching = ref<boolean>(false)
   const isPageErrored = ref<boolean>(false)
   const isNestedFetchErrored = ref<boolean>(false)
 
@@ -40,15 +40,16 @@ export const useDocStore = defineStore('docStore', () => {
 
   const isOpenedNestedPageLoading = computed<boolean>(() => isNestedPageFetching.value[openedProjectId.value] ?? true)
 
-  const isEditAllowed = computed<boolean>(
-    () =>
+  const isEditAllowed = computed<boolean>(() => {
+    return (
       !isPublic.value &&
       !!(
         projectRoles.value[ProjectRole.Creator] ||
         projectRoles.value[ProjectRole.Owner] ||
         projectRoles.value[ProjectRole.Editor]
-      ),
-  )
+      )
+    )
+  })
 
   const nestedPagesOfOpenedProject = computed<PageSidebarNode[]>(() => nestedPagesOfProjects.value[openedProjectId.value] || [])
 
@@ -67,7 +68,7 @@ export const useDocStore = defineStore('docStore', () => {
   const nestedPublicParentPage = computed<PageSidebarNode | undefined>(() => {
     const nestedPages = nestedPagesOfProjects.value[openedProjectId.value]
 
-    return openedPage.value?.nested_published_parent_id
+    return openedPage.value?.nested_published_parent_id && nestedPages
       ? findPage(nestedPages, openedPage.value?.nested_published_parent_id)
       : undefined
   })
@@ -171,7 +172,10 @@ export const useDocStore = defineStore('docStore', () => {
     () => {
       if (!openedPage.value) return
       if (isPublic.value) return
-      if (openedPage.value?.new) return
+      if (openedPage.value?.new) {
+        openedPage.value.icon = openedPageInSidebar.value?.icon
+        return
+      }
 
       openedPage.value = {
         ...openedPage.value,
@@ -494,6 +498,9 @@ export const useDocStore = defineStore('docStore', () => {
       const page = findPage(nestedPages, pageId)
       await $api.nocoDocs.deletePage(pageId, { projectId: projectId! })
 
+      const { closeTab } = useTabs()
+      await closeTab({ id: pageId })
+
       if (page?.parent_page_id) {
         const parentPage = findPage(nestedPages, page.parent_page_id)
         if (!parentPage) return
@@ -510,11 +517,6 @@ export const useDocStore = defineStore('docStore', () => {
         const siblingPage = updatedNestedPages[0]
         navigateTo(nestedUrl({ id: siblingPage.id!, projectId }))
       }
-
-      if (isPublic.value) return
-      const { closeTab } = useTabs()
-
-      closeTab({ id: pageId })
     } catch (e) {
       console.log(e)
       message.error(await extractSdkResponseErrorMsg(e as any))
@@ -557,7 +559,16 @@ export const useDocStore = defineStore('docStore', () => {
     }
 
     if ('is_published' in page || 'parent_page_id' in page) {
-      openedPage.value = { ...updatedPage, ...openedPage.value } as any
+      Object.assign(openedPage.value!, updatedPage)
+
+      const pageInNestedPages = findPage(nestedPages, pageId)
+      if (pageInNestedPages) {
+        pageInNestedPages.is_published = updatedPage.is_published
+        pageInNestedPages.parent_page_id = updatedPage.parent_page_id
+        pageInNestedPages.updated_at = updatedPage.updated_at
+        pageInNestedPages.last_updated_by_id = updatedPage.last_updated_by_id
+        pageInNestedPages.nested_published_parent_id = updatedPage.nested_published_parent_id
+      }
 
       await fetchNestedPages({
         projectId,

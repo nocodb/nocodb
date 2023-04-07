@@ -172,6 +172,7 @@ onMounted(async () => {
         'px-1 !min-w-61.5': isPublic,
         '!min-w-56.5': !isPublic,
       }"
+      :data-testid="`docs-sidebar-${project.title}`"
       :trigger="null"
       collapsible
       theme="light"
@@ -188,7 +189,11 @@ onMounted(async () => {
         @select="onTabSelect"
       >
         <template #title="{ title, id, icon, level }">
-          <div class="flex flex-row items-center justify-between group pt-1">
+          <div
+            class="flex flex-row items-center justify-between group pt-1"
+            :data-testid="`docs-sidebar-page-${project.title}-${title}`"
+            :data-level="level"
+          >
             <div
               class="flex flex-row gap-x-1 text-ellipsis overflow-clip min-w-0 transition-all duration-200 ease-in-out"
               :class="{}"
@@ -207,6 +212,7 @@ onMounted(async () => {
                       :class="{
                         'hover:bg-gray-300 cursor-pointer': isEditAllowed,
                       }"
+                      data-testid="docs-sidebar-emoji-selector"
                     >
                       <IconifyIcon
                         v-if="icon"
@@ -226,7 +232,7 @@ onMounted(async () => {
                 </a-popover>
               </div>
               <span
-                class="text-ellipsis overflow-hidden"
+                class="text-ellipsis overflow-hidden nc-docs-sidebar-page-title"
                 :style="{ wordBreak: 'keep-all', whiteSpace: 'nowrap', display: 'inline' }"
               >
                 {{ title }}
@@ -236,6 +242,7 @@ onMounted(async () => {
               <a-dropdown placement="bottom" trigger="click">
                 <div
                   class="nc-docs-sidebar-page-options flex px-0.5 hover:( !bg-gray-300 !bg-opacity-30 rounded-md) cursor-pointer select-none hidden group-hover:block"
+                  data-testid="docs-sidebar-page-options"
                 >
                   <MdiDotsHorizontal />
                 </div>
@@ -243,6 +250,7 @@ onMounted(async () => {
                   <div class="flex flex-col p-1 bg-gray-50 rounded-md w-28 gap-y-0.5 border-1 border-gray-100">
                     <div
                       class="flex items-center cursor-pointer select-none px-1.5 py-1.5 text-xs gap-x-2.5 hover:bg-gray-100 rounded-md !text-red-500"
+                      data-testid="docs-sidebar-page-delete"
                       @click="() => openDeleteModal({ pageId: id })"
                     >
                       <MdiDeleteOutline class="h-3.5" />
@@ -264,7 +272,7 @@ onMounted(async () => {
               </a-dropdown>
               <div
                 v-if="level < MAX_NESTED_LEVEL"
-                class="flex px-0.5 hover:( !bg-gray-300 !bg-opacity-30 rounded-md) cursor-pointer select-none hidden group-hover:block"
+                class="nc-docs-add-child-page flex px-0.5 hover:( !bg-gray-300 !bg-opacity-30 rounded-md) cursor-pointer select-none hidden group-hover:block"
                 @click="() => addNewPage({parentPageId: id, projectId: project.id!})"
               >
                 <MdiPlus />
@@ -274,8 +282,9 @@ onMounted(async () => {
         </template>
       </a-tree>
       <div
-        v-if="!isPublic"
+        v-if="isEditAllowed"
         class="py-1 flex flex-row pl-7 items-center gap-x-2 cursor-pointer hover:text-black text-gray-600 text-sm"
+        data-testid="nc-docs-sidebar-add-page"
         @click="() => addNewPage({parentPageId: undefined, projectId: project.id!})"
       >
         <MdiPlus />
@@ -287,7 +296,7 @@ onMounted(async () => {
         <div class="flex">Are you sure you want to delete this page?</div>
         <div class="flex flex-row mt-4 space-x-3 ml-2">
           <a-button type="text" @click="deleteModalOpen = false">Cancel</a-button>
-          <a-button type="danger" @click="onDeletePage">Delete</a-button>
+          <a-button type="danger" data-testid="docs-page-delete-confirmation" @click="onDeletePage">Delete</a-button>
         </div>
       </div>
     </a-modal>

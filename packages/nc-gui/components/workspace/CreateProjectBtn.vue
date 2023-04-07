@@ -67,7 +67,7 @@ useEventListener(document, 'keydown', async (e: KeyboardEvent) => {
       <template #overlay>
         <a-menu>
           <a-menu-item @click="navigateToCreateProject(NcProjectType.DB)">
-            <div class="py-4 px-1 flex items-center gap-4">
+            <div class="py-4 px-1 flex items-center gap-4 nc-create-project-btn-db">
               <GeneralProjectIcon :type="NcProjectType.DB" class="text-[#2824FB] text-lg" />
               Database
               <span class="flex-grow" />
@@ -75,7 +75,7 @@ useEventListener(document, 'keydown', async (e: KeyboardEvent) => {
             </div>
           </a-menu-item>
           <a-menu-item @click="navigateToCreateProject(NcProjectType.DOCS)">
-            <div class="py-4 px-1 flex items-center gap-4">
+            <div class="py-4 px-1 flex items-center gap-4 nc-create-project-btn-docs">
               <GeneralProjectIcon :type="NcProjectType.DOCS" class="text-[#247727] text-lg" />
               Documentation
               <span class="flex-grow" />

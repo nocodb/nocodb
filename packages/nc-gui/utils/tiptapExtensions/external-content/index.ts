@@ -16,12 +16,6 @@ declare module '@tiptap/core' {
 export const ExternalContent = Node.create({
   name: 'externalContent',
 
-  defaultOptions: {
-    inline: false,
-    HTMLAttributes: {},
-    type: 'externalContent',
-  },
-
   inline() {
     return this.options.inline
   },
@@ -127,6 +121,35 @@ export const ExternalContent = Node.create({
         },
       }),
     ]
+  },
+  addKeyboardShortcuts() {
+    return {
+      Backspace: () => {
+        try {
+          const editor = this.editor
+          const selection = editor.view.state.selection
+          const node = selection.$from.node()
+          const parentNode = selection.$from.node(-1)
+
+          if (!(node.type.name === 'paragraph' && parentNode.type.name === 'dBlock')) {
+            return false
+          }
+
+          const prevNodePos = selection.$from.pos - (parentNode.nodeSize - node.nodeSize + 2)
+          const prevNode = editor.view.state.doc.nodeAt(prevNodePos)
+
+          if (prevNode?.type.name === 'externalContent') {
+            editor.chain().setNodeSelection(prevNodePos).run()
+            return true
+          }
+
+          return false
+        } catch (error) {
+          console.log('error', error)
+          return false
+        }
+      },
+    }
   },
 })
 

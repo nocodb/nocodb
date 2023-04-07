@@ -74,7 +74,9 @@ const rolesTypes = [
     <div class="flex flex-grow"></div>
     <div class="flex flex-row mt-4 mb-2 pt-3 border-gray-200 border-t-1 gap-x-3 items-center text-xs">
       <div :style="{ fontWeight: 500 }">People with access</div>
-      <div class="bg-gray-100 border-gray-200 border-1 py-0.5 px-1.5 rounded-md">{{ totalUsers - 1 }} users</div>
+      <div class="bg-gray-100 border-gray-200 border-1 py-0.5 px-1.5 rounded-md" data-testid="nc-manage-user-user-count">
+        {{ totalUsers - 1 }} users
+      </div>
     </div>
     <div class="flex flex-col mb-2 pr-0.5 h-96 overflow-y-auto users-list border-b-1 border-gray-200">
       <div v-if="nonOwners.length === 0" class="text-xs mt-2">No users have access to this document</div>
@@ -82,6 +84,7 @@ const rolesTypes = [
         v-for="user of nonOwners"
         :key="user.id"
         class="flex flex-row mb-1.5 px-2 py-1.5 items-center border-1 border-gray-200 rounded-md justify-between"
+        :data-testid="`nc-manage-users-${user.email}`"
       >
         <div class="flex flex-row items-center gap-x-2">
           <a-avatar></a-avatar>
@@ -94,17 +97,18 @@ const rolesTypes = [
         </div>
         <a-select
           v-model:value="user.roles"
-          class="flex !rounded-md p-0.5 !bg-white capitalize"
+          class="flex !rounded-md p-0.5 !bg-white capitalize nc-dropdown-user-role-container"
           dropdown-class-name="nc-dropdown-user-role !rounded-md"
           placeholder="Select role"
           :options="rolesTypes"
         >
           <template #option="option">
-            <div class="flex flex-row items-center gap-x-2">
-              <div class="flex flex-col justify-center">
-                <div v-if="option.id !== 'None'" class="flex capitalize">{{ option.name }}</div>
-                <div v-else class="flex text-red-500" :style="{ fontWeight: 500 }">Remove</div>
-              </div>
+            <div
+              class="flex flex-row items-center gap-x-2"
+              :data-testid="`nc-manage-users-role-${option.id !== 'None' ? option.name : 'Remove'}`"
+            >
+              <div v-if="option.id !== 'None'" class="flex">{{ option.name }}</div>
+              <div v-else class="flex text-red-500" :style="{ fontWeight: 500 }">Remove</div>
             </div>
           </template>
         </a-select>
@@ -130,6 +134,7 @@ const rolesTypes = [
         class="!rounded-md"
         :disabled="editedUsers.length === 0"
         :loading="isBatchUpdating"
+        data-testid="nc-manage-users-submit"
         @click="() => updateEditedUsers()"
       >
         Save Changes

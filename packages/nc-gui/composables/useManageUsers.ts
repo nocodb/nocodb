@@ -7,7 +7,7 @@ const [setup, use] = useInjectionState(() => {
   const { project } = storeToRefs(useProject())
   const { t } = useI18n()
   const { $e } = useNuxtApp()
-  const { formStatus, invitationUsersData } = useShare()
+  const { formStatus, invitationUsersData } = storeToRefs(useShare())
 
   const currentPage = ref(1)
   const currentLimit = ref(10)
@@ -113,6 +113,7 @@ const [setup, use] = useInjectionState(() => {
           }),
       )
       users.value = users.value?.filter((user) => user.roles !== 'No access') ?? []
+      totalUsers.value = users.value?.length ?? 0
       lastFetchedUsers.value = JSON.parse(JSON.stringify(users.value))
     } catch (e: any) {
       message.error(await extractSdkResponseErrorMsg(e))

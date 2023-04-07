@@ -10,7 +10,7 @@
     "test:shard:2": "TRACE=true npx playwright test --workers=4 --shard=2/2",
     "test:repeat": "TRACE=true npx playwright test --workers=4 --repeat-each=12",
     "test:quick": "TRACE=true PW_QUICK_TEST=1 npx playwright  test --workers=4",
-    "test:debug": "./startPlayWrightServer.sh; PW_TEST_REUSE_CONTEXT=1 PW_TEST_CONNECT_WS_ENDPOINT=ws://127.0.0.1:31000/ PWDEBUG=console npx playwright test -c playwright.config.ts --headed --project=chromium --retries 0 --timeout 0 --workers 1 --max-failures=1",
+    "test:debug": "TRACE=true ./startPlayWrightServer.sh; PW_TEST_REUSE_CONTEXT=1 PW_TEST_CONNECT_WS_ENDPOINT=ws://127.0.0.1:31000/ PWDEBUG=console npx playwright test --trace on -c playwright.config.ts --headed --project=chromium --retries 0 --workers 1 --max-failures=1",
     "test:debug:watch": "npx nodemon -e ts -w ./ -x \"npm run test:debug\"",
     "test:debug:quick:sqlite": "./startPlayWrightServer.sh; PW_QUICK_TEST=1 PW_TEST_REUSE_CONTEXT=1 PW_TEST_CONNECT_WS_ENDPOINT=ws://127.0.0.1:31000/ PWDEBUG=console npx playwright test -c playwright.config.ts --headed --project=chromium --retries 0 --timeout 5 --workers 1 --max-failures=1",
     "ci:test": "npx playwright test --workers=2",
@@ -23,7 +23,7 @@
   "author": "",
   "license": "ISC",
   "devDependencies": {
-    "@playwright/test": "1.27.1",
+    "@playwright/test": "1.32.1",
     "@typescript-eslint/eslint-plugin": "^4.0.1",
     "@typescript-eslint/parser": "^4.0.1",
     "axios": "^0.24.0",
@@ -47,6 +47,7 @@
     "dayjs": "^1.11.7",
     "express": "^4.18.2",
     "nocodb-sdk": "file:../../packages/nocodb-sdk",
+    "playwright": "^1.32.1",
     "xlsx": "^0.18.5"
   }
 }

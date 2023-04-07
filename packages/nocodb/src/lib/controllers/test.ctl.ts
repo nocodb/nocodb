@@ -8,6 +8,7 @@ export async function reset(req: Request<any, any>, res) {
     dbType: req.body.dbType,
     isEmptyProject: req.body.isEmptyProject,
     workerId: req.body.workerId,
+    projectType: req.body.projectType,
   });
 
   res.json(await service.process());

@@ -63,7 +63,7 @@ export const Ordered = Node.create<OrderItemsOptions>({
         },
       },
       level: {
-        default: null,
+        default: 0,
         parseHTML: (element) => element.getAttribute('data-level'),
       },
     }
@@ -90,7 +90,7 @@ export const Ordered = Node.create<OrderItemsOptions>({
           },
         ],
       ],
-      ['div', { class: 'tiptap-list-item-content' }, 0],
+      ['div', { 'class': 'tiptap-list-item-content', 'data-number': node.attrs.number }, 0],
     ]
   },
 
@@ -119,8 +119,8 @@ export const Ordered = Node.create<OrderItemsOptions>({
       toggleOrdered:
         () =>
         ({ chain, state }: any) => {
-          const toggleListItemInSliceJson = (content: any[]) => {
-            let prevOrderedListNodeNumber = 0
+          const toggleListItemInSliceJson = (content: any[], lastItemNode: any) => {
+            let prevOrderedListNodeNumber = lastItemNode?.type === this.name ? Number(lastItemNode.attrs.number) : 0
             for (const child of content) {
               if (child.type !== this.name && getTextFromSliceJson(child).length > 0) {
                 child.content = [getTextAsParagraphFromSliceJson(child)]
@@ -143,7 +143,7 @@ export const Ordered = Node.create<OrderItemsOptions>({
             }
           }
 
-          toggleItem(state, chain, toggleListItemInSliceJson)
+          toggleItem(state, chain, toggleListItemInSliceJson, 'ordered')
         },
     } as any
   },

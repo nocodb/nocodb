@@ -76,7 +76,7 @@ export default {
           </div>
 
           <a-dropdown v-if="!isPublic" :trigger="['click']" overlay-class-name="nc-dropdown-user-accounts-menu">
-            <div class="flex items-center gap-1 cursor-pointer">
+            <div class="flex items-center gap-1 cursor-pointer" data-testid="nc-ws-account-menu-dropdown">
               <div
                 class="h-8.5 w-8.5 rounded-full text-xs bg-secondary flex items-center justify-center font-weight-bold text-black uppercase"
               >
@@ -114,7 +114,12 @@ export default {
                 <a-menu-divider class="!m-0" /> -->
 
                 <a-menu-item key="1" class="!rounded-b group">
-                  <div v-e="['a:navbar:user:sign-out']" class="nc-project-menu-item group" @click="logout">
+                  <div
+                    v-e="['a:navbar:user:sign-out']"
+                    class="nc-project-menu-item group"
+                    data-testid="nc-logout-btn"
+                    @click="logout"
+                  >
                     <MdiLogout class="group-hover:text-accent" />&nbsp;
 
                     <span class="prose group-hover:text-primary">

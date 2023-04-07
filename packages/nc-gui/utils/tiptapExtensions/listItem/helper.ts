@@ -118,7 +118,7 @@ export const onEnter = (editor: Editor, nodeType: 'bullet' | 'ordered' | 'task')
   const parentParentNode = selection.$from.node(-2)
 
   // Delete the bullet point if it's empty
-  const currentNodeIsEmpty = currentNode.textContent.length === 0
+  const currentNodeIsEmpty = currentNode.textContent.trim().length === 0
 
   if (currentNodeIsEmpty && parentParentNode.type.name !== 'dBlock') {
     return false
@@ -223,7 +223,12 @@ export const onEnter = (editor: Editor, nodeType: 'bullet' | 'ordered' | 'task')
   return true
 }
 
-export const toggleItem = (state: EditorState, chain: any, toggleListItemInSliceJson: any) => {
+export const toggleItem = (
+  state: EditorState,
+  chain: any,
+  toggleListItemInSliceJson: any,
+  type: 'ordered' | 'bullet' | 'task',
+) => {
   const { selection } = state
 
   let isDBlockSelected = false
@@ -244,9 +249,15 @@ export const toggleItem = (state: EditorState, chain: any, toggleListItemInSlice
     const sliceJson = slice.toJSON()
 
     // Toggle a bullet under `dblock` nodes in slice
+    let lastItemNode
     for (const node of sliceJson.content) {
       if (node.type === 'dBlock') {
-        toggleListItemInSliceJson(node.content)
+        toggleListItemInSliceJson(node.content, lastItemNode)
+      }
+
+      const firstChildNode = node.content.length > 0 ? node.content[0] : null
+      if (firstChildNode?.type === 'ordered' && type === 'ordered') {
+        lastItemNode = firstChildNode
       }
     }
 
@@ -299,9 +310,15 @@ export const onBackspaceWithNestedList = (editor: Editor, nodeType: string) => {
 
   if (!selection.empty) return false
 
-  const parentNodePos = selection.$from.before(selection.$from.depth - 1)
-  const parentNode = editor.state.selection.$from.node(-1)
-  const currentNode = editor.state.selection.$from.node()
+  let parentNodePos, parentNode, currentNode
+
+  try {
+    parentNodePos = selection.$from.before(selection.$from.depth - 1)
+    parentNode = editor.state.selection.$from.node(-1)
+    currentNode = editor.state.selection.$from.node()
+  } catch (e) {
+    return false
+  }
 
   if (parentNode.type.name !== nodeType) return false
 

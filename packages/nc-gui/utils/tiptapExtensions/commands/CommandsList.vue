@@ -45,7 +45,7 @@ interface Props {
 
 const { command, query, editor } = defineProps<Props>()
 
-const { openedPage } = storeToRefs(useDocStore())
+const { openedPage, openedProjectId } = storeToRefs(useDocStore())
 const { magicOutline } = useDocStore()
 
 const isLinkInputFormState = ref(false)
@@ -159,7 +159,7 @@ const items = [
     iconClass: '',
   },
   {
-    title: 'Code snippet',
+    title: 'Code',
     class: 'text-xs',
     command: ({ editor, range }: { editor: Editor; range: Range }) => {
       editor.chain().focus().deleteRange(range).setNode('codeBlock').run()
@@ -171,7 +171,7 @@ const items = [
     shortCutText: isMacOS() ? '⌥ ⌘ C' : 'Alt Ctrl C',
   },
   {
-    title: 'Task list',
+    title: 'Task List',
     class: 'text-xs',
     command: ({ editor, range }: { editor: Editor; range: Range }) => {
       editor.chain().focus().deleteRange(range).setParagraph().toggleTask().run()
@@ -305,7 +305,7 @@ const items = [
     icon: MdiMinus,
     iconClass: '',
     hasDivider: true,
-    shortCutText: isMacOS() ? '⌘ Space' : 'Ctrl Space',
+    shortCutText: 'Ctrl ⇧ H',
   },
   {
     title: 'Google Docs',
@@ -531,7 +531,10 @@ async function outlinePage(editor: Editor) {
     const converter = new showdown.Converter()
     converter.setOption('noHeaderId', true)
 
-    const response: any = await magicOutline()
+    const response: any = await magicOutline({
+      projectId: openedProjectId.value,
+      pageId: openedPage.value?.id,
+    })
 
     const html = converter
       .makeHtml(
@@ -598,10 +601,14 @@ defineExpose({
 </script>
 
 <template>
-  <div class="items">
+  <div class="items nc-docs-command-list">
     <template v-if="isLinkInputFormState">
       <div class="flex flex-col w-56 mx-1 mt-1 mb-1">
-        <div class="w-8 rounded-md my-1 p-1 pl-2 cursor-pointer hover:bg-gray-200" @click="isLinkInputFormState = false">
+        <div
+          class="w-8 rounded-md my-1 p-1 pl-2 cursor-pointer hover:bg-gray-200"
+          data-testid="nc-docs-command-list-link-back-btn"
+          @click="isLinkInputFormState = false"
+        >
           <MdiArrowLeft />
         </div>
         <input
@@ -610,9 +617,15 @@ defineExpose({
           class="w-full my-1 py-1 px-2 border-0 bg-gray-100 text-sm rounded-md focus:outline-none !focus:shadow-none !focus:ring-warmGray-50"
           type="text"
           placeholder="Enter link"
+          data-testid="nc-docs-command-list-link-input"
           @keydown.enter="insertLink"
+          @keydown.escape="isLinkInputFormState = false"
         />
-        <div v-if="isLinkInputFormErrored" class="flex flex-row pl-1.5 pr-1 pb-1 text-xs text-red-500">
+        <div
+          v-if="isLinkInputFormErrored"
+          class="flex flex-row pl-1.5 pr-1 pb-1 text-xs text-red-500"
+          data-testid="nc-docs-command-list-link-input-error"
+        >
           Given
           <span v-if="isLinkInputFormType !== 'externalContent'" class="capitalize px-1">{{ isLinkInputFormType }}</span>
           link is not valid
@@ -629,6 +642,7 @@ defineExpose({
           }"
           type="text"
           :loading="loadingOperationName === item.title"
+          :data-testid="`nc-docs-command-list-item-${item.title}`"
           @click="selectItem(item.title)"
           @mouseenter="() => onHover(index)"
         >

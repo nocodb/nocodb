@@ -6,9 +6,11 @@ import User from '../../../models/User';
 import NocoCache from '../../../cache/NocoCache';
 import { CacheScope } from '../../../utils/globals';
 import ProjectUser from '../../../models/ProjectUser';
+import { Workspace } from '../../../models';
 import resetPgSakilaProject from './resetPgSakilaProject';
 import resetMysqlSakilaProject from './resetMysqlSakilaProject';
 import resetMetaSakilaSqliteProject from './resetMetaSakilaSqliteProject';
+import type { UserType } from 'nocodb-sdk';
 
 const workerStatus = {};
 
@@ -18,7 +20,9 @@ const loginRootUser = async () => {
     { email: 'user@nocodb.com', password: 'Password123.' }
   );
 
-  return response.data.token;
+  const user: UserType = (await User.getByEmail('user@nocodb.com')) as any;
+
+  return { user, token: response.data.token };
 };
 
 const projectTitleByType = {
@@ -33,22 +37,26 @@ export class TestResetService {
   private readonly workerId;
   private readonly dbType;
   private readonly isEmptyProject: boolean;
+  private readonly projectType: string;
 
   constructor({
     parallelId,
     dbType,
     isEmptyProject,
     workerId,
+    projectType,
   }: {
     parallelId: string;
     dbType: string;
     isEmptyProject: boolean;
     workerId: string;
+    projectType: string;
   }) {
     this.parallelId = parallelId;
     this.dbType = dbType;
     this.isEmptyProject = isEmptyProject;
     this.workerId = workerId;
+    this.projectType = projectType;
   }
 
   async process() {
@@ -68,9 +76,10 @@ export class TestResetService {
 
       workerStatus[this.parallelId] = 'processing';
 
-      const token = await loginRootUser();
+      const { token, user } = await loginRootUser();
 
       const { project } = await this.resetProject({
+        user,
         token,
         dbType: this.dbType,
         parallelId: this.parallelId,
@@ -85,7 +94,7 @@ export class TestResetService {
       }
 
       workerStatus[this.parallelId] = 'completed';
-      return { token, project };
+      return { token, project, user };
     } catch (e) {
       console.error('TestResetService:process', e);
       workerStatus[this.parallelId] = 'errored';
@@ -94,30 +103,49 @@ export class TestResetService {
   }
 
   async resetProject({
+    user,
     token,
     dbType,
     parallelId,
     workerId,
   }: {
+    user: UserType;
     token: string;
     dbType: string;
     parallelId: string;
     workerId: string;
   }) {
+    const workspaceTitle = `ws_${projectTitleByType[dbType]}${parallelId}`;
+    const workspace = await Workspace.getByTitle({ title: workspaceTitle });
+
     const title = `${projectTitleByType[dbType]}${parallelId}`;
-    const project: Project | undefined = await Project.getByTitle(title);
 
-    if (project) {
-      await removeProjectUsersFromCache(project);
+    const projects = workspace
+      ? await Project.listByWorkspaceAndUser(workspace?.id, user.id)
+      : [];
 
-      const bases = await project.getBases();
+    const oldProject = projects.find(
+      (project) => project.title == title && project.type === 'database'
+    );
 
-      for (const base of bases) {
-        await NcConnectionMgrv2.deleteAwait(base);
-        await base.delete(Noco.ncMeta, { force: true });
-      }
+    await Promise.all(
+      projects.map(async (_project) => {
+        const project = await Project.get(_project.id);
+        await removeProjectUsersFromCache(project);
 
-      await Project.delete(project.id);
+        const bases = await project.getBases();
+
+        for (const base of bases) {
+          await NcConnectionMgrv2.deleteAwait(base);
+          await base.delete(Noco.ncMeta, { force: true });
+        }
+
+        await Project.delete(project.id);
+      })
+    );
+
+    if (workspace) {
+      await Workspace.delete(workspace.id);
     }
 
     if (dbType == 'sqlite') {
@@ -126,27 +154,34 @@ export class TestResetService {
         title,
         parallelId,
         isEmptyProject: this.isEmptyProject,
+        projectType: this.projectType,
+        workspaceTitle,
       });
     } else if (dbType == 'mysql') {
       await resetMysqlSakilaProject({
         token,
         title,
         parallelId,
-        oldProject: project,
+        oldProject,
         isEmptyProject: this.isEmptyProject,
+        projectType: this.projectType,
+        workspaceTitle,
       });
     } else if (dbType == 'pg') {
       await resetPgSakilaProject({
         token,
         title,
         parallelId: workerId,
-        oldProject: project,
+        oldProject,
         isEmptyProject: this.isEmptyProject,
+        projectType: this.projectType,
+        workspaceTitle,
       });
     }
 
     return {
       project: await Project.getByTitle(title),
+      workspace: await Workspace.getByTitle({ title: workspaceTitle }),
     };
   }
 }

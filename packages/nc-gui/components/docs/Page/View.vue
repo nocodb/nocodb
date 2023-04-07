@@ -146,11 +146,11 @@ watchDebounced(
 
 <template>
   <a-layout-content>
-    <div ref="wrapperRef" class="nc-docs-page h-full flex flex-row relative">
+    <div ref="wrapperRef" data-testid="docs-opened-page" class="nc-docs-page h-full flex flex-row relative">
       <div class="flex flex-col w-full">
         <div class="flex flex-row justify-between items-center pl-6 pt-2.5">
           <div class="flex flex-row h-6">
-            <template v-if="flattenedNestedPages.length !== 1">
+            <template v-if="flattenedNestedPages.length !== 0">
               <div v-for="({ href, title, icon, id }, index) of breadCrumbs" :key="id" class="flex">
                 <NuxtLink
                   class="text-sm !hover:text-black docs-breadcrumb-item !underline-transparent"
@@ -159,6 +159,7 @@ watchDebounced(
                     '!text-gray-600 ': index === breadCrumbs.length - 1,
                     '!text-gray-400 ': index !== breadCrumbs.length - 1,
                   }"
+                  :data-testid="`nc-doc-page-breadcrumb-${index}`"
                 >
                   <div class="flex flex-row items-center gap-x-1.5">
                     <IconifyIcon
@@ -184,9 +185,9 @@ watchDebounced(
             v-if="isPageFetching && !isPublic"
             :active="true"
             size="large"
-            class="docs-page-title-skelton !mt-4 !max-w-156 mb-3 -ml-3"
+            class="docs-page-title-skelton !mt-3 !max-w-156 mb-3 -ml-3 docs-page-skeleton-loading"
           />
-          <DocsPageTitle v-else-if="openedPage" class="docs-page-title" @focus-editor="focusEditor" />
+          <DocsPageTitle v-else-if="openedPage" :key="openedPage.id" class="docs-page-title" @focus-editor="focusEditor" />
           <div class="flex !mb-4.5"></div>
 
           <DocsPageSelectedBubbleMenu v-if="editor" :editor="editor" />
@@ -195,9 +196,9 @@ watchDebounced(
             v-if="isPageFetching && !isPublic"
             :active="true"
             size="small"
-            class="docs-page-title-skelton !max-w-102 mb-3 mt-1 -ml-3"
+            class="docs-page-title-skelton !max-w-102 mb-3 mt-1 docs-page-skeleton-loading"
           />
-          <EditorContent v-else :key="isEditAllowed ? 'edit' : 'view'" :editor="editor" />
+          <EditorContent v-else :key="isEditAllowed ? 'edit' : 'view'" data-testid="docs-page-content" :editor="editor" />
           <div
             v-if="(openedPageInSidebar?.children ?? []).length > 0 && !isPageFetching"
             class="docs-page-child-pages flex flex-col py-12 border-b-1 border-t-1 border-gray-200 mt-12 mb-4 gap-y-6 pop-in-animation"
@@ -205,7 +206,7 @@ watchDebounced(
             <div
               v-for="page of openedPageInSidebar?.children"
               :key="page.id"
-              class="px-6 flex flex-row items-center gap-x-2 cursor-pointer text-gray-600 hover:text-black"
+              class="docs-page-child-page px-6 flex flex-row items-center gap-x-2 cursor-pointer text-gray-600 hover:text-black"
               @click="openPage({ page, projectId: project.id! })"
             >
               <div v-if="page.icon" class="flex">
@@ -232,6 +233,9 @@ watchDebounced(
 </template>
 
 <style lang="scss">
+.docs-page-skeleton-loading {
+  margin-left: min(45%, 24vw);
+}
 div.ProseMirror {
   min-height: 77vh;
   width: 100%;
@@ -536,11 +540,16 @@ div.ProseMirror {
   }
 
   [data-type='ordered'] {
-    @apply flex flex-row items-center gap-x-1;
+    @apply flex flex-row items-start gap-x-1;
     .tiptap-list-item-start > span::before {
+      margin-top: 6px;
       content: attr(data-number) '. ';
       display: inline-block;
       white-space: nowrap;
+    }
+    .tiptap-list-item-content {
+      @apply flex flex-grow;
+      line-break: anywhere;
     }
   }
 
@@ -557,6 +566,26 @@ div.ProseMirror {
     border: 0;
     border-top: 1px solid #ccc;
     margin: 1.5em 0;
+  }
+
+  hr.ProseMirror-selectednode {
+    // outline with rounded corners
+    outline: 4px solid #e8eafd;
+    border-radius: 4px;
+  }
+
+  .selected {
+    .external-content-wrapper {
+      // outline with rounded corners
+      outline: 2px solid #e8eafd;
+      border-radius: 1px;
+    }
+  }
+
+  .external-content-wrapper.ProseMirror-selectednode {
+    // outline with rounded corners
+    outline: 2px solid #e8eafd;
+    border-radius: 1px;
   }
 
   blockquote {

@@ -23,7 +23,7 @@ export const useTabs = defineStore('tabStore', () => {
   const { isUIAllowed } = useUIPermission()
 
   const { openedPageId } = storeToRefs(useDocStore())
-  const { nestedUrl } = useDocStore()
+  const { nestedUrl, projectUrl } = useDocStore()
 
   const projectsStore = useProjects()
 
@@ -219,7 +219,9 @@ export const useTabs = defineStore('tabStore', () => {
           query: route.query,
         })
       case TabType.DOCUMENT:
-        if (tab.id === tab.projectId) return
+        if (tab.id === tab.projectId) {
+          return navigateTo(projectUrl(tab.projectId!))
+        }
 
         return navigateTo({
           path: nestedUrl({

@@ -55,7 +55,7 @@ export const Task = Node.create<TaskOptions>({
         parseHTML: (element) => element.getAttribute('checked') === 'true',
       },
       level: {
-        default: null,
+        default: 0,
         parseHTML: (element) => element.getAttribute('data-level'),
       },
     }
@@ -120,7 +120,7 @@ export const Task = Node.create<TaskOptions>({
             }
           }
 
-          toggleItem(state, chain, toggleListItemInSliceJson)
+          toggleItem(state, chain, toggleListItemInSliceJson, 'ordered')
         },
     } as any
   },
@@ -189,7 +189,7 @@ export const Task = Node.create<TaskOptions>({
 
         const node = $from.node(-1)
         const parentNode = $from.node(-2)
-        if (node.type.name !== 'task' && parentNode.type.name !== 'tableCell') return false
+        if (node.type.name !== 'task' && parentNode?.type.name !== 'tableCell') return false
 
         const nodeTextContent = node.textContent.trimStart().toLowerCase()
         if (nodeTextContent.length !== 0) return false
@@ -238,7 +238,7 @@ export const Task = Node.create<TaskOptions>({
     return ({ node, HTMLAttributes, getPos, editor }) => {
       const listItem = document.createElement('div')
       listItem.setAttribute('data-type', 'task')
-      listItem.setAttribute('data-level', node.attrs.level.toString())
+      listItem.setAttribute('data-level', node.attrs.level?.toString())
       listItem.style.paddingLeft = `${Number(node.attrs.level)}rem`
 
       const checkboxWrapper = document.createElement('label')

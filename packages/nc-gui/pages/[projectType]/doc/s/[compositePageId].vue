@@ -92,7 +92,7 @@ watch(
 <template>
   <NuxtLayout id="content" :key="route.params.projectId as string" class="flex">
     <template v-if="isSidebarOpen && !isFetching" #sidebar>
-      <DocsSideBar :project="{ id: openedProjectId }" />
+      <DocsSideBar :project="project" />
     </template>
     <div v-if="isErrored">
       <DocsError />

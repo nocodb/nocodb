@@ -9,7 +9,7 @@ const { editor } = defineProps<Props>()
 
 const { project } = storeToRefs(useProject())
 
-const { flattenedNestedPages } = storeToRefs(useDocStore())
+const { flattenedNestedPages, openedPage } = storeToRefs(useDocStore())
 const { nestedSlugsFromPageId, nestedUrl } = useDocStore()
 interface Props {
   editor: Editor
@@ -32,9 +32,12 @@ const filteredPages = computed(() => {
   const hrefText = href.value.toLowerCase()
 
   return flattenedNestedPages.value.filter((page) => {
-    return page.title.toLowerCase().includes(hrefText)
+    return page.title.toLowerCase().includes(hrefText) && page.id !== openedPage.value?.id
   })
 })
+
+// Is set when a page is selected from the search list and removed when the link is create
+const isInternalLink = ref(false)
 
 // This is used to prevent the menu from showing up after a link is deleted, an edge case when the link with empty placeholder text is deleted.
 // This is because checkLinkMark is not called in that case
@@ -77,14 +80,20 @@ const checkLinkMark = (editor: Editor) => {
   return showLinkOptions
 }
 
-const onChange = () => {
+const onChange = (internalPageLink?: string) => {
   const isLinkMarkedStoredInEditor = editor?.state?.storedMarks?.some((mark: Mark) => mark.type.name === 'link')
+  let formatedHref = href.value
+  if (isValidURL(href.value) && href.value.length > 0 && !href.value.startsWith('/') && !href.value.startsWith('http')) {
+    formatedHref = `https://${href.value}`
+  }
 
   if (isLinkMarkedStoredInEditor) {
     editor.view.dispatch(
       editor.view.state.tr
         .removeStoredMark(editor?.schema.marks.link)
-        .addStoredMark(editor?.schema.marks.link.create({ href: href.value })),
+        .addStoredMark(
+          editor?.schema.marks.link.create({ href: formatedHref, internal: isInternalLink.value, internalUrl: internalPageLink }),
+        ),
     )
   } else if (linkNodeMark.value) {
     const selection = editor?.state?.selection
@@ -93,7 +102,11 @@ const onChange = () => {
     editor.view.dispatch(
       editor.view.state.tr
         .removeMark(markSelection.from, markSelection.to, editor?.schema.marks.link)
-        .addMark(markSelection.from, markSelection.to, editor?.schema.marks.link.create({ href: href.value })),
+        .addMark(
+          markSelection.from,
+          markSelection.to,
+          editor?.schema.marks.link.create({ href: formatedHref, internal: isInternalLink.value, internalUrl: internalPageLink }),
+        ),
     )
   }
 }
@@ -117,7 +130,12 @@ const onPageClick = (page: any) => {
   const url = nestedUrl({ id: page.id, projectId: project.value.id! })
   href.value = `/#${url}`
 
-  onChange()
+  try {
+    isInternalLink.value = true
+    onChange(`/#${nestedUrl({ id: page.id, projectId: project.value.id!, publicUrl: true })}`)
+  } finally {
+    isLinkOptionsVisible.value = false
+  }
 
   const selectedNode = editor?.state?.selection?.$from?.nodeBefore || editor?.state?.selection?.$from?.nodeAfter
 
@@ -161,6 +179,7 @@ const handleKeyDown = (e: any) => {
 }
 
 const onInputBoxEnter = () => {
+  inputRef.value?.blur()
   editor.chain().focus().run()
 }
 
@@ -169,21 +188,6 @@ const handleInputBoxKeyDown = (e: any) => {
     editor.chain().focus().run()
   }
 }
-
-watch(href, () => {
-  selectedIndex.value = 0
-
-  if (
-    isLinkOptionsVisible.value &&
-    isValidURL(href.value) &&
-    href.value.length > 0 &&
-    !href.value.startsWith('/') &&
-    !href.value.startsWith('http')
-  ) {
-    href.value = `https://${href.value}`
-    onChange()
-  }
-})
 
 watch(isLinkOptionsVisible, (value, oldValue) => {
   if (value && !oldValue) {
@@ -222,6 +226,7 @@ const openLink = () => {
         'rounded-lg': filteredPages.length === 0,
         'rounded-t-lg': filteredPages.length > 0,
       }"
+      data-testid="nc-docs-link-options"
       @keydown="handleKeyDown"
     >
       <div class="flex items-center gap-x-1">
@@ -242,8 +247,9 @@ const openLink = () => {
           <div
             class="flex ml-0.5 p-0.5 my-0.5 rounded-md cursor-pointer text-gray-600 hover:text-black"
             :class="{
-              '!text-gray-400 cursor-not-allowed': href.length === 0,
+              '!text-gray-300 cursor-not-allowed': href.length === 0,
             }"
+            data-testid="nc-docs-link-options-open-link"
             @click="openLink"
           >
             <IcBaselineArrowOutward />
@@ -251,7 +257,11 @@ const openLink = () => {
         </a-popover>
         <a-popover overlay-class-name="docs-link-options">
           <template #content> Delete link </template>
-          <div class="flex mr-1 p-0.5 my-0.5 rounded-md cursor-pointer hover:text-red-400" @click="onDelete">
+          <div
+            class="flex mr-1 p-0.5 my-0.5 rounded-md cursor-pointer hover:text-red-400"
+            data-testid="nc-docs-link-options-open-delete"
+            @click="onDelete"
+          >
             <MdiDeleteOutline />
           </div>
         </a-popover>
@@ -262,7 +272,11 @@ const openLink = () => {
           ></div>
         </div>
       </div>
-      <div v-if="filteredPages.length > 0" class="absolute w-full -bottom-62 left-0 h-64">
+      <div
+        v-if="filteredPages.length > 0"
+        class="absolute w-full -bottom-62 left-0 h-64"
+        data-testid="nc-docs-link-option-searched-pages"
+      >
         <div
           class="bubble-menu flex flex-col -bottom-22 space-y-1 bg-gray-50 w-full mt-2 pt-4 px-4 rounded-b-lg docs-links-search-pages-list max-h-64 !pb-1"
         >
@@ -272,6 +286,7 @@ const openLink = () => {
             class="py-2 px-3.5 flex flex-row gap-x-3 items-center rounded-md cursor-pointer mx-0.5 page-item"
             :class="{ 'bg-gray-200 selected': selectedIndex === index }"
             role="button"
+            :data-testid="`nc-docs-link-option-searched-page-${page.title}`"
             @click="() => onPageClick(page)"
             @mouseenter="($event) => onMouseOver($event, index)"
           >

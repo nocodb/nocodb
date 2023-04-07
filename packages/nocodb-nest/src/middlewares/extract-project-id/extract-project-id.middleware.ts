@@ -26,6 +26,7 @@ import {
   Sort,
   View,
 } from '../../models';
+import extractRolesObj from '../../utils/extractRolesObj';
 import projectAcl from '../../utils/projectAcl';
 import catchError, { NcError } from '../catchError';
 import extractProjectIdAndAuthenticate from '../extractProjectIdAndAuthenticate';
@@ -184,9 +185,7 @@ export class ExtractProjectIdMiddleware implements NestMiddleware, CanActivate {
     // );
   }
 
-  async canActivate(
-    context: ExecutionContext,
-  ): Promise<boolean> {
+  async canActivate(context: ExecutionContext): Promise<boolean> {
     await this.use(
       context.switchToHttp().getRequest(),
       context.switchToHttp().getResponse(),
@@ -221,10 +220,7 @@ export class AclMiddleware implements NestInterceptor {
     const res = context.switchToHttp().getResponse();
     req.customProperty = 'This is a custom property';
 
-    const roles = req.user.roles.split(',').reduce((acc, role) => {
-      acc[role] = true;
-      return acc;
-    }, {});
+    const roles: Record<string, boolean> = extractRolesObj(req.user.roles);
 
     if (req?.session?.passport?.user?.is_api_token && blockApiTokenAccess) {
       NcError.forbidden('Not allowed with API token');

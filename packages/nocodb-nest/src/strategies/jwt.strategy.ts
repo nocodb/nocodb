@@ -4,10 +4,8 @@ import { Strategy, ExtractJwt } from 'passport-jwt';
 import { OrgUserRoles } from '../../../nocodb-sdk';
 import NocoCache from '../cache/NocoCache';
 import { ProjectUser, User } from '../models';
-import {
-  CacheGetType,
-  CacheScope,
-} from '../utils/globals';
+import extractRolesObj from '../utils/extractRolesObj';
+import { CacheGetType, CacheScope } from '../utils/globals';
 import { jwtConstants } from '../modules/auth/constants';
 import { UsersService } from '../modules/users/users.service';
 
@@ -24,7 +22,7 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
     });
   }
 
-  async validate(req:any,jwtPayload: any,) {
+  async validate(req: any, jwtPayload: any) {
     // todo: improve this
     if (
       req.ncProjectId &&
@@ -33,7 +31,7 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
       return User.getByEmail(jwtPayload?.email).then(async (user) => {
         return {
           ...user,
-          roles: `owner,creator,${OrgUserRoles.SUPER_ADMIN}`,
+          roles: extractRolesObj(`owner,creator,${OrgUserRoles.SUPER_ADMIN}`),
         };
       });
     }
@@ -49,7 +47,7 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
     );
 
     if (cachedVal) {
-/*todo: tobe fixed
+      /*todo: tobe fixed
       if (
         !cachedVal.token_version ||
         !jwtPayload.token_version ||
@@ -60,8 +58,10 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
       return cachedVal;
     }
 
-    return User.getByEmail(jwtPayload?.email).then(async (user: User) => {
-/*
+    return User.getByEmail(jwtPayload?.email).then(
+      async (user: { roles: any; id:string }) => {
+        user.roles = extractRolesObj(user?.roles);
+        /*
      todo: tobe fixed
      if (
         // !user.token_version ||
@@ -70,31 +70,34 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
       ) {
         throw new Er  ror('Token Expired. Please login again.');
       }*/
-      if (req.ncProjectId) {
-        // this.xcMeta
-        //   .metaGet(req.ncProjectId, null, 'nc_projects_users', {
-        //     user_id: user?.id
-        //   })
+        if (req.ncProjectId) {
+          // this.xcMeta
+          //   .metaGet(req.ncProjectId, null, 'nc_projects_users', {
+          //     user_id: user?.id
+          //   })
 
-        return ProjectUser.get(req.ncProjectId, user.id).then(
-          async (projectUser) => {
-            user.roles = projectUser?.roles || user.roles;
-            user.roles = user.roles === 'owner' ? 'owner,creator' : user.roles;
-            // + (user.roles ? `,${user.roles}` : '');
+          return ProjectUser.get(req.ncProjectId, user.id).then(
+            async (projectUser) => {
+              user.roles = extractRolesObj(projectUser?.roles || user.roles);
+              user.roles = extractRolesObj(
+                user.roles === 'owner' ? 'owner,creator' : user.roles,
+              );
+              // + (user.roles ? `,${user.roles}` : '');
 
+              await NocoCache.set(`${CacheScope.USER}:${key}`, user);
+              return user;
+            },
+          );
+        } else {
+          // const roles = projectUser?.roles ? JSON.parse(projectUser.roles) : {guest: true};
+          if (user) {
             await NocoCache.set(`${CacheScope.USER}:${key}`, user);
             return user;
-          },
-        );
-      } else {
-        // const roles = projectUser?.roles ? JSON.parse(projectUser.roles) : {guest: true};
-        if (user) {
-          await NocoCache.set(`${CacheScope.USER}:${key}`, user);
-          return user;
-        } else {
-          throw new Error('User not found');
+          } else {
+            throw new Error('User not found');
+          }
         }
-      }
-    });
+      },
+    );
   }
 }

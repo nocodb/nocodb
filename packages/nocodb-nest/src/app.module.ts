@@ -10,9 +10,10 @@ import { ProjectsModule } from './modules/projects/projects.module';
 import { JwtStrategy } from './strategies/jwt.strategy';
 import { AuthGuard } from '@nestjs/passport';
 import { TablesModule } from './modules/tables/tables.module';
+import { ViewsModule } from './modules/views/views.module';
 
 @Module({
-  imports: [AuthModule, UsersModule, UtilsModule, ProjectsModule, TablesModule],
+  imports: [AuthModule, UsersModule, UtilsModule, ProjectsModule, TablesModule, ViewsModule],
   controllers: [],
   providers: [Connection, MetaService, JwtStrategy, ExtractProjectIdMiddleware],
   exports: [Connection, MetaService],

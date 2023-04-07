@@ -1,6 +1,7 @@
 import { Global, Injectable, OnModuleInit } from '@nestjs/common';
 
 import * as knex from 'knex';
+import { XKnex } from '../db/CustomKnex'
 import NcConfigFactory from '../utils/NcConfigFactory';
 
 @Global()
@@ -20,7 +21,7 @@ export class Connection implements OnModuleInit {
   // init metadb connection
   async onModuleInit(): Promise<void> {
     this._config = await NcConfigFactory.make();
-    this.knex = knex.default({
+    this.knex = XKnex({
       ...this._config.meta.db,
       useNullAsDefault: true,
     });

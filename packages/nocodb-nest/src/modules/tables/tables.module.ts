@@ -4,6 +4,7 @@ import { TablesController } from './tables.controller';
 
 @Module({
   controllers: [TablesController],
-  providers: [TablesService]
+  providers: [TablesService],
+  exports: [TablesService]
 })
 export class TablesModule {}

@@ -1,4 +1,4 @@
-import * as Emittery from 'emittery';
+import Emittery from 'emittery';
 
 let emitSingleton = null;
 

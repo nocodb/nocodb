@@ -39,7 +39,7 @@ export default class Noco {
     return Noco._this.init(args, server, app);
   }*/
 
-  private static config: any;
+  public static config: any;
   public readonly router: express.Router;
   public readonly projectRouter: express.Router;
   public static _ncMeta: any;

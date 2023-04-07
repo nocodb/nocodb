@@ -100,7 +100,7 @@ export default class NcConfigFactory {
 
     ncConfig.auth = {
       jwt: {
-        secret: process.env.NC_AUTH_JWT_SECRET,
+        secret: process.env.NC_AUTH_JWT_SECRET ?? 'temporary-key',
       },
     };
 
@@ -421,7 +421,7 @@ export default class NcConfigFactory {
     if (process.env.NC_AUTH_ADMIN_SECRET) {
       config.auth = {
         masterKey: {
-          secret: process.env.NC_AUTH_ADMIN_SECRET,
+          secret: process.env.NC_AUTH_ADMIN_SECRET ?? 'temporary-key',
         },
       };
     } else if (process.env.NC_NO_AUTH) {
@@ -436,7 +436,7 @@ export default class NcConfigFactory {
           dbAlias:
             process.env.NC_AUTH_JWT_DB_ALIAS ||
             config.envs['_noco'].db[0].meta.dbAlias,
-          secret: process.env.NC_AUTH_JWT_SECRET,
+          secret: process.env.NC_AUTH_JWT_SECRET ?? 'temporary-key',
         },
       };
     }
@@ -536,7 +536,7 @@ export default class NcConfigFactory {
     if (process.env.NC_AUTH_ADMIN_SECRET) {
       config.auth = {
         masterKey: {
-          secret: process.env.NC_AUTH_ADMIN_SECRET,
+          secret: process.env.NC_AUTH_ADMIN_SECRET ?? 'temporary-key',
         },
       };
     } else if (process.env.NC_NO_AUTH) {
@@ -551,7 +551,7 @@ export default class NcConfigFactory {
           dbAlias:
             process.env.NC_AUTH_JWT_DB_ALIAS ||
             config.envs['_noco'].db[0].meta.dbAlias,
-          secret: process.env.NC_AUTH_JWT_SECRET,
+          secret: process.env.NC_AUTH_JWT_SECRET ?? 'temporary-key',
         },
       };
     }

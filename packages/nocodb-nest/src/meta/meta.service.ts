@@ -352,6 +352,7 @@ export class MetaService implements OnApplicationBootstrap {
 
     // todo: tobe fixed - temporary workaround
     Noco._ncMeta = this;
+    Noco.config = this.metaConnection.config;
   }
 
 

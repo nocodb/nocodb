@@ -297,3 +297,25 @@ export const UseAclMiddleware =
     // UseInterceptors(ExtractProjectIdMiddleware)(target, key, descriptor);
     UseInterceptors(AclMiddleware)(target, key, descriptor);
   };
+export const Acl =
+  (
+    permissionName: string,
+    {
+      allowedRoles,
+      blockApiTokenAccess,
+    }: {
+      allowedRoles?: (OrgUserRoles | string)[];
+      blockApiTokenAccess?: boolean;
+    } = {},
+  ) =>
+  (target: any, key?: string, descriptor?: PropertyDescriptor) => {
+    SetMetadata('permission', permissionName)(target, key, descriptor);
+    SetMetadata('allowedRoles', allowedRoles)(target, key, descriptor);
+    SetMetadata('blockApiTokenAccess', blockApiTokenAccess)(
+      target,
+      key,
+      descriptor,
+    );
+    // UseInterceptors(ExtractProjectIdMiddleware)(target, key, descriptor);
+    UseInterceptors(AclMiddleware)(target, key, descriptor);
+  };

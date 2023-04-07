@@ -1,7 +1,18 @@
-import { Controller, Get, Param, UseGuards } from '@nestjs/common';
+import {
+  Controller,
+  Get,
+  Param,
+  Post,
+  UseGuards,
+  Body,
+  Patch,
+  Delete,
+} from '@nestjs/common';
 import { AuthGuard } from '@nestjs/passport';
+import { FilterReqType } from 'nocodb-sdk';
 import { PagedResponseImpl } from '../../helpers/PagedResponse';
 import {
+  Acl,
   ExtractProjectIdMiddleware,
   UseAclMiddleware,
 } from '../../middlewares/extract-project-id/extract-project-id.middleware';
@@ -13,9 +24,7 @@ export class FiltersController {
   constructor(private readonly filtersService: FiltersService) {}
 
   @Get('/api/v1/db/meta/views/:viewId/filters')
-  @UseAclMiddleware({
-    permissionName: 'filterList',
-  })
+  @Acl('filterList')
   async filterList(@Param('viewId') viewId: string) {
     return new PagedResponseImpl(
       await this.filtersService.filterList({
@@ -23,105 +32,78 @@ export class FiltersController {
       }),
     );
   }
+
+  @Post('/api/v1/db/meta/views/:viewId/filters')
+  @Acl('filterCreate')
+  async filterCreate(
+    @Param('viewId') viewId: string,
+    @Body() body: FilterReqType,
+  ) {
+    const filter = await this.filtersService.filterCreate({
+      filter: body,
+      viewId: viewId,
+    });
+    return filter;
+  }
+
+  @Post('/api/v1/db/meta/hooks/:hookId/filters')
+  @Acl('hookFilterCreate')
+  async hookFilterCreate(
+    @Param('hookId') hookId: string,
+    @Body() body: FilterReqType,
+  ) {
+    const filter = await this.filtersService.hookFilterCreate({
+      filter: body,
+      hookId,
+    });
+    return filter;
+  }
+
+  @Get('/api/v1/db/meta/filters/:filterId')
+  @Acl('filterGet')
+  async filterGet(@Param('filterId') filterId: string) {
+    return await this.filtersService.filterGet({ filterId });
+  }
+
+  @Get('/api/v1/db/meta/filters/:filterParentId/children')
+  @Acl('filterChildrenList')
+  async filterChildrenRead(filterParentId: string) {
+    return new PagedResponseImpl(
+      await this.filtersService.filterChildrenList({
+        filterId: filterParentId,
+      }),
+    );
+  }
+
+  @Patch('/api/v1/db/meta/filters/:filterId')
+  @Acl('filterUpdate')
+  async filterUpdate(
+    @Param('filterId') filterId: string,
+    @Body() body: FilterReqType,
+  ) {
+    const filter = await this.filtersService.filterUpdate({
+      filterId: filterId,
+      filter: body,
+    });
+    return filter;
+  }
+
+  @Delete('/api/v1/db/meta/filters/:filterId')
+  @Acl('filterDelete')
+  async filterDelete(@Param('filterId') filterId: string) {
+    const filter = await this.filtersService.filterDelete({
+      filterId,
+    });
+    return filter;
+  }
+
+  @Get('/api/v1/db/meta/hooks/:hookId/filters')
+  @Acl('hookFilterList')
+  async hookFilterList(@Param('hookId') hookId: string) {
+    return new PagedResponseImpl(
+      await this.filtersService.hookFilterList({
+        hookId: hookId,
+      }),
+    );
+  }
 }
-
-/*
-export async function filterGet(req: Request, res: Response) {
-  res.json(await filterService.filterGet({ filterId: req.params.filterId }));
-}
-
-
-export async function filterChildrenRead(req: Request, res: Response) {
-  res.json(
-    new PagedResponseImpl(
-      await filterService.filterChildrenList({
-        filterId: req.params.filterParentId,
-      })
-    )
-  );
-}
-
-export async function filterCreate(req: Request<any, any, FilterReqType>, res) {
-  const filter = await filterService.filterCreate({
-    filter: req.body,
-    viewId: req.params.viewId,
-  });
-  res.json(filter);
-}
-
-export async function filterUpdate(req, res) {
-  const filter = await filterService.filterUpdate({
-    filterId: req.params.filterId,
-    filter: req.body,
-  });
-  res.json(filter);
-}
-
-export async function filterDelete(req: Request, res: Response) {
-  const filter = await filterService.filterDelete({
-    filterId: req.params.filterId,
-  });
-  res.json(filter);
-}
-
-export async function hookFilterList(req: Request, res: Response) {
-  res.json(
-    new PagedResponseImpl(
-      await filterService.hookFilterList({
-        hookId: req.params.hookId,
-      })
-    )
-  );
-}
-
-export async function hookFilterCreate(
-  req: Request<any, any, FilterReqType>,
-  res
-) {
-  const filter = await filterService.hookFilterCreate({
-    filter: req.body,
-    hookId: req.params.hookId,
-  });
-  res.json(filter);
-}
-
-const router = Router({ mergeParams: true });
-
-router.post(
-  '/api/v1/db/meta/views/:viewId/filters',
-  metaApiMetrics,
-  ncMetaAclMw(filterCreate, 'filterCreate')
-);
-
-router.get(
-  '/api/v1/db/meta/hooks/:hookId/filters',
-  ncMetaAclMw(hookFilterList, 'filterList')
-);
-router.post(
-  '/api/v1/db/meta/hooks/:hookId/filters',
-  metaApiMetrics,
-  ncMetaAclMw(hookFilterCreate, 'filterCreate')
-);
-
-router.get(
-  '/api/v1/db/meta/filters/:filterId',
-  metaApiMetrics,
-  ncMetaAclMw(filterGet, 'filterGet')
-);
-router.patch(
-  '/api/v1/db/meta/filters/:filterId',
-  metaApiMetrics,
-  ncMetaAclMw(filterUpdate, 'filterUpdate')
-);
-router.delete(
-  '/api/v1/db/meta/filters/:filterId',
-  metaApiMetrics,
-  ncMetaAclMw(filterDelete, 'filterDelete')
-);
-router.get(
-  '/api/v1/db/meta/filters/:filterParentId/children',
-  metaApiMetrics,
-  ncMetaAclMw(filterChildrenRead, 'filterChildrenRead')
-);
-export default router;
-* */

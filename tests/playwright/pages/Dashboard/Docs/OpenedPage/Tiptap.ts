@@ -78,8 +78,11 @@ export class TiptapPage extends BasePage {
     await this.rootPage.getByTestId(`nc-docs-editor-${type}-button`).click();
   }
 
-  async verifyTextFormatButtonActive(type: TextFormatType) {
-    await expect(this.rootPage.getByTestId(`nc-docs-editor-${type}-button`)).toHaveAttribute('aria-active', 'true');
+  async verifyTextFormatButtonActive({ type, active }: { type: TextFormatType; active: boolean }) {
+    await expect(this.rootPage.getByTestId(`nc-docs-editor-${type}-button`)).toHaveAttribute(
+      'aria-active',
+      active.toString()
+    );
   }
 
   async addNewNode({
@@ -341,7 +344,7 @@ export class TiptapPage extends BasePage {
         .locator(`[data-type="${tiptapNodeLabels[type]}"]`)
     ).toHaveCSS('padding-left', `${level * 16}px`);
 
-    if (nestedIndex) {
+    if (nestedIndex && type === 'Numbered List') {
       await expect(
         this.get()
           .locator(`.draggable-block-wrapper:nth-child(${index + 1})`)
@@ -350,7 +353,7 @@ export class TiptapPage extends BasePage {
       ).toHaveAttribute('data-number', `${nestedIndex + 1}`);
     }
 
-    if (checked !== undefined) {
+    if (checked !== undefined && type === 'Task List') {
       await expect(
         this.get()
           .locator(`.draggable-block-wrapper:nth-child(${index + 1})`)
@@ -666,7 +669,16 @@ export type TipTapNodes =
   | 'Tip notice'
   | 'Embed iframe';
 
-export type TextFormatType = 'bold' | 'italic' | 'underline' | 'strike' | 'task' | 'bullet' | 'link' | 'expand';
+export type TextFormatType =
+  | 'bold'
+  | 'italic'
+  | 'underline'
+  | 'strike'
+  | 'task'
+  | 'bullet'
+  | 'ordered'
+  | 'link'
+  | 'expand';
 
 const tiptapNodeLabels: Record<TipTapNodes, string> = {
   'Info notice': 'infoCallout',

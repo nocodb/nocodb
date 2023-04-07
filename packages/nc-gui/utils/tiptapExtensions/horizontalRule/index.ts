@@ -4,6 +4,7 @@ import { Plugin, PluginKey } from 'prosemirror-state'
 
 // This function is used on Document tiptap node to handle backspace key
 // As Backspace of this extension is not working properly
+// All shortcuts of divider are handled on Document node
 export const onBackspaceWithHorizontalRule = (editor: Editor) => {
   try {
     const selection = editor.view.state.selection

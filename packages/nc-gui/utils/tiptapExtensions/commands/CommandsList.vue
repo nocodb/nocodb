@@ -305,7 +305,7 @@ const items = [
     icon: MdiMinus,
     iconClass: '',
     hasDivider: true,
-    shortCutText: isMacOS() ? '⌘ Space' : 'Ctrl Space',
+    shortCutText: 'Ctrl ⇧ H',
   },
   {
     title: 'Google Docs',

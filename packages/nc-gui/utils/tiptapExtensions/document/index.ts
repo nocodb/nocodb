@@ -11,13 +11,28 @@ export const Document = Node.create({
 
   addKeyboardShortcuts() {
     return {
-      Enter: () => {
+      'Ctrl-Shift-H': () => {
+        const range = {
+          from: this.editor.state.selection.from,
+          to: this.editor.state.selection.to,
+        }
+        return this.editor
+          .chain()
+          .focus()
+          .deleteRange(range)
+          .setNode('horizontalRule')
+          .focus()
+          .setHorizontalRule()
+          .setTextSelection(range.from + 3)
+          .run()
+      },
+      'Enter': () => {
         return onEnterWithHorizontalRule(this.editor as any)
       },
-      Backspace: () => {
+      'Backspace': () => {
         return onBackspaceWithHorizontalRule(this.editor as any)
       },
-      Tab: () => {
+      'Tab': () => {
         let nextPos = this.editor.state.selection.$from.pos
 
         const currentNode = this.editor.state.selection.$from.node()

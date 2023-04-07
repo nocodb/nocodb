@@ -1,6 +1,8 @@
 import { ModelTypes, UITypes, ViewTypes } from 'nocodb-sdk';
+import { isVirtualCol, RelationTypes } from '../../../nocodb-sdk'
 import Column from '../models/Column';
 import Model from '../models/Model';
+import NcConnectionMgrv2 from '../utils/common/NcConnectionMgrv2'
 import NcHelp from '../utils/NcHelp';
 import View from '../models/View';
 import getTableNameAlias, {
@@ -8,11 +10,167 @@ import getTableNameAlias, {
 } from '../helpers/getTableName';
 import getColumnUiType from '../helpers/getColumnUiType';
 import mapDefaultDisplayValue from '../helpers/mapDefaultDisplayValue';
-import { extractAndGenerateManyToManyRelations } from '../../services/metaDiff.svc';
-import { IGNORE_TABLES } from '../utils/common/BaseApiBuilder';
-import type LinkToAnotherRecordColumn from '../../models/LinkToAnotherRecordColumn';
+import type LinkToAnotherRecordColumn from '../models/LinkToAnotherRecordColumn';
 import type Base from '../models/Base';
 import type Project from '../models/Project';
+import { getUniqueColumnAliasName } from './getUniqueName'
+export const IGNORE_TABLES = [
+  'nc_models',
+  'nc_roles',
+  'nc_routes',
+  'nc_loaders',
+  'nc_resolvers',
+  'nc_hooks',
+  'nc_store',
+  '_evolutions',
+  'nc_evolutions',
+  'xc_users',
+  'nc_rpc',
+  'nc_acl',
+  'nc_cron',
+  'nc_disabled_models_for_role',
+  'nc_audit',
+  'xc_knex_migrations',
+  'xc_knex_migrations_lock',
+  'nc_plugins',
+  'nc_migrations',
+  'nc_api_tokens',
+  'nc_projects',
+  'nc_projects_users',
+  'nc_relations',
+  'nc_shared_views',
+];
+
+
+
+async function isMMRelationExist(
+  model: Model,
+  assocModel: Model,
+  belongsToCol: Column<LinkToAnotherRecordColumn>
+) {
+  let isExist = false;
+  const colChildOpt =
+    await belongsToCol.getColOptions<LinkToAnotherRecordColumn>();
+  for (const col of await model.getColumns()) {
+    if (col.uidt === UITypes.LinkToAnotherRecord) {
+      const colOpt = await col.getColOptions<LinkToAnotherRecordColumn>();
+      if (
+        colOpt &&
+        colOpt.type === RelationTypes.MANY_TO_MANY &&
+        colOpt.fk_mm_model_id === assocModel.id &&
+        colOpt.fk_child_column_id === colChildOpt.fk_parent_column_id &&
+        colOpt.fk_mm_child_column_id === colChildOpt.fk_child_column_id
+      ) {
+        isExist = true;
+        break;
+      }
+    }
+  }
+  return isExist;
+}
+// @ts-ignore
+export async function extractAndGenerateManyToManyRelations(
+  modelsArr: Array<Model>
+) {
+  for (const assocModel of modelsArr) {
+    await assocModel.getColumns();
+    // check if table is a Bridge table(or Associative Table) by checking
+    // number of foreign keys and columns
+
+    const normalColumns = assocModel.columns.filter((c) => !isVirtualCol(c));
+    const belongsToCols: Column<LinkToAnotherRecordColumn>[] = [];
+    for (const col of assocModel.columns) {
+      if (col.uidt == UITypes.LinkToAnotherRecord) {
+        const colOpt = await col.getColOptions<LinkToAnotherRecordColumn>();
+        if (colOpt?.type === RelationTypes.BELONGS_TO) belongsToCols.push(col);
+      }
+    }
+
+    // todo: impl better method to identify m2m relation
+    if (belongsToCols?.length === 2 && normalColumns.length < 5) {
+      const modelA = await belongsToCols[0].colOptions.getRelatedTable();
+      const modelB = await belongsToCols[1].colOptions.getRelatedTable();
+
+      await modelA.getColumns();
+      await modelB.getColumns();
+
+      // check tableA already have the relation or not
+      const isRelationAvailInA = await isMMRelationExist(
+        modelA,
+        assocModel,
+        belongsToCols[0]
+      );
+      const isRelationAvailInB = await isMMRelationExist(
+        modelB,
+        assocModel,
+        belongsToCols[1]
+      );
+
+      if (!isRelationAvailInA) {
+        await Column.insert<LinkToAnotherRecordColumn>({
+          title: getUniqueColumnAliasName(
+            modelA.columns,
+            `${modelB.title} List`
+          ),
+          fk_model_id: modelA.id,
+          fk_related_model_id: modelB.id,
+          fk_mm_model_id: assocModel.id,
+          fk_child_column_id: belongsToCols[0].colOptions.fk_parent_column_id,
+          fk_parent_column_id: belongsToCols[1].colOptions.fk_parent_column_id,
+          fk_mm_child_column_id: belongsToCols[0].colOptions.fk_child_column_id,
+          fk_mm_parent_column_id:
+          belongsToCols[1].colOptions.fk_child_column_id,
+          type: RelationTypes.MANY_TO_MANY,
+          uidt: UITypes.LinkToAnotherRecord,
+        });
+      }
+      if (!isRelationAvailInB) {
+        await Column.insert<LinkToAnotherRecordColumn>({
+          title: getUniqueColumnAliasName(
+            modelB.columns,
+            `${modelA.title} List`
+          ),
+          fk_model_id: modelB.id,
+          fk_related_model_id: modelA.id,
+          fk_mm_model_id: assocModel.id,
+          fk_child_column_id: belongsToCols[1].colOptions.fk_parent_column_id,
+          fk_parent_column_id: belongsToCols[0].colOptions.fk_parent_column_id,
+          fk_mm_child_column_id: belongsToCols[1].colOptions.fk_child_column_id,
+          fk_mm_parent_column_id:
+          belongsToCols[0].colOptions.fk_child_column_id,
+          type: RelationTypes.MANY_TO_MANY,
+          uidt: UITypes.LinkToAnotherRecord,
+        });
+      }
+
+      await Model.markAsMmTable(assocModel.id, true);
+
+      // mark has many relation associated with mm as system field in both table
+      for (const btCol of [belongsToCols[0], belongsToCols[1]]) {
+        const colOpt = await btCol.colOptions;
+        const model = await colOpt.getRelatedTable();
+
+        for (const col of await model.getColumns()) {
+          if (col.uidt !== UITypes.LinkToAnotherRecord) continue;
+
+          const colOpt1 = await col.getColOptions<LinkToAnotherRecordColumn>();
+          if (!colOpt1 || colOpt1.type !== RelationTypes.HAS_MANY) continue;
+
+          if (
+            colOpt1.fk_child_column_id !== colOpt.fk_child_column_id ||
+            colOpt1.fk_parent_column_id !== colOpt.fk_parent_column_id
+          )
+            continue;
+
+          await Column.markAsSystemField(col.id);
+          break;
+        }
+      }
+    } else {
+      if (assocModel.mm) await Model.markAsMmTable(assocModel.id, false);
+    }
+  }
+}
 
 export async function populateMeta(base: Base, project: Project): Promise<any> {
   const info = {

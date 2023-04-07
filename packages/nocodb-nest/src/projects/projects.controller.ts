@@ -1,6 +1,7 @@
 import { Body, Controller, Delete, Get, Param, Patch, Post, Query, Request, UseGuards } from '@nestjs/common'
 import { AuthGuard } from '@nestjs/passport';
 import isDocker from 'is-docker'
+import { ProjectReqType } from 'nocodb-sdk'
 import Noco from '../Noco'
 import { packageVersion } from '../utils/packageVersion'
 import { ProjectsService } from './projects.service';
@@ -79,7 +80,7 @@ export class ProjectsController {
   @Post(
   '/api/v1/db/meta/projects'
 )
-  async  projectCreate(@Body() projectBody: Record<string, any>, @Request() req){
+  async  projectCreate(@Body() projectBody: ProjectReqType, @Request() req){
     const project = await this.projectsService.projectCreate({
       project: projectBody,
       user: req['user'],

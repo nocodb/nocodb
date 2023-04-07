@@ -2,7 +2,7 @@ import Ajv from 'ajv';
 import addFormats from 'ajv-formats';
 // @ts-ignore
 import swagger from '../../../../schema/swagger.json';
-import { NcError } from '../../helpers/catchError';
+import { NcError } from '../helpers/catchError';
 import type { ErrorObject } from 'ajv';
 import type { NextFunction, Request, Response } from 'express';
 

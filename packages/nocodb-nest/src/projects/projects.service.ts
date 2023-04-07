@@ -1,5 +1,5 @@
 import { Injectable } from '@nestjs/common';
-import DOMPurify from 'isomorphic-dompurify';
+import * as DOMPurify from 'isomorphic-dompurify';
 import { customAlphabet } from 'nanoid';
 import { ProjectReqType } from 'nocodb-sdk';
 import { promisify } from 'util';

@@ -57,9 +57,13 @@ export default class Base implements BaseType {
       'order',
       'enabled',
     ]);
+
+    const secret =
+      Noco.getConfig()?.auth?.jwt?.secret;
+
     insertObj.config = CryptoJS.AES.encrypt(
       JSON.stringify(base.config),
-      Noco.getConfig()?.auth?.jwt?.secret
+      secret
     ).toString();
 
     const { id } = await ncMeta.metaInsert2(

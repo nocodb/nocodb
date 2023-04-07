@@ -7,15 +7,22 @@ import NcConfigFactory from '../utils/NcConfigFactory';
 @Injectable()
 export class Connection implements OnModuleInit {
   private knex: knex.Knex;
-  private dbConfig: any;
+  private _config: any;
 
   get knexInstance(): knex.Knex {
     return this.knex;
   }
 
+  get config(): knex.Knex {
+    return this._config;
+  }
+
   // init metadb connection
   async onModuleInit(): Promise<void> {
-    this.dbConfig = await NcConfigFactory.make();
-    this.knex = knex.default({ ...this.dbConfig.meta.db, useNullAsDefault: true });
+    this._config = await NcConfigFactory.make();
+    this.knex = knex.default({
+      ...this._config.meta.db,
+      useNullAsDefault: true,
+    });
   }
 }

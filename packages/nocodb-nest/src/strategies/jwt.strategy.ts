@@ -1,15 +1,18 @@
 import { Injectable, UnauthorizedException } from '@nestjs/common'
 import { PassportStrategy } from '@nestjs/passport';
 import { Strategy, ExtractJwt } from 'passport-jwt';
+import { jwtConstants } from '../auth/constants'
 import { UsersService } from '../users/users.service'
 
 @Injectable()
 export class JwtStrategy extends PassportStrategy(Strategy) {
   constructor(private userService: UsersService) {
     super({
-      ignoreExpiration: false,
+      // ignoreExpiration: false,
       jwtFromRequest: ExtractJwt.fromHeader('xc-auth'),
-    });
+      secretOrKey: jwtConstants.secret,
+      expiresIn: '10h'
+    })
   }
 
   async validate(payload: any) {

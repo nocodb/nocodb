@@ -13,6 +13,12 @@ import {
 import { AuthGuard } from '@nestjs/passport';
 import isDocker from 'is-docker';
 import { ProjectReqType } from 'nocodb-sdk';
+import { PagedResponseImpl } from 'src/helpers/PagedResponse';
+import { ProjectType } from '../../../nocodb-sdk'
+import {
+  UseAclMiddleware,
+  UseProjectIdMiddleware,
+} from '../middlewares/extract-project-id/extract-project-id.middleware'
 import Noco from '../Noco';
 import { packageVersion } from '../utils/packageVersion';
 import { ProjectsService } from './projects.service';
@@ -22,12 +28,19 @@ import { ProjectsService } from './projects.service';
 export class ProjectsController {
   constructor(private readonly projectsService: ProjectsService) {}
 
+  @UseAclMiddleware({
+    permissionName: 'projectList'
+  })
   @Get('/api/v1/db/meta/projects/')
-  list(@Query() queryParams: Record<string, any>, @Request() req) {
-    return this.projectsService.list({
+  async list(@Query() queryParams: Record<string, any>, @Request() req) {
+    const projects = await this.projectsService.list({
       user: req.user,
       query: queryParams,
     });
+    return new PagedResponseImpl(projects as ProjectType[], {
+        count: projects.length,
+        limit: projects.length,
+      })
   }
 
   @Get('/api/v1/db/meta/projects/:projectId/info')

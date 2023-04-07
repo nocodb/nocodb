@@ -11,9 +11,11 @@ import { JwtStrategy } from './strategies/jwt.strategy';
 import { AuthGuard } from '@nestjs/passport';
 import { TablesModule } from './modules/tables/tables.module';
 import { ViewsModule } from './modules/views/views.module';
+import { FiltersModule } from './modules/filters/filters.module';
+import { SortsModule } from './modules/sorts/sorts.module';
 
 @Module({
-  imports: [AuthModule, UsersModule, UtilsModule, ProjectsModule, TablesModule, ViewsModule],
+  imports: [AuthModule, UsersModule, UtilsModule, ProjectsModule, TablesModule, ViewsModule, FiltersModule, SortsModule],
   controllers: [],
   providers: [Connection, MetaService, JwtStrategy, ExtractProjectIdMiddleware],
   exports: [Connection, MetaService],

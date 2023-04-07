@@ -1,18 +1,26 @@
-import { Module } from '@nestjs/common';
+import { MiddlewareConsumer, Module, RequestMethod } from '@nestjs/common'
 import { Connection } from './connection/connection';
-import { AuthModule } from './auth/auth.module';
-import { ExtractProjectIdMiddleware } from './middlewares/extract-project-id/extract-project-id.middleware'
-import { UsersModule } from './users/users.module';
+import { AuthModule } from './modules/auth/auth.module';
+import { ExtractProjectIdMiddleware } from './middlewares/extract-project-id/extract-project-id.middleware';
+import { UsersModule } from './modules/users/users.module';
 import { MetaService } from './meta/meta.service';
 import { LocalStrategy } from './strategies/local.strategy';
-import { UtilsModule } from './utils/utils.module';
-import { ProjectsModule } from './projects/projects.module';
+import { UtilsModule } from './modules/utils/utils.module';
+import { ProjectsModule } from './modules/projects/projects.module';
 import { JwtStrategy } from './strategies/jwt.strategy';
+import { AuthGuard } from '@nestjs/passport';
+import { TablesModule } from './modules/tables/tables.module';
 
 @Module({
-  imports: [AuthModule, UsersModule, UtilsModule, ProjectsModule],
+  imports: [AuthModule, UsersModule, UtilsModule, ProjectsModule, TablesModule],
   controllers: [],
   providers: [Connection, MetaService, JwtStrategy, ExtractProjectIdMiddleware],
   exports: [Connection, MetaService],
 })
-export class AppModule {}
+export class AppModule {
+  configure(consumer: MiddlewareConsumer) {
+    consumer
+      .apply(ExtractProjectIdMiddleware)
+      .forRoutes({ path: '*',  method: RequestMethod.ALL})
+  }
+}

@@ -1,5 +1,6 @@
 import {
   CallHandler,
+  CanActivate,
   ExecutionContext,
   Injectable,
   NestInterceptor,
@@ -30,17 +31,10 @@ import catchError, { NcError } from '../catchError';
 import extractProjectIdAndAuthenticate from '../extractProjectIdAndAuthenticate';
 
 @Injectable()
-export class ExtractProjectIdMiddleware implements NestInterceptor {
+export class ExtractProjectIdMiddleware implements NestMiddleware, CanActivate {
   constructor(private reflector: Reflector) {}
 
-  async intercept(
-    context: ExecutionContext,
-    next: CallHandler,
-  ): Promise<Observable<any>> {
-    const req = context.switchToHttp().getRequest();
-    const res = context.switchToHttp().getResponse();
-    req.customProperty = 'This is a custom property';
-
+  async use(req, res, next): Promise<any> {
     try {
       const { params } = req;
 
@@ -180,24 +174,26 @@ export class ExtractProjectIdMiddleware implements NestInterceptor {
       // await promisify((req as any).login.bind(req))(user);
     } catch (e) {
       console.log(e);
-      return throwError(new Error('Internal error'));
+      // return throwError(new Error('Internal error'));
     }
-
-    return next.handle().pipe(
-      map((data) => {
-        return data;
-      }),
-    );
+    next();
+    // return next.handle().pipe(
+    //   map((data) => {
+    //     return data;
+    //   }),
+    // );
   }
 
-  // async use(req: any, res: any, next: () => void) {
-  //   const customValue = this.reflector.get<string>(
-  //     'customValue',
-  //     req.route?.stack[0].handle,
-  //   );
-  //
-  //
-  // }
+  async canActivate(
+    context: ExecutionContext,
+  ): Promise<boolean> {
+    await this.use(
+      context.switchToHttp().getRequest(),
+      context.switchToHttp().getResponse(),
+      () => {},
+    );
+    return true;
+  }
 }
 
 @Injectable()
@@ -279,7 +275,8 @@ export class AclMiddleware implements NestInterceptor {
   }
 }
 
-export const UseProjectIdMiddleware = () => (target: any, key?: string, descriptor?: PropertyDescriptor) => {
+export const UseProjectIdMiddleware =
+  () => (target: any, key?: string, descriptor?: PropertyDescriptor) => {
     UseInterceptors(ExtractProjectIdMiddleware)(target, key, descriptor);
   };
 
@@ -301,6 +298,6 @@ export const UseAclMiddleware =
       key,
       descriptor,
     );
-    UseInterceptors(ExtractProjectIdMiddleware)(target, key, descriptor);
+    // UseInterceptors(ExtractProjectIdMiddleware)(target, key, descriptor);
     UseInterceptors(AclMiddleware)(target, key, descriptor);
   };

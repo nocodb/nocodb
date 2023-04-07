@@ -28,6 +28,34 @@ export class TiptapPage extends BasePage {
     await this.rootPage.mouse.move(box.x + box.width / 2, box.y + box.height / 2);
   }
 
+  async selectNodes({
+    start,
+    startType,
+    end,
+    endType,
+  }: {
+    start: number;
+    startType?: string;
+    end: number;
+    endType?: string;
+  }) {
+    const startLocator = this.get()
+      .locator(`.draggable-block-wrapper:nth-child(${start + 1})`)
+      .locator(`${startType ? tiptapNodeToDomType[startType] : 'p'}`);
+
+    const endLocator = this.get()
+      .locator(`.draggable-block-wrapper:nth-child(${end + 1})`)
+      .locator(`${endType ? tiptapNodeToDomType[endType] : 'p'}`);
+
+    const startBox = await (await startLocator.elementHandle()).boundingBox();
+    const endBox = await (await endLocator.elementHandle()).boundingBox();
+
+    await this.rootPage.mouse.move(startBox.x, startBox.y);
+    await this.rootPage.mouse.down();
+    await this.rootPage.waitForTimeout(400);
+    await this.rootPage.mouse.move(endBox.x + endBox.width, endBox.y + endBox.height);
+  }
+
   async openCommandMenu({ index }: { index?: number } = {}) {
     let paragraph;
     if (index !== undefined) {
@@ -44,6 +72,14 @@ export class TiptapPage extends BasePage {
     await this.rootPage.keyboard.press('/');
 
     await this.rootPage.locator('.nc-docs-command-list').waitFor({ state: 'visible' });
+  }
+
+  async clickTextFormatButton(type: TextFormatType) {
+    await this.rootPage.getByTestId(`nc-docs-editor-${type}-button`).click();
+  }
+
+  async verifyTextFormatButtonActive(type: TextFormatType) {
+    await expect(this.rootPage.getByTestId(`nc-docs-editor-${type}-button`)).toHaveAttribute('aria-active', 'true');
   }
 
   async addNewNode({
@@ -629,6 +665,8 @@ export type TipTapNodes =
   | 'Warning notice'
   | 'Tip notice'
   | 'Embed iframe';
+
+export type TextFormatType = 'bold' | 'italic' | 'underline' | 'strike' | 'task' | 'bullet' | 'link' | 'expand';
 
 const tiptapNodeLabels: Record<TipTapNodes, string> = {
   'Info notice': 'infoCallout',

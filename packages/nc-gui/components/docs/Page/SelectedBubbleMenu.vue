@@ -156,7 +156,9 @@ const onToggleLink = () => {
       <a-button
         type="text"
         :class="{ 'is-active': editor.isActive('bold') }"
+        :aria-active="editor.isActive('bold')"
         class="menu-button"
+        data-testid="nc-docs-editor-bold-button"
         @click="editor!.chain().focus().toggleBold().run()"
       >
         <MdiFormatBold />
@@ -164,7 +166,9 @@ const onToggleLink = () => {
       <a-button
         type="text"
         :class="{ 'is-active': editor.isActive('italic') }"
+        :aria-active="editor.isActive('italic')"
         class="menu-button"
+        data-testid="nc-docs-editor-italic-button"
         @click=";(editor!.chain().focus() as any).toggleItalic().run()"
       >
         <MdiFormatItalic />
@@ -172,7 +176,9 @@ const onToggleLink = () => {
       <a-button
         type="text"
         :class="{ 'is-active': editor.isActive('underline') }"
+        :aria-active="editor.isActive('underline')"
         class="menu-button"
+        data-testid="nc-docs-editor-underline-button"
         @click="editor!.chain().focus().toggleUnderline().run()"
       >
         <MdiFormatUnderline />
@@ -180,7 +186,9 @@ const onToggleLink = () => {
       <a-button
         type="text"
         :class="{ 'is-active': editor.isActive('strike') }"
+        :aria-active="editor.isActive('strike')"
         class="menu-button"
+        data-testid="nc-docs-editor-strike-button"
         @click="editor!.chain().focus().toggleStrike().run()"
       >
         <MdiFormatStrikeThrough />
@@ -189,7 +197,9 @@ const onToggleLink = () => {
       <a-button
         type="text"
         :class="{ 'is-active': isCheckboxActive }"
+        :aria-active="isCheckboxActive"
         class="menu-button"
+        data-testid="nc-docs-editor-task-button"
         @click="editor!.chain().focus().toggleTask().run()"
       >
         <MdiFormatListCheckbox />
@@ -197,7 +207,9 @@ const onToggleLink = () => {
       <a-button
         type="text"
         :class="{ 'is-active': isBulletActive }"
+        :aria-active="isBulletActive"
         class="menu-button"
+        data-testid="nc-docs-editor-bullet-button"
         @click="editor!.chain().focus().toggleBullet().run()"
       >
         <MdiFormatBulletList />
@@ -205,14 +217,23 @@ const onToggleLink = () => {
       <a-button
         type="text"
         :class="{ 'is-active': isOrderedActive }"
+        :aria-active="isOrderedActive"
         class="menu-button"
+        data-testid="nc-docs-editor-ordered-button"
         @click="editor!.chain().focus().toggleOrdered().run()"
       >
         <MdiFormatListNumber />
       </a-button>
       <div class="divider"></div>
 
-      <a-button type="text" :class="{ 'is-active': editor.isActive('link') }" class="menu-button" @click="onToggleLink">
+      <a-button
+        type="text"
+        :class="{ 'is-active': editor.isActive('link') }"
+        :aria-active="editor.isActive('link')"
+        class="menu-button"
+        data-testid="nc-docs-editor-link-button"
+        @click="onToggleLink"
+      >
         <div class="flex flex-row items-center px-0.5">
           <MdiLink />
           <div class="!text-xs !ml-1">Link</div>
@@ -228,6 +249,8 @@ const onToggleLink = () => {
         :class="{
           '!hover:bg-inherit !cursor-not-allowed': isMagicExpandLoading,
         }"
+        :aria-active="isMagicExpandLoading"
+        data-testid="nc-docs-editor-expand-button"
         @click="expandText"
       >
         <div class="flex flex-row items-center pr-0.5">

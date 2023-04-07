@@ -1,79 +1,79 @@
-import { Controller, Get, Param } from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  Delete,
+  Get,
+  Param,
+  Patch,
+  Post,
+  UseGuards,
+} from '@nestjs/common';
+import { AuthGuard } from '@nestjs/passport';
+import { SortReqType } from 'nocodb-sdk';
 import { PagedResponseImpl } from '../../helpers/PagedResponse';
+import {
+  ExtractProjectIdMiddleware,
+  UseAclMiddleware,
+} from '../../middlewares/extract-project-id/extract-project-id.middleware';
 import { SortsService } from './sorts.service';
 
-@Controller('sorts')
+@Controller()
+@UseGuards(ExtractProjectIdMiddleware, AuthGuard('jwt'))
 export class SortsController {
   constructor(private readonly sortsService: SortsService) {}
 
   @Get('/api/v1/db/meta/views/:viewId/sorts/')
+  @UseAclMiddleware({
+    permissionName: 'sortList',
+  })
   async sortList(@Param('viewId') viewId: string) {
-    return;
-    new PagedResponseImpl(
+    return new PagedResponseImpl(
       await this.sortsService.sortList({
         viewId,
       }),
     );
   }
+
+  @Post('/api/v1/db/meta/views/:viewId/sorts/')
+  @UseAclMiddleware({
+    permissionName: 'sortCreate',
+  })
+  async sortCreate(@Param('viewId') viewId: string, @Body() body: SortReqType) {
+    const sort = await this.sortsService.sortCreate({
+      sort: body,
+      viewId,
+    });
+    return sort;
+  }
+
+  @Get('/api/v1/db/meta/sorts/:sortId')
+  @UseAclMiddleware({
+    permissionName: 'sortGet',
+  })
+  async sortGet(@Param('sortId') sortId: string) {
+    const sort = await this.sortsService.sortGet({
+      sortId,
+    });
+    return sort;
+  }
+
+  @Patch('/api/v1/db/meta/sorts/:sortId')
+  @UseAclMiddleware({
+    permissionName: 'sortUpdate',
+  })
+  async sortUpdate(@Param('sortId') sortId: string, @Body() body: SortReqType) {
+    const sort = await this.sortsService.sortUpdate({
+      sortId,
+      sort: body,
+    });
+    return sort;
+  }
+
+  @Delete('/api/v1/db/meta/sorts/:sortId')
+  async sortDelete(@Param('sortId') sortId: string) {
+    const sort = await this.sortsService.sortDelete({
+      sortId,
+    });
+    return sort;
+  }
 }
-
-/*
-
-
-export async function sortCreate(req: Request<any, any, SortReqType>, res) {
-  const sort = await sortService.sortCreate({
-    sort: req.body,
-    viewId: req.params.viewId,
-  });
-  res.json(sort);
-}
-
-export async function sortUpdate(req, res) {
-  const sort = await sortService.sortUpdate({
-    sortId: req.params.sortId,
-    sort: req.body,
-  });
-  res.json(sort);
-}
-
-export async function sortDelete(req: Request, res: Response) {
-  const sort = await sortService.sortDelete({
-    sortId: req.params.sortId,
-  });
-  res.json(sort);
-}
-
-export async function sortGet(req: Request, res: Response) {
-  const sort = await sortService.sortGet({
-    sortId: req.params.sortId,
-  });
-  res.json(sort);
-}
-
-const router = Router({ mergeParams: true });
-
-router.post(
-  '/api/v1/db/meta/views/:viewId/sorts/',
-  metaApiMetrics,
-  ncMetaAclMw(sortCreate, 'sortCreate')
-);
-
-router.get(
-  '/api/v1/db/meta/sorts/:sortId',
-  metaApiMetrics,
-  ncMetaAclMw(sortGet, 'sortGet')
-);
-
-router.patch(
-  '/api/v1/db/meta/sorts/:sortId',
-  metaApiMetrics,
-  ncMetaAclMw(sortUpdate, 'sortUpdate')
-);
-router.delete(
-  '/api/v1/db/meta/sorts/:sortId',
-  metaApiMetrics,
-  ncMetaAclMw(sortDelete, 'sortDelete')
-);
-export default router;
-
-* */

@@ -525,7 +525,7 @@ export class TiptapPage extends BasePage {
   }: {
     index: number;
     text: string;
-    formatType: 'bold' | 'italic' | 'strike' | 'underline';
+    formatType: 'bold' | 'italic' | 'strike' | 'underline' | 'code';
   }) {
     await expect(
       this.get()
@@ -672,7 +672,7 @@ export type TipTapNodes =
   | 'Heading 3'
   | 'Paragraph'
   | 'Quote'
-  | 'Code Block'
+  | 'Code'
   | 'Bullet List'
   | 'Numbered List'
   | 'Task List'
@@ -701,6 +701,7 @@ const tiptapNodeLabels: Record<TipTapNodes, string> = {
   'Info notice': 'infoCallout',
   'Warning notice': 'warningCallout',
   'Tip notice': 'tipCallout',
+  Code: 'codeBlock',
   Paragraph: 'paragraph',
   'Heading 1': 'heading',
   'Heading 2': 'heading',
@@ -711,6 +712,7 @@ const tiptapNodeLabels: Record<TipTapNodes, string> = {
   'Numbered List': 'ordered',
   'Task List': 'task',
   Table: 'table',
+  Quote: 'blockquote',
 };
 
 const tiptapNodeToDomType: Record<TipTapNodes, string> = {
@@ -728,11 +730,14 @@ const tiptapNodeToDomType: Record<TipTapNodes, string> = {
   'Numbered List': 'div[data-type="ordered"]',
   'Task List': 'div[data-type="task"]',
   Table: 'div.tiptap-table-wrapper',
+  Code: 'pre',
+  Quote: 'blockquote',
 };
 
-const tiptapTextFormatToDomType: Record<'bold' | 'italic' | 'underline' | 'strike', string> = {
+const tiptapTextFormatToDomType: Record<'bold' | 'italic' | 'underline' | 'strike' | 'code', string> = {
   bold: 'strong',
   italic: 'em',
   underline: 'u',
   strike: 's',
+  code: 'code',
 };

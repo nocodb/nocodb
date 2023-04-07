@@ -159,7 +159,7 @@ const items = [
     iconClass: '',
   },
   {
-    title: 'Code snippet',
+    title: 'Code',
     class: 'text-xs',
     command: ({ editor, range }: { editor: Editor; range: Range }) => {
       editor.chain().focus().deleteRange(range).setNode('codeBlock').run()

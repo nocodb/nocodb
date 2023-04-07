@@ -249,6 +249,21 @@ export class TiptapPage extends BasePage {
       .scrollIntoViewIfNeeded();
   }
 
+  async clickLastNode({ start }) {
+    await this.get()
+      .locator(`.draggable-block-wrapper:last-child`)
+      .locator('.node-view-drag-content')
+      .click({
+        force: true,
+        position: start
+          ? {
+              x: 0,
+              y: 0,
+            }
+          : undefined,
+      });
+  }
+
   async clickNode({ index, start }: { index: number; start: boolean }) {
     await this.get()
       .locator(`.draggable-block-wrapper:nth-child(${index + 1})`)

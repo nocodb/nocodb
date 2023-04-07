@@ -1,4 +1,4 @@
-import { test } from '@playwright/test';
+import { Page, test } from '@playwright/test';
 import { ProjectType, ProjectTypes } from 'nocodb-sdk';
 import { DashboardPage } from '../../pages/Dashboard';
 import setup, { NcContext } from '../../setup';
@@ -73,16 +73,43 @@ test.describe('Tiptap:External link test and headers', () => {
   });
 
   test('Tiptap:Header test', async () => {
+    await verifyHeader({ page: dashboard.rootPage, type: 'menu' });
+    await verifyHeader({ page: dashboard.rootPage, type: 'type' });
+  });
+
+  async function createHeaderThroughMenu(type: 'Heading 1' | 'Heading 2' | 'Heading 3') {
+    const openedPage = await dashboard.docs.openedPage;
+    await openedPage.tiptap.addNewNode({
+      type,
+    });
+  }
+
+  async function createHeaderThroughTyping(type: 'Heading 1' | 'Heading 2' | 'Heading 3') {
+    const openedPage = await dashboard.docs.openedPage;
+    await openedPage.tiptap.clickLastNode({
+      start: true,
+    });
+    const level = Number(type.split(' ')[1]);
+    const start = '#'.repeat(level);
+    await openedPage.rootPage.keyboard.type(start + ' ');
+  }
+
+  async function verifyHeader({ page, type }: { page: Page; type: 'menu' | 'type' }) {
     const openedPage = await dashboard.docs.openedPage;
     await dashboard.sidebar.docsSidebar.createPage({
       projectTitle: project.title as any,
       title: 'page',
     });
 
-    await openedPage.tiptap.addNewNode({
-      type: 'Heading 1',
-    });
+    const createHeaderNode = async (headerType: 'Heading 1' | 'Heading 2' | 'Heading 3') => {
+      if (type === 'menu') {
+        await createHeaderThroughMenu(headerType);
+      } else if (type === 'type') {
+        await createHeaderThroughTyping(headerType);
+      }
+    };
 
+    await createHeaderNode('Heading 1');
     await openedPage.tiptap.verifyHeaderNode({
       index: 0,
       type: 'Heading 1',
@@ -98,9 +125,7 @@ test.describe('Tiptap:External link test and headers', () => {
 
     await openedPage.tiptap.clearContent();
 
-    await openedPage.tiptap.addNewNode({
-      type: 'Heading 2',
-    });
+    await createHeaderNode('Heading 2');
 
     await openedPage.tiptap.verifyHeaderNode({
       index: 0,
@@ -117,9 +142,7 @@ test.describe('Tiptap:External link test and headers', () => {
 
     await openedPage.tiptap.clearContent();
 
-    await openedPage.tiptap.addNewNode({
-      type: 'Heading 3',
-    });
+    await createHeaderNode('Heading 3');
 
     await openedPage.tiptap.verifyHeaderNode({
       index: 0,
@@ -133,5 +156,7 @@ test.describe('Tiptap:External link test and headers', () => {
       type: 'Heading 3',
       content: 'Header 3',
     });
-  });
+
+    await openedPage.tiptap.clearContent();
+  }
 });

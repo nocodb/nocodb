@@ -15,9 +15,10 @@ import { FiltersModule } from './modules/filters/filters.module';
 import { SortsModule } from './modules/sorts/sorts.module';
 import { ColumnsModule } from './modules/columns/columns.module';
 import { ViewColumnsModule } from './modules/view-columns/view-columns.module';
+import { BasesModule } from './modules/bases/bases.module';
 
 @Module({
-  imports: [AuthModule, UsersModule, UtilsModule, ProjectsModule, TablesModule, ViewsModule, FiltersModule, SortsModule, ColumnsModule, ViewColumnsModule],
+  imports: [AuthModule, UsersModule, UtilsModule, ProjectsModule, TablesModule, ViewsModule, FiltersModule, SortsModule, ColumnsModule, ViewColumnsModule, BasesModule],
   controllers: [],
   providers: [Connection, MetaService, JwtStrategy, ExtractProjectIdMiddleware],
   exports: [Connection, MetaService],

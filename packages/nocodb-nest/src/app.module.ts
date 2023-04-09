@@ -19,9 +19,12 @@ import { BasesModule } from './modules/bases/bases.module';
 import { HooksModule } from './modules/hooks/hooks.module';
 import { SharedBasesModule } from './modules/shared-bases/shared-bases.module';
 import { FormsModule } from './modules/forms/forms.module';
+import { GridsModule } from './modules/grids/grids.module';
+import { KanbansModule } from './modules/kanbans/kanbans.module';
+import { GalleriesModule } from './modules/galleries/galleries.module';
 
 @Module({
-  imports: [AuthModule, UsersModule, UtilsModule, ProjectsModule, TablesModule, ViewsModule, FiltersModule, SortsModule, ColumnsModule, ViewColumnsModule, BasesModule, HooksModule, SharedBasesModule, FormsModule],
+  imports: [AuthModule, UsersModule, UtilsModule, ProjectsModule, TablesModule, ViewsModule, FiltersModule, SortsModule, ColumnsModule, ViewColumnsModule, BasesModule, HooksModule, SharedBasesModule, FormsModule, GridsModule, KanbansModule, GalleriesModule],
   controllers: [],
   providers: [Connection, MetaService, JwtStrategy, ExtractProjectIdMiddleware],
   exports: [Connection, MetaService],

@@ -35,9 +35,10 @@ import { OrgTokensModule } from './modules/org-tokens/org-tokens.module';
 import { OrgUsersModule } from './modules/org-users/org-users.module';
 import { MetaDiffsModule } from './modules/meta-diffs/meta-diffs.module';
 import { AuditsModule } from './modules/audits/audits.module';
+import { DatasModule } from './modules/datas/datas.module';
 
 @Module({
-  imports: [AuthModule, UsersModule, UtilsModule, ProjectsModule, TablesModule, ViewsModule, FiltersModule, SortsModule, ColumnsModule, ViewColumnsModule, BasesModule, HooksModule, SharedBasesModule, FormsModule, GridsModule, KanbansModule, GalleriesModule, FormColumnsModule, GridColumnsModule, MapsModule, ProjectUsersModule, ModelVisibilitiesModule, HookFiltersModule, ApiTokensModule, AttachmentsModule, OrgLcenseModule, OrgTokensModule, OrgUsersModule, MetaDiffsModule, AuditsModule],
+  imports: [AuthModule, UsersModule, UtilsModule, ProjectsModule, TablesModule, ViewsModule, FiltersModule, SortsModule, ColumnsModule, ViewColumnsModule, BasesModule, HooksModule, SharedBasesModule, FormsModule, GridsModule, KanbansModule, GalleriesModule, FormColumnsModule, GridColumnsModule, MapsModule, ProjectUsersModule, ModelVisibilitiesModule, HookFiltersModule, ApiTokensModule, AttachmentsModule, OrgLcenseModule, OrgTokensModule, OrgUsersModule, MetaDiffsModule, AuditsModule, DatasModule],
   controllers: [],
   providers: [Connection, MetaService, JwtStrategy, ExtractProjectIdMiddleware],
   exports: [Connection, MetaService],

@@ -6,9 +6,10 @@ import { DataAliasExportController } from './data-alias-export/data-alias-export
 import { DataAliasNestedController } from './data-alias-nested/data-alias-nested.controller';
 import { OldDatasController } from './old-datas/old-datas.controller';
 import { BulkDataAliasService } from './bulk-data-alias/bulk-data-alias.service';
+import { DataAliasNestedService } from './data-alias-nested/data-alias-nested.service';
 
 @Module({
   controllers: [DatasController, BulkDataAliasController, DataAliasExportController, DataAliasNestedController, OldDatasController],
-  providers: [DatasService, BulkDataAliasService]
+  providers: [DatasService, BulkDataAliasService, DataAliasNestedService]
 })
 export class DatasModule {}

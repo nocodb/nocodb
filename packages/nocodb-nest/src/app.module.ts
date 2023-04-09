@@ -41,9 +41,14 @@ import { ApiDocsModule } from './modules/api-docs/api-docs.module';
 import { PublicMetasModule } from './modules/public-metas/public-metas.module';
 import { PublicDatasModule } from './modules/public-datas/public-datas.module';
 import { PublicDatasExportModule } from './modules/public-datas-export/public-datas-export.module';
+import { SyncModule } from './modules/sync/sync.module';
+import { ImportModule } from './modules/import/import.module';
+import { CachesModule } from './modules/caches/caches.module';
+import { TestModule } from './modules/test/test.module';
+import { PluginsModule } from './modules/plugins/plugins.module';
 
 @Module({
-  imports: [AuthModule, UsersModule, UtilsModule, ProjectsModule, TablesModule, ViewsModule, FiltersModule, SortsModule, ColumnsModule, ViewColumnsModule, BasesModule, HooksModule, SharedBasesModule, FormsModule, GridsModule, KanbansModule, GalleriesModule, FormColumnsModule, GridColumnsModule, MapsModule, ProjectUsersModule, ModelVisibilitiesModule, HookFiltersModule, ApiTokensModule, AttachmentsModule, OrgLcenseModule, OrgTokensModule, OrgUsersModule, MetaDiffsModule, AuditsModule, DatasModule, DataAliasModule, ApiDocsModule, PublicMetasModule, PublicDatasModule, PublicDatasExportModule],
+  imports: [AuthModule, UsersModule, UtilsModule, ProjectsModule, TablesModule, ViewsModule, FiltersModule, SortsModule, ColumnsModule, ViewColumnsModule, BasesModule, HooksModule, SharedBasesModule, FormsModule, GridsModule, KanbansModule, GalleriesModule, FormColumnsModule, GridColumnsModule, MapsModule, ProjectUsersModule, ModelVisibilitiesModule, HookFiltersModule, ApiTokensModule, AttachmentsModule, OrgLcenseModule, OrgTokensModule, OrgUsersModule, MetaDiffsModule, AuditsModule, DatasModule, DataAliasModule, ApiDocsModule, PublicMetasModule, PublicDatasModule, PublicDatasExportModule, SyncModule, ImportModule, CachesModule, TestModule, PluginsModule],
   controllers: [],
   providers: [Connection, MetaService, JwtStrategy, ExtractProjectIdMiddleware],
   exports: [Connection, MetaService],

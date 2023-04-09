@@ -31,9 +31,10 @@ import { HookFiltersModule } from './modules/hook-filters/hook-filters.module';
 import { ApiTokensModule } from './modules/api-tokens/api-tokens.module';
 import { AttachmentsModule } from './modules/attachments/attachments.module';
 import { OrgLcenseModule } from './modules/org-lcense/org-lcense.module';
+import { OrgTokensModule } from './modules/org-tokens/org-tokens.module';
 
 @Module({
-  imports: [AuthModule, UsersModule, UtilsModule, ProjectsModule, TablesModule, ViewsModule, FiltersModule, SortsModule, ColumnsModule, ViewColumnsModule, BasesModule, HooksModule, SharedBasesModule, FormsModule, GridsModule, KanbansModule, GalleriesModule, FormColumnsModule, GridColumnsModule, MapsModule, ProjectUsersModule, ModelVisibilitiesModule, HookFiltersModule, ApiTokensModule, AttachmentsModule, OrgLcenseModule],
+  imports: [AuthModule, UsersModule, UtilsModule, ProjectsModule, TablesModule, ViewsModule, FiltersModule, SortsModule, ColumnsModule, ViewColumnsModule, BasesModule, HooksModule, SharedBasesModule, FormsModule, GridsModule, KanbansModule, GalleriesModule, FormColumnsModule, GridColumnsModule, MapsModule, ProjectUsersModule, ModelVisibilitiesModule, HookFiltersModule, ApiTokensModule, AttachmentsModule, OrgLcenseModule, OrgTokensModule],
   controllers: [],
   providers: [Connection, MetaService, JwtStrategy, ExtractProjectIdMiddleware],
   exports: [Connection, MetaService],

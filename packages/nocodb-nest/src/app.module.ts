@@ -40,9 +40,10 @@ import { DataAliasModule } from './modules/data-alias/data-alias.module';
 import { ApiDocsModule } from './modules/api-docs/api-docs.module';
 import { PublicMetasModule } from './modules/public-metas/public-metas.module';
 import { PublicDatasModule } from './modules/public-datas/public-datas.module';
+import { PublicDatasExportModule } from './modules/public-datas-export/public-datas-export.module';
 
 @Module({
-  imports: [AuthModule, UsersModule, UtilsModule, ProjectsModule, TablesModule, ViewsModule, FiltersModule, SortsModule, ColumnsModule, ViewColumnsModule, BasesModule, HooksModule, SharedBasesModule, FormsModule, GridsModule, KanbansModule, GalleriesModule, FormColumnsModule, GridColumnsModule, MapsModule, ProjectUsersModule, ModelVisibilitiesModule, HookFiltersModule, ApiTokensModule, AttachmentsModule, OrgLcenseModule, OrgTokensModule, OrgUsersModule, MetaDiffsModule, AuditsModule, DatasModule, DataAliasModule, ApiDocsModule, PublicMetasModule, PublicDatasModule],
+  imports: [AuthModule, UsersModule, UtilsModule, ProjectsModule, TablesModule, ViewsModule, FiltersModule, SortsModule, ColumnsModule, ViewColumnsModule, BasesModule, HooksModule, SharedBasesModule, FormsModule, GridsModule, KanbansModule, GalleriesModule, FormColumnsModule, GridColumnsModule, MapsModule, ProjectUsersModule, ModelVisibilitiesModule, HookFiltersModule, ApiTokensModule, AttachmentsModule, OrgLcenseModule, OrgTokensModule, OrgUsersModule, MetaDiffsModule, AuditsModule, DatasModule, DataAliasModule, ApiDocsModule, PublicMetasModule, PublicDatasModule, PublicDatasExportModule],
   controllers: [],
   providers: [Connection, MetaService, JwtStrategy, ExtractProjectIdMiddleware],
   exports: [Connection, MetaService],

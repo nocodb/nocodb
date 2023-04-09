@@ -27,9 +27,11 @@ import { GridColumnsModule } from './modules/grid-columns/grid-columns.module';
 import { MapsModule } from './modules/maps/maps.module';
 import { ProjectUsersModule } from './modules/project-users/project-users.module';
 import { ModelVisibilitiesModule } from './modules/model-visibilities/model-visibilities.module';
+import { HookFiltersModule } from './modules/hook-filters/hook-filters.module';
+import { ApiTokensModule } from './modules/api-tokens/api-tokens.module';
 
 @Module({
-  imports: [AuthModule, UsersModule, UtilsModule, ProjectsModule, TablesModule, ViewsModule, FiltersModule, SortsModule, ColumnsModule, ViewColumnsModule, BasesModule, HooksModule, SharedBasesModule, FormsModule, GridsModule, KanbansModule, GalleriesModule, FormColumnsModule, GridColumnsModule, MapsModule, ProjectUsersModule, ModelVisibilitiesModule],
+  imports: [AuthModule, UsersModule, UtilsModule, ProjectsModule, TablesModule, ViewsModule, FiltersModule, SortsModule, ColumnsModule, ViewColumnsModule, BasesModule, HooksModule, SharedBasesModule, FormsModule, GridsModule, KanbansModule, GalleriesModule, FormColumnsModule, GridColumnsModule, MapsModule, ProjectUsersModule, ModelVisibilitiesModule, HookFiltersModule, ApiTokensModule],
   controllers: [],
   providers: [Connection, MetaService, JwtStrategy, ExtractProjectIdMiddleware],
   exports: [Connection, MetaService],

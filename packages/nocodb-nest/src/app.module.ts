@@ -2,15 +2,14 @@ import { MiddlewareConsumer, Module, RequestMethod } from '@nestjs/common';
 import { APP_FILTER } from '@nestjs/core';
 import { Connection } from './connection/connection';
 import { GlobalExceptionFilter } from './filters/global-exception/global-exception.filter';
+import { GlobalMiddleware } from './middlewares/global/global.middleware';
 import { AuthModule } from './modules/auth/auth.module';
 import { ExtractProjectIdMiddleware } from './middlewares/extract-project-id/extract-project-id.middleware';
 import { UsersModule } from './modules/users/users.module';
 import { MetaService } from './meta/meta.service';
-// import { LocalStrategy } from './strategies/local.strategy';
 import { UtilsModule } from './modules/utils/utils.module';
 import { ProjectsModule } from './modules/projects/projects.module';
 import { JwtStrategy } from './strategies/jwt.strategy';
-// import { AuthGuard } from '@nestjs/passport';
 import { TablesModule } from './modules/tables/tables.module';
 import { ViewsModule } from './modules/views/views.module';
 import { FiltersModule } from './modules/filters/filters.module';
@@ -106,8 +105,8 @@ import { PluginsModule } from './modules/plugins/plugins.module';
 })
 export class AppModule {
   configure(consumer: MiddlewareConsumer) {
-    // consumer
-    //   .apply(ExtractProjectIdMiddleware)
-    //   .forRoutes({ path: '*', method: RequestMethod.ALL });
+    consumer
+      .apply(GlobalMiddleware)
+      .forRoutes({ path: '*', method: RequestMethod.ALL });
   }
 }

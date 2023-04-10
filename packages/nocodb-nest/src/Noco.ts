@@ -8,6 +8,7 @@ import Store from './models/Store';
 export default class Noco {
   private static _this: Noco;
   private static ee: boolean;
+  public static readonly env: string = '_noco';
 
   public static get dashboardUrl(): string {
     let siteUrl = `http://localhost:${process.env.PORT || 8080}`;

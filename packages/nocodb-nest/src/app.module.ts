@@ -1,5 +1,7 @@
 import { MiddlewareConsumer, Module, RequestMethod } from '@nestjs/common';
+import { APP_FILTER } from '@nestjs/core';
 import { Connection } from './connection/connection';
+import { GlobalExceptionFilter } from './filters/global-exception/global-exception.filter';
 import { AuthModule } from './modules/auth/auth.module';
 import { ExtractProjectIdMiddleware } from './middlewares/extract-project-id/extract-project-id.middleware';
 import { UsersModule } from './modules/users/users.module';
@@ -8,7 +10,7 @@ import { MetaService } from './meta/meta.service';
 import { UtilsModule } from './modules/utils/utils.module';
 import { ProjectsModule } from './modules/projects/projects.module';
 import { JwtStrategy } from './strategies/jwt.strategy';
-import { AuthGuard } from '@nestjs/passport';
+// import { AuthGuard } from '@nestjs/passport';
 import { TablesModule } from './modules/tables/tables.module';
 import { ViewsModule } from './modules/views/views.module';
 import { FiltersModule } from './modules/filters/filters.module';
@@ -90,7 +92,16 @@ import { PluginsModule } from './modules/plugins/plugins.module';
     PluginsModule,
   ],
   controllers: [],
-  providers: [Connection, MetaService, JwtStrategy, ExtractProjectIdMiddleware],
+  providers: [
+    {
+      provide: APP_FILTER,
+      useClass: GlobalExceptionFilter,
+    },
+    Connection,
+    MetaService,
+    JwtStrategy,
+    ExtractProjectIdMiddleware,
+  ],
   exports: [Connection, MetaService],
 })
 export class AppModule {

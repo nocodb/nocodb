@@ -27,8 +27,19 @@ export class WorkspacesController {
   @UseAclMiddleware({
     permissionName: 'workspaceList',
   })
-  async viewList(@Request() req) {
+  async list(@Request() req) {
     return await this.workspacesService.list({
+      user: req.user,
+    });
+  }
+
+  @Post('/api/v1/workspaces/')
+  @UseAclMiddleware({
+    permissionName: 'workspaceCreate',
+  })
+  async create(@Body() body: any, @Request() req) {
+    return await this.workspacesService.create({
+      workspaces: body,
       user: req.user,
     });
   }

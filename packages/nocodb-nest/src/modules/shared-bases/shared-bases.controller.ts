@@ -5,6 +5,9 @@ import {
   Patch,
   Post,
   UseGuards,
+  Request,
+  Body,
+  Param,
 } from '@nestjs/common';
 import {
   Acl,
@@ -20,28 +23,36 @@ export class SharedBasesController {
 
   @Post('/api/v1/db/meta/projects/:projectId/shared')
   @Acl('createSharedBaseLink')
-  async createSharedBaseLink(req, res): Promise<any> {
+  async createSharedBaseLink(
+    @Request() req,
+    @Body() body: any,
+    @Param('projectId') projectId: string,
+  ): Promise<any> {
     const sharedBase = await this.sharedBasesService.createSharedBaseLink({
-      projectId: req.params.projectId,
-      roles: req.body?.roles,
-      password: req.body?.password,
+      projectId: projectId,
+      roles: body?.roles,
+      password: body?.password,
       siteUrl: req.ncSiteUrl,
     });
 
-    res.json(sharedBase);
+    return sharedBase;
   }
 
   @Patch('/api/v1/db/meta/projects/:projectId/shared')
   @Acl('updateSharedBaseLink')
-  async updateSharedBaseLink(req, res): Promise<any> {
+  async updateSharedBaseLink(
+    @Request() req,
+    @Body() body: any,
+    @Param('projectId') projectId: string,
+  ): Promise<any> {
     const sharedBase = await this.sharedBasesService.updateSharedBaseLink({
-      projectId: req.params.projectId,
-      roles: req.body?.roles,
-      password: req.body?.password,
+      projectId: projectId,
+      roles: body?.roles,
+      password: body?.password,
       siteUrl: req.ncSiteUrl,
     });
 
-    res.json(sharedBase);
+    return sharedBase;
   }
 
   @Delete('/api/v1/db/meta/projects/:projectId/shared')
@@ -56,12 +67,15 @@ export class SharedBasesController {
 
   @Get('/api/v1/db/meta/projects/:projectId/shared')
   @Acl('getSharedBaseLink')
-  async getSharedBaseLink(req, res): Promise<any> {
+  async getSharedBaseLink(
+    @Request() req,
+    @Param('projectId') projectId: string,
+  ): Promise<any> {
     const sharedBase = await this.sharedBasesService.getSharedBaseLink({
-      projectId: req.params.projectId,
+      projectId: projectId,
       siteUrl: req.ncSiteUrl,
     });
 
-    res.json(sharedBase);
+    return sharedBase;
   }
 }

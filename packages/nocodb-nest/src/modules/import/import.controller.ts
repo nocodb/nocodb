@@ -25,7 +25,7 @@ export default (
   // add importer job handler and progress notification job handler
   NocoJobs.jobsMgr.addJobWorker(
     AIRTABLE_IMPORT_JOB,
-    this.syncService.airtableImportJob!,
+    {} as any // this?.syncService?.airtableImportJob,
   );
   NocoJobs.jobsMgr.addJobWorker(
     AIRTABLE_PROGRESS_JOB,

@@ -7,13 +7,19 @@ import {
   Post,
   Query,
   Request,
+  UseGuards,
 } from '@nestjs/common';
 import { PagedResponseImpl } from '../../helpers/PagedResponse';
-import { Acl } from '../../middlewares/extract-project-id/extract-project-id.middleware';
+import {
+  Acl,
+  ExtractProjectIdMiddleware,
+} from '../../middlewares/extract-project-id/extract-project-id.middleware';
 import { Audit } from '../../models';
 import { AuditsService } from './audits.service';
+import { AuthGuard } from '@nestjs/passport';
 
 @Controller()
+@UseGuards(ExtractProjectIdMiddleware, AuthGuard('jwt'))
 export class AuditsController {
   constructor(private readonly auditsService: AuditsService) {}
 

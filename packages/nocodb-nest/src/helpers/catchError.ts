@@ -1,6 +1,6 @@
 import type { ErrorObject } from 'ajv';
 
-enum DBError {
+export enum DBError {
   TABLE_EXIST = 'TABLE_EXIST',
   TABLE_NOT_EXIST = 'TABLE_NOT_EXIST',
   COLUMN_EXIST = 'COLUMN_EXIST',
@@ -11,7 +11,7 @@ enum DBError {
 }
 
 // extract db errors using database error code
-function extractDBError(error): {
+export function extractDBError(error): {
   type: DBError;
   message: string;
   info: any;
@@ -419,19 +419,19 @@ export default function (
   };
 }
 
-class BadRequest extends Error {}
+export class BadRequest extends Error {}
 
-class Unauthorized extends Error {}
+export class Unauthorized extends Error {}
 
-class Forbidden extends Error {}
+export class Forbidden extends Error {}
 
-class NotFound extends Error {}
+export class NotFound extends Error {}
 
-class InternalServerError extends Error {}
+export class InternalServerError extends Error {}
 
-class NotImplemented extends Error {}
+export class NotImplemented extends Error {}
 
-class AjvError extends Error {
+export class AjvError extends Error {
   constructor(param: { message: string; errors: ErrorObject[] }) {
     super(param.message);
     this.errors = param.errors;

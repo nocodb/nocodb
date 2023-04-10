@@ -1,4 +1,4 @@
-import { OrgUserRoles } from 'nocodb-sdk';
+import { OrgUserRoles, WorkspaceUserRoles } from 'nocodb-sdk';
 
 export default {
   owner: {
@@ -8,6 +8,22 @@ export default {
       pluginRead: true,
       pluginUpdate: true,
       isPluginActive: true,
+      workspaceCreate: true,
+      workspaceList: true,
+      workspaceGet: true,
+      workspaceUpdate: true,
+      workspaceDelete: true,
+      workspaceUserList: true,
+      workspaceUserGet: true,
+      workspaceUserUpdate: true,
+      workspaceUserDelete: true,
+      workspaceInvite: true,
+      workspaceInvitationGet: true,
+      workspaceInvitationUpdate: true,
+      workspaceInvitationDelete: true,
+      workspaceInvitationAccept: true,
+      workspaceInvitationReject: true,
+      workspaceInvitationTokenRead: true,
     },
   },
   creator: {
@@ -18,6 +34,22 @@ export default {
       pluginUpdate: true,
       isPluginActive: true,
       projectDelete: true,
+      workspaceList: true,
+      workspaceGet: true,
+      workspaceUpdate: true,
+      workspaceCreate: true,
+      workspaceDelete: true,
+      workspaceUserList: true,
+      workspaceUserGet: true,
+      workspaceUserUpdate: true,
+      workspaceUserDelete: true,
+      workspaceInvitationList: true,
+      workspaceInvitationGet: true,
+      workspaceInvitationUpdate: true,
+      workspaceInvitationDelete: true,
+      workspaceInvitationAccept: true,
+      workspaceInvitationReject: true,
+      workspaceInvitationTokenRead: true,
     },
   },
   guest: {},
@@ -32,6 +64,7 @@ export default {
       projectGet: true,
       projectList: true,
       projectCost: true,
+      projectUserMetaUpdate: true,
       //table
       tableList: true,
       tableGet: true,
@@ -159,6 +192,22 @@ export default {
       upload: true,
       uploadViaURL: true,
       swaggerJson: true,
+
+      commandPalette: true,
+
+      // Docs
+      pageGet: true,
+      pageList: true,
+      pageSearch: true,
+      pageParents: true,
+      pageCreate: true,
+      pageUpdate: true,
+      pageDelete: true,
+      pageMagicExpand: true,
+      pageMagicOutline: true,
+      pagePaginate: true,
+      pageMagicCreate: true,
+      pageDirectoryImport: true,
     },
   },
   commenter: {
@@ -199,6 +248,7 @@ export default {
       xcVirtualTableList: true,
       projectList: true,
       projectCost: true,
+      projectUserMetaUpdate: true,
       PROJECT_READ_BY_WEB: true,
 
       tableXcModelGet: true,
@@ -219,6 +269,8 @@ export default {
       xcExportAsCsv: true,
       dataCount: true,
       swaggerJson: true,
+
+      commandPalette: true,
     },
   },
   viewer: {
@@ -243,6 +295,7 @@ export default {
       sortList: true,
       filterList: true,
       projectInfoGet: true,
+      projectUserMetaUpdate: true,
 
       galleryViewGet: true,
       kanbanViewGet: true,
@@ -275,20 +328,35 @@ export default {
       xcExportAsCsv: true,
       dataCount: true,
       swaggerJson: true,
+
+      commandPalette: true,
+
+      // Docs
+      pageGet: true,
+      pageList: true,
+      pageSearch: true,
+      pageParents: true,
+      pagePaginate: true,
     },
   },
   [OrgUserRoles.VIEWER]: {
     include: {
+      workspaceProjectList: true,
       apiTokenList: true,
       apiTokenCreate: true,
       apiTokenDelete: true,
       passwordChange: true,
       projectList: true,
+      workspaceList: true,
+      workspaceGet: true,
+      workspaceCreate: true,
+      commandPalette: true,
     },
   },
   [OrgUserRoles.SUPER_ADMIN]: '*',
   [OrgUserRoles.CREATOR]: {
     include: {
+      workspaceProjectList: true,
       apiTokenList: true,
       apiTokenCreate: true,
       apiTokenDelete: true,
@@ -307,6 +375,47 @@ export default {
       xcMetaTablesImportZipToLocalFsAndDb: true,
       xcMetaTablesExportDbToZip: true,
       auditRowUpdate: true,
+      workspaceList: true,
+      workspaceGet: true,
+      workspaceCreate: true,
+      genericGPT: true,
+      commandPalette: true,
+      runSelectQuery: true,
+    },
+  },
+
+  // todo: role correction
+  [WorkspaceUserRoles.CREATOR]: {
+    // include: {
+    //   workspaceList: true,
+    //   workspaceGet: true,
+    //   workspaceDelete: true,
+    // },
+    exclude: {
+      pluginList: true,
+      pluginTest: true,
+      pluginRead: true,
+      pluginUpdate: true,
+      isPluginActive: true,
+    },
+  },
+  [WorkspaceUserRoles.VIEWER]: {
+    include: {
+      workspaceList: true,
+      projectUserMetaUpdate: true,
+      workspaceGet: true,
+      workspaceDelete: true,
+      commandPalette: true,
+    },
+  },
+  [WorkspaceUserRoles.OWNER]: {
+    exclude: {
+      pluginList: true,
+      pluginTest: true,
+      pluginRead: true,
+      pluginUpdate: true,
+      isPluginActive: true,
+      commandPalette: true,
     },
   },
 };

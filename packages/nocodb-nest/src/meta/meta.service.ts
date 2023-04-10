@@ -1,19 +1,14 @@
-import {
-  Global,
-  Inject,
-  Injectable,
-  OnApplicationBootstrap,
-  OnModuleInit,
-  Optional,
-} from '@nestjs/common';
+import { Global, Inject, Injectable, OnApplicationBootstrap, OnModuleInit } from '@nestjs/common'
+import { Knex } from 'knex'
 
+import XcMigrationSource from './migrations/XcMigrationSource';
+import XcMigrationSourcev2 from './migrations/XcMigrationSourcev2';
+import XcMigrationSourcev3 from './migrations/XcMigrationSourcev3';
+import { Connection } from '../connection/connection';
 import { customAlphabet } from 'nanoid';
 import CryptoJS from 'crypto-js';
-import { Connection } from '../connection/connection';
 import Noco from '../Noco';
 import NocoCache from '../cache/NocoCache';
-import XcMigrationSourcev2 from './migrations/XcMigrationSourcev2';
-import XcMigrationSource from './migrations/XcMigrationSource';
 import type { Knex } from 'knex';
 
 const nanoid = customAlphabet('1234567890abcdefghijklmnopqrstuvwxyz_', 4);
@@ -66,6 +61,11 @@ export enum MetaTable {
   MAP_VIEW = 'nc_map_view_v2',
   MAP_VIEW_COLUMNS = 'nc_map_view_columns_v2',
   STORE = 'nc_store',
+  BOOK = 'nc_books',
+  WORKSPACE = 'workspace',
+  WORKSPACE_USER = 'workspace_user',
+  FOLLOWER = 'nc_follower',
+  COWRITER = 'cowriter',
 }
 
 export const orderedMetaTables = [
@@ -351,8 +351,6 @@ export class MetaService {
 
     return `${prefix}${nanoidv2()}`;
   }
-
-  //
 
   public async metaPaginatedList(
     projectId: string,
@@ -1049,6 +1047,10 @@ export class MetaService {
     await this.connection.migrate.latest({
       migrationSource: new XcMigrationSourcev2(),
       tableName: 'xc_knex_migrationsv2',
+    });
+    await this.connection.migrate.latest({
+      migrationSource: new XcMigrationSourcev3(),
+      tableName: 'xc_knex_migrationsv3',
     });
     return true;
   }

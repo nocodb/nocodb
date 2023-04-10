@@ -42,6 +42,11 @@ export enum MetaTable {
   MAP_VIEW = 'nc_map_view_v2',
   MAP_VIEW_COLUMNS = 'nc_map_view_columns_v2',
   STORE = 'nc_store',
+  BOOK = 'nc_books',
+  WORKSPACE = 'workspace',
+  WORKSPACE_USER = 'workspace_user',
+  FOLLOWER = 'nc_follower',
+  COWRITER = 'cowriter',
 }
 
 export const orderedMetaTables = [
@@ -52,6 +57,7 @@ export const orderedMetaTables = [
   MetaTable.TEAMS,
   MetaTable.ORGS,
   MetaTable.PROJECT_USERS,
+  MetaTable.WORKSPACE_USER,
   MetaTable.USERS,
   MetaTable.MAP_VIEW,
   MetaTable.MAP_VIEW_COLUMNS,
@@ -79,6 +85,10 @@ export const orderedMetaTables = [
   MetaTable.MODELS,
   MetaTable.BASES,
   MetaTable.PROJECT,
+  MetaTable.BOOK,
+  MetaTable.WORKSPACE,
+  MetaTable.COWRITER,
+  MetaTable.FOLLOWER,
 ];
 
 export const sakilaTableNames = [
@@ -147,7 +157,12 @@ export enum CacheScope {
   API_TOKEN = 'apiToken',
   INSTANCE_META = 'instanceMeta',
   USER_PROJECT = 'userProject',
+  FOLLOWER = 'follower',
+  DOCS_PAGE = 'page',
+  BOOK = 'book',
+  COWRITER = 'cowriter',
 }
+
 export enum CacheGetType {
   TYPE_ARRAY = 'TYPE_ARRAY',
   TYPE_OBJECT = 'TYPE_OBJECT',

@@ -16,22 +16,7 @@ const loginRootUser = async () => {
   try {
     const response = await axios.post(
       'http://localhost:8080/api/v1/auth/user/signin',
-      { email: 'user@nocodb.com', password: 'Password123.' },
-    );
-
-    return response.data.token;
-  } catch (e) {
-    console.log('Error in loginRootUser', e);
-    const msg =
-      e.response?.data?.msg ||
-      e.response?.data?.message ||
-      'Some internal error occurred';
-    const errors = e.response?.data?.errors;
-    console.log('msg', msg);
-    console.log('errors', errors);
-    const response = await axios.post(
-      'http://localhost:8080/api/v1/auth/user/signup',
-      { email: 'user@nocodb.com', password: 'Password123.' },
+    { email: 'user@nocodb.com', password: 'Password123.' }
     );
 
     return response.data.token;
@@ -201,7 +186,7 @@ const removeProjectUsersFromCache = async (project: Project) => {
 
   for (const projectUser of projectUsers) {
     try {
-      const user: User = await User.get(projectUser.fk_user_id);
+      const user: User = (await User.get(projectUser.fk_user_id)) as any;
       await NocoCache.del(
         `${CacheScope.PROJECT_USER}:${project.id}:${user.id}`,
       );

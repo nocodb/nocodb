@@ -142,6 +142,7 @@
   },
   "devDependencies": {
     "@nestjs/cli": "^9.0.0",
+    "@nestjs/passport": "^9.0.3",
     "@nestjs/schematics": "^9.0.0",
     "@nestjs/testing": "^9.0.0",
     "@nestjsplus/dyn-schematics": "^1.0.12",

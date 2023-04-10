@@ -24,6 +24,7 @@ import type {
   MiddlewareConsumer,
   OnApplicationBootstrap,
 } from '@nestjs/common';
+import { WorkspacesModule } from './modules/workspaces/workspaces.module';
 
 @Module({
   imports: [
@@ -35,6 +36,8 @@ import type {
     ...(process.env['PLAYWRIGHT_TEST'] === 'true' ? [TestModule] : []),
     MetasModule,
     DatasModule,
+    TestModule,
+    WorkspacesModule,
   ],
   controllers: [],
   providers: [

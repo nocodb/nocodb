@@ -2,6 +2,7 @@ import {
   Body,
   Controller,
   Get,
+  Param,
   Post,
   Query,
   Request,
@@ -89,12 +90,15 @@ export class AttachmentsController {
     return attachments;
   }
 
-  @Get(/^\/download\/(.+)$/)
+  // @Get(/^\/download\/(.+)$/)
   // , getCacheMiddleware(), catchError(fileRead));
-  async fileRead(req, res) {
+  @Get('/download/:filename(*)')
+    // This route will match any URL that starts with
+  async fileRead(@Param('filename') filename: string
+  , @Response() res) {
     try {
       const { img, type } = await this.attachmentsService.fileRead({
-        path: path.join('nc', 'uploads', req.params?.[0]),
+        path: path.join('nc', 'uploads', filename),
       });
 
       res.writeHead(200, { 'Content-Type': type });
@@ -105,17 +109,23 @@ export class AttachmentsController {
     }
   }
 
-  @Get(/^\/dl\/([^/]+)\/([^/]+)\/(.+)$/)
+  // @Get(/^\/dl\/([^/]+)\/([^/]+)\/(.+)$/)
+  @Get('/dl/:param1([a-zA-Z0-9_-]+)/:param2([a-zA-Z0-9_-]+)/:filename(*)')
   // getCacheMiddleware(),
-  async fileReadv2(@Request() req, @Response() res) {
+  async fileReadv2(
+    @Param('param1') param1: string,
+    @Param('param2') param2: string,
+    @Param('filename') filename: string,
+    @Response() res,
+  ) {
     try {
       const { img, type } = await this.attachmentsService.fileRead({
         path: path.join(
           'nc',
-          req.params[0],
-          req.params[1],
+          param1,
+          param2,
           'uploads',
-          ...req.params[2].split('/'),
+          ...filename.split('/'),
         ),
       });
 

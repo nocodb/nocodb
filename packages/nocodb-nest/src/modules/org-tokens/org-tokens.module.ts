@@ -5,6 +5,6 @@ import { OrgTokensController } from './org-tokens.controller';
 
 @Module({
   controllers: [OrgTokensController],
-  providers: [OrgTokensEeService]
+  providers: [OrgTokensEeService, OrgTokensService]
 })
 export class OrgTokensModule {}

@@ -1,19 +1,22 @@
 import { Controller, Get, Request, Response } from '@nestjs/common';
-import { getViewAndModelFromRequestByAliasOrId } from '../../../../../nocodb/src/lib/controllers/dbData/helpers';
 import { Acl } from '../../../middlewares/extract-project-id/extract-project-id.middleware';
 import { View } from '../../../models';
+import { DatasService } from '../datas.service';
 import { extractCsvData, extractXlsxData } from '../helpers';
 import * as XLSX from 'xlsx';
 
 @Controller('data-alias-export')
 export class DataAliasExportController {
+  constructor(private datasService: DatasService) {}
+
   @Get([
     '/api/v1/db/data/:orgs/:projectName/:tableName/export/excel',
     '/api/v1/db/data/:orgs/:projectName/:tableName/views/:viewName/export/excel',
   ])
   @Acl('exportExcel')
   async excelDataExport(@Request() req, @Response() res) {
-    const { model, view } = await getViewAndModelFromRequestByAliasOrId(req);
+    const { model, view } =
+      await this.datasService.getViewAndModelFromRequestByAliasOrId(req);
     let targetView = view;
     if (!targetView) {
       targetView = await View.getDefaultView(model.id);
@@ -38,7 +41,8 @@ export class DataAliasExportController {
   ])
   @Acl('exportCsv')
   async csvDataExport(@Request() req, @Response() res) {
-    const { model, view } = await getViewAndModelFromRequestByAliasOrId(req);
+    const { model, view } =
+      await this.datasService.getViewAndModelFromRequestByAliasOrId(req);
     let targetView = view;
     if (!targetView) {
       targetView = await View.getDefaultView(model.id);

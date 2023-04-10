@@ -112,7 +112,3 @@ export async function fileRead(param: { path: string }) {
   const img = await storageAdapter.fileRead(slash(param.path));
   return { img, type };
 }
-
-export function sanitizeUrlPath(paths) {
-  return paths.map((url) => url.replace(/[/.?#]+/g, '_'));
-}

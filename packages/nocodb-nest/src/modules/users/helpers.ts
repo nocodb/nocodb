@@ -1,7 +1,7 @@
 import crypto from 'crypto';
 import * as jwt from 'jsonwebtoken';
 import type User from '../../models/User';
-import type { NcConfig } from '../../../interface/config';
+import type { NcConfig } from '../../interface/config';
 import type { Response } from 'express';
 
 export function genJwt(user: User, config: NcConfig) {
@@ -15,7 +15,8 @@ export function genJwt(user: User, config: NcConfig) {
       token_version: user.token_version,
     },
     config.auth.jwt.secret,
-    config.auth.jwt.options
+    // todo: better typing
+    config.auth.jwt.options as any
   );
 }
 

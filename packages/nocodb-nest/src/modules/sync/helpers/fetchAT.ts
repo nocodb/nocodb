@@ -27,6 +27,8 @@ async function initialize(shareId) {
           'User-Agent':
             'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/100.0.4896.88 Safari/537.36',
         },
+        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+        // @ts-ignore
         referrerPolicy: 'strict-origin-when-cross-origin',
         body: null,
         method: 'GET',
@@ -100,6 +102,8 @@ async function read() {
         cookie: info.cookie,
         ...info.headers,
       },
+      // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+      // @ts-ignore
       referrerPolicy: 'no-referrer',
       body: null,
       method: 'GET',
@@ -159,6 +163,8 @@ async function readView(viewId) {
           cookie: info.cookie,
           ...info.headers,
         },
+        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+        // @ts-ignore
         referrerPolicy: 'no-referrer',
         body: null,
         method: 'GET',
@@ -204,6 +210,8 @@ async function readTemplate(templateId) {
         cookie: info.cookie,
         ...info.headers,
       },
+      // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+      // @ts-ignore
       referrer: 'https://www.airtable.com/',
       referrerPolicy: 'same-origin',
       body: null,

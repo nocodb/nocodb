@@ -1,5 +1,11 @@
-import { Controller } from '@nestjs/common';
+import { Controller, Post, Request } from '@nestjs/common';
+import type { Server } from 'socket.io';
+import { NcError } from '../../helpers/catchError';
+import { SyncSource } from '../../models';
+import { AirtableSyncConfig } from '../sync/helpers/job';
 import { ImportService } from './import.service';
+import { Router } from 'express';
+import NocoJobs from 'src/jobs/NocoJobs';
 
 const AIRTABLE_IMPORT_JOB = 'AIRTABLE_IMPORT_JOB';
 const AIRTABLE_PROGRESS_JOB = 'AIRTABLE_PROGRESS_JOB';
@@ -10,22 +16,16 @@ enum SyncStatus {
   FAILED = 'FAILED',
 }
 
-@Controller('import')
-export class ImportController {
-  constructor(private readonly importService: ImportService) {}
-
-
-
-
- default (
+const jobs = [];
+export default (
   router: Router,
   sv: Server,
-  jobs: { [id: string]: { last_message: any } }
+  jobs: { [id: string]: { last_message: any } },
 ) => {
   // add importer job handler and progress notification job handler
   NocoJobs.jobsMgr.addJobWorker(
     AIRTABLE_IMPORT_JOB,
-    syncService.airtableImportJob
+    this.syncService.airtableImportJob!,
   );
   NocoJobs.jobsMgr.addJobWorker(
     AIRTABLE_PROGRESS_JOB,
@@ -43,7 +43,7 @@ export class ImportController {
           status: progress?.status,
         };
       }
-    }
+    },
   );
 
   NocoJobs.jobsMgr.addProgressCbk(AIRTABLE_IMPORT_JOB, (payload, progress) => {
@@ -76,67 +76,64 @@ export class ImportController {
     });
     delete jobs[payload?.id];
   });
-
-  router.post(
-    '/api/v1/db/meta/import/airtable',
-    catchError((req, res) => {
-      NocoJobs.jobsMgr.add(AIRTABLE_IMPORT_JOB, {
-        id: req.query.id,
-        ...req.body,
-      });
-      res.json({});
-    })
-  );
-  router.post(
-    '/api/v1/db/meta/syncs/:syncId/trigger',
-    catchError(async (req: Request, res) => {
-      if (req.params.syncId in jobs) {
-        NcError.badRequest('Sync already in progress');
-      }
-
-      const syncSource = await SyncSource.get(req.params.syncId);
-
-      const user = await syncSource.getUser();
-      const token = userService.genJwt(user, Noco.getConfig());
-
-      // Treat default baseUrl as siteUrl from req object
-      let baseURL = (req as any).ncSiteUrl;
-
-      // if environment value avail use it
-      // or if it's docker construct using `PORT`
-      if (process.env.NC_DOCKER) {
-        baseURL = `http://localhost:${process.env.PORT || 8080}`;
-      }
-
-      setTimeout(() => {
-        NocoJobs.jobsMgr.add<AirtableSyncConfig>(AIRTABLE_IMPORT_JOB, {
-          id: req.params.syncId,
-          ...(syncSource?.details || {}),
-          projectId: syncSource.project_id,
-          baseId: syncSource.base_id,
-          authToken: token,
-          baseURL,
-          user: user,
-        });
-      }, 1000);
-
-      jobs[req.params.syncId] = {
-        last_message: {
-          msg: 'Sync started',
-        },
-      };
-      res.json({});
-    })
-  );
-  router.post(
-    '/api/v1/db/meta/syncs/:syncId/abort',
-    catchError(async (req: Request, res) => {
-      if (req.params.syncId in jobs) {
-        delete jobs[req.params.syncId];
-      }
-      res.json({});
-    })
-  );
 };
+@Controller('import')
+export class ImportController {
+  constructor(private readonly importService: ImportService) {}
 
+  @Post('/api/v1/db/meta/import/airtable')
+  importAirtable(@Request() req) {
+    NocoJobs.jobsMgr.add(AIRTABLE_IMPORT_JOB, {
+      id: req.query.id,
+      ...req.body,
+    });
+    return {};
+  }
+
+  @Post('/api/v1/db/meta/syncs/:syncId/trigger')
+  async triggerSync(@Request() req) {
+    if (req.params.syncId in jobs) {
+      NcError.badRequest('Sync already in progress');
+    }
+
+    const syncSource = await SyncSource.get(req.params.syncId);
+
+    const user = await syncSource.getUser();
+
+    // Treat default baseUrl as siteUrl from req object
+    let baseURL = (req as any).ncSiteUrl;
+
+    // if environment value avail use it
+    // or if it's docker construct using `PORT`
+    if (process.env.NC_DOCKER) {
+      baseURL = `http://localhost:${process.env.PORT || 8080}`;
+    }
+
+    setTimeout(() => {
+      NocoJobs.jobsMgr.add<AirtableSyncConfig>(AIRTABLE_IMPORT_JOB, {
+        id: req.params.syncId,
+        ...(syncSource?.details || {}),
+        projectId: syncSource.project_id,
+        baseId: syncSource.base_id,
+        authToken: '',
+        baseURL,
+        user: user,
+      });
+    }, 1000);
+
+    jobs[req.params.syncId] = {
+      last_message: {
+        msg: 'Sync started',
+      },
+    };
+    return {};
+  }
+
+  @Post('/api/v1/db/meta/syncs/:syncId/abort')
+  async abortImport(@Request() req) {
+    if (req.params.syncId in jobs) {
+      delete jobs[req.params.syncId];
+    }
+    return {};
+  }
 }

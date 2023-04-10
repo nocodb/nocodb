@@ -10,7 +10,7 @@ import {
   Model,
   View,
 } from 'src/models';
-import { sanitizeUrlPath } from '../../../../nocodb/src/lib/services/attachment.svc';
+
 import { NcError } from '../../helpers/catchError';
 import getAst from '../../helpers/getAst';
 import NcPluginMgrv2 from '../../helpers/NcPluginMgrv2';
@@ -19,6 +19,12 @@ import NcConnectionMgrv2 from '../../utils/common/NcConnectionMgrv2';
 import { nocoExecute } from 'nc-help';
 import { mimeIcons } from '../../utils/mimeTypes';
 import { getColumnByIdOrName } from '../datas/helpers';
+
+// todo: move to utils
+export function sanitizeUrlPath(paths) {
+  return paths.map((url) => url.replace(/[/.?#]+/g, '_'));
+}
+
 
 @Injectable()
 export class PublicDatasService {

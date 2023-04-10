@@ -1,14 +1,12 @@
 import { UITypes } from 'nocodb-sdk';
-import SwaggerTypes from '../../db/sql-mgr/code/routers/xc-ts/SwaggerTypes';
-import Noco from '../../Noco';
-import type LinkToAnotherRecordColumn from '../../models/LinkToAnotherRecordColumn';
-import type Column from '../../models/Column';
-import type Project from '../../models/Project';
+import SwaggerTypes from '../../../db/sql-mgr/code/routers/xc-ts/SwaggerTypes';
+import { Column, LinkToAnotherRecordColumn, Project } from '../../../models';
+import Noco from '../../../Noco';
 
 export default async (
   columns: Column[],
   project: Project,
-  ncMeta = Noco.ncMeta
+  ncMeta = Noco.ncMeta,
 ): Promise<SwaggerColumn[]> => {
   const dbType = await project.getBases().then((b) => b?.[0]?.type);
   return Promise.all(
@@ -24,7 +22,7 @@ export default async (
         case UITypes.LinkToAnotherRecord:
           {
             const colOpt = await c.getColOptions<LinkToAnotherRecordColumn>(
-              ncMeta
+              ncMeta,
             );
             if (colOpt) {
               const relTable = await colOpt.getRelatedTable(ncMeta);
@@ -53,7 +51,7 @@ export default async (
       }
 
       return field;
-    })
+    }),
   );
 };
 

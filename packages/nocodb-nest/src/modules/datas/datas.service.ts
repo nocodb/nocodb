@@ -1,10 +1,26 @@
 import { Injectable } from '@nestjs/common';
+import { isSystemColumn, UITypes } from 'nocodb-sdk';
+import * as XLSX from 'xlsx';
 import { NcError } from '../../helpers/catchError';
 import getAst from '../../helpers/getAst';
+import papaparse from 'papaparse';
 import { PagedResponseImpl } from '../../helpers/PagedResponse';
-import { Base, Model, View } from '../../models';
+import {
+  Base,
+  Column,
+  LinkToAnotherRecordColumn,
+  LookupColumn,
+  Model,
+  Project,
+  View,
+} from '../../models';
 import NcConnectionMgrv2 from '../../utils/common/NcConnectionMgrv2';
-import { getViewAndModelByAliasOrId, PathParams } from './helpers';
+import {
+  getDbRows,
+  getViewAndModelByAliasOrId,
+  PathParams,
+  serializeCellValue,
+} from './helpers';
 import { nocoExecute } from 'nc-help';
 
 @Injectable()
@@ -764,5 +780,209 @@ export class DatasService {
     });
 
     return true;
+  }
+
+  async getViewAndModelFromRequestByAliasOrId(
+    req,
+    // :
+    // | Request<{ projectName: string; tableName: string; viewName?: string }>
+    // | Request,
+  ) {
+    const project = await Project.getWithInfoByTitleOrId(
+      req.params.projectName,
+    );
+
+    const model = await Model.getByAliasOrId({
+      project_id: project.id,
+      aliasOrId: req.params.tableName,
+    });
+    const view =
+      req.params.viewName &&
+      (await View.getByTitleOrId({
+        titleOrId: req.params.viewName,
+        fk_model_id: model.id,
+      }));
+    if (!model) NcError.notFound('Table not found');
+    return { model, view };
+  }
+
+  async extractXlsxData(param: { view: View; query: any; siteUrl: string }) {
+    const { view, query, siteUrl } = param;
+    const base = await Base.get(view.base_id);
+
+    await view.getModelWithInfo();
+    await view.getColumns();
+
+    view.model.columns = view.columns
+      .filter((c) => c.show)
+      .map(
+        (c) =>
+          new Column({
+            ...c,
+            ...view.model.columnsById[c.fk_column_id],
+          } as any),
+      )
+      .filter((column) => !isSystemColumn(column) || view.show_system_fields);
+
+    const baseModel = await Model.getBaseModelSQL({
+      id: view.model.id,
+      viewId: view?.id,
+      dbDriver: await NcConnectionMgrv2.get(base),
+    });
+
+    const { offset, dbRows, elapsed } = await getDbRows({
+      baseModel,
+      view,
+      query,
+      siteUrl,
+    });
+
+    const fields = query.fields as string[];
+
+    const data = XLSX.utils.json_to_sheet(dbRows, { header: fields });
+
+    return { offset, dbRows, elapsed, data };
+  }
+
+  async extractCsvData(view: View, req) {
+    const base = await Base.get(view.base_id);
+    const fields = req.query.fields;
+
+    await view.getModelWithInfo();
+    await view.getColumns();
+
+    view.model.columns = view.columns
+      .filter((c) => c.show)
+      .map(
+        (c) =>
+          new Column({
+            ...c,
+            ...view.model.columnsById[c.fk_column_id],
+          } as any),
+      )
+      .filter((column) => !isSystemColumn(column) || view.show_system_fields);
+
+    const baseModel = await Model.getBaseModelSQL({
+      id: view.model.id,
+      viewId: view?.id,
+      dbDriver: await NcConnectionMgrv2.get(base),
+    });
+
+    const { offset, dbRows, elapsed } = await getDbRows({
+      baseModel,
+      view,
+      query: req.query,
+      siteUrl: (req as any).ncSiteUrl,
+    });
+
+    const data = papaparse.unparse(
+      {
+        fields: view.model.columns
+          .sort((c1, c2) =>
+            Array.isArray(fields)
+              ? fields.indexOf(c1.title as any) -
+                fields.indexOf(c2.title as any)
+              : 0,
+          )
+          .filter(
+            (c) =>
+              !fields ||
+              !Array.isArray(fields) ||
+              fields.includes(c.title as any),
+          )
+          .map((c) => c.title),
+        data: dbRows,
+      },
+      {
+        escapeFormulae: true,
+      },
+    );
+
+    return { offset, dbRows, elapsed, data };
+  }
+
+  async serializeCellValue({
+    value,
+    column,
+    siteUrl,
+  }: {
+    column?: Column;
+    value: any;
+    siteUrl: string;
+  }) {
+    if (!column) {
+      return value;
+    }
+
+    if (!value) return value;
+
+    switch (column?.uidt) {
+      case UITypes.Attachment: {
+        let data = value;
+        try {
+          if (typeof value === 'string') {
+            data = JSON.parse(value);
+          }
+        } catch {}
+
+        return (data || []).map(
+          (attachment) =>
+            `${encodeURI(attachment.title)}(${encodeURI(
+              attachment.path
+                ? `${siteUrl}/${attachment.path}`
+                : attachment.url,
+            )})`,
+        );
+      }
+      case UITypes.Lookup:
+        {
+          const colOptions = await column.getColOptions<LookupColumn>();
+          const lookupColumn = await colOptions.getLookupColumn();
+          return (
+            await Promise.all(
+              [...(Array.isArray(value) ? value : [value])].map(async (v) =>
+                serializeCellValue({
+                  value: v,
+                  column: lookupColumn,
+                  siteUrl,
+                }),
+              ),
+            )
+          ).join(', ');
+        }
+        break;
+      case UITypes.LinkToAnotherRecord:
+        {
+          const colOptions =
+            await column.getColOptions<LinkToAnotherRecordColumn>();
+          const relatedModel = await colOptions.getRelatedTable();
+          await relatedModel.getColumns();
+          return [...(Array.isArray(value) ? value : [value])]
+            .map((v) => {
+              return v[relatedModel.displayValue?.title];
+            })
+            .join(', ');
+        }
+        break;
+      default:
+        if (value && typeof value === 'object') {
+          return JSON.stringify(value);
+        }
+        return value;
+    }
+  }
+
+  async getColumnByIdOrName(columnNameOrId: string, model: Model) {
+    const column = (await model.getColumns()).find(
+      (c) =>
+        c.title === columnNameOrId ||
+        c.id === columnNameOrId ||
+        c.column_name === columnNameOrId,
+    );
+
+    if (!column)
+      NcError.notFound(`Column with id/name '${columnNameOrId}' is not found`);
+
+    return column;
   }
 }

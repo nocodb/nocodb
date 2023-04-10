@@ -11,7 +11,6 @@ import {
   substituteColumnIdWithAliasInFormula,
   UITypes,
 } from 'nocodb-sdk';
-import { getUniqueColumnName } from '../../../../nc-gui/utils';
 import formulaQueryBuilderv2 from '../../db/formulav2/formulaQueryBuilderv2';
 import ProjectMgrv2 from '../../db/sql-mgr/v2/ProjectMgrv2';
 import SqlMgrv2 from '../../db/sql-mgr/v2/SqlMgrv2';
@@ -26,7 +25,7 @@ import {
 } from '../../helpers';
 import { NcError } from '../../helpers/catchError';
 import getColumnPropsFromUIDT from '../../helpers/getColumnPropsFromUIDT';
-import { getUniqueColumnAliasName } from '../../helpers/getUniqueName';
+import { getUniqueColumnAliasName, getUniqueColumnName } from '../../helpers/getUniqueName';
 import mapDefaultDisplayValue from '../../helpers/mapDefaultDisplayValue';
 import validateParams from '../../helpers/validateParams';
 import { MetaService } from '../../meta/meta.service';
@@ -1500,8 +1499,8 @@ export class ColumnsService {
     ) {
       // populate fk column name
       const fkColName = getUniqueColumnName(
-        `${parent.table_name}_id`,
         await child.getColumns(),
+        `${parent.table_name}_id`,
       );
 
       let foreignKeyName;

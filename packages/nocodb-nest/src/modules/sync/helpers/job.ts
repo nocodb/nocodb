@@ -21,6 +21,8 @@ import {
   tableService,
   viewColumnService,
   viewService,
+  // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+  // @ts-ignore
 } from '../..';
 import FetchAT from './fetchAT';
 import { importData, importLTARData } from './readAndProcessData';

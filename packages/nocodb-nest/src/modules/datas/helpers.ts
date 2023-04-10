@@ -2,8 +2,9 @@ import { nocoExecute } from 'nc-help';
 import { isSystemColumn, UITypes } from 'nocodb-sdk';
 import * as XLSX from 'xlsx';
 import papaparse from 'papaparse';
-import getAst from '../../db/sql-data-mapper/lib/sql/helpers/getAst';
-import { NcError } from '../../meta/helpers/catchError';
+import { BaseModelSqlv2 } from '../../db/BaseModelSqlv2'
+import { NcError } from '../../helpers/catchError'
+import getAst from '../../helpers/getAst'
 import { Model, View } from '../../models';
 import Base from '../../models/Base';
 import Column from '../../models/Column';
@@ -11,7 +12,6 @@ import Project from '../../models/Project';
 import NcConnectionMgrv2 from '../../utils/common/NcConnectionMgrv2';
 import type LinkToAnotherRecordColumn from '../../models/LinkToAnotherRecordColumn';
 import type LookupColumn from '../../models/LookupColumn';
-import type { BaseModelSqlv2 } from '../../db/sql-data-mapper/lib/sql/BaseModelSqlv2';
 import type { Request } from 'express';
 
 export interface PathParams {
@@ -41,7 +41,7 @@ export async function getViewAndModelByAliasOrId(param: {
   return { model, view };
 }
 
-export async function extractXlsxData(view: View, req: Request) {
+export async function extractXlsxData(view: View, req) {
   const base = await Base.get(view.base_id);
 
   await view.getModelWithInfo();
@@ -51,7 +51,7 @@ export async function extractXlsxData(view: View, req: Request) {
     .filter((c) => c.show)
     .map(
       (c) =>
-        new Column({ ...c, ...view.model.columnsById[c.fk_column_id] } as any)
+        new Column({ ...c, ...view.model.columnsById[c.fk_column_id] } as any),
     )
     .filter((column) => !isSystemColumn(column) || view.show_system_fields);
 
@@ -75,7 +75,7 @@ export async function extractXlsxData(view: View, req: Request) {
   return { offset, dbRows, elapsed, data };
 }
 
-export async function extractCsvData(view: View, req: Request) {
+export async function extractCsvData(view: View, req) {
   const base = await Base.get(view.base_id);
   const fields = req.query.fields;
 
@@ -86,7 +86,7 @@ export async function extractCsvData(view: View, req: Request) {
     .filter((c) => c.show)
     .map(
       (c) =>
-        new Column({ ...c, ...view.model.columnsById[c.fk_column_id] } as any)
+        new Column({ ...c, ...view.model.columnsById[c.fk_column_id] } as any),
     )
     .filter((column) => !isSystemColumn(column) || view.show_system_fields);
 
@@ -109,18 +109,20 @@ export async function extractCsvData(view: View, req: Request) {
         .sort((c1, c2) =>
           Array.isArray(fields)
             ? fields.indexOf(c1.title as any) - fields.indexOf(c2.title as any)
-            : 0
+            : 0,
         )
         .filter(
           (c) =>
-            !fields || !Array.isArray(fields) || fields.includes(c.title as any)
+            !fields ||
+            !Array.isArray(fields) ||
+            fields.includes(c.title as any),
         )
         .map((c) => c.title),
       data: dbRows,
     },
     {
       escapeFormulae: true,
-    }
+    },
   );
 
   return { offset, dbRows, elapsed, data };
@@ -153,8 +155,8 @@ export async function serializeCellValue({
       return (data || []).map(
         (attachment) =>
           `${encodeURI(attachment.title)}(${encodeURI(
-            attachment.path ? `${siteUrl}/${attachment.path}` : attachment.url
-          )})`
+            attachment.path ? `${siteUrl}/${attachment.path}` : attachment.url,
+          )})`,
       );
     }
     case UITypes.Lookup:
@@ -168,8 +170,8 @@ export async function serializeCellValue({
                 value: v,
                 column: lookupColumn,
                 siteUrl,
-              })
-            )
+              }),
+            ),
           )
         ).join(', ');
       }
@@ -197,13 +199,13 @@ export async function serializeCellValue({
 
 export async function getColumnByIdOrName(
   columnNameOrId: string,
-  model: Model
+  model: Model,
 ) {
   const column = (await model.getColumns()).find(
     (c) =>
       c.title === columnNameOrId ||
       c.id === columnNameOrId ||
-      c.column_name === columnNameOrId
+      c.column_name === columnNameOrId,
   );
 
   if (!column)
@@ -252,7 +254,7 @@ export async function getDbRows(param: {
       ast,
       await baseModel.list({ ...listArgs, ...dependencyFields, offset, limit }),
       {},
-      query
+      query,
     );
 
     if (!rows?.length) {

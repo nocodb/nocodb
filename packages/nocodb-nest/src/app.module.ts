@@ -1,4 +1,4 @@
-import { MiddlewareConsumer, Module, RequestMethod } from '@nestjs/common'
+import { MiddlewareConsumer, Module, RequestMethod } from '@nestjs/common';
 import { Connection } from './connection/connection';
 import { AuthModule } from './modules/auth/auth.module';
 import { ExtractProjectIdMiddleware } from './middlewares/extract-project-id/extract-project-id.middleware';
@@ -36,7 +36,6 @@ import { OrgUsersModule } from './modules/org-users/org-users.module';
 import { MetaDiffsModule } from './modules/meta-diffs/meta-diffs.module';
 import { AuditsModule } from './modules/audits/audits.module';
 import { DatasModule } from './modules/datas/datas.module';
-import { DataAliasModule } from './modules/data-alias/data-alias.module';
 import { ApiDocsModule } from './modules/api-docs/api-docs.module';
 import { PublicMetasModule } from './modules/public-metas/public-metas.module';
 import { PublicDatasModule } from './modules/public-datas/public-datas.module';
@@ -48,7 +47,48 @@ import { TestModule } from './modules/test/test.module';
 import { PluginsModule } from './modules/plugins/plugins.module';
 
 @Module({
-  imports: [AuthModule, UsersModule, UtilsModule, ProjectsModule, TablesModule, ViewsModule, FiltersModule, SortsModule, ColumnsModule, ViewColumnsModule, BasesModule, HooksModule, SharedBasesModule, FormsModule, GridsModule, KanbansModule, GalleriesModule, FormColumnsModule, GridColumnsModule, MapsModule, ProjectUsersModule, ModelVisibilitiesModule, HookFiltersModule, ApiTokensModule, AttachmentsModule, OrgLcenseModule, OrgTokensModule, OrgUsersModule, MetaDiffsModule, AuditsModule, DatasModule, DataAliasModule, ApiDocsModule, PublicMetasModule, PublicDatasModule, PublicDatasExportModule, SyncModule, ImportModule, CachesModule, TestModule, PluginsModule],
+  imports: [
+    AuthModule,
+    UsersModule,
+    UtilsModule,
+    ProjectsModule,
+    TablesModule,
+    ViewsModule,
+    FiltersModule,
+    SortsModule,
+    ColumnsModule,
+    ViewColumnsModule,
+    BasesModule,
+    HooksModule,
+    SharedBasesModule,
+    FormsModule,
+    GridsModule,
+    KanbansModule,
+    GalleriesModule,
+    FormColumnsModule,
+    GridColumnsModule,
+    MapsModule,
+    ProjectUsersModule,
+    ModelVisibilitiesModule,
+    HookFiltersModule,
+    ApiTokensModule,
+    AttachmentsModule,
+    OrgLcenseModule,
+    OrgTokensModule,
+    OrgUsersModule,
+    MetaDiffsModule,
+    AuditsModule,
+    DatasModule,
+    ApiDocsModule,
+    PublicMetasModule,
+    PublicDatasModule,
+    PublicDatasExportModule,
+    SyncModule,
+    ImportModule,
+    CachesModule,
+    TestModule,
+    PluginsModule,
+  ],
   controllers: [],
   providers: [Connection, MetaService, JwtStrategy, ExtractProjectIdMiddleware],
   exports: [Connection, MetaService],
@@ -57,6 +97,6 @@ export class AppModule {
   configure(consumer: MiddlewareConsumer) {
     consumer
       .apply(ExtractProjectIdMiddleware)
-      .forRoutes({ path: '*',  method: RequestMethod.ALL})
+      .forRoutes({ path: '*', method: RequestMethod.ALL });
   }
 }

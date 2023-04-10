@@ -6,7 +6,6 @@ import {
   PluginCategory,
   UserType,
 } from 'nocodb-sdk';
-import { sendInviteEmail } from '../../../../nocodb/src/lib/services/projectUser.svc';
 import { NC_APP_SETTINGS } from '../../constants';
 import { validatePayload } from '../../helpers';
 import { NcError } from '../../helpers/catchError';
@@ -19,9 +18,12 @@ import { v4 as uuidv4 } from 'uuid';
 import Noco from '../../Noco';
 import { MetaTable } from '../../utils/globals';
 import { T } from 'nc-help';
+import { ProjectUsersService } from '../project-users/project-users.service';
 
 @Injectable()
 export class OrgUsersService {
+  constructor(private projectUSerService: ProjectUsersService) {}
+
   async userList(param: {
     // todo: add better typing
     query: Record<string, any>;
@@ -158,11 +160,19 @@ export class OrgUsersService {
           // and send back token if failed
           if (
             emails.length === 1 &&
-            !(await sendInviteEmail(email, invite_token, param.req))
+            !(await this.projectUSerService.sendInviteEmail(
+              email,
+              invite_token,
+              param.req,
+            ))
           ) {
             return { invite_token, email };
           } else {
-            sendInviteEmail(email, invite_token, param.req);
+            this.projectUSerService.sendInviteEmail(
+              email,
+              invite_token,
+              param.req,
+            );
           }
         } catch (e) {
           console.log(e);
@@ -218,7 +228,11 @@ export class OrgUsersService {
       );
     }
 
-    await sendInviteEmail(user.email, invite_token, param.req);
+    await this.projectUSerService.sendInviteEmail(
+      user.email,
+      invite_token,
+      param.req,
+    );
 
     await Audit.insert({
       op_type: AuditOperationTypes.ORG_USER,

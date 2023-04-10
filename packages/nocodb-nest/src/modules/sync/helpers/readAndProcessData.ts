@@ -1,4 +1,5 @@
 import { RelationTypes, UITypes } from 'nocodb-sdk';
+// @ts-ignore
 import { bulkDataService, tableService } from '../..';
 import EntityMap from './EntityMap';
 import type { AirtableBase } from 'airtable/lib/airtable_base';

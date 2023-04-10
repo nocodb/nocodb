@@ -190,7 +190,6 @@ export class ExtractProjectIdMiddleware implements NestMiddleware, CanActivate {
       context.switchToHttp().getRequest(),
       context.switchToHttp().getResponse(),
       () => {
-        console.log('next');
       },
     );
     return true;

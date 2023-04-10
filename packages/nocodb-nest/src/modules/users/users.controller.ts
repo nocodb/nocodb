@@ -10,7 +10,7 @@ import {
 } from '@nestjs/common';
 import { promisify } from 'util';
 import { NcError } from '../../helpers/catchError';
-import { Acl } from '../../middlewares/extract-project-id/extract-project-id.middleware';
+import { Acl, ExtractProjectIdMiddleware } from '../../middlewares/extract-project-id/extract-project-id.middleware'
 import Noco from '../../Noco';
 import extractRolesObj from '../../utils/extractRolesObj';
 import { genJwt, randomTokenString, setTokenCookie } from './helpers';
@@ -134,7 +134,7 @@ export class UsersController {
   }
 
   @Get(['/auth/user/me', '/api/v1/db/auth/user/me', '/api/v1/auth/user/me'])
-  @UseGuards(AuthGuard('jwt'))
+  @UseGuards(ExtractProjectIdMiddleware, AuthGuard('jwt'))
   async me(@Request() req) {
     const user = {
       ...req.user,

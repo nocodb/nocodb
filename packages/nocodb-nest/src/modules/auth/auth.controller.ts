@@ -1,3 +1,4 @@
+import { ExtractProjectIdMiddleware } from '../../middlewares/extract-project-id/extract-project-id.middleware'
 import extractRolesObj from '../../utils/extractRolesObj'
 import { AuthService } from './auth.service';
 
@@ -29,9 +30,7 @@ export class AuthController {
 
   }
 
-
-
-  @UseGuards(AuthGuard('jwt'))
+  @UseGuards(ExtractProjectIdMiddleware, AuthGuard('jwt'))
   @Get('/api/v1/auth/user/me')
   async me(@Request() req) {
     const user = {

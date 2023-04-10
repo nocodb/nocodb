@@ -12,7 +12,7 @@ export async function importModels(param: {
   req: any;
 }) {
 
-  // human readable id to db id
+  // structured id to db id
   const idMap = new Map<string, string>();
 
   const project = await Project.get(param.projectId);
@@ -529,3 +529,9 @@ function getParentIdentifier(id: string) {
   arr.pop();
   return arr.join('::');
 }
+/*
+function getEntityIdentifier(id: string) {
+  const arr = id.split('::');
+  return arr.pop();
+}
+*/

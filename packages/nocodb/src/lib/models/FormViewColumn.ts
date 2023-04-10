@@ -104,7 +104,7 @@ export default class FormViewColumn implements FormColumnType {
       column.fk_view_id,
     ])
 
-    if (list.length)
+    if (list?.length)
       await NocoCache.appendToList(
         CacheScope.FORM_VIEW_COLUMN,
         [column.fk_view_id],

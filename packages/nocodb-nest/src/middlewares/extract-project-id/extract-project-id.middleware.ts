@@ -221,7 +221,7 @@ export class AclMiddleware implements NestInterceptor {
     const res = context.switchToHttp().getResponse();
     req.customProperty = 'This is a custom property';
 
-    const roles: Record<string, boolean> = extractRolesObj(req.user.roles);
+    const roles: Record<string, boolean> = extractRolesObj(req.user?.roles);
 
     if (req?.user?.is_api_token && blockApiTokenAccess) {
       NcError.forbidden('Not allowed with API token');

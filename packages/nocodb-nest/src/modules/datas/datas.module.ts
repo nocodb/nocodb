@@ -10,10 +10,10 @@ import { DataAliasNestedService } from './data-alias-nested/data-alias-nested.se
 
 @Module({
   controllers: [
+    DataAliasController,
     DatasController,
     BulkDataAliasController,
     DataAliasExportController,
-    DataAliasController,
     OldDatasController,
   ],
   providers: [DatasService, BulkDataAliasService, DataAliasNestedService]

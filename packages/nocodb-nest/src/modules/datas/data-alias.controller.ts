@@ -7,13 +7,15 @@ import {
   Patch,
   Post,
   Request,
-  Response,
-} from '@nestjs/common';
+  Response, UseGuards,
+} from '@nestjs/common'
 import { parseHrtimeToSeconds } from '../../helpers';
-import { Acl } from '../../middlewares/extract-project-id/extract-project-id.middleware';
+import { Acl, ExtractProjectIdMiddleware } from '../../middlewares/extract-project-id/extract-project-id.middleware'
 import { DatasService } from './datas.service';
+import { AuthGuard } from '@nestjs/passport';
 
-@Controller('data-alias')
+@Controller()
+@UseGuards(ExtractProjectIdMiddleware, AuthGuard('jwt'))
 export class DataAliasController {
   constructor(private readonly datasService: DatasService) {}
 
@@ -38,9 +40,8 @@ export class DataAliasController {
       viewName: viewName,
     });
     const elapsedSeconds = parseHrtimeToSeconds(process.hrtime(startTime));
-
     res.setHeader('xc-db-response', elapsedSeconds);
-    return responseData;
+    res.json(responseData);
   }
 
   @Get([

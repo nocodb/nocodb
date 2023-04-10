@@ -5,12 +5,14 @@ import {
   Request,
   Body,
   Patch,
-  Delete,
-} from '@nestjs/common';
-import { Acl } from '../../../middlewares/extract-project-id/extract-project-id.middleware';
+  Delete, UseGuards,
+} from '@nestjs/common'
+import { Acl, ExtractProjectIdMiddleware } from '../../../middlewares/extract-project-id/extract-project-id.middleware'
 import { BulkDataAliasService } from './bulk-data-alias.service';
+import { AuthGuard } from '@nestjs/passport';
 
-@Controller('bulk-data-alias')
+@Controller()
+@UseGuards(ExtractProjectIdMiddleware, AuthGuard('jwt'))
 export class BulkDataAliasController {
   constructor(private bulkDataAliasService: BulkDataAliasService) {}
 

@@ -15,7 +15,7 @@ import {
 import { MapsService } from './maps.service';
 import { AuthGuard } from '@nestjs/passport';
 
-@Controller('maps')
+@Controller()
 @UseGuards(ExtractProjectIdMiddleware, AuthGuard('jwt'))
 export class MapsController {
   constructor(private readonly mapsService: MapsService) {}

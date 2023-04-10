@@ -1,11 +1,13 @@
-import { Controller, Get, Request, Response } from '@nestjs/common';
-import { Acl } from '../../../middlewares/extract-project-id/extract-project-id.middleware';
+import { Controller, Get, Request, Response, UseGuards } from '@nestjs/common'
+import { Acl, ExtractProjectIdMiddleware } from '../../../middlewares/extract-project-id/extract-project-id.middleware'
 import { View } from '../../../models';
 import { DatasService } from '../datas.service';
 import { extractCsvData, extractXlsxData } from '../helpers';
 import * as XLSX from 'xlsx';
+import { AuthGuard } from '@nestjs/passport';
 
-@Controller('data-alias-export')
+@Controller()
+@UseGuards(ExtractProjectIdMiddleware, AuthGuard('jwt'))
 export class DataAliasExportController {
   constructor(private datasService: DatasService) {}
 

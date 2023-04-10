@@ -11,14 +11,17 @@ import syncMigration from '../../helpers/syncMigration';
 import { Project, ProjectUser } from '../../models';
 import { T } from 'nc-help';
 import Noco from '../../Noco';
+import extractRolesObj from '../../utils/extractRolesObj'
 import NcConfigFactory from '../../utils/NcConfigFactory';
 
 const nanoid = customAlphabet('1234567890abcdefghijklmnopqrstuvwxyz_', 4);
 
 @Injectable()
 export class ProjectsService {
-  async list(param: { user: { id: string; roles: string }; query?: any }) {
-    const projects = param.user?.roles?.includes(OrgUserRoles.SUPER_ADMIN)
+  async list(param: { user: { id: string; roles: Record<string, boolean> }; query?: any }) {
+    const projects = extractRolesObj(param.user?.roles)[
+      OrgUserRoles.SUPER_ADMIN
+    ]
       ? await Project.list(param.query)
       : await ProjectUser.getProjectsList(param.user.id, param.query);
 

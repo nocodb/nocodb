@@ -15,7 +15,7 @@ import {
 import { FormsService } from './forms.service';
 import { AuthGuard } from '@nestjs/passport';
 
-@Controller('forms')
+@Controller()
 @UseGuards(ExtractProjectIdMiddleware, AuthGuard('jwt'))
 export class FormsController {
   constructor(private readonly formsService: FormsService) {}

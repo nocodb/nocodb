@@ -18,7 +18,7 @@ import { ProjectUsersService } from './project-users.service';
 import { AuthGuard } from '@nestjs/passport';
 
 @UseGuards(ExtractProjectIdMiddleware, AuthGuard('jwt'))
-@Controller('project-users')
+@Controller()
 export class ProjectUsersController {
   constructor(private readonly projectUsersService: ProjectUsersService) {}
 

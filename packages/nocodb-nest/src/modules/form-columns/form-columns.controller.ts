@@ -8,7 +8,7 @@ import { AuthGuard } from '@nestjs/passport';
 
 class FormColumnUpdateReqType {}
 
-@Controller('form-columns')
+@Controller()
 @UseGuards(ExtractProjectIdMiddleware, AuthGuard('jwt'))
 export class FormColumnsController {
   constructor(private readonly formColumnsService: FormColumnsService) {}

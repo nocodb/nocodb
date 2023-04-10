@@ -3,7 +3,7 @@ import { ApiDocsService } from './api-docs.service';
 import getSwaggerHtml from './template/swaggerHtml';
 import getRedocHtml from './template/redocHtml';
 
-@Controller('api-docs')
+@Controller()
 export class ApiDocsController {
   constructor(private readonly apiDocsService: ApiDocsService) {}
 

@@ -1,7 +1,7 @@
 import { Controller, Get, Request, Param } from '@nestjs/common';
 import { PublicMetasService } from './public-metas.service';
 
-@Controller('public-metas')
+@Controller()
 export class PublicMetasController {
   constructor(private readonly publicMetasService: PublicMetasService) {}
 

@@ -7,7 +7,9 @@ import {
   Query,
   Request,
   Response,
+  UseInterceptors,
 } from '@nestjs/common';
+import { FileInterceptor } from '@nestjs/platform-express';
 import { OrgUserRoles, ProjectRoles } from 'nocodb-sdk';
 import path from 'path';
 import { NcError } from '../../helpers/catchError';
@@ -45,7 +47,7 @@ const isUploadAllowedMw = async (req: Request, _res: Response, next: any) => {
   NcError.badRequest('Upload not allowed');
 };
 
-@Controller('attachments')
+@Controller()
 export class AttachmentsController {
   constructor(private readonly attachmentsService: AttachmentsService) {}
 
@@ -64,6 +66,7 @@ export class AttachmentsController {
     //   ]
     // );
   )
+  @UseInterceptors(FileInterceptor('files'))
   async upload(@Request() req: any, @Query('path') path: string) {
     const attachments = await this.attachmentsService.upload({
       files: (req as any).files,
@@ -93,9 +96,8 @@ export class AttachmentsController {
   // @Get(/^\/download\/(.+)$/)
   // , getCacheMiddleware(), catchError(fileRead));
   @Get('/download/:filename(*)')
-    // This route will match any URL that starts with
-  async fileRead(@Param('filename') filename: string
-  , @Response() res) {
+  // This route will match any URL that starts with
+  async fileRead(@Param('filename') filename: string, @Response() res) {
     try {
       const { img, type } = await this.attachmentsService.fileRead({
         path: path.join('nc', 'uploads', filename),

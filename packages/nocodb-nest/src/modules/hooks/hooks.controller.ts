@@ -18,7 +18,7 @@ import {
 import { HooksService } from './hooks.service';
 import { AuthGuard } from '@nestjs/passport';
 
-@Controller('hooks')
+@Controller()
 @UseGuards(ExtractProjectIdMiddleware, AuthGuard('jwt'))
 export class HooksController {
   constructor(private readonly hooksService: HooksService) {}

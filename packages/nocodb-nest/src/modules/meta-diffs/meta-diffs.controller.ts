@@ -6,7 +6,7 @@ import {
 import { MetaDiffsService } from './meta-diffs.service';
 import { AuthGuard } from '@nestjs/passport';
 
-@Controller('meta-diffs')
+@Controller()
 @UseGuards(ExtractProjectIdMiddleware, AuthGuard('jwt'))
 export class MetaDiffsController {
   constructor(private readonly metaDiffsService: MetaDiffsService) {}

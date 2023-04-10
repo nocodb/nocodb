@@ -10,7 +10,7 @@ const blockInCloudMw = (_req, res, next) => {
   } else next();
 };
 
-@Controller('plugins')
+@Controller()
 export class PluginsController {
   constructor(private readonly pluginsService: PluginsService) {}
 

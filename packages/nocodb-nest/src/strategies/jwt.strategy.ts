@@ -26,7 +26,7 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
     // todo: improve this
     if (
       req.ncProjectId &&
-      jwtPayload.roles?.split(',').includes(OrgUserRoles.SUPER_ADMIN)
+      extractRolesObj(jwtPayload.roles)[OrgUserRoles.SUPER_ADMIN]
     ) {
       return User.getByEmail(jwtPayload?.email).then(async (user) => {
         return {

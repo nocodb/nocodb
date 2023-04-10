@@ -1,4 +1,7 @@
-import { Controller } from '@nestjs/common';
+import { Controller, UseGuards } from '@nestjs/common'
+import { ExtractProjectIdMiddleware } from '../../../middlewares/extract-project-id/extract-project-id.middleware'
+import { AuthGuard } from '@nestjs/passport'
 
-@Controller('old-datas')
+@Controller()
+@UseGuards(ExtractProjectIdMiddleware, AuthGuard('jwt'))
 export class OldDatasController {}

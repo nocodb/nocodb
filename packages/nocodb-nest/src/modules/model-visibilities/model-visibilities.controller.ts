@@ -14,7 +14,7 @@ import {
 import { ModelVisibilitiesService } from './model-visibilities.service';
 import { AuthGuard } from '@nestjs/passport';
 
-@Controller('model-visibilities')
+@Controller()
 @UseGuards(ExtractProjectIdMiddleware, AuthGuard('jwt'))
 export class ModelVisibilitiesController {
   constructor(

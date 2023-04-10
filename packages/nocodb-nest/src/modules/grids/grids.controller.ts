@@ -14,7 +14,7 @@ import {
 import { GridsService } from './grids.service';
 import { AuthGuard } from '@nestjs/passport';
 
-@Controller('grids')
+@Controller()
 @UseGuards(ExtractProjectIdMiddleware, AuthGuard('jwt'))
 export class GridsController {
   get '/api/v1/db/meta/tables/:tableId/grids/'() {

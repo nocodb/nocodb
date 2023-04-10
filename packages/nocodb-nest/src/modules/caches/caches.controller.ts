@@ -2,7 +2,7 @@ import { Controller, Delete, Get } from '@nestjs/common';
 import { Acl } from '../../middlewares/extract-project-id/extract-project-id.middleware';
 import { CachesService } from './caches.service';
 
-@Controller('caches')
+@Controller()
 export class CachesController {
   constructor(private readonly cachesService: CachesService) {}
 

@@ -150,10 +150,12 @@ export default class Base implements BaseType {
     args: { projectId: string },
     ncMeta = Noco.ncMeta
   ): Promise<Base[]> {
-    let baseDataList = await NocoCache.getList(CacheScope.BASE, [
+    const cachedList = await NocoCache.getList(CacheScope.BASE, [
       args.projectId,
     ]);
-    if (!baseDataList.length) {
+    let { list: baseDataList } = cachedList;
+    const { isEmptyList } = cachedList;
+    if (!isEmptyList && !baseDataList.length) {
       baseDataList = await ncMeta.metaList2(
         args.projectId,
         null,

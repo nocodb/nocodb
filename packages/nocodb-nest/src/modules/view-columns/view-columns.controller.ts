@@ -24,8 +24,9 @@ export class ViewColumnsController {
   @Get('/api/v1/db/meta/views/:viewId/columns/')
   @Acl('columnList')
   async columnList(@Param('viewId') viewId: string) {
-    return;
-    new PagedResponseImpl(await this.viewColumnsService.columnList({ viewId }));
+    return new PagedResponseImpl(
+      await this.viewColumnsService.columnList({ viewId }),
+    );
   }
 
   @Post('/api/v1/db/meta/views/:viewId/columns/')

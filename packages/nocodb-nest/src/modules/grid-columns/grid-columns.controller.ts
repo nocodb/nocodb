@@ -7,7 +7,7 @@ import {
 import { GridColumnsService } from './grid-columns.service';
 import { AuthGuard } from '@nestjs/passport';
 
-@Controller('grid-columns')
+@Controller()
 @UseGuards(ExtractProjectIdMiddleware, AuthGuard('jwt'))
 export class GridColumnsController {
   constructor(private readonly gridColumnsService: GridColumnsService) {}

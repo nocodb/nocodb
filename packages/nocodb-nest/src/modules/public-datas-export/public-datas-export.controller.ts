@@ -17,7 +17,7 @@ import { nocoExecute } from 'nc-help';
 import papaparse from 'papaparse';
 import { serializeCellValue } from '../datas/helpers';
 
-@Controller('public-datas-export')
+@Controller()
 export class PublicDatasExportController {
   constructor(
     private readonly publicDatasExportService: PublicDatasExportService,

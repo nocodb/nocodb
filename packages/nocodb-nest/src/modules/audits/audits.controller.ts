@@ -13,7 +13,7 @@ import { Acl } from '../../middlewares/extract-project-id/extract-project-id.mid
 import { Audit } from '../../models';
 import { AuditsService } from './audits.service';
 
-@Controller('audits')
+@Controller()
 export class AuditsController {
   constructor(private readonly auditsService: AuditsService) {}
 

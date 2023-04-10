@@ -2,7 +2,7 @@ import { Controller, Post, Req } from '@nestjs/common';
 import { TestService } from './test.service';
 import { TestResetService } from './TestResetService';
 
-@Controller('test')
+@Controller()
 export class TestController {
   constructor(private readonly testService: TestService) {}
 

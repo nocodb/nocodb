@@ -13,7 +13,7 @@ import {
 import { SharedBasesService } from './shared-bases.service';
 import { AuthGuard } from '@nestjs/passport';
 
-@Controller('shared-bases')
+@Controller()
 @UseGuards(ExtractProjectIdMiddleware, AuthGuard('jwt'))
 export class SharedBasesController {
   constructor(private readonly sharedBasesService: SharedBasesService) {}

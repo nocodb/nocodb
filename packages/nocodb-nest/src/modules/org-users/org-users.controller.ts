@@ -14,7 +14,7 @@ import { Acl } from '../../middlewares/extract-project-id/extract-project-id.mid
 import { User } from '../../models';
 import { OrgUsersService } from './org-users.service';
 
-@Controller('org-users')
+@Controller()
 export class OrgUsersController {
   constructor(private readonly orgUsersService: OrgUsersService) {}
 

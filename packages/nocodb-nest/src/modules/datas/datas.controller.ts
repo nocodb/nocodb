@@ -11,7 +11,7 @@ import {
 import { Acl } from '../../middlewares/extract-project-id/extract-project-id.middleware';
 import { DatasService } from './datas.service';
 
-@Controller('datas')
+@Controller()
 export class DatasController {
   constructor(private readonly datasService: DatasService) {}
 

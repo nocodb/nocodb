@@ -15,7 +15,7 @@ import {
 import { GalleriesService } from './galleries.service';
 import { AuthGuard } from '@nestjs/passport';
 
-@Controller('galleries')
+@Controller()
 @UseGuards(ExtractProjectIdMiddleware, AuthGuard('jwt'))
 export class GalleriesController {
   constructor(private readonly galleriesService: GalleriesService) {}

@@ -1,4 +1,4 @@
-export default (roles: string | string[]) => {
+export default (roles) => {
   if(!roles) return {};
 
   if(typeof roles === 'object' && !Array.isArray(roles)) return roles;

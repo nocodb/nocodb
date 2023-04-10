@@ -17,7 +17,7 @@ import {
 import { ColumnsService } from './columns.service';
 import { AuthGuard } from '@nestjs/passport';
 
-@Controller('columns')
+@Controller()
 @UseGuards(ExtractProjectIdMiddleware, AuthGuard('jwt'))
 export class ColumnsController {
   constructor(private readonly columnsService: ColumnsService) {}

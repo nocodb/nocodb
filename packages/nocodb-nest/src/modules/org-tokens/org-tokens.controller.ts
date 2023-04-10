@@ -19,7 +19,7 @@ import { OrgTokensService } from './org-tokens.service';
 import { AuthGuard } from '@nestjs/passport';
 
 @UseGuards(ExtractProjectIdMiddleware, AuthGuard('jwt'))
-@Controller('org-tokens')
+@Controller()
 export class OrgTokensController {
   constructor(
     private readonly orgTokensService: OrgTokensService,

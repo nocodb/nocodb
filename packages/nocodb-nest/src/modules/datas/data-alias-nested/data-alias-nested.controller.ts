@@ -1,8 +1,10 @@
-import { Controller, Delete, Get, Param, Post, Request } from '@nestjs/common';
-import { Acl } from '../../../middlewares/extract-project-id/extract-project-id.middleware';
+import { Controller, Delete, Get, Param, Post, Request, UseGuards } from '@nestjs/common'
+import { Acl, ExtractProjectIdMiddleware } from '../../../middlewares/extract-project-id/extract-project-id.middleware'
 import { DataAliasNestedService } from './data-alias-nested.service';
+import { AuthGuard } from '@nestjs/passport';
 
-@Controller('data-alias-nested')
+@Controller()
+@UseGuards(ExtractProjectIdMiddleware, AuthGuard('jwt'))
 class DataAliasNestedController {
   constructor(private dataAliasNestedService: DataAliasNestedService) {}
 

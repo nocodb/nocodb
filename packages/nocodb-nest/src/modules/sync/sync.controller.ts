@@ -11,7 +11,7 @@ import {
 import { Acl } from '../../middlewares/extract-project-id/extract-project-id.middleware';
 import { SyncService } from './sync.service';
 
-@Controller('sync')
+@Controller()
 export class SyncController {
   constructor(private readonly syncService: SyncService) {}
 

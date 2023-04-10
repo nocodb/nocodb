@@ -4,7 +4,7 @@ import { AuthModule } from './modules/auth/auth.module';
 import { ExtractProjectIdMiddleware } from './middlewares/extract-project-id/extract-project-id.middleware';
 import { UsersModule } from './modules/users/users.module';
 import { MetaService } from './meta/meta.service';
-import { LocalStrategy } from './strategies/local.strategy';
+// import { LocalStrategy } from './strategies/local.strategy';
 import { UtilsModule } from './modules/utils/utils.module';
 import { ProjectsModule } from './modules/projects/projects.module';
 import { JwtStrategy } from './strategies/jwt.strategy';
@@ -95,8 +95,8 @@ import { PluginsModule } from './modules/plugins/plugins.module';
 })
 export class AppModule {
   configure(consumer: MiddlewareConsumer) {
-    consumer
-      .apply(ExtractProjectIdMiddleware)
-      .forRoutes({ path: '*', method: RequestMethod.ALL });
+    // consumer
+    //   .apply(ExtractProjectIdMiddleware)
+    //   .forRoutes({ path: '*', method: RequestMethod.ALL });
   }
 }

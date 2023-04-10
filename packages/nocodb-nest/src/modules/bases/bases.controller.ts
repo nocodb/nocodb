@@ -17,7 +17,7 @@ import {
 import { BasesService } from './bases.service';
 import { AuthGuard } from '@nestjs/passport';
 
-@Controller('bases')
+@Controller()
 @UseGuards(ExtractProjectIdMiddleware, AuthGuard('jwt'))
 export class BasesController {
   constructor(private readonly basesService: BasesService) {}

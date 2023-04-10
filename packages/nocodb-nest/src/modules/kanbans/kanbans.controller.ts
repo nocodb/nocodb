@@ -15,7 +15,7 @@ import {
 import { KanbansService } from './kanbans.service';
 import { AuthGuard } from '@nestjs/passport';
 
-@Controller('kanbans')
+@Controller()
 @UseGuards(ExtractProjectIdMiddleware, AuthGuard('jwt'))
 export class KanbansController {
   constructor(private readonly kanbansService: KanbansService) {}

@@ -3,7 +3,7 @@ import { OrgUserRoles } from 'nocodb-sdk';
 import { Acl } from '../../middlewares/extract-project-id/extract-project-id.middleware';
 import { OrgLcenseService } from './org-lcense.service';
 
-@Controller('org-lcense')
+@Controller()
 export class OrgLcenseController {
   constructor(private readonly orgLcenseService: OrgLcenseService) {}
 

@@ -77,7 +77,7 @@ export default (
     delete jobs[payload?.id];
   });
 };
-@Controller('import')
+@Controller()
 export class ImportController {
   constructor(private readonly importService: ImportService) {}
 

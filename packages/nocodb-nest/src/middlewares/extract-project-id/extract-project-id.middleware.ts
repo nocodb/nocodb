@@ -189,7 +189,9 @@ export class ExtractProjectIdMiddleware implements NestMiddleware, CanActivate {
     await this.use(
       context.switchToHttp().getRequest(),
       context.switchToHttp().getResponse(),
-      () => {},
+      () => {
+        console.log('next');
+      },
     );
     return true;
   }
@@ -222,7 +224,7 @@ export class AclMiddleware implements NestInterceptor {
 
     const roles: Record<string, boolean> = extractRolesObj(req.user.roles);
 
-    if (req?.session?.passport?.user?.is_api_token && blockApiTokenAccess) {
+    if (req?.user?.is_api_token && blockApiTokenAccess) {
       NcError.forbidden('Not allowed with API token');
     }
     if (

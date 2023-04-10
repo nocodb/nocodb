@@ -7,11 +7,14 @@ import {
   Query,
   Request,
   Response,
+  UploadedFiles,
   UseInterceptors,
 } from '@nestjs/common';
-import { FileInterceptor } from '@nestjs/platform-express';
+import  multer  from 'multer';
+import { FileInterceptor, FilesInterceptor } from '@nestjs/platform-express'
 import { OrgUserRoles, ProjectRoles } from 'nocodb-sdk';
 import path from 'path';
+import { NC_ATTACHMENT_FIELD_SIZE } from '../../constants'
 import { NcError } from '../../helpers/catchError';
 import Noco from '../../Noco';
 import { MetaTable } from '../../utils/globals';
@@ -66,10 +69,26 @@ export class AttachmentsController {
     //   ]
     // );
   )
-  @UseInterceptors(FileInterceptor('files'))
-  async upload(@Request() req: any, @Query('path') path: string) {
+  @UseInterceptors(
+
+    FilesInterceptor('files[]', null,{
+      storage: multer.diskStorage({}),
+      // limits: {
+      //   fieldSize: NC_ATTACHMENT_FIELD_SIZE,
+      // },
+      limits: {
+        fileSize: NC_ATTACHMENT_FIELD_SIZE,
+      },
+    }),
+  )
+  async upload(
+    @UploadedFiles() files: Array<any>,
+    @Body() body: any,
+    @Request() req: any,
+    @Query('path') path: string,
+  ) {
     const attachments = await this.attachmentsService.upload({
-      files: (req as any).files,
+      files: files,
       path: req.query?.path as string,
     });
 

@@ -10,12 +10,13 @@ import {
   UploadedFiles,
   UseInterceptors,
 } from '@nestjs/common';
-import  multer  from 'multer';
-import { FileInterceptor, FilesInterceptor } from '@nestjs/platform-express'
+import multer from 'multer';
+import { FileInterceptor, FilesInterceptor } from '@nestjs/platform-express';
 import { OrgUserRoles, ProjectRoles } from 'nocodb-sdk';
 import path from 'path';
-import { NC_ATTACHMENT_FIELD_SIZE } from '../../constants'
+import { NC_ATTACHMENT_FIELD_SIZE } from '../../constants';
 import { NcError } from '../../helpers/catchError';
+import { UploadAllowedInterceptor } from '../../interceptors/is-upload-allowed/is-upload-allowed.interceptor';
 import Noco from '../../Noco';
 import { MetaTable } from '../../utils/globals';
 import { AttachmentsService } from './attachments.service';
@@ -70,7 +71,8 @@ export class AttachmentsController {
     // );
   )
   @UseInterceptors(
-    FilesInterceptor('files[]', null,{
+    UploadAllowedInterceptor,
+    FilesInterceptor('files[]', null, {
       storage: multer.diskStorage({}),
       // limits: {
       //   fieldSize: NC_ATTACHMENT_FIELD_SIZE,
@@ -95,7 +97,7 @@ export class AttachmentsController {
   }
 
   @Post('/api/v1/db/storage/upload-by-url')
-
+  @UseInterceptors(UploadAllowedInterceptor)
   //   [
   //     extractProjectIdAndAuthenticate,
   //   catchError(isUploadAllowedMw),

@@ -1,13 +1,33 @@
 import { NcError } from './../../meta/helpers/catchError';
 import { ViewTypes } from 'nocodb-sdk';
 import { Project, Base, Model } from '../../models';
+import { dataService } from '..';
+import { getViewAndModelByAliasOrId } from '../dbData/helpers';
 
-export async function exportModel(param: { modelId: string[] }) {
-  const exportData = {
-    models: [],
-  };
+/*
+  {
+    "entity": "project",
+    "bases": [
+      ### current scope
+      {
+        "entity": "base",
+        "models": [
+          {
+            "entity": "model",
+            "model": {},
+            "views": []
+          }
+        ]
+      }
+      ### end current scope
+    ]
+  }
+*/
 
-  // db id to human readable id
+async function serializeModels(param: { modelId: string[] }) {
+  const serializedModels = [];
+
+  // db id to structured id
   const idMap = new Map<string, string>();
 
   const projects: Project[] = []
@@ -32,19 +52,19 @@ export async function exportModel(param: { modelId: string[] }) {
       const all_models = await base.getModels();
 
       for (const md of all_models) {
-        idMap.set(md.id, `${project.title}::${base.alias || 'default'}::${clearPrefix(md.table_name, project.prefix)}`);
+        idMap.set(md.id, `${project.id}::${base.id}::${md.id}`);
         await md.getColumns();
         for (const column of md.columns) {
-          idMap.set(column.id, `${idMap.get(md.id)}::${column.column_name || column.title}`);
+          idMap.set(column.id, `${idMap.get(md.id)}::${column.id}`);
         }
       }
 
       modelsMap.set(base.id, all_models);
     }
 
-    idMap.set(project.id, project.title);
-    idMap.set(base.id, `${project.title}::${base.alias || 'default'}`);
-    idMap.set(model.id, `${idMap.get(base.id)}::${clearPrefix(model.table_name, project.prefix)}`);
+    idMap.set(project.id, project.id);
+    idMap.set(base.id, `${project.id}::${base.id}`);
+    idMap.set(model.id, `${idMap.get(base.id)}::${model.id}`);
 
     await model.getColumns();
     await model.getViews();
@@ -52,7 +72,7 @@ export async function exportModel(param: { modelId: string[] }) {
     for (const column of model.columns) {
       idMap.set(
         column.id,
-        `${idMap.get(model.id)}::${column.column_name || column.title}`
+        `${idMap.get(model.id)}::${column.id}`
       );
       await column.getColOptions();
       if (column.colOptions) {
@@ -90,7 +110,7 @@ export async function exportModel(param: { modelId: string[] }) {
     }
 
     for (const view of model.views) {
-      idMap.set(view.id, `${idMap.get(model.id)}::${view.title}`);
+      idMap.set(view.id, `${idMap.get(model.id)}::${view.id}`);
       await view.getColumns();
       await view.getFilters();
       await view.getSorts();
@@ -98,7 +118,7 @@ export async function exportModel(param: { modelId: string[] }) {
         const export_filters = []
         for (const fl of view.filter.children) {
           const tempFl = {
-            id: fl.id,
+            id: `${idMap.get(view.id)}::${fl.id}`,
             fk_column_id: idMap.get(fl.fk_column_id),
             fk_parent_id: fl.fk_parent_id,
             is_group: fl.is_group,
@@ -165,7 +185,8 @@ export async function exportModel(param: { modelId: string[] }) {
       }
     }
 
-    exportData.models.push({
+    serializedModels.push({
+      entity: 'model',
       model: {
         id: idMap.get(model.id),
         prefix: project.prefix,
@@ -224,10 +245,26 @@ export async function exportModel(param: { modelId: string[] }) {
     });
   }
 
+  return serializedModels;
+}
+
+export async function exportBaseSchema(param: { baseId: string }) {
+  const base = await Base.get(param.baseId);
+
+  if (!base) return NcError.badRequest(`Base not found for id '${param.baseId}'`);
+
+  const project = await Project.get(base.project_id);
+
+  const models = (await base.getModels()).filter((m) => !m.mm);
+
+  const exportedModels = await serializeModels({ modelId: models.map(m => m.id) });
+
+  const exportData = { id: `${project.id}::${base.id}`, entity: 'base', models: exportedModels };
+
   return exportData;
 }
 
 const clearPrefix = (text: string, prefix?: string) => {
-  if (!prefix) return text;
-  return text.replace(new RegExp(`^${prefix}_`), '');
+  if (!prefix || prefix.length === 0) return text;
+  return text.replace(new RegExp(`^${prefix}_?`), '');
 }

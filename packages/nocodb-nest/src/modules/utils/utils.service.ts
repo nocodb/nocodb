@@ -57,7 +57,9 @@ interface AllMeta {
 
 @Injectable()
 export class UtilsService {
-  async info() {
+  async info(
+    {ncSiteUrl} : {ncSiteUrl: string},
+  ) {
     const projectHasAdmin = !(await User.isFirst());
     const result = {
       authType: 'jwt',
@@ -73,7 +75,7 @@ export class UtilsService {
       ),
       oneClick: !!process.env.NC_ONE_CLICK,
       connectToExternalDB: !process.env.NC_CONNECT_TO_EXTERNAL_DB_DISABLED,
-      version: '', //packageVersion,
+      version: packageVersion,
       defaultLimit: Math.max(
         Math.min(
           +process.env.DB_QUERY_LIMIT_DEFAULT || 25,
@@ -86,7 +88,7 @@ export class UtilsService {
       teleEnabled: process.env.NC_DISABLE_TELE !== 'true',
       auditEnabled: process.env.NC_DISABLE_AUDIT !== 'true',
       // todo: tobe done
-      ncSiteUrl: '',
+      ncSiteUrl,
       // todo: tobe done
       ee: false, //  Noco.isEE(),
       ncAttachmentFieldSize: NC_ATTACHMENT_FIELD_SIZE,

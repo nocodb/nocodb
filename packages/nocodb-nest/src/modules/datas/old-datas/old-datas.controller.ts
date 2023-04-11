@@ -53,4 +53,26 @@ export class OldDatasController {
     });
     res.json(countResult);
   }
+
+  @Post('/nc/:projectId/api/v1/:tableName')
+  @Acl('dataInsert')
+  async dataInsert(
+    @Request() req,
+    @Response() res,
+    @Param('tableName') tableName: string,
+    @Body() body: any,
+  ) {
+    const { model, view } =
+      await this.datasService.getViewAndModelFromRequestByAliasOrId(req);
+    const project = await Project.get(model.project_id);
+    return res.json(
+      await this.datasService.dataInsert({
+        projectName: project.title,
+        tableName: tableName,
+        viewName: view.title,
+        body: body,
+        cookie: req,
+      }),
+    );
+  }
 }

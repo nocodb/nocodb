@@ -23,6 +23,7 @@ export default class Project implements ProjectType {
   public order: number;
   public is_meta = false;
   public bases?: Base[];
+  public fk_workspace_id?: string;
 
   // shared base props
   uuid?: string;
@@ -43,6 +44,9 @@ export default class Project implements ProjectType {
       'prefix',
       'description',
       'is_meta',
+      'fk_workspace_id',
+      'meta',
+      'color',
     ]);
 
     const { id: projectId } = await ncMeta.metaInsert2(
@@ -229,6 +233,7 @@ export default class Project implements ProjectType {
       'uuid',
       'password',
       'roles',
+      'fk_workspace_id',
     ]);
     // get existing cache
     const key = `${CacheScope.PROJECT}:${projectId}`;
@@ -392,5 +397,60 @@ export default class Project implements ProjectType {
     if (project) await project.getBases(ncMeta);
 
     return project;
+  }
+
+  static async listByWorkspaceAndUser(
+    fk_workspace_id: string,
+    userId: string,
+    ncMeta = Noco.ncMeta,
+  ) {
+    // Todo: caching , pagination, query optimisation
+
+    const projectListQb = ncMeta
+      .knex(MetaTable.PROJECT)
+      .select(`${MetaTable.PROJECT}.*`)
+      .select(`${MetaTable.WORKSPACE_USER}.roles as workspace_role`)
+      .select(`${MetaTable.PROJECT_USERS}.starred`)
+      .select(`${MetaTable.PROJECT_USERS}.roles as project_role`)
+      .select(`${MetaTable.PROJECT_USERS}.updated_at as last_accessed`)
+      .leftJoin(MetaTable.WORKSPACE_USER, function () {
+        this.on(
+          `${MetaTable.WORKSPACE_USER}.fk_workspace_id`,
+          '=',
+          `${MetaTable.PROJECT}.fk_workspace_id`,
+        ).andOn(
+          `${MetaTable.WORKSPACE_USER}.fk_user_id`,
+          '=',
+          ncMeta.knex.raw('?', [userId]),
+        );
+      })
+      .leftJoin(MetaTable.PROJECT_USERS, function () {
+        this.on(
+          `${MetaTable.PROJECT_USERS}.project_id`,
+          '=',
+          `${MetaTable.PROJECT}.id`,
+        ).andOn(
+          `${MetaTable.PROJECT_USERS}.fk_user_id`,
+          '=',
+          ncMeta.knex.raw('?', [userId]),
+        );
+      })
+
+      .where(`${MetaTable.PROJECT}.fk_workspace_id`, fk_workspace_id)
+
+      .where(function () {
+        this.where(
+          `${MetaTable.PROJECT_USERS}.fk_user_id`,
+          '=',
+          ncMeta.knex.raw('?', [userId]),
+        ).orWhere(
+          `${MetaTable.WORKSPACE_USER}.fk_user_id`,
+          '=',
+          ncMeta.knex.raw('?', [userId]),
+        );
+      })
+      .where(`${MetaTable.PROJECT}.deleted`, false);
+
+    return await projectListQb;
   }
 }

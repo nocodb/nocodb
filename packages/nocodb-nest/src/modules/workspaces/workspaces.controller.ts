@@ -6,12 +6,10 @@ import {
   Param,
   Patch,
   Post,
-  Query,
   Request,
   UseGuards,
 } from '@nestjs/common';
 import { AuthGuard } from '@nestjs/passport';
-import { ViewUpdateReqType } from 'nocodb-sdk';
 import {
   ExtractProjectIdMiddleware,
   UseAclMiddleware,
@@ -78,6 +76,22 @@ export class WorkspacesController {
   async delete(@Param('workspaceId') workspaceId: string, @Request() req) {
     return await this.workspacesService.delete({
       workspaceId,
+      user: req.user,
+    });
+  }
+
+  @Post('/api/v1/workspaces/:workspaceId/projects/:projectId/move')
+  @UseAclMiddleware({
+    permissionName: 'moveProjectToWorkspace',
+  })
+  async moveProjectToWorkspace(
+    @Param('workspaceId') workspaceId: string,
+    @Param('projectId') projectId: string,
+    @Request() req,
+  ) {
+    return await this.workspacesService.moveProject({
+      workspaceId,
+      projectId,
       user: req.user,
     });
   }

@@ -1,11 +1,12 @@
 import { Injectable } from '@nestjs/common';
 import { validatePayload } from '../../helpers';
 import WorkspaceUser from 'src/models/WorkspaceUser';
-import { WorkspaceType, WorkspaceUserRoles } from 'nocodb-sdk';
+import { ProjectRoles, WorkspaceType, WorkspaceUserRoles } from 'nocodb-sdk';
 import { PagedResponseImpl } from 'src/helpers/PagedResponse';
 import Workspace from 'src/models/Workspace';
 import validateParams from 'src/helpers/validateParams';
 import { NcError } from 'src/helpers/catchError';
+import { Project, ProjectUser } from 'src/models';
 
 @Injectable()
 export class WorkspacesService {
@@ -114,6 +115,46 @@ export class WorkspacesService {
 
     // todo: unlink any project linked
     await Workspace.delete(param.workspaceId);
+    return true;
+  }
+
+  async moveProject(param: {
+    user: {
+      id: string;
+      roles: string[];
+    };
+    workspaceId: string;
+    projectId: string;
+  }) {
+    const { workspaceId, projectId, user } = param;
+    const project = await Project.get(projectId);
+
+    const projectUser = await ProjectUser.get(projectId, user.id);
+    const currentWorkspaceUser = await WorkspaceUser.get(
+      project.fk_workspace_id,
+      user.id,
+    );
+
+    if (
+      projectUser?.roles !== ProjectRoles.OWNER &&
+      currentWorkspaceUser?.roles !== WorkspaceUserRoles.OWNER
+    ) {
+      NcError.forbidden('You are not the project owner');
+    }
+
+    // verify user is workaggerspace owner
+
+    const destWorkspaceUser = await WorkspaceUser.get(workspaceId, user.id);
+
+    if (destWorkspaceUser?.roles !== WorkspaceUserRoles.OWNER) {
+      NcError.forbidden('You are not the workspace owner');
+    }
+
+    // update the project workspace id
+    await Project.update(param.projectId, {
+      fk_workspace_id: workspaceId,
+    });
+
     return true;
   }
 }

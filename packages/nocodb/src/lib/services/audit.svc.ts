@@ -36,7 +36,7 @@ export async function auditRowUpdate(param: {
     op_type: AuditOperationTypes.DATA,
     op_sub_type: AuditOperationSubTypes.UPDATE,
     description: DOMPurify.sanitize(
-      `Table ${model.table_name} : field ${param.body.column_name} got changed from  ${param.body.prev_value} to ${param.body.value}`
+      `The column ${param.body.column_name} in Table ${model.table_name} has been changed from ${param.body.prev_value} to ${param.body.value}`
     ),
     details: DOMPurify.sanitize(`<span class="">${param.body.column_name}</span>
   : <span class="text-decoration-line-through red px-2 lighten-4 black--text">${param.body.prev_value}</span>

@@ -8,7 +8,6 @@ import {
   computed,
   extractPkFromRow,
   extractSdkResponseErrorMsg,
-  getHTMLEncodedText,
   message,
   populateInsertObject,
   ref,
@@ -350,14 +349,6 @@ export function useViewData(
         //   query: { ignoreWebhook: !saved }
         // }
       )
-      // audit
-      $api.utils.auditRowUpdate(encodeURIComponent(id), {
-        fk_model_id: metaValue?.id as string,
-        column_name: property,
-        row_id: id,
-        value: getHTMLEncodedText(toUpdate.row[property]),
-        prev_value: getHTMLEncodedText(toUpdate.oldRow[property]),
-      })
 
       if (!undo) {
         addUndo({

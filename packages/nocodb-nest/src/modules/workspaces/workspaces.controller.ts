@@ -33,6 +33,17 @@ export class WorkspacesController {
     });
   }
 
+  @Get('/api/v1/workspaces/:workspaceId')
+  @UseAclMiddleware({
+    permissionName: 'workspaceGet',
+  })
+  async get(@Param('workspaceId') workspaceId: string, @Request() req) {
+    return await this.workspacesService.get({
+      workspaceId,
+      user: req.user,
+    });
+  }
+
   @Post('/api/v1/workspaces/')
   @UseAclMiddleware({
     permissionName: 'workspaceCreate',
@@ -40,6 +51,22 @@ export class WorkspacesController {
   async create(@Body() body: any, @Request() req) {
     return await this.workspacesService.create({
       workspaces: body,
+      user: req.user,
+    });
+  }
+
+  @Patch('/api/v1/workspaces/:workspaceId')
+  @UseAclMiddleware({
+    permissionName: 'workspaceUpdate',
+  })
+  async update(
+    @Param('workspaceId') workspaceId: string,
+    @Body() body: any,
+    @Request() req,
+  ) {
+    return await this.workspacesService.update({
+      workspaceId,
+      workspace: body,
       user: req.user,
     });
   }

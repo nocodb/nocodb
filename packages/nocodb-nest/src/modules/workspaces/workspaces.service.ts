@@ -5,6 +5,7 @@ import { WorkspaceType, WorkspaceUserRoles } from 'nocodb-sdk';
 import { PagedResponseImpl } from 'src/helpers/PagedResponse';
 import Workspace from 'src/models/Workspace';
 import validateParams from 'src/helpers/validateParams';
+import { NcError } from 'src/helpers/catchError';
 
 @Injectable()
 export class WorkspacesService {
@@ -58,5 +59,45 @@ export class WorkspacesService {
       workspaces.push(workspace);
     }
     return Array.isArray(param.workspaces) ? workspaces : workspaces[0];
+  }
+
+  async get(param: {
+    user: {
+      id: string;
+      roles: string[];
+    };
+    workspaceId: string;
+  }) {
+    const workspace = await Workspace.get(param.workspaceId);
+
+    if (!workspace) NcError.notFound('Workspace not found');
+
+    return workspace;
+  }
+
+  async update(param: {
+    user: {
+      id: string;
+      roles: string[];
+    };
+    workspaceId: string;
+    workspace: WorkspaceType;
+  }) {
+    const { workspace, user, workspaceId } = param;
+    // todo: allow order update for all user
+    //       and block rest of the options
+    if ('order' in workspace) {
+      await WorkspaceUser.update(workspaceId, user.id, {
+        order: workspace.order,
+      });
+      delete workspace.order;
+    }
+
+    // todo: validate params
+    // validateParams(['title', 'description'], req.body);
+
+    const updatedWorkspace = await Workspace.update(workspaceId, workspace);
+
+    return updatedWorkspace;
   }
 }

@@ -4,7 +4,7 @@ import {
   AuditOperationTypes,
   OrgUserRoles,
   validatePassword,
-  WorkspaceUserRoles
+  WorkspaceUserRoles,
 } from 'nocodb-sdk';
 import { T } from 'nc-help';
 import * as ejs from 'ejs';

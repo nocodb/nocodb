@@ -128,8 +128,8 @@ export class OldDatasController {
       await this.oldDatasService.dataDelete({
         projectId: projectId,
         tableName: tableName,
-        rowId,
         cookie: req,
+        rowId: rowId,
       }),
     );
   }

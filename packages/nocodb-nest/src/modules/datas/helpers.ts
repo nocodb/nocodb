@@ -2,9 +2,9 @@ import { nocoExecute } from 'nc-help';
 import { isSystemColumn, UITypes } from 'nocodb-sdk';
 import * as XLSX from 'xlsx';
 import papaparse from 'papaparse';
-import { BaseModelSqlv2 } from '../../db/BaseModelSqlv2'
-import { NcError } from '../../helpers/catchError'
-import getAst from '../../helpers/getAst'
+import { BaseModelSqlv2 } from '../../db/BaseModelSqlv2';
+import { NcError } from '../../helpers/catchError';
+import getAst from '../../helpers/getAst';
 import { Model, View } from '../../models';
 import Base from '../../models/Base';
 import Column from '../../models/Column';
@@ -16,6 +16,12 @@ import type { Request } from 'express';
 
 export interface PathParams {
   projectName: string;
+  tableName: string;
+  viewName?: string;
+}
+
+export interface OldPathParams {
+  projectId: string;
   tableName: string;
   viewName?: string;
 }

@@ -60,10 +60,10 @@ jobs:
           working-directory: ./packages/nocodb-sdk
           run: npm run build:main
         - name: Install dependencies
-          working-directory: ./packages/nocodb
+          working-directory: ./packages/nocodb-nest
           run: npm install
         - name: run unit tests
-          working-directory: ./packages/nocodb
+          working-directory: ./packages/nocodb-nest
           run: npm run test:unit
     unit-tests-pg:
       runs-on: ubuntu-20.04
@@ -101,10 +101,10 @@ jobs:
           working-directory: ./packages/nocodb-sdk
           run: npm run build:main
         - name: Install dependencies
-          working-directory: ./packages/nocodb
+          working-directory: ./packages/nocodb-nest
           run: npm install
         - name: run unit tests
-          working-directory: ./packages/nocodb
+          working-directory: ./packages/nocodb-nest
           run: npm run test:unit:pg
     playwright-mysql-1:
       if: ${{ github.event_name == 'push' || contains(github.event.pull_request.labels.*.name, 'trigger-CI') || !github.event.pull_request.draft }}

@@ -1,3 +1,4 @@
+import { ModuleRef } from '@nestjs/core';
 import { promisify } from 'util';
 import { UITypes } from 'nocodb-sdk';
 import Airtable from 'airtable';
@@ -7,27 +8,41 @@ import { T } from 'nc-help';
 import dayjs from 'dayjs';
 import utc from 'dayjs/plugin/utc';
 import tinycolor from 'tinycolor2';
-import {
-  attachmentService,
-  columnService,
-  filterService,
-  formViewColumnService,
-  formViewService,
-  galleryViewService,
-  gridViewService,
-  projectService,
-  projectUserService,
-  sortService,
-  tableService,
-  viewColumnService,
-  viewService,
-  // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-  // @ts-ignore
-} from '../..';
+import extractRolesObj from '../../../utils/extractRolesObj'
+import { AttachmentsService } from '../../attachments/attachments.service';
+import { ColumnsService } from '../../columns/columns.service';
+import { FiltersService } from '../../filters/filters.service';
+import { FormColumnsService } from '../../form-columns/form-columns.service';
+import { GalleriesService } from '../../galleries/galleries.service';
+import { GridsService } from '../../grids/grids.service'
+import { ProjectUsersService } from '../../project-users/project-users.service';
+import { ProjectsService } from '../../projects/projects.service';
+import { SortsService } from '../../sorts/sorts.service';
+import { TablesService } from '../../tables/tables.service';
+import { ViewColumnsService } from '../../view-columns/view-columns.service';
+import { ViewsService } from '../../views/views.service';
+// import {
+//   attachmentService,
+//   columnService,
+//   filterService,
+//   formViewColumnService,
+//   formViewService,
+//   galleryViewService,
+//   gridViewService,
+//   projectService,
+//   projectUserService,
+//   sortService,
+//   tableService,
+//   viewColumnService,
+//   viewService,
+//   // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+//   // @ts-ignore
+// } from '../..';
 import FetchAT from './fetchAT';
 import { importData, importLTARData } from './readAndProcessData';
 import EntityMap from './EntityMap';
 import type { UserType } from 'nocodb-sdk';
+import { FormsService } from 'src/modules/forms/forms.service';
 
 const writeJsonFileAsync = promisify(jsonfile.writeFile);
 
@@ -82,8 +97,22 @@ const selectColors = {
 
 export default async (
   syncDB: AirtableSyncConfig,
-  progress: (data: { msg?: string; level?: any }) => void
+  progress: (data: { msg?: string; level?: any }) => void,
 ) => {
+  const tableService = syncDB.moduleRef.get(TablesService);
+  const viewService = syncDB.moduleRef.get(ViewsService);
+  const projectService = syncDB.moduleRef.get(ProjectsService);
+  const attachmentService = syncDB.moduleRef.get(AttachmentsService);
+  const columnService = syncDB.moduleRef.get(ColumnsService);
+  const filterService = syncDB.moduleRef.get(FiltersService);
+  const formViewColumnService = syncDB.moduleRef.get(FormColumnsService);
+  const formViewService = syncDB.moduleRef.get(FormsService);
+  const galleryViewService = syncDB.moduleRef.get(GalleriesService);
+  const projectUserService = syncDB.moduleRef.get(ProjectUsersService);
+  const viewColumnService = syncDB.moduleRef.get(ViewColumnsService);
+  const sortService = syncDB.moduleRef.get(SortsService);
+  const gridViewService = syncDB.moduleRef.get(GridsService);
+
   const sMapEM = new EntityMap('aTblId', 'ncId', 'ncName', 'ncParent');
   await sMapEM.init();
   const userRole = syncDB.user.roles
@@ -181,7 +210,7 @@ export default async (
   function updateMigrationSkipLog(tbl, col, type, reason?) {
     rtc.migrationSkipLog.count++;
     rtc.migrationSkipLog.log.push(
-      `tn[${tbl}] cn[${col}] type[${type}] :: ${reason}`
+      `tn[${tbl}] cn[${col}] type[${type}] :: ${reason}`,
     );
   }
 
@@ -289,10 +318,10 @@ export default async (
 
     // check if already a column exists with same name?
     const duplicateTitle = table.columns.find(
-      (x) => x.title?.toLowerCase() === col_alias?.toLowerCase()
+      (x) => x.title?.toLowerCase() === col_alias?.toLowerCase(),
     );
     const duplicateColumn = table.columns.find(
-      (x) => x.column_name?.toLowerCase() === col_name?.toLowerCase()
+      (x) => x.column_name?.toLowerCase() === col_name?.toLowerCase(),
     );
     if (duplicateTitle) {
       if (enableErrorLogs) console.log(`## Duplicate title ${col_alias}`);
@@ -324,9 +353,6 @@ export default async (
     }
   }
 
-  // nc dump schema
-  //
-  // @ts-ignore
   async function nc_DumpTableSchema() {
     console.log('[');
     // const ncTblList = await api.base.tableList(
@@ -382,7 +408,7 @@ export default async (
     // delete 'sample' project if already exists
     const x = { list: [] };
     x['list'] = await projectService.projectList({
-      user: { id: syncDB.user.id, roles: syncDB.user.roles },
+      user: { id: syncDB.user.id, roles: extractRolesObj(syncDB.user.roles) },
     });
 
     const sampleProj = x.list.find((a) => a.title === projectName);
@@ -469,7 +495,7 @@ export default async (
           while (
             options.find(
               (el) =>
-                el.title.toLowerCase() === (value as any).name.toLowerCase()
+                el.title.toLowerCase() === (value as any).name.toLowerCase(),
             )
           ) {
             (value as any).name = `${defaultName}_${dupNo++}`;
@@ -485,7 +511,7 @@ export default async (
           await sMap.addToMappingTbl(
             (value as any).id,
             undefined,
-            (value as any).name
+            (value as any).name,
           );
         }
         return { type: col.type, data: options };
@@ -507,7 +533,7 @@ export default async (
         rtc.view.total += tblSchema[i].views.reduce(
           (acc, cur) =>
             ['grid', 'form', 'gallery'].includes(cur.type) ? ++acc : acc,
-          0
+          0,
         );
       } else {
         rtc.view.total = tblSchema.length;
@@ -568,7 +594,7 @@ export default async (
             tblSchema[i].name,
             ncName.title,
             col.type,
-            'column type not supported'
+            'column type not supported',
           );
           continue;
         }
@@ -644,14 +670,14 @@ export default async (
       for (let colIdx = 0; colIdx < table.columns.length; colIdx++) {
         const aId = aTblSchema[idx].columns.find(
           (x) =>
-            x.name.trim().replace(/\./g, '_') === table.columns[colIdx].title
+            x.name.trim().replace(/\./g, '_') === table.columns[colIdx].title,
         )?.id;
         if (aId)
           await sMap.addToMappingTbl(
             aId,
             table.columns[colIdx].id,
             table.columns[colIdx].title,
-            table.id
+            table.id,
           );
       }
 
@@ -680,7 +706,7 @@ export default async (
         aTbl_grid.id,
         table.views[0].id,
         aTbl_grid.name,
-        table.id
+        table.id,
       );
     }
 
@@ -691,7 +717,7 @@ export default async (
     // Link to another RECORD
     for (let idx = 0; idx < aTblSchema.length; idx++) {
       const aTblLinkColumns = aTblSchema[idx].columns.filter(
-        (x) => x.type === 'foreignKey'
+        (x) => x.type === 'foreignKey',
       );
 
       // Link columns exist
@@ -701,17 +727,17 @@ export default async (
           logDetailed(
             `[${idx + 1}/${aTblSchema.length}] Configuring Links :: [${i + 1}/${
               aTblLinkColumns.length
-            }] ${aTblSchema[idx].name}`
+            }] ${aTblSchema[idx].name}`,
           );
 
           // for self links, there is no symmetric column
           {
             const src = aTbl_getColumnName(aTblLinkColumns[i].id);
             const dst = aTbl_getColumnName(
-              aTblLinkColumns[i].typeOptions?.symmetricColumnId
+              aTblLinkColumns[i].typeOptions?.symmetricColumnId,
             );
             logDetailed(
-              `LTAR ${src.tn}:${src.cn} <${aTblLinkColumns[i].typeOptions.relationship}> ${dst?.tn}:${dst?.cn}`
+              `LTAR ${src.tn}:${src.cn} <${aTblLinkColumns[i].typeOptions.relationship}> ${dst?.tn}:${dst?.cn}`,
             );
           }
 
@@ -723,7 +749,7 @@ export default async (
             // find child table name from symmetric column ID specified
             // self link, symmetricColumnId field will be undefined
             const childTable = aTbl_getColumnName(
-              aTblLinkColumns[i].typeOptions?.symmetricColumnId
+              aTblLinkColumns[i].typeOptions?.symmetricColumnId,
             );
 
             // retrieve child table ID (nc) from table name
@@ -743,7 +769,7 @@ export default async (
             // create link
             const ncName = nc_getSanitizedColumnName(
               srcTbl,
-              aTblLinkColumns[i].name
+              aTblLinkColumns[i].name,
             );
 
             // LTAR alias ref to AT
@@ -751,7 +777,7 @@ export default async (
             atNcAliasRef[srcTbl.id][ncName.title] = aTblLinkColumns[i].name;
 
             logDetailed(
-              `NC API: dbTableColumn.create LinkToAnotherRecord ${ncName.title}`
+              `NC API: dbTableColumn.create LinkToAnotherRecord ${ncName.title}`,
             );
             _perfStart = recordPerfStart();
             const ncTbl: any = await columnService.columnAdd({
@@ -774,13 +800,13 @@ export default async (
             updateNcTblSchema(ncTbl);
 
             const ncId = ncTbl.columns.find(
-              (x) => x.title === ncName.title
+              (x) => x.title === ncName.title,
             )?.id;
             await sMap.addToMappingTbl(
               aTblLinkColumns[i].id,
               ncId,
               ncName.title,
-              ncTbl.id
+              ncTbl.id,
             );
 
             // store link information in separate table
@@ -811,7 +837,7 @@ export default async (
               (x) =>
                 x.aTbl.tblId ===
                   aTblLinkColumns[i].typeOptions.foreignTableId &&
-                x.aTbl.id === aTblLinkColumns[i].typeOptions.symmetricColumnId
+                x.aTbl.id === aTblLinkColumns[i].typeOptions.symmetricColumnId,
             );
 
             let _perfStart = recordPerfStart();
@@ -831,7 +857,7 @@ export default async (
             recordPerfStats(_perfStart, 'dbTable.read');
 
             let parentLinkColumn = parentTblSchema.columns.find(
-              (col) => col.title === ncLinkMappingTable[x].nc.title
+              (col) => col.title === ncLinkMappingTable[x].nc.title,
             );
 
             if (parentLinkColumn === undefined) {
@@ -839,7 +865,7 @@ export default async (
                 parentTblSchema?.title,
                 ncLinkMappingTable[x].nc.title,
                 UITypes.LinkToAnotherRecord,
-                'Link error'
+                'Link error',
               );
               continue;
             }
@@ -847,7 +873,7 @@ export default async (
             // hack // fix me
             if (parentLinkColumn.uidt !== 'LinkToAnotherRecord') {
               parentLinkColumn = parentTblSchema.columns.find(
-                (col) => col.title === ncLinkMappingTable[x].nc.title + '_2'
+                (col) => col.title === ncLinkMappingTable[x].nc.title + '_2',
               );
             }
 
@@ -863,7 +889,7 @@ export default async (
                   col.colOptions.fk_child_column_id ===
                     parentLinkColumn.colOptions.fk_child_column_id &&
                   col.colOptions.fk_parent_column_id ===
-                    parentLinkColumn.colOptions.fk_parent_column_id
+                    parentLinkColumn.colOptions.fk_parent_column_id,
               );
             } else {
               // for mm:
@@ -877,13 +903,13 @@ export default async (
                   col.colOptions.fk_parent_column_id ===
                     parentLinkColumn.colOptions.fk_child_column_id &&
                   col.colOptions.fk_mm_model_id ===
-                    parentLinkColumn.colOptions.fk_mm_model_id
+                    parentLinkColumn.colOptions.fk_mm_model_id,
               );
             }
 
             // check if already a column exists with this name?
             const duplicate = childTblSchema.columns.find(
-              (x) => x.title === aTblLinkColumns[i].name
+              (x) => x.title === aTblLinkColumns[i].name,
             );
             const suffix = duplicate ? '_2' : '';
             if (duplicate)
@@ -895,11 +921,11 @@ export default async (
             // not just title being renamed
             const ncName = nc_getSanitizedColumnName(
               childTblSchema,
-              aTblLinkColumns[i].name
+              aTblLinkColumns[i].name,
             );
 
             logDetailed(
-              `NC API: dbTableColumn.update rename symmetric column ${ncName.title}`
+              `NC API: dbTableColumn.update rename symmetric column ${ncName.title}`,
             );
             _perfStart = recordPerfStart();
             const ncTbl: any = await columnService.columnUpdate({
@@ -915,13 +941,13 @@ export default async (
             updateNcTblSchema(ncTbl);
 
             const ncId = ncTbl.columns.find(
-              (x) => x.title === aTblLinkColumns[i].name + suffix
+              (x) => x.title === aTblLinkColumns[i].name + suffix,
             )?.id;
             await sMap.addToMappingTbl(
               aTblLinkColumns[i].id,
               ncId,
               aTblLinkColumns[i].name + suffix,
-              ncTbl.id
+              ncTbl.id,
             );
           }
         }
@@ -933,7 +959,7 @@ export default async (
     // LookUps
     for (let idx = 0; idx < aTblSchema.length; idx++) {
       const aTblColumns = aTblSchema[idx].columns.filter(
-        (x) => x.type === 'lookup'
+        (x) => x.type === 'lookup',
       );
 
       // parent table ID
@@ -946,7 +972,7 @@ export default async (
           logDetailed(
             `[${idx + 1}/${aTblSchema.length}] Configuring Lookup :: [${
               i + 1
-            }/${aTblColumns.length}] ${aTblSchema[idx].name}`
+            }/${aTblColumns.length}] ${aTblSchema[idx].name}`,
           );
 
           // something is not right, skip
@@ -960,16 +986,16 @@ export default async (
               srcTableSchema.title,
               aTblColumns[i].name,
               aTblColumns[i].type,
-              'invalid column ID in dependency list'
+              'invalid column ID in dependency list',
             );
             continue;
           }
 
           const ncRelationColumnId = await sMap.getNcIdFromAtId(
-            aTblColumns[i].typeOptions.relationColumnId
+            aTblColumns[i].typeOptions.relationColumnId,
           );
           const ncLookupColumnId = await sMap.getNcIdFromAtId(
-            aTblColumns[i].typeOptions.foreignTableRollupColumnId
+            aTblColumns[i].typeOptions.foreignTableRollupColumnId,
           );
 
           if (
@@ -983,7 +1009,7 @@ export default async (
 
           const ncName = nc_getSanitizedColumnName(
             srcTableSchema,
-            aTblColumns[i].name
+            aTblColumns[i].name,
           );
 
           logDetailed(`NC API: dbTableColumn.create LOOKUP ${ncName.title}`);
@@ -1007,13 +1033,13 @@ export default async (
           updateNcTblSchema(ncTbl);
 
           const ncId = ncTbl.columns.find(
-            (x) => x.title === aTblColumns[i].name
+            (x) => x.title === aTblColumns[i].name,
           )?.id;
           await sMap.addToMappingTbl(
             aTblColumns[i].id,
             ncId,
             aTblColumns[i].name,
-            ncTbl.id
+            ncTbl.id,
           );
         }
       }
@@ -1032,12 +1058,12 @@ export default async (
             ncSchema.tablesById[nestedLookupTbl[i].srcTableId]?.title,
             nestedLookupTbl[i].name,
             nestedLookupTbl[i].type,
-            `foreign table field not found [${name.tn}/${name.cn}]`
+            `foreign table field not found [${name.tn}/${name.cn}]`,
           );
         }
         if (enableErrorLogs)
           console.log(
-            `## Failed to configure ${nestedLookupTbl.length} lookups`
+            `## Failed to configure ${nestedLookupTbl.length} lookups`,
           );
         break;
       }
@@ -1049,10 +1075,10 @@ export default async (
         const srcTableSchema = ncSchema.tablesById[srcTableId];
 
         const ncRelationColumnId = await sMap.getNcIdFromAtId(
-          nestedLookupTbl[0].typeOptions.relationColumnId
+          nestedLookupTbl[0].typeOptions.relationColumnId,
         );
         const ncLookupColumnId = await sMap.getNcIdFromAtId(
-          nestedLookupTbl[0].typeOptions.foreignTableRollupColumnId
+          nestedLookupTbl[0].typeOptions.foreignTableRollupColumnId,
         );
 
         if (
@@ -1064,13 +1090,13 @@ export default async (
 
         const ncName = nc_getSanitizedColumnName(
           srcTableSchema,
-          nestedLookupTbl[0].name
+          nestedLookupTbl[0].name,
         );
 
         logDetailed(
           `Configuring Nested Lookup: Level-${level} [${i + 1}/${nestedCnt} ${
             ncName.title
-          }]`
+          }]`,
         );
 
         logDetailed(`NC API: dbTableColumn.create LOOKUP ${ncName.title}`);
@@ -1094,13 +1120,13 @@ export default async (
         updateNcTblSchema(ncTbl);
 
         const ncId = ncTbl.columns.find(
-          (x) => x.title === nestedLookupTbl[0].name
+          (x) => x.title === nestedLookupTbl[0].name,
         )?.id;
         await sMap.addToMappingTbl(
           nestedLookupTbl[0].id,
           ncId,
           nestedLookupTbl[0].name,
-          ncTbl.id
+          ncTbl.id,
         );
 
         // remove entry
@@ -1131,12 +1157,11 @@ export default async (
     return aTbl_ncRollUp[fn];
   }
 
-  //@ts-ignore
   async function nocoCreateRollup(aTblSchema) {
     // Rollup
     for (let idx = 0; idx < aTblSchema.length; idx++) {
       const aTblColumns = aTblSchema[idx].columns.filter(
-        (x) => x.type === 'rollup'
+        (x) => x.type === 'rollup',
       );
 
       // parent table ID
@@ -1149,13 +1174,13 @@ export default async (
           logDetailed(
             `[${idx + 1}/${aTblSchema.length}] Configuring Rollup :: [${
               i + 1
-            }/${aTblColumns.length}] ${aTblSchema[idx].name}`
+            }/${aTblColumns.length}] ${aTblSchema[idx].name}`,
           );
 
           // fetch associated rollup function
           // skip column creation if supported rollup function does not exist
           const ncRollupFn = getRollupNcFunction(
-            aTblColumns[i].typeOptions.formulaTextParsed
+            aTblColumns[i].typeOptions.formulaTextParsed,
           );
 
           if (ncRollupFn === '' || ncRollupFn === undefined) {
@@ -1163,7 +1188,7 @@ export default async (
               srcTableSchema.title,
               aTblColumns[i].name,
               aTblColumns[i].type,
-              `rollup function ${aTblColumns[i].typeOptions.formulaTextParsed} not supported`
+              `rollup function ${aTblColumns[i].typeOptions.formulaTextParsed} not supported`,
             );
             continue;
           }
@@ -1179,16 +1204,16 @@ export default async (
               srcTableSchema.title,
               aTblColumns[i].name,
               aTblColumns[i].type,
-              'invalid column ID in dependency list'
+              'invalid column ID in dependency list',
             );
             continue;
           }
 
           const ncRelationColumnId = await sMap.getNcIdFromAtId(
-            aTblColumns[i].typeOptions.relationColumnId
+            aTblColumns[i].typeOptions.relationColumnId,
           );
           const ncRollupColumnId = await sMap.getNcIdFromAtId(
-            aTblColumns[i].typeOptions.foreignTableRollupColumnId
+            aTblColumns[i].typeOptions.foreignTableRollupColumnId,
           );
 
           if (ncRollupColumnId === undefined) {
@@ -1199,7 +1224,7 @@ export default async (
 
           // skip, if rollup column was pointing to another virtual column
           const ncColSchema = await nc_getColumnSchema(
-            aTblColumns[i].typeOptions.foreignTableRollupColumnId
+            aTblColumns[i].typeOptions.foreignTableRollupColumnId,
           );
           if (
             ncColSchema?.uidt === UITypes.Formula ||
@@ -1211,14 +1236,14 @@ export default async (
               srcTableSchema.title,
               aTblColumns[i].name,
               aTblColumns[i].type,
-              'rollup referring to a column type not supported currently'
+              'rollup referring to a column type not supported currently',
             );
             continue;
           }
 
           const ncName = nc_getSanitizedColumnName(
             srcTableSchema,
-            aTblColumns[i].name
+            aTblColumns[i].name,
           );
 
           logDetailed(`NC API: dbTableColumn.create ROLLUP ${ncName.title}`);
@@ -1243,13 +1268,13 @@ export default async (
           updateNcTblSchema(ncTbl);
 
           const ncId = ncTbl.columns.find(
-            (x) => x.title === aTblColumns[i].name
+            (x) => x.title === aTblColumns[i].name,
           )?.id;
           await sMap.addToMappingTbl(
             aTblColumns[i].id,
             ncId,
             aTblColumns[i].name,
-            ncTbl.id
+            ncTbl.id,
           );
         }
       }
@@ -1257,7 +1282,6 @@ export default async (
     logDetailed(`Nested rollup: ${nestedRollupTbl.length}`);
   }
 
-  //@ts-ignore
   async function nocoLookupForRollup() {
     const nestedCnt = nestedLookupTbl.length;
     for (let i = 0; i < nestedLookupTbl.length; i++) {
@@ -1265,10 +1289,10 @@ export default async (
       const srcTableSchema = ncSchema.tablesById[srcTableId];
 
       const ncRelationColumnId = await sMap.getNcIdFromAtId(
-        nestedLookupTbl[0].typeOptions.relationColumnId
+        nestedLookupTbl[0].typeOptions.relationColumnId,
       );
       const ncLookupColumnId = await sMap.getNcIdFromAtId(
-        nestedLookupTbl[0].typeOptions.foreignTableRollupColumnId
+        nestedLookupTbl[0].typeOptions.foreignTableRollupColumnId,
       );
 
       if (ncLookupColumnId === undefined || ncRelationColumnId === undefined) {
@@ -1277,13 +1301,13 @@ export default async (
 
       const ncName = nc_getSanitizedColumnName(
         srcTableSchema,
-        nestedLookupTbl[0].name
+        nestedLookupTbl[0].name,
       );
 
       logDetailed(
         `Configuring Lookup over Rollup :: [${i + 1}/${nestedCnt}] ${
           ncName.title
-        }`
+        }`,
       );
 
       logDetailed(`NC API: dbTableColumn.create LOOKUP ${ncName.title}`);
@@ -1307,13 +1331,13 @@ export default async (
       updateNcTblSchema(ncTbl);
 
       const ncId = ncTbl.columns.find(
-        (x) => x.title === nestedLookupTbl[0].name
+        (x) => x.title === nestedLookupTbl[0].name,
       )?.id;
       await sMap.addToMappingTbl(
         nestedLookupTbl[0].id,
         ncId,
         nestedLookupTbl[0].name,
-        ncTbl.id
+        ncTbl.id,
       );
 
       // remove entry
@@ -1326,7 +1350,7 @@ export default async (
       logDetailed(
         `[${idx + 1}/${aTblSchema.length}] Configuring Display value : ${
           aTblSchema[idx].name
-        }`
+        }`,
       );
 
       const pColId = aTblSchema[idx].primaryColumnId;
@@ -1488,7 +1512,7 @@ export default async (
               logBasic(
                 ` :: Retrieving attachment :: ${value
                   ?.map((a) => a.filename?.split('?')?.[0])
-                  .join(', ')}`
+                  .join(', ')}`,
               );
               tempArr = await attachmentService.uploadViaURL({
                 path: `noco/${sDB.projectName}/${table.title}/${key}`,
@@ -1526,7 +1550,6 @@ export default async (
     return rec;
   }
 
-  // @ts-ignore
   async function nocoReadDataSelected(projName, table, callback, fields) {
     return new Promise((resolve, reject) => {
       base(table.title)
@@ -1542,10 +1565,10 @@ export default async (
             logBasic(
               `:: ${table.title} / ${fields} : ${
                 recordCnt + 1
-              } ~ ${(recordCnt += 100)}`
+              } ~ ${(recordCnt += 100)}`,
             );
             await Promise.all(
-              records.map((r) => callback(projName, table, r, fields))
+              records.map((r) => callback(projName, table, r, fields)),
             );
 
             // To fetch the next page of records, call `fetchNextPage`.
@@ -1559,7 +1582,7 @@ export default async (
               reject(err);
             }
             resolve(null);
-          }
+          },
         );
     });
   }
@@ -1568,7 +1591,7 @@ export default async (
 
   function nc_isLinkExists(airtableFieldId) {
     return !!ncLinkMappingTable.find(
-      (x) => x.aTbl.typeOptions.symmetricColumnId === airtableFieldId
+      (x) => x.aTbl.typeOptions.symmetricColumnId === airtableFieldId,
     );
   }
 
@@ -1600,7 +1623,7 @@ export default async (
     for (let idx = 0; idx < aTblSchema.length; idx++) {
       const tblId = (await nc_getTableSchema(aTblSchema[idx].name)).id;
       const galleryViews = aTblSchema[idx].views.filter(
-        (x) => x.type === 'gallery'
+        (x) => x.type === 'gallery',
       );
 
       const configuredViews = rtc.view.grid + rtc.view.gallery + rtc.view.form;
@@ -1612,13 +1635,13 @@ export default async (
         // create view
         await getViewData(galleryViews[i].id);
         const viewName = aTblSchema[idx].views.find(
-          (x) => x.id === galleryViews[i].id
+          (x) => x.id === galleryViews[i].id,
         )?.name;
 
         logBasic(
           `:: [${configuredViews + i + 1}/${rtc.view.total}] Gallery : ${
             aTblSchema[idx].name
-          } / ${viewName}`
+          } / ${viewName}`,
         );
 
         logDetailed(`NC API dbView.galleryCreate :: ${viewName}`);
@@ -1650,13 +1673,13 @@ export default async (
         // create view
         const vData = await getViewData(formViews[i].id);
         const viewName = aTblSchema[idx].views.find(
-          (x) => x.id === formViews[i].id
+          (x) => x.id === formViews[i].id,
         )?.name;
 
         logBasic(
           `:: [${configuredViews + i + 1}/${rtc.view.total}] Form : ${
             aTblSchema[idx].name
-          } / ${viewName}`
+          } / ${viewName}`,
         );
 
         // everything is default
@@ -1696,7 +1719,7 @@ export default async (
         logDetailed(
           `[${idx + 1}/${aTblSchema.length}][Form View][${i + 1}/${
             formViews.length
-          }] Create ${viewName}`
+          }] Create ${viewName}`,
         );
 
         await updateNcTblSchemaById(tblId);
@@ -1707,7 +1730,7 @@ export default async (
           vData,
           aTblSchema[idx].name,
           viewName,
-          'form'
+          'form',
         );
       }
     }
@@ -1730,7 +1753,7 @@ export default async (
 
         // retrieve view name & associated NC-ID
         const viewName = aTblSchema[idx].views.find(
-          (x) => x.id === gridViews[i].id
+          (x) => x.id === gridViews[i].id,
         )?.name;
         const _perfStart = recordPerfStart();
         // const viewList: any = await api.dbView.list(tblId);
@@ -1746,7 +1769,7 @@ export default async (
         logBasic(
           `:: [${viewCnt + i + 1}/${rtc.view.total}] Grid : ${
             aTblSchema[idx].name
-          } / ${viewName}`
+          } / ${viewName}`,
         );
 
         // create view (default already created)
@@ -1766,7 +1789,7 @@ export default async (
             gridViews[i].id,
             viewCreated.id,
             viewName,
-            tblId
+            tblId,
           );
           ncViewId = viewCreated.id;
         }
@@ -1777,7 +1800,7 @@ export default async (
           vData,
           aTblSchema[idx].name,
           viewName,
-          'grid'
+          'grid',
         );
 
         // configure filters
@@ -1814,10 +1837,10 @@ export default async (
     const insertJobs: Promise<any>[] = [];
 
     for (const [, value] of Object.entries(
-      userList as { [key: string]: any }
+      userList as { [key: string]: any },
     )) {
       logDetailed(
-        `[${++cnt}/${totalUsers}] NC API auth.projectUserAdd :: ${value.email}`
+        `[${++cnt}/${totalUsers}] NC API auth.projectUserAdd :: ${value.email}`,
       );
       const _perfStart = recordPerfStart();
       insertJobs.push(
@@ -1833,8 +1856,8 @@ export default async (
           .catch((e) =>
             e.response?.data?.msg
               ? logBasic(`NOTICE: ${e.response.data.msg}`)
-              : console.log(e)
-          )
+              : console.log(e),
+          ),
       );
       recordPerfStats(_perfStart, 'auth.projectUserAdd');
     }
@@ -1891,13 +1914,13 @@ export default async (
       migrationStatsObj.table_name = aTblSchema[idx].name;
 
       const aTblLinkColumns = aTblSchema[idx].columns.filter(
-        (x) => x.type === 'foreignKey'
+        (x) => x.type === 'foreignKey',
       );
       const aTblLookup = aTblSchema[idx].columns.filter(
-        (x) => x.type === 'lookup'
+        (x) => x.type === 'lookup',
       );
       const aTblRollup = aTblSchema[idx].columns.filter(
-        (x) => x.type === 'rollup'
+        (x) => x.type === 'rollup',
       );
 
       let invalidColumnId = 0;
@@ -1923,7 +1946,7 @@ export default async (
 
       const ncTbl = await nc_getTableSchema(aTblSchema[idx].name);
       const linkColumn = ncTbl.columns.filter(
-        (x) => x.uidt === UITypes.LinkToAnotherRecord
+        (x) => x.uidt === UITypes.LinkToAnotherRecord,
       );
       const lookup = ncTbl.columns.filter((x) => x.uidt === UITypes.Lookup);
       const rollup = ncTbl.columns.filter((x) => x.uidt === UITypes.Rollup);
@@ -2047,7 +2070,7 @@ export default async (
           await sMap.getNcNameFromAtId(viewId),
           colSchema.title,
           colSchema.uidt,
-          `filter config skipped; column not migrated`
+          `filter config skipped; column not migrated`,
         );
         continue;
       }
@@ -2062,7 +2085,7 @@ export default async (
           await sMap.getNcNameFromAtId(viewId),
           colSchema.title,
           colSchema.uidt,
-          `filter config skipped; filter over date datatype not supported`
+          `filter config skipped; filter over date datatype not supported`,
         );
         continue;
       }
@@ -2083,7 +2106,7 @@ export default async (
             comparison_op: filterMap[filter.operator],
             value: (
               await Promise.all(
-                filter.value.map(async (f) => await sMap.getNcNameFromAtId(f))
+                filter.value.map(async (f) => await sMap.getNcNameFromAtId(f)),
               )
             ).join(','),
           };
@@ -2177,10 +2200,10 @@ export default async (
     // nc-specific columns; default hide.
     for (let j = 0; j < hiddenColumns.length; j++) {
       const ncColumnId = ncTbl.columns.find(
-        (x) => x.title === hiddenColumns[j]
+        (x) => x.title === hiddenColumns[j],
       ).id;
       const ncViewColumnId = viewDetails.find(
-        (x) => x.fk_column_id === ncColumnId
+        (x) => x.fk_column_id === ncColumnId,
       )?.id;
       if (ncViewColumnId === undefined) continue;
 
@@ -2203,7 +2226,7 @@ export default async (
       const ncViewColumnId = await nc_getViewColumnId(
         viewId,
         viewType,
-        ncColumnId
+        ncColumnId,
       );
       if (ncViewColumnId === undefined) continue;
 
@@ -2391,7 +2414,7 @@ export default async (
         }
       } catch (error) {
         logDetailed(
-          `There was an error while migrating data! Please make sure your API key (${syncDB.apiKey}) is correct.`
+          `There was an error while migrating data! Please make sure your API key (${syncDB.apiKey}) is correct.`,
         );
         logDetailed(`Error: ${error}`);
       }
@@ -2443,4 +2466,5 @@ export interface AirtableSyncConfig {
     syncFormula: boolean;
     syncAttachment: boolean;
   };
+  moduleRef: ModuleRef;
 }

@@ -7,6 +7,9 @@ import { ImportService } from './import.service';
 import { Router } from 'express';
 import NocoJobs from 'src/jobs/NocoJobs';
 
+import { Inject, forwardRef } from '@nestjs/common';
+import { ModuleRef } from '@nestjs/core';
+
 const AIRTABLE_IMPORT_JOB = 'AIRTABLE_IMPORT_JOB';
 const AIRTABLE_PROGRESS_JOB = 'AIRTABLE_PROGRESS_JOB';
 
@@ -25,7 +28,7 @@ export default (
   // add importer job handler and progress notification job handler
   NocoJobs.jobsMgr.addJobWorker(
     AIRTABLE_IMPORT_JOB,
-    {} as any // this?.syncService?.airtableImportJob,
+    {} as any, // this?.syncService?.airtableImportJob,
   );
   NocoJobs.jobsMgr.addJobWorker(
     AIRTABLE_PROGRESS_JOB,
@@ -79,7 +82,10 @@ export default (
 };
 @Controller()
 export class ImportController {
-  constructor(private readonly importService: ImportService) {}
+  constructor(
+    private readonly importService: ImportService,
+    @Inject(forwardRef(() => ModuleRef)) private readonly moduleRef: ModuleRef,
+  ) {}
 
   @Post('/api/v1/db/meta/import/airtable')
   importAirtable(@Request() req) {
@@ -118,6 +124,7 @@ export class ImportController {
         authToken: '',
         baseURL,
         user: user,
+        moduleRef: this.moduleRef,
       });
     }, 1000);
 

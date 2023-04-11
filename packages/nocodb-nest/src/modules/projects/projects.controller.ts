@@ -34,7 +34,7 @@ export class ProjectsController {
   })
   @Get('/api/v1/db/meta/projects/')
   async list(@Query() queryParams: Record<string, any>, @Request() req) {
-    const projects = await this.projectsService.list({
+    const projects = await this.projectsService.projectList({
       user: req.user,
       query: queryParams,
     });

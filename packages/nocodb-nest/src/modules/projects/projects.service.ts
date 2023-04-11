@@ -4,6 +4,7 @@ import { customAlphabet } from 'nanoid';
 import { ProjectReqType } from 'nocodb-sdk';
 import { promisify } from 'util';
 import { OrgUserRoles, ProjectUpdateReqType } from '../../../../nocodb-sdk';
+import { projectList } from '../../../../nocodb/src/lib/services/project.svc';
 import { populateMeta, validatePayload } from '../../helpers';
 import { NcError } from '../../helpers/catchError';
 import { extractPropsAndSanitize } from '../../helpers/extractProps';
@@ -11,14 +12,17 @@ import syncMigration from '../../helpers/syncMigration';
 import { Project, ProjectUser } from '../../models';
 import { T } from 'nc-help';
 import Noco from '../../Noco';
-import extractRolesObj from '../../utils/extractRolesObj'
+import extractRolesObj from '../../utils/extractRolesObj';
 import NcConfigFactory from '../../utils/NcConfigFactory';
 
 const nanoid = customAlphabet('1234567890abcdefghijklmnopqrstuvwxyz_', 4);
 
 @Injectable()
 export class ProjectsService {
-  async list(param: { user: { id: string; roles: Record<string, boolean> }; query?: any }) {
+  async projectList(param: {
+    user: { id: string; roles: Record<string, boolean> };
+    query?: any;
+  }) {
     const projects = extractRolesObj(param.user?.roles)[
       OrgUserRoles.SUPER_ADMIN
     ]

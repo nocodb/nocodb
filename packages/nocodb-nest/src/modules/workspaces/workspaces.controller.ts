@@ -95,4 +95,18 @@ export class WorkspacesController {
       user: req.user,
     });
   }
+
+  @Get('/api/v1/workspaces/:workspaceId/projects')
+  @UseAclMiddleware({
+    permissionName: 'workspaceProjectList',
+  })
+  async listProjects(
+    @Param('workspaceId') workspaceId: string,
+    @Request() req,
+  ) {
+    return await this.workspacesService.getProjectList({
+      workspaceId,
+      user: req.user,
+    });
+  }
 }

@@ -7,6 +7,7 @@ import Workspace from 'src/models/Workspace';
 import validateParams from 'src/helpers/validateParams';
 import { NcError } from 'src/helpers/catchError';
 import { Project, ProjectUser } from 'src/models';
+import { parseMetaProp } from 'src/utils/modelUtils';
 
 @Injectable()
 export class WorkspacesService {
@@ -156,5 +157,25 @@ export class WorkspacesService {
     });
 
     return true;
+  }
+
+  async getProjectList(param: {
+    user: {
+      id: string;
+      roles: string[];
+    };
+    workspaceId: string;
+  }) {
+    const { workspaceId, user } = param;
+    const projects = await Project.listByWorkspaceAndUser(workspaceId, user.id);
+
+    // parse meta
+    for (const project of projects) {
+      project.meta = parseMetaProp(project);
+    }
+
+    return new PagedResponseImpl<WorkspaceType>(projects, {
+      count: projects.length,
+    });
   }
 }

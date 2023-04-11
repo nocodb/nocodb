@@ -63,7 +63,7 @@ export default class NocoCache {
     if (this.cacheDisabled)
       return Promise.resolve({
         list: [],
-        isEmptyList: true,
+        isEmptyList: false,
       });
     return this.client.getList(scope, subKeys);
   }

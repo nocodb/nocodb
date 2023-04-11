@@ -125,7 +125,7 @@ export async function sqlViewCreate(param: {
     project_id: project.id,
     base_id: base.id,
     op_type: AuditOperationTypes.TABLE,
-    op_sub_type: AuditOperationSubTypes.CREATED,
+    op_sub_type: AuditOperationSubTypes.CREATE,
     user: param?.user?.email,
     description: `created view ${body.view_name} with alias ${body.title}  `,
     ip: param.clientIp,

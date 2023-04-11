@@ -142,6 +142,53 @@ watchDebounced(
     maxWait: 600,
   },
 )
+
+// This is a workaround to make drag and drop work outside of the editor
+
+const handleOutsideTiptapDrag = (e: DragEvent, type: 'drop' | 'dragover' | 'dragend') => {
+  e.preventDefault()
+
+  // Maintain x and y position of the cursor in the editor
+  const { x, y } = e
+  const rect = editor.value?.view.dom.getBoundingClientRect()
+  if (!rect) return
+
+  const { left, top, right, bottom } = rect
+
+  let newX = x < left ? left : x
+  newX = newX > right ? right : newX
+  let newY = y < top ? top : y
+  newY = newY > bottom ? bottom : newY
+
+  if (newX === x && newY === y) return
+
+  const newEvent = new DragEvent(type, { ...e, clientX: newX, clientY: newY, dataTransfer: e.dataTransfer })
+  const editorDom = document.querySelector('.ProseMirror') as HTMLElement
+
+  editorDom.dispatchEvent(newEvent)
+}
+
+watch(wrapperRef, () => {
+  if (!wrapperRef.value) return
+  const wrapper = wrapperRef.value
+
+  // Move all drag events to tiptap
+  wrapper.addEventListener('dragend', (e) => handleOutsideTiptapDrag(e, 'dragend'))
+
+  wrapper.addEventListener('dragover', (e) => handleOutsideTiptapDrag(e, 'dragover'))
+
+  wrapper.addEventListener('drop', (e) => handleOutsideTiptapDrag(e, 'drop'))
+
+  // Focus the editor when clicking on the empty content wrapper
+  wrapper.addEventListener('click', (e) => {
+    // Get all the elements that are under the cursor
+    const elements = document.elementsFromPoint(e.clientX, e.clientY)
+
+    if (elements.length > 2 && elements[1].classList.contains('nc-docs-page')) {
+      editor.value?.commands.focus('end')
+    }
+  })
+})
 </script>
 
 <template>
@@ -180,7 +227,14 @@ watchDebounced(
           </div>
           <div v-if="!isPublic" class="flex flex-row items-center"></div>
         </div>
-        <div :key="openedPageId" class="pt-16 flex flex-col">
+        <div
+          :key="openedPageId ?? ''"
+          class="mx-auto pr-6 pt-16 flex flex-col"
+          :style="{
+            width: '64rem',
+            maxWidth: '45vw',
+          }"
+        >
           <a-skeleton-input
             v-if="isPageFetching && !isPublic"
             :active="true"
@@ -202,6 +256,9 @@ watchDebounced(
           <div
             v-if="(openedPageInSidebar?.children ?? []).length > 0 && !isPageFetching"
             class="docs-page-child-pages flex flex-col py-12 border-b-1 border-t-1 border-gray-200 mt-12 mb-4 gap-y-6 pop-in-animation"
+            :class="{
+              'ml-6': !isPublic,
+            }"
           >
             <div
               v-for="page of openedPageInSidebar?.children"
@@ -233,42 +290,6 @@ watchDebounced(
 </template>
 
 <style lang="scss">
-.docs-page-skeleton-loading {
-  margin-left: min(45%, 24vw);
-}
-div.ProseMirror {
-  min-height: 77vh;
-  width: 100%;
-  padding-left: max(25%, 18vw);
-  padding-right: max(25%, 18vw);
-  padding-bottom: 35%;
-}
-
-.docs-page-title {
-  width: max(65vw, 54rem);
-  padding-left: min(40%, 22vw);
-}
-
-.docs-page-child-pages {
-  width: 55%;
-  margin-left: min(45%, 24vw);
-}
-
-@media (max-width: 1600px) {
-  div.ProseMirror {
-    padding-left: max(10%, 14vw) !important;
-    padding-right: max(30%, 24vw) !important;
-  }
-  .docs-page-title {
-    width: max(55vw, 34rem) !important;
-    padding-left: min(30%, 14vw) !important;
-  }
-
-  .docs-page-child-pages {
-    margin-left: min(30%, 14vw);
-  }
-}
-
 ::-moz-selection {
   /* Code for Firefox */
   color: black;

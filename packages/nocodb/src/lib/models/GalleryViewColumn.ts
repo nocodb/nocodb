@@ -97,10 +97,12 @@ export default class GalleryViewColumn {
     viewId: string,
     ncMeta = Noco.ncMeta
   ): Promise<GalleryViewColumn[]> {
-    let views = await NocoCache.getList(CacheScope.GALLERY_VIEW_COLUMN, [
+    const cachedList = await NocoCache.getList(CacheScope.GALLERY_VIEW_COLUMN, [
       viewId,
     ]);
-    if (!views.length) {
+    let { list: views } = cachedList;
+    const { isEmptyList } = cachedList;
+    if (!isEmptyList && !views.length) {
       views = await ncMeta.metaList2(
         null,
         null,

@@ -44,7 +44,7 @@ export default class RedisCacheMgr extends CacheMgr {
   async get(key: string, type: string, config?: any): Promise<any> {
     log(`RedisCacheMgr::get: getting key ${key} with type ${type}`);
     if (type === CacheGetType.TYPE_ARRAY) {
-      return await this.client.smembers(key);
+      return this.client.smembers(key);
     } else if (type === CacheGetType.TYPE_OBJECT) {
       const res = await this.client.get(key);
       try {
@@ -131,15 +131,20 @@ export default class RedisCacheMgr extends CacheMgr {
     // e.g. arr = ["nc:<orgs>:<scope>:<model_id_1>", "nc:<orgs>:<scope>:<model_id_2>"]
     const arr = (await this.get(key, CacheGetType.TYPE_ARRAY)) || [];
     log(`RedisCacheMgr::getList: getting list with key ${key}`);
-    let list: any[] = [];
-    const isEmptyList = arr[0] === 'NONE';
-    if (!isEmptyList) {
-      list = await Promise.all(
-        arr.map(async (k) => await this.get(k, CacheGetType.TYPE_OBJECT))
-      );
+
+    const isEmptyList = arr.length && arr[0] === 'NONE';
+
+    if (isEmptyList) {
+      return Promise.resolve({
+        list: [],
+        isEmptyList,
+      });
     }
+
     return {
-      list,
+      list: await Promise.all(
+        arr.map(async (k) => await this.get(k, CacheGetType.TYPE_OBJECT))
+      ),
       isEmptyList,
     };
   }
@@ -248,7 +253,7 @@ export default class RedisCacheMgr extends CacheMgr {
         : `${this.prefix}:${scope}:${subListKeys.join(':')}:list`;
     log(`RedisCacheMgr::appendToList: append key ${key} to ${listKey}`);
     let list = (await this.get(listKey, CacheGetType.TYPE_ARRAY)) || [];
-    if (list.length === 1 && list[0] === 'NONE') {
+    if (list.length && list[0] === 'NONE') {
       list = [];
       await this.del(listKey);
     }

@@ -2,6 +2,7 @@ import debug from 'debug';
 import Redis from 'ioredis-mock';
 import { CacheDelDirection, CacheGetType, CacheScope } from '../utils/globals';
 import CacheMgr from './CacheMgr';
+
 const log = debug('nc:cache');
 
 export default class RedisMockCacheMgr extends CacheMgr {
@@ -43,7 +44,7 @@ export default class RedisMockCacheMgr extends CacheMgr {
   async get(key: string, type: string, config?: any): Promise<any> {
     log(`RedisMockCacheMgr::get: getting key ${key} with type ${type}`);
     if (type === CacheGetType.TYPE_ARRAY) {
-      return await this.client.smembers(key);
+      return this.client.smembers(key);
     } else if (type === CacheGetType.TYPE_OBJECT) {
       const res = await this.client.get(key);
       try {
@@ -102,10 +103,9 @@ export default class RedisMockCacheMgr extends CacheMgr {
       `RedisMockCacheMgr::delAll: deleting all keys with pattern ${this.prefix}:${scope}:${pattern}`
     );
     await Promise.all(
-      keys.map(
-        async (k) =>
-          await this.deepDel(scope, k, CacheDelDirection.CHILD_TO_PARENT)
-      )
+      keys.map(async (k) => {
+        await this.deepDel(scope, k, CacheDelDirection.CHILD_TO_PARENT);
+      })
     );
     return Promise.all(
       keys.map(async (k) => {
@@ -131,15 +131,19 @@ export default class RedisMockCacheMgr extends CacheMgr {
     // e.g. arr = ["nc:<orgs>:<scope>:<model_id_1>", "nc:<orgs>:<scope>:<model_id_2>"]
     const arr = (await this.get(key, CacheGetType.TYPE_ARRAY)) || [];
     log(`RedisMockCacheMgr::getList: getting list with key ${key}`);
-    let list: any[] = [];
-    const isEmptyList = arr[0] === 'NONE';
-    if (!isEmptyList) {
-      list = await Promise.all(
-        arr.map(async (k) => await this.get(k, CacheGetType.TYPE_OBJECT))
-      );
+    const isEmptyList = arr.length && arr[0] === 'NONE';
+
+    if (isEmptyList) {
+      return Promise.resolve({
+        list: [],
+        isEmptyList,
+      });
     }
+
     return {
-      list,
+      list: await Promise.all(
+        arr.map(async (k) => await this.get(k, CacheGetType.TYPE_OBJECT))
+      ),
       isEmptyList,
     };
   }
@@ -248,7 +252,7 @@ export default class RedisMockCacheMgr extends CacheMgr {
         : `${this.prefix}:${scope}:${subListKeys.join(':')}:list`;
     log(`RedisMockCacheMgr::appendToList: append key ${key} to ${listKey}`);
     let list = (await this.get(listKey, CacheGetType.TYPE_ARRAY)) || [];
-    if (list.length === 1 && list[0] === 'NONE') {
+    if (list.length && list[0] === 'NONE') {
       list = [];
       await this.del(listKey);
     }

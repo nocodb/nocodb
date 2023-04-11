@@ -66,7 +66,7 @@ export const JwtStrategyProvider: Provider = {
     const options = {
       // ignoreExpiration: false,
       jwtFromRequest: ExtractJwt.fromHeader('xc-auth'),
-      expiresIn: '10h',
+      // expiresIn: '10h',
       passReqToCallback: true,
       secretOrKey: config.auth.jwt.secret,
       ...config.auth.jwt.options,

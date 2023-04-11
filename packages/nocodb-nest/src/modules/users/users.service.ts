@@ -478,9 +478,7 @@ export class UsersService {
       ip: (param.req as any).clientIp,
     });
 
-    return {
-      token: this.login(user),
-    } as any;
+    return this.login(user);
   }
 
   async login(user: any) {

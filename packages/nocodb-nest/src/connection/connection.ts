@@ -6,7 +6,7 @@ import NcConfigFactory from '../utils/NcConfigFactory';
 
 @Global()
 @Injectable()
-export class Connection implements OnModuleInit {
+export class Connection  {
   private knex: knex.Knex;
   private _config: any;
 
@@ -19,7 +19,7 @@ export class Connection implements OnModuleInit {
   }
 
   // init metadb connection
-  async onModuleInit(): Promise<void> {
+  async init(): Promise<void> {
     this._config = await NcConfigFactory.make();
     this.knex = XKnex({
       ...this._config.meta.db,

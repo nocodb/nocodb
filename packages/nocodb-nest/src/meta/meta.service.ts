@@ -180,7 +180,7 @@ const nanoidv2 = customAlphabet('1234567890abcdefghijklmnopqrstuvwxyz', 14);
 
 @Global()
 @Injectable()
-export class MetaService implements OnApplicationBootstrap {
+export class MetaService {
   constructor(private metaConnection: Connection) {}
 
   public get connection() {
@@ -345,21 +345,6 @@ export class MetaService implements OnApplicationBootstrap {
 
     return `${prefix}${nanoidv2()}`;
   }
-
-  async onApplicationBootstrap(): Promise<void> {
-    await this.metaInit();
-
-    // todo: tobe fixed - temporary workaround
-    Noco._ncMeta = this;
-    Noco.config = this.metaConnection.config;
-  }
-
-
-
-
-
-
-
 
   //
 
@@ -1051,8 +1036,7 @@ export class MetaService implements OnApplicationBootstrap {
     return this.metaInsert(project_id, dbAlias, target, data);
   }
 
-  public async metaInit(): Promise<boolean> {
-
+  public async init(): Promise<boolean> {
     NocoCache.init();
     await this.connection.migrate.latest({
       migrationSource: new XcMigrationSource(),

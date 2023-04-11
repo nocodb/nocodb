@@ -1,4 +1,9 @@
-import { MiddlewareConsumer, Module, RequestMethod } from '@nestjs/common';
+import {
+  MiddlewareConsumer,
+  Module,
+  RequestMethod,
+  OnApplicationBootstrap,
+} from '@nestjs/common';
 import { APP_FILTER } from '@nestjs/core';
 import { Connection } from './connection/connection';
 import { GlobalExceptionFilter } from './filters/global-exception/global-exception.filter';
@@ -9,6 +14,7 @@ import { UsersModule } from './modules/users/users.module';
 import { MetaService } from './meta/meta.service';
 import { UtilsModule } from './modules/utils/utils.module';
 import { ProjectsModule } from './modules/projects/projects.module';
+import Noco from './Noco';
 import { JwtStrategy } from './strategies/jwt.strategy';
 import { TablesModule } from './modules/tables/tables.module';
 import { ViewsModule } from './modules/views/views.module';
@@ -103,10 +109,27 @@ import { PluginsModule } from './modules/plugins/plugins.module';
   ],
   exports: [Connection, MetaService],
 })
-export class AppModule {
+export class AppModule implements OnApplicationBootstrap {
+  constructor(
+    private readonly connection: Connection,
+    private readonly metaService: MetaService,
+  ) {}
+
+  // Global Middleware
   configure(consumer: MiddlewareConsumer) {
     consumer
       .apply(GlobalMiddleware)
       .forRoutes({ path: '*', method: RequestMethod.ALL });
+  }
+
+  // app init
+  async onApplicationBootstrap(): Promise<void> {
+    await this.connection.init();
+    await this.metaService.init();
+
+    // todo: remove
+    // temporary hack
+    Noco._ncMeta = this.metaService;
+    Noco.config = this.connection.config;
   }
 }

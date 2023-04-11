@@ -113,6 +113,18 @@ export class OldDatasService {
     return await baseModel.updateByPk(param.rowId, param.body, null, param);
   }
 
+  async dataDelete(param: OldPathParams & { rowId: string; cookie: any }) {
+    const { model, view } = await this.getViewAndModelFromRequest(param);
+    const base = await Base.get(model.base_id);
+    const baseModel = await Model.getBaseModelSQL({
+      id: model.id,
+      viewId: view.id,
+      dbDriver: await NcConnectionMgrv2.get(base),
+    });
+
+    return await baseModel.delByPk(param.rowId, null, param.cookie);
+  }
+
   async getViewAndModelFromRequest(req) {
     const project = await Project.getWithInfo(req.params.projectId);
     const model = await Model.getByAliasOrId({

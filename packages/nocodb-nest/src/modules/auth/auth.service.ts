@@ -2,7 +2,6 @@ import { promisify } from 'util';
 import { OrgUserRoles } from 'nocodb-sdk';
 import { Injectable } from '@nestjs/common';
 import * as bcrypt from 'bcryptjs';
-import { JwtService } from '@nestjs/jwt';
 
 import { v4 as uuidv4 } from 'uuid';
 import Noco from '../../Noco'
@@ -22,11 +21,11 @@ export class AuthService {
   async validateUser(email: string, pass: string): Promise<any> {
     const user = await this.usersService.findOne(email);
     if (user) {
-      const { password, ...result } = user;
+      const { password, salt, ...result } = user;
 
       const hashedPassword = await promisify(bcrypt.hash)(password, user.salt);
-      if (user.password !== hashedPassword) {
-        return user;
+      if (user.password === hashedPassword) {
+        return result;
       }
     }
     return null;

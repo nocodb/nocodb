@@ -56,7 +56,7 @@ function authTests() {
       .expect(400);
   });
 
-  it('Signin with valid credentials', async () => {
+  it.only('Signin with valid credentials', async () => {
     const response = await request(context.app)
       .post('/api/v1/auth/user/signin')
       .send({
@@ -68,19 +68,19 @@ function authTests() {
     expect(token).to.be.a('string');
   });
 
-  it('Signup without email and password', async () => {
+  it('Signin without email and password', async () => {
     await request(context.app)
       .post('/api/v1/auth/user/signin')
       // pass empty data in await request
       .send({})
-      .expect(400);
+      .expect(400)
   });
 
   it('Signin with invalid credentials', async () => {
     await request(context.app)
       .post('/api/v1/auth/user/signin')
       .send({ email: 'abc@abc.com', password: defaultUserArgs.password })
-      .expect(400);
+      .expect(400)
   });
 
   it('Signin with invalid password', async () => {

@@ -44,4 +44,10 @@ export class OldDatasController {
   async dataInsert(@Request() req, @Response() res) {
     res.json(await this.oldDatasService.dataInsert(req));
   }
+
+  @Get('/nc/:projectId/api/v1/:tableName/:rowId')
+  @Acl('dataRead')
+  async dataRead(@Request() req, @Response() res) {
+    res.json(await this.oldDatasService.dataRead(req));
+  }
 }

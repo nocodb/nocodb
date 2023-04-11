@@ -114,8 +114,10 @@ export default class Sort {
     ncMeta = Noco.ncMeta
   ): Promise<Sort[]> {
     if (!viewId) return null;
-    let sortList = await NocoCache.getList(CacheScope.SORT, [viewId]);
-    if (!sortList.length) {
+    const cachedList = await NocoCache.getList(CacheScope.SORT, [viewId]);
+    let { list: sortList } = cachedList;
+    const { isEmptyList } = cachedList;
+    if (!isEmptyList && !sortList.length) {
       sortList = await ncMeta.metaList2(null, null, MetaTable.SORT, {
         condition: { fk_view_id: viewId },
         orderBy: {

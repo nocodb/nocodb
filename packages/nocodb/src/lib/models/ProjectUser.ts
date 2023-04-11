@@ -223,11 +223,13 @@ export default class ProjectUser {
     ncMeta = Noco.ncMeta
   ): Promise<ProjectType[]> {
     // todo: pagination
-    let projectList = await NocoCache.getList(CacheScope.USER_PROJECT, [
+    const cachedList = await NocoCache.getList(CacheScope.USER_PROJECT, [
       userId,
     ]);
+    let { list: projectList } = cachedList;
+    const { isEmptyList } = cachedList;
 
-    if (projectList.length) {
+    if (!isEmptyList && projectList.length) {
       return projectList;
     }
 

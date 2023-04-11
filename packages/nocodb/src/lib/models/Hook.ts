@@ -89,8 +89,7 @@ export default class Hook implements HookType {
       param.fk_model_id,
     ]);
     let { list: hooks } = cachedList;
-    const { isEmptyList } = cachedList;
-    if (!isEmptyList && !hooks.length) {
+    if (!hooks.length) {
       hooks = await ncMeta.metaList(null, null, MetaTable.HOOKS, {
         condition: {
           fk_model_id: param.fk_model_id,

@@ -88,8 +88,7 @@ export default class MapViewColumn {
       viewId,
     ]);
     let { list: views } = cachedList;
-    const { isEmptyList } = cachedList;
-    if (!isEmptyList && !views.length) {
+    if (!views.length) {
       views = await ncMeta.metaList2(null, null, MetaTable.MAP_VIEW_COLUMNS, {
         condition: {
           fk_view_id: viewId,

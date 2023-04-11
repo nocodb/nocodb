@@ -28,8 +28,7 @@ export default class GridViewColumn implements GridColumnType {
       viewId,
     ]);
     let { list: views } = cachedList;
-    const { isEmptyList } = cachedList;
-    if (!isEmptyList && !views.length) {
+    if (!views.length) {
       views = await ncMeta.metaList2(null, null, MetaTable.GRID_VIEW_COLUMNS, {
         condition: {
           fk_view_id: viewId,

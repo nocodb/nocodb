@@ -207,8 +207,7 @@ export default class View implements ViewType {
   public static async list(modelId: string, ncMeta = Noco.ncMeta) {
     const cachedList = await NocoCache.getList(CacheScope.VIEW, [modelId]);
     let { list: viewsList } = cachedList;
-    const { isEmptyList } = cachedList;
-    if (!isEmptyList && !viewsList.length) {
+    if (!viewsList.length) {
       viewsList = await ncMeta.metaList2(null, null, MetaTable.VIEWS, {
         condition: {
           fk_model_id: modelId,
@@ -1127,8 +1126,7 @@ export default class View implements ViewType {
     // get existing cache
     const cachedList = await NocoCache.getList(scope, [viewId]);
     const { list: dataList } = cachedList;
-    const { isEmptyList } = cachedList;
-    if (!isEmptyList && dataList?.length) {
+    if (dataList?.length) {
       for (const o of dataList) {
         if (!ignoreColdIds?.length || !ignoreColdIds.includes(o.fk_column_id)) {
           // set data
@@ -1215,7 +1213,6 @@ export default class View implements ViewType {
     // get existing cache
     const cachedList = await NocoCache.getList(scope, [viewId]);
     const { list: dataList } = cachedList;
-    const { isEmptyList } = cachedList;
 
     const colsEssentialForView =
       view.type === ViewTypes.MAP
@@ -1224,7 +1221,7 @@ export default class View implements ViewType {
 
     const mergedIgnoreColdIds = [...ignoreColdIds, ...colsEssentialForView];
 
-    if (!isEmptyList && dataList?.length) {
+    if (dataList?.length) {
       for (const o of dataList) {
         if (
           !mergedIgnoreColdIds?.length ||
@@ -1265,8 +1262,7 @@ export default class View implements ViewType {
   static async shareViewList(tableId, ncMeta = Noco.ncMeta) {
     const cachedList = await NocoCache.getList(CacheScope.VIEW, [tableId]);
     let { list: sharedViews } = cachedList;
-    const { isEmptyList } = cachedList;
-    if (!isEmptyList && !sharedViews.length) {
+    if (!sharedViews.length) {
       sharedViews = await ncMeta.metaList2(null, null, MetaTable.VIEWS, {
         xcCondition: {
           fk_model_id: {

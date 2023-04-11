@@ -101,8 +101,7 @@ export default class GalleryViewColumn {
       viewId,
     ]);
     let { list: views } = cachedList;
-    const { isEmptyList } = cachedList;
-    if (!isEmptyList && !views.length) {
+    if (!views.length) {
       views = await ncMeta.metaList2(
         null,
         null,

@@ -81,8 +81,7 @@ export default class Project implements ProjectType {
     // todo: pagination
     const cachedList = await NocoCache.getList(CacheScope.PROJECT, []);
     let { list: projectList } = cachedList;
-    const { isEmptyList } = cachedList;
-    if (!isEmptyList && !projectList.length) {
+    if (!projectList.length) {
       projectList = await ncMeta.metaList2(null, null, MetaTable.PROJECT, {
         xcCondition: {
           _or: [

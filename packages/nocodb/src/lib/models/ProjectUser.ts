@@ -191,8 +191,7 @@ export default class ProjectUser {
       userId,
     ]);
     let { list: cachedProjectList } = cachedList;
-    const { isEmptyList } = cachedList;
-    if (!isEmptyList && cachedProjectList?.length) {
+    if (cachedProjectList?.length) {
       cachedProjectList = cachedProjectList.filter((p) => p.id !== projectId);
       await NocoCache.setList(
         CacheScope.USER_PROJECT,
@@ -227,9 +226,8 @@ export default class ProjectUser {
       userId,
     ]);
     let { list: projectList } = cachedList;
-    const { isEmptyList } = cachedList;
 
-    if (!isEmptyList && projectList.length) {
+    if (projectList.length) {
       return projectList;
     }
 

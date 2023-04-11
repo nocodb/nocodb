@@ -69,4 +69,23 @@ export class OldDatasController {
       }),
     );
   }
+
+  @Delete('/nc/:projectId/api/v1/:tableName/:rowId')
+  @Acl('dataDelete')
+  async dataDelete(
+    @Request() req,
+    @Response() res,
+    @Param('projectId') projectId: string,
+    @Param('tableName') tableName: string,
+    @Param('rowId') rowId: string,
+  ) {
+    res.json(
+      await this.oldDatasService.dataDelete({
+        projectId: projectId,
+        tableName: tableName,
+        rowId,
+        cookie: req,
+      }),
+    );
+  }
 }

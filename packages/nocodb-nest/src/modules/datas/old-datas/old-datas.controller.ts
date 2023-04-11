@@ -45,6 +45,7 @@ export class OldDatasController {
   async dataCount(
     @Request() req,
     @Response() res,
+    @Param('projectId') projectId: string,
     @Param('tableName') tableName: string,
   ) {
     res.json(await this.oldDatasService.getDataCount(req));
@@ -52,13 +53,24 @@ export class OldDatasController {
 
   @Post('/nc/:projectId/api/v1/:tableName')
   @Acl('dataInsert')
-  async dataInsert(@Request() req, @Response() res) {
+  async dataInsert(
+    @Request() req,
+    @Response() res,
+    @Param('projectId') projectId: string,
+    @Param('tableName') tableName: string,
+  ) {
     res.json(await this.oldDatasService.dataInsert(req));
   }
 
   @Get('/nc/:projectId/api/v1/:tableName/:rowId')
   @Acl('dataRead')
-  async dataRead(@Request() req, @Response() res) {
+  async dataRead(
+    @Request() req,
+    @Response() res,
+    @Param('projectId') projectId: string,
+    @Param('tableName') tableName: string,
+    @Param('rowId') rowId: string,
+  ) {
     res.json(await this.oldDatasService.dataRead(req));
   }
 

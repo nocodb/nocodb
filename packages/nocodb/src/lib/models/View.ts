@@ -1126,7 +1126,7 @@ export default class View implements ViewType {
 
     // get existing cache
     const cachedList = await NocoCache.getList(scope, [viewId]);
-    let { list: dataList } = cachedList;
+    const { list: dataList } = cachedList;
     const { isEmptyList } = cachedList;
     if (!isEmptyList && dataList?.length) {
       for (const o of dataList) {
@@ -1214,7 +1214,7 @@ export default class View implements ViewType {
 
     // get existing cache
     const cachedList = await NocoCache.getList(scope, [viewId]);
-    let { list: dataList } = cachedList;
+    const { list: dataList } = cachedList;
     const { isEmptyList } = cachedList;
 
     const colsEssentialForView =
@@ -1263,7 +1263,7 @@ export default class View implements ViewType {
   }
 
   static async shareViewList(tableId, ncMeta = Noco.ncMeta) {
-    let cachedList = await NocoCache.getList(CacheScope.VIEW, [tableId]);
+    const cachedList = await NocoCache.getList(CacheScope.VIEW, [tableId]);
     let { list: sharedViews } = cachedList;
     const { isEmptyList } = cachedList;
     if (!isEmptyList && !sharedViews.length) {

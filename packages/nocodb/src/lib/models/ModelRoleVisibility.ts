@@ -24,9 +24,10 @@ export default class ModelRoleVisibility implements ModelRoleVisibilityType {
   }
 
   static async list(projectId): Promise<ModelRoleVisibility[]> {
-    const cachedList = await NocoCache.getList(CacheScope.MODEL_ROLE_VISIBILITY, [
-      projectId,
-    ]);
+    const cachedList = await NocoCache.getList(
+      CacheScope.MODEL_ROLE_VISIBILITY,
+      [projectId]
+    );
     let { list: data } = cachedList;
     const { isEmptyList } = cachedList;
     if (!isEmptyList && !data.length) {

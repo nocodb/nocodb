@@ -50,4 +50,23 @@ export class OldDatasController {
   async dataRead(@Request() req, @Response() res) {
     res.json(await this.oldDatasService.dataRead(req));
   }
+
+  @Patch('/nc/:projectId/api/v1/:tableName/:rowId')
+  @Acl('dataUpdate')
+  async dataUpdate(
+    @Request() req,
+    @Response() res,
+    @Param('projectId') projectId: string,
+    @Param('tableName') tableName: string,
+    @Param('rowId') rowId: string,
+  ) {
+    res.json(
+      await this.oldDatasService.dataUpdate({
+        projectId: projectId,
+        tableName: tableName,
+        body: req.body,
+        rowId,
+      }),
+    );
+  }
 }

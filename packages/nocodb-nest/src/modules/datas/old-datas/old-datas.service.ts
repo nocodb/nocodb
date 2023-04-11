@@ -1,5 +1,5 @@
 import { Injectable } from '@nestjs/common';
-import { getViewAndModelByAliasOrId, PathParams } from '../helpers';
+import { getViewAndModelByAliasOrId, OldPathParams } from '../helpers';
 import getAst from '../../../helpers/getAst';
 import { NcError } from '../../../helpers/catchError';
 import {
@@ -16,7 +16,7 @@ import { nocoExecute } from 'nc-help';
 
 @Injectable()
 export class OldDatasService {
-  async getDataList(param: PathParams & { query: any }) {
+  async getDataList(param: OldPathParams & { query: any }) {
     const { model, view } = await this.getViewAndModelFromRequest(param);
     const base = await Base.get(model.base_id);
 
@@ -43,7 +43,7 @@ export class OldDatasService {
     return await nocoExecute(ast, await baseModel.list(listArgs), {}, listArgs);
   }
 
-  async getDataCount(param: PathParams & { query: any }) {
+  async getDataCount(param: OldPathParams & { query: any }) {
     const { model, view } = await this.getViewAndModelFromRequest(param);
     const base = await Base.get(model.base_id);
 
@@ -61,7 +61,7 @@ export class OldDatasService {
     return await baseModel.count(listArgs);
   }
 
-  async dataInsert(param: PathParams & { body: unknown }) {
+  async dataInsert(param: OldPathParams & { body: unknown }) {
     const { model, view } = await this.getViewAndModelFromRequest(param);
 
     const base = await Base.get(model.base_id);
@@ -75,7 +75,7 @@ export class OldDatasService {
     return await baseModel.insert(param.body, null, param);
   }
 
-  async dataRead(param: PathParams & { query: any; rowId: string }) {
+  async dataRead(param: OldPathParams & { query: any; rowId: string }) {
     const { model, view } = await this.getViewAndModelFromRequest(param);
 
     const base = await Base.get(model.base_id);
@@ -98,6 +98,19 @@ export class OldDatasService {
       {},
       {},
     );
+  }
+
+  async dataUpdate(param: OldPathParams & { body: unknown; rowId: string }) {
+    const { model, view } = await this.getViewAndModelFromRequest(param);
+    const base = await Base.get(model.base_id);
+
+    const baseModel = await Model.getBaseModelSQL({
+      id: model.id,
+      viewId: view.id,
+      dbDriver: await NcConnectionMgrv2.get(base),
+    });
+
+    return await baseModel.updateByPk(param.rowId, param.body, null, param);
   }
 
   async getViewAndModelFromRequest(req) {

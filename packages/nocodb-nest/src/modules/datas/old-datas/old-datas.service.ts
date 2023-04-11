@@ -16,7 +16,7 @@ import { nocoExecute } from 'nc-help';
 
 @Injectable()
 export class OldDatasService {
-  async getDataList(param: OldPathParams & { query: any }) {
+  async dataList(param: OldPathParams & { query: any }) {
     const { model, view } = await this.getViewAndModelFromRequest(param);
     const base = await Base.get(model.base_id);
 

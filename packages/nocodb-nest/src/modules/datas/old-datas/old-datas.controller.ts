@@ -25,8 +25,19 @@ export class OldDatasController {
 
   @Get('/nc/:projectId/api/v1/:tableName')
   @Acl('dataList')
-  async dataList(@Request() req, @Response() res) {
-    res.json(await this.oldDatasService.getDataList(req));
+  async dataList(
+    @Request() req,
+    @Response() res,
+    @Param('projectId') projectId: string,
+    @Param('tableName') tableName: string,
+  ) {
+    res.json(
+      await this.oldDatasService.dataList({
+        query: req.query,
+        projectId: projectId,
+        tableName: tableName,
+      }),
+    );
   }
 
   @Get('/nc/:projectId/api/v1/:tableName/count')

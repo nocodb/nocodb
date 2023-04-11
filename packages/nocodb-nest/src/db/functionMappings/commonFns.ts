@@ -15,7 +15,7 @@ export default {
             await args.fn(args.pt.arguments[i * 2 + 1])
           ).builder.toQuery()} THEN ${(
             await args.fn(args.pt.arguments[i * 2 + 2])
-          ).builder.toQuery()}`
+          ).builder.toQuery()}`,
         )
         .toQuery();
     }
@@ -24,13 +24,13 @@ export default {
         .raw(
           `\n\tELSE ${(
             await args.fn(args.pt.arguments[args.pt.arguments.length - 1])
-          ).builder.toQuery()}`
+          ).builder.toQuery()}`,
         )
         .toQuery();
     }
     return {
       builder: args.knex.raw(
-        `CASE ${switchVal} ${query}\n END${args.colAlias}`
+        `CASE ${switchVal} ${query}\n END${args.colAlias}`,
       ),
     };
   },
@@ -41,13 +41,13 @@ export default {
           await args.fn(args.pt.arguments[0])
         ).builder.toQuery()} THEN ${(
           await args.fn(args.pt.arguments[1])
-        ).builder.toQuery()}`
+        ).builder.toQuery()}`,
       )
       .toQuery();
     if (args.pt.arguments[2]) {
       query += args.knex
         .raw(
-          `\n\tELSE ${(await args.fn(args.pt.arguments[2])).builder.toQuery()}`
+          `\n\tELSE ${(await args.fn(args.pt.arguments[2])).builder.toQuery()}`,
         )
         .toQuery();
     }
@@ -63,13 +63,13 @@ export default {
             `${(
               await Promise.all(
                 args.pt.arguments.map(async (ar) =>
-                  (await args.fn(ar)).builder.toQuery()
-                )
+                  (await args.fn(ar)).builder.toQuery(),
+                ),
               )
-            ).join(' AND ')}`
+            ).join(' AND ')}`,
           )
           .wrap('(', ')')
-          .toQuery()}${args.colAlias}`
+          .toQuery()}${args.colAlias}`,
       ),
     };
   },
@@ -81,13 +81,13 @@ export default {
             `${(
               await Promise.all(
                 args.pt.arguments.map(async (ar) =>
-                  (await args.fn(ar)).builder.toQuery()
-                )
+                  (await args.fn(ar)).builder.toQuery(),
+                ),
               )
-            ).join(' OR ')}`
+            ).join(' OR ')}`,
           )
           .wrap('(', ')')
-          .toQuery()}${args.colAlias}`
+          .toQuery()}${args.colAlias}`,
       ),
     };
   },
@@ -101,7 +101,7 @@ export default {
           right: { type: 'Literal', value: args.pt.arguments.length },
         },
         args.a,
-        args.prevBinaryOp
+        args.prevBinaryOp,
       );
     } else {
       return args.fn(args.pt.arguments[0], args.a, args.prevBinaryOp);

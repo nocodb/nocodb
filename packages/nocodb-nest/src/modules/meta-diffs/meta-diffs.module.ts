@@ -4,6 +4,6 @@ import { MetaDiffsController } from './meta-diffs.controller';
 
 @Module({
   controllers: [MetaDiffsController],
-  providers: [MetaDiffsService]
+  providers: [MetaDiffsService],
 })
 export class MetaDiffsModule {}

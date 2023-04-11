@@ -1,12 +1,12 @@
 import { Global, Injectable, OnModuleInit } from '@nestjs/common';
 
 import * as knex from 'knex';
-import { XKnex } from '../db/CustomKnex'
+import { XKnex } from '../db/CustomKnex';
 import NcConfigFactory from '../utils/NcConfigFactory';
 
 @Global()
 @Injectable()
-export class Connection  {
+export class Connection {
   private knex: knex.Knex;
   private _config: any;
 

@@ -8,17 +8,17 @@ export default abstract class CacheMgr {
   public abstract setList(
     scope: string,
     subListKeys: string[],
-    list: any[]
+    list: any[],
   ): Promise<boolean>;
   public abstract deepDel(
     scope: string,
     key: string,
-    direction: string
+    direction: string,
   ): Promise<boolean>;
   public abstract appendToList(
     scope: string,
     subListKeys: string[],
-    key: string
+    key: string,
   ): Promise<boolean>;
   public abstract destroy(): Promise<boolean>;
   public abstract export(): Promise<any>;

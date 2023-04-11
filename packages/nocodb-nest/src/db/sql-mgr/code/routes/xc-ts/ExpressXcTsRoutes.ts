@@ -353,7 +353,7 @@ async function(req, res){
         ({ type, handler }) =>
           type === 'get' &&
           !handler.includes('exists') &&
-          !handler.includes('get')
+          !handler.includes('get'),
       );
     }
     return routes;

@@ -32,7 +32,7 @@ export default class MapView implements MapType {
       viewId &&
       (await NocoCache.get(
         `${CacheScope.MAP_VIEW}:${viewId}`,
-        CacheGetType.TYPE_OBJECT
+        CacheGetType.TYPE_OBJECT,
       ));
     if (!view) {
       view = await ncMeta.metaGet2(null, null, MetaTable.MAP_VIEW, {
@@ -68,7 +68,7 @@ export default class MapView implements MapType {
   static async update(
     mapId: string,
     body: Partial<MapView>,
-    ncMeta = Noco.ncMeta
+    ncMeta = Noco.ncMeta,
   ) {
     // get existing cache
     const key = `${CacheScope.MAP_VIEW}:${mapId}`;
@@ -90,7 +90,7 @@ export default class MapView implements MapType {
       const mapViewColumns = await MapViewColumn.list(mapId);
       const mapViewMappedByColumn = mapViewColumns.find(
         (mapViewColumn) =>
-          mapViewColumn.fk_column_id === body.fk_geo_data_col_id
+          mapViewColumn.fk_column_id === body.fk_geo_data_col_id,
       );
       await View.updateColumn(body.fk_view_id, mapViewMappedByColumn.id, {
         show: true,

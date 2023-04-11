@@ -28,7 +28,7 @@ export default class SyncSource {
       null,
       null,
       MetaTable.SYNC_SOURCE,
-      syncSourceId
+      syncSourceId,
     );
     if (syncSource.details && typeof syncSource.details === 'string') {
       try {
@@ -51,7 +51,7 @@ export default class SyncSource {
         orderBy: {
           created_at: 'asc',
         },
-      }
+      },
     );
 
     for (const syncSource of syncSources) {
@@ -66,7 +66,7 @@ export default class SyncSource {
 
   public static async insert(
     syncSource: Partial<SyncSource>,
-    ncMeta = Noco.ncMeta
+    ncMeta = Noco.ncMeta,
   ) {
     const insertObj = extractProps(syncSource, [
       'id',
@@ -86,7 +86,7 @@ export default class SyncSource {
       null,
       null,
       MetaTable.SYNC_SOURCE,
-      insertObj
+      insertObj,
     );
 
     return this.get(id, ncMeta);
@@ -95,7 +95,7 @@ export default class SyncSource {
   public static async update(
     syncSourceId: string,
     syncSource: Partial<SyncSource>,
-    ncMeta = Noco.ncMeta
+    ncMeta = Noco.ncMeta,
   ) {
     const updateObj = extractProps(syncSource, [
       'id',
@@ -118,7 +118,7 @@ export default class SyncSource {
       null,
       MetaTable.SYNC_SOURCE,
       updateObj,
-      syncSourceId
+      syncSourceId,
     );
 
     return this.get(syncSourceId, ncMeta);
@@ -129,7 +129,7 @@ export default class SyncSource {
       null,
       null,
       MetaTable.SYNC_SOURCE,
-      syncSourceId
+      syncSourceId,
     );
   }
 

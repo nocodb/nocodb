@@ -129,11 +129,11 @@ abstract class BaseGqlXcTsSchema extends BaseRender {
         console.log(`Skipping ${args.tn}.${column._cn}`);
       } else {
         str += `\t\t${column._cn.replace(/ /g, '_')}: ${this._getGraphqlType(
-          column
+          column,
         )},\r\n`;
         strWhere += `\t\t${column._cn.replace(
           / /g,
-          '_'
+          '_',
         )}: ${this._getGraphqlConditionType(column)},\r\n`;
       }
     }
@@ -182,7 +182,7 @@ abstract class BaseGqlXcTsSchema extends BaseRender {
         grpFields[_cn] = `\t\t# ${_cn} - clashes with column in table\r\n`;
       } else {
         str += `\t\t${_cn.replace(/ /g, '_')}: ${this._getGraphqlType(
-          rest
+          rest,
         )},\r\n`;
       }
     }
@@ -199,7 +199,7 @@ abstract class BaseGqlXcTsSchema extends BaseRender {
         ] = `\t\t# ${column._cn} - clashes with column in table\r\n`;
       } else {
         str += `\t\t${column._cn.replace(/ /g, '_')}: ${this._getGraphqlType(
-          column
+          column,
         )},\r\n`;
       }
     }

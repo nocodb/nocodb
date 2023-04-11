@@ -13,7 +13,7 @@ export default class QrCodeColumn {
 
   public static async insert(
     qrCode: Partial<QrCodeColumn>,
-    ncMeta = Noco.ncMeta
+    ncMeta = Noco.ncMeta,
   ) {
     const insertObj = extractProps(qrCode, [
       'fk_column_id',
@@ -29,14 +29,14 @@ export default class QrCodeColumn {
       columnId &&
       (await NocoCache.get(
         `${CacheScope.COL_QRCODE}:${columnId}`,
-        CacheGetType.TYPE_OBJECT
+        CacheGetType.TYPE_OBJECT,
       ));
     if (!column) {
       column = await ncMeta.metaGet2(
         null, //,
         null, //model.db_alias,
         MetaTable.COL_QRCODE,
-        { fk_column_id: columnId }
+        { fk_column_id: columnId },
       );
       await NocoCache.set(`${CacheScope.COL_QRCODE}:${columnId}`, column);
     }
@@ -49,7 +49,7 @@ export default class QrCodeColumn {
   static async update(
     id: string,
     qrCode: Partial<QrCodeColumn>,
-    ncMeta = Noco.ncMeta
+    ncMeta = Noco.ncMeta,
   ) {
     const updateObj = extractProps(qrCode, [
       'fk_column_id',

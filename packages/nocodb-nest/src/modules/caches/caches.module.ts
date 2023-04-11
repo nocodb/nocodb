@@ -4,6 +4,6 @@ import { CachesController } from './caches.controller';
 
 @Module({
   controllers: [CachesController],
-  providers: [CachesService]
+  providers: [CachesService],
 })
 export class CachesModule {}

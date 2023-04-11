@@ -35,7 +35,7 @@ export default class Project implements ProjectType {
 
   public static async createProject(
     project: Partial<ProjectType>,
-    ncMeta = Noco.ncMeta
+    ncMeta = Noco.ncMeta,
   ): Promise<Project> {
     const insertObj = extractProps(project, [
       'id',
@@ -49,23 +49,23 @@ export default class Project implements ProjectType {
       null,
       null,
       MetaTable.PROJECT,
-      insertObj
+      insertObj,
     );
 
     await NocoCache.appendToList(
       CacheScope.PROJECT,
       [],
-      `${CacheScope.PROJECT}:${projectId}`
+      `${CacheScope.PROJECT}:${projectId}`,
     );
 
     for (const base of project.bases) {
       await Base.createBase(
         {
-          type: base.config?.client as typeof DB_TYPES[number],
+          type: base.config?.client as (typeof DB_TYPES)[number],
           ...base,
           projectId,
         },
-        ncMeta
+        ncMeta,
       );
     }
 
@@ -76,7 +76,7 @@ export default class Project implements ProjectType {
   static async list(
     // @ts-ignore
     param,
-    ncMeta = Noco.ncMeta
+    ncMeta = Noco.ncMeta,
   ): Promise<Project[]> {
     // todo: pagination
     let projectList = await NocoCache.getList(CacheScope.PROJECT, []);
@@ -100,7 +100,7 @@ export default class Project implements ProjectType {
       await NocoCache.setList(CacheScope.PROJECT, [], projectList);
     }
     projectList = projectList.filter(
-      (p) => p.deleted === 0 || p.deleted === false || p.deleted === null
+      (p) => p.deleted === 0 || p.deleted === false || p.deleted === null,
     );
     return projectList.map((m) => new Project(m));
   }
@@ -111,7 +111,7 @@ export default class Project implements ProjectType {
       projectId &&
       (await NocoCache.get(
         `${CacheScope.PROJECT}:${projectId}`,
-        CacheGetType.TYPE_OBJECT
+        CacheGetType.TYPE_OBJECT,
       ));
     if (!projectData) {
       projectData = await ncMeta.metaGet2(null, null, MetaTable.PROJECT, {
@@ -135,13 +135,13 @@ export default class Project implements ProjectType {
   // @ts-ignore
   static async getWithInfo(
     projectId: string,
-    ncMeta = Noco.ncMeta
+    ncMeta = Noco.ncMeta,
   ): Promise<Project> {
     let projectData =
       projectId &&
       (await NocoCache.get(
         `${CacheScope.PROJECT}:${projectId}`,
-        CacheGetType.TYPE_OBJECT
+        CacheGetType.TYPE_OBJECT,
       ));
     if (!projectData) {
       projectData = await ncMeta.metaGet2(null, null, MetaTable.PROJECT, {
@@ -152,7 +152,7 @@ export default class Project implements ProjectType {
       if (projectData?.uuid) {
         await NocoCache.set(
           `${CacheScope.PROJECT}:${projectData.uuid}`,
-          projectId
+          projectId,
         );
       }
     } else {
@@ -172,7 +172,7 @@ export default class Project implements ProjectType {
   // @ts-ignore
   static async softDelete(
     projectId: string,
-    ncMeta = Noco.ncMeta
+    ncMeta = Noco.ncMeta,
   ): Promise<any> {
     // get existing cache
     const key = `${CacheScope.PROJECT}:${projectId}`;
@@ -197,7 +197,7 @@ export default class Project implements ProjectType {
     await NocoCache.deepDel(
       CacheScope.PROJECT,
       `${CacheScope.PROJECT}:${projectId}`,
-      CacheDelDirection.CHILD_TO_PARENT
+      CacheDelDirection.CHILD_TO_PARENT,
     );
 
     // set meta
@@ -206,7 +206,7 @@ export default class Project implements ProjectType {
       null,
       MetaTable.PROJECT,
       { deleted: true },
-      projectId
+      projectId,
     );
   }
 
@@ -214,7 +214,7 @@ export default class Project implements ProjectType {
   static async update(
     projectId: string,
     project: Partial<Project>,
-    ncMeta = Noco.ncMeta
+    ncMeta = Noco.ncMeta,
   ): Promise<any> {
     const updateObj = extractProps(project, [
       'title',
@@ -240,7 +240,7 @@ export default class Project implements ProjectType {
         await NocoCache.del(`${CacheScope.PROJECT}:${o.uuid}`);
         await NocoCache.set(
           `${CacheScope.PROJECT}:${updateObj.uuid}`,
-          projectId
+          projectId,
         );
       }
       // disable shared base
@@ -251,7 +251,7 @@ export default class Project implements ProjectType {
         await NocoCache.del(`${CacheScope.PROJECT}:${o.title}`);
         await NocoCache.set(
           `${CacheScope.PROJECT}:${updateObj.title}`,
-          projectId
+          projectId,
         );
       }
       o = { ...o, ...updateObj };
@@ -267,7 +267,7 @@ export default class Project implements ProjectType {
       null,
       MetaTable.PROJECT,
       updateObj,
-      projectId
+      projectId,
     );
   }
 
@@ -294,7 +294,7 @@ export default class Project implements ProjectType {
     await NocoCache.deepDel(
       CacheScope.PROJECT,
       `${CacheScope.PROJECT}:${projectId}`,
-      CacheDelDirection.CHILD_TO_PARENT
+      CacheDelDirection.CHILD_TO_PARENT,
     );
     return await ncMeta.metaDelete(null, null, MetaTable.PROJECT, projectId);
   }
@@ -304,7 +304,7 @@ export default class Project implements ProjectType {
       uuid &&
       (await NocoCache.get(
         `${CacheScope.PROJECT}:${uuid}`,
-        CacheGetType.TYPE_OBJECT
+        CacheGetType.TYPE_OBJECT,
       ));
     let projectData = null;
     if (!projectId) {
@@ -330,7 +330,7 @@ export default class Project implements ProjectType {
       title &&
       (await NocoCache.get(
         `${CacheScope.PROJECT}:${title}`,
-        CacheGetType.TYPE_OBJECT
+        CacheGetType.TYPE_OBJECT,
       ));
     let projectData = null;
     if (!projectId) {
@@ -350,7 +350,7 @@ export default class Project implements ProjectType {
       titleOrId &&
       (await NocoCache.get(
         `${CacheScope.PROJECT}:ref:${titleOrId}`,
-        CacheGetType.TYPE_OBJECT
+        CacheGetType.TYPE_OBJECT,
       ));
     let projectData = null;
     if (!projectId) {
@@ -375,11 +375,11 @@ export default class Project implements ProjectType {
               },
             },
           ],
-        }
+        },
       );
       await NocoCache.set(
         `${CacheScope.PROJECT}:ref:${titleOrId}`,
-        projectData?.id
+        projectData?.id,
       );
     } else {
       return this.get(projectId);

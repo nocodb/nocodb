@@ -19,7 +19,7 @@ import type SqliteClient from '../../sql-client/lib/sqlite/SqliteClient';
 export default class KnexMigratorv2Tans extends KnexMigratorv2 {
   protected sqlClient: any;
   // todo: tobe changed
-  protected ncMeta: any // NcMetaIO;
+  protected ncMeta: any; // NcMetaIO;
 
   constructor(project: { id: string }, sqlClient = null, ncMeta = Noco.ncMeta) {
     super(project);
@@ -31,7 +31,7 @@ export default class KnexMigratorv2Tans extends KnexMigratorv2 {
     return this.ncMeta.knex || Noco.ncMeta.knex;
   }
   protected async getSqlClient(
-    base: Base
+    base: Base,
   ): Promise<
     | SnowflakeClient
     | MysqlClient

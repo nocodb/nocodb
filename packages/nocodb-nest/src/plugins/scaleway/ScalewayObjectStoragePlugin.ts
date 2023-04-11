@@ -6,7 +6,7 @@ class ScalewayObjectStoragePlugin extends XcStoragePlugin {
   private static storageAdapter: ScalewayObjectStorage;
   public async init(config: any): Promise<any> {
     ScalewayObjectStoragePlugin.storageAdapter = new ScalewayObjectStorage(
-      config
+      config,
     );
     await ScalewayObjectStoragePlugin.storageAdapter.init();
   }

@@ -4,6 +4,6 @@ import { PublicDatasExportController } from './public-datas-export.controller';
 
 @Module({
   controllers: [PublicDatasExportController],
-  providers: [PublicDatasExportService]
+  providers: [PublicDatasExportService],
 })
 export class PublicDatasExportModule {}

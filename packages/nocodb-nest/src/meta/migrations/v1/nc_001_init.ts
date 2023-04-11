@@ -324,7 +324,7 @@ const up = async (knex) => {
     table.timestamps();
     table.index(
       ['project_id', 'db_alias', 'title', 'type', 'role'],
-      'xc_disabled124_idx'
+      'xc_disabled124_idx',
     );
   });
 
@@ -376,7 +376,7 @@ const up = async (knex) => {
     table.text('details');
     table.index(
       ['db_alias', 'project_id', 'model_name', 'model_id'],
-      '`nc_audit_index`'
+      '`nc_audit_index`',
     );
 
     table.timestamps();

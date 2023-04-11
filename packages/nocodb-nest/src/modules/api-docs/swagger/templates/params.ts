@@ -1,5 +1,5 @@
 import { RelationTypes, UITypes } from 'nocodb-sdk';
-import { LinkToAnotherRecordColumn } from '../../../../models'
+import { LinkToAnotherRecordColumn } from '../../../../models';
 import type { SwaggerColumn } from '../getSwaggerColumnMetas';
 
 export const rowIdParam = {
@@ -193,7 +193,7 @@ export const nestedOffsetParam = (colName) => ({
 });
 
 export const getNestedParams = async (
-  columns: SwaggerColumn[]
+  columns: SwaggerColumn[],
 ): Promise<any[]> => {
   return await columns.reduce(async (paramsArr, { column }) => {
     if (column.uidt === UITypes.LinkToAnotherRecord) {

@@ -1,7 +1,7 @@
 export default (roles) => {
-  if(!roles) return {};
+  if (!roles) return {};
 
-  if(typeof roles === 'object' && !Array.isArray(roles)) return roles;
+  if (typeof roles === 'object' && !Array.isArray(roles)) return roles;
 
   if (typeof roles === 'string') {
     roles = roles.split(',');

@@ -16,10 +16,10 @@ const pg = {
     return {
       builder: args.knex.raw(
         `POSITION(${args.knex.raw(
-          (await args.fn(args.pt.arguments[1])).builder.toQuery()
+          (await args.fn(args.pt.arguments[1])).builder.toQuery(),
         )} in ${args.knex
           .raw((await args.fn(args.pt.arguments[0])).builder)
-          .toQuery()})${args.colAlias}`
+          .toQuery()})${args.colAlias}`,
       ),
     };
   },
@@ -28,8 +28,8 @@ const pg = {
     return {
       builder: args.knex.raw(
         `REGEXP_REPLACE(COALESCE(${args.fn(
-          args.pt.arguments[0]
-        )}::character varying, '0'), '[^0-9]+|\\.[0-9]+' ,'')${args.colAlias}`
+          args.pt.arguments[0],
+        )}::character varying, '0'), '[^0-9]+|\\.[0-9]+' ,'')${args.colAlias}`,
       ),
     };
   },
@@ -40,7 +40,7 @@ const pg = {
         .raw(
           `CAST(${
             (await fn(pt.arguments[0])).builder
-          } as DOUBLE PRECISION)${colAlias}`
+          } as DOUBLE PRECISION)${colAlias}`,
         )
         .wrap('(', ')'),
     };
@@ -50,7 +50,7 @@ const pg = {
       builder: knex.raw(
         `ROUND((${(await fn(pt.arguments[0])).builder})::numeric, ${
           pt?.arguments[1] ? (await fn(pt.arguments[1])).builder : 0
-        }) ${colAlias}`
+        }) ${colAlias}`,
       ),
     };
   },
@@ -62,8 +62,8 @@ const pg = {
         } || 
       '${String((await fn(pt.arguments[2])).builder).replace(
         /["']/g,
-        ''
-      )}')::interval${colAlias}`
+        '',
+      )}')::interval${colAlias}`,
       ),
     };
   },
@@ -125,12 +125,12 @@ const pg = {
         `(EXTRACT(ISODOW FROM ${
           pt.arguments[0].type === 'Literal'
             ? `date '${dayjs((await fn(pt.arguments[0])).builder).format(
-                'YYYY-MM-DD'
+                'YYYY-MM-DD',
               )}'`
             : (await fn(pt.arguments[0])).builder
         }) - 1 - ${getWeekdayByText(
-          pt?.arguments[1]?.value
-        )} % 7 + 7) ::INTEGER % 7 ${colAlias}`
+          pt?.arguments[1]?.value,
+        )} % 7 + 7) ::INTEGER % 7 ${colAlias}`,
       ),
     };
   },
@@ -142,13 +142,13 @@ const pg = {
             `${(
               await Promise.all(
                 args.pt.arguments.map(async (ar) =>
-                  (await args.fn(ar, '', 'AND')).builder.toQuery()
-                )
+                  (await args.fn(ar, '', 'AND')).builder.toQuery(),
+                ),
               )
-            ).join(' AND ')}`
+            ).join(' AND ')}`,
           )
           .wrap('(', ')')
-          .toQuery()} THEN TRUE ELSE FALSE END ${args.colAlias}`
+          .toQuery()} THEN TRUE ELSE FALSE END ${args.colAlias}`,
       ),
     };
   },
@@ -159,12 +159,12 @@ const pg = {
           .raw(
             `${args.pt.arguments
               .map(async (ar) =>
-                (await args.fn(ar, '', 'OR')).builder.toQuery()
+                (await args.fn(ar, '', 'OR')).builder.toQuery(),
               )
-              .join(' OR ')}`
+              .join(' OR ')}`,
           )
           .wrap('(', ')')
-          .toQuery()} THEN TRUE ELSE FALSE END ${args.colAlias}`
+          .toQuery()} THEN TRUE ELSE FALSE END ${args.colAlias}`,
       ),
     };
   },
@@ -176,7 +176,7 @@ const pg = {
       builder: knex.raw(
         `SUBSTR(${str}::TEXT, ${positionFrom}${
           numberOfCharacters ? ', ' + numberOfCharacters : ''
-        })${colAlias}`
+        })${colAlias}`,
       ),
     };
   },

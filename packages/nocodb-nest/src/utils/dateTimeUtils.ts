@@ -64,7 +64,7 @@ export function parseStringDate(v: string, dateFormat: string) {
 export function convertToTargetFormat(
   v: string,
   oldDataFormat,
-  newDateFormat: string
+  newDateFormat: string,
 ) {
   if (
     !dateFormats.includes(oldDataFormat) ||

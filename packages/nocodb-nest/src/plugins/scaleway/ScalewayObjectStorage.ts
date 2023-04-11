@@ -123,7 +123,7 @@ export default class ScalewayObjectStorage implements IStorageAdapterV2 {
               resolve(data.Location);
             }
           });
-        }
+        },
       );
     });
   }

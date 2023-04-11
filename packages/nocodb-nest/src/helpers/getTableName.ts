@@ -4,7 +4,7 @@ import type Base from '../models/Base';
 export default function getTableNameAlias(
   tableName: string,
   prefix,
-  base: Base
+  base: Base,
 ): string {
   let tn = tableName;
   if (base.is_meta && prefix) {

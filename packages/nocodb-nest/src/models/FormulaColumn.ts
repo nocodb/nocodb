@@ -15,7 +15,7 @@ export default class FormulaColumn {
 
   public static async insert(
     formulaColumn: Partial<FormulaColumn>,
-    ncMeta = Noco.ncMeta
+    ncMeta = Noco.ncMeta,
   ) {
     const insertObj = extractProps(formulaColumn, [
       'fk_column_id',
@@ -32,14 +32,14 @@ export default class FormulaColumn {
       columnId &&
       (await NocoCache.get(
         `${CacheScope.COL_FORMULA}:${columnId}`,
-        CacheGetType.TYPE_OBJECT
+        CacheGetType.TYPE_OBJECT,
       ));
     if (!column) {
       column = await ncMeta.metaGet2(
         null, //,
         null, //model.db_alias,
         MetaTable.COL_FORMULA,
-        { fk_column_id: columnId }
+        { fk_column_id: columnId },
       );
       await NocoCache.set(`${CacheScope.COL_FORMULA}:${columnId}`, column);
     }
@@ -52,7 +52,7 @@ export default class FormulaColumn {
   static async update(
     id: string,
     formula: Partial<FormulaColumn>,
-    ncMeta = Noco.ncMeta
+    ncMeta = Noco.ncMeta,
   ) {
     const updateObj = extractProps(formula, [
       'formula',

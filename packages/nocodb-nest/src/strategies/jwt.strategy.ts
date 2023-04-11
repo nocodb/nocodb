@@ -59,7 +59,7 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
     }
 
     return User.getByEmail(jwtPayload?.email).then(
-      async (user: { roles: any; id:string }) => {
+      async (user: { roles: any; id: string }) => {
         user.roles = extractRolesObj(user?.roles);
         /*
      todo: tobe fixed

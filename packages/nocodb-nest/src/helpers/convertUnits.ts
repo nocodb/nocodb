@@ -1,6 +1,6 @@
 export function convertUnits(
   unit: string,
-  type: 'mysql' | 'mssql' | 'pg' | 'sqlite'
+  type: 'mysql' | 'mssql' | 'pg' | 'sqlite',
 ) {
   switch (unit) {
     case 'milliseconds':

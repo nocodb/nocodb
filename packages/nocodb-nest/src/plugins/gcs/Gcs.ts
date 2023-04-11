@@ -122,7 +122,7 @@ export default class Gcs implements IStorageAdapterV2 {
             .save(body)
             .then((res) => resolve(res))
             .catch(reject);
-        }
+        },
       );
     });
   }

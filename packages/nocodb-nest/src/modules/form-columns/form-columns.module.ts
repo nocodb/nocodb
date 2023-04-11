@@ -4,6 +4,6 @@ import { FormColumnsController } from './form-columns.controller';
 
 @Module({
   controllers: [FormColumnsController],
-  providers: [FormColumnsService]
+  providers: [FormColumnsService],
 })
 export class FormColumnsModule {}

@@ -30,7 +30,7 @@ export default class Base implements BaseType {
   id?: string;
   project_id?: string;
   alias?: string;
-  type?: typeof DB_TYPES[number];
+  type?: (typeof DB_TYPES)[number];
   is_meta?: BoolType;
   config?: string;
   inflection_column?: string;
@@ -44,7 +44,7 @@ export default class Base implements BaseType {
 
   public static async createBase(
     base: BaseType & { projectId: string; created_at?; updated_at? },
-    ncMeta = Noco.ncMeta
+    ncMeta = Noco.ncMeta,
   ) {
     const insertObj = extractProps(base, [
       'id',
@@ -58,25 +58,24 @@ export default class Base implements BaseType {
       'enabled',
     ]);
 
-    const secret =
-      Noco.getConfig()?.auth?.jwt?.secret;
+    const secret = Noco.getConfig()?.auth?.jwt?.secret;
 
     insertObj.config = CryptoJS.AES.encrypt(
       JSON.stringify(base.config),
-      secret
+      secret,
     ).toString();
 
     const { id } = await ncMeta.metaInsert2(
       base.projectId,
       null,
       MetaTable.BASES,
-      insertObj
+      insertObj,
     );
 
     await NocoCache.appendToList(
       CacheScope.BASE,
       [base.projectId],
-      `${CacheScope.BASE}:${id}`
+      `${CacheScope.BASE}:${id}`,
     );
 
     // call before reorder to update cache
@@ -93,7 +92,7 @@ export default class Base implements BaseType {
       id: string;
       projectId: string;
     },
-    ncMeta = Noco.ncMeta
+    ncMeta = Noco.ncMeta,
   ) {
     const oldBase = await Base.get(baseId, ncMeta);
 
@@ -102,7 +101,7 @@ export default class Base implements BaseType {
     await NocoCache.deepDel(
       CacheScope.BASE,
       `${CacheScope.BASE}:${baseId}`,
-      CacheDelDirection.CHILD_TO_PARENT
+      CacheDelDirection.CHILD_TO_PARENT,
     );
 
     const updateObj = extractProps(base, [
@@ -119,7 +118,7 @@ export default class Base implements BaseType {
     if (updateObj.config) {
       updateObj.config = CryptoJS.AES.encrypt(
         JSON.stringify(base.config),
-        Noco.getConfig()?.auth?.jwt?.secret
+        Noco.getConfig()?.auth?.jwt?.secret,
       ).toString();
     }
 
@@ -133,13 +132,13 @@ export default class Base implements BaseType {
       null,
       MetaTable.BASES,
       updateObj,
-      oldBase.id
+      oldBase.id,
     );
 
     await NocoCache.appendToList(
       CacheScope.BASE,
       [base.projectId],
-      `${CacheScope.BASE}:${oldBase.id}`
+      `${CacheScope.BASE}:${oldBase.id}`,
     );
 
     // call before reorder to update cache
@@ -152,7 +151,7 @@ export default class Base implements BaseType {
 
   static async list(
     args: { projectId: string },
-    ncMeta = Noco.ncMeta
+    ncMeta = Noco.ncMeta,
   ): Promise<Base[]> {
     let baseDataList = await NocoCache.getList(CacheScope.BASE, [
       args.projectId,
@@ -166,7 +165,7 @@ export default class Base implements BaseType {
           orderBy: {
             order: 'asc',
           },
-        }
+        },
       );
       await NocoCache.setList(CacheScope.BASE, [args.projectId], baseDataList);
     }
@@ -183,7 +182,7 @@ export default class Base implements BaseType {
       id &&
       (await NocoCache.get(
         `${CacheScope.BASE}:${id}`,
-        CacheGetType.TYPE_OBJECT
+        CacheGetType.TYPE_OBJECT,
       ));
     if (!baseData) {
       baseData = await ncMeta.metaGet2(null, null, MetaTable.BASES, id);
@@ -195,14 +194,14 @@ export default class Base implements BaseType {
   static async reorderBases(
     projectId: string,
     keepBase?: string,
-    ncMeta = Noco.ncMeta
+    ncMeta = Noco.ncMeta,
   ) {
     const bases = await this.list({ projectId: projectId }, ncMeta);
 
     if (keepBase) {
       const kpBase = bases.splice(
         bases.indexOf(bases.find((base) => base.id === keepBase)),
-        1
+        1,
       );
       if (kpBase.length) {
         bases.splice(kpBase[0].order - 1, 0, kpBase[0]);
@@ -214,7 +213,7 @@ export default class Base implements BaseType {
       await NocoCache.deepDel(
         CacheScope.BASE,
         `${CacheScope.BASE}:${b.id}`,
-        CacheDelDirection.CHILD_TO_PARENT
+        CacheDelDirection.CHILD_TO_PARENT,
       );
 
       b.order = parseInt(i) + 1;
@@ -226,13 +225,13 @@ export default class Base implements BaseType {
         {
           order: b.order,
         },
-        b.id
+        b.id,
       );
 
       await NocoCache.appendToList(
         CacheScope.BASE,
         [b.project_id],
-        `${CacheScope.BASE}:${b.id}`
+        `${CacheScope.BASE}:${b.id}`,
       );
 
       await NocoCache.set(`${CacheScope.BASE}:${b.id}`, b);
@@ -254,8 +253,8 @@ export default class Base implements BaseType {
     const config = JSON.parse(
       CryptoJS.AES.decrypt(
         this.config,
-        Noco.getConfig()?.auth?.jwt?.secret
-      ).toString(CryptoJS.enc.Utf8)
+        Noco.getConfig()?.auth?.jwt?.secret,
+      ).toString(CryptoJS.enc.Utf8),
     );
 
     // todo: update sql-client args
@@ -283,7 +282,7 @@ export default class Base implements BaseType {
         base_id: this.id,
         project_id: this.project_id,
       },
-      ncMeta
+      ncMeta,
     );
 
     const relColumns = [];
@@ -330,7 +329,7 @@ export default class Base implements BaseType {
       await NocoCache.deepDel(
         relCol.cacheScopeName,
         `${relCol.cacheScopeName}:${relCol.col.id}`,
-        CacheDelDirection.CHILD_TO_PARENT
+        CacheDelDirection.CHILD_TO_PARENT,
       );
     }
 
@@ -340,7 +339,7 @@ export default class Base implements BaseType {
     await NocoCache.deepDel(
       CacheScope.BASE,
       `${CacheScope.BASE}:${this.id}`,
-      CacheDelDirection.CHILD_TO_PARENT
+      CacheDelDirection.CHILD_TO_PARENT,
     );
 
     const syncSources = await SyncSource.list(this.project_id, this.id, ncMeta);
@@ -354,7 +353,7 @@ export default class Base implements BaseType {
   async getModels(ncMeta = Noco.ncMeta) {
     return await Model.list(
       { project_id: this.project_id, base_id: this.id },
-      ncMeta
+      ncMeta,
     );
   }
 }

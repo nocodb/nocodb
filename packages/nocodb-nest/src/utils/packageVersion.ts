@@ -7,8 +7,8 @@ try {
   packageInfo = JSON.parse(
     fs.readFileSync(
       path.join(process.cwd(), 'node_modules', 'nocodb', 'package.json'),
-      'utf8'
-    )
+      'utf8',
+    ),
   );
 } catch {
   try {
@@ -19,15 +19,15 @@ try {
           path.dirname(process['pkg']?.['defaultEntrypoint']),
           'node_modules',
           'nocodb',
-          'package.json'
+          'package.json',
         ),
-        'utf8'
-      )
+        'utf8',
+      ),
     );
   } catch {
     try {
       packageInfo = JSON.parse(
-        fs.readFileSync(path.join(process.cwd(), 'package.json'), 'utf8')
+        fs.readFileSync(path.join(process.cwd(), 'package.json'), 'utf8'),
       );
     } catch {}
   }

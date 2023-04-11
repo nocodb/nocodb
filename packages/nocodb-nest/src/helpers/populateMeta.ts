@@ -1,19 +1,17 @@
 import { ModelTypes, UITypes, ViewTypes } from 'nocodb-sdk';
-import { isVirtualCol, RelationTypes } from '../../../nocodb-sdk'
+import { isVirtualCol, RelationTypes } from '../../../nocodb-sdk';
 import Column from '../models/Column';
 import Model from '../models/Model';
-import NcConnectionMgrv2 from '../utils/common/NcConnectionMgrv2'
+import NcConnectionMgrv2 from '../utils/common/NcConnectionMgrv2';
 import NcHelp from '../utils/NcHelp';
 import View from '../models/View';
-import getTableNameAlias, {
-  getColumnNameAlias,
-} from '../helpers/getTableName';
+import getTableNameAlias, { getColumnNameAlias } from '../helpers/getTableName';
 import getColumnUiType from '../helpers/getColumnUiType';
 import mapDefaultDisplayValue from '../helpers/mapDefaultDisplayValue';
 import type LinkToAnotherRecordColumn from '../models/LinkToAnotherRecordColumn';
 import type Base from '../models/Base';
 import type Project from '../models/Project';
-import { getUniqueColumnAliasName } from './getUniqueName'
+import { getUniqueColumnAliasName } from './getUniqueName';
 export const IGNORE_TABLES = [
   'nc_models',
   'nc_roles',
@@ -41,12 +39,10 @@ export const IGNORE_TABLES = [
   'nc_shared_views',
 ];
 
-
-
 async function isMMRelationExist(
   model: Model,
   assocModel: Model,
-  belongsToCol: Column<LinkToAnotherRecordColumn>
+  belongsToCol: Column<LinkToAnotherRecordColumn>,
 ) {
   let isExist = false;
   const colChildOpt =
@@ -70,7 +66,7 @@ async function isMMRelationExist(
 }
 // @ts-ignore
 export async function extractAndGenerateManyToManyRelations(
-  modelsArr: Array<Model>
+  modelsArr: Array<Model>,
 ) {
   for (const assocModel of modelsArr) {
     await assocModel.getColumns();
@@ -98,19 +94,19 @@ export async function extractAndGenerateManyToManyRelations(
       const isRelationAvailInA = await isMMRelationExist(
         modelA,
         assocModel,
-        belongsToCols[0]
+        belongsToCols[0],
       );
       const isRelationAvailInB = await isMMRelationExist(
         modelB,
         assocModel,
-        belongsToCols[1]
+        belongsToCols[1],
       );
 
       if (!isRelationAvailInA) {
         await Column.insert<LinkToAnotherRecordColumn>({
           title: getUniqueColumnAliasName(
             modelA.columns,
-            `${modelB.title} List`
+            `${modelB.title} List`,
           ),
           fk_model_id: modelA.id,
           fk_related_model_id: modelB.id,
@@ -119,7 +115,7 @@ export async function extractAndGenerateManyToManyRelations(
           fk_parent_column_id: belongsToCols[1].colOptions.fk_parent_column_id,
           fk_mm_child_column_id: belongsToCols[0].colOptions.fk_child_column_id,
           fk_mm_parent_column_id:
-          belongsToCols[1].colOptions.fk_child_column_id,
+            belongsToCols[1].colOptions.fk_child_column_id,
           type: RelationTypes.MANY_TO_MANY,
           uidt: UITypes.LinkToAnotherRecord,
         });
@@ -128,7 +124,7 @@ export async function extractAndGenerateManyToManyRelations(
         await Column.insert<LinkToAnotherRecordColumn>({
           title: getUniqueColumnAliasName(
             modelB.columns,
-            `${modelA.title} List`
+            `${modelA.title} List`,
           ),
           fk_model_id: modelB.id,
           fk_related_model_id: modelA.id,
@@ -137,7 +133,7 @@ export async function extractAndGenerateManyToManyRelations(
           fk_parent_column_id: belongsToCols[0].colOptions.fk_parent_column_id,
           fk_mm_child_column_id: belongsToCols[1].colOptions.fk_child_column_id,
           fk_mm_parent_column_id:
-          belongsToCols[0].colOptions.fk_child_column_id,
+            belongsToCols[0].colOptions.fk_child_column_id,
           type: RelationTypes.MANY_TO_MANY,
           uidt: UITypes.LinkToAnotherRecord,
         });
@@ -228,7 +224,7 @@ export async function populateMeta(base: Base, project: Project): Promise<any> {
     return async () => {
       /* filter relation where this table is present */
       const tableRelations = relations.filter(
-        (r) => r.tn === table.tn || r.rtn === table.tn
+        (r) => r.tn === table.tn || r.rtn === table.tn,
       );
 
       const columns: Array<
@@ -315,7 +311,7 @@ export async function populateMeta(base: Base, project: Project): Promise<any> {
           const rel = column.hm || column.bt;
 
           const rel_column_id = (await models2?.[rel.tn]?.getColumns())?.find(
-            (c) => c.column_name === rel.cn
+            (c) => c.column_name === rel.cn,
           )?.id;
 
           const tnId = models2?.[rel.tn]?.id;

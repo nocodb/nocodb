@@ -14,7 +14,7 @@ export function getUniqueColumnName(columns: Column[], initialName = 'field') {
 
 export function getUniqueColumnAliasName(
   columns: Column[],
-  initialName = 'field'
+  initialName = 'field',
 ) {
   let c = 0;
 

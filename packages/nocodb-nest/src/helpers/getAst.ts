@@ -41,7 +41,7 @@ const getAst = async ({
       ...(model.displayValue ? { [model.displayValue.title]: 1 } : {}),
     };
     await Promise.all(
-      model.primaryKeys.map((c) => extractDependencies(c, dependencyFields))
+      model.primaryKeys.map((c) => extractDependencies(c, dependencyFields)),
     );
 
     await extractDependencies(model.displayValue, dependencyFields);
@@ -63,7 +63,7 @@ const getAst = async ({
         ...o,
         [c.fk_column_id]: c.show,
       }),
-      {}
+      {},
     );
 
   const ast = await model.columns.reduce(async (obj, col: Column) => {
@@ -92,7 +92,7 @@ const getAst = async ({
       } else {
         value = (Array.isArray(fields) ? fields : fields.split(',')).reduce(
           (o, f) => ({ ...o, [f]: 1 }),
-          {}
+          {},
         );
       }
     } else if (col.uidt === UITypes.LinkToAnotherRecord) {
@@ -139,7 +139,7 @@ const extractDependencies = async (
   dependencyFields: DependantFields = {
     nested: {},
     fieldsSet: new Set(),
-  }
+  },
 ) => {
   switch (column.uidt) {
     case UITypes.Lookup:
@@ -159,7 +159,7 @@ const extractLookupDependencies = async (
   dependencyFields: DependantFields = {
     nested: {},
     fieldsSet: new Set(),
-  }
+  },
 ) => {
   const lookupColumnOpts = await lookUpColumn.getColOptions();
   const relationColumn = await lookupColumnOpts.getRelationColumn();
@@ -171,7 +171,7 @@ const extractLookupDependencies = async (
     ] || {
       nested: {},
       fieldsSet: new Set(),
-    })
+    }),
   );
 };
 
@@ -180,20 +180,20 @@ const extractRelationDependencies = async (
   dependencyFields: DependantFields = {
     nested: {},
     fieldsSet: new Set(),
-  }
+  },
 ) => {
   const relationColumnOpts = await relationColumn.getColOptions();
 
   switch (relationColumnOpts.type) {
     case RelationTypes.HAS_MANY:
       dependencyFields.fieldsSet.add(
-        await relationColumnOpts.getParentColumn().then((col) => col.title)
+        await relationColumnOpts.getParentColumn().then((col) => col.title),
       );
       break;
     case RelationTypes.BELONGS_TO:
     case RelationTypes.MANY_TO_MANY:
       dependencyFields.fieldsSet.add(
-        await relationColumnOpts.getChildColumn().then((col) => col.title)
+        await relationColumnOpts.getChildColumn().then((col) => col.title),
       );
 
       break;

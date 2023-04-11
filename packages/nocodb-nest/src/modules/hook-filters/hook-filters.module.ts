@@ -4,6 +4,6 @@ import { HookFiltersController } from './hook-filters.controller';
 
 @Module({
   controllers: [HookFiltersController],
-  providers: [HookFiltersService]
+  providers: [HookFiltersService],
 })
 export class HookFiltersModule {}

@@ -1,5 +1,5 @@
-import { Model, Project } from '../../../models'
-import Noco from '../../../Noco'
+import { Model, Project } from '../../../models';
+import Noco from '../../../Noco';
 import { getModelPaths, getViewPaths } from './templates/paths';
 import type { SwaggerColumn } from './getSwaggerColumnMetas';
 import type { SwaggerView } from './getSwaggerJSON';
@@ -16,7 +16,7 @@ export default async function getPaths(
     columns: SwaggerColumn[];
     views: SwaggerView[];
   },
-  _ncMeta = Noco.ncMeta
+  _ncMeta = Noco.ncMeta,
 ) {
   const swaggerPaths = await getModelPaths({
     tableName: model.title,
@@ -28,7 +28,7 @@ export default async function getPaths(
 
   for (const { view, columns: viewColumns } of views) {
     const swaggerColumns = columns.filter(
-      (c) => viewColumns.find((vc) => vc.fk_column_id === c.column.id)?.show
+      (c) => viewColumns.find((vc) => vc.fk_column_id === c.column.id)?.show,
     );
     Object.assign(
       swaggerPaths,
@@ -39,7 +39,7 @@ export default async function getPaths(
         orgs: 'v1',
         columns: swaggerColumns,
         projectName: project.title,
-      })
+      }),
     );
   }
 

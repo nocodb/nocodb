@@ -4,6 +4,6 @@ import { SortsController } from './sorts.controller';
 
 @Module({
   controllers: [SortsController],
-  providers: [SortsService]
+  providers: [SortsService],
 })
 export class SortsModule {}

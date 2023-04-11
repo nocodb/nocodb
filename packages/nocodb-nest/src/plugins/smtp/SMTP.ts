@@ -52,7 +52,7 @@ export default class SMTP implements IEmailAdapter {
     } catch (e) {
       console.log('SMTP test error :: ', e);
       throw new Error(
-        'SMTP test failed, please check server log for more details.'
+        'SMTP test failed, please check server log for more details.',
       );
     }
   }

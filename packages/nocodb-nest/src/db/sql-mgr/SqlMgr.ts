@@ -237,7 +237,7 @@ export default class SqlMgr {
       'server',
       'tool',
       args.dbAlias,
-      'seeds'
+      'seeds',
     );
   }
 
@@ -272,7 +272,7 @@ export default class SqlMgr {
       'resolvers',
       args.dbAlias,
       args.tn,
-      `${args.tn}.policy.js`
+      `${args.tn}.policy.js`,
     );
   }
 
@@ -296,7 +296,7 @@ export default class SqlMgr {
       for (const env in this.currentProjectJson.envs) {
         for (let i = 0; i < this.currentProjectJson.envs[env].db.length; i++) {
           const connectionConfig = JSON.parse(
-            JSON.stringify(this.currentProjectJson.envs[env].db[i])
+            JSON.stringify(this.currentProjectJson.envs[env].db[i]),
           );
 
           const connectionKey = `${env}_${this.currentProjectJson.envs[env].db[i].meta.dbAlias}`;
@@ -342,7 +342,7 @@ export default class SqlMgr {
    * @memberof SqlMgr
    */
   public async projectGetSqlClient(
-    args
+    args,
   ): Promise<
     | SnowflakeClient
     | MysqlClient
@@ -454,7 +454,7 @@ export default class SqlMgr {
 
     try {
       await promisify(fs.unlink)(
-        path.join(this.currentProjectFolder, 'config.xc.json')
+        path.join(this.currentProjectFolder, 'config.xc.json'),
       );
 
       args.folder = args.folder || args.project.folder;
@@ -799,7 +799,7 @@ export default class SqlMgr {
     const sqlMigrationStatements = await sqlClient[op](opArgs);
     console.log(
       `Sql Migration Statement for '${op}'`,
-      sqlMigrationStatements.data.object
+      sqlMigrationStatements.data.object,
     );
 
     args.folder = this.currentProjectFolder;
@@ -813,7 +813,7 @@ export default class SqlMgr {
       // write sql statements to migration files
       console.log(
         `Write sql migration files for '${op}' with`,
-        sqlMigrationStatements
+        sqlMigrationStatements,
       );
       await this.migrator().migrationsWrite({
         ...args,
@@ -826,7 +826,7 @@ export default class SqlMgr {
       // mark as migration done in nc_evolutions table
       console.log(
         `TODO: write sql migration files for '${op}' with`,
-        sqlMigrationStatements
+        sqlMigrationStatements,
       );
       const migrationArgs = {
         ...args,
@@ -911,7 +911,7 @@ export default class SqlMgr {
 
   public getDbType({ env, dbAlias }) {
     const db = this.currentProjectJson.envs[env].db.find(
-      (db) => db.meta.dbAlias === dbAlias
+      (db) => db.meta.dbAlias === dbAlias,
     );
     return db.client;
   }
@@ -942,18 +942,18 @@ export default class SqlMgr {
             'tool',
             'misc',
             'auth',
-            dbType
+            dbType,
           ),
           path.join(
             this.currentProjectFolder,
             'server',
             'tool',
             'db',
-            'migrations'
-          )
+            'migrations',
+          ),
         );
         await fsExtra.remove(
-          path.join(this.currentProjectFolder, 'server', 'tool', 'misc')
+          path.join(this.currentProjectFolder, 'server', 'tool', 'misc'),
         );
       }
       console.timeEnd('Copy and delete auth user migrations');
@@ -1116,13 +1116,13 @@ export default class SqlMgr {
       const xcConfig = JSON.parse(
         await promisify(fs.readFile)(
           path.join(this.currentProjectFolder, 'config.xc.json'),
-          'utf8'
-        )
+          'utf8',
+        ),
       );
       xcConfig.workingEnv = args.env;
       await promisify(fs.writeFile)(
         path.join(this.currentProjectFolder, 'config.xc.json'),
-        JSON.stringify(xcConfig, null, 2)
+        JSON.stringify(xcConfig, null, 2),
       );
     } catch (e) {
       console.log(e);
@@ -1375,7 +1375,7 @@ export default class SqlMgr {
           console.log('Within WRITE_FILE handler', args);
           result = await promisify(fs.writeFile)(
             args.args.path,
-            args.args.data
+            args.args.data,
           );
           break;
 

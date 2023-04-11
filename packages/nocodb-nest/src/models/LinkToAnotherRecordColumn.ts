@@ -40,7 +40,7 @@ export default class LinkToAnotherRecordColumn {
       {
         colId: this.fk_child_column_id,
       },
-      ncMeta
+      ncMeta,
     ));
   }
 
@@ -49,7 +49,7 @@ export default class LinkToAnotherRecordColumn {
       {
         colId: this.fk_mm_child_column_id,
       },
-      ncMeta
+      ncMeta,
     ));
   }
 
@@ -58,7 +58,7 @@ export default class LinkToAnotherRecordColumn {
       {
         colId: this.fk_parent_column_id,
       },
-      ncMeta
+      ncMeta,
     ));
   }
   public async getMMParentColumn(ncMeta = Noco.ncMeta): Promise<Column> {
@@ -66,7 +66,7 @@ export default class LinkToAnotherRecordColumn {
       {
         colId: this.fk_mm_parent_column_id,
       },
-      ncMeta
+      ncMeta,
     ));
   }
   public async getMMModel(ncMeta = Noco.ncMeta): Promise<Model> {
@@ -74,7 +74,7 @@ export default class LinkToAnotherRecordColumn {
       {
         id: this.fk_mm_model_id,
       },
-      ncMeta
+      ncMeta,
     ));
   }
   public async getRelatedTable(ncMeta = Noco.ncMeta): Promise<Model> {
@@ -82,13 +82,13 @@ export default class LinkToAnotherRecordColumn {
       {
         id: this.fk_related_model_id,
       },
-      ncMeta
+      ncMeta,
     ));
   }
 
   public static async insert(
     data: Partial<LinkToAnotherRecordColumn>,
-    ncMeta = Noco.ncMeta
+    ncMeta = Noco.ncMeta,
   ) {
     const insertObj = extractProps(data, [
       'fk_column_id',
@@ -113,14 +113,14 @@ export default class LinkToAnotherRecordColumn {
       columnId &&
       (await NocoCache.get(
         `${CacheScope.COL_RELATION}:${columnId}`,
-        CacheGetType.TYPE_OBJECT
+        CacheGetType.TYPE_OBJECT,
       ));
     if (!colData) {
       colData = await ncMeta.metaGet2(
         null, //,
         null, //model.db_alias
         MetaTable.COL_RELATIONS,
-        { fk_column_id: columnId }
+        { fk_column_id: columnId },
       );
       await NocoCache.set(`${CacheScope.COL_RELATION}:${columnId}`, colData);
     }

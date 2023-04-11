@@ -310,7 +310,7 @@ class SnowflakeClient extends KnexClient {
     try {
       result.data.object = {};
       const data = await this.sqlClient.raw(
-        'SELECT CURRENT_VERSION() as "server_version"'
+        'SELECT CURRENT_VERSION() as "server_version"',
       );
       log.debug(data.rows[0]);
       result.data.object.version = data.rows[0].server_version;
@@ -354,7 +354,7 @@ class SnowflakeClient extends KnexClient {
         log.debug('checking if db exists');
         rows = (
           await this.sqlClient.raw(
-            `SELECT DATABASE_NAME as database FROM SNOWFLAKE.information_schema.DATABASES WHERE DATABASE_NAME = '${args.database}'`
+            `SELECT DATABASE_NAME as database FROM SNOWFLAKE.information_schema.DATABASES WHERE DATABASE_NAME = '${args.database}'`,
           )
         ).rows;
       } catch (e) {
@@ -414,7 +414,7 @@ class SnowflakeClient extends KnexClient {
         `SELECT table_schema,table_name as "tn", table_catalog
           FROM "${this.database}".information_schema.tables
           where table_schema=? and table_name = ?`,
-        [this.schema, args.tn]
+        [this.schema, args.tn],
       );
 
       if (exists.rows.length === 0) {
@@ -430,7 +430,7 @@ class SnowflakeClient extends KnexClient {
             table.integer('status').nullable();
             table.dateTime('created');
             table.timestamps();
-          }
+          },
         );
         log.debug('Table created:', `${args.tn}`, data);
       } else {
@@ -455,7 +455,7 @@ class SnowflakeClient extends KnexClient {
     try {
       const { rows } = await this.sqlClient.raw(
         `SELECT table_schema,table_name as "tn", table_catalog FROM "${this.database}".information_schema.tables where table_schema = ? and table_name = ? and table_catalog = ?`,
-        [this.schema, args.tn, this.database]
+        [this.schema, args.tn, this.database],
       );
       result.data.value = rows.length > 0;
     } catch (e) {
@@ -476,7 +476,7 @@ class SnowflakeClient extends KnexClient {
     try {
       const { rows } = await this.sqlClient.raw(
         `SELECT DATABASE_NAME as database FROM SNOWFLAKE.information_schema.DATABASES WHERE DATABASE_NAME = ?`,
-        [args.databaseName]
+        [args.databaseName],
       );
       result.data.value = rows.length > 0;
     } catch (e) {
@@ -502,7 +502,7 @@ class SnowflakeClient extends KnexClient {
 
     try {
       const { rows } = await this.sqlClient.raw(
-        `SELECT DATABASE_NAME as database_name FROM SNOWFLAKE.information_schema.DATABASES;`
+        `SELECT DATABASE_NAME as database_name FROM SNOWFLAKE.information_schema.DATABASES;`,
       );
       result.data.list = rows;
     } catch (e) {
@@ -531,11 +531,11 @@ class SnowflakeClient extends KnexClient {
               FROM "${this.database}".information_schema.tables
               where table_schema = ?
               ORDER BY table_schema, table_name`,
-        [this.schema]
+        [this.schema],
       );
 
       result.data.list = rows.filter(
-        ({ table_type }) => table_type.toLowerCase() === 'base table'
+        ({ table_type }) => table_type.toLowerCase() === 'base table',
       );
     } catch (e) {
       log.ppe(e, _func);
@@ -554,7 +554,7 @@ class SnowflakeClient extends KnexClient {
 
     try {
       const { rows } = await this.raw(
-        `SELECT SCHEMA_NAME as "schema_name" FROM "${this.database}".information_schema.SCHEMATA order by schema_name;`
+        `SELECT SCHEMA_NAME as "schema_name" FROM "${this.database}".information_schema.SCHEMATA order by schema_name;`,
       );
 
       result.data.list = rows;
@@ -601,10 +601,10 @@ class SnowflakeClient extends KnexClient {
     try {
       args.databaseName = this.database;
       await this.sqlClient.raw(
-        `SHOW PRIMARY KEYS IN SCHEMA "${this.database}"."${this.schema}";`
+        `SHOW PRIMARY KEYS IN SCHEMA "${this.database}"."${this.schema}";`,
       );
       await this.sqlClient.raw(
-        `SHOW UNIQUE KEYS IN SCHEMA "${this.database}"."${this.schema}";`
+        `SHOW UNIQUE KEYS IN SCHEMA "${this.database}"."${this.schema}";`,
       );
 
       const lastQueries = await this.sqlClient.raw(`
@@ -655,7 +655,7 @@ class SnowflakeClient extends KnexClient {
         LEFT JOIN "${this.database}".information_schema.table_constraints tc ON tc.constraint_name = "PK"."constraint_name" 
         ON "PK"."schema_name" = cl.table_schema and "PK"."table_name" = cl.table_name and pk."column_name" = cl.column_name
         WHERE cl.table_catalog = ? and cl.table_schema = ? and cl.table_name = ?;`,
-        [this.database, this.schema, args.tn]
+        [this.database, this.schema, args.tn],
       );
 
       const columns = [];
@@ -780,10 +780,10 @@ class SnowflakeClient extends KnexClient {
     log.api(`${_func}:args:`, args);
     try {
       await this.sqlClient.raw(
-        `SHOW PRIMARY KEYS IN SCHEMA "${this.database}"."${this.schema}";`
+        `SHOW PRIMARY KEYS IN SCHEMA "${this.database}"."${this.schema}";`,
       );
       await this.sqlClient.raw(
-        `SHOW UNIQUE KEYS IN SCHEMA "${this.database}"."${this.schema}";`
+        `SHOW UNIQUE KEYS IN SCHEMA "${this.database}"."${this.schema}";`,
       );
 
       const lastQueries = await this.sqlClient.raw(`
@@ -819,7 +819,7 @@ class SnowflakeClient extends KnexClient {
         LEFT JOIN (select * from table(result_scan('${pk_query_id}')) UNION select * from table(result_scan('${uq_query_id}'))) pk
         ON "PK"."constraint_name" = tc.constraint_name
         WHERE tc.table_catalog = ? and tc.table_schema = ? and tc.table_name = ?;`,
-        [this.database, this.schema, args.tn]
+        [this.database, this.schema, args.tn],
       );
 
       result.data.list = rows;
@@ -855,7 +855,7 @@ class SnowflakeClient extends KnexClient {
     log.api(`${_func}:args:`, args);
     try {
       await this.sqlClient.raw(
-        `SHOW IMPORTED KEYS IN SCHEMA "${this.database}"."${this.schema}";`
+        `SHOW IMPORTED KEYS IN SCHEMA "${this.database}"."${this.schema}";`,
       );
 
       const lastQueries = await this.sqlClient.raw(`
@@ -889,7 +889,7 @@ class SnowflakeClient extends KnexClient {
         LEFT JOIN (select * from table(result_scan('${ik_query_id}'))) pk
         ON "PK"."fk_name" = tc.constraint_name
         WHERE tc.constraint_type = 'FOREIGN KEY' and tc.table_catalog = ? and tc.table_schema = ? and tc.table_name = ?;`,
-        [this.database, this.schema, args.tn]
+        [this.database, this.schema, args.tn],
       );
 
       result.data.list = rows;
@@ -925,7 +925,7 @@ class SnowflakeClient extends KnexClient {
     log.api(`${_func}:args:`, args);
     try {
       await this.sqlClient.raw(
-        `SHOW IMPORTED KEYS IN SCHEMA "${this.database}"."${this.schema}";`
+        `SHOW IMPORTED KEYS IN SCHEMA "${this.database}"."${this.schema}";`,
       );
 
       const lastQueries = await this.sqlClient.raw(`
@@ -959,7 +959,7 @@ class SnowflakeClient extends KnexClient {
         LEFT JOIN (select * from table(result_scan('${ik_query_id}'))) pk
         ON "PK"."fk_name" = tc.constraint_name
         WHERE tc.constraint_type = 'FOREIGN KEY' and tc.table_catalog = ? and tc.table_schema = ?;`,
-        [this.database, this.schema]
+        [this.database, this.schema],
       );
 
       result.data.list = rows;
@@ -1091,7 +1091,7 @@ class SnowflakeClient extends KnexClient {
     try {
       const { rows } = await this.sqlClient.raw(
         `select * from "${this.database}".INFORMATION_SCHEMA.views WHERE table_schema = ?;`,
-        [this.schema]
+        [this.schema],
       );
 
       for (let i = 0; i < rows.length; ++i) {
@@ -1176,7 +1176,7 @@ class SnowflakeClient extends KnexClient {
       args.databaseName = this.database;
 
       const { rows } = await this.sqlClient.raw(
-        `select * from "${this.database}".INFORMATION_SCHEMA.views WHERE table_name='${args.view_name}' and table_schema = '${this.schema}';`
+        `select * from "${this.database}".INFORMATION_SCHEMA.views WHERE table_name='${args.view_name}' and table_schema = '${this.schema}';`,
       );
 
       for (let i = 0; i < rows.length; ++i) {
@@ -1264,7 +1264,7 @@ class SnowflakeClient extends KnexClient {
               this.querySeparator() +
               this.genQuery(
                 `CREATE TRIGGER ?? \n${args.timing} ${args.event}\nON ?? FOR EACH ROW\n${args.statement}`,
-                [args.trigger_name, args.tn]
+                [args.trigger_name, args.tn],
               ),
           },
         ],
@@ -1320,7 +1320,7 @@ class SnowflakeClient extends KnexClient {
     try {
       throw new Error('Function not supported for Snowflake yet');
       await this.sqlClient.raw(
-        `DROP PROCEDURE IF EXISTS ${args.procedure_name}`
+        `DROP PROCEDURE IF EXISTS ${args.procedure_name}`,
       );
     } catch (e) {
       log.ppe(e, _func);
@@ -1346,7 +1346,7 @@ class SnowflakeClient extends KnexClient {
         this._version = result.data.object;
         log.debug(
           `Version was empty for ${args.func}: population version for database as`,
-          this._version
+          this._version,
         );
       }
 
@@ -1419,7 +1419,7 @@ class SnowflakeClient extends KnexClient {
       let downQuery = this.querySeparator() + args.oldCreateFunction;
 
       await this.sqlClient.raw(
-        `DROP FUNCTION IF EXISTS ${args.function_declaration};`
+        `DROP FUNCTION IF EXISTS ${args.function_declaration};`,
       );
       await this.sqlClient.raw(upQuery);
 
@@ -1576,12 +1576,12 @@ class SnowflakeClient extends KnexClient {
     try {
       throw new Error('Function not supported for Snowflake yet');
       await this.sqlClient.raw(
-        `DROP TRIGGER ${args.trigger_name} ON ${args.tn}`
+        `DROP TRIGGER ${args.trigger_name} ON ${args.tn}`,
       );
       await this.sqlClient.raw(
         `CREATE TRIGGER ${args.trigger_name} \n${args.timing} ${
           args.event
-        }\nON ${this.getTnPath(args.tn)} FOR EACH ROW\n${args.statement}`
+        }\nON ${this.getTnPath(args.tn)} FOR EACH ROW\n${args.statement}`,
       );
 
       result.data.object = {
@@ -1839,13 +1839,13 @@ class SnowflakeClient extends KnexClient {
             args.table,
             args.columns[i],
             oldColumn,
-            upQuery
+            upQuery,
           );
           downQuery += this.alterTableAddColumn(
             args.table,
             oldColumn,
             args.columns[i],
-            downQuery
+            downQuery,
           );
         } else if (args.columns[i].altered & 2 || args.columns[i].altered & 8) {
           // col edit
@@ -1853,13 +1853,13 @@ class SnowflakeClient extends KnexClient {
             args.table,
             args.columns[i],
             oldColumn,
-            upQuery
+            upQuery,
           );
           downQuery += this.alterTableChangeColumn(
             args.table,
             oldColumn,
             args.columns[i],
-            downQuery
+            downQuery,
           );
         } else if (args.columns[i].altered & 1) {
           // col addition
@@ -1867,13 +1867,13 @@ class SnowflakeClient extends KnexClient {
             args.table,
             args.columns[i],
             oldColumn,
-            upQuery
+            upQuery,
           );
           downQuery += this.alterTableRemoveColumn(
             args.table,
             args.columns[i],
             oldColumn,
-            downQuery
+            downQuery,
           );
         }
       }
@@ -1884,7 +1884,7 @@ class SnowflakeClient extends KnexClient {
           args.table,
           args.columns,
           args.originalColumns,
-          upQuery
+          upQuery,
         );
       downQuery +=
         (downQuery ? ';' : '') +
@@ -1892,7 +1892,7 @@ class SnowflakeClient extends KnexClient {
           args.table,
           args.originalColumns,
           args.columns,
-          downQuery
+          downQuery,
         );
 
       if (upQuery) {
@@ -1992,7 +1992,7 @@ class SnowflakeClient extends KnexClient {
       let indexList: any = await this.indexList(args);
 
       indexList = indexList.data.list.filter(
-        ({ cst }) => cst !== 'p' && cst !== 'f'
+        ({ cst }) => cst !== 'p' && cst !== 'f',
       );
 
       const indexesMap: { [key: string]: any } = {};
@@ -2010,7 +2010,7 @@ class SnowflakeClient extends KnexClient {
       }
 
       for (const { non_unique, tn, columns, indexName } of Object.values(
-        indexesMap
+        indexesMap,
       )) {
         downQuery +=
           this.querySeparator() +
@@ -2423,7 +2423,7 @@ class SnowflakeClient extends KnexClient {
         } else {
           query += this.genQuery(
             `alter TABLE ?? add constraint ?? PRIMARY KEY(??);`,
-            [t, `${t}_pkey`, numOfPksInNew]
+            [t, `${t}_pkey`, numOfPksInNew],
           );
         }
       }
@@ -2438,7 +2438,7 @@ class SnowflakeClient extends KnexClient {
     query += this.genQuery(
       `ALTER TABLE ?? DROP COLUMN ??`,
       [this.getTnPath(t), n.cn],
-      shouldSanitize
+      shouldSanitize,
     );
     return query;
   }
@@ -2483,7 +2483,7 @@ class SnowflakeClient extends KnexClient {
         query += this.genQuery(
           ` ?? NUMBER(38,0) NOT NULL autoincrement UNIQUE`,
           [n.cn],
-          shouldSanitize
+          shouldSanitize,
         );
       } else {
         query += this.genQuery(` ?? ${n.dt}`, [n.cn], shouldSanitize);
@@ -2499,14 +2499,14 @@ class SnowflakeClient extends KnexClient {
       query = this.genQuery(
         `ALTER TABLE ?? ${query};`,
         [this.getTnPath(t)],
-        shouldSanitize
+        shouldSanitize,
       );
     } else {
       if (n.cn !== o.cn) {
         query += this.genQuery(
           `\nALTER TABLE ?? RENAME COLUMN ?? TO ?? ;\n`,
           [this.getTnPath(t), o.cn, n.cn],
-          shouldSanitize
+          shouldSanitize,
         );
       }
 
@@ -2514,7 +2514,7 @@ class SnowflakeClient extends KnexClient {
         query += this.genQuery(
           `\nALTER TABLE ?? ALTER COLUMN ?? SET DATA TYPE ${n.dt}`,
           [this.getTnPath(t), n.cn],
-          shouldSanitize
+          shouldSanitize,
         );
         query += n.dtxp && n.dt !== 'text' ? `(${n.dtxp});\n` : ';\n';
       }
@@ -2523,7 +2523,7 @@ class SnowflakeClient extends KnexClient {
         query += this.genQuery(
           `\nALTER TABLE ?? ALTER COLUMN ?? `,
           [this.getTnPath(t), n.cn],
-          shouldSanitize
+          shouldSanitize,
         );
         query += n.rqd ? ` SET NOT NULL;\n` : ` DROP NOT NULL;\n`;
       }
@@ -2532,7 +2532,7 @@ class SnowflakeClient extends KnexClient {
         query += this.genQuery(
           `\nALTER TABLE ?? ALTER COLUMN ?? `,
           [this.getTnPath(t), n.cn],
-          shouldSanitize
+          shouldSanitize,
         );
         query += n.cdf ? ` SET DEFAULT ${n.cdf};\n` : ` DROP DEFAULT;\n`;
       }
@@ -2571,7 +2571,7 @@ class SnowflakeClient extends KnexClient {
           FROM "${this.database}".information_schema.tables t
           WHERE t.table_type = 'BASE TABLE and table_schema = ?'
         )`,
-        [this.schema]
+        [this.schema],
       );
       result.data = data.rows[0];
     } catch (e) {

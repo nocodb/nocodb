@@ -500,7 +500,7 @@ export const getViewPaths = async (ctx: {
             content: {
               'application/json': {
                 schema: getPaginatedResponseType(
-                  `${ctx.tableName}${ctx.viewName}GridResponse`
+                  `${ctx.tableName}${ctx.viewName}GridResponse`,
                 ),
               },
             },
@@ -671,6 +671,6 @@ function getPaginatedResponseType(type: string) {
 }
 function isRelationExist(columns: SwaggerColumn[]) {
   return columns.some(
-    (c) => c.column.uidt === UITypes.LinkToAnotherRecord && !c.column.system
+    (c) => c.column.uidt === UITypes.LinkToAnotherRecord && !c.column.system,
   );
 }

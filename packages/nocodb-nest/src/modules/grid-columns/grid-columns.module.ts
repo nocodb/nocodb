@@ -4,6 +4,6 @@ import { GridColumnsController } from './grid-columns.controller';
 
 @Module({
   controllers: [GridColumnsController],
-  providers: [GridColumnsService]
+  providers: [GridColumnsService],
 })
 export class GridColumnsModule {}

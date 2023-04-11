@@ -33,7 +33,7 @@ export default class KanbanView implements KanbanType {
       viewId &&
       (await NocoCache.get(
         `${CacheScope.KANBAN_VIEW}:${viewId}`,
-        CacheGetType.TYPE_OBJECT
+        CacheGetType.TYPE_OBJECT,
       ));
     if (!view) {
       view = await ncMeta.metaGet2(null, null, MetaTable.KANBAN_VIEW, {
@@ -47,7 +47,7 @@ export default class KanbanView implements KanbanType {
 
   public static async IsColumnBeingUsedAsGroupingField(
     columnId: string,
-    ncMeta = Noco.ncMeta
+    ncMeta = Noco.ncMeta,
   ) {
     return (
       (
@@ -88,7 +88,7 @@ export default class KanbanView implements KanbanType {
       null,
       MetaTable.KANBAN_VIEW,
       insertObj,
-      true
+      true,
     );
 
     return this.get(view.fk_view_id, ncMeta);
@@ -97,7 +97,7 @@ export default class KanbanView implements KanbanType {
   static async update(
     kanbanId: string,
     body: Partial<KanbanView>,
-    ncMeta = Noco.ncMeta
+    ncMeta = Noco.ncMeta,
   ) {
     // get existing cache
     const key = `${CacheScope.KANBAN_VIEW}:${kanbanId}`;
@@ -126,7 +126,7 @@ export default class KanbanView implements KanbanType {
       updateObj,
       {
         fk_view_id: kanbanId,
-      }
+      },
     );
   }
 }

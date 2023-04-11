@@ -39,7 +39,7 @@ export default class Minio implements IStorageAdapterV2 {
           resolve(
             `http${this.input.useSSL ? 's' : ''}://${this.input.endPoint}:${
               this.input.port
-            }/${this.input.bucket}/${key}`
+            }/${this.input.bucket}/${key}`,
           );
         })
         .catch(reject);
@@ -123,11 +123,11 @@ export default class Minio implements IStorageAdapterV2 {
               resolve(
                 `http${this.input.useSSL ? 's' : ''}://${this.input.endPoint}:${
                   this.input.port
-                }/${this.input.bucket}/${key}`
+                }/${this.input.bucket}/${key}`,
               );
             })
             .catch(reject);
-        }
+        },
       );
     });
   }

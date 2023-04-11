@@ -4,6 +4,6 @@ import { PublicDatasController } from './public-datas.controller';
 
 @Module({
   controllers: [PublicDatasController],
-  providers: [PublicDatasService]
+  providers: [PublicDatasService],
 })
 export class PublicDatasModule {}

@@ -30,14 +30,14 @@ export default async function ({
       return {
         builder: knex(`${childModel?.table_name} as ${refTableAlias}`)
           [columnOptions.rollup_function as string]?.(
-            knex.ref(`${refTableAlias}.${rollupColumn.column_name}`)
+            knex.ref(`${refTableAlias}.${rollupColumn.column_name}`),
           )
           .where(
             knex.ref(
-              `${alias || parentModel.table_name}.${parentCol.column_name}`
+              `${alias || parentModel.table_name}.${parentCol.column_name}`,
             ),
             '=',
-            knex.ref(`${refTableAlias}.${childCol.column_name}`)
+            knex.ref(`${refTableAlias}.${childCol.column_name}`),
           ),
       };
     case RelationTypes.MANY_TO_MANY: {
@@ -48,20 +48,20 @@ export default async function ({
       return {
         builder: knex(`${parentModel?.table_name} as ${refTableAlias}`)
           [columnOptions.rollup_function as string]?.(
-            knex.ref(`${refTableAlias}.${rollupColumn.column_name}`)
+            knex.ref(`${refTableAlias}.${rollupColumn.column_name}`),
           )
           .innerJoin(
             mmModel.table_name,
             knex.ref(`${mmModel.table_name}.${mmParentCol.column_name}`),
             '=',
-            knex.ref(`${refTableAlias}.${parentCol.column_name}`)
+            knex.ref(`${refTableAlias}.${parentCol.column_name}`),
           )
           .where(
             knex.ref(`${mmModel.table_name}.${mmChildCol.column_name}`),
             '=',
             knex.ref(
-              `${alias || childModel.table_name}.${childCol.column_name}`
-            )
+              `${alias || childModel.table_name}.${childCol.column_name}`,
+            ),
           ),
       };
     }

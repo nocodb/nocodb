@@ -21,7 +21,7 @@ export default class ProjectUser {
 
   public static async insert(
     projectUser: Partial<ProjectUser>,
-    ncMeta = Noco.ncMeta
+    ncMeta = Noco.ncMeta,
   ) {
     const insertObj = extractProps(projectUser, [
       'fk_user_id',
@@ -34,13 +34,13 @@ export default class ProjectUser {
       null,
       MetaTable.PROJECT_USERS,
       insertObj,
-      true
+      true,
     );
 
     // reset all user projects cache
     await NocoCache.delAll(
       CacheScope.USER_PROJECT,
-      `${projectUser.fk_user_id}:*`
+      `${projectUser.fk_user_id}:*`,
     );
 
     return this.get(project_id, fk_user_id, ncMeta);
@@ -55,7 +55,7 @@ export default class ProjectUser {
       userId &&
       (await NocoCache.get(
         `${CacheScope.PROJECT_USER}:${projectId}:${userId}`,
-        CacheGetType.TYPE_OBJECT
+        CacheGetType.TYPE_OBJECT,
       ));
     if (!projectUser) {
       projectUser = await ncMeta.metaGet2(null, null, MetaTable.PROJECT_USERS, {
@@ -64,7 +64,7 @@ export default class ProjectUser {
       });
       await NocoCache.set(
         `${CacheScope.PROJECT_USER}:${projectId}:${userId}`,
-        projectUser
+        projectUser,
       );
     }
     return projectUser;
@@ -82,7 +82,7 @@ export default class ProjectUser {
       offset: number;
       query?: string;
     },
-    ncMeta = Noco.ncMeta
+    ncMeta = Noco.ncMeta,
   ) {
     const queryBuilder = ncMeta
       .knex(MetaTable.USERS)
@@ -92,7 +92,7 @@ export default class ProjectUser {
         `${MetaTable.USERS}.invite_token`,
         `${MetaTable.USERS}.roles as main_roles`,
         `${MetaTable.PROJECT_USERS}.project_id`,
-        `${MetaTable.PROJECT_USERS}.roles as roles`
+        `${MetaTable.PROJECT_USERS}.roles as roles`,
       )
       .offset(offset)
       .limit(limit);
@@ -105,11 +105,11 @@ export default class ProjectUser {
       this.on(
         `${MetaTable.PROJECT_USERS}.fk_user_id`,
         '=',
-        `${MetaTable.USERS}.id`
+        `${MetaTable.USERS}.id`,
       ).andOn(
         `${MetaTable.PROJECT_USERS}.project_id`,
         '=',
-        ncMeta.knex.raw('?', [project_id])
+        ncMeta.knex.raw('?', [project_id]),
       );
     });
 
@@ -122,7 +122,7 @@ export default class ProjectUser {
     }: {
       query?: string;
     },
-    ncMeta = Noco.ncMeta
+    ncMeta = Noco.ncMeta,
   ): Promise<number> {
     const qb = ncMeta.knex(MetaTable.USERS);
 
@@ -169,7 +169,7 @@ export default class ProjectUser {
       {
         fk_user_id: userId,
         project_id: projectId,
-      }
+      },
     );
   }
 
@@ -195,7 +195,7 @@ export default class ProjectUser {
       await NocoCache.setList(
         CacheScope.USER_PROJECT,
         [userId],
-        cachedProjectList
+        cachedProjectList,
       );
     }
 
@@ -208,7 +208,7 @@ export default class ProjectUser {
 
   static async getProjectsIdList(
     userId: string,
-    ncMeta = Noco.ncMeta
+    ncMeta = Noco.ncMeta,
   ): Promise<ProjectUser[]> {
     return await ncMeta.metaList2(null, null, MetaTable.PROJECT_USERS, {
       condition: { fk_user_id: userId },
@@ -218,7 +218,7 @@ export default class ProjectUser {
   static async getProjectsList(
     userId: string,
     _params?: any,
-    ncMeta = Noco.ncMeta
+    ncMeta = Noco.ncMeta,
   ): Promise<ProjectType[]> {
     // todo: pagination
     let projectList = await NocoCache.getList(CacheScope.USER_PROJECT, [
@@ -235,16 +235,16 @@ export default class ProjectUser {
       .innerJoin(MetaTable.PROJECT_USERS, function () {
         this.on(
           `${MetaTable.PROJECT_USERS}.project_id`,
-          `${MetaTable.PROJECT}.id`
+          `${MetaTable.PROJECT}.id`,
         );
         this.andOn(
           `${MetaTable.PROJECT_USERS}.fk_user_id`,
-          ncMeta.knex.raw('?', [userId])
+          ncMeta.knex.raw('?', [userId]),
         );
       })
       .where(function () {
         this.where(`${MetaTable.PROJECT}.deleted`, false).orWhereNull(
-          `${MetaTable.PROJECT}.deleted`
+          `${MetaTable.PROJECT}.deleted`,
         );
       });
 

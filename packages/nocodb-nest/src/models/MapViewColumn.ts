@@ -23,18 +23,18 @@ export default class MapViewColumn {
       mapViewColumnId &&
       (await NocoCache.get(
         `${CacheScope.MAP_VIEW_COLUMN}:${mapViewColumnId}`,
-        CacheGetType.TYPE_OBJECT
+        CacheGetType.TYPE_OBJECT,
       ));
     if (!view) {
       view = await ncMeta.metaGet2(
         null,
         null,
         MetaTable.MAP_VIEW_COLUMNS,
-        mapViewColumnId
+        mapViewColumnId,
       );
       await NocoCache.set(
         `${CacheScope.MAP_VIEW_COLUMN}:${mapViewColumnId}`,
-        view
+        view,
       );
     }
     return view && new MapViewColumn(view);
@@ -61,7 +61,7 @@ export default class MapViewColumn {
       null,
       null,
       MetaTable.MAP_VIEW_COLUMNS,
-      insertObj
+      insertObj,
     );
 
     await NocoCache.set(`${CacheScope.MAP_VIEW_COLUMN}:${fk_column_id}`, id);
@@ -74,7 +74,7 @@ export default class MapViewColumn {
       await NocoCache.appendToList(
         CacheScope.MAP_VIEW_COLUMN,
         [column.fk_view_id],
-        `${CacheScope.MAP_VIEW_COLUMN}:${id}`
+        `${CacheScope.MAP_VIEW_COLUMN}:${id}`,
       );
 
     return this.get(id, ncMeta);
@@ -82,7 +82,7 @@ export default class MapViewColumn {
 
   public static async list(
     viewId: string,
-    ncMeta = Noco.ncMeta
+    ncMeta = Noco.ncMeta,
   ): Promise<MapViewColumn[]> {
     let views = await NocoCache.getList(CacheScope.MAP_VIEW_COLUMN, [viewId]);
     if (!views.length) {
@@ -99,7 +99,7 @@ export default class MapViewColumn {
     views.sort(
       (a, b) =>
         (a.order != null ? a.order : Infinity) -
-        (b.order != null ? b.order : Infinity)
+        (b.order != null ? b.order : Infinity),
     );
     return views?.map((v) => new MapViewColumn(v));
   }

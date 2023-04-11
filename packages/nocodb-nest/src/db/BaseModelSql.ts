@@ -121,7 +121,7 @@ class BaseModelSql extends BaseModel {
           !(fn.constructor.name === 'AsyncFunction' ? await fn(arg) : fn(arg))
         ) {
           throw new Error(
-            msg[j].replace(/\{VALUE}/g, columns[cn]).replace(/\{cn}/g, cn)
+            msg[j].replace(/\{VALUE}/g, columns[cn]).replace(/\{cn}/g, cn),
           );
         }
       }
@@ -283,8 +283,8 @@ class BaseModelSql extends BaseModel {
       if (this.isPg() || this.dbDriver.client === 'mssql') {
         query.returning(
           Object.entries(this.aliasToColumn).map(
-            ([val, key]) => `${key} as ${val}`
-          )
+            ([val, key]) => `${key} as ${val}`,
+          ),
         );
         response = await this._run(query);
       }
@@ -312,7 +312,7 @@ class BaseModelSql extends BaseModel {
           Array.isArray(response)
             ? response?.[0]?.[ai._cn]
             : response?.[ai._cn],
-          this.defaultNestedBtQueryParams
+          this.defaultNestedBtQueryParams,
         );
         response = !isEmpty(nestedResponse) ? nestedResponse : response;
       }
@@ -354,7 +354,7 @@ class BaseModelSql extends BaseModel {
 
       // this.validate(data);
       await this._run(
-        driver(this.tnPath).update(mappedData).where(this._wherePk(id))
+        driver(this.tnPath).update(mappedData).where(this._wherePk(id)),
       );
 
       const response = await this.nestedRead(id, this.defaultNestedQueryParams);
@@ -381,7 +381,7 @@ class BaseModelSql extends BaseModel {
       const dbDriver = trx ? trx : this.dbDriver;
 
       const response = await this._run(
-        dbDriver(this.tnPath).del().where(this._wherePk(id))
+        dbDriver(this.tnPath).del().where(this._wherePk(id)),
       );
       await this.afterDelete({ id }, trx, cookie);
       return response;
@@ -481,8 +481,8 @@ class BaseModelSql extends BaseModel {
           this._whereFk({
             tnp,
             parentId,
-          })
-        )
+          }),
+        ),
       );
       await this.afterUpdate(response, trx, cookie);
       return response;
@@ -514,7 +514,7 @@ class BaseModelSql extends BaseModel {
         driver(this.tnPath)
           .update(data)
           .xwhere(where, this.selectQuery(''))
-          .condition(condition, this.selectQuery(''))
+          .condition(condition, this.selectQuery('')),
       );
 
       // await this.afterUpdate(data);
@@ -546,8 +546,8 @@ class BaseModelSql extends BaseModel {
           this._whereFk({
             tnp,
             parentId,
-          })
-        )
+          }),
+        ),
       );
       await this.afterDelete({ id, parentId, tnp }, trx, cookie);
       return response;
@@ -576,7 +576,7 @@ class BaseModelSql extends BaseModel {
         driver(this.tnPath)
           .del()
           .xwhere(where, this.selectQuery(''))
-          .condition(condition, this.selectQuery(''))
+          .condition(condition, this.selectQuery('')),
       );
 
       // await this.afterUpdate(data);
@@ -639,7 +639,7 @@ class BaseModelSql extends BaseModel {
         await this.validate(d);
         // this.validate(d);
         const response = await this._run(
-          transaction(this.tn).update(d).where(this._extractPks(d))
+          transaction(this.tn).update(d).where(this._extractPks(d)),
         );
         res.push(response);
       }
@@ -705,7 +705,7 @@ class BaseModelSql extends BaseModel {
             .select(...this.selectRollups)
             .conditionGraph(args?.conditionGraph)
             .where(this._wherePk(id))
-            .first()
+            .first(),
         )) || {}
       );
     } catch (e) {
@@ -734,9 +734,9 @@ class BaseModelSql extends BaseModel {
             this._whereFk({
               tnp,
               parentId,
-            })
+            }),
           )
-          .limit(1)
+          .limit(1),
       );
     } catch (e) {
       console.log(e);
@@ -807,7 +807,7 @@ class BaseModelSql extends BaseModel {
       hm?: string;
       bt?: string;
       mm?: string;
-    } = {}
+    } = {},
   ) {
     try {
       args = Object.assign({}, this.defaultNestedQueryParams, args);
@@ -911,8 +911,8 @@ class BaseModelSql extends BaseModel {
               `select reltuples::int8 as count 
         from pg_class c JOIN pg_catalog.pg_namespace n ON n.oid=c.relnamespace
         where nspname=? AND relname=?`,
-              [this.config?.searchPath?.[0] || 'public', this.tn]
-            )
+              [this.config?.searchPath?.[0] || 'public', this.tn],
+            ),
           )
         )?.rows?.[0];
         if (res?.count > 1000) {
@@ -927,7 +927,7 @@ class BaseModelSql extends BaseModel {
           .count(`${this.tn}.${(this.pks[0] || this.columns[0]).cn} as count`)
           .xwhere(where, { ...this.selectQuery(''), ...this.selectFormulasObj })
           .xhaving(having, this.selectQuery(''))
-          .first()
+          .first(),
       );
     } catch (e) {
       console.log(e);
@@ -954,12 +954,12 @@ class BaseModelSql extends BaseModel {
             this._whereFk({
               parentId,
               tnp,
-            })
+            }),
           )
           .count(`${this.tn}.${(this.pks[0] || this.columns[0]).cn} as count`)
           .xwhere(where, this.selectQuery(''))
           .conditionGraph(conditionGraph)
-          .first()
+          .first(),
       );
     } catch (e) {
       console.log(e);
@@ -1148,7 +1148,7 @@ class BaseModelSql extends BaseModel {
         await this.dbDriver.unionAll(
           ranges.map(([start, end]) => {
             const query = this.$db.xwhere(
-              `(${column_name},ge,${start})~and(${column_name},le,${end})`
+              `(${column_name},ge,${start})~and(${column_name},le,${end})`,
             );
             if (func) {
               func
@@ -1157,7 +1157,7 @@ class BaseModelSql extends BaseModel {
             }
             return this.isSqlite() ? this.dbDriver.select().from(query) : query;
           }),
-          !this.isSqlite()
+          !this.isSqlite(),
         )
       ).map((row, i) => {
         row.range = ranges[i].join('-');
@@ -1193,7 +1193,7 @@ class BaseModelSql extends BaseModel {
   }) {
     try {
       const query = this._buildDistinctQuery(
-        column_name ? column_name.split(',') : []
+        column_name ? column_name.split(',') : [],
       );
       query.xwhere(where, this.selectQuery('')).conditionGraph(conditionGraph);
       this._paginateAndSort(query, { limit, offset, sort });
@@ -1257,7 +1257,7 @@ class BaseModelSql extends BaseModel {
   private filterFormulaColumns(columns: string[]) {
     return columns.filter((column) => {
       return this.virtualColumns.find(
-        (col) => col._cn === column && col?.formula
+        (col) => col._cn === column && col?.formula,
       );
     });
   }
@@ -1297,7 +1297,7 @@ class BaseModelSql extends BaseModel {
       rest,
       index,
       child,
-      'h'
+      'h',
     );
     let { fields } = restArgs;
     const { cn } = this.hasManyRelations.find(({ tn }) => tn === child) || {};
@@ -1325,8 +1325,8 @@ class BaseModelSql extends BaseModel {
           this._paginateAndSort(query, { sort, limit, offset }, null, true);
           return this.isSqlite() ? driver.select().from(query) : query;
         }),
-        !this.isSqlite()
-      )
+        !this.isSqlite(),
+      ),
     );
 
     const gs = groupBy(childs, _cn);
@@ -1353,10 +1353,10 @@ class BaseModelSql extends BaseModel {
         index,
         child,
         parentIds: parent.map(
-          (p) => p[this.columnToAlias?.[this.pks[0].cn] || this.pks[0].cn]
+          (p) => p[this.columnToAlias?.[this.pks[0].cn] || this.pks[0].cn],
         ),
       },
-      trx
+      trx,
     );
     parent.forEach((row, i) => {
       row[`${this.dbModels?.[child]?._tn || child}MMList`] = gs[i] || [];
@@ -1365,13 +1365,13 @@ class BaseModelSql extends BaseModel {
 
   public async _getGroupedManyToManyList(
     { rest = {}, index = 0, child, parentIds },
-    trx = null
+    trx = null,
   ) {
     const { where, limit, offset, sort, ...restArgs } = this._getChildListArgs(
       rest,
       index,
       child,
-      'm'
+      'm',
     );
     const driver = trx || this.dbDriver;
     let { fields } = restArgs;
@@ -1403,8 +1403,8 @@ class BaseModelSql extends BaseModel {
           this._paginateAndSort(query, { sort, limit, offset }, null, true);
           return this.isSqlite() ? driver.select().from(query) : query;
         }),
-        !this.isSqlite()
-      )
+        !this.isSqlite(),
+      ),
     );
 
     const gs = groupBy(childs, `${tn}_${vcn}`);
@@ -1493,9 +1493,9 @@ class BaseModelSql extends BaseModel {
                   child,
                 },
                 rest,
-                index
-              )
-          )
+                index,
+              ),
+          ),
         );
       }
       return parent;
@@ -1565,9 +1565,9 @@ class BaseModelSql extends BaseModel {
                   child,
                 },
                 rest,
-                index
-              )
-          )
+                index,
+              ),
+          ),
         );
       }
 
@@ -1584,9 +1584,9 @@ class BaseModelSql extends BaseModel {
             ];
             return this._belongsTo(
               { parent, rcn, parentIds, childs: items, cn, ...rest },
-              index
+              index,
             );
-          })
+          }),
         );
 
       if (items && items.length) {
@@ -1600,9 +1600,9 @@ class BaseModelSql extends BaseModel {
                   child,
                 },
                 rest,
-                index
-              )
-          )
+                index,
+              ),
+          ),
         );
       }
 
@@ -1647,7 +1647,7 @@ class BaseModelSql extends BaseModel {
         rest,
         parents,
         many,
-        trx
+        trx,
       );
 
       return item;
@@ -1682,7 +1682,7 @@ class BaseModelSql extends BaseModel {
                 })
                 .whereIn(
                   childModel.pks[0].cn,
-                  nestedData?.map((r) => childModel._extractPksValues(r))
+                  nestedData?.map((r) => childModel._extractPksValues(r)),
                 );
             });
           } else if (meta.mm) {
@@ -1710,8 +1710,8 @@ class BaseModelSql extends BaseModel {
       if (this.isPg() || this.dbDriver.client === 'mssql') {
         query.returning(
           Object.entries(this.aliasToColumn).map(
-            ([val, key]) => `${key} as ${val}`
-          )
+            ([val, key]) => `${key} as ${val}`,
+          ),
         );
         response = await this._run(query);
       }
@@ -1762,7 +1762,7 @@ class BaseModelSql extends BaseModel {
         response = await this.nestedRead(
           rowId,
           this.defaultNestedBtQueryParams,
-          driver
+          driver,
         );
       }
 
@@ -1789,7 +1789,7 @@ class BaseModelSql extends BaseModel {
     rest,
     parents: string,
     many: string,
-    trx = null
+    trx = null,
   ) {
     if (items && items.length) {
       await Promise.all(
@@ -1803,9 +1803,9 @@ class BaseModelSql extends BaseModel {
               },
               rest,
               index,
-              trx
-            )
-        )
+              trx,
+            ),
+        ),
       );
     }
 
@@ -1822,9 +1822,9 @@ class BaseModelSql extends BaseModel {
         return this._belongsTo(
           { parent, rcn, parentIds, childs: items, cn, ...rest },
           index,
-          trx
+          trx,
         );
-      })
+      }),
     );
 
     if (items && items.length) {
@@ -1839,9 +1839,9 @@ class BaseModelSql extends BaseModel {
               },
               rest,
               index,
-              trx
-            )
-        )
+              trx,
+            ),
+        ),
       );
     }
   }
@@ -1877,7 +1877,7 @@ class BaseModelSql extends BaseModel {
           .dbDriver(this.dbModels[rtn].tnPath)
           .select(`${rtn}.${rcn}`)
           .join(vtn, `${rtn}.${rcn}`, `${vtn}.${vrcn}`)
-          .where(`${vtn}.${vcn}`, pid)
+          .where(`${vtn}.${vcn}`, pid),
       );
     childModel._paginateAndSort(query, { limit, offset, sort });
 
@@ -1915,7 +1915,7 @@ class BaseModelSql extends BaseModel {
           .dbDriver(this.dbModels[rtn].tnPath)
           .select(`${rtn}.${rcn}`)
           .join(vtn, `${rtn}.${rcn}`, `${vtn}.${vrcn}`)
-          .where(`${vtn}.${vcn}`, pid)
+          .where(`${vtn}.${vcn}`, pid),
       )
       .first();
 
@@ -1960,9 +1960,9 @@ class BaseModelSql extends BaseModel {
           ];
           return this._belongsTo(
             { parent, rcn, parentIds, childs, cn, ...rest },
-            index
+            index,
           );
-        })
+        }),
       );
 
       return childs;
@@ -1986,7 +1986,7 @@ class BaseModelSql extends BaseModel {
   async _belongsTo(
     { parent, rcn, parentIds, childs, cn, ...rest },
     index,
-    trx = null
+    trx = null,
   ) {
     const driver = trx || this.dbDriver;
     let { fields } = this._getChildListArgs(rest, index, parent, 'b');
@@ -2000,12 +2000,12 @@ class BaseModelSql extends BaseModel {
       driver(this.dbModels[parent].tnPath)
         // .select(...fields.split(',')
         .select(this.dbModels[parent].selectQuery(fields))
-        .whereIn(rcn, parentIds)
+        .whereIn(rcn, parentIds),
     );
 
     const gs = groupBy(
       parents,
-      this.dbModels[parent]?.columnToAlias?.[rcn] || rcn
+      this.dbModels[parent]?.columnToAlias?.[rcn] || rcn,
     );
 
     childs.forEach((row) => {
@@ -2067,19 +2067,19 @@ class BaseModelSql extends BaseModel {
                   this.dbModels?.[child]?._paginateAndSort(
                     query,
                     { limit, sort, offset },
-                    child
+                    child,
                   );
                   return this.isSqlite()
                     ? this.dbDriver.select().from(query)
                     : query;
                 }),
-                !this.isSqlite()
+                !this.isSqlite(),
               )
-              .as('list')
+              .as('list'),
           ),
           { ignoreLimit: true } as any,
-          child
-        )
+          child,
+        ),
       );
 
       // return groupBy(childs, cn);
@@ -2127,8 +2127,8 @@ class BaseModelSql extends BaseModel {
               .first();
             return this.isSqlite() ? this.dbDriver.select().from(query) : query;
           }),
-          !this.isSqlite()
-        )
+          !this.isSqlite(),
+        ),
       );
 
       return childs.map(({ count }) => count);
@@ -2159,7 +2159,7 @@ class BaseModelSql extends BaseModel {
       ignoreLimit = false,
     }: any & { ignoreLimit?: boolean },
     table?: string,
-    isUnion?: boolean
+    isUnion?: boolean,
   ) {
     query.offset(offset);
     if (!ignoreLimit) query.limit(limit);
@@ -2224,9 +2224,9 @@ class BaseModelSql extends BaseModel {
     obj.limit = Math.max(
       Math.min(
         args.limit || args.l || this.config.limitDefault,
-        this.config.limitMax
+        this.config.limitMax,
       ),
-      this.config.limitMin
+      this.config.limitMin,
     );
     obj.offset = Math.max(+(args.offset || args.o) || 0, 0);
     obj.fields = args.fields || args.f || '*';
@@ -2251,9 +2251,9 @@ class BaseModelSql extends BaseModel {
         args[`${prefix}limit${index}`] ||
           args[`${prefix}l${index}`] ||
           this.config.limitDefault,
-        this.config.limitMax
+        this.config.limitMax,
       ),
-      this.config.limitMin
+      this.config.limitMin,
     );
     obj.offset =
       args[`${prefix}offset${index}`] || args[`${prefix}o${index}`] || 0;
@@ -2334,7 +2334,7 @@ class BaseModelSql extends BaseModel {
         }
         return paramsObj;
       },
-      {}
+      {},
     );
   }
 
@@ -2355,7 +2355,7 @@ class BaseModelSql extends BaseModel {
             }
             return obj;
           },
-          { hm: [], bt: [], mm: [] }
+          { hm: [], bt: [], mm: [] },
         );
 
         // todo: handle if virtual column missing
@@ -2396,7 +2396,7 @@ class BaseModelSql extends BaseModel {
         this._defaultNestedQueryParams = {
           ...Object.entries(nestedFields).reduce(
             (ro, [k, a]) => ({ ...ro, [k]: a.join(',') }),
-            {}
+            {},
           ),
           ...fieldsObj,
         };
@@ -2450,14 +2450,14 @@ class BaseModelSql extends BaseModel {
 
   protected get selectFormulasObj() {
     if (!this._selectFormulasObj) {
-      this._selectFormulasObj = {}
+      this._selectFormulasObj = {};
     }
     return this._selectFormulasObj;
   }
 
   // todo: optimize
   protected get selectRollups() {
-    return (this.virtualColumns || [])
+    return this.virtualColumns || [];
   }
 
   // todo: optimize
@@ -2528,7 +2528,7 @@ class BaseModelSql extends BaseModel {
                 refModel.serializeCellValue({
                   value: r[colAlias],
                   columnName: colAlias,
-                })
+                }),
               );
             } else if (row[prop]) {
               csvRow[alias] = refModel.serializeCellValue({
@@ -2578,13 +2578,13 @@ class BaseModelSql extends BaseModel {
           fields.filter(
             (f) =>
               this.columns.some((c) => c._cn === f) ||
-              this.virtualColumns.some((c) => c._cn === f)
+              this.virtualColumns.some((c) => c._cn === f),
           ),
         data: csvRows,
       },
       {
         escapeFormulae: true,
-      }
+      },
     );
     return { data, offset, elapsed };
   }
@@ -2614,7 +2614,7 @@ class BaseModelSql extends BaseModel {
 
         return (data || []).map(
           (attachment) =>
-            `${encodeURI(attachment.title)}(${encodeURI(attachment.url)})`
+            `${encodeURI(attachment.title)}(${encodeURI(attachment.url)})`,
         );
       }
       default:

@@ -1,5 +1,5 @@
 import { Injectable } from '@nestjs/common';
-import { OrgUserRoles } from 'nocodb-sdk'
+import { OrgUserRoles } from 'nocodb-sdk';
 import { UsersService } from '../users/users.service';
 import { promisify } from 'util';
 import * as bcrypt from 'bcryptjs';
@@ -171,7 +171,7 @@ export class AuthService {
     password;
     email_verification_token;
   }) {
-    let roles: string = OrgUserRoles.CREATOR;
+    const roles: string = OrgUserRoles.CREATOR;
 
     // if (await User.isFirst()) {
     //   roles = `${OrgUserRoles.CREATOR},${OrgUserRoles.SUPER_ADMIN}`;
@@ -194,7 +194,7 @@ export class AuthService {
     //   }
     // }
 
-    const token_version = '' // randomTokenString();
+    const token_version = ''; // randomTokenString();
 
     return await this.usersService.insert({
       firstname,

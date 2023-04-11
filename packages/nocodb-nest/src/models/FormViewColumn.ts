@@ -36,14 +36,14 @@ export default class FormViewColumn implements FormColumnType {
       formViewColumnId &&
       (await NocoCache.get(
         `${CacheScope.FORM_VIEW_COLUMN}:${formViewColumnId}`,
-        CacheGetType.TYPE_OBJECT
+        CacheGetType.TYPE_OBJECT,
       ));
     if (!viewColumn) {
       viewColumn = await ncMeta.metaGet2(
         null,
         null,
         MetaTable.FORM_VIEW_COLUMNS,
-        formViewColumnId
+        formViewColumnId,
       );
       viewColumn.meta =
         viewColumn.meta && typeof viewColumn.meta === 'string'
@@ -52,7 +52,7 @@ export default class FormViewColumn implements FormColumnType {
     }
     await NocoCache.set(
       `${CacheScope.FORM_VIEW_COLUMN}:${formViewColumnId}`,
-      viewColumn
+      viewColumn,
     );
 
     return viewColumn && new FormViewColumn(viewColumn);
@@ -77,7 +77,7 @@ export default class FormViewColumn implements FormColumnType {
       MetaTable.FORM_VIEW_COLUMNS,
       {
         fk_view_id: insertObj.fk_view_id,
-      }
+      },
     );
 
     if (insertObj.meta) {
@@ -94,7 +94,7 @@ export default class FormViewColumn implements FormColumnType {
       null,
       null,
       MetaTable.FORM_VIEW_COLUMNS,
-      insertObj
+      insertObj,
     );
 
     await NocoCache.set(`${CacheScope.FORM_VIEW_COLUMN}:${fk_column_id}`, id);
@@ -110,14 +110,14 @@ export default class FormViewColumn implements FormColumnType {
       await NocoCache.appendToList(
         CacheScope.FORM_VIEW_COLUMN,
         [column.fk_view_id],
-        `${CacheScope.FORM_VIEW_COLUMN}:${id}`
+        `${CacheScope.FORM_VIEW_COLUMN}:${id}`,
       );
     return this.get(id, ncMeta);
   }
 
   public static async list(
     viewId: string,
-    ncMeta = Noco.ncMeta
+    ncMeta = Noco.ncMeta,
   ): Promise<FormViewColumn[]> {
     let viewColumns = await NocoCache.getList(CacheScope.FORM_VIEW_COLUMN, [
       viewId,
@@ -134,7 +134,7 @@ export default class FormViewColumn implements FormColumnType {
           orderBy: {
             order: 'asc',
           },
-        }
+        },
       );
 
       for (const viewColumn of viewColumns) {
@@ -144,13 +144,13 @@ export default class FormViewColumn implements FormColumnType {
       await NocoCache.setList(
         CacheScope.FORM_VIEW_COLUMN,
         [viewId],
-        viewColumns
+        viewColumns,
       );
     }
     viewColumns.sort(
       (a, b) =>
         (a.order != null ? a.order : Infinity) -
-        (b.order != null ? b.order : Infinity)
+        (b.order != null ? b.order : Infinity),
     );
     return viewColumns?.map((v) => new FormViewColumn(v));
   }
@@ -158,7 +158,7 @@ export default class FormViewColumn implements FormColumnType {
   static async update(
     columnId: string,
     body: Partial<FormViewColumn>,
-    ncMeta = Noco.ncMeta
+    ncMeta = Noco.ncMeta,
   ) {
     const updateObj = extractProps(body, [
       'label',
@@ -190,7 +190,7 @@ export default class FormViewColumn implements FormColumnType {
       null,
       MetaTable.FORM_VIEW_COLUMNS,
       updateObj,
-      columnId
+      columnId,
     );
   }
 }

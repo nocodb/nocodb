@@ -79,7 +79,7 @@ export default class RedisMockCacheMgr extends CacheMgr {
         }
         return this.client.set(
           key,
-          JSON.stringify(value, this.getCircularReplacer())
+          JSON.stringify(value, this.getCircularReplacer()),
         );
       }
       return this.client.set(key, value);
@@ -99,18 +99,18 @@ export default class RedisMockCacheMgr extends CacheMgr {
     // Example: nc:<orgs>:model:*:<id>
     const keys = await this.client.keys(`${this.prefix}:${scope}:${pattern}`);
     log(
-      `RedisMockCacheMgr::delAll: deleting all keys with pattern ${this.prefix}:${scope}:${pattern}`
+      `RedisMockCacheMgr::delAll: deleting all keys with pattern ${this.prefix}:${scope}:${pattern}`,
     );
     await Promise.all(
       keys.map(
         async (k) =>
-          await this.deepDel(scope, k, CacheDelDirection.CHILD_TO_PARENT)
-      )
+          await this.deepDel(scope, k, CacheDelDirection.CHILD_TO_PARENT),
+      ),
     );
     return Promise.all(
       keys.map(async (k) => {
         await this.del(k);
-      })
+      }),
     );
   }
 
@@ -126,14 +126,14 @@ export default class RedisMockCacheMgr extends CacheMgr {
     const arr = (await this.get(key, CacheGetType.TYPE_ARRAY)) || [];
     log(`RedisMockCacheMgr::getList: getting list with key ${key}`);
     return Promise.all(
-      arr.map(async (k) => await this.get(k, CacheGetType.TYPE_OBJECT))
+      arr.map(async (k) => await this.get(k, CacheGetType.TYPE_OBJECT)),
     );
   }
 
   async setList(
     scope: string,
     subListKeys: string[],
-    list: any[]
+    list: any[],
   ): Promise<boolean> {
     // remove null from arrays
     subListKeys = subListKeys.filter((k) => k);
@@ -145,7 +145,7 @@ export default class RedisMockCacheMgr extends CacheMgr {
         : `${this.prefix}:${scope}:${subListKeys.join(':')}:list`;
     if (!list.length) {
       log(
-        `RedisMockCacheMgr::setList: List is empty for ${listKey}. Skipping ...`
+        `RedisMockCacheMgr::setList: List is empty for ${listKey}. Skipping ...`,
       );
       return Promise.resolve(true);
     }
@@ -174,7 +174,7 @@ export default class RedisMockCacheMgr extends CacheMgr {
   async deepDel(
     scope: string,
     key: string,
-    direction: string
+    direction: string,
   ): Promise<boolean> {
     key = `${this.prefix}:${key}`;
     log(`RedisMockCacheMgr::deepDel: choose direction ${direction}`);
@@ -217,7 +217,7 @@ export default class RedisMockCacheMgr extends CacheMgr {
   async appendToList(
     scope: string,
     subListKeys: string[],
-    key: string
+    key: string,
   ): Promise<boolean> {
     // remove null from arrays
     subListKeys = subListKeys.filter((k) => k);
@@ -247,9 +247,9 @@ export default class RedisMockCacheMgr extends CacheMgr {
           k,
           k.slice(-4) === 'list'
             ? CacheGetType.TYPE_ARRAY
-            : CacheGetType.TYPE_OBJECT
+            : CacheGetType.TYPE_OBJECT,
         );
-      })
+      }),
     ).then(() => {
       return res;
     });

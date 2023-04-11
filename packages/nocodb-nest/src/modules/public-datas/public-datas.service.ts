@@ -25,7 +25,6 @@ export function sanitizeUrlPath(paths) {
   return paths.map((url) => url.replace(/[/.?#]+/g, '_'));
 }
 
-
 @Injectable()
 export class PublicDatasService {
   async dataList(param: {

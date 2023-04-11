@@ -55,7 +55,7 @@ export default class NocoCache {
 
   public static async getList(
     scope: string,
-    subKeys: string[]
+    subKeys: string[],
   ): Promise<any[]> {
     if (this.cacheDisabled) return Promise.resolve([]);
     return this.client.getList(scope, subKeys);
@@ -64,7 +64,7 @@ export default class NocoCache {
   public static async setList(
     scope: string,
     subListKeys: string[],
-    list: any[]
+    list: any[],
   ): Promise<boolean> {
     if (this.cacheDisabled) return Promise.resolve(true);
     return this.client.setList(scope, subListKeys, list);
@@ -73,7 +73,7 @@ export default class NocoCache {
   public static async deepDel(
     scope: string,
     key: string,
-    direction: string
+    direction: string,
   ): Promise<boolean> {
     if (this.cacheDisabled) return Promise.resolve(true);
     return this.client.deepDel(scope, key, direction);
@@ -83,13 +83,13 @@ export default class NocoCache {
     scope: string,
     subListKeys: string[],
 
-    key: string
+    key: string,
   ): Promise<boolean> {
     if (this.cacheDisabled) return Promise.resolve(true);
     return this.client.appendToList(
       scope,
       subListKeys,
-      `${this.prefix}:${key}`
+      `${this.prefix}:${key}`,
     );
   }
 

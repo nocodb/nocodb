@@ -28,7 +28,7 @@ export default class Sort {
     await NocoCache.deepDel(
       CacheScope.SORT,
       `${CacheScope.SORT}:${viewId}`,
-      CacheDelDirection.PARENT_TO_CHILD
+      CacheDelDirection.PARENT_TO_CHILD,
     );
     await ncMeta.metaDelete(null, null, MetaTable.SORT, {
       fk_view_id: viewId,
@@ -37,7 +37,7 @@ export default class Sort {
 
   public static async insert(
     sortObj: Partial<Sort> & { push_to_top?: boolean; order?: number },
-    ncMeta = Noco.ncMeta
+    ncMeta = Noco.ncMeta,
   ) {
     const insertObj = extractProps(sortObj, [
       'id',
@@ -90,13 +90,13 @@ export default class Sort {
       await NocoCache.appendToList(
         CacheScope.SORT,
         [sortObj.fk_view_id],
-        `${CacheScope.SORT}:${row.id}`
+        `${CacheScope.SORT}:${row.id}`,
       );
 
       await NocoCache.appendToList(
         CacheScope.SORT,
         [sortObj.fk_column_id],
-        `${CacheScope.SORT}:${row.id}`
+        `${CacheScope.SORT}:${row.id}`,
       );
     }
     return this.get(row.id, ncMeta);
@@ -111,7 +111,7 @@ export default class Sort {
 
   public static async list(
     { viewId }: { viewId: string },
-    ncMeta = Noco.ncMeta
+    ncMeta = Noco.ncMeta,
   ): Promise<Sort[]> {
     if (!viewId) return null;
     let sortList = await NocoCache.getList(CacheScope.SORT, [viewId]);
@@ -127,7 +127,7 @@ export default class Sort {
     sortList.sort(
       (a, b) =>
         (a.order != null ? a.order : Infinity) -
-        (b.order != null ? b.order : Infinity)
+        (b.order != null ? b.order : Infinity),
     );
     return sortList.map((s) => new Sort(s));
   }
@@ -152,7 +152,7 @@ export default class Sort {
         fk_column_id: body.fk_column_id,
         direction: body.direction,
       },
-      sortId
+      sortId,
     );
   }
 
@@ -160,7 +160,7 @@ export default class Sort {
     await NocoCache.deepDel(
       CacheScope.SORT,
       `${CacheScope.SORT}:${sortId}`,
-      CacheDelDirection.CHILD_TO_PARENT
+      CacheDelDirection.CHILD_TO_PARENT,
     );
     await ncMeta.metaDelete(null, null, MetaTable.SORT, sortId);
   }
@@ -170,7 +170,7 @@ export default class Sort {
       id &&
       (await NocoCache.get(
         `${CacheScope.SORT}:${id}`,
-        CacheGetType.TYPE_OBJECT
+        CacheGetType.TYPE_OBJECT,
       ));
     if (!sortData) {
       sortData = await ncMeta.metaGet2(null, null, MetaTable.SORT, id);
@@ -184,7 +184,7 @@ export default class Sort {
       {
         id: this.fk_view_id,
       },
-      ncMeta
+      ncMeta,
     );
   }
 }

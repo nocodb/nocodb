@@ -1,5 +1,5 @@
-import { Model, Project } from '../../../models'
-import Noco from '../../../Noco'
+import { Model, Project } from '../../../models';
+import Noco from '../../../Noco';
 import { getModelSchemas, getViewSchemas } from './templates/schemas';
 
 import type { SwaggerColumn } from './getSwaggerColumnMetas';
@@ -17,7 +17,7 @@ export default async function getSchemas(
     columns: SwaggerColumn[];
     views: SwaggerView[];
   },
-  _ncMeta = Noco.ncMeta
+  _ncMeta = Noco.ncMeta,
 ) {
   const swaggerSchemas = getModelSchemas({
     tableName: model.title,
@@ -28,7 +28,7 @@ export default async function getSchemas(
 
   for (const { view, columns: viewColumns } of views) {
     const swaggerColumns = columns.filter(
-      (c) => viewColumns.find((vc) => vc.fk_column_id === c.column.id)?.show
+      (c) => viewColumns.find((vc) => vc.fk_column_id === c.column.id)?.show,
     );
     Object.assign(
       swaggerSchemas,
@@ -38,7 +38,7 @@ export default async function getSchemas(
         orgs: 'v1',
         columns: swaggerColumns,
         projectName: project.title,
-      })
+      }),
     );
   }
 

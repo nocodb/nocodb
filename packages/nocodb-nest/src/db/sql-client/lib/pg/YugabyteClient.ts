@@ -21,7 +21,7 @@ class YBClient extends PGClient {
 
     try {
       const { rows } = await this.raw(
-        `select tablename as tn, * from pg_catalog.pg_tables where schemaname != 'information_schema' and schemaname != 'pg_catalog'`
+        `select tablename as tn, * from pg_catalog.pg_tables where schemaname != 'information_schema' and schemaname != 'pg_catalog'`,
       );
 
       result.data.list = rows;

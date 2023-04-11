@@ -15,11 +15,11 @@ export class PagedResponseImpl<T> {
       count?: number | string;
       l?: number;
       o?: number;
-    } = {}
+    } = {},
   ) {
     const limit = Math.max(
       Math.min(args.limit || args.l || config.limitDefault, config.limitMax),
-      config.limitMin
+      config.limitMin,
     );
 
     const offset = Math.max(+(args.offset || args.o) || 0, 0);

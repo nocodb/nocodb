@@ -144,7 +144,7 @@ function columnCreate(sqlClient, table, colUiObj) {
     if (precision && scale) {
       column = table.specificType(
         colUiObj.cn,
-        `${colUiObj.dt}(${precision},${scale})`
+        `${colUiObj.dt}(${precision},${scale})`,
       );
     } else if (precision) {
       column = table.specificType(colUiObj.cn, `${colUiObj.dt}(${precision})`);
@@ -605,8 +605,8 @@ class KnexClient extends SqlClient {
       const packageJson = JSON.parse(
         await promisify(fs.readFile)(
           path.join(process.cwd(), 'package.json'),
-          'utf8'
-        )
+          'utf8',
+        ),
       );
       return (
         packageJson.name === 'nocodb' || 'nocodb' in packageJson.dependencies
@@ -927,7 +927,7 @@ class KnexClient extends SqlClient {
               'PK >> ',
               universalResults[i].tn,
               universalResults[i].cn,
-              universalResults[i].ext
+              universalResults[i].ext,
             );
           }
         }
@@ -1033,7 +1033,7 @@ class KnexClient extends SqlClient {
         dataHelp.findOrInsertObjectArrayByKey(
           col,
           'cn',
-          this.metaDb.tables[tn].columns
+          this.metaDb.tables[tn].columns,
         );
       }
     }
@@ -1057,7 +1057,7 @@ class KnexClient extends SqlClient {
         dataHelp.findOrInsertObjectArrayByKey(
           fk,
           'cn',
-          this.metaDb.tables[tn].foreignKeys
+          this.metaDb.tables[tn].foreignKeys,
         );
 
         // console.log(fk['rtn'],fk['rcn'],tn, schemaRow['cn'], this.metaDb.tables[tn]['foreignKeys'].length)
@@ -1124,7 +1124,7 @@ class KnexClient extends SqlClient {
         dataHelp.findOrInsertObjectArrayByKey(
           pk,
           'cn',
-          this.metaDb.tables[tn].primaryKeys
+          this.metaDb.tables[tn].primaryKeys,
         );
       }
     }
@@ -1603,7 +1603,7 @@ class KnexClient extends SqlClient {
 
     if (args && 'aggrDataType' in args) {
       result.data.list = result.data.list.filter(
-        (d) => d.aggrDataType === args['aggrDataType']
+        (d) => d.aggrDataType === args['aggrDataType'],
       );
     }
 
@@ -2032,7 +2032,7 @@ class KnexClient extends SqlClient {
                 args.connectionConfig,
                 table,
                 column,
-                args.columns[i]
+                args.columns[i],
               );
               result.data.object = renamedUpDownStatement;
             } else if (args.columns[i].altered & 4) {
@@ -2382,7 +2382,7 @@ class KnexClient extends SqlClient {
           if (args.onDelete) {
             table.onDelete(args.onDelete);
           }
-        }
+        },
       );
 
       await upQb;
@@ -2950,7 +2950,7 @@ class KnexClient extends SqlClient {
   genQuery(query, args = [], shouldSanitize: any = 0) {
     if (shouldSanitize) {
       args = (args || []).map((s) =>
-        typeof s === 'string' ? this.sanitize(s) : s
+        typeof s === 'string' ? this.sanitize(s) : s,
       );
     }
     const rawQuery = this.sqlClient.raw(query, args).toQuery();

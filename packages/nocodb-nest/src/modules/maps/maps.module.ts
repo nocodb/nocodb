@@ -4,6 +4,6 @@ import { MapsController } from './maps.controller';
 
 @Module({
   controllers: [MapsController],
-  providers: [MapsService]
+  providers: [MapsService],
 })
 export class MapsModule {}

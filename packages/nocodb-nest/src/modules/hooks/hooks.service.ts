@@ -103,7 +103,7 @@ export class HooksService {
   async tableSampleData(param: {
     tableId: string;
     operation: HookType['operation'];
-    version: any// HookType['version'];
+    version: any; // HookType['version'];
   }) {
     const model = await Model.getByIdOrName({ id: param.tableId });
 

@@ -39,7 +39,7 @@ export default class FormView implements FormType {
       viewId &&
       (await NocoCache.get(
         `${CacheScope.FORM_VIEW}:${viewId}`,
-        CacheGetType.TYPE_OBJECT
+        CacheGetType.TYPE_OBJECT,
       ));
     if (!view) {
       view = await ncMeta.metaGet2(null, null, MetaTable.FORM_VIEW, {
@@ -86,7 +86,7 @@ export default class FormView implements FormType {
   static async update(
     formId: string,
     body: Partial<FormView>,
-    ncMeta = Noco.ncMeta
+    ncMeta = Noco.ncMeta,
   ) {
     // get existing cache
     const key = `${CacheScope.FORM_VIEW}:${formId}`;

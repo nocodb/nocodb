@@ -81,7 +81,7 @@ export default class SqlMgrv2 {
     const sqlMigrationStatements = await sqlClient[op](opArgs);
     console.log(
       `Sql Migration Statement for '${op}'`,
-      sqlMigrationStatements.data.object
+      sqlMigrationStatements.data.object,
     );
 
     /* // create sql migration files

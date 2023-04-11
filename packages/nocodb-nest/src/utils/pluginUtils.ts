@@ -7,7 +7,7 @@ export function generateTempFilePath() {
 }
 
 export async function waitForStreamClose(
-  stream: fs.WriteStream
+  stream: fs.WriteStream,
 ): Promise<void> {
   return new Promise((resolve, reject) => {
     stream

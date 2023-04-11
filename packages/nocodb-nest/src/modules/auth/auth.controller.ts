@@ -1,17 +1,22 @@
-import { ExtractProjectIdMiddleware } from '../../middlewares/extract-project-id/extract-project-id.middleware'
-import extractRolesObj from '../../utils/extractRolesObj'
+import { ExtractProjectIdMiddleware } from '../../middlewares/extract-project-id/extract-project-id.middleware';
+import extractRolesObj from '../../utils/extractRolesObj';
 import { AuthService } from './auth.service';
 
-import { Controller, Request, Post, UseGuards, Body, Get } from '@nestjs/common'
+import {
+  Controller,
+  Request,
+  Post,
+  UseGuards,
+  Body,
+  Get,
+} from '@nestjs/common';
 import { AuthGuard } from '@nestjs/passport';
-
 
 export class CreateUserDto {
   readonly username: string;
   readonly email: string;
   readonly password: string;
 }
-
 
 @Controller()
 export class AuthController {
@@ -23,11 +28,9 @@ export class AuthController {
     return this.authService.login(req.user);
   }
 
-
   @Post('/api/v1/auth/user/signup')
   async signup(@Body() createUserDto: CreateUserDto) {
     const user = await this.authService.signup(createUserDto);
-
   }
 
   @UseGuards(ExtractProjectIdMiddleware, AuthGuard('jwt'))
@@ -35,8 +38,8 @@ export class AuthController {
   async me(@Request() req) {
     const user = {
       ...req.user,
-      roles: extractRolesObj(req.user.roles)
-    }
-    return user
+      roles: extractRolesObj(req.user.roles),
+    };
+    return user;
   }
 }

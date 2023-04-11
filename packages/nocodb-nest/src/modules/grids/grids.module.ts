@@ -4,6 +4,6 @@ import { GridsController } from './grids.controller';
 
 @Module({
   controllers: [GridsController],
-  providers: [GridsService]
+  providers: [GridsService],
 })
 export class GridsModule {}

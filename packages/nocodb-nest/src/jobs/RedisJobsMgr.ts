@@ -18,7 +18,7 @@ export default class RedisJobsMgr extends JobsMgr {
 
   async add(
     jobName: string,
-    payload: any
+    payload: any,
     // options?: {
     //   onSuccess?: (payload: any) => void;
     //   onFailure?: (payload: any, msg: string) => void;
@@ -35,22 +35,22 @@ export default class RedisJobsMgr extends JobsMgr {
     jobName: string,
     workerFn: (
       payload: any,
-      progressCbk?: (payload: any, msg?: string) => void
-    ) => void
+      progressCbk?: (payload: any, msg?: string) => void,
+    ) => void,
   ) {
     this.workers[jobName] = new Worker(
       jobName,
       async (payload) => {
         try {
           await workerFn(payload.data, (...args) =>
-            this.invokeProgressCbks(jobName, ...args)
+            this.invokeProgressCbks(jobName, ...args),
           );
           await this.invokeFailureCbks(jobName, payload.data);
         } catch (e) {
           await this.invokeFailureCbks(jobName, payload.data);
         }
       },
-      { connection: this.connection }
+      { connection: this.connection },
     );
   }
 }

@@ -4,6 +4,6 @@ import { ViewColumnsController } from './view-columns.controller';
 
 @Module({
   controllers: [ViewColumnsController],
-  providers: [ViewColumnsService]
+  providers: [ViewColumnsService],
 })
 export class ViewColumnsModule {}

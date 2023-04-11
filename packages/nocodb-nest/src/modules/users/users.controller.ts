@@ -10,7 +10,10 @@ import {
 } from '@nestjs/common';
 import { promisify } from 'util';
 import { NcError } from '../../helpers/catchError';
-import { Acl, ExtractProjectIdMiddleware } from '../../middlewares/extract-project-id/extract-project-id.middleware'
+import {
+  Acl,
+  ExtractProjectIdMiddleware,
+} from '../../middlewares/extract-project-id/extract-project-id.middleware';
 import Noco from '../../Noco';
 import extractRolesObj from '../../utils/extractRolesObj';
 import { genJwt, randomTokenString, setTokenCookie } from './helpers';

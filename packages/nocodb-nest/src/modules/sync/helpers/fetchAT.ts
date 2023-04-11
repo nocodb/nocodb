@@ -47,7 +47,7 @@ async function initialize(shareId) {
       });
 
     info.headers = JSON.parse(
-      hreq.match(/(?<=var headers =)(.*)(?=;)/g)[0].trim()
+      hreq.match(/(?<=var headers =)(.*)(?=;)/g)[0].trim(),
     );
     info.link = unicodeToChar(hreq.match(/(?<=fetch\(")(.*)(?=")/g)[0].trim());
     info.baseInfo = decodeURIComponent(info.link)
@@ -57,7 +57,7 @@ async function initialize(shareId) {
         try {
           return Object.assign(
             result,
-            JSON.parse(el.includes('=') ? el.split('=')[1] : el)
+            JSON.parse(el.includes('=') ? el.split('=')[1] : el),
           );
         } catch (e) {
           if (el.includes('=')) {
@@ -144,7 +144,7 @@ async function readView(viewId) {
             generationNumber: info.baseInfo.generationNumber,
             expires: info.baseInfo.expires,
             signature: info.baseInfo.signature,
-          })
+          }),
         )}`,
       {
         headers: {
@@ -168,7 +168,7 @@ async function readView(viewId) {
         referrerPolicy: 'no-referrer',
         body: null,
         method: 'GET',
-      }
+      },
     )
       .then((response) => {
         return response.data;
@@ -218,7 +218,7 @@ async function readTemplate(templateId) {
       method: 'GET',
       mode: 'cors',
       credentials: 'include',
-    }
+    },
   )
     .then((response) => {
       return response.data;

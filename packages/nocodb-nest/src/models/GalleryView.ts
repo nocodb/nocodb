@@ -42,7 +42,7 @@ export default class GalleryView implements GalleryType {
       viewId &&
       (await NocoCache.get(
         `${CacheScope.GALLERY_VIEW}:${viewId}`,
-        CacheGetType.TYPE_OBJECT
+        CacheGetType.TYPE_OBJECT,
       ));
     if (!view) {
       view = await ncMeta.metaGet2(null, null, MetaTable.GALLERY_VIEW, {
@@ -87,7 +87,7 @@ export default class GalleryView implements GalleryType {
       null,
       MetaTable.GALLERY_VIEW,
       insertObj,
-      true
+      true,
     );
 
     return this.get(view.fk_view_id, ncMeta);
@@ -96,7 +96,7 @@ export default class GalleryView implements GalleryType {
   static async update(
     galleryId: string,
     body: Partial<GalleryView>,
-    ncMeta = Noco.ncMeta
+    ncMeta = Noco.ncMeta,
   ) {
     // get existing cache
     const key = `${CacheScope.GALLERY_VIEW}:${galleryId}`;
@@ -120,7 +120,7 @@ export default class GalleryView implements GalleryType {
       updateObj,
       {
         fk_view_id: galleryId,
-      }
+      },
     );
   }
 }

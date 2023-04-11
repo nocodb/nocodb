@@ -58,7 +58,7 @@ export default class User implements UserType {
       null,
       null,
       MetaTable.USERS,
-      insertObj
+      insertObj,
     );
 
     await NocoCache.del(CacheScope.INSTANCE_META);
@@ -125,7 +125,7 @@ export default class User implements UserType {
       email &&
       (await NocoCache.get(
         `${CacheScope.USER}:${email}`,
-        CacheGetType.TYPE_OBJECT
+        CacheGetType.TYPE_OBJECT,
       ));
     if (!user) {
       user = await ncMeta.metaGet2(null, null, MetaTable.USERS, {
@@ -149,7 +149,7 @@ export default class User implements UserType {
     }: {
       query?: string;
     } = {},
-    ncMeta = Noco.ncMeta
+    ncMeta = Noco.ncMeta,
   ): Promise<number> {
     const qb = ncMeta.knex(MetaTable.USERS);
 
@@ -165,7 +165,7 @@ export default class User implements UserType {
       userId &&
       (await NocoCache.get(
         `${CacheScope.USER}:${userId}`,
-        CacheGetType.TYPE_OBJECT
+        CacheGetType.TYPE_OBJECT,
       ));
     if (!user) {
       user = await ncMeta.metaGet2(null, null, MetaTable.USERS, userId);
@@ -191,7 +191,7 @@ export default class User implements UserType {
       offset?: number | undefined;
       query?: string;
     } = {},
-    ncMeta = Noco.ncMeta
+    ncMeta = Noco.ncMeta,
   ) {
     let queryBuilder = ncMeta.knex(MetaTable.USERS);
 
@@ -210,16 +210,16 @@ export default class User implements UserType {
         `${MetaTable.USERS}.invite_token`,
         `${MetaTable.USERS}.created_at`,
         `${MetaTable.USERS}.updated_at`,
-        `${MetaTable.USERS}.roles`
+        `${MetaTable.USERS}.roles`,
       )
       .select(
         ncMeta
           .knex(MetaTable.PROJECT_USERS)
           .count()
           .whereRaw(
-            `${MetaTable.USERS}.id = ${MetaTable.PROJECT_USERS}.fk_user_id`
+            `${MetaTable.USERS}.id = ${MetaTable.PROJECT_USERS}.fk_user_id`,
           )
-          .as('projectsCount')
+          .as('projectsCount'),
       );
     if (query) {
       queryBuilder.where('email', 'like', `%${query.toLowerCase?.()}%`);

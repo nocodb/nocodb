@@ -46,7 +46,7 @@ class Vitess extends MysqlClient {
       } else {
         log.debug(
           'Unknown response for databaseList:',
-          result.data.list.length
+          result.data.list.length,
         );
         result.data.list = [];
       }
@@ -83,7 +83,7 @@ class Vitess extends MysqlClient {
       } else {
         log.debug(
           'Unknown response for databaseList:',
-          result.data.list.length
+          result.data.list.length,
         );
         result.data.list = [];
       }
@@ -131,7 +131,7 @@ class Vitess extends MysqlClient {
       args.databaseName = this.connectionConfig.connection.database;
 
       const response = await this.sqlClient.raw(
-        `select *, table_name as tn from information_schema.columns where table_name = '${args.tn}' ORDER by ordinal_position`
+        `select *, table_name as tn from information_schema.columns where table_name = '${args.tn}' ORDER by ordinal_position`,
       );
 
       if (response.length === 2) {
@@ -209,7 +209,7 @@ class Vitess extends MysqlClient {
 
     try {
       const response = await this.sqlClient.raw(
-        `select *, TABLE_NAME as tn from INFORMATION_SCHEMA.KEY_COLUMN_USAGE where TABLE_NAME = '${args.tn}' ORDER by ordinal_position;`
+        `select *, TABLE_NAME as tn from INFORMATION_SCHEMA.KEY_COLUMN_USAGE where TABLE_NAME = '${args.tn}' ORDER by ordinal_position;`,
       );
 
       if (response.length === 2) {
@@ -227,7 +227,7 @@ class Vitess extends MysqlClient {
       } else {
         log.debug(
           'Unknown response for databaseList:',
-          result.data.list.length
+          result.data.list.length,
         );
         result.data.list = [];
       }

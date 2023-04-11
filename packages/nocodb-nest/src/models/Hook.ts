@@ -46,7 +46,7 @@ export default class Hook implements HookType {
       hookId &&
       (await NocoCache.get(
         `${CacheScope.HOOK}:${hookId}`,
-        CacheGetType.TYPE_OBJECT
+        CacheGetType.TYPE_OBJECT,
       ));
     if (!hook) {
       hook = await ncMeta.metaGet2(null, null, MetaTable.HOOKS, hookId);
@@ -83,7 +83,7 @@ export default class Hook implements HookType {
       event?: HookType['event'];
       operation?: HookType['operation'];
     },
-    ncMeta = Noco.ncMeta
+    ncMeta = Noco.ncMeta,
   ) {
     let hooks = await NocoCache.getList(CacheScope.HOOK, [param.fk_model_id]);
     if (!hooks.length) {
@@ -104,12 +104,12 @@ export default class Hook implements HookType {
     // filter event & operation
     if (param.event) {
       hooks = hooks.filter(
-        (h) => h.event?.toLowerCase() === param.event?.toLowerCase()
+        (h) => h.event?.toLowerCase() === param.event?.toLowerCase(),
       );
     }
     if (param.operation) {
       hooks = hooks.filter(
-        (h) => h.operation?.toLowerCase() === param.operation?.toLowerCase()
+        (h) => h.operation?.toLowerCase() === param.operation?.toLowerCase(),
       );
     }
     return hooks?.map((h) => new Hook(h));
@@ -154,13 +154,13 @@ export default class Hook implements HookType {
       null,
       null,
       MetaTable.HOOKS,
-      insertObj
+      insertObj,
     );
 
     await NocoCache.appendToList(
       CacheScope.HOOK,
       [hook.fk_model_id],
-      `${CacheScope.HOOK}:${id}`
+      `${CacheScope.HOOK}:${id}`,
     );
 
     return this.get(id, ncMeta);
@@ -169,7 +169,7 @@ export default class Hook implements HookType {
   public static async update(
     hookId: string,
     hook: Partial<Hook>,
-    ncMeta = Noco.ncMeta
+    ncMeta = Noco.ncMeta,
   ) {
     const updateObj = extractProps(hook, [
       'title',
@@ -229,13 +229,13 @@ export default class Hook implements HookType {
       MetaTable.FILTER_EXP,
       {
         condition: { fk_hook_id: hookId },
-      }
+      },
     );
     for (const filter of filterList) {
       await NocoCache.deepDel(
         CacheScope.FILTER_EXP,
         `${CacheScope.FILTER_EXP}:${filter.id}`,
-        CacheDelDirection.CHILD_TO_PARENT
+        CacheDelDirection.CHILD_TO_PARENT,
       );
       await HookFilter.delete(filter.id);
     }
@@ -243,7 +243,7 @@ export default class Hook implements HookType {
     await NocoCache.deepDel(
       CacheScope.HOOK,
       `${CacheScope.HOOK}:${hookId}`,
-      CacheDelDirection.CHILD_TO_PARENT
+      CacheDelDirection.CHILD_TO_PARENT,
     );
     return await ncMeta.metaDelete(null, null, MetaTable.HOOKS, hookId);
   }

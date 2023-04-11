@@ -5,7 +5,7 @@ export const addToMappingTbl = function addToMappingTbl(
   aTblId,
   ncId,
   ncName,
-  parent?
+  parent?,
 ) {
   mapTbl[aTblId] = {
     ncId: ncId,

@@ -34,7 +34,7 @@ export default class SES implements IEmailAdapter {
           } else {
             console.log('Message sent: ' + info.response);
           }
-        }
+        },
       );
     }
   }

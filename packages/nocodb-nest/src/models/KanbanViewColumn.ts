@@ -25,18 +25,18 @@ export default class KanbanViewColumn implements KanbanColumnType {
       kanbanViewColumnId &&
       (await NocoCache.get(
         `${CacheScope.KANBAN_VIEW_COLUMN}:${kanbanViewColumnId}`,
-        CacheGetType.TYPE_OBJECT
+        CacheGetType.TYPE_OBJECT,
       ));
     if (!view) {
       view = await ncMeta.metaGet2(
         null,
         null,
         MetaTable.KANBAN_VIEW_COLUMNS,
-        kanbanViewColumnId
+        kanbanViewColumnId,
       );
       await NocoCache.set(
         `${CacheScope.KANBAN_VIEW_COLUMN}:${kanbanViewColumnId}`,
-        view
+        view,
       );
     }
     return view && new KanbanViewColumn(view);
@@ -54,7 +54,7 @@ export default class KanbanViewColumn implements KanbanColumnType {
       MetaTable.KANBAN_VIEW_COLUMNS,
       {
         fk_view_id: column.fk_view_id,
-      }
+      },
     );
 
     if (!(column.project_id && column.base_id)) {
@@ -67,7 +67,7 @@ export default class KanbanViewColumn implements KanbanColumnType {
       null,
       null,
       MetaTable.KANBAN_VIEW_COLUMNS,
-      insertObj
+      insertObj,
     );
 
     await NocoCache.set(`${CacheScope.KANBAN_VIEW_COLUMN}:${fk_column_id}`, id);
@@ -75,7 +75,7 @@ export default class KanbanViewColumn implements KanbanColumnType {
     await NocoCache.appendToList(
       CacheScope.KANBAN_VIEW_COLUMN,
       [column.fk_view_id],
-      `${CacheScope.KANBAN_VIEW_COLUMN}:${id}`
+      `${CacheScope.KANBAN_VIEW_COLUMN}:${id}`,
     );
 
     return this.get(id, ncMeta);
@@ -83,7 +83,7 @@ export default class KanbanViewColumn implements KanbanColumnType {
 
   public static async list(
     viewId: string,
-    ncMeta = Noco.ncMeta
+    ncMeta = Noco.ncMeta,
   ): Promise<KanbanViewColumn[]> {
     let views = await NocoCache.getList(CacheScope.KANBAN_VIEW_COLUMN, [
       viewId,
@@ -100,14 +100,14 @@ export default class KanbanViewColumn implements KanbanColumnType {
           orderBy: {
             order: 'asc',
           },
-        }
+        },
       );
       await NocoCache.setList(CacheScope.KANBAN_VIEW_COLUMN, [viewId], views);
     }
     views.sort(
       (a, b) =>
         (a.order != null ? a.order : Infinity) -
-        (b.order != null ? b.order : Infinity)
+        (b.order != null ? b.order : Infinity),
     );
     return views?.map((v) => new KanbanViewColumn(v));
   }

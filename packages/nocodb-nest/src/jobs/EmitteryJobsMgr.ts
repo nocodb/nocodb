@@ -17,13 +17,13 @@ export default class EmitteryJobsMgr extends JobsMgr {
     jobName: string,
     workerFn: (
       payload: any,
-      progressCbk?: (payload: any, msg?: string) => void
-    ) => void
+      progressCbk?: (payload: any, msg?: string) => void,
+    ) => void,
   ) {
     this.emitter.on(jobName, async (payload) => {
       try {
         await workerFn(payload, (msg) =>
-          this.invokeProgressCbks(jobName, payload, msg)
+          this.invokeProgressCbks(jobName, payload, msg),
         );
         await this.invokeSuccessCbks(jobName, payload);
       } catch (e) {

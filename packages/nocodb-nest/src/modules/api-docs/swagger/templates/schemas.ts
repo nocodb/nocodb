@@ -17,7 +17,7 @@ export const getModelSchemas = (ctx: {
           ...colsObj,
           [title]: fieldProps,
         }),
-        {}
+        {},
       ) || {}),
     },
   },
@@ -36,7 +36,7 @@ export const getModelSchemas = (ctx: {
                 [title]: fieldProps,
               }),
         }),
-        {}
+        {},
       ) || {}),
     },
   },
@@ -59,7 +59,7 @@ export const getViewSchemas = (ctx: {
           ...colsObj,
           [title]: fieldProps,
         }),
-        {}
+        {},
       ) || {}),
     },
   },
@@ -78,7 +78,7 @@ export const getViewSchemas = (ctx: {
                 [title]: fieldProps,
               }),
         }),
-        {}
+        {},
       ) || {}),
     },
   },

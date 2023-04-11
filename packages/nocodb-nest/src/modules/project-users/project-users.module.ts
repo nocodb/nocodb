@@ -4,6 +4,6 @@ import { ProjectUsersController } from './project-users.controller';
 
 @Module({
   controllers: [ProjectUsersController],
-  providers: [ProjectUsersService]
+  providers: [ProjectUsersService],
 })
 export class ProjectUsersModule {}

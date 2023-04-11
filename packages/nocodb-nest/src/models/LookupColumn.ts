@@ -28,7 +28,7 @@ export default class LookupColumn implements LookupType {
 
   public static async insert(
     data: Partial<LookupColumn>,
-    ncMeta = Noco.ncMeta
+    ncMeta = Noco.ncMeta,
   ) {
     const insertObj = extractProps(data, [
       'fk_column_id',
@@ -41,13 +41,13 @@ export default class LookupColumn implements LookupType {
     await NocoCache.appendToList(
       CacheScope.COL_LOOKUP,
       [data.fk_lookup_column_id],
-      `${CacheScope.COL_LOOKUP}:${data.fk_column_id}`
+      `${CacheScope.COL_LOOKUP}:${data.fk_column_id}`,
     );
 
     await NocoCache.appendToList(
       CacheScope.COL_LOOKUP,
       [data.fk_relation_column_id],
-      `${CacheScope.COL_LOOKUP}:${data.fk_column_id}`
+      `${CacheScope.COL_LOOKUP}:${data.fk_column_id}`,
     );
 
     return this.read(data.fk_column_id, ncMeta);
@@ -58,14 +58,14 @@ export default class LookupColumn implements LookupType {
       columnId &&
       (await NocoCache.get(
         `${CacheScope.COL_LOOKUP}:${columnId}`,
-        CacheGetType.TYPE_OBJECT
+        CacheGetType.TYPE_OBJECT,
       ));
     if (!colData) {
       colData = await ncMeta.metaGet2(
         null, //,
         null, //model.db_alias,
         MetaTable.COL_LOOKUP,
-        { fk_column_id: columnId }
+        { fk_column_id: columnId },
       );
       await NocoCache.set(`${CacheScope.COL_LOOKUP}:${columnId}`, colData);
     }

@@ -8,13 +8,13 @@ import { T } from 'nc-help';
 import dayjs from 'dayjs';
 import utc from 'dayjs/plugin/utc';
 import tinycolor from 'tinycolor2';
-import extractRolesObj from '../../../utils/extractRolesObj'
+import extractRolesObj from '../../../utils/extractRolesObj';
 import { AttachmentsService } from '../../attachments/attachments.service';
 import { ColumnsService } from '../../columns/columns.service';
 import { FiltersService } from '../../filters/filters.service';
 import { FormColumnsService } from '../../form-columns/form-columns.service';
 import { GalleriesService } from '../../galleries/galleries.service';
-import { GridsService } from '../../grids/grids.service'
+import { GridsService } from '../../grids/grids.service';
 import { ProjectUsersService } from '../../project-users/project-users.service';
 import { ProjectsService } from '../../projects/projects.service';
 import { SortsService } from '../../sorts/sorts.service';

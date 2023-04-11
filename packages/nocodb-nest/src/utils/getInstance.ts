@@ -6,7 +6,7 @@ export default async function (force = false, ncMeta = Noco.ncMeta) {
   try {
     let res = await NocoCache.get(
       CacheScope.INSTANCE_META,
-      CacheGetType.TYPE_OBJECT
+      CacheGetType.TYPE_OBJECT,
     );
     if (!res || force) {
       const projectsMeta = await ncMeta

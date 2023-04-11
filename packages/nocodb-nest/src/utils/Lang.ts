@@ -8,7 +8,7 @@ import translated from './translated.json';
 
 const formattedTranslate: any = {};
 for (const { symbol, text } of [english, ...translated].sort((a: any, b: any) =>
-  a.symbol.localeCompare(b.symbol)
+  a.symbol.localeCompare(b.symbol),
 ) as any[]) {
   formattedTranslate[symbol] = text.split(/\s*\|\|\s*/);
 }

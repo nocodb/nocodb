@@ -49,20 +49,20 @@ function extractDBError(error): {
       if (error.message) {
         const noSuchTableMatch = error.message.match(/no such table: (\w+)/);
         const tableAlreadyExistsMatch = error.message.match(
-          /SQLITE_ERROR: table `?(\w+)`? already exists/
+          /SQLITE_ERROR: table `?(\w+)`? already exists/,
         );
 
         const duplicateColumnExistsMatch = error.message.match(
-          /SQLITE_ERROR: duplicate column name: (\w+)/
+          /SQLITE_ERROR: duplicate column name: (\w+)/,
         );
         const unrecognizedTokenMatch = error.message.match(
-          /SQLITE_ERROR: unrecognized token: "(\w+)"/
+          /SQLITE_ERROR: unrecognized token: "(\w+)"/,
         );
         const columnDoesNotExistMatch = error.message.match(
-          /SQLITE_ERROR: no such column: (\w+)/
+          /SQLITE_ERROR: no such column: (\w+)/,
         );
         const constraintFailedMatch = error.message.match(
-          /SQLITE_ERROR: constraint failed: (\w+)/
+          /SQLITE_ERROR: constraint failed: (\w+)/,
         );
 
         if (noSuchTableMatch && noSuchTableMatch[1]) {
@@ -120,7 +120,7 @@ function extractDBError(error): {
 
       if (error.message) {
         const extractTableNameMatch = error.message.match(
-          / Table '?(\w+)'? already exists/i
+          / Table '?(\w+)'? already exists/i,
         );
         if (extractTableNameMatch && extractTableNameMatch[1]) {
           message = `The table '${extractTableNameMatch[1]}' already exists.`;
@@ -136,7 +136,7 @@ function extractDBError(error): {
 
       if (error.message) {
         const extractColumnNameMatch = error.message.match(
-          / Duplicate column name '(\w+)'/i
+          / Duplicate column name '(\w+)'/i,
         );
         if (extractColumnNameMatch && extractColumnNameMatch[1]) {
           message = `The column '${extractColumnNameMatch[1]}' already exists.`;
@@ -153,7 +153,7 @@ function extractDBError(error): {
 
       if (error.message) {
         const missingTableMatch = error.message.match(
-          / Table '(?:\w+\.)?(\w+)' doesn't exist/i
+          / Table '(?:\w+\.)?(\w+)' doesn't exist/i,
         );
         if (missingTableMatch && missingTableMatch[1]) {
           message = `The table '${missingTableMatch[1]}' does not exist`;
@@ -178,7 +178,7 @@ function extractDBError(error): {
       message = 'A null value is not allowed for this field.';
       {
         const extractColNameMatch = error.message.match(
-          /Column '(\w+)' cannot be null/i
+          /Column '(\w+)' cannot be null/i,
         );
         if (extractColNameMatch && extractColNameMatch[1]) {
           message = `The column '${extractColNameMatch[1]}' cannot be null.`;
@@ -197,7 +197,7 @@ function extractDBError(error): {
       {
         message = 'The field you are trying to access does not exist.';
         const extractColNameMatch = error.message.match(
-          / Unknown column '(\w+)' in 'field list'/i
+          / Unknown column '(\w+)' in 'field list'/i,
         );
         if (extractColNameMatch && extractColNameMatch[1]) {
           message = `The column '${extractColNameMatch[1]}' does not exist.`;
@@ -253,7 +253,7 @@ function extractDBError(error): {
       message = 'The table already exists.';
       if (error.message) {
         const extractTableNameMatch = error.message.match(
-          / relation "?(\w+)"? already exists/i
+          / relation "?(\w+)"? already exists/i,
         );
         if (extractTableNameMatch && extractTableNameMatch[1]) {
           message = `The table '${extractTableNameMatch[1]}' already exists.`;
@@ -268,7 +268,7 @@ function extractDBError(error): {
       message = 'The column already exists.';
       if (error.message) {
         const extractTableNameMatch = error.message.match(
-          / column "(\w+)" of relation "(\w+)" already exists/i
+          / column "(\w+)" of relation "(\w+)" already exists/i,
         );
         if (extractTableNameMatch && extractTableNameMatch[1]) {
           message = `The column '${extractTableNameMatch[1]}' already exists.`;
@@ -283,7 +283,7 @@ function extractDBError(error): {
       message = 'The table does not exist.';
       if (error.message) {
         const extractTableNameMatch = error.message.match(
-          / relation "(\w+)" does not exist/i
+          / relation "(\w+)" does not exist/i,
         );
         if (extractTableNameMatch && extractTableNameMatch[1]) {
           message = `The table '${extractTableNameMatch[1]}' does not exist.`;
@@ -298,7 +298,7 @@ function extractDBError(error): {
       message = 'The column does not exist.';
       if (error.message) {
         const extractTableNameMatch = error.message.match(
-          / column "(\w+)" does not exist/i
+          / column "(\w+)" does not exist/i,
         );
         if (extractTableNameMatch && extractTableNameMatch[1]) {
           message = `The column '${extractTableNameMatch[1]}' does not exist.`;
@@ -314,16 +314,16 @@ function extractDBError(error): {
       message = 'There was a syntax error in your SQL query.';
       if (error.message) {
         const extractTableNameMatch = error.message.match(
-          / There is already an object named '(\w+)' in the database/i
+          / There is already an object named '(\w+)' in the database/i,
         );
         const extractDupColMatch = error.message.match(
-          / Column name '(\w+)' in table '(\w+)' is specified more than once/i
+          / Column name '(\w+)' in table '(\w+)' is specified more than once/i,
         );
         const extractMissingTableMatch = error.message.match(
-          / Invalid object name '(\w+)'./i
+          / Invalid object name '(\w+)'./i,
         );
         const extractMissingColMatch = error.message.match(
-          / Invalid column name '(\w+)'./i
+          / Invalid column name '(\w+)'./i,
         );
 
         if (extractTableNameMatch && extractTableNameMatch[1]) {
@@ -384,7 +384,7 @@ function extractDBError(error): {
 }
 
 export default function (
-  requestHandler: (req: any, res: any, next?: any) => any
+  requestHandler: (req: any, res: any, next?: any) => any,
 ) {
   return async function (req: any, res: any, next: any) {
     try {

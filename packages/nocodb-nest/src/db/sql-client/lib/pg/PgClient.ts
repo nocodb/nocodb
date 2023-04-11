@@ -244,7 +244,7 @@ class PGClient extends KnexClient {
       await this.raw('SELECT 1+1 as data');
     } catch (e1) {
       const connectionParamsWithoutDb = JSON.parse(
-        JSON.stringify(this.connectionConfig)
+        JSON.stringify(this.connectionConfig),
       );
       connectionParamsWithoutDb.connection.database = 'postgres';
       const tempSqlClient = knex(connectionParamsWithoutDb);
@@ -446,7 +446,7 @@ class PGClient extends KnexClient {
 
     try {
       const connectionParamsWithoutDb = JSON.parse(
-        JSON.stringify(this.connectionConfig)
+        JSON.stringify(this.connectionConfig),
       );
       let rows = [];
       try {
@@ -456,14 +456,14 @@ class PGClient extends KnexClient {
         log.debug('checking if db exists');
         rows = (
           await tempSqlClient.raw(
-            `SELECT datname as database FROM pg_database WHERE datistemplate = false and datname = '${args.database}'`
+            `SELECT datname as database FROM pg_database WHERE datistemplate = false and datname = '${args.database}'`,
           )
         ).rows;
       } catch (e) {
         log.debug('checking if db exists');
         rows = (
           await this.sqlClient.raw(
-            `SELECT datname as database FROM pg_database WHERE datistemplate = false and datname = '${args.database}'`
+            `SELECT datname as database FROM pg_database WHERE datistemplate = false and datname = '${args.database}'`,
           )
         ).rows;
       }
@@ -480,14 +480,14 @@ class PGClient extends KnexClient {
       const schemaExists = !!(
         await this.sqlClient.raw(
           `SELECT schema_name FROM information_schema.schemata WHERE schema_name = ?`,
-          [schemaName]
+          [schemaName],
         )
       ).rows?.[0];
 
-      if(!schemaExists) {
+      if (!schemaExists) {
         await this.sqlClient.raw(
           `CREATE SCHEMA IF NOT EXISTS ??  AUTHORIZATION ?? `,
-          [schemaName, this.connectionConfig.connection.user]
+          [schemaName, this.connectionConfig.connection.user],
         );
       }
 
@@ -512,7 +512,7 @@ class PGClient extends KnexClient {
 
     try {
       const connectionParamsWithoutDb = JSON.parse(
-        JSON.stringify(this.connectionConfig)
+        JSON.stringify(this.connectionConfig),
       );
       connectionParamsWithoutDb.connection.database = 'postgres';
       const tempSqlClient = knex(connectionParamsWithoutDb);
@@ -549,7 +549,7 @@ class PGClient extends KnexClient {
       const exists = await this.sqlClient.raw(
         `SELECT table_schema,table_name as tn, table_catalog FROM information_schema.tables where table_schema=? and
          table_name = '${args.tn}' and table_catalog = '${this.connectionConfig.connection.database}'`,
-        [this.schema]
+        [this.schema],
       );
 
       if (exists.rows.length === 0) {
@@ -565,7 +565,7 @@ class PGClient extends KnexClient {
             table.integer('status').nullable();
             table.dateTime('created');
             table.timestamps();
-          }
+          },
         );
         log.debug('Table created:', `${args.tn}`, data);
       } else {
@@ -611,7 +611,7 @@ class PGClient extends KnexClient {
     try {
       const { rows } = await this.sqlClient.raw(
         `SELECT table_schema,table_name as tn, table_catalog FROM information_schema.tables where table_schema=? and table_name = '${args.tn}' and table_catalog = '${this.connectionConfig.connection.database}'`,
-        [this.schema]
+        [this.schema],
       );
       result.data.value = rows.length > 0;
     } catch (e) {
@@ -631,7 +631,7 @@ class PGClient extends KnexClient {
 
     try {
       const { rows } = await this.sqlClient.raw(
-        `SELECT datname as database FROM pg_database WHERE datistemplate = false and datname = '${args.databaseName}'`
+        `SELECT datname as database FROM pg_database WHERE datistemplate = false and datname = '${args.databaseName}'`,
       );
       result.data.value = rows.length > 0;
     } catch (e) {
@@ -659,7 +659,7 @@ class PGClient extends KnexClient {
       const { rows } = await this.sqlClient.raw(
         `SELECT datname as database_name
            FROM pg_database
-           WHERE datistemplate = false;`
+           WHERE datistemplate = false;`,
       );
       result.data.list = rows;
     } catch (e) {
@@ -688,11 +688,11 @@ class PGClient extends KnexClient {
               FROM information_schema.tables
               where table_schema = ?
               ORDER BY table_schema, table_name`,
-        [this.schema]
+        [this.schema],
       );
 
       result.data.list = rows.filter(
-        ({ table_type }) => table_type.toLowerCase() === 'base table'
+        ({ table_type }) => table_type.toLowerCase() === 'base table',
       );
     } catch (e) {
       log.ppe(e, _func);
@@ -810,7 +810,7 @@ class PGClient extends KnexClient {
                 left join information_schema.triggers trg on trg.event_object_table = c.table_name and trg.trigger_name = CONCAT('xc_trigger_' , '${args.tn}' , '_' , c.column_name)
               where c.table_catalog='${args.databaseName}' and c.table_schema=? and c.table_name='${args.tn}'
               order by c.table_name, c.ordinal_position`,
-        [this.schema, this.schema]
+        [this.schema, this.schema],
       );
 
       const columns = [];
@@ -955,7 +955,7 @@ class PGClient extends KnexClient {
       and i.oid<>0
       AND f.attnum > 0
       ORDER BY i.relname, f.attnum;`,
-        [this.schema, args.tn]
+        [this.schema, args.tn],
       );
       result.data.list = rows;
     } catch (e) {
@@ -1080,7 +1080,7 @@ class PGClient extends KnexClient {
                               on pc.conname = tc.constraint_name
                           WHERE tc.constraint_type = 'FOREIGN KEY' AND tc.table_schema=? and tc.table_name='${args.tn}'
                           order by tc.table_name;`,
-        [this.schema]
+        [this.schema],
       );
 
       const ruleMapping = {
@@ -1151,7 +1151,7 @@ class PGClient extends KnexClient {
                                                WHERE tc.constraint_type = 'FOREIGN KEY'
                                                  AND tc.table_schema = ?
                                                order by tc.table_name;`,
-        [this.schema]
+        [this.schema],
       );
 
       const ruleMapping = {
@@ -1204,7 +1204,7 @@ class PGClient extends KnexClient {
 
       const { rows } = await this.sqlClient.raw(
         `select * from information_schema.triggers where trigger_schema=? and event_object_table='${args.tn}'`,
-        [this.schema]
+        [this.schema],
       );
 
       for (let i = 0; i < rows.length; ++i) {
@@ -1254,7 +1254,7 @@ class PGClient extends KnexClient {
                      JOIN pg_catalog.pg_proc p
                           ON pronamespace = n.oid
               WHERE nspname = ?;`,
-        [this.schema]
+        [this.schema],
       );
       const functionRows = [];
       for (let i = 0; i < rows.length; ++i) {
@@ -1309,7 +1309,7 @@ class PGClient extends KnexClient {
                      JOIN pg_catalog.pg_proc p
                           ON pronamespace = n.oid
               WHERE nspname = ?;`,
-        [this.schema]
+        [this.schema],
       );
       const procedureRows = [];
       for (let i = 0; i < rows.length; ++i) {
@@ -1350,7 +1350,7 @@ class PGClient extends KnexClient {
       const { rows } = await this.sqlClient.raw(
         `select *
            from INFORMATION_SCHEMA.views
-           WHERE table_schema = ANY (current_schemas(false));`
+           WHERE table_schema = ANY (current_schemas(false));`,
       );
 
       for (let i = 0; i < rows.length; ++i) {
@@ -1388,7 +1388,7 @@ class PGClient extends KnexClient {
         `SELECT format('%I.%I(%s)', ns.nspname, p.proname, oidvectortypes(p.proargtypes)) as function_declaration, pg_get_functiondef(p.oid) as create_function
                 FROM pg_proc p INNER JOIN pg_namespace ns ON (p.pronamespace = ns.oid)
             WHERE ns.nspname = ? and p.proname = '${args.function_name}';`,
-        [this.schema]
+        [this.schema],
       );
 
       // log.debug(response);
@@ -1428,7 +1428,7 @@ class PGClient extends KnexClient {
       args.databaseName = this.connectionConfig.connection.database;
 
       const response = await this.sqlClient.raw(
-        `show create procedure ${args.procedure_name};`
+        `show create procedure ${args.procedure_name};`,
       );
       const rows = [];
 
@@ -1467,7 +1467,7 @@ class PGClient extends KnexClient {
       args.databaseName = this.connectionConfig.connection.database;
 
       const { rows } = await this.sqlClient.raw(
-        `select * from INFORMATION_SCHEMA.views WHERE table_name='${args.view_name}' and table_schema = ANY (current_schemas(false));`
+        `select * from INFORMATION_SCHEMA.views WHERE table_name='${args.view_name}' and table_schema = ANY (current_schemas(false));`,
       );
 
       for (let i = 0; i < rows.length; ++i) {
@@ -1494,7 +1494,7 @@ class PGClient extends KnexClient {
       args.databaseName = this.connectionConfig.connection.database;
 
       const response = await this.sqlClient.raw(
-        `SHOW FULL TABLES IN ${args.databaseName} WHERE TABLE_TYPE LIKE 'VIEW';`
+        `SHOW FULL TABLES IN ${args.databaseName} WHERE TABLE_TYPE LIKE 'VIEW';`,
       );
       let rows = [];
 
@@ -1573,7 +1573,7 @@ class PGClient extends KnexClient {
               this.querySeparator() +
               this.genQuery(
                 `CREATE TRIGGER ?? \n${args.timing} ${args.event}\nON ?? FOR EACH ROW\n${args.statement}`,
-                [args.trigger_name, args.tn]
+                [args.trigger_name, args.tn],
               ),
           },
         ],
@@ -1627,7 +1627,7 @@ class PGClient extends KnexClient {
     log.api(`${_func}:args:`, args);
     try {
       await this.sqlClient.raw(
-        `DROP PROCEDURE IF EXISTS ${args.procedure_name}`
+        `DROP PROCEDURE IF EXISTS ${args.procedure_name}`,
       );
     } catch (e) {
       log.ppe(e, _func);
@@ -1653,7 +1653,7 @@ class PGClient extends KnexClient {
         this._version = result.data.object;
         log.debug(
           `Version was empty for ${args.func}: population version for database as`,
-          this._version
+          this._version,
         );
       }
 
@@ -1726,7 +1726,7 @@ class PGClient extends KnexClient {
       let downQuery = this.querySeparator() + args.oldCreateFunction;
 
       await this.sqlClient.raw(
-        `DROP FUNCTION IF EXISTS ${args.function_declaration};`
+        `DROP FUNCTION IF EXISTS ${args.function_declaration};`,
       );
       await this.sqlClient.raw(upQuery);
 
@@ -1873,10 +1873,10 @@ class PGClient extends KnexClient {
     log.api(`${func}:args:`, args);
     try {
       await this.sqlClient.raw(
-        `DROP TRIGGER ${args.trigger_name} ON ${args.tn}`
+        `DROP TRIGGER ${args.trigger_name} ON ${args.tn}`,
       );
       await this.sqlClient.raw(
-        `CREATE TRIGGER ${args.trigger_name} \n${args.timing} ${args.event}\nON "${args.tn}" FOR EACH ROW\n${args.statement}`
+        `CREATE TRIGGER ${args.trigger_name} \n${args.timing} ${args.event}\nON "${args.tn}" FOR EACH ROW\n${args.statement}`,
       );
 
       result.data.object = {
@@ -2085,7 +2085,7 @@ class PGClient extends KnexClient {
                             RETURN NEW;
                           END;
                           $$ LANGUAGE plpgsql;`,
-          [triggerFnName, column.cn]
+          [triggerFnName, column.cn],
         );
 
         upQuery +=
@@ -2097,7 +2097,7 @@ class PGClient extends KnexClient {
             BEFORE UPDATE ON ??
             FOR EACH ROW
             EXECUTE PROCEDURE ??();`,
-            [triggerName, args.tn, triggerFnName]
+            [triggerName, args.tn, triggerFnName],
           );
 
         downQuery +=
@@ -2136,7 +2136,7 @@ class PGClient extends KnexClient {
                             RETURN NEW;
                           END;
                           $$ LANGUAGE plpgsql;`,
-          [triggerFnName, column.cn]
+          [triggerFnName, column.cn],
         );
 
         upQuery +=
@@ -2148,7 +2148,7 @@ class PGClient extends KnexClient {
             BEFORE UPDATE ON ??
             FOR EACH ROW
             EXECUTE PROCEDURE ??();`,
-            [triggerName, args.tn, triggerFnName]
+            [triggerName, args.tn, triggerFnName],
           );
 
         downQuery +=
@@ -2220,13 +2220,13 @@ class PGClient extends KnexClient {
             args.table,
             args.columns[i],
             oldColumn,
-            upQuery
+            upQuery,
           );
           downQuery += this.alterTableAddColumn(
             args.table,
             oldColumn,
             args.columns[i],
-            downQuery
+            downQuery,
           );
         } else if (args.columns[i].altered & 2 || args.columns[i].altered & 8) {
           // col edit
@@ -2234,13 +2234,13 @@ class PGClient extends KnexClient {
             args.table,
             args.columns[i],
             oldColumn,
-            upQuery
+            upQuery,
           );
           downQuery += this.alterTableChangeColumn(
             args.table,
             oldColumn,
             args.columns[i],
-            downQuery
+            downQuery,
           );
         } else if (args.columns[i].altered & 1) {
           // col addition
@@ -2248,13 +2248,13 @@ class PGClient extends KnexClient {
             args.table,
             args.columns[i],
             oldColumn,
-            upQuery
+            upQuery,
           );
           downQuery += this.alterTableRemoveColumn(
             args.table,
             args.columns[i],
             oldColumn,
-            downQuery
+            downQuery,
           );
         }
       }
@@ -2265,7 +2265,7 @@ class PGClient extends KnexClient {
           args.table,
           args.columns,
           args.originalColumns,
-          upQuery
+          upQuery,
         );
       downQuery +=
         (downQuery ? ';' : '') +
@@ -2273,7 +2273,7 @@ class PGClient extends KnexClient {
           args.table,
           args.originalColumns,
           args.columns,
-          downQuery
+          downQuery,
         );
 
       if (upQuery) {
@@ -2367,7 +2367,7 @@ class PGClient extends KnexClient {
       let indexList: any = await this.indexList(args);
 
       indexList = indexList.data.list.filter(
-        ({ cst }) => cst !== 'p' && cst !== 'f'
+        ({ cst }) => cst !== 'p' && cst !== 'f',
       );
 
       const indexesMap: { [key: string]: any } = {};
@@ -2385,7 +2385,7 @@ class PGClient extends KnexClient {
       }
 
       for (const { non_unique, tn, columns, indexName } of Object.values(
-        indexesMap
+        indexesMap,
       )) {
         downQuery +=
           this.querySeparator() +
@@ -2636,7 +2636,7 @@ class PGClient extends KnexClient {
         } else {
           query += this.genQuery(
             `alter TABLE ?? add constraint ?? PRIMARY KEY(??);`,
-            [t, `${t}_pkey`, numOfPksInNew]
+            [t, `${t}_pkey`, numOfPksInNew],
           );
         }
       }
@@ -2651,7 +2651,7 @@ class PGClient extends KnexClient {
     query += this.genQuery(
       `ALTER TABLE ?? DROP COLUMN ??`,
       [t, n.cn],
-      shouldSanitize
+      shouldSanitize,
     );
     return query;
   }
@@ -2713,7 +2713,7 @@ class PGClient extends KnexClient {
         query += this.genQuery(
           `\nALTER TABLE ?? RENAME COLUMN ?? TO ?? ;\n`,
           [t, o.cn, n.cn],
-          shouldSanitize
+          shouldSanitize,
         );
       }
 
@@ -2721,7 +2721,7 @@ class PGClient extends KnexClient {
         query += this.genQuery(
           `\nALTER TABLE ?? ALTER COLUMN ?? TYPE ${n.dt} USING ??::${n.dt};\n`,
           [t, n.cn, n.cn],
-          shouldSanitize
+          shouldSanitize,
         );
       }
 
@@ -2729,7 +2729,7 @@ class PGClient extends KnexClient {
         query += this.genQuery(
           `\nALTER TABLE ?? ALTER COLUMN ?? `,
           [t, n.cn],
-          shouldSanitize
+          shouldSanitize,
         );
         query += n.rqd ? ` SET NOT NULL;\n` : ` DROP NOT NULL;\n`;
       }
@@ -2738,7 +2738,7 @@ class PGClient extends KnexClient {
         query += this.genQuery(
           `\nALTER TABLE ?? ALTER COLUMN ?? `,
           [t, n.cn],
-          shouldSanitize
+          shouldSanitize,
         );
         query += n.cdf ? ` SET DEFAULT ${n.cdf};\n` : ` DROP DEFAULT;\n`;
       }
@@ -2769,7 +2769,7 @@ class PGClient extends KnexClient {
 
     try {
       const data = await this.sqlClient.raw(
-        `SELECT SUM(n_live_tup) as TotalRecords FROM pg_stat_user_tables;`
+        `SELECT SUM(n_live_tup) as TotalRecords FROM pg_stat_user_tables;`,
       );
       result.data = data.rows[0];
     } catch (e) {

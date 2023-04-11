@@ -4,6 +4,6 @@ import { SharedBasesController } from './shared-bases.controller';
 
 @Module({
   controllers: [SharedBasesController],
-  providers: [SharedBasesService]
+  providers: [SharedBasesService],
 })
 export class SharedBasesModule {}

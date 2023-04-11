@@ -27,10 +27,10 @@ const mssql = {
                     async (arg1) =>
                       `${(await args.fn(arg)).builder.toQuery()} < ${(
                         await args.fn(arg1)
-                      ).builder.toQuery()}`
-                  )
+                      ).builder.toQuery()}`,
+                  ),
               )
-            ).join(' And ')} Then ${(await args.fn(arg)).builder.toQuery()}`
+            ).join(' And ')} Then ${(await args.fn(arg)).builder.toQuery()}`,
           )
           .toQuery();
       }
@@ -56,9 +56,9 @@ const mssql = {
                 async (arg1) =>
                   `${(await args.fn(arg)).builder.toQuery()} > ${(
                     await args.fn(arg1)
-                  ).builder.toQuery()}`
+                  ).builder.toQuery()}`,
               )
-              .join(' And ')} Then ${(await args.fn(arg)).builder.toQuery()}`
+              .join(' And ')} Then ${(await args.fn(arg)).builder.toQuery()}`,
           )
           .toQuery();
       }
@@ -73,9 +73,9 @@ const mssql = {
           await Promise.all(
             args.pt.arguments
               .reverse()
-              .map(async (ar) => (await args.fn(ar)).builder.toQuery())
+              .map(async (ar) => (await args.fn(ar)).builder.toQuery()),
           )
-        ).join(',')})${args.colAlias}`
+        ).join(',')})${args.colAlias}`,
       ),
     };
   },
@@ -102,7 +102,7 @@ const mssql = {
           await args.fn(args.pt.arguments[0])
         ).builder.toQuery()}) = 1 THEN FLOOR(${(
           await args.fn(args.pt.arguments[0])
-        ).builder.toQuery()}) ELSE 0 END${args.colAlias}`
+        ).builder.toQuery()}) ELSE 0 END${args.colAlias}`,
       ),
     };
   },
@@ -113,7 +113,7 @@ const mssql = {
         .raw(
           `CAST(${(await args.fn(args.pt.arguments[0])).builder} as FLOAT)${
             args.colAlias
-          }`
+          }`,
         )
         .wrap('(', ')'),
     };
@@ -126,7 +126,7 @@ const mssql = {
       WHEN ${(await fn(pt.arguments[0])).builder} LIKE '%:%' THEN
         FORMAT(DATEADD(${String((await fn(pt.arguments[2])).builder).replace(
           /["']/g,
-          ''
+          '',
         )}, 
         ${dateIN > 0 ? '+' : ''}${(await fn(pt.arguments[1])).builder}, ${
           (await fn(pt.arguments[0])).builder
@@ -134,12 +134,12 @@ const mssql = {
       ELSE
        FORMAT(DATEADD(${String((await fn(pt.arguments[2])).builder).replace(
          /["']/g,
-         ''
+         '',
        )}, 
        ${dateIN > 0 ? '+' : ''}${(await fn(pt.arguments[1])).builder}, ${fn(
-          pt.arguments[0]
+          pt.arguments[0],
         )}), 'yyyy-MM-dd')
-      END${colAlias}`
+      END${colAlias}`,
       ),
     };
   },
@@ -152,7 +152,7 @@ const mssql = {
     const unit = convertUnits(rawUnit, 'mssql');
     return {
       builder: knex.raw(
-        `DATEDIFF(${unit}, ${datetime_expr2}, ${datetime_expr1}) ${colAlias}`
+        `DATEDIFF(${unit}, ${datetime_expr2}, ${datetime_expr1}) ${colAlias}`,
       ),
     };
   },
@@ -164,12 +164,12 @@ const mssql = {
         `(DATEPART(WEEKDAY, ${
           pt.arguments[0].type === 'Literal'
             ? `'${dayjs((await fn(pt.arguments[0])).builder).format(
-                'YYYY-MM-DD'
+                'YYYY-MM-DD',
               )}'`
             : fn(pt.arguments[0])
         }) - 2 - ${getWeekdayByText(
-          pt?.arguments[1]?.value
-        )} % 7 + 7) % 7 ${colAlias}`
+          pt?.arguments[1]?.value,
+        )} % 7 + 7) % 7 ${colAlias}`,
       ),
     };
   },
@@ -181,13 +181,13 @@ const mssql = {
             `${(
               await Promise.all(
                 args.pt.arguments.map(async (ar) =>
-                  (await args.fn(ar, '', 'AND')).builder.toQuery()
-                )
+                  (await args.fn(ar, '', 'AND')).builder.toQuery(),
+                ),
               )
-            ).join(' AND ')}`
+            ).join(' AND ')}`,
           )
           .wrap('(', ')')
-          .toQuery()} THEN 1 ELSE 0 END ${args.colAlias}`
+          .toQuery()} THEN 1 ELSE 0 END ${args.colAlias}`,
       ),
     };
   },
@@ -199,13 +199,13 @@ const mssql = {
             `${(
               await Promise.all(
                 args.pt.arguments.map(async (ar) =>
-                  (await args.fn(ar, '', 'OR')).builder.toQuery()
-                )
+                  (await args.fn(ar, '', 'OR')).builder.toQuery(),
+                ),
               )
-            ).join(' OR ')}`
+            ).join(' OR ')}`,
           )
           .wrap('(', ')')
-          .toQuery()} THEN 1 ELSE 0 END ${args.colAlias}`
+          .toQuery()} THEN 1 ELSE 0 END ${args.colAlias}`,
       ),
     };
   },

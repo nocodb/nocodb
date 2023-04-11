@@ -11,7 +11,9 @@ describe('ModelVisibilitiesController', () => {
       providers: [ModelVisibilitiesService],
     }).compile();
 
-    controller = module.get<ModelVisibilitiesController>(ModelVisibilitiesController);
+    controller = module.get<ModelVisibilitiesController>(
+      ModelVisibilitiesController,
+    );
   });
 
   it('should be defined', () => {

@@ -33,7 +33,7 @@ export default class Plugin implements PluginType {
       pluginId &&
       (await NocoCache.get(
         `${CacheScope.PLUGIN}:${pluginId}`,
-        CacheGetType.TYPE_OBJECT
+        CacheGetType.TYPE_OBJECT,
       ));
     if (!plugin) {
       plugin = await ncMeta.metaGet2(null, null, MetaTable.PLUGIN, pluginId);
@@ -79,7 +79,7 @@ export default class Plugin implements PluginType {
       null,
       MetaTable.PLUGIN,
       updateObj,
-      pluginId
+      pluginId,
     );
 
     return this.get(pluginId);
@@ -97,7 +97,7 @@ export default class Plugin implements PluginType {
       title &&
       (await NocoCache.get(
         `${CacheScope.PLUGIN}:${title}`,
-        CacheGetType.TYPE_OBJECT
+        CacheGetType.TYPE_OBJECT,
       ));
     if (!plugin) {
       plugin = await ncMeta.metaGet2(null, null, MetaTable.PLUGIN, {

@@ -3,7 +3,7 @@ import debug from 'debug';
 export default class NcHelp {
   public static async executeOperations(
     fns: Array<() => Promise<any>>,
-    dbType: string
+    dbType: string,
   ): Promise<any> {
     if (dbType === 'oracledb' || dbType === 'mssql') {
       for (const fn of fns) {
@@ -13,7 +13,7 @@ export default class NcHelp {
       await Promise.all(
         fns.map(async (f) => {
           await f();
-        })
+        }),
       );
     }
   }

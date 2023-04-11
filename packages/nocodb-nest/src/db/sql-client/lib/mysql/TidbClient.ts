@@ -24,7 +24,7 @@ class Tidb extends MysqlClient {
 
     try {
       const response = await this.sqlClient.raw(
-        `select *, TABLE_NAME as tn from INFORMATION_SCHEMA.KEY_COLUMN_USAGE where CONSTRAINT_SCHEMA='${this.connectionConfig.connection.database}' and TABLE_NAME='${args.tn}'`
+        `select *, TABLE_NAME as tn from INFORMATION_SCHEMA.KEY_COLUMN_USAGE where CONSTRAINT_SCHEMA='${this.connectionConfig.connection.database}' and TABLE_NAME='${args.tn}'`,
       );
 
       if (response.length === 2) {
@@ -42,7 +42,7 @@ class Tidb extends MysqlClient {
       } else {
         log.debug(
           'Unknown response for databaseList:',
-          result.data.list.length
+          result.data.list.length,
         );
         result.data.list = [];
       }

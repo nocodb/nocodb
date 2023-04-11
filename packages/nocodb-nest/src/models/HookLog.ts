@@ -40,7 +40,7 @@ export default class HookLog implements HookLogType {
       limit?: number;
       offset?: number;
     },
-    ncMeta = Noco.ncMeta
+    ncMeta = Noco.ncMeta,
   ) {
     const hookLogs = await ncMeta.metaList2(null, null, MetaTable.HOOK_LOGS, {
       condition: {
@@ -102,7 +102,7 @@ export default class HookLog implements HookLogType {
 
   public static async count(
     { hookId }: { hookId?: string },
-    ncMeta = Noco.ncMeta
+    ncMeta = Noco.ncMeta,
   ) {
     const qb = ncMeta.knex(MetaTable.HOOK_LOGS);
 

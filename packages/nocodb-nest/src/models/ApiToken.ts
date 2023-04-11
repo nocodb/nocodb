@@ -25,7 +25,7 @@ export default class ApiToken implements ApiTokenType {
 
   public static async insert(
     apiToken: Partial<ApiToken>,
-    ncMeta = Noco.ncMeta
+    ncMeta = Noco.ncMeta,
   ) {
     const token = nanoid(40);
     await ncMeta.metaInsert(null, null, MetaTable.API_TOKENS, {
@@ -36,7 +36,7 @@ export default class ApiToken implements ApiTokenType {
     await NocoCache.appendToList(
       CacheScope.API_TOKEN,
       [],
-      `${CacheScope.API_TOKEN}:${token}`
+      `${CacheScope.API_TOKEN}:${token}`,
     );
     return this.getByToken(token);
   }
@@ -56,7 +56,7 @@ export default class ApiToken implements ApiTokenType {
     await NocoCache.deepDel(
       CacheScope.API_TOKEN,
       `${CacheScope.API_TOKEN}:${token}`,
-      CacheDelDirection.CHILD_TO_PARENT
+      CacheDelDirection.CHILD_TO_PARENT,
     );
     return await ncMeta.metaDelete(null, null, MetaTable.API_TOKENS, { token });
   }
@@ -66,7 +66,7 @@ export default class ApiToken implements ApiTokenType {
       token &&
       (await NocoCache.get(
         `${CacheScope.API_TOKEN}:${token}`,
-        CacheGetType.TYPE_OBJECT
+        CacheGetType.TYPE_OBJECT,
       ));
     if (!data) {
       data = await ncMeta.metaGet(null, null, MetaTable.API_TOKENS, { token });
@@ -80,7 +80,7 @@ export default class ApiToken implements ApiTokenType {
       fk_user_id,
       includeUnmappedToken = false,
     }: { fk_user_id?: string; includeUnmappedToken?: boolean } = {},
-    ncMeta = Noco.ncMeta
+    ncMeta = Noco.ncMeta,
   ): Promise<number> {
     const qb = ncMeta.knex(MetaTable.API_TOKENS);
 
@@ -107,7 +107,7 @@ export default class ApiToken implements ApiTokenType {
       fk_user_id?: string;
       includeUnmappedToken: boolean;
     },
-    ncMeta = Noco.ncMeta
+    ncMeta = Noco.ncMeta,
   ) {
     const queryBuilder = ncMeta
       .knex(MetaTable.API_TOKENS)
@@ -120,16 +120,16 @@ export default class ApiToken implements ApiTokenType {
         `${MetaTable.API_TOKENS}.fk_user_id`,
         `${MetaTable.API_TOKENS}.project_id`,
         `${MetaTable.API_TOKENS}.created_at`,
-        `${MetaTable.API_TOKENS}.updated_at`
+        `${MetaTable.API_TOKENS}.updated_at`,
       )
       .select(
         ncMeta
           .knex(MetaTable.USERS)
           .select('email')
           .whereRaw(
-            `${MetaTable.USERS}.id = ${MetaTable.API_TOKENS}.fk_user_id`
+            `${MetaTable.USERS}.id = ${MetaTable.API_TOKENS}.fk_user_id`,
           )
-          .as('created_by')
+          .as('created_by'),
       );
 
     if (fk_user_id) {

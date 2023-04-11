@@ -4,6 +4,6 @@ import { ColumnsController } from './columns.controller';
 
 @Module({
   controllers: [ColumnsController],
-  providers: [ColumnsService]
+  providers: [ColumnsService],
 })
 export class ColumnsModule {}

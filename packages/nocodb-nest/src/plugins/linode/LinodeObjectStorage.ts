@@ -73,7 +73,7 @@ export default class LinodeObjectStorage implements IStorageAdapterV2 {
               resolve(data.Location);
             }
           });
-        }
+        },
       );
     });
   }
@@ -106,7 +106,7 @@ export default class LinodeObjectStorage implements IStorageAdapterV2 {
     s3Options.secretAccessKey = this.input.access_secret;
 
     s3Options.endpoint = new AWS.Endpoint(
-      `${this.input.region}.linodeobjects.com`
+      `${this.input.region}.linodeobjects.com`,
     );
 
     this.s3Client = new AWS.S3(s3Options);

@@ -13,7 +13,7 @@ export default function (
   }: {
     allowedRoles?: (OrgUserRoles | string)[];
     blockApiTokenAccess?: boolean;
-  } = {}
+  } = {},
 ) {
   return [
     extractProjectIdAndAuthenticate,
@@ -43,7 +43,7 @@ export default function (
     catchError(async function projectAclMiddleware(
       req: Request<any, any, any, any, any>,
       _res: Response,
-      next: NextFunction
+      next: NextFunction,
     ) {
       // if (req['files'] && req.body.json) {
       //   req.body = JSON.parse(req.body.json);
@@ -83,8 +83,8 @@ export default function (
       if (!isAllowed) {
         NcError.forbidden(
           `${permissionName} - ${Object.keys(roles).filter(
-            (k) => roles[k]
-          )} : Not allowed`
+            (k) => roles[k],
+          )} : Not allowed`,
         );
       }
       //   }

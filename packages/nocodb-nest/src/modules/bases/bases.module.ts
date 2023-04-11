@@ -4,6 +4,6 @@ import { BasesController } from './bases.controller';
 
 @Module({
   controllers: [BasesController],
-  providers: [BasesService]
+  providers: [BasesService],
 })
 export class BasesModule {}

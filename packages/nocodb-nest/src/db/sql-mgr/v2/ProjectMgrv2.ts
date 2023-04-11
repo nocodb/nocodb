@@ -19,7 +19,7 @@ export default class ProjectMgrv2 {
     project: { id: string },
     // todo: tobe changed
     ncMeta: any,
-    base: Base
+    base: Base,
   ): Promise<SqlMgrv2Trans> {
     const sqlMgr = new SqlMgrv2Trans(project, ncMeta, base);
     await sqlMgr.startTransaction(base);

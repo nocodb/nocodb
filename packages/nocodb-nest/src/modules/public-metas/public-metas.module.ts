@@ -4,6 +4,6 @@ import { PublicMetasController } from './public-metas.controller';
 
 @Module({
   controllers: [PublicMetasController],
-  providers: [PublicMetasService]
+  providers: [PublicMetasService],
 })
 export class PublicMetasModule {}

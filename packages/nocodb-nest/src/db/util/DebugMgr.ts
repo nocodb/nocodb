@@ -13,19 +13,19 @@ export default class DebugMgr {
   static _create(namespace) {
     if (namespaces[namespace]) {
       namespaces[namespace][`${namespace}_A`].enabled = debug.enabled(
-        `${namespace}_A`
+        `${namespace}_A`,
       );
       namespaces[namespace][`${namespace}_D`].enabled = debug.enabled(
-        `${namespace}_D`
+        `${namespace}_D`,
       );
       namespaces[namespace][`${namespace}_I`].enabled = debug.enabled(
-        `${namespace}_I`
+        `${namespace}_I`,
       );
       namespaces[namespace][`${namespace}_W`].enabled = debug.enabled(
-        `${namespace}_W`
+        `${namespace}_W`,
       );
       namespaces[namespace][`${namespace}_E`].enabled = debug.enabled(
-        `${namespace}_E`
+        `${namespace}_E`,
       );
     } else {
       namespaces[namespace] = {};

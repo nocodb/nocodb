@@ -8,7 +8,7 @@ import type { XKnex } from '../../CustomKnex';
 export default class SqlMgrv2Trans extends SqlMgrv2 {
   protected trx: Knex.Transaction;
   // todo: tobe changed
-  protected ncMeta: any // NcMetaIO;
+  protected ncMeta: any; // NcMetaIO;
   protected projectId: string;
   protected base: Base;
 
@@ -30,7 +30,7 @@ export default class SqlMgrv2Trans extends SqlMgrv2 {
     return new KnexMigratorv2Tans(
       { id: this.projectId },
       await this.getSqlClient(this.base),
-      this.ncMeta
+      this.ncMeta,
     );
   }
 

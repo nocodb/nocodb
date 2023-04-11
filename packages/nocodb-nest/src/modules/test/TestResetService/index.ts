@@ -15,7 +15,7 @@ const workerStatus = {};
 const loginRootUser = async () => {
   const response = await axios.post(
     'http://localhost:8080/api/v1/auth/user/signin',
-    { email: 'user@nocodb.com', password: 'Password123.' }
+    { email: 'user@nocodb.com', password: 'Password123.' },
   );
 
   return response.data.token;
@@ -61,7 +61,7 @@ export class TestResetService {
       // wait till previous worker is done
       while (workerStatus[this.parallelId] === 'processing') {
         console.log(
-          `waiting for previous worker to finish parrelelId:${this.parallelId}`
+          `waiting for previous worker to finish parrelelId:${this.parallelId}`,
         );
         await new Promise((resolve) => setTimeout(resolve, 1000));
       }
@@ -163,7 +163,7 @@ const removeAllProjectCreatedByTheTest = async (parallelId: string) => {
 
 const removeAllPrefixedUsersExceptSuper = async (parallelId: string) => {
   const users = (await User.list()).filter(
-    (user) => !user.roles.includes('super')
+    (user) => !user.roles.includes('super'),
   );
 
   for (const user of users) {
@@ -186,7 +186,7 @@ const removeProjectUsersFromCache = async (project: Project) => {
     try {
       const user: User = await User.get(projectUser.fk_user_id);
       await NocoCache.del(
-        `${CacheScope.PROJECT_USER}:${project.id}:${user.id}`
+        `${CacheScope.PROJECT_USER}:${project.id}:${user.id}`,
       );
     } catch (e) {
       console.error('removeProjectUsersFromCache', e);

@@ -245,7 +245,7 @@ class MssqlClient extends KnexClient {
 
     try {
       const rows = await this.sqlClient.raw(
-        `SELECT SERVERPROPERTY('productversion') AS version, SERVERPROPERTY ('productlevel') AS level, SERVERPROPERTY ('edition') AS edition, @@version AS versionD`
+        `SELECT SERVERPROPERTY('productversion') AS version, SERVERPROPERTY ('productlevel') AS level, SERVERPROPERTY ('edition') AS edition, @@version AS versionD`,
       );
       result.data.object = {};
 
@@ -277,13 +277,13 @@ class MssqlClient extends KnexClient {
 
     try {
       const connectionParamsWithoutDb = JSON.parse(
-        JSON.stringify(this.connectionConfig)
+        JSON.stringify(this.connectionConfig),
       );
       delete connectionParamsWithoutDb.connection.database;
       const tempSqlClient = knex(connectionParamsWithoutDb);
 
       const rows = await tempSqlClient.raw(
-        `SELECT name from sys.databases WHERE name = '${args.database}'`
+        `SELECT name from sys.databases WHERE name = '${args.database}'`,
       );
 
       if (rows.length === 0) {
@@ -304,7 +304,7 @@ class MssqlClient extends KnexClient {
           [
             this.connectionConfig.searchPath[0],
             this.connectionConfig.searchPath[0],
-          ]
+          ],
         );
       }
     } catch (e) {
@@ -323,7 +323,7 @@ class MssqlClient extends KnexClient {
 
     try {
       const connectionParamsWithoutDb = JSON.parse(
-        JSON.stringify(this.connectionConfig)
+        JSON.stringify(this.connectionConfig),
       );
       delete connectionParamsWithoutDb.connection.database;
       const tempSqlClient = knex(connectionParamsWithoutDb);
@@ -332,7 +332,7 @@ class MssqlClient extends KnexClient {
       log.debug('dropping database:', args);
       await tempSqlClient.raw(
         `ALTER DATABASE ${args.database} SET SINGLE_USER WITH ROLLBACK IMMEDIATE;
-         DROP DATABASE ${args.database};`
+         DROP DATABASE ${args.database};`,
       );
     } catch (e) {
       log.ppe(e, _func);
@@ -414,7 +414,7 @@ class MssqlClient extends KnexClient {
 
     try {
       const rows = await this.sqlClient.raw(
-        `SELECT name FROM sys.databases WHERE name = '${args.databaseName}'`
+        `SELECT name FROM sys.databases WHERE name = '${args.databaseName}'`,
       );
       result.data.value = rows.length > 0;
     } catch (e) {
@@ -440,7 +440,7 @@ class MssqlClient extends KnexClient {
 
     try {
       result.data.list = await this.sqlClient.raw(
-        `SELECT name AS database_name, database_id, create_date FROM sys.databases ORDER BY name`
+        `SELECT name AS database_name, database_id, create_date FROM sys.databases ORDER BY name`,
       );
     } catch (e) {
       log.ppe(e, _func);
@@ -467,7 +467,7 @@ class MssqlClient extends KnexClient {
       result.data.list = await this.sqlClient.raw(
         `SELECT schema_name(t.schema_id) AS schema_name,
         t.name AS tn, t.create_date, t.modify_date FROM sys.tables t WHERE schema_name(t.schema_id) = ? ORDER BY schema_name,tn `,
-        [this.schema || 'dbo']
+        [this.schema || 'dbo'],
       );
     } catch (e) {
       log.ppe(e, _func);
@@ -486,7 +486,7 @@ class MssqlClient extends KnexClient {
 
     try {
       result.data.list = await this.sqlClient.raw(
-        `SELECT name AS schema_name FROM master.${this.schema}.sysdatabases WHERE name not in ('master', 'tempdb', 'model', 'msdb');`
+        `SELECT name AS schema_name FROM master.${this.schema}.sysdatabases WHERE name not in ('master', 'tempdb', 'model', 'msdb');`,
       );
     } catch (e) {
       log.ppe(e, _func);
@@ -691,7 +691,7 @@ class MssqlClient extends KnexClient {
                                 for xml path ('') ) D (column_names)
     WHERE t.is_ms_shipped <> 1
     AND index_id > 0 AND t.name = '${this.getTnPath(args.tn)}'
-    ORDER BY schema_name(t.schema_id) + '.' + t.[name], i.index_id`
+    ORDER BY schema_name(t.schema_id) + '.' + t.[name], i.index_id`,
       );
       const rows = [];
       for (let i = 0, rowCount = 0; i < response.length; ++i, ++rowCount) {
@@ -782,7 +782,7 @@ class MssqlClient extends KnexClient {
                                 for xml path ('') ) D (column_names)
     WHERE t.is_ms_shipped <> 1
     AND index_id > 0 AND t.name = '${this.getTnPath(args.tn)}'
-    ORDER BY schema_name(t.schema_id) + '.' + t.[name], i.index_id`
+    ORDER BY schema_name(t.schema_id) + '.' + t.[name], i.index_id`,
       );
       const rows = [];
       for (let i = 0, rowCount = 0; i < response.length; ++i, ++rowCount) {
@@ -1043,7 +1043,7 @@ class MssqlClient extends KnexClient {
         `SELECT o.name AS function_name,definition, o.create_date AS created, o.modify_date AS modified,o.*
         FROM sys.sql_modules AS m
         JOIN sys.objects AS o ON m.object_id = o.object_id
-        AND type IN ('FN', 'IF', 'TF')`
+        AND type IN ('FN', 'IF', 'TF')`,
       );
       for (let i = 0; i < response.length; i++) {
         const el = response[i];
@@ -1086,7 +1086,7 @@ class MssqlClient extends KnexClient {
 
       const response = await this.sqlClient.raw(
         `SELECT SPECIFIC_NAME AS procedure_name, ROUTINE_TYPE AS [type],LAST_ALTERED AS modified, CREATED AS created,ROUTINE_DEFINITION AS definition ,pc.*
-        FROM ${args.databaseName}.INFORMATION_SCHEMA.ROUTINES AS pc WHERE routine_type = 'PROCEDURE'`
+        FROM ${args.databaseName}.INFORMATION_SCHEMA.ROUTINES AS pc WHERE routine_type = 'PROCEDURE'`,
       );
 
       result.data.list = response;
@@ -1119,7 +1119,7 @@ class MssqlClient extends KnexClient {
 
       const response = await this.sqlClient.raw(
         `SELECT v.name AS view_name,v.*,m.* FROM sys.views v INNER JOIN sys.schemas s ON s.schema_id = v.schema_id
-        INNER JOIN sys.sql_modules AS m ON m.object_id = v.object_id`
+        INNER JOIN sys.sql_modules AS m ON m.object_id = v.object_id`,
       );
 
       result.data.list = response;
@@ -1155,7 +1155,7 @@ class MssqlClient extends KnexClient {
         `SELECT o.name AS function_name,definition AS create_function, o.create_date AS created, o.modify_date AS modified,o.*
         FROM sys.sql_modules AS m
         JOIN sys.objects AS o ON m.object_id = o.object_id
-        AND type IN ('FN', 'IF', 'TF') AND o.name = '${args.function_name}'`
+        AND type IN ('FN', 'IF', 'TF') AND o.name = '${args.function_name}'`,
       );
 
       for (let i = 0; i < response.length; i++) {
@@ -1194,7 +1194,7 @@ class MssqlClient extends KnexClient {
 
       const response = await this.sqlClient.raw(
         `SELECT SPECIFIC_NAME AS procedure_name, ROUTINE_TYPE AS [type],LAST_ALTERED AS modified, CREATED AS created,ROUTINE_DEFINITION AS create_procedure ,pc.*
-        FROM ${args.databaseName}.INFORMATION_SCHEMA.ROUTINES AS pc WHERE routine_type = 'PROCEDURE' AND SPECIFIC_NAME='${args.procedure_name}'`
+        FROM ${args.databaseName}.INFORMATION_SCHEMA.ROUTINES AS pc WHERE routine_type = 'PROCEDURE' AND SPECIFIC_NAME='${args.procedure_name}'`,
       );
 
       result.data.list = response;
@@ -1224,7 +1224,7 @@ class MssqlClient extends KnexClient {
 
       const response = await this.sqlClient.raw(
         `SELECT v.name AS view_name,v.*,m.*, m.definition AS view_definition FROM sys.views v INNER JOIN sys.schemas s ON s.schema_id = v.schema_id
-        INNER JOIN sys.sql_modules AS m ON m.object_id = v.object_id WHERE v.name = '${args.view_name}'`
+        INNER JOIN sys.sql_modules AS m ON m.object_id = v.object_id WHERE v.name = '${args.view_name}'`,
       );
 
       result.data.list = response;
@@ -1259,8 +1259,8 @@ class MssqlClient extends KnexClient {
         INNER JOIN sys.sql_modules AS df ON object_id = so.id
         INNER JOIN sysobjects AS so2 ON so.parent_obj = so2.Id
         WHERE [so].[type] = 'TR' AND so2.name = '${this.getTnPath(
-          args.tn
-        )}' AND [so].[name] = '${args.trigger_name}'`
+          args.tn,
+        )}' AND [so].[name] = '${args.trigger_name}'`,
       );
 
       for (let i = 0; i < response.length; i++) {
@@ -1290,7 +1290,7 @@ class MssqlClient extends KnexClient {
 
     try {
       const rows = await this.sqlClient.raw(
-        `SELECT name FROM sys.databases WHERE name = '${args.database_name}'`
+        `SELECT name FROM sys.databases WHERE name = '${args.database_name}'`,
       );
 
       if (rows.length === 0) {
@@ -1313,7 +1313,7 @@ class MssqlClient extends KnexClient {
 
     try {
       const connectionParamsWithoutDb = JSON.parse(
-        JSON.stringify(this.connectionConfig)
+        JSON.stringify(this.connectionConfig),
       );
 
       if (
@@ -1327,7 +1327,7 @@ class MssqlClient extends KnexClient {
 
       await this.sqlClient.raw(
         `ALTER DATABASE ${args.database_name} SET SINGLE_USER WITH ROLLBACK IMMEDIATE;
-         DROP DATABASE ${args.database_name};`
+         DROP DATABASE ${args.database_name};`,
       );
     } catch (e) {
       log.ppe(e, _func);
@@ -1397,7 +1397,7 @@ class MssqlClient extends KnexClient {
     log.api(`${func}:args:`, args);
     try {
       await this.sqlClient.raw(
-        `DROP PROCEDURE IF EXISTS ${args.procedure_name}`
+        `DROP PROCEDURE IF EXISTS ${args.procedure_name}`,
       );
       result.data.object = {
         upStatement: [
@@ -1551,7 +1551,7 @@ class MssqlClient extends KnexClient {
     log.api(`${func}:args:`, args);
     try {
       await this.sqlClient.raw(
-        `DROP PROCEDURE IF EXISTS ${args.procedure_name}`
+        `DROP PROCEDURE IF EXISTS ${args.procedure_name}`,
       );
       await this.sqlClient.raw(`${args.create_procedure}`);
       result.data.object = {
@@ -1599,7 +1599,7 @@ class MssqlClient extends KnexClient {
     try {
       const query = this.genQuery(
         `CREATE TRIGGER ?? ON ?? \n${args.timing} ${args.event}\n as\n${args.statement}`,
-        [args.trigger_name, this.getTnPath(args.tn)]
+        [args.trigger_name, this.getTnPath(args.tn)],
       );
       await this.sqlClient.raw(query);
       result.data.object = {
@@ -1636,7 +1636,7 @@ class MssqlClient extends KnexClient {
       await this.sqlClient.raw(
         `ALTER TRIGGER ${args.trigger_name} ON ${this.getTnPath(args.tn)} \n${
           args.timing
-        } ${args.event}\n AS\n${args.statement}`
+        } ${args.event}\n AS\n${args.statement}`,
       );
 
       result.data.object = {
@@ -1645,7 +1645,7 @@ class MssqlClient extends KnexClient {
             sql:
               this.querySeparator() +
               `ALTER TRIGGER ${args.trigger_name} ON ${this.getTnPath(
-                args.tn
+                args.tn,
               )} \n${args.timing} ${args.event}\n AS\n${args.statement}`,
           },
         ],
@@ -1654,7 +1654,7 @@ class MssqlClient extends KnexClient {
             sql:
               this.querySeparator() +
               `ALTER TRIGGER ${args.trigger_name} ON ${this.getTnPath(
-                args.tn
+                args.tn,
               )} \n${args.timing} ${args.event}\n AS\n${args.statement}`,
           },
         ],
@@ -1869,7 +1869,7 @@ class MssqlClient extends KnexClient {
               column.column_name,
               pk.column_name,
               pk.column_name,
-            ]
+            ],
           );
 
         upQuery += triggerCreateQuery;
@@ -1973,13 +1973,13 @@ class MssqlClient extends KnexClient {
             args.table,
             args.columns[i],
             oldColumn,
-            upQuery
+            upQuery,
           );
           downQuery += this.alterTableAddColumn(
             args.table,
             oldColumn,
             args.columns[i],
-            downQuery
+            downQuery,
           );
         } else if (args.columns[i].altered & 2 || args.columns[i].altered & 8) {
           // col edit
@@ -1987,13 +1987,13 @@ class MssqlClient extends KnexClient {
             args.table,
             args.columns[i],
             oldColumn,
-            upQuery
+            upQuery,
           );
           downQuery += this.alterTableChangeColumn(
             args.table,
             oldColumn,
             args.columns[i],
-            downQuery
+            downQuery,
           );
         } else if (args.columns[i].altered & 1) {
           // col addition
@@ -2001,13 +2001,13 @@ class MssqlClient extends KnexClient {
             args.table,
             args.columns[i],
             oldColumn,
-            upQuery
+            upQuery,
           );
           downQuery += this.alterTableRemoveColumn(
             args.table,
             args.columns[i],
             oldColumn,
-            downQuery
+            downQuery,
           );
         }
       }
@@ -2016,13 +2016,13 @@ class MssqlClient extends KnexClient {
         args.table,
         args.columns,
         args.originalColumns,
-        upQuery
+        upQuery,
       );
       downQuery += this.alterTablePK(
         args.table,
         args.originalColumns,
         args.columns,
-        downQuery
+        downQuery,
       );
 
       if (upQuery) {
@@ -2111,7 +2111,7 @@ class MssqlClient extends KnexClient {
       // Todo: filter foeign key in proper way
       indexList = indexList.data.list.filter(
         ({ type, key_name }) =>
-          type !== 'Primary key' && key_name.indexOf('fk_') === -1
+          type !== 'Primary key' && key_name.indexOf('fk_') === -1,
       );
 
       const indexesMap: { [key: string]: any } = {};
@@ -2129,7 +2129,7 @@ class MssqlClient extends KnexClient {
       }
 
       for (const { non_unique, tn, columns, key_name } of Object.values(
-        indexesMap
+        indexesMap,
       )) {
         downQuery +=
           this.querySeparator() +
@@ -2193,7 +2193,7 @@ class MssqlClient extends KnexClient {
           if (args.onDelete) {
             table = table.onDelete(args.onDelete);
           }
-        }
+        },
       );
 
       const upStatement =
@@ -2259,7 +2259,7 @@ class MssqlClient extends KnexClient {
         this.getTnPath(args.childTable),
         function (table) {
           table.dropForeign(args.childColumn, foreignKeyName);
-        }
+        },
       );
 
       const upStatement =
@@ -2509,13 +2509,13 @@ class MssqlClient extends KnexClient {
           query += this.genQuery(
             `, PRIMARY KEY(??)`,
             [numOfPksInNew],
-            shouldSanitize
+            shouldSanitize,
           );
         } else {
           query += this.genQuery(
             `ALTER TABLE ?? ADD PRIMARY KEY(??)`,
             [this.getTnPath(t), numOfPksInNew],
-            shouldSanitize
+            shouldSanitize,
           );
         }
       }
@@ -2535,13 +2535,13 @@ class MssqlClient extends KnexClient {
       query += this.genQuery(
         `\nALTER TABLE ?? DROP CONSTRAINT ??;`,
         [this.getTnPath(t), n.default_constraint_name || `DF_${t}_${n.cn}`],
-        shouldSanitize
+        shouldSanitize,
       );
     }
     query += this.genQuery(
       `\nALTER TABLE ?? DROP COLUMN ??`,
       [this.getTnPath(t), n.cn],
-      shouldSanitize
+      shouldSanitize,
     );
     return query;
   }
@@ -2569,7 +2569,7 @@ class MssqlClient extends KnexClient {
     query = this.genQuery(
       `CREATE TABLE ?? (${query});`,
       [this.getTnPath(args.tn)],
-      shouldSanitize
+      shouldSanitize,
     );
     return query;
   }
@@ -2594,7 +2594,7 @@ class MssqlClient extends KnexClient {
         ? this.genQuery(
             ` CONSTRAINT  ?? DEFAULT ${defaultValue}`,
             [`DF_${t}_${n.cn}`],
-            shouldSanitize
+            shouldSanitize,
           )
         : '';
       if (defaultValue) {
@@ -2609,14 +2609,14 @@ class MssqlClient extends KnexClient {
         ? this.genQuery(
             ` CONSTRAINT ?? DEFAULT ${defaultValue}`,
             [`DF_${t}_${n.cn}`],
-            shouldSanitize
+            shouldSanitize,
           )
         : ' ';
       // shouldSanitize = false;
       query = this.genQuery(
         `ALTER TABLE ?? ${query};`,
         [this.getTnPath(t)],
-        shouldSanitize
+        shouldSanitize,
       );
       if (defaultValue) {
         n.default_constraint_name = `DF_${t}_${n.cn}`;
@@ -2628,7 +2628,7 @@ class MssqlClient extends KnexClient {
         query += this.genQuery(
           `\nEXEC sp_rename ?, ?, 'COLUMN';\n`,
           [`${this.getTnPath(t)}.${n.cno}`, `${n.cn}`],
-          shouldSanitize
+          shouldSanitize,
         );
       }
 
@@ -2641,7 +2641,7 @@ class MssqlClient extends KnexClient {
         query += this.genQuery(
           `\nALTER TABLE ?? ALTER COLUMN ?? ${n.dt}${scaleAndPrecision}`,
           [this.getTnPath(t), n.cn],
-          shouldSanitize
+          shouldSanitize,
         );
         query += n.rqd ? ` NOT NULL;\n` : ` NULL;\n`;
       }
@@ -2651,13 +2651,13 @@ class MssqlClient extends KnexClient {
           query += this.genQuery(
             `\nALTER TABLE ?? DROP CONSTRAINT ??;`,
             [this.getTnPath(t), o.default_constraint_name],
-            shouldSanitize
+            shouldSanitize,
           );
         if (n.cdf) {
           query += this.genQuery(
             `\nALTER TABLE ??  ADD CONSTRAINT ?? DEFAULT ${n.cdf} FOR ??;`,
             [this.getTnPath(t), `DF_${n.tn}_${n.cn}`, n.cn],
-            shouldSanitize
+            shouldSanitize,
           );
           // todo: hack
           n.default_constraint_name = `DF_${n.tn}_${n.cn}`;

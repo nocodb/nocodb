@@ -56,8 +56,8 @@ export default class Audit implements AuditType {
   project_id?: string;
   fk_model_id?: string;
   row_id?: string;
-  op_type?: typeof opTypes[number];
-  op_sub_type?: typeof opSubTypes[number];
+  op_type?: (typeof opTypes)[number];
+  op_sub_type?: (typeof opSubTypes)[number];
   status?: string;
   description?: string;
   details?: string;
@@ -71,7 +71,7 @@ export default class Audit implements AuditType {
       null,
       null,
       MetaTable.AUDIT,
-      auditId
+      auditId,
     );
     return audit && new Audit(audit);
   }
@@ -82,7 +82,7 @@ export default class Audit implements AuditType {
     ncMeta = Noco.ncMeta,
     { forceAwait }: { forceAwait: boolean } = {
       forceAwait: process.env['TEST'] === 'true',
-    }
+    },
   ) {
     if (process.env.NC_DISABLE_AUDIT === 'true') {
       return;
@@ -177,7 +177,7 @@ export default class Audit implements AuditType {
   static async commentUpdate(
     auditId: string,
     audit: Partial<AuditType>,
-    ncMeta = Noco.ncMeta
+    ncMeta = Noco.ncMeta,
   ) {
     const updateObj = extractProps(audit, ['description']);
     return await ncMeta.metaUpdate(
@@ -185,7 +185,7 @@ export default class Audit implements AuditType {
       null,
       MetaTable.AUDIT,
       updateObj,
-      auditId
+      auditId,
     );
   }
 }

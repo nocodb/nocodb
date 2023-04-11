@@ -11,7 +11,9 @@ describe('PublicDatasExportController', () => {
       providers: [PublicDatasExportService],
     }).compile();
 
-    controller = module.get<PublicDatasExportController>(PublicDatasExportController);
+    controller = module.get<PublicDatasExportController>(
+      PublicDatasExportController,
+    );
   });
 
   it('should be defined', () => {

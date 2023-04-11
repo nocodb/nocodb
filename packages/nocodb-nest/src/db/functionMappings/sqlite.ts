@@ -16,7 +16,7 @@ const sqlite3 = {
       builder: args.knex.raw(
         `round(${(await args.fn(args.pt.arguments[0])).builder} + 0.5)${
           args.colAlias
-        }`
+        }`,
       ),
     };
   },
@@ -25,7 +25,7 @@ const sqlite3 = {
       builder: args.knex.raw(
         `round(${(await args.fn(args.pt.arguments[0])).builder} - 0.5)${
           args.colAlias
-        }`
+        }`,
       ),
     };
   },
@@ -44,7 +44,7 @@ const sqlite3 = {
           (await args.fn(args.pt.arguments[1])).builder
         } || 'c', '/'),'/',${(await args.fn(args.pt.arguments[0])).builder})${
           args.colAlias
-        }`
+        }`,
       ),
     };
   },
@@ -55,7 +55,7 @@ const sqlite3 = {
       builder: args.knex.raw(
         `CAST(${(await args.fn(args.pt.arguments[0])).builder} as INTEGER)${
           args.colAlias
-        }`
+        }`,
       ),
     };
   },
@@ -64,7 +64,7 @@ const sqlite3 = {
       builder: args.knex.raw(
         `SUBSTR(${(await args.fn(args.pt.arguments[0])).builder},1,${
           (await args.fn(args.pt.arguments[1])).builder
-        })${args.colAlias}`
+        })${args.colAlias}`,
       ),
     };
   },
@@ -73,7 +73,7 @@ const sqlite3 = {
       builder: args.knex.raw(
         `SUBSTR(${(await args.fn(args.pt.arguments[0])).builder},-(${
           (await args.fn(args.pt.arguments[1])).builder
-        }))${args.colAlias}`
+        }))${args.colAlias}`,
       ),
     };
   },
@@ -84,7 +84,7 @@ const sqlite3 = {
         .raw(
           `CAST(${(await args.fn(args.pt.arguments[0])).builder} as FLOAT)${
             args.colAlias
-          }`
+          }`,
         )
         .wrap('(', ')'),
     };
@@ -96,13 +96,13 @@ const sqlite3 = {
         `CASE
       WHEN ${(await fn(pt.arguments[0])).builder} LIKE '%:%' THEN
         STRFTIME('%Y-%m-%d %H:%M', DATETIME(DATETIME(${fn(
-          pt.arguments[0]
+          pt.arguments[0],
         )}, 'localtime'),
         ${dateIN > 0 ? '+' : ''}${
           (await fn(pt.arguments[1])).builder
         } || ' ${String((await fn(pt.arguments[2])).builder).replace(
           /["']/g,
-          ''
+          '',
         )}'))
       ELSE
         DATE(DATETIME(${(await fn(pt.arguments[0])).builder}, 'localtime'),
@@ -110,9 +110,9 @@ const sqlite3 = {
           (await fn(pt.arguments[1])).builder
         } || ' ${String((await fn(pt.arguments[2])).builder).replace(
           /["']/g,
-          ''
+          '',
         )}')
-      END${colAlias}`
+      END${colAlias}`,
       ),
     };
   },
@@ -124,7 +124,7 @@ const sqlite3 = {
       datetime_expr1 = `'${convertToTargetFormat(
         datetime_expr1.bindings[0],
         getDateFormat(datetime_expr1.bindings[0]),
-        'YYYY-MM-DD'
+        'YYYY-MM-DD',
       )}'`;
     }
 
@@ -132,7 +132,7 @@ const sqlite3 = {
       datetime_expr2 = `'${convertToTargetFormat(
         datetime_expr2.bindings[0],
         getDateFormat(datetime_expr2.bindings[0]),
-        'YYYY-MM-DD'
+        'YYYY-MM-DD',
       )}'`;
     }
 
@@ -198,12 +198,12 @@ const sqlite3 = {
         `(strftime('%w', ${
           pt.arguments[0].type === 'Literal'
             ? `'${dayjs((await fn(pt.arguments[0])).builder).format(
-                'YYYY-MM-DD'
+                'YYYY-MM-DD',
               )}'`
             : (await fn(pt.arguments[0])).builder
         }) - 1 - ${getWeekdayByText(
-          pt?.arguments[1]?.value
-        )} % 7 + 7) % 7 ${colAlias}`
+          pt?.arguments[1]?.value,
+        )} % 7 + 7) % 7 ${colAlias}`,
       ),
     };
   },
@@ -215,13 +215,13 @@ const sqlite3 = {
             `${(
               await Promise.all(
                 args.pt.arguments.map(async (ar) =>
-                  (await args.fn(ar, '', 'AND')).builder.toQuery()
-                )
+                  (await args.fn(ar, '', 'AND')).builder.toQuery(),
+                ),
               )
-            ).join(' AND ')}`
+            ).join(' AND ')}`,
           )
           .wrap('(', ')')
-          .toQuery()} THEN 1 ELSE 0 END ${args.colAlias}`
+          .toQuery()} THEN 1 ELSE 0 END ${args.colAlias}`,
       ),
     };
   },
@@ -233,13 +233,13 @@ const sqlite3 = {
             `${(
               await Promise.all(
                 args.pt.arguments.map(async (ar) =>
-                  (await args.fn(ar, '', 'OR')).builder.toQuery()
-                )
+                  (await args.fn(ar, '', 'OR')).builder.toQuery(),
+                ),
               )
-            ).join(' OR ')}`
+            ).join(' OR ')}`,
           )
           .wrap('(', ')')
-          .toQuery()} THEN 1 ELSE 0 END ${args.colAlias}`
+          .toQuery()} THEN 1 ELSE 0 END ${args.colAlias}`,
       ),
     };
   },

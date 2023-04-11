@@ -4,6 +4,6 @@ import { SyncController } from './sync.controller';
 
 @Module({
   controllers: [SyncController],
-  providers: [SyncService]
+  providers: [SyncService],
 })
 export class SyncModule {}

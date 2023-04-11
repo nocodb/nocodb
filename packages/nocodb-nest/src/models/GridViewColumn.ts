@@ -22,7 +22,7 @@ export default class GridViewColumn implements GridColumnType {
 
   public static async list(
     viewId: string,
-    ncMeta = Noco.ncMeta
+    ncMeta = Noco.ncMeta,
   ): Promise<GridViewColumn[]> {
     let views = await NocoCache.getList(CacheScope.GRID_VIEW_COLUMN, [viewId]);
     if (!views.length) {
@@ -39,7 +39,7 @@ export default class GridViewColumn implements GridColumnType {
     views.sort(
       (a, b) =>
         (a.order != null ? a.order : Infinity) -
-        (b.order != null ? b.order : Infinity)
+        (b.order != null ? b.order : Infinity),
     );
     return views?.map((v) => new GridViewColumn(v));
   }
@@ -49,18 +49,18 @@ export default class GridViewColumn implements GridColumnType {
       gridViewColumnId &&
       (await NocoCache.get(
         `${CacheScope.GRID_VIEW_COLUMN}:${gridViewColumnId}`,
-        CacheGetType.TYPE_OBJECT
+        CacheGetType.TYPE_OBJECT,
       ));
     if (!view) {
       view = await ncMeta.metaGet2(
         null,
         null,
         MetaTable.GRID_VIEW_COLUMNS,
-        gridViewColumnId
+        gridViewColumnId,
       );
       await NocoCache.set(
         `${CacheScope.GRID_VIEW_COLUMN}:${gridViewColumnId}`,
-        view
+        view,
       );
     }
     return view && new GridViewColumn(view);
@@ -93,7 +93,7 @@ export default class GridViewColumn implements GridColumnType {
       null,
       null,
       MetaTable.GRID_VIEW_COLUMNS,
-      insertObj
+      insertObj,
     );
 
     await NocoCache.set(`${CacheScope.GRID_VIEW_COLUMN}:${fk_column_id}`, id);
@@ -109,7 +109,7 @@ export default class GridViewColumn implements GridColumnType {
       await NocoCache.appendToList(
         CacheScope.GRID_VIEW_COLUMN,
         [column.fk_view_id],
-        `${CacheScope.GRID_VIEW_COLUMN}:${id}`
+        `${CacheScope.GRID_VIEW_COLUMN}:${id}`,
       );
 
     await View.fixPVColumnForView(column.fk_view_id, ncMeta);
@@ -120,7 +120,7 @@ export default class GridViewColumn implements GridColumnType {
   static async update(
     columnId: string,
     body: Partial<GridViewColumn>,
-    ncMeta = Noco.ncMeta
+    ncMeta = Noco.ncMeta,
   ) {
     const updateObj = extractProps(body, ['order', 'show', 'width']);
     // get existing cache
@@ -138,7 +138,7 @@ export default class GridViewColumn implements GridColumnType {
       null,
       MetaTable.GRID_VIEW_COLUMNS,
       updateObj,
-      columnId
+      columnId,
     );
   }
 }

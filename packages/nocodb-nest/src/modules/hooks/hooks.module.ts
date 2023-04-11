@@ -4,6 +4,6 @@ import { HooksController } from './hooks.controller';
 
 @Module({
   controllers: [HooksController],
-  providers: [HooksService]
+  providers: [HooksService],
 })
 export class HooksModule {}

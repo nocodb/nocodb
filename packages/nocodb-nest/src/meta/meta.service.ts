@@ -1,5 +1,11 @@
-import { Global, Inject, Injectable, OnApplicationBootstrap, OnModuleInit } from '@nestjs/common'
-import { Knex } from 'knex'
+import {
+  Global,
+  Inject,
+  Injectable,
+  OnApplicationBootstrap,
+  OnModuleInit,
+} from '@nestjs/common';
+import { Knex } from 'knex';
 
 import XcMigrationSource from './migrations/XcMigrationSource';
 import XcMigrationSourcev2 from './migrations/XcMigrationSourcev2';
@@ -12,7 +18,7 @@ import NocoCache from '../cache/NocoCache';
 const nanoid = customAlphabet('1234567890abcdefghijklmnopqrstuvwxyz_', 4);
 
 // todo: tobe fixed
-const META_TABLES = []
+const META_TABLES = [];
 
 // todo: move
 export enum MetaTable {
@@ -187,8 +193,6 @@ export class MetaService {
     return this.metaConnection.knexInstance;
   }
 
-
-
   get knexConnection() {
     return this.connection;
   }
@@ -348,7 +352,6 @@ export class MetaService {
 
   //
 
-
   public async metaPaginatedList(
     projectId: string,
     dbAlias: string,
@@ -360,7 +363,7 @@ export class MetaService {
       xcCondition?;
       fields?: string[];
       sort?: { field: string; desc?: boolean };
-    }
+    },
   ): Promise<{ list: any[]; count: number }> {
     const query = this.knexConnection(target);
     const countQuery = this.knexConnection(target);
@@ -449,7 +452,7 @@ export class MetaService {
     dbAlias: string,
     target: string,
     idOrCondition: string | { [p: string]: any },
-    xcCondition?
+    xcCondition?,
   ): Promise<void> {
     const query = this.knexConnection(target);
 
@@ -479,7 +482,7 @@ export class MetaService {
     target: string,
     idOrCondition: string | { [p: string]: any },
     fields?: string[],
-    xcCondition?
+    xcCondition?,
   ): Promise<any> {
     const query = this.knexConnection(target);
 
@@ -513,7 +516,7 @@ export class MetaService {
 
   public async metaGetNextOrder(
     target: string,
-    condition: { [key: string]: any }
+    condition: { [key: string]: any },
   ): Promise<number> {
     const query = this.knexConnection(target);
 
@@ -527,7 +530,7 @@ export class MetaService {
     project_id: string,
     dbAlias: string,
     target: string,
-    data: any
+    data: any,
   ): Promise<any> {
     return this.knexConnection(target).insert({
       db_alias: dbAlias,
@@ -549,7 +552,7 @@ export class MetaService {
       xcCondition?;
       fields?: string[];
       orderBy?: { [key: string]: 'asc' | 'desc' };
-    }
+    },
   ): Promise<any[]> {
     const query = this.knexConnection(target);
 
@@ -596,7 +599,7 @@ export class MetaService {
       xcCondition?;
       fields?: string[];
       orderBy: { [key: string]: 'asc' | 'desc' };
-    }
+    },
   ): Promise<any[]> {
     const query = this.knexConnection(target);
 
@@ -640,7 +643,7 @@ export class MetaService {
       condition?: { [p: string]: any };
       xcCondition?;
       aggField?: string;
-    }
+    },
   ): Promise<number> {
     const query = this.knexConnection(target);
 
@@ -670,7 +673,7 @@ export class MetaService {
     target: string,
     data: any,
     idOrCondition?: string | { [p: string]: any },
-    xcCondition?
+    xcCondition?,
   ): Promise<any> {
     const query = this.knexConnection(target);
     if (project_id !== null && project_id !== undefined) {
@@ -697,7 +700,7 @@ export class MetaService {
 
   public async metaDeleteAll(
     _project_id: string,
-    _dbAlias: string
+    _dbAlias: string,
   ): Promise<void> {
     // await this.knexConnection..dropTableIfExists('nc_roles').;
     // await this.knexConnection.schema.dropTableIfExists('nc_store').;
@@ -708,7 +711,7 @@ export class MetaService {
 
   public async isMetaDataExists(
     project_id: string,
-    dbAlias: string
+    dbAlias: string,
   ): Promise<boolean> {
     const query = this.knexConnection('nc_models');
     if (project_id !== null && project_id !== undefined) {
@@ -746,13 +749,13 @@ export class MetaService {
     });
 
     // todo: tobe done
-    return this //new NcMetaIOImpl(this.app, this.config, trx);
+    return this; //new NcMetaIOImpl(this.app, this.config, trx);
   }
 
   async metaReset(
     project_id: string,
     dbAlias: string,
-    apiType?: string
+    apiType?: string,
   ): Promise<void> {
     // const apiType: string = this.config?.envs?.[this.config.env || this.config.workingEnv]?.db.find(d => {
     //   return d.meta.dbAlias === dbAlias;
@@ -770,7 +773,7 @@ export class MetaService {
               console.warn(`Error: ${table} reset failed`);
             }
           })();
-        })
+        }),
       );
     }
   }
@@ -779,7 +782,7 @@ export class MetaService {
     projectName: string,
     config: any,
     description?: string,
-    meta?: boolean
+    meta?: boolean,
   ): Promise<any> {
     try {
       const ranId = this.getNanoId();
@@ -797,7 +800,7 @@ export class MetaService {
         description,
         config: CryptoJS.AES.encrypt(
           JSON.stringify(config),
-          'secret'// todo: tobe replaced - this.config?.auth?.jwt?.secret
+          'secret', // todo: tobe replaced - this.config?.auth?.jwt?.secret
         ).toString(),
       };
       // todo: check project name used or not
@@ -825,7 +828,7 @@ export class MetaService {
       const project = {
         config: CryptoJS.AES.encrypt(
           JSON.stringify(config, null, 2),
-          'secret'// todo: tobe replaced - this.config?.auth?.jwt?.secret
+          'secret', // todo: tobe replaced - this.config?.auth?.jwt?.secret
         ).toString(),
       };
       // todo: check project name used or not
@@ -841,7 +844,7 @@ export class MetaService {
     return (await this.knexConnection('nc_projects').select()).map((p) => {
       p.config = CryptoJS.AES.decrypt(
         p.config,
-        'secret'// todo: tobe replaced - this.config?.auth?.jwt?.secret
+        'secret', // todo: tobe replaced - this.config?.auth?.jwt?.secret
       ).toString(CryptoJS.enc.Utf8);
       return p;
     });
@@ -855,7 +858,7 @@ export class MetaService {
             .where(`nc_projects_users.user_id`, userId)
             .as('user'),
           'user.project_id',
-          'nc_projects.id'
+          'nc_projects.id',
         )
         .select('nc_projects.*')
         .select('user.user_id')
@@ -866,12 +869,12 @@ export class MetaService {
               'nc_projects_users',
               'nc_projects_users.user_id',
               '=',
-              'xc_users.id'
+              'xc_users.id',
             )
             .whereRaw('nc_projects.id = nc_projects_users.project_id')
             .where('nc_projects_users.roles', 'like', '%owner%')
             .first()
-            .as('owner')
+            .as('owner'),
         )
         .select(
           this.knexConnection('xc_users')
@@ -880,25 +883,25 @@ export class MetaService {
               'nc_projects_users',
               'nc_projects_users.user_id',
               '=',
-              'xc_users.id'
+              'xc_users.id',
             )
             .where((qb) => {
               qb.where('nc_projects_users.roles', 'like', '%creator%').orWhere(
                 'nc_projects_users.roles',
                 'like',
-                '%owner%'
+                '%owner%',
               );
             })
             .whereRaw('nc_projects.id = nc_projects_users.project_id')
             .andWhere('xc_users.id', userId)
             .first()
-            .as('is_creator')
+            .as('is_creator'),
         )
     ).map((p) => {
       p.allowed = p.user_id === userId;
       p.config = CryptoJS.AES.decrypt(
         p.config,
-        'secret'// todo: tobe replaced - this.config?.auth?.jwt?.secret
+        'secret', // todo: tobe replaced - this.config?.auth?.jwt?.secret
       ).toString(CryptoJS.enc.Utf8);
       return p;
     });
@@ -906,7 +909,7 @@ export class MetaService {
 
   public async isUserHaveAccessToProject(
     projectId: string,
-    userId: any
+    userId: any,
   ): Promise<boolean> {
     return !!(await this.knexConnection('nc_projects_users')
       .where({
@@ -926,7 +929,7 @@ export class MetaService {
     if (project && !encrypt) {
       project.config = CryptoJS.AES.decrypt(
         project.config,
-        'secret'// todo: tobe replaced - this.config?.auth?.jwt?.secret
+        'secret', // todo: tobe replaced - this.config?.auth?.jwt?.secret
       ).toString(CryptoJS.enc.Utf8);
     }
     return project;
@@ -941,7 +944,7 @@ export class MetaService {
     if (project && !encrypt) {
       project.config = CryptoJS.AES.decrypt(
         project.config,
-        'secret'// todo: tobe replaced - this.config?.auth?.jwt?.secret
+        'secret', // todo: tobe replaced - this.config?.auth?.jwt?.secret
       ).toString(CryptoJS.enc.Utf8);
     }
     return project;
@@ -965,7 +968,7 @@ export class MetaService {
 
   public async projectStatusUpdate(
     projectId: string,
-    status: string
+    status: string,
   ): Promise<any> {
     return this.knexConnection('nc_projects')
       .update({
@@ -979,7 +982,7 @@ export class MetaService {
   public async projectAddUser(
     projectId: string,
     userId: any,
-    roles: string
+    roles: string,
   ): Promise<any> {
     if (
       await this.knexConnection('nc_projects_users')
@@ -1015,7 +1018,6 @@ export class MetaService {
       .delete();
   }
 
-
   public get knex(): any {
     return this.knexConnection;
   }
@@ -1028,7 +1030,7 @@ export class MetaService {
     project_id: string,
     dbAlias: string,
     target: string,
-    data: any
+    data: any,
   ): Promise<any> {
     if (['DATA', 'COMMENT'].includes(data?.op_type)) {
       return Promise.resolve(undefined);
@@ -1048,5 +1050,4 @@ export class MetaService {
     });
     return true;
   }
-
 }

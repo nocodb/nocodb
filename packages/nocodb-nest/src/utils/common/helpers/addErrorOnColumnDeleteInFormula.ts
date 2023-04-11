@@ -12,7 +12,7 @@ export default function (args: {
       if (pt.name === args.columnName) {
         virtualColumn.formula.error = virtualColumn.formula.error || [];
         virtualColumn.formula.error.push(
-          `Column '${args.columnName}' was deleted`
+          `Column '${args.columnName}' was deleted`,
         );
         modified = true;
       }

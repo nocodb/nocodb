@@ -15,7 +15,7 @@ export default class BarcodeColumn {
 
   public static async insert(
     barcodeColumn: Partial<BarcodeColumn>,
-    ncMeta = Noco.ncMeta
+    ncMeta = Noco.ncMeta,
   ) {
     const insertObj = extractProps(barcodeColumn, [
       'fk_column_id',
@@ -31,14 +31,14 @@ export default class BarcodeColumn {
       columnId &&
       (await NocoCache.get(
         `${CacheScope.COL_BARCODE}:${columnId}`,
-        CacheGetType.TYPE_OBJECT
+        CacheGetType.TYPE_OBJECT,
       ));
     if (!column) {
       column = await ncMeta.metaGet2(
         null, //,
         null, //model.db_alias,
         MetaTable.COL_BARCODE,
-        { fk_column_id: columnId }
+        { fk_column_id: columnId },
       );
       await NocoCache.set(`${CacheScope.COL_BARCODE}:${columnId}`, column);
     }
@@ -49,7 +49,7 @@ export default class BarcodeColumn {
   static async update(
     id: string,
     barcode: Partial<BarcodeColumn>,
-    ncMeta = Noco.ncMeta
+    ncMeta = Noco.ncMeta,
   ) {
     const updateObj = extractProps(barcode, [
       'fk_column_id',

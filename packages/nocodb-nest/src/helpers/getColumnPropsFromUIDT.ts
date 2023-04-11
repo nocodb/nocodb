@@ -5,13 +5,13 @@ import type Column from '../models/Column';
 
 export default async function getColumnPropsFromUIDT(
   column: ColumnReqType & { altered?: number },
-  base: Base
+  base: Base,
 ) {
   const sqlUi = SqlUiFactory.create(await base.getConnectionConfig());
 
   const colProp = sqlUi.getDataTypeForUiType(
     column as Column,
-    column?.['meta']?.['ag'] ? 'AG' : 'AI'
+    column?.['meta']?.['ag'] ? 'AG' : 'AI',
   );
   const newColumn = {
     rqd: false,

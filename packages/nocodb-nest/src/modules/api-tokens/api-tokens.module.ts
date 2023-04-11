@@ -4,6 +4,6 @@ import { ApiTokensController } from './api-tokens.controller';
 
 @Module({
   controllers: [ApiTokensController],
-  providers: [ApiTokensService]
+  providers: [ApiTokensService],
 })
 export class ApiTokensModule {}

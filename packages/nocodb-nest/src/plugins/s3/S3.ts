@@ -72,7 +72,7 @@ export default class S3 implements IStorageAdapterV2 {
               resolve(data.Location);
             }
           });
-        }
+        },
       );
     });
   }

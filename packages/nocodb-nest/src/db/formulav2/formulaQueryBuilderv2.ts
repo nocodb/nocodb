@@ -17,7 +17,7 @@ import { XKnex } from '../CustomKnex';
 
 // @ts-ignore
 const getAggregateFn: (fnName: string) => (args: { qb; knex?; cn }) => any = (
-  parentFn
+  parentFn,
 ) => {
   switch (parentFn?.toUpperCase()) {
     case 'MIN':
@@ -54,7 +54,7 @@ async function _formulaQueryBuilder(
   knex: XKnex,
   model: Model,
   aliasToColumn: Record<string, () => Promise<{ builder: any }>> = {},
-  tableAlias?: string
+  tableAlias?: string,
 ) {
   // formula may include double curly brackets in previous version
   // convert to single curly bracket here for compatibility
@@ -77,7 +77,7 @@ async function _formulaQueryBuilder(
               knex,
               model,
               { ...aliasToColumn, [col.id]: null },
-              tableAlias
+              tableAlias,
             );
             builder.sql = '(' + builder.sql + ')';
             return {
@@ -113,7 +113,7 @@ async function _formulaQueryBuilder(
                     `${tableAlias ?? childModel.table_name}.${
                       childColumn.column_name
                     }`,
-                  ])
+                  ]),
                 );
                 break;
               case 'hm':
@@ -124,7 +124,7 @@ async function _formulaQueryBuilder(
                     `${tableAlias ?? parentModel.table_name}.${
                       parentColumn.column_name
                     }`,
-                  ])
+                  ]),
                 );
                 break;
               case 'mm':
@@ -139,7 +139,7 @@ async function _formulaQueryBuilder(
                     .join(
                       `${mmModel.table_name} as ${assocAlias}`,
                       `${assocAlias}.${mmParentColumn.column_name}`,
-                      `${alias}.${parentColumn.column_name}`
+                      `${alias}.${parentColumn.column_name}`,
                     )
                     .where(
                       `${assocAlias}.${mmChildColumn.column_name}`,
@@ -147,7 +147,7 @@ async function _formulaQueryBuilder(
                         `${tableAlias ?? childModel.table_name}.${
                           childColumn.column_name
                         }`,
-                      ])
+                      ]),
                     );
                 }
                 break;
@@ -179,7 +179,7 @@ async function _formulaQueryBuilder(
                     selectQb.join(
                       `${parentModel.table_name} as ${nestedAlias}`,
                       `${prevAlias}.${childColumn.column_name}`,
-                      `${nestedAlias}.${parentColumn.column_name}`
+                      `${nestedAlias}.${parentColumn.column_name}`,
                     );
                   }
                   break;
@@ -189,7 +189,7 @@ async function _formulaQueryBuilder(
                     selectQb.join(
                       `${childModel.table_name} as ${nestedAlias}`,
                       `${prevAlias}.${parentColumn.column_name}`,
-                      `${nestedAlias}.${childColumn.column_name}`
+                      `${nestedAlias}.${childColumn.column_name}`,
                     );
                   }
                   break;
@@ -205,12 +205,12 @@ async function _formulaQueryBuilder(
                     .join(
                       `${mmModel.table_name} as ${assocAlias}`,
                       `${assocAlias}.${mmChildColumn.column_name}`,
-                      `${prevAlias}.${childColumn.column_name}`
+                      `${prevAlias}.${childColumn.column_name}`,
                     )
                     .join(
                       `${parentModel.table_name} as ${nestedAlias}`,
                       `${nestedAlias}.${parentColumn.column_name}`,
-                      `${assocAlias}.${mmParentColumn.column_name}`
+                      `${assocAlias}.${mmParentColumn.column_name}`,
                     );
                 }
               }
@@ -247,7 +247,7 @@ async function _formulaQueryBuilder(
                             qb,
                             knex,
                             cn: knex.raw(builder).wrap('(', ')'),
-                          })
+                          }),
                         )
                         .wrap('(', ')');
                   } else {
@@ -277,7 +277,7 @@ async function _formulaQueryBuilder(
                         selectQb.join(
                           `${parentModel.table_name} as ${nestedAlias}`,
                           `${alias}.${childColumn.column_name}`,
-                          `${nestedAlias}.${parentColumn.column_name}`
+                          `${nestedAlias}.${parentColumn.column_name}`,
                         );
                         cn = knex.raw('??.??', [
                           nestedAlias,
@@ -291,7 +291,7 @@ async function _formulaQueryBuilder(
                         selectQb.join(
                           `${childModel.table_name} as ${nestedAlias}`,
                           `${alias}.${parentColumn.column_name}`,
-                          `${nestedAlias}.${childColumn.column_name}`
+                          `${nestedAlias}.${childColumn.column_name}`,
                         );
                         cn = knex.raw('??.??', [
                           nestedAlias,
@@ -313,12 +313,12 @@ async function _formulaQueryBuilder(
                           .join(
                             `${mmModel.table_name} as ${assocAlias}`,
                             `${assocAlias}.${mmChildColumn.column_name}`,
-                            `${alias}.${childColumn.column_name}`
+                            `${alias}.${childColumn.column_name}`,
                           )
                           .join(
                             `${parentModel.table_name} as ${nestedAlias}`,
                             `${nestedAlias}.${parentColumn.column_name}`,
-                            `${assocAlias}.${mmParentColumn.column_name}`
+                            `${assocAlias}.${mmParentColumn.column_name}`,
                           );
                       }
                       cn = knex.raw('??.??', [
@@ -330,7 +330,7 @@ async function _formulaQueryBuilder(
                   selectQb.join(
                     `${parentModel.table_name} as ${nestedAlias}`,
                     `${nestedAlias}.${parentColumn.column_name}`,
-                    `${prevAlias}.${childColumn.column_name}`
+                    `${prevAlias}.${childColumn.column_name}`,
                   );
 
                   if (isMany) {
@@ -342,7 +342,7 @@ async function _formulaQueryBuilder(
                             qb,
                             knex,
                             cn: lookupColumn.column_name,
-                          })
+                          }),
                         )
                         .wrap('(', ')');
                   } else {
@@ -360,7 +360,7 @@ async function _formulaQueryBuilder(
                     '',
                     knex,
                     lookupModel,
-                    aliasToColumn
+                    aliasToColumn,
                   );
                   if (isMany) {
                     const qb = selectQb;
@@ -371,7 +371,7 @@ async function _formulaQueryBuilder(
                             qb,
                             knex,
                             cn: knex.raw(builder).wrap('(', ')'),
-                          })
+                          }),
                         )
                         .wrap('(', ')');
                   } else {
@@ -390,7 +390,7 @@ async function _formulaQueryBuilder(
                             qb,
                             knex,
                             cn: `${prevAlias}.${lookupColumn.column_name}`,
-                          })
+                          }),
                         )
                         .wrap('(', ')');
                   } else {
@@ -446,7 +446,7 @@ async function _formulaQueryBuilder(
                   `${tableAlias ?? childModel.table_name}.${
                     childColumn.column_name
                   }`,
-                ])
+                ]),
               );
           } else if (relation.type == 'hm') {
             const qb = knex(childModel.table_name)
@@ -457,7 +457,7 @@ async function _formulaQueryBuilder(
                   `${tableAlias ?? parentModel.table_name}.${
                     parentColumn.column_name
                   }`,
-                ])
+                ]),
               );
 
             selectQb = (fn) =>
@@ -467,7 +467,7 @@ async function _formulaQueryBuilder(
                     qb,
                     knex,
                     cn: childModel?.displayValue?.column_name,
-                  })
+                  }),
                 )
                 .wrap('(', ')');
 
@@ -504,7 +504,7 @@ async function _formulaQueryBuilder(
               .join(
                 `${mmModel.table_name}`,
                 `${mmModel.table_name}.${mmParentColumn.column_name}`,
-                `${alias}.${parentColumn.column_name}`
+                `${alias}.${parentColumn.column_name}`,
               )
               .where(
                 `${mmModel.table_name}.${mmChildColumn.column_name}`,
@@ -512,7 +512,7 @@ async function _formulaQueryBuilder(
                   `${tableAlias ?? childModel.table_name}.${
                     childColumn.column_name
                   }`,
-                ])
+                ]),
               );
             selectQb = (fn) =>
               knex
@@ -521,7 +521,7 @@ async function _formulaQueryBuilder(
                     qb,
                     knex,
                     cn: parentModel?.displayValue?.column_name,
-                  })
+                  }),
                 )
                 .wrap('(', ')');
           }
@@ -561,7 +561,7 @@ async function _formulaQueryBuilder(
                 right: { ...pt, arguments: pt.arguments.slice(1) },
               },
               a,
-              prevBinaryOp
+              prevBinaryOp,
             );
           } else {
             return fn(pt.arguments[0], a, prevBinaryOp);
@@ -578,7 +578,7 @@ async function _formulaQueryBuilder(
                   right: { ...pt, arguments: pt.arguments.slice(1) },
                 },
                 a,
-                prevBinaryOp
+                prevBinaryOp,
               );
             } else {
               return fn(pt.arguments[0], a, prevBinaryOp);
@@ -608,7 +608,7 @@ async function _formulaQueryBuilder(
               },
             },
             alias,
-            prevBinaryOp
+            prevBinaryOp,
           );
           break;
         default:
@@ -646,9 +646,9 @@ async function _formulaQueryBuilder(
                   }
                 }
                 return query;
-              })
+              }),
             )
-          ).join()})${colAlias}`.replace(/\?/g, '\\?')
+          ).join()})${colAlias}`.replace(/\?/g, '\\?'),
         ),
       };
     } else if (pt.type === 'Literal') {
@@ -780,8 +780,8 @@ async function _formulaQueryBuilder(
         `${pt.operator}${fn(
           pt.argument,
           null,
-          pt.operator
-        ).toQuery()}${colAlias}`
+          pt.operator,
+        ).toQuery()}${colAlias}`,
       );
       if (prevBinaryOp && pt.operator !== prevBinaryOp) {
         query.wrap('(', ')');
@@ -826,7 +826,7 @@ export default async function formulaQueryBuilderv2(
   column?: Column,
   aliasToColumn = {},
   tableAlias?: string,
-  validateFormula = false
+  validateFormula = false,
 ) {
   // register jsep curly hook once only
   jsep.plugins.register(jsepCurlyHook);
@@ -837,7 +837,7 @@ export default async function formulaQueryBuilderv2(
     knex,
     model,
     aliasToColumn,
-    tableAlias
+    tableAlias,
   );
 
   if (!validateFormula) return qb;

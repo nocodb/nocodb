@@ -18,7 +18,7 @@ import type Model from '../models/Model';
 
 export const randomID = customAlphabet(
   '1234567890abcdefghijklmnopqrstuvwxyz_',
-  10
+  10,
 );
 
 export async function createHmAndBtColumn(
@@ -29,13 +29,13 @@ export async function createHmAndBtColumn(
   alias?: string,
   fkColName?: string,
   virtual: BoolType = false,
-  isSystemCol = false
+  isSystemCol = false,
 ) {
   // save bt column
   {
     const title = getUniqueColumnAliasName(
       await child.getColumns(),
-      type === 'bt' ? alias : `${parent.title}`
+      type === 'bt' ? alias : `${parent.title}`,
     );
     await Column.insert<LinkToAnotherRecordColumn>({
       title,
@@ -59,7 +59,7 @@ export async function createHmAndBtColumn(
   {
     const title = getUniqueColumnAliasName(
       await parent.getColumns(),
-      type === 'hm' ? alias : `${child.title} List`
+      type === 'hm' ? alias : `${child.title} List`,
     );
     await Column.insert({
       title,
@@ -85,7 +85,7 @@ export async function validateRollupPayload(payload: ColumnReqType | Column) {
       'fk_rollup_column_id',
       'rollup_function',
     ],
-    payload
+    payload,
   );
 
   const relation = await (
@@ -116,7 +116,7 @@ export async function validateRollupPayload(payload: ColumnReqType | Column) {
   const relatedTable = await relatedColumn.getModel();
   if (
     !(await relatedTable.getColumns()).find(
-      (c) => c.id === (payload as RollupColumnReqType).fk_rollup_column_id
+      (c) => c.id === (payload as RollupColumnReqType).fk_rollup_column_id,
     )
   )
     throw new Error('Rollup column not found in related table');
@@ -124,11 +124,11 @@ export async function validateRollupPayload(payload: ColumnReqType | Column) {
 
 export async function validateLookupPayload(
   payload: ColumnReqType,
-  columnId?: string
+  columnId?: string,
 ) {
   validateParams(
     ['title', 'fk_relation_column_id', 'fk_lookup_column_id'],
-    payload
+    payload,
   );
 
   // check for circular reference
@@ -145,7 +145,7 @@ export async function validateLookupPayload(
             return c.getColOptions<LookupColumn>();
           }
           return null;
-        }
+        },
       );
     }
   }
@@ -178,7 +178,7 @@ export async function validateLookupPayload(
   const relatedTable = await relatedColumn.getModel();
   if (
     !(await relatedTable.getColumns()).find(
-      (c) => c.id === (payload as LookupColumnReqType).fk_lookup_column_id
+      (c) => c.id === (payload as LookupColumnReqType).fk_lookup_column_id,
     )
   )
     throw new Error('Lookup column not found in related table');
@@ -186,11 +186,11 @@ export async function validateLookupPayload(
 
 export const validateRequiredField = (
   payload: Record<string, any>,
-  requiredProps: string[]
+  requiredProps: string[],
 ) => {
   return requiredProps.every(
     (prop) =>
-      prop in payload && payload[prop] !== undefined && payload[prop] !== null
+      prop in payload && payload[prop] !== undefined && payload[prop] !== null,
   );
 };
 

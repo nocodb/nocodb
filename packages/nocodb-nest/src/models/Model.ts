@@ -1,5 +1,5 @@
 import { isVirtualCol, ModelTypes, UITypes, ViewTypes } from 'nocodb-sdk';
-import { BaseModelSqlv2 } from '../db/BaseModelSqlv2'
+import { BaseModelSqlv2 } from '../db/BaseModelSqlv2';
 import Noco from '../Noco';
 import { parseMetaProp } from '../utils/modelUtils';
 import NocoCache from '../cache/NocoCache';

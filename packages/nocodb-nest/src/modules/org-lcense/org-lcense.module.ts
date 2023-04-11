@@ -4,6 +4,6 @@ import { OrgLcenseController } from './org-lcense.controller';
 
 @Module({
   controllers: [OrgLcenseController],
-  providers: [OrgLcenseService]
+  providers: [OrgLcenseService],
 })
 export class OrgLcenseModule {}

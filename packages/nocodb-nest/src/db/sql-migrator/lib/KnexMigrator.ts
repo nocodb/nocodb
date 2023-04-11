@@ -79,7 +79,7 @@ export default class KnexMigrator extends SqlMigrator {
       'nc',
       this.project.id,
       args.dbAlias,
-      'migrations'
+      'migrations',
     );
   }
 
@@ -115,7 +115,13 @@ export default class KnexMigrator extends SqlMigrator {
   async _initDbOnFs(args) {
     this.emit(
       'Creating folder: ',
-      path.join(this.toolDir, 'nc', this.project.id, args.dbAlias, 'migrations')
+      path.join(
+        this.toolDir,
+        'nc',
+        this.project.id,
+        args.dbAlias,
+        'migrations',
+      ),
     );
 
     try {
@@ -127,8 +133,8 @@ export default class KnexMigrator extends SqlMigrator {
           'nc',
           this.project.id,
           args.dbAlias,
-          'migrations'
-        )
+          'migrations',
+        ),
       );
       // @ts-ignore
       const dirStat = await promisify(fs.stat)(
@@ -137,8 +143,8 @@ export default class KnexMigrator extends SqlMigrator {
           'nc',
           this.project.id,
           args.dbAlias,
-          'migrations'
-        )
+          'migrations',
+        ),
       );
 
       // @ts-ignore
@@ -148,8 +154,8 @@ export default class KnexMigrator extends SqlMigrator {
           'nc',
           this.project.id,
           args.dbAlias,
-          this.project.meta.metaFolder || 'meta'
-        )
+          this.project.meta.metaFolder || 'meta',
+        ),
       );
 
       this.emit(
@@ -159,8 +165,8 @@ export default class KnexMigrator extends SqlMigrator {
           'nc',
           this.project.id,
           args.dbAlias,
-          this.project.meta.seedsFolder
-        )
+          this.project.meta.seedsFolder,
+        ),
       );
 
       // @ts-ignore
@@ -170,8 +176,8 @@ export default class KnexMigrator extends SqlMigrator {
           'nc',
           this.project.id,
           args.dbAlias,
-          this.project.meta.seedsFolder
-        )
+          this.project.meta.seedsFolder,
+        ),
       );
       this.emit(
         'Creating folder: ',
@@ -180,8 +186,8 @@ export default class KnexMigrator extends SqlMigrator {
           'nc',
           this.project.id,
           args.dbAlias,
-          this.project.meta.queriesFolder
-        )
+          this.project.meta.queriesFolder,
+        ),
       );
 
       // @ts-ignore
@@ -191,8 +197,8 @@ export default class KnexMigrator extends SqlMigrator {
           'nc',
           this.project.id,
           args.dbAlias,
-          this.project.meta.queriesFolder
-        )
+          this.project.meta.queriesFolder,
+        ),
       );
       this.emit(
         'Creating folder: ',
@@ -200,8 +206,8 @@ export default class KnexMigrator extends SqlMigrator {
           this.toolDir,
           'nc',
           this.project.id,
-          this.project.meta.apisFolder
-        )
+          this.project.meta.apisFolder,
+        ),
       );
 
       // @ts-ignore
@@ -210,8 +216,8 @@ export default class KnexMigrator extends SqlMigrator {
           this.toolDir,
           'nc',
           this.project.id,
-          this.project.meta.apisFolder
-        )
+          this.project.meta.apisFolder,
+        ),
       );
 
       // @ts-ignore
@@ -221,8 +227,8 @@ export default class KnexMigrator extends SqlMigrator {
           'nc',
           this.project.id,
           args.dbAlias,
-          this.project.meta.metaFolder || 'meta'
-        )
+          this.project.meta.metaFolder || 'meta',
+        ),
       );
 
       // @ts-ignore
@@ -232,8 +238,8 @@ export default class KnexMigrator extends SqlMigrator {
           'nc',
           this.project.id,
           args.dbAlias,
-          this.project.meta.metaFolder || 'meta'
-        )
+          this.project.meta.metaFolder || 'meta',
+        ),
       );
     } catch (e) {
       log.debug(
@@ -243,8 +249,8 @@ export default class KnexMigrator extends SqlMigrator {
           'nc',
           this.project.id,
           args.dbAlias,
-          'migrations'
-        )
+          'migrations',
+        ),
       );
     }
   }
@@ -252,18 +258,18 @@ export default class KnexMigrator extends SqlMigrator {
   async _cleanFs(args) {
     this.emit(
       'Removing folder: ',
-      path.join(this.toolDir, 'nc', this.project.id, args.dbAlias)
+      path.join(this.toolDir, 'nc', this.project.id, args.dbAlias),
     );
 
     try {
       await promisify(rmdir)(
-        path.join(this.toolDir, 'nc', this.project.id, args.dbAlias)
+        path.join(this.toolDir, 'nc', this.project.id, args.dbAlias),
       );
     } catch (e) {
       log.debug(
         'Error removing folder:',
         path.join(this.toolDir, 'nc', this.project.id, args.dbAlias),
-        e
+        e,
       );
     }
   }
@@ -364,7 +370,7 @@ export default class KnexMigrator extends SqlMigrator {
         await promisify(fs.writeFile)(
           newProjectJsonPath,
           JSON.stringify(freshProject, null, 2),
-          'utf-8'
+          'utf-8',
         );
 
         this.emit(`Project json created successfully: ${newProjectJsonPath}`);
@@ -383,21 +389,21 @@ export default class KnexMigrator extends SqlMigrator {
       (await SqlClientFactory.create(connectionConfig));
     if (connectionConfig.client === 'oracledb') {
       this.emit(
-        `${connectionConfig.client}: Creating DB if not exists ${connectionConfig.connection.user}`
+        `${connectionConfig.client}: Creating DB if not exists ${connectionConfig.connection.user}`,
       );
       await sqlClient.createDatabaseIfNotExists({
         database: connectionConfig.connection.user,
       });
     } else if (connectionConfig.client !== 'sqlite3') {
       this.emit(
-        `${connectionConfig.client}: Creating DB if not exists ${connectionConfig.connection.database}`
+        `${connectionConfig.client}: Creating DB if not exists ${connectionConfig.connection.database}`,
       );
       await sqlClient.createDatabaseIfNotExists({
         database: connectionConfig.connection.database,
       });
     } else {
       this.emit(
-        `${connectionConfig.client}: Creating DB if not exists ${connectionConfig.connection.connection.filename}`
+        `${connectionConfig.client}: Creating DB if not exists ${connectionConfig.connection.connection.filename}`,
       );
       await sqlClient.createDatabaseIfNotExists({
         database: connectionConfig.connection.connection.filename,
@@ -434,7 +440,7 @@ export default class KnexMigrator extends SqlMigrator {
       });
     } else if (connectionConfig.client === 'sqlite3') {
       this.emit(
-        `Dropping DB : ${connectionConfig.connection.connection.filename}`
+        `Dropping DB : ${connectionConfig.connection.connection.filename}`,
       );
       await sqlClient.dropDatabase({
         database: connectionConfig.connection.connection.filename,
@@ -564,13 +570,13 @@ export default class KnexMigrator extends SqlMigrator {
       // get evolutions from sql
       const connection = this._getSqlConnectionFromDbAlias(
         args.dbAlias,
-        args.env
+        args.env,
       );
       const sqlClient =
         args.sqlClient || (await SqlClientFactory.create(connection));
 
       let migrations = await sqlClient.selectAll(
-        sqlClient.getTnPath(connection.meta.tn)
+        sqlClient.getTnPath(connection.meta.tn),
       );
 
       if (this.suffix) {
@@ -581,7 +587,7 @@ export default class KnexMigrator extends SqlMigrator {
 
       if (files.length === migrations.length) {
         this.emit(
-          `Evolutions are upto date for ' ${args.env} : ${args.dbAlias} '`
+          `Evolutions are upto date for ' ${args.env} : ${args.dbAlias} '`,
         );
         for (let i = 0; i < migrations.length; ++i) {
           result.data.object.list.push({
@@ -596,7 +602,7 @@ export default class KnexMigrator extends SqlMigrator {
         this.emit(
           `Number of evolutions pending for '${args.env}:${args.dbAlias}': '${
             files.length - migrations.length
-          }'`
+          }'`,
         );
         result.data.object.pending = files.length - migrations.length;
 
@@ -646,7 +652,7 @@ export default class KnexMigrator extends SqlMigrator {
             }
             if (!fileFound) {
               log.debug(
-                `Error : There is no file ${args.file} in migration directory`
+                `Error : There is no file ${args.file} in migration directory`,
               );
               return;
             }
@@ -718,7 +724,7 @@ export default class KnexMigrator extends SqlMigrator {
                 upStatements.push(
                   ...upStatement
                     .split(/\/\*\s*xc[\s\S]*?\s*\*\//)
-                    .filter((s) => s.trim())
+                    .filter((s) => s.trim()),
                 );
               }
 
@@ -745,7 +751,7 @@ export default class KnexMigrator extends SqlMigrator {
               for (const data of metaTableInserts) {
                 await trx(sqlClient.getTnPath(connection.meta.tn)).insert(data);
                 vm.emit(
-                  `'${data.title}' : Updating bookkeeping of SQL UP migration - done`
+                  `'${data.title}' : Updating bookkeeping of SQL UP migration - done`,
                 );
               }
               await trx.commit();
@@ -754,7 +760,7 @@ export default class KnexMigrator extends SqlMigrator {
             } catch (error) {
               await trx.rollback();
               vm.emitW(
-                `Migration operation failed, Database restored to previous state`
+                `Migration operation failed, Database restored to previous state`,
               );
               log.ppe(error, '');
               throw error;
@@ -818,11 +824,11 @@ export default class KnexMigrator extends SqlMigrator {
       // get done evolutions from sql
       const connection = this._getSqlConnectionFromDbAlias(
         args.dbAlias,
-        args.env
+        args.env,
       );
       const sqlClient = await SqlClientFactory.create(connection);
       const migrations = await sqlClient.selectAll(
-        sqlClient.getTnPath(connection.meta.tn)
+        sqlClient.getTnPath(connection.meta.tn),
       );
 
       if (migrations.length) {
@@ -845,7 +851,7 @@ export default class KnexMigrator extends SqlMigrator {
             }
             if (!fileFound) {
               log.debug(
-                `Error : There is no file ${args.file} in migration directory`
+                `Error : There is no file ${args.file} in migration directory`,
               );
               return;
             }
@@ -879,7 +885,7 @@ export default class KnexMigrator extends SqlMigrator {
                 downStatements.push(
                   ...downStatement
                     .split(/\/\*\s*xc[\s\S]*?\s*\*\//)
-                    .filter((s) => s.trim())
+                    .filter((s) => s.trim()),
                 );
 
               metaDownDeletes.push({
@@ -898,7 +904,7 @@ export default class KnexMigrator extends SqlMigrator {
             }
             for (const condition of metaDownDeletes) {
               vm.emit(
-                `'${condition.titleDown}' : Updating bookkeeping of SQL DOWN migration - done`
+                `'${condition.titleDown}' : Updating bookkeeping of SQL DOWN migration - done`,
               );
               await trx(sqlClient.getTnPath(connection.meta.tn))
                 .where(condition)
@@ -910,7 +916,7 @@ export default class KnexMigrator extends SqlMigrator {
           } catch (error) {
             await trx.rollback();
             vm.emitW(
-              `Migration operation failed, Database restored to previous state`
+              `Migration operation failed, Database restored to previous state`,
             );
             log.ppe(error, '');
             throw error;
@@ -1064,17 +1070,17 @@ export default class KnexMigrator extends SqlMigrator {
         await promisify(fs.writeFile)(
           path.join(this._getWorkingEnvDir(args), upFileName),
           '',
-          'utf-8'
+          'utf-8',
         );
         await promisify(fs.writeFile)(
           path.join(this._getWorkingEnvDir(args), downFileName),
           '',
-          'utf-8'
+          'utf-8',
         );
       }
 
       this.emit(
-        `Migration files created successfully : '${upFileName}' and '${downFileName}'`
+        `Migration files created successfully : '${upFileName}' and '${downFileName}'`,
       );
 
       return {
@@ -1164,7 +1170,7 @@ export default class KnexMigrator extends SqlMigrator {
         this.project.id,
         args.dbAlias,
         'migrations',
-        '*.up.sql'
+        '*.up.sql',
       ),
       downFilesPattern: path.join(
         this.toolDir,
@@ -1172,7 +1178,7 @@ export default class KnexMigrator extends SqlMigrator {
         this.project.id,
         args.dbAlias,
         'migrations',
-        '*.down.sql'
+        '*.down.sql',
       ),
       tn: this._getEvolutionsTablename(args), //`${this.toolDir}`,
       sqlContentMigrate: args.sqlContentMigrate,
@@ -1219,7 +1225,7 @@ export default class KnexMigrator extends SqlMigrator {
         this.project.id,
         args.dbAlias,
         'migrations',
-        '*.up.sql'
+        '*.up.sql',
       ),
       downFilesPattern: path.join(
         this.toolDir,
@@ -1227,7 +1233,7 @@ export default class KnexMigrator extends SqlMigrator {
         this.project.id,
         args.dbAlias,
         'migrations',
-        '*.down.sql'
+        '*.down.sql',
       ),
       tn: this._getEvolutionsTablename(args), //`_evolutions`,
       sqlContentMigrate: args.sqlContentMigrate,
@@ -1309,14 +1315,14 @@ export default class KnexMigrator extends SqlMigrator {
         await promisify(fs.writeFile)(
           path.join(this._getWorkingEnvDir(args), args.up),
           upStatement,
-          'utf-8'
+          'utf-8',
         );
         log.debug('migrationsWrite: wrote to file', args.up);
 
         await promisify(fs.writeFile)(
           path.join(this._getWorkingEnvDir(args), args.down),
           downStatement,
-          'utf-8'
+          'utf-8',
         );
       }
       log.debug('migrationsWrite: wrote to file', args.down);
@@ -1393,7 +1399,7 @@ export default class KnexMigrator extends SqlMigrator {
           this.project.id,
           args.dbAlias,
           'migrations',
-          args.title
+          args.title,
         );
         const downFilePath = path.join(
           this.toolDir,
@@ -1401,16 +1407,16 @@ export default class KnexMigrator extends SqlMigrator {
           this.project.id,
           args.dbAlias,
           'migrations',
-          args.titleDown
+          args.titleDown,
         );
 
         result.data.object.up = await promisify(fs.readFile)(
           upFilePath,
-          'utf8'
+          'utf8',
         );
         result.data.object.down = await promisify(fs.readFile)(
           downFilePath,
-          'utf8'
+          'utf8',
         );
       }
       console.log('migrationsToSql', result.data.object);
@@ -1459,7 +1465,7 @@ export default class KnexMigrator extends SqlMigrator {
     await promisify(fs.writeFile)(
       newProjectJsonPath,
       JSON.stringify(freshProject, null, 2),
-      'utf-8'
+      'utf-8',
     );
   }
 
@@ -1507,7 +1513,7 @@ export default class KnexMigrator extends SqlMigrator {
       }
 
       this.emitE(
-        `Project key('${args.key}') is set to value successfully ${args.value}`
+        `Project key('${args.key}') is set to value successfully ${args.value}`,
       );
     } catch (e) {
       result.code = -1;
@@ -1558,7 +1564,7 @@ export default class KnexMigrator extends SqlMigrator {
         await this._writeProjectJson(this.toolDir, this.project);
         await this._initEnvDbsWithSql(args.env);
         this.emitE(
-          `Environment ' ${args.env} ' created succesfully in project.`
+          `Environment ' ${args.env} ' created succesfully in project.`,
         );
       }
     } catch (e) {
@@ -1685,7 +1691,7 @@ export default class KnexMigrator extends SqlMigrator {
           result.code = -1;
           result.message = 'Database connection already exists with DbAlias';
           this.emitE(
-            `Database connection already exists with DbAlias : ${args.db.meta.dbAlias}`
+            `Database connection already exists with DbAlias : ${args.db.meta.dbAlias}`,
           );
         }
       } else {

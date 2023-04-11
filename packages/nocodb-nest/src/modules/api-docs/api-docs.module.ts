@@ -4,6 +4,6 @@ import { ApiDocsController } from './api-docs.controller';
 
 @Module({
   controllers: [ApiDocsController],
-  providers: [ApiDocsService]
+  providers: [ApiDocsService],
 })
 export class ApiDocsModule {}

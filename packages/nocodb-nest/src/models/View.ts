@@ -62,14 +62,14 @@ export default class View implements ViewType {
   async getModel(ncMeta = Noco.ncMeta): Promise<Model> {
     return (this.model = await Model.getByIdOrName(
       { id: this.fk_model_id },
-      ncMeta
+      ncMeta,
     ));
   }
 
   async getModelWithInfo(ncMeta = Noco.ncMeta): Promise<Model> {
     return (this.model = await Model.getWithInfo(
       { id: this.fk_model_id },
-      ncMeta
+      ncMeta,
     ));
   }
 
@@ -95,7 +95,7 @@ export default class View implements ViewType {
   }
 
   async getViewWithInfo(
-    ncMeta = Noco.ncMeta
+    ncMeta = Noco.ncMeta,
   ): Promise<FormView | GridView | KanbanView | GalleryView> {
     switch (this.type) {
       case ViewTypes.GRID:
@@ -122,7 +122,7 @@ export default class View implements ViewType {
       viewId &&
       (await NocoCache.get(
         `${CacheScope.VIEW}:${viewId}`,
-        CacheGetType.TYPE_OBJECT
+        CacheGetType.TYPE_OBJECT,
       ));
     if (!view) {
       view = await ncMeta.metaGet2(null, null, MetaTable.VIEWS, viewId);
@@ -135,13 +135,13 @@ export default class View implements ViewType {
 
   public static async getByTitleOrId(
     { fk_model_id, titleOrId }: { titleOrId: string; fk_model_id: string },
-    ncMeta = Noco.ncMeta
+    ncMeta = Noco.ncMeta,
   ) {
     const viewId =
       titleOrId &&
       (await NocoCache.get(
         `${CacheScope.VIEW}:${fk_model_id}:${titleOrId}`,
-        CacheGetType.TYPE_OBJECT
+        CacheGetType.TYPE_OBJECT,
       ));
     if (!viewId) {
       const view = await ncMeta.metaGet2(
@@ -163,13 +163,13 @@ export default class View implements ViewType {
               },
             },
           ],
-        }
+        },
       );
       view.meta = parseMetaProp(view);
       // todo: cache - titleOrId can be viewId so we need a different scope here
       await NocoCache.set(
         `${CacheScope.VIEW}:${fk_model_id}:${titleOrId}`,
-        view.id
+        view.id,
       );
       await NocoCache.set(`${CacheScope.VIEW}:${fk_model_id}:${view.id}`, view);
       return view && new View(view);
@@ -179,13 +179,13 @@ export default class View implements ViewType {
 
   public static async getDefaultView(
     fk_model_id: string,
-    ncMeta = Noco.ncMeta
+    ncMeta = Noco.ncMeta,
   ) {
     let view =
       fk_model_id &&
       (await NocoCache.get(
         `${CacheScope.VIEW}:${fk_model_id}:default`,
-        CacheGetType.TYPE_OBJECT
+        CacheGetType.TYPE_OBJECT,
       ));
     if (!view) {
       view = await ncMeta.metaGet2(
@@ -196,7 +196,7 @@ export default class View implements ViewType {
           fk_model_id,
           is_default: 1,
         },
-        null
+        null,
       );
       view.meta = parseMetaProp(view);
       await NocoCache.set(`${CacheScope.VIEW}:${fk_model_id}:default`, view);
@@ -223,7 +223,7 @@ export default class View implements ViewType {
     viewsList.sort(
       (a, b) =>
         (a.order != null ? a.order : Infinity) -
-        (b.order != null ? b.order : Infinity)
+        (b.order != null ? b.order : Infinity),
     );
     return viewsList?.map((v) => new View(v));
   }
@@ -233,7 +233,7 @@ export default class View implements ViewType {
       {
         viewId: this.id,
       },
-      ncMeta
+      ncMeta,
     )) as any);
   }
 
@@ -247,7 +247,7 @@ export default class View implements ViewType {
         copy_from_id?: string;
         fk_grp_col_id?: string;
       },
-    ncMeta = Noco.ncMeta
+    ncMeta = Noco.ncMeta,
   ) {
     const insertObj = extractProps(view, [
       'id',
@@ -288,13 +288,13 @@ export default class View implements ViewType {
       null,
       null,
       MetaTable.VIEWS,
-      insertObj
+      insertObj,
     );
 
     await NocoCache.appendToList(
       CacheScope.VIEW,
       [view.fk_model_id],
-      `${CacheScope.VIEW}:${view_id}`
+      `${CacheScope.VIEW}:${view_id}`,
     );
 
     let columns: any[] = await (
@@ -310,7 +310,7 @@ export default class View implements ViewType {
             ...(view as GridView),
             fk_view_id: view_id,
           },
-          ncMeta
+          ncMeta,
         );
         break;
       case ViewTypes.MAP:
@@ -319,7 +319,7 @@ export default class View implements ViewType {
             ...(view as MapView),
             fk_view_id: view_id,
           },
-          ncMeta
+          ncMeta,
         );
         break;
       case ViewTypes.GALLERY:
@@ -329,7 +329,7 @@ export default class View implements ViewType {
             ...view,
             fk_view_id: view_id,
           },
-          ncMeta
+          ncMeta,
         );
         break;
       case ViewTypes.FORM:
@@ -340,7 +340,7 @@ export default class View implements ViewType {
             ...view,
             fk_view_id: view_id,
           },
-          ncMeta
+          ncMeta,
         );
         break;
       case ViewTypes.KANBAN:
@@ -353,7 +353,7 @@ export default class View implements ViewType {
             ...view,
             fk_view_id: view_id,
           },
-          ncMeta
+          ncMeta,
         );
         break;
     }
@@ -370,7 +370,7 @@ export default class View implements ViewType {
             fk_view_id: view_id,
             id: null,
           },
-          ncMeta
+          ncMeta,
         );
       }
 
@@ -381,7 +381,7 @@ export default class View implements ViewType {
             fk_view_id: view_id,
             id: null,
           },
-          ncMeta
+          ncMeta,
         );
       }
     }
@@ -468,7 +468,7 @@ export default class View implements ViewType {
             show,
             id: null,
           },
-          ncMeta
+          ncMeta,
         );
       }
     }
@@ -483,7 +483,7 @@ export default class View implements ViewType {
       order?: number;
       show;
     } & Pick<ColumnReqType, 'column_order'>,
-    ncMeta = Noco.ncMeta
+    ncMeta = Noco.ncMeta,
   ) {
     const insertObj = {
       fk_column_id: param.fk_column_id,
@@ -514,7 +514,7 @@ export default class View implements ViewType {
               ...insertObj,
               fk_view_id: view.id,
             },
-            ncMeta
+            ncMeta,
           );
           break;
         case ViewTypes.KANBAN:
@@ -532,7 +532,7 @@ export default class View implements ViewType {
       fk_column_id;
       id?: string;
     } & Partial<FormViewColumn>,
-    ncMeta = Noco.ncMeta
+    ncMeta = Noco.ncMeta,
   ) {
     const view = await this.get(param.view_id, ncMeta);
 
@@ -545,7 +545,7 @@ export default class View implements ViewType {
               ...param,
               fk_view_id: view.id,
             },
-            ncMeta
+            ncMeta,
           );
         }
         break;
@@ -556,7 +556,7 @@ export default class View implements ViewType {
               ...param,
               fk_view_id: view.id,
             },
-            ncMeta
+            ncMeta,
           );
         }
         break;
@@ -567,7 +567,7 @@ export default class View implements ViewType {
               ...param,
               fk_view_id: view.id,
             },
-            ncMeta
+            ncMeta,
           );
         }
         break;
@@ -578,7 +578,7 @@ export default class View implements ViewType {
               ...param,
               fk_view_id: view.id,
             },
-            ncMeta
+            ncMeta,
           );
         }
         break;
@@ -589,7 +589,7 @@ export default class View implements ViewType {
               ...param,
               fk_view_id: view.id,
             },
-            ncMeta
+            ncMeta,
           );
         }
         break;
@@ -608,7 +608,7 @@ export default class View implements ViewType {
 
   static async getColumns(
     viewId: string,
-    ncMeta = Noco.ncMeta
+    ncMeta = Noco.ncMeta,
   ): Promise<
     Array<
       | GridViewColumn
@@ -654,7 +654,7 @@ export default class View implements ViewType {
       order?: number;
       show?: BoolType;
     },
-    ncMeta = Noco.ncMeta
+    ncMeta = Noco.ncMeta,
   ) {
     const view = await this.get(viewId, ncMeta);
     let table;
@@ -692,7 +692,7 @@ export default class View implements ViewType {
         {
           fk_model_id: view.fk_model_id,
           pv: true,
-        }
+        },
       );
 
       const primary_value_column = await ncMeta.metaGet2(
@@ -702,7 +702,7 @@ export default class View implements ViewType {
         {
           fk_view_id: view.id,
           fk_column_id: primary_value_column_meta.id,
-        }
+        },
       );
 
       if (primary_value_column && primary_value_column.id === colId) {
@@ -731,7 +731,7 @@ export default class View implements ViewType {
       order?: number;
       show?: BoolType;
     },
-    ncMeta = Noco.ncMeta
+    ncMeta = Noco.ncMeta,
   ): Promise<
     | GridViewColumn
     | FormViewColumn
@@ -757,7 +757,7 @@ export default class View implements ViewType {
           order: colData.order,
           show: colData.show,
         },
-        existingCol.id
+        existingCol.id,
       );
       return { ...existingCol, ...colData };
     } else {
@@ -844,7 +844,7 @@ export default class View implements ViewType {
         {
           uuid: view.uuid,
         },
-        viewId
+        viewId,
       );
     }
     if (!view.meta || !('allowCSVDownload' in view.meta)) {
@@ -869,7 +869,7 @@ export default class View implements ViewType {
         {
           meta: JSON.stringify(defaultMeta),
         },
-        viewId
+        viewId,
       );
       view.meta = defaultMeta;
     }
@@ -879,7 +879,7 @@ export default class View implements ViewType {
   static async passwordUpdate(
     viewId: string,
     { password }: { password: string },
-    ncMeta = Noco.ncMeta
+    ncMeta = Noco.ncMeta,
   ) {
     // get existing cache
     const key = `${CacheScope.VIEW}:${viewId}`;
@@ -898,7 +898,7 @@ export default class View implements ViewType {
       {
         password,
       },
-      viewId
+      viewId,
     );
   }
 
@@ -920,7 +920,7 @@ export default class View implements ViewType {
       {
         uuid: null,
       },
-      viewId
+      viewId,
     );
   }
 
@@ -935,7 +935,7 @@ export default class View implements ViewType {
       uuid?: string;
       meta?: any;
     },
-    ncMeta = Noco.ncMeta
+    ncMeta = Noco.ncMeta,
   ) {
     const updateObj = extractProps(body, [
       'title',
@@ -997,7 +997,7 @@ export default class View implements ViewType {
     await NocoCache.deepDel(
       tableScope,
       `${tableScope}:${viewId}`,
-      CacheDelDirection.CHILD_TO_PARENT
+      CacheDelDirection.CHILD_TO_PARENT,
     );
     await ncMeta.metaDelete(null, null, table, {
       fk_view_id: viewId,
@@ -1005,13 +1005,13 @@ export default class View implements ViewType {
     await NocoCache.deepDel(
       columnTableScope,
       `${columnTableScope}:${viewId}`,
-      CacheDelDirection.CHILD_TO_PARENT
+      CacheDelDirection.CHILD_TO_PARENT,
     );
     await ncMeta.metaDelete(null, null, MetaTable.VIEWS, viewId);
     await NocoCache.deepDel(
       CacheScope.VIEW,
       `${CacheScope.VIEW}:${viewId}`,
-      CacheDelDirection.CHILD_TO_PARENT
+      CacheDelDirection.CHILD_TO_PARENT,
     );
     await NocoCache.del(`${CacheScope.VIEW}:${view.fk_model_id}:${view.title}`);
     await NocoCache.del(`${CacheScope.VIEW}:${view.fk_model_id}:${view.id}`);
@@ -1108,7 +1108,7 @@ export default class View implements ViewType {
   static async showAllColumns(
     viewId,
     ignoreColdIds = [],
-    ncMeta = Noco.ncMeta
+    ncMeta = Noco.ncMeta,
   ) {
     const view = await this.get(viewId);
     const table = this.extractViewColumnsTableName(view);
@@ -1119,7 +1119,7 @@ export default class View implements ViewType {
       .then((meta) => meta.getColumns());
     const viewColumns = await this.getColumns(viewId, ncMeta);
     const availableColumnsInView = viewColumns.map(
-      (column) => column.fk_column_id
+      (column) => column.fk_column_id,
     );
 
     // get existing cache
@@ -1145,7 +1145,7 @@ export default class View implements ViewType {
           viewId,
           viewColumns[colIndex].id,
           { show: true },
-          ncMeta
+          ncMeta,
         );
       } else {
         await this.insertColumn(
@@ -1157,7 +1157,7 @@ export default class View implements ViewType {
             show: true,
             fk_column_id: col.id,
           },
-          ncMeta
+          ncMeta,
         );
       }
 
@@ -1185,7 +1185,7 @@ export default class View implements ViewType {
   static async hideAllColumns(
     viewId,
     ignoreColdIds = [],
-    ncMeta = Noco.ncMeta
+    ncMeta = Noco.ncMeta,
   ) {
     const view = await this.get(viewId);
     const table = this.extractViewColumnsTableName(view);
@@ -1199,7 +1199,7 @@ export default class View implements ViewType {
         {
           fk_model_id: view.fk_model_id,
           pv: true,
-        }
+        },
       );
 
       // keep primary_value_column always visible
@@ -1248,7 +1248,7 @@ export default class View implements ViewType {
               },
             },
           }
-        : null
+        : null,
     );
   }
 
@@ -1290,7 +1290,7 @@ export default class View implements ViewType {
         orderBy: {
           order: 'asc',
         },
-      }
+      },
     );
     const view_columns_meta = [];
 
@@ -1300,7 +1300,7 @@ export default class View implements ViewType {
         null,
         null,
         MetaTable.COLUMNS,
-        col.fk_column_id
+        col.fk_column_id,
       );
       view_columns_meta.push(col_meta);
     }
@@ -1309,10 +1309,10 @@ export default class View implements ViewType {
 
     if (primary_value_column_meta) {
       const primary_value_column = view_columns.find(
-        (col) => col.fk_column_id === primary_value_column_meta.id
+        (col) => col.fk_column_id === primary_value_column_meta.id,
       );
       const primary_value_column_index = view_columns.findIndex(
-        (col) => col.fk_column_id === primary_value_column_meta.id
+        (col) => col.fk_column_id === primary_value_column_meta.id,
       );
       const view_orders = view_columns.map((col) => col.order);
       const view_min_order = Math.min(...view_orders);
@@ -1324,11 +1324,11 @@ export default class View implements ViewType {
           null,
           MetaTable.GRID_VIEW_COLUMNS,
           { show: true },
-          primary_value_column.id
+          primary_value_column.id,
         );
         await NocoCache.set(
           `${CacheScope.GRID_VIEW_COLUMN}:${primary_value_column.id}`,
-          primary_value_column
+          primary_value_column,
         );
       }
 
@@ -1352,11 +1352,11 @@ export default class View implements ViewType {
             null,
             MetaTable.GRID_VIEW_COLUMNS,
             { order: i + 1 },
-            view_columns[i].id
+            view_columns[i].id,
           );
           await NocoCache.set(
             `${CacheScope.GRID_VIEW_COLUMN}:${view_columns[i].id}`,
-            view_columns[i]
+            view_columns[i],
           );
         }
       }
@@ -1373,7 +1373,7 @@ export default class View implements ViewType {
         orderBy: {
           order: 'asc',
         },
-      }
+      },
     );
     await NocoCache.setList(CacheScope.GRID_VIEW_COLUMN, [viewId], views);
   }

@@ -25,25 +25,25 @@ export default class GalleryViewColumn {
       galleryViewColumnId &&
       (await NocoCache.get(
         `${CacheScope.GALLERY_VIEW_COLUMN}:${galleryViewColumnId}`,
-        CacheGetType.TYPE_OBJECT
+        CacheGetType.TYPE_OBJECT,
       ));
     if (!view) {
       view = await ncMeta.metaGet2(
         null,
         null,
         MetaTable.GALLERY_VIEW_COLUMNS,
-        galleryViewColumnId
+        galleryViewColumnId,
       );
       await NocoCache.set(
         `${CacheScope.GALLERY_VIEW_COLUMN}:${galleryViewColumnId}`,
-        view
+        view,
       );
     }
     return view && new GalleryViewColumn(view);
   }
   static async insert(
     column: Partial<GalleryViewColumn>,
-    ncMeta = Noco.ncMeta
+    ncMeta = Noco.ncMeta,
   ) {
     const insertObj = extractProps(column, [
       'fk_view_id',
@@ -57,7 +57,7 @@ export default class GalleryViewColumn {
       MetaTable.GALLERY_VIEW_COLUMNS,
       {
         fk_view_id: column.fk_view_id,
-      }
+      },
     );
 
     if (!(column.project_id && column.base_id)) {
@@ -70,12 +70,12 @@ export default class GalleryViewColumn {
       null,
       null,
       MetaTable.GALLERY_VIEW_COLUMNS,
-      insertObj
+      insertObj,
     );
 
     await NocoCache.set(
       `${CacheScope.GALLERY_VIEW_COLUMN}:${fk_column_id}`,
-      id
+      id,
     );
 
     // if cache is not present skip pushing it into the list to avoid unexpected behaviour
@@ -89,7 +89,7 @@ export default class GalleryViewColumn {
       await NocoCache.appendToList(
         CacheScope.GALLERY_VIEW_COLUMN,
         [column.fk_view_id],
-        `${CacheScope.GALLERY_VIEW_COLUMN}:${id}`
+        `${CacheScope.GALLERY_VIEW_COLUMN}:${id}`,
       );
 
     return this.get(id, ncMeta);
@@ -97,7 +97,7 @@ export default class GalleryViewColumn {
 
   public static async list(
     viewId: string,
-    ncMeta = Noco.ncMeta
+    ncMeta = Noco.ncMeta,
   ): Promise<GalleryViewColumn[]> {
     let views = await NocoCache.getList(CacheScope.GALLERY_VIEW_COLUMN, [
       viewId,
@@ -114,14 +114,14 @@ export default class GalleryViewColumn {
           orderBy: {
             order: 'asc',
           },
-        }
+        },
       );
       await NocoCache.setList(CacheScope.GALLERY_VIEW_COLUMN, [viewId], views);
     }
     views.sort(
       (a, b) =>
         (a.order != null ? a.order : Infinity) -
-        (b.order != null ? b.order : Infinity)
+        (b.order != null ? b.order : Infinity),
     );
     return views?.map((v) => new GalleryViewColumn(v));
   }

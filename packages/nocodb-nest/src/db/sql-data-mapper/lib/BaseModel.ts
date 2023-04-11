@@ -324,7 +324,7 @@ abstract class BaseModel {
   async readByPk(id, { conditionGraph }) {
     try {
       return await this._run(
-        this.$db.select().where(this._wherePk(id)).first()
+        this.$db.select().where(this._wherePk(id)).first(),
       );
     } catch (e) {
       console.log(e);
@@ -351,9 +351,9 @@ abstract class BaseModel {
             this._whereFk({
               tnp,
               parentId,
-            })
+            }),
           )
-          .limit(1)
+          .limit(1),
       );
     } catch (e) {
       console.log(e);
@@ -470,7 +470,7 @@ abstract class BaseModel {
           .count(`${(this.pks?.[0] || this.columns[0]).cn} as count`)
           .xwhere(where)
           .condition(condition)
-          .first()
+          .first(),
       );
     } catch (e) {
       console.log(e);
@@ -497,12 +497,12 @@ abstract class BaseModel {
             this._whereFk({
               parentId,
               tnp,
-            })
+            }),
           )
           .count(`${(this.pks?.[0] || this.columns[0]).cn} as count`)
           .xwhere(where)
           .condition(condition)
-          .first()
+          .first(),
       );
     } catch (e) {
       console.log(e);
@@ -527,7 +527,7 @@ abstract class BaseModel {
 
       // this.validate(data);
       response = await this._run(
-        this.$db.update(data).where(this._wherePk(id))
+        this.$db.update(data).where(this._wherePk(id)),
       );
       await this.afterUpdate(data, trx, cookie);
       return response;
@@ -562,8 +562,8 @@ abstract class BaseModel {
           this._whereFk({
             tnp,
             parentId,
-          })
-        )
+          }),
+        ),
       );
       await this.afterUpdate(response, trx, cookie);
       return response;
@@ -618,8 +618,8 @@ abstract class BaseModel {
           this._whereFk({
             tnp,
             parentId,
-          })
-        )
+          }),
+        ),
       );
       await this.afterDelete(response, trx, cookie);
       return response;
@@ -647,7 +647,7 @@ abstract class BaseModel {
       for (const d of data) {
         // this.validate(d);
         const response = await this._run(
-          trx(this.tn).update(d).where(this._extractPks(d))
+          trx(this.tn).update(d).where(this._extractPks(d)),
         );
         res.push(response);
       }
@@ -679,7 +679,7 @@ abstract class BaseModel {
       const res = [];
       for (const d of ids) {
         const response = await this._run(
-          trx(this.tn).del().where(this._extractPks(d))
+          trx(this.tn).del().where(this._extractPks(d)),
         );
         res.push(response);
       }
@@ -869,7 +869,7 @@ abstract class BaseModel {
         await this.dbDriver.unionAll(
           ranges.map(([start, end]) => {
             const query = this.$db.xwhere(
-              `(${column_name},ge,${start})~and(${column_name},le,${end})`
+              `(${column_name},ge,${start})~and(${column_name},le,${end})`,
             );
             if (func) {
               func
@@ -878,7 +878,7 @@ abstract class BaseModel {
             }
             return this.isSqlite() ? this.dbDriver.select().from(query) : query;
           }),
-          !this.isSqlite()
+          !this.isSqlite(),
         )
       ).map((row, i) => {
         row.range = ranges[i].join('-');
@@ -973,8 +973,8 @@ abstract class BaseModel {
           this._paginateAndSort(query, { sort, limit, offset });
           return this.isSqlite() ? this.dbDriver.select().from(query) : query;
         }),
-        !this.isSqlite()
-      )
+        !this.isSqlite(),
+      ),
     );
 
     const gs = groupBy(childs, cn);
@@ -1054,9 +1054,9 @@ abstract class BaseModel {
                 child,
               },
               rest,
-              index
-            )
-          )
+              index,
+            ),
+          ),
         );
       return parent;
     } catch (e) {
@@ -1098,9 +1098,9 @@ abstract class BaseModel {
           const parentIds = [...new Set(childs.map((c) => c[cn]))];
           return this._belongsTo(
             { parent, rcn, parentIds, childs, cn, ...rest },
-            index
+            index,
           );
-        })
+        }),
       );
 
       return childs;
@@ -1130,7 +1130,7 @@ abstract class BaseModel {
     const parents = await this._run(
       this.dbDriver(parent)
         .select(...fields.split(','))
-        .whereIn(rcn, parentIds)
+        .whereIn(rcn, parentIds),
     );
 
     const gs = groupBy(parents, rcn);
@@ -1175,8 +1175,8 @@ abstract class BaseModel {
             this._paginateAndSort(query, { sort, limit, offset });
             return this.isSqlite() ? this.dbDriver.select().from(query) : query;
           }),
-          !this.isSqlite()
-        )
+          !this.isSqlite(),
+        ),
       );
 
       return groupBy(childs, cn);
@@ -1219,8 +1219,8 @@ abstract class BaseModel {
               .first();
             return this.isSqlite() ? this.dbDriver.select().from(query) : query;
           }),
-          !this.isSqlite()
-        )
+          !this.isSqlite(),
+        ),
       );
 
       return childs.map(({ count }) => count);
@@ -1248,7 +1248,7 @@ abstract class BaseModel {
       limit = 20,
       offset = 0,
       sort = '',
-    }: { limit?: number | string; offset?: number | string; sort?: string }
+    }: { limit?: number | string; offset?: number | string; sort?: string },
   ) {
     query.offset(offset).limit(limit);
 
@@ -1300,9 +1300,9 @@ abstract class BaseModel {
     obj.limit = Math.max(
       Math.min(
         args.limit || args.l || this.config.limitDefault,
-        this.config.limitMax
+        this.config.limitMax,
       ),
-      this.config.limitMin
+      this.config.limitMin,
     );
     obj.offset = args.offset || args.o || 0;
     obj.fields = args.fields || args.f || '*';
@@ -1325,9 +1325,9 @@ abstract class BaseModel {
     obj.limit = Math.max(
       Math.min(
         args[`limit${index}`] || args[`l${index}`] || this.config.limitDefault,
-        this.config.limitMax
+        this.config.limitMax,
       ),
-      this.config.limitMin
+      this.config.limitMin,
     );
     obj.offset = args[`offset${index}`] || args[`o${index}`] || 0;
     obj.fields = args[`fields${index}`] || args[`f${index}`] || '*';

@@ -20,7 +20,7 @@ const mysql2 = {
       builder: args.knex.raw(
         `CAST(${(await args.fn(args.pt.arguments[0])).builder} as SIGNED)${
           args.colAlias
-        }`
+        }`,
       ),
     };
   },
@@ -29,7 +29,7 @@ const mysql2 = {
       builder: args.knex.raw(
         `SUBSTR(${(await args.fn(args.pt.arguments[0])).builder},1,${
           (await args.fn(args.pt.arguments[1])).builder
-        })${args.colAlias}`
+        })${args.colAlias}`,
       ),
     };
   },
@@ -38,7 +38,7 @@ const mysql2 = {
       builder: args.knex.raw(
         `SUBSTR(${(await args.fn(args.pt.arguments[0])).builder}, -(${
           (await args.fn(args.pt.arguments[1])).builder
-        }))${args.colAlias}`
+        }))${args.colAlias}`,
       ),
     };
   },
@@ -49,7 +49,7 @@ const mysql2 = {
         .raw(
           `CAST(CAST(${
             (await args.fn(args.pt.arguments[0])).builder
-          } as CHAR) AS DOUBLE)${args.colAlias}`
+          } as CHAR) AS DOUBLE)${args.colAlias}`,
         )
         .wrap('(', ')'),
     };
@@ -61,14 +61,14 @@ const mysql2 = {
       WHEN ${(await fn(pt.arguments[0])).builder} LIKE '%:%' THEN
         DATE_FORMAT(DATE_ADD(${(await fn(pt.arguments[0])).builder}, INTERVAL
         ${(await fn(pt.arguments[1])).builder} ${String(
-          (await fn(pt.arguments[2])).builder
+          (await fn(pt.arguments[2])).builder,
         ).replace(/["']/g, '')}), '%Y-%m-%d %H:%i')
       ELSE
         DATE(DATE_ADD(${(await fn(pt.arguments[0])).builder}, INTERVAL
         ${(await fn(pt.arguments[1])).builder} ${String(
-          (await fn(pt.arguments[2])).builder
+          (await fn(pt.arguments[2])).builder,
         ).replace(/["']/g, '')}))
-      END${colAlias}`
+      END${colAlias}`,
       ),
     };
   },
@@ -80,7 +80,7 @@ const mysql2 = {
       pt.arguments[2]
         ? (await fn(pt.arguments[2])).builder.bindings[0]
         : 'seconds',
-      'mysql'
+      'mysql',
     );
 
     if (unit === 'MICROSECOND') {
@@ -88,13 +88,13 @@ const mysql2 = {
       // hence change from MICROSECOND to millisecond manually
       return {
         builder: knex.raw(
-          `TIMESTAMPDIFF(${unit}, ${datetime_expr2}, ${datetime_expr1}) div 1000 ${colAlias}`
+          `TIMESTAMPDIFF(${unit}, ${datetime_expr2}, ${datetime_expr1}) div 1000 ${colAlias}`,
         ),
       };
     }
     return {
       builder: knex.raw(
-        `TIMESTAMPDIFF(${unit}, ${datetime_expr2}, ${datetime_expr1}) ${colAlias}`
+        `TIMESTAMPDIFF(${unit}, ${datetime_expr2}, ${datetime_expr1}) ${colAlias}`,
       ),
     };
   },
@@ -105,12 +105,12 @@ const mysql2 = {
         `(WEEKDAY(${
           pt.arguments[0].type === 'Literal'
             ? `'${dayjs((await fn(pt.arguments[0])).builder).format(
-                'YYYY-MM-DD'
+                'YYYY-MM-DD',
               )}'`
             : (await fn(pt.arguments[0])).builder
         }) - ${getWeekdayByText(
-          pt?.arguments[1]?.value
-        )} % 7 + 7) % 7 ${colAlias}`
+          pt?.arguments[1]?.value,
+        )} % 7 + 7) % 7 ${colAlias}`,
       ),
     };
   },

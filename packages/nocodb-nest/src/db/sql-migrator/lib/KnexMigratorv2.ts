@@ -83,7 +83,7 @@ export default class KnexMigratorv2 {
       'nc',
       this.projectId,
       args.dbAlias,
-      'migrations'
+      'migrations',
     );
   }
 
@@ -383,21 +383,21 @@ export default class KnexMigratorv2 {
     const connectionConfig = await base.getConnectionConfig();
     if (connectionConfig.client === 'oracledb') {
       this.emit(
-        `${connectionConfig.client}: Creating DB if not exists ${connectionConfig.connection.user}`
+        `${connectionConfig.client}: Creating DB if not exists ${connectionConfig.connection.user}`,
       );
       await sqlClient.createDatabaseIfNotExists({
         database: connectionConfig.connection.user,
       });
     } else if (connectionConfig.client !== 'sqlite3') {
       this.emit(
-        `${connectionConfig.client}: Creating DB if not exists ${connectionConfig.connection.database}`
+        `${connectionConfig.client}: Creating DB if not exists ${connectionConfig.connection.database}`,
       );
       await sqlClient.createDatabaseIfNotExists({
         database: connectionConfig.connection.database,
       });
     } else {
       this.emit(
-        `${connectionConfig.client}: Creating DB if not exists ${connectionConfig.connection.connection.filename}`
+        `${connectionConfig.client}: Creating DB if not exists ${connectionConfig.connection.connection.filename}`,
       );
       await sqlClient.createDatabaseIfNotExists({
         database: connectionConfig.connection.connection.filename,
@@ -438,7 +438,7 @@ export default class KnexMigratorv2 {
       });
     } else if (connectionConfig.client === 'sqlite3') {
       this.emit(
-        `Dropping DB : ${connectionConfig.connection.connection.filename}`
+        `Dropping DB : ${connectionConfig.connection.connection.filename}`,
       );
       await sqlClient.dropDatabase({
         database: connectionConfig.connection.connection.filename,
@@ -585,7 +585,7 @@ export default class KnexMigratorv2 {
 
       let migrations = await sqlClient.selectAll(
         // todo: replace
-        sqlClient.getTnPath('nc_evolutions')
+        sqlClient.getTnPath('nc_evolutions'),
       );
 
       if (this.suffix) {
@@ -609,7 +609,7 @@ export default class KnexMigratorv2 {
         this.emit(
           `Number of evolutions pending for '${'env'}:${base.alias}': '${
             files.length - migrations.length
-          }'`
+          }'`,
         );
         result.data.object.pending = files.length - migrations.length;
 
@@ -659,7 +659,7 @@ export default class KnexMigratorv2 {
             }
             if (!fileFound) {
               log.debug(
-                `Error : There is no file ${args.file} in migration directory`
+                `Error : There is no file ${args.file} in migration directory`,
               );
               return;
             }
@@ -731,7 +731,7 @@ export default class KnexMigratorv2 {
                 upStatements.push(
                   ...upStatement
                     .split(/\/\*\s*xc[\s\S]*?\s*\*\//)
-                    .filter((s) => s.trim())
+                    .filter((s) => s.trim()),
                 );
               }
 
@@ -760,14 +760,14 @@ export default class KnexMigratorv2 {
               for (const data of metaTableInserts) {
                 await trx(sqlClient.getTnPath('nc_evolutions')).insert(data);
                 vm.emit(
-                  `'${data.title}' : Updating bookkeeping of SQL UP migration - done`
+                  `'${data.title}' : Updating bookkeeping of SQL UP migration - done`,
                 );
               }
               if (!sqlClient.knex.isTransaction) await trx.commit();
             } catch (error) {
               if (!sqlClient.knex.isTransaction) await trx.rollback();
               vm.emitW(
-                `Migration operation failed, Database restored to previous state`
+                `Migration operation failed, Database restored to previous state`,
               );
               log.ppe(error, '');
               throw error;
@@ -848,7 +848,7 @@ export default class KnexMigratorv2 {
       // );
       const sqlClient = await this.getSqlClient(base); // SqlClientFactory.create(connection);
       const migrations = await sqlClient.selectAll(
-        sqlClient.getTnPath('nc_evolutions')
+        sqlClient.getTnPath('nc_evolutions'),
       );
 
       if (migrations.length) {
@@ -871,7 +871,7 @@ export default class KnexMigratorv2 {
             }
             if (!fileFound) {
               log.debug(
-                `Error : There is no file ${args.file} in migration directory`
+                `Error : There is no file ${args.file} in migration directory`,
               );
               return;
             }
@@ -905,7 +905,7 @@ export default class KnexMigratorv2 {
                 downStatements.push(
                   ...downStatement
                     .split(/\/\*\s*xc[\s\S]*?\s*\*\//)
-                    .filter((s) => s.trim())
+                    .filter((s) => s.trim()),
                 );
 
               metaDownDeletes.push({
@@ -926,7 +926,7 @@ export default class KnexMigratorv2 {
             }
             for (const condition of metaDownDeletes) {
               vm.emit(
-                `'${condition.titleDown}' : Updating bookkeeping of SQL DOWN migration - done`
+                `'${condition.titleDown}' : Updating bookkeeping of SQL DOWN migration - done`,
               );
               await trx(sqlClient.getTnPath('nc_evolutions'))
                 .where(condition)
@@ -936,7 +936,7 @@ export default class KnexMigratorv2 {
           } catch (error) {
             if (!sqlClient.knex.isTransaction) await trx.rollback();
             vm.emitW(
-              `Migration operation failed, Database restored to previous state`
+              `Migration operation failed, Database restored to previous state`,
             );
             log.ppe(error, '');
             throw error;
@@ -1100,7 +1100,7 @@ export default class KnexMigratorv2 {
       // }
 
       this.emit(
-        `Migration files created successfully : '${upFileName}' and '${downFileName}'`
+        `Migration files created successfully : '${upFileName}' and '${downFileName}'`,
       );
 
       return {
@@ -1366,14 +1366,14 @@ export default class KnexMigratorv2 {
         await promisify(fs.writeFile)(
           path.join(this._getWorkingEnvDir(args), args.up),
           upStatement,
-          'utf-8'
+          'utf-8',
         );
         log.debug('migrationsWrite: wrote to file', args.up);
 
         await promisify(fs.writeFile)(
           path.join(this._getWorkingEnvDir(args), args.down),
           downStatement,
-          'utf-8'
+          'utf-8',
         );
       }
       log.debug('migrationsWrite: wrote to file', args.down);
@@ -1450,7 +1450,7 @@ export default class KnexMigratorv2 {
           this.projectId,
           args.dbAlias,
           'migrations',
-          args.title
+          args.title,
         );
         const downFilePath = path.join(
           this.toolDir,
@@ -1458,16 +1458,16 @@ export default class KnexMigratorv2 {
           this.projectId,
           args.dbAlias,
           'migrations',
-          args.titleDown
+          args.titleDown,
         );
 
         result.data.object.up = await promisify(fs.readFile)(
           upFilePath,
-          'utf8'
+          'utf8',
         );
         result.data.object.down = await promisify(fs.readFile)(
           downFilePath,
-          'utf8'
+          'utf8',
         );
       }
       console.log('migrationsToSql', result.data.object);
@@ -1516,7 +1516,7 @@ export default class KnexMigratorv2 {
     await promisify(fs.writeFile)(
       newProjectJsonPath,
       JSON.stringify(freshProject, null, 2),
-      'utf-8'
+      'utf-8',
     );
   }
 

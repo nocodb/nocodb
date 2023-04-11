@@ -1,7 +1,15 @@
 import Handlebars from 'handlebars';
 import { v4 as uuidv4 } from 'uuid';
 import type { HookLogType } from 'nocodb-sdk';
-import { Column, Filter, FormView, Hook, HookLog, Model, View } from '../models'
+import {
+  Column,
+  Filter,
+  FormView,
+  Hook,
+  HookLog,
+  Model,
+  View,
+} from '../models';
 import NcPluginMgrv2 from './NcPluginMgrv2';
 
 export function parseBody(template: string, data: any): string {

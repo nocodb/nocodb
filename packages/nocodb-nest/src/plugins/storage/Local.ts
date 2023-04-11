@@ -4,7 +4,7 @@ import { promisify } from 'util';
 import mkdirp from 'mkdirp';
 import axios from 'axios';
 import type { IStorageAdapterV2, XcFile } from 'nc-plugin';
-import NcConfigFactory from '../../utils/NcConfigFactory'
+import NcConfigFactory from '../../utils/NcConfigFactory';
 
 export default class Local implements IStorageAdapterV2 {
   constructor() {}
@@ -73,7 +73,7 @@ export default class Local implements IStorageAdapterV2 {
   public async fileRead(filePath: string): Promise<any> {
     try {
       const fileData = await fs.promises.readFile(
-        path.join(NcConfigFactory.getToolDir(), ...filePath.split('/'))
+        path.join(NcConfigFactory.getToolDir(), ...filePath.split('/')),
       );
       return fileData;
     } catch (e) {

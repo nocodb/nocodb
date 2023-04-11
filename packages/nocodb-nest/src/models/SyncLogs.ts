@@ -39,7 +39,7 @@ export default class SyncLogs {
       null,
       null,
       MetaTable.SYNC_LOGS,
-      insertObj
+      insertObj,
     );
     return new SyncLogs({ ...insertObj, id });
   }

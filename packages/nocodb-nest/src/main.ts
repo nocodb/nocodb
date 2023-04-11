@@ -7,7 +7,7 @@ async function bootstrap() {
   app.use(
     cors({
       exposedHeaders: 'xc-db-response',
-    })
+    }),
   );
   await app.listen(8080);
 }

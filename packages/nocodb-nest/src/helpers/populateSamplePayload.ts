@@ -1,11 +1,18 @@
 import { RelationTypes, UITypes } from 'nocodb-sdk';
 import { v4 as uuidv4 } from 'uuid';
-import { Column, LinkToAnotherRecordColumn, LookupColumn, Model, SelectOption, View } from '../models'
+import {
+  Column,
+  LinkToAnotherRecordColumn,
+  LookupColumn,
+  Model,
+  SelectOption,
+  View,
+} from '../models';
 
 export async function populateSamplePayload(
   viewOrModel: View | Model,
   includeNested = false,
-  operation = 'insert'
+  operation = 'insert',
 ) {
   const out = {};
   let columns: Column[] = [];
@@ -42,7 +49,7 @@ export async function populateSamplePayloadV2(
   viewOrModel: View | Model,
   includeNested = false,
   operation = 'insert',
-  scope = 'records'
+  scope = 'records',
 ) {
   const rows = {};
   let columns: Column[] = [];
@@ -111,7 +118,7 @@ async function getSampleColumnValue(column: Column): Promise<any> {
       {
         const colOpt = await column.getColOptions<LinkToAnotherRecordColumn>();
         const sampleVal = await populateSamplePayload(
-          await colOpt.getRelatedTable()
+          await colOpt.getRelatedTable(),
         );
         if (colOpt.type !== RelationTypes.BELONGS_TO) {
           return undefined;
@@ -133,7 +140,7 @@ async function getSampleColumnValue(column: Column): Promise<any> {
           .getRelationColumn()
           .then((r) => r.getColOptions<LinkToAnotherRecordColumn>());
         const sampleVal = await getSampleColumnValue(
-          await colOpt.getLookupColumn()
+          await colOpt.getLookupColumn(),
         );
         return relColOpt.type === RelationTypes.BELONGS_TO
           ? sampleVal

@@ -57,9 +57,7 @@ interface AllMeta {
 
 @Injectable()
 export class UtilsService {
-  async info(
-    {ncSiteUrl} : {ncSiteUrl: string},
-  ) {
+  async info({ ncSiteUrl }: { ncSiteUrl: string }) {
     const projectHasAdmin = !(await User.isFirst());
     const result = {
       authType: 'jwt',

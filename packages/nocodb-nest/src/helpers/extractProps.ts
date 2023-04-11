@@ -2,7 +2,7 @@ import DOMPurify from 'isomorphic-dompurify';
 
 export function extractProps<T extends Record<string, any>>(
   body: T,
-  props: string[]
+  props: string[],
 ): Partial<T> {
   // todo: throw error if no props found
   return props.reduce((o, key) => {
@@ -13,7 +13,7 @@ export function extractProps<T extends Record<string, any>>(
 
 export function extractPropsAndSanitize<T extends Record<string, any>>(
   body: T,
-  props: string[]
+  props: string[],
 ): Partial<T> {
   // todo: throw error if no props found
   return props.reduce((o, key) => {

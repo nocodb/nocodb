@@ -20,7 +20,7 @@ export default class RollupColumn implements RollupType {
   fk_column_id;
   fk_relation_column_id;
   fk_rollup_column_id;
-  rollup_function: typeof ROLLUP_FUNCTIONS[number];
+  rollup_function: (typeof ROLLUP_FUNCTIONS)[number];
 
   constructor(data: Partial<RollupColumn>) {
     Object.assign(this, data);
@@ -28,7 +28,7 @@ export default class RollupColumn implements RollupType {
 
   public static async insert(
     data: Partial<RollupColumn>,
-    ncMeta = Noco.ncMeta
+    ncMeta = Noco.ncMeta,
   ) {
     const insertObj = extractProps(data, [
       'fk_column_id',
@@ -41,13 +41,13 @@ export default class RollupColumn implements RollupType {
     await NocoCache.appendToList(
       CacheScope.COL_ROLLUP,
       [data.fk_rollup_column_id],
-      `${CacheScope.COL_ROLLUP}:${data.fk_column_id}`
+      `${CacheScope.COL_ROLLUP}:${data.fk_column_id}`,
     );
 
     await NocoCache.appendToList(
       CacheScope.COL_ROLLUP,
       [data.fk_relation_column_id],
-      `${CacheScope.COL_ROLLUP}:${data.fk_column_id}`
+      `${CacheScope.COL_ROLLUP}:${data.fk_column_id}`,
     );
 
     return this.read(data.fk_column_id, ncMeta);
@@ -58,14 +58,14 @@ export default class RollupColumn implements RollupType {
       columnId &&
       (await NocoCache.get(
         `${CacheScope.COL_ROLLUP}:${columnId}`,
-        CacheGetType.TYPE_OBJECT
+        CacheGetType.TYPE_OBJECT,
       ));
     if (!column) {
       column = await ncMeta.metaGet2(
         null, //,
         null, //model.db_alias,
         MetaTable.COL_ROLLUP,
-        { fk_column_id: columnId }
+        { fk_column_id: columnId },
       );
       await NocoCache.set(`${CacheScope.COL_ROLLUP}:${columnId}`, column);
     }

@@ -73,7 +73,7 @@ export default class UpoCloud implements IStorageAdapterV2 {
               resolve(data.Location);
             }
           });
-        }
+        },
       );
     });
   }

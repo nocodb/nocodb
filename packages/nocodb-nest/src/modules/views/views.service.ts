@@ -1,12 +1,12 @@
 import { Injectable } from '@nestjs/common';
 import { SharedViewReqType, ViewUpdateReqType } from 'nocodb-sdk';
 import { validatePayload } from '../../helpers';
-import { Model, ModelRoleVisibility, View } from '../../models'
+import { Model, ModelRoleVisibility, View } from '../../models';
 import { T } from 'nc-help';
 import { TablesService } from '../tables/tables.service';
 
 // todo: move
- async function xcVisibilityMetaGet(param: {
+async function xcVisibilityMetaGet(param: {
   projectId: string;
   includeM2M?: boolean;
   models?: Model[];
@@ -56,7 +56,6 @@ import { TablesService } from '../tables/tables.service';
 
   return Object.values(result);
 }
-
 
 @Injectable()
 export class ViewsService {

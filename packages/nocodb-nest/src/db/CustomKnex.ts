@@ -482,7 +482,6 @@ interface XcXonditionObj {
     | XcConditionObjVal[];
 }
 
-
 declare module 'knex' {
   namespace Knex {
     interface QueryInterface {

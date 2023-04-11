@@ -61,7 +61,7 @@ class EntityMap {
             this.cols.push(col);
             resolve(true);
           });
-        })
+        }),
       );
     }
 
@@ -84,7 +84,7 @@ class EntityMap {
             reject(err);
           }
           resolve(true);
-        }
+        },
       );
     });
   }
@@ -110,7 +110,7 @@ class EntityMap {
             rs = processResponseRow(rs);
           }
           resolve(rs);
-        }
+        },
       );
     });
   }
@@ -137,7 +137,7 @@ class EntityMap {
     res = res.map((r) => processKey(r));
     return new DBStream(
       this.db,
-      `SELECT ${res.length ? res.join(', ') : '*'} FROM mapping`
+      `SELECT ${res.length ? res.join(', ') : '*'} FROM mapping`,
     );
   }
 
@@ -160,7 +160,7 @@ class EntityMap {
             row = processResponseRow(row);
           }
           resolve(rs);
-        }
+        },
       );
     });
   }

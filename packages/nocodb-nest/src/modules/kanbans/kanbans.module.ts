@@ -4,6 +4,6 @@ import { KanbansController } from './kanbans.controller';
 
 @Module({
   controllers: [KanbansController],
-  providers: [KanbansService]
+  providers: [KanbansService],
 })
 export class KanbansModule {}

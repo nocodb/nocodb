@@ -6,7 +6,6 @@ import { T } from 'nc-help';
 
 @Injectable()
 export class GridColumnsService {
-
   async columnList(param: { gridViewId: string }) {
     return await GridViewColumn.list(param.gridViewId);
   }

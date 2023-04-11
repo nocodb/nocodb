@@ -73,7 +73,7 @@ export default class Backblaze implements IStorageAdapterV2 {
               resolve(data.Location);
             }
           });
-        }
+        },
       );
     });
   }
@@ -116,7 +116,7 @@ export default class Backblaze implements IStorageAdapterV2 {
     s3Options.secretAccessKey = this.input.access_secret;
 
     s3Options.endpoint = new AWS.Endpoint(
-      `s3.${s3Options.region}.backblazeb2.com`
+      `s3.${s3Options.region}.backblazeb2.com`,
     );
 
     this.s3Client = new AWS.S3(s3Options);

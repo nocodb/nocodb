@@ -88,16 +88,16 @@ class MysqlClient extends KnexClient {
 
       const data = await this.sqlClient.raw(
         'create database if not exists ??',
-        [args.schema]
+        [args.schema],
       );
 
       await this.sqlClient.raw(
         `CREATE USER ?@'localhost' IDENTIFIED WITH mysql_native_password BY ?`,
-        [args.user, args.password]
+        [args.user, args.password],
       );
       await this.sqlClient.raw(
         `GRANT SELECT, INSERT, UPDATE, DELETE, CREATE, INDEX, DROP, ALTER, CREATE TEMPORARY TABLES, LOCK TABLES PRIVILEGES ON ??.* TO ?@'localhost'`,
-        [args.schema, args.user]
+        [args.schema, args.user],
       );
       await this.sqlClient.raw(`FLUSH PRIVILEGES`);
 
@@ -303,7 +303,7 @@ class MysqlClient extends KnexClient {
     try {
       // create a new knex client without database param
       const connectionParamsWithoutDb = JSON.parse(
-        JSON.stringify(this.connectionConfig)
+        JSON.stringify(this.connectionConfig),
       );
 
       delete connectionParamsWithoutDb.connection.database;
@@ -466,7 +466,7 @@ class MysqlClient extends KnexClient {
       } else {
         log.debug(
           'Unknown response for databaseList:',
-          result.data.list.length
+          result.data.list.length,
         );
         result.data.list = [];
       }
@@ -493,7 +493,7 @@ class MysqlClient extends KnexClient {
 
     try {
       const response = await this.sqlClient.raw(
-        `SHOW FULL TABLES WHERE TABLE_TYPE NOT LIKE 'VIEW'`
+        `SHOW FULL TABLES WHERE TABLE_TYPE NOT LIKE 'VIEW'`,
       );
       // const keyInResponse = `Tables_in_${
       //   this.connectionConfig.connection.database.toLowerCase()
@@ -504,7 +504,7 @@ class MysqlClient extends KnexClient {
         for (let i = 0; i < response[0].length; ++i) {
           if (!keyInResponse) {
             keyInResponse = Object.keys(response[0][i]).find((k) =>
-              /^Tables_in_/i.test(k)
+              /^Tables_in_/i.test(k),
             );
           }
           response[0][i].tn = response[0][i][keyInResponse];
@@ -513,7 +513,7 @@ class MysqlClient extends KnexClient {
       } else {
         log.debug(
           'Unknown response for databaseList:',
-          result.data.list.length
+          result.data.list.length,
         );
         result.data.list = [];
       }
@@ -545,11 +545,11 @@ class MysqlClient extends KnexClient {
                         information_schema.schemata 
                             where 
                                 schema_name not in ('information_schema','performance_schema','sys','mysql') 
-                                order by schema_name;`
+                                order by schema_name;`,
       );
       if (response.length === 2) {
         result.data.list = response[0].map((v) =>
-          mapKeys(v, (_, k) => k.toLowerCase())
+          mapKeys(v, (_, k) => k.toLowerCase()),
         );
       } else {
         log.debug('Unknown response for schemaList:', result.data.list.length);
@@ -604,7 +604,7 @@ class MysqlClient extends KnexClient {
         await this._getQuery({
           func,
         }),
-        [args.databaseName, args.tn, args.databaseName, args.tn]
+        [args.databaseName, args.tn, args.databaseName, args.tn],
       );
 
       if (response.length === 2) {
@@ -658,7 +658,7 @@ class MysqlClient extends KnexClient {
                 response[0][i].cdf +
                 str.substring(
                   str.lastIndexOf('DEFAULT_GENERATED') +
-                    'DEFAULT_GENERATED'.length
+                    'DEFAULT_GENERATED'.length,
                 );
             } else {
               column.cdf = response[0][i].cdf;
@@ -697,7 +697,7 @@ class MysqlClient extends KnexClient {
           ) {
             column.dtxp = column.ct.substring(
               column.ct.lastIndexOf('(') + 1,
-              column.ct.lastIndexOf(')')
+              column.ct.lastIndexOf(')'),
             );
             column.dtxs = response[0][i].ns;
           } else {
@@ -754,7 +754,7 @@ class MysqlClient extends KnexClient {
     try {
       const response = await this.sqlClient.raw(
         this.queries[func].default.sql,
-        [args.tn]
+        [args.tn],
       );
 
       if (response.length === 2) {
@@ -777,7 +777,7 @@ class MysqlClient extends KnexClient {
       } else {
         log.debug(
           'Unknown response for databaseList:',
-          result.data.list.length
+          result.data.list.length,
         );
         result.data.list = [];
       }
@@ -811,7 +811,7 @@ class MysqlClient extends KnexClient {
         await this._getQuery({
           func,
         }),
-        [this.connectionConfig.connection.database, args.tn]
+        [this.connectionConfig.connection.database, args.tn],
       );
 
       if (response.length === 2) {
@@ -829,7 +829,7 @@ class MysqlClient extends KnexClient {
       } else {
         log.debug(
           'Unknown response for databaseList:',
-          result.data.list.length
+          result.data.list.length,
         );
         result.data.list = [];
       }
@@ -869,7 +869,7 @@ class MysqlClient extends KnexClient {
 
       const response = await this.sqlClient.raw(
         this.queries[func].default.sql,
-        [args.databaseName, args.tn]
+        [args.databaseName, args.tn],
       );
 
       if (response.length === 2) {
@@ -924,7 +924,7 @@ class MysqlClient extends KnexClient {
 
       const response = await this.sqlClient.raw(
         this.queries[func].default.sql,
-        { databaseName: args.databaseName }
+        { databaseName: args.databaseName },
       );
 
       if (response.length === 2) {
@@ -986,7 +986,7 @@ class MysqlClient extends KnexClient {
 
       const response = await this.sqlClient.raw(
         this.queries[func].default.sql,
-        [`%${args.tn}%`]
+        [`%${args.tn}%`],
       );
 
       if (response.length === 2) {
@@ -1041,7 +1041,7 @@ class MysqlClient extends KnexClient {
 
       const response = await this.sqlClient.raw(
         this.queries[func].default.sql,
-        [args.databaseName]
+        [args.databaseName],
       );
 
       if (response.length === 2) {
@@ -1060,7 +1060,7 @@ class MysqlClient extends KnexClient {
       } else {
         log.debug(
           'Unknown response for databaseList:',
-          result.data.list.length
+          result.data.list.length,
         );
         result.data.list = [];
       }
@@ -1100,7 +1100,7 @@ class MysqlClient extends KnexClient {
       // `show procedure status where db='${args.databaseName}'`,
       const response = await this.sqlClient.raw(
         this.queries[func].default.sql,
-        [args.databaseName]
+        [args.databaseName],
       );
 
       if (response.length === 2) {
@@ -1150,7 +1150,7 @@ class MysqlClient extends KnexClient {
       // `SHOW FULL TABLES IN ${args.databaseName} WHERE TABLE_TYPE LIKE 'VIEW';`
       const response = await this.sqlClient.raw(
         this.queries[func].default.sql,
-        []
+        [],
       );
 
       let keyInResponse;
@@ -1161,7 +1161,7 @@ class MysqlClient extends KnexClient {
         for (let i = 0; i < response[0].length; ++i) {
           if (!keyInResponse) {
             keyInResponse = Object.keys(response[0][i]).find((k) =>
-              /^Tables_in_/i.test(k)
+              /^Tables_in_/i.test(k),
             );
           }
           const view = response[0][i];
@@ -1205,7 +1205,7 @@ class MysqlClient extends KnexClient {
       // `SHOW CREATE FUNCTION ${args.function_name};`
       const response = await this.sqlClient.raw(
         this.queries[func].default.sql,
-        [args.function_name]
+        [args.function_name],
       );
 
       if (response.length === 2) {
@@ -1259,7 +1259,7 @@ class MysqlClient extends KnexClient {
       // `show create procedure ${args.procedure_name};`
       const response = await this.sqlClient.raw(
         this.queries[func].default.sql,
-        [args.procedure_name]
+        [args.procedure_name],
       );
 
       if (response.length === 2) {
@@ -1311,7 +1311,7 @@ class MysqlClient extends KnexClient {
       // AND     TABLE_NAME      = '${args.view_name}';`
       const response = await this.sqlClient.raw(
         this.queries[func].default.sql,
-        [args.databaseName, args.view_name]
+        [args.databaseName, args.view_name],
       );
 
       if (response.length === 2) {
@@ -1352,7 +1352,7 @@ class MysqlClient extends KnexClient {
       // `SHOW FULL TABLES IN ${args.databaseName} WHERE TABLE_TYPE LIKE 'VIEW';`;
       const response = await this.sqlClient.raw(
         this.queries[func].default.sql,
-        [args.databaseName]
+        [args.databaseName],
       );
 
       if (response.length === 2) {
@@ -1451,7 +1451,7 @@ class MysqlClient extends KnexClient {
     try {
       await this.sqlClient.raw(`DROP TRIGGER ${args.trigger_name}`);
       await this.sqlClient.raw(
-        `CREATE TRIGGER \`${args.trigger_name}\` \n${args.timing} ${args.event}\nON ${args.tn} FOR EACH ROW\n${args.statement}`
+        `CREATE TRIGGER \`${args.trigger_name}\` \n${args.timing} ${args.event}\nON ${args.tn} FOR EACH ROW\n${args.statement}`,
       );
 
       result.data.object = {
@@ -1778,7 +1778,7 @@ class MysqlClient extends KnexClient {
     log.api(`${func}:args:`, args);
     try {
       await this.sqlClient.raw(
-        `DROP PROCEDURE IF EXISTS ${args.procedure_name}`
+        `DROP PROCEDURE IF EXISTS ${args.procedure_name}`,
       );
       await this.sqlClient.raw(`${args.create_procedure}`);
       result.data.object = {
@@ -1823,7 +1823,7 @@ class MysqlClient extends KnexClient {
     log.api(`${func}:args:`, args);
     try {
       await this.sqlClient.raw(
-        `DROP PROCEDURE IF EXISTS ${args.procedure_name}`
+        `DROP PROCEDURE IF EXISTS ${args.procedure_name}`,
       );
       result.data.object = {
         upStatement: [
@@ -1861,7 +1861,7 @@ class MysqlClient extends KnexClient {
         this._version = result.data.object;
         log.debug(
           `Version was empty for ${args.func}: population version for database as`,
-          this._version
+          this._version,
         );
       }
 
@@ -1887,7 +1887,7 @@ class MysqlClient extends KnexClient {
         if (i) {
           const ls = levenshtein.get(
             col.cn.toLowerCase(),
-            fakerFn.name.toLowerCase()
+            fakerFn.name.toLowerCase(),
           );
           if (l_score > ls) {
             l_score = ls;
@@ -1897,7 +1897,7 @@ class MysqlClient extends KnexClient {
           suggestion = fakerFn;
           l_score = levenshtein.get(
             col.cn.toLowerCase(),
-            fakerFn.name.toLowerCase()
+            fakerFn.name.toLowerCase(),
           );
         }
       });
@@ -1938,7 +1938,7 @@ class MysqlClient extends KnexClient {
             description: '1:n - Total number foreign key per relation',
           },
         },
-        { spaces: 2 }
+        { spaces: 2 },
       );
 
       let tables: any = await this.tableList();
@@ -2103,36 +2103,36 @@ class MysqlClient extends KnexClient {
           upQuery += this.alterTableRemoveColumn(
             args.columns[i],
             oldColumn,
-            upQuery
+            upQuery,
           );
           downQuery += this.alterTableAddColumn(
             oldColumn,
             args.columns[i],
-            downQuery
+            downQuery,
           );
         } else if (args.columns[i].altered & 2 || args.columns[i].altered & 8) {
           // col edit
           upQuery += this.alterTableChangeColumn(
             args.columns[i],
             oldColumn,
-            upQuery
+            upQuery,
           );
           downQuery += this.alterTableChangeColumn(
             oldColumn,
             args.columns[i],
-            downQuery
+            downQuery,
           );
         } else if (args.columns[i].altered & 1) {
           // col addition
           upQuery += this.alterTableAddColumn(
             args.columns[i],
             oldColumn,
-            upQuery
+            upQuery,
           );
           downQuery += this.alterTableRemoveColumn(
             args.columns[i],
             oldColumn,
-            downQuery
+            downQuery,
           );
         }
       }
@@ -2141,7 +2141,7 @@ class MysqlClient extends KnexClient {
       downQuery += this.alterTablePK(
         args.originalColumns,
         args.columns,
-        downQuery
+        downQuery,
       );
 
       if (upQuery) {
@@ -2150,7 +2150,7 @@ class MysqlClient extends KnexClient {
         ]);
         downQuery = this.genQuery(
           `ALTER TABLE ?? ${this.sanitize(downQuery)};`,
-          [args.tn]
+          [args.tn],
         );
       }
 
@@ -2190,10 +2190,10 @@ class MysqlClient extends KnexClient {
         this.sqlClient.schema.dropTable(args.table_name).toString();
 
       let createStatement = await this.sqlClient.raw(
-        `show create table \`${args.table_name}\``
+        `show create table \`${args.table_name}\``,
       );
       createStatement = Object.entries(createStatement[0][0]).find(
-        ([k]) => k.toLowerCase() === 'create table'
+        ([k]) => k.toLowerCase() === 'create table',
       )[1];
 
       const downQuery = this.querySeparator() + createStatement; //createTable(args);
@@ -2230,7 +2230,7 @@ class MysqlClient extends KnexClient {
     try {
       result.data = ';';
       const response = await this.sqlClient.raw(
-        `show create table \`${args.tn}\`;`
+        `show create table \`${args.tn}\`;`,
       );
       if (response.length === 2) {
         result.data = response[0][0]['Create Table'];
@@ -2464,14 +2464,14 @@ class MysqlClient extends KnexClient {
         `
     CHANGE
     COLUMN ?? ?? ${n.dt}`,
-        [o.cn, n.cn]
+        [o.cn, n.cn],
       );
     } else if (change === 1) {
       query += this.genQuery(
         `
     ADD
     COLUMN ?? ${n.dt}`,
-        [n.cn]
+        [n.cn],
       );
     } else {
       query += this.genQuery(` ?? ${n.dt}`, [n.cn]);
@@ -2532,14 +2532,14 @@ class MysqlClient extends KnexClient {
           query += this.genQuery(
             `, PRIMARY
     KEY(??)`,
-            [numOfPksInNew]
+            [numOfPksInNew],
           );
         } else {
           query += this.genQuery(
             `, ADD
     PRIMARY
     KEY(??)`,
-            [numOfPksInNew]
+            [numOfPksInNew],
           );
         }
       }
@@ -2562,7 +2562,7 @@ class MysqlClient extends KnexClient {
 
     try {
       const data = await this.sqlClient.raw(
-        `SELECT SUM(table_rows) as TotalRecords FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_SCHEMA = '${this.connectionConfig.connection.database}';`
+        `SELECT SUM(table_rows) as TotalRecords FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_SCHEMA = '${this.connectionConfig.connection.database}';`,
       );
       result.data = data[0][0];
     } catch (e) {

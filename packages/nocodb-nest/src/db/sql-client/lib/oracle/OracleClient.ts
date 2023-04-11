@@ -122,7 +122,7 @@ class OracleClient extends KnexClient {
 
     try {
       const rows = await this.raw(
-        `SELECT * FROM PRODUCT_COMPONENT_VERSION WHERE product LIKE 'Oracle%'`
+        `SELECT * FROM PRODUCT_COMPONENT_VERSION WHERE product LIKE 'Oracle%'`,
       );
       result.data.object = {};
 
@@ -155,7 +155,7 @@ class OracleClient extends KnexClient {
 
     try {
       const connectionParamsWithoutDb = JSON.parse(
-        JSON.stringify(this.connectionConfig)
+        JSON.stringify(this.connectionConfig),
       );
       connectionParamsWithoutDb.connection.database = 'xe';
       connectionParamsWithoutDb.connection.user = 'system';
@@ -165,22 +165,22 @@ class OracleClient extends KnexClient {
 
       log.debug('checking if db exists');
       const rows = await tempSqlClient.raw(
-        `select USERNAME from SYS.ALL_USERS WHERE USERNAME = '${this.connectionConfig.connection.user}'`
+        `select USERNAME from SYS.ALL_USERS WHERE USERNAME = '${this.connectionConfig.connection.user}'`,
       );
 
       if (rows.length === 0) {
         log.debug('creating database:', args);
         await tempSqlClient.raw(
-          `CREATE USER ${this.connectionConfig.connection.user} IDENTIFIED BY ${this.connectionConfig.connection.user}`
+          `CREATE USER ${this.connectionConfig.connection.user} IDENTIFIED BY ${this.connectionConfig.connection.user}`,
         );
         await tempSqlClient.raw(
-          `GRANT ALL PRIVILEGES TO ${this.connectionConfig.connection.user}`
+          `GRANT ALL PRIVILEGES TO ${this.connectionConfig.connection.user}`,
         );
         await tempSqlClient.raw(
-          `GRANT EXECUTE ON DBMS_AQ TO ${this.connectionConfig.connection.user}`
+          `GRANT EXECUTE ON DBMS_AQ TO ${this.connectionConfig.connection.user}`,
         );
         await tempSqlClient.raw(
-          `GRANT EXECUTE ON DBMS_AQADM TO ${this.connectionConfig.connection.user}`
+          `GRANT EXECUTE ON DBMS_AQADM TO ${this.connectionConfig.connection.user}`,
         );
       }
 
@@ -203,7 +203,7 @@ class OracleClient extends KnexClient {
 
     try {
       const connectionParamsWithoutDb = JSON.parse(
-        JSON.stringify(this.connectionConfig)
+        JSON.stringify(this.connectionConfig),
       );
       connectionParamsWithoutDb.connection.database = 'xe';
       connectionParamsWithoutDb.connection.user = 'system';
@@ -218,18 +218,18 @@ class OracleClient extends KnexClient {
       `);
       log.debug(
         `Active Sessions for ${this.connectionConfig.connection.user}: `,
-        sessions
+        sessions,
       );
       for (let i = 0; i < sessions.length; i++) {
         const session = sessions[i];
         await tempSqlClient.raw(
-          `alter system kill session '${session.SID},${session['SERIAL#']}' immediate`
+          `alter system kill session '${session.SID},${session['SERIAL#']}' immediate`,
         );
       }
 
       // await tempSqlClient.raw(`ALTER SYSTEM disable restricted session`);
       await tempSqlClient.raw(
-        `drop user ${this.connectionConfig.connection.user} cascade`
+        `drop user ${this.connectionConfig.connection.user} cascade`,
       );
       log.debug('dropped database:', this.connectionConfig.connection.user);
     } catch (e) {
@@ -277,11 +277,11 @@ class OracleClient extends KnexClient {
       if (
         // INFO: knex issue
         JSON.stringify(e.message).indexOf(
-          'exact fetch returns more than requested number of rows'
+          'exact fetch returns more than requested number of rows',
         ) > -1
       ) {
         log.warn(
-          `safely ignored Exception:exact fetch returns more than requested number of rows knex create table issue`
+          `safely ignored Exception:exact fetch returns more than requested number of rows knex create table issue`,
         );
       } else {
         throw e;
@@ -321,7 +321,7 @@ class OracleClient extends KnexClient {
 
     try {
       const rows = await this.raw(
-        `select TABLE_NAME as tn FROM all_tables WHERE OWNER = '${this.connectionConfig.connection.user}' AND tn = '${args.tn}'`
+        `select TABLE_NAME as tn FROM all_tables WHERE OWNER = '${this.connectionConfig.connection.user}' AND tn = '${args.tn}'`,
       );
       result.data.value = rows.length > 0;
     } catch (e) {
@@ -341,7 +341,7 @@ class OracleClient extends KnexClient {
 
     try {
       const rows = await this.raw(
-        `select USERNAME from SYS.ALL_USERS WHERE USERNAME = '${args.databaseName}'`
+        `select USERNAME from SYS.ALL_USERS WHERE USERNAME = '${args.databaseName}'`,
       );
       result.data.value = rows.length > 0;
     } catch (e) {
@@ -367,7 +367,7 @@ class OracleClient extends KnexClient {
 
     try {
       const rows = await this.raw(
-        `select USERNAME as "database_name" from SYS.ALL_USERS order by USERNAME`
+        `select USERNAME as "database_name" from SYS.ALL_USERS order by USERNAME`,
       );
       result.data.list = rows;
     } catch (e) {
@@ -395,7 +395,7 @@ class OracleClient extends KnexClient {
       args.databaseName = this.connectionConfig.connection.user;
 
       const rows = await this.raw(
-        `select table_name FROM all_tables WHERE owner='${args.databaseName}'`
+        `select table_name FROM all_tables WHERE owner='${args.databaseName}'`,
       );
       for (let i = 0; i < rows.length; i++) {
         let el = rows[i];
@@ -427,7 +427,7 @@ class OracleClient extends KnexClient {
                             SELECT 1
                               FROM dba_objects o
                              WHERE o.owner = u.username )
-                           AND default_tablespace not in ('SYSTEM','SYSAUX') `
+                           AND default_tablespace not in ('SYSTEM','SYSAUX') `,
       );
       for (let i = 0; i < rows.length; i++) {
         let el = rows[i];
@@ -634,7 +634,7 @@ class OracleClient extends KnexClient {
         inner join sys.all_ind_columns ind_col on ind.owner = ind_col.index_owner
         and ind.index_name = ind_col.index_name
         where ind.owner = '${args.databaseName}'  AND ind.table_name  = '${args.tn}'
-        order by ind.table_owner, ind.table_name, ind.index_name, ind_col.column_position`
+        order by ind.table_owner, ind.table_name, ind.index_name, ind_col.column_position`,
       );
 
       for (let i = 0; i < response.length; i++) {
@@ -681,7 +681,7 @@ class OracleClient extends KnexClient {
         FROM all_constraints cons, all_cons_columns cols
         WHERE cols.table_name = '${args.tn}' AND cols.owner = '${args.databaseName}'
         AND cons.constraint_type in ('P','R','U') AND cons.constraint_name = cols.constraint_name
-        AND cons.owner = cols.owner ORDER BY cons.constraint_name, cols.position`
+        AND cons.owner = cols.owner ORDER BY cons.constraint_name, cols.position`,
       );
 
       for (let i = 0; i < response.length; i++) {
@@ -905,7 +905,7 @@ class OracleClient extends KnexClient {
       args.databaseName = this.connectionConfig.connection.user;
 
       const response = await this.raw(
-        `SELECT *  FROM ALL_OBJECTS WHERE owner = '${args.databaseName}' and OBJECT_TYPE IN ('FUNCTION','PROCEDURE','PACKAGE')`
+        `SELECT *  FROM ALL_OBJECTS WHERE owner = '${args.databaseName}' and OBJECT_TYPE IN ('FUNCTION','PROCEDURE','PACKAGE')`,
       );
 
       for (let i = 0; i < response.length; i++) {
@@ -951,7 +951,7 @@ class OracleClient extends KnexClient {
       args.databaseName = this.connectionConfig.connection.user;
 
       const response = await this.raw(
-        `SELECT *  FROM ALL_OBJECTS WHERE owner = '${args.databaseName}' and OBJECT_TYPE IN ('FUNCTION','PROCEDURE','PACKAGE')`
+        `SELECT *  FROM ALL_OBJECTS WHERE owner = '${args.databaseName}' and OBJECT_TYPE IN ('FUNCTION','PROCEDURE','PACKAGE')`,
       );
 
       for (let i = 0; i < response.length; i++) {
@@ -991,7 +991,7 @@ class OracleClient extends KnexClient {
       args.databaseName = this.connectionConfig.connection.user;
 
       const response = await this.raw(
-        `SELECT * FROM all_views WHERE owner='${args.databaseName}'`
+        `SELECT * FROM all_views WHERE owner='${args.databaseName}'`,
       );
 
       for (let i = 0; i < response.length; i++) {
@@ -1031,7 +1031,7 @@ class OracleClient extends KnexClient {
       args.databaseName = this.connectionConfig.connection.user;
 
       const response = await this.raw(
-        `SELECT * FROM all_source  WHERE TYPE = 'FUNCTION' AND OWNER = '${args.databaseName}' AND NAME = '${args.function_name}' ORDER BY line`
+        `SELECT * FROM all_source  WHERE TYPE = 'FUNCTION' AND OWNER = '${args.databaseName}' AND NAME = '${args.function_name}' ORDER BY line`,
       );
       const rows = [];
       if (response.length > 0) {
@@ -1077,7 +1077,7 @@ class OracleClient extends KnexClient {
       args.databaseName = this.connectionConfig.connection.user;
 
       const response = await this.raw(
-        `SELECT * FROM all_source  WHERE TYPE = 'PROCEDURE' AND OWNER = '${args.databaseName}' AND NAME = '${args.procedure_name}' ORDER BY line`
+        `SELECT * FROM all_source  WHERE TYPE = 'PROCEDURE' AND OWNER = '${args.databaseName}' AND NAME = '${args.procedure_name}' ORDER BY line`,
       );
       const rows = [];
       if (response.length > 0) {
@@ -1119,7 +1119,7 @@ class OracleClient extends KnexClient {
       args.databaseName = this.connectionConfig.connection.user;
 
       const response = await this.raw(
-        `SELECT * FROM all_views WHERE owner='${args.databaseName}' and view_name='${args.view_name}'`
+        `SELECT * FROM all_views WHERE owner='${args.databaseName}' and view_name='${args.view_name}'`,
       );
 
       for (let i = 0; i < response.length; i++) {
@@ -1274,7 +1274,7 @@ class OracleClient extends KnexClient {
     log.api(`${func}:args:`, args);
     try {
       const rows = await this.sqlClient.raw(
-        `CREATE TRIGGER \`${args.function_name}\` \n${args.timing} ${args.event}\nON ${args.tn} FOR EACH ROW\n${args.statement}`
+        `CREATE TRIGGER \`${args.function_name}\` \n${args.timing} ${args.event}\nON ${args.tn} FOR EACH ROW\n${args.statement}`,
       );
       result.data.list = rows;
     } catch (e) {
@@ -1302,7 +1302,7 @@ class OracleClient extends KnexClient {
     try {
       await this.sqlClient.raw(`DROP TRIGGER ${args.function_name}`);
       const rows = await this.sqlClient.raw(
-        `CREATE TRIGGER \`${args.function_name}\` \n${args.timing} ${args.event}\nON ${args.tn} FOR EACH ROW\n${args.statement}`
+        `CREATE TRIGGER \`${args.function_name}\` \n${args.timing} ${args.event}\nON ${args.tn} FOR EACH ROW\n${args.statement}`,
       );
       result.data.list = rows;
     } catch (e) {
@@ -1329,7 +1329,7 @@ class OracleClient extends KnexClient {
     log.api(`${func}:args:`, args);
     try {
       const rows = await this.sqlClient.raw(
-        `CREATE TRIGGER \`${args.procedure_name}\` \n${args.timing} ${args.event}\nON ${args.tn} FOR EACH ROW\n${args.statement}`
+        `CREATE TRIGGER \`${args.procedure_name}\` \n${args.timing} ${args.event}\nON ${args.tn} FOR EACH ROW\n${args.statement}`,
       );
       result.data.list = rows;
     } catch (e) {
@@ -1357,7 +1357,7 @@ class OracleClient extends KnexClient {
     try {
       await this.sqlClient.raw(`DROP TRIGGER ${args.procedure_name}`);
       const rows = await this.sqlClient.raw(
-        `CREATE TRIGGER \`${args.procedure_name}\` \n${args.timing} ${args.event}\nON ${args.tn} FOR EACH ROW\n${args.statement}`
+        `CREATE TRIGGER \`${args.procedure_name}\` \n${args.timing} ${args.event}\nON ${args.tn} FOR EACH ROW\n${args.statement}`,
       );
       result.data.list = rows;
     } catch (e) {
@@ -1415,7 +1415,7 @@ class OracleClient extends KnexClient {
     try {
       await this.sqlClient.raw(`DROP TRIGGER ${args.trigger_name}`);
       await this.sqlClient.raw(
-        `CREATE TRIGGER \`${args.trigger_name}\` \n${args.timing} ${args.event}\nON ${args.tn} FOR EACH ROW\n${args.statement}`
+        `CREATE TRIGGER \`${args.trigger_name}\` \n${args.timing} ${args.event}\nON ${args.tn} FOR EACH ROW\n${args.statement}`,
       );
 
       result.data.object = {
@@ -1631,14 +1631,14 @@ class OracleClient extends KnexClient {
           upQuery += alterTableRemoveColumn(
             args.table,
             args.columns[i],
-            oldColumn
+            oldColumn,
             // upQuery
           );
           downQuery += alterTableAddColumn(
             args.table,
             oldColumn,
             args.columns[i],
-            downQuery
+            downQuery,
           );
         } else if (args.columns[i].altered & 2 || args.columns[i].altered & 8) {
           // col edit
@@ -1646,13 +1646,13 @@ class OracleClient extends KnexClient {
             args.table,
             args.columns[i],
             oldColumn,
-            upQuery
+            upQuery,
           );
           downQuery += alterTableChangeColumn(
             args.table,
             oldColumn,
             args.columns[i],
-            downQuery
+            downQuery,
           );
         } else if (args.columns[i].altered & 1) {
           // col addition
@@ -1660,12 +1660,12 @@ class OracleClient extends KnexClient {
             args.table,
             args.columns[i],
             oldColumn,
-            upQuery
+            upQuery,
           );
           downQuery += alterTableRemoveColumn(
             args.table,
             args.columns[i],
-            oldColumn
+            oldColumn,
             // downQuery
           );
         }
@@ -1745,7 +1745,7 @@ class OracleClient extends KnexClient {
     try {
       result.data = ';';
       const response = await this.sqlClient.raw(
-        `show create table ${args.tn};`
+        `show create table ${args.tn};`,
       );
       if (response.length === 2) {
         result.data = response[0][0]['Create Table'];

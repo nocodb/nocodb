@@ -1,4 +1,4 @@
-import knex from 'knex' //'./sql/CustomKnex';
+import knex from 'knex'; //'./sql/CustomKnex';
 
 export class DbFactory {
   static create(connectionConfig) {

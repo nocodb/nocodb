@@ -9,7 +9,9 @@ describe('DataAliasNestedController', () => {
       controllers: [DataAliasNestedController],
     }).compile();
 
-    controller = module.get<DataAliasNestedController>(DataAliasNestedController);
+    controller = module.get<DataAliasNestedController>(
+      DataAliasNestedController,
+    );
   });
 
   it('should be defined', () => {

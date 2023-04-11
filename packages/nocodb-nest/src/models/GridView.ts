@@ -27,7 +27,7 @@ export default class GridView implements GridType {
       viewId &&
       (await NocoCache.get(
         `${CacheScope.GRID_VIEW}:${viewId}`,
-        CacheGetType.TYPE_OBJECT
+        CacheGetType.TYPE_OBJECT,
       ));
     if (!view) {
       view = await ncMeta.metaGet2(null, null, MetaTable.GRID_VIEW, {
@@ -66,7 +66,7 @@ export default class GridView implements GridType {
   static async update(
     viewId: string,
     body: Partial<GridView>,
-    ncMeta = Noco.ncMeta
+    ncMeta = Noco.ncMeta,
   ) {
     // get existing cache
     const key = `${CacheScope.GRID_VIEW}:${viewId}`;

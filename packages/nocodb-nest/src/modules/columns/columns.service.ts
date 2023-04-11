@@ -25,7 +25,10 @@ import {
 } from '../../helpers';
 import { NcError } from '../../helpers/catchError';
 import getColumnPropsFromUIDT from '../../helpers/getColumnPropsFromUIDT';
-import { getUniqueColumnAliasName, getUniqueColumnName } from '../../helpers/getUniqueName';
+import {
+  getUniqueColumnAliasName,
+  getUniqueColumnName,
+} from '../../helpers/getUniqueName';
 import mapDefaultDisplayValue from '../../helpers/mapDefaultDisplayValue';
 import validateParams from '../../helpers/validateParams';
 import { MetaService } from '../../meta/meta.service';

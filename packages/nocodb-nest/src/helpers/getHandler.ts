@@ -3,7 +3,7 @@ import type express from 'express';
 
 export default function getHandler(
   defaultHandler: express.Handler,
-  eeHandler: express.Handler
+  eeHandler: express.Handler,
 ): express.Handler {
   return async (...args) => {
     if (Noco.isEE()) {
@@ -15,10 +15,10 @@ export default function getHandler(
 
 export function getConditionalHandler<
   T extends (...args: any[]) => any,
-  U extends (...args: any[]) => any
+  U extends (...args: any[]) => any,
 >(
   defaultHandler: T,
-  eeHandler: U
+  eeHandler: U,
 ): (
   ...args: Parameters<T> | Parameters<U>
 ) => Promise<ReturnType<T> | ReturnType<U>> {

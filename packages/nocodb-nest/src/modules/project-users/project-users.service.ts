@@ -295,8 +295,7 @@ export class ProjectUsersService {
   // todo: refactor the whole function
   async sendInviteEmail(email: string, token: string, req: any): Promise<any> {
     try {
-      const template = (await import('./ui/emailTemplates/invite'))
-        .default;
+      const template = (await import('./ui/emailTemplates/invite')).default;
 
       const emailAdapter = await NcPluginMgrv2.emailAdapter();
 

@@ -4,6 +4,6 @@ import { ModelVisibilitiesController } from './model-visibilities.controller';
 
 @Module({
   controllers: [ModelVisibilitiesController],
-  providers: [ModelVisibilitiesService]
+  providers: [ModelVisibilitiesService],
 })
 export class ModelVisibilitiesModule {}

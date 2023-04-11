@@ -9,7 +9,9 @@ describe('DataAliasExportController', () => {
       controllers: [DataAliasExportController],
     }).compile();
 
-    controller = module.get<DataAliasExportController>(DataAliasExportController);
+    controller = module.get<DataAliasExportController>(
+      DataAliasExportController,
+    );
   });
 
   it('should be defined', () => {

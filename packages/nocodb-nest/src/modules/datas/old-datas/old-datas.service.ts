@@ -75,6 +75,31 @@ export class OldDatasService {
     return await baseModel.insert(param.body, null, param);
   }
 
+  async dataRead(param: PathParams & { query: any; rowId: string }) {
+    const { model, view } = await this.getViewAndModelFromRequest(param);
+
+    const base = await Base.get(model.base_id);
+
+    const baseModel = await Model.getBaseModelSQL({
+      id: model.id,
+      viewId: view?.id,
+      dbDriver: await NcConnectionMgrv2.get(base),
+    });
+
+    const { ast } = await getAst({
+      query: param.query,
+      model,
+      view,
+    });
+
+    return await nocoExecute(
+      ast,
+      await baseModel.readByPk(param.params.rowId),
+      {},
+      {},
+    );
+  }
+
   async getViewAndModelFromRequest(req) {
     const project = await Project.getWithInfo(req.params.projectId);
     const model = await Model.getByAliasOrId({

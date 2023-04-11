@@ -30,7 +30,7 @@ import {
 } from '../../models';
 import NcConnectionMgrv2 from '../../utils/common/NcConnectionMgrv2';
 import { T } from 'nc-help';
-import { validatePayload } from 'src/helpers';
+import { validatePayload } from '../../helpers';
 
 @Injectable()
 export class TablesService {

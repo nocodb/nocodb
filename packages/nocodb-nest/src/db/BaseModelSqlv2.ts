@@ -39,12 +39,12 @@ import {
 import formulaQueryBuilderv2 from './formulav2/formulaQueryBuilderv2'
 import genRollupSelectv2 from './genRollupSelectv2'
 import { XcFilter, XcFilterWithAlias } from './sql-data-mapper/lib/BaseModel';
-import { sanitize, unsanitize } from 'src/helpers/sqlSanitize';
+import { sanitize, unsanitize } from '../helpers/sqlSanitize';
 import conditionV2 from './conditionV2';
 import sortV2 from './sortV2';
 import { customValidators } from './util/customValidators';
-import { COMPARISON_OPS, COMPARISON_SUB_OPS, IS_WITHIN_COMPARISON_SUB_OPS } from 'src/models/Filter'
-import formSubmissionEmailTemplate from 'src/utils/common/formSubmissionEmailTemplate';
+import { COMPARISON_OPS, COMPARISON_SUB_OPS, IS_WITHIN_COMPARISON_SUB_OPS } from '../models/Filter'
+import formSubmissionEmailTemplate from '../utils/common/formSubmissionEmailTemplate';
 
 export async function getViewAndModelByAliasOrId(param: {
   projectName: string;

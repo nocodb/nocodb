@@ -14,7 +14,7 @@ import {
   NotFound,
   NotImplemented,
   Unauthorized,
-} from 'src/helpers/catchError';
+} from '../../helpers/catchError';
 
 @Catch()
 export class GlobalExceptionFilter implements ExceptionFilter {

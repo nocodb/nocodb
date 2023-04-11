@@ -17,7 +17,7 @@ import { genJwt, randomTokenString, setTokenCookie } from './helpers';
 import { UsersService } from './users.service';
 
 import * as ejs from 'ejs';
-import { Audit, User } from 'src/models';
+import { Audit, User } from '../../models';
 import { AuthGuard } from '@nestjs/passport';
 @Controller()
 export class UsersController {

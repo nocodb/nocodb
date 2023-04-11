@@ -13,8 +13,8 @@ import {
 import { AuthGuard } from '@nestjs/passport';
 import isDocker from 'is-docker';
 import { ProjectReqType } from 'nocodb-sdk';
-import { PagedResponseImpl } from 'src/helpers/PagedResponse';
-import { ProjectType } from '../../../../nocodb-sdk';
+import { PagedResponseImpl } from '../../helpers/PagedResponse';
+import { ProjectType } from 'nocodb-sdk';
 import {
   ExtractProjectIdMiddleware,
   UseAclMiddleware,

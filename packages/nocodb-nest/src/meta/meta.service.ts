@@ -5,10 +5,9 @@ import XcMigrationSource from './migrations/XcMigrationSource';
 import XcMigrationSourcev2 from './migrations/XcMigrationSourcev2';
 import { Connection } from '../connection/connection';
 import { customAlphabet } from 'nanoid';
-import Noco from 'src/Noco';
+import Noco from '../Noco';
 import CryptoJS from 'crypto-js';
-import { XKnex } from 'src/db/CustomKnex';
-import NocoCache from 'src/cache/NocoCache';
+import NocoCache from '../cache/NocoCache';
 
 const nanoid = customAlphabet('1234567890abcdefghijklmnopqrstuvwxyz_', 4);
 

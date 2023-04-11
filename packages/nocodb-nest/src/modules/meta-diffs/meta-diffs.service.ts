@@ -6,7 +6,7 @@ import {
   Project,
   LinkToAnotherRecordColumn,
   Base,
-} from 'src/models';
+} from '../../models';
 import ModelXcMetaFactory from '../../db/sql-mgr/code/models/xc/ModelXcMetaFactory';
 import getColumnUiType from '../../helpers/getColumnUiType';
 import getTableNameAlias, {

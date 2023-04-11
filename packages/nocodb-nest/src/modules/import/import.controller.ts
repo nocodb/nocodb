@@ -5,7 +5,7 @@ import { SyncSource } from '../../models';
 import { AirtableSyncConfig } from '../sync/helpers/job';
 import { ImportService } from './import.service';
 import { Router } from 'express';
-import NocoJobs from 'src/jobs/NocoJobs';
+import NocoJobs from '../../jobs/NocoJobs';
 
 import { Inject, forwardRef } from '@nestjs/common';
 import { ModuleRef } from '@nestjs/core';

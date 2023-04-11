@@ -12,7 +12,7 @@ import {
 } from '@nestjs/common';
 import { AuthGuard } from '@nestjs/passport';
 import { TableReqType } from 'nocodb-sdk';
-import extractRolesObj from 'src/utils/extractRolesObj';
+import extractRolesObj from '../../utils/extractRolesObj';
 import { PagedResponseImpl } from '../../helpers/PagedResponse';
 import {
   ExtractProjectIdMiddleware,

@@ -42,7 +42,7 @@ function toArrayOfConditions(str) {
   if (openIndex === -1) {
     if (str && str != '~not')
       nestedArrayConditions = str.split(
-        /(?=~(?:or(?:not)?|and(?:not)?|not)\()/
+        /(?=~(?:or(?:not)?|and(?:not)?|not)\()/,
       );
     return nestedArrayConditions || [];
   }
@@ -60,7 +60,7 @@ function toArrayOfConditions(str) {
     throw new Error(
       `${str
         .substring(0, openIndex + 1)
-        .slice(-10)} : Closing bracket not found`
+        .slice(-10)} : Closing bracket not found`,
     );
 
   // getting operand starting index
@@ -77,11 +77,11 @@ function toArrayOfConditions(str) {
     {
       operator,
       conditions: toArrayOfConditions(
-        str.substring(openIndex + 1, closingIndex + 1)
+        str.substring(openIndex + 1, closingIndex + 1),
       ),
     },
     // RHS of nested query(recursion)
-    ...toArrayOfConditions(str.substring(closingIndex + 2))
+    ...toArrayOfConditions(str.substring(closingIndex + 2)),
   );
   return nestedArrayConditions;
 }
@@ -92,7 +92,7 @@ const appendWhereCondition = function (
     [columnAlias: string]: string;
   },
   knexRef,
-  isHaving = false
+  isHaving = false,
 ) {
   const clientType = knexRef?.client?.config?.client;
   const opMapping = {
@@ -142,7 +142,7 @@ const appendWhereCondition = function (
       }
     } else if (typeof condition === 'string') {
       const matches: any[] = condition.match(
-        /^(?:~(\w+))?\(([\w ]+),(\w+),(.*?)\)(?:~(?:or|and|not))?$/
+        /^(?:~(\w+))?\(([\w ]+),(\w+),(.*?)\)(?:~(?:or|and|not))?$/,
       );
 
       if (!matches) throw new Error(`${condition} : not a valid syntax`);
@@ -153,40 +153,40 @@ const appendWhereCondition = function (
               knexRef[`or${camKey}`]((builder) =>
                 builder[`${key}In`](
                   columnAliases[matches[2]] || matches[2],
-                  matches[4].split(',')
-                )
+                  matches[4].split(','),
+                ),
               );
               break;
             case 'and':
               knexRef[`${key}In`](
                 columnAliases[matches[2]] || matches[2],
-                matches[4].split(',')
+                matches[4].split(','),
               );
               break;
             case 'andnot':
               knexRef[`${key}NotIn`](
                 columnAliases[matches[2]] || matches[2],
-                matches[4].split(',')
+                matches[4].split(','),
               );
               break;
             case 'ornot':
               knexRef[`or${camKey}`]((builder) =>
                 builder[`${key}NotIn`](
                   columnAliases[matches[2]] || matches[2],
-                  matches[4].split(',')
-                )
+                  matches[4].split(','),
+                ),
               );
               break;
             case 'not':
               knexRef[`${key}NotIn`](
                 columnAliases[matches[2]] || matches[2],
-                matches[4].split(',')
+                matches[4].split(','),
               );
               break;
             case '':
               knexRef[`${key}In`](
                 columnAliases[matches[2]] || matches[2],
-                matches[4].split(',')
+                matches[4].split(','),
               );
               break;
             default:
@@ -197,12 +197,12 @@ const appendWhereCondition = function (
         case 'is':
           if (matches[4] != 'null')
             throw new Error(
-              `${matches[4]} : not a valid value since 'is' & 'isnot' only supports value null`
+              `${matches[4]} : not a valid value since 'is' & 'isnot' only supports value null`,
             );
           switch (matches[1] || '') {
             case 'or':
               knexRef[`or${camKey}`]((builder) =>
-                builder[`${key}Null`](columnAliases[matches[2]] || matches[2])
+                builder[`${key}Null`](columnAliases[matches[2]] || matches[2]),
               );
               break;
             case 'and':
@@ -214,8 +214,8 @@ const appendWhereCondition = function (
             case 'ornot':
               knexRef[`or${camKey}`]((builder) =>
                 builder[`${key}NotNull`](
-                  columnAliases[matches[2]] || matches[2]
-                )
+                  columnAliases[matches[2]] || matches[2],
+                ),
               );
               break;
             case 'not':
@@ -232,14 +232,14 @@ const appendWhereCondition = function (
         case 'isnot':
           if (matches[4] != 'null')
             throw new Error(
-              `${matches[4]} : not a valid value since 'is' & 'isnot' only supports value null`
+              `${matches[4]} : not a valid value since 'is' & 'isnot' only supports value null`,
             );
           switch (matches[1] || '') {
             case 'or':
               knexRef[`or${camKey}`]((builder) =>
                 builder[`${key}NotNull`](
-                  columnAliases[matches[2]] || matches[2]
-                )
+                  columnAliases[matches[2]] || matches[2],
+                ),
               );
               break;
             case 'and':
@@ -251,8 +251,8 @@ const appendWhereCondition = function (
             case 'ornot':
               knexRef[`or${camKey}`]((builder) =>
                 builder[`${key}NotNull`](
-                  columnAliases[matches[2]] || matches[2]
-                )
+                  columnAliases[matches[2]] || matches[2],
+                ),
               );
               break;
             case 'not':
@@ -275,47 +275,47 @@ const appendWhereCondition = function (
                   range.length > 2
                     ? ' Between accepts only 2 values'
                     : ' Between requires 2 values'
-                }`
+                }`,
               );
             switch (matches[1] || '') {
               case 'or':
                 knexRef[`or${camKey}`]((builder) =>
                   builder[`${key}Between`](
                     columnAliases[matches[2]] || matches[2],
-                    range
-                  )
+                    range,
+                  ),
                 );
                 break;
               case 'and':
                 knexRef[`${key}Between`](
                   columnAliases[matches[2]] || matches[2],
-                  range
+                  range,
                 );
                 break;
               case 'andnot':
                 knexRef[`${key}NotBetween`](
                   columnAliases[matches[2]] || matches[2],
-                  range
+                  range,
                 );
                 break;
               case 'ornot':
                 knexRef[`or${camKey}`]((builder) =>
                   builder[`${key}NotBetween`](
                     columnAliases[matches[2]] || matches[2],
-                    range
-                  )
+                    range,
+                  ),
                 );
                 break;
               case 'not':
                 knexRef[`${key}NotBetween`](
                   columnAliases[matches[2]] || matches[2],
-                  range
+                  range,
                 );
                 break;
               case '':
                 knexRef[`${key}Between`](
                   columnAliases[matches[2]] || matches[2],
-                  range
+                  range,
                 );
                 break;
               default:
@@ -333,54 +333,54 @@ const appendWhereCondition = function (
                   range.length > 2
                     ? ' Between accepts only 2 values'
                     : ' Between requires 2 values'
-                }`
+                }`,
               );
             switch (matches[1] || '') {
               case 'or':
                 knexRef[`or${camKey}`]((builder) =>
                   builder[`${key}NotBetween`](
                     columnAliases[matches[2]] || matches[2],
-                    range
-                  )
+                    range,
+                  ),
                 );
                 break;
               case 'and':
                 knexRef[`${key}NotBetween`](
                   columnAliases[matches[2]] || matches[2],
-                  range
+                  range,
                 );
                 break;
               case 'andnot':
                 knexRef[`${key}Between`](
                   columnAliases[matches[2]] || matches[2],
-                  range
+                  range,
                 );
                 break;
               case 'ornot':
                 knexRef[`or${camKey}`]((builder) =>
                   builder[`${key}Between`](
                     columnAliases[matches[2]] || matches[2],
-                    range
-                  )
+                    range,
+                  ),
                 );
                 break;
               case 'not':
                 knexRef[`${key}Between`](
                   columnAliases[matches[2]] || matches[2],
-                  range
+                  range,
                 );
                 break;
               case '':
                 knexRef[`${key}NotBetween`](
                   columnAliases[matches[2]] || matches[2],
-                  range
+                  range,
                 );
                 break;
               default:
                 throw new Error(
                   `${
                     columnAliases[matches[2]] || matches[2]
-                  } : Invalid operation.`
+                  } : Invalid operation.`,
                 );
                 break;
             }
@@ -402,35 +402,35 @@ const appendWhereCondition = function (
               knexRef[`or${camKey}`](
                 columnAliases[matches[2]] || matches[2],
                 opMapping[matches[3]],
-                matches[4]
+                matches[4],
               );
               break;
             case 'and':
               knexRef[`and${camKey}`](
                 columnAliases[matches[2]] || matches[2],
                 opMapping[matches[3]],
-                matches[4]
+                matches[4],
               );
               break;
             case 'andnot':
               knexRef[`and${camKey}Not`](
                 columnAliases[matches[2]] || matches[2],
                 opMapping[matches[3]],
-                matches[4]
+                matches[4],
               );
               break;
             case 'ornot':
               knexRef[`or${camKey}Not`](
                 columnAliases[matches[2]] || matches[2],
                 opMapping[matches[3]],
-                matches[4]
+                matches[4],
               );
               break;
             case 'not':
               knexRef[`${key}Not`](
                 columnAliases[matches[2]] || matches[2],
                 opMapping[matches[3]],
-                matches[4]
+                matches[4],
               );
               break;
             case '':
@@ -443,7 +443,7 @@ const appendWhereCondition = function (
                   knexRef[`${key}`](
                     knexRef?.client.raw(`??::TEXT ${operator} '${target}'`, [
                       column,
-                    ])
+                    ]),
                   );
                 } else {
                   knexRef[`${key}`](column, operator, target);
@@ -463,6 +463,25 @@ const appendWhereCondition = function (
 
   return knexRef;
 };
+type XcConditionObjVal = {
+  [key in 'eq' | 'neq' | 'lt' | 'gt' | 'ge' | 'le' | 'like' | 'nlike']:
+    | string
+    | number
+    | any;
+};
+
+interface XcXonditionObj {
+  _or: XcXonditionObj[];
+  _and: XcXonditionObj[];
+  _not: XcXonditionObj;
+
+  [key: string]:
+    | XcXonditionObj
+    | XcXonditionObj[]
+    | XcConditionObjVal
+    | XcConditionObjVal[];
+}
+
 
 declare module 'knex' {
   namespace Knex {
@@ -470,46 +489,27 @@ declare module 'knex' {
       clientType(): string;
     }
 
-    export type XcConditionObjVal = {
-      [key in 'eq' | 'neq' | 'lt' | 'gt' | 'ge' | 'le' | 'like' | 'nlike']:
-        | string
-        | number
-        | any;
-    };
-
-    export interface XcXonditionObj {
-      _or: XcXonditionObj[];
-      _and: XcXonditionObj[];
-      _not: XcXonditionObj;
-
-      [key: string]:
-        | XcXonditionObj
-        | XcXonditionObj[]
-        | XcConditionObjVal
-        | XcConditionObjVal[];
-    }
-
     interface QueryBuilder {
       xwhere<TRecord, TResult>(
         value: string,
         columnAliases?: {
           [columnAlias: string]: string;
-        }
+        },
       ): Knex.QueryBuilder<TRecord, TResult>;
 
       condition<TRecord, TResult>(
         conditionObj: XcXonditionObj,
         columnAliases?: {
           [columnAlias: string]: string;
-        }
+        },
       ): Knex.QueryBuilder<TRecord, TResult>;
 
       conditionv2<TRecord, TResult>(
-        conditionObj: Filter
+        conditionObj: Filter,
       ): Knex.QueryBuilder<TRecord, TResult>;
 
       concat<TRecord, TResult>(
-        cn: string | any
+        cn: string | any,
       ): Knex.QueryBuilder<TRecord, TResult>;
 
       conditionGraph<TRecord, TResult>(condition: {
@@ -521,7 +521,7 @@ declare module 'knex' {
         value: string,
         columnAliases?: {
           [columnAlias: string]: string;
-        }
+        },
       ): Knex.QueryBuilder<TRecord, TResult>;
     }
   }
@@ -536,11 +536,11 @@ knex.QueryBuilder.extend(
     conditionString,
     columnAliases?: {
       [columnAlias: string]: string | any;
-    }
+    },
   ) {
     const conditions = toArrayOfConditions(conditionString);
     return appendWhereCondition(conditions, columnAliases || {}, this);
-  }
+  },
 );
 /**
  * Append concat to knex query builder
@@ -549,7 +549,7 @@ knex.QueryBuilder.extend('concat', function (cn: any) {
   switch (this?.client?.config?.client) {
     case 'pg':
       this.select(
-        this.client.raw(`STRING_AGG(??::character varying , ',')`, [cn])
+        this.client.raw(`STRING_AGG(??::character varying , ',')`, [cn]),
       );
       break;
     case 'mysql':
@@ -575,11 +575,11 @@ knex.QueryBuilder.extend(
     conditionString,
     columnAliases?: {
       [columnAlias: string]: string;
-    }
+    },
   ) {
     const conditions = toArrayOfConditions(conditionString);
     return appendWhereCondition(conditions, columnAliases || {}, this, true);
-  }
+  },
 );
 
 /**
@@ -683,11 +683,11 @@ knex.QueryBuilder.extend(
     const qb = parseNestedConditionAndJoin.call(
       { models },
       conditionCopy,
-      this
+      this,
     );
     // parse and define all where conditions
     return parseNestedCondition.call({ models }, conditionCopy, qb);
-  }
+  },
 );
 
 // @ts-ignore
@@ -712,7 +712,7 @@ function parseNestedConditionAndJoin(obj, qb, pKey?, table?, tableAlias?) {
           const relation = this?.models?.[
             table || qb._single.table
           ]?.hasManyRelations?.find(
-            ({ tn }) => pKey.toLowerCase() === tn.toLowerCase()
+            ({ tn }) => pKey.toLowerCase() === tn.toLowerCase(),
           );
 
           // if (model) {
@@ -732,7 +732,7 @@ function parseNestedConditionAndJoin(obj, qb, pKey?, table?, tableAlias?) {
               `${relation.tn} as ${obj.relationType._tn}`,
               `${obj.relationType._tn}.${relation.cn}`,
               '=',
-              `${tableAlias}.${relation.rcn}`
+              `${tableAlias}.${relation.rcn}`,
             );
             // delete obj.relationType;
             // return parseNestedConditionAndJoin.call(this, Object.entries(obj).find(([k]) => k !== 'relationType')?.[1], qb, Object.keys(obj).find(k => k !== 'relationType'), relation.tn)
@@ -749,7 +749,7 @@ function parseNestedConditionAndJoin(obj, qb, pKey?, table?, tableAlias?) {
           const relation = this?.models?.[
             table || qb._single.table
           ]?.belongsToRelations?.find(
-            ({ rtn }) => pKey.toLowerCase() === rtn.toLowerCase()
+            ({ rtn }) => pKey.toLowerCase() === rtn.toLowerCase(),
           );
 
           // if (model) {
@@ -765,7 +765,7 @@ function parseNestedConditionAndJoin(obj, qb, pKey?, table?, tableAlias?) {
               `${relation.rtn} as ${obj.relationType._tn}`,
               `${tableAlias}.${relation.cn}`,
               '=',
-              `${obj.relationType._tn}.${relation.rcn}`
+              `${obj.relationType._tn}.${relation.rcn}`,
             );
             // delete obj.relationType;
             // return parseNestedConditionAndJoin.call(self, Object.entries(obj).find(([k]) => k !== 'relationType')?.[1], qb, Object.keys(obj).find(k => k !== 'relationType'), relation.rtn)
@@ -792,7 +792,7 @@ function parseNestedConditionAndJoin(obj, qb, pKey?, table?, tableAlias?) {
             qb,
             null,
             tn,
-            tableAlias
+            tableAlias,
           );
         }
         break;
@@ -803,7 +803,7 @@ function parseNestedConditionAndJoin(obj, qb, pKey?, table?, tableAlias?) {
           qb,
           null,
           tn,
-          tableAlias
+          tableAlias,
         );
         break;
       default:
@@ -814,7 +814,7 @@ function parseNestedConditionAndJoin(obj, qb, pKey?, table?, tableAlias?) {
             qb,
             key,
             tn,
-            tableAlias
+            tableAlias,
           );
         }
     }
@@ -845,7 +845,7 @@ function parseNestedCondition(obj, qb, pKey?, table?, tableAlias?) {
           const relation = this?.models?.[
             table || qb._single.table
           ]?.hasManyRelations?.find(
-            ({ tn }) => pKey.toLowerCase() === tn.toLowerCase()
+            ({ tn }) => pKey.toLowerCase() === tn.toLowerCase(),
           );
 
           // if (model) {
@@ -868,7 +868,7 @@ function parseNestedCondition(obj, qb, pKey?, table?, tableAlias?) {
           const relation = this?.models?.[
             table || qb._single.table
           ]?.belongsToRelations?.find(
-            ({ rtn }) => pKey.toLowerCase() === rtn.toLowerCase()
+            ({ rtn }) => pKey.toLowerCase() === rtn.toLowerCase(),
           );
 
           // if (model) {
@@ -908,7 +908,7 @@ function parseNestedCondition(obj, qb, pKey?, table?, tableAlias?) {
                 this,
                 null,
                 tn,
-                tableAlias
+                tableAlias,
               );
             });
           }
@@ -924,7 +924,7 @@ function parseNestedCondition(obj, qb, pKey?, table?, tableAlias?) {
                 this,
                 null,
                 tn,
-                tableAlias
+                tableAlias,
               );
             });
           }
@@ -938,7 +938,7 @@ function parseNestedCondition(obj, qb, pKey?, table?, tableAlias?) {
             this,
             null,
             tn,
-            tableAlias
+            tableAlias,
           );
         });
         break;
@@ -1067,7 +1067,7 @@ knex.QueryBuilder.extend(
     // const qb = parseNestedConditionAndJoin.call({ models }, conditionCopy, this);
     // parse and define all where conditions
     return parseNestedConditionv2.call({ models }, conditionCopy);
-  }
+  },
 );
 
 function parseNestedConditionv2(obj, qb, pKey?, table?, tableAlias?) {
@@ -1093,7 +1093,7 @@ function parseNestedConditionv2(obj, qb, pKey?, table?, tableAlias?) {
           const relation = this?.models?.[
             table || qb._single.table
           ]?.hasManyRelations?.find(
-            ({ tn }) => pKey.toLowerCase() === tn.toLowerCase()
+            ({ tn }) => pKey.toLowerCase() === tn.toLowerCase(),
           );
 
           // if (model) {
@@ -1116,7 +1116,7 @@ function parseNestedConditionv2(obj, qb, pKey?, table?, tableAlias?) {
           const relation = this?.models?.[
             table || qb._single.table
           ]?.belongsToRelations?.find(
-            ({ rtn }) => pKey.toLowerCase() === rtn.toLowerCase()
+            ({ rtn }) => pKey.toLowerCase() === rtn.toLowerCase(),
           );
 
           // if (model) {
@@ -1156,7 +1156,7 @@ function parseNestedConditionv2(obj, qb, pKey?, table?, tableAlias?) {
                 this,
                 null,
                 tn,
-                tableAlias
+                tableAlias,
               );
             });
           }
@@ -1172,7 +1172,7 @@ function parseNestedConditionv2(obj, qb, pKey?, table?, tableAlias?) {
                 this,
                 null,
                 tn,
-                tableAlias
+                tableAlias,
               );
             });
           }
@@ -1186,7 +1186,7 @@ function parseNestedConditionv2(obj, qb, pKey?, table?, tableAlias?) {
             this,
             null,
             tn,
-            tableAlias
+            tableAlias,
           );
         });
         break;
@@ -1314,4 +1314,4 @@ const parseConditionv2 = (_obj: Filter | FilterType, qb: Knex.QueryBuilder) => {
 };
 
 export default CustomKnex;
-export { Knex, CustomKnex as XKnex, };
+export { Knex, CustomKnex as XKnex };

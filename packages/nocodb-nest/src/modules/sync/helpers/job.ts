@@ -42,7 +42,7 @@ import FetchAT from './fetchAT';
 import { importData, importLTARData } from './readAndProcessData';
 import EntityMap from './EntityMap';
 import type { UserType } from 'nocodb-sdk';
-import { FormsService } from 'src/modules/forms/forms.service';
+import { FormsService } from '../../../modules/forms/forms.service';
 
 const writeJsonFileAsync = promisify(jsonfile.writeFile);
 

@@ -9,7 +9,7 @@ import {
   LinkToAnotherRecordColumn,
   Model,
   View,
-} from 'src/models';
+} from '../../models';
 
 import { NcError } from '../../helpers/catchError';
 import getAst from '../../helpers/getAst';

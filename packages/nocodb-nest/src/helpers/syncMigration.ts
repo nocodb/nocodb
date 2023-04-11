@@ -1,4 +1,4 @@
-import KnexMigratorv2 from 'src/db/sql-migrator/lib/KnexMigratorv2';
+import KnexMigratorv2 from '../db/sql-migrator/lib/KnexMigratorv2';
 import { Base, Project } from '../models';
 
 export default async function syncMigration(project: Project): Promise<void> {

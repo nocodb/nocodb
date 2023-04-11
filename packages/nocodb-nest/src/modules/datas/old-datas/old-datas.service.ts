@@ -1,16 +1,8 @@
 import { Injectable } from '@nestjs/common';
-import { getViewAndModelByAliasOrId, OldPathParams } from '../helpers';
+import { OldPathParams } from '../helpers';
 import getAst from '../../../helpers/getAst';
 import { NcError } from '../../../helpers/catchError';
-import {
-  Base,
-  Column,
-  LinkToAnotherRecordColumn,
-  LookupColumn,
-  Model,
-  Project,
-  View,
-} from '../../../models';
+import { Base, Model, Project, View } from '../../../models';
 import NcConnectionMgrv2 from '../../../utils/common/NcConnectionMgrv2';
 import { nocoExecute } from 'nc-help';
 

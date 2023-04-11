@@ -100,7 +100,9 @@ export class OldDatasService {
     );
   }
 
-  async dataUpdate(param: OldPathParams & { body: unknown; rowId: string }) {
+  async dataUpdate(
+    param: OldPathParams & { body: unknown; cookie: any; rowId: string },
+  ) {
     const { model, view } = await this.getViewAndModelFromRequest(param);
     const base = await Base.get(model.base_id);
 
@@ -110,7 +112,12 @@ export class OldDatasService {
       dbDriver: await NcConnectionMgrv2.get(base),
     });
 
-    return await baseModel.updateByPk(param.rowId, param.body, null, param);
+    return await baseModel.updateByPk(
+      param.rowId,
+      param.body,
+      null,
+      param.cookie,
+    );
   }
 
   async dataDelete(param: OldPathParams & { rowId: string; cookie: any }) {

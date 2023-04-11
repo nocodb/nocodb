@@ -109,7 +109,8 @@ export class OldDatasController {
         projectId: projectId,
         tableName: tableName,
         body: req.body,
-        rowId,
+        cookie: req,
+        rowId: rowId,
       }),
     );
   }

@@ -160,9 +160,7 @@ export default class Model implements TableType {
     },
     ncMeta = Noco.ncMeta
   ): Promise<Model[]> {
-    const cachedList = await NocoCache.getList(CacheScope.MODEL, [
-      project_id,
-    ]);
+    const cachedList = await NocoCache.getList(CacheScope.MODEL, [project_id]);
     let { list: modelList } = cachedList;
 
     if (!modelList.length) {

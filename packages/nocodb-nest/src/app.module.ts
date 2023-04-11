@@ -27,6 +27,7 @@ import type {
 import { WorkspacesModule } from './modules/workspaces/workspaces.module';
 import { WorkspaceUsersModule } from './modules/workspace-users/workspace-users.module';
 import { DocsModule } from './modules/docs/docs.module';
+import { PublicDocsModule } from './modules/public-docs/public-docs.module';
 @Module({
   imports: [
     ServeStaticModule.forRoot({
@@ -41,6 +42,7 @@ import { DocsModule } from './modules/docs/docs.module';
     WorkspacesModule,
     WorkspaceUsersModule,
     DocsModule,
+    PublicDocsModule,
   ],
   controllers: [],
   providers: [

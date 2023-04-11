@@ -159,7 +159,7 @@ onBeforeMount(async () => {
         <a-layout-footer class="!bg-white text-center">
           <a-pagination
             v-model:current="currentPage"
-            :page-size="currentLimit"
+            v-model:page-size="currentLimit"
             :total="totalRows"
             show-less-items
             @change="loadHookLogs"

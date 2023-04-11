@@ -656,7 +656,7 @@ async function _formulaQueryBuilder(
     } else if (pt.type === 'Identifier') {
       const { builder } = await aliasToColumn?.[pt.name]?.();
       if (typeof builder === 'function') {
-        return { builder: knex.raw(`??${colAlias}`, await builder(pt.fnName)) };
+        return { builder: knex.raw(`??${colAlias}`, builder(pt.fnName)) };
       }
       return { builder: knex.raw(`??${colAlias}`, [builder || pt.name]) };
     } else if (pt.type === 'BinaryExpression') {

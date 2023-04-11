@@ -122,13 +122,13 @@ const selectedTitles = computed(() =>
     ? typeof modelValue === 'string'
       ? isMysql(column.value.base_id)
         ? modelValue.split(',').sort((a, b) => {
-          const opa = options.value.find((el) => el.title === a)
-          const opb = options.value.find((el) => el.title === b)
-          if (opa && opb) {
-            return opa.order! - opb.order!
-          }
-          return 0
-        })
+            const opa = options.value.find((el) => el.title === a)
+            const opb = options.value.find((el) => el.title === b)
+            if (opa && opb) {
+              return opa.order! - opb.order!
+            }
+            return 0
+          })
         : modelValue.split(',')
       : modelValue
     : [],
@@ -243,7 +243,7 @@ async function addIfMissingAndSave() {
 
         // Mysql escapes single quotes with backslash so we keep quotes but others have to unescaped
         if (!isMysql(column.value.base_id)) {
-          updatedColMeta.cdf = updatedColMeta.cdf.replace(/''/g, '\'')
+          updatedColMeta.cdf = updatedColMeta.cdf.replace(/''/g, "'")
         }
       }
 

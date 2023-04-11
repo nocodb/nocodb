@@ -8,7 +8,6 @@ import {
   enumColor,
   extractPkFromRow,
   extractSdkResponseErrorMsg,
-  getHTMLEncodedText,
   inject,
   message,
   parseProp,
@@ -401,14 +400,6 @@ const [useProvideKanbanViewStore, useKanbanViewStore] = useInjectionState(
           //   query: { ignoreWebhook: !saved }
           // }
         )
-        // audit
-        $api.utils.auditRowUpdate(id, {
-          fk_model_id: meta.value?.id as string,
-          column_name: property,
-          row_id: id,
-          value: getHTMLEncodedText(toUpdate.row[property]),
-          prev_value: getHTMLEncodedText(toUpdate.oldRow[property]),
-        })
 
         if (!undo) {
           const oldRowIndex = moveHistory.value.find((ele) => ele.op === 'removed' && ele.pk === id)

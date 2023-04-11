@@ -28,7 +28,8 @@ Some types of notifications can be triggered by a webhook after a particular eve
   - Webhook Conditional Trigger
     - Only records meeting the criteria will trigger webhook   
   
-![Screenshot 2022-09-14 at 10 35 39 AM](https://user-images.githubusercontent.com/86527202/190064668-37245025-81f6-491c-b639-83c8fd131bc3.png)
+<!-- ![Screenshot 2022-09-14 at 10 35 39 AM](https://user-images.githubusercontent.com/86527202/190064668-37245025-81f6-491c-b639-83c8fd131bc3.png) -->
+![Screenshot 2023-04-06 at 11 39 49 AM](https://user-images.githubusercontent.com/86527202/230288581-c613e591-1c32-4151-a2d1-df2bbf1367fd.png)
 
 
 <!-- ![image](https://user-images.githubusercontent.com/35857179/166660248-a3c81a34-4334-48c2-846a-65759d761559.png) -->

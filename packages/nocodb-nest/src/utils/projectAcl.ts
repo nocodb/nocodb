@@ -382,6 +382,20 @@ export default {
       genericGPT: true,
       commandPalette: true,
       runSelectQuery: true,
+
+      // Docs
+      pageGet: true,
+      pageList: true,
+      pageSearch: true,
+      pageParents: true,
+      pageCreate: true,
+      pageUpdate: true,
+      pageDelete: true,
+      pageMagicExpand: true,
+      pageMagicOutline: true,
+      pagePaginate: true,
+      pageMagicCreate: true,
+      pageDirectoryImport: true,
     },
   },
 

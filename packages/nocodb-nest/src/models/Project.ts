@@ -23,6 +23,7 @@ export default class Project implements ProjectType {
   public order: number;
   public is_meta = false;
   public bases?: Base[];
+  public type: string;
   public fk_workspace_id?: string;
 
   // shared base props
@@ -44,6 +45,7 @@ export default class Project implements ProjectType {
       'prefix',
       'description',
       'is_meta',
+      'type',
       'fk_workspace_id',
       'meta',
       'color',
@@ -106,7 +108,9 @@ export default class Project implements ProjectType {
     projectList = projectList.filter(
       (p) => p.deleted === 0 || p.deleted === false || p.deleted === null,
     );
-    return projectList.map((m) => new Project(m));
+    return projectList
+      .map((m) => new Project(m))
+      .filter((p) => !param?.type || p.type === param.type);
   }
 
   // @ts-ignore

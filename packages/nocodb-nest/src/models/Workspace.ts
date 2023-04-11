@@ -2,7 +2,7 @@ import { extractProps } from '../helpers/extractProps';
 import Noco from '../Noco';
 import { MetaTable } from '../utils/globals';
 
-// import Page from './Page';
+import Page from './Page';
 import type { WorkspaceType } from 'nocodb-sdk';
 
 export default class Workspace implements WorkspaceType {
@@ -87,9 +87,9 @@ export default class Workspace implements WorkspaceType {
       insertObject,
     );
 
-    // await Page.createPageTable({
-    //   workspaceId: id,
-    // } as any);
+    await Page.createPageTable({
+      workspaceId: id,
+    } as any);
 
     return this.get(id);
   }

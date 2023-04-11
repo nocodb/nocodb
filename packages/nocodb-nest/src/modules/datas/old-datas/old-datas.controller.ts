@@ -15,7 +15,6 @@ import {
   ExtractProjectIdMiddleware,
 } from '../../../middlewares/extract-project-id/extract-project-id.middleware';
 import { AuthGuard } from '@nestjs/passport';
-import { Project } from 'src/models';
 import { OldDatasService } from './old-datas.service';
 
 @Controller()

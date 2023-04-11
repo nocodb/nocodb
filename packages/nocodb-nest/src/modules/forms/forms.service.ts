@@ -1,9 +1,10 @@
 import { Injectable } from '@nestjs/common';
 
 import { T } from 'nc-help';
-import { FormUpdateReqType, ViewCreateReqType, ViewTypes } from 'nocodb-sdk';
+import { ViewTypes } from 'nocodb-sdk';
 import { validatePayload } from '../../helpers';
 import { FormView, View } from '../../models';
+import type { FormUpdateReqType, ViewCreateReqType } from 'nocodb-sdk';
 
 @Injectable()
 export class FormsService {

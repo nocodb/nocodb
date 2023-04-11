@@ -1,10 +1,9 @@
 import { Injectable } from '@nestjs/common';
 import { T } from 'nc-help';
+import { v4 as uuidv4 } from 'uuid';
 import { validatePayload } from '../../helpers';
 import { NcError } from '../../helpers/catchError';
 import { Project } from '../../models';
-
-import { v4 as uuidv4 } from 'uuid';
 
 // todo: load from config
 const config = {

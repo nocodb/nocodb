@@ -1,14 +1,10 @@
 import { Injectable } from '@nestjs/common';
 import DOMPurify from 'isomorphic-dompurify';
-import {
-  AuditOperationSubTypes,
-  AuditOperationTypes,
-  AuditRowUpdateReqType,
-  CommentUpdateReqType,
-} from 'nocodb-sdk';
+import { AuditOperationSubTypes, AuditOperationTypes } from 'nocodb-sdk';
 import { validatePayload } from '../../helpers';
 import { NcError } from '../../helpers/catchError';
 import { Audit, Model } from '../../models';
+import type { AuditRowUpdateReqType, CommentUpdateReqType } from 'nocodb-sdk';
 
 @Injectable()
 export class AuditsService {

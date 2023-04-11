@@ -1,5 +1,5 @@
 import { Injectable } from '@nestjs/common';
-import { HookReqType, HookTestReqType, HookType } from 'nocodb-sdk';
+import { T } from 'nc-help';
 import { validatePayload } from '../../helpers';
 import { NcError } from '../../helpers/catchError';
 import {
@@ -8,7 +8,7 @@ import {
 } from '../../helpers/populateSamplePayload';
 import { invokeWebhook } from '../../helpers/webhookHelpers';
 import { Hook, HookLog, Model } from '../../models';
-import { T } from 'nc-help';
+import type { HookReqType, HookTestReqType, HookType } from 'nocodb-sdk';
 
 @Injectable()
 export class HooksService {

@@ -1,16 +1,15 @@
+import {
+  Body,
+  Controller,
+  Get,
+  Post,
+  Request,
+  UseGuards,
+} from '@nestjs/common';
+import { AuthGuard } from '@nestjs/passport';
 import { ExtractProjectIdMiddleware } from '../../middlewares/extract-project-id/extract-project-id.middleware';
 import extractRolesObj from '../../utils/extractRolesObj';
 import { AuthService } from './auth.service';
-
-import {
-  Controller,
-  Request,
-  Post,
-  UseGuards,
-  Body,
-  Get,
-} from '@nestjs/common';
-import { AuthGuard } from '@nestjs/passport';
 
 export class CreateUserDto {
   readonly username: string;

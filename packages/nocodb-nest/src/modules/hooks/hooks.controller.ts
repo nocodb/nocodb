@@ -1,22 +1,23 @@
 import {
   Body,
   Controller,
-  Request,
   Delete,
   Get,
   Param,
   Patch,
   Post,
+  Request,
   UseGuards,
 } from '@nestjs/common';
-import { HookReqType, HookTestReqType, HookType } from 'nocodb-sdk';
+import { HookReqType, HookTestReqType } from 'nocodb-sdk';
+import { AuthGuard } from '@nestjs/passport';
 import { PagedResponseImpl } from '../../helpers/PagedResponse';
 import {
   Acl,
   ExtractProjectIdMiddleware,
 } from '../../middlewares/extract-project-id/extract-project-id.middleware';
 import { HooksService } from './hooks.service';
-import { AuthGuard } from '@nestjs/passport';
+import type { HookType } from 'nocodb-sdk';
 
 @Controller()
 @UseGuards(ExtractProjectIdMiddleware, AuthGuard('jwt'))

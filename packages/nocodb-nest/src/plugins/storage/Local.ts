@@ -3,8 +3,8 @@ import path from 'path';
 import { promisify } from 'util';
 import mkdirp from 'mkdirp';
 import axios from 'axios';
-import type { IStorageAdapterV2, XcFile } from 'nc-plugin';
 import NcConfigFactory from '../../utils/NcConfigFactory';
+import type { IStorageAdapterV2, XcFile } from 'nc-plugin';
 
 export default class Local implements IStorageAdapterV2 {
   constructor() {}

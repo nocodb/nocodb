@@ -3,13 +3,11 @@ import DOMPurify from 'isomorphic-dompurify';
 import {
   AuditOperationSubTypes,
   AuditOperationTypes,
-  ColumnType,
   isVirtualCol,
   ModelTypes,
-  NormalColumnRequestType,
-  TableReqType,
   UITypes,
 } from 'nocodb-sdk';
+import { T } from 'nc-help';
 import ProjectMgrv2 from '../../db/sql-mgr/v2/ProjectMgrv2';
 import { NcError } from '../../helpers/catchError';
 import getColumnPropsFromUIDT from '../../helpers/getColumnPropsFromUIDT';
@@ -21,16 +19,18 @@ import mapDefaultDisplayValue from '../../helpers/mapDefaultDisplayValue';
 import {
   Audit,
   Column,
-  LinkToAnotherRecordColumn,
   Model,
   ModelRoleVisibility,
   Project,
-  User,
-  View,
 } from '../../models';
 import NcConnectionMgrv2 from '../../utils/common/NcConnectionMgrv2';
-import { T } from 'nc-help';
 import { validatePayload } from '../../helpers';
+import type { LinkToAnotherRecordColumn, User, View } from '../../models';
+import type {
+  ColumnType,
+  NormalColumnRequestType,
+  TableReqType,
+} from 'nocodb-sdk';
 
 @Injectable()
 export class TablesService {

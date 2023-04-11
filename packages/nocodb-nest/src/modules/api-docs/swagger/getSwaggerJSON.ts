@@ -1,5 +1,10 @@
 import { ViewTypes } from 'nocodb-sdk';
-import {
+import Noco from '../../../Noco';
+import swaggerBase from './swagger-base.json';
+import getPaths from './getPaths';
+import getSchemas from './getSchemas';
+import getSwaggerColumnMetas from './getSwaggerColumnMetas';
+import type {
   FormViewColumn,
   GalleryViewColumn,
   GridViewColumn,
@@ -7,11 +12,6 @@ import {
   Project,
   View,
 } from '../../../models';
-import Noco from '../../../Noco';
-import swaggerBase from './swagger-base.json';
-import getPaths from './getPaths';
-import getSchemas from './getSchemas';
-import getSwaggerColumnMetas from './getSwaggerColumnMetas';
 
 export default async function getSwaggerJSON(
   project: Project,

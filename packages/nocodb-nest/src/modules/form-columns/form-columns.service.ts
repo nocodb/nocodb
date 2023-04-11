@@ -1,7 +1,7 @@
 import { Injectable } from '@nestjs/common';
+import { T } from 'nc-help';
 import { validatePayload } from '../../helpers';
 import { FormViewColumn } from '../../models';
-import { T } from 'nc-help';
 
 @Injectable()
 export class FormColumnsService {

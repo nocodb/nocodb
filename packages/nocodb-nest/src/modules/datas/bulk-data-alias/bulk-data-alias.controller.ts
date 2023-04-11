@@ -1,19 +1,19 @@
 import {
+  Body,
   Controller,
+  Delete,
   Param,
+  Patch,
   Post,
   Request,
-  Body,
-  Patch,
-  Delete,
   UseGuards,
 } from '@nestjs/common';
+import { AuthGuard } from '@nestjs/passport';
 import {
   Acl,
   ExtractProjectIdMiddleware,
 } from '../../../middlewares/extract-project-id/extract-project-id.middleware';
 import { BulkDataAliasService } from './bulk-data-alias.service';
-import { AuthGuard } from '@nestjs/passport';
 
 @Controller()
 @UseGuards(ExtractProjectIdMiddleware, AuthGuard('jwt'))

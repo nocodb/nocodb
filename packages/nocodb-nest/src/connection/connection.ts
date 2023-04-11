@@ -1,8 +1,8 @@
 import { Global, Injectable, OnModuleInit } from '@nestjs/common';
 
-import * as knex from 'knex';
 import { XKnex } from '../db/CustomKnex';
 import NcConfigFactory from '../utils/NcConfigFactory';
+import type * as knex from 'knex';
 
 @Global()
 @Injectable()

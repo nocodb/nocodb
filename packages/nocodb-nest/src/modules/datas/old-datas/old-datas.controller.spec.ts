@@ -1,5 +1,6 @@
-import { Test, TestingModule } from '@nestjs/testing';
+import { Test } from '@nestjs/testing';
 import { OldDatasController } from './old-datas.controller';
+import type { TestingModule } from '@nestjs/testing';
 
 describe('OldDatasController', () => {
   let controller: OldDatasController;

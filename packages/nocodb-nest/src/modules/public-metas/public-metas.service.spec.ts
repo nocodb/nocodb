@@ -1,5 +1,6 @@
-import { Test, TestingModule } from '@nestjs/testing';
+import { Test } from '@nestjs/testing';
 import { PublicMetasService } from './public-metas.service';
+import type { TestingModule } from '@nestjs/testing';
 
 describe('PublicMetasService', () => {
   let service: PublicMetasService;

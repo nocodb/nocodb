@@ -1,5 +1,9 @@
 import { Injectable } from '@nestjs/common';
-import { OrgUserRoles, PluginCategory, ProjectUserReqType } from 'nocodb-sdk';
+import { OrgUserRoles, PluginCategory } from 'nocodb-sdk';
+import { T } from 'nc-help';
+import { v4 as uuidv4 } from 'uuid';
+import * as ejs from 'ejs';
+import validator from 'validator';
 import NocoCache from '../../cache/NocoCache';
 import { validatePayload } from '../../helpers';
 import { NcError } from '../../helpers/catchError';
@@ -7,13 +11,10 @@ import NcPluginMgrv2 from '../../helpers/NcPluginMgrv2';
 import { PagedResponseImpl } from '../../helpers/PagedResponse';
 import { randomTokenString } from '../../helpers/stringHelpers';
 import { Audit, ProjectUser, User } from '../../models';
-import { T } from 'nc-help';
-import { v4 as uuidv4 } from 'uuid';
-import * as ejs from 'ejs';
 
-import validator from 'validator';
 import Noco from '../../Noco';
 import { CacheGetType, CacheScope, MetaTable } from '../../utils/globals';
+import type { ProjectUserReqType } from 'nocodb-sdk';
 
 @Injectable()
 export class ProjectUsersService {

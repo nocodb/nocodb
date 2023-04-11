@@ -1,24 +1,19 @@
+import path from 'path';
 import { Injectable } from '@nestjs/common';
 import { nanoid } from 'nanoid';
 import { ErrorMessages, UITypes, ViewTypes } from 'nocodb-sdk';
-import path from 'path';
 import slash from 'slash';
-import {
-  Base,
-  Column,
-  LinkToAnotherRecordColumn,
-  Model,
-  View,
-} from '../../models';
+import { nocoExecute } from 'nc-help';
+import { Base, Column, Model, View } from '../../models';
 
 import { NcError } from '../../helpers/catchError';
 import getAst from '../../helpers/getAst';
 import NcPluginMgrv2 from '../../helpers/NcPluginMgrv2';
 import { PagedResponseImpl } from '../../helpers/PagedResponse';
 import NcConnectionMgrv2 from '../../utils/common/NcConnectionMgrv2';
-import { nocoExecute } from 'nc-help';
 import { mimeIcons } from '../../utils/mimeTypes';
 import { getColumnByIdOrName } from '../datas/helpers';
+import type { LinkToAnotherRecordColumn } from '../../models';
 
 // todo: move to utils
 export function sanitizeUrlPath(paths) {

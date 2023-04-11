@@ -1,5 +1,6 @@
-import { Test, TestingModule } from '@nestjs/testing';
+import { Test } from '@nestjs/testing';
 import { BulkDataAliasController } from './bulk-data-alias.controller';
+import type { TestingModule } from '@nestjs/testing';
 
 describe('BulkDataAliasController', () => {
   let controller: BulkDataAliasController;

@@ -8,10 +8,10 @@ import View from '../models/View';
 import getTableNameAlias, { getColumnNameAlias } from '../helpers/getTableName';
 import getColumnUiType from '../helpers/getColumnUiType';
 import mapDefaultDisplayValue from '../helpers/mapDefaultDisplayValue';
+import { getUniqueColumnAliasName } from './getUniqueName';
 import type LinkToAnotherRecordColumn from '../models/LinkToAnotherRecordColumn';
 import type Base from '../models/Base';
 import type Project from '../models/Project';
-import { getUniqueColumnAliasName } from './getUniqueName';
 export const IGNORE_TABLES = [
   'nc_models',
   'nc_roles',

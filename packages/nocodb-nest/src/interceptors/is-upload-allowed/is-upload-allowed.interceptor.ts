@@ -1,15 +1,16 @@
-import {
-  Injectable,
-  NestInterceptor,
-  ExecutionContext,
-  CallHandler,
-} from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
 import { OrgUserRoles, ProjectRoles } from 'nocodb-sdk';
-import { Observable, throwError } from 'rxjs';
+import { throwError } from 'rxjs';
 import { NcError } from '../../helpers/catchError';
 import Noco from '../../Noco';
 import extractRolesObj from '../../utils/extractRolesObj';
 import { MetaTable } from '../../utils/globals';
+import type { Observable } from 'rxjs';
+import type {
+  CallHandler,
+  ExecutionContext,
+  NestInterceptor,
+} from '@nestjs/common';
 
 @Injectable()
 export class UploadAllowedInterceptor implements NestInterceptor {

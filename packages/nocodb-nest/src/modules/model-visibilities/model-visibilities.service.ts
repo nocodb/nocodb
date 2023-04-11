@@ -1,9 +1,9 @@
 import { Injectable } from '@nestjs/common';
-import { VisibilityRuleReqType } from 'nocodb-sdk';
+import { T } from 'nc-help';
 import { validatePayload } from '../../helpers';
 import { NcError } from '../../helpers/catchError';
 import { Model, ModelRoleVisibility, View } from '../../models';
-import { T } from 'nc-help';
+import type { VisibilityRuleReqType } from 'nocodb-sdk';
 
 @Injectable()
 export class ModelVisibilitiesService {

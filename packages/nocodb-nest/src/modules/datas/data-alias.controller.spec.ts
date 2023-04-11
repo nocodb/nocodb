@@ -1,6 +1,7 @@
-import { Test, TestingModule } from '@nestjs/testing';
+import { Test } from '@nestjs/testing';
 import { DataAliasController } from './data-alias.controller';
 import { DatasService } from './datas.service';
+import type { TestingModule } from '@nestjs/testing';
 
 describe('DataAliasController', () => {
   let controller: DataAliasController;

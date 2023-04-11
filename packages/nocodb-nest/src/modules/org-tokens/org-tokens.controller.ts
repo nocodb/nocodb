@@ -9,6 +9,7 @@ import {
   UseGuards,
 } from '@nestjs/common';
 import { ApiTokenReqType } from 'nocodb-sdk';
+import { AuthGuard } from '@nestjs/passport';
 import { getConditionalHandler } from '../../helpers/getHandler';
 import {
   Acl,
@@ -16,7 +17,6 @@ import {
 } from '../../middlewares/extract-project-id/extract-project-id.middleware';
 import { OrgTokensEeService } from './ee/org-tokens/org-tokens-ee.service';
 import { OrgTokensService } from './org-tokens.service';
-import { AuthGuard } from '@nestjs/passport';
 
 @UseGuards(ExtractProjectIdMiddleware, AuthGuard('jwt'))
 @Controller()

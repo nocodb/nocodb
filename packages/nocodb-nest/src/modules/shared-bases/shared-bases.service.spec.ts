@@ -1,5 +1,6 @@
-import { Test, TestingModule } from '@nestjs/testing';
+import { Test } from '@nestjs/testing';
 import { SharedBasesService } from './shared-bases.service';
+import type { TestingModule } from '@nestjs/testing';
 
 describe('SharedBasesService', () => {
   let service: SharedBasesService;

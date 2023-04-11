@@ -1,11 +1,12 @@
 import { Injectable } from '@nestjs/common';
 import { isSystemColumn, UITypes } from 'nocodb-sdk';
 import * as XLSX from 'xlsx';
-import { BaseModelSqlv2 } from '../../../db/BaseModelSqlv2';
 import { NcError } from '../../../helpers/catchError';
 import { Base, Column, Model, Project, View } from '../../../models';
 import NcConnectionMgrv2 from '../../../utils/common/NcConnectionMgrv2';
-import { getViewAndModelByAliasOrId, PathParams } from '../helpers';
+import { getViewAndModelByAliasOrId } from '../helpers';
+import type { PathParams } from '../helpers';
+import type { BaseModelSqlv2 } from '../../../db/BaseModelSqlv2';
 
 type BulkOperation =
   | 'bulkInsert'

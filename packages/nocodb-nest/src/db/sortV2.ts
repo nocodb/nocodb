@@ -1,15 +1,15 @@
 import { RelationTypes, UITypes } from 'nocodb-sdk';
 import { Sort } from '../models';
+import { sanitize } from '../helpers/sqlSanitize';
 import genRollupSelectv2 from './genRollupSelectv2';
 import formulaQueryBuilderv2 from './formulav2/formulaQueryBuilderv2';
-import { sanitize } from '../helpers/sqlSanitize';
 import type { Knex } from 'knex';
 import type { XKnex } from '../db/CustomKnex';
-import {
-  LinkToAnotherRecordColumn,
-  RollupColumn,
-  LookupColumn,
+import type {
   FormulaColumn,
+  LinkToAnotherRecordColumn,
+  LookupColumn,
+  RollupColumn,
 } from '../models';
 
 export default async function sortV2(

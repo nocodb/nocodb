@@ -1,8 +1,8 @@
 import { Injectable } from '@nestjs/common';
-import { GridColumnReqType } from 'nocodb-sdk';
+import { T } from 'nc-help';
 import { validatePayload } from '../../helpers';
 import { GridViewColumn } from '../../models';
-import { T } from 'nc-help';
+import type { GridColumnReqType } from 'nocodb-sdk';
 
 @Injectable()
 export class GridColumnsService {

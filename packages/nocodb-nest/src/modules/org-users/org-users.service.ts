@@ -4,21 +4,21 @@ import {
   AuditOperationTypes,
   OrgUserRoles,
   PluginCategory,
-  UserType,
 } from 'nocodb-sdk';
+import validator from 'validator';
+import { v4 as uuidv4 } from 'uuid';
+import { T } from 'nc-help';
 import { NC_APP_SETTINGS } from '../../constants';
 import { validatePayload } from '../../helpers';
 import { NcError } from '../../helpers/catchError';
 import { extractProps } from '../../helpers/extractProps';
 import { randomTokenString } from '../../helpers/stringHelpers';
 import { Audit, ProjectUser, Store, SyncSource, User } from '../../models';
-import validator from 'validator';
 
-import { v4 as uuidv4 } from 'uuid';
 import Noco from '../../Noco';
 import { MetaTable } from '../../utils/globals';
-import { T } from 'nc-help';
 import { ProjectUsersService } from '../project-users/project-users.service';
+import type { UserType } from 'nocodb-sdk';
 
 @Injectable()
 export class OrgUsersService {

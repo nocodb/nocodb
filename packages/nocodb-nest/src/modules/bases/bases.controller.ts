@@ -9,13 +9,13 @@ import {
   UseGuards,
 } from '@nestjs/common';
 import { BaseReqType } from 'nocodb-sdk';
+import { AuthGuard } from '@nestjs/passport';
 import { PagedResponseImpl } from '../../helpers/PagedResponse';
 import {
   Acl,
   ExtractProjectIdMiddleware,
 } from '../../middlewares/extract-project-id/extract-project-id.middleware';
 import { BasesService } from './bases.service';
-import { AuthGuard } from '@nestjs/passport';
 
 @Controller()
 @UseGuards(ExtractProjectIdMiddleware, AuthGuard('jwt'))

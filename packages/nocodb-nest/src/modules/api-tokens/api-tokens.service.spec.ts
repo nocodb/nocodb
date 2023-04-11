@@ -1,5 +1,6 @@
-import { Test, TestingModule } from '@nestjs/testing';
+import { Test } from '@nestjs/testing';
 import { ApiTokensService } from './api-tokens.service';
+import type { TestingModule } from '@nestjs/testing';
 
 describe('ApiTokensService', () => {
   let service: ApiTokensService;

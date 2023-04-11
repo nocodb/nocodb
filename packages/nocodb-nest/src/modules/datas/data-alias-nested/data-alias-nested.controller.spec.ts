@@ -1,5 +1,6 @@
-import { Test, TestingModule } from '@nestjs/testing';
+import { Test } from '@nestjs/testing';
 import { DataAliasNestedController } from './data-alias-nested.controller';
+import type { TestingModule } from '@nestjs/testing';
 
 describe('DataAliasNestedController', () => {
   let controller: DataAliasNestedController;

@@ -5,15 +5,15 @@ import {
   OnApplicationBootstrap,
   OnModuleInit,
 } from '@nestjs/common';
-import { Knex } from 'knex';
 
-import XcMigrationSource from './migrations/XcMigrationSource';
-import XcMigrationSourcev2 from './migrations/XcMigrationSourcev2';
-import { Connection } from '../connection/connection';
 import { customAlphabet } from 'nanoid';
-import Noco from '../Noco';
 import CryptoJS from 'crypto-js';
+import { Connection } from '../connection/connection';
+import Noco from '../Noco';
 import NocoCache from '../cache/NocoCache';
+import XcMigrationSourcev2 from './migrations/XcMigrationSourcev2';
+import XcMigrationSource from './migrations/XcMigrationSource';
+import type { Knex } from 'knex';
 
 const nanoid = customAlphabet('1234567890abcdefghijklmnopqrstuvwxyz_', 4);
 

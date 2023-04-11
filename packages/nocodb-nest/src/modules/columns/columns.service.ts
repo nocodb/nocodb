@@ -2,18 +2,14 @@ import { Injectable } from '@nestjs/common';
 import {
   AuditOperationSubTypes,
   AuditOperationTypes,
-  ColumnReqType,
   isVirtualCol,
-  LinkToAnotherColumnReqType,
-  LinkToAnotherRecordType,
-  RelationTypes,
   substituteColumnAliasWithIdInFormula,
   substituteColumnIdWithAliasInFormula,
   UITypes,
 } from 'nocodb-sdk';
+import { T } from 'nc-help';
 import formulaQueryBuilderv2 from '../../db/formulav2/formulaQueryBuilderv2';
 import ProjectMgrv2 from '../../db/sql-mgr/v2/ProjectMgrv2';
-import SqlMgrv2 from '../../db/sql-mgr/v2/SqlMgrv2';
 import {
   createHmAndBtColumn,
   generateFkName,
@@ -31,21 +27,26 @@ import {
 } from '../../helpers/getUniqueName';
 import mapDefaultDisplayValue from '../../helpers/mapDefaultDisplayValue';
 import validateParams from '../../helpers/validateParams';
-import { MetaService } from '../../meta/meta.service';
 import {
   Audit,
   Base,
   Column,
   FormulaColumn,
   KanbanView,
-  LinkToAnotherRecordColumn,
   Model,
-  Project,
 } from '../../models';
 import Noco from '../../Noco';
 import NcConnectionMgrv2 from '../../utils/common/NcConnectionMgrv2';
-import { T } from 'nc-help';
 import { MetaTable } from '../../utils/globals';
+import type { LinkToAnotherRecordColumn, Project } from '../../models';
+import type { MetaService } from '../../meta/meta.service';
+import type SqlMgrv2 from '../../db/sql-mgr/v2/SqlMgrv2';
+import type {
+  ColumnReqType,
+  LinkToAnotherColumnReqType,
+  LinkToAnotherRecordType,
+  RelationTypes,
+} from 'nocodb-sdk';
 
 // todo: move
 export enum Altered {

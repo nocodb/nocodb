@@ -10,13 +10,13 @@ import {
   Response,
   UseGuards,
 } from '@nestjs/common';
+import { AuthGuard } from '@nestjs/passport';
 import { parseHrtimeToSeconds } from '../../helpers';
 import {
   Acl,
   ExtractProjectIdMiddleware,
 } from '../../middlewares/extract-project-id/extract-project-id.middleware';
 import { DatasService } from './datas.service';
-import { AuthGuard } from '@nestjs/passport';
 
 @Controller()
 @UseGuards(ExtractProjectIdMiddleware, AuthGuard('jwt'))

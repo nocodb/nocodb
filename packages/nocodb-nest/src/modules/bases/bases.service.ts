@@ -1,9 +1,9 @@
 import { Injectable } from '@nestjs/common';
-import { BaseReqType } from 'nocodb-sdk';
+import { T } from 'nc-help';
 import { populateMeta, validatePayload } from '../../helpers';
 import { syncBaseMigration } from '../../helpers/syncMigration';
 import { Base, Project } from '../../models';
-import { T } from 'nc-help';
+import type { BaseReqType } from 'nocodb-sdk';
 
 @Injectable()
 export class BasesService {

@@ -1,19 +1,20 @@
+import { promisify } from 'util';
 import { Injectable } from '@nestjs/common';
 import * as DOMPurify from 'isomorphic-dompurify';
 import { customAlphabet } from 'nanoid';
-import { ProjectReqType } from 'nocodb-sdk';
-import { promisify } from 'util';
-import { OrgUserRoles, ProjectUpdateReqType } from '../../../../nocodb-sdk';
+import { T } from 'nc-help';
+import { OrgUserRoles } from '../../../../nocodb-sdk';
 import { projectList } from '../../../../nocodb/src/lib/services/project.svc';
 import { populateMeta, validatePayload } from '../../helpers';
 import { NcError } from '../../helpers/catchError';
 import { extractPropsAndSanitize } from '../../helpers/extractProps';
 import syncMigration from '../../helpers/syncMigration';
 import { Project, ProjectUser } from '../../models';
-import { T } from 'nc-help';
 import Noco from '../../Noco';
 import extractRolesObj from '../../utils/extractRolesObj';
 import NcConfigFactory from '../../utils/NcConfigFactory';
+import type { ProjectUpdateReqType } from '../../../../nocodb-sdk';
+import type { ProjectReqType } from 'nocodb-sdk';
 
 const nanoid = customAlphabet('1234567890abcdefghijklmnopqrstuvwxyz_', 4);
 

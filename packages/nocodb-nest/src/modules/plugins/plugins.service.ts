@@ -1,9 +1,9 @@
 import { Injectable } from '@nestjs/common';
-import { PluginTestReqType, PluginType } from 'nocodb-sdk';
+import { T } from 'nc-help';
 import { validatePayload } from '../../helpers';
 import NcPluginMgrv2 from '../../helpers/NcPluginMgrv2';
 import { Plugin } from '../../models';
-import { T } from 'nc-help';
+import type { PluginTestReqType, PluginType } from 'nocodb-sdk';
 
 @Injectable()
 export class PluginsService {

@@ -1,6 +1,6 @@
 import { Injectable, UnauthorizedException } from '@nestjs/common';
 import { PassportStrategy } from '@nestjs/passport';
-import { Strategy, ExtractJwt } from 'passport-jwt';
+import { ExtractJwt, Strategy } from 'passport-jwt';
 import { OrgUserRoles } from '../../../nocodb-sdk';
 import NocoCache from '../cache/NocoCache';
 import { ProjectUser, User } from '../models';

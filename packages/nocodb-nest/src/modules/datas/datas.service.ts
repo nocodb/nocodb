@@ -1,27 +1,20 @@
 import { Injectable } from '@nestjs/common';
 import { isSystemColumn, UITypes } from 'nocodb-sdk';
 import * as XLSX from 'xlsx';
+import papaparse from 'papaparse';
+import { nocoExecute } from 'nc-help';
 import { NcError } from '../../helpers/catchError';
 import getAst from '../../helpers/getAst';
-import papaparse from 'papaparse';
 import { PagedResponseImpl } from '../../helpers/PagedResponse';
-import {
-  Base,
-  Column,
-  LinkToAnotherRecordColumn,
-  LookupColumn,
-  Model,
-  Project,
-  View,
-} from '../../models';
+import { Base, Column, Model, Project, View } from '../../models';
 import NcConnectionMgrv2 from '../../utils/common/NcConnectionMgrv2';
 import {
   getDbRows,
   getViewAndModelByAliasOrId,
-  PathParams,
   serializeCellValue,
 } from './helpers';
-import { nocoExecute } from 'nc-help';
+import type { PathParams } from './helpers';
+import type { LinkToAnotherRecordColumn, LookupColumn } from '../../models';
 
 @Injectable()
 export class DatasService {

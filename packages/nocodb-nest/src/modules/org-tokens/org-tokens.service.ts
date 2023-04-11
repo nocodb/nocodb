@@ -1,10 +1,12 @@
 import { Injectable } from '@nestjs/common';
-import { ApiTokenReqType, OrgUserRoles } from 'nocodb-sdk';
+import { OrgUserRoles } from 'nocodb-sdk';
+import { T } from 'nc-help';
 import { validatePayload } from '../../helpers';
 import { NcError } from '../../helpers/catchError';
 import { PagedResponseImpl } from '../../helpers/PagedResponse';
-import { ApiToken, User } from '../../models';
-import { T } from 'nc-help';
+import { ApiToken } from '../../models';
+import type { User } from '../../models';
+import type { ApiTokenReqType } from 'nocodb-sdk';
 
 @Injectable()
 export class OrgTokensService {

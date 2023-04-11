@@ -1,9 +1,9 @@
 import { Injectable } from '@nestjs/common';
-import { SharedViewReqType, ViewUpdateReqType } from 'nocodb-sdk';
+import { T } from 'nc-help';
 import { validatePayload } from '../../helpers';
 import { Model, ModelRoleVisibility, View } from '../../models';
-import { T } from 'nc-help';
 import { TablesService } from '../tables/tables.service';
+import type { SharedViewReqType, ViewUpdateReqType } from 'nocodb-sdk';
 
 // todo: move
 async function xcVisibilityMetaGet(param: {

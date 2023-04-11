@@ -1,11 +1,11 @@
 import { Body, Controller, Get, Param, Patch, UseGuards } from '@nestjs/common';
 import { GridColumnReqType } from 'nocodb-sdk';
+import { AuthGuard } from '@nestjs/passport';
 import {
   Acl,
   ExtractProjectIdMiddleware,
 } from '../../middlewares/extract-project-id/extract-project-id.middleware';
 import { GridColumnsService } from './grid-columns.service';
-import { AuthGuard } from '@nestjs/passport';
 
 @Controller()
 @UseGuards(ExtractProjectIdMiddleware, AuthGuard('jwt'))

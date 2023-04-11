@@ -1,15 +1,12 @@
+import { promisify } from 'util';
 import { Injectable } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
-import {
-  OrgUserRoles,
-  PasswordChangeReqType,
-  PasswordForgotReqType,
-  PasswordResetReqType,
-  SignUpReqType,
-  UserType,
-  validatePassword,
-} from 'nocodb-sdk';
-import { promisify } from 'util';
+import { OrgUserRoles, validatePassword } from 'nocodb-sdk';
+import { v4 as uuidv4 } from 'uuid';
+import { isEmail } from 'validator';
+import { T } from 'nc-help';
+import * as ejs from 'ejs';
+import bcrypt from 'bcryptjs';
 import { NC_APP_SETTINGS } from '../../constants';
 import { validatePayload } from '../../helpers';
 import { NcError } from '../../helpers/catchError';
@@ -17,13 +14,15 @@ import NcPluginMgrv2 from '../../helpers/NcPluginMgrv2';
 import { randomTokenString } from '../../helpers/stringHelpers';
 import { MetaService, MetaTable } from '../../meta/meta.service';
 import { Audit, Store, User } from '../../models';
-import { v4 as uuidv4 } from 'uuid';
-import { isEmail } from 'validator';
-import { T } from 'nc-help';
-import * as ejs from 'ejs';
-import bcrypt from 'bcryptjs';
 import Noco from '../../Noco';
 import { genJwt, setTokenCookie } from './helpers';
+import type {
+  PasswordChangeReqType,
+  PasswordForgotReqType,
+  PasswordResetReqType,
+  SignUpReqType,
+  UserType,
+} from 'nocodb-sdk';
 
 @Injectable()
 export class UsersService {

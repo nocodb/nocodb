@@ -1,19 +1,10 @@
-import {
-  CallHandler,
-  CanActivate,
-  ExecutionContext,
-  Injectable,
-  NestInterceptor,
-  NestMiddleware,
-  SetMetadata,
-  UseInterceptors,
-} from '@nestjs/common';
+import { promisify } from 'util';
+import { Injectable, SetMetadata, UseInterceptors } from '@nestjs/common';
 import { Reflector } from '@nestjs/core';
 import { NextFunction, Request, Response } from 'express';
 import { OrgUserRoles } from 'nocodb-sdk';
 import passport from 'passport';
-import { map, Observable, throwError } from 'rxjs';
-import { promisify } from 'util';
+import { map, throwError } from 'rxjs';
 import {
   Column,
   Filter,
@@ -30,6 +21,14 @@ import extractRolesObj from '../../utils/extractRolesObj';
 import projectAcl from '../../utils/projectAcl';
 import catchError, { NcError } from '../catchError';
 import extractProjectIdAndAuthenticate from '../extractProjectIdAndAuthenticate';
+import type { Observable } from 'rxjs';
+import type {
+  CallHandler,
+  CanActivate,
+  ExecutionContext,
+  NestInterceptor,
+  NestMiddleware,
+} from '@nestjs/common';
 
 @Injectable()
 export class ExtractProjectIdMiddleware implements NestMiddleware, CanActivate {

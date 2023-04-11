@@ -1,5 +1,6 @@
-import { Test, TestingModule } from '@nestjs/testing';
+import { Test } from '@nestjs/testing';
 import { GridColumnsService } from './grid-columns.service';
+import type { TestingModule } from '@nestjs/testing';
 
 describe('GridColumnsService', () => {
   let service: GridColumnsService;

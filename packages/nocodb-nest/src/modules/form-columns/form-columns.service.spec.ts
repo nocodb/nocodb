@@ -1,5 +1,6 @@
-import { Test, TestingModule } from '@nestjs/testing';
+import { Test } from '@nestjs/testing';
 import { FormColumnsService } from './form-columns.service';
+import type { TestingModule } from '@nestjs/testing';
 
 describe('FormColumnsService', () => {
   let service: FormColumnsService;

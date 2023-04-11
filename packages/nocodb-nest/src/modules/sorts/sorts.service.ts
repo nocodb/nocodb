@@ -1,8 +1,8 @@
 import { Injectable } from '@nestjs/common';
-import { SortReqType } from 'nocodb-sdk';
+import { T } from 'nc-help';
 import { validatePayload } from '../../helpers';
 import { Sort } from '../../models';
-import { T } from 'nc-help';
+import type { SortReqType } from 'nocodb-sdk';
 
 @Injectable()
 export class SortsService {

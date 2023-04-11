@@ -1,12 +1,10 @@
 import { RelationTypes, UITypes } from 'nocodb-sdk';
 import { v4 as uuidv4 } from 'uuid';
-import {
-  Column,
+import { Column, Model, View } from '../models';
+import type {
   LinkToAnotherRecordColumn,
   LookupColumn,
-  Model,
   SelectOption,
-  View,
 } from '../models';
 
 export async function populateSamplePayload(

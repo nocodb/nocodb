@@ -1,20 +1,20 @@
 import {
+  Body,
   Controller,
   Delete,
   Get,
-  Post,
-  UseGuards,
-  Request,
-  Body,
   Param,
+  Post,
+  Request,
+  UseGuards,
 } from '@nestjs/common';
+import { AuthGuard } from '@nestjs/passport';
 import { PagedResponseImpl } from '../../helpers/PagedResponse';
 import {
   Acl,
   ExtractProjectIdMiddleware,
 } from '../../middlewares/extract-project-id/extract-project-id.middleware';
 import { ApiTokensService } from './api-tokens.service';
-import { AuthGuard } from '@nestjs/passport';
 
 @Controller()
 @UseGuards(ExtractProjectIdMiddleware, AuthGuard('jwt'))

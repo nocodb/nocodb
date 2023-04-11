@@ -1,8 +1,9 @@
 import { Injectable } from '@nestjs/common';
-import { GalleryUpdateReqType, ViewCreateReqType, ViewTypes } from 'nocodb-sdk';
+import { ViewTypes } from 'nocodb-sdk';
+import { T } from 'nc-help';
 import { validatePayload } from '../../helpers';
 import { GalleryView, View } from '../../models';
-import { T } from 'nc-help';
+import type { GalleryUpdateReqType, ViewCreateReqType } from 'nocodb-sdk';
 
 @Injectable()
 export class GalleriesService {

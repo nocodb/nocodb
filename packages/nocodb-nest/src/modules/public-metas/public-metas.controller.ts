@@ -1,4 +1,4 @@
-import { Controller, Get, Request, Param } from '@nestjs/common';
+import { Controller, Get, Param, Request } from '@nestjs/common';
 import { PublicMetasService } from './public-metas.service';
 
 @Controller()

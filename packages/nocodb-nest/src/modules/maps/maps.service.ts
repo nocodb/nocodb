@@ -1,8 +1,9 @@
 import { Injectable } from '@nestjs/common';
 import { T } from 'nc-help';
-import { MapUpdateReqType, ViewCreateReqType, ViewTypes } from 'nocodb-sdk';
+import { ViewTypes } from 'nocodb-sdk';
 import { validatePayload } from '../../helpers';
 import { MapView, View } from '../../models';
+import type { MapUpdateReqType, ViewCreateReqType } from 'nocodb-sdk';
 
 @Injectable()
 export class MapsService {

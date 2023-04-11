@@ -1,6 +1,6 @@
 import { NestFactory } from '@nestjs/core';
-import { AppModule } from './app.module';
 import express from 'express';
+import { AppModule } from './app.module';
 
 export default async function (app = express()) {
   const nestApp = await NestFactory.create(AppModule);

@@ -1,7 +1,7 @@
 import { Injectable } from '@nestjs/common';
+import { T } from 'nc-help';
 import { PagedResponseImpl } from '../../helpers/PagedResponse';
 import { Project, SyncSource } from '../../models';
-import { T } from 'nc-help';
 
 @Injectable()
 export class SyncService {

@@ -1,10 +1,10 @@
 import { Knex, knex } from 'knex';
 import { SnowflakeClient } from 'nc-help';
+import { types } from 'pg';
 import Filter from '../models/Filter';
 import type { FilterType } from 'nocodb-sdk';
 import type { BaseModelSql } from './BaseModelSql';
 
-import { types } from 'pg';
 // override parsing date column to Date()
 types.setTypeParser(1082, (val) => val);
 

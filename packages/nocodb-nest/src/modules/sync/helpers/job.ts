@@ -1,4 +1,3 @@
-import { ModuleRef } from '@nestjs/core';
 import { promisify } from 'util';
 import { UITypes } from 'nocodb-sdk';
 import Airtable from 'airtable';
@@ -38,11 +37,12 @@ import { ViewsService } from '../../views/views.service';
 //   // eslint-disable-next-line @typescript-eslint/ban-ts-comment
 //   // @ts-ignore
 // } from '../..';
+import { FormsService } from '../../../modules/forms/forms.service';
 import FetchAT from './fetchAT';
 import { importData, importLTARData } from './readAndProcessData';
 import EntityMap from './EntityMap';
+import type { ModuleRef } from '@nestjs/core';
 import type { UserType } from 'nocodb-sdk';
-import { FormsService } from '../../../modules/forms/forms.service';
 
 const writeJsonFileAsync = promisify(jsonfile.writeFile);
 

@@ -1,6 +1,7 @@
-import { Test, TestingModule } from '@nestjs/testing';
+import { Test } from '@nestjs/testing';
 import { PublicDatasController } from './public-datas.controller';
 import { PublicDatasService } from './public-datas.service';
+import type { TestingModule } from '@nestjs/testing';
 
 describe('PublicDatasController', () => {
   let controller: PublicDatasController;

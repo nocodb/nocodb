@@ -1,5 +1,6 @@
-import { Test, TestingModule } from '@nestjs/testing';
+import { Test } from '@nestjs/testing';
 import { BulkDataAliasService } from './bulk-data-alias.service';
+import type { TestingModule } from '@nestjs/testing';
 
 describe('BulkDataAliasService', () => {
   let service: BulkDataAliasService;

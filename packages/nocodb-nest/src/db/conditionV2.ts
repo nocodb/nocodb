@@ -2,9 +2,9 @@ import { isNumericCol, RelationTypes, UITypes } from 'nocodb-sdk';
 import dayjs, { extend } from 'dayjs';
 // import customParseFormat from 'dayjs/plugin/customParseFormat.js';
 import Filter from '../models/Filter';
+import { sanitize } from '../helpers/sqlSanitize';
 import genRollupSelectv2 from './genRollupSelectv2';
 import formulaQueryBuilderv2 from './formulav2/formulaQueryBuilderv2';
-import { sanitize } from '../helpers/sqlSanitize';
 import type LinkToAnotherRecordColumn from '../models/LinkToAnotherRecordColumn';
 import type { Knex } from 'knex';
 import type Column from '../models/Column';
@@ -81,7 +81,6 @@ const parseConditionV2 = async (
     };
   } else {
     const column = await filter.getColumn();
-    // eslint-disable-next-line @typescript-eslint/no-empty-function
     if (!column) return () => {};
     if (column.uidt === UITypes.LinkToAnotherRecord) {
       const colOptions =
@@ -273,7 +272,6 @@ const parseConditionV2 = async (
         };
       }
 
-      // eslint-disable-next-line @typescript-eslint/no-empty-function
       return (_qb) => {};
     } else if (column.uidt === UITypes.Lookup) {
       return await generateLookupCondition(column, filter, knex, aliasCount);

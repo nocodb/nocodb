@@ -15,8 +15,6 @@ import ejs from 'ejs';
 import Validator from 'validator';
 import { customAlphabet } from 'nanoid';
 import DOMPurify from 'isomorphic-dompurify';
-import type { SortType } from 'nocodb-sdk';
-import type { Knex } from 'knex';
 
 const GROUP_COL = '__nc_group_id';
 
@@ -31,35 +29,42 @@ import {
 } from '../helpers/webhookHelpers';
 import {
   Audit,
-  BarcodeColumn,
   Column,
   Filter,
-  FormulaColumn,
   FormView,
-  GridViewColumn,
   Hook,
-  LinkToAnotherRecordColumn,
   Model,
   Project,
-  QrCodeColumn,
-  RollupColumn,
-  SelectOption,
   Sort,
   View,
 } from '../models';
-import formulaQueryBuilderv2 from './formulav2/formulaQueryBuilderv2';
-import genRollupSelectv2 from './genRollupSelectv2';
-import { XcFilter, XcFilterWithAlias } from './sql-data-mapper/lib/BaseModel';
 import { sanitize, unsanitize } from '../helpers/sqlSanitize';
-import conditionV2 from './conditionV2';
-import sortV2 from './sortV2';
-import { customValidators } from './util/customValidators';
 import {
   COMPARISON_OPS,
   COMPARISON_SUB_OPS,
   IS_WITHIN_COMPARISON_SUB_OPS,
 } from '../models/Filter';
 import formSubmissionEmailTemplate from '../utils/common/formSubmissionEmailTemplate';
+import formulaQueryBuilderv2 from './formulav2/formulaQueryBuilderv2';
+import genRollupSelectv2 from './genRollupSelectv2';
+import conditionV2 from './conditionV2';
+import sortV2 from './sortV2';
+import { customValidators } from './util/customValidators';
+import type {
+  XcFilter,
+  XcFilterWithAlias,
+} from './sql-data-mapper/lib/BaseModel';
+import type {
+  BarcodeColumn,
+  FormulaColumn,
+  GridViewColumn,
+  LinkToAnotherRecordColumn,
+  QrCodeColumn,
+  RollupColumn,
+  SelectOption,
+} from '../models';
+import type { Knex } from 'knex';
+import type { SortType } from 'nocodb-sdk';
 
 export async function getViewAndModelByAliasOrId(param: {
   projectName: string;
@@ -1399,7 +1404,7 @@ class BaseModelSqlv2 {
                   return [];
                 }
               });
-              // eslint-disable-next-line @typescript-eslint/no-this-alias
+
               const self: BaseModelSqlv2 = this;
 
               proto[column.title] = async function (args): Promise<any> {

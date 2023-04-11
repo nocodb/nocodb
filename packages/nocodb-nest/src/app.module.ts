@@ -1,9 +1,4 @@
-import {
-  MiddlewareConsumer,
-  Module,
-  RequestMethod,
-  OnApplicationBootstrap,
-} from '@nestjs/common';
+import { Module, RequestMethod } from '@nestjs/common';
 import { APP_FILTER } from '@nestjs/core';
 import { Connection } from './connection/connection';
 import { GlobalExceptionFilter } from './filters/global-exception/global-exception.filter';
@@ -52,6 +47,10 @@ import { ImportModule } from './modules/import/import.module';
 import { CachesModule } from './modules/caches/caches.module';
 import { TestModule } from './modules/test/test.module';
 import { PluginsModule } from './modules/plugins/plugins.module';
+import type {
+  MiddlewareConsumer,
+  OnApplicationBootstrap,
+} from '@nestjs/common';
 
 @Module({
   imports: [

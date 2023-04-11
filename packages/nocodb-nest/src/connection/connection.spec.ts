@@ -1,5 +1,6 @@
-import { Test, TestingModule } from '@nestjs/testing';
+import { Test } from '@nestjs/testing';
 import { Connection } from './knex';
+import type { TestingModule } from '@nestjs/testing';
 
 describe('Knex', () => {
   let provider: Connection;

@@ -1,5 +1,6 @@
-import { Test, TestingModule } from '@nestjs/testing';
+import { Test } from '@nestjs/testing';
 import { OrgLcenseService } from './org-lcense.service';
+import type { TestingModule } from '@nestjs/testing';
 
 describe('OrgLcenseService', () => {
   let service: OrgLcenseService;

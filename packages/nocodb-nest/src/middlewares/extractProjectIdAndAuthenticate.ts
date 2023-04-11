@@ -2,16 +2,16 @@ import { promisify } from 'util';
 import passport from 'passport';
 
 import {
-  Model,
-  View,
-  Hook,
-  GridViewColumn,
-  FormViewColumn,
-  GalleryViewColumn,
-  Project,
   Column,
   Filter,
+  FormViewColumn,
+  GalleryViewColumn,
+  GridViewColumn,
+  Hook,
+  Model,
+  Project,
   Sort,
+  View,
 } from '../models';
 
 export default async (req, res, next) => {

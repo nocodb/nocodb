@@ -1,11 +1,11 @@
+import path from 'path';
 import { Injectable } from '@nestjs/common';
 import { nanoid } from 'nanoid';
-import path from 'path';
 import slash from 'slash';
+import { T } from 'nc-help';
 import NcPluginMgrv2 from '../../helpers/NcPluginMgrv2';
 import Local from '../../plugins/storage/Local';
 import mimetypes, { mimeIcons } from '../../utils/mimeTypes';
-import { T } from 'nc-help';
 
 @Injectable()
 export class AttachmentsService {

@@ -1,5 +1,6 @@
-import { Injectable, NestMiddleware } from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
 import Noco from '../../Noco';
+import type { NestMiddleware } from '@nestjs/common';
 
 @Injectable()
 export class GlobalMiddleware implements NestMiddleware {

@@ -1,4 +1,6 @@
 import { Controller, Get, Request, Response, UseGuards } from '@nestjs/common';
+import * as XLSX from 'xlsx';
+import { AuthGuard } from '@nestjs/passport';
 import {
   Acl,
   ExtractProjectIdMiddleware,
@@ -6,8 +8,6 @@ import {
 import { View } from '../../../models';
 import { DatasService } from '../datas.service';
 import { extractCsvData, extractXlsxData } from '../helpers';
-import * as XLSX from 'xlsx';
-import { AuthGuard } from '@nestjs/passport';
 
 @Controller()
 @UseGuards(ExtractProjectIdMiddleware, AuthGuard('jwt'))

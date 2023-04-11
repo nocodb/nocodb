@@ -1,6 +1,7 @@
-import { Test, TestingModule } from '@nestjs/testing';
+import { Test } from '@nestjs/testing';
 import { ApiTokensController } from './api-tokens.controller';
 import { ApiTokensService } from './api-tokens.service';
+import type { TestingModule } from '@nestjs/testing';
 
 describe('ApiTokensController', () => {
   let controller: ApiTokensController;

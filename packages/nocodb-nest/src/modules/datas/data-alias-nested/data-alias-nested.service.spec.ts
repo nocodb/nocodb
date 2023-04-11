@@ -1,5 +1,6 @@
-import { Test, TestingModule } from '@nestjs/testing';
+import { Test } from '@nestjs/testing';
 import { DataAliasNestedService } from './data-alias-nested.service';
+import type { TestingModule } from '@nestjs/testing';
 
 describe('DataAliasNestedService', () => {
   let service: DataAliasNestedService;

@@ -1,21 +1,15 @@
-import { Controller, Get, Request, Param, Response } from '@nestjs/common';
+import { Controller, Get, Param, Request, Response } from '@nestjs/common';
 import { ErrorMessages, isSystemColumn, UITypes, ViewTypes } from 'nocodb-sdk';
-import { NcError } from '../../helpers/catchError';
-import getAst from '../../helpers/getAst';
-import {
-  Base,
-  Column,
-  LinkToAnotherRecordColumn,
-  LookupColumn,
-  Model,
-  View,
-} from '../../models';
-import NcConnectionMgrv2 from '../../utils/common/NcConnectionMgrv2';
-import { PublicDatasExportService } from './public-datas-export.service';
 import * as XLSX from 'xlsx';
 import { nocoExecute } from 'nc-help';
 import papaparse from 'papaparse';
+import { NcError } from '../../helpers/catchError';
+import getAst from '../../helpers/getAst';
+import { Base, Column, Model, View } from '../../models';
+import NcConnectionMgrv2 from '../../utils/common/NcConnectionMgrv2';
 import { serializeCellValue } from '../datas/helpers';
+import { PublicDatasExportService } from './public-datas-export.service';
+import type { LinkToAnotherRecordColumn, LookupColumn } from '../../models';
 
 @Controller()
 export class PublicDatasExportController {

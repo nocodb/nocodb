@@ -1,5 +1,6 @@
-import { Test, TestingModule } from '@nestjs/testing';
+import { Test } from '@nestjs/testing';
 import { PublicDatasExportService } from './public-datas-export.service';
+import type { TestingModule } from '@nestjs/testing';
 
 describe('PublicDatasExportService', () => {
   let service: PublicDatasExportService;

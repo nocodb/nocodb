@@ -1,19 +1,9 @@
 import { Injectable } from '@nestjs/common';
-import {
-  ErrorMessages,
-  LinkToAnotherRecordType,
-  RelationTypes,
-  UITypes,
-} from 'nocodb-sdk';
+import { ErrorMessages, RelationTypes, UITypes } from 'nocodb-sdk';
 import { NcError } from '../../helpers/catchError';
-import {
-  Base,
-  Column,
-  LinkToAnotherRecordColumn,
-  Model,
-  Project,
-  View,
-} from '../../models';
+import { Base, Column, Model, Project, View } from '../../models';
+import type { LinkToAnotherRecordColumn } from '../../models';
+import type { LinkToAnotherRecordType } from 'nocodb-sdk';
 
 @Injectable()
 export class PublicMetasService {

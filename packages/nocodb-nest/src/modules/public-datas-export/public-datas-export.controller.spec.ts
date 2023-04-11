@@ -1,6 +1,7 @@
-import { Test, TestingModule } from '@nestjs/testing';
+import { Test } from '@nestjs/testing';
 import { PublicDatasExportController } from './public-datas-export.controller';
 import { PublicDatasExportService } from './public-datas-export.service';
+import type { TestingModule } from '@nestjs/testing';
 
 describe('PublicDatasExportController', () => {
   let controller: PublicDatasExportController;

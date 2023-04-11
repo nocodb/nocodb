@@ -1,12 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { isVirtualCol, ModelTypes, RelationTypes, UITypes } from 'nocodb-sdk';
-import {
-  Model,
-  Column,
-  Project,
-  LinkToAnotherRecordColumn,
-  Base,
-} from '../../models';
+import { T } from 'nc-help';
+import { Base, Column, Model, Project } from '../../models';
 import ModelXcMetaFactory from '../../db/sql-mgr/code/models/xc/ModelXcMetaFactory';
 import getColumnUiType from '../../helpers/getColumnUiType';
 import getTableNameAlias, {
@@ -16,7 +11,7 @@ import { getUniqueColumnAliasName } from '../../helpers/getUniqueName';
 import mapDefaultDisplayValue from '../../helpers/mapDefaultDisplayValue';
 import NcConnectionMgrv2 from '../../utils/common/NcConnectionMgrv2';
 import NcHelp from '../../utils/NcHelp';
-import { T } from 'nc-help';
+import type { LinkToAnotherRecordColumn } from '../../models';
 
 // todo:move enum and types
 export enum MetaDiffType {

@@ -8,12 +8,12 @@ import {
   UseGuards,
 } from '@nestjs/common';
 import { ViewCreateReqType } from 'nocodb-sdk';
+import { AuthGuard } from '@nestjs/passport';
 import {
   Acl,
   ExtractProjectIdMiddleware,
 } from '../../middlewares/extract-project-id/extract-project-id.middleware';
 import { FormsService } from './forms.service';
-import { AuthGuard } from '@nestjs/passport';
 
 @Controller()
 @UseGuards(ExtractProjectIdMiddleware, AuthGuard('jwt'))

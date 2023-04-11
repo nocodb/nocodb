@@ -1,3 +1,4 @@
+import path from 'path';
 import {
   Body,
   Controller,
@@ -14,7 +15,7 @@ import {
 import multer from 'multer';
 import { FileInterceptor, FilesInterceptor } from '@nestjs/platform-express';
 import { OrgUserRoles, ProjectRoles } from 'nocodb-sdk';
-import path from 'path';
+import { AuthGuard } from '@nestjs/passport';
 import { NC_ATTACHMENT_FIELD_SIZE } from '../../constants';
 import { NcError } from '../../helpers/catchError';
 import { UploadAllowedInterceptor } from '../../interceptors/is-upload-allowed/is-upload-allowed.interceptor';
@@ -22,7 +23,6 @@ import { ExtractProjectIdMiddleware } from '../../middlewares/extract-project-id
 import Noco from '../../Noco';
 import { MetaTable } from '../../utils/globals';
 import { AttachmentsService } from './attachments.service';
-import { AuthGuard } from '@nestjs/passport';
 
 @Controller()
 export class AttachmentsController {

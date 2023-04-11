@@ -1,8 +1,9 @@
 import { Injectable } from '@nestjs/common';
-import { KanbanUpdateReqType, ViewCreateReqType, ViewTypes } from 'nocodb-sdk';
+import { ViewTypes } from 'nocodb-sdk';
+import { T } from 'nc-help';
 import { validatePayload } from '../../helpers';
 import { KanbanView, View } from '../../models';
-import { T } from 'nc-help';
+import type { KanbanUpdateReqType, ViewCreateReqType } from 'nocodb-sdk';
 
 @Injectable()
 export class KanbansService {

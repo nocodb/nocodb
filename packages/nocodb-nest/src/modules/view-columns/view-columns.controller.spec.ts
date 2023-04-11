@@ -1,6 +1,7 @@
-import { Test, TestingModule } from '@nestjs/testing';
+import { Test } from '@nestjs/testing';
 import { ViewColumnsController } from './view-columns.controller';
 import { ViewColumnsService } from './view-columns.service';
+import type { TestingModule } from '@nestjs/testing';
 
 describe('ViewColumnsController', () => {
   let controller: ViewColumnsController;

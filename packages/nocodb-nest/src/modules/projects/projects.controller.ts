@@ -14,7 +14,6 @@ import { AuthGuard } from '@nestjs/passport';
 import isDocker from 'is-docker';
 import { ProjectReqType } from 'nocodb-sdk';
 import { PagedResponseImpl } from '../../helpers/PagedResponse';
-import { ProjectType } from 'nocodb-sdk';
 import {
   ExtractProjectIdMiddleware,
   UseAclMiddleware,
@@ -23,6 +22,7 @@ import {
 import Noco from '../../Noco';
 import { packageVersion } from '../../utils/packageVersion';
 import { ProjectsService } from './projects.service';
+import type { ProjectType } from 'nocodb-sdk';
 
 @UseGuards(ExtractProjectIdMiddleware, AuthGuard('jwt'))
 @Controller()

@@ -3,11 +3,8 @@ import { NcError } from '../../../helpers/catchError';
 import { PagedResponseImpl } from '../../../helpers/PagedResponse';
 import { Base, Model } from '../../../models';
 import NcConnectionMgrv2 from '../../../utils/common/NcConnectionMgrv2';
-import {
-  getColumnByIdOrName,
-  getViewAndModelByAliasOrId,
-  PathParams,
-} from '../helpers';
+import { getColumnByIdOrName, getViewAndModelByAliasOrId } from '../helpers';
+import type { PathParams } from '../helpers';
 
 @Injectable()
 export class DataAliasNestedService {

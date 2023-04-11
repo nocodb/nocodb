@@ -1,5 +1,6 @@
-import { Test, TestingModule } from '@nestjs/testing';
+import { Test } from '@nestjs/testing';
 import { DataAliasExportController } from './data-alias-export.controller';
+import type { TestingModule } from '@nestjs/testing';
 
 describe('DataAliasExportController', () => {
   let controller: DataAliasExportController;

@@ -1,14 +1,14 @@
 import { Controller, Post, Request } from '@nestjs/common';
-import type { Server } from 'socket.io';
+import { forwardRef, Inject } from '@nestjs/common';
+import { ModuleRef } from '@nestjs/core';
 import { NcError } from '../../helpers/catchError';
 import { SyncSource } from '../../models';
-import { AirtableSyncConfig } from '../sync/helpers/job';
-import { ImportService } from './import.service';
-import { Router } from 'express';
 import NocoJobs from '../../jobs/NocoJobs';
+import { ImportService } from './import.service';
+import type { AirtableSyncConfig } from '../sync/helpers/job';
 
-import { Inject, forwardRef } from '@nestjs/common';
-import { ModuleRef } from '@nestjs/core';
+import type { Router } from 'express';
+import type { Server } from 'socket.io';
 
 const AIRTABLE_IMPORT_JOB = 'AIRTABLE_IMPORT_JOB';
 const AIRTABLE_PROGRESS_JOB = 'AIRTABLE_PROGRESS_JOB';

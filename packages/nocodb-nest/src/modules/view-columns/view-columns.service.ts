@@ -1,9 +1,8 @@
 import { Injectable } from '@nestjs/common';
-import { ViewColumnReqType, ViewColumnUpdateReqType } from 'nocodb-sdk';
+import { T } from 'nc-help';
 import { validatePayload } from '../../helpers';
 import { View } from '../../models';
-
-import { T } from 'nc-help';
+import type { ViewColumnReqType, ViewColumnUpdateReqType } from 'nocodb-sdk';
 
 @Injectable()
 export class ViewColumnsService {

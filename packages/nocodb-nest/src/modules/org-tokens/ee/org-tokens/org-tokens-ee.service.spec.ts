@@ -1,5 +1,6 @@
-import { Test, TestingModule } from '@nestjs/testing';
+import { Test } from '@nestjs/testing';
 import { OrgTokensEeService } from './org-tokens.service';
+import type { TestingModule } from '@nestjs/testing';
 
 describe('OrgTokensService', () => {
   let service: OrgTokensEeService;

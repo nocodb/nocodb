@@ -1,6 +1,7 @@
-import { Test, TestingModule } from '@nestjs/testing';
+import { Test } from '@nestjs/testing';
 import { MetaDiffsController } from './meta-diffs.controller';
 import { MetaDiffsService } from './meta-diffs.service';
+import type { TestingModule } from '@nestjs/testing';
 
 describe('MetaDiffsController', () => {
   let controller: MetaDiffsController;

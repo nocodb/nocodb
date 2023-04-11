@@ -1,6 +1,6 @@
-import { Model, Project } from '../../../models';
 import Noco from '../../../Noco';
 import { getModelSchemas, getViewSchemas } from './templates/schemas';
+import type { Model, Project } from '../../../models';
 
 import type { SwaggerColumn } from './getSwaggerColumnMetas';
 import type { SwaggerView } from './getSwaggerJSON';

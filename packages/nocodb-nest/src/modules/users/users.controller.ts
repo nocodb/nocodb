@@ -1,3 +1,4 @@
+import { promisify } from 'util';
 import {
   Body,
   Controller,
@@ -8,7 +9,8 @@ import {
   Response,
   UseGuards,
 } from '@nestjs/common';
-import { promisify } from 'util';
+import * as ejs from 'ejs';
+import { AuthGuard } from '@nestjs/passport';
 import { NcError } from '../../helpers/catchError';
 import {
   Acl,
@@ -16,12 +18,10 @@ import {
 } from '../../middlewares/extract-project-id/extract-project-id.middleware';
 import Noco from '../../Noco';
 import extractRolesObj from '../../utils/extractRolesObj';
+import { Audit, User } from '../../models';
 import { genJwt, randomTokenString, setTokenCookie } from './helpers';
 import { UsersService } from './users.service';
 
-import * as ejs from 'ejs';
-import { Audit, User } from '../../models';
-import { AuthGuard } from '@nestjs/passport';
 @Controller()
 export class UsersController {
   constructor(private readonly usersService: UsersService) {}

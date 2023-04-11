@@ -1,5 +1,6 @@
-import { Test, TestingModule } from '@nestjs/testing';
+import { Test } from '@nestjs/testing';
 import { LocalStrategy } from './local.strategy';
+import type { TestingModule } from '@nestjs/testing';
 
 describe('LocalStrategy', () => {
   let provider: LocalStrategy;

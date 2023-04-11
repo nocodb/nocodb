@@ -51,6 +51,7 @@ import type {
   MiddlewareConsumer,
   OnApplicationBootstrap,
 } from '@nestjs/common';
+import NcUpgrader from './version-upgrader/NcUpgrader';
 
 @Module({
   imports: [
@@ -130,5 +131,8 @@ export class AppModule implements OnApplicationBootstrap {
     // temporary hack
     Noco._ncMeta = this.metaService;
     Noco.config = this.connection.config;
+
+    // run upgrader
+    await NcUpgrader.upgrade({ ncMeta: Noco._ncMeta });
   }
 }

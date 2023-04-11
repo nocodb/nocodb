@@ -5,6 +5,8 @@ import * as bcrypt from 'bcryptjs';
 import { JwtService } from '@nestjs/jwt';
 
 import { v4 as uuidv4 } from 'uuid';
+import Noco from '../../Noco'
+import { genJwt } from '../users/helpers'
 import { UsersService } from '../users/users.service';
 import { Connection } from '../../connection/connection';
 import type { CreateUserDto } from './auth.controller';
@@ -13,7 +15,7 @@ import type { CreateUserDto } from './auth.controller';
 export class AuthService {
   constructor(
     private usersService: UsersService,
-    private jwtService: JwtService,
+    // private jwtService: JwtService,
     private connection: Connection,
   ) {}
 
@@ -35,7 +37,7 @@ export class AuthService {
     delete user.salt;
     const payload = user;
     return {
-      token: this.jwtService.sign(payload),
+      token: genJwt(payload, Noco.getConfig()),
     };
   }
 

@@ -106,6 +106,7 @@ export class UsersController {
     '/api/v1/auth/user/signin',
   ])
   @UseGuards(AuthGuard('local'))
+  @HttpCode(200)
   async signin(@Request() req) {
     return this.usersService.login(req.user);
   }

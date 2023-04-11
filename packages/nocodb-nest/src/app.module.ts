@@ -6,6 +6,7 @@ import { GlobalExceptionFilter } from './filters/global-exception/global-excepti
 import { GlobalMiddleware } from './middlewares/global/global.middleware';
 import { AuthModule } from './modules/auth/auth.module';
 import { ExtractProjectIdMiddleware } from './middlewares/extract-project-id/extract-project-id.middleware';
+import { AuthService } from './modules/auth/auth.service'
 import { UsersModule } from './modules/users/users.module';
 import { MetaService } from './meta/meta.service';
 import { UsersService } from './modules/users/users.service';
@@ -50,6 +51,7 @@ import { CachesModule } from './modules/caches/caches.module';
 import { TestModule } from './modules/test/test.module';
 import { PluginsModule } from './modules/plugins/plugins.module';
 import { GlobalModule } from './modules/global/global.module';
+import { LocalStrategy } from './strategies/local.strategy'
 import NcConfigFactory from './utils/NcConfigFactory'
 import NcUpgrader from './version-upgrader/NcUpgrader';
 import type {
@@ -123,11 +125,13 @@ export const JwtStrategyProvider: Provider = {
   ],
   controllers: [],
   providers: [
+    AuthService,
     {
       provide: APP_FILTER,
       useClass: GlobalExceptionFilter,
     },
     JwtStrategyProvider,
+    LocalStrategy,
     ExtractProjectIdMiddleware,
   ],
 })

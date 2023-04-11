@@ -2,8 +2,10 @@ import { Injectable } from '@nestjs/common';
 import axios from 'axios';
 import { compareVersions, validate } from 'compare-versions';
 import { NC_ATTACHMENT_FIELD_SIZE } from '../../constants';
+import SqlMgrv2 from '../../db/sql-mgr/v2/SqlMgrv2'
 import { NcError } from '../../helpers/catchError';
 import { User } from '../../models';
+import Noco from '../../Noco'
 import NcConfigFactory from '../../utils/NcConfigFactory';
 import { packageVersion } from '../../utils/packageVersion';
 // import { packageVersion } from '../packageVersion';
@@ -381,4 +383,47 @@ export class UtilsService {
       return null;
     });
   };
+
+  async testConnection(param: { body: any }) {
+    return await SqlMgrv2.testConnection(param.body);
+  }
+
+  async appInfo(param: { req: { ncSiteUrl: string } }) {
+    const projectHasAdmin = !(await User.isFirst());
+    const result = {
+      authType: 'jwt',
+      projectHasAdmin,
+      firstUser: !projectHasAdmin,
+      type: 'rest',
+      env: process.env.NODE_ENV,
+      googleAuthEnabled: !!(
+        process.env.NC_GOOGLE_CLIENT_ID && process.env.NC_GOOGLE_CLIENT_SECRET
+      ),
+      githubAuthEnabled: !!(
+        process.env.NC_GITHUB_CLIENT_ID && process.env.NC_GITHUB_CLIENT_SECRET
+      ),
+      oneClick: !!process.env.NC_ONE_CLICK,
+      connectToExternalDB: !process.env.NC_CONNECT_TO_EXTERNAL_DB_DISABLED,
+      version: packageVersion,
+      defaultLimit: Math.max(
+        Math.min(
+          +process.env.DB_QUERY_LIMIT_DEFAULT || 25,
+          +process.env.DB_QUERY_LIMIT_MAX || 100,
+        ),
+        +process.env.DB_QUERY_LIMIT_MIN || 1,
+      ),
+      timezone: defaultConnectionConfig.timezone,
+      ncMin: !!process.env.NC_MIN,
+      teleEnabled: process.env.NC_DISABLE_TELE !== 'true',
+      auditEnabled: process.env.NC_DISABLE_AUDIT !== 'true',
+      ncSiteUrl: (param.req as any).ncSiteUrl,
+      ee: Noco.isEE(),
+      ncAttachmentFieldSize: NC_ATTACHMENT_FIELD_SIZE,
+      ncMaxAttachmentsAllowed: +(process.env.NC_MAX_ATTACHMENTS_ALLOWED || 10),
+      isCloud: process.env.NC_CLOUD === 'true',
+      automationLogLevel: process.env.NC_AUTOMATION_LOG_LEVEL || 'OFF',
+    };
+
+    return result;
+  }
 }

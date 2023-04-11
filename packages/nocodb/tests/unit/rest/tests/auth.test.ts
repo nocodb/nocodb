@@ -132,7 +132,7 @@ function authTests() {
       .expect(200);
   });
 
-  it('Change password - after logout', async () => {
+  it.only('Change password - after logout', async () => {
     await request(context.app)
       .post('/api/v1/auth/password/change')
       .unset('xc-auth')

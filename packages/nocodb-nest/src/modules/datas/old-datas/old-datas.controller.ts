@@ -85,7 +85,14 @@ export class OldDatasController {
     @Param('tableName') tableName: string,
     @Param('rowId') rowId: string,
   ) {
-    res.json(await this.oldDatasService.dataRead(req));
+    res.json(
+      await this.oldDatasService.dataRead({
+        projectId: projectId,
+        tableName: tableName,
+        rowId: rowId,
+        query: req.query,
+      }),
+    );
   }
 
   @Patch('/nc/:projectId/api/v1/:tableName/:rowId')

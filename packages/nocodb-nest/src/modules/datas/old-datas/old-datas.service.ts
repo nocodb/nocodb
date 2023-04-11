@@ -94,7 +94,7 @@ export class OldDatasService {
 
     return await nocoExecute(
       ast,
-      await baseModel.readByPk(param.params.rowId),
+      await baseModel.readByPk(param.rowId),
       {},
       {},
     );

@@ -43,7 +43,7 @@ export class OldDatasService {
     return await nocoExecute(ast, await baseModel.list(listArgs), {}, listArgs);
   }
 
-  async getDataCount(param: OldPathParams & { query: any }) {
+  async dataCount(param: OldPathParams & { query: any }) {
     const { model, view } = await this.getViewAndModelFromRequest(param);
     const base = await Base.get(model.base_id);
 
@@ -61,7 +61,7 @@ export class OldDatasService {
     return await baseModel.count(listArgs);
   }
 
-  async dataInsert(param: OldPathParams & { body: unknown }) {
+  async dataInsert(param: OldPathParams & { body: unknown; cookie: any }) {
     const { model, view } = await this.getViewAndModelFromRequest(param);
 
     const base = await Base.get(model.base_id);
@@ -72,7 +72,7 @@ export class OldDatasService {
       dbDriver: await NcConnectionMgrv2.get(base),
     });
 
-    return await baseModel.insert(param.body, null, param);
+    return await baseModel.insert(param.body, null, param.cookie);
   }
 
   async dataRead(param: OldPathParams & { query: any; rowId: string }) {

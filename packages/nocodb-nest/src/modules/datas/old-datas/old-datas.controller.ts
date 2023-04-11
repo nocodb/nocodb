@@ -48,7 +48,13 @@ export class OldDatasController {
     @Param('projectId') projectId: string,
     @Param('tableName') tableName: string,
   ) {
-    res.json(await this.oldDatasService.getDataCount(req));
+    res.json(
+      await this.oldDatasService.dataCount({
+        query: req.query,
+        projectId: projectId,
+        tableName: tableName,
+      }),
+    );
   }
 
   @Post('/nc/:projectId/api/v1/:tableName')
@@ -58,8 +64,16 @@ export class OldDatasController {
     @Response() res,
     @Param('projectId') projectId: string,
     @Param('tableName') tableName: string,
+    @Body() body: any,
   ) {
-    res.json(await this.oldDatasService.dataInsert(req));
+    res.json(
+      await this.oldDatasService.dataInsert({
+        projectId: projectId,
+        tableName: tableName,
+        body: body,
+        cookie: req,
+      }),
+    );
   }
 
   @Get('/nc/:projectId/api/v1/:tableName/:rowId')

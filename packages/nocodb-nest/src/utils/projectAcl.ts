@@ -378,6 +378,7 @@ export default {
       workspaceList: true,
       workspaceGet: true,
       workspaceCreate: true,
+      workspaceUserList: true,
       genericGPT: true,
       commandPalette: true,
       runSelectQuery: true,

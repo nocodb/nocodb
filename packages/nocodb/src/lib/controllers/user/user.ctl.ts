@@ -1,4 +1,5 @@
 import { promisify } from 'util';
+import { AuditOperationSubTypes, AuditOperationTypes } from 'nocodb-sdk';
 import * as ejs from 'ejs';
 import passport from 'passport';
 import catchError, { NcError } from '../../meta/helpers/catchError';
@@ -65,8 +66,8 @@ async function successfulSignIn({
     setTokenCookie(res, refreshToken);
 
     await Audit.insert({
-      op_type: 'AUTHENTICATION',
-      op_sub_type: 'SIGNIN',
+      op_type: AuditOperationTypes.AUTHENTICATION,
+      op_sub_type: AuditOperationSubTypes.SIGNIN,
       user: user.email,
       ip: req.clientIp,
       description: auditDescription,
@@ -92,7 +93,7 @@ async function signin(req, res, next) {
         info,
         req,
         res,
-        auditDescription: 'signed in',
+        auditDescription: 'User has signed in successfully',
       })
   )(req, res, next);
 }
@@ -111,7 +112,7 @@ async function googleSignin(req, res, next) {
         info,
         req,
         res,
-        auditDescription: 'signed in using Google Auth',
+        auditDescription: 'User has signed in successfully using Google Auth ',
       })
   )(req, res, next);
 }

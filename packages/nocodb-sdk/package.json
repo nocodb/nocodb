@@ -1,6 +1,6 @@
 {
   "name": "nocodb-sdk",
-  "version": "0.106.0-beta.1",
+  "version": "0.106.0",
   "description": "NocoDB SDK",
   "main": "build/main/index.js",
   "typings": "build/main/index.d.ts",

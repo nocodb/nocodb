@@ -463,6 +463,24 @@ export default class Model implements TableType {
     return insertObj;
   }
 
+  async mapColumnToAlias(data) {
+    const res = {};
+    for (const col of await this.getColumns()) {
+      if (isVirtualCol(col)) continue;
+      let val =
+        data?.[col.title] !== undefined
+          ? data?.[col.title]
+          : data?.[col.column_name];
+      if (val !== undefined) {
+        if (col.uidt === UITypes.Attachment && typeof val !== 'string') {
+          val = JSON.stringify(val);
+        }
+        res[sanitize(col.title)] = val;
+      }
+    }
+    return res;
+  }
+
   static async updateAliasAndTableName(
     tableId,
     title: string,

@@ -25,7 +25,7 @@ import type {
   OnApplicationBootstrap,
 } from '@nestjs/common';
 import { WorkspacesModule } from './modules/workspaces/workspaces.module';
-
+import { WorkspaceUsersModule } from './modules/workspace-users/workspace-users.module';
 @Module({
   imports: [
     ServeStaticModule.forRoot({
@@ -38,6 +38,7 @@ import { WorkspacesModule } from './modules/workspaces/workspaces.module';
     DatasModule,
     TestModule,
     WorkspacesModule,
+    WorkspaceUsersModule,
   ],
   controllers: [],
   providers: [

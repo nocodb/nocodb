@@ -162,7 +162,10 @@ export default class Model implements TableType {
   ): Promise<Model[]> {
     let cachedList;
     if (base_id) {
-      cachedList = await NocoCache.getList(CacheScope.MODEL, [project_id, base_id]);
+      cachedList = await NocoCache.getList(CacheScope.MODEL, [
+        project_id,
+        base_id,
+      ]);
     } else {
       cachedList = await NocoCache.getList(CacheScope.MODEL, [project_id]);
     }
@@ -213,11 +216,13 @@ export default class Model implements TableType {
     },
     ncMeta = Noco.ncMeta
   ): Promise<Model[]> {
-    let modelList = await NocoCache.getList(CacheScope.MODEL, [
+    const cachedList = await NocoCache.getList(CacheScope.MODEL, [
       project_id,
       db_alias,
     ]);
-    if (!modelList.length) {
+    let { list: modelList } = cachedList;
+    const { isEmptyList } = cachedList;
+    if (!isEmptyList && !modelList.length) {
       modelList = await ncMeta.metaList2(
         project_id,
         db_alias,

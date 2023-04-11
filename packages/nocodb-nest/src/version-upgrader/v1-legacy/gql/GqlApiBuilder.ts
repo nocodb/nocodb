@@ -1,6 +1,6 @@
 import debug from 'debug';
 import { Router } from 'express';
-import GqlXcSchemaFactory from '../../../../../nocodb/src/lib/db/sql-mgr/code/gql-schema/xc-ts/GqlXcSchemaFactory';
+import GqlXcSchemaFactory from '../../../db/sql-mgr/code/gql-schema/xc-ts/GqlXcSchemaFactory'
 import { MetaService } from '../../../meta/meta.service';
 import Noco from '../../../Noco';
 import type NcProjectBuilder from '../NcProjectBuilder';

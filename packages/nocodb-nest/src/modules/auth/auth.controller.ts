@@ -29,7 +29,7 @@ export class AuthController {
 
   @Post('/api/v1/auth/user/signup')
   async signup(@Body() createUserDto: CreateUserDto) {
-    const user = await this.authService.signup(createUserDto);
+    return await this.authService.signup(createUserDto);
   }
 
   @UseGuards(ExtractProjectIdMiddleware, AuthGuard('jwt'))

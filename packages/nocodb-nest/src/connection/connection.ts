@@ -1,11 +1,12 @@
-import { Global, Injectable, OnModuleInit } from '@nestjs/common';
+import { Global, Injectable, Scope } from '@nestjs/common'
+import type * as knex from 'knex'
 
-import { XKnex } from '../db/CustomKnex';
-import NcConfigFactory from '../utils/NcConfigFactory';
-import type * as knex from 'knex';
+import { XKnex } from '../db/CustomKnex'
+import NcConfigFactory from '../utils/NcConfigFactory'
 
-@Global()
-@Injectable()
+@Injectable({
+  scope: Scope.DEFAULT
+})
 export class Connection {
   private knex: knex.Knex;
   private _config: any;

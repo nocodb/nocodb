@@ -4,7 +4,6 @@ import * as DOMPurify from 'isomorphic-dompurify';
 import { customAlphabet } from 'nanoid';
 import { T } from 'nc-help';
 import { OrgUserRoles } from '../../../../nocodb-sdk';
-import { projectList } from '../../../../nocodb/src/lib/services/project.svc';
 import { populateMeta, validatePayload } from '../../helpers';
 import { NcError } from '../../helpers/catchError';
 import { extractPropsAndSanitize } from '../../helpers/extractProps';

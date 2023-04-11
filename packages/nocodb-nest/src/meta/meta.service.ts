@@ -184,7 +184,6 @@ export enum CacheDelDirection {
 
 const nanoidv2 = customAlphabet('1234567890abcdefghijklmnopqrstuvwxyz', 14);
 
-@Global()
 @Injectable()
 export class MetaService {
   constructor(private metaConnection: Connection) {}

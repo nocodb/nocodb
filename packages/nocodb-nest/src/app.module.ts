@@ -51,10 +51,12 @@ import type {
   MiddlewareConsumer,
   OnApplicationBootstrap,
 } from '@nestjs/common';
+import { GlobalModule } from './modules/global/global.module';
 import NcUpgrader from './version-upgrader/NcUpgrader';
 
 @Module({
   imports: [
+    GlobalModule,
     AuthModule,
     UsersModule,
     UtilsModule,
@@ -102,12 +104,9 @@ import NcUpgrader from './version-upgrader/NcUpgrader';
       provide: APP_FILTER,
       useClass: GlobalExceptionFilter,
     },
-    Connection,
-    MetaService,
     JwtStrategy,
     ExtractProjectIdMiddleware,
   ],
-  exports: [Connection, MetaService],
 })
 export class AppModule implements OnApplicationBootstrap {
   constructor(

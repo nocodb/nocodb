@@ -1,9 +1,13 @@
-import { OrgUserRoles } from 'nocodb-sdk';
+import {
+  AuditOperationSubTypes,
+  AuditOperationTypes,
+  OrgUserRoles,
+  PluginCategory,
+} from 'nocodb-sdk';
 import { T } from 'nc-help';
 import validator from 'validator';
 import { v4 as uuidv4 } from 'uuid';
 import * as ejs from 'ejs';
-import { PluginCategory } from 'nocodb-sdk';
 import { validatePayload } from '../meta/api/helpers';
 import { PagedResponseImpl } from '../meta/helpers/PagedResponse';
 import ProjectUser from '../models/ProjectUser';
@@ -92,10 +96,10 @@ export async function userInvite(param: {
 
       await Audit.insert({
         project_id: param.projectId,
-        op_type: 'AUTHENTICATION',
-        op_sub_type: 'INVITE',
+        op_type: AuditOperationTypes.AUTHENTICATION,
+        op_sub_type: AuditOperationSubTypes.INVITE,
         user: param.req.user.email,
-        description: `invited ${email} to ${param.projectId} project `,
+        description: `${email} has been invited to ${param.projectId} project`,
         ip: param.req.clientIp,
       });
     } else {
@@ -121,8 +125,8 @@ export async function userInvite(param: {
 
         await Audit.insert({
           project_id: param.projectId,
-          op_type: 'AUTHENTICATION',
-          op_sub_type: 'INVITE',
+          op_type: AuditOperationTypes.AUTHENTICATION,
+          op_sub_type: AuditOperationSubTypes.INVITE,
           user: param.req.user.email,
           description: `invited ${email} to ${param.projectId} project `,
           ip: param.req.clientIp,
@@ -201,10 +205,10 @@ export async function projectUserUpdate(param: {
   });
 
   await Audit.insert({
-    op_type: 'AUTHENTICATION',
-    op_sub_type: 'ROLES_MANAGEMENT',
+    op_type: AuditOperationTypes.AUTHENTICATION,
+    op_sub_type: AuditOperationSubTypes.ROLES_MANAGEMENT,
     user: param.req.user.email,
-    description: `updated roles for ${user.email} with ${param.projectUser.roles} `,
+    description: `Roles for ${user.email} with has been updated to ${param.projectUser.roles}`,
     ip: param.req.clientIp,
   });
 
@@ -273,10 +277,10 @@ export async function projectUserInviteResend(param: {
   await sendInviteEmail(user.email, invite_token, param.req);
 
   await Audit.insert({
-    op_type: 'AUTHENTICATION',
-    op_sub_type: 'RESEND_INVITE',
+    op_type: AuditOperationTypes.AUTHENTICATION,
+    op_sub_type: AuditOperationSubTypes.RESEND_INVITE,
     user: user.email,
-    description: `resent a invite to ${user.email} `,
+    description: `${user.email} has been re-invited`,
     ip: param.req.clientIp,
     project_id: param.projectId,
   });

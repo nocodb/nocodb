@@ -25,13 +25,13 @@ test.describe('Table Operations', () => {
     await settings.audit.verifyRow({
       index: 0,
       opType: 'TABLE',
-      opSubtype: 'DELETED',
+      opSubtype: 'DELETE',
       user: 'user@nocodb.com',
     });
     await settings.audit.verifyRow({
       index: 1,
       opType: 'TABLE',
-      opSubtype: 'CREATED',
+      opSubtype: 'CREATE',
       user: 'user@nocodb.com',
     });
     await settings.close();

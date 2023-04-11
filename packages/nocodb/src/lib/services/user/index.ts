@@ -1,6 +1,10 @@
 import { promisify } from 'util';
-import { validatePassword } from 'nocodb-sdk';
-import { OrgUserRoles } from 'nocodb-sdk';
+import {
+  AuditOperationSubTypes,
+  AuditOperationTypes,
+  OrgUserRoles,
+  validatePassword,
+} from 'nocodb-sdk';
 import { T } from 'nc-help';
 import * as ejs from 'ejs';
 import bcrypt from 'bcryptjs';
@@ -120,10 +124,10 @@ export async function passwordChange(param: {
   });
 
   await Audit.insert({
-    op_type: 'AUTHENTICATION',
-    op_sub_type: 'PASSWORD_CHANGE',
+    op_type: AuditOperationTypes.AUTHENTICATION,
+    op_sub_type: AuditOperationSubTypes.PASSWORD_CHANGE,
     user: user.email,
-    description: `changed password `,
+    description: `Password has been changed`,
     ip: param.req?.clientIp,
   });
 
@@ -178,10 +182,10 @@ export async function passwordForgot(param: {
     }
 
     await Audit.insert({
-      op_type: 'AUTHENTICATION',
-      op_sub_type: 'PASSWORD_FORGOT',
+      op_type: AuditOperationTypes.AUTHENTICATION,
+      op_sub_type: AuditOperationSubTypes.PASSWORD_FORGOT,
       user: user.email,
-      description: `requested for password reset `,
+      description: `Password Reset has been requested`,
       ip: param.req?.clientIp,
     });
   } else {
@@ -254,10 +258,10 @@ export async function passwordReset(param: {
   });
 
   await Audit.insert({
-    op_type: 'AUTHENTICATION',
-    op_sub_type: 'PASSWORD_RESET',
+    op_type: AuditOperationTypes.AUTHENTICATION,
+    op_sub_type: AuditOperationSubTypes.PASSWORD_RESET,
     user: user.email,
-    description: `did reset password `,
+    description: `Password has been reset`,
     ip: req.clientIp,
   });
 
@@ -286,10 +290,10 @@ export async function emailVerification(param: {
   });
 
   await Audit.insert({
-    op_type: 'AUTHENTICATION',
-    op_sub_type: 'EMAIL_VERIFICATION',
+    op_type: AuditOperationTypes.AUTHENTICATION,
+    op_sub_type: AuditOperationSubTypes.EMAIL_VERIFICATION,
     user: user.email,
-    description: `verified email `,
+    description: `Email has been verified`,
     ip: req.clientIp,
   });
 
@@ -442,10 +446,10 @@ export async function signup(param: {
   user = (param.req as any).user;
 
   await Audit.insert({
-    op_type: 'AUTHENTICATION',
-    op_sub_type: 'SIGNUP',
+    op_type: AuditOperationTypes.AUTHENTICATION,
+    op_sub_type: AuditOperationSubTypes.SIGNUP,
     user: user.email,
-    description: `signed up `,
+    description: `User has signed up`,
     ip: (param.req as any).clientIp,
   });
 

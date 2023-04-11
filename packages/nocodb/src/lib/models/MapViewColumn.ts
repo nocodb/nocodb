@@ -67,7 +67,9 @@ export default class MapViewColumn {
     await NocoCache.set(`${CacheScope.MAP_VIEW_COLUMN}:${fk_column_id}`, id);
 
     // if cache is not present skip pushing it into the list to avoid unexpected behaviour
-    const { list } = await NocoCache.getList(CacheScope.MAP_VIEW_COLUMN, [column.fk_view_id]);
+    const { list } = await NocoCache.getList(CacheScope.MAP_VIEW_COLUMN, [
+      column.fk_view_id,
+    ]);
     if (list?.length)
       await NocoCache.appendToList(
         CacheScope.MAP_VIEW_COLUMN,
@@ -82,8 +84,12 @@ export default class MapViewColumn {
     viewId: string,
     ncMeta = Noco.ncMeta
   ): Promise<MapViewColumn[]> {
-    let views = await NocoCache.getList(CacheScope.MAP_VIEW_COLUMN, [viewId]);
-    if (!views.length) {
+    const cachedList = await NocoCache.getList(CacheScope.MAP_VIEW_COLUMN, [
+      viewId,
+    ]);
+    let { list: views } = cachedList;
+    const { isEmptyList } = cachedList;
+    if (!isEmptyList && !views.length) {
       views = await ncMeta.metaList2(null, null, MetaTable.MAP_VIEW_COLUMNS, {
         condition: {
           fk_view_id: viewId,

@@ -31,12 +31,14 @@ export class UsersController {
     '/api/v1/db/auth/user/signup',
     '/api/v1/auth/user/signup',
   ])
-  async signup(@Request() req: any, @Request() res: any): Promise<any> {
-    return await this.usersService.signup({
-      body: req.body,
-      req,
-      res,
-    });
+  async signup(@Request() req: any, @Response() res: any): Promise<any> {
+    res.json(
+      await this.usersService.signup({
+        body: req.body,
+        req,
+        res,
+      }),
+    );
   }
 
   @Post([

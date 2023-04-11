@@ -4,22 +4,28 @@ import { ExtractJwt, Strategy } from 'passport-jwt';
 import { OrgUserRoles } from '../../../nocodb-sdk';
 import NocoCache from '../cache/NocoCache';
 import { ProjectUser, User } from '../models';
+import { genJwt } from '../modules/users/helpers'
+import Noco from '../Noco'
 import extractRolesObj from '../utils/extractRolesObj';
 import { CacheGetType, CacheScope } from '../utils/globals';
 import { jwtConstants } from '../modules/auth/constants';
 import { UsersService } from '../modules/users/users.service';
+import NcConfigFactory from '../utils/NcConfigFactory'
 
 @Injectable()
 export class JwtStrategy extends PassportStrategy(Strategy) {
-  constructor(private userService: UsersService) {
-    super({
-      // ignoreExpiration: false,
-      jwtFromRequest: ExtractJwt.fromHeader('xc-auth'),
-      secretOrKey: jwtConstants.secret,
-      expiresIn: '10h',
-
-      passReqToCallback: true,
-    });
+  constructor(options, private userService: UsersService, ) {
+    super(
+      options
+    )
+    //   {
+    //   // ignoreExpiration: false,
+    //   jwtFromRequest: ExtractJwt.fromHeader('xc-auth'),
+    //   expiresIn: '10h',
+    //   passReqToCallback: true,
+    //   secretOrKey: process.env.NC_AUTH_JWT_SECRET ?? 'temporary-key'
+    //
+    // });
   }
 
   async validate(req: any, jwtPayload: any) {

@@ -1,16 +1,23 @@
 import { Global, Module } from '@nestjs/common'
+import { JwtModule, JwtService } from '@nestjs/jwt'
 import { Connection } from '../../connection/connection'
 import { MetaService } from '../../meta/meta.service'
+import { jwtConstants } from '../auth/constants'
 
 @Global()
 @Module({
-  providers:[
-    Connection,
-    MetaService
+  imports: [
+
   ],
-exports: [
+  providers: [
     Connection,
-    MetaService
-  ]
+    MetaService,
+  ],
+  exports: [
+    Connection,
+    MetaService,
+    // JwtService,
+  ],
 })
-export class GlobalModule {}
+export class GlobalModule {
+}

@@ -50,6 +50,8 @@ import genRollupSelectv2 from './genRollupSelectv2';
 import conditionV2 from './conditionV2';
 import sortV2 from './sortV2';
 import { customValidators } from './util/customValidators';
+import type LookupColumn from '../../../nocodb/src/lib/models/LookupColumn';
+import type { XKnex } from '../../../nocodb/src/lib/db/sql-data-mapper';
 import type {
   XcFilter,
   XcFilterWithAlias,
@@ -118,7 +120,7 @@ function checkColumnRequired(
  * @classdesc Base class for models
  */
 class BaseModelSqlv2 {
-  protected dbDriver: Knex;
+  protected dbDriver: XKnex;
   protected model: Model;
   protected viewId: string;
   private _proto: any;
@@ -1404,7 +1406,6 @@ class BaseModelSqlv2 {
                   return [];
                 }
               });
-
               const self: BaseModelSqlv2 = this;
 
               proto[column.title] = async function (args): Promise<any> {
@@ -1891,7 +1892,7 @@ class BaseModelSqlv2 {
       await this.execAndParse(query);
 
       const newData = await this.readByPk(id);
-      await this.afterUpdate(prevData, newData, trx, cookie);
+      await this.afterUpdate(prevData, newData, trx, cookie, updateObj);
       return newData;
     } catch (e) {
       console.log(e);
@@ -2323,7 +2324,7 @@ class BaseModelSqlv2 {
       op_type: AuditOperationTypes.DATA,
       op_sub_type: AuditOperationSubTypes.INSERT,
       description: DOMPurify.sanitize(
-        `${id} inserted into ${this.model.title}`,
+        `Record with ID ${id} has been inserted into Table ${this.model.title}`,
       ),
       // details: JSON.stringify(data),
       ip: req?.clientIp,
@@ -2349,7 +2350,9 @@ class BaseModelSqlv2 {
       op_type: AuditOperationTypes.DATA,
       op_sub_type: AuditOperationSubTypes.BULK_UPDATE,
       description: DOMPurify.sanitize(
-        `${noOfUpdatedRecords} records bulk updated in ${this.model.title}`,
+        `${noOfUpdatedRecords} ${
+          noOfUpdatedRecords > 1 ? 'records have' : 'record has'
+        } been bulk updated in ${this.model.title}`,
       ),
       // details: JSON.stringify(data),
       ip: req?.clientIp,
@@ -2374,7 +2377,9 @@ class BaseModelSqlv2 {
       op_type: AuditOperationTypes.DATA,
       op_sub_type: AuditOperationSubTypes.BULK_DELETE,
       description: DOMPurify.sanitize(
-        `${noOfDeletedRecords} records bulk deleted in ${this.model.title}`,
+        `${noOfDeletedRecords} ${
+          noOfDeletedRecords > 1 ? 'records have' : 'record has'
+        } been bulk deleted in ${this.model.title}`,
       ),
       // details: JSON.stringify(data),
       ip: req?.clientIp,
@@ -2390,7 +2395,9 @@ class BaseModelSqlv2 {
       op_type: AuditOperationTypes.DATA,
       op_sub_type: AuditOperationSubTypes.BULK_INSERT,
       description: DOMPurify.sanitize(
-        `${data.length} records bulk inserted into ${this.model.title}`,
+        `${data.length} ${
+          data.length > 1 ? 'records have' : 'record has'
+        } been bulk inserted in ${this.model.title}`,
       ),
       // details: JSON.stringify(data),
       ip: req?.clientIp,
@@ -2415,15 +2422,31 @@ class BaseModelSqlv2 {
     newData: any,
     _trx: any,
     req,
+    updateObj?: Record<string, any>,
   ): Promise<void> {
     const id = this._extractPksValues(newData);
-
+    let desc = `Record with ID ${id} has been updated in Table ${this.model.title}.`;
+    if (updateObj) {
+      updateObj = await this.model.mapColumnToAlias(updateObj);
+      for (const k of Object.keys(updateObj)) {
+        const prevValue =
+          typeof prevData[k] === 'object'
+            ? JSON.stringify(prevData[k])
+            : prevData[k];
+        const newValue =
+          typeof newData[k] === 'object'
+            ? JSON.stringify(newData[k])
+            : newData[k];
+        desc += `\n`;
+        desc += `Column "${k}" got changed from "${prevValue}" to "${newValue}"`;
+      }
+    }
     await Audit.insert({
       fk_model_id: this.model.id,
       row_id: id,
       op_type: AuditOperationTypes.DATA,
       op_sub_type: AuditOperationSubTypes.UPDATE,
-      description: DOMPurify.sanitize(`${id} updated in ${this.model.title}`),
+      description: DOMPurify.sanitize(desc),
       // details: JSON.stringify(data),
       ip: req?.clientIp,
       user: req?.user?.email,
@@ -2451,7 +2474,9 @@ class BaseModelSqlv2 {
       row_id: id,
       op_type: AuditOperationTypes.DATA,
       op_sub_type: AuditOperationSubTypes.DELETE,
-      description: DOMPurify.sanitize(`${id} deleted from ${this.model.title}`),
+      description: DOMPurify.sanitize(
+        `Record with ID ${id} has been deleted in Table ${this.model.title}`,
+      ),
       // details: JSON.stringify(data),
       ip: req?.clientIp,
       user: req?.user?.email,
@@ -2722,7 +2747,7 @@ class BaseModelSqlv2 {
       op_sub_type: AuditOperationSubTypes.LINK_RECORD,
       row_id: rowId,
       description: DOMPurify.sanitize(
-        `Record [id:${childId}] record linked with record [id:${rowId}] record in ${this.model.title}`,
+        `Record [id:${childId}] has been linked with record [id:${rowId}] in ${this.model.title}`,
       ),
       // details: JSON.stringify(data),
       ip: req?.clientIp,
@@ -2824,7 +2849,7 @@ class BaseModelSqlv2 {
       op_sub_type: AuditOperationSubTypes.UNLINK_RECORD,
       row_id: rowId,
       description: DOMPurify.sanitize(
-        `Record [id:${childId}] record unlinked with record [id:${rowId}] record in ${this.model.title}`,
+        `Record [id:${childId}] has been unlinked with record [id:${rowId}] in ${this.model.title}`,
       ),
       // details: JSON.stringify(data),
       ip: req?.clientIp,

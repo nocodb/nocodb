@@ -459,7 +459,6 @@ export class UsersService {
         'Warning : `mailSend` failed, Please configure emailClient configuration.',
       );
     }
-    await promisify((param.req as any).login.bind(param.req))(user);
 
     const refreshToken = randomTokenString();
 
@@ -468,9 +467,8 @@ export class UsersService {
       email: user.email,
     });
 
-    setTokenCookie(param.res, refreshToken);
 
-    user = (param.req as any).user;
+    setTokenCookie(param.res, refreshToken);
 
     await Audit.insert({
       op_type: 'AUTHENTICATION',
@@ -481,7 +479,7 @@ export class UsersService {
     });
 
     return {
-      token: genJwt(user, Noco.getConfig()),
+      token: this.login(user),
     } as any;
   }
 
@@ -490,7 +488,7 @@ export class UsersService {
     delete user.salt;
     const payload = user;
     return {
-      token: this.jwtService.sign(payload),
+      token: genJwt(user, Noco.getConfig()), //this.jwtService.sign(payload),
     };
   }
 }

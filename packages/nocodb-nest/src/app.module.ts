@@ -1,5 +1,6 @@
 import { Module, RequestMethod } from '@nestjs/common';
 import { APP_FILTER } from '@nestjs/core';
+import { ExtractJwt } from 'passport-jwt';
 import { Connection } from './connection/connection';
 import { GlobalExceptionFilter } from './filters/global-exception/global-exception.filter';
 import { GlobalMiddleware } from './middlewares/global/global.middleware';
@@ -7,6 +8,7 @@ import { AuthModule } from './modules/auth/auth.module';
 import { ExtractProjectIdMiddleware } from './middlewares/extract-project-id/extract-project-id.middleware';
 import { UsersModule } from './modules/users/users.module';
 import { MetaService } from './meta/meta.service';
+import { UsersService } from './modules/users/users.service';
 import { UtilsModule } from './modules/utils/utils.module';
 import { ProjectsModule } from './modules/projects/projects.module';
 import Noco from './Noco';
@@ -47,17 +49,38 @@ import { ImportModule } from './modules/import/import.module';
 import { CachesModule } from './modules/caches/caches.module';
 import { TestModule } from './modules/test/test.module';
 import { PluginsModule } from './modules/plugins/plugins.module';
+import { GlobalModule } from './modules/global/global.module';
+import NcConfigFactory from './utils/NcConfigFactory'
+import NcUpgrader from './version-upgrader/NcUpgrader';
 import type {
   MiddlewareConsumer,
   OnApplicationBootstrap,
+  Provider,
 } from '@nestjs/common';
-import { GlobalModule } from './modules/global/global.module';
-import NcUpgrader from './version-upgrader/NcUpgrader';
+
+export const JwtStrategyProvider: Provider = {
+  provide: JwtStrategy,
+  useFactory: async (usersService: UsersService) => {
+    const config = await NcConfigFactory.make()
+
+    const options = {
+      // ignoreExpiration: false,
+      jwtFromRequest: ExtractJwt.fromHeader('xc-auth'),
+      expiresIn: '10h',
+      passReqToCallback: true,
+      secretOrKey: config.auth.jwt.secret,
+      ...config.auth.jwt.options,
+    };
+
+    return new JwtStrategy(options, usersService);
+  },
+  inject: [UsersService],
+};
 
 @Module({
   imports: [
     GlobalModule,
-    AuthModule,
+    // AuthModule,
     UsersModule,
     UtilsModule,
     ProjectsModule,
@@ -104,7 +127,7 @@ import NcUpgrader from './version-upgrader/NcUpgrader';
       provide: APP_FILTER,
       useClass: GlobalExceptionFilter,
     },
-    JwtStrategy,
+    JwtStrategyProvider,
     ExtractProjectIdMiddleware,
   ],
 })

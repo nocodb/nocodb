@@ -100,4 +100,20 @@ export class WorkspacesService {
 
     return updatedWorkspace;
   }
+
+  async delete(param: {
+    user: {
+      id: string;
+      roles: string[];
+    };
+    workspaceId: string;
+  }) {
+    // todo: avoid removing owner
+
+    // block unauthorized user form deleting
+
+    // todo: unlink any project linked
+    await Workspace.delete(param.workspaceId);
+    return true;
+  }
 }

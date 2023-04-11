@@ -3,12 +3,13 @@ import {
   Body,
   Controller,
   Get,
+  HttpCode,
   Param,
   Post,
   Request,
   Response,
   UseGuards,
-} from '@nestjs/common';
+} from '@nestjs/common'
 import * as ejs from 'ejs';
 import { AuthGuard } from '@nestjs/passport';
 import { NcError } from '../../helpers/catchError';
@@ -31,6 +32,7 @@ export class UsersController {
     '/api/v1/db/auth/user/signup',
     '/api/v1/auth/user/signup',
   ])
+  @HttpCode(200)
   async signup(@Request() req: any, @Response() res: any): Promise<any> {
     res.json(
       await this.usersService.signup({

@@ -23,7 +23,7 @@ export class AuthService {
     if (user) {
       const { password, salt, ...result } = user;
 
-      const hashedPassword = await promisify(bcrypt.hash)(password, user.salt);
+      const hashedPassword = await promisify(bcrypt.hash)(pass, user.salt);
       if (user.password === hashedPassword) {
         return result;
       }

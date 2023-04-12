@@ -29,6 +29,7 @@
     "@nestjs/core": "^9.0.0",
     "@nestjs/jwt": "^10.0.3",
     "@nestjs/mapped-types": "*",
+    "@nestjs/passport": "^9.0.3",
     "@nestjs/platform-express": "^9.4.0",
     "@sentry/node": "^6.3.5",
     "@types/chai": "^4.2.12",

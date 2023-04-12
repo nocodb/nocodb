@@ -87,7 +87,7 @@ const isImporting = ref(false)
 
 const importingTips = ref<Record<string, string>>({})
 
-const checkAllRecord = ref(false)
+const checkAllRecord = ref<boolean[]>([])
 
 const uiTypeOptions = ref<Option[]>(
   (Object.keys(UITypes) as (keyof typeof UITypes)[])
@@ -173,7 +173,7 @@ const prevEditableTn = ref<string[]>([])
 
 onMounted(() => {
   parseAndLoadTemplate()
-
+  
   // used to record the previous EditableTn values
   // for checking the table duplication in current import
   // and updating the key in importData
@@ -618,10 +618,10 @@ function isSelectDisabled(uidt: string, disableSelect = false) {
   return (uidt === UITypes.SingleSelect || uidt === UITypes.MultiSelect) && disableSelect
 }
 
-function handleCheckAllRecord(event, table_name){
-  const isChecked = event.target.checked;
+function handleCheckAllRecord(event, table_name) {
+  const isChecked = event.target.checked
   for (const record of srcDestMapping.value[table_name]) {
-    record.enabled = isChecked;
+    record.enabled = isChecked
   }
 }
 </script>
@@ -681,10 +681,10 @@ function handleCheckAllRecord(event, table_name){
                 {{ column.name }}
               </span>
               <span v-if="column.key === 'action'">
-                <a-checkbox 
-                  v-model:checked="checkAllRecord"
+                <a-checkbox
+                  v-model:checked="checkAllRecord[table.table_name]"
                   @change="handleCheckAllRecord($event, table.table_name)"
-                   />
+                />
               </span>
             </template>
 

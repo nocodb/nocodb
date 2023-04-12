@@ -58,12 +58,12 @@ export default class NocoCache {
     subKeys: string[]
   ): Promise<{
     list: any[];
-    isEmptyList: boolean;
+    isNoneList: boolean;
   }> {
     if (this.cacheDisabled)
       return Promise.resolve({
         list: [],
-        isEmptyList: false,
+        isNoneList: false,
       });
     return this.client.getList(scope, subKeys);
   }

@@ -119,7 +119,7 @@ export default class RedisCacheMgr extends CacheMgr {
     subKeys: string[]
   ): Promise<{
     list: any[];
-    isEmptyList: boolean;
+    isNoneList: boolean;
   }> {
     // remove null from arrays
     subKeys = subKeys.filter((k) => k);
@@ -132,12 +132,12 @@ export default class RedisCacheMgr extends CacheMgr {
     const arr = (await this.get(key, CacheGetType.TYPE_ARRAY)) || [];
     log(`RedisCacheMgr::getList: getting list with key ${key}`);
 
-    const isEmptyList = arr.length && arr[0] === 'NONE';
+    const isNoneList = arr.length && arr[0] === 'NONE';
 
-    if (isEmptyList) {
+    if (isNoneList) {
       return Promise.resolve({
         list: [],
-        isEmptyList,
+        isNoneList,
       });
     }
 
@@ -145,7 +145,7 @@ export default class RedisCacheMgr extends CacheMgr {
       list: await Promise.all(
         arr.map(async (k) => await this.get(k, CacheGetType.TYPE_OBJECT))
       ),
-      isEmptyList,
+      isNoneList,
     };
   }
 
@@ -170,8 +170,10 @@ export default class RedisCacheMgr extends CacheMgr {
           CacheScope.MODEL_ROLE_VISIBILITY,
         ].includes(scope as CacheScope)
       ) {
+        // Set NONE here so that it won't hit the DB on each page load
         return this.set(listKey, ['NONE']);
       }
+      console.log('HERE');
       return Promise.resolve(true);
     }
     // fetch existing list

@@ -721,8 +721,8 @@ export default class Column<T = any> implements ColumnType {
     {
       const cachedList = await NocoCache.getList(CacheScope.SORT, [id]);
       let { list: sorts } = cachedList;
-      const { isEmptyList } = cachedList;
-      if (!isEmptyList && !sorts.length) {
+      const { isNoneList } = cachedList;
+      if (!isNoneList && !sorts.length) {
         sorts = await ncMeta.metaList2(null, null, MetaTable.SORT, {
           condition: {
             fk_column_id: id,
@@ -737,8 +737,8 @@ export default class Column<T = any> implements ColumnType {
     {
       const cachedList = await NocoCache.getList(CacheScope.FILTER_EXP, [id]);
       let { list: filters } = cachedList;
-      const { isEmptyList } = cachedList;
-      if (!isEmptyList && !filters.length) {
+      const { isNoneList } = cachedList;
+      if (!isNoneList && !filters.length) {
         filters = await ncMeta.metaList2(null, null, MetaTable.FILTER_EXP, {
           condition: {
             fk_column_id: id,

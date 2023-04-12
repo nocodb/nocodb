@@ -119,7 +119,7 @@ export default class RedisMockCacheMgr extends CacheMgr {
     subKeys: string[]
   ): Promise<{
     list: any[];
-    isEmptyList: boolean;
+    isNoneList: boolean;
   }> {
     // remove null from arrays
     subKeys = subKeys.filter((k) => k);
@@ -131,12 +131,12 @@ export default class RedisMockCacheMgr extends CacheMgr {
     // e.g. arr = ["nc:<orgs>:<scope>:<model_id_1>", "nc:<orgs>:<scope>:<model_id_2>"]
     const arr = (await this.get(key, CacheGetType.TYPE_ARRAY)) || [];
     log(`RedisMockCacheMgr::getList: getting list with key ${key}`);
-    const isEmptyList = arr.length && arr[0] === 'NONE';
+    const isNoneList = arr.length && arr[0] === 'NONE';
 
-    if (isEmptyList) {
+    if (isNoneList) {
       return Promise.resolve({
         list: [],
-        isEmptyList,
+        isNoneList,
       });
     }
 
@@ -144,7 +144,7 @@ export default class RedisMockCacheMgr extends CacheMgr {
       list: await Promise.all(
         arr.map(async (k) => await this.get(k, CacheGetType.TYPE_OBJECT))
       ),
-      isEmptyList,
+      isNoneList,
     };
   }
 

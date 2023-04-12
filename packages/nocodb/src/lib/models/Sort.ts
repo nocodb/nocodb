@@ -116,8 +116,8 @@ export default class Sort {
     if (!viewId) return null;
     const cachedList = await NocoCache.getList(CacheScope.SORT, [viewId]);
     let { list: sortList } = cachedList;
-    const { isEmptyList } = cachedList;
-    if (!isEmptyList && !sortList.length) {
+    const { isNoneList } = cachedList;
+    if (!isNoneList && !sortList.length) {
       sortList = await ncMeta.metaList2(null, null, MetaTable.SORT, {
         condition: { fk_view_id: viewId },
         orderBy: {

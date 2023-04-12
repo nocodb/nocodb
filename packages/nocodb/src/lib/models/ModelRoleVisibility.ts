@@ -29,8 +29,8 @@ export default class ModelRoleVisibility implements ModelRoleVisibilityType {
       [projectId]
     );
     let { list: data } = cachedList;
-    const { isEmptyList } = cachedList;
-    if (!isEmptyList && !data.length) {
+    const { isNoneList } = cachedList;
+    if (!isNoneList && !data.length) {
       data = await Noco.ncMeta.metaList2(
         projectId,
         null,

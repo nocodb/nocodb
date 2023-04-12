@@ -9,7 +9,7 @@ export default abstract class CacheMgr {
     list: string[]
   ): Promise<{
     list: any[];
-    isEmptyList: boolean;
+    isNoneList: boolean;
   }>;
   public abstract setList(
     scope: string,

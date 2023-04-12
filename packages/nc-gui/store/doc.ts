@@ -409,6 +409,8 @@ export const useDocStore = defineStore('docStore', () => {
     projectId: string
   }) {
     const nestedPages = nestedPagesOfProjects.value[projectId]
+    openedPage.value = undefined
+    isPageFetching.value = true
 
     try {
       let createdPageData = await $api.nocoDocs.createPage({
@@ -462,6 +464,8 @@ export const useDocStore = defineStore('docStore', () => {
     } catch (e) {
       console.log(e)
       message.error(await extractSdkResponseErrorMsg(e as any))
+    } finally {
+      isPageFetching.value = false
     }
   }
 
@@ -704,6 +708,7 @@ export const useDocStore = defineStore('docStore', () => {
   const openPage = async ({ page, projectId }: { page: PageSidebarNode; projectId: string }) => {
     const url = nestedUrl({ id: page.id!, projectId })
 
+    isPageFetching.value = true
     await navigateTo(url)
   }
 

@@ -73,7 +73,8 @@ export default class SelectOption implements SelectOptionType {
       fk_column_id,
     ]);
     let { list: options } = cachedList;
-    if (!options.length) {
+    const { isNoneList } = cachedList;
+    if (!isNoneList && !options.length) {
       options = await ncMeta.metaList2(
         null, //,
         null, //model.db_alias,

@@ -121,7 +121,8 @@ export default class FormViewColumn implements FormColumnType {
       viewId,
     ]);
     let { list: viewColumns } = cachedList;
-    if (!viewColumns.length) {
+    const { isNoneList } = cachedList;
+    if (!isNoneList && !viewColumns.length) {
       viewColumns = await ncMeta.metaList2(
         null,
         null,

@@ -154,7 +154,8 @@ export default class Base implements BaseType {
       args.projectId,
     ]);
     let { list: baseDataList } = cachedList;
-    if (!baseDataList.length) {
+    const { isNoneList } = cachedList;
+    if (!isNoneList && !baseDataList.length) {
       baseDataList = await ncMeta.metaList2(
         args.projectId,
         null,

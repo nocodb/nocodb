@@ -45,7 +45,8 @@ export default class Plugin implements PluginType {
   static async list(ncMeta = Noco.ncMeta) {
     const cachedList = await NocoCache.getList(CacheScope.PLUGIN, []);
     let { list: pluginList } = cachedList;
-    if (!pluginList.length) {
+    const { isNoneList } = cachedList;
+    if (!isNoneList && !pluginList.length) {
       pluginList = await ncMeta.metaList2(null, null, MetaTable.PLUGIN);
       await NocoCache.setList(CacheScope.PLUGIN, [], pluginList);
     }

@@ -89,7 +89,8 @@ export default class KanbanViewColumn implements KanbanColumnType {
       viewId,
     ]);
     let { list: views } = cachedList;
-    if (!views.length) {
+    const { isNoneList } = cachedList;
+    if (!isNoneList && !views.length) {
       views = await ncMeta.metaList2(
         null,
         null,

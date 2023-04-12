@@ -209,7 +209,8 @@ export default class Filter {
       this.id,
     ]);
     let { list: childFilters } = cachedList;
-    if (!childFilters.length) {
+    const { isNoneList } = cachedList;
+    if (!isNoneList && !childFilters.length) {
       childFilters = await ncMeta.metaList2(null, null, MetaTable.FILTER_EXP, {
         condition: {
           fk_parent_id: this.id,
@@ -246,7 +247,8 @@ export default class Filter {
   ): Promise<FilterType> {
     const cachedList = await NocoCache.getList(CacheScope.FILTER_EXP, [viewId]);
     let { list: filters } = cachedList;
-    if (!filters.length) {
+    const { isNoneList } = cachedList;
+    if (!isNoneList && !filters.length) {
       filters = await ncMeta.metaList2(null, null, MetaTable.FILTER_EXP, {
         condition: { fk_view_id: viewId },
       });
@@ -331,7 +333,8 @@ export default class Filter {
   ) {
     const cachedList = await NocoCache.getList(CacheScope.FILTER_EXP, [viewId]);
     let { list: filterObjs } = cachedList;
-    if (!filterObjs.length) {
+    const { isNoneList } = cachedList;
+    if (!isNoneList && !filterObjs.length) {
       filterObjs = await ncMeta.metaList2(null, null, MetaTable.FILTER_EXP, {
         condition: { fk_view_id: viewId },
       });

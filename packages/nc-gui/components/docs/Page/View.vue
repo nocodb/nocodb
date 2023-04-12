@@ -283,7 +283,7 @@ watch(wrapperRef, () => {
         </div>
       </div>
     </div>
-    <div class="absolute right-0 top-0 pt-1.5 mr-3">
+    <div class="absolute right-0 top-0 pt-1.5 mr-1.5">
       <DocsPageOutline v-if="openedPage && wrapperRef" :key="openedPage.id" :wrapper-ref="wrapperRef" />
     </div>
   </a-layout-content>

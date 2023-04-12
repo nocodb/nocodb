@@ -295,6 +295,12 @@ a {
 .ant-modal {
   @apply !top-[50px];
 }
+.ant-modal-content {
+  @apply !rounded-md;
+}
+.ant-modal-body {
+  @apply !p-0;
+}
 
 .ant-select-item-option-active:not(.ant-select-item-option-disabled) {
   @apply bg-primary bg-opacity-20;
@@ -390,3 +396,5 @@ ninja-keys {
 .nc-btn{
   @apply rounded py-2 px-4 border-gray-200 h-auto
 }
+
+

@@ -7,7 +7,7 @@ const MAX_TITLE_LENGTH = 150
 
 const { project } = useProject()
 
-const { openedPage, isPublic, isEditAllowed } = storeToRefs(useDocStore())
+const { openedPage, isPublic, isEditAllowed, isPageFetching } = storeToRefs(useDocStore())
 
 const { updatePage } = useDocStore()
 
@@ -69,16 +69,29 @@ watch(title, async (newTitle, oldTitle) => {
   await updatePage({ pageId: openedPage.value!.id!, page: { title: openedPage.value?.title } as any, projectId: project.id! })
 })
 
+// TODO: Hack. Due to some rerendering issues, we need to focus title after some time
+watch(
+  isPageFetching,
+  (isFetching) => {
+    if (!isFetching && openedPage.value?.new) {
+      for (let i = 0; i < 6; i++) {
+        setTimeout(() => {
+          focusTitle()
+        }, i * 100)
+      }
+    }
+  },
+  {
+    immediate: true,
+  },
+)
+
 onMounted(() => {
   if (openedPage.value?.new) {
     // So that we do not reset `new` flag of opened page to false
     _title.value = ''
   } else {
     title.value = openedPage.value!.title
-  }
-
-  if (openedPage.value?.new) {
-    focusTitle()
   }
 })
 </script>

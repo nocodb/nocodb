@@ -51,6 +51,7 @@ export class GlobalExceptionFilter implements ExceptionFilter {
     if (exception.getStatus?.()) {
       response.status(exception.getStatus()).json(exception.getResponse());
     } else {
+      // todo: change the response code
       response.status(400).json({
         msg: exception.message,
       });

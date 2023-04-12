@@ -2,19 +2,26 @@ import {
   Body,
   Controller,
   Delete,
-  Get, HttpCode,
+  Get,
+  HttpCode,
   Param,
   Patch,
   Post,
   Request,
-} from '@nestjs/common'
+  UseGuards,
+} from '@nestjs/common';
+import { AuthGuard } from '@nestjs/passport';
 import { OrgUserRoles } from 'nocodb-sdk';
 import { PagedResponseImpl } from '../../helpers/PagedResponse';
-import { Acl } from '../../middlewares/extract-project-id/extract-project-id.middleware';
+import {
+  Acl,
+  ExtractProjectIdMiddleware,
+} from '../../middlewares/extract-project-id/extract-project-id.middleware';
 import { User } from '../../models';
 import { OrgUsersService } from './org-users.service';
 
 @Controller()
+@UseGuards(ExtractProjectIdMiddleware, AuthGuard('jwt'))
 export class OrgUsersController {
   constructor(private readonly orgUsersService: OrgUsersService) {}
 

@@ -32,6 +32,7 @@ import {
   useTabs,
 } from '#imports'
 import { TabType } from '~/lib'
+import type { CheckboxChangeEvent } from 'ant-design-vue/es/checkbox/interface'
 
 const { quickImportType, projectTemplate, importData, importColumns, importDataOnly, maxRowsToParse, baseId } =
   defineProps<Props>()
@@ -173,7 +174,7 @@ const prevEditableTn = ref<string[]>([])
 
 onMounted(() => {
   parseAndLoadTemplate()
-  
+
   // used to record the previous EditableTn values
   // for checking the table duplication in current import
   // and updating the key in importData
@@ -618,9 +619,9 @@ function isSelectDisabled(uidt: string, disableSelect = false) {
   return (uidt === UITypes.SingleSelect || uidt === UITypes.MultiSelect) && disableSelect
 }
 
-function handleCheckAllRecord(event, table_name) {
+function handleCheckAllRecord(event: CheckboxChangeEvent, tableName: string) {
   const isChecked = event.target.checked
-  for (const record of srcDestMapping.value[table_name]) {
+  for (const record of srcDestMapping.value[tableName]) {
     record.enabled = isChecked
   }
 }

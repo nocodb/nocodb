@@ -3,6 +3,7 @@ import dayjs from 'dayjs'
 import utc from 'dayjs/plugin/utc'
 import type { ColumnType, TableType } from 'nocodb-sdk'
 import { UITypes, isSystemColumn, isVirtualCol } from 'nocodb-sdk'
+import type { CheckboxChangeEvent } from 'ant-design-vue/es/checkbox/interface'
 import { srcDestMappingColumns, tableColumns } from './utils'
 import {
   Empty,
@@ -32,7 +33,6 @@ import {
   useTabs,
 } from '#imports'
 import { TabType } from '~/lib'
-import type { CheckboxChangeEvent } from 'ant-design-vue/es/checkbox/interface'
 
 const { quickImportType, projectTemplate, importData, importColumns, importDataOnly, maxRowsToParse, baseId } =
   defineProps<Props>()

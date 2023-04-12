@@ -158,7 +158,7 @@ export const onEnter = (editor: Editor, nodeType: 'bullet' | 'ordered' | 'task')
   const currentNodePosResolve = editor.state.doc.resolve(selection.from)
 
   const from = selection.from
-  const currentNodeEndPos = currentNodePosResolve.posAtIndex(1)
+  const currentNodeEndPos = currentNodePosResolve.posAtIndex(currentNode.childCount)
 
   // We check if cursor at the end of the bullet point
   const isOnEndOfLine = currentNodeEndPos === selection.to

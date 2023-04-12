@@ -2,27 +2,27 @@ import {
   Body,
   Controller,
   Delete,
-  Get,
-  HttpCode,
+  Get, HttpCode,
   Param,
   Patch,
   Post,
   Request,
   Response,
   UseGuards,
-} from '@nestjs/common';
-import { AuthGuard } from '@nestjs/passport';
-import { parseHrtimeToSeconds } from '../../helpers';
+} from '@nestjs/common'
+import { AuthGuard } from '@nestjs/passport'
+import { parseHrtimeToSeconds } from '../../helpers'
 import {
   Acl,
   ExtractProjectIdMiddleware,
-} from '../../middlewares/extract-project-id/extract-project-id.middleware';
-import { DatasService } from './datas.service';
+} from '../../middlewares/extract-project-id/extract-project-id.middleware'
+import { DatasService } from './datas.service'
 
 @Controller()
 @UseGuards(ExtractProjectIdMiddleware, AuthGuard('jwt'))
 export class DataAliasController {
-  constructor(private readonly datasService: DatasService) {}
+  constructor(private readonly datasService: DatasService) {
+  }
 
   // todo: Handle the error case where view doesnt belong to model
   @Get([
@@ -37,16 +37,16 @@ export class DataAliasController {
     @Param('tableName') tableName: string,
     @Param('viewName') viewName: string,
   ) {
-    const startTime = process.hrtime();
+    const startTime = process.hrtime()
     const responseData = await this.datasService.dataList({
       query: req.query,
       projectName: projectName,
       tableName: tableName,
       viewName: viewName,
-    });
-    const elapsedSeconds = parseHrtimeToSeconds(process.hrtime(startTime));
-    res.setHeader('xc-db-response', elapsedSeconds);
-    res.json(responseData);
+    })
+    const elapsedSeconds = parseHrtimeToSeconds(process.hrtime(startTime))
+    res.setHeader('xc-db-response', elapsedSeconds)
+    res.json(responseData)
   }
 
   @Get([
@@ -65,7 +65,7 @@ export class DataAliasController {
       projectName: projectName,
       tableName: tableName,
       viewName: viewName,
-    });
+    })
   }
 
   @Get([
@@ -84,7 +84,7 @@ export class DataAliasController {
       projectName: projectName,
       tableName: tableName,
       viewName: viewName,
-    });
+    })
   }
 
   @Get([
@@ -104,9 +104,9 @@ export class DataAliasController {
       projectName: projectName,
       tableName: tableName,
       viewName: viewName,
-    });
+    })
 
-    res.json(countResult);
+    res.json(countResult)
   }
 
   @Post([
@@ -128,7 +128,7 @@ export class DataAliasController {
       viewName: viewName,
       body: body,
       cookie: req,
-    });
+    })
   }
 
   @Patch([
@@ -150,7 +150,7 @@ export class DataAliasController {
       body: req.body,
       cookie: req,
       rowId: rowId,
-    });
+    })
   }
 
   @Delete([
@@ -171,7 +171,7 @@ export class DataAliasController {
       viewName: viewName,
       cookie: req,
       rowId: rowId,
-    });
+    })
   }
 
   @Get([
@@ -192,7 +192,7 @@ export class DataAliasController {
       viewName: viewName,
       rowId: rowId,
       query: req.query,
-    });
+    })
   }
 
   @Get([
@@ -214,9 +214,9 @@ export class DataAliasController {
       viewName: viewName,
       rowId: rowId,
       query: req.query,
-    });
+    })
 
-    res.json(exists);
+    res.json(exists)
   }
 
   // todo: Handle the error case where view doesnt belong to model
@@ -234,16 +234,16 @@ export class DataAliasController {
     @Param('viewName') viewName: string,
     @Param('columnId') columnId: string,
   ) {
-    const startTime = process.hrtime();
+    const startTime = process.hrtime()
     const groupedData = await this.datasService.groupedDataList({
       projectName: projectName,
       tableName: tableName,
       viewName: viewName,
       query: req.query,
       columnId: columnId,
-    });
-    const elapsedSeconds = parseHrtimeToSeconds(process.hrtime(startTime));
-    res.setHeader('xc-db-response', elapsedSeconds);
-    return groupedData;
+    })
+    const elapsedSeconds = parseHrtimeToSeconds(process.hrtime(startTime))
+    res.setHeader('xc-db-response', elapsedSeconds)
+    res.json(groupedData)
   }
 }

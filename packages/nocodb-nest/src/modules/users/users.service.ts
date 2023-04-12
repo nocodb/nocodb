@@ -1,6 +1,5 @@
 import { promisify } from 'util';
 import { Injectable } from '@nestjs/common';
-import { JwtService } from '@nestjs/jwt';
 import { OrgUserRoles, validatePassword } from 'nocodb-sdk';
 import { v4 as uuidv4 } from 'uuid';
 import { isEmail } from 'validator';
@@ -28,7 +27,6 @@ import type {
 export class UsersService {
   constructor(
     private metaService: MetaService,
-    private jwtService: JwtService,
   ) {}
 
   async findOne(email: string) {

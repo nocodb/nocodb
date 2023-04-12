@@ -12,6 +12,7 @@ import {
 } from '@nestjs/common'
 import * as ejs from 'ejs';
 import { AuthGuard } from '@nestjs/passport';
+import { GlobalGuard } from '../../guards/global/global.guard'
 import { NcError } from '../../helpers/catchError';
 import {
   Acl,
@@ -142,7 +143,7 @@ export class UsersController {
   }
 
   @Get(['/auth/user/me', '/api/v1/db/auth/user/me', '/api/v1/auth/user/me'])
-  @UseGuards(ExtractProjectIdMiddleware, AuthGuard('jwt'))
+  @UseGuards(ExtractProjectIdMiddleware, GlobalGuard)
   async me(@Request() req) {
     const user = {
       ...req.user,
@@ -156,7 +157,9 @@ export class UsersController {
     '/api/v1/db/auth/password/change',
     '/api/v1/auth/password/change',
   ])
+  @UseGuards(GlobalGuard)
   @Acl('passwordChange')
+  @HttpCode(200)
   async passwordChange(@Request() req: any, @Body() body: any): Promise<any> {
     if (!(req as any).isAuthenticated()) {
       NcError.forbidden('Not allowed');

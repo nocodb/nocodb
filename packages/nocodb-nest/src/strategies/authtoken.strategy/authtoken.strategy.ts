@@ -7,10 +7,12 @@ import type { Request } from 'express';
 @Injectable()
 export class AuthTokenStrategy extends PassportStrategy(Strategy, 'authtoken') {
   constructor() {
-    super({
-      headerFields: ['xc-token'],
-      passReqToCallback: true,
-    });
+    super(
+      {
+        headerFields: ['xc-token'],
+        passReqToCallback: true,
+      },
+    );
   }
 
   // eslint-disable-next-line @typescript-eslint/ban-types

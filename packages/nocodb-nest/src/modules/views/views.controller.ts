@@ -10,17 +10,17 @@ import {
   Request,
   UseGuards,
 } from '@nestjs/common';
-import { AuthGuard } from '@nestjs/passport';
 import { ViewUpdateReqType } from 'nocodb-sdk';
 import { PagedResponseImpl } from '../../helpers/PagedResponse';
 import {
   ExtractProjectIdMiddleware,
   UseAclMiddleware,
 } from '../../middlewares/extract-project-id/extract-project-id.middleware';
+import { GlobalGuard } from '../../guards/global/global.guard';
 import { ViewsService } from './views.service';
 
 @Controller()
-@UseGuards(ExtractProjectIdMiddleware, AuthGuard('jwt'))
+@UseGuards(ExtractProjectIdMiddleware, GlobalGuard)
 export class ViewsController {
   constructor(private readonly viewsService: ViewsService) {}
 

@@ -1,12 +1,13 @@
 import { Module, RequestMethod } from '@nestjs/common';
-import { APP_FILTER } from '@nestjs/core';
+import { APP_FILTER, APP_GUARD } from '@nestjs/core';
 import { ExtractJwt } from 'passport-jwt';
 import { Connection } from './connection/connection';
 import { GlobalExceptionFilter } from './filters/global-exception/global-exception.filter';
+import { GlobalGuard } from './guards/global/global.guard';
 import { GlobalMiddleware } from './middlewares/global/global.middleware';
 import { AuthModule } from './modules/auth/auth.module';
 import { ExtractProjectIdMiddleware } from './middlewares/extract-project-id/extract-project-id.middleware';
-import { AuthService } from './modules/auth/auth.service'
+import { AuthService } from './modules/auth/auth.service';
 import { UsersModule } from './modules/users/users.module';
 import { MetaService } from './meta/meta.service';
 import { UsersService } from './modules/users/users.service';
@@ -51,23 +52,24 @@ import { CachesModule } from './modules/caches/caches.module';
 import { TestModule } from './modules/test/test.module';
 import { PluginsModule } from './modules/plugins/plugins.module';
 import { GlobalModule } from './modules/global/global.module';
-import { LocalStrategy } from './strategies/local.strategy'
-import NcConfigFactory from './utils/NcConfigFactory'
+import { LocalStrategy } from './strategies/local.strategy';
+import NcConfigFactory from './utils/NcConfigFactory';
 import NcUpgrader from './version-upgrader/NcUpgrader';
+import { ClientService } from './services/client/client.service';
+import { AuthTokenStrategy } from './strategies/authtoken.strategy/authtoken.strategy';
+import { BaseViewStrategy } from './strategies/base-view.strategy/base-view.strategy';
+import { GoogleStrategy } from './strategies/google.strategy/google.strategy';
 import type {
   MiddlewareConsumer,
   OnApplicationBootstrap,
   Provider,
 } from '@nestjs/common';
-import { ClientService } from './services/client/client.service';
-import { AuthTokenStrategy } from './strategies/authtoken.strategy/authtoken.strategy';
-import { BaseViewStrategy } from './strategies/base-view.strategy/base-view.strategy';
-import { GoogleStrategy } from './strategies/google.strategy/google.strategy';
+/*
 
 export const JwtStrategyProvider: Provider = {
   provide: JwtStrategy,
   useFactory: async (usersService: UsersService) => {
-    const config = await NcConfigFactory.make()
+    const config = await NcConfigFactory.make();
 
     const options = {
       // ignoreExpiration: false,
@@ -82,6 +84,7 @@ export const JwtStrategyProvider: Provider = {
   },
   inject: [UsersService],
 };
+*/
 
 @Module({
   imports: [
@@ -129,18 +132,23 @@ export const JwtStrategyProvider: Provider = {
   ],
   controllers: [],
   providers: [
+    // {
+    //   provide: APP_GUARD,
+    //   useClass: GlobalGuard,
+    // },
     AuthService,
     {
       provide: APP_FILTER,
       useClass: GlobalExceptionFilter,
     },
-    JwtStrategyProvider,
+    // JwtStrategyProvider,
     LocalStrategy,
     ExtractProjectIdMiddleware,
     ClientService,
     AuthTokenStrategy,
     BaseViewStrategy,
     GoogleStrategy,
+    // GlobalGuard,
   ],
 })
 export class AppModule implements OnApplicationBootstrap {

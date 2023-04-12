@@ -1,16 +1,16 @@
-import { Injectable, UnauthorizedException } from '@nestjs/common';
-import { PassportStrategy } from '@nestjs/passport';
-import { ExtractJwt, Strategy } from 'passport-jwt';
-import { OrgUserRoles } from 'nocodb-sdk';
-import NocoCache from '../cache/NocoCache';
-import { ProjectUser, User } from '../models';
-import { genJwt } from '../modules/users/helpers';
-import Noco from '../Noco';
-import extractRolesObj from '../utils/extractRolesObj';
-import { CacheGetType, CacheScope } from '../utils/globals';
-import { jwtConstants } from '../modules/auth/constants';
-import { UsersService } from '../modules/users/users.service';
-import NcConfigFactory from '../utils/NcConfigFactory';
+import { Injectable, UnauthorizedException } from '@nestjs/common'
+import { PassportStrategy } from '@nestjs/passport'
+import { ExtractJwt, Strategy } from 'passport-jwt'
+import { OrgUserRoles } from 'nocodb-sdk'
+import NocoCache from '../cache/NocoCache'
+import { ProjectUser, User } from '../models'
+import { genJwt } from '../modules/users/helpers'
+import Noco from '../Noco'
+import extractRolesObj from '../utils/extractRolesObj'
+import { CacheGetType, CacheScope } from '../utils/globals'
+import { jwtConstants } from '../modules/auth/constants'
+import { UsersService } from '../modules/users/users.service'
+import NcConfigFactory from '../utils/NcConfigFactory'
 
 @Injectable()
 export class JwtStrategy extends PassportStrategy(Strategy) {
@@ -18,10 +18,13 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
     super({
       expiresIn: '10h',
       ...options,
-    });
+    })
   }
 
   async validate(req: any, jwtPayload: any) {
+
+    if (!jwtPayload?.email) return jwtPayload
+
     // todo: improve this
     if (
       req.ncProjectId &&
@@ -31,19 +34,19 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
         return {
           ...user,
           roles: extractRolesObj(`owner,creator,${OrgUserRoles.SUPER_ADMIN}`),
-        };
-      });
+        }
+      })
     }
 
-    const keyVals = [jwtPayload?.email];
+    const keyVals = [jwtPayload?.email]
     if (req.ncProjectId) {
-      keyVals.push(req.ncProjectId);
+      keyVals.push(req.ncProjectId)
     }
-    const key = keyVals.join('___');
+    const key = keyVals.join('___')
     const cachedVal = await NocoCache.get(
       `${CacheScope.USER}:${key}`,
       CacheGetType.TYPE_OBJECT,
-    );
+    )
 
     if (cachedVal) {
       /*todo: tobe fixed
@@ -54,12 +57,12 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
       ) {
         throw new Error('Token Expired. Please login again.');
       }*/
-      return cachedVal;
+      return cachedVal
     }
 
     return User.getByEmail(jwtPayload?.email).then(
       async (user: { roles: any; id: string }) => {
-        user.roles = extractRolesObj(user?.roles);
+        user.roles = extractRolesObj(user?.roles)
         /*
      todo: tobe fixed
      if (
@@ -77,26 +80,26 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
 
           return ProjectUser.get(req.ncProjectId, user.id).then(
             async (projectUser) => {
-              user.roles = extractRolesObj(projectUser?.roles || user.roles);
+              user.roles = extractRolesObj(projectUser?.roles || user.roles)
               user.roles = extractRolesObj(
                 user.roles === 'owner' ? 'owner,creator' : user.roles,
-              );
+              )
               // + (user.roles ? `,${user.roles}` : '');
 
-              await NocoCache.set(`${CacheScope.USER}:${key}`, user);
-              return user;
+              await NocoCache.set(`${CacheScope.USER}:${key}`, user)
+              return user
             },
-          );
+          )
         } else {
           // const roles = projectUser?.roles ? JSON.parse(projectUser.roles) : {guest: true};
           if (user) {
-            await NocoCache.set(`${CacheScope.USER}:${key}`, user);
-            return user;
+            await NocoCache.set(`${CacheScope.USER}:${key}`, user)
+            return user
           } else {
-            throw new Error('User not found');
+            throw new Error('User not found')
           }
         }
       },
-    );
+    )
   }
 }

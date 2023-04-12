@@ -53,10 +53,6 @@ export class UtilsController {
   async axiosRequestMake(@Body() body: any) {
     return await this.utilsService.axiosRequestMake({ body });
   }
-  @Get('/api/v1/aggregated-meta-info')
-  async aggregatedMetaInfo() {
-    return await this.utilsService.aggregatedMetaInfo();
-  }
 
   @Post('/api/v1/url_to_config')
   async urlToDbConfig(@Body() body: any) {
@@ -64,4 +60,11 @@ export class UtilsController {
       body,
     });
   }
+
+  @Get('/api/v1/aggregated-meta-info')
+  async aggregatedMetaInfo() {
+    // todo: refactor
+    return (await this.utilsService.aggregatedMetaInfo()) as any;
+  }
+
 }

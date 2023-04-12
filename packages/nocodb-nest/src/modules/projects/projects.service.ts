@@ -3,7 +3,7 @@ import { Injectable } from '@nestjs/common';
 import * as DOMPurify from 'isomorphic-dompurify';
 import { customAlphabet } from 'nanoid';
 import { T } from 'nc-help';
-import { OrgUserRoles } from '../../../../nocodb-sdk';
+import { OrgUserRoles } from 'nocodb-sdk';
 import { populateMeta, validatePayload } from '../../helpers';
 import { NcError } from '../../helpers/catchError';
 import { extractPropsAndSanitize } from '../../helpers/extractProps';
@@ -12,7 +12,7 @@ import { Project, ProjectUser } from '../../models';
 import Noco from '../../Noco';
 import extractRolesObj from '../../utils/extractRolesObj';
 import NcConfigFactory from '../../utils/NcConfigFactory';
-import type { ProjectUpdateReqType } from '../../../../nocodb-sdk';
+import type { ProjectUpdateReqType } from 'nocodb-sdk';
 import type { ProjectReqType } from 'nocodb-sdk';
 
 const nanoid = customAlphabet('1234567890abcdefghijklmnopqrstuvwxyz_', 4);

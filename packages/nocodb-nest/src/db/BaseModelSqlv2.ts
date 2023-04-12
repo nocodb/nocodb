@@ -50,8 +50,6 @@ import genRollupSelectv2 from './genRollupSelectv2';
 import conditionV2 from './conditionV2';
 import sortV2 from './sortV2';
 import { customValidators } from './util/customValidators';
-import type LookupColumn from '../../../nocodb/src/lib/models/LookupColumn';
-import type { XKnex } from '../../../nocodb/src/lib/db/sql-data-mapper';
 import type {
   XcFilter,
   XcFilterWithAlias,
@@ -67,6 +65,7 @@ import type {
 } from '../models';
 import type { Knex } from 'knex';
 import type { SortType } from 'nocodb-sdk';
+import { XKnex } from './CustomKnex';
 
 export async function getViewAndModelByAliasOrId(param: {
   projectName: string;

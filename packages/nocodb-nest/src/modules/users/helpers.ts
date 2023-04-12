@@ -16,7 +16,7 @@ export function genJwt(user: User, config: NcConfig) {
     },
     config.auth.jwt.secret,
     // todo: better typing
-    config.auth.jwt.options as any,
+    { expiresIn: '10h', ...(config.auth.jwt.options as any) },
   );
 }
 

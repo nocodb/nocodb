@@ -3,7 +3,7 @@ import { PassportStrategy } from '@nestjs/passport';
 import { Injectable } from '@nestjs/common';
 import { AuthService } from '../modules/auth/auth.service';
 import extractRolesObj from '../utils/extractRolesObj';
-import { NcError } from '../../../nocodb/src/lib/meta/helpers/catchError';
+import { NcError } from '../helpers/catchError';
 
 @Injectable()
 export class LocalStrategy extends PassportStrategy(Strategy) {

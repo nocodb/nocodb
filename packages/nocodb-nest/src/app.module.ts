@@ -59,6 +59,7 @@ import type {
   OnApplicationBootstrap,
   Provider,
 } from '@nestjs/common';
+import { ClientService } from './services/client/client.service';
 
 export const JwtStrategyProvider: Provider = {
   provide: JwtStrategy,
@@ -133,6 +134,7 @@ export const JwtStrategyProvider: Provider = {
     JwtStrategyProvider,
     LocalStrategy,
     ExtractProjectIdMiddleware,
+    ClientService,
   ],
 })
 export class AppModule implements OnApplicationBootstrap {
@@ -159,6 +161,6 @@ export class AppModule implements OnApplicationBootstrap {
     Noco.config = this.connection.config;
 
     // run upgrader
-    await NcUpgrader.upgrade({ ncMeta: Noco._ncMeta });
+    // await NcUpgrader.upgrade({ ncMeta: Noco._ncMeta });
   }
 }

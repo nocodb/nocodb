@@ -1,5 +1,5 @@
 import { ModelTypes, UITypes, ViewTypes } from 'nocodb-sdk';
-import { isVirtualCol, RelationTypes } from '../../../nocodb-sdk';
+import { isVirtualCol, RelationTypes } from 'nocodb-sdk';
 import Column from '../models/Column';
 import Model from '../models/Model';
 import NcConnectionMgrv2 from '../utils/common/NcConnectionMgrv2';

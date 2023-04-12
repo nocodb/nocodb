@@ -482,9 +482,6 @@ export class UsersService {
   }
 
   async login(user: any) {
-    delete user.password;
-    delete user.salt;
-    const payload = user;
     return {
       token: genJwt(user, Noco.getConfig()), //this.jwtService.sign(payload),
     };

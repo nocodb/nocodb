@@ -1,31 +1,24 @@
 import { Injectable, UnauthorizedException } from '@nestjs/common';
 import { PassportStrategy } from '@nestjs/passport';
 import { ExtractJwt, Strategy } from 'passport-jwt';
-import { OrgUserRoles } from '../../../nocodb-sdk';
+import { OrgUserRoles } from 'nocodb-sdk';
 import NocoCache from '../cache/NocoCache';
 import { ProjectUser, User } from '../models';
-import { genJwt } from '../modules/users/helpers'
-import Noco from '../Noco'
+import { genJwt } from '../modules/users/helpers';
+import Noco from '../Noco';
 import extractRolesObj from '../utils/extractRolesObj';
 import { CacheGetType, CacheScope } from '../utils/globals';
 import { jwtConstants } from '../modules/auth/constants';
 import { UsersService } from '../modules/users/users.service';
-import NcConfigFactory from '../utils/NcConfigFactory'
+import NcConfigFactory from '../utils/NcConfigFactory';
 
 @Injectable()
 export class JwtStrategy extends PassportStrategy(Strategy) {
-  constructor(options, private userService: UsersService, ) {
-    super(
-      options
-    )
-    //   {
-    //   // ignoreExpiration: false,
-    //   jwtFromRequest: ExtractJwt.fromHeader('xc-auth'),
-    //   expiresIn: '10h',
-    //   passReqToCallback: true,
-    //   secretOrKey: process.env.NC_AUTH_JWT_SECRET ?? 'temporary-key'
-    //
-    // });
+  constructor(options, private userService: UsersService) {
+    super({
+      expiresIn: '10h',
+      ...options,
+    });
   }
 
   async validate(req: any, jwtPayload: any) {

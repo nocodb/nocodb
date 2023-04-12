@@ -1,12 +1,12 @@
 import {
   Controller,
   Delete,
-  Get,
+  Get, HttpCode,
   Param,
   Post,
   Request,
   UseGuards,
-} from '@nestjs/common';
+} from '@nestjs/common'
 import { AuthGuard } from '@nestjs/passport';
 import {
   Acl,
@@ -148,6 +148,7 @@ export class DataAliasNestedController {
     '/api/v1/db/data/:orgs/:projectName/:tableName/:rowId/:relationType/:columnName/:refRowId',
   )
   @Acl('relationDataAdd')
+  @HttpCode(200)
   async relationDataAdd(
     @Request() req,
     @Param('columnName') columnName: string,

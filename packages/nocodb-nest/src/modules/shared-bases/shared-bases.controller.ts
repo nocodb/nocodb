@@ -58,12 +58,14 @@ export class SharedBasesController {
 
   @Delete('/api/v1/db/meta/projects/:projectId/shared')
   @Acl('disableSharedBaseLink')
-  async disableSharedBaseLink(req, res): Promise<any> {
+  async disableSharedBaseLink(
+    @Param('projectId') projectId: string,
+  ): Promise<any> {
     const sharedBase = await this.sharedBasesService.disableSharedBaseLink({
-      projectId: req.params.projectId,
+      projectId,
     });
 
-    res.json(sharedBase);
+    return sharedBase;
   }
 
   @Get('/api/v1/db/meta/projects/:projectId/shared')

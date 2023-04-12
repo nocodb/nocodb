@@ -1,14 +1,16 @@
 import { Injectable } from '@nestjs/common';
 import axios from 'axios';
 import { compareVersions, validate } from 'compare-versions';
+import { ViewTypes } from 'nocodb-sdk';
 import { NC_ATTACHMENT_FIELD_SIZE } from '../../constants';
-import SqlMgrv2 from '../../db/sql-mgr/v2/SqlMgrv2'
+import SqlMgrv2 from '../../db/sql-mgr/v2/SqlMgrv2';
 import { NcError } from '../../helpers/catchError';
-import { User } from '../../models';
-import Noco from '../../Noco'
+import { Project, User } from '../../models';
+import Noco from '../../Noco';
+import NcConnectionMgrv2 from '../../utils/common/NcConnectionMgrv2';
+import { MetaTable } from '../../utils/globals';
 import NcConfigFactory from '../../utils/NcConfigFactory';
 import { packageVersion } from '../../utils/packageVersion';
-// import { packageVersion } from '../packageVersion';
 
 const versionCache = {
   releaseVersion: null,
@@ -233,12 +235,10 @@ export class UtilsService {
   }
 
   async aggregatedMetaInfo() {
-    const projects = [];
-    const userCount = 0;
-    // const [projects, userCount] = await Promise.all([
-    //   Project.list({}),
-    //   Noco.ncMeta.metaCount(null, null, MetaTable.USERS),
-    // ]);
+    const [projects, userCount] = await Promise.all([
+      Project.list({}),
+      Noco.ncMeta.metaCount(null, null, MetaTable.USERS),
+    ]);
 
     const result: AllMeta = {
       projectCount: projects.length,
@@ -247,8 +247,7 @@ export class UtilsService {
       sharedBaseCount: 0,
     };
 
-    // todo: tobe done
-    /*    result.projects.push(
+    result.projects.push(
       ...this.extractResultOrNull(
         await Promise.allSettled(
           projects.map(async (project) => {
@@ -284,7 +283,7 @@ export class UtilsService {
                     MetaTable.VIEWS,
                   );
                   // grid, form, gallery, kanban and shared count
-                  return views.reduce<ViewCount>(
+                  return (views as any[]).reduce<ViewCount>(
                     (out, view) => {
                       out.total++;
 
@@ -369,7 +368,7 @@ export class UtilsService {
           }),
         ),
       ),
-    );*/
+    );
 
     return result;
   }

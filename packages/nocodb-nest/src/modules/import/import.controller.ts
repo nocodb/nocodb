@@ -1,4 +1,4 @@
-import { Controller, Post, Request } from '@nestjs/common';
+import { Controller, HttpCode, Post, Request } from '@nestjs/common'
 import { forwardRef, Inject } from '@nestjs/common';
 import { ModuleRef } from '@nestjs/core';
 import { NcError } from '../../helpers/catchError';
@@ -88,6 +88,7 @@ export class ImportController {
   ) {}
 
   @Post('/api/v1/db/meta/import/airtable')
+  @HttpCode(200)
   importAirtable(@Request() req) {
     NocoJobs.jobsMgr.add(AIRTABLE_IMPORT_JOB, {
       id: req.query.id,
@@ -97,6 +98,7 @@ export class ImportController {
   }
 
   @Post('/api/v1/db/meta/syncs/:syncId/trigger')
+  @HttpCode(200)
   async triggerSync(@Request() req) {
     if (req.params.syncId in jobs) {
       NcError.badRequest('Sync already in progress');
@@ -137,6 +139,7 @@ export class ImportController {
   }
 
   @Post('/api/v1/db/meta/syncs/:syncId/abort')
+  @HttpCode(200)
   async abortImport(@Request() req) {
     if (req.params.syncId in jobs) {
       delete jobs[req.params.syncId];

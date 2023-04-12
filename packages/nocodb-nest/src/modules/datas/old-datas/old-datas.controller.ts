@@ -2,14 +2,14 @@ import {
   Body,
   Controller,
   Delete,
-  Get,
+  Get, HttpCode,
   Param,
   Patch,
   Post,
   Request,
   Response,
   UseGuards,
-} from '@nestjs/common';
+} from '@nestjs/common'
 import { AuthGuard } from '@nestjs/passport';
 import {
   Acl,
@@ -57,6 +57,7 @@ export class OldDatasController {
   }
 
   @Post('/nc/:projectId/api/v1/:tableName')
+  @HttpCode(200)
   @Acl('dataInsert')
   async dataInsert(
     @Request() req,

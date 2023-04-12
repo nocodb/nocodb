@@ -1,12 +1,12 @@
 import {
   Body,
   Controller,
-  Get,
+  Get, HttpCode,
   Param,
   Post,
   Query,
   UseGuards,
-} from '@nestjs/common';
+} from '@nestjs/common'
 import { AuthGuard } from '@nestjs/passport';
 import {
   Acl,
@@ -22,6 +22,7 @@ export class ModelVisibilitiesController {
   ) {}
 
   @Post('/api/v1/db/meta/projects/:projectId/visibility-rules')
+  @HttpCode(200)
   @Acl('modelVisibilitySet')
   async xcVisibilityMetaSetAll(
     @Param('projectId') projectId: string,

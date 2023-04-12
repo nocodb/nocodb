@@ -1,12 +1,12 @@
 import {
   Body,
   Controller,
-  Get,
+  Get, HttpCode,
   Param,
   Patch,
   Post,
   UseGuards,
-} from '@nestjs/common';
+} from '@nestjs/common'
 import { ColumnReqType, ViewColumnReqType } from 'nocodb-sdk';
 import { AuthGuard } from '@nestjs/passport';
 import { PagedResponseImpl } from '../../helpers/PagedResponse';
@@ -30,6 +30,7 @@ export class ViewColumnsController {
   }
 
   @Post('/api/v1/db/meta/views/:viewId/columns/')
+  @HttpCode(200)
   @Acl('columnAdd')
   async columnAdd(
     @Param('viewId') viewId: string,

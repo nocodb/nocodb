@@ -2,12 +2,12 @@ import {
   Body,
   Controller,
   Delete,
-  Get,
+  Get, HttpCode,
   Param,
   Patch,
   Post,
   Req,
-} from '@nestjs/common';
+} from '@nestjs/common'
 import { Acl } from '../../middlewares/extract-project-id/extract-project-id.middleware';
 import { SyncService } from './sync.service';
 
@@ -34,6 +34,7 @@ export class SyncController {
     '/api/v1/db/meta/projects/:projectId/syncs',
     '/api/v1/db/meta/projects/:projectId/syncs/:baseId',
   ])
+  @HttpCode(200)
   @Acl('syncSourceCreate')
   async syncCreate(
     @Param('projectId') projectId: string,

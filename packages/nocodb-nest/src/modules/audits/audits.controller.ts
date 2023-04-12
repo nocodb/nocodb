@@ -1,14 +1,14 @@
 import {
   Body,
   Controller,
-  Get,
+  Get, HttpCode,
   Param,
   Patch,
   Post,
   Query,
   Request,
   UseGuards,
-} from '@nestjs/common';
+} from '@nestjs/common'
 import { AuthGuard } from '@nestjs/passport';
 import { PagedResponseImpl } from '../../helpers/PagedResponse';
 import {
@@ -24,6 +24,7 @@ export class AuditsController {
   constructor(private readonly auditsService: AuditsService) {}
 
   @Post('/api/v1/db/meta/audits/comments')
+  @HttpCode(200)
   @Acl('commentRow')
   async commentRow(@Request() req) {
     return await this.auditsService.commentRow({
@@ -35,6 +36,7 @@ export class AuditsController {
   }
 
   @Post('/api/v1/db/meta/audits/rows/:rowId/update')
+  @HttpCode(200)
   @Acl('auditRowUpdate')
   async auditRowUpdate(@Param('rowId') rowId: string, @Body() body: any) {
     return await this.auditsService.auditRowUpdate({

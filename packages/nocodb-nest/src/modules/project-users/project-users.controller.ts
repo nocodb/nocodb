@@ -2,13 +2,13 @@ import {
   Body,
   Controller,
   Delete,
-  Get,
+  Get, HttpCode,
   Param,
   Patch,
   Post,
   Request,
   UseGuards,
-} from '@nestjs/common';
+} from '@nestjs/common'
 import { ProjectUserReqType } from 'nocodb-sdk';
 import { AuthGuard } from '@nestjs/passport';
 import {
@@ -34,6 +34,7 @@ export class ProjectUsersController {
   }
 
   @Post('/api/v1/db/meta/projects/:projectId/users')
+  @HttpCode(200)
   @Acl('userInvite')
   async userInvite(
     @Param('projectId') projectId: string,
@@ -86,6 +87,7 @@ export class ProjectUsersController {
   }
 
   @Post('/api/v1/db/meta/projects/:projectId/users/:userId/resend-invite')
+  @HttpCode(200)
   @Acl('projectUserInviteResend')
   async projectUserInviteResend(
     @Param('projectId') projectId: string,

@@ -1,4 +1,4 @@
-import { Controller, Get, Param, Post, UseGuards } from '@nestjs/common';
+import { Controller, Get, HttpCode, Param, Post, UseGuards } from '@nestjs/common'
 import { AuthGuard } from '@nestjs/passport';
 import {
   Acl,
@@ -29,6 +29,7 @@ export class MetaDiffsController {
   }
 
   @Post('/api/v1/db/meta/projects/:projectId/meta-diff')
+  @HttpCode(200)
   @Acl('metaDiffSync')
   async metaDiffSync(@Param('projectId') projectId: string) {
     await this.metaDiffsService.metaDiffSync({ projectId });
@@ -36,6 +37,7 @@ export class MetaDiffsController {
   }
 
   @Post('/api/v1/db/meta/projects/:projectId/meta-diff/:baseId')
+  @HttpCode(200)
   @Acl('baseMetaDiffSync')
   async baseMetaDiffSync(
     @Param('projectId') projectId: string,

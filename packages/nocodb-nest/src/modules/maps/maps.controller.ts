@@ -1,12 +1,12 @@
 import {
   Body,
   Controller,
-  Get,
+  Get, HttpCode,
   Param,
   Patch,
   Post,
   UseGuards,
-} from '@nestjs/common';
+} from '@nestjs/common'
 import { MapUpdateReqType, ViewCreateReqType } from 'nocodb-sdk';
 import { AuthGuard } from '@nestjs/passport';
 import {
@@ -27,6 +27,7 @@ export class MapsController {
   }
 
   @Post('/api/v1/db/meta/tables/:tableId/maps')
+  @HttpCode(200)
   @Acl('mapViewCreate')
   async mapViewCreate(
     @Param('tableId') tableId: string,

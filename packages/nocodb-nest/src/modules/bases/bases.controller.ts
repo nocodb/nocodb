@@ -2,12 +2,12 @@ import {
   Body,
   Controller,
   Delete,
-  Get,
+  Get, HttpCode,
   Param,
   Patch,
   Post,
   UseGuards,
-} from '@nestjs/common';
+} from '@nestjs/common'
 import { BaseReqType } from 'nocodb-sdk';
 import { AuthGuard } from '@nestjs/passport';
 import { PagedResponseImpl } from '../../helpers/PagedResponse';
@@ -71,6 +71,7 @@ export class BasesController {
   }
 
   @Post('/api/v1/db/meta/projects/:projectId/bases')
+  @HttpCode(200)
   @Acl('baseCreate')
   async baseCreate(
     @Param('projectId') projectId: string,

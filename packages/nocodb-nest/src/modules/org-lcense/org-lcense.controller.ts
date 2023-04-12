@@ -1,4 +1,4 @@
-import { Controller, Get, Post } from '@nestjs/common';
+import { Controller, Get, HttpCode, Post } from '@nestjs/common'
 import { OrgUserRoles } from 'nocodb-sdk';
 import { Acl } from '../../middlewares/extract-project-id/extract-project-id.middleware';
 import { OrgLcenseService } from './org-lcense.service';
@@ -17,6 +17,7 @@ export class OrgLcenseController {
   }
 
   @Post('/api/v1/license')
+  @HttpCode(200)
   @Acl('licenseSet', {
     allowedRoles: [OrgUserRoles.SUPER_ADMIN],
     blockApiTokenAccess: true,

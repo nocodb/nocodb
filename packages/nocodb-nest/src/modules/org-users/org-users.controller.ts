@@ -2,12 +2,12 @@ import {
   Body,
   Controller,
   Delete,
-  Get,
+  Get, HttpCode,
   Param,
   Patch,
   Post,
   Request,
-} from '@nestjs/common';
+} from '@nestjs/common'
 import { OrgUserRoles } from 'nocodb-sdk';
 import { PagedResponseImpl } from '../../helpers/PagedResponse';
 import { Acl } from '../../middlewares/extract-project-id/extract-project-id.middleware';
@@ -62,6 +62,7 @@ export class OrgUsersController {
   }
 
   @Post('/api/v1/users')
+  @HttpCode(200)
   @Acl('userAdd', {
     allowedRoles: [OrgUserRoles.SUPER_ADMIN],
     blockApiTokenAccess: true,
@@ -81,6 +82,7 @@ export class OrgUsersController {
   }
 
   @Post('/api/v1/users/settings')
+  @HttpCode(200)
   @Acl('userSettings', {
     allowedRoles: [OrgUserRoles.SUPER_ADMIN],
     blockApiTokenAccess: true,
@@ -91,6 +93,7 @@ export class OrgUsersController {
   }
 
   @Post('/api/v1/users/:userId/resend-invite')
+  @HttpCode(200)
   @Acl('userInviteResend', {
     allowedRoles: [OrgUserRoles.SUPER_ADMIN],
     blockApiTokenAccess: true,
@@ -108,6 +111,7 @@ export class OrgUsersController {
   }
 
   @Post('/api/v1/users/:userId/generate-reset-url')
+  @HttpCode(200)
   @Acl('generateResetUrl', {
     allowedRoles: [OrgUserRoles.SUPER_ADMIN],
     blockApiTokenAccess: true,
@@ -132,6 +136,7 @@ export class OrgUsersController {
   }
 
   @Post('/api/v1/app-settings')
+  @HttpCode(200)
   @Acl('appSettingsSet', {
     allowedRoles: [OrgUserRoles.SUPER_ADMIN],
     blockApiTokenAccess: true,

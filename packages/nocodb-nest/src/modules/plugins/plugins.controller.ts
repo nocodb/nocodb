@@ -1,4 +1,4 @@
-import { Body, Controller, Get, Param, Patch, Post } from '@nestjs/common';
+import { Body, Controller, Get, HttpCode, Param, Patch, Post } from '@nestjs/common'
 import { PagedResponseImpl } from '../../helpers/PagedResponse';
 import { Acl } from '../../middlewares/extract-project-id/extract-project-id.middleware';
 import { PluginsService } from './plugins.service';
@@ -21,6 +21,7 @@ export class PluginsController {
   }
 
   @Post('/api/v1/db/meta/plugins/test')
+  @HttpCode(200)
   @Acl('pluginTest')
   async pluginTest(@Body() body: any) {
     return await this.pluginsService.pluginTest({ body: body });

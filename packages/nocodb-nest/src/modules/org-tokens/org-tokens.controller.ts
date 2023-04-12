@@ -2,12 +2,12 @@ import {
   Body,
   Controller,
   Delete,
-  Get,
+  Get, HttpCode,
   Param,
   Post,
   Request,
   UseGuards,
-} from '@nestjs/common';
+} from '@nestjs/common'
 import { ApiTokenReqType } from 'nocodb-sdk';
 import { AuthGuard } from '@nestjs/passport';
 import { getConditionalHandler } from '../../helpers/getHandler';
@@ -41,6 +41,7 @@ export class OrgTokensController {
   }
 
   @Post('/api/v1/tokens')
+  @HttpCode(200)
   @Acl('apiTokenCreate', {
     blockApiTokenAccess: true,
   })

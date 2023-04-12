@@ -2,14 +2,14 @@ import {
   Body,
   Controller,
   Delete,
-  Get,
+  Get, HttpCode,
   Param,
   Patch,
   Post,
   Query,
   Request,
   UseGuards,
-} from '@nestjs/common';
+} from '@nestjs/common'
 import { AuthGuard } from '@nestjs/passport';
 import { TableReqType } from 'nocodb-sdk';
 import extractRolesObj from '../../utils/extractRolesObj';
@@ -52,6 +52,7 @@ export class TablesController {
     '/api/v1/db/meta/projects/:projectId/tables',
     '/api/v1/db/meta/projects/:projectId/:baseId/tables',
   ])
+  @HttpCode(200)
   @UseAclMiddleware({
     permissionName: 'tableCreate',
   })
@@ -119,6 +120,7 @@ export class TablesController {
   @UseAclMiddleware({
     permissionName: 'tableReorder',
   })
+  @HttpCode(200)
   async tableReorder(
     @Param('tableId') tableId: string,
     @Body() body: { order: number },

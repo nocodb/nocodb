@@ -1,4 +1,4 @@
-import { Controller, Post, Req } from '@nestjs/common';
+import { Controller, HttpCode, Post, Req } from '@nestjs/common'
 import { TestService } from './test.service';
 import { TestResetService } from './TestResetService';
 
@@ -7,6 +7,7 @@ export class TestController {
   constructor(private readonly testService: TestService) {}
 
   @Post('/api/v1/meta/test/reset')
+  @HttpCode(200)
   async reset(@Req() req) {
     const service = new TestResetService({
       parallelId: req.body.parallelId,

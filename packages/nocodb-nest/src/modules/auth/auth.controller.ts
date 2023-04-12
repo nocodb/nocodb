@@ -1,11 +1,11 @@
 import {
   Body,
   Controller,
-  Get,
+  Get, HttpCode,
   Post,
   Request,
   UseGuards,
-} from '@nestjs/common';
+} from '@nestjs/common'
 import { AuthGuard } from '@nestjs/passport';
 import { ExtractProjectIdMiddleware } from '../../middlewares/extract-project-id/extract-project-id.middleware';
 import extractRolesObj from '../../utils/extractRolesObj';
@@ -23,11 +23,13 @@ export class AuthController {
 
   @UseGuards(AuthGuard('local'))
   @Post('/api/v1/auth/user/signin')
+  @HttpCode(200)
   async signin(@Request() req) {
     return this.authService.login(req.user);
   }
 
   @Post('/api/v1/auth/user/signup')
+  @HttpCode(200)
   async signup(@Body() createUserDto: CreateUserDto) {
     return await this.authService.signup(createUserDto);
   }

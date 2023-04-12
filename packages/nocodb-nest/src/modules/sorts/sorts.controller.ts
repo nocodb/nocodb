@@ -2,12 +2,12 @@ import {
   Body,
   Controller,
   Delete,
-  Get,
+  Get, HttpCode,
   Param,
   Patch,
   Post,
   UseGuards,
-} from '@nestjs/common';
+} from '@nestjs/common'
 import { AuthGuard } from '@nestjs/passport';
 import { SortReqType } from 'nocodb-sdk';
 import { PagedResponseImpl } from '../../helpers/PagedResponse';
@@ -35,6 +35,7 @@ export class SortsController {
   }
 
   @Post('/api/v1/db/meta/views/:viewId/sorts/')
+  @HttpCode(200)
   @UseAclMiddleware({
     permissionName: 'sortCreate',
   })

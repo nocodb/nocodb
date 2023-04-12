@@ -1,12 +1,12 @@
 import {
   Body,
   Controller,
-  Get,
+  Get, HttpCode,
   Param,
   Patch,
   Post,
   UseGuards,
-} from '@nestjs/common';
+} from '@nestjs/common'
 import { GalleryUpdateReqType, ViewCreateReqType } from 'nocodb-sdk';
 import { AuthGuard } from '@nestjs/passport';
 import {
@@ -29,6 +29,7 @@ export class GalleriesController {
   }
 
   @Post('/api/v1/db/meta/tables/:tableId/galleries')
+  @HttpCode(200)
   @Acl('galleryViewCreate')
   async galleryViewCreate(
     @Param('tableId') tableId: string,

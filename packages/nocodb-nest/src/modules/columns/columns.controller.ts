@@ -2,13 +2,13 @@ import {
   Body,
   Controller,
   Delete,
-  Get,
+  Get, HttpCode,
   Param,
   Patch,
   Post,
   Request,
   UseGuards,
-} from '@nestjs/common';
+} from '@nestjs/common'
 import { ColumnReqType } from 'nocodb-sdk';
 import { AuthGuard } from '@nestjs/passport';
 import {
@@ -23,6 +23,7 @@ export class ColumnsController {
   constructor(private readonly columnsService: ColumnsService) {}
 
   @Post('/api/v1/db/meta/tables/:tableId/columns/')
+  @HttpCode(200)
   @Acl('columnAdd')
   async columnAdd(
     @Param('tableId') tableId: string,
@@ -63,6 +64,7 @@ export class ColumnsController {
   }
 
   @Post('/api/v1/db/meta/columns/:columnId/primary')
+  @HttpCode(200)
   @Acl('columnSetAsPrimary')
   async columnSetAsPrimary(@Param('columnId') columnId: string) {
     return await this.columnsService.columnSetAsPrimary({ columnId });

@@ -1,12 +1,12 @@
 import {
   Body,
   Controller,
-  Get,
+  Get, HttpCode,
   Param,
   Patch,
   Post,
   UseGuards,
-} from '@nestjs/common';
+} from '@nestjs/common'
 import { ViewCreateReqType } from 'nocodb-sdk';
 import { AuthGuard } from '@nestjs/passport';
 import {
@@ -30,6 +30,7 @@ export class FormsController {
   }
 
   @Post('/api/v1/db/meta/tables/:tableId/forms')
+  @HttpCode(200)
   @Acl('formViewCreate')
   async formViewCreate(
     @Param('tableId') tableId: string,

@@ -2,12 +2,12 @@ import {
   Body,
   Controller,
   Delete,
-  Get,
+  Get, HttpCode,
   Param,
   Post,
   Request,
   UseGuards,
-} from '@nestjs/common';
+} from '@nestjs/common'
 import { AuthGuard } from '@nestjs/passport';
 import { PagedResponseImpl } from '../../helpers/PagedResponse';
 import {
@@ -30,6 +30,7 @@ export class ApiTokensController {
   }
 
   @Post('/api/v1/db/meta/projects/:projectId/api-tokens')
+  @HttpCode(200)
   @Acl('apiTokenCreate')
   async apiTokenCreate(@Request() req, @Body() body) {
     return await this.apiTokensService.apiTokenCreate({

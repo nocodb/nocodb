@@ -1,13 +1,13 @@
 import {
   Body,
   Controller,
-  Delete,
+  Delete, HttpCode,
   Param,
   Patch,
   Post,
   Request,
   UseGuards,
-} from '@nestjs/common';
+} from '@nestjs/common'
 import { AuthGuard } from '@nestjs/passport';
 import {
   Acl,
@@ -21,6 +21,7 @@ export class BulkDataAliasController {
   constructor(private bulkDataAliasService: BulkDataAliasService) {}
 
   @Post('/api/v1/db/data/bulk/:orgs/:projectName/:tableName')
+  @HttpCode(200)
   @Acl('bulkDataInsert')
   async bulkDataInsert(
     @Request() req,

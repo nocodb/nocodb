@@ -2,12 +2,12 @@ import {
   Body,
   Controller,
   Delete,
-  Get,
+  Get, HttpCode,
   Param,
   Patch,
   Post,
   UseGuards,
-} from '@nestjs/common';
+} from '@nestjs/common'
 import { AuthGuard } from '@nestjs/passport';
 import { FilterReqType } from 'nocodb-sdk';
 import { PagedResponseImpl } from '../../helpers/PagedResponse';
@@ -34,6 +34,7 @@ export class FiltersController {
   }
 
   @Post('/api/v1/db/meta/views/:viewId/filters')
+  @HttpCode(200)
   @Acl('filterCreate')
   async filterCreate(
     @Param('viewId') viewId: string,
@@ -47,6 +48,7 @@ export class FiltersController {
   }
 
   @Post('/api/v1/db/meta/hooks/:hookId/filters')
+  @HttpCode(200)
   @Acl('hookFilterCreate')
   async hookFilterCreate(
     @Param('hookId') hookId: string,

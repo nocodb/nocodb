@@ -1,11 +1,11 @@
 import {
   Body,
-  Controller,
+  Controller, HttpCode,
   Param,
   Patch,
   Post,
   UseGuards,
-} from '@nestjs/common';
+} from '@nestjs/common'
 import { ViewCreateReqType } from 'nocodb-sdk';
 import { AuthGuard } from '@nestjs/passport';
 import {
@@ -23,6 +23,7 @@ export class GridsController {
   constructor(private readonly gridsService: GridsService) {}
 
   @Post('/api/v1/db/meta/tables/:tableId/grids/')
+  @HttpCode(200)
   @Acl('gridViewCreate')
   async gridViewCreate(
     @Param('tableId') tableId: string,

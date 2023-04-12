@@ -2,13 +2,13 @@ import {
   Body,
   Controller,
   Delete,
-  Get,
+  Get, HttpCode,
   Param,
   Patch,
   Post,
   Request,
   UseGuards,
-} from '@nestjs/common';
+} from '@nestjs/common'
 import { AuthGuard } from '@nestjs/passport';
 import {
   Acl,
@@ -22,6 +22,7 @@ export class SharedBasesController {
   constructor(private readonly sharedBasesService: SharedBasesService) {}
 
   @Post('/api/v1/db/meta/projects/:projectId/shared')
+  @HttpCode(200)
   @Acl('createSharedBaseLink')
   async createSharedBaseLink(
     @Request() req,

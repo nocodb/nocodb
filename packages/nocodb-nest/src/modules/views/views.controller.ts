@@ -2,14 +2,14 @@ import {
   Body,
   Controller,
   Delete,
-  Get,
+  Get, HttpCode,
   Param,
   Patch,
   Post,
   Query,
   Request,
   UseGuards,
-} from '@nestjs/common';
+} from '@nestjs/common'
 import { ViewUpdateReqType } from 'nocodb-sdk';
 import { PagedResponseImpl } from '../../helpers/PagedResponse';
 import {
@@ -62,6 +62,7 @@ export class ViewsController {
   }
 
   @Post('/api/v1/db/meta/views/:viewId/show-all')
+  @HttpCode(200)
   @UseAclMiddleware({
     permissionName: 'showAllColumns',
   })
@@ -75,6 +76,7 @@ export class ViewsController {
     });
   }
   @Post('/api/v1/db/meta/views/:viewId/hide-all')
+  @HttpCode(200)
   @UseAclMiddleware({
     permissionName: 'hideAllColumns',
   })
@@ -89,6 +91,7 @@ export class ViewsController {
   }
 
   @Post('/api/v1/db/meta/views/:viewId/share')
+  @HttpCode(200)
   @UseAclMiddleware({
     permissionName: 'shareView',
   })

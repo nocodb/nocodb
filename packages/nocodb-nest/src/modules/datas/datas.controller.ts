@@ -2,12 +2,12 @@ import {
   Body,
   Controller,
   Delete,
-  Get,
+  Get, HttpCode,
   Param,
   Patch,
   Post,
   Request,
-} from '@nestjs/common';
+} from '@nestjs/common'
 import { Acl } from '../../middlewares/extract-project-id/extract-project-id.middleware';
 import { DatasService } from './datas.service';
 
@@ -119,6 +119,7 @@ export class DatasController {
   }
 
   @Post('/data/:viewId/')
+  @HttpCode(200)
   @Acl('dataInsert')
   async dataInsert(
     @Request() req,
@@ -184,6 +185,7 @@ export class DatasController {
   }
 
   @Post('/data/:viewId/:rowId/:relationType/:colId/:childId')
+  @HttpCode(200)
   @Acl('relationDataAdd')
   async relationDataAdd(
     @Request() req,

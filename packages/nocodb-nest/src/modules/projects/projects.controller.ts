@@ -2,14 +2,14 @@ import {
   Body,
   Controller,
   Delete,
-  Get,
+  Get, HttpCode,
   Param,
   Patch,
   Post,
   Query,
   Request,
   UseGuards,
-} from '@nestjs/common';
+} from '@nestjs/common'
 import { AuthGuard } from '@nestjs/passport';
 import isDocker from 'is-docker';
 import { ProjectReqType } from 'nocodb-sdk';
@@ -90,6 +90,7 @@ export class ProjectsController {
   }
 
   @Post('/api/v1/db/meta/projects')
+  @HttpCode(200)
   async projectCreate(@Body() projectBody: ProjectReqType, @Request() req) {
     const project = await this.projectsService.projectCreate({
       project: projectBody,

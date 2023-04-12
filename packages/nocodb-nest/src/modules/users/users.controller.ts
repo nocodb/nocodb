@@ -49,6 +49,7 @@ export class UsersController {
     '/api/v1/db/auth/token/refresh',
     '/api/v1/auth/token/refresh',
   ])
+  @HttpCode(200)
   async refreshToken(@Request() req: any, @Request() res: any): Promise<any> {
     return await this.usersService.refreshToken({
       body: req.body,
@@ -113,6 +114,7 @@ export class UsersController {
   }
 
   @Post(`/auth/google/genTokenByCode`)
+  @HttpCode(200)
   async googleSignin(req, res, next) {
     // todo
     /* passport.authenticate(
@@ -179,6 +181,7 @@ export class UsersController {
     '/api/v1/db/auth/password/forgot',
     '/api/v1/auth/password/forgot',
   ])
+  @HttpCode(200)
   async passwordForgot(@Request() req: any, @Body() body: any): Promise<any> {
     await this.usersService.passwordForgot({
       siteUrl: (req as any).ncSiteUrl,
@@ -194,6 +197,7 @@ export class UsersController {
     '/api/v1/db/auth/token/validate/:tokenId',
     '/api/v1/auth/token/validate/:tokenId',
   ])
+  @HttpCode(200)
   async tokenValidate(@Param('tokenId') tokenId: string): Promise<any> {
     await this.usersService.tokenValidate({
       token: tokenId,
@@ -206,6 +210,7 @@ export class UsersController {
     '/api/v1/db/auth/password/reset/:tokenId',
     '/api/v1/auth/password/reset/:tokenId',
   ])
+  @HttpCode(200)
   async passwordReset(
     @Request() req: any,
     @Param('tokenId') tokenId: string,
@@ -224,6 +229,7 @@ export class UsersController {
     '/api/v1/db/auth/email/validate/:tokenId',
     '/api/v1/auth/email/validate/:tokenId',
   ])
+  @HttpCode(200)
   async emailVerification(
     @Request() req: any,
     @Param('tokenId') tokenId: string,

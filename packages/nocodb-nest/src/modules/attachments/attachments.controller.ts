@@ -2,7 +2,7 @@ import path from 'path';
 import {
   Body,
   Controller,
-  Get,
+  Get, HttpCode,
   Param,
   Post,
   Query,
@@ -11,7 +11,7 @@ import {
   UploadedFiles,
   UseGuards,
   UseInterceptors,
-} from '@nestjs/common';
+} from '@nestjs/common'
 import multer from 'multer';
 import { FileInterceptor, FilesInterceptor } from '@nestjs/platform-express';
 import { OrgUserRoles, ProjectRoles } from 'nocodb-sdk';
@@ -44,6 +44,7 @@ export class AttachmentsController {
     //   ]
     // );
   )
+  @HttpCode(200)
   @UseInterceptors(
     UploadAllowedInterceptor,
     FilesInterceptor('files[]', null, {
@@ -71,6 +72,7 @@ export class AttachmentsController {
   }
 
   @Post('/api/v1/db/storage/upload-by-url')
+  @HttpCode(200)
   @UseInterceptors(UploadAllowedInterceptor)
   //   [
   //     extractProjectIdAndAuthenticate,

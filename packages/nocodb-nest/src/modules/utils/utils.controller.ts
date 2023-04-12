@@ -1,11 +1,11 @@
 import {
   Body,
   Controller,
-  Get,
+  Get, HttpCode,
   Post,
   Request,
   UseGuards,
-} from '@nestjs/common';
+} from '@nestjs/common'
 import { AuthGuard } from '@nestjs/passport';
 import {
   Acl,
@@ -32,6 +32,7 @@ export class UtilsController {
   @UseGuards(ExtractProjectIdMiddleware, AuthGuard('jwt'))
   @Post('/api/v1/db/meta/connection/test')
   @Acl('testConnection')
+  @HttpCode(200)
   async testConnection(@Body() body: any) {
     return await this.utilsService.testConnection({ body });
   }
@@ -50,11 +51,13 @@ export class UtilsController {
   }
 
   @Post('/api/v1/db/meta/axiosRequestMake')
+  @HttpCode(200)
   async axiosRequestMake(@Body() body: any) {
     return await this.utilsService.axiosRequestMake({ body });
   }
 
   @Post('/api/v1/url_to_config')
+  @HttpCode(200)
   async urlToDbConfig(@Body() body: any) {
     return await this.utilsService.urlToDbConfig({
       body,

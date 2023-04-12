@@ -1,4 +1,4 @@
-import { Controller, Get, Param, Post, Request } from '@nestjs/common';
+import { Controller, Get, HttpCode, Param, Post, Request } from '@nestjs/common'
 import { PublicDatasService } from './public-datas.service';
 
 @Controller()
@@ -46,6 +46,7 @@ export class PublicDatasController {
   //   catchError(dataInsert)
   // );
   @Post('/api/v1/db/public/shared-view/:sharedViewUuid/rows')
+  @HttpCode(200)
   async dataInsert(
     @Request() req,
     @Param('sharedViewUuid') sharedViewUuid: string,

@@ -2,13 +2,13 @@ import {
   Body,
   Controller,
   Delete,
-  Get,
+  Get, HttpCode,
   Param,
   Patch,
   Post,
   Request,
   UseGuards,
-} from '@nestjs/common';
+} from '@nestjs/common'
 import { HookReqType, HookTestReqType } from 'nocodb-sdk';
 import { AuthGuard } from '@nestjs/passport';
 import { PagedResponseImpl } from '../../helpers/PagedResponse';
@@ -31,6 +31,7 @@ export class HooksController {
   }
 
   @Post('/api/v1/db/meta/tables/:tableId/hooks')
+  @HttpCode(200)
   @Acl('hookCreate')
   async hookCreate(
     @Param('tableId') tableId: string,
@@ -57,6 +58,7 @@ export class HooksController {
   }
 
   @Post('/api/v1/db/meta/tables/:tableId/hooks/test')
+  @HttpCode(200)
   @Acl('hookTest')
   async hookTest(@Body() body: HookTestReqType, @Request() req: any) {
     try {

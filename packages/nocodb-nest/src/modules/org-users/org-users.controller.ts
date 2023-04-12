@@ -49,8 +49,7 @@ export class OrgUsersController {
     blockApiTokenAccess: true,
   })
   async userUpdate(@Body() body, @Param('userId') userId: string) {
-    return;
-    await this.orgUsersService.userUpdate({
+    return await this.orgUsersService.userUpdate({
       user: body,
       userId,
     });

@@ -175,7 +175,7 @@ class BaseModelSqlv2 {
       tableName: this.model.title,
     });
     const { ast } = await getAst({ model, view });
-    data = await nocoExecute(ast, data, {});
+    data = data && (await nocoExecute(ast, data, {}));
     return data;
   }
 

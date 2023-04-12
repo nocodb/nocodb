@@ -181,11 +181,18 @@ class BaseModelSqlv2 {
 
   public async exist(id?: any): Promise<any> {
     const qb = this.dbDriver(this.tnPath);
+    await this.model.getColumns();
     const pks = this.model.primaryKeys;
+
+    if(!pks.length) return false;
+
+    qb.select(pks[0].column_name)
+
     if ((id + '').split('___').length != pks?.length) {
       return false;
     }
-    return !!(await qb.where(_wherePk(pks, id)).first());
+    qb.where(_wherePk(pks, id)).first()
+    return !!(await qb);
   }
 
   // todo: add support for sortArrJson

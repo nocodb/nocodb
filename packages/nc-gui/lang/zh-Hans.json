@@ -470,7 +470,7 @@
       "addOrEditStack": "添加/编辑分类标签"
     },
     "map": {
-      "mappedBy": "Mapped By",
+      "mappedBy": "映射字段",
       "chooseMappingField": "选择映射字段",
       "openInGoogleMaps": "谷歌地图",
       "openInOpenStreetMap": "OSM"
@@ -543,14 +543,14 @@
       },
       "codeScanner": {
         "loadingScanner": "正在加载扫描仪...",
-        "selectColumn": "Select a column (QR code or Barcode) that you want to use for finding a row by scanning.",
+        "selectColumn": "选择要用于扫描查找行的列(二维码或条形码)。",
         "moreThanOneRowFoundForCode": "找到了多行此代码。目前只支持唯一的代码。",
         "noRowFoundForCode": "所选列没有找到此代码行"
       },
       "map": {
         "overLimit": "你已经超出了限制。",
         "closeLimit": "您已接近上限。",
-        "limitNumber": "The limit of markers shown in a Map View is 1000 records."
+        "limitNumber": "在地图视图中显示的标记的限制是1000条记录。"
       },
       "footerInfo": "每页行驶",
       "upload": "选择文件以上传",

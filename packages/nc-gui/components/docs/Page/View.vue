@@ -239,7 +239,7 @@ watch(wrapperRef, () => {
             v-if="isPageFetching && !isPublic"
             :active="true"
             size="large"
-            class="docs-page-title-skelton !mt-3 !max-w-156 mb-3 -ml-3 docs-page-skeleton-loading"
+            class="docs-page-title-skelton !mt-3 !max-w-156 mb-3 ml-8 docs-page-skeleton-loading"
           />
           <DocsPageTitle v-else-if="openedPage" :key="openedPage.id" class="docs-page-title" @focus-editor="focusEditor" />
           <div class="flex !mb-4.5"></div>
@@ -250,7 +250,7 @@ watch(wrapperRef, () => {
             v-if="isPageFetching && !isPublic"
             :active="true"
             size="small"
-            class="docs-page-title-skelton !max-w-102 mb-3 mt-1 docs-page-skeleton-loading"
+            class="docs-page-title-skelton !max-w-102 mb-3 mt-1 ml-8 docs-page-skeleton-loading"
           />
           <EditorContent v-else :key="isEditAllowed ? 'edit' : 'view'" data-testid="docs-page-content" :editor="editor" />
           <div

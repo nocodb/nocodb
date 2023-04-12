@@ -436,44 +436,49 @@ onMounted(() => {
       :visible="importModalOpen"
       :closable="false"
       :mask-closable="false"
-      :cancel-button-props="{ disabled: isMagicLoading }"
       :confirm-loading="isImporting"
-      @cancel="importModalOpen = false"
-      @ok="onImport"
+      :footer="null"
+      wrap-class-name="!z-1000"
+      :centered="true"
     >
-      <template #title>
-        <div class="flex items-center">
-          Import documentation
-          <PhUploadSimpleFill :class="{ 'nc-animation-pulse': isImporting }" class="ml-2 text-blue-400" />
+      <div class="py-1 px-5 flex flex-col">
+        <div class="flex items-center py-2 mb-3 border-b-1 border-gray-100" :style="{ fontWeight: 500 }">Import pages</div>
+
+        <div class="flex mt-3 text-xs">Supported URLs</div>
+
+        <div class="flex flex-row space-x-4 my-3.5">
+          <div class="flex flex-col items-center gap-y-1">
+            <div class="flex flex-col py-1 px-1.5 bg-gray-100 rounded-lg">
+              <MdiNuxt class="flex text-gray-400 text-2xl" />
+            </div>
+            <div class="flex text-gray-500 text-xs">Nuxt Docs</div>
+          </div>
+          <div class="flex flex-col items-center gap-y-1">
+            <div class="flex flex-col py-1 px-1.5 bg-gray-100 rounded-lg">
+              <BiMarkdownFill class="flex text-gray-400 text-2xl" />
+            </div>
+            <div class="flex text-gray-500 text-xs">Markdown</div>
+          </div>
         </div>
-      </template>
-      <div v-if="importType === null">
-        <a-card :bordered="false">
-          <a-card-grid style="width: 25%; text-align: center; margin: 5px 4%" @click="importType = 'nuxt'">
-            <LogosNuxtIcon class="text-5xl" />
-          </a-card-grid>
-          <a-card-grid style="width: 25%; text-align: center; margin: 5px 4%" @click="importType = 'nuxt'">
-            <LogosDocusaurus class="text-5xl" />
-          </a-card-grid>
-          <a-card-grid style="width: 25%; text-align: center; margin: 5px 4%" @click="importType = 'nuxt'">
-            <LogosVitejs class="text-5xl" />
-          </a-card-grid>
-          <a-card-grid style="width: 25%; text-align: center; margin: 5px 4%" @click="importType = 'nuxt'">
-            <LogosConfluence class="text-5xl" />
-          </a-card-grid>
-          <a-card-grid style="width: 25%; text-align: center; margin: 5px 4%" @click="importType = 'nuxt'">
-            <SimpleIconsGitbook class="text-5xl" />
-          </a-card-grid>
-          <a-card-grid style="width: 25%; text-align: center; margin: 5px 4%" @click="importType = 'nuxt'">
-            <SimpleIconsNotion class="text-5xl" />
-          </a-card-grid>
-        </a-card>
+
+        <a-input
+          v-model:value="importFormData.title"
+          class="!border-1 !border-gray-300 !rounded-md !py-2 !px-3"
+          placeholder="Enter document link"
+        />
+        <div class="flex flex-row justify-end space-x-2 mt-6 mb-3 pt-3 border-t-1 border-gray-100">
+          <a-button type="text" class="!border-gray-200 !border-1 !rounded-md" @click="importModalOpen = false">Cancel</a-button>
+
+          <a-button
+            :loading="isImporting"
+            :disabled="importFormData.title?.length === 0"
+            type="primary"
+            class="!rounded-md"
+            @click="onImport"
+            >Import</a-button
+          >
+        </div>
       </div>
-      <a-form v-else :model="importFormData">
-        <a-form-item label="Url">
-          <a-input v-model:value="importFormData.title" />
-        </a-form-item>
-      </a-form>
     </a-modal>
   </a-layout-content>
 </template>

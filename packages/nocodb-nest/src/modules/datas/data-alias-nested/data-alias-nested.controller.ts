@@ -16,7 +16,7 @@ import { DataAliasNestedService } from './data-alias-nested.service';
 
 @Controller()
 @UseGuards(ExtractProjectIdMiddleware, AuthGuard('jwt'))
-class DataAliasNestedController {
+export class DataAliasNestedController {
   constructor(private dataAliasNestedService: DataAliasNestedService) {}
 
   // todo: handle case where the given column is not ltar

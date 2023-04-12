@@ -273,7 +273,7 @@ function baseModelSqlTests() {
 
     const deletedRow = await baseModelSql.readByPk(rowIdToDeleted);
 
-    expect(deletedRow).to.be.an('object').that.is.empty;
+    expect(deletedRow).to.be.undefined;
 
     console.log('Delete record', await Audit.projectAuditList(project.id, {}));
     const rowDeletedAudit = (await Audit.projectAuditList(project.id, {})).find(

@@ -23,8 +23,6 @@
     "test:unit:pg": "cp tests/unit/.pg.env tests/unit/.env; cross-env TS_NODE_PROJECT=./tests/unit/tsconfig.json mocha -r ts-node/register   tests/unit/index.test.ts --recursive --timeout 300000  --exit --delay"
   },
   "dependencies": {
-    "@types/chai": "^4.2.12",
-    "@types/mocha": "^8.0.1",
     "@google-cloud/storage": "^5.7.2",
     "@graphql-tools/merge": "^6.0.12",
     "@nestjs/common": "^9.0.0",
@@ -33,6 +31,8 @@
     "@nestjs/mapped-types": "*",
     "@nestjs/platform-express": "^9.4.0",
     "@sentry/node": "^6.3.5",
+    "@types/chai": "^4.2.12",
+    "@types/mocha": "^8.0.1",
     "airtable": "^0.11.3",
     "ajv": "^8.12.0",
     "ajv-formats": "^2.1.1",

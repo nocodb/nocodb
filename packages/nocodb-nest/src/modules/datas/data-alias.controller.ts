@@ -2,14 +2,15 @@ import {
   Body,
   Controller,
   Delete,
-  Get, HttpCode,
+  Get,
+  HttpCode,
   Param,
   Patch,
   Post,
   Request,
   Response,
   UseGuards,
-} from '@nestjs/common'
+} from '@nestjs/common';
 import { AuthGuard } from '@nestjs/passport';
 import { parseHrtimeToSeconds } from '../../helpers';
 import {
@@ -201,18 +202,21 @@ export class DataAliasController {
   @Acl('dataExist')
   async dataExist(
     @Request() req,
+    @Response() res,
     @Param('projectName') projectName: string,
     @Param('tableName') tableName: string,
     @Param('viewName') viewName: string,
     @Param('rowId') rowId: string,
   ) {
-    return await this.datasService.dataExist({
+    const exists = await this.datasService.dataExist({
       projectName: projectName,
       tableName: tableName,
       viewName: viewName,
       rowId: rowId,
       query: req.query,
     });
+
+    res.json(exists);
   }
 
   // todo: Handle the error case where view doesnt belong to model

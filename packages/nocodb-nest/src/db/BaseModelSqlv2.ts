@@ -181,9 +181,8 @@ class BaseModelSqlv2 {
 
   public async exist(id?: any): Promise<any> {
     const qb = this.dbDriver(this.tnPath);
-    await this.selectObject({ qb });
     const pks = this.model.primaryKeys;
-    if ((id + '').split('___').length != pks.length) {
+    if ((id + '').split('___').length != pks?.length) {
       return false;
     }
     return !!(await qb.where(_wherePk(pks, id)).first());

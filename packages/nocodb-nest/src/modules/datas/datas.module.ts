@@ -12,12 +12,12 @@ import { OldDatasService } from './old-datas/old-datas.service';
 
 @Module({
   controllers: [
-    DataAliasController,
     DatasController,
     BulkDataAliasController,
+    DataAliasController,
+    DataAliasNestedController,
     DataAliasExportController,
     OldDatasController,
-    DataAliasNestedController,
   ],
   providers: [
     DatasService,

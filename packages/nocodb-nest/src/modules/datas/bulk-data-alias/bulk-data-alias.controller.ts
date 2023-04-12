@@ -1,11 +1,13 @@
 import {
   Body,
   Controller,
-  Delete, HttpCode,
+  Delete,
+  HttpCode,
   Param,
   Patch,
   Post,
   Request,
+  Response,
   UseGuards,
 } from '@nestjs/common'
 import { AuthGuard } from '@nestjs/passport';
@@ -25,16 +27,19 @@ export class BulkDataAliasController {
   @Acl('bulkDataInsert')
   async bulkDataInsert(
     @Request() req,
+    @Response() res,
     @Param('projectName') projectName: string,
     @Param('tableName') tableName: string,
     @Body() body: any,
   ) {
-    return await this.bulkDataAliasService.bulkDataInsert({
+    const exists = await this.bulkDataAliasService.bulkDataInsert({
       body: body,
       cookie: req,
       projectName: projectName,
       tableName: tableName,
     });
+
+    res.json(exists);
   }
 
   @Patch('/api/v1/db/data/bulk/:orgs/:projectName/:tableName')

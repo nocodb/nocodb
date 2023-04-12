@@ -1,4 +1,5 @@
 import { Injectable } from '@nestjs/common';
+import { UITypes } from 'nocodb-sdk';
 import { NcError } from '../../../helpers/catchError';
 import { PagedResponseImpl } from '../../../helpers/PagedResponse';
 import { Base, Model } from '../../../models';
@@ -195,6 +196,9 @@ export class DataAliasNestedService {
     });
 
     const column = await getColumnByIdOrName(param.columnName, model);
+
+    if (column.uidt !== UITypes.LinkToAnotherRecord)
+      NcError.badRequest('Column is not LTAR');
 
     const data = await baseModel.hmList(
       {

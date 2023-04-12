@@ -3242,17 +3242,24 @@ function extractCondition(nestedArrayConditions, aliasColObjMap) {
     // eslint-disable-next-line prefer-const
     let [logicOp, alias, op, value] =
       str.match(/(?:~(and|or|not))?\((.*?),(\w+),(.*)\)/)?.slice(1) || [];
+
+    if (!alias && !op && !value) {
+      // try match with blank filter format
+      [logicOp, alias, op, value] =
+        str.match(/(?:~(and|or|not))?\((.*?),(\w+)\)/)?.slice(1) || [];
+    }
     let sub_op = null;
 
     if (aliasColObjMap[alias]) {
       if (
         [UITypes.Date, UITypes.DateTime].includes(aliasColObjMap[alias].uidt)
       ) {
-        value = value.split(',');
+        value = value?.split(',');
         // the first element would be sub_op
-        sub_op = value[0];
+        sub_op = value?.[0];
         // remove the first element which is sub_op
-        value.shift();
+        value?.shift();
+        value = value?.[0];
       } else if (op === 'in') {
         value = value.split(',');
       }

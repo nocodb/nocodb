@@ -51,9 +51,8 @@ export class GlobalExceptionFilter implements ExceptionFilter {
     if (exception.getStatus?.()) {
       response.status(exception.getStatus()).json(exception.getResponse());
     } else {
-      response.status(500).json({
-        statusCode: 500,
-        message: 'Internal server error',
+      response.status(400).json({
+        msg: exception.message,
       });
     }
   }

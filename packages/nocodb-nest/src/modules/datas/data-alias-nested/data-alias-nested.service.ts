@@ -31,6 +31,9 @@ export class DataAliasNestedService {
 
     const column = await getColumnByIdOrName(param.columnName, model);
 
+    if (column.uidt !== UITypes.LinkToAnotherRecord)
+      NcError.badRequest('Column is not LTAR');
+
     const data = await baseModel.mmList(
       {
         colId: column.id,

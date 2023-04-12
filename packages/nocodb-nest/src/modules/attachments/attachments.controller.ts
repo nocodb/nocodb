@@ -13,22 +13,18 @@ import {
   UseInterceptors,
 } from '@nestjs/common'
 import multer from 'multer';
-import { FileInterceptor, FilesInterceptor } from '@nestjs/platform-express';
-import { OrgUserRoles, ProjectRoles } from 'nocodb-sdk';
+import { FilesInterceptor } from '@nestjs/platform-express';
 import { AuthGuard } from '@nestjs/passport';
 import { NC_ATTACHMENT_FIELD_SIZE } from '../../constants';
-import { NcError } from '../../helpers/catchError';
 import { UploadAllowedInterceptor } from '../../interceptors/is-upload-allowed/is-upload-allowed.interceptor';
-import { ExtractProjectIdMiddleware } from '../../middlewares/extract-project-id/extract-project-id.middleware';
-import Noco from '../../Noco';
-import { MetaTable } from '../../utils/globals';
+import { ExtractProjectIdMiddleware } from '../../middlewares/extract-project-id/extract-project-id.middleware'
 import { AttachmentsService } from './attachments.service';
 
 @Controller()
 export class AttachmentsController {
   constructor(private readonly attachmentsService: AttachmentsService) {}
 
-  @UseGuards(ExtractProjectIdMiddleware, AuthGuard('jwt'))
+  @UseGuards(AuthGuard('jwt'))
   @Post(
     '/api/v1/db/storage/upload',
     //   multer({
@@ -80,7 +76,7 @@ export class AttachmentsController {
   //   catchError(uploadViaURL),
   // ]
   // );
-  @UseGuards(ExtractProjectIdMiddleware, AuthGuard('jwt'))
+  @UseGuards(AuthGuard('jwt'))
   async uploadViaURL(@Body() body: any, @Query('path') path: string) {
     const attachments = await this.attachmentsService.uploadViaURL({
       urls: body,

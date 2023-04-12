@@ -143,7 +143,7 @@ export const JwtStrategyProvider: Provider = {
     },
     // JwtStrategyProvider,
     LocalStrategy,
-    ExtractProjectIdMiddleware,
+    // ExtractProjectIdMiddleware,
     ClientService,
     AuthTokenStrategy,
     BaseViewStrategy,

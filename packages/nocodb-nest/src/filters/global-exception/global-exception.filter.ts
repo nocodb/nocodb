@@ -15,8 +15,6 @@ import type { Response } from 'express';
 @Catch()
 export class GlobalExceptionFilter implements ExceptionFilter {
   catch(exception: any, host: ArgumentsHost) {
-    console.log(exception)
-
     const ctx = host.switchToHttp();
     const response = ctx.getResponse<Response>();
 
@@ -28,17 +26,32 @@ export class GlobalExceptionFilter implements ExceptionFilter {
       return response.status(400).json(dbError);
     }
 
-    if (exception instanceof BadRequest) {
+    if (exception instanceof BadRequest || exception.getStatus?.() === 400) {
       return response.status(400).json({ msg: exception.message });
-    } else if (exception instanceof Unauthorized) {
+    } else if (
+      exception instanceof Unauthorized ||
+      exception.getStatus?.() === 401
+    ) {
       return response.status(401).json({ msg: exception.message });
-    } else if (exception instanceof Forbidden) {
+    } else if (
+      exception instanceof Forbidden ||
+      exception.getStatus?.() === 403
+    ) {
       return response.status(403).json({ msg: exception.message });
-    } else if (exception instanceof NotFound) {
+    } else if (
+      exception instanceof NotFound ||
+      exception.getStatus?.() === 404
+    ) {
       return response.status(404).json({ msg: exception.message });
-    } else if (exception instanceof InternalServerError) {
+    } else if (
+      exception instanceof InternalServerError ||
+      exception.getStatus?.() === 500
+    ) {
       return response.status(500).json({ msg: exception.message });
-    } else if (exception instanceof NotImplemented) {
+    } else if (
+      exception instanceof NotImplemented ||
+      exception.getStatus?.() === 501
+    ) {
       return response.status(501).json({ msg: exception.message });
     } else if (exception instanceof AjvError) {
       return response

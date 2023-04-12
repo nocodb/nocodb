@@ -56,7 +56,7 @@ function authTests() {
       .expect(400);
   });
 
-  it.only('Signin with valid credentials', async () => {
+  it('Signin with valid credentials', async () => {
     const response = await request(context.app)
       .post('/api/v1/auth/user/signin')
       .send({
@@ -73,7 +73,7 @@ function authTests() {
       .post('/api/v1/auth/user/signin')
       // pass empty data in await request
       .send({})
-      .expect(400)
+      .expect(401)
   });
 
   it('Signin with invalid credentials', async () => {

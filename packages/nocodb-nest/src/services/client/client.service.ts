@@ -23,7 +23,6 @@ export class ClientService implements OnModuleInit {
     private jwtStrategy: JwtStrategy,
     @Inject(HttpAdapterHost) private httpAdapterHost: HttpAdapterHost,
   ) {
-    // this.server = this.httpAdapterHost.httpAdapter.getHttpServer();
   }
 
   async onModuleInit() {

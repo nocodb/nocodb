@@ -47,7 +47,8 @@ export class GlobalExceptionFilter implements ExceptionFilter {
     }
 
     // handle different types of exceptions
-    if (exception instanceof HttpException) {
+    // todo: temporary hack, need to fix
+    if (exception.getStatus?.()) {
       response.status(exception.getStatus()).json(exception.getResponse());
     } else {
       response.status(500).json({

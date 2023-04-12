@@ -60,6 +60,9 @@ import type {
   Provider,
 } from '@nestjs/common';
 import { ClientService } from './services/client/client.service';
+import { AuthTokenStrategy } from './strategies/authtoken.strategy/authtoken.strategy';
+import { BaseViewStrategy } from './strategies/base-view.strategy/base-view.strategy';
+import { GoogleStrategy } from './strategies/google.strategy/google.strategy';
 
 export const JwtStrategyProvider: Provider = {
   provide: JwtStrategy,
@@ -135,6 +138,9 @@ export const JwtStrategyProvider: Provider = {
     LocalStrategy,
     ExtractProjectIdMiddleware,
     ClientService,
+    AuthTokenStrategy,
+    BaseViewStrategy,
+    GoogleStrategy,
   ],
 })
 export class AppModule implements OnApplicationBootstrap {

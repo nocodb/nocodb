@@ -173,7 +173,6 @@ export default class RedisCacheMgr extends CacheMgr {
         // Set NONE here so that it won't hit the DB on each page load
         return this.set(listKey, ['NONE']);
       }
-      console.log('HERE');
       return Promise.resolve(true);
     }
     // fetch existing list

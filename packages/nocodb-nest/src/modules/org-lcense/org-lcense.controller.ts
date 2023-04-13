@@ -1,9 +1,11 @@
-import { Controller, Get, HttpCode, Post } from '@nestjs/common'
+import { Controller, Get, HttpCode, Post, UseGuards } from '@nestjs/common'
 import { OrgUserRoles } from 'nocodb-sdk';
-import { Acl } from '../../middlewares/extract-project-id/extract-project-id.middleware';
+import { GlobalGuard } from '../../guards/global/global.guard'
+import { Acl } from '../../middlewares/extract-project-id/extract-project-id.middleware'
 import { OrgLcenseService } from './org-lcense.service';
 
 @Controller()
+@UseGuards(GlobalGuard)
 export class OrgLcenseController {
   constructor(private readonly orgLcenseService: OrgLcenseService) {}
 

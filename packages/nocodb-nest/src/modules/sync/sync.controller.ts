@@ -6,12 +6,14 @@ import {
   Param,
   Patch,
   Post,
-  Req,
+  Req, UseGuards,
 } from '@nestjs/common'
-import { Acl } from '../../middlewares/extract-project-id/extract-project-id.middleware';
+import { GlobalGuard } from '../../guards/global/global.guard'
+import { Acl, ExtractProjectIdMiddleware } from '../../middlewares/extract-project-id/extract-project-id.middleware'
 import { SyncService } from './sync.service';
 
 @Controller()
+@UseGuards(ExtractProjectIdMiddleware, GlobalGuard)
 export class SyncController {
   constructor(private readonly syncService: SyncService) {}
 

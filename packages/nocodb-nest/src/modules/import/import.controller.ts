@@ -1,7 +1,9 @@
-import { Controller, HttpCode, Post, Request } from '@nestjs/common'
+import { Controller, HttpCode, Post, Request, UseGuards } from '@nestjs/common'
 import { forwardRef, Inject } from '@nestjs/common';
 import { ModuleRef } from '@nestjs/core';
+import { GlobalGuard } from '../../guards/global/global.guard'
 import { NcError } from '../../helpers/catchError';
+import { ExtractProjectIdMiddleware } from '../../middlewares/extract-project-id/extract-project-id.middleware'
 import { SyncSource } from '../../models';
 import NocoJobs from '../../jobs/NocoJobs';
 import { ImportService } from './import.service';
@@ -81,6 +83,7 @@ export default (
   });
 };
 @Controller()
+@UseGuards(ExtractProjectIdMiddleware, GlobalGuard)
 export class ImportController {
   constructor(
     private readonly importService: ImportService,

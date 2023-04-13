@@ -12,6 +12,7 @@ import {
   UseGuards,
 } from '@nestjs/common';
 import { AuthGuard } from '@nestjs/passport';
+import { GlobalGuard } from '../../guards/global/global.guard'
 import { parseHrtimeToSeconds } from '../../helpers';
 import {
   Acl,
@@ -20,7 +21,7 @@ import {
 import { DatasService } from './datas.service';
 
 @Controller()
-@UseGuards(ExtractProjectIdMiddleware, AuthGuard('jwt'))
+@UseGuards(ExtractProjectIdMiddleware, GlobalGuard)
 export class DataAliasController {
   constructor(private readonly datasService: DatasService) {}
 

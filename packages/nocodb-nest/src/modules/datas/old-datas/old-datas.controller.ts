@@ -11,6 +11,7 @@ import {
   UseGuards,
 } from '@nestjs/common'
 import { AuthGuard } from '@nestjs/passport';
+import { GlobalGuard } from '../../../guards/global/global.guard'
 import {
   Acl,
   ExtractProjectIdMiddleware,
@@ -18,7 +19,7 @@ import {
 import { OldDatasService } from './old-datas.service';
 
 @Controller()
-@UseGuards(ExtractProjectIdMiddleware, AuthGuard('jwt'))
+@UseGuards(ExtractProjectIdMiddleware, GlobalGuard)
 export class OldDatasController {
   constructor(private readonly oldDatasService: OldDatasService) {}
 

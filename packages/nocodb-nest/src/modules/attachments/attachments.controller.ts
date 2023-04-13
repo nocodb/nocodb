@@ -19,6 +19,7 @@ import {
 } from '@nestjs/platform-express';
 import { AuthGuard } from '@nestjs/passport';
 import { NC_ATTACHMENT_FIELD_SIZE } from '../../constants';
+import { GlobalGuard } from '../../guards/global/global.guard'
 import { UploadAllowedInterceptor } from '../../interceptors/is-upload-allowed/is-upload-allowed.interceptor';
 import { AttachmentsService } from './attachments.service';
 
@@ -26,7 +27,7 @@ import { AttachmentsService } from './attachments.service';
 export class AttachmentsController {
   constructor(private readonly attachmentsService: AttachmentsService) {}
 
-  @UseGuards(AuthGuard('jwt'))
+  @UseGuards(GlobalGuard)
   @Post(
     '/api/v1/db/storage/upload',
     //   multer({
@@ -78,7 +79,7 @@ export class AttachmentsController {
   //   catchError(uploadViaURL),
   // ]
   // );
-  @UseGuards(AuthGuard('jwt'))
+  @UseGuards(GlobalGuard)
   async uploadViaURL(@Body() body: any, @Query('path') path: string) {
     const attachments = await this.attachmentsService.uploadViaURL({
       urls: body,

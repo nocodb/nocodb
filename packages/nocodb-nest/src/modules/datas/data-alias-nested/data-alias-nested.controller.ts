@@ -8,6 +8,7 @@ import {
   UseGuards,
 } from '@nestjs/common'
 import { AuthGuard } from '@nestjs/passport';
+import { GlobalGuard } from '../../../guards/global/global.guard'
 import {
   Acl,
   ExtractProjectIdMiddleware,
@@ -15,7 +16,7 @@ import {
 import { DataAliasNestedService } from './data-alias-nested.service';
 
 @Controller()
-@UseGuards(ExtractProjectIdMiddleware, AuthGuard('jwt'))
+@UseGuards(ExtractProjectIdMiddleware, GlobalGuard)
 export class DataAliasNestedController {
   constructor(private dataAliasNestedService: DataAliasNestedService) {}
 

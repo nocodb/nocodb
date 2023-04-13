@@ -10,6 +10,7 @@ import {
 } from '@nestjs/common'
 import { AuthGuard } from '@nestjs/passport';
 import { FilterReqType } from 'nocodb-sdk';
+import { GlobalGuard } from '../../guards/global/global.guard'
 import { PagedResponseImpl } from '../../helpers/PagedResponse';
 import {
   Acl,
@@ -19,7 +20,7 @@ import {
 import { FiltersService } from './filters.service';
 
 @Controller()
-@UseGuards(ExtractProjectIdMiddleware, AuthGuard('jwt'))
+@UseGuards(ExtractProjectIdMiddleware, GlobalGuard)
 export class FiltersController {
   constructor(private readonly filtersService: FiltersService) {}
 

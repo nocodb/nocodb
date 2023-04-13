@@ -8,11 +8,11 @@ import NcConfigFactory from '../utils/NcConfigFactory'
   scope: Scope.DEFAULT
 })
 export class Connection {
-  private knex: knex.Knex;
+  private static knex: knex.Knex;
   private _config: any;
 
   get knexInstance(): knex.Knex {
-    return this.knex;
+    return Connection.knex;
   }
 
   get config(): knex.Knex {
@@ -22,9 +22,11 @@ export class Connection {
   // init metadb connection
   async init(): Promise<void> {
     this._config = await NcConfigFactory.make();
-    this.knex = XKnex({
-      ...this._config.meta.db,
-      useNullAsDefault: true,
-    });
+    if(!Connection.knex) {
+      Connection.knex = XKnex({
+        ...this._config.meta.db,
+        useNullAsDefault: true,
+      });
+    }
   }
 }

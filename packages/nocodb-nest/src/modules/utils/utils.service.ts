@@ -61,47 +61,6 @@ interface AllMeta {
 
 @Injectable()
 export class UtilsService {
-  async info({ ncSiteUrl }: { ncSiteUrl: string }) {
-    const projectHasAdmin = !(await User.isFirst());
-    const result = {
-      authType: 'jwt',
-      projectHasAdmin,
-      firstUser: !projectHasAdmin,
-      type: 'rest',
-      env: process.env.NODE_ENV,
-      googleAuthEnabled: !!(
-        process.env.NC_GOOGLE_CLIENT_ID && process.env.NC_GOOGLE_CLIENT_SECRET
-      ),
-      githubAuthEnabled: !!(
-        process.env.NC_GITHUB_CLIENT_ID && process.env.NC_GITHUB_CLIENT_SECRET
-      ),
-      oneClick: !!process.env.NC_ONE_CLICK,
-      connectToExternalDB: !process.env.NC_CONNECT_TO_EXTERNAL_DB_DISABLED,
-      version: packageVersion,
-      defaultLimit: Math.max(
-        Math.min(
-          +process.env.DB_QUERY_LIMIT_DEFAULT || 25,
-          +process.env.DB_QUERY_LIMIT_MAX || 100,
-        ),
-        +process.env.DB_QUERY_LIMIT_MIN || 1,
-      ),
-      timezone: defaultConnectionConfig.timezone,
-      ncMin: !!process.env.NC_MIN,
-      teleEnabled: process.env.NC_DISABLE_TELE !== 'true',
-      auditEnabled: process.env.NC_DISABLE_AUDIT !== 'true',
-      // todo: tobe done
-      ncSiteUrl,
-      // todo: tobe done
-      ee: false, //  Noco.isEE(),
-      ncAttachmentFieldSize: NC_ATTACHMENT_FIELD_SIZE,
-      ncMaxAttachmentsAllowed: +(process.env.NC_MAX_ATTACHMENTS_ALLOWED || 10),
-      isCloud: process.env.NC_CLOUD === 'true',
-      automationLogLevel: process.env.NC_AUTOMATION_LOG_LEVEL || 'OFF',
-    };
-
-    return result;
-  }
-
   async versionInfo() {
     if (
       !versionCache.lastFetched ||

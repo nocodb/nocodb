@@ -88,7 +88,7 @@ const resizeRight = (mouseDownEvent: MouseEvent) => {
           }"
           @mousedown="resizeRight"
         >
-          <div class="w-1 h-full bg-gray-500 rounded-md"></div>
+          <div class="tiptap-img-resize-bar-inner"></div>
         </div>
         <div
           class="tiptap-img-resize-bar left-1.5"
@@ -97,7 +97,7 @@ const resizeRight = (mouseDownEvent: MouseEvent) => {
           }"
           @mousedown="resizeLeft"
         >
-          <div class="w-1 h-10 bg-gray-500 rounded-md"></div>
+          <div class="tiptap-img-resize-bar-inner"></div>
         </div>
       </template>
     </div>
@@ -114,5 +114,9 @@ const resizeRight = (mouseDownEvent: MouseEvent) => {
   @apply absolute w-4 h-10 px-2 invisible group-hover:visible hover:visible;
   cursor: ew-resize;
   top: calc(50% - 1.25rem);
+}
+.tiptap-img-resize-bar-inner {
+  @apply w-1 h-10 bg-gray-500 rounded-md;
+  outline: 1px solid #fff;
 }
 </style>

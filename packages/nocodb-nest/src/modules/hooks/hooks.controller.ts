@@ -89,8 +89,7 @@ export class HooksController {
     @Param('operation') operation: HookType['operation'],
     @Param('version') version: any, //HookType['version'],
   ) {
-    return;
-    await this.hooksService.tableSampleData({
+    return await this.hooksService.tableSampleData({
       tableId,
       operation,
       version,

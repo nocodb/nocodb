@@ -4,6 +4,8 @@ import { LoadingOutlined } from '@ant-design/icons-vue'
 
 const { node, editor, getPos } = defineProps(nodeViewProps)
 
+const { isEditAllowed } = useDocStore()
+
 const indicator = h(LoadingOutlined, {
   style: {
     fontSize: '18px',
@@ -59,8 +61,19 @@ const resizeRight = (mouseDownEvent: MouseEvent) => {
 
 <template>
   <NodeViewWrapper class="vue-component image-wrapper">
+    <div v-if="!isEditAllowed">
+      <img
+        class="nc-docs-image bg-gray-50"
+        :alt="node.attrs.alt"
+        :src="node.attrs.src"
+        :title="node.attrs.title"
+        :width="node.attrs.width"
+        :height="node.attrs.height"
+      />
+    </div>
     <div
-      class="relative image-wrapper px-2 my-2"
+      v-else
+      class="relative image-wrapper my-2"
       :style="{
         width: node.attrs.isUploading ? '100%' : 'fit-content',
       }"
@@ -82,7 +95,7 @@ const resizeRight = (mouseDownEvent: MouseEvent) => {
           }"
         />
         <div
-          class="tiptap-img-resize-bar right-2.5"
+          class="tiptap-img-resize-bar right-1"
           :class="{
             '!visible': editor.isActive('image', { src: node.attrs.src }),
           }"
@@ -91,7 +104,7 @@ const resizeRight = (mouseDownEvent: MouseEvent) => {
           <div class="tiptap-img-resize-bar-inner"></div>
         </div>
         <div
-          class="tiptap-img-resize-bar left-1.5"
+          class="tiptap-img-resize-bar left-0"
           :class="{
             '!visible': editor.isActive('image', { src: node.attrs.src }),
           }"

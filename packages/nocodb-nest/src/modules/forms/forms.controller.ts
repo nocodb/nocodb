@@ -1,15 +1,15 @@
 import {
   Body,
   Controller,
-  Get, HttpCode,
+  Get,
+  HttpCode,
   Param,
   Patch,
   Post,
   UseGuards,
-} from '@nestjs/common'
+} from '@nestjs/common';
 import { ViewCreateReqType } from 'nocodb-sdk';
-import { AuthGuard } from '@nestjs/passport';
-import { GlobalGuard } from '../../guards/global/global.guard'
+import { GlobalGuard } from '../../guards/global/global.guard';
 import {
   Acl,
   ExtractProjectIdMiddleware,
@@ -17,7 +17,7 @@ import {
 import { FormsService } from './forms.service';
 
 @Controller()
-@UseGuards(ExtractProjectIdMiddleware,GlobalGuard)
+@UseGuards(ExtractProjectIdMiddleware, GlobalGuard)
 export class FormsController {
   constructor(private readonly formsService: FormsService) {}
 
@@ -45,12 +45,10 @@ export class FormsController {
   }
   @Patch('/api/v1/db/meta/forms/:formViewId')
   @Acl('formViewUpdate')
-  async formViewUpdate(req, res) {
-    res.json(
-      await this.formsService.formViewUpdate({
-        formViewId: req.params.formViewId,
-        form: req.body,
-      }),
-    );
+  async formViewUpdate(@Param('formViewId') formViewId: string, @Body() body) {
+    return await this.formsService.formViewUpdate({
+      formViewId,
+      form: body,
+    });
   }
 }

@@ -4,6 +4,7 @@ import { ExtractJwt } from 'passport-jwt';
 import { Connection } from './connection/connection';
 import { GlobalExceptionFilter } from './filters/global-exception/global-exception.filter';
 import { GlobalGuard } from './guards/global/global.guard';
+import NcPluginMgrv2 from './helpers/NcPluginMgrv2'
 import { GlobalMiddleware } from './middlewares/global/global.middleware';
 import { AuthModule } from './modules/auth/auth.module';
 import { ExtractProjectIdMiddleware } from './middlewares/extract-project-id/extract-project-id.middleware';
@@ -175,6 +176,8 @@ export class AppModule implements OnApplicationBootstrap {
     Noco._ncMeta = this.metaService;
     Noco.config = this.connection.config;
 
+    // init plugin manager
+    await NcPluginMgrv2.init(Noco.ncMeta);
     await Noco.loadEEState();
 
     // run upgrader

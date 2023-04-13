@@ -1,4 +1,14 @@
-import { Body, Controller, Get, HttpCode, Param, Patch, Post } from '@nestjs/common'
+import {
+  Body,
+  Controller,
+  Get,
+  HttpCode,
+  Param,
+  Patch,
+  Post,
+  UseGuards,
+} from '@nestjs/common';
+import { GlobalGuard } from '../../guards/global/global.guard';
 import { PagedResponseImpl } from '../../helpers/PagedResponse';
 import { Acl } from '../../middlewares/extract-project-id/extract-project-id.middleware';
 import { PluginsService } from './plugins.service';
@@ -11,6 +21,7 @@ const blockInCloudMw = (_req, res, next) => {
 };
 
 @Controller()
+@UseGuards(GlobalGuard)
 export class PluginsController {
   constructor(private readonly pluginsService: PluginsService) {}
 

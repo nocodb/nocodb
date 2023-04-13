@@ -7,9 +7,9 @@ import { ExtractProjectIdMiddleware } from '../../middlewares/extract-project-id
 import { SyncSource } from '../../models';
 import NocoJobs from '../../jobs/NocoJobs';
 import { SocketService } from '../../services/client/socket.service';
+import airtableSyncJob from '../sync/helpers/job';
 import { ImportService } from './import.service';
 import type { AirtableSyncConfig } from '../sync/helpers/job';
-import airtableSyncJob from '../sync/helpers/job';
 
 import type { Server } from 'socket.io';
 
@@ -22,17 +22,13 @@ enum SyncStatus {
   FAILED = 'FAILED',
 }
 
-const jobs = [];
-const initJob = (sv: Server, jobs: { [p: string]: { last_message: any } }, socketService: SocketService) => {
+const initJob = (sv: Server, jobs: { [p: string]: { last_message: any } }) => {
   // add importer job handler and progress notification job handler
-  NocoJobs.jobsMgr.addJobWorker(
-    AIRTABLE_IMPORT_JOB,
-    airtableSyncJob
-  );
+  NocoJobs.jobsMgr.addJobWorker(AIRTABLE_IMPORT_JOB, airtableSyncJob);
   NocoJobs.jobsMgr.addJobWorker(
     AIRTABLE_PROGRESS_JOB,
     ({ payload, progress }) => {
-      socketService.io.to(payload?.id).emit('progress', {
+      sv.to(payload?.id).emit('progress', {
         msg: progress?.msg,
         level: progress?.level,
         status: progress?.status,
@@ -101,7 +97,7 @@ export class ImportController {
   @Post('/api/v1/db/meta/syncs/:syncId/trigger')
   @HttpCode(200)
   async triggerSync(@Request() req) {
-    if (req.params.syncId in jobs) {
+    if (req.params.syncId in this.socketService.jobs) {
       NcError.badRequest('Sync already in progress');
     }
 
@@ -131,7 +127,7 @@ export class ImportController {
       });
     }, 1000);
 
-    jobs[req.params.syncId] = {
+    this.socketService.jobs[req.params.syncId] = {
       last_message: {
         msg: 'Sync started',
       },
@@ -142,13 +138,13 @@ export class ImportController {
   @Post('/api/v1/db/meta/syncs/:syncId/abort')
   @HttpCode(200)
   async abortImport(@Request() req) {
-    if (req.params.syncId in jobs) {
-      delete jobs[req.params.syncId];
+    if (req.params.syncId in this.socketService.jobs) {
+      delete this.socketService.jobs[req.params.syncId];
     }
     return {};
   }
 
   async onModuleInit() {
-    initJob(this.socketService.io, this.socketService.jobs, this.socketService);
+    initJob(this.socketService.io, this.socketService.jobs);
   }
 }

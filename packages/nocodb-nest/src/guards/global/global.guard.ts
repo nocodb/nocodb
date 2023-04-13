@@ -1,7 +1,5 @@
-import { Inject, Injectable } from '@nestjs/common';
-import { ExecutionContextHost } from '@nestjs/core/helpers/execution-context-host';
+import { Injectable } from '@nestjs/common';
 import { AuthGuard } from '@nestjs/passport';
-import passport from 'passport';
 import { lastValueFrom, Observable } from 'rxjs';
 import { JwtStrategy } from '../../strategies/jwt.strategy';
 import type { ExecutionContext } from '@nestjs/common';

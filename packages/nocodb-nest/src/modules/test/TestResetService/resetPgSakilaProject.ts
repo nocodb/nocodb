@@ -79,7 +79,7 @@ const isSakilaPgToBeReset = async (parallelId: string, project?: Project) => {
 
 const resetSakilaPg = async (parallelId: string, isEmptyProject: boolean) => {
   const testsDir = __dirname.replace(
-    '/src/lib/services/test/TestResetService',
+    '/src/modules/test/TestResetService',
     '/tests',
   );
 

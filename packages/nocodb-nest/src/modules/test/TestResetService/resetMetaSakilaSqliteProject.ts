@@ -3,7 +3,7 @@ import axios from 'axios';
 
 const sqliteFilePath = (parallelId: string) => {
   const rootDir = __dirname.replace(
-    '/src/lib/services/test/TestResetService',
+    '/src/modules/test/TestResetService',
     '',
   );
 
@@ -79,7 +79,7 @@ const deleteSqliteFileIfExists = async (parallelId: string) => {
 
 const seedSakilaSqliteFile = async (parallelId: string) => {
   const testsDir = __dirname.replace(
-    '/src/lib/services/test/TestResetService',
+    '/src/modules/test/TestResetService',
     '/tests',
   );
 

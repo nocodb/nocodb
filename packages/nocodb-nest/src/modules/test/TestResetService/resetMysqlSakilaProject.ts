@@ -86,7 +86,7 @@ const resetSakilaMysql = async (
   isEmptyProject: boolean,
 ) => {
   const testsDir = __dirname.replace(
-    '/src/lib/services/test/TestResetService',
+    '/src/modules/test/TestResetService',
     '/tests',
   );
 

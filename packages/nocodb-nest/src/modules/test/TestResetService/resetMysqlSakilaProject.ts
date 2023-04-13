@@ -1,4 +1,5 @@
 import { promises as fs } from 'fs';
+import path from 'path';
 import axios from 'axios';
 import { knex } from 'knex';
 import Audit from '../../../models/Audit';
@@ -85,10 +86,7 @@ const resetSakilaMysql = async (
   parallelId: string,
   isEmptyProject: boolean,
 ) => {
-  const testsDir = __dirname.replace(
-    '/src/modules/test/TestResetService',
-    '/tests',
-  );
+  const testsDir = path.join(process.cwd(), '/tests');
 
   try {
     await knex.raw(`DROP DATABASE test_sakila_${parallelId}`);

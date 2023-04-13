@@ -1,11 +1,9 @@
 import { promises as fs } from 'fs';
 import axios from 'axios';
+import path from 'path'
 
 const sqliteFilePath = (parallelId: string) => {
-  const rootDir = __dirname.replace(
-    '/src/modules/test/TestResetService',
-    '',
-  );
+  const rootDir = process.cwd()
 
   return `${rootDir}/test_sakila_${parallelId}.db`;
 };
@@ -78,10 +76,10 @@ const deleteSqliteFileIfExists = async (parallelId: string) => {
 };
 
 const seedSakilaSqliteFile = async (parallelId: string) => {
-  const testsDir = __dirname.replace(
-    '/src/modules/test/TestResetService',
-    '/tests',
-  );
+  const testsDir =  path.join(
+    process.cwd(),
+    'tests'
+  );;
 
   await fs.copyFile(
     `${testsDir}/sqlite-sakila-db/sakila.db`,

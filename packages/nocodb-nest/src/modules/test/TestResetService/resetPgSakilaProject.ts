@@ -1,6 +1,7 @@
 import { promises as fs } from 'fs';
 import axios from 'axios';
 import { knex } from 'knex';
+import path from 'path'
 import Audit from '../../../models/Audit';
 import type Project from '../../../models/Project';
 
@@ -78,8 +79,8 @@ const isSakilaPgToBeReset = async (parallelId: string, project?: Project) => {
 };
 
 const resetSakilaPg = async (parallelId: string, isEmptyProject: boolean) => {
-  const testsDir = __dirname.replace(
-    '/src/modules/test/TestResetService',
+  const testsDir = path.join(
+    process.cwd(),
     '/tests',
   );
 

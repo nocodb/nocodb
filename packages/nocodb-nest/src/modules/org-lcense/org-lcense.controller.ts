@@ -1,7 +1,14 @@
-import { Controller, Get, HttpCode, Post, UseGuards } from '@nestjs/common'
+import {
+  Body,
+  Controller,
+  Get,
+  HttpCode,
+  Post,
+  UseGuards,
+} from '@nestjs/common';
 import { OrgUserRoles } from 'nocodb-sdk';
-import { GlobalGuard } from '../../guards/global/global.guard'
-import { Acl } from '../../middlewares/extract-project-id/extract-project-id.middleware'
+import { GlobalGuard } from '../../guards/global/global.guard';
+import { Acl } from '../../middlewares/extract-project-id/extract-project-id.middleware';
 import { OrgLcenseService } from './org-lcense.service';
 
 @Controller()
@@ -14,7 +21,7 @@ export class OrgLcenseController {
     allowedRoles: [OrgUserRoles.SUPER_ADMIN],
     blockApiTokenAccess: true,
   })
-  async licenseGet(_req, res) {
+  async licenseGet() {
     return await this.orgLcenseService.licenseGet();
   }
 
@@ -24,8 +31,8 @@ export class OrgLcenseController {
     allowedRoles: [OrgUserRoles.SUPER_ADMIN],
     blockApiTokenAccess: true,
   })
-  async licenseSet(req, res) {
-    await this.orgLcenseService.licenseSet({ key: req.body.key });
+  async licenseSet(@Body() body) {
+    await this.orgLcenseService.licenseSet({ key: body.key });
     return { msg: 'The license key has been saved' };
   }
 }

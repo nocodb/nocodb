@@ -7905,7 +7905,7 @@ export class Api<
  */
     dataCreate: (
       sharedViewUuid: string,
-      data: object,
+      data: any,
       params: RequestParams = {}
     ) =>
       this.request<
@@ -7918,7 +7918,7 @@ export class Api<
         path: `/api/v1/db/public/shared-view/${sharedViewUuid}/rows`,
         method: 'POST',
         body: data,
-        type: ContentType.Json,
+        type: ContentType.FormData,
         format: 'json',
         ...params,
       }),

@@ -1,15 +1,15 @@
 import {
   Body,
   Controller,
-  Get, HttpCode,
+  Get,
+  HttpCode,
   Param,
   Patch,
   Post,
   UseGuards,
-} from '@nestjs/common'
+} from '@nestjs/common';
 import { ViewCreateReqType } from 'nocodb-sdk';
-import { AuthGuard } from '@nestjs/passport';
-import { GlobalGuard } from '../../guards/global/global.guard'
+import { GlobalGuard } from '../../guards/global/global.guard';
 import {
   Acl,
   ExtractProjectIdMiddleware,
@@ -44,12 +44,13 @@ export class KanbansController {
 
   @Patch('/api/v1/db/meta/kanbans/:kanbanViewId')
   @Acl('kanbanViewUpdate')
-  async kanbanViewUpdate(req, res) {
-    res.json(
-      await this.kanbansService.kanbanViewUpdate({
-        kanbanViewId: req.params.kanbanViewId,
-        kanban: req.body,
-      }),
-    );
+  async kanbanViewUpdate(
+    @Param('kanbanViewId') kanbanViewId: string,
+    @Body() body,
+  ) {
+    return await this.kanbansService.kanbanViewUpdate({
+      kanbanViewId,
+      kanban: body,
+    });
   }
 }

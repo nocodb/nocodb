@@ -2,7 +2,8 @@ import path from 'path';
 import {
   Body,
   Controller,
-  Get, HttpCode,
+  Get,
+  HttpCode,
   Param,
   Post,
   Query,
@@ -11,13 +12,14 @@ import {
   UploadedFiles,
   UseGuards,
   UseInterceptors,
-} from '@nestjs/common'
+} from '@nestjs/common';
 import multer from 'multer';
-import { FilesInterceptor } from '@nestjs/platform-express';
+import {
+  AnyFilesInterceptor,
+} from '@nestjs/platform-express';
 import { AuthGuard } from '@nestjs/passport';
 import { NC_ATTACHMENT_FIELD_SIZE } from '../../constants';
 import { UploadAllowedInterceptor } from '../../interceptors/is-upload-allowed/is-upload-allowed.interceptor';
-import { ExtractProjectIdMiddleware } from '../../middlewares/extract-project-id/extract-project-id.middleware'
 import { AttachmentsService } from './attachments.service';
 
 @Controller()
@@ -43,7 +45,7 @@ export class AttachmentsController {
   @HttpCode(200)
   @UseInterceptors(
     UploadAllowedInterceptor,
-    FilesInterceptor('files', null, {
+    AnyFilesInterceptor({
       storage: multer.diskStorage({}),
       // limits: {
       //   fieldSize: NC_ATTACHMENT_FIELD_SIZE,

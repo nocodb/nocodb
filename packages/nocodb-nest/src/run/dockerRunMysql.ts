@@ -1,6 +1,6 @@
 import cors from 'cors';
 import express from 'express';
-import nocobuild from '../nocobuild'
+import Noco from '../Noco';
 
 const server = express();
 server.enable('trust proxy');
@@ -27,8 +27,8 @@ process.env[`NC_DB`] = `mysql2://localhost:3306?u=root&p=password&d=${metaDb}`;
 // process.env[`DEBUG`] = 'xc*';
 
 (async () => {
-  await nocobuild(server);
   const httpServer = server.listen(process.env.PORT || 8080, async () => {
-    console.log('Server started')
+    server.use(await Noco.init({}, httpServer, server));
   });
 })().catch((e) => console.log(e));
+

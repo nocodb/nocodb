@@ -2,7 +2,7 @@ import axios from 'axios';
 import cors from 'cors';
 import express from 'express';
 import { User } from '../models';
-import nocobuild from '../nocobuild';
+import Noco from '../Noco'
 
 process.env.NC_VERSION = '0009044';
 
@@ -21,17 +21,19 @@ server.set('view engine', 'ejs');
 process.env[`DEBUG`] = 'xc*';
 
 (async () => {
-  await nocobuild(server);
   const httpServer = server.listen(process.env.PORT || 8080, async () => {
+    server.use(await Noco.init({}, httpServer, server));
+
     if (!(await User.getByEmail('user@nocodb.com'))) {
       const response = await axios.post(
         `http://localhost:${process.env.PORT || 8080}/api/v1/auth/user/signup`,
         {
           email: 'user@nocodb.com',
           password: 'Password123.',
-        },
+        }
       );
       console.log(response.data);
     }
   });
 })().catch((e) => console.log(e));
+

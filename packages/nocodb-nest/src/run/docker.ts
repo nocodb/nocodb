@@ -1,7 +1,7 @@
 import axios from 'axios';
 import cors from 'cors';
 import express from 'express';
-import nocobuild from '../nocobuild';
+import Noco from '../Noco'
 
 const server = express();
 server.enable('trust proxy');
@@ -17,9 +17,16 @@ server.set('view engine', 'ejs');
 
 process.env[`DEBUG`] = 'xc*';
 
+// (async () => {
+//   await nocobuild(server);
+//   const httpServer = server.listen(process.env.PORT || 8080, async () => {
+//     console.log('Server started');
+//   });
+// })().catch((e) => console.log(e));
+
+
 (async () => {
-  await nocobuild(server);
   const httpServer = server.listen(process.env.PORT || 8080, async () => {
-    console.log('Server started');
+    server.use(await Noco.init({}, httpServer, server));
   });
 })().catch((e) => console.log(e));

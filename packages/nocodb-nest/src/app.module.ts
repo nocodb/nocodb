@@ -56,7 +56,6 @@ import { GlobalModule } from './modules/global/global.module';
 import { LocalStrategy } from './strategies/local.strategy';
 import NcConfigFactory from './utils/NcConfigFactory';
 import NcUpgrader from './version-upgrader/NcUpgrader';
-import { ClientService } from './services/client/client.service';
 import { AuthTokenStrategy } from './strategies/authtoken.strategy/authtoken.strategy';
 import { BaseViewStrategy } from './strategies/base-view.strategy/base-view.strategy';
 import { GoogleStrategy } from './strategies/google.strategy/google.strategy';
@@ -146,7 +145,6 @@ export const JwtStrategyProvider: Provider = {
     // JwtStrategyProvider,
     LocalStrategy,
     // ExtractProjectIdMiddleware,
-    ClientService,
     AuthTokenStrategy,
     BaseViewStrategy,
     GoogleStrategy,

@@ -1,5 +1,6 @@
 import cors from 'cors';
 import express from 'express';
+import Noco from '../Noco'
 import nocobuild from '../nocobuild'
 
 const server = express();
@@ -20,8 +21,8 @@ process.env[
 //process.env[`DEBUG`] = 'xc*';
 
 (async () => {
-  await nocobuild(server);
   const httpServer = server.listen(process.env.PORT || 8080, async () => {
-    console.log('Server started')
+    server.use(await Noco.init({}, httpServer, server));
   });
 })().catch((e) => console.log(e));
+

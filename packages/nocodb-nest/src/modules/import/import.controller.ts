@@ -1,15 +1,16 @@
-import { Controller, HttpCode, Post, Request, UseGuards } from '@nestjs/common'
+import { Controller, HttpCode, Post, Request, UseGuards } from '@nestjs/common';
 import { forwardRef, Inject } from '@nestjs/common';
 import { ModuleRef } from '@nestjs/core';
-import { GlobalGuard } from '../../guards/global/global.guard'
+import { GlobalGuard } from '../../guards/global/global.guard';
 import { NcError } from '../../helpers/catchError';
-import { ExtractProjectIdMiddleware } from '../../middlewares/extract-project-id/extract-project-id.middleware'
+import { ExtractProjectIdMiddleware } from '../../middlewares/extract-project-id/extract-project-id.middleware';
 import { SyncSource } from '../../models';
 import NocoJobs from '../../jobs/NocoJobs';
+import { SocketService } from '../../services/client/socket.service';
 import { ImportService } from './import.service';
 import type { AirtableSyncConfig } from '../sync/helpers/job';
+import airtableSyncJob from '../sync/helpers/job';
 
-import type { Router } from 'express';
 import type { Server } from 'socket.io';
 
 const AIRTABLE_IMPORT_JOB = 'AIRTABLE_IMPORT_JOB';
@@ -22,20 +23,16 @@ enum SyncStatus {
 }
 
 const jobs = [];
-export default (
-  router: Router,
-  sv: Server,
-  jobs: { [id: string]: { last_message: any } },
-) => {
+const initJob = (sv: Server, jobs: { [p: string]: { last_message: any } }, socketService: SocketService) => {
   // add importer job handler and progress notification job handler
   NocoJobs.jobsMgr.addJobWorker(
     AIRTABLE_IMPORT_JOB,
-    {} as any, // this?.syncService?.airtableImportJob,
+    airtableSyncJob
   );
   NocoJobs.jobsMgr.addJobWorker(
     AIRTABLE_PROGRESS_JOB,
     ({ payload, progress }) => {
-      sv.to(payload?.id).emit('progress', {
+      socketService.io.to(payload?.id).emit('progress', {
         msg: progress?.msg,
         level: progress?.level,
         status: progress?.status,
@@ -87,6 +84,7 @@ export default (
 export class ImportController {
   constructor(
     private readonly importService: ImportService,
+    private readonly socketService: SocketService,
     @Inject(forwardRef(() => ModuleRef)) private readonly moduleRef: ModuleRef,
   ) {}
 
@@ -148,5 +146,9 @@ export class ImportController {
       delete jobs[req.params.syncId];
     }
     return {};
+  }
+
+  async onModuleInit() {
+    initJob(this.socketService.io, this.socketService.jobs, this.socketService);
   }
 }

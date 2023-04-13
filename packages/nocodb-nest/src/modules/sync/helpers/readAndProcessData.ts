@@ -1,7 +1,8 @@
 import { RelationTypes, UITypes } from 'nocodb-sdk';
-// @ts-ignore
-import { bulkDataService, tableService } from '../..';
 import EntityMap from './EntityMap';
+import type { BulkDataAliasService } from '../../datas/bulk-data-alias/bulk-data-alias.service';
+import type { TablesService } from '../../tables/tables.service';
+// @ts-ignore
 import type { AirtableBase } from 'airtable/lib/airtable_base';
 import type { TableType } from 'nocodb-sdk';
 
@@ -9,17 +10,24 @@ const BULK_DATA_BATCH_SIZE = 500;
 const ASSOC_BULK_DATA_BATCH_SIZE = 1000;
 const BULK_PARALLEL_PROCESS = 5;
 
+interface AirtableImportContext {
+  bulkDataService: BulkDataAliasService;
+  tableService: TablesService;
+}
+
 async function readAllData({
   table,
   fields,
   base,
   logBasic = (_str) => {},
+  services,
 }: {
   table: { title?: string };
   fields?;
   base: AirtableBase;
   logBasic?: (string) => void;
   logDetailed?: (string) => void;
+  services: AirtableImportContext;
 }): Promise<EntityMap> {
   return new Promise((resolve, reject) => {
     let data = null;
@@ -76,6 +84,7 @@ export async function importData({
   sDB,
   logDetailed = (_str) => {},
   logBasic = (_str) => {},
+  services,
 }: {
   projectName: string;
   table: { title?: string; id?: string };
@@ -85,6 +94,7 @@ export async function importData({
   logDetailed: (string) => void;
   nocoBaseDataProcessing_v2;
   sDB;
+  services: AirtableImportContext;
 }): Promise<EntityMap> {
   try {
     // @ts-ignore
@@ -117,7 +127,7 @@ export async function importData({
             if (tempData.length >= BULK_DATA_BATCH_SIZE) {
               let insertArray = tempData.splice(0, tempData.length);
 
-              await bulkDataService.bulkDataInsert({
+              await services.bulkDataService.bulkDataInsert({
                 projectName,
                 tableName: table.title,
                 body: insertArray,
@@ -144,7 +154,7 @@ export async function importData({
       readable.on('end', async () => {
         await Promise.all(promises);
         if (tempData.length > 0) {
-          await bulkDataService.bulkDataInsert({
+          await services.bulkDataService.bulkDataInsert({
             projectName,
             tableName: table.title,
             body: tempData,
@@ -185,6 +195,7 @@ export async function importLTARData({
   atNcAliasRef,
   ncLinkMappingTable,
   syncDB,
+  services,
 }: {
   projectName: string;
   table: { title?: string; id?: string };
@@ -201,6 +212,7 @@ export async function importLTARData({
   };
   ncLinkMappingTable: Record<string, Record<string, any>>[];
   syncDB;
+  services: AirtableImportContext;
 }) {
   const assocTableMetas: Array<{
     modelMeta: { id?: string; title?: string };
@@ -216,12 +228,14 @@ export async function importLTARData({
       base,
       logDetailed,
       logBasic,
+      services
     }));
 
-  const modelMeta: any = await tableService.getTableWithAccessibleViews({
-    tableId: table.id,
-    user: syncDB.user,
-  });
+  const modelMeta: any =
+    await services.tableService.getTableWithAccessibleViews({
+      tableId: table.id,
+      user: syncDB.user,
+    });
 
   for (const colMeta of modelMeta.columns) {
     // skip columns which are not LTAR and Many to many
@@ -242,7 +256,7 @@ export async function importLTARData({
     insertedAssocRef[colMeta.colOptions.fk_mm_model_id] = true;
 
     const assocModelMeta: TableType =
-      (await tableService.getTableWithAccessibleViews({
+      (await services.tableService.getTableWithAccessibleViews({
         tableId: colMeta.colOptions.fk_mm_model_id,
         user: syncDB.user,
       })) as any;
@@ -299,7 +313,7 @@ export async function importLTARData({
                 )}`,
               );
 
-              await bulkDataService.bulkDataInsert({
+              await services.bulkDataService.bulkDataInsert({
                 projectName,
                 tableName: assocMeta.modelMeta.title,
                 body: insertArray,
@@ -327,7 +341,7 @@ export async function importLTARData({
             )}`,
           );
 
-          await bulkDataService.bulkDataInsert({
+          await services.bulkDataService.bulkDataInsert({
             projectName,
             tableName: assocMeta.modelMeta.title,
             body: assocTableData,

@@ -10,6 +10,7 @@ import tinycolor from 'tinycolor2';
 import extractRolesObj from '../../../utils/extractRolesObj';
 import { AttachmentsService } from '../../attachments/attachments.service';
 import { ColumnsService } from '../../columns/columns.service';
+import { BulkDataAliasService } from '../../datas/bulk-data-alias/bulk-data-alias.service';
 import { FiltersService } from '../../filters/filters.service';
 import { FormColumnsService } from '../../form-columns/form-columns.service';
 import { GalleriesService } from '../../galleries/galleries.service';
@@ -112,6 +113,7 @@ export default async (
   const viewColumnService = syncDB.moduleRef.get(ViewColumnsService);
   const sortService = syncDB.moduleRef.get(SortsService);
   const gridViewService = syncDB.moduleRef.get(GridsService);
+  const bulkDataService = syncDB.moduleRef.get(BulkDataAliasService);
 
   const sMapEM = new EntityMap('aTblId', 'ncId', 'ncName', 'ncParent');
   await sMapEM.init();
@@ -2377,6 +2379,10 @@ export default async (
             nocoBaseDataProcessing_v2,
             sDB: syncDB,
             logDetailed,
+            services: {
+              tableService,
+              bulkDataService,
+            },
           });
           rtc.data.records += await recordsMap[ncTbl.id].getCount();
 
@@ -2410,6 +2416,10 @@ export default async (
             atNcAliasRef,
             ncLinkMappingTable,
             syncDB,
+            services: {
+              bulkDataService,
+              tableService
+            }
           });
         }
       } catch (error) {

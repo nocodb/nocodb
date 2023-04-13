@@ -4,6 +4,7 @@ import { ExtractJwt } from 'passport-jwt'
 import { Connection } from '../../connection/connection'
 import { GlobalGuard } from '../../guards/global/global.guard'
 import { MetaService } from '../../meta/meta.service'
+import { SocketService } from '../../services/client/socket.service'
 import { JwtStrategy } from '../../strategies/jwt.strategy'
 import NcConfigFactory from '../../utils/NcConfigFactory'
 import { jwtConstants } from '../auth/constants'
@@ -39,7 +40,8 @@ export const JwtStrategyProvider: Provider = {
     MetaService,
     UsersService,
     JwtStrategyProvider,
-    GlobalGuard
+    GlobalGuard,
+    SocketService,
   ],
   exports: [
     Connection,
@@ -47,7 +49,8 @@ export const JwtStrategyProvider: Provider = {
     // JwtService,
     JwtStrategyProvider,
     UsersService,
-    GlobalGuard
+    GlobalGuard,
+    SocketService,
   ],
 })
 export class GlobalModule {

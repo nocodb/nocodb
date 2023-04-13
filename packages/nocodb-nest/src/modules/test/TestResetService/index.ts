@@ -13,12 +13,21 @@ import resetMetaSakilaSqliteProject from './resetMetaSakilaSqliteProject';
 const workerStatus = {};
 
 const loginRootUser = async () => {
-  const response = await axios.post(
-    'http://localhost:8080/api/v1/auth/user/signin',
-    { email: 'user@nocodb.com', password: 'Password123.' },
-  );
+  try {
+    const response = await axios.post(
+      'http://localhost:8080/api/v1/auth/user/signin',
+      { email: 'user@nocodb.com', password: 'Password123.' },
+    );
 
-  return response.data.token;
+    return response.data.token;
+  } catch (e) {
+    const response = await axios.post(
+      'http://localhost:8080/api/v1/auth/user/signup',
+      { email: 'user@nocodb.com', password: 'Password123.' },
+    );
+
+    return response.data.token;
+  }
 };
 
 const projectTitleByType = {

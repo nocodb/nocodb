@@ -148,11 +148,11 @@ export class OrgUsersController {
     allowedRoles: [OrgUserRoles.SUPER_ADMIN],
     blockApiTokenAccess: true,
   })
-  async appSettingsSet(req, res) {
+  async appSettingsSet(@Body() body) {
     await this.orgUsersService.appSettingsSet({
-      settings: req.body,
+      settings: body,
     });
 
-    res.json({ msg: 'The app settings have been saved' });
+    return { msg: 'The app settings have been saved' };
   }
 }

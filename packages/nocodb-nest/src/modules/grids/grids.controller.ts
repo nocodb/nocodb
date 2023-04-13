@@ -1,14 +1,15 @@
 import {
   Body,
-  Controller, HttpCode,
+  Controller,
+  HttpCode,
   Param,
   Patch,
   Post,
   UseGuards,
-} from '@nestjs/common'
+} from '@nestjs/common';
 import { ViewCreateReqType } from 'nocodb-sdk';
 import { AuthGuard } from '@nestjs/passport';
-import { GlobalGuard } from '../../guards/global/global.guard'
+import { GlobalGuard } from '../../guards/global/global.guard';
 import {
   Acl,
   ExtractProjectIdMiddleware,
@@ -37,10 +38,10 @@ export class GridsController {
     return view;
   }
   @Patch('/api/v1/db/meta/grids/:viewId')
-  async gridViewUpdate(req, res) {
+  async gridViewUpdate(@Param('viewId') viewId: string, @Body() body) {
     return await this.gridsService.gridViewUpdate({
-      viewId: req.params.viewId,
-      grid: req.body,
+      viewId,
+      grid: body,
     });
   }
 }

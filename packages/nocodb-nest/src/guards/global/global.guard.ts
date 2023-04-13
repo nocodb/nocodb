@@ -35,6 +35,9 @@ export class GlobalGuard extends AuthGuard(['jwt']) {
         });
       }
     }
+
+    if(result) return true;
+
     if (req.headers['xc-token']) {
       let canActivate = false;
       try {

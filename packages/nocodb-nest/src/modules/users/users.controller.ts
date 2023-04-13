@@ -9,10 +9,10 @@ import {
   Request,
   Response,
   UseGuards,
-} from '@nestjs/common'
+} from '@nestjs/common';
 import * as ejs from 'ejs';
 import { AuthGuard } from '@nestjs/passport';
-import { GlobalGuard } from '../../guards/global/global.guard'
+import { GlobalGuard } from '../../guards/global/global.guard';
 import { NcError } from '../../helpers/catchError';
 import {
   Acl,

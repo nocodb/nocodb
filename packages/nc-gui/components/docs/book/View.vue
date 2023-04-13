@@ -172,16 +172,21 @@ const onShare = async (page: PageSidebarNode) => {
   }, 100)
 }
 
-onMounted(() => {
-  const { addTab } = useTabs()
+watch(
+  () => project.value.id,
+  () => {
+    if (project.value.id && project.value.type === 'documentation') {
+      const { addTab } = useTabs()
 
-  addTab({
-    id: project.value.id,
-    title: project.value.title!,
-    type: TabType.DOCUMENT,
-    projectId: project.value.id,
-  })
-})
+      addTab({
+        id: project.value.id,
+        title: project.value.title!,
+        type: TabType.DOCUMENT,
+        projectId: project.value.id,
+      })
+    }
+  },
+)
 </script>
 
 <template>

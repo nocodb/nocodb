@@ -88,6 +88,7 @@ export enum TabType {
   SQL = 'sql',
   ERD = 'erd',
   DOCUMENT = 'doc',
+  DB = 'db',
 }
 
 export enum SmartsheetStoreEvents {

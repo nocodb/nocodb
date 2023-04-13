@@ -485,6 +485,7 @@ async function importTemplate() {
       const tab = {
         id: '',
         title: '',
+        projectId: '',
       }
 
       // create tables
@@ -523,9 +524,10 @@ async function importTemplate() {
         table.title = createdTable.title
 
         // open the first table after import
-        if (tab.id === '' && tab.title === '') {
+        if (tab.id === '' && tab.title === '' && tab.projectId === '') {
           tab.id = createdTable.id as string
           tab.title = createdTable.title as string
+          tab.projectId = project.value.id as string
         }
 
         // set display value

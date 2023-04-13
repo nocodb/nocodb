@@ -301,6 +301,9 @@ a {
 .ant-modal-body {
   @apply !p-0;
 }
+.ant-modal-confirm-body-wrapper{
+  @apply p-4;
+}
 
 .ant-select-item-option-active:not(.ant-select-item-option-disabled) {
   @apply bg-primary bg-opacity-20;

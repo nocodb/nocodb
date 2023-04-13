@@ -231,6 +231,11 @@ export const useProject = defineStore('projectStore', () => {
     sharedProject = projectVal
   }
 
+  const projectUrl = ({ id, type }: { id: string; type: 'database' | 'documentation' }) => {
+    const workspaceId = route.params.workspaceId as string
+    return `/ws/${workspaceId}/nc/${id}`
+  }
+
   watch(
     () => route.params.projectType,
     (n) => {
@@ -265,5 +270,6 @@ export const useProject = defineStore('projectStore', () => {
     hasEmptyOrNullFilters,
     loadBookProject,
     setProject,
+    projectUrl,
   }
 })

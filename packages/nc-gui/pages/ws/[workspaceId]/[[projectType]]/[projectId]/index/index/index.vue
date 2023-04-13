@@ -17,6 +17,8 @@ import {
 
 const dropZone = ref<HTMLDivElement>()
 
+const { project } = storeToRefs(useProject())
+
 const { isOverDropZone } = useDropZone(dropZone, onDrop)
 
 const { files, open, reset } = useFileDialog()
@@ -134,6 +136,7 @@ function openCreateTable() {
     'modelValue': isOpen,
     'onUpdate:modelValue': closeDialog,
     'baseId': bases.value?.filter((base: BaseType) => base.enabled)[0].id,
+    'projectId': project.value.id,
   })
 
   function closeDialog() {
@@ -156,6 +159,22 @@ function onDropZoneClick(e: MouseEvent) {
 
   open()
 }
+
+watch(
+  () => project.value.id,
+  () => {
+    if (project.value?.id && project.value.type === 'database') {
+      const { addTab } = useTabs()
+
+      addTab({
+        id: project.value.id,
+        title: project.value.title!,
+        type: TabType.DB,
+        projectId: project.value.id,
+      })
+    }
+  },
+)
 </script>
 
 <template>

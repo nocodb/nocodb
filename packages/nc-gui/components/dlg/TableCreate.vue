@@ -109,8 +109,9 @@ const _createTable = async () => {
   try {
     creating.value = true
     await validate()
-    await createTable(props.projectId!)
+    await createTable()
   } catch (e: any) {
+    console.error(e)
     e.errorFields.map((f: Record<string, any>) => message.error(f.errors.join(',')))
     if (e.errorFields.length) return
   } finally {

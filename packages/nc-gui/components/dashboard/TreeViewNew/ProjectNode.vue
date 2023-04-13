@@ -15,6 +15,8 @@ const { updateProject, deleteProject, getProjectMetaInfo } = projectsStore
 
 const { appInfo } = useGlobal()
 
+const { closeTab } = useTabs()
+
 const editMode = ref(false)
 
 const tempTitle = ref('')
@@ -65,6 +67,7 @@ const confirmDeleteProject = () => {
     onOk: async () => {
       try {
         await deleteProject(project.value.id!)
+        await closeTab(project.value.id!)
         message.success('Project deleted successfully')
       } catch (e: any) {
         message.error(await extractSdkResponseErrorMsg(e))

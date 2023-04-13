@@ -3,8 +3,8 @@ import {
   Inject,
   Injectable,
   OnApplicationBootstrap,
-  OnModuleInit,
-} from '@nestjs/common';
+  OnModuleInit, Optional,
+} from '@nestjs/common'
 
 import { customAlphabet } from 'nanoid';
 import CryptoJS from 'crypto-js';
@@ -186,10 +186,12 @@ const nanoidv2 = customAlphabet('1234567890abcdefghijklmnopqrstuvwxyz', 14);
 
 @Injectable()
 export class MetaService {
-  constructor(private metaConnection: Connection) {}
+  constructor(private metaConnection: Connection, @Optional() trx = null) {
+    this.trx = trx;
+  }
 
   public get connection() {
-    return this.metaConnection.knexInstance;
+    return this.trx ?? this.metaConnection.knexInstance;
   }
 
   get knexConnection() {
@@ -738,7 +740,7 @@ export class MetaService {
     this.trx = null;
   }
 
-  async startTransaction(): Promise<this> {
+  async startTransaction(): Promise<MetaService> {
     const trx = await this.connection.transaction();
 
     // todo: Extend transaction class to add our custom properties
@@ -748,7 +750,7 @@ export class MetaService {
     });
 
     // todo: tobe done
-    return this; //new NcMetaIOImpl(this.app, this.config, trx);
+    return new MetaService(this.metaConnection, trx);
   }
 
   async metaReset(

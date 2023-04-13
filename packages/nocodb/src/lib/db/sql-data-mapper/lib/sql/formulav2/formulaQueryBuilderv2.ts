@@ -6,8 +6,9 @@ import FormulaColumn from '../../../../../models/FormulaColumn';
 import { validateDateWithUnknownFormat } from '../helpers/formulaFnHelper';
 import { CacheGetType, CacheScope } from '../../../../../utils/globals';
 import NocoCache from '../../../../../cache/NocoCache';
+import Column from '../../../../../models/Column';
+import { convertDateFormat } from '../helpers/convertDateFormat';
 import type Model from '../../../../../models/Model';
-import type Column from '../../../../../models/Column';
 import type RollupColumn from '../../../../../models/RollupColumn';
 import type { XKnex } from '../../../index';
 import type LinkToAnotherRecordColumn from '../../../../../models/LinkToAnotherRecordColumn';
@@ -633,8 +634,42 @@ async function _formulaQueryBuilder(
           `${pt.callee.name}(${(
             await Promise.all(
               pt.arguments.map(async (arg) => {
-                const query = (await fn(arg)).builder.toQuery();
+                let query = (await fn(arg)).builder.toQuery();
                 if (pt.callee.name === 'CONCAT') {
+                  if (
+                    arg.type === 'Identifier' &&
+                    arg.name in columnIdToUidt &&
+                    columnIdToUidt[arg.name] === UITypes.Date
+                  ) {
+                    const meta = (
+                      await Column.get({
+                        colId: arg.name,
+                      })
+                    ).meta;
+
+                    if (knex.clientType() === 'mysql2') {
+                      query = `DATE_FORMAT(${query}, '${convertDateFormat(
+                        meta.date_format,
+                        knex.clientType()
+                      )}')`;
+                    } else if (knex.clientType() === 'pg') {
+                      query = `TO_CHAR(${query}, '${convertDateFormat(
+                        meta.date_format,
+                        knex.clientType()
+                      )}')`;
+                    } else if (knex.clientType() === 'sqlite') {
+                      query = `strftime('${convertDateFormat(
+                        meta.date_format,
+                        knex.clientType()
+                      )}', ${query})`;
+                    } else if (knex.clientType() === 'mssql') {
+                      query = `FORMAT(${query}, '${convertDateFormat(
+                        meta.date_format,
+                        knex.clientType()
+                      )}')`;
+                    }
+                  }
+
                   if (knex.clientType() === 'mysql2') {
                     // mysql2: CONCAT() returns NULL if any argument is NULL.
                     // adding IFNULL to convert NULL values to empty strings

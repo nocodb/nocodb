@@ -6,6 +6,7 @@ import { NcError } from '../../helpers/catchError';
 import { ApiToken } from '../../models';
 import type { User } from '../../models';
 import type { ApiTokenReqType } from 'nocodb-sdk';
+import extractRolesObj from '../../utils/extractRolesObj'
 
 @Injectable()
 export class ApiTokensService {
@@ -28,7 +29,7 @@ export class ApiTokensService {
   async apiTokenDelete(param: { token; user: User }) {
     const apiToken = await ApiToken.getByToken(param.token);
     if (
-      !param.user.roles.includes(OrgUserRoles.SUPER_ADMIN) &&
+      !extractRolesObj(param.user.roles)[OrgUserRoles.SUPER_ADMIN] &&
       apiToken.fk_user_id !== param.user.id
     ) {
       NcError.notFound('Token not found');

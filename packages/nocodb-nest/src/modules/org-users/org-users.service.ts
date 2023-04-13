@@ -16,6 +16,7 @@ import { randomTokenString } from '../../helpers/stringHelpers';
 import { Audit, ProjectUser, Store, SyncSource, User } from '../../models';
 
 import Noco from '../../Noco';
+import extractRolesObj from '../../utils/extractRolesObj'
 import { MetaTable } from '../../utils/globals';
 import { ProjectUsersService } from '../project-users/project-users.service';
 import type { UserType } from 'nocodb-sdk';
@@ -42,7 +43,7 @@ export class OrgUsersService {
 
     const user = await User.get(param.userId);
 
-    if (user.roles.includes(OrgUserRoles.SUPER_ADMIN)) {
+    if (extractRolesObj(user.roles)[OrgUserRoles.SUPER_ADMIN]) {
       NcError.badRequest('Cannot update super admin roles');
     }
 
@@ -57,7 +58,7 @@ export class OrgUsersService {
     try {
       const user = await User.get(param.userId, ncMeta);
 
-      if (user.roles.includes(OrgUserRoles.SUPER_ADMIN)) {
+      if (extractRolesObj(user.roles)[OrgUserRoles.SUPER_ADMIN]) {
         NcError.badRequest('Cannot delete super admin');
       }
 

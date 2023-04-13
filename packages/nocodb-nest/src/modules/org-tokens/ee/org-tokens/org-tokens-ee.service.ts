@@ -3,6 +3,7 @@ import { OrgUserRoles } from 'nocodb-sdk';
 import { PagedResponseImpl } from '../../../../helpers/PagedResponse';
 import { ApiToken } from '../../../../models';
 import type { UserType } from 'nocodb-sdk';
+import extractRolesObj from '../../../../utils/extractRolesObj'
 
 @Injectable()
 export class OrgTokensEeService {
@@ -10,7 +11,7 @@ export class OrgTokensEeService {
     let fk_user_id = param.user.id;
 
     // if super admin get all tokens
-    if (param.user.roles.includes(OrgUserRoles.SUPER_ADMIN)) {
+    if (extractRolesObj(param.user.roles)[OrgUserRoles.SUPER_ADMIN]) {
       fk_user_id = undefined;
     }
 

@@ -7,13 +7,14 @@ import { PagedResponseImpl } from '../../helpers/PagedResponse';
 import { ApiToken } from '../../models';
 import type { User } from '../../models';
 import type { ApiTokenReqType } from 'nocodb-sdk';
+import extractRolesObj from '../../utils/extractRolesObj'
 
 @Injectable()
 export class OrgTokensService {
   async apiTokenList(param: { user: User; query: any }) {
     const fk_user_id = param.user.id;
     let includeUnmappedToken = false;
-    if (param.user.roles.includes(OrgUserRoles.SUPER_ADMIN)) {
+    if (extractRolesObj(param.user.roles)[OrgUserRoles.SUPER_ADMIN]) {
       includeUnmappedToken = true;
     }
 
@@ -50,7 +51,7 @@ export class OrgTokensService {
     const fk_user_id = param.user.id;
     const apiToken = await ApiToken.getByToken(param.token);
     if (
-      !param.user.roles.includes(OrgUserRoles.SUPER_ADMIN) &&
+      !extractRolesObj(param.user.roles)[OrgUserRoles.SUPER_ADMIN] &&
       apiToken.fk_user_id !== fk_user_id
     ) {
       NcError.notFound('Token not found');

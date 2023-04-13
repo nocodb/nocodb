@@ -35,9 +35,15 @@ const { addTab, updateTab } = useTabs()
 
 const { $api, $e } = useNuxtApp()
 
+const router = useRouter()
+
+const route = $(router.currentRoute)
+
 const workspaceStore = useWorkspace()
 
 const { projects: workspaceProjects } = storeToRefs(workspaceStore)
+
+const { projectUrl } = useProject()
 
 const projectsStore = useProjects()
 
@@ -45,42 +51,34 @@ const { loadProjectTables, loadProject, createProject: _createProject } = projec
 
 const { projectTableList, projects } = storeToRefs(projectsStore)
 
-const openedProjectId = ref()
-
-const activeProjectId = computed(() => route.params.projectId)
+const activeProjectId = computed(() => route.params.projectId as string | undefined)
 
 const projectElRefs = ref()
 
-const { projectUrl } = useDocStore()
+const { projectUrl: docsProjectUrl } = useDocStore()
 
 const loadProjectAndTableList = async (project: ProjectType, projIndex: number) => {
-  console.log('loadProjectAndTableList', project, projIndex)
   if (!project) {
-    return
-  }
-
-  if (openedProjectId.value === project.id && project.type !== 'documentation') {
-    openedProjectId.value = null
-    return
-  }
-
-  openedProjectId.value = project.id
-
-  const activeProjectId = computed(() => route.params.projectId)
-
-  if (project.id === activeProjectId.value && project.type !== 'documentation') {
     return
   }
 
   nextTick(() => {
     const el = projectElRefs.value[projIndex]
 
-    console.log(projectElRefs.value)
-
     if (el) {
       el.scrollIntoView({ block: 'nearest' })
     }
   })
+
+  if (project.type === 'database') {
+    await navigateTo(
+      projectUrl({
+        id: project.id!,
+        type: 'database',
+      }),
+    )
+    return
+  }
 
   // if document project, add a document tab and route to the page
   switch (project.type) {
@@ -93,7 +91,7 @@ const loadProjectAndTableList = async (project: ProjectType, projIndex: number) 
       })
       console.log('open doc', project.id)
       $e('c:document:open', project.id)
-      navigateTo(projectUrl(project.id!))
+      navigateTo(docsProjectUrl(project.id!))
       break
     default:
       await loadProject(project.id!)
@@ -112,9 +110,6 @@ const { activeTab } = storeToRefs(useTabs())
 const { deleteTable } = useTable()
 
 const { isUIAllowed } = useUIPermission()
-
-const router = useRouter()
-const route = $(router.currentRoute)
 
 const [searchActive, toggleSearchActive] = useToggle()
 
@@ -388,7 +383,7 @@ useEventListener(document, 'keydown', async (e: KeyboardEvent) => {
           // prevent the key `T` is inputted to table title input
           e.preventDefault()
           $e('c:shortcut', { key: 'ALT + T' })
-          const projectId = openedProjectId.value! || activeProjectId.value
+          const projectId = activeProjectId.value
           if (projectId) openTableCreateDialog(projects.value?.[projectId]?.bases?.[0].id, projectId)
         }
         break
@@ -459,9 +454,8 @@ watch(
   () => route.params.projectId,
   async (newId, oldId) => {
     if (newId && newId !== oldId) {
-      openedProjectId.value = newId
-      await loadProject(newId)
-      await loadProjectTables(newId)
+      await loadProject(newId as string)
+      await loadProjectTables(newId as string)
     }
   },
   { immediate: true },
@@ -483,7 +477,7 @@ const isClearMode = computed(() => route.query.clear === '1' && route.params.pro
         <div
           ref="projectElRefs"
           class="m-2 py-1 nc-project-sub-menu hover:bg-gray-100 rounded-md"
-          :class="{ active: project.id === (openedProjectId ?? activeProjectId) }"
+          :class="{ active: project.id === activeProjectId }"
         >
           <div class="flex items-center gap-2 py-0.5 cursor-pointer" @click="loadProjectAndTableList(project, i)">
             <DashboardTreeViewNewProjectNode ref="projectNodeRefs" class="flex-grow" />
@@ -492,10 +486,10 @@ const isClearMode = computed(() => route.query.clear === '1' && route.params.pro
           <div
             key="g1"
             class="overflow-y-auto transition-max-height"
-            :class="{ 'max-h-0': openedProjectId !== project.id, 'max-h-500': openedProjectId === project.id }"
+            :class="{ 'max-h-0': activeProjectId !== project.id, 'max-h-500': activeProjectId === project.id }"
           >
             <div v-if="project.type === 'documentation'">
-              <DocsSideBar v-if="openedProjectId === project.id" :project="project" />
+              <DocsSideBar v-if="activeProjectId === project.id" :project="project" />
             </div>
             <a-dropdown
               v-else-if="project && projects[project.id] && projects[project.id].bases"

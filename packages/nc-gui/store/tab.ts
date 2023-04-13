@@ -23,11 +23,12 @@ export const useTabs = defineStore('tabStore', () => {
   const { isUIAllowed } = useUIPermission()
 
   const { openedPageId } = storeToRefs(useDocStore())
-  const { nestedUrl, projectUrl } = useDocStore()
+  const { nestedUrl, projectUrl: docsProjectUrl } = useDocStore()
 
   const projectsStore = useProjects()
 
   const projectStore = useProject()
+  const { projectUrl } = projectStore
   const { project, tables } = $(storeToRefs(projectStore))
 
   const projectType = $computed(() => (route.params.projectType as string) || 'nc')
@@ -42,6 +43,10 @@ export const useTabs = defineStore('tabStore', () => {
 
       if (routeName.includes('doc-index-pageId')) {
         return tabs.value.findIndex((tab) => tab.id === openedPageId.value)
+      }
+
+      if (routeName === 'ws-workspaceId-projectType-projectId-index-index') {
+        return tabs.value.findIndex((tab) => tab.type === TabType.DB && tab.projectId === project?.id)
       }
 
       // todo: new-layout
@@ -117,6 +122,7 @@ export const useTabs = defineStore('tabStore', () => {
               navigateToTab(tab)
             })
         } else {
+          console.error('tab.projectId is not defined')
           navigateToTab(tab)
         }
       }
@@ -198,6 +204,11 @@ export const useTabs = defineStore('tabStore', () => {
   }
 
   function navigateToTab(tab: TabItem) {
+    if (!tab.id || !tab.projectId) {
+      console.error('tab.id or tab.projectId is not defined:', tab)
+      throw new Error('tab.id or tab.projectId is not defined')
+    }
+
     switch (tab.type) {
       case TabType.TABLE:
         return navigateTo({
@@ -220,7 +231,7 @@ export const useTabs = defineStore('tabStore', () => {
         })
       case TabType.DOCUMENT:
         if (tab.id === tab.projectId) {
-          return navigateTo(projectUrl(tab.projectId!))
+          return navigateTo(docsProjectUrl(tab.projectId!))
         }
 
         return navigateTo({
@@ -230,6 +241,13 @@ export const useTabs = defineStore('tabStore', () => {
           }),
           query: route.query,
         })
+      case TabType.DB:
+        return navigateTo(
+          projectUrl({
+            id: project.id!,
+            type: 'database',
+          }),
+        )
     }
   }
 

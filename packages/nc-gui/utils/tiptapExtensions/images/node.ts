@@ -1,7 +1,9 @@
 import { Node, nodeInputRule } from '@tiptap/core'
 import { NodeSelection, TextSelection } from 'prosemirror-state'
+import { VueNodeViewRenderer } from '@tiptap/vue-3'
 import type { UploadFn } from './proseExtension'
 import { dropImagePlugin } from './proseExtension'
+import ImageComponent from './image.vue'
 /**
  * Matches following attributes in Markdown-typed image: [, alt, src, title]
  *
@@ -24,6 +26,20 @@ export const createImageExtension = (uploadFn: UploadFn) => {
       title: { default: null },
       class: { default: '' },
       id: { default: null },
+      width: {
+        default: 450,
+        parseHTML: (element) => {
+          const width = element.getAttribute('width')
+          return width ? parseInt(width, 10) : undefined
+        },
+      },
+      height: {
+        default: 400,
+        parseHTML: (element) => {
+          const height = element.getAttribute('height')
+          return height ? parseInt(height, 10) : undefined
+        },
+      },
     }),
     parseHTML: () => [
       {
@@ -42,9 +58,16 @@ export const createImageExtension = (uploadFn: UploadFn) => {
       },
     ],
     renderHTML: ({ HTMLAttributes }) => [
-      'img',
-      { ...HTMLAttributes, class: HTMLAttributes.class ? `cursor-pointer ${HTMLAttributes.class}` : 'cursor-pointer' },
+      'div',
+      {
+        ...HTMLAttributes,
+        class: HTMLAttributes.class ? `image-wrapper cursor-pointer ${HTMLAttributes.class}` : 'image-wrapper cursor-pointer',
+      },
     ],
+
+    addNodeView() {
+      return VueNodeViewRenderer(ImageComponent)
+    },
 
     // @ts-expect-error todo: fix this
     addCommands() {

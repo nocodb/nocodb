@@ -178,16 +178,6 @@ watch(wrapperRef, () => {
   wrapper.addEventListener('dragover', (e) => handleOutsideTiptapDrag(e, 'dragover'))
 
   wrapper.addEventListener('drop', (e) => handleOutsideTiptapDrag(e, 'drop'))
-
-  // Focus the editor when clicking on the empty content wrapper
-  wrapper.addEventListener('click', (e) => {
-    // Get all the elements that are under the cursor
-    const elements = document.elementsFromPoint(e.clientX, e.clientY)
-
-    if (elements.length > 2 && elements[1].classList.contains('nc-docs-page')) {
-      editor.value?.commands.focus('end')
-    }
-  })
 })
 </script>
 
@@ -357,19 +347,6 @@ watch(wrapperRef, () => {
     outline: none;
   }
 
-  img {
-    @apply !mb-6 !mt-2;
-  }
-  img[isuploading='true'] {
-    @apply hidden;
-  }
-  .image-uploading-wrapper {
-    @apply mt-1.5 !w-full;
-    .image-uploading {
-      @apply w-full py-2 px-3 rounded-md bg-gray-50 text-gray-500;
-    }
-  }
-
   .draggable-block-wrapper.selected {
     table {
       @apply !bg-primary-selected;
@@ -399,23 +376,6 @@ watch(wrapperRef, () => {
 
   div[contenteditable='false'].ProseMirror {
     user-select: text !important;
-  }
-
-  img {
-    max-width: 100%;
-    max-height: 30rem;
-    height: auto;
-    // align center
-    display: block;
-    margin-left: auto;
-    margin-right: auto;
-
-    &.ProseMirror-selectednode {
-      // outline with rounded corners
-      outline: 3px solid #e8eafd;
-      outline-offset: -2px;
-      border-radius: 4px;
-    }
   }
 
   p.is-empty::before,

@@ -96,7 +96,7 @@ const tiptapExtensions = (isPublic: boolean): Extensions => {
     WarningCallout,
     TipCallout,
     Table.configure({
-      resizable: true,
+      resizable: !isPublic,
     }),
     TableRow,
     TableCell.configure({

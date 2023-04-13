@@ -14,17 +14,19 @@ export default Table.extend({
   },
 
   addProseMirrorPlugins() {
-    return [
-      tableEditing(),
-      columnResizing({
-        handleWidth: 3,
-        cellMinWidth: this.options.cellMinWidth,
-        View: this.options.View,
-        // TODO: PR for @types/prosemirror-tables
-        // @ts-expect-error (incorrect type)
-        lastColumnResizable: false,
-      }),
-    ]
+    return this.options.resizable
+      ? [
+          tableEditing(),
+          columnResizing({
+            handleWidth: 3,
+            cellMinWidth: this.options.cellMinWidth,
+            View: this.options.View,
+            // TODO: PR for @types/prosemirror-tables
+            // @ts-expect-error (incorrect type)
+            lastColumnResizable: false,
+          }),
+        ]
+      : []
   },
 }).configure({
   HTMLAttributes: {

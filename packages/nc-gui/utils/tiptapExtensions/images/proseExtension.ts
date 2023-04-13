@@ -52,33 +52,6 @@ export const dropImagePlugin = (upload: UploadFn) => {
       },
     },
     props: {
-      decorations: ({ doc }) => {
-        const decorations: Decoration[] = []
-
-        doc.descendants((wrapperNode, wrapperPos) => {
-          if (wrapperNode.childCount === 0) return false
-          if (wrapperNode.child(0).type.name !== 'image') return false
-          if (!wrapperNode.child(0).attrs.isUploading) return false
-
-          const decoration = Decoration.widget(wrapperPos + 1, () => {
-            const wrapper = document.createElement('div')
-            wrapper.classList.add('image-uploading-wrapper')
-
-            const uploadingDom = document.createElement('div')
-            uploadingDom.classList.add('image-uploading')
-            uploadingDom.innerHTML = 'Uploading...'
-            wrapper.appendChild(uploadingDom)
-
-            return wrapper
-          })
-
-          decorations.push(decoration)
-
-          return true
-        })
-
-        return DecorationSet.create(doc, decorations)
-      },
       handlePaste(view, event) {
         const items = Array.from(event.clipboardData?.items || [])
         event.preventDefault()

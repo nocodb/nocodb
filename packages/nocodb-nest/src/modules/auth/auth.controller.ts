@@ -7,6 +7,7 @@ import {
   UseGuards,
 } from '@nestjs/common'
 import { AuthGuard } from '@nestjs/passport';
+import { GlobalGuard } from '../../guards/global/global.guard'
 import { ExtractProjectIdMiddleware } from '../../middlewares/extract-project-id/extract-project-id.middleware';
 import extractRolesObj from '../../utils/extractRolesObj';
 import { AuthService } from './auth.service';
@@ -34,7 +35,7 @@ export class AuthController {
     return await this.authService.signup(createUserDto);
   }
 
-  @UseGuards(ExtractProjectIdMiddleware, AuthGuard('jwt'))
+  @UseGuards(ExtractProjectIdMiddleware, GlobalGuard)
   @Get('/api/v1/auth/user/me')
   async me(@Request() req) {
     const user = {

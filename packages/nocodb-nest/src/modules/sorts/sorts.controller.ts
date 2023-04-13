@@ -10,6 +10,7 @@ import {
 } from '@nestjs/common'
 import { AuthGuard } from '@nestjs/passport';
 import { SortReqType } from 'nocodb-sdk';
+import { GlobalGuard } from '../../guards/global/global.guard'
 import { PagedResponseImpl } from '../../helpers/PagedResponse';
 import {
   ExtractProjectIdMiddleware,
@@ -18,7 +19,7 @@ import {
 import { SortsService } from './sorts.service';
 
 @Controller()
-@UseGuards(ExtractProjectIdMiddleware, AuthGuard('jwt'))
+@UseGuards(ExtractProjectIdMiddleware, GlobalGuard)
 export class SortsController {
   constructor(private readonly sortsService: SortsService) {}
 

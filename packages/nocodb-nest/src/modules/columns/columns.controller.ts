@@ -11,6 +11,7 @@ import {
 } from '@nestjs/common'
 import { ColumnReqType } from 'nocodb-sdk';
 import { AuthGuard } from '@nestjs/passport';
+import { GlobalGuard } from '../../guards/global/global.guard'
 import {
   Acl,
   ExtractProjectIdMiddleware,
@@ -18,7 +19,7 @@ import {
 import { ColumnsService } from './columns.service';
 
 @Controller()
-@UseGuards(ExtractProjectIdMiddleware, AuthGuard('jwt'))
+@UseGuards(ExtractProjectIdMiddleware,GlobalGuard)
 export class ColumnsController {
   constructor(private readonly columnsService: ColumnsService) {}
 

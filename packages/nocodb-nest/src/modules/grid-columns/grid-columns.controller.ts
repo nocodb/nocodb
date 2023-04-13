@@ -1,6 +1,7 @@
 import { Body, Controller, Get, Param, Patch, UseGuards } from '@nestjs/common';
 import { GridColumnReqType } from 'nocodb-sdk';
 import { AuthGuard } from '@nestjs/passport';
+import { GlobalGuard } from '../../guards/global/global.guard'
 import {
   Acl,
   ExtractProjectIdMiddleware,
@@ -8,7 +9,7 @@ import {
 import { GridColumnsService } from './grid-columns.service';
 
 @Controller()
-@UseGuards(ExtractProjectIdMiddleware, AuthGuard('jwt'))
+@UseGuards(ExtractProjectIdMiddleware, GlobalGuard)
 export class GridColumnsController {
   constructor(private readonly gridColumnsService: GridColumnsService) {}
 

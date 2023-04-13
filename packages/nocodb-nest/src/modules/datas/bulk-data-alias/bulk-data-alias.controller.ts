@@ -11,6 +11,7 @@ import {
   UseGuards,
 } from '@nestjs/common'
 import { AuthGuard } from '@nestjs/passport';
+import { GlobalGuard } from '../../../guards/global/global.guard'
 import {
   Acl,
   ExtractProjectIdMiddleware,
@@ -18,7 +19,7 @@ import {
 import { BulkDataAliasService } from './bulk-data-alias.service';
 
 @Controller()
-@UseGuards(ExtractProjectIdMiddleware, AuthGuard('jwt'))
+@UseGuards(ExtractProjectIdMiddleware, GlobalGuard)
 export class BulkDataAliasController {
   constructor(private bulkDataAliasService: BulkDataAliasService) {}
 

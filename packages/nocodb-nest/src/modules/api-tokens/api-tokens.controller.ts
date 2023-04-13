@@ -9,6 +9,7 @@ import {
   UseGuards,
 } from '@nestjs/common'
 import { AuthGuard } from '@nestjs/passport';
+import { GlobalGuard } from '../../guards/global/global.guard'
 import { PagedResponseImpl } from '../../helpers/PagedResponse';
 import {
   Acl,
@@ -17,7 +18,7 @@ import {
 import { ApiTokensService } from './api-tokens.service';
 
 @Controller()
-@UseGuards(ExtractProjectIdMiddleware, AuthGuard('jwt'))
+@UseGuards(ExtractProjectIdMiddleware, GlobalGuard)
 export class ApiTokensController {
   constructor(private readonly apiTokensService: ApiTokensService) {}
 

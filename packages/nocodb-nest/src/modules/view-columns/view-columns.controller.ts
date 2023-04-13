@@ -9,6 +9,7 @@ import {
 } from '@nestjs/common'
 import { ColumnReqType, ViewColumnReqType } from 'nocodb-sdk';
 import { AuthGuard } from '@nestjs/passport';
+import { GlobalGuard } from '../../guards/global/global.guard'
 import { PagedResponseImpl } from '../../helpers/PagedResponse';
 import {
   Acl,
@@ -17,7 +18,7 @@ import {
 import { ViewColumnsService } from './view-columns.service';
 
 @Controller()
-@UseGuards(ExtractProjectIdMiddleware, AuthGuard('jwt'))
+@UseGuards(ExtractProjectIdMiddleware, GlobalGuard)
 export class ViewColumnsController {
   constructor(private readonly viewColumnsService: ViewColumnsService) {}
 

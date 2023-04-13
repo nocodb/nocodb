@@ -11,13 +11,14 @@ import {
 } from '@nestjs/common'
 import { ProjectUserReqType } from 'nocodb-sdk';
 import { AuthGuard } from '@nestjs/passport';
+import { GlobalGuard } from '../../guards/global/global.guard'
 import {
   Acl,
   ExtractProjectIdMiddleware,
 } from '../../middlewares/extract-project-id/extract-project-id.middleware';
 import { ProjectUsersService } from './project-users.service';
 
-@UseGuards(ExtractProjectIdMiddleware, AuthGuard('jwt'))
+@UseGuards(ExtractProjectIdMiddleware, GlobalGuard)
 @Controller()
 export class ProjectUsersController {
   constructor(private readonly projectUsersService: ProjectUsersService) {}

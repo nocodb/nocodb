@@ -7,6 +7,7 @@ import {
   UseGuards,
 } from '@nestjs/common'
 import { AuthGuard } from '@nestjs/passport';
+import { GlobalGuard } from '../../guards/global/global.guard'
 import {
   Acl,
   ExtractProjectIdMiddleware,
@@ -29,7 +30,7 @@ export class UtilsController {
     return this.utilsService.versionInfo();
   }
 
-  @UseGuards(ExtractProjectIdMiddleware, AuthGuard('jwt'))
+  @UseGuards(ExtractProjectIdMiddleware, GlobalGuard)
   @Post('/api/v1/db/meta/connection/test')
   @Acl('testConnection')
   @HttpCode(200)

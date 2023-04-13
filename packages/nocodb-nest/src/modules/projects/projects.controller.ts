@@ -13,6 +13,7 @@ import {
 import { AuthGuard } from '@nestjs/passport';
 import isDocker from 'is-docker';
 import { ProjectReqType } from 'nocodb-sdk';
+import { GlobalGuard } from '../../guards/global/global.guard'
 import { PagedResponseImpl } from '../../helpers/PagedResponse';
 import {
   ExtractProjectIdMiddleware,
@@ -24,7 +25,7 @@ import { packageVersion } from '../../utils/packageVersion';
 import { ProjectsService } from './projects.service';
 import type { ProjectType } from 'nocodb-sdk';
 
-@UseGuards(ExtractProjectIdMiddleware, AuthGuard('jwt'))
+@UseGuards(ExtractProjectIdMiddleware, GlobalGuard)
 @Controller()
 export class ProjectsController {
   constructor(private readonly projectsService: ProjectsService) {}

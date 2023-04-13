@@ -1,5 +1,6 @@
 import { Body, Controller, Param, Patch, UseGuards } from '@nestjs/common';
 import { AuthGuard } from '@nestjs/passport';
+import { GlobalGuard } from '../../guards/global/global.guard'
 import {
   Acl,
   ExtractProjectIdMiddleware,
@@ -9,7 +10,7 @@ import { FormColumnsService } from './form-columns.service';
 class FormColumnUpdateReqType {}
 
 @Controller()
-@UseGuards(ExtractProjectIdMiddleware, AuthGuard('jwt'))
+@UseGuards(ExtractProjectIdMiddleware, GlobalGuard)
 export class FormColumnsController {
   constructor(private readonly formColumnsService: FormColumnsService) {}
 

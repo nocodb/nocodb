@@ -10,6 +10,7 @@ import {
 } from '@nestjs/common'
 import { BaseReqType } from 'nocodb-sdk';
 import { AuthGuard } from '@nestjs/passport';
+import { GlobalGuard } from '../../guards/global/global.guard'
 import { PagedResponseImpl } from '../../helpers/PagedResponse';
 import {
   Acl,
@@ -18,7 +19,7 @@ import {
 import { BasesService } from './bases.service';
 
 @Controller()
-@UseGuards(ExtractProjectIdMiddleware, AuthGuard('jwt'))
+@UseGuards(ExtractProjectIdMiddleware, GlobalGuard)
 export class BasesController {
   constructor(private readonly basesService: BasesService) {}
 

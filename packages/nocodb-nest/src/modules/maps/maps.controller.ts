@@ -9,6 +9,7 @@ import {
 } from '@nestjs/common'
 import { MapUpdateReqType, ViewCreateReqType } from 'nocodb-sdk';
 import { AuthGuard } from '@nestjs/passport';
+import { GlobalGuard } from '../../guards/global/global.guard'
 import {
   Acl,
   ExtractProjectIdMiddleware,
@@ -16,7 +17,7 @@ import {
 import { MapsService } from './maps.service';
 
 @Controller()
-@UseGuards(ExtractProjectIdMiddleware, AuthGuard('jwt'))
+@UseGuards(ExtractProjectIdMiddleware, GlobalGuard)
 export class MapsController {
   constructor(private readonly mapsService: MapsService) {}
 

@@ -11,6 +11,7 @@ import {
 } from '@nestjs/common'
 import { HookReqType, HookTestReqType } from 'nocodb-sdk';
 import { AuthGuard } from '@nestjs/passport';
+import { GlobalGuard } from '../../guards/global/global.guard'
 import { PagedResponseImpl } from '../../helpers/PagedResponse';
 import {
   Acl,
@@ -20,7 +21,7 @@ import { HooksService } from './hooks.service';
 import type { HookType } from 'nocodb-sdk';
 
 @Controller()
-@UseGuards(ExtractProjectIdMiddleware, AuthGuard('jwt'))
+@UseGuards(ExtractProjectIdMiddleware, GlobalGuard)
 export class HooksController {
   constructor(private readonly hooksService: HooksService) {}
 

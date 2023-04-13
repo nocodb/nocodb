@@ -12,6 +12,7 @@ import {
 } from '@nestjs/common'
 import { AuthGuard } from '@nestjs/passport';
 import { TableReqType } from 'nocodb-sdk';
+import { GlobalGuard } from '../../guards/global/global.guard'
 import extractRolesObj from '../../utils/extractRolesObj';
 import { PagedResponseImpl } from '../../helpers/PagedResponse';
 import {
@@ -21,7 +22,7 @@ import {
 import { TablesService } from './tables.service';
 
 @Controller()
-@UseGuards(ExtractProjectIdMiddleware, AuthGuard('jwt'))
+@UseGuards(ExtractProjectIdMiddleware, GlobalGuard)
 export class TablesController {
   constructor(private readonly tablesService: TablesService) {}
 

@@ -12,6 +12,7 @@ import {
 } from '@nestjs/common';
 import { AuthGuard } from '@nestjs/passport';
 import { OrgUserRoles } from 'nocodb-sdk';
+import { GlobalGuard } from '../../guards/global/global.guard'
 import { PagedResponseImpl } from '../../helpers/PagedResponse';
 import {
   Acl,
@@ -21,7 +22,7 @@ import { User } from '../../models';
 import { OrgUsersService } from './org-users.service';
 
 @Controller()
-@UseGuards(ExtractProjectIdMiddleware, AuthGuard('jwt'))
+@UseGuards(ExtractProjectIdMiddleware, GlobalGuard)
 export class OrgUsersController {
   constructor(private readonly orgUsersService: OrgUsersService) {}
 

@@ -98,6 +98,9 @@ export default class Noco {
     this._server = server;
 
     const nestApp = await NestFactory.create(AppModule);
+    nestApp.use(
+      express.json({ limit: process.env.NC_REQUEST_BODY_SIZE || '50mb' }),
+    );
     await nestApp.init();
 
     const dashboardPath = process.env.NC_DASHBOARD_URL || '/dashboard';

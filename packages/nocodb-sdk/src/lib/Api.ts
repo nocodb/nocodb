@@ -154,11 +154,13 @@ export interface AuditType {
     | 'LINK_RECORD'
     | 'UNLINK_RECORD'
     | 'DELETE'
-    | 'CREATE'
-    | 'RENAME'
+    | 'CREATED'
+    | 'DELETED'
+    | 'RENAMED'
     | 'IMPORT_FROM_ZIP'
     | 'EXPORT_TO_FS'
     | 'EXPORT_TO_ZIP'
+    | 'UPDATED'
     | 'SIGNIN'
     | 'SIGNUP'
     | 'PASSWORD_RESET'
@@ -7918,7 +7920,7 @@ export class Api<
         path: `/api/v1/db/public/shared-view/${sharedViewUuid}/rows`,
         method: 'POST',
         body: data,
-        type: ContentType.Json,
+        type: ContentType.FormData,
         format: 'json',
         ...params,
       }),

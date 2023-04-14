@@ -3,11 +3,14 @@ import { jsepCurlyHook, UITypes } from 'nocodb-sdk';
 import mapFunctionName from '../mapFunctionName';
 import genRollupSelectv2 from '../genRollupSelectv2';
 import FormulaColumn from '../../../../../models/FormulaColumn';
-import { validateDateWithUnknownFormat } from '../helpers/formulaFnHelper';
+import {
+  convertDateFormatForConcat,
+  validateDateWithUnknownFormat,
+} from '../helpers/formulaFnHelper';
 import { CacheGetType, CacheScope } from '../../../../../utils/globals';
 import NocoCache from '../../../../../cache/NocoCache';
-import type Model from '../../../../../models/Model';
 import type Column from '../../../../../models/Column';
+import type Model from '../../../../../models/Model';
 import type RollupColumn from '../../../../../models/RollupColumn';
 import type { XKnex } from '../../../index';
 import type LinkToAnotherRecordColumn from '../../../../../models/LinkToAnotherRecordColumn';
@@ -633,8 +636,19 @@ async function _formulaQueryBuilder(
           `${pt.callee.name}(${(
             await Promise.all(
               pt.arguments.map(async (arg) => {
-                const query = (await fn(arg)).builder.toQuery();
+                let query = (await fn(arg)).builder.toQuery();
                 if (pt.callee.name === 'CONCAT') {
+                  if (knex.clientType() !== 'sqlite3') {
+                    query = await convertDateFormatForConcat(
+                      arg,
+                      columnIdToUidt,
+                      query,
+                      knex.clientType()
+                    );
+                  } else {
+                    // sqlite3: special handling - See BinaryExpression
+                  }
+
                   if (knex.clientType() === 'mysql2') {
                     // mysql2: CONCAT() returns NULL if any argument is NULL.
                     // adding IFNULL to convert NULL values to empty strings
@@ -679,8 +693,8 @@ async function _formulaQueryBuilder(
       pt.left.fnName = pt.left.fnName || 'ARITH';
       pt.right.fnName = pt.right.fnName || 'ARITH';
 
-      const left = (await fn(pt.left, null, pt.operator)).builder.toQuery();
-      const right = (await fn(pt.right, null, pt.operator)).builder.toQuery();
+      let left = (await fn(pt.left, null, pt.operator)).builder.toQuery();
+      let right = (await fn(pt.right, null, pt.operator)).builder.toQuery();
       let sql = `${left} ${pt.operator} ${right}${colAlias}`;
 
       // comparing a date with empty string would throw
@@ -724,8 +738,22 @@ async function _formulaQueryBuilder(
         }
       }
 
-      // handle NULL values when calling CONCAT for sqlite3
       if (pt.left.fnName === 'CONCAT' && knex.clientType() === 'sqlite3') {
+        // handle date format
+        left = await convertDateFormatForConcat(
+          pt.left?.arguments?.[0],
+          columnIdToUidt,
+          left,
+          knex.clientType()
+        );
+        right = await convertDateFormatForConcat(
+          pt.right?.arguments?.[0],
+          columnIdToUidt,
+          right,
+          knex.clientType()
+        );
+
+        // handle NULL values when calling CONCAT for sqlite3
         sql = `COALESCE(${left}, '') ${pt.operator} COALESCE(${right},'')${colAlias}`;
       }
 

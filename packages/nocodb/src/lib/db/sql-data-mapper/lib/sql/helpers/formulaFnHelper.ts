@@ -1,5 +1,8 @@
 import dayjs, { extend } from 'dayjs';
 import customParseFormat from 'dayjs/plugin/customParseFormat.js';
+import { UITypes } from 'nocodb-sdk';
+import Column from '../../../../../models/Column';
+import { convertDateFormat } from './convertDateFormat';
 extend(customParseFormat);
 
 export function getWeekdayByText(v: string) {
@@ -49,4 +52,46 @@ export function validateDateWithUnknownFormat(v: string) {
     }
   }
   return false;
+}
+
+export async function convertDateFormatForConcat(
+  o,
+  columnIdToUidt,
+  query,
+  clientType
+) {
+  if (
+    o?.type === 'Identifier' &&
+    o?.name in columnIdToUidt &&
+    columnIdToUidt[o.name] === UITypes.Date
+  ) {
+    const meta = (
+      await Column.get({
+        colId: o.name,
+      })
+    ).meta;
+
+    if (clientType === 'mysql2') {
+      query = `DATE_FORMAT(${query}, '${convertDateFormat(
+        meta.date_format,
+        clientType
+      )}')`;
+    } else if (clientType === 'pg') {
+      query = `TO_CHAR(${query}, '${convertDateFormat(
+        meta.date_format,
+        clientType
+      )}')`;
+    } else if (clientType === 'sqlite3') {
+      query = `strftime('${convertDateFormat(
+        meta.date_format,
+        clientType
+      )}', ${query})`;
+    } else if (clientType === 'mssql') {
+      query = `FORMAT(${query}, '${convertDateFormat(
+        meta.date_format,
+        clientType
+      )}')`;
+    }
+  }
+  return query;
 }

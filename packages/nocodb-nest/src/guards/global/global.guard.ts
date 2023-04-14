@@ -2,8 +2,8 @@ import { Injectable } from '@nestjs/common';
 import { AuthGuard } from '@nestjs/passport';
 import { lastValueFrom, Observable } from 'rxjs';
 import { JwtStrategy } from '../../strategies/jwt.strategy';
+import extractRolesObj from '../../utils/extractRolesObj';
 import type { ExecutionContext } from '@nestjs/common';
-import extractRolesObj from '../../utils/extractRolesObj'
 
 @Injectable()
 export class GlobalGuard extends AuthGuard(['jwt']) {
@@ -27,7 +27,7 @@ export class GlobalGuard extends AuthGuard(['jwt']) {
         req.header('xc-preview') &&
         ['owner', 'creator'].some((role) => req.user.roles?.[role])
       ) {
-        return this.authenticate(req,{
+        return (req.user = {
           ...req.user,
           isAuthorized: true,
           roles: extractRolesObj(req.header('xc-preview')),
@@ -35,7 +35,7 @@ export class GlobalGuard extends AuthGuard(['jwt']) {
       }
     }
 
-    if(result) return true;
+    if (result) return true;
 
     if (req.headers['xc-token']) {
       let canActivate = false;
@@ -45,7 +45,7 @@ export class GlobalGuard extends AuthGuard(['jwt']) {
       } catch {}
 
       if (canActivate) {
-        return this.authenticate(req,{
+        return this.authenticate(req, {
           ...req.user,
           isAuthorized: true,
           roles: req.user.roles === 'owner' ? 'owner,creator' : req.user.roles,
@@ -59,7 +59,7 @@ export class GlobalGuard extends AuthGuard(['jwt']) {
       } catch {}
 
       if (canActivate) {
-        return this.authenticate(req,{
+        return this.authenticate(req, {
           ...req.user,
           isAuthorized: true,
           isPublicBase: true,

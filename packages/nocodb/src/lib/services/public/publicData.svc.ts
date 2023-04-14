@@ -235,7 +235,7 @@ export async function dataInsert(param: {
     const fieldName = file?.fieldname?.replace(/^_|\[\d*]$/g, '');
 
     const filePath = sanitizeUrlPath([
-      'v1',
+      'noco',
       project.title,
       model.title,
       fieldName,

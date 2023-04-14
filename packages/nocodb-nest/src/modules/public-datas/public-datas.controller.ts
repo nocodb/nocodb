@@ -10,7 +10,6 @@ import {
 import { AnyFilesInterceptor } from '@nestjs/platform-express';
 import multer from 'multer';
 import { NC_ATTACHMENT_FIELD_SIZE } from '../../constants';
-import { UploadAllowedInterceptor } from '../../interceptors/is-upload-allowed/is-upload-allowed.interceptor';
 import { PublicDatasService } from './public-datas.service';
 
 @Controller()
@@ -60,7 +59,6 @@ export class PublicDatasController {
   @Post('/api/v1/db/public/shared-view/:sharedViewUuid/rows')
   @HttpCode(200)
   @UseInterceptors(
-    UploadAllowedInterceptor,
     AnyFilesInterceptor({
       storage: multer.diskStorage({}),
       limits: {

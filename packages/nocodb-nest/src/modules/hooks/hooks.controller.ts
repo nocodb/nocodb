@@ -54,8 +54,7 @@ export class HooksController {
   @Patch('/api/v1/db/meta/hooks/:hookId')
   @Acl('hookUpdate')
   async hookUpdate(@Param('hookId') hookId: string, @Body() body: HookReqType) {
-    return;
-    await this.hooksService.hookUpdate({ hookId, hook: body });
+    return await this.hooksService.hookUpdate({ hookId, hook: body });
   }
 
   @Post('/api/v1/db/meta/tables/:tableId/hooks/test')

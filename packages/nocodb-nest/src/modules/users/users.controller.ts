@@ -113,6 +113,15 @@ export class UsersController {
     return this.usersService.login(req.user);
   }
 
+  @Post([
+    '/api/v1/auth/user/signout',
+  ])
+  @UseGuards(AuthGuard('local'))
+  @HttpCode(200)
+  async signout(@Request() req, @Response() res) {
+    return this.usersService.signout({req, res});
+  }
+
   @Post(`/auth/google/genTokenByCode`)
   @HttpCode(200)
   async googleSignin(req, res, next) {

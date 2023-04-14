@@ -481,4 +481,22 @@ export class UsersService {
       token: genJwt(user, Noco.getConfig()), //this.jwtService.sign(payload),
     };
   }
+
+  async signout(param: {
+    req: any,
+    res: any,
+  }) {
+    try {
+      param.res.clearCookie('refresh_token');
+      const user = (param.req as any).user;
+      if (user) {
+        await User.update(user.id, {
+          refresh_token: null,
+        });
+      }
+      return { msg: 'Signed out successfully' };
+    } catch (e) {
+      NcError.badRequest(e.message);
+    }
+  }
 }

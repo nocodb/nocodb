@@ -1,5 +1,6 @@
-import { Test, TestingModule } from '@nestjs/testing';
+import { Test } from '@nestjs/testing';
 import { GoogleStrategy } from './google.strategy';
+import type { TestingModule } from '@nestjs/testing';
 
 describe('GoogleStrategy', () => {
   let provider: GoogleStrategy;

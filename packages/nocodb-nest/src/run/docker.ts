@@ -1,7 +1,7 @@
 import axios from 'axios';
 import cors from 'cors';
 import express from 'express';
-import Noco from '../Noco'
+import Noco from '../Noco';
 
 const server = express();
 server.enable('trust proxy');
@@ -23,7 +23,6 @@ process.env[`DEBUG`] = 'xc*';
 //     console.log('Server started');
 //   });
 // })().catch((e) => console.log(e));
-
 
 (async () => {
   const httpServer = server.listen(process.env.PORT || 8080, async () => {

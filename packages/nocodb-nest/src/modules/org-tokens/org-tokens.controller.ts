@@ -2,12 +2,13 @@ import {
   Body,
   Controller,
   Delete,
-  Get, HttpCode,
+  Get,
+  HttpCode,
   Param,
   Post,
   Request,
   UseGuards,
-} from '@nestjs/common'
+} from '@nestjs/common';
 import { ApiTokenReqType } from 'nocodb-sdk';
 import { AuthGuard } from '@nestjs/passport';
 import { getConditionalHandler } from '../../helpers/getHandler';

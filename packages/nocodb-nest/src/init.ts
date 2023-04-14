@@ -1,5 +1,5 @@
 import { Connection } from './connection/connection';
-import { MetaService } from './meta/meta.service'
+import { MetaService } from './meta/meta.service';
 import Noco from './Noco';
 
 // run upgrader

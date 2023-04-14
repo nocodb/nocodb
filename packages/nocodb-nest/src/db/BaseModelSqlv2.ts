@@ -50,6 +50,7 @@ import genRollupSelectv2 from './genRollupSelectv2';
 import conditionV2 from './conditionV2';
 import sortV2 from './sortV2';
 import { customValidators } from './util/customValidators';
+import type { XKnex } from './CustomKnex';
 import type {
   XcFilter,
   XcFilterWithAlias,
@@ -65,7 +66,6 @@ import type {
 } from '../models';
 import type { Knex } from 'knex';
 import type { SortType } from 'nocodb-sdk';
-import { XKnex } from './CustomKnex';
 
 export async function getViewAndModelByAliasOrId(param: {
   projectName: string;
@@ -184,14 +184,14 @@ class BaseModelSqlv2 {
     await this.model.getColumns();
     const pks = this.model.primaryKeys;
 
-    if(!pks.length) return false;
+    if (!pks.length) return false;
 
-    qb.select(pks[0].column_name)
+    qb.select(pks[0].column_name);
 
     if ((id + '').split('___').length != pks?.length) {
       return false;
     }
-    qb.where(_wherePk(pks, id)).first()
+    qb.where(_wherePk(pks, id)).first();
     return !!(await qb);
   }
 

@@ -2,14 +2,19 @@ import {
   Body,
   Controller,
   Delete,
-  Get, HttpCode,
+  Get,
+  HttpCode,
   Param,
   Patch,
   Post,
-  Req, UseGuards,
-} from '@nestjs/common'
-import { GlobalGuard } from '../../guards/global/global.guard'
-import { Acl, ExtractProjectIdMiddleware } from '../../middlewares/extract-project-id/extract-project-id.middleware'
+  Req,
+  UseGuards,
+} from '@nestjs/common';
+import { GlobalGuard } from '../../guards/global/global.guard';
+import {
+  Acl,
+  ExtractProjectIdMiddleware,
+} from '../../middlewares/extract-project-id/extract-project-id.middleware';
 import { SyncService } from './sync.service';
 
 @Controller()

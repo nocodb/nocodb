@@ -1,10 +1,10 @@
 import { UITypes } from 'nocodb-sdk';
-import { XKnex } from '../db/CustomKnex';
 import { MetaTable } from '../utils/globals';
 import Base from '../models/Base';
 import Model from '../models/Model';
 import NcConnectionMgrv2 from '../utils/common/NcConnectionMgrv2';
 import { throwTimeoutError } from './ncUpgradeErrors';
+import type { XKnex } from '../db/CustomKnex';
 import type { Knex } from 'knex';
 import type { NcUpgraderCtx } from './NcUpgrader';
 // import type { XKnex } from '../db/sql-data-mapper';

@@ -1,10 +1,10 @@
 import { UITypes } from 'nocodb-sdk';
-import { XKnex } from '../db/CustomKnex'
 import { MetaTable } from '../utils/globals';
 import Base from '../models/Base';
 import Model from '../models/Model';
 import NcConnectionMgrv2 from '../utils/common/NcConnectionMgrv2';
 import { throwTimeoutError } from './ncUpgradeErrors';
+import type { XKnex } from '../db/CustomKnex';
 import type { Knex } from 'knex';
 import type { NcUpgraderCtx } from './NcUpgrader';
 import type { BaseType } from 'nocodb-sdk';
@@ -89,7 +89,7 @@ export default async function ({ ncMeta }: NcUpgraderCtx) {
               if (
                 !(await knex.schema.hasColumn(
                   getTnPath(knex, model),
-                  column.column_name
+                  column.column_name,
                 ))
               )
                 continue;
@@ -133,8 +133,8 @@ export default async function ({ ncMeta }: NcUpgraderCtx) {
                   corruptedAttachment = JSON.parse(
                     `[${corruptedAttachment.slice(
                       1,
-                      corruptedAttachment.length - 1
-                    )}]`
+                      corruptedAttachment.length - 1,
+                    )}]`,
                   );
                   const newAttachmentMeta = [];
                   for (const attachment of corruptedAttachment) {
@@ -145,7 +145,7 @@ export default async function ({ ncMeta }: NcUpgraderCtx) {
                       .update({
                         [attachmentColumn]: JSON.stringify(newAttachmentMeta),
                       })
-                      .where(where)
+                      .where(where),
                   );
                 } catch {
                   // if parsing failed ignore the cell

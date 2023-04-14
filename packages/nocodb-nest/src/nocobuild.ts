@@ -1,7 +1,7 @@
 import { NestFactory } from '@nestjs/core';
 import express from 'express';
+import NcToolGui from 'nc-lib-gui';
 import { AppModule } from './app.module';
-import NcToolGui from 'nc-lib-gui'
 
 export default async function (app = express()) {
   const nestApp = await NestFactory.create(AppModule);
@@ -9,9 +9,7 @@ export default async function (app = express()) {
 
   const dashboardPath = process.env.NC_DASHBOARD_URL || '/dashboard';
   app.use(NcToolGui.expressMiddleware(dashboardPath));
-  app.get('/', (_req, res) =>
-    res.redirect(dashboardPath)
-  );
+  app.get('/', (_req, res) => res.redirect(dashboardPath));
   app.use(nestApp.getHttpAdapter().getInstance());
 
   return app;

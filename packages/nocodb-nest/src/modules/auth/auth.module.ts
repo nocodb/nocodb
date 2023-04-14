@@ -8,10 +8,7 @@ import { AuthController } from './auth.controller';
 
 @Module({
   controllers: [AuthController],
-  imports: [
-    UsersModule,
-    PassportModule
-  ],
+  imports: [UsersModule, PassportModule],
   providers: [AuthService, LocalStrategy],
 })
 export class AuthModule {}

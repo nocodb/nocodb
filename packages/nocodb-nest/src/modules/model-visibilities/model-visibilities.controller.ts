@@ -1,14 +1,15 @@
 import {
   Body,
   Controller,
-  Get, HttpCode,
+  Get,
+  HttpCode,
   Param,
   Post,
   Query,
   UseGuards,
-} from '@nestjs/common'
+} from '@nestjs/common';
 import { AuthGuard } from '@nestjs/passport';
-import { GlobalGuard } from '../../guards/global/global.guard'
+import { GlobalGuard } from '../../guards/global/global.guard';
 import {
   Acl,
   ExtractProjectIdMiddleware,

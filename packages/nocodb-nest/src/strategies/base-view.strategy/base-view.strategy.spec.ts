@@ -1,5 +1,6 @@
-import { Test, TestingModule } from '@nestjs/testing';
+import { Test } from '@nestjs/testing';
 import { BaseViewStrategy } from './base-view.strategy';
+import type { TestingModule } from '@nestjs/testing';
 
 describe('BaseViewStrategy', () => {
   let provider: BaseViewStrategy;

@@ -1,8 +1,8 @@
 import { Router } from 'express';
 import { SqlClientFactory } from '../../db/sql-client/lib/SqlClientFactory';
-import Noco from '../../Noco';
 import { GqlApiBuilder } from './gql/GqlApiBuilder';
 import { RestApiBuilder } from './rest/RestApiBuilder';
+import type Noco from '../../Noco';
 import type { NcConfig } from '../../interface/config';
 
 export default class NcProjectBuilder {

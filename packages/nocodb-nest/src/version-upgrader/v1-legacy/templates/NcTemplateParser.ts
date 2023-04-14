@@ -57,7 +57,7 @@ export default class NcTemplateParser {
         (column) =>
           column.cn !== 'title' &&
           (column.uidt !== 'ID' ||
-            tableTemplate.columns.every((c) => c.uidt !== 'ID'))
+            tableTemplate.columns.every((c) => c.uidt !== 'ID')),
       );
 
     return {
@@ -116,13 +116,13 @@ export default class NcTemplateParser {
     if (!this._m2mRelations) this._m2mRelations = [];
     for (const hasMany of tableTemplate.hasMany || []) {
       const childTable = this.tables.find(
-        (table) => table.tn === this.getTable(hasMany.tn)
+        (table) => table.tn === this.getTable(hasMany.tn),
       );
       const parentTable = this.tables.find(
-        (table) => table.tn === tableTemplate.tn
+        (table) => table.tn === tableTemplate.tn,
       );
       const parentPrimaryColumn = parentTable.columns.find(
-        (column) => column.uidt === UITypes.ID
+        (column) => column.uidt === UITypes.ID,
       );
       //
       // // if duplicate relation ignore
@@ -171,16 +171,16 @@ export default class NcTemplateParser {
     for (const manyToMany of tableTemplate.manyToMany || []) {
       // @ts-ignore
       const childTable = this.tables.find(
-        (table) => table.tn === this.getTable(manyToMany.rtn)
+        (table) => table.tn === this.getTable(manyToMany.rtn),
       );
       const parentTable = this.tables.find(
-        (table) => table.tn === tableTemplate.tn
+        (table) => table.tn === tableTemplate.tn,
       );
       const parentPrimaryColumn = parentTable.columns.find(
-        (column) => column.uidt === UITypes.ID
+        (column) => column.uidt === UITypes.ID,
       );
       const childPrimaryColumn = childTable.columns.find(
-        (column) => column.uidt === UITypes.ID
+        (column) => column.uidt === UITypes.ID,
       );
 
       // if duplicate relation ignore

@@ -9,7 +9,7 @@ server.disable('x-powered-by');
 server.use(
   cors({
     exposedHeaders: 'xc-db-response',
-  })
+  }),
 );
 
 server.set('view engine', 'ejs');
@@ -31,4 +31,3 @@ process.env[`NC_DB`] = `mysql2://localhost:3306?u=root&p=password&d=${metaDb}`;
     server.use(await Noco.init({}, httpServer, server));
   });
 })().catch((e) => console.log(e));
-

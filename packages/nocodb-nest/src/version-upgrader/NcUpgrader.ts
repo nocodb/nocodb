@@ -1,8 +1,6 @@
 import debug from 'debug';
 import { T } from 'nc-help';
 import boxen from 'boxen';
-import { NcConfig } from '../interface/config';
-import { MetaService } from '../meta/meta.service';
 import ncAttachmentUpgrader from './ncAttachmentUpgrader';
 import ncAttachmentUpgrader_0104002 from './ncAttachmentUpgrader_0104002';
 import ncStickyColumnUpgrader from './ncStickyColumnUpgrader';
@@ -15,6 +13,8 @@ import ncProjectUpgraderV2_0090000 from './ncProjectUpgraderV2_0090000';
 import ncProjectEnvUpgrader0011045 from './ncProjectEnvUpgrader0011045';
 import ncProjectEnvUpgrader from './ncProjectEnvUpgrader';
 import ncHookUpgrader from './ncHookUpgrader';
+import type { MetaService } from '../meta/meta.service';
+import type { NcConfig } from '../interface/config';
 
 const log = debug('nc:version-upgrader');
 

@@ -1,6 +1,13 @@
-import { Controller, Get, HttpCode, Param, Post, UseGuards } from '@nestjs/common'
+import {
+  Controller,
+  Get,
+  HttpCode,
+  Param,
+  Post,
+  UseGuards,
+} from '@nestjs/common';
 import { AuthGuard } from '@nestjs/passport';
-import { GlobalGuard } from '../../guards/global/global.guard'
+import { GlobalGuard } from '../../guards/global/global.guard';
 import {
   Acl,
   ExtractProjectIdMiddleware,

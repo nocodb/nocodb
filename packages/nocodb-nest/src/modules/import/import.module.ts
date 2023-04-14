@@ -1,7 +1,7 @@
 import { Module } from '@nestjs/common';
 import { AttachmentsService } from '../attachments/attachments.service';
 import { ColumnsService } from '../columns/columns.service';
-import { BulkDataAliasService } from '../datas/bulk-data-alias/bulk-data-alias.service'
+import { BulkDataAliasService } from '../datas/bulk-data-alias/bulk-data-alias.service';
 import { FiltersService } from '../filters/filters.service';
 import { FormColumnsService } from '../form-columns/form-columns.service';
 import { FormsService } from '../forms/forms.service';

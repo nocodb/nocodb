@@ -1,16 +1,17 @@
 import {
   Body,
   Controller,
-  Get, HttpCode,
+  Get,
+  HttpCode,
   Param,
   Patch,
   Post,
   Query,
   Request,
   UseGuards,
-} from '@nestjs/common'
+} from '@nestjs/common';
 import { AuthGuard } from '@nestjs/passport';
-import { GlobalGuard } from '../../guards/global/global.guard'
+import { GlobalGuard } from '../../guards/global/global.guard';
 import { PagedResponseImpl } from '../../helpers/PagedResponse';
 import {
   Acl,

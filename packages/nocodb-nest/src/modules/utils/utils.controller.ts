@@ -1,12 +1,13 @@
 import {
   Body,
   Controller,
-  Get, HttpCode,
+  Get,
+  HttpCode,
   Post,
   Request,
   UseGuards,
-} from '@nestjs/common'
-import { GlobalGuard } from '../../guards/global/global.guard'
+} from '@nestjs/common';
+import { GlobalGuard } from '../../guards/global/global.guard';
 import {
   Acl,
   ExtractProjectIdMiddleware,
@@ -62,5 +63,4 @@ export class UtilsController {
     // todo: refactor
     return (await this.utilsService.aggregatedMetaInfo()) as any;
   }
-
 }

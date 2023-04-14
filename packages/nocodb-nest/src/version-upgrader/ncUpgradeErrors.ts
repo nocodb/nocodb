@@ -21,7 +21,7 @@ export function throwTimeoutError(e, timeoutErrorInfo) {
     }
     throw new Error(
       `Failed to connect the database ${db} for Project ${timeoutErrorInfo.projectTitle}.
-       Please fix the connection issue or remove the project before trying to upgrade.`
+       Please fix the connection issue or remove the project before trying to upgrade.`,
     );
   }
 }

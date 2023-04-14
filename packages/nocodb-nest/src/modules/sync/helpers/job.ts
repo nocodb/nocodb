@@ -2418,8 +2418,8 @@ export default async (
             syncDB,
             services: {
               bulkDataService,
-              tableService
-            }
+              tableService,
+            },
           });
         }
       } catch (error) {

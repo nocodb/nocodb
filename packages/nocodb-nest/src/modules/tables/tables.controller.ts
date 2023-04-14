@@ -2,17 +2,18 @@ import {
   Body,
   Controller,
   Delete,
-  Get, HttpCode,
+  Get,
+  HttpCode,
   Param,
   Patch,
   Post,
   Query,
   Request,
   UseGuards,
-} from '@nestjs/common'
+} from '@nestjs/common';
 import { AuthGuard } from '@nestjs/passport';
 import { TableReqType } from 'nocodb-sdk';
-import { GlobalGuard } from '../../guards/global/global.guard'
+import { GlobalGuard } from '../../guards/global/global.guard';
 import extractRolesObj from '../../utils/extractRolesObj';
 import { PagedResponseImpl } from '../../helpers/PagedResponse';
 import {

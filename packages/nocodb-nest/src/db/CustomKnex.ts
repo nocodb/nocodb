@@ -483,6 +483,7 @@ interface XcXonditionObj {
 }
 
 declare module 'knex' {
+  // eslint-disable-next-line @typescript-eslint/no-namespace
   namespace Knex {
     interface QueryInterface {
       clientType(): string;

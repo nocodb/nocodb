@@ -1,7 +1,7 @@
 import { Controller, Get, Request, Response, UseGuards } from '@nestjs/common';
 import * as XLSX from 'xlsx';
 import { AuthGuard } from '@nestjs/passport';
-import { GlobalGuard } from '../../../guards/global/global.guard'
+import { GlobalGuard } from '../../../guards/global/global.guard';
 import {
   Acl,
   ExtractProjectIdMiddleware,

@@ -25,9 +25,7 @@ import type {
 
 @Injectable()
 export class UsersService {
-  constructor(
-    private metaService: MetaService,
-  ) {}
+  constructor(private metaService: MetaService) {}
 
   async findOne(email: string) {
     const user = await this.metaService.metaGet(null, null, MetaTable.USERS, {
@@ -464,7 +462,6 @@ export class UsersService {
       refresh_token: refreshToken,
       email: user.email,
     });
-
 
     setTokenCookie(param.res, refreshToken);
 

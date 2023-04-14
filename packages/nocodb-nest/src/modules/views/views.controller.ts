@@ -2,14 +2,15 @@ import {
   Body,
   Controller,
   Delete,
-  Get, HttpCode,
+  Get,
+  HttpCode,
   Param,
   Patch,
   Post,
   Query,
   Request,
   UseGuards,
-} from '@nestjs/common'
+} from '@nestjs/common';
 import { ViewUpdateReqType } from 'nocodb-sdk';
 import { PagedResponseImpl } from '../../helpers/PagedResponse';
 import {

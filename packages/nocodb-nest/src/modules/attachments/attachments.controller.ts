@@ -14,12 +14,10 @@ import {
   UseInterceptors,
 } from '@nestjs/common';
 import multer from 'multer';
-import {
-  AnyFilesInterceptor,
-} from '@nestjs/platform-express';
+import { AnyFilesInterceptor } from '@nestjs/platform-express';
 import { AuthGuard } from '@nestjs/passport';
 import { NC_ATTACHMENT_FIELD_SIZE } from '../../constants';
-import { GlobalGuard } from '../../guards/global/global.guard'
+import { GlobalGuard } from '../../guards/global/global.guard';
 import { UploadAllowedInterceptor } from '../../interceptors/is-upload-allowed/is-upload-allowed.interceptor';
 import { AttachmentsService } from './attachments.service';
 

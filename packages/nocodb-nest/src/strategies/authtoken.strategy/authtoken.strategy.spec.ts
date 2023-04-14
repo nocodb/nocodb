@@ -1,5 +1,6 @@
-import { Test, TestingModule } from '@nestjs/testing';
+import { Test } from '@nestjs/testing';
 import { AuthtokenStrategy } from './authtoken.strategy';
+import type { TestingModule } from '@nestjs/testing';
 
 describe('AuthtokenStrategy', () => {
   let provider: AuthtokenStrategy;

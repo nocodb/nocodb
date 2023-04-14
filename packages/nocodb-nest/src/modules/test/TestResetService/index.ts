@@ -21,11 +21,14 @@ const loginRootUser = async () => {
 
     return response.data.token;
   } catch (e) {
-    console.log('Error in loginRootUser', e)
-   let  msg = e.response?.data?.msg || e.response?.data?.message || 'Some internal error occurred'
-    let errors = e.response?.data?.errors
-    console.log('msg', msg)
-    console.log('errors', errors)
+    console.log('Error in loginRootUser', e);
+    const msg =
+      e.response?.data?.msg ||
+      e.response?.data?.message ||
+      'Some internal error occurred';
+    const errors = e.response?.data?.errors;
+    console.log('msg', msg);
+    console.log('errors', errors);
     const response = await axios.post(
       'http://localhost:8080/api/v1/auth/user/signup',
       { email: 'user@nocodb.com', password: 'Password123.' },

@@ -1,4 +1,4 @@
-import { Controller, HttpCode, Post, Req } from '@nestjs/common'
+import { Controller, HttpCode, Post, Req } from '@nestjs/common';
 import { TestService } from './test.service';
 import { TestResetService } from './TestResetService';
 

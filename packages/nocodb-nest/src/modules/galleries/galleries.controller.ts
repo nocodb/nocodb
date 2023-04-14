@@ -1,15 +1,16 @@
 import {
   Body,
   Controller,
-  Get, HttpCode,
+  Get,
+  HttpCode,
   Param,
   Patch,
   Post,
   UseGuards,
-} from '@nestjs/common'
+} from '@nestjs/common';
 import { GalleryUpdateReqType, ViewCreateReqType } from 'nocodb-sdk';
 import { AuthGuard } from '@nestjs/passport';
-import { GlobalGuard } from '../../guards/global/global.guard'
+import { GlobalGuard } from '../../guards/global/global.guard';
 import {
   Acl,
   ExtractProjectIdMiddleware,
@@ -17,7 +18,7 @@ import {
 import { GalleriesService } from './galleries.service';
 
 @Controller()
-@UseGuards(ExtractProjectIdMiddleware,GlobalGuard)
+@UseGuards(ExtractProjectIdMiddleware, GlobalGuard)
 export class GalleriesController {
   constructor(private readonly galleriesService: GalleriesService) {}
 

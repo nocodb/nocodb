@@ -1,15 +1,16 @@
 import {
   Body,
   Controller,
-  Get, HttpCode,
+  Get,
+  HttpCode,
   Param,
   Patch,
   Post,
   UseGuards,
-} from '@nestjs/common'
+} from '@nestjs/common';
 import { MapUpdateReqType, ViewCreateReqType } from 'nocodb-sdk';
 import { AuthGuard } from '@nestjs/passport';
-import { GlobalGuard } from '../../guards/global/global.guard'
+import { GlobalGuard } from '../../guards/global/global.guard';
 import {
   Acl,
   ExtractProjectIdMiddleware,

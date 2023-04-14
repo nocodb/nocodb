@@ -1,9 +1,9 @@
 import { UITypes } from 'nocodb-sdk';
-import { MetaService } from '../meta/meta.service'
 import { MetaTable } from '../utils/globals';
 import Column from '../models/Column';
 import Filter from '../models/Filter';
 import Project from '../models/Project';
+import type { MetaService } from '../meta/meta.service';
 import type { NcUpgraderCtx } from './NcUpgrader';
 import type { SelectOptionsType } from 'nocodb-sdk';
 
@@ -72,8 +72,8 @@ const migrateNullAndEmptyToBlankFilters = (filter, ncMeta) => {
         {
           comparison_op: 'blank',
         },
-        ncMeta
-      )
+        ncMeta,
+      ),
     );
   } else if (['notempty', 'notnull'].includes(filter.comparison_op)) {
     // migrate to not blank
@@ -83,8 +83,8 @@ const migrateNullAndEmptyToBlankFilters = (filter, ncMeta) => {
         {
           comparison_op: 'notblank',
         },
-        ncMeta
-      )
+        ncMeta,
+      ),
     );
   }
   return actions;
@@ -123,8 +123,8 @@ const migrateMultiSelectEq = async (filter, col: Column, ncMeta) => {
           comparison_op: 'anyof',
           value: newFilterValue,
         },
-        ncMeta
-      )
+        ncMeta,
+      ),
     );
   } else if (filter.comparison_op === 'neq') {
     // migrate to `doesn't contain all of`
@@ -135,8 +135,8 @@ const migrateMultiSelectEq = async (filter, col: Column, ncMeta) => {
           comparison_op: 'nanyof',
           value: newFilterValue,
         },
-        ncMeta
-      )
+        ncMeta,
+      ),
     );
   }
   return await Promise.all(actions);
@@ -154,8 +154,8 @@ const migrateToCheckboxFilter = (filter, ncMeta) => {
         {
           comparison_op: 'notchecked',
         },
-        ncMeta
-      )
+        ncMeta,
+      ),
     );
   } else if (['notempty', 'notnull'].includes(filter.comparison_op)) {
     //  migrate to checked
@@ -165,8 +165,8 @@ const migrateToCheckboxFilter = (filter, ncMeta) => {
         {
           comparison_op: 'checked',
         },
-        ncMeta
-      )
+        ncMeta,
+      ),
     );
   } else if (filter.comparison_op === 'eq') {
     if (possibleTrueValues.includes(filter.value)) {
@@ -178,8 +178,8 @@ const migrateToCheckboxFilter = (filter, ncMeta) => {
             comparison_op: 'checked',
             value: '',
           },
-          ncMeta
-        )
+          ncMeta,
+        ),
       );
     } else if (possibleFalseValues.includes(filter.value)) {
       // migrate to notchecked
@@ -190,8 +190,8 @@ const migrateToCheckboxFilter = (filter, ncMeta) => {
             comparison_op: 'notchecked',
             value: '',
           },
-          ncMeta
-        )
+          ncMeta,
+        ),
       );
     } else {
       // invalid value - good to delete
@@ -207,8 +207,8 @@ const migrateToCheckboxFilter = (filter, ncMeta) => {
             comparison_op: 'checked',
             value: '',
           },
-          ncMeta
-        )
+          ncMeta,
+        ),
       );
     } else if (possibleTrueValues.includes(filter.value)) {
       // migrate to not checked
@@ -219,8 +219,8 @@ const migrateToCheckboxFilter = (filter, ncMeta) => {
             comparison_op: 'notchecked',
             value: '',
           },
-          ncMeta
-        )
+          ncMeta,
+        ),
       );
     } else {
       // invalid value - good to delete
@@ -340,8 +340,8 @@ async function updateProjectMeta(ncMeta: MetaService) {
         {
           meta: JSON.stringify(newProjectMeta),
         },
-        ncMeta
-      )
+        ncMeta,
+      ),
     );
   }
   await Promise.all(actions);

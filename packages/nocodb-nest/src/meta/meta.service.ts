@@ -3,8 +3,9 @@ import {
   Inject,
   Injectable,
   OnApplicationBootstrap,
-  OnModuleInit, Optional,
-} from '@nestjs/common'
+  OnModuleInit,
+  Optional,
+} from '@nestjs/common';
 
 import { customAlphabet } from 'nanoid';
 import CryptoJS from 'crypto-js';

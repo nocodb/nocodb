@@ -2,7 +2,7 @@ import axios from 'axios';
 import cors from 'cors';
 import express from 'express';
 import { User } from '../models';
-import Noco from '../Noco'
+import Noco from '../Noco';
 
 process.env.NC_VERSION = '0009044';
 
@@ -30,10 +30,9 @@ process.env[`DEBUG`] = 'xc*';
         {
           email: 'user@nocodb.com',
           password: 'Password123.',
-        }
+        },
       );
       console.log(response.data);
     }
   });
 })().catch((e) => console.log(e));
-

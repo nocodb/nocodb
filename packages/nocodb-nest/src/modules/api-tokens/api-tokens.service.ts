@@ -4,9 +4,9 @@ import { OrgUserRoles } from 'nocodb-sdk';
 import { validatePayload } from '../../helpers';
 import { NcError } from '../../helpers/catchError';
 import { ApiToken } from '../../models';
+import extractRolesObj from '../../utils/extractRolesObj';
 import type { User } from '../../models';
 import type { ApiTokenReqType } from 'nocodb-sdk';
-import extractRolesObj from '../../utils/extractRolesObj'
 
 @Injectable()
 export class ApiTokensService {

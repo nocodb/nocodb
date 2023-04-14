@@ -1,15 +1,15 @@
 import debug from 'debug';
 import { Router } from 'express';
-import { BaseModelSql } from '../../db/BaseModelSql';
-import { XKnex } from '../../db/CustomKnex';
-import ModelXcMetaFactory from '../../db/sql-mgr/code/models/xc/ModelXcMetaFactory'
-import { DbConfig, NcConfig } from '../../interface/config';
 import inflection from 'inflection';
-import { MetaService } from '../../meta/meta.service';
+import ModelXcMetaFactory from '../../db/sql-mgr/code/models/xc/ModelXcMetaFactory';
 import NcConnectionMgr from '../../utils/common/NcConnectionMgr';
 import ncModelsOrderUpgrader from './jobs/ncModelsOrderUpgrader';
 import ncParentModelTitleUpgrader from './jobs/ncParentModelTitleUpgrader';
 import ncRemoveDuplicatedRelationRows from './jobs/ncRemoveDuplicatedRelationRows';
+import type { DbConfig, NcConfig } from '../../interface/config';
+import type { XKnex } from '../../db/CustomKnex';
+import type { BaseModelSql } from '../../db/BaseModelSql';
+import type { MetaService } from '../../meta/meta.service';
 import type Noco from '../../Noco';
 import type NcProjectBuilder from './NcProjectBuilder';
 import type { MysqlClient, PgClient, SqlClient } from 'nc-help';
@@ -567,8 +567,6 @@ export default abstract class BaseApiBuilder<T extends Noco> {
 
     return metas;
   }
-
-
 }
 
 interface NcBuilderUpgraderCtx {

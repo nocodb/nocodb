@@ -1,20 +1,19 @@
-import { Router } from 'express';
 import debug from 'debug';
 import autoBind from 'auto-bind';
-import SwaggerXc from '../../../db/sql-mgr/code/routers/xc-ts/SwaggerXc'
-import ExpressXcTsRoutes from '../../../db/sql-mgr/code/routes/xc-ts/ExpressXcTsRoutes'
-import { MetaService } from '../../../meta/meta.service';
-import Noco from '../../../Noco';
-import NcHelp from '../../../utils/NcHelp'
+import SwaggerXc from '../../../db/sql-mgr/code/routers/xc-ts/SwaggerXc';
+import ExpressXcTsRoutes from '../../../db/sql-mgr/code/routes/xc-ts/ExpressXcTsRoutes';
+import NcHelp from '../../../utils/NcHelp';
+import BaseApiBuilder, { XcTablesPopulateParams } from '../BaseApiBuilder';
+import type { MetaService } from '../../../meta/meta.service';
+import type Noco from '../../../Noco';
+import type { Router } from 'express';
 import type { DbConfig, NcConfig } from '../../../interface/config';
 import type NcProjectBuilder from '../NcProjectBuilder';
-import BaseApiBuilder, { XcTablesPopulateParams } from '../BaseApiBuilder';
 
 const log = debug('nc:api:rest');
 
 export class RestApiBuilder extends BaseApiBuilder<Noco> {
   public readonly type = 'rest';
-
 
   protected nocoTypes: any;
   protected nocoRootResolvers: any;
@@ -51,7 +50,7 @@ export class RestApiBuilder extends BaseApiBuilder<Noco> {
         meta.hasMany,
         meta.belongsTo,
         meta.type,
-        meta._tn
+        meta._tn,
       );
 
       /* create routes for table */
@@ -74,7 +73,7 @@ export class RestApiBuilder extends BaseApiBuilder<Noco> {
                 tn: meta.tn,
                 title: meta.tn,
                 type: route.type,
-              }
+              },
             ))
           ) {
             await this.xcMeta.metaInsert(
@@ -89,7 +88,7 @@ export class RestApiBuilder extends BaseApiBuilder<Noco> {
                 tn: meta.tn,
                 title: meta.tn,
                 type: route.type,
-              }
+              },
             );
           } else {
             await this.xcMeta.metaUpdate(
@@ -104,7 +103,7 @@ export class RestApiBuilder extends BaseApiBuilder<Noco> {
                 tn: meta.tn,
                 title: meta.tn,
                 type: route.type,
-              }
+              },
             );
           }
         };
@@ -112,7 +111,7 @@ export class RestApiBuilder extends BaseApiBuilder<Noco> {
 
       await NcHelp.executeOperations(
         routesInsertion,
-        this.connectionConfig.client
+        this.connectionConfig.client,
       );
     }
 
@@ -128,7 +127,7 @@ export class RestApiBuilder extends BaseApiBuilder<Noco> {
         metaObj.columns,
         [...metaObj.belongsTo, ...metaObj.hasMany],
         metaObj.hasMany,
-        metaObj.belongsTo
+        metaObj.belongsTo,
       );
 
       const swaggerDoc = await new SwaggerXc({
@@ -147,7 +146,7 @@ export class RestApiBuilder extends BaseApiBuilder<Noco> {
         {
           title: metaObj.tn,
           type: 'table',
-        }
+        },
       );
       const oldSwaggerDoc = JSON.parse(meta.schema);
 
@@ -169,7 +168,7 @@ export class RestApiBuilder extends BaseApiBuilder<Noco> {
         {
           title: metaObj.tn,
           type: 'table',
-        }
+        },
       );
     }
 

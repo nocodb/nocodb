@@ -1,7 +1,7 @@
 import { promises as fs } from 'fs';
+import path from 'path';
 import axios from 'axios';
 import { knex } from 'knex';
-import path from 'path'
 import Audit from '../../../models/Audit';
 import type Project from '../../../models/Project';
 
@@ -79,10 +79,7 @@ const isSakilaPgToBeReset = async (parallelId: string, project?: Project) => {
 };
 
 const resetSakilaPg = async (parallelId: string, isEmptyProject: boolean) => {
-  const testsDir = path.join(
-    process.cwd(),
-    '/tests',
-  );
+  const testsDir = path.join(process.cwd(), '/tests');
 
   if (isEmptyProject) return;
 

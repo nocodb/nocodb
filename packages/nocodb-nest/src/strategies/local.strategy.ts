@@ -18,7 +18,7 @@ export class LocalStrategy extends PassportStrategy(Strategy) {
     const user = await this.authService.validateUser(username, password);
 
     if (!user) {
-      NcError.badRequest('Invalid credentials')
+      NcError.badRequest('Invalid credentials');
     }
 
     user.roles = extractRolesObj(user.roles);

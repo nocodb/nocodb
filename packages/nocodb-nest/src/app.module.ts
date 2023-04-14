@@ -1,10 +1,12 @@
+import { join } from 'path';
 import { Module, RequestMethod } from '@nestjs/common';
 import { APP_FILTER } from '@nestjs/core';
+import { ServeStaticModule } from '@nestjs/serve-static';
 import { Connection } from './connection/connection';
 import { GlobalExceptionFilter } from './filters/global-exception/global-exception.filter';
-import NcPluginMgrv2 from './helpers/NcPluginMgrv2'
+import NcPluginMgrv2 from './helpers/NcPluginMgrv2';
 import { GlobalMiddleware } from './middlewares/global/global.middleware';
-import { GuiMiddleware } from './middlewares/gui/gui.middleware'
+import { GuiMiddleware } from './middlewares/gui/gui.middleware';
 import { AuthService } from './modules/auth/auth.service';
 import { UsersModule } from './modules/users/users.module';
 import { MetaService } from './meta/meta.service';
@@ -52,14 +54,11 @@ import { LocalStrategy } from './strategies/local.strategy';
 import { AuthTokenStrategy } from './strategies/authtoken.strategy/authtoken.strategy';
 import { BaseViewStrategy } from './strategies/base-view.strategy/base-view.strategy';
 import { GoogleStrategy } from './strategies/google.strategy/google.strategy';
+import NcUpgrader from './version-upgrader/NcUpgrader';
 import type {
   MiddlewareConsumer,
   OnApplicationBootstrap,
 } from '@nestjs/common';
-
-import { ServeStaticModule } from '@nestjs/serve-static';
-import { join } from 'path';
-import NcUpgrader from './version-upgrader/NcUpgrader';
 
 @Module({
   imports: [

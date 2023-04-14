@@ -16,7 +16,7 @@ import { randomTokenString } from '../../helpers/stringHelpers';
 import { Audit, ProjectUser, Store, SyncSource, User } from '../../models';
 
 import Noco from '../../Noco';
-import extractRolesObj from '../../utils/extractRolesObj'
+import extractRolesObj from '../../utils/extractRolesObj';
 import { MetaTable } from '../../utils/globals';
 import { ProjectUsersService } from '../project-users/project-users.service';
 import type { UserType } from 'nocodb-sdk';

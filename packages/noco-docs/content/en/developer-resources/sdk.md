@@ -9,7 +9,7 @@ menuTitle: 'NocoDB SDK'
 We provide SDK for users to integrate with their applications. Currently only SDK for Javascript is supported.
 
 <alert>
-Note: The NocoDB SDK requires authorization token. If you haven't created one, please check out <a href="./accessing-apis" target="_blank">Accessing APIs</a> for details.
+Note: The NocoDB SDK requires authorization token. If you haven't created one, please check out <NuxtLink to="/developer-resources/accessing-apis" target="_blank">Accessing APIs</NuxtLink> for details.
 </alert>
 
 ## SDK For Javascript
@@ -57,7 +57,7 @@ const api = new Api({
 Once you have configured `api`, you can call different types of APIs by `api.<Tag>.<FunctionName>`. 
 
 <alert>
-For Tag and FunctionName, please check out the API table <a href="./rest-apis" target="_blank">here</a>.
+For Tag and FunctionName, please check out the API table <NuxtLink to="/developer-resources/rest-apis" target="_blank">here</NuxtLink>.
 </alert>
 
 #### Example: Calling API - /api/v1/db/meta/projects/{projectId}/tables

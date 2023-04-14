@@ -756,7 +756,7 @@ const closeAddColumnDropdown = () => {
 const confirmDeleteRow = (row: number) => {
   Modal.confirm({
     title: `Do you want to delete this row?`,
-    wrapClassName: 'nc-modal-attachment-delete',
+    wrapClassName: 'nc-modal-row-delete',
     okText: 'Yes',
     okType: 'danger',
     cancelText: 'No',

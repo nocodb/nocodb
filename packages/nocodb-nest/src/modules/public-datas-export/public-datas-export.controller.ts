@@ -17,7 +17,7 @@ export class PublicDatasExportController {
     private readonly publicDatasExportService: PublicDatasExportService,
   ) {}
 
-  @Get('/api/v1/db/public/shared-view/:publicDataUuid/rows/export/csv')
+  @Get('/api/v1/db/public/shared-view/:publicDataUuid/rows/export/excel')
   async exportExcel(
     @Request() req,
     @Response() res,
@@ -69,7 +69,7 @@ export class PublicDatasExportController {
     res.end(buf);
   }
 
-  @Get('/api/v1/db/public/shared-view/:publicDataUuid/rows/export/excel')
+  @Get('/api/v1/db/public/shared-view/:publicDataUuid/rows/export/csv')
   async exportCsv(@Request() req, @Response() res) {
     const view = await View.getByUUID(req.params.publicDataUuid);
     const fields = req.query.fields;

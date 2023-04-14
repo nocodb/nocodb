@@ -59,6 +59,7 @@ import type {
 
 import { ServeStaticModule } from '@nestjs/serve-static';
 import { join } from 'path';
+import NcUpgrader from './version-upgrader/NcUpgrader';
 
 @Module({
   imports: [
@@ -157,6 +158,6 @@ export class AppModule implements OnApplicationBootstrap {
     await Noco.loadEEState();
 
     // run upgrader
-    // await NcUpgrader.upgrade({ ncMeta: Noco._ncMeta });
+    await NcUpgrader.upgrade({ ncMeta: Noco._ncMeta });
   }
 }

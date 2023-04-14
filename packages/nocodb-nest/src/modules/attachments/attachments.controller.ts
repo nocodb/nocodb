@@ -48,9 +48,6 @@ export class AttachmentsController {
     UploadAllowedInterceptor,
     AnyFilesInterceptor({
       storage: multer.diskStorage({}),
-      // limits: {
-      //   fieldSize: NC_ATTACHMENT_FIELD_SIZE,
-      // },
       limits: {
         fileSize: NC_ATTACHMENT_FIELD_SIZE,
       },

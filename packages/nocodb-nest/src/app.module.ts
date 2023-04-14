@@ -60,28 +60,6 @@ import type {
 import { ServeStaticModule } from '@nestjs/serve-static';
 import { join } from 'path';
 
-/*
-
-export const JwtStrategyProvider: Provider = {
-  provide: JwtStrategy,
-  useFactory: async (usersService: UsersService) => {
-    const config = await NcConfigFactory.make();
-
-    const options = {
-      // ignoreExpiration: false,
-      jwtFromRequest: ExtractJwt.fromHeader('xc-auth'),
-      // expiresIn: '10h',
-      passReqToCallback: true,
-      secretOrKey: config.auth.jwt.secret,
-      ...config.auth.jwt.options,
-    };
-
-    return new JwtStrategy(options, usersService);
-  },
-  inject: [UsersService],
-};
-*/
-
 @Module({
   imports: [
     ServeStaticModule.forRoot({

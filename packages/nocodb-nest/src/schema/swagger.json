@@ -10886,10 +10886,10 @@
         },
         "requestBody": {
           "content": {
-            "application/json": {
+            "multipart/form-data": {
               "schema": {
                 "type": "object",
-                "description": "Data Object where the key is column and the value is the data value"
+                "properties": {}
               },
               "examples": {
                 "Example 1": {

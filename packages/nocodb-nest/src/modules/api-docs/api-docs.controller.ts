@@ -1,4 +1,6 @@
-import { Controller, Get, Param, Request, Response } from '@nestjs/common';
+import { Controller, Get, Param, Request, Response, UseGuards } from '@nestjs/common'
+import { GlobalGuard } from '../../guards/global/global.guard'
+import { Acl, ExtractProjectIdMiddleware } from '../../middlewares/extract-project-id/extract-project-id.middleware'
 import { ApiDocsService } from './api-docs.service';
 import getSwaggerHtml from './template/swaggerHtml';
 import getRedocHtml from './template/redocHtml';
@@ -7,6 +9,9 @@ import getRedocHtml from './template/redocHtml';
 export class ApiDocsController {
   constructor(private readonly apiDocsService: ApiDocsService) {}
 
+  @Get('/api/v1/db/meta/projects/:projectId/swagger.json')
+  @UseGuards(ExtractProjectIdMiddleware, GlobalGuard)
+  @Acl('swaggerJson')
   async swaggerJson(@Param('projectId') projectId: string, @Request() req) {
     const swagger = await this.apiDocsService.swaggerJson({
       projectId: projectId,

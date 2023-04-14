@@ -1,4 +1,5 @@
 import { promisify } from 'util';
+import { AuditOperationSubTypes, AuditOperationTypes } from 'nocodb-sdk';
 import {
   Body,
   Controller,
@@ -86,8 +87,8 @@ export class UsersController {
       setTokenCookie(res, refreshToken);
 
       await Audit.insert({
-        op_type: 'AUTHENTICATION',
-        op_sub_type: 'SIGNIN',
+        op_type: AuditOperationTypes.AUTHENTICATION,
+        op_sub_type: AuditOperationSubTypes.SIGNIN,
         user: user.email,
         ip: req.clientIp,
         description: auditDescription,
@@ -113,13 +114,15 @@ export class UsersController {
     return this.usersService.login(req.user);
   }
 
-  @Post([
-    '/api/v1/auth/user/signout',
-  ])
-  @UseGuards(AuthGuard('local'))
+  @Post('/api/v1/auth/user/signout')
   @HttpCode(200)
-  async signout(@Request() req, @Response() res) {
-    return this.usersService.signout({req, res});
+  async signout(@Request() req, @Response() res): Promise<any> {
+    res.json(
+      await this.usersService.signout({
+        req,
+        res,
+      }),
+    );
   }
 
   @Post(`/auth/google/genTokenByCode`)

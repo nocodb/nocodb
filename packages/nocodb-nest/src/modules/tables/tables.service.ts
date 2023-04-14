@@ -1,3 +1,4 @@
+
 import { Injectable } from '@nestjs/common';
 import DOMPurify from 'isomorphic-dompurify';
 import {
@@ -192,7 +193,7 @@ export class TablesService {
       project_id: project.id,
       base_id: base.id,
       op_type: AuditOperationTypes.TABLE,
-      op_sub_type: AuditOperationSubTypes.DELETED,
+      op_sub_type: AuditOperationSubTypes.DELETE,
       user: param.user?.email,
       description: `Deleted ${table.type} ${table.table_name} with alias ${table.title}  `,
       ip: param.req?.clientIp,
@@ -448,9 +449,9 @@ export class TablesService {
       project_id: project.id,
       base_id: base.id,
       op_type: AuditOperationTypes.TABLE,
-      op_sub_type: AuditOperationSubTypes.CREATED,
+      op_sub_type: AuditOperationSubTypes.CREATE,
       user: param.user?.email,
-      description: `created table ${tableCreatePayLoad.table_name} with alias ${tableCreatePayLoad.title}  `,
+      description: `Table ${tableCreatePayLoad.table_name} with alias ${tableCreatePayLoad.title} has been created`,
       ip: param.req?.clientIp,
     }).then(() => {});
 

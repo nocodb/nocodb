@@ -87,7 +87,7 @@ export class HooksController {
   async tableSampleData(
     @Param('tableId') tableId: string,
     @Param('operation') operation: HookType['operation'],
-    @Param('version') version: any, //HookType['version'],
+    @Param('version') version: HookType['version'],
   ) {
     return await this.hooksService.tableSampleData({
       tableId,

@@ -1,5 +1,5 @@
 import { Injectable } from '@nestjs/common';
-import { OrgUserRoles, PluginCategory } from 'nocodb-sdk';
+import { AuditOperationSubTypes, AuditOperationTypes, OrgUserRoles, PluginCategory } from 'nocodb-sdk'
 import { T } from 'nc-help';
 import { v4 as uuidv4 } from 'uuid';
 import * as ejs from 'ejs';
@@ -92,8 +92,8 @@ export class ProjectUsersService {
 
         await Audit.insert({
           project_id: param.projectId,
-          op_type: 'AUTHENTICATION',
-          op_sub_type: 'INVITE',
+          op_type: AuditOperationTypes.AUTHENTICATION,
+          op_sub_type: AuditOperationSubTypes.INVITE,
           user: param.req.user.email,
           description: `invited ${email} to ${param.projectId} project `,
           ip: param.req.clientIp,
@@ -121,8 +121,8 @@ export class ProjectUsersService {
 
           await Audit.insert({
             project_id: param.projectId,
-            op_type: 'AUTHENTICATION',
-            op_sub_type: 'INVITE',
+            op_type: AuditOperationTypes.AUTHENTICATION,
+            op_sub_type: AuditOperationSubTypes.INVITE,
             user: param.req.user.email,
             description: `invited ${email} to ${param.projectId} project `,
             ip: param.req.clientIp,
@@ -203,8 +203,8 @@ export class ProjectUsersService {
     );
 
     await Audit.insert({
-      op_type: 'AUTHENTICATION',
-      op_sub_type: 'ROLES_MANAGEMENT',
+      op_type: AuditOperationTypes.AUTHENTICATION,
+      op_sub_type: AuditOperationSubTypes.ROLES_MANAGEMENT,
       user: param.req.user.email,
       description: `updated roles for ${user.email} with ${param.projectUser.roles} `,
       ip: param.req.clientIp,
@@ -282,8 +282,8 @@ export class ProjectUsersService {
     await this.sendInviteEmail(user.email, invite_token, param.req);
 
     await Audit.insert({
-      op_type: 'AUTHENTICATION',
-      op_sub_type: 'RESEND_INVITE',
+      op_type: AuditOperationTypes.AUTHENTICATION,
+      op_sub_type: AuditOperationSubTypes.RESEND_INVITE ,
       user: user.email,
       description: `resent a invite to ${user.email} `,
       ip: param.req.clientIp,

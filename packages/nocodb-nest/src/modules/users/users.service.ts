@@ -1,6 +1,6 @@
 import { promisify } from 'util';
 import { Injectable } from '@nestjs/common';
-import { OrgUserRoles, validatePassword } from 'nocodb-sdk';
+import { AuditOperationSubTypes, AuditOperationTypes, OrgUserRoles, validatePassword } from 'nocodb-sdk'
 import { v4 as uuidv4 } from 'uuid';
 import { isEmail } from 'validator';
 import { T } from 'nc-help';
@@ -145,10 +145,10 @@ export class UsersService {
     });
 
     await Audit.insert({
-      op_type: 'AUTHENTICATION',
-      op_sub_type: 'PASSWORD_CHANGE',
+      op_type: AuditOperationTypes.AUTHENTICATION,
+      op_sub_type: AuditOperationSubTypes.PASSWORD_CHANGE,
       user: user.email,
-      description: `changed password `,
+      description: `Password has been changed`,
       ip: param.req?.clientIp,
     });
 
@@ -203,10 +203,10 @@ export class UsersService {
       }
 
       await Audit.insert({
-        op_type: 'AUTHENTICATION',
-        op_sub_type: 'PASSWORD_FORGOT',
+        op_type: AuditOperationTypes.AUTHENTICATION,
+        op_sub_type: AuditOperationSubTypes.PASSWORD_FORGOT,
         user: user.email,
-        description: `requested for password reset `,
+        description: `Password Reset has been requested`,
         ip: param.req?.clientIp,
       });
     } else {
@@ -279,10 +279,10 @@ export class UsersService {
     });
 
     await Audit.insert({
-      op_type: 'AUTHENTICATION',
-      op_sub_type: 'PASSWORD_RESET',
+      op_type: AuditOperationTypes.AUTHENTICATION,
+      op_sub_type: AuditOperationSubTypes.PASSWORD_RESET,
       user: user.email,
-      description: `did reset password `,
+      description: `Password has been reset`,
       ip: req.clientIp,
     });
 
@@ -311,10 +311,10 @@ export class UsersService {
     });
 
     await Audit.insert({
-      op_type: 'AUTHENTICATION',
-      op_sub_type: 'EMAIL_VERIFICATION',
+      op_type: AuditOperationTypes.AUTHENTICATION,
+      op_sub_type: AuditOperationSubTypes.EMAIL_VERIFICATION,
       user: user.email,
-      description: `verified email `,
+      description: `Email has been verified`,
       ip: req.clientIp,
     });
 
@@ -466,10 +466,10 @@ export class UsersService {
     setTokenCookie(param.res, refreshToken);
 
     await Audit.insert({
-      op_type: 'AUTHENTICATION',
-      op_sub_type: 'SIGNUP',
+      op_type: AuditOperationTypes.AUTHENTICATION,
+      op_sub_type: AuditOperationSubTypes.SIGNUP,
       user: user.email,
-      description: `signed up `,
+      description: `User has signed up`,
       ip: (param.req as any).clientIp,
     });
 
@@ -482,10 +482,7 @@ export class UsersService {
     };
   }
 
-  async signout(param: {
-    req: any,
-    res: any,
-  }) {
+  async signout(param: { res: any; req: any }) {
     try {
       param.res.clearCookie('refresh_token');
       const user = (param.req as any).user;

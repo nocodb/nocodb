@@ -829,7 +829,7 @@ export class ColumnsService {
     await Audit.insert({
       project_id: base.project_id,
       op_type: AuditOperationTypes.TABLE_COLUMN,
-      op_sub_type: AuditOperationSubTypes.UPDATED,
+      op_sub_type: AuditOperationSubTypes.UPDATE,
       user: param.req?.user?.email,
       description: `updated column ${column.column_name} with alias ${column.title} from table ${table.table_name}`,
       ip: param.req?.clientIp,
@@ -1131,7 +1131,7 @@ export class ColumnsService {
     await Audit.insert({
       project_id: base.project_id,
       op_type: AuditOperationTypes.TABLE_COLUMN,
-      op_sub_type: AuditOperationSubTypes.CREATED,
+      op_sub_type: AuditOperationSubTypes.CREATE,
       user: param?.req.user?.email,
       description: `created column ${colBody.column_name} with alias ${colBody.title} from table ${table.table_name}`,
       ip: param?.req.clientIp,
@@ -1342,7 +1342,7 @@ export class ColumnsService {
     await Audit.insert({
       project_id: base.project_id,
       op_type: AuditOperationTypes.TABLE_COLUMN,
-      op_sub_type: AuditOperationSubTypes.DELETED,
+      op_sub_type: AuditOperationSubTypes.DELETE,
       user: param?.req?.user?.email,
       description: `deleted column ${column.column_name} with alias ${column.title} from table ${table.table_name}`,
       ip: param?.req.clientIp,

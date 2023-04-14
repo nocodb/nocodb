@@ -221,7 +221,7 @@
     "viewName": "查看名称",
     "viewLink": "查看链接",
     "columnName": "列名",
-    "columnToScanFor": "Column to scan",
+    "columnToScanFor": "要扫描的列",
     "columnType": "列类型",
     "roleName": "权限组",
     "roleDescription": "权限描述",
@@ -412,8 +412,8 @@
     "changePwd": "更改密码",
     "createView": "创建视图",
     "shareView": "分享视图",
-    "findRowByCodeScan": "Find row by scan",
-    "fillByCodeScan": "Fill by scan",
+    "findRowByCodeScan": "通过扫描查找行",
+    "fillByCodeScan": "通过扫描填充",
     "listSharedView": "共享视图列表",
     "ListView": "视图列表",
     "copyView": "复制视图",
@@ -430,7 +430,7 @@
     "iFrame": "复制可嵌入的 HTML 代码",
     "addWebhook": "添加新的 Webhook",
     "enableWebhook": "启用 Webhook",
-    "testWebhook": "Test Webhook",
+    "testWebhook": "测试Webhook",
     "copyWebhook": "复制 Webhook",
     "deleteWebhook": "删除 Webhook",
     "newToken": "添加新 Token",
@@ -470,7 +470,7 @@
       "addOrEditStack": "添加/编辑分类标签"
     },
     "map": {
-      "mappedBy": "Mapped By",
+      "mappedBy": "映射字段",
       "chooseMappingField": "选择映射字段",
       "openInGoogleMaps": "谷歌地图",
       "openInOpenStreetMap": "OSM"
@@ -542,15 +542,15 @@
         "orgViewer": "游客不能创建新项目，仅允许访问受邀项目。"
       },
       "codeScanner": {
-        "loadingScanner": "Loading the scanner...",
-        "selectColumn": "Select a column (QR code or Barcode) that you want to use for finding a row by scanning.",
-        "moreThanOneRowFoundForCode": "More than one row found for this code. Currently only unique codes are supported.",
+        "loadingScanner": "正在加载扫描仪...",
+        "selectColumn": "选择要用于扫描查找行的列(二维码或条形码)。",
+        "moreThanOneRowFoundForCode": "找到了多行此代码。目前只支持唯一的代码。",
         "noRowFoundForCode": "所选列没有找到此代码行"
       },
       "map": {
         "overLimit": "你已经超出了限制。",
         "closeLimit": "您已接近上限。",
-        "limitNumber": "The limit of markers shown in a Map View is 1000 records."
+        "limitNumber": "在地图视图中显示的标记的限制是1000条记录。"
       },
       "footerInfo": "每页行驶",
       "upload": "选择文件以上传",

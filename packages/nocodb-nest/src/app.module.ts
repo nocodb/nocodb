@@ -144,6 +144,8 @@ export class AppModule implements OnApplicationBootstrap {
 
   // app init
   async onApplicationBootstrap(): Promise<void> {
+    process.env.NC_VERSION = '0105004';
+
     await this.connection.init();
     await this.metaService.init();
 

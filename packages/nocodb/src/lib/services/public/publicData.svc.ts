@@ -235,7 +235,7 @@ export async function dataInsert(param: {
     const fieldName = file?.fieldname?.replace(/^_|\[\d*]$/g, '');
 
     const filePath = sanitizeUrlPath([
-      'v1',
+      'noco',
       project.title,
       model.title,
       fieldName,
@@ -243,18 +243,25 @@ export async function dataInsert(param: {
 
     if (fieldName in fields && fields[fieldName].uidt === UITypes.Attachment) {
       attachments[fieldName] = attachments[fieldName] || [];
-      const fileName = `${nanoid(6)}_${file.originalname}`;
-      let url = await storageAdapter.fileCreate(
+      const fileName = `${nanoid(18)}${path.extname(file.originalname)}`;
+
+      const url = await storageAdapter.fileCreate(
         slash(path.join('nc', 'uploads', ...filePath, fileName)),
         file
       );
 
+      let attachmentPath;
+
+      // if `url` is null, then it is local attachment
       if (!url) {
-        url = `${param.siteUrl}/download/${filePath.join('/')}/${fileName}`;
+        // then store the attachment path only
+        // url will be constructed in `useAttachmentCell`
+        attachmentPath = `download/${filePath.join('/')}/${fileName}`;
       }
 
       attachments[fieldName].push({
-        url,
+        ...(url ? { url } : {}),
+        ...(attachmentPath ? { path: attachmentPath } : {}),
         title: file.originalname,
         mimetype: file.mimetype,
         size: file.size,

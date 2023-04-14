@@ -273,7 +273,7 @@ watch(wrapperRef, () => {
         </div>
       </div>
     </div>
-    <div class="absolute right-0 top-0 pt-1.5 mr-1.5">
+    <div class="absolute right-0 top-0 pt-2 mr-3">
       <DocsPageOutline v-if="openedPage && wrapperRef" :key="openedPage.id" :wrapper-ref="wrapperRef" />
     </div>
   </a-layout-content>
@@ -387,6 +387,27 @@ watch(wrapperRef, () => {
     color: #afafaf;
     pointer-events: none;
     height: 0;
+  }
+
+  .focused {
+    div[data-is-empty='true'] {
+      p::before {
+        content: 'Press / to open the command menu or start writing' !important;
+        float: left;
+        color: #afafaf;
+        pointer-events: none;
+        height: 0;
+      }
+    }
+  }
+  div.is-empty.focused {
+    p::before {
+      content: 'Press / to open the command menu or start writing' !important;
+      float: left;
+      color: #afafaf;
+      pointer-events: none;
+      height: 0;
+    }
   }
 
   h1.is-empty::before,

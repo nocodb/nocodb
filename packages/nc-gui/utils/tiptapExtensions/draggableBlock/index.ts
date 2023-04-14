@@ -1,7 +1,9 @@
 import { Node, mergeAttributes } from '@tiptap/core'
 import type { Editor } from '@tiptap/vue-3'
 import { VueNodeViewRenderer } from '@tiptap/vue-3'
+import type { EditorState } from 'prosemirror-state'
 import { Plugin, TextSelection } from 'prosemirror-state'
+import { Slice } from 'prosemirror-model'
 import DraggableBlockComponent from './draggable-block.vue'
 
 export interface DBlockOptions {
@@ -205,22 +207,35 @@ export const DraggableBlock = Node.create<DBlockOptions>({
   },
 })
 
-function focusCurrentDraggableBlock(state) {
-  let totalSize = 0
+function focusCurrentDraggableBlock(state: EditorState) {
+  let activeNodeIndex = 0
+  let found = false
 
-  let nodeIndex = 0
-  for (const rootNode of state.doc.content.content) {
-    totalSize += rootNode.nodeSize
-    if (totalSize > state.selection.from) {
-      break
+  state.doc.descendants((node, pos) => {
+    if (node.type.name === 'collapsable') {
+      return true
     }
-    nodeIndex++
-  }
+    if (node.type.name === 'collapsable_content') {
+      return true
+    }
+
+    if (node.type.name !== 'dBlock') return false
+    if (found) return false
+
+    if (pos > state.selection.$from.pos) {
+      found = true
+      return false
+    }
+
+    activeNodeIndex = activeNodeIndex + 1
+
+    return true
+  })
 
   const dbBlockDom = document.querySelectorAll('.draggable-block-wrapper')
   for (let i = 0; i < dbBlockDom.length; i++) {
     dbBlockDom[i].classList.remove('focused')
-    if (i === nodeIndex) {
+    if (i === activeNodeIndex - 1) {
       dbBlockDom[i].classList.add('focused')
     }
   }

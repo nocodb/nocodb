@@ -125,6 +125,7 @@
     "@iconify-json/simple-icons": "^1.1.29",
     "@iconify-json/system-uicons": "^1.1.4",
     "@iconify-json/tabler": "^1.1.59",
+    "@iconify-json/carbon": "^1.1.2",
     "@iconify-json/vscode-icons": "^1.1.14",
     "@intlify/vite-plugin-vue-i18n": "^6.0.1",
     "@nuxt/image-edge": "^1.0.0-27657146.da85542",

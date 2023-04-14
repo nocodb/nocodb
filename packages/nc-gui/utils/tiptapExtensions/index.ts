@@ -31,6 +31,9 @@ import { ExternalContent } from './external-content'
 import { Heading } from './heading'
 import { TrailingNode } from './trailingNode'
 import { Placeholder } from './placeholder'
+import { Collapsable } from './collapsable'
+import { CollapsableHeader } from './collapsable/collapsableHeader'
+import { CollapsableContent } from './collapsable/collapsableContent'
 
 const tiptapExtensions = (isPublic: boolean): Extensions => {
   const { uploadFile } = useDocStore()
@@ -107,6 +110,9 @@ const tiptapExtensions = (isPublic: boolean): Extensions => {
     ExternalContent,
     TrailingNode,
     Link({ isPublic }),
+    CollapsableContent,
+    CollapsableHeader,
+    Collapsable,
   ]
 }
 

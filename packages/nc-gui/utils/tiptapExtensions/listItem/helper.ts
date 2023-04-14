@@ -18,11 +18,12 @@ export const getTextFromSliceJson = (sliceJson: any) => {
   const getText = (sliceJson: any, text: string) => {
     if (sliceJson.text) {
       text = text + sliceJson.text
+      return text
     }
 
     if (sliceJson.content) {
       for (const content of sliceJson.content) {
-        text = text + getText(content, text)
+        text = text + getText(content, '')
       }
     }
 
@@ -241,9 +242,9 @@ export const toggleItem = (
   } catch {}
 
   if (isDBlockSelected) {
-    const topDBlockPos = selection.$from.before(1)
+    const topDBlockPos = selection.$from.before(state.selection.$from.depth - 1)
 
-    const bottomDBlockPos = selection.$to.after(1)
+    const bottomDBlockPos = selection.$to.after(state.selection.$from.depth - 1)
 
     const slice = state.doc.slice(topDBlockPos, bottomDBlockPos)
     const sliceJson = slice.toJSON()

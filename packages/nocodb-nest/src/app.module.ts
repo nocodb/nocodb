@@ -1,21 +1,16 @@
 import { Module, RequestMethod } from '@nestjs/common';
-import { APP_FILTER, APP_GUARD } from '@nestjs/core';
-import { ExtractJwt } from 'passport-jwt';
+import { APP_FILTER } from '@nestjs/core';
 import { Connection } from './connection/connection';
 import { GlobalExceptionFilter } from './filters/global-exception/global-exception.filter';
-import { GlobalGuard } from './guards/global/global.guard';
 import NcPluginMgrv2 from './helpers/NcPluginMgrv2'
 import { GlobalMiddleware } from './middlewares/global/global.middleware';
-import { AuthModule } from './modules/auth/auth.module';
-import { ExtractProjectIdMiddleware } from './middlewares/extract-project-id/extract-project-id.middleware';
+import { GuiMiddleware } from './middlewares/gui/gui.middleware'
 import { AuthService } from './modules/auth/auth.service';
 import { UsersModule } from './modules/users/users.module';
 import { MetaService } from './meta/meta.service';
-import { UsersService } from './modules/users/users.service';
 import { UtilsModule } from './modules/utils/utils.module';
 import { ProjectsModule } from './modules/projects/projects.module';
 import Noco from './Noco';
-import { JwtStrategy } from './strategies/jwt.strategy';
 import { TablesModule } from './modules/tables/tables.module';
 import { ViewsModule } from './modules/views/views.module';
 import { FiltersModule } from './modules/filters/filters.module';
@@ -54,16 +49,16 @@ import { TestModule } from './modules/test/test.module';
 import { PluginsModule } from './modules/plugins/plugins.module';
 import { GlobalModule } from './modules/global/global.module';
 import { LocalStrategy } from './strategies/local.strategy';
-import NcConfigFactory from './utils/NcConfigFactory';
-import NcUpgrader from './version-upgrader/NcUpgrader';
 import { AuthTokenStrategy } from './strategies/authtoken.strategy/authtoken.strategy';
 import { BaseViewStrategy } from './strategies/base-view.strategy/base-view.strategy';
 import { GoogleStrategy } from './strategies/google.strategy/google.strategy';
 import type {
   MiddlewareConsumer,
   OnApplicationBootstrap,
-  Provider,
 } from '@nestjs/common';
+
+import { ServeStaticModule } from '@nestjs/serve-static';
+import { join } from 'path';
 
 /*
 
@@ -89,6 +84,9 @@ export const JwtStrategyProvider: Provider = {
 
 @Module({
   imports: [
+    ServeStaticModule.forRoot({
+      rootPath: join(process.cwd(), 'public'),
+    }),
     GlobalModule,
     // AuthModule,
     UsersModule,
@@ -160,6 +158,8 @@ export class AppModule implements OnApplicationBootstrap {
   // Global Middleware
   configure(consumer: MiddlewareConsumer) {
     consumer
+      .apply(GuiMiddleware)
+      .forRoutes({ path: '*', method: RequestMethod.GET })
       .apply(GlobalMiddleware)
       .forRoutes({ path: '*', method: RequestMethod.ALL });
   }

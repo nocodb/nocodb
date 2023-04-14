@@ -1,6 +1,16 @@
-import { Controller, Get, Param, Request, Response, UseGuards } from '@nestjs/common'
-import { GlobalGuard } from '../../guards/global/global.guard'
-import { Acl, ExtractProjectIdMiddleware } from '../../middlewares/extract-project-id/extract-project-id.middleware'
+import {
+  Controller,
+  Get,
+  Param,
+  Request,
+  Response,
+  UseGuards,
+} from '@nestjs/common';
+import { GlobalGuard } from '../../guards/global/global.guard';
+import {
+  Acl,
+  ExtractProjectIdMiddleware,
+} from '../../middlewares/extract-project-id/extract-project-id.middleware';
 import { ApiDocsService } from './api-docs.service';
 import getSwaggerHtml from './template/swaggerHtml';
 import getRedocHtml from './template/redocHtml';

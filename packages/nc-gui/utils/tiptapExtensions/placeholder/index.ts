@@ -70,7 +70,7 @@ export const Placeholder = Extension.create<PlaceholderOptions>({
                 decorations.push(decoration)
               }
 
-              return node.type.name.startsWith('collapsable')
+              return node.type.name.startsWith('collapsable') || node.type.name === 'dBlock'
             })
 
             return DecorationSet.create(doc, decorations)

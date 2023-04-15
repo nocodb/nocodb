@@ -18,7 +18,7 @@ const toggleCollapsableContent = () => {
 <template>
   <NodeViewWrapper class="vue-component collapsable-wrapper mt-2">
     <div
-      class="flex flex-row space-x-2"
+      class="flex flex-row space-x-1"
       :class="{
         collapsed: node.attrs.collapsed,
       }"

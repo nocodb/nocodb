@@ -184,7 +184,13 @@ watch(wrapperRef, () => {
 <template>
   <a-layout-content>
     <div ref="wrapperRef" data-testid="docs-opened-page" class="nc-docs-page h-full flex flex-row relative">
-      <div class="flex flex-col w-full">
+      <div
+        class="flex flex-col w-full"
+        :class="{
+          readonly: !isEditAllowed,
+          editable: isEditAllowed,
+        }"
+      >
         <div class="flex flex-row justify-between items-center pl-6 pt-2.5">
           <div class="flex flex-row h-6">
             <template v-if="flattenedNestedPages.length !== 0">
@@ -389,8 +395,19 @@ watch(wrapperRef, () => {
     height: 0;
   }
 
-  .focused {
-    div[data-is-empty='true'] {
+  .editable {
+    .focused {
+      div[data-is-empty='true'] {
+        p::before {
+          content: 'Press / to open the command menu or start writing' !important;
+          float: left;
+          color: #afafaf;
+          pointer-events: none;
+          height: 0;
+        }
+      }
+    }
+    div.is-empty.focused {
       p::before {
         content: 'Press / to open the command menu or start writing' !important;
         float: left;
@@ -398,15 +415,6 @@ watch(wrapperRef, () => {
         pointer-events: none;
         height: 0;
       }
-    }
-  }
-  div.is-empty.focused {
-    p::before {
-      content: 'Press / to open the command menu or start writing' !important;
-      float: left;
-      color: #afafaf;
-      pointer-events: none;
-      height: 0;
     }
   }
 

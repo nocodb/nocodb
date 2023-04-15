@@ -232,11 +232,13 @@ function focusCurrentDraggableBlock(state: EditorState) {
     return true
   })
 
-  const dbBlockDom = document.querySelectorAll('.draggable-block-wrapper')
-  for (let i = 0; i < dbBlockDom.length; i++) {
-    dbBlockDom[i].classList.remove('focused')
+  const dbBlockDoms = document.querySelectorAll('.draggable-block-wrapper')
+  for (let i = 0; i < dbBlockDoms.length; i++) {
+    dbBlockDoms[i].classList.remove('focused')
     if (i === activeNodeIndex - 1) {
-      dbBlockDom[i].classList.add('focused')
+      setTimeout(() => {
+        dbBlockDoms[i].classList.add('focused')
+      }, 0)
     }
   }
 }

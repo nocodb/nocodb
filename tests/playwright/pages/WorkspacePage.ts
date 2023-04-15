@@ -1,4 +1,4 @@
-import { expect, Page } from '@playwright/test';
+import { expect, Locator, Page } from '@playwright/test';
 import BasePage from './Base';
 
 export class WorkspacePage extends BasePage {
@@ -36,5 +36,13 @@ export class WorkspacePage extends BasePage {
 
   async verifyWorkspaceCount({ count }: { count: number }) {
     await expect(this.getWorkspaceList().locator('.nc-workspace-list-item')).toHaveCount(count);
+  }
+
+  // TODO: this function can be moved to tests/playwright/pages/Dashboard/index.ts
+  async checkVisibleAndClick(title: string) {
+    const loc: Locator = this.rootPage.getByTestId(title);
+    await expect(loc).toBeVisible();
+    await loc.click();
+    await this.rootPage.waitForLoadState('networkidle');
   }
 }

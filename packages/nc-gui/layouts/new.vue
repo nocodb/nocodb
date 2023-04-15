@@ -54,10 +54,10 @@ export default {
         </div>
 
         <div v-if="$route.name === 'index-index'" class="flex gap-1">
-          <a-button ghost class="!text-inherit"> Workspaces</a-button>
-          <a-button ghost class="!text-inherit"> Explore</a-button>
-          <a-button ghost class="!text-inherit"> Help</a-button>
-          <a-button ghost class="!text-inherit"> Community</a-button>
+          <a-button ghost class="!text-inherit" data-testid="nc-dash-nav-workspaces"> Workspaces</a-button>
+          <a-button ghost class="!text-inherit" data-testid="nc-dash-nav-explore"> Explore</a-button>
+          <a-button ghost class="!text-inherit" data-testid="nc-dash-nav-help"> Help</a-button>
+          <a-button ghost class="!text-inherit" data-testid="nc-dash-nav-community"> Community</a-button>
         </div>
         <div class="flex-1 min-w-0 flex justify-end gap-2">
           <div class="flex flex-row flex-grow">

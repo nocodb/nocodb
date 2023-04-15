@@ -93,7 +93,7 @@ const setup = async ({
       projectUrl = `/#/ws/${project.fk_workspace_id}/nc/${project.id}/doc`;
       break;
     case ProjectTypes.DATABASE:
-      projectUrl = `/#/ws/${project.fk_workspace_id}/nc/${project.id}/db`;
+      projectUrl = `/#/ws/${project.fk_workspace_id}/nc/${project.id}/auth`;
       break;
     case ProjectTypes.COWRITER:
       projectUrl = `/#/ws/${project.fk_workspace_id}/nc/${project.id}/cowriter`;

@@ -175,8 +175,7 @@ class BaseModelSqlv2 {
       tableName: this.model.title,
     });
     const { ast } = await getAst({ model, view });
-    data = data && (await nocoExecute(ast, data, {}));
-    return data;
+    return data ? await nocoExecute(ast, data, {}) : {};
   }
 
   public async exist(id?: any): Promise<any> {

@@ -1,4 +1,4 @@
-version: "2.1"
+version: "2.2"
 
 services:
     # db55:
@@ -96,8 +96,8 @@ services:
     #     - 5495:5432
     #   volumes:
     #     - ./pg-sakila-db:/docker-entrypoint-initdb.d
-    pg96:
-     image: postgres:9.6
+    pg147:
+     image: postgres:14.7
      restart: always
      environment:
        POSTGRES_PASSWORD: password

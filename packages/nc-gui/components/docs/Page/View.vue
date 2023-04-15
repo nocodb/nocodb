@@ -543,6 +543,12 @@ watch(wrapperRef, () => {
     }
   }
 
+  .readonly {
+    [data-type='bullet'] {
+      @apply !ml-3.5;
+    }
+  }
+
   .tiptap-table-cell {
     [data-type='bullet'] {
       margin-left: 0.7rem;

@@ -84,7 +84,7 @@ const optionWrapperStyle = computed(() => {
     content[0].type.name === 'taskList'
   ) {
     return {
-      marginTop: '0.15rem',
+      marginTop: '0rem',
     }
   } else if (
     content[0].type.name === 'infoCallout' ||

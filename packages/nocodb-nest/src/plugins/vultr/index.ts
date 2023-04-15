@@ -25,7 +25,7 @@ const config: XcPluginConfig = {
         label: 'Host Name',
         placeholder: 'e.g.: ewr1.vultrobjects.com',
         type: XcType.SingleLineText,
-        required: true
+        required: true,
       },
       {
         key: 'access_key',

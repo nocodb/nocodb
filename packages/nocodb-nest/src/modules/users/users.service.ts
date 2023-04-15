@@ -1,6 +1,11 @@
 import { promisify } from 'util';
 import { Injectable } from '@nestjs/common';
-import { AuditOperationSubTypes, AuditOperationTypes, OrgUserRoles, validatePassword } from 'nocodb-sdk'
+import {
+  AuditOperationSubTypes,
+  AuditOperationTypes,
+  OrgUserRoles,
+  validatePassword,
+} from 'nocodb-sdk';
 import { v4 as uuidv4 } from 'uuid';
 import { isEmail } from 'validator';
 import { T } from 'nc-help';

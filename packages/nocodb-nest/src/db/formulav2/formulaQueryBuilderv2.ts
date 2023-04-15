@@ -3,7 +3,10 @@ import { jsepCurlyHook, UITypes } from 'nocodb-sdk';
 import mapFunctionName from '../mapFunctionName';
 import genRollupSelectv2 from '../genRollupSelectv2';
 import FormulaColumn from '../../models/FormulaColumn';
-import { convertDateFormatForConcat, validateDateWithUnknownFormat } from '../../helpers/formulaFnHelper';
+import {
+  convertDateFormatForConcat,
+  validateDateWithUnknownFormat,
+} from '../../helpers/formulaFnHelper';
 import { CacheGetType, CacheScope } from '../../utils/globals';
 import NocoCache from '../../cache/NocoCache';
 import type { XKnex } from '../CustomKnex';
@@ -640,7 +643,7 @@ async function _formulaQueryBuilder(
                       arg,
                       columnIdToUidt,
                       query,
-                      knex.clientType()
+                      knex.clientType(),
                     );
                   } else {
                     // sqlite3: special handling - See BinaryExpression
@@ -657,9 +660,9 @@ async function _formulaQueryBuilder(
                   }
                 }
                 return query;
-              })
+              }),
             )
-          ).join()})${colAlias}`.replace(/\?/g, '\\?')
+          ).join()})${colAlias}`.replace(/\?/g, '\\?'),
         ),
       };
     } else if (pt.type === 'Literal') {
@@ -741,13 +744,13 @@ async function _formulaQueryBuilder(
           pt.left?.arguments?.[0],
           columnIdToUidt,
           left,
-          knex.clientType()
+          knex.clientType(),
         );
         right = await convertDateFormatForConcat(
           pt.right?.arguments?.[0],
           columnIdToUidt,
           right,
-          knex.clientType()
+          knex.clientType(),
         );
 
         // handle NULL values when calling CONCAT for sqlite3

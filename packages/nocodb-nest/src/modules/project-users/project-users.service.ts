@@ -1,5 +1,10 @@
 import { Injectable } from '@nestjs/common';
-import { AuditOperationSubTypes, AuditOperationTypes, OrgUserRoles, PluginCategory } from 'nocodb-sdk'
+import {
+  AuditOperationSubTypes,
+  AuditOperationTypes,
+  OrgUserRoles,
+  PluginCategory,
+} from 'nocodb-sdk';
 import { T } from 'nc-help';
 import { v4 as uuidv4 } from 'uuid';
 import * as ejs from 'ejs';
@@ -283,7 +288,7 @@ export class ProjectUsersService {
 
     await Audit.insert({
       op_type: AuditOperationTypes.AUTHENTICATION,
-      op_sub_type: AuditOperationSubTypes.RESEND_INVITE ,
+      op_sub_type: AuditOperationSubTypes.RESEND_INVITE,
       user: user.email,
       description: `resent a invite to ${user.email} `,
       ip: param.req.clientIp,

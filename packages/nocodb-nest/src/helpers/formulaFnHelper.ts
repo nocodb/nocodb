@@ -60,7 +60,7 @@ export async function convertDateFormatForConcat(
   o,
   columnIdToUidt,
   query,
-  clientType
+  clientType,
 ) {
   if (
     o?.type === 'Identifier' &&
@@ -76,22 +76,22 @@ export async function convertDateFormatForConcat(
     if (clientType === 'mysql2') {
       query = `DATE_FORMAT(${query}, '${convertDateFormat(
         meta.date_format,
-        clientType
+        clientType,
       )}')`;
     } else if (clientType === 'pg') {
       query = `TO_CHAR(${query}, '${convertDateFormat(
         meta.date_format,
-        clientType
+        clientType,
       )}')`;
     } else if (clientType === 'sqlite3') {
       query = `strftime('${convertDateFormat(
         meta.date_format,
-        clientType
+        clientType,
       )}', ${query})`;
     } else if (clientType === 'mssql') {
       query = `FORMAT(${query}, '${convertDateFormat(
         meta.date_format,
-        clientType
+        clientType,
       )}')`;
     }
   }

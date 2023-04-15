@@ -154,13 +154,11 @@ export interface AuditType {
     | 'LINK_RECORD'
     | 'UNLINK_RECORD'
     | 'DELETE'
-    | 'CREATED'
-    | 'DELETED'
-    | 'RENAMED'
+    | 'CREATE'
+    | 'RENAME'
     | 'IMPORT_FROM_ZIP'
     | 'EXPORT_TO_FS'
     | 'EXPORT_TO_ZIP'
-    | 'UPDATED'
     | 'SIGNIN'
     | 'SIGNUP'
     | 'PASSWORD_RESET'
@@ -7907,7 +7905,7 @@ export class Api<
  */
     dataCreate: (
       sharedViewUuid: string,
-      data: object,
+      data: any,
       params: RequestParams = {}
     ) =>
       this.request<

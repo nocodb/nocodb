@@ -1,6 +1,7 @@
 import { Node, mergeAttributes } from '@tiptap/core'
 import type { Editor } from '@tiptap/vue-3'
 import { VueNodeViewRenderer } from '@tiptap/vue-3'
+import type { EditorState } from 'prosemirror-state'
 import { Plugin, TextSelection } from 'prosemirror-state'
 import DraggableBlockComponent from './draggable-block.vue'
 
@@ -48,7 +49,7 @@ export const DraggableBlock = Node.create<DBlockOptions>({
     return ['div', mergeAttributes(HTMLAttributes, { 'data-type': 'd-block' }), 0]
   },
 
-  onSelectionUpdate(data) {
+  onSelectionUpdate(data: any) {
     // If cursor is inside the node, we make the node focused
     if (!data) return
 
@@ -63,9 +64,6 @@ export const DraggableBlock = Node.create<DBlockOptions>({
         props: {
           handleDOMEvents: {
             drop: (view, event) => {
-              const target = event.target as HTMLElement
-              const parent = target.parentElement
-
               if (!event.dataTransfer?.getData('text/html').includes('data-type="d-block"')) {
                 return false
               }
@@ -205,23 +203,38 @@ export const DraggableBlock = Node.create<DBlockOptions>({
   },
 })
 
-function focusCurrentDraggableBlock(state) {
-  let totalSize = 0
+function focusCurrentDraggableBlock(state: EditorState) {
+  let activeNodeIndex = 0
+  let found = false
 
-  let nodeIndex = 0
-  for (const rootNode of state.doc.content.content) {
-    totalSize += rootNode.nodeSize
-    if (totalSize > state.selection.from) {
-      break
+  state.doc.descendants((node, pos) => {
+    if (node.type.name === 'collapsable') {
+      return true
     }
-    nodeIndex++
-  }
+    if (node.type.name === 'collapsable_content') {
+      return true
+    }
 
-  const dbBlockDom = document.querySelectorAll('.draggable-block-wrapper')
-  for (let i = 0; i < dbBlockDom.length; i++) {
-    dbBlockDom[i].classList.remove('focused')
-    if (i === nodeIndex) {
-      dbBlockDom[i].classList.add('focused')
+    if (node.type.name !== 'dBlock') return false
+    if (found) return false
+
+    if (pos > state.selection.$from.pos) {
+      found = true
+      return false
+    }
+
+    activeNodeIndex = activeNodeIndex + 1
+
+    return true
+  })
+
+  const dbBlockDoms = document.querySelectorAll('.draggable-block-wrapper')
+  for (let i = 0; i < dbBlockDoms.length; i++) {
+    dbBlockDoms[i].classList.remove('focused')
+    if (i === activeNodeIndex - 1) {
+      setTimeout(() => {
+        dbBlockDoms[i].classList.add('focused')
+      }, 0)
     }
   }
 }

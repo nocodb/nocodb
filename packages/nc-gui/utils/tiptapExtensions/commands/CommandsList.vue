@@ -36,6 +36,7 @@ import LogosCodepenIcon from '~icons/logos/codepen-icon'
 import LogosTrelloIcon from '~icons/logos/trello'
 import LogosTypeformIcon from '~icons/logos/typeform-icon'
 import MdiLinkVariant from '~icons/mdi/link-variant'
+import CollapseListIcon from '~icons/carbon/collapse-categories'
 
 interface Props {
   command: Function
@@ -200,9 +201,16 @@ const items = [
     icon: MdiNumberedList,
     iconClass: '',
     shortCutText: isMacOS() ? '^ ⌥ 3' : 'Ctrl Alt 3',
+  },
+  {
+    title: 'Collapsable',
+    class: 'text-xs',
+    command: ({ editor, range }: { editor: Editor; range: Range }) => {
+      editor.chain().focus().deleteRange(range).insertCollapsable().run()
+    },
+    icon: CollapseListIcon,
     hasDivider: true,
   },
-
   {
     title: 'Info notice',
     class: 'text-xs',

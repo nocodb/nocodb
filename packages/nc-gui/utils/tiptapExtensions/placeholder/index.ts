@@ -15,6 +15,7 @@ export interface PlaceholderOptions {
   includeChildren: boolean
 }
 
+// Add place holder to top level empty nodes except for collapsable nodes
 export const Placeholder = Extension.create<PlaceholderOptions>({
   name: 'placeholder',
 
@@ -69,7 +70,7 @@ export const Placeholder = Extension.create<PlaceholderOptions>({
                 decorations.push(decoration)
               }
 
-              return this.options.includeChildren
+              return node.type.name.startsWith('collapsable') || node.type.name === 'dBlock'
             })
 
             return DecorationSet.create(doc, decorations)

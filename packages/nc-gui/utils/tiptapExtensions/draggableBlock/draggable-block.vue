@@ -9,6 +9,17 @@ const isPublic = !editor.view.editable
 const dragClicked = ref(false)
 const optionsPopoverRef = ref()
 
+const parentNodeType = computed(() => {
+  try {
+    const pos = getPos()
+    const resolvedPos = editor.state.doc.resolve(pos)
+    const parent = resolvedPos.node(resolvedPos.depth - 1)
+    return parent?.type.name
+  } catch (e) {
+    return undefined
+  }
+})
+
 const childNodeType = computed(() => {
   const { content } = node.content as any
   return content[0].type.name
@@ -17,49 +28,51 @@ const childNodeType = computed(() => {
 const optionWrapperStyle = computed(() => {
   const { content } = node.content as any
 
+  let style = {} as any
+
   if (content[0].type.name === 'task') {
-    return {
+    style = {
       marginTop: '0.2rem',
     }
   } else if (content[0].type.name === 'bullet') {
-    return {
+    style = {
       marginTop: '0.2rem',
       marginRight: '0.8rem',
     }
   } else if (content[0].type.name === 'ordered') {
-    return {
+    style = {
       marginTop: '0.2rem',
     }
   } else if (content[0].type.name === 'table') {
-    return {
+    style = {
       marginTop: '1.4rem',
     }
   } else if (content[0].type.name === 'heading' && content[0].attrs.level === 1) {
-    return {
+    style = {
       marginTop: '0.7rem',
     }
   } else if (content[0].type.name === 'heading' && content[0].attrs.level === 2) {
-    return {
+    style = {
       marginTop: '0.35rem',
     }
   } else if (content[0].type.name === 'heading' && content[0].attrs.level === 3) {
-    return {
+    style = {
       marginTop: '0.1rem',
     }
   } else if (content[0].type.name === 'paragraph') {
-    return {
+    style = {
       marginTop: '0.2rem',
     }
   } else if (content[0].type.name === 'image') {
-    return {
+    style = {
       marginTop: '0.5rem',
     }
   } else if (content[0].type.name === 'blockquote') {
-    return {
+    style = {
       marginTop: '0.8rem',
     }
   } else if (content[0].type.name === 'codeBlock') {
-    return {
+    style = {
       marginTop: '1.2rem',
     }
   } else if (
@@ -67,26 +80,35 @@ const optionWrapperStyle = computed(() => {
     content[0].type.name === 'orderedList' ||
     content[0].type.name === 'taskList'
   ) {
-    return {
-      marginTop: '0.15rem',
+    style = {
+      marginTop: '0rem',
     }
   } else if (
     content[0].type.name === 'infoCallout' ||
     content[0].type.name === 'warningCallout' ||
     content[0].type.name === 'tipCallout'
   ) {
-    return {
+    style = {
       marginTop: '1.25rem',
     }
   } else if (content[0].type.name === 'horizontalRule') {
-    return {
+    style = {
       marginTop: '0.55rem',
     }
   } else {
-    return {
+    style = {
       marginTop: '0.7rem',
     }
   }
+
+  if (parentNodeType.value === 'collapsable') {
+    style = {
+      ...style,
+      marginLeft: '-2.1rem',
+    }
+  }
+
+  return style
 })
 
 const createNodeAfter = () => {
@@ -140,10 +162,25 @@ watch(
 </script>
 
 <template>
-  <NodeViewWrapper class="vue-component group draggable-block-wrapper">
-    <div v-if="!isPublic" class="flex flex-row gap-0.5 group w-full items-start" tiptap-draghandle-wrapper="true">
+  <NodeViewWrapper
+    class="vue-component draggable-block-wrapper"
+    :class="{
+      'group': parentNodeType !== 'collapsable' && !isPublic,
+      'sub-group': parentNodeType === 'collapsable' && !isPublic,
+    }"
+  >
+    <div v-if="!isPublic" class="flex flex-row gap-0.5 w-full items-start" tiptap-draghandle-wrapper="true">
       <div class="flex flex-row relative" :style="optionWrapperStyle">
-        <div v-if="!isDragging" type="button" class="absolute -left-4.5 block-button cursor-pointer w-5" @click="createNodeAfter">
+        <div
+          v-if="!isDragging"
+          type="button"
+          class="absolute -left-4.5 block-button cursor-pointer w-5"
+          :class="{
+            'block-button-group': parentNodeType !== 'collapsable',
+            'block-button-sub-group': parentNodeType === 'collapsable',
+          }"
+          @click="createNodeAfter"
+        >
           <MdiPlus />
         </div>
         <div v-else class="absolute -left-5 h-4 w-5 hidden"></div>
@@ -167,11 +204,15 @@ watch(
         </div>
 
         <div
-          class="block-button cursor-pointer group ml-1"
+          class="block-button cursor-pointer ml-1"
           contenteditable="false"
           :draggable="true"
           :data-drag-handle="true"
           :tiptap-draghandle="true"
+          :class="{
+            'block-button-group': parentNodeType !== 'collapsable',
+            'block-button-sub-group': parentNodeType === 'collapsable',
+          }"
           @click="onDragClick"
           @dragstart="isDragging = true"
           @dragend="isDragging = false"
@@ -180,11 +221,15 @@ watch(
         </div>
       </div>
 
-      <NodeViewContent class="node-view-drag-content" :data-testid="`nc-docs-tiptap-wrapper-${childNodeType}`" />
+      <NodeViewContent class="node-view-drag-content w-full" :data-testid="`nc-docs-tiptap-wrapper-${childNodeType}`" />
     </div>
     <NodeViewContent
       v-else
-      class="node-view-drag-content mb-2 !ml-1.3"
+      class="node-view-drag-content mb-2"
+      :class="{
+        '!ml-0.25': parentNodeType === 'collapsable',
+        '': parentNodeType !== 'collapsable',
+      }"
       :data-testid="`nc-docs-tiptap-wrapper-${childNodeType}`"
     />
   </NodeViewWrapper>
@@ -192,20 +237,45 @@ watch(
 
 <style lang="scss" scoped>
 .block-button {
-  @apply opacity-0 group-hover:opacity-100 !group-focus:opacity-100 !group-active:opacity-100 hover:bg-gray-50 rounded-sm text-lg h-6 duration-150 transition-opacity;
+  @apply opacity-0  hover:bg-gray-50 rounded-sm text-lg h-6 duration-150 transition-opacity;
   color: rgb(203, 203, 203);
 }
 
-.block-button svg {
-  @apply -mt-1.5;
+.group:hover {
+  .block-button-group {
+    @apply opacity-100;
+  }
+}
+.group.focused {
+  .block-button-group {
+    @apply opacity-100;
+  }
+}
+.group:focus {
+  .block-button-group {
+    @apply opacity-100;
+  }
+}
+.group:active {
+  .block-button-group {
+    @apply opacity-100;
+  }
 }
 
-.draggable-block-wrapper.focused {
+.sub-group:hover {
+  .block-button-sub-group {
+    @apply opacity-100;
+  }
+}
+.sub-group.focused {
   .block-button {
     @apply opacity-100;
   }
 }
+.block-button svg {
+  @apply -mt-1.5;
+}
 .node-view-drag-content {
-  @apply w-full ml-1.5;
+  @apply w-full ml-0.5;
 }
 </style>

@@ -282,6 +282,7 @@ declare module '@vue/runtime-core' {
     MdiTick: typeof import('~icons/mdi/tick')['default']
     MdiTransitConnectionVariant: typeof import('~icons/mdi/transit-connection-variant')['default']
     MdiTrashCan: typeof import('~icons/mdi/trash-can')['default']
+    MdiTriangleDown: typeof import('~icons/mdi/triangle-down')['default']
     MdiTwitter: typeof import('~icons/mdi/twitter')['default']
     MdiUpload: typeof import('~icons/mdi/upload')['default']
     MdiUploadOutline: typeof import('~icons/mdi/upload-outline')['default']

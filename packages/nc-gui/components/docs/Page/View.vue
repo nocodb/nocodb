@@ -184,7 +184,13 @@ watch(wrapperRef, () => {
 <template>
   <a-layout-content>
     <div ref="wrapperRef" data-testid="docs-opened-page" class="nc-docs-page h-full flex flex-row relative">
-      <div class="flex flex-col w-full">
+      <div
+        class="flex flex-col w-full"
+        :class="{
+          readonly: !isEditAllowed,
+          editable: isEditAllowed,
+        }"
+      >
         <div class="flex flex-row justify-between items-center pl-6 pt-2.5">
           <div class="flex flex-row h-6">
             <template v-if="flattenedNestedPages.length !== 0">
@@ -273,7 +279,7 @@ watch(wrapperRef, () => {
         </div>
       </div>
     </div>
-    <div class="absolute right-0 top-0 pt-1.5 mr-1.5">
+    <div class="absolute right-0 top-0 pt-2 mr-3">
       <DocsPageOutline v-if="openedPage && wrapperRef" :key="openedPage.id" :wrapper-ref="wrapperRef" />
     </div>
   </a-layout-content>
@@ -387,6 +393,29 @@ watch(wrapperRef, () => {
     color: #afafaf;
     pointer-events: none;
     height: 0;
+  }
+
+  .editable {
+    .focused {
+      div[data-is-empty='true'] {
+        p::before {
+          content: 'Press / to open the command menu or start writing' !important;
+          float: left;
+          color: #afafaf;
+          pointer-events: none;
+          height: 0;
+        }
+      }
+    }
+    div.is-empty.focused {
+      p::before {
+        content: 'Press / to open the command menu or start writing' !important;
+        float: left;
+        color: #afafaf;
+        pointer-events: none;
+        height: 0;
+      }
+    }
   }
 
   h1.is-empty::before,
@@ -511,6 +540,12 @@ watch(wrapperRef, () => {
         margin-top: '0.01rem';
         margin-bottom: '0.01rem';
       }
+    }
+  }
+
+  .readonly {
+    [data-type='bullet'] {
+      @apply !ml-3.5;
     }
   }
 

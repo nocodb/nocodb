@@ -16,10 +16,10 @@ const pg = {
     return {
       builder: args.knex.raw(
         `POSITION(${args.knex.raw(
-          (await args.fn(args.pt.arguments[1])).builder.toQuery(),
-        )} in ${args.knex
-          .raw((await args.fn(args.pt.arguments[0])).builder)
-          .toQuery()})${args.colAlias}`,
+          (await args.fn(args.pt.arguments[1])).builder.toQuery()
+        )} in ${args.knex.raw(
+          (await args.fn(args.pt.arguments[0])).builder.toQuery()
+        )})${args.colAlias}`
       ),
     };
   },

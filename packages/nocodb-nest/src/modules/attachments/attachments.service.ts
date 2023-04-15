@@ -35,8 +35,8 @@ export class AttachmentsService {
 
         // if `url` is null, then it is local attachment
         if (!url) {
-          // then store the attachement path only
-          // url will be constructued in `useAttachmentCell`
+          // then store the attachment path only
+          // url will be constructed in `useAttachmentCell`
           attachmentPath = `download/${filePath.join('/')}/${fileName}`;
         }
 
@@ -89,8 +89,8 @@ export class AttachmentsService {
 
         // if `attachmentUrl` is null, then it is local attachment
         if (!attachmentUrl) {
-          // then store the attachement path only
-          // url will be constructued in `useAttachmentCell`
+          // then store the attachment path only
+          // url will be constructed in `useAttachmentCell`
           attachmentPath = `download/${filePath.join('/')}/${fileName}`;
         }
 

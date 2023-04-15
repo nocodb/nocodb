@@ -38,8 +38,8 @@
   "dependencies": {
     "@google-cloud/storage": "^5.7.2",
     "@graphql-tools/merge": "^6.0.12",
-    "@nestjs/common": "^9.0.0",
-    "@nestjs/core": "^9.0.0",
+    "@nestjs/common": "^9.4.0",
+    "@nestjs/core": "^9.4.0",
     "@nestjs/jwt": "^10.0.3",
     "@nestjs/mapped-types": "*",
     "@nestjs/passport": "^9.0.3",
@@ -144,6 +144,7 @@
     "@nestjsplus/dyn-schematics": "^1.0.12",
     "@types/express": "^4.17.13",
     "@types/jest": "29.5.0",
+    "@types/multer": "^1.4.7",
     "@types/node": "18.15.11",
     "@types/passport-jwt": "^3.0.8",
     "@types/supertest": "^2.0.11",

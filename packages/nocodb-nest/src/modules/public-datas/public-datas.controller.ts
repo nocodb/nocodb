@@ -75,6 +75,7 @@ export class PublicDatasController {
       password: req.headers?.['xc-password'] as string,
       body: req.body?.data,
       siteUrl: (req as any).ncSiteUrl,
+      // req.files is enriched by multer
       files: req.files,
     });
 

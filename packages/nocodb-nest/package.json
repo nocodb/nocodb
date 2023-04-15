@@ -1,10 +1,21 @@
 {
-  "name": "nest-sample-proj",
+  "name": "nocodb-nest",
   "version": "0.0.1",
-  "description": "",
-  "author": "",
+  "description": "NocoDB Backend (Nest)",
+  "author": {
+    "name": "NocoDB Inc",
+    "url": "https://nocodb.com/"
+  },
+  "homepage": "https://github.com/nocodb/nocodb",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/nocodb/nocodb.git"
+  },
+  "bugs": {
+    "url": "https://github.com/nocodb/nocodb/issues"
+  },
   "private": true,
-  "license": "UNLICENSED",
+  "license": "AGPL-3.0-or-later",
   "scripts": {
     "build": "nest build",
     "format": "prettier --write \"src/**/*.ts\" \"test/**/*.ts\"",

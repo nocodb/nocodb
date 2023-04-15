@@ -157,14 +157,16 @@ const pg = {
       builder: args.knex.raw(
         `CASE WHEN ${args.knex
           .raw(
-            `${args.pt.arguments
-              .map(async (ar) =>
-                (await args.fn(ar, '', 'OR')).builder.toQuery(),
+            `${(
+              await Promise.all(
+                args.pt.arguments.map(async (ar) =>
+                  (await args.fn(ar, '', 'OR')).builder.toQuery()
+                )
               )
-              .join(' OR ')}`,
+            ).join(' OR ')}`
           )
           .wrap('(', ')')
-          .toQuery()} THEN TRUE ELSE FALSE END ${args.colAlias}`,
+          .toQuery()} THEN TRUE ELSE FALSE END ${args.colAlias}`
       ),
     };
   },

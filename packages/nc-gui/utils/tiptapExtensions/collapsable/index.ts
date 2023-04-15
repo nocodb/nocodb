@@ -1,8 +1,9 @@
 // Collapsable tiptap node
 import { Node, mergeAttributes } from '@tiptap/core'
-import type { Editor } from '@tiptap/vue-3'
+import type { ChainedCommands, Editor } from '@tiptap/vue-3'
 import { VueNodeViewRenderer } from '@tiptap/vue-3'
 import { Slice } from 'prosemirror-model'
+import type { EditorState } from 'prosemirror-state'
 import { TextSelection } from 'prosemirror-state'
 import CollapsableComponent from './collapsable.vue'
 
@@ -24,16 +25,6 @@ export const Collapsable = Node.create<CollapsableOptions>({
   addOptions() {
     return {
       HTMLAttributes: {},
-      collapsed: false,
-    }
-  },
-
-  addAttributes() {
-    return {
-      collapsed: {
-        default: false,
-        parseHTML: (element) => element.getAttribute('data-collapsed'),
-      },
     }
   },
 
@@ -57,7 +48,6 @@ export const Collapsable = Node.create<CollapsableOptions>({
       'div',
       mergeAttributes(this.options.HTMLAttributes, HTMLAttributes, {
         'data-type': node.type.name,
-        'data-collapsed': node.attrs.collapsed,
         'class': 'w-full',
       }),
       0,
@@ -72,7 +62,7 @@ export const Collapsable = Node.create<CollapsableOptions>({
     return {
       insertCollapsable:
         () =>
-        ({ chain, state }) => {
+        ({ chain, state }: { chain: () => ChainedCommands; state: EditorState }) => {
           return chain()
             .insertContent({
               type: 'collapsable',
@@ -105,7 +95,7 @@ export const Collapsable = Node.create<CollapsableOptions>({
             })
             .setTextSelection(state.selection.from + 1)
         },
-    }
+    } as any
   },
 
   addKeyboardShortcuts() {
@@ -116,7 +106,6 @@ export const Collapsable = Node.create<CollapsableOptions>({
         if (from !== to) {
           return false
         }
-        const state = editor.state
 
         if (editor.state.selection.$from.depth < 2) return false
 

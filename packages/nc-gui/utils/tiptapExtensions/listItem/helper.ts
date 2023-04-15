@@ -289,11 +289,6 @@ export const toggleItem = (
     const newSlice = Slice.fromJSON(state.schema, sliceJson)
     const isEmpty = getTextFromSliceJson(sliceJson).length === 0
 
-    console.log('sliceJson', sliceJson, {
-      topDBlock: state.doc.nodeAt(topDBlockPos)?.toJSON(),
-      bottomDBlock: state.doc.nodeAt(bottomDBlockPos)?.toJSON(),
-    })
-
     return chain()
       .command(() => {
         const tr = state.tr
@@ -324,8 +319,6 @@ export const toggleItem = (
   toggleListItemInSliceJson(selectionSliceJson.content)
 
   const newSlice = Slice.fromJSON(state.schema, { ...selectionSliceJson, openStart: 0 })
-
-  console.log('newSlice', newSlice)
 
   return (chain() as ChainedCommands)
     .command(() => {

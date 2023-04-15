@@ -28,54 +28,51 @@ const childNodeType = computed(() => {
 const optionWrapperStyle = computed(() => {
   const { content } = node.content as any
 
-  if (parentNodeType.value === 'collapsable') {
-    return {
-      marginTop: '0.2rem',
-      marginLeft: '-2.1rem',
-    }
-  } else if (content[0].type.name === 'task') {
-    return {
+  let style = {} as any
+
+  if (content[0].type.name === 'task') {
+    style = {
       marginTop: '0.2rem',
     }
   } else if (content[0].type.name === 'bullet') {
-    return {
+    style = {
       marginTop: '0.2rem',
       marginRight: '0.8rem',
     }
   } else if (content[0].type.name === 'ordered') {
-    return {
+    style = {
       marginTop: '0.2rem',
     }
   } else if (content[0].type.name === 'table') {
-    return {
+    style = {
       marginTop: '1.4rem',
     }
   } else if (content[0].type.name === 'heading' && content[0].attrs.level === 1) {
-    return {
+    style = {
       marginTop: '0.7rem',
     }
   } else if (content[0].type.name === 'heading' && content[0].attrs.level === 2) {
-    return {
+    style = {
       marginTop: '0.35rem',
     }
   } else if (content[0].type.name === 'heading' && content[0].attrs.level === 3) {
-    return {
+    style = {
       marginTop: '0.1rem',
     }
   } else if (content[0].type.name === 'paragraph') {
-    return {
+    style = {
       marginTop: '0.2rem',
     }
   } else if (content[0].type.name === 'image') {
-    return {
+    style = {
       marginTop: '0.5rem',
     }
   } else if (content[0].type.name === 'blockquote') {
-    return {
+    style = {
       marginTop: '0.8rem',
     }
   } else if (content[0].type.name === 'codeBlock') {
-    return {
+    style = {
       marginTop: '1.2rem',
     }
   } else if (
@@ -83,7 +80,7 @@ const optionWrapperStyle = computed(() => {
     content[0].type.name === 'orderedList' ||
     content[0].type.name === 'taskList'
   ) {
-    return {
+    style = {
       marginTop: '0rem',
     }
   } else if (
@@ -91,18 +88,27 @@ const optionWrapperStyle = computed(() => {
     content[0].type.name === 'warningCallout' ||
     content[0].type.name === 'tipCallout'
   ) {
-    return {
+    style = {
       marginTop: '1.25rem',
     }
   } else if (content[0].type.name === 'horizontalRule') {
-    return {
+    style = {
       marginTop: '0.55rem',
     }
   } else {
-    return {
+    style = {
       marginTop: '0.7rem',
     }
   }
+
+  if (parentNodeType.value === 'collapsable') {
+    style = {
+      ...style,
+      marginLeft: '-2.1rem',
+    }
+  }
+
+  return style
 })
 
 const createNodeAfter = () => {
@@ -264,11 +270,6 @@ watch(
 .sub-group.focused {
   .block-button {
     @apply opacity-100;
-  }
-}
-.sub-group {
-  div[data-testid='nc-docs-tiptap-wrapper-bullet'] {
-    @apply !ml-3.5;
   }
 }
 .block-button svg {

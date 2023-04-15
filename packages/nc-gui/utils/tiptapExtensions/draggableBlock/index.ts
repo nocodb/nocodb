@@ -3,7 +3,6 @@ import type { Editor } from '@tiptap/vue-3'
 import { VueNodeViewRenderer } from '@tiptap/vue-3'
 import type { EditorState } from 'prosemirror-state'
 import { Plugin, TextSelection } from 'prosemirror-state'
-import { Slice } from 'prosemirror-model'
 import DraggableBlockComponent from './draggable-block.vue'
 
 export interface DBlockOptions {
@@ -50,7 +49,7 @@ export const DraggableBlock = Node.create<DBlockOptions>({
     return ['div', mergeAttributes(HTMLAttributes, { 'data-type': 'd-block' }), 0]
   },
 
-  onSelectionUpdate(data) {
+  onSelectionUpdate(data: any) {
     // If cursor is inside the node, we make the node focused
     if (!data) return
 
@@ -65,9 +64,6 @@ export const DraggableBlock = Node.create<DBlockOptions>({
         props: {
           handleDOMEvents: {
             drop: (view, event) => {
-              const target = event.target as HTMLElement
-              const parent = target.parentElement
-
               if (!event.dataTransfer?.getData('text/html').includes('data-type="d-block"')) {
                 return false
               }

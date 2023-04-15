@@ -1,17 +1,11 @@
 <script lang="ts" setup>
-import { NodeViewContent, NodeViewWrapper, nodeViewProps } from '@tiptap/vue-3'
-import { TextSelection } from 'prosemirror-state'
+import { NodeViewContent, NodeViewWrapper } from '@tiptap/vue-3'
 import MdiTriangleDown from '~icons/tabler/triangle-inverted-filled'
 
-const { node, editor, getPos } = defineProps(nodeViewProps)
+const isCollapsed = ref(true)
 
 const toggleCollapsableContent = () => {
-  const pos = getPos()
-  const tr = editor.state.tr
-  const from = editor.state.selection.from
-  tr.setNodeMarkup(pos, null, { ...node.attrs, collapsed: !node.attrs.collapsed })
-  tr.setSelection(TextSelection.create(tr.doc, from))
-  editor.view.dispatch(tr)
+  isCollapsed.value = !isCollapsed.value
 }
 </script>
 
@@ -20,7 +14,7 @@ const toggleCollapsableContent = () => {
     <div
       class="flex flex-row space-x-1 w-full"
       :class="{
-        collapsed: node.attrs.collapsed,
+        collapsed: isCollapsed,
       }"
     >
       <div
@@ -30,7 +24,7 @@ const toggleCollapsableContent = () => {
         <MdiTriangleDown
           class="h-2.5"
           :class="{
-            'transform -rotate-90': node.attrs.collapsed,
+            'transform -rotate-90': isCollapsed,
           }"
         />
       </div>

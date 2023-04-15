@@ -104,7 +104,7 @@ const optionWrapperStyle = computed(() => {
   if (parentNodeType.value === 'collapsable') {
     style = {
       ...style,
-      marginLeft: '-2.1rem',
+      marginLeft: '-1.75rem',
     }
   }
 

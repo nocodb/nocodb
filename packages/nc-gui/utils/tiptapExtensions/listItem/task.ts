@@ -120,7 +120,7 @@ export const Task = Node.create<TaskOptions>({
             }
           }
 
-          toggleItem(state, chain, toggleListItemInSliceJson, 'ordered')
+          toggleItem(this.editor, state, chain, toggleListItemInSliceJson, 'ordered')
         },
     } as any
   },

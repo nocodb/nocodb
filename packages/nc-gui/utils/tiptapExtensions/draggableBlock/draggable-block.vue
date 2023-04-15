@@ -215,16 +215,14 @@ watch(
         </div>
       </div>
 
-      <div>
-        <NodeViewContent class="node-view-drag-content" :data-testid="`nc-docs-tiptap-wrapper-${childNodeType}`" />
-      </div>
+      <NodeViewContent class="node-view-drag-content w-full" :data-testid="`nc-docs-tiptap-wrapper-${childNodeType}`" />
     </div>
     <NodeViewContent
       v-else
       class="node-view-drag-content mb-2"
       :class="{
         '!ml-0.25': parentNodeType === 'collapsable',
-        '!ml-1.3': parentNodeType !== 'collapsable',
+        '': parentNodeType !== 'collapsable',
       }"
       :data-testid="`nc-docs-tiptap-wrapper-${childNodeType}`"
     />
@@ -268,10 +266,15 @@ watch(
     @apply opacity-100;
   }
 }
+.sub-group {
+  div[data-testid='nc-docs-tiptap-wrapper-bullet'] {
+    @apply !ml-3.5;
+  }
+}
 .block-button svg {
   @apply -mt-1.5;
 }
 .node-view-drag-content {
-  @apply w-full ml-1.5;
+  @apply w-full ml-0.5;
 }
 </style>

@@ -58,6 +58,7 @@ export const Collapsable = Node.create<CollapsableOptions>({
       mergeAttributes(this.options.HTMLAttributes, HTMLAttributes, {
         'data-type': node.type.name,
         'data-collapsed': node.attrs.collapsed,
+        'class': 'w-full',
       }),
       0,
     ]
@@ -112,6 +113,9 @@ export const Collapsable = Node.create<CollapsableOptions>({
       Backspace: () => {
         const editor = this.editor
         const { from, to } = editor.state.selection
+        if (from !== to) {
+          return false
+        }
         const state = editor.state
 
         if (editor.state.selection.$from.depth < 2) return false
@@ -125,11 +129,23 @@ export const Collapsable = Node.create<CollapsableOptions>({
         if (
           currentTextBlock?.type.name === 'paragraph' &&
           currentTextBlock.textContent.length === 0 &&
-          currentNodeIndexWrtParent === 0
+          currentNodeIndexWrtParent === 0 &&
+          parentNode.childCount === 1
         ) {
           return editor
             .chain()
             .setTextSelection(from - 5)
+            .run()
+        }
+
+        if (
+          currentTextBlock?.type.name === 'paragraph' &&
+          currentTextBlock.textContent.length === 0 &&
+          currentNodeIndexWrtParent === 0
+        ) {
+          return editor
+            .chain()
+            .setTextSelection(from - 1)
             .run()
         }
 
@@ -154,6 +170,7 @@ export const Collapsable = Node.create<CollapsableOptions>({
         const nextDBlockPos = editor.state.selection.$from.after(editor.state.selection.$from.depth - 1)
 
         const currentTextBlock = editor.state.selection.$from.node(editor.state.selection.$from.depth)
+        if (currentTextBlock.textContent.startsWith('/')) return false
 
         const currentNodeIndexWrtParent = editor.state.selection.$from.index(editor.state.selection.$from.depth - 2)
         if (
@@ -194,6 +211,9 @@ function handleCollapsableHeaderEnter(editor: Editor) {
   const parentNode = editor.state.selection.$from.node(editor.state.selection.$from.depth - 1)
   if (editor.state.selection.$from.depth < 2) return false
   if (parentNode?.type.name !== 'collapsable_header') return false
+
+  const currentTextBlock = editor.state.selection.$from.node(editor.state.selection.$from.depth)
+  if (currentTextBlock.textContent) return false
 
   const currentPos = editor.state.selection.$from.before(editor.state.selection.$from.depth)
   const currentNode = state.doc.nodeAt(currentPos)

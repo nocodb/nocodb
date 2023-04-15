@@ -225,8 +225,9 @@ export const onEnter = (editor: Editor, nodeType: 'bullet' | 'ordered' | 'task')
 }
 
 export const toggleItem = (
+  editor: Editor,
   state: EditorState,
-  chain: any,
+  chain: () => ChainedCommands,
   toggleListItemInSliceJson: any,
   type: 'ordered' | 'bullet' | 'task',
 ) => {
@@ -242,12 +243,35 @@ export const toggleItem = (
   } catch {}
 
   if (isDBlockSelected) {
-    const topDBlockPos = selection.$from.before(state.selection.$from.depth - 1)
+    const topDBlockPos = getPosOfNodeWrtAnchorNode({
+      state,
+      anchorPos: state.selection.$from.pos,
+      direction: 'before',
+      nodeType: 'dBlock',
+      possibleParentTypes: ['dBlock', 'doc', 'collapsable', 'collapsable_content'],
+    })
 
-    const bottomDBlockPos = selection.$to.after(state.selection.$from.depth - 1)
+    const bottomDBlockPos = getPosOfNodeWrtAnchorNode({
+      state,
+      anchorPos: state.selection.$from.pos,
+      direction: 'after',
+      nodeType: 'dBlock',
+      possibleParentTypes: ['dBlock', 'doc', 'collapsable', 'collapsable_content'],
+    })
 
-    const slice = state.doc.slice(topDBlockPos, bottomDBlockPos)
+    const slice = state.doc.slice(topDBlockPos, bottomDBlockPos, false)
     const sliceJson = slice.toJSON()
+
+    if (JSON.stringify(sliceJson).includes('"type":"collapsable"')) {
+      editor
+        .chain()
+        .setNodeSelection(topDBlockPos)
+        .deleteSelection()
+        .setTextSelection(topDBlockPos + 1)
+        .run()
+
+      return true
+    }
 
     // Toggle a bullet under `dblock` nodes in slice
     let lastItemNode
@@ -264,6 +288,11 @@ export const toggleItem = (
 
     const newSlice = Slice.fromJSON(state.schema, sliceJson)
     const isEmpty = getTextFromSliceJson(sliceJson).length === 0
+
+    console.log('sliceJson', sliceJson, {
+      topDBlock: state.doc.nodeAt(topDBlockPos)?.toJSON(),
+      bottomDBlock: state.doc.nodeAt(bottomDBlockPos)?.toJSON(),
+    })
 
     return chain()
       .command(() => {
@@ -295,6 +324,8 @@ export const toggleItem = (
   toggleListItemInSliceJson(selectionSliceJson.content)
 
   const newSlice = Slice.fromJSON(state.schema, { ...selectionSliceJson, openStart: 0 })
+
+  console.log('newSlice', newSlice)
 
   return (chain() as ChainedCommands)
     .command(() => {
@@ -394,4 +425,32 @@ export const changeLevel = (editor: Editor, nodeType: string, direction: 'forwar
 
     return true
   }
+}
+
+function getPosOfNodeWrtAnchorNode({
+  state,
+  anchorPos,
+  nodeType,
+  possibleParentTypes,
+  direction,
+}: {
+  state: EditorState
+  anchorPos: number
+  nodeType: string
+  possibleParentTypes: string[]
+  direction: 'before' | 'after'
+}) {
+  let pos = direction === 'before' ? 0 : Infinity
+  state.doc.descendants((node, nodePos) => {
+    const beforeCondition = nodePos > pos && nodePos < anchorPos
+    const afterCondition = nodePos > anchorPos && nodePos < pos
+    if (node.type.name === nodeType && (direction === 'before' ? beforeCondition : afterCondition)) {
+      pos = nodePos
+    }
+
+    // console.log('node', node.type.name, node.textContent, nodePos)
+    return possibleParentTypes.includes(node.type.name)
+  })
+
+  return pos
 }

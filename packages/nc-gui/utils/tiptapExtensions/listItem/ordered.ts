@@ -143,7 +143,7 @@ export const Ordered = Node.create<OrderItemsOptions>({
             }
           }
 
-          toggleItem(state, chain, toggleListItemInSliceJson, 'ordered')
+          toggleItem(this.editor, state, chain, toggleListItemInSliceJson, 'ordered')
         },
     } as any
   },

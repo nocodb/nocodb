@@ -2,9 +2,12 @@ import {
   Controller,
   Get,
   HttpCode,
+  MaxFileSizeValidator,
   Param,
+  ParseFilePipe,
   Post,
   Request,
+  UploadedFiles,
   UseInterceptors,
 } from '@nestjs/common';
 import { AnyFilesInterceptor } from '@nestjs/platform-express';
@@ -45,38 +48,20 @@ export class PublicDatasController {
     return groupedData;
   }
 
-  // todo: multer
-  //   router.post(
-  //   '/api/v1/db/public/shared-view/:sharedViewUuid/rows',
-  //   multer({
-  //            storage: multer.diskStorage({}),
-  // limits: {
-  //   fieldSize: NC_ATTACHMENT_FIELD_SIZE,
-  // },
-  // }).any(),
-  //   catchError(dataInsert)
-  // );
   @Post('/api/v1/db/public/shared-view/:sharedViewUuid/rows')
-  @HttpCode(200)
-  @UseInterceptors(
-    AnyFilesInterceptor({
-      storage: multer.diskStorage({}),
-      limits: {
-        fileSize: NC_ATTACHMENT_FIELD_SIZE,
-      },
-    }),
-  )
+  @UseInterceptors(AnyFilesInterceptor())
   async dataInsert(
     @Request() req,
     @Param('sharedViewUuid') sharedViewUuid: string,
+    @UploadedFiles() files: Express.Multer.File[],
   ) {
     const insertResult = await this.publicDatasService.dataInsert({
       sharedViewUuid: sharedViewUuid,
       password: req.headers?.['xc-password'] as string,
       body: req.body?.data,
       siteUrl: (req as any).ncSiteUrl,
-      // req.files is enriched by multer
-      files: req.files,
+      // enriched by multer
+      files,
     });
 
     return insertResult;

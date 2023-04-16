@@ -1,21 +1,21 @@
 import { Module } from '@nestjs/common';
-import { AttachmentsService } from '../attachments/attachments.service';
-import { ColumnsService } from '../columns/columns.service';
-import { BulkDataAliasService } from '../datas/bulk-data-alias/bulk-data-alias.service';
-import { FiltersService } from '../filters/filters.service';
-import { FormColumnsService } from '../form-columns/form-columns.service';
-import { FormsService } from '../forms/forms.service';
-import { GalleriesService } from '../galleries/galleries.service';
+import { AttachmentsService } from '../../services/attachments.service';
+import { ColumnsService } from '../../services/columns.service';
+import { BulkDataAliasService } from '../../services/bulk-data-alias.service';
+import { FiltersService } from '../../services/filters.service';
+import { FormColumnsService } from '../../services/form-columns.service';
+import { FormsService } from '../../services/forms.service';
+import { GalleriesService } from '../../services/galleries.service';
 import { GlobalModule } from '../global/global.module';
-import { GridsService } from '../grids/grids.service';
+import { GridsService } from '../../services/grids.service';
 import { ProjectUsersService } from '../project-users/project-users.service';
-import { ProjectsService } from '../projects/projects.service';
-import { SortsService } from '../sorts/sorts.service';
-import { TablesService } from '../tables/tables.service';
-import { ViewColumnsService } from '../view-columns/view-columns.service';
-import { ViewsService } from '../views/views.service';
-import { ImportService } from './import.service';
-import { ImportController } from './import.controller';
+import { ProjectsService } from '../../services/projects.service';
+import { SortsService } from '../../services/sorts.service';
+import { TablesService } from '../../services/tables.service';
+import { ViewColumnsService } from '../../services/view-columns.service';
+import { ViewsService } from '../../services/views.service';
+import { ImportService } from '../../services/import.service';
+import { ImportController } from '../../controllers/import.controller';
 
 @Module({
   imports: [GlobalModule],

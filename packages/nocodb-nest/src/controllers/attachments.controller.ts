@@ -14,9 +14,9 @@ import {
   UseInterceptors,
 } from '@nestjs/common';
 import { AnyFilesInterceptor } from '@nestjs/platform-express';
-import { GlobalGuard } from '../../guards/global/global.guard';
-import { UploadAllowedInterceptor } from '../../interceptors/is-upload-allowed/is-upload-allowed.interceptor';
-import { AttachmentsService } from './attachments.service';
+import { GlobalGuard } from '../guards/global/global.guard';
+import { UploadAllowedInterceptor } from '../interceptors/is-upload-allowed/is-upload-allowed.interceptor';
+import { AttachmentsService } from '../services/attachments.service';
 
 @Controller()
 export class AttachmentsController {

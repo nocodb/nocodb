@@ -5,8 +5,8 @@ import { T } from 'nc-help';
 import { Server } from 'socket.io';
 import { AuthGuard } from '@nestjs/passport';
 import { ExecutionContextHost } from '@nestjs/core/helpers/execution-context-host';
-import Noco from '../../Noco';
-import { JwtStrategy } from '../../strategies/jwt.strategy';
+import Noco from '../Noco';
+import { JwtStrategy } from '../strategies/jwt.strategy';
 import type { OnModuleInit } from '@nestjs/common';
 import type { Socket } from 'socket.io';
 

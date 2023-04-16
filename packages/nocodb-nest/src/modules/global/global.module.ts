@@ -4,7 +4,7 @@ import { ExtractJwt } from 'passport-jwt';
 import { Connection } from '../../connection/connection';
 import { GlobalGuard } from '../../guards/global/global.guard';
 import { MetaService } from '../../meta/meta.service';
-import { SocketService } from '../../services/client/socket.service';
+import { SocketService } from '../../services/socket.service';
 import { JwtStrategy } from '../../strategies/jwt.strategy';
 import NcConfigFactory from '../../utils/NcConfigFactory';
 import { jwtConstants } from '../auth/constants';

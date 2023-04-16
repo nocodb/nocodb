@@ -2,8 +2,8 @@ import { Module } from '@nestjs/common';
 import { MulterModule } from '@nestjs/platform-express';
 import multer from 'multer';
 import { NC_ATTACHMENT_FIELD_SIZE } from '../../constants';
-import { AttachmentsService } from './attachments.service';
-import { AttachmentsController } from './attachments.controller';
+import { AttachmentsService } from '../../services/attachments.service';
+import { AttachmentsController } from '../../controllers/attachments.controller';
 
 @Module({
   imports: [

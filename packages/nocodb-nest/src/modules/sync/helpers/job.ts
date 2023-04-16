@@ -8,19 +8,19 @@ import dayjs from 'dayjs';
 import utc from 'dayjs/plugin/utc';
 import tinycolor from 'tinycolor2';
 import extractRolesObj from '../../../utils/extractRolesObj';
-import { AttachmentsService } from '../../attachments/attachments.service';
-import { ColumnsService } from '../../columns/columns.service';
-import { BulkDataAliasService } from '../../datas/bulk-data-alias/bulk-data-alias.service';
-import { FiltersService } from '../../filters/filters.service';
-import { FormColumnsService } from '../../form-columns/form-columns.service';
-import { GalleriesService } from '../../galleries/galleries.service';
-import { GridsService } from '../../grids/grids.service';
+import { AttachmentsService } from '../../../services/attachments.service';
+import { ColumnsService } from '../../../services/columns.service';
+import { BulkDataAliasService } from '../../../services/bulk-data-alias.service';
+import { FiltersService } from '../../../services/filters.service';
+import { FormColumnsService } from '../../../services/form-columns.service';
+import { GalleriesService } from '../../../services/galleries.service';
+import { GridsService } from '../../../services/grids.service';
 import { ProjectUsersService } from '../../project-users/project-users.service';
-import { ProjectsService } from '../../projects/projects.service';
-import { SortsService } from '../../sorts/sorts.service';
-import { TablesService } from '../../tables/tables.service';
-import { ViewColumnsService } from '../../view-columns/view-columns.service';
-import { ViewsService } from '../../views/views.service';
+import { ProjectsService } from '../../../services/projects.service';
+import { SortsService } from '../../../services/sorts.service';
+import { TablesService } from '../../../services/tables.service';
+import { ViewColumnsService } from '../../../services/view-columns.service';
+import { ViewsService } from '../../../services/views.service';
 // import {
 //   attachmentService,
 //   columnService,
@@ -38,7 +38,7 @@ import { ViewsService } from '../../views/views.service';
 //   // eslint-disable-next-line @typescript-eslint/ban-ts-comment
 //   // @ts-ignore
 // } from '../..';
-import { FormsService } from '../../../modules/forms/forms.service';
+import { FormsService } from '../../../services/forms.service';
 import FetchAT from './fetchAT';
 import { importData, importLTARData } from './readAndProcessData';
 import EntityMap from './EntityMap';

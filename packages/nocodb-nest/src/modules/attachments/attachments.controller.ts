@@ -13,10 +13,7 @@ import {
   UseGuards,
   UseInterceptors,
 } from '@nestjs/common';
-import multer from 'multer';
 import { AnyFilesInterceptor } from '@nestjs/platform-express';
-import { AuthGuard } from '@nestjs/passport';
-import { NC_ATTACHMENT_FIELD_SIZE } from '../../constants';
 import { GlobalGuard } from '../../guards/global/global.guard';
 import { UploadAllowedInterceptor } from '../../interceptors/is-upload-allowed/is-upload-allowed.interceptor';
 import { AttachmentsService } from './attachments.service';
@@ -26,31 +23,9 @@ export class AttachmentsController {
   constructor(private readonly attachmentsService: AttachmentsService) {}
 
   @UseGuards(GlobalGuard)
-  @Post(
-    '/api/v1/db/storage/upload',
-    //   multer({
-    //            storage: multer.diskStorage({}),
-    // limits: {
-    //   fieldSize: NC_ATTACHMENT_FIELD_SIZE,
-    // },
-    // }).any(),
-    //   [
-    //     extractProjectIdAndAuthenticate,
-    //     catchError(isUploadAllowedMw),
-    //     catchError(upload),
-    //   ]
-    // );
-  )
+  @Post('/api/v1/db/storage/upload')
   @HttpCode(200)
-  @UseInterceptors(
-    UploadAllowedInterceptor,
-    AnyFilesInterceptor({
-      storage: multer.diskStorage({}),
-      limits: {
-        fieldSize: NC_ATTACHMENT_FIELD_SIZE,
-      },
-    }),
-  )
+  @UseInterceptors(UploadAllowedInterceptor, AnyFilesInterceptor())
   async upload(
     @UploadedFiles() files: Array<any>,
     @Body() body: any,
@@ -68,12 +43,6 @@ export class AttachmentsController {
   @Post('/api/v1/db/storage/upload-by-url')
   @HttpCode(200)
   @UseInterceptors(UploadAllowedInterceptor)
-  //   [
-  //     extractProjectIdAndAuthenticate,
-  //   catchError(isUploadAllowedMw),
-  //   catchError(uploadViaURL),
-  // ]
-  // );
   @UseGuards(GlobalGuard)
   async uploadViaURL(@Body() body: any, @Query('path') path: string) {
     const attachments = await this.attachmentsService.uploadViaURL({

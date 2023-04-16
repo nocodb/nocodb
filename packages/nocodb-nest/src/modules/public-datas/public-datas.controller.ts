@@ -45,15 +45,21 @@ export class PublicDatasController {
     return groupedData;
   }
 
+  // todo: multer
+  //   router.post(
+  //   '/api/v1/db/public/shared-view/:sharedViewUuid/rows',
+  //   multer({
+  //            storage: multer.diskStorage({}),
+  // limits: {
+  //   fieldSize: NC_ATTACHMENT_FIELD_SIZE,
+  // },
+  // }).any(),
+  //   catchError(dataInsert)
+  // );
   @Post('/api/v1/db/public/shared-view/:sharedViewUuid/rows')
   @HttpCode(200)
   @UseInterceptors(
-    AnyFilesInterceptor({
-      storage: multer.diskStorage({}),
-      limits: {
-        fieldSize: NC_ATTACHMENT_FIELD_SIZE,
-      },
-    }),
+    AnyFilesInterceptor(),
   )
   async dataInsert(
     @Request() req,

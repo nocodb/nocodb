@@ -1,6 +1,6 @@
 import { Module } from '@nestjs/common';
-import { PublicDatasExportService } from './public-datas-export.service';
-import { PublicDatasExportController } from './public-datas-export.controller';
+import { PublicDatasExportService } from '../../services/public-datas-export.service';
+import { PublicDatasExportController } from '../../controllers/public-datas-export.controller';
 
 @Module({
   controllers: [PublicDatasExportController],

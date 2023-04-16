@@ -1,6 +1,6 @@
 import { Module } from '@nestjs/common';
-import { PluginsService } from './plugins.service';
-import { PluginsController } from './plugins.controller';
+import { PluginsService } from '../../services/plugins.service';
+import { PluginsController } from '../../controllers/plugins.controller';
 
 @Module({
   controllers: [PluginsController],

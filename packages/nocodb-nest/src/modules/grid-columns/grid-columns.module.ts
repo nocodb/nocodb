@@ -1,6 +1,6 @@
 import { Module } from '@nestjs/common';
-import { GridColumnsService } from './grid-columns.service';
-import { GridColumnsController } from './grid-columns.controller';
+import { GridColumnsService } from '../../services/grid-columns.service';
+import { GridColumnsController } from '../../controllers/grid-columns.controller';
 
 @Module({
   controllers: [GridColumnsController],

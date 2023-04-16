@@ -1,6 +1,6 @@
 import { Module } from '@nestjs/common';
-import { HooksService } from './hooks.service';
-import { HooksController } from './hooks.controller';
+import { HooksService } from '../../services/hooks.service';
+import { HooksController } from '../../controllers/hooks.controller';
 
 @Module({
   controllers: [HooksController],

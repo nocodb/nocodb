@@ -18,7 +18,7 @@ import {
   Acl,
   ExtractProjectIdMiddleware,
 } from '../../middlewares/extract-project-id/extract-project-id.middleware';
-import { DatasService } from './datas.service';
+import { DatasService } from '../../services/datas.service';
 
 @Controller()
 @UseGuards(ExtractProjectIdMiddleware, GlobalGuard)

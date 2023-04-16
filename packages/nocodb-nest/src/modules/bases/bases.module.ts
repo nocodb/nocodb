@@ -1,6 +1,6 @@
 import { Module } from '@nestjs/common';
-import { BasesService } from './bases.service';
-import { BasesController } from './bases.controller';
+import { BasesService } from '../../services/bases.service';
+import { BasesController } from '../../controllers/bases.controller';
 
 @Module({
   controllers: [BasesController],

@@ -1,6 +1,6 @@
 import { Module } from '@nestjs/common';
-import { ModelVisibilitiesService } from './model-visibilities.service';
-import { ModelVisibilitiesController } from './model-visibilities.controller';
+import { ModelVisibilitiesService } from '../../services/model-visibilities.service';
+import { ModelVisibilitiesController } from '../../controllers/model-visibilities.controller';
 
 @Module({
   controllers: [ModelVisibilitiesController],

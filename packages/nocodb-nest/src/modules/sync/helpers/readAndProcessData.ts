@@ -1,7 +1,7 @@
 import { RelationTypes, UITypes } from 'nocodb-sdk';
 import EntityMap from './EntityMap';
-import type { BulkDataAliasService } from '../../datas/bulk-data-alias/bulk-data-alias.service';
-import type { TablesService } from '../../tables/tables.service';
+import type { BulkDataAliasService } from '../../../services/bulk-data-alias.service';
+import type { TablesService } from '../../../services/tables.service';
 // @ts-ignore
 import type { AirtableBase } from 'airtable/lib/airtable_base';
 import type { TableType } from 'nocodb-sdk';

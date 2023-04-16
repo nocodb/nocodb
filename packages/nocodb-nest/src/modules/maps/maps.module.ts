@@ -1,6 +1,6 @@
 import { Module } from '@nestjs/common';
-import { MapsService } from './maps.service';
-import { MapsController } from './maps.controller';
+import { MapsService } from '../../services/maps.service';
+import { MapsController } from '../../controllers/maps.controller';
 
 @Module({
   controllers: [MapsController],

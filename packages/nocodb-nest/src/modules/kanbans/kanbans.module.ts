@@ -1,6 +1,6 @@
 import { Module } from '@nestjs/common';
-import { KanbansService } from './kanbans.service';
-import { KanbansController } from './kanbans.controller';
+import { KanbansService } from '../../services/kanbans.service';
+import { KanbansController } from '../../controllers/kanbans.controller';
 
 @Module({
   controllers: [KanbansController],

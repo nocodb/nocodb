@@ -1,6 +1,6 @@
 import { Module } from '@nestjs/common';
-import { ApiTokensService } from './api-tokens.service';
-import { ApiTokensController } from './api-tokens.controller';
+import { ApiTokensService } from '../../services/api-tokens.service';
+import { ApiTokensController } from '../../controllers/api-tokens.controller';
 
 @Module({
   controllers: [ApiTokensController],

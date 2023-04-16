@@ -1,6 +1,6 @@
 import { Module } from '@nestjs/common';
-import { FormColumnsService } from './form-columns.service';
-import { FormColumnsController } from './form-columns.controller';
+import { FormColumnsService } from '../../services/form-columns.service';
+import { FormColumnsController } from '../../controllers/form-columns.controller';
 
 @Module({
   controllers: [FormColumnsController],

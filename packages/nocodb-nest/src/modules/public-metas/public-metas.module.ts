@@ -1,6 +1,6 @@
 import { Module } from '@nestjs/common';
-import { PublicMetasService } from './public-metas.service';
-import { PublicMetasController } from './public-metas.controller';
+import { PublicMetasService } from '../../services/public-metas.service';
+import { PublicMetasController } from '../../controllers/public-metas.controller';
 
 @Module({
   controllers: [PublicMetasController],

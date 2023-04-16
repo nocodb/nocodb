@@ -1,6 +1,6 @@
 import { Module } from '@nestjs/common';
-import { ColumnsService } from './columns.service';
-import { ColumnsController } from './columns.controller';
+import { ColumnsService } from '../../services/columns.service';
+import { ColumnsController } from '../../controllers/columns.controller';
 
 @Module({
   controllers: [ColumnsController],

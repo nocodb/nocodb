@@ -2,8 +2,8 @@ import multer from 'multer';
 import { Module } from '@nestjs/common';
 import { MulterModule } from '@nestjs/platform-express';
 import { NC_ATTACHMENT_FIELD_SIZE } from '../../constants';
-import { PublicDatasService } from './public-datas.service';
-import { PublicDatasController } from './public-datas.controller';
+import { PublicDatasService } from '../../services/public-datas.service';
+import { PublicDatasController } from '../../controllers/public-datas.controller';
 
 @Module({
   imports: [

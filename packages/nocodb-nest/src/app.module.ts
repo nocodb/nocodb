@@ -7,7 +7,7 @@ import { GlobalExceptionFilter } from './filters/global-exception/global-excepti
 import NcPluginMgrv2 from './helpers/NcPluginMgrv2';
 import { GlobalMiddleware } from './middlewares/global/global.middleware';
 import { GuiMiddleware } from './middlewares/gui/gui.middleware';
-import { AuthService } from './modules/auth/auth.service';
+import { AuthService } from './services/auth.service';
 import { UsersModule } from './modules/users/users.module';
 import { MetaService } from './meta/meta.service';
 import { UtilsModule } from './modules/utils/utils.module';

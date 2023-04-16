@@ -1,7 +1,7 @@
 import { Module } from '@nestjs/common';
 import { ExtractProjectIdMiddleware } from '../../middlewares/extract-project-id/extract-project-id.middleware';
-import { ProjectsService } from './projects.service';
-import { ProjectsController } from './projects.controller';
+import { ProjectsService } from '../../services/projects.service';
+import { ProjectsController } from '../../controllers/projects.controller';
 
 @Module({
   controllers: [ProjectsController],

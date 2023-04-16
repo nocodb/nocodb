@@ -1,6 +1,6 @@
 import { Module } from '@nestjs/common';
-import { CachesService } from './caches.service';
-import { CachesController } from './caches.controller';
+import { CachesService } from '../../services/caches.service';
+import { CachesController } from '../../controllers/caches.controller';
 
 @Module({
   controllers: [CachesController],

@@ -1,6 +1,6 @@
 import { Module } from '@nestjs/common';
-import { ApiDocsService } from './api-docs.service';
-import { ApiDocsController } from './api-docs.controller';
+import { ApiDocsService } from '../api-docs.service';
+import { ApiDocsController } from '../../controllers/api-docs/api-docs.controller';
 
 @Module({
   controllers: [ApiDocsController],

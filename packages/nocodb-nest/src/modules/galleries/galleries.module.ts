@@ -1,6 +1,6 @@
 import { Module } from '@nestjs/common';
-import { GalleriesService } from './galleries.service';
-import { GalleriesController } from './galleries.controller';
+import { GalleriesService } from '../../services/galleries.service';
+import { GalleriesController } from '../../controllers/galleries.controller';
 
 @Module({
   controllers: [GalleriesController],

@@ -59,6 +59,7 @@ import type {
   MiddlewareConsumer,
   OnApplicationBootstrap,
 } from '@nestjs/common';
+import { MetaModule } from './modules/meta/meta.module';
 
 @Module({
   imports: [
@@ -106,6 +107,7 @@ import type {
     CachesModule,
     ...(process.env['PLAYWRIGHT_TEST'] === 'true' ? [TestModule] : []),
     PluginsModule,
+    MetaModule,
   ],
   controllers: [],
   providers: [

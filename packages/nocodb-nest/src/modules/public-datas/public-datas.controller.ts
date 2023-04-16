@@ -2,12 +2,9 @@ import {
   Controller,
   Get,
   HttpCode,
-  MaxFileSizeValidator,
   Param,
-  ParseFilePipe,
   Post,
   Request,
-  UploadedFiles,
   UseInterceptors,
 } from '@nestjs/common';
 import { AnyFilesInterceptor } from '@nestjs/platform-express';
@@ -49,19 +46,25 @@ export class PublicDatasController {
   }
 
   @Post('/api/v1/db/public/shared-view/:sharedViewUuid/rows')
-  @UseInterceptors(AnyFilesInterceptor())
+  @HttpCode(200)
+  @UseInterceptors(
+    AnyFilesInterceptor({
+      storage: multer.diskStorage({}),
+      limits: {
+        fieldSize: NC_ATTACHMENT_FIELD_SIZE,
+      },
+    }),
+  )
   async dataInsert(
     @Request() req,
     @Param('sharedViewUuid') sharedViewUuid: string,
-    @UploadedFiles() files: Express.Multer.File[],
   ) {
     const insertResult = await this.publicDatasService.dataInsert({
       sharedViewUuid: sharedViewUuid,
       password: req.headers?.['xc-password'] as string,
       body: req.body?.data,
       siteUrl: (req as any).ncSiteUrl,
-      // enriched by multer
-      files,
+      files: req.files,
     });
 
     return insertResult;

@@ -1,5 +1,6 @@
 import type { EditorState, Transaction } from 'prosemirror-state'
 import type { Fragment } from 'prosemirror-model'
+import { PasteRule } from '@tiptap/core'
 import type { ChainedCommands, Editor } from '@tiptap/core'
 import { Slice } from 'prosemirror-model'
 
@@ -446,4 +447,98 @@ function getPosOfNodeWrtAnchorNode({
   })
 
   return pos
+}
+
+export const listItemPasteRule = ({
+  nodeType,
+  pasteRegex,
+  inputRegex,
+}: {
+  nodeType: 'bullet' | 'ordered' | 'task'
+  pasteRegex: RegExp
+  inputRegex: RegExp
+}) => {
+  return new PasteRule({
+    find: (text) => {
+      return text.match(pasteRegex)?.map((matched, index) => {
+        return {
+          text: matched,
+          index,
+          data: { matched },
+          start: index,
+          end: index + matched.length,
+        }
+      })
+    },
+    handler({ match, chain, range, state }) {
+      // If pasted on empty dblock
+      let insertedPos = range.from
+
+      const dBlocks: Array<{ pos: number; node: any }> = []
+      state.doc.descendants((node, pos) => {
+        if (node.type.name === 'dBlock' && pos < range.from) {
+          insertedPos = pos
+          dBlocks.push({ pos, node })
+        }
+      })
+      let emptyDBlockFound = false
+      for (let i = dBlocks.length - 1; i >= 0; i--) {
+        if (state.doc.nodeAt(dBlocks[i].pos)?.textContent.length === 0) {
+          if (emptyDBlockFound) {
+            insertedPos = dBlocks[i].pos
+            break
+          }
+          emptyDBlockFound = true
+          insertedPos = dBlocks[i].pos
+        }
+      }
+
+      range.from = insertedPos
+
+      let orderNumber = 1
+      if (nodeType === 'ordered') {
+        console.log('match', match)
+        orderNumber = Number(match[0].trimStart().split('.')[0])
+      }
+
+      let isChecked = false
+      if (nodeType === 'task') {
+        isChecked = match[0].trimStart().replace(' ', '').startsWith('-[x]')
+        isChecked = isChecked || match[0].trimStart().replace(' ', '').startsWith('-[X]')
+        isChecked = isChecked || match[0].trimStart().replace(' ', '').startsWith('[x]')
+        isChecked = isChecked || match[0].trimStart().replace(' ', '').startsWith('[X]')
+      }
+
+      const attrs = {} as any
+      if (nodeType === 'ordered') {
+        attrs.number = String(orderNumber)
+      }
+      if (nodeType === 'task') {
+        attrs.checked = isChecked
+      }
+
+      chain()
+        .deleteRange(range)
+        .insertContentAt(insertedPos, {
+          type: 'dBlock',
+          content: [
+            {
+              type: nodeType,
+              attrs,
+              content: [
+                {
+                  type: 'paragraph',
+                  content: [
+                    {
+                      type: 'text',
+                      text: match[0].replace(inputRegex, ''),
+                    },
+                  ],
+                },
+              ],
+            },
+          ],
+        })
+    },
+  })
 }

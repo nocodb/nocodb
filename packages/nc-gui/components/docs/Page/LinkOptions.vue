@@ -176,6 +176,18 @@ const handleKeyDown = (e: any) => {
       scrollToViewPageList()
     }
   }
+
+  // Ctrl + Z/ Meta + Z
+  if ((e.ctrlKey || e.metaKey) && e.key === 'z') {
+    e.preventDefault()
+    editor.commands.undo()
+  }
+
+  // Ctrl + Shift + Z/ Meta + Shift + Z
+  if ((e.ctrlKey || e.metaKey) && e.shiftKey && e.key === 'z') {
+    e.preventDefault()
+    editor.commands.redo()
+  }
 }
 
 const onInputBoxEnter = () => {

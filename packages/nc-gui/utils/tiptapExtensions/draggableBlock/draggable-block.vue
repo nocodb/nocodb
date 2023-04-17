@@ -276,6 +276,6 @@ watch(
   @apply -mt-1.5;
 }
 .node-view-drag-content {
-  @apply w-full ml-0.5;
+  @apply w-full;
 }
 </style>

@@ -52,7 +52,7 @@ export const Link = ({ isPublic }: { isPublic?: boolean }) =>
 
     addKeyboardShortcuts() {
       return {
-        'Ctrl-k': () => {
+        'Mod-j': () => {
           const to = this.editor.view.state.selection.to
           this.editor
             .chain()

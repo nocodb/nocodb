@@ -44,5 +44,13 @@ import { PublicDatasService } from '../../services/public-datas.service';
     PublicDatasService,
     PublicDatasExportService,
   ],
+  exports: [
+    DatasService,
+    BulkDataAliasService,
+    DataAliasNestedService,
+    OldDatasService,
+    PublicDatasService,
+    PublicDatasExportService,
+  ],
 })
 export class DatasModule {}

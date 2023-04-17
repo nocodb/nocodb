@@ -39,6 +39,7 @@ import { ApiTokensService } from '../../services/api-tokens.service';
 import { AttachmentsService } from '../../services/attachments.service';
 import { AuditsService } from '../../services/audits.service';
 import { BasesService } from '../../services/bases.service';
+import { BulkDataAliasService } from '../../services/bulk-data-alias.service'
 import { CachesService } from '../../services/caches.service';
 import { ColumnsService } from '../../services/columns.service';
 import { FiltersService } from '../../services/filters.service';
@@ -70,6 +71,7 @@ import { ApiDocsService } from '../../services/api-docs/api-docs.service';
 import { GlobalModule } from '../global/global.module';
 import { ProjectUsersController } from '../../controllers/project-users.controller';
 import { ProjectUsersService } from '../../services/project-users/project-users.service';
+import { DatasModule } from '../datas/datas.module';
 
 @Module({
   imports: [
@@ -152,6 +154,7 @@ import { ProjectUsersService } from '../../services/project-users/project-users.
     SyncService,
     SortsService,
     SharedBasesService,
+    BulkDataAliasService
   ],
 })
 export class MetasModule {}

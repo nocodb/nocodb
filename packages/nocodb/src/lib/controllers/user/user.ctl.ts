@@ -8,7 +8,7 @@ import ncMetaAclMw from '../../meta/helpers/ncMetaAclMw';
 import { Audit, User } from '../../models';
 import Noco from '../../Noco';
 import { userService } from '../../services';
-import { setTokenCookie } from '../../services/user/helpers';
+import { setTokenCookie } from '../../services/user';
 import type { Request } from 'express';
 
 export async function signup(req: Request<any, any>, res): Promise<any> {
@@ -95,6 +95,15 @@ async function signin(req, res, next) {
         auditDescription: 'User has signed in successfully',
       })
   )(req, res, next);
+}
+
+async function signout(req: Request<any, any>, res): Promise<any> {
+  res.json(
+    await userService.signout({
+      req,
+      res,
+    })
+  );
 }
 
 async function googleSignin(req, res, next) {
@@ -274,6 +283,7 @@ const mapRoutes = (router) => {
   // new API
   router.post('/api/v1/auth/user/signup', catchError(signup));
   router.post('/api/v1/auth/user/signin', catchError(signin));
+  router.post('/api/v1/auth/user/signout', catchError(signout));
   router.get(
     '/api/v1/auth/user/me',
     extractProjectIdAndAuthenticate,

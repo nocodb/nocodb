@@ -31,7 +31,7 @@ Also NocoDB's app store allows you to build business workflows on views with com
 
 ### App Store for Workflow Automations
 
-We provide different integrations in three main categories. See <a href="./setup-and-usages/app-store" target="_blank">App Store</a> for details.
+We provide different integrations in three main categories. See <NuxtLink to="/setup-and-usages/account-settings#app-store" target="_blank">App Store</NuxtLink> for details.
 
 - ⚡ &nbsp;Chat : Slack, Discord, Mattermost, and etc
 - ⚡ &nbsp;Email : AWS SES, SMTP, MailerSend, and etc
@@ -46,11 +46,11 @@ We provide the following ways to let users to invoke actions in a programmatic w
 
 ### Sync Schema
 
-We allow you to sync schema changes if you have made changes outside NocoDB GUI. However, it has to be noted then you will have to bring your own schema migrations for moving from environment to others. See <a href="./setup-and-usages/sync-schema" target="_blank">Sync Schema</a> for details.
+We allow you to sync schema changes if you have made changes outside NocoDB GUI. However, it has to be noted then you will have to bring your own schema migrations for moving from environment to others. See <NuxtLink to="/setup-and-usages/sync-schema" target="_blank">Sync Schema</NuxtLink> for details.
 
 ### Audit 
 
-We are keeping all the user operation logs under one place. See <a href="./setup-and-usages/audit" target="_blank">Audit</a> for details.
+We are keeping all the user operation logs under one place. See <NuxtLink to="/setup-and-usages/audit" target="_blank">Audit</NuxtLink> for details.
 
 ##  Why are we building this?
 Most internet businesses equip themselves with either spreadsheet or a database to solve their business needs. Spreadsheets are used by a Billion+ humans collaboratively every single day. However, we are way off working at similar speeds on databases which are way more powerful tools when it comes to computing. Attempts to solve this with SaaS offerings has meant horrible access controls, vendor lockin, data lockin, abrupt price changes & most importantly a glass ceiling on what's possible in future.

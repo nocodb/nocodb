@@ -1,4 +1,6 @@
 <script setup lang="ts">
+import { iconMap } from '#imports'
+
 interface Props {
   srcs: string[]
   alt?: string

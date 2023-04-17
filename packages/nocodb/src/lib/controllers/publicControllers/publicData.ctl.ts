@@ -31,6 +31,7 @@ async function dataInsert(req: Request & { files: any[] }, res: Response) {
     password: req.headers?.['xc-password'] as string,
     body: req.body?.data,
     siteUrl: (req as any).ncSiteUrl,
+    // req.files is enriched by multer
     files: req.files,
   });
 

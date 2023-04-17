@@ -3,6 +3,7 @@ import dayjs from 'dayjs'
 import utc from 'dayjs/plugin/utc'
 import type { ColumnType, TableType } from 'nocodb-sdk'
 import { UITypes, isSystemColumn, isVirtualCol } from 'nocodb-sdk'
+import type { CheckboxChangeEvent } from 'ant-design-vue/es/checkbox/interface'
 import { srcDestMappingColumns, tableColumns } from './utils'
 import {
   Empty,
@@ -86,6 +87,8 @@ const inputRefs = ref<HTMLInputElement[]>([])
 const isImporting = ref(false)
 
 const importingTips = ref<Record<string, string>>({})
+
+const checkAllRecord = ref<boolean[]>([])
 
 const uiTypeOptions = ref<Option[]>(
   (Object.keys(UITypes) as (keyof typeof UITypes)[])
@@ -617,6 +620,13 @@ function handleEditableTnChange(idx: number) {
 function isSelectDisabled(uidt: string, disableSelect = false) {
   return (uidt === UITypes.SingleSelect || uidt === UITypes.MultiSelect) && disableSelect
 }
+
+function handleCheckAllRecord(event: CheckboxChangeEvent, tableName: string) {
+  const isChecked = event.target.checked
+  for (const record of srcDestMapping.value[tableName]) {
+    record.enabled = isChecked
+  }
+}
 </script>
 
 <template>
@@ -672,6 +682,12 @@ function isSelectDisabled(uidt: string, disableSelect = false) {
             <template #headerCell="{ column }">
               <span v-if="column.key === 'source_column' || column.key === 'destination_column'">
                 {{ column.name }}
+              </span>
+              <span v-if="column.key === 'action'">
+                <a-checkbox
+                  v-model:checked="checkAllRecord[table.table_name]"
+                  @change="handleCheckAllRecord($event, table.table_name)"
+                />
               </span>
             </template>
 

@@ -17,9 +17,9 @@ const pg = {
       builder: args.knex.raw(
         `POSITION(${args.knex.raw(
           (await args.fn(args.pt.arguments[1])).builder.toQuery()
-        )} in ${args.knex
-          .raw((await args.fn(args.pt.arguments[0])).builder)
-          .toQuery()})${args.colAlias}`
+        )} in ${args.knex.raw(
+          (await args.fn(args.pt.arguments[0])).builder.toQuery()
+        )})${args.colAlias}`
       ),
     };
   },
@@ -157,11 +157,13 @@ const pg = {
       builder: args.knex.raw(
         `CASE WHEN ${args.knex
           .raw(
-            `${args.pt.arguments
-              .map(async (ar) =>
-                (await args.fn(ar, '', 'OR')).builder.toQuery()
+            `${(
+              await Promise.all(
+                args.pt.arguments.map(async (ar) =>
+                  (await args.fn(ar, '', 'OR')).builder.toQuery()
+                )
               )
-              .join(' OR ')}`
+            ).join(' OR ')}`
           )
           .wrap('(', ')')
           .toQuery()} THEN TRUE ELSE FALSE END ${args.colAlias}`

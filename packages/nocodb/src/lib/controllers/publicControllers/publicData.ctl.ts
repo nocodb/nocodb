@@ -96,11 +96,11 @@ router.post(
 );
 
 router.get(
-  '/api/v1/db/public/shared-view/:sharedViewUuid/rows/:rowId/mm/:colId',
+  '/api/v1/db/public/shared-view/:sharedViewUuid/rows/:rowId/mm/:columnId',
   catchError(publicMmList)
 );
 router.get(
-  '/api/v1/db/public/shared-view/:sharedViewUuid/rows/:rowId/hm/:colId',
+  '/api/v1/db/public/shared-view/:sharedViewUuid/rows/:rowId/hm/:columnId',
   catchError(publicHmList)
 );
 

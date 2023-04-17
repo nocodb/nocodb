@@ -90,7 +90,7 @@ test.describe('Shared view', () => {
 
     // verify virtual records
     for (const record of expectedVirtualRecordsByDb) {
-      await sharedPage.grid.cell.verifyVirtualCell(record);
+      await sharedPage.grid.cell.verifyVirtualCell({ ...record, verifyChildList: true });
     }
 
     /**

@@ -4,12 +4,11 @@ import Text from '@tiptap/extension-text'
 import DropCursor from '@tiptap/extension-dropcursor'
 import Bold from '@tiptap/extension-bold'
 import Italic from '@tiptap/extension-italic'
-import Strike from '@tiptap/extension-strike'
 import Code from '@tiptap/extension-code'
 import CodeBlock from '@tiptap/extension-code-block'
-import Blockquote from '@tiptap/extension-blockquote'
 import HardBreak from '@tiptap/extension-hard-break'
 import type { Extensions } from '@tiptap/core'
+import { Quote } from './quote'
 import { Bullet } from './listItem/bullet'
 import { Ordered } from './listItem/ordered'
 import { Task } from './listItem/task'
@@ -34,6 +33,7 @@ import { Placeholder } from './placeholder'
 import { Collapsable } from './collapsable'
 import { CollapsableHeader } from './collapsable/collapsableHeader'
 import { CollapsableContent } from './collapsable/collapsableContent'
+import { Strike } from './strike'
 
 const tiptapExtensions = (isPublic: boolean): Extensions => {
   const { uploadFile } = useDocStore()
@@ -88,13 +88,7 @@ const tiptapExtensions = (isPublic: boolean): Extensions => {
     }),
     Underline,
     History,
-    Blockquote.extend({
-      addKeyboardShortcuts() {
-        return {
-          'Mod-]': () => this.editor.commands.toggleBlockquote(),
-        }
-      },
-    }),
+    Quote,
     InfoCallout,
     WarningCallout,
     TipCallout,

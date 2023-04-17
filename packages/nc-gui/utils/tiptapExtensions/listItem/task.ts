@@ -189,7 +189,7 @@ export const Task = Node.create<TaskOptions>({
 
         const node = $from.node(-1)
         const parentNode = $from.node(-2)
-        if (node.type.name !== 'task' && parentNode?.type.name !== 'tableCell') return false
+        if (node?.type.name !== 'task' && parentNode?.type.name !== 'tableCell') return false
 
         const nodeTextContent = node.textContent.trimStart().toLowerCase()
         if (nodeTextContent.length !== 0) return false

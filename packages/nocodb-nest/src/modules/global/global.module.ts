@@ -7,9 +7,7 @@ import { MetaService } from '../../meta/meta.service';
 import { SocketService } from '../../services/socket.service';
 import { JwtStrategy } from '../../strategies/jwt.strategy';
 import NcConfigFactory from '../../utils/NcConfigFactory';
-import { jwtConstants } from '../auth/constants';
-import { UsersModule } from '../users/users.module';
-import { UsersService } from '../users/users.service';
+import { UsersService } from '../../services/users/users.service';
 import type { Provider } from '@nestjs/common';
 
 export const JwtStrategyProvider: Provider = {
@@ -45,7 +43,6 @@ export const JwtStrategyProvider: Provider = {
   exports: [
     Connection,
     MetaService,
-    // JwtService,
     JwtStrategyProvider,
     UsersService,
     GlobalGuard,

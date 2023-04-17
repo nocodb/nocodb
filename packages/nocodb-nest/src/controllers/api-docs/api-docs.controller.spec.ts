@@ -1,6 +1,6 @@
 import { Test } from '@nestjs/testing';
 import { ApiDocsController } from './api-docs.controller';
-import { ApiDocsService } from '../../modules/api-docs.service';
+import { ApiDocsService } from '../../services/api-docs/api-docs.service';
 import type { TestingModule } from '@nestjs/testing';
 
 describe('ApiDocsController', () => {

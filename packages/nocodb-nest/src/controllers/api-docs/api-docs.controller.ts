@@ -11,7 +11,7 @@ import {
   Acl,
   ExtractProjectIdMiddleware,
 } from '../../middlewares/extract-project-id/extract-project-id.middleware';
-import { ApiDocsService } from '../../modules/api-docs.service';
+import { ApiDocsService } from '../../services/api-docs/api-docs.service';
 import getSwaggerHtml from './template/swaggerHtml';
 import getRedocHtml from './template/redocHtml';
 

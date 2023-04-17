@@ -4,13 +4,9 @@ import { ExtractJwt, Strategy } from 'passport-jwt';
 import { OrgUserRoles } from 'nocodb-sdk';
 import NocoCache from '../cache/NocoCache';
 import { ProjectUser, User } from '../models';
-import { genJwt } from '../modules/users/helpers';
-import Noco from '../Noco';
 import extractRolesObj from '../utils/extractRolesObj';
 import { CacheGetType, CacheScope } from '../utils/globals';
-import { jwtConstants } from '../modules/auth/constants';
-import { UsersService } from '../modules/users/users.service';
-import NcConfigFactory from '../utils/NcConfigFactory';
+import { UsersService } from '../services/users/users.service';
 
 @Injectable()
 export class JwtStrategy extends PassportStrategy(Strategy) {

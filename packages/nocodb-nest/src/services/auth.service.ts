@@ -5,8 +5,8 @@ import * as bcrypt from 'bcryptjs';
 
 import { v4 as uuidv4 } from 'uuid';
 import Noco from '../Noco';
-import { genJwt } from '../modules/users/helpers';
-import { UsersService } from '../modules/users/users.service';
+import { genJwt } from './users/helpers';
+import { UsersService } from './users/users.service';
 import { Connection } from '../connection/connection';
 import type { CreateUserDto } from '../controllers/auth.controller';
 

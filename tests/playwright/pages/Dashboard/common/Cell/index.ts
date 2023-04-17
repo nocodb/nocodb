@@ -264,9 +264,11 @@ export class CellPageObject extends BasePage {
     columnHeader,
     count,
     value,
+    verifyChildList = false,
   }: CellProps & {
     count?: number;
     value: string[];
+    verifyChildList?: boolean;
   }) {
     // const count = value.length;
     const cell = await this.get({ index, columnHeader });
@@ -282,23 +284,25 @@ export class CellPageObject extends BasePage {
       await expect(await chips.nth(i).locator('.name')).toHaveText(value[i]);
     }
 
-    // open child list
-    await this.get({ index, columnHeader }).hover();
-    const arrow_expand = await this.get({ index, columnHeader }).locator('.nc-arrow-expand');
+    if (verifyChildList) {
+      // open child list
+      await this.get({ index, columnHeader }).hover();
+      const arrow_expand = await this.get({ index, columnHeader }).locator('.nc-arrow-expand');
 
-    // arrow expand doesn't exist for bt columns
-    if (await arrow_expand.count()) {
-      await arrow_expand.click();
+      // arrow expand doesn't exist for bt columns
+      if (await arrow_expand.count()) {
+        await arrow_expand.click();
 
-      // wait for child list to open
-      await this.rootPage.waitForSelector('.nc-modal-child-list:visible');
+        // wait for child list to open
+        await this.rootPage.waitForSelector('.nc-modal-child-list:visible');
 
-      // verify child list count & contents
-      const childList = await this.rootPage.locator('.ant-card');
-      expect(await childList.count()).toBe(count);
+        // verify child list count & contents
+        const childList = await this.rootPage.locator('.ant-card');
+        expect(await childList.count()).toBe(count);
 
-      // close child list
-      await this.rootPage.locator('.nc-modal-child-list').locator('button.ant-modal-close:visible').click();
+        // close child list
+        await this.rootPage.locator('.nc-modal-child-list').locator('button.ant-modal-close:visible').click();
+      }
     }
   }
 

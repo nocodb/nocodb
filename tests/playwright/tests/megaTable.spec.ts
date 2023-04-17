@@ -157,4 +157,67 @@ test.describe.serial('Test table', () => {
 
     await page.reload();
   });
+
+  test.skip('mega table - LinkToAnotherRecord', async ({ page }) => {
+    let table_1, table_2;
+    const columns = [];
+
+    // a Primary key column & display column
+    columns.push(
+      {
+        column_name: 'Id',
+        title: 'Id',
+        uidt: UITypes.ID,
+      },
+      {
+        column_name: 'SingleLineText',
+        title: 'SingleLineText',
+        uidt: UITypes.SingleLineText,
+        pv: true,
+      }
+    );
+
+    const project = await api.project.read(context.project.id);
+    // eslint-disable-next-line prefer-const
+    table_1 = await api.base.tableCreate(context.project.id, project.bases?.[0].id, {
+      table_name: 'table_1',
+      title: 'table_1',
+      columns: columns,
+    });
+    // eslint-disable-next-line prefer-const
+    table_2 = await api.base.tableCreate(context.project.id, project.bases?.[0].id, {
+      table_name: 'table_2',
+      title: 'table_2',
+      columns: columns,
+    });
+
+    const rows = [];
+    for (let i = 0; i < 1000; i++) {
+      rows.push({
+        Id: i + 1,
+        SingleLineText: `SingleLineText${i + 1}`,
+      });
+    }
+    await api.dbTableRow.bulkCreate('noco', context.project.id, table_1.id, rows);
+    await api.dbTableRow.bulkCreate('noco', context.project.id, table_2.id, rows);
+
+    await api.dbTableColumn.create(table_2.id, {
+      uidt: UITypes.LinkToAnotherRecord,
+      title: 'LinkToAnotherRecord',
+      column_name: 'LinkToAnotherRecord',
+      parentId: table_1.id,
+      childId: table_2.id,
+      type: 'hm',
+    });
+
+    // // nested add : hm
+    // for (let i = 1; i <= 1000; i++) {
+    //   await api.dbTableRow.nestedAdd('noco', project.title, table_1.table_name, i, 'hm', 'LinkToAnotherRecord', `${i}`);
+    // }
+
+    // nested add : bt
+    for (let i = 1; i <= 1000; i++) {
+      await api.dbTableRow.nestedAdd('noco', project.title, table_2.table_name, i, 'bt', 'table_1', `${i}`);
+    }
+  });
 });

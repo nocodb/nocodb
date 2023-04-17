@@ -1,8 +1,8 @@
 version: "2.1"
 
 services:
-    pg96:
-        image: postgres:15
+    pg147:
+        image: postgres:14.7
         restart: always
         environment:
             POSTGRES_PASSWORD: password

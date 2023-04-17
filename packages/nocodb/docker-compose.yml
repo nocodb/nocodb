@@ -337,13 +337,13 @@ services:
     xc-test-pg:
       image: node:12.22.1-slim
       depends_on:
-        pg96:
+        pg147:
           condition: service_healthy
       volumes:
         - ./:/home/app
       environment:
         NODE_ENV: test
-        DATABASE_URL: postgres://postgres:password@pg96:5432/postgres
+        DATABASE_URL: postgres://postgres:password@pg147:5432/postgres
       command:
         - /bin/bash
         - -c
@@ -405,13 +405,13 @@ services:
     xc-test-gql-pg:
       image: node:12.22.1-slim
       depends_on:
-        pg96:
+        pg147:
           condition: service_healthy
       volumes:
         - ./:/home/app
       environment:
         NODE_ENV: test
-        DATABASE_URL: postgres://postgres:password@pg96:5432/postgres
+        DATABASE_URL: postgres://postgres:password@pg147:5432/postgres
       command:
         - /bin/bash
         - -c

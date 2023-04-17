@@ -46,7 +46,6 @@ import type {
     LocalStrategy,
     AuthTokenStrategy,
     BaseViewStrategy,
-    GoogleStrategy,
   ],
 })
 export class AppModule implements OnApplicationBootstrap {

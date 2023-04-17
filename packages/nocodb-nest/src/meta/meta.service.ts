@@ -1043,7 +1043,6 @@ export class MetaService {
   }
 
   public async init(): Promise<boolean> {
-    NocoCache.init();
     await this.connection.migrate.latest({
       migrationSource: new XcMigrationSource(),
       tableName: 'xc_knex_migrations',

@@ -20,6 +20,7 @@ import {
   ExtractProjectIdMiddleware,
 } from '../../middlewares/extract-project-id/extract-project-id.middleware';
 import Noco from '../../Noco';
+import { GoogleStrategy } from '../../strategies/google.strategy/google.strategy';
 import extractRolesObj from '../../utils/extractRolesObj';
 import { Audit, User } from '../../models';
 import {
@@ -31,7 +32,10 @@ import { UsersService } from '../../services/users/users.service';
 
 @Controller()
 export class UsersController {
-  constructor(private readonly usersService: UsersService) {}
+  constructor(
+    private readonly usersService: UsersService,
+    private googleStrategy: GoogleStrategy,
+  ) {}
 
   @Post([
     '/auth/user/signup',
@@ -131,33 +135,21 @@ export class UsersController {
 
   @Post(`/auth/google/genTokenByCode`)
   @HttpCode(200)
-  async googleSignin(req, res, next) {
-    // todo
-    /* passport.authenticate(
-      'google',
-      {
-        session: false,
-        callbackURL: req.ncSiteUrl + Noco.getConfig().dashboardPath,
-      },
-      async (err, user, info): Promise<any> =>
-        await successfulSignIn({
-          user,
-          err,
-          info,
-          req,
-          res,
-          auditDescription: 'signed in using Google Auth',
-        })
-    )(req, res, next);*/
+  @UseGuards(AuthGuard('google'))
+  async googleSignin(@Request() req) {
+    return this.usersService.login(req.user);
   }
 
   @Get('/auth/google')
-  googleAuthenticate() {
-    /*    passport.authenticate('google', {
-      scope: ['profile', 'email'],
-      state: req.query.state,
-      callbackURL: req.ncSiteUrl + Noco.getConfig().dashboardPath,
-    })(req, res, next)*/
+  @UseGuards(
+    AuthGuard('google'),
+  )
+  googleAuthenticate(@Request() req) {
+    //  this.googleStrategy.authenticate(req, {
+    //   scope: ['profile', 'email'],
+    //   state: req.query.state,
+    //   callbackURL: req.ncSiteUrl + Noco.getConfig().dashboardPath,
+    // });
   }
 
   @Get(['/auth/user/me', '/api/v1/db/auth/user/me', '/api/v1/auth/user/me'])

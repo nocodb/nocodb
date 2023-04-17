@@ -6,6 +6,7 @@ import {
   changeLevel,
   getTextAsParagraphFromSliceJson,
   isSelectionOfType,
+  listItemPasteRule,
   onBackspaceWithNestedList,
   onEnter,
   toggleItem,
@@ -27,7 +28,8 @@ declare module '@tiptap/core' {
   }
 }
 
-const inputRegex = /^-?\s*\[[ x]\]\s+(.*)?\n?$/gm
+const inputRegex = /^\s*-?\s*\[[ xX]\]\s/gm
+const pasteRegex = /^\s*-?\s*\[[ xX]\]\s+(.*)?\n?$/gm
 
 export const Task = Node.create<TaskOptions>({
   name: 'task',
@@ -330,6 +332,16 @@ export const Task = Node.create<TaskOptions>({
       wrappingInputRule({
         find: inputRegex,
         type: this.type,
+      }),
+    ]
+  },
+
+  addPasteRules() {
+    return [
+      listItemPasteRule({
+        inputRegex,
+        nodeType: 'task',
+        pasteRegex,
       }),
     ]
   },

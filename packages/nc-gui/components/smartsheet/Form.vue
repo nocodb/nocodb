@@ -727,18 +727,20 @@ watch(view, (nextView) => {
                       },
                     ]"
                   >
-                    <LazySmartsheetCell
-                      v-model="formState[element.title]"
-                      class="nc-input"
-                      :class="`nc-form-input-${element.title.replaceAll(' ', '')}`"
-                      :data-testid="`nc-form-input-${element.title.replaceAll(' ', '')}`"
-                      :column="element"
-                      :edit-enabled="editEnabled[index]"
-                      @click="editEnabled[index] = true"
-                      @cancel="editEnabled[index] = false"
-                      @update:edit-enabled="editEnabled[index] = $event"
-                      @click.stop.prevent
-                    />
+                    <LazySmartsheetDivDataCell class="relative">
+                      <LazySmartsheetCell
+                        v-model="formState[element.title]"
+                        class="nc-input"
+                        :class="`nc-form-input-${element.title.replaceAll(' ', '')}`"
+                        :data-testid="`nc-form-input-${element.title.replaceAll(' ', '')}`"
+                        :column="element"
+                        :edit-enabled="editEnabled[index]"
+                        @click="editEnabled[index] = true"
+                        @cancel="editEnabled[index] = false"
+                        @update:edit-enabled="editEnabled[index] = $event"
+                        @click.stop.prevent
+                      />
+                    </LazySmartsheetDivDataCell>
                   </a-form-item>
 
                   <div class="text-gray-500 text-xs" data-testid="nc-form-input-help-text-label">{{ element.description }}</div>

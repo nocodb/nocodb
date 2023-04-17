@@ -329,7 +329,7 @@ export default {
 
               <LazySmartsheetHeaderCell v-else :column="col" />
 
-              <div
+              <LazySmartsheetDivDataCell
                 :ref="i ? null : (el) => (cellWrapperEl = el)"
                 class="!bg-white rounded px-1 min-h-[35px] flex items-center mt-2 relative"
               >
@@ -343,7 +343,7 @@ export default {
                   :active="true"
                   @update:model-value="changedColumns.add(col.title)"
                 />
-              </div>
+              </LazySmartsheetDivDataCell>
             </div>
           </div>
         </div>

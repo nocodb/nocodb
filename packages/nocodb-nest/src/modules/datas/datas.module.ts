@@ -1,10 +1,10 @@
 import { Module } from '@nestjs/common';
-import { MulterModule } from '@nestjs/platform-express'
-import multer from 'multer'
-import { NC_ATTACHMENT_FIELD_SIZE } from '../../constants'
+import { MulterModule } from '@nestjs/platform-express';
+import multer from 'multer';
+import { NC_ATTACHMENT_FIELD_SIZE } from '../../constants';
 import { DataAliasController } from '../../controllers/data-alias.controller';
-import { PublicDatasExportController } from '../../controllers/public-datas-export.controller'
-import { PublicDatasController } from '../../controllers/public-datas.controller'
+import { PublicDatasExportController } from '../../controllers/public-datas-export.controller';
+import { PublicDatasController } from '../../controllers/public-datas.controller';
 import { DatasService } from '../../services/datas.service';
 import { DatasController } from '../../controllers/datas.controller';
 import { BulkDataAliasController } from '../../controllers/bulk-data-alias.controller';
@@ -14,8 +14,8 @@ import { OldDatasController } from '../../controllers/old-datas/old-datas.contro
 import { BulkDataAliasService } from '../../services/bulk-data-alias.service';
 import { DataAliasNestedService } from '../../services/data-alias-nested.service';
 import { OldDatasService } from '../../controllers/old-datas/old-datas.service';
-import { PublicDatasExportService } from '../../services/public-datas-export.service'
-import { PublicDatasService } from '../../services/public-datas.service'
+import { PublicDatasExportService } from '../../services/public-datas-export.service';
+import { PublicDatasService } from '../../services/public-datas.service';
 
 @Module({
   imports: [
@@ -34,7 +34,7 @@ import { PublicDatasService } from '../../services/public-datas.service'
     DataAliasExportController,
     OldDatasController,
     PublicDatasController,
-    PublicDatasExportController
+    PublicDatasExportController,
   ],
   providers: [
     DatasService,
@@ -42,7 +42,7 @@ import { PublicDatasService } from '../../services/public-datas.service'
     DataAliasNestedService,
     OldDatasService,
     PublicDatasService,
-    PublicDatasExportService
+    PublicDatasExportService,
   ],
 })
 export class DatasModule {}

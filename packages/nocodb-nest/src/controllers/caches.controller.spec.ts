@@ -1,6 +1,6 @@
 import { Test } from '@nestjs/testing';
-import { CachesController } from './caches.controller';
 import { CachesService } from '../services/caches.service';
+import { CachesController } from './caches.controller';
 import type { TestingModule } from '@nestjs/testing';
 
 describe('CachesController', () => {

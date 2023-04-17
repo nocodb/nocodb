@@ -1,6 +1,6 @@
 import { Test } from '@nestjs/testing';
-import { HooksController } from './hooks.controller';
 import { HooksService } from '../services/hooks.service';
+import { HooksController } from './hooks.controller';
 import type { TestingModule } from '@nestjs/testing';
 
 describe('HooksController', () => {

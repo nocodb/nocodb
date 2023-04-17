@@ -1,6 +1,6 @@
 import { Test } from '@nestjs/testing';
-import { KanbansController } from './kanbans.controller';
 import { KanbansService } from '../services/kanbans.service';
+import { KanbansController } from './kanbans.controller';
 import type { TestingModule } from '@nestjs/testing';
 
 describe('KanbansController', () => {

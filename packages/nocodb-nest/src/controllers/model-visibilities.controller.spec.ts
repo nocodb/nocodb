@@ -1,6 +1,6 @@
 import { Test } from '@nestjs/testing';
-import { ModelVisibilitiesController } from './model-visibilities.controller';
 import { ModelVisibilitiesService } from '../services/model-visibilities.service';
+import { ModelVisibilitiesController } from './model-visibilities.controller';
 import type { TestingModule } from '@nestjs/testing';
 
 describe('ModelVisibilitiesController', () => {

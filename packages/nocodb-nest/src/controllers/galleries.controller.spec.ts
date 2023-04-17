@@ -1,6 +1,6 @@
 import { Test } from '@nestjs/testing';
-import { GalleriesController } from './galleries.controller';
 import { GalleriesService } from '../services/galleries.service';
+import { GalleriesController } from './galleries.controller';
 import type { TestingModule } from '@nestjs/testing';
 
 describe('GalleriesController', () => {

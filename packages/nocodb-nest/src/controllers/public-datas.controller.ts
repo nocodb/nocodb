@@ -58,9 +58,7 @@ export class PublicDatasController {
   // );
   @Post('/api/v1/db/public/shared-view/:sharedViewUuid/rows')
   @HttpCode(200)
-  @UseInterceptors(
-    AnyFilesInterceptor(),
-  )
+  @UseInterceptors(AnyFilesInterceptor())
   async dataInsert(
     @Request() req,
     @Param('sharedViewUuid') sharedViewUuid: string,

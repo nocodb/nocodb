@@ -1,6 +1,6 @@
 import { Test } from '@nestjs/testing';
-import { PublicMetasController } from './public-metas.controller';
 import { PublicMetasService } from '../services/public-metas.service';
+import { PublicMetasController } from './public-metas.controller';
 import type { TestingModule } from '@nestjs/testing';
 
 describe('PublicMetasController', () => {

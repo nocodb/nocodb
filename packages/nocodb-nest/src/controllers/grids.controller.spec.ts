@@ -1,6 +1,6 @@
 import { Test } from '@nestjs/testing';
-import { GridsController } from './grids.controller';
 import { GridsService } from '../services/grids.service';
+import { GridsController } from './grids.controller';
 import type { TestingModule } from '@nestjs/testing';
 
 describe('GridsController', () => {

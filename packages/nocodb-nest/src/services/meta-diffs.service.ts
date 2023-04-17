@@ -4,9 +4,7 @@ import { T } from 'nc-help';
 import { Base, Column, Model, Project } from '../models';
 import ModelXcMetaFactory from '../db/sql-mgr/code/models/xc/ModelXcMetaFactory';
 import getColumnUiType from '../helpers/getColumnUiType';
-import getTableNameAlias, {
-  getColumnNameAlias,
-} from '../helpers/getTableName';
+import getTableNameAlias, { getColumnNameAlias } from '../helpers/getTableName';
 import { getUniqueColumnAliasName } from '../helpers/getUniqueName';
 import mapDefaultDisplayValue from '../helpers/mapDefaultDisplayValue';
 import NcConnectionMgrv2 from '../utils/common/NcConnectionMgrv2';

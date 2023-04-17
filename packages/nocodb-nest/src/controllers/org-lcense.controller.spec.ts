@@ -1,6 +1,6 @@
 import { Test } from '@nestjs/testing';
-import { OrgLcenseController } from './org-lcense.controller';
 import { OrgLcenseService } from '../services/org-lcense.service';
+import { OrgLcenseController } from './org-lcense.controller';
 import type { TestingModule } from '@nestjs/testing';
 
 describe('OrgLcenseController', () => {

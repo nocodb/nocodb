@@ -1,6 +1,6 @@
 import { Test } from '@nestjs/testing';
-import { ProjectUsersController } from './project-users.controller';
 import { ProjectUsersService } from '../services/project-users/project-users.service';
+import { ProjectUsersController } from './project-users.controller';
 import type { TestingModule } from '@nestjs/testing';
 
 describe('ProjectUsersController', () => {

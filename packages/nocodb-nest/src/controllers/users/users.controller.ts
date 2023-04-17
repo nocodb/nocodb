@@ -22,7 +22,11 @@ import {
 import Noco from '../../Noco';
 import extractRolesObj from '../../utils/extractRolesObj';
 import { Audit, User } from '../../models';
-import { genJwt, randomTokenString, setTokenCookie } from '../../services/users/helpers';
+import {
+  genJwt,
+  randomTokenString,
+  setTokenCookie,
+} from '../../services/users/helpers';
 import { UsersService } from '../../services/users/users.service';
 
 @Controller()

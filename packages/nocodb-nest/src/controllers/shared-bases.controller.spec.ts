@@ -1,6 +1,6 @@
 import { Test } from '@nestjs/testing';
-import { SharedBasesController } from './shared-bases.controller';
 import { SharedBasesService } from '../services/shared-bases.service';
+import { SharedBasesController } from './shared-bases.controller';
 import type { TestingModule } from '@nestjs/testing';
 
 describe('SharedBasesController', () => {

@@ -1,6 +1,6 @@
 import { Test } from '@nestjs/testing';
-import { GridColumnsController } from './grid-columns.controller';
 import { GridColumnsService } from '../services/grid-columns.service';
+import { GridColumnsController } from './grid-columns.controller';
 import type { TestingModule } from '@nestjs/testing';
 
 describe('GridColumnsController', () => {

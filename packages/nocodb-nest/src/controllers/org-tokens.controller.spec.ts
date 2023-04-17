@@ -1,6 +1,6 @@
 import { Test } from '@nestjs/testing';
-import { OrgTokensController } from './org-tokens.controller';
 import { OrgTokensService } from '../services/org-tokens.service';
+import { OrgTokensController } from './org-tokens.controller';
 import type { TestingModule } from '@nestjs/testing';
 
 describe('OrgTokensController', () => {

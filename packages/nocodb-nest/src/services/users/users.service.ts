@@ -188,8 +188,11 @@ export class UsersService {
         token_version: null,
       });
       try {
-        const template = (await import('../../controllers/users/ui/emailTemplates/forgotPassword'))
-          .default;
+        const template = (
+          await import(
+            '../../controllers/users/ui/emailTemplates/forgotPassword'
+          )
+        ).default;
         await NcPluginMgrv2.emailAdapter().then((adapter) =>
           adapter.mailSend({
             to: user.email,
@@ -443,7 +446,9 @@ export class UsersService {
     user = await User.getByEmail(email);
 
     try {
-      const template = (await import('../../controllers/users/ui/emailTemplates/verify')).default;
+      const template = (
+        await import('../../controllers/users/ui/emailTemplates/verify')
+      ).default;
       await (
         await NcPluginMgrv2.emailAdapter()
       ).mailSend({

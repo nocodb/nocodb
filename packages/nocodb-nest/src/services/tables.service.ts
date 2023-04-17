@@ -12,17 +12,9 @@ import ProjectMgrv2 from '../db/sql-mgr/v2/ProjectMgrv2';
 import { NcError } from '../helpers/catchError';
 import getColumnPropsFromUIDT from '../helpers/getColumnPropsFromUIDT';
 import getColumnUiType from '../helpers/getColumnUiType';
-import getTableNameAlias, {
-  getColumnNameAlias,
-} from '../helpers/getTableName';
+import getTableNameAlias, { getColumnNameAlias } from '../helpers/getTableName';
 import mapDefaultDisplayValue from '../helpers/mapDefaultDisplayValue';
-import {
-  Audit,
-  Column,
-  Model,
-  ModelRoleVisibility,
-  Project,
-} from '../models';
+import { Audit, Column, Model, ModelRoleVisibility, Project } from '../models';
 import NcConnectionMgrv2 from '../utils/common/NcConnectionMgrv2';
 import { validatePayload } from '../helpers';
 import type { LinkToAnotherRecordColumn, User, View } from '../models';

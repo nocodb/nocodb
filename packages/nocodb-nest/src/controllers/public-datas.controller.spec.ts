@@ -1,6 +1,6 @@
 import { Test } from '@nestjs/testing';
-import { PublicDatasController } from './public-datas.controller';
 import { PublicDatasService } from '../services/public-datas.service';
+import { PublicDatasController } from './public-datas.controller';
 import type { TestingModule } from '@nestjs/testing';
 
 describe('PublicDatasController', () => {

@@ -39,7 +39,7 @@ import { ApiTokensService } from '../../services/api-tokens.service';
 import { AttachmentsService } from '../../services/attachments.service';
 import { AuditsService } from '../../services/audits.service';
 import { BasesService } from '../../services/bases.service';
-import { BulkDataAliasService } from '../../services/bulk-data-alias.service'
+import { BulkDataAliasService } from '../../services/bulk-data-alias.service';
 import { CachesService } from '../../services/caches.service';
 import { ColumnsService } from '../../services/columns.service';
 import { FiltersService } from '../../services/filters.service';
@@ -154,7 +154,7 @@ import { DatasModule } from '../datas/datas.module';
     SyncService,
     SortsService,
     SharedBasesService,
-    BulkDataAliasService
+    BulkDataAliasService,
   ],
 })
 export class MetasModule {}

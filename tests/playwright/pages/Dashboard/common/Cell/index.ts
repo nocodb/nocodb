@@ -281,6 +281,25 @@ export class CellPageObject extends BasePage {
     for (let i = 0; i < value.length; ++i) {
       await expect(await chips.nth(i).locator('.name')).toHaveText(value[i]);
     }
+
+    // open child list
+    await this.get({ index, columnHeader }).hover();
+    const arrow_expand = await this.get({ index, columnHeader }).locator('.nc-arrow-expand');
+
+    // arrow expand doesn't exist for bt columns
+    if (await arrow_expand.count()) {
+      await arrow_expand.click();
+
+      // wait for child list to open
+      await this.rootPage.waitForSelector('.nc-modal-child-list:visible');
+
+      // verify child list count & contents
+      const childList = await this.rootPage.locator('.ant-card');
+      expect(await childList.count()).toBe(count);
+
+      // close child list
+      await this.rootPage.locator('.nc-modal-child-list').locator('button.ant-modal-close:visible').click();
+    }
   }
 
   async unlinkVirtualCell({ index, columnHeader }: CellProps) {

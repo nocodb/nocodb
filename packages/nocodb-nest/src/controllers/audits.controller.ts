@@ -30,8 +30,6 @@ export class AuditsController {
   @Acl('commentRow')
   async commentRow(@Request() req) {
     return await this.auditsService.commentRow({
-      // todo: correct this
-      rowId: req.params.rowId ?? req.query.rowId,
       user: (req as any).user,
       body: req.body,
     });

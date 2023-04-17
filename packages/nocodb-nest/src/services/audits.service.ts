@@ -8,11 +8,7 @@ import type { AuditRowUpdateReqType, CommentUpdateReqType } from 'nocodb-sdk';
 
 @Injectable()
 export class AuditsService {
-  async commentRow(param: {
-    rowId: string;
-    body: AuditRowUpdateReqType;
-    user: any;
-  }) {
+  async commentRow(param: { body: AuditRowUpdateReqType; user: any }) {
     validatePayload('swagger.json#/components/schemas/CommentReq', param.body);
 
     return await Audit.insert({

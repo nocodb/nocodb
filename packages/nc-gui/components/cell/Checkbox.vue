@@ -8,6 +8,7 @@ import {
   inject,
   parseProp,
   useSelectedCellKeyupListener,
+  useProject,
 } from '#imports'
 
 interface Props {
@@ -26,10 +27,7 @@ const emits = defineEmits<Emits>()
 
 const active = inject(ActiveCellInj, ref(false))
 
-let vModel = $computed<boolean>({
-  get: () => !!props.modelValue && props.modelValue !== '0' && props.modelValue !== 0,
-  set: (val: boolean) => emits('update:modelValue', val),
-})
+const { isMssql } = useProject()
 
 const column = inject(ColumnInj)
 
@@ -46,6 +44,11 @@ const checkboxMeta = $computed(() => {
     color: 'primary',
     ...parseProp(column?.value?.meta),
   }
+})
+
+let vModel = $computed<boolean | number>({
+  get: () => !!props.modelValue && props.modelValue !== '0' && props.modelValue !== 0,
+  set: (val: any) => emits('update:modelValue', isMssql(column?.value?.base_id) ? +val : val),
 })
 
 function onClick(force?: boolean, event?: MouseEvent) {

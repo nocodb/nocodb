@@ -189,7 +189,9 @@ export class UtilsService {
       const connectionConfig = NcConfigFactory.extractXcUrlFromJdbc(url, true);
       return connectionConfig;
     } catch (error) {
-      return NcError.internalServerError();
+      return NcError.internalServerError(
+        'Please check server log for more details',
+      );
     }
   }
 

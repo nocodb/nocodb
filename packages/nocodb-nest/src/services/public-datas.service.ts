@@ -82,10 +82,7 @@ export class PublicDatasService {
       count = await baseModel.count(listArgs);
     } catch (e) {
       console.log(e);
-      // show empty result instead of throwing error here
-      // e.g. search some text in a numeric field
-
-      NcError.internalServerError('Please try after some time');
+      NcError.internalServerError('Please check server log for more details');
     }
 
     return new PagedResponseImpl(data, { ...param.query, count });
@@ -185,7 +182,7 @@ export class PublicDatasService {
       });
     } catch (e) {
       console.log(e);
-      NcError.internalServerError('Internal Server Error');
+      NcError.internalServerError('Please check server log for more details');
     }
     return data;
   }

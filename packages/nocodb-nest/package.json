@@ -2,6 +2,7 @@
   "name": "nocodb-nest",
   "version": "0.0.1",
   "description": "NocoDB Backend (Nest)",
+  "main": "dist/bundle.js",
   "author": {
     "name": "NocoDB Inc",
     "url": "https://nocodb.com/"
@@ -18,6 +19,7 @@
   "license": "AGPL-3.0-or-later",
   "scripts": {
     "build": "nest build",
+    "build:obfuscate": "EE=true webpack  --config webpack.config.js",
     "format": "prettier --write \"src/**/*.ts\" \"test/**/*.ts\"",
     "start": "nest start",
     "start:dev": "nest start --watch",
@@ -33,7 +35,8 @@
     "watch:run:playwright:quick": "rm -f ./test_noco.db; cp ../../tests/playwright/fixtures/noco_0_91_7.db ./test_noco.db; cross-env DATABASE_URL=sqlite:./test_noco.db NC_DISABLE_TELE=true EE=true nodemon -e ts,js -w ./src -x \"ts-node src/run/docker --log-error --project tsconfig.json\"",
     "watch:run:playwright:pg:cyquick": "rm -f ./test_noco.db; cp ../../tests/playwright/fixtures/noco_0_91_7.db ./test_noco.db; cross-env NC_DISABLE_TELE=true EE=true nodemon -e ts,js -w ./src -x \"ts-node src/run/dockerRunPG_CyQuick.ts --log-error --project tsconfig.json\"",
     "test:unit": "cross-env TS_NODE_PROJECT=./tests/unit/tsconfig.json mocha -r ts-node/register   tests/unit/index.test.ts --recursive --timeout 300000  --exit --delay",
-    "test:unit:pg": "cp tests/unit/.pg.env tests/unit/.env; cross-env TS_NODE_PROJECT=./tests/unit/tsconfig.json mocha -r ts-node/register   tests/unit/index.test.ts --recursive --timeout 300000  --exit --delay"
+    "test:unit:pg": "cp tests/unit/.pg.env tests/unit/.env; cross-env TS_NODE_PROJECT=./tests/unit/tsconfig.json mocha -r ts-node/register   tests/unit/index.test.ts --recursive --timeout 300000  --exit --delay",
+    "docker:build": "EE=\"true-xc-test\" webpack  --config docker/webpack.config.js"
   },
   "dependencies": {
     "@google-cloud/storage": "^5.7.2",
@@ -151,6 +154,7 @@
     "@typescript-eslint/eslint-plugin": "^5.0.0",
     "@typescript-eslint/parser": "^5.0.0",
     "chai": "^4.2.0",
+    "copy-webpack-plugin": "^11.0.0",
     "cross-env": "^7.0.3",
     "eslint": "^7.8.0",
     "eslint-config-prettier": "^6.15.0",
@@ -168,7 +172,8 @@
     "ts-loader": "^9.2.3",
     "ts-node": "^10.0.0",
     "tsconfig-paths": "4.2.0",
-    "typescript": "^4.7.4"
+    "typescript": "^4.7.4",
+    "webpack-cli": "^5.0.1"
   },
   "jest": {
     "moduleFileExtensions": [

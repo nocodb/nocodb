@@ -34,3 +34,5 @@ lerna-debug.log*
 !.vscode/launch.json
 !.vscode/extensions.json
 /noco.db
+
+/docker/main.js

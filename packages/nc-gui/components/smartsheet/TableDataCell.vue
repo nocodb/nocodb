@@ -11,7 +11,7 @@ provide(CurrentCellInj, el)
 </script>
 
 <template>
-  <td ref="el" @click="cellClickHook.trigger($event)">
+  <td ref="el" class="select-none" @click="cellClickHook.trigger($event)">
     <slot />
   </td>
 </template>

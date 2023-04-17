@@ -24,7 +24,7 @@ import Audit from '../models/Audit';
 import NcProjectBuilderEE from './v1-legacy/NcProjectBuilder';
 import type GalleryView from '../models/GalleryView';
 import type FormView from '../models/FormView';
-import type { ViewType } from 'nocodb-sdk';
+import type { UserType, ViewType } from 'nocodb-sdk';
 import type KanbanView from '../models/KanbanView';
 import type GridView from '../models/GridView';
 import type RollupColumn from '../models/RollupColumn';
@@ -64,7 +64,7 @@ export default async function (ctx: NcUpgraderCtx) {
 
 async function migrateUsers(ncMeta = Noco.ncMeta) {
   const users = await ncMeta.metaList(null, null, 'xc_users');
-  const userObj: { [id: string]: User } = {};
+  const userObj: { [id: string]: User | UserType } = {};
 
   for (const user of users) {
     const user1 = await User.insert(user, ncMeta);
@@ -106,7 +106,7 @@ async function migrateProjects(
 
 async function migrateProjectUsers(
   projectsObj: { [p: string]: Project },
-  usersObj: { [p: string]: User },
+  usersObj: { [p: string]: User | UserType },
   ncMeta = Noco.ncMeta,
 ) {
   const projectUsers = await ncMeta.metaList(null, null, 'nc_projects_users');

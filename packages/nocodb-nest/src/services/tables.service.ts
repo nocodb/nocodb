@@ -22,6 +22,7 @@ import type {
   ColumnType,
   NormalColumnRequestType,
   TableReqType,
+  UserType,
 } from 'nocodb-sdk';
 
 @Injectable()
@@ -195,7 +196,10 @@ export class TablesService {
     return table.delete();
   }
 
-  async getTableWithAccessibleViews(param: { tableId: string; user: User }) {
+  async getTableWithAccessibleViews(param: {
+    tableId: string;
+    user: User | UserType;
+  }) {
     const table = await Model.getWithInfo({
       id: param.tableId,
     });
@@ -309,7 +313,7 @@ export class TablesService {
     projectId: string;
     baseId?: string;
     table: TableReqType;
-    user: User;
+    user: User | UserType;
     req?: any;
   }) {
     validatePayload('swagger.json#/components/schemas/TableReq', param.table);

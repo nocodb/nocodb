@@ -1,5 +1,8 @@
 {
   "openapi": "3.1.0",
+  "x-stoplight": {
+    "id": "qiz1rcfqd2jy6"
+  },
   "info": {
     "title": "nocodb",
     "version": "1.0",
@@ -47,6 +50,519 @@
     }
   ],
   "paths": {
+    "/api/v1/public/docs/pages": {
+      "get": {
+        "summary": "list public pages",
+        "operationId": "list-public-pages",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/DocsPage"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "Noco docs"
+        ],
+        "parameters": [
+          {
+            "name": "projectId",
+            "in": "query",
+            "description": "Project id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "parent_page_id",
+            "in": "query",
+            "description": "parent_page_id",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "description": ""
+      }
+    },
+    "/api/v1/public/docs/page/{id}": {
+      "get": {
+        "summary": "get public page",
+        "operationId": "get-public-page",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "page": {
+                      "$ref": "#/components/schemas/DocsPage"
+                    },
+                    "project": {
+                      "$ref": "#/components/schemas/Project"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "Noco docs"
+        ],
+        "parameters": [
+          {
+            "name": "projectId",
+            "in": "query",
+            "description": "Project id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "description": ""
+      }
+    },
+    "/api/v1/docs/pages/magic": {
+      "post": {
+        "summary": "Create nested pages magic",
+        "operationId": "create-nested-pages-magic",
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        },
+        "tags": [
+          "Noco docs"
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "projectId": {
+                    "type": "string",
+                    "description": "Project id",
+                    "required": true
+                  },
+                  "title": {
+                    "type": "string",
+                    "description": "Title",
+                    "required": true
+                  }
+                }
+              }
+            }
+          },
+          "required": true
+        },
+        "description": "Create book"
+      },
+      "parameters": []
+    },
+    "/api/v1/docs/pages/import": {
+      "post": {
+        "summary": "Import pages",
+        "operationId": "import-pages",
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        },
+        "tags": [
+          "Noco docs"
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "user": {
+                    "type": "string",
+                    "description": "Project id",
+                    "required": true
+                  },
+                  "repo": {
+                    "type": "string",
+                    "description": "Project id",
+                    "required": true
+                  },
+                  "branch": {
+                    "type": "string",
+                    "description": "Project id",
+                    "required": true
+                  },
+                  "path": {
+                    "type": "string",
+                    "description": "Project id",
+                    "required": true
+                  },
+                  "projectId": {
+                    "type": "string",
+                    "description": "Project id",
+                    "required": true
+                  },
+                  "type": {
+                    "type": "string",
+                    "description": "Project id",
+                    "required": true
+                  },
+                  "from": {
+                    "type": "string",
+                    "description": "Project id",
+                    "required": true
+                  }
+                }
+              }
+            }
+          },
+          "required": true
+        },
+        "description": "Import pages"
+      },
+      "parameters": []
+    },
+    "/api/v1/docs/page/magic-outline": {
+      "post": {
+        "summary": "Magic outline page",
+        "operationId": "magic-outline-page",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "Noco docs"
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "pageId": {
+                    "type": "string",
+                    "description": "Page id",
+                    "required": true
+                  },
+                  "projectId": {
+                    "type": "string",
+                    "description": "Project id",
+                    "required": true
+                  }
+                }
+              }
+            }
+          },
+          "required": true
+        },
+        "description": "Magic page content"
+      },
+      "parameters": []
+    },
+    "/api/v1/docs/page/magic-expand": {
+      "post": {
+        "summary": "Magic expand text",
+        "operationId": "magic-expand-text",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "Noco docs"
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "pageId": {
+                    "type": "string",
+                    "description": "Page id",
+                    "required": true
+                  },
+                  "projectId": {
+                    "type": "string",
+                    "description": "Project id",
+                    "required": true
+                  },
+                  "text": {
+                    "type": "string",
+                    "description": "Text",
+                    "required": true
+                  }
+                }
+              }
+            }
+          },
+          "required": true
+        },
+        "description": "Magic page content"
+      },
+      "parameters": []
+    },
+    "/api/v1/docs/pages": {
+      "get": {
+        "summary": "List pages",
+        "operationId": "list-pages",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/DocsPage"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "Noco docs"
+        ],
+        "parameters": [
+          {
+            "name": "projectId",
+            "in": "query",
+            "description": "Page number",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "parent_page_id",
+            "in": "query",
+            "description": "Parent page id",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "description": "List pages"
+      },
+      "parameters": []
+    },
+    "/api/v1/docs/page-parents": {
+      "get": {
+        "summary": "Parent pages",
+        "operationId": "parent-pages",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/DocsPage"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "Noco docs"
+        ],
+        "parameters": [
+          {
+            "name": "projectId",
+            "in": "query",
+            "description": "Page number",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "pageId",
+            "in": "query",
+            "description": "pageId",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "description": "Paginate pages"
+      },
+      "parameters": []
+    },
+    "/api/v1/docs/page/{id}": {
+      "get": {
+        "summary": "Get page",
+        "operationId": "get-page",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DocsPage"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "Noco docs"
+        ],
+        "parameters": [
+          {
+            "name": "projectId",
+            "in": "query",
+            "description": "Project id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "description": "Get page"
+      },
+      "delete": {
+        "summary": "Delete page",
+        "operationId": "delete-page",
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        },
+        "tags": [
+          "Noco docs"
+        ],
+        "parameters": [
+          {
+            "name": "projectId",
+            "in": "query",
+            "description": "Project id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "description": "Delete page"
+      },
+      "put": {
+        "summary": "Update page",
+        "operationId": "update-page",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DocsPage"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "Noco docs"
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "attributes": {
+                    "$ref": "#/components/schemas/DocsPage"
+                  },
+                  "projectId": {
+                    "type": "string",
+                    "description": "Project id",
+                    "required": true
+                  }
+                }
+              }
+            }
+          },
+          "required": true
+        },
+        "description": "Update page"
+      }
+    },
+    "/api/v1/docs/page": {
+      "post": {
+        "summary": "Create page",
+        "operationId": "create-page",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DocsPage"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "Noco docs"
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "attributes": {
+                    "$ref": "#/components/schemas/DocsPage"
+                  },
+                  "projectId": {
+                    "type": "string",
+                    "description": "Project id",
+                    "required": true
+                  }
+                }
+              }
+            }
+          },
+          "required": true
+        },
+        "description": "Create page"
+      },
+      "parameters": []
+    },
     "/api/v1/auth/user/signup": {
       "post": {
         "summary": "Signup",
@@ -1246,6 +1762,38 @@
         "description": "Delete an organisation user by User ID. Exclusive for Super Admin. Access with API Tokens will be blocked."
       }
     },
+    "/api/v1/users/{username}": {
+      "parameters": [
+        {
+          "schema": {
+            "type": "string"
+          },
+          "name": "username",
+          "in": "path",
+          "required": true
+        }
+      ],
+      "get": {
+        "summary": "Organisation User GetByUsername",
+        "operationId": "org-users-get-by-username",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/User"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "Org users"
+        ],
+        "description": "Organisation User GetByUsername"
+      }
+    },
     "/api/v1/users/{userId}/resend-invite": {
       "parameters": [
         {
@@ -1300,6 +1848,212 @@
           {
             "$ref": "#/components/parameters/xc-auth"
           }
+        ]
+      }
+    },
+    "/api/v1/users/{userId}/profile": {
+      "parameters": [
+        {
+          "schema": {
+            "type": "string"
+          },
+          "name": "userId",
+          "in": "path",
+          "required": true
+        }
+      ],
+      "post": {
+        "summary": "Organisation User Profile - Create",
+        "operationId": "org-users-profile-create",
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        },
+        "tags": [
+          "Org users"
+        ],
+        "description": "Create Organisation User Profile",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/User"
+              }
+            }
+          }
+        }
+      },
+      "get": {
+        "summary": "Organisation User Profile - Get",
+        "operationId": "org-users-profile-get",
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        },
+        "description": "Get Organisation User Profile",
+        "tags": [
+          "Org users"
+        ]
+      },
+      "patch": {
+        "summary": "",
+        "operationId": "org-users-profile-update",
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        },
+        "description": "Update Organisation User Profile\n",
+        "tags": [
+          "Org users"
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/User"
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/users/{userId}/follower": {
+      "parameters": [
+        {
+          "schema": {
+            "type": "string"
+          },
+          "name": "userId",
+          "in": "path",
+          "required": true
+        }
+      ],
+      "post": {
+        "summary": "Organisation User Follower - Create",
+        "operationId": "org-users-follower-create",
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        },
+        "tags": [
+          "Org users"
+        ],
+        "description": "Create Organisation User Follower Relationship (Follow)",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/Follower"
+              }
+            }
+          }
+        }
+      },
+      "get": {
+        "summary": "Organisation User Follower - List",
+        "operationId": "org-users-follower-list",
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        },
+        "description": "List Organisation User Followers",
+        "tags": [
+          "Org users"
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/Follower"
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "summary": "Organisation User Follower - Delete",
+        "operationId": "org-users-follower-delete",
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        },
+        "tags": [
+          "Org users"
+        ],
+        "description": "Delete Organisation User Follower Relationship (Unfollow)",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/Follower"
+              }
+            }
+          },
+          "description": ""
+        }
+      }
+    },
+    "/api/v1/users/{userId}/following": {
+      "parameters": [
+        {
+          "schema": {
+            "type": "string"
+          },
+          "name": "userId",
+          "in": "path",
+          "required": true
+        }
+      ],
+      "get": {
+        "summary": "Organisation User Following - List",
+        "operationId": "org-users-following-list",
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        },
+        "description": "List Organisation User Following",
+        "tags": [
+          "Org users"
+        ]
+      }
+    },
+    "/api/v1/users/{userId}/isFollowing/{followerId}": {
+      "parameters": [
+        {
+          "schema": {
+            "type": "string"
+          },
+          "name": "userId",
+          "in": "path",
+          "required": true
+        },
+        {
+          "schema": {
+            "type": "string"
+          },
+          "name": "followerId",
+          "in": "path",
+          "required": true
+        }
+      ],
+      "get": {
+        "summary": "Organisation User IsFollowing",
+        "operationId": "org-users-is-following",
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        },
+        "description": "Check if Organisation User is following someone",
+        "tags": [
+          "Org users"
         ]
       }
     },
@@ -2026,7 +2780,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/ProjectReq"
+                  "$ref": "#/components/schemas/Project"
                 }
               }
             }
@@ -2041,7 +2795,7 @@
               "schema": {
                 "allOf": [
                   {
-                    "$ref": "#/components/schemas/Project"
+                    "$ref": "#/components/schemas/ProjectReq"
                   },
                   {
                     "type": "object",
@@ -2254,6 +3008,39 @@
         ]
       }
     },
+    "/api/v1/db/meta/projects/{projectId}/user": {
+      "parameters": [
+        {
+          "schema": {
+            "type": "string"
+          },
+          "name": "projectId",
+          "in": "path",
+          "required": true
+        }
+      ],
+      "patch": {
+        "summary": "Project user meta update",
+        "operationId": "project-user-meta-update",
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        },
+        "tags": [
+          "Project"
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ProjectUserMetaReq"
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/v1/db/meta/projects/{projectId}/bases/{baseId}": {
       "parameters": [
         {
@@ -2427,6 +3214,63 @@
         ]
       }
     },
+    "/api/v1/db/meta/projects/:projectId/bases/:baseId/sqlView": {
+      "parameters": [
+        {
+          "schema": {
+            "type": "string"
+          },
+          "name": "projectId",
+          "in": "path",
+          "required": true
+        },
+        {
+          "schema": {
+            "type": "string"
+          },
+          "name": "baseId",
+          "in": "path",
+          "required": true
+        }
+      ],
+      "post": {
+        "summary": "Create sql view",
+        "operationId": "create-sql-view",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {}
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "Base"
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "view_name": {
+                    "type": "string"
+                  },
+                  "view_definition": {
+                    "type": "string"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/v1/db/meta/projects/{projectId}/bases/": {
       "parameters": [
         {
@@ -2559,6 +3403,57 @@
           {
             "$ref": "#/components/parameters/xc-auth"
           }
+        ]
+      }
+    },
+    "/api/v1/db/meta/projects/{projectId}/bases/{baseId}/share/erd": {
+      "parameters": [
+        {
+          "schema": {
+            "type": "string"
+          },
+          "name": "projectId",
+          "in": "path",
+          "required": true
+        },
+        {
+          "schema": {
+            "type": "string"
+          },
+          "name": "baseId",
+          "in": "path",
+          "required": true
+        }
+      ],
+      "post": {
+        "summary": "share ERD view",
+        "operationId": "base-share-erd",
+        "tags": [
+          "Base"
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Base"
+                }
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "summary": "",
+        "operationId": "base-disable-share-erd",
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        },
+        "tags": [
+          "Base"
         ]
       }
     },
@@ -3265,517 +4160,6 @@
         "description": "List all tables in a given project"
       }
     },
-    "/api/v1/db/meta/tables/{tableId}": {
-      "parameters": [
-        {
-          "schema": {
-            "$ref": "#/components/schemas/Id",
-            "example": "md_w9gpnaousnfss1",
-            "type": "string"
-          },
-          "name": "tableId",
-          "in": "path",
-          "required": true,
-          "description": "Unique Table ID"
-        }
-      ],
-      "get": {
-        "summary": "Read Table",
-        "operationId": "db-table-read",
-        "responses": {
-          "200": {
-            "description": "OK",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/Table"
-                },
-                "examples": {
-                  "Example 1": {
-                    "value": {
-                      "id": "md_rsu68aqjsbyqtl",
-                      "base_id": "ds_g4ccx6e77h1dmi",
-                      "project_id": "p_xm3thidrblw4n7",
-                      "table_name": "nc_vm5q___Table1",
-                      "title": "Table1",
-                      "type": "table",
-                      "meta": null,
-                      "schema": null,
-                      "enabled": 1,
-                      "mm": 0,
-                      "tags": null,
-                      "pinned": null,
-                      "deleted": null,
-                      "order": 1,
-                      "created_at": "2023-03-02 17:04:06",
-                      "updated_at": "2023-03-02 17:04:08",
-                      "columns": [
-                        {
-                          "id": "cl_phvuuwjrzcdo0g",
-                          "base_id": "ds_g4ccx6e77h1dmi",
-                          "project_id": "p_xm3thidrblw4n7",
-                          "fk_model_id": "md_rsu68aqjsbyqtl",
-                          "title": "Id",
-                          "column_name": "id",
-                          "uidt": "ID",
-                          "dt": "int",
-                          "np": "10",
-                          "ns": "0",
-                          "clen": null,
-                          "cop": "1",
-                          "pk": 1,
-                          "pv": null,
-                          "rqd": 1,
-                          "un": 1,
-                          "ct": "int unsigned",
-                          "ai": 1,
-                          "unique": 0,
-                          "cdf": null,
-                          "cc": "",
-                          "csn": null,
-                          "dtx": "specificType",
-                          "dtxp": "",
-                          "dtxs": "0",
-                          "au": 0,
-                          "validate": null,
-                          "virtual": null,
-                          "deleted": null,
-                          "system": 0,
-                          "order": 1,
-                          "created_at": "2023-03-02 17:04:06",
-                          "updated_at": "2023-03-02 17:04:06",
-                          "meta": null
-                        },
-                        {
-                          "id": "cl_c5knoi4xs4sfpt",
-                          "base_id": "ds_g4ccx6e77h1dmi",
-                          "project_id": "p_xm3thidrblw4n7",
-                          "fk_model_id": "md_rsu68aqjsbyqtl",
-                          "title": "Title",
-                          "column_name": "title",
-                          "uidt": "SingleLineText",
-                          "dt": "varchar",
-                          "np": null,
-                          "ns": null,
-                          "clen": "45",
-                          "cop": "2",
-                          "pk": 0,
-                          "pv": 1,
-                          "rqd": 0,
-                          "un": 0,
-                          "ct": "varchar(45)",
-                          "ai": 0,
-                          "unique": 0,
-                          "cdf": null,
-                          "cc": "",
-                          "csn": "utf8mb4",
-                          "dtx": "specificType",
-                          "dtxp": "45",
-                          "dtxs": null,
-                          "au": 0,
-                          "validate": null,
-                          "virtual": null,
-                          "deleted": null,
-                          "system": 0,
-                          "order": 2,
-                          "created_at": "2023-03-02 17:04:06",
-                          "updated_at": "2023-03-02 17:04:06",
-                          "meta": null
-                        },
-                        {
-                          "id": "cl_jpl0qu4gj4rexq",
-                          "base_id": "ds_g4ccx6e77h1dmi",
-                          "project_id": "p_xm3thidrblw4n7",
-                          "fk_model_id": "md_rsu68aqjsbyqtl",
-                          "title": "CreatedAt",
-                          "column_name": "created_at",
-                          "uidt": "DateTime",
-                          "dt": "timestamp",
-                          "np": null,
-                          "ns": null,
-                          "clen": null,
-                          "cop": "3",
-                          "pk": 0,
-                          "pv": null,
-                          "rqd": 0,
-                          "un": 0,
-                          "ct": "timestamp",
-                          "ai": 0,
-                          "unique": 0,
-                          "cdf": "CURRENT_TIMESTAMP",
-                          "cc": "",
-                          "csn": null,
-                          "dtx": "specificType",
-                          "dtxp": "0",
-                          "dtxs": null,
-                          "au": 0,
-                          "validate": null,
-                          "virtual": null,
-                          "deleted": null,
-                          "system": 0,
-                          "order": 3,
-                          "created_at": "2023-03-02 17:04:06",
-                          "updated_at": "2023-03-02 17:04:06",
-                          "meta": null
-                        },
-                        {
-                          "id": "cl_m4wkaqgqqjzoeh",
-                          "base_id": "ds_g4ccx6e77h1dmi",
-                          "project_id": "p_xm3thidrblw4n7",
-                          "fk_model_id": "md_rsu68aqjsbyqtl",
-                          "title": "UpdatedAt",
-                          "column_name": "updated_at",
-                          "uidt": "DateTime",
-                          "dt": "timestamp",
-                          "np": null,
-                          "ns": null,
-                          "clen": null,
-                          "cop": "4",
-                          "pk": 0,
-                          "pv": null,
-                          "rqd": 0,
-                          "un": 0,
-                          "ct": "timestamp",
-                          "ai": 0,
-                          "unique": 0,
-                          "cdf": "CURRENT_TIMESTAMP on update CURRENT_TIMESTAMP",
-                          "cc": "",
-                          "csn": null,
-                          "dtx": "specificType",
-                          "dtxp": "0",
-                          "dtxs": null,
-                          "au": 0,
-                          "validate": null,
-                          "virtual": null,
-                          "deleted": null,
-                          "system": 0,
-                          "order": 4,
-                          "created_at": "2023-03-02 17:04:06",
-                          "updated_at": "2023-03-02 17:04:06",
-                          "meta": null
-                        }
-                      ],
-                      "views": [
-                        {
-                          "ptn": "nc_vm5q___Table1",
-                          "_ptn": "Table1",
-                          "ptype": "table",
-                          "tn": "Table1",
-                          "_tn": "Table1",
-                          "table_meta": null,
-                          "id": "vw_p2jcatxz4mvcfw",
-                          "base_id": "ds_g4ccx6e77h1dmi",
-                          "project_id": "p_xm3thidrblw4n7",
-                          "fk_model_id": "md_rsu68aqjsbyqtl",
-                          "title": "Table1",
-                          "type": 3,
-                          "is_default": 1,
-                          "show_system_fields": null,
-                          "lock_type": "collaborative",
-                          "uuid": null,
-                          "password": null,
-                          "show": 1,
-                          "order": 1,
-                          "created_at": "2023-03-02 17:04:06",
-                          "updated_at": "2023-03-02 17:04:06",
-                          "meta": {},
-                          "view": {
-                            "fk_view_id": "vw_p2jcatxz4mvcfw",
-                            "base_id": "ds_g4ccx6e77h1dmi",
-                            "project_id": "p_xm3thidrblw4n7",
-                            "uuid": null,
-                            "created_at": "2023-03-02 17:04:06",
-                            "updated_at": "2023-03-02 17:04:06",
-                            "meta": null,
-                            "row_height": null
-                          },
-                          "disabled": {
-                            "owner": false,
-                            "creator": false,
-                            "viewer": false,
-                            "editor": false,
-                            "commenter": false,
-                            "guest": false
-                          }
-                        }
-                      ],
-                      "columnsById": {
-                        "cl_phvuuwjrzcdo0g": {
-                          "id": "cl_phvuuwjrzcdo0g",
-                          "base_id": "ds_g4ccx6e77h1dmi",
-                          "project_id": "p_xm3thidrblw4n7",
-                          "fk_model_id": "md_rsu68aqjsbyqtl",
-                          "title": "Id",
-                          "column_name": "id",
-                          "uidt": "ID",
-                          "dt": "int",
-                          "np": "10",
-                          "ns": "0",
-                          "clen": null,
-                          "cop": "1",
-                          "pk": 1,
-                          "pv": null,
-                          "rqd": 1,
-                          "un": 1,
-                          "ct": "int unsigned",
-                          "ai": 1,
-                          "unique": 0,
-                          "cdf": null,
-                          "cc": "",
-                          "csn": null,
-                          "dtx": "specificType",
-                          "dtxp": "",
-                          "dtxs": "0",
-                          "au": 0,
-                          "validate": null,
-                          "virtual": null,
-                          "deleted": null,
-                          "system": 0,
-                          "order": 1,
-                          "created_at": "2023-03-02 17:04:06",
-                          "updated_at": "2023-03-02 17:04:06",
-                          "meta": null
-                        },
-                        "cl_c5knoi4xs4sfpt": {
-                          "id": "cl_c5knoi4xs4sfpt",
-                          "base_id": "ds_g4ccx6e77h1dmi",
-                          "project_id": "p_xm3thidrblw4n7",
-                          "fk_model_id": "md_rsu68aqjsbyqtl",
-                          "title": "Title",
-                          "column_name": "title",
-                          "uidt": "SingleLineText",
-                          "dt": "varchar",
-                          "np": null,
-                          "ns": null,
-                          "clen": "45",
-                          "cop": "2",
-                          "pk": 0,
-                          "pv": 1,
-                          "rqd": 0,
-                          "un": 0,
-                          "ct": "varchar(45)",
-                          "ai": 0,
-                          "unique": 0,
-                          "cdf": null,
-                          "cc": "",
-                          "csn": "utf8mb4",
-                          "dtx": "specificType",
-                          "dtxp": "45",
-                          "dtxs": null,
-                          "au": 0,
-                          "validate": null,
-                          "virtual": null,
-                          "deleted": null,
-                          "system": 0,
-                          "order": 2,
-                          "created_at": "2023-03-02 17:04:06",
-                          "updated_at": "2023-03-02 17:04:06",
-                          "meta": null
-                        },
-                        "cl_jpl0qu4gj4rexq": {
-                          "id": "cl_jpl0qu4gj4rexq",
-                          "base_id": "ds_g4ccx6e77h1dmi",
-                          "project_id": "p_xm3thidrblw4n7",
-                          "fk_model_id": "md_rsu68aqjsbyqtl",
-                          "title": "CreatedAt",
-                          "column_name": "created_at",
-                          "uidt": "DateTime",
-                          "dt": "timestamp",
-                          "np": null,
-                          "ns": null,
-                          "clen": null,
-                          "cop": "3",
-                          "pk": 0,
-                          "pv": null,
-                          "rqd": 0,
-                          "un": 0,
-                          "ct": "timestamp",
-                          "ai": 0,
-                          "unique": 0,
-                          "cdf": "CURRENT_TIMESTAMP",
-                          "cc": "",
-                          "csn": null,
-                          "dtx": "specificType",
-                          "dtxp": "0",
-                          "dtxs": null,
-                          "au": 0,
-                          "validate": null,
-                          "virtual": null,
-                          "deleted": null,
-                          "system": 0,
-                          "order": 3,
-                          "created_at": "2023-03-02 17:04:06",
-                          "updated_at": "2023-03-02 17:04:06",
-                          "meta": null
-                        },
-                        "cl_m4wkaqgqqjzoeh": {
-                          "id": "cl_m4wkaqgqqjzoeh",
-                          "base_id": "ds_g4ccx6e77h1dmi",
-                          "project_id": "p_xm3thidrblw4n7",
-                          "fk_model_id": "md_rsu68aqjsbyqtl",
-                          "title": "UpdatedAt",
-                          "column_name": "updated_at",
-                          "uidt": "DateTime",
-                          "dt": "timestamp",
-                          "np": null,
-                          "ns": null,
-                          "clen": null,
-                          "cop": "4",
-                          "pk": 0,
-                          "pv": null,
-                          "rqd": 0,
-                          "un": 0,
-                          "ct": "timestamp",
-                          "ai": 0,
-                          "unique": 0,
-                          "cdf": "CURRENT_TIMESTAMP on update CURRENT_TIMESTAMP",
-                          "cc": "",
-                          "csn": null,
-                          "dtx": "specificType",
-                          "dtxp": "0",
-                          "dtxs": null,
-                          "au": 0,
-                          "validate": null,
-                          "virtual": null,
-                          "deleted": null,
-                          "system": 0,
-                          "order": 4,
-                          "created_at": "2023-03-02 17:04:06",
-                          "updated_at": "2023-03-02 17:04:06",
-                          "meta": null
-                        }
-                      }
-                    }
-                  }
-                }
-              }
-            }
-          },
-          "400": {
-            "$ref": "#/components/responses/BadRequest"
-          }
-        },
-        "tags": ["DB Table"],
-        "description": "Read the table meta data by the given table ID",
-        "parameters": [
-          {
-            "$ref": "#/components/parameters/xc-auth"
-          }
-        ]
-      },
-      "patch": {
-        "summary": "Update Table",
-        "operationId": "db-table-update",
-        "responses": {
-          "200": {
-            "description": "OK",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "object",
-                  "properties": {
-                    "msg": {
-                      "type": "string",
-                      "x-stoplight": {
-                        "id": "5a0g9yvs4e678"
-                      },
-                      "example": "The table has been updated successfully"
-                    }
-                  }
-                },
-                "examples": {
-                  "Example 1": {
-                    "value": {
-                      "msg": "The table has been updated successfully"
-                    }
-                  }
-                }
-              }
-            }
-          },
-          "400": {
-            "$ref": "#/components/responses/BadRequest"
-          }
-        },
-        "tags": ["DB Table"],
-        "requestBody": {
-          "content": {
-            "application/json": {
-              "schema": {
-                "type": "object",
-                "properties": {
-                  "table_name": {
-                    "type": "string",
-                    "description": "Table name",
-                    "example": "users"
-                  },
-                  "title": {
-                    "type": "string",
-                    "description": "Table title",
-                    "example": "Users"
-                  },
-                  "project_id": {
-                    "type": "string",
-                    "description": "Project ID",
-                    "example": "p_124hhlkbeasewh"
-                  },
-                  "meta": {
-                    "$ref": "#/components/schemas/Meta"
-                  }
-                }
-              },
-              "examples": {
-                "Example 1": {
-                  "value": {
-                    "table_name": "users",
-                    "title": "Users",
-                    "project_id": "p_124hhlkbeasewh",
-                    "meta": null
-                  }
-                }
-              }
-            }
-          }
-        },
-        "description": "Update the table meta data by the given table ID",
-        "parameters": [
-          {
-            "$ref": "#/components/parameters/xc-auth"
-          }
-        ]
-      },
-      "delete": {
-        "summary": "Delete Table",
-        "operationId": "db-table-delete",
-        "responses": {
-          "200": {
-            "description": "OK",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "boolean"
-                },
-                "examples": {
-                  "Example 1": {
-                    "value": true
-                  }
-                }
-              }
-            }
-          },
-          "400": {
-            "$ref": "#/components/responses/BadRequest"
-          }
-        },
-        "tags": ["DB Table"],
-        "description": "Delete the table meta data by the given table ID",
-        "parameters": [
-          {
-            "$ref": "#/components/parameters/xc-auth"
-          }
-        ]
-      }
-    },
     "/api/v1/db/meta/projects/{projectId}/{baseId}/tables": {
       "parameters": [
         {
@@ -4336,6 +4720,639 @@
         },
         "tags": ["Base"],
         "description": "Create a new table in a given Project and Base",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/xc-auth"
+          }
+        ]
+      }
+    },
+    "/api/v1/db/meta/projects/{projectId}/{baseId}/tables/magic": {
+      "parameters": [
+        {
+          "schema": {
+            "type": "string"
+          },
+          "name": "projectId",
+          "in": "path",
+          "required": true
+        },
+        {
+          "schema": {
+            "type": "string"
+          },
+          "name": "baseId",
+          "in": "path",
+          "required": true
+        }
+      ],
+      "post": {
+        "summary": "",
+        "operationId": "table-magic",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Table"
+                }
+              }
+            }
+          }
+        },
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "title": "table-seed",
+                "type": "object",
+                "properties": {
+                  "table_name": {
+                    "type": "string"
+                  },
+                  "title": {
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "table_name",
+                  "title"
+                ]
+              }
+            }
+          }
+        },
+        "tags": [
+          "Base"
+        ]
+      }
+    },
+    "/api/v1/db/meta/projects/{projectId}/{baseId}/schema/magic": {
+      "parameters": [
+        {
+          "schema": {
+            "type": "string"
+          },
+          "name": "projectId",
+          "in": "path",
+          "required": true
+        },
+        {
+          "schema": {
+            "type": "string"
+          },
+          "name": "baseId",
+          "in": "path",
+          "required": true
+        }
+      ],
+      "post": {
+        "summary": "",
+        "operationId": "schema-magic",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Table"
+                }
+              }
+            }
+          }
+        },
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "title": "schema-seed",
+                "type": "object",
+                "properties": {
+                  "schema_name": {
+                    "type": "string"
+                  },
+                  "title": {
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "schema_name",
+                  "title"
+                ]
+              }
+            }
+          }
+        },
+        "tags": [
+          "Base"
+        ]
+      }
+    },
+    "/api/v1/db/meta/tables/{tableId}": {
+      "parameters": [
+        {
+          "schema": {
+            "$ref": "#/components/schemas/Id",
+            "example": "md_w9gpnaousnfss1",
+            "type": "string"
+          },
+          "name": "tableId",
+          "in": "path",
+          "required": true,
+          "description": "Unique Table ID"
+        }
+      ],
+      "get": {
+        "summary": "Read Table",
+        "operationId": "db-table-read",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Table"
+                },
+                "examples": {
+                  "Example 1": {
+                    "value": {
+                      "id": "md_rsu68aqjsbyqtl",
+                      "base_id": "ds_g4ccx6e77h1dmi",
+                      "project_id": "p_xm3thidrblw4n7",
+                      "table_name": "nc_vm5q___Table1",
+                      "title": "Table1",
+                      "type": "table",
+                      "meta": null,
+                      "schema": null,
+                      "enabled": 1,
+                      "mm": 0,
+                      "tags": null,
+                      "pinned": null,
+                      "deleted": null,
+                      "order": 1,
+                      "created_at": "2023-03-02 17:04:06",
+                      "updated_at": "2023-03-02 17:04:08",
+                      "columns": [
+                        {
+                          "id": "cl_phvuuwjrzcdo0g",
+                          "base_id": "ds_g4ccx6e77h1dmi",
+                          "project_id": "p_xm3thidrblw4n7",
+                          "fk_model_id": "md_rsu68aqjsbyqtl",
+                          "title": "Id",
+                          "column_name": "id",
+                          "uidt": "ID",
+                          "dt": "int",
+                          "np": "10",
+                          "ns": "0",
+                          "clen": null,
+                          "cop": "1",
+                          "pk": 1,
+                          "pv": null,
+                          "rqd": 1,
+                          "un": 1,
+                          "ct": "int unsigned",
+                          "ai": 1,
+                          "unique": 0,
+                          "cdf": null,
+                          "cc": "",
+                          "csn": null,
+                          "dtx": "specificType",
+                          "dtxp": "",
+                          "dtxs": "0",
+                          "au": 0,
+                          "validate": null,
+                          "virtual": null,
+                          "deleted": null,
+                          "system": 0,
+                          "order": 1,
+                          "created_at": "2023-03-02 17:04:06",
+                          "updated_at": "2023-03-02 17:04:06",
+                          "meta": null
+                        },
+                        {
+                          "id": "cl_c5knoi4xs4sfpt",
+                          "base_id": "ds_g4ccx6e77h1dmi",
+                          "project_id": "p_xm3thidrblw4n7",
+                          "fk_model_id": "md_rsu68aqjsbyqtl",
+                          "title": "Title",
+                          "column_name": "title",
+                          "uidt": "SingleLineText",
+                          "dt": "varchar",
+                          "np": null,
+                          "ns": null,
+                          "clen": "45",
+                          "cop": "2",
+                          "pk": 0,
+                          "pv": 1,
+                          "rqd": 0,
+                          "un": 0,
+                          "ct": "varchar(45)",
+                          "ai": 0,
+                          "unique": 0,
+                          "cdf": null,
+                          "cc": "",
+                          "csn": "utf8mb4",
+                          "dtx": "specificType",
+                          "dtxp": "45",
+                          "dtxs": null,
+                          "au": 0,
+                          "validate": null,
+                          "virtual": null,
+                          "deleted": null,
+                          "system": 0,
+                          "order": 2,
+                          "created_at": "2023-03-02 17:04:06",
+                          "updated_at": "2023-03-02 17:04:06",
+                          "meta": null
+                        },
+                        {
+                          "id": "cl_jpl0qu4gj4rexq",
+                          "base_id": "ds_g4ccx6e77h1dmi",
+                          "project_id": "p_xm3thidrblw4n7",
+                          "fk_model_id": "md_rsu68aqjsbyqtl",
+                          "title": "CreatedAt",
+                          "column_name": "created_at",
+                          "uidt": "DateTime",
+                          "dt": "timestamp",
+                          "np": null,
+                          "ns": null,
+                          "clen": null,
+                          "cop": "3",
+                          "pk": 0,
+                          "pv": null,
+                          "rqd": 0,
+                          "un": 0,
+                          "ct": "timestamp",
+                          "ai": 0,
+                          "unique": 0,
+                          "cdf": "CURRENT_TIMESTAMP",
+                          "cc": "",
+                          "csn": null,
+                          "dtx": "specificType",
+                          "dtxp": "0",
+                          "dtxs": null,
+                          "au": 0,
+                          "validate": null,
+                          "virtual": null,
+                          "deleted": null,
+                          "system": 0,
+                          "order": 3,
+                          "created_at": "2023-03-02 17:04:06",
+                          "updated_at": "2023-03-02 17:04:06",
+                          "meta": null
+                        },
+                        {
+                          "id": "cl_m4wkaqgqqjzoeh",
+                          "base_id": "ds_g4ccx6e77h1dmi",
+                          "project_id": "p_xm3thidrblw4n7",
+                          "fk_model_id": "md_rsu68aqjsbyqtl",
+                          "title": "UpdatedAt",
+                          "column_name": "updated_at",
+                          "uidt": "DateTime",
+                          "dt": "timestamp",
+                          "np": null,
+                          "ns": null,
+                          "clen": null,
+                          "cop": "4",
+                          "pk": 0,
+                          "pv": null,
+                          "rqd": 0,
+                          "un": 0,
+                          "ct": "timestamp",
+                          "ai": 0,
+                          "unique": 0,
+                          "cdf": "CURRENT_TIMESTAMP on update CURRENT_TIMESTAMP",
+                          "cc": "",
+                          "csn": null,
+                          "dtx": "specificType",
+                          "dtxp": "0",
+                          "dtxs": null,
+                          "au": 0,
+                          "validate": null,
+                          "virtual": null,
+                          "deleted": null,
+                          "system": 0,
+                          "order": 4,
+                          "created_at": "2023-03-02 17:04:06",
+                          "updated_at": "2023-03-02 17:04:06",
+                          "meta": null
+                        }
+                      ],
+                      "views": [
+                        {
+                          "ptn": "nc_vm5q___Table1",
+                          "_ptn": "Table1",
+                          "ptype": "table",
+                          "tn": "Table1",
+                          "_tn": "Table1",
+                          "table_meta": null,
+                          "id": "vw_p2jcatxz4mvcfw",
+                          "base_id": "ds_g4ccx6e77h1dmi",
+                          "project_id": "p_xm3thidrblw4n7",
+                          "fk_model_id": "md_rsu68aqjsbyqtl",
+                          "title": "Table1",
+                          "type": 3,
+                          "is_default": 1,
+                          "show_system_fields": null,
+                          "lock_type": "collaborative",
+                          "uuid": null,
+                          "password": null,
+                          "show": 1,
+                          "order": 1,
+                          "created_at": "2023-03-02 17:04:06",
+                          "updated_at": "2023-03-02 17:04:06",
+                          "meta": {},
+                          "view": {
+                            "fk_view_id": "vw_p2jcatxz4mvcfw",
+                            "base_id": "ds_g4ccx6e77h1dmi",
+                            "project_id": "p_xm3thidrblw4n7",
+                            "uuid": null,
+                            "created_at": "2023-03-02 17:04:06",
+                            "updated_at": "2023-03-02 17:04:06",
+                            "meta": null,
+                            "row_height": null
+                          },
+                          "disabled": {
+                            "owner": false,
+                            "creator": false,
+                            "viewer": false,
+                            "editor": false,
+                            "commenter": false,
+                            "guest": false
+                          }
+                        }
+                      ],
+                      "columnsById": {
+                        "cl_phvuuwjrzcdo0g": {
+                          "id": "cl_phvuuwjrzcdo0g",
+                          "base_id": "ds_g4ccx6e77h1dmi",
+                          "project_id": "p_xm3thidrblw4n7",
+                          "fk_model_id": "md_rsu68aqjsbyqtl",
+                          "title": "Id",
+                          "column_name": "id",
+                          "uidt": "ID",
+                          "dt": "int",
+                          "np": "10",
+                          "ns": "0",
+                          "clen": null,
+                          "cop": "1",
+                          "pk": 1,
+                          "pv": null,
+                          "rqd": 1,
+                          "un": 1,
+                          "ct": "int unsigned",
+                          "ai": 1,
+                          "unique": 0,
+                          "cdf": null,
+                          "cc": "",
+                          "csn": null,
+                          "dtx": "specificType",
+                          "dtxp": "",
+                          "dtxs": "0",
+                          "au": 0,
+                          "validate": null,
+                          "virtual": null,
+                          "deleted": null,
+                          "system": 0,
+                          "order": 1,
+                          "created_at": "2023-03-02 17:04:06",
+                          "updated_at": "2023-03-02 17:04:06",
+                          "meta": null
+                        },
+                        "cl_c5knoi4xs4sfpt": {
+                          "id": "cl_c5knoi4xs4sfpt",
+                          "base_id": "ds_g4ccx6e77h1dmi",
+                          "project_id": "p_xm3thidrblw4n7",
+                          "fk_model_id": "md_rsu68aqjsbyqtl",
+                          "title": "Title",
+                          "column_name": "title",
+                          "uidt": "SingleLineText",
+                          "dt": "varchar",
+                          "np": null,
+                          "ns": null,
+                          "clen": "45",
+                          "cop": "2",
+                          "pk": 0,
+                          "pv": 1,
+                          "rqd": 0,
+                          "un": 0,
+                          "ct": "varchar(45)",
+                          "ai": 0,
+                          "unique": 0,
+                          "cdf": null,
+                          "cc": "",
+                          "csn": "utf8mb4",
+                          "dtx": "specificType",
+                          "dtxp": "45",
+                          "dtxs": null,
+                          "au": 0,
+                          "validate": null,
+                          "virtual": null,
+                          "deleted": null,
+                          "system": 0,
+                          "order": 2,
+                          "created_at": "2023-03-02 17:04:06",
+                          "updated_at": "2023-03-02 17:04:06",
+                          "meta": null
+                        },
+                        "cl_jpl0qu4gj4rexq": {
+                          "id": "cl_jpl0qu4gj4rexq",
+                          "base_id": "ds_g4ccx6e77h1dmi",
+                          "project_id": "p_xm3thidrblw4n7",
+                          "fk_model_id": "md_rsu68aqjsbyqtl",
+                          "title": "CreatedAt",
+                          "column_name": "created_at",
+                          "uidt": "DateTime",
+                          "dt": "timestamp",
+                          "np": null,
+                          "ns": null,
+                          "clen": null,
+                          "cop": "3",
+                          "pk": 0,
+                          "pv": null,
+                          "rqd": 0,
+                          "un": 0,
+                          "ct": "timestamp",
+                          "ai": 0,
+                          "unique": 0,
+                          "cdf": "CURRENT_TIMESTAMP",
+                          "cc": "",
+                          "csn": null,
+                          "dtx": "specificType",
+                          "dtxp": "0",
+                          "dtxs": null,
+                          "au": 0,
+                          "validate": null,
+                          "virtual": null,
+                          "deleted": null,
+                          "system": 0,
+                          "order": 3,
+                          "created_at": "2023-03-02 17:04:06",
+                          "updated_at": "2023-03-02 17:04:06",
+                          "meta": null
+                        },
+                        "cl_m4wkaqgqqjzoeh": {
+                          "id": "cl_m4wkaqgqqjzoeh",
+                          "base_id": "ds_g4ccx6e77h1dmi",
+                          "project_id": "p_xm3thidrblw4n7",
+                          "fk_model_id": "md_rsu68aqjsbyqtl",
+                          "title": "UpdatedAt",
+                          "column_name": "updated_at",
+                          "uidt": "DateTime",
+                          "dt": "timestamp",
+                          "np": null,
+                          "ns": null,
+                          "clen": null,
+                          "cop": "4",
+                          "pk": 0,
+                          "pv": null,
+                          "rqd": 0,
+                          "un": 0,
+                          "ct": "timestamp",
+                          "ai": 0,
+                          "unique": 0,
+                          "cdf": "CURRENT_TIMESTAMP on update CURRENT_TIMESTAMP",
+                          "cc": "",
+                          "csn": null,
+                          "dtx": "specificType",
+                          "dtxp": "0",
+                          "dtxs": null,
+                          "au": 0,
+                          "validate": null,
+                          "virtual": null,
+                          "deleted": null,
+                          "system": 0,
+                          "order": 4,
+                          "created_at": "2023-03-02 17:04:06",
+                          "updated_at": "2023-03-02 17:04:06",
+                          "meta": null
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          }
+        },
+        "tags": ["DB Table"],
+        "description": "Read the table meta data by the given table ID",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/xc-auth"
+          }
+        ]
+      },
+      "patch": {
+        "summary": "Update Table",
+        "operationId": "db-table-update",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "msg": {
+                      "type": "string",
+                      "x-stoplight": {
+                        "id": "5a0g9yvs4e678"
+                      },
+                      "example": "The table has been updated successfully"
+                    }
+                  }
+                },
+                "examples": {
+                  "Example 1": {
+                    "value": {
+                      "msg": "The table has been updated successfully"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          }
+        },
+        "tags": ["DB Table"],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "table_name": {
+                    "type": "string",
+                    "description": "Table name",
+                    "example": "users"
+                  },
+                  "title": {
+                    "type": "string",
+                    "description": "Table title",
+                    "example": "Users"
+                  },
+                  "project_id": {
+                    "type": "string",
+                    "description": "Project ID",
+                    "example": "p_124hhlkbeasewh"
+                  },
+                  "meta": {
+                    "$ref": "#/components/schemas/Meta"
+                  }
+                }
+              },
+              "examples": {
+                "Example 1": {
+                  "value": {
+                    "table_name": "users",
+                    "title": "Users",
+                    "project_id": "p_124hhlkbeasewh",
+                    "meta": null
+                  }
+                }
+              }
+            }
+          }
+        },
+        "description": "Update the table meta data by the given table ID",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/xc-auth"
+          }
+        ]
+      },
+      "delete": {
+        "summary": "Delete Table",
+        "operationId": "db-table-delete",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "boolean"
+                },
+                "examples": {
+                  "Example 1": {
+                    "value": true
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          }
+        },
+        "tags": ["DB Table"],
+        "description": "Delete the table meta data by the given table ID",
         "parameters": [
           {
             "$ref": "#/components/parameters/xc-auth"
@@ -11422,6 +12439,27 @@
         "description": "Get Share View Meta"
       }
     },
+    "/api/v1/db/public/shared-erd/{sharedErdUuid}/meta": {
+      "parameters": [
+        {
+          "schema": {
+            "type": "string"
+          },
+          "name": "sharedErdUuid",
+          "in": "path",
+          "required": true
+        }
+      ],
+      "get": {
+        "summary": "",
+        "operationId": "public-shared-erd-meta-get",
+        "tags": [
+          "Public"
+        ],
+        "description": "",
+        "parameters": []
+      }
+    },
     "/api/v1/db/meta/audits/comments": {
       "parameters": [
         {
@@ -12342,6 +13380,210 @@
         ]
       }
     },
+    "/api/v1/cowriter/meta/tables/{tableId}": {
+      "parameters": [
+        {
+          "schema": {
+            "type": "string"
+          },
+          "name": "tableId",
+          "in": "path",
+          "required": true
+        }
+      ],
+      "post": {
+        "summary": "Cowriter Create",
+        "operationId": "cowriter-table-create",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Cowriter"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "Cowriter Table"
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object"
+              }
+            }
+          }
+        }
+      },
+      "get": {
+        "summary": "Cowriter List",
+        "operationId": "cowriter-table-list",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CowriterList"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "Cowriter Table"
+        ]
+      }
+    },
+    "/api/v1/cowriter/meta/tables/{tableId}/{cowriterId}": {
+      "parameters": [
+        {
+          "schema": {
+            "type": "string"
+          },
+          "name": "tableId",
+          "in": "path",
+          "required": true
+        },
+        {
+          "schema": {
+            "type": "string"
+          },
+          "name": "cowriterId",
+          "in": "path",
+          "required": true
+        }
+      ],
+      "get": {
+        "summary": "Cowriter Get",
+        "operationId": "cowriter-table-get",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CowriterList"
+                }
+              }
+            }
+          },
+          "": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Cowriter"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "Cowriter Table"
+        ]
+      },
+      "patch": {
+        "summary": "Cowriter Patch",
+        "operationId": "cowriter-table-patch",
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        },
+        "tags": [
+          "Cowriter Table"
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/Cowriter"
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/cowriter/meta/tables/{tableId}/generate-columns": {
+      "parameters": [
+        {
+          "schema": {
+            "type": "string"
+          },
+          "name": "tableId",
+          "in": "path",
+          "required": true
+        }
+      ],
+      "post": {
+        "summary": "Cowriter Generate Columns",
+        "operationId": "cowriter-table-generate-columns",
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        },
+        "description": "Generate Columns using AI",
+        "tags": [
+          "Cowriter Table"
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "title": {
+                    "type": "string"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/cowriter/meta/tables/{tableId}/bulk": {
+      "parameters": [
+        {
+          "schema": {
+            "type": "string"
+          },
+          "name": "tableId",
+          "in": "path",
+          "required": true
+        }
+      ],
+      "post": {
+        "summary": "Cowriter Create Bulk",
+        "operationId": "cowriter-table-create-bulk",
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        },
+        "description": "",
+        "tags": [
+          "Cowriter Table"
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "array",
+                "items": {
+                  "$ref": "#/components/schemas/Cowriter"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/v1/db/meta/plugins": {
       "parameters": [
         {
@@ -12671,6 +13913,108 @@
             "$ref": "#/components/parameters/xc-auth"
           }
         ]
+      }
+    },
+    "/api/v1/db/meta/connection/select": {
+      "parameters": [],
+      "post": {
+        "summary": "",
+        "operationId": "utils-select-query",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          }
+        },
+        "tags": [
+          "Utils"
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {}
+          }
+        },
+        "description": ""
+      }
+    },
+    "/api/v1/db/meta/magic": {
+      "parameters": [],
+      "post": {
+        "summary": "Get generic response using NocoAI",
+        "operationId": "utils-magic",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          }
+        },
+        "tags": [
+          "Utils"
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "operation": {
+                    "type": "string",
+                    "required": true,
+                    "enum": [
+                      "selectOptions",
+                      "predictColumnType",
+                      "predictFormula",
+                      "predictNextColumn",
+                      "predictNextFormulas",
+                      "generateSinglePrompt",
+                      "generateQueryPrompt",
+                      "generateSQL",
+                      "repairSQL"
+                    ]
+                  },
+                  "data": {
+                    "type": "object"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "description": "Get select options using NocoAI"
+      }
+    },
+    "/api/v1/command_palette": {
+      "parameters": [],
+      "post": {
+        "summary": "Get command palette suggestions",
+        "operationId": "utils-command-palette",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          }
+        },
+        "tags": [
+          "Utils"
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {}
+          }
+        },
+        "description": "Get dynamic command palette suggestions based on scope"
       }
     },
     "/api/v1/url_to_config": {
@@ -13709,6 +15053,364 @@
           }
         ]
       }
+    },
+    "/api/v1/workspaces": {
+      "get": {
+        "summary": "List workspaces",
+        "operationId": "workspace-list",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/WorkspaceList"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "Workspace"
+        ],
+        "description": "List workspaces"
+      },
+      "post": {
+        "summary": "List workspaces",
+        "operationId": "workspace-create",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "oneOf": [
+                    {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/Workspace"
+                      }
+                    },
+                    {
+                      "$ref": "#/components/schemas/Workspace"
+                    }
+                  ]
+                }
+              }
+            }
+          }
+        },
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "oneOf": [
+                  {
+                    "type": "array",
+                    "items": {
+                      "$ref": "#/components/schemas/Workspace"
+                    }
+                  },
+                  {
+                    "$ref": "#/components/schemas/Workspace"
+                  }
+                ]
+              }
+            }
+          }
+        },
+        "tags": [
+          "Workspace"
+        ],
+        "description": "List workspaces"
+      },
+      "parameters": []
+    },
+    "/api/v1/workspaces/{workspaceId}": {
+      "get": {
+        "summary": "Read workspace",
+        "operationId": "workspace-read",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Workspace"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "Workspace"
+        ],
+        "description": "Read workspace"
+      },
+      "patch": {
+        "summary": "Update workspace",
+        "operationId": "workspace-update",
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        },
+        "tags": [
+          "Workspace"
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/Workspace"
+              }
+            }
+          }
+        },
+        "description": "Update workspace"
+      },
+      "delete": {
+        "summary": "Delete workspace",
+        "operationId": "workspace-delete",
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        },
+        "tags": [
+          "Workspace"
+        ],
+        "description": "Delete workspace"
+      },
+      "parameters": [
+        {
+          "schema": {
+            "type": "string"
+          },
+          "name": "workspaceId",
+          "in": "path",
+          "required": true
+        }
+      ]
+    },
+    "/api/v1/workspaces/{workspaceId}/users": {
+      "get": {
+        "summary": "Workspace users list",
+        "operationId": "workspace-user-list",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/WorkspaceUserList"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "Workspace user"
+        ],
+        "description": "Workspace users list"
+      },
+      "parameters": [
+        {
+          "schema": {
+            "type": "string"
+          },
+          "name": "workspaceId",
+          "in": "path",
+          "required": true
+        }
+      ]
+    },
+    "/api/v1/workspaces/{workspaceId}/projects": {
+      "get": {
+        "summary": "Workspace projects list",
+        "operationId": "workspace-project-list",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProjectList"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "Workspace project"
+        ],
+        "description": "Workspace projects list"
+      },
+      "parameters": [
+        {
+          "schema": {
+            "type": "string"
+          },
+          "name": "workspaceId",
+          "in": "path",
+          "required": true
+        }
+      ]
+    },
+    "/api/v1/workspaces/{toWorkspaceId}/projects/{projectId}/move": {
+      "post": {
+        "summary": "Workspace project move",
+        "operationId": "workspace-project-move",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {}
+            }
+          }
+        },
+        "tags": [
+          "Workspace project"
+        ],
+        "description": "Workspace projects list"
+      },
+      "parameters": [
+        {
+          "schema": {
+            "type": "string"
+          },
+          "name": "toWorkspaceId",
+          "in": "path",
+          "required": true
+        },
+        {
+          "schema": {
+            "type": "string"
+          },
+          "name": "projectId",
+          "in": "path",
+          "required": true
+        }
+      ]
+    },
+    "/api/v1/workspaces/{workspaceId}/invitations": {
+      "post": {
+        "summary": "Workspace user invite",
+        "operationId": "workspace-user-invite",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          }
+        },
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/WorkspaceUserInvite"
+              }
+            }
+          }
+        },
+        "tags": [
+          "Workspace user"
+        ],
+        "description": "Workspace user invite"
+      },
+      "parameters": [
+        {
+          "schema": {
+            "type": "string"
+          },
+          "name": "workspaceId",
+          "in": "path",
+          "required": true
+        }
+      ]
+    },
+    "/api/v1/workspaces/{workspaceId}/users/{userId}": {
+      "get": {
+        "summary": "Workspace user read",
+        "operationId": "workspace-user-read",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/WorkspaceUser"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "Workspace user"
+        ],
+        "description": "Workspace user read"
+      },
+      "patch": {
+        "summary": "Update workspace user",
+        "operationId": "workspace-user-update",
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        },
+        "tags": [
+          "Workspace user"
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "roles": {
+                    "type": "string"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "description": "Update workspace user"
+      },
+      "delete": {
+        "summary": "Delete workspace user",
+        "operationId": "workspace-user-delete",
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        },
+        "tags": [
+          "Workspace User"
+        ],
+        "description": "Delete workspace user"
+      },
+      "parameters": [
+        {
+          "schema": {
+            "type": "string"
+          },
+          "name": "workspaceId",
+          "in": "path",
+          "required": true
+        },
+        {
+          "schema": {
+            "type": "string"
+          },
+          "name": "userId",
+          "in": "path",
+          "required": true
+        }
+      ]
     }
   },
   "components": {
@@ -14880,6 +16582,160 @@
           }
         }
       },
+      "Cowriter": {
+        "description": "Cowriter Model",
+        "properties": {
+          "created_at": {
+            "type": "string"
+          },
+          "created_by": {
+            "type": "string"
+          },
+          "fk_model_id": {
+            "type": "string"
+          },
+          "id": {
+            "type": "string"
+          },
+          "is_read": {
+            "type": "boolean"
+          },
+          "meta": {},
+          "output": {
+            "type": "string"
+          },
+          "prompt_statement": {
+            "type": "string"
+          },
+          "prompt_statement_template": {
+            "type": "string"
+          },
+          "updated_at": {
+            "type": "string"
+          }
+        },
+        "title": "Cowriter",
+        "type": "object",
+        "x-stoplight": {
+          "id": "9oec4p6dooeyw"
+        }
+      },
+      "CowriterList": {
+        "properties": {
+          "list": {
+            "items": {
+              "$ref": "#/components/schemas/Cowriter"
+            },
+            "type": "array"
+          },
+          "pageInfo": {
+            "$ref": "#/components/schemas/Paginated"
+          }
+        },
+        "title": "Cowriter List",
+        "type": "object",
+        "x-stoplight": {
+          "id": "24eab7d1ead43"
+        }
+      },
+      "DocsPage": {
+        "description": "Page of Noco docs",
+        "examples": [
+          {
+            "content": "Smith",
+            "description": "Example description",
+            "id": "142",
+            "order": 1,
+            "title": "Alice"
+          }
+        ],
+        "properties": {
+          "archived_by_id": {
+            "type": "string"
+          },
+          "archived_date": {
+            "format": "date",
+            "type": "string"
+          },
+          "content": {
+            "type": "string"
+          },
+          "created_at": {
+            "format": "date",
+            "type": "string"
+          },
+          "created_by_id": {
+            "type": "string"
+          },
+          "description": {
+            "type": "string"
+          },
+          "icon": {
+            "type": "string"
+          },
+          "id": {
+            "description": "Unique identifier for the given page.",
+            "type": "string"
+          },
+          "is_parent": {
+            "type": "boolean"
+          },
+          "is_published": {
+            "type": "boolean"
+          },
+          "nested_published_parent_id": {
+            "type": [ "string", "null"]
+          },
+          "last_published_by_id": {
+            "type": "string"
+          },
+          "last_published_date": {
+            "format": "date",
+            "type": "string"
+          },
+          "last_updated_by_id": {
+            "type": "string"
+          },
+          "metaJson": {
+            "type": [
+              "object",
+              "string"
+            ]
+          },
+          "order": {
+            "type": "number"
+          },
+          "parent_page_id": {
+            "type": "string"
+          },
+          "project_id": {
+            "type": "string"
+          },
+          "published_content": {
+            "type": "string"
+          },
+          "published_title": {
+            "type": "string"
+          },
+          "slug": {
+            "type": "string"
+          },
+          "title": {
+            "type": "string"
+          },
+          "updated_at": {
+            "format": "date",
+            "type": "string"
+          }
+        },
+        "required": [
+          "content",
+          "title"
+        ],
+        "title": "DocsPage",
+        "type": "object",
+        "x-internal": false
+      },
       "Filter": {
         "description": "Model for Filter",
         "examples": [
@@ -15324,6 +17180,18 @@
         },
         "readOnly": true
       },
+      "Follower": {
+        "properties": {
+          "fk_follower_id": {
+            "type": "string"
+          }
+        },
+        "title": "Follower",
+        "type": "object",
+        "x-stoplight": {
+          "id": "a3aza5b3wavkv"
+        }
+      },
       "Form": {
         "description": "Model for Form",
         "examples": [
@@ -15765,6 +17633,80 @@
         "x-stoplight": {
           "id": "v26r0c9hlimtv"
         }
+      },
+      "Formula": {
+        "description": "Model for Formula",
+        "examples": [
+          {
+            "error": "Error Message shows here",
+            "fk_column_id": "cl_h2micb4jdnmsh1",
+            "formula": "CONCAT(\"FOO\", {{cl_c5knoi4xs4sfpt}})",
+            "formula_raw": "CONCAT(\"FOO\", {Title})",
+            "id": "fm_1lo8wqtvvipdns"
+          }
+        ],
+        "properties": {
+          "error": {
+            "description": "Error Message",
+            "type": "string"
+          },
+          "fk_column_id": {
+            "$ref": "#/components/schemas/Id",
+            "description": "Foreign Key to Column"
+          },
+          "formula": {
+            "description": "Formula with column ID replaced",
+            "example": "CONCAT(\"FOO\", {{cl_c5knoi4xs4sfpt}})",
+            "type": "string"
+          },
+          "formula_raw": {
+            "description": "Original Formula inputted in UI",
+            "example": "CONCAT(\"FOO\", {Title})",
+            "type": "string"
+          },
+          "id": {
+            "$ref": "#/components/schemas/Id",
+            "description": "Unique ID"
+          }
+        },
+        "title": "Formula Model",
+        "type": "object"
+      },
+      "FormulaColumnReq": {
+        "description": "Model for Formula Column Request",
+        "examples": [
+          {
+            "formula": "CONCAT(\"FOO\", {{cl_c5knoi4xs4sfpt}})",
+            "formula_raw": "CONCAT(\"FOO\", {Title})",
+            "title": "Formula",
+            "uidt": "Formula"
+          }
+        ],
+        "properties": {
+          "formula": {
+            "description": "Formula with column ID replaced",
+            "type": "string"
+          },
+          "formula_raw": {
+            "description": "Original Formula inputted in UI",
+            "type": "string"
+          },
+          "title": {
+            "description": "Formula Title",
+            "maxLength": 255,
+            "minLength": 1,
+            "type": "string"
+          },
+          "uidt": {
+            "description": "UI Data Type",
+            "enum": [
+              "Formula"
+            ],
+            "type": "string"
+          }
+        },
+        "title": "Formula Column Request Model",
+        "type": "object"
       },
       "Gallery": {
         "description": "Model for Gallery",
@@ -18103,6 +20045,9 @@
             "example": "nc_vm5q__",
             "type": "string"
           },
+          "type": {
+            "type": "string"
+          },
           "status": {
             "type": "string"
           },
@@ -18334,6 +20279,32 @@
         "required": ["email", "roles"],
         "x-stoplight": {
           "id": "tq2wpd2agebjz"
+        }
+      },
+      "ProjectUserMetaReq": {
+        "description": "Model for Project User Meta Request",
+        "examples": [
+          {
+            "starred": true,
+            "order": 1,
+            "hidden": true
+          }
+        ],
+        "title": "Project User Meta Request Model",
+        "type": "object",
+        "properties": {
+          "starred": {
+            "$ref": "#/components/schemas/Bool",
+            "description": "Star Project"
+          },
+          "order": {
+            "type": "number",
+            "description": "The order among the projects",
+            "example": 1
+          },
+          "hidden": {
+            "$ref": "#/components/schemas/Bool"
+          }
         }
       },
       "Rollup": {
@@ -19659,50 +21630,71 @@
         "description": "Model for User",
         "examples": [
           {
-            "email": "user@example.com",
-            "email_verified": true,
-            "firstname": "Alice",
-            "id": "us_8kugj628ebjngs",
-            "lastname": "Smith",
-            "roles": "org-level-viewer"
+            "id": "142",
+            "user_name": "jaysmith",
+            "display_name": "Jay Smith",
+            "email": "jay.smith@gmail.com",
+            "emailVerified": true,
+            "roles": "org-level-creator,super",
+            "bio": "foo",
+            "location": "Istanbul",
+            "created_at": "2019-08-24",
+            "avatar": "https://dummyimage.com/300.png"
           }
         ],
         "title": "User Model",
         "type": "object",
         "x-internal": false,
         "properties": {
+          "id": {
+            "type": "string",
+            "description": "Unique identifier for the given user."
+          },
           "email": {
-            "description": "The email of the user",
-            "example": "user@example.com",
-            "format": "email",
+            "type": "string",
+            "format": "email"
+          },
+          "roles": {
             "type": "string"
           },
           "email_verified": {
-            "description": "Set to true if the user's email has been verified.",
-            "type": "boolean"
+            "type": "boolean",
+            "description": "Set to true if the user's email has been verified."
           },
-          "firstname": {
-            "description": "The first name of the user",
-            "example": "Alice",
+          "created_at": {
+            "type": "string",
+            "format": "date",
+            "description": "The date that the user was created."
+          },
+          "updated_at": {
+            "type": "string",
+            "format": "date",
+            "description": "The date that the user was created."
+          },
+          "display_name": {
             "type": "string"
           },
-          "id": {
-            "description": "Unique identifier for the given user.",
-            "example": "us_8kugj628ebjngs",
+          "user_name": {
             "type": "string"
           },
-          "lastname": {
-            "description": "The last name of the user",
-            "example": "Smith",
+          "bio": {
             "type": "string"
           },
-          "roles": {
-            "description": "The roles of the user",
-            "example": "org-level-viewer",
+          "location": {
+            "type": "string"
+          },
+          "website": {
+            "type": "string"
+          },
+          "avatar": {
             "type": "string"
           }
         },
-        "required": ["email", "email_verified", "firstname", "id", "lastname"],
+        "required": [
+          "id",
+          "email",
+          "email_verified"
+        ],
         "x-stoplight": {
           "id": "nwug6wvbc5yrp"
         }
@@ -20337,6 +22329,118 @@
         "x-stoplight": {
           "id": "vuo5q4vwtarx8"
         }
+      },
+      "Webhook": {
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "title": {
+            "type": "string"
+          },
+          "type": {
+            "type": "string"
+          }
+        },
+        "title": "Webhook",
+        "type": "object"
+      },
+      "Workspace": {
+        "properties": {
+          "created_at": {},
+          "deleted": {
+            "type": "boolean"
+          },
+          "deleted_at": {},
+          "description": {
+            "type": "string"
+          },
+          "fk_user_id": {
+            "type": "string"
+          },
+          "id": {
+            "type": "string"
+          },
+          "meta": {},
+          "order": {
+            "type": "number"
+          },
+          "title": {
+            "type": "string"
+          },
+          "updated_at": {}
+        },
+        "title": "Workspace",
+        "type": "object"
+      },
+      "WorkspaceList": {
+        "description": "",
+        "properties": {
+          "list": {
+            "items": {
+              "$ref": "#/components/schemas/Workspace"
+            },
+            "type": "array"
+          },
+          "pageInfo": {
+            "$ref": "#/components/schemas/Paginated"
+          }
+        },
+        "type": "object"
+      },
+      "WorkspaceUser": {
+        "description": "",
+        "properties": {
+          "email": {
+            "format": "email",
+            "type": "string"
+          },
+          "fk_user_id": {
+            "type": "string"
+          },
+          "invite_accepted": {
+            "type": "boolean"
+          },
+          "invite_token": {
+            "type": "string"
+          },
+          "roles": {
+            "type": "string"
+          }
+        },
+        "title": "Workspace User",
+        "type": "object",
+        "x-internal": false
+      },
+      "WorkspaceUserInvite": {
+        "description": "",
+        "properties": {
+          "email": {
+            "format": "email",
+            "type": "string"
+          },
+          "roles": {
+            "type": "string"
+          }
+        },
+        "title": "Workspace User Invite",
+        "type": "object",
+        "x-internal": false
+      },
+      "WorkspaceUserList": {
+        "description": "",
+        "properties": {
+          "list": {
+            "items": {
+              "$ref": "#/components/schemas/WorkspaceUser"
+            },
+            "type": "array"
+          },
+          "pageInfo": {
+            "$ref": "#/components/schemas/Paginated"
+          }
+        },
+        "type": "object"
       }
     },
     "responses": {
@@ -20782,6 +22886,12 @@
         "type": "apiKey",
         "in": "header",
         "description": "Shared base uuid"
+      },
+      "xc-shared-erd-id": {
+        "name": "Shared ERD ID",
+        "type": "apiKey",
+        "in": "header",
+        "description": "Shared ERD uuid"
       }
     },
     "parameters": {

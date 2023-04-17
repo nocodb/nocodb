@@ -1,11 +1,11 @@
 import { Injectable } from '@nestjs/common';
-import { UserType } from 'nocodb-sdk';
 import { NcError } from 'src/helpers/catchError';
 import Page from 'src/models/Page';
-import { fetchGHDocs } from './helper/import';
 import { Configuration, OpenAIApi } from 'openai';
 import { Project } from 'src/models';
 import JSON5 from 'json5';
+import { fetchGHDocs } from './helper/import';
+import type { UserType } from 'nocodb-sdk';
 
 const configuration = new Configuration({
   apiKey: process.env.OPENAI_API_KEY,

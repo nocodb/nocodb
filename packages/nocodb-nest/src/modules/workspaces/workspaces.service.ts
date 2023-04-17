@@ -1,13 +1,14 @@
 import { Injectable } from '@nestjs/common';
-import { validatePayload } from '../../helpers';
 import WorkspaceUser from 'src/models/WorkspaceUser';
-import { ProjectRoles, WorkspaceType, WorkspaceUserRoles } from 'nocodb-sdk';
+import { ProjectRoles, WorkspaceUserRoles } from 'nocodb-sdk';
 import { PagedResponseImpl } from 'src/helpers/PagedResponse';
 import Workspace from 'src/models/Workspace';
 import validateParams from 'src/helpers/validateParams';
 import { NcError } from 'src/helpers/catchError';
 import { Project, ProjectUser } from 'src/models';
 import { parseMetaProp } from 'src/utils/modelUtils';
+import { validatePayload } from '../../helpers';
+import type { WorkspaceType } from 'nocodb-sdk';
 
 @Injectable()
 export class WorkspacesService {

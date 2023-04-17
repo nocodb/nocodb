@@ -1,4 +1,5 @@
 import slugify from 'slug';
+import { v4 as uuidv4 } from 'uuid';
 import Noco from '../Noco';
 import {
   CacheDelDirection,
@@ -10,7 +11,6 @@ import NocoCache from '../cache/NocoCache';
 import { PagesUpdateService } from '../modules/docs/page/page-updator.service';
 import Project from './Project';
 import type { DocsPageType, UserType } from 'nocodb-sdk';
-import { v4 as uuidv4 } from 'uuid';
 
 export default class Page {
   public id: string;

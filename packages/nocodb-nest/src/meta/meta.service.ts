@@ -1,14 +1,19 @@
-import { Global, Inject, Injectable, OnApplicationBootstrap, OnModuleInit } from '@nestjs/common'
-import { Knex } from 'knex'
-
-import XcMigrationSource from './migrations/XcMigrationSource';
-import XcMigrationSourcev2 from './migrations/XcMigrationSourcev2';
-import XcMigrationSourcev3 from './migrations/XcMigrationSourcev3';
-import { Connection } from '../connection/connection';
+import {
+  Global,
+  Inject,
+  Injectable,
+  OnApplicationBootstrap,
+  OnModuleInit,
+  Optional,
+} from '@nestjs/common';
 import { customAlphabet } from 'nanoid';
 import CryptoJS from 'crypto-js';
+import { Connection } from '../connection/connection';
 import Noco from '../Noco';
 import NocoCache from '../cache/NocoCache';
+import XcMigrationSourcev3 from './migrations/XcMigrationSourcev3';
+import XcMigrationSourcev2 from './migrations/XcMigrationSourcev2';
+import XcMigrationSource from './migrations/XcMigrationSource';
 import type { Knex } from 'knex';
 
 const nanoid = customAlphabet('1234567890abcdefghijklmnopqrstuvwxyz_', 4);

@@ -20,14 +20,14 @@ import { BaseViewStrategy } from './strategies/base-view.strategy/base-view.stra
 import { GoogleStrategy } from './strategies/google.strategy/google.strategy';
 import NcUpgrader from './version-upgrader/NcUpgrader';
 import { MetasModule } from './modules/metas/metas.module';
-import type {
-  MiddlewareConsumer,
-  OnApplicationBootstrap,
-} from '@nestjs/common';
 import { WorkspacesModule } from './modules/workspaces/workspaces.module';
 import { WorkspaceUsersModule } from './modules/workspace-users/workspace-users.module';
 import { DocsModule } from './modules/docs/docs.module';
 import { PublicDocsModule } from './modules/public-docs/public-docs.module';
+import type {
+  MiddlewareConsumer,
+  OnApplicationBootstrap,
+} from '@nestjs/common';
 @Module({
   imports: [
     ServeStaticModule.forRoot({

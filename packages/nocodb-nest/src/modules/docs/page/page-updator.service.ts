@@ -1,8 +1,8 @@
-import type { DocsPageType, UserType } from 'nocodb-sdk';
 import Noco from 'src/Noco';
 import Page from 'src/models/Page';
 
 import { Injectable } from '@nestjs/common';
+import type { DocsPageType, UserType } from 'nocodb-sdk';
 
 @Injectable()
 export class PagesUpdateService {

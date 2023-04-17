@@ -16,6 +16,7 @@ export const onBackspaceWithHorizontalRule = (editor: Editor) => {
     }
 
     const prevNodePos = selection.$from.pos - (parentNode.nodeSize - node.nodeSize + 2)
+    if (prevNodePos < 0) return false
     const prevNode = editor.view.state.doc.nodeAt(prevNodePos)
 
     if (prevNode?.type.name === 'horizontalRule') {

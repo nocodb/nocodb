@@ -134,8 +134,12 @@ const onDragClick = () => {
   dragClicked.value = !dragClicked.value
 
   editor.view.dispatch(editor.state.tr.setSelection(NodeSelection.create(editor.state.doc, getPos())))
-  const wrapperDom = document.querySelector('.draggable-block-wrapper.focused')
-  wrapperDom?.classList.add('selected')
+
+  // We use timeout as 'focused' class takes time to be added
+  setTimeout(() => {
+    const wrapperDom = document.querySelector('.draggable-block-wrapper.focused')
+    wrapperDom?.classList.add('selected')
+  }, 100)
 }
 
 onClickOutside(optionsPopoverRef, () => {
@@ -145,7 +149,7 @@ onClickOutside(optionsPopoverRef, () => {
 })
 
 const deleteNode = () => {
-  editor.commands.deleteRange(editor.state.selection)
+  editor.commands.deleteRange({ from: getPos(), to: getPos() + node.nodeSize })
   dragClicked.value = false
 }
 

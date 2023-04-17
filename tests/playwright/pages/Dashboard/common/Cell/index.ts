@@ -297,7 +297,7 @@ export class CellPageObject extends BasePage {
         await this.rootPage.waitForSelector('.nc-modal-child-list:visible');
 
         // verify child list count & contents
-        const childList = await this.rootPage.locator('.ant-card');
+        const childList = await this.rootPage.locator('.ant-card:visible');
         expect(await childList.count()).toBe(count);
 
         // close child list

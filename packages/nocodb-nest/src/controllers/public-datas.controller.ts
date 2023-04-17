@@ -90,35 +90,35 @@ export class PublicDatasController {
     return pagedResponse;
   }
 
-  @Get('/api/v1/db/public/shared-view/:sharedViewUuid/rows/:rowId/mm/:colId')
+  @Get('/api/v1/db/public/shared-view/:sharedViewUuid/rows/:rowId/mm/:columnId')
   async publicMmList(
     @Request() req,
     @Param('sharedViewUuid') sharedViewUuid: string,
     @Param('rowId') rowId: string,
-    @Param('colId') colId: string,
+    @Param('columnId') columnId: string,
   ) {
     const paginatedResponse = await this.publicDatasService.publicMmList({
       query: req.query,
       password: req.headers?.['xc-password'] as string,
       sharedViewUuid: sharedViewUuid,
-      columnId: colId,
+      columnId: columnId,
       rowId: rowId,
     });
     return paginatedResponse;
   }
 
-  @Get('/api/v1/db/public/shared-view/:sharedViewUuid/rows/:rowId/hm/:colId')
+  @Get('/api/v1/db/public/shared-view/:sharedViewUuid/rows/:rowId/hm/:columnId')
   async publicHmList(
     @Request() req,
     @Param('sharedViewUuid') sharedViewUuid: string,
     @Param('rowId') rowId: string,
-    @Param('colId') colId: string,
+    @Param('columnId') columnId: string,
   ) {
     const paginatedResponse = await this.publicDatasService.publicHmList({
       query: req.query,
       password: req.headers?.['xc-password'] as string,
       sharedViewUuid: sharedViewUuid,
-      columnId: colId,
+      columnId: columnId,
       rowId: rowId,
     });
     return paginatedResponse;

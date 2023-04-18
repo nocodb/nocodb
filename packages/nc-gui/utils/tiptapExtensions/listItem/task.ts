@@ -96,8 +96,8 @@ export const Task = Node.create<TaskOptions>({
         },
       toggleTask:
         () =>
-        ({ chain }: any) => {
-          toggleItem({ editor: this.editor, chain, type: 'task' })
+        ({ chain, state }: any) => {
+          toggleItem({ chain, state, type: 'task' })
         },
     } as any
   },

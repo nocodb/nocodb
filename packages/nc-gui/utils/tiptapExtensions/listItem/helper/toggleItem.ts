@@ -1,5 +1,5 @@
 import type { EditorState } from 'prosemirror-state'
-import type { ChainedCommands, Editor } from '@tiptap/core'
+import type { ChainedCommands } from '@tiptap/core'
 import { Slice } from 'prosemirror-model'
 import { getPosOfNodeWrtAnchorNode } from './getPosOfNodeWrtAnchorNode'
 
@@ -55,15 +55,14 @@ const toggleListItemInSliceJson = ({ content, type }: { content: any[]; type: 'o
 }
 
 export const toggleItem = ({
-  editor,
   chain,
   type,
+  state,
 }: {
-  editor: Editor
   chain: () => ChainedCommands
+  state: EditorState
   type: 'ordered' | 'bullet' | 'task'
 }) => {
-  const state = editor.state as EditorState
   const topDBlockPos = getPosOfNodeWrtAnchorNode({
     state,
     anchorPos: state.selection.$from.pos,

@@ -76,8 +76,8 @@ export const Bullet = Node.create<ListOptions>({
         },
       toggleBullet:
         () =>
-        ({ chain }: any) => {
-          toggleItem({ editor: this.editor, chain, type: 'bullet' })
+        ({ chain, state }: any) => {
+          toggleItem({ chain, state, type: 'bullet' })
         },
     } as any
   },

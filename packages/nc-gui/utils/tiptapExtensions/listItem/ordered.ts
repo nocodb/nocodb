@@ -125,8 +125,8 @@ export const Ordered = Node.create<OrderItemsOptions>({
         },
       toggleOrdered:
         () =>
-        ({ chain }: any) => {
-          toggleItem({ editor: this.editor, chain, type: 'ordered' })
+        ({ chain, state }: any) => {
+          toggleItem({ chain, state, type: 'ordered' })
         },
     } as any
   },

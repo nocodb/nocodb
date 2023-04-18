@@ -281,7 +281,7 @@ const projectListType = computed(() => {
         <div class="flex items-center uppercase !text-gray-400 text-xs font-weight-bold pt-2 px-4 pb-2 h-10">
           All workspaces
           <div class="flex-grow"></div>
-          <MdiPlus class="!text-gray-400 text-lg cursor-pointer" @click="isCreateDlgOpen = true" />
+          <MdiPlus class="!text-gray-400 text-lg cursor-pointer" data-testid="nc-create-workspace" @click="isCreateDlgOpen = true" />
         </div>
 
         <div class="overflow-auto min-h-25 flex-grow" style="flex-basis: 0">
@@ -391,7 +391,7 @@ const projectListType = computed(() => {
             <span class="nc-workspace-avatar !w-8 !h-8" :style="{ backgroundColor: getWorkspaceColor(activeWorkspace) }">
               {{ activeWorkspace?.title?.slice(0, 2) }}
             </span>
-            <h1 class="text-3xl font-weight-bold tracking-[0.5px] mb-0">{{ activeWorkspace?.title }}</h1>
+            <h1 class="text-3xl font-weight-bold tracking-[0.5px] mb-0 nc-workspace-title">{{ activeWorkspace?.title }}</h1>
           </div>
           <div class="flex-grow"></div>
           <WorkspaceCreateProjectBtn v-if="isWorkspaceOwner" :active-workspace-id="activeWorkspace?.id" />

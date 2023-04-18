@@ -19,10 +19,21 @@ test.describe('DashboardBasicTests', () => {
     // navigate to workspace page
     await dashboard.clickHome();
 
-    // Left sidebar should have 2 workspaces
-    //   user
-    //   ws_pgExtREST0/1
-    expect(await workspacePage.LeftSideBar.getWsCount()).toBe(2);
+    // verify static elements : fixed menu items, buttons, etc.
+    await workspacePage.verifyStaticElements();
+
+    // verify run-time elements : dynamic menu items
+    await workspacePage.LeftSideBar.verifyDynamicElements([
+      { title: 'ws_pgExtREST0', role: 'owner' },
+      { title: 'user', role: 'owner' },
+    ]);
+
+    // first row
+    await workspacePage.Container.verifyDynamicElements({
+      title: 'pgExtREST0',
+      lastAccessed: 'a few seconds ago',
+      role: 'Project Owner',
+    });
 
     // TODO: Once implemented, verify page navigation & page specific elements
     //

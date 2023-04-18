@@ -63,7 +63,7 @@ export default {
           <div class="flex flex-row flex-grow">
             <slot name="navbar" />
           </div>
-          <div v-if="isHomeScreen" class="nc-quick-action-wrapper">
+          <div v-if="isHomeScreen" class="nc-quick-action-wrapper" data-testid="nc-quick-action-wrapper">
             <MaterialSymbolsSearch class="nc-quick-action-icon" />
             <input class="" placeholder="Quick Actions" />
 
@@ -71,7 +71,7 @@ export default {
           </div>
 
           <div v-if="!isPublic" class="flex items-center">
-            <MdiBellOutline class="text-xl h-4" />
+            <MdiBellOutline class="text-xl h-4" data-testid="nc-notification-bell-icon" />
             <!-- <MaterialSymbolsKeyboardArrowDownRounded /> -->
           </div>
 

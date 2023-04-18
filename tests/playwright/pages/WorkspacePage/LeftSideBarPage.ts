@@ -1,5 +1,6 @@
 import BasePage from '../Base';
 import { WorkspacePage } from './';
+import { expect, Locator } from '@playwright/test';
 
 /*
   nc-left-sidebar
@@ -9,7 +10,7 @@ import { WorkspacePage } from './';
       > Favourites
 
     All Workspaces
-      nc-icon (+)
+      data-testid="nc-create-workspace"
 
     ul.nc-workspace-list
       nc-workspace-title
@@ -24,10 +25,20 @@ import { WorkspacePage } from './';
 
 export class LeftSideBarPage extends BasePage {
   readonly workspace: WorkspacePage;
+  readonly recentWorkspaces: Locator;
+  readonly sharedWithMeWorkspaces: Locator;
+  readonly favouriteWorkspaces: Locator;
+  readonly createWorkspace: Locator;
+  readonly workspaceItems: Locator;
 
   constructor(workspace: WorkspacePage) {
     super(workspace.rootPage);
     this.workspace = workspace;
+    this.recentWorkspaces = this.get().locator('.nc-workspace-group').locator('span:has-text("Recent")');
+    this.sharedWithMeWorkspaces = this.get().locator('.nc-workspace-group').locator('span:has-text("Shared with me")');
+    this.favouriteWorkspaces = this.get().locator('.nc-workspace-group').locator('span:has-text("Favourites")');
+    this.createWorkspace = this.get().locator('[data-testid="nc-create-workspace"]');
+    this.workspaceItems = this.get().locator('.nc-workspace-title');
   }
 
   get() {
@@ -38,7 +49,26 @@ export class LeftSideBarPage extends BasePage {
     await this.get().waitFor({ state });
   }
 
-  async getWsCount() {
-    return (await this.get().locator('li.ant-menu-item')).count();
+  async getWorkspaceCount() {
+    return (await this.workspaceItems).count();
+  }
+
+  async verifyStaticElements() {
+    await this.get().locator('.nc-workspace-group').waitFor({ state: 'visible' });
+    await this.recentWorkspaces.waitFor({ state: 'visible' });
+    await this.sharedWithMeWorkspaces.waitFor({ state: 'visible' });
+    await this.favouriteWorkspaces.waitFor({ state: 'visible' });
+    await this.createWorkspace.waitFor({ state: 'visible' });
+  }
+
+  async verifyDynamicElements(param: ({ role: string; title: string } | { role: string; title: string })[]) {
+    expect(await this.getWorkspaceCount()).toBe(param.length);
+
+    for (const { role, title } of param) {
+      const ws = this.get().locator(`li.ant-menu-item:has-text("${title}")`);
+      await ws.waitFor({ state: 'visible' });
+
+      // todo: verify role
+    }
   }
 }

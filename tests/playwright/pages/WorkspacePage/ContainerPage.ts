@@ -1,5 +1,8 @@
 import BasePage from '../Base';
 import { WorkspacePage } from './';
+import { expect } from '@playwright/test';
+import { Locator } from 'playwright';
+import { getTextExcludeIconText } from '../../tests/utils/general';
 
 /*
   nc-workspace-container
@@ -34,10 +37,12 @@ import { WorkspacePage } from './';
 
 export class ContainerPage extends BasePage {
   readonly workspace: WorkspacePage;
+  readonly newProjectButton: Locator;
 
   constructor(workspace: WorkspacePage) {
     super(workspace.rootPage);
     this.workspace = workspace;
+    this.newProjectButton = this.get().locator('button:has-text("New Project")');
   }
 
   get() {
@@ -46,5 +51,36 @@ export class ContainerPage extends BasePage {
 
   async waitFor({ state }) {
     await this.get().waitFor({ state });
+  }
+
+  async verifyStaticElements() {
+    const tableHeaderCells = await this.get().locator('.ant-table-thead > tr > th.ant-table-cell');
+    expect(await tableHeaderCells.count()).toBe(6);
+    expect(await tableHeaderCells.nth(0).innerText()).toBe('Project Name');
+    expect(await tableHeaderCells.nth(1).innerText()).toBe('Color');
+    expect(await tableHeaderCells.nth(2).innerText()).toBe('Last Accessed');
+    expect(await tableHeaderCells.nth(3).innerText()).toBe('My Role');
+    expect(await tableHeaderCells.nth(4).innerText()).toBe('Actions');
+
+    // Fix me! This is not working
+    // const tabs = await this.get().locator('.ant-tabs-tab-btn');
+    // expect(await tabs.count()).toBe(2);
+    // expect(await tabs.nth(0).innerText()).toBe('All Projects');
+    // expect(await tabs.nth(1).innerText()).toBe('Collaborators');
+    //
+    // await this.newProjectButton.waitFor({ state: 'visible' });
+  }
+
+  async getProjectRow(index: number) {
+    const rows = await this.get().locator('.ant-table-tbody > tr.ant-table-row');
+    const title = await getTextExcludeIconText(rows.nth(index).locator('.nc-project-title'));
+    const lastAccessed = await rows.nth(index).locator('.ant-table-cell').nth(2).innerText();
+    const role = await rows.nth(index).locator('.ant-table-cell').nth(3).innerText();
+    return { title, lastAccessed, role };
+  }
+
+  async verifyDynamicElements({ title, lastAccessed, role }) {
+    expect(await this.get().locator('.nc-workspace-title').innerText()).toBe(`ws_${title}`);
+    expect(await this.getProjectRow(0)).toEqual({ title, lastAccessed, role });
   }
 }

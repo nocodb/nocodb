@@ -46,4 +46,10 @@ export class WorkspacePage extends BasePage {
     await this.LeftSideBar.waitFor({ state });
     await this.Container.waitFor({ state });
   }
+
+  async verifyStaticElements() {
+    await this.Header.verifyStaticElements();
+    await this.LeftSideBar.verifyStaticElements();
+    await this.Container.verifyStaticElements();
+  }
 }

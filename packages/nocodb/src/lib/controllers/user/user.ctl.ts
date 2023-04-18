@@ -98,6 +98,15 @@ async function signin(req, res, next) {
   )(req, res, next);
 }
 
+async function signout(req: Request<any, any>, res): Promise<any> {
+  res.json(
+    await userService.signout({
+      req,
+      res,
+    })
+  );
+}
+
 async function googleSignin(req, res, next) {
   passport.authenticate(
     'google',
@@ -246,6 +255,7 @@ const mapRoutes = (router) => {
   // new API
   router.post('/api/v1/auth/user/signup', catchError(signup));
   router.post('/api/v1/auth/user/signin', catchError(signin));
+  router.post('/api/v1/auth/user/signout', catchError(signout));
   router.get(
     '/api/v1/auth/user/me',
     extractProjectIdAndAuthenticate,

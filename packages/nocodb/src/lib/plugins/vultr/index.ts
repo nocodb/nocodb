@@ -5,7 +5,7 @@ import type { XcPluginConfig } from 'nc-plugin';
 const config: XcPluginConfig = {
   builder: VultrPlugin,
   title: 'Vultr Object Storage',
-  version: '0.0.1',
+  version: '0.0.2',
   logo: 'plugins/vultr.png',
   description:
     'Using Vultr Object Storage can give flexibility and cloud storage that allows applications greater flexibility and access worldwide.',
@@ -20,13 +20,13 @@ const config: XcPluginConfig = {
         type: XcType.SingleLineText,
         required: true,
       },
-      //   {
-      //   key: 'region',
-      //   label: 'Region',
-      //   placeholder: 'Region',
-      //   type: XcType.SingleLineText,
-      //   required: true
-      // },
+      {
+        key: 'hostname',
+        label: 'Host Name',
+        placeholder: 'e.g.: ewr1.vultrobjects.com',
+        type: XcType.SingleLineText,
+        required: true,
+      },
       {
         key: 'access_key',
         label: 'Access Key',

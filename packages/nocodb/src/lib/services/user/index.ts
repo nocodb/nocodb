@@ -458,5 +458,20 @@ export async function signup(param: {
   } as any;
 }
 
+export async function signout(param: { req: any; res: any }): Promise<any> {
+  try {
+    param.res.clearCookie('refresh_token');
+    const user = (param.req as any).user;
+    if (user) {
+      await User.update(user.id, {
+        refresh_token: null,
+      });
+    }
+    return { msg: 'Signed out successfully' };
+  } catch (e) {
+    NcError.badRequest(e.message);
+  }
+}
+
 export * from './helpers';
 export { default as initAdminFromEnv } from './initAdminFromEnv';

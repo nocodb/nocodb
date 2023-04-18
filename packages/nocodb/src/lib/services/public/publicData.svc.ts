@@ -69,10 +69,7 @@ export async function dataList(param: {
     count = await baseModel.count(listArgs);
   } catch (e) {
     console.log(e);
-    // show empty result instead of throwing error here
-    // e.g. search some text in a numeric field
-
-    NcError.internalServerError('Please try after some time');
+    NcError.internalServerError('Please check server log for more details');
   }
 
   return new PagedResponseImpl(data, { ...param.query, count });
@@ -235,7 +232,7 @@ export async function dataInsert(param: {
     const fieldName = file?.fieldname?.replace(/^_|\[\d*]$/g, '');
 
     const filePath = sanitizeUrlPath([
-      'v1',
+      'noco',
       project.title,
       model.title,
       fieldName,
@@ -243,18 +240,25 @@ export async function dataInsert(param: {
 
     if (fieldName in fields && fields[fieldName].uidt === UITypes.Attachment) {
       attachments[fieldName] = attachments[fieldName] || [];
-      const fileName = `${nanoid(6)}_${file.originalname}`;
-      let url = await storageAdapter.fileCreate(
+      const fileName = `${nanoid(18)}${path.extname(file.originalname)}`;
+
+      const url = await storageAdapter.fileCreate(
         slash(path.join('nc', 'uploads', ...filePath, fileName)),
         file
       );
 
+      let attachmentPath;
+
+      // if `url` is null, then it is local attachment
       if (!url) {
-        url = `${param.siteUrl}/download/${filePath.join('/')}/${fileName}`;
+        // then store the attachment path only
+        // url will be constructed in `useAttachmentCell`
+        attachmentPath = `download/${filePath.join('/')}/${fileName}`;
       }
 
       attachments[fieldName].push({
-        url,
+        ...(url ? { url } : {}),
+        ...(attachmentPath ? { path: attachmentPath } : {}),
         title: file.originalname,
         mimetype: file.mimetype,
         size: file.size,
@@ -287,6 +291,7 @@ export async function relDataList(param: {
   }
 
   const column = await Column.get({ colId: param.columnId });
+
   const colOptions = await column.getColOptions<LinkToAnotherRecordColumn>();
 
   const model = await colOptions.getRelatedTable();
@@ -299,25 +304,27 @@ export async function relDataList(param: {
     dbDriver: await NcConnectionMgrv2.get(base),
   });
 
-  const { ast } = await getAst({
+  const { ast, dependencyFields } = await getAst({
     query: param.query,
     model,
     extractOnlyPrimaries: true,
   });
 
   let data = [];
+
   let count = 0;
+
   try {
     data = data = await nocoExecute(
       ast,
-      await baseModel.list(param.query),
+      await baseModel.list(dependencyFields),
       {},
-      param.query
+      dependencyFields
     );
-    count = await baseModel.count(param.query);
+    count = await baseModel.count(dependencyFields);
   } catch (e) {
-    // show empty result instead of throwing error here
-    // e.g. search some text in a numeric field
+    console.log(e);
+    NcError.internalServerError('Please check server log for more details');
   }
 
   return new PagedResponseImpl(data, { ...param.query, count });

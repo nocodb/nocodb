@@ -16,11 +16,24 @@ export async function importModels(req: Request, res: Response) {
   );
 }
 
+export async function importBase(req: Request, res: Response) {
+  const { body, ...rest } = req;
+  res.json(
+    await importService.importBase({
+      user: (req as any).user,
+      projectId: req.params.projectId,
+      baseId: req.params.baseId,
+      src: body.src,
+      req: rest,
+    })
+  );
+}
+
 const router = Router({ mergeParams: true });
 
 router.post(
   '/api/v1/db/meta/import/:projectId/:baseId',
-  ncMetaAclMw(importModels, 'importModels')
+  ncMetaAclMw(importBase, 'importBase')
 );
 
 export default router;

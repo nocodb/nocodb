@@ -1,8 +1,12 @@
 import { NcError } from './../../meta/helpers/catchError';
-import { ViewTypes } from 'nocodb-sdk';
-import { Project, Base, Model } from '../../models';
+import { UITypes, ViewTypes } from 'nocodb-sdk';
+import { Project, Base, Model, View, LinkToAnotherRecordColumn } from '../../models';
 import { dataService } from '..';
 import { getViewAndModelByAliasOrId } from '../dbData/helpers';
+import { Readable } from 'stream';
+import NcPluginMgrv2 from '../../meta/helpers/NcPluginMgrv2';
+import { unparse } from 'papaparse';
+import { IStorageAdapterV2 } from 'nc-plugin';
 
 /*
   {
@@ -23,6 +27,22 @@ import { getViewAndModelByAliasOrId } from '../dbData/helpers';
     ]
   }
 */
+
+async function generateBaseIdMap(base: Base, idMap: Map<string, string>) {
+  idMap.set(base.project_id, base.project_id);
+  idMap.set(base.id, `${base.project_id}::${base.id}`);
+  const models = await base.getModels();
+
+  for (const md of models) {
+    idMap.set(md.id, `${base.project_id}::${base.id}::${md.id}`);
+    await md.getColumns();
+    for (const column of md.columns) {
+      idMap.set(column.id, `${idMap.get(md.id)}::${column.id}`);
+    }
+  }
+
+  return models;
+}
 
 async function serializeModels(param: { modelId: string[] }) {
   const serializedModels = [];
@@ -49,31 +69,13 @@ async function serializeModels(param: { modelId: string[] }) {
     if (!fndBase) bases.push(base);
 
     if (!modelsMap.has(base.id)) {
-      const all_models = await base.getModels();
-
-      for (const md of all_models) {
-        idMap.set(md.id, `${project.id}::${base.id}::${md.id}`);
-        await md.getColumns();
-        for (const column of md.columns) {
-          idMap.set(column.id, `${idMap.get(md.id)}::${column.id}`);
-        }
-      }
-
-      modelsMap.set(base.id, all_models);
+      modelsMap.set(base.id, await generateBaseIdMap(base, idMap));
     }
-
-    idMap.set(project.id, project.id);
-    idMap.set(base.id, `${project.id}::${base.id}`);
-    idMap.set(model.id, `${idMap.get(base.id)}::${model.id}`);
 
     await model.getColumns();
     await model.getViews();
 
     for (const column of model.columns) {
-      idMap.set(
-        column.id,
-        `${idMap.get(model.id)}::${column.id}`
-      );
       await column.getColOptions();
       if (column.colOptions) {
         for (const [k, v] of Object.entries(column.colOptions)) {
@@ -248,6 +250,181 @@ async function serializeModels(param: { modelId: string[] }) {
   return serializedModels;
 }
 
+async function exportModelData(param: {
+  storageAdapter: IStorageAdapterV2;
+  path: string;
+  projectId: string;
+  modelId: string;
+  viewId?: string;
+}) {
+  const { model, view } = await getViewAndModelByAliasOrId({
+    projectName: param.projectId,
+    tableName: param.modelId,
+    viewName: param.viewId,
+  });
+
+  await model.getColumns();
+
+  const hasLink = model.columns.some((c) => c.uidt === UITypes.LinkToAnotherRecord && c.colOptions?.type === 'mm');
+
+  const pkMap = new Map<string, string>();
+
+  for (const column of model.columns.filter((c) => c.uidt === UITypes.LinkToAnotherRecord && c.colOptions?.type !== 'hm')) {
+    const relatedTable = await (
+      (await column.getColOptions()) as LinkToAnotherRecordColumn
+    ).getRelatedTable();
+
+    await relatedTable.getColumns();
+
+    pkMap.set(column.id, relatedTable.primaryKey.title);
+  }
+
+  const readableStream = new Readable({
+    read() {},
+  });
+
+  const readableLinkStream = new Readable({
+    read() {},
+  });
+
+  readableStream.setEncoding('utf8');
+
+  readableLinkStream.setEncoding('utf8');
+
+  const storageAdapter = param.storageAdapter;
+
+  const uploadPromise = storageAdapter.fileCreateByStream(
+    `${param.path}/${model.id}.csv`,
+    readableStream
+  );
+
+  const uploadLinkPromise = hasLink
+    ? storageAdapter.fileCreateByStream(
+        `${param.path}/${model.id}_links.csv`,
+        readableLinkStream
+      )
+    : Promise.resolve();
+
+  const limit = 100;
+  let offset = 0;
+
+  const primaryKey = model.columns.find((c) => c.pk);
+
+  const formatData = (data: any) => {
+    const linkData = [];
+    for (const row of data) {
+      const pkValue = primaryKey ? row[primaryKey.title] : undefined;
+      const linkRow = {};
+      for (const [k, v] of Object.entries(row)) {
+        const col = model.columns.find((c) => c.title === k);
+        if (col) {
+          if (col.pk) linkRow['pk'] = pkValue;
+          const colId = `${col.project_id}::${col.base_id}::${col.fk_model_id}::${col.id}`;
+          switch(col.uidt) {
+            case UITypes.LinkToAnotherRecord:
+              if (col.system || col.colOptions.type === 'hm') break;
+              const pkList = [];
+
+              const links = Array.isArray(v) ? v : [v];
+
+              for (const link of links) {
+                if (link) {
+                  for (const [k, val] of Object.entries(link)) {
+                    if (k === pkMap.get(col.id)) {
+                      pkList.push(val);
+                    }
+                  }
+                }
+              }
+
+              if (col.colOptions.type === 'mm') {
+                linkRow[colId] = pkList.join(',');
+              } else {
+                row[colId] = pkList[0];
+              }
+              break;
+            case UITypes.Attachment:
+              try {
+                row[colId] = JSON.stringify(v);
+              } catch (e) {
+                row[colId] = v;
+              }
+              break;
+            case UITypes.ForeignKey:
+            case UITypes.Formula:
+            case UITypes.Lookup:
+            case UITypes.Rollup:
+            case UITypes.Rating:
+            case UITypes.Barcode:
+              // skip these types
+              break;
+            default:
+              row[colId] = v;
+              break;
+          }
+          delete row[k];
+        }
+      }
+      linkData.push(linkRow);
+    }
+    return { data, linkData };
+  }
+
+  try {
+    await recursiveRead(formatData, readableStream, readableLinkStream, model, view, offset, limit, true);
+    await uploadPromise;
+    await uploadLinkPromise;
+  } catch (e) {
+    await storageAdapter.fileDelete(`${param.path}/${model.id}.csv`);
+    await storageAdapter.fileDelete(`${param.path}/${model.id}_links.csv`);
+    console.error(e);
+    throw e;
+  }
+
+  return true;
+}
+
+async function recursiveRead(
+  formatter: Function,
+  stream: Readable,
+  linkStream: Readable,
+  model: Model,
+  view: View,
+  offset: number,
+  limit: number,
+  header = false
+): Promise<void> {
+  return new Promise((resolve, reject) => {
+    dataService
+      .getDataList({ model, view, query: { limit, offset } })
+      .then((result) => {
+        try {
+          if (!header) {
+            stream.push('\r\n');
+            linkStream.push('\r\n');
+          }
+          const { data, linkData } = formatter(result.list);
+          stream.push(unparse(data, { header }));
+          linkStream.push(unparse(linkData, { header }));
+          if (result.pageInfo.isLastPage) {
+            stream.push(null);
+            linkStream.push(null);
+            resolve();
+          } else {
+            recursiveRead(formatter, stream, linkStream, model, view, offset + limit, limit).then(resolve);
+          }
+        } catch (e) {
+          reject(e);
+        }
+      });
+  });
+}
+
+function clearPrefix(text: string, prefix?: string) {
+  if (!prefix || prefix.length === 0) return text;
+  return text.replace(new RegExp(`^${prefix}_?`), '');
+}
+
 export async function exportBaseSchema(param: { baseId: string }) {
   const base = await Base.get(param.baseId);
 
@@ -255,7 +432,7 @@ export async function exportBaseSchema(param: { baseId: string }) {
 
   const project = await Project.get(base.project_id);
 
-  const models = (await base.getModels()).filter((m) => !m.mm);
+  const models = (await base.getModels()).filter((m) => !m.mm && m.type === 'table');
 
   const exportedModels = await serializeModels({ modelId: models.map(m => m.id) });
 
@@ -264,7 +441,53 @@ export async function exportBaseSchema(param: { baseId: string }) {
   return exportData;
 }
 
-const clearPrefix = (text: string, prefix?: string) => {
-  if (!prefix || prefix.length === 0) return text;
-  return text.replace(new RegExp(`^${prefix}_?`), '');
+export async function exportBase(param: { path: string; baseId: string }) {
+  const base = await Base.get(param.baseId);
+
+  if (!base) return NcError.badRequest(`Base not found for id '${param.baseId}'`);
+
+  const project = await Project.get(base.project_id);
+
+  const models = (await base.getModels()).filter((m) => !m.mm && m.type === 'table');
+
+  const exportedModels = await serializeModels({ modelId: models.map(m => m.id) });
+
+  const exportData = { id: `${project.id}::${base.id}`, entity: 'base', models: exportedModels };
+
+  const storageAdapter = await NcPluginMgrv2.storageAdapter();
+
+  const destPath = `export/${project.id}/${base.id}/${param.path}/schema.json`;
+
+  try {
+
+    const readableStream = new Readable({
+      read() {},
+    });
+
+    readableStream.setEncoding('utf8');
+
+    readableStream.push(JSON.stringify(exportData));
+
+    readableStream.push(null);
+
+    await storageAdapter.fileCreateByStream(
+      destPath,
+      readableStream
+    );
+
+    for (const model of models) {
+      await exportModelData({
+        storageAdapter,
+        path: `export/${project.id}/${base.id}/${param.path}/data`,
+        projectId: project.id,
+        modelId: model.id,
+      });
+    }
+
+  } catch (e) {
+    console.error(e);
+    return NcError.internalServerError('Error while exporting base');
+  }
+
+  return true;
 }

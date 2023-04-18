@@ -2067,14 +2067,17 @@ class BaseModelSqlv2 {
       chunkSize: _chunkSize = 100,
       cookie,
       foreign_key_checks = true,
+      raw = false,
     }: {
       chunkSize?: number;
       cookie?: any;
       foreign_key_checks?: boolean;
+      raw?: boolean;
     } = {}
   ) {
     try {
-      const insertDatas = await Promise.all(
+      // TODO: ag column handling for raw bulk insert
+      const insertDatas = raw ? datas : await Promise.all(
         datas.map(async (d) => {
           await populatePk(this.model, d);
           return this.model.mapAliasToColumn(d);
@@ -2083,8 +2086,10 @@ class BaseModelSqlv2 {
 
       // await this.beforeInsertb(insertDatas, null);
 
-      for (const data of datas) {
-        await this.validate(data);
+      if (!raw) {
+        for (const data of datas) {
+          await this.validate(data);
+        } 
       }
 
       // fallbacks to `10` if database client is sqlite
@@ -2123,7 +2128,7 @@ class BaseModelSqlv2 {
 
       await trx.commit();
 
-      await this.afterBulkInsert(insertDatas, this.dbDriver, cookie);
+      if (!raw) await this.afterBulkInsert(insertDatas, this.dbDriver, cookie);
 
       return response;
     } catch (e) {

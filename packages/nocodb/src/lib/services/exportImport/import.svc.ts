@@ -653,9 +653,9 @@ export async function importBase(param: {
                             base_id: baseId,
                             colId: col.colOptions.fk_child_column_id,
                           });
-                          headers.push(childCol.title);
+                          headers.push(childCol.column_name);
                         } else {
-                          headers.push(col.title);
+                          headers.push(col.column_name);
                         }
                       } else {
                         debugLog(header);
@@ -671,7 +671,7 @@ export async function importBase(param: {
                         }
                       }
                       chunk.push(row);
-                      if (chunk.length > 1000) {
+                      if (chunk.length > 100) {
                         parser.pause();
                         elapsedTime('before import chunk');
                         try {
@@ -681,7 +681,8 @@ export async function importBase(param: {
                             body: chunk,
                             cookie: null,
                             chunkSize: chunk.length + 1,
-                            foreign_key_checks: false
+                            foreign_key_checks: false,
+                            raw: true,
                           });
                         } catch (e) {
                           debugLog(`${model.title} import throwed an error!`);
@@ -704,7 +705,8 @@ export async function importBase(param: {
                         body: chunk,
                         cookie: null,
                         chunkSize: chunk.length + 1,
-                        foreign_key_checks: false
+                        foreign_key_checks: false,
+                        raw: true,
                       });
                     } catch (e) {
                       debugLog(chunk);
@@ -779,8 +781,8 @@ export async function importBase(param: {
                             const vParentCol = await colOptions.getMMParentColumn();
 
                             mmParentChild[col.colOptions.fk_mm_model_id] = {
-                              parent: vParentCol.title,
-                              child: vChildCol.title,
+                              parent: vParentCol.column_name,
+                              child: vChildCol.column_name,
                             }
 
                             handledLinks.push(col.colOptions.fk_mm_model_id);
@@ -816,7 +818,8 @@ export async function importBase(param: {
                         body: v,
                         cookie: null,
                         chunkSize: 1000,
-                        foreign_key_checks: false
+                        foreign_key_checks: false,
+                        raw: true,
                       });
                       elapsedTime('insert link chunk');
                     } catch (e) {

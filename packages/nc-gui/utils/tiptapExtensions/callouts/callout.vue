@@ -6,7 +6,7 @@ const { node } = defineProps(nodeViewProps)
 <template>
   <NodeViewWrapper class="vue-component callout-wrapper">
     <div
-      class="flex flex-row items-center gap-x-3 break-all callout"
+      class="flex flex-row items-center gap-x-3 callout break-words"
       :class="{
         'info-callout': node.type.name === 'infoCallout',
         'warning-callout': node.type.name === 'warningCallout',

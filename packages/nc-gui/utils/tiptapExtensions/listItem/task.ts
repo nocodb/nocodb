@@ -2,15 +2,7 @@ import { Node, mergeAttributes, wrappingInputRule } from '@tiptap/core'
 import type { Node as ProseMirrorNode } from 'prosemirror-model'
 
 import { NodeSelection, Plugin, PluginKey } from 'prosemirror-state'
-import {
-  changeLevel,
-  getTextAsParagraphFromSliceJson,
-  isSelectionOfType,
-  listItemPasteRule,
-  onBackspaceWithNestedList,
-  onEnter,
-  toggleItem,
-} from './helper'
+import { changeLevel, isSelectionOfType, listItemPasteRule, onBackspaceWithNestedList, onEnter, toggleItem } from './helper'
 
 export interface TaskOptions {
   HTMLAttributes: Record<string, any>
@@ -105,24 +97,7 @@ export const Task = Node.create<TaskOptions>({
       toggleTask:
         () =>
         ({ chain, state }: any) => {
-          const toggleListItemInSliceJson = (content: any[]) => {
-            for (const child of content) {
-              if (child.type !== this.name) {
-                child.content = [getTextAsParagraphFromSliceJson(child)]
-                child.type = this.name
-              } else {
-                child.type = 'paragraph'
-
-                if (child.content?.length === 1) {
-                  child.content = child.content[0].content
-                } else {
-                  child.content = []
-                }
-              }
-            }
-          }
-
-          toggleItem(this.editor, state, chain, toggleListItemInSliceJson, 'ordered')
+          toggleItem({ chain, state, type: 'task' })
         },
     } as any
   },

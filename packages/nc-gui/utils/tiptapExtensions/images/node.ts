@@ -1,5 +1,5 @@
 import { Node, nodeInputRule } from '@tiptap/core'
-import { NodeSelection, TextSelection } from 'prosemirror-state'
+import { TextSelection } from 'prosemirror-state'
 import { VueNodeViewRenderer } from '@tiptap/vue-3'
 import type { UploadFn } from './proseExtension'
 import { dropImagePlugin } from './proseExtension'

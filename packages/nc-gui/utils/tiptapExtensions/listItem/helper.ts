@@ -1,8 +1,8 @@
 import type { EditorState, Transaction } from 'prosemirror-state'
 import type { Fragment } from 'prosemirror-model'
 import { PasteRule } from '@tiptap/core'
-import type { ChainedCommands, Editor } from '@tiptap/core'
-import { Slice } from 'prosemirror-model'
+import type { Editor } from '@tiptap/core'
+import { toggleItem } from './helper/toggleItem'
 
 export const addPastedContentToTransaction = (transaction: Transaction, state: EditorState, fragments: Fragment[]) => {
   const { selection } = state
@@ -11,47 +11,6 @@ export const addPastedContentToTransaction = (transaction: Transaction, state: E
 
   for (const fragment of fragments) {
     transaction.insert(currentNodeIsEmpty ? selection.from - 1 : selection.from, fragment)
-  }
-}
-
-export const getTextFromSliceJson = (sliceJson: any) => {
-  // recursively get text from slice json
-  const getText = (sliceJson: any, text: string) => {
-    if (sliceJson.text) {
-      text = text + sliceJson.text
-      return text
-    }
-
-    if (sliceJson.content) {
-      for (const content of sliceJson.content) {
-        text = text + getText(content, '')
-      }
-    }
-
-    return text
-  }
-
-  return getText(sliceJson, '')
-}
-
-export const getTextAsParagraphFromSliceJson = (sliceJson: any) => {
-  const text = getTextFromSliceJson(sliceJson)
-
-  if (text.length === 0) {
-    return {
-      type: 'paragraph',
-      content: [],
-    }
-  }
-
-  return {
-    type: 'paragraph',
-    content: [
-      {
-        type: 'text',
-        text: getTextFromSliceJson(sliceJson),
-      },
-    ],
   }
 }
 
@@ -225,112 +184,6 @@ export const onEnter = (editor: Editor, nodeType: 'bullet' | 'ordered' | 'task')
   return true
 }
 
-export const toggleItem = (
-  editor: Editor,
-  state: EditorState,
-  chain: () => ChainedCommands,
-  toggleListItemInSliceJson: any,
-  type: 'ordered' | 'bullet' | 'task',
-) => {
-  const { selection } = state
-
-  let isDBlockSelected = false
-  try {
-    const parentNode = selection.$from.node(-1)
-    const parentParentNode = selection.$from.node(-2)
-    isDBlockSelected =
-      parentNode.type.name === 'dBlock' ||
-      (parentParentNode.type.name === 'dBlock' && ['bullet', 'ordered', 'task'].includes(parentNode.type.name))
-  } catch {}
-
-  if (isDBlockSelected) {
-    const topDBlockPos = getPosOfNodeWrtAnchorNode({
-      state,
-      anchorPos: state.selection.$from.pos,
-      direction: 'before',
-      nodeType: 'dBlock',
-      possibleParentTypes: ['dBlock', 'doc', 'collapsable', 'collapsable_content'],
-    })
-
-    const bottomDBlockPos = getPosOfNodeWrtAnchorNode({
-      state,
-      anchorPos: state.selection.$from.pos,
-      direction: 'after',
-      nodeType: 'dBlock',
-      possibleParentTypes: ['dBlock', 'doc', 'collapsable', 'collapsable_content'],
-    })
-
-    const slice = state.doc.slice(topDBlockPos, bottomDBlockPos, false)
-    const sliceJson = slice.toJSON()
-
-    if (JSON.stringify(sliceJson).includes('"type":"collapsable"')) {
-      editor
-        .chain()
-        .setNodeSelection(topDBlockPos)
-        .deleteSelection()
-        .setTextSelection(topDBlockPos + 1)
-        .run()
-
-      return true
-    }
-
-    // Toggle a bullet under `dblock` nodes in slice
-    let lastItemNode
-    for (const node of sliceJson.content) {
-      if (node.type === 'dBlock') {
-        toggleListItemInSliceJson(node.content, lastItemNode)
-      }
-
-      const firstChildNode = node.content.length > 0 ? node.content[0] : null
-      if (firstChildNode?.type === 'ordered' && type === 'ordered') {
-        lastItemNode = firstChildNode
-      }
-    }
-
-    const newSlice = Slice.fromJSON(state.schema, sliceJson)
-    const isEmpty = getTextFromSliceJson(sliceJson).length === 0
-
-    return chain()
-      .command(() => {
-        const tr = state.tr
-        tr.replaceRange(topDBlockPos, bottomDBlockPos, newSlice)
-
-        return true
-      })
-      .setTextSelection(isEmpty ? topDBlockPos + newSlice.size - 1 : topDBlockPos + newSlice.size - 2)
-  }
-
-  let listItemStartPos = selection.from
-
-  let selectionSlice = state.doc.slice(listItemStartPos, selection.to)
-  let selectionSliceJson = selectionSlice.toJSON()
-
-  // Handle the case of selecting a single list item
-  // As then only text node will be selected
-  // Without the list item node
-  const parentNodePos = selection.$from.before(selection.$from.depth - 1)
-  const parentNode = state.doc.nodeAt(parentNodePos)
-  if (selectionSliceJson.content.length === 1 && parentNode && ['bullet', 'ordered', 'task'].includes(parentNode.type.name)) {
-    listItemStartPos = selection.$from.before(selection.$from.depth - 1)
-
-    selectionSlice = state.doc.slice(listItemStartPos, selection.to)
-    selectionSliceJson = selectionSlice.toJSON()
-  }
-
-  toggleListItemInSliceJson(selectionSliceJson.content)
-
-  const newSlice = Slice.fromJSON(state.schema, { ...selectionSliceJson, openStart: 0 })
-
-  return (chain() as ChainedCommands)
-    .command(() => {
-      const tr = state.tr
-      tr.replaceRange(selection.from, selection.to, newSlice)
-
-      return true
-    })
-    .setTextSelection(selection.from + 1)
-}
-
 export const onBackspaceWithNestedList = (editor: Editor, nodeType: string) => {
   const selection = editor.state.selection
 
@@ -421,34 +274,6 @@ export const changeLevel = (editor: Editor, nodeType: string, direction: 'forwar
   }
 }
 
-function getPosOfNodeWrtAnchorNode({
-  state,
-  anchorPos,
-  nodeType,
-  possibleParentTypes,
-  direction,
-}: {
-  state: EditorState
-  anchorPos: number
-  nodeType: string
-  possibleParentTypes: string[]
-  direction: 'before' | 'after'
-}) {
-  let pos = direction === 'before' ? 0 : Infinity
-  state.doc.descendants((node, nodePos) => {
-    const beforeCondition = nodePos > pos && nodePos < anchorPos
-    const afterCondition = nodePos > anchorPos && nodePos < pos
-    if (node.type.name === nodeType && (direction === 'before' ? beforeCondition : afterCondition)) {
-      pos = nodePos
-    }
-
-    // console.log('node', node.type.name, node.textContent, nodePos)
-    return possibleParentTypes.includes(node.type.name)
-  })
-
-  return pos
-}
-
 export const listItemPasteRule = ({
   nodeType,
   pasteRegex,
@@ -497,7 +322,6 @@ export const listItemPasteRule = ({
 
       let orderNumber = 1
       if (nodeType === 'ordered') {
-        console.log('match', match)
         orderNumber = Number(match[0].trimStart().split('.')[0])
       }
 
@@ -542,3 +366,5 @@ export const listItemPasteRule = ({
     },
   })
 }
+
+export { toggleItem }

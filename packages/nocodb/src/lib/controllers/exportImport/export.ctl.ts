@@ -3,28 +3,17 @@ import ncMetaAclMw from '../../meta/helpers/ncMetaAclMw';
 import { exportService } from '../../services';
 import type { Request, Response } from 'express';
 
-export async function exportBaseSchema(req: Request, res: Response) {
+export async function exportBase(req: Request, res: Response) {
   res.json(
-    await exportService.exportBaseSchema({ baseId: req.params.baseId })
-  );
-}
-
-export async function exportModelData(req: Request, res: Response) {
-  res.json(
-    await exportService.exportModelData({ projectId: req.params.projectId, modelId: req.params.modelId, viewId: req.params.viewId })
+    await exportService.exportBase({ baseId: req.params.baseId, path: req.body.path })
   );
 }
 
 const router = Router({ mergeParams: true });
 
-router.get(
+router.post(
   '/api/v1/db/meta/export/:projectId/:baseId',
-  ncMetaAclMw(exportBaseSchema, 'exportBaseSchema')
-);
-
-router.get(
-  '/api/v1/db/meta/export/data/:projectId/:modelId/:viewId?',
-  ncMetaAclMw(exportModelData, 'exportModelData')
+  ncMetaAclMw(exportBase, 'exportBase')
 );
 
 export default router;

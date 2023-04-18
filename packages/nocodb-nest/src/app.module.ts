@@ -27,6 +27,7 @@ import type {
   MiddlewareConsumer,
   OnApplicationBootstrap,
 } from '@nestjs/common';
+import { OpenidStrategy } from './strategies/openid.strategy/openid.strategy';
 @Module({
   imports: [
     GlobalModule,
@@ -49,7 +50,7 @@ import type {
     },
     LocalStrategy,
     AuthTokenStrategy,
-    BaseViewStrategy,
+    BaseViewStrategy
   ],
 })
 export class AppModule implements OnApplicationBootstrap {

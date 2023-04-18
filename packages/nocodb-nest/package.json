@@ -49,6 +49,7 @@
     "@nestjs/platform-express": "^9.4.0",
     "@nestjs/serve-static": "^3.0.1",
     "@sentry/node": "^6.3.5",
+    "@techpass/passport-openidconnect": "^0.3.3",
     "@types/chai": "^4.2.12",
     "airtable": "^0.11.3",
     "ajv": "^8.12.0",

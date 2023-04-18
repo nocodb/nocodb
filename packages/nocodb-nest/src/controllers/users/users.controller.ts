@@ -269,4 +269,37 @@ export class UsersController {
       return res.status(400).json({ msg: e.message });
     }
   }
+
+  /* OpenID Connect auth apis */
+  /* OpenID Connect APIs */
+  @Post('/auth/oidc/genTokenByCode')
+  @UseGuards(AuthGuard('openid'))
+  async oidcSignin(req, res, next) {
+    // passport.authenticate(
+    //   'openidconnect',
+    //   {
+    //     session: false,
+    //     callbackURL: req.ncSiteUrl + Noco.getConfig().dashboardPath,
+    //   },
+    //   async (err, user, info): Promise<any> =>
+    //     await successfulSignIn({
+    //       user,
+    //       err,
+    //       info,
+    //       req,
+    //       res,
+    //       auditDescription: 'signed in using OpenID Connect',
+    //     })
+    // )(req, res, next);
+  }
+
+
+  @Get('/auth/oidc')
+  openidAuth(req: any, res, next){
+    // passport.authenticate('openidconnect', {
+    //   scope: ['profile', 'email'],
+    //   callbackURL: req.ncSiteUrl + Noco.getConfig().dashboardPath,
+    // })(req, res, next)
+  }
+
 }

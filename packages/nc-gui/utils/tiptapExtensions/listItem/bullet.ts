@@ -1,14 +1,6 @@
 import { Node, mergeAttributes, wrappingInputRule } from '@tiptap/core'
 import { Plugin, PluginKey } from 'prosemirror-state'
-import {
-  changeLevel,
-  getTextAsParagraphFromSliceJson,
-  isSelectionOfType,
-  listItemPasteRule,
-  onBackspaceWithNestedList,
-  onEnter,
-  toggleItem,
-} from './helper'
+import { changeLevel, isSelectionOfType, listItemPasteRule, onBackspaceWithNestedList, onEnter, toggleItem } from './helper'
 
 export interface ListOptions {
   HTMLAttributes: Record<string, any>
@@ -84,25 +76,8 @@ export const Bullet = Node.create<ListOptions>({
         },
       toggleBullet:
         () =>
-        ({ chain, state }: any) => {
-          const toggleListItemInSliceJson = (content: any[]) => {
-            for (const child of content) {
-              if (child.type !== this.name) {
-                child.content = [getTextAsParagraphFromSliceJson(child)]
-                child.type = this.name
-              } else {
-                child.type = 'paragraph'
-
-                if (child.content?.length === 1) {
-                  child.content = child.content[0].content
-                } else {
-                  child.content = []
-                }
-              }
-            }
-          }
-
-          toggleItem(this.editor, state, chain, toggleListItemInSliceJson, 'bullet')
+        ({ chain }: any) => {
+          toggleItem({ editor: this.editor, chain, type: 'bullet' })
         },
     } as any
   },

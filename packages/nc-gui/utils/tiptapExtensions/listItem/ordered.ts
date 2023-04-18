@@ -1,16 +1,7 @@
 import type { ChainedCommands } from '@tiptap/core'
 import { Node, mergeAttributes, wrappingInputRule } from '@tiptap/core'
 import { Plugin, PluginKey } from 'prosemirror-state'
-import {
-  changeLevel,
-  getTextAsParagraphFromSliceJson,
-  getTextFromSliceJson,
-  isSelectionOfType,
-  listItemPasteRule,
-  onBackspaceWithNestedList,
-  onEnter,
-  toggleItem,
-} from './helper'
+import { changeLevel, isSelectionOfType, listItemPasteRule, onBackspaceWithNestedList, onEnter } from './helper'
 export interface OrderItemsOptions {
   number: string
   HTMLAttributes: Record<string, any>
@@ -134,32 +125,8 @@ export const Ordered = Node.create<OrderItemsOptions>({
         },
       toggleOrdered:
         () =>
-        ({ chain, state }: any) => {
-          const toggleListItemInSliceJson = (content: any[], lastItemNode: any) => {
-            let prevOrderedListNodeNumber = lastItemNode?.type === this.name ? Number(lastItemNode.attrs.number) : 0
-            for (const child of content) {
-              if (child.type !== this.name && getTextFromSliceJson(child).length > 0) {
-                child.content = [getTextAsParagraphFromSliceJson(child)]
-                child.type = this.name
-                child.attrs = {
-                  number: String(prevOrderedListNodeNumber + 1),
-                }
-
-                prevOrderedListNodeNumber = prevOrderedListNodeNumber + 1
-              } else {
-                prevOrderedListNodeNumber = 0
-                child.type = 'paragraph'
-
-                if (child.content?.length === 1) {
-                  child.content = child.content[0].content
-                } else {
-                  child.content = []
-                }
-              }
-            }
-          }
-
-          toggleItem(this.editor, state, chain, toggleListItemInSliceJson, 'ordered')
+        ({ chain }: any) => {
+          toggleItem({ editor: this.editor, chain, type: 'ordered' })
         },
     } as any
   },

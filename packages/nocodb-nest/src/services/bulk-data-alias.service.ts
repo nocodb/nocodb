@@ -44,12 +44,22 @@ export class BulkDataAliasService {
     param: PathParams & {
       body: any;
       cookie: any;
+      chunkSize?: number;
+      foreign_key_checks?: boolean;
+      raw?: boolean;
     },
   ) {
     return await this.executeBulkOperation({
       ...param,
       operation: 'bulkInsert',
-      options: [param.body, { cookie: param.cookie }],
+      options: [
+        param.body,
+        {
+          cookie: param.cookie,
+          foreign_key_checks: param.foreign_key_checks,
+          raw: param.raw,
+        },
+      ],
     });
   }
 

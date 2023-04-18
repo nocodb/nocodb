@@ -7,9 +7,10 @@ import {
   ExtractProjectIdMiddleware,
 } from '../middlewares/extract-project-id/extract-project-id.middleware';
 import { GridColumnsService } from '../services/grid-columns.service';
+import { ExtractProjectAndWorkspaceIdMiddleware } from '../middlewares/extract-project-and-workspace-id/extract-project-and-workspace-id.middleware';
 
 @Controller()
-@UseGuards(ExtractProjectIdMiddleware, GlobalGuard)
+@UseGuards(ExtractProjectAndWorkspaceIdMiddleware, GlobalGuard)
 export class GridColumnsController {
   constructor(private readonly gridColumnsService: GridColumnsService) {}
 

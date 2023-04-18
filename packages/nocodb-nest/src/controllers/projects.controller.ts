@@ -24,9 +24,10 @@ import {
 import Noco from '../Noco';
 import { packageVersion } from '../utils/packageVersion';
 import { ProjectsService } from '../services/projects.service';
+import { ExtractProjectAndWorkspaceIdMiddleware } from '../middlewares/extract-project-and-workspace-id/extract-project-and-workspace-id.middleware';
 import type { ProjectType } from 'nocodb-sdk';
 
-@UseGuards(ExtractProjectIdMiddleware, GlobalGuard)
+@UseGuards(ExtractProjectAndWorkspaceIdMiddleware, GlobalGuard)
 @Controller()
 export class ProjectsController {
   constructor(private readonly projectsService: ProjectsService) {}

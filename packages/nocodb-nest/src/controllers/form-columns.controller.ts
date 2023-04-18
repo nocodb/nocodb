@@ -6,11 +6,12 @@ import {
   ExtractProjectIdMiddleware,
 } from '../middlewares/extract-project-id/extract-project-id.middleware';
 import { FormColumnsService } from '../services/form-columns.service';
+import { ExtractProjectAndWorkspaceIdMiddleware } from '../middlewares/extract-project-and-workspace-id/extract-project-and-workspace-id.middleware';
 
 class FormColumnUpdateReqType {}
 
 @Controller()
-@UseGuards(ExtractProjectIdMiddleware, GlobalGuard)
+@UseGuards(ExtractProjectAndWorkspaceIdMiddleware, GlobalGuard)
 export class FormColumnsController {
   constructor(private readonly formColumnsService: FormColumnsService) {}
 

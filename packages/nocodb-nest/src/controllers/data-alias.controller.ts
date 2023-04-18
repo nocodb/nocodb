@@ -19,9 +19,10 @@ import {
   ExtractProjectIdMiddleware,
 } from '../middlewares/extract-project-id/extract-project-id.middleware';
 import { DatasService } from '../services/datas.service';
+import { ExtractProjectAndWorkspaceIdMiddleware } from '../middlewares/extract-project-and-workspace-id/extract-project-and-workspace-id.middleware';
 
 @Controller()
-@UseGuards(ExtractProjectIdMiddleware, GlobalGuard)
+@UseGuards(ExtractProjectAndWorkspaceIdMiddleware, GlobalGuard)
 export class DataAliasController {
   constructor(private readonly datasService: DatasService) {}
 

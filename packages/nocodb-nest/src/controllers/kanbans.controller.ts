@@ -15,9 +15,10 @@ import {
   ExtractProjectIdMiddleware,
 } from '../middlewares/extract-project-id/extract-project-id.middleware';
 import { KanbansService } from '../services/kanbans.service';
+import { ExtractProjectAndWorkspaceIdMiddleware } from '../middlewares/extract-project-and-workspace-id/extract-project-and-workspace-id.middleware';
 
 @Controller()
-@UseGuards(ExtractProjectIdMiddleware, GlobalGuard)
+@UseGuards(ExtractProjectAndWorkspaceIdMiddleware, GlobalGuard)
 export class KanbansController {
   constructor(private readonly kanbansService: KanbansService) {}
 

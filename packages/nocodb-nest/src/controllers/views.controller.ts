@@ -19,9 +19,10 @@ import {
 } from '../middlewares/extract-project-id/extract-project-id.middleware';
 import { GlobalGuard } from '../guards/global/global.guard';
 import { ViewsService } from '../services/views.service';
+import { ExtractProjectAndWorkspaceIdMiddleware } from '../middlewares/extract-project-and-workspace-id/extract-project-and-workspace-id.middleware';
 
 @Controller()
-@UseGuards(ExtractProjectIdMiddleware, GlobalGuard)
+@UseGuards(ExtractProjectAndWorkspaceIdMiddleware, GlobalGuard)
 export class ViewsController {
   constructor(private readonly viewsService: ViewsService) {}
 

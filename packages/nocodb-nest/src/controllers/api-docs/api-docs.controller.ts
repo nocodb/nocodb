@@ -12,6 +12,7 @@ import {
   ExtractProjectIdMiddleware,
 } from '../../middlewares/extract-project-id/extract-project-id.middleware';
 import { ApiDocsService } from '../../services/api-docs/api-docs.service';
+import { ExtractProjectAndWorkspaceIdMiddleware } from '../../middlewares/extract-project-and-workspace-id/extract-project-and-workspace-id.middleware';
 import getSwaggerHtml from './template/swaggerHtml';
 import getRedocHtml from './template/redocHtml';
 
@@ -20,7 +21,7 @@ export class ApiDocsController {
   constructor(private readonly apiDocsService: ApiDocsService) {}
 
   @Get('/api/v1/db/meta/projects/:projectId/swagger.json')
-  @UseGuards(ExtractProjectIdMiddleware, GlobalGuard)
+  @UseGuards(ExtractProjectAndWorkspaceIdMiddleware, GlobalGuard)
   @Acl('swaggerJson')
   async swaggerJson(@Param('projectId') projectId: string, @Request() req) {
     const swagger = await this.apiDocsService.swaggerJson({

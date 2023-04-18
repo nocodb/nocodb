@@ -13,6 +13,7 @@ import {
   ExtractProjectIdMiddleware,
 } from '../middlewares/extract-project-id/extract-project-id.middleware';
 import { UtilsService } from '../services/utils.service';
+import { ExtractProjectAndWorkspaceIdMiddleware } from '../middlewares/extract-project-and-workspace-id/extract-project-and-workspace-id.middleware';
 
 @Controller()
 export class UtilsController {
@@ -23,7 +24,7 @@ export class UtilsController {
     return this.utilsService.versionInfo();
   }
 
-  @UseGuards(ExtractProjectIdMiddleware, GlobalGuard)
+  @UseGuards(ExtractProjectAndWorkspaceIdMiddleware, GlobalGuard)
   @Post('/api/v1/db/meta/connection/test')
   @Acl('testConnection')
   @HttpCode(200)

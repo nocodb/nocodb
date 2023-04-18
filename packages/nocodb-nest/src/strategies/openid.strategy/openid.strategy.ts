@@ -4,13 +4,11 @@ import bcrypt from 'bcryptjs';
 import { PassportStrategy } from '@nestjs/passport';
 import { OpenIDConnectStrategy } from '@techpass/passport-openidconnect';
 import { v4 as uuidv4 } from 'uuid';
-import { UsersService } from '../../services/users/users.service';
-import { Plugin, ProjectUser, User } from '../../models';
+import { User } from '../../models';
 import Noco from '../../Noco';
 import NocoCache from '../../cache/NocoCache';
 import { CacheGetType } from '../../utils/globals';
 import type { FactoryProvider } from '@nestjs/common/interfaces/modules/provider.interface';
-import type { VerifyCallback } from 'jsonwebtoken';
 
 @Injectable()
 export class OpenidStrategy extends PassportStrategy(

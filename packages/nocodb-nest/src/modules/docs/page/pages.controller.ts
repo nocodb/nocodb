@@ -15,10 +15,11 @@ import {
   ExtractProjectIdMiddleware,
   UseAclMiddleware,
 } from '../../../middlewares/extract-project-id/extract-project-id.middleware';
+import { ExtractProjectAndWorkspaceIdMiddleware } from '../../../middlewares/extract-project-and-workspace-id/extract-project-and-workspace-id.middleware';
 import { PagesService } from './pages.service';
 
 @Controller()
-@UseGuards(ExtractProjectIdMiddleware, AuthGuard('jwt'))
+@UseGuards(ExtractProjectAndWorkspaceIdMiddleware, AuthGuard('jwt'))
 export class PagesController {
   constructor(private readonly pagesService: PagesService) {}
 

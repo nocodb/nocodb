@@ -19,9 +19,10 @@ import {
   UseAclMiddleware,
 } from '../middlewares/extract-project-id/extract-project-id.middleware';
 import { FiltersService } from '../services/filters.service';
+import { ExtractProjectAndWorkspaceIdMiddleware } from '../middlewares/extract-project-and-workspace-id/extract-project-and-workspace-id.middleware';
 
 @Controller()
-@UseGuards(ExtractProjectIdMiddleware, GlobalGuard)
+@UseGuards(ExtractProjectAndWorkspaceIdMiddleware, GlobalGuard)
 export class FiltersController {
   constructor(private readonly filtersService: FiltersService) {}
 

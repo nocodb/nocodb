@@ -17,10 +17,11 @@ import {
   Acl,
   ExtractProjectIdMiddleware,
 } from '../../middlewares/extract-project-id/extract-project-id.middleware';
+import { ExtractProjectAndWorkspaceIdMiddleware } from '../../middlewares/extract-project-and-workspace-id/extract-project-and-workspace-id.middleware';
 import { OldDatasService } from './old-datas.service';
 
 @Controller()
-@UseGuards(ExtractProjectIdMiddleware, GlobalGuard)
+@UseGuards(ExtractProjectAndWorkspaceIdMiddleware, GlobalGuard)
 export class OldDatasController {
   constructor(private readonly oldDatasService: OldDatasService) {}
 

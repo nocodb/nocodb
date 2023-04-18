@@ -36,7 +36,7 @@ export class AuthController {
     return await this.authService.signup(createUserDto);
   }
 
-  @UseGuards(ExtractProjectIdMiddleware, GlobalGuard)
+  @UseGuards(ExtractProjectAndWorkspaceIdMiddleware, GlobalGuard)
   @Get('/api/v1/auth/user/me')
   async me(@Request() req) {
     const user = {

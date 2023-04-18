@@ -20,9 +20,10 @@ import {
 } from '../middlewares/extract-project-id/extract-project-id.middleware';
 import { User } from '../models';
 import { OrgUsersService } from '../services/org-users.service';
+import { ExtractProjectAndWorkspaceIdMiddleware } from '../middlewares/extract-project-and-workspace-id/extract-project-and-workspace-id.middleware';
 
 @Controller()
-@UseGuards(ExtractProjectIdMiddleware, GlobalGuard)
+@UseGuards(ExtractProjectAndWorkspaceIdMiddleware, GlobalGuard)
 export class OrgUsersController {
   constructor(private readonly orgUsersService: OrgUsersService) {}
 

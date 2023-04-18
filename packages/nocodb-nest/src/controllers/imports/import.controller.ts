@@ -7,6 +7,7 @@ import { ExtractProjectIdMiddleware } from '../../middlewares/extract-project-id
 import { SyncSource } from '../../models';
 import NocoJobs from '../../jobs/NocoJobs';
 import { SocketService } from '../../services/socket.service';
+import { ExtractProjectAndWorkspaceIdMiddleware } from '../../middlewares/extract-project-and-workspace-id/extract-project-and-workspace-id.middleware';
 import airtableSyncJob from './helpers/job';
 import type { AirtableSyncConfig } from './helpers/job';
 
@@ -75,7 +76,7 @@ const initJob = (sv: Server, jobs: { [p: string]: { last_message: any } }) => {
   });
 };
 @Controller()
-@UseGuards(ExtractProjectIdMiddleware, GlobalGuard)
+@UseGuards(ExtractProjectAndWorkspaceIdMiddleware, GlobalGuard)
 export class ImportController {
   constructor(
     private readonly socketService: SocketService,

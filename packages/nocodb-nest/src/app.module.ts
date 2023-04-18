@@ -23,11 +23,11 @@ import { WorkspaceUsersModule } from './modules/workspace-users/workspace-users.
 import { DocsModule } from './modules/docs/docs.module';
 import { PublicDocsModule } from './modules/public-docs/public-docs.module';
 import NocoCache from './cache/NocoCache';
+import { OpenidStrategy } from './strategies/openid.strategy/openid.strategy';
 import type {
   MiddlewareConsumer,
   OnApplicationBootstrap,
 } from '@nestjs/common';
-import { OpenidStrategy } from './strategies/openid.strategy/openid.strategy';
 @Module({
   imports: [
     GlobalModule,
@@ -50,7 +50,7 @@ import { OpenidStrategy } from './strategies/openid.strategy/openid.strategy';
     },
     LocalStrategy,
     AuthTokenStrategy,
-    BaseViewStrategy
+    BaseViewStrategy,
   ],
 })
 export class AppModule implements OnApplicationBootstrap {

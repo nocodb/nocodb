@@ -9,9 +9,10 @@ import {
 import { View } from '../models';
 import { DatasService } from '../services/datas.service';
 import { extractCsvData, extractXlsxData } from '../modules/datas/helpers';
+import { ExtractProjectAndWorkspaceIdMiddleware } from '../middlewares/extract-project-and-workspace-id/extract-project-and-workspace-id.middleware';
 
 @Controller()
-@UseGuards(ExtractProjectIdMiddleware, GlobalGuard)
+@UseGuards(ExtractProjectAndWorkspaceIdMiddleware, GlobalGuard)
 export class DataAliasExportController {
   constructor(private datasService: DatasService) {}
 

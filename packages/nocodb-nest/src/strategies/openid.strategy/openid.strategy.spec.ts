@@ -1,5 +1,6 @@
-import { Test, TestingModule } from '@nestjs/testing';
+import { Test } from '@nestjs/testing';
 import { OpenidStrategy } from './openid.strategy';
+import type { TestingModule } from '@nestjs/testing';
 
 describe('OpenidStrategy', () => {
   let provider: OpenidStrategy;

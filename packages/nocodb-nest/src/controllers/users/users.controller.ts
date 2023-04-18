@@ -141,9 +141,7 @@ export class UsersController {
   }
 
   @Get('/auth/google')
-  @UseGuards(
-    AuthGuard('google'),
-  )
+  @UseGuards(AuthGuard('google'))
   googleAuthenticate(@Request() req) {
     //  this.googleStrategy.authenticate(req, {
     //   scope: ['profile', 'email'],

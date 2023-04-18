@@ -27,7 +27,6 @@ export class SocketService implements OnModuleInit {
   ) {}
 
   async onModuleInit() {
-    console.log(Noco.httpServer);
     this._io = new Server(
       Noco.httpServer ?? this.httpAdapterHost.httpAdapter.getHttpServer(),
       {

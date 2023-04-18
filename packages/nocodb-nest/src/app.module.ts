@@ -5,7 +5,7 @@ import { GlobalExceptionFilter } from './filters/global-exception/global-excepti
 import NcPluginMgrv2 from './helpers/NcPluginMgrv2';
 import { GlobalMiddleware } from './middlewares/global/global.middleware';
 import { GuiMiddleware } from './middlewares/gui/gui.middleware';
-import { PublicMiddleware } from './middlewares/public/public.middleware'
+import { PublicMiddleware } from './middlewares/public/public.middleware';
 import { DatasModule } from './modules/datas/datas.module';
 import { AuthService } from './services/auth.service';
 import { UsersModule } from './modules/users/users.module';
@@ -18,11 +18,11 @@ import { AuthTokenStrategy } from './strategies/authtoken.strategy/authtoken.str
 import { BaseViewStrategy } from './strategies/base-view.strategy/base-view.strategy';
 import NcUpgrader from './version-upgrader/NcUpgrader';
 import { MetasModule } from './modules/metas/metas.module';
+import NocoCache from './cache/NocoCache';
 import type {
   MiddlewareConsumer,
   OnApplicationBootstrap,
 } from '@nestjs/common';
-import NocoCache from './cache/NocoCache';
 
 @Module({
   imports: [

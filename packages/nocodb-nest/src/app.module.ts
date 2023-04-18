@@ -23,7 +23,6 @@ import { WorkspaceUsersModule } from './modules/workspace-users/workspace-users.
 import { DocsModule } from './modules/docs/docs.module';
 import { PublicDocsModule } from './modules/public-docs/public-docs.module';
 import NocoCache from './cache/NocoCache';
-import { OpenidStrategy } from './strategies/openid.strategy/openid.strategy';
 import type {
   MiddlewareConsumer,
   OnApplicationBootstrap,
@@ -41,7 +40,6 @@ import type {
     DocsModule,
     PublicDocsModule,
   ],
-  controllers: [],
   providers: [
     AuthService,
     {

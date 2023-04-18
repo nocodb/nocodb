@@ -1,14 +1,16 @@
 import type { ViewCreateReqType } from 'nocodb-sdk';
 import { UITypes, ViewTypes } from 'nocodb-sdk';
-import { tableService, gridViewService, filterService, viewColumnService, gridViewColumnService, sortService, formViewService, galleryViewService, kanbanViewService, formViewColumnService, columnService } from '..';
+import { tableService, gridViewService, filterService, viewColumnService, gridViewColumnService, sortService, formViewService, galleryViewService, kanbanViewService, formViewColumnService, columnService, bulkDataService } from '..';
 import { NcError } from '../../meta/helpers/catchError';
-import { Project, Base, User, View, Model } from '../../models';
+import { Project, Base, User, View, Model, Column, LinkToAnotherRecordColumn } from '../../models';
+import NcPluginMgrv2 from '../../meta/helpers/NcPluginMgrv2';
+import papaparse from 'papaparse';
 
 export async function importModels(param: {
   user: User;
   projectId: string;
   baseId: string;
-  data: { model: any; views: any[] }[];
+  data: { models: { model: any; views: any[] }[] } | { model: any; views: any[] }[];
   req: any;
 }) {
 
@@ -25,6 +27,8 @@ export async function importModels(param: {
 
   const tableReferences = new Map<string, Model>();
   const linkMap = new Map<string, string>();
+  
+  param.data = Array.isArray(param.data) ? param.data : param.data.models;
 
   // create tables with static columns
   for (const data of param.data) {
@@ -83,7 +87,7 @@ export async function importModels(param: {
             if (!linkMap.has(colOptions.fk_mm_model_id)) {
               // delete col.column_name as it is not required and will cause ajv error (null for LTAR)
               delete col.column_name;
-
+              
               const freshModelData = await columnService.columnAdd({
                 tableId: table.id,
                 column: withoutId({
@@ -118,14 +122,16 @@ export async function importModels(param: {
                 if (nColumn?.colOptions?.fk_mm_model_id === linkMap.get(colOptions.fk_mm_model_id) && nColumn.id !== idMap.get(col.id)) {
                   idMap.set(childColumn.id, nColumn.id);
 
-                  await columnService.columnUpdate({
-                    columnId: nColumn.id,
-                    column: {
-                      ...nColumn,
-                      column_name: childColumn.title,
-                      title: childColumn.title,
-                    },
-                  });
+                  if (nColumn.title !== childColumn.title) {
+                    await columnService.columnUpdate({
+                      columnId: nColumn.id,
+                      column: {
+                        ...nColumn,
+                        column_name: childColumn.title,
+                        title: childColumn.title,
+                      },
+                    });
+                  }
                   break;
                 }
               }
@@ -153,7 +159,8 @@ export async function importModels(param: {
             for (const nColumn of freshModelData.columns) {
               if (nColumn.title === col.title) {
                 idMap.set(col.id, nColumn.id);
-                linkMap.set(colOptions.fk_index_name, nColumn.colOptions.fk_index_name);
+                idMap.set(colOptions.fk_parent_column_id, nColumn.colOptions.fk_parent_column_id);
+                idMap.set(colOptions.fk_child_column_id, nColumn.colOptions.fk_child_column_id);
                 break;
               }
             }
@@ -162,20 +169,31 @@ export async function importModels(param: {
 
             if (colOptions.fk_related_model_id !== modelData.id) await childModel.getColumns();
 
-            const childColumn = param.data.find(a => a.model.id === colOptions.fk_related_model_id).model.columns.find(a => a.colOptions?.fk_index_name === colOptions.fk_index_name && a.id !== col.id);
+            const childColumn = param.data
+              .find((a) => a.model.id === colOptions.fk_related_model_id)
+              .model.columns.find(
+                (a) =>
+                  a.colOptions?.fk_parent_column_id ===
+                    colOptions.fk_parent_column_id &&
+                  a.colOptions?.fk_child_column_id ===
+                    colOptions.fk_child_column_id &&
+                  a.id !== col.id
+              );
 
             for (const nColumn of childModel.columns) {
-              if (nColumn?.colOptions?.fk_index_name === linkMap.get(colOptions.fk_index_name) && nColumn.id !== idMap.get(col.id)) {
+              if (nColumn.id !== idMap.get(col.id) && nColumn.colOptions?.fk_parent_column_id === idMap.get(colOptions.fk_parent_column_id) && nColumn.colOptions?.fk_child_column_id === idMap.get(colOptions.fk_child_column_id)) {
                 idMap.set(childColumn.id, nColumn.id);
 
-                await columnService.columnUpdate({
-                  columnId: nColumn.id,
-                  column: {
-                    ...nColumn,
-                    column_name: childColumn.title,
-                    title: childColumn.title,
-                  },
-                });
+                if (nColumn.title !== childColumn.title) {
+                  await columnService.columnUpdate({
+                    columnId: nColumn.id,
+                    column: {
+                      ...nColumn,
+                      column_name: childColumn.title,
+                      title: childColumn.title,
+                    },
+                  });
+                }
                 break;
               }
             }
@@ -385,6 +403,8 @@ export async function importModels(param: {
       }
     }
   }
+
+  return idMap;
 }
 
 async function createView(idMap: Map<string, string>, md: Model, vw: Partial<View>, views: View[]): Promise<View> {
@@ -529,9 +549,272 @@ function getParentIdentifier(id: string) {
   arr.pop();
   return arr.join('::');
 }
-/*
+
 function getEntityIdentifier(id: string) {
   const arr = id.split('::');
   return arr.pop();
 }
-*/
+
+function findWithIdentifier(map: Map<string, any>, id: string) {
+  for (const key of map.keys()) {
+    if (getEntityIdentifier(key) === id) {
+      return map.get(key);
+    }
+  }
+  return undefined;
+}
+
+export async function importBase(param: {
+  user: User;
+  projectId: string;
+  baseId: string;
+  src: { type: 'local' | 'url' | 'file'; path?: string; url?: string; file?: any };
+  req: any;
+}) {
+  const { user, projectId, baseId, src, req } = param;
+
+  let start = process.hrtime();
+
+  let elapsed_time = function(label: string){
+      const elapsedS = (process.hrtime(start)[0]).toFixed(3);
+      const elapsedMs = process.hrtime(start)[1] / 1000000;
+      console.log(`${label}: ${elapsedS}s ${elapsedMs}ms`);
+      start = process.hrtime();
+  }
+
+  switch (src.type) {
+    case 'local':
+      const path = src.path.replace(/\/$/, '');
+
+      const storageAdapter = await NcPluginMgrv2.storageAdapter();
+
+      try {
+        const schema = JSON.parse(await storageAdapter.fileRead(`${path}/schema.json`));
+
+        elapsed_time('read schema');
+
+        // store fk_mm_model_id (mm) to link once
+        const handledLinks = [];
+
+        const idMap = await importModels({
+          user,
+          projectId,
+          baseId,
+          data: schema,
+          req,
+        });
+
+        elapsed_time('import models');
+
+        if (idMap) {
+          const files = await storageAdapter.getDirectoryList(`${path}/data`);
+          const dataFiles = files.filter((file) => !file.match(/_links\.csv$/));
+          const linkFiles = files.filter((file) => file.match(/_links\.csv$/));
+        
+          for (const file of dataFiles) {
+            const readStream = await storageAdapter.fileReadByStream(
+              `${path}/data/${file}`
+            );
+            
+            const headers: string[] = [];
+            let chunk = [];
+
+            const modelId = findWithIdentifier(
+              idMap,
+              file.replace(/\.csv$/, '')
+            );
+
+            const model = await Model.get(modelId);
+
+            console.log(`Importing ${model.title}...`);
+
+            await new Promise(async (resolve) => {
+              papaparse.parse(readStream, {
+                newline: '\r\n',
+                step: async function (results, parser) {
+                  if (!headers.length) {
+                    parser.pause();
+                    for (const header of results.data) {
+                      const id = idMap.get(header);
+                      if (id) {
+                        const col = await Column.get({
+                          base_id: baseId,
+                          colId: id,
+                        });
+                        if (col.colOptions?.type === 'bt') {
+                          const childCol = await Column.get({
+                            base_id: baseId,
+                            colId: col.colOptions.fk_child_column_id,
+                          });
+                          headers.push(childCol.title);
+                        } else {
+                          headers.push(col.title);
+                        }
+                        
+                      } else {
+                          console.log(header);
+                      }
+                    }
+                    parser.resume();
+                  } else {
+                    if (results.errors.length === 0) {
+                      const row = {};
+                      for (let i = 0; i < headers.length; i++) {
+                        if (results.data[i] !== '') {
+                          row[headers[i]] = results.data[i];
+                        }
+                      }
+                      chunk.push(row);
+                      if (chunk.length > 1000) {
+                        parser.pause();
+                        elapsed_time('before chunk');
+                        await bulkDataService.bulkDataInsert({
+                          projectName: projectId,
+                          tableName: modelId,
+                          body: chunk,
+                          cookie: null,
+                          chunkSize: 1000,
+                          foreign_key_checks: false
+                        });
+                        chunk = [];
+                        elapsed_time('after chunk');
+                        parser.resume();
+                      }
+                    }
+                  }
+                },
+                complete: async function () {
+                  if (chunk.length > 0) {
+                    elapsed_time('before chunk');
+                    await bulkDataService.bulkDataInsert({
+                      projectName: projectId,
+                      tableName: modelId,
+                      body: chunk,
+                      cookie: null,
+                      foreign_key_checks: false
+                    });
+                    chunk = [];
+                    elapsed_time('after chunk');
+                  }
+                  resolve(null);
+                },
+              });
+            });
+          }
+
+          for (const file of linkFiles) {
+            const readStream = await storageAdapter.fileReadByStream(
+              `${path}/data/${file}`
+            );
+
+            const headers: string[] = [];
+            const mmParentChild: any = {};
+            let chunk: Record<string, any[]> = {}; // colId: { rowId, childId }[]
+
+            const modelId = findWithIdentifier(
+              idMap,
+              file.replace(/_links\.csv$/, '')
+            );
+            const model = await Model.get(modelId);
+            
+            let pkIndex = -1;
+
+            console.log(`Linking ${model.title}...`);
+
+            await new Promise(async (resolve) => {
+              papaparse.parse(readStream, {
+                newline: '\r\n',
+                step: async function (results, parser) {
+                  if (!headers.length) {
+                    parser.pause();
+                    for (const header of results.data) {
+                      if (header === 'pk') {
+                        headers.push(null);
+                        pkIndex = headers.length - 1;
+                        continue;
+                      }
+                      const id = idMap.get(header);
+                      if (id) {
+                        const col = await Column.get({
+                          base_id: baseId,
+                          colId: id,
+                        });
+                        if (
+                          col.uidt === UITypes.LinkToAnotherRecord &&
+                          col.colOptions.fk_mm_model_id &&
+                          handledLinks.includes(col.colOptions.fk_mm_model_id)
+                        ) {
+                          headers.push(null);
+                        } else {
+                          if (
+                            col.uidt === UITypes.LinkToAnotherRecord &&
+                            col.colOptions.fk_mm_model_id &&
+                            !handledLinks.includes(
+                              col.colOptions.fk_mm_model_id
+                            )
+                          ) {
+                            const colOptions = await col.getColOptions<LinkToAnotherRecordColumn>();
+
+                            const vChildCol = await colOptions.getMMChildColumn();
+                            const vParentCol = await colOptions.getMMParentColumn();
+
+                            mmParentChild[col.colOptions.fk_mm_model_id] = {
+                              parent: vParentCol.title,
+                              child: vChildCol.title,
+                            }
+
+                            handledLinks.push(col.colOptions.fk_mm_model_id);
+                          }
+                          headers.push(col.colOptions.fk_mm_model_id);
+                          chunk[col.colOptions.fk_mm_model_id] = []
+                        }
+                      }
+                    }
+                    parser.resume();
+                  } else {
+                    if (results.errors.length === 0) {
+                      for (let i = 0; i < headers.length; i++) {
+                        if (!headers[i]) continue;
+
+                        const mm = mmParentChild[headers[i]];
+
+                        for (const rel of results.data[i].split(',')) {
+                          if (rel.trim() === '') continue;
+                          chunk[headers[i]].push({ [mm.parent]: rel, [mm.child]: results.data[pkIndex] });
+                        }
+                      }
+                    }
+                  }
+                },
+                complete: async function () {
+                  for (const [k, v] of Object.entries(chunk)) {
+                    try {                      
+                      await bulkDataService.bulkDataInsert({
+                        projectName: projectId,
+                        tableName: k,
+                        body: v,
+                        cookie: null,
+                        chunkSize: 1000,
+                        foreign_key_checks: false
+                      });
+                    } catch (e) {
+                      console.log('linkError');
+                      console.log(e);
+                    }
+                  }
+                  resolve(null);
+                },
+              });
+            });
+          }
+        }
+      } catch (e) {
+        throw new Error(e);
+      }
+      break;
+    case 'url':
+      break;
+    case 'file':
+      break;
+  }
+}

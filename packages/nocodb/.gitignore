@@ -20,3 +20,4 @@ test_meta.db
 test_sakila.db
 test_sakila_*.db
 .env
+export/**

@@ -140,7 +140,7 @@ const loadMagic = ref(false)
 
     <div class="flex prose-xl font-bold self-center items-center my-4">
       Generate Data Using NocoAI
-      <PhSparkleFill :class="{ 'nc-animation-pulse': loadMagic }" class="ml-2 text-orange-400" />
+      <GeneralIcon icon="magic" :class="{ 'nc-animation-pulse': loadMagic }" class="ml-2 text-orange-400" />
     </div>
 
     <div class="pl-2 pr-2">

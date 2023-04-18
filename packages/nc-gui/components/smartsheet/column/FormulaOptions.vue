@@ -12,6 +12,7 @@ import {
   formulas,
   getUIDTIcon,
   getWordUntilCaret,
+  iconMap,
   insertAtCursor,
   onMounted,
   useColumnCreateStoreOrThrow,
@@ -701,7 +702,7 @@ const predictFunction = async () => {
       vModel.value.formula_raw = res.data
     }
   } catch (e) {
-    message.warning('NocoAI failed for the demo reasons. Please try again.')
+    message.warning('NocoAI: Underlying GPT API are busy. Please try after sometime.')
   }
   loadMagic.value = false
 }
@@ -710,7 +711,8 @@ const predictFunction = async () => {
 <template>
   <div class="formula-wrapper">
     <a-form-item v-bind="validateInfos.formula_raw" label="Formula">
-      <PhSparkleFill
+      <GeneralIcon
+        icon="magic"
         :class="{ 'nc-animation-pulse': loadMagic }"
         class="text-orange-400 cursor-pointer absolute right-1 top-1 z-10"
         @click="predictFunction()"
@@ -772,9 +774,9 @@ const predictFunction = async () => {
               </template>
 
               <template #avatar>
-                <mdi-function v-if="item.type === 'function'" class="text-lg" />
+                <component :is="iconMap.function" v-if="item.type === 'function'" class="text-lg" />
 
-                <mdi-calculator v-if="item.type === 'op'" class="text-lg" />
+                <component :is="iconMap.calculator" v-if="item.type === 'op'" class="text-lg" />
 
                 <component :is="item.icon" v-if="item.type === 'column'" class="text-lg" />
               </template>

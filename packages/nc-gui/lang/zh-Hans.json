@@ -39,6 +39,7 @@
     "signIn": "登录",
     "signOut": "登出",
     "required": "必填项",
+    "enableScanner": "启用扫描仪来填充",
     "preferred": "首选",
     "mandatory": "强制的",
     "loading": "加载中...",
@@ -67,14 +68,15 @@
     "questions": "问题",
     "reachOut": "联系我们",
     "betaNote": "此功能仍在测试中。",
-    "moreInfo": "点击此处了解更多信息。",
+    "moreInfo": "这里可以找到更多信息",
     "logs": "日志",
     "groupingField": "分组字段",
     "insertAfter": "在右侧插入列",
     "insertBefore": "在左侧插入列",
     "hideField": "隐藏字段",
     "sortAsc": "升序",
-    "sortDesc": "降序"
+    "sortDesc": "降序",
+    "geoDataField": "地理数据字段"
   },
   "objects": {
     "project": "项目",
@@ -98,7 +100,8 @@
       "gallery": "画廊",
       "form": "表单",
       "kanban": "看板",
-      "calendar": "日历"
+      "calendar": "日历",
+      "map": "地图"
     },
     "user": "用户",
     "users": "用户",
@@ -136,6 +139,7 @@
     "Currency": "货币",
     "Percent": "百分比",
     "Duration": "时长",
+    "GeoData": "地理数据",
     "Rating": "评分",
     "Formula": "公式",
     "Rollup": "聚合",
@@ -206,7 +210,8 @@
     "advancedSettings": "高级设置",
     "codeSnippet": "代码片段",
     "keyboardShortcut": "快捷键",
-    "generateRandomName": "随机名称"
+    "generateRandomName": "随机名称",
+    "findRowByScanningCode": "通过扫描二维码或条码查找行"
   },
   "labels": {
     "createdBy": "创建自",
@@ -216,6 +221,7 @@
     "viewName": "查看名称",
     "viewLink": "查看链接",
     "columnName": "列名",
+    "columnToScanFor": "Column to scan",
     "columnType": "列类型",
     "roleName": "权限组",
     "roleDescription": "权限描述",
@@ -232,6 +238,7 @@
     "action": "操作",
     "actions": "操作",
     "operation": "操作",
+    "operationSub": "子操作",
     "operationType": "操作类型",
     "operationSubType": "子操作类型",
     "description": "描述",
@@ -253,6 +260,9 @@
     "barcodeFormat": "条形码码制",
     "qrCodeValueTooLong": "字数超出二维码容量",
     "barcodeValueTooLong": "字数超出条形码容量",
+    "currentLocation": "当前位置",
+    "lng": "经度",
+    "lat": "纬度",
     "aggregateFunction": "汇总功能",
     "dbCreateIfNotExists": "自动创建数据库",
     "clientKey": "客户端密钥",
@@ -298,7 +308,7 @@
     "noData": "暂无数据",
     "goToDashboard": "转到仪表板",
     "importing": "导入中",
-    "flattenNested": "Flatten Nested",
+    "flattenNested": "扁平化嵌套",
     "downloadAllowed": "允许下载",
     "weAreHiring": "我们在招募！",
     "primaryKey": "主键",
@@ -380,14 +390,14 @@
     "renameTable": "重命名表格",
     "deleteTable": "删除表格",
     "addField": "添加新字段",
-    "setDisplay": "Set as Display value",
+    "setDisplay": "设置为显示值",
     "addRow": "添加新行",
     "saveRow": "保存行",
     "saveAndExit": "保存并退出",
     "saveAndStay": "保存并留在此页",
     "insertRow": "插入新行",
+    "duplicateRow": "复制该行",
     "deleteRow": "删除行",
-    "duplicateRow": "Duplicate Row",
     "deleteSelectedRow": "删除所选行",
     "importExcel": "导入 Excel",
     "importCSV": "导入 CSV",
@@ -402,6 +412,8 @@
     "changePwd": "更改密码",
     "createView": "创建视图",
     "shareView": "分享视图",
+    "findRowByCodeScan": "Find row by scan",
+    "fillByCodeScan": "Fill by scan",
     "listSharedView": "共享视图列表",
     "ListView": "视图列表",
     "copyView": "复制视图",
@@ -417,6 +429,10 @@
     "openTab": "打开新标签",
     "iFrame": "复制可嵌入的 HTML 代码",
     "addWebhook": "添加新的 Webhook",
+    "enableWebhook": "启用 Webhook",
+    "testWebhook": "Test Webhook",
+    "copyWebhook": "复制 Webhook",
+    "deleteWebhook": "删除 Webhook",
     "newToken": "添加新 Token",
     "exportZip": "导出为 zip 格式",
     "importZip": "导入 zip 格式",
@@ -452,7 +468,14 @@
       "stackedBy": "分类依据为",
       "chooseGroupingField": "选择分组字段",
       "addOrEditStack": "添加/编辑分类标签"
-    }
+    },
+    "map": {
+      "mappedBy": "Mapped By",
+      "chooseMappingField": "选择映射字段",
+      "openInGoogleMaps": "谷歌地图",
+      "openInOpenStreetMap": "OSM"
+    },
+    "toggleMobileMode": "切换移动模式"
   },
   "tooltip": {
     "saveChanges": "保存更改",
@@ -508,15 +531,26 @@
         "renderError": "条形码错误 - 请注意输入数据和条形码类型之间的兼容性"
       },
       "nonEditableFields": {
-        "computedFieldUnableToClear": "Warning: Computed field - unable to clear text",
-        "qrFieldsCannotBeDirectlyChanged": "Warning: QR fields cannot be directly changed."
+        "computedFieldUnableToClear": "警告：自动计算的字段无法被清除内容。",
+        "qrFieldsCannotBeDirectlyChanged": "警告：二维码字段无法更改。"
       }
     },
     "info": {
-      "pasteNotSupported": "Paste operation is not supported on the active cell",
+      "pasteNotSupported": "处于活动状态的单元格不能粘贴内容",
       "roles": {
         "orgCreator": "创始人可以创建新项目，访问受邀项目。",
         "orgViewer": "游客不能创建新项目，仅允许访问受邀项目。"
+      },
+      "codeScanner": {
+        "loadingScanner": "Loading the scanner...",
+        "selectColumn": "Select a column (QR code or Barcode) that you want to use for finding a row by scanning.",
+        "moreThanOneRowFoundForCode": "More than one row found for this code. Currently only unique codes are supported.",
+        "noRowFoundForCode": "所选列没有找到此代码行"
+      },
+      "map": {
+        "overLimit": "你已经超出了限制。",
+        "closeLimit": "您已接近上限。",
+        "limitNumber": "The limit of markers shown in a Map View is 1000 records."
       },
       "footerInfo": "每页行驶",
       "upload": "选择文件以上传",
@@ -600,6 +634,7 @@
         "gallery": "添加画廊视图",
         "form": "添加表单视图",
         "kanban": "添加看板视图",
+        "map": "添加地图视图",
         "calendar": "添加日历视图"
       },
       "tablesMetadataInSync": "表元数据同步",
@@ -627,18 +662,18 @@
       "valueAlreadyInList": "此值已经在列表中",
       "noColumnsToUpdate": "没有要更新的列",
       "tableDeleted": "已成功删除表",
-      "generatePublicShareableReadonlyBase": "Generate publicly shareable readonly base",
+      "generatePublicShareableReadonlyBase": "生成公开可共享的只读库",
       "deleteViewConfirmation": "您确定要删除此视图？",
       "deleteTableConfirmation": "您想要删除该表吗？",
       "showM2mTables": "显示中间表",
-      "showM2mTablesDesc": "Many-to-many relation is supported via a junction table & is hidden by default. Enable this option to list all such tables along with existing tables.",
-      "showNullInCells": "Show NULL in Cells",
-      "showNullInCellsDesc": "Display 'NULL' tag in cells holding NULL value. This helps differentiate against cells holding EMPTY string.",
-      "showNullAndEmptyInFilter": "Show NULL and EMPTY in Filter",
-      "showNullAndEmptyInFilterDesc": "Enable 'additional' filters to differentiate fields containing NULL & Empty Strings. Default support for Blank treats both NULL & Empty strings alike.",
+      "showM2mTablesDesc": "NocoDB 用来支持多对多关系的中间表默认不可见。打开此选项将显示所有中间表。",
+      "showNullInCells": "单元格为空时显示 NULL",
+      "showNullInCellsDesc": "未设置值的单元格将显示 NULL。这是为了和值为空字符串（显示 EMPTY）的单元格作出区分。",
+      "showNullAndEmptyInFilter": "在过滤器中显示 NULL 和 EMPTY 选项",
+      "showNullAndEmptyInFilterDesc": "启用”附加”过滤器来区分未设置值（NULL）和值为空字符串（EMPTY）的字段。默认对 NULL 的处理和对空字符串的处理一样。",
       "deleteKanbanStackConfirmation": "删除这个类别标签也将从 \"{groupingField}\"中删除选择选项 \"{stackToBeDeleted}\"。这类记录将移到未分类的类别中。",
-      "computedFieldEditWarning": "Computed field: contents are read-only. Use column edit menu to reconfigure",
-      "computedFieldDeleteWarning": "Computed field: contents are read-only. Unable to clear content.",
+      "computedFieldEditWarning": "计算字段：此内容是只读的。使用列编辑菜单来重新配置该字段",
+      "computedFieldDeleteWarning": "计算字段：此内容是只读的。无法清除内容。",
       "noMoreRecords": "暂无数据"
     },
     "error": {
@@ -663,6 +698,7 @@
         "allowedSpecialCharList": "允许的特殊字符列表"
       },
       "invalidURL": "无效的 URL",
+      "invalidEmail": "无效的电子邮件",
       "internalError": "发生了一些内部错误",
       "templateGeneratorNotFound": "模板生成器无法找到！",
       "fileUploadFailed": "文件上传失败",
@@ -690,6 +726,7 @@
       "nameShouldStartWithAnAlphabetOr_": "名称应该以字母或 _ 开头",
       "followingCharactersAreNotAllowed": "不允许使用以下字符",
       "columnNameRequired": "列名是必填项",
+      "columnNameExceedsCharacters": "列名的长度超过了 {value} 字符的限制",
       "projectNameExceeds50Characters": "项目名称超过 50 个字符",
       "projectNameCannotStartWithSpace": "项目名称不能以空格开头",
       "requiredField": "必填字段",
@@ -722,7 +759,7 @@
     },
     "success": {
       "columnDuplicated": "此列的副本创建成功",
-      "rowDuplicatedWithoutSavedYet": "Row duplicated (not saved)",
+      "rowDuplicatedWithoutSavedYet": "该行已复制（未保存）",
       "updatedUIACL": "已成功更新表的 UI ACL",
       "pluginUninstalled": "插件卸载成功",
       "pluginSettingsSaved": "插件设置保存成功",
@@ -742,6 +779,7 @@
       "userDeletedFromProject": "踢出用户成功",
       "inviteEmailSent": "邀请邮件发送成功",
       "inviteURLCopied": "邀请URL已复制到剪贴板",
+      "commentCopied": "已复制评论到剪贴板",
       "passwordResetURLCopied": "密码重置网址已复制到剪贴板",
       "shareableURLCopied": "已将可共享的基础URL复制到剪贴板！",
       "embeddableHTMLCodeCopied": "已复制可嵌入的 HTML 代码！",

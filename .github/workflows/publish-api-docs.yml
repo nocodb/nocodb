@@ -1,10 +1,11 @@
 name: "Publish : Api Docs"
 
 on:
+  workflow_dispatch:
   push:
     branches: [ master ]
     paths:
-      - "scripts/sdk/swagger.json"
+      - "packages/nocodb/src/schema/swagger.json"
   release:
     types: [ published ]
 
@@ -22,7 +23,7 @@ jobs:
         env:
           API_TOKEN_GITHUB: ${{ secrets.GH_TOKEN }}
         with:
-          source_file: 'scripts/sdk/swagger.json'
+          source_file: 'packages/nocodb/src/schema/swagger.json'
           destination_repo: 'nocodb/noco-apis-doc'
           destination_folder: 'src'
           user_email: 'oof1lab@gmail.com'
@@ -34,7 +35,7 @@ jobs:
         env:
           API_TOKEN_GITHUB: ${{ secrets.GH_TOKEN }}
         with:
-          source_file: 'scripts/sdk/swagger.json'
+          source_file: 'packages/nocodb/src/schema/swagger.json'
           destination_repo: 'nocodb/noco-apis-doc'
           destination_folder: 'meta-src'
           user_email: 'oof1lab@gmail.com'

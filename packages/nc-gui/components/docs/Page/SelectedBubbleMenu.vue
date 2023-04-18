@@ -4,12 +4,17 @@ import type { Editor } from '@tiptap/vue-3'
 import { BubbleMenu } from '@tiptap/vue-3'
 import { generateHTML, generateJSON } from '@tiptap/html'
 import showdown from 'showdown'
+import type { Mark } from 'prosemirror-model'
 import MdiFormatBulletList from '~icons/mdi/format-list-bulleted'
 import MdiFormatStrikeThrough from '~icons/mdi/format-strikethrough'
+import MdiFormatListNumber from '~icons/mdi/format-list-numbered'
+import MdiFormatListCheckbox from '~icons/mdi/format-list-checkbox'
 
 const { editor } = defineProps<Props>()
 
-const { magicExpand } = useDocs()
+const { project } = storeToRefs(useProject())
+
+const { magicExpand } = useDocStore()
 
 interface Props {
   editor: Editor
@@ -36,6 +41,21 @@ const showMenu = computed(() => {
 })
 const showMenuDebounced = ref(false)
 
+const isBulletActive = computed(() => {
+  const plugin = editor.state.plugins.find((plugin) => (plugin as any).key.includes('bullet'))
+  return plugin?.getState(editor.state).active
+})
+
+const isOrderedActive = computed(() => {
+  const plugin = editor.state.plugins.find((plugin) => (plugin as any).key.includes('ordered'))
+  return plugin?.getState(editor.state).active
+})
+
+const isCheckboxActive = computed(() => {
+  const plugin = editor.state.plugins.find((plugin) => (plugin as any).key.includes('task'))
+  return plugin?.getState(editor.state).active
+})
+
 const expandText = async () => {
   if (isMagicExpandLoading.value) return
 
@@ -48,7 +68,7 @@ const expandText = async () => {
     converter.setOption('noHeaderId', true)
 
     const markdown = converter.makeMarkdown(selectedHtml)
-    const response: any = await magicExpand(markdown)
+    const response: any = await magicExpand({ text: markdown, projectId: project.value.id! })
 
     editor
       ?.chain()
@@ -100,15 +120,45 @@ watchDebounced(
     immediate: true,
   },
 )
+
+const onToggleLink = () => {
+  const activeNode = editor?.state?.selection?.$from?.nodeBefore || editor?.state?.selection?.$from?.nodeAfter
+
+  const isLinkMarkedStoredInEditor = editor?.state?.storedMarks?.some((mark: Mark) => mark.type.name === 'link')
+
+  const isActiveNodeMarkActive = activeNode?.marks?.some((mark: Mark) => mark.type.name === 'link') || isLinkMarkedStoredInEditor
+
+  if (isActiveNodeMarkActive) {
+    editor!.chain().focus().unsetLink().run()
+  } else {
+    editor!
+      .chain()
+      .focus()
+      .toggleLink({
+        href: '',
+      })
+      .selectTextblockEnd()
+      .run()
+
+    setTimeout(() => {
+      const linkInput = document.querySelector('.docs-link-option-input')
+      if (linkInput) {
+        ;(linkInput as any).focus()
+      }
+    }, 100)
+  }
+}
 </script>
 
 <template>
-  <BubbleMenu :editor="editor" :tippy-options="{ duration: 100, maxWidth: 600 }">
+  <BubbleMenu :editor="editor" :update-delay="300" :tippy-options="{ duration: 100, maxWidth: 600 }">
     <div v-if="showMenuDebounced" class="bubble-menu flex flex-row gap-x-1 bg-gray-100 py-1 rounded-lg px-1">
       <a-button
         type="text"
         :class="{ 'is-active': editor.isActive('bold') }"
+        :aria-active="editor.isActive('bold')"
         class="menu-button"
+        data-testid="nc-docs-editor-bold-button"
         @click="editor!.chain().focus().toggleBold().run()"
       >
         <MdiFormatBold />
@@ -116,7 +166,9 @@ watchDebounced(
       <a-button
         type="text"
         :class="{ 'is-active': editor.isActive('italic') }"
+        :aria-active="editor.isActive('italic')"
         class="menu-button"
+        data-testid="nc-docs-editor-italic-button"
         @click=";(editor!.chain().focus() as any).toggleItalic().run()"
       >
         <MdiFormatItalic />
@@ -124,45 +176,63 @@ watchDebounced(
       <a-button
         type="text"
         :class="{ 'is-active': editor.isActive('underline') }"
+        :aria-active="editor.isActive('underline')"
         class="menu-button"
+        data-testid="nc-docs-editor-underline-button"
         @click="editor!.chain().focus().toggleUnderline().run()"
       >
         <MdiFormatUnderline />
       </a-button>
-      <div class="divider"></div>
       <a-button
         type="text"
         :class="{ 'is-active': editor.isActive('strike') }"
+        :aria-active="editor.isActive('strike')"
         class="menu-button"
+        data-testid="nc-docs-editor-strike-button"
         @click="editor!.chain().focus().toggleStrike().run()"
       >
         <MdiFormatStrikeThrough />
       </a-button>
+      <div class="divider"></div>
       <a-button
         type="text"
-        :class="{ 'is-active': editor.isActive('bulletList') }"
+        :class="{ 'is-active': isCheckboxActive }"
+        :aria-active="isCheckboxActive"
         class="menu-button"
-        @click="editor!.chain().focus().toggleBulletList().run()"
+        data-testid="nc-docs-editor-task-button"
+        @click="editor!.chain().focus().toggleTask().run()"
+      >
+        <MdiFormatListCheckbox />
+      </a-button>
+      <a-button
+        type="text"
+        :class="{ 'is-active': isBulletActive }"
+        :aria-active="isBulletActive"
+        class="menu-button"
+        data-testid="nc-docs-editor-bullet-button"
+        @click="editor!.chain().focus().toggleBullet().run()"
       >
         <MdiFormatBulletList />
       </a-button>
-
+      <a-button
+        type="text"
+        :class="{ 'is-active': isOrderedActive }"
+        :aria-active="isOrderedActive"
+        class="menu-button"
+        data-testid="nc-docs-editor-ordered-button"
+        @click="editor!.chain().focus().toggleOrdered().run()"
+      >
+        <MdiFormatListNumber />
+      </a-button>
       <div class="divider"></div>
 
       <a-button
         type="text"
         :class="{ 'is-active': editor.isActive('link') }"
+        :aria-active="editor.isActive('link')"
         class="menu-button"
-        @click="
-          editor!
-            .chain()
-            .focus()
-            .toggleLink({
-              href: '',
-            })
-            .selectTextblockEnd()
-            .run()
-        "
+        data-testid="nc-docs-editor-link-button"
+        @click="onToggleLink"
       >
         <div class="flex flex-row items-center px-0.5">
           <MdiLink />
@@ -179,10 +249,12 @@ watchDebounced(
         :class="{
           '!hover:bg-inherit !cursor-not-allowed': isMagicExpandLoading,
         }"
+        :aria-active="isMagicExpandLoading"
+        data-testid="nc-docs-editor-expand-button"
         @click="expandText"
       >
         <div class="flex flex-row items-center pr-0.5">
-          <PhSparkleFill v-if="!isMagicExpandLoading" class="text-orange-400 h-3.5" />
+          <GeneralIcon v-if="!isMagicExpandLoading" icon="magic" class="text-orange-400 h-3.5" />
           <div class="!text-xs !ml-1">Expand</div>
         </div>
       </a-button>
@@ -196,7 +268,9 @@ watchDebounced(
   @apply shadow-gray-200 shadow-sm;
 
   .is-active {
-    background-color: #e5e5e5;
+    @apply border-1;
+    border-color: rgb(216, 216, 216);
+    background-color: #dddddd !important;
   }
   .menu-button {
     @apply rounded-md !py-0 !my-0 !px-1.5 !h-8;

@@ -15,10 +15,12 @@ import {
   computed,
   enumColor,
   extractSdkResponseErrorMsg,
+  iconMap,
   inject,
   isDrawerOrModalExist,
   ref,
   useEventListener,
+  useProject,
   useRoles,
   useSelectedCellKeyupListener,
   watch,
@@ -207,7 +209,7 @@ const onSelect = () => {
   isOpen.value = false
 }
 
-const cellClickHook = inject(CellClickHookInj)
+const cellClickHook = inject(CellClickHookInj, null)
 
 const toggleMenu = (e: Event) => {
   // todo: refactor
@@ -240,11 +242,32 @@ const handleClose = (e: MouseEvent) => {
 }
 
 useEventListener(document, 'click', handleClose, true)
+
+const selectedOpt = computed(() => {
+  return options.value.find((o) => o.value === vModel.value)
+})
 </script>
 
 <template>
   <div class="h-full w-full flex items-center nc-single-select" :class="{ 'read-only': readOnly }" @click="toggleMenu">
+    <div v-if="!editable && !active">
+      <a-tag v-if="selectedOpt" class="rounded-tag" :color="selectedOpt.color">
+        <span
+          :style="{
+            'color': tinycolor.isReadable(selectedOpt.color || '#ccc', '#fff', { level: 'AA', size: 'large' })
+              ? '#fff'
+              : tinycolor.mostReadable(selectedOpt.color || '#ccc', ['#0b1d05', '#fff']).toHex8String(),
+            'font-size': '13px',
+          }"
+          :class="{ 'text-sm': isKanban }"
+        >
+          {{ selectedOpt.title }}
+        </span>
+      </a-tag>
+    </div>
+
     <a-select
+      v-else
       ref="aselect"
       v-model:value="vModel"
       class="w-full overflow-hidden"
@@ -294,7 +317,7 @@ useEventListener(document, 'click', handleClose, true)
         :value="searchVal"
       >
         <div class="flex gap-2 text-gray-500 items-center h-full">
-          <MdiPlusThick class="min-w-4" />
+          <component :is="iconMap.plusThick" class="min-w-4" />
           <div class="text-xs whitespace-normal">
             Create new option named <strong>{{ searchVal }}</strong>
           </div>

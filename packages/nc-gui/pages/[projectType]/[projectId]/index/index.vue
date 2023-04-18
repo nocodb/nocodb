@@ -2,24 +2,29 @@
 import { Icon } from '@iconify/vue'
 import type { TabItem } from '~/lib'
 import { TabType } from '~/lib'
-import { TabMetaInj, iconMap, provide, useGlobal, useSidebar, useTabs } from '#imports'
+import { TabMetaInj, iconMap, provide, storeToRefs, useGlobal, useSidebar, useTabs } from '#imports'
 
-const { tabs, activeTabIndex, activeTab, closeTab } = useTabs()
+const tabStore = useTabs()
+const { closeTab } = tabStore
+const { tabs, activeTabIndex, activeTab } = storeToRefs(tabStore)
 
-const { isLoading } = useGlobal()
+const { isLoading, isMobileMode } = useGlobal()
 
 provide(TabMetaInj, activeTab)
 
 const icon = (tab: TabItem) => {
   switch (tab.type) {
     case TabType.TABLE:
-      return iconMap['mdi-table-large']
+      return iconMap.table
     case TabType.VIEW:
-      return iconMap['mdi-eye-circle-outline']
+      return iconMap.view
     case TabType.AUTH:
-      return iconMap['mdi-account-group']
+      return iconMap.users
+    // todo: iconmap key
     case TabType.SQL:
-      return iconMap['mdi-database-search']
+      return iconMap.databaseSearch
+    case TabType.ERD:
+      return iconMap.erd
   }
 }
 
@@ -27,6 +32,12 @@ const { isOpen, toggle } = useSidebar('nc-left-sidebar')
 
 function onEdit(targetKey: number, action: 'add' | 'remove' | string) {
   if (action === 'remove') closeTab(targetKey)
+}
+
+const hideSidebarOnClickOrTouchIfMobileMode = () => {
+  if (isMobileMode.value && isOpen.value) {
+    toggle(false)
+  }
 }
 </script>
 
@@ -36,9 +47,10 @@ function onEdit(targetKey: number, action: 'add' | 'remove' | string) {
       <div class="flex items-end !min-h-[var(--header-height)] !bg-white-500 nc-tab-bar">
         <div
           v-if="!isOpen"
-          class="nc-sidebar-left-toggle-icon hover:after:(bg-primary bg-opacity-75) group nc-sidebar-add-row py-2 px-3 mb-1"
+          class="nc-sidebar-left-toggle-icon hover:after:(bg-primary bg-opacity-75) group nc-sidebar-add-row py-2 px-3"
         >
-          <MdiMenu
+          <component
+            :is="iconMap.sidebarMinimise"
             v-e="['c:grid:toggle-navdraw']"
             class="cursor-pointer transform transition-transform duration-500 text-gray-500/80 hover:text-gray-500"
             :class="{ 'rotate-180': !isOpen }"
@@ -76,15 +88,15 @@ function onEdit(targetKey: number, action: 'add' | 'remove' | string) {
           <div v-if="isLoading" class="flex items-center gap-2 ml-3 text-gray-200" data-testid="nc-loading">
             {{ $t('general.loading') }}
 
-            <MdiLoading class="animate-infinite animate-spin" />
+            <component :is="iconMap.loading" class="animate-infinite animate-spin" />
           </div>
         </div>
 
         <LazyGeneralShareBaseButton class="mb-1px" />
-        <LazyGeneralFullScreen class="nc-fullscreen-icon mb-1px" />
+        <LazyGeneralFullScreen v-if="!isMobileMode" class="nc-fullscreen-icon mb-1px" />
       </div>
 
-      <div class="w-full min-h-[300px] flex-auto">
+      <div class="w-full min-h-[300px] flex-auto" @click="hideSidebarOnClickOrTouchIfMobileMode">
         <NuxtPage :page-key="`${$route.params.projectId}.${$route.name}`" />
       </div>
     </div>

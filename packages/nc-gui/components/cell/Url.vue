@@ -4,10 +4,12 @@ import {
   CellUrlDisableOverlayInj,
   ColumnInj,
   EditModeInj,
+  IsSurveyFormInj,
   computed,
   inject,
   isValidURL,
   message,
+  parseProp,
   ref,
   useCellUrlConfig,
   useI18n,
@@ -35,11 +37,13 @@ const disableOverlay = inject(CellUrlDisableOverlayInj, ref(false))
 // Used in the logic of when to display error since we are not storing the url if it's not valid
 const localState = ref(value)
 
+const isSurveyForm = inject(IsSurveyFormInj, ref(false))
+
 const vModel = computed({
   get: () => value,
   set: (val) => {
     localState.value = val
-    if (!column.value.meta?.validate || (val && isValidURL(val)) || !val) {
+    if (!parseProp(column.value.meta)?.validate || (val && isValidURL(val)) || !val || isSurveyForm.value) {
       emit('update:modelValue', val)
     }
   },
@@ -63,7 +67,7 @@ const focus: VNodeRef = (el) => (el as HTMLInputElement)?.focus()
 watch(
   () => editEnabled.value,
   () => {
-    if (column.value.meta?.validate && !editEnabled.value && localState.value && !isValidURL(localState.value)) {
+    if (parseProp(column.value.meta)?.validate && !editEnabled.value && localState.value && !isValidURL(localState.value)) {
       message.error(t('msg.error.invalidURL'))
       localState.value = undefined
       return
@@ -118,7 +122,7 @@ watch(
 
     <div v-if="column.meta?.validate && !isValid && value?.length && !editEnabled" class="mr-1 w-1/10">
       <a-tooltip placement="top">
-        <template #title> Invalid URL </template>
+        <template #title> {{ t('msg.error.invalidURL') }} </template>
         <div class="flex flex-row items-center">
           <MiCircleWarning class="text-red-400 h-4" />
         </div>
@@ -126,6 +130,3 @@ watch(
     </div>
   </div>
 </template>
-
-<!--
--->

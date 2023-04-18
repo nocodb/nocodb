@@ -7,11 +7,13 @@ import {
   computed,
   extractSdkResponseErrorMsg,
   fieldRequiredValidator,
+  iconMap,
   message,
   nextTick,
   onBeforeUnmount,
   onMounted,
   ref,
+  storeToRefs,
   useGlobal,
   useNuxtApp,
   useProject,
@@ -31,7 +33,11 @@ const baseURL = appInfo.ncSiteUrl
 
 const { $state } = useNuxtApp()
 
-const { project, loadTables } = useProject()
+const projectStore = useProject()
+
+const { loadTables } = projectStore
+
+const { project } = storeToRefs(projectStore)
 
 const showGoToDashboardButton = ref(false)
 
@@ -402,7 +408,7 @@ onBeforeUnmount(() => {
         <a-card ref="logRef" :body-style="{ backgroundColor: '#000000', height: '400px', overflow: 'auto' }">
           <div v-for="({ msg, status }, i) in progress" :key="i">
             <div v-if="status === 'FAILED'" class="flex items-center">
-              <MdiCloseCircleOutline class="text-red-500" />
+              <component :is="iconMap.closeCircle" class="text-red-500" />
 
               <span class="text-red-500 ml-2">{{ msg }}</span>
             </div>
@@ -423,7 +429,7 @@ onBeforeUnmount(() => {
             class="flex items-center"
           >
             <!--            Importing -->
-            <MdiLoading class="text-green-500 animate-spin" />
+            <component :is="iconMap.loading" class="text-green-500 animate-spin" />
             <span class="text-green-500 ml-2"> {{ $t('labels.importing') }}</span>
           </div>
         </a-card>

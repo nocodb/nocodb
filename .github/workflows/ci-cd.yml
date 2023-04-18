@@ -25,8 +25,8 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
-    unit-tests:
-      runs-on: self-hosted
+    unit-tests-pg:
+      runs-on: ubuntu-20.04
       timeout-minutes: 40
       if: ${{ github.event_name == 'push' || contains(github.event.pull_request.labels.*.name, 'trigger-CI') || !github.event.pull_request.draft }}
       steps:
@@ -51,6 +51,9 @@ jobs:
               ${{ runner.os }}-build-${{ env.cache-name }}-
               ${{ runner.os }}-build-
               ${{ runner.os }}-
+        - name: setup pg
+          working-directory: ./
+          run: docker-compose -f ./tests/playwright/scripts/docker-compose-playwright-pg.yml up -d &
         - name: install dependencies nocodb-sdk
           working-directory: ./packages/nocodb-sdk
           run: npm install
@@ -62,7 +65,7 @@ jobs:
           run: npm install
         - name: run unit tests
           working-directory: ./packages/nocodb
-          run: npm run test:unit
+          run: npm run test:unit:pg
     playwright-pg-shard-1:
       if: ${{ github.event_name == 'push' || contains(github.event.pull_request.labels.*.name, 'trigger-CI') || !github.event.pull_request.draft }}
       uses: ./.github/workflows/playwright-test-workflow.yml

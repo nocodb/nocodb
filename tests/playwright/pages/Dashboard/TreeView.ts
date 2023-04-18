@@ -23,10 +23,24 @@ export class TreeViewPage extends BasePage {
   }
 
   async verifyVisibility({ isVisible }: { isVisible: boolean }) {
-    if (isVisible) {
-      await expect(this.get()).toBeVisible();
+    await this.rootPage.waitForTimeout(1000);
+
+    const domElement = await this.get();
+    // get width of treeview dom element
+    const width = (await domElement.boundingBox()).width;
+
+    // if (isVisible) {
+    //   await expect(this.get()).toBeVisible();
+    // } else {
+    //   await expect(this.get()).not.toBeVisible();
+    // }
+
+    // border for treeview is 1px
+    // if not-visible, width should be < 5;
+    if (!isVisible) {
+      expect(width).toBeLessThan(5);
     } else {
-      await expect(this.get()).not.toBeVisible();
+      expect(width).toBeGreaterThan(5);
     }
   }
 
@@ -39,12 +53,18 @@ export class TreeViewPage extends BasePage {
   async openTable({
     title,
     mode = 'standard',
-    networkResponse = true,
+    networkResponse = false,
+    mobileMode = false,
   }: {
     title: string;
     mode?: string;
     networkResponse?: boolean;
+    mobileMode?: boolean;
   }) {
+    if (mobileMode) {
+      await this.rootPage.locator('.h-full > div > .nc-sidebar-left-toggle-icon').click();
+    }
+
     if ((await this.get().locator('.active.nc-project-tree-tbl').count()) > 0) {
       if ((await this.get().locator('.active.nc-project-tree-tbl').innerText()) === title) {
         // table already open

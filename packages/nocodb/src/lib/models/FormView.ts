@@ -1,15 +1,16 @@
 import Noco from '../Noco';
 import { CacheGetType, CacheScope, MetaTable } from '../utils/globals';
-import { FormType } from 'nocodb-sdk';
 import { deserializeJSON, serializeJSON } from '../utils/serialize';
-import FormViewColumn from './FormViewColumn';
-import View from './View';
 import NocoCache from '../cache/NocoCache';
 import { extractProps } from '../meta/helpers/extractProps';
+import FormViewColumn from './FormViewColumn';
+import View from './View';
+import type { MetaType } from 'nocodb-sdk';
+import type { BoolType, FormType } from 'nocodb-sdk';
 
 export default class FormView implements FormType {
-  show: boolean;
-  is_default: boolean;
+  show: BoolType;
+  is_default: BoolType;
   order: number;
   title?: string;
   heading?: string;
@@ -20,15 +21,14 @@ export default class FormView implements FormType {
   email?: string;
   banner_image_url?: string;
   logo_url?: string;
-  submit_another_form?: boolean;
-  show_blank_form?: boolean;
+  submit_another_form?: BoolType;
+  show_blank_form?: BoolType;
 
   fk_view_id: string;
   columns?: FormViewColumn[];
-
   project_id?: string;
   base_id?: string;
-  meta?: string | Record<string, any>;
+  meta?: MetaType;
 
   constructor(data: FormView) {
     Object.assign(this, data);

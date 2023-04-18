@@ -1,24 +1,20 @@
+import path from 'path';
+import { promisify } from 'util';
 import knex from 'knex';
-
 import isEmpty from 'lodash/isEmpty';
 import mapKeys from 'lodash/mapKeys';
 import find from 'lodash/find';
+import jsonfile from 'jsonfile';
+import mkdirp from 'mkdirp';
+import { nanoid } from 'nanoid';
+import levenshtein from 'fast-levenshtein';
 import Debug from '../../../util/Debug';
 import Emit from '../../../util/emit';
 import Result from '../../../util/Result';
-
-import queries from './mysql.queries';
 import KnexClient from '../KnexClient';
-import jsonfile from 'jsonfile';
-import path from 'path';
-import mkdirp from 'mkdirp';
-import { promisify } from 'util';
-
-import { nanoid } from 'nanoid';
-
+import queries from './mysql.queries';
 import fakerFunctionList from './fakerFunctionList';
 import * as findDataType from './findDataTypeMapping';
-import levenshtein from 'fast-levenshtein';
 
 const log = new Debug('MysqlClient');
 const evt = new Emit();
@@ -1603,10 +1599,7 @@ class MysqlClient extends KnexClient {
     log.api(`${func}:args:`, args);
     // `DROP TRIGGER ${args.view_name}`
     try {
-      const query = this.genQuery(
-        `DROP VIEW ??`,
-        [args.view_name]
-      );
+      const query = this.genQuery(`DROP VIEW ??`, [args.view_name]);
 
       await this.sqlClient.raw(query);
 

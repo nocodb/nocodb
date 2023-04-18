@@ -1,16 +1,15 @@
 import fs from 'fs';
-import parseDbUrl from 'parse-database-url';
 import { URL } from 'url';
 import { promisify } from 'util';
-
-import {
+import * as path from 'path';
+import parseDbUrl from 'parse-database-url';
+import SqlClientFactory from '../db/sql-client/lib/SqlClientFactory';
+import type {
   AuthConfig,
   DbConfig,
   MailerConfig,
   NcConfig,
 } from '../../interface/config';
-import * as path from 'path';
-import SqlClientFactory from '../db/sql-client/lib/SqlClientFactory';
 
 const {
   uniqueNamesGenerator,
@@ -381,22 +380,25 @@ export default class NcConfigFactory implements NcConfig {
       typeof dbConfig?.connection?.ssl === 'object'
     ) {
       if (dbConfig.connection.ssl.caFilePath && !dbConfig.connection.ssl.ca) {
-        dbConfig.connection.ssl.ca = await promisify(fs.readFile)(
-          dbConfig.connection.ssl.caFilePath
+        dbConfig.connection.ssl.ca = (
+          await promisify(fs.readFile)(dbConfig.connection.ssl.caFilePath)
         ).toString();
+        delete dbConfig.connection.ssl.caFilePath;
       }
       if (dbConfig.connection.ssl.keyFilePath && !dbConfig.connection.ssl.key) {
-        dbConfig.connection.ssl.key = await promisify(fs.readFile)(
-          dbConfig.connection.ssl.keyFilePath
+        dbConfig.connection.ssl.key = (
+          await promisify(fs.readFile)(dbConfig.connection.ssl.keyFilePath)
         ).toString();
+        delete dbConfig.connection.ssl.keyFilePath;
       }
       if (
         dbConfig.connection.ssl.certFilePath &&
         !dbConfig.connection.ssl.cert
       ) {
-        dbConfig.connection.ssl.cert = await promisify(fs.readFile)(
-          dbConfig.connection.ssl.certFilePath
+        dbConfig.connection.ssl.cert = (
+          await promisify(fs.readFile)(dbConfig.connection.ssl.certFilePath)
         ).toString();
+        delete dbConfig.connection.ssl.certFilePath;
       }
     }
 

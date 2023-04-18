@@ -1,5 +1,5 @@
-import { Request } from 'express';
-import { Tele } from 'nc-help';
+import { T } from 'nc-help';
+import type { Request } from 'express';
 
 const countMap = {};
 
@@ -9,7 +9,7 @@ const metrics = async (req: Request, c = 150) => {
   const event = `a:api:${req.route.path}:${req.method}`;
   countMap[event] = (countMap[event] || 0) + 1;
   if (countMap[event] >= c) {
-    Tele.event({ event });
+    T.event({ event });
     countMap[event] = 0;
   }
 };

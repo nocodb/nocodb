@@ -1,61 +1,71 @@
 <script lang="ts" setup>
 import { EditorContent, useEditor } from '@tiptap/vue-3'
 import { Icon as IconifyIcon } from '@iconify/vue'
-import { TextSelection } from 'prosemirror-state'
+import { useShortcuts } from '../utils'
 import tiptapExtensions from '~~/utils/tiptapExtensions'
-import type { PageSidebarNode } from '~~/lib'
 
-const isPublic = inject(IsDocsPublicInj, ref(false))
+const { project } = useProject()
+useShortcuts()
 
 const {
-  openedPage: openedPageInternal,
-  updateContent,
-  openedNestedPages,
-  nestedUrl,
-  fetchPage,
-  openPage,
   openedPageId,
-} = useDocs()
+  openedPage,
+  openedPageInSidebar,
+  openedPageWithParents,
+  isPublic,
+  isEditAllowed,
+  isPageFetching,
+  flattenedNestedPages,
+} = storeToRefs(useDocStore())
 
-// Page opened in the Page component, which is updated to the server debounce-ly
-// Main reason is to speed up the page opening, as data from sidebar might take time
-// And the page content is not available in the sidebar, so we need to parallelly fetch it
-const localPage = ref<PageSidebarNode | undefined>()
+const { updatePage, nestedUrl, openPage } = useDocStore()
 
 const wrapperRef = ref<HTMLDivElement | undefined>()
 
-provide(DocsLocalPageInj, localPage)
+const content = computed(() => {
+  const emptyContent = {
+    type: 'doc',
+    content: [
+      {
+        type: 'dBlock',
+        content: [
+          {
+            type: 'paragraph',
+          },
+        ],
+      },
+    ],
+  }
 
-const content = computed(() => localPage.value?.content || '')
+  if (openedPage.value?.content?.length) {
+    try {
+      return JSON.parse(openedPage.value.content)
+    } catch (e) {
+      console.error(e)
+    }
+  }
+
+  return emptyContent
+})
 
 const breadCrumbs = computed(() => {
-  const pagesBreadcrumbs = openedNestedPages.value
+  const pagesBreadcrumbs = openedPageWithParents.value
     .map((page) => ({
       title: page.title,
-      href: nestedUrl(page.id!),
+      href: nestedUrl({ id: page.id!, projectId: project.id! }),
       icon: page.icon,
+      id: page.id,
     }))
     .reverse()
   return [...pagesBreadcrumbs]
 })
 
 const editor = useEditor({
-  extensions: tiptapExtensions(),
-  onCreate: ({ editor }) => {
-    // TODO: Hack to fix the issue where cursor is on the last node, when the page is opened
-    // Thus when we click on the first node's start after mount, cursor will jump back to the last node
-    // Could not figure out from where the cursor change is coming from
-    // So for now, we just set the cursor to the start of the first node, after the editor is mounted
-    // https://github.com/nocodb/nocohub/issues/137
-    setTimeout(() => {
-      const draggableBlockSize = 2
-      editor.view.dispatch(editor.state.tr.setSelection(TextSelection.create(editor.state.doc, draggableBlockSize)))
-    })
-  },
+  extensions: tiptapExtensions(isPublic.value),
   onUpdate: ({ editor }) => {
-    if (!localPage.value) return
+    if (!openedPage.value) return
 
-    localPage.value.content = editor.getHTML()
+    openedPage.value.content = JSON.stringify(editor.getJSON())
   },
   editorProps: {
     handleKeyDown: (view, event) => {
@@ -74,7 +84,7 @@ const editor = useEditor({
       return false
     },
   },
-  editable: !isPublic.value,
+  editable: isEditAllowed.value,
 })
 
 const focusEditor = () => {
@@ -82,25 +92,49 @@ const focusEditor = () => {
 }
 
 watch(
-  () => content.value,
+  isEditAllowed,
   () => {
-    if (!editor.value) return
-
-    if (content.value !== editor.value?.getHTML()) {
-      editor.value.commands.setContent(content.value)
-    }
+    editor.value?.setOptions({
+      editable: isEditAllowed.value,
+    })
+  },
+  {
+    immediate: true,
   },
 )
 
-watch(editor, () => {
-  editor.value?.commands.setContent(content.value)
-})
+watch(
+  () => [openedPage.value?.id, editor.value],
+  ([newId], oldVal) => {
+    if (oldVal === undefined) return
+    const [oldId, oldEditor] = oldVal
+
+    if (!editor.value) return
+    if (!openedPage.value?.id) return
+
+    if (newId === oldId && oldEditor) return
+    ;(editor.value.state as any).history$.prevRanges = null
+    ;(editor.value.state as any).history$.done.eventCount = 0
+
+    const selection = editor.value.view.state.selection
+    editor.value.chain().setContent(content.value).setTextSelection(selection.to).run()
+  },
+  {
+    immediate: true,
+    deep: true,
+  },
+)
 
 watchDebounced(
-  () => [localPage.value?.id, localPage.value?.content],
+  () => [openedPage.value?.id, openedPage.value?.content],
   ([newId, newContent], [oldId, oldContent]) => {
-    if (!isPublic.value && localPage.value?.id && newId === oldId && newContent !== oldContent) {
-      updateContent({ pageId: localPage.value?.id, content: localPage.value!.content })
+    if (isEditAllowed && openedPage.value?.id && newId === oldId && newContent !== oldContent) {
+      updatePage({
+        pageId: openedPage.value?.id,
+        page: { content: openedPage.value!.content },
+        disableLocalSync: true,
+        projectId: project.id!,
+      })
     }
   },
   {
@@ -109,112 +143,144 @@ watchDebounced(
   },
 )
 
-watch(
-  openedPageId,
-  async () => {
-    if (!openedPageId.value) return
+// This is a workaround to make drag and drop work outside of the editor
 
-    localPage.value = undefined
+const handleOutsideTiptapDrag = (e: DragEvent, type: 'drop' | 'dragover' | 'dragend') => {
+  e.preventDefault()
 
-    localPage.value = (await fetchPage()) as any
+  // Maintain x and y position of the cursor in the editor
+  const { x, y } = e
+  const rect = editor.value?.view.dom.getBoundingClientRect()
+  if (!rect) return
 
-    if (openedPageInternal.value?.new) localPage.value!.new = true
-  },
-  {
-    immediate: true,
-  },
-)
+  const { left, top, right, bottom } = rect
 
-watch(
-  openedPageInternal,
-  () => {
-    if (!localPage.value) return
+  let newX = x < left ? left : x
+  newX = newX > right ? right : newX
+  let newY = y < top ? top : y
+  newY = newY > bottom ? bottom : newY
 
-    localPage.value = {
-      ...openedPageInternal.value,
-      content: localPage.value.content,
-      title: localPage.value.title,
-    } as PageSidebarNode
-  },
-  {
-    deep: true,
-  },
-)
+  if (newX === x && newY === y) return
+
+  const newEvent = new DragEvent(type, { ...e, clientX: newX, clientY: newY, dataTransfer: e.dataTransfer })
+  const editorDom = document.querySelector('.ProseMirror') as HTMLElement
+
+  editorDom.dispatchEvent(newEvent)
+}
+
+watch(wrapperRef, () => {
+  if (!wrapperRef.value) return
+  const wrapper = wrapperRef.value
+
+  // Move all drag events to tiptap
+  wrapper.addEventListener('dragend', (e) => handleOutsideTiptapDrag(e, 'dragend'))
+
+  wrapper.addEventListener('dragover', (e) => handleOutsideTiptapDrag(e, 'dragover'))
+
+  wrapper.addEventListener('drop', (e) => handleOutsideTiptapDrag(e, 'drop'))
+})
 </script>
 
 <template>
   <a-layout-content>
-    <div v-if="localPage" ref="wrapperRef" class="nc-docs-page h-full flex flex-row relative">
-      <div class="flex flex-col w-full">
+    <div ref="wrapperRef" data-testid="docs-opened-page" class="nc-docs-page h-full flex flex-row relative">
+      <div
+        class="flex flex-col w-full"
+        :class="{
+          readonly: !isEditAllowed,
+          editable: isEditAllowed,
+        }"
+      >
         <div class="flex flex-row justify-between items-center pl-6 pt-2.5">
           <div class="flex flex-row h-6">
-            <div v-for="({ href, title, icon }, index) of breadCrumbs" :key="href" class="flex">
-              <NuxtLink
-                class="text-sm !hover:text-black docs-breadcrumb-item !underline-transparent"
-                :to="href"
-                :class="{
-                  '!text-gray-600 ': index === breadCrumbs.length - 1,
-                  '!text-gray-400 ': index !== breadCrumbs.length - 1,
-                }"
-              >
-                <div class="flex flex-row items-center gap-x-1.5">
-                  <IconifyIcon
-                    v-if="icon"
-                    :key="icon"
-                    :data-testid="`nc-doc-page-icon-${icon}`"
-                    class="text-sm"
-                    :icon="icon"
-                  ></IconifyIcon>
-                  <div>
-                    {{ title }}
+            <template v-if="flattenedNestedPages.length !== 0">
+              <div v-for="({ href, title, icon, id }, index) of breadCrumbs" :key="id" class="flex">
+                <NuxtLink
+                  class="text-sm !hover:text-black docs-breadcrumb-item !underline-transparent"
+                  :to="href"
+                  :class="{
+                    '!text-gray-600 ': index === breadCrumbs.length - 1,
+                    '!text-gray-400 ': index !== breadCrumbs.length - 1,
+                  }"
+                  :data-testid="`nc-doc-page-breadcrumb-${index}`"
+                >
+                  <div class="flex flex-row items-center gap-x-1.5">
+                    <IconifyIcon
+                      v-if="icon"
+                      :key="icon"
+                      :data-testid="`nc-doc-page-icon-${icon}`"
+                      class="text-sm pop-in-animation"
+                      :icon="icon"
+                    ></IconifyIcon>
+                    <div class="pop-in-animation">
+                      {{ title }}
+                    </div>
                   </div>
-                </div>
-              </NuxtLink>
-              <div v-if="index !== breadCrumbs.length - 1" class="flex text-gray-400 text-sm px-2">/</div>
-            </div>
+                </NuxtLink>
+                <div v-if="index !== breadCrumbs.length - 1" class="flex text-gray-400 text-sm px-2">/</div>
+              </div>
+            </template>
           </div>
           <div v-if="!isPublic" class="flex flex-row items-center"></div>
         </div>
         <div
+          :key="openedPageId ?? ''"
           class="mx-auto pr-6 pt-16 flex flex-col"
           :style="{
             width: '64rem',
             maxWidth: '45vw',
           }"
         >
-          <DocsPageTitle v-if="localPage" @focus-editor="focusEditor" />
+          <a-skeleton-input
+            v-if="isPageFetching && !isPublic"
+            :active="true"
+            size="large"
+            class="docs-page-title-skelton !mt-3 !max-w-156 mb-3 ml-8 docs-page-skeleton-loading"
+          />
+          <DocsPageTitle v-else-if="openedPage" :key="openedPage.id" class="docs-page-title" @focus-editor="focusEditor" />
+          <div class="flex !mb-4.5"></div>
 
           <DocsPageSelectedBubbleMenu v-if="editor" :editor="editor" />
           <DocsPageLinkOptions v-if="editor" :editor="editor" />
-          <EditorContent
-            :editor="editor"
-            class="px-2"
-            :class="{
-              '-ml-1': isPublic,
-              '-ml-12.5': !isPublic,
-            }"
+          <a-skeleton-input
+            v-if="isPageFetching && !isPublic"
+            :active="true"
+            size="small"
+            class="docs-page-title-skelton !max-w-102 mb-3 mt-1 ml-8 docs-page-skeleton-loading"
           />
+          <EditorContent v-else :key="isEditAllowed ? 'edit' : 'view'" data-testid="docs-page-content" :editor="editor" />
           <div
-            v-if="(openedPageInternal?.children ?? []).length > 0"
-            class="flex flex-col py-12 border-b-1 border-t-1 border-gray-200 mt-12 mb-4 gap-y-6"
+            v-if="(openedPageInSidebar?.children ?? []).length > 0 && !isPageFetching"
+            class="docs-page-child-pages flex flex-col py-12 border-b-1 border-t-1 border-gray-200 mt-12 mb-4 gap-y-6 pop-in-animation"
+            :class="{
+              'ml-6': !isPublic,
+            }"
           >
             <div
-              v-for="page of openedPageInternal?.children"
+              v-for="page of openedPageInSidebar?.children"
               :key="page.id"
-              class="flex flex-row items-center gap-x-2 cursor-pointer text-gray-600 hover:text-black"
-              @click="openPage(page)"
+              class="docs-page-child-page px-6 flex flex-row items-center gap-x-2 cursor-pointer text-gray-600 hover:text-black"
+              @click="openPage({ page, projectId: project.id! })"
             >
-              <MdiFileDocumentOutline class="flex" />
-              <div class="font-semibold text-base">
+              <div v-if="page.icon" class="flex">
+                <IconifyIcon
+                  :key="page.icon"
+                  :data-testid="`nc-doc-page-icon-${page.icon}`"
+                  class="flex text-lg pop-in-animation"
+                  :icon="page.icon"
+                ></IconifyIcon>
+              </div>
+              <MdiFileDocumentOutline v-else class="flex pop-in-animation ml-0.25" />
+              <div class="font-semibold text-base pop-in-animation">
                 {{ page.title }}
               </div>
             </div>
           </div>
         </div>
       </div>
-      <div class="sticky top-0 pt-1.5 flex flex-col mr-3 min-w-8">
-        <DocsPageOutline :wrapper-ref="wrapperRef" />
-      </div>
+    </div>
+    <div class="absolute right-0 top-0 pt-2 mr-3">
+      <DocsPageOutline v-if="openedPage && wrapperRef" :key="openedPage.id" :wrapper-ref="wrapperRef" />
     </div>
   </a-layout-content>
 </template>
@@ -229,6 +295,12 @@ watch(
 ::selection {
   color: black;
   background-color: #1c26b820;
+}
+
+.docs-page-title-skelton {
+  .ant-skeleton-input {
+    @apply !rounded-md;
+  }
 }
 
 .nc-docs-page {
@@ -281,19 +353,6 @@ watch(
     outline: none;
   }
 
-  img {
-    @apply !mb-6 !mt-2;
-  }
-  img[isuploading='true'] {
-    @apply hidden;
-  }
-  .image-uploading-wrapper {
-    @apply mt-1.5 !w-full;
-    .image-uploading {
-      @apply w-full py-2 px-3 rounded-md bg-gray-50 text-gray-500;
-    }
-  }
-
   .draggable-block-wrapper.selected {
     table {
       @apply !bg-primary-selected;
@@ -325,30 +384,44 @@ watch(
     user-select: text !important;
   }
 
-  img {
-    max-width: 100%;
-    max-height: 30rem;
-    height: auto;
-    // align center
-    display: block;
-    margin-left: auto;
-    margin-right: auto;
+  p.is-empty::before,
+  h1.is-empty::before,
+  h2.is-empty::before,
+  h3.is-empty::before {
+    content: attr(data-placeholder);
+    float: left;
+    color: #afafaf;
+    pointer-events: none;
+    height: 0;
+  }
 
-    &.ProseMirror-selectednode {
-      // outline with rounded corners
-      outline: 3px solid #e8eafd;
-      outline-offset: -2px;
-      border-radius: 4px;
+  .editable {
+    .focused {
+      div[data-is-empty='true'] {
+        p::before {
+          content: 'Press / to open the command menu or start writing' !important;
+          float: left;
+          color: #afafaf;
+          pointer-events: none;
+          height: 0;
+        }
+      }
+    }
+    div.is-empty.focused {
+      p::before {
+        content: 'Press / to open the command menu or start writing' !important;
+        float: left;
+        color: #afafaf;
+        pointer-events: none;
+        height: 0;
+      }
     }
   }
 
-  p.is-empty::before {
-    content: attr(data-placeholder);
-    font-weight: 400;
-    float: left;
-    color: #bcc2c8;
-    pointer-events: none;
-    height: 0;
+  h1.is-empty::before,
+  h2.is-empty::before,
+  h3.is-empty::before {
+    color: #d6d6d6;
   }
 
   .nc-docs-list-item > p {
@@ -358,6 +431,8 @@ watch(
 
   p {
     font-weight: 400;
+    color: #000000;
+    font-size: 1rem;
     margin-top: 0.25rem;
     margin-bottom: 0.25rem;
   }
@@ -401,7 +476,11 @@ watch(
     font-family: 'JetBrainsMono', monospace;
     padding: 1rem;
     border-radius: 0.5rem;
-    @apply overflow-auto;
+    @apply overflow-auto mt-3;
+
+    code {
+      @apply !px-0;
+    }
   }
 
   code {
@@ -451,15 +530,78 @@ watch(
     }
   }
 
+  [data-type='bullet'] {
+    .tiptap-list-item-content {
+      display: list-item;
+      list-style: disc;
+      padding-left: '1rem' !important;
+
+      p {
+        margin-top: '0.01rem';
+        margin-bottom: '0.01rem';
+      }
+    }
+  }
+
+  .readonly {
+    [data-type='bullet'] {
+      @apply !ml-3.5;
+    }
+  }
+
+  .tiptap-table-cell {
+    [data-type='bullet'] {
+      margin-left: 0.7rem;
+    }
+  }
+
+  [data-type='ordered'] {
+    @apply flex flex-row items-start gap-x-1;
+    .tiptap-list-item-start > span::before {
+      margin-top: 6px;
+      content: attr(data-number) '. ';
+      display: inline-block;
+      white-space: nowrap;
+    }
+    .tiptap-list-item-content {
+      @apply flex flex-grow;
+      line-break: anywhere;
+    }
+  }
+
+  [data-type='task'] {
+    @apply flex flex-row items-center gap-x-2;
+  }
+
   ul {
     // bullet color black
     list-style: disc;
   }
 
-  hr.nc-docs-horizontal-rule {
+  hr {
     border: 0;
     border-top: 1px solid #ccc;
     margin: 1.5em 0;
+  }
+
+  hr.ProseMirror-selectednode {
+    // outline with rounded corners
+    outline: 4px solid #e8eafd;
+    border-radius: 4px;
+  }
+
+  .selected {
+    .external-content-wrapper {
+      // outline with rounded corners
+      outline: 2px solid #e8eafd;
+      border-radius: 1px;
+    }
+  }
+
+  .external-content-wrapper.ProseMirror-selectednode {
+    // outline with rounded corners
+    outline: 2px solid #e8eafd;
+    border-radius: 1px;
   }
 
   blockquote {
@@ -472,6 +614,12 @@ watch(
 
   div.callout-wrapper {
     @apply my-2.5;
+  }
+
+  div.callout {
+    [data-type='bullet'] {
+      margin-left: 0.7rem;
+    }
   }
 
   div.info-callout {

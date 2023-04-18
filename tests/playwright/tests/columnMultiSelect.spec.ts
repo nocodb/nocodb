@@ -241,10 +241,10 @@ test.describe('Multi select - filters', () => {
   async function verifyFilter(param: { opType: string; value?: string; result: string[] }) {
     await toolbar.clickFilter();
     await toolbar.filter.add({
-      columnTitle: 'MultiSelect',
-      opType: param.opType,
+      title: 'MultiSelect',
+      operation: param.opType,
       value: param.value,
-      isLocallySaved: false,
+      locallySaved: false,
       dataType: 'MultiSelect',
     });
     await toolbar.clickFilter();
@@ -267,18 +267,18 @@ test.describe('Multi select - filters', () => {
 
     // Sort column
     await toolbar.sort.add({
-      columnTitle: 'MultiSelect',
-      isAscending: true,
-      isLocallySaved: false,
+      title: 'MultiSelect',
+      ascending: true,
+      locallySaved: false,
     });
     await validateRowArray(['1', '3', '4', '2', '5', '6']);
     await toolbar.sort.reset();
 
     // sort descending & validate
     await toolbar.sort.add({
-      columnTitle: 'MultiSelect',
-      isAscending: false,
-      isLocallySaved: false,
+      title: 'MultiSelect',
+      ascending: false,
+      locallySaved: false,
     });
     await validateRowArray(['6', '5', '2', '4', '3', '1']);
     await toolbar.sort.reset();

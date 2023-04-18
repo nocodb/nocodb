@@ -1,4 +1,4 @@
-import { ProjectRoles, ProjectType, WorkspaceUserRoles } from 'nocodb-sdk';
+import { ProjectRoles, WorkspaceUserRoles } from 'nocodb-sdk';
 import {
   // CacheDelDirection,
   CacheGetType,
@@ -7,20 +7,24 @@ import {
 } from '../utils/globals';
 import Noco from '../Noco';
 import NocoCache from '../cache/NocoCache';
-import User from './User';
 import { extractProps } from '../meta/helpers/extractProps';
+import User from './User';
+import type { BoolType, ProjectType } from 'nocodb-sdk';
 
 export default class ProjectUser {
   project_id: string;
   fk_user_id: string;
   roles?: string;
+  order?: number;
+  starred?: BoolType;
+  hidden?: BoolType;
 
   constructor(data: ProjectUser) {
     Object.assign(this, data);
   }
 
   public static async insert(
-    projectUser: Partial<ProjectUser & { created_at?: any; updated_at?: any }>,
+    projectUser: Partial<ProjectUser>,
     ncMeta = Noco.ncMeta
   ) {
     const insertObject = extractProps(projectUser, [
@@ -189,7 +193,12 @@ export default class ProjectUser {
     projectUser: Partial<ProjectUser>,
     ncMeta = Noco.ncMeta
   ) {
-    const updateObj = extractProps(projectUser, ['starred', 'hidden', 'order']);
+    const updateObj = extractProps(projectUser, [
+      'roles',
+      'starred',
+      'hidden',
+      'order',
+    ]);
 
     // get existing cache
     const key = `${CacheScope.PROJECT_USER}:${projectId}:${userId}`;

@@ -39,6 +39,7 @@
     "signIn": "LOGG INN",
     "signOut": "Logg ut",
     "required": "Kreves",
+    "enableScanner": "Enable Scanner for filling",
     "preferred": "Foretrukket",
     "mandatory": "Påbudt, bindende",
     "loading": "Laster ...",
@@ -74,7 +75,8 @@
     "insertBefore": "Insert Before",
     "hideField": "Hide Field",
     "sortAsc": "Sort Ascending",
-    "sortDesc": "Sort Descending"
+    "sortDesc": "Sort Descending",
+    "geoDataField": "GeoData Field"
   },
   "objects": {
     "project": "Prosjekt",
@@ -98,7 +100,8 @@
       "gallery": "Galleri",
       "form": "Skjema",
       "kanban": "Kanban",
-      "calendar": "Kalender"
+      "calendar": "Kalender",
+      "map": "Map"
     },
     "user": "Bruker",
     "users": "Brukere",
@@ -136,6 +139,7 @@
     "Currency": "Valuta",
     "Percent": "Prosent",
     "Duration": "Varighet",
+    "GeoData": "GeoData",
     "Rating": "Vurdering",
     "Formula": "Formel",
     "Rollup": "Rull opp",
@@ -206,7 +210,8 @@
     "advancedSettings": "Advanced Settings",
     "codeSnippet": "Code Snippet",
     "keyboardShortcut": "Keyboard Shortcuts",
-    "generateRandomName": "Generate Random Name"
+    "generateRandomName": "Generate Random Name",
+    "findRowByScanningCode": "Find row by scanning a QR or Barcode"
   },
   "labels": {
     "createdBy": "Created By",
@@ -216,6 +221,7 @@
     "viewName": "Se navn",
     "viewLink": "Vis lenke",
     "columnName": "Kolonne navn",
+    "columnToScanFor": "Column to scan",
     "columnType": "Kolonne TYPE",
     "roleName": "Rollenavn",
     "roleDescription": "Rollbeskrivelse",
@@ -232,6 +238,7 @@
     "action": "Handling",
     "actions": "Handlinger",
     "operation": "Operasjon",
+    "operationSub": "Sub Operation",
     "operationType": "Operasjonstype",
     "operationSubType": "OPERATION SUB-TYPE",
     "description": "Beskrivelse",
@@ -253,6 +260,9 @@
     "barcodeFormat": "Barcode format",
     "qrCodeValueTooLong": "Too many characters for a QR code",
     "barcodeValueTooLong": "Too many characters for a barcode",
+    "currentLocation": "Current Location",
+    "lng": "Lng",
+    "lat": "Lat",
     "aggregateFunction": "Samlet funksjon",
     "dbCreateIfNotExists": "Database: Opprett hvis ikke eksisterer",
     "clientKey": "Klientnøkkel",
@@ -386,8 +396,8 @@
     "saveAndExit": "Save & Exit",
     "saveAndStay": "Save & Stay",
     "insertRow": "Sett inn ny rad",
-    "deleteRow": "Slett rad",
     "duplicateRow": "Duplicate Row",
+    "deleteRow": "Slett rad",
     "deleteSelectedRow": "Slett utvalgte rader",
     "importExcel": "Importer Excel.",
     "importCSV": "Import CSV",
@@ -402,6 +412,8 @@
     "changePwd": "Bytt passord",
     "createView": "Opprett en visning",
     "shareView": "Del visning",
+    "findRowByCodeScan": "Find row by scan",
+    "fillByCodeScan": "Fill by scan",
     "listSharedView": "Felles visningsliste",
     "ListView": "Visningsliste",
     "copyView": "Kopier visning",
@@ -417,6 +429,10 @@
     "openTab": "Åpne ny fanering",
     "iFrame": "Kopier EmbedDable HTML-kode",
     "addWebhook": "Legg til ny webhook.",
+    "enableWebhook": "Enable Webhook",
+    "testWebhook": "Test Webhook",
+    "copyWebhook": "Copy Webhook",
+    "deleteWebhook": "Delete Webhook",
     "newToken": "Legg til nytt Token.",
     "exportZip": "Eksporter zip",
     "importZip": "Importer zip",
@@ -452,7 +468,14 @@
       "stackedBy": "Stacked By",
       "chooseGroupingField": "Choose a Grouping Field",
       "addOrEditStack": "Add / Edit Stack"
-    }
+    },
+    "map": {
+      "mappedBy": "Mapped By",
+      "chooseMappingField": "Choose a Mapping Field",
+      "openInGoogleMaps": "Google Maps",
+      "openInOpenStreetMap": "OSM"
+    },
+    "toggleMobileMode": "Toggle Mobile Mode"
   },
   "tooltip": {
     "saveChanges": "Lagre endringer",
@@ -517,6 +540,17 @@
       "roles": {
         "orgCreator": "Creator can create new projects and access any invited project.",
         "orgViewer": "Viewer is not allowed to create new projects but they can access any invited project."
+      },
+      "codeScanner": {
+        "loadingScanner": "Loading the scanner...",
+        "selectColumn": "Select a column (QR code or Barcode) that you want to use for finding a row by scanning.",
+        "moreThanOneRowFoundForCode": "More than one row found for this code. Currently only unique codes are supported.",
+        "noRowFoundForCode": "No row found for this code for the selected column"
+      },
+      "map": {
+        "overLimit": "You're over the limit.",
+        "closeLimit": "You're getting close to the limit.",
+        "limitNumber": "The limit of markers shown in a Map View is 1000 records."
       },
       "footerInfo": "Rader per side.",
       "upload": "Velg Fil for å laste opp",
@@ -600,6 +634,7 @@
         "gallery": "Legg til galleriutsikt",
         "form": "Legg til skjemavisning",
         "kanban": "Legg til Kanban View",
+        "map": "Add Map View",
         "calendar": "Legg til kalendervisning"
       },
       "tablesMetadataInSync": "Tabeller Metadata er synkronisert",
@@ -663,6 +698,7 @@
         "allowedSpecialCharList": "Allowed special character list"
       },
       "invalidURL": "Invalid URL",
+      "invalidEmail": "Invalid Email",
       "internalError": "Some internal error occurred",
       "templateGeneratorNotFound": "Template Generator cannot be found!",
       "fileUploadFailed": "Failed to upload file",
@@ -690,6 +726,7 @@
       "nameShouldStartWithAnAlphabetOr_": "Name should start with an alphabet or _",
       "followingCharactersAreNotAllowed": "Following characters are not allowed",
       "columnNameRequired": "Column name is required",
+      "columnNameExceedsCharacters": "The length of column name exceeds the max {value} characters",
       "projectNameExceeds50Characters": "Project name exceeds 50 characters",
       "projectNameCannotStartWithSpace": "Project name cannot start with space",
       "requiredField": "Required field",
@@ -742,6 +779,7 @@
       "userDeletedFromProject": "Successfully deleted user from project",
       "inviteEmailSent": "Invite Email sent successfully",
       "inviteURLCopied": "Invite URL copied to clipboard",
+      "commentCopied": "Comment copied to clipboard",
       "passwordResetURLCopied": "Password reset URL copied to clipboard",
       "shareableURLCopied": "Copied shareable base URL to clipboard!",
       "embeddableHTMLCodeCopied": "Copied embeddable HTML code!",

@@ -76,7 +76,7 @@ export function useErdElements(tables: MaybeRef<TableType[]>, props: MaybeRef<ER
       const columns =
         meta.columns?.filter((column: ColumnType) => column.uidt === UITypes.LinkToAnotherRecord && column.system !== 1) || []
 
-      columns.forEach((column: ColumnType) => {
+      for (const column of columns) {
         const colOptions = column.colOptions as LinkToAnotherRecordType
         const source = column.fk_model_id
         const target = colOptions.fk_related_model_id
@@ -97,7 +97,8 @@ export function useErdElements(tables: MaybeRef<TableType[]>, props: MaybeRef<ER
           if (colOptions.type === 'hm') {
             relation.type = 'hm'
 
-            return acc.push(relation)
+            acc.push(relation)
+            continue
           }
 
           if (colOptions.type === 'mm') {
@@ -112,11 +113,12 @@ export function useErdElements(tables: MaybeRef<TableType[]>, props: MaybeRef<ER
             if (!correspondingColumn) {
               relation.type = 'mm'
 
-              return acc.push(relation)
+              acc.push(relation)
+              continue
             }
           }
         }
-      })
+      }
 
       return acc
     }, [] as Relation[]),
@@ -253,55 +255,59 @@ export function useErdElements(tables: MaybeRef<TableType[]>, props: MaybeRef<ER
     boxShadow: `0 0 0 ${skeleton ? '12' : '2'}px ${color}`,
   })
 
-  const layout = (skeleton = false) => {
-    elements.value = [...createNodes(), ...createEdges()] as Elements<NodeData | EdgeData>
+  const layout = async (skeleton = false): Promise<void> => {
+    return new Promise((resolve) => {
+      elements.value = [...createNodes(), ...createEdges()] as Elements<NodeData | EdgeData>
 
-    elements.value.forEach((el) => {
-      if (isNode(el)) {
-        const node = el as Node<NodeData>
-        const colLength = node.data!.columnLength
+      for (const el of elements.value) {
+        if (isNode(el)) {
+          const node = el as Node<NodeData>
+          const colLength = node.data!.columnLength
 
-        const width = skeleton ? nodeWidth * 3 : nodeWidth
-        const height = nodeHeight + (skeleton ? 250 : colLength > 0 ? nodeHeight * colLength : nodeHeight)
-        dagreGraph.setNode(el.id, {
-          width,
-          height,
-        })
-      } else if (isEdge(el)) {
-        dagreGraph.setEdge(el.source, el.target)
-      }
-    })
-
-    dagre.layout(dagreGraph)
-
-    elements.value.forEach((el) => {
-      if (isNode(el)) {
-        const color = colorScale(dagreGraph.predecessors(el.id)!.length)
-
-        const nodeWithPosition = dagreGraph.node(el.id)
-
-        el.targetPosition = Position.Left
-        el.sourcePosition = Position.Right
-        el.position = { x: nodeWithPosition.x, y: nodeWithPosition.y }
-        el.class = ['rounded-lg'].join(' ')
-        el.data.color = color
-
-        el.style = (n) => {
-          if (n.selected) {
-            return boxShadow(skeleton, color)
-          }
-
-          return boxShadow(skeleton, '#64748B')
+          const width = skeleton ? nodeWidth * 3 : nodeWidth
+          const height = nodeHeight + (skeleton ? 250 : colLength > 0 ? nodeHeight * colLength : nodeHeight)
+          dagreGraph.setNode(el.id, {
+            width,
+            height,
+          })
+        } else if (isEdge(el)) {
+          dagreGraph.setEdge(el.source, el.target)
         }
-      } else if (isEdge(el)) {
-        const node = elements.value.find((nodes) => nodes.id === el.source)
-        if (node) {
-          const color = node.data!.color
+      }
 
+      dagre.layout(dagreGraph)
+
+      for (const el of elements.value) {
+        if (isNode(el)) {
+          const color = colorScale(dagreGraph.predecessors(el.id)!.length)
+
+          const nodeWithPosition = dagreGraph.node(el.id)
+
+          el.targetPosition = Position.Left
+          el.sourcePosition = Position.Right
+          el.position = { x: nodeWithPosition.x, y: nodeWithPosition.y }
+          el.class = ['rounded-lg'].join(' ')
           el.data.color = color
-          ;(el.markerEnd as EdgeMarker).color = `#${tinycolor(color).toHex()}`
+
+          el.style = (n) => {
+            if (n.selected) {
+              return boxShadow(skeleton, color)
+            }
+
+            return boxShadow(skeleton, '#64748B')
+          }
+        } else if (isEdge(el)) {
+          const node = elements.value.find((nodes) => nodes.id === el.source)
+          if (node) {
+            const color = node.data!.color
+
+            el.data.color = color
+            ;(el.markerEnd as EdgeMarker).color = `#${tinycolor(color).toHex()}`
+          }
         }
       }
+
+      resolve()
     })
   }
 

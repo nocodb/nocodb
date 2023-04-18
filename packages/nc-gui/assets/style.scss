@@ -288,8 +288,21 @@ a {
   @apply !shadow-none rounded hover:(ring-1 ring-primary ring-opacity-100) focus:(ring-1 ring-accent ring-opacity-100);
 }
 
+.nc-warning-info {
+  @apply !shadow-none rounded ring-1 ring-red-600
+}
+
 .ant-modal {
   @apply !top-[50px];
+}
+.ant-modal-content {
+  @apply !rounded-md;
+}
+.ant-modal-body {
+  @apply !p-0;
+}
+.ant-modal-confirm-body-wrapper{
+  @apply p-4;
 }
 
 .ant-select-item-option-active:not(.ant-select-item-option-disabled) {
@@ -363,3 +376,28 @@ a {
 ninja-keys {
   --ninja-z-index: 1000;
 }
+
+@keyframes pop-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+.pop-in-animation {
+  -webkit-animation: pop-in 0.075s cubic-bezier(0, 0, 0.6, -0.13);
+  animation: pop-in 0.075s cubic-bezier(0, 0, 0.6, -0.13);
+}
+.pop-in-animation-med-delay {
+  -webkit-animation: pop-in 0.15s cubic-bezier(0, 0, 0.6, -0.13);
+  animation: pop-in 0.15s cubic-bezier(0, 0, 0.6, -0.13);
+}
+
+
+// button
+.nc-btn{
+  @apply rounded py-2 px-4 border-gray-200 h-auto
+}
+
+

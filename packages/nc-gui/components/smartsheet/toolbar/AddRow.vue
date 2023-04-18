@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { OpenNewRecordFormHookInj, inject } from '#imports'
+import { IsLockedInj, OpenNewRecordFormHookInj, iconMap, inject } from '#imports'
 
 const isLocked = inject(IsLockedInj)
 
@@ -16,10 +16,11 @@ const onClick = () => {
     <div
       v-e="['c:row:add:grid-top']"
       :class="{ 'group': !isLocked, 'disabled-ring': isLocked }"
-      class="nc-add-new-row-btn nc-toolbar-btn flex min-w-32px w-32px h-32px items-center"
+      class="nc-add-new-row-btn nc-toolbar-btn flex min-w-32px w-32px h-32px items-center justify-center !px-0 select-none"
     >
-      <MdiPlusOutline
-        :class="{ 'cursor-pointer text-gray-500 group-hover:(text-primary)': !isLocked, 'disabled': isLocked }"
+      <component
+        :is="iconMap.plus"
+        :class="{ 'cursor-pointer group-hover:(text-primary)': !isLocked, 'disabled': isLocked }"
         @click="onClick"
       />
     </div>

@@ -1,7 +1,7 @@
 <script lang="ts" setup>
 import { onKeyDown } from '@vueuse/core'
 import { useAttachmentCell } from './utils'
-import { computed, isImage, onClickOutside, ref, useAttachment } from '#imports'
+import { computed, iconMap, isImage, onClickOutside, ref, useAttachment } from '#imports'
 
 const { selectedImage, visibleItems, downloadFile } = useAttachmentCell()!
 
@@ -53,7 +53,11 @@ onClickOutside(carouselRef, () => {
     <template v-if="selectedImage">
       <div class="overflow-hidden p-12 text-center relative">
         <div class="text-white group absolute top-5 right-5">
-          <MdiCloseCircle class="group-hover:text-red-500 cursor-pointer text-4xl" @click.stop="selectedImage = false" />
+          <component
+            :is="iconMap.closeCircle"
+            class="group-hover:text-red-500 cursor-pointer text-4xl"
+            @click.stop="selectedImage = false"
+          />
         </div>
 
         <div

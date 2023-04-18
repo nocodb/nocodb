@@ -1,9 +1,9 @@
-import { UserType } from 'nocodb-sdk';
 import { NcError } from '../meta/helpers/catchError';
 import { CacheGetType, CacheScope, MetaTable } from '../utils/globals';
 import Noco from '../Noco';
 import { extractProps } from '../meta/helpers/extractProps';
 import NocoCache from '../cache/NocoCache';
+import type { UserType } from 'nocodb-sdk';
 
 export default class User implements UserType {
   id: string;
@@ -95,20 +95,20 @@ export default class User implements UserType {
 
     if (updateObj.user_name) {
       // check if the target username is in use or not
-      if (await this.getByUsername(updateObj.user_name, ncMeta)) {
+      const targetUser = await this.getByUsername(updateObj.user_name, ncMeta);
+      if (targetUser.id === id) {
         NcError.badRequest('username is in use');
       }
     }
 
     if (updateObj.email) {
+      updateObj.email = updateObj.email.toLowerCase();
+
       // check if the target email addr is in use or not
-      if (await this.getByEmail(updateObj.email, ncMeta)) {
+      const targetUser = await this.getByEmail(updateObj.email, ncMeta);
+      if (targetUser.id !== id) {
         NcError.badRequest('email is in use');
       }
-    }
-
-    if (updateObj.email) {
-      updateObj.email = updateObj.email.toLowerCase();
     } else {
       // set email prop to avoid generation of invalid cache key
       updateObj.email = (await this.get(id, ncMeta))?.email?.toLowerCase();
@@ -204,10 +204,9 @@ export default class User implements UserType {
   }
 
   static async getByRefreshToken(refresh_token, ncMeta = Noco.ncMeta) {
-    const user = await ncMeta.metaGet2(null, null, MetaTable.USERS, {
+    return await ncMeta.metaGet2(null, null, MetaTable.USERS, {
       refresh_token,
     });
-    return user;
   }
 
   public static async list(

@@ -150,10 +150,10 @@ test.describe('Single select - filter & sort', () => {
   async function verifyFilter(param: { opType: string; value?: string; result: string[] }) {
     await toolbar.clickFilter();
     await toolbar.filter.add({
-      columnTitle: 'SingleSelect',
-      opType: param.opType,
+      title: 'SingleSelect',
+      operation: param.opType,
       value: param.value,
-      isLocallySaved: false,
+      locallySaved: false,
       dataType: 'SingleSelect',
     });
     await toolbar.clickFilter();
@@ -171,18 +171,18 @@ test.describe('Single select - filter & sort', () => {
 
     // Sort column
     await toolbar.sort.add({
-      columnTitle: 'SingleSelect',
-      isAscending: true,
-      isLocallySaved: false,
+      title: 'SingleSelect',
+      ascending: true,
+      locallySaved: false,
     });
     await validateRowArray(['1', '3', '4', '2']);
     await toolbar.sort.reset();
 
     // sort descending & validate
     await toolbar.sort.add({
-      columnTitle: 'SingleSelect',
-      isAscending: false,
-      isLocallySaved: false,
+      title: 'SingleSelect',
+      ascending: false,
+      locallySaved: false,
     });
     await validateRowArray(['2', '4', '3', '1']);
     await toolbar.sort.reset();

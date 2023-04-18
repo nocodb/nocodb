@@ -1,17 +1,17 @@
 import jsep from 'jsep';
-import mapFunctionName from '../mapFunctionName';
-import Model from '../../../../../models/Model';
-import Column from '../../../../../models/Column';
-import genRollupSelectv2 from '../genRollupSelectv2';
-import RollupColumn from '../../../../../models/RollupColumn';
-import FormulaColumn from '../../../../../models/FormulaColumn';
-import { XKnex } from '../../../index';
-import LinkToAnotherRecordColumn from '../../../../../models/LinkToAnotherRecordColumn';
-import LookupColumn from '../../../../../models/LookupColumn';
 import { jsepCurlyHook, UITypes } from 'nocodb-sdk';
+import mapFunctionName from '../mapFunctionName';
+import genRollupSelectv2 from '../genRollupSelectv2';
+import FormulaColumn from '../../../../../models/FormulaColumn';
 import { validateDateWithUnknownFormat } from '../helpers/formulaFnHelper';
 import { CacheGetType, CacheScope } from '../../../../../utils/globals';
 import NocoCache from '../../../../../cache/NocoCache';
+import type Model from '../../../../../models/Model';
+import type Column from '../../../../../models/Column';
+import type RollupColumn from '../../../../../models/RollupColumn';
+import type { XKnex } from '../../../index';
+import type LinkToAnotherRecordColumn from '../../../../../models/LinkToAnotherRecordColumn';
+import type LookupColumn from '../../../../../models/LookupColumn';
 
 // todo: switch function based on database
 
@@ -53,7 +53,8 @@ async function _formulaQueryBuilder(
   alias,
   knex: XKnex,
   model: Model,
-  aliasToColumn = {}
+  aliasToColumn: Record<string, () => Promise<{ builder: any }>> = {},
+  tableAlias?: string
 ) {
   // formula may include double curly brackets in previous version
   // convert to single curly bracket here for compatibility
@@ -68,20 +69,25 @@ async function _formulaQueryBuilder(
     switch (col.uidt) {
       case UITypes.Formula:
         {
-          const formulOption = await col.getColOptions<FormulaColumn>();
-          const { builder } = await _formulaQueryBuilder(
-            formulOption.formula,
-            alias,
-            knex,
-            model,
-            { ...aliasToColumn, [col.id]: null }
-          );
-          builder.sql = '(' + builder.sql + ')';
-          aliasToColumn[col.id] = builder;
+          aliasToColumn[col.id] = async () => {
+            const formulOption = await col.getColOptions<FormulaColumn>();
+            const { builder } = await _formulaQueryBuilder(
+              formulOption.formula,
+              alias,
+              knex,
+              model,
+              { ...aliasToColumn, [col.id]: null },
+              tableAlias
+            );
+            builder.sql = '(' + builder.sql + ')';
+            return {
+              builder,
+            };
+          };
         }
         break;
       case UITypes.Lookup:
-        {
+        aliasToColumn[col.id] = async (): Promise<any> => {
           let aliasCount = 0;
           let selectQb;
           let isMany = false;
@@ -104,7 +110,9 @@ async function _formulaQueryBuilder(
                 selectQb = knex(`${parentModel.table_name} as ${alias}`).where(
                   `${alias}.${parentColumn.column_name}`,
                   knex.raw(`??`, [
-                    `${childModel.table_name}.${childColumn.column_name}`,
+                    `${tableAlias ?? childModel.table_name}.${
+                      childColumn.column_name
+                    }`,
                   ])
                 );
                 break;
@@ -113,7 +121,9 @@ async function _formulaQueryBuilder(
                 selectQb = knex(`${childModel.table_name} as ${alias}`).where(
                   `${alias}.${childColumn.column_name}`,
                   knex.raw(`??`, [
-                    `${parentModel.table_name}.${parentColumn.column_name}`,
+                    `${tableAlias ?? parentModel.table_name}.${
+                      parentColumn.column_name
+                    }`,
                   ])
                 );
                 break;
@@ -134,7 +144,9 @@ async function _formulaQueryBuilder(
                     .where(
                       `${assocAlias}.${mmChildColumn.column_name}`,
                       knex.raw(`??`, [
-                        `${childModel.table_name}.${childColumn.column_name}`,
+                        `${tableAlias ?? childModel.table_name}.${
+                          childColumn.column_name
+                        }`,
                       ])
                     );
                 }
@@ -390,24 +402,27 @@ async function _formulaQueryBuilder(
             }
 
             if (selectQb)
-              aliasToColumn[col.id] =
-                typeof selectQb === 'function'
-                  ? selectQb
-                  : knex.raw(selectQb as any).wrap('(', ')');
+              return {
+                builder:
+                  typeof selectQb === 'function'
+                    ? selectQb
+                    : knex.raw(selectQb as any).wrap('(', ')'),
+              };
           }
-        }
+        };
         break;
       case UITypes.Rollup:
-        {
+        aliasToColumn[col.id] = async (): Promise<any> => {
           const qb = await genRollupSelectv2({
             knex,
             columnOptions: (await col.getColOptions()) as RollupColumn,
+            alias: tableAlias,
           });
-          aliasToColumn[col.id] = knex.raw(qb.builder).wrap('(', ')');
-        }
+          return { builder: knex.raw(qb.builder).wrap('(', ')') };
+        };
         break;
       case UITypes.LinkToAnotherRecord:
-        {
+        aliasToColumn[col.id] = async (): Promise<any> => {
           const alias = `__nc_formula_ll`;
           const relation = await col.getColOptions<LinkToAnotherRecordColumn>();
           // if (relation.type !== 'bt') continue;
@@ -428,7 +443,9 @@ async function _formulaQueryBuilder(
               .where(
                 `${parentModel.table_name}.${parentColumn.column_name}`,
                 knex.raw(`??`, [
-                  `${childModel.table_name}.${childColumn.column_name}`,
+                  `${tableAlias ?? childModel.table_name}.${
+                    childColumn.column_name
+                  }`,
                 ])
               );
           } else if (relation.type == 'hm') {
@@ -437,7 +454,9 @@ async function _formulaQueryBuilder(
               .where(
                 `${childModel.table_name}.${childColumn.column_name}`,
                 knex.raw(`??`, [
-                  `${parentModel.table_name}.${parentColumn.column_name}`,
+                  `${tableAlias ?? parentModel.table_name}.${
+                    parentColumn.column_name
+                  }`,
                 ])
               );
 
@@ -490,7 +509,9 @@ async function _formulaQueryBuilder(
               .where(
                 `${mmModel.table_name}.${mmChildColumn.column_name}`,
                 knex.raw(`??`, [
-                  `${childModel.table_name}.${childColumn.column_name}`,
+                  `${tableAlias ?? childModel.table_name}.${
+                    childColumn.column_name
+                  }`,
                 ])
               );
             selectQb = (fn) =>
@@ -505,19 +526,22 @@ async function _formulaQueryBuilder(
                 .wrap('(', ')');
           }
           if (selectQb)
-            aliasToColumn[col.id] =
-              typeof selectQb === 'function'
-                ? selectQb
-                : knex.raw(selectQb as any).wrap('(', ')');
-        }
+            return {
+              builder:
+                typeof selectQb === 'function'
+                  ? selectQb
+                  : knex.raw(selectQb as any).wrap('(', ')'),
+            };
+        };
         break;
       default:
-        aliasToColumn[col.id] = col.column_name;
+        aliasToColumn[col.id] = () =>
+          Promise.resolve({ builder: col.column_name });
         break;
     }
   }
 
-  const fn = (pt, a?, prevBinaryOp?) => {
+  const fn = async (pt, a?, prevBinaryOp?) => {
     const colAlias = a ? ` as ${a}` : '';
     pt.arguments?.forEach?.((arg) => {
       if (arg.fnName) return;
@@ -543,18 +567,6 @@ async function _formulaQueryBuilder(
             return fn(pt.arguments[0], a, prevBinaryOp);
           }
           break;
-        // case 'AVG':
-        //   if (pt.arguments.length > 1) {
-        //     return fn({
-        //       type: 'BinaryExpression',
-        //       operator: '/',
-        //       left: {...pt, callee: {name: 'SUM'}},
-        //       right: {type: 'Literal', value: pt.arguments.length}
-        //     }, a, prevBinaryOp)
-        //   } else {
-        //     return fn(pt.arguments[0], a, prevBinaryOp)
-        //   }
-        //   break;
         case 'CONCAT':
           if (knex.clientType() === 'sqlite3') {
             if (pt.arguments.length > 1) {
@@ -601,7 +613,7 @@ async function _formulaQueryBuilder(
           break;
         default:
           {
-            const res = mapFunctionName({
+            const res = await mapFunctionName({
               pt,
               knex,
               alias,
@@ -616,32 +628,37 @@ async function _formulaQueryBuilder(
           break;
       }
 
-      return knex.raw(
-        `${pt.callee.name}(${pt.arguments
-          .map((arg) => {
-            const query = fn(arg).toQuery();
-            if (pt.callee.name === 'CONCAT') {
-              if (knex.clientType() === 'mysql2') {
-                // mysql2: CONCAT() returns NULL if any argument is NULL.
-                // adding IFNULL to convert NULL values to empty strings
-                return `IFNULL(${query}, '')`;
-              } else {
-                // do nothing
-                // pg / mssql: Concatenate all arguments. NULL arguments are ignored.
-                // sqlite3: special handling - See BinaryExpression
-              }
-            }
-            return query;
-          })
-          .join()})${colAlias}`.replace(/\?/g, '\\?')
-      );
+      return {
+        builder: knex.raw(
+          `${pt.callee.name}(${(
+            await Promise.all(
+              pt.arguments.map(async (arg) => {
+                const query = (await fn(arg)).builder.toQuery();
+                if (pt.callee.name === 'CONCAT') {
+                  if (knex.clientType() === 'mysql2') {
+                    // mysql2: CONCAT() returns NULL if any argument is NULL.
+                    // adding IFNULL to convert NULL values to empty strings
+                    return `IFNULL(${query}, '')`;
+                  } else {
+                    // do nothing
+                    // pg / mssql: Concatenate all arguments. NULL arguments are ignored.
+                    // sqlite3: special handling - See BinaryExpression
+                  }
+                }
+                return query;
+              })
+            )
+          ).join()})${colAlias}`.replace(/\?/g, '\\?')
+        ),
+      };
     } else if (pt.type === 'Literal') {
-      return knex.raw(`?${colAlias}`, [pt.value]);
+      return { builder: knex.raw(`?${colAlias}`, [pt.value]) };
     } else if (pt.type === 'Identifier') {
-      if (typeof aliasToColumn?.[pt.name] === 'function') {
-        return knex.raw(`??${colAlias}`, aliasToColumn?.[pt.name](pt.fnName));
+      const { builder } = await aliasToColumn?.[pt.name]?.();
+      if (typeof builder === 'function') {
+        return { builder: knex.raw(`??${colAlias}`, builder(pt.fnName)) };
       }
-      return knex.raw(`??${colAlias}`, [aliasToColumn?.[pt.name] || pt.name]);
+      return { builder: knex.raw(`??${colAlias}`, [builder || pt.name]) };
     } else if (pt.type === 'BinaryExpression') {
       if (pt.operator === '==') {
         pt.operator = '=';
@@ -662,8 +679,8 @@ async function _formulaQueryBuilder(
       pt.left.fnName = pt.left.fnName || 'ARITH';
       pt.right.fnName = pt.right.fnName || 'ARITH';
 
-      const left = fn(pt.left, null, pt.operator).toQuery();
-      const right = fn(pt.right, null, pt.operator).toQuery();
+      const left = (await fn(pt.left, null, pt.operator)).builder.toQuery();
+      const right = (await fn(pt.right, null, pt.operator)).builder.toQuery();
       let sql = `${left} ${pt.operator} ${right}${colAlias}`;
 
       // comparing a date with empty string would throw
@@ -753,11 +770,11 @@ async function _formulaQueryBuilder(
           sql = `${sql} ${colAlias}`;
         }
       }
-      const query = knex.raw(sql);
+      const query = knex.raw(sql.replace(/\?/g, '\\?'));
       if (prevBinaryOp && pt.operator !== prevBinaryOp) {
         query.wrap('(', ')');
       }
-      return query;
+      return { builder: query };
     } else if (pt.type === 'UnaryExpression') {
       const query = knex.raw(
         `${pt.operator}${fn(
@@ -769,24 +786,35 @@ async function _formulaQueryBuilder(
       if (prevBinaryOp && pt.operator !== prevBinaryOp) {
         query.wrap('(', ')');
       }
-      return query;
+      return { builder: query };
     }
   };
-  return { builder: fn(tree, alias) };
+  const builder = (await fn(tree, alias)).builder;
+
+  return { builder };
 }
 
-function getTnPath(tb: Model, knex) {
+function getTnPath(tb: Model, knex, tableAlias?: string) {
   const schema = knex.searchPath?.();
   if (knex.clientType() === 'mssql' && schema) {
-    return knex.raw('??.??', [schema, tb.table_name]);
-  } else if (knex.clientType() === 'snowflake') {
-    return [
-      knex.client.config.connection.database,
-      knex.client.config.connection.schema,
+    return knex.raw(`??.??${tableAlias ? ' as ??' : ''}`, [
+      schema,
       tb.table_name,
-    ].join('.');
+      ...(tableAlias ? [tableAlias] : []),
+    ]);
+  } else if (knex.clientType() === 'snowflake') {
+    return (
+      [
+        knex.client.config.connection.database,
+        knex.client.config.connection.schema,
+        tb.table_name,
+      ].join('.') + (tableAlias ? ` as ${tableAlias}` : '')
+    );
   } else {
-    return tb.table_name;
+    return knex.raw(`??${tableAlias ? ' as ??' : ''}`, [
+      tb.table_name,
+      ...(tableAlias ? [tableAlias] : []),
+    ]);
   }
 }
 
@@ -796,7 +824,9 @@ export default async function formulaQueryBuilderv2(
   knex: XKnex,
   model: Model,
   column?: Column,
-  aliasToColumn = {}
+  aliasToColumn = {},
+  tableAlias?: string,
+  validateFormula = false
 ) {
   // register jsep curly hook once only
   jsep.plugins.register(jsepCurlyHook);
@@ -806,13 +836,18 @@ export default async function formulaQueryBuilderv2(
     alias,
     knex,
     model,
-    aliasToColumn
+    aliasToColumn,
+    tableAlias
   );
+
+  if (!validateFormula) return qb;
 
   try {
     // dry run qb.builder to see if it will break the grid view or not
     // if so, set formula error and show empty selectQb instead
-    await knex(getTnPath(model, knex)).select(qb.builder).as('dry-run-only');
+    await knex(getTnPath(model, knex, tableAlias))
+      .select(knex.raw(`?? as ??`, [qb.builder, '__dry_run_alias']))
+      .as('dry-run-only');
 
     // if column is provided, i.e. formula has been created
     if (column) {

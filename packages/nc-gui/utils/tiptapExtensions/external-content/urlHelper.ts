@@ -39,7 +39,11 @@ export const figmaUrlToEmbedUrl = (url: string) => {
 }
 
 export const airtableUrlToEmbedUrl = (url: string) => {
-  const id = url.split('.com/')[1]
+  let id = url.split('.com/')[1]
+  id = id.replace('/embed', '')
+  id = id.replace('embed', '')
+  id = id.split('/')[0].length > 0 ? id.split('/')[0] : id.split('/')[1]
+
   return `https://airtable.com/embed/${id}?backgroundColor=blue`
 }
 
@@ -111,7 +115,6 @@ export function getExternalContentType(url: any) {
 }
 
 export const urlToEmbedUrl = (url: string, type?: string) => {
-  console.log('type', type)
   if (!type) {
     type = getExternalContentType(url)
   }

@@ -22,6 +22,7 @@ const userNameEmpty = (user: User) => {
 }
 
 const loadListData = async ($state: any) => {
+  const prevUsersCount = users.value?.length || 0
   if (users.value?.length === totalUsers.value) {
     $state.complete()
     return
@@ -29,11 +30,33 @@ const loadListData = async ($state: any) => {
   $state.loading()
   // const oldPagesCount = currentPage.value || 0
 
-  currentPage.value += 1
   await loadUsers()
+  currentPage.value += 1
 
+  if (prevUsersCount === users.value?.length) {
+    $state.complete()
+    return
+  }
   $state.loaded()
 }
+
+const rolesTypes = [
+  {
+    id: 'Editor',
+    name: 'Editor',
+    value: 'editor',
+  },
+  {
+    id: 'Viewer',
+    name: 'Viewer',
+    value: 'viewer',
+  },
+  {
+    id: 'None',
+    name: 'Remove',
+    value: 'No access',
+  },
+]
 </script>
 
 <template>
@@ -51,7 +74,9 @@ const loadListData = async ($state: any) => {
     <div class="flex flex-grow"></div>
     <div class="flex flex-row mt-4 mb-2 pt-3 border-gray-200 border-t-1 gap-x-3 items-center text-xs">
       <div :style="{ fontWeight: 500 }">People with access</div>
-      <div class="bg-gray-100 border-gray-200 border-1 py-0.5 px-1.5 rounded-md">{{ totalUsers - 1 }} users</div>
+      <div class="bg-gray-100 border-gray-200 border-1 py-0.5 px-1.5 rounded-md" data-testid="nc-manage-user-user-count">
+        {{ totalUsers - 1 }} users
+      </div>
     </div>
     <div class="flex flex-col mb-2 pr-0.5 h-96 overflow-y-auto users-list border-b-1 border-gray-200">
       <div v-if="nonOwners.length === 0" class="text-xs mt-2">No users have access to this document</div>
@@ -59,6 +84,7 @@ const loadListData = async ($state: any) => {
         v-for="user of nonOwners"
         :key="user.id"
         class="flex flex-row mb-1.5 px-2 py-1.5 items-center border-1 border-gray-200 rounded-md justify-between"
+        :data-testid="`nc-manage-users-${user.email}`"
       >
         <div class="flex flex-row items-center gap-x-2">
           <a-avatar></a-avatar>
@@ -71,20 +97,20 @@ const loadListData = async ($state: any) => {
         </div>
         <a-select
           v-model:value="user.roles"
-          class="flex !rounded-md p-0.5 !bg-white"
+          class="flex !rounded-md p-0.5 !bg-white capitalize nc-dropdown-user-role-container"
           dropdown-class-name="nc-dropdown-user-role !rounded-md"
           placeholder="Select role"
+          :options="rolesTypes"
         >
-          <a-select-option v-for="(role, index) in projectRoles" :key="index" :value="role" class="nc-role-option">
-            <div class="flex flex-row h-full justify-start items-center">
-              <div
-                class="px-2 py-1 flex rounded-full text-xs capitalize"
-                :style="{ backgroundColor: projectRoleTagColors[role] }"
-              >
-                {{ role }}
-              </div>
+          <template #option="option">
+            <div
+              class="flex flex-row items-center gap-x-2"
+              :data-testid="`nc-manage-users-role-${option.id !== 'None' ? option.name : 'Remove'}`"
+            >
+              <div v-if="option.id !== 'None'" class="flex">{{ option.name }}</div>
+              <div v-else class="flex text-red-500" :style="{ fontWeight: 500 }">Remove</div>
             </div>
-          </a-select-option>
+          </template>
         </a-select>
       </div>
       <InfiniteLoading v-bind="$attrs" @infinite="loadListData">
@@ -108,6 +134,7 @@ const loadListData = async ($state: any) => {
         class="!rounded-md"
         :disabled="editedUsers.length === 0"
         :loading="isBatchUpdating"
+        data-testid="nc-manage-users-submit"
         @click="() => updateEditedUsers()"
       >
         Save Changes

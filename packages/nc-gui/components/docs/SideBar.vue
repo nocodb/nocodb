@@ -3,24 +3,35 @@ import { ref } from 'vue'
 import type { TreeProps } from 'ant-design-vue'
 import type { AntTreeNodeDropEvent } from 'ant-design-vue/lib/tree'
 import { Icon as IconifyIcon } from '@iconify/vue'
+import type { ProjectType } from 'nocodb-sdk'
+import { onMounted, toRef } from '@vue/runtime-core'
 
-const isPublic = inject(IsDocsPublicInj, ref(false))
+const props = defineProps<{
+  project: ProjectType
+}>()
 
-const { project } = useProject()
+const project = toRef(props, 'project')
+
+const MAX_NESTED_LEVEL = 5
+
+const { isPublic, openedPageInSidebar, nestedPagesOfProjects, isEditAllowed, openedTabsOfProjects } = storeToRefs(useDocStore())
+
 const {
-  nestedPages,
-  openedPage,
-  openedTabs,
+  fetchNestedPages,
   nestedUrl,
   deletePage,
   reorderPages,
-  addNewPage,
-  getChildrenOfPage,
   updatePage,
-  isNoPageOpen,
-  projectUrl,
+  addNewPage,
   expandTabOfOpenedPage,
-} = useDocs()
+  getChildrenOfPage,
+  openChildPageTabsOfRootPages,
+  openPage,
+} = useDocStore()
+
+const nestedPages = computed(() => nestedPagesOfProjects.value[project.value.id!])
+
+const openedTabs = ref<string[]>([])
 
 const deleteModalOpen = ref(false)
 const selectedPageId = ref()
@@ -34,7 +45,7 @@ const onLoadData: TreeProps['loadData'] = async (treeNode) => {
 }
 
 const openPageTabKeys = computed({
-  get: () => [openedPage.value?.id],
+  get: () => (openedPageInSidebar.value?.id ? [openedPageInSidebar.value?.id] : null),
   set: () => {},
 })
 
@@ -63,7 +74,7 @@ const onDrop = async (info: AntTreeNodeDropEvent) => {
 
   if (info.dragNode.dataRef!.parent_page_id === info.node.dataRef!.parent_page_id) {
     const parentId: string | undefined = info.dragNode.dataRef!.parent_page_id
-    const siblings: any[] = getChildrenOfPage(parentId)
+    const siblings: any[] = getChildrenOfPage({ pageId: parentId, projectId: project.value.id! })
     const targetNodeIndex = siblings.findIndex((node) => node.id === info.node.dataRef!.id)
     const dragNodeIndex = siblings.findIndex((node) => node.id === info.dragNode.dataRef!.id)
 
@@ -76,6 +87,7 @@ const onDrop = async (info: AntTreeNodeDropEvent) => {
     sourceNodeId: info.dragNode.dataRef!.id!,
     targetNodeId: info.dropToGap ? info.node.dataRef!.parent_page_id : info.node.dataRef!.id,
     index: info.dropToGap ? info.dropPosition : 0,
+    projectId: project.value.id!,
   })
 }
 
@@ -94,171 +106,209 @@ const onTabSelect = (_: any, e: { selected: boolean; selectedNodes: any; node: a
     return
   }
 
-  const id = e.node.dataRef!.id
-
-  navigateTo(nestedUrl(id))
+  openPage({
+    page: e.node.dataRef,
+    projectId: project.value.id!,
+  })
 }
 
 const setIcon = async (id: string, icon: string) => {
   try {
-    await updatePage({ pageId: id, page: { icon } })
+    await updatePage({ pageId: id, page: { icon }, projectId: project.value.id! })
   } catch (e: any) {
     message.error(await extractSdkResponseErrorMsg(e))
   }
 }
 
-const navigateToHome = () => {
-  navigateTo(projectUrl())
-}
-
 watch(
-  openedPage,
+  openedPageInSidebar,
   () => {
-    if (!openedPage.value) return
+    if (!openedPageInSidebar.value) return
 
-    expandTabOfOpenedPage()
+    expandTabOfOpenedPage({
+      projectId: project.value.id!,
+    })
   },
   {
     immediate: true,
   },
 )
+
+watch(
+  () => openedTabsOfProjects.value[project.value.id!],
+  (val) => {
+    openedTabs.value = val ?? []
+  },
+  {
+    immediate: true,
+    deep: true,
+  },
+)
+
+onKeyStroke('Enter', () => {
+  if (deleteModalOpen.value) {
+    onDeletePage()
+  }
+})
+
+onMounted(async () => {
+  if (isPublic.value) return
+
+  await fetchNestedPages({ projectId: project.value.id! })
+
+  await openChildPageTabsOfRootPages({
+    projectId: project.value.id!,
+  })
+})
 </script>
 
 <template>
-  <a-layout-sider
-    :collapsed="false"
-    width="250"
-    collapsed-width="50"
-    class="relative shadow-md h-full z-1 nc-docs-left-sidebar"
-    :class="{ 'pb-14': !isPublic }"
-    :trigger="null"
-    collapsible
-    theme="light"
-  >
-    <div
-      v-if="!isPublic"
-      class="flex flex-row justify-between items-center pr-2 pl-4.5 py-2 border-b-gray-100 border-b-1 hover:(bg-gray-100 cursor-pointer)"
-      :class="{ 'bg-primary-selected hover:(!bg-primary-selected bg-opacity-20)': isNoPageOpen, '': !isNoPageOpen }"
-      @click.self="navigateToHome"
+  <template v-if="nestedPages">
+    <a-layout-sider
+      :collapsed="false"
+      collapsed-width="50"
+      class="relative h-full z-1 nc-docs-left-sidebar !min-w-56.5 pb-1 !bg-inherit pl-2"
+      :class="{
+        'px-1 !min-w-61.5': isPublic,
+        '!min-w-56.5': !isPublic,
+      }"
+      :data-testid="`docs-sidebar-${project.title}`"
+      :trigger="null"
+      collapsible
+      theme="light"
     >
-      <div
-        class="flex flex-row text-xs font-semibold items-center gap-x-3"
-        :class="{ 'text-primary': isNoPageOpen }"
-        @click="navigateToHome"
+      <a-tree
+        v-model:expanded-keys="openedTabs"
+        v-model:selectedKeys="openPageTabKeys"
+        :load-data="onLoadData"
+        :tree-data="nestedPages"
+        :draggable="isEditAllowed"
+        :on-drop="onDrop"
+        class="!w-full h-full overflow-y-scroll !overflow-x-hidden !bg-inherit"
+        @dragenter="onDragEnter"
+        @select="onTabSelect"
       >
-        <div class="flex">
-          <MdiBookOpenOutline />
-        </div>
-        <div class="flex text-sm">
-          {{ project.title }}
-        </div>
-      </div>
-      <div class="flex flex-row justify-between items-center">
-        <div
-          class="flex select-none p-1 rounded-md hover:(text-primary/100 !bg-gray-200 !bg-opacity-60) cursor-pointer"
-          @click="() => addNewPage()"
-        >
-          <MdiPlus />
-        </div>
-      </div>
-    </div>
-    <div v-else class="flex"></div>
-    <a-tree
-      v-model:expandedKeys="openedTabs"
-      v-model:selectedKeys="openPageTabKeys"
-      :load-data="onLoadData"
-      :tree-data="(nestedPages as any)"
-      :draggable="!isPublic"
-      :on-drop="onDrop"
-      class="!w-full h-full overflow-y-scroll !overflow-x-hidden pb-20"
-      @dragenter="onDragEnter"
-      @select="onTabSelect"
-    >
-      <template #title="{ title, id, icon }">
-        <div class="flex flex-row items-center justify-between group pt-1">
+        <template #title="{ title, id, icon, level }">
           <div
-            class="flex flex-row gap-x-1 text-ellipsis overflow-clip min-w-0 transition-all duration-200 ease-in-out"
-            :class="{}"
+            class="flex flex-row items-center justify-between group pt-1"
+            :data-testid="`docs-sidebar-page-${project.title}-${title}`"
+            :data-level="level"
           >
-            <div class="flex flex-shrink-0">
-              <a-popover placement="bottom" overlay-class-name="docs-page-icon-change-popover" color="#000000">
-                <template #content> Change Icon </template>
-                <a-dropdown v-if="!isPublic" placement="bottom" trigger="click">
-                  <div class="flex px-0.5 pt-0.75 text-gray-500 rounded-md hover:bg-gray-200 cursor-pointer">
-                    <IconifyIcon
-                      v-if="icon"
-                      :key="icon"
-                      :data-testid="`nc-doc-page-icon-${icon}`"
-                      class="text-lg"
-                      :icon="icon"
-                    ></IconifyIcon>
-                    <MdiFileDocumentOutline v-else />
-                  </div>
-                  <template #overlay>
-                    <div class="flex flex-col p-1 bg-gray-50 rounded-md">
-                      <GeneralEmojiIcons class="shadow bg-white p-2" @select-icon="setIcon(id, $event)" />
-                    </div>
-                  </template>
-                </a-dropdown>
-              </a-popover>
-            </div>
-            <span
-              class="text-ellipsis overflow-hidden"
-              :style="{ wordBreak: 'keep-all', whiteSpace: 'nowrap', display: 'inline' }"
-            >
-              {{ title }}
-            </span>
-          </div>
-          <div v-if="!isPublic" class="flex flex-row justify-start items-center pl-2 gap-x-1 h-3">
-            <a-dropdown placement="bottom" trigger="click">
-              <div
-                class="nc-docs-sidebar-page-options flex px-0.5 hover:( !bg-gray-300 !bg-opacity-30 rounded-md) cursor-pointer select-none hidden group-hover:block"
-              >
-                <MdiDotsHorizontal />
-              </div>
-              <template #overlay>
-                <div class="flex flex-col p-1 bg-gray-50 rounded-md w-28 gap-y-0.5 border-1 border-gray-100">
-                  <div
-                    class="flex items-center cursor-pointer select-none px-1.5 py-1.5 text-xs gap-x-2.5 hover:bg-gray-100 rounded-md !text-red-500"
-                    @click="() => openDeleteModal({ pageId: id })"
-                  >
-                    <MdiDeleteOutline class="h-3.5" />
-                    <div class="flex font-semibold">Delete</div>
-                  </div>
-                </div>
-                <a-menu>
-                  <a-menu-item class="!py-2">
-                    <div class="flex flex-row items-center space-x-2 text-red-500" @click="() => openDeleteModal({ pageId: id })">
-                      <MdiDeleteOutline class="flex" />
-                      <div class="flex">Delete</div>
-                    </div>
-                  </a-menu-item>
-                </a-menu>
-              </template>
-            </a-dropdown>
             <div
-              class="flex px-0.5 hover:( !bg-gray-300 !bg-opacity-30 rounded-md) cursor-pointer select-none hidden group-hover:block"
-              @click="() => addNewPage(id)"
+              class="flex flex-row gap-x-1 text-ellipsis overflow-clip min-w-0 transition-all duration-200 ease-in-out"
+              :class="{}"
             >
-              <MdiPlus />
+              <div class="flex flex-shrink-0">
+                <a-popover
+                  :visible="isEditAllowed ? undefined : false"
+                  placement="bottom"
+                  overlay-class-name="docs-page-icon-change-popover"
+                  color="#000000"
+                >
+                  <template #content> Change Icon </template>
+                  <a-dropdown placement="bottom" trigger="click" :disabled="!isEditAllowed">
+                    <div
+                      class="flex px-0.75 pt-0.75 text-gray-500 rounded-md"
+                      :class="{
+                        'hover:bg-gray-300 cursor-pointer': isEditAllowed,
+                      }"
+                      data-testid="docs-sidebar-emoji-selector"
+                    >
+                      <IconifyIcon
+                        v-if="icon"
+                        :key="icon"
+                        :data-testid="`nc-doc-page-icon-${icon}`"
+                        class="text-lg"
+                        :icon="icon"
+                      ></IconifyIcon>
+                      <MdiFileDocumentOutline v-else />
+                    </div>
+                    <template #overlay>
+                      <div class="flex flex-col p-1 bg-gray-50 rounded-md">
+                        <GeneralEmojiIcons class="shadow p-2" @select-icon="setIcon(id, $event)" />
+                      </div>
+                    </template>
+                  </a-dropdown>
+                </a-popover>
+              </div>
+              <span
+                class="text-ellipsis overflow-hidden nc-docs-sidebar-page-title"
+                :style="{ wordBreak: 'keep-all', whiteSpace: 'nowrap', display: 'inline' }"
+              >
+                {{ title }}
+              </span>
+            </div>
+            <div v-if="isEditAllowed" class="flex flex-row justify-start items-center pl-2 gap-x-1 h-3">
+              <a-dropdown placement="bottom" trigger="click">
+                <div
+                  class="nc-docs-sidebar-page-options flex px-0.5 hover:( !bg-gray-300 !bg-opacity-30 rounded-md) cursor-pointer select-none hidden group-hover:block"
+                  data-testid="docs-sidebar-page-options"
+                >
+                  <MdiDotsHorizontal />
+                </div>
+                <template #overlay>
+                  <div class="flex flex-col p-1 bg-gray-50 rounded-md w-28 gap-y-0.5 border-1 border-gray-100">
+                    <div
+                      class="flex items-center cursor-pointer select-none px-1.5 py-1.5 text-xs gap-x-2.5 hover:bg-gray-100 rounded-md !text-red-500"
+                      data-testid="docs-sidebar-page-delete"
+                      @click="() => openDeleteModal({ pageId: id })"
+                    >
+                      <MdiDeleteOutline class="h-3.5" />
+                      <div class="flex font-semibold">Delete</div>
+                    </div>
+                  </div>
+                  <a-menu>
+                    <a-menu-item class="!py-2">
+                      <div
+                        class="flex flex-row items-center space-x-2 text-red-500"
+                        @click="() => openDeleteModal({ pageId: id })"
+                      >
+                        <MdiDeleteOutline class="flex" />
+                        <div class="flex">Delete</div>
+                      </div>
+                    </a-menu-item>
+                  </a-menu>
+                </template>
+              </a-dropdown>
+              <div
+                v-if="level < MAX_NESTED_LEVEL"
+                class="nc-docs-add-child-page flex px-0.5 hover:( !bg-gray-300 !bg-opacity-30 rounded-md) cursor-pointer select-none hidden group-hover:block"
+                @click="() => addNewPage({parentPageId: id, projectId: project.id!})"
+              >
+                <MdiPlus />
+              </div>
             </div>
           </div>
-        </div>
-      </template>
-    </a-tree>
-  </a-layout-sider>
-  <a-modal v-model:visible="deleteModalOpen" centered :closable="false" :footer="false">
-    <div class="flex flex-col">
-      <div class="flex">Are you sure you want to delete this page?</div>
-      <div class="flex flex-row mt-4 space-x-3 ml-2">
-        <a-button type="text" @click="deleteModalOpen = false">Cancel</a-button>
-        <a-button type="danger" @click="onDeletePage">Delete</a-button>
+        </template>
+      </a-tree>
+      <div
+        v-if="isEditAllowed"
+        class="py-1 flex flex-row pl-7 items-center gap-x-2 cursor-pointer hover:text-black text-gray-600 text-sm"
+        data-testid="nc-docs-sidebar-add-page"
+        @click="() => addNewPage({parentPageId: undefined, projectId: project.id!})"
+      >
+        <MdiPlus />
+        <div class="flex">Create New Page</div>
       </div>
-    </div>
-  </a-modal>
+    </a-layout-sider>
+    <a-modal v-model:visible="deleteModalOpen" centered :closable="false" :footer="false">
+      <div class="flex flex-col">
+        <div class="flex">Are you sure you want to delete this page?</div>
+        <div class="flex flex-row mt-4 space-x-3 ml-2">
+          <a-button type="text" @click="deleteModalOpen = false">Cancel</a-button>
+          <a-button type="danger" data-testid="docs-page-delete-confirmation" @click="onDeletePage">Delete</a-button>
+        </div>
+      </div>
+    </a-modal>
+  </template>
 </template>
 
 <style lang="scss">
+:deep(.ant-tree) {
+  @apply !bg-transparent;
+  background: transparent !important;
+}
+
 .docs-page-icon-change-popover {
   .ant-popover-inner {
     padding: 0 !important;
@@ -271,9 +321,6 @@ watch(
 .nc-docs-left-sidebar {
   .ant-tree-node-content-wrapper {
     min-width: 0 !important;
-  }
-  .ant-tree-list-holder-inner {
-    @apply mx-2.5;
   }
 
   .ant-tree {
@@ -320,13 +367,14 @@ watch(
     }
   }
   .ant-tree-treenode {
-    @apply w-full rounded-md mt-0.5 !important;
+    @apply w-full rounded-md mt-0.65 !important;
   }
   .ant-tree-node-content-wrapper {
-    @apply w-full mr-2 pl-0.5 !important;
+    @apply w-full mr-2 pl-0.5 bg-inherit transition-none !important;
+    transition: none !important;
   }
   .ant-tree-list {
-    @apply pt-0.5 last:pb-3;
+    @apply pt-0.5 last:pb-1;
     .ant-tree-switcher {
       @apply mt-1 !important;
     }
@@ -334,26 +382,19 @@ watch(
       @apply !text-gray-300;
     }
     .ant-tree-treenode {
-      @apply !bg-white !hover:bg-gray-100;
-      transition: all 0.3s, border 0s, line-height 0s, box-shadow 0s;
-      transition-duration: 0.3s, 0s, 0s, 0s;
-      transition-timing-function: ease, ease, ease, ease;
-      transition-delay: 0s, 0s, 0s, 0s;
-      transition-property: all, border, line-height, box-shadow;
+      @apply !hover:bg-gray-200;
+      transition: none !important;
     }
     .ant-tree-treenode-selected {
-      @apply !bg-primary-selected !hover:bg-primary-selected;
-      transition: all 0.3s, border 0s, line-height 0s, box-shadow 0s;
-      transition-duration: 0.3s, 0s, 0s, 0s;
-      transition-timing-function: ease, ease, ease, ease;
-      transition-delay: 0s, 0s, 0s, 0s;
-      transition-property: all, border, line-height, box-shadow;
+      @apply !bg-primary-selected-sidebar !hover:bg-primary-selected-sidebar;
+      transition: none !important;
     }
     .ant-tree-node-selected {
-      @apply !bg-primary-selected !hover:bg-primary-selected;
+      transition: none !important;
+      @apply !bg-primary-selected-sidebar !hover:bg-primary-selected-sidebar;
     }
     // .ant-tree-treenode-selected {
-    //   @apply !bg-primary-selected;
+    //   @apply !bg-primary-selected-sidebar;
     // }
     .ant-tree-indent-unit {
       @apply w-4 !important;

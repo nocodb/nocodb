@@ -1,5 +1,5 @@
-import { IWebhookNotificationAdapter } from 'nc-plugin';
 import twilio from 'twilio';
+import type { IWebhookNotificationAdapter } from 'nc-plugin';
 
 export default class TwilioWhatsapp implements IWebhookNotificationAdapter {
   private input: any;
@@ -23,6 +23,7 @@ export default class TwilioWhatsapp implements IWebhookNotificationAdapter {
         });
       } catch (e) {
         console.log(e);
+        throw e;
       }
     }
   }

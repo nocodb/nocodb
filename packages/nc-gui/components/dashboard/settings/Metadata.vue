@@ -1,5 +1,7 @@
 <script setup lang="ts">
-import { Empty, extractSdkResponseErrorMsg, h, message, useI18n, useNuxtApp, useProject } from '#imports'
+import { inject } from '@vue/runtime-core'
+import { Empty, extractSdkResponseErrorMsg, h, iconMap, message, storeToRefs, useI18n, useNuxtApp, useProject } from '#imports'
+import { ProjectIdInj } from '~/context'
 
 const props = defineProps<{
   baseId: string
@@ -9,7 +11,11 @@ const emit = defineEmits(['baseSynced'])
 
 const { $api } = useNuxtApp()
 
-const { project, loadTables } = useProject()
+const projectStore = useProject()
+const { loadTables } = projectStore
+const { project } = storeToRefs(projectStore)
+const _projectId = $(inject(ProjectIdInj))
+const projectId = $computed(() => _projectId ?? project.value?.id)
 
 const { t } = useI18n()
 
@@ -21,11 +27,11 @@ let metadiff = $ref<any[]>([])
 
 async function loadMetaDiff() {
   try {
-    if (!project.value?.id) return
+    if (!projectId) return
 
     isLoading = true
     isDifferent = false
-    metadiff = await $api.base.metaDiffGet(project.value?.id, props.baseId)
+    metadiff = await $api.base.metaDiffGet(projectId, props.baseId)
     for (const model of metadiff) {
       if (model.detectedChanges?.length > 0) {
         model.syncState = model.detectedChanges.map((el: any) => el?.msg).join(', ')
@@ -41,10 +47,10 @@ async function loadMetaDiff() {
 
 async function syncMetaDiff() {
   try {
-    if (!project.value?.id || !isDifferent) return
+    if (!projectId || !isDifferent) return
 
     isLoading = true
-    await $api.base.metaDiffSync(project.value.id, props.baseId)
+    await $api.base.metaDiffSync(projectId, props.baseId)
     // Table metadata recreated successfully
     message.info(t('msg.info.metaDataRecreated'))
     await loadTables()
@@ -90,7 +96,7 @@ const columns = [
         <!--        Reload -->
         <a-button v-e="['a:proj-meta:meta-data:reload']" class="self-start nc-btn-metasync-reload" @click="loadMetaDiff">
           <div class="flex items-center gap-2 text-gray-600 font-light">
-            <MdiReload :class="{ 'animate-infinite animate-spin !text-success': isLoading }" />
+            <component :is="iconMap.reload" :class="{ 'animate-infinite animate-spin !text-success': isLoading }" />
             {{ $t('general.reload') }}
           </div>
         </a-button>
@@ -133,7 +139,7 @@ const columns = [
       <div v-if="isDifferent">
         <a-button v-e="['a:proj-meta:meta-data:sync']" class="nc-btn-metasync-sync-now" type="primary" @click="syncMetaDiff">
           <div class="flex items-center gap-2">
-            <MdiDatabaseSync />
+            <component :is="iconMap.databaseSync" />
             {{ $t('activity.metaSync') }}
           </div>
         </a-button>

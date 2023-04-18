@@ -1,5 +1,5 @@
-import JobsMgr from './JobsMgr';
 import Emittery from 'emittery';
+import JobsMgr from './JobsMgr';
 
 export default class EmitteryJobsMgr extends JobsMgr {
   emitter: Emittery;

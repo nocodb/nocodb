@@ -1,7 +1,6 @@
 import { XcActionType, XcType } from 'nocodb-sdk';
-import { XcPluginConfig } from 'nc-plugin';
-
 import MailerSendPlugin from './MailerSendPlugin';
+import type { XcPluginConfig } from 'nc-plugin';
 
 const config: XcPluginConfig = {
   builder: MailerSendPlugin,

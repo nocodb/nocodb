@@ -1,6 +1,6 @@
-import axios from 'axios';
-
 import { promises as fs } from 'fs';
+import axios from 'axios';
+import { Workspace } from '../../../models';
 
 const sqliteFilePath = (parallelId: string) => {
   const rootDir = __dirname.replace(
@@ -11,8 +11,15 @@ const sqliteFilePath = (parallelId: string) => {
   return `${rootDir}/test_sakila_${parallelId}.db`;
 };
 
-const sakilaProjectConfig = (title: string, parallelId: string) => ({
+const sakilaProjectConfig = (
+  workspaceId: string,
+  title: string,
+  parallelId: string,
+  projectType: string
+) => ({
   title,
+  fk_workspace_id: workspaceId,
+  type: projectType,
   bases: [
     {
       type: 'sqlite3',
@@ -39,27 +46,37 @@ const resetMetaSakilaSqliteProject = async ({
   token,
   title,
   isEmptyProject,
+  projectType,
+  workspaceTitle,
 }: {
   parallelId: string;
   token: string;
   title: string;
   isEmptyProject: boolean;
+  projectType: string;
+  workspaceTitle: string;
 }) => {
   await deleteSqliteFileIfExists(parallelId);
 
   if (!isEmptyProject) await seedSakilaSqliteFile(parallelId);
 
-  await createProject(token, title, parallelId);
+  const ws = await Workspace.insert({
+    title: workspaceTitle,
+  });
+
+  await createProject(ws.id, token, title, parallelId, projectType);
 };
 
 const createProject = async (
+  workspaceId: string,
   token: string,
   title: string,
-  parallelId: string
+  parallelId: string,
+  projectType: string
 ) => {
   const response = await axios.post(
     'http://localhost:8080/api/v1/db/meta/projects/',
-    sakilaProjectConfig(title, parallelId),
+    sakilaProjectConfig(workspaceId, title, parallelId, projectType),
     {
       headers: {
         'xc-auth': token,

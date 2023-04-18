@@ -1,10 +1,24 @@
 <script setup lang="ts">
-import { Form, computed, nextTick, onMounted, ref, useProject, useTable, useTabs, useVModel, validateTableName } from '#imports'
+import {
+  Form,
+  computed,
+  iconMap,
+  nextTick,
+  onMounted,
+  ref,
+  useProject,
+  useProjects,
+  useTabs,
+  useVModel,
+  validateTableName,
+} from '#imports'
 import { TabType } from '~/lib'
+import { useTableNew } from '~/composables/useTableNew'
 
 const props = defineProps<{
   modelValue: boolean
   baseId: string
+  projectId: string
 }>()
 
 const emit = defineEmits(['update:modelValue'])
@@ -17,19 +31,29 @@ const inputEl = ref<HTMLInputElement>()
 
 const { addTab } = useTabs()
 
-const { loadTables, isMysql, isMssql, isPg } = useProject()
+const { loadTables, isMysql, isMssql, isPg, loadProject } = useProject()
 
-const { table, createTable, generateUniqueTitle, tables, project } = useTable(async (table) => {
-  await loadTables()
+const { loadProjectTables } = useProjects()
 
-  addTab({
-    id: table.id as string,
-    title: table.title,
-    type: TabType.TABLE,
-  })
+const { table, createTable, generateUniqueTitle, tables, project } = useTableNew({
+  async onTableCreate(table) {
+    // await loadProject(props.projectId)
 
-  dialogShow.value = false
-}, props.baseId)
+    addTab({
+      id: table.id as string,
+      title: table.title,
+      type: TabType.TABLE,
+      projectId: props.projectId,
+      // baseId: props.baseId,
+    })
+
+    await loadProjectTables(props.projectId, true)
+
+    dialogShow.value = false
+  },
+  baseId: props.baseId,
+  projectId: props.projectId,
+})
 
 const useForm = Form.useForm
 
@@ -78,14 +102,21 @@ const systemColumnsCheckboxInfo = SYSTEM_COLUMNS.map((c, index) => ({
   disabled: index === 0,
 }))
 
+const creating = ref(false)
+
 const _createTable = async () => {
+  if (creating.value) return
   try {
+    creating.value = true
     await validate()
+    await createTable()
   } catch (e: any) {
+    console.error(e)
     e.errorFields.map((f: Record<string, any>) => message.error(f.errors.join(',')))
     if (e.errorFields.length) return
+  } finally {
+    creating.value = false
   }
-  await createTable()
 }
 
 onMounted(() => {
@@ -109,11 +140,13 @@ onMounted(() => {
     <template #footer>
       <a-button key="back" size="large" @click="dialogShow = false">{{ $t('general.cancel') }}</a-button>
 
-      <a-button key="submit" size="large" type="primary" @click="_createTable">{{ $t('general.submit') }}</a-button>
+      <a-button key="submit" size="large" type="primary" :loading="creating" @click="_createTable"
+        >{{ $t('general.submit') }}
+      </a-button>
     </template>
 
     <div class="pl-10 pr-10 pt-5">
-      <a-form :model="table" name="create-new-table-form" @keydown.enter="_createTable">
+      <a-form :model="table" name="create-new-table-form" @keydown.enter.stop="_createTable">
         <!-- Create A New Table -->
         <div class="prose-xl font-bold self-center my-4">{{ $t('activity.createTable') }}</div>
 
@@ -136,8 +169,8 @@ onMounted(() => {
           <div class="pointer flex flex-row items-center gap-x-1" @click="isAdvanceOptVisible = !isAdvanceOptVisible">
             {{ isAdvanceOptVisible ? $t('general.hideAll') : $t('general.showMore') }}
 
-            <MdiMinusCircleOutline v-if="isAdvanceOptVisible" class="text-gray-500" />
-            <MdiPlusCircleOutline v-else class="text-gray-500" />
+            <component :is="iconMap.minusCircle" v-if="isAdvanceOptVisible" class="text-gray-500" />
+            <component :is="iconMap.plusCircle" v-else class="text-gray-500" />
           </div>
         </div>
         <div class="nc-table-advanced-options" :class="{ active: isAdvanceOptVisible }">

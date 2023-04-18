@@ -1,6 +1,7 @@
 import { Node, mergeAttributes } from '@tiptap/core'
 import { VueNodeViewRenderer } from '@tiptap/vue-3'
 import CalloutComponent from './callout.vue'
+import { handleOnBackspaceForCallouts, handleOnEnterForCallouts } from './helper'
 
 export interface TipCalloutOptions {
   HTMLAttributes: Record<string, any>
@@ -16,7 +17,7 @@ export const TipCallout = Node.create<TipCalloutOptions>({
       },
     }
   },
-  content: 'inline*',
+  content: 'block*',
 
   group: 'block',
 
@@ -30,5 +31,17 @@ export const TipCallout = Node.create<TipCalloutOptions>({
 
   addNodeView() {
     return VueNodeViewRenderer(CalloutComponent)
+  },
+
+  addKeyboardShortcuts() {
+    return {
+      'Mod-Alt-0': () => this.editor.commands.setDBlock(),
+      'Enter': ({ editor }) => {
+        return handleOnEnterForCallouts(editor as any)
+      },
+      'Backspace': ({ editor }) => {
+        return handleOnBackspaceForCallouts(editor as any)
+      },
+    }
   },
 })

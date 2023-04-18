@@ -1,12 +1,16 @@
 <script lang="ts" setup>
+import type { Ref } from '@vue/reactivity'
 import {
   ActiveViewInj,
   IsLockedInj,
   IsPublicInj,
+  MetaInj,
   extractSdkResponseErrorMsg,
+  iconMap,
   inject,
   message,
   ref,
+  storeToRefs,
   useI18n,
   useMenuCloseOnEsc,
   useNuxtApp,
@@ -15,13 +19,12 @@ import {
   useUIPermission,
 } from '#imports'
 import { LockType } from '~/lib'
-import MdiLockOutlineIcon from '~icons/mdi/lock-outline'
-import MdiAccountIcon from '~icons/mdi/account'
-import MdiAccountGroupIcon from '~icons/mdi/account-group'
 
 const { t } = useI18n()
 
 const sharedViewListDlg = ref(false)
+
+const { isMobileMode } = useGlobal()
 
 const isPublicView = inject(IsPublicInj, ref(false))
 
@@ -41,21 +44,36 @@ const showApiSnippetDrawer = ref(false)
 
 const showErd = ref(false)
 
-const quickImportDialog = ref(false)
+type QuickImportDialogType = 'csv' | 'excel' | 'json'
+
+// TODO: add 'json' when it's ready
+const quickImportDialogTypes: QuickImportDialogType[] = ['csv', 'excel']
+
+const quickImportDialogs: Record<typeof quickImportDialogTypes[number], Ref<boolean>> = quickImportDialogTypes.reduce(
+  (acc: any, curr) => {
+    acc[curr] = ref(false)
+    return acc
+  },
+  {},
+) as Record<QuickImportDialogType, Ref<boolean>>
 
 const { isUIAllowed } = useUIPermission()
 
-const { isSharedBase } = useProject()
+const { isSharedBase } = storeToRefs(useProject())
+
+const meta = inject(MetaInj, ref())
+
+const currentBaseId = computed(() => meta.value?.base_id)
 
 const Icon = computed(() => {
   switch (selectedView.value?.lock_type) {
     case LockType.Personal:
-      return MdiAccountIcon
+      return iconMap.account
     case LockType.Locked:
-      return MdiLockOutlineIcon
+      return iconMap.lock
     case LockType.Collaborative:
     default:
-      return MdiAccountGroupIcon
+      return iconMap.users
   }
 })
 
@@ -100,7 +118,7 @@ useMenuCloseOnEsc(open)
 
           <component :is="Icon" class="text-gray-500" :class="`nc-icon-${selectedView?.lock_type}`" />
 
-          <MdiMenuDown class="text-grey" />
+          <component :is="iconMap.arrowDown" class="text-grey" />
         </div>
       </a-button>
 
@@ -116,9 +134,7 @@ useMenuCloseOnEsc(open)
                 <div v-e="['c:navdraw:preview-as']" class="nc-project-menu-item group px-0 !py-0">
                   <LazySmartsheetToolbarLockType hide-tick :type="lockType" />
 
-                  <MaterialSymbolsChevronRightRounded
-                    class="transform group-hover:(scale-115 text-accent) text-xl text-gray-400"
-                  />
+                  <component :is="iconMap.arrowRight" class="transform group-hover:(scale-115 text-accent) text-gray-400" />
                 </div>
               </template>
 
@@ -142,13 +158,11 @@ useMenuCloseOnEsc(open)
               <template #title>
                 <!--                Download -->
                 <div v-e="['c:navdraw:preview-as']" class="nc-project-menu-item group">
-                  <MdiDownload class="group-hover:text-accent text-gray-500" />
+                  <component :is="iconMap.download" class="group-hover:text-accent text-gray-500" />
                   {{ $t('general.download') }}
                   <div class="flex-1" />
 
-                  <MaterialSymbolsChevronRightRounded
-                    class="transform group-hover:(scale-115 text-accent) text-xl text-gray-400"
-                  />
+                  <component :is="iconMap.arrowRight" class="transform group-hover:(scale-115 text-accent) text-gray-400" />
                 </div>
               </template>
 
@@ -162,30 +176,29 @@ useMenuCloseOnEsc(open)
                 <!--                Upload -->
                 <template #title>
                   <div v-e="['c:navdraw:preview-as']" class="nc-project-menu-item group">
-                    <MdiUpload class="group-hover:text-accent text-gray-500" />
+                    <component :is="iconMap.upload" class="group-hover:text-accent text-gray-500" />
                     {{ $t('general.upload') }}
                     <div class="flex-1" />
 
-                    <MaterialSymbolsChevronRightRounded
-                      class="transform group-hover:(scale-115 text-accent) text-xl text-gray-400"
-                    />
+                    <component :is="iconMap.arrowRight" class="transform group-hover:(scale-115 text-accent) text-gray-400" />
                   </div>
                 </template>
 
                 <template #expandIcon></template>
-                <a-menu-item v-if="isUIAllowed('csvImport') && !isView && !isPublicView">
-                  <div
-                    v-e="['a:actions:upload-csv']"
-                    class="nc-project-menu-item"
-                    :class="{ disabled: isLocked }"
-                    @click="!isLocked ? (quickImportDialog = true) : {}"
-                  >
-                    <MdiUploadOutline class="text-gray-500" />
-                    <!-- Upload CSV -->
-                    {{ $t('activity.uploadCSV') }}
-                    <div class="flex items-center text-gray-400"><MdiAlpha />version</div>
-                  </div>
-                </a-menu-item>
+                <template v-for="(dialog, type) in quickImportDialogs">
+                  <a-menu-item v-if="isUIAllowed(`${type}Import`) && !isView && !isPublicView" :key="type">
+                    <div
+                      v-e="[`a:actions:upload-${type}`]"
+                      class="nc-project-menu-item"
+                      :class="{ disabled: isLocked }"
+                      @click="!isLocked ? (dialog.value = true) : {}"
+                    >
+                      <component :is="iconMap.upload" class="text-gray-500" />
+                      {{ `${$t('general.upload')} ${type.toUpperCase()}` }}
+                      <div class="flex items-center text-gray-400"><MdiAlpha />version</div>
+                    </div>
+                  </a-menu-item>
+                </template>
               </a-sub-menu>
             </template>
 
@@ -193,35 +206,40 @@ useMenuCloseOnEsc(open)
 
             <a-menu-item v-if="isUIAllowed('SharedViewList') && !isView && !isPublicView">
               <div v-e="['a:actions:shared-view-list']" class="py-2 flex gap-2 items-center" @click="sharedViewListDlg = true">
-                <MdiViewListOutline class="text-gray-500" />
+                <component :is="iconMap.list" class="text-gray-500" />
                 <!-- Shared View List -->
                 {{ $t('activity.listSharedView') }}
               </div>
             </a-menu-item>
 
-            <a-menu-item v-if="!isSqlView">
+            <a-menu-item v-if="!isSqlView && !isMobileMode">
               <div
                 v-if="isUIAllowed('webhook') && !isView && !isPublicView"
                 v-e="['c:actions:webhook']"
                 class="py-2 flex gap-2 items-center"
                 @click="showWebhookDrawer = true"
               >
-                <MdiHook class="text-gray-500" />
+                <component :is="iconMap.hook" class="text-gray-500" />
                 {{ $t('objects.webhooks') }}
               </div>
             </a-menu-item>
 
-            <a-menu-item v-if="!isSharedBase && !isPublicView">
+            <a-menu-item v-if="!isSharedBase && !isPublicView && !isMobileMode">
               <div v-e="['c:snippet:open']" class="py-2 flex gap-2 items-center" @click="showApiSnippetDrawer = true">
-                <MdiXml class="text-gray-500" />
+                <component :is="iconMap.snippet" class="text-gray-500" />
                 <!-- Get API Snippet -->
                 {{ $t('activity.getApiSnippet') }}
               </div>
             </a-menu-item>
 
             <a-menu-item>
-              <div v-e="['c:erd:open']" class="py-2 flex gap-2 items-center nc-view-action-erd" @click="showErd = true">
-                <MaterialSymbolsAccountTreeRounded class="text-gray-500" />
+              <div
+                v-if="!isMobileMode"
+                v-e="['c:erd:open']"
+                class="py-2 flex gap-2 items-center nc-view-action-erd"
+                @click="showErd = true"
+              >
+                <component :is="iconMap.erd" class="text-gray-500" />
                 {{ $t('title.erdView') }}
               </div>
             </a-menu-item>
@@ -230,7 +248,14 @@ useMenuCloseOnEsc(open)
       </template>
     </a-dropdown>
 
-    <LazyDlgQuickImport v-if="quickImportDialog" v-model="quickImportDialog" import-type="csv" :import-data-only="true" />
+    <LazyDlgQuickImport
+      v-for="type in quickImportDialogTypes"
+      :key="type"
+      v-model="quickImportDialogs[type].value"
+      :import-type="type"
+      :base-id="currentBaseId"
+      :import-data-only="true"
+    />
 
     <LazyWebhookDrawer v-if="showWebhookDrawer" v-model="showWebhookDrawer" />
 

@@ -4,12 +4,11 @@ import { useProvideAttachmentCell } from './utils'
 import { useSortable } from './sort'
 import {
   ActiveCellInj,
+  CurrentCellInj,
   DropZoneRef,
-  IsGalleryInj,
-  IsKanbanInj,
+  iconMap,
   inject,
   isImage,
-  nextTick,
   ref,
   useAttachment,
   useDropZone,
@@ -28,13 +27,9 @@ interface Emits {
   (event: 'update:modelValue', value: string | Record<string, any>[]): void
 }
 
-const { modelValue, rowIndex } = defineProps<Props>()
+const { modelValue } = defineProps<Props>()
 
 const emits = defineEmits<Emits>()
-
-const isGallery = inject(IsGalleryInj, ref(false))
-
-const isKanban = inject(IsKanbanInj, ref(false))
 
 const dropZoneInjection = inject(DropZoneRef, ref())
 
@@ -42,9 +37,9 @@ const attachmentCellRef = ref<HTMLDivElement>()
 
 const sortableRef = ref<HTMLDivElement>()
 
-const currentCellRef = ref<Element | undefined>(dropZoneInjection.value)
+const currentCellRef = inject(CurrentCellInj, dropZoneInjection.value)
 
-const { cellRefs, isSharedForm } = useSmartsheetStoreOrThrow()!
+const { isSharedForm } = useSmartsheetStoreOrThrow()!
 
 const { getPossibleAttachmentSrc, openAttachment } = useAttachment()
 
@@ -63,32 +58,6 @@ const {
   isReadonly,
   storedFiles,
 } = useProvideAttachmentCell(updateModelValue)
-
-watch(
-  [() => rowIndex, isForm, attachmentCellRef],
-  () => {
-    if (dropZoneInjection?.value) return
-
-    if (!rowIndex && (isForm.value || isGallery.value || isKanban.value)) {
-      currentCellRef.value = attachmentCellRef.value
-    } else {
-      nextTick(() => {
-        const nextCell = cellRefs.value.reduceRight((cell, curr) => {
-          if (!cell && curr.dataset.key === `${rowIndex}${column.value!.id}`) cell = curr
-
-          return cell
-        }, undefined as HTMLTableDataCellElement | undefined)
-
-        if (!nextCell) {
-          currentCellRef.value = attachmentCellRef.value
-        } else {
-          currentCellRef.value = nextCell
-        }
-      })
-    }
-  },
-  { immediate: true, flush: 'post' },
-)
 
 const { dragging } = useSortable(sortableRef, visibleItems, updateModelValue, isReadonly)
 
@@ -188,7 +157,7 @@ useSelectedCellKeyupListener(inject(ActiveCellInj, ref(false)), (e) => {
       data-testid="attachment-cell-file-picker-button"
       @click.stop="open"
     >
-      <MdiReload v-if="isLoading" :class="{ 'animate-infinite animate-spin': isLoading }" />
+      <component :is="iconMap.reload" v-if="isLoading" :class="{ 'animate-infinite animate-spin': isLoading }" />
 
       <a-tooltip v-else placement="bottom">
         <template #title> Click or drop a file into cell</template>
@@ -238,12 +207,13 @@ useSelectedCellKeyupListener(inject(ActiveCellInj, ref(false)), (e) => {
       <div
         class="group cursor-pointer flex gap-1 items-center active:(ring ring-accent ring-opacity-100) rounded border-1 p-1 shadow-sm hover:(bg-primary bg-opacity-10) dark:(!bg-slate-500)"
       >
-        <MdiReload v-if="isLoading" :class="{ 'animate-infinite animate-spin': isLoading }" />
+        <component :is="iconMap.reload" v-if="isLoading" :class="{ 'animate-infinite animate-spin': isLoading }" />
 
         <a-tooltip v-else placement="bottom">
           <template #title> View attachments</template>
 
-          <MdiArrowExpand
+          <component
+            :is="iconMap.expand"
             class="transform dark:(!text-white) group-hover:(!text-accent scale-120) text-gray-500 text-[0.75rem]"
             @click.stop="modalVisible = true"
           />

@@ -1,14 +1,14 @@
 import { promisify } from 'util';
-import knex from 'knex';
 import fs from 'fs';
-import KnexClient from '../KnexClient';
-import Debug from '../../../util/Debug';
-import Result from '../../../util/Result';
-import queries from './sqlite.queries';
+import knex from 'knex';
 import isEmpty from 'lodash/isEmpty';
 import mapKeys from 'lodash/mapKeys';
 import find from 'lodash/find';
 import { customAlphabet } from 'nanoid';
+import KnexClient from '../KnexClient';
+import Debug from '../../../util/Debug';
+import Result from '../../../util/Result';
+import queries from './sqlite.queries';
 
 const nanoid = customAlphabet('1234567890abcdefghijklmnopqrstuvwxyz_', 6);
 
@@ -1312,10 +1312,7 @@ class SqliteClient extends KnexClient {
     log.api(`${func}:args:`, args);
     // `DROP TRIGGER ${args.view_name}`
     try {
-      const query = this.genQuery(
-        `DROP VIEW ??;`,
-        [args.view_name]
-      );
+      const query = this.genQuery(`DROP VIEW ??;`, [args.view_name]);
 
       await this.sqlClient.raw(query);
 
@@ -2012,7 +2009,7 @@ class SqliteClient extends KnexClient {
     if (change === 2) {
       const suffix = nanoid();
 
-      let backupOldColumnQuery = this.genQuery(
+      const backupOldColumnQuery = this.genQuery(
         `ALTER TABLE ?? RENAME COLUMN ?? TO ??;`,
         [t, o.cn, `${o.cno}_nc_${suffix}`],
         shouldSanitize
@@ -2037,13 +2034,13 @@ class SqliteClient extends KnexClient {
         shouldSanitize
       );
 
-      let updateNewColumnQuery = this.genQuery(
+      const updateNewColumnQuery = this.genQuery(
         `UPDATE ?? SET ?? = ??;`,
         [t, n.cn, `${o.cno}_nc_${suffix}`],
         shouldSanitize
       );
 
-      let dropOldColumnQuery = this.genQuery(
+      const dropOldColumnQuery = this.genQuery(
         `ALTER TABLE ?? DROP COLUMN ??;`,
         [t, `${o.cno}_nc_${suffix}`],
         shouldSanitize

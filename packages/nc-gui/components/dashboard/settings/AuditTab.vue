@@ -1,11 +1,15 @@
 <script setup lang="ts">
 import { Tooltip as ATooltip, Empty } from 'ant-design-vue'
 import type { AuditType } from 'nocodb-sdk'
-import { h, onMounted, timeAgo, useGlobal, useI18n, useNuxtApp, useProject } from '#imports'
+import { h, iconMap, onMounted, storeToRefs, timeAgo, useGlobal, useI18n, useNuxtApp, useProject } from '#imports'
+import { ProjectIdInj } from '~/context'
 
 const { $api } = useNuxtApp()
 
-const { project } = useProject()
+const { project } = storeToRefs(useProject())
+
+const _projectId = $(inject(ProjectIdInj))
+const projectId = $computed(() => _projectId ?? project.value?.id)
 
 const { t } = useI18n()
 
@@ -27,9 +31,9 @@ async function loadAudits(page = currentPage, limit = currentLimit) {
 
     isLoading = true
 
-    const { list, pageInfo } = await $api.project.auditList(project.value?.id, {
-      offset: (limit * (page - 1)).toString(),
-      limit: limit.toString(),
+    const { list, pageInfo } = await $api.project.auditList(projectId, {
+      offset: limit * (page - 1),
+      limit,
     })
 
     audits = list
@@ -67,6 +71,7 @@ const columns = [
     title: tableHeaderRenderer(t('labels.description')),
     dataIndex: 'description',
     key: 'description',
+    customRender: (value: { text: string }) => h('pre', {}, value.text),
   },
   {
     // User
@@ -83,6 +88,7 @@ const columns = [
     sort: 'desc',
     customRender: (value: { text: string }) =>
       h(ATooltip, { placement: 'bottom', title: h('span', {}, value.text) }, () => timeAgo(value.text)),
+    width: '10%',
   },
 ]
 </script>
@@ -94,7 +100,7 @@ const columns = [
       <a-button class="self-start" @click="loadAudits">
         <!-- Reload -->
         <div class="flex items-center gap-2 text-gray-600 font-light">
-          <MdiReload :class="{ 'animate-infinite animate-spin !text-success': isLoading }" />
+          <component :is="iconMap.reload" :class="{ 'animate-infinite animate-spin !text-success': isLoading }" />
 
           {{ $t('general.reload') }}
         </div>
@@ -102,7 +108,7 @@ const columns = [
 
       <a-pagination
         v-model:current="currentPage"
-        :page-size="currentLimit"
+        v-model:page-size="currentLimit"
         :total="totalRows"
         show-less-items
         @change="loadAudits"
@@ -110,7 +116,7 @@ const columns = [
     </div>
 
     <a-table
-      class="w-full"
+      class="nc-audit-table w-full"
       size="small"
       :data-source="audits ?? []"
       :columns="columns"
@@ -124,3 +130,14 @@ const columns = [
     </a-table>
   </div>
 </template>
+
+<style lang="scss">
+.nc-audit-table pre {
+  display: table;
+  table-layout: fixed;
+  width: 100%;
+  white-space: break-spaces;
+  font-size: unset;
+  font-family: unset;
+}
+</style>

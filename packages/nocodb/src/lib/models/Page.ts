@@ -1,8 +1,16 @@
-import Noco from '../Noco';
-import { CacheScope, MetaTable } from '../utils/globals';
-import NocoCache from '../cache/NocoCache';
 import slugify from 'slug';
-import { DocsPageType, UserType } from 'nocodb-sdk';
+import Noco from '../Noco';
+import {
+  CacheDelDirection,
+  CacheGetType,
+  CacheScope,
+  MetaTable,
+} from '../utils/globals';
+import NocoCache from '../cache/NocoCache';
+import { updatePageService } from '../services/docs/pageUpdater.svc';
+import Project from './Project';
+import type { DocsPageType, UserType } from 'nocodb-sdk';
+import type NcMetaIO from '../meta/NcMetaIO';
 const { v4: uuidv4 } = require('uuid');
 
 export default class Page {
@@ -18,17 +26,35 @@ export default class Page {
     Object.assign(this, attr);
   }
 
-  public static tableName({ projectId }: { projectId: string }) {
-    return `nc_d_page_${projectId}`;
+  public static async tableName({
+    projectId,
+    workspaceId,
+  }: {
+    projectId: string;
+    workspaceId?: string;
+  }) {
+    const prefix = 'nc_d_page_';
+    if (workspaceId) return `${prefix}${workspaceId}`;
+
+    const project = await Project.get(projectId);
+    return `${prefix}${project.fk_workspace_id}`;
   }
 
   static async createPageTable(
-    { projectId }: { projectId: string },
+    { projectId, workspaceId }: { projectId: string; workspaceId?: string },
     ncMeta = Noco.ncMeta
   ) {
     const knex = ncMeta.knex;
-    await knex.schema.createTable(Page.tableName({ projectId }), (table) => {
+    const pageTableName = await Page.tableName({ projectId, workspaceId });
+
+    await knex.schema.createTable(pageTableName, (table) => {
       table.string('id', 20).primary().notNullable();
+
+      table.string('project_id', 20).notNullable();
+      table
+        .foreign('project_id')
+        .references(`${MetaTable.PROJECT}.id`)
+        .withKeyName(`nc_page_fk_project_id_${uuidv4()}`);
 
       table.string('title', 150).notNullable();
       table.string('published_title', 150);
@@ -42,7 +68,7 @@ export default class Page {
       table.string('parent_page_id', 20).nullable();
       table
         .foreign('parent_page_id')
-        .references(`${Page.tableName({ projectId })}.id`)
+        .references(`${pageTableName}.id`)
         .withKeyName(`nc_page_parent_${uuidv4()}`);
 
       table.boolean('is_published').defaultTo(false);
@@ -52,6 +78,12 @@ export default class Page {
         .foreign('last_published_by_id')
         .references(`${MetaTable.USERS}.id`)
         .withKeyName(`nc_page_last_published_id_${uuidv4()}`);
+
+      table.string('nested_published_parent_id', 20).nullable();
+      table
+        .foreign('nested_published_parent_id')
+        .references(`${pageTableName}.id`)
+        .withKeyName(`nc_p_nest_publish_parent_id_${uuidv4()}`);
 
       table.string('last_updated_by_id', 20).nullable();
       table
@@ -114,8 +146,9 @@ export default class Page {
     const { id: createdPageId } = await ncMeta.metaInsert2(
       null,
       null,
-      Page.tableName({ projectId }),
+      await Page.tableName({ projectId }),
       {
+        project_id: projectId,
         title: title,
         description: description,
         content: content,
@@ -136,80 +169,191 @@ export default class Page {
     );
 
     if (parent_page_id) {
-      await ncMeta.metaUpdate(
-        null,
-        null,
-        Page.tableName({ projectId }),
+      const parentPage = await this.get(
         {
-          is_parent: true,
+          id: parent_page_id,
+          projectId,
         },
-        parent_page_id
+        ncMeta
       );
+
+      await this._updatePage(
+        {
+          pageId: parent_page_id,
+          projectId,
+          attributes: {
+            is_parent: true,
+          },
+        },
+        ncMeta
+      );
+
+      if (parentPage?.is_published) {
+        await this._updatePage(
+          {
+            pageId: createdPageId,
+            projectId,
+            attributes: {
+              is_published: true,
+              nested_published_parent_id: parentPage.nested_published_parent_id,
+            },
+          },
+          ncMeta
+        );
+      }
     }
 
-    await this.reorder({ parent_page_id, projectId });
+    await this.updateOrderAfterCreate({ parent_page_id, projectId });
 
-    return await this.get({ id: createdPageId, projectId }, ncMeta);
+    const createdPage = await ncMeta.metaGet2(
+      null,
+      null,
+      await Page.tableName({ projectId }),
+      createdPageId
+    );
+
+    await NocoCache.set(
+      `${CacheScope.DOCS_PAGE}:${projectId}:${createdPageId}`,
+      createdPage
+    );
+    await this.appendToAllPagesCacheList({
+      pageId: createdPageId,
+      projectId,
+    });
+    await this.appendToCacheChildList({
+      parentPageId: parent_page_id,
+      pageId: createdPageId,
+      projectId,
+    });
+
+    return createdPage;
   }
 
   public static async get(
     {
       id,
       projectId,
+      fields,
     }: {
       id: string;
       projectId: string;
+      fields?: string[];
     },
     ncMeta = Noco.ncMeta
   ): Promise<DocsPageType | undefined> {
-    // todo: Add cache
-    let page = undefined;
-    if (!page) {
-      page = await ncMeta.metaGet2(
+    if (!id) throw new Error('Page id is required');
+
+    let page = await NocoCache.get(
+      `${CacheScope.DOCS_PAGE}:${projectId}:${id}`,
+      CacheGetType.TYPE_OBJECT
+    );
+
+    if (page && page?.project_id !== projectId) {
+      return undefined;
+    }
+
+    if (page) {
+      // Remove fields that are not requested
+      if (!fields) {
+        return page;
+      }
+
+      const filteredPage = {};
+      for (const field of fields) {
+        filteredPage[field] = page[field];
+      }
+
+      return filteredPage as DocsPageType;
+    }
+
+    page = await ncMeta.metaGet2(
+      null,
+      null,
+      await Page.tableName({ projectId }),
+      id,
+      fields
+    );
+
+    if (page) {
+      const pageWithAllFields = await ncMeta.metaGet2(
         null,
         null,
-        Page.tableName({ projectId }),
+        await Page.tableName({ projectId }),
         id
       );
-      if (page) {
-        await NocoCache.set(`${CacheScope.DOCS_PAGE}:${id}`, page);
+
+      if (pageWithAllFields?.project_id !== projectId) {
+        return undefined;
       }
+
+      await NocoCache.set(
+        `${CacheScope.DOCS_PAGE}:${projectId}:${id}`,
+        pageWithAllFields
+      );
     }
 
-    return page;
+    return page as DocsPageType | undefined;
   }
 
-  public static async getBySlug(
+  static async _updatePage(
     {
-      nestedSlug,
+      pageId,
       projectId,
+      attributes,
     }: {
-      nestedSlug: string;
+      pageId: string;
       projectId: string;
+      attributes: Partial<DocsPageType>;
     },
-    ncMeta = Noco.ncMeta
-  ): Promise<DocsPageType> {
-    const slugsArr = nestedSlug.split('/');
-    // todo: Add cache
-    let page = undefined;
-    if (!page) {
-      for (const slug of slugsArr) {
-        page = await ncMeta.metaGet2(
-          null,
-          null,
-          Page.tableName({ projectId }),
-          {
-            slug,
-            parent_page_id: page?.id || null,
-          }
-        );
-      }
-      if (page) {
-        await NocoCache.set(`${CacheScope.DOCS_PAGE}:${page.id}`, page);
-      }
+    ncMeta: NcMetaIO
+  ) {
+    await ncMeta.metaUpdate(
+      null,
+      null,
+      await Page.tableName({ projectId }),
+      { ...attributes },
+      pageId
+    );
+
+    const updatedPage = await ncMeta.metaGet2(
+      null,
+      null,
+      await Page.tableName({ projectId }),
+      pageId
+    );
+
+    // get existing cache
+    const key = `${CacheScope.DOCS_PAGE}:${projectId}:${pageId}`;
+    let o = await NocoCache.get(key, CacheGetType.TYPE_OBJECT);
+    if (o) {
+      // update data
+      o = { ...o, ...updatedPage };
+
+      // set cache
+      await NocoCache.set(key, o);
     }
 
-    return page;
+    if ('parent_page_id' in attributes) {
+      await NocoCache.deepDel(
+        CacheScope.DOCS_PAGE,
+        `${CacheScope.DOCS_PAGE}:${projectId}:${pageId}`,
+        CacheDelDirection.CHILD_TO_PARENT
+      );
+
+      await NocoCache.set(`${CacheScope.DOCS_PAGE}:${projectId}:${pageId}`, o);
+
+      await this.appendToAllPagesCacheList({
+        pageId,
+        projectId,
+      });
+      await this.appendToCacheChildList({
+        parentPageId: attributes.parent_page_id,
+        pageId,
+        projectId,
+      });
+    }
+
+    return await this.get({ id: pageId, projectId }, ncMeta);
   }
 
   public static async update(
@@ -226,126 +370,58 @@ export default class Page {
     },
     ncMeta = Noco.ncMeta
   ): Promise<DocsPageType> {
-    // const now = new Date();
-    const previousPage = await this.get({ id: pageId, projectId });
-    if (!previousPage) throw new Error('Page not found');
-
-    if (attributes.title === previousPage.title) delete attributes.title;
-
-    if (attributes.title) {
-      if (attributes.title.length === 0) {
-        throw new Error('Title cannot be empty');
-      }
-
-      const uniqueSlug = await this.uniqueSlug({
+    return await updatePageService(
+      {
+        pageId,
         projectId,
-        parent_page_id: previousPage.parent_page_id,
-        title: attributes.title,
-      });
-
-      attributes.slug = uniqueSlug;
-    }
-
-    if ('is_published' in attributes && attributes.is_published) {
-      // todo: Set published date
-      // attributes.last_published_date = now.toISOString();
-      attributes.last_published_by_id = user.id;
-      attributes.published_content = attributes.content || previousPage.content;
-    }
-
-    attributes.last_updated_by_id = user.id;
-
-    await ncMeta.metaUpdate(
-      null,
-      null,
-      Page.tableName({ projectId }),
-      { ...attributes },
-      pageId
+        attributes,
+        user,
+      },
+      ncMeta
     );
-
-    // if parent page is changed, update is_parent flag of previous parent page
-    if (
-      'parent_page_id' in attributes &&
-      previousPage.parent_page_id &&
-      attributes.parent_page_id !== previousPage.parent_page_id
-    ) {
-      const previousParentChildren = await this.getChildPages({
-        parent_page_id: previousPage.parent_page_id,
-        projectId,
-      });
-      if (previousParentChildren.length === 0) {
-        await ncMeta.metaUpdate(
-          null,
-          null,
-          Page.tableName({ projectId }),
-          {
-            is_parent: false,
-          },
-          previousPage.parent_page_id
-        );
-      }
-    }
-
-    if (attributes.order) {
-      await this.reorder({
-        projectId,
-        parent_page_id: attributes.parent_page_id,
-        keepPageId: pageId,
-      });
-    }
-
-    if (attributes.parent_page_id) {
-      await ncMeta.metaUpdate(
-        null,
-        null,
-        Page.tableName({ projectId }),
-        {
-          is_parent: true,
-        },
-        attributes.parent_page_id
-      );
-      const currentPage = await this.get({ id: pageId, projectId });
-
-      // Since there can be slug collision, when page is moved to a new parent
-      const uniqueSlug = await this.uniqueSlug(
-        {
-          projectId,
-          parent_page_id: attributes.parent_page_id,
-          title: currentPage.title,
-        },
-        ncMeta
-      );
-      if (uniqueSlug !== currentPage.slug) {
-        await ncMeta.metaUpdate(
-          null,
-          null,
-          Page.tableName({ projectId }),
-          {
-            slug: uniqueSlug,
-          },
-          pageId
-        );
-      }
-    }
-
-    return await this.get({ id: pageId, projectId });
   }
 
   public static async getChildPages({
     projectId,
     parent_page_id,
+    condition = {},
     ncMeta = Noco.ncMeta,
   }): Promise<Page[]> {
-    const pageList = await ncMeta.metaList2(
-      null,
-      null,
-      Page.tableName({ projectId }),
-      {
-        condition: {
-          parent_page_id: parent_page_id,
-        },
-      }
+    let pageList = await NocoCache.getList(
+      `${CacheScope.DOCS_PAGE}:${projectId}`,
+      [parent_page_id ?? 'root', 'children']
     );
+
+    if (pageList.length === 0 && parent_page_id) {
+      const parentPage = await this.get(
+        { id: parent_page_id, projectId },
+        ncMeta
+      );
+      if (!parentPage?.is_parent) {
+        return [];
+      }
+    }
+
+    if (pageList.length === 0) {
+      pageList = await ncMeta.metaList2(
+        null,
+        null,
+        await Page.tableName({ projectId }),
+        {
+          condition: {
+            project_id: projectId,
+            parent_page_id: parent_page_id,
+            ...condition,
+          },
+        }
+      );
+
+      await NocoCache.setList(
+        `${CacheScope.DOCS_PAGE}:${projectId}`,
+        [parent_page_id ?? 'root', 'children'],
+        pageList
+      );
+    }
 
     if (!pageList || pageList.length === 0) return [];
 
@@ -362,71 +438,139 @@ export default class Page {
       projectId,
       onlyPublished,
       fields,
+      ignoreCache,
     }: {
       parent_page_id?: string;
       fetchAll?: boolean;
       projectId: string;
       onlyPublished?: boolean;
       fields?: string[];
+      ignoreCache?: boolean;
     },
     ncMeta = Noco.ncMeta
   ): Promise<DocsPageType[]> {
     const condition: any = {};
+    condition.project_id = projectId;
+
     if (!fetchAll) {
       condition.parent_page_id = parent_page_id ?? null;
     }
     if (onlyPublished) {
       condition.is_published = true;
     }
-    const pageList = await ncMeta.metaList2(
-      null,
-      null,
-      Page.tableName({ projectId }),
-      {
-        condition,
-        fields: fields ?? [
-          'id',
-          'title',
-          'slug',
-          'order',
-          'parent_page_id',
-          'is_parent',
-          'is_published',
-          'updated_at',
-          'created_at',
-          'last_updated_by_id',
-          'last_published_by_id',
-          'created_by_id',
-          'icon',
-        ],
+
+    let pageList;
+
+    if (!ignoreCache) {
+      if (fetchAll) {
+        pageList = await NocoCache.getList(
+          `${CacheScope.DOCS_PAGE}:${projectId}`,
+          []
+        );
+      } else {
+        pageList = await NocoCache.getList(
+          `${CacheScope.DOCS_PAGE}:${projectId}`,
+          [parent_page_id ?? 'root', 'children']
+        );
       }
-    );
+
+      if (pageList.length === 0 && !fetchAll && parent_page_id) {
+        const parentPage = await this.get(
+          { id: parent_page_id, projectId },
+          ncMeta
+        );
+        if (!parentPage?.is_parent) return [];
+      }
+    }
+
+    if (!pageList || pageList.length === 0) {
+      pageList = await ncMeta.metaList2(
+        null,
+        null,
+        await Page.tableName({ projectId }),
+        {
+          condition,
+        }
+      );
+
+      if (fetchAll) {
+        await NocoCache.setList(
+          `${CacheScope.DOCS_PAGE}:${projectId}`,
+          [],
+          pageList
+        );
+      } else {
+        await NocoCache.setList(
+          `${CacheScope.DOCS_PAGE}:${projectId}`,
+          [parent_page_id ?? 'root', 'children'],
+          pageList
+        );
+      }
+    }
 
     pageList.sort((a, b) => (a.order ?? Infinity) - (b.order ?? Infinity));
 
-    return pageList;
+    return fields
+      ? pageList.map((page) => {
+          const obj: any = {};
+          fields.forEach((field) => {
+            obj[field] = page[field];
+          });
+          return obj;
+        })
+      : pageList;
   }
 
-  public static async nestedList({
+  static async nestedChildren({
     projectId,
     parent_page_id,
     onlyPublished = false,
-    fields,
-  }: {
+  }: // fields,
+
+  {
     projectId: string;
     parent_page_id?: string;
     onlyPublished?: boolean;
     fields?: string[];
-  }): Promise<Array<DocsPageType & { children: any[]; isLeaf: boolean }>> {
-    const nestedList = await this.list({
+  }) {
+    const children = await this.getChildPages({
       projectId,
       parent_page_id,
+      condition: onlyPublished ? { is_published: true } : {},
+    });
+
+    if (!children || children.length === 0) return [];
+
+    const nestedPagesWithChildren = await Promise.all(
+      children.map(async (child) => {
+        const children = await this.nestedChildren({
+          projectId,
+          parent_page_id: child.id,
+        });
+        return {
+          ...child,
+          children,
+        };
+      })
+    );
+
+    return nestedPagesWithChildren;
+  }
+
+  public static async nestedListAll({
+    projectId,
+    fields,
+  }: {
+    projectId: string;
+    fields?: string[];
+  }) {
+    const allPages = await this.list({
+      projectId,
       fetchAll: true,
-      onlyPublished,
       fields,
     });
 
-    if (!nestedList || nestedList.length === 0) return [];
+    if (!allPages || allPages.length === 0) return [];
 
     const arrayToTree = (
       arr: DocsPageType[],
@@ -441,9 +585,35 @@ export default class Page {
 
     const nestedListWithChildren: Array<
       DocsPageType & { children: any[]; isLeaf: boolean }
-    > = arrayToTree(nestedList, parent_page_id);
+    > = arrayToTree(allPages, undefined);
 
     return nestedListWithChildren;
+  }
+
+  public static async nestedList({
+    projectId,
+    parent_page_id,
+    fields,
+  }: {
+    projectId: string;
+    parent_page_id?: string;
+    fields?: string[];
+  }): Promise<Array<DocsPageType & { children: any[]; isLeaf: boolean }>> {
+    const parentPage: DocsPageType & { children: any[]; isLeaf: boolean } =
+      (await this.get({
+        id: parent_page_id,
+        projectId,
+        fields: fields,
+      })) as any;
+
+    parentPage.children = await this.nestedChildren({
+      projectId,
+      fields,
+      parent_page_id,
+    });
+    parentPage.isLeaf = parentPage.children.length === 0;
+
+    return [parentPage];
   }
 
   public static async count({
@@ -454,7 +624,7 @@ export default class Page {
     return await Noco.ncMeta.metaCount(
       null,
       null,
-      Page.tableName({ projectId }),
+      await Page.tableName({ projectId }),
       {}
     );
   }
@@ -465,6 +635,8 @@ export default class Page {
   ): Promise<void> {
     const page = await this.get({ id, projectId }, ncMeta);
     if (!page) throw new Error('Page not found');
+
+    if (page.project_id !== projectId) throw new Error('Page not found');
 
     const childPages = await this.getChildPages({
       parent_page_id: id,
@@ -479,52 +651,50 @@ export default class Page {
       );
     }
 
-    return ncMeta.metaDelete(null, null, Page.tableName({ projectId }), {
+    await ncMeta.metaDelete(null, null, await Page.tableName({ projectId }), {
       id,
     });
+
+    await NocoCache.deepDel(
+      CacheScope.DOCS_PAGE,
+      `${CacheScope.DOCS_PAGE}:${projectId}:${id}`,
+      CacheDelDirection.CHILD_TO_PARENT
+    );
   }
 
-  static async reorder(
+  static async updateOrderAfterCreate(
     {
       parent_page_id,
-      keepPageId,
       projectId,
     }: {
       projectId: string;
       parent_page_id?: string;
-      keepPageId?: string;
     },
     ncMeta = Noco.ncMeta
   ) {
-    const pages = await this.list({ parent_page_id, projectId }, ncMeta);
-
-    if (keepPageId) {
-      const kpPage = pages.splice(
-        pages.indexOf(pages.find((base) => base.id === keepPageId)),
-        1
-      );
-      if (kpPage.length) {
-        pages.splice(kpPage[0].order - 1, 0, kpPage[0]);
-      }
-    }
+    const pages = await this.list(
+      { parent_page_id, projectId, ignoreCache: true },
+      ncMeta
+    );
 
     // update order for pages
     for (const [i, b] of Object.entries(pages)) {
       b.order = parseInt(i) + 1;
 
-      await ncMeta.metaUpdate(
-        null,
-        null,
-        Page.tableName({ projectId }),
+      await this._updatePage(
         {
-          order: b.order,
+          pageId: b.id,
+          projectId,
+          attributes: {
+            order: b.order,
+          },
         },
-        b.id
+        ncMeta
       );
     }
   }
 
-  private static async uniqueSlug(
+  public static async uniqueSlug(
     {
       title,
       projectId,
@@ -540,7 +710,7 @@ export default class Page {
     const count = await ncMeta.metaCount(
       null,
       null,
-      Page.tableName({ projectId }),
+      await Page.tableName({ projectId }),
       {
         condition: {
           slug,
@@ -559,7 +729,7 @@ export default class Page {
       slugCount = await ncMeta.metaCount(
         null,
         null,
-        Page.tableName({ projectId }),
+        await Page.tableName({ projectId }),
         {
           condition: {
             slug: newSlug,
@@ -571,40 +741,6 @@ export default class Page {
 
       collisionCount = collisionCount + 1;
     }
-  }
-
-  static async drafts({ projectId }: { projectId: string }) {
-    const knex = Noco.ncMeta.knex;
-    const pages: DocsPageType[] = (await knex(
-      Page.tableName({ projectId })
-    ).orderBy('updated_at', 'asc')) as any;
-
-    return pages.filter((p) => {
-      return p.content !== p.published_content || p.title !== p.published_title;
-    });
-  }
-
-  static async publish({
-    projectId,
-    pageId,
-    userId,
-  }: {
-    projectId: string;
-    pageId: string;
-    userId: string;
-  }) {
-    const knex = Noco.ncMeta.knex;
-    const page = await this.get({ projectId, id: pageId });
-
-    if (!page) throw new Error('Page not found');
-
-    await knex(Page.tableName({ projectId })).where({ id: pageId }).update({
-      published_content: page.content,
-      published_title: page.title,
-      is_published: true,
-      last_published_date: new Date(),
-      last_published_by_id: userId,
-    });
   }
 
   static async parents({
@@ -631,64 +767,76 @@ export default class Page {
     return parents;
   }
 
-  static async paginate({
+  static async hasParent({
     projectId,
-    pageNumber = 1,
-    perPage = 10,
-    orderBy = 'updated_at',
-    order = 'desc',
-    condition = {},
+    pageId,
+    parentId,
   }: {
     projectId: string;
-    pageNumber?: number;
-    perPage?: number;
-    orderBy?: string;
-    order?: 'asc' | 'desc';
-    condition?: any;
+    pageId: string;
+    parentId: string;
   }) {
-    const knex = Noco.ncMeta.knex;
-    const pages = await knex(Page.tableName({ projectId }))
-      .where(condition)
-      .orderBy(orderBy, order)
-      .offset((pageNumber - 1) * perPage)
-      .limit(perPage);
+    const page = await this.get({ projectId, id: pageId });
 
-    const total = await knex(Page.tableName({ projectId }))
-      .where(condition)
-      .count('id as total')
-      .first();
+    if (!page) throw new Error('Page not found');
 
-    return {
-      pages,
-      total: total.total,
-    };
+    let parent = page;
+    while (parent.parent_page_id) {
+      parent = await this.get({
+        projectId,
+        id: parent.parent_page_id,
+      });
+      if (parent.id === parentId) return true;
+    }
+
+    return false;
   }
 
-  static async search({
+  private static async appendToCacheChildList({
+    parentPageId,
     projectId,
-    query,
-    pageNumber = 1,
-    perPage = 10,
-    orderBy = 'updated_at',
-    order = 'desc',
+    pageId,
+  }: {
+    parentPageId?: string;
+    projectId: string;
+    pageId: string;
+  }) {
+    const scope = `${CacheScope.DOCS_PAGE}:${projectId}`;
+    const subKeys = [parentPageId ?? 'root', 'children'];
+
+    const existingList = await NocoCache.getList(scope, subKeys);
+    if (existingList.length === 0) {
+      const existingChildren = parentPageId
+        ? await this.getChildPages({
+            parent_page_id: parentPageId,
+            projectId,
+          })
+        : await this.list({ projectId, parent_page_id: null });
+
+      if (existingChildren.length !== 0) {
+        await NocoCache.setList(scope, subKeys, existingChildren);
+      }
+    }
+
+    await NocoCache.appendToList(
+      scope,
+      subKeys,
+      `${CacheScope.DOCS_PAGE}:${projectId}:${pageId}`
+    );
+  }
+
+  static async appendToAllPagesCacheList({
+    projectId,
+    pageId,
   }: {
     projectId: string;
-    query: string;
-    pageNumber?: number;
-    perPage?: number;
-    orderBy?: string;
-    order?: 'asc' | 'desc';
+    pageId: string;
   }) {
-    const knex = Noco.ncMeta.knex;
-    const pages = await knex(Page.tableName({ projectId }))
-      .whereILike('title', `%${query}%`)
-      .orderBy(orderBy, order)
-      .offset((pageNumber - 1) * perPage)
-      .limit(perPage);
-
-    return {
-      pages,
-    };
+    await NocoCache.appendToList(
+      `${CacheScope.DOCS_PAGE}:${projectId}`,
+      [],
+      `${CacheScope.DOCS_PAGE}:${projectId}:${pageId}`
+    );
   }
 
   static async dropPageTable(
@@ -696,6 +844,6 @@ export default class Page {
     ncMeta = Noco.ncMeta
   ) {
     const knex = ncMeta.knex;
-    await knex.schema.dropTable(Page.tableName({ projectId }));
+    await knex.schema.dropTable(await Page.tableName({ projectId }));
   }
 }

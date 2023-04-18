@@ -16,6 +16,7 @@ enum UITypes {
   Year = 'Year',
   Time = 'Time',
   PhoneNumber = 'PhoneNumber',
+  GeoData = 'GeoData',
   Email = 'Email',
   URL = 'URL',
   Number = 'Number',
@@ -47,6 +48,7 @@ export const numericUITypes = [
   UITypes.Decimal,
   UITypes.Rating,
   UITypes.Rollup,
+  UITypes.Year,
 ];
 
 export function isNumericCol(

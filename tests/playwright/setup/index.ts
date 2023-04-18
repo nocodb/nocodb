@@ -1,19 +1,30 @@
 import { Page, selectors } from '@playwright/test';
 import axios from 'axios';
+import { ProjectType, ProjectTypes, UserType, WorkspaceType } from 'nocodb-sdk';
 
 const workerCount = {};
 
 export interface NcContext {
-  project: any;
+  project: ProjectType;
   token: string;
   dbType?: string;
   // todo: Hack to resolve issue with pg resetting
   workerId?: string;
+  rootUser: UserType & { password: string };
+  workspace: WorkspaceType;
 }
 
 selectors.setTestIdAttribute('data-testid');
 
-const setup = async ({ page, isEmptyProject }: { page: Page; isEmptyProject?: boolean }): Promise<NcContext> => {
+const setup = async ({
+  projectType = ProjectTypes.DATABASE,
+  page,
+  isEmptyProject = true,
+}: {
+  projectType?: ProjectTypes;
+  page: Page;
+  isEmptyProject?: boolean;
+}): Promise<NcContext> => {
   let dbType = process.env.CI ? process.env.E2E_DB_TYPE : process.env.E2E_DEV_DB_TYPE;
   dbType = dbType || 'sqlite';
 
@@ -35,6 +46,7 @@ const setup = async ({ page, isEmptyProject }: { page: Page; isEmptyProject?: bo
       parallelId: process.env.TEST_PARALLEL_INDEX,
       workerId: workerId,
       dbType,
+      projectType,
       isEmptyProject,
     });
   } catch (e) {
@@ -72,10 +84,27 @@ const setup = async ({ page, isEmptyProject }: { page: Page; isEmptyProject?: bo
   );
 
   const project = response.data.project;
+  const rootUser = { ...response.data.user, password: 'Password123.' };
+  const workspace = response.data.workspace;
 
-  await page.goto(`/#/nc/${project.id}/auth`, { waitUntil: 'networkidle' });
+  let projectUrl;
+  switch (project.type) {
+    case ProjectTypes.DOCUMENTATION:
+      projectUrl = `/#/ws/${project.fk_workspace_id}/nc/${project.id}/doc`;
+      break;
+    case ProjectTypes.DATABASE:
+      projectUrl = `/#/ws/${project.fk_workspace_id}/nc/${project.id}/db`;
+      break;
+    case ProjectTypes.COWRITER:
+      projectUrl = `/#/ws/${project.fk_workspace_id}/nc/${project.id}/cowriter`;
+      break;
+    default:
+      throw new Error(`Unknown project type: ${project.type}`);
+  }
 
-  return { project, token, dbType, workerId } as NcContext;
+  await page.goto(projectUrl, { waitUntil: 'networkidle' });
+
+  return { project, token, dbType, workerId, rootUser, workspace } as NcContext;
 };
 
 export default setup;

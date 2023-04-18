@@ -1,15 +1,15 @@
 import { isClient } from '@vueuse/core'
-import type { Ref } from 'vue'
+import type { ComputedRef, Ref } from 'vue'
 
 function useSelectedCellKeyupListener(
-  selected: Ref<boolean>,
+  selected: Ref<boolean | undefined> | ComputedRef<boolean | undefined>,
   handler: (e: KeyboardEvent) => void,
   { immediate = false }: { immediate?: boolean } = {},
 ) {
   if (isClient) {
     watch(
       selected,
-      (nextVal: boolean, _: boolean, cleanup) => {
+      (nextVal: boolean | undefined, _: boolean | undefined, cleanup) => {
         // bind listener when `selected` is truthy
         if (nextVal) {
           document.addEventListener('keydown', handler, true)

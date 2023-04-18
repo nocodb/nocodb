@@ -2,7 +2,7 @@ import Noco from '../Noco';
 import { MetaTable } from '../utils/globals';
 import { extractProps } from '../meta/helpers/extractProps';
 
-export class WorkspaceUser {
+export default class WorkspaceUser {
   fk_workspace_id: string;
   fk_user_id: string;
   roles?: string;

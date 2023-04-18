@@ -9,6 +9,7 @@ export class ViewSidebarPage extends BasePage {
   readonly createGridButton: Locator;
   readonly createFormButton: Locator;
   readonly createKanbanButton: Locator;
+  readonly createMapButton: Locator;
 
   constructor(dashboard: DashboardPage) {
     super(dashboard.rootPage);
@@ -17,6 +18,7 @@ export class ViewSidebarPage extends BasePage {
     this.createGridButton = this.get().locator('.nc-create-grid-view:visible');
     this.createFormButton = this.get().locator('.nc-create-form-view:visible');
     this.createKanbanButton = this.get().locator('.nc-create-kanban-view:visible');
+    this.createMapButton = this.get().locator('.nc-create-map-view:visible');
   }
 
   get() {
@@ -33,6 +35,13 @@ export class ViewSidebarPage extends BasePage {
     } else {
       await expect(this.get()).not.toBeVisible();
     }
+  }
+
+  async changeBetaFeatureToggleValue() {
+    await this.dashboard.rootPage.evaluate(_ => {
+      window.localStorage.setItem('betaFeatureToggleState', 'true');
+    });
+    await this.rootPage.goto(this.rootPage.url());
   }
 
   private async createView({ title, locator }: { title: string; locator: Locator }) {
@@ -71,8 +80,19 @@ export class ViewSidebarPage extends BasePage {
     await this.createView({ title, locator: this.createKanbanButton });
   }
 
+  async createMapView({ title }: { title: string }) {
+    await this.createView({ title, locator: this.createMapButton });
+  }
+
   // Todo: Make selection better
   async verifyView({ title, index }: { title: string; index: number }) {
+    // flicker while page loading
+    await this.get()
+      .locator('[data-testid="view-item"]')
+      .nth(index)
+      .locator('[data-testid="truncate-label"]')
+      .waitFor({ state: 'visible' });
+
     await expect(
       this.get().locator('[data-testid="view-item"]').nth(index).locator('[data-testid="truncate-label"]')
     ).toHaveText(title, { ignoreCase: true });

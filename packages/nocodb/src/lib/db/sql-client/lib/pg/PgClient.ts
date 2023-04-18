@@ -1,13 +1,13 @@
 import { nanoid } from 'nanoid';
-
 import knex from 'knex';
+import isEmpty from 'lodash/isEmpty';
+import mapKeys from 'lodash/mapKeys';
+import find from 'lodash/find';
 import KnexClient from '../KnexClient';
 import Debug from '../../../util/Debug';
 import Result from '../../../util/Result';
 import queries from './pg.queries';
-import isEmpty from 'lodash/isEmpty';
-import mapKeys from 'lodash/mapKeys';
-import find from 'lodash/find';
+
 const log = new Debug('PGClient');
 
 class PGClient extends KnexClient {
@@ -474,17 +474,22 @@ class PGClient extends KnexClient {
         ]);
       }
 
-      // if (this.connectionConfig.searchPath && this.connectionConfig.searchPath[0]) {
-      await this.sqlClient.raw(
-        ` CREATE SCHEMA IF NOT EXISTS ??  AUTHORIZATION ?? `,
-        [
-          (this.connectionConfig.searchPath &&
-            this.connectionConfig.searchPath[0]) ||
-            'public',
-          this.connectionConfig.connection.user,
-        ]
-      );
-      // }
+      const schemaName = this.connectionConfig.searchPath?.[0] || 'public';
+
+      // Check schemaExists because `CREATE SCHEMA IF NOT EXISTS` requires permissions of `CREATE ON DATABASE`
+      const schemaExists = !!(
+        await this.sqlClient.raw(
+          `SELECT schema_name FROM information_schema.schemata WHERE schema_name = ?`,
+          [schemaName]
+        )
+      ).rows?.[0];
+
+      if (!schemaExists) {
+        await this.sqlClient.raw(
+          `CREATE SCHEMA IF NOT EXISTS ??  AUTHORIZATION ?? `,
+          [schemaName, this.connectionConfig.connection.user]
+        );
+      }
 
       // this.sqlClient = knex(this.connectionConfig);
     } catch (e) {
@@ -1973,10 +1978,7 @@ class PGClient extends KnexClient {
     log.api(`${func}:args:`, args);
     // `DROP TRIGGER ${args.view_name}`
     try {
-      const query = this.genQuery(
-        `DROP VIEW ??`,
-        [args.view_name]
-      );
+      const query = this.genQuery(`DROP VIEW ??`, [args.view_name]);
 
       await this.sqlClient.raw(query);
 

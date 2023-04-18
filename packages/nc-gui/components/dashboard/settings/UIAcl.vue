@@ -1,16 +1,20 @@
 <script setup lang="ts">
+import { inject } from '@vue/runtime-core'
 import {
   Empty,
   computed,
   extractSdkResponseErrorMsg,
   h,
+  iconMap,
   message,
   onMounted,
+  storeToRefs,
   useGlobal,
   useI18n,
   useNuxtApp,
   useProject,
 } from '#imports'
+import { ProjectIdInj } from '~/context'
 
 const props = defineProps<{
   baseId: string
@@ -20,7 +24,10 @@ const { t } = useI18n()
 
 const { $api, $e } = useNuxtApp()
 
-const { project } = useProject()
+const { project } = storeToRefs(useProject())
+
+const _projectId = $(inject(ProjectIdInj))
+const projectId = $computed(() => _projectId ?? project.value?.id)
 
 const { includeM2M } = useGlobal()
 
@@ -43,11 +50,11 @@ const filteredTables = computed(() =>
 
 async function loadTableList() {
   try {
-    if (!project.value?.id) return
+    if (!projectId) return
 
     isLoading = true
 
-    tables = await $api.project.modelVisibilityList(project.value?.id, {
+    tables = await $api.project.modelVisibilityList(projectId, {
       includeM2M: includeM2M.value,
     })
   } catch (e) {
@@ -59,10 +66,10 @@ async function loadTableList() {
 
 async function saveUIAcl() {
   try {
-    if (!project.value?.id) return
+    if (!projectId) return
 
     await $api.project.modelVisibilitySet(
-      project.value.id,
+      projectId,
       tables.filter((t) => t.edited),
     )
     // Updated UI ACL for tables successfully
@@ -119,20 +126,20 @@ const columns = [
       <div class="flex flex-row items-center w-full mb-4 gap-2">
         <a-input v-model:value="searchInput" placeholder="Search models" class="nc-acl-search">
           <template #prefix>
-            <MdiMagnify />
+            <component :is="iconMap.search" />
           </template>
         </a-input>
 
         <a-button class="self-start nc-acl-reload" @click="loadTableList">
           <div class="flex items-center gap-2 text-gray-600 font-light">
-            <MdiReload :class="{ 'animate-infinite animate-spin !text-success': isLoading }" />
+            <component :is="iconMap.reload" :class="{ 'animate-infinite animate-spin !text-success': isLoading }" />
             Reload
           </div>
         </a-button>
 
         <a-button class="self-start nc-acl-save" @click="saveUIAcl">
           <div class="flex items-center gap-2 text-gray-600 font-light">
-            <MdiContentSave />
+            <component :is="iconMap.save" />
             Save
           </div>
         </a-button>

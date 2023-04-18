@@ -1,10 +1,9 @@
-import { ColumnType } from 'nocodb-sdk';
-
 import knex from 'knex';
+import find from 'lodash/find';
 import KnexClient from '../KnexClient';
 import Debug from '../../../util/Debug';
 import Result from '../../../util/Result';
-import find from 'lodash/find';
+import type { ColumnType } from 'nocodb-sdk';
 
 const log = new Debug('MssqlClient');
 
@@ -1753,10 +1752,9 @@ class MssqlClient extends KnexClient {
     log.api(`${func}:args:`, args);
     // `DROP TRIGGER ${args.view_name}`
     try {
-      const query = this.genQuery(
-        `DROP VIEW ${args.view_name}`,
-        [this.getTnPath(args.view_name)]
-      );
+      const query = this.genQuery(`DROP VIEW ${args.view_name}`, [
+        this.getTnPath(args.view_name),
+      ]);
 
       await this.sqlClient.raw(query);
 

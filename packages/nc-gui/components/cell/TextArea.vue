@@ -10,7 +10,10 @@ const emits = defineEmits(['update:modelValue'])
 
 const editEnabled = inject(EditModeInj)
 
-const rowHeight = inject(RowHeightInj)
+const rowHeight = inject(
+  RowHeightInj,
+  computed(() => undefined),
+)
 
 const { showNull } = useGlobal()
 
@@ -45,3 +48,9 @@ const focus: VNodeRef = (el) => (el as HTMLTextAreaElement)?.focus()
 
   <span v-else>{{ vModel }}</span>
 </template>
+
+<style>
+textarea:focus {
+  box-shadow: none;
+}
+</style>

@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import Draggable from 'vuedraggable'
 import { UITypes } from 'nocodb-sdk'
-import { IsKanbanInj, enumColor, onMounted, useColumnCreateStoreOrThrow, useVModel, watch } from '#imports'
+import { IsKanbanInj, enumColor, iconMap, onMounted, storeToRefs, useColumnCreateStoreOrThrow, useVModel, watch } from '#imports'
 
 interface Option {
   color: string
@@ -21,7 +21,7 @@ const vModel = useVModel(props, 'value', emit)
 
 const { formState, setAdditionalValidations, validateInfos, isPg, isMysql } = useColumnCreateStoreOrThrow()
 
-const { project } = useProject()
+const { project } = storeToRefs(useProject())
 
 const { $api } = useNuxtApp()
 
@@ -142,14 +142,16 @@ const optionsMagic = async () => {
 
     if (res.length) {
       for (const op of res) {
-        options.push({
+        const option = {
           title: op,
           color: getNextColor(),
-        })
+        }
+        options.push(option)
+        renderedOptions.push(option)
       }
     }
   } catch (e) {
-    message.warning('NocoAI failed for the demo reasons. Please try again.')
+    message.warning('NocoAI: Underlying GPT API are busy. Please try after sometime.')
   }
   loadMagic.value = false
 }
@@ -205,7 +207,8 @@ watch(inputs, () => {
               :data-testid="`select-column-option-${index}`"
               :class="{ removed: element.status === 'remove' }"
             >
-              <MdiDragVertical
+              <component
+                :is="iconMap.dragVertical"
                 v-if="!isKanban"
                 small
                 class="nc-child-draggable-icon handle"
@@ -241,7 +244,8 @@ watch(inputs, () => {
               />
             </div>
 
-            <MdiClose
+            <component
+              :is="iconMap.close"
               v-if="element.status !== 'remove'"
               class="ml-2 hover:!text-black-500 text-gray-500 cursor-pointer"
               :data-testid="`select-column-option-remove-${index}`"
@@ -264,12 +268,12 @@ watch(inputs, () => {
     </div>
     <a-button type="dashed" class="w-full caption mt-2" @click="addNewOption()">
       <div class="flex items-center">
-        <MdiPlus />
+        <component :is="iconMap.plus" />
         <span class="flex-auto">Add option</span>
       </div>
     </a-button>
     <div class="w-full cursor-pointer" @click="optionsMagic()">
-      <PhSparkleFill :class="{ 'nc-animation-pulse': loadMagic }" class="w-full flex mt-2 text-orange-400" />
+      <GeneralIcon icon="magic" :class="{ 'nc-animation-pulse': loadMagic }" class="w-full flex mt-2 text-orange-400" />
     </div>
   </div>
 </template>

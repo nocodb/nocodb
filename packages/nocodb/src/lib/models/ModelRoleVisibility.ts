@@ -1,4 +1,3 @@
-import { ModelRoleVisibilityType } from 'nocodb-sdk';
 import Noco from '../Noco';
 import {
   CacheDelDirection,
@@ -7,8 +6,9 @@ import {
   MetaTable,
 } from '../utils/globals';
 import NocoCache from '../cache/NocoCache';
-import View from './View';
 import { extractProps } from '../meta/helpers/extractProps';
+import View from './View';
+import type { ModelRoleVisibilityType } from 'nocodb-sdk';
 
 export default class ModelRoleVisibility implements ModelRoleVisibilityType {
   id?: string;
@@ -127,12 +127,7 @@ export default class ModelRoleVisibility implements ModelRoleVisibilityType {
   }
 
   static async insert(
-    body: Partial<
-      ModelRoleVisibilityType & {
-        created_at?;
-        updated_at?;
-      }
-    >,
+    body: Partial<ModelRoleVisibilityType>,
     ncMeta = Noco.ncMeta
   ) {
     const insertObj = extractProps(body, [
@@ -141,8 +136,6 @@ export default class ModelRoleVisibility implements ModelRoleVisibilityType {
       'fk_view_id',
       'project_id',
       'base_id',
-      'created_at',
-      'updated_at',
     ]);
 
     if (!(insertObj.project_id && insertObj.base_id)) {

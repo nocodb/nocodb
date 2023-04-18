@@ -62,6 +62,13 @@ export const TableCell = Node.create<TableCellOptions>({
         if (parentNode?.type.name !== 'tableCell') {
           return false
         }
+        const selection = this.editor.view.state.selection
+
+        const doc = this.editor.view.state.doc
+
+        if (doc.nodeAt(selection.$from.pos - 2)?.type.name === 'tableCell') {
+          return true
+        }
 
         if (selectedCellContent.textContent.length === 0 && parentNode.childCount === 1) {
           return true

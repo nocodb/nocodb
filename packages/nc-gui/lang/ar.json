@@ -39,6 +39,7 @@
     "signIn": "تسجيل الدخول",
     "signOut": "تسجيل الخروج",
     "required": "مطلوب",
+    "enableScanner": "Enable Scanner for filling",
     "preferred": "المفضل",
     "mandatory": "إلزامي",
     "loading": "تحميل ...",
@@ -74,7 +75,8 @@
     "insertBefore": "Insert Before",
     "hideField": "Hide Field",
     "sortAsc": "Sort Ascending",
-    "sortDesc": "Sort Descending"
+    "sortDesc": "Sort Descending",
+    "geoDataField": "GeoData Field"
   },
   "objects": {
     "project": "مشروع",
@@ -98,7 +100,8 @@
       "gallery": "معرض صور",
       "form": "نموذج",
       "kanban": "كانبان",
-      "calendar": "تقويم"
+      "calendar": "تقويم",
+      "map": "Map"
     },
     "user": "مستخدم",
     "users": "مستخدمين",
@@ -136,6 +139,7 @@
     "Currency": "عملة",
     "Percent": "نسبة مؤية",
     "Duration": "مدة",
+    "GeoData": "GeoData",
     "Rating": "تقييم",
     "Formula": "معادلة",
     "Rollup": "جمع البيانات",
@@ -206,7 +210,8 @@
     "advancedSettings": "الإعدادات المتقدمة",
     "codeSnippet": "كتلة برمجية",
     "keyboardShortcut": "Keyboard Shortcuts",
-    "generateRandomName": "Generate Random Name"
+    "generateRandomName": "Generate Random Name",
+    "findRowByScanningCode": "Find row by scanning a QR or Barcode"
   },
   "labels": {
     "createdBy": "Created By",
@@ -216,6 +221,7 @@
     "viewName": "عرض الاسم",
     "viewLink": "عرض الرابط",
     "columnName": "اسم العمود",
+    "columnToScanFor": "Column to scan",
     "columnType": "نوع العمود",
     "roleName": "اسم الدور",
     "roleDescription": "وصف الدور",
@@ -232,6 +238,7 @@
     "action": "إجراء",
     "actions": "إجراءات",
     "operation": "عملية",
+    "operationSub": "Sub Operation",
     "operationType": "نوع العملية",
     "operationSubType": "نوع العملية الفرعية",
     "description": "وصف",
@@ -253,6 +260,9 @@
     "barcodeFormat": "Barcode format",
     "qrCodeValueTooLong": "Too many characters for a QR code",
     "barcodeValueTooLong": "Too many characters for a barcode",
+    "currentLocation": "Current Location",
+    "lng": "Lng",
+    "lat": "Lat",
     "aggregateFunction": "وظيفة التجميع",
     "dbCreateIfNotExists": "قاعدة البيانات: إنشاء إذا لم يكن موجودا",
     "clientKey": "مفتاح العميل",
@@ -386,8 +396,8 @@
     "saveAndExit": "Save & Exit",
     "saveAndStay": "Save & Stay",
     "insertRow": "إدراج صف جديد",
-    "deleteRow": "حذف الصف",
     "duplicateRow": "Duplicate Row",
+    "deleteRow": "حذف الصف",
     "deleteSelectedRow": "حذف الصفوف المحددة",
     "importExcel": "استيراد Excel",
     "importCSV": "استيراد CSV",
@@ -402,6 +412,8 @@
     "changePwd": "تغيير كلمة المرور",
     "createView": "إنشاء طريقة عرض",
     "shareView": "مشاركة عرض",
+    "findRowByCodeScan": "Find row by scan",
+    "fillByCodeScan": "Fill by scan",
     "listSharedView": "قائمة العرض المشتركة",
     "ListView": "قائمة المشاهدات",
     "copyView": "نسخ العرض",
@@ -417,6 +429,10 @@
     "openTab": "افتح علامة تبويب جديدة",
     "iFrame": "انسخ كود HTML القابل للتضمين",
     "addWebhook": "إضافة Webhook جديد",
+    "enableWebhook": "Enable Webhook",
+    "testWebhook": "Test Webhook",
+    "copyWebhook": "Copy Webhook",
+    "deleteWebhook": "Delete Webhook",
     "newToken": "إضافة Token جديد",
     "exportZip": "تصدير الرمز البريدي",
     "importZip": "استيراد الرمز البريدي",
@@ -452,7 +468,14 @@
       "stackedBy": "Stacked By",
       "chooseGroupingField": "Choose a Grouping Field",
       "addOrEditStack": "Add / Edit Stack"
-    }
+    },
+    "map": {
+      "mappedBy": "Mapped By",
+      "chooseMappingField": "Choose a Mapping Field",
+      "openInGoogleMaps": "Google Maps",
+      "openInOpenStreetMap": "OSM"
+    },
+    "toggleMobileMode": "Toggle Mobile Mode"
   },
   "tooltip": {
     "saveChanges": "حفظ التغييرات",
@@ -517,6 +540,17 @@
       "roles": {
         "orgCreator": "Creator can create new projects and access any invited project.",
         "orgViewer": "Viewer is not allowed to create new projects but they can access any invited project."
+      },
+      "codeScanner": {
+        "loadingScanner": "Loading the scanner...",
+        "selectColumn": "Select a column (QR code or Barcode) that you want to use for finding a row by scanning.",
+        "moreThanOneRowFoundForCode": "More than one row found for this code. Currently only unique codes are supported.",
+        "noRowFoundForCode": "No row found for this code for the selected column"
+      },
+      "map": {
+        "overLimit": "You're over the limit.",
+        "closeLimit": "You're getting close to the limit.",
+        "limitNumber": "The limit of markers shown in a Map View is 1000 records."
       },
       "footerInfo": "الصفوف لكل صفحة",
       "upload": "حدد الملف المراد رفعه",
@@ -600,6 +634,7 @@
         "gallery": "إضافة عرض المعرض",
         "form": "إضافة عرض النموذج",
         "kanban": "إضافة عرض كانبان",
+        "map": "Add Map View",
         "calendar": "إضافة طريقة عرض التقويم"
       },
       "tablesMetadataInSync": "تزامن البيانات الوصفية للجداول",
@@ -663,6 +698,7 @@
         "allowedSpecialCharList": "قائمة الأحرف الخاصة المسموح بها"
       },
       "invalidURL": "رابط غير صالح",
+      "invalidEmail": "Invalid Email",
       "internalError": "حدث خطأ داخلي",
       "templateGeneratorNotFound": "لا يمكن العثور على مولد القالب!",
       "fileUploadFailed": "فشل في رفع الملف",
@@ -690,6 +726,7 @@
       "nameShouldStartWithAnAlphabetOr_": "Name should start with an alphabet or _",
       "followingCharactersAreNotAllowed": "Following characters are not allowed",
       "columnNameRequired": "Column name is required",
+      "columnNameExceedsCharacters": "The length of column name exceeds the max {value} characters",
       "projectNameExceeds50Characters": "Project name exceeds 50 characters",
       "projectNameCannotStartWithSpace": "Project name cannot start with space",
       "requiredField": "Required field",
@@ -742,6 +779,7 @@
       "userDeletedFromProject": "تم حذف المستخدم بنجاح من المشروع",
       "inviteEmailSent": "دعوة البريد الإلكتروني مرسلة بنجاح",
       "inviteURLCopied": "تم نسخ عنوان URL الدعوة إلى الحافظة",
+      "commentCopied": "Comment copied to clipboard",
       "passwordResetURLCopied": "Password reset URL copied to clipboard",
       "shareableURLCopied": "تم نسخ عنوان URL الأساسي القابل للمشاركة إلى الحافظة!",
       "embeddableHTMLCodeCopied": "تم نسخ رمز HTML القابل للدمج!",

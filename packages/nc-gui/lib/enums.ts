@@ -86,6 +86,9 @@ export enum TabType {
   VIEW = 'view',
   AUTH = 'auth',
   SQL = 'sql',
+  ERD = 'erd',
+  DOCUMENT = 'doc',
+  DB = 'db',
 }
 
 export enum SmartsheetStoreEvents {
@@ -94,6 +97,7 @@ export enum SmartsheetStoreEvents {
   DATA_RELOAD = 'data-reload',
   FIELD_RELOAD = 'field-reload',
   FIELD_ADD = 'field-add',
+  MAPPED_BY_COLUMN_CHANGE = 'mapped-by-column-change',
 }
 
 export enum DataSourcesSubTab {
@@ -103,4 +107,10 @@ export enum DataSourcesSubTab {
   UIAcl = 'UI ACL',
   Misc = 'Misc',
   Edit = 'Edit',
+}
+
+export enum AutomationLogLevel {
+  OFF = 'OFF',
+  ERROR = 'ERROR',
+  ALL = 'ALL',
 }

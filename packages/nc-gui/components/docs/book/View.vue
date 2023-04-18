@@ -2,28 +2,37 @@
 import dayjs from 'dayjs'
 import type { Ref } from 'vue'
 // import InfiniteLoading from 'v3-infinite-loading'
+import { Loading3QuartersOutlined } from '@ant-design/icons-vue'
+import { useShortcuts } from '../utils'
 import MdiFileDocumentOutline from '~icons/mdi/file-document-outline'
 import MdiFilterVariant from '~icons/mdi/filter-variant'
+import MaterialSymbolsPublic from '~icons/material-symbols/public'
 import type { PageSidebarNode } from '~composables/docs/useDocs'
+import { storeToRefs, useProject } from '#imports'
 
-const { project } = useProject()
+useShortcuts()
+const { showShareModal } = storeToRefs(useShare())
+
+const { project } = storeToRefs(useProject())
+
+const { isEditAllowed, flattenedNestedPages, isOpenedNestedPageLoading } = storeToRefs(useDocStore())
+
 const {
-  createMagic,
   fetchNestedPages,
   addNewPage: _addNewPage,
+  createMagic,
   createImport,
-  flattenedNestedPages,
-  // fetchAllPages,
-  // allPages,
-  // allByTitle,
   openPage,
   openChildPageTabsOfRootPages,
-  // fetchPublishedPages,
-  // fetchAllPagesByTitle,
-  // isOnlyBookOpened,
-} = useDocs()
+} = useDocStore()
 
-const showPublishModal = ref(false)
+const indicator = h(Loading3QuartersOutlined, {
+  style: {
+    fontSize: '2.3rem',
+    color: '#c9c9c9',
+  },
+  spin: true,
+})
 
 const activeTabKey = ref('all')
 // const activeTabPagination = ref(1)
@@ -33,20 +42,15 @@ const tabInfo = [
     key: 'all',
     icon: () => MdiFileDocumentOutline,
   },
-  // {
-  //   title: 'Published',
-  //   key: 'published',
-  //   icon: () => MdiPublish,
-  // },
-  // {
-  //   title: 'Unpublished',
-  //   key: 'unpublished',
-  //   icon: () => MdiFileEditOutline,
-  // },
   {
     title: 'A-Z',
     key: 'allByTitle',
     icon: () => MdiFilterVariant,
+  },
+  {
+    title: 'Shared',
+    key: 'shared',
+    icon: () => MaterialSymbolsPublic,
   },
 ]
 
@@ -78,17 +82,18 @@ watch(
   },
 )
 
-// const isPagesFetching = ref(false)
+const flatPublishedPages = computed(() => {
+  return flattenedNestedPages.value.filter((page) => page.is_published)
+})
+
 const pages = computed(() => {
   switch (activeTabKey.value) {
     case 'all':
       return flattenedNestedPagesByUpdatedAt.value
     case 'allByTitle':
       return flattenedNestedPagesByTitle.value
-    // case 'published':
-    //   return publishedPages.value
-    // case 'unpublished':
-    //   return drafts.value
+    case 'shared':
+      return flatPublishedPages.value
     default:
       return flattenedNestedPages.value
   }
@@ -121,10 +126,10 @@ const openImportModal = () => {
 const onMagic = async () => {
   isMagicLoading.value = true
   try {
-    await createMagic(magicFormData.value.title)
+    await createMagic({ title: magicFormData.value.title, projectId: project.value.id! })
     magicFormData.value.title = ''
-    await fetchNestedPages()
-    await openChildPageTabsOfRootPages()
+    await fetchNestedPages({ projectId: project.value.id! })
+    await openChildPageTabsOfRootPages({ projectId: project.value.id! })
   } catch (e) {
     console.error(e)
   } finally {
@@ -136,9 +141,9 @@ const onMagic = async () => {
 const onImport = async () => {
   isImporting.value = true
   try {
-    await createImport(importFormData.value.title, 'nuxt')
-    await fetchNestedPages()
-    await openChildPageTabsOfRootPages()
+    await createImport(project.value.id!, importFormData.value.title, 'nuxt')
+    await fetchNestedPages({ projectId: project.value.id! })
+    await openChildPageTabsOfRootPages({ projectId: project.value.id! })
   } catch (e) {
     console.error(e)
   } finally {
@@ -148,7 +153,9 @@ const onImport = async () => {
 }
 
 const addNewPage = () => {
-  _addNewPage()
+  _addNewPage({
+    projectId: project.value.id!,
+  })
 }
 
 const closeMagicModal = () => {
@@ -157,98 +164,41 @@ const closeMagicModal = () => {
   magicModalOpen.value = false
 }
 
-// watch(isOnlyBookOpened, async () => {
-//   if (!isOnlyBookOpened.value) return
-//   isPagesFetching.value = true
-//   activeTabPagination.value = 1
-//   activeTabKey.value = 'all'
+const onShare = async (page: PageSidebarNode) => {
+  await openPage({ page, projectId: project.value.id! })
 
-//   await fetchAllPages({
-//     pageNumber: activeTabPagination.value,
-//     clear: true,
-//   })
-// })
+  setTimeout(() => {
+    showShareModal.value = true
+  }, 100)
+}
 
-// watch(
-//   activeTabKey,
-//   async (key) => {
-//     isPagesFetching.value = true
-//     activeTabPagination.value = 1
-//     try {
-//       if (key === 'all') {
-//         await fetchAllPages({
-//           pageNumber: activeTabPagination.value,
-//           clear: true,
-//         })
-//       } else if (key === 'allByTitle') {
-//         await fetchAllPagesByTitle({
-//           pageNumber: activeTabPagination.value,
-//           clear: true,
-//         })
-//       }
-//       else if (key === 'published') {
-//         await fetchPublishedPages({
-//           pageNumber: activeTabPagination.value,
-//           clear: true,
-//         })
-//       } else if (key === 'unpublished') {
-//         await fetchDrafts()
-//       }
-//     } finally {
-//       isPagesFetching.value = false
-//     }
-//   },
-//   {
-//     immediate: true,
-//   },
-// )
+watch(
+  () => project.value.id,
+  () => {
+    if (project.value.id && project.value.type === 'documentation') {
+      const { addTab } = useTabs()
 
-// const loadListData = async ($state: any) => {
-//   $state.complete()
-// if (activeTabKey.value === 'unpublished') {
-//   return
-// }
-
-// $state.loading()
-// const oldPagesCount = pages.value?.length || 0
-
-// activeTabPagination.value += 1
-// switch (activeTabKey.value) {
-//   case 'all':
-//     await fetchAllPages({
-//       pageNumber: activeTabPagination.value,
-//     })
-//     break
-//   case 'allByTitle':
-//     await fetchAllPagesByTitle({
-//       pageNumber: activeTabPagination.value,
-//     })
-//     break
-//   case 'published':
-//     await fetchPublishedPages({
-//       pageNumber: activeTabPagination.value,
-//     })
-//     break
-//   default:
-//     break
-// }
-
-// if (pages.value?.length === oldPagesCount) {
-//   $state.complete()
-//   return
-// }
-// $state.loaded()
-// }
+      addTab({
+        id: project.value.id,
+        title: project.value.title!,
+        type: TabType.DOCUMENT,
+        projectId: project.value.id,
+      })
+    }
+  },
+)
 </script>
 
 <template>
   <a-layout-content>
-    <div class="flex flex-col mx-20 mt-10.5 px-6">
+    <div class="flex flex-col mx-20 mt-10.5 px-6" data-testid="docs-page-list">
       <div class="flex flex-col h-16">
         <div class="flex flex-row justify-between mt-2 items-center">
           <div class="flex flex-row gap-x-6 items-center">
-            <div class="flex text-4xl font-semibold">{{ project?.title }}</div>
-            <a-dropdown overlay-class-name="nc-docs-menu" trigger="click">
+            <div data-testid="docs-project-title" :data-docs-project-title="project?.title" class="flex text-4xl font-semibold">
+              {{ project?.title }}
+            </div>
+            <a-dropdown v-if="isEditAllowed" overlay-class-name="nc-docs-menu" trigger="click">
               <div
                 class="flex flex-row !bg-gray-50 rounded-md hover:( !bg-gray-200 !bg-opacity-60) cursor-pointer select-none p-1.5 h-8 items-center"
                 @click.prevent
@@ -268,7 +218,7 @@ const closeMagicModal = () => {
               </template>
             </a-dropdown>
           </div>
-          <div class="flex flex-row gap-x-1 h-10 justify-end">
+          <div v-if="isEditAllowed" class="flex flex-row gap-x-1 h-10 justify-end">
             <a-dropdown trigger="click" placement="bottomLeft">
               <div
                 class="my-1 pl-3 pr-1.5 rounded-md border-gray-100 border-1 flex flex-row max-w-28 mr-2 justify-between items-center gap-x-1 hover:cursor-pointer hover:bg-gray-100"
@@ -289,7 +239,7 @@ const closeMagicModal = () => {
                     class="flex flex-row items-start text-xs gap-x-2 p-1.5 cursor-pointer rounded-md hover:bg-gray-200"
                     @click="openMagicModal"
                   >
-                    <PhSparkleFill class="flex text-orange-400 mt-0.5" />
+                    <GeneralIcon icon="magic" class="flex text-orange-400 mt-0.5" />
                     <div class="flex flex-col">
                       <div class="flex">Create Pages with Prompt</div>
                       <div class="flex text-gray-500" :style="{ fontSize: '0.6rem' }">
@@ -312,7 +262,7 @@ const closeMagicModal = () => {
             <!-- <a-button type="text" class="!px-2 !border-1 !border-gray-100 !rounded-md" @click="() => openMagicModal()">
               <div class="flex flex-row gap-x-1 items-center">
                 <div class="flex pl-1">Create Pages with</div>
-                <PhSparkleFill class="text-orange-400 h-3.5" />
+                <GeneralIcon icon="magic"  class="text-orange-400 h-3.5" />
               </div>
             </a-button> -->
           </div>
@@ -322,19 +272,33 @@ const closeMagicModal = () => {
         <a-tabs v-model:activeKey="activeTabKey" class="!w-full !overflow-y-hidden">
           <a-tab-pane v-for="tab of tabInfo" :key="tab.key">
             <template #tab>
-              <div class="flex flex-row items-center text-xs px-2">
+              <div class="flex flex-row items-center text-xs px-2" :data-testid="`nc-docs-pagelist-tab-button-${tab.key}`">
                 <component :is="tab.icon()" class="mr-2" />
                 <div>
                   {{ tab.title }}
                 </div>
               </div>
             </template>
-            <!-- <div v-if="isPagesFetching">
-              <div class="flex flex-col mt-36">
-                <a-spin size="large" />
+            <div
+              v-if="isOpenedNestedPageLoading"
+              data-testid="docs-pagelist-container-loader"
+              :data-testActiveTabKey="`${activeTabKey}`"
+            >
+              <div class="flex flex-col mt-64">
+                <a-spin size="large" :indicator="indicator" />
               </div>
-            </div> -->
-            <div v-if="pages.length === 0" class="h-full flex flex-col justify-center -mt-6">
+            </div>
+            <div v-else-if="pages.length === 0 && activeTabKey === 'shared'" data-testid="docs-pagelist-container">
+              <div class="flex flex-col gap-y-3 items-center mt-56">
+                <div class="flex text-gray-500">You have not shared any pages yet</div>
+              </div>
+            </div>
+            <div
+              v-else-if="pages.length === 0"
+              data-testid="docs-pagelist-container"
+              :data-testActiveTabKey="tab.key"
+              class="h-full flex flex-col justify-center -mt-6"
+            >
               <div class="flex flex-col gap-y-3 items-center">
                 <img src="~/assets/img/add-page.svg" class="flex h-12" />
                 <div class="flex text-xl font-semibold">Lets get started!</div>
@@ -359,20 +323,29 @@ const closeMagicModal = () => {
                     @click="openMagicModal"
                   >
                     <div>Create Pages using AI</div>
-                    <PhSparkleFill class="flex text-orange-400 h-3.5" />
+                    <GeneralIcon icon="magic" class="flex text-orange-400 h-3.5" />
                   </div>
                 </div>
               </div>
             </div>
-            <div v-else :key="activeTabKey" class="h-full overflow-y-auto docs-book-infinite-list">
+            <div
+              v-else
+              :key="activeTabKey"
+              data-testid="docs-pagelist-container"
+              :data-testActiveTabKey="tab.key"
+              class="h-full overflow-y-auto docs-book-infinite-list"
+            >
               <div class="flex flex-col gap-y-4 mt-6 mb-12 px-2">
                 <div
                   v-for="(page, index) of pages"
                   :key="index"
-                  class="flex cursor-pointer px-5 mx-1 py-3 rounded-md border-gray-50 border-1 hover:bg-gray-50 shadow-gray-50 shadow-sm"
-                  @click="() => openPage(page)"
+                  class="docs-pagelist-page flex flex-row w-full items-center cursor-pointer px-5 mx-1 py-3 rounded-md border-gray-50 border-1 hover:bg-gray-50 shadow-gray-50 shadow-sm"
                 >
-                  <div class="flex flex-col gap-y-2">
+                  <div
+                    class="flex flex-col gap-y-2"
+                    :data-testid="`docs-pagelist-page-${page.title}`"
+                    @click="() => openPage({page, projectId: project.id!})"
+                  >
                     <div style="font-weight: 450; font-size: 0.9rem">
                       {{ page?.title }}
                     </div>
@@ -381,6 +354,26 @@ const closeMagicModal = () => {
                       Updated {{ dayjs(page!.updated_at!).local().fromNow() }}
                     </div>
                   </div>
+                  <div class="flex flex-grow h-12" @click="() => openPage({page, projectId: project.id!})"></div>
+                  <a-dropdown trigger="click" placement="bottomRight">
+                    <div
+                      class="nc-docs-sidebar-page-options flex px-1 py-1 hover:( !bg-gray-300 !bg-opacity-30 rounded-md text-gray-600) cursor-pointer select-none group-hover:block text-gray-500"
+                    >
+                      <MdiDotsHorizontal />
+                    </div>
+
+                    <template #overlay>
+                      <div class="flex flex-col bg-gray-100 px-1 py-1 rounded-md shadow-sm">
+                        <div
+                          class="flex flex-row justify-center items-center gap-x-2 hover:bg-gray-200 px-2 py-1 rounded-md cursor-pointer"
+                          @click="() => onShare(page)"
+                        >
+                          <MaterialSymbolsPublic />
+                          Share
+                        </div>
+                      </div>
+                    </template>
+                  </a-dropdown>
                 </div>
                 <!-- <InfiniteLoading v-bind="$attrs" @infinite="loadListData">
                   <template #spinner>
@@ -398,7 +391,7 @@ const closeMagicModal = () => {
         </a-tabs>
       </div>
     </div>
-    <DocsBookPublishModal :model-value="showPublishModal" @update:model-value="showPublishModal = $event" />
+    <!--    <DocsBookPublishModal :model-value="showPublishModal" @update:model-value="showPublishModal = $event" /> -->
     <a-modal
       :visible="magicModalOpen"
       :closable="false"
@@ -413,7 +406,11 @@ const closeMagicModal = () => {
         <div class="flex flex-row items-center justify-between mx-1.5 border-b-1 border-gray-100 pb-2 pt-0.5">
           <div class="flex flex-row ml-1 font-semibold items-center">
             <div class="flex">Create pages with prompt</div>
-            <PhSparkleFill :class="{ 'nc-animation-pulse': isMagicLoading }" class="flex ml-2 -mt-0.5 text-orange-400" />
+            <GeneralIcon
+              icon="magic"
+              :class="{ 'nc-animation-pulse': isMagicLoading }"
+              class="flex ml-2 -mt-0.5 text-orange-400"
+            />
           </div>
           <div
             class="flex hover:bg-gray-50 p-1 rounded-md cursor-pointer"
@@ -444,44 +441,49 @@ const closeMagicModal = () => {
       :visible="importModalOpen"
       :closable="false"
       :mask-closable="false"
-      :cancel-button-props="{ disabled: isMagicLoading }"
       :confirm-loading="isImporting"
-      @cancel="importModalOpen = false"
-      @ok="onImport"
+      :footer="null"
+      wrap-class-name="!z-1000"
+      :centered="true"
     >
-      <template #title>
-        <div class="flex items-center">
-          Import documentation
-          <PhUploadSimpleFill :class="{ 'nc-animation-pulse': isImporting }" class="ml-2 text-blue-400" />
+      <div class="py-1 px-5 flex flex-col">
+        <div class="flex items-center py-2 mb-3 border-b-1 border-gray-100" :style="{ fontWeight: 500 }">Import pages</div>
+
+        <div class="flex mt-3 text-xs">Supported URLs</div>
+
+        <div class="flex flex-row space-x-4 my-3.5">
+          <div class="flex flex-col items-center gap-y-1">
+            <div class="flex flex-col py-1 px-1.5 bg-gray-100 rounded-lg">
+              <MdiNuxt class="flex text-gray-400 text-2xl" />
+            </div>
+            <div class="flex text-gray-500 text-xs">Nuxt Docs</div>
+          </div>
+          <div class="flex flex-col items-center gap-y-1">
+            <div class="flex flex-col py-1 px-1.5 bg-gray-100 rounded-lg">
+              <BiMarkdownFill class="flex text-gray-400 text-2xl" />
+            </div>
+            <div class="flex text-gray-500 text-xs">Markdown</div>
+          </div>
         </div>
-      </template>
-      <div v-if="importType === null">
-        <a-card :bordered="false">
-          <a-card-grid style="width: 25%; text-align: center; margin: 5px 4%" @click="importType = 'nuxt'">
-            <LogosNuxtIcon class="text-5xl" />
-          </a-card-grid>
-          <a-card-grid style="width: 25%; text-align: center; margin: 5px 4%" @click="importType = 'nuxt'">
-            <LogosDocusaurus class="text-5xl" />
-          </a-card-grid>
-          <a-card-grid style="width: 25%; text-align: center; margin: 5px 4%" @click="importType = 'nuxt'">
-            <LogosVitejs class="text-5xl" />
-          </a-card-grid>
-          <a-card-grid style="width: 25%; text-align: center; margin: 5px 4%" @click="importType = 'nuxt'">
-            <LogosConfluence class="text-5xl" />
-          </a-card-grid>
-          <a-card-grid style="width: 25%; text-align: center; margin: 5px 4%" @click="importType = 'nuxt'">
-            <SimpleIconsGitbook class="text-5xl" />
-          </a-card-grid>
-          <a-card-grid style="width: 25%; text-align: center; margin: 5px 4%" @click="importType = 'nuxt'">
-            <SimpleIconsNotion class="text-5xl" />
-          </a-card-grid>
-        </a-card>
+
+        <a-input
+          v-model:value="importFormData.title"
+          class="!border-1 !border-gray-300 !rounded-md !py-2 !px-3"
+          placeholder="Enter document link"
+        />
+        <div class="flex flex-row justify-end space-x-2 mt-6 mb-3 pt-3 border-t-1 border-gray-100">
+          <a-button type="text" class="!border-gray-200 !border-1 !rounded-md" @click="importModalOpen = false">Cancel</a-button>
+
+          <a-button
+            :loading="isImporting"
+            :disabled="importFormData.title?.length === 0"
+            type="primary"
+            class="!rounded-md"
+            @click="onImport"
+            >Import</a-button
+          >
+        </div>
       </div>
-      <a-form v-else :model="importFormData">
-        <a-form-item label="Url">
-          <a-input v-model:value="importFormData.title" />
-        </a-form-item>
-      </a-form>
     </a-modal>
   </a-layout-content>
 </template>

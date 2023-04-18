@@ -7,6 +7,7 @@ import {
   generateUniqueTitle as generateTitle,
   message,
   reactive,
+  storeToRefs,
   useCommandPalette,
   useI18n,
   useMetas,
@@ -30,15 +31,18 @@ export function useTable(onTableCreate?: (tableMeta: TableType) => void, baseId?
 
   const { getMeta, removeMeta } = useMetas()
 
-  const { loadTables, sqlUis, project, tables } = useProject()
+  const { loadTables } = useProject()
 
   const { closeTab } = useTabs()
+
+  const projectStore = useProject()
+  const { sqlUis, project, tables } = storeToRefs(projectStore)
 
   const { refreshCommandPalette } = useCommandPalette()
 
   const sqlUi = computed(() => (baseId && sqlUis.value[baseId] ? sqlUis.value[baseId] : Object.values(sqlUis.value)[0]))
 
-  const createTable = async () => {
+  const createTable = async (projectId?: string) => {
     if (!baseId) {
       baseId = project.value.bases?.[0].id
     }
@@ -55,10 +59,14 @@ export function useTable(onTableCreate?: (tableMeta: TableType) => void, baseId?
     })
 
     try {
-      const tableMeta = await $api.base.tableCreate(project?.value?.id as string, (baseId || project?.value?.bases?.[0].id)!, {
-        ...table,
-        columns,
-      })
+      const tableMeta = await $api.base.tableCreate(
+        projectId ?? (project?.value?.id as string),
+        (baseId || project?.value?.bases?.[0].id)!,
+        {
+          ...table,
+          columns,
+        },
+      )
       $e('a:table:create')
       onTableCreate?.(tableMeta)
       refreshCommandPalette()
@@ -80,7 +88,7 @@ export function useTable(onTableCreate?: (tableMeta: TableType) => void, baseId?
       onTableCreate?.(tableMeta as TableType)
       refreshCommandPalette()
     } catch (e: any) {
-      message.warning('NocoAI failed for the demo reasons. Please try again.')
+      message.warning('NocoAI: Underlying GPT API are busy. Please try after sometime.')
     }
   }
 
@@ -97,7 +105,7 @@ export function useTable(onTableCreate?: (tableMeta: TableType) => void, baseId?
       onTableCreate?.(tableMeta as TableType)
       refreshCommandPalette()
     } catch (e: any) {
-      message.warning('NocoAI failed for the demo reasons. Please try again.')
+      message.warning('NocoAI: Underlying GPT API are busy. Please try after sometime.')
     }
   }
 

@@ -1,3 +1,5 @@
+import fs from 'fs';
+import { promisify } from 'util';
 import Noco from '../../../Noco';
 import SqlClientFactoryEE from './ee/SqlClientFactoryEE';
 import MySqlClient from './mysql/MysqlClient';
@@ -8,9 +10,6 @@ import PgClient from './pg/PgClient';
 import YugabyteClient from './pg/YugabyteClient';
 import TidbClient from './mysql/TidbClient';
 import VitessClient from './mysql/VitessClient';
-
-import fs from 'fs';
-import { promisify } from 'util';
 
 export class SqlClientFactory {
   static create(connectionConfig) {
@@ -49,19 +48,28 @@ export default class {
       typeof connectionConfig.connection.ssl === 'object'
     ) {
       if (connectionConfig.connection.ssl.caFilePath) {
-        connectionConfig.connection.ssl.ca = await promisify(fs.readFile)(
-          connectionConfig.connection.ssl.caFilePath
+        connectionConfig.connection.ssl.ca = (
+          await promisify(fs.readFile)(
+            connectionConfig.connection.ssl.caFilePath
+          )
         ).toString();
+        delete connectionConfig.connection.ssl.caFilePath;
       }
       if (connectionConfig.connection.ssl.keyFilePath) {
-        connectionConfig.connection.ssl.key = await promisify(fs.readFile)(
-          connectionConfig.connection.ssl.keyFilePath
+        connectionConfig.connection.ssl.key = (
+          await promisify(fs.readFile)(
+            connectionConfig.connection.ssl.keyFilePath
+          )
         ).toString();
+        delete connectionConfig.connection.ssl.keyFilePath;
       }
       if (connectionConfig.connection.ssl.certFilePath) {
-        connectionConfig.connection.ssl.cert = await promisify(fs.readFile)(
-          connectionConfig.connection.ssl.certFilePath
+        connectionConfig.connection.ssl.cert = (
+          await promisify(fs.readFile)(
+            connectionConfig.connection.ssl.certFilePath
+          )
         ).toString();
+        delete connectionConfig.connection.ssl.certFilePath;
       }
     }
 

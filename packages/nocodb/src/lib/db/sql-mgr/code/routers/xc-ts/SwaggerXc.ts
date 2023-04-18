@@ -1,5 +1,4 @@
 import BaseRender from '../../BaseRender';
-
 import SwaggerTypes from './SwaggerTypes';
 
 class SwaggerXc extends BaseRender {

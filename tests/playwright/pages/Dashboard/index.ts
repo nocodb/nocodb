@@ -10,46 +10,65 @@ import { SettingsPage } from './Settings';
 import { ViewSidebarPage } from './ViewSidebar';
 import { GalleryPage } from './Gallery';
 import { KanbanPage } from './Kanban';
+import { MapPage } from './Map';
 import { ImportAirtablePage } from './Import/Airtable';
 import { ImportTemplatePage } from './Import/ImportTemplate';
 import { WebhookFormPage } from './WebhookForm';
 import { ProjectsPage } from '../ProjectsPage';
+import { FindRowByScanOverlay } from './FindRowByScanOverlay';
+import { SidebarPage } from './Sidebar';
+import { DocsPageGroup } from './Docs';
+import { ShareProjectButtonPage } from './ShareProjectButton';
+import { ProjectTypes } from 'nocodb-sdk';
+import { WorkspacePage } from '../WorkspacePage';
 
 export class DashboardPage extends BasePage {
   readonly project: any;
   readonly tablesSideBar: Locator;
+  readonly projectMenuLink: Locator;
   readonly tabBar: Locator;
   readonly treeView: TreeViewPage;
   readonly grid: GridPage;
   readonly gallery: GalleryPage;
   readonly form: FormPage;
   readonly kanban: KanbanPage;
+  readonly map: MapPage;
   readonly expandedForm: ExpandedFormPage;
   readonly webhookForm: WebhookFormPage;
+  readonly findRowByScanOverlay: FindRowByScanOverlay;
   readonly childList: ChildList;
   readonly linkRecord: LinkRecord;
   readonly settings: SettingsPage;
   readonly viewSidebar: ViewSidebarPage;
   readonly importAirtable: ImportAirtablePage;
   readonly importTemplate = new ImportTemplatePage(this);
+  readonly docs: DocsPageGroup;
+  readonly sidebar: SidebarPage;
+  readonly shareProjectButton: ShareProjectButtonPage;
 
   constructor(rootPage: Page, project: any) {
     super(rootPage);
     this.project = project;
     this.tablesSideBar = rootPage.locator('.nc-treeview-container');
+    this.projectMenuLink = rootPage.getByTestId('nc-project-menu');
     this.tabBar = rootPage.locator('.nc-tab-bar');
     this.treeView = new TreeViewPage(this, project);
     this.grid = new GridPage(this);
     this.gallery = new GalleryPage(this);
     this.form = new FormPage(this);
     this.kanban = new KanbanPage(this);
+    this.map = new MapPage(this);
     this.expandedForm = new ExpandedFormPage(this);
     this.webhookForm = new WebhookFormPage(this);
+    this.findRowByScanOverlay = new FindRowByScanOverlay(this);
     this.childList = new ChildList(this);
     this.linkRecord = new LinkRecord(this);
     this.settings = new SettingsPage(this);
     this.viewSidebar = new ViewSidebarPage(this);
     this.importAirtable = new ImportAirtablePage(this);
+    this.sidebar = new SidebarPage(this);
+    this.docs = new DocsPageGroup(this);
+    this.shareProjectButton = new ShareProjectButtonPage(this);
   }
 
   get() {
@@ -58,6 +77,24 @@ export class DashboardPage extends BasePage {
 
   async goto() {
     await this.rootPage.goto(`/#/nc/${this.project.id}/auth`);
+  }
+
+  getProjectMenuLink({ title }: { title: string }) {
+    return this.rootPage.locator(`div.nc-project-menu-item:has-text("${title}")`);
+  }
+
+  async verifyTeamAndSettingsLinkIsVisible() {
+    await this.projectMenuLink.click();
+    const teamAndSettingsLink = await this.getProjectMenuLink({ title: ' Team & Settings' });
+    await expect(teamAndSettingsLink).toBeVisible();
+    await this.projectMenuLink.click();
+  }
+
+  async verifyTeamAndSettingsLinkIsNotVisible() {
+    await this.projectMenuLink.click();
+    const teamAndSettingsLink = await this.getProjectMenuLink({ title: ' Team & Settings' });
+    await expect(teamAndSettingsLink).not.toBeVisible();
+    await this.projectMenuLink.click();
   }
 
   async gotoSettings() {
@@ -85,13 +122,11 @@ export class DashboardPage extends BasePage {
 
   async clickHome() {
     await this.rootPage.getByTestId('nc-noco-brand-icon').click();
-    const projectsPage = new ProjectsPage(this.rootPage);
-    await projectsPage.waitToBeRendered();
+    const workspacePage = new WorkspacePage(this.rootPage);
+    await workspacePage.getWorkspaceContainer().waitFor({ state: 'visible' });
   }
 
-  // When a tab is opened, it is not always immediately visible.
-  // Hence will wait till contents are visible
-  async waitForTabRender({ title, mode = 'standard' }: { title: string; mode?: string }) {
+  private async _waitForDBTabRender({ title, mode }: { title: string; mode: string }) {
     if (title === 'Team & Auth') {
       await this.get()
         .locator('div[role="tab"]', {
@@ -126,6 +161,60 @@ export class DashboardPage extends BasePage {
         await expect(this.rootPage).toHaveURL(new RegExp(`#/nc/${this.project.id}/table/md_.{14}`));
       }
     }
+  }
+
+  async verifyOpenedTab({ title, mode = 'standard', emoji }: { title: string; mode?: string; emoji?: string }) {
+    await this.tabBar.locator(`.ant-tabs-tab-active:has-text("${title}")`).isVisible();
+
+    if (emoji) {
+      await expect(
+        this.tabBar.locator(`.ant-tabs-tab-active:has-text("${title}")`).getByTestId(`nc-tab-icon-emojione:${emoji}`)
+      ).toBeVisible();
+    }
+  }
+
+  async verifyTabIsNotOpened({ title }: { title: string }) {
+    await expect(this.tabBar.locator(`.ant-tabs-tab:has-text("${title}")`)).not.toBeVisible();
+  }
+
+  private async _waitForDocsTabRender({ title, mode }: { title: string; mode: string }) {
+    await this.tabBar.locator(`.ant-tabs-tab-active:has-text("${title}")`).waitFor();
+
+    // wait active tab animation to finish
+    await expect
+      .poll(async () => {
+        return await this.tabBar.getByTestId(`nc-root-tabs-${title}`).evaluate(el => {
+          return window.getComputedStyle(el).getPropertyValue('color');
+        });
+      })
+      .toBe('rgb(67, 81, 232)');
+
+    await this.rootPage.waitForTimeout(500);
+  }
+
+  // When a tab is opened, it is not always immediately visible.
+  // Hence will wait till contents are visible
+  async waitForTabRender({
+    title,
+    mode = 'standard',
+    type = ProjectTypes.DATABASE,
+  }: {
+    title: string;
+    mode?: string;
+    type?: ProjectTypes;
+  }) {
+    if (type === ProjectTypes.DATABASE) {
+      await this._waitForDBTabRender({ title, mode });
+    } else if (type === ProjectTypes.DOCUMENTATION) {
+      await this._waitForDocsTabRender({ title, mode });
+    }
+  }
+
+  async toggleMobileMode() {
+    await this.projectMenuLink.click();
+    const projMenu = this.rootPage.locator('.nc-dropdown-project-menu');
+    await projMenu.locator('[data-menu-id="mobile-mode"]:visible').click();
+    await this.projectMenuLink.click();
   }
 
   async signOut() {

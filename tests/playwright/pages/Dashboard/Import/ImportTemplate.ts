@@ -1,6 +1,7 @@
 import { expect, Locator } from '@playwright/test';
 import BasePage from '../../Base';
 import { DashboardPage } from '..';
+import { getTextExcludeIconText } from '../../../tests/utils/general';
 
 export class ImportTemplatePage extends BasePage {
   readonly dashboard: DashboardPage;
@@ -22,7 +23,7 @@ export class ImportTemplatePage extends BasePage {
     const rowCount = await tr.count();
     const tableList: string[] = [];
     for (let i = 0; i < rowCount; i++) {
-      const tableName = await tr.nth(i).innerText();
+      const tableName = await getTextExcludeIconText(tr.nth(i));
       tableList.push(tableName);
     }
     return tableList;
@@ -35,10 +36,7 @@ export class ImportTemplatePage extends BasePage {
     const rowCount = await tr.count();
     for (let i = 0; i < rowCount; i++) {
       // replace \n and \t from innerText
-      const columnType = await tr
-        .nth(i)
-        .innerText()
-        .then(text => text.replace(/\n|\t/g, ''));
+      const columnType = (await getTextExcludeIconText(tr.nth(i))).replace(/\n|\t/g, '');
       const columnName = await tr.nth(i).locator(`input[type="text"]`).inputValue();
       columnList.push({ type: columnType, name: columnName });
     }

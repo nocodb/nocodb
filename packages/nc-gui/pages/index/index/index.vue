@@ -9,14 +9,18 @@ import Sortable from 'sortablejs'
 import { useRoute } from 'vue-router'
 import {
   computed,
+  extractSdkResponseErrorMsg,
+  message,
+  navigateTo,
   onMounted,
+  parseProp,
   projectThemeColors,
+  storeToRefs,
   stringToColour,
-  useProvideWorkspaceStore,
   useRouter,
   useSidebar,
+  useWorkspace,
 } from '#imports'
-import { extractSdkResponseErrorMsg } from '~/utils'
 
 const router = useRouter()
 
@@ -26,21 +30,15 @@ const roleAlias = {
   [WorkspaceUserRoles.CREATOR]: 'Creator',
 }
 
-// todo: make it customizable
+const workspaceStore = useWorkspace()
 
-const {
-  deleteWorkspace: _deleteWorkspace,
-  loadWorkspaceList,
-  workspaces,
-  activeWorkspace,
-  isWorkspaceOwner,
-  updateWorkspace,
-  activePage,
-} = useProvideWorkspaceStore()
+const { deleteWorkspace: _deleteWorkspace, loadWorkspaceList, updateWorkspace } = workspaceStore
+
+const { workspaces, activeWorkspace, isWorkspaceOwner, activePage } = storeToRefs(workspaceStore)
 
 const { $e } = useNuxtApp()
 
-const route = useRoute()
+const route = $(router.currentRoute)
 
 const selectedWorkspaceIndex = computed<number[]>({
   get() {
@@ -132,7 +130,7 @@ const handleWorkspaceColor = async (workspaceId: string, color: string) => {
 
     // Update local workspace meta
     workspace.meta = {
-      ...(meta || {}),
+      ...parseProp(meta),
       color,
     }
 
@@ -386,7 +384,7 @@ const projectListType = computed(() => {
       </div>
     </template>
 
-    <div class="w-full h-full overflow-auto">
+    <div class="w-full h-full overflow-auto nc-workspace-container">
       <div v-if="activeWorkspace" class="h-full flex flex-col pt-6">
         <div class="px-6 flex items-center">
           <div class="flex gap-2 items-center mb-4">

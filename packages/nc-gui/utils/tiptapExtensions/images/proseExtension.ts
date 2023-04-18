@@ -52,45 +52,20 @@ export const dropImagePlugin = (upload: UploadFn) => {
       },
     },
     props: {
-      decorations: ({ doc }) => {
-        const decorations: Decoration[] = []
-
-        doc.descendants((wrapperNode, wrapperPos) => {
-          if (wrapperNode.childCount === 0) return false
-          if (wrapperNode.child(0).type.name !== 'image') return false
-          if (!wrapperNode.child(0).attrs.isUploading) return false
-
-          const decoration = Decoration.widget(wrapperPos + 1, () => {
-            const wrapper = document.createElement('div')
-            wrapper.classList.add('image-uploading-wrapper')
-
-            const uploadingDom = document.createElement('div')
-            uploadingDom.classList.add('image-uploading')
-            uploadingDom.innerHTML = 'Uploading...'
-            wrapper.appendChild(uploadingDom)
-
-            return wrapper
-          })
-
-          decorations.push(decoration)
-
-          return true
-        })
-
-        return DecorationSet.create(doc, decorations)
-      },
       handlePaste(view, event) {
         const items = Array.from(event.clipboardData?.items || [])
         event.preventDefault()
+        let isImageAdded = false
 
         for (const item of items) {
           const image = item.getAsFile()
           if (!image || item.type.indexOf('image') !== 0) continue
 
           addImage(image, view, upload)
+          isImageAdded = true
         }
 
-        return false
+        return isImageAdded
       },
       handleDOMEvents: {
         drop: (view, event) => {
@@ -101,12 +76,6 @@ export const dropImagePlugin = (upload: UploadFn) => {
           const images = Array.from(event.dataTransfer?.files ?? []).filter((file) => /image/i.test(file.type))
           if (images.length === 0) return false
           event.preventDefault()
-
-          const coordinates = view.posAtCoords({
-            left: event.clientX,
-            top: event.clientY,
-          })
-          if (!coordinates) return false
 
           images.forEach(async (image) => {
             addImage(image, view, upload)

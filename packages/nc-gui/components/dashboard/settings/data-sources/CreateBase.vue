@@ -15,17 +15,20 @@ import {
   generateUniqueName,
   getDefaultConnectionConfig,
   getTestDatabaseName,
+  iconMap,
   nextTick,
   onMounted,
   projectTitleValidator,
   readFile,
   ref,
+  storeToRefs,
   useApi,
   useGlobal,
   useI18n,
   useNuxtApp,
   watch,
 } from '#imports'
+import { ProjectIdInj } from '~/context'
 
 const { connectionType } = defineProps<{ connectionType: ClientType }>()
 
@@ -33,7 +36,12 @@ const emit = defineEmits(['baseCreated'])
 
 const { appInfo } = useGlobal()
 
-const { project, loadProject } = useProject()
+const projectStore = useProject()
+const { loadProject } = projectStore
+const { project } = storeToRefs(projectStore)
+
+const _projectId = inject(ProjectIdInj)
+const projectId = computed(() => _projectId?.value ?? project.value?.id)
 
 const useForm = Form.useForm
 
@@ -231,13 +239,13 @@ const createBase = async () => {
   }
 
   try {
-    if (!project.value?.id) return
+    if (!projectId.value) return
 
     const connection = getConnectionConfig()
 
     const config = { ...formState.dataSource, connection }
 
-    await api.base.create(project.value?.id, {
+    await api.base.create(projectId.value, {
       alias: formState.title,
       type: formState.dataSource.client,
       config,
@@ -250,7 +258,7 @@ const createBase = async () => {
     await loadProject()
     emit('baseCreated')
     message.success('Base created!')
-    toggleDialog(true, 'dataSources', '')
+    toggleDialog(true, 'dataSources', '', projectId.value)
   } catch (e: any) {
     message.error(await extractSdkResponseErrorMsg(e))
   }
@@ -562,11 +570,15 @@ watch(
 
                     <a-input v-model:value="item.value" />
 
-                    <MdiClose :style="{ 'font-size': '1.5em', 'color': 'red' }" @click="removeParam(index)" />
+                    <component
+                      :is="iconMap.close"
+                      :style="{ 'font-size': '1.5em', 'color': 'red' }"
+                      @click="removeParam(index)"
+                    />
                   </div>
                 </div>
                 <a-button type="dashed" class="w-full caption mt-2" @click="addNewParam">
-                  <div class="flex items-center justify-center"><MdiPlus /></div>
+                  <div class="flex items-center justify-center"><component :is="iconMap.plus" /></div>
                 </a-button>
               </a-card>
             </a-form-item>

@@ -12,7 +12,7 @@ import PurgeIcons from 'vite-plugin-purge-icons'
 
 // https://v3.nuxtjs.org/api/configuration/nuxt.config
 export default defineNuxtConfig({
-  modules: ['@vueuse/nuxt', 'nuxt-windicss', '@nuxt/image-edge'],
+  modules: ['@vueuse/nuxt', 'nuxt-windicss', '@nuxt/image-edge', '@pinia/nuxt'],
 
   ssr: false,
 
@@ -33,7 +33,7 @@ export default defineNuxtConfig({
     layoutTransition: false,
 
     /** In production build we need to load assets using relative path, to achieve the result we are using cdnURL */
-    cdnURL: process.env.NODE_ENV === 'production' ? '.' : undefined,
+    cdnURL: process.env.NODE_ENV === 'production' ? process.env.NC_CDN_URL || '.' : undefined,
   },
 
   css: [
@@ -51,7 +51,6 @@ export default defineNuxtConfig({
   },
 
   meta: {
-    title: 'NocoDB',
     link: [
       {
         rel: 'icon',
@@ -140,6 +139,8 @@ export default defineNuxtConfig({
               'vscode-icons',
               'simple-icons',
               'nc-icons',
+              'ion',
+              'carbon',
             ],
           }),
         ],
@@ -193,7 +194,7 @@ export default defineNuxtConfig({
   },
 
   imports: {
-    dirs: ['./context', './utils/**', './lib', './composables/**'],
+    dirs: ['./context', './utils/**', './lib', './composables/**', './store/**'],
     imports: [
       { name: 'useI18n', from: 'vue-i18n' },
       { name: 'message', from: 'ant-design-vue/es' },
@@ -201,6 +202,7 @@ export default defineNuxtConfig({
       { name: 'Empty', from: 'ant-design-vue/es' },
       { name: 'Form', from: 'ant-design-vue/es' },
       { name: 'useJwt', from: '@vueuse/integrations/useJwt' },
+      { name: 'storeToRefs', from: 'pinia' },
     ],
   },
 })

@@ -3,10 +3,12 @@ import { customAlphabet } from 'nanoid'
 import type { Form, Input } from 'ant-design-vue'
 import type { RuleObject } from 'ant-design-vue/es/form'
 import type { VNodeRef } from '@vue/runtime-core'
+import type { ProjectType } from 'nocodb-sdk'
 import tinycolor from 'tinycolor2'
 import {
   extractSdkResponseErrorMsg,
   generateUniqueName,
+  iconMap,
   message,
   navigateTo,
   nextTick,
@@ -53,6 +55,7 @@ const formState = reactive({
 })
 
 const route = useRoute()
+const creating = ref(false)
 
 const createProject = async () => {
   $e('a:project:create:xcdb')
@@ -64,7 +67,9 @@ const createProject = async () => {
     const complement = tcolor.complement()
 
     // todo: provide proper project type
-    const result = await api.project.create({
+    creating.value = true
+
+    const result = (await api.project.create({
       title: formState.title,
       fk_workspace_id: route.query.workspaceId,
       type: route.query.type ?? NcProjectType.DB,
@@ -76,18 +81,14 @@ const createProject = async () => {
         },
         ...(route.query.type === NcProjectType.COWRITER && { prompt_statement: '' }),
       }),
-    })
+    })) as Partial<ProjectType>
 
     refreshCommandPalette()
 
     switch (route.query.type) {
       case NcProjectType.DOCS:
         await loadProject(true, result.id)
-        await navigateTo(`/nc/doc/${result.id}`)
-        // todo: Hack. Remove
-        setTimeout(() => {
-          window.location.reload()
-        }, 10)
+        await navigateTo(`/ws/${route.query.workspaceId}/nc/${result.id}/doc`)
         break
       case NcProjectType.COWRITER: {
         // force load project so that baseId is available in useTable
@@ -103,10 +104,12 @@ const createProject = async () => {
         break
       }
       default:
-        await navigateTo(`/nc/${result.id}`)
+        await navigateTo(`/ws/${route.query.workspaceId}/nc/${result.id}`)
     }
   } catch (e: any) {
     message.error(await extractSdkResponseErrorMsg(e))
+  } finally {
+    creating.value = false
   }
 }
 
@@ -132,7 +135,7 @@ onMounted(async () => {
           class="color-transition transform group absolute top-5 left-5 text-4xl rounded-full cursor-pointer"
           @click="navigateTo('/')"
         >
-          <MdiChevronLeft class="text-black group-hover:(text-accent scale-110)" />
+          <component :is="iconMap.chevronLeft" class="text-black group-hover:(text-accent scale-110)" />
         </div>
 
         <h1 class="prose-2xl font-bold self-center my-4">{{ $t('activity.createProject') }}</h1>
@@ -152,7 +155,8 @@ onMounted(async () => {
           </a-form-item>
 
           <div class="text-center">
-            <button class="scaling-btn bg-opacity-100" type="submit">
+            <a-spin v-if="creating" spinning />
+            <button v-else class="scaling-btn bg-opacity-100" type="submit">
               <span class="flex items-center gap-2">
                 <MaterialSymbolsRocketLaunchOutline />
                 {{ $t('general.create') }}

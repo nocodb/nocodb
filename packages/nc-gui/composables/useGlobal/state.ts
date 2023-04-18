@@ -66,6 +66,7 @@ export function useGlobalState(storageKey = 'nocodb-gui-v2'): State {
     currentVersion: null,
     latestRelease: null,
     hiddenRelease: null,
+    isMobileMode: null,
   }
 
   /** saves a reactive state, any change to these values will write/delete to localStorage */
@@ -101,6 +102,8 @@ export function useGlobalState(storageKey = 'nocodb-gui-v2'): State {
     version: '0.0.0',
     ncAttachmentFieldSize: 20,
     ncMaxAttachmentsAllowed: 10,
+    isCloud: false,
+    automationLogLevel: 'OFF',
   })
 
   /** reactive token payload */

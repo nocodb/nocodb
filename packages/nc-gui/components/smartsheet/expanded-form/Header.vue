@@ -3,6 +3,7 @@ import { message } from 'ant-design-vue'
 import type { ViewType } from 'nocodb-sdk'
 import {
   ReloadRowDataHookInj,
+  iconMap,
   isMac,
   useExpandedFormStoreOrThrow,
   useSmartsheetRowStoreOrThrow,
@@ -18,15 +19,13 @@ const route = useRoute()
 
 const { meta, isSqlView } = useSmartsheetStoreOrThrow()
 
-const { commentsDrawer, displayValue, primaryKey, save: _save, loadRow } = useExpandedFormStoreOrThrow()
+const { commentsDrawer, displayValue, primaryKey, save: _save, loadRow, saveRowAndStay } = useExpandedFormStoreOrThrow()
 
 const { isNew, syncLTARRefs, state } = useSmartsheetRowStoreOrThrow()
 
 const { isUIAllowed } = useUIPermission()
 
 const reloadTrigger = inject(ReloadRowDataHookInj, createEventHook())
-
-const saveRowAndStay = ref(0)
 
 const save = async () => {
   if (isNew.value) {
@@ -103,23 +102,13 @@ const onConfirmDeleteRowClick = async () => {
     </h5>
 
     <div class="flex-1" />
-
-    <a-tooltip placement="bottom">
-      <template #title>
-        <div class="text-center w-full">{{ $t('general.reload') }}</div>
-      </template>
-      <mdi-reload
-        v-if="!isNew"
-        class="nc-icon-transition cursor-pointer select-none text-gray-500 mx-1 min-w-4"
-        @click="loadRow"
-      />
-    </a-tooltip>
     <a-tooltip placement="bottom">
       <template #title>
         <!-- todo: i18n -->
         <div class="text-center w-full">Copy record URL</div>
       </template>
-      <mdi-link
+      <component
+        :is="iconMap.link"
         v-if="!isNew"
         class="nc-icon-transition cursor-pointer select-none text-gray-500 mx-1 nc-copy-row-url min-w-4"
         @click="copyRecordUrl"
@@ -131,7 +120,8 @@ const onConfirmDeleteRowClick = async () => {
       <template #title>
         <div class="text-center w-full">{{ $t('activity.toggleCommentsDraw') }}</div>
       </template>
-      <MdiCommentTextOutline
+      <component
+        :is="iconMap.comment"
         v-if="isUIAllowed('rowComments') && !isNew"
         v-e="['c:row-expand:comment-toggle']"
         class="nc-icon-transition cursor-pointer select-none nc-toggle-comments text-gray-500 mx-1 min-w-4"
@@ -139,72 +129,75 @@ const onConfirmDeleteRowClick = async () => {
       />
     </a-tooltip>
 
-    <a-tooltip v-if="!isSqlView" placement="bottom">
-      <!-- Duplicate row -->
-      <template #title>
-        <div class="text-center w-full">{{ $t('activity.duplicateRow') }}</div>
-      </template>
-      <MdiContentCopy
-        v-if="isUIAllowed('xcDatatableEditable') && !isNew"
-        v-e="['c:row-expand:duplicate']"
-        class="nc-icon-transition cursor-pointer select-none nc-duplicate-row text-gray-500 mx-1 min-w-4"
-        @click="!isNew && emit('duplicateRow')"
-      />
-    </a-tooltip>
-
-    <a-tooltip v-if="!isSqlView" placement="bottom">
-      <!-- Delete row -->
-      <template #title>
-        <div class="text-center w-full">{{ $t('activity.deleteRow') }}</div>
-      </template>
-      <MdiDeleteOutline
-        v-if="isUIAllowed('xcDatatableEditable') && !isNew"
-        v-e="['c:row-expand:delete']"
-        class="nc-icon-transition cursor-pointer select-none nc-delete-row text-gray-500 mx-1 min-w-4"
-        @click="!isNew && onDeleteRowClick()"
-      />
-    </a-tooltip>
-
     <a-dropdown-button class="nc-expand-form-save-btn" type="primary" :disabled="!isUIAllowed('tableRowUpdate')" @click="save">
-      <template #icon><MdiMenuDown /></template>
+      <template #icon><component :is="iconMap.arrowDown" /></template>
 
       <template #overlay>
         <a-menu class="nc-expand-form-save-dropdown-menu">
           <a-menu-item key="0" class="!py-2 flex gap-2" @click="saveRowAndStay = 0">
             <div class="flex items-center">
-              <MdiContentSave class="mr-1" />
+              <component :is="iconMap.contentSaveExit" class="mr-1" />
               {{ $t('activity.saveAndExit') }}
             </div>
           </a-menu-item>
           <a-menu-item key="1" class="!py-2 flex gap-2 items-center" @click="saveRowAndStay = 1">
             <div class="flex items-center">
-              <MdiContentSaveEdit class="mr-1" />
+              <component :is="iconMap.contentSaveStay" class="mr-1" />
               {{ $t('activity.saveAndStay') }}
             </div>
           </a-menu-item>
         </a-menu>
       </template>
       <div v-if="saveRowAndStay === 0" class="flex items-center">
-        <MdiContentSave class="mr-1" />
+        <component :is="iconMap.contentSaveExit" class="mr-1" />
         {{ $t('activity.saveAndExit') }}
       </div>
       <div v-if="saveRowAndStay === 1" class="flex items-center">
-        <MdiContentSaveEdit class="mr-1" />
+        <component :is="iconMap.contentSaveStay" class="mr-1" />
         {{ $t('activity.saveAndStay') }}
       </div>
     </a-dropdown-button>
 
-    <a-tooltip placement="bottom">
-      <!-- Close -->
-      <template #title>
-        <div class="text-center w-full">{{ $t('general.close') }}</div>
+    <a-dropdown>
+      <component :is="iconMap.threeDotVertical" class="nc-icon-transition" />
+      <template #overlay>
+        <a-menu>
+          <a-menu-item v-if="!isNew" @click="loadRow">
+            <div v-e="['c:row-expand:reload']" class="py-2 flex gap-2 items-center">
+              <component :is="iconMap.reload" class="nc-icon-transition cursor-pointer select-none text-gray-500 mx-1 min-w-4" />
+              {{ $t('general.reload') }}
+            </div>
+          </a-menu-item>
+          <a-menu-item v-if="isUIAllowed('xcDatatableEditable') && !isNew" @click="!isNew && emit('duplicateRow')">
+            <div v-e="['c:row-expand:duplicate']" class="py-2 flex gap-2 a">
+              <component
+                :is="iconMap.copy"
+                class="nc-icon-transition cursor-pointer select-none nc-duplicate-row text-gray-500 mx-1 min-w-4"
+              />
+              {{ $t('activity.duplicateRow') }}
+            </div>
+          </a-menu-item>
+          <a-menu-item v-if="isUIAllowed('xcDatatableEditable') && !isNew" @click="!isNew && onDeleteRowClick()">
+            <div v-e="['c:row-expand:delete']" class="py-2 flex gap-2 items-center">
+              <component
+                :is="iconMap.delete"
+                class="nc-icon-transition cursor-pointer select-none nc-delete-row text-gray-500 mx-1 min-w-4"
+              />
+              {{ $t('activity.deleteRow') }}
+            </div>
+          </a-menu-item>
+          <a-menu-item @click="emit('cancel')">
+            <div v-e="['c:row-expand:delete']" class="py-2 flex gap-2 items-center">
+              <component
+                :is="iconMap.closeCircle"
+                class="nc-icon-transition cursor-pointer select-none nc-delete-row text-gray-500 mx-1 min-w-4"
+              />
+              {{ $t('general.close') }}
+            </div>
+          </a-menu-item>
+        </a-menu>
       </template>
-      <MdiCloseCircleOutline
-        class="nc-icon-transition cursor-pointer select-none nc-close-form text-gray-500 mx-1 min-w-4"
-        @click="emit('cancel')"
-      />
-    </a-tooltip>
-
+    </a-dropdown>
     <a-modal v-model:visible="showDeleteRowModal" title="Delete row?" @ok="onConfirmDeleteRowClick">
       <p>Are you sure you want to delete this row?</p>
     </a-modal>

@@ -39,6 +39,7 @@
     "signIn": "ログイン",
     "signOut": "サインアウト",
     "required": "必須",
+    "enableScanner": "Enable Scanner for filling",
     "preferred": "推奨",
     "mandatory": "必須",
     "loading": "読込中...",
@@ -74,7 +75,8 @@
     "insertBefore": "前に挿入",
     "hideField": "フィールドを隠す",
     "sortAsc": "昇順",
-    "sortDesc": "降順"
+    "sortDesc": "降順",
+    "geoDataField": "GeoData Field"
   },
   "objects": {
     "project": "プロジェクト",
@@ -98,7 +100,8 @@
       "gallery": "ギャラリー",
       "form": "フォーム",
       "kanban": "カンバン",
-      "calendar": "カレンダー"
+      "calendar": "カレンダー",
+      "map": "Map"
     },
     "user": "ユーザー",
     "users": "ユーザー",
@@ -136,6 +139,7 @@
     "Currency": "通貨",
     "Percent": "パーセント",
     "Duration": "間隔",
+    "GeoData": "GeoData",
     "Rating": "レーティング",
     "Formula": "方式",
     "Rollup": "ロールアップ",
@@ -206,7 +210,8 @@
     "advancedSettings": "詳細設定",
     "codeSnippet": "コードスニペット",
     "keyboardShortcut": "キーボードショートカット",
-    "generateRandomName": "Generate Random Name"
+    "generateRandomName": "Generate Random Name",
+    "findRowByScanningCode": "Find row by scanning a QR or Barcode"
   },
   "labels": {
     "createdBy": "クリエイティッド バイ",
@@ -216,6 +221,7 @@
     "viewName": "ビューの名前",
     "viewLink": "ビューのリンク",
     "columnName": "列名",
+    "columnToScanFor": "Column to scan",
     "columnType": "列のデータ型",
     "roleName": "ロール名",
     "roleDescription": "ロールの説明",
@@ -232,6 +238,7 @@
     "action": "アクション",
     "actions": "アクション",
     "operation": "操作",
+    "operationSub": "Sub Operation",
     "operationType": "操作タイプ",
     "operationSubType": "操作サブタイプ",
     "description": "説明",
@@ -253,6 +260,9 @@
     "barcodeFormat": "バーコードのフォーマット",
     "qrCodeValueTooLong": "QRコードにするには文字数が多すぎる",
     "barcodeValueTooLong": "バーコードの文字数が多すぎる",
+    "currentLocation": "Current Location",
+    "lng": "Lng",
+    "lat": "Lat",
     "aggregateFunction": "集約関数",
     "dbCreateIfNotExists": "データベース：存在しない場合は作成",
     "clientKey": "クライアントキー",
@@ -386,8 +396,8 @@
     "saveAndExit": "保存して終了",
     "saveAndStay": "保存して続ける",
     "insertRow": "行を挿入",
-    "deleteRow": "行を削除",
     "duplicateRow": "Duplicate Row",
+    "deleteRow": "行を削除",
     "deleteSelectedRow": "選択行を削除",
     "importExcel": "エクセルファイルをインポート",
     "importCSV": "CSV のインポート",
@@ -402,6 +412,8 @@
     "changePwd": "パスワードを変更",
     "createView": "ビューを作成",
     "shareView": "ビューを共有",
+    "findRowByCodeScan": "Find row by scan",
+    "fillByCodeScan": "Fill by scan",
     "listSharedView": "共有されているビューの一覧",
     "ListView": "ビューの一覧",
     "copyView": "ビューをコピー",
@@ -417,6 +429,10 @@
     "openTab": "新しいタブで開く",
     "iFrame": "埋め込み用 HTML をコピー",
     "addWebhook": "WebHookを追加",
+    "enableWebhook": "Enable Webhook",
+    "testWebhook": "Test Webhook",
+    "copyWebhook": "Copy Webhook",
+    "deleteWebhook": "Delete Webhook",
     "newToken": "トークンを追加",
     "exportZip": "zip ファイルをエクスポート",
     "importZip": "zip ファイルをインポート",
@@ -452,7 +468,14 @@
       "stackedBy": "スタック",
       "chooseGroupingField": "グループ化するフィールドを選択",
       "addOrEditStack": "スタックの追加/編集"
-    }
+    },
+    "map": {
+      "mappedBy": "Mapped By",
+      "chooseMappingField": "Choose a Mapping Field",
+      "openInGoogleMaps": "Google Maps",
+      "openInOpenStreetMap": "OSM"
+    },
+    "toggleMobileMode": "Toggle Mobile Mode"
   },
   "tooltip": {
     "saveChanges": "変更を保存",
@@ -517,6 +540,17 @@
       "roles": {
         "orgCreator": "「作成者」は新しいプロジェクトを作成でき、かつ招待されたプロジェクトにもアクセスできます。",
         "orgViewer": "ビューアーは新規プロジェクトを作成することはできませんが、招待されたプロジェクトにアクセスできます。"
+      },
+      "codeScanner": {
+        "loadingScanner": "Loading the scanner...",
+        "selectColumn": "Select a column (QR code or Barcode) that you want to use for finding a row by scanning.",
+        "moreThanOneRowFoundForCode": "More than one row found for this code. Currently only unique codes are supported.",
+        "noRowFoundForCode": "No row found for this code for the selected column"
+      },
+      "map": {
+        "overLimit": "You're over the limit.",
+        "closeLimit": "You're getting close to the limit.",
+        "limitNumber": "The limit of markers shown in a Map View is 1000 records."
       },
       "footerInfo": "1ページあたりの行数",
       "upload": "アップロードするファイルを選択してください",
@@ -600,6 +634,7 @@
         "gallery": "ギャラリービューを追加",
         "form": "フォームビューを追加",
         "kanban": "カンバンビューを追加",
+        "map": "Add Map View",
         "calendar": "カレンダービューを追加"
       },
       "tablesMetadataInSync": "テーブルメタデータは同期されています",
@@ -663,6 +698,7 @@
         "allowedSpecialCharList": "利用できる記号の一覧"
       },
       "invalidURL": "無効なURL",
+      "invalidEmail": "Invalid Email",
       "internalError": "内部エラーが発生しました",
       "templateGeneratorNotFound": "テンプレートジェネレーターが見つかりません！",
       "fileUploadFailed": "ファイルのアップロードに失敗しました",
@@ -690,6 +726,7 @@
       "nameShouldStartWithAnAlphabetOr_": "名前はアルファベットまたは_で始まる必要があります",
       "followingCharactersAreNotAllowed": "以下の文字種は使用できません",
       "columnNameRequired": "列名が必要です",
+      "columnNameExceedsCharacters": "The length of column name exceeds the max {value} characters",
       "projectNameExceeds50Characters": "プロジェクト名が50文字を超えています",
       "projectNameCannotStartWithSpace": "プロジェクト名の先頭にはスペースは利用できません",
       "requiredField": "必須フィールド",
@@ -742,6 +779,7 @@
       "userDeletedFromProject": "プロジェクトからユーザーを削除しました",
       "inviteEmailSent": "招待メールを送信しました",
       "inviteURLCopied": "招待 URL をクリップボードにコピーしました",
+      "commentCopied": "Comment copied to clipboard",
       "passwordResetURLCopied": "パスワードリセット URL をクリップボードにコピーしました",
       "shareableURLCopied": "共有可能なベースURLをクリップボードにコピーしました。",
       "embeddableHTMLCodeCopied": "埋め込み用 HTML をコピーしました",

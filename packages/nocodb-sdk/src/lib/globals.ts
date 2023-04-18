@@ -3,6 +3,13 @@ export enum ViewTypes {
   GALLERY = 2,
   GRID = 3,
   KANBAN = 4,
+  MAP = 5,
+}
+
+export enum ProjectTypes {
+  DATABASE = 'database',
+  DOCUMENTATION = 'documentation',
+  COWRITER = 'cowriter',
 }
 
 export enum RelationTypes {
@@ -46,15 +53,13 @@ export enum AuditOperationSubTypes {
   LINK_RECORD = 'LINK_RECORD',
   UNLINK_RECORD = 'UNLINK_RECORD',
   DELETE = 'DELETE',
-  CREATED = 'CREATED',
-  DELETED = 'DELETED',
-  RENAMED = 'RENAMED',
+  CREATE = 'CREATE',
+  RENAME = 'RENAME',
   IMPORT_FROM_ZIP = 'IMPORT_FROM_ZIP',
   EXPORT_TO_FS = 'EXPORT_TO_FS',
   EXPORT_TO_ZIP = 'EXPORT_TO_ZIP',
-  UPDATED = 'UPDATED',
   SIGNIN = 'SIGNIN',
-  SIGN = 'SIGN',
+  SIGNUP = 'SIGNUP',
   PASSWORD_RESET = 'PASSWORD_RESET',
   PASSWORD_FORGOT = 'PASSWORD_FORGOT',
   PASSWORD_CHANGE = 'PASSWORD_CHANGE',

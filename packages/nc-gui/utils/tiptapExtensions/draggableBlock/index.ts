@@ -1,5 +1,7 @@
 import { Node, mergeAttributes } from '@tiptap/core'
+import type { Editor } from '@tiptap/vue-3'
 import { VueNodeViewRenderer } from '@tiptap/vue-3'
+import type { EditorState } from 'prosemirror-state'
 import { Plugin, TextSelection } from 'prosemirror-state'
 import DraggableBlockComponent from './draggable-block.vue'
 
@@ -47,7 +49,7 @@ export const DraggableBlock = Node.create<DBlockOptions>({
     return ['div', mergeAttributes(HTMLAttributes, { 'data-type': 'd-block' }), 0]
   },
 
-  onSelectionUpdate(data) {
+  onSelectionUpdate(data: any) {
     // If cursor is inside the node, we make the node focused
     if (!data) return
 
@@ -62,9 +64,6 @@ export const DraggableBlock = Node.create<DBlockOptions>({
         props: {
           handleDOMEvents: {
             drop: (view, event) => {
-              const target = event.target as HTMLElement
-              const parent = target.parentElement
-
               if (!event.dataTransfer?.getData('text/html').includes('data-type="d-block"')) {
                 return false
               }
@@ -127,14 +126,26 @@ export const DraggableBlock = Node.create<DBlockOptions>({
     return {
       'Mod-Alt-0': () => this.editor.commands.setDBlock(),
       'Enter': ({ editor }) => {
+        if (handleForQuoteAndCodeNode(editor as any)) return true
+
         const {
           selection: { $head, from, to },
           doc,
         } = editor.state
 
         const parent = $head.node($head.depth - 1)
-
         if (parent.type.name !== 'dBlock') return false
+
+        const currentNode = $head.node($head.depth)
+
+        if (
+          currentNode.type.name === 'codeBlock' ||
+          currentNode.type.name === 'bullet' ||
+          currentNode.type.name === 'ordered' ||
+          currentNode.type.name === 'task'
+        ) {
+          return false
+        }
 
         const activeNodeText: string | undefined = parent.firstChild?.content?.content?.[0]?.text
         if (activeNodeText?.startsWith('/')) return false
@@ -174,46 +185,131 @@ export const DraggableBlock = Node.create<DBlockOptions>({
           .run()
       },
       'Backspace': ({ editor }) => {
-        // Delete prev node if image or embed if cursor is at the start of the node
         const state = editor.state
-        if (state.selection.$from.parentOffset !== 0) return false
-        const parentNode = state.selection.$from.node(-1)
-        if (!parentNode) return false
 
-        const prevNodePos = state.selection.$from.pos - parentNode.nodeSize
-        if (prevNodePos <= 0) return false
+        // Handle delete on first empty line
+        const currentNode = state.selection.$from.node()
+        const from = state.selection.$from.pos
+        const firstLinePos = 2
+        if (
+          from === firstLinePos &&
+          currentNode.textContent === '' &&
+          currentNode.type.name === 'paragraph' &&
+          state.selection.empty
+        ) {
+          // Delete the node
+          editor.view.dispatch(state.tr.delete(from - 2, from + 1))
+          return true
+        }
 
-        const prevNode = state.doc.nodeAt(state.selection.$from.pos - parentNode.nodeSize)
-        if (!prevNode) return false
-
-        const prevNodeParentPos = state.selection.$from.pos - parentNode.nodeSize - prevNode.nodeSize
-
-        if (prevNode?.type.name !== 'image' && prevNode?.type.name !== 'externalContent') return false
-
-        editor.view.dispatch(state.tr.delete(prevNodeParentPos, prevNodePos + 1))
-        return true
+        return false
       },
     }
   },
 })
 
-function focusCurrentDraggableBlock(state) {
-  let totalSize = 0
+function focusCurrentDraggableBlock(state: EditorState) {
+  let activeNodeIndex = 0
+  let found = false
 
-  let nodeIndex = 0
-  for (const rootNode of state.doc.content.content) {
-    totalSize += rootNode.nodeSize
-    if (totalSize > state.selection.from) {
-      break
+  state.doc.descendants((node, pos) => {
+    if (node.type.name === 'collapsable') {
+      return true
     }
-    nodeIndex++
+    if (node.type.name === 'collapsable_content') {
+      return true
+    }
+
+    if (node.type.name !== 'dBlock') return false
+    if (found) return false
+
+    if (pos > state.selection.$from.pos) {
+      found = true
+      return false
+    }
+
+    activeNodeIndex = activeNodeIndex + 1
+
+    return true
+  })
+
+  const dbBlockDoms = document.querySelectorAll('.draggable-block-wrapper')
+  for (let i = 0; i < dbBlockDoms.length; i++) {
+    dbBlockDoms[i].classList.remove('focused')
+    if (i === activeNodeIndex - 1) {
+      setTimeout(() => {
+        dbBlockDoms[i].classList.add('focused')
+      }, 0)
+    }
+  }
+}
+
+function handleForQuoteAndCodeNode(editor: Editor) {
+  const state = editor.state
+  const { from, to } = editor.state.selection
+
+  if (from !== to) return false
+
+  const parentNode = state.selection.$from.node(-1)
+  const currentNode = state.selection.$from.node()
+
+  const parentType = parentNode?.type.name
+  const currentNodeType = currentNode?.type.name
+
+  if (currentNodeType === 'codeBlock') {
+    return handleCodeblockLastLineEnter(editor)
   }
 
-  const dbBlockDom = document.querySelectorAll('.draggable-block-wrapper')
-  for (let i = 0; i < dbBlockDom.length; i++) {
-    dbBlockDom[i].classList.remove('focused')
-    if (i === nodeIndex) {
-      dbBlockDom[i].classList.add('focused')
-    }
+  if (parentType === 'blockquote') {
+    return handleBlockquote(editor)
   }
+
+  return false
+}
+
+function handleBlockquote(editor: Editor) {
+  const state = editor.state
+
+  const currentNode = state.selection.$from.node()
+
+  if (currentNode?.textContent?.length !== 0) {
+    editor.chain().insertContentAt(state.selection.$from.pos, { type: 'paragraph', text: '\n' }).run()
+    return true
+  }
+
+  editor
+    .chain()
+    .setTextSelection({ from: state.selection.$from.pos - 1, to: state.selection.$from.pos })
+    .deleteSelection()
+    .run()
+
+  return true
+}
+
+function handleCodeblockLastLineEnter(editor: Editor) {
+  const { from, to } = editor.state.selection
+
+  if (from !== to) return false
+
+  const currentNode = editor.state.selection.$from.node()
+  if (currentNode?.type.name !== 'codeBlock') return false
+
+  const nextNodePos = editor.state.selection.$from.pos + 2
+  const nextNode = editor.state.doc.nodeAt(nextNodePos)
+
+  if (currentNode.textContent.length === 0) {
+    editor.chain().insertContentAt(editor.state.selection.$from.pos, { text: '\n' }).run()
+    return true
+  }
+
+  if (currentNode.textContent[currentNode.textContent.length - 1] !== '\n') return false
+  if (nextNode?.type.name !== 'dBlock') return false
+
+  editor
+    .chain()
+    .setTextSelection({ from: from - 1, to: from })
+    .deleteSelection()
+    .focus(nextNodePos + 1)
+    .run()
+  return true
 }

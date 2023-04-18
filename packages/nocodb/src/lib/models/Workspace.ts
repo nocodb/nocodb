@@ -2,9 +2,11 @@ import { extractProps } from '../meta/helpers/extractProps';
 import Noco from '../Noco';
 import { MetaTable } from '../utils/globals';
 
-import { WorkspaceType } from 'nocodb-sdk';
+import Page from './Page';
+import type NcMetaIO from '../meta/NcMetaIO';
+import type { WorkspaceType } from 'nocodb-sdk';
 
-export class Workspace implements WorkspaceType {
+export default class Workspace implements WorkspaceType {
   id?: string;
   title?: string;
   description?: string;
@@ -19,6 +21,26 @@ export class Workspace implements WorkspaceType {
 
   constructor(workspace: Workspace | WorkspaceType) {
     Object.assign(this, workspace);
+  }
+
+  public static async getByTitle({
+    title,
+    ncMeta = Noco.ncMeta,
+  }: {
+    title: string;
+    ncMeta?: NcMetaIO;
+  }): Promise<Workspace | undefined> {
+    const workspace = await ncMeta.metaGet2(null, null, MetaTable.WORKSPACE, {
+      title,
+    });
+    if (workspace?.meta && typeof workspace.meta === 'string') {
+      try {
+        workspace.meta = JSON.parse(workspace.meta);
+      } catch {
+        workspace.meta = {};
+      }
+    }
+    return workspace && new Workspace(workspace);
   }
 
   public static async get(workspaceId: string, ncMeta = Noco.ncMeta) {
@@ -65,6 +87,11 @@ export class Workspace implements WorkspaceType {
       MetaTable.WORKSPACE,
       insertObject
     );
+
+    await Page.createPageTable({
+      workspaceId: id,
+    } as any);
+
     return this.get(id);
   }
 

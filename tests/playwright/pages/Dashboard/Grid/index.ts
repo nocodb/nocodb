@@ -87,7 +87,8 @@ export class GridPage extends BasePage {
         uiAction: clickOnColumnHeaderToSave,
         requestUrlPathToMatch: 'api/v1/db/data/noco',
         httpMethodsToMatch: ['POST'],
-        responseJsonMatcher: resJson => resJson?.[columnHeader] === rowValue,
+        // numerical types are returned in number format from the server
+        responseJsonMatcher: resJson => String(resJson?.[columnHeader]) === String(rowValue),
       });
     } else {
       await clickOnColumnHeaderToSave();
@@ -122,7 +123,8 @@ export class GridPage extends BasePage {
           // since edit row on an empty row will emit POST request
           'POST',
         ],
-        responseJsonMatcher: resJson => resJson?.[columnHeader] === value,
+        // numerical types are returned in number format from the server
+        responseJsonMatcher: resJson => String(resJson?.[columnHeader]) === String(value),
       });
     } else {
       await clickOnColumnHeaderToSave();
@@ -142,8 +144,8 @@ export class GridPage extends BasePage {
     return await expect(this.get().locator(`td[data-testid="cell-Title-${index}"]`)).toHaveCount(0);
   }
 
-  async deleteRow(index: number) {
-    await this.get().getByTestId(`cell-Title-${index}`).click({
+  async deleteRow(index: number, title = 'Title') {
+    await this.get().getByTestId(`cell-${title}-${index}`).click({
       button: 'right',
     });
 
@@ -212,8 +214,8 @@ export class GridPage extends BasePage {
       recordCnt = records[0].split(' ')[0];
 
       // to ensure page loading is complete
-      await this.rootPage.waitForTimeout(500);
       i++;
+      await this.rootPage.waitForTimeout(100 * i);
     }
     expect(parseInt(recordCnt)).toEqual(count);
   }
@@ -282,6 +284,9 @@ export class GridPage extends BasePage {
       columnHeader: columnHeader,
     });
     await expect(await cell.locator('input')).toBeVisible();
+
+    // press escape to exit edit mode
+    await cell.press('Escape');
 
     // right click menu
     await this.get().locator(`td[data-testid="cell-${columnHeader}-0"]`).click({

@@ -1,20 +1,18 @@
 import CryptoJS from 'crypto-js';
 import { customAlphabet } from 'nanoid';
-
-import { NcConfig } from '../../interface/config';
-import { Knex, XKnex } from '../db/sql-data-mapper';
-import Noco from '../Noco';
+import { XKnex } from '../db/sql-data-mapper';
 import XcMigrationSource from '../migrations/XcMigrationSource';
-
-import NcMetaIO, { META_TABLES } from './NcMetaIO';
 import NcConnectionMgr from '../utils/common/NcConnectionMgr';
 import { MetaTable } from '../utils/globals';
 import XcMigrationSourcev2 from '../migrations/XcMigrationSourcev2';
 import XcMigrationSourcev3 from '../migrations/XcMigrationSourcev3';
+import NcMetaIO, { META_TABLES } from './NcMetaIO';
+import type Noco from '../Noco';
+import type { Knex } from '../db/sql-data-mapper';
+import type { NcConfig } from '../../interface/config';
 
-// import { nanoid } from 'nanoid';
-/*import { v4 as uuidv4 } from 'uuid';*/
 const nanoid = customAlphabet('1234567890abcdefghijklmnopqrstuvwxyz_', 4);
+
 const nanoidv2 = customAlphabet('1234567890abcdefghijklmnopqrstuvwxyz', 14);
 
 export default class NcMetaIOImpl extends NcMetaIO {
@@ -861,6 +859,9 @@ export default class NcMetaIOImpl extends NcMetaIO {
         break;
       case MetaTable.HOOKS:
         prefix = 'hk_';
+        break;
+      case MetaTable.HOOK_LOGS:
+        prefix = 'hkl_';
         break;
       case MetaTable.AUDIT:
         prefix = 'adt_';

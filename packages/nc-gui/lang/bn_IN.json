@@ -39,6 +39,7 @@
     "signIn": "সাইন ইন করুন",
     "signOut": "সাইন আউট",
     "required": "প্রয়োজনীয়",
+    "enableScanner": "Enable Scanner for filling",
     "preferred": "পছন্দসই",
     "mandatory": "বাধ্যতামূলক",
     "loading": "লোড হচ্ছে ...",
@@ -74,7 +75,8 @@
     "insertBefore": "Insert Before",
     "hideField": "Hide Field",
     "sortAsc": "Sort Ascending",
-    "sortDesc": "Sort Descending"
+    "sortDesc": "Sort Descending",
+    "geoDataField": "GeoData Field"
   },
   "objects": {
     "project": "প্রকল্প",
@@ -98,7 +100,8 @@
       "gallery": "গ্যালারী",
       "form": "ফর্ম",
       "kanban": "কানবান",
-      "calendar": "ক্যালেন্ডার"
+      "calendar": "ক্যালেন্ডার",
+      "map": "Map"
     },
     "user": "ব্যবহারকারী",
     "users": "ব্যবহারকারীরা",
@@ -136,6 +139,7 @@
     "Currency": "মুদ্রা",
     "Percent": "শতাংশ",
     "Duration": "সময়কাল",
+    "GeoData": "GeoData",
     "Rating": "রেটিং",
     "Formula": "সূত্র",
     "Rollup": "রোলআপ",
@@ -206,7 +210,8 @@
     "advancedSettings": "Advanced Settings",
     "codeSnippet": "Code Snippet",
     "keyboardShortcut": "Keyboard Shortcuts",
-    "generateRandomName": "Generate Random Name"
+    "generateRandomName": "Generate Random Name",
+    "findRowByScanningCode": "Find row by scanning a QR or Barcode"
   },
   "labels": {
     "createdBy": "Created By",
@@ -216,6 +221,7 @@
     "viewName": "নাম দেখুন",
     "viewLink": "লিঙ্ক দেখুন",
     "columnName": "কলামের নাম",
+    "columnToScanFor": "Column to scan",
     "columnType": "কলাম প্রকার",
     "roleName": "নামভূমিকা",
     "roleDescription": "ভূমিকা বর্ণনা",
@@ -232,6 +238,7 @@
     "action": "কর্ম",
     "actions": "ক্রিয়া",
     "operation": "অপারেশন",
+    "operationSub": "Sub Operation",
     "operationType": "অপারেশন টাইপ",
     "operationSubType": "অপারেশন সাব-টাইপ",
     "description": "বর্ণনা",
@@ -253,6 +260,9 @@
     "barcodeFormat": "Barcode format",
     "qrCodeValueTooLong": "Too many characters for a QR code",
     "barcodeValueTooLong": "Too many characters for a barcode",
+    "currentLocation": "Current Location",
+    "lng": "Lng",
+    "lat": "Lat",
     "aggregateFunction": "সামগ্রিক ফাংশন",
     "dbCreateIfNotExists": "ডাটাবেস: উপস্থিত না থাকলে তৈরি করুন",
     "clientKey": "ক্লায়েন্ট কী",
@@ -386,8 +396,8 @@
     "saveAndExit": "Save & Exit",
     "saveAndStay": "Save & Stay",
     "insertRow": "নতুন সারি ঢোকান",
-    "deleteRow": "সারি মুছুন",
     "duplicateRow": "Duplicate Row",
+    "deleteRow": "সারি মুছুন",
     "deleteSelectedRow": "নির্বাচিত সারিগুলি মুছুন",
     "importExcel": "এক্সেল আমদানি করুন",
     "importCSV": "Import CSV",
@@ -402,6 +412,8 @@
     "changePwd": "পাসওয়ার্ড পরিবর্তন করুন",
     "createView": "একটি দৃশ্য তৈরি করুন",
     "shareView": "শেয়ার ভিউ",
+    "findRowByCodeScan": "Find row by scan",
+    "fillByCodeScan": "Fill by scan",
     "listSharedView": "ভাগ করা ভিউ তালিকা",
     "ListView": "ভিউ তালিকা",
     "copyView": "অনুলিপি দেখুন",
@@ -417,6 +429,10 @@
     "openTab": "নতুন ট্যাব খুলুন",
     "iFrame": "এম্বেডযোগ্য এইচটিএমএল কোড অনুলিপি করুন",
     "addWebhook": "নতুন ওয়েবহুক যুক্ত করুন",
+    "enableWebhook": "Enable Webhook",
+    "testWebhook": "Test Webhook",
+    "copyWebhook": "Copy Webhook",
+    "deleteWebhook": "Delete Webhook",
     "newToken": "নতুন টোকেন যুক্ত করুন",
     "exportZip": "রফতানি জিপ",
     "importZip": "আমদানি জিপ",
@@ -452,7 +468,14 @@
       "stackedBy": "Stacked By",
       "chooseGroupingField": "Choose a Grouping Field",
       "addOrEditStack": "Add / Edit Stack"
-    }
+    },
+    "map": {
+      "mappedBy": "Mapped By",
+      "chooseMappingField": "Choose a Mapping Field",
+      "openInGoogleMaps": "Google Maps",
+      "openInOpenStreetMap": "OSM"
+    },
+    "toggleMobileMode": "Toggle Mobile Mode"
   },
   "tooltip": {
     "saveChanges": "परिवर्तनों को सुरक्षित करें",
@@ -517,6 +540,17 @@
       "roles": {
         "orgCreator": "Creator can create new projects and access any invited project.",
         "orgViewer": "Viewer is not allowed to create new projects but they can access any invited project."
+      },
+      "codeScanner": {
+        "loadingScanner": "Loading the scanner...",
+        "selectColumn": "Select a column (QR code or Barcode) that you want to use for finding a row by scanning.",
+        "moreThanOneRowFoundForCode": "More than one row found for this code. Currently only unique codes are supported.",
+        "noRowFoundForCode": "No row found for this code for the selected column"
+      },
+      "map": {
+        "overLimit": "You're over the limit.",
+        "closeLimit": "You're getting close to the limit.",
+        "limitNumber": "The limit of markers shown in a Map View is 1000 records."
       },
       "footerInfo": "প্রতি পৃষ্ঠায় সারি",
       "upload": "আপলোড করতে ফাইল নির্বাচন করুন",
@@ -600,6 +634,7 @@
         "gallery": "গ্যালারী ভিউ যুক্ত করুন",
         "form": "ফর্ম ভিউ যোগ করুন",
         "kanban": "কানবান ভিউ যুক্ত করুন",
+        "map": "Add Map View",
         "calendar": "ক্যালেন্ডার ভিউ যুক্ত করুন"
       },
       "tablesMetadataInSync": "টেবিলের মেটাডেটা সিঙ্ক করা আছে",
@@ -663,6 +698,7 @@
         "allowedSpecialCharList": "Allowed special character list"
       },
       "invalidURL": "Invalid URL",
+      "invalidEmail": "Invalid Email",
       "internalError": "Some internal error occurred",
       "templateGeneratorNotFound": "Template Generator cannot be found!",
       "fileUploadFailed": "Failed to upload file",
@@ -690,6 +726,7 @@
       "nameShouldStartWithAnAlphabetOr_": "Name should start with an alphabet or _",
       "followingCharactersAreNotAllowed": "Following characters are not allowed",
       "columnNameRequired": "Column name is required",
+      "columnNameExceedsCharacters": "The length of column name exceeds the max {value} characters",
       "projectNameExceeds50Characters": "Project name exceeds 50 characters",
       "projectNameCannotStartWithSpace": "Project name cannot start with space",
       "requiredField": "Required field",
@@ -742,6 +779,7 @@
       "userDeletedFromProject": "Successfully deleted user from project",
       "inviteEmailSent": "Invite Email sent successfully",
       "inviteURLCopied": "Invite URL copied to clipboard",
+      "commentCopied": "Comment copied to clipboard",
       "passwordResetURLCopied": "Password reset URL copied to clipboard",
       "shareableURLCopied": "Copied shareable base URL to clipboard!",
       "embeddableHTMLCodeCopied": "Copied embeddable HTML code!",

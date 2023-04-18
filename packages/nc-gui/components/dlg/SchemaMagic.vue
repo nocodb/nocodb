@@ -71,9 +71,18 @@ const _createTable = async () => {
     e.errorFields.map((f: Record<string, any>) => message.error(f.errors.join(',')))
     if (e.errorFields.length) return
   }
-  loadMagic.value = true
-  await createSchemaMagic()
-  loadMagic.value = false
+  let failed = false
+  try {
+    loadMagic.value = true
+    failed = !(await createSchemaMagic())
+  } catch {
+    failed = true
+  } finally {
+    loadMagic.value = false
+  }
+  if (!failed) {
+    message.warning('NocoAI: Underlying GPT API are busy. Please try after sometime.')
+  }
 }
 
 onMounted(() => {
@@ -98,14 +107,17 @@ onMounted(() => {
     <template #footer>
       <a-button key="back" size="large" @click="dialogShow = false">{{ $t('general.cancel') }}</a-button>
 
-      <a-button key="submit" size="large" type="primary" @click="_createTable">{{ $t('general.submit') }}</a-button>
+      <a-button key="submit" size="large" :loading="loadMagic" type="primary" @click="_createTable"
+        >{{ $t('general.submit') }}
+      </a-button>
     </template>
 
     <div class="pl-10 pr-10 pt-5">
       <a-form :model="table" name="create-new-table-form" @keydown.enter="_createTable">
         <!-- Create A New Table -->
         <div class="flex prose-xl font-bold self-center my-4 items-center">
-          Create schema using <PhSparkleFill :class="{ 'nc-animation-pulse': loadMagic }" class="ml-2 text-orange-400" />
+          Create schema using
+          <GeneralIcon icon="magic" :class="{ 'nc-animation-pulse': loadMagic }" class="ml-2 text-orange-400" />
         </div>
 
         <!-- hint="Enter table name" -->

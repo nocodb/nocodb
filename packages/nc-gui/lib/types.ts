@@ -1,4 +1,4 @@
-import type { DocsPageType, FilterType, ViewTypes } from 'nocodb-sdk'
+import type { DocsPageType, FilterType, MetaType, ViewTypes } from 'nocodb-sdk'
 import type { I18n } from 'vue-i18n'
 import type { Theme as AntTheme } from 'ant-design-vue/es/config-provider'
 import type { UploadFile } from 'ant-design-vue'
@@ -21,7 +21,7 @@ export interface ProjectMetaInfo {
   Platform?: string
   Docker?: boolean
   Database?: string
-  ProjectOnRootDB?: string
+  ProjectOnRootDB?: boolean
   RootDB?: string
   PackageVersion?: string
 }
@@ -32,6 +32,7 @@ export interface Field {
   title: string
   fk_column_id?: string
   system?: boolean
+  isViewEssentialField?: boolean
 }
 
 export type Roles<T extends Role | ProjectRole = Role | ProjectRole> = Record<T | string, boolean>
@@ -78,7 +79,9 @@ export interface TabItem {
   viewId?: string
   sortsState?: Map<string, any>
   filterState?: Map<string, any>
-  meta?: Record<string, any>
+  meta?: MetaType
+  tabMeta?: any
+  projectId?: string
 }
 
 export interface SharedViewMeta extends Record<string, any> {
@@ -119,3 +122,9 @@ export interface AntSidebarNode {
 
 export type PageSidebarNode = DocsPageType & AntSidebarNode
 export type PublishTreeNode = PageSidebarNode & { isSelected: boolean; key: string }
+
+export interface UndoRedoAction {
+  undo: { fn: Function; args: any[] }
+  redo: { fn: Function; args: any[] }
+  scope?: { key: string; param: string }[]
+}

@@ -1,5 +1,5 @@
-import { Knex } from 'knex';
 import { MetaTable } from '../../utils/globals';
+import type { Knex } from 'knex';
 
 const up = async (knex: Knex) => {
   await knex.schema.createTable(MetaTable.WORKSPACE, (table) => {

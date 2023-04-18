@@ -1,5 +1,6 @@
 import { expect, Locator, Page } from '@playwright/test';
 import BasePage from '../../Base';
+import { getTextExcludeIconText } from '../../../tests/utils/general';
 
 export class SurveyFormPage extends BasePage {
   readonly formHeading: Locator;
@@ -42,7 +43,15 @@ export class SurveyFormPage extends BasePage {
     await expect(this.formHeading).toHaveText(heading);
     await expect(this.formSubHeading).toHaveText(subHeading);
     await expect(this.formFooter).toHaveText(footer);
-    await expect(this.get().locator(`[data-testid="nc-form-column-label"]`)).toHaveText(fieldLabel);
+
+    const locator = this.get().locator(`[data-testid="nc-form-column-label"]`);
+    let fieldText = await getTextExcludeIconText(locator);
+
+    // replace whitespace with ' ' for fieldLabel & fieldText
+    fieldLabel = fieldLabel.replace(/\u00A0/g, ' ');
+    fieldText = fieldText.replace(/\u00A0/g, ' ');
+
+    await expect(fieldText).toBe(fieldLabel);
 
     // parse footer text ("1 / 3") to identify if last slide
     let isLastSlide = false;
@@ -66,12 +75,16 @@ export class SurveyFormPage extends BasePage {
       // press enter key
       await this.get().locator(`[data-testid="nc-survey-form__input-${param.fieldLabel}"] >> input`).press('Enter');
     } else if (param.type === 'DateTime') {
+      await this.get().locator(`[data-testid="nc-survey-form__input-${param.fieldLabel}"] >> input`).click();
       const modal = await this.rootPage.locator('.nc-picker-datetime');
       await expect(modal).toBeVisible();
       await modal.locator('.ant-picker-now-btn').click();
       await modal.locator('.ant-picker-ok').click();
       await this.nextButton.click();
     }
+
+    // post next button click, allow transitions to complete
+    await this.rootPage.waitForTimeout(100);
   }
 
   async validateSuccessMessage(param: { message: string; showAnotherForm?: boolean }) {

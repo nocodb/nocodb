@@ -2,16 +2,13 @@
 import type { FunctionalComponent, SVGAttributes } from 'vue'
 import DataSources from './DataSources.vue'
 import Misc from './Misc.vue'
-import { DataSourcesSubTab, useI18n, useNuxtApp, useUIPermission, useVModel, watch } from '#imports'
-import TeamFillIcon from '~icons/ri/team-fill'
-import MultipleTableIcon from '~icons/mdi/table-multiple'
-import NotebookOutline from '~icons/mdi/notebook-outline'
-import FolderCog from '~icons/mdi/folder-cog'
+import { DataSourcesSubTab, iconMap, useI18n, useNuxtApp, useUIPermission, useVModel, watch } from '#imports'
 
 interface Props {
-  modelValue: boolean
-  openKey: string
-  dataSourcesState: string
+  modelValue?: boolean
+  openKey?: string
+  dataSourcesState?: string
+  projectId?: string
 }
 
 interface SubTabGroup {
@@ -41,6 +38,10 @@ const vOpenKey = useVModel(props, 'openKey', emits)
 
 const vDataState = useVModel(props, 'dataSourcesState', emits)
 
+const projectId = toRef(props, 'projectId')
+
+provide(ProjectIdInj, projectId)
+
 const { isUIAllowed } = useUIPermission()
 
 const { t } = useI18n()
@@ -54,7 +55,7 @@ const dataSourcesAwakened = ref(false)
 const tabsInfo: TabGroup = {
   teamAndAuth: {
     title: t('title.teamAndAuth'),
-    icon: TeamFillIcon,
+    icon: iconMap.users,
     subTabs: {
       ...(isUIAllowed('userMgmtTab')
         ? {
@@ -82,7 +83,7 @@ const tabsInfo: TabGroup = {
   dataSources: {
     // Data Sources
     title: 'Data Sources',
-    icon: MultipleTableIcon,
+    icon: iconMap.datasource,
     subTabs: {
       dataSources: {
         title: 'Data Sources',
@@ -97,7 +98,7 @@ const tabsInfo: TabGroup = {
   audit: {
     // Audit
     title: t('title.audit'),
-    icon: NotebookOutline,
+    icon: iconMap.book,
     subTabs: {
       audit: {
         // Audit
@@ -112,7 +113,7 @@ const tabsInfo: TabGroup = {
   projectSettings: {
     // Project Settings
     title: 'Project Settings',
-    icon: FolderCog,
+    icon: iconMap.settings,
     subTabs: {
       misc: {
         // Misc
@@ -174,7 +175,7 @@ watch(
         data-testid="settings-modal-close-button"
         @click="vModel = false"
       >
-        <MdiClose class="cursor-pointer nc-modal-close w-4" />
+        <component :is="iconMap.close" class="cursor-pointer nc-modal-close w-4" />
       </a-button>
     </div>
 
@@ -231,7 +232,7 @@ watch(
                 @click="vDataState = DataSourcesSubTab.New"
               >
                 <div v-if="vDataState === ''" class="flex items-center gap-2 text-primary font-light">
-                  <MdiDatabasePlusOutline class="text-lg group-hover:text-accent" />
+                  <component :is="iconMap.plusCircle" class="group-hover:text-accent" />
                   New
                 </div>
               </a-button>
@@ -242,7 +243,7 @@ watch(
                 @click="dataSourcesReload = true"
               >
                 <div class="flex items-center gap-2 text-gray-600 font-light">
-                  <MdiReload :class="{ 'animate-infinite animate-spin !text-success': dataSourcesReload }" />
+                  <component :is="iconMap.reload" :class="{ 'animate-infinite animate-spin !text-success': dataSourcesReload }" />
                   {{ $t('general.reload') }}
                 </div>
               </a-button>
@@ -259,12 +260,14 @@ watch(
             v-model:reload="dataSourcesReload"
             class="px-2 pb-2"
             :data-testid="`nc-settings-subtab-${selectedSubTab.title}`"
+            :project-id="projectId"
             @awaken="handleAwaken"
           />
           <component
             :is="selectedSubTab?.body"
             v-else
             class="px-2 py-6"
+            :project-id="projectId"
             :data-testid="`nc-settings-subtab-${selectedSubTab.title}`"
           />
         </div>

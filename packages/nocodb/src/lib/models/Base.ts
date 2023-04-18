@@ -1,34 +1,46 @@
-import Noco from '../Noco';
-import Project from './Project';
+import { UITypes } from 'nocodb-sdk';
+import CryptoJS from 'crypto-js';
+import NocoCache from '../cache/NocoCache';
 import {
   CacheDelDirection,
   CacheGetType,
   CacheScope,
   MetaTable,
 } from '../utils/globals';
-import Model from './Model';
-import { BaseType, UITypes } from 'nocodb-sdk';
-import NocoCache from '../cache/NocoCache';
-import CryptoJS from 'crypto-js';
+import Noco from '../Noco';
 import { extractProps } from '../meta/helpers/extractProps';
 import { NcError } from '../meta/helpers/catchError';
-import SyncSource from './SyncSource';
 import NcConnectionMgrv2 from '../utils/common/NcConnectionMgrv2';
+import Model from './Model';
+import Project from './Project';
+import SyncSource from './SyncSource';
+import type { BaseType, BoolType } from 'nocodb-sdk';
+
+const { v4: uuidv4 } = require('uuid');
+
+export const DB_TYPES = <const>[
+  'mysql2',
+  'sqlite3',
+  'mysql',
+  'mssql',
+  'snowflake',
+  'oracledb',
+  'pg',
+];
 
 // todo: hide credentials
 export default class Base implements BaseType {
   id?: string;
   project_id?: string;
   alias?: string;
-  type?: string;
-  is_meta?: boolean;
-  config?: any;
-  created_at?: any;
-  updated_at?: any;
+  type?: typeof DB_TYPES[number];
+  is_meta?: BoolType;
+  config?: string;
   inflection_column?: string;
   inflection_table?: string;
   order?: number;
-  enabled?: boolean;
+  erd_uuid?: string;
+  enabled?: BoolType;
 
   constructor(base: Partial<Base>) {
     Object.assign(this, base);
@@ -44,8 +56,6 @@ export default class Base implements BaseType {
       'config',
       'type',
       'is_meta',
-      'created_at',
-      'updated_at',
       'inflection_column',
       'inflection_table',
       'order',
@@ -82,8 +92,6 @@ export default class Base implements BaseType {
     base: BaseType & {
       id: string;
       projectId: string;
-      created_at?;
-      updated_at?;
     },
     ncMeta = Noco.ncMeta
   ) {
@@ -102,8 +110,6 @@ export default class Base implements BaseType {
       'config',
       'type',
       'is_meta',
-      'created_at',
-      'updated_at',
       'inflection_column',
       'inflection_table',
       'order',
@@ -186,6 +192,18 @@ export default class Base implements BaseType {
     return baseData && new Base(baseData);
   }
 
+  static async getByUUID(uuid: string, ncMeta = Noco.ncMeta) {
+    const base = await ncMeta.metaGet2(null, null, MetaTable.BASES, {
+      erd_uuid: uuid,
+    });
+
+    if (!base) return null;
+
+    delete base.config;
+
+    return base && new Base(base);
+  }
+
   static async reorderBases(
     projectId: string,
     keepBase?: string,
@@ -240,7 +258,6 @@ export default class Base implements BaseType {
       if (config.client === 'sqlite3') {
         config.connection = metaConfig;
       }
-
       return config;
     }
 
@@ -349,5 +366,58 @@ export default class Base implements BaseType {
       { project_id: this.project_id, base_id: this.id },
       ncMeta
     );
+  }
+
+  async shareErd(ncMeta = Noco.ncMeta) {
+    if (!this.erd_uuid) {
+      const uuid = uuidv4();
+      this.erd_uuid = uuid;
+      // get existing cache
+      const key = `${CacheScope.BASE}:${this.id}`;
+      const o = await NocoCache.get(key, CacheGetType.TYPE_OBJECT);
+      if (o) {
+        // update data
+        o.erd_uuid = uuid;
+        // set cache
+        await NocoCache.set(key, o);
+      }
+      // set meta
+      await ncMeta.metaUpdate(
+        null,
+        null,
+        MetaTable.BASES,
+        {
+          erd_uuid: this.erd_uuid,
+        },
+        this.id
+      );
+    }
+    return this;
+  }
+
+  async disableShareErd(ncMeta = Noco.ncMeta) {
+    if (this.erd_uuid) {
+      this.erd_uuid = null;
+      // get existing cache
+      const key = `${CacheScope.BASE}:${this.id}`;
+      const o = await NocoCache.get(key, CacheGetType.TYPE_OBJECT);
+      if (o) {
+        // update data
+        o.erd_uuid = null;
+        // set cache
+        await NocoCache.set(key, o);
+      }
+      // set meta
+      await ncMeta.metaUpdate(
+        null,
+        null,
+        MetaTable.BASES,
+        {
+          erd_uuid: this.erd_uuid,
+        },
+        this.id
+      );
+    }
+    return this;
   }
 }

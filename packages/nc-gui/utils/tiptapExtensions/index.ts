@@ -1,18 +1,18 @@
-import BulletList from '@tiptap/extension-bullet-list'
-import HorizontalRule from '@tiptap/extension-horizontal-rule'
-import TaskItem from '@tiptap/extension-task-item'
-import TaskList from '@tiptap/extension-task-list'
 import Underline from '@tiptap/extension-underline'
 import Paragraph from '@tiptap/extension-paragraph'
 import Text from '@tiptap/extension-text'
 import DropCursor from '@tiptap/extension-dropcursor'
-import ListItem from '@tiptap/extension-list-item'
 import Bold from '@tiptap/extension-bold'
-import Strike from '@tiptap/extension-strike'
+import Italic from '@tiptap/extension-italic'
+import Code from '@tiptap/extension-code'
 import CodeBlock from '@tiptap/extension-code-block'
-import Blockquote from '@tiptap/extension-blockquote'
+import HardBreak from '@tiptap/extension-hard-break'
 import type { Extensions } from '@tiptap/core'
-import OrderedList from '@tiptap/extension-ordered-list'
+import { Quote } from './quote'
+import { Bullet } from './listItem/bullet'
+import { Ordered } from './listItem/ordered'
+import { Task } from './listItem/task'
+import { HorizontalRule } from './horizontalRule'
 import { Link } from './link'
 import { TableCell } from './table/cell'
 import { TableRow } from './table/row'
@@ -30,9 +30,13 @@ import { ExternalContent } from './external-content'
 import { Heading } from './heading'
 import { TrailingNode } from './trailingNode'
 import { Placeholder } from './placeholder'
+import { Collapsable } from './collapsable'
+import { CollapsableHeader } from './collapsable/collapsableHeader'
+import { CollapsableContent } from './collapsable/collapsableContent'
+import { Strike } from './strike'
 
-const tiptapExtensions = (): Extensions => {
-  const { uploadFile } = useDocs()
+const tiptapExtensions = (isPublic: boolean): Extensions => {
+  const { uploadFile } = useDocStore()
 
   return [
     Document,
@@ -41,8 +45,9 @@ const tiptapExtensions = (): Extensions => {
     Text,
     Strike,
     Heading,
-    ListItem,
     Bold,
+    Italic,
+    HardBreak,
     DropCursor.configure({
       width: 2,
       class: 'titap-dropcursor',
@@ -52,35 +57,43 @@ const tiptapExtensions = (): Extensions => {
       suggestion,
     }),
     Placeholder.configure({
-      placeholder: 'Press / to open the command menu or start writing',
-    }),
-    BulletList,
-    OrderedList,
-    TaskList.configure({
-      HTMLAttributes: {
-        class: 'nc-docs-task-list',
+      placeholder: ({ node }) => {
+        if (node.type.name === 'heading') {
+          return `Heading ${node.attrs.level}`
+        }
+        return 'Press / to open the command menu or start writing'
       },
     }),
-    TaskItem.configure({
-      nested: true,
-    }),
-    HorizontalRule.configure({
-      HTMLAttributes: {
-        class: 'nc-docs-horizontal-rule',
+    Task,
+    Ordered,
+    Bullet,
+    HorizontalRule.extend({
+      addKeyboardShortcuts() {
+        return {
+          'Ctrl-Space': () => {
+            const from = this.editor.state.selection.from
+            return this.editor
+              .chain()
+              .setHorizontalRule()
+              .setTextSelection(from + 3)
+              .run()
+          },
+        }
       },
     }),
+    Code,
     CodeBlock,
     createImageExtension(async (image: any) => {
       return uploadFile(image)
     }),
     Underline,
     History,
-    Blockquote,
+    Quote,
     InfoCallout,
     WarningCallout,
     TipCallout,
     Table.configure({
-      resizable: true,
+      resizable: !isPublic,
     }),
     TableRow,
     TableCell.configure({
@@ -90,7 +103,10 @@ const tiptapExtensions = (): Extensions => {
     }),
     ExternalContent,
     TrailingNode,
-    Link,
+    Link({ isPublic }),
+    CollapsableContent,
+    CollapsableHeader,
+    Collapsable,
   ]
 }
 

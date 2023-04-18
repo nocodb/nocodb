@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { useVModel } from '#imports'
+import { iconMap, useVModel } from '#imports'
 
 const props = defineProps<{
   modelValue: any[]
@@ -116,16 +116,16 @@ const filterOption = (input: string, option: Option) => {
 
           <td class="relative">
             <div v-if="idx !== 0" class="absolute flex flex-col justify-start mt-2 -right-6 top-0">
-              <MdiDeleteOutline class="cursor-pointer" @click="deleteHeaderRow(idx)" />
+              <component :is="iconMap.delete" class="cursor-pointer" @click="deleteHeaderRow(idx)" />
             </div>
           </td>
         </tr>
 
         <tr>
           <td :colspan="12" class="text-center">
-            <a-button type="default" class="!bg-gray-100 rounded-md border-none mr-1" @click="addHeaderRow">
+            <a-button type="default" class="!bg-gray-100 rounded-md border-none mr-1 mb-3" @click="addHeaderRow">
               <template #icon>
-                <MdiPlus class="flex mx-auto" />
+                <component :is="iconMap.plus" class="flex mx-auto" />
               </template>
             </a-button>
           </td>

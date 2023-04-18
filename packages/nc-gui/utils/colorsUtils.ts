@@ -37,6 +37,7 @@ export const themeColors = {
   'surface': '#FFFFFF',
   'primary': '#4351e8',
   'primary-selected': '#F0F1FF',
+  'primary-selected-sidebar': '#ededff',
   'secondary': '#F2F4F7',
   'secondary-darken-1': '#018786',
   'error': '#B00020',

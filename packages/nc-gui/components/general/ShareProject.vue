@@ -1,9 +1,7 @@
 <script setup lang="ts">
 import { isDrawerOrModalExist, isMac, useNuxtApp } from '#imports'
 
-const { visibility } = useShare()
-
-const showModal = ref(false)
+const { visibility, showShareModal } = storeToRefs(useShare())
 
 const { $e } = useNuxtApp()
 
@@ -15,7 +13,7 @@ useEventListener(document, 'keydown', async (e: KeyboardEvent) => {
         // ALT + I
         if (!isDrawerOrModalExist()) {
           $e('c:shortcut', { key: 'ALT + I' })
-          showModal.value = true
+          showShareModal.value = true
         }
         break
       }
@@ -26,15 +24,25 @@ useEventListener(document, 'keydown', async (e: KeyboardEvent) => {
 
 <template>
   <div
-    class="my-auto h-7.5 flex flex-row items-center gap-x-1.5 bg-primary text-white hover:bg-opacity-80 py-1.5 px-2.5 rounded-md mr-2 cursor-pointer"
-    @click="showModal = true"
+    v-if="visibility !== 'hidden'"
+    class="flex flex-col justify-center h-full mr-1"
+    data-testid="share-project-button"
+    :data-sharetype="visibility"
   >
-    <MaterialSymbolsPublic v-if="visibility === 'public'" class="h-3.5" />
-    <MaterialSymbolsLockOutline v-else-if="visibility === 'private'" class="h-3.5" />
-    <div class="flex">Share</div>
+    <div
+      class="flex flex-row items-center gap-x-1.5 bg-primary text-white hover:bg-opacity-80 py-0.75 px-2 rounded-md cursor-pointer"
+      :class="{
+        '!pl-3': visibility === 'none',
+      }"
+      @click="showShareModal = true"
+    >
+      <MaterialSymbolsPublic v-if="visibility === 'public'" class="h-3.5" />
+      <MaterialSymbolsLockOutline v-else-if="visibility === 'private'" class="h-3.5" />
+      <div class="flex">Share</div>
+    </div>
   </div>
 
-  <LazyDlgShareAndCollaborate v-model:model-value="showModal" />
+  <LazyDlgShareAndCollaborateView />
 </template>
 
 <style lang="scss">

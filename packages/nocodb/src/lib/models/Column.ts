@@ -1,31 +1,27 @@
-import FormulaColumn from './FormulaColumn';
-import LinkToAnotherRecordColumn from './LinkToAnotherRecordColumn';
-import LookupColumn from './LookupColumn';
-import RollupColumn from './RollupColumn';
-import SelectOption from './SelectOption';
-import Model from './Model';
+import { AllowedColumnTypesForQrAndBarcodes, UITypes } from 'nocodb-sdk';
 import NocoCache from '../cache/NocoCache';
-import {
-  AllowedColumnTypesForQrAndBarcodes,
-  ColumnReqType,
-  ColumnType,
-  UITypes,
-} from 'nocodb-sdk';
 import {
   CacheDelDirection,
   CacheGetType,
   CacheScope,
   MetaTable,
 } from '../utils/globals';
-import View from './View';
 import Noco from '../Noco';
-import Sort from './Sort';
-import Filter from './Filter';
 import addFormulaErrorIfMissingColumn from '../meta/helpers/addFormulaErrorIfMissingColumn';
 import { NcError } from '../meta/helpers/catchError';
+import { extractProps } from '../meta/helpers/extractProps';
+import FormulaColumn from './FormulaColumn';
+import LinkToAnotherRecordColumn from './LinkToAnotherRecordColumn';
+import LookupColumn from './LookupColumn';
+import RollupColumn from './RollupColumn';
+import SelectOption from './SelectOption';
+import Model from './Model';
+import View from './View';
+import Sort from './Sort';
+import Filter from './Filter';
 import QrCodeColumn from './QrCodeColumn';
 import BarcodeColumn from './BarcodeColumn';
-import { extractProps } from '../meta/helpers/extractProps';
+import type { ColumnReqType, ColumnType } from 'nocodb-sdk';
 
 export default class Column<T = any> implements ColumnType {
   public fk_model_id: string;
@@ -410,7 +406,7 @@ export default class Column<T = any> implements ColumnType {
     }
   }
 
-  public async getColOptions<T>(ncMeta = Noco.ncMeta): Promise<T> {
+  public async getColOptions<U = T>(ncMeta = Noco.ncMeta): Promise<U> {
     let res: any;
 
     switch (this.uidt) {

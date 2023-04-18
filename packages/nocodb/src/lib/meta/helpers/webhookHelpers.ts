@@ -1,12 +1,14 @@
 import Handlebars from 'handlebars';
-import Model from '../../models/Model';
-import NcPluginMgrv2 from './NcPluginMgrv2';
-import Column from '../../models/Column';
-import Hook from '../../models/Hook';
+import { v4 as uuidv4 } from 'uuid';
 import Filter from '../../models/Filter';
 import HookLog from '../../models/HookLog';
-import { HookLogType } from 'nocodb-sdk';
-import FormView from '../../models/FormView';
+import NcPluginMgrv2 from './NcPluginMgrv2';
+import type Model from '../../models/Model';
+import type View from '../../models/View';
+import type Hook from '../../models/Hook';
+import type Column from '../../models/Column';
+import type { HookLogType } from 'nocodb-sdk';
+import type FormView from '../../models/FormView';
 
 export function parseBody(template: string, data: any): string {
   if (!template) {
@@ -133,13 +135,54 @@ export async function validateCondition(filters: Filter[], data: any) {
   return isValid;
 }
 
-export async function handleHttpWebHook(apiMeta, user, data) {
-  // try {
-  const req = axiosRequestMake(apiMeta, user, data);
-  await require('axios')(req);
-  // } catch (e) {
-  //   console.log(e);
-  // }
+export function constructWebHookData(hook, model, view, prevData, newData) {
+  if (hook.version === 'v2') {
+    // extend in the future - currently only support records
+    const scope = 'records';
+
+    return {
+      type: `${scope}.${hook.event}.${hook.operation}`,
+      id: uuidv4(),
+      data: {
+        table_id: model.id,
+        table_name: model.title,
+        view_id: view?.id,
+        view_name: view?.title,
+        ...(prevData && {
+          previous_rows: Array.isArray(prevData) ? prevData : [prevData],
+        }),
+        ...(hook.operation !== 'bulkInsert' &&
+          newData && { rows: Array.isArray(newData) ? newData : [newData] }),
+        ...(hook.operation === 'bulkInsert' && {
+          rows_inserted: Array.isArray(newData)
+            ? newData.length
+            : newData
+            ? 1
+            : 0,
+        }),
+      },
+    };
+  }
+
+  // for v1, keep it as it is
+  return newData;
+}
+
+export async function handleHttpWebHook(
+  hook,
+  model,
+  view,
+  apiMeta,
+  user,
+  prevData,
+  newData
+) {
+  const req = axiosRequestMake(
+    apiMeta,
+    user,
+    constructWebHookData(hook, model, view, prevData, newData)
+  );
+  return require('axios')(req);
 }
 
 export function axiosRequestMake(_apiMeta, _user, data) {
@@ -203,29 +246,57 @@ export function axiosRequestMake(_apiMeta, _user, data) {
 
 export async function invokeWebhook(
   hook: Hook,
-  _model: Model,
-  data,
+  model: Model,
+  view: View,
+  prevData,
+  newData,
   user,
   testFilters = null,
-  throwErrorOnFailure = false
+  throwErrorOnFailure = false,
+  testHook = false
 ) {
   let hookLog: HookLogType;
   const startTime = process.hrtime();
+  let notification;
   try {
-    // for (const hook of hooks) {
-    const notification =
+    notification =
       typeof hook.notification === 'string'
         ? JSON.parse(hook.notification)
         : hook.notification;
 
+    const isBulkOperation = Array.isArray(newData);
+
+    if (isBulkOperation && notification?.type !== 'URL') {
+      // only URL hook is supported for bulk operations
+      return;
+    }
+
     if (hook.condition) {
-      if (
-        !(await validateCondition(
-          testFilters || (await hook.getFilters()),
-          data
-        ))
-      ) {
-        return;
+      if (isBulkOperation) {
+        const filteredData = [];
+        for (const data of newData) {
+          if (
+            await validateCondition(
+              testFilters || (await hook.getFilters()),
+              data
+            )
+          ) {
+            filteredData.push(data);
+          }
+          if (!filteredData.length) {
+            return;
+          }
+          newData = filteredData;
+        }
+      } else {
+        if (
+          !(await validateCondition(
+            testFilters || (await hook.getFilters()),
+            newData
+          ))
+        ) {
+          return;
+        }
       }
     }
 
@@ -233,36 +304,57 @@ export async function invokeWebhook(
       case 'Email':
         {
           const res = await (
-            await NcPluginMgrv2.emailAdapter()
+            await NcPluginMgrv2.emailAdapter(false)
           )?.mailSend({
-            to: parseBody(notification?.payload?.to, data),
-            subject: parseBody(notification?.payload?.subject, data),
-            html: parseBody(notification?.payload?.body, data),
+            to: parseBody(notification?.payload?.to, newData),
+            subject: parseBody(notification?.payload?.subject, newData),
+            html: parseBody(notification?.payload?.body, newData),
           });
-          hookLog = {
-            ...hook,
-            type: notification.type,
-            payload: JSON.stringify(notification?.payload),
-            response: JSON.stringify(res),
-            triggered_by: user?.email,
-          };
+          if (process.env.NC_AUTOMATION_LOG_LEVEL === 'ALL') {
+            hookLog = {
+              ...hook,
+              fk_hook_id: hook.id,
+              type: notification.type,
+              payload: JSON.stringify(notification?.payload),
+              response: JSON.stringify(res),
+              triggered_by: user?.email,
+            };
+          }
         }
         break;
       case 'URL':
         {
           const res = await handleHttpWebHook(
+            hook,
+            model,
+            view,
             notification?.payload,
             user,
-            data
+            prevData,
+            newData
           );
 
-          hookLog = {
-            ...hook,
-            type: notification.type,
-            payload: JSON.stringify(notification?.payload),
-            response: JSON.stringify(res),
-            triggered_by: user?.email,
-          };
+          if (process.env.NC_AUTOMATION_LOG_LEVEL === 'ALL') {
+            hookLog = {
+              ...hook,
+              fk_hook_id: hook.id,
+              type: notification.type,
+              payload: JSON.stringify(notification?.payload),
+              response: JSON.stringify({
+                status: res.status,
+                statusText: res.statusText,
+                headers: res.headers,
+                config: {
+                  url: res.config.url,
+                  method: res.config.method,
+                  data: res.config.data,
+                  headers: res.config.headers,
+                  params: res.config.params,
+                },
+              }),
+              triggered_by: user?.email,
+            };
+          }
         }
         break;
       default:
@@ -270,37 +362,59 @@ export async function invokeWebhook(
           const res = await (
             await NcPluginMgrv2.webhookNotificationAdapters(notification.type)
           ).sendMessage(
-            parseBody(notification?.payload?.body, data),
+            parseBody(notification?.payload?.body, newData),
             JSON.parse(JSON.stringify(notification?.payload), (_key, value) => {
-              return typeof value === 'string' ? parseBody(value, data) : value;
+              return typeof value === 'string'
+                ? parseBody(value, newData)
+                : value;
             })
           );
 
-          hookLog = {
-            ...hook,
-            type: notification.type,
-            payload: JSON.stringify(notification?.payload),
-            response: JSON.stringify(res),
-            triggered_by: user?.email,
-          };
+          if (process.env.NC_AUTOMATION_LOG_LEVEL === 'ALL') {
+            hookLog = {
+              ...hook,
+              fk_hook_id: hook.id,
+              type: notification.type,
+              payload: JSON.stringify(notification?.payload),
+              response: JSON.stringify({
+                status: res.status,
+                statusText: res.statusText,
+                headers: res.headers,
+                config: {
+                  url: res.config.url,
+                  method: res.config.method,
+                  data: res.config.data,
+                  headers: res.config.headers,
+                  params: res.config.params,
+                },
+              }),
+              triggered_by: user?.email,
+            };
+          }
         }
         break;
     }
   } catch (e) {
     console.log(e);
-    hookLog = {
-      ...hook,
-      error_code: e.error_code,
-      error_message: e.message,
-      error: JSON.stringify(e),
-    };
+    if (['ERROR', 'ALL'].includes(process.env.NC_AUTOMATION_LOG_LEVEL)) {
+      hookLog = {
+        ...hook,
+        type: notification.type,
+        payload: JSON.stringify(notification?.payload),
+        fk_hook_id: hook.id,
+        error_code: e.error_code,
+        error_message: e.message,
+        error: JSON.stringify(e),
+        triggered_by: user?.email,
+      };
+    }
     if (throwErrorOnFailure) throw e;
   } finally {
     if (hookLog) {
       hookLog.execution_time = parseHrtimeToMilliSeconds(
         process.hrtime(startTime)
       );
-      HookLog.insert({ ...hookLog, test_call: !!testFilters });
+      HookLog.insert({ ...hookLog, test_call: testHook });
     }
   }
 }

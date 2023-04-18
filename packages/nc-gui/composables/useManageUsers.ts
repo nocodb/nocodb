@@ -1,11 +1,13 @@
 import type { RequestParams } from 'nocodb-sdk'
+import { storeToRefs } from 'pinia'
 import type { User } from '~/lib'
 
 const [setup, use] = useInjectionState(() => {
   const { api } = useApi()
-  const { project } = useProject()
+  const { project } = storeToRefs(useProject())
   const { t } = useI18n()
   const { $e } = useNuxtApp()
+  const { formStatus, invitationUsersData } = storeToRefs(useShare())
 
   const currentPage = ref(1)
   const currentLimit = ref(10)
@@ -14,9 +16,6 @@ const [setup, use] = useInjectionState(() => {
   const lastFetchedUsers = ref<null | User[]>(null)
   const totalUsers = ref(0)
   const isBatchUpdating = ref(false)
-  const formStatus = ref<'collaborate' | 'collaborateSaving' | 'collaborateSaved' | 'manageCollaborators' | 'share'>(
-    'collaborate',
-  )
   // todo: Only tracks roles updates
   const editedUsers = computed(() => {
     if (!users.value || !lastFetchedUsers.value) return []
@@ -43,11 +42,13 @@ const [setup, use] = useInjectionState(() => {
       } as RequestParams)
       if (!response.users) return
 
-      totalUsers.value = response.users.pageInfo.totalRows ?? 0
+      const removedUser = response.users.list.filter((u: User) => !u.roles)
 
-      if (!users.value) users.value = response.users.list as User[]
+      totalUsers.value = (response.users.pageInfo.totalRows ?? 0) - Number(removedUser?.length)
+
+      if (!users.value) users.value = response.users.list.filter((u: User) => u.roles) as User[]
       else {
-        users.value = [...users.value, ...(response.users.list as User[])]
+        users.value = [...users.value, ...(response.users.list.filter((u: User) => u.roles) as User[])]
       }
 
       lastFetchedUsers.value = JSON.parse(JSON.stringify(users.value))
@@ -57,11 +58,17 @@ const [setup, use] = useInjectionState(() => {
   }
 
   const inviteUser = async (user: Partial<User>) => {
-    formStatus.value = 'collaborateSaving'
+    formStatus.value = 'project-collaborateSaving'
     try {
       if (!project.value?.id) return
 
-      await api.auth.projectUserAdd(project.value.id, { ...user, project_id: project.value.id, projectName: project.value.title })
+      const res = await api.auth.projectUserAdd(project.value.id, {
+        ...user,
+        project_id: project.value!.id!,
+        projectName: project.value.title,
+      } as any)
+
+      invitationUsersData.value.invitationToken = (res as any).invite_token
 
       currentPage.value = 1
       users.value = []
@@ -74,7 +81,7 @@ const [setup, use] = useInjectionState(() => {
       return
     }
 
-    formStatus.value = 'collaborateSaved'
+    formStatus.value = 'project-collaborateSaved'
     $e('a:user:add')
   }
 
@@ -83,14 +90,31 @@ const [setup, use] = useInjectionState(() => {
     isBatchUpdating.value = true
     try {
       await Promise.all(
-        _editedUsers.map(async (user) => {
-          await api.auth.projectUserUpdate(project.value!.id!, user.id, {
-            roles: user.roles,
-            project_id: project.value.id,
-            projectName: project.value.title,
-          })
-        }),
+        _editedUsers
+          .filter((user) => user.roles !== 'No access')
+          .map(async (user) => {
+            await api.auth.projectUserUpdate(project.value!.id!, user.id, {
+              email: user.email,
+              roles: user.roles,
+              project_id: project.value.id,
+              projectName: project.value.title,
+            })
+            const savedUser = users.value?.find((u) => u.id === user.id)
+            if (savedUser) {
+              savedUser.roles = user.roles
+            }
+          }),
       )
+      await Promise.all(
+        _editedUsers
+          .filter((user) => user.roles === 'No access')
+          .map(async (user) => {
+            await api.auth.projectUserRemove(project.value!.id!, user.id)
+          }),
+      )
+      users.value = users.value?.filter((user) => user.roles !== 'No access') ?? []
+      totalUsers.value = users.value?.length ?? 0
+      lastFetchedUsers.value = JSON.parse(JSON.stringify(users.value))
     } catch (e: any) {
       message.error(await extractSdkResponseErrorMsg(e))
     } finally {
@@ -109,7 +133,6 @@ const [setup, use] = useInjectionState(() => {
     editedUsers,
     updateEditedUsers,
     isBatchUpdating,
-    formStatus,
   }
 }, 'useManageUsers')
 

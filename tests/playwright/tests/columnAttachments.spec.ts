@@ -39,12 +39,12 @@ test.describe('Attachment column', () => {
       });
     }
     await dashboard.grid.cell.attachment.addFile({
-      index: 14,
+      index: 4,
       columnHeader: 'testAttach',
       filePath: [`${process.cwd()}/fixtures/sampleFiles/sampleImage.jpeg`],
     });
     await dashboard.grid.cell.attachment.verifyFile({
-      index: 14,
+      index: 4,
       columnHeader: 'testAttach',
     });
 

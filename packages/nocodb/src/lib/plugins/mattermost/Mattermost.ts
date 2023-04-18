@@ -1,5 +1,5 @@
 import axios from 'axios';
-import { IWebhookNotificationAdapter } from 'nc-plugin';
+import type { IWebhookNotificationAdapter } from 'nc-plugin';
 
 export default class Mattermost implements IWebhookNotificationAdapter {
   public init(): Promise<any> {
@@ -9,11 +9,12 @@ export default class Mattermost implements IWebhookNotificationAdapter {
   public async sendMessage(text: string, payload: any): Promise<any> {
     for (const { webhook_url } of payload?.channels) {
       try {
-        await axios.post(webhook_url, {
+        return await axios.post(webhook_url, {
           text,
         });
       } catch (e) {
         console.log(e);
+        throw e;
       }
     }
   }

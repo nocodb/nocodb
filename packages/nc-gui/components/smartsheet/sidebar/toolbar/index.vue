@@ -29,6 +29,10 @@ const onClick = () => {
       <LazySmartsheetSidebarToolbarDebugMeta />
 
       <div class="dot" />
+
+      <LazySmartsheetSidebarToolbarBetaFeatureToggle />
+
+      <div class="dot" />
     </template>
 
     <slot name="end" />

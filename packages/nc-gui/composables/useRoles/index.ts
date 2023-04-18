@@ -37,15 +37,27 @@ export const useRoles = createSharedComposable(() => {
     ...projectRoles.value,
   }))
 
-  async function loadProjectRoles(projectId: string, isSharedBase?: boolean, sharedBaseId?: string) {
-    projectRoles.value = {}
-
-    if (isSharedBase) {
+  async function loadProjectRoles(
+    projectId: string,
+    options: { isSharedBase?: boolean; sharedBaseId?: string; isSharedErd?: boolean; sharedErdId?: string } = {},
+  ) {
+    if (options?.isSharedBase) {
       const user = await api.auth.me(
         {},
         {
           headers: {
-            'xc-shared-base-id': sharedBaseId,
+            'xc-shared-base-id': options?.sharedBaseId,
+          },
+        },
+      )
+
+      projectRoles.value = user.roles
+    } else if (options?.isSharedErd) {
+      const user = await api.auth.me(
+        {},
+        {
+          headers: {
+            'xc-shared-erd-id': options?.sharedErdId,
           },
         },
       )
@@ -54,6 +66,8 @@ export const useRoles = createSharedComposable(() => {
     } else if (projectId) {
       const user = await api.auth.me({ project_id: projectId })
       projectRoles.value = user.roles
+    } else {
+      projectRoles.value = {}
     }
   }
 

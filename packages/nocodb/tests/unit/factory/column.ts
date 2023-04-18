@@ -7,7 +7,7 @@ import GridViewColumn from '../../../src/lib/models/GridViewColumn';
 import Model from '../../../src/lib/models/Model';
 import Project from '../../../src/lib/models/Project';
 import View from '../../../src/lib/models/View';
-import { isSqlite } from '../init/db';
+import { isSqlite, isPg } from '../init/db';
 
 const defaultColumns = function (context) {
   return [
@@ -22,22 +22,26 @@ const defaultColumns = function (context) {
       uidt: 'SingleLineText',
     },
     {
-      cdf: 'CURRENT_TIMESTAMP',
+      cdf: isPg(context) ? 'now()' : 'CURRENT_TIMESTAMP',
       column_name: 'created_at',
       title: 'CreatedAt',
       dtxp: '',
       dtxs: '',
       uidt: 'DateTime',
+      dt: isPg(context) ? 'timestamp without time zone' : undefined,
     },
     {
       cdf: isSqlite(context)
         ? 'CURRENT_TIMESTAMP'
+        : isPg(context)
+        ? 'now()'
         : 'CURRENT_TIMESTAMP on update CURRENT_TIMESTAMP',
       column_name: 'updated_at',
       title: 'UpdatedAt',
       dtxp: '',
       dtxs: '',
       uidt: 'DateTime',
+      dt: isPg(context) ? 'timestamp without time zone' : undefined,
     },
   ];
 };

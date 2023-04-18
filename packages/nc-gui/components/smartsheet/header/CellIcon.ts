@@ -5,6 +5,7 @@ import {
   computed,
   defineComponent,
   h,
+  iconMap,
   inject,
   isAttachment,
   isBoolean,
@@ -15,6 +16,7 @@ import {
   isDuration,
   isEmail,
   isFloat,
+  isGeoData,
   isInt,
   isJSON,
   isPercent,
@@ -29,79 +31,60 @@ import {
   isTime,
   isURL,
   isYear,
+  storeToRefs,
   toRef,
   useProject,
 } from '#imports'
-import FilePhoneIcon from '~icons/mdi/file-phone'
-import KeyIcon from '~icons/mdi/key-variant'
-import JSONIcon from '~icons/mdi/code-json'
-import ClockIcon from '~icons/mdi/clock-time-five'
-import WebIcon from '~icons/mdi/web'
-import TextAreaIcon from '~icons/mdi/card-text-outline'
-import StringIcon from '~icons/mdi/alpha-a-box-outline'
-import BooleanIcon from '~icons/mdi/check-box-outline'
-import CalendarIcon from '~icons/mdi/calendar'
-import SingleSelectIcon from '~icons/mdi/arrow-down-drop-circle'
-import MultiSelectIcon from '~icons/mdi/format-list-bulleted-square'
-import DatetimeIcon from '~icons/mdi/calendar-clock'
-import RatingIcon from '~icons/mdi/star'
-import GenericIcon from '~icons/mdi/square-rounded'
-import NumericIcon from '~icons/mdi/numeric'
-import AttachmentIcon from '~icons/mdi/image-multiple-outline'
-import EmailIcon from '~icons/mdi/email'
-import CurrencyIcon from '~icons/mdi/currency-usd-circle-outline'
-import PercentIcon from '~icons/mdi/percent-outline'
-import DecimalIcon from '~icons/mdi/decimal'
-import SpecificDBTypeIcon from '~icons/mdi/database-settings'
-import DurationIcon from '~icons/mdi/timer-outline'
 
 const renderIcon = (column: ColumnType, abstractType: any) => {
   if (isPrimaryKey(column)) {
-    return KeyIcon
-  } else if (isJSON(column)) {
-    return JSONIcon
-  } else if (isDate(column, abstractType)) {
-    return CalendarIcon
-  } else if (isDateTime(column, abstractType)) {
-    return DatetimeIcon
-  } else if (isSet(column)) {
-    return MultiSelectIcon
-  } else if (isSingleSelect(column)) {
-    return SingleSelectIcon
-  } else if (isBoolean(column, abstractType)) {
-    return BooleanIcon
-  } else if (isTextArea(column)) {
-    return TextAreaIcon
-  } else if (isEmail(column)) {
-    return EmailIcon
-  } else if (isYear(column, abstractType)) {
-    return CalendarIcon
-  } else if (isTime(column, abstractType)) {
-    return ClockIcon
-  } else if (isRating(column)) {
-    return RatingIcon
-  } else if (isAttachment(column)) {
-    return AttachmentIcon
-  } else if (isDecimal(column)) {
-    return DecimalIcon
-  } else if (isPhoneNumber(column)) {
-    return FilePhoneIcon
-  } else if (isURL(column)) {
-    return WebIcon
-  } else if (isCurrency(column)) {
-    return CurrencyIcon
-  } else if (isDuration(column)) {
-    return DurationIcon
-  } else if (isPercent(column)) {
-    return PercentIcon
-  } else if (isInt(column, abstractType) || isFloat(column, abstractType)) {
-    return NumericIcon
-  } else if (isString(column, abstractType)) {
-    return StringIcon
+    return iconMap.key
   } else if (isSpecificDBType(column)) {
-    return SpecificDBTypeIcon
+    return iconMap.specificDbType
+  } else if (isJSON(column)) {
+    return iconMap.json
+  } else if (isDate(column, abstractType)) {
+    return iconMap.calendar
+  } else if (isDateTime(column, abstractType)) {
+    return iconMap.datetime
+  } else if (isGeoData(column)) {
+    return iconMap.geoData
+  } else if (isSet(column)) {
+    return iconMap.multiSelect
+  } else if (isSingleSelect(column)) {
+    return iconMap.singleSelect
+  } else if (isBoolean(column, abstractType)) {
+    return iconMap.boolean
+  } else if (isTextArea(column)) {
+    return iconMap.longText
+  } else if (isEmail(column)) {
+    return iconMap.email
+  } else if (isYear(column, abstractType)) {
+    return iconMap.calendar
+  } else if (isTime(column, abstractType)) {
+    return iconMap.calendar
+  } else if (isRating(column)) {
+    return iconMap.rating
+  } else if (isAttachment(column)) {
+    return iconMap.image
+  } else if (isDecimal(column)) {
+    return iconMap.decimal
+  } else if (isPhoneNumber(column)) {
+    return iconMap.phone
+  } else if (isURL(column)) {
+    return iconMap.web
+  } else if (isCurrency(column)) {
+    return iconMap.currency
+  } else if (isDuration(column)) {
+    return iconMap.duration
+  } else if (isPercent(column)) {
+    return iconMap.percent
+  } else if (isInt(column, abstractType) || isFloat(column, abstractType)) {
+    return iconMap.number
+  } else if (isString(column, abstractType)) {
+    return iconMap.text
   } else {
-    return GenericIcon
+    return iconMap.generic
   }
 }
 
@@ -119,7 +102,7 @@ export default defineComponent({
 
     const column = inject(ColumnInj, columnMeta)
 
-    const { sqlUis } = useProject()
+    const { sqlUis } = storeToRefs(useProject())
 
     const sqlUi = ref(column.value?.base_id ? sqlUis.value[column.value?.base_id] : Object.values(sqlUis.value)[0])
 
@@ -128,7 +111,7 @@ export default defineComponent({
     return () => {
       if (!column.value) return null
 
-      return h(renderIcon(column.value, abstractType.value), { class: 'text-grey mx-1 !text-xs' })
+      return h(renderIcon(column.value, abstractType.value), { class: 'text-gray-500 mx-1' })
     }
   },
 })

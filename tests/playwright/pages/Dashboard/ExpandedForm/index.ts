@@ -24,16 +24,25 @@ export class ExpandedFormPage extends BasePage {
     return this.dashboard.get().locator(`.nc-drawer-expanded-form`);
   }
 
-  async clickDuplicateRow() {
-    await this.duplicateRowButton.click();
+  async click3DotsMenu(menuItem: string) {
+    await this.get().locator('.nc-icon-transition.ant-dropdown-trigger').last().click();
 
+    // add delay; wait for the menu to appear
+    await this.rootPage.waitForTimeout(500);
+
+    const popUpMenu = await this.rootPage.locator('.ant-dropdown');
+    await popUpMenu.locator(`.ant-dropdown-menu-item:has-text("${menuItem}")`).click();
+  }
+
+  async clickDuplicateRow() {
+    await this.click3DotsMenu('Duplicate Row');
     // wait for loader to disappear
     // await this.dashboard.waitForLoaderToDisappear();
     await this.rootPage.waitForTimeout(2000);
   }
 
   async clickDeleteRow() {
-    await this.deleteRowButton.click();
+    await this.click3DotsMenu('Delete Row');
     await this.rootPage.locator('.ant-btn-primary:has-text("OK")').click();
   }
 
@@ -67,6 +76,14 @@ export class ExpandedFormPage extends BasePage {
       case 'text':
         await field.locator('input').fill(value);
         break;
+      case 'geodata': {
+        const [lat, long] = value.split(',');
+        await this.rootPage.locator(`[data-testid="nc-geo-data-set-location-button"]`).click();
+        await this.rootPage.locator(`[data-testid="nc-geo-data-latitude"]`).fill(lat);
+        await this.rootPage.locator(`[data-testid="nc-geo-data-longitude"]`).fill(long);
+        await this.rootPage.locator(`[data-testid="nc-geo-data-save"]`).click();
+        break;
+      }
       case 'belongsTo':
         await field.locator('.nc-action-icon').click();
         await this.dashboard.linkRecord.select(value);
@@ -134,7 +151,7 @@ export class ExpandedFormPage extends BasePage {
   }
 
   async close() {
-    await this.get().locator('.nc-close-form').last().click();
+    await this.click3DotsMenu('Close');
   }
 
   async openChildCard(param: { column: string; title: string }) {

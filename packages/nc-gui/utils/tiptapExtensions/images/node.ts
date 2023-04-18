@@ -1,7 +1,9 @@
 import { Node, nodeInputRule } from '@tiptap/core'
 import { NodeSelection, TextSelection } from 'prosemirror-state'
+import { VueNodeViewRenderer } from '@tiptap/vue-3'
 import type { UploadFn } from './proseExtension'
 import { dropImagePlugin } from './proseExtension'
+import ImageComponent from './image.vue'
 /**
  * Matches following attributes in Markdown-typed image: [, alt, src, title]
  *
@@ -24,6 +26,20 @@ export const createImageExtension = (uploadFn: UploadFn) => {
       title: { default: null },
       class: { default: '' },
       id: { default: null },
+      width: {
+        default: 450,
+        parseHTML: (element) => {
+          const width = element.getAttribute('width')
+          return width ? parseInt(width, 10) : undefined
+        },
+      },
+      height: {
+        default: 400,
+        parseHTML: (element) => {
+          const height = element.getAttribute('height')
+          return height ? parseInt(height, 10) : undefined
+        },
+      },
     }),
     parseHTML: () => [
       {
@@ -41,7 +57,17 @@ export const createImageExtension = (uploadFn: UploadFn) => {
         },
       },
     ],
-    renderHTML: ({ HTMLAttributes }) => ['img', HTMLAttributes],
+    renderHTML: ({ HTMLAttributes }) => [
+      'div',
+      {
+        ...HTMLAttributes,
+        class: HTMLAttributes.class ? `image-wrapper cursor-pointer ${HTMLAttributes.class}` : 'image-wrapper cursor-pointer',
+      },
+    ],
+
+    addNodeView() {
+      return VueNodeViewRenderer(ImageComponent)
+    },
 
     // @ts-expect-error todo: fix this
     addCommands() {
@@ -90,6 +116,32 @@ export const createImageExtension = (uploadFn: UploadFn) => {
 
           tr.setSelection(TextSelection.create(tr.doc, state.selection.$from.pos + 2))
           this.editor.view.dispatch(tr)
+        },
+        Backspace: () => {
+          try {
+            const editor = this.editor
+            const selection = editor.view.state.selection
+            const node = selection.$from.node()
+            const parentNode = selection.$from.node(-1)
+
+            if (!(node.type.name === 'paragraph' && parentNode.type.name === 'dBlock')) {
+              return false
+            }
+
+            const prevNodePos = selection.$from.pos - (parentNode.nodeSize - node.nodeSize + 2)
+            if (prevNodePos < 0) return false
+            const prevNode = editor.view.state.doc.nodeAt(prevNodePos)
+
+            if (prevNode?.type.name === 'image') {
+              editor.chain().setNodeSelection(prevNodePos).run()
+              return true
+            }
+
+            return false
+          } catch (error) {
+            console.log('error', error)
+            return false
+          }
         },
       }
     },

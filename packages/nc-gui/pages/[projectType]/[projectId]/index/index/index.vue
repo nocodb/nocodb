@@ -1,9 +1,11 @@
 <script lang="ts" setup>
 import type { UploadChangeParam, UploadFile } from 'ant-design-vue'
+import type { BaseType } from 'nocodb-sdk'
 import {
   message,
   ref,
   resolveComponent,
+  storeToRefs,
   useDialog,
   useDropZone,
   useFileDialog,
@@ -19,7 +21,9 @@ const { isOverDropZone } = useDropZone(dropZone, onDrop)
 
 const { files, open, reset } = useFileDialog()
 
-const { bases, isSharedBase } = useProject()
+const projectStore = useProject()
+
+const { bases, isSharedBase } = storeToRefs(projectStore)
 
 const { isUIAllowed } = useUIPermission()
 
@@ -98,6 +102,7 @@ function openQuickImportDialog(type: QuickImportTypes, file: File) {
     'modelValue': isOpen,
     'importType': type,
     'onUpdate:modelValue': closeDialog,
+    'baseId': bases.value?.filter((base: BaseType) => base.enabled)[0].id,
   })
 
   vNode.value?.component?.exposed?.handleChange({
@@ -128,7 +133,7 @@ function openCreateTable() {
   const { close } = useDialog(resolveComponent('DlgTableCreate'), {
     'modelValue': isOpen,
     'onUpdate:modelValue': closeDialog,
-    'baseId': bases.value[0].id,
+    'baseId': bases.value?.filter((base: BaseType) => base.enabled)[0].id,
   })
 
   function closeDialog() {

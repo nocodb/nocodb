@@ -1,19 +1,19 @@
-import Project from '../../../models/Project';
+import { ModelTypes, UITypes, ViewTypes } from 'nocodb-sdk';
 import Column from '../../../models/Column';
 import Model from '../../../models/Model';
 import NcHelp from '../../../utils/NcHelp';
-import Base from '../../../models/Base';
 import View from '../../../models/View';
 import NcConnectionMgrv2 from '../../../utils/common/NcConnectionMgrv2';
 import getTableNameAlias, {
   getColumnNameAlias,
 } from '../../helpers/getTableName';
-import LinkToAnotherRecordColumn from '../../../models/LinkToAnotherRecordColumn';
 import getColumnUiType from '../../helpers/getColumnUiType';
 import mapDefaultDisplayValue from '../../helpers/mapDefaultDisplayValue';
-import { extractAndGenerateManyToManyRelations } from '../metaDiffApis';
-import { ModelTypes, UITypes, ViewTypes } from 'nocodb-sdk';
+import { extractAndGenerateManyToManyRelations } from '../../../services/metaDiff.svc';
 import { IGNORE_TABLES } from '../../../utils/common/BaseApiBuilder';
+import type LinkToAnotherRecordColumn from '../../../models/LinkToAnotherRecordColumn';
+import type Base from '../../../models/Base';
+import type Project from '../../../models/Project';
 
 export async function populateMeta(base: Base, project: Project): Promise<any> {
   const info = {

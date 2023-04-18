@@ -1,5 +1,6 @@
 // @ts-ignore
-import IEmailAdapter, { XcEmail } from '../../../../../interface/IEmailAdapter';
+import type { XcEmail } from '../../../../../interface/IEmailAdapter';
+import type IEmailAdapter from '../../../../../interface/IEmailAdapter';
 
 export default // @ts-ignore
 class SES implements IEmailAdapter {

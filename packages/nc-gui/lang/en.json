@@ -39,6 +39,7 @@
     "signIn": "SIGN IN",
     "signOut": "Sign Out",
     "required": "Required",
+    "enableScanner": "Enable Scanner for filling",
     "preferred": "Preferred",
     "mandatory": "Mandatory",
     "loading": "Loading ...",
@@ -75,7 +76,8 @@
     "hideField": "Hide Field",
     "sortAsc": "Sort Ascending",
     "sortDesc": "Sort Descending",
-    "move": "Move"
+    "move": "Move",
+    "geoDataField": "GeoData Field"
   },
   "objects": {
     "project": "Project",
@@ -99,7 +101,8 @@
       "gallery": "Gallery",
       "form": "Form",
       "kanban": "Kanban",
-      "calendar": "Calendar"
+      "calendar": "Calendar",
+      "map": "Map"
     },
     "user": "User",
     "users": "Users",
@@ -137,6 +140,7 @@
     "Currency": "Currency",
     "Percent": "Percent",
     "Duration": "Duration",
+    "GeoData": "GeoData",
     "Rating": "Rating",
     "Formula": "Formula",
     "Rollup": "Rollup",
@@ -207,7 +211,8 @@
     "advancedSettings": "Advanced Settings",
     "codeSnippet": "Code Snippet",
     "keyboardShortcut": "Keyboard Shortcuts",
-    "generateRandomName": "Generate Random Name"
+    "generateRandomName": "Generate Random Name",
+    "findRowByScanningCode": "Find row by scanning a QR or Barcode"
   },
   "labels": {
     "createdBy": "Created By",
@@ -217,6 +222,7 @@
     "viewName": "View name",
     "viewLink": "View Link",
     "columnName": "Column Name",
+    "columnToScanFor": "Column to scan",
     "columnType": "Column Type",
     "roleName": "Role Name",
     "roleDescription": "Role Description",
@@ -233,6 +239,7 @@
     "action": "Action",
     "actions": "Actions",
     "operation": "Operation",
+    "operationSub": "Sub Operation",
     "operationType": "Operation type",
     "operationSubType": "Operation sub-type",
     "description": "Description",
@@ -254,6 +261,9 @@
     "barcodeFormat": "Barcode format",
     "qrCodeValueTooLong": "Too many characters for a QR code",
     "barcodeValueTooLong": "Too many characters for a barcode",
+    "currentLocation": "Current Location",
+    "lng": "Lng",
+    "lat": "Lat",
     "aggregateFunction": "Aggregate function",
     "dbCreateIfNotExists": "Database : create if not exists",
     "clientKey": "Client Key",
@@ -389,8 +399,8 @@
     "saveAndExit": "Save & Exit",
     "saveAndStay": "Save & Stay",
     "insertRow": "Insert New Row",
-    "deleteRow": "Delete Row",
     "duplicateRow": "Duplicate Row",
+    "deleteRow": "Delete Row",
     "deleteSelectedRow": "Delete Selected Rows",
     "importExcel": "Import Excel",
     "importCSV": "Import CSV",
@@ -405,6 +415,8 @@
     "changePwd": "Change Password",
     "createView": "Create a View",
     "shareView": "Share View",
+    "findRowByCodeScan": "Find row by scan",
+    "fillByCodeScan": "Fill by scan",
     "listSharedView": "Shared View List",
     "ListView": "Views List",
     "copyView": "Copy view",
@@ -420,6 +432,10 @@
     "openTab": "Open new tab",
     "iFrame": "Copy embeddable HTML code",
     "addWebhook": "Add New Webhook",
+    "enableWebhook": "Enable Webhook",
+    "testWebhook": "Test Webhook",
+    "copyWebhook": "Copy Webhook",
+    "deleteWebhook": "Delete Webhook",
     "newToken": "Add New Token",
     "exportZip": "Export zip",
     "importZip": "Import zip",
@@ -455,7 +471,14 @@
       "stackedBy": "Stacked By",
       "chooseGroupingField": "Choose a Grouping Field",
       "addOrEditStack": "Add / Edit Stack"
-    }
+    },
+    "map": {
+      "mappedBy": "Mapped By",
+      "chooseMappingField": "Choose a Mapping Field",
+      "openInGoogleMaps": "Google Maps",
+      "openInOpenStreetMap": "OSM"
+    },
+    "toggleMobileMode": "Toggle Mobile Mode"
   },
   "tooltip": {
     "saveChanges": "Save changes",
@@ -520,6 +543,17 @@
       "roles": {
         "orgCreator": "Creator can create new projects and access any invited project.",
         "orgViewer": "Viewer is not allowed to create new projects but they can access any invited project."
+      },
+      "codeScanner": {
+        "loadingScanner": "Loading the scanner...",
+        "selectColumn": "Select a column (QR code or Barcode) that you want to use for finding a row by scanning.",
+        "moreThanOneRowFoundForCode": "More than one row found for this code. Currently only unique codes are supported.",
+        "noRowFoundForCode": "No row found for this code for the selected column"
+      },
+      "map": {
+        "overLimit": "You're over the limit.",
+        "closeLimit": "You're getting close to the limit.",
+        "limitNumber": "The limit of markers shown in a Map View is 1000 records."
       },
       "footerInfo": "Rows per page",
       "upload": "Select file to Upload",
@@ -603,6 +637,7 @@
         "gallery": "Add Gallery View",
         "form": "Add Form View",
         "kanban": "Add Kanban View",
+        "map": "Add Map View",
         "calendar": "Add Calendar View"
       },
       "tablesMetadataInSync": "Tables metadata is in Sync",
@@ -666,6 +701,7 @@
         "allowedSpecialCharList": "Allowed special character list"
       },
       "invalidURL": "Invalid URL",
+      "invalidEmail": "Invalid Email",
       "internalError": "Some internal error occurred",
       "templateGeneratorNotFound": "Template Generator cannot be found!",
       "fileUploadFailed": "Failed to upload file",
@@ -746,6 +782,7 @@
       "userDeletedFromProject": "Successfully deleted user from project",
       "inviteEmailSent": "Invite Email sent successfully",
       "inviteURLCopied": "Invite URL copied to clipboard",
+      "commentCopied": "Comment copied to clipboard",
       "passwordResetURLCopied": "Password reset URL copied to clipboard",
       "shareableURLCopied": "Copied shareable base URL to clipboard!",
       "embeddableHTMLCodeCopied": "Copied embeddable HTML code!",

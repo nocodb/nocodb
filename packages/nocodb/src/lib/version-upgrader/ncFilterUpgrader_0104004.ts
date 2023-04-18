@@ -1,10 +1,11 @@
-import { NcUpgraderCtx } from './NcUpgrader';
+import { UITypes } from 'nocodb-sdk';
 import { MetaTable } from '../utils/globals';
-import NcMetaIO from '../meta/NcMetaIO';
 import Column from '../models/Column';
 import Filter from '../models/Filter';
 import Project from '../models/Project';
-import { UITypes, SelectOptionsType } from 'nocodb-sdk';
+import type NcMetaIO from '../meta/NcMetaIO';
+import type { NcUpgraderCtx } from './NcUpgrader';
+import type { SelectOptionsType } from 'nocodb-sdk';
 
 // as of 0.104.3, almost all filter operators are available to all column types
 // while some of them aren't supposed to be shown
@@ -35,7 +36,7 @@ import { UITypes, SelectOptionsType } from 'nocodb-sdk';
 //     - migrate `empty`, `null` to `blank`
 
 const removeEqualFilters = (filter, ncMeta) => {
-  let actions = [];
+  const actions = [];
   // remove `is equal`, `is not equal`
   if (['eq', 'neq'].includes(filter.comparison_op)) {
     actions.push(Filter.delete(filter.id, ncMeta));
@@ -44,7 +45,7 @@ const removeEqualFilters = (filter, ncMeta) => {
 };
 
 const removeArithmeticFilters = (filter, ncMeta) => {
-  let actions = [];
+  const actions = [];
   // remove `>`, `<`, `>=`, `<=`
   if (['gt', 'lt', 'gte', 'lte'].includes(filter.comparison_op)) {
     actions.push(Filter.delete(filter.id, ncMeta));
@@ -53,7 +54,7 @@ const removeArithmeticFilters = (filter, ncMeta) => {
 };
 
 const removeLikeFilters = (filter, ncMeta) => {
-  let actions = [];
+  const actions = [];
   // remove `is like`, `is not like`
   if (['like', 'nlike'].includes(filter.comparison_op)) {
     actions.push(Filter.delete(filter.id, ncMeta));
@@ -62,7 +63,7 @@ const removeLikeFilters = (filter, ncMeta) => {
 };
 
 const migrateNullAndEmptyToBlankFilters = (filter, ncMeta) => {
-  let actions = [];
+  const actions = [];
   if (['empty', 'null'].includes(filter.comparison_op)) {
     // migrate to blank
     actions.push(
@@ -101,7 +102,7 @@ const migrateMultiSelectEq = async (filter, col: Column, ncMeta) => {
   // retrieve the possible col options
   const colOptions = (await col.getColOptions()) as SelectOptionsType;
   // only include valid options as the input value becomes dropdown type now
-  let validOptions = [];
+  const validOptions = [];
   for (const option of options) {
     if (colOptions.options.includes(option)) {
       validOptions.push(option);
@@ -112,7 +113,7 @@ const migrateMultiSelectEq = async (filter, col: Column, ncMeta) => {
   if (!newFilterValue) {
     return await Filter.delete(filter.id, ncMeta);
   }
-  let actions = [];
+  const actions = [];
   if (filter.comparison_op === 'eq') {
     // migrate to `contains all of`
     actions.push(
@@ -142,7 +143,7 @@ const migrateMultiSelectEq = async (filter, col: Column, ncMeta) => {
 };
 
 const migrateToCheckboxFilter = (filter, ncMeta) => {
-  let actions = [];
+  const actions = [];
   const possibleTrueValues = ['true', 'True', '1', 'T', 'Y'];
   const possibleFalseValues = ['false', 'False', '0', 'F', 'N'];
   if (['empty', 'null'].includes(filter.comparison_op)) {
@@ -302,7 +303,7 @@ async function updateProjectMeta(ncMeta: NcMetaIO) {
 
   const filters = await ncMeta.metaList2(null, null, MetaTable.FILTER_EXP);
 
-  let actions = [];
+  const actions = [];
 
   for (const filter of filters) {
     if (

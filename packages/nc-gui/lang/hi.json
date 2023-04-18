@@ -39,6 +39,7 @@
     "signIn": "साइन इन करें",
     "signOut": "साइन आउट",
     "required": "आवश्यक",
+    "enableScanner": "Enable Scanner for filling",
     "preferred": "पसंदीदा",
     "mandatory": "अनिवार्य",
     "loading": "लोड हो रहा है ...",
@@ -74,7 +75,8 @@
     "insertBefore": "Insert Before",
     "hideField": "Hide Field",
     "sortAsc": "Sort Ascending",
-    "sortDesc": "Sort Descending"
+    "sortDesc": "Sort Descending",
+    "geoDataField": "GeoData Field"
   },
   "objects": {
     "project": "परियोजना",
@@ -98,7 +100,8 @@
       "gallery": "गेलरी",
       "form": "प्रपत्र",
       "kanban": "Kanban",
-      "calendar": "पंचांग"
+      "calendar": "पंचांग",
+      "map": "Map"
     },
     "user": "उपयोगकर्ता",
     "users": "उपयोगकर्ताओं",
@@ -136,6 +139,7 @@
     "Currency": "मुद्रा",
     "Percent": "प्रतिशत",
     "Duration": "अवधि",
+    "GeoData": "GeoData",
     "Rating": "रेटिंग",
     "Formula": "सूत्र",
     "Rollup": "जमना",
@@ -206,7 +210,8 @@
     "advancedSettings": "Advanced Settings",
     "codeSnippet": "Code Snippet",
     "keyboardShortcut": "Keyboard Shortcuts",
-    "generateRandomName": "Generate Random Name"
+    "generateRandomName": "Generate Random Name",
+    "findRowByScanningCode": "Find row by scanning a QR or Barcode"
   },
   "labels": {
     "createdBy": "Created By",
@@ -216,6 +221,7 @@
     "viewName": "नाम देखें",
     "viewLink": "लिंक देखें",
     "columnName": "आम नाम",
+    "columnToScanFor": "Column to scan",
     "columnType": "स्तंभ प्रकार",
     "roleName": "भूमिका का नाम",
     "roleDescription": "भूमिका विवरण",
@@ -232,6 +238,7 @@
     "action": "गतिविधि",
     "actions": "कार्रवाई",
     "operation": "संचालन",
+    "operationSub": "Sub Operation",
     "operationType": "प्रचालन प्रकार",
     "operationSubType": "प्रचालन उप-प्रकार",
     "description": "विवरण",
@@ -253,6 +260,9 @@
     "barcodeFormat": "Barcode format",
     "qrCodeValueTooLong": "Too many characters for a QR code",
     "barcodeValueTooLong": "Too many characters for a barcode",
+    "currentLocation": "Current Location",
+    "lng": "Lng",
+    "lat": "Lat",
     "aggregateFunction": "कुल समारोह",
     "dbCreateIfNotExists": "डेटाबेस: बनाएं यदि मौजूद नहीं है",
     "clientKey": "ग्राहक कुंजी",
@@ -386,8 +396,8 @@
     "saveAndExit": "Save & Exit",
     "saveAndStay": "Save & Stay",
     "insertRow": "नई पंक्ति डालें",
-    "deleteRow": "पंक्ति को हटाएं",
     "duplicateRow": "Duplicate Row",
+    "deleteRow": "पंक्ति को हटाएं",
     "deleteSelectedRow": "चयनित पंक्तियों को हटा दें",
     "importExcel": "आयात एक्सेल",
     "importCSV": "Import CSV",
@@ -402,6 +412,8 @@
     "changePwd": "पासवर्ड बदलें",
     "createView": "एक दृश्य बनाएं",
     "shareView": "शेयर दृश्य",
+    "findRowByCodeScan": "Find row by scan",
+    "fillByCodeScan": "Fill by scan",
     "listSharedView": "साझा दृश्य सूची",
     "ListView": "दृश्य सूची",
     "copyView": "प्रतिलिपि दृश्य",
@@ -417,6 +429,10 @@
     "openTab": "नया टैब खोलें",
     "iFrame": "एम्बेडेबल HTML कोड कॉपी करें",
     "addWebhook": "नया वेबहूक जोड़ें",
+    "enableWebhook": "Enable Webhook",
+    "testWebhook": "Test Webhook",
+    "copyWebhook": "Copy Webhook",
+    "deleteWebhook": "Delete Webhook",
     "newToken": "नया टोकन जोड़ें",
     "exportZip": "निर्यात ज़िप",
     "importZip": "आयात ज़िप",
@@ -452,7 +468,14 @@
       "stackedBy": "Stacked By",
       "chooseGroupingField": "Choose a Grouping Field",
       "addOrEditStack": "Add / Edit Stack"
-    }
+    },
+    "map": {
+      "mappedBy": "Mapped By",
+      "chooseMappingField": "Choose a Mapping Field",
+      "openInGoogleMaps": "Google Maps",
+      "openInOpenStreetMap": "OSM"
+    },
+    "toggleMobileMode": "Toggle Mobile Mode"
   },
   "tooltip": {
     "saveChanges": "परिवर्तनों को सुरक्षित करें",
@@ -517,6 +540,17 @@
       "roles": {
         "orgCreator": "Creator can create new projects and access any invited project.",
         "orgViewer": "Viewer is not allowed to create new projects but they can access any invited project."
+      },
+      "codeScanner": {
+        "loadingScanner": "Loading the scanner...",
+        "selectColumn": "Select a column (QR code or Barcode) that you want to use for finding a row by scanning.",
+        "moreThanOneRowFoundForCode": "More than one row found for this code. Currently only unique codes are supported.",
+        "noRowFoundForCode": "No row found for this code for the selected column"
+      },
+      "map": {
+        "overLimit": "You're over the limit.",
+        "closeLimit": "You're getting close to the limit.",
+        "limitNumber": "The limit of markers shown in a Map View is 1000 records."
       },
       "footerInfo": "प्रति पृष्ठ पंक्तियाँ",
       "upload": "अपलोड करने के लिए फ़ाइल का चयन करें",
@@ -600,6 +634,7 @@
         "gallery": "गैलरी दृश्य जोड़ें",
         "form": "फॉर्म व्यू जोड़ें",
         "kanban": "कनबान दृश्य जोड़ें",
+        "map": "Add Map View",
         "calendar": "कैलेंडर दृश्य जोड़ें"
       },
       "tablesMetadataInSync": "टेबल के मेटाडेटा SYNC है",
@@ -663,6 +698,7 @@
         "allowedSpecialCharList": "Allowed special character list"
       },
       "invalidURL": "Invalid URL",
+      "invalidEmail": "Invalid Email",
       "internalError": "Some internal error occurred",
       "templateGeneratorNotFound": "Template Generator cannot be found!",
       "fileUploadFailed": "Failed to upload file",
@@ -690,6 +726,7 @@
       "nameShouldStartWithAnAlphabetOr_": "Name should start with an alphabet or _",
       "followingCharactersAreNotAllowed": "Following characters are not allowed",
       "columnNameRequired": "Column name is required",
+      "columnNameExceedsCharacters": "The length of column name exceeds the max {value} characters",
       "projectNameExceeds50Characters": "Project name exceeds 50 characters",
       "projectNameCannotStartWithSpace": "Project name cannot start with space",
       "requiredField": "Required field",
@@ -742,6 +779,7 @@
       "userDeletedFromProject": "Successfully deleted user from project",
       "inviteEmailSent": "Invite Email sent successfully",
       "inviteURLCopied": "Invite URL copied to clipboard",
+      "commentCopied": "Comment copied to clipboard",
       "passwordResetURLCopied": "Password reset URL copied to clipboard",
       "shareableURLCopied": "Copied shareable base URL to clipboard!",
       "embeddableHTMLCodeCopied": "Copied embeddable HTML code!",

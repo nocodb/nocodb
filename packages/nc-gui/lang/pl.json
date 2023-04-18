@@ -39,6 +39,7 @@
     "signIn": "Zaloguj",
     "signOut": "Wyloguj",
     "required": "Wymagany",
+    "enableScanner": "Enable Scanner for filling",
     "preferred": "Preferowany",
     "mandatory": "Obowiązkowy",
     "loading": "Ładowanie ...",
@@ -74,7 +75,8 @@
     "insertBefore": "Wstaw przed",
     "hideField": "Ukryj pole",
     "sortAsc": "Sortowanie rosnące",
-    "sortDesc": "Sortuj malejąco"
+    "sortDesc": "Sortuj malejąco",
+    "geoDataField": "GeoData Field"
   },
   "objects": {
     "project": "Projekt",
@@ -98,7 +100,8 @@
       "gallery": "Galeria",
       "form": "Formularz",
       "kanban": "Kanban",
-      "calendar": "Kalendarz"
+      "calendar": "Kalendarz",
+      "map": "Map"
     },
     "user": "Użytkownik",
     "users": "Użytkownicy",
@@ -136,6 +139,7 @@
     "Currency": "Waluta",
     "Percent": "Procent",
     "Duration": "Czas trwania",
+    "GeoData": "GeoData",
     "Rating": "Ocena",
     "Formula": "Formuła",
     "Rollup": "Zliczanie",
@@ -206,7 +210,8 @@
     "advancedSettings": "Ustawienia zaawansowane",
     "codeSnippet": "Snippet",
     "keyboardShortcut": "Skróty klawiaturowe",
-    "generateRandomName": "Generate Random Name"
+    "generateRandomName": "Generate Random Name",
+    "findRowByScanningCode": "Find row by scanning a QR or Barcode"
   },
   "labels": {
     "createdBy": "Stworzony przez",
@@ -216,6 +221,7 @@
     "viewName": "Nazwa widoku",
     "viewLink": "Zobacz link",
     "columnName": "Nazwa kolumny",
+    "columnToScanFor": "Column to scan",
     "columnType": "Typ kolumny",
     "roleName": "Nazwa roli",
     "roleDescription": "Opisy roli",
@@ -232,6 +238,7 @@
     "action": "Akcja",
     "actions": "Akcje",
     "operation": "Operacja",
+    "operationSub": "Sub Operation",
     "operationType": "Typ operacji",
     "operationSubType": "Podtypowy akcji",
     "description": "Opis",
@@ -253,6 +260,9 @@
     "barcodeFormat": "Format kodu kreskowego",
     "qrCodeValueTooLong": "Zbyt wiele znaków dla kodu QR",
     "barcodeValueTooLong": "Zbyt wiele znaków dla kodu kreskowego",
+    "currentLocation": "Current Location",
+    "lng": "Lng",
+    "lat": "Lat",
     "aggregateFunction": "Funkcja agregacji",
     "dbCreateIfNotExists": "Baza danych: Utwórz, jeśli nie istnieje",
     "clientKey": "Klucz klienta",
@@ -386,8 +396,8 @@
     "saveAndExit": "Zapisz i wyjdź",
     "saveAndStay": "Oszczędzaj i zostań",
     "insertRow": "Wstaw nowy rząd",
-    "deleteRow": "Usuń rząd",
     "duplicateRow": "Duplicate Row",
+    "deleteRow": "Usuń rząd",
     "deleteSelectedRow": "Usuń wybrane wiersze",
     "importExcel": "Importuj Excel.",
     "importCSV": "Importuj z CSV",
@@ -402,6 +412,8 @@
     "changePwd": "Zmień hasło",
     "createView": "Utwórz widok",
     "shareView": "Widok udostępniania",
+    "findRowByCodeScan": "Find row by scan",
+    "fillByCodeScan": "Fill by scan",
     "listSharedView": "Wspólna lista widoków",
     "ListView": "Lista widoków",
     "copyView": "Widok kopiowania",
@@ -417,6 +429,10 @@
     "openTab": "Otwórz nową kartę",
     "iFrame": "Skopiuj wbudowany kod HTML",
     "addWebhook": "Dodaj nowy webhook.",
+    "enableWebhook": "Enable Webhook",
+    "testWebhook": "Test Webhook",
+    "copyWebhook": "Copy Webhook",
+    "deleteWebhook": "Delete Webhook",
     "newToken": "Dodaj nowy token.",
     "exportZip": "Eksportuj Zip.",
     "importZip": "Importuj Zip.",
@@ -452,7 +468,14 @@
       "stackedBy": "Ułożone według",
       "chooseGroupingField": "Wybierz pole grupowania",
       "addOrEditStack": "Dodaj / Edytuj stos"
-    }
+    },
+    "map": {
+      "mappedBy": "Mapped By",
+      "chooseMappingField": "Choose a Mapping Field",
+      "openInGoogleMaps": "Google Maps",
+      "openInOpenStreetMap": "OSM"
+    },
+    "toggleMobileMode": "Toggle Mobile Mode"
   },
   "tooltip": {
     "saveChanges": "Zapisz zmiany",
@@ -517,6 +540,17 @@
       "roles": {
         "orgCreator": "Twórca może tworzyć nowe projekty i mieć dostęp do każdego zaproszonego projektu.",
         "orgViewer": "Widz nie może tworzyć nowych projektów, ale może mieć dostęp do każdego zaproszonego projektu."
+      },
+      "codeScanner": {
+        "loadingScanner": "Loading the scanner...",
+        "selectColumn": "Select a column (QR code or Barcode) that you want to use for finding a row by scanning.",
+        "moreThanOneRowFoundForCode": "More than one row found for this code. Currently only unique codes are supported.",
+        "noRowFoundForCode": "No row found for this code for the selected column"
+      },
+      "map": {
+        "overLimit": "You're over the limit.",
+        "closeLimit": "You're getting close to the limit.",
+        "limitNumber": "The limit of markers shown in a Map View is 1000 records."
       },
       "footerInfo": "Wiersze na stronę",
       "upload": "Wybierz plik do przesłania",
@@ -600,6 +634,7 @@
         "gallery": "Dodaj widok galerii.",
         "form": "Dodaj widok formy",
         "kanban": "Dodaj widok Kanban.",
+        "map": "Add Map View",
         "calendar": "Dodaj widok kalendarza"
       },
       "tablesMetadataInSync": "Tabele Metadane są synchronizowane",
@@ -663,6 +698,7 @@
         "allowedSpecialCharList": "Dozwolona lista znaków specjalnych"
       },
       "invalidURL": "Nieprawidłowy adres URL",
+      "invalidEmail": "Invalid Email",
       "internalError": "Wystąpił błąd wewnętrzny",
       "templateGeneratorNotFound": "Nie można znaleźć generatora szablonów!",
       "fileUploadFailed": "Nie udało się przesłać pliku",
@@ -690,6 +726,7 @@
       "nameShouldStartWithAnAlphabetOr_": "Nazwa powinna zaczynać się od alfabetu lub od _",
       "followingCharactersAreNotAllowed": "Następujące znaki są niedozwolone",
       "columnNameRequired": "Nazwa kolumny jest wymagana",
+      "columnNameExceedsCharacters": "The length of column name exceeds the max {value} characters",
       "projectNameExceeds50Characters": "Nazwa projektu przekracza 50 znaków",
       "projectNameCannotStartWithSpace": "Nazwa projektu nie może zaczynać się od spacji",
       "requiredField": "Pole wymagane",
@@ -742,6 +779,7 @@
       "userDeletedFromProject": "Użytkownik usunięty z projektu",
       "inviteEmailSent": "E-mail został wysłany pomyślnie",
       "inviteURLCopied": "Link z zaproszeniem skopiowany do schowka",
+      "commentCopied": "Comment copied to clipboard",
       "passwordResetURLCopied": "URL resetowania hasła skopiowany do schowka",
       "shareableURLCopied": "Skopiowano adres URL do schowka!",
       "embeddableHTMLCodeCopied": "Skopiowano kod HTML!",

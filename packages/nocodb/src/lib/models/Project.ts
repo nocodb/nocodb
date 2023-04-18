@@ -1,6 +1,4 @@
-import Base from './/Base';
 import Noco from '../Noco';
-import { ProjectType } from 'nocodb-sdk';
 import {
   CacheDelDirection,
   CacheGetType,
@@ -9,7 +7,9 @@ import {
 } from '../utils/globals';
 import { extractProps } from '../meta/helpers/extractProps';
 import NocoCache from '../cache/NocoCache';
-import Page from './Page';
+import Base from './/Base';
+import type { BoolType, MetaType, ProjectType } from 'nocodb-sdk';
+import type { DB_TYPES } from './/Base';
 
 export default class Project implements ProjectType {
   public id: string;
@@ -17,17 +17,14 @@ export default class Project implements ProjectType {
   public prefix: string;
   public status: string;
   public description: string;
-  public meta: string;
+  public meta: MetaType;
   public color: string;
-  public deleted: string;
+  public deleted: BoolType;
   public order: number;
   public is_meta = false;
   public bases?: Base[];
   public type: string;
   public fk_workspace_id?: string;
-
-  created_at: any;
-  updated_at: any;
 
   // shared base props
   uuid?: string;
@@ -39,11 +36,7 @@ export default class Project implements ProjectType {
   }
 
   public static async createProject(
-    project: ProjectType & {
-      created_at?;
-      updated_at?;
-      user?: any;
-    },
+    project: Partial<ProjectType>,
     ncMeta = Noco.ncMeta
   ): Promise<Project> {
     const insertObj = extractProps(project, [
@@ -52,8 +45,6 @@ export default class Project implements ProjectType {
       'prefix',
       'description',
       'is_meta',
-      'created_at',
-      'updated_at',
       'type',
       'fk_workspace_id',
       'meta',
@@ -76,18 +67,12 @@ export default class Project implements ProjectType {
     for (const base of project.bases) {
       await Base.createBase(
         {
-          type: base.config?.client,
+          type: base.config?.client as typeof DB_TYPES[number],
           ...base,
           projectId,
         },
         ncMeta
       );
-    }
-
-    if (insertObj.type === 'documentation') {
-      await Page.createPageTable({
-        projectId,
-      });
     }
 
     await NocoCache.del(CacheScope.INSTANCE_META);

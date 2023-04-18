@@ -1,9 +1,10 @@
-import axios from 'axios';
-import { Knex, knex } from 'knex';
-
 import { promises as fs } from 'fs';
+import axios from 'axios';
+import { knex } from 'knex';
 import Audit from '../../../models/Audit';
-import Project from '../../../models/Project';
+import { Workspace } from '../../../models';
+import type { Knex } from 'knex';
+import type Project from '../../../models/Project';
 
 const config = {
   client: 'mysql2',
@@ -18,8 +19,10 @@ const config = {
   },
 };
 
-const extMysqlProject = (title, parallelId) => ({
+const extMysqlProject = (workspaceId, title, parallelId, projectType) => ({
   title,
+  fk_workspace_id: workspaceId,
+  type: projectType,
   bases: [
     {
       type: 'mysql2',
@@ -129,12 +132,16 @@ const resetMysqlSakilaProject = async ({
   parallelId,
   oldProject,
   isEmptyProject,
+  projectType,
+  workspaceTitle,
 }: {
   token: string;
   title: string;
   parallelId: string;
   oldProject?: Project | undefined;
   isEmptyProject: boolean;
+  projectType: string;
+  workspaceTitle: string;
 }) => {
   const nc_knex = knex(config);
 
@@ -152,9 +159,13 @@ const resetMysqlSakilaProject = async ({
     await resetSakilaMysql(nc_knex, parallelId, isEmptyProject);
   }
 
+  const ws = await Workspace.insert({
+    title: workspaceTitle,
+  });
+
   const response = await axios.post(
     'http://localhost:8080/api/v1/db/meta/projects/',
-    extMysqlProject(title, parallelId),
+    extMysqlProject(ws.id, title, parallelId, projectType),
     {
       headers: {
         'xc-auth': token,

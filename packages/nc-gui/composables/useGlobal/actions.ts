@@ -1,11 +1,19 @@
-import type { Actions, State } from './types'
+import type { Actions, AppInfo, State } from './types'
 import { message, useNuxtApp } from '#imports'
 
 export function useGlobalActions(state: State): Actions {
+  const setIsMobileMode = (isMobileMode: boolean) => {
+    state.isMobileMode.value = isMobileMode
+  }
+
   /** Sign out by deleting the token from localStorage */
-  const signOut: Actions['signOut'] = () => {
+  const signOut: Actions['signOut'] = async () => {
     state.token.value = null
     state.user.value = null
+    try {
+      const nuxtApp = useNuxtApp()
+      await nuxtApp.$api.auth.signout()
+    } catch {}
   }
 
   /** Sign in by setting the token in localStorage */
@@ -38,22 +46,22 @@ export function useGlobalActions(state: State): Actions {
             signIn(response.data.token)
           }
         })
-        .catch((err) => {
+        .catch(async (err) => {
           message.error(err.message || t('msg.error.youHaveBeenSignedOut'))
-          signOut()
+          await signOut()
         })
-        .finally(resolve)
+        .finally(() => resolve())
     })
   }
 
   const loadAppInfo = async () => {
     try {
       const nuxtApp = useNuxtApp()
-      state.appInfo.value = await nuxtApp.$api.utils.appInfo()
+      state.appInfo.value = (await nuxtApp.$api.utils.appInfo()) as AppInfo
     } catch (e) {
       console.error(e)
     }
   }
 
-  return { signIn, signOut, refreshToken, loadAppInfo }
+  return { signIn, signOut, refreshToken, loadAppInfo, setIsMobileMode }
 }

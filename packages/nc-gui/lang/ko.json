@@ -39,6 +39,7 @@
     "signIn": "로그인",
     "signOut": "로그아웃",
     "required": "필수의",
+    "enableScanner": "Enable Scanner for filling",
     "preferred": "우선의",
     "mandatory": "필수적인",
     "loading": "불러오는 중 ...",
@@ -74,7 +75,8 @@
     "insertBefore": "Insert Before",
     "hideField": "Hide Field",
     "sortAsc": "Sort Ascending",
-    "sortDesc": "Sort Descending"
+    "sortDesc": "Sort Descending",
+    "geoDataField": "GeoData Field"
   },
   "objects": {
     "project": "프로젝트",
@@ -98,7 +100,8 @@
       "gallery": "갤러리",
       "form": "폼",
       "kanban": "칸반",
-      "calendar": "캘린더"
+      "calendar": "캘린더",
+      "map": "Map"
     },
     "user": "사용자",
     "users": "사용자",
@@ -136,6 +139,7 @@
     "Currency": "통화",
     "Percent": "퍼센트",
     "Duration": "기간",
+    "GeoData": "GeoData",
     "Rating": "등급",
     "Formula": "공식",
     "Rollup": "롤업",
@@ -206,7 +210,8 @@
     "advancedSettings": "Advanced Settings",
     "codeSnippet": "Code Snippet",
     "keyboardShortcut": "Keyboard Shortcuts",
-    "generateRandomName": "Generate Random Name"
+    "generateRandomName": "Generate Random Name",
+    "findRowByScanningCode": "Find row by scanning a QR or Barcode"
   },
   "labels": {
     "createdBy": "Created By",
@@ -216,6 +221,7 @@
     "viewName": "이름 보기",
     "viewLink": "링크 보기",
     "columnName": "열 이름",
+    "columnToScanFor": "Column to scan",
     "columnType": "열 유형",
     "roleName": "역할 이름",
     "roleDescription": "역할 설명",
@@ -232,6 +238,7 @@
     "action": "동작",
     "actions": "행위",
     "operation": "작업",
+    "operationSub": "Sub Operation",
     "operationType": "작업 유형",
     "operationSubType": "작업 하위 유형",
     "description": "설명",
@@ -253,6 +260,9 @@
     "barcodeFormat": "Barcode format",
     "qrCodeValueTooLong": "Too many characters for a QR code",
     "barcodeValueTooLong": "Too many characters for a barcode",
+    "currentLocation": "Current Location",
+    "lng": "Lng",
+    "lat": "Lat",
     "aggregateFunction": "집합 함수",
     "dbCreateIfNotExists": "데이터베이스 : 존재하지 않는 경우 생성",
     "clientKey": "클라이언트 키",
@@ -386,8 +396,8 @@
     "saveAndExit": "Save & Exit",
     "saveAndStay": "Save & Stay",
     "insertRow": "행 삽입",
-    "deleteRow": "행 삭제",
     "duplicateRow": "Duplicate Row",
+    "deleteRow": "행 삭제",
     "deleteSelectedRow": "선택한 행 삭제",
     "importExcel": "엑셀 가져오기",
     "importCSV": "CSV 가져오기",
@@ -402,6 +412,8 @@
     "changePwd": "암호 변경",
     "createView": "뷰 생성",
     "shareView": "뷰 공유",
+    "findRowByCodeScan": "Find row by scan",
+    "fillByCodeScan": "Fill by scan",
     "listSharedView": "공유 뷰 목록",
     "ListView": "뷰 목록",
     "copyView": "뷰 복사",
@@ -417,6 +429,10 @@
     "openTab": "새 탭 열기",
     "iFrame": "임베드 가능한 HTML 코드 복사",
     "addWebhook": "새 웹훅 추가",
+    "enableWebhook": "Enable Webhook",
+    "testWebhook": "Test Webhook",
+    "copyWebhook": "Copy Webhook",
+    "deleteWebhook": "Delete Webhook",
     "newToken": "새 토큰 추가",
     "exportZip": "zip 파일 내보내기",
     "importZip": "zip 파일 가져오기",
@@ -452,7 +468,14 @@
       "stackedBy": "Stacked By",
       "chooseGroupingField": "Choose a Grouping Field",
       "addOrEditStack": "Add / Edit Stack"
-    }
+    },
+    "map": {
+      "mappedBy": "Mapped By",
+      "chooseMappingField": "Choose a Mapping Field",
+      "openInGoogleMaps": "Google Maps",
+      "openInOpenStreetMap": "OSM"
+    },
+    "toggleMobileMode": "Toggle Mobile Mode"
   },
   "tooltip": {
     "saveChanges": "변경 사항 저장",
@@ -517,6 +540,17 @@
       "roles": {
         "orgCreator": "Creator can create new projects and access any invited project.",
         "orgViewer": "Viewer is not allowed to create new projects but they can access any invited project."
+      },
+      "codeScanner": {
+        "loadingScanner": "Loading the scanner...",
+        "selectColumn": "Select a column (QR code or Barcode) that you want to use for finding a row by scanning.",
+        "moreThanOneRowFoundForCode": "More than one row found for this code. Currently only unique codes are supported.",
+        "noRowFoundForCode": "No row found for this code for the selected column"
+      },
+      "map": {
+        "overLimit": "You're over the limit.",
+        "closeLimit": "You're getting close to the limit.",
+        "limitNumber": "The limit of markers shown in a Map View is 1000 records."
       },
       "footerInfo": "페이지 당 행",
       "upload": "업로드 할 파일 선택",
@@ -600,6 +634,7 @@
         "gallery": "갤러리 뷰 추가",
         "form": "폼 뷰 추가",
         "kanban": "칸반 뷰 추가",
+        "map": "Add Map View",
         "calendar": "캘린더 뷰 추가"
       },
       "tablesMetadataInSync": "테이블 메타 데이터가 동기화되어 있습니다",
@@ -663,6 +698,7 @@
         "allowedSpecialCharList": "Allowed special character list"
       },
       "invalidURL": "Invalid URL",
+      "invalidEmail": "Invalid Email",
       "internalError": "Some internal error occurred",
       "templateGeneratorNotFound": "Template Generator cannot be found!",
       "fileUploadFailed": "Failed to upload file",
@@ -690,6 +726,7 @@
       "nameShouldStartWithAnAlphabetOr_": "Name should start with an alphabet or _",
       "followingCharactersAreNotAllowed": "Following characters are not allowed",
       "columnNameRequired": "Column name is required",
+      "columnNameExceedsCharacters": "The length of column name exceeds the max {value} characters",
       "projectNameExceeds50Characters": "Project name exceeds 50 characters",
       "projectNameCannotStartWithSpace": "Project name cannot start with space",
       "requiredField": "Required field",
@@ -742,6 +779,7 @@
       "userDeletedFromProject": "Successfully deleted user from project",
       "inviteEmailSent": "Invite Email sent successfully",
       "inviteURLCopied": "Invite URL copied to clipboard",
+      "commentCopied": "Comment copied to clipboard",
       "passwordResetURLCopied": "Password reset URL copied to clipboard",
       "shareableURLCopied": "Copied shareable base URL to clipboard!",
       "embeddableHTMLCodeCopied": "Copied embeddable HTML code!",

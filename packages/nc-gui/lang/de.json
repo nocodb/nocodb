@@ -39,6 +39,7 @@
     "signIn": "Einloggen",
     "signOut": "Ausloggen",
     "required": "Erforderlich",
+    "enableScanner": "Enable Scanner for filling",
     "preferred": "Bevorzugt",
     "mandatory": "Verpflichtend",
     "loading": "Wird geladen ...",
@@ -74,7 +75,8 @@
     "insertBefore": "davor einfügen",
     "hideField": "Feld ausblenden",
     "sortAsc": "Aufsteigend sortieren",
-    "sortDesc": "Absteigend sortieren"
+    "sortDesc": "Absteigend sortieren",
+    "geoDataField": "GeoData Field"
   },
   "objects": {
     "project": "Projekt",
@@ -98,7 +100,8 @@
       "gallery": "Galerie",
       "form": "Formular",
       "kanban": "Kanban",
-      "calendar": "Kalender"
+      "calendar": "Kalender",
+      "map": "Map"
     },
     "user": "Nutzer",
     "users": "Benutzer",
@@ -136,6 +139,7 @@
     "Currency": "Währung",
     "Percent": "Prozent",
     "Duration": "Dauer",
+    "GeoData": "GeoData",
     "Rating": "Klassifizierung",
     "Formula": "Formel",
     "Rollup": "Zusammenfassung",
@@ -206,7 +210,8 @@
     "advancedSettings": "Erweiterte Einstellungen",
     "codeSnippet": "Code Ausschnitt",
     "keyboardShortcut": "Tastenkürzel",
-    "generateRandomName": "Generate Random Name"
+    "generateRandomName": "Generate Random Name",
+    "findRowByScanningCode": "Find row by scanning a QR or Barcode"
   },
   "labels": {
     "createdBy": "Erstellt von",
@@ -216,6 +221,7 @@
     "viewName": "Namen anzeigen",
     "viewLink": "Link anzeigen",
     "columnName": "Spaltenname",
+    "columnToScanFor": "Column to scan",
     "columnType": "Spaltentyp",
     "roleName": "Rollenname",
     "roleDescription": "Rollenbeschreibung",
@@ -232,6 +238,7 @@
     "action": "Aktion",
     "actions": "Aktionen",
     "operation": "Vorgang",
+    "operationSub": "Sub Operation",
     "operationType": "Vorgangstyp",
     "operationSubType": "Vorgangsuntertyp",
     "description": "Beschreibung",
@@ -253,6 +260,9 @@
     "barcodeFormat": "Barcode-Format",
     "qrCodeValueTooLong": "Zu viele Zeichen für einen QR-Code",
     "barcodeValueTooLong": "Zu viele Zeichen für einen Barcode",
+    "currentLocation": "Current Location",
+    "lng": "Lng",
+    "lat": "Lat",
     "aggregateFunction": "Globale Funktion",
     "dbCreateIfNotExists": "Datenbank: Erstellen, falls nicht vorhanden",
     "clientKey": "Client-Schlüssel",
@@ -386,8 +396,8 @@
     "saveAndExit": "Speichern & Verlassen",
     "saveAndStay": "Speichern & Bleiben",
     "insertRow": "Neue Zeile einfügen",
-    "deleteRow": "Zeile löschen",
     "duplicateRow": "Duplicate Row",
+    "deleteRow": "Zeile löschen",
     "deleteSelectedRow": "Ausgewählte Zeilen löschen",
     "importExcel": "Excel-Datei importieren",
     "importCSV": "CSV-Datei importieren",
@@ -402,6 +412,8 @@
     "changePwd": "Kennwort ändern",
     "createView": "Ansicht erstellen",
     "shareView": "Ansicht teilen",
+    "findRowByCodeScan": "Find row by scan",
+    "fillByCodeScan": "Fill by scan",
     "listSharedView": "Geteilte Ansichtenliste",
     "ListView": "Ansichtenliste",
     "copyView": "Ansicht kopieren",
@@ -417,6 +429,10 @@
     "openTab": "Neue Registerkarte öffnen",
     "iFrame": "Eingebetteten HTML-Code kopieren",
     "addWebhook": "Neuen Webhook hinzufügen",
+    "enableWebhook": "Enable Webhook",
+    "testWebhook": "Test Webhook",
+    "copyWebhook": "Copy Webhook",
+    "deleteWebhook": "Delete Webhook",
     "newToken": "Neuen Token hinzufügen",
     "exportZip": "Zip-Datei exportieren",
     "importZip": "Zip-Datei importieren",
@@ -452,7 +468,14 @@
       "stackedBy": "Gestapelt von",
       "chooseGroupingField": "Wählen Sie ein Gruppierungsfeld",
       "addOrEditStack": "Stapel hinzufügen / bearbeiten"
-    }
+    },
+    "map": {
+      "mappedBy": "Mapped By",
+      "chooseMappingField": "Choose a Mapping Field",
+      "openInGoogleMaps": "Google Maps",
+      "openInOpenStreetMap": "OSM"
+    },
+    "toggleMobileMode": "Toggle Mobile Mode"
   },
   "tooltip": {
     "saveChanges": "Änderungen speichern",
@@ -517,6 +540,17 @@
       "roles": {
         "orgCreator": "Der Ersteller kann neue Projekte erstellen und auf alle eingeladenen Projekte zugreifen.",
         "orgViewer": "Betrachter können keine neuen Projekte erstellen, aber sie können auf alle eingeladenen Projekte zugreifen."
+      },
+      "codeScanner": {
+        "loadingScanner": "Loading the scanner...",
+        "selectColumn": "Select a column (QR code or Barcode) that you want to use for finding a row by scanning.",
+        "moreThanOneRowFoundForCode": "More than one row found for this code. Currently only unique codes are supported.",
+        "noRowFoundForCode": "No row found for this code for the selected column"
+      },
+      "map": {
+        "overLimit": "You're over the limit.",
+        "closeLimit": "You're getting close to the limit.",
+        "limitNumber": "The limit of markers shown in a Map View is 1000 records."
       },
       "footerInfo": "Zeilen pro Seite",
       "upload": "Datei zum Hochladen auswählen",
@@ -600,6 +634,7 @@
         "gallery": "Galerie-Ansicht hinzufügen",
         "form": "Formular-Ansicht hinzufügen",
         "kanban": "Kanban-Ansicht hinzufügen",
+        "map": "Add Map View",
         "calendar": "Kalender-Ansicht hinzufügen"
       },
       "tablesMetadataInSync": "Tabellen-Metadaten sind synchron",
@@ -663,6 +698,7 @@
         "allowedSpecialCharList": "Erlaubte Sonderzeichenliste"
       },
       "invalidURL": "Ungültige URL",
+      "invalidEmail": "Invalid Email",
       "internalError": "Interner Fehler aufgetreten",
       "templateGeneratorNotFound": "Template-Generator kann nicht gefunden werden!",
       "fileUploadFailed": "Fehler beim Hochladen der Datei",
@@ -690,6 +726,7 @@
       "nameShouldStartWithAnAlphabetOr_": "Name muss mit einem Buchstaben oder _ beginnen",
       "followingCharactersAreNotAllowed": "Folgende Zeichen sind nicht erlaubt",
       "columnNameRequired": "Spaltenname ist erforderlich",
+      "columnNameExceedsCharacters": "The length of column name exceeds the max {value} characters",
       "projectNameExceeds50Characters": "Projektname überschreitet 50 Zeichen",
       "projectNameCannotStartWithSpace": "Projektname darf nicht mit einem Leerzeichen beginnen",
       "requiredField": "Pflichtfeld",
@@ -742,6 +779,7 @@
       "userDeletedFromProject": "Benutzer erfolgreich aus dem Projekt gelöscht",
       "inviteEmailSent": "Einladungs-E-Mail erfolgreich gesendet",
       "inviteURLCopied": "Einladungslink wurde in Zwischenablage kopiert",
+      "commentCopied": "Comment copied to clipboard",
       "passwordResetURLCopied": "URL zum Zurücksetzen des Passworts in die Zwischenablage kopiert",
       "shareableURLCopied": "Kopieren Sie die Basis-URL für die Freigabe in die Zwischenablage!",
       "embeddableHTMLCodeCopied": "Kopierter, einbettbarer HTML-Code!",

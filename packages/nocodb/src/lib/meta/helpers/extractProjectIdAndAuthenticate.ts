@@ -1,5 +1,4 @@
 import { promisify } from 'util';
-
 import passport from 'passport';
 import Model from '../../models/Model';
 import View from '../../models/View';
@@ -85,7 +84,11 @@ export default async (req, res, next) => {
 
     const user = await new Promise((resolve, _reject) => {
       passport.authenticate('jwt', { session: false }, (_err, user, _info) => {
-        if (user && !req.headers['xc-shared-base-id']) {
+        if (
+          user &&
+          !req.headers['xc-shared-base-id'] &&
+          !req.headers['xc-shared-erd-id']
+        ) {
           if (
             req.path.indexOf('/user/me') === -1 &&
             req.header('xc-preview') &&
@@ -123,6 +126,19 @@ export default async (req, res, next) => {
           )(req, res, next);
         } else if (req.headers['xc-shared-base-id']) {
           passport.authenticate('baseView', {}, (_err, user, _info) => {
+            // if (_err) return reject(_err);
+            if (user) {
+              return resolve({
+                ...user,
+                isAuthorized: true,
+                isPublicBase: true,
+              });
+            } else {
+              resolve({ roles: 'guest' });
+            }
+          })(req, res, next);
+        } else if (req.headers['xc-shared-erd-id']) {
+          passport.authenticate('erdView', {}, (_err, user, _info) => {
             // if (_err) return reject(_err);
             if (user) {
               return resolve({

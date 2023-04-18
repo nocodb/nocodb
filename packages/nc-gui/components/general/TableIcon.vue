@@ -1,6 +1,7 @@
 <script lang="ts" setup>
 import { Icon as IcIcon } from '@iconify/vue'
 import type { TableType } from 'nocodb-sdk'
+import { iconMap } from '#imports'
 
 const { meta: tableMeta } = defineProps<{
   meta: TableType
@@ -15,8 +16,6 @@ const { meta: tableMeta } = defineProps<{
     :icon="tableMeta.meta?.icon"
   />
 
-  <MdiEyeCircleOutline v-else-if="tableMeta?.type === 'view'" class="w-5" />
-  <MdiTableLarge v-else class="w-5" />
+  <component :is="iconMap.eye" v-else-if="tableMeta?.type === 'view'" class="w-5" />
+  <component :is="iconMap.table" v-else class="w-5" />
 </template>
-
-<style scoped></style>

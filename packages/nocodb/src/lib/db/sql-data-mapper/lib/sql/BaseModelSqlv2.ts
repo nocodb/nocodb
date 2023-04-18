@@ -1,35 +1,32 @@
 import autoBind from 'auto-bind';
-import _ from 'lodash';
-
-import Model from '../../../../models/Model';
-import SelectOption from '../../../../models/SelectOption';
-import { XKnex } from '../../index';
-import LinkToAnotherRecordColumn from '../../../../models/LinkToAnotherRecordColumn';
-import RollupColumn from '../../../../models/RollupColumn';
-import LookupColumn from '../../../../models/LookupColumn';
+import groupBy from 'lodash/groupBy';
 import DataLoader from 'dataloader';
-import Column from '../../../../models/Column';
-import { XcFilter, XcFilterWithAlias } from '../BaseModel';
-import conditionV2 from './conditionV2';
-import Filter from '../../../../models/Filter';
-import sortV2 from './sortV2';
-import Sort from '../../../../models/Sort';
-import FormulaColumn from '../../../../models/FormulaColumn';
-import genRollupSelectv2 from './genRollupSelectv2';
-import formulaQueryBuilderv2 from './formulav2/formulaQueryBuilderv2';
-import { Knex } from 'knex';
-import View from '../../../../models/View';
+import { nocoExecute } from 'nc-help';
 import {
   AuditOperationSubTypes,
   AuditOperationTypes,
+  isSystemColumn,
   isVirtualCol,
   RelationTypes,
-  SortType,
   UITypes,
   ViewTypes,
 } from 'nocodb-sdk';
-import formSubmissionEmailTemplate from '../../../../utils/common/formSubmissionEmailTemplate';
 import ejs from 'ejs';
+import Validator from 'validator';
+import { customAlphabet } from 'nanoid';
+import DOMPurify from 'isomorphic-dompurify';
+import { getViewAndModelByAliasOrId } from '../../../../services/dbData/helpers';
+import Model from '../../../../models/Model';
+import Column from '../../../../models/Column';
+import Project from '../../../../models/Project';
+import Filter, {
+  COMPARISON_OPS,
+  COMPARISON_SUB_OPS,
+  IS_WITHIN_COMPARISON_SUB_OPS,
+} from '../../../../models/Filter';
+import Sort from '../../../../models/Sort';
+import View from '../../../../models/View';
+import formSubmissionEmailTemplate from '../../../../utils/common/formSubmissionEmailTemplate';
 import Audit from '../../../../models/Audit';
 import FormView from '../../../../models/FormView';
 import Hook from '../../../../models/Hook';
@@ -38,14 +35,26 @@ import {
   _transformSubmittedFormDataForEmail,
   invokeWebhook,
 } from '../../../../meta/helpers/webhookHelpers';
-import Validator from 'validator';
-import { customValidators } from './customValidators';
 import { NcError } from '../../../../meta/helpers/catchError';
-import { customAlphabet } from 'nanoid';
-import DOMPurify from 'isomorphic-dompurify';
+import getAst from './helpers/getAst';
+import { customValidators } from './customValidators';
+import formulaQueryBuilderv2 from './formulav2/formulaQueryBuilderv2';
+import genRollupSelectv2 from './genRollupSelectv2';
+import sortV2 from './sortV2';
+import conditionV2 from './conditionV2';
 import { sanitize, unsanitize } from './helpers/sanitize';
-import QrCodeColumn from '../../../../models/QrCodeColumn';
-import BarcodeColumn from '../../../../models/BarcodeColumn';
+import type { GridViewColumn } from '../../../../models';
+import type { SortType } from 'nocodb-sdk';
+import type { Knex } from 'knex';
+import type FormulaColumn from '../../../../models/FormulaColumn';
+import type { XcFilter, XcFilterWithAlias } from '../BaseModel';
+import type LookupColumn from '../../../../models/LookupColumn';
+import type RollupColumn from '../../../../models/RollupColumn';
+import type LinkToAnotherRecordColumn from '../../../../models/LinkToAnotherRecordColumn';
+import type { XKnex } from '../../index';
+import type SelectOption from '../../../../models/SelectOption';
+import type QrCodeColumn from '../../../../models/QrCodeColumn';
+import type BarcodeColumn from '../../../../models/BarcodeColumn';
 
 const GROUP_COL = '__nc_group_id';
 
@@ -59,6 +68,21 @@ async function populatePk(model: Model, insertObj: any) {
     insertObj[pkCol.title] =
       pkCol.meta?.ag === 'nc' ? `rc_${nanoidv2()}` : uuidv4();
   }
+}
+
+function checkColumnRequired(
+  column: Column<any>,
+  fields: string[],
+  extractPkAndPv?: boolean
+) {
+  // if primary key or foreign key included in fields, it's required
+  if (column.pk || column.uidt === UITypes.ForeignKey) return true;
+
+  if (extractPkAndPv && column.pv) return true;
+
+  // check fields defined and if not, then select all
+  // if defined check if it is in the fields
+  return !fields || fields.includes(column.title);
 }
 
 /**
@@ -94,19 +118,37 @@ class BaseModelSqlv2 {
     autoBind(this);
   }
 
-  public async readByPk(id?: any): Promise<any> {
+  public async readByPk(id?: any, validateFormula = false): Promise<any> {
     const qb = this.dbDriver(this.tnPath);
 
-    await this.selectObject({ qb });
+    await this.selectObject({ qb, validateFormula });
 
     qb.where(_wherePk(this.model.primaryKeys, id));
 
-    const data = (await this.execAndParse(qb))?.[0];
+    let data;
+
+    try {
+      data = (await this.execAndParse(qb))?.[0];
+    } catch (e) {
+      if (validateFormula || !haveFormulaColumn(await this.model.getColumns()))
+        throw e;
+      console.log(e);
+      return this.readByPk(id, true);
+    }
 
     if (data) {
       const proto = await this.getProto();
       data.__proto__ = proto;
     }
+
+    // retrieve virtual column data as well
+    const project = await Project.get(this.model.project_id);
+    const { model, view } = await getViewAndModelByAliasOrId({
+      projectName: project.title,
+      tableName: this.model.title,
+    });
+    const { ast } = await getAst({ model, view });
+    data = await nocoExecute(ast, data, {});
     return data;
   }
 
@@ -126,11 +168,12 @@ class BaseModelSqlv2 {
       where?: string;
       filterArr?: Filter[];
       sort?: string | string[];
-    } = {}
+    } = {},
+    validateFormula = false
   ): Promise<any> {
     const { where, ...rest } = this._getListArgs(args as any);
     const qb = this.dbDriver(this.tnPath);
-    await this.selectObject({ qb });
+    await this.selectObject({ qb, validateFormula });
 
     const aliasColObjMap = await this.model.getAliasColObjMap();
     const sorts = extractSortsObject(rest?.sort, aliasColObjMap);
@@ -159,7 +202,16 @@ class BaseModelSqlv2 {
       qb.orderBy(this.model.primaryKey.column_name);
     }
 
-    const data = await qb.first();
+    let data;
+
+    try {
+      data = await qb.first();
+    } catch (e) {
+      if (validateFormula || !haveFormulaColumn(await this.model.getColumns()))
+        throw e;
+      console.log(e);
+      return this.findOne(args, true);
+    }
 
     if (data) {
       const proto = await this.getProto();
@@ -176,13 +228,21 @@ class BaseModelSqlv2 {
       filterArr?: Filter[];
       sortArr?: Sort[];
       sort?: string | string[];
+      fieldsSet?: Set<string>;
     } = {},
-    ignoreViewFilterAndSort = false
+    ignoreViewFilterAndSort = false,
+    validateFormula = false
   ): Promise<any> {
-    const { where, ...rest } = this._getListArgs(args as any);
+    const { where, fields, ...rest } = this._getListArgs(args as any);
 
     const qb = this.dbDriver(this.tnPath);
-    await this.selectObject({ qb });
+
+    await this.selectObject({
+      qb,
+      fieldsSet: args.fieldsSet,
+      viewId: this.viewId,
+      validateFormula,
+    });
     if (+rest?.shuffle) {
       await this.shuffle({ qb });
     }
@@ -253,8 +313,17 @@ class BaseModelSqlv2 {
 
     if (!ignoreViewFilterAndSort) applyPaginate(qb, rest);
     const proto = await this.getProto();
-    const data = await this.execAndParse(qb);
 
+    let data;
+
+    try {
+      data = await this.execAndParse(qb);
+    } catch (e) {
+      if (validateFormula || !haveFormulaColumn(await this.model.getColumns()))
+        throw e;
+      console.log(e);
+      return this.list(args, ignoreViewFilterAndSort, true);
+    }
     return data?.map((d) => {
       d.__proto__ = proto;
       return d;
@@ -320,7 +389,14 @@ class BaseModelSqlv2 {
     qb.count(sanitize(this.model.primaryKey?.column_name) || '*', {
       as: 'count',
     }).first();
-    const res = (await this.dbDriver.raw(unsanitize(qb.toQuery()))) as any;
+
+    let sql = sanitize(qb.toQuery());
+    if (!this.isPg && !this.isMssql && !this.isSnowflake) {
+      sql = unsanitize(qb.toQuery());
+    }
+
+    const res = (await this.dbDriver.raw(sql)) as any;
+
     return (this.isPg || this.isSnowflake ? res.rows[0] : res[0][0] ?? res[0])
       .count;
   }
@@ -369,7 +445,10 @@ class BaseModelSqlv2 {
     return await qb;
   }
 
-  async multipleHmList({ colId, ids }, args: { limit?; offset? } = {}) {
+  async multipleHmList(
+    { colId, ids },
+    args: { limit?; offset?; fieldsSet?: Set<string> } = {}
+  ) {
     try {
       const { where, sort, ...rest } = this._getListArgs(args as any);
       // todo: get only required fields
@@ -397,7 +476,11 @@ class BaseModelSqlv2 {
       const parentTn = this.getTnPath(parentTable);
 
       const qb = this.dbDriver(childTn);
-      await childModel.selectObject({ qb });
+      await childModel.selectObject({
+        qb,
+        extractPkAndPv: true,
+        fieldsSet: args.fieldsSet,
+      });
       await this.applySortAndFilter({ table: childTable, where, qb, sort });
 
       const childQb = this.dbDriver.queryBuilder().from(
@@ -425,6 +508,8 @@ class BaseModelSqlv2 {
           .as('list')
       );
 
+      // console.log(childQb.toQuery())
+
       const children = await this.execAndParse(childQb, childTable);
       const proto = await (
         await Model.getBaseModelSQL({
@@ -433,7 +518,7 @@ class BaseModelSqlv2 {
         })
       ).getProto();
 
-      return _.groupBy(
+      return groupBy(
         children.map((c) => {
           c.__proto__ = proto;
           return c;
@@ -510,7 +595,10 @@ class BaseModelSqlv2 {
     }
   }
 
-  async hmList({ colId, id }, args: { limit?; offset? } = {}) {
+  async hmList(
+    { colId, id },
+    args: { limit?; offset?; fieldSet?: Set<string> } = {}
+  ) {
     try {
       const { where, sort, ...rest } = this._getListArgs(args as any);
       // todo: get only required fields
@@ -550,7 +638,7 @@ class BaseModelSqlv2 {
       qb.limit(+rest?.limit || 25);
       qb.offset(+rest?.offset || 0);
 
-      await childModel.selectObject({ qb });
+      await childModel.selectObject({ qb, fieldsSet: args.fieldSet });
 
       const children = await this.execAndParse(qb, childTable);
 
@@ -601,7 +689,6 @@ class BaseModelSqlv2 {
         .first();
       const { count } = await query;
       return count;
-      // return _.groupBy(children, cn);
     } catch (e) {
       console.log(e);
       throw e;
@@ -610,7 +697,7 @@ class BaseModelSqlv2 {
 
   public async multipleMmList(
     { colId, parentIds },
-    args: { limit?; offset? } = {}
+    args: { limit?; offset?; fieldsSet?: Set<string> } = {}
   ) {
     const { where, sort, ...rest } = this._getListArgs(args as any);
     const relColumn = (await this.model.getColumns()).find(
@@ -643,7 +730,7 @@ class BaseModelSqlv2 {
 
     const qb = this.dbDriver(rtn).join(vtn, `${vtn}.${vrcn}`, `${rtn}.${rcn}`);
 
-    await childModel.selectObject({ qb });
+    await childModel.selectObject({ qb, fieldsSet: args.fieldsSet });
 
     await this.applySortAndFilter({ table: childTable, where, qb, sort });
 
@@ -679,7 +766,7 @@ class BaseModelSqlv2 {
         dbDriver: this.dbDriver,
       })
     ).getProto();
-    const gs = _.groupBy(
+    const gs = groupBy(
       children.map((c) => {
         c.__proto__ = proto;
         return c;
@@ -689,7 +776,10 @@ class BaseModelSqlv2 {
     return parentIds.map((id) => gs[id] || []);
   }
 
-  public async mmList({ colId, parentId }, args: { limit?; offset? } = {}) {
+  public async mmList(
+    { colId, parentId },
+    args: { limit?; offset?; fieldsSet?: Set<string> } = {}
+  ) {
     const { where, sort, ...rest } = this._getListArgs(args as any);
     const relColumn = (await this.model.getColumns()).find(
       (c) => c.id === colId
@@ -729,7 +819,7 @@ class BaseModelSqlv2 {
           .where(_wherePk(parentTable.primaryKeys, parentId))
       );
 
-    await childModel.selectObject({ qb });
+    await childModel.selectObject({ qb, fieldsSet: args.fieldsSet });
 
     await this.applySortAndFilter({ table: childTable, where, qb, sort });
 
@@ -796,7 +886,7 @@ class BaseModelSqlv2 {
       !this.isSqlite
     );
 
-    const gs = _.groupBy(children, GROUP_COL);
+    const gs = groupBy(children, GROUP_COL);
     return parentIds.map((id) => gs?.[id]?.[0] || []);
   }
 
@@ -1203,7 +1293,12 @@ class BaseModelSqlv2 {
     });
   }
 
-  private async getSelectQueryBuilderForFormula(column: Column<any>) {
+  private async getSelectQueryBuilderForFormula(
+    column: Column<any>,
+    tableAlias?: string,
+    validateFormula = false,
+    aliasToColumnBuilder = {}
+  ) {
     const formula = await column.getColOptions<FormulaColumn>();
     if (formula.error) throw new Error(`Formula error: ${formula.error}`);
     const qb = await formulaQueryBuilderv2(
@@ -1211,7 +1306,10 @@ class BaseModelSqlv2 {
       null,
       this.dbDriver,
       this.model,
-      column
+      column,
+      aliasToColumnBuilder,
+      tableAlias,
+      validateFormula
     );
     return qb;
   }
@@ -1355,10 +1453,11 @@ class BaseModelSqlv2 {
                     {
                       // limit: ids.length,
                       where: `(${pCol.column_name},in,${ids.join(',')})`,
+                      fieldsSet: (readLoader as any).args?.fieldsSet,
                     },
                     true
                   );
-                  const gs = _.groupBy(data, pCol.title);
+                  const gs = groupBy(data, pCol.title);
                   return ids.map(async (id: string) => gs?.[id]?.[0]);
                 } catch (e) {
                   console.log(e);
@@ -1367,12 +1466,14 @@ class BaseModelSqlv2 {
               });
 
               // defining HasMany count method within GQL Type class
-              proto[column.title] = async function () {
+              proto[column.title] = async function (args?: any) {
                 if (
                   this?.[cCol?.title] === null ||
                   this?.[cCol?.title] === undefined
                 )
                   return null;
+
+                (readLoader as any).args = args;
 
                 return await readLoader.load(this?.[cCol?.title]);
               };
@@ -1401,7 +1502,7 @@ class BaseModelSqlv2 {
       this.config.limitMin
     );
     obj.offset = Math.max(+(args.offset || args.o) || 0, 0);
-    obj.fields = args.fields || args.f || '*';
+    obj.fields = args.fields || args.f;
     obj.sort = args.sort || args.s;
     return obj;
   }
@@ -1416,16 +1517,72 @@ class BaseModelSqlv2 {
     }
   }
 
+  // todo:
+  //  pass view id as argument
+  //  add option to get only pk and pv
   public async selectObject({
     qb,
     columns: _columns,
+    fields: _fields,
+    extractPkAndPv,
+    viewId,
+    fieldsSet,
+    alias,
+    validateFormula,
   }: {
-    qb: Knex.QueryBuilder;
+    fieldsSet?: Set<string>;
+    qb: Knex.QueryBuilder & Knex.QueryInterface;
     columns?: Column[];
+    fields?: string[] | string;
+    extractPkAndPv?: boolean;
+    viewId?: string;
+    alias?: string;
+    validateFormula?: boolean;
   }): Promise<void> {
+    // keep a common object for all columns to share across all columns
+    const aliasToColumnBuilder = {};
+    let viewOrTableColumns: Column[] | { fk_column_id?: string }[];
+
     const res = {};
-    const columns = _columns ?? (await this.model.getColumns());
-    for (const column of columns) {
+    let view: View;
+    let fields: string[];
+
+    if (fieldsSet?.size) {
+      viewOrTableColumns = _columns || (await this.model.getColumns());
+    } else {
+      view = await View.get(viewId);
+      const viewColumns = viewId && (await View.getColumns(viewId));
+      fields = Array.isArray(_fields) ? _fields : _fields?.split(',');
+
+      // const columns = _columns ?? (await this.model.getColumns());
+      // for (const column of columns) {
+      viewOrTableColumns =
+        _columns || viewColumns || (await this.model.getColumns());
+    }
+    for (const viewOrTableColumn of viewOrTableColumns) {
+      const column =
+        viewOrTableColumn instanceof Column
+          ? viewOrTableColumn
+          : await Column.get({
+              colId: (viewOrTableColumn as GridViewColumn).fk_column_id,
+            });
+      // hide if column marked as hidden in view
+      // of if column is system field and system field is hidden
+      if (
+        fieldsSet
+          ? !fieldsSet.has(column.title)
+          : !extractPkAndPv &&
+            !(viewOrTableColumn instanceof Column) &&
+            (!(viewOrTableColumn as GridViewColumn)?.show ||
+              (!view?.show_system_fields &&
+                column.uidt !== UITypes.ForeignKey &&
+                !column.pk &&
+                isSystemColumn(column)))
+      )
+        continue;
+
+      if (!checkColumnRequired(column, fields, extractPkAndPv)) continue;
+
       switch (column.uidt) {
         case 'LinkToAnotherRecord':
         case 'Lookup':
@@ -1445,7 +1602,10 @@ class BaseModelSqlv2 {
             case UITypes.Formula:
               try {
                 const selectQb = await this.getSelectQueryBuilderForFormula(
-                  qrValueColumn
+                  qrValueColumn,
+                  alias,
+                  validateFormula,
+                  aliasToColumnBuilder
                 );
                 qb.select({
                   [column.column_name]: selectQb.builder,
@@ -1477,7 +1637,10 @@ class BaseModelSqlv2 {
             case UITypes.Formula:
               try {
                 const selectQb = await this.getSelectQueryBuilderForFormula(
-                  barcodeValueColumn
+                  barcodeValueColumn,
+                  alias,
+                  validateFormula,
+                  aliasToColumnBuilder
                 );
                 qb.select({
                   [column.column_name]: selectQb.builder,
@@ -1500,7 +1663,10 @@ class BaseModelSqlv2 {
           {
             try {
               const selectQb = await this.getSelectQueryBuilderForFormula(
-                column
+                column,
+                alias,
+                validateFormula,
+                aliasToColumnBuilder
               );
               qb.select(
                 this.dbDriver.raw(`?? as ??`, [
@@ -1508,7 +1674,8 @@ class BaseModelSqlv2 {
                   sanitize(column.title),
                 ])
               );
-            } catch {
+            } catch (e) {
+              console.log(e);
               // return dummy select
               qb.select(
                 this.dbDriver.raw(`'ERR' as ??`, [sanitize(column.title)])
@@ -1523,6 +1690,7 @@ class BaseModelSqlv2 {
                 // tn: this.title,
                 knex: this.dbDriver,
                 // column,
+                alias,
                 columnOptions: (await column.getColOptions()) as RollupColumn,
               })
             ).builder.as(sanitize(column.title))
@@ -1530,7 +1698,7 @@ class BaseModelSqlv2 {
           break;
         default:
           res[sanitize(column.title || column.column_name)] = sanitize(
-            `${this.model.table_name}.${column.column_name}`
+            `${alias || this.model.table_name}.${column.column_name}`
           );
           break;
       }
@@ -1551,9 +1719,6 @@ class BaseModelSqlv2 {
         await this.beforeInsert(insertObj, trx, cookie);
       }
 
-      // if ('beforeInsert' in this) {
-      //   await this.beforeInsert(insertObj, trx, cookie);
-      // }
       await this.model.getColumns();
       let response;
       // const driver = trx ? trx : this.dbDriver;
@@ -1625,7 +1790,7 @@ class BaseModelSqlv2 {
 
   async delByPk(id, trx?, cookie?) {
     try {
-      // retrieve data for handling paramas in hook
+      // retrieve data for handling params in hook
       const data = await this.readByPk(id);
       await this.beforeDelete(id, trx, cookie);
       const response = await this.dbDriver(this.tnPath)
@@ -1690,15 +1855,17 @@ class BaseModelSqlv2 {
 
       await this.beforeUpdate(data, trx, cookie);
 
+      const prevData = await this.readByPk(id);
+
       const query = this.dbDriver(this.tnPath)
         .update(updateObj)
         .where(await this._wherePk(id));
 
       await this.execAndParse(query);
 
-      const response = await this.readByPk(id);
-      await this.afterUpdate(response, trx, cookie);
-      return response;
+      const newData = await this.readByPk(id);
+      await this.afterUpdate(prevData, newData, trx, cookie, updateObj);
+      return newData;
     } catch (e) {
       console.log(e);
       await this.errorUpdate(e, data, trx, cookie);
@@ -1882,21 +2049,14 @@ class BaseModelSqlv2 {
         rowId =
           response[this.model.primaryKey.title] ||
           response[this.model.primaryKey.column_name];
-      await Promise.all(postInsertOps.map((f) => f()));
 
-      // if (!trx) {
-      //   await driver.commit();
-      // }
+      await Promise.all(postInsertOps.map((f) => f()));
 
       await this.afterInsert(response, this.dbDriver, cookie);
 
       return response;
     } catch (e) {
       console.log(e);
-      // await this.errorInsert(e, data, trx, cookie);
-      // if (!trx) {
-      //   await driver.rollback(e);
-      // }
       throw e;
     }
   }
@@ -1924,11 +2084,6 @@ class BaseModelSqlv2 {
       for (const data of datas) {
         await this.validate(data);
       }
-      // let chunkSize = 50;
-      //
-      // if (this.isSqlite && datas[0]) {
-      //   chunkSize = Math.max(1, Math.floor(999 / Object.keys(datas[0]).length));
-      // }
 
       // fallbacks to `10` if database client is sqlite
       // to avoid `too many SQL variables` error
@@ -1965,6 +2120,9 @@ class BaseModelSqlv2 {
       transaction = await this.dbDriver.transaction();
 
       // await this.beforeUpdateb(updateDatas, transaction);
+      const prevData = [];
+      const newData = [];
+      const updatePkValues = [];
       const res = [];
       for (const d of updateDatas) {
         await this.validate(d);
@@ -1973,21 +2131,24 @@ class BaseModelSqlv2 {
           // pk not specified - bypass
           continue;
         }
+        prevData.push(await this.readByPk(pkValues));
         const wherePk = await this._wherePk(pkValues);
-        const response = await transaction(this.tnPath)
-          .update(d)
-          .where(wherePk);
-        res.push(response);
+        await transaction(this.tnPath).update(d).where(wherePk);
+        res.push(wherePk);
+        updatePkValues.push(pkValues);
       }
 
-      await this.afterBulkUpdate(updateDatas.length, this.dbDriver, cookie);
-      transaction.commit();
+      await transaction.commit();
+
+      for (const pkValues of updatePkValues) {
+        newData.push(await this.readByPk(pkValues));
+      }
+
+      await this.afterBulkUpdate(prevData, newData, this.dbDriver, cookie);
 
       return res;
     } catch (e) {
-      if (transaction) transaction.rollback();
-      // console.log(e);
-      // await this.errorUpdateb(e, data, null);
+      if (transaction) await transaction.rollback();
       throw e;
     }
   }
@@ -1997,8 +2158,8 @@ class BaseModelSqlv2 {
     data,
     { cookie }: { cookie?: any } = {}
   ) {
-    let queryResponse;
     try {
+      let count = 0;
       const updateData = await this.model.mapAliasToColumn(data);
       await this.validate(updateData);
       const pkValues = await this._extractPksValues(updateData);
@@ -2029,11 +2190,11 @@ class BaseModelSqlv2 {
         );
 
         qb.update(updateData);
-        queryResponse = (await qb) as any;
+
+        count = (await qb) as any;
       }
 
-      const count = queryResponse ?? 0;
-      await this.afterBulkUpdate(count, this.dbDriver, cookie);
+      await this.afterBulkUpdate(null, count, this.dbDriver, cookie, true);
 
       return count;
     } catch (e) {
@@ -2048,27 +2209,32 @@ class BaseModelSqlv2 {
         ids.map((d) => this.model.mapAliasToColumn(d))
       );
 
-      transaction = await this.dbDriver.transaction();
-      // await this.beforeDeleteb(ids, transaction);
-
+      const deleted = [];
       const res = [];
       for (const d of deleteIds) {
-        if (Object.keys(d).length) {
-          const response = await transaction(this.tnPath).del().where(d);
-          res.push(response);
+        const pkValues = await this._extractPksValues(d);
+        if (!pkValues) {
+          // pk not specified - bypass
+          continue;
         }
+        deleted.push(await this.readByPk(pkValues));
+        res.push(d);
       }
-      // await this.afterDeleteb(res, transaction);
 
-      transaction.commit();
+      transaction = await this.dbDriver.transaction();
 
-      await this.afterBulkDelete(ids.length, this.dbDriver, cookie);
+      for (const d of res) {
+        await transaction(this.tnPath).del().where(d);
+      }
+
+      await transaction.commit();
+
+      await this.afterBulkDelete(deleted, this.dbDriver, cookie);
 
       return res;
     } catch (e) {
-      if (transaction) transaction.rollback();
+      if (transaction) await transaction.rollback();
       console.log(e);
-      // await this.errorDeleteb(e, ids);
       throw e;
     }
   }
@@ -2100,10 +2266,12 @@ class BaseModelSqlv2 {
         qb,
         this.dbDriver
       );
+
       qb.del();
+
       const count = (await qb) as any;
 
-      await this.afterBulkDelete(count, this.dbDriver, cookie);
+      await this.afterBulkDelete(count, this.dbDriver, cookie, true);
 
       return count;
     } catch (e) {
@@ -2116,12 +2284,11 @@ class BaseModelSqlv2 {
    * */
 
   public async beforeInsert(data: any, _trx: any, req): Promise<void> {
-    await this.handleHooks('Before.insert', data, req);
+    await this.handleHooks('before.insert', null, data, req);
   }
 
   public async afterInsert(data: any, _trx: any, req): Promise<void> {
-    await this.handleHooks('After.insert', data, req);
-    // if (req?.headers?.['xc-gui']) {
+    await this.handleHooks('after.insert', null, data, req);
     const id = this._extractPksValues(data);
     await Audit.insert({
       fk_model_id: this.model.id,
@@ -2129,22 +2296,35 @@ class BaseModelSqlv2 {
       op_type: AuditOperationTypes.DATA,
       op_sub_type: AuditOperationSubTypes.INSERT,
       description: DOMPurify.sanitize(
-        `${id} inserted into ${this.model.title}`
+        `Record with ID ${id} has been inserted into Table ${this.model.title}`
       ),
       // details: JSON.stringify(data),
       ip: req?.clientIp,
       user: req?.user?.email,
     });
-    // }
   }
 
-  public async afterBulkUpdate(count: number, _trx: any, req): Promise<void> {
+  public async afterBulkUpdate(
+    prevData: any,
+    newData: any,
+    _trx: any,
+    req,
+    isBulkAllOperation = false
+  ): Promise<void> {
+    let noOfUpdatedRecords = newData;
+    if (!isBulkAllOperation) {
+      noOfUpdatedRecords = newData.length;
+      await this.handleHooks('after.bulkUpdate', prevData, newData, req);
+    }
+
     await Audit.insert({
       fk_model_id: this.model.id,
       op_type: AuditOperationTypes.DATA,
       op_sub_type: AuditOperationSubTypes.BULK_UPDATE,
       description: DOMPurify.sanitize(
-        `${count} records bulk updated in ${this.model.title}`
+        `${noOfUpdatedRecords} ${
+          noOfUpdatedRecords > 1 ? 'records have' : 'record has'
+        } been bulk updated in ${this.model.title}`
       ),
       // details: JSON.stringify(data),
       ip: req?.clientIp,
@@ -2152,13 +2332,26 @@ class BaseModelSqlv2 {
     });
   }
 
-  public async afterBulkDelete(count: number, _trx: any, req): Promise<void> {
+  public async afterBulkDelete(
+    data: any,
+    _trx: any,
+    req,
+    isBulkAllOperation = false
+  ): Promise<void> {
+    let noOfDeletedRecords = data;
+    if (!isBulkAllOperation) {
+      noOfDeletedRecords = data.length;
+      await this.handleHooks('after.bulkDelete', null, data, req);
+    }
+
     await Audit.insert({
       fk_model_id: this.model.id,
       op_type: AuditOperationTypes.DATA,
       op_sub_type: AuditOperationSubTypes.BULK_DELETE,
       description: DOMPurify.sanitize(
-        `${count} records bulk deleted in ${this.model.title}`
+        `${noOfDeletedRecords} ${
+          noOfDeletedRecords > 1 ? 'records have' : 'record has'
+        } been bulk deleted in ${this.model.title}`
       ),
       // details: JSON.stringify(data),
       ip: req?.clientIp,
@@ -2167,12 +2360,16 @@ class BaseModelSqlv2 {
   }
 
   public async afterBulkInsert(data: any[], _trx: any, req): Promise<void> {
+    await this.handleHooks('after.bulkInsert', null, data, req);
+
     await Audit.insert({
       fk_model_id: this.model.id,
       op_type: AuditOperationTypes.DATA,
       op_sub_type: AuditOperationSubTypes.BULK_INSERT,
       description: DOMPurify.sanitize(
-        `${data.length} records bulk inserted into ${this.model.title}`
+        `${data.length} ${
+          data.length > 1 ? 'records have' : 'record has'
+        } been bulk inserted in ${this.model.title}`
       ),
       // details: JSON.stringify(data),
       ip: req?.clientIp,
@@ -2188,18 +2385,40 @@ class BaseModelSqlv2 {
       }
     }
     if (ignoreWebhook === undefined || ignoreWebhook === 'false') {
-      await this.handleHooks('Before.update', data, req);
+      await this.handleHooks('before.update', null, data, req);
     }
   }
 
-  public async afterUpdate(data: any, _trx: any, req): Promise<void> {
-    const id = this._extractPksValues(data);
+  public async afterUpdate(
+    prevData: any,
+    newData: any,
+    _trx: any,
+    req,
+    updateObj?: Record<string, any>
+  ): Promise<void> {
+    const id = this._extractPksValues(newData);
+    let desc = `Record with ID ${id} has been updated in Table ${this.model.title}.`;
+    if (updateObj) {
+      updateObj = await this.model.mapColumnToAlias(updateObj);
+      for (const k of Object.keys(updateObj)) {
+        const prevValue =
+          typeof prevData[k] === 'object'
+            ? JSON.stringify(prevData[k])
+            : prevData[k];
+        const newValue =
+          typeof newData[k] === 'object'
+            ? JSON.stringify(newData[k])
+            : newData[k];
+        desc += `\n`;
+        desc += `Column "${k}" got changed from "${prevValue}" to "${newValue}"`;
+      }
+    }
     await Audit.insert({
       fk_model_id: this.model.id,
       row_id: id,
       op_type: AuditOperationTypes.DATA,
       op_sub_type: AuditOperationSubTypes.UPDATE,
-      description: DOMPurify.sanitize(`${id} updated in ${this.model.title}`),
+      description: DOMPurify.sanitize(desc),
       // details: JSON.stringify(data),
       ip: req?.clientIp,
       user: req?.user?.email,
@@ -2212,38 +2431,39 @@ class BaseModelSqlv2 {
       }
     }
     if (ignoreWebhook === undefined || ignoreWebhook === 'false') {
-      await this.handleHooks('After.update', data, req);
+      await this.handleHooks('after.update', prevData, newData, req);
     }
   }
 
   public async beforeDelete(data: any, _trx: any, req): Promise<void> {
-    await this.handleHooks('Before.delete', data, req);
+    await this.handleHooks('before.delete', null, data, req);
   }
 
   public async afterDelete(data: any, _trx: any, req): Promise<void> {
-    // if (req?.headers?.['xc-gui']) {
     const id = req?.params?.id;
     await Audit.insert({
       fk_model_id: this.model.id,
       row_id: id,
       op_type: AuditOperationTypes.DATA,
       op_sub_type: AuditOperationSubTypes.DELETE,
-      description: DOMPurify.sanitize(`${id} deleted from ${this.model.title}`),
+      description: DOMPurify.sanitize(
+        `Record with ID ${id} has been deleted in Table ${this.model.title}`
+      ),
       // details: JSON.stringify(data),
       ip: req?.clientIp,
       user: req?.user?.email,
     });
-    // }
-    await this.handleHooks('After.delete', data, req);
+    await this.handleHooks('after.delete', null, data, req);
   }
 
-  private async handleHooks(hookName, data, req): Promise<void> {
-    // const data = _data;
-
+  private async handleHooks(hookName, prevData, newData, req): Promise<void> {
     const view = await View.get(this.viewId);
 
     // handle form view data submission
-    if (hookName === 'After.insert' && view.type === ViewTypes.FORM) {
+    if (
+      (hookName === 'after.insert' || hookName === 'after.bulkInsert') &&
+      view.type === ViewTypes.FORM
+    ) {
       try {
         const formView = await view.getView<FormView>();
         const { columns } = await FormView.getWithInfo(formView.fk_view_id);
@@ -2293,11 +2513,11 @@ class BaseModelSqlv2 {
           .map((a) => a[0]);
         if (emails?.length) {
           const transformedData = _transformSubmittedFormDataForEmail(
-            data,
+            newData,
             formView,
             filteredColumns
           );
-          (await NcPluginMgrv2.emailAdapter())?.mailSend({
+          (await NcPluginMgrv2.emailAdapter(false))?.mailSend({
             to: emails.join(','),
             subject: 'NocoDB Form',
             html: ejs.render(formSubmissionEmailTemplate, {
@@ -2320,7 +2540,9 @@ class BaseModelSqlv2 {
         operation,
       });
       for (const hook of hooks) {
-        invokeWebhook(hook, this.model, data, req?.user);
+        if (hook.active) {
+          invokeWebhook(hook, this.model, view, prevData, newData, req?.user);
+        }
       }
     } catch (e) {
       console.log('hooks :: error', hookName, e);
@@ -2485,6 +2707,8 @@ class BaseModelSqlv2 {
         break;
     }
 
+    const response = await this.readByPk(rowId);
+    await this.afterInsert(response, this.dbDriver, cookie);
     await this.afterAddChild(rowId, childId, cookie);
   }
 
@@ -2495,7 +2719,7 @@ class BaseModelSqlv2 {
       op_sub_type: AuditOperationSubTypes.LINK_RECORD,
       row_id: rowId,
       description: DOMPurify.sanitize(
-        `Record [id:${childId}] record linked with record [id:${rowId}] record in ${this.model.title}`
+        `Record [id:${childId}] has been linked with record [id:${rowId}] in ${this.model.title}`
       ),
       // details: JSON.stringify(data),
       ip: req?.clientIp,
@@ -2531,6 +2755,8 @@ class BaseModelSqlv2 {
 
     const childTn = this.getTnPath(childTable);
     const parentTn = this.getTnPath(parentTable);
+
+    const prevData = await this.readByPk(rowId);
 
     switch (colOptions.type) {
       case RelationTypes.MANY_TO_MANY:
@@ -2583,6 +2809,8 @@ class BaseModelSqlv2 {
         break;
     }
 
+    const newData = await this.readByPk(rowId);
+    await this.afterUpdate(prevData, newData, this.dbDriver, cookie);
     await this.afterRemoveChild(rowId, childId, cookie);
   }
 
@@ -2593,7 +2821,7 @@ class BaseModelSqlv2 {
       op_sub_type: AuditOperationSubTypes.UNLINK_RECORD,
       row_id: rowId,
       description: DOMPurify.sanitize(
-        `Record [id:${childId}] record unlinked with record [id:${rowId}] record in ${this.model.title}`
+        `Record [id:${childId}] has been unlinked with record [id:${rowId}] in ${this.model.title}`
       ),
       // details: JSON.stringify(data),
       ip: req?.clientIp,
@@ -2650,7 +2878,7 @@ class BaseModelSqlv2 {
       qb.limit(+rest?.limit || 25);
       qb.offset(+rest?.offset || 0);
 
-      await this.selectObject({ qb });
+      await this.selectObject({ qb, extractPkAndPv: true });
 
       // todo: refactor and move to a method (applyFilterAndSort)
       const aliasColObjMap = await this.model.getAliasColObjMap();
@@ -2934,6 +3162,7 @@ function extractFilterFromXwhere(
   if (openIndex === -1) openIndex = str.indexOf('(~');
 
   let nextOpenIndex = openIndex;
+
   let closingIndex = str.indexOf('))');
 
   // if it's a simple query simply return array of conditions
@@ -2986,15 +3215,54 @@ function extractFilterFromXwhere(
   return nestedArrayConditions;
 }
 
+// mark `op` and `sub_op` any for being assignable to parameter of type
+function validateFilterComparison(uidt: UITypes, op: any, sub_op?: any) {
+  if (!COMPARISON_OPS.includes(op)) {
+    NcError.badRequest(`${op} is not supported.`);
+  }
+
+  if (sub_op) {
+    if (![UITypes.Date, UITypes.DateTime].includes(uidt)) {
+      NcError.badRequest(`'${sub_op}' is not supported for UI Type'${uidt}'.`);
+    }
+    if (!COMPARISON_SUB_OPS.includes(sub_op)) {
+      NcError.badRequest(`'${sub_op}' is not supported.`);
+    }
+    if (
+      (op === 'isWithin' && !IS_WITHIN_COMPARISON_SUB_OPS.includes(sub_op)) ||
+      (op !== 'isWithin' && IS_WITHIN_COMPARISON_SUB_OPS.includes(sub_op))
+    ) {
+      NcError.badRequest(`'${sub_op}' is not supported for '${op}'`);
+    }
+  }
+}
+
 function extractCondition(nestedArrayConditions, aliasColObjMap) {
   return nestedArrayConditions?.map((str) => {
     // eslint-disable-next-line prefer-const
     let [logicOp, alias, op, value] =
       str.match(/(?:~(and|or|not))?\((.*?),(\w+),(.*)\)/)?.slice(1) || [];
-    if (op === 'in') value = value.split(',');
+    let sub_op = null;
+
+    if (aliasColObjMap[alias]) {
+      if (
+        [UITypes.Date, UITypes.DateTime].includes(aliasColObjMap[alias].uidt)
+      ) {
+        value = value.split(',');
+        // the first element would be sub_op
+        sub_op = value[0];
+        // remove the first element which is sub_op
+        value.shift();
+      } else if (op === 'in') {
+        value = value.split(',');
+      }
+
+      validateFilterComparison(aliasColObjMap[alias].uidt, op, sub_op);
+    }
 
     return new Filter({
       comparison_op: op,
+      ...(sub_op && { comparison_sub_op: sub_op }),
       fk_column_id: aliasColObjMap[alias]?.id,
       logical_op: logicOp,
       value,
@@ -3026,6 +3294,10 @@ function _wherePk(primaryKeys: Column[], id) {
 
 function getCompositePk(primaryKeys: Column[], row) {
   return primaryKeys.map((c) => row[c.title]).join('___');
+}
+
+function haveFormulaColumn(columns: Column[]) {
+  return columns.some((c) => c.uidt === UITypes.Formula);
 }
 
 export { BaseModelSqlv2 };

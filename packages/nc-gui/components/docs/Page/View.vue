@@ -570,7 +570,19 @@ watch(wrapperRef, () => {
   }
 
   [data-type='task'] {
-    @apply flex flex-row items-center gap-x-2;
+    @apply flex flex-row items-start gap-x-2;
+    label {
+      @apply flex mt-2;
+    }
+    input {
+      @apply rounded-sm;
+    }
+    // Unchecked
+    input:not(:checked) {
+      // Add border to checkbox
+      border-width: 1.5px;
+      @apply border-gray-700;
+    }
   }
 
   ul {

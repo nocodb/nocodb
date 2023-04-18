@@ -573,13 +573,20 @@ export async function importBase(param: {
 }) {
   const { user, projectId, baseId, src, req } = param;
 
+  const debug = req.params.debug === 'true';
+
+  const debugLog = (...args: any[]) => {
+    if (!debug) return;
+    console.log(...args);
+  }
+
   let start = process.hrtime();
 
-  let elapsed_time = function(label: string){
-      const elapsedS = (process.hrtime(start)[0]).toFixed(3);
-      const elapsedMs = process.hrtime(start)[1] / 1000000;
-      console.log(`${label}: ${elapsedS}s ${elapsedMs}ms`);
-      start = process.hrtime();
+  let elapsedTime = function(label?: string){
+    const elapsedS = (process.hrtime(start)[0]).toFixed(3);
+    const elapsedMs = process.hrtime(start)[1] / 1000000;
+    if (label) debugLog(`${label}: ${elapsedS}s ${elapsedMs}ms`);
+    start = process.hrtime();
   }
 
   switch (src.type) {
@@ -591,7 +598,7 @@ export async function importBase(param: {
       try {
         const schema = JSON.parse(await storageAdapter.fileRead(`${path}/schema.json`));
 
-        elapsed_time('read schema');
+        elapsedTime('read schema');
 
         // store fk_mm_model_id (mm) to link once
         const handledLinks = [];
@@ -604,7 +611,7 @@ export async function importBase(param: {
           req,
         });
 
-        elapsed_time('import models');
+        elapsedTime('import models');
 
         if (idMap) {
           const files = await storageAdapter.getDirectoryList(`${path}/data`);
@@ -626,7 +633,7 @@ export async function importBase(param: {
 
             const model = await Model.get(modelId);
 
-            console.log(`Importing ${model.title}...`);
+            debugLog(`Importing ${model.title}...`);
 
             await new Promise(async (resolve) => {
               papaparse.parse(readStream, {
@@ -650,9 +657,8 @@ export async function importBase(param: {
                         } else {
                           headers.push(col.title);
                         }
-                        
                       } else {
-                          console.log(header);
+                        debugLog(header);
                       }
                     }
                     parser.resume();
@@ -667,17 +673,22 @@ export async function importBase(param: {
                       chunk.push(row);
                       if (chunk.length > 1000) {
                         parser.pause();
-                        elapsed_time('before chunk');
-                        await bulkDataService.bulkDataInsert({
-                          projectName: projectId,
-                          tableName: modelId,
-                          body: chunk,
-                          cookie: null,
-                          chunkSize: 1000,
-                          foreign_key_checks: false
-                        });
+                        elapsedTime('before import chunk');
+                        try {
+                          await bulkDataService.bulkDataInsert({
+                            projectName: projectId,
+                            tableName: modelId,
+                            body: chunk,
+                            cookie: null,
+                            chunkSize: chunk.length + 1,
+                            foreign_key_checks: false
+                          });
+                        } catch (e) {
+                          debugLog(`${model.title} import throwed an error!`);
+                          console.log(e);
+                        }
                         chunk = [];
-                        elapsed_time('after chunk');
+                        elapsedTime('after import chunk');
                         parser.resume();
                       }
                     }
@@ -685,22 +696,31 @@ export async function importBase(param: {
                 },
                 complete: async function () {
                   if (chunk.length > 0) {
-                    elapsed_time('before chunk');
-                    await bulkDataService.bulkDataInsert({
-                      projectName: projectId,
-                      tableName: modelId,
-                      body: chunk,
-                      cookie: null,
-                      foreign_key_checks: false
-                    });
+                    elapsedTime('before import chunk');
+                    try {
+                      await bulkDataService.bulkDataInsert({
+                        projectName: projectId,
+                        tableName: modelId,
+                        body: chunk,
+                        cookie: null,
+                        chunkSize: chunk.length + 1,
+                        foreign_key_checks: false
+                      });
+                    } catch (e) {
+                      debugLog(chunk);
+                      console.log(e);
+                    }
                     chunk = [];
-                    elapsed_time('after chunk');
+                    elapsedTime('after import chunk');
                   }
                   resolve(null);
                 },
               });
             });
           }
+
+          // reset timer
+          elapsedTime();
 
           for (const file of linkFiles) {
             const readStream = await storageAdapter.fileReadByStream(
@@ -719,7 +739,7 @@ export async function importBase(param: {
             
             let pkIndex = -1;
 
-            console.log(`Linking ${model.title}...`);
+            debugLog(`Linking ${model.title}...`);
 
             await new Promise(async (resolve) => {
               papaparse.parse(readStream, {
@@ -788,7 +808,8 @@ export async function importBase(param: {
                 },
                 complete: async function () {
                   for (const [k, v] of Object.entries(chunk)) {
-                    try {                      
+                    try {
+                      elapsedTime('prepare link chunk');
                       await bulkDataService.bulkDataInsert({
                         projectName: projectId,
                         tableName: k,
@@ -797,8 +818,8 @@ export async function importBase(param: {
                         chunkSize: 1000,
                         foreign_key_checks: false
                       });
+                      elapsedTime('insert link chunk');
                     } catch (e) {
-                      console.log('linkError');
                       console.log(e);
                     }
                   }

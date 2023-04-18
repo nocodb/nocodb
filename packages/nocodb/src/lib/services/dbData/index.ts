@@ -131,9 +131,7 @@ export async function getDataList(param: {
     count = await baseModel.count(listArgs);
   } catch (e) {
     console.log(e);
-    NcError.internalServerError(
-      'Internal Server Error, check server log for more details'
-    );
+    NcError.internalServerError('Please check server log for more details');
   }
 
   return new PagedResponseImpl(data, {
@@ -642,9 +640,7 @@ export async function dataReadByViewId(param: {
     );
   } catch (e) {
     console.log(e);
-    NcError.internalServerError(
-      'Internal Server Error, check server log for more details'
-    );
+    NcError.internalServerError('Please check server log for more details');
   }
 }
 

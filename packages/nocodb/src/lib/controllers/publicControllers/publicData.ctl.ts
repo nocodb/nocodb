@@ -31,6 +31,7 @@ async function dataInsert(req: Request & { files: any[] }, res: Response) {
     password: req.headers?.['xc-password'] as string,
     body: req.body?.data,
     siteUrl: (req as any).ncSiteUrl,
+    // req.files is enriched by multer
     files: req.files,
   });
 
@@ -95,11 +96,11 @@ router.post(
 );
 
 router.get(
-  '/api/v1/db/public/shared-view/:sharedViewUuid/rows/:rowId/mm/:colId',
+  '/api/v1/db/public/shared-view/:sharedViewUuid/rows/:rowId/mm/:columnId',
   catchError(publicMmList)
 );
 router.get(
-  '/api/v1/db/public/shared-view/:sharedViewUuid/rows/:rowId/hm/:colId',
+  '/api/v1/db/public/shared-view/:sharedViewUuid/rows/:rowId/hm/:columnId',
   catchError(publicHmList)
 );
 

@@ -15,12 +15,8 @@ import * as ejs from 'ejs';
 import { AuthGuard } from '@nestjs/passport';
 import { GlobalGuard } from '../../guards/global/global.guard';
 import { NcError } from '../../helpers/catchError';
-import {
-  Acl,
-  ExtractProjectIdMiddleware,
-} from '../../middlewares/extract-project-id/extract-project-id.middleware';
+import { Acl } from '../../middlewares/extract-project-id/extract-project-id.middleware';
 import Noco from '../../Noco';
-import { GoogleStrategy } from '../../strategies/google.strategy/google.strategy';
 import extractRolesObj from '../../utils/extractRolesObj';
 import { Audit, User } from '../../models';
 import {
@@ -33,10 +29,7 @@ import { ExtractProjectAndWorkspaceIdMiddleware } from '../../middlewares/extrac
 
 @Controller()
 export class UsersController {
-  constructor(
-    private readonly usersService: UsersService,
-    private googleStrategy: GoogleStrategy,
-  ) {}
+  constructor(private readonly usersService: UsersService) {}
 
   @Post([
     '/auth/user/signup',
@@ -144,11 +137,7 @@ export class UsersController {
   @Get('/auth/google')
   @UseGuards(AuthGuard('google'))
   googleAuthenticate(@Request() req) {
-    //  this.googleStrategy.authenticate(req, {
-    //   scope: ['profile', 'email'],
-    //   state: req.query.state,
-    //   callbackURL: req.ncSiteUrl + Noco.getConfig().dashboardPath,
-    // });
+    // google strategy will take care the request
   }
 
   @Get(['/auth/user/me', '/api/v1/db/auth/user/me', '/api/v1/auth/user/me'])
@@ -275,30 +264,13 @@ export class UsersController {
   /* OpenID Connect APIs */
   @Post('/auth/oidc/genTokenByCode')
   @UseGuards(AuthGuard('openid'))
-  async oidcSignin(req, res, next) {
-    // passport.authenticate(
-    //   'openidconnect',
-    //   {
-    //     session: false,
-    //     callbackURL: req.ncSiteUrl + Noco.getConfig().dashboardPath,
-    //   },
-    //   async (err, user, info): Promise<any> =>
-    //     await successfulSignIn({
-    //       user,
-    //       err,
-    //       info,
-    //       req,
-    //       res,
-    //       auditDescription: 'signed in using OpenID Connect',
-    //     })
-    // )(req, res, next);
+  async oidcSignin(@Request() req) {
+    return this.usersService.login(req.user);
   }
 
   @Get('/auth/oidc')
-  openidAuth(req: any, res, next) {
-    // passport.authenticate('openidconnect', {
-    //   scope: ['profile', 'email'],
-    //   callbackURL: req.ncSiteUrl + Noco.getConfig().dashboardPath,
-    // })(req, res, next)
+  @UseGuards(AuthGuard('openid'))
+  openidAuth() {
+    // openid strategy will take care the request
   }
 }

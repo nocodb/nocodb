@@ -350,6 +350,18 @@ export class UtilsService {
 
   async appInfo(param: { req: { ncSiteUrl: string } }) {
     const projectHasAdmin = !(await User.isFirst());
+    const oidcAuthEnabled = !!(
+      process.env.NC_OIDC_ISSUER &&
+      process.env.NC_OIDC_AUTHORIZATION_URL &&
+      process.env.NC_OIDC_TOKEN_URL &&
+      process.env.NC_OIDC_USERINFO_URL &&
+      process.env.NC_OIDC_CLIENT_ID &&
+      process.env.NC_OIDC_CLIENT_SECRET
+    );
+    const oidcProviderName = oidcAuthEnabled
+      ? process.env.NC_OIDC_PROVIDER_NAME ?? 'OpenID Connect'
+      : null;
+
     const result = {
       authType: 'jwt',
       projectHasAdmin,
@@ -362,6 +374,8 @@ export class UtilsService {
       githubAuthEnabled: !!(
         process.env.NC_GITHUB_CLIENT_ID && process.env.NC_GITHUB_CLIENT_SECRET
       ),
+      oidcAuthEnabled,
+      oidcProviderName,
       oneClick: !!process.env.NC_ONE_CLICK,
       connectToExternalDB: !process.env.NC_CONNECT_TO_EXTERNAL_DB_DISABLED,
       version: packageVersion,

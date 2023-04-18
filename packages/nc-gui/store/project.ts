@@ -125,21 +125,6 @@ export const useProject = defineStore('projectStore', () => {
     }
   }
 
-  async function loadBookProject(projectId?: string) {
-    if (projectId) {
-      forcedProjectId.value = projectId
-    }
-    projectId = projectId || (route.params.projectId as string)
-
-    if (!projectId) throw new Error('Project id not found')
-
-    const loadProj = async () => {
-      project.value = await api.project.read(projectId!)
-    }
-
-    await Promise.all([loadProj(), loadProjectRoles(projectId!)])
-  }
-
   async function loadProject(withTheme = true, forcedId?: string) {
     if (forcedId) forcedProjectId.value = forcedId
     if (projectType === 'base') {
@@ -220,8 +205,8 @@ export const useProject = defineStore('projectStore', () => {
   }
 
   const reset = () => {
-    project.value = {}
-    tables.value = []
+    // project.value = {}
+    // tables.value = []
     projectMetaInfo.value = undefined
     projectRoles.value = {}
     setTheme()
@@ -268,7 +253,6 @@ export const useProject = defineStore('projectStore', () => {
     lastOpenedViewMap,
     isXcdbBase,
     hasEmptyOrNullFilters,
-    loadBookProject,
     setProject,
     projectUrl,
   }

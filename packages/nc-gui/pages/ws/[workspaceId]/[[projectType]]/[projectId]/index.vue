@@ -161,7 +161,7 @@ onMounted(() => {
 
 onBeforeUnmount(() => {
   // clearTabs()
-  reset()
+  // reset()
 })
 
 function openKeyboardShortcutDialog() {

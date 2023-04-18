@@ -1,6 +1,7 @@
 import { Page, selectors } from '@playwright/test';
 import axios from 'axios';
-import { ProjectType, ProjectTypes, UserType, WorkspaceType } from 'nocodb-sdk';
+import { Api, ProjectType, ProjectTypes, UserType, WorkspaceType } from 'nocodb-sdk';
+let api: Api<any>;
 
 const workerCount = {};
 
@@ -15,14 +16,66 @@ export interface NcContext {
 
 selectors.setTestIdAttribute('data-testid');
 
+async function localInit({ parallelId = process.env.TEST_PARALLEL_INDEX }: { parallelId: string }) {
+  const response = await axios.post('http://localhost:8080/api/v1/auth/user/signin', {
+    email: 'user@nocodb.com',
+    password: 'Password123.',
+  });
+  const token = response.data.token;
+
+  api = new Api({
+    baseURL: `http://localhost:8080/`,
+    headers: {
+      'xc-auth': token,
+    },
+  });
+
+  const workspaceTitle = `ws_pgExtREST${parallelId}`;
+  const projectTitle = `pgExtREST${parallelId}`;
+
+  // get workspace list
+  const ws = await api.workspace.list();
+  // delete all workspaces
+  for (const w of ws.list) {
+    await api.workspace.delete(w.id);
+  }
+  // create a new workspace
+  const workspace = await api.workspace.create({
+    title: workspaceTitle,
+  });
+  // create a new project under the workspace we just created
+  const project = await api.project.create({
+    title: projectTitle,
+    // @ts-expect-error
+    fk_workspace_id: workspace.id,
+    type: 'database',
+  });
+
+  // get all users list
+  // const users = await api.workspaceUser.list(newWs.id);
+  // delete all users except user@nocodb.com
+  // for (const u of users.list) {
+  //   if (u.email !== 'user@nocodb.com') {
+  //     await api.workspaceUser.delete(newWs.id, u.id);
+  //   }
+  // }
+
+  // get current user information
+  const user = await api.auth.me();
+
+  return { data: { project, user, workspace, token }, status: 200 };
+}
+
 const setup = async ({
   projectType = ProjectTypes.DATABASE,
   page,
   isEmptyProject = true,
+  url,
 }: {
   projectType?: ProjectTypes;
   page: Page;
   isEmptyProject?: boolean;
+  url?: string;
 }): Promise<NcContext> => {
   // on noco-hub, only PG is supported
   const dbType = 'pg';
@@ -36,13 +89,17 @@ const setup = async ({
 
   let response;
   try {
-    response = await axios.post(`http://localhost:8080/api/v1/meta/test/reset`, {
-      parallelId: process.env.TEST_PARALLEL_INDEX,
-      workerId: workerId,
-      dbType,
-      projectType,
-      isEmptyProject,
-    });
+    if (isEmptyProject) {
+      response = await localInit({ parallelId: process.env.TEST_PARALLEL_INDEX });
+    } else {
+      response = await axios.post(`http://localhost:8080/api/v1/meta/test/reset`, {
+        parallelId: process.env.TEST_PARALLEL_INDEX,
+        workerId: workerId,
+        dbType,
+        projectType,
+        isEmptyProject,
+      });
+    }
   } catch (e) {
     console.error(`Error resetting project: ${process.env.TEST_PARALLEL_INDEX}`, e);
   }
@@ -86,10 +143,10 @@ const setup = async ({
   let projectUrl;
   switch (project.type) {
     case ProjectTypes.DOCUMENTATION:
-      projectUrl = `/#/ws/${project.fk_workspace_id}/nc/${project.id}/doc`;
+      projectUrl = url ? url : `/#/ws/${project.fk_workspace_id}/nc/${project.id}/doc`;
       break;
     case ProjectTypes.DATABASE:
-      projectUrl = `/#/ws/${project.fk_workspace_id}/nc/${project.id}/auth`;
+      projectUrl = url ? url : `/#/ws/${project.fk_workspace_id}/nc/${project.id}/auth`;
       break;
     default:
       throw new Error(`Unknown project type: ${project.type}`);

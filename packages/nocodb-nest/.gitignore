@@ -35,4 +35,10 @@ lerna-debug.log*
 !.vscode/extensions.json
 /noco.db
 
+<<<<<<< HEAD
+=======
+# export
+export/**
+
+>>>>>>> 59591edeb (feat: exportImport nestJS)
 /docker/main.js

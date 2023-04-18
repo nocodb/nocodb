@@ -9,8 +9,6 @@ import {
 import { customAlphabet } from 'nanoid';
 import CryptoJS from 'crypto-js';
 import { Connection } from '../connection/connection';
-import Noco from '../Noco';
-import NocoCache from '../cache/NocoCache';
 import XcMigrationSourcev3 from './migrations/XcMigrationSourcev3';
 import XcMigrationSourcev2 from './migrations/XcMigrationSourcev2';
 import XcMigrationSource from './migrations/XcMigrationSource';

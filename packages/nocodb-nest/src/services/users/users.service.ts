@@ -54,15 +54,17 @@ export class UsersService {
   }
 
   async registerNewUserIfAllowed({
-    firstname,
-    lastname,
+    avatar,
+    display_name,
+    user_name,
     email,
     salt,
     password,
     email_verification_token,
   }: {
-    firstname;
-    lastname;
+    avatar;
+    display_name;
+    user_name;
     email: string;
     salt: any;
     password;
@@ -94,8 +96,9 @@ export class UsersService {
     const token_version = randomTokenString();
 
     return await User.insert({
-      firstname,
-      lastname,
+      avatar,
+      display_name,
+      user_name,
       email,
       salt,
       password,
@@ -373,8 +376,9 @@ export class UsersService {
 
     const {
       email: _email,
-      firstname,
-      lastname,
+      avatar,
+      display_name,
+      user_name,
       token,
       ignore_subscribe,
     } = param.req.body;
@@ -421,8 +425,9 @@ export class UsersService {
     if (user) {
       if (token) {
         await User.update(user.id, {
-          firstname,
-          lastname,
+          avatar,
+          display_name,
+          user_name,
           salt,
           password,
           email_verification_token,
@@ -435,8 +440,9 @@ export class UsersService {
       }
     } else {
       await this.registerNewUserIfAllowed({
-        firstname,
-        lastname,
+        avatar,
+        display_name,
+        user_name,
         email,
         salt,
         password,

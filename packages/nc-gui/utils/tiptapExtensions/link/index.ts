@@ -1,6 +1,7 @@
 import TiptapLink from '@tiptap/extension-link'
-import { getAttributes, mergeAttributes } from '@tiptap/core'
-import { Plugin } from 'prosemirror-state'
+import { mergeAttributes } from '@tiptap/core'
+import { Plugin, TextSelection } from 'prosemirror-state'
+import type { AddMarkStep, Step } from 'prosemirror-transform'
 
 export const Link = ({ isPublic }: { isPublic?: boolean }) =>
   TiptapLink.extend({
@@ -52,7 +53,7 @@ export const Link = ({ isPublic }: { isPublic?: boolean }) =>
 
     addKeyboardShortcuts() {
       return {
-        'Ctrl-k': () => {
+        'Mod-j': () => {
           const to = this.editor.view.state.selection.to
           this.editor
             .chain()
@@ -105,6 +106,25 @@ export const Link = ({ isPublic }: { isPublic?: boolean }) =>
         // To have proseMirror plugins from the parent extension
         ...(this.parent?.() ?? []),
         new Plugin({
+          appendTransaction: (transactions, _, newState) => {
+            if (transactions.length !== 1) return null
+            const steps = transactions[0].steps
+            if (steps.length !== 1) return null
+
+            const step: Step = steps[0] as Step
+            const stepJson = step.toJSON()
+            if (stepJson.stepType !== 'addMark') return null
+
+            const addMarkStep: AddMarkStep = step as AddMarkStep
+            if (!addMarkStep) return null
+
+            if (addMarkStep.from === addMarkStep.to) return null
+
+            if (addMarkStep.mark.type.name !== 'link') return null
+
+            const { tr } = newState
+            return tr.setSelection(new TextSelection(tr.doc.resolve(addMarkStep.to)))
+          },
           props: {
             // handleClick(view, pos, event) {
             //   const attrs = getAttributes(view.state, 'link')

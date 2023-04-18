@@ -1,11 +1,12 @@
 import type { ChainedCommands } from '@tiptap/core'
-import { Node, mergeAttributes, nodePasteRule, wrappingInputRule } from '@tiptap/core'
+import { Node, mergeAttributes, wrappingInputRule } from '@tiptap/core'
 import { Plugin, PluginKey } from 'prosemirror-state'
 import {
   changeLevel,
   getTextAsParagraphFromSliceJson,
   getTextFromSliceJson,
   isSelectionOfType,
+  listItemPasteRule,
   onBackspaceWithNestedList,
   onEnter,
   toggleItem,
@@ -25,7 +26,8 @@ declare module '@tiptap/core' {
   }
 }
 
-const inputRegex = /^\d+\.\s+(.*)$/gm
+const inputRegex = /^\s*\d+\.\s/gm
+const pasteRegex = /^\s*\d+\.\s+(.*)$/gm
 
 export const Ordered = Node.create<OrderItemsOptions>({
   name: 'ordered',
@@ -45,6 +47,20 @@ export const Ordered = Node.create<OrderItemsOptions>({
 
   parseHTML() {
     return [
+      {
+        tag: 'ol > li',
+        node: 'ordered',
+        style: 'list-style-type: decimal',
+        getAttrs: (element) => {
+          const start = (element as HTMLElement).parentElement?.getAttribute('start') || '1'
+          const childIndex = Array.from((element as HTMLElement).parentElement?.children || []).indexOf(element as HTMLElement)
+
+          return {
+            number: String(Number(start) + childIndex),
+            level: 0,
+          }
+        },
+      },
       {
         tag: 'div[data-type="ordered"]',
         attrs: { 'data-type': 'ordered' },
@@ -197,9 +213,10 @@ export const Ordered = Node.create<OrderItemsOptions>({
 
   addPasteRules() {
     return [
-      nodePasteRule({
-        find: inputRegex,
-        type: this.type,
+      listItemPasteRule({
+        inputRegex,
+        nodeType: 'ordered',
+        pasteRegex,
       }),
     ]
   },

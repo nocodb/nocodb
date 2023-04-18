@@ -100,7 +100,8 @@ export const Collapsable = Node.create<CollapsableOptions>({
 
   addKeyboardShortcuts() {
     return {
-      Backspace: () => {
+      'Ctrl-Alt-4': () => this.editor.commands.insertCollapsable(),
+      'Backspace': () => {
         const editor = this.editor
         const { from, to } = editor.state.selection
         if (from !== to) {
@@ -140,7 +141,7 @@ export const Collapsable = Node.create<CollapsableOptions>({
 
         return false
       },
-      Enter: () => {
+      'Enter': () => {
         const editor = this.editor
         const { from, to } = editor.state.selection
         const state = editor.state

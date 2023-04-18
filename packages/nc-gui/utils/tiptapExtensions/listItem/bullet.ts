@@ -1,10 +1,10 @@
 import { Node, mergeAttributes, wrappingInputRule } from '@tiptap/core'
-
 import { Plugin, PluginKey } from 'prosemirror-state'
 import {
   changeLevel,
   getTextAsParagraphFromSliceJson,
   isSelectionOfType,
+  listItemPasteRule,
   onBackspaceWithNestedList,
   onEnter,
   toggleItem,
@@ -23,7 +23,8 @@ declare module '@tiptap/core' {
   }
 }
 
-const inputRegex = /^\s*([-+*])\s$/g
+const inputRegex = /^\s*([-+*])(?!\s*\[[ x]\])\s/gm
+const pasteRegex = /^\s*([-+*])(?!\s*\[[ x]\])\s.+$/gm
 
 export const Bullet = Node.create<ListOptions>({
   name: 'bullet',
@@ -50,6 +51,11 @@ export const Bullet = Node.create<ListOptions>({
 
   parseHTML() {
     return [
+      {
+        tag: 'ul > li',
+        node: 'bullet',
+        style: 'list-style-type: disc',
+      },
       {
         tag: 'div[data-type="bullet"]',
         attrs: { 'data-type': 'bullet' },
@@ -137,6 +143,16 @@ export const Bullet = Node.create<ListOptions>({
       wrappingInputRule({
         find: inputRegex,
         type: this.type,
+      }),
+    ]
+  },
+
+  addPasteRules() {
+    return [
+      listItemPasteRule({
+        inputRegex,
+        nodeType: 'bullet',
+        pasteRegex,
       }),
     ]
   },

@@ -129,7 +129,7 @@ const items = [
       editor.chain().focus().deleteRange(range).setLink({ href: '' }).run()
     },
     icon: MdiLinkVariant,
-    shortCutText: isMacOS() ? '^ K' : 'Ctrl K',
+    shortCutText: isMacOS() ? '⌘ J' : 'Ctrl J',
   },
   {
     title: 'Body Text',
@@ -148,7 +148,7 @@ const items = [
     },
     icon: MdiFormatQuoteOpen,
     iconClass: '',
-    shortCutText: isMacOS() ? '⌘ ]' : 'Ctrl ]',
+    shortCutText: isMacOS() ? '^ ⌥ Q' : 'Ctrl Alt Q',
   },
   {
     title: 'Image',
@@ -209,6 +209,7 @@ const items = [
       editor.chain().focus().deleteRange(range).insertCollapsable().run()
     },
     icon: CollapseListIcon,
+    shortCutText: isMacOS() ? '^ ⌥ 4' : 'Ctrl Alt 4',
     hasDivider: true,
   },
   {
@@ -313,7 +314,7 @@ const items = [
     icon: MdiMinus,
     iconClass: '',
     hasDivider: true,
-    shortCutText: 'Ctrl ⇧ H',
+    shortCutText: isMacOS() ? '^ ⇧ H' : 'Ctrl ⇧ H',
   },
   {
     title: 'Google Docs',

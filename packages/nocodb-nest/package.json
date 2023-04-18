@@ -106,7 +106,7 @@
     "nanoid": "^3.1.20",
     "nc-help": "^0.2.87",
     "nc-lib-gui": "0.106.0",
-    "nc-plugin": "0.1.2",
+    "nc-plugin": "file:../nc-plugin",
     "ncp": "^2.0.0",
     "nocodb-sdk": "file:../nocodb-sdk",
     "nodemailer": "^6.4.10",

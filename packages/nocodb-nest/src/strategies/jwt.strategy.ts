@@ -5,6 +5,7 @@ import { OrgUserRoles } from 'nocodb-sdk';
 import { ProjectUser, User } from '../models';
 import { UsersService } from '../services/users/users.service';
 import WorkspaceUser from '../models/WorkspaceUser';
+import extractRolesObj from '../utils/extractRolesObj';
 
 @Injectable()
 export class JwtStrategy extends PassportStrategy(Strategy) {
@@ -19,7 +20,7 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
     // todo: improve this
     if (
       req.ncProjectId &&
-      jwtPayload.roles?.split(',').includes(OrgUserRoles.SUPER_ADMIN)
+      extractRolesObj(jwtPayload.roles)[OrgUserRoles.SUPER_ADMIN]
     ) {
       const user = await User.getByEmail(jwtPayload?.email);
 
@@ -75,9 +76,11 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
 
     return {
       ...user,
-      roles: [user.roles, workspaceRoles, projectRoles]
+      roles: extractRolesObj(
+        [user.roles, workspaceRoles, projectRoles]
         .filter(Boolean)
-        .join(','),
+        .join(',')
+      ),
     };
   }
 }

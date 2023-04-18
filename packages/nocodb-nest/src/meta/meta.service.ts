@@ -255,13 +255,15 @@ export class MetaService {
     const insertObj = {
       ...data,
       ...(ignoreIdGeneration ? {} : { id }),
-      created_at: data?.created_at || this.knexConnection?.fn?.now(),
-      updated_at: data?.updated_at || this.knexConnection?.fn?.now(),
     };
     if (base_id !== null) insertObj.base_id = base_id;
     if (project_id !== null) insertObj.project_id = project_id;
 
-    await this.knexConnection(target).insert(insertObj);
+    await this.knexConnection(target).insert({
+      ...insertObj,
+      created_at: data?.created_at || this.knexConnection?.fn?.now(),
+      updated_at: data?.updated_at || this.knexConnection?.fn?.now(),
+    });
     return insertObj;
   }
 
@@ -1044,7 +1046,6 @@ export class MetaService {
   }
 
   public async init(): Promise<boolean> {
-    NocoCache.init();
     await this.connection.migrate.latest({
       migrationSource: new XcMigrationSource(),
       tableName: 'xc_knex_migrations',

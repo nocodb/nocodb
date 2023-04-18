@@ -79,13 +79,11 @@ export default class GalleryViewColumn {
     );
 
     // if cache is not present skip pushing it into the list to avoid unexpected behaviour
-    if (
-      (
-        await NocoCache.getList(CacheScope.GALLERY_VIEW_COLUMN, [
-          column.fk_view_id,
-        ])
-      )?.length
-    )
+    const { list } = await NocoCache.getList(CacheScope.GALLERY_VIEW_COLUMN, [
+      column.fk_view_id,
+    ]);
+
+    if (list?.length)
       await NocoCache.appendToList(
         CacheScope.GALLERY_VIEW_COLUMN,
         [column.fk_view_id],
@@ -99,10 +97,12 @@ export default class GalleryViewColumn {
     viewId: string,
     ncMeta = Noco.ncMeta,
   ): Promise<GalleryViewColumn[]> {
-    let views = await NocoCache.getList(CacheScope.GALLERY_VIEW_COLUMN, [
+    const cachedList = await NocoCache.getList(CacheScope.GALLERY_VIEW_COLUMN, [
       viewId,
     ]);
-    if (!views.length) {
+    let { list: views } = cachedList;
+    const { isNoneList } = cachedList;
+    if (!isNoneList && !views.length) {
       views = await ncMeta.metaList2(
         null,
         null,

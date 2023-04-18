@@ -9,9 +9,9 @@ import {
 } from '@nestjs/common';
 import { AuthGuard } from '@nestjs/passport';
 import { GlobalGuard } from '../guards/global/global.guard';
-import { ExtractProjectIdMiddleware } from '../middlewares/extract-project-id/extract-project-id.middleware';
 import extractRolesObj from '../utils/extractRolesObj';
 import { AuthService } from '../services/auth.service';
+import { ExtractProjectAndWorkspaceIdMiddleware } from '../middlewares/extract-project-and-workspace-id/extract-project-and-workspace-id.middleware';
 
 export class CreateUserDto {
   readonly username: string;

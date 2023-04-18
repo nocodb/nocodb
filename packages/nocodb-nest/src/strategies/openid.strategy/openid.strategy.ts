@@ -2,7 +2,7 @@ import { promisify } from 'util';
 import { Injectable, Optional } from '@nestjs/common';
 import bcrypt from 'bcryptjs';
 import { PassportStrategy } from '@nestjs/passport';
-import { OpenIDConnectStrategy } from '@techpass/passport-openidconnect';
+import { Strategy as OpenIDConnectStrategy } from '@techpass/passport-openidconnect';
 import { v4 as uuidv4 } from 'uuid';
 import { User } from '../../models';
 import Noco from '../../Noco';
@@ -119,5 +119,6 @@ export const OpenidStrategyProvider: FactoryProvider = {
 
       return new OpenidStrategy(clientConfig);
     }
+    return null
   },
 };

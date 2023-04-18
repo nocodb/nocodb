@@ -133,8 +133,10 @@ const appendColumn = () => {
     tr:first-child {
       td {
         border-top: 1px solid #e5e5e5 !important;
-        @apply font-semibold;
         background-color: #fafbfb;
+        p {
+          font-weight: 500;
+        }
       }
     }
 

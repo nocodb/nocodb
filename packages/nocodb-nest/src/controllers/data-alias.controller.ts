@@ -16,7 +16,6 @@ import { GlobalGuard } from '../guards/global/global.guard';
 import { parseHrtimeToSeconds } from '../helpers';
 import {
   Acl,
-  ExtractProjectIdMiddleware,
 } from '../middlewares/extract-project-id/extract-project-id.middleware';
 import { DatasService } from '../services/datas.service';
 import { ExtractProjectAndWorkspaceIdMiddleware } from '../middlewares/extract-project-and-workspace-id/extract-project-and-workspace-id.middleware';

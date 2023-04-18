@@ -72,6 +72,8 @@ import { GlobalModule } from '../global/global.module';
 import { ProjectUsersController } from '../../controllers/project-users.controller';
 import { ProjectUsersService } from '../../services/project-users/project-users.service';
 import { DatasModule } from '../datas/datas.module';
+import { CommandPaletteController } from '../../controllers/command-palette.controller';
+import { CommandPaletteService } from '../../services/command-palette.service';
 
 @Module({
   imports: [
@@ -117,6 +119,7 @@ import { DatasModule } from '../datas/datas.module';
     SyncController,
     SortsController,
     SharedBasesController,
+    CommandPaletteController,
   ],
   providers: [
     ApiDocsService,
@@ -155,6 +158,7 @@ import { DatasModule } from '../datas/datas.module';
     SortsService,
     SharedBasesService,
     BulkDataAliasService,
+    CommandPaletteService,
   ],
 })
 export class MetasModule {}

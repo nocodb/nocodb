@@ -162,16 +162,8 @@ export default class RedisMockCacheMgr extends CacheMgr {
         ? `${this.prefix}:${scope}:list`
         : `${this.prefix}:${scope}:${subListKeys.join(':')}:list`;
     if (!list.length) {
-      if (
-        [
-          CacheScope.FILTER_EXP,
-          CacheScope.SORT,
-          CacheScope.MODEL_ROLE_VISIBILITY,
-        ].includes(scope as CacheScope)
-      ) {
-        return this.set(listKey, ['NONE']);
-      }
-      return Promise.resolve(true);
+      // Set NONE here so that it won't hit the DB on each page load
+      return this.set(listKey, ['NONE']);
     }
     // fetch existing list
     const listOfGetKeys =

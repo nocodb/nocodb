@@ -37,6 +37,7 @@ import LogosTrelloIcon from '~icons/logos/trello'
 import LogosTypeformIcon from '~icons/logos/typeform-icon'
 import MdiLinkVariant from '~icons/mdi/link-variant'
 import CollapseListIcon from '~icons/carbon/collapse-categories'
+import MdiFileUploadOutline from '~icons/mdi/file-upload-outline'
 
 interface Props {
   command: Function
@@ -154,15 +155,7 @@ const items = [
     icon: MdiImageMultipleOutline,
     iconClass: '',
   },
-  {
-    title: 'Attachment',
-    class: 'text-xs',
-    command: () => {
-      fileInput.value?.[0]?.click()
-    },
-    icon: MdiImageMultipleOutline,
-    iconClass: '',
-  },
+
   {
     title: 'Code',
     class: 'text-xs',
@@ -172,8 +165,17 @@ const items = [
     },
     icon: MdiCodeSnippet,
     iconClass: '',
-    hasDivider: true,
     shortCutText: isMacOS() ? '⌥ ⌘ C' : 'Alt Ctrl C',
+  },
+  {
+    title: 'Attachment',
+    class: 'text-xs',
+    command: () => {
+      fileInput.value?.[0]?.click()
+    },
+    icon: MdiFileUploadOutline,
+    hasDivider: true,
+    iconClass: '',
   },
   {
     title: 'Task List',

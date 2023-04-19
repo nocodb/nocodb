@@ -45,7 +45,7 @@ RUN apk --update --no-cache add \
     tar \
     dumb-init \
     curl \
-    jq 
+    jq
 
 # Copy packaged production code & main entry file
 COPY --from=builder /usr/src/appEntry/ /usr/src/appEntry/

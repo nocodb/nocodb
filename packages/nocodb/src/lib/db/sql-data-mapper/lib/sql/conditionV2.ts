@@ -5,6 +5,7 @@ import Filter from '../../../../models/Filter';
 import genRollupSelectv2 from './genRollupSelectv2';
 import formulaQueryBuilderv2 from './formulav2/formulaQueryBuilderv2';
 import { sanitize } from './helpers/sanitize';
+import { convertDateFormatByType } from './helpers/formulaFnHelper';
 import type LinkToAnotherRecordColumn from '../../../../models/LinkToAnotherRecordColumn';
 import type { Knex } from 'knex';
 import type { XKnex } from '../../index';
@@ -321,8 +322,8 @@ const parseConditionV2 = async (
 
         const dateFormat =
           qb?.client?.config?.client === 'mysql2'
-            ? 'YYYY-MM-DD HH:mm:ss'
-            : 'YYYY-MM-DD HH:mm:ssZ';
+            ? 'YYYY-MM-DD HH:mm'
+            : 'YYYY-MM-DD HH:mmZ';
 
         if ([UITypes.Date, UITypes.DateTime].includes(column.uidt)) {
           const now = dayjs(new Date());
@@ -404,6 +405,19 @@ const parseConditionV2 = async (
 
         switch (filter.comparison_op) {
           case 'eq':
+            if (column.uidt === UITypes.DateTime) {
+              // for filter `is + exactDate`, we only match the date only
+              qb = qb.whereRaw(
+                `${convertDateFormatByType(
+                  field,
+                  qb?.client?.config?.client,
+                  column.meta.date_format
+                )} = ?`,
+                [val.substring(0, 10)]
+              );
+              break;
+            }
+
             if (qb?.client?.config?.client === 'mysql2') {
               if (
                 [
@@ -431,6 +445,19 @@ const parseConditionV2 = async (
             break;
           case 'neq':
           case 'not':
+            if (column.uidt === UITypes.DateTime) {
+              // for filter `is + exactDate`, we only match the date only
+              qb = qb.whereRaw(
+                `${convertDateFormatByType(
+                  field,
+                  qb?.client?.config?.client,
+                  column.meta.date_format
+                )} != ?`,
+                [val.substring(0, 10)]
+              );
+              break;
+            }
+
             if (qb?.client?.config?.client === 'mysql2') {
               if (
                 [

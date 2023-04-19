@@ -406,7 +406,7 @@ const parseConditionV2 = async (
         switch (filter.comparison_op) {
           case 'eq':
             if (column.uidt === UITypes.DateTime) {
-              // for filter `is + exactDate`, we only match the date only
+              // for filter with input (exactDate), we only match the date
               qb = qb.whereRaw(
                 `${convertDateFormatByType(
                   field,
@@ -446,7 +446,7 @@ const parseConditionV2 = async (
           case 'neq':
           case 'not':
             if (column.uidt === UITypes.DateTime) {
-              // for filter `is + exactDate`, we only match the date only
+              // for filter with input (exactDate), we only match the date
               qb = qb.whereRaw(
                 `${convertDateFormatByType(
                   field,

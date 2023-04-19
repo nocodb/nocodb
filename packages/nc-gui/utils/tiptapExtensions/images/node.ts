@@ -18,7 +18,6 @@ export const createImageExtension = (uploadFn: UploadFn) => {
   return Node.create({
     name: 'image',
     group: 'block',
-    priority: 2000,
     draggable: true,
     addAttributes: () => ({
       src: {},

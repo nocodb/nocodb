@@ -135,7 +135,7 @@ test.describe('DashboardBasicTests', () => {
     expect(await container.getProjectRowCount()).toEqual(2);
   });
 
-  test('WS Quick access: Recent, Shared, Favourites', async ({ page }) => {
+  test('WS Quick access: Recent, Shared, Favourites', async () => {
     const dbInfo = {
       icon: 'database',
       title: 'pgExtREST0',
@@ -160,5 +160,15 @@ test.describe('DashboardBasicTests', () => {
     await wsPage.openQuickAccess('Favourites');
     expect(await wsPage.Container.getProjectRowData({ index: 0, skipWs: true })).toEqual(dbInfo);
     expect(await wsPage.Container.getProjectRowCount()).toEqual(1);
+  });
+
+  test('Accounts menu', async () => {
+    const header = await wsPage.Header;
+    await header.accountMenuOpen({ title: 'user-settings' });
+    expect(dashboardPage.rootPage.url()).toBe('http://localhost:3000/#/account/users');
+
+    await dashboardPage.clickHome();
+    await header.accountMenuOpen({ title: 'sign-out' });
+    expect(dashboardPage.rootPage.url()).toBe('http://localhost:3000/#/signin');
   });
 });

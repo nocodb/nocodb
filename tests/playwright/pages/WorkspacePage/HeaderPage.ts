@@ -86,4 +86,12 @@ export class HeaderPage extends BasePage {
     await this.rootPage.waitForTimeout(100);
     expect(this.rootPage.url()).toBe(url);
   }
+
+  async accountMenuOpen({ title }: { title: 'user-settings' | 'sign-out' }) {
+    await this.get().locator('[data-testid="nc-ws-account-menu-dropdown"]').click();
+    await this.rootPage
+      .locator('.ant-dropdown-menu-vertical')
+      .locator(`[data-testid="nc-menu-accounts__${title}"]`)
+      .click();
+  }
 }

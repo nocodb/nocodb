@@ -53,4 +53,22 @@ test.describe('DashboardBasicTests', () => {
     await leftPanel.workspaceDelete({ title: 'ws_pgExtREST2' });
     await leftPanel.verifyDynamicElements([{ title: 'ws_pgExtREST0', role: 'owner' }]);
   });
+
+  test('Cmd K : Quick action menu', async () => {
+    const header = await workspacePage.Header;
+    await header.navigateUsingCmdK({
+      keySequence: ['Enter', 'ArrowDown', 'ArrowDown', 'Enter'],
+      url: 'http://localhost:3000/#/account/apps',
+    });
+
+    await header.navigateUsingCmdK({
+      keySequence: ['ArrowDown', 'Enter'],
+      url: 'http://localhost:3000/#/account/tokens',
+    });
+
+    await header.navigateUsingCmdK({
+      searchInput: 'License',
+      url: 'http://localhost:3000/#/account/license',
+    });
+  });
 });

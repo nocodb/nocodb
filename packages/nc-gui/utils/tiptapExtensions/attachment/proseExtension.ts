@@ -1,28 +1,33 @@
 import type { EditorView } from 'prosemirror-view'
 import { NodeSelection, Plugin } from 'prosemirror-state'
 
-export type UploadFn = (image: File) => Promise<string>
+export type UploadFn = (attachment: File) => Promise<string>
 
-export const addImage = async (image: File, view: EditorView, upload: any, prevNodePos?: number) => {
+export const addFile = async (attachment: File, view: EditorView, upload: any, prevNodePos?: number) => {
   const { schema } = view.state
   const id = Math.random().toString(36).substr(2, 9)
-  const emptyNode = schema.nodes.image.create({
-    src: '',
+  const emptyNode = schema.nodes.attachment.create({
+    url: '',
     isUploading: true,
     id,
+    name: attachment.name,
+    size: attachment.size,
+    file: attachment,
   })
 
   const pos = prevNodePos ?? view.state.selection.$from.before(1)
 
   view.dispatch(view.state.tr.insert(pos, emptyNode))
 
-  const url = (await upload(image)) as string
-  const node = schema.nodes.image.create({
-    src: url,
+  const url = (await upload(attachment)) as string
+  const node = schema.nodes.attachment.create({
+    url,
+    name: attachment.name,
+    size: attachment.size,
   })
 
-  // traverse the document to find the uploading image node
-  // and replace it with the uploaded image node
+  // traverse the document to find the uploading attachment node
+  // and replace it with the uploaded attachment node
   let uploadPos = 0
   view.state.doc.descendants((node, pos) => {
     if (node.attrs.id === id && node.attrs.isUploading) {
@@ -37,19 +42,8 @@ export const addImage = async (image: File, view: EditorView, upload: any, prevN
   view.dispatch(transaction)
 }
 
-export const dropImagePlugin = (upload: UploadFn) => {
+export const dropAttachmentPlugin = (upload: UploadFn) => {
   return new Plugin({
-    commands: {
-      insertImage: (attrs: { src: string }) => (state: any, dispatch: any) => {
-        const { selection, schema } = state
-        const position = selection.$cursor ? selection.$cursor.pos : selection.$to.pos
-        const node = schema.nodes.image.create({
-          src: attrs.src,
-        })
-        const transaction = state.tr.insert(position, node)
-        dispatch(transaction)
-      },
-    },
     props: {
       handlePaste(view, event) {
         const items = Array.from(event.clipboardData?.items || [])
@@ -57,10 +51,10 @@ export const dropImagePlugin = (upload: UploadFn) => {
         let isImageAdded = false
 
         for (const item of items) {
-          const image = item.getAsFile()
-          if (!image || item.type.indexOf('image') !== 0) continue
+          const attachment = item.getAsFile()
+          if (!attachment || item.type.includes('image')) continue
 
-          addImage(image, view, upload)
+          addFile(attachment, view, upload)
           isImageAdded = true
         }
 
@@ -79,12 +73,12 @@ export const dropImagePlugin = (upload: UploadFn) => {
 
           if (!hasFiles) return false
 
-          const images = Array.from(event.dataTransfer?.files ?? []).filter((file) => /image/i.test(file.type))
-          if (images.length === 0) return false
+          const files = Array.from(event.dataTransfer?.files ?? []).filter((file) => !file.type.includes('image'))
+          if (files.length === 0) return false
           event.preventDefault()
 
-          images.forEach(async (image) => {
-            addImage(image, view, upload, toBeInsertedPos)
+          files.forEach(async (attachment) => {
+            addFile(attachment, view, upload, toBeInsertedPos)
           })
 
           return true

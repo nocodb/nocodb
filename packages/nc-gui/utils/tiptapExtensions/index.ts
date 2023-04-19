@@ -9,6 +9,7 @@ import CodeBlock from '@tiptap/extension-code-block'
 import HardBreak from '@tiptap/extension-hard-break'
 import type { Extensions } from '@tiptap/core'
 import { Quote } from './quote'
+import { createAttachmentExtension } from './attachment/node'
 import { Bullet } from './listItem/bullet'
 import { Ordered } from './listItem/ordered'
 import { Task } from './listItem/task'
@@ -107,6 +108,9 @@ const tiptapExtensions = (isPublic: boolean): Extensions => {
     CollapsableContent,
     CollapsableHeader,
     Collapsable,
+    createAttachmentExtension(async (image: any) => {
+      return uploadFile(image)
+    }),
   ]
 }
 

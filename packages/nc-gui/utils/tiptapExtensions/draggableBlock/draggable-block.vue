@@ -173,7 +173,7 @@ watch(
       'sub-group': parentNodeType === 'collapsable' && !isPublic,
     }"
   >
-    <div v-if="!isPublic" class="flex flex-row gap-0.5 w-full items-start" tiptap-draghandle-wrapper="true">
+    <div v-if="!isPublic" class="flex flex-row gap-0.5 w-full items-start" tiptap-draghandle-wrapper="true" :pos="getPos()">
       <div class="flex flex-row relative" :style="optionWrapperStyle">
         <div
           v-if="!isDragging"

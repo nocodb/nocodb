@@ -134,7 +134,7 @@ export const DraggableBlock = Node.create<DBlockOptions>({
         } = editor.state
 
         const parent = $head.node($head.depth - 1)
-        if (parent.type.name !== 'dBlock') return false
+        if (parent?.type.name !== 'dBlock') return false
 
         const currentNode = $head.node($head.depth)
 

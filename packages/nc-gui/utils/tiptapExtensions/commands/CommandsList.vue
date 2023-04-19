@@ -37,6 +37,7 @@ import LogosTrelloIcon from '~icons/logos/trello'
 import LogosTypeformIcon from '~icons/logos/typeform-icon'
 import MdiLinkVariant from '~icons/mdi/link-variant'
 import CollapseListIcon from '~icons/carbon/collapse-categories'
+import MdiFileUploadOutline from '~icons/mdi/file-upload-outline'
 
 interface Props {
   command: Function
@@ -57,12 +58,7 @@ const linkUrl = ref('')
 const fileInput = ref()
 const loadingOperationName = ref('')
 
-const onFilePicked = (event: any) => {
-  const files = event.target.files
-  const file = files[0]
-
-  ;(editor.chain().focus() as any).setImage({ src: file }).run()
-}
+const selectedIndex = ref(0)
 
 const insertLink = () => {
   isLinkInputFormErrored.value = false
@@ -159,6 +155,7 @@ const items = [
     icon: MdiImageMultipleOutline,
     iconClass: '',
   },
+
   {
     title: 'Code',
     class: 'text-xs',
@@ -168,8 +165,17 @@ const items = [
     },
     icon: MdiCodeSnippet,
     iconClass: '',
-    hasDivider: true,
     shortCutText: isMacOS() ? '⌥ ⌘ C' : 'Alt Ctrl C',
+  },
+  {
+    title: 'Attachment',
+    class: 'text-xs',
+    command: () => {
+      fileInput.value?.[0]?.click()
+    },
+    icon: MdiFileUploadOutline,
+    hasDivider: true,
+    iconClass: '',
   },
   {
     title: 'Task List',
@@ -462,7 +468,17 @@ const filterItems = computed(() => {
   return items.filter((item) => item.title.toLowerCase().includes(query.toLowerCase()))
 })
 
-const selectedIndex = ref(0)
+const onFilePicked = (event: any) => {
+  const selectedNodeType = filterItems.value[selectedIndex.value]
+  const files = event.target.files
+  const file = files[0]
+
+  if (selectedNodeType.title === 'Image') {
+    ;(editor.chain().focus() as any).setImage({ src: file }).run()
+  } else if (selectedNodeType.title === 'Attachment') {
+    ;(editor.chain().focus() as any).setAttachment(files).run()
+  }
+}
 
 const selectItem = (title: string) => {
   const index = items.findIndex((item) => item.title === title)
@@ -656,11 +672,11 @@ defineExpose({
           @mouseenter="() => onHover(index)"
         >
           <input
-            v-if="item.title === 'Image'"
+            v-if="item.title === 'Image' || item.title === 'Attachment'"
             ref="fileInput"
             type="file"
             style="display: none"
-            accept="image/*"
+            :accept="item.title === 'Image' ? 'image/*' : '*'"
             @change="onFilePicked"
           />
           <div class="flex flex-row items-center justify-between w-full">

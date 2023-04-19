@@ -353,12 +353,21 @@ watch(wrapperRef, () => {
     outline: none;
   }
 
+  .draggable-block-wrapper.focused {
+    .attachment-wrapper .attachment {
+      @apply !bg-primary-selected;
+    }
+  }
+
   .draggable-block-wrapper.selected {
     table {
       @apply !bg-primary-selected;
       tr:first-child td {
         @apply !bg-primary-selected;
       }
+    }
+    .attachment-wrapper .attachment {
+      @apply !bg-primary-selected;
     }
     p,
     h1,
@@ -570,7 +579,19 @@ watch(wrapperRef, () => {
   }
 
   [data-type='task'] {
-    @apply flex flex-row items-center gap-x-2;
+    @apply flex flex-row items-start gap-x-2;
+    label {
+      @apply flex mt-2;
+    }
+    input {
+      @apply rounded-sm;
+    }
+    // Unchecked
+    input:not(:checked) {
+      // Add border to checkbox
+      border-width: 1.5px;
+      @apply border-gray-700;
+    }
   }
 
   ul {

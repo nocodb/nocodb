@@ -2,7 +2,7 @@ import BasePage from '../Base';
 import { WorkspacePage } from './';
 import { expect } from '@playwright/test';
 import { Locator } from 'playwright';
-import { getTextExcludeIconText } from '../../tests/utils/general';
+import { getIconText, getTextExcludeIconText } from '../../tests/utils/general';
 
 /*
   nc-workspace-container
@@ -76,11 +76,23 @@ export class ContainerPage extends BasePage {
     const title = await getTextExcludeIconText(rows.nth(index).locator('.nc-project-title'));
     const lastAccessed = await rows.nth(index).locator('.ant-table-cell').nth(2).innerText();
     const role = await rows.nth(index).locator('.ant-table-cell').nth(3).innerText();
-    return { title, lastAccessed, role };
+    const icon = await getIconText(rows.nth(index).locator('.nc-project-title'));
+    return { icon, title, lastAccessed, role };
   }
 
-  async verifyDynamicElements({ title, lastAccessed, role }) {
+  async verifyDynamicElements({ icon, title, lastAccessed, role }) {
     expect(await this.get().locator('.nc-workspace-title').innerText()).toBe(`ws_${title}`);
-    expect(await this.getProjectRow(0)).toEqual({ title, lastAccessed, role });
+    expect(await this.getProjectRow(0)).toEqual({ icon, title, lastAccessed, role });
+  }
+
+  async projectCreate({ title, type }: { title: string; type: 'db' | 'docs' }) {
+    await this.newProjectButton.click();
+    await this.rootPage.locator(`.nc-create-project-btn-${type}`).click();
+    await this.rootPage.locator('.nc-metadb-project-name').fill(title);
+    await this.waitForResponse({
+      uiAction: () => this.rootPage.locator('.nc-metadb-project-name').press('Enter'),
+      httpMethodsToMatch: ['POST'],
+      requestUrlPathToMatch: `api/v1/db/meta/projects`,
+    });
   }
 }

@@ -19,6 +19,14 @@ async function getTextExcludeIconText(selector) {
   return text.trim();
 }
 
+async function getIconText(selector) {
+  // List of icons
+  const icons = await selector.locator('.material-symbols-outlined');
+
+  await icons.nth(0).waitFor();
+  return await icons.nth(0).textContent();
+}
+
 function isSubset(obj, potentialSubset) {
   for (const prop in potentialSubset) {
     // eslint-disable-next-line no-prototype-builtins
@@ -38,4 +46,4 @@ function isSubset(obj, potentialSubset) {
   return true;
 }
 
-export { getTextExcludeIconText, isSubset };
+export { getTextExcludeIconText, isSubset, getIconText };

@@ -17,7 +17,7 @@ import { GlobalGuard } from '../guards/global/global.guard';
 import extractRolesObj from '../utils/extractRolesObj';
 import { PagedResponseImpl } from '../helpers/PagedResponse';
 import {
-  ExtractProjectIdMiddleware,
+  Acl,
   UseAclMiddleware,
 } from '../middlewares/extract-project-id/extract-project-id.middleware';
 import { TablesService } from '../services/tables.service';
@@ -131,6 +131,36 @@ export class TablesController {
     return this.tablesService.reorderTable({
       tableId,
       order: body.order,
+    });
+  }
+
+  @Post('/api/v1/db/meta/projects/:projectId/:baseId/tables/magic')
+  @Acl('tableCreateMagic')
+  async tableCreateMagic(
+    @Param('projectId') projectId: string,
+    @Param('baseId') baseId: string,
+    @Body() body: TableReqType,
+  ) {
+    return await this.tablesService.tableCreateMagic({
+      projectId,
+      baseId,
+      title: body.title,
+      tableName: body.table_name,
+    });
+  }
+
+  @Post('/api/v1/db/meta/projects/:projectId/:baseId/schema/magic')
+  @Acl('schemaMagic')
+  async schemaMagic(
+    @Param('projectId') projectId: string,
+    @Param('baseId') baseId: string,
+    @Body() body: any,
+  ) {
+    return await this.tablesService.schemaMagic({
+      projectId: projectId,
+      baseId: baseId,
+      title: body.title,
+      schemaName: body.schema_name,
     });
   }
 }

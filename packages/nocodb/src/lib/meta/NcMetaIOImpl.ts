@@ -1,5 +1,6 @@
 import CryptoJS from 'crypto-js';
 import { customAlphabet } from 'nanoid';
+import dayjs from 'dayjs';
 import { XKnex } from '../db/sql-data-mapper';
 import XcMigrationSource from '../migrations/XcMigrationSource';
 import NcConnectionMgr from '../utils/common/NcConnectionMgr';
@@ -94,6 +95,20 @@ export default class NcMetaIOImpl extends NcMetaIO {
     return (this.trx || this.connection) as any;
   }
 
+  private isMySQL(): boolean {
+    return (
+      this.config?.meta?.db?.client === 'mysql' ||
+      this.config?.meta?.db?.client === 'mysql2'
+    );
+  }
+
+  private now(): any {
+    if (this.isMySQL()) {
+      return dayjs().utc().format('YYYY-MM-DD HH:mm:ss');
+    }
+    return dayjs().utc().toISOString();
+  }
+
   public updateKnex(connectionConfig): void {
     this.connection = XKnex(connectionConfig);
   }
@@ -107,6 +122,10 @@ export default class NcMetaIOImpl extends NcMetaIO {
       migrationSource: new XcMigrationSourcev2(),
       tableName: 'xc_knex_migrationsv2',
     });
+    if (this.isMySQL()) {
+      // set timezone
+      await this.connection.raw(`SET time_zone = '+00:00'`);
+    }
     return true;
   }
 
@@ -238,8 +257,8 @@ export default class NcMetaIOImpl extends NcMetaIO {
     return this.knexConnection(target).insert({
       db_alias: dbAlias,
       project_id,
-      created_at: this.knexConnection?.fn?.now(),
-      updated_at: this.knexConnection?.fn?.now(),
+      created_at: this.now(),
+      updated_at: this.now(),
       ...data,
     });
   }
@@ -260,8 +279,8 @@ export default class NcMetaIOImpl extends NcMetaIO {
     if (project_id !== null) insertObj.project_id = project_id;
     await this.knexConnection(target).insert({
       ...insertObj,
-      created_at: insertObj?.created_at || this.knexConnection?.fn?.now(),
-      updated_at: insertObj?.updated_at || this.knexConnection?.fn?.now(),
+      created_at: insertObj?.created_at || this.now(),
+      updated_at: insertObj?.updated_at || this.now(),
     });
     return insertObj;
   }
@@ -410,7 +429,7 @@ export default class NcMetaIOImpl extends NcMetaIO {
 
     delete data.created_at;
 
-    query.update({ ...data, updated_at: this.knexConnection?.fn?.now() });
+    query.update({ ...data, updated_at: this.now() });
     if (typeof idOrCondition !== 'object') {
       query.where('id', idOrCondition);
     } else if (idOrCondition) {
@@ -530,8 +549,8 @@ export default class NcMetaIOImpl extends NcMetaIO {
       // todo: check project name used or not
       await this.knexConnection('nc_projects').insert({
         ...project,
-        created_at: this.knexConnection?.fn?.now(),
-        updated_at: this.knexConnection?.fn?.now(),
+        created_at: this.now(),
+        updated_at: this.now(),
       });
 
       // todo

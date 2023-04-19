@@ -24,8 +24,12 @@ export default class GridViewColumn implements GridColumnType {
     viewId: string,
     ncMeta = Noco.ncMeta,
   ): Promise<GridViewColumn[]> {
-    let views = await NocoCache.getList(CacheScope.GRID_VIEW_COLUMN, [viewId]);
-    if (!views.length) {
+    const cachedList = await NocoCache.getList(CacheScope.GRID_VIEW_COLUMN, [
+      viewId,
+    ]);
+    let { list: views } = cachedList;
+    const { isNoneList } = cachedList;
+    if (!isNoneList && !views.length) {
       views = await ncMeta.metaList2(null, null, MetaTable.GRID_VIEW_COLUMNS, {
         condition: {
           fk_view_id: viewId,
@@ -99,13 +103,10 @@ export default class GridViewColumn implements GridColumnType {
     await NocoCache.set(`${CacheScope.GRID_VIEW_COLUMN}:${fk_column_id}`, id);
 
     // if cache is not present skip pushing it into the list to avoid unexpected behaviour
-    if (
-      (
-        await NocoCache.getList(CacheScope.GRID_VIEW_COLUMN, [
-          column.fk_view_id,
-        ])
-      )?.length
-    )
+    const { list } = await NocoCache.getList(CacheScope.GRID_VIEW_COLUMN, [
+      column.fk_view_id,
+    ]);
+    if (list.length)
       await NocoCache.appendToList(
         CacheScope.GRID_VIEW_COLUMN,
         [column.fk_view_id],

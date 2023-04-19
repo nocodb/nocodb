@@ -85,10 +85,12 @@ export default class KanbanViewColumn implements KanbanColumnType {
     viewId: string,
     ncMeta = Noco.ncMeta,
   ): Promise<KanbanViewColumn[]> {
-    let views = await NocoCache.getList(CacheScope.KANBAN_VIEW_COLUMN, [
+    const cachedList = await NocoCache.getList(CacheScope.KANBAN_VIEW_COLUMN, [
       viewId,
     ]);
-    if (!views.length) {
+    let { list: views } = cachedList;
+    const { isNoneList } = cachedList;
+    if (!isNoneList && !views.length) {
       views = await ncMeta.metaList2(
         null,
         null,

@@ -69,10 +69,12 @@ export default class SelectOption implements SelectOptionType {
   }
 
   public static async read(fk_column_id: string, ncMeta = Noco.ncMeta) {
-    let options = await NocoCache.getList(CacheScope.COL_SELECT_OPTION, [
+    const cachedList = await NocoCache.getList(CacheScope.COL_SELECT_OPTION, [
       fk_column_id,
     ]);
-    if (!options.length) {
+    let { list: options } = cachedList;
+    const { isNoneList } = cachedList;
+    if (!isNoneList && !options.length) {
       options = await ncMeta.metaList2(
         null, //,
         null, //model.db_alias,

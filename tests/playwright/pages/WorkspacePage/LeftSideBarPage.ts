@@ -87,7 +87,6 @@ export class LeftSideBarPage extends BasePage {
   async workspaceGetLocator(title: string) {
     // get workspace id
     const wsId = await getWorkspaceId(title);
-    console.log('wsId', wsId);
     return this.get().locator('[data-id="' + wsId + '"]');
   }
 

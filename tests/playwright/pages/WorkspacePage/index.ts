@@ -43,4 +43,40 @@ export class WorkspacePage extends BasePage {
     await this.LeftSideBar.verifyStaticElements();
     await this.Container.verifyStaticElements();
   }
+
+  async workspaceCreate({ title, description }) {
+    await this.LeftSideBar.workspaceCreate({ title, description });
+  }
+
+  async workspaceRename({ title, newTitle }: { newTitle: string; title: string }) {
+    await this.LeftSideBar.workspaceRename({ title, newTitle });
+  }
+
+  async workspaceDelete({ title }) {
+    await this.LeftSideBar.workspaceDelete({ title });
+  }
+
+  async workspaceOpen({ title }) {
+    await (await this.LeftSideBar.workspaceGetLocator(title)).click();
+  }
+
+  async projectCreate({ title, type }) {
+    await this.Container.projectCreate({ title, type });
+  }
+
+  async projectDelete({ title }) {
+    await this.Container.projectDelete({ title });
+  }
+
+  async projectOpen({ title }) {
+    await this.Container.projectOpen({ title });
+  }
+
+  async projectRename({ title, newTitle }) {
+    await this.Container.projectRename({ title, newTitle });
+  }
+
+  async projectMove({ title, newWorkspace }) {
+    await this.Container.projectMove({ title, newWorkspace });
+  }
 }

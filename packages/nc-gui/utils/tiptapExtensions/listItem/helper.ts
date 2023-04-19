@@ -74,7 +74,7 @@ export const onEnter = (editor: Editor, nodeType: 'bullet' | 'ordered' | 'task')
   const { selection } = editor.state
 
   const parentNode = selection.$from.node(-1)
-  if (parentNode.type.name !== nodeType) return false
+  if (parentNode?.type.name !== nodeType) return false
   const currentNode = selection.$from.node()
   const parentParentNode = selection.$from.node(-2)
 
@@ -199,7 +199,7 @@ export const onBackspaceWithNestedList = (editor: Editor, nodeType: string) => {
     return false
   }
 
-  if (parentNode.type.name !== nodeType) return false
+  if (parentNode?.type.name !== nodeType) return false
 
   if (Number(parentNode.attrs.level) < 1) return false
   if (currentNode.textContent.length > 0) return false

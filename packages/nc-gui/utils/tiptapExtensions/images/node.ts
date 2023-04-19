@@ -2,7 +2,7 @@ import { Node, nodeInputRule } from '@tiptap/core'
 import { TextSelection } from 'prosemirror-state'
 import { VueNodeViewRenderer } from '@tiptap/vue-3'
 import type { UploadFn } from './proseExtension'
-import { dropImagePlugin } from './proseExtension'
+import { addImage, dropImagePlugin } from './proseExtension'
 import ImageComponent from './image.vue'
 /**
  * Matches following attributes in Markdown-typed image: [, alt, src, title]
@@ -18,6 +18,7 @@ export const createImageExtension = (uploadFn: UploadFn) => {
   return Node.create({
     name: 'image',
     group: 'block',
+    priority: 2000,
     draggable: true,
     addAttributes: () => ({
       src: {},
@@ -131,19 +132,27 @@ export const createImageExtension = (uploadFn: UploadFn) => {
             const prevNodePos = selection.$from.pos - (parentNode.nodeSize - node.nodeSize + 2)
             if (prevNodePos < 0) return false
             const prevNode = editor.view.state.doc.nodeAt(prevNodePos)
+            if (prevNode?.type.name !== 'image') return false
 
-            if (prevNode?.type.name === 'image') {
-              editor.chain().setNodeSelection(prevNodePos).run()
+            const currentNode = selection.$from.node()
+            if (currentNode.type.name === 'paragraph' && currentNode.textContent.length === 0) {
+              editor
+                .chain()
+                .setNodeSelection(selection.$from.pos - 1)
+                .deleteSelection()
+                .setTextSelection(prevNodePos)
+                .run()
               return true
             }
 
-            return false
+            editor.chain().setNodeSelection(prevNodePos).run()
+            return true
           } catch (error) {
             console.log('error', error)
             return false
           }
         },
-      }
+      } as any
     },
     addProseMirrorPlugins() {
       return [dropImagePlugin(uploadFn)]

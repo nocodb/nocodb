@@ -57,6 +57,11 @@ const resizeLeft = (mouseDownEvent: MouseEvent) => {
 const resizeRight = (mouseDownEvent: MouseEvent) => {
   resizeHandler(mouseDownEvent, 'right')
 }
+
+const selectNode = () => {
+  console.log('selectNode')
+  editor.chain().setNodeSelection(getPos()).focus().run()
+}
 </script>
 
 <template>
@@ -90,9 +95,13 @@ const resizeRight = (mouseDownEvent: MouseEvent) => {
           :title="node.attrs.title"
           :width="node.attrs.width"
           :height="node.attrs.height"
+          :draggable="true"
+          :data-drag-handle="true"
           :class="{
             'tiptap-img-selected': editor.isActive('image', { src: node.attrs.src }),
           }"
+          @dragstart="selectNode"
+          @mousedown="selectNode"
         />
         <div
           class="tiptap-img-resize-bar right-0.25"

@@ -1,10 +1,9 @@
 import type { EditorView } from 'prosemirror-view'
-import { Decoration, DecorationSet } from 'prosemirror-view'
 import { NodeSelection, Plugin } from 'prosemirror-state'
 
 export type UploadFn = (image: File) => Promise<string>
 
-export const addImage = async (image: File, view: EditorView, upload: any, replacePrevNodePos?: number) => {
+export const addImage = async (image: File, view: EditorView, upload: any, prevNodePos?: number) => {
   const { schema } = view.state
   const id = Math.random().toString(36).substr(2, 9)
   const emptyNode = schema.nodes.image.create({
@@ -13,9 +12,9 @@ export const addImage = async (image: File, view: EditorView, upload: any, repla
     id,
   })
 
-  const pos = replacePrevNodePos ?? view.state.selection.from - 2
+  const pos = prevNodePos ?? view.state.selection.$from.before(1)
 
-  view.dispatch(view.state.tr.setSelection(NodeSelection.create(view.state.doc, pos)).replaceSelectionWith(emptyNode))
+  view.dispatch(view.state.tr.insert(pos, emptyNode))
 
   const url = (await upload(image)) as string
   const node = schema.nodes.image.create({
@@ -69,6 +68,13 @@ export const dropImagePlugin = (upload: UploadFn) => {
       },
       handleDOMEvents: {
         drop: (view, event) => {
+          const domsOverElement = document.elementsFromPoint(event.clientX, event.clientY)
+          const dbBlockDom = domsOverElement.find((dom) => dom.hasAttribute('tiptap-draghandle-wrapper'))
+          if (!dbBlockDom) return false
+
+          const dBlockPos = Number(dbBlockDom.getAttribute('pos'))
+          const toBeInsertedPos = dBlockPos
+
           const hasFiles = event.dataTransfer && event.dataTransfer.files && event.dataTransfer.files.length
 
           if (!hasFiles) return false
@@ -78,7 +84,7 @@ export const dropImagePlugin = (upload: UploadFn) => {
           event.preventDefault()
 
           images.forEach(async (image) => {
-            addImage(image, view, upload)
+            addImage(image, view, upload, toBeInsertedPos)
           })
 
           return true

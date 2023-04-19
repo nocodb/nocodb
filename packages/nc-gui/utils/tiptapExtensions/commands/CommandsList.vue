@@ -57,12 +57,7 @@ const linkUrl = ref('')
 const fileInput = ref()
 const loadingOperationName = ref('')
 
-const onFilePicked = (event: any) => {
-  const files = event.target.files
-  const file = files[0]
-
-  ;(editor.chain().focus() as any).setImage({ src: file }).run()
-}
+const selectedIndex = ref(0)
 
 const insertLink = () => {
   isLinkInputFormErrored.value = false
@@ -152,6 +147,15 @@ const items = [
   },
   {
     title: 'Image',
+    class: 'text-xs',
+    command: () => {
+      fileInput.value?.[0]?.click()
+    },
+    icon: MdiImageMultipleOutline,
+    iconClass: '',
+  },
+  {
+    title: 'Attachment',
     class: 'text-xs',
     command: () => {
       fileInput.value?.[0]?.click()
@@ -462,7 +466,17 @@ const filterItems = computed(() => {
   return items.filter((item) => item.title.toLowerCase().includes(query.toLowerCase()))
 })
 
-const selectedIndex = ref(0)
+const onFilePicked = (event: any) => {
+  const selectedNodeType = filterItems.value[selectedIndex.value]
+  const files = event.target.files
+  const file = files[0]
+
+  if (selectedNodeType.title === 'Image') {
+    ;(editor.chain().focus() as any).setImage({ src: file }).run()
+  } else if (selectedNodeType.title === 'Attachment') {
+    ;(editor.chain().focus() as any).setAttachment(files).run()
+  }
+}
 
 const selectItem = (title: string) => {
   const index = items.findIndex((item) => item.title === title)
@@ -656,11 +670,11 @@ defineExpose({
           @mouseenter="() => onHover(index)"
         >
           <input
-            v-if="item.title === 'Image'"
+            v-if="item.title === 'Image' || item.title === 'Attachment'"
             ref="fileInput"
             type="file"
             style="display: none"
-            accept="image/*"
+            :accept="item.title === 'Image' ? 'image/*' : '*'"
             @change="onFilePicked"
           />
           <div class="flex flex-row items-center justify-between w-full">

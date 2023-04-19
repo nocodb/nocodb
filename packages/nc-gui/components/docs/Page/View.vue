@@ -353,12 +353,21 @@ watch(wrapperRef, () => {
     outline: none;
   }
 
+  .draggable-block-wrapper.focused {
+    .attachment-wrapper .attachment {
+      @apply !bg-primary-selected;
+    }
+  }
+
   .draggable-block-wrapper.selected {
     table {
       @apply !bg-primary-selected;
       tr:first-child td {
         @apply !bg-primary-selected;
       }
+    }
+    .attachment-wrapper .attachment {
+      @apply !bg-primary-selected;
     }
     p,
     h1,

@@ -257,9 +257,9 @@ export default class NcMetaIOImpl extends NcMetaIO {
     return this.knexConnection(target).insert({
       db_alias: dbAlias,
       project_id,
+      ...data,
       created_at: this.now(),
       updated_at: this.now(),
-      ...data,
     });
   }
 
@@ -279,8 +279,8 @@ export default class NcMetaIOImpl extends NcMetaIO {
     if (project_id !== null) insertObj.project_id = project_id;
     await this.knexConnection(target).insert({
       ...insertObj,
-      created_at: insertObj?.created_at || this.now(),
-      updated_at: insertObj?.updated_at || this.now(),
+      created_at: this.now(),
+      updated_at: this.now(),
     });
     return insertObj;
   }

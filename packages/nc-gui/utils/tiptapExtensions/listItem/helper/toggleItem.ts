@@ -8,12 +8,12 @@ let prevOrderedListNodeNumber = 0
 const toggleListItemInSliceJson = ({ content, type }: { content: any[]; type: 'ordered' | 'bullet' | 'task' }) => {
   for (const child of content) {
     if (
-      child.type === 'dBlock' ||
+      child.type === 'sec' ||
       child.type === 'collapsable' ||
       child.type === 'collapsable_content' ||
       child.type === 'collapsable_header'
     ) {
-      if (child.type !== 'dBlock') {
+      if (child.type !== 'sec') {
         prevOrderedListNodeNumber = 0
       }
 
@@ -63,26 +63,26 @@ export const toggleItem = ({
   state: EditorState
   type: 'ordered' | 'bullet' | 'task'
 }) => {
-  const topDBlockPos = getPosOfNodeWrtAnchorNode({
+  const topSectionPos = getPosOfNodeWrtAnchorNode({
     state,
     anchorPos: state.selection.$from.pos,
     direction: 'before',
-    nodeType: 'dBlock',
-    possibleParentTypes: ['dBlock', 'doc', 'collapsable', 'collapsable_content'],
+    nodeType: 'sec',
+    possibleParentTypes: ['sec', 'doc', 'collapsable', 'collapsable_content'],
   })
 
-  const bottomDBlockPos = getPosOfNodeWrtAnchorNode({
+  const bottomSectionPos = getPosOfNodeWrtAnchorNode({
     state,
     anchorPos: state.selection.$to.pos,
     direction: 'after',
-    nodeType: 'dBlock',
-    possibleParentTypes: ['dBlock', 'doc', 'collapsable', 'collapsable_content'],
+    nodeType: 'sec',
+    possibleParentTypes: ['sec', 'doc', 'collapsable', 'collapsable_content'],
   })
 
-  const slice = state.doc.slice(topDBlockPos, bottomDBlockPos, false)
+  const slice = state.doc.slice(topSectionPos, bottomSectionPos, false)
   const sliceJson = slice.toJSON()
 
-  // Toggle a bullet under `dblock` nodes in slice
+  // Toggle a bullet under `sec` nodes in slice
   prevOrderedListNodeNumber = 0
   toggleListItemInSliceJson({ content: sliceJson.content, type })
 
@@ -91,9 +91,9 @@ export const toggleItem = ({
   return chain()
     .command(() => {
       const tr = state.tr
-      tr.replaceRange(topDBlockPos, bottomDBlockPos, newSlice)
+      tr.replaceRange(topSectionPos, bottomSectionPos, newSlice)
 
       return true
     })
-    .setTextSelection(topDBlockPos + newSlice.size - 1)
+    .setTextSelection(topSectionPos + newSlice.size - 1)
 }

@@ -115,7 +115,7 @@ const createNodeAfter = () => {
   const pos = getPos() + node.nodeSize
 
   editor.commands.insertContentAt(pos, {
-    type: 'dBlock',
+    type: 'sec',
     content: [
       {
         type: 'paragraph',

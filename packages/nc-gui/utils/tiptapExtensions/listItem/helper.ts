@@ -20,19 +20,19 @@ export const isSelectionOfType = (state: EditorState, type: string) => {
     const selectionSlice = state.doc.slice(selection.from - 2, selection.to)
     const selectionSliceJson = selectionSlice.toJSON()
 
-    const isSelectionInOneDBlock = (selectionSliceJson.content as any[]).some((node) => node.type === 'dBlock')
+    const isSelectionInOneSection = (selectionSliceJson.content as any[]).some((node) => node.type === 'sec')
 
-    const activeInDBlocks = () => {
-      const topDBlockPos = selection.$from.before(1)
-      const bottomDBlockPos = selection.$to.after(1)
+    const activeInSections = () => {
+      const topSectionPos = selection.$from.before(1)
+      const bottomSectionPos = selection.$to.after(1)
 
-      const slice = state.doc.slice(topDBlockPos, bottomDBlockPos)
+      const slice = state.doc.slice(topSectionPos, bottomSectionPos)
       const sliceJson = slice.toJSON()
 
       let count = 0
       for (const node of sliceJson.content) {
         count = count + 1
-        if (node.type !== 'dBlock') {
+        if (node.type !== 'sec') {
           return false
         }
 
@@ -64,7 +64,7 @@ export const isSelectionOfType = (state: EditorState, type: string) => {
       return true
     }
 
-    return isSelectionInOneDBlock ? activeInDBlocks() : activeInListItems()
+    return isSelectionInOneSection ? activeInSections() : activeInListItems()
   } catch (error) {
     return false
   }
@@ -81,7 +81,7 @@ export const onEnter = (editor: Editor, nodeType: 'bullet' | 'ordered' | 'task')
   // Delete the bullet point if it's empty
   const currentNodeIsEmpty = currentNode.textContent.trim().length === 0
 
-  if (currentNodeIsEmpty && parentParentNode.type.name !== 'dBlock') {
+  if (currentNodeIsEmpty && parentParentNode.type.name !== 'sec') {
     return false
   }
 
@@ -129,7 +129,7 @@ export const onEnter = (editor: Editor, nodeType: 'bullet' | 'ordered' | 'task')
   const sliceToBeMovedContent = !isOnEndOfLine ? sliceToBeMoved.toJSON().content : []
 
   const newDblockContent = {
-    type: 'dBlock',
+    type: 'sec',
     content: [
       {
         type: nodeType,
@@ -152,7 +152,7 @@ export const onEnter = (editor: Editor, nodeType: 'bullet' | 'ordered' | 'task')
     .chain()
     .insertContentAt(
       currentNodeEndPos + 2,
-      parentParentNode.type.name === 'dBlock'
+      parentParentNode.type.name === 'sec'
         ? newDblockContent
         : {
             type: nodeType,
@@ -173,7 +173,7 @@ export const onEnter = (editor: Editor, nodeType: 'bullet' | 'ordered' | 'task')
     .deleteRange({ from, to: currentNodeEndPos })
     .run()
 
-  if (isOnEndOfLine && parentParentNode.type.name !== 'dBlock') {
+  if (isOnEndOfLine && parentParentNode.type.name !== 'sec') {
     return false
   }
 
@@ -240,10 +240,10 @@ export const changeLevel = (editor: Editor, nodeType: string, direction: 'forwar
     const tr = state.tr
     const view = editor.view
 
-    let topDBlockPos: number, bottomDBlockPos: number
+    let topSectionPos: number, bottomSectionPos: number
     try {
-      topDBlockPos = selection.$from.before(selection.$from.depth - 1)
-      bottomDBlockPos = selection.$to.after(selection.$to.depth - 1)
+      topSectionPos = selection.$from.before(selection.$from.depth - 1)
+      bottomSectionPos = selection.$to.after(selection.$to.depth - 1)
     } catch (e) {
       return false
     }
@@ -251,7 +251,7 @@ export const changeLevel = (editor: Editor, nodeType: string, direction: 'forwar
     let found = false
     // traverse through the slice and change the level of the list items
     state.doc.descendants((node, pos) => {
-      if (pos >= topDBlockPos && pos < bottomDBlockPos) {
+      if (pos >= topSectionPos && pos < bottomSectionPos) {
         if (node.type.name === nodeType) {
           found = true
 
@@ -296,25 +296,25 @@ export const listItemPasteRule = ({
       })
     },
     handler({ match, chain, range, state }) {
-      // If pasted on empty dblock
+      // If pasted on empty sec
       let insertedPos = range.from
 
-      const dBlocks: Array<{ pos: number; node: any }> = []
+      const sections: Array<{ pos: number; node: any }> = []
       state.doc.descendants((node, pos) => {
-        if (node.type.name === 'dBlock' && pos < range.from) {
+        if (node.type.name === 'sec' && pos < range.from) {
           insertedPos = pos
-          dBlocks.push({ pos, node })
+          sections.push({ pos, node })
         }
       })
-      let emptyDBlockFound = false
-      for (let i = dBlocks.length - 1; i >= 0; i--) {
-        if (state.doc.nodeAt(dBlocks[i].pos)?.textContent.length === 0) {
-          if (emptyDBlockFound) {
-            insertedPos = dBlocks[i].pos
+      let emptySectionFound = false
+      for (let i = sections.length - 1; i >= 0; i--) {
+        if (state.doc.nodeAt(sections[i].pos)?.textContent.length === 0) {
+          if (emptySectionFound) {
+            insertedPos = sections[i].pos
             break
           }
-          emptyDBlockFound = true
-          insertedPos = dBlocks[i].pos
+          emptySectionFound = true
+          insertedPos = sections[i].pos
         }
       }
 
@@ -344,7 +344,7 @@ export const listItemPasteRule = ({
       chain()
         .deleteRange(range)
         .insertContentAt(insertedPos, {
-          type: 'dBlock',
+          type: 'sec',
           content: [
             {
               type: nodeType,

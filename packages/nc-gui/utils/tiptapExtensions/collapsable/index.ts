@@ -82,7 +82,7 @@ export const Collapsable = Node.create<CollapsableOptions>({
                   type: 'collapsable_content',
                   content: [
                     {
-                      type: 'dBlock',
+                      type: 'sec',
                       content: [
                         {
                           type: 'paragraph',
@@ -156,8 +156,8 @@ export const Collapsable = Node.create<CollapsableOptions>({
         const parentNode = editor.state.selection.$from.node(editor.state.selection.$from.depth - 2)
         if (parentNode?.type.name !== 'collapsable_content') return false
 
-        const currentDBlockPos = editor.state.selection.$from.before(editor.state.selection.$from.depth - 1)
-        const nextDBlockPos = editor.state.selection.$from.after(editor.state.selection.$from.depth - 1)
+        const currentSecPos = editor.state.selection.$from.before(editor.state.selection.$from.depth - 1)
+        const nextSecPos = editor.state.selection.$from.after(editor.state.selection.$from.depth - 1)
 
         const currentTextBlock = editor.state.selection.$from.node(editor.state.selection.$from.depth)
         if (currentTextBlock.textContent.startsWith('/')) return false
@@ -168,12 +168,12 @@ export const Collapsable = Node.create<CollapsableOptions>({
           currentTextBlock.textContent.length === 0 &&
           currentNodeIndexWrtParent === parentNode.childCount - 1
         ) {
-          editor.view.dispatch(state.tr.delete(currentDBlockPos, nextDBlockPos))
+          editor.view.dispatch(state.tr.delete(currentSecPos, nextSecPos))
           return true
         }
 
-        const slice = editor.state.doc.slice(currentDBlockPos, from)
-        const nextSlice = editor.state.doc.slice(from, nextDBlockPos)
+        const slice = editor.state.doc.slice(currentSecPos, from)
+        const nextSlice = editor.state.doc.slice(from, nextSecPos)
 
         const newSliceJson = {
           content: [...slice.toJSON().content, ...nextSlice.toJSON().content],
@@ -183,7 +183,7 @@ export const Collapsable = Node.create<CollapsableOptions>({
         const newSlice = Slice.fromJSON(state.schema, newSliceJson)
 
         const tr = state.tr
-        tr.replaceRange(currentDBlockPos, nextDBlockPos, newSlice).setSelection(TextSelection.create(tr.doc, from + 4))
+        tr.replaceRange(currentSecPos, nextSecPos, newSlice).setSelection(TextSelection.create(tr.doc, from + 4))
         editor.view.dispatch(tr)
 
         return true

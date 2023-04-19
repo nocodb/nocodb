@@ -13,7 +13,7 @@ export const CollapsableContent = Node.create({
   group: 'block',
 
   content() {
-    return 'dBlock+'
+    return 'sec+'
   },
 
   parseHTML() {

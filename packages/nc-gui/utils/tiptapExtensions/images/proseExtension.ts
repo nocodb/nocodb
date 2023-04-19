@@ -72,8 +72,8 @@ export const dropImagePlugin = (upload: UploadFn) => {
           const dbBlockDom = domsOverElement.find((dom) => dom.hasAttribute('tiptap-draghandle-wrapper'))
           if (!dbBlockDom) return false
 
-          const dBlockPos = Number(dbBlockDom.getAttribute('pos'))
-          const toBeInsertedPos = dBlockPos
+          const secPos = Number(dbBlockDom.getAttribute('pos'))
+          const toBeInsertedPos = secPos
 
           const hasFiles = event.dataTransfer && event.dataTransfer.files && event.dataTransfer.files.length
 

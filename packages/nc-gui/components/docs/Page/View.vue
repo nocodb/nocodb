@@ -27,7 +27,7 @@ const content = computed(() => {
     type: 'doc',
     content: [
       {
-        type: 'dBlock',
+        type: 'sec',
         content: [
           {
             type: 'paragraph',

@@ -25,7 +25,7 @@ import Commands from './commands'
 import { InfoCallout } from './callouts/info'
 import { WarningCallout } from './callouts/warning'
 import { TipCallout } from './callouts/tip'
-import { DraggableBlock } from './draggableBlock'
+import { SectionBlock } from './section'
 import { Document } from './document'
 import { ExternalContent } from './external-content'
 import { Heading } from './heading'
@@ -41,7 +41,7 @@ const tiptapExtensions = (isPublic: boolean): Extensions => {
 
   return [
     Document,
-    DraggableBlock,
+    SectionBlock,
     Paragraph,
     Text,
     Strike,

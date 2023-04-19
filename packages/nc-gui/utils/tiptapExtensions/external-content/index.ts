@@ -108,7 +108,7 @@ export const ExternalContent = Node.create({
             if (!currentNode || !parentNode) return false
             if (
               currentNode.type.name !== 'paragraph' ||
-              parentNode.type.name !== 'dBlock' ||
+              parentNode.type.name !== 'sec' ||
               currentNode.textContent.length > 0 ||
               parentNode.childCount > 1
             ) {
@@ -131,7 +131,7 @@ export const ExternalContent = Node.create({
           const node = selection.$from.node()
           const parentNode = selection.$from.node(-1)
 
-          if (!(node.type.name === 'paragraph' && parentNode.type.name === 'dBlock')) {
+          if (!(node.type.name === 'paragraph' && parentNode.type.name === 'sec')) {
             return false
           }
 

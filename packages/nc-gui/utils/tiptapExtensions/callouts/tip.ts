@@ -35,11 +35,10 @@ export const TipCallout = Node.create<TipCalloutOptions>({
 
   addKeyboardShortcuts() {
     return {
-      'Mod-Alt-0': () => this.editor.commands.setDBlock(),
-      'Enter': ({ editor }) => {
+      Enter: ({ editor }) => {
         return handleOnEnterForCallouts(editor as any)
       },
-      'Backspace': ({ editor }) => {
+      Backspace: ({ editor }) => {
         return handleOnBackspaceForCallouts(editor as any)
       },
     }

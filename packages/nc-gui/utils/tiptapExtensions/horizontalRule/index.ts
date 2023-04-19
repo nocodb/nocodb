@@ -11,7 +11,7 @@ export const onBackspaceWithHorizontalRule = (editor: Editor) => {
     const node = selection.$from.node()
     const parentNode = selection.$from.node(-1)
 
-    if (!(node.type.name === 'paragraph' && parentNode.type.name === 'dBlock')) {
+    if (!(node.type.name === 'paragraph' && parentNode.type.name === 'sec')) {
       return false
     }
 

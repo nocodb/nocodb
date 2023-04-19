@@ -63,11 +63,11 @@ export const dropAttachmentPlugin = (upload: UploadFn) => {
       handleDOMEvents: {
         drop: (view, event) => {
           const domsOverElement = document.elementsFromPoint(event.clientX, event.clientY)
-          const dbBlockDom = domsOverElement.find((dom) => dom.hasAttribute('tiptap-draghandle-wrapper'))
-          if (!dbBlockDom) return false
+          const sectionDom = domsOverElement.find((dom) => dom.hasAttribute('tiptap-draghandle-wrapper'))
+          if (!sectionDom) return false
 
-          const dBlockPos = Number(dbBlockDom.getAttribute('pos'))
-          const toBeInsertedPos = dBlockPos
+          const secPos = Number(sectionDom.getAttribute('pos'))
+          const toBeInsertedPos = secPos
 
           const hasFiles = event.dataTransfer && event.dataTransfer.files && event.dataTransfer.files.length
 

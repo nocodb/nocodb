@@ -3,29 +3,29 @@ import type { Editor } from '@tiptap/vue-3'
 import { VueNodeViewRenderer } from '@tiptap/vue-3'
 import type { EditorState } from 'prosemirror-state'
 import { Plugin, TextSelection } from 'prosemirror-state'
-import DraggableBlockComponent from './draggable-block.vue'
+import DraggableSectionComponent from './draggable-section.vue'
 
-export interface DBlockOptions {
+export interface SecOptions {
   HTMLAttributes: Record<string, any>
 }
 
 declare module '@tiptap/core' {
   interface Commands<ReturnType> {
-    dBlock: {
+    sec: {
       /**
-       * Toggle a dBlock
+       * Toggle a sec
        */
-      setDBlock: (position?: number) => ReturnType
+      setSec: (position?: number) => ReturnType
     }
   }
 }
 
-export const DraggableBlock = Node.create<DBlockOptions>({
-  name: 'dBlock',
+export const SectionBlock = Node.create<SecOptions>({
+  name: 'sec',
 
   priority: 1000,
 
-  group: 'dBlock',
+  group: 'sec',
 
   content: 'block',
 
@@ -42,20 +42,20 @@ export const DraggableBlock = Node.create<DBlockOptions>({
   },
 
   parseHTML() {
-    return [{ tag: 'div[data-type="d-block"]' }]
+    return [{ tag: 'div[data-type="sec"]' }]
   },
 
   renderHTML({ HTMLAttributes }) {
-    return ['div', mergeAttributes(HTMLAttributes, { 'data-type': 'd-block' }), 0]
+    return ['div', mergeAttributes(HTMLAttributes, { 'data-type': 'sec' }), 0]
   },
 
-  onSelectionUpdate(data: any) {
+  onSelectionUpdate() {
     // If cursor is inside the node, we make the node focused
-    if (!data) return
+    const { state } = this.editor
 
-    const { editor } = data
+    focusCurrentSection(state)
 
-    focusCurrentDraggableBlock(editor.state)
+    return false
   },
 
   addProseMirrorPlugins() {
@@ -64,7 +64,7 @@ export const DraggableBlock = Node.create<DBlockOptions>({
         props: {
           handleDOMEvents: {
             drop: (view, event) => {
-              if (!event.dataTransfer?.getData('text/html').includes('data-type="d-block"')) {
+              if (!event.dataTransfer?.getData('text/html').includes('data-type="sec"')) {
                 return false
               }
 
@@ -88,7 +88,7 @@ export const DraggableBlock = Node.create<DBlockOptions>({
 
   addCommands() {
     return {
-      setDBlock:
+      setSec:
         (position) =>
         ({ state, chain }) => {
           const {
@@ -119,12 +119,12 @@ export const DraggableBlock = Node.create<DBlockOptions>({
   },
 
   addNodeView() {
-    return VueNodeViewRenderer(DraggableBlockComponent)
+    return VueNodeViewRenderer(DraggableSectionComponent)
   },
 
   addKeyboardShortcuts() {
     return {
-      'Mod-Alt-0': () => this.editor.commands.setDBlock(),
+      'Mod-Alt-0': () => this.editor.commands.setSec(),
       'Enter': ({ editor }) => {
         if (handleForQuoteAndCodeNode(editor as any)) return true
 
@@ -134,7 +134,7 @@ export const DraggableBlock = Node.create<DBlockOptions>({
         } = editor.state
 
         const parent = $head.node($head.depth - 1)
-        if (parent?.type.name !== 'dBlock') return false
+        if (parent?.type.name !== 'sec') return false
 
         const currentNode = $head.node($head.depth)
 
@@ -208,7 +208,7 @@ export const DraggableBlock = Node.create<DBlockOptions>({
   },
 })
 
-function focusCurrentDraggableBlock(state: EditorState) {
+function focusCurrentSection(state: EditorState) {
   let activeNodeIndex = 0
   let found = false
 
@@ -220,7 +220,7 @@ function focusCurrentDraggableBlock(state: EditorState) {
       return true
     }
 
-    if (node.type.name !== 'dBlock') return false
+    if (node.type.name !== 'sec') return false
     if (found) return false
 
     if (pos > state.selection.$from.pos) {
@@ -303,7 +303,7 @@ function handleCodeblockLastLineEnter(editor: Editor) {
   }
 
   if (currentNode.textContent[currentNode.textContent.length - 1] !== '\n') return false
-  if (nextNode?.type.name !== 'dBlock') return false
+  if (nextNode?.type.name !== 'sec') return false
 
   editor
     .chain()

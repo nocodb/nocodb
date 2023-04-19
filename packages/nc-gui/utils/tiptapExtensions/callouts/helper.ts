@@ -35,7 +35,7 @@ export const handleOnEnterForCallouts = (editor: Editor) => {
   const nextNodePos = state.selection.$from.pos + node.nodeSize + 1
   const nextNode = state.doc.nodeAt(nextNodePos)
 
-  if (nextNode?.type.name !== 'dBlock') return false
+  if (nextNode?.type.name !== 'sec') return false
 
   editor
     .chain()

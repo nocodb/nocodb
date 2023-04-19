@@ -60,11 +60,31 @@ const resetMetaSakilaSqliteProject = async ({
 
   if (!isEmptyProject) await seedSakilaSqliteFile(parallelId);
 
-  const ws = await Workspace.insert({
-    title: workspaceTitle,
-  });
+  // const ws = await Workspace.insert({
+  //   title: workspaceTitle,
+  // });
+  const ws: Workspace = await createWorkspace(workspaceTitle ,token)
 
   await createProject(ws.id, token, title, parallelId, projectType);
+};
+
+const createWorkspace = async (
+  workspaceId: string,
+  token: string
+) => {
+  const response = await axios.post(
+    'http://localhost:8080/api/v1/workspaces',
+    {"title": workspaceId ,"meta":{"color":"#146C8E"}},
+    {
+      headers: {
+        'xc-auth': token,
+      },
+    }
+  );
+  if (response.status !== 200) {
+    console.error('Error creating workspace', response.data);
+  }
+  return response.data;
 };
 
 const createProject = async (

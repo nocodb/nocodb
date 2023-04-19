@@ -14,7 +14,6 @@ import { MapPage } from './Map';
 import { ImportAirtablePage } from './Import/Airtable';
 import { ImportTemplatePage } from './Import/ImportTemplate';
 import { WebhookFormPage } from './WebhookForm';
-import { ProjectsPage } from '../ProjectsPage';
 import { FindRowByScanOverlay } from './FindRowByScanOverlay';
 import { SidebarPage } from './Sidebar';
 import { DocsPageGroup } from './Docs';
@@ -122,8 +121,10 @@ export class DashboardPage extends BasePage {
 
   async clickHome() {
     await this.rootPage.getByTestId('nc-noco-brand-icon').click();
+
+    // wait for workspace page to render
     const workspacePage = new WorkspacePage(this.rootPage);
-    await workspacePage.getWorkspaceContainer().waitFor({ state: 'visible' });
+    await workspacePage.waitFor({ state: 'visible' });
   }
 
   private async _waitForDBTabRender({ title, mode }: { title: string; mode: string }) {

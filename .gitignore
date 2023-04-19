@@ -91,3 +91,4 @@ test_noco.db
 
 # ngrok config
 httpbin
+.run/test-debug.run.xml

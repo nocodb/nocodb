@@ -78,7 +78,7 @@ export class TestResetService {
 
       const { token, user } = await loginRootUser();
 
-      const { project } = await this.resetProject({
+      const { project, workspace } = await this.resetProject({
         user,
         token,
         dbType: this.dbType,
@@ -94,7 +94,7 @@ export class TestResetService {
       }
 
       workerStatus[this.parallelId] = 'completed';
-      return { token, project, user };
+      return { token, project, user, workspace };
     } catch (e) {
       console.error('TestResetService:process', e);
       workerStatus[this.parallelId] = 'errored';

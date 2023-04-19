@@ -2,7 +2,7 @@ import { test } from '@playwright/test';
 import { ProjectType, ProjectTypes } from 'nocodb-sdk';
 import { DashboardPage } from '../../pages/Dashboard';
 import { SignupPage } from '../../pages/SignupPage';
-import { WorkspacePage } from '../../pages/WorkspacePage';
+import { Index } from '../../pages/WorkspacePage/WorkspacePage';
 import setup, { NcContext } from '../../setup';
 
 test.describe('Docs ACL', () => {
@@ -35,7 +35,7 @@ test.describe('Docs ACL', () => {
     await page.close();
     await newPage.goto(inviteLink);
 
-    const workspace = new WorkspacePage(newPage);
+    const workspace = new Index(newPage);
     const signUp = new SignupPage(newPage);
 
     await workspace.logout();
@@ -86,7 +86,7 @@ test.describe('Docs ACL', () => {
     await page.close();
     await newPage.goto(inviteLink);
 
-    const workspace = new WorkspacePage(newPage);
+    const workspace = new Index(newPage);
     const signUp = new SignupPage(newPage);
 
     await workspace.logout();
@@ -154,7 +154,7 @@ test.describe('Docs ACL', () => {
     await page.close();
     await newPage.goto(inviteLink);
 
-    const workspace = new WorkspacePage(newPage);
+    const workspace = new Index(newPage);
     const signUp = new SignupPage(newPage);
 
     await workspace.logout();

@@ -115,18 +115,28 @@ const booleanOptions = [
   { value: null, label: 'unset' },
 ]
 
+const renderSingleSelect = (op: string) => {
+  // use MultiSelect for SingleSelect columns for anyof / nanyof filters
+  if (['anyof', 'nanyof'].includes(op)) {
+    return MultiSelect
+  }
+  return SingleSelect
+}
+
+const renderDateFilterInput = (sub_op: string) => {
+  if (['daysAgo', 'daysFromNow', 'pastNumberOfDays', 'nextNumberOfDays'].includes(sub_op)) {
+    return Decimal
+  }
+  return DatePicker
+}
+
 const componentMap: Partial<Record<FilterType, any>> = $computed(() => {
   return {
-    // use MultiSelect for SingleSelect columns for anyof / nanyof filters
-    isSingleSelect: ['anyof', 'nanyof'].includes(props.filter.comparison_op!) ? MultiSelect : SingleSelect,
+    isSingleSelect: renderSingleSelect(props.filter.comparison_op!),
     isMultiSelect: MultiSelect,
-    isDate: ['daysAgo', 'daysFromNow', 'pastNumberOfDays', 'nextNumberOfDays'].includes(props.filter.comparison_sub_op!)
-      ? Decimal
-      : DatePicker,
+    isDate: renderDateFilterInput(props.filter.comparison_sub_op!),
     isYear: YearPicker,
-    isDateTime: ['daysAgo', 'daysFromNow', 'pastNumberOfDays', 'nextNumberOfDays'].includes(props.filter.comparison_sub_op!)
-      ? Decimal
-      : DateTimePicker,
+    isDateTime: renderDateFilterInput(props.filter.comparison_sub_op!),
     isTime: TimePicker,
     isRating: Rating,
     isDuration: Duration,

@@ -387,12 +387,13 @@ export default class Page {
     condition = {},
     ncMeta = Noco.ncMeta,
   }): Promise<Page[]> {
-    let pageList = await NocoCache.getList(
+    const cachedList = await NocoCache.getList(
       `${CacheScope.DOCS_PAGE}:${projectId}`,
       [parent_page_id ?? 'root', 'children']
     );
-
-    if (pageList.length === 0 && parent_page_id) {
+    let { list: pageList } = cachedList;
+    const { isNoneList } = cachedList;
+    if (!isNoneList && !pageList.length && parent_page_id) {
       const parentPage = await this.get(
         { id: parent_page_id, projectId },
         ncMeta
@@ -804,8 +805,10 @@ export default class Page {
     const scope = `${CacheScope.DOCS_PAGE}:${projectId}`;
     const subKeys = [parentPageId ?? 'root', 'children'];
 
-    const existingList = await NocoCache.getList(scope, subKeys);
-    if (existingList.length === 0) {
+    const cachedList = await NocoCache.getList(scope, subKeys);
+    const { list: existingList } = cachedList;
+    const { isNoneList } = cachedList;
+    if (!isNoneList && !existingList.length) {
       const existingChildren = parentPageId
         ? await this.getChildPages({
             parent_page_id: parentPageId,

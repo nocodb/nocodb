@@ -135,6 +135,7 @@
     "slash": "^3.0.0",
     "slug": "^8.2.2",
     "socket.io": "^4.4.1",
+    "sql-query-identifier": "^2.5.0",
     "sqlite3": "^5.1.6",
     "tedious": "^15.0.0",
     "tinycolor2": "^1.4.2",

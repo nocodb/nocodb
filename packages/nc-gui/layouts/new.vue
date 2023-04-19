@@ -113,7 +113,7 @@ export default {
 
                 <a-menu-divider class="!m-0" /> -->
 
-                <a-menu-item key="1" class="!rounded-b group">
+                <a-menu-item key="1" class="!rounded-b group" data-testid="nc-menu-accounts__sign-out">
                   <div
                     v-e="['a:navbar:user:sign-out']"
                     class="nc-project-menu-item group"

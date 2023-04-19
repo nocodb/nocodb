@@ -84,7 +84,7 @@ test.describe('DashboardBasicTests', () => {
     await wsPage.projectCreate({ title: 'db-created-using-ui', type: 'db' });
     await dashboardPage.clickHome();
 
-    expect(await container.getProjectRowData(1)).toEqual({
+    expect(await container.getProjectRowData({ index: 1, skipWs: false })).toEqual({
       icon: 'database',
       title: 'db-created-using-ui',
       lastAccessed: 'a few seconds ago',
@@ -96,7 +96,7 @@ test.describe('DashboardBasicTests', () => {
     await wsPage.projectCreate({ title: 'docs-created-using-ui', type: 'docs' });
     await dashboardPage.clickHome();
 
-    expect(await container.getProjectRowData(2)).toEqual({
+    expect(await container.getProjectRowData({ index: 2, skipWs: false })).toEqual({
       icon: 'menu_book',
       title: 'docs-created-using-ui',
       lastAccessed: 'a few seconds ago',
@@ -115,7 +115,7 @@ test.describe('DashboardBasicTests', () => {
     await wsPage.projectMove({ title: 'db-renamed-using-ui', newWorkspace: 'test' });
 
     // post move, project list in 'test' workspace
-    expect(await container.getProjectRowData(0)).toEqual({
+    expect(await container.getProjectRowData({ index: 0, skipWs: false })).toEqual({
       icon: 'database',
       title: 'db-renamed-using-ui',
       lastAccessed: 'a few seconds ago',
@@ -133,5 +133,32 @@ test.describe('DashboardBasicTests', () => {
     // add delay to wait for project list to load
     await page.waitForTimeout(1000);
     expect(await container.getProjectRowCount()).toEqual(2);
+  });
+
+  test('WS Quick access: Recent, Shared, Favourites', async ({ page }) => {
+    const dbInfo = {
+      icon: 'database',
+      title: 'pgExtREST0',
+      lastAccessed: 'a few seconds ago',
+      role: 'Workspace Owner',
+    };
+
+    await wsPage.openQuickAccess('Recent');
+    expect(await wsPage.Container.getProjectRowData({ index: 0, skipWs: true })).toEqual(dbInfo);
+    expect(await wsPage.Container.getProjectRowCount()).toEqual(1);
+
+    await wsPage.openQuickAccess('Shared with me');
+    expect(await wsPage.Container.getProjectRowCount()).toEqual(0);
+
+    await wsPage.openQuickAccess('Favourites');
+    expect(await wsPage.Container.getProjectRowCount()).toEqual(0);
+
+    await wsPage.workspaceOpen({ title: 'ws_pgExtREST0' });
+    // mark current project as favourite
+    await wsPage.projectAddToFavourites({ title: 'pgExtREST0' });
+
+    await wsPage.openQuickAccess('Favourites');
+    expect(await wsPage.Container.getProjectRowData({ index: 0, skipWs: true })).toEqual(dbInfo);
+    expect(await wsPage.Container.getProjectRowCount()).toEqual(1);
   });
 });

@@ -79,4 +79,13 @@ export class WorkspacePage extends BasePage {
   async projectMove({ title, newWorkspace }) {
     await this.Container.projectMove({ title, newWorkspace });
   }
+
+  async projectAddToFavourites({ title }: { title: string }) {
+    await this.Container.projectAddToFavourites({ title });
+  }
+
+  async openQuickAccess(menu: 'Recent' | 'Shared with me' | 'Favourites') {
+    await this.LeftSideBar.openQuickAccess(menu);
+    await this.rootPage.waitForTimeout(100);
+  }
 }

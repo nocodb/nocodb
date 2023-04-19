@@ -71,11 +71,19 @@ export class ContainerPage extends BasePage {
     // await this.newProjectButton.waitFor({ state: 'visible' });
   }
 
-  async getProjectRowData(index: number) {
+  async getProjectRowData({ index, skipWs = false }: { index: number; skipWs: boolean }) {
     const rows = await this.get().locator('.ant-table-tbody > tr.ant-table-row');
     const title = await getTextExcludeIconText(rows.nth(index).locator('.nc-project-title'));
-    const lastAccessed = await rows.nth(index).locator('.ant-table-cell').nth(2).innerText();
-    const role = await rows.nth(index).locator('.ant-table-cell').nth(3).innerText();
+    const lastAccessed = await rows
+      .nth(index)
+      .locator('.ant-table-cell')
+      .nth(2 + (skipWs ? 1 : 0))
+      .innerText();
+    const role = await rows
+      .nth(index)
+      .locator('.ant-table-cell')
+      .nth(3 + (skipWs ? 1 : 0))
+      .innerText();
     const icon = await getIconText(rows.nth(index).locator('.nc-project-title'));
     return { icon, title, lastAccessed, role };
   }
@@ -101,7 +109,7 @@ export class ContainerPage extends BasePage {
 
   async verifyDynamicElements({ icon, title, lastAccessed, role }) {
     expect(await this.get().locator('.nc-workspace-title').innerText()).toBe(`ws_${title}`);
-    expect(await this.getProjectRowData(0)).toEqual({ icon, title, lastAccessed, role });
+    expect(await this.getProjectRowData({ index: 0, skipWs: false })).toEqual({ icon, title, lastAccessed, role });
   }
 
   // create project
@@ -165,5 +173,10 @@ export class ContainerPage extends BasePage {
   async projectOpen(param: { title: any }) {
     const row = await this.getProjectRow({ title: param.title });
     await row.locator('td.ant-table-cell').nth(0).click();
+  }
+
+  async projectAddToFavourites({ title }: { title: string }) {
+    const row = await this.getProjectRow({ title });
+    await row.locator('td.ant-table-cell').nth(0).locator('.nc-icon').click({ force: true });
   }
 }

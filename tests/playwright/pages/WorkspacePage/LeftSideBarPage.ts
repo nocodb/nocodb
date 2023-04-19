@@ -152,4 +152,17 @@ export class LeftSideBarPage extends BasePage {
       requestUrlPathToMatch: `api/v1/workspaces/`,
     });
   }
+
+  async openQuickAccess(menu: 'Recent' | 'Shared with me' | 'Favourites') {
+    await this.get().locator('.nc-workspace-group').locator(`span:has-text("${menu}")`).click();
+
+    const URL = {
+      Recent: `http://localhost:3000/#/?page=recent`,
+      'Shared with me': `http://localhost:3000/#/?page=shared`,
+      Favourites: `http://localhost:3000/#/?page=starred`,
+    };
+
+    // verify current URL to be /workspaces
+    expect(this.rootPage.url()).toBe(URL[menu]);
+  }
 }

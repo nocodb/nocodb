@@ -40,7 +40,6 @@ module.exports = {
     globalObject: "typeof self !== 'undefined' ? self : this"
   },
   node: {
-    fs: 'empty',
     __dirname: false,
   },
   plugins: [

@@ -1,8 +1,8 @@
 import { Injectable } from '@nestjs/common';
-import { NcError } from 'src/helpers/catchError';
-import Page from 'src/models/Page';
+import { NcError } from '../../../helpers/catchError';
+import Page from '../../../models/Page';
 import { Configuration, OpenAIApi } from 'openai';
-import { Project } from 'src/models';
+import { Project } from '../../../models';
 import JSON5 from 'json5';
 import { fetchGHDocs } from './helper/import';
 import type { UserType } from 'nocodb-sdk';

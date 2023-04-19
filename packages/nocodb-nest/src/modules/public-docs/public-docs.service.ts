@@ -1,7 +1,7 @@
 import { Injectable } from '@nestjs/common';
-import { NcError } from 'src/helpers/catchError';
-import { Project } from 'src/models';
-import Page from 'src/models/Page';
+import { NcError } from '../../helpers/catchError';
+import { Project } from '../../models';
+import Page from '../../models/Page';
 
 @Injectable()
 export class PublicDocsService {

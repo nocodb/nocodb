@@ -36,3 +36,4 @@ lerna-debug.log*
 /noco.db
 
 /docker/main.js
+/docker/nc-gui/

@@ -7,8 +7,8 @@ import {
   getMdiIcon,
   inject,
   parseProp,
-  useSelectedCellKeyupListener,
   useProject,
+  useSelectedCellKeyupListener,
 } from '#imports'
 
 interface Props {

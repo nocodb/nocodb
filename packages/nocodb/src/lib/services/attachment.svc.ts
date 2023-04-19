@@ -30,8 +30,8 @@ export async function upload(param: {
 
       // if `url` is null, then it is local attachment
       if (!url) {
-        // then store the attachement path only
-        // url will be constructued in `useAttachmentCell`
+        // then store the attachment path only
+        // url will be constructed in `useAttachmentCell`
         attachmentPath = `download/${filePath.join('/')}/${fileName}`;
       }
 

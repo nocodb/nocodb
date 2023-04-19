@@ -283,7 +283,7 @@ onMounted(() => {
               />
             </div>
 
-            <div v-if="field.title">
+            <LazySmartsheetDivDataCell v-if="field.title" class="relative">
               <LazySmartsheetVirtualCell
                 v-if="isVirtualCol(field)"
                 v-model="formState[field.title]"
@@ -323,7 +323,7 @@ onMounted(() => {
                   <MaterialSymbolsKeyboardReturn class="mx-1 text-primary" /> to make a line break
                 </div>
               </div>
-            </div>
+            </LazySmartsheetDivDataCell>
           </div>
 
           <div class="ml-1 mt-4 flex w-full text-lg">

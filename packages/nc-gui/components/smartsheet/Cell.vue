@@ -193,7 +193,7 @@ onUnmounted(() => {
       `nc-cell-${(column?.uidt || 'default').toLowerCase()}`,
       { 'text-blue-600': isPrimary(column) && !props.virtual && !isForm },
       { 'nc-grid-numeric-cell': isGrid && !isForm && isNumericField },
-      { 'h-[40px]': !props.editEnabled && isForm && !isSurveyForm },
+      { 'h-[40px]': !props.editEnabled && isForm && !isSurveyForm && !isAttachment(column) },
     ]"
     @keydown.enter.exact="navigate(NavigateDir.NEXT, $event)"
     @keydown.shift.enter.exact="navigate(NavigateDir.PREV, $event)"

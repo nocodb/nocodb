@@ -1,6 +1,6 @@
 import { promises as fs } from 'fs';
 import axios from 'axios';
-import { Workspace } from '../../../models';
+import type { Workspace } from '../../../models';
 
 const sqliteFilePath = (parallelId: string) => {
   const rootDir = __dirname.replace(
@@ -63,18 +63,15 @@ const resetMetaSakilaSqliteProject = async ({
   // const ws = await Workspace.insert({
   //   title: workspaceTitle,
   // });
-  const ws: Workspace = await createWorkspace(workspaceTitle ,token)
+  const ws: Workspace = await createWorkspace(workspaceTitle, token);
 
   await createProject(ws.id, token, title, parallelId, projectType);
 };
 
-const createWorkspace = async (
-  workspaceId: string,
-  token: string
-) => {
+const createWorkspace = async (workspaceId: string, token: string) => {
   const response = await axios.post(
     'http://localhost:8080/api/v1/workspaces',
-    {"title": workspaceId ,"meta":{"color":"#146C8E"}},
+    { title: workspaceId, meta: { color: '#146C8E' } },
     {
       headers: {
         'xc-auth': token,

@@ -146,7 +146,7 @@ const onDecode = async (scannedCodeValue: string) => {
                   </div>
 
                   <div>
-                    <div class="flex">
+                    <LazySmartsheetDivDataCell class="flex relative">
                       <LazySmartsheetVirtualCell
                         v-if="isVirtualCol(field)"
                         :model-value="null"
@@ -178,7 +178,7 @@ const onDecode = async (scannedCodeValue: string) => {
                           <component :is="iconMap.qrCodeScan" class="h-5 w-5" />
                         </div>
                       </a-button>
-                    </div>
+                    </LazySmartsheetDivDataCell>
 
                     <div class="flex flex-col gap-2 text-slate-500 dark:text-slate-300 text-[0.75rem] my-2 px-1">
                       <div v-for="error of v$.localState[field.title]?.$errors" :key="error" class="text-red-500">

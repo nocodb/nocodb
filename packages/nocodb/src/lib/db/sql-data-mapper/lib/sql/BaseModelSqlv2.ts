@@ -2117,12 +2117,10 @@ class BaseModelSqlv2 {
         datas.map((d) => this.model.mapAliasToColumn(d))
       );
 
-      transaction = await this.dbDriver.transaction();
-
-      // await this.beforeUpdateb(updateDatas, transaction);
       const prevData = [];
       const newData = [];
       const updatePkValues = [];
+      const toBeUpdated = [];
       const res = [];
       for (const d of updateDatas) {
         await this.validate(d);
@@ -2133,9 +2131,15 @@ class BaseModelSqlv2 {
         }
         prevData.push(await this.readByPk(pkValues));
         const wherePk = await this._wherePk(pkValues);
-        await transaction(this.tnPath).update(d).where(wherePk);
         res.push(wherePk);
+        toBeUpdated.push({ d, wherePk });
         updatePkValues.push(pkValues);
+      }
+
+      transaction = await this.dbDriver.transaction();
+
+      for (const o of toBeUpdated) {
+        await transaction(this.tnPath).update(o.d).where(o.wherePk);
       }
 
       await transaction.commit();

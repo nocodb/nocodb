@@ -1,7 +1,7 @@
 <script lang="ts" setup>
 import { CellClickHookInj, CurrentCellInj, createEventHook, ref } from '#imports'
 
-const el = ref<HTMLTableDataCellElement>()
+const el = ref()
 
 const cellClickHook = createEventHook()
 
@@ -11,7 +11,7 @@ provide(CurrentCellInj, el)
 </script>
 
 <template>
-  <td ref="el" class="select-none" @click="cellClickHook.trigger($event)">
+  <div ref="el" class="select-none" @click="cellClickHook.trigger($event)">
     <slot />
-  </td>
+  </div>
 </template>

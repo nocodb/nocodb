@@ -2117,12 +2117,10 @@ class BaseModelSqlv2 {
         datas.map((d) => this.model.mapAliasToColumn(d))
       );
 
-      transaction = await this.dbDriver.transaction();
-
-      // await this.beforeUpdateb(updateDatas, transaction);
       const prevData = [];
       const newData = [];
       const updatePkValues = [];
+      const toBeUpdated = [];
       const res = [];
       for (const d of updateDatas) {
         await this.validate(d);
@@ -2133,9 +2131,15 @@ class BaseModelSqlv2 {
         }
         prevData.push(await this.readByPk(pkValues));
         const wherePk = await this._wherePk(pkValues);
-        await transaction(this.tnPath).update(d).where(wherePk);
         res.push(wherePk);
+        toBeUpdated.push({ d, wherePk });
         updatePkValues.push(pkValues);
+      }
+
+      transaction = await this.dbDriver.transaction();
+
+      for (const o of toBeUpdated) {
+        await transaction(this.tnPath).update(o.d).where(o.wherePk);
       }
 
       await transaction.commit();
@@ -3242,17 +3246,24 @@ function extractCondition(nestedArrayConditions, aliasColObjMap) {
     // eslint-disable-next-line prefer-const
     let [logicOp, alias, op, value] =
       str.match(/(?:~(and|or|not))?\((.*?),(\w+),(.*)\)/)?.slice(1) || [];
+
+    if (!alias && !op && !value) {
+      // try match with blank filter format
+      [logicOp, alias, op, value] =
+        str.match(/(?:~(and|or|not))?\((.*?),(\w+)\)/)?.slice(1) || [];
+    }
     let sub_op = null;
 
     if (aliasColObjMap[alias]) {
       if (
         [UITypes.Date, UITypes.DateTime].includes(aliasColObjMap[alias].uidt)
       ) {
-        value = value.split(',');
+        value = value?.split(',');
         // the first element would be sub_op
-        sub_op = value[0];
+        sub_op = value?.[0];
         // remove the first element which is sub_op
-        value.shift();
+        value?.shift();
+        value = value?.[0];
       } else if (op === 'in') {
         value = value.split(',');
       }

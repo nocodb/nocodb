@@ -11903,20 +11903,7 @@
         },
         "requestBody": {
           "content": {
-            "application/json": {
-              "schema": {
-                "type": "object",
-                "description": "Data Object where the key is column and the value is the data value"
-              },
-              "examples": {
-                "Example 1": {
-                  "value": {
-                    "col1": "foo",
-                    "col2": "bar"
-                  }
-                }
-              }
-            }
+            "multipart/form-data": {}
           },
           "description": ""
         },

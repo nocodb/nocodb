@@ -65,7 +65,7 @@ const validators = computed(() => {
         validator: (_: any, value: any) => {
           // validate duplicate alias
           return new Promise((resolve, reject) => {
-            if ((tables.value || []).some((t) => t.title === (value || ''))) {
+            if ((tables.value || []).some((t) => t.title === (value || '') && t.base_id === props.baseId)) {
               return reject(new Error('Duplicate table alias'))
             }
             return resolve(true)

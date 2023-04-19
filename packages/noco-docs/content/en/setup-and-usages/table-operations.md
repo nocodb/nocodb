@@ -155,7 +155,7 @@ You can use Quick Import when you have data from external sources such as Airtab
 
 ### Import Airtable into an Existing Project
 
-- See <a href="./import-airtable-to-sql-database-within-a-minute-for-free">here</a>
+- See <NuxtLink to="/setup-and-usages/import-airtable-to-sql-database-within-a-minute-for-free">here</NuxtLink>
 
 ### Import CSV data into an Existing Project
 
@@ -165,7 +165,7 @@ You can use Quick Import when you have data from external sources such as Airtab
   - **Use First Row as Headers**: If it is checked, the first row will be treated as header row.
   - **Import Data**: If it is checked, all data will be imported. Otherwise, only table will be created.
   ![image](https://user-images.githubusercontent.com/35857179/197454479-1ed18dce-1d0b-4ee3-88b3-9b6a132dea2a.png)
-- You can revise the table name by double clicking it, column name and column type. By default, the first column will be chosen as <a href="./display-value" target="_blank">Display Value</a> and cannot be deleted.
+- You can revise the table name by double clicking it, column name and column type. By default, the first column will be chosen as <NuxtLink to="/setup-and-usages/display-value" target="_blank">Display Value</NuxtLink> and cannot be deleted.
   ![image](https://user-images.githubusercontent.com/35857179/197454633-5b30323e-2b13-4c55-843a-948c093d373e.png)
 - Click `Import` to start importing process. The table will be created and the data will be imported.
   ![image](https://user-images.githubusercontent.com/35857179/197455547-2d93df5e-a7f0-4c88-af53-990067625967.png)
@@ -178,7 +178,7 @@ You can use Quick Import when you have data from external sources such as Airtab
   - **Use First Row as Headers**: If it is checked, the first row will be treated as header row.
   - **Import Data**: If it is checked, all data will be imported. Otherwise, only table will be created.
   ![image](https://user-images.githubusercontent.com/35857179/197455788-8dd8a7d1-38f3-48c3-a05e-6ab0cf25045c.png)
-- You can revise the table name, column name and column type. By default, the first column will be chosen as <a href="./display-value" target="_blank">Display Value</a> and cannot be deleted.
+- You can revise the table name, column name and column type. By default, the first column will be chosen as <NuxtLink to="/setup-and-usages/display-value" target="_blank">Display Value</NuxtLink> and cannot be deleted.
   <alert>
   Note: If your Excel file contains multiple sheets, each sheet will be stored in a separate table.
   </alert>

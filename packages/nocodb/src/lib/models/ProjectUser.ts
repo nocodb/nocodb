@@ -251,10 +251,12 @@ export default class ProjectUser {
     }
 
     // remove project from user project list cache
-    let cachedProjectList = await NocoCache.getList(CacheScope.USER_PROJECT, [
+    const cachedList = await NocoCache.getList(CacheScope.USER_PROJECT, [
       userId,
     ]);
-    if (cachedProjectList?.length) {
+    let { list: cachedProjectList } = cachedList;
+    const { isNoneList } = cachedList;
+    if (!isNoneList && cachedProjectList?.length) {
       cachedProjectList = cachedProjectList.filter((p) => p.id !== projectId);
       await NocoCache.setList(
         CacheScope.USER_PROJECT,

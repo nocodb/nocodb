@@ -1,11 +1,12 @@
 import SqlClientFactory from '../../db/sql-client/lib/SqlClientFactory';
 import { XKnex } from '../../db/CustomKnex';
-import {
+import NcConfigFactory, {
   defaultConnectionConfig,
   defaultConnectionOptions,
 } from '../NcConfigFactory';
 import Noco from '../../Noco';
 import type Base from '../../models/Base';
+import type { Knex } from 'knex';
 
 export default class NcConnectionMgrv2 {
   private static connectionRefs: {
@@ -13,6 +14,9 @@ export default class NcConnectionMgrv2 {
       [baseId: string]: XKnex;
     };
   } = {};
+
+  private static dataKnex: XKnex;
+  private static dataConfig: Knex.Config;
 
   public static async destroyAll() {
     for (const projectId in this.connectionRefs) {
@@ -49,10 +53,15 @@ export default class NcConnectionMgrv2 {
     }
   }
 
-  // NC_DATA_DB is not available in community version
-  // make it return Promise<XKnex> to avoid conflicts
   public static async get(base: Base): Promise<XKnex> {
-    if (base.is_meta) return Noco.ncMeta.knex;
+    if (base.is_meta) {
+      // if data db is set, use it for generating knex connection
+      if (!this.dataKnex) {
+        await this.getDataConfig();
+        this.dataKnex = XKnex(this.dataConfig);
+      }
+      return this.dataKnex;
+    }
 
     if (this.connectionRefs?.[base.project_id]?.[base.id]) {
       return this.connectionRefs?.[base.project_id]?.[base.id];
@@ -82,13 +91,20 @@ export default class NcConnectionMgrv2 {
     return this.connectionRefs[base.project_id][base.id];
   }
 
-  // private static getConnectionConfig(
-  //   config: NcConfig,
-  //   env: string,
-  //   dbAlias: string
-  // ) {
-  //   return config?.envs?.[env]?.db?.find(db => db?.meta?.dbAlias === dbAlias);
-  // }
+  public static async getDataConfig() {
+    if (process.env.NC_DATA_DB) {
+      if (!this.dataConfig)
+        this.dataConfig = await NcConfigFactory.metaUrlToDbConfig(
+          process.env.NC_DATA_DB,
+        );
+      return this.dataConfig;
+    } else {
+      if (!this.dataConfig) {
+        this.dataConfig = Noco.getConfig()?.meta?.db;
+      }
+      return this.dataConfig;
+    }
+  }
 
   public static async getSqlClient(base: Base, _knex = null) {
     const knex = _knex || (await this.get(base));

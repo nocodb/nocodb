@@ -13,15 +13,6 @@ import { ContainerPage } from './ContainerPage';
       nc-left-sidebar
       nc-workspace-container
 
-
-  Workspace create modal
-  ----------------------
-  nc-modal-workspace-create
-    input[data-testid="create-workspace-ws-name"]
-    input[data-testid="create-workspace-ws-description"]
-      ant-modal-close-x
-      button:has-text("Submit")
-      button:has-text("Cancel")
 */
 
 export class WorkspacePage extends BasePage {

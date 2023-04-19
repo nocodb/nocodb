@@ -9,7 +9,7 @@ test.describe('DashboardBasicTests', () => {
     workspacePage = new WorkspacePage(page);
   });
 
-  test('default workspace and home page links', async () => {
+  test('Page load & static configurations verification', async () => {
     // verify static elements : fixed menu items, buttons, etc.
     await workspacePage.verifyStaticElements();
 
@@ -29,5 +29,28 @@ test.describe('DashboardBasicTests', () => {
     await workspacePage.Header.openMenu({ title: 'Explore' });
     await workspacePage.Header.openMenu({ title: 'Help' });
     await workspacePage.Header.openMenu({ title: 'Community' });
+  });
+
+  test('Workspace Basic CRUD', async () => {
+    const leftPanel = await workspacePage.LeftSideBar;
+    await leftPanel.workspaceCreate({
+      title: 'ws_pgExtREST1',
+      description: 'some project description',
+    });
+    await leftPanel.verifyDynamicElements([
+      { title: 'ws_pgExtREST0', role: 'owner' },
+      { title: 'ws_pgExtREST1', role: 'owner' },
+    ]);
+
+    await leftPanel.workspaceList();
+
+    await leftPanel.workspaceRename({ title: 'ws_pgExtREST1', newTitle: 'ws_pgExtREST2' });
+    await leftPanel.verifyDynamicElements([
+      { title: 'ws_pgExtREST0', role: 'owner' },
+      { title: 'ws_pgExtREST2', role: 'owner' },
+    ]);
+
+    await leftPanel.workspaceDelete({ title: 'ws_pgExtREST2' });
+    await leftPanel.verifyDynamicElements([{ title: 'ws_pgExtREST0', role: 'owner' }]);
   });
 });

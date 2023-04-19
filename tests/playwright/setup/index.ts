@@ -156,4 +156,17 @@ const setup = async ({
   return { project, token, dbType, workerId, rootUser, workspace } as NcContext;
 };
 
+// General purpose API based routines
+//
+async function getWorkspaceId(title: string) {
+  const ws = await api.workspace.list();
+  for (const w of ws.list) {
+    if (w.title === title) {
+      return w.id;
+    }
+  }
+  return null;
+}
+
 export default setup;
+export { getWorkspaceId };

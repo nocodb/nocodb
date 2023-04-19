@@ -1,6 +1,7 @@
 import BasePage from '../Base';
 import { WorkspacePage } from './';
 import { expect, Locator } from '@playwright/test';
+import { getWorkspaceId } from '../../setup';
 
 /*
   nc-left-sidebar
@@ -21,6 +22,17 @@ import { expect, Locator } from '@playwright/test';
         |> .ant-dropdown-menu-vertical
             |> .ant-dropdown-menu-item : Rename Workspace
             |> .ant-dropdown-menu-item : Delete Workspace
+
+
+  Workspace create modal
+  ----------------------
+  nc-modal-workspace-create
+    input[data-testid="create-workspace-ws-name"]
+    input[data-testid="create-workspace-ws-description"]
+      ant-modal-close-x
+      button:has-text("Submit")
+      button:has-text("Cancel")
+
  */
 
 export class LeftSideBarPage extends BasePage {
@@ -70,5 +82,75 @@ export class LeftSideBarPage extends BasePage {
 
       // todo: verify role
     }
+  }
+
+  async workspaceGetLocator(title: string) {
+    // get workspace id
+    const wsId = await getWorkspaceId(title);
+    console.log('wsId', wsId);
+    return this.get().locator('[data-id="' + wsId + '"]');
+  }
+
+  async workspaceList() {
+    const wsList = await this.workspaceItems;
+    // for each, extract title and add to array
+    const titles = [];
+    for (let i = 0; i < (await wsList.count()); i++) {
+      const title = await wsList.nth(i).innerText();
+      titles.push(title);
+    }
+    return titles;
+  }
+
+  async workspaceCreate({ title, description }: { title: string; description: string }) {
+    await this.createWorkspace.click();
+    const modal = this.rootPage.locator('div.ant-modal.active');
+    await modal.waitFor({ state: 'visible' });
+    await modal.locator('input[data-testid="create-workspace-title-input"]').fill(title);
+    await modal.locator('textarea[data-testid="create-workspace-description-input"]').fill(description);
+
+    await this.waitForResponse({
+      uiAction: () => modal.locator('button:has-text("Submit")').click(),
+      httpMethodsToMatch: ['GET'],
+      requestUrlPathToMatch: `api/v1/workspaces`,
+    });
+  }
+
+  async workspaceRename({ title, newTitle }: { title: string; newTitle: string }) {
+    const ws = await this.workspaceGetLocator(title);
+    await ws.click();
+    await ws.locator('.nc-icon.nc-workspace-menu').waitFor({ state: 'visible' });
+    await ws.locator('.nc-icon.nc-workspace-menu').click();
+    await this.rootPage
+      .locator('.ant-dropdown-menu-vertical:visible')
+      .locator('.ant-dropdown-menu-item:has-text("Rename Workspace")')
+      .click();
+    await ws.locator('input').waitFor({ state: 'visible' });
+    await ws.locator('input').fill(newTitle);
+    // await this.rootPage.keyboard.press('Enter');
+
+    await this.waitForResponse({
+      uiAction: () => this.rootPage.keyboard.press('Enter'),
+      httpMethodsToMatch: ['PATCH'],
+      requestUrlPathToMatch: `api/v1/workspaces/`,
+    });
+  }
+
+  async workspaceDelete({ title }: { title: string }) {
+    const ws = await this.workspaceGetLocator(title);
+    await ws.click();
+    await ws.locator('.nc-icon.nc-workspace-menu').waitFor({ state: 'visible' });
+    await ws.locator('.nc-icon.nc-workspace-menu').click();
+    await this.rootPage
+      .locator('.ant-dropdown-menu-vertical:visible')
+      .locator('.ant-dropdown-menu-item:has-text("Delete Workspace")')
+      .click();
+
+    // GET will be triggered subsequent to DELETE
+    await this.waitForResponse({
+      uiAction: () => this.rootPage.locator('.ant-modal-confirm').locator('button:has-text("OK")').click(),
+      httpMethodsToMatch: ['GET'],
+      requestUrlPathToMatch: `api/v1/workspaces/`,
+    });
   }
 }

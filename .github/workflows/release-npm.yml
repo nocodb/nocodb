@@ -35,7 +35,7 @@ jobs:
   release:
     runs-on: ubuntu-latest
     env:
-      working-directory: ./packages/nocodb
+      working-directory: ./packages/nocodb-nest
     steps:
       - name: Checkout
         uses: actions/checkout@v3

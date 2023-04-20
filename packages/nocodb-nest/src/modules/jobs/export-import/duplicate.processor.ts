@@ -17,24 +17,30 @@ import {
 } from 'src/helpers/exportImportHelpers';
 import { BulkDataAliasService } from 'src/services/bulk-data-alias.service';
 import { UITypes } from 'nocodb-sdk';
+import { JobsGateway } from '../jobs.gateway';
 import { ExportService } from './export.service';
 import { ImportService } from './import.service';
 import type { LinkToAnotherRecordColumn } from 'src/models';
 
+const DEBUG = false;
+
 @Processor('duplicate')
 export class DuplicateProcessor {
   constructor(
-    private exportService: ExportService,
-    private importService: ImportService,
-    private projectsService: ProjectsService,
-    private bulkDataService: BulkDataAliasService,
+    private readonly exportService: ExportService,
+    private readonly importService: ImportService,
+    private readonly projectsService: ProjectsService,
+    private readonly bulkDataService: BulkDataAliasService,
+    private readonly jobsGateway: JobsGateway,
   ) {}
 
   @OnQueueActive()
   onActive(job: Job) {
-    console.log(
-      `Processing job ${job.id} of type ${job.name} with data ${job.data}...`,
-    );
+    this.jobsGateway.jobStatus({
+      type: job.name,
+      id: job.id.toString(),
+      status: 'active',
+    });
   }
 
   @OnQueueFailed()
@@ -49,22 +55,37 @@ export class DuplicateProcessor {
         },
       ),
     );
+
+    this.jobsGateway.jobStatus({
+      type: job.name,
+      id: job.id.toString(),
+      status: 'failed',
+    });
   }
 
   @OnQueueCompleted()
   onCompleted(job: Job) {
-    console.log(`Completed job ${job.id} of type ${job.name}!`);
+    this.jobsGateway.jobStatus({
+      type: job.name,
+      id: job.id.toString(),
+      status: 'completed',
+    });
   }
 
   @Process('duplicate')
   async duplicateBase(job: Job) {
-    console.time('duplicateBase');
     let start = process.hrtime();
+
+    const debugLog = function (...args: any[]) {
+      if (DEBUG) {
+        console.log(...args);
+      }
+    };
 
     const elapsedTime = function (label?: string) {
       const elapsedS = process.hrtime(start)[0].toFixed(3);
       const elapsedMs = process.hrtime(start)[1] / 1000000;
-      if (label) console.log(`${label}: ${elapsedS}s ${elapsedMs}ms`);
+      if (label) debugLog(`${label}: ${elapsedS}s ${elapsedMs}ms`);
       start = process.hrtime();
     };
 
@@ -108,8 +129,14 @@ export class DuplicateProcessor {
     );
 
     const dupProject = await this.projectsService.projectCreate({
-      project: { title: uniqueTitle },
+      project: { title: uniqueTitle, status: 'job' },
       user: { id: user.id },
+    });
+
+    this.jobsGateway.jobStatus({
+      type: job.name,
+      id: job.id.toString(),
+      status: 'refresh',
     });
 
     const dupBaseId = dupProject.bases[0].id;
@@ -177,7 +204,7 @@ export class DuplicateProcessor {
                     headers.push(col.column_name);
                   }
                 } else {
-                  console.log('header not found', header);
+                  debugLog('header not found', header);
                 }
               }
               parser.resume();
@@ -331,6 +358,11 @@ export class DuplicateProcessor {
     }
 
     elapsedTime('links');
-    console.timeEnd('duplicateBase');
+    await this.projectsService.projectUpdate({
+      projectId: dupProject.id,
+      project: {
+        status: null,
+      },
+    });
   }
 }

@@ -2100,6 +2100,111 @@
         ]
       }
     },
+    "/api/v1/db/meta/duplicate/{projectId}/{baseId}": {
+      "post": {
+        "summary": "Duplicate Project Base",
+        "operationId": "project-base-duplicate",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "type": {
+                      "type": "string"
+                    },
+                    "id": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          }
+        },
+        "tags": ["Project"],
+        "description": "Duplicate a project",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/xc-auth"
+          },
+          {
+            "schema": {
+              "$ref": "#/components/schemas/Id",
+              "example": "p_124hhlkbeasewh",
+              "type": "string"
+            },
+            "name": "projectId",
+            "in": "path",
+            "required": true,
+            "description": "Unique Project ID"
+          },
+          {
+            "schema": {
+              "$ref": "#/components/schemas/Id",
+              "example": "ds_124hhlkbeasewh",
+              "type": "string"
+            },
+            "name": "baseId",
+            "in": "path",
+            "required": false,
+            "description": "Unique Base ID"
+          }
+        ]
+      }
+    },
+    "/api/v1/db/meta/duplicate/{projectId}": {
+      "post": {
+        "summary": "Duplicate Project",
+        "operationId": "project-duplicate",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "type": {
+                      "type": "string"
+                    },
+                    "id": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          }
+        },
+        "tags": ["Project"],
+        "description": "Duplicate a project",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/xc-auth"
+          },
+          {
+            "schema": {
+              "$ref": "#/components/schemas/Id",
+              "example": "p_124hhlkbeasewh",
+              "type": "string"
+            },
+            "name": "projectId",
+            "in": "path",
+            "required": true,
+            "description": "Unique Project ID"
+          }
+        ]
+      }
+    },
     "/api/v1/db/meta/projects/{projectId}": {
       "parameters": [
         {
@@ -18255,6 +18360,11 @@
             "maxLength": 128,
             "minLength": 1,
             "type": "string"
+          },
+          "status": {
+            "$ref": "#/components/schemas/StringOrNull",
+            "description": "Project Status",
+            "example": "locked"
           }
         },
         "required": ["title"],
@@ -18298,6 +18408,11 @@
             "maxLength": 128,
             "minLength": 1,
             "type": "string"
+          },
+          "status": {
+            "$ref": "#/components/schemas/StringOrNull",
+            "description": "Project Status",
+            "example": "locked"
           }
         }
       },

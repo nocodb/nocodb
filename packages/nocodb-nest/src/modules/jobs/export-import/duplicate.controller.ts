@@ -22,7 +22,7 @@ export class DuplicateController {
     @InjectQueue('duplicate') private readonly duplicateQueue: Queue,
   ) {}
 
-  @Post('/api/v1/db/meta/duplicate/:projectId/:baseId')
+  @Post('/api/v1/db/meta/duplicate/:projectId/:baseId?')
   @HttpCode(200)
   @Acl('duplicateBase')
   async duplicateBase(
@@ -30,7 +30,7 @@ export class DuplicateController {
     @Param('projectId') projectId: string,
     @Param('baseId') baseId?: string,
   ) {
-    await this.duplicateQueue.add('duplicate', {
+    const job = await this.duplicateQueue.add('duplicate', {
       projectId,
       baseId,
       req: {
@@ -38,5 +38,6 @@ export class DuplicateController {
         clientIp: req.clientIp,
       },
     });
+    return { id: job.id, type: job.name };
   }
 }

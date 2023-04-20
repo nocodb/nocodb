@@ -27,7 +27,7 @@ definePageMeta({
   title: 'title.myProject',
 })
 
-const { $api, $e } = useNuxtApp()
+const { $api, $e, $events } = useNuxtApp()
 
 const { api, isLoading } = useApi()
 
@@ -67,6 +67,33 @@ const deleteProject = (project: ProjectType) => {
         $e('a:project:delete')
 
         projects.value?.splice(projects.value?.indexOf(project), 1)
+      } catch (e: any) {
+        message.error(await extractSdkResponseErrorMsg(e))
+      }
+    },
+  })
+}
+
+const duplicateProject = (project: ProjectType) => {
+  Modal.confirm({
+    title: `Do you want to duplicate '${project.title}' project?`,
+    wrapClassName: 'nc-modal-project-duplicate',
+    okText: 'Yes',
+    okType: 'primary',
+    cancelText: 'No',
+    async onOk() {
+      try {
+        const jobData = await api.project.duplicate(project.id as string)
+
+        $events.subscribe(jobData.type, jobData.id, async (data: { status: string }) => {
+          if (data.status === 'completed' || data.status === 'refresh') {
+            await loadProjects()
+          } else if (data.status === 'failed') {
+            message.error('Failed to duplicate project')
+          }
+        })
+
+        $e('a:project:duplicate')
       } catch (e: any) {
         message.error(await extractSdkResponseErrorMsg(e))
       }
@@ -122,7 +149,7 @@ const getProjectPrimary = (project: ProjectType) => {
 
 const customRow = (record: ProjectType) => ({
   onClick: async () => {
-    await navigateTo(`/nc/${record.id}`)
+    if (record.status !== 'job') await navigateTo(`/nc/${record.id}`)
 
     $e('a:project:open')
   },
@@ -249,8 +276,13 @@ const copyProjectMeta = async () => {
               </a-menu>
             </div>
             <div
-              class="capitalize color-transition group-hover:text-primary !w-[400px] h-full overflow-hidden overflow-ellipsis whitespace-nowrap pl-2"
+              class="flex capitalize color-transition group-hover:text-primary !w-[400px] h-full overflow-hidden overflow-ellipsis whitespace-nowrap pl-2"
             >
+              <component
+                :is="iconMap.reload"
+                v-if="record.status === 'job'"
+                :class="{ 'animate-infinite animate-spin text-gray-500': record.status === 'job' }"
+              />
               {{ text }}
             </div>
           </div>
@@ -260,12 +292,19 @@ const copyProjectMeta = async () => {
 
       <a-table-column key="id" :title="$t('labels.actions')" data-index="id">
         <template #default="{ text, record }">
-          <div class="flex items-center gap-2">
+          <div v-if="record.status !== 'job'" class="flex items-center gap-2">
             <component
               :is="iconMap.edit"
               v-e="['c:project:edit:rename']"
               class="nc-action-btn"
               @click.stop="navigateTo(`/${text}`)"
+            />
+
+            <component
+              :is="iconMap.copy"
+              v-e="['c:project:duplicate']"
+              class="nc-action-btn"
+              @click.stop="duplicateProject(record)"
             />
 
             <component

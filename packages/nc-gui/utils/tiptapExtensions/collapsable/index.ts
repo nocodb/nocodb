@@ -109,10 +109,11 @@ export const Collapsable = Node.create<CollapsableOptions>({
         if (!state.selection.empty) return false
 
         // Verify if the cursor is in a collapsable node
-        if (editor.state.selection.$from.depth < 2) return false
+        if (editor.state.selection.$from.depth < 3) return false
 
         const collapsableContentPos = state.selection.$from.before(editor.state.selection.$from.depth - 2)
         const collapsableContentNode = editor.state.doc.nodeAt(collapsableContentPos)
+
         if (collapsableContentNode?.type.name !== 'collapsable_content') return false
 
         // Handle the case when the cursor is at the beginning of the collapsable content and backspace is pressed

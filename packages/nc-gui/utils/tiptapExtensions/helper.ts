@@ -112,7 +112,6 @@ export const isCursorAtStartOfParagraph = (state: EditorState) => {
   const resolve = state.doc.resolve(pos)
 
   const node = state.selection.$from.node()
-  console.log(node)
   if (!node || node.type.name !== 'paragraph') return false
 
   const offset = resolve.parentOffset

@@ -147,42 +147,7 @@ export const SectionBlock = Node.create<SecOptions>({
           return false
         }
 
-        const activeNodeText: string | undefined = parent.firstChild?.content?.content?.[0]?.text
-        if (activeNodeText?.startsWith('/')) return false
-
-        let currentActiveNodeTo = -1
-
-        doc.descendants((node, pos) => {
-          if (currentActiveNodeTo !== -1) return false
-
-          if (node.type.name === this.name) return
-
-          const [nodeFrom, nodeTo] = [pos, pos + node.nodeSize]
-
-          if (nodeFrom <= from && to <= nodeTo) currentActiveNodeTo = nodeTo
-
-          return false
-        })
-
-        const content = doc
-          .slice(from, currentActiveNodeTo)
-          ?.toJSON()
-          .content.map((node: any) => ({
-            ...node,
-            type: 'paragraph',
-          }))
-
-        return editor
-          .chain()
-          .insertContentAt(
-            { from, to: currentActiveNodeTo },
-            {
-              type: this.name,
-              content,
-            },
-          )
-          .focus(from + 4)
-          .run()
+        return false
       },
       Backspace: ({ editor }) => {
         const state = editor.state

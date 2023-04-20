@@ -158,7 +158,11 @@ watch(
                     class="block caption my-2 nc-chip w-full min-h-20px p-2 rounded"
                     :style="{ backgroundColor: enumColor.light[2] }"
                   >
-                    {{ log.description }}
+                    <!--
+                      retrieve the comment part from the audit description
+                      `The following comment has been created: foo` -> `foo`
+                    -->
+                    {{ log.description.substring(log.description.indexOf(':') + 1) }}
                   </p>
                 </div>
 

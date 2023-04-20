@@ -233,13 +233,15 @@ export class ExportService {
     return serializedModels;
   }
 
-  async exportModelData(param: {
-    storageAdapter: IStorageAdapterV2;
-    path: string;
+  async streamModelData(param: {
+    dataStream: Readable;
+    linkStream: Readable;
     projectId: string;
     modelId: string;
     viewId?: string;
   }) {
+    const { dataStream, linkStream } = param;
+
     const { model, view } = await getViewAndModelByAliasOrId({
       projectName: param.projectId,
       tableName: param.modelId,
@@ -248,12 +250,12 @@ export class ExportService {
 
     await model.getColumns();
 
-    const hasLink = model.columns.some(
-      (c) =>
-        c.uidt === UITypes.LinkToAnotherRecord && c.colOptions?.type === 'mm',
-    );
-
     const pkMap = new Map<string, string>();
+
+    const fields = model.columns
+      .filter((c) => c.colOptions?.type !== 'hm')
+      .map((c) => c.title)
+      .join(',');
 
     for (const column of model.columns.filter(
       (c) =>
@@ -268,31 +270,9 @@ export class ExportService {
       pkMap.set(column.id, relatedTable.primaryKey.title);
     }
 
-    const readableStream = new Readable({
-      read() {},
-    });
+    dataStream.setEncoding('utf8');
 
-    const readableLinkStream = new Readable({
-      read() {},
-    });
-
-    readableStream.setEncoding('utf8');
-
-    readableLinkStream.setEncoding('utf8');
-
-    const storageAdapter = param.storageAdapter;
-
-    const uploadPromise = storageAdapter.fileCreateByStream(
-      `${param.path}/${model.id}.csv`,
-      readableStream,
-    );
-
-    const uploadLinkPromise = hasLink
-      ? storageAdapter.fileCreateByStream(
-          `${param.path}/${model.id}_links.csv`,
-          readableLinkStream,
-        )
-      : Promise.resolve();
+    linkStream.setEncoding('utf8');
 
     const limit = 200;
     const offset = 0;
@@ -364,19 +344,16 @@ export class ExportService {
     try {
       await this.recursiveRead(
         formatData,
-        readableStream,
-        readableLinkStream,
+        dataStream,
+        linkStream,
         model,
         view,
         offset,
         limit,
+        fields,
         true,
       );
-      await uploadPromise;
-      await uploadLinkPromise;
     } catch (e) {
-      await storageAdapter.fileDelete(`${param.path}/${model.id}.csv`);
-      await storageAdapter.fileDelete(`${param.path}/${model.id}_links.csv`);
       console.error(e);
       throw e;
     }
@@ -390,11 +367,12 @@ export class ExportService {
     view: View,
     offset: number,
     limit: number,
+    fields: string,
     header = false,
   ): Promise<void> {
     return new Promise((resolve, reject) => {
       this.datasService
-        .getDataList({ model, view, query: { limit, offset } })
+        .getDataList({ model, view, query: { limit, offset, fields } })
         .then((result) => {
           try {
             if (!header) {
@@ -417,6 +395,7 @@ export class ExportService {
                 view,
                 offset + limit,
                 limit,
+                fields,
               ).then(resolve);
             }
           } catch (e) {
@@ -469,12 +448,32 @@ export class ExportService {
       );
 
       for (const model of models) {
-        await this.exportModelData({
-          storageAdapter,
-          path: `${destPath}/data`,
+        const dataStream = new Readable({
+          read() {},
+        });
+
+        const linkStream = new Readable({
+          read() {},
+        });
+
+        const uploadPromise = storageAdapter.fileCreateByStream(
+          `${param.path}/data/${model.id}.csv`,
+          dataStream,
+        );
+
+        const uploadLinkPromise = storageAdapter.fileCreateByStream(
+          `${param.path}/data/${model.id}_links.csv`,
+          linkStream,
+        );
+
+        this.streamModelData({
+          dataStream,
+          linkStream,
           projectId: project.id,
           modelId: model.id,
         });
+
+        await Promise.all([uploadPromise, uploadLinkPromise]);
       }
     } catch (e) {
       throw NcError.badRequest(e);

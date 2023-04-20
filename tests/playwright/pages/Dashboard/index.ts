@@ -20,6 +20,7 @@ import { DocsPageGroup } from './Docs';
 import { ShareProjectButtonPage } from './ShareProjectButton';
 import { ProjectTypes } from 'nocodb-sdk';
 import { WorkspacePage } from '../WorkspacePage';
+import { isHub } from '../../setup/db';
 
 export class DashboardPage extends BasePage {
   readonly project: any;
@@ -111,6 +112,10 @@ export class DashboardPage extends BasePage {
   }
 
   async closeTab({ title }: { title: string }) {
+    if (title === 'Team & Auth' && isHub()) {
+      return;
+    }
+
     const tab = this.tabBar.locator(`.ant-tabs-tab:has-text("${title}")`);
     await tab.locator('button.ant-tabs-tab-remove').click();
 

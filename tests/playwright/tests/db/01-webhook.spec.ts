@@ -127,7 +127,7 @@ test.describe.serial('Webhook', () => {
 
     // close 'Team & Auth' tab
     await clearServerData({ request });
-    if (!isHub()) await dashboard.closeTab({ title: 'Team & Auth' });
+    await dashboard.closeTab({ title: 'Team & Auth' });
     await dashboard.treeView.createTable({ title: 'Test' });
 
     // create
@@ -301,7 +301,7 @@ test.describe.serial('Webhook', () => {
 
     await clearServerData({ request });
     // close 'Team & Auth' tab
-    if (!isHub()) await dashboard.closeTab({ title: 'Team & Auth' });
+    await dashboard.closeTab({ title: 'Team & Auth' });
     await dashboard.treeView.createTable({ title: 'Test' });
 
     // after insert hook
@@ -457,7 +457,7 @@ test.describe.serial('Webhook', () => {
     await page.waitForTimeout(1000);
 
     // close 'Team & Auth' tab
-    if (!isHub()) await dashboard.closeTab({ title: 'Team & Auth' });
+    await dashboard.closeTab({ title: 'Team & Auth' });
 
     const columns = [
       {

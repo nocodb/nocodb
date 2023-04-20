@@ -6,6 +6,7 @@ import { SettingsPage, SettingTab } from '../../pages/Dashboard/Settings';
 import { SignupPage } from '../../pages/SignupPage';
 import { ProjectsPage } from '../../pages/ProjectsPage';
 import { AccountPage } from '../../pages/Account';
+import { getDefaultPwd } from '../utils/general';
 
 test.describe('Auth', () => {
   let context: any;
@@ -41,7 +42,7 @@ test.describe('Auth', () => {
     await dashboard.rootPage.goto(url);
     await signupPage.signUp({
       email: 'user-1@nocodb.com',
-      password: 'Password123.',
+      password: getDefaultPwd(),
     });
 
     await projectsPage.openPasswordChangeModal();
@@ -56,7 +57,7 @@ test.describe('Auth', () => {
 
     // New pass and repeat pass mismatch
     await accountPage.users.changePasswordPage.changePassword({
-      oldPass: 'Password123.',
+      oldPass: getDefaultPwd(),
       newPass: '123456789',
       repeatPass: '987654321',
       networkValidation: false,
@@ -65,7 +66,7 @@ test.describe('Auth', () => {
 
     // All good
     await accountPage.users.changePasswordPage.changePassword({
-      oldPass: 'Password123.',
+      oldPass: getDefaultPwd(),
       newPass: 'NewPasswordConfigured',
       repeatPass: 'NewPasswordConfigured',
       networkValidation: true,

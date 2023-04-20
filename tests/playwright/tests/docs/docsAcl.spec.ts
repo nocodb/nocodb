@@ -4,6 +4,7 @@ import { DashboardPage } from '../../pages/Dashboard';
 import { SignupPage } from '../../pages/SignupPage';
 import { WorkspacePage } from '../../pages/WorkspacePage';
 import setup, { NcContext } from '../../setup';
+import { getDefaultPwd } from '../utils/general';
 
 test.describe('Docs ACL', () => {
   let dashboard: DashboardPage;
@@ -44,7 +45,7 @@ test.describe('Docs ACL', () => {
 
     await signUp.signUp({
       email: 'test@example.com',
-      password: 'password123.',
+      password: getDefaultPwd(),
     });
 
     await workspace.projectOpen({ title: project.title });
@@ -95,7 +96,7 @@ test.describe('Docs ACL', () => {
 
     await signUp.signUp({
       email: 'test@example.com',
-      password: 'password123.',
+      password: getDefaultPwd(),
     });
 
     await newPage.waitForTimeout(1000);
@@ -163,7 +164,7 @@ test.describe('Docs ACL', () => {
 
     await signUp.signUp({
       email: 'test@example.com',
-      password: 'password123.',
+      password: getDefaultPwd(),
     });
 
     expect(await workspace.workspaceCount()).toBe(0);

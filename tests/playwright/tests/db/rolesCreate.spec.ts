@@ -4,6 +4,7 @@ import setup from '../../setup';
 import { SettingsPage, SettingTab } from '../../pages/Dashboard/Settings';
 import { SignupPage } from '../../pages/SignupPage';
 import { ProjectsPage } from '../../pages/ProjectsPage';
+import { getDefaultPwd } from '../utils/general';
 
 const roleDb = [
   { email: 'creator@nocodb.com', role: 'creator', url: '' },
@@ -110,7 +111,7 @@ test.describe('User roles', () => {
     await dashboard.rootPage.goto(roleDb[roleIdx].url);
     await signupPage.signUp({
       email: roleDb[roleIdx].email,
-      password: 'Password123.',
+      password: getDefaultPwd(),
     });
 
     await projectsPage.openProject({

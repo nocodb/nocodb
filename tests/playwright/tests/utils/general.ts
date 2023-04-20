@@ -46,4 +46,8 @@ function isSubset(obj, potentialSubset) {
   return true;
 }
 
-export { getTextExcludeIconText, isSubset, getIconText };
+function getDefaultPwd() {
+  return 'Password123.';
+}
+
+export { getTextExcludeIconText, isSubset, getIconText, getDefaultPwd };

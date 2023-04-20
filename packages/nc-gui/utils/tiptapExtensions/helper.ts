@@ -1,6 +1,6 @@
 import type { EditorState } from 'prosemirror-state'
 
-const nodeTypesContainingSection = ['sec', 'collapsible', 'collapsible_header', 'collapsible_content']
+const nodeTypesContainingSection = ['sec', 'collapsable', 'collapsable_header', 'collapsable_content']
 
 /**
  * Gets position of section node which contains the cursor or the given position which is inside the section

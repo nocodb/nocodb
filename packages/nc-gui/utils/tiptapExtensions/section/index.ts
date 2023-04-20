@@ -109,7 +109,7 @@ export const SectionBlock = Node.create<SecOptions>({
       deleteActiveSection:
         () =>
         ({ state, commands }) => {
-          const currentSectionPos = state.selection.$from.before(1)
+          const currentSectionPos = getPositionOfSection(state)
           const currentSectionNode = state.doc.nodeAt(currentSectionPos)
           const currentSectionRange = {
             from: currentSectionPos,

@@ -146,26 +146,6 @@ export const SectionBlock = Node.create<SecOptions>({
 
         return false
       },
-      Backspace: ({ editor }) => {
-        const state = editor.state
-
-        // Handle delete on first empty line
-        const currentNode = state.selection.$from.node()
-        const from = state.selection.$from.pos
-        const firstLinePos = 2
-        if (
-          from === firstLinePos &&
-          currentNode.textContent === '' &&
-          currentNode.type.name === 'paragraph' &&
-          state.selection.empty
-        ) {
-          // Delete the node
-          editor.view.dispatch(state.tr.delete(from - 2, from + 1))
-          return true
-        }
-
-        return false
-      },
     }
   },
 })

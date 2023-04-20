@@ -44,6 +44,25 @@ export const Paragraph = TiptapParagraph.extend({
           .selectActiveSectionFirstChild()
           .run()
       },
+      Backspace: ({ editor }) => {
+        const state = editor.state
+        const selection = state.selection
+
+        // Handle delete on first empty line
+        const currentParagraphNode = selection.$from.node()
+        const firstLinePos = 2
+
+        if (
+          selection.empty &&
+          selection.from === firstLinePos &&
+          currentParagraphNode.textContent === '' &&
+          currentParagraphNode.type.name === 'paragraph'
+        ) {
+          return editor.chain().focus().deleteActiveSection().run()
+        }
+
+        return false
+      },
     }
   },
 })

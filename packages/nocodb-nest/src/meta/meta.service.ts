@@ -1065,9 +1065,12 @@ export class MetaService {
       migrationSource: new XcMigrationSourcev2(),
       tableName: 'xc_knex_migrationsv2',
     });
+
+    // set timezone
     if (this.isMySQL()) {
-      // set timezone
       await this.connection.raw(`SET time_zone = '+00:00'`);
+    } else {
+      await this.connection.raw(`SET timezone='UTC'`);
     }
     return true;
   }

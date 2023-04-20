@@ -236,12 +236,10 @@ export default class NcConfigFactory {
         acquireConnectionTimeout: 600000,
       } as any;
 
-      if (url.protocol.startsWith('mysql')) {
-        dbConfig.connection = {
-          ...dbConfig.connection,
-          ...this.mysqlConnectionTypeCastConfig,
-        };
-      }
+      dbConfig.connection = this.addTypeCastConfig(
+        url.protocol,
+        dbConfig.connection,
+      );
 
       if (process.env.NODE_TLS_REJECT_UNAUTHORIZED) {
         dbConfig.connection.ssl = true;
@@ -304,6 +302,16 @@ export default class NcConfigFactory {
       .replace(/[ -]/g, '_');*/
   }
 
+  private static addTypeCastConfig(clientType: string, connection) {
+    if (clientType.startsWith('mysql')) {
+      connection = {
+        ...connection,
+        ...this.mysqlConnectionTypeCastConfig,
+      };
+    }
+    return connection;
+  }
+
   static async metaUrlToDbConfig(urlString) {
     const url = new URL(urlString);
 
@@ -356,12 +364,10 @@ export default class NcConfigFactory {
           : {}),
       };
 
-      if (url.protocol.startsWith('mysql')) {
-        dbConfig.connection = {
-          ...dbConfig.connection,
-          ...this.mysqlConnectionTypeCastConfig,
-        };
-      }
+      dbConfig.connection = this.addTypeCastConfig(
+        url.protocol,
+        dbConfig.connection,
+      );
 
       if (process.env.NODE_TLS_REJECT_UNAUTHORIZED) {
         dbConfig.connection.ssl = true;
@@ -526,12 +532,10 @@ export default class NcConfigFactory {
       };
     }
 
-    if (dbConfig.client.startsWith('mysql')) {
-      dbConfig.connection = {
-        ...dbConfig.connection,
-        ...this.mysqlConnectionTypeCastConfig,
-      };
-    }
+    dbConfig.connection = this.addTypeCastConfig(
+      dbConfig.client,
+      dbConfig.connection,
+    );
 
     // todo:
     const key = '';

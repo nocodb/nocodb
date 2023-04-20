@@ -146,7 +146,7 @@ const setup = async ({
       projectUrl = url ? url : `/#/ws/${project.fk_workspace_id}/nc/${project.id}/doc`;
       break;
     case ProjectTypes.DATABASE:
-      projectUrl = url ? url : `/#/ws/${project.fk_workspace_id}/nc/${project.id}/auth`;
+      projectUrl = url ? url : `/#/ws/${project.fk_workspace_id}/nc/${project.id}`;
       break;
     default:
       throw new Error(`Unknown project type: ${project.type}`);

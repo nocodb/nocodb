@@ -1,8 +1,6 @@
 import { Module } from '@nestjs/common';
 import { MulterModule } from '@nestjs/platform-express';
 import multer from 'multer';
-import { ExportImportController } from 'src/controllers/export-import.controller';
-import { ExportImportService } from 'src/services/export-import.service';
 import { NC_ATTACHMENT_FIELD_SIZE } from '../../constants';
 import { ApiDocsController } from '../../controllers/api-docs/api-docs.controller';
 import { ApiTokensController } from '../../controllers/api-tokens.controller';
@@ -84,7 +82,6 @@ import { DatasModule } from '../datas/datas.module';
       },
     }),
     GlobalModule,
-    DatasModule,
   ],
   controllers: [
     ApiDocsController,
@@ -94,7 +91,6 @@ import { DatasModule } from '../datas/datas.module';
     BasesController,
     CachesController,
     ColumnsController,
-    ExportImportController,
     FiltersController,
     FormColumnsController,
     FormsController,
@@ -130,7 +126,6 @@ import { DatasModule } from '../datas/datas.module';
     BasesService,
     CachesService,
     ColumnsService,
-    ExportImportService,
     FiltersService,
     FormColumnsService,
     FormsService,
@@ -160,6 +155,21 @@ import { DatasModule } from '../datas/datas.module';
     SortsService,
     SharedBasesService,
     BulkDataAliasService,
+  ],
+  exports: [
+    TablesService,
+    ColumnsService,
+    FiltersService,
+    SortsService,
+    ViewsService,
+    ViewColumnsService,
+    GridsService,
+    GridColumnsService,
+    FormsService,
+    FormColumnsService,
+    GalleriesService,
+    KanbansService,
+    ProjectsService,
   ],
 })
 export class MetasModule {}

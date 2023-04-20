@@ -166,7 +166,9 @@ watch(
                   </p>
                 </div>
 
-                <p v-else v-dompurify-html="log.details" class="caption my-3" style="word-break: break-all" />
+                <p v-if="log.details" v-dompurify-html="log.details" class="caption my-3" style="word-break: break-all" />
+
+                <p v-else>{{ log.description }}</p>
 
                 <p class="time text-right text-[10px] mb-0 mt-1 text-gray-500">
                   {{ timeAgo(log.created_at) }}

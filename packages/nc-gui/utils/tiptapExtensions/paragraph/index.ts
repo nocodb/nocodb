@@ -1,5 +1,5 @@
 import TiptapParagraph from '@tiptap/extension-paragraph'
-import { getPositionOfNextSection } from '../helper'
+import { getPositionOfSection } from '../helper'
 
 export const Paragraph = TiptapParagraph.extend({
   addKeyboardShortcuts() {
@@ -19,8 +19,11 @@ export const Paragraph = TiptapParagraph.extend({
         // Skip if the paragraph is a command
         if (paragraphNode.textContent?.startsWith('/')) return false
 
-        const nextSectionPos = getPositionOfNextSection(editor.state)
-        const currentSectionEndPos = nextSectionPos ? nextSectionPos - 1 : doc.nodeSize - 2
+        // Split the current paragraph with second half in the newly inserted line
+        const currentSectionStartPos = getPositionOfSection(editor.state)
+        const currentSectionNode = editor.state.doc.nodeAt(currentSectionStartPos)!
+
+        const currentSectionEndPos = currentSectionStartPos + currentSectionNode?.nodeSize - 1
 
         const paragraphContent = doc
           .slice(from, currentSectionEndPos)

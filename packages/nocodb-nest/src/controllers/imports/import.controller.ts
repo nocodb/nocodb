@@ -1,12 +1,12 @@
 import { Controller, HttpCode, Post, Request, UseGuards } from '@nestjs/common';
 import { forwardRef, Inject } from '@nestjs/common';
 import { ModuleRef } from '@nestjs/core';
+import { SocketGateway } from 'src/services/socket.gateway';
 import { GlobalGuard } from '../../guards/global/global.guard';
 import { NcError } from '../../helpers/catchError';
 import { ExtractProjectIdMiddleware } from '../../middlewares/extract-project-id/extract-project-id.middleware';
 import { SyncSource } from '../../models';
 import NocoJobs from '../../jobs/NocoJobs';
-import { SocketService } from '../../services/socket.service';
 import airtableSyncJob from './helpers/job';
 import type { AirtableSyncConfig } from './helpers/job';
 
@@ -78,7 +78,7 @@ const initJob = (sv: Server, jobs: { [p: string]: { last_message: any } }) => {
 @UseGuards(ExtractProjectIdMiddleware, GlobalGuard)
 export class ImportController {
   constructor(
-    private readonly socketService: SocketService,
+    private readonly socketGateway: SocketGateway,
     @Inject(forwardRef(() => ModuleRef)) private readonly moduleRef: ModuleRef,
   ) {}
 
@@ -95,7 +95,7 @@ export class ImportController {
   @Post('/api/v1/db/meta/syncs/:syncId/trigger')
   @HttpCode(200)
   async triggerSync(@Request() req) {
-    if (req.params.syncId in this.socketService.jobs) {
+    if (req.params.syncId in this.socketGateway.jobs) {
       NcError.badRequest('Sync already in progress');
     }
 
@@ -125,7 +125,7 @@ export class ImportController {
       });
     }, 1000);
 
-    this.socketService.jobs[req.params.syncId] = {
+    this.socketGateway.jobs[req.params.syncId] = {
       last_message: {
         msg: 'Sync started',
       },
@@ -136,13 +136,13 @@ export class ImportController {
   @Post('/api/v1/db/meta/syncs/:syncId/abort')
   @HttpCode(200)
   async abortImport(@Request() req) {
-    if (req.params.syncId in this.socketService.jobs) {
-      delete this.socketService.jobs[req.params.syncId];
+    if (req.params.syncId in this.socketGateway.jobs) {
+      delete this.socketGateway.jobs[req.params.syncId];
     }
     return {};
   }
 
   async onModuleInit() {
-    initJob(this.socketService.io, this.socketService.jobs);
+    initJob(this.socketGateway.io, this.socketGateway.jobs);
   }
 }

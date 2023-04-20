@@ -1,10 +1,10 @@
 import { Global, Module } from '@nestjs/common';
 import { JwtModule, JwtService } from '@nestjs/jwt';
 import { ExtractJwt } from 'passport-jwt';
+import { SocketGateway } from 'src/services/socket.gateway';
 import { Connection } from '../../connection/connection';
 import { GlobalGuard } from '../../guards/global/global.guard';
 import { MetaService } from '../../meta/meta.service';
-import { SocketService } from '../../services/socket.service';
 import { JwtStrategy } from '../../strategies/jwt.strategy';
 import NcConfigFactory from '../../utils/NcConfigFactory';
 import { UsersService } from '../../services/users/users.service';
@@ -38,7 +38,7 @@ export const JwtStrategyProvider: Provider = {
     UsersService,
     JwtStrategyProvider,
     GlobalGuard,
-    SocketService,
+    SocketGateway,
   ],
   exports: [
     Connection,
@@ -46,7 +46,7 @@ export const JwtStrategyProvider: Provider = {
     JwtStrategyProvider,
     UsersService,
     GlobalGuard,
-    SocketService,
+    SocketGateway,
   ],
 })
 export class GlobalModule {}

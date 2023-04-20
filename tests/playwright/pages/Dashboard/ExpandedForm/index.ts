@@ -99,11 +99,9 @@ export class ExpandedFormPage extends BasePage {
   async save({
     waitForRowsData = true,
     saveAndExitMode = true,
-    saveAndAddAnother=true,
   }: {
     waitForRowsData?: boolean;
     saveAndExitMode?: boolean;
-    saveAndAddAnother?:boolean;
   } = {}) {
     if (!saveAndExitMode) {
       await this.get().locator('.nc-expand-form-save-btn .ant-dropdown-trigger').click();
@@ -111,9 +109,10 @@ export class ExpandedFormPage extends BasePage {
       await dropdownList.locator('.ant-dropdown-menu-item:has-text("Save & Stay")').click();
     }
 
-    const saveRowAction = saveAndExitMode
-      ? this.get().locator('button:has-text("Save & Exit")').click()
-      : saveAndAddAnother? this.get().locator('button:has-text("Save & Add Another")').click(): this.get().locator('button:has-text("Save & Stay")').click();
+    const saveRowAction = () =>
+      saveAndExitMode
+        ? this.get().locator('button:has-text("Save & Exit")').click()
+        : this.get().locator('button:has-text("Save & Stay")').click();
 
     if (waitForRowsData) {
       await this.waitForResponse({

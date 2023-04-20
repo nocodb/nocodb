@@ -60,6 +60,10 @@ export class WorkspacePage extends BasePage {
     await (await this.LeftSideBar.workspaceGetLocator(title)).click();
   }
 
+  async workspaceCount() {
+    return await this.LeftSideBar.getWorkspaceCount();
+  }
+
   async projectCreate({ title, type }) {
     await this.Container.projectCreate({ title, type });
   }
@@ -88,4 +92,11 @@ export class WorkspacePage extends BasePage {
     await this.LeftSideBar.openQuickAccess(menu);
     await this.rootPage.waitForTimeout(100);
   }
+
+  async logout() {
+    await this.Header.accountMenuOpen({ title: 'sign-out' });
+  }
+
+  // Add on verification routines
+  // can be done using expect at source
 }

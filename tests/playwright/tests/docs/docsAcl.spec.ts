@@ -1,8 +1,8 @@
-import { test } from '@playwright/test';
+import { expect, test } from '@playwright/test';
 import { ProjectType, ProjectTypes } from 'nocodb-sdk';
 import { DashboardPage } from '../../pages/Dashboard';
 import { SignupPage } from '../../pages/SignupPage';
-import { Index } from '../../pages/WorkspacePage/WorkspacePage';
+import { WorkspacePage } from '../../pages/WorkspacePage';
 import setup, { NcContext } from '../../setup';
 
 test.describe('Docs ACL', () => {
@@ -35,7 +35,7 @@ test.describe('Docs ACL', () => {
     await page.close();
     await newPage.goto(inviteLink);
 
-    const workspace = new Index(newPage);
+    const workspace = new WorkspacePage(newPage);
     const signUp = new SignupPage(newPage);
 
     await workspace.logout();
@@ -47,7 +47,7 @@ test.describe('Docs ACL', () => {
       password: 'password123.',
     });
 
-    await workspace.selectProject({ title: project.title as any });
+    await workspace.projectOpen({ title: project.title });
 
     const newDashboard = new DashboardPage(newPage, project);
 
@@ -86,7 +86,7 @@ test.describe('Docs ACL', () => {
     await page.close();
     await newPage.goto(inviteLink);
 
-    const workspace = new Index(newPage);
+    const workspace = new WorkspacePage(newPage);
     const signUp = new SignupPage(newPage);
 
     await workspace.logout();
@@ -100,7 +100,7 @@ test.describe('Docs ACL', () => {
 
     await newPage.waitForTimeout(1000);
 
-    await workspace.selectProject({ title: project.title as any });
+    await workspace.projectOpen({ title: project.title as any });
 
     const newDashboard = new DashboardPage(newPage, project);
 
@@ -154,7 +154,7 @@ test.describe('Docs ACL', () => {
     await page.close();
     await newPage.goto(inviteLink);
 
-    const workspace = new Index(newPage);
+    const workspace = new WorkspacePage(newPage);
     const signUp = new SignupPage(newPage);
 
     await workspace.logout();
@@ -166,8 +166,6 @@ test.describe('Docs ACL', () => {
       password: 'password123.',
     });
 
-    await workspace.verifyWorkspaceCount({
-      count: 0,
-    });
+    expect(await workspace.workspaceCount()).toBe(0);
   });
 });

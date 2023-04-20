@@ -7,6 +7,8 @@ import { SignupPage } from '../../pages/SignupPage';
 import { ProjectsPage } from '../../pages/ProjectsPage';
 import { AccountPage } from '../../pages/Account';
 import { getDefaultPwd } from '../utils/general';
+import { isHub } from '../../setup/db';
+import { WorkspacePage } from '../../pages/WorkspacePage';
 
 test.describe('Auth', () => {
   let context: any;
@@ -15,6 +17,7 @@ test.describe('Auth', () => {
   let signupPage: SignupPage;
   let projectsPage: ProjectsPage;
   let accountPage: AccountPage;
+  let workspacePage: WorkspacePage;
 
   test.beforeEach(async ({ page }) => {
     context = await setup({ page });
@@ -22,6 +25,7 @@ test.describe('Auth', () => {
     signupPage = new SignupPage(page);
     projectsPage = new ProjectsPage(page);
     accountPage = new AccountPage(page);
+    workspacePage = new WorkspacePage(page);
 
     settings = dashboard.settings;
   });
@@ -45,7 +49,11 @@ test.describe('Auth', () => {
       password: getDefaultPwd(),
     });
 
-    await projectsPage.openPasswordChangeModal();
+    if (isHub()) {
+      await workspacePage.openPasswordChangeModal();
+    } else {
+      await projectsPage.openPasswordChangeModal();
+    }
 
     // Existing active pass incorrect
     await accountPage.users.changePasswordPage.changePassword({
@@ -77,6 +85,10 @@ test.describe('Auth', () => {
     await loginPage.fillPassword('NewPasswordConfigured');
     await loginPage.submit();
 
-    await projectsPage.waitForRender();
+    if (isHub()) {
+      await workspacePage.waitForRender();
+    } else {
+      await projectsPage.waitForRender();
+    }
   });
 });

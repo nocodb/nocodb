@@ -93,7 +93,6 @@ export class WorkspacePage extends BasePage {
     await this.rootPage.waitForTimeout(100);
   }
 
-
   async checkWorkspaceCreateButton(param: { exists: boolean }) {
     // fix me! wait for page load to complete
     // one of the two checks should suffice
@@ -111,4 +110,12 @@ export class WorkspacePage extends BasePage {
   // Add on verification routines
   // can be done using expect at source
 
+  async openPasswordChangeModal() {
+    await this.Header.accountMenuOpen({ title: 'user-settings' });
+    await this.rootPage.locator('[data-menu-id="password-reset"]').click();
+  }
+
+  async waitForRender() {
+    await this.Header.verifyStaticElements();
+  }
 }

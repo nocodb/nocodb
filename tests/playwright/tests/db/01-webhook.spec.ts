@@ -5,7 +5,7 @@ import makeServer from '../../setup/server';
 import { WebhookFormPage } from '../../pages/Dashboard/WebhookForm';
 import { isSubset } from '../utils/general';
 import { Api, UITypes } from 'nocodb-sdk';
-import { isMysql, isPg, isSqlite } from '../../setup/db';
+import { isHub, isMysql, isSqlite } from '../../setup/db';
 
 const hookPath = 'http://localhost:9090/hook';
 let api: Api<any>;
@@ -127,7 +127,7 @@ test.describe.serial('Webhook', () => {
 
     // close 'Team & Auth' tab
     await clearServerData({ request });
-    await dashboard.closeTab({ title: 'Team & Auth' });
+    if (!isHub()) await dashboard.closeTab({ title: 'Team & Auth' });
     await dashboard.treeView.createTable({ title: 'Test' });
 
     // create
@@ -297,11 +297,11 @@ test.describe.serial('Webhook', () => {
   });
 
   test('webhook Conditional webhooks', async ({ request }) => {
-    test.slow();
+    // test.slow();
 
     await clearServerData({ request });
     // close 'Team & Auth' tab
-    await dashboard.closeTab({ title: 'Team & Auth' });
+    if (!isHub()) await dashboard.closeTab({ title: 'Team & Auth' });
     await dashboard.treeView.createTable({ title: 'Test' });
 
     // after insert hook
@@ -427,8 +427,8 @@ test.describe.serial('Webhook', () => {
     async function verifyBulkOperationTrigger(rsp, type) {
       for (let i = 0; i < rsp.length; i++) {
         expect(rsp[i].type).toBe(type);
-        expect(rsp[i].data.table_name).toBe('numberBased');
-        expect(rsp[i].data.view_name).toBe('numberBased');
+        expect(rsp[i].data.table_name).toBe('Test');
+        expect(rsp[i].data.view_name).toBe('Test');
 
         // only for insert, rows inserted will not be returned in response. just count
         if (type === 'records.after.bulkInsert') {
@@ -457,7 +457,7 @@ test.describe.serial('Webhook', () => {
     await page.waitForTimeout(1000);
 
     // close 'Team & Auth' tab
-    await dashboard.closeTab({ title: 'Team & Auth' });
+    if (!isHub()) await dashboard.closeTab({ title: 'Team & Auth' });
 
     const columns = [
       {
@@ -476,8 +476,8 @@ test.describe.serial('Webhook', () => {
     try {
       project = await api.project.read(context.project.id);
       table = await api.base.tableCreate(context.project.id, project.bases?.[0].id, {
-        table_name: 'numberBased',
-        title: 'numberBased',
+        table_name: 'Test',
+        title: 'Test',
         columns: columns,
       });
     } catch (e) {
@@ -485,7 +485,7 @@ test.describe.serial('Webhook', () => {
     }
 
     await page.reload();
-    await dashboard.treeView.openTable({ title: 'numberBased' });
+    await dashboard.treeView.openTable({ title: 'Test' });
 
     // create after insert webhook
     await webhook.create({
@@ -508,7 +508,6 @@ test.describe.serial('Webhook', () => {
     }));
     await api.dbTableRow.bulkCreate('noco', context.project.id, table.id, rowAttributesForInsert);
     await page.reload();
-    // 50 records inserted, we expect 2 webhook responses
     let rsp = await getWebhookResponses({ request, count: 1 });
     await verifyBulkOperationTrigger(rsp, 'records.after.bulkInsert');
 

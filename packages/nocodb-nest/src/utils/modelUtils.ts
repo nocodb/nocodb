@@ -1,22 +1,27 @@
-export function parseMetaProp(model: { meta: any }): any {
+export function parseMetaProp(model: any, propName = 'metq'): any {
   if (!model) return;
 
   // parse meta property
   try {
-    return typeof model.meta === 'string' ? JSON.parse(model.meta) : model.meta;
+    return typeof model[propName] === 'string'
+      ? JSON.parse(model[propName])
+      : model[propName];
   } catch {
     return {};
   }
 }
 
-export function stringifyMetaProp(model: { meta?: any }): string | void {
+export function stringifyMetaProp(
+  model: any,
+  propName = 'metq',
+): string | void {
   if (!model) return;
 
   // stringify meta property
   try {
-    return typeof model.meta === 'string'
-      ? model.meta
-      : JSON.stringify(model.meta);
+    return typeof model[propName] === 'string'
+      ? model[propName]
+      : JSON.stringify(model[propName]);
   } catch (e) {
     return '{}';
   }

@@ -27,7 +27,7 @@ interface Emits {
 
   (event: 'changeView', view: Record<string, any>): void
 
-  (event: 'rename', view: ViewType): void
+  (event: 'rename', view: ViewType, originalTitle: string | undefined): void
 
   (event: 'delete', view: ViewType): void
 
@@ -142,7 +142,7 @@ async function onRename() {
     return
   }
 
-  emits('rename', vModel.value)
+  emits('rename', vModel.value, originalTitle)
 
   onStopEdit()
 }
@@ -183,7 +183,11 @@ function onStopEdit() {
           </component>
 
           <template v-if="isUIAllowed('viewIconCustomisation')" #overlay>
-            <GeneralEmojiIcons class="shadow bg-white p-2" @select-icon="emits('selectIcon', $event)" />
+            <GeneralEmojiIcons
+              class="shadow bg-white p-2"
+              :show-reset="!!view.meta?.icon"
+              @select-icon="emits('selectIcon', $event)"
+            />
           </template>
         </a-dropdown>
       </div>

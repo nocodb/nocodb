@@ -129,7 +129,16 @@ export async function columnUpdate(param: {
         try {
           // test the query to see if it is valid in db level
           const dbDriver = await NcConnectionMgrv2.get(base);
-          await formulaQueryBuilderv2(colBody.formula, null, dbDriver, table);
+          await formulaQueryBuilderv2(
+            colBody.formula,
+            null,
+            dbDriver,
+            table,
+            null,
+            {},
+            null,
+            true
+          );
         } catch (e) {
           console.error(e);
           NcError.badRequest('Invalid Formula');
@@ -813,9 +822,9 @@ export async function columnUpdate(param: {
   await Audit.insert({
     project_id: base.project_id,
     op_type: AuditOperationTypes.TABLE_COLUMN,
-    op_sub_type: AuditOperationSubTypes.UPDATED,
+    op_sub_type: AuditOperationSubTypes.UPDATE,
     user: param.req?.user?.email,
-    description: `updated column ${column.column_name} with alias ${column.title} from table ${table.table_name}`,
+    description: `The column ${column.column_name} with alias ${column.title} from table ${table.table_name} has been updated`,
     ip: param.req?.clientIp,
   }).then(() => {});
 
@@ -934,7 +943,16 @@ export async function columnAdd(param: {
       try {
         // test the query to see if it is valid in db level
         const dbDriver = await NcConnectionMgrv2.get(base);
-        await formulaQueryBuilderv2(colBody.formula, null, dbDriver, table);
+        await formulaQueryBuilderv2(
+          colBody.formula,
+          null,
+          dbDriver,
+          table,
+          null,
+          {},
+          null,
+          true
+        );
       } catch (e) {
         console.error(e);
         NcError.badRequest('Invalid Formula');
@@ -1109,9 +1127,9 @@ export async function columnAdd(param: {
   await Audit.insert({
     project_id: base.project_id,
     op_type: AuditOperationTypes.TABLE_COLUMN,
-    op_sub_type: AuditOperationSubTypes.CREATED,
+    op_sub_type: AuditOperationSubTypes.CREATE,
     user: param?.req.user?.email,
-    description: `created column ${colBody.column_name} with alias ${colBody.title} from table ${table.table_name}`,
+    description: `The column ${colBody.column_name} with alias ${colBody.title} from table ${table.table_name} has been created`,
     ip: param?.req.clientIp,
   }).then(() => {});
 
@@ -1321,9 +1339,9 @@ export async function columnDelete(param: { req?: any; columnId: string }) {
   await Audit.insert({
     project_id: base.project_id,
     op_type: AuditOperationTypes.TABLE_COLUMN,
-    op_sub_type: AuditOperationSubTypes.DELETED,
+    op_sub_type: AuditOperationSubTypes.DELETE,
     user: param?.req?.user?.email,
-    description: `deleted column ${column.column_name} with alias ${column.title} from table ${table.table_name}`,
+    description: `The column ${column.column_name} with alias ${column.title} from table ${table.table_name} has been deleted`,
     ip: param?.req.clientIp,
   }).then(() => {});
 

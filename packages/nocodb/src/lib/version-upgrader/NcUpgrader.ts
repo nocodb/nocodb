@@ -12,6 +12,7 @@ import ncDataTypesUpgrader from './ncDataTypesUpgrader';
 import ncProjectUpgraderV2_0090000 from './ncProjectUpgraderV2_0090000';
 import ncProjectEnvUpgrader0011045 from './ncProjectEnvUpgrader0011045';
 import ncProjectEnvUpgrader from './ncProjectEnvUpgrader';
+import ncHookUpgrader from './ncHookUpgrader';
 import type { NcConfig } from '../../interface/config';
 import type NcMetaIO from '../meta/NcMetaIO';
 
@@ -46,6 +47,7 @@ export default class NcUpgrader {
         { name: '0104004', handler: ncFilterUpgrader_0104004 },
         { name: '0105002', handler: ncStickyColumnUpgrader },
         { name: '0105003', handler: ncFilterUpgrader_0105003 },
+        { name: '0105004', handler: ncHookUpgrader },
       ];
       if (!(await ctx.ncMeta.knexConnection?.schema?.hasTable?.('nc_store'))) {
         return;

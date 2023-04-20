@@ -78,7 +78,7 @@ function baseModelSqlTests() {
       row_id: '1',
       op_type: 'DATA',
       op_sub_type: 'INSERT',
-      description: '1 inserted into Table1_Title',
+      description: 'Record with ID 1 has been inserted into Table Table1_Title',
     });
   });
 
@@ -123,7 +123,7 @@ function baseModelSqlTests() {
       op_type: 'DATA',
       op_sub_type: 'BULK_INSERT',
       status: null,
-      description: '10 records bulk inserted into Table1_Title',
+      description: '10 records have been bulk inserted in Table1_Title',
       details: null,
     });
   });
@@ -156,7 +156,7 @@ function baseModelSqlTests() {
       row_id: '1',
       op_type: 'DATA',
       op_sub_type: 'UPDATE',
-      description: '1 updated in Table1_Title',
+      description: 'Record with ID 1 has been updated in Table Table1_Title.\nColumn "Title" got changed from "test-0" to "test"',
     });
   });
 
@@ -199,7 +199,7 @@ function baseModelSqlTests() {
       op_type: 'DATA',
       op_sub_type: 'BULK_UPDATE',
       status: null,
-      description: '10 records bulk updated in Table1_Title',
+      description: '10 records have been bulk updated in Table1_Title',
       details: null,
     });
   });
@@ -250,7 +250,7 @@ function baseModelSqlTests() {
       op_type: 'DATA',
       op_sub_type: 'BULK_UPDATE',
       status: null,
-      description: '4 records bulk updated in Table1_Title',
+      description: '4 records have been bulk updated in Table1_Title',
       details: null,
     });
   });
@@ -273,7 +273,7 @@ function baseModelSqlTests() {
 
     const deletedRow = await baseModelSql.readByPk(rowIdToDeleted);
 
-    expect(deletedRow).to.be.undefined;
+    expect(deletedRow).to.be.an('object').that.is.empty;
 
     console.log('Delete record', await Audit.projectAuditList(project.id, {}));
     const rowDeletedAudit = (await Audit.projectAuditList(project.id, {})).find(
@@ -288,7 +288,7 @@ function baseModelSqlTests() {
       row_id: '1',
       op_type: 'DATA',
       op_sub_type: 'DELETE',
-      description: '1 deleted from Table1_Title',
+      description: 'Record with ID 1 has been deleted in Table Table1_Title',
     });
   });
 
@@ -330,7 +330,7 @@ function baseModelSqlTests() {
       op_type: 'DATA',
       op_sub_type: 'BULK_DELETE',
       status: null,
-      description: '4 records bulk deleted in Table1_Title',
+      description: '4 records have been bulk deleted in Table1_Title',
       details: null,
     });
   });
@@ -378,7 +378,7 @@ function baseModelSqlTests() {
       op_type: 'DATA',
       op_sub_type: 'BULK_DELETE',
       status: null,
-      description: '4 records bulk deleted in Table1_Title',
+      description: '4 records have been bulk deleted in Table1_Title',
       details: null,
     });
   });
@@ -438,7 +438,7 @@ function baseModelSqlTests() {
       row_id: '1',
       op_type: 'DATA',
       op_sub_type: 'INSERT',
-      description: '1 inserted into Table1_Title',
+      description: 'Record with ID 1 has been inserted into Table Table1_Title',
     });
   });
 
@@ -506,7 +506,7 @@ function baseModelSqlTests() {
       op_type: 'DATA',
       op_sub_type: 'LINK_RECORD',
       description:
-        'Record [id:1] record linked with record [id:1] record in Table1_Title',
+        'Record [id:1] has been linked with record [id:1] in Table1_Title',
     });
   });
 
@@ -581,7 +581,7 @@ function baseModelSqlTests() {
       op_type: 'DATA',
       op_sub_type: 'UNLINK_RECORD',
       description:
-        'Record [id:1] record unlinked with record [id:1] record in Table1_Title',
+        'Record [id:1] has been unlinked with record [id:1] in Table1_Title',
     });
   });
 }

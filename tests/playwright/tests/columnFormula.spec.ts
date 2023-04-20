@@ -122,6 +122,18 @@ const formulaDataByDbType = (context: NcContext) => [
     formula: `NOW()`,
     result: ['1', '1', '1', '1', '1'],
   },
+  {
+    formula: `OR(true, false)`,
+    result: isPg(context) ? ['true', 'true', 'true', 'true', 'true'] : ['1', '1', '1', '1', '1'],
+  },
+  {
+    formula: `AND(false, false)`,
+    result: isPg(context) ? ['false', 'false', 'false', 'false', 'false'] : ['0', '0', '0', '0', '0'],
+  },
+  {
+    formula: `IF((SEARCH({Address List}, "Parkway") != 0), "2.0","WRONG")`,
+    result: ['WRONG', 'WRONG', 'WRONG', '2.0', '2.0'],
+  },
 ];
 
 test.describe('Virtual Columns', () => {

@@ -85,9 +85,8 @@ export class SelectOptionCellPageObject extends BasePage {
     if (multiSelect) {
       return await expect(this.cell.get({ index, columnHeader })).toContainText(option, { useInnerText: true });
     }
-    return await expect(
-      this.cell.get({ index, columnHeader }).locator('.ant-select-selection-item > .ant-tag')
-    ).toHaveText(option, { useInnerText: true });
+    const text = await (await this.cell.get({ index, columnHeader }).locator('.ant-tag')).allInnerTexts();
+    return expect(text).toContain(option);
   }
 
   async verifyNoOptionsSelected({ index, columnHeader }: { index: number; columnHeader: string }) {

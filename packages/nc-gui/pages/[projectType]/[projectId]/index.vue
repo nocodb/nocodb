@@ -509,11 +509,7 @@ useEventListener(document, 'keydown', async (e: KeyboardEvent) => {
                     </a-sub-menu>
                   </template>
                   <!-- Language -->
-                  <a-sub-menu
-                    key="language"
-                    class="lang-menu !py-0"
-                    popup-class-name="scrollbar-thin-dull min-w-50 max-h-90vh !overflow-auto"
-                  >
+                  <a-sub-menu key="language" class="lang-menu !py-0">
                     <template #title>
                       <div class="nc-project-menu-item group">
                         <component :is="iconMap.translate" class="group-hover:text-accent nc-language" />
@@ -529,7 +525,9 @@ useEventListener(document, 'keydown', async (e: KeyboardEvent) => {
 
                     <template #expandIcon></template>
 
-                    <LazyGeneralLanguageMenu />
+                    <div class="scrollbar-thin-dull min-w-50 max-h-90vh">
+                      <LazyGeneralLanguageMenu />
+                    </div>
                   </a-sub-menu>
 
                   <!-- Account -->

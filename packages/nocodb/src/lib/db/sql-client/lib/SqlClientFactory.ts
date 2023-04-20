@@ -48,19 +48,28 @@ export default class {
       typeof connectionConfig.connection.ssl === 'object'
     ) {
       if (connectionConfig.connection.ssl.caFilePath) {
-        connectionConfig.connection.ssl.ca = await promisify(fs.readFile)(
-          connectionConfig.connection.ssl.caFilePath
+        connectionConfig.connection.ssl.ca = (
+          await promisify(fs.readFile)(
+            connectionConfig.connection.ssl.caFilePath
+          )
         ).toString();
+        delete connectionConfig.connection.ssl.caFilePath;
       }
       if (connectionConfig.connection.ssl.keyFilePath) {
-        connectionConfig.connection.ssl.key = await promisify(fs.readFile)(
-          connectionConfig.connection.ssl.keyFilePath
+        connectionConfig.connection.ssl.key = (
+          await promisify(fs.readFile)(
+            connectionConfig.connection.ssl.keyFilePath
+          )
         ).toString();
+        delete connectionConfig.connection.ssl.keyFilePath;
       }
       if (connectionConfig.connection.ssl.certFilePath) {
-        connectionConfig.connection.ssl.cert = await promisify(fs.readFile)(
-          connectionConfig.connection.ssl.certFilePath
+        connectionConfig.connection.ssl.cert = (
+          await promisify(fs.readFile)(
+            connectionConfig.connection.ssl.certFilePath
+          )
         ).toString();
+        delete connectionConfig.connection.ssl.certFilePath;
       }
     }
 

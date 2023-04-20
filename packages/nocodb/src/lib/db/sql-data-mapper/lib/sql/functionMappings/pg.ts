@@ -12,50 +12,66 @@ const pg = {
   CEILING: 'ceil',
   POWER: 'pow',
   SQRT: 'sqrt',
-  SEARCH: (args: MapFnArgs) => {
-    return args.knex.raw(
-      `POSITION(${args.knex.raw(
-        args.fn(args.pt.arguments[1]).toQuery()
-      )} in ${args.knex.raw(args.fn(args.pt.arguments[0]).toQuery())})${
-        args.colAlias
-      }`
-    );
+  SEARCH: async (args: MapFnArgs) => {
+    return {
+      builder: args.knex.raw(
+        `POSITION(${args.knex.raw(
+          (await args.fn(args.pt.arguments[1])).builder.toQuery()
+        )} in ${args.knex.raw(
+          (await args.fn(args.pt.arguments[0])).builder.toQuery()
+        )})${args.colAlias}`
+      ),
+    };
   },
   INT(args: MapFnArgs) {
     // todo: correction
-    return args.knex.raw(
-      `REGEXP_REPLACE(COALESCE(${args.fn(
-        args.pt.arguments[0]
-      )}::character varying, '0'), '[^0-9]+|\\.[0-9]+' ,'')${args.colAlias}`
-    );
+    return {
+      builder: args.knex.raw(
+        `REGEXP_REPLACE(COALESCE(${args.fn(
+          args.pt.arguments[0]
+        )}::character varying, '0'), '[^0-9]+|\\.[0-9]+' ,'')${args.colAlias}`
+      ),
+    };
   },
   MID: 'SUBSTR',
-  FLOAT: ({ fn, knex, pt, colAlias }: MapFnArgs) => {
-    return knex
-      .raw(`CAST(${fn(pt.arguments[0])} as DOUBLE PRECISION)${colAlias}`)
-      .wrap('(', ')');
+  FLOAT: async ({ fn, knex, pt, colAlias }: MapFnArgs) => {
+    return {
+      builder: knex
+        .raw(
+          `CAST(${
+            (await fn(pt.arguments[0])).builder
+          } as DOUBLE PRECISION)${colAlias}`
+        )
+        .wrap('(', ')'),
+    };
   },
-  ROUND: ({ fn, knex, pt, colAlias }: MapFnArgs) => {
-    return knex.raw(
-      `ROUND((${fn(pt.arguments[0])})::numeric, ${
-        pt?.arguments[1] ? fn(pt.arguments[1]) : 0
-      }) ${colAlias}`
-    );
+  ROUND: async ({ fn, knex, pt, colAlias }: MapFnArgs) => {
+    return {
+      builder: knex.raw(
+        `ROUND((${(await fn(pt.arguments[0])).builder})::numeric, ${
+          pt?.arguments[1] ? (await fn(pt.arguments[1])).builder : 0
+        }) ${colAlias}`
+      ),
+    };
   },
-  DATEADD: ({ fn, knex, pt, colAlias }: MapFnArgs) => {
-    return knex.raw(
-      `${fn(pt.arguments[0])} + (${fn(pt.arguments[1])} || 
-      '${String(fn(pt.arguments[2])).replace(
+  DATEADD: async ({ fn, knex, pt, colAlias }: MapFnArgs) => {
+    return {
+      builder: knex.raw(
+        `${(await fn(pt.arguments[0])).builder} + (${
+          (await fn(pt.arguments[1])).builder
+        } || 
+      '${String((await fn(pt.arguments[2])).builder).replace(
         /["']/g,
         ''
       )}')::interval${colAlias}`
-    );
+      ),
+    };
   },
-  DATETIME_DIFF: ({ fn, knex, pt, colAlias }: MapFnArgs) => {
-    const datetime_expr1 = fn(pt.arguments[0]);
-    const datetime_expr2 = fn(pt.arguments[1]);
+  DATETIME_DIFF: async ({ fn, knex, pt, colAlias }: MapFnArgs) => {
+    const datetime_expr1 = (await fn(pt.arguments[0])).builder;
+    const datetime_expr2 = (await fn(pt.arguments[1])).builder;
     const rawUnit = pt.arguments[2]
-      ? fn(pt.arguments[2]).bindings[0]
+      ? (await fn(pt.arguments[2])).builder.bindings[0]
       : 'seconds';
     let sql;
     const unit = convertUnits(rawUnit, 'pg');
@@ -99,59 +115,79 @@ const pg = {
       default:
         sql = '';
     }
-    return knex.raw(`${sql} ${colAlias}`);
+    return { builder: knex.raw(`${sql} ${colAlias}`) };
   },
-  WEEKDAY: ({ fn, knex, pt, colAlias }: MapFnArgs) => {
+  WEEKDAY: async ({ fn, knex, pt, colAlias }: MapFnArgs) => {
     // isodow: the day of the week as Monday (1) to Sunday (7)
     // WEEKDAY() returns an index from 0 to 6 for Monday to Sunday
-    return knex.raw(
-      `(EXTRACT(ISODOW FROM ${
-        pt.arguments[0].type === 'Literal'
-          ? `date '${dayjs(fn(pt.arguments[0])).format('YYYY-MM-DD')}'`
-          : fn(pt.arguments[0])
-      }) - 1 - ${getWeekdayByText(
-        pt?.arguments[1]?.value
-      )} % 7 + 7) ::INTEGER % 7 ${colAlias}`
-    );
+    return {
+      builder: knex.raw(
+        `(EXTRACT(ISODOW FROM ${
+          pt.arguments[0].type === 'Literal'
+            ? `date '${dayjs((await fn(pt.arguments[0])).builder).format(
+                'YYYY-MM-DD'
+              )}'`
+            : (await fn(pt.arguments[0])).builder
+        }) - 1 - ${getWeekdayByText(
+          pt?.arguments[1]?.value
+        )} % 7 + 7) ::INTEGER % 7 ${colAlias}`
+      ),
+    };
   },
-  AND: (args: MapFnArgs) => {
-    return args.knex.raw(
-      `CASE WHEN ${args.knex
-        .raw(
-          `${args.pt.arguments
-            .map((ar) => args.fn(ar, '', 'AND').toQuery())
-            .join(' AND ')}`
-        )
-        .wrap('(', ')')
-        .toQuery()} THEN TRUE ELSE FALSE END ${args.colAlias}`
-    );
+  AND: async (args: MapFnArgs) => {
+    return {
+      builder: args.knex.raw(
+        `CASE WHEN ${args.knex
+          .raw(
+            `${(
+              await Promise.all(
+                args.pt.arguments.map(async (ar) =>
+                  (await args.fn(ar, '', 'AND')).builder.toQuery()
+                )
+              )
+            ).join(' AND ')}`
+          )
+          .wrap('(', ')')
+          .toQuery()} THEN TRUE ELSE FALSE END ${args.colAlias}`
+      ),
+    };
   },
-  OR: (args: MapFnArgs) => {
-    return args.knex.raw(
-      `CASE WHEN ${args.knex
-        .raw(
-          `${args.pt.arguments
-            .map((ar) => args.fn(ar, '', 'OR').toQuery())
-            .join(' OR ')}`
-        )
-        .wrap('(', ')')
-        .toQuery()} THEN TRUE ELSE FALSE END ${args.colAlias}`
-    );
+  OR: async (args: MapFnArgs) => {
+    return {
+      builder: args.knex.raw(
+        `CASE WHEN ${args.knex
+          .raw(
+            `${(
+              await Promise.all(
+                args.pt.arguments.map(async (ar) =>
+                  (await args.fn(ar, '', 'OR')).builder.toQuery()
+                )
+              )
+            ).join(' OR ')}`
+          )
+          .wrap('(', ')')
+          .toQuery()} THEN TRUE ELSE FALSE END ${args.colAlias}`
+      ),
+    };
   },
-  SUBSTR: ({ fn, knex, pt, colAlias }: MapFnArgs) => {
-    const str = fn(pt.arguments[0]);
-    const positionFrom = fn(pt.arguments[1] ?? 1);
-    const numberOfCharacters = fn(pt.arguments[2] ?? '');
-    return knex.raw(
-      `SUBSTR(${str}::TEXT, ${positionFrom}${
-        numberOfCharacters ? ', ' + numberOfCharacters : ''
-      })${colAlias}`
-    );
+  SUBSTR: async ({ fn, knex, pt, colAlias }: MapFnArgs) => {
+    const str = (await fn(pt.arguments[0])).builder;
+    const positionFrom = (await fn(pt.arguments[1] ?? 1)).builder;
+    const numberOfCharacters = (await fn(pt.arguments[2] ?? '')).builder;
+    return {
+      builder: knex.raw(
+        `SUBSTR(${str}::TEXT, ${positionFrom}${
+          numberOfCharacters ? ', ' + numberOfCharacters : ''
+        })${colAlias}`
+      ),
+    };
   },
-  MOD: ({ fn, knex, pt, colAlias }: MapFnArgs) => {
-    const x = fn(pt.arguments[0]);
-    const y = fn(pt.arguments[1]);
-    return knex.raw(`MOD((${x})::NUMERIC, (${y})::NUMERIC) ${colAlias}`);
+  MOD: async ({ fn, knex, pt, colAlias }: MapFnArgs) => {
+    const x = (await fn(pt.arguments[0])).builder;
+    const y = (await fn(pt.arguments[1])).builder;
+    return {
+      builder: knex.raw(`MOD((${x})::NUMERIC, (${y})::NUMERIC) ${colAlias}`),
+    };
   },
 };
 

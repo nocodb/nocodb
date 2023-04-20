@@ -23,6 +23,7 @@ export interface AppInfo {
   ncAttachmentFieldSize: number
   ncMaxAttachmentsAllowed: number
   isCloud: boolean
+  automationLogLevel: 'OFF' | 'ERROR' | 'ALL'
 }
 
 export interface StoredState {

@@ -4,7 +4,7 @@ import { PagedResponseImpl } from '../meta/helpers/PagedResponse';
 import ncMetaAclMw from '../meta/helpers/ncMetaAclMw';
 import { metaApiMetrics } from '../meta/helpers/apiMetrics';
 import { hookService } from '../services';
-import type { HookListType, HookType } from 'nocodb-sdk';
+import type { HookListType, HookLogListType, HookType } from 'nocodb-sdk';
 import type { Request, Response } from 'express';
 
 export async function hookList(
@@ -46,29 +46,62 @@ export async function hookUpdate(
 }
 
 export async function hookTest(req: Request<any, any>, res: Response) {
-  await hookService.hookTest({
-    hookTest: req.body,
-    tableId: req.params.tableId,
-  });
-  res.json({ msg: 'The hook has been tested successfully' });
+  try {
+    await hookService.hookTest({
+      hookTest: {
+        ...req.body,
+        payload: {
+          ...req.body.payload,
+          user: (req as any)?.user,
+        },
+      },
+      tableId: req.params.tableId,
+    });
+    res.json({ msg: 'The hook has been tested successfully' });
+  } catch (e) {
+    console.error(e);
+    throw e;
+  }
 }
 
 export async function tableSampleData(req: Request, res: Response) {
   res.json(
     await hookService.tableSampleData({
       tableId: req.params.tableId,
-      // todo: replace any with type
-      operation: req.params.operation as any,
+      operation: req.params.operation as HookType['operation'],
+      version: req.params.version as HookType['version'],
     })
   );
 }
 
+export async function hookLogList(
+  req: Request<any, any, any>,
+  res: Response<HookLogListType>
+) {
+  res.json(
+    new PagedResponseImpl(
+      await hookService.hookLogList({
+        query: req.query,
+        hookId: req.params.hookId,
+      }),
+      {
+        ...req.query,
+        count: await hookService.hookLogCount({
+          hookId: req.params.hookId,
+        }),
+      }
+    )
+  );
+}
+
 const router = Router({ mergeParams: true });
+
 router.get(
   '/api/v1/db/meta/tables/:tableId/hooks',
   metaApiMetrics,
   ncMetaAclMw(hookList, 'hookList')
 );
+
 router.post(
   '/api/v1/db/meta/tables/:tableId/hooks/test',
   metaApiMetrics,
@@ -90,8 +123,15 @@ router.patch(
   ncMetaAclMw(hookUpdate, 'hookUpdate')
 );
 router.get(
-  '/api/v1/db/meta/tables/:tableId/hooks/samplePayload/:operation',
+  '/api/v1/db/meta/tables/:tableId/hooks/samplePayload/:operation/:version',
   metaApiMetrics,
   catchError(tableSampleData)
 );
+
+router.get(
+  '/api/v1/db/meta/hooks/:hookId/logs',
+  metaApiMetrics,
+  ncMetaAclMw(hookLogList, 'hookLogList')
+);
+
 export default router;

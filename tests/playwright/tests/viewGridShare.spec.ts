@@ -34,17 +34,17 @@ test.describe('Shared view', () => {
     await dashboard.grid.toolbar.fields.toggle({ title: 'Address2' });
     // sort
     await dashboard.grid.toolbar.sort.add({
-      columnTitle: 'District',
-      isAscending: false,
-      isLocallySaved: false,
+      title: 'District',
+      ascending: false,
+      locallySaved: false,
     });
     // filter
     await dashboard.grid.toolbar.clickFilter();
     await dashboard.grid.toolbar.filter.add({
-      columnTitle: 'Address',
+      title: 'Address',
       value: 'Ab',
-      opType: 'is like',
-      isLocallySaved: false,
+      operation: 'is like',
+      locallySaved: false,
     });
     await dashboard.grid.toolbar.clickFilter();
 
@@ -90,7 +90,7 @@ test.describe('Shared view', () => {
 
     // verify virtual records
     for (const record of expectedVirtualRecordsByDb) {
-      await sharedPage.grid.cell.verifyVirtualCell(record);
+      await sharedPage.grid.cell.verifyVirtualCell({ ...record, verifyChildList: true });
     }
 
     /**
@@ -103,18 +103,18 @@ test.describe('Shared view', () => {
     // create new sort & filter criteria in shared view
     await sharedPage.grid.toolbar.sort.reset();
     await sharedPage.grid.toolbar.sort.add({
-      columnTitle: 'Address',
-      isAscending: true,
-      isLocallySaved: true,
+      title: 'Address',
+      ascending: true,
+      locallySaved: true,
     });
 
     if (isMysql(context)) {
       await sharedPage.grid.toolbar.clickFilter();
       await sharedPage.grid.toolbar.filter.add({
-        columnTitle: 'District',
+        title: 'District',
         value: 'Ta',
-        opType: 'is like',
-        isLocallySaved: true,
+        operation: 'is like',
+        locallySaved: true,
       });
       await sharedPage.grid.toolbar.clickFilter();
     }
@@ -198,10 +198,10 @@ test.describe('Shared view', () => {
     });
     await sharedPage2.grid.toolbar.clickFilter();
     await sharedPage2.grid.toolbar.filter.add({
-      columnTitle: 'Country',
+      title: 'Country',
       value: 'New Country',
-      opType: 'is like',
-      isLocallySaved: true,
+      operation: 'is like',
+      locallySaved: true,
     });
     await sharedPage2.grid.toolbar.clickFilter();
 

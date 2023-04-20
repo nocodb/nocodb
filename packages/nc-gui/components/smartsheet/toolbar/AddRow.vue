@@ -13,7 +13,6 @@ const onClick = () => {
 <template>
   <a-tooltip placement="bottom">
     <template #title> {{ $t('activity.addRow') }} </template>
-    <IonImageOutline />
     <div
       v-e="['c:row:add:grid-top']"
       :class="{ 'group': !isLocked, 'disabled-ring': isLocked }"
@@ -21,7 +20,7 @@ const onClick = () => {
     >
       <component
         :is="iconMap.plus"
-        :class="{ 'cursor-pointer text-gray-500 group-hover:(text-primary)': !isLocked, 'disabled': isLocked }"
+        :class="{ 'cursor-pointer group-hover:(text-primary)': !isLocked, 'disabled': isLocked }"
         @click="onClick"
       />
     </div>

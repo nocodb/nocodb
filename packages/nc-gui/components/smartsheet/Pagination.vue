@@ -28,10 +28,10 @@ const page = computed({
     <a-pagination
       v-if="count !== Infinity"
       v-model:current="page"
+      v-model:page-size="size"
       size="small"
       class="!text-xs !m-1 nc-pagination"
       :total="count"
-      :page-size="size"
       show-less-items
       :show-size-changer="false"
     />

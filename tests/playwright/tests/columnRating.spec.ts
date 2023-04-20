@@ -22,10 +22,10 @@ test.describe('Rating - cell, filter, sort', () => {
   async function verifyFilter(param: { opType: string; value?: string; result: string[] }) {
     await toolbar.clickFilter();
     await toolbar.filter.add({
-      columnTitle: 'rating',
-      opType: param.opType,
+      title: 'rating',
+      operation: param.opType,
       value: param.value,
-      isLocallySaved: false,
+      locallySaved: false,
       dataType: 'Rating',
     });
     await toolbar.clickFilter();
@@ -88,18 +88,18 @@ test.describe('Rating - cell, filter, sort', () => {
 
     // Sort column
     await toolbar.sort.add({
-      columnTitle: 'rating',
-      isAscending: true,
-      isLocallySaved: false,
+      title: 'rating',
+      ascending: true,
+      locallySaved: false,
     });
     await validateRowArray(['1b', '1d', '1e', '1f', '1c', '1a']);
     await toolbar.sort.reset();
 
     // sort descending & validate
     await toolbar.sort.add({
-      columnTitle: 'rating',
-      isAscending: false,
-      isLocallySaved: false,
+      title: 'rating',
+      ascending: false,
+      locallySaved: false,
     });
     await validateRowArray(['1a', '1c', '1f', '1b', '1d', '1e']);
     await toolbar.sort.reset();

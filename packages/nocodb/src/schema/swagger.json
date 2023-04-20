@@ -5934,6 +5934,92 @@
         ]
       }
     },
+    "/api/v1/db/meta/hooks/{hookId}/logs": {
+      "parameters": [
+        {
+          "schema": {
+            "$ref": "#/components/schemas/Id",
+            "example": "hk_0063k4o1frnxbr"
+          },
+          "name": "hookId",
+          "in": "path",
+          "required": true,
+          "description": "Unique Hook ID"
+        }
+      ],
+      "get": {
+        "summary": "List Hook Logs",
+        "operationId": "db-table-webhook-logs-list",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HookLogList"
+                },
+                "examples": {
+                  "Example 1": {
+                    "value": {
+                      "list": [
+                        {
+                          "base_id": "ds_jxuewivwbxeum2",
+                          "event": "after",
+                          "execution_time": "98",
+                          "fk_hook_id": "hk_035ijv5qdi97y5",
+                          "id": "string",
+                          "notifications": "{\"type\":\"URL\",\"payload\":{\"method\":\"POST\",\"body\":\"{{ json data }}\",\"headers\":[{}],\"parameters\":[{}],\"auth\":\"\",\"path\":\"https://webhook.site/6eb45ce5-b611-4be1-8b96-c2965755662b\"}}",
+                          "operation": "insert",
+                          "payload": "{\"method\":\"POST\",\"body\":\"{{ json data }}\",\"headers\":[{}],\"parameters\":[{}],\"auth\":\"\",\"path\":\"https://webhook.site/6eb45ce5-b611-4be1-8b96-c2965755662b\"}",
+                          "project_id": "p_tbhl1hnycvhe5l",
+                          "response": "{\"status\":200,\"statusText\":\"OK\",\"headers\":{\"server\":\"nginx\",\"content-type\":\"text/plain; charset=UTF-8\",\"transfer-encoding\":\"chunked\",\"connection\":\"close\",\"vary\":\"Accept-Encoding\",\"x-request-id\":\"53844a7d-ede8-4798-adf7-8af441908a72\",\"x-token-id\":\"6eb45ce5-b611-4be1-8b96-c2965755662b\",\"cache-control\":\"no-cache, private\",\"date\":\"Fri, 24 Mar 2023 10:50:10 GMT\"},\"config\":{\"url\":\"https://webhook.site/6eb45ce5-b611-4be1-8b96-c2965755662b\",\"method\":\"post\",\"data\":\"{\\\"type\\\":\\\"records.after.insert\\\",\\\"id\\\":\\\"a77d97dc-a3e4-4719-9b46-45f93e0cc99a\\\",\\\"data\\\":{\\\"table_id\\\":\\\"md_d8v403o74mf5lf\\\",\\\"table_name\\\":\\\"Sheet-2\\\"}}\",\"headers\":{\"Accept\":\"application/json, text/plain, */*\",\"Content-Type\":\"application/x-www-form-urlencoded\",\"User-Agent\":\"axios/0.21.4\",\"Content-Length\":138},\"params\":{}}}",
+                          "test_call": 0,
+                          "triggered_by": "w@nocodb.com",
+                          "type": "URL"
+                        }
+                      ],
+                      "pageInfo": {
+                        "isFirstPage": true,
+                        "isLastPage": true,
+                        "page": 1,
+                        "pageSize": 10,
+                        "totalRows": 1
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          }
+        },
+        "tags": ["DB Table Webhook Logs"],
+        "description": "List the log data in a given Hook",
+        "parameters": [
+          {
+            "schema": {
+              "type": "integer",
+              "minimum": 1
+            },
+            "in": "query",
+            "name": "limit"
+          },
+          {
+            "schema": {
+              "type": "integer",
+              "minimum": 0
+            },
+            "in": "query",
+            "name": "offset"
+          },
+          {
+            "$ref": "#/components/parameters/xc-auth"
+          }
+        ]
+      }
+    },
     "/api/v1/db/meta/filters/{filterId}": {
       "parameters": [
         {
@@ -10800,20 +10886,7 @@
         },
         "requestBody": {
           "content": {
-            "application/json": {
-              "schema": {
-                "type": "object",
-                "description": "Data Object where the key is column and the value is the data value"
-              },
-              "examples": {
-                "Example 1": {
-                  "value": {
-                    "col1": "foo",
-                    "col2": "bar"
-                  }
-                }
-              }
-            }
+            "multipart/form-data": {}
           },
           "description": ""
         },
@@ -12060,7 +12133,7 @@
         ]
       }
     },
-    "/api/v1/db/meta/tables/{tableId}/hooks/samplePayload/{operation}": {
+    "/api/v1/db/meta/tables/{tableId}/hooks/samplePayload/{operation}/{version}": {
       "parameters": [
         {
           "schema": {
@@ -12076,11 +12149,29 @@
         {
           "schema": {
             "type": "string",
-            "enum": ["update", "delete", "insert"]
+            "enum": [
+              "insert",
+              "update",
+              "delete",
+              "bulkInsert",
+              "bulkUpdate",
+              "bulkDelete"
+            ]
           },
           "name": "operation",
           "in": "path",
-          "required": true
+          "required": true,
+          "description": "Hook Operation"
+        },
+        {
+          "schema": {
+            "type": "string",
+            "enum": ["v1", "v2"]
+          },
+          "name": "version",
+          "in": "path",
+          "required": true,
+          "description": "Hook Version"
         }
       ],
       "get": {
@@ -12803,6 +12894,14 @@
                       "x-stoplight": {
                         "id": "bstdkpky2131f"
                       }
+                    },
+                    "automationLogLevel": {
+                      "type": "string",
+                      "x-stoplight": {
+                        "id": "uc3vaotye2eu8"
+                      },
+                      "enum": ["OFF", "ERROR", "ALL"],
+                      "example": "OFF"
                     }
                   }
                 },
@@ -12826,7 +12925,8 @@
                       "ee": false,
                       "ncAttachmentFieldSize": 20971520,
                       "ncMaxAttachmentsAllowed": 10,
-                      "isCloud": false
+                      "isCloud": false,
+                      "automationLogLevel": "OFF"
                     }
                   }
                 }
@@ -13646,7 +13746,7 @@
           }
         },
         "x-stoplight": {
-          "id": "zc9ztw0ih4ttt"
+          "id": "95rfb0httdmw0"
         }
       },
       "ApiTokenReq": {
@@ -13667,13 +13767,13 @@
           }
         },
         "x-stoplight": {
-          "id": "t9dpbaw4dhpx3"
+          "id": "h3g2houpa6y9y"
         }
       },
       "ApiTokenList": {
         "description": "Model for API Token List",
         "x-stoplight": {
-          "id": "dgoo5jfkvypld"
+          "id": "35b7cvjplxmfm"
         },
         "examples": [
           {
@@ -13778,7 +13878,7 @@
           }
         },
         "x-stoplight": {
-          "id": "9uff8of377ouf"
+          "id": "pbx8hqgwdz7lw"
         }
       },
       "AttachmentReq": {
@@ -13816,7 +13916,7 @@
           }
         },
         "x-stoplight": {
-          "id": "7mvkmys63d0bx"
+          "id": "jmahtr8c5rw7f"
         }
       },
       "Audit": {
@@ -13907,13 +14007,11 @@
               "LINK_RECORD",
               "UNLINK_RECORD",
               "DELETE",
-              "CREATED",
-              "DELETED",
-              "RENAMED",
+              "CREATE",
+              "RENAME",
               "IMPORT_FROM_ZIP",
               "EXPORT_TO_FS",
               "EXPORT_TO_ZIP",
-              "UPDATED",
               "SIGNIN",
               "SIGNUP",
               "PASSWORD_RESET",
@@ -13941,7 +14039,7 @@
           }
         },
         "x-stoplight": {
-          "id": "dz9hjvx07jaje"
+          "id": "i5ug0n7j1wub8"
         }
       },
       "AuditRowUpdateReq": {
@@ -13981,7 +14079,7 @@
           }
         },
         "x-stoplight": {
-          "id": "t4l2bqjgukcr1"
+          "id": "jcw57b1yv3xog"
         }
       },
       "Base": {
@@ -14058,7 +14156,7 @@
           }
         },
         "x-stoplight": {
-          "id": "l5nhyvoa0dfag"
+          "id": "9hy3cgp0r2c95"
         }
       },
       "BaseList": {
@@ -14160,7 +14258,7 @@
         },
         "required": ["list", "pageInfo"],
         "x-stoplight": {
-          "id": "pn96b18y3k0je"
+          "id": "kk8uqxeefumma"
         }
       },
       "BaseReq": {
@@ -14216,7 +14314,7 @@
         "title": "Base Request",
         "type": "object",
         "x-stoplight": {
-          "id": "gebxq2b5pp1a3"
+          "id": "j2z6ain3204zi"
         }
       },
       "Bool": {
@@ -14238,7 +14336,7 @@
         ],
         "title": "Bool Model",
         "x-stoplight": {
-          "id": "6qmxbfclxa8em"
+          "id": "8n3vnyr22sbvj"
         }
       },
       "Column": {
@@ -14526,7 +14624,7 @@
           }
         },
         "x-stoplight": {
-          "id": "0nszsk1q6done"
+          "id": "3a4lsn477mx4e"
         }
       },
       "ColumnList": {
@@ -14634,7 +14732,7 @@
         },
         "required": ["list", "pageInfo"],
         "x-stoplight": {
-          "id": "fjqsqgw1ahlon"
+          "id": "rldg44w1alasg"
         }
       },
       "ColumnReq": {
@@ -14726,7 +14824,7 @@
         "title": "Column Request Model",
         "type": "object",
         "x-stoplight": {
-          "id": "fw6an7vvhpqfu"
+          "id": "dvbn9dnme6jgi"
         }
       },
       "CommentReq": {
@@ -14759,13 +14857,13 @@
         },
         "required": ["fk_model_id", "row_id"],
         "x-stoplight": {
-          "id": "k7vnf7oc33p6m"
+          "id": "7nwlyinuliuvy"
         }
       },
       "CommentUpdateReq": {
         "description": "Model for Comment Update Request",
         "x-stoplight": {
-          "id": "wan84coiq9lyn"
+          "id": "r0f3ng2rahe38"
         },
         "examples": [
           {
@@ -14938,7 +15036,7 @@
         "title": "Filter Model",
         "type": "object",
         "x-stoplight": {
-          "id": "goytqs4ua69w0"
+          "id": "f8vsb8alix01i"
         }
       },
       "FilterList": {
@@ -15027,8 +15125,97 @@
         },
         "required": ["list", "pageInfo"],
         "x-stoplight": {
-          "id": "wzp2nwu7k19uj"
+          "id": "mfxg43iomcoue"
         }
+      },
+      "FilterLogList": {
+        "description": "Model for Filter Log List",
+        "x-stoplight": {
+          "id": "0voe9zdizy5qd"
+        },
+        "examples": [
+          {
+            "list": [
+              {
+                "base_id": "ds_g4ccx6e77h1dmi",
+                "comparison_op": "eq",
+                "comparison_sub_op": null,
+                "created_at": "2023-03-02 18:18:05",
+                "fk_column_id": "cl_d7ah9n2qfupgys",
+                "fk_hook_id": null,
+                "fk_parent_id": null,
+                "fk_view_id": "vw_b739e29vqmrxnf",
+                "id": "fi_xn647tpmdq8fu8",
+                "is_group": null,
+                "logical_op": "and",
+                "order": 1,
+                "project_id": "p_xm3thidrblw4n7",
+                "updated_at": "2023-03-02 18:18:05",
+                "value": "foo"
+              }
+            ],
+            "pageInfo": {
+              "isFirstPage": true,
+              "isLastPage": true,
+              "page": 1,
+              "pageSize": 10,
+              "totalRows": 1
+            }
+          }
+        ],
+        "title": "Filter Log List Model",
+        "type": "object",
+        "x-examples": {
+          "example-1": {
+            "bases": {
+              "list": [
+                {
+                  "alias": "string",
+                  "database": "string",
+                  "host": "string",
+                  "id": "string",
+                  "params": "string",
+                  "password": "string",
+                  "port": 0,
+                  "project_id": "string",
+                  "ssl": "string",
+                  "type": "string",
+                  "url": "string",
+                  "username": "string"
+                }
+              ],
+              "pageInfo": {
+                "isFirstPage": true,
+                "isLastPage": true,
+                "pageSize": 0,
+                "sort": "string",
+                "totalRows": 0
+              }
+            }
+          }
+        },
+        "properties": {
+          "list": {
+            "type": "array",
+            "x-stoplight": {
+              "id": "22sgv37ve9kxo"
+            },
+            "description": "List of filter objects",
+            "items": {
+              "$ref": "#/components/schemas/Filter",
+              "x-stoplight": {
+                "id": "ttw5rxhy83k8p"
+              }
+            }
+          },
+          "pageInfo": {
+            "$ref": "#/components/schemas/Paginated",
+            "x-stoplight": {
+              "id": "7cyrb1770mrzz"
+            }
+          }
+        },
+        "required": ["list", "pageInfo"]
       },
       "FilterReq": {
         "description": "Model for Filter Request",
@@ -15045,7 +15232,7 @@
         "title": "Filter Request Model",
         "type": "object",
         "x-stoplight": {
-          "id": "viq9ex4d7k8k2"
+          "id": "pugjn1hobswqf"
         },
         "properties": {
           "comparison_op": {
@@ -15266,7 +15453,7 @@
           }
         },
         "x-stoplight": {
-          "id": "bjh5qbmqyzy1k"
+          "id": "918aga51qb7w1"
         }
       },
       "FormUpdateReq": {
@@ -15337,7 +15524,7 @@
           }
         },
         "x-stoplight": {
-          "id": "76m5jsz93rjsc"
+          "id": "zn4juts75pksq"
         }
       },
       "FormColumn": {
@@ -15431,7 +15618,7 @@
           }
         },
         "x-stoplight": {
-          "id": "liiv7vd1hgeqf"
+          "id": "gm46pinkspvrz"
         }
       },
       "FormColumnReq": {
@@ -15498,7 +15685,7 @@
           }
         },
         "x-stoplight": {
-          "id": "21k1kvmq14s9a"
+          "id": "nmffmb1p3wkg9"
         }
       },
       "Formula": {
@@ -15539,7 +15726,7 @@
           }
         },
         "x-stoplight": {
-          "id": "8ahp8va0147v1"
+          "id": "hlu7yokpavxwb"
         }
       },
       "FormulaColumnReq": {
@@ -15576,7 +15763,7 @@
           }
         },
         "x-stoplight": {
-          "id": "s3c9yjip3dank"
+          "id": "v26r0c9hlimtv"
         }
       },
       "Gallery": {
@@ -15629,7 +15816,7 @@
             "$ref": "#/components/schemas/Bool"
           },
           "fk_cover_image_col_id": {
-            "type": "string",
+            "$ref": "#/components/schemas/StringOrNull",
             "description": "Foreign Key to Cover Image Column"
           },
           "fk_model_id": {
@@ -15670,7 +15857,7 @@
         "title": "Gallery Model",
         "type": "object",
         "x-stoplight": {
-          "id": "e1o8q9fieshbc"
+          "id": "i0h7av37o4eks"
         }
       },
       "GalleryColumn": {
@@ -15705,13 +15892,13 @@
         "title": "Gallery Column Model",
         "type": "object",
         "x-stoplight": {
-          "id": "llcstnvsjdgz0"
+          "id": "jdhvl7gb33fqo"
         }
       },
       "GalleryUpdateReq": {
         "description": "Model for Gallery View Update Request",
         "x-stoplight": {
-          "id": "5cxhum5vh2nr2"
+          "id": "x57k1fq4101e1"
         },
         "examples": [
           {
@@ -15764,7 +15951,7 @@
         "title": "Geo Location Model",
         "type": "object",
         "x-stoplight": {
-          "id": "hwuzujovr9qwx"
+          "id": "685e1l91iuxhv"
         }
       },
       "Grid": {
@@ -15874,7 +16061,117 @@
           }
         },
         "x-stoplight": {
-          "id": "xntep33dod0ys"
+          "id": "1xswddf91q5pu"
+        }
+      },
+      "Grid - copy": {
+        "description": "Model for Grid",
+        "x-stoplight": {
+          "id": "xheueli0578g0"
+        },
+        "examples": [
+          {
+            "project_id": "p_xm3thidrblw4n7",
+            "base_id": "ds_g4ccx6e77h1dmi",
+            "fk_view_id": "vw_p2jcatxz4mvcfw",
+            "row_height": 1,
+            "meta": null,
+            "columns": [
+              {
+                "id": "cl_phvuuwjrzcdo0g",
+                "base_id": "ds_g4ccx6e77h1dmi",
+                "project_id": "p_xm3thidrblw4n7",
+                "fk_model_id": "md_rsu68aqjsbyqtl",
+                "title": "Id",
+                "column_name": "id",
+                "uidt": "ID",
+                "dt": "int",
+                "np": "10",
+                "ns": "0",
+                "clen": null,
+                "cop": "1",
+                "pk": 1,
+                "pv": null,
+                "rqd": 1,
+                "un": 1,
+                "ct": "int unsigned",
+                "ai": 1,
+                "unique": 0,
+                "cdf": null,
+                "cc": "",
+                "csn": null,
+                "dtx": "specificType",
+                "dtxp": "",
+                "dtxs": "0",
+                "au": 0,
+                "validate": null,
+                "virtual": null,
+                "deleted": null,
+                "system": 0,
+                "order": 1,
+                "created_at": "2023-03-02 17:04:06",
+                "updated_at": "2023-03-02 17:04:06",
+                "meta": null
+              }
+            ]
+          }
+        ],
+        "title": "Grid Model",
+        "type": "object",
+        "properties": {
+          "id": {
+            "$ref": "#/components/schemas/Id",
+            "description": "Unique ID",
+            "x-stoplight": {
+              "id": "e3ti3fc0ocjyu"
+            }
+          },
+          "project_id": {
+            "$ref": "#/components/schemas/Id",
+            "description": "Project ID",
+            "x-stoplight": {
+              "id": "e3ti3fc0ocjyu"
+            }
+          },
+          "base_id": {
+            "$ref": "#/components/schemas/Id",
+            "description": "Base ID",
+            "x-stoplight": {
+              "id": "m8v3iyf1tidy9"
+            }
+          },
+          "fk_view_id": {
+            "$ref": "#/components/schemas/Id",
+            "description": "Foreign Key to View",
+            "x-stoplight": {
+              "id": "m8v3iyf1tidy9"
+            }
+          },
+          "row_height": {
+            "type": "number",
+            "example": 1,
+            "description": "Row Height"
+          },
+          "meta": {
+            "$ref": "#/components/schemas/Meta",
+            "x-stoplight": {
+              "id": "n8cud3jyqw5yv"
+            },
+            "description": "Meta info for Grid Model"
+          },
+          "columns": {
+            "type": "array",
+            "x-stoplight": {
+              "id": "22y0gipx2jdf8"
+            },
+            "description": "Grid View Columns",
+            "items": {
+              "$ref": "#/components/schemas/GridColumn",
+              "x-stoplight": {
+                "id": "nmzp6w3o6b24u"
+              }
+            }
+          }
         }
       },
       "GridColumn": {
@@ -15958,7 +16255,7 @@
           }
         },
         "x-stoplight": {
-          "id": "2go3w0igl2243"
+          "id": "g06nri6t6h6ke"
         }
       },
       "GridColumnReq": {
@@ -15996,13 +16293,13 @@
         "title": "Grid Column Request Model",
         "type": "object",
         "x-stoplight": {
-          "id": "2j3uyoabzmsrz"
+          "id": "8v9cxve0332zg"
         }
       },
       "GridUpdateReq": {
         "description": "Model for Grid View Update",
         "x-stoplight": {
-          "id": "2q9ya4zmyr5x7"
+          "id": "g10t5gray4bk5"
         },
         "examples": [
           {
@@ -16052,6 +16349,9 @@
         ],
         "title": "Hook Model",
         "type": "object",
+        "x-stoplight": {
+          "id": "32blg2oqo6g7p"
+        },
         "properties": {
           "active": {
             "$ref": "#/components/schemas/Bool",
@@ -16091,7 +16391,14 @@
             "type": ["object", "string"]
           },
           "operation": {
-            "enum": ["delete", "insert", "update"],
+            "enum": [
+              "insert",
+              "update",
+              "delete",
+              "bulkInsert",
+              "bulkUpdate",
+              "bulkDelete"
+            ],
             "type": "string",
             "description": "Hook Operation",
             "example": "insert"
@@ -16119,16 +16426,22 @@
           "type": {
             "type": "string",
             "description": "Hook Type"
+          },
+          "version": {
+            "type": "string",
+            "x-stoplight": {
+              "id": "socewqvadj91n"
+            },
+            "example": "v2",
+            "description": "Hook Version",
+            "enum": ["v1", "v2"]
           }
-        },
-        "x-stoplight": {
-          "id": "q8cxkpronjmyx"
         }
       },
       "HookReq": {
         "description": "Model for Hook",
         "x-stoplight": {
-          "id": "4zlzrppfjxrqb"
+          "id": "85vr8fx3oea31"
         },
         "examples": [
           {
@@ -16189,7 +16502,14 @@
             "type": ["object", "string"]
           },
           "operation": {
-            "enum": ["delete", "insert", "update"],
+            "enum": [
+              "insert",
+              "update",
+              "delete",
+              "bulkInsert",
+              "bulkUpdate",
+              "bulkDelete"
+            ],
             "type": "string",
             "description": "Hook Operation",
             "example": "insert"
@@ -16306,89 +16626,172 @@
         },
         "required": ["list", "pageInfo"],
         "x-stoplight": {
-          "id": "2tsq8h6hjctju"
+          "id": "n2sbatqu55day"
         }
       },
       "HookLog": {
         "description": "Model for Hook Log",
         "examples": [
           {
-            "base_id": "string",
-            "conditions": "string",
-            "error": "string",
-            "error_code": "string",
-            "error_message": "string",
-            "event": "string",
-            "execution_time": "string",
-            "fk_hook_id": "string",
+            "base_id": "ds_jxuewivwbxeum2",
+            "event": "after",
+            "execution_time": "98",
+            "fk_hook_id": "hk_035ijv5qdi97y5",
             "id": "string",
-            "notifications": "string",
-            "operation": "string",
-            "payload": null,
-            "project_id": "string",
-            "response": "string",
-            "test_call": true,
-            "triggered_by": "string",
-            "type": "string"
+            "notifications": "{\"type\":\"URL\",\"payload\":{\"method\":\"POST\",\"body\":\"{{ json data }}\",\"headers\":[{}],\"parameters\":[{}],\"auth\":\"\",\"path\":\"https://webhook.site/6eb45ce5-b611-4be1-8b96-c2965755662b\"}}",
+            "operation": "insert",
+            "payload": "{\"method\":\"POST\",\"body\":\"{{ json data }}\",\"headers\":[{}],\"parameters\":[{}],\"auth\":\"\",\"path\":\"https://webhook.site/6eb45ce5-b611-4be1-8b96-c2965755662b\"}",
+            "project_id": "p_tbhl1hnycvhe5l",
+            "response": "{\"status\":200,\"statusText\":\"OK\",\"headers\":{\"server\":\"nginx\",\"content-type\":\"text/plain; charset=UTF-8\",\"transfer-encoding\":\"chunked\",\"connection\":\"close\",\"vary\":\"Accept-Encoding\",\"x-request-id\":\"53844a7d-ede8-4798-adf7-8af441908a72\",\"x-token-id\":\"6eb45ce5-b611-4be1-8b96-c2965755662b\",\"cache-control\":\"no-cache, private\",\"date\":\"Fri, 24 Mar 2023 10:50:10 GMT\"},\"config\":{\"url\":\"https://webhook.site/6eb45ce5-b611-4be1-8b96-c2965755662b\",\"method\":\"post\",\"data\":\"{\\\"type\\\":\\\"records.after.insert\\\",\\\"id\\\":\\\"a77d97dc-a3e4-4719-9b46-45f93e0cc99a\\\",\\\"data\\\":{\\\"table_id\\\":\\\"md_d8v403o74mf5lf\\\",\\\"table_name\\\":\\\"Sheet-2\\\"}}\",\"headers\":{\"Accept\":\"application/json, text/plain, */*\",\"Content-Type\":\"application/x-www-form-urlencoded\",\"User-Agent\":\"axios/0.21.4\",\"Content-Length\":138},\"params\":{}}}",
+            "test_call": 0,
+            "triggered_by": "w@nocodb.com",
+            "type": "URL"
           }
         ],
         "title": "Hook Log Model",
         "type": "object",
+        "x-stoplight": {
+          "id": "ni303795b18y5"
+        },
         "properties": {
           "base_id": {
-            "type": "string"
+            "type": "string",
+            "description": "Unique Base ID",
+            "example": "ds_jxuewivwbxeum2"
           },
           "conditions": {
-            "type": "string"
+            "type": "string",
+            "description": "Hook Conditions"
           },
           "error": {
-            "type": "string"
+            "$ref": "#/components/schemas/StringOrNull",
+            "description": "Error"
           },
           "error_code": {
-            "type": "string"
+            "$ref": "#/components/schemas/StringOrNull",
+            "description": "Error Code"
           },
           "error_message": {
-            "type": "string"
+            "$ref": "#/components/schemas/StringOrNull",
+            "description": "Error Message"
           },
           "event": {
-            "type": "string"
+            "type": "string",
+            "description": "Hook Event",
+            "example": "after",
+            "enum": ["after", "before"]
           },
           "execution_time": {
-            "type": "string"
+            "type": "string",
+            "description": "Execution Time in milliseconds",
+            "example": "98"
           },
           "fk_hook_id": {
-            "$ref": "#/components/schemas/StringOrNull"
+            "$ref": "#/components/schemas/StringOrNull",
+            "description": "Foreign Key to Hook"
           },
           "id": {
-            "$ref": "#/components/schemas/Id",
+            "$ref": "#/components/schemas/StringOrNull",
             "description": "Unique ID"
           },
           "notifications": {
-            "type": "string"
+            "type": "string",
+            "description": "Hook Notification"
           },
           "operation": {
-            "type": "string"
+            "type": "string",
+            "description": "Hook Operation",
+            "enum": [
+              "insert",
+              "update",
+              "delete",
+              "bulkInsert",
+              "bulkUpdate",
+              "bulkDelete"
+            ],
+            "example": "insert"
           },
-          "payload": {},
+          "payload": {
+            "type": "string",
+            "description": "Hook Payload",
+            "example": "{\"method\":\"POST\",\"body\":\"{{ json data }}\",\"headers\":[{}],\"parameters\":[{}],\"auth\":\"\",\"path\":\"https://webhook.site/6eb45ce5-b611-4be1-8b96-c2965755662b\"}"
+          },
           "project_id": {
-            "type": "string"
+            "type": "string",
+            "description": "Project ID",
+            "example": "p_tbhl1hnycvhe5l"
           },
           "response": {
-            "type": "string"
+            "$ref": "#/components/schemas/StringOrNull",
+            "description": "Hook Response"
           },
           "test_call": {
-            "$ref": "#/components/schemas/Bool"
+            "$ref": "#/components/schemas/Bool",
+            "description": "Is this testing hook call?"
           },
           "triggered_by": {
-            "type": "string"
+            "$ref": "#/components/schemas/StringOrNull",
+            "description": "Who triggered the hook?"
           },
           "type": {
-            "type": "string"
+            "type": "string",
+            "example": "URL",
+            "description": "Hook Type"
+          }
+        }
+      },
+      "HookLogList": {
+        "description": "Model for Hook Log List",
+        "x-stoplight": {
+          "id": "tfv7y629w2ap2"
+        },
+        "examples": [],
+        "title": "Hook Log List Model",
+        "type": "object",
+        "x-examples": {
+          "example-1": {
+            "bases": {
+              "list": [
+                {
+                  "alias": "string",
+                  "database": "string",
+                  "host": "string",
+                  "id": "string",
+                  "params": "string",
+                  "password": "string",
+                  "port": 0,
+                  "project_id": "string",
+                  "ssl": "string",
+                  "type": "string",
+                  "url": "string",
+                  "username": "string"
+                }
+              ],
+              "pageInfo": {
+                "isFirstPage": true,
+                "isLastPage": true,
+                "pageSize": 0,
+                "sort": "string",
+                "totalRows": 0
+              }
+            }
           }
         },
-        "x-stoplight": {
-          "id": "t3hlkw7zdqpom"
-        }
+        "properties": {
+          "list": {
+            "minItems": 1,
+            "type": "array",
+            "uniqueItems": true,
+            "description": "List of hook objects",
+            "items": {
+              "$ref": "#/components/schemas/HookLog"
+            }
+          },
+          "pageInfo": {
+            "$ref": "#/components/schemas/Paginated"
+          }
+        },
+        "required": ["list", "pageInfo"]
       },
       "HookTestReq": {
         "description": "Model for Hook Test Request",
@@ -16441,7 +16844,7 @@
         },
         "required": ["hook", "payload"],
         "x-stoplight": {
-          "id": "p2t60nmuy6x26"
+          "id": "w64q11jiv01np"
         }
       },
       "Id": {
@@ -16452,7 +16855,7 @@
         "title": "ID Model",
         "type": "string",
         "x-stoplight": {
-          "id": "srvzhcm5j7d65"
+          "id": "obj8r7jhyfoqg"
         }
       },
       "Kanban": {
@@ -16498,7 +16901,7 @@
             "description": "View ID"
           },
           "fk_cover_image_col_id": {
-            "$ref": "#/components/schemas/Id",
+            "$ref": "#/components/schemas/StringOrNull",
             "description": "Cover Image Column ID"
           },
           "columns": {
@@ -16519,7 +16922,7 @@
           }
         },
         "x-stoplight": {
-          "id": "1jq82nu2uugxr"
+          "id": "sfbbvgbcv7je6"
         }
       },
       "KanbanColumn": {
@@ -16592,7 +16995,7 @@
           }
         },
         "x-stoplight": {
-          "id": "ipigcz5c7b5qy"
+          "id": "epfedw9ccxgxe"
         }
       },
       "KanbanUpdateReq": {
@@ -16669,7 +17072,7 @@
           }
         },
         "x-stoplight": {
-          "id": "ufp4dyqfvlk6a"
+          "id": "b1jlyk12kfuwx"
         }
       },
       "LicenseReq": {
@@ -16691,7 +17094,7 @@
         "title": "License Key Request Model",
         "type": "object",
         "x-stoplight": {
-          "id": "2hys6jqfbam2w"
+          "id": "trgk6qlmgdyfo"
         }
       },
       "LinkToAnotherColumnReq": {
@@ -16740,7 +17143,7 @@
         "title": "LinkToAnotherColumn Request Model",
         "type": "object",
         "x-stoplight": {
-          "id": "nx1h0s2wseid0"
+          "id": "x59gz5reg12x3"
         }
       },
       "LinkToAnotherRecord": {
@@ -16816,7 +17219,7 @@
         "title": "LinkToAnotherRecord Model",
         "type": "object",
         "x-stoplight": {
-          "id": "845623nb0zp0w"
+          "id": "27q0vnr79hxla"
         }
       },
       "Lookup": {
@@ -16856,7 +17259,7 @@
           }
         },
         "x-stoplight": {
-          "id": "22i9gmsgqt79n"
+          "id": "guyozhka8sx1t"
         }
       },
       "LookupColumnReq": {
@@ -16893,7 +17296,7 @@
           }
         },
         "x-stoplight": {
-          "id": "dhmss9g7ljbw7"
+          "id": "hmeckhq2ciwpf"
         }
       },
       "Map": {
@@ -16970,13 +17373,13 @@
         "title": "Map Model",
         "type": "object",
         "x-stoplight": {
-          "id": "2gkbn859ho3ct"
+          "id": "hd60sf3k0bs3w"
         }
       },
       "MapUpdateReq": {
         "description": "Model for Map",
         "x-stoplight": {
-          "id": "u7xywz40dryws"
+          "id": "3hceyh9ukp5ln"
         },
         "examples": [
           {
@@ -17051,7 +17454,7 @@
         "title": "Map Column Model",
         "type": "object",
         "x-stoplight": {
-          "id": "ftaul6uruvc4z"
+          "id": "bvk0acuepoqw1"
         }
       },
       "Meta": {
@@ -17070,7 +17473,7 @@
         ],
         "title": "Meta Model",
         "x-stoplight": {
-          "id": "pqxyr0shwtrp5"
+          "id": "2ohjoms6hjcym"
         }
       },
       "ModelRoleVisibility": {
@@ -17113,7 +17516,7 @@
         "title": "ModelRoleVisibility Model",
         "type": "object",
         "x-stoplight": {
-          "id": "d3j1x4pulo4ng"
+          "id": "68m1dblcswem2"
         }
       },
       "NormalColumnRequest": {
@@ -17292,7 +17695,7 @@
         "type": "object",
         "required": ["column_name"],
         "x-stoplight": {
-          "id": "uzaqliigop3nw"
+          "id": "b67hswwa49t9u"
         }
       },
       "OrgUserReq": {
@@ -17317,7 +17720,7 @@
         "title": "Organisation User Request Model",
         "type": "object",
         "x-stoplight": {
-          "id": "pk8a8itnqcis1"
+          "id": "hs5aforkqjbkb"
         }
       },
       "Paginated": {
@@ -17359,7 +17762,7 @@
         "title": "Paginated Model",
         "type": "object",
         "x-stoplight": {
-          "id": "a5zhehpll01cm"
+          "id": "ny0v2losvmitz"
         }
       },
       "Password": {
@@ -17370,7 +17773,7 @@
         "title": "Password Model",
         "type": "string",
         "x-stoplight": {
-          "id": "mleq9lljoh76x"
+          "id": "c6iocwuo2j8z8"
         }
       },
       "PasswordChangeReq": {
@@ -17394,7 +17797,7 @@
         "title": "Password Change Request Model",
         "type": "object",
         "x-stoplight": {
-          "id": "8a21c5za82w87"
+          "id": "99dogahvh0gla"
         }
       },
       "PasswordForgotReq": {
@@ -17415,7 +17818,7 @@
         "title": "Password Forgot Request Model",
         "type": "object",
         "x-stoplight": {
-          "id": "ggt9lpf2gz2va"
+          "id": "1kkft7m54ax45"
         }
       },
       "PasswordResetReq": {
@@ -17437,7 +17840,7 @@
         "title": "Password Reset Request Model",
         "type": "object",
         "x-stoplight": {
-          "id": "f63x3tpb8ti9r"
+          "id": "i3gzz403zjwh8"
         }
       },
       "Plugin": {
@@ -17554,7 +17957,7 @@
           }
         },
         "x-stoplight": {
-          "id": "0atoct4o6csg1"
+          "id": "uux5n95kbh2r5"
         }
       },
       "PluginReq": {
@@ -17578,7 +17981,7 @@
           }
         },
         "x-stoplight": {
-          "id": "w6jwfvgpbhmt0"
+          "id": "pci8zg4wgn3bx"
         }
       },
       "PluginTestReq": {
@@ -17620,7 +18023,7 @@
         },
         "required": ["title", "input", "category"],
         "x-stoplight": {
-          "id": "yye6yekmme06k"
+          "id": "gest5kbecpjdi"
         }
       },
       "Project": {
@@ -17710,7 +18113,7 @@
           }
         },
         "x-stoplight": {
-          "id": "xzqakuahxm8d1"
+          "id": "gae6rj3whdnj9"
         }
       },
       "ProjectList": {
@@ -17806,7 +18209,7 @@
         },
         "required": ["list", "pageInfo"],
         "x-stoplight": {
-          "id": "rb5o2yaf8ue64"
+          "id": "xbosckfm1h9l0"
         }
       },
       "ProjectReq": {
@@ -17859,13 +18262,13 @@
         "title": "Project Request Model",
         "type": "object",
         "x-stoplight": {
-          "id": "km2fj1ebsroys"
+          "id": "aicbp4keo57ld"
         }
       },
       "ProjectUpdateReq": {
         "description": "Model for Project Update Request",
         "x-stoplight": {
-          "id": "ou8zri28ak9yl"
+          "id": "83257b35r118q"
         },
         "examples": [
           {
@@ -17930,7 +18333,7 @@
         },
         "required": ["email", "roles"],
         "x-stoplight": {
-          "id": "9pgemwq7iirkp"
+          "id": "tq2wpd2agebjz"
         }
       },
       "Rollup": {
@@ -17979,7 +18382,7 @@
           }
         },
         "x-stoplight": {
-          "id": "rq1o1yy2htfv0"
+          "id": "vdzh0qojyn9a9"
         }
       },
       "RollupColumnReq": {
@@ -18030,7 +18433,7 @@
           }
         },
         "x-stoplight": {
-          "id": "8yc4ashgpj37h"
+          "id": "uw9fq6lp1lone"
         }
       },
       "SelectOption": {
@@ -18072,7 +18475,7 @@
           }
         },
         "x-stoplight": {
-          "id": "sc5hl2s3rm8x7"
+          "id": "onnh5qie1ul32"
         }
       },
       "SelectOptions": {
@@ -18103,7 +18506,7 @@
         },
         "required": ["options"],
         "x-stoplight": {
-          "id": "r6d5rziqt288w"
+          "id": "3i68n0spduuf9"
         }
       },
       "SharedBaseReq": {
@@ -18131,7 +18534,7 @@
           }
         },
         "x-stoplight": {
-          "id": "ybt81tfrpfvd2"
+          "id": "ep7ikmx3sudcl"
         }
       },
       "SharedView": {
@@ -18169,7 +18572,7 @@
           }
         ],
         "x-stoplight": {
-          "id": "9wxqjviu1tfd4"
+          "id": "fqfohevz2zj4u"
         }
       },
       "SharedViewList": {
@@ -18263,7 +18666,7 @@
         },
         "required": ["list", "pageInfo"],
         "x-stoplight": {
-          "id": "jtlp6vswbc96e"
+          "id": "zdpekhmw0wvj3"
         }
       },
       "SharedViewReq": {
@@ -18287,7 +18690,7 @@
           }
         },
         "x-stoplight": {
-          "id": "zja4lmiol065l"
+          "id": "0g3o2uo9y4h4g"
         }
       },
       "SignInReq": {
@@ -18313,7 +18716,7 @@
         "title": "Signin Request Model",
         "type": "object",
         "x-stoplight": {
-          "id": "2m1y6fuop0adc"
+          "id": "dxxafjky40cz1"
         }
       },
       "SignUpReq": {
@@ -18372,7 +18775,7 @@
         },
         "required": ["email", "password"],
         "x-stoplight": {
-          "id": "t7stkblz9wllz"
+          "id": "2rcbk0flkc4yu"
         }
       },
       "Sort": {
@@ -18425,7 +18828,7 @@
           }
         },
         "x-stoplight": {
-          "id": "tlcmtmjzcyhm6"
+          "id": "3jjbe2mjzy5li"
         }
       },
       "SortList": {
@@ -18506,7 +18909,7 @@
         },
         "required": ["list", "pageInfo"],
         "x-stoplight": {
-          "id": "7j3nbohh43tyy"
+          "id": "fsq6d3pi8b3iz"
         }
       },
       "SortReq": {
@@ -18532,7 +18935,7 @@
           }
         },
         "x-stoplight": {
-          "id": "shzdd8k3xswo9"
+          "id": "lao7jfow2dbe7"
         }
       },
       "StringOrNull": {
@@ -18549,7 +18952,7 @@
         ],
         "title": "StringOrNull Model",
         "x-stoplight": {
-          "id": "1lecfrpmnndhi"
+          "id": "xh9dwrizrvfh6"
         }
       },
       "Table": {
@@ -18978,7 +19381,7 @@
         },
         "required": ["table_name", "title"],
         "x-stoplight": {
-          "id": "986a3bp33neka"
+          "id": "rvdu5okgpz1xk"
         }
       },
       "TableList": {
@@ -19108,7 +19511,7 @@
         },
         "required": ["list", "pageInfo"],
         "x-stoplight": {
-          "id": "gemdr6sjuj4gl"
+          "id": "25z7dodhqs3lc"
         }
       },
       "TableReq": {
@@ -19249,7 +19652,7 @@
         "title": "Table Request Model",
         "type": "object",
         "x-stoplight": {
-          "id": "3i0r55tix0aso"
+          "id": "kilqakhuuzstv"
         }
       },
       "User": {
@@ -19301,7 +19704,7 @@
         },
         "required": ["email", "email_verified", "firstname", "id", "lastname"],
         "x-stoplight": {
-          "id": "2uxbpdjvs379s"
+          "id": "nwug6wvbc5yrp"
         }
       },
       "UserInfo": {
@@ -19345,7 +19748,7 @@
         "title": "User Info Model",
         "type": "object",
         "x-stoplight": {
-          "id": "uatcf3jcnna1t"
+          "id": "qravubcoxvr6x"
         }
       },
       "UserList": {
@@ -19426,7 +19829,7 @@
         },
         "required": ["list", "pageInfo"],
         "x-stoplight": {
-          "id": "ygjybmp21hdgp"
+          "id": "11epslmm9jcga"
         }
       },
       "View": {
@@ -19505,6 +19908,10 @@
             "$ref": "#/components/schemas/Bool",
             "description": "Should show system fields in this view?"
           },
+          "is_default": {
+            "$ref": "#/components/schemas/Bool",
+            "description": "Is this view default view for the model?"
+          },
           "title": {
             "description": "View Title",
             "type": "string"
@@ -19540,7 +19947,7 @@
         },
         "required": ["fk_model_id", "show", "title", "type"],
         "x-stoplight": {
-          "id": "66ki9gaxq3kwg"
+          "id": "pbahdgaroikdz"
         }
       },
       "ViewList": {
@@ -19668,13 +20075,13 @@
         },
         "required": ["list", "pageInfo"],
         "x-stoplight": {
-          "id": "2iat5dhhl4hoa"
+          "id": "5wwtppugkhbeh"
         }
       },
       "ViewCreateReq": {
         "type": "object",
         "x-stoplight": {
-          "id": "venaxkw5uod3n"
+          "id": "lksv99846uy60"
         },
         "title": "ViewCreateReq",
         "description": "Model for View Create Request",
@@ -19743,7 +20150,7 @@
       "ViewUpdateReq": {
         "description": "Model for View Update Request",
         "x-stoplight": {
-          "id": "bo1mzzdpk82z0"
+          "id": "1enlswadfc6p5"
         },
         "examples": [
           {
@@ -19808,7 +20215,7 @@
       "ViewColumnUpdateReq": {
         "description": "Model for View Column Update Request",
         "x-stoplight": {
-          "id": "jmhr4prd02ssy"
+          "id": "ifzuv29axterb"
         },
         "examples": [
           {
@@ -19837,7 +20244,7 @@
       "ViewColumnReq": {
         "description": "Model for View Column Request",
         "x-stoplight": {
-          "id": "05tr5rxotp432"
+          "id": "z4bq84nyqkhd8"
         },
         "examples": [
           {
@@ -19928,7 +20335,7 @@
         "title": "Visibility Rule Request Model",
         "type": "array",
         "x-stoplight": {
-          "id": "c6q9v9rtiduxg"
+          "id": "vuo5q4vwtarx8"
         }
       }
     },

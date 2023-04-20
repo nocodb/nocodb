@@ -380,22 +380,25 @@ export default class NcConfigFactory implements NcConfig {
       typeof dbConfig?.connection?.ssl === 'object'
     ) {
       if (dbConfig.connection.ssl.caFilePath && !dbConfig.connection.ssl.ca) {
-        dbConfig.connection.ssl.ca = await promisify(fs.readFile)(
-          dbConfig.connection.ssl.caFilePath
+        dbConfig.connection.ssl.ca = (
+          await promisify(fs.readFile)(dbConfig.connection.ssl.caFilePath)
         ).toString();
+        delete dbConfig.connection.ssl.caFilePath;
       }
       if (dbConfig.connection.ssl.keyFilePath && !dbConfig.connection.ssl.key) {
-        dbConfig.connection.ssl.key = await promisify(fs.readFile)(
-          dbConfig.connection.ssl.keyFilePath
+        dbConfig.connection.ssl.key = (
+          await promisify(fs.readFile)(dbConfig.connection.ssl.keyFilePath)
         ).toString();
+        delete dbConfig.connection.ssl.keyFilePath;
       }
       if (
         dbConfig.connection.ssl.certFilePath &&
         !dbConfig.connection.ssl.cert
       ) {
-        dbConfig.connection.ssl.cert = await promisify(fs.readFile)(
-          dbConfig.connection.ssl.certFilePath
+        dbConfig.connection.ssl.cert = (
+          await promisify(fs.readFile)(dbConfig.connection.ssl.certFilePath)
         ).toString();
+        delete dbConfig.connection.ssl.certFilePath;
       }
     }
 

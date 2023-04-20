@@ -283,7 +283,7 @@ const onTagClick = (e: Event, onClose: Function) => {
   }
 }
 
-const cellClickHook = inject(CellClickHookInj)
+const cellClickHook = inject(CellClickHookInj, null)
 
 const toggleMenu = () => {
   if (cellClickHook) return
@@ -313,11 +313,40 @@ const handleClose = (e: MouseEvent) => {
 }
 
 useEventListener(document, 'click', handleClose, true)
+
+const selectedOpts = computed(() => {
+  return options.value.reduce<(SelectOptionType & { index: number })[]>((selectedOptions, option) => {
+    const index = vModel.value.indexOf(option.value!)
+    if (index !== -1) {
+      selectedOptions.push({ ...option, index })
+    }
+    return selectedOptions
+  }, [])
+})
 </script>
 
 <template>
   <div class="nc-multi-select h-full w-full flex items-center" :class="{ 'read-only': readOnly }" @click="toggleMenu">
+    <div v-if="!editable && !active" class="flex flex-nowrap">
+      <template v-for="selectedOpt of selectedOpts" :key="selectedOpt.value">
+        <a-tag class="rounded-tag" :color="selectedOpt.color" :style="{ order: selectedOpt.index }">
+          <span
+            :style="{
+              'color': tinycolor.isReadable(selectedOpt.color || '#ccc', '#fff', { level: 'AA', size: 'large' })
+                ? '#fff'
+                : tinycolor.mostReadable(selectedOpt.color || '#ccc', ['#0b1d05', '#fff']).toHex8String(),
+              'font-size': '13px',
+            }"
+            :class="{ 'text-sm': isKanban }"
+          >
+            {{ selectedOpt.title }}
+          </span>
+        </a-tag>
+      </template>
+    </div>
+
     <a-select
+      v-else
       ref="aselect"
       v-model:value="vModel"
       mode="multiple"

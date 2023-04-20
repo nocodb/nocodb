@@ -67,6 +67,7 @@ const columns = [
     title: tableHeaderRenderer(t('labels.description')),
     dataIndex: 'description',
     key: 'description',
+    customRender: (value: { text: string }) => h('pre', {}, value.text),
   },
   {
     // User
@@ -83,6 +84,7 @@ const columns = [
     sort: 'desc',
     customRender: (value: { text: string }) =>
       h(ATooltip, { placement: 'bottom', title: h('span', {}, value.text) }, () => timeAgo(value.text)),
+    width: '10%',
   },
 ]
 </script>
@@ -102,7 +104,7 @@ const columns = [
 
       <a-pagination
         v-model:current="currentPage"
-        :page-size="currentLimit"
+        v-model:page-size="currentLimit"
         :total="totalRows"
         show-less-items
         @change="loadAudits"
@@ -110,7 +112,7 @@ const columns = [
     </div>
 
     <a-table
-      class="w-full"
+      class="nc-audit-table w-full"
       size="small"
       :data-source="audits ?? []"
       :columns="columns"
@@ -124,3 +126,14 @@ const columns = [
     </a-table>
   </div>
 </template>
+
+<style lang="scss">
+.nc-audit-table pre {
+  display: table;
+  table-layout: fixed;
+  width: 100%;
+  white-space: break-spaces;
+  font-size: unset;
+  font-family: unset;
+}
+</style>

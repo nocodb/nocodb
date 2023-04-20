@@ -117,7 +117,7 @@ const getAst = async ({
     const isRequested =
       allowedCols && (!includePkByDefault || !col.pk)
         ? allowedCols[col.id] &&
-          (!isSystemColumn(col) || view.show_system_fields) &&
+          (!isSystemColumn(col) || view.show_system_fields || col.pv) &&
           (!fields?.length || fields.includes(col.title)) &&
           value
         : fields?.length

@@ -3,7 +3,7 @@ import type { Editor } from '@tiptap/vue-3'
 import { VueNodeViewRenderer } from '@tiptap/vue-3'
 import type { EditorState } from 'prosemirror-state'
 import { Plugin, TextSelection } from 'prosemirror-state'
-import { indexOfChildNode, positionOfFirstChild } from '../helper'
+import { positionOfFirstChild } from '../helper'
 import DraggableSectionComponent from './draggable-section.vue'
 import { getPositionOfNextSection, getPositionOfSection } from './helpers'
 
@@ -195,40 +195,15 @@ function handleForQuoteAndCodeNode(editor: Editor) {
 
   if (from !== to) return false
 
-  const parentNode = state.selection.$from.node(-1)
   const currentNode = state.selection.$from.node()
 
-  const parentType = parentNode?.type.name
   const currentNodeType = currentNode?.type.name
 
   if (currentNodeType === 'codeBlock') {
     return handleCodeblockLastLineEnter(editor)
   }
 
-  if (parentType === 'blockquote') {
-    return handleBlockquote(editor)
-  }
-
   return false
-}
-
-function handleBlockquote(editor: Editor) {
-  const state = editor.state
-
-  const currentNode = state.selection.$from.node()
-
-  if (currentNode?.textContent?.length !== 0) {
-    editor.chain().insertContentAt(state.selection.$from.pos, { type: 'paragraph', text: '\n' }).run()
-    return true
-  }
-
-  editor
-    .chain()
-    .setTextSelection({ from: state.selection.$from.pos - 1, to: state.selection.$from.pos })
-    .deleteSelection()
-    .run()
-
-  return true
 }
 
 function handleCodeblockLastLineEnter(editor: Editor) {

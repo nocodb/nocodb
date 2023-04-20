@@ -67,7 +67,7 @@ const optionWrapperStyle = computed(() => {
     style = {
       marginTop: '0.5rem',
     }
-  } else if (content[0].type.name === 'blockquote') {
+  } else if (content[0].type.name === 'quote') {
     style = {
       marginTop: '0.8rem',
     }

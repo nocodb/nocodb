@@ -157,9 +157,9 @@ export class DashboardPage extends BasePage {
 
     if (mode === 'standard') {
       if (title === 'Team & Auth') {
-        await expect(this.rootPage).toHaveURL(`/#/nc/${this.project.id}/auth`);
+        await expect(this.rootPage).toHaveURL(`/nc/${this.project.id}/auth`);
       } else {
-        await expect(this.rootPage).toHaveURL(new RegExp(`#/nc/${this.project.id}/table/md_.{14}`));
+        await expect(this.rootPage).toHaveURL(new RegExp(`/nc/${this.project.id}/table/md_.{14}`));
       }
     }
   }

@@ -36,7 +36,7 @@ export const WarningCallout = Node.create<WarningCalloutOptions>({
   addKeyboardShortcuts() {
     return {
       Enter: ({ editor }) => {
-        return handleOnEnterForCallouts(editor as any)
+        return handleOnEnterForCallouts(editor as any, 'warningCallout')
       },
     }
   },

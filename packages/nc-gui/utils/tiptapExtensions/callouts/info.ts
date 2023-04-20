@@ -36,7 +36,7 @@ export const InfoCallout = Node.create<InfoCalloutOptions>({
   addKeyboardShortcuts() {
     return {
       Enter: ({ editor }) => {
-        return handleOnEnterForCallouts(editor as any)
+        return handleOnEnterForCallouts(editor as any, 'infoCallout')
       },
     }
   },

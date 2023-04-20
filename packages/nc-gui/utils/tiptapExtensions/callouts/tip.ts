@@ -36,7 +36,7 @@ export const TipCallout = Node.create<TipCalloutOptions>({
   addKeyboardShortcuts() {
     return {
       Enter: ({ editor }) => {
-        return handleOnEnterForCallouts(editor as any)
+        return handleOnEnterForCallouts(editor as any, 'tipCallout')
       },
     }
   },

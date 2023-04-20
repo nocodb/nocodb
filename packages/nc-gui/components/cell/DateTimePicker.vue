@@ -64,7 +64,11 @@ let localState = $computed({
     }
 
     if (val.isValid()) {
-      emit('update:modelValue', val?.format(isMysql(column.value.base_id) ? 'YYYY-MM-DD HH:mm:ss' : 'YYYY-MM-DD HH:mm:ssZ'))
+      if (isMysql(column.value.base_id)) {
+        emit('update:modelValue', val?.format('YYYY-MM-DD HH:mm:ss'))
+      } else {
+        emit('update:modelValue', dayjs(val).utc().format('YYYY-MM-DD HH:mm:ssZ'))
+      }
     }
   },
 })

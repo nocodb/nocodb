@@ -38,12 +38,10 @@ export const Paragraph = TiptapParagraph.extend({
             }
           })
 
-        const startOfNewParagraphNode = from + 4
-
         return editor
           .chain()
           .insertContentAt({ from, to: currentSectionEndPos }, paragraphContent)
-          .focus(startOfNewParagraphNode)
+          .selectActiveSectionFirstChild()
           .run()
       },
     }

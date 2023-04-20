@@ -3,8 +3,9 @@ import type { Editor } from '@tiptap/vue-3'
 import { VueNodeViewRenderer } from '@tiptap/vue-3'
 import type { EditorState } from 'prosemirror-state'
 import { Plugin, TextSelection } from 'prosemirror-state'
+import { positionOfFirstChild } from '../helper'
 import DraggableSectionComponent from './draggable-section.vue'
-import { getPositionOfNextSection } from './helpers'
+import { getPositionOfNextSection, getPositionOfSection } from './helpers'
 
 export interface SecOptions {
   HTMLAttributes: Record<string, any>
@@ -17,6 +18,10 @@ declare module '@tiptap/core' {
        * Delete section which has the cursor
        */
       deleteActiveSection: () => ReturnType
+      /**
+       * Select section which has the cursor
+       */
+      selectActiveSectionFirstChild: () => ReturnType
       /**
        *
        * Select next section
@@ -108,6 +113,17 @@ export const SectionBlock = Node.create<SecOptions>({
 
           return commands.deleteRange(currentSectionRange)
         },
+      selectActiveSectionFirstChild:
+        () =>
+        ({ state, commands }) => {
+          const currentSectionPos = getPositionOfSection(state)
+          if (!currentSectionPos) return false
+
+          const currentSectionFirstChildPos = positionOfFirstChild(state, currentSectionPos, 'start')
+          if (!currentSectionFirstChildPos) return false
+
+          return commands.setTextSelection(currentSectionFirstChildPos)
+        },
       selectNextSection:
         (sectionPosition) =>
         ({ state, commands }) => {
@@ -127,25 +143,6 @@ export const SectionBlock = Node.create<SecOptions>({
     return {
       Enter: ({ editor }) => {
         if (handleForQuoteAndCodeNode(editor as any)) return true
-
-        const {
-          selection: { $head, from, to },
-          doc,
-        } = editor.state
-
-        const parent = $head.node($head.depth - 1)
-        if (parent?.type.name !== 'sec') return false
-
-        const currentNode = $head.node($head.depth)
-
-        if (
-          currentNode.type.name === 'codeBlock' ||
-          currentNode.type.name === 'bullet' ||
-          currentNode.type.name === 'ordered' ||
-          currentNode.type.name === 'task'
-        ) {
-          return false
-        }
 
         return false
       },

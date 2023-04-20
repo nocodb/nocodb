@@ -82,14 +82,20 @@ export const getPosOfChildNodeOfType = ({
   return giveTypePos
 }
 
-export const positionOfFirstChild = (state: EditorState, pos: number) => {
-  const node = state.doc.nodeAt(pos)
+export const positionOfFirstChild = (state: EditorState, parentPos: number, posType: 'start' | 'end' | undefined = 'end') => {
+  const node = state.doc.nodeAt(parentPos)
   if (!node) return undefined
 
   const firstChild = node.firstChild
   if (!firstChild) return undefined
 
-  return pos + firstChild.nodeSize
+  // TODO: Find a better way to find position of first child start.
+  // Main issue is to find pos when there is transformation happening
+  if (posType === 'start') {
+    return parentPos + 2
+  }
+
+  return parentPos + firstChild.nodeSize
 }
 
 export const isLastChild = (state: EditorState, pos: number) => {

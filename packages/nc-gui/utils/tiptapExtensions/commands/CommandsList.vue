@@ -471,12 +471,11 @@ const filterItems = computed(() => {
 const onFilePicked = (event: any) => {
   const selectedNodeType = filterItems.value[selectedIndex.value]
   const files = event.target.files
-  const file = files[0]
 
   if (selectedNodeType.title === 'Image') {
-    ;(editor.chain().focus() as any).setImage({ src: file }).run()
+    editor.chain().focus().deleteActiveSection().setImage(files).run()
   } else if (selectedNodeType.title === 'Attachment') {
-    ;(editor.chain().focus() as any).setAttachment(files).run()
+    editor.chain().focus().deleteActiveSection().setAttachment(files).run()
   }
 }
 

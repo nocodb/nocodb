@@ -4,6 +4,7 @@ import { VueNodeViewRenderer } from '@tiptap/vue-3'
 import type { EditorState } from 'prosemirror-state'
 import { Plugin, TextSelection } from 'prosemirror-state'
 import DraggableSectionComponent from './draggable-section.vue'
+import { getPositionOfNextSection } from './helpers'
 
 export interface SecOptions {
   HTMLAttributes: Record<string, any>
@@ -13,9 +14,16 @@ declare module '@tiptap/core' {
   interface Commands<ReturnType> {
     sec: {
       /**
-       * Toggle a sec
+       * Delete section which has the cursor
        */
-      setSec: (position?: number) => ReturnType
+      deleteActiveSection: () => ReturnType
+      /**
+       *
+       * Select next section
+       * @param sectionPosition - Position of the section to select else section position is calculated from the cursor position
+       *
+       **/
+      selectNextSection: (sectionPosition?: number) => ReturnType
     }
   }
 }
@@ -88,32 +96,25 @@ export const SectionBlock = Node.create<SecOptions>({
 
   addCommands() {
     return {
-      setSec:
-        (position) =>
-        ({ state, chain }) => {
-          const {
-            selection: { from },
-          } = state
+      deleteActiveSection:
+        () =>
+        ({ state, commands }) => {
+          const currentSectionPos = state.selection.$from.before(1)
+          const currentSectionNode = state.doc.nodeAt(currentSectionPos)
+          const currentSectionRange = {
+            from: currentSectionPos,
+            to: currentSectionPos + currentSectionNode!.nodeSize,
+          }
 
-          const pos = position !== undefined || position !== null ? from : position
+          return commands.deleteRange(currentSectionRange)
+        },
+      selectNextSection:
+        (sectionPosition) =>
+        ({ state, commands }) => {
+          const nextSectionPos = getPositionOfNextSection(state, sectionPosition)
+          if (!nextSectionPos) return false
 
-          return chain()
-            .insertContentAt(pos, {
-              type: this.name,
-              content: [
-                {
-                  type: 'paragraph',
-                  content: [
-                    {
-                      type: 'text',
-                      text: 'Draggable Block',
-                    },
-                  ],
-                },
-              ],
-            })
-            .focus(pos + 2)
-            .run()
+          return commands.setTextSelection(nextSectionPos)
         },
     }
   },
@@ -124,8 +125,7 @@ export const SectionBlock = Node.create<SecOptions>({
 
   addKeyboardShortcuts() {
     return {
-      'Mod-Alt-0': () => this.editor.commands.setSec(),
-      'Enter': ({ editor }) => {
+      Enter: ({ editor }) => {
         if (handleForQuoteAndCodeNode(editor as any)) return true
 
         const {
@@ -184,7 +184,7 @@ export const SectionBlock = Node.create<SecOptions>({
           .focus(from + 4)
           .run()
       },
-      'Backspace': ({ editor }) => {
+      Backspace: ({ editor }) => {
         const state = editor.state
 
         // Handle delete on first empty line

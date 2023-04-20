@@ -107,7 +107,7 @@ export const Task = Node.create<TaskOptions>({
     const doc = this.editor.state.doc
 
     const parentNode = selection.$from.node(-1)
-    if (parentNode.type.name !== 'bullet') return false
+    if (parentNode?.type.name !== 'bullet') return false
 
     let currentPos = selection.$from.before(1)
     let currentNode = doc.nodeAt(currentPos)

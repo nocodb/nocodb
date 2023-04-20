@@ -1,7 +1,7 @@
 import { Node, mergeAttributes } from '@tiptap/core'
 import { VueNodeViewRenderer } from '@tiptap/vue-3'
 import CalloutComponent from './callout.vue'
-import { handleOnBackspaceForCallouts, handleOnEnterForCallouts } from './helper'
+import { handleOnEnterForCallouts } from './helper'
 
 export interface WarningCalloutOptions {
   HTMLAttributes: Record<string, any>
@@ -37,9 +37,6 @@ export const WarningCallout = Node.create<WarningCalloutOptions>({
     return {
       Enter: ({ editor }) => {
         return handleOnEnterForCallouts(editor as any)
-      },
-      Backspace: ({ editor }) => {
-        return handleOnBackspaceForCallouts(editor as any)
       },
     }
   },

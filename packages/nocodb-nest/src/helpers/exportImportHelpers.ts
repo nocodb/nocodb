@@ -70,3 +70,13 @@ export function findWithIdentifier(map: Map<string, any>, id: string) {
   }
   return undefined;
 }
+
+export function generateUniqueName(name: string, names: string[]) {
+  let newName = name;
+  let i = 1;
+  while (names.includes(newName)) {
+    newName = `${name}_${i}`;
+    i++;
+  }
+  return newName;
+}

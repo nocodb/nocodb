@@ -1,7 +1,13 @@
 import { Node } from '@tiptap/core'
 import { VueNodeViewRenderer } from '@tiptap/vue-3'
-import { isNodeTypeSelected, positionOfFirstChild } from '../helper'
-import { getPositionOfPreviousSection, getPositionOfSection, isSectionEmptyParagraph } from '../section/helpers'
+import {
+  getPositionOfPreviousSection,
+  getPositionOfSection,
+  isNodeTypeSelected,
+  isSectionEmptyParagraph,
+  positionOfFirstChild,
+} from '../helper'
+
 import type { UploadFn } from './proseExtension'
 import { addFile, dropAttachmentPlugin } from './proseExtension'
 import AttachmentComponent from './attachment.vue'

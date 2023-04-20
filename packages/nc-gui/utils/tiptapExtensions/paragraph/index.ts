@@ -1,5 +1,5 @@
 import TiptapParagraph from '@tiptap/extension-paragraph'
-import { getPositionOfNextSection } from '../section/helpers'
+import { getPositionOfNextSection } from '../helper'
 
 export const Paragraph = TiptapParagraph.extend({
   addKeyboardShortcuts() {

@@ -1,6 +1,11 @@
 import type { Editor } from '@tiptap/vue-3'
-import { getPosOfNodeTypeInSection, isLastChild, isNodeTypeSelected, positionOfFirstChild } from '../helper'
-import { getPositionOfNextSection } from '../section/helpers'
+import {
+  getPosOfNodeTypeInSection,
+  getPositionOfNextSection,
+  isLastChild,
+  isNodeTypeSelected,
+  positionOfFirstChild,
+} from '../helper'
 
 export const handleOnEnterForCallouts = (editor: Editor, type: 'infoCallout' | 'tipCallout' | 'warningCallout') => {
   const state = editor.state

@@ -5,8 +5,7 @@ import { VueNodeViewRenderer } from '@tiptap/vue-3'
 import { Slice } from 'prosemirror-model'
 import type { EditorState } from 'prosemirror-state'
 import { TextSelection } from 'prosemirror-state'
-import { getPosOfChildNodeOfType, isCursorAtStartOfParagraph } from '../helper'
-import { getPositionOfSection } from '../section/helpers'
+import { getPosOfChildNodeOfType, getPositionOfSection, isCursorAtStartOfParagraph } from '../helper'
 import CollapsableComponent from './collapsable.vue'
 
 export interface CollapsableOptions {

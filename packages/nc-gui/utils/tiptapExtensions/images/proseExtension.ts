@@ -1,6 +1,6 @@
 import type { EditorView } from 'prosemirror-view'
 import { NodeSelection, Plugin } from 'prosemirror-state'
-import { getPositionOfSection } from '../section/helpers'
+import { getPositionOfSection } from '../helper'
 
 export type UploadFn = (image: File) => Promise<string>
 

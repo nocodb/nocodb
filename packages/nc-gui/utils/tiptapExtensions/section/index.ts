@@ -3,9 +3,8 @@ import type { Editor } from '@tiptap/vue-3'
 import { VueNodeViewRenderer } from '@tiptap/vue-3'
 import type { EditorState } from 'prosemirror-state'
 import { Plugin, TextSelection } from 'prosemirror-state'
-import { positionOfFirstChild } from '../helper'
+import { getPositionOfNextSection, getPositionOfSection, positionOfFirstChild } from '../helper'
 import DraggableSectionComponent from './draggable-section.vue'
-import { getPositionOfNextSection, getPositionOfSection } from './helpers'
 
 export interface SecOptions {
   HTMLAttributes: Record<string, any>

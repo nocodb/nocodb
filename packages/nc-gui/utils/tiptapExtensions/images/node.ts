@@ -1,7 +1,12 @@
 import { Node, nodeInputRule } from '@tiptap/core'
 import { VueNodeViewRenderer } from '@tiptap/vue-3'
-import { getPositionOfPreviousSection, getPositionOfSection, isSectionEmptyParagraph } from '../section/helpers'
-import { isNodeTypeSelected, positionOfFirstChild } from '../helper'
+import {
+  getPositionOfPreviousSection,
+  getPositionOfSection,
+  isNodeTypeSelected,
+  isSectionEmptyParagraph,
+  positionOfFirstChild,
+} from '../helper'
 import type { UploadFn } from './proseExtension'
 import { addImage, dropImagePlugin } from './proseExtension'
 import ImageComponent from './image.vue'

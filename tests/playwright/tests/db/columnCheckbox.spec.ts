@@ -2,6 +2,9 @@ import { test } from '@playwright/test';
 import { DashboardPage } from '../../pages/Dashboard';
 import setup from '../../setup';
 import { ToolbarPage } from '../../pages/Dashboard/common/Toolbar';
+import { UITypes } from 'nocodb-sdk';
+import { Api } from 'nocodb-sdk';
+let api: Api<any>;
 
 test.describe('Checkbox - cell, filter, sort', () => {
   let dashboard: DashboardPage, toolbar: ToolbarPage;
@@ -37,23 +40,70 @@ test.describe('Checkbox - cell, filter, sort', () => {
   }
 
   test.beforeEach(async ({ page }) => {
-    context = await setup({ page });
+    context = await setup({ page, isEmptyProject: true });
     dashboard = new DashboardPage(page, context.project);
     toolbar = dashboard.grid.toolbar;
+
+    api = new Api({
+      baseURL: `http://localhost:8080/`,
+      headers: {
+        'xc-auth': context.token,
+      },
+    });
+
+    const columns = [
+      {
+        column_name: 'Id',
+        title: 'Id',
+        uidt: UITypes.ID,
+      },
+      {
+        column_name: 'Title',
+        title: 'Title',
+        uidt: UITypes.SingleLineText,
+      },
+    ];
+
+    try {
+      const project = await api.project.read(context.project.id);
+      const table = await api.base.tableCreate(context.project.id, project.bases?.[0].id, {
+        table_name: 'Sheet-1',
+        title: 'Sheet-1',
+        columns: columns,
+      });
+
+      const rowAttributes = [];
+      for (let i = 0; i < 6; i++) {
+        const row = {
+          Id: i + 1,
+          Title: `1${String.fromCharCode(97 + i)}`,
+        };
+        rowAttributes.push(row);
+      }
+
+      await api.dbTableRow.bulkCreate('noco', context.project.id, table.id, rowAttributes);
+    } catch (e) {
+      console.error(e);
+    }
+
+    // page reload
+    await page.reload();
   });
 
   test('Checkbox', async () => {
     // close 'Team & Auth' tab
     await dashboard.closeTab({ title: 'Team & Auth' });
 
-    await dashboard.treeView.createTable({ title: 'Sheet1' });
+    // await dashboard.treeView.createTable({ title: 'Sheet1' });
+    //
+    // await dashboard.grid.addNewRow({ index: 0, value: '1a' });
+    // await dashboard.grid.addNewRow({ index: 1, value: '1b' });
+    // await dashboard.grid.addNewRow({ index: 2, value: '1c' });
+    // await dashboard.grid.addNewRow({ index: 3, value: '1d' });
+    // await dashboard.grid.addNewRow({ index: 4, value: '1e' });
+    // await dashboard.grid.addNewRow({ index: 5, value: '1f' });
 
-    await dashboard.grid.addNewRow({ index: 0, value: '1a' });
-    await dashboard.grid.addNewRow({ index: 1, value: '1b' });
-    await dashboard.grid.addNewRow({ index: 2, value: '1c' });
-    await dashboard.grid.addNewRow({ index: 3, value: '1d' });
-    await dashboard.grid.addNewRow({ index: 4, value: '1e' });
-    await dashboard.grid.addNewRow({ index: 5, value: '1f' });
+    await dashboard.treeView.openTable({ title: 'Sheet-1' });
 
     // Create Checkbox column
     await dashboard.grid.column.create({

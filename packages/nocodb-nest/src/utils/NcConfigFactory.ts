@@ -309,6 +309,7 @@ export default class NcConfigFactory {
         ...this.mysqlConnectionTypeCastConfig,
       };
     }
+    // for postgres - see `setTypeParser` in `CustomKnex.ts`
     return connection;
   }
 

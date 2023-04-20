@@ -6,7 +6,7 @@ import {
   OnModuleInit,
   Optional,
 } from '@nestjs/common';
-
+import dayjs from 'dayjs';
 import { customAlphabet } from 'nanoid';
 import CryptoJS from 'crypto-js';
 import { Connection } from '../connection/connection';
@@ -256,8 +256,8 @@ export class MetaService {
 
     await this.knexConnection(target).insert({
       ...insertObj,
-      created_at: data?.created_at || this.knexConnection?.fn?.now(),
-      updated_at: data?.updated_at || this.knexConnection?.fn?.now(),
+      created_at: this.now(),
+      updated_at: this.now(),
     });
     return insertObj;
   }
@@ -539,9 +539,9 @@ export class MetaService {
     return this.knexConnection(target).insert({
       db_alias: dbAlias,
       project_id,
-      created_at: this.knexConnection?.fn?.now(),
-      updated_at: this.knexConnection?.fn?.now(),
       ...data,
+      created_at: this.now(),
+      updated_at: this.now(),
     });
   }
 
@@ -689,7 +689,7 @@ export class MetaService {
 
     delete data.created_at;
 
-    query.update({ ...data, updated_at: this.knexConnection?.fn?.now() });
+    query.update({ ...data, updated_at: this.now() });
     if (typeof idOrCondition !== 'object') {
       query.where('id', idOrCondition);
     } else if (idOrCondition) {
@@ -810,8 +810,8 @@ export class MetaService {
       // todo: check project name used or not
       await this.knexConnection('nc_projects').insert({
         ...project,
-        created_at: this.knexConnection?.fn?.now(),
-        updated_at: this.knexConnection?.fn?.now(),
+        created_at: this.now(),
+        updated_at: this.now(),
       });
 
       // todo
@@ -1030,6 +1030,20 @@ export class MetaService {
     return nanoid();
   }
 
+  private isMySQL(): boolean {
+    return (
+      this.connection.clientType() === 'mysql' ||
+      this.connection.clientType() === 'mysql2'
+    );
+  }
+
+  private now(): any {
+    if (this.isMySQL()) {
+      return dayjs().utc().format('YYYY-MM-DD HH:mm:ss');
+    }
+    return dayjs().utc().toISOString();
+  }
+
   public async audit(
     project_id: string,
     dbAlias: string,
@@ -1051,6 +1065,10 @@ export class MetaService {
       migrationSource: new XcMigrationSourcev2(),
       tableName: 'xc_knex_migrationsv2',
     });
+    if (this.isMySQL()) {
+      // set timezone
+      await this.connection.raw(`SET time_zone = '+00:00'`);
+    }
     return true;
   }
 }

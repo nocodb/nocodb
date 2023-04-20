@@ -236,6 +236,13 @@ export default class NcConfigFactory {
         acquireConnectionTimeout: 600000,
       } as any;
 
+      if (url.protocol.startsWith('mysql')) {
+        dbConfig.connection = {
+          ...dbConfig.connection,
+          ...this.mysqlConnectionTypeCastConfig,
+        };
+      }
+
       if (process.env.NODE_TLS_REJECT_UNAUTHORIZED) {
         dbConfig.connection.ssl = true;
       }
@@ -348,6 +355,14 @@ export default class NcConfigFactory {
             }
           : {}),
       };
+
+      if (url.protocol.startsWith('mysql')) {
+        dbConfig.connection = {
+          ...dbConfig.connection,
+          ...this.mysqlConnectionTypeCastConfig,
+        };
+      }
+
       if (process.env.NODE_TLS_REJECT_UNAUTHORIZED) {
         dbConfig.connection.ssl = true;
       }
@@ -508,6 +523,13 @@ export default class NcConfigFactory {
           ...dbConnectionConfig,
           database: dbConnectionConfig.connection.filename,
         },
+      };
+    }
+
+    if (dbConfig.client.startsWith('mysql')) {
+      dbConfig.connection = {
+        ...dbConfig.connection,
+        ...this.mysqlConnectionTypeCastConfig,
       };
     }
 
@@ -743,6 +765,19 @@ export default class NcConfigFactory {
 
     return res;
   }
+
+  private static mysqlConnectionTypeCastConfig = {
+    typeCast: function (field, next) {
+      if (
+        field.type === 'DATETIME' &&
+        (field.name === 'created_at' || field.name === 'updated_at')
+      ) {
+        return new Date(field.string() + ' UTC');
+      }
+      return next();
+    },
+    timezone: '+00:00',
+  };
 
   // public static initOneClickDeployment() {
   //   if (process.env.NC_ONE_CLICK) {

@@ -7,6 +7,10 @@ import type { BaseModelSql } from './BaseModelSql';
 
 // override parsing date column to Date()
 types.setTypeParser(1082, (val) => val);
+// override timestamp
+types.setTypeParser(1114, (val) => {
+  return new Date(val + '+0000');
+});
 
 const opMappingGen = {
   eq: '=',

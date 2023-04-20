@@ -3,7 +3,7 @@ import type { Editor } from '@tiptap/vue-3'
 import { VueNodeViewRenderer } from '@tiptap/vue-3'
 import type { EditorState } from 'prosemirror-state'
 import { Plugin, TextSelection } from 'prosemirror-state'
-import { positionOfFirstChild } from '../helper'
+import { indexOfChildNode, positionOfFirstChild } from '../helper'
 import DraggableSectionComponent from './draggable-section.vue'
 import { getPositionOfNextSection, getPositionOfSection } from './helpers'
 
@@ -25,7 +25,7 @@ declare module '@tiptap/core' {
       /**
        *
        * Select next section
-       * @param sectionPosition - Position of the section to select else section position is calculated from the cursor position
+       * @param sectionPosition - Position of the section to select else, section position is calculated from the cursor position
        *
        **/
       selectNextSection: (sectionPosition?: number) => ReturnType
@@ -63,7 +63,7 @@ export const SectionBlock = Node.create<SecOptions>({
   },
 
   onSelectionUpdate() {
-    // If cursor is inside the node, we make the node focused
+    // If cursor is inside the section node, we make the node focused
     const { state } = this.editor
 
     focusCurrentSection(state)
@@ -150,22 +150,26 @@ export const SectionBlock = Node.create<SecOptions>({
   },
 })
 
+/**
+ * Find the selected section including sections inside collapsable and collapsable_content
+ * And add class to it
+ *
+ * Reason we are doing this rather doing this logic in 'section' vue component is
+ * It will be complicated to only selected the correct section in the case of collapsable
+ */
 function focusCurrentSection(state: EditorState) {
+  const selection = state.selection
   let activeNodeIndex = 0
   let found = false
 
   state.doc.descendants((node, pos) => {
-    if (node.type.name === 'collapsable') {
-      return true
-    }
-    if (node.type.name === 'collapsable_content') {
+    if (node.type.name === 'collapsable' || node.type.name === 'collapsable_content') {
       return true
     }
 
-    if (node.type.name !== 'sec') return false
-    if (found) return false
+    if (found || node.type.name !== 'sec') return false
 
-    if (pos > state.selection.$from.pos) {
+    if (pos > selection.from) {
       found = true
       return false
     }
@@ -178,10 +182,9 @@ function focusCurrentSection(state: EditorState) {
   const dbBlockDoms = document.querySelectorAll('.draggable-block-wrapper')
   for (let i = 0; i < dbBlockDoms.length; i++) {
     dbBlockDoms[i].classList.remove('focused')
+
     if (i === activeNodeIndex - 1) {
-      setTimeout(() => {
-        dbBlockDoms[i].classList.add('focused')
-      }, 0)
+      dbBlockDoms[i].classList.add('focused')
     }
   }
 }

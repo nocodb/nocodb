@@ -6,25 +6,38 @@ import {
   WebSocketServer,
 } from '@nestjs/websockets';
 import { Server, Socket } from 'socket.io';
-import { Injectable, UseGuards } from '@nestjs/common';
-import { GlobalGuard } from 'src/guards/global/global.guard';
-import { ExtractProjectIdMiddleware } from 'src/middlewares/extract-project-id/extract-project-id.middleware';
+import { Injectable } from '@nestjs/common';
+import { ExecutionContextHost } from '@nestjs/core/helpers/execution-context-host';
+import { AuthGuard } from '@nestjs/passport';
 import { JobsService } from './jobs.service';
+import type { OnModuleInit } from '@nestjs/common';
 
-@WebSocketGateway(8081, {
+@WebSocketGateway({
   cors: {
     origin: '*',
+    allowedHeaders: ['xc-auth'],
+    credentials: true,
   },
-  allowedHeaders: ['xc-auth'],
-  credentials: true,
   namespace: 'jobs',
 })
 @Injectable()
-export class JobsGateway {
+export class JobsGateway implements OnModuleInit {
   constructor(private readonly jobsService: JobsService) {}
 
   @WebSocketServer()
   server: Server;
+
+  async onModuleInit() {
+    this.server.use(async (socket, next) => {
+      try {
+        const context = new ExecutionContextHost([socket.handshake as any]);
+        const guard = new (AuthGuard('jwt'))(context);
+        await guard.canActivate(context);
+      } catch {}
+
+      next();
+    });
+  }
 
   @SubscribeMessage('subscribe')
   async subscribe(

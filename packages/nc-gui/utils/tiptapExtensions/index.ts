@@ -4,7 +4,6 @@ import DropCursor from '@tiptap/extension-dropcursor'
 import Bold from '@tiptap/extension-bold'
 import Italic from '@tiptap/extension-italic'
 import Code from '@tiptap/extension-code'
-import CodeBlock from '@tiptap/extension-code-block'
 import HardBreak from '@tiptap/extension-hard-break'
 import type { Extensions } from '@tiptap/core'
 import { Quote } from './quote'
@@ -35,6 +34,7 @@ import { CollapsableHeader } from './collapsable/collapsableHeader'
 import { CollapsableContent } from './collapsable/collapsableContent'
 import { Strike } from './strike'
 import { Paragraph } from './paragraph'
+import { CodeBlock } from './codeBlock'
 
 const tiptapExtensions = (isPublic: boolean): Extensions => {
   const { uploadFile } = useDocStore()

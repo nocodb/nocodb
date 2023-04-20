@@ -1,9 +1,8 @@
 import { Node, mergeAttributes } from '@tiptap/core'
-import type { Editor } from '@tiptap/vue-3'
 import { VueNodeViewRenderer } from '@tiptap/vue-3'
 import type { EditorState } from 'prosemirror-state'
 import { Plugin, TextSelection } from 'prosemirror-state'
-import { getPositionOfNextSection, getPositionOfSection, positionOfFirstChild } from '../helper'
+import { getPositionOfNextSection, getPositionOfPreviousSection, getPositionOfSection, positionOfFirstChild } from '../helper'
 import DraggableSectionComponent from './draggable-section.vue'
 
 export interface SecOptions {
@@ -28,6 +27,13 @@ declare module '@tiptap/core' {
        *
        **/
       selectNextSection: (sectionPosition?: number) => ReturnType
+      /**
+       *
+       * Select prev section
+       * @param sectionPosition - Position of the section to select else, section position is calculated from the cursor position
+       *
+       **/
+      selectPrevSection: (sectionPosition?: number) => ReturnType
     }
   }
 }
@@ -131,21 +137,19 @@ export const SectionBlock = Node.create<SecOptions>({
 
           return commands.setTextSelection(nextSectionPos)
         },
+      selectPrevSection:
+        (sectionPosition) =>
+        ({ state, commands }) => {
+          const nextSectionPos = getPositionOfPreviousSection(state, sectionPosition)
+          if (!nextSectionPos) return false
+
+          return commands.setTextSelection(nextSectionPos)
+        },
     }
   },
 
   addNodeView() {
     return VueNodeViewRenderer(DraggableSectionComponent)
-  },
-
-  addKeyboardShortcuts() {
-    return {
-      Enter: ({ editor }) => {
-        if (handleForQuoteAndCodeNode(editor as any)) return true
-
-        return false
-      },
-    }
   },
 })
 
@@ -186,49 +190,4 @@ function focusCurrentSection(state: EditorState) {
       dbBlockDoms[i].classList.add('focused')
     }
   }
-}
-
-function handleForQuoteAndCodeNode(editor: Editor) {
-  const state = editor.state
-  const { from, to } = editor.state.selection
-
-  if (from !== to) return false
-
-  const currentNode = state.selection.$from.node()
-
-  const currentNodeType = currentNode?.type.name
-
-  if (currentNodeType === 'codeBlock') {
-    return handleCodeblockLastLineEnter(editor)
-  }
-
-  return false
-}
-
-function handleCodeblockLastLineEnter(editor: Editor) {
-  const { from, to } = editor.state.selection
-
-  if (from !== to) return false
-
-  const currentNode = editor.state.selection.$from.node()
-  if (currentNode?.type.name !== 'codeBlock') return false
-
-  const nextNodePos = editor.state.selection.$from.pos + 2
-  const nextNode = editor.state.doc.nodeAt(nextNodePos)
-
-  if (currentNode.textContent.length === 0) {
-    editor.chain().insertContentAt(editor.state.selection.$from.pos, { text: '\n' }).run()
-    return true
-  }
-
-  if (currentNode.textContent[currentNode.textContent.length - 1] !== '\n') return false
-  if (nextNode?.type.name !== 'sec') return false
-
-  editor
-    .chain()
-    .setTextSelection({ from: from - 1, to: from })
-    .deleteSelection()
-    .focus(nextNodePos + 1)
-    .run()
-  return true
 }

@@ -160,8 +160,7 @@ const items = [
     title: 'Code',
     class: 'text-xs',
     command: ({ editor, range }: { editor: Editor; range: Range }) => {
-      editor.chain().focus().deleteRange(range).setNode('codeBlock').run()
-      // ;(editor.chain().focus() as any).toggleCodeBlock().run()
+      editor.chain().focus().deleteRange(range).setCodeBlock().run()
     },
     icon: MdiCodeSnippet,
     iconClass: '',

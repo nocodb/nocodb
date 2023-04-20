@@ -5,7 +5,7 @@ import { VueNodeViewRenderer } from '@tiptap/vue-3'
 import { Slice } from 'prosemirror-model'
 import type { EditorState } from 'prosemirror-state'
 import { TextSelection } from 'prosemirror-state'
-import { getPosOfChildNodeOfType, getPositionOfSection, isCursorAtStartOfParagraph } from '../helper'
+import { getPosOfChildNodeOfType, getPositionOfSection, isCursorAtStartOfSelectedNode } from '../helper'
 import CollapsableComponent from './collapsable.vue'
 
 export interface CollapsableOptions {
@@ -120,7 +120,7 @@ export const Collapsable = Node.create<CollapsableOptions>({
         const currentParagraphNodeIndexWrtParent = editor.state.selection.$from.index(editor.state.selection.$from.depth - 2)
 
         if (
-          isCursorAtStartOfParagraph(state) &&
+          isCursorAtStartOfSelectedNode(state) &&
           currentParagraphNodeIndexWrtParent === 0 &&
           collapsableContentNode.childCount === 1
         ) {

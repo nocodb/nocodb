@@ -29,13 +29,20 @@ export const getPositionOfSection = (state: EditorState, pos?: number) => {
  * @param state
  * @param pos - optional
  **/
-export const getPositionOfPreviousSection = (state: EditorState, pos?: number) => {
+export const getPositionOfPreviousSection = (state: EditorState, pos?: number, type: 'start' | 'end' | undefined = 'start') => {
   const searchStopPos = pos ?? state.selection.$from.pos
 
   const givenSectionPos = getPositionOfSection(state, searchStopPos)
   const prevSectionPos = getPositionOfSection(state, givenSectionPos - 1)
 
   if (prevSectionPos === givenSectionPos) return null
+
+  if (type === 'end') {
+    const prevSectionNode = state.doc.nodeAt(prevSectionPos)
+    if (!prevSectionNode) return undefined
+
+    return prevSectionPos + prevSectionNode?.nodeSize - 1
+  }
 
   return prevSectionPos
 }
@@ -185,12 +192,13 @@ export const isLastChild = (state: EditorState, pos: number) => {
  * Verify that the cursor is at the beginning of the active paragraph node
  * @param state
  */
-export const isCursorAtStartOfParagraph = (state: EditorState) => {
+export const isCursorAtStartOfSelectedNode = (state: EditorState) => {
   const pos = state.selection.$from.pos
   const resolve = state.doc.resolve(pos)
 
   const node = state.selection.$from.node()
-  if (!node || node.type.name !== 'paragraph') return false
+
+  if (!node) return false
 
   const offset = resolve.parentOffset
 

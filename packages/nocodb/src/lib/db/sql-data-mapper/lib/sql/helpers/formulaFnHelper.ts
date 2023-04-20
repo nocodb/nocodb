@@ -54,6 +54,25 @@ export function validateDateWithUnknownFormat(v: string) {
   return false;
 }
 
+export function convertDateFormatByType(query, clientType, dateFormat) {
+  if (clientType === 'mysql2') {
+    query = `DATE_FORMAT(${query}, '${convertDateFormat(
+      dateFormat,
+      clientType
+    )}')`;
+  } else if (clientType === 'pg') {
+    query = `TO_CHAR(${query}, '${convertDateFormat(dateFormat, clientType)}')`;
+  } else if (clientType === 'sqlite3') {
+    query = `strftime('${convertDateFormat(
+      dateFormat,
+      clientType
+    )}', ${query})`;
+  } else if (clientType === 'mssql') {
+    query = `FORMAT(${query}, '${convertDateFormat(dateFormat, clientType)}')`;
+  }
+  return query;
+}
+
 export async function convertDateFormatForConcat(
   o,
   columnIdToUidt,
@@ -71,27 +90,7 @@ export async function convertDateFormatForConcat(
       })
     ).meta;
 
-    if (clientType === 'mysql2') {
-      query = `DATE_FORMAT(${query}, '${convertDateFormat(
-        meta.date_format,
-        clientType
-      )}')`;
-    } else if (clientType === 'pg') {
-      query = `TO_CHAR(${query}, '${convertDateFormat(
-        meta.date_format,
-        clientType
-      )}')`;
-    } else if (clientType === 'sqlite3') {
-      query = `strftime('${convertDateFormat(
-        meta.date_format,
-        clientType
-      )}', ${query})`;
-    } else if (clientType === 'mssql') {
-      query = `FORMAT(${query}, '${convertDateFormat(
-        meta.date_format,
-        clientType
-      )}')`;
-    }
+    return convertDateFormatByType(query, clientType, meta.date_format);
   }
   return query;
 }

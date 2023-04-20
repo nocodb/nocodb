@@ -5,6 +5,8 @@ import { VueNodeViewRenderer } from '@tiptap/vue-3'
 import { Slice } from 'prosemirror-model'
 import type { EditorState } from 'prosemirror-state'
 import { TextSelection } from 'prosemirror-state'
+import { getPosOfChildNodeOfType, isCursorAtStartOfParagraph } from '../helper'
+import { getPositionOfSection } from '../section/helpers'
 import CollapsableComponent from './collapsable.vue'
 
 export interface CollapsableOptions {
@@ -103,66 +105,63 @@ export const Collapsable = Node.create<CollapsableOptions>({
       'Ctrl-Alt-4': () => this.editor.commands.insertCollapsable(),
       'Backspace': () => {
         const editor = this.editor
-        const { from, to } = editor.state.selection
-        if (from !== to) {
-          return false
-        }
+        const state = editor.state
+        if (!state.selection.empty) return false
 
+        // Verify if the cursor is in a collapsable node
         if (editor.state.selection.$from.depth < 2) return false
 
-        const parentNode = editor.state.selection.$from.node(editor.state.selection.$from.depth - 2)
-        if (parentNode?.type.name !== 'collapsable_content') return false
+        const collapsableContentPos = state.selection.$from.before(editor.state.selection.$from.depth - 2)
+        const collapsableContentNode = editor.state.doc.nodeAt(collapsableContentPos)
+        if (collapsableContentNode?.type.name !== 'collapsable_content') return false
 
-        const currentTextBlock = editor.state.selection.$from.node(editor.state.selection.$from.depth)
-        const currentNodeIndexWrtParent = editor.state.selection.$from.index(editor.state.selection.$from.depth - 2)
-
-        if (
-          currentTextBlock?.type.name === 'paragraph' &&
-          currentTextBlock.textContent.length === 0 &&
-          currentNodeIndexWrtParent === 0 &&
-          parentNode.childCount === 1
-        ) {
-          return editor
-            .chain()
-            .setTextSelection(from - 5)
-            .run()
-        }
+        // Handle the case when the cursor is at the beginning of the collapsable content and backspace is pressed
+        // Should move the cursor to the end of the collapsable header
+        const currentParagraphNodeIndexWrtParent = editor.state.selection.$from.index(editor.state.selection.$from.depth - 2)
 
         if (
-          currentTextBlock?.type.name === 'paragraph' &&
-          currentTextBlock.textContent.length === 0 &&
-          currentNodeIndexWrtParent === 0
+          isCursorAtStartOfParagraph(state) &&
+          currentParagraphNodeIndexWrtParent === 0 &&
+          collapsableContentNode.childCount === 1
         ) {
-          return editor
-            .chain()
-            .setTextSelection(from - 1)
-            .run()
+          const parentSection = getPositionOfSection(state, collapsableContentPos)!
+          const collapseHeaderPos = getPosOfChildNodeOfType({
+            state: editor.state,
+            nodeType: 'collapsable_header',
+            nodePos: parentSection,
+          })!
+
+          const collapseHeaderNode = editor.state.doc.nodeAt(collapseHeaderPos)!
+
+          const collapsableHeaderEndPos = collapseHeaderPos + collapseHeaderNode.nodeSize - 1
+
+          return editor.chain().setTextSelection(collapsableHeaderEndPos).run()
         }
 
         return false
       },
       'Enter': () => {
         const editor = this.editor
-        const { from, to } = editor.state.selection
         const state = editor.state
+        const selection = state.selection
 
-        if (from !== to) return false
+        if (!selection.empty) return false
 
         if (handleCollapsableHeaderEnter(editor as any)) return true
 
         // Collapsable content
-        if (editor.state.selection.$from.depth < 2) return false
+        if (selection.$from.depth < 2) return false
 
-        const parentNode = editor.state.selection.$from.node(editor.state.selection.$from.depth - 2)
+        const parentNode = selection.$from.node(selection.$from.depth - 2)
         if (parentNode?.type.name !== 'collapsable_content') return false
 
-        const currentSecPos = editor.state.selection.$from.before(editor.state.selection.$from.depth - 1)
-        const nextSecPos = editor.state.selection.$from.after(editor.state.selection.$from.depth - 1)
+        const currentSecPos = selection.$from.before(selection.$from.depth - 1)
+        const nextSecPos = selection.$from.after(selection.$from.depth - 1)
 
-        const currentTextBlock = editor.state.selection.$from.node(editor.state.selection.$from.depth)
+        const currentTextBlock = selection.$from.node(selection.$from.depth)
         if (currentTextBlock.textContent.startsWith('/')) return false
 
-        const currentNodeIndexWrtParent = editor.state.selection.$from.index(editor.state.selection.$from.depth - 2)
+        const currentNodeIndexWrtParent = selection.$from.index(selection.$from.depth - 2)
         if (
           currentTextBlock?.type.name === 'paragraph' &&
           currentTextBlock.textContent.length === 0 &&
@@ -172,8 +171,8 @@ export const Collapsable = Node.create<CollapsableOptions>({
           return true
         }
 
-        const slice = editor.state.doc.slice(currentSecPos, from)
-        const nextSlice = editor.state.doc.slice(from, nextSecPos)
+        const slice = state.doc.slice(currentSecPos, selection.from)
+        const nextSlice = state.doc.slice(selection.from, nextSecPos)
 
         const newSliceJson = {
           content: [...slice.toJSON().content, ...nextSlice.toJSON().content],
@@ -183,7 +182,7 @@ export const Collapsable = Node.create<CollapsableOptions>({
         const newSlice = Slice.fromJSON(state.schema, newSliceJson)
 
         const tr = state.tr
-        tr.replaceRange(currentSecPos, nextSecPos, newSlice).setSelection(TextSelection.create(tr.doc, from + 4))
+        tr.replaceRange(currentSecPos, nextSecPos, newSlice).setSelection(TextSelection.create(tr.doc, selection.from + 4))
         editor.view.dispatch(tr)
 
         return true
@@ -193,10 +192,7 @@ export const Collapsable = Node.create<CollapsableOptions>({
 })
 
 function handleCollapsableHeaderEnter(editor: Editor) {
-  const { from, to } = editor.state.selection
   const state = editor.state
-
-  if (from !== to) return false
 
   const parentNode = editor.state.selection.$from.node(editor.state.selection.$from.depth - 1)
   if (editor.state.selection.$from.depth < 2) return false

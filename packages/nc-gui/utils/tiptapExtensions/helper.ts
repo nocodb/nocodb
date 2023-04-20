@@ -1,5 +1,5 @@
 import type { EditorState } from 'prosemirror-state'
-import { getPositionOfSection } from './section/helpers'
+import { getPositionOfNextSection, getPositionOfSection } from './section/helpers'
 
 export const isNodeTypeSelected = ({
   state,
@@ -61,10 +61,13 @@ export const getPosOfChildNodeOfType = ({
   const { $from } = state.selection
 
   const anchorPos = nodePos ?? $from.pos
-  const nextSectionPos = getPositionOfSection(state, anchorPos + 1)
+  let nextSectionPos = getPositionOfNextSection(state, anchorPos + 1)
+  // If there is no next section, then the next section position will be the end of the document
+  nextSectionPos = nextSectionPos ?? state.doc.nodeSize
 
   let giveTypePos = null
   let iterChildIndex = 0
+
   state.doc.nodesBetween(anchorPos, nextSectionPos, (node, pos) => {
     if (node.type.name === nodeType) {
       if (iterChildIndex === childIndex) {
@@ -98,4 +101,21 @@ export const isLastChild = (state: EditorState, pos: number) => {
   const parent = state.doc.nodeAt(parentPos)
 
   return posResolve.index(posResolve.depth - 1) === parent!.childCount - 1
+}
+
+/**
+ * Verify that the cursor is at the beginning of the active paragraph node
+ * @param state
+ */
+export const isCursorAtStartOfParagraph = (state: EditorState) => {
+  const pos = state.selection.$from.pos
+  const resolve = state.doc.resolve(pos)
+
+  const node = state.selection.$from.node()
+  console.log(node)
+  if (!node || node.type.name !== 'paragraph') return false
+
+  const offset = resolve.parentOffset
+
+  return offset === 0
 }

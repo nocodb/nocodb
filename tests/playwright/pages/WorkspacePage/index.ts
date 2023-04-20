@@ -60,6 +60,10 @@ export class WorkspacePage extends BasePage {
     await (await this.LeftSideBar.workspaceGetLocator(title)).click();
   }
 
+  async workspaceCount() {
+    return await this.LeftSideBar.getWorkspaceCount();
+  }
+
   async projectCreate({ title, type }) {
     await this.Container.projectCreate({ title, type });
   }
@@ -89,6 +93,7 @@ export class WorkspacePage extends BasePage {
     await this.rootPage.waitForTimeout(100);
   }
 
+
   async checkWorkspaceCreateButton(param: { exists: boolean }) {
     // fix me! wait for page load to complete
     // one of the two checks should suffice
@@ -98,4 +103,12 @@ export class WorkspacePage extends BasePage {
       .locator('[data-testid="nc-create-workspace"]')
       .waitFor({ state: param.exists ? 'visible' : 'hidden' });
   }
+
+  async logout() {
+    await this.Header.accountMenuOpen({ title: 'sign-out' });
+  }
+
+  // Add on verification routines
+  // can be done using expect at source
+
 }

@@ -4,6 +4,8 @@ import { AccountUsersPage } from '../../pages/Account/Users';
 import { ProjectsPage } from '../../pages/ProjectsPage';
 import { SignupPage } from '../../pages/SignupPage';
 import setup from '../../setup';
+import { isHub } from '../../setup/db';
+import { WorkspacePage } from '../../pages/WorkspacePage';
 
 const roleDb = [
   { email: 'creator@nocodb.com', role: 'Organization Level Creator', url: '' },
@@ -15,16 +17,18 @@ test.describe('User roles', () => {
   let accountPage: AccountPage;
   let signupPage: SignupPage;
   let projectsPage: ProjectsPage;
+  let workspacePage: WorkspacePage;
   // @ts-ignore
   let context: any;
 
   test.beforeEach(async ({ page }) => {
-    context = await setup({ page });
+    context = await setup({ page, isEmptyProject: true });
     accountPage = new AccountPage(page);
     accountUsersPage = new AccountUsersPage(accountPage);
 
     signupPage = new SignupPage(accountPage.rootPage);
     projectsPage = new ProjectsPage(accountPage.rootPage);
+    workspacePage = new WorkspacePage(accountPage.rootPage);
   });
 
   test('Invite user, update role and delete user', async () => {
@@ -71,8 +75,14 @@ test.describe('User roles', () => {
       password: 'Password123.',
     });
 
-    await projectsPage.checkProjectCreateButton({
-      exists: roleDb[roleIdx].role === 'Organization Level Creator',
-    });
+    if (isHub()) {
+      await workspacePage.checkWorkspaceCreateButton({
+        exists: roleDb[roleIdx].role === 'Organization Level Creator',
+      });
+    } else {
+      await projectsPage.checkProjectCreateButton({
+        exists: roleDb[roleIdx].role === 'Organization Level Creator',
+      });
+    }
   }
 });

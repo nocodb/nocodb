@@ -16,6 +16,7 @@ export interface NcContext {
 
 selectors.setTestIdAttribute('data-testid');
 
+const enableLocalInit = false;
 async function localInit({ parallelId = process.env.TEST_PARALLEL_INDEX }: { parallelId: string }) {
   const response = await axios.post('http://localhost:8080/api/v1/auth/user/signin', {
     email: 'user@nocodb.com',
@@ -89,7 +90,7 @@ const setup = async ({
 
   let response;
   try {
-    if (isEmptyProject) {
+    if (isEmptyProject && enableLocalInit) {
       response = await localInit({ parallelId: process.env.TEST_PARALLEL_INDEX });
     } else {
       response = await axios.post(`http://localhost:8080/api/v1/meta/test/reset`, {

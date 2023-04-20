@@ -20,7 +20,7 @@ test.describe('Auth', () => {
   let workspacePage: WorkspacePage;
 
   test.beforeEach(async ({ page }) => {
-    context = await setup({ page });
+    context = await setup({ page, isEmptyProject: true });
     dashboard = new DashboardPage(page, context.project);
     signupPage = new SignupPage(page);
     projectsPage = new ProjectsPage(page);

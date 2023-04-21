@@ -140,6 +140,15 @@ export class TestResetService {
           await base.delete(Noco.ncMeta, { force: true });
         }
 
+        const users = await ProjectUser.getUsersList({
+          project_id: project.id,
+          limit: 25,
+          offset: 0,
+        });
+        for (user of users) {
+          await ProjectUser.delete(project.id, user.id);
+        }
+
         await Project.delete(project.id);
       })
     );

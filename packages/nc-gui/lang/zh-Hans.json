@@ -163,8 +163,8 @@
   "filterOperation": {
     "isEqual": "等于",
     "isNotEqual": "不等于",
-    "isLike": "部分一致",
-    "isNot like": "部分不一致",
+    "isLike": "包含",
+    "isNot like": "不包含",
     "isEmpty": "内容为空",
     "isNotEmpty": "内容不为空",
     "isNull": "无值（Null）",

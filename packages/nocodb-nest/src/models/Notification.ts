@@ -3,35 +3,43 @@ import Noco from '../Noco';
 import { extractProps } from '../helpers/extractProps';
 import { parseMetaProp, stringifyMetaProp } from '../utils/modelUtils';
 
-export default class Audit {
+
+// todo: move to nocodb-sdk
+export enum NotificationType {
+  WELCOME = 'welcome',
+  INVITE = 'invite',
+}
+
+export default class Notification {
   id?: string;
   body?: string | Record<string, any>;
   // todo: use enum
-  type?: string;
+  type?: NotificationType;
   is_read?: boolean;
   is_deleted?: boolean;
   created_at?: string;
   updated_at?: string;
   fk_user_id?: string;
 
-  constructor(notification: Partial<Audit>) {
+  constructor(notification: Partial<Notification>) {
     Object.assign(this, notification);
   }
 
   // todo: cache
-  public static async get(notificationId: string) {
+  public static async get(
+    idOrCondition: string | Record<string, any>,) {
     const notification = await Noco.ncMeta.metaGet2(
       null,
       null,
       MetaTable.NOTIFICATION,
-      notificationId,
+      idOrCondition,
     );
-    return notification && new Audit(notification);
+    return notification && new Notification(notification);
   }
 
   // todo: cache
   public static async insert(
-    notification: Partial<Audit>,
+    notification: Partial<Notification>,
     ncMeta = Noco.ncMeta,
   ) {
     const insertObj = extractProps(notification, [
@@ -53,8 +61,8 @@ export default class Audit {
 
   // todo: cache
   public static async update(
-    id: string,
-    notification: Partial<Audit>,
+    idOrCondition: string | Record<string, any>,
+    notification: Partial<Notification>,
     ncMeta = Noco.ncMeta,
   ) {
     const updateObj = extractProps(notification, [
@@ -70,7 +78,7 @@ export default class Audit {
     if ('body' in updateObj)
       updateObj.body = stringifyMetaProp(updateObj, 'body') as string;
 
-    return await ncMeta.metaUpdate(null, null, MetaTable.AUDIT, id, updateObj);
+    return await ncMeta.metaUpdate(null, null, MetaTable.AUDIT, idOrCondition, updateObj);
   }
 
   // todo: cache
@@ -98,7 +106,30 @@ export default class Audit {
 
     return notifications.map((n) => {
       n.body = parseMetaProp(n, 'body');
-      return new Audit(n);
+      return new Notification(n);
     });
+  }
+
+  // todo: cache
+  static async count(param: {
+    fk_user_id: string;
+    is_read?: boolean;
+    is_deleted?: boolean;
+    limit?: number;
+    offset?: number;
+  }) {
+    const where = { fk_user_id: param.fk_user_id };
+
+    if ('is_read' in param) where['is_read'] = param.is_read;
+    if ('is_deleted' in param) where['is_deleted'] = param.is_deleted;
+
+    const count = await Noco.ncMeta.metaCount(
+      null,
+      null,
+      MetaTable.NOTIFICATION,
+      { condition: where },
+    );
+
+    return count;
   }
 }

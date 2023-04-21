@@ -15855,14 +15855,14 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/Notification"
+                  "$ref": "#/components/schemas/NotificationList"
                 }
               }
             }
           }
         },
         "tags": [
-          "Workspace user"
+          "Notification"
         ],
         "description": "Workspace user read",
         "parameters": [
@@ -15910,7 +15910,7 @@
           }
         },
         "tags": [
-          "Workspace user"
+          "Notification"
         ],
         "description": "Workspace user read"
       },
@@ -15923,7 +15923,7 @@
           }
         },
         "tags": [
-          "Workspace User"
+          "Notification"
         ],
         "description": "Delete workspace user"
       },
@@ -18117,86 +18117,6 @@
         },
         "x-stoplight": {
           "id": "nmffmb1p3wkg9"
-        }
-      },
-      "Formula": {
-        "description": "Model for Formula",
-        "examples": [
-          {
-            "id": "fm_1lo8wqtvvipdns",
-            "fk_column_id": "cl_h2micb4jdnmsh1",
-            "formula": "CONCAT(\"FOO\", {{cl_c5knoi4xs4sfpt}})",
-            "formula_raw": "CONCAT(\"FOO\", {Title})",
-            "error": "Error Message shows here"
-          }
-        ],
-        "title": "Formula Model",
-        "type": "object",
-        "properties": {
-          "id": {
-            "$ref": "#/components/schemas/Id",
-            "description": "Unique ID"
-          },
-          "fk_column_id": {
-            "$ref": "#/components/schemas/Id",
-            "description": "Foreign Key to Column"
-          },
-          "formula": {
-            "type": "string",
-            "description": "Formula with column ID replaced",
-            "example": "CONCAT(\"FOO\", {{cl_c5knoi4xs4sfpt}})"
-          },
-          "formula_raw": {
-            "type": "string",
-            "description": "Original Formula inputted in UI",
-            "example": "CONCAT(\"FOO\", {Title})"
-          },
-          "error": {
-            "type": "string",
-            "description": "Error Message"
-          }
-        },
-        "x-stoplight": {
-          "id": "hlu7yokpavxwb"
-        }
-      },
-      "FormulaColumnReq": {
-        "description": "Model for Formula Column Request",
-        "examples": [
-          {
-            "formula": "CONCAT(\"FOO\", {{cl_c5knoi4xs4sfpt}})",
-            "formula_raw": "CONCAT(\"FOO\", {Title})",
-            "title": "Formula",
-            "uidt": "Formula"
-          }
-        ],
-        "title": "Formula Column Request Model",
-        "type": "object",
-        "properties": {
-          "formula": {
-            "type": "string",
-            "description": "Formula with column ID replaced"
-          },
-          "formula_raw": {
-            "type": "string",
-            "description": "Original Formula inputted in UI"
-          },
-          "title": {
-            "maxLength": 255,
-            "minLength": 1,
-            "type": "string",
-            "description": "Formula Title"
-          },
-          "uidt": {
-            "enum": [
-              "Formula"
-            ],
-            "type": "string",
-            "description": "UI Data Type"
-          }
-        },
-        "x-stoplight": {
-          "id": "v26r0c9hlimtv"
         }
       },
       "Formula": {
@@ -23155,7 +23075,7 @@
             "$ref": "#/components/schemas/Id",
             "description": "Unique ID"
           },
-          "body": { },
+          "body": {},
           "is_read": {
             "type": "boolean",
             "description": "Whether the notification has been read by the user"
@@ -23168,477 +23088,523 @@
             "type": "string",
             "description": "Type of notification"
           },
-          "updated_at": { },
-          "created_at": { }
+          "updated_at": {},
+          "created_at": {}
         },
         "title": "Notification",
         "type": "object"
-      }
-    }
-  },
-  "responses": {
-    "ProjectList": {
-      "description": "Example response",
-      "content": {
-        "application/json": {
-          "schema": {
-            "$ref": "#/components/schemas/ProjectList"
-          },
-          "examples": {
-            "example-1": {
-              "value": {
-                "list": [
-                  {
-                    "bases": [
-                      {
-                        "alias": "string",
-                        "config": null,
-                        "created_at": "2023-03-01 14:27:36",
-                        "enabled": true,
-                        "id": "string",
-                        "inflection_column": "camelize",
-                        "inflection_table": "camelize",
-                        "is_meta": true,
-                        "order": 1,
-                        "project_id": "string",
-                        "type": "mysql2",
-                        "updated_at": "2023-03-01 14:27:36"
-                      }
-                    ],
-                    "color": "#24716E",
-                    "created_at": "2023-03-01 14:27:36",
-                    "deleted": true,
-                    "description": "This is my project description",
-                    "id": "p_124hhlkbeasewh",
-                    "is_meta": true,
-                    "meta": {},
-                    "order": 0,
-                    "prefix": "nc_vm5q__",
-                    "status": "string",
-                    "title": "my-project",
-                    "updated_at": "2023-03-01 14:27:36"
-                  }
-                ],
-                "pageInfo": {
-                  "isFirstPage": true,
-                  "isLastPage": true,
-                  "page": 1,
-                  "pageSize": 10,
-                  "totalRows": 1
-                }
+      },
+      "NotificationList": {
+        "description": "Model for Notification List",
+        "examples": [
+          {
+            "list": [
+              {
+                "body": {
+
+                },
+                "type": "invite",
+                "is_read": false,
+                "is_deleted": false,
+                "id": "1",
+                "updated_at": "2020-05-20T12:00:00.000000Z",
+                "created_at": "2020-05-20T12:00:00.000000Z",
+                "fk_user_id": "us_b3xo2i44nx5y9l"
               }
+            ],
+            "pageInfo": {
+              "isFirstPage": true,
+              "isLastPage": true,
+              "page": 1,
+              "pageSize": 10,
+              "totalRows": 1
             }
           }
-        }
-      }
-    },
-    "BaseList": {
-      "description": "Example response",
-      "content": {
-        "application/json": {
-          "schema": {
-            "$ref": "#/components/schemas/BaseList"
-          },
-          "examples": {
-            "example-1": {
-              "value": {
-                "list": [
-                  {
-                    "id": "ds_krsappzu9f8vmo",
-                    "project_id": "p_01clqvzik3izk6",
-                    "alias": null,
-                    "config": "<ENCRYPTED>",
-                    "meta": null,
-                    "is_meta": 1,
-                    "type": "mysql2",
-                    "inflection_column": "camelize",
-                    "inflection_table": "camelize",
-                    "created_at": "2023-03-01 16:31:49",
-                    "updated_at": "2023-03-02 11:28:17",
-                    "enabled": 1,
-                    "order": 1
-                  },
-                  {
-                    "id": "ds_btbdt19zde0gj9",
-                    "project_id": "p_01clqvzik3izk6",
-                    "alias": "sakila",
-                    "config": "<ENCRYPTED>",
-                    "meta": null,
-                    "is_meta": null,
-                    "type": "mysql2",
-                    "inflection_column": "camelize",
-                    "inflection_table": "camelize",
-                    "created_at": "2023-03-02 11:28:17",
-                    "updated_at": "2023-03-02 11:28:17",
-                    "enabled": 1,
-                    "order": 2
-                  }
-                ],
-                "pageInfo": {
-                  "totalRows": 2,
-                  "page": 1,
-                  "pageSize": 2,
-                  "isFirstPage": true,
-                  "isLastPage": true
-                }
-              }
+        ],
+        "title": "API Token List Model",
+        "type": "object",
+        "properties": {
+          "list": {
+            "type": "array",
+            "description": "List of notification objects",
+            "items": {
+              "$ref": "#/components/schemas/Notification"
             }
-          }
-        }
-      }
-    },
-    "TableList": {
-      "description": "Example response",
-      "content": {
-        "application/json": {
-          "schema": {
-            "$ref": "#/components/schemas/TableList"
           },
-          "examples": {
-            "Example 1": {
-              "value": {
-                "list": [
-                  {
-                    "id": "md_5hua2iqloqirhd",
-                    "base_id": "ds_jxuewivwbxeum2",
-                    "project_id": "p_tbhl1hnycvhe5l",
-                    "table_name": "nc_b84e___Sheet-1",
-                    "title": "Sheet-1",
-                    "type": "table",
-                    "meta": null,
-                    "schema": null,
-                    "enabled": true,
-                    "mm": false,
-                    "tags": null,
-                    "pinned": null,
-                    "deleted": null,
-                    "order": 1,
-                    "created_at": "2023-03-11T09:11:45.907Z",
-                    "updated_at": "2023-03-11T09:11:45.907Z"
-                  }
-                ],
-                "pageInfo": {
-                  "isFirstPage": true,
-                  "isLastPage": true,
-                  "page": 1,
-                  "pageSize": 10,
-                  "totalRows": 1
-                }
-              }
-            }
+          "pageInfo": {
+            "$ref": "#/components/schemas/Paginated",
+            "description": "Model for Paginated"
           }
-        }
+        },
+        "required": [
+          "list",
+          "pageInfo"
+        ]
       }
     },
-    "ColumnList": {
-      "description": "Example response",
-      "content": {
-        "application/json": {
-          "schema": {
-            "$ref": "#/components/schemas/ColumnList"
-          }
-        }
-      }
-    },
-    "FilterList": {
-      "description": "Example response",
-      "content": {
-        "application/json": {
-          "schema": {
-            "$ref": "#/components/schemas/FilterList"
-          }
-        }
-      }
-    },
-    "SortList": {
-      "description": "Example response",
-      "content": {
-        "application/json": {
-          "schema": {
-            "$ref": "#/components/schemas/SortList"
-          },
-          "examples": {}
-        }
-      }
-    },
-    "ViewList": {
-      "description": "Example response",
-      "content": {
-        "application/json": {
-          "schema": {
-            "$ref": "#/components/schemas/ViewList"
-          },
-          "examples": {
-            "Example 1": {
-              "value": {
-                "list": [
-                  {
-                    "alias": "string",
-                    "column": [
-                      {
-                        "alias": "string",
-                        "auto_increment": true,
-                        "auto_update_timestamp": true,
-                        "base_id": "string",
-                        "character_maximum_length": "string",
-                        "character_set_name": "string",
-                        "colOptions": {
-                          "deleted": "string",
-                          "dr": "string",
-                          "fk_child_column_id": "string",
-                          "fk_column_id": "string",
-                          "fk_index_name": "string",
-                          "fk_mm_child_column_id": "string",
-                          "fk_mm_model_id": "string",
-                          "fk_mm_parent_column_id": "string",
-                          "fk_parent_column_id": "string",
+    "responses": {
+      "ProjectList": {
+        "description": "Example response",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/ProjectList"
+            },
+            "examples": {
+              "example-1": {
+                "value": {
+                  "list": [
+                    {
+                      "bases": [
+                        {
+                          "alias": "string",
+                          "config": null,
+                          "created_at": "2023-03-01 14:27:36",
+                          "enabled": true,
                           "id": "string",
-                          "order": "string",
-                          "type": "string",
-                          "ur": "string",
-                          "virtual": true
-                        },
-                        "column_comment": "string",
-                        "column_default": "string",
-                        "column_ordinal_position": "string",
-                        "column_type": "string",
-                        "data_type": "string",
-                        "data_type_x": "string",
-                        "data_type_x_precision": "string",
-                        "data_type_x_scale": "string",
-                        "deleted": true,
-                        "fk_model_id": "string",
-                        "id": "string",
-                        "numeric_precision": "string",
-                        "numeric_scale": "string",
-                        "order": 0,
-                        "primary_key": true,
-                        "primary_value": true,
-                        "rqd": "string",
-                        "title": "string",
-                        "ui_data_type": "string",
-                        "un": "string",
-                        "unique": true,
-                        "visible": true
-                      }
-                    ],
-                    "columnByIds": {},
-                    "deleted": true,
-                    "enabled": true,
-                    "fk_base_id": "string",
-                    "fk_project_id": "string",
-                    "id": "string",
-                    "order": 0,
-                    "parent_id": "string",
-                    "pinned": true,
-                    "show_as": "string",
-                    "tags": "string",
-                    "title": "string",
-                    "type": "string"
-                  }
-                ],
-                "pageInfo": {
-                  "isFirstPage": true,
-                  "isLastPage": true,
-                  "page": 1,
-                  "pageSize": 10,
-                  "totalRows": 1
-                }
-              }
-            }
-          }
-        }
-      }
-    },
-    "SharedViewList": {
-      "description": "Example response",
-      "content": {
-        "application/json": {
-          "schema": {
-            "$ref": "#/components/schemas/SharedViewList"
-          },
-          "examples": {
-            "Example 1": {
-              "value": {
-                "list": [
-                  {
-                    "base_id": "ds_g4ccx6e77h1dmi",
-                    "created_at": "2023-03-02 17:46:31",
-                    "fk_model_id": "md_mhs9z4r2ak98x0",
-                    "id": "vw_lg052cnc1c26kf",
-                    "is_default": 1,
-                    "lock_type": "collaborative",
-                    "meta": {},
-                    "order": 1,
-                    "password": null,
-                    "project_id": "p_xm3thidrblw4n7",
-                    "show": 1,
-                    "show_system_fields": null,
-                    "title": "Sheet-1",
-                    "type": 3,
-                    "updated_at": "2023-03-02 17:46:31",
-                    "uuid": null,
-                    "view": {
-                      "base_id": "ds_g4ccx6e77h1dmi",
-                      "created_at": "2023-03-02 17:46:31",
-                      "fk_view_id": "vw_lg052cnc1c26kf",
-                      "meta": null,
-                      "project_id": "p_xm3thidrblw4n7",
-                      "row_height": null,
-                      "updated_at": "2023-03-02 17:46:31",
-                      "uuid": null
+                          "inflection_column": "camelize",
+                          "inflection_table": "camelize",
+                          "is_meta": true,
+                          "order": 1,
+                          "project_id": "string",
+                          "type": "mysql2",
+                          "updated_at": "2023-03-01 14:27:36"
+                        }
+                      ],
+                      "color": "#24716E",
+                      "created_at": "2023-03-01 14:27:36",
+                      "deleted": true,
+                      "description": "This is my project description",
+                      "id": "p_124hhlkbeasewh",
+                      "is_meta": true,
+                      "meta": {},
+                      "order": 0,
+                      "prefix": "nc_vm5q__",
+                      "status": "string",
+                      "title": "my-project",
+                      "updated_at": "2023-03-01 14:27:36"
                     }
+                  ],
+                  "pageInfo": {
+                    "isFirstPage": true,
+                    "isLastPage": true,
+                    "page": 1,
+                    "pageSize": 10,
+                    "totalRows": 1
                   }
-                ],
-                "pageInfo": {
-                  "isFirstPage": true,
-                  "isLastPage": true,
-                  "page": 1,
-                  "pageSize": 10,
-                  "totalRows": 1
                 }
               }
             }
           }
-        }
-      }
-    },
-    "HookList": {
-      "description": "Example response",
-      "content": {
-        "application/json": {
-          "schema": {
-            "$ref": "#/components/schemas/HookList"
-          }
-        }
-      }
-    },
-    "UserList": {
-      "description": "Example response",
-      "content": {
-        "application/json": {
-          "schema": {
-            "$ref": "#/components/schemas/UserList"
-          },
-          "examples": {
-            "Example 1": {
-              "value": {
-                "list": [
-                  {
-                    "email": "user@example.com",
-                    "email_verified": true,
-                    "firstname": "Alice",
-                    "id": "us_8kugj628ebjngs",
-                    "lastname": "Smith",
-                    "roles": "org-level-viewer"
-                  }
-                ],
-                "pageInfo": {
-                  "isFirstPage": true,
-                  "isLastPage": true,
-                  "page": 1,
-                  "pageSize": 10,
-                  "totalRows": 1
-                }
-              }
-            }
-          }
-        }
-      }
-    },
-    "APITokenList": {
-      "description": "Example response",
-      "content": {
-        "application/json": {
-          "schema": {
-            "$ref": "#/components/schemas/ApiTokenList"
-          },
-          "examples": {}
         }
       },
-      "type": "object",
-      "properties": {
-        "list": {
-          "type": "array",
-          "x-stoplight": {
-            "id": "uukp6v55zfp7i"
-          },
-          "items": {
-            "$ref": "#/components/schemas/ApiToken",
+      "BaseList": {
+        "description": "Example response",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/BaseList"
+            },
+            "examples": {
+              "example-1": {
+                "value": {
+                  "list": [
+                    {
+                      "id": "ds_krsappzu9f8vmo",
+                      "project_id": "p_01clqvzik3izk6",
+                      "alias": null,
+                      "config": "<ENCRYPTED>",
+                      "meta": null,
+                      "is_meta": 1,
+                      "type": "mysql2",
+                      "inflection_column": "camelize",
+                      "inflection_table": "camelize",
+                      "created_at": "2023-03-01 16:31:49",
+                      "updated_at": "2023-03-02 11:28:17",
+                      "enabled": 1,
+                      "order": 1
+                    },
+                    {
+                      "id": "ds_btbdt19zde0gj9",
+                      "project_id": "p_01clqvzik3izk6",
+                      "alias": "sakila",
+                      "config": "<ENCRYPTED>",
+                      "meta": null,
+                      "is_meta": null,
+                      "type": "mysql2",
+                      "inflection_column": "camelize",
+                      "inflection_table": "camelize",
+                      "created_at": "2023-03-02 11:28:17",
+                      "updated_at": "2023-03-02 11:28:17",
+                      "enabled": 1,
+                      "order": 2
+                    }
+                  ],
+                  "pageInfo": {
+                    "totalRows": 2,
+                    "page": 1,
+                    "pageSize": 2,
+                    "isFirstPage": true,
+                    "isLastPage": true
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "TableList": {
+        "description": "Example response",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/TableList"
+            },
+            "examples": {
+              "Example 1": {
+                "value": {
+                  "list": [
+                    {
+                      "id": "md_5hua2iqloqirhd",
+                      "base_id": "ds_jxuewivwbxeum2",
+                      "project_id": "p_tbhl1hnycvhe5l",
+                      "table_name": "nc_b84e___Sheet-1",
+                      "title": "Sheet-1",
+                      "type": "table",
+                      "meta": null,
+                      "schema": null,
+                      "enabled": true,
+                      "mm": false,
+                      "tags": null,
+                      "pinned": null,
+                      "deleted": null,
+                      "order": 1,
+                      "created_at": "2023-03-11T09:11:45.907Z",
+                      "updated_at": "2023-03-11T09:11:45.907Z"
+                    }
+                  ],
+                  "pageInfo": {
+                    "isFirstPage": true,
+                    "isLastPage": true,
+                    "page": 1,
+                    "pageSize": 10,
+                    "totalRows": 1
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "ColumnList": {
+        "description": "Example response",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/ColumnList"
+            }
+          }
+        }
+      },
+      "FilterList": {
+        "description": "Example response",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/FilterList"
+            }
+          }
+        }
+      },
+      "SortList": {
+        "description": "Example response",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/SortList"
+            },
+            "examples": {}
+          }
+        }
+      },
+      "ViewList": {
+        "description": "Example response",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/ViewList"
+            },
+            "examples": {
+              "Example 1": {
+                "value": {
+                  "list": [
+                    {
+                      "alias": "string",
+                      "column": [
+                        {
+                          "alias": "string",
+                          "auto_increment": true,
+                          "auto_update_timestamp": true,
+                          "base_id": "string",
+                          "character_maximum_length": "string",
+                          "character_set_name": "string",
+                          "colOptions": {
+                            "deleted": "string",
+                            "dr": "string",
+                            "fk_child_column_id": "string",
+                            "fk_column_id": "string",
+                            "fk_index_name": "string",
+                            "fk_mm_child_column_id": "string",
+                            "fk_mm_model_id": "string",
+                            "fk_mm_parent_column_id": "string",
+                            "fk_parent_column_id": "string",
+                            "id": "string",
+                            "order": "string",
+                            "type": "string",
+                            "ur": "string",
+                            "virtual": true
+                          },
+                          "column_comment": "string",
+                          "column_default": "string",
+                          "column_ordinal_position": "string",
+                          "column_type": "string",
+                          "data_type": "string",
+                          "data_type_x": "string",
+                          "data_type_x_precision": "string",
+                          "data_type_x_scale": "string",
+                          "deleted": true,
+                          "fk_model_id": "string",
+                          "id": "string",
+                          "numeric_precision": "string",
+                          "numeric_scale": "string",
+                          "order": 0,
+                          "primary_key": true,
+                          "primary_value": true,
+                          "rqd": "string",
+                          "title": "string",
+                          "ui_data_type": "string",
+                          "un": "string",
+                          "unique": true,
+                          "visible": true
+                        }
+                      ],
+                      "columnByIds": {},
+                      "deleted": true,
+                      "enabled": true,
+                      "fk_base_id": "string",
+                      "fk_project_id": "string",
+                      "id": "string",
+                      "order": 0,
+                      "parent_id": "string",
+                      "pinned": true,
+                      "show_as": "string",
+                      "tags": "string",
+                      "title": "string",
+                      "type": "string"
+                    }
+                  ],
+                  "pageInfo": {
+                    "isFirstPage": true,
+                    "isLastPage": true,
+                    "page": 1,
+                    "pageSize": 10,
+                    "totalRows": 1
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "SharedViewList": {
+        "description": "Example response",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/SharedViewList"
+            },
+            "examples": {
+              "Example 1": {
+                "value": {
+                  "list": [
+                    {
+                      "base_id": "ds_g4ccx6e77h1dmi",
+                      "created_at": "2023-03-02 17:46:31",
+                      "fk_model_id": "md_mhs9z4r2ak98x0",
+                      "id": "vw_lg052cnc1c26kf",
+                      "is_default": 1,
+                      "lock_type": "collaborative",
+                      "meta": {},
+                      "order": 1,
+                      "password": null,
+                      "project_id": "p_xm3thidrblw4n7",
+                      "show": 1,
+                      "show_system_fields": null,
+                      "title": "Sheet-1",
+                      "type": 3,
+                      "updated_at": "2023-03-02 17:46:31",
+                      "uuid": null,
+                      "view": {
+                        "base_id": "ds_g4ccx6e77h1dmi",
+                        "created_at": "2023-03-02 17:46:31",
+                        "fk_view_id": "vw_lg052cnc1c26kf",
+                        "meta": null,
+                        "project_id": "p_xm3thidrblw4n7",
+                        "row_height": null,
+                        "updated_at": "2023-03-02 17:46:31",
+                        "uuid": null
+                      }
+                    }
+                  ],
+                  "pageInfo": {
+                    "isFirstPage": true,
+                    "isLastPage": true,
+                    "page": 1,
+                    "pageSize": 10,
+                    "totalRows": 1
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "HookList": {
+        "description": "Example response",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/HookList"
+            }
+          }
+        }
+      },
+      "UserList": {
+        "description": "Example response",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/UserList"
+            },
+            "examples": {
+              "Example 1": {
+                "value": {
+                  "list": [
+                    {
+                      "email": "user@example.com",
+                      "email_verified": true,
+                      "firstname": "Alice",
+                      "id": "us_8kugj628ebjngs",
+                      "lastname": "Smith",
+                      "roles": "org-level-viewer"
+                    }
+                  ],
+                  "pageInfo": {
+                    "isFirstPage": true,
+                    "isLastPage": true,
+                    "page": 1,
+                    "pageSize": 10,
+                    "totalRows": 1
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "APITokenList": {
+        "description": "Example response",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/ApiTokenList"
+            },
+            "examples": {}
+          }
+        },
+        "type": "object",
+        "properties": {
+          "list": {
+            "type": "array",
             "x-stoplight": {
-              "id": "9zqpoqfkdxy0y"
+              "id": "uukp6v55zfp7i"
+            },
+            "items": {
+              "$ref": "#/components/schemas/ApiToken",
+              "x-stoplight": {
+                "id": "9zqpoqfkdxy0y"
+              }
+            }
+          },
+          "pageInfo": {
+            "$ref": "#/components/schemas/Paginated",
+            "x-stoplight": {
+              "id": "6unr17jyisial"
+            }
+          }
+        }
+      },
+      "BadRequest": {
+        "description": "BadReqeust",
+        "content": {
+          "application/json": {
+            "schema": {
+              "type": "object",
+              "properties": {
+                "msg": {
+                  "type": "string",
+                  "x-stoplight": {
+                    "id": "p9mk4oi0hbihm"
+                  },
+                  "example": "BadRequest [Error]: <ERROR MESSAGE>"
+                }
+              },
+              "required": [
+                "msg"
+              ]
+            },
+            "examples": {
+              "Example 1": {
+                "value": {
+                  "msg": "BadRequest [Error]: <ERROR MESSAGE>"
+                }
+              }
             }
           }
         },
-        "pageInfo": {
-          "$ref": "#/components/schemas/Paginated",
-          "x-stoplight": {
-            "id": "6unr17jyisial"
-          }
-        }
+        "headers": {}
       }
     },
-    "BadRequest": {
-      "description": "BadReqeust",
-      "content": {
-        "application/json": {
-          "schema": {
-            "type": "object",
-            "properties": {
-              "msg": {
-                "type": "string",
-                "x-stoplight": {
-                  "id": "p9mk4oi0hbihm"
-                },
-                "example": "BadRequest [Error]: <ERROR MESSAGE>"
-              }
-            },
-            "required": [
-              "msg"
-            ]
-          },
-          "examples": {
-            "Example 1": {
-              "value": {
-                "msg": "BadRequest [Error]: <ERROR MESSAGE>"
-              }
-            }
-          }
-        }
+    "securitySchemes": {
+      "xc-auth": {
+        "name": "Auth Token ",
+        "type": "apiKey",
+        "in": "header",
+        "description": "Auth Token is a JWT Token generated based on the logged-in user. By default, the token is only valid for 10 hours. However, you can change the value by defining it using environment variable `NC_JWT_EXPIRES_IN`."
       },
-      "headers": {}
-    }
-  },
-  "securitySchemes": {
-    "xc-auth": {
-      "name": "Auth Token ",
-      "type": "apiKey",
-      "in": "header",
-      "description": "Auth Token is a JWT Token generated based on the logged-in user. By default, the token is only valid for 10 hours. However, you can change the value by defining it using environment variable `NC_JWT_EXPIRES_IN`."
-    },
-    "xc-shared-base-id": {
-      "name": "Shared Base ID",
-      "type": "apiKey",
-      "in": "header",
-      "description": "Shared base uuid"
-    },
-    "xc-shared-erd-id": {
-      "name": "Shared ERD ID",
-      "type": "apiKey",
-      "in": "header",
-      "description": "Shared ERD uuid"
-    }
-  },
-  "parameters": {
-    "xc-auth": {
-      "name": "xc-auth",
-      "in": "header",
-      "required": false,
-      "schema": {
-        "type": "string"
+      "xc-shared-base-id": {
+        "name": "Shared Base ID",
+        "type": "apiKey",
+        "in": "header",
+        "description": "Shared base uuid"
       },
-      "description": "Auth Token is a JWT Token generated based on the logged-in user. By default, the token is only valid for 10 hours. However, you can change the value by defining it using environment variable NC_JWT_EXPIRES_IN."
+      "xc-shared-erd-id": {
+        "name": "Shared ERD ID",
+        "type": "apiKey",
+        "in": "header",
+        "description": "Shared ERD uuid"
+      }
+    },
+    "parameters": {
+      "xc-auth": {
+        "name": "xc-auth",
+        "in": "header",
+        "required": false,
+        "schema": {
+          "type": "string"
+        },
+        "description": "Auth Token is a JWT Token generated based on the logged-in user. By default, the token is only valid for 10 hours. However, you can change the value by defining it using environment variable NC_JWT_EXPIRES_IN."
+      }
     }
   }
-}
 }

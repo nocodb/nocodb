@@ -5,7 +5,7 @@ import {
   Get,
   Param,
   Patch,
-  Post,
+  Post, Query,
   Request,
   UseGuards,
 } from '@nestjs/common';
@@ -13,6 +13,7 @@ import { NotificationsService } from '../services/notifications.service';
 import { Acl } from '../middlewares/extract-project-id/extract-project-id.middleware';
 import { ExtractProjectAndWorkspaceIdMiddleware } from '../middlewares/extract-project-and-workspace-id/extract-project-and-workspace-id.middleware';
 import { GlobalGuard } from '../guards/global/global.guard';
+import {extractProps} from "../helpers/extractProps";
 
 @Controller()
 @UseGuards(ExtractProjectAndWorkspaceIdMiddleware, GlobalGuard)
@@ -24,14 +25,10 @@ export class NotificationsController {
   async notificationList(@Request() req) {
     return this.notificationsService.notificationList({
       user: req.user,
+      is_deleted: false,
+      ...req.query,
     });
   }
-
-  // @Post('/api/v1/notification')
-  // @Acl('notificationCreate')
-  // async notificationCreate(@Request() req) {
-  //   return this.notificationsService.notificationCreate();
-  // }
 
   @Patch('/api/v1/notification/:notificationId')
   @Acl('notificationUpdate')
@@ -42,7 +39,7 @@ export class NotificationsController {
   ) {
     return this.notificationsService.notificationUpdate({
       notificationId,
-      body,
+      body: extractProps(body, ['is_read']),
       user: req.user,
     });
   }
@@ -53,8 +50,11 @@ export class NotificationsController {
     @Param('notificationId') notificationId,
     @Request() req,
   ) {
-    return this.notificationsService.notificationDelete({
+    return this.notificationsService.notificationUpdate({
       notificationId,
+      body: {
+        is_deleted: true,
+      },
       user: req.user,
     });
   }

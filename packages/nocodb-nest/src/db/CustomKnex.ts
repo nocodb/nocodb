@@ -1,16 +1,21 @@
 import { Knex, knex } from 'knex';
 import { SnowflakeClient } from 'nc-help';
-import { types } from 'pg';
+import pg, { types } from 'pg';
+import dayjs from 'dayjs';
 import Filter from '../models/Filter';
 import type { FilterType } from 'nocodb-sdk';
 import type { BaseModelSql } from './BaseModelSql';
 
+pg.defaults.parseInputDatesAsUTC = true;
+
 // override parsing date column to Date()
 types.setTypeParser(1082, (val) => val);
 // override timestamp
-types.setTypeParser(1114, (val) => {
-  return new Date(val + '+0000');
-});
+for (const oid of [1114, 1184]) {
+  types.setTypeParser(oid, (val) => {
+    return dayjs(val).utc(true).local().format('YYYY-MM-DD HH:mm:ssZ');
+  });
+}
 
 const opMappingGen = {
   eq: '=',

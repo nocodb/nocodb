@@ -54,13 +54,13 @@ export const Link = ({ isPublic }: { isPublic?: boolean }) =>
     addKeyboardShortcuts() {
       return {
         'Mod-j': () => {
-          const to = this.editor.view.state.selection.to
+          const selection = this.editor.view.state.selection
           this.editor
             .chain()
             .toggleLink({
               href: '',
             })
-            .setTextSelection(to)
+            .setTextSelection(selection.to)
             .run()
 
           setTimeout(() => {
@@ -71,17 +71,17 @@ export const Link = ({ isPublic }: { isPublic?: boolean }) =>
           }, 100)
         },
         'Space': () => {
+          // If we press space twice we stop the link mark and have normal text
           const editor = this.editor
           const selection = editor.view.state.selection
           const nodeBefore = selection.$to.nodeBefore
           const nodeAfter = selection.$to.nodeAfter
 
-          if (!nodeBefore) {
-            return false
-          }
+          if (!nodeBefore) return false
 
           const nodeBeforeText = nodeBefore.text!
 
+          // If we are not inside a link, we don't do anything
           if (
             !nodeBefore?.marks.some((mark) => mark.type.name === 'link') ||
             nodeAfter?.marks.some((mark) => mark.type.name === 'link')
@@ -89,6 +89,7 @@ export const Link = ({ isPublic }: { isPublic?: boolean }) =>
             return false
           }
 
+          // Last text character should be a space
           if (nodeBeforeText[nodeBeforeText.length - 1] !== ' ') {
             return false
           }
@@ -106,6 +107,9 @@ export const Link = ({ isPublic }: { isPublic?: boolean }) =>
         // To have proseMirror plugins from the parent extension
         ...(this.parent?.() ?? []),
         new Plugin({
+          //
+          // Put cursor at the end of the link when we add a link
+          //
           appendTransaction: (transactions, _, newState) => {
             if (transactions.length !== 1) return null
             const steps = transactions[0].steps
@@ -113,6 +117,7 @@ export const Link = ({ isPublic }: { isPublic?: boolean }) =>
 
             const step: Step = steps[0] as Step
             const stepJson = step.toJSON()
+            // Ignore we are not adding a mark(i.e link, bold, etc)
             if (stepJson.stepType !== 'addMark') return null
 
             const addMarkStep: AddMarkStep = step as AddMarkStep
@@ -124,23 +129,6 @@ export const Link = ({ isPublic }: { isPublic?: boolean }) =>
 
             const { tr } = newState
             return tr.setSelection(new TextSelection(tr.doc.resolve(addMarkStep.to)))
-          },
-          props: {
-            // handleClick(view, pos, event) {
-            //   const attrs = getAttributes(view.state, 'link')
-            //   if (view.editable && !event.metaKey) {
-            //     return false
-            //   }
-            //   const link = (event.target as HTMLElement)?.closest('a')
-            //   if (isPublic) {
-            //     attrs.href = attrs.href.replace('/nc/doc/p', '/nc/doc/s')
-            //   }
-            //   if (link && attrs.href) {
-            //     window.open(attrs.href, attrs.target)
-            //     return true
-            //   }
-            //   return false
-            // },
           },
         }),
       ]

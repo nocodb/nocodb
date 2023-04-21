@@ -2,19 +2,14 @@ import { MetaTable } from '../utils/globals';
 import Noco from '../Noco';
 import { extractProps } from '../helpers/extractProps';
 import { parseMetaProp, stringifyMetaProp } from '../utils/modelUtils';
+import {AppEvents} from "../services/app-hooks.service";
 
-
-// todo: move to nocodb-sdk
-export enum NotificationType {
-  WELCOME = 'welcome',
-  INVITE = 'invite',
-}
 
 export default class Notification {
   id?: string;
   body?: string | Record<string, any>;
   // todo: use enum
-  type?: NotificationType;
+  type?: AppEvents;
   is_read?: boolean;
   is_deleted?: boolean;
   created_at?: string;

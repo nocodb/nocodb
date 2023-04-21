@@ -1,10 +1,65 @@
-import { Injectable } from '@nestjs/common';
-import { Notification } from '../models';
-import { PagedResponseImpl } from '../helpers/PagedResponse';
-import type { UserType } from 'nocodb-sdk';
+import {Injectable, OnModuleDestroy, OnModuleInit} from '@nestjs/common';
+import {Notification} from '../models';
+import {PagedResponseImpl} from '../helpers/PagedResponse';
+import type {UserType} from 'nocodb-sdk';
+import {AppEvents, AppHooksService} from "./app-hooks.service";
+import {NotificationType} from "../models/Notification";
 
 @Injectable()
-export class NotificationsService {
+export class NotificationsService implements OnModuleInit, OnModuleDestroy{
+
+  constructor(private readonly appHooks: AppHooksService) {
+  }
+
+  private async hookHandler(event: AppEvents, data: any) {
+    switch (event) {
+      case AppEvents.PROJECT_INVITE: {
+        const {project, user} = data;
+
+        await Notification.insert({
+          fk_user_id: user.id,
+          type: AppEvents.PROJECT_INVITE,
+          body: {
+            id: project.id,
+            title: project.title
+          }
+        })
+      }
+        break;
+      case AppEvents.WORKSPACE_INVITE: {
+        const {workspace, user} = data;
+
+        await Notification.insert({
+          fk_user_id: user.id,
+          type: AppEvents.WORKSPACE_INVITE,
+          body: {
+            id: workspace.id,
+            title: workspace.title
+          }
+        })
+      }
+        break;
+      case AppEvents.WELCOME: {
+        const { user} = data;
+
+        await Notification.insert({
+          fk_user_id: user.id,
+          type: AppEvents.WELCOME,
+          body: { }
+        })
+      }
+        break;
+    }
+  }
+
+  onModuleDestroy() {
+    this.appHooks.removeAllListener(this.hookHandler)
+  }
+
+  onModuleInit() {
+    this.appHooks.onAll(this.hookHandler)
+  }
+
   async notificationList(param: {
     user: UserType;
     limit?: number;
@@ -45,12 +100,12 @@ export class NotificationsService {
     );
   }
 
-  // // soft delete
-  // notificationDelete(param: { notificationId: string; user: UserType }) {
-  //   return Notification.update(param.notificationId, {
-  //     is_deleted: true,
-  //   });
-  // }
+// // soft delete
+// notificationDelete(param: { notificationId: string; user: UserType }) {
+//   return Notification.update(param.notificationId, {
+//     is_deleted: true,
+//   });
+// }
 
 //   // todo: validation
 //   notificationDelete(param: { notificationId: string; user: UserType }) {

@@ -19,6 +19,7 @@ import { randomTokenString } from '../../helpers/stringHelpers';
 import { MetaService, MetaTable } from '../../meta/meta.service';
 import { Audit, Store, User } from '../../models';
 import Noco from '../../Noco';
+import { AppEvents, AppHooksService } from '../app-hooks.service';
 import { genJwt, setTokenCookie } from './helpers';
 import type {
   PasswordChangeReqType,
@@ -30,7 +31,10 @@ import type {
 
 @Injectable()
 export class UsersService {
-  constructor(private metaService: MetaService) {}
+  constructor(
+    private metaService: MetaService,
+    private appHooksService: AppHooksService,
+  ) {}
 
   async findOne(email: string) {
     const user = await this.metaService.metaGet(null, null, MetaTable.USERS, {
@@ -94,8 +98,7 @@ export class UsersService {
     }
 
     const token_version = randomTokenString();
-
-    return await User.insert({
+    const user = await User.insert({
       avatar,
       display_name,
       user_name,
@@ -106,6 +109,8 @@ export class UsersService {
       roles,
       token_version,
     });
+
+    return user;
   }
 
   async passwordChange(param: {
@@ -487,6 +492,10 @@ export class UsersService {
       user: user.email,
       description: `User has signed up`,
       ip: (param.req as any).clientIp,
+    });
+
+    this.appHooksService.emit(AppEvents.WELCOME, {
+      user,
     });
 
     return this.login(user);

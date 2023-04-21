@@ -1,6 +1,7 @@
 <script lang="ts" setup>
 import { NodeViewContent, NodeViewWrapper, nodeViewProps } from '@tiptap/vue-3'
 import { TextSelection } from 'prosemirror-state'
+import { positionOfFirstChild } from '../helper'
 import MdiTriangleDown from '~icons/tabler/triangle-inverted-filled'
 
 const { editor } = defineProps(nodeViewProps)

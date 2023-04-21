@@ -71,7 +71,7 @@ async function localInit({ parallelId = process.env.TEST_PARALLEL_INDEX }: { par
 const setup = async ({
   projectType = ProjectTypes.DATABASE,
   page,
-  isEmptyProject = true,
+  isEmptyProject = false,
   url,
 }: {
   projectType?: ProjectTypes;

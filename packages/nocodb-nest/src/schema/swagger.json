@@ -11,15 +11,24 @@
   "x-tagGroups": [
     {
       "name": "Auth APIs",
-      "tags": ["Auth", "API Token"]
+      "tags": [
+        "Auth",
+        "API Token"
+      ]
     },
     {
       "name": "Public APIs",
-      "tags": ["Public"]
+      "tags": [
+        "Public"
+      ]
     },
     {
       "name": "Data APIs",
-      "tags": ["DB Table Row", "DB View Row", "Storage"]
+      "tags": [
+        "DB Table Row",
+        "DB View Row",
+        "Storage"
+      ]
     },
     {
       "name": "Meta APIs",
@@ -41,7 +50,12 @@
     },
     {
       "name": "Organisation APIs",
-      "tags": ["Org App Settings", "Org License", "Org Tokens", "Org Users"]
+      "tags": [
+        "Org App Settings",
+        "Org License",
+        "Org Tokens",
+        "Org Users"
+      ]
     }
   ],
   "servers": [
@@ -635,7 +649,9 @@
             }
           }
         },
-        "tags": ["Auth"],
+        "tags": [
+          "Auth"
+        ],
         "requestBody": {
           "content": {
             "application/json": {
@@ -693,7 +709,9 @@
             "$ref": "#/components/responses/BadRequest"
           }
         },
-        "tags": ["Auth"],
+        "tags": [
+          "Auth"
+        ],
         "description": "Clear refresh token from the database and cookie."
       },
       "parameters": [
@@ -735,7 +753,9 @@
             "$ref": "#/components/responses/BadRequest"
           }
         },
-        "tags": ["Auth"],
+        "tags": [
+          "Auth"
+        ],
         "requestBody": {
           "content": {
             "application/json": {
@@ -797,7 +817,9 @@
             "$ref": "#/components/responses/BadRequest"
           }
         },
-        "tags": ["Auth"],
+        "tags": [
+          "Auth"
+        ],
         "description": "Returns authenticated user info",
         "parameters": [
           {
@@ -848,7 +870,9 @@
           }
         },
         "description": "Emails user with a reset url.",
-        "tags": ["Auth"],
+        "tags": [
+          "Auth"
+        ],
         "requestBody": {
           "content": {
             "application/json": {
@@ -906,7 +930,9 @@
           }
         },
         "description": "Change password of authenticated user with a new one.",
-        "tags": ["Auth"],
+        "tags": [
+          "Auth"
+        ],
         "requestBody": {
           "content": {
             "application/json": {
@@ -969,7 +995,9 @@
           }
         },
         "description": "Validate password reset url token.",
-        "tags": ["Auth"],
+        "tags": [
+          "Auth"
+        ],
         "parameters": [
           {
             "$ref": "#/components/parameters/xc-auth"
@@ -1027,7 +1055,9 @@
           }
         },
         "description": "Api for verifying email where token need to be passed which is shared to user email.",
-        "tags": ["Auth"],
+        "tags": [
+          "Auth"
+        ],
         "parameters": [
           {
             "$ref": "#/components/parameters/xc-auth"
@@ -1085,7 +1115,9 @@
           }
         },
         "description": "Update user password to new by using reset token.",
-        "tags": ["Auth"],
+        "tags": [
+          "Auth"
+        ],
         "requestBody": {
           "content": {
             "application/json": {
@@ -1156,7 +1188,9 @@
           }
         },
         "description": "Regenerate user refresh token",
-        "tags": ["Auth"],
+        "tags": [
+          "Auth"
+        ],
         "parameters": [
           {
             "$ref": "#/components/parameters/xc-auth"
@@ -1210,7 +1244,9 @@
           }
         },
         "description": "List all organisation API tokens.  Access with API tokens will be blocked.",
-        "tags": ["Org Tokens"],
+        "tags": [
+          "Org Tokens"
+        ],
         "parameters": [
           {
             "$ref": "#/components/parameters/xc-auth"
@@ -1266,7 +1302,9 @@
             }
           }
         },
-        "tags": ["Org Tokens"],
+        "tags": [
+          "Org Tokens"
+        ],
         "description": "Creat an organisation API token. Access with API tokens will be blocked."
       }
     },
@@ -1306,7 +1344,9 @@
             "$ref": "#/components/responses/BadRequest"
           }
         },
-        "tags": ["Org Tokens"],
+        "tags": [
+          "Org Tokens"
+        ],
         "description": "Delete an organisation API token. Access with API tokens will be blocked.",
         "parameters": [
           {
@@ -1348,7 +1388,9 @@
           }
         },
         "description": "Get the application license key. Exclusive for super admin.",
-        "tags": ["Org License"],
+        "tags": [
+          "Org License"
+        ],
         "parameters": [
           {
             "$ref": "#/components/parameters/xc-auth"
@@ -1410,7 +1452,9 @@
             }
           }
         },
-        "tags": ["Org License"],
+        "tags": [
+          "Org License"
+        ],
         "description": "Set the application license key. Exclusive for super admin.",
         "parameters": [
           {
@@ -1453,7 +1497,9 @@
           }
         },
         "description": "Get the application settings. Exclusive for super admin.",
-        "tags": ["Org App Settings"],
+        "tags": [
+          "Org App Settings"
+        ],
         "parameters": [
           {
             "$ref": "#/components/parameters/xc-auth"
@@ -1522,7 +1568,9 @@
             }
           }
         },
-        "tags": ["Org App Settings"],
+        "tags": [
+          "Org App Settings"
+        ],
         "description": "Update the application settings. Exclusive for super admin.",
         "parameters": [
           {
@@ -1574,7 +1622,9 @@
           }
         },
         "description": "List all organisation users. Exclusive for Super Admin. Access with API Tokens will be blocked.",
-        "tags": ["Org Users"],
+        "tags": [
+          "Org Users"
+        ],
         "parameters": [
           {
             "$ref": "#/components/parameters/xc-auth"
@@ -1646,7 +1696,9 @@
             }
           }
         },
-        "tags": ["Org Users"],
+        "tags": [
+          "Org Users"
+        ],
         "description": "Create an organisation user. Exclusive for Super Admin. Access with API Tokens will be blocked.",
         "parameters": [
           {
@@ -1702,7 +1754,9 @@
             "$ref": "#/components/responses/BadRequest"
           }
         },
-        "tags": ["Org Users"],
+        "tags": [
+          "Org Users"
+        ],
         "description": "Update an organisation user by User ID. Exclusive for Super Admin. Access with API Tokens will be blocked.",
         "requestBody": {
           "content": {
@@ -1758,7 +1812,9 @@
             "$ref": "#/components/responses/BadRequest"
           }
         },
-        "tags": ["Org Users"],
+        "tags": [
+          "Org Users"
+        ],
         "description": "Delete an organisation user by User ID. Exclusive for Super Admin. Access with API Tokens will be blocked."
       }
     },
@@ -1842,7 +1898,9 @@
             "$ref": "#/components/responses/BadRequest"
           }
         },
-        "tags": ["Org Users"],
+        "tags": [
+          "Org Users"
+        ],
         "description": "Resend Invitation to a specific user. Exclusive for Super Admin. Access with API Tokens will be blocked.",
         "parameters": [
           {
@@ -2073,7 +2131,9 @@
       "post": {
         "summary": "Generate Organisation User Password Reset Token",
         "operationId": "org-users-generate-password-reset-token",
-        "tags": ["Org Users"],
+        "tags": [
+          "Org Users"
+        ],
         "responses": {
           "200": {
             "description": "OK",
@@ -2142,7 +2202,10 @@
                           "$ref": "#/components/schemas/Paginated"
                         }
                       },
-                      "required": ["list", "pageInfo"]
+                      "required": [
+                        "list",
+                        "pageInfo"
+                      ]
                     }
                   }
                 },
@@ -2179,7 +2242,9 @@
           }
         },
         "description": "List all users in the given project.",
-        "tags": ["Auth"],
+        "tags": [
+          "Auth"
+        ],
         "parameters": [
           {
             "$ref": "#/components/parameters/xc-auth"
@@ -2310,7 +2375,9 @@
             }
           }
         },
-        "tags": ["Auth"],
+        "tags": [
+          "Auth"
+        ],
         "description": "Create a user and add it to the given project",
         "parameters": [
           {
@@ -2407,7 +2474,9 @@
             "$ref": "#/components/responses/BadRequest"
           }
         },
-        "tags": ["Project"],
+        "tags": [
+          "Project"
+        ],
         "description": "Get info such as node version, arch, platform, is docker, rootdb and package version of a given project",
         "parameters": [
           {
@@ -2492,7 +2561,9 @@
             }
           }
         },
-        "tags": ["Auth"],
+        "tags": [
+          "Auth"
+        ],
         "description": "Update a given user in a given project. Exclusive for Super Admin. Access with API Tokens will be blocked.",
         "parameters": [
           {
@@ -2535,7 +2606,9 @@
             "$ref": "#/components/responses/BadRequest"
           }
         },
-        "tags": ["Auth"],
+        "tags": [
+          "Auth"
+        ],
         "description": "Delete a given user in a given project. Exclusive for Super Admin. Access with API Tokens will be blocked.",
         "parameters": [
           {
@@ -2615,7 +2688,9 @@
           }
         },
         "description": "Hide / show views based on user role",
-        "tags": ["Project"],
+        "tags": [
+          "Project"
+        ],
         "parameters": [
           {
             "schema": {
@@ -2685,7 +2760,9 @@
             }
           }
         },
-        "tags": ["Project"],
+        "tags": [
+          "Project"
+        ],
         "description": "Hide / show views based on user role",
         "parameters": [
           {
@@ -2769,7 +2846,9 @@
             "$ref": "#/components/parameters/xc-auth"
           }
         ],
-        "tags": ["Project"]
+        "tags": [
+          "Project"
+        ]
       },
       "post": {
         "summary": "Create Project",
@@ -2845,7 +2924,9 @@
             }
           }
         },
-        "tags": ["Project"],
+        "tags": [
+          "Project"
+        ],
         "description": "Create a new project",
         "parameters": [
           {
@@ -2877,7 +2958,9 @@
             "$ref": "#/components/parameters/xc-auth"
           }
         ],
-        "tags": ["Project"],
+        "tags": [
+          "Project"
+        ],
         "responses": {
           "200": {
             "description": "OK",
@@ -2949,7 +3032,9 @@
             "$ref": "#/components/responses/BadRequest"
           }
         },
-        "tags": ["Project"],
+        "tags": [
+          "Project"
+        ],
         "description": "Delete the given project",
         "parameters": [
           {
@@ -2981,7 +3066,9 @@
             "$ref": "#/components/responses/BadRequest"
           }
         },
-        "tags": ["Project"],
+        "tags": [
+          "Project"
+        ],
         "requestBody": {
           "content": {
             "application/json": {
@@ -3074,7 +3161,9 @@
             "$ref": "#/components/parameters/xc-auth"
           }
         ],
-        "tags": ["Base"],
+        "tags": [
+          "Base"
+        ],
         "responses": {
           "200": {
             "description": "OK",
@@ -3131,7 +3220,9 @@
             "$ref": "#/components/responses/BadRequest"
           }
         },
-        "tags": ["Base"],
+        "tags": [
+          "Base"
+        ],
         "description": "Delete the base details of a given project",
         "parameters": [
           {
@@ -3176,7 +3267,9 @@
             "$ref": "#/components/responses/BadRequest"
           }
         },
-        "tags": ["Base"],
+        "tags": [
+          "Base"
+        ],
         "requestBody": {
           "content": {
             "application/json": {
@@ -3294,7 +3387,9 @@
             "$ref": "#/components/parameters/xc-auth"
           }
         ],
-        "tags": ["Base"],
+        "tags": [
+          "Base"
+        ],
         "responses": {
           "200": {
             "description": "OK",
@@ -3397,7 +3492,9 @@
             }
           }
         },
-        "tags": ["Base"],
+        "tags": [
+          "Base"
+        ],
         "description": "Create a new base on a given project",
         "parameters": [
           {
@@ -3480,7 +3577,9 @@
             "$ref": "#/components/parameters/xc-auth"
           }
         ],
-        "tags": ["Project"],
+        "tags": [
+          "Project"
+        ],
         "responses": {
           "200": {
             "description": "OK",
@@ -3544,7 +3643,9 @@
             "$ref": "#/components/responses/BadRequest"
           }
         },
-        "tags": ["Project"],
+        "tags": [
+          "Project"
+        ],
         "description": "Delete Project Shared Base",
         "parameters": [
           {
@@ -3578,7 +3679,9 @@
             "$ref": "#/components/responses/BadRequest"
           }
         },
-        "tags": ["Project"],
+        "tags": [
+          "Project"
+        ],
         "requestBody": {
           "content": {
             "application/json": {
@@ -3653,7 +3756,9 @@
             }
           }
         },
-        "tags": ["Project"],
+        "tags": [
+          "Project"
+        ],
         "description": "Update Project Shared Base",
         "parameters": [
           {
@@ -3685,7 +3790,9 @@
             "$ref": "#/components/parameters/xc-auth"
           }
         ],
-        "tags": ["Project"],
+        "tags": [
+          "Project"
+        ],
         "responses": {
           "200": {
             "description": "OK",
@@ -4104,7 +4211,9 @@
             }
           }
         },
-        "tags": ["DB Table"],
+        "tags": [
+          "DB Table"
+        ],
         "description": "Create a new table in a given project",
         "parameters": [
           {
@@ -4156,7 +4265,9 @@
             "name": "includeM2M"
           }
         ],
-        "tags": ["DB Table"],
+        "tags": [
+          "DB Table"
+        ],
         "description": "List all tables in a given project"
       }
     },
@@ -4228,7 +4339,9 @@
             "name": "includeM2M"
           }
         ],
-        "tags": ["Base"],
+        "tags": [
+          "Base"
+        ],
         "description": "List all tables in a given Project and Base"
       },
       "post": {
@@ -4718,7 +4831,9 @@
             }
           }
         },
-        "tags": ["Base"],
+        "tags": [
+          "Base"
+        ],
         "description": "Create a new table in a given Project and Base",
         "parameters": [
           {
@@ -5239,7 +5354,9 @@
             "$ref": "#/components/responses/BadRequest"
           }
         },
-        "tags": ["DB Table"],
+        "tags": [
+          "DB Table"
+        ],
         "description": "Read the table meta data by the given table ID",
         "parameters": [
           {
@@ -5281,7 +5398,9 @@
             "$ref": "#/components/responses/BadRequest"
           }
         },
-        "tags": ["DB Table"],
+        "tags": [
+          "DB Table"
+        ],
         "requestBody": {
           "content": {
             "application/json": {
@@ -5351,7 +5470,9 @@
             "$ref": "#/components/responses/BadRequest"
           }
         },
-        "tags": ["DB Table"],
+        "tags": [
+          "DB Table"
+        ],
         "description": "Delete the table meta data by the given table ID",
         "parameters": [
           {
@@ -5418,7 +5539,9 @@
             }
           }
         },
-        "tags": ["DB Table"],
+        "tags": [
+          "DB Table"
+        ],
         "description": "Update the order of the given Table",
         "parameters": [
           {
@@ -5499,7 +5622,9 @@
             }
           }
         },
-        "tags": ["DB Table Column"],
+        "tags": [
+          "DB Table Column"
+        ],
         "description": "Create a new column in a given Table",
         "parameters": [
           {
@@ -5546,7 +5671,9 @@
             }
           }
         },
-        "tags": ["DB Table Column"],
+        "tags": [
+          "DB Table Column"
+        ],
         "description": "Update the existing column by the given column ID",
         "parameters": [
           {
@@ -5565,7 +5692,9 @@
             "$ref": "#/components/responses/BadRequest"
           }
         },
-        "tags": ["DB Table Column"],
+        "tags": [
+          "DB Table Column"
+        ],
         "description": "Delete the existing column by the given column ID",
         "parameters": [
           {
@@ -5584,7 +5713,9 @@
             "$ref": "#/components/responses/BadRequest"
           }
         },
-        "tags": ["DB Table Column"],
+        "tags": [
+          "DB Table Column"
+        ],
         "description": "Get the existing column by the given column ID",
         "parameters": [
           {
@@ -5627,7 +5758,9 @@
             "$ref": "#/components/responses/BadRequest"
           }
         },
-        "tags": ["DB Table Column"],
+        "tags": [
+          "DB Table Column"
+        ],
         "description": "Set a primary value on a given column",
         "parameters": [
           {
@@ -5747,7 +5880,9 @@
             "$ref": "#/components/responses/BadRequest"
           }
         },
-        "tags": ["DB View"],
+        "tags": [
+          "DB View"
+        ],
         "description": "List all views in a given Table.",
         "parameters": [
           {
@@ -5831,7 +5966,9 @@
             }
           }
         },
-        "tags": ["DB View"],
+        "tags": [
+          "DB View"
+        ],
         "description": "Update the view with the given view Id.",
         "parameters": [
           {
@@ -5862,7 +5999,9 @@
             "$ref": "#/components/responses/BadRequest"
           }
         },
-        "tags": ["DB View"],
+        "tags": [
+          "DB View"
+        ],
         "description": "Delete the view with the given view Id.",
         "parameters": [
           {
@@ -5907,7 +6046,9 @@
             "$ref": "#/components/responses/BadRequest"
           }
         },
-        "tags": ["DB View"],
+        "tags": [
+          "DB View"
+        ],
         "description": "Show All Columns in a given View",
         "parameters": [
           {
@@ -5959,7 +6100,9 @@
             "$ref": "#/components/responses/BadRequest"
           }
         },
-        "tags": ["DB View"],
+        "tags": [
+          "DB View"
+        ],
         "parameters": [
           {
             "schema": {
@@ -6050,7 +6193,9 @@
           }
         },
         "description": "List all shared views in a given Table",
-        "tags": ["DB View Share"],
+        "tags": [
+          "DB View Share"
+        ],
         "parameters": [
           {
             "$ref": "#/components/parameters/xc-auth"
@@ -6097,7 +6242,9 @@
             "$ref": "#/components/responses/BadRequest"
           }
         },
-        "tags": ["DB View Share"],
+        "tags": [
+          "DB View Share"
+        ],
         "description": "Create a shared view in a given View..",
         "parameters": [
           {
@@ -6133,7 +6280,9 @@
           },
           "description": ""
         },
-        "tags": ["DB View Share"],
+        "tags": [
+          "DB View Share"
+        ],
         "description": "Update a shared view in a given View..",
         "parameters": [
           {
@@ -6165,7 +6314,9 @@
           }
         },
         "description": "Delete a shared view in a given View.",
-        "tags": ["DB View Share"],
+        "tags": [
+          "DB View Share"
+        ],
         "parameters": [
           {
             "$ref": "#/components/parameters/xc-auth"
@@ -6255,7 +6406,9 @@
             "$ref": "#/components/responses/BadRequest"
           }
         },
-        "tags": ["DB View Column"],
+        "tags": [
+          "DB View Column"
+        ],
         "description": "List all columns by ViewID",
         "parameters": [
           {
@@ -6321,7 +6474,9 @@
             "$ref": "#/components/responses/BadRequest"
           }
         },
-        "tags": ["DB View Column"],
+        "tags": [
+          "DB View Column"
+        ],
         "requestBody": {
           "content": {
             "application/json": {
@@ -6394,7 +6549,9 @@
             "$ref": "#/components/responses/BadRequest"
           }
         },
-        "tags": ["DB View Column"],
+        "tags": [
+          "DB View Column"
+        ],
         "requestBody": {
           "content": {
             "application/json": {
@@ -6475,7 +6632,9 @@
             "$ref": "#/components/responses/BadRequest"
           }
         },
-        "tags": ["DB Table Sort"],
+        "tags": [
+          "DB Table Sort"
+        ],
         "description": "List all the sort data in a given View",
         "parameters": [
           {
@@ -6506,7 +6665,9 @@
             "$ref": "#/components/responses/BadRequest"
           }
         },
-        "tags": ["DB Table Sort"],
+        "tags": [
+          "DB Table Sort"
+        ],
         "requestBody": {
           "content": {
             "application/json": {
@@ -6582,7 +6743,9 @@
             "$ref": "#/components/responses/BadRequest"
           }
         },
-        "tags": ["DB Table Sort"],
+        "tags": [
+          "DB Table Sort"
+        ],
         "description": "Get the sort data by Sort ID",
         "parameters": [
           {
@@ -6614,7 +6777,9 @@
             "$ref": "#/components/responses/BadRequest"
           }
         },
-        "tags": ["DB Table Sort"],
+        "tags": [
+          "DB Table Sort"
+        ],
         "requestBody": {
           "content": {
             "application/json": {
@@ -6662,7 +6827,9 @@
             "$ref": "#/components/responses/BadRequest"
           }
         },
-        "tags": ["DB Table Sort"],
+        "tags": [
+          "DB Table Sort"
+        ],
         "description": "Delete the sort data by Sort ID",
         "parameters": [
           {
@@ -6734,7 +6901,9 @@
             "$ref": "#/components/responses/BadRequest"
           }
         },
-        "tags": ["DB Table Filter"],
+        "tags": [
+          "DB Table Filter"
+        ],
         "description": "Get the filter data in a given View",
         "parameters": [
           {
@@ -6781,7 +6950,9 @@
             "$ref": "#/components/responses/BadRequest"
           }
         },
-        "tags": ["DB Table Filter"],
+        "tags": [
+          "DB Table Filter"
+        ],
         "requestBody": {
           "content": {
             "application/json": {
@@ -6874,7 +7045,9 @@
             "$ref": "#/components/responses/BadRequest"
           }
         },
-        "tags": ["DB Table Webhook Filter"],
+        "tags": [
+          "DB Table Webhook Filter"
+        ],
         "description": "Get the filter data in a given Hook",
         "parameters": [
           {
@@ -6921,7 +7094,9 @@
             "$ref": "#/components/responses/BadRequest"
           }
         },
-        "tags": ["DB Table Webhook Filter"],
+        "tags": [
+          "DB Table Webhook Filter"
+        ],
         "requestBody": {
           "content": {
             "application/json": {
@@ -7012,7 +7187,9 @@
             "$ref": "#/components/responses/BadRequest"
           }
         },
-        "tags": ["DB Table Webhook Logs"],
+        "tags": [
+          "DB Table Webhook Logs"
+        ],
         "description": "List the log data in a given Hook",
         "parameters": [
           {
@@ -7089,7 +7266,9 @@
             "$ref": "#/components/responses/BadRequest"
           }
         },
-        "tags": ["DB Table Filter"],
+        "tags": [
+          "DB Table Filter"
+        ],
         "description": "Get the filter data with a given Filter ID",
         "parameters": [
           {
@@ -7120,7 +7299,9 @@
             "$ref": "#/components/responses/BadRequest"
           }
         },
-        "tags": ["DB Table Filter"],
+        "tags": [
+          "DB Table Filter"
+        ],
         "requestBody": {
           "content": {
             "application/json": {
@@ -7172,7 +7353,9 @@
             "$ref": "#/components/responses/BadRequest"
           }
         },
-        "tags": ["DB Table Filter"],
+        "tags": [
+          "DB Table Filter"
+        ],
         "description": "Delete the filter data with a given Filter ID",
         "parameters": [
           {
@@ -7244,7 +7427,9 @@
             "$ref": "#/components/responses/BadRequest"
           }
         },
-        "tags": ["DB Table Filter"],
+        "tags": [
+          "DB Table Filter"
+        ],
         "description": "Get Filter Group Children of a given group ID",
         "parameters": [
           {
@@ -7307,7 +7492,9 @@
             "$ref": "#/components/responses/BadRequest"
           }
         },
-        "tags": ["DB View"],
+        "tags": [
+          "DB View"
+        ],
         "requestBody": {
           "content": {
             "application/json": {
@@ -7391,7 +7578,9 @@
           }
         },
         "description": "Create a new form view in a given Table",
-        "tags": ["DB View"],
+        "tags": [
+          "DB View"
+        ],
         "requestBody": {
           "content": {
             "application/json": {
@@ -7455,7 +7644,9 @@
             "$ref": "#/components/responses/BadRequest"
           }
         },
-        "tags": ["DB View"],
+        "tags": [
+          "DB View"
+        ],
         "requestBody": {
           "content": {
             "application/json": {
@@ -7549,7 +7740,9 @@
             "$ref": "#/components/responses/BadRequest"
           }
         },
-        "tags": ["DB View"],
+        "tags": [
+          "DB View"
+        ],
         "description": "Get the form data by Form ID",
         "parameters": [
           {
@@ -7603,7 +7796,9 @@
             "$ref": "#/components/responses/BadRequest"
           }
         },
-        "tags": ["DB View"],
+        "tags": [
+          "DB View"
+        ],
         "requestBody": {
           "content": {
             "application/json": {
@@ -7657,7 +7852,9 @@
             "$ref": "#/components/responses/BadRequest"
           }
         },
-        "tags": ["DB View"],
+        "tags": [
+          "DB View"
+        ],
         "requestBody": {
           "content": {
             "application/json": {
@@ -7734,7 +7931,9 @@
             "$ref": "#/components/responses/BadRequest"
           }
         },
-        "tags": ["DB View"],
+        "tags": [
+          "DB View"
+        ],
         "description": "List all columns in the given Grid",
         "parameters": [
           {
@@ -7780,7 +7979,9 @@
             "$ref": "#/components/responses/BadRequest"
           }
         },
-        "tags": ["DB View"],
+        "tags": [
+          "DB View"
+        ],
         "requestBody": {
           "content": {
             "application/json": {
@@ -7860,7 +8061,9 @@
             "$ref": "#/components/responses/BadRequest"
           }
         },
-        "tags": ["DB View"],
+        "tags": [
+          "DB View"
+        ],
         "requestBody": {
           "content": {
             "application/json": {
@@ -7924,7 +8127,9 @@
             "$ref": "#/components/responses/BadRequest"
           }
         },
-        "tags": ["DB View"],
+        "tags": [
+          "DB View"
+        ],
         "requestBody": {
           "content": {
             "application/json": {
@@ -7967,7 +8172,9 @@
             "$ref": "#/components/responses/BadRequest"
           }
         },
-        "tags": ["DB View"],
+        "tags": [
+          "DB View"
+        ],
         "description": "Get the Gallery View data with Gallery ID",
         "parameters": [
           {
@@ -8030,7 +8237,9 @@
             "$ref": "#/components/responses/BadRequest"
           }
         },
-        "tags": ["DB View"],
+        "tags": [
+          "DB View"
+        ],
         "requestBody": {
           "content": {
             "application/json": {
@@ -8095,7 +8304,9 @@
             "$ref": "#/components/responses/BadRequest"
           }
         },
-        "tags": ["DB View"],
+        "tags": [
+          "DB View"
+        ],
         "requestBody": {
           "content": {
             "application/json": {
@@ -8181,7 +8392,9 @@
             "$ref": "#/components/responses/BadRequest"
           }
         },
-        "tags": ["DB View"],
+        "tags": [
+          "DB View"
+        ],
         "description": "Get the Kanban View data by Kanban ID",
         "parameters": [
           {
@@ -8244,7 +8457,9 @@
             "$ref": "#/components/responses/BadRequest"
           }
         },
-        "tags": ["DB View"],
+        "tags": [
+          "DB View"
+        ],
         "requestBody": {
           "content": {
             "application/json": {
@@ -8310,7 +8525,9 @@
             "$ref": "#/components/responses/BadRequest"
           }
         },
-        "tags": ["DB View"],
+        "tags": [
+          "DB View"
+        ],
         "requestBody": {
           "content": {
             "application/json": {
@@ -8353,7 +8570,9 @@
             "$ref": "#/components/responses/BadRequest"
           }
         },
-        "tags": ["DB View"],
+        "tags": [
+          "DB View"
+        ],
         "description": "Get the Map View data by Map ID",
         "parameters": [
           {
@@ -8410,7 +8629,9 @@
             "$ref": "#/components/responses/BadRequest"
           }
         },
-        "tags": ["Project"],
+        "tags": [
+          "Project"
+        ],
         "description": "Synchronise the meta data difference between NC_DB and external data sources ",
         "parameters": [
           {
@@ -8429,7 +8650,9 @@
             "$ref": "#/components/parameters/xc-auth"
           }
         ],
-        "tags": ["Project"],
+        "tags": [
+          "Project"
+        ],
         "responses": {
           "200": {
             "description": "OK",
@@ -8588,7 +8811,9 @@
             "$ref": "#/components/responses/BadRequest"
           }
         },
-        "tags": ["Base"],
+        "tags": [
+          "Base"
+        ],
         "description": "Synchronise the meta data difference between NC_DB and external data sources in a given Base",
         "parameters": [
           {
@@ -8604,7 +8829,9 @@
             "$ref": "#/components/parameters/xc-auth"
           }
         ],
-        "tags": ["Base"],
+        "tags": [
+          "Base"
+        ],
         "responses": {
           "200": {
             "description": "OK",
@@ -8727,7 +8954,9 @@
             "$ref": "#/components/parameters/xc-auth"
           }
         ],
-        "tags": ["Project"],
+        "tags": [
+          "Project"
+        ],
         "responses": {
           "200": {
             "description": "OK",
@@ -8779,7 +9008,9 @@
         "summary": "List Table Rows",
         "operationId": "db-table-row-list",
         "description": "List all table rows in a given table and project",
-        "tags": ["DB Table Row"],
+        "tags": [
+          "DB Table Row"
+        ],
         "parameters": [
           {
             "schema": {
@@ -8882,7 +9113,10 @@
                       "description": "Paginated Info"
                     }
                   },
-                  "required": ["list", "pageInfo"]
+                  "required": [
+                    "list",
+                    "pageInfo"
+                  ]
                 },
                 "examples": {
                   "Example 1": {
@@ -8964,7 +9198,9 @@
             "$ref": "#/components/responses/BadRequest"
           }
         },
-        "tags": ["DB Table Row"],
+        "tags": [
+          "DB Table Row"
+        ],
         "requestBody": {
           "content": {
             "application/json": {
@@ -9026,7 +9262,9 @@
         "summary": "Find One Table Row",
         "operationId": "db-table-row-find-one",
         "description": "Return the first result of the target Table Row",
-        "tags": ["DB Table Row"],
+        "tags": [
+          "DB Table Row"
+        ],
         "parameters": [
           {
             "schema": {
@@ -9122,7 +9360,9 @@
         "summary": "Group By Table Row",
         "operationId": "db-table-row-group-by",
         "description": "Get the result grouped by the given query",
-        "tags": ["DB Table Row"],
+        "tags": [
+          "DB Table Row"
+        ],
         "parameters": [
           {
             "schema": {
@@ -9227,7 +9467,9 @@
         "summary": "Table Group by Column",
         "operationId": "db-view-row-grouped-data-list",
         "description": "Get the grouped data By Column ID. Used in Kanban View.",
-        "tags": ["DB View Row"],
+        "tags": [
+          "DB View Row"
+        ],
         "parameters": [
           {
             "schema": {
@@ -9393,7 +9635,9 @@
         "summary": "Table Group by Column",
         "operationId": "db-table-row-grouped-data-list",
         "description": "Get the grouped data By Column ID. Used in Kanban View.",
-        "tags": ["DB Table Row"],
+        "tags": [
+          "DB Table Row"
+        ],
         "parameters": [
           {
             "schema": {
@@ -9554,7 +9798,9 @@
         "summary": "List Table View Rows",
         "operationId": "db-view-row-list",
         "description": "List all table view rows",
-        "tags": ["DB View Row"],
+        "tags": [
+          "DB View Row"
+        ],
         "parameters": [
           {
             "schema": {
@@ -9623,7 +9869,10 @@
                       "description": "Paginated Info"
                     }
                   },
-                  "required": ["list", "pageInfo"]
+                  "required": [
+                    "list",
+                    "pageInfo"
+                  ]
                 },
                 "examples": {
                   "Example 1": {
@@ -9718,7 +9967,9 @@
             "$ref": "#/components/responses/BadRequest"
           }
         },
-        "tags": ["DB View Row"],
+        "tags": [
+          "DB View Row"
+        ],
         "requestBody": {
           "content": {
             "application/json": {
@@ -9781,7 +10032,9 @@
         "summary": "Find One Table View Row",
         "operationId": "db-view-row-find-one",
         "description": "Return the first result of table view rows with the given query",
-        "tags": ["DB View Row"],
+        "tags": [
+          "DB View Row"
+        ],
         "parameters": [
           {
             "schema": {
@@ -9891,7 +10144,9 @@
         "summary": "Group By Table View Row",
         "operationId": "db-view-row-group-by",
         "description": "Get the table view rows groupe by the given query",
-        "tags": ["DB View Row"],
+        "tags": [
+          "DB View Row"
+        ],
         "parameters": [
           {
             "schema": {
@@ -9986,7 +10241,9 @@
         "summary": "Count Table View Rows",
         "operationId": "db-view-row-count",
         "description": "Count how many rows in the given Table View",
-        "tags": ["DB View Row"],
+        "tags": [
+          "DB View Row"
+        ],
         "parameters": [
           {
             "schema": {
@@ -10113,7 +10370,9 @@
           }
         },
         "description": "Get the target Table View Row",
-        "tags": ["DB View Row"],
+        "tags": [
+          "DB View Row"
+        ],
         "parameters": [
           {
             "$ref": "#/components/parameters/xc-auth"
@@ -10148,7 +10407,9 @@
             "$ref": "#/components/responses/BadRequest"
           }
         },
-        "tags": ["DB View Row"],
+        "tags": [
+          "DB View Row"
+        ],
         "requestBody": {
           "content": {
             "application/json": {
@@ -10195,7 +10456,9 @@
             "$ref": "#/components/responses/BadRequest"
           }
         },
-        "tags": ["DB View Row"],
+        "tags": [
+          "DB View Row"
+        ],
         "description": "Delete the target Table View Row",
         "parameters": [
           {
@@ -10275,7 +10538,9 @@
           }
         },
         "description": "Check row with provided primary key exists or not",
-        "tags": ["DB View Row"],
+        "tags": [
+          "DB View Row"
+        ],
         "parameters": [
           {
             "$ref": "#/components/parameters/xc-auth"
@@ -10352,7 +10617,9 @@
           }
         },
         "description": "Get the Table Row by Row ID",
-        "tags": ["DB Table Row"],
+        "tags": [
+          "DB Table Row"
+        ],
         "parameters": [
           {
             "$ref": "#/components/parameters/xc-auth"
@@ -10387,7 +10654,9 @@
             "$ref": "#/components/responses/BadRequest"
           }
         },
-        "tags": ["DB Table Row"],
+        "tags": [
+          "DB Table Row"
+        ],
         "requestBody": {
           "content": {
             "application/json": {
@@ -10434,7 +10703,9 @@
             "$ref": "#/components/responses/BadRequest"
           }
         },
-        "tags": ["DB Table Row"],
+        "tags": [
+          "DB Table Row"
+        ],
         "description": "Delete the Table Row",
         "parameters": [
           {
@@ -10506,7 +10777,9 @@
           }
         },
         "description": "check row with provided primary key exists or not",
-        "tags": ["DB Table Row"],
+        "tags": [
+          "DB Table Row"
+        ],
         "parameters": [
           {
             "$ref": "#/components/parameters/xc-auth"
@@ -10589,7 +10862,9 @@
             "$ref": "#/components/responses/BadRequest"
           }
         },
-        "tags": ["DB Table Row"],
+        "tags": [
+          "DB Table Row"
+        ],
         "requestBody": {
           "content": {
             "application/json": {
@@ -10646,7 +10921,10 @@
                 },
                 "examples": {
                   "Example 1": {
-                    "value": [1, 1]
+                    "value": [
+                      1,
+                      1
+                    ]
                   }
                 }
               }
@@ -10656,7 +10934,9 @@
             "$ref": "#/components/responses/BadRequest"
           }
         },
-        "tags": ["DB Table Row"],
+        "tags": [
+          "DB Table Row"
+        ],
         "requestBody": {
           "content": {
             "application/json": {
@@ -10713,7 +10993,10 @@
                 },
                 "examples": {
                   "Example 1": {
-                    "value": [1, 1]
+                    "value": [
+                      1,
+                      1
+                    ]
                   }
                 }
               }
@@ -10723,7 +11006,9 @@
             "$ref": "#/components/responses/BadRequest"
           }
         },
-        "tags": ["DB Table Row"],
+        "tags": [
+          "DB Table Row"
+        ],
         "requestBody": {
           "content": {
             "application/json": {
@@ -10825,7 +11110,9 @@
             "$ref": "#/components/responses/BadRequest"
           }
         },
-        "tags": ["DB Table Row"],
+        "tags": [
+          "DB Table Row"
+        ],
         "requestBody": {
           "content": {
             "application/json": {
@@ -10868,7 +11155,10 @@
                 },
                 "examples": {
                   "Example 1": {
-                    "value": [1, 1]
+                    "value": [
+                      1,
+                      1
+                    ]
                   }
                 }
               }
@@ -10878,7 +11168,9 @@
             "$ref": "#/components/responses/BadRequest"
           }
         },
-        "tags": ["DB Table Row"],
+        "tags": [
+          "DB Table Row"
+        ],
         "requestBody": {
           "content": {
             "application/json": {
@@ -10943,7 +11235,10 @@
         {
           "schema": {
             "type": "string",
-            "enum": ["csv", "excel"]
+            "enum": [
+              "csv",
+              "excel"
+            ]
           },
           "name": "type",
           "in": "path",
@@ -10954,7 +11249,9 @@
         "summary": "Export Table View Rows",
         "operationId": "db-view-row-export",
         "description": "Export Table View Rows by CSV or Excel",
-        "tags": ["DB View Row"],
+        "tags": [
+          "DB View Row"
+        ],
         "wrapped": true,
         "responses": {
           "200": {
@@ -11016,7 +11313,10 @@
         {
           "schema": {
             "type": "string",
-            "enum": ["csv", "excel"]
+            "enum": [
+              "csv",
+              "excel"
+            ]
           },
           "name": "type",
           "in": "path",
@@ -11027,7 +11327,9 @@
         "summary": "Export Table View Rows",
         "operationId": "db-table-row-csv-export",
         "description": "Export Table View Rows by CSV or Excel",
-        "tags": ["DB Table Row"],
+        "tags": [
+          "DB Table Row"
+        ],
         "wrapped": true,
         "responses": {
           "200": {
@@ -11098,7 +11400,11 @@
         {
           "schema": {
             "type": "string",
-            "enum": ["mm", "hm", "bt"]
+            "enum": [
+              "mm",
+              "hm",
+              "bt"
+            ]
           },
           "name": "relationType",
           "in": "path",
@@ -11131,7 +11437,9 @@
             "$ref": "#/components/responses/BadRequest"
           }
         },
-        "tags": ["DB Table Row"],
+        "tags": [
+          "DB Table Row"
+        ],
         "parameters": [
           {
             "schema": {
@@ -11204,7 +11512,11 @@
         {
           "schema": {
             "type": "string",
-            "enum": ["mm", "hm", "bt"]
+            "enum": [
+              "mm",
+              "hm",
+              "bt"
+            ]
           },
           "name": "relationType",
           "in": "path",
@@ -11261,7 +11573,9 @@
             "$ref": "#/components/responses/BadRequest"
           }
         },
-        "tags": ["DB Table Row"],
+        "tags": [
+          "DB Table Row"
+        ],
         "parameters": [
           {
             "schema": {
@@ -11371,7 +11685,9 @@
             "$ref": "#/components/responses/BadRequest"
           }
         },
-        "tags": ["DB Table Row"],
+        "tags": [
+          "DB Table Row"
+        ],
         "description": "Delete a new nested relations row",
         "parameters": [
           {
@@ -11421,7 +11737,11 @@
         {
           "schema": {
             "type": "string",
-            "enum": ["mm", "hm", "bt"]
+            "enum": [
+              "mm",
+              "hm",
+              "bt"
+            ]
           },
           "name": "relationType",
           "in": "path",
@@ -11452,7 +11772,9 @@
             "$ref": "#/components/responses/BadRequest"
           }
         },
-        "tags": ["DB Table Row"],
+        "tags": [
+          "DB Table Row"
+        ],
         "parameters": [
           {
             "schema": {
@@ -11545,7 +11867,10 @@
                           "id": "0xsi3jvwn7duo"
                         },
                         "description": "the paginated result of the given key",
-                        "required": ["list", "pageInfo"],
+                        "required": [
+                          "list",
+                          "pageInfo"
+                        ],
                         "properties": {
                           "list": {
                             "type": "array",
@@ -11570,7 +11895,10 @@
                         }
                       }
                     },
-                    "required": ["key", "value"]
+                    "required": [
+                      "key",
+                      "value"
+                    ]
                   }
                 },
                 "examples": {
@@ -11643,7 +11971,9 @@
             "$ref": "#/components/responses/BadRequest"
           }
         },
-        "tags": ["Public"],
+        "tags": [
+          "Public"
+        ],
         "parameters": [
           {
             "schema": {
@@ -11799,7 +12129,9 @@
             "$ref": "#/components/responses/BadRequest"
           }
         },
-        "tags": ["Public"],
+        "tags": [
+          "Public"
+        ],
         "parameters": [
           {
             "schema": {
@@ -11907,7 +12239,9 @@
           },
           "description": ""
         },
-        "tags": ["Public"],
+        "tags": [
+          "Public"
+        ],
         "parameters": [
           {
             "schema": {
@@ -11945,7 +12279,11 @@
         {
           "schema": {
             "type": "string",
-            "enum": ["mm", "hm", "bt"]
+            "enum": [
+              "mm",
+              "hm",
+              "bt"
+            ]
           },
           "name": "relationType",
           "in": "path",
@@ -11994,7 +12332,10 @@
                       "description": "Paginated info"
                     }
                   },
-                  "required": ["list", "pageInfo"]
+                  "required": [
+                    "list",
+                    "pageInfo"
+                  ]
                 },
                 "examples": {
                   "Example 1": {
@@ -12036,7 +12377,9 @@
             "$ref": "#/components/responses/BadRequest"
           }
         },
-        "tags": ["Public"],
+        "tags": [
+          "Public"
+        ],
         "parameters": [
           {
             "schema": {
@@ -12125,7 +12468,10 @@
         {
           "schema": {
             "type": "string",
-            "enum": ["csv", "excel"],
+            "enum": [
+              "csv",
+              "excel"
+            ],
             "example": "csv"
           },
           "name": "type",
@@ -12160,7 +12506,9 @@
             "$ref": "#/components/responses/BadRequest"
           }
         },
-        "tags": ["Public"]
+        "tags": [
+          "Public"
+        ]
       }
     },
     "/api/v1/db/public/shared-view/{sharedViewUuid}/nested/{columnName}": {
@@ -12279,7 +12627,9 @@
             "description": "Used for multiple filter queries"
           }
         ],
-        "tags": ["Public"],
+        "tags": [
+          "Public"
+        ],
         "description": "List Nested Data Relation"
       }
     },
@@ -12333,7 +12683,9 @@
             "$ref": "#/components/responses/BadRequest"
           }
         },
-        "tags": ["Public"]
+        "tags": [
+          "Public"
+        ]
       }
     },
     "/api/v1/db/public/shared-view/{sharedViewUuid}/meta": {
@@ -12435,7 +12787,9 @@
             "$ref": "#/components/responses/BadRequest"
           }
         },
-        "tags": ["Public"],
+        "tags": [
+          "Public"
+        ],
         "description": "Get Share View Meta"
       }
     },
@@ -12490,7 +12844,9 @@
                       }
                     }
                   },
-                  "required": ["list"]
+                  "required": [
+                    "list"
+                  ]
                 },
                 "examples": {
                   "Example 1": {
@@ -12574,7 +12930,9 @@
             "$ref": "#/components/parameters/xc-auth"
           }
         ],
-        "tags": ["Utils"]
+        "tags": [
+          "Utils"
+        ]
       },
       "post": {
         "summary": "Comment Rows",
@@ -12625,7 +12983,9 @@
             }
           }
         },
-        "tags": ["Utils"],
+        "tags": [
+          "Utils"
+        ],
         "description": "Create a new comment in a row. Logged in Audit.",
         "parameters": [
           {
@@ -12677,7 +13037,9 @@
             }
           }
         },
-        "tags": ["Utils"],
+        "tags": [
+          "Utils"
+        ],
         "description": "Update comment in Audit",
         "requestBody": {
           "content": {
@@ -12736,7 +13098,10 @@
                         "example": "1"
                       }
                     },
-                    "required": ["count", "row_id"]
+                    "required": [
+                      "count",
+                      "row_id"
+                    ]
                   }
                 },
                 "examples": {
@@ -12777,7 +13142,9 @@
             "$ref": "#/components/parameters/xc-auth"
           }
         ],
-        "tags": ["Utils"]
+        "tags": [
+          "Utils"
+        ]
       }
     },
     "/api/v1/db/meta/projects/{projectId}/audits": {
@@ -12817,7 +13184,10 @@
                       "$ref": "#/components/schemas/Paginated"
                     }
                   },
-                  "required": ["list", "pageInfo"]
+                  "required": [
+                    "list",
+                    "pageInfo"
+                  ]
                 }
               }
             }
@@ -12848,7 +13218,9 @@
             "$ref": "#/components/parameters/xc-auth"
           }
         ],
-        "tags": ["Project"]
+        "tags": [
+          "Project"
+        ]
       }
     },
     "/api/v1/db/meta/audits/rows/{rowId}/update": {
@@ -12894,7 +13266,9 @@
             "$ref": "#/components/responses/BadRequest"
           }
         },
-        "tags": ["Utils"],
+        "tags": [
+          "Utils"
+        ],
         "requestBody": {
           "content": {
             "application/json": {
@@ -12992,7 +13366,9 @@
             "$ref": "#/components/parameters/xc-auth"
           }
         ],
-        "tags": ["DB Table Webhook"]
+        "tags": [
+          "DB Table Webhook"
+        ]
       },
       "post": {
         "summary": "Create Table Hook",
@@ -13063,7 +13439,9 @@
             }
           }
         },
-        "tags": ["DB Table Webhook"]
+        "tags": [
+          "DB Table Webhook"
+        ]
       }
     },
     "/api/v1/db/meta/tables/{tableId}/hooks/test": {
@@ -13114,7 +13492,9 @@
             "$ref": "#/components/responses/BadRequest"
           }
         },
-        "tags": ["DB Table Webhook"],
+        "tags": [
+          "DB Table Webhook"
+        ],
         "requestBody": {
           "content": {
             "application/json": {
@@ -13204,7 +13584,10 @@
         {
           "schema": {
             "type": "string",
-            "enum": ["v1", "v2"]
+            "enum": [
+              "v1",
+              "v2"
+            ]
           },
           "name": "version",
           "in": "path",
@@ -13257,7 +13640,9 @@
             "$ref": "#/components/parameters/xc-auth"
           }
         ],
-        "tags": ["DB Table Webhook"]
+        "tags": [
+          "DB Table Webhook"
+        ]
       }
     },
     "/api/v1/db/meta/hooks/{hookId}": {
@@ -13311,7 +13696,9 @@
             "$ref": "#/components/responses/BadRequest"
           }
         },
-        "tags": ["DB Table Webhook"],
+        "tags": [
+          "DB Table Webhook"
+        ],
         "requestBody": {
           "content": {
             "application/json": {
@@ -13371,7 +13758,9 @@
             "$ref": "#/components/responses/BadRequest"
           }
         },
-        "tags": ["DB Table Webhook"],
+        "tags": [
+          "DB Table Webhook"
+        ],
         "description": "Delete the exsiting hook by its ID",
         "parameters": [
           {
@@ -13627,7 +14016,9 @@
             "$ref": "#/components/parameters/xc-auth"
           }
         ],
-        "tags": ["Plugin"]
+        "tags": [
+          "Plugin"
+        ]
       }
     },
     "/api/v1/db/meta/plugins/{pluginTitle}/status": {
@@ -13666,7 +14057,9 @@
             "$ref": "#/components/parameters/xc-auth"
           }
         ],
-        "tags": ["Plugin"],
+        "tags": [
+          "Plugin"
+        ],
         "x-internal": false
       }
     },
@@ -13698,7 +14091,9 @@
             "$ref": "#/components/parameters/xc-auth"
           }
         ],
-        "tags": ["Plugin"],
+        "tags": [
+          "Plugin"
+        ],
         "requestBody": {
           "content": {
             "application/json": {
@@ -13747,7 +14142,9 @@
             "$ref": "#/components/responses/BadRequest"
           }
         },
-        "tags": ["Plugin"],
+        "tags": [
+          "Plugin"
+        ],
         "requestBody": {
           "content": {
             "application/json": {
@@ -13783,7 +14180,9 @@
             "$ref": "#/components/responses/BadRequest"
           }
         },
-        "tags": ["Plugin"],
+        "tags": [
+          "Plugin"
+        ],
         "description": "Get the plugin data by ID",
         "x-internal": false
       }
@@ -13835,7 +14234,9 @@
             "$ref": "#/components/responses/BadRequest"
           }
         },
-        "tags": ["Utils"],
+        "tags": [
+          "Utils"
+        ],
         "requestBody": {
           "content": {
             "application/json": {
@@ -14026,7 +14427,9 @@
       "post": {
         "summary": "Convert JDBC URL to Config",
         "operationId": "utils-url-to-config",
-        "tags": ["Utils"],
+        "tags": [
+          "Utils"
+        ],
         "requestBody": {
           "content": {
             "application/json": {
@@ -14244,7 +14647,11 @@
                       "x-stoplight": {
                         "id": "uc3vaotye2eu8"
                       },
-                      "enum": ["OFF", "ERROR", "ALL"],
+                      "enum": [
+                        "OFF",
+                        "ERROR",
+                        "ALL"
+                      ],
                       "example": "OFF"
                     }
                   }
@@ -14281,7 +14688,9 @@
             "$ref": "#/components/responses/BadRequest"
           }
         },
-        "tags": ["Utils"],
+        "tags": [
+          "Utils"
+        ],
         "description": "Get the application info such as authType, defaultLimit, version and etc.",
         "parameters": [
           {
@@ -14325,7 +14734,9 @@
             }
           }
         },
-        "tags": ["Utils"],
+        "tags": [
+          "Utils"
+        ],
         "x-internal": true,
         "parameters": [
           {
@@ -14384,7 +14795,9 @@
             "$ref": "#/components/responses/BadRequest"
           }
         },
-        "tags": ["Utils"],
+        "tags": [
+          "Utils"
+        ],
         "description": "Get the application version",
         "parameters": [
           {
@@ -14447,7 +14860,9 @@
             "$ref": "#/components/responses/BadRequest"
           }
         },
-        "tags": ["Utils"],
+        "tags": [
+          "Utils"
+        ],
         "description": "Get Application Health Status",
         "parameters": [
           {
@@ -14674,7 +15089,9 @@
             "$ref": "#/components/responses/BadRequest"
           }
         },
-        "tags": ["Utils"],
+        "tags": [
+          "Utils"
+        ],
         "description": "Get Aggregated Meta Info such as tableCount, dbViewCount, viewCount and etc.",
         "parameters": [
           {
@@ -14686,7 +15103,9 @@
     "/api/v1/db/meta/cache": {
       "get": {
         "summary": "Get Cache",
-        "tags": ["Utils"],
+        "tags": [
+          "Utils"
+        ],
         "responses": {},
         "operationId": "utils-cache-get",
         "description": "Get All K/V pairs in NocoCache",
@@ -14720,7 +15139,9 @@
           }
         },
         "description": "Delete All K/V pairs in NocoCache",
-        "tags": ["Utils"],
+        "tags": [
+          "Utils"
+        ],
         "parameters": [
           {
             "$ref": "#/components/parameters/xc-auth"
@@ -14736,7 +15157,9 @@
     "/api/v1/db/meta/projects/{projectId}/api-tokens": {
       "get": {
         "summary": "List API Tokens in Project",
-        "tags": ["API Token"],
+        "tags": [
+          "API Token"
+        ],
         "responses": {
           "200": {
             "description": "OK",
@@ -14826,7 +15249,9 @@
           },
           "description": ""
         },
-        "tags": ["API Token"],
+        "tags": [
+          "API Token"
+        ],
         "description": "Create API Token in a project",
         "parameters": [
           {
@@ -14873,7 +15298,9 @@
             "$ref": "#/components/responses/BadRequest"
           }
         },
-        "tags": ["API Token"],
+        "tags": [
+          "API Token"
+        ],
         "description": "Delete the given API Token in project",
         "parameters": [
           {
@@ -14910,7 +15337,9 @@
         "summary": "Attachment Upload",
         "operationId": "storage-upload",
         "responses": {},
-        "tags": ["Storage"],
+        "tags": [
+          "Storage"
+        ],
         "requestBody": {
           "content": {
             "multipart/form-data": {
@@ -14954,7 +15383,9 @@
         "summary": "Attachment Upload by URL",
         "operationId": "storage-upload-by-url",
         "responses": {},
-        "tags": ["Storage"],
+        "tags": [
+          "Storage"
+        ],
         "requestBody": {
           "content": {
             "application/json": {
@@ -15045,7 +15476,9 @@
             "$ref": "#/components/responses/BadRequest"
           }
         },
-        "tags": ["Auth"],
+        "tags": [
+          "Auth"
+        ],
         "description": "Resend Invitation to a specific user",
         "parameters": [
           {
@@ -15411,6 +15844,99 @@
           "required": true
         }
       ]
+    },
+    "/api/v1/notifications": {
+      "get": {
+        "summary": "Notification list",
+        "operationId": "notification-list",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Notification"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "Workspace user"
+        ],
+        "description": "Workspace user read",
+        "parameters": [
+          {
+            "schema": {
+              "type": "boolean"
+            },
+            "name": "is_read",
+            "in": "query",
+            "required": false
+          },
+          {
+            "schema": {
+              "type": "number"
+            },
+            "name": "limit",
+            "in": "query",
+            "required": false
+          },
+          {
+            "schema": {
+              "type": "number"
+            },
+            "name": "offset",
+            "in": "query",
+            "required": false
+          }
+        ]
+      }
+    },
+    "/api/v1/notifications/{notificationId}": {
+      "patch": {
+        "summary": "Notification update",
+        "operationId": "notification-update",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Notification"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "Workspace user"
+        ],
+        "description": "Workspace user read"
+      },
+      "delete": {
+        "summary": "Delete workspace user",
+        "operationId": "workspace-user-delete",
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        },
+        "tags": [
+          "Workspace User"
+        ],
+        "description": "Delete workspace user"
+      },
+      "parameters": [
+        {
+          "schema": {
+            "type": "string"
+          },
+          "name": "notificationId",
+          "in": "path",
+          "required": true
+        }
+      ]
     }
   },
   "components": {
@@ -15539,7 +16065,10 @@
             "description": "Model for Paginated"
           }
         },
-        "required": ["list", "pageInfo"]
+        "required": [
+          "list",
+          "pageInfo"
+        ]
       },
       "Attachment": {
         "description": "Model for Attachment",
@@ -15958,7 +16487,10 @@
             "description": "Paginated Info"
           }
         },
-        "required": ["list", "pageInfo"],
+        "required": [
+          "list",
+          "pageInfo"
+        ],
         "x-stoplight": {
           "id": "kk8uqxeefumma"
         }
@@ -16021,7 +16553,9 @@
       },
       "Bool": {
         "description": "Model for Bool",
-        "examples": [true],
+        "examples": [
+          true
+        ],
         "oneOf": [
           {
             "description": "0 or 1",
@@ -16432,7 +16966,10 @@
             }
           }
         },
-        "required": ["list", "pageInfo"],
+        "required": [
+          "list",
+          "pageInfo"
+        ],
         "x-stoplight": {
           "id": "rldg44w1alasg"
         }
@@ -16481,7 +17018,9 @@
                 "type": "string"
               }
             },
-            "required": ["title"]
+            "required": [
+              "title"
+            ]
           }
         ],
         "description": "Model for Column Request",
@@ -16557,7 +17096,10 @@
             "example": "3"
           }
         },
-        "required": ["fk_model_id", "row_id"],
+        "required": [
+          "fk_model_id",
+          "row_id"
+        ],
         "x-stoplight": {
           "id": "7nwlyinuliuvy"
         }
@@ -16684,7 +17226,10 @@
             "type": "boolean"
           },
           "nested_published_parent_id": {
-            "type": [ "string", "null"]
+            "type": [
+              "string",
+              "null"
+            ]
           },
           "last_published_by_id": {
             "type": "string"
@@ -16876,7 +17421,11 @@
           },
           "logical_op": {
             "description": "Logical Operator",
-            "enum": ["and", "not", "or"],
+            "enum": [
+              "and",
+              "not",
+              "or"
+            ],
             "type": "string"
           },
           "project_id": {
@@ -16979,7 +17528,10 @@
             }
           }
         },
-        "required": ["list", "pageInfo"],
+        "required": [
+          "list",
+          "pageInfo"
+        ],
         "x-stoplight": {
           "id": "mfxg43iomcoue"
         }
@@ -17071,7 +17623,10 @@
             }
           }
         },
-        "required": ["list", "pageInfo"]
+        "required": [
+          "list",
+          "pageInfo"
+        ]
       },
       "FilterReq": {
         "description": "Model for Filter Request",
@@ -17171,7 +17726,11 @@
           },
           "logical_op": {
             "description": "Logical Operator",
-            "enum": ["and", "not", "or"],
+            "enum": [
+              "and",
+              "not",
+              "or"
+            ],
             "type": "string"
           },
           "value": {
@@ -17276,7 +17835,11 @@
             "example": "My Form"
           },
           "lock_type": {
-            "enum": ["collaborative", "locked", "personal"],
+            "enum": [
+              "collaborative",
+              "locked",
+              "personal"
+            ],
             "type": "string",
             "description": "Lock Type of this view",
             "example": "collaborative"
@@ -17625,7 +18188,9 @@
             "description": "Formula Title"
           },
           "uidt": {
-            "enum": ["Formula"],
+            "enum": [
+              "Formula"
+            ],
             "type": "string",
             "description": "UI Data Type"
           }
@@ -17770,7 +18335,11 @@
             "description": "Foreign Key to View"
           },
           "lock_type": {
-            "enum": ["collaborative", "locked", "personal"],
+            "enum": [
+              "collaborative",
+              "locked",
+              "personal"
+            ],
             "type": "string"
           },
           "next_enabled": {
@@ -18314,7 +18883,10 @@
             "description": "Environment for the hook"
           },
           "event": {
-            "enum": ["after", "before"],
+            "enum": [
+              "after",
+              "before"
+            ],
             "type": "string",
             "description": "Event Type for the operation",
             "example": "after"
@@ -18330,7 +18902,10 @@
           },
           "notification": {
             "description": "Hook Notification including info such as type, payload, method, body, and etc",
-            "type": ["object", "string"]
+            "type": [
+              "object",
+              "string"
+            ]
           },
           "operation": {
             "enum": [
@@ -18376,7 +18951,10 @@
             },
             "example": "v2",
             "description": "Hook Version",
-            "enum": ["v1", "v2"]
+            "enum": [
+              "v1",
+              "v2"
+            ]
           }
         }
       },
@@ -18425,7 +19003,10 @@
             "description": "Environment for the hook"
           },
           "event": {
-            "enum": ["after", "before"],
+            "enum": [
+              "after",
+              "before"
+            ],
             "type": "string",
             "description": "Event Type for the operation",
             "example": "after"
@@ -18441,7 +19022,10 @@
           },
           "notification": {
             "description": "Hook Notification including info such as type, payload, method, body, and etc",
-            "type": ["object", "string"]
+            "type": [
+              "object",
+              "string"
+            ]
           },
           "operation": {
             "enum": [
@@ -18477,7 +19061,10 @@
             "example": "My Webhook"
           },
           "type": {
-            "type": ["string", "null"],
+            "type": [
+              "string",
+              "null"
+            ],
             "description": "Hook Type"
           },
           "condition": {
@@ -18488,7 +19075,12 @@
             "description": "Is this hook assoicated with some filters"
           }
         },
-        "required": ["event", "notification", "operation", "title"]
+        "required": [
+          "event",
+          "notification",
+          "operation",
+          "title"
+        ]
       },
       "HookList": {
         "description": "Model for Hook List",
@@ -18566,7 +19158,10 @@
             "$ref": "#/components/schemas/Paginated"
           }
         },
-        "required": ["list", "pageInfo"],
+        "required": [
+          "list",
+          "pageInfo"
+        ],
         "x-stoplight": {
           "id": "n2sbatqu55day"
         }
@@ -18621,7 +19216,10 @@
             "type": "string",
             "description": "Hook Event",
             "example": "after",
-            "enum": ["after", "before"]
+            "enum": [
+              "after",
+              "before"
+            ]
           },
           "execution_time": {
             "type": "string",
@@ -18733,7 +19331,10 @@
             "$ref": "#/components/schemas/Paginated"
           }
         },
-        "required": ["list", "pageInfo"]
+        "required": [
+          "list",
+          "pageInfo"
+        ]
       },
       "HookTestReq": {
         "description": "Model for Hook Test Request",
@@ -18784,14 +19385,19 @@
             "description": "Payload to be sent"
           }
         },
-        "required": ["hook", "payload"],
+        "required": [
+          "hook",
+          "payload"
+        ],
         "x-stoplight": {
           "id": "w64q11jiv01np"
         }
       },
       "Id": {
         "description": "Model for ID",
-        "examples": ["string"],
+        "examples": [
+          "string"
+        ],
         "maxLength": 20,
         "minLength": 0,
         "title": "ID Model",
@@ -19067,12 +19673,18 @@
             "description": "The title of the virtual column"
           },
           "type": {
-            "enum": ["bt", "hm", "mm"],
+            "enum": [
+              "bt",
+              "hm",
+              "mm"
+            ],
             "type": "string",
             "description": "The type of the relationship"
           },
           "uidt": {
-            "enum": ["LinkToAnotherRecord"],
+            "enum": [
+              "LinkToAnotherRecord"
+            ],
             "type": "string",
             "description": "Abstract type of the relationship"
           },
@@ -19081,7 +19693,13 @@
             "description": "Is this relationship virtual?"
           }
         },
-        "required": ["childId", "parentId", "title", "type", "uidt"],
+        "required": [
+          "childId",
+          "parentId",
+          "title",
+          "type",
+          "uidt"
+        ],
         "title": "LinkToAnotherColumn Request Model",
         "type": "object",
         "x-stoplight": {
@@ -19232,7 +19850,9 @@
             "example": "My Lookup"
           },
           "uidt": {
-            "enum": ["Lookup"],
+            "enum": [
+              "Lookup"
+            ],
             "type": "string",
             "description": "UI DataType"
           }
@@ -19401,7 +20021,9 @@
       },
       "Meta": {
         "description": "Model for Meta",
-        "examples": [{}],
+        "examples": [
+          {}
+        ],
         "oneOf": [
           {
             "type": "null"
@@ -19635,7 +20257,9 @@
         },
         "title": "Normal Column Request Model",
         "type": "object",
-        "required": ["column_name"],
+        "required": [
+          "column_name"
+        ],
         "x-stoplight": {
           "id": "b67hswwa49t9u"
         }
@@ -19654,7 +20278,10 @@
             "type": "string"
           },
           "roles": {
-            "enum": ["org-level-creator", "org-level-viewer"],
+            "enum": [
+              "org-level-creator",
+              "org-level-viewer"
+            ],
             "type": "string",
             "description": "Roles for the project user"
           }
@@ -19710,7 +20337,9 @@
       "Password": {
         "description": "Model for Password",
         "example": "password123456789",
-        "examples": ["password123456789"],
+        "examples": [
+          "password123456789"
+        ],
         "minLength": 8,
         "title": "Password Model",
         "type": "string",
@@ -19735,7 +20364,10 @@
             "type": "string"
           }
         },
-        "required": ["currentPassword", "newPassword"],
+        "required": [
+          "currentPassword",
+          "newPassword"
+        ],
         "title": "Password Change Request Model",
         "type": "object",
         "x-stoplight": {
@@ -19756,7 +20388,9 @@
             "type": "string"
           }
         },
-        "required": ["email"],
+        "required": [
+          "email"
+        ],
         "title": "Password Forgot Request Model",
         "type": "object",
         "x-stoplight": {
@@ -19778,7 +20412,9 @@
             "type": "string"
           }
         },
-        "required": ["password"],
+        "required": [
+          "password"
+        ],
         "title": "Password Reset Request Model",
         "type": "object",
         "x-stoplight": {
@@ -19963,7 +20599,11 @@
             "example": "Email"
           }
         },
-        "required": ["title", "input", "category"],
+        "required": [
+          "title",
+          "input",
+          "category"
+        ],
         "x-stoplight": {
           "id": "gest5kbecpjdi"
         }
@@ -20152,7 +20792,10 @@
             "description": "Pagination Info"
           }
         },
-        "required": ["list", "pageInfo"],
+        "required": [
+          "list",
+          "pageInfo"
+        ],
         "x-stoplight": {
           "id": "xbosckfm1h9l0"
         }
@@ -20203,7 +20846,9 @@
             "type": "string"
           }
         },
-        "required": ["title"],
+        "required": [
+          "title"
+        ],
         "title": "Project Request Model",
         "type": "object",
         "x-stoplight": {
@@ -20276,7 +20921,10 @@
             "description": "Project User Role"
           }
         },
-        "required": ["email", "roles"],
+        "required": [
+          "email",
+          "roles"
+        ],
         "x-stoplight": {
           "id": "tq2wpd2agebjz"
         }
@@ -20398,7 +21046,9 @@
             "description": "Rollup Function"
           },
           "uidt": {
-            "enum": ["Rollup"],
+            "enum": [
+              "Rollup"
+            ],
             "type": "string",
             "description": "UI DataType"
           }
@@ -20475,7 +21125,9 @@
             }
           }
         },
-        "required": ["options"],
+        "required": [
+          "options"
+        ],
         "x-stoplight": {
           "id": "3i68n0spduuf9"
         }
@@ -20498,7 +21150,11 @@
             "example": "password123"
           },
           "roles": {
-            "enum": ["commenter", "editor", "viewer"],
+            "enum": [
+              "commenter",
+              "editor",
+              "viewer"
+            ],
             "type": "string",
             "description": "The role given the target user",
             "example": "editor"
@@ -20635,7 +21291,10 @@
             "description": "Paginated Info"
           }
         },
-        "required": ["list", "pageInfo"],
+        "required": [
+          "list",
+          "pageInfo"
+        ],
         "x-stoplight": {
           "id": "zdpekhmw0wvj3"
         }
@@ -20683,7 +21342,10 @@
             "type": "string"
           }
         },
-        "required": ["email", "password"],
+        "required": [
+          "email",
+          "password"
+        ],
         "title": "Signin Request Model",
         "type": "object",
         "x-stoplight": {
@@ -20744,7 +21406,10 @@
             "description": "Ignore Subscription"
           }
         },
-        "required": ["email", "password"],
+        "required": [
+          "email",
+          "password"
+        ],
         "x-stoplight": {
           "id": "2rcbk0flkc4yu"
         }
@@ -20784,7 +21449,10 @@
           "direction": {
             "type": "string",
             "description": "Sort direction",
-            "enum": ["asc", "desc"],
+            "enum": [
+              "asc",
+              "desc"
+            ],
             "example": "desc"
           },
           "order": {
@@ -20878,7 +21546,10 @@
             }
           }
         },
-        "required": ["list", "pageInfo"],
+        "required": [
+          "list",
+          "pageInfo"
+        ],
         "x-stoplight": {
           "id": "fsq6d3pi8b3iz"
         }
@@ -20901,7 +21572,10 @@
           },
           "direction": {
             "description": "Sort direction",
-            "enum": ["asc", "desc"],
+            "enum": [
+              "asc",
+              "desc"
+            ],
             "type": "string"
           }
         },
@@ -20911,7 +21585,9 @@
       },
       "StringOrNull": {
         "description": "Model for StringOrNull",
-        "examples": ["string"],
+        "examples": [
+          "string"
+        ],
         "oneOf": [
           {
             "maxLength": 255,
@@ -21350,7 +22026,10 @@
             "type": "string"
           }
         },
-        "required": ["table_name", "title"],
+        "required": [
+          "table_name",
+          "title"
+        ],
         "x-stoplight": {
           "id": "rvdu5okgpz1xk"
         }
@@ -21480,7 +22159,10 @@
             "description": "Paginated Info"
           }
         },
-        "required": ["list", "pageInfo"],
+        "required": [
+          "list",
+          "pageInfo"
+        ],
         "x-stoplight": {
           "id": "25z7dodhqs3lc"
         }
@@ -21619,7 +22301,10 @@
             "type": "string"
           }
         },
-        "required": ["columns", "table_name"],
+        "required": [
+          "columns",
+          "table_name"
+        ],
         "title": "Table Request Model",
         "type": "object",
         "x-stoplight": {
@@ -21819,7 +22504,10 @@
             "description": "Paginated Info"
           }
         },
-        "required": ["list", "pageInfo"],
+        "required": [
+          "list",
+          "pageInfo"
+        ],
         "x-stoplight": {
           "id": "11epslmm9jcga"
         }
@@ -21873,7 +22561,11 @@
           },
           "lock_type": {
             "description": "Lock Type of the view",
-            "enum": ["collaborative", "locked", "personal"],
+            "enum": [
+              "collaborative",
+              "locked",
+              "personal"
+            ],
             "type": "string"
           },
           "meta": {
@@ -21937,7 +22629,12 @@
             "description": "Associated View Model"
           }
         },
-        "required": ["fk_model_id", "show", "title", "type"],
+        "required": [
+          "fk_model_id",
+          "show",
+          "title",
+          "type"
+        ],
         "x-stoplight": {
           "id": "pbahdgaroikdz"
         }
@@ -22065,7 +22762,10 @@
             "description": "Paginated Info"
           }
         },
-        "required": ["list", "pageInfo"],
+        "required": [
+          "list",
+          "pageInfo"
+        ],
         "x-stoplight": {
           "id": "5wwtppugkhbeh"
         }
@@ -22137,7 +22837,9 @@
             "description": "Foreign Key to Geo Data Column. Used in creating Map View."
           }
         },
-        "required": ["title"]
+        "required": [
+          "title"
+        ]
       },
       "ViewUpdateReq": {
         "description": "Model for View Update Request",
@@ -22183,7 +22885,11 @@
             "example": "password123"
           },
           "lock_type": {
-            "enum": ["collaborative", "locked", "personal"],
+            "enum": [
+              "collaborative",
+              "locked",
+              "personal"
+            ],
             "type": "string",
             "description": "Lock type of View.",
             "example": "collaborative"
@@ -22441,469 +23147,498 @@
           }
         },
         "type": "object"
-      }
-    },
-    "responses": {
-      "ProjectList": {
-        "description": "Example response",
-        "content": {
-          "application/json": {
-            "schema": {
-              "$ref": "#/components/schemas/ProjectList"
-            },
-            "examples": {
-              "example-1": {
-                "value": {
-                  "list": [
-                    {
-                      "bases": [
-                        {
-                          "alias": "string",
-                          "config": null,
-                          "created_at": "2023-03-01 14:27:36",
-                          "enabled": true,
-                          "id": "string",
-                          "inflection_column": "camelize",
-                          "inflection_table": "camelize",
-                          "is_meta": true,
-                          "order": 1,
-                          "project_id": "string",
-                          "type": "mysql2",
-                          "updated_at": "2023-03-01 14:27:36"
-                        }
-                      ],
-                      "color": "#24716E",
-                      "created_at": "2023-03-01 14:27:36",
-                      "deleted": true,
-                      "description": "This is my project description",
-                      "id": "p_124hhlkbeasewh",
-                      "is_meta": true,
-                      "meta": {},
-                      "order": 0,
-                      "prefix": "nc_vm5q__",
-                      "status": "string",
-                      "title": "my-project",
-                      "updated_at": "2023-03-01 14:27:36"
-                    }
-                  ],
-                  "pageInfo": {
-                    "isFirstPage": true,
-                    "isLastPage": true,
-                    "page": 1,
-                    "pageSize": 10,
-                    "totalRows": 1
-                  }
-                }
-              }
-            }
-          }
-        }
       },
-      "BaseList": {
-        "description": "Example response",
-        "content": {
-          "application/json": {
-            "schema": {
-              "$ref": "#/components/schemas/BaseList"
-            },
-            "examples": {
-              "example-1": {
-                "value": {
-                  "list": [
-                    {
-                      "id": "ds_krsappzu9f8vmo",
-                      "project_id": "p_01clqvzik3izk6",
-                      "alias": null,
-                      "config": "<ENCRYPTED>",
-                      "meta": null,
-                      "is_meta": 1,
-                      "type": "mysql2",
-                      "inflection_column": "camelize",
-                      "inflection_table": "camelize",
-                      "created_at": "2023-03-01 16:31:49",
-                      "updated_at": "2023-03-02 11:28:17",
-                      "enabled": 1,
-                      "order": 1
-                    },
-                    {
-                      "id": "ds_btbdt19zde0gj9",
-                      "project_id": "p_01clqvzik3izk6",
-                      "alias": "sakila",
-                      "config": "<ENCRYPTED>",
-                      "meta": null,
-                      "is_meta": null,
-                      "type": "mysql2",
-                      "inflection_column": "camelize",
-                      "inflection_table": "camelize",
-                      "created_at": "2023-03-02 11:28:17",
-                      "updated_at": "2023-03-02 11:28:17",
-                      "enabled": 1,
-                      "order": 2
-                    }
-                  ],
-                  "pageInfo": {
-                    "totalRows": 2,
-                    "page": 1,
-                    "pageSize": 2,
-                    "isFirstPage": true,
-                    "isLastPage": true
-                  }
-                }
-              }
-            }
-          }
-        }
-      },
-      "TableList": {
-        "description": "Example response",
-        "content": {
-          "application/json": {
-            "schema": {
-              "$ref": "#/components/schemas/TableList"
-            },
-            "examples": {
-              "Example 1": {
-                "value": {
-                  "list": [
-                    {
-                      "id": "md_5hua2iqloqirhd",
-                      "base_id": "ds_jxuewivwbxeum2",
-                      "project_id": "p_tbhl1hnycvhe5l",
-                      "table_name": "nc_b84e___Sheet-1",
-                      "title": "Sheet-1",
-                      "type": "table",
-                      "meta": null,
-                      "schema": null,
-                      "enabled": true,
-                      "mm": false,
-                      "tags": null,
-                      "pinned": null,
-                      "deleted": null,
-                      "order": 1,
-                      "created_at": "2023-03-11T09:11:45.907Z",
-                      "updated_at": "2023-03-11T09:11:45.907Z"
-                    }
-                  ],
-                  "pageInfo": {
-                    "isFirstPage": true,
-                    "isLastPage": true,
-                    "page": 1,
-                    "pageSize": 10,
-                    "totalRows": 1
-                  }
-                }
-              }
-            }
-          }
-        }
-      },
-      "ColumnList": {
-        "description": "Example response",
-        "content": {
-          "application/json": {
-            "schema": {
-              "$ref": "#/components/schemas/ColumnList"
-            }
-          }
-        }
-      },
-      "FilterList": {
-        "description": "Example response",
-        "content": {
-          "application/json": {
-            "schema": {
-              "$ref": "#/components/schemas/FilterList"
-            }
-          }
-        }
-      },
-      "SortList": {
-        "description": "Example response",
-        "content": {
-          "application/json": {
-            "schema": {
-              "$ref": "#/components/schemas/SortList"
-            },
-            "examples": {}
-          }
-        }
-      },
-      "ViewList": {
-        "description": "Example response",
-        "content": {
-          "application/json": {
-            "schema": {
-              "$ref": "#/components/schemas/ViewList"
-            },
-            "examples": {
-              "Example 1": {
-                "value": {
-                  "list": [
-                    {
-                      "alias": "string",
-                      "column": [
-                        {
-                          "alias": "string",
-                          "auto_increment": true,
-                          "auto_update_timestamp": true,
-                          "base_id": "string",
-                          "character_maximum_length": "string",
-                          "character_set_name": "string",
-                          "colOptions": {
-                            "deleted": "string",
-                            "dr": "string",
-                            "fk_child_column_id": "string",
-                            "fk_column_id": "string",
-                            "fk_index_name": "string",
-                            "fk_mm_child_column_id": "string",
-                            "fk_mm_model_id": "string",
-                            "fk_mm_parent_column_id": "string",
-                            "fk_parent_column_id": "string",
-                            "id": "string",
-                            "order": "string",
-                            "type": "string",
-                            "ur": "string",
-                            "virtual": true
-                          },
-                          "column_comment": "string",
-                          "column_default": "string",
-                          "column_ordinal_position": "string",
-                          "column_type": "string",
-                          "data_type": "string",
-                          "data_type_x": "string",
-                          "data_type_x_precision": "string",
-                          "data_type_x_scale": "string",
-                          "deleted": true,
-                          "fk_model_id": "string",
-                          "id": "string",
-                          "numeric_precision": "string",
-                          "numeric_scale": "string",
-                          "order": 0,
-                          "primary_key": true,
-                          "primary_value": true,
-                          "rqd": "string",
-                          "title": "string",
-                          "ui_data_type": "string",
-                          "un": "string",
-                          "unique": true,
-                          "visible": true
-                        }
-                      ],
-                      "columnByIds": {},
-                      "deleted": true,
-                      "enabled": true,
-                      "fk_base_id": "string",
-                      "fk_project_id": "string",
-                      "id": "string",
-                      "order": 0,
-                      "parent_id": "string",
-                      "pinned": true,
-                      "show_as": "string",
-                      "tags": "string",
-                      "title": "string",
-                      "type": "string"
-                    }
-                  ],
-                  "pageInfo": {
-                    "isFirstPage": true,
-                    "isLastPage": true,
-                    "page": 1,
-                    "pageSize": 10,
-                    "totalRows": 1
-                  }
-                }
-              }
-            }
-          }
-        }
-      },
-      "SharedViewList": {
-        "description": "Example response",
-        "content": {
-          "application/json": {
-            "schema": {
-              "$ref": "#/components/schemas/SharedViewList"
-            },
-            "examples": {
-              "Example 1": {
-                "value": {
-                  "list": [
-                    {
-                      "base_id": "ds_g4ccx6e77h1dmi",
-                      "created_at": "2023-03-02 17:46:31",
-                      "fk_model_id": "md_mhs9z4r2ak98x0",
-                      "id": "vw_lg052cnc1c26kf",
-                      "is_default": 1,
-                      "lock_type": "collaborative",
-                      "meta": {},
-                      "order": 1,
-                      "password": null,
-                      "project_id": "p_xm3thidrblw4n7",
-                      "show": 1,
-                      "show_system_fields": null,
-                      "title": "Sheet-1",
-                      "type": 3,
-                      "updated_at": "2023-03-02 17:46:31",
-                      "uuid": null,
-                      "view": {
-                        "base_id": "ds_g4ccx6e77h1dmi",
-                        "created_at": "2023-03-02 17:46:31",
-                        "fk_view_id": "vw_lg052cnc1c26kf",
-                        "meta": null,
-                        "project_id": "p_xm3thidrblw4n7",
-                        "row_height": null,
-                        "updated_at": "2023-03-02 17:46:31",
-                        "uuid": null
-                      }
-                    }
-                  ],
-                  "pageInfo": {
-                    "isFirstPage": true,
-                    "isLastPage": true,
-                    "page": 1,
-                    "pageSize": 10,
-                    "totalRows": 1
-                  }
-                }
-              }
-            }
-          }
-        }
-      },
-      "HookList": {
-        "description": "Example response",
-        "content": {
-          "application/json": {
-            "schema": {
-              "$ref": "#/components/schemas/HookList"
-            }
-          }
-        }
-      },
-      "UserList": {
-        "description": "Example response",
-        "content": {
-          "application/json": {
-            "schema": {
-              "$ref": "#/components/schemas/UserList"
-            },
-            "examples": {
-              "Example 1": {
-                "value": {
-                  "list": [
-                    {
-                      "email": "user@example.com",
-                      "email_verified": true,
-                      "firstname": "Alice",
-                      "id": "us_8kugj628ebjngs",
-                      "lastname": "Smith",
-                      "roles": "org-level-viewer"
-                    }
-                  ],
-                  "pageInfo": {
-                    "isFirstPage": true,
-                    "isLastPage": true,
-                    "page": 1,
-                    "pageSize": 10,
-                    "totalRows": 1
-                  }
-                }
-              }
-            }
-          }
-        }
-      },
-      "APITokenList": {
-        "description": "Example response",
-        "content": {
-          "application/json": {
-            "schema": {
-              "$ref": "#/components/schemas/ApiTokenList"
-            },
-            "examples": {}
-          }
-        },
-        "type": "object",
+      "Notification": {
+        "description": "",
         "properties": {
-          "list": {
-            "type": "array",
-            "x-stoplight": {
-              "id": "uukp6v55zfp7i"
-            },
-            "items": {
-              "$ref": "#/components/schemas/ApiToken",
-              "x-stoplight": {
-                "id": "9zqpoqfkdxy0y"
-              }
-            }
+          "id": {
+            "$ref": "#/components/schemas/Id",
+            "description": "Unique ID"
           },
-          "pageInfo": {
-            "$ref": "#/components/schemas/Paginated",
-            "x-stoplight": {
-              "id": "6unr17jyisial"
-            }
-          }
-        }
-      },
-      "BadRequest": {
-        "description": "BadReqeust",
-        "content": {
-          "application/json": {
-            "schema": {
-              "type": "object",
-              "properties": {
-                "msg": {
-                  "type": "string",
-                  "x-stoplight": {
-                    "id": "p9mk4oi0hbihm"
-                  },
-                  "example": "BadRequest [Error]: <ERROR MESSAGE>"
-                }
-              },
-              "required": ["msg"]
-            },
-            "examples": {
-              "Example 1": {
-                "value": {
-                  "msg": "BadRequest [Error]: <ERROR MESSAGE>"
-                }
-              }
-            }
-          }
+          "body": { },
+          "is_read": {
+            "type": "boolean",
+            "description": "Whether the notification has been read by the user"
+          },
+          "is_deleted": {
+            "type": "boolean",
+            "description": "Whether the notification has been deleted by the user"
+          },
+          "type": {
+            "type": "string",
+            "description": "Type of notification"
+          },
+          "updated_at": { },
+          "created_at": { }
         },
-        "headers": {}
-      }
-    },
-    "securitySchemes": {
-      "xc-auth": {
-        "name": "Auth Token ",
-        "type": "apiKey",
-        "in": "header",
-        "description": "Auth Token is a JWT Token generated based on the logged-in user. By default, the token is only valid for 10 hours. However, you can change the value by defining it using environment variable `NC_JWT_EXPIRES_IN`."
-      },
-      "xc-shared-base-id": {
-        "name": "Shared Base ID",
-        "type": "apiKey",
-        "in": "header",
-        "description": "Shared base uuid"
-      },
-      "xc-shared-erd-id": {
-        "name": "Shared ERD ID",
-        "type": "apiKey",
-        "in": "header",
-        "description": "Shared ERD uuid"
-      }
-    },
-    "parameters": {
-      "xc-auth": {
-        "name": "xc-auth",
-        "in": "header",
-        "required": false,
-        "schema": {
-          "type": "string"
-        },
-        "description": "Auth Token is a JWT Token generated based on the logged-in user. By default, the token is only valid for 10 hours. However, you can change the value by defining it using environment variable NC_JWT_EXPIRES_IN."
+        "title": "Notification",
+        "type": "object"
       }
     }
+  },
+  "responses": {
+    "ProjectList": {
+      "description": "Example response",
+      "content": {
+        "application/json": {
+          "schema": {
+            "$ref": "#/components/schemas/ProjectList"
+          },
+          "examples": {
+            "example-1": {
+              "value": {
+                "list": [
+                  {
+                    "bases": [
+                      {
+                        "alias": "string",
+                        "config": null,
+                        "created_at": "2023-03-01 14:27:36",
+                        "enabled": true,
+                        "id": "string",
+                        "inflection_column": "camelize",
+                        "inflection_table": "camelize",
+                        "is_meta": true,
+                        "order": 1,
+                        "project_id": "string",
+                        "type": "mysql2",
+                        "updated_at": "2023-03-01 14:27:36"
+                      }
+                    ],
+                    "color": "#24716E",
+                    "created_at": "2023-03-01 14:27:36",
+                    "deleted": true,
+                    "description": "This is my project description",
+                    "id": "p_124hhlkbeasewh",
+                    "is_meta": true,
+                    "meta": {},
+                    "order": 0,
+                    "prefix": "nc_vm5q__",
+                    "status": "string",
+                    "title": "my-project",
+                    "updated_at": "2023-03-01 14:27:36"
+                  }
+                ],
+                "pageInfo": {
+                  "isFirstPage": true,
+                  "isLastPage": true,
+                  "page": 1,
+                  "pageSize": 10,
+                  "totalRows": 1
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "BaseList": {
+      "description": "Example response",
+      "content": {
+        "application/json": {
+          "schema": {
+            "$ref": "#/components/schemas/BaseList"
+          },
+          "examples": {
+            "example-1": {
+              "value": {
+                "list": [
+                  {
+                    "id": "ds_krsappzu9f8vmo",
+                    "project_id": "p_01clqvzik3izk6",
+                    "alias": null,
+                    "config": "<ENCRYPTED>",
+                    "meta": null,
+                    "is_meta": 1,
+                    "type": "mysql2",
+                    "inflection_column": "camelize",
+                    "inflection_table": "camelize",
+                    "created_at": "2023-03-01 16:31:49",
+                    "updated_at": "2023-03-02 11:28:17",
+                    "enabled": 1,
+                    "order": 1
+                  },
+                  {
+                    "id": "ds_btbdt19zde0gj9",
+                    "project_id": "p_01clqvzik3izk6",
+                    "alias": "sakila",
+                    "config": "<ENCRYPTED>",
+                    "meta": null,
+                    "is_meta": null,
+                    "type": "mysql2",
+                    "inflection_column": "camelize",
+                    "inflection_table": "camelize",
+                    "created_at": "2023-03-02 11:28:17",
+                    "updated_at": "2023-03-02 11:28:17",
+                    "enabled": 1,
+                    "order": 2
+                  }
+                ],
+                "pageInfo": {
+                  "totalRows": 2,
+                  "page": 1,
+                  "pageSize": 2,
+                  "isFirstPage": true,
+                  "isLastPage": true
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "TableList": {
+      "description": "Example response",
+      "content": {
+        "application/json": {
+          "schema": {
+            "$ref": "#/components/schemas/TableList"
+          },
+          "examples": {
+            "Example 1": {
+              "value": {
+                "list": [
+                  {
+                    "id": "md_5hua2iqloqirhd",
+                    "base_id": "ds_jxuewivwbxeum2",
+                    "project_id": "p_tbhl1hnycvhe5l",
+                    "table_name": "nc_b84e___Sheet-1",
+                    "title": "Sheet-1",
+                    "type": "table",
+                    "meta": null,
+                    "schema": null,
+                    "enabled": true,
+                    "mm": false,
+                    "tags": null,
+                    "pinned": null,
+                    "deleted": null,
+                    "order": 1,
+                    "created_at": "2023-03-11T09:11:45.907Z",
+                    "updated_at": "2023-03-11T09:11:45.907Z"
+                  }
+                ],
+                "pageInfo": {
+                  "isFirstPage": true,
+                  "isLastPage": true,
+                  "page": 1,
+                  "pageSize": 10,
+                  "totalRows": 1
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "ColumnList": {
+      "description": "Example response",
+      "content": {
+        "application/json": {
+          "schema": {
+            "$ref": "#/components/schemas/ColumnList"
+          }
+        }
+      }
+    },
+    "FilterList": {
+      "description": "Example response",
+      "content": {
+        "application/json": {
+          "schema": {
+            "$ref": "#/components/schemas/FilterList"
+          }
+        }
+      }
+    },
+    "SortList": {
+      "description": "Example response",
+      "content": {
+        "application/json": {
+          "schema": {
+            "$ref": "#/components/schemas/SortList"
+          },
+          "examples": {}
+        }
+      }
+    },
+    "ViewList": {
+      "description": "Example response",
+      "content": {
+        "application/json": {
+          "schema": {
+            "$ref": "#/components/schemas/ViewList"
+          },
+          "examples": {
+            "Example 1": {
+              "value": {
+                "list": [
+                  {
+                    "alias": "string",
+                    "column": [
+                      {
+                        "alias": "string",
+                        "auto_increment": true,
+                        "auto_update_timestamp": true,
+                        "base_id": "string",
+                        "character_maximum_length": "string",
+                        "character_set_name": "string",
+                        "colOptions": {
+                          "deleted": "string",
+                          "dr": "string",
+                          "fk_child_column_id": "string",
+                          "fk_column_id": "string",
+                          "fk_index_name": "string",
+                          "fk_mm_child_column_id": "string",
+                          "fk_mm_model_id": "string",
+                          "fk_mm_parent_column_id": "string",
+                          "fk_parent_column_id": "string",
+                          "id": "string",
+                          "order": "string",
+                          "type": "string",
+                          "ur": "string",
+                          "virtual": true
+                        },
+                        "column_comment": "string",
+                        "column_default": "string",
+                        "column_ordinal_position": "string",
+                        "column_type": "string",
+                        "data_type": "string",
+                        "data_type_x": "string",
+                        "data_type_x_precision": "string",
+                        "data_type_x_scale": "string",
+                        "deleted": true,
+                        "fk_model_id": "string",
+                        "id": "string",
+                        "numeric_precision": "string",
+                        "numeric_scale": "string",
+                        "order": 0,
+                        "primary_key": true,
+                        "primary_value": true,
+                        "rqd": "string",
+                        "title": "string",
+                        "ui_data_type": "string",
+                        "un": "string",
+                        "unique": true,
+                        "visible": true
+                      }
+                    ],
+                    "columnByIds": {},
+                    "deleted": true,
+                    "enabled": true,
+                    "fk_base_id": "string",
+                    "fk_project_id": "string",
+                    "id": "string",
+                    "order": 0,
+                    "parent_id": "string",
+                    "pinned": true,
+                    "show_as": "string",
+                    "tags": "string",
+                    "title": "string",
+                    "type": "string"
+                  }
+                ],
+                "pageInfo": {
+                  "isFirstPage": true,
+                  "isLastPage": true,
+                  "page": 1,
+                  "pageSize": 10,
+                  "totalRows": 1
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "SharedViewList": {
+      "description": "Example response",
+      "content": {
+        "application/json": {
+          "schema": {
+            "$ref": "#/components/schemas/SharedViewList"
+          },
+          "examples": {
+            "Example 1": {
+              "value": {
+                "list": [
+                  {
+                    "base_id": "ds_g4ccx6e77h1dmi",
+                    "created_at": "2023-03-02 17:46:31",
+                    "fk_model_id": "md_mhs9z4r2ak98x0",
+                    "id": "vw_lg052cnc1c26kf",
+                    "is_default": 1,
+                    "lock_type": "collaborative",
+                    "meta": {},
+                    "order": 1,
+                    "password": null,
+                    "project_id": "p_xm3thidrblw4n7",
+                    "show": 1,
+                    "show_system_fields": null,
+                    "title": "Sheet-1",
+                    "type": 3,
+                    "updated_at": "2023-03-02 17:46:31",
+                    "uuid": null,
+                    "view": {
+                      "base_id": "ds_g4ccx6e77h1dmi",
+                      "created_at": "2023-03-02 17:46:31",
+                      "fk_view_id": "vw_lg052cnc1c26kf",
+                      "meta": null,
+                      "project_id": "p_xm3thidrblw4n7",
+                      "row_height": null,
+                      "updated_at": "2023-03-02 17:46:31",
+                      "uuid": null
+                    }
+                  }
+                ],
+                "pageInfo": {
+                  "isFirstPage": true,
+                  "isLastPage": true,
+                  "page": 1,
+                  "pageSize": 10,
+                  "totalRows": 1
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "HookList": {
+      "description": "Example response",
+      "content": {
+        "application/json": {
+          "schema": {
+            "$ref": "#/components/schemas/HookList"
+          }
+        }
+      }
+    },
+    "UserList": {
+      "description": "Example response",
+      "content": {
+        "application/json": {
+          "schema": {
+            "$ref": "#/components/schemas/UserList"
+          },
+          "examples": {
+            "Example 1": {
+              "value": {
+                "list": [
+                  {
+                    "email": "user@example.com",
+                    "email_verified": true,
+                    "firstname": "Alice",
+                    "id": "us_8kugj628ebjngs",
+                    "lastname": "Smith",
+                    "roles": "org-level-viewer"
+                  }
+                ],
+                "pageInfo": {
+                  "isFirstPage": true,
+                  "isLastPage": true,
+                  "page": 1,
+                  "pageSize": 10,
+                  "totalRows": 1
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "APITokenList": {
+      "description": "Example response",
+      "content": {
+        "application/json": {
+          "schema": {
+            "$ref": "#/components/schemas/ApiTokenList"
+          },
+          "examples": {}
+        }
+      },
+      "type": "object",
+      "properties": {
+        "list": {
+          "type": "array",
+          "x-stoplight": {
+            "id": "uukp6v55zfp7i"
+          },
+          "items": {
+            "$ref": "#/components/schemas/ApiToken",
+            "x-stoplight": {
+              "id": "9zqpoqfkdxy0y"
+            }
+          }
+        },
+        "pageInfo": {
+          "$ref": "#/components/schemas/Paginated",
+          "x-stoplight": {
+            "id": "6unr17jyisial"
+          }
+        }
+      }
+    },
+    "BadRequest": {
+      "description": "BadReqeust",
+      "content": {
+        "application/json": {
+          "schema": {
+            "type": "object",
+            "properties": {
+              "msg": {
+                "type": "string",
+                "x-stoplight": {
+                  "id": "p9mk4oi0hbihm"
+                },
+                "example": "BadRequest [Error]: <ERROR MESSAGE>"
+              }
+            },
+            "required": [
+              "msg"
+            ]
+          },
+          "examples": {
+            "Example 1": {
+              "value": {
+                "msg": "BadRequest [Error]: <ERROR MESSAGE>"
+              }
+            }
+          }
+        }
+      },
+      "headers": {}
+    }
+  },
+  "securitySchemes": {
+    "xc-auth": {
+      "name": "Auth Token ",
+      "type": "apiKey",
+      "in": "header",
+      "description": "Auth Token is a JWT Token generated based on the logged-in user. By default, the token is only valid for 10 hours. However, you can change the value by defining it using environment variable `NC_JWT_EXPIRES_IN`."
+    },
+    "xc-shared-base-id": {
+      "name": "Shared Base ID",
+      "type": "apiKey",
+      "in": "header",
+      "description": "Shared base uuid"
+    },
+    "xc-shared-erd-id": {
+      "name": "Shared ERD ID",
+      "type": "apiKey",
+      "in": "header",
+      "description": "Shared ERD uuid"
+    }
+  },
+  "parameters": {
+    "xc-auth": {
+      "name": "xc-auth",
+      "in": "header",
+      "required": false,
+      "schema": {
+        "type": "string"
+      },
+      "description": "Auth Token is a JWT Token generated based on the logged-in user. By default, the token is only valid for 10 hours. However, you can change the value by defining it using environment variable NC_JWT_EXPIRES_IN."
+    }
   }
+}
 }

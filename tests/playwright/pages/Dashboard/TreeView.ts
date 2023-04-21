@@ -146,7 +146,11 @@ export class TreeViewPage extends BasePage {
   }
 
   async renameTable({ title, newTitle }: { title: string; newTitle: string }) {
-    await this.get().locator(`.nc-project-tree-tbl-${title}`).click({ button: 'right' });
+    if (isHub()) {
+      await this.get().locator(`.nc-project-tree-tbl-${title}`).locator('.nc-icon.ant-dropdown-trigger').click();
+    } else {
+      await this.get().locator(`.nc-project-tree-tbl-${title}`).click({ button: 'right' });
+    }
     await this.dashboard.get().locator('div.nc-project-menu-item:has-text("Rename")').click();
     await this.dashboard.get().locator('[placeholder="Enter table name"]').fill(newTitle);
     await this.dashboard.get().locator('button:has-text("Submit")').click();

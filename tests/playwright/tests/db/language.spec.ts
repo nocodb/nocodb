@@ -47,7 +47,7 @@ test.describe('Common', () => {
   let projectsPage: ProjectsPage;
 
   test.beforeEach(async ({ page }) => {
-    context = await setup({ page });
+    context = await setup({ page, isEmptyProject: true });
     dashboard = new DashboardPage(page, context.project);
     projectsPage = new ProjectsPage(page);
   });

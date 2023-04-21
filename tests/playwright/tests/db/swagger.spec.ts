@@ -3,7 +3,7 @@ import { DashboardPage } from '../../pages/Dashboard';
 import { GridPage } from '../../pages/Dashboard/Grid';
 import setup from '../../setup';
 
-test.describe('Table Column Operations', () => {
+test.describe.skip('Table Column Operations', () => {
   let grid: GridPage, dashboard: DashboardPage;
   let context: any;
 

@@ -4,6 +4,7 @@ import setup from '../../setup';
 import { ToolbarPage } from '../../pages/Dashboard/common/Toolbar';
 import { ProjectsPage } from '../../pages/ProjectsPage';
 import { Api } from 'nocodb-sdk';
+import { isHub } from '../../setup/db';
 
 test.describe('Project operations', () => {
   let dashboard: DashboardPage;
@@ -27,6 +28,12 @@ test.describe('Project operations', () => {
   });
 
   test('rename, delete', async () => {
+    // Already verified as part of workspace tests
+    // Skip for hub
+    if (isHub()) {
+      return;
+    }
+
     // if project already exists, delete it
     try {
       const projectList = await api.project.list();

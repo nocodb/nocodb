@@ -5,6 +5,9 @@ import { SettingsPage, SettingTab } from '../../pages/Dashboard/Settings';
 import { SignupPage } from '../../pages/SignupPage';
 import { ProjectsPage } from '../../pages/ProjectsPage';
 import { getDefaultPwd } from '../utils/general';
+import { workerData } from 'worker_threads';
+import { WorkspacePage } from '../../pages/WorkspacePage';
+import { isHub } from '../../setup/db';
 
 const roleDb = [
   { email: 'creator@nocodb.com', role: 'creator', url: '' },
@@ -18,14 +21,16 @@ test.describe('User roles', () => {
   let settings: SettingsPage;
   let signupPage: SignupPage;
   let projectsPage: ProjectsPage;
+  let workspacePage: WorkspacePage;
   let context: any;
 
   test.beforeEach(async ({ page }) => {
-    context = await setup({ page });
+    context = await setup({ page, isEmptyProject: false });
     dashboard = new DashboardPage(page, context.project);
     settings = dashboard.settings;
     signupPage = new SignupPage(page);
     projectsPage = new ProjectsPage(page);
+    workspacePage = new WorkspacePage(page);
   });
 
   test('Create role', async () => {
@@ -114,11 +119,15 @@ test.describe('User roles', () => {
       password: getDefaultPwd(),
     });
 
-    await projectsPage.openProject({
-      title: context.project.title,
-      waitForAuthTab: roleDb[roleIdx].role === 'creator',
-      withoutPrefix: true,
-    });
+    if (isHub()) {
+      await workspacePage.projectOpen({ title: context.project.title });
+    } else {
+      await projectsPage.openProject({
+        title: context.project.title,
+        waitForAuthTab: roleDb[roleIdx].role === 'creator',
+        withoutPrefix: true,
+      });
+    }
 
     // close 'Team & Auth' tab
     if (roleDb[roleIdx].role === 'creator') {

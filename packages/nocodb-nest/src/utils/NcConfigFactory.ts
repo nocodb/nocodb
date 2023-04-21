@@ -308,8 +308,13 @@ export default class NcConfigFactory {
         ...connection,
         ...this.mysqlConnectionTypeCastConfig,
       };
+    } else {
+      // for postgres - see `setTypeParser` in `CustomKnex.ts`
+      connection = {
+        ...connection,
+        timezone: 'UTC',
+      };
     }
-    // for postgres - see `setTypeParser` in `CustomKnex.ts`
     return connection;
   }
 

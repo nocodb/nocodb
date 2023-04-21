@@ -123,7 +123,7 @@ export class TreeViewPage extends BasePage {
     } else {
       await this.get().locator(`.nc-project-tree-tbl-${title}`).click({ button: 'right' });
     }
-    await this.dashboard.get().locator('div.nc-project-menu-item:has-text("Delete")').click();
+    await this.dashboard.get().locator('div.nc-project-menu-item:has-text("Delete"):visible').click();
 
     await this.waitForResponse({
       uiAction: () => this.dashboard.get().locator('button:has-text("Yes")').click(),

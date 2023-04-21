@@ -1,7 +1,7 @@
 <script lang="ts" setup></script>
 
 <template>
-  <div class="min-w-[640px] min-h-[640px] !rounded-2xl bg-white rounded-xl nc-card" @click.stop>
+  <div class="min-w-[40 0px] min-h-[400px] !rounded-2xl bg-white rounded-xl nc-card" @click.stop>
     <div class="p-6 pb-3.5">
       <div class="flex items-center">
         <span class="text-xl font-medium">
@@ -15,10 +15,10 @@
     <a-tabs>
       <a-tab-pane key="1" tab="Unread">
         <div class="px-6 overflow-y-auto max-h-[max(60vh,500px)]" @click.stop>
-        <template v-for="i in 7 " :key="i">
-          <NotificationItem class="py-6"  />
-          <a-divider class="!my-0"/>
-        </template>
+          <template v-for="i in 7" :key="i">
+            <NotificationItem class="py-6" />
+            <a-divider class="!my-0" />
+          </template>
         </div>
       </a-tab-pane>
       <a-tab-pane key="2" tab="Read">
@@ -26,7 +26,7 @@
       </a-tab-pane>
 
       <template #rightExtra>
-        <div class="mr-6 text-primary cursor-pointer" @click.stop >Mark all as read</div>
+        <div class="mr-6 text-primary cursor-pointer text-xs" @click.stop>Mark all as read</div>
       </template>
     </a-tabs>
   </div>
@@ -41,7 +41,11 @@
   @apply px-6;
 }
 
-:deep(.ant-tabs-nav){
-  @apply !mb-0
+:deep(.ant-tabs-nav) {
+  @apply !mb-0;
+}
+
+:deep(.ant-tabs-tab-btn) {
+  @apply !mb-1;
 }
 </style>

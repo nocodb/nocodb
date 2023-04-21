@@ -2553,6 +2553,30 @@ export interface WorkspaceUserListType {
   pageInfo?: PaginatedType;
 }
 
+export interface NotificationType {
+  /** Unique ID */
+  id?: IdType;
+  body?: any;
+  /** Whether the notification has been read by the user */
+  is_read?: boolean;
+  /** Whether the notification has been deleted by the user */
+  is_deleted?: boolean;
+  /** Type of notification */
+  type?: string;
+  updated_at?: any;
+  created_at?: any;
+}
+
+/**
+ * Model for Notification List
+ */
+export interface NotificationListType {
+  /** List of notification objects */
+  list: NotificationType[];
+  /** Model for Paginated */
+  pageInfo: PaginatedType;
+}
+
 import axios, { AxiosInstance, AxiosRequestConfig, ResponseType } from 'axios';
 
 export type QueryParamsType = Record<string | number, any>;
@@ -10617,6 +10641,65 @@ export class Api<
         path: `/api/v1/workspaces/${toWorkspaceId}/projects/${projectId}/move`,
         method: 'POST',
         format: 'json',
+        ...params,
+      }),
+  };
+  notification = {
+    /**
+     * @description Workspace user read
+     *
+     * @tags Notification
+     * @name List
+     * @summary Notification list
+     * @request GET:/api/v1/notifications
+     * @response `200` `NotificationListType` OK
+     */
+    list: (
+      query?: {
+        is_read?: boolean;
+        limit?: number;
+        offset?: number;
+      },
+      params: RequestParams = {}
+    ) =>
+      this.request<NotificationListType, any>({
+        path: `/api/v1/notifications`,
+        method: 'GET',
+        query: query,
+        format: 'json',
+        ...params,
+      }),
+
+    /**
+     * @description Workspace user read
+     *
+     * @tags Notification
+     * @name Update
+     * @summary Notification update
+     * @request PATCH:/api/v1/notifications/{notificationId}
+     * @response `200` `NotificationType` OK
+     */
+    update: (notificationId: string, params: RequestParams = {}) =>
+      this.request<NotificationType, any>({
+        path: `/api/v1/notifications/${notificationId}`,
+        method: 'PATCH',
+        format: 'json',
+        ...params,
+      }),
+
+    /**
+     * @description Delete workspace user
+     *
+     * @tags Notification
+     * @name WorkspaceUserDelete
+     * @summary Delete workspace user
+     * @request DELETE:/api/v1/notifications/{notificationId}
+     * @response `200` `void` OK
+     */
+    workspaceUserDelete: (notificationId: string, params: RequestParams = {}) =>
+      this.request<void, any>({
+        path: `/api/v1/notifications/${notificationId}`,
+        method: 'DELETE',
         ...params,
       }),
   };

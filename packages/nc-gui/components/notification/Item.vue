@@ -2,13 +2,13 @@
 </script>
 
 <template>
-  <div class=" flex items-center">
+  <div class="flex items-center gap-2">
     <div class="nc-notification-avatar"></div>
     <div class="flex-grow ml-4">
       <div class="flex items-center">
-        <div class="text-sm">Welcome to NocoHUB! We’re excited to have you onboard.</div>
+        <div class="text-xs">Welcome to NocoHUB! We’re excited to have you onboard.</div>
       </div>
-      <div class="text-sm text-gray-500">1 hour ago - NocoHUB</div>
+      <div class="text-xs text-gray-500">1 hour ago - NocoHUB</div>
     </div>
     <div class="self-start">
       <a-checkbox class="!my-0"></a-checkbox>

@@ -1037,11 +1037,27 @@ export class MetaService {
     );
   }
 
+  private isSqlite() {
+    return this.connection.clientType() === 'sqlite3';
+  }
+
+  private isMssql() {
+    return this.connection.clientType() === 'mssql';
+  }
+
+  private isPg() {
+    return this.connection.clientType() === 'pg';
+  }
+
+  private isSnowflake() {
+    return this.connection.clientType() === 'snowflake';
+  }
+
   private now(): any {
     if (this.isMySQL()) {
       return dayjs().utc().format('YYYY-MM-DD HH:mm:ss');
     }
-    return dayjs().utc().toISOString();
+    return dayjs().utc().format('YYYY-MM-DD HH:mm:ssZ');
   }
 
   public async audit(
@@ -1069,8 +1085,14 @@ export class MetaService {
     // set timezone
     if (this.isMySQL()) {
       await this.connection.raw(`SET time_zone = '+00:00'`);
-    } else {
-      await this.connection.raw(`SET timezone='UTC'`);
+    } else if (this.isPg()) {
+      await this.connection.raw(`SET TIME ZONE 'UTC'`);
+    } else if (this.isMssql()) {
+      await this.connection.raw(`SET TIMEZONE = 'UTC'`);
+    } else if (this.isSqlite()) {
+      await this.connection.raw(`PRAGMA timezone = 'UTC'`);
+    } else if (this.isSnowflake()) {
+      // TODO
     }
     return true;
   }

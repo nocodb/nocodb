@@ -91,7 +91,7 @@ const optionWrapperStyle = computed(() => {
     style = {
       marginTop: '1.25rem',
     }
-  } else if (content[0].type.name === 'horizontalRule') {
+  } else if (content[0].type.name === 'divider') {
     style = {
       marginTop: '0.55rem',
     }

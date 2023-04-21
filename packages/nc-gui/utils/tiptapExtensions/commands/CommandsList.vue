@@ -310,7 +310,7 @@ const items = [
         .chain()
         .focus()
         .deleteRange(range)
-        .setNode('horizontalRule')
+        .setNode('divider')
         .focus()
         .setHorizontalRule()
         .setTextSelection(range.from + 3)

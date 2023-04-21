@@ -2,7 +2,13 @@ import { Node, mergeAttributes } from '@tiptap/core'
 import { VueNodeViewRenderer } from '@tiptap/vue-3'
 import type { EditorState } from 'prosemirror-state'
 import { Plugin, TextSelection } from 'prosemirror-state'
-import { getPositionOfNextSection, getPositionOfPreviousSection, getPositionOfSection, positionOfFirstChild } from '../helper'
+import {
+  getPositionOfNextSection,
+  getPositionOfPreviousSection,
+  getPositionOfSection,
+  nonTextLeafNodes,
+  positionOfFirstChild,
+} from '../helper'
 import DraggableSectionComponent from './draggable-section.vue'
 
 export interface SecOptions {
@@ -19,7 +25,7 @@ declare module '@tiptap/core' {
       /**
        * Select section which has the cursor
        */
-      selectActiveSectionFirstChild: () => ReturnType
+      selectActiveSectionFirstChild: (pos?: number) => ReturnType
       /**
        *
        * Select next section
@@ -119,15 +125,20 @@ export const SectionBlock = Node.create<SecOptions>({
           return commands.deleteRange(currentSectionRange)
         },
       selectActiveSectionFirstChild:
-        () =>
+        (pos?: number) =>
         ({ state, commands }) => {
-          const currentSectionPos = getPositionOfSection(state)
+          const currentSectionPos = getPositionOfSection(state, pos)
           if (!currentSectionPos) return false
 
           const currentSectionFirstChildPos = positionOfFirstChild(state, currentSectionPos, 'start')
           if (!currentSectionFirstChildPos) return false
 
-          return commands.setTextSelection(currentSectionFirstChildPos)
+          const currentSectionFirstChildNode = state.doc.nodeAt(currentSectionFirstChildPos)!
+          if (nonTextLeafNodes.includes(currentSectionFirstChildNode.type.name)) {
+            return commands.setNodeSelection(currentSectionPos)
+          }
+
+          return commands.setTextSelection(currentSectionFirstChildPos + 1)
         },
       selectNextSection:
         (sectionPosition) =>
@@ -135,15 +146,33 @@ export const SectionBlock = Node.create<SecOptions>({
           const nextSectionPos = getPositionOfNextSection(state, sectionPosition)
           if (!nextSectionPos) return false
 
-          return commands.setTextSelection(nextSectionPos)
+          const nextSectionFirstChildPos = positionOfFirstChild(state, nextSectionPos, 'start')
+          if (!nextSectionFirstChildPos) return false
+
+          const nextSectionFirstChildNode = state.doc.nodeAt(nextSectionFirstChildPos)!
+
+          if (nonTextLeafNodes.includes(nextSectionFirstChildNode.type.name)) {
+            return commands.setNodeSelection(nextSectionFirstChildPos)
+          }
+
+          return commands.setTextSelection(nextSectionPos + 1)
         },
       selectPrevSection:
         (sectionPosition) =>
         ({ state, commands }) => {
-          const nextSectionPos = getPositionOfPreviousSection(state, sectionPosition)
-          if (!nextSectionPos) return false
+          const prevSectionPos = getPositionOfPreviousSection(state, sectionPosition)
+          if (!prevSectionPos) return false
 
-          return commands.setTextSelection(nextSectionPos)
+          const prevSectionFirstChildPos = positionOfFirstChild(state, prevSectionPos, 'start')
+          if (!prevSectionFirstChildPos) return false
+
+          const prevSectionFirstChildNode = state.doc.nodeAt(prevSectionFirstChildPos)!
+
+          if (nonTextLeafNodes.includes(prevSectionFirstChildNode.type.name)) {
+            return commands.setNodeSelection(prevSectionFirstChildPos)
+          }
+
+          return commands.setTextSelection(prevSectionFirstChildPos + 1)
         },
     }
   },

@@ -1,5 +1,7 @@
 import type { EditorState } from 'prosemirror-state'
 
+export const nonTextLeafNodes = ['image', 'attachment', 'divider', 'externalContent']
+
 const nodeTypesContainingSection = ['sec', 'collapsable', 'collapsable_header', 'collapsable_content']
 
 /**
@@ -55,7 +57,7 @@ export const getPositionOfPreviousSection = (state: EditorState, pos?: number, t
  **/
 
 export const getPositionOfNextSection = (state: EditorState, pos?: number) => {
-  const searchStopPos = pos ?? state.selection.$from.pos
+  const searchStopPos = pos ?? state.selection.$from.pos + 1
 
   const givenSectionPos = getPositionOfSection(state, searchStopPos)
   const givenSectionNode = state.doc.nodeAt(givenSectionPos)
@@ -171,7 +173,7 @@ export const positionOfFirstChild = (state: EditorState, parentPos: number, posT
   // TODO: Find a better way to find position of first child start.
   // Main issue is to find pos when there is transformation happening
   if (posType === 'start') {
-    return parentPos + 2
+    return parentPos + 1
   }
 
   return parentPos + firstChild.nodeSize

@@ -747,7 +747,7 @@ const tiptapNodeLabels: Record<TipTapNodes, string> = {
   'Heading 1': 'heading',
   'Heading 2': 'heading',
   'Heading 3': 'heading',
-  Divider: 'horizontalRule',
+  Divider: 'divider',
   Image: 'image',
   'Bullet List': 'bullet',
   'Numbered List': 'ordered',

@@ -11,7 +11,7 @@ import { createAttachmentExtension } from './attachment/node'
 import { Bullet } from './listItem/bullet'
 import { Ordered } from './listItem/ordered'
 import { Task } from './listItem/task'
-import { HorizontalRule } from './horizontalRule'
+import { Divider } from './divider'
 import { Link } from './link'
 import { TableCell } from './table/cell'
 import { TableRow } from './table/row'
@@ -68,20 +68,7 @@ const tiptapExtensions = (isPublic: boolean): Extensions => {
     Task,
     Ordered,
     Bullet,
-    HorizontalRule.extend({
-      addKeyboardShortcuts() {
-        return {
-          'Ctrl-Space': () => {
-            const from = this.editor.state.selection.from
-            return this.editor
-              .chain()
-              .setHorizontalRule()
-              .setTextSelection(from + 3)
-              .run()
-          },
-        }
-      },
-    }),
+    Divider,
     Code,
     CodeBlock,
     createImageExtension(async (image: any) => {

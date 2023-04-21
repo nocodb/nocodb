@@ -1,63 +1,64 @@
-import {Injectable, OnModuleDestroy, OnModuleInit} from '@nestjs/common';
-import {Notification} from '../models';
-import {PagedResponseImpl} from '../helpers/PagedResponse';
-import type {UserType} from 'nocodb-sdk';
-import {AppEvents, AppHooksService} from "./app-hooks.service";
-import {NotificationType} from "../models/Notification";
+import { Injectable } from '@nestjs/common';
+import { Notification } from '../models';
+import { PagedResponseImpl } from '../helpers/PagedResponse';
+import { AppEvents, AppHooksService } from './app-hooks.service';
+import type { OnModuleDestroy, OnModuleInit } from '@nestjs/common';
+import type { UserType } from 'nocodb-sdk';
 
 @Injectable()
-export class NotificationsService implements OnModuleInit, OnModuleDestroy{
-
-  constructor(private readonly appHooks: AppHooksService) {
-  }
+export class NotificationsService implements OnModuleInit, OnModuleDestroy {
+  constructor(private readonly appHooks: AppHooksService) {}
 
   private async hookHandler(event: AppEvents, data: any) {
     switch (event) {
-      case AppEvents.PROJECT_INVITE: {
-        const {project, user} = data;
+      case AppEvents.PROJECT_INVITE:
+        {
+          const { project, user } = data;
 
-        await Notification.insert({
-          fk_user_id: user.id,
-          type: AppEvents.PROJECT_INVITE,
-          body: {
-            id: project.id,
-            title: project.title
-          }
-        })
-      }
+          await Notification.insert({
+            fk_user_id: user.id,
+            type: AppEvents.PROJECT_INVITE,
+            body: {
+              id: project.id,
+              title: project.title,
+            },
+          });
+        }
         break;
-      case AppEvents.WORKSPACE_INVITE: {
-        const {workspace, user} = data;
+      case AppEvents.WORKSPACE_INVITE:
+        {
+          const { workspace, user } = data;
 
-        await Notification.insert({
-          fk_user_id: user.id,
-          type: AppEvents.WORKSPACE_INVITE,
-          body: {
-            id: workspace.id,
-            title: workspace.title
-          }
-        })
-      }
+          await Notification.insert({
+            fk_user_id: user.id,
+            type: AppEvents.WORKSPACE_INVITE,
+            body: {
+              id: workspace.id,
+              title: workspace.title,
+            },
+          });
+        }
         break;
-      case AppEvents.WELCOME: {
-        const { user} = data;
+      case AppEvents.WELCOME:
+        {
+          const { user } = data;
 
-        await Notification.insert({
-          fk_user_id: user.id,
-          type: AppEvents.WELCOME,
-          body: { }
-        })
-      }
+          await Notification.insert({
+            fk_user_id: user.id,
+            type: AppEvents.WELCOME,
+            body: {},
+          });
+        }
         break;
     }
   }
 
   onModuleDestroy() {
-    this.appHooks.removeAllListener(this.hookHandler)
+    this.appHooks.removeAllListener(this.hookHandler);
   }
 
   onModuleInit() {
-    this.appHooks.onAll(this.hookHandler)
+    this.appHooks.onAll(this.hookHandler);
   }
 
   async notificationList(param: {
@@ -100,15 +101,15 @@ export class NotificationsService implements OnModuleInit, OnModuleDestroy{
     );
   }
 
-// // soft delete
-// notificationDelete(param: { notificationId: string; user: UserType }) {
-//   return Notification.update(param.notificationId, {
-//     is_deleted: true,
-//   });
-// }
+  // // soft delete
+  // notificationDelete(param: { notificationId: string; user: UserType }) {
+  //   return Notification.update(param.notificationId, {
+  //     is_deleted: true,
+  //   });
+  // }
 
-//   // todo: validation
-//   notificationDelete(param: { notificationId: string; user: UserType }) {
-//     return;
-//   }
-// }
+  //   // todo: validation
+  //   notificationDelete(param: { notificationId: string; user: UserType }) {
+  //     return;
+  //   }
+}

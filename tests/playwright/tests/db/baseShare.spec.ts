@@ -48,7 +48,7 @@ test.describe('Shared base', () => {
   }
 
   test.beforeEach(async ({ page }) => {
-    context = await setup({ page });
+    context = await setup({ page, isEmptyProject: false });
     dashboard = new DashboardPage(page, context.project);
     projectPage = new ProjectsPage(page);
     toolbar = dashboard.grid.toolbar;

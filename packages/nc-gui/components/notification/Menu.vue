@@ -1,15 +1,16 @@
 <script lang="ts" setup>
 </script>
 
-<template>
-  <a-dropdown :trigger="['click']">
+<template>    <div class="cursor-pointer">
+
+<a-dropdown :trigger="['click']">
     <GeneralIcon icon="notification" />
     <GeneralIcon icon="menuDown" />
-
     <template #overlay>
       <NotificationCard />
     </template>
   </a-dropdown>
+  </div>
 </template>
 
 <style scoped></style>

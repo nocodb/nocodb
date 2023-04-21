@@ -7,15 +7,19 @@ export const useNotification = defineStore('notificationStore', () => {
 
   const pageInfo = ref()
 
+  const isRead = ref(false)
+
   const { api, isLoading } = useApi()
 
-  const loadNotifications = async (param: { is_read?: boolean }) => {
+  const loadNotifications = async () => {
     // todo: pagination
-    const response = await api.notification.list(param)
+    const response = await api.notification.list({
+      is_read: isRead.value,
+    })
 
     notifications.value = response.list
     pageInfo.value = response.pageInfo
   }
 
-  return { notifications, loadNotifications, isLoading }
+  return { notifications, loadNotifications, isLoading, isRead, pageInfo }
 })

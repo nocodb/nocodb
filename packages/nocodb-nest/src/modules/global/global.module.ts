@@ -39,6 +39,7 @@ export const JwtStrategyProvider: Provider = {
     JwtStrategyProvider,
     GlobalGuard,
     SocketService,
+    AppHooksService,
   ],
   exports: [
     Connection,

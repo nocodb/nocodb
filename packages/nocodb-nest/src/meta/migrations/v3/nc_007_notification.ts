@@ -2,7 +2,7 @@ import { MetaTable } from '../../../utils/globals';
 
 const up = async (knex) => {
   await knex.schema.createTable(MetaTable.NOTIFICATION, function (table) {
-    table.increments('id').primary();
+    table.string('id', 20).primary().notNullable();
     table.text('body');
     table.string('type');
     table.boolean('is_read').defaultTo(false);

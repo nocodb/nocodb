@@ -92,6 +92,7 @@ export class ProjectUsersService {
         this.appHooksService.emit(AppEvents.PROJECT_INVITE,{
           project,
           user,
+          invited_by: param.req.user.email,
         });
 
         const cachedUser = await NocoCache.get(

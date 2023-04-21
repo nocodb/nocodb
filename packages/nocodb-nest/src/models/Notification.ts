@@ -2,8 +2,7 @@ import { MetaTable } from '../utils/globals';
 import Noco from '../Noco';
 import { extractProps } from '../helpers/extractProps';
 import { parseMetaProp, stringifyMetaProp } from '../utils/modelUtils';
-import {AppEvents} from "../services/app-hooks.service";
-
+import type { AppEvents } from '../services/app-hooks.service';
 
 export default class Notification {
   id?: string;
@@ -21,8 +20,7 @@ export default class Notification {
   }
 
   // todo: cache
-  public static async get(
-    idOrCondition: string | Record<string, any>,) {
+  public static async get(idOrCondition: string | Record<string, any>) {
     const notification = await Noco.ncMeta.metaGet2(
       null,
       null,
@@ -51,7 +49,12 @@ export default class Notification {
     if ('body' in insertObj)
       insertObj.body = stringifyMetaProp(insertObj, 'body') as string;
 
-    return await ncMeta.metaInsert2(null, null, MetaTable.AUDIT, insertObj);
+    return await ncMeta.metaInsert2(
+      null,
+      null,
+      MetaTable.NOTIFICATION,
+      insertObj,
+    );
   }
 
   // todo: cache
@@ -73,7 +76,13 @@ export default class Notification {
     if ('body' in updateObj)
       updateObj.body = stringifyMetaProp(updateObj, 'body') as string;
 
-    return await ncMeta.metaUpdate(null, null, MetaTable.AUDIT, idOrCondition, updateObj);
+    return await ncMeta.metaUpdate(
+      null,
+      null,
+      MetaTable.NOTIFICATION,
+      idOrCondition,
+      updateObj,
+    );
   }
 
   // todo: cache
@@ -95,8 +104,7 @@ export default class Notification {
       null,
       null,
       MetaTable.NOTIFICATION,
-      where,
-      { limit, offset },
+      { limit, offset, condition: where },
     );
 
     return notifications.map((n) => {

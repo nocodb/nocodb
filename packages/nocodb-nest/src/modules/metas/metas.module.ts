@@ -74,6 +74,12 @@ import { ProjectUsersService } from '../../services/project-users/project-users.
 import { DatasModule } from '../datas/datas.module';
 import { CommandPaletteController } from '../../controllers/command-palette.controller';
 import { CommandPaletteService } from '../../services/command-palette.service';
+import {NotificationsController} from "../../controllers/notifications.controller";
+import {NotificationsService} from "../../services/notifications.service";
+import {WorkspacesModule} from "../workspaces/workspaces.module";
+import {WorkspaceUsersModule} from "../workspace-users/workspace-users.module";
+import {DocsModule} from "../docs/docs.module";
+import {PublicDocsModule} from "../public-docs/public-docs.module";
 
 @Module({
   imports: [
@@ -84,6 +90,10 @@ import { CommandPaletteService } from '../../services/command-palette.service';
       },
     }),
     GlobalModule,
+    WorkspacesModule,
+    WorkspaceUsersModule,
+    DocsModule,
+    PublicDocsModule
   ],
   controllers: [
     ApiDocsController,
@@ -120,6 +130,7 @@ import { CommandPaletteService } from '../../services/command-palette.service';
     SortsController,
     SharedBasesController,
     CommandPaletteController,
+    NotificationsController
   ],
   providers: [
     ApiDocsService,
@@ -159,6 +170,7 @@ import { CommandPaletteService } from '../../services/command-palette.service';
     SharedBasesService,
     BulkDataAliasService,
     CommandPaletteService,
+    NotificationsService
   ],
 })
 export class MetasModule {}

@@ -1,5 +1,5 @@
 import { Injectable } from '@nestjs/common';
-import { Notification } from '../models';
+import {Notification, Project} from '../models';
 import { PagedResponseImpl } from '../helpers/PagedResponse';
 import { AppEvents, AppHooksService } from './app-hooks.service';
 import type { OnModuleDestroy, OnModuleInit } from '@nestjs/common';
@@ -13,7 +13,7 @@ export class NotificationsService implements OnModuleInit, OnModuleDestroy {
     switch (event) {
       case AppEvents.PROJECT_INVITE:
         {
-          const { project, user } = data;
+          const { project, user, invited_by} = data;
 
           await Notification.insert({
             fk_user_id: user.id,
@@ -21,6 +21,9 @@ export class NotificationsService implements OnModuleInit, OnModuleDestroy {
             body: {
               id: project.id,
               title: project.title,
+              type: project.type,
+              invited_by,
+              workspace_id: (project as Project).fk_workspace_id,
             },
           });
         }

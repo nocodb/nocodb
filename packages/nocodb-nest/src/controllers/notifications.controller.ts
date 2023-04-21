@@ -5,7 +5,6 @@ import {
   Get,
   Param,
   Patch,
-  Post, Query,
   Request,
   UseGuards,
 } from '@nestjs/common';
@@ -16,22 +15,23 @@ import { GlobalGuard } from '../guards/global/global.guard';
 import {extractProps} from "../helpers/extractProps";
 
 @Controller()
-@UseGuards(ExtractProjectAndWorkspaceIdMiddleware, GlobalGuard)
+@UseGuards(GlobalGuard)
 export class NotificationsController {
   constructor(private readonly notificationsService: NotificationsService) {}
 
-  @Get('/api/v1/notification')
-  @Acl('notificationList')
+  @Get('/api/v1/notifications')
+  // @Acl('notificationList')
   async notificationList(@Request() req) {
     return this.notificationsService.notificationList({
       user: req.user,
       is_deleted: false,
       ...req.query,
+      is_read: req.query.is_read === 'true',
     });
   }
 
-  @Patch('/api/v1/notification/:notificationId')
-  @Acl('notificationUpdate')
+  @Patch('/api/v1/notifications/:notificationId')
+  // @Acl('notificationUpdate')
   async notificationUpdate(
     @Param('notificationId') notificationId,
     @Body() body,
@@ -44,8 +44,8 @@ export class NotificationsController {
     });
   }
 
-  @Delete('/api/v1/notification/:notificationId')
-  @Acl('notificationDelete')
+  @Delete('/api/v1/notifications/:notificationId')
+  // @Acl('notificationDelete')
   async notificationDelete(
     @Param('notificationId') notificationId,
     @Request() req,

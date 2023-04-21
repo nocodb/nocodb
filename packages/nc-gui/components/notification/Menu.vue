@@ -1,4 +1,15 @@
 <script lang="ts" setup>
+
+import {useNotification} from "#imports";
+
+const notificationStore = useNotification()
+
+const { loadNotifications } = notificationStore
+
+onMounted(async () => {
+await  loadNotifications()
+})
+
 </script>
 
 <template>    <div class="cursor-pointer">

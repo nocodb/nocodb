@@ -127,7 +127,7 @@ export class DashboardPage extends BasePage {
 
     // fix me!
     // await tab.waitFor({ state: "detached" });
-    await this.rootPage.waitForTimeout(2000);
+    await this.rootPage.waitForTimeout(200);
   }
 
   async clickHome() {

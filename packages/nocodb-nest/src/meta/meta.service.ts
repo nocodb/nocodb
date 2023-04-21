@@ -7,6 +7,8 @@ import {
   Optional,
 } from '@nestjs/common';
 import dayjs from 'dayjs';
+import utc from 'dayjs/plugin/utc';
+import timezone from 'dayjs/plugin/timezone';
 import { customAlphabet } from 'nanoid';
 import CryptoJS from 'crypto-js';
 import { Connection } from '../connection/connection';
@@ -15,6 +17,9 @@ import NocoCache from '../cache/NocoCache';
 import XcMigrationSourcev2 from './migrations/XcMigrationSourcev2';
 import XcMigrationSource from './migrations/XcMigrationSource';
 import type { Knex } from 'knex';
+
+dayjs.extend(utc);
+dayjs.extend(timezone);
 
 const nanoid = customAlphabet('1234567890abcdefghijklmnopqrstuvwxyz_', 4);
 

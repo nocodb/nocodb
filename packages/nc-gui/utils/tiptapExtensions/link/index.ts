@@ -44,6 +44,7 @@ export const Link = ({ isPublic }: { isPublic?: boolean }) =>
 
     renderHTML({ HTMLAttributes }) {
       const attr = mergeAttributes(this.options.HTMLAttributes, HTMLAttributes)
+      // Set the href to the internalUrl/Public link if it's an internal link and we're in public mode
       if (attr.internal && isPublic) {
         attr.href = attr.internalUrl
       }

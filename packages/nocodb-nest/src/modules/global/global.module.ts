@@ -9,6 +9,7 @@ import { JwtStrategy } from '../../strategies/jwt.strategy';
 import NcConfigFactory from '../../utils/NcConfigFactory';
 import { UsersService } from '../../services/users/users.service';
 import type { Provider } from '@nestjs/common';
+import {AppHooksService} from "../../services/app-hooks.service";
 
 export const JwtStrategyProvider: Provider = {
   provide: JwtStrategy,
@@ -47,6 +48,7 @@ export const JwtStrategyProvider: Provider = {
     UsersService,
     GlobalGuard,
     SocketService,
+    AppHooksService,
   ],
 })
 export class GlobalModule {}

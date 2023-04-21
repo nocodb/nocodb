@@ -1,7 +1,8 @@
 import { DashboardPage } from '../pages/Dashboard';
 import { ProjectsPage } from '../pages/ProjectsPage';
 import { NcContext } from '../setup';
-import { isMysql, isPg } from '../setup/db';
+import { isHub, isMysql, isPg } from '../setup/db';
+import { WorkspacePage } from '../pages/WorkspacePage';
 
 // normal fields
 const recordCells = {
@@ -248,8 +249,13 @@ const quickVerify = async ({
   if (airtableImport) {
     // Delete project
     await dashboard.clickHome();
-    const projectsPage = new ProjectsPage(dashboard.rootPage);
-    await projectsPage.deleteProject({ title: context.project.title, withoutPrefix: true });
+    if (isHub()) {
+      const workspacePage = new WorkspacePage(dashboard.rootPage);
+      await workspacePage.projectDelete({ title: context.project.title });
+    } else {
+      const projectsPage = new ProjectsPage(dashboard.rootPage);
+      await projectsPage.deleteProject({ title: context.project.title, withoutPrefix: true });
+    }
   }
 };
 

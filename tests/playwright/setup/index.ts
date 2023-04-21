@@ -1,6 +1,7 @@
 import { Page, selectors } from '@playwright/test';
 import axios from 'axios';
 import { Api, ProjectType, ProjectTypes, UserType, WorkspaceType } from 'nocodb-sdk';
+import { getDefaultPwd } from '../tests/utils/general';
 let api: Api<any>;
 
 const workerCount = {};
@@ -16,10 +17,11 @@ export interface NcContext {
 
 selectors.setTestIdAttribute('data-testid');
 
+const enableLocalInit = false;
 async function localInit({ parallelId = process.env.TEST_PARALLEL_INDEX }: { parallelId: string }) {
   const response = await axios.post('http://localhost:8080/api/v1/auth/user/signin', {
     email: 'user@nocodb.com',
-    password: 'Password123.',
+    password: getDefaultPwd(),
   });
   const token = response.data.token;
 
@@ -69,7 +71,7 @@ async function localInit({ parallelId = process.env.TEST_PARALLEL_INDEX }: { par
 const setup = async ({
   projectType = ProjectTypes.DATABASE,
   page,
-  isEmptyProject = true,
+  isEmptyProject = false,
   url,
 }: {
   projectType?: ProjectTypes;
@@ -89,7 +91,7 @@ const setup = async ({
 
   let response;
   try {
-    if (isEmptyProject) {
+    if (isEmptyProject && enableLocalInit) {
       response = await localInit({ parallelId: process.env.TEST_PARALLEL_INDEX });
     } else {
       response = await axios.post(`http://localhost:8080/api/v1/meta/test/reset`, {
@@ -136,7 +138,7 @@ const setup = async ({
   );
 
   const project = response.data.project;
-  const rootUser = { ...response.data.user, password: 'Password123.' };
+  const rootUser = { ...response.data.user, password: getDefaultPwd() };
   const workspace = response.data.workspace;
 
   // default landing page for tests
@@ -146,7 +148,7 @@ const setup = async ({
       projectUrl = url ? url : `/#/ws/${project.fk_workspace_id}/nc/${project.id}/doc`;
       break;
     case ProjectTypes.DATABASE:
-      projectUrl = url ? url : `/#/ws/${project.fk_workspace_id}/nc/${project.id}/auth`;
+      projectUrl = url ? url : `/#/ws/${project.fk_workspace_id}/nc/${project.id}`;
       break;
     default:
       throw new Error(`Unknown project type: ${project.type}`);

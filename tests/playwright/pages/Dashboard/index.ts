@@ -20,11 +20,13 @@ import { DocsPageGroup } from './Docs';
 import { ShareProjectButtonPage } from './ShareProjectButton';
 import { ProjectTypes } from 'nocodb-sdk';
 import { WorkspacePage } from '../WorkspacePage';
+import { isHub } from '../../setup/db';
 
 export class DashboardPage extends BasePage {
   readonly project: any;
   readonly tablesSideBar: Locator;
   readonly projectMenuLink: Locator;
+  readonly workspaceMenuLink: Locator;
   readonly tabBar: Locator;
   readonly treeView: TreeViewPage;
   readonly grid: GridPage;
@@ -49,7 +51,12 @@ export class DashboardPage extends BasePage {
     super(rootPage);
     this.project = project;
     this.tablesSideBar = rootPage.locator('.nc-treeview-container');
-    this.projectMenuLink = rootPage.getByTestId('nc-project-menu');
+    if (isHub()) {
+      this.workspaceMenuLink = rootPage.getByTestId('nc-project-menu');
+      this.projectMenuLink = rootPage.locator('.project-title-node').locator('.nc-icon.ant-dropdown-trigger');
+    } else {
+      this.projectMenuLink = rootPage.getByTestId('nc-project-menu');
+    }
     this.tabBar = rootPage.locator('.nc-tab-bar');
     this.treeView = new TreeViewPage(this, project);
     this.grid = new GridPage(this);
@@ -97,12 +104,12 @@ export class DashboardPage extends BasePage {
   }
 
   async gotoSettings() {
-    await this.rootPage.getByTestId('nc-project-menu').click();
+    await this.projectMenuLink.click();
     await this.rootPage.locator('div.nc-project-menu-item:has-text(" Team & Settings")').click();
   }
 
   async gotoProjectSubMenu({ title }: { title: string }) {
-    await this.rootPage.getByTestId('nc-project-menu').click();
+    await this.projectMenuLink.click();
     await this.rootPage.locator(`div.nc-project-menu-item:has-text("${title}")`).click();
   }
 
@@ -111,12 +118,16 @@ export class DashboardPage extends BasePage {
   }
 
   async closeTab({ title }: { title: string }) {
+    if (title === 'Team & Auth' && isHub()) {
+      return;
+    }
+
     const tab = this.tabBar.locator(`.ant-tabs-tab:has-text("${title}")`);
     await tab.locator('button.ant-tabs-tab-remove').click();
 
     // fix me!
     // await tab.waitFor({ state: "detached" });
-    await this.rootPage.waitForTimeout(2000);
+    await this.rootPage.waitForTimeout(200);
   }
 
   async clickHome() {
@@ -157,9 +168,9 @@ export class DashboardPage extends BasePage {
 
     if (mode === 'standard') {
       if (title === 'Team & Auth') {
-        await expect(this.rootPage).toHaveURL(`/#/nc/${this.project.id}/auth`);
+        await expect(this.rootPage).toHaveURL(`/nc/${this.project.id}/auth`);
       } else {
-        await expect(this.rootPage).toHaveURL(new RegExp(`#/nc/${this.project.id}/table/md_.{14}`));
+        await expect(this.rootPage).toHaveURL(new RegExp(`/nc/${this.project.id}/table/md_.{14}`));
       }
     }
   }
@@ -219,10 +230,18 @@ export class DashboardPage extends BasePage {
   }
 
   async signOut() {
-    await this.rootPage.getByTestId('nc-project-menu').click();
+    if (isHub()) {
+      await this.workspaceMenuLink.click();
+    } else {
+      await this.projectMenuLink.click();
+    }
     const projMenu = this.rootPage.locator('.nc-dropdown-project-menu');
     await projMenu.locator('[data-menu-id="account"]:visible').click();
-    await this.rootPage.locator('div.nc-project-menu-item:has-text("Sign Out"):visible').click();
+    if (isHub()) {
+      await this.rootPage.locator('.nc-user-menu-signout:visible').click();
+    } else {
+      await this.rootPage.locator('div.nc-project-menu-item:has-text("Sign Out"):visible').click();
+    }
     await this.rootPage.locator('[data-testid="nc-form-signin"]:visible').waitFor();
     await new Promise(resolve => setTimeout(resolve, 150));
   }
@@ -268,5 +287,15 @@ export class DashboardPage extends BasePage {
   // Wait for the loader i.e the loader than appears when rows are being fetched, saved etc on the top right of dashboard
   async waitForLoaderToDisappear() {
     await this.rootPage.locator('[data-testid="nc-loading"]').waitFor({ state: 'hidden' });
+  }
+
+  async closeAllTabs() {
+    const tab = await this.tabBar.locator(`.ant-tabs-tab`);
+    const tabCount = await tab.count();
+
+    for (let i = 0; i < tabCount; i++) {
+      await tab.nth(i).locator('button.ant-tabs-tab-remove').click();
+      await this.rootPage.waitForTimeout(200);
+    }
   }
 }

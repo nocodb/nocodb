@@ -53,7 +53,7 @@ export class TreeViewPage extends BasePage {
   async openTable({
     title,
     mode = 'standard',
-    networkResponse = false,
+    networkResponse = true,
     mobileMode = false,
   }: {
     title: string;

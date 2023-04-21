@@ -1,4 +1,4 @@
-import { Page } from '@playwright/test';
+import { expect, Page } from '@playwright/test';
 import BasePage from '../Base';
 import { HeaderPage } from './HeaderPage';
 import { LeftSideBarPage } from './LeftSideBarPage';
@@ -93,10 +93,29 @@ export class WorkspacePage extends BasePage {
     await this.rootPage.waitForTimeout(100);
   }
 
+  async checkWorkspaceCreateButton(param: { exists: boolean }) {
+    // fix me! wait for page load to complete
+    // one of the two checks should suffice
+    await this.rootPage.waitForTimeout(1000);
+    expect(await this.LeftSideBar.createWorkspace.count()).toBe(param.exists ? 1 : 0);
+    await this.LeftSideBar.get()
+      .locator('[data-testid="nc-create-workspace"]')
+      .waitFor({ state: param.exists ? 'visible' : 'hidden' });
+  }
+
   async logout() {
     await this.Header.accountMenuOpen({ title: 'sign-out' });
   }
 
   // Add on verification routines
   // can be done using expect at source
+
+  async openPasswordChangeModal() {
+    await this.Header.accountMenuOpen({ title: 'user-settings' });
+    await this.rootPage.locator('[data-menu-id="password-reset"]').click();
+  }
+
+  async waitForRender() {
+    await this.Header.verifyStaticElements();
+  }
 }

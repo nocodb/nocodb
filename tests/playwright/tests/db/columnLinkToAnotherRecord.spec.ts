@@ -10,7 +10,7 @@ test.describe('LTAR create & update', () => {
   test.setTimeout(150000);
 
   test.beforeEach(async ({ page }) => {
-    context = await setup({ page });
+    context = await setup({ page, isEmptyProject: true });
     dashboard = new DashboardPage(page, context.project);
   });
 

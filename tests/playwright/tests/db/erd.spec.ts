@@ -9,7 +9,7 @@ import {
 import { DashboardPage } from '../../pages/Dashboard';
 import { SettingsSubTab, SettingTab } from '../../pages/Dashboard/Settings';
 import setup from '../../setup';
-import { isMysql, isPg, isSqlite } from '../../setup/db';
+import { isHub, isMysql, isPg, isSqlite } from '../../setup/db';
 import { SettingsErdPage } from '../../pages/Dashboard/Settings/Erd';
 import { defaultBaseName } from '../../constants';
 
@@ -21,7 +21,7 @@ test.describe('Erd', () => {
   test.slow();
 
   test.beforeEach(async ({ page }) => {
-    context = await setup({ page });
+    context = await setup({ page, isEmptyProject: false });
     dashboard = new DashboardPage(page, context.project);
 
     if (isPg(context)) {
@@ -232,7 +232,7 @@ test.describe('Erd', () => {
     });
     await dashboard.settings.close();
 
-    await dashboard.treeView.openTable({ title: 'Country' });
+    if (!isHub()) await dashboard.treeView.openTable({ title: 'Country' });
     await dashboard.grid.toolbar.clickActions();
     await dashboard.grid.toolbar.actions.click('ERD View');
     await dashboard.grid.toolbar.actions.erd.verifyNode({
@@ -255,7 +255,7 @@ test.describe('Erd', () => {
     });
     await dashboard.settings.close();
 
-    await dashboard.treeView.openTable({ title: 'Country' });
+    if (!isHub()) await dashboard.treeView.openTable({ title: 'Country' });
     await dashboard.grid.toolbar.clickActions();
     await dashboard.grid.toolbar.actions.click('ERD View');
     await dashboard.grid.toolbar.actions.erd.verifyNode({

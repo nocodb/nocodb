@@ -10,7 +10,6 @@ export const youtubeUrlToEmbedUrl = (url: string) => {
 }
 
 export const gSuiteUrlToEmbedUrl = (url: string, type: string) => {
-  console.log(type)
   const id = url.split('d/')[1].split('/')[0]
   let iframeLinkType
   switch (type) {
@@ -62,7 +61,7 @@ export const miroUrlToEmbedUrl = (url: string) => {
   return url.replace('miro.com/app/board', 'miro.com/app/embed')
 }
 
-export function getExternalContentType(url: any) {
+export function getEmbedContentType(url: any) {
   if (!url) return
   // google docs
   if (url.match(/docs.google.com\/document/g)) {
@@ -116,7 +115,7 @@ export function getExternalContentType(url: any) {
 
 export const urlToEmbedUrl = (url: string, type?: string) => {
   if (!type) {
-    type = getExternalContentType(url)
+    type = getEmbedContentType(url)
   }
   if (!type) throw new Error('No type provided')
 

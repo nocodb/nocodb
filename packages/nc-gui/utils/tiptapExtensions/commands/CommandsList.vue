@@ -10,7 +10,7 @@ import GoogleDocsIcon from './custom-icons/GoogleDocs.vue'
 import GoogleSlidesIcon from './custom-icons/GoogleSlides.vue'
 import ClickupIcon from './custom-icons/Clickup.vue'
 import MiroIcon from './custom-icons/Miro.vue'
-import { getExternalContentType } from '~/utils/tiptapExtensions/external-content/urlHelper'
+import { getEmbedContentType, urlToEmbedUrl } from '~/utils/tiptapExtensions/embed/urlHelper'
 import MdiFormatHeader1 from '~icons/mdi/format-header-1'
 import MdiFormatHeader2 from '~icons/mdi/format-header-2'
 import MdiFormatHeader3 from '~icons/mdi/format-header-3'
@@ -68,7 +68,7 @@ const insertLink = () => {
     return
   }
 
-  if (isLinkInputFormType.value !== 'externalContent' && getExternalContentType(linkUrl.value) !== isLinkInputFormType.value) {
+  if (isLinkInputFormType.value !== 'embed' && getEmbedContentType(linkUrl.value) !== isLinkInputFormType.value) {
     isLinkInputFormErrored.value = true
     return
   }
@@ -76,10 +76,13 @@ const insertLink = () => {
   editor
     .chain()
     .focus()
-    .setExternalContent({
+    .deleteActiveSection()
+    .setEmbed({
       url: urlToEmbedUrl(linkUrl.value),
-      type: getExternalContentType(isLinkInputFormType.value)!,
+      type: getEmbedContentType(isLinkInputFormType.value)!,
     })
+    .selectActiveSectionFirstChild()
+    .run()
   isLinkInputFormState.value = false
 }
 
@@ -445,7 +448,7 @@ const items = [
     title: 'Embed iframe',
     class: 'text-xs',
     command: ({ editor, range }: { editor: Editor; range: Range }) => {
-      isLinkInputFormType.value = 'externalContent'
+      isLinkInputFormType.value = 'embed'
       isLinkInputFormState.value = true
     },
     icon: IcOutlineCode,
@@ -650,7 +653,7 @@ defineExpose({
           data-testid="nc-docs-command-list-link-input-error"
         >
           Given
-          <span v-if="isLinkInputFormType !== 'externalContent'" class="capitalize px-1">{{ isLinkInputFormType }}</span>
+          <span v-if="isLinkInputFormType !== 'embed'" class="capitalize px-1">{{ isLinkInputFormType }}</span>
           link is not valid
         </div>
       </div>

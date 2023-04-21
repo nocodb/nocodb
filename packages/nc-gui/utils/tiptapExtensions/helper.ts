@@ -1,6 +1,6 @@
 import type { EditorState } from 'prosemirror-state'
 
-export const nonTextLeafNodes = ['image', 'attachment', 'divider', 'externalContent']
+export const nonTextLeafNodes = ['image', 'attachment', 'divider', 'embed']
 
 const nodeTypesContainingSection = ['sec', 'collapsable', 'collapsable_header', 'collapsable_content']
 

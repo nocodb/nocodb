@@ -25,7 +25,7 @@ import { WarningCallout } from './callouts/warning'
 import { TipCallout } from './callouts/tip'
 import { SectionBlock } from './section'
 import { Document } from './document'
-import { ExternalContent } from './external-content'
+import { Embed } from './embed'
 import { Heading } from './heading'
 import { TrailingNode } from './trailingNode'
 import { Placeholder } from './placeholder'
@@ -89,7 +89,7 @@ const tiptapExtensions = (isPublic: boolean): Extensions => {
         class: 'nc-docs-tiptap-table-cell relative',
       },
     }),
-    ExternalContent,
+    Embed,
     TrailingNode,
     Link({ isPublic }),
     CollapsableContent,

@@ -116,6 +116,7 @@
     "nodemailer": "^6.4.10",
     "object-hash": "^3.0.0",
     "os-locale": "^6.0.2",
+    "p-queue": "^6.6.2",
     "papaparse": "^5.3.1",
     "parse-database-url": "^0.3.0",
     "passport": "^0.4.1",

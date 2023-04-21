@@ -12,7 +12,6 @@ import { Base, Model, Project } from 'src/models';
 import { DatasService } from 'src/services/datas.service';
 import { Injectable } from '@nestjs/common';
 import type { LinkToAnotherRecordColumn, View } from 'src/models';
-import type { IStorageAdapterV2 } from 'nc-plugin';
 
 @Injectable()
 export class ExportService {

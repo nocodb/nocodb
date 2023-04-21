@@ -17,6 +17,7 @@ import {
 } from 'src/helpers/exportImportHelpers';
 import { BulkDataAliasService } from 'src/services/bulk-data-alias.service';
 import { UITypes } from 'nocodb-sdk';
+import { forwardRef, Inject } from '@nestjs/common';
 import { JobsGateway } from '../jobs.gateway';
 import { ExportService } from './export.service';
 import { ImportService } from './import.service';
@@ -24,20 +25,21 @@ import type { LinkToAnotherRecordColumn } from 'src/models';
 
 const DEBUG = false;
 
-@Processor('duplicate')
+@Processor('jobs')
 export class DuplicateProcessor {
   constructor(
     private readonly exportService: ExportService,
     private readonly importService: ImportService,
     private readonly projectsService: ProjectsService,
     private readonly bulkDataService: BulkDataAliasService,
+    @Inject(forwardRef(() => JobsGateway))
     private readonly jobsGateway: JobsGateway,
   ) {}
 
   @OnQueueActive()
   onActive(job: Job) {
     this.jobsGateway.jobStatus({
-      type: job.name,
+      name: job.name,
       id: job.id.toString(),
       status: 'active',
     });
@@ -47,7 +49,7 @@ export class DuplicateProcessor {
   onFailed(job: Job, error: Error) {
     console.error(
       boxen(
-        `---- !! JOB FAILED !! ----\ntype: ${job.name}\nid:${job.id}\nerror:${error.name} (${error.message})\n\nstack: ${error.stack}`,
+        `---- !! JOB FAILED !! ----\nname: ${job.name}\nid:${job.id}\nerror:${error.name} (${error.message})\n\nstack: ${error.stack}`,
         {
           padding: 1,
           borderStyle: 'double',
@@ -57,7 +59,7 @@ export class DuplicateProcessor {
     );
 
     this.jobsGateway.jobStatus({
-      type: job.name,
+      name: job.name,
       id: job.id.toString(),
       status: 'failed',
     });
@@ -66,7 +68,7 @@ export class DuplicateProcessor {
   @OnQueueCompleted()
   onCompleted(job: Job) {
     this.jobsGateway.jobStatus({
-      type: job.name,
+      name: job.name,
       id: job.id.toString(),
       status: 'completed',
     });
@@ -134,7 +136,7 @@ export class DuplicateProcessor {
     });
 
     this.jobsGateway.jobStatus({
-      type: job.name,
+      name: job.name,
       id: job.id.toString(),
       status: 'refresh',
     });

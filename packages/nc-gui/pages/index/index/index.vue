@@ -85,7 +85,8 @@ const duplicateProject = (project: ProjectType) => {
       try {
         const jobData = await api.project.duplicate(project.id as string)
 
-        $events.subscribe(jobData.type, jobData.id, async (data: { status: string }) => {
+        $events.subscribe(jobData.name, jobData.id, async (data: { status: string }) => {
+          console.log('dataCB', data)
           if (data.status === 'completed' || data.status === 'refresh') {
             await loadProjects()
           } else if (data.status === 'failed') {

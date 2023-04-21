@@ -2112,7 +2112,7 @@
                 "schema": {
                   "type": "object",
                   "properties": {
-                    "type": {
+                    "name": {
                       "type": "string"
                     },
                     "id": {
@@ -2170,7 +2170,7 @@
                 "schema": {
                   "type": "object",
                   "properties": {
-                    "type": {
+                    "name": {
                       "type": "string"
                     },
                     "id": {

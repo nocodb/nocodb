@@ -9,6 +9,7 @@ import { ImportService } from './export-import/import.service';
 import { DuplicateController } from './export-import/duplicate.controller';
 import { DuplicateProcessor } from './export-import/duplicate.processor';
 import { JobsGateway } from './jobs.gateway';
+import { QueueService } from './fallback-queue.service';
 
 @Module({
   imports: [
@@ -16,11 +17,12 @@ import { JobsGateway } from './jobs.gateway';
     DatasModule,
     MetasModule,
     BullModule.registerQueue({
-      name: 'duplicate',
+      name: 'jobs',
     }),
   ],
   controllers: [DuplicateController],
   providers: [
+    QueueService,
     JobsGateway,
     JobsService,
     DuplicateProcessor,

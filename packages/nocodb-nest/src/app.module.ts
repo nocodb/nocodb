@@ -35,12 +35,13 @@ import type {
     MetasModule,
     DatasModule,
     JobsModule,
-    BullModule.forRoot({
-      redis: {
-        host: 'localhost',
-        port: 6379,
-      },
-    }),
+    ...(process.env['NC_REDIS_URL']
+      ? [
+          BullModule.forRoot({
+            redis: process.env.NC_REDIS_URL,
+          }),
+        ]
+      : []),
   ],
   controllers: [],
   providers: [

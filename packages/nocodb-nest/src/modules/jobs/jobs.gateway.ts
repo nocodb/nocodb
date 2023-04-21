@@ -6,7 +6,7 @@ import {
   WebSocketServer,
 } from '@nestjs/websockets';
 import { Server, Socket } from 'socket.io';
-import { Injectable } from '@nestjs/common';
+import { forwardRef, Inject, Injectable } from '@nestjs/common';
 import { ExecutionContextHost } from '@nestjs/core/helpers/execution-context-host';
 import { AuthGuard } from '@nestjs/passport';
 import { JobsService } from './jobs.service';
@@ -22,7 +22,10 @@ import type { OnModuleInit } from '@nestjs/common';
 })
 @Injectable()
 export class JobsGateway implements OnModuleInit {
-  constructor(private readonly jobsService: JobsService) {}
+  constructor(
+    @Inject(forwardRef(() => JobsService))
+    private readonly jobsService: JobsService,
+  ) {}
 
   @WebSocketServer()
   server: Server;
@@ -41,30 +44,32 @@ export class JobsGateway implements OnModuleInit {
 
   @SubscribeMessage('subscribe')
   async subscribe(
-    @MessageBody() data: { type: string; id: string },
+    @MessageBody() data: { name: string; id: string },
     @ConnectedSocket() client: Socket,
   ): Promise<void> {
-    const rooms = await this.jobsService.jobList(data.type);
-    const room = rooms.find((r) => r.id === data.id);
+    const rooms = (await this.jobsService.jobList(data.name)).map(
+      (j) => `${j.name}-${j.id}`,
+    );
+    const room = rooms.find((r) => r === `${data.name}-${data.id}`);
     if (room) {
-      client.join(data.id);
+      client.join(`${data.name}-${data.id}`);
     }
   }
 
   @SubscribeMessage('status')
   async status(
-    @MessageBody() data: { type: string; id: string },
+    @MessageBody() data: { name: string; id: string },
     @ConnectedSocket() client: Socket,
   ): Promise<void> {
     client.emit('status', {
       id: data.id,
-      type: data.type,
-      status: await this.jobsService.jobStatus(data.type, data.id),
+      name: data.name,
+      status: await this.jobsService.jobStatus(data.id),
     });
   }
 
   async jobStatus(data: {
-    type: string;
+    name: string;
     id: string;
     status:
       | 'completed'
@@ -75,9 +80,9 @@ export class JobsGateway implements OnModuleInit {
       | 'paused'
       | 'refresh';
   }): Promise<void> {
-    this.server.to(data.id).emit('status', {
+    this.server.to(`${data.name}-${data.id}`).emit('status', {
       id: data.id,
-      type: data.type,
+      name: data.name,
       status: data.status,
     });
   }

@@ -1,28 +1,27 @@
 import { InjectQueue } from '@nestjs/bull';
 import { Injectable } from '@nestjs/common';
 import { Queue } from 'bull';
+import { QueueService } from './fallback-queue.service';
 
 @Injectable()
 export class JobsService {
-  constructor(@InjectQueue('duplicate') private duplicateQueue: Queue) {}
+  activeQueue;
+  constructor(
+    @InjectQueue('jobs') private readonly jobsQueue: Queue,
+    private readonly fallbackQueueService: QueueService,
+  ) {
+    this.activeQueue = process.env.NC_REDIS_URL
+      ? this.jobsQueue
+      : this.fallbackQueueService;
+  }
 
-  async jobStatus(jobType: string, jobId: string) {
-    switch (jobType) {
-      case 'duplicate':
-      default:
-        return await (await this.duplicateQueue.getJob(jobId)).getState();
-    }
+  async jobStatus(jobId: string) {
+    return await (await this.activeQueue.getJob(jobId)).getState();
   }
 
   async jobList(jobType: string) {
-    switch (jobType) {
-      case 'duplicate':
-      default:
-        return await this.duplicateQueue.getJobs([
-          'active',
-          'waiting',
-          'delayed',
-        ]);
-    }
+    return (
+      await this.activeQueue.getJobs(['active', 'waiting', 'delayed'])
+    ).filter((j) => j.name === jobType);
   }
 }

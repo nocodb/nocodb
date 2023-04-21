@@ -14,13 +14,20 @@ import {
   Acl,
   ExtractProjectIdMiddleware,
 } from 'src/middlewares/extract-project-id/extract-project-id.middleware';
+import { QueueService } from '../fallback-queue.service';
 
 @Controller()
 @UseGuards(ExtractProjectIdMiddleware, GlobalGuard)
 export class DuplicateController {
+  activeQueue;
   constructor(
-    @InjectQueue('duplicate') private readonly duplicateQueue: Queue,
-  ) {}
+    @InjectQueue('jobs') private readonly jobsQueue: Queue,
+    private readonly fallbackQueueService: QueueService,
+  ) {
+    this.activeQueue = process.env.NC_REDIS_URL
+      ? this.jobsQueue
+      : this.fallbackQueueService;
+  }
 
   @Post('/api/v1/db/meta/duplicate/:projectId/:baseId?')
   @HttpCode(200)
@@ -30,7 +37,7 @@ export class DuplicateController {
     @Param('projectId') projectId: string,
     @Param('baseId') baseId?: string,
   ) {
-    const job = await this.duplicateQueue.add('duplicate', {
+    const job = await this.activeQueue.add('duplicate', {
       projectId,
       baseId,
       req: {
@@ -38,6 +45,6 @@ export class DuplicateController {
         clientIp: req.clientIp,
       },
     });
-    return { id: job.id, type: job.name };
+    return { id: job.id, name: job.name };
   }
 }

@@ -29,11 +29,11 @@ export default defineNuxtPlugin(async (nuxtApp) => {
   }
 
   const events = {
-    subscribe(type: string, id: string, cb: (data: any) => void) {
+    subscribe(name: string, id: string, cb: (data: any) => void) {
       if (socket) {
-        socket.emit('subscribe', { type, id })
+        socket.emit('subscribe', { name, id })
         const tempFn = (data: any) => {
-          if (data.id === id && data.type === type) {
+          if (data.id === id && data.name === name) {
             cb(data)
             if (data.status === 'completed' || data.status === 'failed') {
               socket?.off('status', tempFn)
@@ -43,12 +43,12 @@ export default defineNuxtPlugin(async (nuxtApp) => {
         socket.on('status', tempFn)
       }
     },
-    getStatus(type: string, id: string): Promise<string> {
+    getStatus(name: string, id: string): Promise<string> {
       return new Promise((resolve) => {
         if (socket) {
-          socket.emit('status', { type, id })
+          socket.emit('status', { name, id })
           const tempFn = (data: any) => {
-            if (data.id === id && data.type === type) {
+            if (data.id === id && data.name === name) {
               resolve(data.status)
               socket?.off('status', tempFn)
             }

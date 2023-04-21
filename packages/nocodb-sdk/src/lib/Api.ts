@@ -4019,7 +4019,7 @@ export class Api<
  * @summary Duplicate Project Base
  * @request POST:/api/v1/db/meta/duplicate/{projectId}/{baseId}
  * @response `200` `{
-  type?: string,
+  name?: string,
   id?: string,
 
 }` OK
@@ -4036,7 +4036,7 @@ export class Api<
     ) =>
       this.request<
         {
-          type?: string;
+          name?: string;
           id?: string;
         },
         {
@@ -4058,7 +4058,7 @@ export class Api<
  * @summary Duplicate Project
  * @request POST:/api/v1/db/meta/duplicate/{projectId}
  * @response `200` `{
-  type?: string,
+  name?: string,
   id?: string,
 
 }` OK
@@ -4071,7 +4071,7 @@ export class Api<
     duplicate: (projectId: IdType, params: RequestParams = {}) =>
       this.request<
         {
-          type?: string;
+          name?: string;
           id?: string;
         },
         {

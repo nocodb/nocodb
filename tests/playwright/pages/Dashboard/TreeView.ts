@@ -1,6 +1,7 @@
 import { expect, Locator } from '@playwright/test';
 import { DashboardPage } from '.';
 import BasePage from '../Base';
+import { isHub } from '../../setup/db';
 
 export class TreeViewPage extends BasePage {
   readonly dashboard: DashboardPage;
@@ -117,7 +118,11 @@ export class TreeViewPage extends BasePage {
   }
 
   async deleteTable({ title }: { title: string }) {
-    await this.get().locator(`.nc-project-tree-tbl-${title}`).click({ button: 'right' });
+    if (isHub()) {
+      await this.get().locator(`.nc-project-tree-tbl-${title}`).locator('.nc-icon.ant-dropdown-trigger').click();
+    } else {
+      await this.get().locator(`.nc-project-tree-tbl-${title}`).click({ button: 'right' });
+    }
     await this.dashboard.get().locator('div.nc-project-menu-item:has-text("Delete")').click();
 
     await this.waitForResponse({

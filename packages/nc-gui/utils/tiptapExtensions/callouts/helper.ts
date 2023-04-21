@@ -32,19 +32,14 @@ export const handleOnEnterForCallouts = (editor: Editor, type: 'infoCallout' | '
   const currentParagraph = selection.$from.node()
   const currentParagraphPos = selection.$from.pos
 
+  // If the current paragraph is the last child of the callout, and it is empty, then we need to delete the current paragraph and focus on the next section's first child
   if (isLastChild(state, currentParagraphPos) && currentParagraph.textContent.length === 0) {
-    const nextSectionPos = getPositionOfNextSection(state)
-    if (!nextSectionPos) return false
-
-    const posOfFirstChildOfNextSection = positionOfFirstChild(state, nextSectionPos)
-    if (!posOfFirstChildOfNextSection) return false
-
     editor
       .chain()
       // Select the paragraph node, which will one position before the selected text node
       .setNodeSelection(selection.from - 1)
       .deleteSelection()
-      .focus(posOfFirstChildOfNextSection)
+      .selectNextSection()
       .run()
   }
 

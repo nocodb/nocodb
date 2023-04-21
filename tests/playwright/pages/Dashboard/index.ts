@@ -288,4 +288,14 @@ export class DashboardPage extends BasePage {
   async waitForLoaderToDisappear() {
     await this.rootPage.locator('[data-testid="nc-loading"]').waitFor({ state: 'hidden' });
   }
+
+  async closeAllTabs() {
+    const tab = await this.tabBar.locator(`.ant-tabs-tab`);
+    const tabCount = await tab.count();
+
+    for (let i = 0; i < tabCount; i++) {
+      await tab.nth(i).locator('button.ant-tabs-tab-remove').click();
+      await this.rootPage.waitForTimeout(200);
+    }
+  }
 }

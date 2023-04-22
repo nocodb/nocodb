@@ -24,7 +24,7 @@ const { modelValue, isPk } = defineProps<Props>()
 
 const emit = defineEmits(['update:modelValue'])
 
-const { isMysql } = useProject()
+const { isMysql, isSqlite } = useProject()
 
 const { showNull } = useGlobal()
 
@@ -55,6 +55,14 @@ let localState = $computed({
       return undefined
     }
 
+    if (isSqlite(column.value.base_id)) {
+      return /^\d+$/.test(modelValue)
+        ? dayjs(+modelValue)
+            .utc(true)
+            .local()
+        : dayjs(modelValue).utc(true).local()
+    }
+
     return /^\d+$/.test(modelValue) ? dayjs(+modelValue) : dayjs(modelValue)
   },
   set(val?: dayjs.Dayjs) {
@@ -66,6 +74,8 @@ let localState = $computed({
     if (val.isValid()) {
       if (isMysql(column.value.base_id)) {
         emit('update:modelValue', val?.format('YYYY-MM-DD HH:mm:ss'))
+      } else if (isSqlite(column.value.base_id)) {
+        emit('update:modelValue', dayjs(val).utc().format('YYYY-MM-DD HH:mm:ss'))
       } else {
         emit('update:modelValue', dayjs(val).utc().format('YYYY-MM-DD HH:mm:ssZ'))
       }

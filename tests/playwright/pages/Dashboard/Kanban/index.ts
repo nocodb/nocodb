@@ -2,6 +2,7 @@ import { expect } from '@playwright/test';
 import { DashboardPage } from '..';
 import BasePage from '../../Base';
 import { ToolbarPage } from '../common/Toolbar';
+import { isHub } from '../../../setup/db';
 
 export class KanbanPage extends BasePage {
   readonly dashboard: DashboardPage;
@@ -61,6 +62,7 @@ export class KanbanPage extends BasePage {
   }
 
   async verifyStackOrder(param: { order: string[] }) {
+    if (isHub()) await this.rootPage.waitForTimeout(1000);
     const { order } = param;
     const stacks = await this.get().locator(`.nc-kanban-stack`).count();
     for (let i = 0; i < stacks; i++) {

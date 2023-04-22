@@ -59,6 +59,16 @@ a {
   }
 }
 
+.nc-workspace-menu-item {
+  @apply cursor-pointer flex items-center gap-2 py-2 hover:text-primary after:(content-[''] absolute top-0 left-0 bottom-0 right-0 w-full h-full bg-current opacity-0 transition transition-opactity duration-100) hover:(after:(opacity-5));
+
+  &:hover {
+    .nc-icon {
+      @apply text-accent;
+    }
+  }
+}
+
 .nc-sidebar-right-item {
   @apply relative flex items-center;
 

@@ -232,15 +232,12 @@ export class DashboardPage extends BasePage {
 
   async signOut() {
     if (isHub()) {
-      await this.workspaceMenuLink.click();
+      await this.grid.workspaceMenu.toggle();
+      await this.grid.workspaceMenu.click({ menu: 'Account', subMenu: 'Sign Out' });
     } else {
       await this.projectMenuLink.click();
-    }
-    const projMenu = this.rootPage.locator('.nc-dropdown-project-menu');
-    await projMenu.locator('[data-menu-id="account"]:visible').click();
-    if (isHub()) {
-      await this.rootPage.locator('.nc-user-menu-signout:visible').click();
-    } else {
+      const projMenu = this.rootPage.locator('.nc-dropdown-project-menu');
+      await projMenu.locator('[data-menu-id="account"]:visible').click();
       await this.rootPage.locator('div.nc-project-menu-item:has-text("Sign Out"):visible').click();
     }
     await this.rootPage.locator('[data-testid="nc-form-signin"]:visible').waitFor();
@@ -298,5 +295,43 @@ export class DashboardPage extends BasePage {
       await tab.nth(i).locator('button.ant-tabs-tab-remove').click();
       await this.rootPage.waitForTimeout(200);
     }
+  }
+
+  async validateWorkspaceMenu(param: { role: string; mode?: string }) {
+    await this.grid.workspaceMenu.toggle();
+    await this.grid.workspaceMenu.get().waitFor({ state: 'visible' });
+
+    const pMenu = this.grid.workspaceMenu.get();
+
+    // menu items
+    let menuItems = {
+      creator: ['Collaborators', 'Settings', 'Copy Auth Token', 'Themes', 'Preview as', 'Language', 'Account'],
+      editor: ['Collaborators', 'Settings', 'Copy Auth Token', 'Language', 'Account'],
+      commenter: ['Collaborators', 'Settings', 'Copy Auth Token', 'Language', 'Account'],
+      viewer: ['Collaborators', 'Settings', 'Copy Auth Token', 'Language', 'Account'],
+    };
+
+    if (param?.mode === 'shareBase') {
+      menuItems = {
+        creator: [],
+        commenter: [],
+        editor: ['Language'],
+        viewer: ['Language'],
+      };
+    }
+
+    // common items
+    for (const item of menuItems[param.role]) {
+      await expect(pMenu).toContainText(item);
+    }
+
+    // menuItems.creator is a super set. validate if the corresponding items missing in editor, commenter, viewer are not present
+    for (const item of menuItems.creator) {
+      if (!menuItems[param.role].includes(item)) {
+        await expect(pMenu).not.toContainText(item);
+      }
+    }
+
+    await this.grid.workspaceMenu.toggle();
   }
 }

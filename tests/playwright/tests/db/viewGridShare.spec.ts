@@ -10,7 +10,7 @@ test.describe('Shared view', () => {
   let sharedLink: string;
 
   test.beforeEach(async ({ page }) => {
-    context = await setup({ page });
+    context = await setup({ page, isEmptyProject: false });
     dashboard = new DashboardPage(page, context.project);
   });
 
@@ -61,6 +61,8 @@ test.describe('Shared view', () => {
      **/
 
     await page.goto(sharedLink);
+    // fix me! kludge@hub; page wasn't getting loaded from previous step
+    await page.reload();
     const sharedPage = new DashboardPage(page, context.project);
 
     const expectedColumns = [
@@ -176,6 +178,8 @@ test.describe('Shared view', () => {
     });
 
     await page.goto(sharedLink);
+    // fix me! kludge@hub; page wasn't getting loaded from previous step
+    await page.reload();
 
     // todo: Create shared view page
     // verify if password request modal exists

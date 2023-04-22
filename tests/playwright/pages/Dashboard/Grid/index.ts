@@ -8,6 +8,7 @@ import { ProjectMenuObject } from '../common/ProjectMenu';
 import { QrCodeOverlay } from '../QrCodeOverlay';
 import { BarcodeOverlay } from '../BarcodeOverlay';
 import { RowPageObject } from './Row';
+import { WorkspaceMenuObject } from '../common/WorkspaceMenu';
 
 export class GridPage extends BasePage {
   readonly dashboard: DashboardPage;
@@ -19,6 +20,7 @@ export class GridPage extends BasePage {
   readonly cell: CellPageObject;
   readonly toolbar: ToolbarPage;
   readonly projectMenu: ProjectMenuObject;
+  readonly workspaceMenu: WorkspaceMenuObject;
   readonly rowPage: RowPageObject;
 
   constructor(dashboardPage: DashboardPage) {
@@ -31,6 +33,7 @@ export class GridPage extends BasePage {
     this.cell = new CellPageObject(this);
     this.toolbar = new ToolbarPage(this);
     this.projectMenu = new ProjectMenuObject(this);
+    this.workspaceMenu = new WorkspaceMenuObject(this);
     this.rowPage = new RowPageObject(this);
   }
 

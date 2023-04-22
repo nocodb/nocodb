@@ -303,16 +303,11 @@ export default class NcConfigFactory {
   }
 
   private static addTypeCastConfig(clientType: string, connection) {
+    // typeCast only works for mysql
     if (clientType.startsWith('mysql')) {
       connection = {
         ...connection,
         ...this.mysqlConnectionTypeCastConfig,
-      };
-    } else {
-      // for postgres - see `setTypeParser` in `CustomKnex.ts`
-      connection = {
-        ...connection,
-        timezone: 'UTC',
       };
     }
     return connection;

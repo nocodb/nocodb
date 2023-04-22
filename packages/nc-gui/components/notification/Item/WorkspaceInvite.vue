@@ -1,4 +1,6 @@
 <script setup lang="ts">
+import { timeAgo } from '#imports'
+
 const props = defineProps<{
   item: any
 }>()
@@ -13,7 +15,7 @@ const item = toRef(props, 'item')
       <div class="flex items-center">
         <div class="text-xs">{{ item.body.invited_by }} has invited you to collaborate on {{ item.body.title }} workspace.</div>
       </div>
-      <div class="text-xs text-gray-500">1 hour ago - NocoHUB</div>
+      <div class="text-xs text-gray-500"  v-if="item">{{timeAgo(item.created_at)}} - NocoHUB</div>
     </div>
     <div class="self-start">
       <a-checkbox class="!my-0"></a-checkbox>

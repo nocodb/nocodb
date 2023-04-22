@@ -80,8 +80,8 @@ export default class Notification {
       null,
       null,
       MetaTable.NOTIFICATION,
-      idOrCondition,
       updateObj,
+      idOrCondition,
     );
   }
 

@@ -2577,6 +2577,10 @@ export interface NotificationListType {
   pageInfo: PaginatedType;
 }
 
+export interface NotificationUpdateType {
+  is_read?: boolean;
+}
+
 import axios, { AxiosInstance, AxiosRequestConfig, ResponseType } from 'axios';
 
 export type QueryParamsType = Record<string | number, any>;
@@ -10671,19 +10675,24 @@ export class Api<
       }),
 
     /**
-     * @description Workspace user read
+     * @description Notificattion update
      *
      * @tags Notification
      * @name Update
      * @summary Notification update
      * @request PATCH:/api/v1/notifications/{notificationId}
-     * @response `200` `NotificationType` OK
+     * @response `200` `void` OK
      */
-    update: (notificationId: string, params: RequestParams = {}) =>
-      this.request<NotificationType, any>({
+    update: (
+      notificationId: string,
+      data: NotificationUpdateType,
+      params: RequestParams = {}
+    ) =>
+      this.request<void, any>({
         path: `/api/v1/notifications/${notificationId}`,
         method: 'PATCH',
-        format: 'json',
+        body: data,
+        type: ContentType.Json,
         ...params,
       }),
 

@@ -15899,12 +15899,14 @@
         "operationId": "notification-update",
         "responses": {
           "200": {
-            "description": "OK",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/Notification"
-                }
+            "description": "OK"
+          }
+        },
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/NotificationUpdate"
               }
             }
           }
@@ -15912,7 +15914,7 @@
         "tags": [
           "Notification"
         ],
-        "description": "Workspace user read"
+        "description": "Notificattion update"
       },
       "delete": {
         "summary": "Delete workspace user",
@@ -23101,7 +23103,6 @@
             "list": [
               {
                 "body": {
-
                 },
                 "type": "invite",
                 "is_read": false,
@@ -23140,6 +23141,14 @@
           "list",
           "pageInfo"
         ]
+      },
+      "NotificationUpdate": {
+        "type": "object",
+        "properties": {
+          "is_read": {
+            "type": "boolean"
+          }
+        }
       }
     },
     "responses": {

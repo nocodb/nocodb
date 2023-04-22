@@ -19,7 +19,7 @@ const groupType = computed({
 </script>
 
 <template>
-  <div class="min-w-[400px] min-h-[400px] !rounded-2xl bg-white rounded-xl nc-card" @click.stop>
+  <div class="min-w-[500px] max-w-[500px] min-h-[400px] !rounded-2xl bg-white rounded-xl nc-card" @click.stop>
     <div class="p-6 pb-3.5">
       <div class="flex items-center">
         <span class="text-xl font-medium">
@@ -30,7 +30,7 @@ const groupType = computed({
         <GeneralIcon class="cursor-pointer" icon="settings" />
       </div>
     </div>
-    <a-tabs v-model="groupType">
+    <a-tabs v-model:activeKey="groupType">
       <a-tab-pane key="unread" tab="Unread">
         <span />
       </a-tab-pane>

@@ -21,5 +21,15 @@ export const useNotification = defineStore('notificationStore', () => {
     pageInfo.value = response.pageInfo
   }
 
-  return { notifications, loadNotifications, isLoading, isRead, pageInfo }
+  const markAsRead = async (notification: NotificationType) => {
+    if (notification.is_read) return
+
+    await api.notification.update(notification.id!, {
+      is_read: true,
+    })
+
+    await loadNotifications()
+  }
+
+  return { notifications, loadNotifications, isLoading, isRead, pageInfo, markAsRead }
 })

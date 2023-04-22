@@ -91,7 +91,7 @@ watch(previewAs, (newRole) => {
   <template v-else>
     <template v-for="role of roleList" :key="role.value">
       <a-menu-item class="nc-role-preview-menu" @click="previewAs = role.value">
-        <div class="nc-project-menu-item group">
+        <div class="nc-workspace-menu-item group">
           <component :is="roleIcon[role.value]" class="group-hover:text-accent" />
 
           <span class="capitalize" :class="{ 'x-active--text': role.value === previewAs }">
@@ -103,7 +103,7 @@ watch(previewAs, (newRole) => {
 
     <template v-if="previewAs">
       <a-menu-item @click="previewAs = null">
-        <div class="nc-project-menu-item group">
+        <div class="nc-workspace-menu-item group">
           <component :is="iconMap.close" class="group-hover:text-accent" />
           <!-- Reset Preview -->
           <span class="text-capitalize text-xs whitespace-nowrap">

@@ -39,9 +39,17 @@ const filterQuery = ref('')
 
 const projects = ref<ProjectType[]>()
 
+const activePage = ref(1)
+
+const pageChange = (p: number) => {
+  activePage.value = p
+}
+
 const loadProjects = async () => {
+  const lastPage = activePage.value
   const response = await api.project.list({})
   projects.value = response.list
+  activePage.value = lastPage
 }
 
 const filteredProjects = computed(
@@ -85,12 +93,14 @@ const duplicateProject = (project: ProjectType) => {
       try {
         const jobData = await api.project.duplicate(project.id as string)
 
+        await loadProjects()
+
         $events.subscribe(jobData.name, jobData.id, async (data: { status: string }) => {
-          console.log('dataCB', data)
-          if (data.status === 'completed' || data.status === 'refresh') {
+          if (data.status === 'completed') {
             await loadProjects()
           } else if (data.status === 'failed') {
             message.error('Failed to duplicate project')
+            await loadProjects()
           }
         })
 
@@ -224,7 +234,7 @@ const copyProjectMeta = async () => {
       v-else
       :custom-row="customRow"
       :data-source="filteredProjects"
-      :pagination="{ position: ['bottomCenter'] }"
+      :pagination="{ 'position': ['bottomCenter'], 'current': activePage, 'onUpdate:current': pageChange }"
       :table-layout="md ? 'auto' : 'fixed'"
     >
       <template #emptyText>
@@ -302,18 +312,26 @@ const copyProjectMeta = async () => {
             />
 
             <component
-              :is="iconMap.copy"
-              v-e="['c:project:duplicate']"
-              class="nc-action-btn"
-              @click.stop="duplicateProject(record)"
-            />
-
-            <component
               :is="iconMap.delete"
               class="nc-action-btn"
               :data-testid="`delete-project-${record.title}`"
               @click.stop="deleteProject(record)"
             />
+
+            <a-dropdown :trigger="['click']" overlay-class-name="nc-dropdown-import-menu" @click.stop>
+              <GeneralIcon icon="threeDotVertical" class="nc-import-menu outline-0" />
+
+              <template #overlay>
+                <a-menu class="!py-0 rounded text-sm">
+                  <a-menu-item key="duplicate" v-e="['c:project:duplicate']" @click.stop="duplicateProject(record)">
+                    <div class="color-transition nc-project-menu-item group">
+                      <GeneralIcon icon="copy" class="group-hover:text-accent" />
+                      Duplicate
+                    </div>
+                  </a-menu-item>
+                </a-menu>
+              </template>
+            </a-dropdown>
           </div>
         </template>
       </a-table-column>

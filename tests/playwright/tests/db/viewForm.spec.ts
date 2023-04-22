@@ -15,7 +15,7 @@ test.describe('Form view', () => {
   let context: any;
 
   test.beforeEach(async ({ page }) => {
-    context = await setup({ page });
+    context = await setup({ page, isEmptyProject: false });
     dashboard = new DashboardPage(page, context.project);
     form = dashboard.form;
     accountPage = new AccountPage(page);

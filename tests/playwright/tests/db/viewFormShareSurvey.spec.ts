@@ -9,7 +9,7 @@ test.describe('Share form', () => {
   let context: any;
 
   test.beforeEach(async ({ page }) => {
-    context = await setup({ page });
+    context = await setup({ page, isEmptyProject: false });
     dashboard = new DashboardPage(page, context.project);
   });
 
@@ -36,6 +36,8 @@ test.describe('Share form', () => {
     const surveyLink = await dashboard.form.toolbar.shareView.getShareLink();
     await dashboard.rootPage.waitForTimeout(2000);
     await dashboard.rootPage.goto(surveyLink);
+    // fix me! kludge@hub; page wasn't getting loaded from previous step
+    await dashboard.rootPage.reload();
     await dashboard.rootPage.waitForTimeout(2000);
 
     surveyForm = new SurveyFormPage(dashboard.rootPage);

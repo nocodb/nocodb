@@ -7,7 +7,7 @@ import { SocketService } from '../../services/socket.service';
 import { JwtStrategy } from '../../strategies/jwt.strategy';
 import NcConfigFactory from '../../utils/NcConfigFactory';
 import { UsersService } from '../../services/users/users.service';
-import { AppHooksService } from '../../services/app-hooks.service';
+import { AppHooksService } from '../../services/app-hooks/app-hooks.service';
 import type { Provider } from '@nestjs/common';
 
 export const JwtStrategyProvider: Provider = {

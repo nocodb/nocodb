@@ -7,7 +7,7 @@ import { PagedResponseImpl } from '../../helpers/PagedResponse';
 import validateParams from '../../helpers/validateParams';
 import { NcError } from '../../helpers/catchError';
 import { User } from '../../models';
-import { AppEvents, AppHooksService } from '../../services/app-hooks.service';
+import { AppEvents, AppHooksService } from '../../services/app-hooks/app-hooks.service';
 import Workspace from '../../models/Workspace';
 import type { UserType, WorkspaceType } from 'nocodb-sdk';
 

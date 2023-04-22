@@ -72,9 +72,15 @@ test.describe('User roles', () => {
 
   async function roleTest(roleIdx: number) {
     await roleSignup(roleIdx);
-    await dashboard.validateProjectMenu({
-      role: roleDb[roleIdx].role,
-    });
+    if (isHub()) {
+      await dashboard.validateWorkspaceMenu({
+        role: roleDb[roleIdx].role,
+      });
+    } else {
+      await dashboard.validateProjectMenu({
+        role: roleDb[roleIdx].role,
+      });
+    }
 
     await dashboard.treeView.openTable({ title: 'Country' });
 

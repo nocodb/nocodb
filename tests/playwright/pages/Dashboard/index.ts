@@ -232,15 +232,12 @@ export class DashboardPage extends BasePage {
 
   async signOut() {
     if (isHub()) {
-      await this.workspaceMenuLink.click();
+      await this.grid.workspaceMenu.toggle();
+      await this.grid.workspaceMenu.click({ menu: 'Account', subMenu: 'Sign Out' });
     } else {
       await this.projectMenuLink.click();
-    }
-    const projMenu = this.rootPage.locator('.nc-dropdown-project-menu');
-    await projMenu.locator('[data-menu-id="account"]:visible').click();
-    if (isHub()) {
-      await this.rootPage.locator('.nc-user-menu-signout:visible').click();
-    } else {
+      const projMenu = this.rootPage.locator('.nc-dropdown-project-menu');
+      await projMenu.locator('[data-menu-id="account"]:visible').click();
       await this.rootPage.locator('div.nc-project-menu-item:has-text("Sign Out"):visible').click();
     }
     await this.rootPage.locator('[data-testid="nc-form-signin"]:visible').waitFor();

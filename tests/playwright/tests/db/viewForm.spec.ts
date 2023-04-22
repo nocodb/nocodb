@@ -177,8 +177,6 @@ test.describe('Form view', () => {
 
     // activate SMTP plugin
     await accountAppStorePage.goto();
-    await accountAppStorePage.rootPage.reload({ waitUntil: 'networkidle' });
-    await accountAppStorePage.waitUntilContentLoads();
 
     // install SMTP
     await accountAppStorePage.install({ name: 'SMTP' });
@@ -205,8 +203,6 @@ test.describe('Form view', () => {
 
     // Uninstall SMTP
     await accountAppStorePage.goto();
-    await accountAppStorePage.rootPage.reload({ waitUntil: 'networkidle' });
-    await accountAppStorePage.waitUntilContentLoads();
     await accountAppStorePage.uninstall({ name: 'SMTP' });
 
     await dashboard.verifyToast({
@@ -226,7 +222,11 @@ test.describe('Form view', () => {
     await dashboard.form.toolbar.clickShareView();
     const formLink = await dashboard.form.toolbar.shareView.getShareLink();
 
+    console.log(formLink);
+
     await dashboard.rootPage.goto(formLink);
+    // fix me! kludge@hub; page wasn't getting loaded from previous step
+    await dashboard.rootPage.reload();
 
     const sharedForm = new SharedFormPage(dashboard.rootPage);
     await sharedForm.cell.attachment.addFile({

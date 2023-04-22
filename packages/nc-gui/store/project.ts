@@ -82,6 +82,10 @@ export const useProject = defineStore('projectStore', () => {
     return ['mysql', ClientType.MYSQL].includes(getBaseType(baseId))
   }
 
+  function isSqlite(baseId?: string) {
+    return getBaseType(baseId) === ClientType.SQLITE
+  }
+
   function isMssql(baseId?: string) {
     return getBaseType(baseId) === 'mssql'
   }
@@ -209,6 +213,7 @@ export const useProject = defineStore('projectStore', () => {
     isMysql,
     isMssql,
     isPg,
+    isSqlite,
     sqlUis,
     isSharedBase,
     loadProjectMetaInfo,

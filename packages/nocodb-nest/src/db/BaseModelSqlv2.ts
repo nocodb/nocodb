@@ -1755,6 +1755,10 @@ class BaseModelSqlv2 {
       let response;
       // const driver = trx ? trx : this.dbDriver;
 
+      if (this.isPg) {
+        await this.dbDriver.raw(`SET TIME ZONE 'UTC'`);
+      }
+
       const query = this.dbDriver(this.tnPath).insert(insertObj);
       if ((this.isPg || this.isMssql) && this.model.primaryKey) {
         query.returning(
@@ -1888,6 +1892,10 @@ class BaseModelSqlv2 {
       await this.beforeUpdate(data, trx, cookie);
 
       const prevData = await this.readByPk(id);
+
+      if (this.isPg) {
+        await this.dbDriver.raw(`SET TIME ZONE 'UTC'`);
+      }
 
       const query = this.dbDriver(this.tnPath)
         .update(updateObj)
@@ -2122,6 +2130,10 @@ class BaseModelSqlv2 {
       // refer : https://www.sqlite.org/limits.html
       const chunkSize = this.isSqlite ? 10 : _chunkSize;
 
+      if (this.isPg) {
+        await this.dbDriver.raw(`SET TIME ZONE 'UTC'`);
+      }
+
       const response =
         this.isPg || this.isMssql
           ? await this.dbDriver
@@ -2166,6 +2178,10 @@ class BaseModelSqlv2 {
         res.push(wherePk);
         toBeUpdated.push({ d, wherePk });
         updatePkValues.push(pkValues);
+      }
+
+      if (this.isPg) {
+        await this.dbDriver.raw(`SET TIME ZONE 'UTC'`);
       }
 
       transaction = await this.dbDriver.transaction();

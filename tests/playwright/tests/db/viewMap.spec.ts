@@ -15,7 +15,7 @@ test.describe('Map View', () => {
   const longitudeInShortDecimalLength = '30.5234';
 
   test.beforeEach(async ({ page }) => {
-    context = await setup({ page });
+    context = await setup({ page, isEmptyProject: false });
     dashboard = new DashboardPage(page, context.project);
     toolbar = dashboard.map.toolbar;
 

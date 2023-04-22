@@ -1,6 +1,7 @@
 import { expect, Locator } from '@playwright/test';
 import { DashboardPage } from '..';
 import BasePage from '../../Base';
+import { isHub } from '../../../setup/db';
 
 export class ViewSidebarPage extends BasePage {
   readonly project: any;
@@ -45,7 +46,9 @@ export class ViewSidebarPage extends BasePage {
   }
 
   private async createView({ title, locator }: { title: string; locator: Locator }) {
+    if (isHub()) await this.rootPage.waitForTimeout(1000);
     await locator.click();
+    await this.rootPage.locator('input[id="form_item_title"]:visible').waitFor({ state: 'visible' });
     await this.rootPage.locator('input[id="form_item_title"]:visible').fill(title);
     const submitAction = () =>
       this.rootPage.locator('.ant-modal-content').locator('button:has-text("Submit"):visible').click();
@@ -157,6 +160,7 @@ export class ViewSidebarPage extends BasePage {
   }
 
   async changeViewIcon({ title, icon }: { title: string; icon: string }) {
+    await this.rootPage.waitForTimeout(1000);
     await this.get().locator(`[data-testid="view-sidebar-view-${title}"] .nc-view-icon`).click();
 
     await this.rootPage.getByTestId('nc-emoji-filter').type(icon);

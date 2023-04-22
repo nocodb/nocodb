@@ -16,11 +16,9 @@ pg.defaults.parseInputDatesAsUTC = true;
 // override parsing date column to Date()
 types.setTypeParser(1082, (val) => val);
 // override timestamp
-for (const oid of [1114, 1184]) {
-  types.setTypeParser(oid, (val) => {
-    return dayjs(val).utc(true).local().format('YYYY-MM-DD HH:mm:ssZ');
-  });
-}
+types.setTypeParser(1114, (val) => {
+  return dayjs(val).utc(true).local().format('YYYY-MM-DD HH:mm:ssZ');
+});
 
 const opMappingGen = {
   eq: '=',

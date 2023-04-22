@@ -602,6 +602,10 @@ export class ImportService {
         });
         const kanbanData = withoutNull(vw.view);
         if (kanbanData) {
+          const grpCol = await Column.get({
+            base_id: md.base_id,
+            colId: idMap.get(kanbanData['fk_grp_col_id']),
+          });
           for (const [k, v] of Object.entries(kanbanData)) {
             switch (k) {
               case 'fk_grp_col_id':
@@ -614,9 +618,13 @@ export class ImportService {
                   const tempVal = [];
                   for (const vl of mv as any) {
                     if (vl.fk_column_id) {
+                      const id = grpCol.colOptions.options.find(
+                        (el) => el.title === vl.title,
+                      ).id;
                       tempVal.push({
                         ...vl,
                         fk_column_id: idMap.get(vl.fk_column_id),
+                        id,
                       });
                     } else {
                       delete vl.fk_column_id;

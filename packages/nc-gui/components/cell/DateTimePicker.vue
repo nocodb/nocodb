@@ -24,7 +24,7 @@ const { modelValue, isPk } = defineProps<Props>()
 
 const emit = defineEmits(['update:modelValue'])
 
-const { isMysql, isSqlite } = useProject()
+const { isMysql, isSqlite, isXcdbBase } = useProject()
 
 const { showNull } = useGlobal()
 
@@ -55,7 +55,7 @@ let localState = $computed({
       return undefined
     }
 
-    if (isSqlite(column.value.base_id)) {
+    if (isXcdbBase(column.value.base_id) && isSqlite(column.value.base_id)) {
       return /^\d+$/.test(modelValue)
         ? dayjs(+modelValue)
             .utc(true)
@@ -72,12 +72,17 @@ let localState = $computed({
     }
 
     if (val.isValid()) {
-      if (isMysql(column.value.base_id)) {
-        emit('update:modelValue', val?.format('YYYY-MM-DD HH:mm:ss'))
-      } else if (isSqlite(column.value.base_id)) {
-        emit('update:modelValue', dayjs(val).utc().format('YYYY-MM-DD HH:mm:ss'))
+      if (isXcdbBase(column.value.base_id)) {
+        if (isMysql(column.value.base_id)) {
+          emit('update:modelValue', val?.format('YYYY-MM-DD HH:mm:ss'))
+        } else if (isSqlite(column.value.base_id)) {
+          emit('update:modelValue', dayjs(val).utc().format('YYYY-MM-DD HH:mm:ss'))
+        } else {
+          emit('update:modelValue', dayjs(val).utc().format('YYYY-MM-DD HH:mm:ssZ'))
+        }
       } else {
-        emit('update:modelValue', dayjs(val).utc().format('YYYY-MM-DD HH:mm:ssZ'))
+        // TODO(timezone): keep ext db as it is
+        emit('update:modelValue', val?.format(isMysql(column.value.base_id) ? 'YYYY-MM-DD HH:mm:ss' : 'YYYY-MM-DD HH:mm:ssZ'))
       }
     }
   },

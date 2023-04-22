@@ -13,7 +13,7 @@ export class NotificationsService implements OnModuleInit, OnModuleDestroy {
     switch (event) {
       case AppEvents.PROJECT_INVITE:
         {
-          const { project, user, invited_by} = data;
+          const { project, user, invitedBy} = data;
 
           await Notification.insert({
             fk_user_id: user.id,
@@ -22,7 +22,7 @@ export class NotificationsService implements OnModuleInit, OnModuleDestroy {
               id: project.id,
               title: project.title,
               type: project.type,
-              invited_by,
+              invited_by: invitedBy.email,
               workspace_id: (project as Project).fk_workspace_id,
             },
           });
@@ -30,13 +30,14 @@ export class NotificationsService implements OnModuleInit, OnModuleDestroy {
         break;
       case AppEvents.WORKSPACE_INVITE:
         {
-          const { workspace, user } = data;
+          const { workspace, user, invitedBy } = data;
 
           await Notification.insert({
             fk_user_id: user.id,
             type: AppEvents.WORKSPACE_INVITE,
             body: {
               id: workspace.id,
+              invited_by: invitedBy.email,
               title: workspace.title,
             },
           });

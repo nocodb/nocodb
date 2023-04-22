@@ -1,27 +1,30 @@
-import {Injectable} from '@nestjs/common';
-import type {ProjectUserReqType} from 'nocodb-sdk';
-import {AuditOperationSubTypes, AuditOperationTypes, OrgUserRoles, PluginCategory,} from 'nocodb-sdk';
-import {T} from 'nc-help';
-import {v4 as uuidv4} from 'uuid';
+import { Injectable } from '@nestjs/common';
+import {
+  AuditOperationSubTypes,
+  AuditOperationTypes,
+  OrgUserRoles,
+  PluginCategory,
+} from 'nocodb-sdk';
+import { T } from 'nc-help';
+import { v4 as uuidv4 } from 'uuid';
 import * as ejs from 'ejs';
 import validator from 'validator';
 import NocoCache from '../../cache/NocoCache';
-import {validatePayload} from '../../helpers';
-import {NcError} from '../../helpers/catchError';
+import { validatePayload } from '../../helpers';
+import { NcError } from '../../helpers/catchError';
 import NcPluginMgrv2 from '../../helpers/NcPluginMgrv2';
-import {PagedResponseImpl} from '../../helpers/PagedResponse';
-import {randomTokenString} from '../../helpers/stringHelpers';
-import {Audit, Project, ProjectUser, User} from '../../models';
+import { PagedResponseImpl } from '../../helpers/PagedResponse';
+import { randomTokenString } from '../../helpers/stringHelpers';
+import { Audit, Project, ProjectUser, User } from '../../models';
 
 import Noco from '../../Noco';
-import {CacheGetType, CacheScope, MetaTable} from '../../utils/globals';
-import {AppEvents, AppHooksService} from "../app-hooks.service";
+import { CacheGetType, CacheScope, MetaTable } from '../../utils/globals';
+import { AppEvents, AppHooksService } from '../app-hooks.service';
+import type { ProjectUserReqType } from 'nocodb-sdk';
 
 @Injectable()
 export class ProjectUsersService {
-
-  constructor(private appHooksService: AppHooksService) {
-  }
+  constructor(private appHooksService: AppHooksService) {}
 
   async userList(param: { projectId: string; query: any }) {
     return new PagedResponseImpl(
@@ -73,7 +76,7 @@ export class ProjectUsersService {
 
         const project = await Project.get(param.projectId);
 
-        if(!project){
+        if (!project) {
           return NcError.badRequest('Invalid project id');
         }
 
@@ -89,10 +92,10 @@ export class ProjectUsersService {
           roles: param.projectUser.roles || 'editor',
         });
 
-        this.appHooksService.emit(AppEvents.PROJECT_INVITE,{
+        this.appHooksService.emit(AppEvents.PROJECT_INVITE, {
           project,
           user,
-          invited_by: param.req.user.email,
+          invitedBy: param.req.user,
         });
 
         const cachedUser = await NocoCache.get(

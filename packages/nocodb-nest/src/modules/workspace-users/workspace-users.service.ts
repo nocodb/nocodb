@@ -1,16 +1,20 @@
 import { Injectable } from '@nestjs/common';
 import validator from 'validator';
 import { v4 as uuidv4 } from 'uuid';
-import WorkspaceUser from '../../models/WorkspaceUser';
 import { WorkspaceUserRoles } from 'nocodb-sdk';
+import WorkspaceUser from '../../models/WorkspaceUser';
 import { PagedResponseImpl } from '../../helpers/PagedResponse';
 import validateParams from '../../helpers/validateParams';
 import { NcError } from '../../helpers/catchError';
 import { User } from '../../models';
-import type { WorkspaceType } from 'nocodb-sdk';
+import { AppEvents, AppHooksService } from '../../services/app-hooks.service';
+import Workspace from '../../models/Workspace';
+import type { UserType, WorkspaceType } from 'nocodb-sdk';
 
 @Injectable()
 export class WorkspaceUsersService {
+  constructor(private appHooksService: AppHooksService) {}
+
   async list(param: { workspaceId }) {
     const users = await WorkspaceUser.userList({
       fk_workspace_id: param.workspaceId,
@@ -52,13 +56,23 @@ export class WorkspaceUsersService {
     return await WorkspaceUser.delete(workspaceId, userId);
   }
 
-  async invite(param: { workspaceId: string; body: any }) {
+  async invite(param: {
+    workspaceId: string;
+    body: any;
+    invitedBy?: UserType;
+  }) {
     validateParams(['email', 'roles'], param.body);
 
     const {
       workspaceId,
       body: { email, roles },
     } = param;
+
+    const workspace = await Workspace.get(workspaceId);
+
+    if (!workspace) {
+      NcError.notFound('Workspace not found');
+    }
 
     if (roles?.split(',').length > 1) {
       NcError.badRequest('Only one role can be assigned');
@@ -105,6 +119,12 @@ export class WorkspaceUsersService {
           fk_workspace_id: workspaceId,
           fk_user_id: user.id,
           roles: roles || 'editor',
+        });
+
+        this.appHooksService.emit(AppEvents.WORKSPACE_INVITE, {
+          workspace,
+          user,
+          invitedBy: param.invitedBy,
         });
       } else {
         // todo: send invite email

@@ -14,6 +14,9 @@ import {
   Acl,
   ExtractProjectIdMiddleware,
 } from 'src/middlewares/extract-project-id/extract-project-id.middleware';
+import { ProjectsService } from 'src/services/projects.service';
+import { Base, Project } from 'src/models';
+import { generateUniqueName } from 'src/helpers/exportImportHelpers';
 import { QueueService } from '../fallback-queue.service';
 
 @Controller()
@@ -23,6 +26,7 @@ export class DuplicateController {
   constructor(
     @InjectQueue('jobs') private readonly jobsQueue: Queue,
     private readonly fallbackQueueService: QueueService,
+    private readonly projectsService: ProjectsService,
   ) {
     this.activeQueue = process.env.NC_REDIS_URL
       ? this.jobsQueue
@@ -37,14 +41,42 @@ export class DuplicateController {
     @Param('projectId') projectId: string,
     @Param('baseId') baseId?: string,
   ) {
+    const project = await Project.get(projectId);
+
+    if (!project) {
+      throw new Error(`Project not found for id '${projectId}'`);
+    }
+
+    const base = baseId
+      ? await Base.get(baseId)
+      : (await project.getBases())[0];
+
+    if (!base) {
+      throw new Error(`Base not found!`);
+    }
+
+    const projects = await Project.list({});
+
+    const uniqueTitle = generateUniqueName(
+      `${project.title} copy`,
+      projects.map((p) => p.title),
+    );
+
+    const dupProject = await this.projectsService.projectCreate({
+      project: { title: uniqueTitle, status: 'job' },
+      user: { id: req.user.id },
+    });
+
     const job = await this.activeQueue.add('duplicate', {
-      projectId,
-      baseId,
+      project,
+      base,
+      dupProject,
       req: {
         user: req.user,
         clientIp: req.clientIp,
       },
     });
+
     return { id: job.id, name: job.name };
   }
 }

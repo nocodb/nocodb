@@ -1086,19 +1086,6 @@ export class MetaService {
       migrationSource: new XcMigrationSourcev2(),
       tableName: 'xc_knex_migrationsv2',
     });
-
-    // set timezone
-    if (this.isMySQL()) {
-      await this.connection.raw(`SET time_zone = '+00:00'`);
-    } else if (this.isPg()) {
-      await this.connection.raw(`SET TIME ZONE 'UTC'`);
-    } else if (this.isMssql()) {
-      await this.connection.raw(`SET TIMEZONE = 'UTC'`);
-    } else if (this.isSqlite()) {
-      await this.connection.raw(`PRAGMA timezone = 'UTC'`);
-    } else if (this.isSnowflake()) {
-      // TODO
-    }
     return true;
   }
 }

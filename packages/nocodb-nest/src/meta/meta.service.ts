@@ -1042,20 +1042,8 @@ export class MetaService {
     );
   }
 
-  private isSqlite() {
-    return this.connection.clientType() === 'sqlite3';
-  }
-
   private isMssql() {
     return this.connection.clientType() === 'mssql';
-  }
-
-  private isPg() {
-    return this.connection.clientType() === 'pg';
-  }
-
-  private isSnowflake() {
-    return this.connection.clientType() === 'snowflake';
   }
 
   private now(): any {

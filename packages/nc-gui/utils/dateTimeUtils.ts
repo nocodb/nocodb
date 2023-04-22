@@ -1,7 +1,7 @@
 import dayjs from 'dayjs'
 
 export const timeAgo = (date: any) => {
-  return dayjs(date).fromNow()
+  return dayjs.utc(date).fromNow()
 }
 
 export const dateFormats = [

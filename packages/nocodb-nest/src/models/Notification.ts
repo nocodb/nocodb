@@ -104,7 +104,14 @@ export default class Notification {
       null,
       null,
       MetaTable.NOTIFICATION,
-      { limit, offset, condition: where },
+      {
+        limit,
+        offset,
+        condition: where,
+        orderBy: {
+          created_at: 'desc',
+        },
+      },
     );
 
     return notifications.map((n) => {

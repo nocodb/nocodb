@@ -82,7 +82,8 @@ export class DashboardPage extends BasePage {
   }
 
   async goto() {
-    await this.rootPage.goto(`/#/nc/${this.project.id}/auth`);
+    if (isHub()) await this.rootPage.goto(`/#/ws/${this.project.fk_workspace_id}/nc/${this.project.id}`);
+    else await this.rootPage.goto(`/#/nc/${this.project.id}/auth`);
   }
 
   getProjectMenuLink({ title }: { title: string }) {

@@ -16,7 +16,7 @@ test.describe('Toolbar operations (GRID)', () => {
   }
 
   test.beforeEach(async ({ page }) => {
-    context = await setup({ page });
+    context = await setup({ page, isEmptyProject: false });
     dashboard = new DashboardPage(page, context.project);
     toolbar = dashboard.grid.toolbar;
   });

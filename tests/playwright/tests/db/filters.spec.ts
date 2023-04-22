@@ -89,7 +89,6 @@ async function verifyFilter(param: {
     return;
   }
 
-  await toolbar.clickFilter();
   await toolbar.filter.add({
     title: param.column,
     operation: param.opType,
@@ -97,16 +96,13 @@ async function verifyFilter(param: {
     value: param.value,
     locallySaved: false,
     dataType: param?.dataType,
+    openModal: true,
   });
-  await toolbar.clickFilter();
 
   // verify filtered rows
   await validateRowArray({
     rowCount: param.result.rowCount,
   });
-
-  // Reset filter
-  await toolbar.filter.reset();
 }
 
 // Number based filters
@@ -206,6 +202,8 @@ test.describe('Filter Tests: Numerical', () => {
       },
     ];
 
+    await toolbar.clickFilter();
+    await toolbar.filter.clickAddFilter();
     for (let i = 0; i < filterList.length; i++) {
       await verifyFilter({
         column: dataType,
@@ -218,7 +216,7 @@ test.describe('Filter Tests: Numerical', () => {
   }
 
   test.beforeEach(async ({ page }) => {
-    context = await setup({ page });
+    context = await setup({ page, isEmptyProject: true });
     dashboard = new DashboardPage(page, context.project);
     toolbar = dashboard.grid.toolbar;
 
@@ -305,6 +303,8 @@ test.describe('Filter Tests: Numerical', () => {
     } catch (e) {
       console.error(e);
     }
+
+    await page.reload();
   });
 
   test('Filter: Number', async () => {
@@ -405,6 +405,8 @@ test.describe('Filter Tests: Text based', () => {
       },
     ];
 
+    await toolbar.clickFilter();
+    await toolbar.filter.clickAddFilter();
     for (let i = 0; i < filterList.length; i++) {
       await verifyFilter({
         column: dataType,
@@ -416,7 +418,7 @@ test.describe('Filter Tests: Text based', () => {
   }
 
   test.beforeEach(async ({ page }) => {
-    context = await setup({ page });
+    context = await setup({ page, isEmptyProject: true });
     dashboard = new DashboardPage(page, context.project);
     toolbar = dashboard.grid.toolbar;
 
@@ -485,6 +487,7 @@ test.describe('Filter Tests: Text based', () => {
     } catch (e) {
       console.error(e);
     }
+    await page.reload();
   });
 
   test('Filter: Single Line Text', async () => {
@@ -577,6 +580,8 @@ test.describe('Filter Tests: Select based', () => {
       },
     ];
 
+    await toolbar.clickFilter();
+    await toolbar.filter.clickAddFilter();
     for (let i = 0; i < filterList.length; i++) {
       await verifyFilter({
         column: dataType,
@@ -587,8 +592,9 @@ test.describe('Filter Tests: Select based', () => {
       });
     }
   }
+
   test.beforeEach(async ({ page }) => {
-    context = await setup({ page });
+    context = await setup({ page, isEmptyProject: true });
     dashboard = new DashboardPage(page, context.project);
     toolbar = dashboard.grid.toolbar;
 
@@ -641,6 +647,7 @@ test.describe('Filter Tests: Select based', () => {
     } catch (e) {
       console.error(e);
     }
+    await page.reload();
   });
 
   test('Filter: Single Select', async () => {
@@ -933,7 +940,7 @@ test.describe('Filter Tests: Date based', () => {
   }
 
   test.beforeEach(async ({ page }) => {
-    context = await setup({ page });
+    context = await setup({ page, isEmptyProject: true });
     dashboard = new DashboardPage(page, context.project);
     toolbar = dashboard.grid.toolbar;
 
@@ -978,6 +985,7 @@ test.describe('Filter Tests: Date based', () => {
     } catch (e) {
       console.error(e);
     }
+    await page.reload();
   });
 
   test('Date : filters-1', async () => {
@@ -1018,6 +1026,8 @@ test.describe('Filter Tests: AddOn', () => {
       },
     ];
 
+    await toolbar.clickFilter();
+    await toolbar.filter.clickAddFilter();
     for (let i = 0; i < filterList.length; i++) {
       await verifyFilter({
         column: dataType,
@@ -1029,7 +1039,7 @@ test.describe('Filter Tests: AddOn', () => {
     }
   }
   test.beforeEach(async ({ page }) => {
-    context = await setup({ page });
+    context = await setup({ page, isEmptyProject: true });
     dashboard = new DashboardPage(page, context.project);
     toolbar = dashboard.grid.toolbar;
 
@@ -1080,6 +1090,7 @@ test.describe('Filter Tests: AddOn', () => {
     } catch (e) {
       console.error(e);
     }
+    await page.reload();
   });
 
   test('Filter: Checkbox', async () => {
@@ -1108,6 +1119,8 @@ test.describe('Filter Tests: Link to another record, Lookup, Rollup', () => {
       { op: 'is not blank', value: null, rowCount: 109 },
     ];
 
+    await toolbar.clickFilter();
+    await toolbar.filter.clickAddFilter();
     for (let i = 0; i < filterList.length; i++) {
       await verifyFilter({
         column: 'City List',
@@ -1144,6 +1157,8 @@ test.describe('Filter Tests: Link to another record, Lookup, Rollup', () => {
       { op: 'is not blank', value: null, rowCount: 599 },
     ];
 
+    await toolbar.clickFilter();
+    await toolbar.filter.clickAddFilter();
     for (let i = 0; i < filterList.length; i++) {
       await verifyFilter({
         column: 'Lookup',
@@ -1181,6 +1196,8 @@ test.describe('Filter Tests: Link to another record, Lookup, Rollup', () => {
       { op: 'is not blank', value: null, rowCount: 598 },
     ];
 
+    await toolbar.clickFilter();
+    await toolbar.filter.clickAddFilter();
     for (let i = 0; i < filterList.length; i++) {
       await verifyFilter({
         column: 'Lookup',
@@ -1193,7 +1210,7 @@ test.describe('Filter Tests: Link to another record, Lookup, Rollup', () => {
   }
 
   test.beforeEach(async ({ page }) => {
-    context = await setup({ page });
+    context = await setup({ page, isEmptyProject: true });
     dashboard = new DashboardPage(page, context.project);
     toolbar = dashboard.grid.toolbar;
 
@@ -1237,7 +1254,7 @@ test.describe('Filter Tests: Toggle button', () => {
    */
 
   test.beforeEach(async ({ page }) => {
-    context = await setup({ page });
+    context = await setup({ page, isEmptyProject: true });
     dashboard = new DashboardPage(page, context.project);
     toolbar = dashboard.grid.toolbar;
   });

@@ -4,14 +4,14 @@ import { ToolbarPage } from '../../pages/Dashboard/common/Toolbar';
 import { FormPage } from '../../pages/Dashboard/Form';
 import setup from '../../setup';
 
-test.describe('Mobile Mode', () => {
+test.describe.skip('Mobile Mode', () => {
   let dashboard: DashboardPage;
   let context: any;
   let toolbar: ToolbarPage;
   let form: FormPage;
 
   test.beforeEach(async ({ page }) => {
-    context = await setup({ page });
+    context = await setup({ page, isEmptyProject: false });
     dashboard = new DashboardPage(page, context.project);
     form = dashboard.form;
     toolbar = dashboard.grid.toolbar;

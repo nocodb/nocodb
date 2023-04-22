@@ -9,7 +9,7 @@ test.describe('Single select', () => {
   let context: any;
 
   test.beforeEach(async ({ page }) => {
-    context = await setup({ page });
+    context = await setup({ page, isEmptyProject: true });
     dashboard = new DashboardPage(page, context.project);
     grid = dashboard.grid;
 

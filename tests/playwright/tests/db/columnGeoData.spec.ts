@@ -9,7 +9,7 @@ test.describe('Geo Data column', () => {
   let context: any;
 
   test.beforeEach(async ({ page }) => {
-    context = await setup({ page });
+    context = await setup({ page, isEmptyProject: false });
     dashboard = new DashboardPage(page, context.project);
     grid = dashboard.grid;
   });

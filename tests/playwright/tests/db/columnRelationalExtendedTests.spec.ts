@@ -1,14 +1,13 @@
 import { test } from '@playwright/test';
 import { DashboardPage } from '../../pages/Dashboard';
 import setup from '../../setup';
-import { isPg } from '../../setup/db';
 
 test.describe('Relational Columns', () => {
   let dashboard: DashboardPage;
   let context: any;
 
   test.beforeEach(async ({ page }) => {
-    context = await setup({ page });
+    context = await setup({ page, isEmptyProject: false });
     dashboard = new DashboardPage(page, context.project);
   });
 

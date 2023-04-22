@@ -37,7 +37,7 @@ test.describe('Rating - cell, filter, sort', () => {
   }
 
   test.beforeEach(async ({ page }) => {
-    context = await setup({ page });
+    context = await setup({ page, isEmptyProject: true });
     dashboard = new DashboardPage(page, context.project);
     toolbar = dashboard.grid.toolbar;
   });

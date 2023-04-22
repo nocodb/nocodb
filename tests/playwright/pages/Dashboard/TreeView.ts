@@ -1,6 +1,7 @@
 import { expect, Locator } from '@playwright/test';
 import { DashboardPage } from '.';
 import BasePage from '../Base';
+import { isHub } from '../../setup/db';
 
 export class TreeViewPage extends BasePage {
   readonly dashboard: DashboardPage;
@@ -82,7 +83,7 @@ export class TreeViewPage extends BasePage {
       await this.dashboard.waitForTabRender({ title, mode });
     } else {
       await this.get().locator(`.nc-project-tree-tbl-${title}`).click();
-      await this.rootPage.waitForTimeout(3000);
+      await this.rootPage.waitForTimeout(300);
     }
   }
 
@@ -117,8 +118,12 @@ export class TreeViewPage extends BasePage {
   }
 
   async deleteTable({ title }: { title: string }) {
-    await this.get().locator(`.nc-project-tree-tbl-${title}`).click({ button: 'right' });
-    await this.dashboard.get().locator('div.nc-project-menu-item:has-text("Delete")').click();
+    if (isHub()) {
+      await this.get().locator(`.nc-project-tree-tbl-${title}`).locator('.nc-icon.ant-dropdown-trigger').click();
+    } else {
+      await this.get().locator(`.nc-project-tree-tbl-${title}`).click({ button: 'right' });
+    }
+    await this.dashboard.get().locator('div.nc-project-menu-item:has-text("Delete"):visible').click();
 
     await this.waitForResponse({
       uiAction: () => this.dashboard.get().locator('button:has-text("Yes")').click(),
@@ -141,7 +146,11 @@ export class TreeViewPage extends BasePage {
   }
 
   async renameTable({ title, newTitle }: { title: string; newTitle: string }) {
-    await this.get().locator(`.nc-project-tree-tbl-${title}`).click({ button: 'right' });
+    if (isHub()) {
+      await this.get().locator(`.nc-project-tree-tbl-${title}`).locator('.nc-icon.ant-dropdown-trigger').click();
+    } else {
+      await this.get().locator(`.nc-project-tree-tbl-${title}`).click({ button: 'right' });
+    }
     await this.dashboard.get().locator('div.nc-project-menu-item:has-text("Rename")').click();
     await this.dashboard.get().locator('[placeholder="Enter table name"]').fill(newTitle);
     await this.dashboard.get().locator('button:has-text("Submit")').click();

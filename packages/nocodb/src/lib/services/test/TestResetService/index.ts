@@ -4,7 +4,7 @@ import NcConnectionMgrv2 from '../../../utils/common/NcConnectionMgrv2';
 import Noco from '../../../Noco';
 import User from '../../../models/User';
 import NocoCache from '../../../cache/NocoCache';
-import { CacheScope } from '../../../utils/globals';
+import { CacheScope, MetaTable } from '../../../utils/globals';
 import ProjectUser from '../../../models/ProjectUser';
 import { Workspace } from '../../../models';
 import resetPgSakilaProject from './resetPgSakilaProject';
@@ -148,6 +148,9 @@ export class TestResetService {
         for (user of users) {
           await ProjectUser.delete(project.id, user.id);
         }
+
+        // clear audit table
+        await Noco.ncMeta.knexConnection(MetaTable.AUDIT).delete();
 
         await Project.delete(project.id);
       })

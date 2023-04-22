@@ -10,7 +10,7 @@ test.describe('Attachment column', () => {
   let accountLicensePage: AccountLicensePage, accountPage: AccountPage, context: any;
 
   test.beforeEach(async ({ page }) => {
-    context = await setup({ page });
+    context = await setup({ page, isEmptyProject: false });
     dashboard = new DashboardPage(page, context.project);
     accountPage = new AccountPage(page);
     accountLicensePage = new AccountLicensePage(accountPage);

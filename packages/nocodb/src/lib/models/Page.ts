@@ -464,15 +464,17 @@ export default class Page {
 
     if (!ignoreCache) {
       if (fetchAll) {
-        pageList = await NocoCache.getList(
+        const { list: cachedList } = await NocoCache.getList(
           `${CacheScope.DOCS_PAGE}:${projectId}`,
           []
         );
+        pageList = cachedList;
       } else {
-        pageList = await NocoCache.getList(
+        const { list: cachedList } = await NocoCache.getList(
           `${CacheScope.DOCS_PAGE}:${projectId}`,
           [parent_page_id ?? 'root', 'children']
         );
+        pageList = cachedList;
       }
 
       if (pageList.length === 0 && !fetchAll && parent_page_id) {

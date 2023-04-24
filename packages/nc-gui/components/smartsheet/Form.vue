@@ -697,7 +697,7 @@ watch(view, (nextView) => {
                   <a-form-item
                     v-if="isVirtualCol(element)"
                     :name="element.title"
-                    class="!mb-0"
+                    class="!mb-0 nc-input-required-error"
                     :rules="[
                       {
                         required: isRequired(element, element.required),
@@ -719,7 +719,7 @@ watch(view, (nextView) => {
                   <a-form-item
                     v-else
                     :name="element.title"
-                    class="!mb-0"
+                    class="!mb-0 nc-input-required-error"
                     :rules="[
                       {
                         required: isRequired(element, element.required),
@@ -743,7 +743,7 @@ watch(view, (nextView) => {
                     </LazySmartsheetDivDataCell>
                   </a-form-item>
 
-                  <div class="text-gray-500 text-xs" data-testid="nc-form-input-help-text-label">{{ element.description }}</div>
+                  <div class="nc-form-help-text text-gray-500 text-xs" data-testid="nc-form-input-help-text-label">{{ element.description }}</div>
                 </div>
               </template>
 
@@ -859,6 +859,12 @@ watch(view, (nextView) => {
   &::placeholder {
     @apply !text-gray-500 !text-xs;
   }
+}
+
+.nc-form-help-text, .nc-input-required-error {
+  max-width: 100%;
+  word-break: break-all;
+  white-space: pre-line;
 }
 
 :deep(.nc-cell-attachment) {

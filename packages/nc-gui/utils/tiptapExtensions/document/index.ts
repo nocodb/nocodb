@@ -1,43 +1,21 @@
 import { Node } from '@tiptap/core'
-import { onBackspaceWithHorizontalRule, onEnterWithHorizontalRule } from '../horizontalRule'
+import { TiptapNodesTypes } from 'nocodb-sdk'
 
 export const Document = Node.create({
-  name: 'doc',
+  name: TiptapNodesTypes.doc,
 
   topNode: true,
 
-  // content: "draggableBlock{1,}", // accepts one or more draggable block as content
-  content: 'dBlock+',
+  content: 'sec+',
 
   addKeyboardShortcuts() {
     return {
-      'Ctrl-Shift-H': () => {
-        const range = {
-          from: this.editor.state.selection.from,
-          to: this.editor.state.selection.to,
-        }
-        return this.editor
-          .chain()
-          .focus()
-          .deleteRange(range)
-          .setNode('horizontalRule')
-          .focus()
-          .setHorizontalRule()
-          .setTextSelection(range.from + 3)
-          .run()
-      },
-      'Enter': () => {
-        return onEnterWithHorizontalRule(this.editor as any)
-      },
-      'Backspace': () => {
-        return onBackspaceWithHorizontalRule(this.editor as any)
-      },
-      'Tab': () => {
+      Tab: () => {
         let nextPos = this.editor.state.selection.$from.pos
 
         const currentNode = this.editor.state.selection.$from.node()
 
-        if (currentNode.type.name === 'paragraph') {
+        if (currentNode.type.name === TiptapNodesTypes.paragraph) {
           const offset = this.editor.state.selection.$from.parentOffset ?? 0
           const currentCharacter = currentNode.textContent?.[offset]
 
@@ -85,7 +63,10 @@ export const Document = Node.create({
           doc.descendants((node, pos) => {
             if (pos <= nextPos) return
 
-            if ((node.type.name === 'paragraph' || node.type.name === 'image') && from === nextPos) {
+            if (
+              (node.type.name === TiptapNodesTypes.paragraph || node.type.name === TiptapNodesTypes.image) &&
+              from === nextPos
+            ) {
               nextPos = pos + 1
 
               return false

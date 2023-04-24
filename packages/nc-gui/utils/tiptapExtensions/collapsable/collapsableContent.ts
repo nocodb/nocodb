@@ -1,8 +1,9 @@
 // Collapsable tiptap node
 import { Node, mergeAttributes } from '@tiptap/core'
+import { TiptapNodesTypes } from 'nocodb-sdk'
 
-export const CollapsableContent = Node.create({
-  name: 'collapsable_content',
+export const CollapsableContentNode = Node.create({
+  name: TiptapNodesTypes.collapsableContent,
   priority: 1000,
   addOptions() {
     return {
@@ -13,7 +14,7 @@ export const CollapsableContent = Node.create({
   group: 'block',
 
   content() {
-    return 'dBlock+'
+    return 'sec+'
   },
 
   parseHTML() {

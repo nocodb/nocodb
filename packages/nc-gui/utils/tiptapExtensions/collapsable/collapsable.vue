@@ -1,40 +1,34 @@
 <script lang="ts" setup>
 import { NodeViewContent, NodeViewWrapper, nodeViewProps } from '@tiptap/vue-3'
 import { TextSelection } from 'prosemirror-state'
+import { TiptapNodesTypes } from 'nocodb-sdk'
+import { positionOfFirstChild } from '../helper'
 import MdiTriangleDown from '~icons/tabler/triangle-inverted-filled'
 
-const { editor, getPos } = defineProps(nodeViewProps)
+const { editor } = defineProps(nodeViewProps)
 
 const isCollapsed = ref(true)
 
 const toggleCollapsableContent = () => {
-  const pos = getPos()
+  const state = editor.state
+  const selection = state.selection
   const tr = editor.state.tr
-  const from = editor.state.selection.from
+
   if (isCollapsed.value) {
-    const posResolve = editor.state.doc.resolve(pos)
-    const contentPos = posResolve.after()
+    // Select first child of collapsable content
+    const collapsableContentPos = getPosOfChildNodeOfType({
+      state,
+      nodeType: TiptapNodesTypes.collapsableContent,
+    })!
+    const firstChildOfCollapseContentPos = positionOfFirstChild(state, collapsableContentPos, 'start')!
 
-    editor.state.doc.nodesBetween(pos, contentPos, (node, collapsableContentPos) => {
-      if (node.type.name === 'collapsable_content') {
-        const contentPosResolve = editor.state.doc.resolve(collapsableContentPos)
-        let textNodePos = collapsableContentPos
-        editor.state.doc.nodesBetween(collapsableContentPos, contentPosResolve.after(), (node, pos) => {
-          if (
-            (node.type.name === 'paragraph' || node.type.name === 'heading' || node.type.name === 'text') &&
-            textNodePos === collapsableContentPos
-          ) {
-            textNodePos = pos
-          }
-        })
-
-        tr.setSelection(TextSelection.create(tr.doc, textNodePos))
-      }
-    })
+    tr.setSelection(TextSelection.create(tr.doc, firstChildOfCollapseContentPos))
   } else {
-    tr.setSelection(TextSelection.create(tr.doc, from))
+    // Put cursor on the start of the collapsable node
+    tr.setSelection(TextSelection.create(tr.doc, selection.from))
   }
   editor.view.dispatch(tr)
+
   isCollapsed.value = !isCollapsed.value
 }
 </script>

@@ -1,6 +1,6 @@
 <script lang="ts" setup>
 import { NodeViewContent, NodeViewWrapper, nodeViewProps } from '@tiptap/vue-3'
-import type { EditorState } from 'prosemirror-state'
+import type { EditorState, Transaction } from 'prosemirror-state'
 import { NodeSelection, TextSelection } from 'prosemirror-state'
 import {
   CellSelection,
@@ -23,42 +23,49 @@ const cellRef = ref()
 
 const isPublic = !editor.view.editable
 
-const selectColumn = async () => {
-  editor.view.dispatch(editor.state.tr.setSelection(TextSelection.create(editor.state.doc, getPos() + 1, getPos() + 1)))
-
+const selectColumn = async (tr: Transaction) => {
   const state: EditorState = editor.state
   const pos = getPos()
 
+  tr.setSelection(TextSelection.create(editor.state.doc, pos + 1, pos + 1))
+
   // Select the column node
-  editor.view.dispatch(state.tr.setSelection(NodeSelection.create(state.doc, pos)))
+  tr.setSelection(NodeSelection.create(state.doc, pos))
 
   const selection = CellSelection.colSelection(state.doc.resolve(pos))
-  editor.view.dispatch(state.tr.setSelection(selection as any))
+  tr.setSelection(selection as any)
 }
 
 const toggleColumnSelection = () => {
-  if (showColumnOptions.value) {
-    editor.view.dispatch(editor.state.tr.setSelection(TextSelection.create(editor.state.doc, getPos() + 1, getPos() + 1)))
-    showColumnOptions.value = false
-    return
-  }
-
-  showColumnOptions.value = true
-  selectColumn()
+  showColumnOptions.value = !showColumnOptions.value
 }
 
 const deleteColumn = () => {
-  selectColumn()
+  const tr = editor.state.tr
+
+  selectColumn(tr)
 
   deleteColumnTiptap(editor.state, editor.view.dispatch)
 
-  goToNextCell(-1)(editor.state, editor.view.dispatch)
+  // Focus the previous column header
+  setTimeout(() => {
+    goToNextCell(-1)(editor.state, editor.view.dispatch)
 
-  editor.commands.setTextSelection(editor.state.selection.to)
+    setTimeout(() => {
+      editor
+        .chain()
+        .command(({ state, commands }) => {
+          return commands.setTextSelection(state.selection.to)
+        })
+        .run()
+    }, 0)
+  }, 0)
 }
 
 const insertColumnBefore = () => {
-  selectColumn()
+  const tr = editor.state.tr
+
+  selectColumn(tr)
 
   addColumnBefore(editor.state, editor.view.dispatch)
   // focus the created column
@@ -68,7 +75,9 @@ const insertColumnBefore = () => {
 }
 
 const insertColumnAfter = () => {
-  selectColumn()
+  const tr = editor.state.tr
+
+  selectColumn(tr)
 
   addColumnAfter(editor.state, editor.view.dispatch)
   // focus the created column
@@ -77,25 +86,18 @@ const insertColumnAfter = () => {
   }, 0)
 }
 
-const selectRow = () => {
-  editor.view.dispatch(editor.state.tr.setSelection(TextSelection.create(editor.state.doc, getPos() + 1, getPos() + 1)))
+const selectRow = (tr: Transaction) => {
+  tr.setSelection(TextSelection.create(editor.state.doc, getPos() + 1, getPos() + 1))
 
   const state: EditorState = editor.state
   const pos = getPos() - 1
 
   // Select the row node
-
-  editor.view.dispatch(state.tr.setSelection(NodeSelection.create(state.doc, pos)))
+  tr.setSelection(NodeSelection.create(state.doc, pos))
 }
 
 const toggleRowSelection = () => {
-  if (showRowOptions.value) {
-    editor.view.dispatch(editor.state.tr.setSelection(TextSelection.create(editor.state.doc, getPos() + 1, getPos() + 1)))
-    showRowOptions.value = false
-    return
-  }
-  showRowOptions.value = true
-  selectRow()
+  showRowOptions.value = !showRowOptions.value
 }
 
 const deleteRow = () => {
@@ -103,16 +105,22 @@ const deleteRow = () => {
   const parentRow = state.doc.resolve(getPos()).parent
 
   const pos = getPos() - parentRow.nodeSize + 1
+
   editor.chain().deleteRow().setTextSelection(pos).run()
 }
 
 const insertRowBefore = () => {
   const state: EditorState = editor.state
+  const tr = state.tr
   const { from } = state.selection
   const parentRow = state.doc.resolve(getPos()).parent
 
-  editor.view.dispatch(state.tr.setSelection(TextSelection.create(editor.state.doc, from + 1, from + 1)))
+  toggleRowSelection()
+  selectRow(tr)
+  tr.setSelection(TextSelection.create(editor.state.doc, from + 1, from + 1))
+
   addRowBefore(editor.state, editor.view.dispatch)
+
   const cellCount = parentRow.childCount
   for (let i = 0; i < cellCount; i++) {
     setTimeout(() => {
@@ -122,13 +130,17 @@ const insertRowBefore = () => {
 }
 
 const insertRowAfter = () => {
-  selectRow()
   const state: EditorState = editor.state
+  const tr = state.tr
   const { from } = state.selection
   const parentRow = state.doc.resolve(getPos()).parent
 
-  editor.view.dispatch(state.tr.setSelection(TextSelection.create(editor.state.doc, from + 1, from + 1)))
+  toggleRowSelection()
+  selectRow(tr)
+
+  tr.setSelection(TextSelection.create(editor.state.doc, from + 1, from + 1))
   addRowAfter(editor.state, editor.view.dispatch)
+
   const cellCount = parentRow.childCount
   for (let i = 0; i < cellCount; i++) {
     setTimeout(() => {
@@ -204,7 +216,6 @@ onMounted(() => {
           <div
             class="flex flex-row h-5 w-8 justify-center items-center border-gray-200 border-1 bg-white hover:bg-gray-100 rounded-md tiptap-column-options cursor-pointer hidden"
             data-testid="nc-docs-table-column-drag-handle-wrapper"
-            @mouseover="selectColumn"
           >
             <MdiDotsHorizontal class="tiptap-column-drag-handle" />
           </div>

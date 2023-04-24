@@ -1,12 +1,29 @@
 import { Node } from '@tiptap/core'
 import { VueNodeViewRenderer } from '@tiptap/vue-3'
+import { TiptapNodesTypes } from 'nocodb-sdk'
+import {
+  getPositionOfPreviousSection,
+  getPositionOfSection,
+  isNodeTypeSelected,
+  isSectionEmptyParagraph,
+  positionOfFirstChild,
+} from '../helper'
+
 import type { UploadFn } from './proseExtension'
 import { addFile, dropAttachmentPlugin } from './proseExtension'
 import AttachmentComponent from './attachment.vue'
 
+declare module '@tiptap/core' {
+  interface Commands<ReturnType> {
+    attachment: {
+      setAttachment: (files: FileList) => ReturnType
+    }
+  }
+}
+
 export const createAttachmentExtension = (uploadFn: UploadFn) => {
   return Node.create({
-    name: 'attachment',
+    name: TiptapNodesTypes.attachment,
     group: 'block',
     addAttributes: () => ({
       url: {},
@@ -32,20 +49,19 @@ export const createAttachmentExtension = (uploadFn: UploadFn) => {
 
     addCommands() {
       return {
-        setAttachment: (options: FileList) => async () => {
+        setAttachment: (files: FileList) => () => {
           const view = this.editor.view
 
-          const parentPos = view.state.selection.$from.before(2)
-          this.editor.chain().setNodeSelection(parentPos).deleteSelection().run()
+          // Need small delay, otherwise prose mirror will throw an error, regarding transaction mismatch
+          setTimeout(async () => {
+            const currentSectionPos = getPositionOfSection(view.state)
 
-          // Otherwise prose mirror will throw an error, regarding transaction mismatch
-          await new Promise((resolve) => setTimeout(resolve, 0))
-
-          await Promise.all(
-            Array.from(options).map(async (file) => {
-              await addFile(file, view, uploadFn, parentPos)
-            }),
-          )
+            await Promise.all(
+              Array.from(files).map(async (file) => {
+                await addFile({ file, view, uploadFn, toBeInsertedPos: currentSectionPos })
+              }),
+            )
+          })
 
           return true
         },
@@ -53,56 +69,44 @@ export const createAttachmentExtension = (uploadFn: UploadFn) => {
     },
     addKeyboardShortcuts() {
       return {
-        Enter: ({ editor }) => {
+        Enter: () => {
           // Set cursor to the next line
-          const selection = editor.state.selection
-          const currentNode = selection.$from.node()
-          const currentChildNode = selection.$from.node().child(0)
-          if (currentChildNode?.type.name !== 'attachment') {
-            return false
-          }
+          const state = this.editor.state
 
-          editor
-            .chain()
-            .focus(selection.$from.pos + currentNode.nodeSize)
-            .run()
-          return true
+          const isImage = isNodeTypeSelected({ nodeType: TiptapNodesTypes.attachment, state })
+          if (!isImage) return
+
+          this.editor.chain().focus().selectNextSection().run()
         },
         Backspace: () => {
-          try {
-            const editor = this.editor
-            const selection = editor.view.state.selection
-            const node = selection.$from.node()
-            const parentNode = selection.$from.node(-1)
+          const editor = this.editor
+          const state = editor.view.state
 
-            if (!(node.type.name === 'paragraph' && parentNode.type.name === 'dBlock')) {
-              return false
-            }
+          const prevSectionPos = getPositionOfPreviousSection(state)
+          if (!prevSectionPos) return
 
-            const prevNodePos = selection.$from.pos - (parentNode.nodeSize - node.nodeSize + 2)
-            if (prevNodePos < 0) return false
-            const prevNode = editor.view.state.doc.nodeAt(prevNodePos)
-            if (prevNode?.type.name !== 'attachment') return false
-
-            const currentNode = selection.$from.node()
-            if (currentNode.type.name === 'paragraph' && currentNode.textContent.length === 0) {
-              editor
-                .chain()
-                .setNodeSelection(selection.$from.pos - 1)
-                .deleteSelection()
-                .setTextSelection(prevNodePos)
-                .run()
-              return true
-            }
-
-            editor.chain().setNodeSelection(prevNodePos).run()
-            return true
-          } catch (error) {
-            console.log('error', error)
+          if (
+            !isNodeTypeSelected({
+              nodeType: TiptapNodesTypes.attachment,
+              state,
+              sectionPos: prevSectionPos,
+            })
+          ) {
             return false
           }
+
+          const currentSectionPos = getPositionOfSection(state)
+
+          if (!isSectionEmptyParagraph(state, currentSectionPos)) {
+            return false
+          }
+
+          const firstChildOfPrevSection = positionOfFirstChild(state, prevSectionPos)
+          if (!firstChildOfPrevSection) return false
+
+          return editor.chain().deleteActiveSection().setTextSelection(prevSectionPos).run()
         },
-      }
+      } as any
     },
     addProseMirrorPlugins() {
       return [dropAttachmentPlugin(uploadFn)]

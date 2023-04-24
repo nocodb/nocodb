@@ -1,6 +1,7 @@
 <script lang="ts" setup>
 import { NodeViewContent, NodeViewWrapper, nodeViewProps } from '@tiptap/vue-3'
 import { NodeSelection } from 'prosemirror-state'
+import { dragOptionStyle } from './dragOptionStyle'
 
 const { node, getPos, editor } = defineProps(nodeViewProps)
 
@@ -28,94 +29,18 @@ const childNodeType = computed(() => {
 const optionWrapperStyle = computed(() => {
   const { content } = node.content as any
 
-  let style = {} as any
-
-  if (content[0].type.name === 'task') {
-    style = {
-      marginTop: '0.2rem',
-    }
-  } else if (content[0].type.name === 'bullet') {
-    style = {
-      marginTop: '0.2rem',
-      marginRight: '0.8rem',
-    }
-  } else if (content[0].type.name === 'ordered') {
-    style = {
-      marginTop: '0.2rem',
-    }
-  } else if (content[0].type.name === 'table') {
-    style = {
-      marginTop: '1.4rem',
-    }
-  } else if (content[0].type.name === 'heading' && content[0].attrs.level === 1) {
-    style = {
-      marginTop: '0.7rem',
-    }
-  } else if (content[0].type.name === 'heading' && content[0].attrs.level === 2) {
-    style = {
-      marginTop: '0.35rem',
-    }
-  } else if (content[0].type.name === 'heading' && content[0].attrs.level === 3) {
-    style = {
-      marginTop: '0.1rem',
-    }
-  } else if (content[0].type.name === 'paragraph') {
-    style = {
-      marginTop: '0.2rem',
-    }
-  } else if (content[0].type.name === 'image') {
-    style = {
-      marginTop: '0.5rem',
-    }
-  } else if (content[0].type.name === 'blockquote') {
-    style = {
-      marginTop: '0.8rem',
-    }
-  } else if (content[0].type.name === 'codeBlock') {
-    style = {
-      marginTop: '1.2rem',
-    }
-  } else if (
-    content[0].type.name === 'bulletList' ||
-    content[0].type.name === 'orderedList' ||
-    content[0].type.name === 'taskList'
-  ) {
-    style = {
-      marginTop: '0rem',
-    }
-  } else if (
-    content[0].type.name === 'infoCallout' ||
-    content[0].type.name === 'warningCallout' ||
-    content[0].type.name === 'tipCallout'
-  ) {
-    style = {
-      marginTop: '1.25rem',
-    }
-  } else if (content[0].type.name === 'horizontalRule') {
-    style = {
-      marginTop: '0.55rem',
-    }
-  } else {
-    style = {
-      marginTop: '0.7rem',
-    }
-  }
-
-  if (parentNodeType.value === 'collapsable') {
-    style = {
-      ...style,
-      marginLeft: '-1.75rem',
-    }
-  }
-
-  return style
+  return dragOptionStyle({
+    nodeType: content[0].type.name,
+    parentNodeType: parentNodeType.value as any,
+    attrs: content[0].attrs,
+  })
 })
 
 const createNodeAfter = () => {
   const pos = getPos() + node.nodeSize
 
   editor.commands.insertContentAt(pos, {
-    type: 'dBlock',
+    type: 'sec',
     content: [
       {
         type: 'paragraph',

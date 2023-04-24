@@ -1,6 +1,7 @@
 import { Node, mergeAttributes } from '@tiptap/core'
 import { VueNodeViewRenderer } from '@tiptap/vue-3'
 import { Plugin, PluginKey } from 'prosemirror-state'
+import { TiptapNodesTypes } from 'nocodb-sdk'
 import TableCellNodeView from './table-cell.vue'
 
 export interface TableCellOptions {
@@ -8,7 +9,7 @@ export interface TableCellOptions {
 }
 
 export const TableCell = Node.create<TableCellOptions>({
-  name: 'tableCell',
+  name: TiptapNodesTypes.tableCell,
 
   addOptions() {
     return {
@@ -59,14 +60,14 @@ export const TableCell = Node.create<TableCellOptions>({
         const selectedCellContent = this.editor.view.state.selection.$head.node(-1)
         const parentNode = this.editor.view.state.selection.$anchor.node(-1)
 
-        if (parentNode?.type.name !== 'tableCell') {
+        if (parentNode?.type.name !== TiptapNodesTypes.tableCell) {
           return false
         }
         const selection = this.editor.view.state.selection
 
         const doc = this.editor.view.state.doc
 
-        if (doc.nodeAt(selection.$from.pos - 2)?.type.name === 'tableCell') {
+        if (doc.nodeAt(selection.$from.pos - 2)?.type.name === TiptapNodesTypes.tableCell) {
           return true
         }
 
@@ -82,7 +83,7 @@ export const TableCell = Node.create<TableCellOptions>({
   addProseMirrorPlugins() {
     return [
       new Plugin({
-        key: new PluginKey('tableCell'),
+        key: new PluginKey(TiptapNodesTypes.tableCell),
         props: {},
       }),
     ]

@@ -747,13 +747,13 @@ const tiptapNodeLabels: Record<TipTapNodes, string> = {
   'Heading 1': 'heading',
   'Heading 2': 'heading',
   'Heading 3': 'heading',
-  Divider: 'horizontalRule',
+  Divider: 'divider',
   Image: 'image',
   'Bullet List': 'bullet',
   'Numbered List': 'ordered',
   'Task List': 'task',
   Table: 'table',
-  Quote: 'blockquote',
+  Quote: 'quote',
 };
 
 const tiptapNodeToDomType: Record<TipTapNodes, string> = {
@@ -772,7 +772,7 @@ const tiptapNodeToDomType: Record<TipTapNodes, string> = {
   'Task List': 'div[data-type="task"]',
   Table: 'div.tiptap-table-wrapper',
   Code: 'pre',
-  Quote: 'blockquote',
+  Quote: 'quote',
 };
 
 const tiptapTextFormatToDomType: Record<'bold' | 'italic' | 'underline' | 'strike' | 'code', string> = {

@@ -106,38 +106,28 @@ export const Task = Node.create<TaskOptions>({
     } as any
   },
 
+  // Convert '- [ ]' to task
+  // Required as while typing '- ' is converted to bullet list, so we need to convert it to task
   onUpdate() {
-    const selection = this.editor.state.selection
-    const doc = this.editor.state.doc
+    const state = this.editor.state
+    const selection = state.selection
 
-    const parentNode = selection.$from.node(-1)
-    if (parentNode?.type.name !== TiptapNodesTypes.bullet) return false
+    const listItemNodePos = selection.$from.before(selection.$from.depth - 1)
+    const listItemNode = state.doc.nodeAt(listItemNodePos)
 
-    let currentPos = selection.$from.before(1)
-    let currentNode = doc.nodeAt(currentPos)
-    let attempt = 1
-    while (currentNode && currentNode.type.name !== TiptapNodesTypes.bullet && attempt < 10) {
-      try {
-        currentPos = selection.$from.before(attempt)
-        currentNode = doc.nodeAt(currentPos)
-      } finally {
-        attempt++
-      }
-    }
+    if (listItemNode?.type.name !== TiptapNodesTypes.bullet) return false
 
-    if (currentNode?.type.name !== TiptapNodesTypes.bullet) return false
+    const listItemNodeText = listItemNode.textContent.trimStart().toLowerCase()
 
-    const currentNodeText = currentNode.textContent.trimStart().toLowerCase()
-
-    if (currentNodeText.startsWith('[ ]') || currentNodeText.startsWith('[x]')) {
-      const isChecked = currentNodeText.startsWith('[x]')
+    if (listItemNodeText.startsWith('[ ]') || listItemNodeText.startsWith('[x]')) {
+      const isChecked = listItemNodeText.startsWith('[x]')
 
       this.editor
         .chain()
         .focus()
-        .setNodeSelection(currentPos)
+        .setNodeSelection(listItemNodePos)
         .deleteSelection()
-        .insertContentAt(currentPos - 1, {
+        .insertContentAt(listItemNodePos - 1, {
           type: TiptapNodesTypes.task,
           content: [
             {
@@ -154,7 +144,7 @@ export const Task = Node.create<TaskOptions>({
             },
           ],
         })
-        .setTextSelection({ from: currentPos + 1, to: currentPos + 2 })
+        .setTextSelection(listItemNodePos + 1)
         .deleteSelection()
         .run()
     }
@@ -165,29 +155,7 @@ export const Task = Node.create<TaskOptions>({
       'Backspace': () => {
         if (onBackspaceWithNestedList(this.editor as any, this.name as any)) return true
 
-        const { selection } = this.editor.state
-        const { $from } = selection
-
-        const node = $from.node(-1)
-        const parentNode = $from.node(-2)
-        if (node?.type.name !== TiptapNodesTypes.task && parentNode?.type.name !== TiptapNodesTypes.tableCell) return false
-
-        const nodeTextContent = node.textContent.trimStart().toLowerCase()
-        if (nodeTextContent.length !== 0) return false
-
-        this.editor
-          .chain()
-          .focus()
-          .command(({ tr }) => {
-            tr.setSelection(NodeSelection.create(this.editor.state.doc, selection.from - 2))
-            tr.replaceSelectionWith(this.editor.state.schema.nodes.paragraph.create())
-
-            return true
-          })
-          .setTextSelection(selection.from - 1)
-          .run()
-
-        return true
+        return false
       },
       'Ctrl-Alt-1': () => {
         this.editor.chain().focus().selectActiveSectionFirstChild().toggleTask().run()

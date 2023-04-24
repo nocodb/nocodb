@@ -2,12 +2,12 @@ import type { EditorState } from 'prosemirror-state'
 
 export const nonTextLeafNodes = ['image', 'attachment', 'divider', 'embed']
 
-const nodeTypesContainingSection = ['sec', 'collapsable', 'collapsable_header', 'collapsable_content']
+export const nodeTypesContainingSection = ['doc', 'sec', 'collapsable', 'collapsable_header', 'collapsable_content']
 
 /**
  * Gets position of section node which contains the cursor or the given position which is inside the section
  */
-export const getPositionOfSection = (state: EditorState, pos?: number) => {
+export const getPositionOfSection = (state: EditorState, pos?: number, type: 'start' | 'end' | undefined = 'start') => {
   const searchStopPos = pos ?? state.selection.$from.pos
   let sectionPos = 0
   state.doc.descendants((node, _pos) => {
@@ -21,6 +21,12 @@ export const getPositionOfSection = (state: EditorState, pos?: number) => {
 
     return false
   })
+
+  if (type === 'end') {
+    const sectionNode = state.doc.nodeAt(sectionPos)!
+
+    return sectionPos + sectionNode?.nodeSize - 1
+  }
 
   return sectionPos
 }
@@ -56,7 +62,7 @@ export const getPositionOfPreviousSection = (state: EditorState, pos?: number, t
  * @param pos - optional
  **/
 
-export const getPositionOfNextSection = (state: EditorState, pos?: number) => {
+export const getPositionOfNextSection = (state: EditorState, pos?: number, type: 'start' | 'end' | undefined = 'start') => {
   const searchStopPos = pos ?? state.selection.$from.pos + 1
 
   const givenSectionPos = getPositionOfSection(state, searchStopPos)
@@ -64,6 +70,13 @@ export const getPositionOfNextSection = (state: EditorState, pos?: number) => {
   const nextSectionPos = getPositionOfSection(state, givenSectionPos + givenSectionNode!.nodeSize + 1)
 
   if (nextSectionPos === givenSectionPos) return null
+
+  if (type === 'end') {
+    const nextSectionNode = state.doc.nodeAt(nextSectionPos)
+    if (!nextSectionNode) return undefined
+
+    return nextSectionPos + nextSectionNode?.nodeSize - 1
+  }
 
   return nextSectionPos
 }

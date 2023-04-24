@@ -1,5 +1,6 @@
 import { Node, mergeAttributes, wrappingInputRule } from '@tiptap/core'
 import { Plugin, PluginKey } from 'prosemirror-state'
+import type { ListNodeType } from './helper'
 import { changeLevel, isSelectionOfType, listItemPasteRule, onBackspaceWithNestedList, onEnter, toggleItem } from './helper'
 
 export interface ListOptions {
@@ -15,6 +16,8 @@ declare module '@tiptap/core' {
   }
 }
 
+// inputRegex Regex for detecting start of list item while typing. i.e '- ' for bullet list
+// pasteRegex Regex for detecting start of list item while pasting. i.e '- Content' for bullet list
 const inputRegex = /^\s*([-+*])(?!\s*\[[ x]\])\s/gm
 const pasteRegex = /^\s*([-+*])(?!\s*\[[ x]\])\s.+$/gm
 
@@ -72,7 +75,7 @@ export const Bullet = Node.create<ListOptions>({
       isSelectionTypeBullet:
         () =>
         ({ state }: any) => {
-          return isSelectionOfType(state, this.name)
+          return isSelectionOfType(state, this.name as ListNodeType)
         },
       toggleBullet:
         () =>
@@ -85,30 +88,20 @@ export const Bullet = Node.create<ListOptions>({
   addKeyboardShortcuts() {
     return {
       'Ctrl-Alt-2': () => {
-        const selection = this.editor.state.selection
-
-        if (!selection.empty) {
-          this.editor.chain().focus().toggleBullet().run()
-          return true
-        }
-
-        const from = selection.$from.before(selection.$from.depth) + 1
-        const to = selection.$from.after(selection.$from.depth)
-
-        this.editor.chain().focus().setTextSelection({ from, to }).toggleBullet().run()
+        this.editor.chain().focus().selectActiveSectionFirstChild().toggleBullet().run()
         return true
       },
       'Enter': () => {
-        return onEnter(this.editor, this.name as any)
+        return onEnter(this.editor as any, this.name as ListNodeType)
       },
       'Tab': () => {
-        return changeLevel(this.editor, this.name, 'forward')
+        return changeLevel(this.editor as any, this.name as ListNodeType, 'forward')
       },
       'Shift-Tab': () => {
-        return changeLevel(this.editor, this.name, 'backward')
+        return changeLevel(this.editor as any, this.name as ListNodeType, 'backward')
       },
       'Backspace': () => {
-        return onBackspaceWithNestedList(this.editor, this.name as any)
+        return onBackspaceWithNestedList(this.editor as any, this.name as any)
       },
     }
   },

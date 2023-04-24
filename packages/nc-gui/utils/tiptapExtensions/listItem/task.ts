@@ -2,6 +2,7 @@ import { Node, mergeAttributes, wrappingInputRule } from '@tiptap/core'
 import type { Node as ProseMirrorNode } from 'prosemirror-model'
 
 import { NodeSelection, Plugin, PluginKey } from 'prosemirror-state'
+import type { ListNodeType } from './helper'
 import { changeLevel, isSelectionOfType, listItemPasteRule, onBackspaceWithNestedList, onEnter, toggleItem } from './helper'
 
 export interface TaskOptions {
@@ -20,6 +21,8 @@ declare module '@tiptap/core' {
   }
 }
 
+// inputRegex Regex for detecting start of list item while typing. i.e '- ' for bullet list
+// pasteRegex Regex for detecting start of list item while pasting. i.e '- Content' for bullet list
 const inputRegex = /^\s*-?\s*\[[ xX]\]\s/gm
 const pasteRegex = /^\s*-?\s*\[[ xX]\]\s+(.*)?\n?$/gm
 
@@ -92,7 +95,7 @@ export const Task = Node.create<TaskOptions>({
       isSelectionTypeTask:
         () =>
         ({ state }: any) => {
-          return isSelectionOfType(state, this.name)
+          return isSelectionOfType(state, this.name as ListNodeType)
         },
       toggleTask:
         () =>
@@ -159,7 +162,7 @@ export const Task = Node.create<TaskOptions>({
   addKeyboardShortcuts() {
     return {
       'Backspace': () => {
-        if (onBackspaceWithNestedList(this.editor, this.name as any)) return true
+        if (onBackspaceWithNestedList(this.editor as any, this.name as any)) return true
 
         const { selection } = this.editor.state
         const { $from } = selection
@@ -186,119 +189,18 @@ export const Task = Node.create<TaskOptions>({
         return true
       },
       'Ctrl-Alt-1': () => {
-        const selection = this.editor.state.selection
-
-        if (!selection.empty) {
-          this.editor.chain().focus().toggleTask().run()
-          return true
-        }
-
-        const from = selection.$from.before(selection.$from.depth) + 1
-        const to = selection.$from.after(selection.$from.depth)
-
-        this.editor.chain().focus().setTextSelection({ from, to }).toggleTask().run()
+        this.editor.chain().focus().selectActiveSectionFirstChild().toggleTask().run()
         return true
       },
       'Enter': () => {
-        return onEnter(this.editor, this.name as any)
+        return onEnter(this.editor as any, this.name as ListNodeType)
       },
       'Tab': () => {
-        return changeLevel(this.editor, this.name, 'forward')
+        return changeLevel(this.editor as any, this.name as ListNodeType, 'forward')
       },
       'Shift-Tab': () => {
-        return changeLevel(this.editor, this.name, 'backward')
+        return changeLevel(this.editor as any, this.name as ListNodeType, 'backward')
       },
-    }
-  },
-
-  addNodeView() {
-    return ({ node, HTMLAttributes, getPos, editor }) => {
-      const listItem = document.createElement('div')
-      listItem.setAttribute('data-type', 'task')
-      listItem.setAttribute('data-level', node.attrs.level?.toString())
-      listItem.style.paddingLeft = `${Number(node.attrs.level)}rem`
-
-      const checkboxWrapper = document.createElement('label')
-      const checkboxStyler = document.createElement('span')
-      const checkbox = document.createElement('input')
-      const content = document.createElement('div')
-
-      checkboxWrapper.contentEditable = 'false'
-      checkbox.type = 'checkbox'
-      checkbox.addEventListener('change', (event) => {
-        // if the editor isn’t editable and we don't have a handler for
-        // readonly checks we have to undo the latest change
-        if (!editor.isEditable && !this.options.onReadOnlyChecked) {
-          checkbox.checked = !checkbox.checked
-
-          return
-        }
-
-        const { checked } = event.target as any
-
-        if (editor.isEditable && typeof getPos === 'function') {
-          const position = getPos()
-          editor
-            .chain()
-            .focus(undefined, { scrollIntoView: false })
-            .command(({ tr }) => {
-              const currentNode = tr.doc.nodeAt(position)
-
-              tr.setNodeMarkup(position, undefined, {
-                ...currentNode?.attrs,
-                checked,
-              })
-
-              return true
-            })
-            .setTextSelection(position + 1)
-            .run()
-        }
-        if (!editor.isEditable && this.options.onReadOnlyChecked) {
-          // Reset state if onReadOnlyChecked returns false
-          if (!this.options.onReadOnlyChecked(node, checked)) {
-            checkbox.checked = !checkbox.checked
-          }
-        }
-      })
-
-      Object.entries(this.options.HTMLAttributes).forEach(([key, value]) => {
-        listItem.setAttribute(key, value)
-      })
-
-      listItem.dataset.checked = node.attrs.checked
-      if (node.attrs.checked) {
-        checkbox.setAttribute('checked', 'checked')
-      }
-
-      checkboxWrapper.append(checkbox, checkboxStyler)
-      listItem.append(checkboxWrapper, content)
-
-      Object.entries(HTMLAttributes).forEach(([key, value]) => {
-        listItem.setAttribute(key, value)
-      })
-
-      return {
-        dom: listItem,
-        contentDOM: content,
-        update: (updatedNode) => {
-          if (updatedNode.type !== this.type) {
-            return false
-          }
-
-          listItem.dataset.checked = updatedNode.attrs.checked
-          if (updatedNode.attrs.checked) {
-            checkbox.setAttribute('checked', 'checked')
-          } else {
-            checkbox.removeAttribute('checked')
-          }
-
-          listItem.setAttribute('data-level', updatedNode.attrs.level.toString())
-          listItem.style.paddingLeft = `${Number(updatedNode.attrs.level)}rem`
-
-          return true
-        },
-      }
     }
   },
 
@@ -346,5 +248,96 @@ export const Task = Node.create<TaskOptions>({
         },
       }),
     ]
+  },
+
+  addNodeView() {
+    return ({ node, HTMLAttributes, getPos, editor }) => {
+      const listItem = document.createElement('div')
+      listItem.setAttribute('data-type', 'task')
+      listItem.setAttribute('data-level', node.attrs.level?.toString())
+      listItem.style.paddingLeft = `${Number(node.attrs.level)}rem`
+
+      const checkboxWrapper = document.createElement('label')
+      const checkboxSpan = document.createElement('span')
+      const checkboxInput = document.createElement('input')
+      const content = document.createElement('div')
+
+      checkboxWrapper.contentEditable = 'false'
+      checkboxInput.type = 'checkbox'
+      checkboxInput.addEventListener('change', (event) => {
+        // if the editor isn’t editable and we don't have a handler for
+        // readonly checks we have to undo the latest change
+        if (!editor.isEditable && !this.options.onReadOnlyChecked) {
+          checkboxInput.checked = !checkboxInput.checked
+
+          return
+        }
+
+        const { checked } = event.target as any
+
+        if (editor.isEditable && typeof getPos === 'function') {
+          const position = getPos()
+          editor
+            .chain()
+            .focus(undefined, { scrollIntoView: false })
+            .command(({ tr }) => {
+              const currentNode = tr.doc.nodeAt(position)
+
+              tr.setNodeMarkup(position, undefined, {
+                ...currentNode?.attrs,
+                checked,
+              })
+
+              return true
+            })
+            .setTextSelection(position + 1)
+            .run()
+        }
+        if (!editor.isEditable && this.options.onReadOnlyChecked) {
+          // Reset state if onReadOnlyChecked returns false
+          if (!this.options.onReadOnlyChecked(node, checked)) {
+            checkboxInput.checked = !checkboxInput.checked
+          }
+        }
+      })
+
+      Object.entries(this.options.HTMLAttributes).forEach(([key, value]) => {
+        listItem.setAttribute(key, value)
+      })
+
+      listItem.dataset.checked = node.attrs.checked
+      if (node.attrs.checked) {
+        checkboxInput.setAttribute('checked', 'checked')
+      }
+
+      checkboxWrapper.append(checkboxInput, checkboxSpan)
+      listItem.append(checkboxWrapper, content)
+
+      Object.entries(HTMLAttributes).forEach(([key, value]) => {
+        listItem.setAttribute(key, value)
+      })
+
+      return {
+        dom: listItem,
+        contentDOM: content,
+        update: (updatedNode) => {
+          if (updatedNode.type !== this.type) {
+            return false
+          }
+
+          listItem.dataset.checked = updatedNode.attrs.checked
+          if (updatedNode.attrs.checked) {
+            checkboxInput.setAttribute('checked', 'checked')
+          } else {
+            checkboxInput.removeAttribute('checked')
+          }
+
+          listItem.setAttribute('data-level', updatedNode.attrs.level.toString())
+          listItem.style.paddingLeft = `${Number(updatedNode.attrs.level)}rem`
+
+          return true
+        },
+      }
+    }
   },
 })

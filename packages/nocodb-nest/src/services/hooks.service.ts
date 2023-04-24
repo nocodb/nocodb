@@ -8,6 +8,7 @@ import {
 } from '../helpers/populateSamplePayload';
 import { invokeWebhook } from '../helpers/webhookHelpers';
 import { Hook, HookLog, Model } from '../models';
+import Noco from '../Noco';
 import type { HookReqType, HookTestReqType, HookType } from 'nocodb-sdk';
 
 @Injectable()
@@ -107,7 +108,7 @@ export class HooksService {
   }) {
     const model = await Model.getByIdOrName({ id: param.tableId });
 
-    if (param.version === 'v1') {
+    if (param.version === 'v1' || (param.version === 'v2' && Noco.isEE())) {
       return await populateSamplePayload(model, false, param.operation);
     }
     return await populateSamplePayloadV2(model, false, param.operation);

@@ -743,7 +743,7 @@ watch(view, (nextView) => {
                     </LazySmartsheetDivDataCell>
                   </a-form-item>
 
-                  <div class="nc-form-input-description text-gray-500 text-xs" data-testid="nc-form-input-help-text-label">{{ element.description }}</div>
+                  <div class="nc-form-help-text text-gray-500 text-xs" data-testid="nc-form-input-help-text-label">{{ element.description }}</div>
                 </div>
               </template>
 

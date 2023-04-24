@@ -2,7 +2,7 @@ import { Node, mergeAttributes, wrappingInputRule } from '@tiptap/core'
 import type { Node as ProseMirrorNode } from 'prosemirror-model'
 import { TiptapNodesTypes } from 'nocodb-sdk'
 
-import { NodeSelection, Plugin, PluginKey } from 'prosemirror-state'
+import { Plugin, PluginKey } from 'prosemirror-state'
 import type { ListNodeType } from './helper'
 import { changeLevel, isSelectionOfType, listItemPasteRule, onBackspaceWithNestedList, onEnter, toggleItem } from './helper'
 

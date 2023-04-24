@@ -861,7 +861,7 @@ watch(view, (nextView) => {
   }
 }
 
-.nc-form-input-description {
+.nc-form-help-text {
   max-width: 100%;
   word-break: break-all;
   white-space: pre-line;

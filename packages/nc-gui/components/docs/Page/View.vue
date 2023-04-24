@@ -559,6 +559,35 @@ watch(wrapperRef, () => {
     }
   }
 
+  [data-disc-style='disc'] {
+    .tiptap-list-item-content {
+      list-style: disc;
+    }
+  }
+  [data-disc-style='circle'] {
+    .tiptap-list-item-content {
+      list-style: none;
+      &::before {
+        font-size: 1.2em;
+        margin-right: 4px;
+        margin-left: -1rem;
+        line-height: 1.3;
+        content: '◦';
+        float: left;
+      }
+      // Thicker circle
+    }
+    .tiptap-list-item-content::marker {
+      border: 4px solid black;
+      border-radius: 90%;
+    }
+  }
+  [data-disc-style='square'] {
+    .tiptap-list-item-content {
+      list-style: square;
+    }
+  }
+
   .tiptap-table-cell {
     [data-type='bullet'] {
       margin-left: 0.7rem;

@@ -60,11 +60,25 @@ export const Bullet = Node.create<ListOptions>({
   },
 
   renderHTML({ node, HTMLAttributes }) {
+    let diskStyle = 'disc'
+    switch (Number(node.attrs.level) % 3) {
+      case 0:
+        diskStyle = 'disc'
+        break
+      case 1:
+        diskStyle = 'circle'
+        break
+      case 2:
+        diskStyle = 'square'
+        break
+    }
+
     return [
       'div',
       mergeAttributes(this.options.HTMLAttributes, HTMLAttributes, {
         'data-type': node.type.name,
         'data-level': node.attrs.level,
+        'data-disc-style': diskStyle,
         'style': `padding-left: ${Number(node.attrs.level)}rem;`,
       }),
       ['div', { class: 'tiptap-list-item-content' }, 0],

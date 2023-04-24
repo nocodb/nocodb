@@ -1,6 +1,7 @@
 import { Node, mergeAttributes } from '@tiptap/core'
 import { VueNodeViewRenderer } from '@tiptap/vue-3'
 import type { EditorState } from 'prosemirror-state'
+import { TiptapNodesTypes } from 'nocodb-sdk'
 import { Plugin, TextSelection } from 'prosemirror-state'
 import {
   getPositionOfNextSection,
@@ -45,7 +46,7 @@ declare module '@tiptap/core' {
 }
 
 export const SectionBlock = Node.create<SecOptions>({
-  name: 'sec',
+  name: TiptapNodesTypes.sec,
 
   priority: 1000,
 
@@ -134,7 +135,7 @@ export const SectionBlock = Node.create<SecOptions>({
           if (!currentSectionFirstChildPos) return false
 
           const currentSectionFirstChildNode = state.doc.nodeAt(currentSectionFirstChildPos)!
-          if (nonTextLeafNodes.includes(currentSectionFirstChildNode.type.name)) {
+          if (nonTextLeafNodes.includes(currentSectionFirstChildNode.type.name as TiptapNodesTypes)) {
             return commands.setNodeSelection(currentSectionPos)
           }
 
@@ -151,7 +152,7 @@ export const SectionBlock = Node.create<SecOptions>({
 
           const nextSectionFirstChildNode = state.doc.nodeAt(nextSectionFirstChildPos)!
 
-          if (nonTextLeafNodes.includes(nextSectionFirstChildNode.type.name)) {
+          if (nonTextLeafNodes.includes(nextSectionFirstChildNode.type.name as TiptapNodesTypes)) {
             return commands.setNodeSelection(nextSectionFirstChildPos)
           }
 
@@ -168,7 +169,7 @@ export const SectionBlock = Node.create<SecOptions>({
 
           const prevSectionFirstChildNode = state.doc.nodeAt(prevSectionFirstChildPos)!
 
-          if (nonTextLeafNodes.includes(prevSectionFirstChildNode.type.name)) {
+          if (nonTextLeafNodes.includes(prevSectionFirstChildNode.type.name as TiptapNodesTypes)) {
             return commands.setNodeSelection(prevSectionFirstChildPos)
           }
 
@@ -195,11 +196,11 @@ function focusCurrentSection(state: EditorState) {
   let found = false
 
   state.doc.descendants((node, pos) => {
-    if (node.type.name === 'collapsable' || node.type.name === 'collapsable_content') {
+    if (node.type.name === TiptapNodesTypes.collapsable || node.type.name === TiptapNodesTypes.collapsableContent) {
       return true
     }
 
-    if (found || node.type.name !== 'sec') return false
+    if (found || node.type.name !== TiptapNodesTypes.sec) return false
 
     if (pos > selection.from) {
       found = true

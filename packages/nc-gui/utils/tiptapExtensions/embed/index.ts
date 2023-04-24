@@ -1,5 +1,6 @@
 import { Node, mergeAttributes } from '@tiptap/core'
 import { Plugin } from 'prosemirror-state'
+import { TiptapNodesTypes } from 'nocodb-sdk'
 import { getPositionOfPreviousSection, isCursorAtStartOfSelectedNode } from '../helper'
 import { getEmbedContentType, urlToEmbedUrl } from './urlHelper'
 
@@ -7,7 +8,7 @@ declare module '@tiptap/core' {
   interface Commands<ReturnType> {
     embed: {
       /**
-       * Toggle a heading node
+       * Toggle a embed node
        */
       setEmbed: (options: { url: string; type: string }) => ReturnType
     }
@@ -15,7 +16,7 @@ declare module '@tiptap/core' {
 }
 
 export const Embed = Node.create({
-  name: 'embed',
+  name: TiptapNodesTypes.embed,
 
   inline() {
     return this.options.inline
@@ -116,8 +117,8 @@ export const Embed = Node.create({
             // Verify that the cursor is on an empty paragraph as direct child to section node
             if (!currentNode || !parentNode) return false
             if (
-              currentNode.type.name !== 'paragraph' ||
-              parentNode.type.name !== 'sec' ||
+              currentNode.type.name !== TiptapNodesTypes.paragraph ||
+              parentNode.type.name !== TiptapNodesTypes.sec ||
               currentNode.textContent.length > 0 ||
               parentNode.childCount > 1
             ) {
@@ -140,7 +141,7 @@ export const Embed = Node.create({
         if (!prevSectionPos) return false
 
         if (
-          !isNodeTypeSelected({ state, nodeType: 'embed', sectionPos: prevSectionPos }) ||
+          !isNodeTypeSelected({ state, nodeType: TiptapNodesTypes.embed, sectionPos: prevSectionPos }) ||
           !isCursorAtStartOfSelectedNode(state)
         ) {
           return false

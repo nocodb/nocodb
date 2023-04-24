@@ -1,4 +1,5 @@
 import TiptapCodeBlock from '@tiptap/extension-code-block'
+import { TiptapNodesTypes } from 'nocodb-sdk'
 import { getPositionOfPreviousSection, isCursorAtStartOfSelectedNode } from '../helper'
 
 export const CodeBlock = TiptapCodeBlock.extend({
@@ -15,7 +16,7 @@ export const CodeBlock = TiptapCodeBlock.extend({
         if (
           !isNodeTypeSelected({
             state,
-            nodeType: 'codeBlock',
+            nodeType: TiptapNodesTypes.codeBlock,
           })
         ) {
           return false

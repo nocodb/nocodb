@@ -1,9 +1,20 @@
 import type { EditorState } from 'prosemirror-state'
+import { TiptapNodesTypes } from 'nocodb-sdk'
 
-export const nonTextLeafNodes = ['image', 'attachment', 'divider', 'embed']
+export const nonTextLeafNodes = [
+  TiptapNodesTypes.image,
+  TiptapNodesTypes.attachment,
+  TiptapNodesTypes.divider,
+  TiptapNodesTypes.embed,
+]
 
-export const nodeTypesContainingSection = ['doc', 'sec', 'collapsable', 'collapsable_header', 'collapsable_content']
-
+export const nodeTypesContainingSection = [
+  TiptapNodesTypes.doc,
+  TiptapNodesTypes.sec,
+  TiptapNodesTypes.collapsable,
+  TiptapNodesTypes.collapsableHeader,
+  TiptapNodesTypes.collapsableContent,
+]
 /**
  * Gets position of section node which contains the cursor or the given position which is inside the section
  */
@@ -11,11 +22,11 @@ export const getPositionOfSection = (state: EditorState, pos?: number, type: 'st
   const searchStopPos = pos ?? state.selection.$from.pos
   let sectionPos = 0
   state.doc.descendants((node, _pos) => {
-    if (node.type.name === 'sec' && _pos < searchStopPos) {
+    if (node.type.name === TiptapNodesTypes.sec && _pos < searchStopPos) {
       sectionPos = _pos
     }
 
-    if (nodeTypesContainingSection.includes(node.type.name)) {
+    if (nodeTypesContainingSection.includes(node.type.name as TiptapNodesTypes)) {
       return true
     }
 
@@ -84,7 +95,7 @@ export const getPositionOfNextSection = (state: EditorState, pos?: number, type:
 export const isSectionEmptyParagraph = (state: EditorState, pos?: number) => {
   let sectionPos = pos ?? state.selection.$from.pos
   const _sectionNode = state.doc.nodeAt(sectionPos)
-  if (!_sectionNode || _sectionNode.type.name !== 'sec') {
+  if (!_sectionNode || _sectionNode.type.name !== TiptapNodesTypes.sec) {
     sectionPos = getPositionOfSection(state, pos)
   }
 
@@ -92,7 +103,7 @@ export const isSectionEmptyParagraph = (state: EditorState, pos?: number) => {
   const sectionFirstChild = sectionNode?.firstChild
   if (!sectionFirstChild) return false
 
-  return sectionFirstChild.type.name === 'paragraph' && sectionFirstChild.textContent.length === 0
+  return sectionFirstChild.type.name === TiptapNodesTypes.paragraph && sectionFirstChild.textContent.length === 0
 }
 
 export const isNodeTypeSelected = ({
@@ -101,7 +112,7 @@ export const isNodeTypeSelected = ({
   sectionPos,
 }: {
   state: EditorState
-  nodeType: string
+  nodeType: TiptapNodesTypes
   sectionPos?: number
 }) => {
   const { $to } = state.selection
@@ -122,7 +133,7 @@ export const getPosOfNodeTypeInSection = ({
   sectionPos,
 }: {
   state: EditorState
-  nodeType: string
+  nodeType: TiptapNodesTypes
   sectionPos?: number
 }) => {
   const { $to } = state.selection
@@ -148,7 +159,7 @@ export const getPosOfChildNodeOfType = ({
   childIndex = 0,
 }: {
   state: EditorState
-  nodeType: string
+  nodeType: TiptapNodesTypes
   nodePos?: number
   childIndex?: number
 }) => {

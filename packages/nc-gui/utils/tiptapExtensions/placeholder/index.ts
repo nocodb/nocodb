@@ -3,6 +3,7 @@ import { Decoration, DecorationSet } from 'prosemirror-view'
 import type { Node } from 'prosemirror-model'
 import type { Editor } from '@tiptap/core'
 import { Extension } from '@tiptap/core'
+import type { TiptapNodesTypes } from 'nocodb-sdk'
 
 // Ref: https://github.com/sereneinserenade/notitap/blob/main/src/tiptap/extensions/starter-kit.ts
 
@@ -70,7 +71,7 @@ export const Placeholder = Extension.create<PlaceholderOptions>({
                 decorations.push(decoration)
               }
 
-              return node.type.name.startsWith('collapsable') || node.type.name === 'sec'
+              return nodeTypesContainingSection.includes(node.type.name as TiptapNodesTypes)
             })
 
             return DecorationSet.create(doc, decorations)

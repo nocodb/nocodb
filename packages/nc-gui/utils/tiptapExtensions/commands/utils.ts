@@ -2,6 +2,8 @@ import type { Ref } from 'vue'
 import type { Editor, Range } from '@tiptap/vue-3'
 import { isMacOS } from '@tiptap/vue-3'
 import showdown from 'showdown'
+import { TiptapNodesTypes } from 'nocodb-sdk'
+
 import { generateJSON } from '@tiptap/html'
 import { createTable } from '@tiptap/extension-table'
 import { TextSelection } from 'prosemirror-state'
@@ -62,7 +64,7 @@ export const useCommandList = ({
       class: 'text-xs',
       style: 'font-weight: 800;',
       command: ({ editor, range }: { editor: Editor; range: Range }) => {
-        editor.chain().focus().deleteRange(range).setNode('heading', { level: 1 }).run()
+        editor.chain().focus().deleteRange(range).setNode(TiptapNodesTypes.heading, { level: 1 }).run()
       },
       icon: MdiFormatHeader1,
       iconClass: 'pt-0.5',
@@ -73,7 +75,7 @@ export const useCommandList = ({
       class: 'text-xs',
       style: 'font-weight: 700;',
       command: ({ editor, range }: { editor: Editor; range: Range }) => {
-        editor.chain().focus().deleteRange(range).setNode('heading', { level: 2 }).run()
+        editor.chain().focus().deleteRange(range).setNode(TiptapNodesTypes.heading, { level: 2 }).run()
       },
       icon: MdiFormatHeader2,
       iconClass: 'pt-0.5',
@@ -84,7 +86,7 @@ export const useCommandList = ({
       class: 'text-xs',
       style: 'font-weight: 500;',
       command: ({ editor, range }: { editor: Editor; range: Range }) => {
-        editor.chain().focus().deleteRange(range).setNode('heading', { level: 3 }).run()
+        editor.chain().focus().deleteRange(range).setNode(TiptapNodesTypes.heading, { level: 3 }).run()
       },
       icon: MdiFormatHeader3,
       iconClass: 'pt-0.5',
@@ -104,7 +106,7 @@ export const useCommandList = ({
       title: 'Body Text',
       class: 'text-xs',
       command: ({ editor, range }: { editor: Editor; range: Range }) => {
-        editor.chain().focus().deleteRange(range).setNode('paragraph', { level: 2 }).run()
+        editor.chain().focus().deleteRange(range).setNode(TiptapNodesTypes.paragraph, { level: 2 }).run()
       },
       icon: MdiFormatColorText,
       iconClass: '',
@@ -199,10 +201,10 @@ export const useCommandList = ({
           .focus()
           .deleteRange(range)
           .insertContent({
-            type: 'infoCallout',
+            type: TiptapNodesTypes.infoCallout,
             content: [
               {
-                type: 'paragraph',
+                type: TiptapNodesTypes.paragraph,
                 text: '',
               },
             ],
@@ -221,10 +223,10 @@ export const useCommandList = ({
           .focus()
           .deleteRange(range)
           .insertContent({
-            type: 'tipCallout',
+            type: TiptapNodesTypes.tipCallout,
             content: [
               {
-                type: 'paragraph',
+                type: TiptapNodesTypes.paragraph,
                 text: '',
               },
             ],
@@ -243,10 +245,10 @@ export const useCommandList = ({
           .focus()
           .deleteRange(range)
           .insertContent({
-            type: 'warningCallout',
+            type: TiptapNodesTypes.warningCallout,
             content: [
               {
-                type: 'paragraph',
+                type: TiptapNodesTypes.paragraph,
                 text: '',
               },
             ],
@@ -283,7 +285,7 @@ export const useCommandList = ({
           .chain()
           .focus()
           .deleteRange(range)
-          .setNode('divider')
+          .setNode(TiptapNodesTypes.divider)
           .focus()
           .setHorizontalRule()
           .setTextSelection(range.from + 3)

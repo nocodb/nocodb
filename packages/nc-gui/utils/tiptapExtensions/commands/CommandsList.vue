@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import type { Editor } from '@tiptap/vue-3'
+import { TiptapNodesTypes } from 'nocodb-sdk'
 import { useCommandList } from './utils'
 import { getEmbedContentType, urlToEmbedUrl } from '~/utils/tiptapExtensions/embed/urlHelper'
 
@@ -38,7 +39,10 @@ const insertLink = () => {
     return
   }
 
-  if (linkOptions.value.type !== 'embed' && getEmbedContentType(linkOptions.value.url) !== linkOptions.value.type) {
+  if (
+    linkOptions.value.type !== TiptapNodesTypes.embed &&
+    getEmbedContentType(linkOptions.value.url) !== linkOptions.value.type
+  ) {
     linkOptions.value.isErrored = true
     return
   }

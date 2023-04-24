@@ -1,9 +1,10 @@
 import HorizontalTiptapRule from '@tiptap/extension-horizontal-rule'
 import { Plugin, PluginKey } from 'prosemirror-state'
+import { TiptapNodesTypes } from 'nocodb-sdk'
 import { getPositionOfPreviousSection, getPositionOfSection } from '../helper'
 
 export const Divider = HorizontalTiptapRule.extend({
-  name: 'divider',
+  name: TiptapNodesTypes.divider,
   addKeyboardShortcuts() {
     return {
       'Ctrl-Shift-H': () => {
@@ -12,7 +13,7 @@ export const Divider = HorizontalTiptapRule.extend({
       'Enter': () => {
         if (
           !isNodeTypeSelected({
-            nodeType: 'divider',
+            nodeType: TiptapNodesTypes.divider,
             state: this.editor.state,
           })
         ) {
@@ -28,7 +29,7 @@ export const Divider = HorizontalTiptapRule.extend({
         if (
           prevSecPos &&
           isNodeTypeSelected({
-            nodeType: 'divider',
+            nodeType: TiptapNodesTypes.divider,
             state,
             sectionPos: prevSecPos,
           })
@@ -45,7 +46,7 @@ export const Divider = HorizontalTiptapRule.extend({
 
         if (
           !isNodeTypeSelected({
-            nodeType: 'divider',
+            nodeType: TiptapNodesTypes.divider,
             state,
           })
         ) {
@@ -68,7 +69,7 @@ export const Divider = HorizontalTiptapRule.extend({
           handleClick: (_, pos) => {
             if (
               !isNodeTypeSelected({
-                nodeType: 'divider',
+                nodeType: TiptapNodesTypes.divider,
                 state: this.editor.state,
                 sectionPos: pos,
               })

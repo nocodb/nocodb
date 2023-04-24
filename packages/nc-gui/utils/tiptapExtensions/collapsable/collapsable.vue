@@ -1,6 +1,7 @@
 <script lang="ts" setup>
 import { NodeViewContent, NodeViewWrapper, nodeViewProps } from '@tiptap/vue-3'
 import { TextSelection } from 'prosemirror-state'
+import { TiptapNodesTypes } from 'nocodb-sdk'
 import { positionOfFirstChild } from '../helper'
 import MdiTriangleDown from '~icons/tabler/triangle-inverted-filled'
 
@@ -17,7 +18,7 @@ const toggleCollapsableContent = () => {
     // Select first child of collapsable content
     const collapsableContentPos = getPosOfChildNodeOfType({
       state,
-      nodeType: 'collapsable_content',
+      nodeType: TiptapNodesTypes.collapsableContent,
     })!
     const firstChildOfCollapseContentPos = positionOfFirstChild(state, collapsableContentPos, 'start')!
 

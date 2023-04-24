@@ -1,4 +1,5 @@
 import TiptapParagraph from '@tiptap/extension-paragraph'
+import { TiptapNodesTypes } from 'nocodb-sdk'
 import { getPositionOfSection } from '../helper'
 
 export const Paragraph = TiptapParagraph.extend({
@@ -11,10 +12,10 @@ export const Paragraph = TiptapParagraph.extend({
         } = editor.state
 
         const sectionNode = $head.node($head.depth - 1)
-        if (sectionNode?.type.name !== 'sec') return false
+        if (sectionNode?.type.name !== TiptapNodesTypes.sec) return false
 
         const paragraphNode = $head.node($head.depth)
-        if (paragraphNode.type.name !== 'paragraph') return false
+        if (paragraphNode.type.name !== TiptapNodesTypes.paragraph) return false
 
         // Skip if the paragraph is a command
         if (paragraphNode.textContent?.startsWith('/')) return false
@@ -32,12 +33,12 @@ export const Paragraph = TiptapParagraph.extend({
             if (node.content?.length > 0) {
               const childNode = node.content[0]
 
-              if (childNode.type === 'paragraph') return node
+              if (childNode.type === TiptapNodesTypes.paragraph) return node
             }
 
             return {
               ...node,
-              type: 'paragraph',
+              type: TiptapNodesTypes.paragraph,
             }
           })
 
@@ -59,7 +60,7 @@ export const Paragraph = TiptapParagraph.extend({
           selection.empty &&
           selection.from === firstLinePos &&
           currentParagraphNode.textContent === '' &&
-          currentParagraphNode.type.name === 'paragraph'
+          currentParagraphNode.type.name === TiptapNodesTypes.paragraph
         ) {
           return editor.chain().focus().deleteActiveSection().run()
         }

@@ -1,5 +1,6 @@
 import { Node, mergeAttributes, wrappingInputRule } from '@tiptap/core'
 import type { Node as ProseMirrorNode } from 'prosemirror-model'
+import { TiptapNodesTypes } from 'nocodb-sdk'
 
 import { NodeSelection, Plugin, PluginKey } from 'prosemirror-state'
 import type { ListNodeType } from './helper'
@@ -27,7 +28,7 @@ const inputRegex = /^\s*-?\s*\[[ xX]\]\s/gm
 const pasteRegex = /^\s*-?\s*\[[ xX]\]\s+(.*)?\n?$/gm
 
 export const Task = Node.create<TaskOptions>({
-  name: 'task',
+  name: TiptapNodesTypes.task,
 
   priority: 1000,
 
@@ -100,7 +101,7 @@ export const Task = Node.create<TaskOptions>({
       toggleTask:
         () =>
         ({ chain, state }: any) => {
-          toggleItem({ chain, state, type: 'task' })
+          toggleItem({ chain, state, type: TiptapNodesTypes.task })
         },
     } as any
   },
@@ -110,12 +111,12 @@ export const Task = Node.create<TaskOptions>({
     const doc = this.editor.state.doc
 
     const parentNode = selection.$from.node(-1)
-    if (parentNode?.type.name !== 'bullet') return false
+    if (parentNode?.type.name !== TiptapNodesTypes.bullet) return false
 
     let currentPos = selection.$from.before(1)
     let currentNode = doc.nodeAt(currentPos)
     let attempt = 1
-    while (currentNode && currentNode.type.name !== 'bullet' && attempt < 10) {
+    while (currentNode && currentNode.type.name !== TiptapNodesTypes.bullet && attempt < 10) {
       try {
         currentPos = selection.$from.before(attempt)
         currentNode = doc.nodeAt(currentPos)
@@ -124,7 +125,7 @@ export const Task = Node.create<TaskOptions>({
       }
     }
 
-    if (currentNode?.type.name !== 'bullet') return false
+    if (currentNode?.type.name !== TiptapNodesTypes.bullet) return false
 
     const currentNodeText = currentNode.textContent.trimStart().toLowerCase()
 
@@ -137,16 +138,16 @@ export const Task = Node.create<TaskOptions>({
         .setNodeSelection(currentPos)
         .deleteSelection()
         .insertContentAt(currentPos - 1, {
-          type: 'task',
+          type: TiptapNodesTypes.task,
           content: [
             {
-              type: 'paragraph',
+              type: TiptapNodesTypes.paragraph,
               attrs: {
                 checked: isChecked,
               },
               content: [
                 {
-                  type: 'text',
+                  type: TiptapNodesTypes.text,
                   text: ' ',
                 },
               ],
@@ -169,7 +170,7 @@ export const Task = Node.create<TaskOptions>({
 
         const node = $from.node(-1)
         const parentNode = $from.node(-2)
-        if (node?.type.name !== 'task' && parentNode?.type.name !== 'tableCell') return false
+        if (node?.type.name !== TiptapNodesTypes.task && parentNode?.type.name !== TiptapNodesTypes.tableCell) return false
 
         const nodeTextContent = node.textContent.trimStart().toLowerCase()
         if (nodeTextContent.length !== 0) return false
@@ -217,7 +218,7 @@ export const Task = Node.create<TaskOptions>({
     return [
       listItemPasteRule({
         inputRegex,
-        nodeType: 'task',
+        nodeType: TiptapNodesTypes.task,
         pasteRegex,
       }),
     ]
@@ -235,7 +236,7 @@ export const Task = Node.create<TaskOptions>({
             }
           },
           apply(tr, prev, oldState, newState) {
-            if (isSelectionOfType(newState, 'task')) {
+            if (isSelectionOfType(newState, TiptapNodesTypes.task)) {
               return {
                 active: true,
               }

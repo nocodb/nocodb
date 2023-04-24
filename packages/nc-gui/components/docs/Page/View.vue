@@ -1,6 +1,7 @@
 <script lang="ts" setup>
 import { EditorContent, useEditor } from '@tiptap/vue-3'
 import { Icon as IconifyIcon } from '@iconify/vue'
+import { TiptapNodesTypes } from 'nocodb-sdk'
 import { useShortcuts } from '../utils'
 import tiptapExtensions from '~~/utils/tiptapExtensions'
 
@@ -24,13 +25,13 @@ const wrapperRef = ref<HTMLDivElement | undefined>()
 
 const content = computed(() => {
   const emptyContent = {
-    type: 'doc',
+    type: TiptapNodesTypes.doc,
     content: [
       {
-        type: 'sec',
+        type: TiptapNodesTypes.sec,
         content: [
           {
-            type: 'paragraph',
+            type: TiptapNodesTypes.paragraph,
           },
         ],
       },

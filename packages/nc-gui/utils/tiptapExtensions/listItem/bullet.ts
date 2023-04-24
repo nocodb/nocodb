@@ -1,5 +1,6 @@
 import { Node, mergeAttributes, wrappingInputRule } from '@tiptap/core'
 import { Plugin, PluginKey } from 'prosemirror-state'
+import { TiptapNodesTypes } from 'nocodb-sdk'
 import type { ListNodeType } from './helper'
 import { changeLevel, isSelectionOfType, listItemPasteRule, onBackspaceWithNestedList, onEnter, toggleItem } from './helper'
 
@@ -22,7 +23,7 @@ const inputRegex = /^\s*([-+*])(?!\s*\[[ x]\])\s/gm
 const pasteRegex = /^\s*([-+*])(?!\s*\[[ x]\])\s.+$/gm
 
 export const Bullet = Node.create<ListOptions>({
-  name: 'bullet',
+  name: TiptapNodesTypes.bullet,
   addOptions() {
     return {
       HTMLAttributes: {},
@@ -80,7 +81,7 @@ export const Bullet = Node.create<ListOptions>({
       toggleBullet:
         () =>
         ({ chain, state }: any) => {
-          toggleItem({ chain, state, type: 'bullet' })
+          toggleItem({ chain, state, type: TiptapNodesTypes.bullet })
         },
     } as any
   },
@@ -119,7 +120,7 @@ export const Bullet = Node.create<ListOptions>({
     return [
       listItemPasteRule({
         inputRegex,
-        nodeType: 'bullet',
+        nodeType: TiptapNodesTypes.bullet,
         pasteRegex,
       }),
     ]
@@ -137,7 +138,7 @@ export const Bullet = Node.create<ListOptions>({
             }
           },
           apply(tr, prev, oldState, newState) {
-            if (isSelectionOfType(newState, 'bullet')) {
+            if (isSelectionOfType(newState, TiptapNodesTypes.bullet)) {
               return {
                 active: true,
               }

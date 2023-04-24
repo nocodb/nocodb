@@ -1,7 +1,8 @@
 import { Node } from '@tiptap/core'
+import { TiptapNodesTypes } from 'nocodb-sdk'
 
 export const Document = Node.create({
-  name: 'doc',
+  name: TiptapNodesTypes.doc,
 
   topNode: true,
 
@@ -14,7 +15,7 @@ export const Document = Node.create({
 
         const currentNode = this.editor.state.selection.$from.node()
 
-        if (currentNode.type.name === 'paragraph') {
+        if (currentNode.type.name === TiptapNodesTypes.paragraph) {
           const offset = this.editor.state.selection.$from.parentOffset ?? 0
           const currentCharacter = currentNode.textContent?.[offset]
 
@@ -62,7 +63,10 @@ export const Document = Node.create({
           doc.descendants((node, pos) => {
             if (pos <= nextPos) return
 
-            if ((node.type.name === 'paragraph' || node.type.name === 'image') && from === nextPos) {
+            if (
+              (node.type.name === TiptapNodesTypes.paragraph || node.type.name === TiptapNodesTypes.image) &&
+              from === nextPos
+            ) {
               nextPos = pos + 1
 
               return false

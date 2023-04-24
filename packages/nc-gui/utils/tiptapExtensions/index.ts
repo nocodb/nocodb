@@ -6,6 +6,7 @@ import Italic from '@tiptap/extension-italic'
 import Code from '@tiptap/extension-code'
 import HardBreak from '@tiptap/extension-hard-break'
 import type { Extensions } from '@tiptap/core'
+import { TiptapNodesTypes } from 'nocodb-sdk'
 import { Quote } from './quote'
 import { createAttachmentExtension } from './attachment/node'
 import { Bullet } from './listItem/bullet'
@@ -29,9 +30,9 @@ import { Embed } from './embed'
 import { Heading } from './heading'
 import { TrailingNode } from './trailingNode'
 import { Placeholder } from './placeholder'
-import { Collapsable } from './collapsable'
-import { CollapsableHeader } from './collapsable/collapsableHeader'
-import { CollapsableContent } from './collapsable/collapsableContent'
+import { CollapsableNode } from './collapsable'
+import { CollapsableHeaderNode } from './collapsable/collapsableHeader'
+import { CollapsableContentNode } from './collapsable/collapsableContent'
 import { Strike } from './strike'
 import { Paragraph } from './paragraph'
 import { CodeBlock } from './codeBlock'
@@ -59,7 +60,7 @@ const tiptapExtensions = (isPublic: boolean): Extensions => {
     }),
     Placeholder.configure({
       placeholder: ({ node }) => {
-        if (node.type.name === 'heading') {
+        if (node.type.name === TiptapNodesTypes.heading) {
           return `Heading ${node.attrs.level}`
         }
         return 'Press / to open the command menu or start writing'
@@ -92,9 +93,9 @@ const tiptapExtensions = (isPublic: boolean): Extensions => {
     Embed,
     TrailingNode,
     Link({ isPublic }),
-    CollapsableContent,
-    CollapsableHeader,
-    Collapsable,
+    CollapsableContentNode,
+    CollapsableHeaderNode,
+    CollapsableNode,
     createAttachmentExtension(async (image: any) => {
       return uploadFile(image)
     }),

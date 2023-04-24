@@ -1,5 +1,6 @@
 import { Node, nodeInputRule } from '@tiptap/core'
 import { VueNodeViewRenderer } from '@tiptap/vue-3'
+import { TiptapNodesTypes } from 'nocodb-sdk'
 import {
   getPositionOfPreviousSection,
   getPositionOfSection,
@@ -31,7 +32,7 @@ const IMAGE_INPUT_REGEX = /!\[(.+|:?)\]\((\S+)(?:(?:\s+)["'](\S+)["'])?\)/
 
 export const createImageExtension = (uploadFn: UploadFn) => {
   return Node.create({
-    name: 'image',
+    name: TiptapNodesTypes.image,
     group: 'block',
     draggable: true,
     addAttributes: () => ({
@@ -125,7 +126,7 @@ export const createImageExtension = (uploadFn: UploadFn) => {
           // Set cursor to the next line
           const state = this.editor.state
 
-          const isImage = isNodeTypeSelected({ nodeType: 'image', state })
+          const isImage = isNodeTypeSelected({ nodeType: TiptapNodesTypes.image, state })
           if (!isImage) return
 
           this.editor.chain().focus().selectNextSection().run()
@@ -139,7 +140,7 @@ export const createImageExtension = (uploadFn: UploadFn) => {
 
           if (
             !isNodeTypeSelected({
-              nodeType: 'image',
+              nodeType: TiptapNodesTypes.image,
               state,
               sectionPos: prevSectionPos,
             })

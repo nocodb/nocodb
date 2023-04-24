@@ -3,6 +3,7 @@ import { Node, mergeAttributes } from '@tiptap/core'
 import type { ChainedCommands } from '@tiptap/vue-3'
 import { VueNodeViewRenderer } from '@tiptap/vue-3'
 import type { EditorState } from 'prosemirror-state'
+import { TiptapNodesTypes } from 'nocodb-sdk'
 import { getPosOfChildNodeOfType, getPositionOfSection, isCursorAtStartOfSelectedNode } from '../helper'
 import CollapsableComponent from './collapsable.vue'
 
@@ -18,8 +19,8 @@ declare module '@tiptap/core' {
   }
 }
 
-export const Collapsable = Node.create<CollapsableOptions>({
-  name: 'collapsable',
+export const CollapsableNode = Node.create<CollapsableOptions>({
+  name: TiptapNodesTypes.collapsable,
   addOptions() {
     return {
       HTMLAttributes: {},
@@ -63,27 +64,27 @@ export const Collapsable = Node.create<CollapsableOptions>({
         ({ chain, state }: { chain: () => ChainedCommands; state: EditorState }) => {
           return chain()
             .insertContent({
-              type: 'collapsable',
+              type: TiptapNodesTypes.collapsable,
               attrs: {
                 level: 0,
               },
               content: [
                 {
-                  type: 'collapsable_header',
+                  type: TiptapNodesTypes.collapsableHeader,
                   content: [
                     {
-                      type: 'paragraph',
+                      type: TiptapNodesTypes.paragraph,
                     },
                   ],
                 },
                 {
-                  type: 'collapsable_content',
+                  type: TiptapNodesTypes.collapsableContent,
                   content: [
                     {
-                      type: 'sec',
+                      type: TiptapNodesTypes.sec,
                       content: [
                         {
-                          type: 'paragraph',
+                          type: TiptapNodesTypes.paragraph,
                         },
                       ],
                     },
@@ -110,7 +111,7 @@ export const Collapsable = Node.create<CollapsableOptions>({
         const collapsableContentPos = state.selection.$from.before(editor.state.selection.$from.depth - 2)
         const collapsableContentNode = editor.state.doc.nodeAt(collapsableContentPos)
 
-        if (collapsableContentNode?.type.name !== 'collapsable_content') return false
+        if (collapsableContentNode?.type.name !== TiptapNodesTypes.collapsableContent) return false
 
         // Handle the case when the cursor is at the beginning of the collapsable content and backspace is pressed
         // Should move the cursor to the end of the collapsable header
@@ -124,7 +125,7 @@ export const Collapsable = Node.create<CollapsableOptions>({
           const parentSection = getPositionOfSection(state, collapsableContentPos)!
           const collapseHeaderPos = getPosOfChildNodeOfType({
             state: editor.state,
-            nodeType: 'collapsable_header',
+            nodeType: TiptapNodesTypes.collapsableHeader,
             nodePos: parentSection,
           })!
 

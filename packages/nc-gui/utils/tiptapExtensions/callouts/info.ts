@@ -1,5 +1,6 @@
 import { Node, mergeAttributes } from '@tiptap/core'
 import { VueNodeViewRenderer } from '@tiptap/vue-3'
+import { TiptapNodesTypes } from 'nocodb-sdk'
 import CalloutComponent from './callout.vue'
 import { handleOnEnterForCallouts } from './helper'
 
@@ -8,7 +9,7 @@ export interface InfoCalloutOptions {
 }
 
 export const InfoCallout = Node.create<InfoCalloutOptions>({
-  name: 'infoCallout',
+  name: TiptapNodesTypes.infoCallout,
 
   addOptions() {
     return {
@@ -36,7 +37,7 @@ export const InfoCallout = Node.create<InfoCalloutOptions>({
   addKeyboardShortcuts() {
     return {
       Enter: ({ editor }) => {
-        return handleOnEnterForCallouts(editor as any, 'infoCallout')
+        return handleOnEnterForCallouts(editor as any, TiptapNodesTypes.infoCallout)
       },
     }
   },

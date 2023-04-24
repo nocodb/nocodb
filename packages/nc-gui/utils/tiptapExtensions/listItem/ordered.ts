@@ -1,6 +1,7 @@
 import type { ChainedCommands } from '@tiptap/core'
 import { Node, mergeAttributes, wrappingInputRule } from '@tiptap/core'
 import { Plugin, PluginKey } from 'prosemirror-state'
+import { TiptapNodesTypes } from 'nocodb-sdk'
 import type { ListNodeType } from './helper'
 import { changeLevel, isSelectionOfType, listItemPasteRule, onBackspaceWithNestedList, onEnter } from './helper'
 export interface OrderItemsOptions {
@@ -24,7 +25,7 @@ const inputRegex = /^\s*\d+\.\s/gm
 const pasteRegex = /^\s*\d+\.\s+(.*)$/gm
 
 export const Ordered = Node.create<OrderItemsOptions>({
-  name: 'ordered',
+  name: TiptapNodesTypes.ordered,
 
   addOptions() {
     return {
@@ -121,7 +122,7 @@ export const Ordered = Node.create<OrderItemsOptions>({
             },
             content: [
               {
-                type: 'paragraph',
+                type: TiptapNodesTypes.paragraph,
               },
             ],
           })
@@ -129,7 +130,7 @@ export const Ordered = Node.create<OrderItemsOptions>({
       toggleOrdered:
         () =>
         ({ chain, state }: any) => {
-          toggleItem({ chain, state, type: 'ordered' })
+          toggleItem({ chain, state, type: TiptapNodesTypes.ordered })
         },
     } as any
   },
@@ -161,7 +162,6 @@ export const Ordered = Node.create<OrderItemsOptions>({
         find: inputRegex,
         type: this.type,
         getAttributes: (match) => {
-          console.log('match', match)
           const number = match[0].split('.')[0].trim()
           return {
             number,
@@ -175,7 +175,7 @@ export const Ordered = Node.create<OrderItemsOptions>({
     return [
       listItemPasteRule({
         inputRegex,
-        nodeType: 'ordered',
+        nodeType: TiptapNodesTypes.ordered,
         pasteRegex,
       }),
     ]
@@ -193,7 +193,7 @@ export const Ordered = Node.create<OrderItemsOptions>({
             }
           },
           apply(tr, prev, oldState, newState) {
-            if (isSelectionOfType(newState, 'ordered')) {
+            if (isSelectionOfType(newState, TiptapNodesTypes.ordered)) {
               return {
                 active: true,
               }

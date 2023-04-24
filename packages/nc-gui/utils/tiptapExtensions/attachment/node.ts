@@ -1,5 +1,6 @@
 import { Node } from '@tiptap/core'
 import { VueNodeViewRenderer } from '@tiptap/vue-3'
+import { TiptapNodesTypes } from 'nocodb-sdk'
 import {
   getPositionOfPreviousSection,
   getPositionOfSection,
@@ -22,7 +23,7 @@ declare module '@tiptap/core' {
 
 export const createAttachmentExtension = (uploadFn: UploadFn) => {
   return Node.create({
-    name: 'attachment',
+    name: TiptapNodesTypes.attachment,
     group: 'block',
     addAttributes: () => ({
       url: {},
@@ -72,7 +73,7 @@ export const createAttachmentExtension = (uploadFn: UploadFn) => {
           // Set cursor to the next line
           const state = this.editor.state
 
-          const isImage = isNodeTypeSelected({ nodeType: 'attachment', state })
+          const isImage = isNodeTypeSelected({ nodeType: TiptapNodesTypes.attachment, state })
           if (!isImage) return
 
           this.editor.chain().focus().selectNextSection().run()
@@ -86,7 +87,7 @@ export const createAttachmentExtension = (uploadFn: UploadFn) => {
 
           if (
             !isNodeTypeSelected({
-              nodeType: 'attachment',
+              nodeType: TiptapNodesTypes.attachment,
               state,
               sectionPos: prevSectionPos,
             })

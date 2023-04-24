@@ -2,6 +2,7 @@ import TiptapLink from '@tiptap/extension-link'
 import { mergeAttributes } from '@tiptap/core'
 import { Plugin, TextSelection } from 'prosemirror-state'
 import type { AddMarkStep, Step } from 'prosemirror-transform'
+import { TiptapMarksTypes } from 'nocodb-sdk'
 
 export const Link = ({ isPublic }: { isPublic?: boolean }) =>
   TiptapLink.extend({
@@ -84,8 +85,8 @@ export const Link = ({ isPublic }: { isPublic?: boolean }) =>
 
           // If we are not inside a link, we don't do anything
           if (
-            !nodeBefore?.marks.some((mark) => mark.type.name === 'link') ||
-            nodeAfter?.marks.some((mark) => mark.type.name === 'link')
+            !nodeBefore?.marks.some((mark) => mark.type.name === TiptapMarksTypes.link) ||
+            nodeAfter?.marks.some((mark) => mark.type.name === TiptapMarksTypes.link)
           ) {
             return false
           }
@@ -126,7 +127,7 @@ export const Link = ({ isPublic }: { isPublic?: boolean }) =>
 
             if (addMarkStep.from === addMarkStep.to) return null
 
-            if (addMarkStep.mark.type.name !== 'link') return null
+            if (addMarkStep.mark.type.name !== TiptapMarksTypes.link) return null
 
             const { tr } = newState
             return tr.setSelection(new TextSelection(tr.doc.resolve(addMarkStep.to)))

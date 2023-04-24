@@ -1,7 +1,10 @@
 import type { Editor } from '@tiptap/vue-3'
+import { TiptapNodesTypes } from 'nocodb-sdk'
 import { getPosOfNodeTypeInSection, isLastChild, isNodeTypeSelected } from '../helper'
 
-export const handleOnEnterForCallouts = (editor: Editor, type: 'infoCallout' | 'tipCallout' | 'warningCallout') => {
+type CalloutType = TiptapNodesTypes.infoCallout | TiptapNodesTypes.tipCallout | TiptapNodesTypes.warningCallout
+
+export const handleOnEnterForCallouts = (editor: Editor, type: CalloutType) => {
   const state = editor.state
   const selection = state.selection
 
@@ -45,5 +48,5 @@ export const handleOnEnterForCallouts = (editor: Editor, type: 'infoCallout' | '
     toBeInsertedPos = toBeInsertedPos + 1
   }
 
-  return editor.chain().insertContentAt(toBeInsertedPos, { type: 'paragraph', text: '\n' }).run()
+  return editor.chain().insertContentAt(toBeInsertedPos, { type: TiptapNodesTypes.paragraph, text: '\n' }).run()
 }

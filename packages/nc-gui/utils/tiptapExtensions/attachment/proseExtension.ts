@@ -64,6 +64,7 @@ export const dropAttachmentPlugin = (uploadFn: UploadFn) => {
 
         for (const item of items) {
           const file = item.getAsFile()
+          // skip if it's an image
           if (!file || item.type.includes('image')) continue
 
           addFile({ file, view, uploadFn })
@@ -79,12 +80,14 @@ export const dropAttachmentPlugin = (uploadFn: UploadFn) => {
           const sectionDom = domsOverElement.find((dom) => dom.hasAttribute('tiptap-draghandle-wrapper'))
           if (!sectionDom) return false
 
+          // We are setting pos attribute on the section dom, so that we can insert the attachment at the correct position
           const secPos = Number(sectionDom.getAttribute('pos'))
           const toBeInsertedPos = secPos
 
           const hasFiles = event.dataTransfer && event.dataTransfer.files && event.dataTransfer.files.length
           if (!hasFiles) return false
 
+          // skip if it's an image
           const files = Array.from(event.dataTransfer?.files ?? []).filter((file) => !file.type.includes('image'))
           if (files.length === 0) return false
 

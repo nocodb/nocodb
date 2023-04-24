@@ -1,4 +1,5 @@
 import TiptapQuote from '@tiptap/extension-blockquote'
+import { TiptapNodesTypes } from 'nocodb-sdk'
 import { isNodeTypeSelected } from '../helper'
 
 export const Quote = TiptapQuote.extend({
@@ -13,7 +14,7 @@ export const Quote = TiptapQuote.extend({
         if (
           !isNodeTypeSelected({
             state,
-            nodeType: 'quote',
+            nodeType: TiptapNodesTypes.quote,
           })
         ) {
           return false
@@ -32,7 +33,7 @@ export const Quote = TiptapQuote.extend({
         }
 
         // Insert empty paragraph/newline
-        return editor.chain().insertContentAt(state.selection.$from.pos, { type: 'paragraph', text: '\n' }).run()
+        return editor.chain().insertContentAt(state.selection.$from.pos, { type: TiptapNodesTypes.paragraph, text: '\n' }).run()
       },
     }
   },

@@ -1,6 +1,6 @@
 import type { EditorView } from 'prosemirror-view'
 import { NodeSelection, Plugin } from 'prosemirror-state'
-import { getPositionOfSection } from '../helper'
+import { getPositionOfSection, removeUploadingPlaceHolderOnUndo } from '../helper'
 
 export type UploadFn = (image: File) => Promise<string>
 
@@ -34,7 +34,7 @@ export const addImage = async ({
 
   // traverse the document to find the uploading image node
   // and replace it with the uploaded image node
-  let uploadPos = 0
+  let uploadPos
   view.state.doc.descendants((node, pos) => {
     if (node.attrs.id === id && node.attrs.isUploading) {
       uploadPos = pos
@@ -43,6 +43,7 @@ export const addImage = async ({
 
     return true
   })
+  if (uploadPos === undefined) return
 
   const transaction = view.state.tr.setSelection(NodeSelection.create(view.state.doc, uploadPos)).replaceSelectionWith(node)
   view.dispatch(transaction)
@@ -50,6 +51,9 @@ export const addImage = async ({
 
 export const dropImagePlugin = (uploadFn: UploadFn) => {
   return new Plugin({
+    appendTransaction: (transactions, _, newState) => {
+      return removeUploadingPlaceHolderOnUndo(newState, transactions[0])
+    },
     props: {
       handlePaste(view, event) {
         event.preventDefault()

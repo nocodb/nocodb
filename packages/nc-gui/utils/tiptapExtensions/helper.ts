@@ -1,4 +1,4 @@
-import type { EditorState } from 'prosemirror-state'
+import type { EditorState, Transaction } from 'prosemirror-state'
 import { TiptapNodesTypes } from 'nocodb-sdk'
 
 export const nonTextLeafNodes = [
@@ -249,4 +249,22 @@ export const removeUploadingPlaceHolder = (pageContent: any) => {
   })
 
   return newContent
+}
+
+/**
+ * On undo, delete upload placeholder node for image and attachment
+ */
+export const removeUploadingPlaceHolderOnUndo = (state: EditorState, undoTransaction: Transaction) => {
+  const historyPlugin = state.plugins.find((plugin: any) => plugin.key.startsWith('history')) as any
+
+  const meta = undoTransaction.getMeta(historyPlugin.key)
+  if (!meta || meta.redo) return null
+
+  const step = undoTransaction.steps[0] as any
+  const node = state.doc.nodeAt(step.from)
+  if (!node) return null
+
+  if (node.type.name !== 'image' && node.type.name !== 'attachment') return null
+
+  return state.tr.deleteRange(step.from, step.to)
 }

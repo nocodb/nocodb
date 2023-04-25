@@ -21,17 +21,17 @@ export class JobsService {
 
   async jobList(jobType: string) {
     return (
-      await this.activeQueue.getJobs(['active', 'waiting', 'delayed'])
+      await this.activeQueue.getJobs(['active', 'waiting', 'delayed', 'paused'])
     ).filter((j) => j.name === jobType);
   }
 
   async getJobWithData(data: any) {
     const jobs = await this.activeQueue.getJobs([
-      'completed',
+      // 'completed',
       'waiting',
       'active',
       'delayed',
-      'failed',
+      // 'failed',
       'paused',
     ]);
 

@@ -40,10 +40,16 @@ export class JobsGateway implements OnModuleInit {
 
   @SubscribeMessage('subscribe')
   async subscribe(
-    @MessageBody() data: { name: string; id: string } | { id: string },
+    @MessageBody()
+    body: { _id: number; data: { id: string; name: string } | any },
     @ConnectedSocket() client: Socket,
   ): Promise<void> {
-    if ('name' in data) {
+    const { _id, data } = body;
+    if (
+      Object.keys(data).every((k) => ['name', 'id'].includes(k)) &&
+      data?.name &&
+      data?.id
+    ) {
       const rooms = (await this.jobsService.jobList(data.name)).map(
         (j) => `${j.name}-${j.id}`,
       );
@@ -51,17 +57,17 @@ export class JobsGateway implements OnModuleInit {
       if (room) {
         client.join(`${data.name}-${data.id}`);
         client.emit('subscribed', {
-          subbed: data.id,
+          _id,
           name: data.name,
           id: data.id,
         });
       }
     } else {
-      const job = await this.jobsService.getJobWithData({ id: data.id });
+      const job = await this.jobsService.getJobWithData(data);
       if (job) {
         client.join(`${job.name}-${job.id}`);
         client.emit('subscribed', {
-          subbed: data.id,
+          _id,
           name: job.name,
           id: job.id,
         });
@@ -71,10 +77,12 @@ export class JobsGateway implements OnModuleInit {
 
   @SubscribeMessage('status')
   async status(
-    @MessageBody() data: { name: string; id: string },
+    @MessageBody() body: { _id: number; data: { id: string; name: string } },
     @ConnectedSocket() client: Socket,
   ): Promise<void> {
+    const { _id, data } = body;
     client.emit('status', {
+      _id,
       id: data.id,
       name: data.name,
       status: await this.jobsService.jobStatus(data.id),
@@ -93,11 +101,13 @@ export class JobsGateway implements OnModuleInit {
       | 'failed'
       | 'paused'
       | 'refresh';
+    error?: any;
   }): Promise<void> {
     this.server.to(`${data.name}-${data.id}`).emit('status', {
       id: data.id,
       name: data.name,
       status: data.status,
+      error: data.error,
     });
   }
 

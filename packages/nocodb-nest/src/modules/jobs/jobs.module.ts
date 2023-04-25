@@ -11,6 +11,8 @@ import { DuplicateProcessor } from './export-import/duplicate.processor';
 import { JobsGateway } from './jobs.gateway';
 import { QueueService } from './fallback-queue.service';
 import { JobsEventService } from './jobs-event.service';
+import { AtImportController } from './at-import/at-import.controller';
+import { AtImportProcessor } from './at-import/at-import.processor';
 
 @Module({
   imports: [
@@ -21,7 +23,7 @@ import { JobsEventService } from './jobs-event.service';
       name: 'jobs',
     }),
   ],
-  controllers: [DuplicateController],
+  controllers: [DuplicateController, AtImportController],
   providers: [
     QueueService,
     JobsGateway,
@@ -30,6 +32,7 @@ import { JobsEventService } from './jobs-event.service';
     DuplicateProcessor,
     ExportService,
     ImportService,
+    AtImportProcessor,
   ],
 })
 export class JobsModule {}

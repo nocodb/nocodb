@@ -25,7 +25,6 @@ function getHash(str) {
 export class SocketGateway implements OnModuleInit {
   // private server: HttpServer;
   private clients: { [id: string]: Socket } = {};
-  private _jobs: { [id: string]: { last_message: any } } = {};
 
   constructor(
     private jwtStrategy: JwtStrategy,
@@ -59,21 +58,10 @@ export class SocketGateway implements OnModuleInit {
         socket.on('event', (args) => {
           T.event({ ...args, id });
         });
-        socket.on('subscribe', (room) => {
-          if (room in this.jobs) {
-            socket.join(room);
-            socket.emit('job');
-            socket.emit('progress', this.jobs[room].last_message);
-          }
-        });
       });
   }
 
   public get io() {
     return this.server;
-  }
-
-  public get jobs() {
-    return this._jobs;
   }
 }

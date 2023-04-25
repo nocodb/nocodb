@@ -1,21 +1,12 @@
 import { Readable } from 'stream';
-import {
-  OnQueueActive,
-  OnQueueCompleted,
-  OnQueueFailed,
-  Process,
-  Processor,
-} from '@nestjs/bull';
-import { Column, Model } from 'src/models';
+import { Process, Processor } from '@nestjs/bull';
+import { Base, Column, Model, Project } from 'src/models';
 import { Job } from 'bull';
 import { ProjectsService } from 'src/services/projects.service';
-import boxen from 'boxen';
 import papaparse from 'papaparse';
 import { findWithIdentifier } from 'src/helpers/exportImportHelpers';
 import { BulkDataAliasService } from 'src/services/bulk-data-alias.service';
 import { UITypes } from 'nocodb-sdk';
-import { forwardRef, Inject } from '@nestjs/common';
-import { JobsGateway } from '../jobs.gateway';
 import { ExportService } from './export.service';
 import { ImportService } from './import.service';
 import type { LinkToAnotherRecordColumn } from 'src/models';
@@ -29,53 +20,21 @@ export class DuplicateProcessor {
     private readonly importService: ImportService,
     private readonly projectsService: ProjectsService,
     private readonly bulkDataService: BulkDataAliasService,
-    @Inject(forwardRef(() => JobsGateway))
-    private readonly jobsGateway: JobsGateway,
   ) {}
-
-  @OnQueueActive()
-  onActive(job: Job) {
-    this.jobsGateway.jobStatus({
-      name: job.name,
-      id: job.id.toString(),
-      status: 'active',
-    });
-  }
-
-  @OnQueueFailed()
-  onFailed(job: Job, error: Error) {
-    console.error(
-      boxen(
-        `---- !! JOB FAILED !! ----\nname: ${job.name}\nid:${job.id}\nerror:${error.name} (${error.message})\n\nstack: ${error.stack}`,
-        {
-          padding: 1,
-          borderStyle: 'double',
-          borderColor: 'yellow',
-        },
-      ),
-    );
-
-    this.jobsGateway.jobStatus({
-      name: job.name,
-      id: job.id.toString(),
-      status: 'failed',
-    });
-  }
-
-  @OnQueueCompleted()
-  onCompleted(job: Job) {
-    this.jobsGateway.jobStatus({
-      name: job.name,
-      id: job.id.toString(),
-      status: 'completed',
-    });
-  }
 
   @Process('duplicate')
   async duplicateBase(job: Job) {
-    const { project, base, dupProject, req } = job.data;
+    const { projectId, baseId, dupProjectId, req } = job.data;
+
+    const project = await Project.get(projectId);
+    const dupProject = await Project.get(dupProjectId);
+    const base = await Base.get(baseId);
 
     try {
+      if (!project || !dupProject || !base) {
+        throw new Error(`Project or base not found!`);
+      }
+
       let start = process.hrtime();
 
       const debugLog = function (...args: any[]) {
@@ -106,6 +65,8 @@ export class DuplicateProcessor {
       if (!exportedModels) {
         throw new Error(`Export failed for base '${base.id}'`);
       }
+
+      await dupProject.getBases();
 
       const dupBaseId = dupProject.bases[0].id;
 

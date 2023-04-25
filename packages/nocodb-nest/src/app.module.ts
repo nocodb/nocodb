@@ -1,6 +1,7 @@
 import { Module, RequestMethod } from '@nestjs/common';
 import { APP_FILTER } from '@nestjs/core';
 import { BullModule } from '@nestjs/bull';
+import { EventEmitterModule } from '@nestjs/event-emitter';
 import { Connection } from './connection/connection';
 import { GlobalExceptionFilter } from './filters/global-exception/global-exception.filter';
 import NcPluginMgrv2 from './helpers/NcPluginMgrv2';
@@ -35,6 +36,7 @@ import type {
     MetasModule,
     DatasModule,
     JobsModule,
+    EventEmitterModule.forRoot(),
     ...(process.env['NC_REDIS_URL']
       ? [
           BullModule.forRoot({

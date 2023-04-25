@@ -24,4 +24,28 @@ export class JobsService {
       await this.activeQueue.getJobs(['active', 'waiting', 'delayed'])
     ).filter((j) => j.name === jobType);
   }
+
+  async getJobWithData(data: any) {
+    const jobs = await this.activeQueue.getJobs([
+      'completed',
+      'waiting',
+      'active',
+      'delayed',
+      'failed',
+      'paused',
+    ]);
+
+    const job = jobs.find((j) => {
+      for (const key in data) {
+        if (j.data[key]) {
+          if (j.data[key] !== data[key]) return false;
+        } else {
+          return false;
+        }
+      }
+      return true;
+    });
+
+    return job;
+  }
 }

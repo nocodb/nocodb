@@ -2,6 +2,7 @@ import { Injectable } from '@nestjs/common';
 import PQueue from 'p-queue';
 import Emittery from 'emittery';
 import { DuplicateProcessor } from './export-import/duplicate.processor';
+import { JobsEventService } from './jobs-event.service';
 
 interface Job {
   id: string;
@@ -18,22 +19,23 @@ export class QueueService {
   static queueMemory: Job[] = [];
   static emitter = new Emittery();
 
-  constructor(private readonly duplicateProcessor: DuplicateProcessor) {
+  constructor(
+    private readonly jobsEventService: JobsEventService,
+    private readonly duplicateProcessor: DuplicateProcessor,
+  ) {
     this.emitter.on('active', (data: any) => {
       const job = this.queueMemory.find(
         (job) => job.id === data.id && job.name === data.name,
       );
       job.status = 'active';
-      this.duplicateProcessor.onActive.apply(this.duplicateProcessor, [
-        job as any,
-      ]);
+      this.jobsEventService.onActive.apply(this.jobsEventService, [job as any]);
     });
     this.emitter.on('completed', (data: any) => {
       const job = this.queueMemory.find(
         (job) => job.id === data.id && job.name === data.name,
       );
       job.status = 'completed';
-      this.duplicateProcessor.onCompleted.apply(this.duplicateProcessor, [
+      this.jobsEventService.onCompleted.apply(this.jobsEventService, [
         data as any,
       ]);
     });
@@ -42,7 +44,7 @@ export class QueueService {
         (job) => job.id === data.job.id && job.name === data.job.name,
       );
       job.status = 'failed';
-      this.duplicateProcessor.onFailed.apply(this.duplicateProcessor, [
+      this.jobsEventService.onFailed.apply(this.jobsEventService, [
         data.job as any,
         data.error,
       ]);
@@ -50,13 +52,16 @@ export class QueueService {
   }
 
   jobMap = {
-    duplicate: this.duplicateProcessor.duplicateBase,
+    duplicate: {
+      this: this.duplicateProcessor,
+      fn: this.duplicateProcessor.duplicateBase,
+    },
   };
 
   async jobWrapper(job: Job) {
     this.emitter.emit('active', job);
     try {
-      await this.jobMap[job.name].apply(this.duplicateProcessor, [job]);
+      await this.jobMap[job.name].fn.apply(this.jobMap[job.name].this, [job]);
       this.emitter.emit('completed', job);
     } catch (error) {
       this.emitter.emit('failed', { job, error });

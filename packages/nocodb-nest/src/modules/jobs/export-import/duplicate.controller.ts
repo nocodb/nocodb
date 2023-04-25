@@ -68,9 +68,9 @@ export class DuplicateController {
     });
 
     const job = await this.activeQueue.add('duplicate', {
-      project,
-      base,
-      dupProject,
+      projectId: project.id,
+      baseId: base.id,
+      dupProjectId: dupProject.id,
       req: {
         user: req.user,
         clientIp: req.clientIp,

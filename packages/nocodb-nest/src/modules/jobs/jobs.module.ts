@@ -10,6 +10,7 @@ import { DuplicateController } from './export-import/duplicate.controller';
 import { DuplicateProcessor } from './export-import/duplicate.processor';
 import { JobsGateway } from './jobs.gateway';
 import { QueueService } from './fallback-queue.service';
+import { JobsEventService } from './jobs-event.service';
 
 @Module({
   imports: [
@@ -25,6 +26,7 @@ import { QueueService } from './fallback-queue.service';
     QueueService,
     JobsGateway,
     JobsService,
+    JobsEventService,
     DuplicateProcessor,
     ExportService,
     ImportService,

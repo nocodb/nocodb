@@ -1,4 +1,4 @@
-import type { EditorState } from 'prosemirror-state'
+import type { EditorState, Transaction } from 'prosemirror-state'
 import { TiptapNodesTypes } from 'nocodb-sdk'
 
 export const nonTextLeafNodes = [
@@ -229,4 +229,40 @@ export const isCursorAtStartOfSelectedNode = (state: EditorState) => {
   const offset = resolve.parentOffset
 
   return offset === 0
+}
+
+/**
+ * Ignore upload placeholder node while syncing with server
+ * @param pageContent
+ * @returns pageContent
+ */
+export const removeUploadingPlaceHolder = (pageContent: any) => {
+  pageContent.content = pageContent.content.filter((node: any) => {
+    const childNode = node.content?.length > 0 ? node.content[0] : null
+    if (!childNode) return true
+
+    const isUploading = (childNode.type.name !== 'image' || childNode.type.name === 'attachment') && childNode.attrs?.isUploading
+
+    return !isUploading
+  })
+
+  return pageContent
+}
+
+/**
+ * On undo, delete upload placeholder node for image and attachment
+ */
+export const removeUploadingPlaceHolderOnUndo = (state: EditorState, undoTransaction: Transaction) => {
+  const historyPlugin = state.plugins.find((plugin: any) => plugin.key.startsWith('history')) as any
+
+  const meta = undoTransaction.getMeta(historyPlugin.key)
+  if (!meta || meta.redo) return null
+
+  const step = undoTransaction.steps[0] as any
+  const node = state.doc.nodeAt(step.from)
+  if (!node) return null
+
+  if (node.type.name !== 'image' && node.type.name !== 'attachment') return null
+
+  return state.tr.deleteRange(step.from, step.to)
 }

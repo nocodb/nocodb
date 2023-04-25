@@ -4,6 +4,7 @@ import { Icon as IconifyIcon } from '@iconify/vue'
 import { TiptapNodesTypes } from 'nocodb-sdk'
 import { useShortcuts } from '../utils'
 import tiptapExtensions from '~~/utils/tiptapExtensions'
+import { removeUploadingPlaceHolder } from '~~/utils/tiptapExtensions/helper'
 
 const { project } = useProject()
 useShortcuts()
@@ -66,7 +67,7 @@ const editor = useEditor({
   onUpdate: ({ editor }) => {
     if (!openedPage.value) return
 
-    openedPage.value.content = JSON.stringify(editor.getJSON())
+    openedPage.value.content = JSON.stringify(removeUploadingPlaceHolder(editor.getJSON()))
   },
   editorProps: {
     handleKeyDown: (view, event) => {

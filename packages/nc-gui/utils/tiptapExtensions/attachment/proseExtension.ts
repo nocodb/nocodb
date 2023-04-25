@@ -1,6 +1,6 @@
 import type { EditorView } from 'prosemirror-view'
 import { NodeSelection, Plugin } from 'prosemirror-state'
-import { getPositionOfSection } from '../helper'
+import { getPositionOfSection, removeUploadingPlaceHolderOnUndo } from '../helper'
 
 export type UploadFn = (attachment: File) => Promise<string>
 
@@ -56,6 +56,9 @@ export const addFile = async ({
 
 export const dropAttachmentPlugin = (uploadFn: UploadFn) => {
   return new Plugin({
+    appendTransaction: (transactions, _, newState) => {
+      return removeUploadingPlaceHolderOnUndo(newState, transactions[0])
+    },
     props: {
       handlePaste(view, event) {
         const items = Array.from(event.clipboardData?.items || [])

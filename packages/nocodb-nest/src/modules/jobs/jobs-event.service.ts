@@ -38,6 +38,7 @@ export class JobsEventService {
       name: job.name,
       id: job.id.toString(),
       status: 'failed',
+      error: error?.message,
     });
   }
 

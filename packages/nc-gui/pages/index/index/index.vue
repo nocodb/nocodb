@@ -95,7 +95,7 @@ const duplicateProject = (project: ProjectType) => {
 
         await loadProjects()
 
-        $jobs.subscribe(jobData.name, jobData.id, async (data: { status: string }) => {
+        $jobs.subscribe({ name: jobData.name, id: jobData.id }, null, async (data: { status: string }) => {
           if (data.status === 'completed') {
             await loadProjects()
           } else if (data.status === 'failed') {

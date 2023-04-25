@@ -16,7 +16,6 @@ import { GalleriesController } from '../../controllers/galleries.controller';
 import { GridColumnsController } from '../../controllers/grid-columns.controller';
 import { GridsController } from '../../controllers/grids.controller';
 import { HooksController } from '../../controllers/hooks.controller';
-import { ImportController } from '../../controllers/imports/import.controller';
 import { KanbansController } from '../../controllers/kanbans.controller';
 import { MapsController } from '../../controllers/maps.controller';
 import { MetaDiffsController } from '../../controllers/meta-diffs.controller';
@@ -98,7 +97,6 @@ import { DatasModule } from '../datas/datas.module';
     GridColumnsController,
     GridsController,
     HooksController,
-    ImportController,
     KanbansController,
     MapsController,
     MetaDiffsController,
@@ -170,6 +168,8 @@ import { DatasModule } from '../datas/datas.module';
     GalleriesService,
     KanbansService,
     ProjectsService,
+    AttachmentsService,
+    ProjectUsersService,
   ],
 })
 export class MetasModule {}

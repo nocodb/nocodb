@@ -27,7 +27,7 @@ definePageMeta({
   title: 'title.myProject',
 })
 
-const { $api, $e, $events } = useNuxtApp()
+const { $api, $e, $jobs } = useNuxtApp()
 
 const { api, isLoading } = useApi()
 
@@ -95,7 +95,7 @@ const duplicateProject = (project: ProjectType) => {
 
         await loadProjects()
 
-        $events.subscribe(jobData.name, jobData.id, async (data: { status: string }) => {
+        $jobs.subscribe(jobData.name, jobData.id, async (data: { status: string }) => {
           if (data.status === 'completed') {
             await loadProjects()
           } else if (data.status === 'failed') {

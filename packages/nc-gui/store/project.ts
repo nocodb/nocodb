@@ -113,7 +113,7 @@ export const useProject = defineStore('projectStore', () => {
   // todo: add force parameter
   async function loadTables() {
     if (project.value.id) {
-      projectsStore.loadProjectTables(project.value.id, true)
+      await projectsStore.loadProjectTables(project.value.id, true)
       // tables.value = projectsStore.projectTableList[project.value.id]
       //   await api.dbTable.list(project.value.id, {
       //   includeM2M: includeM2M.value,

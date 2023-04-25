@@ -237,9 +237,7 @@ export const isCursorAtStartOfSelectedNode = (state: EditorState) => {
  * @returns pageContent
  */
 export const removeUploadingPlaceHolder = (pageContent: any) => {
-  const newContent = { ...pageContent }
-
-  newContent.content = newContent.content.filter((node: any) => {
+  pageContent.content = pageContent.content.filter((node: any) => {
     const childNode = node.content?.length > 0 ? node.content[0] : null
     if (!childNode) return true
 
@@ -248,7 +246,7 @@ export const removeUploadingPlaceHolder = (pageContent: any) => {
     return !isUploading
   })
 
-  return newContent
+  return pageContent
 }
 
 /**

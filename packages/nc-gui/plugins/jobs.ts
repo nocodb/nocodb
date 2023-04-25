@@ -28,7 +28,7 @@ export default defineNuxtPlugin(async (nuxtApp) => {
     await init(nuxtApp.$state.token.value)
   }
 
-  const events = {
+  const jobs = {
     subscribe(name: string, id: string, cb: (data: any) => void) {
       if (socket) {
         socket.emit('subscribe', { name, id })
@@ -64,5 +64,5 @@ export default defineNuxtPlugin(async (nuxtApp) => {
     else if (!newToken) socket?.disconnect()
   })
 
-  nuxtApp.provide('events', events)
+  nuxtApp.provide('jobs', jobs)
 })

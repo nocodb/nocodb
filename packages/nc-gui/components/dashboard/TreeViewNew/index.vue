@@ -221,10 +221,6 @@ const reloadTables = async () => {
   // await loadTables()
 }
 
-const addTableTab = (table: TableType) => {
-  addTab({ title: table.title, id: table.id, type: table.type as TabType, projectId: table.project_id })
-}
-
 function openRenameTableDialog(table: TableType, baseId?: string, rightClick = false) {
   $e(rightClick ? 'c:table:rename:navdraw:right-click' : 'c:table:rename:navdraw:options')
 

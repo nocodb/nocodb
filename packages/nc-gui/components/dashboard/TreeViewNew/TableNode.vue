@@ -34,7 +34,9 @@ const { updateTab } = tabStore
 const { activeTab } = storeToRefs(tabStore)
 const { $e, $api } = useNuxtApp()
 
-const { deleteTable } = useTable()
+const { deleteTable } = useTableNew({
+  projectId: project.id!,
+})
 
 const projectRole = inject(ProjectRoleInj)
 

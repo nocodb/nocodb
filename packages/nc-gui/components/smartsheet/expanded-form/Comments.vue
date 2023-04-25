@@ -166,7 +166,7 @@ watch(
                   </p>
                 </div>
 
-                <p v-if="log.details" v-dompurify-html="log.details" class="caption my-3" style="word-break: break-all" />
+                <p v-else-if="log.details" v-dompurify-html="log.details" class="caption my-3" style="word-break: break-all" />
 
                 <p v-else>{{ log.description }}</p>
 

@@ -485,7 +485,7 @@ const isClearMode = computed(() => route.query.clear === '1' && route.params.pro
 
           <div
             key="g1"
-            class="overflow-y-auto transition-max-height"
+            class="overflow-y-auto overflow-x-hidden transition-max-height"
             :class="{ 'max-h-0': activeProjectId !== project.id, 'max-h-500': activeProjectId === project.id }"
           >
             <div v-if="project.type === 'documentation'">

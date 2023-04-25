@@ -26,7 +26,7 @@ concurrency:
 
 jobs:
     unit-tests-pg:
-      runs-on: ubuntu-20.04
+      runs-on: self-hosted
       timeout-minutes: 40
       if: ${{ github.event_name == 'push' || contains(github.event.pull_request.labels.*.name, 'trigger-CI') || !github.event.pull_request.draft }}
       steps:

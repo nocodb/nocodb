@@ -38,7 +38,12 @@ const activeView = ref()
 
 const fields = ref<ColumnType[]>([])
 
-const meta = computed<TableType | undefined>(() => activeTab.value && metas.value[activeTab.value.id!])
+const route = useRoute()
+
+const meta = computed<TableType | undefined>(() => {
+  const viewId = route.params.viewId as string
+  return viewId && metas.value[viewId]
+})
 
 const { isGallery, isGrid, isForm, isKanban, isLocked, isMap } = useProvideSmartsheetStore(activeView, meta)
 

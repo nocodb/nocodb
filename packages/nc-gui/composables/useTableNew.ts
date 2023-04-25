@@ -19,7 +19,7 @@ import {
 } from '#imports'
 import { TabType } from '~/lib'
 
-export function useTableNew(param: { onTableCreate?: (tableMeta: TableType) => void; projectId: string; baseId: string }) {
+export function useTableNew(param: { onTableCreate?: (tableMeta: TableType) => void; projectId: string; baseId?: string }) {
   const table = reactive<{ title: string; table_name: string; columns: string[] }>({
     title: '',
     table_name: '',
@@ -30,15 +30,21 @@ export function useTableNew(param: { onTableCreate?: (tableMeta: TableType) => v
 
   const { $e, $api } = useNuxtApp()
 
-  const { getMeta, removeMeta } = useMetas()
+  const { getMeta, removeMeta, metas } = useMetas()
 
   const { closeTab } = useTabs()
 
   const { refreshCommandPalette } = useCommandPalette()
 
+  const router = useRouter()
+
+  const route = $(router.currentRoute)
+
   const projectsStore = useProjects()
 
   const { projects, projectTableList } = storeToRefs(projectsStore)
+
+  const workspaceId = $computed(() => route.params.workspaceId as string)
 
   // const projectStore = useProject()
 
@@ -204,6 +210,27 @@ export function useTableNew(param: { onTableCreate?: (tableMeta: TableType) => v
     })
   }
 
+  const openTable = async (table: TableType) => {
+    if (!table.project_id) return
+
+    let project = projects.value[table.project_id]
+    if (!project) {
+      await projectsStore.loadProject(table.project_id)
+      await projectsStore.loadProjectTables(table.project_id)
+
+      project = projects.value[table.project_id]
+    }
+
+    await getMeta(table.id as string)
+
+    const projectType = (route.params.projectType as string) || 'nc'
+
+    await navigateTo({
+      path: `/ws/${workspaceId}/${projectType}/${project.id!}/table/${table?.id}${table.title ? `/${table.title}` : ''}`,
+      query: route.query,
+    })
+  }
+
   return {
     table,
     tables,
@@ -217,5 +244,6 @@ export function useTableNew(param: { onTableCreate?: (tableMeta: TableType) => v
     // tables,
     // project,
     deleteTable,
+    openTable,
   }
 }

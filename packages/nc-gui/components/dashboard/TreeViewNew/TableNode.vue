@@ -25,6 +25,8 @@ const project = $(toRef(props, 'project'))
 const table = $(toRef(props, 'table'))
 const baseIndex = $(toRef(props, 'baseIndex'))
 
+const route = useRoute()
+
 const { isUIAllowed } = useUIPermission()
 
 const tabStore = useTabs()
@@ -39,7 +41,7 @@ const projectRole = inject(ProjectRoleInj)
 // todo: temp
 const { projectTableList } = storeToRefs(useProjects())
 
-const activeTable = computed(() => ([TabType.TABLE, TabType.VIEW].includes(activeTab.value?.type) ? activeTab.value.id : null))
+const openedTableId = computed(() => route.params.viewId)
 
 const icon = (table: TableType) => {
   if (table.type === 'table') {
@@ -103,15 +105,15 @@ const { isSharedBase } = useProject()
     :data-testid="`tree-view-table-${table.title}`"
     :class="[
       // todo: table filter
-      // { hidden: !filteredTables?.includes(table), active: activeTable === table.id },
+      // { hidden: !filteredTables?.includes(table), active: openedTableId === table.id },
       `nc-project-tree-tbl nc-project-tree-tbl-${table.title}`,
-      { active: activeTable === table.id },
+      { active: openedTableId === table.id },
     ]"
   >
     <GeneralTooltip
       class="pl-4 pr-3 py-1.5 mt-0.65 rounded-md"
       :class="{
-        'hover:bg-gray-200': activeTable !== table.id,
+        'hover:bg-gray-200': openedTableId !== table.id,
       }"
       modifier-key="Alt"
     >
@@ -152,7 +154,7 @@ const { isSharedBase } = useProject()
         </div>
 
         <div class="nc-tbl-title flex-1">
-          <GeneralTruncateText :key="table.title" :length="activeTable === table.id ? 18 : 20"
+          <GeneralTruncateText :key="table.title" :length="openedTableId === table.id ? 18 : 20"
             >{{ table.title }}
           </GeneralTruncateText>
         </div>
@@ -168,7 +170,7 @@ const { isSharedBase } = useProject()
             icon="threeDotVertical"
             class="transition-opacity opacity-0 group-hover:opacity-100 outline-0"
             :class="{
-              '!text-gray-600': activeTable !== table.id,
+              '!text-gray-600': openedTableId !== table.id,
             }"
           />
 

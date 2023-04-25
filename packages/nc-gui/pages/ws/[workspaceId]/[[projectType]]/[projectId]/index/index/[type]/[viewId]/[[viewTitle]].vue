@@ -20,14 +20,14 @@ const viewType = computed(() => {
 })
 
 watch(
-  () => route.params.title,
-  (tableTitle) => {
+  () => route.params.viewId,
+  (viewId) => {
     /** wait until table list loads since meta load requires table list **/
     until(tables)
       .toMatch((tables) => tables.length > 0)
       .then(() => {
         loading.value = true
-        getMeta(tableTitle as string, true).finally(() => (loading.value = false))
+        getMeta(viewId as string, true).finally(() => (loading.value = false))
       })
   },
   { immediate: true },

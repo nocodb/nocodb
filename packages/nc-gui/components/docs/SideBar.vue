@@ -292,9 +292,9 @@ onMounted(async () => {
       </div>
     </a-layout-sider>
     <a-modal v-model:visible="deleteModalOpen" centered :closable="false" :footer="false">
-      <div class="flex flex-col">
-        <div class="flex">Are you sure you want to delete this page?</div>
-        <div class="flex flex-row mt-4 space-x-3 ml-2">
+      <div class="flex flex-col ml-2">
+        <div class="flex ml-1">Are you sure you want to delete this page?</div>
+        <div class="flex flex-row mt-4 space-x-3">
           <a-button type="text" @click="deleteModalOpen = false">Cancel</a-button>
           <a-button type="danger" data-testid="docs-page-delete-confirmation" @click="onDeletePage">Delete</a-button>
         </div>

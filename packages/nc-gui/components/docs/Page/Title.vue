@@ -100,8 +100,8 @@ onMounted(() => {
   <div
     class="flex flex-row gap-x-2 items-end"
     :class="{
-      'ml-6.5': !isPublic,
-      'ml-0.75': isPublic,
+      'ml-7': !isPublic,
+      '-ml-0.5': isPublic,
     }"
     data-testid="docs-page-title-wrapper"
   >

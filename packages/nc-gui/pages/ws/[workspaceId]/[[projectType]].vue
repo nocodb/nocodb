@@ -54,7 +54,7 @@ const currentVersion = ref('')
         :collapsed="!isOpen"
         width="250"
         collapsed-width="50"
-        class="relative shadow-md h-full z-1 nc-left-sidebar"
+        class="relative h-full z-1 nc-left-sidebar !border-r-1 border-gray-100"
         :trigger="null"
         collapsible
         theme="light"
@@ -62,7 +62,7 @@ const currentVersion = ref('')
         <div
           style="height: var(--header-height); border-bottom-width: 1px"
           :class="isOpen ? 'pl-4' : ''"
-          class="flex items-center px-1 gap-1 nc-sidebar-header"
+          class="flex items-center px-1 gap-1 nc-sidebar-header border-gray-100"
         >
           <div
             v-if="isOpen && !isSharedBase"

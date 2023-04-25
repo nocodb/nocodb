@@ -184,7 +184,15 @@ watch(wrapperRef, () => {
 
 <template>
   <a-layout-content>
-    <div ref="wrapperRef" data-testid="docs-opened-page" class="nc-docs-page h-full flex flex-row relative">
+    <div
+      ref="wrapperRef"
+      data-testid="docs-opened-page"
+      class="nc-docs-page h-full flex flex-row relative"
+      :class="{
+        '!pt-0': isPublic,
+        'pt-1': !isPublic,
+      }"
+    >
       <div
         class="flex flex-col w-full"
         :class="{
@@ -192,7 +200,7 @@ watch(wrapperRef, () => {
           editable: isEditAllowed,
         }"
       >
-        <div class="flex flex-row justify-between items-center pl-6 pt-2.5">
+        <div class="flex flex-row justify-between items-center pl-6 py-2.5">
           <div class="flex flex-row h-6">
             <template v-if="flattenedNestedPages.length !== 0">
               <div v-for="({ href, title, icon, id }, index) of breadCrumbs" :key="id" class="flex">
@@ -280,7 +288,16 @@ watch(wrapperRef, () => {
         </div>
       </div>
     </div>
-    <div class="absolute right-0 top-0 pt-2 mr-3">
+    <div class="absolute right-10 top-2.25">
+      <LazyGeneralShareProject />
+    </div>
+    <div
+      class="absolute right-0 pt-2 mr-2.5"
+      :class="{
+        'top-0.25': isPublic,
+        'top-1': !isPublic,
+      }"
+    >
       <DocsPageOutline v-if="openedPage && wrapperRef" :key="openedPage.id" :wrapper-ref="wrapperRef" />
     </div>
   </a-layout-content>

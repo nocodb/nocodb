@@ -230,3 +230,23 @@ export const isCursorAtStartOfSelectedNode = (state: EditorState) => {
 
   return offset === 0
 }
+
+/**
+ * Ignore upload placeholder node while syncing with server
+ * @param pageContent
+ * @returns pageContent
+ */
+export const removeUploadingPlaceHolder = (pageContent: any) => {
+  const newContent = { ...pageContent }
+
+  newContent.content = newContent.content.filter((node: any) => {
+    const childNode = node.content?.length > 0 ? node.content[0] : null
+    if (!childNode) return true
+
+    const isUploading = (childNode.type.name !== 'image' || childNode.type.name === 'attachment') && childNode.attrs?.isUploading
+
+    return !isUploading
+  })
+
+  return newContent
+}

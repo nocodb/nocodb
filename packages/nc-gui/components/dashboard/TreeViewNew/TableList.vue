@@ -30,9 +30,9 @@ const { projectTableList } = storeToRefs(projectsStore)
 
 const { $api } = useNuxtApp()
 
-const addTableTab = (table: TableType) => {
-  addTab({ title: table.title, id: table.id, type: table.type as TabType, projectId: table.project_id })
-}
+const { openTable } = useTableNew({
+  projectId: project.value.id!,
+})
 
 const tablesById = $computed(() =>
   projectTableList.value[project.value.id!]?.reduce<Record<string, TableType>>((acc, table) => {
@@ -131,7 +131,7 @@ const menuRef = (divEl: HTMLDivElement) => {
         :table="table"
         :project="project"
         :base-index="baseIndex"
-        @click="addTableTab(table)"
+        @click="openTable(table)"
       >
       </TableNode>
     </div>

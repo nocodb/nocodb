@@ -3,7 +3,7 @@
 @import '@vue-flow/core/dist/theme-default.css';
 
 :root {
-  --header-height: 42px;
+  --header-height: 48px;
   --new-header-height: 58px;
   --toolbar-height: 48px;
   --tw-text-opacity: 1;
@@ -303,10 +303,10 @@ a {
 }
 
 .ant-modal {
-  @apply !top-[50px];
+  @apply !top-[50px] ;
 }
 .ant-modal-content {
-  @apply !rounded-md;
+  @apply !rounded-md !px-4 py-4.5;
 }
 .ant-modal-body {
   @apply !p-0;

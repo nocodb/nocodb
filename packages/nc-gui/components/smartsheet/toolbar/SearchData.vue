@@ -49,10 +49,10 @@ function onPressEnter() {
 </script>
 
 <template>
-  <div class="flex flex-row border-1 rounded-sm">
+  <div class="flex flex-row border-1 rounded-md p-0.25">
     <div
       ref="searchDropdown"
-      class="flex items-center relative bg-gray-50 px-2 cursor-pointer border-r-1"
+      class="flex items-center relative bg-gray-50 px-2 cursor-pointer border-r-1 p-0.25"
       :class="{ '!bg-gray-100 ': isDropdownOpen }"
       @click="isDropdownOpen = !isDropdownOpen"
     >

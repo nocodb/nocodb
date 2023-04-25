@@ -39,6 +39,7 @@ export const useTabs = defineStore('tabStore', () => {
   const previousActiveTabIndex = ref(-1)
   const activeTabIndex: WritableComputedRef<number> = computed({
     get() {
+      return 0
       const routeName = route.name as string
 
       if (routeName.includes('doc-index-pageId')) {
@@ -102,6 +103,7 @@ export const useTabs = defineStore('tabStore', () => {
       return 0
     },
     set(index: number) {
+      return
       if (index === -1) {
         navigateTo({
           path: `/ws/${workspaceId}/${projectType}/${project?.id}`,
@@ -129,13 +131,14 @@ export const useTabs = defineStore('tabStore', () => {
     },
   })
 
-  watch(activeTabIndex, (_, old) => {
-    previousActiveTabIndex.value = old
-  })
+  // watch(activeTabIndex, (_, old) => {
+  //   previousActiveTabIndex.value = old
+  // })
 
   const activeTab = computed(() => tabs.value?.[activeTabIndex.value])
 
   const addTab = async (tabMeta: TabItem) => {
+    return
     if (tabMeta.type === TabType.DOCUMENT) {
       const index = tabs.value.findIndex((tab) => tab.id === tabMeta.id)
       if (index > -1) {
@@ -183,6 +186,7 @@ export const useTabs = defineStore('tabStore', () => {
   }
 
   const closeTab = async (key: number | Partial<TabItem>) => {
+    return
     const index = typeof key === 'number' ? key : tabs.value.findIndex(getPredicate(key))
 
     if (activeTabIndex.value === index) {
@@ -204,6 +208,7 @@ export const useTabs = defineStore('tabStore', () => {
   }
 
   function navigateToTab(tab: TabItem) {
+    return 0
     if (!tab.id || !tab.projectId) {
       console.error('tab.id or tab.projectId is not defined:', tab)
       throw new Error('tab.id or tab.projectId is not defined')
@@ -252,6 +257,7 @@ export const useTabs = defineStore('tabStore', () => {
   }
 
   const updateTab = (key: number | Partial<TabItem>, newTabItemProps: Partial<TabItem>) => {
+    return
     const tab = typeof key === 'number' ? tabs.value[key] : tabs.value.find(getPredicate(key))
 
     if (tab) {
@@ -272,6 +278,7 @@ export const useTabs = defineStore('tabStore', () => {
   watch(
     () => route.name,
     (n, o) => {
+      return
       if (n === o) return
       if (!n || !/projectType-projectId-index-index/.test(n.toString())) return
       const activeTabRoute = n.toString().replace(/ws-workspaceId-projectType-projectId-index-index-/, '')

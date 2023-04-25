@@ -30,7 +30,7 @@ useEventListener(document, 'keydown', async (e: KeyboardEvent) => {
     :data-sharetype="visibility"
   >
     <div
-      class="flex flex-row items-center gap-x-1.5 bg-primary text-white hover:bg-opacity-80 py-0.75 px-2 rounded-md cursor-pointer"
+      class="flex flex-row items-center gap-x-1.5 bg-primary text-white hover:bg-opacity-80 py-1 px-2.5 rounded-md cursor-pointer z-10"
       :class="{
         '!pl-3': visibility === 'none',
       }"

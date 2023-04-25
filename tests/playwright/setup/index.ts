@@ -2,7 +2,65 @@ import { Page, selectors } from '@playwright/test';
 import axios from 'axios';
 import { Api, ProjectType, ProjectTypes, UserType, WorkspaceType } from 'nocodb-sdk';
 import { getDefaultPwd } from '../tests/utils/general';
+import { knex } from 'knex';
+import { promises as fs } from 'fs';
 let api: Api<any>;
+
+// Use local reset logic instead of remote
+const enableLocalInit = true;
+
+// PG Configuration
+//
+const config = {
+  client: 'pg',
+  connection: {
+    host: 'localhost',
+    port: 5432,
+    user: 'postgres',
+    password: 'password',
+    database: 'postgres',
+    multipleStatements: true,
+  },
+  searchPath: ['public', 'information_schema'],
+  pool: { min: 0, max: 5 },
+};
+
+// Sakila Knex Configuration
+//
+const sakilaKnexConfig = (parallelId: string) => ({
+  ...config,
+  connection: {
+    ...config.connection,
+    database: `sakila_${parallelId}`,
+  },
+});
+
+// External PG Project create payload
+//
+const extPgProject = (workspaceId, title, parallelId, projectType) => ({
+  fk_workspace_id: workspaceId,
+  title,
+  type: projectType,
+  bases: [
+    {
+      type: 'pg',
+      config: {
+        client: 'pg',
+        connection: {
+          host: 'localhost',
+          port: '5432',
+          user: 'postgres',
+          password: 'password',
+          database: `sakila_${parallelId}`,
+        },
+        searchPath: ['public'],
+      },
+      inflection_column: 'camelize',
+      inflection_table: 'camelize',
+    },
+  ],
+  external: true,
+});
 
 const workerCount = {};
 
@@ -17,14 +75,23 @@ export interface NcContext {
 
 selectors.setTestIdAttribute('data-testid');
 
-const enableLocalInit = false;
-async function localInit({ parallelId = process.env.TEST_PARALLEL_INDEX }: { parallelId: string }) {
+async function localInit({
+  parallelId = process.env.TEST_PARALLEL_INDEX,
+  isEmptyProject = false,
+  projectType = ProjectTypes.DATABASE,
+}: {
+  parallelId: string;
+  isEmptyProject?: boolean;
+  projectType?: ProjectTypes;
+}) {
+  // Login as root user
   const response = await axios.post('http://localhost:8080/api/v1/auth/user/signin', {
     email: 'user@nocodb.com',
     password: getDefaultPwd(),
   });
   const token = response.data.token;
 
+  // Init SDK using token
   api = new Api({
     baseURL: `http://localhost:8080/`,
     headers: {
@@ -35,32 +102,42 @@ async function localInit({ parallelId = process.env.TEST_PARALLEL_INDEX }: { par
   const workspaceTitle = `ws_pgExtREST${parallelId}`;
   const projectTitle = `pgExtREST${parallelId}`;
 
-  // get workspace list
+  // Delete all workspaces
   const ws = await api.workspace.list();
-  // delete all workspaces
   for (const w of ws.list) {
     await api.workspace.delete(w.id);
   }
+
+  // DB reset
+  const pgknex = knex(config);
+  await pgknex.raw(`DROP DATABASE IF EXISTS sakila_${parallelId} WITH (FORCE)`);
+  await pgknex.raw(`CREATE DATABASE sakila_${parallelId}`);
+  await pgknex.destroy();
+
+  if (!isEmptyProject) {
+    await resetSakilaPg(parallelId);
+  }
+
   // create a new workspace
   const workspace = await api.workspace.create({
     title: workspaceTitle,
   });
-  // create a new project under the workspace we just created
-  const project = await api.project.create({
-    title: projectTitle,
-    // @ts-expect-error
-    fk_workspace_id: workspace.id,
-    type: 'database',
-  });
 
-  // get all users list
-  // const users = await api.workspaceUser.list(newWs.id);
-  // delete all users except user@nocodb.com
-  // for (const u of users.list) {
-  //   if (u.email !== 'user@nocodb.com') {
-  //     await api.workspaceUser.delete(newWs.id, u.id);
-  //   }
-  // }
+  let project;
+  if (isEmptyProject) {
+    // create a new project under the workspace we just created
+    project = await api.project.create({
+      title: projectTitle,
+      // @ts-expect-error
+      fk_workspace_id: workspace.id,
+      type: projectType,
+    });
+  } else {
+    if ('id' in workspace) {
+      // @ts-ignore
+      project = await api.project.create(extPgProject(workspace.id, projectTitle, parallelId, projectType));
+    }
+  }
 
   // get current user information
   const user = await api.auth.me();
@@ -81,19 +158,27 @@ const setup = async ({
 }): Promise<NcContext> => {
   // on noco-hub, only PG is supported
   const dbType = 'pg';
+  let response, workerId;
 
-  const workerIndex = process.env.TEST_PARALLEL_INDEX;
-  if (!workerCount[workerIndex]) {
-    workerCount[workerIndex] = 0;
+  // local parallel execution not supported with local init
+  if (enableLocalInit) {
+    workerId = '0';
+  } else {
+    const workerIndex = process.env.TEST_PARALLEL_INDEX;
+    if (!workerCount[workerIndex]) {
+      workerCount[workerIndex] = 0;
+    }
+    workerCount[workerIndex]++;
+    workerId = String(Number(workerIndex) + Number(workerCount[workerIndex]) * 4);
   }
-  workerCount[workerIndex]++;
-  const workerId = String(Number(workerIndex) + Number(workerCount[workerIndex]) * 4);
 
-  let response;
   try {
-    if (isEmptyProject && enableLocalInit) {
-      response = await localInit({ parallelId: process.env.TEST_PARALLEL_INDEX });
-    } else {
+    // Localised reset logic
+    if (enableLocalInit) {
+      response = await localInit({ parallelId: process.env.TEST_PARALLEL_INDEX, isEmptyProject, projectType });
+    }
+    // Remote reset logic
+    else {
       response = await axios.post(`http://localhost:8080/api/v1/meta/test/reset`, {
         parallelId: process.env.TEST_PARALLEL_INDEX,
         workerId: workerId,
@@ -156,6 +241,29 @@ const setup = async ({
 
   await page.goto(projectUrl, { waitUntil: 'networkidle' });
   return { project, token, dbType, workerId, rootUser, workspace } as NcContext;
+};
+
+// Reference
+// packages/nocodb/src/lib/services/test/TestResetService/resetPgSakilaProject.ts
+//
+const resetSakilaPg = async (parallelId: string) => {
+  const testsDir = __dirname.replace('/tests/playwright/setup', '/packages/nocodb/tests');
+
+  try {
+    const sakilaKnex = knex(sakilaKnexConfig(parallelId));
+    const schemaFile = await fs.readFile(`${testsDir}/pg-sakila-db/01-postgres-sakila-schema.sql`);
+    await sakilaKnex.raw(schemaFile.toString());
+
+    const trx = await sakilaKnex.transaction();
+    const dataFile = await fs.readFile(`${testsDir}/pg-sakila-db/02-postgres-sakila-insert-data.sql`);
+    await trx.raw(dataFile.toString());
+    await trx.commit();
+
+    await sakilaKnex.destroy();
+  } catch (e) {
+    console.error(`Error resetting pg sakila db: Worker ${parallelId}`);
+    throw Error(`Error resetting pg sakila db: Worker ${parallelId}`);
+  }
 };
 
 // General purpose API based routines

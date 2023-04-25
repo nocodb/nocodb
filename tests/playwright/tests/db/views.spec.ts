@@ -4,7 +4,7 @@ import { ToolbarPage } from '../../pages/Dashboard/common/Toolbar';
 import setup from '../../setup';
 import { isHub } from '../../setup/db';
 
-test.describe.only('Views CRUD Operations', () => {
+test.describe('Views CRUD Operations', () => {
   let dashboard: DashboardPage;
   let context: any;
   let toolbar: ToolbarPage;

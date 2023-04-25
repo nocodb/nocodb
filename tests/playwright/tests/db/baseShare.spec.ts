@@ -4,6 +4,7 @@ import setup from '../../setup';
 import { ToolbarPage } from '../../pages/Dashboard/common/Toolbar';
 import { LoginPage } from '../../pages/LoginPage';
 import { ProjectsPage } from '../../pages/ProjectsPage';
+import { getDefaultPwd } from '../utils/general';
 
 test.describe('Shared base', () => {
   let dashboard: DashboardPage;
@@ -47,7 +48,7 @@ test.describe('Shared base', () => {
   }
 
   test.beforeEach(async ({ page }) => {
-    context = await setup({ page });
+    context = await setup({ page, isEmptyProject: false });
     dashboard = new DashboardPage(page, context.project);
     projectPage = new ProjectsPage(page);
     toolbar = dashboard.grid.toolbar;
@@ -77,7 +78,7 @@ test.describe('Shared base', () => {
 
     await loginPage.signIn({
       email: 'user@nocodb.com',
-      password: 'Password123.',
+      password: getDefaultPwd(),
       withoutPrefix: true,
     });
 

@@ -11,7 +11,7 @@ test.describe('Enterprise License', () => {
   let accountLicensePage: AccountLicensePage, accountPage: AccountPage, context: any;
 
   test.beforeEach(async ({ page }) => {
-    context = await setup({ page });
+    context = await setup({ page, isEmptyProject: true });
     accountPage = new AccountPage(page);
     accountLicensePage = new AccountLicensePage(accountPage);
     dashboard = new DashboardPage(page, context.project);

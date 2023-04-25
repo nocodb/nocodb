@@ -11,7 +11,7 @@ test.describe('Mobile Mode', () => {
   let form: FormPage;
 
   test.beforeEach(async ({ page }) => {
-    context = await setup({ page });
+    context = await setup({ page, isEmptyProject: false });
     dashboard = new DashboardPage(page, context.project);
     form = dashboard.form;
     toolbar = dashboard.grid.toolbar;

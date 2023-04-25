@@ -10,7 +10,7 @@ test.describe('User roles', () => {
   let context: any;
 
   test.beforeEach(async ({ page }) => {
-    context = await setup({ page });
+    context = await setup({ page, isEmptyProject: true });
     accountPage = new AccountPage(page);
     accountTokenPage = new AccountTokenPage(accountPage);
   });

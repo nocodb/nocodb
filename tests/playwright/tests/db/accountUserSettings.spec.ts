@@ -3,6 +3,7 @@ import { AccountPage } from '../../pages/Account';
 import { AccountSettingsPage } from '../../pages/Account/Settings';
 import { SignupPage } from '../../pages/SignupPage';
 import setup from '../../setup';
+import { getDefaultPwd } from '../utils/general';
 
 test.describe('App settings', () => {
   let accountSettingsPage: AccountSettingsPage;
@@ -11,7 +12,7 @@ test.describe('App settings', () => {
   let context: any;
 
   test.beforeEach(async ({ page }) => {
-    context = await setup({ page });
+    context = await setup({ page, isEmptyProject: true });
     accountPage = new AccountPage(page);
     accountSettingsPage = accountPage.settings;
   });
@@ -39,7 +40,7 @@ test.describe('App settings', () => {
 
     await signupPage.signUp({
       email: 'test-user-1@nocodb.com',
-      password: 'Password123.',
+      password: getDefaultPwd(),
       expectedError: 'Not allowed to signup, contact super admin.',
     });
 
@@ -59,7 +60,7 @@ test.describe('App settings', () => {
 
     await signupPage.signUp({
       email: 'test-user-1@nocodb.com',
-      password: 'Password123.',
+      password: getDefaultPwd(),
     });
   });
 });

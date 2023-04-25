@@ -4,6 +4,7 @@ import { AccountUsersPage } from '../../pages/Account/Users';
 import { ProjectsPage } from '../../pages/ProjectsPage';
 import { SignupPage } from '../../pages/SignupPage';
 import setup from '../../setup';
+import { getDefaultPwd } from '../utils/general';
 
 const roleDb = [
   { email: 'creator@nocodb.com', role: 'Organization Level Creator', url: '' },
@@ -19,7 +20,7 @@ test.describe('User roles', () => {
   let context: any;
 
   test.beforeEach(async ({ page }) => {
-    context = await setup({ page });
+    context = await setup({ page, isEmptyProject: true });
     accountPage = new AccountPage(page);
     accountUsersPage = new AccountUsersPage(accountPage);
 
@@ -68,7 +69,7 @@ test.describe('User roles', () => {
 
     await signupPage.signUp({
       email: roleDb[roleIdx].email,
-      password: 'Password123.',
+      password: getDefaultPwd(),
     });
 
     await projectsPage.checkProjectCreateButton({

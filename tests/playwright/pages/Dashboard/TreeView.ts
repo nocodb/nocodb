@@ -82,7 +82,7 @@ export class TreeViewPage extends BasePage {
       await this.dashboard.waitForTabRender({ title, mode });
     } else {
       await this.get().locator(`.nc-project-tree-tbl-${title}`).click();
-      await this.rootPage.waitForTimeout(3000);
+      await this.rootPage.waitForTimeout(300);
     }
   }
 

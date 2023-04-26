@@ -102,10 +102,10 @@ watch(dragDomRef, () => {
       .filter((el) => el.classList.contains('draggable-block-wrapper'))
     if (!elementsOnMouse.length) return
 
+    const pos = getPos()
     const topMostElement = elementsOnMouse[0]
-    const childOfTopElement = topMostElement.childNodes[0] as HTMLDivElement
 
-    if (Number(childOfTopElement.getAttribute('pos')) === getPos()) {
+    if (Number(topMostElement.getAttribute('pos')) === pos) {
       showDragOptions.value = true
     } else {
       showDragOptions.value = false
@@ -119,7 +119,7 @@ watch(dragDomRef, () => {
 </script>
 
 <template>
-  <NodeViewWrapper class="vue-component draggable-block-wrapper">
+  <NodeViewWrapper class="vue-component draggable-block-wrapper" :pos="getPos()">
     <div
       v-if="!isPublic"
       ref="dragDomRef"

@@ -151,6 +151,7 @@ export class GridPage extends BasePage {
 
     // Click text=Delete Row
     await this.rootPage.locator('text=Delete Row').click();
+    await this.rootPage.locator('text=Yes').click();
     // todo: improve selector
     await this.rootPage
       .locator('span.ant-dropdown-menu-title-content > nc-project-menu-item')

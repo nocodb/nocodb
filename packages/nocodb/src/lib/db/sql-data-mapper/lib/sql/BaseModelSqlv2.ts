@@ -2402,6 +2402,7 @@ class BaseModelSqlv2 {
   ): Promise<void> {
     const id = this._extractPksValues(newData);
     let desc = `Record with ID ${id} has been updated in Table ${this.model.title}.`;
+    let details = '';
     if (updateObj) {
       updateObj = await this.model.mapColumnToAlias(updateObj);
       for (const k of Object.keys(updateObj)) {
@@ -2415,6 +2416,9 @@ class BaseModelSqlv2 {
             : newData[k];
         desc += `\n`;
         desc += `Column "${k}" got changed from "${prevValue}" to "${newValue}"`;
+        details += DOMPurify.sanitize(`<span class="">${k}</span>
+  : <span class="text-decoration-line-through red px-2 lighten-4 black--text">${prevValue}</span>
+  <span class="black--text green lighten-4 px-2">${newValue}</span>`);
       }
     }
     await Audit.insert({
@@ -2423,7 +2427,7 @@ class BaseModelSqlv2 {
       op_type: AuditOperationTypes.DATA,
       op_sub_type: AuditOperationSubTypes.UPDATE,
       description: DOMPurify.sanitize(desc),
-      // details: JSON.stringify(data),
+      details,
       ip: req?.clientIp,
       user: req?.user?.email,
     });

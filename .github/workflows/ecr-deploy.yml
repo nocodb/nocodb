@@ -22,11 +22,11 @@ jobs:
       uses: actions/checkout@v2
 
     - uses: bahmutov/npm-install@v1
-        with:
-          working-directory: ${{ env.working-directory }}
+      with:
+        working-directory: ${{ env.working-directory }}
     
     - name: Build nocodb and docker files
-        run: |
+      run: |
           npm run build
           npm run docker:build
         working-directory: ${{ env.working-directory }}

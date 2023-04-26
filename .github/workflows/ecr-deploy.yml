@@ -1,0 +1,45 @@
+on:
+  push:
+    tags:
+      - v[0-9]+.[0-9]+.[0-9]+
+
+
+name: Deploy to Amazon ECR in the dev environment
+permissions:
+  id-token: write
+  contents: read
+  packages: read
+
+jobs:
+  deploy:
+    name: Deploy
+    runs-on: ubuntu-latest
+    env:
+      working-directory: ./packages/nocodb
+
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v2
+
+    - uses: bahmutov/npm-install@v1
+        with:
+          working-directory: ${{ env.working-directory }}
+    
+    - name: Build nocodb and docker files
+        run: |
+          npm run build
+          npm run docker:build
+        working-directory: ${{ env.working-directory }}
+
+    - name: build
+      shell: bash
+      run: |
+        docker build -t "${{ github.ref_name }}" -f ./packages/nocodb/Dockerfile .
+
+    - name: push ecr
+      uses: Deep-Consulting-Solutions/ecr-deploy-action@main
+      with:
+        service-key: 'nocodb' 
+        account: ${{ secrets.DCS_AWS_ACCOUNT }}
+        source-image: ${{ github.ref_name }}
+        tag: ${{ github.ref_name }}

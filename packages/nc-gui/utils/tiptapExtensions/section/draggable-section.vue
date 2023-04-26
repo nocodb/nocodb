@@ -11,11 +11,13 @@ const dragClicked = ref(false)
 const optionsPopoverRef = ref()
 const showDragOptions = ref(false)
 const dragDomRef = ref<HTMLDivElement | undefined>()
+const isDragging = ref(false)
+
+const pos = computed(() => getPos())
 
 const parentNodeType = computed(() => {
   try {
-    const pos = getPos()
-    const resolvedPos = editor.state.doc.resolve(pos)
+    const resolvedPos = editor.state.doc.resolve(pos.value)
     const parent = resolvedPos.node(resolvedPos.depth - 1)
     return parent?.type.name
   } catch (e) {
@@ -39,9 +41,9 @@ const optionWrapperStyle = computed(() => {
 })
 
 const createNodeAfter = () => {
-  const pos = getPos() + node.nodeSize
+  const toBeInsertedPos = pos.value + node.nodeSize
 
-  editor.commands.insertContentAt(pos, {
+  editor.commands.insertContentAt(toBeInsertedPos, {
     type: 'sec',
     content: [
       {
@@ -60,7 +62,7 @@ const createNodeAfter = () => {
 const onDragClick = () => {
   dragClicked.value = !dragClicked.value
 
-  editor.view.dispatch(editor.state.tr.setSelection(TextSelection.create(editor.state.doc, getPos() + 2)))
+  editor.view.dispatch(editor.state.tr.setSelection(TextSelection.create(editor.state.doc, pos.value + 2)))
 
   // We use timeout as 'focused' class takes time to be added
   setTimeout(() => {
@@ -76,11 +78,9 @@ onClickOutside(optionsPopoverRef, () => {
 })
 
 const deleteNode = () => {
-  editor.commands.deleteRange({ from: getPos(), to: getPos() + node.nodeSize })
+  editor.commands.deleteRange({ from: pos.value, to: pos.value + node.nodeSize })
   dragClicked.value = false
 }
-
-const isDragging = ref(false)
 
 watch(
   () => editor.view.dragging,
@@ -102,10 +102,9 @@ watch(dragDomRef, () => {
       .filter((el) => el.classList.contains('draggable-block-wrapper'))
     if (!elementsOnMouse.length) return
 
-    const pos = getPos()
     const topMostElement = elementsOnMouse[0]
 
-    if (Number(topMostElement.getAttribute('pos')) === pos) {
+    if (Number(topMostElement.getAttribute('pos')) === pos.value) {
       showDragOptions.value = true
     } else {
       showDragOptions.value = false
@@ -119,13 +118,13 @@ watch(dragDomRef, () => {
 </script>
 
 <template>
-  <NodeViewWrapper class="vue-component draggable-block-wrapper" :pos="getPos()">
+  <NodeViewWrapper class="vue-component draggable-block-wrapper" :pos="pos">
     <div
       v-if="!isPublic"
       ref="dragDomRef"
       class="flex flex-row gap-0.5 w-full items-start"
       tiptap-draghandle-wrapper="true"
-      :pos="getPos()"
+      :pos="pos"
     >
       <div class="flex flex-row relative" :style="optionWrapperStyle">
         <div

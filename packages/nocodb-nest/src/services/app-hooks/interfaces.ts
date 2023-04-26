@@ -44,15 +44,7 @@ export interface UserSigninEvent {
   user: UserType;
 }
 
-export interface TableCreateEvent {
-  table: TableType;
-  user: UserType;
-}
-export interface TableUpdateEvent {
-  table: TableType;
-  user: UserType;
-}
-export interface TableDeleteEvent {
+export interface TableEvent {
   table: TableType;
   user: UserType;
 }
@@ -66,5 +58,4 @@ export type AppEventPayload =
   | WelcomeEvent
   | UserSignupEvent
   | UserSigninEvent
-  | TableUpdateEvent
-  | TableDeleteEvent;
+|TableEvent

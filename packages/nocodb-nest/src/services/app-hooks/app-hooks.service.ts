@@ -5,9 +5,7 @@ import type {
   ProjectDeleteEvent,
   ProjectInviteEvent,
   ProjectUpdateEvent,
-  TableCreateEvent,
-  TableDeleteEvent,
-  TableUpdateEvent,
+  TableEvent,
   UserSigninEvent,
   UserSignupEvent,
   WelcomeEvent,
@@ -51,9 +49,6 @@ export enum AppEvents {
   SORT_CREATE = 'sort.create',
   SORT_DELETE = 'sort.delete',
   SORT_UPDATE = 'sort.update',
-
-
-
 }
 
 @Injectable()
@@ -85,21 +80,13 @@ export class AppHooksService {
     event: AppEvents.USER_SIGNIN,
     listener: (data: UserSigninEvent) => void,
   ): void;
+  on(event: AppEvents.WELCOME, listener: (data: WelcomeEvent) => void): void;
   on(
-    event: AppEvents.WELCOME,
-    listener: (data: WelcomeEvent) => void,
-  ): void;
-  on(
-    event: AppEvents.TABLE_CREATE,
-    listener: (data: TableCreateEvent) => void,
-  ): void;
-  on(
-    event: AppEvents.TABLE_DELETE,
-    listener: (data: TableDeleteEvent) => void,
-  ): void;
-  on(
-    event: AppEvents.TABLE_UPDATE,
-    listener: (data: TableUpdateEvent) => void,
+    event:
+      | AppEvents.TABLE_CREATE
+      | AppEvents.TABLE_DELETE
+      | AppEvents.TABLE_UPDATE,
+    listener: (data: TableEvent) => void,
   ): void;
   on(event: AppEvents, listener: (...args: any[]) => void): void {
     const listeners = this.listeners.get(event) || [];
@@ -115,9 +102,13 @@ export class AppHooksService {
   emit(event: AppEvents.USER_SIGNIN, data: UserSigninEvent): void;
   emit(event: AppEvents.WORKSPACE_INVITE, data: WorkspaceInviteEvent): void;
   emit(event: AppEvents.WELCOME, data: WelcomeEvent): void;
-  emit(event: AppEvents.TABLE_UPDATE, data: TableUpdateEvent): void;
-  emit(event: AppEvents.TABLE_CREATE, data: TableCreateEvent): void;
-  emit(event: AppEvents.TABLE_DELETE, data: TableDeleteEvent): void;
+  emit(
+    event:
+      | AppEvents.TABLE_UPDATE
+      | AppEvents.TABLE_CREATE
+      | AppEvents.TABLE_DELETE,
+    data: TableEvent,
+  ): void;
   emit(event, arg): void {
     const listeners = this.listeners.get(event) || [];
     listeners.forEach((listener) => listener(arg));

@@ -19,6 +19,7 @@ import { Audit, Column, Model, ModelRoleVisibility, Project } from '../models';
 import NcConnectionMgrv2 from '../utils/common/NcConnectionMgrv2';
 import { validatePayload } from '../helpers';
 import { MetaDiffsService } from './meta-diffs.service';
+import { AppEvents, AppHooksService } from './app-hooks/app-hooks.service';
 import type { LinkToAnotherRecordColumn, User, View } from '../models';
 import type {
   ColumnType,
@@ -35,12 +36,16 @@ const openai = new OpenAIApi(configuration);
 
 @Injectable()
 export class TablesService {
-  constructor(private metaDiffService: MetaDiffsService) {}
+  constructor(
+    private metaDiffService: MetaDiffsService,
+    private appHooksService: AppHooksService,
+  ) {}
 
   async tableUpdate(param: {
     tableId: any;
     table: TableReqType & { project_id?: string };
     projectId?: string;
+    user?: UserType;
   }) {
     const model = await Model.get(param.tableId);
 
@@ -141,6 +146,11 @@ export class TablesService {
       tn_old: model.table_name,
     });
 
+    this.appHooksService.emit(AppEvents.TABLE_UPDATE, {
+      table: model,
+      user: param.user,
+    });
+
     T.emit('evt', { evt_type: 'table:updated' });
     return true;
   }
@@ -202,6 +212,11 @@ export class TablesService {
     }).then(() => {});
 
     T.emit('evt', { evt_type: 'table:deleted' });
+
+    this.appHooksService.emit(AppEvents.TABLE_DELETE, {
+      table,
+      user: param.user,
+    });
 
     return table.delete();
   }
@@ -488,6 +503,11 @@ export class TablesService {
       order: +(tables?.pop()?.order ?? 0) + 1,
     } as any);
 
+    this.appHooksService.emit(AppEvents.TABLE_CREATE, {
+      table: result,
+      user: param.user,
+    });
+
     return result;
   }
 
@@ -496,6 +516,7 @@ export class TablesService {
     baseId: string;
     tableName: string;
     title: string;
+    user?:UserType;
   }) {
     const tableCreateBody = {
       tableName: param.tableName,
@@ -610,6 +631,13 @@ export class TablesService {
       base_id: base.id,
       table_name: param.tableName,
     });
+
+
+    this.appHooksService.emit(AppEvents.TABLE_CREATE, {
+      table,
+      user: param.user,
+    });
+
 
     return table;
   }

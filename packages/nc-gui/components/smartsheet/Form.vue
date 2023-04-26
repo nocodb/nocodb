@@ -386,6 +386,22 @@ watch(view, (nextView) => {
     reloadEventHook.trigger()
   }
 })
+
+function selectAll(event: KeyboardEvent) {
+  if (event.target instanceof Node) {
+    if (event.metaKey && event.key === "a") {
+      const userAgent = navigator.userAgent;
+      if (/Macintosh/.test(userAgent)) {
+        window.getSelection()?.selectAllChildren(event.target)
+        event.preventDefault()
+      }
+    } else if (event.ctrlKey && event.key === "a") {
+      window.getSelection()?.selectAllChildren(event.target)
+      event.preventDefault()
+    }
+  }
+}
+
 </script>
 
 <template>
@@ -532,18 +548,18 @@ watch(view, (nextView) => {
             <!-- Header -->
             <div v-if="isEditable" class="px-4 lg:px-12">
               <a-form-item v-if="isEditable">
-                <a-input
-                  v-model:value="formViewData.heading"
-                  class="w-full !font-bold !text-4xl !border-0 !border-b-1 !border-dashed !rounded-none !border-gray-400"
+                <div
+                  class="input w-full !font-bold !text-4xl !border-0 !border-b-1 !border-dashed !rounded-none !border-gray-400"
+                  role="textbox"
+                  contenteditable="true"
                   :style="{ borderRightWidth: '0px !important' }"
-                  size="large"
                   hide-details
-                  placeholder="Form Title"
                   :bordered="false"
                   data-testid="nc-form-heading"
+                  @keydown="selectAll"
                   @blur="updateView"
-                  @keydown.enter="updateView"
-                />
+                  @keydown.enter.prevent="updateView"
+                >Form Title</div>
               </a-form-item>
             </div>
             <div v-else class="px-4 ml-3 w-full text-bold text-4xl">{{ formViewData.heading }}</div>
@@ -883,3 +899,4 @@ watch(view, (nextView) => {
   }
 }
 </style>
+

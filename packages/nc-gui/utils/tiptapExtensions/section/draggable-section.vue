@@ -1,7 +1,6 @@
 <script lang="ts" setup>
 import { NodeViewContent, NodeViewWrapper, nodeViewProps } from '@tiptap/vue-3'
-import { NodeSelection, TextSelection } from 'prosemirror-state'
-import { TiptapNodesTypes } from 'nocodb-sdk'
+import { TextSelection } from 'prosemirror-state'
 import { dragOptionStyle } from './dragOptionStyle'
 
 const { node, getPos, editor } = defineProps(nodeViewProps)
@@ -10,6 +9,8 @@ const isPublic = !editor.view.editable
 
 const dragClicked = ref(false)
 const optionsPopoverRef = ref()
+const showDragOptions = ref(false)
+const dragDomRef = ref<HTMLDivElement | undefined>()
 
 const parentNodeType = computed(() => {
   try {
@@ -25,11 +26,6 @@ const parentNodeType = computed(() => {
 const childNodeType = computed(() => {
   const { content } = node.content as any
   return content[0].type.name
-})
-
-const isNodeWithoutDragOption = computed(() => {
-  const { content } = node.content as any
-  return content[0].type.name === TiptapNodesTypes.column
 })
 
 const optionWrapperStyle = computed(() => {
@@ -94,25 +90,50 @@ watch(
     }
   },
 )
+
+// Make drag options visible when mouse is over the node
+// And show not show if the mouse is over a child section node
+watch(dragDomRef, () => {
+  if (!dragDomRef.value) return
+
+  dragDomRef.value.addEventListener('mouseover', (e) => {
+    const elementsOnMouse = document
+      .elementsFromPoint(e.clientX, e.clientY)
+      .filter((el) => el.classList.contains('draggable-block-wrapper'))
+    if (!elementsOnMouse.length) return
+
+    const topMostElement = elementsOnMouse[0]
+    const childOfTopElement = topMostElement.childNodes[0] as HTMLDivElement
+
+    if (Number(childOfTopElement.getAttribute('pos')) === getPos()) {
+      showDragOptions.value = true
+    } else {
+      showDragOptions.value = false
+    }
+  })
+
+  dragDomRef.value.addEventListener('mouseout', () => {
+    showDragOptions.value = false
+  })
+})
 </script>
 
 <template>
-  <NodeViewWrapper
-    class="vue-component draggable-block-wrapper"
-    :class="{
-      'group': parentNodeType !== 'collapsable' && !isPublic && !isNodeWithoutDragOption,
-      'sub-group': parentNodeType === 'collapsable' && !isPublic,
-    }"
-  >
-    <div v-if="!isPublic" class="flex flex-row gap-0.5 w-full items-start" tiptap-draghandle-wrapper="true" :pos="getPos()">
+  <NodeViewWrapper class="vue-component draggable-block-wrapper">
+    <div
+      v-if="!isPublic"
+      ref="dragDomRef"
+      class="flex flex-row gap-0.5 w-full items-start"
+      tiptap-draghandle-wrapper="true"
+      :pos="getPos()"
+    >
       <div class="flex flex-row relative" :style="optionWrapperStyle">
         <div
           v-if="!isDragging"
           type="button"
           class="absolute -left-4.5 block-button cursor-pointer w-5"
           :class="{
-            'block-button-group': parentNodeType !== 'collapsable',
-            'block-button-sub-group': parentNodeType === 'collapsable',
+            '!opacity-100': showDragOptions,
           }"
           @click="createNodeAfter"
         >
@@ -145,8 +166,7 @@ watch(
           :data-drag-handle="true"
           :tiptap-draghandle="true"
           :class="{
-            'block-button-group': parentNodeType !== 'collapsable',
-            'block-button-sub-group': parentNodeType === 'collapsable',
+            '!opacity-100': showDragOptions,
           }"
           @click="onDragClick"
           @dragstart="isDragging = true"
@@ -176,37 +196,6 @@ watch(
   color: rgb(203, 203, 203);
 }
 
-.group:hover {
-  .block-button-group {
-    @apply opacity-100;
-  }
-}
-.group.focused {
-  .block-button-group {
-    @apply opacity-100;
-  }
-}
-.group:focus {
-  .block-button-group {
-    @apply opacity-100;
-  }
-}
-.group:active {
-  .block-button-group {
-    @apply opacity-100;
-  }
-}
-
-.sub-group:hover {
-  .block-button-sub-group {
-    @apply opacity-100;
-  }
-}
-.sub-group.focused {
-  .block-button {
-    @apply opacity-100;
-  }
-}
 .block-button svg {
   @apply -mt-1.5;
 }

@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import type { VNodeRef } from '@vue/runtime-core'
-import { ColumnInj, EditModeInj, computed, inject, parseProp, useVModel } from '#imports'
+import { ColumnInj, EditModeInj, IsExpandedFormOpenInj, computed, inject, parseProp, useVModel } from '#imports'
 
 interface Props {
   modelValue: number | null | undefined
@@ -52,7 +52,9 @@ const currency = computed(() => {
   }
 })
 
-const focus: VNodeRef = (el) => (el as HTMLInputElement)?.focus()
+const isExpandedFormOpen = inject(IsExpandedFormOpenInj)!
+
+const focus: VNodeRef = (el) => !isExpandedFormOpen && (el as HTMLInputElement)?.focus()
 
 const submitCurrency = () => {
   if (lastSaved.value !== vModel.value) {

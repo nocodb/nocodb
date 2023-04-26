@@ -1,13 +1,59 @@
 import { Injectable } from '@nestjs/common';
-import {ProjectInviteEventData, WelcomeEventData, WorkspaceInviteEventData} from "./interfaces";
+import type {
+  AppEventPayload,
+  ProjectCreateEvent,
+  ProjectDeleteEvent,
+  ProjectInviteEvent,
+  ProjectUpdateEvent,
+  TableCreateEvent,
+  TableDeleteEvent,
+  TableUpdateEvent,
+  UserSigninEvent,
+  UserSignupEvent,
+  WelcomeEvent,
+  WorkspaceInviteEvent,
+} from './interfaces';
 
 // todo: move to nocodb-sdk
 export enum AppEvents {
-  PROJECT_CREATED = 'PROJECT_CREATED',
-  PROJECT_INVITE = 'PROJECT_INVITE',
-  WELCOME = 'WELCOME',
-  WORKSPACE_CREATED = 'WORKSPACE_CREATED',
-  WORKSPACE_INVITE = 'WORKSPACE_INVITE',
+  PROJECT_CREATE = 'project.create',
+  PROJECT_INVITE = 'project.invite',
+  PROJECT_DELETE = 'project.delete',
+  PROJECT_UPDATE = 'project.update',
+  PROJECT_CLONE = 'project.clone',
+
+  WELCOME = 'app.welcome',
+
+  WORKSPACE_CREATE = 'workspace.create',
+  WORKSPACE_INVITE = 'workspace.invite',
+  WORKSPACE_DELETE = 'workspace.delete',
+  WORKSPACE_UPDATE = 'workspace.update',
+
+  USER_SIGNUP = 'user.signup',
+  USER_SIGNIN = 'user.signin',
+  USER_UPDATE = 'user.update',
+  USER_PASSWORD_RESET = 'user.password.reset',
+  USER_PASSWORD_CHANGE = 'user.password.change',
+  USER_DELETE = 'user.delete',
+
+  TABLE_CREATE = 'table.create',
+  TABLE_DELETE = 'table.delete',
+  TABLE_UPDATE = 'table.update',
+
+  VIEW_CREATE = 'view.create',
+  VIEW_DELETE = 'view.delete',
+  VIEW_UPDATE = 'view.update',
+
+  FILE_CREATE = 'file.create',
+  FILE_DELETE = 'file.delete',
+  FILE_UPDATE = 'file.update',
+
+  SORT_CREATE = 'sort.create',
+  SORT_DELETE = 'sort.delete',
+  SORT_UPDATE = 'sort.update',
+
+
+
 }
 
 @Injectable()
@@ -15,22 +61,67 @@ export class AppHooksService {
   private listeners = new Map<string, ((...args: any[]) => void)[]>();
   private allListeners: ((...args: any[]) => void)[] = [];
 
-  on(event: AppEvents.PROJECT_INVITE, listener: (data: ProjectInviteEventData) => void): void;
-  on(event: AppEvents.WORKSPACE_INVITE, listener: (data: WorkspaceInviteEventData) => void): void;
-  on(event: AppEvents.WELCOME, listener: (data: WelcomeEventData) => void): void;
+  on(
+    event: AppEvents.PROJECT_INVITE,
+    listener: (data: ProjectInviteEvent) => void,
+  ): void;
+  on(
+    event: AppEvents.PROJECT_CREATE,
+    listener: (data: ProjectCreateEvent) => void,
+  ): void;
+  on(
+    event: AppEvents.PROJECT_UPDATE,
+    listener: (data: ProjectUpdateEvent) => void,
+  ): void;
+  on(
+    event: AppEvents.PROJECT_DELETE,
+    listener: (data: ProjectDeleteEvent) => void,
+  ): void;
+  on(
+    event: AppEvents.USER_SIGNUP,
+    listener: (data: UserSignupEvent) => void,
+  ): void;
+  on(
+    event: AppEvents.USER_SIGNIN,
+    listener: (data: UserSigninEvent) => void,
+  ): void;
+  on(
+    event: AppEvents.WELCOME,
+    listener: (data: WelcomeEvent) => void,
+  ): void;
+  on(
+    event: AppEvents.TABLE_CREATE,
+    listener: (data: TableCreateEvent) => void,
+  ): void;
+  on(
+    event: AppEvents.TABLE_DELETE,
+    listener: (data: TableDeleteEvent) => void,
+  ): void;
+  on(
+    event: AppEvents.TABLE_UPDATE,
+    listener: (data: TableUpdateEvent) => void,
+  ): void;
   on(event: AppEvents, listener: (...args: any[]) => void): void {
     const listeners = this.listeners.get(event) || [];
     listeners.push(listener);
     this.listeners.set(event, listeners);
   }
 
-  emit(event: AppEvents.PROJECT_INVITE, data: ProjectInviteEventData): void;
-  emit(event: AppEvents.WORKSPACE_INVITE, data: WorkspaceInviteEventData): void;
-  emit(event: AppEvents.WELCOME, data: WelcomeEventData): void;
-  emit(event: AppEvents, ...args: any[]): void {
+  emit(event: AppEvents.PROJECT_INVITE, data: ProjectInviteEvent): void;
+  emit(event: AppEvents.PROJECT_CREATE, data: ProjectCreateEvent): void;
+  emit(event: AppEvents.PROJECT_DELETE, data: ProjectDeleteEvent): void;
+  emit(event: AppEvents.PROJECT_UPDATE, data: ProjectUpdateEvent): void;
+  emit(event: AppEvents.USER_SIGNUP, data: UserSignupEvent): void;
+  emit(event: AppEvents.USER_SIGNIN, data: UserSigninEvent): void;
+  emit(event: AppEvents.WORKSPACE_INVITE, data: WorkspaceInviteEvent): void;
+  emit(event: AppEvents.WELCOME, data: WelcomeEvent): void;
+  emit(event: AppEvents.TABLE_UPDATE, data: TableUpdateEvent): void;
+  emit(event: AppEvents.TABLE_CREATE, data: TableCreateEvent): void;
+  emit(event: AppEvents.TABLE_DELETE, data: TableDeleteEvent): void;
+  emit(event, arg): void {
     const listeners = this.listeners.get(event) || [];
-    listeners.forEach((listener) => listener(...args));
-    this.allListeners.forEach((listener) => listener(event, ...args));
+    listeners.forEach((listener) => listener(arg));
+    this.allListeners.forEach((listener) => listener(event, arg));
   }
 
   removeListener(event: AppEvents, listener: (...args: any[]) => void) {

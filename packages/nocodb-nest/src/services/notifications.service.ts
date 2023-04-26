@@ -4,7 +4,7 @@ import { PagedResponseImpl } from '../helpers/PagedResponse';
 import { AppEvents, AppHooksService } from './app-hooks/app-hooks.service';
 import type { OnModuleDestroy, OnModuleInit } from '@nestjs/common';
 import type { UserType } from 'nocodb-sdk';
-import {ProjectInviteEventData, WelcomeEventData, WorkspaceInviteEventData} from "./app-hooks/interfaces";
+import {ProjectInviteEvent, WelcomeEvent, WorkspaceInviteEvent} from "./app-hooks/interfaces";
 
 @Injectable()
 export class NotificationsService implements OnModuleInit, OnModuleDestroy {
@@ -14,7 +14,7 @@ export class NotificationsService implements OnModuleInit, OnModuleDestroy {
     switch (event) {
       case AppEvents.PROJECT_INVITE:
         {
-          const { project, user, invitedBy} = data as ProjectInviteEventData;
+          const { project, user, invitedBy} = data as ProjectInviteEvent;
 
 
           await Notification.insert({
@@ -32,7 +32,7 @@ export class NotificationsService implements OnModuleInit, OnModuleDestroy {
         break;
       case AppEvents.WORKSPACE_INVITE:
         {
-          const { workspace, user, invitedBy } = data as WorkspaceInviteEventData;
+          const { workspace, user, invitedBy } = data as WorkspaceInviteEvent;
 
           await Notification.insert({
             fk_user_id: user.id,
@@ -47,7 +47,7 @@ export class NotificationsService implements OnModuleInit, OnModuleDestroy {
         break;
       case AppEvents.WELCOME:
         {
-          const { user } = data as WelcomeEventData;
+          const { user } = data as WelcomeEvent;
 
           await Notification.insert({
             fk_user_id: user.id,

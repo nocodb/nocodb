@@ -46,6 +46,7 @@ export class ViewsController {
   async viewUpdate(
     @Param('viewId') viewId: string,
     @Body() body: ViewUpdateReqType,
+    @Request() req,
   ) {
     const result = await this.viewsService.viewUpdate({
       viewId,
@@ -58,8 +59,11 @@ export class ViewsController {
   @UseAclMiddleware({
     permissionName: 'viewDelete',
   })
-  async viewDelete(@Param('viewId') viewId: string) {
-    const result = await this.viewsService.viewDelete({ viewId });
+  async viewDelete(@Param('viewId') viewId: string, @Request() req) {
+    const result = await this.viewsService.viewDelete({
+      viewId,
+      user: req.user,
+    });
     return result;
   }
 
@@ -97,8 +101,8 @@ export class ViewsController {
   @UseAclMiddleware({
     permissionName: 'shareView',
   })
-  async shareView(@Param('viewId') viewId: string) {
-    return await this.viewsService.shareView({ viewId });
+  async shareView(@Param('viewId') viewId: string, @Request() req) {
+    return await this.viewsService.shareView({ viewId, user: req.user });
   }
 
   @Get('/api/v1/db/meta/tables/:tableId/share')
@@ -117,10 +121,12 @@ export class ViewsController {
   async shareViewUpdate(
     @Param('viewId') viewId: string,
     @Body() body: ViewUpdateReqType,
+    @Request() req,
   ) {
     return await this.viewsService.shareViewUpdate({
       viewId,
       sharedView: body,
+      user: req.user,
     });
   }
 
@@ -128,7 +134,7 @@ export class ViewsController {
   @UseAclMiddleware({
     permissionName: 'shareViewDelete',
   })
-  async shareViewDelete(@Param('viewId') viewId: string) {
-    return await this.viewsService.shareViewDelete({ viewId });
+  async shareViewDelete(@Param('viewId') viewId: string, @Request() req) {
+    return await this.viewsService.shareViewDelete({ viewId, user: req.user });
   }
 }

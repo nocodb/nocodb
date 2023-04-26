@@ -45,7 +45,7 @@ export class TablesService {
     tableId: any;
     table: TableReqType & { project_id?: string };
     projectId?: string;
-    user?: UserType;
+    user: UserType;
   }) {
     const model = await Model.get(param.tableId);
 

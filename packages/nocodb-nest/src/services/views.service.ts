@@ -2,8 +2,14 @@ import { Injectable } from '@nestjs/common';
 import { T } from 'nc-help';
 import { validatePayload } from '../helpers';
 import { Model, ModelRoleVisibility, View } from '../models';
+import { NcError } from '../helpers/catchError';
 import { TablesService } from './tables.service';
-import type { SharedViewReqType, ViewUpdateReqType } from 'nocodb-sdk';
+import { AppEvents, AppHooksService } from './app-hooks/app-hooks.service';
+import type {
+  SharedViewReqType,
+  UserType,
+  ViewUpdateReqType,
+} from 'nocodb-sdk';
 
 // todo: move
 async function xcVisibilityMetaGet(param: {
@@ -59,7 +65,7 @@ async function xcVisibilityMetaGet(param: {
 
 @Injectable()
 export class ViewsService {
-  constructor(private tablesService: TablesService) {}
+  constructor(private appHooksService: AppHooksService) {}
 
   async viewList(param: {
     tableId: string;
@@ -85,23 +91,56 @@ export class ViewsService {
     return filteredViewList;
   }
 
-  async shareView(param: { viewId: string }) {
+  async shareView(param: { viewId: string; user: UserType }) {
     T.emit('evt', { evt_type: 'sharedView:generated-link' });
     return await View.share(param.viewId);
   }
 
-  async viewUpdate(param: { viewId: string; view: ViewUpdateReqType }) {
+  async viewUpdate(param: {
+    viewId: string;
+    view: ViewUpdateReqType;
+    user: UserType;
+  }) {
     validatePayload(
       'swagger.json#/components/schemas/ViewUpdateReq',
       param.view,
     );
+
+    const view = await View.get(param.viewId);
+
+    if (!view) {
+      NcError.badRequest('View not found');
+    }
+
     const result = await View.update(param.viewId, param.view);
     T.emit('evt', { evt_type: 'vtable:updated', show_as: result.type });
+
+    this.appHooksService.emit(AppEvents.VIEW_UPDATE, {
+      view: {
+        ...view,
+        ...param.view,
+      },
+      user: param.user,
+    });
+
     return result;
   }
 
-  async viewDelete(param: { viewId: string }) {
+  async viewDelete(param: { viewId: string; user: UserType }) {
+
+    const view = await View.get(param.viewId);
+
+    if (!view) {
+      NcError.badRequest('View not found');
+    }
+
     await View.delete(param.viewId);
+
+    this.appHooksService.emit(AppEvents.VIEW_DELETE, {
+      view,
+      user: param.user,
+    });
+
     T.emit('evt', { evt_type: 'vtable:deleted' });
     return true;
   }
@@ -114,8 +153,20 @@ export class ViewsService {
       'swagger.json#/components/schemas/SharedViewReq',
       param.sharedView,
     );
+
+    const view = await View.get(param.viewId);
+
+    if(!view) {
+      NcError.badRequest('View not found');
+    }
+
     T.emit('evt', { evt_type: 'sharedView:updated' });
-    return await View.update(param.viewId, param.sharedView);
+    const result = await View.update(param.viewId, param.sharedView);
+
+
+    this.appHooksService.emit(AppEvents.SHARED_VIEW_UPDATEVIEW_UPDATE, {)
+
+    return result;
   }
 
   async shareViewDelete(param: { viewId: string }) {

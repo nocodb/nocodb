@@ -8,6 +8,7 @@ import type {
   TableEvent,
   UserSigninEvent,
   UserSignupEvent,
+  ViewEvent,
   WelcomeEvent,
   WorkspaceInviteEvent,
 } from './interfaces';
@@ -41,6 +42,10 @@ export enum AppEvents {
   VIEW_CREATE = 'view.create',
   VIEW_DELETE = 'view.delete',
   VIEW_UPDATE = 'view.update',
+
+  SHARED_VIEW_CREATE = 'shared.view.create',
+  SHARED_VIEW_DELETE = 'shared.view.delete',
+  SHARED_VIEW_UPDATE = 'shared.view.update',
 
   FILE_CREATE = 'file.create',
   FILE_DELETE = 'file.delete',
@@ -88,6 +93,16 @@ export class AppHooksService {
       | AppEvents.TABLE_UPDATE,
     listener: (data: TableEvent) => void,
   ): void;
+  on(
+    event:
+      | AppEvents.VIEW_UPDATE
+      | AppEvents.VIEW_DELETE
+      | AppEvents.VIEW_CREATE
+      | AppEvents.SHARED_VIEW_UPDATE
+      | AppEvents.SHARED_VIEW_DELETE
+      | AppEvents.SHARED_VIEW_CREATE,
+    listener: (data: ViewEvent) => void,
+  ): void;
   on(event: AppEvents, listener: (...args: any[]) => void): void {
     const listeners = this.listeners.get(event) || [];
     listeners.push(listener);
@@ -102,6 +117,16 @@ export class AppHooksService {
   emit(event: AppEvents.USER_SIGNIN, data: UserSigninEvent): void;
   emit(event: AppEvents.WORKSPACE_INVITE, data: WorkspaceInviteEvent): void;
   emit(event: AppEvents.WELCOME, data: WelcomeEvent): void;
+  emit(
+    event:
+      | AppEvents.VIEW_UPDATE
+      | AppEvents.VIEW_DELETE
+      | AppEvents.VIEW_CREATE
+      | AppEvents.SHARED_VIEW_UPDATE
+      | AppEvents.SHARED_VIEW_DELETE
+      | AppEvents.SHARED_VIEW_CREATE,
+    data: ViewEvent,
+  ): void;
   emit(
     event:
       | AppEvents.TABLE_UPDATE

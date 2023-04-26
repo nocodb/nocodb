@@ -50,7 +50,7 @@ export class ProjectsService {
   async projectUpdate(param: {
     projectId: string;
     project: ProjectUpdateReqType;
-    user?: UserType;
+    user: UserType;
   }) {
     validatePayload(
       'swagger.json#/components/schemas/ProjectUpdateReq',
@@ -83,7 +83,7 @@ export class ProjectsService {
     return result;
   }
 
-  async projectSoftDelete(param: { projectId: any, user?: UserType }) {
+  async projectSoftDelete(param: { projectId: any, user: UserType }) {
     const project = await Project.get(param.projectId);
 
     if(!project) {

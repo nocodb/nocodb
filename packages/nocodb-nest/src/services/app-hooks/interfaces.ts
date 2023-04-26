@@ -2,6 +2,7 @@ import type {
   ProjectType,
   TableType,
   UserType,
+  ViewType,
   WorkspaceType,
 } from 'nocodb-sdk';
 
@@ -49,6 +50,11 @@ export interface TableEvent {
   user: UserType;
 }
 
+export interface ViewEvent {
+  view: ViewType;
+  user: UserType;
+}
+
 export type AppEventPayload =
   | ProjectInviteEvent
   | ProjectCreateEvent
@@ -58,4 +64,5 @@ export type AppEventPayload =
   | WelcomeEvent
   | UserSignupEvent
   | UserSigninEvent
-|TableEvent
+  | TableEvent
+  | ViewEvent;

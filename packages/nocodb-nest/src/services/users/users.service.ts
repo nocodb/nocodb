@@ -497,11 +497,17 @@ export class UsersService {
     this.appHooksService.emit(AppEvents.WELCOME, {
       user,
     });
+    this.appHooksService.emit(AppEvents.USER_SIGNUP, {
+      user,
+    });
 
     return this.login(user);
   }
 
   async login(user: any) {
+    this.appHooksService.emit(AppEvents.USER_SIGNIN, {
+      user,
+    });
     return {
       token: genJwt(user, Noco.getConfig()), //this.jwtService.sign(payload),
     };

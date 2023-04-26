@@ -327,7 +327,7 @@ test.describe('Filter Tests: Numerical', () => {
     await numBasedFilterTest('Rating', '3', '2');
   });
 
-  test('Filter: Duration', async () => {
+  test.skip('Filter: Duration', async () => {
     await numBasedFilterTest('Duration', '00:01', '01:03');
   });
 

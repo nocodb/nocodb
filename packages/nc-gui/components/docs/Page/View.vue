@@ -736,7 +736,7 @@ watch(wrapperRef, () => {
   }
 
   div[data-type='column'] {
-    @apply flex flex-row gap-x-12 justify-between;
+    @apply flex flex-row gap-x-12 justify-between pb-4;
   }
 }
 </style>

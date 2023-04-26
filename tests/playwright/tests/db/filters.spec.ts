@@ -1255,7 +1255,7 @@ test.describe('Filter Tests: Toggle button', () => {
    */
 
   test.beforeEach(async ({ page }) => {
-    context = await setup({ page, isEmptyProject: true });
+    context = await setup({ page, isEmptyProject: false });
     dashboard = new DashboardPage(page, context.project);
     toolbar = dashboard.grid.toolbar;
   });

@@ -36,6 +36,8 @@ import { CollapsableContentNode } from './collapsable/collapsableContent'
 import { Strike } from './strike'
 import { Paragraph } from './paragraph'
 import { CodeBlock } from './codeBlock'
+import { ColumnContentNode } from './columns/columnContent'
+import { ColumnNode } from './columns'
 
 const tiptapExtensions = (isPublic: boolean): Extensions => {
   const { uploadFile } = useDocStore()
@@ -99,6 +101,8 @@ const tiptapExtensions = (isPublic: boolean): Extensions => {
     createAttachmentExtension(async (image: any) => {
       return uploadFile(image)
     }),
+    ColumnContentNode,
+    ColumnNode,
   ]
 }
 

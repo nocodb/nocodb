@@ -191,33 +191,16 @@ export const SectionBlock = Node.create<SecOptions>({
  * It will be complicated to only selected the correct section in the case of collapsable
  */
 function focusCurrentSection(state: EditorState) {
-  const selection = state.selection
-  let activeNodeIndex = 0
-  let found = false
-
-  state.doc.descendants((node, pos) => {
-    if (node.type.name === TiptapNodesTypes.collapsable || node.type.name === TiptapNodesTypes.collapsableContent) {
-      return true
-    }
-
-    if (found || node.type.name !== TiptapNodesTypes.sec) return false
-
-    if (pos > selection.from) {
-      found = true
-      return false
-    }
-
-    activeNodeIndex = activeNodeIndex + 1
-
-    return true
-  })
+  const secPos = getPositionOfSection(state)
+  const secDom = document.querySelector(`[tiptap-draghandle-wrapper="true"][pos="${secPos}"]`) as HTMLElement
 
   const dbBlockDoms = document.querySelectorAll('.draggable-block-wrapper')
   for (let i = 0; i < dbBlockDoms.length; i++) {
     dbBlockDoms[i].classList.remove('focused')
-
-    if (i === activeNodeIndex - 1) {
-      dbBlockDoms[i].classList.add('focused')
-    }
   }
+
+  // TODO: We need to wait for the dom to be rendered
+  setTimeout(() => {
+    secDom?.parentElement?.classList.add('focused')
+  }, 150)
 }

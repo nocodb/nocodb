@@ -39,6 +39,7 @@ import LogosTypeformIcon from '~icons/logos/typeform-icon'
 import MdiLinkVariant from '~icons/mdi/link-variant'
 import CollapseListIcon from '~icons/carbon/collapse-categories'
 import MdiFileUploadOutline from '~icons/mdi/file-upload-outline'
+import MsViewColumn2 from '~icons/material-symbols/view-column-2-outline'
 
 export const useCommandList = ({
   fileInputDomRef,
@@ -148,8 +149,16 @@ export const useCommandList = ({
         fileInputDomRef.value?.[0]?.click()
       },
       icon: MdiFileUploadOutline,
-      hasDivider: true,
       iconClass: '',
+    },
+    {
+      title: 'Columns - 2',
+      class: 'text-xs',
+      command: ({ editor, range }: { editor: Editor; range: Range }) => {
+        editor.chain().focus().deleteRange(range).insertColumn(2).run()
+      },
+      icon: MsViewColumn2,
+      hasDivider: true,
     },
     {
       title: 'Task List',

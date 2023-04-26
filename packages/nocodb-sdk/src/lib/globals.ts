@@ -103,6 +103,8 @@ export enum TiptapNodesTypes {
   collapsable = 'collapsable',
   collapsableContent = 'collapsable_content',
   collapsableHeader = 'collapsable_header',
+  column = 'column',
+  columnContent = 'columnContent',
 }
 
 export enum TiptapMarksTypes {

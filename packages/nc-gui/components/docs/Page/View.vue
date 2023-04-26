@@ -734,5 +734,9 @@ watch(wrapperRef, () => {
   .external-content-wrapper {
     @apply bg-gray-100 my-2;
   }
+
+  div[data-type='column'] {
+    @apply flex flex-row gap-x-12 justify-between;
+  }
 }
 </style>

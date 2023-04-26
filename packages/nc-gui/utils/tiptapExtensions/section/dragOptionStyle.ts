@@ -11,7 +11,13 @@ export const dragOptionStyle = ({
 }) => {
   let style = {} as any
 
-  if (nodeType === TiptapNodesTypes.task) {
+  if (nodeType === TiptapNodesTypes.column) {
+    style = {
+      marginLeft: '-2rem',
+      marginTop: '0.2rem',
+      display: 'none',
+    }
+  } else if (nodeType === TiptapNodesTypes.task) {
     style = {
       marginTop: '0.2rem',
     }

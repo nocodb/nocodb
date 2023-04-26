@@ -1,6 +1,7 @@
 <script lang="ts" setup>
 import { NodeViewContent, NodeViewWrapper, nodeViewProps } from '@tiptap/vue-3'
-import { NodeSelection } from 'prosemirror-state'
+import { NodeSelection, TextSelection } from 'prosemirror-state'
+import { TiptapNodesTypes } from 'nocodb-sdk'
 import { dragOptionStyle } from './dragOptionStyle'
 
 const { node, getPos, editor } = defineProps(nodeViewProps)
@@ -24,6 +25,11 @@ const parentNodeType = computed(() => {
 const childNodeType = computed(() => {
   const { content } = node.content as any
   return content[0].type.name
+})
+
+const isNodeWithoutDragOption = computed(() => {
+  const { content } = node.content as any
+  return content[0].type.name === TiptapNodesTypes.column
 })
 
 const optionWrapperStyle = computed(() => {
@@ -58,7 +64,7 @@ const createNodeAfter = () => {
 const onDragClick = () => {
   dragClicked.value = !dragClicked.value
 
-  editor.view.dispatch(editor.state.tr.setSelection(NodeSelection.create(editor.state.doc, getPos())))
+  editor.view.dispatch(editor.state.tr.setSelection(TextSelection.create(editor.state.doc, getPos() + 2)))
 
   // We use timeout as 'focused' class takes time to be added
   setTimeout(() => {
@@ -94,7 +100,7 @@ watch(
   <NodeViewWrapper
     class="vue-component draggable-block-wrapper"
     :class="{
-      'group': parentNodeType !== 'collapsable' && !isPublic,
+      'group': parentNodeType !== 'collapsable' && !isPublic && !isNodeWithoutDragOption,
       'sub-group': parentNodeType === 'collapsable' && !isPublic,
     }"
   >

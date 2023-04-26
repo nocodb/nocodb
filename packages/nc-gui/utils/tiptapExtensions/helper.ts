@@ -14,6 +14,8 @@ export const nodeTypesContainingSection = [
   TiptapNodesTypes.collapsable,
   TiptapNodesTypes.collapsableHeader,
   TiptapNodesTypes.collapsableContent,
+  TiptapNodesTypes.column,
+  TiptapNodesTypes.columnContent,
 ]
 /**
  * Gets position of section node which contains the cursor or the given position which is inside the section

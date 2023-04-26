@@ -177,8 +177,6 @@ test.describe('Form view', () => {
 
     // activate SMTP plugin
     await accountAppStorePage.goto();
-    await accountAppStorePage.rootPage.reload({ waitUntil: 'networkidle' });
-    await accountAppStorePage.waitUntilContentLoads();
 
     // install SMTP
     await accountAppStorePage.install({ name: 'SMTP' });
@@ -205,8 +203,6 @@ test.describe('Form view', () => {
 
     // Uninstall SMTP
     await accountAppStorePage.goto();
-    await accountAppStorePage.rootPage.reload({ waitUntil: 'networkidle' });
-    await accountAppStorePage.waitUntilContentLoads();
     await accountAppStorePage.uninstall({ name: 'SMTP' });
 
     await dashboard.verifyToast({

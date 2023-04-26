@@ -35,23 +35,25 @@ export const ColumnNode = Node.create({
     return {
       insertColumn:
         (colCount) =>
-        ({ commands }) => {
-          return commands.insertContent({
-            type: TiptapNodesTypes.column,
-            content: Array(colCount).fill({
-              type: TiptapNodesTypes.columnContent,
-              content: [
-                {
-                  type: TiptapNodesTypes.sec,
-                  content: [
-                    {
-                      type: TiptapNodesTypes.paragraph,
-                    },
-                  ],
-                },
-              ],
-            }),
-          })
+        ({ chain, state }) => {
+          return chain()
+            .insertContent({
+              type: TiptapNodesTypes.column,
+              content: Array(colCount).fill({
+                type: TiptapNodesTypes.columnContent,
+                content: [
+                  {
+                    type: TiptapNodesTypes.sec,
+                    content: [
+                      {
+                        type: TiptapNodesTypes.paragraph,
+                      },
+                    ],
+                  },
+                ],
+              }),
+            })
+            .setTextSelection(state.selection.from + 2)
         },
     }
   },

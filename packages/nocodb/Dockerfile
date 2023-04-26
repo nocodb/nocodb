@@ -28,7 +28,7 @@ RUN apk add --no-cache python3 make g++
 # A wildcard is used to ensure both package.json AND package-lock.json are copied.
 # Copying this separately prevents re-running npm ci on every code change.
 COPY ./package*.json ./
-COPY ./docker/index.js ./docker/index.js
+COPY ./docker/main.js ./docker/main.js
 #COPY ./docker/start.sh /usr/src/appEntry/start.sh
 COPY ./docker/start-litestream.sh /usr/src/appEntry/start.sh
 COPY ./src/lib/public/css/*.css ./docker/public/css/

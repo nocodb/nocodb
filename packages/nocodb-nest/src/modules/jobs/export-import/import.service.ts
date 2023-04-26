@@ -5,26 +5,26 @@ import {
   reverseGet,
   withoutId,
   withoutNull,
-} from 'src/helpers/exportImportHelpers';
-import { NcError } from 'src/helpers/catchError';
-import { Base, Column, Model, Project } from 'src/models';
-import { TablesService } from 'src/services/tables.service';
-import { ColumnsService } from 'src/services/columns.service';
-import { FiltersService } from 'src/services/filters.service';
-import { SortsService } from 'src/services/sorts.service';
-import { ViewColumnsService } from 'src/services/view-columns.service';
-import { GridColumnsService } from 'src/services/grid-columns.service';
-import { FormColumnsService } from 'src/services/form-columns.service';
-import { GridsService } from 'src/services/grids.service';
-import { FormsService } from 'src/services/forms.service';
-import { GalleriesService } from 'src/services/galleries.service';
-import { KanbansService } from 'src/services/kanbans.service';
+} from '../../../helpers/exportImportHelpers';
+import { NcError } from '../../../helpers/catchError';
+import { Base, Column, Model, Project } from '../../../models';
+import { TablesService } from '../../../services/tables.service';
+import { ColumnsService } from '../../../services/columns.service';
+import { FiltersService } from '../../../services/filters.service';
+import { SortsService } from '../../../services/sorts.service';
+import { ViewColumnsService } from '../../../services/view-columns.service';
+import { GridColumnsService } from '../../../services/grid-columns.service';
+import { FormColumnsService } from '../../../services/form-columns.service';
+import { GridsService } from '../../../services/grids.service';
+import { FormsService } from '../../../services/forms.service';
+import { GalleriesService } from '../../../services/galleries.service';
+import { KanbansService } from '../../../services/kanbans.service';
 import { Injectable } from '@nestjs/common';
-import NcPluginMgrv2 from 'src/helpers/NcPluginMgrv2';
+import NcPluginMgrv2 from '../../../helpers/NcPluginMgrv2';
 import papaparse from 'papaparse';
-import { BulkDataAliasService } from 'src/services/bulk-data-alias.service';
+import { BulkDataAliasService } from '../../../services/bulk-data-alias.service';
 import type { ViewCreateReqType } from 'nocodb-sdk';
-import type { LinkToAnotherRecordColumn, User, View } from 'src/models';
+import type { LinkToAnotherRecordColumn, User, View } from '../../../models';
 
 @Injectable()
 export class ImportService {

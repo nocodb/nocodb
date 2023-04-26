@@ -1,15 +1,15 @@
 import { Readable } from 'stream';
 import { Process, Processor } from '@nestjs/bull';
-import { Base, Column, Model, Project } from 'src/models';
+import { Base, Column, Model, Project } from '../../../models';
 import { Job } from 'bull';
-import { ProjectsService } from 'src/services/projects.service';
+import { ProjectsService } from '../../../services/projects.service';
 import papaparse from 'papaparse';
-import { findWithIdentifier } from 'src/helpers/exportImportHelpers';
-import { BulkDataAliasService } from 'src/services/bulk-data-alias.service';
+import { findWithIdentifier } from '../../../helpers/exportImportHelpers';
+import { BulkDataAliasService } from '../../../services/bulk-data-alias.service';
 import { UITypes } from 'nocodb-sdk';
 import { ExportService } from './export.service';
 import { ImportService } from './import.service';
-import type { LinkToAnotherRecordColumn } from 'src/models';
+import type { LinkToAnotherRecordColumn } from '../../../models';
 
 const DEBUG = false;
 

@@ -27,9 +27,9 @@ jobs:
     
     - name: Build nocodb and docker files
       run: |
-          npm run build
-          npm run docker:build
-        working-directory: ${{ env.working-directory }}
+        npm run build
+        npm run docker:build
+      working-directory: ${{ env.working-directory }}
 
     - name: build
       shell: bash

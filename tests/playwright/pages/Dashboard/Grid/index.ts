@@ -72,10 +72,12 @@ export class GridPage extends BasePage {
     networkValidation?: boolean;
   } = {}) {
     const rowValue = value ?? `Row ${index}`;
+    // wait for render to complete before count
+    if (index !== 0) await this.get().locator('.nc-grid-row').nth(0).waitFor({ state: 'attached' });
     const rowCount = await this.get().locator('.nc-grid-row').count();
     await this.get().locator('.nc-grid-add-new-cell').click();
 
-    await expect(this.get().locator('.nc-grid-row')).toHaveCount(rowCount + 1);
+    await expect(await this.get().locator('.nc-grid-row')).toHaveCount(rowCount + 1);
 
     await this._fillRow({ index, columnHeader, value: rowValue });
 

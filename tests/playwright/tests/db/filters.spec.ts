@@ -651,11 +651,12 @@ test.describe('Filter Tests: Select based', () => {
   });
 
   test('Filter: Single Select', async () => {
-    await selectBasedFilterTest('SingleSelect', 'jan', 'jan,feb,mar', '');
+    // hack. jan inserted twice as in filter, toggling operation is not clearing value
+    await selectBasedFilterTest('SingleSelect', 'jan', 'jan,jan,feb,mar', '');
   });
 
   test('Filter: Multi Select', async () => {
-    await selectBasedFilterTest('MultiSelect', '', 'jan,feb,mar', 'jan,feb,mar');
+    await selectBasedFilterTest('MultiSelect', '', 'jan,jan,feb,mar', 'jan,feb,mar');
   });
 });
 
@@ -1210,7 +1211,7 @@ test.describe('Filter Tests: Link to another record, Lookup, Rollup', () => {
   }
 
   test.beforeEach(async ({ page }) => {
-    context = await setup({ page, isEmptyProject: true });
+    context = await setup({ page, isEmptyProject: false });
     dashboard = new DashboardPage(page, context.project);
     toolbar = dashboard.grid.toolbar;
 

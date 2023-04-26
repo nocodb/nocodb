@@ -1,17 +1,17 @@
 import { Readable } from 'stream';
 import { UITypes, ViewTypes } from 'nocodb-sdk';
-import { getViewAndModelByAliasOrId } from 'src/modules/datas/helpers';
+import { getViewAndModelByAliasOrId } from '../../../modules/datas/helpers';
 import { unparse } from 'papaparse';
 import {
   clearPrefix,
   generateBaseIdMap,
-} from 'src/helpers/exportImportHelpers';
-import NcPluginMgrv2 from 'src/helpers/NcPluginMgrv2';
-import { NcError } from 'src/helpers/catchError';
-import { Base, Model, Project } from 'src/models';
-import { DatasService } from 'src/services/datas.service';
+} from '../../../helpers/exportImportHelpers';
+import NcPluginMgrv2 from '../../../helpers/NcPluginMgrv2';
+import { NcError } from '../../../helpers/catchError';
+import { Base, Model, Project } from '../../../models';
+import { DatasService } from '../../../services/datas.service';
 import { Injectable } from '@nestjs/common';
-import type { LinkToAnotherRecordColumn, View } from 'src/models';
+import type { LinkToAnotherRecordColumn, View } from '../../../models';
 
 @Injectable()
 export class ExportService {

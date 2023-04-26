@@ -1,10 +1,10 @@
 import { InjectQueue } from '@nestjs/bull';
 import { Controller, HttpCode, Post, Request, UseGuards } from '@nestjs/common';
-import { GlobalGuard } from 'src/guards/global/global.guard';
-import { ExtractProjectIdMiddleware } from 'src/middlewares/extract-project-id/extract-project-id.middleware';
+import { GlobalGuard } from '../../../guards/global/global.guard';
+import { ExtractProjectIdMiddleware } from '../../../middlewares/extract-project-id/extract-project-id.middleware';
 import { Queue } from 'bull';
-import { SyncSource } from 'src/models';
-import { NcError } from 'src/helpers/catchError';
+import { SyncSource } from '../../../models';
+import { NcError } from '../../../helpers/catchError';
 import { QueueService } from '../fallback-queue.service';
 import { JobsService } from '../jobs.service';
 

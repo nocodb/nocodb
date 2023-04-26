@@ -9,14 +9,14 @@ import {
   UseGuards,
 } from '@nestjs/common';
 import { Queue } from 'bull';
-import { GlobalGuard } from 'src/guards/global/global.guard';
+import { GlobalGuard } from '../../../guards/global/global.guard';
 import {
   Acl,
   ExtractProjectIdMiddleware,
-} from 'src/middlewares/extract-project-id/extract-project-id.middleware';
-import { ProjectsService } from 'src/services/projects.service';
-import { Base, Project } from 'src/models';
-import { generateUniqueName } from 'src/helpers/exportImportHelpers';
+} from '../../../middlewares/extract-project-id/extract-project-id.middleware';
+import { ProjectsService } from '../../../services/projects.service';
+import { Base, Project } from '../../../models';
+import { generateUniqueName } from '../../../helpers/exportImportHelpers';
 import { QueueService } from '../fallback-queue.service';
 
 @Controller()

@@ -15,10 +15,6 @@ import ejs from 'ejs';
 import Validator from 'validator';
 import { customAlphabet } from 'nanoid';
 import DOMPurify from 'isomorphic-dompurify';
-
-const GROUP_COL = '__nc_group_id';
-
-const nanoidv2 = customAlphabet('1234567890abcdefghijklmnopqrstuvwxyz', 14);
 import { v4 as uuidv4 } from 'uuid';
 import { NcError } from '../helpers/catchError';
 import getAst from '../helpers/getAst';
@@ -29,6 +25,7 @@ import {
 } from '../helpers/webhookHelpers';
 import {
   Audit,
+  Base,
   Column,
   Filter,
   FormView,
@@ -66,6 +63,10 @@ import type {
 } from '../models';
 import type { Knex } from 'knex';
 import type { SortType } from 'nocodb-sdk';
+
+const GROUP_COL = '__nc_group_id';
+
+const nanoidv2 = customAlphabet('1234567890abcdefghijklmnopqrstuvwxyz', 14);
 
 export async function getViewAndModelByAliasOrId(param: {
   projectName: string;
@@ -1755,9 +1756,7 @@ class BaseModelSqlv2 {
       let response;
       // const driver = trx ? trx : this.dbDriver;
 
-      if (this.isPg) {
-        await this.dbDriver.raw(`SET TIME ZONE 'UTC'`);
-      }
+      await this.setUtcTimezoneForPg();
 
       const query = this.dbDriver(this.tnPath).insert(insertObj);
       if ((this.isPg || this.isMssql) && this.model.primaryKey) {
@@ -1893,9 +1892,7 @@ class BaseModelSqlv2 {
 
       const prevData = await this.readByPk(id);
 
-      if (this.isPg) {
-        await this.dbDriver.raw(`SET TIME ZONE 'UTC'`);
-      }
+      await this.setUtcTimezoneForPg();
 
       const query = this.dbDriver(this.tnPath)
         .update(updateObj)
@@ -2130,9 +2127,7 @@ class BaseModelSqlv2 {
       // refer : https://www.sqlite.org/limits.html
       const chunkSize = this.isSqlite ? 10 : _chunkSize;
 
-      if (this.isPg) {
-        await this.dbDriver.raw(`SET TIME ZONE 'UTC'`);
-      }
+      await this.setUtcTimezoneForPg();
 
       const response =
         this.isPg || this.isMssql
@@ -2180,9 +2175,7 @@ class BaseModelSqlv2 {
         updatePkValues.push(pkValues);
       }
 
-      if (this.isPg) {
-        await this.dbDriver.raw(`SET TIME ZONE 'UTC'`);
-      }
+      await this.setUtcTimezoneForPg();
 
       transaction = await this.dbDriver.transaction();
 
@@ -3175,6 +3168,13 @@ class BaseModelSqlv2 {
       }
     }
     return data;
+  }
+
+  private async setUtcTimezoneForPg() {
+    const base = await Base.get(this.model.base_id);
+    if (this.isPg && base.is_meta) {
+      await this.dbDriver.raw(`SET TIME ZONE 'UTC'`);
+    }
   }
 }
 

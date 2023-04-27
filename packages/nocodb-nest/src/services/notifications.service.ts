@@ -88,30 +88,30 @@ export class NotificationsService implements OnModuleInit, OnModuleDestroy {
       case AppEvents.FILTER_UPDATE:
       case AppEvents.FILTER_DELETE:
         {
-          const { filter, user } = data as FilterEvent;
-
-          await Notification.insert({
-            fk_user_id: user.id,
-            type: event,
-            body: {
-              id: filter.id,
-            },
-          });
+          // const { filter, user } = data as FilterEvent;
+          //
+          // await Notification.insert({
+          //   fk_user_id: user.id,
+          //   type: event,
+          //   body: {
+          //     id: filter.id,
+          //   },
+          // });
         }
         break;
       case AppEvents.SORT_CREATE:
       case AppEvents.SORT_UPDATE:
       case AppEvents.SORT_DELETE:
         {
-          const { user, sort } = data as SortEvent;
-
-          await Notification.insert({
-            fk_user_id: user.id,
-            type: event,
-            body: {
-              id: sort.id,
-            },
-          });
+          // const { user, sort } = data as SortEvent;
+          //
+          // await Notification.insert({
+          //   fk_user_id: user.id,
+          //   type: event,
+          //   body: {
+          //     id: sort.id,
+          //   },
+          // });
         }
         break;
       case AppEvents.TABLE_CREATE:

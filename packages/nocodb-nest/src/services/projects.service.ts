@@ -75,7 +75,7 @@ export class ProjectsService {
     const result = await Project.update(param.projectId, data);
     T.emit('evt', { evt_type: 'project:update' });
 
-    this.appEvents.emit(AppEvents.PROJECT_CREATE, {
+    this.appEvents.emit(AppEvents.PROJECT_UPDATE, {
       user: param.user,
       project,
     });
@@ -93,10 +93,11 @@ export class ProjectsService {
     await Project.softDelete(param.projectId);
     T.emit('evt', { evt_type: 'project:deleted' });
 
-    this.appEvents.emit(AppEvents.PROJECT_CREATE, {
+    this.appEvents.emit(AppEvents.PROJECT_DELETE, {
       user: param.user,
       project,
     });
+
     return true;
   }
 

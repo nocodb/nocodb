@@ -40,7 +40,7 @@ jobs:
         cd packages/nocodb
         npm run build
         npm run docker:build
-        docker build -t "${{ github.ref_name }}" -f ./packages/nocodb/Dockerfile .
+        docker build -t "${{ github.ref_name }}" -f ./Dockerfile .
       working-directory: ${{ env.working-directory }}
 
     - name: push ecr

@@ -1,6 +1,6 @@
 <script lang="ts" setup>
 import { NodeViewContent, NodeViewWrapper, nodeViewProps } from '@tiptap/vue-3'
-import { TextSelection } from 'prosemirror-state'
+import { NodeSelection } from 'prosemirror-state'
 import { dragOptionStyle } from './dragOptionStyle'
 
 const { node, getPos, editor } = defineProps(nodeViewProps)
@@ -62,11 +62,11 @@ const createNodeAfter = () => {
 const onDragClick = () => {
   dragClicked.value = !dragClicked.value
 
-  editor.view.dispatch(editor.state.tr.setSelection(TextSelection.create(editor.state.doc, pos.value + 2)))
+  editor.view.dispatch(editor.state.tr.setSelection(NodeSelection.create(editor.state.doc, getPos())))
 
   // We use timeout as 'focused' class takes time to be added
   setTimeout(() => {
-    const wrapperDom = document.querySelector('.draggable-block-wrapper.focused')
+    const wrapperDom = document.querySelector(`.draggable-block-wrapper[pos="${pos.value}"]`)
     wrapperDom?.classList.add('selected')
   }, 100)
 }
@@ -78,7 +78,7 @@ onClickOutside(optionsPopoverRef, () => {
 })
 
 const deleteNode = () => {
-  editor.commands.deleteRange({ from: pos.value, to: pos.value + node.nodeSize })
+  editor.chain().setNodeSelection(getPos()).deleteSelection().run()
   dragClicked.value = false
 }
 
@@ -126,7 +126,7 @@ watch(dragDomRef, () => {
       tiptap-draghandle-wrapper="true"
       :pos="pos"
     >
-      <div class="flex flex-row relative" :style="optionWrapperStyle">
+      <div class="flex flex-row relative group" :style="optionWrapperStyle">
         <div
           v-if="!isDragging"
           type="button"
@@ -191,7 +191,7 @@ watch(dragDomRef, () => {
 
 <style lang="scss" scoped>
 .block-button {
-  @apply opacity-0  hover:bg-gray-50 rounded-sm text-lg h-6 duration-150 transition-opacity;
+  @apply opacity-0 hover:opacity-100 group-hover:opacity-100 hover:bg-gray-50 rounded-sm text-lg h-6 duration-150 transition-opacity;
   color: rgb(203, 203, 203);
 }
 

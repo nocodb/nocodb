@@ -1042,10 +1042,6 @@ export class MetaService {
     );
   }
 
-  private isMssql() {
-    return this.connection.clientType() === 'mssql';
-  }
-
   private now(): any {
     if (this.isMySQL()) {
       return dayjs().utc().format('YYYY-MM-DD HH:mm:ss');

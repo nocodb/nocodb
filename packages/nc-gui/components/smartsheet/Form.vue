@@ -100,6 +100,8 @@ const activeRow = ref('')
 
 const editEnabled = ref<boolean[]>([])
 
+const isHeaderContentSet = ref(false);
+
 const { t } = useI18n()
 
 const { betaFeatureToggleState } = useBetaFeatureToggle()
@@ -549,17 +551,25 @@ function selectAll(event: KeyboardEvent) {
             <div v-if="isEditable" class="px-4 lg:px-12">
               <a-form-item v-if="isEditable">
                 <div
-                  class="input w-full !font-bold !text-4xl !border-0 !border-b-1 !border-dashed !rounded-none !border-gray-400"
+                  class="nc-form-heading input w-full !font-bold !text-4xl !border-0 !border-b-1 !border-dashed !rounded-none !border-gray-400"
                   role="textbox"
                   contenteditable="true"
                   :style="{ borderRightWidth: '0px !important' }"
-                  hide-details
-                  :bordered="false"
                   data-testid="nc-form-heading"
                   @keydown="selectAll"
+                  @focus="isHeaderContentSet = false"
                   @blur="updateView"
                   @keydown.enter.prevent="updateView"
-                >Form Title</div>
+                >
+                  <span
+                    v-if="!isHeaderContentSet"
+                    class="placeholder"
+                    :style="{ color: '#A9A9A9' }"
+                  >
+                    Form Title
+                  </span>
+                  <span v-else>{{  formViewData.heading  }}</span>
+              </div>
               </a-form-item>
             </div>
             <div v-else class="px-4 ml-3 w-full text-bold text-4xl">{{ formViewData.heading }}</div>

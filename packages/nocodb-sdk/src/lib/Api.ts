@@ -2566,6 +2566,7 @@ export type NotificationType = {
   created_at?: any;
 } & (
   | ProjectInviteEventType
+  | ProjectEventType
   | WorkspaceInviteEventType
   | TableEventType
   | ViewEventType
@@ -2604,6 +2605,22 @@ export interface ProjectInviteEventType {
     /** The email address of the user who invited the recipient */
     invited_by: string;
     /** The ID of the workspace that the project being invited to belongs to */
+    workspace_id: string;
+  };
+}
+
+export interface ProjectEventType {
+  /** The ID of the user */
+  fk_user_id: string;
+  type: string;
+  body: {
+    /** The ID of the project */
+    id: string;
+    /** The title of the project */
+    title: string;
+    /** The type of the project */
+    type: string;
+    /** The ID of the workspace that the project belongs to */
     workspace_id: string;
   };
 }

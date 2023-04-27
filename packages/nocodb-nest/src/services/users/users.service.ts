@@ -1,6 +1,7 @@
 import { promisify } from 'util';
 import { Injectable } from '@nestjs/common';
 import {
+  AppEvents,
   AuditOperationSubTypes,
   AuditOperationTypes,
   OrgUserRoles,
@@ -19,7 +20,7 @@ import { randomTokenString } from '../../helpers/stringHelpers';
 import { MetaService, MetaTable } from '../../meta/meta.service';
 import { Audit, Store, User } from '../../models';
 import Noco from '../../Noco';
-import { AppEvents, AppHooksService } from '../app-hooks/app-hooks.service';
+import { AppHooksService } from '../app-hooks/app-hooks.service';
 import { genJwt, setTokenCookie } from './helpers';
 import type {
   PasswordChangeReqType,

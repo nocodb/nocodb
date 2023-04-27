@@ -3,13 +3,13 @@ import { T } from 'nc-help';
 import { validatePayload } from '../helpers';
 import { Model, ModelRoleVisibility, View } from '../models';
 import { NcError } from '../helpers/catchError';
-import { TablesService } from './tables.service';
-import { AppEvents, AppHooksService } from './app-hooks/app-hooks.service';
+import { AppHooksService } from './app-hooks/app-hooks.service';
 import type {
   SharedViewReqType,
   UserType,
   ViewUpdateReqType,
 } from 'nocodb-sdk';
+import {AppEvents} from "nocodb-sdk";
 
 // todo: move
 async function xcVisibilityMetaGet(param: {

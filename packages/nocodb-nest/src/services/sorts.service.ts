@@ -3,8 +3,9 @@ import { T } from 'nc-help';
 import { validatePayload } from '../helpers';
 import { Sort } from '../models';
 import { NcError } from '../helpers/catchError';
-import { AppEvents, AppHooksService } from './app-hooks/app-hooks.service';
+import { AppHooksService } from './app-hooks/app-hooks.service';
 import type { SortReqType, UserType } from 'nocodb-sdk';
+import {AppEvents} from "nocodb-sdk";
 
 @Injectable()
 export class SortsService {

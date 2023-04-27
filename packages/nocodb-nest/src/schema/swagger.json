@@ -23103,6 +23103,9 @@
                 "$ref": "#/components/schemas/ProjectInviteEvent"
               },
               {
+                "$ref": "#/components/schemas/ProjectEvent"
+              },
+              {
                 "$ref": "#/components/schemas/WorkspaceInviteEvent"
               },
               {
@@ -23221,6 +23224,50 @@
               "title",
               "type",
               "invited_by",
+              "workspace_id"
+            ]
+          }
+        },
+        "required": [
+          "fk_user_id",
+          "type",
+          "body"
+        ]
+      },
+      "ProjectEvent": {
+        "type": "object",
+        "properties": {
+          "fk_user_id": {
+            "type": "string",
+            "description": "The ID of the user"
+          },
+          "type": {
+            "type": "string",
+          },
+          "body": {
+            "type": "object",
+            "properties": {
+              "id": {
+                "type": "string",
+                "description": "The ID of the project"
+              },
+              "title": {
+                "type": "string",
+                "description": "The title of the project"
+              },
+              "type": {
+                "type": "string",
+                "description": "The type of the project"
+              },
+              "workspace_id": {
+                "type": "string",
+                "description": "The ID of the workspace that the project belongs to"
+              }
+            },
+            "required": [
+              "id",
+              "title",
+              "type",
               "workspace_id"
             ]
           }

@@ -2,7 +2,7 @@ import { MetaTable } from '../utils/globals';
 import Noco from '../Noco';
 import { extractProps } from '../helpers/extractProps';
 import { parseMetaProp, stringifyMetaProp } from '../utils/modelUtils';
-import type { AppEvents } from '../services/app-hooks/app-hooks.service';
+import {AppEvents} from "nocodb-sdk";
 
 export default class Notification {
   id?: string;

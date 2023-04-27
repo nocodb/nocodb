@@ -1,6 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import DOMPurify from 'isomorphic-dompurify';
 import {
+  AppEvents,
   AuditOperationSubTypes,
   AuditOperationTypes,
   isVirtualCol,
@@ -19,7 +20,7 @@ import { Audit, Column, Model, ModelRoleVisibility, Project } from '../models';
 import NcConnectionMgrv2 from '../utils/common/NcConnectionMgrv2';
 import { validatePayload } from '../helpers';
 import { MetaDiffsService } from './meta-diffs.service';
-import { AppEvents, AppHooksService } from './app-hooks/app-hooks.service';
+import { AppHooksService } from './app-hooks/app-hooks.service';
 import type { LinkToAnotherRecordColumn, User, View } from '../models';
 import type {
   ColumnType,

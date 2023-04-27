@@ -39,6 +39,24 @@ export class NotificationsService implements OnModuleInit, OnModuleDestroy {
           });
         }
         break;
+      case AppEvents.PROJECT_CREATE:
+      case AppEvents.PROJECT_UPDATE:
+      case AppEvents.PROJECT_DELETE:
+        {
+          const { project, user, invitedBy } = data as ProjectInviteEvent;
+
+          await Notification.insert({
+            fk_user_id: user.id,
+            type: event,
+            body: {
+              id: project.id,
+              title: project.title,
+              type: project.type,
+              workspace_id: (project as Project).fk_workspace_id,
+            },
+          });
+        }
+        break;
       case AppEvents.WORKSPACE_INVITE:
         {
           const { workspace, user, invitedBy } = data as WorkspaceInviteEvent;
@@ -90,7 +108,7 @@ export class NotificationsService implements OnModuleInit, OnModuleDestroy {
             fk_user_id: user.id,
             type: event,
             body: {
-              id: sort.id
+              id: sort.id,
             },
           });
         }

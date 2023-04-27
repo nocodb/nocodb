@@ -2571,6 +2571,8 @@ export type NotificationType = {
   | ViewEventType
   | ColumnEventType
   | WelcomeEventType
+  | SortEventType
+  | FilterEventType
 );
 
 /**
@@ -2627,6 +2629,20 @@ export interface WelcomeEventType {
   /** The type of event, which should be set to 'WELCOME' */
   type: string;
   /** An empty object */
+  body: object;
+}
+
+export interface SortEventType {
+  /** The ID of the user who created sort */
+  fk_user_id: string;
+  type: string;
+  body: object;
+}
+
+export interface FilterEventType {
+  /** The ID of the user who created filter */
+  fk_user_id: string;
+  type: string;
   body: object;
 }
 

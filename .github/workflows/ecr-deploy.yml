@@ -26,11 +26,12 @@ jobs:
       with:
         node-version: 16.15.0
 
-    - uses: bahmutov/npm-install@v1
-      with:
-        working-directory: ${{ env.working-directory }}
-    
+    # - uses: bahmutov/npm-install@v1
+    #   with:
+    #     working-directory: ${{ env.working-directory }}
+
     - name: Build nocodb and docker files
+      shell: bash
       run: |
         cd ../..
         npm install
@@ -39,11 +40,8 @@ jobs:
         cd packages/nocodb
         npm run build
         npm run docker:build
-      working-directory: ${{ env.working-directory }}
-
-    - name: build
-      run: |
         docker build -t "${{ github.ref_name }}" -f ./packages/nocodb/Dockerfile .
+      working-directory: ${{ env.working-directory }}
 
     - name: push ecr
       uses: Deep-Consulting-Solutions/ecr-deploy-action@main

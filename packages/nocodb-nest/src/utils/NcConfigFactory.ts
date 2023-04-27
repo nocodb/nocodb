@@ -236,11 +236,6 @@ export default class NcConfigFactory {
         acquireConnectionTimeout: 600000,
       } as any;
 
-      dbConfig.connection = this.addTypeCastConfig(
-        url.protocol,
-        dbConfig.connection,
-      );
-
       if (process.env.NODE_TLS_REJECT_UNAUTHORIZED) {
         dbConfig.connection.ssl = true;
       }
@@ -302,17 +297,6 @@ export default class NcConfigFactory {
       .replace(/[ -]/g, '_');*/
   }
 
-  private static addTypeCastConfig(clientType: string, connection) {
-    // typeCast only works for mysql
-    if (clientType.startsWith('mysql')) {
-      connection = {
-        ...connection,
-        ...this.mysqlConnectionTypeCastConfig,
-      };
-    }
-    return connection;
-  }
-
   static async metaUrlToDbConfig(urlString) {
     const url = new URL(urlString);
 
@@ -364,11 +348,6 @@ export default class NcConfigFactory {
             }
           : {}),
       };
-
-      dbConfig.connection = this.addTypeCastConfig(
-        url.protocol,
-        dbConfig.connection,
-      );
 
       if (process.env.NODE_TLS_REJECT_UNAUTHORIZED) {
         dbConfig.connection.ssl = true;
@@ -532,11 +511,6 @@ export default class NcConfigFactory {
         },
       };
     }
-
-    dbConfig.connection = this.addTypeCastConfig(
-      dbConfig.client,
-      dbConfig.connection,
-    );
 
     // todo:
     const key = '';
@@ -770,19 +744,6 @@ export default class NcConfigFactory {
 
     return res;
   }
-
-  private static mysqlConnectionTypeCastConfig = {
-    typeCast: function (field, next) {
-      if (
-        field.type === 'DATETIME' &&
-        (field.name === 'created_at' || field.name === 'updated_at')
-      ) {
-        return new Date(field.string() + ' UTC');
-      }
-      return next();
-    },
-    timezone: '+00:00',
-  };
 
   // public static initOneClickDeployment() {
   //   if (process.env.NC_ONE_CLICK) {

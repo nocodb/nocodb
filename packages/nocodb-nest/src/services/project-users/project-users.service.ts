@@ -1,5 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import {
+  AppEvents,
   AuditOperationSubTypes,
   AuditOperationTypes,
   OrgUserRoles,
@@ -19,7 +20,7 @@ import { Audit, Project, ProjectUser, User } from '../../models';
 
 import Noco from '../../Noco';
 import { CacheGetType, CacheScope, MetaTable } from '../../utils/globals';
-import { AppEvents, AppHooksService } from '../app-hooks/app-hooks.service';
+import { AppHooksService } from '../app-hooks/app-hooks.service';
 import type { ProjectUserReqType } from 'nocodb-sdk';
 
 @Injectable()

@@ -9,6 +9,7 @@ import MdiFormatBulletList from '~icons/mdi/format-list-bulleted'
 import MdiFormatStrikeThrough from '~icons/mdi/format-strikethrough'
 import MdiFormatListNumber from '~icons/mdi/format-list-numbered'
 import MdiFormatListCheckbox from '~icons/mdi/format-list-checkbox'
+import { tiptapTextColor } from '~/utils/tiptapExtensions/helper'
 
 const { editor } = defineProps<Props>()
 
@@ -34,10 +35,11 @@ const isImageNodeDebounced = ref(isImageNode.value)
 
 // Debounce show menu to prevent flickering
 const showMenu = computed(() => {
+  if (!editor) return false
+
   const isNonSelectableNodesSelected =
-    isImageNodeDebounced.value ||
-    (editor?.isActive('table') && !editor?.isActive('tableCell') && !editor?.isActive('tableHeader'))
-  return editor?.state?.selection.visible && !isNonSelectableNodesSelected
+    isImageNodeDebounced.value || (editor.isActive('table') && !editor.isActive('tableCell') && !editor.isActive('tableHeader'))
+  return editor.state.selection.visible && !editor.state.selection.empty && !isNonSelectableNodesSelected
 })
 const showMenuDebounced = ref(false)
 
@@ -242,6 +244,60 @@ const onToggleLink = () => {
 
       <div class="divider"></div>
 
+      <a-dropdown class="flex">
+        <div class="flex flex-row items-center cursor-pointer menu-button rounded-md px-0.5">
+          <MdiFormatTextVariant class="!h-4.5 !w-4.5" />
+          <MaterialSymbolsKeyboardArrowDownRounded class="!h-3 !w-3" />
+        </div>
+        <template #overlay>
+          <div v-if="showMenuDebounced" class="mt-1 shadow-sm flex flex-col bg-gray-100 rounded-md p-1 gap-y-1 w-40">
+            <div class="flex my-1 ml-2 text-xs text-gray-600">Color</div>
+            <div class="flex bubble-text-format-button" @click="editor!.chain().focus().unsetColor().run()">
+              <div class="bubble-text-format-button-icon">A</div>
+              Default
+            </div>
+            <div class="flex bubble-text-format-button" @click="editor!.chain().focus().setColor(tiptapTextColor.gray).run()">
+              <div class="bubble-text-format-button-icon" :style="{ color: tiptapTextColor.gray }">A</div>
+              Gray
+            </div>
+            <div class="flex bubble-text-format-button" @click="editor!.chain().focus().setColor(tiptapTextColor.brown).run()">
+              <div class="bubble-text-format-button-icon" :style="{ color: tiptapTextColor.brown }">A</div>
+              Brown
+            </div>
+            <div class="flex bubble-text-format-button" @click="editor!.chain().focus().setColor(tiptapTextColor.orange).run()">
+              <div class="bubble-text-format-button-icon" :style="{ color: tiptapTextColor.orange }">A</div>
+              Orange
+            </div>
+            <div class="flex bubble-text-format-button" @click="editor!.chain().focus().setColor(tiptapTextColor.yellow).run()">
+              <div class="bubble-text-format-button-icon" :style="{ color: tiptapTextColor.yellow }">A</div>
+              Yellow
+            </div>
+            <div class="flex bubble-text-format-button" @click="editor!.chain().focus().setColor(tiptapTextColor.green).run()">
+              <div class="bubble-text-format-button-icon" :style="{ color: tiptapTextColor.green }">A</div>
+              Green
+            </div>
+            <div class="flex bubble-text-format-button" @click="editor!.chain().focus().setColor(tiptapTextColor.blue).run()">
+              <div class="bubble-text-format-button-icon" :style="{ color: tiptapTextColor.blue }">A</div>
+              Blue
+            </div>
+            <div class="flex bubble-text-format-button" @click="editor!.chain().focus().setColor(tiptapTextColor.purple).run()">
+              <div class="bubble-text-format-button-icon" :style="{ color: tiptapTextColor.purple }">A</div>
+              Purple
+            </div>
+            <div class="flex bubble-text-format-button" @click="editor!.chain().focus().setColor(tiptapTextColor.pink).run()">
+              <div class="bubble-text-format-button-icon" :style="{ color: tiptapTextColor.pink }">A</div>
+              Pink
+            </div>
+            <div class="flex bubble-text-format-button" @click="editor!.chain().focus().setColor(tiptapTextColor.red).run()">
+              <div class="bubble-text-format-button-icon" :style="{ color: tiptapTextColor.red }">A</div>
+              Red
+            </div>
+          </div>
+        </template>
+      </a-dropdown>
+
+      <div class="divider"></div>
+
       <a-button
         type="text"
         :loading="isMagicExpandLoading"
@@ -263,6 +319,19 @@ const onToggleLink = () => {
 </template>
 
 <style lang="scss">
+.bubble-text-format-button-icon {
+  @apply px-1.5 py-0 border-1 border-gray-300 rounded-sm items-center justify-center;
+  font-size: 0.8rem;
+  font-weight: 600;
+}
+.bubble-text-format-button {
+  @apply rounded-md py-1 my-0 pl-2.5 pr-3 cursor-pointer items-center gap-x-2.5;
+
+  &:hover {
+    background-color: #e5e5e5;
+  }
+}
+
 .bubble-menu {
   // shadow
   @apply shadow-gray-200 shadow-sm;

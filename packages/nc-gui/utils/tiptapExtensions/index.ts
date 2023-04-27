@@ -5,6 +5,8 @@ import Bold from '@tiptap/extension-bold'
 import Italic from '@tiptap/extension-italic'
 import Code from '@tiptap/extension-code'
 import HardBreak from '@tiptap/extension-hard-break'
+import { Color } from '@tiptap/extension-color'
+import TextStyle from '@tiptap/extension-text-style'
 import type { Extensions } from '@tiptap/core'
 import { TiptapNodesTypes } from 'nocodb-sdk'
 import { Quote } from './quote'
@@ -47,6 +49,8 @@ const tiptapExtensions = (isPublic: boolean): Extensions => {
     SectionBlock,
     Paragraph,
     Text,
+    TextStyle,
+    Color,
     Strike,
     Heading,
     Bold,

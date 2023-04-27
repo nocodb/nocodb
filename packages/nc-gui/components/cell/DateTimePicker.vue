@@ -72,18 +72,7 @@ let localState = $computed({
     }
 
     if (val.isValid()) {
-      if (isXcdbBase(column.value.base_id)) {
-        if (isMysql(column.value.base_id)) {
-          emit('update:modelValue', val?.format('YYYY-MM-DD HH:mm:ss'))
-        } else if (isSqlite(column.value.base_id)) {
-          emit('update:modelValue', dayjs(val).utc().format('YYYY-MM-DD HH:mm:ss'))
-        } else {
-          emit('update:modelValue', dayjs(val).utc().format('YYYY-MM-DD HH:mm:ssZ'))
-        }
-      } else {
-        // TODO(timezone): keep ext db as it is
-        emit('update:modelValue', val?.format(isMysql(column.value.base_id) ? 'YYYY-MM-DD HH:mm:ss' : 'YYYY-MM-DD HH:mm:ssZ'))
-      }
+      emit('update:modelValue', val?.format(isMysql(column.value.base_id) ? 'YYYY-MM-DD HH:mm:ss' : 'YYYY-MM-DD HH:mm:ssZ'))
     }
   },
 })

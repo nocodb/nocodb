@@ -23116,6 +23116,12 @@
               },
               {
                 "$ref": "#/components/schemas/WelcomeEvent"
+              },
+              {
+                "$ref": "#/components/schemas/SortEvent"
+              },
+              {
+                "$ref": "#/components/schemas/FilterEvent"
               }
             ]
           }
@@ -23279,6 +23285,46 @@
           "body": {
             "type": "object",
             "description": "An empty object"
+          }
+        },
+        "required": [
+          "fk_user_id",
+          "type",
+          "body"
+        ]
+      },
+      "SortEvent": {
+        "type": "object",
+        "properties": {
+          "fk_user_id": {
+            "type": "string",
+            "description": "The ID of the user who created sort"
+          },
+          "type": {
+            "type": "string"
+          },
+          "body": {
+            "type": "object"
+          }
+        },
+        "required": [
+          "fk_user_id",
+          "type",
+          "body"
+        ]
+      },
+      "FilterEvent": {
+        "type": "object",
+        "properties": {
+          "fk_user_id": {
+            "type": "string",
+            "description": "The ID of the user who created filter"
+          },
+          "type": {
+            "type": "string"
+          },
+          "body": {
+            "type": "object"
           }
         },
         "required": [

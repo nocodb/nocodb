@@ -51,6 +51,7 @@ export class ViewsController {
     const result = await this.viewsService.viewUpdate({
       viewId,
       view: body,
+      user: req.user,
     });
     return result;
   }

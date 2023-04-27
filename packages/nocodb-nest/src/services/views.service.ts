@@ -93,7 +93,20 @@ export class ViewsService {
 
   async shareView(param: { viewId: string; user: UserType }) {
     T.emit('evt', { evt_type: 'sharedView:generated-link' });
-    return await View.share(param.viewId);
+    const res = await View.share(param.viewId);
+
+    const view = await View.get(param.viewId);
+
+    if (!view) {
+      NcError.badRequest('View not found');
+    }
+
+    this.appHooksService.emit(AppEvents.SHARED_VIEW_CREATE, {
+      user: param.user,
+      view,
+    });
+
+    return res;
   }
 
   async viewUpdate(param: {
@@ -127,7 +140,6 @@ export class ViewsService {
   }
 
   async viewDelete(param: { viewId: string; user: UserType }) {
-
     const view = await View.get(param.viewId);
 
     if (!view) {
@@ -148,6 +160,7 @@ export class ViewsService {
   async shareViewUpdate(param: {
     viewId: string;
     sharedView: SharedViewReqType;
+    user: UserType;
   }) {
     validatePayload(
       'swagger.json#/components/schemas/SharedViewReq',
@@ -156,22 +169,37 @@ export class ViewsService {
 
     const view = await View.get(param.viewId);
 
-    if(!view) {
+    if (!view) {
       NcError.badRequest('View not found');
     }
 
     T.emit('evt', { evt_type: 'sharedView:updated' });
     const result = await View.update(param.viewId, param.sharedView);
 
-
-    this.appHooksService.emit(AppEvents.SHARED_VIEW_UPDATEVIEW_UPDATE, {)
+    this.appHooksService.emit(AppEvents.SHARED_VIEW_UPDATE, {
+      user: param.user,
+      view,
+    });
 
     return result;
   }
 
-  async shareViewDelete(param: { viewId: string }) {
+  async shareViewDelete(param: { viewId: string; user: UserType }) {
     T.emit('evt', { evt_type: 'sharedView:deleted' });
+
+    const view = await View.get(param.viewId);
+
+    if (!view) {
+      NcError.badRequest('View not found');
+    }
+
     await View.sharedViewDelete(param.viewId);
+
+    this.appHooksService.emit(AppEvents.SHARED_VIEW_DELETE, {
+      user: param.user,
+      view,
+    });
+
     return true;
   }
 

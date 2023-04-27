@@ -417,6 +417,7 @@ export default async (
     if (sampleProj) {
       await projectService.projectSoftDelete({
         projectId: sampleProj.id,
+        user: syncDB.user,
       });
     }
     logDetailed('Init');
@@ -699,6 +700,8 @@ export default async (
       await viewService.viewUpdate({
         viewId: view.list[0].id,
         view: { title: aTbl_grid.name },
+
+        user: syncDB.user,
       });
       recordPerfStats(_perfStart, 'dbView.update');
 
@@ -796,6 +799,8 @@ export default async (
                 user: syncDB.user.email,
                 clientIp: '',
               },
+
+              user: syncDB.user,
             });
             recordPerfStats(_perfStart, 'dbTableColumn.create');
 
@@ -937,6 +942,7 @@ export default async (
                 title: ncName.title,
                 column_name: ncName.column_name,
               },
+              user: syncDB.user,
             });
             recordPerfStats(_perfStart, 'dbTableColumn.update');
 
@@ -1029,6 +1035,8 @@ export default async (
               user: syncDB.user.email,
               clientIp: '',
             },
+
+            user: syncDB.user,
           });
           recordPerfStats(_perfStart, 'dbTableColumn.create');
 
@@ -1116,6 +1124,8 @@ export default async (
             user: syncDB.user.email,
             clientIp: '',
           },
+
+          user: syncDB.user,
         });
         recordPerfStats(_perfStart, 'dbTableColumn.create');
 
@@ -1264,6 +1274,7 @@ export default async (
               user: syncDB.user.email,
               clientIp: '',
             },
+            user: syncDB.user,
           });
           recordPerfStats(_perfStart, 'dbTableColumn.create');
 
@@ -1327,6 +1338,7 @@ export default async (
           user: syncDB.user.email,
           clientIp: '',
         },
+        user: syncDB.user,
       });
       recordPerfStats(_perfStart, 'dbTableColumn.create');
 
@@ -2143,6 +2155,7 @@ export default async (
         await filterService.filterCreate({
           viewId: viewId,
           filter: ncFilters[i],
+          user: syncDB.user,
         });
         recordPerfStats(_perfStart, 'dbTableFilter.create');
 
@@ -2163,6 +2176,7 @@ export default async (
             fk_column_id: columnId,
             direction: s.sortSet[i].ascending ? 'asc' : 'desc',
           },
+          user: syncDB.user,
         });
         recordPerfStats(_perfStart, 'dbTableSort.create');
       }

@@ -34,8 +34,8 @@ const { markAsRead } = notificationStore
       v-else-if="[AppEvents.SHARED_VIEW_CREATE, AppEvents.SHARED_VIEW_DELETE, AppEvents.SHARED_VIEW_UPDATE].includes(item.type)"
       :item="item"
     />
-    <NotificationItemFilterEvent
-      v-else-if="[AppEvents.SHARED_VIEW_CREATE, AppEvents.SHARED_VIEW_DELETE, AppEvents.SHARED_VIEW_UPDATE].includes(item.type)"
+    <NotificationItemWorkspaceEvent
+      v-else-if="[AppEvents.WORKSPACE_CREATE, AppEvents.WORKSPACE_DELETE, AppEvents.WORKSPACE_UPDATE].includes(item.type)"
       :item="item"
     />
     <span v-else />

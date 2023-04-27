@@ -70,6 +70,7 @@ export class NotificationsService implements OnModuleInit, OnModuleDestroy {
             type: event,
             body: {
               id: workspace.id,
+              title: workspace.title,
             },
           });
         }

@@ -41,7 +41,7 @@ const groupType = computed({
       </template>
     </a-tabs>
 
-    <div class="px-6 overflow-y-auto max-h-[max(60vh,500px)]" @click.stop>
+    <div class="px-6 overflow-y-auto max-h-[max(60vh,500px)] min-h-25" @click.stop>
       <template v-if="!notifications?.length">
         <a-empty class="mt-4" description="No new notifications"> </a-empty>
       </template>
@@ -51,9 +51,12 @@ const groupType = computed({
           <a-divider class="!my-0" />
         </template>
       </template>
-    </div>
-    <div v-if="notifications && pageInfo.totalRows > notifications.length" @click.stop="notificationStore.loadNotifications(true)" class="p-6">
-      Load more
+
+
+      <!-- TODO: notification - load more ui   -->
+      <div v-if="notifications && pageInfo.totalRows > notifications.length" @click.stop="notificationStore.loadNotifications(true)" class="p-6">
+        Load more
+      </div>
     </div>
   </div>
 </template>

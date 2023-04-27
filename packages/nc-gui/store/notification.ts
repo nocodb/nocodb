@@ -15,7 +15,7 @@ export const useNotification = defineStore('notificationStore', () => {
     // todo: pagination
     const response = await api.notification.list({
       is_read: isRead.value,
-      limit: 1,
+      limit: 5,
       offset: loadMore ? notifications.value.length : 0,
     })
     if (loadMore) {

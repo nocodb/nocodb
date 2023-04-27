@@ -73,6 +73,11 @@ export interface SortEvent {
   user: UserType;
 }
 
+export interface WorkspaceEvent {
+  workspace: WorkspaceType;
+  user: UserType;
+}
+
 export type AppEventPayload =
   | ProjectInviteEvent
   | ProjectCreateEvent
@@ -86,4 +91,5 @@ export type AppEventPayload =
   | ViewEvent
   | FilterEvent
   | SortEvent
-  | ColumnEvent;
+  | ColumnEvent
+  |WorkspaceEvent;

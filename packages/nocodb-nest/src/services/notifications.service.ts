@@ -10,6 +10,7 @@ import type {
   TableEvent,
   ViewEvent,
   WelcomeEvent,
+  WorkspaceEvent,
   WorkspaceInviteEvent,
 } from './app-hooks/interfaces';
 import type { Project } from '../models';
@@ -54,6 +55,21 @@ export class NotificationsService implements OnModuleInit, OnModuleDestroy {
               title: project.title,
               type: project.type,
               workspace_id: (project as Project).fk_workspace_id,
+            },
+          });
+        }
+        break;
+      case AppEvents.WORKSPACE_CREATE:
+      case AppEvents.WORKSPACE_UPDATE:
+      case AppEvents.WORKSPACE_DELETE:
+        {
+          const { workspace, user } = data as WorkspaceEvent;
+
+          await Notification.insert({
+            fk_user_id: user.id,
+            type: event,
+            body: {
+              id: workspace.id,
             },
           });
         }

@@ -10,7 +10,7 @@ import type {
   UserSigninEvent,
   UserSignupEvent,
   ViewEvent,
-  WelcomeEvent,
+  WelcomeEvent, WorkspaceEvent,
   WorkspaceInviteEvent,
 } from './interfaces';
 import {AppEvents} from "nocodb-sdk";
@@ -84,6 +84,13 @@ export class AppHooksService {
       | AppEvents.COLUMN_CREATE,
     listener: (data: ColumnEvent) => void,
   ): void;
+  on(
+    event:
+      | AppEvents.WORKSPACE_UPDATE
+      | AppEvents.WORKSPACE_DELETE
+      | AppEvents.WORKSPACE_CREATE,
+    listener: (data: WorkspaceEvent) => void,
+  ): void;
   on(event, listener): void {
     const listeners = this.listeners.get(event) || [];
     listeners.push(listener);
@@ -128,6 +135,13 @@ export class AppHooksService {
       | AppEvents.SORT_CREATE
       | AppEvents.SORT_DELETE,
     data: SortEvent,
+  ): void;
+  emit(
+    event:
+      | AppEvents.WORKSPACE_UPDATE
+      | AppEvents.WORKSPACE_CREATE
+      | AppEvents.WORKSPACE_DELETE,
+    data: WorkspaceEvent,
   ): void;
   emit(
     event:

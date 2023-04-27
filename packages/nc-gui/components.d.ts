@@ -217,6 +217,7 @@ declare module '@vue/runtime-core' {
     MdiFolderMove: typeof import('~icons/mdi/folder-move')['default']
     MdiFormatBold: typeof import('~icons/mdi/format-bold')['default']
     MdiFormatItalic: typeof import('~icons/mdi/format-italic')['default']
+    MdiFormatTextVariant: typeof import('~icons/mdi/format-text-variant')['default']
     MdiFormatUnderline: typeof import('~icons/mdi/format-underline')['default']
     MdiFunction: typeof import('~icons/mdi/function')['default']
     MdiGestureDoubleTap: typeof import('~icons/mdi/gesture-double-tap')['default']

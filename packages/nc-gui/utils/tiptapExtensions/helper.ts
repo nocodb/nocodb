@@ -17,6 +17,19 @@ export const nodeTypesContainingSection = [
   TiptapNodesTypes.column,
   TiptapNodesTypes.columnContent,
 ]
+
+export const tiptapTextColor = {
+  gray: 'rgba(120, 119, 116, 1)',
+  brown: 'rgba(159, 107, 83, 1)',
+  orange: 'rgba(217, 115, 13, 1)',
+  yellow: 'rgba(203, 145, 47, 1)',
+  green: 'rgba(68, 131, 97, 1)',
+  blue: 'rgba(51, 126, 169, 1)',
+  purple: 'rgba(144, 101, 176, 1)',
+  pink: 'rgba(193, 76, 138, 1)',
+  red: 'rgba(212, 76, 71, 1)',
+}
+
 /**
  * Gets position of section node which contains the cursor or the given position which is inside the section
  */

@@ -309,12 +309,12 @@ watch(wrapperRef, () => {
 <style lang="scss">
 ::-moz-selection {
   /* Code for Firefox */
-  color: black;
+  color: inherit;
   background-color: #1c26b820;
 }
 
 ::selection {
-  color: black;
+  color: inherit;
   background-color: #1c26b820;
 }
 

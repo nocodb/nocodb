@@ -2,10 +2,14 @@ import { Injectable } from '@nestjs/common';
 import { T } from 'nc-help';
 import { validatePayload } from '../helpers';
 import { Filter } from '../models';
+import { NcError } from '../helpers/catchError';
+import { AppEvents, AppHooksService } from './app-hooks/app-hooks.service';
 import type { FilterReqType, UserType } from 'nocodb-sdk';
 
 @Injectable()
 export class FiltersService {
+  constructor(private appHooksService: AppHooksService) {}
+
   async hookFilterCreate(param: {
     filter: FilterReqType;
     hookId: any;
@@ -19,6 +23,12 @@ export class FiltersService {
     });
 
     T.emit('evt', { evt_type: 'hookFilter:created' });
+
+    this.appHooksService.emit(AppEvents.FILTER_CREATE, {
+      filter,
+      user: param.user,
+    });
+
     return filter;
   }
 
@@ -27,8 +37,20 @@ export class FiltersService {
   }
 
   async filterDelete(param: { filterId: string; user: UserType }) {
+    const filter = await Filter.get(param.filterId);
+
+    if (!filter) {
+      NcError.badRequest('Filter not found');
+    }
+
     await Filter.delete(param.filterId);
     T.emit('evt', { evt_type: 'filter:deleted' });
+
+    this.appHooksService.emit(AppEvents.FILTER_DELETE, {
+      filter,
+      user: param.user,
+    });
+
     return true;
   }
 
@@ -46,6 +68,11 @@ export class FiltersService {
 
     T.emit('evt', { evt_type: 'filter:created' });
 
+    this.appHooksService.emit(AppEvents.FILTER_CREATE, {
+      filter,
+      user: param.user,
+    });
+
     return filter;
   }
   async filterUpdate(param: {
@@ -55,12 +82,23 @@ export class FiltersService {
   }) {
     validatePayload('swagger.json#/components/schemas/FilterReq', param.filter);
 
+    const filter = await Filter.get(param.filterId);
+
+    if (!filter) {
+      NcError.badRequest('Filter not found');
+    }
+
     // todo: type correction
-    const filter = await Filter.update(param.filterId, param.filter as Filter);
+    const res = await Filter.update(param.filterId, param.filter as Filter);
 
     T.emit('evt', { evt_type: 'filter:updated' });
 
-    return filter;
+    this.appHooksService.emit(AppEvents.FILTER_UPDATE, {
+      filter,
+      user: param.user,
+    });
+
+    return res;
   }
 
   async filterChildrenList(param: { filterId: any }) {

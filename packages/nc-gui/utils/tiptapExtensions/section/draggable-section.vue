@@ -17,7 +17,7 @@ const pos = computed(() => getPos())
 
 const parentNodeType = computed(() => {
   try {
-    const resolvedPos = editor.state.doc.resolve(pos.value)
+    const resolvedPos = editor.state.doc.resolve(getPos())
     const parent = resolvedPos.node(resolvedPos.depth - 1)
     return parent?.type.name
   } catch (e) {
@@ -41,7 +41,7 @@ const optionWrapperStyle = computed(() => {
 })
 
 const createNodeAfter = () => {
-  const toBeInsertedPos = pos.value + node.nodeSize
+  const toBeInsertedPos = getPos() + node.nodeSize
 
   editor.commands.insertContentAt(toBeInsertedPos, {
     type: 'sec',
@@ -66,7 +66,7 @@ const onDragClick = () => {
 
   // We use timeout as 'focused' class takes time to be added
   setTimeout(() => {
-    const wrapperDom = document.querySelector(`.draggable-block-wrapper[pos="${pos.value}"]`)
+    const wrapperDom = document.querySelector(`.draggable-block-wrapper[pos="${getPos()}"]`)
     wrapperDom?.classList.add('selected')
   }, 100)
 }

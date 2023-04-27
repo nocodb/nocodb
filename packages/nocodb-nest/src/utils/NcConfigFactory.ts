@@ -348,7 +348,6 @@ export default class NcConfigFactory {
             }
           : {}),
       };
-
       if (process.env.NODE_TLS_REJECT_UNAUTHORIZED) {
         dbConfig.connection.ssl = true;
       }

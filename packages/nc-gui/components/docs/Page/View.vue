@@ -233,56 +233,58 @@ watch(wrapperRef, () => {
           </div>
           <div v-if="!isPublic" class="flex flex-row items-center"></div>
         </div>
-        <div
-          :key="openedPageId ?? ''"
-          class="mx-auto pr-6 pt-16 flex flex-col"
-          :style="{
-            width: '64rem',
-            maxWidth: '45vw',
-          }"
-        >
-          <a-skeleton-input
-            v-if="isPageFetching && !isPublic"
-            :active="true"
-            size="large"
-            class="docs-page-title-skelton !mt-3 !max-w-156 mb-3 ml-8 docs-page-skeleton-loading"
-          />
-          <DocsPageTitle v-else-if="openedPage" :key="openedPage.id" class="docs-page-title" @focus-editor="focusEditor" />
-          <div class="flex !mb-4.5"></div>
-
-          <DocsPageSelectedBubbleMenu v-if="editor" :editor="editor" />
-          <DocsPageLinkOptions v-if="editor" :editor="editor" />
-          <a-skeleton-input
-            v-if="isPageFetching && !isPublic"
-            :active="true"
-            size="small"
-            class="docs-page-title-skelton !max-w-102 mb-3 mt-1 ml-8 docs-page-skeleton-loading"
-          />
-          <EditorContent v-else :key="isEditAllowed ? 'edit' : 'view'" data-testid="docs-page-content" :editor="editor" />
+        <div class="nc-docs-page-content">
           <div
-            v-if="(openedPageInSidebar?.children ?? []).length > 0 && !isPageFetching"
-            class="docs-page-child-pages flex flex-col py-12 border-b-1 border-t-1 border-gray-200 mt-12 mb-4 gap-y-6 pop-in-animation"
-            :class="{
-              'ml-6': !isPublic,
+            :key="openedPageId ?? ''"
+            class="mx-auto pr-6 pt-16 flex flex-col"
+            :style="{
+              width: '64rem',
+              maxWidth: '45vw',
             }"
           >
+            <a-skeleton-input
+              v-if="isPageFetching && !isPublic"
+              :active="true"
+              size="large"
+              class="docs-page-title-skelton !mt-3 !max-w-156 mb-3 ml-8 docs-page-skeleton-loading"
+            />
+            <DocsPageTitle v-else-if="openedPage" :key="openedPage.id" class="docs-page-title" @focus-editor="focusEditor" />
+            <div class="flex !mb-4.5"></div>
+
+            <DocsPageSelectedBubbleMenu v-if="editor" :editor="editor" />
+            <DocsPageLinkOptions v-if="editor" :editor="editor" />
+            <a-skeleton-input
+              v-if="isPageFetching && !isPublic"
+              :active="true"
+              size="small"
+              class="docs-page-title-skelton !max-w-102 mb-3 mt-1 ml-8 docs-page-skeleton-loading"
+            />
+            <EditorContent v-else :key="isEditAllowed ? 'edit' : 'view'" data-testid="docs-page-content" :editor="editor" />
             <div
-              v-for="page of openedPageInSidebar?.children"
-              :key="page.id"
-              class="docs-page-child-page px-6 flex flex-row items-center gap-x-2 cursor-pointer text-gray-600 hover:text-black"
-              @click="openPage({ page, projectId: project.id! })"
+              v-if="(openedPageInSidebar?.children ?? []).length > 0 && !isPageFetching"
+              class="docs-page-child-pages flex flex-col py-12 border-b-1 border-t-1 border-gray-200 mt-12 mb-4 gap-y-6 pop-in-animation"
+              :class="{
+                'ml-6': !isPublic,
+              }"
             >
-              <div v-if="page.icon" class="flex">
-                <IconifyIcon
-                  :key="page.icon"
-                  :data-testid="`nc-doc-page-icon-${page.icon}`"
-                  class="flex text-lg pop-in-animation"
-                  :icon="page.icon"
-                ></IconifyIcon>
-              </div>
-              <MdiFileDocumentOutline v-else class="flex pop-in-animation ml-0.25" />
-              <div class="font-semibold text-base pop-in-animation">
-                {{ page.title }}
+              <div
+                v-for="page of openedPageInSidebar?.children"
+                :key="page.id"
+                class="docs-page-child-page px-6 flex flex-row items-center gap-x-2 cursor-pointer text-gray-600 hover:text-black"
+                @click="openPage({ page, projectId: project.id! })"
+              >
+                <div v-if="page.icon" class="flex">
+                  <IconifyIcon
+                    :key="page.icon"
+                    :data-testid="`nc-doc-page-icon-${page.icon}`"
+                    class="flex text-lg pop-in-animation"
+                    :icon="page.icon"
+                  ></IconifyIcon>
+                </div>
+                <MdiFileDocumentOutline v-else class="flex pop-in-animation ml-0.25" />
+                <div class="font-semibold text-base pop-in-animation">
+                  {{ page.title }}
+                </div>
               </div>
             </div>
           </div>
@@ -322,7 +324,7 @@ watch(wrapperRef, () => {
   }
 }
 
-.nc-docs-page {
+.nc-docs-page-content {
   overflow-y: overlay;
   // scrollbar reduce width and gray color
   &::-webkit-scrollbar {
@@ -344,7 +346,7 @@ watch(wrapperRef, () => {
     background: #f6f6f600;
   }
 }
-.nc-docs-page:hover {
+.nc-docs-page-content:hover {
   // scrollbar reduce width and gray color
   &::-webkit-scrollbar {
     width: 6px;
@@ -412,36 +414,39 @@ watch(wrapperRef, () => {
     user-select: text !important;
   }
 
-  p.is-empty::before,
-  h1.is-empty::before,
-  h2.is-empty::before,
-  h3.is-empty::before {
+  p.is-empty::after,
+  h1.is-empty::after,
+  h2.is-empty::after,
+  h3.is-empty::after {
     content: attr(data-placeholder);
     float: left;
     color: #afafaf;
     pointer-events: none;
-    height: 0;
+    margin-top: -1.55rem;
+    margin-left: 0.01rem;
   }
 
   .editable {
     .focused {
       div[data-is-empty='true'] {
-        p::before {
+        p::after {
           content: 'Press / to open the command menu or start writing' !important;
           float: left;
           color: #afafaf;
           pointer-events: none;
-          height: 0;
+          margin-top: -1.55rem;
+          margin-left: 0.01rem;
         }
       }
     }
     div.is-empty.focused {
-      p::before {
+      p::after {
         content: 'Press / to open the command menu or start writing' !important;
         float: left;
         color: #afafaf;
         pointer-events: none;
-        height: 0;
+        margin-top: -1.55rem;
+        margin-left: 0.01rem;
       }
     }
   }

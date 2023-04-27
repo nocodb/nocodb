@@ -42,7 +42,7 @@ const createRow = () => {
           const lastRowNode = tableNode.lastChild!
           const lastRowNodePos = tableNodePos + tableNode.nodeSize - lastRowNode.nodeSize
 
-          return commands.setTextSelection(lastRowNodePos)
+          return commands.setTextSelection(lastRowNodePos + 2)
         })
         .run()
     }, 0)

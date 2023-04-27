@@ -1,7 +1,6 @@
 <script lang="ts" setup>
 import { NodeViewContent, NodeViewWrapper, nodeViewProps } from '@tiptap/vue-3'
-import { NodeSelection, TextSelection } from 'prosemirror-state'
-import { TiptapNodesTypes } from 'nocodb-sdk'
+import { NodeSelection } from 'prosemirror-state'
 import { dragOptionStyle } from './dragOptionStyle'
 
 const { node, getPos, editor } = defineProps(nodeViewProps)
@@ -10,11 +9,15 @@ const isPublic = !editor.view.editable
 
 const dragClicked = ref(false)
 const optionsPopoverRef = ref()
+const showDragOptions = ref(false)
+const dragDomRef = ref<HTMLDivElement | undefined>()
+const isDragging = ref(false)
+
+const pos = computed(() => getPos())
 
 const parentNodeType = computed(() => {
   try {
-    const pos = getPos()
-    const resolvedPos = editor.state.doc.resolve(pos)
+    const resolvedPos = editor.state.doc.resolve(pos.value)
     const parent = resolvedPos.node(resolvedPos.depth - 1)
     return parent?.type.name
   } catch (e) {
@@ -25,11 +28,6 @@ const parentNodeType = computed(() => {
 const childNodeType = computed(() => {
   const { content } = node.content as any
   return content[0].type.name
-})
-
-const isNodeWithoutDragOption = computed(() => {
-  const { content } = node.content as any
-  return content[0].type.name === TiptapNodesTypes.column
 })
 
 const optionWrapperStyle = computed(() => {
@@ -43,9 +41,9 @@ const optionWrapperStyle = computed(() => {
 })
 
 const createNodeAfter = () => {
-  const pos = getPos() + node.nodeSize
+  const toBeInsertedPos = pos.value + node.nodeSize
 
-  editor.commands.insertContentAt(pos, {
+  editor.commands.insertContentAt(toBeInsertedPos, {
     type: 'sec',
     content: [
       {
@@ -64,11 +62,11 @@ const createNodeAfter = () => {
 const onDragClick = () => {
   dragClicked.value = !dragClicked.value
 
-  editor.view.dispatch(editor.state.tr.setSelection(TextSelection.create(editor.state.doc, getPos() + 2)))
+  editor.view.dispatch(editor.state.tr.setSelection(NodeSelection.create(editor.state.doc, getPos())))
 
   // We use timeout as 'focused' class takes time to be added
   setTimeout(() => {
-    const wrapperDom = document.querySelector('.draggable-block-wrapper.focused')
+    const wrapperDom = document.querySelector(`.draggable-block-wrapper[pos="${pos.value}"]`)
     wrapperDom?.classList.add('selected')
   }, 100)
 }
@@ -80,11 +78,9 @@ onClickOutside(optionsPopoverRef, () => {
 })
 
 const deleteNode = () => {
-  editor.commands.deleteRange({ from: getPos(), to: getPos() + node.nodeSize })
+  editor.chain().setNodeSelection(getPos()).deleteSelection().run()
   dragClicked.value = false
 }
-
-const isDragging = ref(false)
 
 watch(
   () => editor.view.dragging,
@@ -94,25 +90,49 @@ watch(
     }
   },
 )
+
+// Make drag options visible when mouse is over the node
+// And show not show if the mouse is over a child section node
+watch(dragDomRef, () => {
+  if (!dragDomRef.value) return
+
+  dragDomRef.value.addEventListener('mouseover', (e) => {
+    const elementsOnMouse = document
+      .elementsFromPoint(e.clientX, e.clientY)
+      .filter((el) => el.classList.contains('draggable-block-wrapper'))
+    if (!elementsOnMouse.length) return
+
+    const topMostElement = elementsOnMouse[0]
+
+    if (Number(topMostElement.getAttribute('pos')) === pos.value) {
+      showDragOptions.value = true
+    } else {
+      showDragOptions.value = false
+    }
+  })
+
+  dragDomRef.value.addEventListener('mouseout', () => {
+    showDragOptions.value = false
+  })
+})
 </script>
 
 <template>
-  <NodeViewWrapper
-    class="vue-component draggable-block-wrapper"
-    :class="{
-      'group': parentNodeType !== 'collapsable' && !isPublic && !isNodeWithoutDragOption,
-      'sub-group': parentNodeType === 'collapsable' && !isPublic,
-    }"
-  >
-    <div v-if="!isPublic" class="flex flex-row gap-0.5 w-full items-start" tiptap-draghandle-wrapper="true" :pos="getPos()">
-      <div class="flex flex-row relative" :style="optionWrapperStyle">
+  <NodeViewWrapper class="vue-component draggable-block-wrapper" :pos="pos">
+    <div
+      v-if="!isPublic"
+      ref="dragDomRef"
+      class="flex flex-row gap-0.5 w-full items-start"
+      tiptap-draghandle-wrapper="true"
+      :pos="pos"
+    >
+      <div class="flex flex-row relative group" :style="optionWrapperStyle">
         <div
           v-if="!isDragging"
           type="button"
           class="absolute -left-4.5 block-button cursor-pointer w-5"
           :class="{
-            'block-button-group': parentNodeType !== 'collapsable',
-            'block-button-sub-group': parentNodeType === 'collapsable',
+            '!opacity-100': showDragOptions,
           }"
           @click="createNodeAfter"
         >
@@ -145,8 +165,7 @@ watch(
           :data-drag-handle="true"
           :tiptap-draghandle="true"
           :class="{
-            'block-button-group': parentNodeType !== 'collapsable',
-            'block-button-sub-group': parentNodeType === 'collapsable',
+            '!opacity-100': showDragOptions,
           }"
           @click="onDragClick"
           @dragstart="isDragging = true"
@@ -172,41 +191,10 @@ watch(
 
 <style lang="scss" scoped>
 .block-button {
-  @apply opacity-0  hover:bg-gray-50 rounded-sm text-lg h-6 duration-150 transition-opacity;
+  @apply opacity-0 hover:opacity-100 group-hover:opacity-100 hover:bg-gray-50 rounded-sm text-lg h-6 duration-150 transition-opacity;
   color: rgb(203, 203, 203);
 }
 
-.group:hover {
-  .block-button-group {
-    @apply opacity-100;
-  }
-}
-.group.focused {
-  .block-button-group {
-    @apply opacity-100;
-  }
-}
-.group:focus {
-  .block-button-group {
-    @apply opacity-100;
-  }
-}
-.group:active {
-  .block-button-group {
-    @apply opacity-100;
-  }
-}
-
-.sub-group:hover {
-  .block-button-sub-group {
-    @apply opacity-100;
-  }
-}
-.sub-group.focused {
-  .block-button {
-    @apply opacity-100;
-  }
-}
 .block-button svg {
   @apply -mt-1.5;
 }

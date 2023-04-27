@@ -1,5 +1,7 @@
 import type {
+  FilterType,
   ProjectType,
+  SortType,
   TableType,
   UserType,
   ViewType,
@@ -55,6 +57,16 @@ export interface ViewEvent {
   user: UserType;
 }
 
+export interface FilterEvent {
+  filter: FilterType;
+  user: UserType;
+}
+
+export interface SortEvent {
+  sort: SortType;
+  user: UserType;
+}
+
 export type AppEventPayload =
   | ProjectInviteEvent
   | ProjectCreateEvent
@@ -65,4 +77,6 @@ export type AppEventPayload =
   | UserSignupEvent
   | UserSigninEvent
   | TableEvent
-  | ViewEvent;
+  | ViewEvent
+  | FilterEvent
+  | SortEvent;

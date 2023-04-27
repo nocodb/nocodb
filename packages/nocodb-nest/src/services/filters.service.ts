@@ -2,11 +2,15 @@ import { Injectable } from '@nestjs/common';
 import { T } from 'nc-help';
 import { validatePayload } from '../helpers';
 import { Filter } from '../models';
-import type { FilterReqType } from 'nocodb-sdk';
+import type { FilterReqType, UserType } from 'nocodb-sdk';
 
 @Injectable()
 export class FiltersService {
-  async hookFilterCreate(param: { filter: FilterReqType; hookId: any }) {
+  async hookFilterCreate(param: {
+    filter: FilterReqType;
+    hookId: any;
+    user: UserType;
+  }) {
     validatePayload('swagger.json#/components/schemas/FilterReq', param.filter);
 
     const filter = await Filter.insert({
@@ -22,13 +26,17 @@ export class FiltersService {
     return Filter.rootFilterListByHook({ hookId: param.hookId });
   }
 
-  async filterDelete(param: { filterId: string }) {
+  async filterDelete(param: { filterId: string; user: UserType }) {
     await Filter.delete(param.filterId);
     T.emit('evt', { evt_type: 'filter:deleted' });
     return true;
   }
 
-  async filterCreate(param: { filter: FilterReqType; viewId: string }) {
+  async filterCreate(param: {
+    filter: FilterReqType;
+    viewId: string;
+    user: UserType;
+  }) {
     validatePayload('swagger.json#/components/schemas/FilterReq', param.filter);
 
     const filter = await Filter.insert({
@@ -40,7 +48,11 @@ export class FiltersService {
 
     return filter;
   }
-  async filterUpdate(param: { filter: FilterReqType; filterId: string }) {
+  async filterUpdate(param: {
+    filter: FilterReqType;
+    filterId: string;
+    user: UserType;
+  }) {
     validatePayload('swagger.json#/components/schemas/FilterReq', param.filter);
 
     // todo: type correction

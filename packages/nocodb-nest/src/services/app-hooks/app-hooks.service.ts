@@ -1,10 +1,10 @@
 import { Injectable } from '@nestjs/common';
 import type {
-  AppEventPayload,
+  AppEventPayload, FilterEvent,
   ProjectCreateEvent,
   ProjectDeleteEvent,
   ProjectInviteEvent,
-  ProjectUpdateEvent,
+  ProjectUpdateEvent, SortEvent,
   TableEvent,
   UserSigninEvent,
   UserSignupEvent,
@@ -47,9 +47,9 @@ export enum AppEvents {
   SHARED_VIEW_DELETE = 'shared.view.delete',
   SHARED_VIEW_UPDATE = 'shared.view.update',
 
-  FILE_CREATE = 'file.create',
-  FILE_DELETE = 'file.delete',
-  FILE_UPDATE = 'file.update',
+  FILTER_CREATE = 'filter.create',
+  FILTER_DELETE = 'filter.delete',
+  FILTER_UPDATE = 'filter.update',
 
   SORT_CREATE = 'sort.create',
   SORT_DELETE = 'sort.delete',
@@ -103,7 +103,21 @@ export class AppHooksService {
       | AppEvents.SHARED_VIEW_CREATE,
     listener: (data: ViewEvent) => void,
   ): void;
-  on(event: AppEvents, listener: (...args: any[]) => void): void {
+  on(
+    event:
+      | AppEvents.FILTER_UPDATE
+      | AppEvents.FILTER_DELETE
+      | AppEvents.FILTER_CREATE,
+    listener: (data: FilterEvent) => void,
+  ): void;
+  on(
+    event:
+      | AppEvents.SORT_UPDATE
+      | AppEvents.SORT_DELETE
+      | AppEvents.SORT_CREATE,
+    listener: (data: SortEvent) => void,
+  ): void;
+  on(event, listener): void {
     const listeners = this.listeners.get(event) || [];
     listeners.push(listener);
     this.listeners.set(event, listeners);
@@ -129,10 +143,24 @@ export class AppHooksService {
   ): void;
   emit(
     event:
+      | AppEvents.FILTER_UPDATE
+      | AppEvents.FILTER_DELETE
+      | AppEvents.FILTER_CREATE,
+    data: FilterEvent,
+  ): void;
+  emit(
+    event:
       | AppEvents.TABLE_UPDATE
       | AppEvents.TABLE_CREATE
       | AppEvents.TABLE_DELETE,
     data: TableEvent,
+  ): void;
+  emit(
+    event:
+      | AppEvents.SORT_UPDATE
+      | AppEvents.SORT_CREATE
+      | AppEvents.SORT_DELETE,
+    data: SortEvent,
   ): void;
   emit(event, arg): void {
     const listeners = this.listeners.get(event) || [];

@@ -7,6 +7,7 @@ import {
   Param,
   Patch,
   Post,
+  Req,
   UseGuards,
 } from '@nestjs/common';
 import { AuthGuard } from '@nestjs/passport';
@@ -42,10 +43,12 @@ export class FiltersController {
   async filterCreate(
     @Param('viewId') viewId: string,
     @Body() body: FilterReqType,
+    @Req() req,
   ) {
     const filter = await this.filtersService.filterCreate({
       filter: body,
       viewId: viewId,
+      user: req.user,
     });
     return filter;
   }
@@ -56,10 +59,12 @@ export class FiltersController {
   async hookFilterCreate(
     @Param('hookId') hookId: string,
     @Body() body: FilterReqType,
+    @Req() req,
   ) {
     const filter = await this.filtersService.hookFilterCreate({
       filter: body,
       hookId,
+      user: req.user,
     });
     return filter;
   }
@@ -85,19 +90,22 @@ export class FiltersController {
   async filterUpdate(
     @Param('filterId') filterId: string,
     @Body() body: FilterReqType,
+    @Req() req,
   ) {
     const filter = await this.filtersService.filterUpdate({
       filterId: filterId,
       filter: body,
+      user: req.user,
     });
     return filter;
   }
 
   @Delete('/api/v1/db/meta/filters/:filterId')
   @Acl('filterDelete')
-  async filterDelete(@Param('filterId') filterId: string) {
+  async filterDelete(@Param('filterId') filterId: string, @Req() req) {
     const filter = await this.filtersService.filterDelete({
       filterId,
+      user: req.user,
     });
     return filter;
   }

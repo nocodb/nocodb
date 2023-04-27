@@ -32,6 +32,11 @@ jobs:
     
     - name: Build nocodb and docker files
       run: |
+        cd ../..
+        npm install
+        npm run install:common
+        npm run build:common
+        cd packages/nocodb
         npm run build
         npm run docker:build
       working-directory: ${{ env.working-directory }}

@@ -62,4 +62,20 @@ export enum AppEvents {
   COLUMN_CREATE = 'column.create',
   COLUMN_DELETE = 'column.delete',
   COLUMN_UPDATE = 'column.update',
+
+  BASE_CREATE = 'base.create',
+  BASE_DELETE = 'base.delete',
+  BASE_UPDATE = 'base.update',
+
+  HOOK_CREATE = 'hook.create',
+  HOOK_DELETE = 'hook.delete',
+  HOOK_UPDATE = 'hook.update',
+
+  API_TOKEN_CREATE = 'api.token.create',
+  API_TOKEN_DELETE = 'api.token.delete',
+  API_TOKEN_UPDATE = 'api.token.update',
+
+  DATA_CREATE = 'data.create',
+  DATA_DELETE = 'data.delete',
+  DATA_UPDATE = 'data.update',
 }

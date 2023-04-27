@@ -1,10 +1,19 @@
 import { Injectable } from '@nestjs/common';
-import {Notification, Project} from '../models';
+import { Notification } from '../models';
 import { PagedResponseImpl } from '../helpers/PagedResponse';
 import { AppEvents, AppHooksService } from './app-hooks/app-hooks.service';
+import type {
+  FilterEvent,
+  ProjectInviteEvent,
+  SortEvent,
+  TableEvent,
+  ViewEvent,
+  WelcomeEvent,
+  WorkspaceInviteEvent,
+} from './app-hooks/interfaces';
+import type { Project } from '../models';
 import type { OnModuleDestroy, OnModuleInit } from '@nestjs/common';
 import type { UserType } from 'nocodb-sdk';
-import {ProjectInviteEvent, WelcomeEvent, WorkspaceInviteEvent} from "./app-hooks/interfaces";
 
 @Injectable()
 export class NotificationsService implements OnModuleInit, OnModuleDestroy {
@@ -14,8 +23,7 @@ export class NotificationsService implements OnModuleInit, OnModuleDestroy {
     switch (event) {
       case AppEvents.PROJECT_INVITE:
         {
-          const { project, user, invitedBy} = data as ProjectInviteEvent;
-
+          const { project, user, invitedBy } = data as ProjectInviteEvent;
 
           await Notification.insert({
             fk_user_id: user.id,
@@ -53,6 +61,70 @@ export class NotificationsService implements OnModuleInit, OnModuleDestroy {
             fk_user_id: user.id,
             type: AppEvents.WELCOME,
             body: {},
+          });
+        }
+        break;
+      case AppEvents.FILTER_CREATE:
+      case AppEvents.FILTER_UPDATE:
+      case AppEvents.FILTER_DELETE:
+        {
+          const { filter, user } = data as FilterEvent;
+
+          await Notification.insert({
+            fk_user_id: user.id,
+            type: event,
+            body: {},
+          });
+        }
+        break;
+      case AppEvents.SORT_CREATE:
+      case AppEvents.SORT_UPDATE:
+      case AppEvents.SORT_DELETE:
+        {
+          const { user } = data as SortEvent;
+
+          await Notification.insert({
+            fk_user_id: user.id,
+            type: event,
+            body: {},
+          });
+        }
+        break;
+      case AppEvents.TABLE_CREATE:
+      case AppEvents.TABLE_UPDATE:
+      case AppEvents.TABLE_DELETE: {
+        const { user, table } = data as TableEvent;
+
+        await Notification.insert({
+          fk_user_id: user.id,
+          type: event,
+          body: {
+            title: table.title,
+            project_id: table.project_id,
+            base_id: table.base_id,
+            id: table.id,
+          },
+        });
+      }
+      case AppEvents.VIEW_CREATE:
+      case AppEvents.VIEW_UPDATE:
+      case AppEvents.VIEW_DELETE:
+      case AppEvents.SHARED_VIEW_CREATE:
+      case AppEvents.SHARED_VIEW_UPDATE:
+      case AppEvents.SHARED_VIEW_DELETE:
+        {
+          const { user, view } = data as ViewEvent;
+
+          await Notification.insert({
+            fk_user_id: user.id,
+            type: event,
+            body: {
+              title: view.title,
+              project_id: view.project_id,
+              base_id: view.base_id,
+              id: view.id,
+              fk_model_id: view.fk_model_id,
+            },
           });
         }
         break;

@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import type {
-  AppEventPayload, FilterEvent,
+  FilterEvent,
   ProjectCreateEvent,
   ProjectDeleteEvent,
   ProjectInviteEvent,

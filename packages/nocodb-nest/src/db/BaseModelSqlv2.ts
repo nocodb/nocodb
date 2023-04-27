@@ -1744,7 +1744,10 @@ class BaseModelSqlv2 {
       await populatePk(this.model, data);
 
       // todo: filter based on view
-      const insertObj = await this.model.mapAliasToColumn(data);
+      const insertObj = await this.model.mapAliasToColumn(
+        data,
+        this.clientMeta,
+      );
 
       await this.validate(insertObj);
 
@@ -1884,7 +1887,10 @@ class BaseModelSqlv2 {
 
   async updateByPk(id, data, trx?, cookie?) {
     try {
-      const updateObj = await this.model.mapAliasToColumn(data);
+      const updateObj = await this.model.mapAliasToColumn(
+        data,
+        this.clientMeta,
+      );
 
       await this.validate(data);
 
@@ -1934,6 +1940,16 @@ class BaseModelSqlv2 {
     return this.getTnPath(this.model);
   }
 
+  public get clientMeta() {
+    return {
+      isSqlite: this.isSqlite,
+      // isMssql: this.isMssql,
+      // isPg: this.isPg,
+      isMySQL: this.isMySQL,
+      // isSnowflake: this.isSnowflake,
+    };
+  }
+
   get isSqlite() {
     return this.clientType === 'sqlite3';
   }
@@ -1962,7 +1978,10 @@ class BaseModelSqlv2 {
     // const driver = trx ? trx : await this.dbDriver.transaction();
     try {
       await populatePk(this.model, data);
-      const insertObj = await this.model.mapAliasToColumn(data);
+      const insertObj = await this.model.mapAliasToColumn(
+        data,
+        this.clientMeta,
+      );
 
       let rowId = null;
       const postInsertOps = [];
@@ -2112,7 +2131,7 @@ class BaseModelSqlv2 {
       const insertDatas = await Promise.all(
         datas.map(async (d) => {
           await populatePk(this.model, d);
-          return this.model.mapAliasToColumn(d);
+          return this.model.mapAliasToColumn(d, this.clientMeta);
         }),
       );
 
@@ -2153,7 +2172,7 @@ class BaseModelSqlv2 {
     let transaction;
     try {
       const updateDatas = await Promise.all(
-        datas.map((d) => this.model.mapAliasToColumn(d)),
+        datas.map((d) => this.model.mapAliasToColumn(d, this.clientMeta)),
       );
 
       const prevData = [];
@@ -2205,7 +2224,10 @@ class BaseModelSqlv2 {
   ) {
     try {
       let count = 0;
-      const updateData = await this.model.mapAliasToColumn(data);
+      const updateData = await this.model.mapAliasToColumn(
+        data,
+        this.clientMeta,
+      );
       await this.validate(updateData);
       const pkValues = await this._extractPksValues(updateData);
       if (pkValues) {
@@ -2251,7 +2273,7 @@ class BaseModelSqlv2 {
     let transaction;
     try {
       const deleteIds = await Promise.all(
-        ids.map((d) => this.model.mapAliasToColumn(d)),
+        ids.map((d) => this.model.mapAliasToColumn(d, this.clientMeta)),
       );
 
       const deleted = [];

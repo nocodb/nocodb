@@ -1,4 +1,11 @@
-import { Injectable } from '@nestjs/common';
+import {Injectable} from '@nestjs/common';
+import type {
+  ColumnReqType,
+  LinkToAnotherColumnReqType,
+  LinkToAnotherRecordType,
+  RelationTypes,
+  UserType,
+} from 'nocodb-sdk';
 import {
   AuditOperationSubTypes,
   AuditOperationTypes,
@@ -7,7 +14,7 @@ import {
   substituteColumnIdWithAliasInFormula,
   UITypes,
 } from 'nocodb-sdk';
-import { T } from 'nc-help';
+import {T} from 'nc-help';
 import formulaQueryBuilderv2 from '../db/formulav2/formulaQueryBuilderv2';
 import ProjectMgrv2 from '../db/sql-mgr/v2/ProjectMgrv2';
 import {
@@ -19,34 +26,19 @@ import {
   validateRequiredField,
   validateRollupPayload,
 } from '../helpers';
-import { NcError } from '../helpers/catchError';
+import {NcError} from '../helpers/catchError';
 import getColumnPropsFromUIDT from '../helpers/getColumnPropsFromUIDT';
-import {
-  getUniqueColumnAliasName,
-  getUniqueColumnName,
-} from '../helpers/getUniqueName';
+import {getUniqueColumnAliasName, getUniqueColumnName,} from '../helpers/getUniqueName';
 import mapDefaultDisplayValue from '../helpers/mapDefaultDisplayValue';
 import validateParams from '../helpers/validateParams';
-import {
-  Audit,
-  Base,
-  Column,
-  FormulaColumn,
-  KanbanView,
-  Model,
-} from '../models';
+import type {LinkToAnotherRecordColumn, Project} from '../models';
+import {Audit, Base, Column, FormulaColumn, KanbanView, Model,} from '../models';
 import Noco from '../Noco';
 import NcConnectionMgrv2 from '../utils/common/NcConnectionMgrv2';
-import { MetaTable } from '../utils/globals';
-import type { LinkToAnotherRecordColumn, Project } from '../models';
-import type { MetaService } from '../meta/meta.service';
+import {MetaTable} from '../utils/globals';
+import type {MetaService} from '../meta/meta.service';
 import type SqlMgrv2 from '../db/sql-mgr/v2/SqlMgrv2';
-import type {
-  ColumnReqType,
-  LinkToAnotherColumnReqType,
-  LinkToAnotherRecordType,
-  RelationTypes,
-} from 'nocodb-sdk';
+import {AppEvents, AppHooksService} from "./app-hooks/app-hooks.service";
 
 // todo: move
 export enum Altered {
@@ -57,11 +49,18 @@ export enum Altered {
 
 @Injectable()
 export class ColumnsService {
+
+  constructor(
+    private appHooksService: AppHooksService,
+  ) {
+  }
+
   async columnUpdate(param: {
     req?: any;
     columnId: string;
     column: ColumnReqType & { colOptions?: any };
     cookie?: any;
+    user: UserType
   }) {
     const { cookie } = param;
     const column = await Column.get({ colId: param.columnId });
@@ -838,6 +837,11 @@ export class ColumnsService {
     await table.getColumns();
     T.emit('evt', { evt_type: 'column:updated' });
 
+    this.appHooksService.emit(AppEvents.TABLE_UPDATE, {
+      table,
+      user: param.user
+    })
+
     return table;
   }
 
@@ -850,7 +854,7 @@ export class ColumnsService {
     return Model.updatePrimaryColumn(column.fk_model_id, column.id);
   }
 
-  async columnAdd(param: { req: any; tableId: string; column: ColumnReqType }) {
+  async columnAdd(param: { req: any; tableId: string; column: ColumnReqType; user: UserType }) {
     validatePayload('swagger.json#/components/schemas/ColumnReq', param.column);
 
     const table = await Model.getWithInfo({
@@ -1139,10 +1143,15 @@ export class ColumnsService {
 
     T.emit('evt', { evt_type: 'column:created' });
 
+    this.appHooksService.emit(AppEvents.TABLE_CREATE, {
+      table,
+      user: param.user
+    })
+
     return table;
   }
 
-  async columnDelete(param: { req?: any; columnId: string }) {
+  async columnDelete(param: { req?: any; columnId: string; user: UserType }) {
     const column = await Column.get({ colId: param.columnId });
     const table = await Model.getWithInfo({
       id: column.fk_model_id,
@@ -1359,6 +1368,11 @@ export class ColumnsService {
     }
 
     T.emit('evt', { evt_type: 'column:deleted' });
+
+    this.appHooksService.emit(AppEvents.TABLE_DELETE, {
+      table,
+      user: param.user
+    })
 
     return table;
   }

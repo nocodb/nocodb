@@ -37,6 +37,7 @@ export class ColumnsController {
       tableId,
       column: body,
       req,
+      user: req.user,
     });
   }
 
@@ -51,13 +52,18 @@ export class ColumnsController {
       columnId: columnId,
       column: body,
       req,
+      user: req.user,
     });
   }
 
   @Delete('/api/v1/db/meta/columns/:columnId')
   @Acl('columnDelete')
   async columnDelete(@Param('columnId') columnId: string, @Request() req: any) {
-    return await this.columnsService.columnDelete({ columnId, req });
+    return await this.columnsService.columnDelete({
+      columnId,
+      req,
+      user: req.user,
+    });
   }
 
   @Get('/api/v1/db/meta/columns/:columnId')

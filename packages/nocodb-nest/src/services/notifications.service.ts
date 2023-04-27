@@ -3,6 +3,7 @@ import { Notification } from '../models';
 import { PagedResponseImpl } from '../helpers/PagedResponse';
 import { AppEvents, AppHooksService } from './app-hooks/app-hooks.service';
 import type {
+  ColumnEvent,
   FilterEvent,
   ProjectInviteEvent,
   SortEvent,
@@ -92,20 +93,22 @@ export class NotificationsService implements OnModuleInit, OnModuleDestroy {
         break;
       case AppEvents.TABLE_CREATE:
       case AppEvents.TABLE_UPDATE:
-      case AppEvents.TABLE_DELETE: {
-        const { user, table } = data as TableEvent;
+      case AppEvents.TABLE_DELETE:
+        {
+          const { user, table } = data as TableEvent;
 
-        await Notification.insert({
-          fk_user_id: user.id,
-          type: event,
-          body: {
-            title: table.title,
-            project_id: table.project_id,
-            base_id: table.base_id,
-            id: table.id,
-          },
-        });
-      }
+          await Notification.insert({
+            fk_user_id: user.id,
+            type: event,
+            body: {
+              title: table.title,
+              project_id: table.project_id,
+              base_id: table.base_id,
+              id: table.id,
+            },
+          });
+        }
+        break;
       case AppEvents.VIEW_CREATE:
       case AppEvents.VIEW_UPDATE:
       case AppEvents.VIEW_DELETE:
@@ -124,6 +127,26 @@ export class NotificationsService implements OnModuleInit, OnModuleDestroy {
               base_id: view.base_id,
               id: view.id,
               fk_model_id: view.fk_model_id,
+            },
+          });
+        }
+        break;
+      case AppEvents.COLUMN_CREATE:
+      case AppEvents.COLUMN_UPDATE:
+      case AppEvents.COLUMN_DELETE:
+        {
+          const { user, column } = data as ColumnEvent;
+
+          await Notification.insert({
+            fk_user_id: user.id,
+            type: event,
+            body: {
+              title: column.title,
+              // todo: update in swagger
+              project_id: column['project_id'],
+              base_id: column.base_id,
+              id: column.id,
+              fk_model_id: column.fk_model_id,
             },
           });
         }

@@ -1,5 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import type {
+  ColumnEvent,
   FilterEvent,
   ProjectCreateEvent,
   ProjectDeleteEvent,
@@ -54,6 +55,10 @@ export enum AppEvents {
   SORT_CREATE = 'sort.create',
   SORT_DELETE = 'sort.delete',
   SORT_UPDATE = 'sort.update',
+
+  COLUMN_CREATE = 'column.create',
+  COLUMN_DELETE = 'column.delete',
+  COLUMN_UPDATE = 'column.update',
 }
 
 @Injectable()
@@ -117,6 +122,13 @@ export class AppHooksService {
       | AppEvents.SORT_CREATE,
     listener: (data: SortEvent) => void,
   ): void;
+  on(
+    event:
+      | AppEvents.COLUMN_UPDATE
+      | AppEvents.COLUMN_DELETE
+      | AppEvents.COLUMN_CREATE,
+    listener: (data: ColumnEvent) => void,
+  ): void;
   on(event, listener): void {
     const listeners = this.listeners.get(event) || [];
     listeners.push(listener);
@@ -161,6 +173,13 @@ export class AppHooksService {
       | AppEvents.SORT_CREATE
       | AppEvents.SORT_DELETE,
     data: SortEvent,
+  ): void;
+  emit(
+    event:
+      | AppEvents.COLUMN_UPDATE
+      | AppEvents.COLUMN_CREATE
+      | AppEvents.COLUMN_DELETE,
+    data: ColumnEvent,
   ): void;
   emit(event, arg): void {
     const listeners = this.listeners.get(event) || [];

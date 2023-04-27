@@ -1,4 +1,5 @@
 import type {
+  ColumnType,
   FilterType,
   ProjectType,
   SortType,
@@ -62,6 +63,11 @@ export interface FilterEvent {
   user: UserType;
 }
 
+export interface ColumnEvent {
+  column: ColumnType;
+  user: UserType;
+}
+
 export interface SortEvent {
   sort: SortType;
   user: UserType;
@@ -79,4 +85,5 @@ export type AppEventPayload =
   | TableEvent
   | ViewEvent
   | FilterEvent
-  | SortEvent;
+  | SortEvent
+  | ColumnEvent;

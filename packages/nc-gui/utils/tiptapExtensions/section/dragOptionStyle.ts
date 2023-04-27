@@ -83,7 +83,7 @@ export const dragOptionStyle = ({
   if (parentNodeType === TiptapNodesTypes.collapsable) {
     style = {
       ...style,
-      marginLeft: '-1.75rem',
+      marginLeft: '-1.85rem',
     }
   }
 

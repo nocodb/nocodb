@@ -3,7 +3,6 @@ import { NodeViewContent, NodeViewWrapper, nodeViewProps } from '@tiptap/vue-3'
 import { TextSelection } from 'prosemirror-state'
 import { TiptapNodesTypes } from 'nocodb-sdk'
 import { positionOfFirstChild } from '../helper'
-import MdiTriangleDown from '~icons/tabler/triangle-inverted-filled'
 
 const { editor } = defineProps(nodeViewProps)
 
@@ -42,13 +41,14 @@ const toggleCollapsableContent = () => {
       }"
     >
       <div
-        class="mt-1 flex items-center px-1 cursor-pointer hover:bg-gray-100 h-6 rounded-md z-10"
+        class="mt-1 flex items-center px-1 cursor-pointer hover:bg-gray-100 h-6 rounded-md z-10 group"
         @click.stop="toggleCollapsableContent"
       >
-        <MdiTriangleDown
-          class="h-2.5"
+        <MdiTriangle
+          class="h-2.5 text-gray-500 group-hover:text-gray-700"
           :class="{
-            'transform -rotate-90': isCollapsed,
+            'transform rotate-180': !isCollapsed,
+            'transform rotate-90': isCollapsed,
           }"
         />
       </div>

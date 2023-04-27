@@ -244,7 +244,7 @@ const onToggleLink = () => {
 
       <div class="divider"></div>
 
-      <a-dropdown class="flex" trigger="click">
+      <a-dropdown class="flex">
         <div class="flex flex-row items-center cursor-pointer menu-button rounded-md px-0.5">
           <MdiFormatTextVariant class="!h-4.5 !w-4.5" />
           <MaterialSymbolsKeyboardArrowDownRounded class="!h-3 !w-3" />

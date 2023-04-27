@@ -1,5 +1,6 @@
 import { defineStore } from 'pinia'
 import type { NotificationType } from 'nocodb-sdk'
+import io from 'socket.io-client'
 import { useApi } from '#imports'
 
 export const useNotification = defineStore('notificationStore', () => {
@@ -10,6 +11,26 @@ export const useNotification = defineStore('notificationStore', () => {
   const isRead = ref(false)
 
   const { api, isLoading } = useApi()
+
+  const { appInfo } = $(useGlobal())
+
+  const url = new URL(appInfo.ncSiteUrl, window.location.href.split(/[?#]/)[0]).href
+
+  const socket = io(`${url}notifications`, {
+    // extraHeaders: { 'xc-auth': token },
+  })
+
+  socket.emit('message', 'Hello server!')
+  socket.on('message', (data) => {
+    debugger
+    console.log(data) // 'Hello world!'
+  })
+
+  // on socket connection error
+  socket.on('connect_error', (err) => {
+    debugger
+    console.log(err.message) // not authorized
+  })
 
   const loadNotifications = async (loadMore = false) => {
     // todo: pagination

@@ -52,7 +52,6 @@ const groupType = computed({
         </template>
       </template>
 
-
       <!-- TODO: notification - load more ui   -->
       <div v-if="notifications && pageInfo.totalRows > notifications.length" @click.stop="notificationStore.loadNotifications(true)" class="p-6">
         Load more

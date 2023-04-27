@@ -5,12 +5,14 @@ import type {
   ProjectCreateEvent,
   ProjectDeleteEvent,
   ProjectInviteEvent,
-  ProjectUpdateEvent, SortEvent,
+  ProjectUpdateEvent,
+  SortEvent,
   TableEvent,
   UserSigninEvent,
   UserSignupEvent,
   ViewEvent,
-  WelcomeEvent, WorkspaceEvent,
+  WelcomeEvent,
+  WorkspaceEvent,
   WorkspaceInviteEvent,
 } from './interfaces';
 import {AppEvents} from "nocodb-sdk";

@@ -42,6 +42,16 @@ export class NotificationsController {
     });
   }
 
+  @Patch('/api/v1/notifications/mark-all-read')
+  // @Acl('notificationUpdate')
+  async markAllRead(
+    @Request() req,
+  ) {
+    return this.notificationsService.markAllRead({
+      user: req.user,
+    });
+  }
+
   @Delete('/api/v1/notifications/:notificationId')
   // @Acl('notificationDelete')
   async notificationDelete(

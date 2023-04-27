@@ -27,6 +27,7 @@ import type {
   MiddlewareConsumer,
   OnApplicationBootstrap,
 } from '@nestjs/common';
+import {NotificationsGateway} from "./gateways/notifications/notifications.gateway";
 @Module({
   imports: [
     GlobalModule,
@@ -51,6 +52,7 @@ import type {
     LocalStrategy,
     AuthTokenStrategy,
     BaseViewStrategy,
+    NotificationsGateway,
   ],
 })
 export class AppModule implements OnApplicationBootstrap {

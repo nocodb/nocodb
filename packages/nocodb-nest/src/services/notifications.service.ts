@@ -1,4 +1,5 @@
 import { Injectable } from '@nestjs/common';
+import { AppEvents } from 'nocodb-sdk';
 import { Notification } from '../models';
 import { PagedResponseImpl } from '../helpers/PagedResponse';
 import { AppHooksService } from './app-hooks/app-hooks.service';
@@ -16,7 +17,6 @@ import type {
 import type { Project } from '../models';
 import type { OnModuleDestroy, OnModuleInit } from '@nestjs/common';
 import type { UserType } from 'nocodb-sdk';
-import {AppEvents} from "nocodb-sdk";
 
 @Injectable()
 export class NotificationsService implements OnModuleInit, OnModuleDestroy {
@@ -253,4 +253,14 @@ export class NotificationsService implements OnModuleInit, OnModuleDestroy {
   //   notificationDelete(param: { notificationId: string; user: UserType }) {
   //     return;
   //   }
+  markAllRead(param: { user: any }) {
+    return Notification.update(
+      {
+        fk_user_id: param.user.id,
+      },
+      {
+        is_read: true,
+      },
+    );
+  }
 }

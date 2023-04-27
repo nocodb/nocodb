@@ -11,8 +11,6 @@ import type { BaseModelSql } from './BaseModelSql';
 dayjs.extend(utc);
 dayjs.extend(timezone);
 
-pg.defaults.parseInputDatesAsUTC = true;
-
 // override parsing date column to Date()
 types.setTypeParser(1082, (val) => val);
 // override timestamp

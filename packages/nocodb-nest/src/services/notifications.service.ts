@@ -74,7 +74,9 @@ export class NotificationsService implements OnModuleInit, OnModuleDestroy {
           await Notification.insert({
             fk_user_id: user.id,
             type: event,
-            body: {},
+            body: {
+              id: filter.id,
+            },
           });
         }
         break;
@@ -82,12 +84,14 @@ export class NotificationsService implements OnModuleInit, OnModuleDestroy {
       case AppEvents.SORT_UPDATE:
       case AppEvents.SORT_DELETE:
         {
-          const { user } = data as SortEvent;
+          const { user, sort } = data as SortEvent;
 
           await Notification.insert({
             fk_user_id: user.id,
             type: event,
-            body: {},
+            body: {
+              id: sort.id
+            },
           });
         }
         break;

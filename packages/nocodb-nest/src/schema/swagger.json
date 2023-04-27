@@ -23071,30 +23071,55 @@
         "type": "object"
       },
       "Notification": {
-        "description": "",
-        "properties": {
-          "id": {
-            "$ref": "#/components/schemas/Id",
-            "description": "Unique ID"
+        "allOf": [
+          {
+            "description": "",
+            "properties": {
+              "id": {
+                "$ref": "#/components/schemas/Id",
+                "description": "Unique ID"
+              },
+              "is_read": {
+                "type": "boolean",
+                "description": "Whether the notification has been read by the user"
+              },
+              "is_deleted": {
+                "type": "boolean",
+                "description": "Whether the notification has been deleted by the user"
+              },
+              "type": {
+                "type": "string",
+                "description": "Type of notification"
+              },
+              "updated_at": {},
+              "created_at": {}
+            },
+            "title": "Notification",
+            "type": "object"
           },
-          "body": {},
-          "is_read": {
-            "type": "boolean",
-            "description": "Whether the notification has been read by the user"
-          },
-          "is_deleted": {
-            "type": "boolean",
-            "description": "Whether the notification has been deleted by the user"
-          },
-          "type": {
-            "type": "string",
-            "description": "Type of notification"
-          },
-          "updated_at": {},
-          "created_at": {}
-        },
-        "title": "Notification",
-        "type": "object"
+          {
+            "oneOf": [
+              {
+                "$ref": "#/components/schemas/ProjectInviteEvent"
+              },
+              {
+                "$ref": "#/components/schemas/WorkspaceInviteEvent"
+              },
+              {
+                "$ref": "#/components/schemas/TableEvent"
+              },
+              {
+                "$ref": "#/components/schemas/ViewEvent"
+              },
+              {
+                "$ref": "#/components/schemas/ColumnEvent"
+              },
+              {
+                "$ref": "#/components/schemas/WelcomeEvent"
+              }
+            ]
+          }
+        ]
       },
       "NotificationList": {
         "description": "Model for Notification List",
@@ -23149,6 +23174,263 @@
             "type": "boolean"
           }
         }
+      },
+      "ProjectInviteEvent": {
+        "type": "object",
+        "properties": {
+          "fk_user_id": {
+            "type": "string",
+            "description": "The ID of the user who receives the project invite"
+          },
+          "type": {
+            "type": "string",
+            "description": "The type of event, which should be set to 'PROJECT_INVITE'"
+          },
+          "body": {
+            "type": "object",
+            "properties": {
+              "id": {
+                "type": "string",
+                "description": "The ID of the project being invited to"
+              },
+              "title": {
+                "type": "string",
+                "description": "The title of the project being invited to"
+              },
+              "type": {
+                "type": "string",
+                "description": "The type of the project being invited to"
+              },
+              "invited_by": {
+                "type": "string",
+                "description": "The email address of the user who invited the recipient"
+              },
+              "workspace_id": {
+                "type": "string",
+                "description": "The ID of the workspace that the project being invited to belongs to"
+              }
+            },
+            "required": [
+              "id",
+              "title",
+              "type",
+              "invited_by",
+              "workspace_id"
+            ]
+          }
+        },
+        "required": [
+          "fk_user_id",
+          "type",
+          "body"
+        ]
+      },
+      "WorkspaceInviteEvent": {
+        "type": "object",
+        "properties": {
+          "fk_user_id": {
+            "type": "string",
+            "description": "The ID of the user who receives the workspace invite"
+          },
+          "type": {
+            "type": "string",
+            "description": "The type of event, which should be set to 'WORKSPACE_INVITE'"
+          },
+          "body": {
+            "type": "object",
+            "properties": {
+              "id": {
+                "type": "string",
+                "description": "The ID of the workspace being invited to"
+              },
+              "invited_by": {
+                "type": "string",
+                "description": "The email address of the user who invited the recipient"
+              },
+              "title": {
+                "type": "string",
+                "description": "The title of the workspace being invited to"
+              }
+            },
+            "required": [
+              "id",
+              "invited_by",
+              "title"
+            ]
+          }
+        },
+        "required": [
+          "fk_user_id",
+          "type",
+          "body"
+        ]
+      },
+      "WelcomeEvent": {
+        "type": "object",
+        "properties": {
+          "fk_user_id": {
+            "type": "string",
+            "description": "The ID of the user receiving the welcome message"
+          },
+          "type": {
+            "type": "string",
+            "description": "The type of event, which should be set to 'WELCOME'"
+          },
+          "body": {
+            "type": "object",
+            "description": "An empty object"
+          }
+        },
+        "required": [
+          "fk_user_id",
+          "type",
+          "body"
+        ]
+      },
+      "TableEvent": {
+        "type": "object",
+        "properties": {
+          "fk_user_id": {
+            "type": "string",
+            "description": "The ID of the user who triggered the event"
+          },
+          "type": {
+            "type": "string",
+            "description": "The type of the event"
+          },
+          "body": {
+            "type": "object",
+            "properties": {
+              "title": {
+                "type": "string",
+                "description": "The title of the table associated with the event"
+              },
+              "project_id": {
+                "type": "string",
+                "description": "The ID of the project that the table belongs to"
+              },
+              "base_id": {
+                "type": "string",
+                "description": "The ID of the base that the table belongs to"
+              },
+              "id": {
+                "type": "string",
+                "description": "The ID of the table associated with the event"
+              }
+            },
+            "required": [
+              "title",
+              "project_id",
+              "base_id",
+              "id"
+            ]
+          }
+        },
+        "required": [
+          "fk_user_id",
+          "type",
+          "body"
+        ]
+      },
+      "ViewEvent": {
+        "type": "object",
+        "properties": {
+          "fk_user_id": {
+            "type": "string",
+            "description": "The ID of the user who triggered the event"
+          },
+          "type": {
+            "type": "string",
+            "description": "The type of the event"
+          },
+          "body": {
+            "type": "object",
+            "properties": {
+              "title": {
+                "type": "string",
+                "description": "The title of the view associated with the event"
+              },
+              "project_id": {
+                "type": "string",
+                "description": "The ID of the project that the view belongs to"
+              },
+              "base_id": {
+                "type": "string",
+                "description": "The ID of the base that the view belongs to"
+              },
+              "id": {
+                "type": "string",
+                "description": "The ID of the view associated with the event"
+              },
+              "fk_model_id": {
+                "type": "string",
+                "description": "The ID of the model that the view is based on"
+              }
+            },
+            "required": [
+              "title",
+              "project_id",
+              "base_id",
+              "id",
+              "fk_model_id"
+            ]
+          }
+        },
+        "required": [
+          "fk_user_id",
+          "type",
+          "body"
+        ]
+      },
+      "ColumnEvent": {
+        "type": "object",
+        "properties": {
+          "fk_user_id": {
+            "type": "string",
+            "description": "The ID of the user who triggered the event"
+          },
+          "type": {
+            "type": "string",
+            "description": "The type of the event"
+          },
+          "body": {
+            "type": "object",
+            "properties": {
+              "title": {
+                "type": "string",
+                "description": "The title of the column associated with the event"
+              },
+              "project_id": {
+                "type": "string",
+                "description": "The ID of the project that the column belongs to"
+              },
+              "base_id": {
+                "type": "string",
+                "description": "The ID of the base that the column belongs to"
+              },
+              "id": {
+                "type": "string",
+                "description": "The ID of the column associated with the event"
+              },
+              "fk_model_id": {
+                "type": "string",
+                "description": "The ID of the model that the column belongs to"
+              }
+            },
+            "required": [
+              "title",
+              "project_id",
+              "base_id",
+              "id",
+              "fk_model_id"
+            ]
+          }
+        },
+        "required": [
+          "fk_user_id",
+          "type",
+          "body"
+        ]
       }
     },
     "responses": {

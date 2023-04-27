@@ -2553,10 +2553,9 @@ export interface WorkspaceUserListType {
   pageInfo?: PaginatedType;
 }
 
-export interface NotificationType {
+export type NotificationType = {
   /** Unique ID */
   id?: IdType;
-  body?: any;
   /** Whether the notification has been read by the user */
   is_read?: boolean;
   /** Whether the notification has been deleted by the user */
@@ -2565,7 +2564,14 @@ export interface NotificationType {
   type?: string;
   updated_at?: any;
   created_at?: any;
-}
+} & (
+  | ProjectInviteEventType
+  | WorkspaceInviteEventType
+  | TableEventType
+  | ViewEventType
+  | ColumnEventType
+  | WelcomeEventType
+);
 
 /**
  * Model for Notification List
@@ -2579,6 +2585,104 @@ export interface NotificationListType {
 
 export interface NotificationUpdateType {
   is_read?: boolean;
+}
+
+export interface ProjectInviteEventType {
+  /** The ID of the user who receives the project invite */
+  fk_user_id: string;
+  /** The type of event, which should be set to 'PROJECT_INVITE' */
+  type: string;
+  body: {
+    /** The ID of the project being invited to */
+    id: string;
+    /** The title of the project being invited to */
+    title: string;
+    /** The type of the project being invited to */
+    type: string;
+    /** The email address of the user who invited the recipient */
+    invited_by: string;
+    /** The ID of the workspace that the project being invited to belongs to */
+    workspace_id: string;
+  };
+}
+
+export interface WorkspaceInviteEventType {
+  /** The ID of the user who receives the workspace invite */
+  fk_user_id: string;
+  /** The type of event, which should be set to 'WORKSPACE_INVITE' */
+  type: string;
+  body: {
+    /** The ID of the workspace being invited to */
+    id: string;
+    /** The email address of the user who invited the recipient */
+    invited_by: string;
+    /** The title of the workspace being invited to */
+    title: string;
+  };
+}
+
+export interface WelcomeEventType {
+  /** The ID of the user receiving the welcome message */
+  fk_user_id: string;
+  /** The type of event, which should be set to 'WELCOME' */
+  type: string;
+  /** An empty object */
+  body: object;
+}
+
+export interface TableEventType {
+  /** The ID of the user who triggered the event */
+  fk_user_id: string;
+  /** The type of the event */
+  type: string;
+  body: {
+    /** The title of the table associated with the event */
+    title: string;
+    /** The ID of the project that the table belongs to */
+    project_id: string;
+    /** The ID of the base that the table belongs to */
+    base_id: string;
+    /** The ID of the table associated with the event */
+    id: string;
+  };
+}
+
+export interface ViewEventType {
+  /** The ID of the user who triggered the event */
+  fk_user_id: string;
+  /** The type of the event */
+  type: string;
+  body: {
+    /** The title of the view associated with the event */
+    title: string;
+    /** The ID of the project that the view belongs to */
+    project_id: string;
+    /** The ID of the base that the view belongs to */
+    base_id: string;
+    /** The ID of the view associated with the event */
+    id: string;
+    /** The ID of the model that the view is based on */
+    fk_model_id: string;
+  };
+}
+
+export interface ColumnEventType {
+  /** The ID of the user who triggered the event */
+  fk_user_id: string;
+  /** The type of the event */
+  type: string;
+  body: {
+    /** The title of the column associated with the event */
+    title: string;
+    /** The ID of the project that the column belongs to */
+    project_id: string;
+    /** The ID of the base that the column belongs to */
+    base_id: string;
+    /** The ID of the column associated with the event */
+    id: string;
+    /** The ID of the model that the column belongs to */
+    fk_model_id: string;
+  };
 }
 
 import axios, { AxiosInstance, AxiosRequestConfig, ResponseType } from 'axios';

@@ -21,6 +21,11 @@ jobs:
     - name: Checkout
       uses: actions/checkout@v2
 
+    - name: Use Node.js 16
+      uses: actions/setup-node@v3
+      with:
+        node-version: 16.15.0
+
     - uses: bahmutov/npm-install@v1
       with:
         working-directory: ${{ env.working-directory }}

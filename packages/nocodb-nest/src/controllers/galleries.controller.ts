@@ -5,7 +5,7 @@ import {
   HttpCode,
   Param,
   Patch,
-  Post,
+  Post, Req,
   UseGuards,
 } from '@nestjs/common';
 import { GalleryUpdateReqType, ViewCreateReqType } from 'nocodb-sdk';
@@ -37,11 +37,13 @@ export class GalleriesController {
   async galleryViewCreate(
     @Param('tableId') tableId: string,
     @Body() body: ViewCreateReqType,
+    @Req() req: any,
   ) {
     return await this.galleriesService.galleryViewCreate({
       gallery: body,
       // todo: sanitize
       tableId,
+      user: req.user,
     });
   }
 

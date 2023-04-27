@@ -5,7 +5,7 @@ import {
   HttpCode,
   Param,
   Patch,
-  Post,
+  Post, Req,
   UseGuards,
 } from '@nestjs/common';
 import { MapUpdateReqType, ViewCreateReqType } from 'nocodb-sdk';
@@ -35,10 +35,12 @@ export class MapsController {
   async mapViewCreate(
     @Param('tableId') tableId: string,
     @Body() body: ViewCreateReqType,
+    @Req() req: any,
   ) {
     const view = await this.mapsService.mapViewCreate({
       tableId,
       map: body,
+      user: req.user,
     });
     return view;
   }

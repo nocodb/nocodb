@@ -4,7 +4,7 @@ import {
   HttpCode,
   Param,
   Patch,
-  Post,
+  Post, Req,
   UseGuards,
 } from '@nestjs/common';
 import { ViewCreateReqType } from 'nocodb-sdk';
@@ -31,10 +31,12 @@ export class GridsController {
   async gridViewCreate(
     @Param('tableId') tableId: string,
     @Body() body: ViewCreateReqType,
+    @Req() req: any,
   ) {
     const view = await this.gridsService.gridViewCreate({
       grid: body,
       tableId,
+      user: req.user,
     });
     return view;
   }

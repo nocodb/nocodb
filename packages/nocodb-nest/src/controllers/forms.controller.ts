@@ -5,7 +5,7 @@ import {
   HttpCode,
   Param,
   Patch,
-  Post,
+  Post, Req,
   UseGuards,
 } from '@nestjs/common';
 import { ViewCreateReqType } from 'nocodb-sdk';
@@ -37,10 +37,12 @@ export class FormsController {
   async formViewCreate(
     @Param('tableId') tableId: string,
     @Body() body: ViewCreateReqType,
+    @Req() req: any,
   ) {
     const view = await this.formsService.formViewCreate({
       body,
       tableId,
+      user: req.user,
     });
     return view;
   }

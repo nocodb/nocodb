@@ -1665,6 +1665,7 @@ export default async (
           gallery: {
             title: viewName,
           },
+          user: syncDB.user,
         });
         recordPerfStats(_perfStart, 'dbView.galleryCreate');
 
@@ -1727,6 +1728,7 @@ export default async (
         const f = await formViewService.formViewCreate({
           tableId: tblId,
           body: formData,
+          user: syncDB.user,
         });
         recordPerfStats(_perfStart, 'dbView.formCreate');
 
@@ -1795,6 +1797,7 @@ export default async (
             grid: {
               title: viewName,
             },
+            user: syncDB.user,
           });
           recordPerfStats(_perfStart, 'dbView.gridCreate');
 

@@ -1,4 +1,5 @@
 import { isVirtualCol, ModelTypes, UITypes, ViewTypes } from 'nocodb-sdk';
+import dayjs from 'dayjs';
 import { BaseModelSqlv2 } from '../db/BaseModelSqlv2';
 import Noco from '../Noco';
 import { parseMetaProp } from '../utils/modelUtils';
@@ -15,6 +16,7 @@ import { sanitize } from '../helpers/sqlSanitize';
 import { extractProps } from '../helpers/extractProps';
 import Audit from './Audit';
 import View from './View';
+import Base from './Base';
 import Column from './Column';
 import type { BoolType, TableReqType, TableType } from 'nocodb-sdk';
 import type { XKnex } from '../db/CustomKnex';
@@ -430,8 +432,15 @@ export default class Model implements TableType {
     return true;
   }
 
-  async mapAliasToColumn(data) {
+  async mapAliasToColumn(
+    data,
+    clientMeta = {
+      isMySQL: false,
+      isSqlite: false,
+    },
+  ) {
     const insertObj = {};
+    const base = await Base.get(this.base_id);
     for (const col of await this.getColumns()) {
       if (isVirtualCol(col)) continue;
       let val =
@@ -441,6 +450,23 @@ export default class Model implements TableType {
       if (val !== undefined) {
         if (col.uidt === UITypes.Attachment && typeof val !== 'string') {
           val = JSON.stringify(val);
+        }
+        if (col.uidt === UITypes.DateTime && dayjs(val).isValid()) {
+          const { isMySQL, isSqlite } = clientMeta;
+          if (base.is_meta) {
+            if (isMySQL) {
+              val = dayjs(val)?.format('YYYY-MM-DD HH:mm:ss');
+            } else if (isSqlite) {
+              val = dayjs(val).utc().format('YYYY-MM-DD HH:mm:ss');
+            } else {
+              val = dayjs(val).utc().format('YYYY-MM-DD HH:mm:ssZ');
+            }
+          } else {
+            // TODO(timezone): keep ext db as it is
+            val = dayjs(val).format(
+              isMySQL ? 'YYYY-MM-DD HH:mm:ss' : 'YYYY-MM-DD HH:mm:ssZ',
+            );
+          }
         }
         insertObj[sanitize(col.column_name)] = val;
       }

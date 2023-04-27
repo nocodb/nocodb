@@ -77,9 +77,9 @@ watch(isDragging, () => {
       width: `${node.attrs.widthPercent}%`,
     }"
   >
-    <div v-if="prevColumnContentPos" class="flex justify-center h-full w-10 absolute -left-7 group">
+    <div v-if="prevColumnContentPos" class="flex justify-center h-full w-6 absolute -left-7 group">
       <div
-        class="h-full w-2 bg-gray-200 rounded-md invisible group-hover:visible"
+        class="h-full w-2 bg-gray-200 rounded-md invisible group-hover:visible z-20"
         :class="{
           '!visible': isDragging,
         }"

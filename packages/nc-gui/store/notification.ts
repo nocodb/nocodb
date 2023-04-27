@@ -11,13 +11,18 @@ export const useNotification = defineStore('notificationStore', () => {
 
   const { api, isLoading } = useApi()
 
-  const loadNotifications = async () => {
+  const loadNotifications = async (loadMore = false) => {
     // todo: pagination
     const response = await api.notification.list({
       is_read: isRead.value,
+      limit: 1,
+      offset: loadMore ? notifications.value.length : 0,
     })
-
-    notifications.value = response.list
+    if (loadMore) {
+      notifications.value = [...notifications.value, ...response.list]
+    } else {
+      notifications.value = response.list
+    }
     pageInfo.value = response.pageInfo
   }
 

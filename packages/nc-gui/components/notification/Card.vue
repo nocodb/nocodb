@@ -5,7 +5,7 @@ import { useNotification } from '#imports'
 
 const notificationStore = useNotification()
 
-const { notifications, isRead } = storeToRefs(notificationStore)
+const { notifications, isRead, pageInfo } = storeToRefs(notificationStore)
 
 const groupType = computed({
   get() {
@@ -51,6 +51,9 @@ const groupType = computed({
           <a-divider class="!my-0" />
         </template>
       </template>
+    </div>
+    <div v-if="notifications && pageInfo.totalRows > notifications.length" @click.stop="notificationStore.loadNotifications(true)" class="p-6">
+      Load more
     </div>
   </div>
 </template>

@@ -42,7 +42,6 @@ jobs:
       working-directory: ${{ env.working-directory }}
 
     - name: build
-      shell: bash
       run: |
         docker build -t "${{ github.ref_name }}" -f ./packages/nocodb/Dockerfile .
 

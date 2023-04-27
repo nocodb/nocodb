@@ -134,7 +134,7 @@ const selectNode = () => {
     }
   }
   .nc-docs-image {
-    min-width: 10rem;
+    min-width: 4rem;
   }
 }
 .tiptap-img-selected {

@@ -23257,7 +23257,7 @@
             "description": "The ID of the user"
           },
           "type": {
-            "type": "string",
+            "type": "string"
           },
           "body": {
             "type": "object",

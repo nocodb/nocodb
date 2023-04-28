@@ -251,6 +251,7 @@ watch(wrapperRef, () => {
             <DocsPageTitle v-else-if="openedPage" :key="openedPage.id" class="docs-page-title" @focus-editor="focusEditor" />
             <div class="flex !mb-4.5"></div>
 
+            <DocsPageLinkToPageSearch v-if="editor" :editor="editor" />
             <DocsPageSelectedBubbleMenu v-if="editor" :editor="editor" />
             <DocsPageLinkOptions v-if="editor" :editor="editor" />
             <a-skeleton-input
@@ -401,7 +402,8 @@ watch(wrapperRef, () => {
     blockquote,
     pre,
     code,
-    img {
+    img,
+    .link-to-page-wrapper {
       @apply !bg-primary-selected;
     }
 

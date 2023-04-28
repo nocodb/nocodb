@@ -1,15 +1,18 @@
 import { TiptapNodesTypes } from 'nocodb-sdk'
+import type { Node } from 'prosemirror-model'
 
 export const dragOptionStyle = ({
-  nodeType,
-  parentNodeType,
+  currentNode,
+  parentNode,
   attrs,
 }: {
-  nodeType: TiptapNodesTypes
-  parentNodeType: TiptapNodesTypes
+  currentNode: Node
+  parentNode: Node | undefined
   attrs: any
 }) => {
   let style = {} as any
+  const nodeType = currentNode.type.name as TiptapNodesTypes
+  const parentNodeType = parentNode?.type.name as TiptapNodesTypes | undefined
 
   if (nodeType === TiptapNodesTypes.column) {
     style = {
@@ -73,6 +76,10 @@ export const dragOptionStyle = ({
   } else if (nodeType === TiptapNodesTypes.divider) {
     style = {
       marginTop: '0.55rem',
+    }
+  } else if (nodeType === TiptapNodesTypes.linkToPage && currentNode.attrs?.pageId) {
+    style = {
+      marginTop: '0.25rem',
     }
   } else {
     style = {

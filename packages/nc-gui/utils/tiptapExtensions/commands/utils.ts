@@ -40,6 +40,7 @@ import MdiLinkVariant from '~icons/mdi/link-variant'
 import CollapseListIcon from '~icons/carbon/collapse-categories'
 import MdiFileUploadOutline from '~icons/mdi/file-upload-outline'
 import MsViewColumn2 from '~icons/material-symbols/view-column-2-outline'
+import MaterialSymbolsFileOpen from '~icons/material-symbols/file-open-outline'
 
 export const useCommandList = ({
   fileInputDomRef,
@@ -102,6 +103,26 @@ export const useCommandList = ({
       },
       icon: MdiLinkVariant,
       shortCutText: isMacOS() ? '⌘ J' : 'Ctrl J',
+    },
+    {
+      title: 'Link to page',
+      class: 'text-xs',
+      command: ({ editor, range }: { editor: Editor; range: Range }) => {
+        editor
+          .chain()
+          .focus()
+          .deleteRange(range)
+          .insertContentAt(range.from - 2, {
+            type: TiptapNodesTypes.sec,
+            content: [
+              {
+                type: TiptapNodesTypes.linkToPage,
+              },
+            ],
+          })
+          .run()
+      },
+      icon: MaterialSymbolsFileOpen,
     },
     {
       title: 'Body Text',

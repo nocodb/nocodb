@@ -112,6 +112,8 @@ export const Task = Node.create<TaskOptions>({
     const state = this.editor.state
     const selection = state.selection
 
+    if (selection.$from.depth - 1 === 0) return false
+
     const listItemNodePos = selection.$from.before(selection.$from.depth - 1)
     const listItemNode = state.doc.nodeAt(listItemNodePos)
 

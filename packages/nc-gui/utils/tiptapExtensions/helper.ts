@@ -251,14 +251,15 @@ export const isCursorAtStartOfSelectedNode = (state: EditorState) => {
  * @param pageContent
  * @returns pageContent
  */
-export const removeUploadingPlaceHolder = (pageContent: any) => {
+export const removeUploadingPlaceHolderAndEmptyLinkNode = (pageContent: any) => {
   pageContent.content = pageContent.content.filter((node: any) => {
     const childNode = node.content?.length > 0 ? node.content[0] : null
     if (!childNode) return true
 
-    const isUploading = (childNode.type.name !== 'image' || childNode.type.name === 'attachment') && childNode.attrs?.isUploading
+    const isUploading = (childNode.type !== 'image' || childNode.type === 'attachment') && childNode.attrs?.isUploading
+    const isEmptyLink = childNode.type === TiptapNodesTypes.linkToPage && !childNode.attrs?.pageId
 
-    return !isUploading
+    return !isUploading && !isEmptyLink
   })
 
   return pageContent

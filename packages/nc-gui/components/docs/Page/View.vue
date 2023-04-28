@@ -4,7 +4,7 @@ import { Icon as IconifyIcon } from '@iconify/vue'
 import { TiptapNodesTypes } from 'nocodb-sdk'
 import { useShortcuts } from '../utils'
 import tiptapExtensions from '~~/utils/tiptapExtensions'
-import { removeUploadingPlaceHolder } from '~~/utils/tiptapExtensions/helper'
+import { removeUploadingPlaceHolderAndEmptyLinkNode } from '~~/utils/tiptapExtensions/helper'
 
 const { project } = useProject()
 useShortcuts()
@@ -67,7 +67,7 @@ const editor = useEditor({
   onUpdate: ({ editor }) => {
     if (!openedPage.value) return
 
-    openedPage.value.content = JSON.stringify(removeUploadingPlaceHolder(editor.getJSON()))
+    openedPage.value.content = JSON.stringify(removeUploadingPlaceHolderAndEmptyLinkNode(editor.getJSON()))
   },
   editorProps: {
     handleKeyDown: (view, event) => {
@@ -251,6 +251,7 @@ watch(wrapperRef, () => {
             <DocsPageTitle v-else-if="openedPage" :key="openedPage.id" class="docs-page-title" @focus-editor="focusEditor" />
             <div class="flex !mb-4.5"></div>
 
+            <DocsPageLinkToPageSearch v-if="editor" :editor="editor" />
             <DocsPageSelectedBubbleMenu v-if="editor" :editor="editor" />
             <DocsPageLinkOptions v-if="editor" :editor="editor" />
             <a-skeleton-input
@@ -401,7 +402,8 @@ watch(wrapperRef, () => {
     blockquote,
     pre,
     code,
-    img {
+    img,
+    .link-to-page-wrapper {
       @apply !bg-primary-selected;
     }
 

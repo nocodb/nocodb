@@ -15,11 +15,11 @@ const isDragging = ref(false)
 
 const pos = computed(() => getPos())
 
-const parentNodeType = computed(() => {
+const parentNode = computed(() => {
   try {
     const resolvedPos = editor.state.doc.resolve(getPos())
     const parent = resolvedPos.node(resolvedPos.depth - 1)
-    return parent?.type.name
+    return parent
   } catch (e) {
     return undefined
   }
@@ -34,8 +34,8 @@ const optionWrapperStyle = computed(() => {
   const { content } = node.content as any
 
   return dragOptionStyle({
-    nodeType: content[0].type.name,
-    parentNodeType: parentNodeType.value as any,
+    currentNode: content[0],
+    parentNode: parentNode.value as any,
     attrs: content[0].attrs,
   })
 })
@@ -181,8 +181,8 @@ watch(dragDomRef, () => {
       v-else
       class="node-view-drag-content mb-2"
       :class="{
-        '!ml-0.25': parentNodeType === 'collapsable',
-        '': parentNodeType !== 'collapsable',
+        '!ml-0.25': parentNode?.type.name === 'collapsable',
+        '': parentNode?.type.name !== 'collapsable',
       }"
       :data-testid="`nc-docs-tiptap-wrapper-${childNodeType}`"
     />

@@ -107,6 +107,7 @@ const tiptapExtensions = (isPublic: boolean): Extensions => {
     }),
     ColumnContentNode,
     ColumnNode,
+    LinkToPage,
   ]
 }
 

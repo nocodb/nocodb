@@ -1,7 +1,8 @@
 import { Readable } from 'stream';
 import { UITypes, ViewTypes } from 'nocodb-sdk';
-import { getViewAndModelByAliasOrId } from '../../../modules/datas/helpers';
 import { unparse } from 'papaparse';
+import { Injectable } from '@nestjs/common';
+import { getViewAndModelByAliasOrId } from '../../../modules/datas/helpers';
 import {
   clearPrefix,
   generateBaseIdMap,
@@ -10,7 +11,6 @@ import NcPluginMgrv2 from '../../../helpers/NcPluginMgrv2';
 import { NcError } from '../../../helpers/catchError';
 import { Base, Model, Project } from '../../../models';
 import { DatasService } from '../../../services/datas.service';
-import { Injectable } from '@nestjs/common';
 import type { LinkToAnotherRecordColumn, View } from '../../../models';
 
 @Injectable()
@@ -324,7 +324,6 @@ export class ExportService {
               case UITypes.Formula:
               case UITypes.Lookup:
               case UITypes.Rollup:
-              case UITypes.Rating:
               case UITypes.Barcode:
                 // skip these types
                 break;

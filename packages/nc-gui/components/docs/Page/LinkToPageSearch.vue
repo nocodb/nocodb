@@ -213,6 +213,8 @@ const pageContentWidth = computed(() => {
 
   const pos = selection.from
   const dom = editor.view.domAtPos(pos)
+  if (!dom.node || !(dom.node as any).querySelector) return null
+
   const linkPlaceHolderDom = (dom.node as any).querySelector('.link-to-page-placeholder') as HTMLElement
   if (!linkPlaceHolderDom) return null
 

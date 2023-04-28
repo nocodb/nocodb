@@ -67,7 +67,7 @@ watch(
 </script>
 
 <template>
-  <NodeViewWrapper class="vue-component link-to-page-wrapper relative rounded-sm">
+  <NodeViewWrapper class="vue-component link-to-page-wrapper relative rounded-sm my-1">
     <div
       v-if="!node.attrs.pageId"
       class="absolute w-full top-0 link-to-page-placeholder"

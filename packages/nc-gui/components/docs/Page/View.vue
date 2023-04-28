@@ -428,6 +428,19 @@ watch(wrapperRef, () => {
     margin-left: 0.01rem;
   }
 
+  p.is-empty::after {
+    margin-top: -1.55rem;
+  }
+  h1.is-empty::after {
+    margin-top: -2.85rem;
+  }
+  h2.is-empty::after {
+    margin-top: -2.25rem;
+  }
+  h3.is-empty::after {
+    margin-top: -1.8rem;
+  }
+
   .editable {
     .focused {
       div[data-is-empty='true'] {

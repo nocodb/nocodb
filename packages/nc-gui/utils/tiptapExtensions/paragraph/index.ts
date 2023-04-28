@@ -15,7 +15,7 @@ export const Paragraph = TiptapParagraph.extend({
         if (sectionNode?.type.name !== TiptapNodesTypes.sec) return false
 
         const paragraphNode = $head.node($head.depth)
-        if (paragraphNode.type.name !== TiptapNodesTypes.paragraph) return false
+        if (!paragraphNode.isTextblock) return false
 
         // Skip if the paragraph is a command
         if (paragraphNode.textContent?.startsWith('/')) return false

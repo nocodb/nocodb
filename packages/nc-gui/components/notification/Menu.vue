@@ -14,7 +14,7 @@ await  loadNotifications()
 
 <template>    <div class="cursor-pointer">
 
-<a-dropdown :trigger="['click']">
+<a-dropdown :trigger="['click']" >
     <GeneralIcon icon="notification" />
     <GeneralIcon icon="menuDown" />
     <template #overlay>

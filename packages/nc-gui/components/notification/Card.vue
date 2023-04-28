@@ -37,13 +37,21 @@ const groupType = computed({
       <a-tab-pane key="read" tab="Read"> <span /></a-tab-pane>
 
       <template #rightExtra>
-        <div class="mr-6 text-primary cursor-pointer text-xs" @click.stop>Mark all as read</div>
+        <div v-if="!isRead" class="mr-6 text-primary cursor-pointer text-xs" @click.stop="notificationStore.markAllAsRead">
+          Mark all as read
+        </div>
       </template>
     </a-tabs>
 
-    <div class="px-6 overflow-y-auto max-h-[max(60vh,500px)] min-h-25" @click.stop>
+    <div
+      class="px-6 overflow-y-auto max-h-[max(60vh,500px)] min-h-100"
+      :class="{
+        'flex items-center justify-center': !notifications?.length,
+      }"
+      @click.stop
+    >
       <template v-if="!notifications?.length">
-        <a-empty class="mt-4" description="No new notifications"> </a-empty>
+        <a-empty description="No new notifications"> </a-empty>
       </template>
       <template v-else>
         <template v-for="item in notifications" :key="item.id">
@@ -53,7 +61,11 @@ const groupType = computed({
       </template>
 
       <!-- TODO: notification - load more ui   -->
-      <div v-if="notifications && pageInfo.totalRows > notifications.length" @click.stop="notificationStore.loadNotifications(true)" class="p-6">
+      <div
+        v-if="notifications && pageInfo.totalRows > notifications.length"
+        class="p-6"
+        @click.stop="notificationStore.loadNotifications(true)"
+      >
         Load more
       </div>
     </div>

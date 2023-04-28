@@ -16,11 +16,16 @@ import type {
 } from './app-hooks/interfaces';
 import type { Project } from '../models';
 import type { OnModuleDestroy, OnModuleInit } from '@nestjs/common';
-import type { UserType } from 'nocodb-sdk';
+import type { NotificationType, UserType } from 'nocodb-sdk';
 
 @Injectable()
 export class NotificationsService implements OnModuleInit, OnModuleDestroy {
   constructor(private readonly appHooks: AppHooksService) {}
+
+  private async insertNotification(insertData: NotificationType) {
+    this.appHooks.emit('notification', insertData);
+    await Notification.insert(insertData as Notification);
+  }
 
   private async hookHandler(event: AppEvents, data: any) {
     switch (event) {
@@ -28,7 +33,7 @@ export class NotificationsService implements OnModuleInit, OnModuleDestroy {
         {
           const { project, user, invitedBy } = data as ProjectInviteEvent;
 
-          await Notification.insert({
+          await this.insertNotification({
             fk_user_id: user.id,
             type: AppEvents.PROJECT_INVITE,
             body: {
@@ -47,7 +52,7 @@ export class NotificationsService implements OnModuleInit, OnModuleDestroy {
         {
           const { project, user, invitedBy } = data as ProjectInviteEvent;
 
-          await Notification.insert({
+          await this.insertNotification({
             fk_user_id: user.id,
             type: event,
             body: {
@@ -65,7 +70,7 @@ export class NotificationsService implements OnModuleInit, OnModuleDestroy {
         {
           const { workspace, user } = data as WorkspaceEvent;
 
-          await Notification.insert({
+          await this.insertNotification({
             fk_user_id: user.id,
             type: event,
             body: {
@@ -79,7 +84,7 @@ export class NotificationsService implements OnModuleInit, OnModuleDestroy {
         {
           const { workspace, user, invitedBy } = data as WorkspaceInviteEvent;
 
-          await Notification.insert({
+          await this.insertNotification({
             fk_user_id: user.id,
             type: AppEvents.WORKSPACE_INVITE,
             body: {
@@ -94,7 +99,7 @@ export class NotificationsService implements OnModuleInit, OnModuleDestroy {
         {
           const { user } = data as WelcomeEvent;
 
-          await Notification.insert({
+          await this.insertNotification({
             fk_user_id: user.id,
             type: AppEvents.WELCOME,
             body: {},
@@ -107,7 +112,7 @@ export class NotificationsService implements OnModuleInit, OnModuleDestroy {
         {
           // const { filter, user } = data as FilterEvent;
           //
-          // await Notification.insert({
+          // await this.insertNotification({
           //   fk_user_id: user.id,
           //   type: event,
           //   body: {
@@ -122,7 +127,7 @@ export class NotificationsService implements OnModuleInit, OnModuleDestroy {
         {
           // const { user, sort } = data as SortEvent;
           //
-          // await Notification.insert({
+          // await this.insertNotification({
           //   fk_user_id: user.id,
           //   type: event,
           //   body: {
@@ -137,7 +142,7 @@ export class NotificationsService implements OnModuleInit, OnModuleDestroy {
         {
           const { user, table } = data as TableEvent;
 
-          await Notification.insert({
+          await this.insertNotification({
             fk_user_id: user.id,
             type: event,
             body: {
@@ -157,8 +162,7 @@ export class NotificationsService implements OnModuleInit, OnModuleDestroy {
       case AppEvents.SHARED_VIEW_DELETE:
         {
           const { user, view } = data as ViewEvent;
-
-          await Notification.insert({
+          const insertData = {
             fk_user_id: user.id,
             type: event,
             body: {
@@ -168,7 +172,8 @@ export class NotificationsService implements OnModuleInit, OnModuleDestroy {
               id: view.id,
               fk_model_id: view.fk_model_id,
             },
-          });
+          };
+          this.insertNotification(insertData);
         }
         break;
       case AppEvents.COLUMN_CREATE:
@@ -177,7 +182,7 @@ export class NotificationsService implements OnModuleInit, OnModuleDestroy {
         {
           const { user, column } = data as ColumnEvent;
 
-          await Notification.insert({
+          await this.insertNotification({
             fk_user_id: user.id,
             type: event,
             body: {
@@ -194,12 +199,13 @@ export class NotificationsService implements OnModuleInit, OnModuleDestroy {
     }
   }
 
+  // todo: verify if this is the right way to do it, since we are binding this context to the handler
   onModuleDestroy() {
     this.appHooks.removeAllListener(this.hookHandler);
   }
 
   onModuleInit() {
-    this.appHooks.onAll(this.hookHandler);
+    this.appHooks.onAll(this.hookHandler.bind(this));
   }
 
   async notificationList(param: {

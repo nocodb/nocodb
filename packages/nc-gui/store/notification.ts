@@ -1,5 +1,6 @@
 import { defineStore } from 'pinia'
 import type { NotificationType } from 'nocodb-sdk'
+import type { Socket } from 'socket.io-client'
 import io from 'socket.io-client'
 import { useApi } from '#imports'
 
@@ -12,25 +13,29 @@ export const useNotification = defineStore('notificationStore', () => {
 
   const { api, isLoading } = useApi()
 
-  const { appInfo } = $(useGlobal())
+  const { appInfo, token } = $(useGlobal())
+  let socket: Socket
 
-  const url = new URL(appInfo.ncSiteUrl, window.location.href.split(/[?#]/)[0]).href
+  const init = (token) => {
+    const url = new URL(appInfo.ncSiteUrl, window.location.href.split(/[?#]/)[0]).href
 
-  const socket = io(`${url}notifications`, {
-    // extraHeaders: { 'xc-auth': token },
-  })
+    socket = io(`${url}${url.endsWith('/') ? '' : '/'}notifications`, {
+      extraHeaders: { 'xc-auth': token },
+    })
 
-  socket.emit('message', 'Hello server!')
-  socket.on('message', (data) => {
-    debugger
-    console.log(data) // 'Hello world!'
-  })
+    socket.on('notification', (data) => {
+      notifications.value = [data, ...notifications.value]
+      pageInfo.value.totalRows += 1
+    })
+  }
 
-  // on socket connection error
-  socket.on('connect_error', (err) => {
-    debugger
-    console.log(err.message) // not authorized
-  })
+  watch(
+    () => token,
+    (newToken, oldToken) => {
+      if (newToken && newToken !== oldToken) init(newToken)
+      else if (!newToken) socket?.disconnect()
+    },
+  )
 
   const loadNotifications = async (loadMore = false) => {
     // todo: pagination
@@ -57,5 +62,16 @@ export const useNotification = defineStore('notificationStore', () => {
     await loadNotifications()
   }
 
-  return { notifications, loadNotifications, isLoading, isRead, pageInfo, markAsRead }
+
+  const markAllAsRead = async (notification: NotificationType) => {
+    if (notification.is_read) return
+
+    await api.notification.markAllAsRead()
+
+    await loadNotifications()
+  }
+
+
+
+  return { notifications, loadNotifications, isLoading, isRead, pageInfo, markAsRead, markAllAsRead }
 })

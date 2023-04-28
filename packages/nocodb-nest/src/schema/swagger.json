@@ -15918,7 +15918,7 @@
       },
       "delete": {
         "summary": "Delete workspace user",
-        "operationId": "workspace-user-delete",
+        "operationId": "notification-delete",
         "responses": {
           "200": {
             "description": "OK"
@@ -15939,6 +15939,21 @@
           "required": true
         }
       ]
+    },
+    "/api/v1/notifications/mark-all-read": {
+      "post": {
+        "summary": "Mark all notifications as read",
+        "operationId": "notification-mark-all-as-read",
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        },
+        "tags": [
+          "Notification"
+        ],
+        "description": "Mark all notifications as read"
+      }
     }
   },
   "components": {

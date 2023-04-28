@@ -10837,15 +10837,31 @@ export class Api<
      * @description Delete workspace user
      *
      * @tags Notification
-     * @name WorkspaceUserDelete
+     * @name Delete
      * @summary Delete workspace user
      * @request DELETE:/api/v1/notifications/{notificationId}
      * @response `200` `void` OK
      */
-    workspaceUserDelete: (notificationId: string, params: RequestParams = {}) =>
+    delete: (notificationId: string, params: RequestParams = {}) =>
       this.request<void, any>({
         path: `/api/v1/notifications/${notificationId}`,
         method: 'DELETE',
+        ...params,
+      }),
+
+    /**
+     * @description Mark all notifications as read
+     *
+     * @tags Notification
+     * @name MarkAllAsRead
+     * @summary Mark all notifications as read
+     * @request POST:/api/v1/notifications/mark-all-read
+     * @response `200` `void` OK
+     */
+    markAllAsRead: (params: RequestParams = {}) =>
+      this.request<void, any>({
+        path: `/api/v1/notifications/mark-all-read`,
+        method: 'POST',
         ...params,
       }),
   };

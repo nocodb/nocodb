@@ -1,4 +1,5 @@
 import { Injectable } from '@nestjs/common';
+import type { AppEvents, NotificationType } from 'nocodb-sdk';
 import type {
   ColumnEvent,
   FilterEvent,
@@ -15,8 +16,6 @@ import type {
   WorkspaceEvent,
   WorkspaceInviteEvent,
 } from './interfaces';
-import {AppEvents} from "nocodb-sdk";
-
 
 @Injectable()
 export class AppHooksService {
@@ -93,6 +92,8 @@ export class AppHooksService {
       | AppEvents.WORKSPACE_CREATE,
     listener: (data: WorkspaceEvent) => void,
   ): void;
+  // todo: remove this, it's a temporary hack
+  on(event: 'notification', listener: (data: NotificationType) => void): void;
   on(event, listener): void {
     const listeners = this.listeners.get(event) || [];
     listeners.push(listener);
@@ -152,13 +153,18 @@ export class AppHooksService {
       | AppEvents.COLUMN_DELETE,
     data: ColumnEvent,
   ): void;
+  // todo: remove this, it's a temporary hack
+  emit(event: 'notification', data: NotificationType): void;
   emit(event, arg): void {
     const listeners = this.listeners.get(event) || [];
     listeners.forEach((listener) => listener(arg));
     this.allListeners.forEach((listener) => listener(event, arg));
   }
 
-  removeListener(event: AppEvents, listener: (...args: any[]) => void) {
+  removeListener(
+    event: AppEvents | 'notification',
+    listener: (...args: any[]) => void,
+  ) {
     const listeners = this.listeners.get(event) || [];
     const index = listeners.indexOf(listener);
     if (index > -1) {
@@ -166,11 +172,11 @@ export class AppHooksService {
     }
   }
 
-  removeAllListeners(event: AppEvents) {
+  removeAllListeners(event: AppEvents | 'notification') {
     this.listeners.delete(event);
   }
 
-  onAll(listener: (event: AppEvents, ...args: any[]) => void) {
+  onAll(listener: (event: AppEvents | 'notification', ...args: any[]) => void) {
     this.allListeners.push(listener);
   }
 

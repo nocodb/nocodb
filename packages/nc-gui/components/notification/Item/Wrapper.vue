@@ -20,7 +20,7 @@ const item = toRef(props, 'item')
       <div v-if="item" class="text-xs text-gray-500">{{ timeAgo(item.created_at) }} - NocoHUB</div>
     </div>
     <div class="self-start">
-      <a-checkbox class="!my-0"></a-checkbox>
+<!--      <a-checkbox class="!my-0"></a-checkbox>-->
     </div>
   </div>
 </template>

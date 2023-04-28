@@ -2,9 +2,9 @@ import {
   Body,
   Controller,
   Delete,
-  Get,
+  Get, HttpCode,
   Param,
-  Patch,
+  Patch, Post,
   Request,
   UseGuards,
 } from '@nestjs/common';
@@ -42,8 +42,8 @@ export class NotificationsController {
     });
   }
 
-  @Patch('/api/v1/notifications/mark-all-read')
-  // @Acl('notificationUpdate')
+  @Post('/api/v1/notifications/mark-all-read')
+  @HttpCode(200)
   async markAllRead(
     @Request() req,
   ) {

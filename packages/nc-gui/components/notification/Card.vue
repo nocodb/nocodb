@@ -3,23 +3,25 @@ import { storeToRefs } from 'pinia'
 import { computed } from '@vue/reactivity'
 import { useNotification } from '#imports'
 
+import InfiniteLoading from 'v3-infinite-loading'
+
 const notificationStore = useNotification()
 
 const {
-  notifications: _notifications,
-  readNotifications,
+  notifications, // : _notifications,
+  // readNotifications,
   isRead,
-  pageInfo: _pageInfo,
-  readPageInfo,
+  pageInfo, // : _pageInfo,
+  // readPageInfo,
 } = storeToRefs(notificationStore)
 
-const notifications = computed(() => {
-  return isRead.value ? readNotifications.value : _notifications.value
-})
-
-const pageInfo = computed(() => {
-  return isRead.value ? readPageInfo.value : _pageInfo.value
-})
+// const notifications = computed(() => {
+//   return isRead.value ? readNotifications.value : _notifications.value
+// })
+//
+// const pageInfo = computed(() => {
+//   return isRead.value ? readPageInfo.value : _pageInfo.value
+// })
 
 const groupType = computed({
   get() {
@@ -33,32 +35,41 @@ const groupType = computed({
 </script>
 
 <template>
-  <div class="min-w-[500px] max-w-[500px] min-h-[400px] !rounded-2xl bg-white rounded-xl nc-card" @click.stop>
-    <div class="p-6 pb-3.5">
+  <div class="min-w-[350px] max-w-[350px] min-h-[400px] !rounded-2xl bg-white rounded-xl nc-card" @click.stop>
+    <div class="p-3">
       <div class="flex items-center">
-        <span class="text-xl font-medium">
+        <span class="text-md font-medium">
           <!-- todo: i18n -->
           Notification
         </span>
         <span class="flex-grow"></span>
-        <GeneralIcon class="cursor-pointer" icon="settings" />
+        <GeneralIcon class="cursor-pointer !text-16px" icon="settings" />
       </div>
     </div>
-    <a-tabs v-model:activeKey="groupType">
-      <a-tab-pane key="unread" tab="Unread">
-        <span />
-      </a-tab-pane>
-      <a-tab-pane key="read" tab="Read"> <span /></a-tab-pane>
+    <a-divider class="!my-0" />
 
-      <template #rightExtra>
-        <div v-if="!isRead" class="mr-6 text-primary cursor-pointer text-xs" @click.stop="notificationStore.markAllAsRead">
-          Mark all as read
-        </div>
-      </template>
-    </a-tabs>
+    <!--    <a-tabs v-model:activeKey="groupType"> -->
+    <!--      <a-tab-pane key="unread" tab="Unread"> -->
+    <!--        <span /> -->
+    <!--      </a-tab-pane> -->
+    <!--      <a-tab-pane key="read" tab="Read"> <span /></a-tab-pane> -->
+
+    <!--      <template #rightExtra> -->
+    <div class="flex px-3">
+      <div class="flex-grow"></div>
+    <div
+      v-if="!isRead && notifications?.length"
+      class=" mt-3 text-primary cursor-pointer text-xs"
+      @click.stop="notificationStore.markAllAsRead"
+    >
+      Mark all as read
+    </div>
+    </div>
+    <!--      </template> -->
+    <!--    </a-tabs> -->
 
     <div
-      class="px-6 overflow-y-auto max-h-[max(60vh,500px)] min-h-100"
+      class="px-3 overflow-y-auto max-h-[max(60vh,500px)] min-h-100"
       :class="{
         'flex items-center justify-center': !notifications?.length,
       }"
@@ -67,24 +78,37 @@ const groupType = computed({
       <template v-if="!notifications?.length">
         <div class="flex flex-col gap-2 items-center justify-center">
           <div class="text-sm text-gray-400">You have no new notifications</div>
-          <GeneralIcon icon="inbox" class="!text-40px text-gray-400"/>
+          <GeneralIcon icon="inbox" class="!text-40px text-gray-400" />
         </div>
       </template>
       <template v-else>
         <template v-for="item in notifications" :key="item.id">
-          <NotificationItem class="py-6" :item="item" />
+          <NotificationItem class="py-2" :item="item" />
           <a-divider class="!my-0" />
         </template>
+
+
+        <InfiniteLoading v-if="notifications && pageInfo && pageInfo.totalRows > notifications.length" @infinite="notificationStore.loadNotifications(true)">
+          <template #spinner>
+            <div class="flex flex-row w-full justify-center mt-2">
+              <a-spin />
+            </div>
+          </template>
+          <template #complete>
+            <span></span>
+          </template>
+        </InfiniteLoading>
+
       </template>
 
-      <!-- TODO: notification - load more ui   -->
+<!--      &lt;!&ndash; TODO: notification - load more ui   &ndash;&gt;
       <div
         v-if="notifications && pageInfo && pageInfo.totalRows > notifications.length"
         class="px-3 pb-6 pt-6 text-xs cursor-pointer text-gray-500"
         @click.stop="notificationStore.loadNotifications(true)"
       >
         Load more
-      </div>
+      </div>-->
     </div>
   </div>
 </template>

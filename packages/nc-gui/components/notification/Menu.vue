@@ -16,8 +16,8 @@ onMounted(async () => {
       <div class="relative leading-none">
         <GeneralIcon icon="notification" />
         <GeneralIcon icon="menuDown" />
-        <span v-if="notificationStore.pageInfo?.totalRows" class="nc-count-badge">{{
-          notificationStore.pageInfo.totalRows
+        <span v-if="notificationStore.unreadCount" class="nc-count-badge">{{
+          notificationStore.unreadCount
         }}</span>
       </div>
       <template #overlay>
@@ -29,6 +29,6 @@ onMounted(async () => {
 
 <style scoped>
 .nc-count-badge {
-  @apply absolute flex items-center top-[-6px] right-[-6px] px-1 min-w-[14px] h-[14px] rounded-full bg-primary bg-opacity-100 text-white !text-[9px] !z-21;
+  @apply absolute flex items-center top-[-6px] right-[-6px] px-1 min-w-[14px] h-[14px] rounded-full bg-accent bg-opacity-100 text-white !text-[9px] !z-21;
 }
 </style>

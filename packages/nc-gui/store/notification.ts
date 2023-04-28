@@ -6,10 +6,11 @@ import { useApi } from '#imports'
 
 export const useNotification = defineStore('notificationStore', () => {
   const notifications = ref<NotificationType[]>([])
-  const readNotifications = ref<NotificationType[]>([])
+  // const readNotifications = ref<NotificationType[]>([])
 
   const pageInfo = ref()
-  const readPageInfo = ref()
+  const unreadCount = ref(0)
+  // const readPageInfo = ref()
 
   const isRead = ref(false)
 
@@ -28,6 +29,7 @@ export const useNotification = defineStore('notificationStore', () => {
     socket.on('notification', (data) => {
       notifications.value = [data, ...notifications.value]
       pageInfo.value.totalRows += 1
+      unreadCount.value += 1
     })
 
     socket.emit('subscribe', {})
@@ -46,18 +48,22 @@ export const useNotification = defineStore('notificationStore', () => {
     // todo: pagination
     const response = await api.notification.list({
       is_read: isRead.value,
-      limit: 5,
+      limit: 10,
       offset: loadMore ? notifications.value.length : 0,
     })
     if (loadMore) {
-      if (isRead.value) readNotifications.value = [...readNotifications.value, ...response.list]
-      else notifications.value = [...notifications.value, ...response.list]
+      // if (isRead.value) readNotifications.value = [...readNotifications.value, ...response.list]
+      // else
+      notifications.value = [...notifications.value, ...response.list]
     } else {
-      if (isRead.value) readNotifications.value = response.list
-      else notifications.value = response.list
+      // if (isRead.value) readNotifications.value = response.list
+      // else
+      notifications.value = response.list
     }
-    if (isRead.value) readPageInfo.value = response.pageInfo
-    else pageInfo.value = response.pageInfo
+    // if (isRead.value) readPageInfo.value = response.pageInfo
+    // else
+    pageInfo.value = response.pageInfo
+    unreadCount.value = (response as any).unreadCount
   }
 
   const markAsRead = async (notification: NotificationType) => {
@@ -86,7 +92,8 @@ export const useNotification = defineStore('notificationStore', () => {
     pageInfo,
     markAsRead,
     markAllAsRead,
-    readNotifications,
-    readPageInfo,
+    // readNotifications,
+    // readPageInfo,
+    unreadCount,
   }
 })

@@ -1,4 +1,4 @@
-import type { PaginatedType } from 'nocodb-sdk';
+import type {PaginatedType} from 'nocodb-sdk';
 
 const config: any = {
   limitDefault: Math.max(+process.env.DB_QUERY_LIMIT_DEFAULT || 25, 1),
@@ -16,6 +16,7 @@ export class PagedResponseImpl<T> {
       l?: number;
       o?: number;
     } = {},
+    additionalProps?: Record<string, any>
   ) {
     const limit = Math.max(
       Math.min(args.limit || args.l || config.limitDefault, config.limitMax),
@@ -31,7 +32,7 @@ export class PagedResponseImpl<T> {
     this.list = list;
 
     if (count !== null) {
-      this.pageInfo = { totalRows: +count };
+      this.pageInfo = {totalRows: +count};
       this.pageInfo.page = offset ? offset / limit + 1 : 1;
       this.pageInfo.pageSize = limit;
       this.pageInfo.isFirstPage =
@@ -40,6 +41,9 @@ export class PagedResponseImpl<T> {
         this.pageInfo.page ===
         (Math.ceil(this.pageInfo.totalRows / this.pageInfo.pageSize) || 1);
     }
+
+    if (additionalProps)
+      Object.assign(this, additionalProps)
   }
 
   list: Array<T>;

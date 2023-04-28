@@ -219,7 +219,7 @@ export class NotificationsService implements OnModuleInit, OnModuleDestroy {
       fk_user_id: param.user.id,
       limit: param.limit,
       offset: param.offset,
-      is_read: param.is_read,
+      // is_read: param.is_read,
       is_deleted: param.is_deleted,
     });
 
@@ -227,15 +227,27 @@ export class NotificationsService implements OnModuleInit, OnModuleDestroy {
       fk_user_id: param.user.id,
       limit: param.limit,
       offset: param.offset,
-      is_read: param.is_read,
+      // is_read: param.is_read,
       is_deleted: param.is_deleted,
     });
 
-    return new PagedResponseImpl(list, {
+    const unreadCount = await Notification.count({
+      fk_user_id: param.user.id,
       limit: param.limit,
       offset: param.offset,
-      count,
+      is_read: false,
+      is_deleted: param.is_deleted,
     });
+
+    return new PagedResponseImpl(
+      list,
+      {
+        limit: param.limit,
+        offset: param.offset,
+        count,
+      },
+      { unreadCount },
+    );
   }
 
   notificationUpdate(param: { notificationId: string; body; user: any }) {

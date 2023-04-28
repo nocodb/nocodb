@@ -184,6 +184,7 @@ import NcNotification from '~icons/ph/bell-simple-thin'
 
 export const iconMap = {
   info: h('span', { class: 'material-symbols-outlined' }, 'info'),
+  inbox: h('span', { class: 'material-symbols-outlined' }, 'inbox'),
   loading: h('span', { class: 'material-symbols-outlined' }, 'autorenew'),
   arrowCollapse: h('span', { class: 'material-symbols-outlined' }, 'keyboard_arrow_up'),
   markerAlert: h('span', { class: 'material-symbols-outlined' }, 'warning'),

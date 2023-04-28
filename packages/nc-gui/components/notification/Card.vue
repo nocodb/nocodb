@@ -65,7 +65,10 @@ const groupType = computed({
       @click.stop
     >
       <template v-if="!notifications?.length">
-        <a-empty description="No new notifications"> </a-empty>
+        <div class="flex flex-col gap-2 items-center justify-center">
+          <div class="text-sm text-gray-400">You have no new notifications</div>
+          <GeneralIcon icon="inbox" class="!text-40px text-gray-400"/>
+        </div>
       </template>
       <template v-else>
         <template v-for="item in notifications" :key="item.id">
@@ -76,7 +79,7 @@ const groupType = computed({
 
       <!-- TODO: notification - load more ui   -->
       <div
-        v-if="notifications && pageInfo.totalRows > notifications.length"
+        v-if="notifications && pageInfo && pageInfo.totalRows > notifications.length"
         class="px-3 pb-6 pt-6 text-xs cursor-pointer text-gray-500"
         @click.stop="notificationStore.loadNotifications(true)"
       >

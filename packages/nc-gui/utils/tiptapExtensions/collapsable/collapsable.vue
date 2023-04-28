@@ -4,7 +4,7 @@ import { TextSelection } from 'prosemirror-state'
 import { TiptapNodesTypes } from 'nocodb-sdk'
 import { positionOfFirstChild } from '../helper'
 
-const { editor } = defineProps(nodeViewProps)
+const { node, editor } = defineProps(nodeViewProps)
 
 const isCollapsed = ref(true)
 
@@ -30,18 +30,37 @@ const toggleCollapsableContent = () => {
 
   isCollapsed.value = !isCollapsed.value
 }
+
+const headerChildNode = computed(() => {
+  const { content } = node.content as any
+  if (!content || !(content.length > 0)) return undefined
+
+  const headerNode = content[0]
+
+  return headerNode?.content?.firstChild
+})
 </script>
 
 <template>
-  <NodeViewWrapper class="vue-component collapsable-wrapper mt-2 w-full">
+  <NodeViewWrapper
+    class="vue-component collapsable-wrapper mt-2 w-full"
+    :class="{
+      '!mt-0': headerChildNode?.type.name === 'heading' && headerChildNode?.attrs.level === 1,
+    }"
+  >
     <div
-      class="flex flex-row space-x-1 w-full"
+      class="flex flex-row space-x-1 w-full items-start"
       :class="{
         collapsed: isCollapsed,
       }"
     >
       <div
         class="mt-1 flex items-center px-1 cursor-pointer hover:bg-gray-100 h-6 rounded-md z-10 group"
+        :class="{
+          '!mt-3': headerChildNode?.type.name === 'heading' && headerChildNode?.attrs.level === 1,
+          '!mt-1.75': headerChildNode?.type.name === 'heading' && headerChildNode?.attrs.level === 2,
+          '!mt-0.5': headerChildNode?.type.name === 'heading' && headerChildNode?.attrs.level === 3,
+        }"
         @click.stop="toggleCollapsableContent"
       >
         <MdiTriangle

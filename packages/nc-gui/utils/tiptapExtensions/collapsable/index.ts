@@ -15,6 +15,9 @@ declare module '@tiptap/core' {
   interface Commands<ReturnType> {
     collapsable: {
       insertCollapsable: () => ReturnType
+      insertCollapsableH1: () => ReturnType
+      insertCollapsableH2: () => ReturnType
+      insertCollapsableH3: () => ReturnType
     }
   }
 }
@@ -62,37 +65,58 @@ export const CollapsableNode = Node.create<CollapsableOptions>({
       insertCollapsable:
         () =>
         ({ chain, state }: { chain: () => ChainedCommands; state: EditorState }) => {
-          return chain()
-            .insertContent({
-              type: TiptapNodesTypes.collapsable,
-              attrs: {
-                level: 0,
+          return insertCollapsable({
+            chain,
+            state,
+          })
+        },
+      insertCollapsableH1:
+        () =>
+        ({ chain, state }: { chain: () => ChainedCommands; state: EditorState }) => {
+          return insertCollapsable({
+            chain,
+            state,
+            headerContent: [
+              {
+                type: TiptapNodesTypes.heading,
+                attrs: {
+                  level: 1,
+                },
               },
-              content: [
-                {
-                  type: TiptapNodesTypes.collapsableHeader,
-                  content: [
-                    {
-                      type: TiptapNodesTypes.paragraph,
-                    },
-                  ],
+            ],
+          })
+        },
+      insertCollapsableH2:
+        () =>
+        ({ chain, state }: { chain: () => ChainedCommands; state: EditorState }) => {
+          return insertCollapsable({
+            chain,
+            state,
+            headerContent: [
+              {
+                type: TiptapNodesTypes.heading,
+                attrs: {
+                  level: 2,
                 },
-                {
-                  type: TiptapNodesTypes.collapsableContent,
-                  content: [
-                    {
-                      type: TiptapNodesTypes.sec,
-                      content: [
-                        {
-                          type: TiptapNodesTypes.paragraph,
-                        },
-                      ],
-                    },
-                  ],
+              },
+            ],
+          })
+        },
+      insertCollapsableH3:
+        () =>
+        ({ chain, state }: { chain: () => ChainedCommands; state: EditorState }) => {
+          return insertCollapsable({
+            chain,
+            state,
+            headerContent: [
+              {
+                type: TiptapNodesTypes.heading,
+                attrs: {
+                  level: 3,
                 },
-              ],
-            })
-            .setTextSelection(state.selection.from + 1)
+              },
+            ],
+          })
         },
     } as any
   },
@@ -141,3 +165,42 @@ export const CollapsableNode = Node.create<CollapsableOptions>({
     }
   },
 })
+
+function insertCollapsable({
+  chain,
+  state,
+  headerContent,
+}: {
+  chain: () => ChainedCommands
+  state: EditorState
+  headerContent?: any
+}) {
+  return chain()
+    .insertContent({
+      type: TiptapNodesTypes.collapsable,
+      content: [
+        {
+          type: TiptapNodesTypes.collapsableHeader,
+          content: headerContent ?? [
+            {
+              type: TiptapNodesTypes.paragraph,
+            },
+          ],
+        },
+        {
+          type: TiptapNodesTypes.collapsableContent,
+          content: [
+            {
+              type: TiptapNodesTypes.sec,
+              content: [
+                {
+                  type: TiptapNodesTypes.paragraph,
+                },
+              ],
+            },
+          ],
+        },
+      ],
+    })
+    .setTextSelection(state.selection.from + 1)
+}

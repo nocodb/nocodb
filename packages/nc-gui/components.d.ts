@@ -130,6 +130,7 @@ declare module '@vue/runtime-core' {
     MaterialSymbolsDocs: typeof import('~icons/material-symbols/docs')['default']
     MaterialSymbolsFileCopyOutline: typeof import('~icons/material-symbols/file-copy-outline')['default']
     MaterialSymbolsGroupsOutline: typeof import('~icons/material-symbols/groups-outline')['default']
+    MaterialSymbolsKeyboardArrowDown: typeof import('~icons/material-symbols/keyboard-arrow-down')['default']
     MaterialSymbolsKeyboardArrowDownRounded: typeof import('~icons/material-symbols/keyboard-arrow-down-rounded')['default']
     MaterialSymbolsKeyboardReturn: typeof import('~icons/material-symbols/keyboard-return')['default']
     MaterialSymbolsLightModeOutline: typeof import('~icons/material-symbols/light-mode-outline')['default']

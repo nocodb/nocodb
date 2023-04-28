@@ -7,6 +7,9 @@ import { TiptapNodesTypes } from 'nocodb-sdk'
 import { generateJSON } from '@tiptap/html'
 import { createTable } from '@tiptap/extension-table'
 import { TextSelection } from 'prosemirror-state'
+import CollapsableH1Icon from './custom-icons/CollapsableH1.vue'
+import CollapsableH2Icon from './custom-icons/CollapsableH2.vue'
+import CollapsableH3Icon from './custom-icons/CollapsableH3.vue'
 import GoogleSheetsIcon from './custom-icons/GoogleSheets.vue'
 import GoogleDocsIcon from './custom-icons/GoogleDocs.vue'
 import GoogleSlidesIcon from './custom-icons/GoogleSlides.vue'
@@ -325,6 +328,37 @@ export const useCommandList = ({
       iconClass: '',
       hasDivider: true,
       shortCutText: isMacOS() ? '^ ⇧ H' : 'Ctrl ⇧ H',
+    },
+    {
+      title: 'Collapsable heading 1',
+      class: 'text-xs',
+      style: 'font-weight: 800;',
+      command: ({ editor, range }: { editor: Editor; range: Range }) => {
+        editor.chain().focus().deleteRange(range).insertCollapsableH1().run()
+      },
+      icon: CollapsableH1Icon,
+      iconClass: '',
+    },
+    {
+      title: 'Collapsable heading 2',
+      class: 'text-xs',
+      style: 'font-weight: 700;',
+      command: ({ editor, range }: { editor: Editor; range: Range }) => {
+        editor.chain().focus().deleteRange(range).insertCollapsableH2().run()
+      },
+      icon: CollapsableH2Icon,
+      iconClass: '',
+    },
+    {
+      title: 'Collapsable heading 3',
+      class: 'text-xs',
+      style: 'font-weight: 500;',
+      command: ({ editor, range }: { editor: Editor; range: Range }) => {
+        editor.chain().focus().deleteRange(range).insertCollapsableH3().run()
+      },
+      icon: CollapsableH3Icon,
+      iconClass: '',
+      hasDivider: true,
     },
     {
       title: 'Google Docs',

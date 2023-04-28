@@ -440,6 +440,14 @@ watch(wrapperRef, () => {
   h3.is-empty::after {
     margin-top: -1.8rem;
   }
+  .collapsable-wrapper {
+    h1,
+    h2,
+    h3 {
+      margin-top: 0;
+      margin-bottom: 0;
+    }
+  }
 
   .editable {
     .focused {

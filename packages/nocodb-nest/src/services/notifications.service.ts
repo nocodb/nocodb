@@ -2,7 +2,9 @@ import { Injectable } from '@nestjs/common';
 import { AppEvents } from 'nocodb-sdk';
 import { Notification } from '../models';
 import { PagedResponseImpl } from '../helpers/PagedResponse';
+import { MetaService } from '../meta/meta.service';
 import { AppHooksService } from './app-hooks/app-hooks.service';
+import { ClickhouseService } from './clickhouse/clickhouse.service';
 import type {
   ColumnEvent,
   FilterEvent,
@@ -20,11 +22,31 @@ import type { NotificationType, UserType } from 'nocodb-sdk';
 
 @Injectable()
 export class NotificationsService implements OnModuleInit, OnModuleDestroy {
-  constructor(private readonly appHooks: AppHooksService) {}
+  constructor(
+    private readonly appHooks: AppHooksService,
+    private clickhouseService: ClickhouseService,
+    private metaService: MetaService,
+  ) {}
 
   private async insertNotification(insertData: NotificationType) {
     this.appHooks.emit('notification', insertData);
-    await Notification.insert(insertData as Notification);
+    // await Notification.insert(insertData as Notification);
+
+    // Define the values to insert
+    const id = this.metaService.genNanoid('');
+    const body = JSON.stringify(insertData.body);
+    const type = insertData.type;
+    const isRead = false;
+    const isDeleted = false;
+    const fkUserId = insertData.fk_user_id;
+
+    // Define the SQL query to insert the row
+    const query = `
+  INSERT INTO database.notification (id, body, type, is_read, is_deleted, fk_user_id)
+  VALUES ('${id}', '${body}', '${type}', ${isRead}, ${isDeleted}, '${fkUserId}')
+`;
+
+    await this.clickhouseService.execute(query, true);
   }
 
   private async hookHandler(event: AppEvents, data: any) {
@@ -215,29 +237,62 @@ export class NotificationsService implements OnModuleInit, OnModuleDestroy {
     is_read?: boolean;
     is_deleted?: boolean;
   }) {
-    const list = await Notification.list({
-      fk_user_id: param.user.id,
-      limit: param.limit,
-      offset: param.offset,
-      // is_read: param.is_read,
-      is_deleted: param.is_deleted,
-    });
+    // Define the pagination parameters
+    const { limit = 10, offset = 0 } = param; // Number of rows to skip before returning results
 
-    const count = await Notification.count({
-      fk_user_id: param.user.id,
-      limit: param.limit,
-      offset: param.offset,
-      // is_read: param.is_read,
-      is_deleted: param.is_deleted,
-    });
+    // Define the SQL query with pagination parameters
+    const query = `
+  SELECT *
+  FROM database.notification
+  WHERE fk_user_id = '${param.user.id}'
+  ORDER BY created_at DESC
+  LIMIT ${limit}
+  OFFSET ${offset}`;
 
-    const unreadCount = await Notification.count({
-      fk_user_id: param.user.id,
-      limit: param.limit,
-      offset: param.offset,
-      is_read: false,
-      is_deleted: param.is_deleted,
-    });
+    const list = await this.clickhouseService.execute(query);
+
+    // const list = await Notification.list({
+    //   fk_user_id: param.user.id,
+    //   limit: param.limit,
+    //   offset: param.offset,
+    //   // is_read: param.is_read,
+    //   is_deleted: param.is_deleted,
+    // });
+
+    const countQuery = `
+  SELECT count(id) as count
+  FROM database.notification        
+  WHERE fk_user_id = '${param.user.id}'
+  AND is_deleted = false    
+    `;
+    const count = (await this.clickhouseService.execute(countQuery))?.[0]?.count;
+
+    //
+    // const count = await Notification.count({
+    //   fk_user_id: param.user.id,
+    //   limit: param.limit,
+    //   offset: param.offset,
+    //   // is_read: param.is_read,
+    //   is_deleted: param.is_deleted,
+    // });
+
+    const unreadCountQuery = `
+  SELECT count(id) as count
+  FROM database.notification
+  WHERE fk_user_id = '${param.user.id}'
+  AND is_read = false
+  AND is_deleted = false    
+    `;
+
+    // const unreadCount = await Notification.count({
+    //   fk_user_id: param.user.id,
+    //   limit: param.limit,
+    //   offset: param.offset,
+    //   is_read: false,
+    //   is_deleted: param.is_deleted,
+    // });
+
+    const unreadCount =( await this.clickhouseService.execute(unreadCountQuery))?.[0]?.count;
 
     return new PagedResponseImpl(
       list,
@@ -250,14 +305,37 @@ export class NotificationsService implements OnModuleInit, OnModuleDestroy {
     );
   }
 
-  notificationUpdate(param: { notificationId: string; body; user: any }) {
-    return Notification.update(
-      {
-        id: param.notificationId,
-        fk_user_id: param.user.id,
-      },
-      param.body,
-    );
+ async notificationUpdate(param: { notificationId: string; body; user: any }) {
+    // return Notification.update(
+    //   {
+    //     id: param.notificationId,
+    //     fk_user_id: param.user.id,
+    //   },
+    //   param.body,
+    // );
+
+    const existingRecord = await this.clickhouseService.execute(`
+    SELECT *
+    FROM database.notification
+    WHERE id = '${param.notificationId}'
+    AND fk_user_id = '${param.user.id}'
+    `);
+
+    if (existingRecord) {
+      return this.clickhouseService.execute(`
+        INSERT INTO database.notification
+        (id, fk_user_id, type, body, is_read, is_deleted, created_at, updated_at)
+        VALUES (
+          '${param.notificationId}',
+          '${param.user.id}',
+          '${existingRecord.type}',
+          '${param.body}',
+          ${existingRecord.is_read},
+          ${existingRecord.is_deleted},
+          '${existingRecord.created_at}',
+          '${existingRecord.updated_at}'
+        )`);
+    }
   }
 
   // // soft delete

@@ -65,6 +65,7 @@
     "boxen": "^5.0.0",
     "bullmq": "^1.81.1",
     "clear": "^0.1.0",
+    "clickhouse": "^2.6.0",
     "colors": "^1.4.0",
     "compare-versions": "^6.0.0-rc.1",
     "cookie-parser": "^1.4.5",

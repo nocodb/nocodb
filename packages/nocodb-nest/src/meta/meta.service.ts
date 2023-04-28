@@ -266,7 +266,7 @@ export class MetaService {
     return insertObj;
   }
 
-  private genNanoid(target: string) {
+  public genNanoid(target: string) {
     let prefix;
     switch (target) {
       case MetaTable.PROJECT:

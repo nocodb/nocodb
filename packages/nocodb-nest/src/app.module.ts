@@ -27,6 +27,8 @@ import type {
   MiddlewareConsumer,
   OnApplicationBootstrap,
 } from '@nestjs/common';
+import { ClickhouseModule } from './modules/clickhouse.module';
+import { ClickhouseService } from './services/clickhouse/clickhouse.service';
 
 
 @Module({
@@ -43,6 +45,7 @@ import type {
     WorkspaceUsersModule,
     DocsModule,
     PublicDocsModule,
+    ClickhouseModule,
   ],
   providers: [
     AuthService,

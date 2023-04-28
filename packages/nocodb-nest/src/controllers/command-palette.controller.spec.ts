@@ -1,5 +1,6 @@
-import { Test, TestingModule } from '@nestjs/testing';
+import { Test } from '@nestjs/testing';
 import { CommandPaletteController } from './command-palette.controller';
+import type { TestingModule } from '@nestjs/testing';
 
 describe('CommandPaletteController', () => {
   let controller: CommandPaletteController;

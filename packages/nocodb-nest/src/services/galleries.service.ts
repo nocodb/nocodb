@@ -1,16 +1,18 @@
 import { Injectable } from '@nestjs/common';
-import {UserType, ViewTypes, AppEvents} from 'nocodb-sdk';
+import { AppEvents, ViewTypes } from 'nocodb-sdk';
 import { T } from 'nc-help';
 import { validatePayload } from '../helpers';
 import { GalleryView, View } from '../models';
-import type { GalleryUpdateReqType, ViewCreateReqType } from 'nocodb-sdk';
-import { AppHooksService} from "./app-hooks/app-hooks.service";
+import { AppHooksService } from './app-hooks/app-hooks.service';
+import type {
+  GalleryUpdateReqType,
+  UserType,
+  ViewCreateReqType,
+} from 'nocodb-sdk';
 
 @Injectable()
 export class GalleriesService {
-
-  constructor(private appHooksService: AppHooksService) {
-  }
+  constructor(private appHooksService: AppHooksService) {}
 
   async galleryViewGet(param: { galleryViewId: string }) {
     return await GalleryView.get(param.galleryViewId);
@@ -37,7 +39,7 @@ export class GalleriesService {
     this.appHooksService.emit(AppEvents.VIEW_CREATE, {
       user: param.user,
       view,
-    })
+    });
 
     return view;
   }

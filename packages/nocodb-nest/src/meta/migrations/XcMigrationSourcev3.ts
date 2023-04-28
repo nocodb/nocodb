@@ -20,7 +20,7 @@ export default class XcMigrationSourcev3 {
       'nc_004_profile_account',
       'nc_005_cowriter',
       'nc_006_shared_erd',
-      'nc_007_notification'
+      'nc_007_notification',
     ]);
   }
 

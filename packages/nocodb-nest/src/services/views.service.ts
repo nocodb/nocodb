@@ -1,5 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { T } from 'nc-help';
+import { AppEvents } from 'nocodb-sdk';
 import { validatePayload } from '../helpers';
 import { Model, ModelRoleVisibility, View } from '../models';
 import { NcError } from '../helpers/catchError';
@@ -9,7 +10,6 @@ import type {
   UserType,
   ViewUpdateReqType,
 } from 'nocodb-sdk';
-import {AppEvents} from "nocodb-sdk";
 
 // todo: move
 async function xcVisibilityMetaGet(param: {

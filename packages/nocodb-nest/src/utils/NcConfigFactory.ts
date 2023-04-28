@@ -93,10 +93,6 @@ const knownQueryParams = [
 ];
 
 export default class NcConfigFactory {
-
-
-
-
   public static async make(): Promise<any> {
     await this.jdbcToXcUrl();
 

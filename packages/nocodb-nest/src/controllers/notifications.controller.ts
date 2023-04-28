@@ -2,15 +2,17 @@ import {
   Body,
   Controller,
   Delete,
-  Get, HttpCode,
+  Get,
+  HttpCode,
   Param,
-  Patch, Post,
+  Patch,
+  Post,
   Request,
   UseGuards,
 } from '@nestjs/common';
 import { NotificationsService } from '../services/notifications.service';
 import { GlobalGuard } from '../guards/global/global.guard';
-import {extractProps} from "../helpers/extractProps";
+import { extractProps } from '../helpers/extractProps';
 
 @Controller()
 @UseGuards(GlobalGuard)
@@ -44,9 +46,7 @@ export class NotificationsController {
 
   @Post('/api/v1/notifications/mark-all-read')
   @HttpCode(200)
-  async markAllRead(
-    @Request() req,
-  ) {
+  async markAllRead(@Request() req) {
     return this.notificationsService.markAllRead({
       user: req.user,
     });

@@ -8,8 +8,8 @@ import {
 import { Server } from 'socket.io';
 import { ExecutionContextHost } from '@nestjs/core/helpers/execution-context-host';
 import { AuthGuard } from '@nestjs/passport';
-import { Socket } from 'socket.io';
 import { AppHooksService } from '../../services/app-hooks/app-hooks.service';
+import type { Socket } from 'socket.io';
 import type { OnModuleInit } from '@nestjs/common';
 import type { NotificationType } from 'nocodb-sdk';
 

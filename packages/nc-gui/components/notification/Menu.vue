@@ -11,14 +11,14 @@ onMounted(async () => {
 </script>
 
 <template>
-  <div
-    class="cursor-pointer flex items-center"
-  >
+  <div class="cursor-pointer flex items-center">
     <a-dropdown :trigger="['click']">
       <div class="relative leading-none">
-      <GeneralIcon icon="notification" />
-      <GeneralIcon icon="menuDown" />
-        <span v-if="notificationStore.pageInfo?.totalRows" class="nc-count-badge">{{ notificationStore.pageInfo.totalRows  }}</span>
+        <GeneralIcon icon="notification" />
+        <GeneralIcon icon="menuDown" />
+        <span v-if="notificationStore.pageInfo?.totalRows" class="nc-count-badge">{{
+          notificationStore.pageInfo.totalRows
+        }}</span>
       </div>
       <template #overlay>
         <NotificationCard />

@@ -1,7 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import validator from 'validator';
 import { v4 as uuidv4 } from 'uuid';
-import { WorkspaceUserRoles, AppEvents } from 'nocodb-sdk';
+import { AppEvents, WorkspaceUserRoles } from 'nocodb-sdk';
 import WorkspaceUser from '../../models/WorkspaceUser';
 import { PagedResponseImpl } from '../../helpers/PagedResponse';
 import validateParams from '../../helpers/validateParams';

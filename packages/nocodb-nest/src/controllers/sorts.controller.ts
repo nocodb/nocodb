@@ -6,7 +6,8 @@ import {
   HttpCode,
   Param,
   Patch,
-  Post, Req,
+  Post,
+  Req,
   UseGuards,
 } from '@nestjs/common';
 import { AuthGuard } from '@nestjs/passport';
@@ -42,7 +43,11 @@ export class SortsController {
   @UseAclMiddleware({
     permissionName: 'sortCreate',
   })
-  async sortCreate(@Param('viewId') viewId: string, @Body() body: SortReqType, @Req() req) {
+  async sortCreate(
+    @Param('viewId') viewId: string,
+    @Body() body: SortReqType,
+    @Req() req,
+  ) {
     const sort = await this.sortsService.sortCreate({
       sort: body,
       viewId,
@@ -66,7 +71,11 @@ export class SortsController {
   @UseAclMiddleware({
     permissionName: 'sortUpdate',
   })
-  async sortUpdate(@Param('sortId') sortId: string, @Body() body: SortReqType,@Req() req) {
+  async sortUpdate(
+    @Param('sortId') sortId: string,
+    @Body() body: SortReqType,
+    @Req() req,
+  ) {
     const sort = await this.sortsService.sortUpdate({
       sortId,
       sort: body,

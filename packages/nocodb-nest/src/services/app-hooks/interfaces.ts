@@ -92,4 +92,4 @@ export type AppEventPayload =
   | FilterEvent
   | SortEvent
   | ColumnEvent
-  |WorkspaceEvent;
+  | WorkspaceEvent;

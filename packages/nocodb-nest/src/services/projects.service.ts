@@ -3,7 +3,7 @@ import { Injectable } from '@nestjs/common';
 import * as DOMPurify from 'isomorphic-dompurify';
 import { customAlphabet } from 'nanoid';
 import { T } from 'nc-help';
-import {AppEvents, OrgUserRoles, UserType} from 'nocodb-sdk';
+import { AppEvents, OrgUserRoles } from 'nocodb-sdk';
 import { populateMeta, validatePayload } from '../helpers';
 import { NcError } from '../helpers/catchError';
 import { extractPropsAndSanitize } from '../helpers/extractProps';
@@ -13,7 +13,11 @@ import Noco from '../Noco';
 import extractRolesObj from '../utils/extractRolesObj';
 import NcConfigFactory from '../utils/NcConfigFactory';
 import { AppHooksService } from './app-hooks/app-hooks.service';
-import type { ProjectReqType, ProjectUpdateReqType } from 'nocodb-sdk';
+import type {
+  ProjectReqType,
+  ProjectUpdateReqType,
+  UserType,
+} from 'nocodb-sdk';
 
 const nanoid = customAlphabet('1234567890abcdefghijklmnopqrstuvwxyz_', 4);
 
@@ -83,10 +87,10 @@ export class ProjectsService {
     return result;
   }
 
-  async projectSoftDelete(param: { projectId: any, user: UserType }) {
+  async projectSoftDelete(param: { projectId: any; user: UserType }) {
     const project = await Project.get(param.projectId);
 
-    if(!project) {
+    if (!project) {
       NcError.badRequest('Project not found');
     }
 

@@ -1,5 +1,5 @@
 import { Injectable } from '@nestjs/common';
-import {AppEvents, ProjectRoles, WorkspaceUserRoles} from 'nocodb-sdk';
+import { AppEvents, ProjectRoles, WorkspaceUserRoles } from 'nocodb-sdk';
 import WorkspaceUser from '../../models/WorkspaceUser';
 import { PagedResponseImpl } from '../../helpers/PagedResponse';
 import Workspace from '../../models/Workspace';

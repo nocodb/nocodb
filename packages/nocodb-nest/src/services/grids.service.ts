@@ -1,19 +1,24 @@
 import { Injectable } from '@nestjs/common';
-import {UserType, ViewTypes, AppEvents} from 'nocodb-sdk';
+import { AppEvents, ViewTypes } from 'nocodb-sdk';
 import { T } from 'nc-help';
 import { validatePayload } from '../helpers';
 import { GridView, View } from '../models';
-import type { GridUpdateReqType, ViewCreateReqType } from 'nocodb-sdk';
-import { AppHooksService} from "./app-hooks/app-hooks.service";
+import { AppHooksService } from './app-hooks/app-hooks.service';
+import type {
+  GridUpdateReqType,
+  UserType,
+  ViewCreateReqType,
+} from 'nocodb-sdk';
 
 @Injectable()
 export class GridsService {
+  constructor(private appHooksService: AppHooksService) {}
 
-  constructor(private appHooksService: AppHooksService) {
-  }
-
-
-  async gridViewCreate(param: { tableId: string; grid: ViewCreateReqType; user: UserType }) {
+  async gridViewCreate(param: {
+    tableId: string;
+    grid: ViewCreateReqType;
+    user: UserType;
+  }) {
     validatePayload(
       'swagger.json#/components/schemas/ViewCreateReq',
       param.grid,
@@ -31,7 +36,7 @@ export class GridsService {
     this.appHooksService.emit(AppEvents.VIEW_CREATE, {
       user: param.user,
       view,
-    })
+    });
 
     return view;
   }

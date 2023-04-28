@@ -1,16 +1,18 @@
 import { Injectable } from '@nestjs/common';
-import {UserType, ViewTypes, AppEvents} from 'nocodb-sdk';
+import { AppEvents, ViewTypes } from 'nocodb-sdk';
 import { T } from 'nc-help';
 import { validatePayload } from '../helpers';
 import { KanbanView, View } from '../models';
-import type { KanbanUpdateReqType, ViewCreateReqType } from 'nocodb-sdk';
-import { AppHooksService} from "./app-hooks/app-hooks.service";
+import { AppHooksService } from './app-hooks/app-hooks.service';
+import type {
+  KanbanUpdateReqType,
+  UserType,
+  ViewCreateReqType,
+} from 'nocodb-sdk';
 
 @Injectable()
 export class KanbansService {
-
-  constructor(private appHooksService: AppHooksService) {
-  }
+  constructor(private appHooksService: AppHooksService) {}
 
   async kanbanViewGet(param: { kanbanViewId: string }) {
     return await KanbanView.get(param.kanbanViewId);
@@ -19,7 +21,7 @@ export class KanbansService {
   async kanbanViewCreate(param: {
     tableId: string;
     kanban: ViewCreateReqType;
-     user: UserType
+    user: UserType;
   }) {
     validatePayload(
       'swagger.json#/components/schemas/ViewCreateReq',
@@ -38,7 +40,7 @@ export class KanbansService {
     this.appHooksService.emit(AppEvents.VIEW_CREATE, {
       user: param.user,
       view,
-    })
+    });
 
     return view;
   }

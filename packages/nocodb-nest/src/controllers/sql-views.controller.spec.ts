@@ -1,5 +1,6 @@
-import { Test, TestingModule } from '@nestjs/testing';
+import { Test } from '@nestjs/testing';
 import { SqlViewsController } from './sql-views.controller';
+import type { TestingModule } from '@nestjs/testing';
 
 describe('SqlViewsController', () => {
   let controller: SqlViewsController;

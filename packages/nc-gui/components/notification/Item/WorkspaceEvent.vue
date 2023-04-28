@@ -1,6 +1,6 @@
 <script setup lang="ts">
-import type { TableEventType} from 'nocodb-sdk'
-import {AppEvents} from "nocodb-sdk";
+import type { TableEventType } from 'nocodb-sdk'
+import { AppEvents } from 'nocodb-sdk'
 
 const props = defineProps<{
   item: any
@@ -20,7 +20,7 @@ const action = computed(() => {
 })
 
 const onClick = () => {
-  if(item.type === AppEvents.WORKSPACE_DELETE) return
+  if (item.type === AppEvents.WORKSPACE_DELETE) return
   navigateTo(`/ws/${item.body.id}`)
 }
 </script>

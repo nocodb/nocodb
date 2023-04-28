@@ -21,7 +21,7 @@ const action = computed(() => {
 })
 
 const onClick = () => {
-  if(item.type === AppEvents.PROJECT_DELETE) return
+  if (item.type === AppEvents.PROJECT_DELETE) return
   navigateTo(`/ws/${item.body.workspace_id}/nc/${item.body.id}`)
 }
 </script>
@@ -30,7 +30,7 @@ const onClick = () => {
   <NotificationItemWrapper :item="item" @click="onClick">
     <div class="text-xs gap-2">
       Project
-        <GeneralProjectIcon style="vertical-align:middle" :type="item.body.type" /> <strong>{{ item.body.title }}</strong>
+      <GeneralProjectIcon style="vertical-align: middle" :type="item.body.type" /> <strong>{{ item.body.title }}</strong>
       {{ action }} successfully
     </div>
   </NotificationItemWrapper>

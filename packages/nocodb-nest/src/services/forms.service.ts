@@ -1,25 +1,30 @@
 import { Injectable } from '@nestjs/common';
 
 import { T } from 'nc-help';
-import {UserType, ViewTypes, AppEvents} from 'nocodb-sdk';
+import { AppEvents, ViewTypes } from 'nocodb-sdk';
 import { validatePayload } from '../helpers';
 import { FormView, View } from '../models';
-import type { FormUpdateReqType, ViewCreateReqType } from 'nocodb-sdk';
-import { AppHooksService} from "./app-hooks/app-hooks.service";
+import { AppHooksService } from './app-hooks/app-hooks.service';
+import type {
+  FormUpdateReqType,
+  UserType,
+  ViewCreateReqType,
+} from 'nocodb-sdk';
 
 @Injectable()
 export class FormsService {
-
-  constructor(private appHooksService: AppHooksService) {
-  }
-
+  constructor(private appHooksService: AppHooksService) {}
 
   async formViewGet(param: { formViewId: string }) {
     const formViewData = await FormView.getWithInfo(param.formViewId);
     return formViewData;
   }
 
-  async formViewCreate(param: { tableId: string; body: ViewCreateReqType; user: UserType }) {
+  async formViewCreate(param: {
+    tableId: string;
+    body: ViewCreateReqType;
+    user: UserType;
+  }) {
     validatePayload(
       'swagger.json#/components/schemas/ViewCreateReq',
       param.body,
@@ -37,7 +42,7 @@ export class FormsService {
     this.appHooksService.emit(AppEvents.VIEW_CREATE, {
       user: param.user,
       view,
-    })
+    });
 
     return view;
   }

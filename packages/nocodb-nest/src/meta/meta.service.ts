@@ -69,7 +69,7 @@ export enum MetaTable {
   WORKSPACE_USER = 'workspace_user',
   FOLLOWER = 'nc_follower',
   COWRITER = 'cowriter',
-  NOTIFICATION= 'notification',
+  NOTIFICATION = 'notification',
 }
 
 export const orderedMetaTables = [

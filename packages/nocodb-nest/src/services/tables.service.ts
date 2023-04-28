@@ -517,7 +517,7 @@ export class TablesService {
     baseId: string;
     tableName: string;
     title: string;
-    user?:UserType;
+    user?: UserType;
   }) {
     const tableCreateBody = {
       tableName: param.tableName,
@@ -633,12 +633,10 @@ export class TablesService {
       table_name: param.tableName,
     });
 
-
     this.appHooksService.emit(AppEvents.TABLE_CREATE, {
       table,
       user: param.user,
     });
-
 
     return table;
   }

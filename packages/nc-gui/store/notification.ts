@@ -6,8 +6,10 @@ import { useApi } from '#imports'
 
 export const useNotification = defineStore('notificationStore', () => {
   const notifications = ref<NotificationType[]>([])
+  const readNotifications = ref<NotificationType[]>([])
 
   const pageInfo = ref()
+  const readPageInfo = ref()
 
   const isRead = ref(false)
 
@@ -27,6 +29,8 @@ export const useNotification = defineStore('notificationStore', () => {
       notifications.value = [data, ...notifications.value]
       pageInfo.value.totalRows += 1
     })
+
+    socket.emit('subscribe', {})
   }
 
   watch(
@@ -35,6 +39,7 @@ export const useNotification = defineStore('notificationStore', () => {
       if (newToken && newToken !== oldToken) init(newToken)
       else if (!newToken) socket?.disconnect()
     },
+    { immediate: true },
   )
 
   const loadNotifications = async (loadMore = false) => {
@@ -45,11 +50,14 @@ export const useNotification = defineStore('notificationStore', () => {
       offset: loadMore ? notifications.value.length : 0,
     })
     if (loadMore) {
-      notifications.value = [...notifications.value, ...response.list]
+      if (isRead.value) readNotifications.value = [...readNotifications.value, ...response.list]
+      else notifications.value = [...notifications.value, ...response.list]
     } else {
-      notifications.value = response.list
+      if (isRead.value) readNotifications.value = response.list
+      else notifications.value = response.list
     }
-    pageInfo.value = response.pageInfo
+    if (isRead.value) readPageInfo.value = response.pageInfo
+    else pageInfo.value = response.pageInfo
   }
 
   const markAsRead = async (notification: NotificationType) => {
@@ -62,7 +70,6 @@ export const useNotification = defineStore('notificationStore', () => {
     await loadNotifications()
   }
 
-
   const markAllAsRead = async (notification: NotificationType) => {
     if (notification.is_read) return
 
@@ -71,7 +78,15 @@ export const useNotification = defineStore('notificationStore', () => {
     await loadNotifications()
   }
 
-
-
-  return { notifications, loadNotifications, isLoading, isRead, pageInfo, markAsRead, markAllAsRead }
+  return {
+    notifications,
+    loadNotifications,
+    isLoading,
+    isRead,
+    pageInfo,
+    markAsRead,
+    markAllAsRead,
+    readNotifications,
+    readPageInfo,
+  }
 })

@@ -5,7 +5,16 @@ import { useNotification } from '#imports'
 
 const notificationStore = useNotification()
 
-const { notifications, isRead, pageInfo } = storeToRefs(notificationStore)
+const { notifications: _notifications, readNotifications, isRead, pageInfo: _pageInfo, readPageInfo } = storeToRefs(notificationStore)
+
+
+const notifications = computed(() => {
+  return isRead.value ? readNotifications.value : _notifications.value
+})
+
+const pageInfo = computed(() => {
+  return isRead.value ? readPageInfo.value : _pageInfo.value
+})
 
 const groupType = computed({
   get() {
@@ -63,7 +72,7 @@ const groupType = computed({
       <!-- TODO: notification - load more ui   -->
       <div
         v-if="notifications && pageInfo.totalRows > notifications.length"
-        class="p-6"
+        class="px-3 pb-6 pt-6 text-xs cursor-pointer text-gray-500"
         @click.stop="notificationStore.loadNotifications(true)"
       >
         Load more

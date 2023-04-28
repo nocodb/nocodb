@@ -44,6 +44,8 @@ const dateTimeFormat = $computed(() => {
   return `${dateFormat} ${timeFormat}`
 })
 
+let localModelValue = $ref(modelValue ? dayjs(modelValue).utc(true).local() : undefined)
+
 let localState = $computed({
   get() {
     if (!modelValue) {
@@ -55,15 +57,11 @@ let localState = $computed({
       return undefined
     }
 
-    if (isXcdbBase(column.value.base_id) && isSqlite(column.value.base_id)) {
-      return /^\d+$/.test(modelValue)
-        ? dayjs(+modelValue)
-            .utc(true)
-            .local()
-        : dayjs(modelValue).utc(true).local()
+    if (localModelValue) {
+      return localModelValue
     }
 
-    return /^\d+$/.test(modelValue) ? dayjs(+modelValue) : dayjs(modelValue)
+    return dayjs(modelValue).utc(true).local()
   },
   set(val?: dayjs.Dayjs) {
     if (!val) {
@@ -72,7 +70,9 @@ let localState = $computed({
     }
 
     if (val.isValid()) {
-      emit('update:modelValue', val?.format(isMysql(column.value.base_id) ? 'YYYY-MM-DD HH:mm:ss' : 'YYYY-MM-DD HH:mm:ssZ'))
+      const formattedValue = dayjs(val?.format(isMysql(column.value.base_id) ? 'YYYY-MM-DD HH:mm:ss' : 'YYYY-MM-DD HH:mm:ssZ'))
+      localModelValue = formattedValue
+      emit('update:modelValue', formattedValue)
     }
   },
 })

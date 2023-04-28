@@ -185,6 +185,7 @@ export class ExportService {
             cdf: column.cdf,
             meta: column.meta,
             pk: column.pk,
+            pv: column.pv,
             order: column.order,
             rqd: column.rqd,
             system: column.system,

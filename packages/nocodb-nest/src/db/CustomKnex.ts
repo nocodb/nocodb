@@ -2,20 +2,15 @@ import { Knex, knex } from 'knex';
 import { SnowflakeClient } from 'nc-help';
 import pg, { types } from 'pg';
 import dayjs from 'dayjs';
-import utc from 'dayjs/plugin/utc';
-import timezone from 'dayjs/plugin/timezone';
 import Filter from '../models/Filter';
 import type { FilterType } from 'nocodb-sdk';
 import type { BaseModelSql } from './BaseModelSql';
-
-dayjs.extend(utc);
-dayjs.extend(timezone);
 
 // override parsing date column to Date()
 types.setTypeParser(1082, (val) => val);
 // override timestamp
 types.setTypeParser(1114, (val) => {
-  return dayjs(val).utc(true).local().format('YYYY-MM-DD HH:mm:ssZ');
+  return dayjs(val).format('YYYY-MM-DD HH:mm:ss');
 });
 
 const opMappingGen = {

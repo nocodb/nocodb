@@ -1,7 +1,7 @@
 <script lang="ts" setup>
 import { NodeViewContent, NodeViewWrapper, nodeViewProps } from '@tiptap/vue-3'
 
-const { node, getPos, editor } = defineProps(nodeViewProps)
+const { node: currentColumnContentNode, getPos, editor } = defineProps(nodeViewProps)
 
 const isDragging = ref(false)
 
@@ -13,6 +13,17 @@ const prevColumnContentPos = computed(() => {
   if (!currentColumnContentResolvedPos.nodeBefore) return null
 
   return currentColumnContentPos - currentColumnContentResolvedPos.nodeBefore.nodeSize
+})
+
+const nextColumnContentPos = computed(() => {
+  const state = editor.view.state
+  const currentColumnContentPos = getPos()
+  const currentColumnContentResolvedPos = state.doc.resolve(currentColumnContentPos)
+
+  const currentColumnNode = currentColumnContentResolvedPos.parent
+  if (currentColumnNode?.childCount !== 3) return null
+
+  return currentColumnContentPos + currentColumnContentNode.nodeSize
 })
 
 const resizeHandler = (mouseDownEvent: MouseEvent) => {
@@ -36,15 +47,20 @@ const resizeHandler = (mouseDownEvent: MouseEvent) => {
 
     const state = editor.view.state
 
+    const nextColumnNodeWidth =
+      nextColumnContentPos.value && state.doc.nodeAt(nextColumnContentPos.value)
+        ? Number(state.doc.nodeAt(nextColumnContentPos.value)!.attrs.widthPercent)
+        : 0
+
     editor.view.dispatch(
       state.tr
         .setNodeMarkup(getPos(), null, {
-          ...node.attrs,
+          ...currentColumnContentNode.attrs,
           widthPercent,
         })
         .setNodeMarkup(prevColumnContentPos.value, null, {
           ...state.doc.nodeAt(prevColumnContentPos.value)!.attrs,
-          widthPercent: 100 - widthPercent,
+          widthPercent: 100 - widthPercent - nextColumnNodeWidth,
         }),
     )
   }

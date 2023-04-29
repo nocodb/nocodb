@@ -318,6 +318,12 @@ const {
 
     // update/save cell value
     await updateOrSaveRow(rowObj, ctx.updatedColumnTitle || columnObj.title)
+
+    // See DateTimePicker.vue for details
+    data.value[ctx.row].rowMeta.isUpdateOutside = {
+      ...data.value[ctx.row].rowMeta.isUpdateOutside,
+      [ctx.updatedColumnTitle || columnObj.title]: true,
+    }
   },
 )
 

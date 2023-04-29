@@ -47,8 +47,6 @@ export default function convertCellData(
       if (isXcdbBase) {
         if (isMysql) {
           return parsedDateTime?.format('YYYY-MM-DD HH:mm:ss')
-        } else if (isSqlite) {
-          return parsedDateTime.utc().format('YYYY-MM-DD HH:mm:ss')
         } else {
           return parsedDateTime.utc(true).format('YYYY-MM-DD HH:mm:ssZ')
         }

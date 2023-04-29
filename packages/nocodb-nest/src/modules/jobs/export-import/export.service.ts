@@ -2,6 +2,7 @@ import { Readable } from 'stream';
 import { UITypes, ViewTypes } from 'nocodb-sdk';
 import { unparse } from 'papaparse';
 import { Injectable } from '@nestjs/common';
+import NcConnectionMgrv2 from '../../../utils/common/NcConnectionMgrv2';
 import { getViewAndModelByAliasOrId } from '../../../modules/datas/helpers';
 import {
   clearPrefix,
@@ -11,6 +12,7 @@ import NcPluginMgrv2 from '../../../helpers/NcPluginMgrv2';
 import { NcError } from '../../../helpers/catchError';
 import { Base, Model, Project } from '../../../models';
 import { DatasService } from '../../../services/datas.service';
+import type { BaseModelSqlv2 } from '../../../db/BaseModelSqlv2';
 import type { LinkToAnotherRecordColumn, View } from '../../../models';
 
 @Injectable()
@@ -239,8 +241,9 @@ export class ExportService {
     projectId: string;
     modelId: string;
     viewId?: string;
+    handledMmList?: string[];
   }) {
-    const { dataStream, linkStream } = param;
+    const { dataStream, linkStream, handledMmList } = param;
 
     const { model, view } = await getViewAndModelByAliasOrId({
       projectName: param.projectId,
@@ -248,18 +251,21 @@ export class ExportService {
       viewName: param.viewId,
     });
 
+    const base = await Base.get(model.base_id);
+
     await model.getColumns();
 
     const pkMap = new Map<string, string>();
 
     const fields = model.columns
-      .filter((c) => c.colOptions?.type !== 'hm')
+      .filter((c) => c.colOptions?.type !== 'hm' && c.colOptions?.type !== 'mm')
       .map((c) => c.title)
       .join(',');
 
     for (const column of model.columns.filter(
-      (c) =>
-        c.uidt === UITypes.LinkToAnotherRecord && c.colOptions?.type !== 'hm',
+      (col) =>
+        col.uidt === UITypes.LinkToAnotherRecord &&
+        col.colOptions?.type !== 'hm',
     )) {
       const relatedTable = await (
         (await column.getColOptions()) as LinkToAnotherRecordColumn
@@ -270,47 +276,39 @@ export class ExportService {
       pkMap.set(column.id, relatedTable.primaryKey.title);
     }
 
+    const mmColumns = model.columns.filter(
+      (col) =>
+        col.uidt === UITypes.LinkToAnotherRecord &&
+        col.colOptions?.type === 'mm',
+    );
+
+    const hasLink = mmColumns.length > 0;
+
     dataStream.setEncoding('utf8');
 
-    linkStream.setEncoding('utf8');
-
-    const limit = 200;
-    const offset = 0;
-
-    const primaryKey = model.columns.find((c) => c.pk);
+    const baseModel = await Model.getBaseModelSQL({
+      id: model.id,
+      viewId: view?.id,
+      dbDriver: await NcConnectionMgrv2.get(base),
+    });
 
     const formatData = (data: any) => {
-      const linkData = [];
       for (const row of data) {
-        const pkValue = primaryKey ? row[primaryKey.title] : undefined;
-        const linkRow = {};
         for (const [k, v] of Object.entries(row)) {
           const col = model.columns.find((c) => c.title === k);
           if (col) {
-            if (col.pk) linkRow['pk'] = pkValue;
             const colId = `${col.project_id}::${col.base_id}::${col.fk_model_id}::${col.id}`;
             switch (col.uidt) {
               case UITypes.LinkToAnotherRecord:
                 {
-                  if (col.system || col.colOptions.type === 'hm') break;
+                  if (col.system || col.colOptions.type !== 'bt') break;
 
-                  const pkList = [];
-                  const links = Array.isArray(v) ? v : [v];
-
-                  for (const link of links) {
-                    if (link) {
-                      for (const [k, val] of Object.entries(link)) {
-                        if (k === pkMap.get(col.id)) {
-                          pkList.push(val);
-                        }
+                  if (v) {
+                    for (const [k, val] of Object.entries(v)) {
+                      if (k === pkMap.get(col.id)) {
+                        row[colId] = val;
                       }
                     }
-                  }
-
-                  if (col.colOptions.type === 'mm') {
-                    linkRow[colId] = pkList.join(',');
-                  } else {
-                    row[colId] = pkList[0];
                   }
                 }
                 break;
@@ -326,6 +324,7 @@ export class ExportService {
               case UITypes.Lookup:
               case UITypes.Rollup:
               case UITypes.Barcode:
+              case UITypes.QrCode:
                 // skip these types
                 break;
               default:
@@ -335,16 +334,18 @@ export class ExportService {
             delete row[k];
           }
         }
-        linkData.push(linkRow);
       }
-      return { data, linkData };
+      return { data };
     };
+
+    const limit = 200;
+    const offset = 0;
 
     try {
       await this.recursiveRead(
         formatData,
+        baseModel,
         dataStream,
-        linkStream,
         model,
         view,
         offset,
@@ -356,11 +357,133 @@ export class ExportService {
       console.error(e);
       throw e;
     }
+
+    if (hasLink) {
+      linkStream.setEncoding('utf8');
+
+      for (const mm of mmColumns) {
+        if (handledMmList.includes(mm.colOptions?.fk_mm_model_id)) continue;
+
+        const mmModel = await Model.get(mm.colOptions?.fk_mm_model_id);
+
+        await mmModel.getColumns();
+
+        const childColumn = mmModel.columns.find(
+          (col) => col.id === mm.colOptions?.fk_mm_child_column_id,
+        );
+
+        const parentColumn = mmModel.columns.find(
+          (col) => col.id === mm.colOptions?.fk_mm_parent_column_id,
+        );
+
+        const childColumnTitle = childColumn.title;
+        const parentColumnTitle = parentColumn.title;
+
+        const mmFields = mmModel.columns
+          .filter((c) => c.uidt === UITypes.ForeignKey)
+          .map((c) => c.title)
+          .join(',');
+
+        const mmFormatData = (data: any) => {
+          data.map((d) => {
+            d.column = mm.id;
+            d.child = d[childColumnTitle];
+            d.parent = d[parentColumnTitle];
+            delete d[childColumnTitle];
+            delete d[parentColumnTitle];
+            return d;
+          });
+          return { data };
+        };
+
+        const mmLimit = 200;
+        const mmOffset = 0;
+
+        const mmBase =
+          mmModel.base_id === base.id ? base : await Base.get(mmModel.base_id);
+
+        const mmBaseModel = await Model.getBaseModelSQL({
+          id: mmModel.id,
+          dbDriver: await NcConnectionMgrv2.get(mmBase),
+        });
+
+        try {
+          await this.recursiveLinkRead(
+            mmFormatData,
+            mmBaseModel,
+            linkStream,
+            mmModel,
+            undefined,
+            mmOffset,
+            mmLimit,
+            mmFields,
+            true,
+          );
+        } catch (e) {
+          console.error(e);
+          throw e;
+        }
+
+        handledMmList.push(mm.colOptions?.fk_mm_model_id);
+      }
+
+      linkStream.push(null);
+    } else {
+      linkStream.push(null);
+    }
   }
 
   async recursiveRead(
-    formatter: (data: any) => { data: any; linkData: any },
+    formatter: (data: any) => { data: any },
+    baseModel: BaseModelSqlv2,
     stream: Readable,
+    model: Model,
+    view: View,
+    offset: number,
+    limit: number,
+    fields: string,
+    header = false,
+  ): Promise<void> {
+    return new Promise((resolve, reject) => {
+      this.datasService
+        .getDataList({
+          model,
+          view,
+          query: { limit, offset, fields },
+          baseModel,
+        })
+        .then((result) => {
+          try {
+            if (!header) {
+              stream.push('\r\n');
+            }
+            const { data } = formatter(result.list);
+            stream.push(unparse(data, { header }));
+            if (result.pageInfo.isLastPage) {
+              stream.push(null);
+              resolve();
+            } else {
+              this.recursiveRead(
+                formatter,
+                baseModel,
+                stream,
+                model,
+                view,
+                offset + limit,
+                limit,
+                fields,
+              ).then(resolve);
+            }
+          } catch (e) {
+            reject(e);
+          }
+        });
+    });
+  }
+
+  async recursiveLinkRead(
+    formatter: (data: any) => { data: any },
+    baseModel: BaseModelSqlv2,
     linkStream: Readable,
     model: Model,
     view: View,
@@ -371,24 +494,25 @@ export class ExportService {
   ): Promise<void> {
     return new Promise((resolve, reject) => {
       this.datasService
-        .getDataList({ model, view, query: { limit, offset, fields } })
+        .getDataList({
+          model,
+          view,
+          query: { limit, offset, fields },
+          baseModel,
+        })
         .then((result) => {
           try {
             if (!header) {
-              stream.push('\r\n');
               linkStream.push('\r\n');
             }
-            const { data, linkData } = formatter(result.list);
-            stream.push(unparse(data, { header }));
-            linkStream.push(unparse(linkData, { header }));
+            const { data } = formatter(result.list);
+            if (data) linkStream.push(unparse(data, { header }));
             if (result.pageInfo.isLastPage) {
-              stream.push(null);
-              linkStream.push(null);
               resolve();
             } else {
-              this.recursiveRead(
+              this.recursiveLinkRead(
                 formatter,
-                stream,
+                baseModel,
                 linkStream,
                 model,
                 view,

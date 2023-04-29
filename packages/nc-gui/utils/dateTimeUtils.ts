@@ -1,7 +1,11 @@
 import dayjs from 'dayjs'
 
+// show in local time
 export const timeAgo = (date: any) => {
-  return dayjs.utc(date).fromNow()
+  if (date.slice(-1) === 'Z') {
+    return dayjs(date).fromNow()
+  }
+  return dayjs(date).utc(true).local().fromNow()
 }
 
 export const dateFormats = [

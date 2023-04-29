@@ -38,12 +38,19 @@ const groupType = computed({
   <div class="min-w-[350px] max-w-[350px] min-h-[400px] !rounded-2xl bg-white rounded-xl nc-card" @click.stop>
     <div class="p-3">
       <div class="flex items-center">
-        <span class="text-md font-medium">
+        <span class="text-md font-medium text-[#212121]">
           <!-- todo: i18n -->
           Notification
         </span>
-        <span class="flex-grow"></span>
-        <GeneralIcon class="cursor-pointer !text-16px" icon="settings" />
+        <div class="flex-grow"></div>
+        <div
+            v-if="!isRead && notifications?.length"
+            class="cursor-pointer text-xs text-gray-500 hover:text-primary"
+            @click.stop="notificationStore.markAllAsRead"
+        >
+          Mark all as read
+        </div>
+<!--        <GeneralIcon class="cursor-pointer !text-16px" icon="settings" />-->
       </div>
     </div>
     <a-divider class="!my-0" />
@@ -55,21 +62,14 @@ const groupType = computed({
     <!--      <a-tab-pane key="read" tab="Read"> <span /></a-tab-pane> -->
 
     <!--      <template #rightExtra> -->
-    <div class="flex px-3">
-      <div class="flex-grow"></div>
-    <div
-      v-if="!isRead && notifications?.length"
-      class=" mt-3 text-primary cursor-pointer text-xs"
-      @click.stop="notificationStore.markAllAsRead"
-    >
-      Mark all as read
-    </div>
-    </div>
+<!--    <div class="flex px-3">-->
+
+<!--    </div>-->
     <!--      </template> -->
     <!--    </a-tabs> -->
 
     <div
-      class="px-3 overflow-y-auto max-h-[max(60vh,500px)] min-h-100"
+      class="overflow-y-auto max-h-[max(60vh,500px)] min-h-100"
       :class="{
         'flex items-center justify-center': !notifications?.length,
       }"
@@ -83,7 +83,7 @@ const groupType = computed({
       </template>
       <template v-else>
         <template v-for="item in notifications" :key="item.id">
-          <NotificationItem class="py-2" :item="item" />
+          <NotificationItem class="" :item="item" />
           <a-divider class="!my-0" />
         </template>
 
@@ -101,14 +101,6 @@ const groupType = computed({
 
       </template>
 
-<!--      &lt;!&ndash; TODO: notification - load more ui   &ndash;&gt;
-      <div
-        v-if="notifications && pageInfo && pageInfo.totalRows > notifications.length"
-        class="px-3 pb-6 pt-6 text-xs cursor-pointer text-gray-500"
-        @click.stop="notificationStore.loadNotifications(true)"
-      >
-        Load more
-      </div>-->
     </div>
   </div>
 </template>

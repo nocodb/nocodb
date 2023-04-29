@@ -1,12 +1,21 @@
 import type { ClickHouse } from 'clickhouse';
 
-async function up(client: ClickHouse): Promise<void> {
-  await client.query(`
-CREATE DATABASE IF NOT EXISTS database;
-    `).toPromise();
+async function up(
+  client: ClickHouse,
+  config: { database?: string },
+): Promise<void> {
+  await client
+    .query(
+      `
+CREATE DATABASE IF NOT EXISTS ${config.database ?? 'nc'};
+    `,
+    )
+    .toPromise();
 
-  await client.query(`
-      CREATE TABLE IF NOT EXISTS database.notification (
+  await client
+    .query(
+      `
+      CREATE TABLE IF NOT EXISTS ${config.database}.notification (
           id String(20) NOT NULL,
           body Text,
           type String,
@@ -18,13 +27,11 @@ CREATE DATABASE IF NOT EXISTS database;
           PRIMARY KEY (id)
       ) ENGINE = ReplacingMergeTree
       ORDER BY id;
-    `).toPromise();
+    `,
+    )
+    .toPromise();
 }
 
-async function down(client: ClickHouse): Promise<void> {
-  await client.query(`
-      DROP TABLE IF EXISTS my_table
-    `).toPromise();
-}
+async function down(client: ClickHouse): Promise<void> {}
 
 export { up, down };

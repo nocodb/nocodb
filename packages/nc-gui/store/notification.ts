@@ -73,7 +73,7 @@ export const useNotification = defineStore('notificationStore', () => {
       is_read: true,
     })
 
-    await loadNotifications()
+    notification.is_read = true
   }
 
   const markAllAsRead = async (notification: NotificationType) => {

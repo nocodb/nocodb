@@ -1,4 +1,4 @@
-export function parseMetaProp(model: any, propName = 'metq'): any {
+export function parseMetaProp(model: any, propName = 'meta'): any {
   if (!model) return;
 
   // parse meta property
@@ -13,7 +13,7 @@ export function parseMetaProp(model: any, propName = 'metq'): any {
 
 export function stringifyMetaProp(
   model: any,
-  propName = 'metq',
+  propName = 'meta',
 ): string | void {
   if (!model) return;
 

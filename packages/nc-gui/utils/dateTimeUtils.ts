@@ -2,7 +2,8 @@ import dayjs from 'dayjs'
 
 // show in local time
 export const timeAgo = (date: any) => {
-  if (date.slice(-1) === 'Z') {
+  // handle Z and +00:00
+  if (date.slice(-1) === 'Z' || date.slice(-6) === '+00:00') {
     return dayjs(date).fromNow()
   }
   return dayjs(date).utc(true).local().fromNow()

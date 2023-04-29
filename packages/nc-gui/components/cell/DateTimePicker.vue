@@ -25,7 +25,7 @@ const { modelValue, isPk, isUpdateOutside } = defineProps<Props>()
 
 const emit = defineEmits(['update:modelValue'])
 
-const { isMysql, isSqlite, isXcdbBase } = useProject()
+const { isMssql, isMysql, isSqlite, isXcdbBase } = useProject()
 
 const { showNull } = useGlobal()
 
@@ -56,6 +56,11 @@ let localState = $computed({
     if (!dayjs(modelValue).isValid()) {
       isDateInvalid = true
       return undefined
+    }
+
+    if (isMssql(column.value.base_id)) {
+      // e.g. 2023-04-29T11:41:53.000Z
+      return dayjs(modelValue)
     }
 
     // if cdf is defined, that means the value is auto-generated

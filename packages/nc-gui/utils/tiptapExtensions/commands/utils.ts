@@ -43,6 +43,7 @@ import MdiLinkVariant from '~icons/mdi/link-variant'
 import CollapseListIcon from '~icons/carbon/collapse-categories'
 import MdiFileUploadOutline from '~icons/mdi/file-upload-outline'
 import MsViewColumn2 from '~icons/material-symbols/view-column-2-outline'
+import MsViewColumn3 from '~icons/material-symbols/view-column-outline-rounded'
 import MaterialSymbolsFileOpen from '~icons/material-symbols/file-open-outline'
 
 export const useCommandList = ({
@@ -182,6 +183,14 @@ export const useCommandList = ({
         editor.chain().focus().deleteRange(range).insertColumn(2).run()
       },
       icon: MsViewColumn2,
+    },
+    {
+      title: 'Columns - 3',
+      class: 'text-xs',
+      command: ({ editor, range }: { editor: Editor; range: Range }) => {
+        editor.chain().focus().deleteRange(range).insertColumn(3).run()
+      },
+      icon: MsViewColumn3,
       hasDivider: true,
     },
     {

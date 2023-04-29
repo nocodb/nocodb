@@ -8,6 +8,7 @@ export default function convertCellData(
   args: { from: UITypes; to: UITypes; value: any; column: ColumnType; appInfo: AppInfo },
   isMysql = false,
   isSqlite = false,
+  isMssql = false,
   isXcdbBase = false,
 ) {
   const { from, to, value } = args
@@ -46,7 +47,9 @@ export default function convertCellData(
       }
       if (isXcdbBase) {
         if (isMysql) {
-          return parsedDateTime?.format('YYYY-MM-DD HH:mm:ss')
+          return parsedDateTime.format('YYYY-MM-DD HH:mm:ss')
+        } else if (isMssql) {
+          return parsedDateTime.format('YYYY-MM-DD HH:mm:ssZ')
         } else {
           return parsedDateTime.utc(true).format('YYYY-MM-DD HH:mm:ssZ')
         }

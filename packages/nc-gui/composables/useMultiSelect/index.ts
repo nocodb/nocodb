@@ -1,3 +1,4 @@
+import dayjs from 'dayjs'
 import type { MaybeRef } from '@vueuse/core'
 import type { ColumnType, LinkToAnotherRecordType, TableType } from 'nocodb-sdk'
 import { RelationTypes, UITypes, isVirtualCol } from 'nocodb-sdk'
@@ -7,6 +8,7 @@ import convertCellData from './convertCellData'
 import type { Nullable, Row } from '~/lib'
 import {
   copyTable,
+  dateFormats,
   extractPkFromRow,
   extractSdkResponseErrorMsg,
   isMac,
@@ -14,6 +16,7 @@ import {
   message,
   reactive,
   ref,
+  timeFormats,
   unref,
   useCopy,
   useEventListener,
@@ -52,7 +55,7 @@ export function useMultiSelect(
 
   const { appInfo } = useGlobal()
 
-  const { isMysql } = useProject()
+  const { isMysql, isSqlite, isXcdbBase } = useProject()
 
   let clipboardContext = $ref<{ value: any; uidt: UITypes } | null>(null)
 
@@ -77,6 +80,12 @@ export function useMultiSelect(
 
     activeCell.row = row
     activeCell.col = col
+  }
+
+  function constructDateTimeFormat(column: ColumnType) {
+    const dateFormat = parseProp(column?.meta)?.date_format ?? dateFormats[0]
+    const timeFormat = parseProp(column?.meta)?.time_format ?? timeFormats[0]
+    return `${dateFormat} ${timeFormat}`
   }
 
   async function copyValue(ctx?: Cell) {
@@ -106,6 +115,14 @@ export function useMultiSelect(
           if (typeof textToCopy === 'object') {
             textToCopy = JSON.stringify(textToCopy)
           }
+
+          if (columnObj.uidt === UITypes.DateTime) {
+            textToCopy = dayjs(textToCopy).utc(true).local().format(constructDateTimeFormat(columnObj))
+            if (!dayjs(textToCopy).isValid()) {
+              throw new Error('Invalid Date')
+            }
+          }
+
           await copy(textToCopy)
           message.success(t('msg.info.copiedToClipboard'))
         }
@@ -305,6 +322,8 @@ export function useMultiSelect(
                         appInfo: unref(appInfo),
                       },
                       isMysql(meta.value?.base_id),
+                      isSqlite(meta.value?.base_id),
+                      isXcdbBase(meta.value?.base_id),
                     )
                     e.preventDefault()
 
@@ -339,6 +358,8 @@ export function useMultiSelect(
                         appInfo: unref(appInfo),
                       },
                       isMysql(meta.value?.base_id),
+                      isSqlite(meta.value?.base_id),
+                      isXcdbBase(meta.value?.base_id),
                     )
                     e.preventDefault()
                     syncCellData?.(activeCell)

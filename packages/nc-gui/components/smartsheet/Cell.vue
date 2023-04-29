@@ -209,7 +209,12 @@ onUnmounted(() => {
         <LazyCellMultiSelect v-else-if="isMultiSelect(column)" v-model="vModel" :row-index="props.rowIndex" />
         <LazyCellDatePicker v-else-if="isDate(column, abstractType)" v-model="vModel" :is-pk="isPrimaryKey(column)" />
         <LazyCellYearPicker v-else-if="isYear(column, abstractType)" v-model="vModel" :is-pk="isPrimaryKey(column)" />
-        <LazyCellDateTimePicker v-else-if="isDateTime(column, abstractType)" v-model="vModel" :is-pk="isPrimaryKey(column)" />
+        <LazyCellDateTimePicker
+          v-else-if="isDateTime(column, abstractType)"
+          v-model="vModel"
+          :is-pk="isPrimaryKey(column)"
+          :is-update-outside="currentRow.rowMeta.isUpdateOutside"
+        />
         <LazyCellTimePicker v-else-if="isTime(column, abstractType)" v-model="vModel" :is-pk="isPrimaryKey(column)" />
         <LazyCellRating v-else-if="isRating(column)" v-model="vModel" />
         <LazyCellDuration v-else-if="isDuration(column)" v-model="vModel" />

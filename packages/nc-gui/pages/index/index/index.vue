@@ -319,12 +319,12 @@ const copyProjectMeta = async () => {
             />
 
             <a-dropdown :trigger="['click']" overlay-class-name="nc-dropdown-import-menu" @click.stop>
-              <GeneralIcon icon="threeDotVertical" class="nc-import-menu outline-0" />
+              <GeneralIcon icon="threeDotVertical" class="nc-import-menu outline-0" :data-testid="`p-three-dot-${record.title}`"/>
 
               <template #overlay>
                 <a-menu class="!py-0 rounded text-sm">
                   <a-menu-item key="duplicate" v-e="['c:project:duplicate']" @click.stop="duplicateProject(record)">
-                    <div class="color-transition nc-project-menu-item group">
+                    <div class="color-transition nc-project-menu-item group" :data-testid="`dupe-project-${record.title}`">
                       <GeneralIcon icon="copy" class="group-hover:text-accent" />
                       Duplicate
                     </div>

@@ -60,6 +60,8 @@ export interface Row {
     commentCount?: number
     changed?: boolean
     saving?: boolean
+    // use in datetime picker component
+    isUpdateOutside?: Record<string, boolean>
   }
 }
 

@@ -258,22 +258,27 @@ export class ExportService {
     const pkMap = new Map<string, string>();
 
     const fields = model.columns
-      .filter((c) => c.colOptions?.type !== 'hm' && c.colOptions?.type !== 'mm')
+      .filter((c) => c.uidt !== UITypes.LinkToAnotherRecord)
       .map((c) => c.title)
       .join(',');
+
+    const btMap = new Map<string, string>();
 
     for (const column of model.columns.filter(
       (col) =>
         col.uidt === UITypes.LinkToAnotherRecord &&
-        col.colOptions?.type !== 'hm',
+        col.colOptions?.type === 'bt',
     )) {
-      const relatedTable = await (
-        (await column.getColOptions()) as LinkToAnotherRecordColumn
-      ).getRelatedTable();
-
-      await relatedTable.getColumns();
-
-      pkMap.set(column.id, relatedTable.primaryKey.title);
+      await column.getColOptions();
+      const fkCol = model.columns.find(
+        (c) => c.id === column.colOptions?.fk_child_column_id,
+      );
+      if (fkCol) {
+        btMap.set(
+          fkCol.id,
+          `${column.project_id}::${column.base_id}::${column.fk_model_id}::${column.id}`,
+        );
+      }
     }
 
     const mmColumns = model.columns.filter(
@@ -286,12 +291,6 @@ export class ExportService {
 
     dataStream.setEncoding('utf8');
 
-    const baseModel = await Model.getBaseModelSQL({
-      id: model.id,
-      viewId: view?.id,
-      dbDriver: await NcConnectionMgrv2.get(base),
-    });
-
     const formatData = (data: any) => {
       for (const row of data) {
         for (const [k, v] of Object.entries(row)) {
@@ -299,16 +298,11 @@ export class ExportService {
           if (col) {
             const colId = `${col.project_id}::${col.base_id}::${col.fk_model_id}::${col.id}`;
             switch (col.uidt) {
-              case UITypes.LinkToAnotherRecord:
+              case UITypes.ForeignKey:
                 {
-                  if (col.system || col.colOptions.type !== 'bt') break;
-
-                  if (v) {
-                    for (const [k, val] of Object.entries(v)) {
-                      if (k === pkMap.get(col.id)) {
-                        row[colId] = val;
-                      }
-                    }
+                  if (btMap.has(col.id)) {
+                    row[btMap.get(col.id)] = v;
+                    delete row[k];
                   }
                 }
                 break;
@@ -319,7 +313,6 @@ export class ExportService {
                   row[colId] = v;
                 }
                 break;
-              case UITypes.ForeignKey:
               case UITypes.Formula:
               case UITypes.Lookup:
               case UITypes.Rollup:
@@ -337,6 +330,12 @@ export class ExportService {
       }
       return { data };
     };
+
+    const baseModel = await Model.getBaseModelSQL({
+      id: model.id,
+      viewId: view?.id,
+      dbDriver: await NcConnectionMgrv2.get(base),
+    });
 
     const limit = 200;
     const offset = 0;

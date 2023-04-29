@@ -1,6 +1,7 @@
 import { expect, Locator } from '@playwright/test';
 import BasePage from '../../Base';
 import { DashboardPage } from '..';
+import { DateTimeCellPageObject } from '../common/Cell/DateTimeCell';
 
 export class ExpandedFormPage extends BasePage {
   readonly dashboard: DashboardPage;
@@ -92,6 +93,13 @@ export class ExpandedFormPage extends BasePage {
       case 'manyToMany':
         await field.locator(`[data-testid="nc-child-list-button-link-to"]`).click();
         await this.dashboard.linkRecord.select(value);
+        break;
+      case 'dateTime':
+        await field.locator('.nc-cell').click();
+        // eslint-disable-next-line no-case-declarations
+        const dateTimeObj = new DateTimeCellPageObject(this.dashboard.grid.cell);
+        await dateTimeObj.selectDate({ date: value.slice(0, 10) });
+        await dateTimeObj.selectTime({ hour: +value.slice(11, 13), minute: +value.slice(14, 16) });
         break;
     }
   }

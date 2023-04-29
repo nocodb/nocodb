@@ -569,6 +569,17 @@ export class ExportService {
         readableStream,
       );
 
+      const handledMmList: string[] = [];
+
+      const combinedLinkStream = new Readable({
+        read() {},
+      });
+
+      const uploadLinkPromise = storageAdapter.fileCreateByStream(
+        `${destPath}/data/links.csv`,
+        combinedLinkStream,
+      );
+
       for (const model of models) {
         const dataStream = new Readable({
           read() {},
@@ -578,14 +589,25 @@ export class ExportService {
           read() {},
         });
 
-        const uploadPromise = storageAdapter.fileCreateByStream(
-          `${param.path}/data/${model.id}.csv`,
-          dataStream,
-        );
+        const linkPromise = new Promise((resolve) => {
+          linkStream.on('data', (chunk) => {
+            combinedLinkStream.push(chunk);
+          });
 
-        const uploadLinkPromise = storageAdapter.fileCreateByStream(
-          `${param.path}/data/${model.id}_links.csv`,
-          linkStream,
+          linkStream.on('end', () => {
+            combinedLinkStream.push('\r\n');
+            resolve(null);
+          });
+
+          linkStream.on('error', (e) => {
+            console.error(e);
+            resolve(null);
+          });
+        });
+
+        const uploadPromise = storageAdapter.fileCreateByStream(
+          `${destPath}/data/${model.id}.csv`,
+          dataStream,
         );
 
         this.streamModelData({
@@ -593,10 +615,15 @@ export class ExportService {
           linkStream,
           projectId: project.id,
           modelId: model.id,
+          handledMmList,
         });
 
-        await Promise.all([uploadPromise, uploadLinkPromise]);
+        await Promise.all([uploadPromise, linkPromise]);
       }
+
+      combinedLinkStream.push(null);
+
+      await uploadLinkPromise;
     } catch (e) {
       throw NcError.badRequest(e);
     }

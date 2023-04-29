@@ -55,7 +55,7 @@ export function useMultiSelect(
 
   const { appInfo } = useGlobal()
 
-  const { isMysql, isSqlite, isXcdbBase } = useProject()
+  const { isMssql, isMysql, isSqlite, isXcdbBase } = useProject()
 
   let clipboardContext = $ref<{ value: any; uidt: UITypes } | null>(null)
 
@@ -117,7 +117,12 @@ export function useMultiSelect(
           }
 
           if (columnObj.uidt === UITypes.DateTime) {
-            textToCopy = dayjs(textToCopy).utc(true).local().format(constructDateTimeFormat(columnObj))
+            if (isMssql(meta.value?.base_id)) {
+              textToCopy = dayjs(textToCopy).format(constructDateTimeFormat(columnObj))
+            } else {
+              textToCopy = dayjs(textToCopy).utc(true).local().format(constructDateTimeFormat(columnObj))
+            }
+
             if (!dayjs(textToCopy).isValid()) {
               throw new Error('Invalid Date')
             }
@@ -323,6 +328,7 @@ export function useMultiSelect(
                       },
                       isMysql(meta.value?.base_id),
                       isSqlite(meta.value?.base_id),
+                      isMssql(meta.value?.base_id),
                       isXcdbBase(meta.value?.base_id),
                     )
                     e.preventDefault()
@@ -359,6 +365,7 @@ export function useMultiSelect(
                       },
                       isMysql(meta.value?.base_id),
                       isSqlite(meta.value?.base_id),
+                      isMssql(meta.value?.base_id),
                       isXcdbBase(meta.value?.base_id),
                     )
                     e.preventDefault()

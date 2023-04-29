@@ -1044,7 +1044,7 @@ export class MetaService {
 
   private now(): any {
     if (this.isMySQL()) {
-      return dayjs().utc().format('YYYY-MM-DD HH:mm:ss');
+      return dayjs().format('YYYY-MM-DD HH:mm:ss');
     }
     return dayjs().utc().format('YYYY-MM-DD HH:mm:ssZ');
   }

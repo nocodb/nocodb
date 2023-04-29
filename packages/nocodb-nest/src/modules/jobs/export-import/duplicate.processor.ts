@@ -2,7 +2,6 @@ import { Readable } from 'stream';
 import { Process, Processor } from '@nestjs/bull';
 import { Job } from 'bull';
 import papaparse from 'papaparse';
-import { UITypes } from 'nocodb-sdk';
 import { Base, Column, Model, Project } from '../../../models';
 import { ProjectsService } from '../../../services/projects.service';
 import { findWithIdentifier } from '../../../helpers/exportImportHelpers';
@@ -87,7 +86,7 @@ export class DuplicateProcessor {
       }
 
       const handledLinks = [];
-      const lChunk: Record<string, any[]> = {}; // colId: { rowId, childId }[]
+      const lChunk: Record<string, any[]> = {}; // fk_mm_model_id: { rowId, childId }[]
 
       for (const sourceModel of models) {
         const dataStream = new Readable({
@@ -103,6 +102,7 @@ export class DuplicateProcessor {
           linkStream,
           projectId: project.id,
           modelId: sourceModel.id,
+          handledMmList: handledLinks,
         });
 
         const headers: string[] = [];
@@ -191,73 +191,82 @@ export class DuplicateProcessor {
           });
         });
 
-        const lHeaders: string[] = [];
-        const mmParentChild: any = {};
+        let headersFound = false;
 
-        let pkIndex = -1;
+        let childIndex = -1;
+        let parentIndex = -1;
+        let columnIndex = -1;
+
+        const mmColumns: Record<string, Column> = {};
+        const mmParentChild: any = {};
 
         await new Promise((resolve) => {
           papaparse.parse(linkStream, {
             newline: '\r\n',
             step: async (results, parser) => {
-              if (!lHeaders.length) {
-                parser.pause();
-                for (const header of results.data) {
-                  if (header === 'pk') {
-                    lHeaders.push(null);
-                    pkIndex = lHeaders.length - 1;
-                    continue;
-                  }
-                  const id = idMap.get(header);
-                  if (id) {
-                    const col = await Column.get({
-                      base_id: dupBaseId,
-                      colId: id,
-                    });
-                    if (
-                      col.uidt === UITypes.LinkToAnotherRecord &&
-                      col.colOptions.fk_mm_model_id &&
-                      handledLinks.includes(col.colOptions.fk_mm_model_id)
-                    ) {
-                      lHeaders.push(null);
-                    } else {
-                      if (
-                        col.uidt === UITypes.LinkToAnotherRecord &&
-                        col.colOptions.fk_mm_model_id &&
-                        !handledLinks.includes(col.colOptions.fk_mm_model_id)
-                      ) {
-                        const colOptions =
-                          await col.getColOptions<LinkToAnotherRecordColumn>();
-
-                        const vChildCol = await colOptions.getMMChildColumn();
-                        const vParentCol = await colOptions.getMMParentColumn();
-
-                        mmParentChild[col.colOptions.fk_mm_model_id] = {
-                          parent: vParentCol.column_name,
-                          child: vChildCol.column_name,
-                        };
-
-                        handledLinks.push(col.colOptions.fk_mm_model_id);
-                      }
-                      lHeaders.push(col.colOptions.fk_mm_model_id);
-                      lChunk[col.colOptions.fk_mm_model_id] = [];
-                    }
+              if (!headersFound) {
+                for (const [i, header] of Object.entries(results.data)) {
+                  if (header === 'child') {
+                    childIndex = parseInt(i);
+                  } else if (header === 'parent') {
+                    parentIndex = parseInt(i);
+                  } else if (header === 'column') {
+                    columnIndex = parseInt(i);
                   }
                 }
-                parser.resume();
+                headersFound = true;
               } else {
                 if (results.errors.length === 0) {
-                  for (let i = 0; i < lHeaders.length; i++) {
-                    if (!lHeaders[i]) continue;
-
-                    const mm = mmParentChild[lHeaders[i]];
-
-                    for (const rel of results.data[i].split(',')) {
-                      if (rel.trim() === '') continue;
-                      lChunk[lHeaders[i]].push({
-                        [mm.parent]: rel,
-                        [mm.child]: results.data[pkIndex],
+                  const child = results.data[childIndex];
+                  const parent = results.data[parentIndex];
+                  const columnId = results.data[columnIndex];
+                  if (child && parent && columnId) {
+                    if (mmColumns[columnId]) {
+                      // push to chunk
+                      const mmModelId =
+                        mmColumns[columnId].colOptions.fk_mm_model_id;
+                      const mm = mmParentChild[mmModelId];
+                      lChunk[mmModelId].push({
+                        [mm.parent]: parent,
+                        [mm.child]: child,
                       });
+                    } else {
+                      // get column for the first time
+                      parser.pause();
+
+                      const col = await Column.get({
+                        base_id: dupBaseId,
+                        colId: findWithIdentifier(idMap, columnId),
+                      });
+
+                      const colOptions =
+                        await col.getColOptions<LinkToAnotherRecordColumn>();
+
+                      const vChildCol = await colOptions.getMMChildColumn();
+                      const vParentCol = await colOptions.getMMParentColumn();
+
+                      mmParentChild[col.colOptions.fk_mm_model_id] = {
+                        parent: vParentCol.column_name,
+                        child: vChildCol.column_name,
+                      };
+
+                      mmColumns[columnId] = col;
+
+                      handledLinks.push(col.colOptions.fk_mm_model_id);
+
+                      const mmModelId = col.colOptions.fk_mm_model_id;
+
+                      // create chunk
+                      lChunk[mmModelId] = [];
+
+                      // push to chunk
+                      const mm = mmParentChild[mmModelId];
+                      lChunk[mmModelId].push({
+                        [mm.parent]: parent,
+                        [mm.child]: child,
+                      });
+
+                      parser.resume();
                     }
                   }
                 }

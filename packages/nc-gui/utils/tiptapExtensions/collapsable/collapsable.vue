@@ -4,9 +4,10 @@ import { TextSelection } from 'prosemirror-state'
 import { TiptapNodesTypes } from 'nocodb-sdk'
 import { positionOfFirstChild } from '../helper'
 
-const { node, editor } = defineProps(nodeViewProps)
+const { node, editor, getPos } = defineProps(nodeViewProps)
 
 const isCollapsed = ref(true)
+const nodePos = computed(() => getPos())
 
 const toggleCollapsableContent = () => {
   const state = editor.state
@@ -21,7 +22,7 @@ const toggleCollapsableContent = () => {
     })!
     const firstChildOfCollapseContentPos = positionOfFirstChild(state, collapsableContentPos, 'start')!
 
-    tr.setSelection(TextSelection.create(tr.doc, firstChildOfCollapseContentPos))
+    tr.setSelection(TextSelection.create(tr.doc, firstChildOfCollapseContentPos + 2))
   } else {
     // Put cursor on the start of the collapsable node
     tr.setSelection(TextSelection.create(tr.doc, selection.from))
@@ -39,6 +40,14 @@ const headerChildNode = computed(() => {
 
   return headerNode?.content?.firstChild
 })
+
+const contentChildCount = computed(() => {
+  const currentNode = editor.state.doc.nodeAt(nodePos.value)
+  if (!currentNode) return undefined
+
+  // -1 because of the header node (first child)
+  return currentNode.childCount - 1
+})
 </script>
 
 <template>
@@ -49,10 +58,11 @@ const headerChildNode = computed(() => {
     }"
   >
     <div
-      class="flex flex-row space-x-1 w-full items-start"
+      class="flex flex-row space-x-1 w-full items-start collapsable"
       :class="{
         collapsed: isCollapsed,
       }"
+      :collapsable-pos="nodePos"
     >
       <div
         class="mt-1 flex items-center px-1 cursor-pointer hover:bg-gray-100 h-6 rounded-md z-10 group"
@@ -71,7 +81,7 @@ const headerChildNode = computed(() => {
           }"
         />
       </div>
-      <NodeViewContent class="flex flex-col flex-grow w-full" />
+      <NodeViewContent class="flex flex-col flex-grow w-full" :data-one-content="contentChildCount === 1" />
     </div>
   </NodeViewWrapper>
 </template>

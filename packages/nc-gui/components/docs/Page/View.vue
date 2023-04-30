@@ -428,6 +428,12 @@ watch(wrapperRef, () => {
     margin-left: 0.01rem;
   }
 
+  [data-one-content='true'] [data-type='collapsable_content'] {
+    p.is-empty::after {
+      content: 'Empty collapsable. Press / to open the command menu or start writing';
+    }
+  }
+
   p.is-empty::after {
     margin-top: -1.55rem;
   }

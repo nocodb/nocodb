@@ -35,6 +35,7 @@ jobs:
       run: |
         cd ../..
         npm install
+        npm run install:npm:dep
         npm run install:common
         npm run build:common
         cd packages/nocodb

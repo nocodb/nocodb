@@ -86,7 +86,27 @@ export class DuplicateProcessor {
       }
 
       const handledLinks = [];
-      const lChunk: Record<string, any[]> = {}; // fk_mm_model_id: { rowId, childId }[]
+      const lChunks: Record<string, any[]> = {}; // fk_mm_model_id: { rowId, childId }[]
+
+      const insertChunks = async () => {
+        for (const [k, v] of Object.entries(lChunks)) {
+          try {
+            if (v.length === 0) continue;
+            await this.bulkDataService.bulkDataInsert({
+              projectName: dupProject.id,
+              tableName: k,
+              body: v,
+              cookie: null,
+              chunkSize: 1000,
+              foreign_key_checks: false,
+              raw: true,
+            });
+            lChunks[k] = [];
+          } catch (e) {
+            console.log(e);
+          }
+        }
+      };
 
       for (const sourceModel of models) {
         const dataStream = new Readable({
@@ -226,13 +246,15 @@ export class DuplicateProcessor {
                       const mmModelId =
                         mmColumns[columnId].colOptions.fk_mm_model_id;
                       const mm = mmParentChild[mmModelId];
-                      lChunk[mmModelId].push({
+                      lChunks[mmModelId].push({
                         [mm.parent]: parent,
                         [mm.child]: child,
                       });
                     } else {
                       // get column for the first time
                       parser.pause();
+
+                      await insertChunks();
 
                       const col = await Column.get({
                         base_id: dupBaseId,
@@ -257,11 +279,11 @@ export class DuplicateProcessor {
                       const mmModelId = col.colOptions.fk_mm_model_id;
 
                       // create chunk
-                      lChunk[mmModelId] = [];
+                      lChunks[mmModelId] = [];
 
                       // push to chunk
                       const mm = mmParentChild[mmModelId];
-                      lChunk[mmModelId].push({
+                      lChunks[mmModelId].push({
                         [mm.parent]: parent,
                         [mm.child]: child,
                       });
@@ -273,28 +295,13 @@ export class DuplicateProcessor {
               }
             },
             complete: async () => {
+              await insertChunks();
               resolve(null);
             },
           });
         });
 
         elapsedTime(model.title);
-      }
-
-      for (const [k, v] of Object.entries(lChunk)) {
-        try {
-          await this.bulkDataService.bulkDataInsert({
-            projectName: dupProject.id,
-            tableName: k,
-            body: v,
-            cookie: null,
-            chunkSize: 1000,
-            foreign_key_checks: false,
-            raw: true,
-          });
-        } catch (e) {
-          console.log(e);
-        }
       }
 
       elapsedTime('links');

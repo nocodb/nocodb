@@ -25,7 +25,7 @@ import { ViewColumnsService } from '../../../services/view-columns.service';
 import { ViewsService } from '../../../services/views.service';
 import { FormsService } from '../../../services/forms.service';
 import { JobsEventService } from '../jobs-event.service';
-import { JobTypes } from '../../../interface/Jobs';
+import { JOBS_QUEUE, JobTypes } from '../../../interface/Jobs';
 import FetchAT from './helpers/fetchAT';
 import { importData, importLTARData } from './helpers/readAndProcessData';
 import EntityMap from './helpers/EntityMap';
@@ -82,7 +82,7 @@ const selectColors = {
   grayDarker: '#444',
 };
 
-@Processor('jobs')
+@Processor(JOBS_QUEUE)
 export class AtImportProcessor {
   constructor(
     private readonly tablesService: TablesService,

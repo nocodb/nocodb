@@ -7,8 +7,9 @@ import {
 import { Job } from 'bull';
 import boxen from 'boxen';
 import { EventEmitter2 } from '@nestjs/event-emitter';
+import { JOBS_QUEUE } from '../../interface/Jobs';
 
-@Processor('jobs')
+@Processor(JOBS_QUEUE)
 export class JobsEventService {
   constructor(private eventEmitter: EventEmitter2) {}
 

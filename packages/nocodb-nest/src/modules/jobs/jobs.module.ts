@@ -3,6 +3,7 @@ import { BullModule } from '@nestjs/bull';
 import { GlobalModule } from '../global/global.module';
 import { DatasModule } from '../datas/datas.module';
 import { MetasModule } from '../metas/metas.module';
+import { JOBS_QUEUE } from '../../interface/Jobs';
 import { JobsService } from './jobs.service';
 import { ExportService } from './export-import/export.service';
 import { ImportService } from './export-import/import.service';
@@ -20,7 +21,7 @@ import { AtImportProcessor } from './at-import/at-import.processor';
     DatasModule,
     MetasModule,
     BullModule.registerQueue({
-      name: 'jobs',
+      name: JOBS_QUEUE,
     }),
   ],
   controllers: [DuplicateController, AtImportController],

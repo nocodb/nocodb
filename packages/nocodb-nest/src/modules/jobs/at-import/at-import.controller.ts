@@ -7,14 +7,14 @@ import { SyncSource } from '../../../models';
 import { NcError } from '../../../helpers/catchError';
 import { QueueService } from '../fallback-queue.service';
 import { JobsService } from '../jobs.service';
-import { JobTypes } from '../../../interface/Jobs';
+import { JOBS_QUEUE, JobTypes } from '../../../interface/Jobs';
 
 @Controller()
 @UseGuards(ExtractProjectIdMiddleware, GlobalGuard)
 export class AtImportController {
   activeQueue;
   constructor(
-    @InjectQueue('jobs') private readonly jobsQueue: Queue,
+    @InjectQueue(JOBS_QUEUE) private readonly jobsQueue: Queue,
     private readonly fallbackQueueService: QueueService,
     private readonly jobsService: JobsService,
   ) {

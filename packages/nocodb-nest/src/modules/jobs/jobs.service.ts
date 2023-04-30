@@ -1,13 +1,14 @@
 import { InjectQueue } from '@nestjs/bull';
 import { Injectable } from '@nestjs/common';
 import { Queue } from 'bull';
+import { JOBS_QUEUE } from '../../interface/Jobs';
 import { QueueService } from './fallback-queue.service';
 
 @Injectable()
 export class JobsService {
   activeQueue;
   constructor(
-    @InjectQueue('jobs') private readonly jobsQueue: Queue,
+    @InjectQueue(JOBS_QUEUE) private readonly jobsQueue: Queue,
     private readonly fallbackQueueService: QueueService,
   ) {
     this.activeQueue = process.env.NC_REDIS_URL

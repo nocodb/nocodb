@@ -18,14 +18,14 @@ import { ProjectsService } from '../../../services/projects.service';
 import { Base, Project } from '../../../models';
 import { generateUniqueName } from '../../../helpers/exportImportHelpers';
 import { QueueService } from '../fallback-queue.service';
-import { JobTypes } from '../../../interface/Jobs';
+import { JOBS_QUEUE, JobTypes } from '../../../interface/Jobs';
 
 @Controller()
 @UseGuards(ExtractProjectIdMiddleware, GlobalGuard)
 export class DuplicateController {
   activeQueue;
   constructor(
-    @InjectQueue('jobs') private readonly jobsQueue: Queue,
+    @InjectQueue(JOBS_QUEUE) private readonly jobsQueue: Queue,
     private readonly fallbackQueueService: QueueService,
     private readonly projectsService: ProjectsService,
   ) {

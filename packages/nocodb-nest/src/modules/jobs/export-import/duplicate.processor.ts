@@ -6,14 +6,14 @@ import { Base, Column, Model, Project } from '../../../models';
 import { ProjectsService } from '../../../services/projects.service';
 import { findWithIdentifier } from '../../../helpers/exportImportHelpers';
 import { BulkDataAliasService } from '../../../services/bulk-data-alias.service';
-import { JobTypes } from '../../../interface/Jobs';
+import { JOBS_QUEUE, JobTypes } from '../../../interface/Jobs';
 import { ExportService } from './export.service';
 import { ImportService } from './import.service';
 import type { LinkToAnotherRecordColumn } from '../../../models';
 
 const DEBUG = false;
 
-@Processor('jobs')
+@Processor(JOBS_QUEUE)
 export class DuplicateProcessor {
   constructor(
     private readonly exportService: ExportService,

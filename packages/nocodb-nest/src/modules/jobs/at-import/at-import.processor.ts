@@ -25,6 +25,7 @@ import { ViewColumnsService } from '../../../services/view-columns.service';
 import { ViewsService } from '../../../services/views.service';
 import { FormsService } from '../../../services/forms.service';
 import { JobsEventService } from '../jobs-event.service';
+import { JobTypes } from '../../../interface/Jobs';
 import FetchAT from './helpers/fetchAT';
 import { importData, importLTARData } from './helpers/readAndProcessData';
 import EntityMap from './helpers/EntityMap';
@@ -101,7 +102,7 @@ export class AtImportProcessor {
     private readonly jobsEventService: JobsEventService,
   ) {}
 
-  @Process('at-import')
+  @Process(JobTypes.AtImport)
   async job(job: Job) {
     const syncDB = job.data;
 

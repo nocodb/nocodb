@@ -191,7 +191,8 @@ export const SectionBlock = Node.create<SecOptions>({
  * It will be complicated to only selected the correct section in the case of collapsable
  */
 function focusCurrentSection(state: EditorState) {
-  const secPos = getPositionOfSection(state)
+  const selectedNode = state.doc.nodeAt(state.selection.from)
+  const secPos = selectedNode?.type.name === TiptapNodesTypes.sec ? state.selection.from : getPositionOfSection(state)
   const secDom = document.querySelector(`[tiptap-draghandle-wrapper="true"][pos="${secPos}"]`) as HTMLElement
 
   const dbBlockDoms = document.querySelectorAll('.draggable-block-wrapper')

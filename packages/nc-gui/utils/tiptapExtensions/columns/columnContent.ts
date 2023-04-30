@@ -46,6 +46,39 @@ export const ColumnContentNode = Node.create({
     return VueNodeViewRenderer(ColumnContent)
   },
 
+  addKeyboardShortcuts() {
+    return {
+      // Pressing arrow down on the last section of any column content
+      // should select the next section outside of the column instead of next section inside the column
+      ArrowDown: () => {
+        const state = this.editor.state
+        const selection = state.selection
+
+        // Minimum depth of the selection should be 5, which is minimum for a column section
+        if (selection.$from.depth < 5) return false
+
+        const contentNode = state.selection.$from.node(-2)
+        if (contentNode.type.name !== TiptapNodesTypes.columnContent) return false
+
+        // Verify that the current section is the last child of the column content
+        const sectionPos = getPositionOfSection(state)
+        const sectionResolvedPos = state.doc.resolve(sectionPos)
+
+        if (sectionResolvedPos.parent.childCount - 1 !== sectionResolvedPos.index()) return false
+
+        // The parent section which contains the column wrapper
+        const sectionOfColumnPos = sectionResolvedPos.before(-2)
+        const sectionOfColumn = state.doc.nodeAt(sectionOfColumnPos)
+        if (!sectionOfColumn) return false
+
+        return this.editor
+          .chain()
+          .setTextSelection(sectionOfColumnPos + sectionOfColumn?.nodeSize + 2)
+          .run()
+      },
+    }
+  },
+
   addProseMirrorPlugins() {
     return [
       new Plugin({

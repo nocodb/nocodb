@@ -193,3 +193,15 @@ watch(
     </div>
   </NodeViewWrapper>
 </template>
+
+<style lang="scss">
+.ProseMirror {
+  .focused {
+    .link-to-page-wrapper {
+      // outline with rounded corners
+      background-color: #e8eafd;
+      border-radius: 1px;
+    }
+  }
+}
+</style>

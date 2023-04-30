@@ -79,7 +79,7 @@ export const dragOptionStyle = ({
     }
   } else if (nodeType === TiptapNodesTypes.linkToPage && currentNode.attrs?.pageId) {
     style = {
-      marginTop: '0.25rem',
+      marginTop: '0.45rem',
     }
   } else {
     style = {

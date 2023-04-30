@@ -699,6 +699,13 @@ watch(wrapperRef, () => {
       border-radius: 4px;
     }
   }
+  .selected {
+    hr {
+      // outline with rounded corners
+      outline: 4px solid #e8eafd;
+      border-radius: 4px;
+    }
+  }
 
   .selected {
     .external-content-wrapper {

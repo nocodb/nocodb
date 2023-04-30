@@ -37,7 +37,11 @@ jobs:
         npm install
         npm run install:common
         npm run build:common
-        cd packages/nocodb
+        cd packages/nocodb-sdk
+        npm install && npm run build
+        cd ../nc-gui
+        npm install && npm run build:copy
+        cd ../nocodb
         npm run build
         npm run docker:build
         docker build -t "${{ github.ref_name }}" -f ./Dockerfile .

@@ -64,9 +64,10 @@ RUN apk --update --no-cache add \
 COPY  --from=lt-builder /usr/src/lt /usr/src/appEntry/litestream
 # Copy packaged production code & main entry file
 COPY --from=builder /usr/src/appEntry/ /usr/src/appEntry/
+COPY entrypoint.sh /entrypoint.sh
+RUN chmod +x /entrypoint.sh
 
 EXPOSE 8080
-ENTRYPOINT ["/usr/bin/dumb-init", "--"]
 
 # Start Nocodb
-CMD ["/usr/src/appEntry/start.sh"]
+ENTRYPOINT ["/entrypoint.sh"]

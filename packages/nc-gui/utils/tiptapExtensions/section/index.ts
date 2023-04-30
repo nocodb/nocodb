@@ -1,6 +1,7 @@
 import { Node, mergeAttributes } from '@tiptap/core'
 import { VueNodeViewRenderer } from '@tiptap/vue-3'
 import { TiptapNodesTypes } from 'nocodb-sdk'
+import type { EditorState } from 'prosemirror-state'
 import { Plugin, TextSelection } from 'prosemirror-state'
 import {
   getPositionOfNextSection,
@@ -73,14 +74,14 @@ export const SectionBlock = Node.create<SecOptions>({
     return ['div', mergeAttributes(HTMLAttributes, { 'data-type': 'sec' }), 0]
   },
 
-  // onSelectionUpdate() {
-  //   // If cursor is inside the section node, we make the node focused
-  //   const { state } = this.editor
+  onSelectionUpdate() {
+    // If cursor is inside the section node, we make the node focused
+    const { state } = this.editor
 
-  //   focusCurrentSection(state)
+    focusCurrentSection(state)
 
-  //   return false
-  // },
+    return false
+  },
 
   addProseMirrorPlugins() {
     return [
@@ -189,17 +190,17 @@ export const SectionBlock = Node.create<SecOptions>({
  * Reason we are doing this rather doing this logic in 'section' vue component is
  * It will be complicated to only selected the correct section in the case of collapsable
  */
-// function focusCurrentSection(state: EditorState) {
-//   const secPos = getPositionOfSection(state)
-//   const secDom = document.querySelector(`[tiptap-draghandle-wrapper="true"][pos="${secPos}"]`) as HTMLElement
+function focusCurrentSection(state: EditorState) {
+  const secPos = getPositionOfSection(state)
+  const secDom = document.querySelector(`[tiptap-draghandle-wrapper="true"][pos="${secPos}"]`) as HTMLElement
 
-//   const dbBlockDoms = document.querySelectorAll('.draggable-block-wrapper')
-//   for (let i = 0; i < dbBlockDoms.length; i++) {
-//     dbBlockDoms[i].classList.remove('focused')
-//   }
+  const dbBlockDoms = document.querySelectorAll('.draggable-block-wrapper')
+  for (let i = 0; i < dbBlockDoms.length; i++) {
+    dbBlockDoms[i].classList.remove('focused')
+  }
 
-//   // TODO: We need to wait for the dom to be rendered
-//   setTimeout(() => {
-//     secDom?.parentElement?.classList.add('focused')
-//   }, 150)
-// }
+  // TODO: We need to wait for the dom to be rendered
+  setTimeout(() => {
+    secDom?.parentElement?.classList.add('focused')
+  }, 150)
+}

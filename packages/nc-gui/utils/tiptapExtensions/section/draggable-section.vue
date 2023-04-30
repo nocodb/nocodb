@@ -9,7 +9,7 @@ const isPublic = !editor.view.editable
 
 const dragClicked = ref(false)
 const optionsPopoverRef = ref()
-const showDragOptions = ref(false)
+const isMouseOverSection = ref(false)
 const dragDomRef = ref<HTMLDivElement | undefined>()
 const isDragging = ref(false)
 
@@ -39,6 +39,15 @@ const optionWrapperStyle = computed(() => {
     attrs: content[0].attrs,
   })
 })
+
+const isCursorInNode = computed(() => {
+  const { from, to } = editor.state.selection
+
+  const pos = getPos()
+  return from > pos && to < pos + node.nodeSize
+})
+
+const showDragOptions = computed(() => isCursorInNode.value || isMouseOverSection.value)
 
 const createNodeAfter = () => {
   const toBeInsertedPos = getPos() + node.nodeSize
@@ -105,14 +114,14 @@ watch(dragDomRef, () => {
     const topMostElement = elementsOnMouse[0]
 
     if (Number(topMostElement.getAttribute('pos')) === pos.value) {
-      showDragOptions.value = true
+      isMouseOverSection.value = true
     } else {
-      showDragOptions.value = false
+      isMouseOverSection.value = false
     }
   })
 
   dragDomRef.value.addEventListener('mouseout', () => {
-    showDragOptions.value = false
+    isMouseOverSection.value = false
   })
 })
 </script>
@@ -171,7 +180,7 @@ watch(dragDomRef, () => {
           @dragstart="isDragging = true"
           @dragend="isDragging = false"
         >
-          <IcBaselineDragIndicator :tiptap-draghandle="true" />
+          <IcBaselineDragIndicator />
         </div>
       </div>
 
@@ -194,6 +203,12 @@ watch(dragDomRef, () => {
   @apply opacity-0 hover:opacity-100 group-hover:opacity-100 hover:bg-gray-50 rounded-sm text-lg h-6 duration-150 transition-opacity;
   color: rgb(203, 203, 203);
 }
+
+// .focused {
+//   .block-button {
+//     @apply opacity-100;
+//   }
+// }
 
 .block-button svg {
   @apply -mt-1.5;

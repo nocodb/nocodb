@@ -172,7 +172,6 @@ export class ExportService {
       }
 
       serializedModels.push({
-        entity: 'model',
         model: {
           id: idMap.get(model.id),
           prefix: project.prefix,
@@ -545,7 +544,6 @@ export class ExportService {
 
     const exportData = {
       id: `${project.id}::${base.id}`,
-      entity: 'base',
       models: exportedModels,
     };
 

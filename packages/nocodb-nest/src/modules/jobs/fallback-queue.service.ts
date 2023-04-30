@@ -1,6 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import PQueue from 'p-queue';
 import Emittery from 'emittery';
+import { JobTypes } from '../../interface/Jobs';
 import { DuplicateProcessor } from './export-import/duplicate.processor';
 import { JobsEventService } from './jobs-event.service';
 import { AtImportProcessor } from './at-import/at-import.processor';
@@ -54,11 +55,11 @@ export class QueueService {
   }
 
   jobMap = {
-    duplicate: {
+    [JobTypes.DuplicateBase]: {
       this: this.duplicateProcessor,
       fn: this.duplicateProcessor.duplicateBase,
     },
-    'at-import': {
+    [JobTypes.AtImport]: {
       this: this.atImportProcessor,
       fn: this.atImportProcessor.job,
     },

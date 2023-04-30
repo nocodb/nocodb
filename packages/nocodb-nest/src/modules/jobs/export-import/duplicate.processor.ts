@@ -6,6 +6,7 @@ import { Base, Column, Model, Project } from '../../../models';
 import { ProjectsService } from '../../../services/projects.service';
 import { findWithIdentifier } from '../../../helpers/exportImportHelpers';
 import { BulkDataAliasService } from '../../../services/bulk-data-alias.service';
+import { JobTypes } from '../../../interface/Jobs';
 import { ExportService } from './export.service';
 import { ImportService } from './import.service';
 import type { LinkToAnotherRecordColumn } from '../../../models';
@@ -21,7 +22,7 @@ export class DuplicateProcessor {
     private readonly bulkDataService: BulkDataAliasService,
   ) {}
 
-  @Process('duplicate')
+  @Process(JobTypes.DuplicateBase)
   async duplicateBase(job: Job) {
     const { projectId, baseId, dupProjectId, req } = job.data;
 

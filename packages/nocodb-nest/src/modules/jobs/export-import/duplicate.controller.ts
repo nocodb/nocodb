@@ -18,6 +18,7 @@ import { ProjectsService } from '../../../services/projects.service';
 import { Base, Project } from '../../../models';
 import { generateUniqueName } from '../../../helpers/exportImportHelpers';
 import { QueueService } from '../fallback-queue.service';
+import { JobTypes } from '../../../interface/Jobs';
 
 @Controller()
 @UseGuards(ExtractProjectIdMiddleware, GlobalGuard)
@@ -67,7 +68,7 @@ export class DuplicateController {
       user: { id: req.user.id },
     });
 
-    const job = await this.activeQueue.add('duplicate', {
+    const job = await this.activeQueue.add(JobTypes.DuplicateBase, {
       projectId: project.id,
       baseId: base.id,
       dupProjectId: dupProject.id,

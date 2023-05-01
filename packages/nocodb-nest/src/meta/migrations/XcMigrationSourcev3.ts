@@ -4,7 +4,6 @@ import * as nc_003_workspace from './v3/nc_003_workspace';
 import * as nc_004_profile_account from './v3/nc_004_profile_account';
 import * as nc_005_cowriter from './v3/nc_005_cowriter';
 import * as nc_006_shared_erd from './v3/nc_006_shared_erd';
-import * as nc_007_notification from './v3/nc_007_notification';
 
 // Create a custom migration source class
 export default class XcMigrationSourcev3 {
@@ -20,7 +19,6 @@ export default class XcMigrationSourcev3 {
       'nc_004_profile_account',
       'nc_005_cowriter',
       'nc_006_shared_erd',
-      'nc_007_notification',
     ]);
   }
 
@@ -42,8 +40,6 @@ export default class XcMigrationSourcev3 {
         return nc_005_cowriter;
       case 'nc_006_shared_erd':
         return nc_006_shared_erd;
-      case 'nc_007_notification':
-        return nc_007_notification;
     }
   }
 }

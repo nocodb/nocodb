@@ -53,9 +53,6 @@ const { markAsRead } = notificationStore
         </template>
       </a-dropdown>
     </div>
-    <!--    <div class="self-start"> -->
-    <!--      <a-checkbox class="!my-0"></a-checkbox> -->
-    <!--    </div> -->
   </div>
 </template>
 

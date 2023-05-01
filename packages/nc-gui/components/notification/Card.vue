@@ -7,20 +7,10 @@ import { useNotification } from '#imports'
 const notificationStore = useNotification()
 
 const {
-  notifications, // : _notifications,
-  // readNotifications,
+  notifications,
   isRead,
-  pageInfo, // : _pageInfo,
-  // readPageInfo,
+  pageInfo,
 } = storeToRefs(notificationStore)
-
-// const notifications = computed(() => {
-//   return isRead.value ? readNotifications.value : _notifications.value
-// })
-//
-// const pageInfo = computed(() => {
-//   return isRead.value ? readPageInfo.value : _pageInfo.value
-// })
 
 const groupType = computed({
   get() {

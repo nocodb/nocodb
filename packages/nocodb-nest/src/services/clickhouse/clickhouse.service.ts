@@ -30,12 +30,12 @@ export class ClickhouseService implements OnModuleInit, OnModuleDestroy {
       return;
     }
 
-    const { connection } = await NcConfigFactory.metaUrlToDbConfig(
+    const { connection, client } = await NcConfigFactory.metaUrlToDbConfig(
       process.env.NC_CLICKHOUSE,
     );
 
     this.config = {
-      host: connection.host ?? 'localhost',
+      host: `${client}://${connection.host}` ?? 'http://localhost',
       port: connection.port ?? 8123,
       username: connection.user,
       password: connection.password,

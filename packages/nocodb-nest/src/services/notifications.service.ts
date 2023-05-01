@@ -34,7 +34,7 @@ export class NotificationsService implements OnModuleInit, OnModuleDestroy {
 
     // Define the SQL query to insert the row
     const query = `
-  INSERT INTO database.notification (id, body, type, is_read, is_deleted, fk_user_id)
+  INSERT INTO notification (id, body, type, is_read, is_deleted, fk_user_id)
   VALUES ('${id}', '${body}', '${type}', ${isRead}, ${isDeleted}, '${fkUserId}')
 `;
 
@@ -112,7 +112,7 @@ export class NotificationsService implements OnModuleInit, OnModuleDestroy {
       // Define the SQL query with pagination parameters
       const query = `
   SELECT  *
-  FROM database.notification FINAL
+  FROM notification FINAL
   WHERE fk_user_id = '${param.user.id}'
   ORDER BY created_at DESC
   LIMIT ${limit}
@@ -128,7 +128,7 @@ export class NotificationsService implements OnModuleInit, OnModuleDestroy {
 
       const countQuery = `
   SELECT count(id) as count
-  FROM database.notification  FINAL       
+  FROM notification  FINAL       
   WHERE fk_user_id = '${param.user.id}'
   AND is_deleted = false 
     `;
@@ -137,7 +137,7 @@ export class NotificationsService implements OnModuleInit, OnModuleDestroy {
 
       const unreadCountQuery = `
   SELECT count(id) as count
-  FROM database.notification FINAL
+  FROM notification FINAL
   WHERE fk_user_id = '${param.user.id}'
   AND is_read = false
   AND is_deleted = false   
@@ -167,7 +167,7 @@ export class NotificationsService implements OnModuleInit, OnModuleDestroy {
     const existingRecord = (
       await this.clickhouseService.execute(`
       SELECT  *
-  FROM database.notification FINAL
+  FROM notification FINAL
     WHERE id = '${param.notificationId}'
     AND fk_user_id = '${param.user.id}'    `)
     )?.[0];
@@ -175,7 +175,7 @@ export class NotificationsService implements OnModuleInit, OnModuleDestroy {
     if (existingRecord) {
       Object.assign(existingRecord, param.body);
       return this.clickhouseService.execute(`
-        INSERT INTO database.notification
+        INSERT INTO notification
         (id, fk_user_id, type, body, is_read, is_deleted, created_at, updated_at)
         VALUES (
           '${param.notificationId}',
@@ -195,7 +195,7 @@ export class NotificationsService implements OnModuleInit, OnModuleDestroy {
       // get all unread notifications
       const query = `
   SELECT *
-  FROM database.notification FINAL
+  FROM notification FINAL
   WHERE fk_user_id = '${param.user.id}'
   AND is_read = false
  
@@ -219,7 +219,7 @@ export class NotificationsService implements OnModuleInit, OnModuleDestroy {
       }
 
       return await this.clickhouseService
-        .execute(`INSERT INTO database.notification
+        .execute(`INSERT INTO notification
       (id, fk_user_id, type, body, is_read, is_deleted, created_at, updated_at)
       VALUES ${updateQueries.join(',')}`);
     } catch (e) {

@@ -70,7 +70,7 @@ export class AppModule implements OnApplicationBootstrap {
 
     await this.connection.init();
 
-    await NcConfigFactory.metaDbCreateIfNotExist(Noco.config);
+    await NcConfigFactory.metaDbCreateIfNotExist(this.connection.config);
 
     await this.metaService.init();
 

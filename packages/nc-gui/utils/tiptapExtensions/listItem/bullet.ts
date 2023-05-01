@@ -1,14 +1,8 @@
 import { Node, mergeAttributes, wrappingInputRule } from '@tiptap/core'
-
 import { Plugin, PluginKey } from 'prosemirror-state'
-import {
-  changeLevel,
-  getTextAsParagraphFromSliceJson,
-  isSelectionOfType,
-  onBackspaceWithNestedList,
-  onEnter,
-  toggleItem,
-} from './helper'
+import { TiptapNodesTypes } from 'nocodb-sdk'
+import type { ListNodeType } from './helper'
+import { changeLevel, isSelectionOfType, listItemPasteRule, onBackspaceWithNestedList, onEnter, toggleItem } from './helper'
 
 export interface ListOptions {
   HTMLAttributes: Record<string, any>
@@ -23,10 +17,13 @@ declare module '@tiptap/core' {
   }
 }
 
-const inputRegex = /^\s*([-+*])\s$/g
+// inputRegex Regex for detecting start of list item while typing. i.e '- ' for bullet list
+// pasteRegex Regex for detecting start of list item while pasting. i.e '- Content' for bullet list
+const inputRegex = /^\s*([-+*])(?!\s*\[[ x]\])\s/gm
+const pasteRegex = /^\s*([-+*])(?!\s*\[[ x]\])\s.+$/gm
 
 export const Bullet = Node.create<ListOptions>({
-  name: 'bullet',
+  name: TiptapNodesTypes.bullet,
   addOptions() {
     return {
       HTMLAttributes: {},
@@ -51,6 +48,11 @@ export const Bullet = Node.create<ListOptions>({
   parseHTML() {
     return [
       {
+        tag: 'ul > li',
+        node: 'bullet',
+        style: 'list-style-type: disc',
+      },
+      {
         tag: 'div[data-type="bullet"]',
         attrs: { 'data-type': 'bullet' },
       },
@@ -58,11 +60,25 @@ export const Bullet = Node.create<ListOptions>({
   },
 
   renderHTML({ node, HTMLAttributes }) {
+    let diskStyle = 'disc'
+    switch (Number(node.attrs.level) % 3) {
+      case 0:
+        diskStyle = 'disc'
+        break
+      case 1:
+        diskStyle = 'circle'
+        break
+      case 2:
+        diskStyle = 'square'
+        break
+    }
+
     return [
       'div',
       mergeAttributes(this.options.HTMLAttributes, HTMLAttributes, {
         'data-type': node.type.name,
         'data-level': node.attrs.level,
+        'data-disc-style': diskStyle,
         'style': `padding-left: ${Number(node.attrs.level)}rem;`,
       }),
       ['div', { class: 'tiptap-list-item-content' }, 0],
@@ -74,29 +90,12 @@ export const Bullet = Node.create<ListOptions>({
       isSelectionTypeBullet:
         () =>
         ({ state }: any) => {
-          return isSelectionOfType(state, this.name)
+          return isSelectionOfType(state, this.name as ListNodeType)
         },
       toggleBullet:
         () =>
         ({ chain, state }: any) => {
-          const toggleListItemInSliceJson = (content: any[]) => {
-            for (const child of content) {
-              if (child.type !== this.name) {
-                child.content = [getTextAsParagraphFromSliceJson(child)]
-                child.type = this.name
-              } else {
-                child.type = 'paragraph'
-
-                if (child.content?.length === 1) {
-                  child.content = child.content[0].content
-                } else {
-                  child.content = []
-                }
-              }
-            }
-          }
-
-          toggleItem(this.editor, state, chain, toggleListItemInSliceJson, 'bullet')
+          toggleItem({ chain, state, type: TiptapNodesTypes.bullet })
         },
     } as any
   },
@@ -104,30 +103,20 @@ export const Bullet = Node.create<ListOptions>({
   addKeyboardShortcuts() {
     return {
       'Ctrl-Alt-2': () => {
-        const selection = this.editor.state.selection
-
-        if (!selection.empty) {
-          this.editor.chain().focus().toggleBullet().run()
-          return true
-        }
-
-        const from = selection.$from.before(selection.$from.depth) + 1
-        const to = selection.$from.after(selection.$from.depth)
-
-        this.editor.chain().focus().setTextSelection({ from, to }).toggleBullet().run()
+        this.editor.chain().focus().selectActiveSectionFirstChild().toggleBullet().run()
         return true
       },
       'Enter': () => {
-        return onEnter(this.editor, this.name as any)
+        return onEnter(this.editor as any, this.name as ListNodeType)
       },
       'Tab': () => {
-        return changeLevel(this.editor, this.name, 'forward')
+        return changeLevel(this.editor as any, this.name as ListNodeType, 'forward')
       },
       'Shift-Tab': () => {
-        return changeLevel(this.editor, this.name, 'backward')
+        return changeLevel(this.editor as any, this.name as ListNodeType, 'backward')
       },
       'Backspace': () => {
-        return onBackspaceWithNestedList(this.editor, this.name as any)
+        return onBackspaceWithNestedList(this.editor as any, this.name as any)
       },
     }
   },
@@ -137,6 +126,16 @@ export const Bullet = Node.create<ListOptions>({
       wrappingInputRule({
         find: inputRegex,
         type: this.type,
+      }),
+    ]
+  },
+
+  addPasteRules() {
+    return [
+      listItemPasteRule({
+        inputRegex,
+        nodeType: TiptapNodesTypes.bullet,
+        pasteRegex,
       }),
     ]
   },
@@ -153,7 +152,7 @@ export const Bullet = Node.create<ListOptions>({
             }
           },
           apply(tr, prev, oldState, newState) {
-            if (isSelectionOfType(newState, 'bullet')) {
+            if (isSelectionOfType(newState, TiptapNodesTypes.bullet)) {
               return {
                 active: true,
               }

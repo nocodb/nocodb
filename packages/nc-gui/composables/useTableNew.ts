@@ -19,7 +19,7 @@ import {
 } from '#imports'
 import { TabType } from '~/lib'
 
-export function useTableNew(param: { onTableCreate?: (tableMeta: TableType) => void; projectId: string; baseId: string }) {
+export function useTableNew(param: { onTableCreate?: (tableMeta: TableType) => void; projectId: string; baseId?: string }) {
   const table = reactive<{ title: string; table_name: string; columns: string[] }>({
     title: '',
     table_name: '',
@@ -30,21 +30,53 @@ export function useTableNew(param: { onTableCreate?: (tableMeta: TableType) => v
 
   const { $e, $api } = useNuxtApp()
 
-  const { getMeta, removeMeta } = useMetas()
+  const { getMeta, removeMeta, metas } = useMetas()
 
   const { closeTab } = useTabs()
 
   const { refreshCommandPalette } = useCommandPalette()
 
+  const router = useRouter()
+
+  const route = $(router.currentRoute)
+
   const projectsStore = useProjects()
 
   const { projects, projectTableList } = storeToRefs(projectsStore)
+
+  const { loadTables, projectUrl } = useProject()
+
+  const workspaceId = $computed(() => route.params.workspaceId as string)
+
+  const tables = computed(() => projectTableList.value[param.projectId] || [])
+  const project = computed(() => projects.value[param.projectId] || {})
 
   // const projectStore = useProject()
 
   // const { sqlUis, project, tables } = storeToRefs(projectStore)
 
   // const sqlUi = computed(() => (baseId && sqlUis.value[baseId] ? sqlUis.value[baseId] : Object.values(sqlUis.value)[0]))
+
+  const openTable = async (table: TableType) => {
+    if (!table.project_id) return
+
+    let project = projects.value[table.project_id]
+    if (!project) {
+      await projectsStore.loadProject(table.project_id)
+      await projectsStore.loadProjectTables(table.project_id)
+
+      project = projects.value[table.project_id]
+    }
+
+    await getMeta(table.id as string)
+
+    const projectType = (route.params.projectType as string) || 'nc'
+
+    await navigateTo({
+      path: `/ws/${workspaceId}/${projectType}/${project.id!}/table/${table?.id}${table.title ? `/${table.title}` : ''}`,
+      query: route.query,
+    })
+  }
 
   const createTable = async () => {
     let { onTableCreate, projectId, baseId } = param
@@ -78,13 +110,12 @@ export function useTableNew(param: { onTableCreate?: (tableMeta: TableType) => v
       $e('a:table:create')
       onTableCreate?.(tableMeta)
       refreshCommandPalette()
+
+      await openTable(tableMeta)
     } catch (e: any) {
       message.error(await extractSdkResponseErrorMsg(e))
     }
   }
-
-  const tables = computed(() => projectTableList.value[param.projectId] || [])
-  const project = computed(() => projects.value[param.projectId] || {})
 
   /*  const createTableMagic = async () => {
     if (!sqlUi?.value) return
@@ -197,6 +228,18 @@ export function useTableNew(param: { onTableCreate?: (tableMeta: TableType) => v
           // Deleted table successfully
           message.info(t('msg.info.tableDeleted'))
           $e('a:table:delete')
+
+          // Navigate to project if no tables left or open first table
+          if (tables.value.length === 0) {
+            await navigateTo(
+              projectUrl({
+                id: project.value.id!,
+                type: 'database',
+              }),
+            )
+          } else {
+            await openTable(tables.value[0])
+          }
         } catch (e: any) {
           message.error(await extractSdkResponseErrorMsg(e))
         }
@@ -217,5 +260,6 @@ export function useTableNew(param: { onTableCreate?: (tableMeta: TableType) => v
     // tables,
     // project,
     deleteTable,
+    openTable,
   }
 }

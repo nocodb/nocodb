@@ -1,15 +1,9 @@
 import type { ChainedCommands } from '@tiptap/core'
-import { Node, mergeAttributes, nodePasteRule, wrappingInputRule } from '@tiptap/core'
+import { Node, mergeAttributes, wrappingInputRule } from '@tiptap/core'
 import { Plugin, PluginKey } from 'prosemirror-state'
-import {
-  changeLevel,
-  getTextAsParagraphFromSliceJson,
-  getTextFromSliceJson,
-  isSelectionOfType,
-  onBackspaceWithNestedList,
-  onEnter,
-  toggleItem,
-} from './helper'
+import { TiptapNodesTypes } from 'nocodb-sdk'
+import type { ListNodeType } from './helper'
+import { changeLevel, isSelectionOfType, listItemPasteRule, onBackspaceWithNestedList, onEnter } from './helper'
 export interface OrderItemsOptions {
   number: string
   HTMLAttributes: Record<string, any>
@@ -25,10 +19,13 @@ declare module '@tiptap/core' {
   }
 }
 
-const inputRegex = /^\d+\.\s+(.*)$/gm
+// inputRegex Regex for detecting start of list item while typing. i.e '- ' for bullet list
+// pasteRegex Regex for detecting start of list item while pasting. i.e '- Content' for bullet list
+const inputRegex = /^\s*\d+\.\s/gm
+const pasteRegex = /^\s*\d+\.\s+(.*)$/gm
 
 export const Ordered = Node.create<OrderItemsOptions>({
-  name: 'ordered',
+  name: TiptapNodesTypes.ordered,
 
   addOptions() {
     return {
@@ -45,6 +42,20 @@ export const Ordered = Node.create<OrderItemsOptions>({
 
   parseHTML() {
     return [
+      {
+        tag: 'ol > li',
+        node: 'ordered',
+        style: 'list-style-type: decimal',
+        getAttrs: (element) => {
+          const start = (element as HTMLElement).parentElement?.getAttribute('start') || '1'
+          const childIndex = Array.from((element as HTMLElement).parentElement?.children || []).indexOf(element as HTMLElement)
+
+          return {
+            number: String(Number(start) + childIndex),
+            level: 0,
+          }
+        },
+      },
       {
         tag: 'div[data-type="ordered"]',
         attrs: { 'data-type': 'ordered' },
@@ -99,7 +110,7 @@ export const Ordered = Node.create<OrderItemsOptions>({
       isSelectionTypeOrdered:
         () =>
         ({ state }: any) => {
-          return isSelectionOfType(state, this.name)
+          return isSelectionOfType(state, this.name as ListNodeType)
         },
       insertOrdered:
         () =>
@@ -111,7 +122,7 @@ export const Ordered = Node.create<OrderItemsOptions>({
             },
             content: [
               {
-                type: 'paragraph',
+                type: TiptapNodesTypes.paragraph,
               },
             ],
           })
@@ -119,31 +130,7 @@ export const Ordered = Node.create<OrderItemsOptions>({
       toggleOrdered:
         () =>
         ({ chain, state }: any) => {
-          const toggleListItemInSliceJson = (content: any[], lastItemNode: any) => {
-            let prevOrderedListNodeNumber = lastItemNode?.type === this.name ? Number(lastItemNode.attrs.number) : 0
-            for (const child of content) {
-              if (child.type !== this.name && getTextFromSliceJson(child).length > 0) {
-                child.content = [getTextAsParagraphFromSliceJson(child)]
-                child.type = this.name
-                child.attrs = {
-                  number: String(prevOrderedListNodeNumber + 1),
-                }
-
-                prevOrderedListNodeNumber = prevOrderedListNodeNumber + 1
-              } else {
-                prevOrderedListNodeNumber = 0
-                child.type = 'paragraph'
-
-                if (child.content?.length === 1) {
-                  child.content = child.content[0].content
-                } else {
-                  child.content = []
-                }
-              }
-            }
-          }
-
-          toggleItem(this.editor, state, chain, toggleListItemInSliceJson, 'ordered')
+          toggleItem({ chain, state, type: TiptapNodesTypes.ordered })
         },
     } as any
   },
@@ -151,30 +138,20 @@ export const Ordered = Node.create<OrderItemsOptions>({
   addKeyboardShortcuts() {
     return {
       'Ctrl-Alt-3': () => {
-        const selection = this.editor.state.selection
-
-        if (!selection.empty) {
-          this.editor.chain().focus().toggleOrdered().run()
-          return true
-        }
-
-        const from = selection.$from.before(selection.$from.depth) + 1
-        const to = selection.$from.after(selection.$from.depth)
-
-        this.editor.chain().focus().setTextSelection({ from, to }).toggleOrdered().run()
+        this.editor.chain().focus().selectActiveSectionFirstChild().toggleOrdered().run()
         return true
       },
       'Enter': () => {
-        return onEnter(this.editor, this.name as any)
+        return onEnter(this.editor as any, this.name as ListNodeType)
       },
       'Tab': () => {
-        return changeLevel(this.editor, this.name, 'forward')
+        return changeLevel(this.editor as any, this.name as ListNodeType, 'forward')
       },
       'Shift-Tab': () => {
-        return changeLevel(this.editor, this.name, 'backward')
+        return changeLevel(this.editor as any, this.name as ListNodeType, 'backward')
       },
       'Backspace': () => {
-        return onBackspaceWithNestedList(this.editor, this.name as any)
+        return onBackspaceWithNestedList(this.editor as any, this.name as any)
       },
     }
   },
@@ -185,7 +162,6 @@ export const Ordered = Node.create<OrderItemsOptions>({
         find: inputRegex,
         type: this.type,
         getAttributes: (match) => {
-          console.log('match', match)
           const number = match[0].split('.')[0].trim()
           return {
             number,
@@ -197,9 +173,10 @@ export const Ordered = Node.create<OrderItemsOptions>({
 
   addPasteRules() {
     return [
-      nodePasteRule({
-        find: inputRegex,
-        type: this.type,
+      listItemPasteRule({
+        inputRegex,
+        nodeType: TiptapNodesTypes.ordered,
+        pasteRegex,
       }),
     ]
   },
@@ -216,7 +193,7 @@ export const Ordered = Node.create<OrderItemsOptions>({
             }
           },
           apply(tr, prev, oldState, newState) {
-            if (isSelectionOfType(newState, 'ordered')) {
+            if (isSelectionOfType(newState, TiptapNodesTypes.ordered)) {
               return {
                 active: true,
               }

@@ -1,10 +1,11 @@
 // Collapsable tiptap node
 import { Node, mergeAttributes } from '@tiptap/core'
 import { VueNodeViewRenderer } from '@tiptap/vue-3'
+import { TiptapNodesTypes } from 'nocodb-sdk'
 import CollapsableComponent from './collapsableHeader.vue'
 
-export const CollapsableHeader = Node.create({
-  name: 'collapsable_header',
+export const CollapsableHeaderNode = Node.create({
+  name: TiptapNodesTypes.collapsableHeader,
   priority: 1000,
   addOptions() {
     return {

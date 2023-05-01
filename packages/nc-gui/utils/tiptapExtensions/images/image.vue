@@ -57,6 +57,10 @@ const resizeLeft = (mouseDownEvent: MouseEvent) => {
 const resizeRight = (mouseDownEvent: MouseEvent) => {
   resizeHandler(mouseDownEvent, 'right')
 }
+
+const selectNode = () => {
+  editor.chain().setNodeSelection(getPos()).focus().run()
+}
 </script>
 
 <template>
@@ -90,12 +94,15 @@ const resizeRight = (mouseDownEvent: MouseEvent) => {
           :title="node.attrs.title"
           :width="node.attrs.width"
           :height="node.attrs.height"
+          :draggable="true"
+          :data-drag-handle="true"
           :class="{
             'tiptap-img-selected': editor.isActive('image', { src: node.attrs.src }),
           }"
+          @dragstart="selectNode"
         />
         <div
-          class="tiptap-img-resize-bar right-1"
+          class="tiptap-img-resize-bar right-0.25"
           :class="{
             '!visible': editor.isActive('image', { src: node.attrs.src }),
           }"
@@ -104,7 +111,7 @@ const resizeRight = (mouseDownEvent: MouseEvent) => {
           <div class="tiptap-img-resize-bar-inner"></div>
         </div>
         <div
-          class="tiptap-img-resize-bar left-0"
+          class="tiptap-img-resize-bar -left-0.75"
           :class="{
             '!visible': editor.isActive('image', { src: node.attrs.src }),
           }"
@@ -118,6 +125,18 @@ const resizeRight = (mouseDownEvent: MouseEvent) => {
 </template>
 
 <style lang="scss" scoped>
+.ProseMirror {
+  .selected {
+    .nc-docs-image {
+      outline: 3px solid #e8eafd;
+      outline-offset: -2px;
+      border-radius: 4px;
+    }
+  }
+  .nc-docs-image {
+    min-width: 4rem;
+  }
+}
 .tiptap-img-selected {
   outline: 3px solid #e8eafd;
   outline-offset: -2px;

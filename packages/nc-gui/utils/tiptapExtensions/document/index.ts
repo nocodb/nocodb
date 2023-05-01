@@ -1,43 +1,22 @@
 import { Node } from '@tiptap/core'
-import { onBackspaceWithHorizontalRule, onEnterWithHorizontalRule } from '../horizontalRule'
+import { TiptapNodesTypes } from 'nocodb-sdk'
+import { NodeSelection, Plugin, TextSelection } from 'prosemirror-state'
 
 export const Document = Node.create({
-  name: 'doc',
+  name: TiptapNodesTypes.doc,
 
   topNode: true,
 
-  // content: "draggableBlock{1,}", // accepts one or more draggable block as content
-  content: 'dBlock+',
+  content: 'sec+',
 
   addKeyboardShortcuts() {
     return {
-      'Ctrl-Shift-H': () => {
-        const range = {
-          from: this.editor.state.selection.from,
-          to: this.editor.state.selection.to,
-        }
-        return this.editor
-          .chain()
-          .focus()
-          .deleteRange(range)
-          .setNode('horizontalRule')
-          .focus()
-          .setHorizontalRule()
-          .setTextSelection(range.from + 3)
-          .run()
-      },
-      'Enter': () => {
-        return onEnterWithHorizontalRule(this.editor as any)
-      },
-      'Backspace': () => {
-        return onBackspaceWithHorizontalRule(this.editor as any)
-      },
-      'Tab': () => {
+      Tab: () => {
         let nextPos = this.editor.state.selection.$from.pos
 
         const currentNode = this.editor.state.selection.$from.node()
 
-        if (currentNode.type.name === 'paragraph') {
+        if (currentNode.type.name === TiptapNodesTypes.paragraph) {
           const offset = this.editor.state.selection.$from.parentOffset ?? 0
           const currentCharacter = currentNode.textContent?.[offset]
 
@@ -85,7 +64,10 @@ export const Document = Node.create({
           doc.descendants((node, pos) => {
             if (pos <= nextPos) return
 
-            if ((node.type.name === 'paragraph' || node.type.name === 'image') && from === nextPos) {
+            if (
+              (node.type.name === TiptapNodesTypes.paragraph || node.type.name === TiptapNodesTypes.image) &&
+              from === nextPos
+            ) {
               nextPos = pos + 1
 
               return false
@@ -100,5 +82,42 @@ export const Document = Node.create({
         return true
       },
     }
+  },
+
+  addProseMirrorPlugins() {
+    return [
+      new Plugin({
+        appendTransaction(_, __, newState) {
+          const { selection } = newState
+
+          // If selection is type of TextSelection but the node is not text node
+          // then select the nearest text node or select the node itself(NodeSelection)
+          if (selection instanceof TextSelection && !selection.$from.node().isTextblock) {
+            const nextSectionPos = getPositionOfNextSection(newState)
+            if (!nextSectionPos) return null
+
+            let childTextNodePos = -1
+            newState.doc.nodesBetween(selection.$from.pos, nextSectionPos, (node, pos) => {
+              if (node.isTextblock && childTextNodePos === -1) {
+                childTextNodePos = pos
+                return false
+              }
+
+              return true
+            })
+
+            if (childTextNodePos !== -1) return newState.tr.setSelection(TextSelection.create(newState.doc, childTextNodePos))
+
+            const nextNodeSelection = selection.$from.pos
+            const nextNode = newState.doc.nodeAt(nextNodeSelection)
+            if (!nextNode) return null
+
+            return newState.tr.setSelection(NodeSelection.create(newState.doc, selection.from))
+          }
+
+          return null
+        },
+      }),
+    ]
   },
 })

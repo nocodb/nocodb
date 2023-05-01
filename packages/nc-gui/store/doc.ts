@@ -376,7 +376,15 @@ export const useDocStore = defineStore('docStore', () => {
     return path
   }
 
-  async function fetchPage({ page, projectId }: { page?: PageSidebarNode; projectId: string }) {
+  async function fetchPage({
+    page,
+    projectId,
+    doNotSetProject,
+  }: {
+    page?: PageSidebarNode
+    projectId: string
+    doNotSetProject?: boolean
+  }) {
     const pageId = page?.id || openedPageId.value
     if (!pageId) throw new Error('No page id or slug provided')
 
@@ -385,7 +393,9 @@ export const useDocStore = defineStore('docStore', () => {
         const response = await $api.nocoDocs.getPublicPage(pageId, {
           projectId: projectId!,
         })
-        setProject(response.project!)
+        if (!doNotSetProject) {
+          setProject(response.project!)
+        }
 
         return response.page
       }
@@ -393,7 +403,9 @@ export const useDocStore = defineStore('docStore', () => {
         projectId: projectId!,
       })
     } catch (e) {
-      console.log(e)
+      console.log(e, !doNotSetProject)
+      if (doNotSetProject) return undefined
+
       isPageErrored.value = true
       return undefined
     }
@@ -858,6 +870,7 @@ export const useDocStore = defineStore('docStore', () => {
     deletePage,
     projectUrl,
     reorderPages,
+    fetchPage,
     updatePage,
     addNewPage,
     createPage,

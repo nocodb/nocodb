@@ -100,7 +100,7 @@ watch(dialogShow, (val) => {
             v-model:value="workspace.description"
             size="large"
             hide-details
-            data-testid="create-workspace-title-input"
+            data-testid="create-workspace-description-input"
             placeholder="Workspace description"
           />
         </a-form-item>

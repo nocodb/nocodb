@@ -100,13 +100,13 @@ const modalVisible = false
       class="h-full min-w-0 flex-1"
       :trigger="['click']"
       placement="bottom"
-      overlay-class-name="nc-dropdown-project-menu"
+      overlay-class-name="nc-dropdown-workspace-menu"
     >
       <div
         :style="{ width: props.isOpen ? 'calc(100% - 40px) pr-2' : '100%' }"
         :class="[props.isOpen ? '' : 'justify-center']"
-        data-testid="nc-project-menu"
-        class="group cursor-pointer flex gap-1 items-center nc-project-menu overflow-hidden"
+        data-testid="nc-workspace-menu"
+        class="group cursor-pointer flex gap-1 items-center nc-workspace-menu overflow-hidden"
       >
         <template v-if="props.isOpen">
           <div class="flex-grow min-w-10">

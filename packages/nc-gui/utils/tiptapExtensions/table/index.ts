@@ -1,10 +1,12 @@
 import Table from '@tiptap/extension-table'
 import { columnResizing, tableEditing } from '@tiptap/prosemirror-tables'
 import { VueNodeViewRenderer } from '@tiptap/vue-3'
+import { TiptapNodesTypes } from 'nocodb-sdk'
 import { TableNodeView } from './TableNodeView'
 import TableComponent from './table.vue'
 
 export default Table.extend({
+  name: TiptapNodesTypes.table,
   draggable: true,
   resizable: true,
   isolating: true,
@@ -32,5 +34,5 @@ export default Table.extend({
   HTMLAttributes: {
     class: '',
   },
-  View: TableNodeView,
+  View: TableNodeView as any,
 })

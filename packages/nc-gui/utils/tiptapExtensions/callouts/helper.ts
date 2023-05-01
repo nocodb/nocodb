@@ -1,69 +1,52 @@
 import type { Editor } from '@tiptap/vue-3'
+import { TiptapNodesTypes } from 'nocodb-sdk'
+import { getPosOfNodeTypeInSection, isLastChild, isNodeTypeSelected } from '../helper'
 
-export const handleOnEnterForCallouts = (editor: Editor) => {
+type CalloutType = TiptapNodesTypes.infoCallout | TiptapNodesTypes.tipCallout | TiptapNodesTypes.warningCallout
+
+export const handleOnEnterForCallouts = (editor: Editor, type: CalloutType) => {
   const state = editor.state
-  const selection = editor.state.selection
-  const { from, to } = editor.state.selection
+  const selection = state.selection
 
-  if (from !== to) return false
-
-  const parentNode = state.selection.$from.node(-1)
-  const currentNode = state.selection.$from.node()
-
-  const parentType = parentNode?.type.name
-
-  if (parentType !== 'infoCallout' && parentType !== 'warningCallout' && parentType !== 'tipCallout') {
+  if (
+    !isNodeTypeSelected({
+      nodeType: type,
+      state: editor.state,
+    })
+  ) {
     return false
   }
 
-  const isLastChild = parentNode.childCount === state.selection.$from.index(state.selection.$from.depth - 1) + 1
-  if (!isLastChild || currentNode.textContent.length !== 0) {
-    const parentOffset = selection.$from.parentOffset
-    if (parentOffset !== currentNode.textContent.length) return false
+  const calloutPos = getPosOfNodeTypeInSection({
+    nodeType: type,
+    state: editor.state,
+  })
+  if (!calloutPos) return false
 
-    let toBeInsertedPos = state.selection.$from.pos
-    if (currentNode.textContent.length === 0) {
-      toBeInsertedPos = toBeInsertedPos + 1
-    }
+  const calloutNode = state.doc.nodeAt(calloutPos)
+  if (!calloutNode) return false
 
-    editor.chain().insertContentAt(toBeInsertedPos, { type: 'paragraph', text: '\n' }).run()
-    return true
+  const currentParagraph = selection.$from.node()
+  const currentParagraphPos = selection.$from.pos
+
+  // If the current paragraph is the last child of the callout, and it is empty, then we need to delete the current paragraph and focus on the next section's first child
+  if (isLastChild(state, currentParagraphPos) && currentParagraph.textContent.length === 0) {
+    editor
+      .chain()
+      // Select the paragraph node, which will one position before the selected text node
+      .setNodeSelection(selection.from - 1)
+      .deleteSelection()
+      .selectNextSection()
+      .run()
   }
 
-  const node = state.selection.$from.node()
+  const parentOffset = state.selection.$from.parentOffset
+  if (parentOffset !== currentParagraph.textContent.length) return false
 
-  const nextNodePos = state.selection.$from.pos + node.nodeSize + 1
-  const nextNode = state.doc.nodeAt(nextNodePos)
+  let toBeInsertedPos = state.selection.$from.pos
+  if (currentParagraph.textContent.length === 0) {
+    toBeInsertedPos = toBeInsertedPos + 1
+  }
 
-  if (nextNode?.type.name !== 'dBlock') return false
-
-  editor
-    .chain()
-    // Handle the case of enter on empty callout node
-    .setNodeSelection(parentNode.childCount === 1 && currentNode?.textContent?.length === 0 ? from - 2 : from - 1)
-    .deleteSelection()
-    .focus(nextNodePos)
-    .run()
-
-  return true
-}
-
-export const handleOnBackspaceForCallouts = (editor: Editor) => {
-  // const state = editor.state
-
-  // const { from, to } = editor.state.selection
-
-  // if (from !== to) return false
-
-  // const parentNode = state.selection.$from.node(-1)
-
-  // const parentType = parentNode?.type.name
-  // if (parentType !== 'infoCallout' && parentType !== 'warningCallout' && parentType !== 'tipCallout') {
-  //   return false
-  // }
-
-  // // If not the first child of the parent node, and cursor is at the beginning of the node, return true and capture backspace
-  // if (state.selection.$from.index(-1) === 0 && state.selection.$from.parentOffset === 0) return false
-
-  return false
+  return editor.chain().insertContentAt(toBeInsertedPos, { type: TiptapNodesTypes.paragraph, text: '\n' }).run()
 }

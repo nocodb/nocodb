@@ -25,24 +25,24 @@ const selectActiveSubHeading = (event?: Event) => {
   if (Date.now() - lastPageScrollTime < 10 && event?.type === 'scroll') return
   lastPageScrollTime = Date.now()
 
-  const subHeadingDoms = document.querySelectorAll('.ProseMirror [data-tiptap-heading]')
+  const _subHeadingDoms = document.querySelectorAll('.ProseMirror [data-tiptap-heading]')
+  const subHeadingDomsWithIndex = [..._subHeadingDoms].map((dom, index) => ({ dom, index }))
 
-  const subHeadingsThatCouldBeActive = [...subHeadingDoms]
+  const subHeadingsThatCouldBeActive = [...subHeadingDomsWithIndex]
     // Filter out subheadings which are below the viewport
-    .filter((h) => {
-      const subHeadingDomRect = (h as HTMLElement).getBoundingClientRect()
+    .filter(({ dom }) => {
+      const subHeadingDomRect = (dom as HTMLElement).getBoundingClientRect()
       return subHeadingDomRect.bottom <= (window.innerHeight || document.documentElement.clientHeight) / 3
     })
 
     // So we have the subheadings which are above the top header and nearest to the viewport
-    .sort((a, b) => a.getBoundingClientRect().top - b.getBoundingClientRect().top)
+    .sort((a, b) => a.dom.getBoundingClientRect().top - b.dom.getBoundingClientRect().top)
 
-  const activeHeading = subHeadingsThatCouldBeActive[subHeadingsThatCouldBeActive.length - 1] as HTMLElement
+  const activeHeading = subHeadingsThatCouldBeActive[subHeadingsThatCouldBeActive.length - 1]
 
-  const newSubheadings = pageSubHeadings.value.map((subHeading) => {
+  const newSubheadings = pageSubHeadings.value.map((subHeading, index) => {
     const newSubheading = { ...subHeading }
-    newSubheading.active =
-      subHeading.text === activeHeading?.innerText && subHeading.type === activeHeading?.nodeName.toLowerCase()
+    newSubheading.active = activeHeading && activeHeading.index === index
     return newSubheading
   })
 

@@ -1,9 +1,25 @@
 import { Node, nodeInputRule } from '@tiptap/core'
-import { NodeSelection, TextSelection } from 'prosemirror-state'
 import { VueNodeViewRenderer } from '@tiptap/vue-3'
+import { TiptapNodesTypes } from 'nocodb-sdk'
+import {
+  getPositionOfPreviousSection,
+  getPositionOfSection,
+  isNodeTypeSelected,
+  isSectionEmptyParagraph,
+  positionOfFirstChild,
+} from '../helper'
 import type { UploadFn } from './proseExtension'
-import { dropImagePlugin } from './proseExtension'
+import { addImage, dropImagePlugin } from './proseExtension'
 import ImageComponent from './image.vue'
+
+declare module '@tiptap/core' {
+  interface Commands<ReturnType> {
+    image: {
+      setImage: (files: FileList) => ReturnType
+    }
+  }
+}
+
 /**
  * Matches following attributes in Markdown-typed image: [, alt, src, title]
  *
@@ -16,7 +32,7 @@ const IMAGE_INPUT_REGEX = /!\[(.+|:?)\]\((\S+)(?:(?:\s+)["'](\S+)["'])?\)/
 
 export const createImageExtension = (uploadFn: UploadFn) => {
   return Node.create({
-    name: 'image',
+    name: TiptapNodesTypes.image,
     group: 'block',
     draggable: true,
     addAttributes: () => ({
@@ -69,19 +85,20 @@ export const createImageExtension = (uploadFn: UploadFn) => {
       return VueNodeViewRenderer(ImageComponent)
     },
 
-    // @ts-expect-error todo: fix this
     addCommands() {
       return {
-        setImage: (options: { src: any }) => async () => {
+        setImage: (files) => () => {
           const view = this.editor.view
 
-          const currentTextBlock = view.state.doc.nodeAt(view.state.selection.from - 1)!
-          const currentParentNodePos = view.state.selection.from - 2 - currentTextBlock.nodeSize
-
-          // Otherwise prose mirror will throw an error, regarding transaction mismatch
-          await new Promise((resolve) => setTimeout(resolve, 0))
-
-          await addImage(options.src, view, uploadFn, currentParentNodePos)
+          // Need small delay, otherwise prose mirror will throw an error, regarding transaction mismatch
+          setTimeout(async () => {
+            const currentSectionPos = getPositionOfSection(view.state)
+            await Promise.all(
+              Array.from(files).map(async (file) => {
+                await addImage({ file, view, uploadFn, toBeInsertedPos: currentSectionPos })
+              }),
+            )
+          })
 
           return true
         },
@@ -108,41 +125,41 @@ export const createImageExtension = (uploadFn: UploadFn) => {
         Enter: () => {
           // Set cursor to the next line
           const state = this.editor.state
-          const { tr } = state
-          const selectedNode = state.selection.$from.node()
-          const selectedContent = selectedNode?.content
-          const isImage = selectedContent.firstChild?.type.name === 'image'
+
+          const isImage = isNodeTypeSelected({ nodeType: TiptapNodesTypes.image, state })
           if (!isImage) return
 
-          tr.setSelection(TextSelection.create(tr.doc, state.selection.$from.pos + 2))
-          this.editor.view.dispatch(tr)
+          this.editor.chain().focus().selectNextSection().run()
         },
         Backspace: () => {
-          try {
-            const editor = this.editor
-            const selection = editor.view.state.selection
-            const node = selection.$from.node()
-            const parentNode = selection.$from.node(-1)
+          const editor = this.editor
+          const state = editor.view.state
 
-            if (!(node.type.name === 'paragraph' && parentNode.type.name === 'dBlock')) {
-              return false
-            }
+          const prevSectionPos = getPositionOfPreviousSection(state)
+          if (!prevSectionPos) return
 
-            const prevNodePos = selection.$from.pos - (parentNode.nodeSize - node.nodeSize + 2)
-            const prevNode = editor.view.state.doc.nodeAt(prevNodePos)
-
-            if (prevNode?.type.name === 'image') {
-              editor.chain().setNodeSelection(prevNodePos).run()
-              return true
-            }
-
-            return false
-          } catch (error) {
-            console.log('error', error)
+          if (
+            !isNodeTypeSelected({
+              nodeType: TiptapNodesTypes.image,
+              state,
+              sectionPos: prevSectionPos,
+            })
+          ) {
             return false
           }
+
+          const currentSectionPos = getPositionOfSection(state)
+
+          if (!isSectionEmptyParagraph(state, currentSectionPos)) {
+            return false
+          }
+
+          const firstChildOfPrevSection = positionOfFirstChild(state, prevSectionPos)
+          if (!firstChildOfPrevSection) return false
+
+          return editor.chain().deleteActiveSection().setTextSelection(prevSectionPos).run()
         },
-      }
+      } as any
     },
     addProseMirrorPlugins() {
       return [dropImagePlugin(uploadFn)]

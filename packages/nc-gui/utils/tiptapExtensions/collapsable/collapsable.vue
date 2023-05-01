@@ -1,64 +1,87 @@
 <script lang="ts" setup>
 import { NodeViewContent, NodeViewWrapper, nodeViewProps } from '@tiptap/vue-3'
 import { TextSelection } from 'prosemirror-state'
-import MdiTriangleDown from '~icons/tabler/triangle-inverted-filled'
+import { TiptapNodesTypes } from 'nocodb-sdk'
+import { positionOfFirstChild } from '../helper'
 
-const { editor, getPos } = defineProps(nodeViewProps)
+const { node, editor, getPos } = defineProps(nodeViewProps)
 
 const isCollapsed = ref(true)
+const nodePos = computed(() => getPos())
 
 const toggleCollapsableContent = () => {
-  const pos = getPos()
+  const state = editor.state
+  const selection = state.selection
   const tr = editor.state.tr
-  const from = editor.state.selection.from
+
   if (isCollapsed.value) {
-    const posResolve = editor.state.doc.resolve(pos)
-    const contentPos = posResolve.after()
+    // Select first child of collapsable content
+    const collapsableContentPos = getPosOfChildNodeOfType({
+      state,
+      nodeType: TiptapNodesTypes.collapsableContent,
+    })!
+    const firstChildOfCollapseContentPos = positionOfFirstChild(state, collapsableContentPos, 'start')!
 
-    editor.state.doc.nodesBetween(pos, contentPos, (node, collapsableContentPos) => {
-      if (node.type.name === 'collapsable_content') {
-        const contentPosResolve = editor.state.doc.resolve(collapsableContentPos)
-        let textNodePos = collapsableContentPos
-        editor.state.doc.nodesBetween(collapsableContentPos, contentPosResolve.after(), (node, pos) => {
-          if (
-            (node.type.name === 'paragraph' || node.type.name === 'heading' || node.type.name === 'text') &&
-            textNodePos === collapsableContentPos
-          ) {
-            textNodePos = pos
-          }
-        })
-
-        tr.setSelection(TextSelection.create(tr.doc, textNodePos))
-      }
-    })
+    tr.setSelection(TextSelection.create(tr.doc, firstChildOfCollapseContentPos + 2))
   } else {
-    tr.setSelection(TextSelection.create(tr.doc, from))
+    // Put cursor on the start of the collapsable node
+    tr.setSelection(TextSelection.create(tr.doc, selection.from))
   }
   editor.view.dispatch(tr)
+
   isCollapsed.value = !isCollapsed.value
 }
+
+const headerChildNode = computed(() => {
+  const { content } = node.content as any
+  if (!content || !(content.length > 0)) return undefined
+
+  const headerNode = content[0]
+
+  return headerNode?.content?.firstChild
+})
+
+const contentChildCount = computed(() => {
+  const currentNode = editor.state.doc.nodeAt(nodePos.value)
+  if (!currentNode) return undefined
+
+  // -1 because of the header node (first child)
+  return currentNode.childCount - 1
+})
 </script>
 
 <template>
-  <NodeViewWrapper class="vue-component collapsable-wrapper mt-2 w-full">
+  <NodeViewWrapper
+    class="vue-component collapsable-wrapper mt-2 w-full"
+    :class="{
+      '!mt-0': headerChildNode?.type.name === 'heading' && headerChildNode?.attrs.level === 1,
+    }"
+  >
     <div
-      class="flex flex-row space-x-1 w-full"
+      class="flex flex-row space-x-1 w-full items-start collapsable"
       :class="{
         collapsed: isCollapsed,
       }"
+      :collapsable-pos="nodePos"
     >
       <div
-        class="mt-1 flex items-center px-1 cursor-pointer hover:bg-gray-100 h-6 rounded-md z-10"
+        class="mt-1 flex items-center px-1 cursor-pointer hover:bg-gray-100 h-6 rounded-md z-10 group"
+        :class="{
+          '!mt-3': headerChildNode?.type.name === 'heading' && headerChildNode?.attrs.level === 1,
+          '!mt-1.75': headerChildNode?.type.name === 'heading' && headerChildNode?.attrs.level === 2,
+          '!mt-0.5': headerChildNode?.type.name === 'heading' && headerChildNode?.attrs.level === 3,
+        }"
         @click.stop="toggleCollapsableContent"
       >
-        <MdiTriangleDown
-          class="h-2.5"
+        <MdiTriangle
+          class="h-2.5 text-gray-500 group-hover:text-gray-700"
           :class="{
-            'transform -rotate-90': isCollapsed,
+            'transform rotate-180': !isCollapsed,
+            'transform rotate-90': isCollapsed,
           }"
         />
       </div>
-      <NodeViewContent class="flex flex-col flex-grow w-full" />
+      <NodeViewContent class="flex flex-col flex-grow w-full" :data-one-content="contentChildCount === 1" />
     </div>
   </NodeViewWrapper>
 </template>

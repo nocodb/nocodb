@@ -1,10 +1,10 @@
 // Collapsable tiptap node
 import { Node, mergeAttributes } from '@tiptap/core'
-import type { ChainedCommands, Editor } from '@tiptap/vue-3'
+import type { ChainedCommands } from '@tiptap/vue-3'
 import { VueNodeViewRenderer } from '@tiptap/vue-3'
-import { Slice } from 'prosemirror-model'
 import type { EditorState } from 'prosemirror-state'
-import { TextSelection } from 'prosemirror-state'
+import { TiptapNodesTypes } from 'nocodb-sdk'
+import { getPosOfChildNodeOfType, getPositionOfSection, isCursorAtStartOfSelectedNode } from '../helper'
 import CollapsableComponent from './collapsable.vue'
 
 export interface CollapsableOptions {
@@ -15,13 +15,15 @@ declare module '@tiptap/core' {
   interface Commands<ReturnType> {
     collapsable: {
       insertCollapsable: () => ReturnType
+      insertCollapsableH1: () => ReturnType
+      insertCollapsableH2: () => ReturnType
+      insertCollapsableH3: () => ReturnType
     }
   }
 }
 
-export const Collapsable = Node.create<CollapsableOptions>({
-  name: 'collapsable',
-  priority: 1000,
+export const CollapsableNode = Node.create<CollapsableOptions>({
+  name: TiptapNodesTypes.collapsable,
   addOptions() {
     return {
       HTMLAttributes: {},
@@ -63,153 +65,209 @@ export const Collapsable = Node.create<CollapsableOptions>({
       insertCollapsable:
         () =>
         ({ chain, state }: { chain: () => ChainedCommands; state: EditorState }) => {
-          return chain()
-            .insertContent({
-              type: 'collapsable',
-              attrs: {
-                level: 0,
+          return insertCollapsable({
+            chain,
+            state,
+          })
+        },
+      insertCollapsableH1:
+        () =>
+        ({ chain, state }: { chain: () => ChainedCommands; state: EditorState }) => {
+          return insertCollapsable({
+            chain,
+            state,
+            headerContent: [
+              {
+                type: TiptapNodesTypes.heading,
+                attrs: {
+                  level: 1,
+                },
               },
-              content: [
-                {
-                  type: 'collapsable_header',
-                  content: [
-                    {
-                      type: 'paragraph',
-                    },
-                  ],
+            ],
+          })
+        },
+      insertCollapsableH2:
+        () =>
+        ({ chain, state }: { chain: () => ChainedCommands; state: EditorState }) => {
+          return insertCollapsable({
+            chain,
+            state,
+            headerContent: [
+              {
+                type: TiptapNodesTypes.heading,
+                attrs: {
+                  level: 2,
                 },
-                {
-                  type: 'collapsable_content',
-                  content: [
-                    {
-                      type: 'dBlock',
-                      content: [
-                        {
-                          type: 'paragraph',
-                        },
-                      ],
-                    },
-                  ],
+              },
+            ],
+          })
+        },
+      insertCollapsableH3:
+        () =>
+        ({ chain, state }: { chain: () => ChainedCommands; state: EditorState }) => {
+          return insertCollapsable({
+            chain,
+            state,
+            headerContent: [
+              {
+                type: TiptapNodesTypes.heading,
+                attrs: {
+                  level: 3,
                 },
-              ],
-            })
-            .setTextSelection(state.selection.from + 1)
+              },
+            ],
+          })
         },
     } as any
   },
 
   addKeyboardShortcuts() {
     return {
-      Backspace: () => {
+      'Ctrl-Alt-4': () => this.editor.commands.insertCollapsable(),
+      // Select next collapsable content node if
+      'Enter': () => {
         const editor = this.editor
-        const { from, to } = editor.state.selection
-        if (from !== to) {
-          return false
-        }
+        const state = editor.state
+        if (!state.selection.empty) return false
 
-        if (editor.state.selection.$from.depth < 2) return false
+        const collapsableHeaderPos = state.selection.$from.before(editor.state.selection.$from.depth - 1)
+        const collapsablePos = collapsableHeaderPos - 1
+        const collapsableHeaderNode = editor.state.doc.nodeAt(collapsableHeaderPos)
 
-        const parentNode = editor.state.selection.$from.node(editor.state.selection.$from.depth - 2)
-        if (parentNode?.type.name !== 'collapsable_content') return false
+        if (collapsableHeaderNode?.type.name !== TiptapNodesTypes.collapsableHeader) return false
 
-        const currentTextBlock = editor.state.selection.$from.node(editor.state.selection.$from.depth)
-        const currentNodeIndexWrtParent = editor.state.selection.$from.index(editor.state.selection.$from.depth - 2)
+        const collapsableDom = document.querySelector(`.ProseMirror [collapsable-pos="${collapsablePos}"]`)
+        const isCollapsed = collapsableDom?.classList.contains('collapsed')
 
-        if (
-          currentTextBlock?.type.name === 'paragraph' &&
-          currentTextBlock.textContent.length === 0 &&
-          currentNodeIndexWrtParent === 0 &&
-          parentNode.childCount === 1
-        ) {
+        // If the collapsable is collapsed, select the next visible section, not the first child of the collapsable which is also a section
+        if (isCollapsed) {
+          const nextSectionPos = collapsablePos + state.doc.nodeAt(collapsablePos)!.nodeSize + 1
+          const nextSectionFirstChildPos = nextSectionPos + 1
           return editor
             .chain()
-            .setTextSelection(from - 5)
+            .setTextSelection(nextSectionFirstChildPos + 1)
             .run()
         }
 
-        if (
-          currentTextBlock?.type.name === 'paragraph' &&
-          currentTextBlock.textContent.length === 0 &&
-          currentNodeIndexWrtParent === 0
-        ) {
+        // If the collapsable is not collapsed, select the first child of the collapsable which is also a section
+        const sliceFromCursorToCollapsableHeaderEnd = state.doc.slice(
+          state.selection.$from.pos,
+          collapsableHeaderPos + collapsableHeaderNode.nodeSize - 1,
+        )
+
+        const collapsableContentPos = collapsableHeaderPos + collapsableHeaderNode.nodeSize
+
+        const sliceFromCursorToCollapsableHeaderEndContent =
+          sliceFromCursorToCollapsableHeaderEnd?.toJSON()?.content?.map((node: any) => {
+            if (node.type === TiptapNodesTypes.heading) {
+              return {
+                type: TiptapNodesTypes.paragraph,
+                content: node.content,
+              }
+            }
+            return node
+          }) ?? []
+
+        const sliceFromCursorToCollapsableHeaderEndJson = {
+          type: TiptapNodesTypes.collapsableContent,
+          content: [
+            {
+              type: TiptapNodesTypes.sec,
+              content: sliceFromCursorToCollapsableHeaderEndContent,
+            },
+          ],
+        }
+
+        return (
+          editor
+            .chain()
+            .insertContentAt(collapsableContentPos, sliceFromCursorToCollapsableHeaderEndJson)
+            .deleteRange({
+              from: state.selection.$from.pos,
+              to: collapsableHeaderPos + collapsableHeaderNode.nodeSize - 1,
+            })
+            // TODO: Remove magic number. Is tricky as content changes due to insertContentAt
+            .setTextSelection(collapsableContentPos + 3)
+            .run()
+        )
+      },
+      'Backspace': () => {
+        const editor = this.editor
+        const state = editor.state
+        if (!state.selection.empty) return false
+
+        // Verify if the cursor is in a collapsable node
+        if (editor.state.selection.$from.depth < 3) return false
+
+        const collapsableContentPos = state.selection.$from.before(editor.state.selection.$from.depth - 2)
+        const collapsableContentNode = editor.state.doc.nodeAt(collapsableContentPos)
+
+        if (collapsableContentNode?.type.name !== TiptapNodesTypes.collapsableContent) return false
+
+        // Handle the case when the cursor is at the beginning of the collapsable content and backspace is pressed
+        // Should move the cursor to the end of the collapsable header
+        const currentParagraphNodeIndexWrtParent = editor.state.selection.$from.index(editor.state.selection.$from.depth - 2)
+
+        if (isCursorAtStartOfSelectedNode(state) && currentParagraphNodeIndexWrtParent === 0) {
+          const parentSection = getPositionOfSection(state, collapsableContentPos)!
+          const collapseHeaderPos = getPosOfChildNodeOfType({
+            state: editor.state,
+            nodeType: TiptapNodesTypes.collapsableHeader,
+            nodePos: parentSection,
+          })!
+
+          const collapseHeaderNode = editor.state.doc.nodeAt(collapseHeaderPos)!
+
+          const collapsableHeaderEndPos = collapseHeaderPos + collapseHeaderNode.nodeSize - 1
+
+          console.log('collapsableHeaderEndPos', collapsableHeaderEndPos)
           return editor
             .chain()
-            .setTextSelection(from - 1)
+            .setTextSelection(collapsableHeaderEndPos - 1)
             .run()
         }
 
         return false
       },
-      Enter: () => {
-        const editor = this.editor
-        const { from, to } = editor.state.selection
-        const state = editor.state
-
-        if (from !== to) return false
-
-        if (handleCollapsableHeaderEnter(editor as any)) return true
-
-        // Collapsable content
-        if (editor.state.selection.$from.depth < 2) return false
-
-        const parentNode = editor.state.selection.$from.node(editor.state.selection.$from.depth - 2)
-        if (parentNode?.type.name !== 'collapsable_content') return false
-
-        const currentDBlockPos = editor.state.selection.$from.before(editor.state.selection.$from.depth - 1)
-        const nextDBlockPos = editor.state.selection.$from.after(editor.state.selection.$from.depth - 1)
-
-        const currentTextBlock = editor.state.selection.$from.node(editor.state.selection.$from.depth)
-        if (currentTextBlock.textContent.startsWith('/')) return false
-
-        const currentNodeIndexWrtParent = editor.state.selection.$from.index(editor.state.selection.$from.depth - 2)
-        if (
-          currentTextBlock?.type.name === 'paragraph' &&
-          currentTextBlock.textContent.length === 0 &&
-          currentNodeIndexWrtParent === parentNode.childCount - 1
-        ) {
-          editor.view.dispatch(state.tr.delete(currentDBlockPos, nextDBlockPos))
-          return true
-        }
-
-        const slice = editor.state.doc.slice(currentDBlockPos, from)
-        const nextSlice = editor.state.doc.slice(from, nextDBlockPos)
-
-        const newSliceJson = {
-          content: [...slice.toJSON().content, ...nextSlice.toJSON().content],
-          openStart: 0,
-        }
-
-        const newSlice = Slice.fromJSON(state.schema, newSliceJson)
-
-        const tr = state.tr
-        tr.replaceRange(currentDBlockPos, nextDBlockPos, newSlice).setSelection(TextSelection.create(tr.doc, from + 4))
-        editor.view.dispatch(tr)
-
-        return true
-      },
     }
   },
 })
 
-function handleCollapsableHeaderEnter(editor: Editor) {
-  const { from, to } = editor.state.selection
-  const state = editor.state
-
-  if (from !== to) return false
-
-  const parentNode = editor.state.selection.$from.node(editor.state.selection.$from.depth - 1)
-  if (editor.state.selection.$from.depth < 2) return false
-  if (parentNode?.type.name !== 'collapsable_header') return false
-
-  const currentTextBlock = editor.state.selection.$from.node(editor.state.selection.$from.depth)
-  if (currentTextBlock.textContent) return false
-
-  const currentPos = editor.state.selection.$from.before(editor.state.selection.$from.depth)
-  const currentNode = state.doc.nodeAt(currentPos)
-  const currentNodeIndexWrtParent = editor.state.selection.$from.index(editor.state.selection.$from.depth - 1)
-  if (currentNodeIndexWrtParent + 1 === parentNode.childCount && currentNode?.textContent.length === 0) {
-    return editor.chain().selectParentNode().deleteSelection().run()
-  }
-
-  return false
+function insertCollapsable({
+  chain,
+  state,
+  headerContent,
+}: {
+  chain: () => ChainedCommands
+  state: EditorState
+  headerContent?: any
+}) {
+  return chain()
+    .insertContent({
+      type: TiptapNodesTypes.collapsable,
+      content: [
+        {
+          type: TiptapNodesTypes.collapsableHeader,
+          content: headerContent ?? [
+            {
+              type: TiptapNodesTypes.paragraph,
+            },
+          ],
+        },
+        {
+          type: TiptapNodesTypes.collapsableContent,
+          content: [
+            {
+              type: TiptapNodesTypes.sec,
+              content: [
+                {
+                  type: TiptapNodesTypes.paragraph,
+                },
+              ],
+            },
+          ],
+        },
+      ],
+    })
+    .setTextSelection(state.selection.from + 1)
 }

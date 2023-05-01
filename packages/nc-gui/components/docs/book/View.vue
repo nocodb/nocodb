@@ -218,53 +218,56 @@ watch(
               </template>
             </a-dropdown>
           </div>
-          <div v-if="isEditAllowed" class="flex flex-row gap-x-1 h-10 justify-end">
-            <a-dropdown trigger="click" placement="bottomLeft">
-              <div
-                class="my-1 pl-3 pr-1.5 rounded-md border-gray-100 border-1 flex flex-row max-w-28 mr-2 justify-between items-center gap-x-1 hover:cursor-pointer hover:bg-gray-100"
-              >
-                <div class="flex" :style="{ fontWeight: 600, fontSize: '0.75rem' }">New Page</div>
-                <MdiMenuDown />
-              </div>
-              <template #overlay>
-                <div class="flex flex-col bg-gray-100 shadow-gray-300 shadow-sm w-70 p-1 rounded-md gap-y-1">
-                  <div
-                    class="flex flex-row items-center text-xs gap-x-2 p-1.5 cursor-pointer rounded-md hover:bg-gray-200"
-                    @click="() => addNewPage()"
-                  >
-                    <MiDocumentAdd class="flex" />
-                    <div class="flex">New Blank Page</div>
-                  </div>
-                  <div
-                    class="flex flex-row items-start text-xs gap-x-2 p-1.5 cursor-pointer rounded-md hover:bg-gray-200"
-                    @click="openMagicModal"
-                  >
-                    <GeneralIcon icon="magic" class="flex text-orange-400 mt-0.5" />
-                    <div class="flex flex-col">
-                      <div class="flex">Create Pages with Prompt</div>
-                      <div class="flex text-gray-500" :style="{ fontSize: '0.6rem' }">
-                        Let AI create pages based on your keyword.
+          <div class="flex flex-row items-center gap-x-2">
+            <div v-if="isEditAllowed" class="flex flex-row gap-x-1 h-10 justify-end">
+              <a-dropdown trigger="click" placement="bottomLeft">
+                <div
+                  class="my-1 pl-3 pr-1.5 rounded-md border-gray-100 border-1 flex flex-row max-w-28 mr-2 justify-between items-center gap-x-1 hover:cursor-pointer hover:bg-gray-100"
+                >
+                  <div class="flex" :style="{ fontWeight: 600, fontSize: '0.75rem' }">New Page</div>
+                  <MdiMenuDown />
+                </div>
+                <template #overlay>
+                  <div class="flex flex-col bg-gray-100 shadow-gray-300 shadow-sm w-70 p-1 rounded-md gap-y-1">
+                    <div
+                      class="flex flex-row items-center text-xs gap-x-2 p-1.5 cursor-pointer rounded-md hover:bg-gray-200"
+                      @click="() => addNewPage()"
+                    >
+                      <MiDocumentAdd class="flex" />
+                      <div class="flex">New Blank Page</div>
+                    </div>
+                    <div
+                      class="flex flex-row items-start text-xs gap-x-2 p-1.5 cursor-pointer rounded-md hover:bg-gray-200"
+                      @click="openMagicModal"
+                    >
+                      <GeneralIcon icon="magic" class="flex text-orange-400 mt-0.5" />
+                      <div class="flex flex-col">
+                        <div class="flex">Create Pages with Prompt</div>
+                        <div class="flex text-gray-500" :style="{ fontSize: '0.6rem' }">
+                          Let AI create pages based on your keyword.
+                        </div>
                       </div>
                     </div>
+                    <div class="flex border-t-1 border-gray-200 mx-1"></div>
+                    <div
+                      class="flex flex-row items-center text-xs gap-x-2 p-1.5 cursor-pointer rounded-md hover:bg-gray-200"
+                      @click="() => openImportModal()"
+                    >
+                      <PhDownloadSimpleFill class="flex" />
+                      <div class="flex">Import</div>
+                    </div>
                   </div>
-                  <div class="flex border-t-1 border-gray-200 mx-1"></div>
-                  <div
-                    class="flex flex-row items-center text-xs gap-x-2 p-1.5 cursor-pointer rounded-md hover:bg-gray-200"
-                    @click="() => openImportModal()"
-                  >
-                    <PhDownloadSimpleFill class="flex" />
-                    <div class="flex">Import</div>
-                  </div>
-                </div>
-              </template>
-            </a-dropdown>
+                </template>
+              </a-dropdown>
 
-            <!-- <a-button type="text" class="!px-2 !border-1 !border-gray-100 !rounded-md" @click="() => openMagicModal()">
+              <!-- <a-button type="text" class="!px-2 !border-1 !border-gray-100 !rounded-md" @click="() => openMagicModal()">
               <div class="flex flex-row gap-x-1 items-center">
                 <div class="flex pl-1">Create Pages with</div>
                 <GeneralIcon icon="magic"  class="text-orange-400 h-3.5" />
               </div>
             </a-button> -->
+            </div>
+            <LazyGeneralShareProject />
           </div>
         </div>
       </div>

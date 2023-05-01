@@ -1,8 +1,10 @@
 <script lang="ts" setup>
 import { EditorContent, useEditor } from '@tiptap/vue-3'
 import { Icon as IconifyIcon } from '@iconify/vue'
+import { TiptapNodesTypes } from 'nocodb-sdk'
 import { useShortcuts } from '../utils'
 import tiptapExtensions from '~~/utils/tiptapExtensions'
+import { removeUploadingPlaceHolderAndEmptyLinkNode } from '~~/utils/tiptapExtensions/helper'
 
 const { project } = useProject()
 useShortcuts()
@@ -24,13 +26,13 @@ const wrapperRef = ref<HTMLDivElement | undefined>()
 
 const content = computed(() => {
   const emptyContent = {
-    type: 'doc',
+    type: TiptapNodesTypes.doc,
     content: [
       {
-        type: 'dBlock',
+        type: TiptapNodesTypes.sec,
         content: [
           {
-            type: 'paragraph',
+            type: TiptapNodesTypes.paragraph,
           },
         ],
       },
@@ -65,7 +67,7 @@ const editor = useEditor({
   onUpdate: ({ editor }) => {
     if (!openedPage.value) return
 
-    openedPage.value.content = JSON.stringify(editor.getJSON())
+    openedPage.value.content = JSON.stringify(removeUploadingPlaceHolderAndEmptyLinkNode(editor.getJSON()))
   },
   editorProps: {
     handleKeyDown: (view, event) => {
@@ -183,7 +185,15 @@ watch(wrapperRef, () => {
 
 <template>
   <a-layout-content>
-    <div ref="wrapperRef" data-testid="docs-opened-page" class="nc-docs-page h-full flex flex-row relative">
+    <div
+      ref="wrapperRef"
+      data-testid="docs-opened-page"
+      class="nc-docs-page h-full flex flex-row relative"
+      :class="{
+        '!pt-0': isPublic,
+        'pt-1': !isPublic,
+      }"
+    >
       <div
         class="flex flex-col w-full"
         :class="{
@@ -191,7 +201,7 @@ watch(wrapperRef, () => {
           editable: isEditAllowed,
         }"
       >
-        <div class="flex flex-row justify-between items-center pl-6 pt-2.5">
+        <div class="flex flex-row justify-between items-center pl-6 py-2.5">
           <div class="flex flex-row h-6">
             <template v-if="flattenedNestedPages.length !== 0">
               <div v-for="({ href, title, icon, id }, index) of breadCrumbs" :key="id" class="flex">
@@ -223,63 +233,75 @@ watch(wrapperRef, () => {
           </div>
           <div v-if="!isPublic" class="flex flex-row items-center"></div>
         </div>
-        <div
-          :key="openedPageId ?? ''"
-          class="mx-auto pr-6 pt-16 flex flex-col"
-          :style="{
-            width: '64rem',
-            maxWidth: '45vw',
-          }"
-        >
-          <a-skeleton-input
-            v-if="isPageFetching && !isPublic"
-            :active="true"
-            size="large"
-            class="docs-page-title-skelton !mt-3 !max-w-156 mb-3 ml-8 docs-page-skeleton-loading"
-          />
-          <DocsPageTitle v-else-if="openedPage" :key="openedPage.id" class="docs-page-title" @focus-editor="focusEditor" />
-          <div class="flex !mb-4.5"></div>
-
-          <DocsPageSelectedBubbleMenu v-if="editor" :editor="editor" />
-          <DocsPageLinkOptions v-if="editor" :editor="editor" />
-          <a-skeleton-input
-            v-if="isPageFetching && !isPublic"
-            :active="true"
-            size="small"
-            class="docs-page-title-skelton !max-w-102 mb-3 mt-1 ml-8 docs-page-skeleton-loading"
-          />
-          <EditorContent v-else :key="isEditAllowed ? 'edit' : 'view'" data-testid="docs-page-content" :editor="editor" />
+        <div class="nc-docs-page-content">
           <div
-            v-if="(openedPageInSidebar?.children ?? []).length > 0 && !isPageFetching"
-            class="docs-page-child-pages flex flex-col py-12 border-b-1 border-t-1 border-gray-200 mt-12 mb-4 gap-y-6 pop-in-animation"
-            :class="{
-              'ml-6': !isPublic,
+            :key="openedPageId ?? ''"
+            class="mx-auto pr-6 pt-16 flex flex-col"
+            :style="{
+              width: '64rem',
+              maxWidth: '45vw',
             }"
           >
+            <a-skeleton-input
+              v-if="isPageFetching && !isPublic"
+              :active="true"
+              size="large"
+              class="docs-page-title-skelton !mt-3 !max-w-156 mb-3 ml-8 docs-page-skeleton-loading"
+            />
+            <DocsPageTitle v-else-if="openedPage" :key="openedPage.id" class="docs-page-title" @focus-editor="focusEditor" />
+            <div class="flex !mb-4.5"></div>
+
+            <DocsPageLinkToPageSearch v-if="editor" :editor="editor" />
+            <DocsPageSelectedBubbleMenu v-if="editor" :editor="editor" />
+            <DocsPageLinkOptions v-if="editor" :editor="editor" />
+            <a-skeleton-input
+              v-if="isPageFetching && !isPublic"
+              :active="true"
+              size="small"
+              class="docs-page-title-skelton !max-w-102 mb-3 mt-1 ml-8 docs-page-skeleton-loading"
+            />
+            <EditorContent v-else :key="isEditAllowed ? 'edit' : 'view'" data-testid="docs-page-content" :editor="editor" />
             <div
-              v-for="page of openedPageInSidebar?.children"
-              :key="page.id"
-              class="docs-page-child-page px-6 flex flex-row items-center gap-x-2 cursor-pointer text-gray-600 hover:text-black"
-              @click="openPage({ page, projectId: project.id! })"
+              v-if="(openedPageInSidebar?.children ?? []).length > 0 && !isPageFetching"
+              class="docs-page-child-pages flex flex-col py-12 border-b-1 border-t-1 border-gray-200 mt-12 mb-4 gap-y-6 pop-in-animation"
+              :class="{
+                'ml-6': !isPublic,
+              }"
             >
-              <div v-if="page.icon" class="flex">
-                <IconifyIcon
-                  :key="page.icon"
-                  :data-testid="`nc-doc-page-icon-${page.icon}`"
-                  class="flex text-lg pop-in-animation"
-                  :icon="page.icon"
-                ></IconifyIcon>
-              </div>
-              <MdiFileDocumentOutline v-else class="flex pop-in-animation ml-0.25" />
-              <div class="font-semibold text-base pop-in-animation">
-                {{ page.title }}
+              <div
+                v-for="page of openedPageInSidebar?.children"
+                :key="page.id"
+                class="docs-page-child-page px-6 flex flex-row items-center gap-x-2 cursor-pointer text-gray-600 hover:text-black"
+                @click="openPage({ page, projectId: project.id! })"
+              >
+                <div v-if="page.icon" class="flex">
+                  <IconifyIcon
+                    :key="page.icon"
+                    :data-testid="`nc-doc-page-icon-${page.icon}`"
+                    class="flex text-lg pop-in-animation"
+                    :icon="page.icon"
+                  ></IconifyIcon>
+                </div>
+                <MdiFileDocumentOutline v-else class="flex pop-in-animation ml-0.25" />
+                <div class="font-semibold text-base pop-in-animation">
+                  {{ page.title }}
+                </div>
               </div>
             </div>
           </div>
         </div>
       </div>
     </div>
-    <div class="absolute right-0 top-0 pt-2 mr-3">
+    <div class="absolute right-10 top-2.25">
+      <LazyGeneralShareProject />
+    </div>
+    <div
+      class="absolute right-0 pt-2 mr-2.5"
+      :class="{
+        'top-0.25': isPublic,
+        'top-1': !isPublic,
+      }"
+    >
       <DocsPageOutline v-if="openedPage && wrapperRef" :key="openedPage.id" :wrapper-ref="wrapperRef" />
     </div>
   </a-layout-content>
@@ -288,12 +310,12 @@ watch(wrapperRef, () => {
 <style lang="scss">
 ::-moz-selection {
   /* Code for Firefox */
-  color: black;
+  color: inherit;
   background-color: #1c26b820;
 }
 
 ::selection {
-  color: black;
+  color: inherit;
   background-color: #1c26b820;
 }
 
@@ -303,7 +325,7 @@ watch(wrapperRef, () => {
   }
 }
 
-.nc-docs-page {
+.nc-docs-page-content {
   overflow-y: overlay;
   // scrollbar reduce width and gray color
   &::-webkit-scrollbar {
@@ -325,7 +347,7 @@ watch(wrapperRef, () => {
     background: #f6f6f600;
   }
 }
-.nc-docs-page:hover {
+.nc-docs-page-content:hover {
   // scrollbar reduce width and gray color
   &::-webkit-scrollbar {
     width: 6px;
@@ -353,12 +375,21 @@ watch(wrapperRef, () => {
     outline: none;
   }
 
+  .draggable-block-wrapper.focused {
+    .attachment-wrapper .attachment {
+      @apply !bg-primary-selected;
+    }
+  }
+
   .draggable-block-wrapper.selected {
     table {
       @apply !bg-primary-selected;
       tr:first-child td {
         @apply !bg-primary-selected;
       }
+    }
+    .attachment-wrapper .attachment {
+      @apply !bg-primary-selected;
     }
     p,
     h1,
@@ -371,7 +402,8 @@ watch(wrapperRef, () => {
     blockquote,
     pre,
     code,
-    img {
+    img,
+    .link-to-page-wrapper {
       @apply !bg-primary-selected;
     }
 
@@ -384,36 +416,66 @@ watch(wrapperRef, () => {
     user-select: text !important;
   }
 
-  p.is-empty::before,
-  h1.is-empty::before,
-  h2.is-empty::before,
-  h3.is-empty::before {
+  p.is-empty::after,
+  h1.is-empty::after,
+  h2.is-empty::after,
+  h3.is-empty::after {
     content: attr(data-placeholder);
     float: left;
     color: #afafaf;
     pointer-events: none;
-    height: 0;
+    margin-top: -1.55rem;
+    margin-left: 0.01rem;
+  }
+
+  [data-one-content='true'] [data-type='collapsable_content'] {
+    p.is-empty::after {
+      content: 'Empty collapsable. Press / to open the command menu or start writing';
+    }
+  }
+
+  p.is-empty::after {
+    margin-top: -1.55rem;
+  }
+  h1.is-empty::after {
+    margin-top: -2.85rem;
+  }
+  h2.is-empty::after {
+    margin-top: -2.25rem;
+  }
+  h3.is-empty::after {
+    margin-top: -1.8rem;
+  }
+  .collapsable-wrapper {
+    h1,
+    h2,
+    h3 {
+      margin-top: 0;
+      margin-bottom: 0;
+    }
   }
 
   .editable {
     .focused {
       div[data-is-empty='true'] {
-        p::before {
+        p::after {
           content: 'Press / to open the command menu or start writing' !important;
           float: left;
           color: #afafaf;
           pointer-events: none;
-          height: 0;
+          margin-top: -1.55rem;
+          margin-left: 0.01rem;
         }
       }
     }
     div.is-empty.focused {
-      p::before {
+      p::after {
         content: 'Press / to open the command menu or start writing' !important;
         float: left;
         color: #afafaf;
         pointer-events: none;
-        height: 0;
+        margin-top: -1.55rem;
+        margin-left: 0.01rem;
       }
     }
   }
@@ -549,6 +611,35 @@ watch(wrapperRef, () => {
     }
   }
 
+  [data-disc-style='disc'] {
+    .tiptap-list-item-content {
+      list-style: disc;
+    }
+  }
+  [data-disc-style='circle'] {
+    .tiptap-list-item-content {
+      list-style: none;
+      &::before {
+        font-size: 1.2em;
+        margin-right: 4px;
+        margin-left: -1rem;
+        line-height: 1.3;
+        content: '◦';
+        float: left;
+      }
+      // Thicker circle
+    }
+    .tiptap-list-item-content::marker {
+      border: 4px solid black;
+      border-radius: 90%;
+    }
+  }
+  [data-disc-style='square'] {
+    .tiptap-list-item-content {
+      list-style: square;
+    }
+  }
+
   .tiptap-table-cell {
     [data-type='bullet'] {
       margin-left: 0.7rem;
@@ -570,7 +661,19 @@ watch(wrapperRef, () => {
   }
 
   [data-type='task'] {
-    @apply flex flex-row items-center gap-x-2;
+    @apply flex flex-row items-start gap-x-2;
+    label {
+      @apply flex mt-2;
+    }
+    input {
+      @apply rounded-sm;
+    }
+    // Unchecked
+    input:not(:checked) {
+      // Add border to checkbox
+      border-width: 1.5px;
+      @apply border-gray-700;
+    }
   }
 
   ul {
@@ -588,6 +691,20 @@ watch(wrapperRef, () => {
     // outline with rounded corners
     outline: 4px solid #e8eafd;
     border-radius: 4px;
+  }
+  .focused {
+    hr {
+      // outline with rounded corners
+      outline: 4px solid #e8eafd;
+      border-radius: 4px;
+    }
+  }
+  .selected {
+    hr {
+      // outline with rounded corners
+      outline: 4px solid #e8eafd;
+      border-radius: 4px;
+    }
   }
 
   .selected {
@@ -657,6 +774,10 @@ watch(wrapperRef, () => {
 
   .external-content-wrapper {
     @apply bg-gray-100 my-2;
+  }
+
+  div[data-type='column'] {
+    @apply flex flex-row gap-x-12 justify-between;
   }
 }
 </style>

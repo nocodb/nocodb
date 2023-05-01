@@ -1,14 +1,15 @@
 import { Node, mergeAttributes } from '@tiptap/core'
 import { VueNodeViewRenderer } from '@tiptap/vue-3'
+import { TiptapNodesTypes } from 'nocodb-sdk'
 import CalloutComponent from './callout.vue'
-import { handleOnBackspaceForCallouts, handleOnEnterForCallouts } from './helper'
+import { handleOnEnterForCallouts } from './helper'
 
 export interface WarningCalloutOptions {
   HTMLAttributes: Record<string, any>
 }
 
 export const WarningCallout = Node.create<WarningCalloutOptions>({
-  name: 'warningCallout',
+  name: TiptapNodesTypes.warningCallout,
 
   addOptions() {
     return {
@@ -35,12 +36,8 @@ export const WarningCallout = Node.create<WarningCalloutOptions>({
 
   addKeyboardShortcuts() {
     return {
-      'Mod-Alt-0': () => this.editor.commands.setDBlock(),
-      'Enter': ({ editor }) => {
-        return handleOnEnterForCallouts(editor as any)
-      },
-      'Backspace': ({ editor }) => {
-        return handleOnBackspaceForCallouts(editor as any)
+      Enter: ({ editor }) => {
+        return handleOnEnterForCallouts(editor as any, TiptapNodesTypes.warningCallout)
       },
     }
   },

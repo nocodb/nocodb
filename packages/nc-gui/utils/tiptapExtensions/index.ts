@@ -1,19 +1,20 @@
 import Underline from '@tiptap/extension-underline'
-import Paragraph from '@tiptap/extension-paragraph'
 import Text from '@tiptap/extension-text'
 import DropCursor from '@tiptap/extension-dropcursor'
 import Bold from '@tiptap/extension-bold'
 import Italic from '@tiptap/extension-italic'
-import Strike from '@tiptap/extension-strike'
 import Code from '@tiptap/extension-code'
-import CodeBlock from '@tiptap/extension-code-block'
-import Blockquote from '@tiptap/extension-blockquote'
 import HardBreak from '@tiptap/extension-hard-break'
+import { Color } from '@tiptap/extension-color'
+import TextStyle from '@tiptap/extension-text-style'
 import type { Extensions } from '@tiptap/core'
+import { TiptapNodesTypes } from 'nocodb-sdk'
+import { Quote } from './quote'
+import { createAttachmentExtension } from './attachment/node'
 import { Bullet } from './listItem/bullet'
 import { Ordered } from './listItem/ordered'
 import { Task } from './listItem/task'
-import { HorizontalRule } from './horizontalRule'
+import { Divider } from './divider'
 import { Link } from './link'
 import { TableCell } from './table/cell'
 import { TableRow } from './table/row'
@@ -25,24 +26,31 @@ import Commands from './commands'
 import { InfoCallout } from './callouts/info'
 import { WarningCallout } from './callouts/warning'
 import { TipCallout } from './callouts/tip'
-import { DraggableBlock } from './draggableBlock'
+import { SectionBlock } from './section'
 import { Document } from './document'
-import { ExternalContent } from './external-content'
+import { Embed } from './embed'
 import { Heading } from './heading'
 import { TrailingNode } from './trailingNode'
 import { Placeholder } from './placeholder'
-import { Collapsable } from './collapsable'
-import { CollapsableHeader } from './collapsable/collapsableHeader'
-import { CollapsableContent } from './collapsable/collapsableContent'
+import { CollapsableNode } from './collapsable'
+import { CollapsableHeaderNode } from './collapsable/collapsableHeader'
+import { CollapsableContentNode } from './collapsable/collapsableContent'
+import { Strike } from './strike'
+import { Paragraph } from './paragraph'
+import { CodeBlock } from './codeBlock'
+import { ColumnContentNode } from './columns/columnContent'
+import { ColumnNode } from './columns'
 
 const tiptapExtensions = (isPublic: boolean): Extensions => {
   const { uploadFile } = useDocStore()
 
   return [
     Document,
-    DraggableBlock,
+    SectionBlock,
     Paragraph,
     Text,
+    TextStyle,
+    Color,
     Strike,
     Heading,
     Bold,
@@ -58,7 +66,7 @@ const tiptapExtensions = (isPublic: boolean): Extensions => {
     }),
     Placeholder.configure({
       placeholder: ({ node }) => {
-        if (node.type.name === 'heading') {
+        if (node.type.name === TiptapNodesTypes.heading) {
           return `Heading ${node.attrs.level}`
         }
         return 'Press / to open the command menu or start writing'
@@ -67,20 +75,7 @@ const tiptapExtensions = (isPublic: boolean): Extensions => {
     Task,
     Ordered,
     Bullet,
-    HorizontalRule.extend({
-      addKeyboardShortcuts() {
-        return {
-          'Ctrl-Space': () => {
-            const from = this.editor.state.selection.from
-            return this.editor
-              .chain()
-              .setHorizontalRule()
-              .setTextSelection(from + 3)
-              .run()
-          },
-        }
-      },
-    }),
+    Divider,
     Code,
     CodeBlock,
     createImageExtension(async (image: any) => {
@@ -88,13 +83,7 @@ const tiptapExtensions = (isPublic: boolean): Extensions => {
     }),
     Underline,
     History,
-    Blockquote.extend({
-      addKeyboardShortcuts() {
-        return {
-          'Mod-]': () => this.editor.commands.toggleBlockquote(),
-        }
-      },
-    }),
+    Quote,
     InfoCallout,
     WarningCallout,
     TipCallout,
@@ -107,12 +96,18 @@ const tiptapExtensions = (isPublic: boolean): Extensions => {
         class: 'nc-docs-tiptap-table-cell relative',
       },
     }),
-    ExternalContent,
+    Embed,
     TrailingNode,
     Link({ isPublic }),
-    CollapsableContent,
-    CollapsableHeader,
-    Collapsable,
+    CollapsableContentNode,
+    CollapsableHeaderNode,
+    CollapsableNode,
+    createAttachmentExtension(async (image: any) => {
+      return uploadFile(image)
+    }),
+    ColumnContentNode,
+    ColumnNode,
+    LinkToPage,
   ]
 }
 

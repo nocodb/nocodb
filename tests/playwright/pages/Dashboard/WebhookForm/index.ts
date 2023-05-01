@@ -68,24 +68,15 @@ export class WebhookFormPage extends BasePage {
     await this.get().locator(`.nc-check-box-hook-condition`).click();
     const modal = await this.get().locator(`.menu-filter-dropdown`).last();
 
-    // todo: All delays are for api calls that filter does, which rerenders
-    await this.rootPage.waitForTimeout(1000);
-
     await modal.locator(`button:has-text("Add Filter")`).click();
-
-    await this.rootPage.waitForTimeout(1500);
 
     await modal.locator('.nc-filter-field-select').click();
     const modalField = await this.dashboard.rootPage.locator('.nc-dropdown-toolbar-field-list:visible');
     await modalField.locator(`.ant-select-item:has-text("${column}")`).click();
 
-    await this.rootPage.waitForTimeout(1500);
-
     await modal.locator('.nc-filter-operation-select').click();
     const modalOp = await this.dashboard.rootPage.locator('.nc-dropdown-filter-comp-op:visible');
     await modalOp.locator(`.ant-select-item:has-text("${operator}")`).click();
-
-    await this.rootPage.waitForTimeout(1500);
 
     if (operator != 'is null' && operator != 'is not null') {
       await modal.locator('.nc-filter-value-select > input').fill(value);

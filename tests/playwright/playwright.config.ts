@@ -11,7 +11,7 @@ require('dotenv').config();
  * See https://playwright.dev/docs/test-configuration.
  */
 const config: PlaywrightTestConfig = {
-  testDir: process.env.PW_QUICK_TEST ? './quickTests' : './tests/docs',
+  testDir: process.env.PW_QUICK_TEST ? './quickTests' : './tests',
   /* Maximum time one test can run for. */
   timeout: process.env.CI ? 140 * 1000 : 100 * 1000,
   expect: {
@@ -33,6 +33,7 @@ const config: PlaywrightTestConfig = {
   reporter: 'html',
   /* Shared settings for all the projects below. See https://playwright.dev/docs/api/class-testoptions. */
   use: {
+    headless: false,
     /* Maximum time each action such as `click()` can take. Defaults to 0 (no limit). */
     actionTimeout: 4000,
     /* Base URL to use in actions like `await page.goto('/')`. */

@@ -1,6 +1,7 @@
 import { expect, Locator } from '@playwright/test';
 import { DashboardPage } from '.';
 import BasePage from '../Base';
+import { isHub } from '../../setup/db';
 
 export class TreeViewPage extends BasePage {
   readonly dashboard: DashboardPage;
@@ -53,7 +54,7 @@ export class TreeViewPage extends BasePage {
   async openTable({
     title,
     mode = 'standard',
-    networkResponse = false,
+    networkResponse = true,
     mobileMode = false,
   }: {
     title: string;
@@ -82,7 +83,7 @@ export class TreeViewPage extends BasePage {
       await this.dashboard.waitForTabRender({ title, mode });
     } else {
       await this.get().locator(`.nc-project-tree-tbl-${title}`).click();
-      await this.rootPage.waitForTimeout(3000);
+      await this.rootPage.waitForTimeout(300);
     }
   }
 
@@ -117,8 +118,12 @@ export class TreeViewPage extends BasePage {
   }
 
   async deleteTable({ title }: { title: string }) {
-    await this.get().locator(`.nc-project-tree-tbl-${title}`).click({ button: 'right' });
-    await this.dashboard.get().locator('div.nc-project-menu-item:has-text("Delete")').click();
+    if (isHub()) {
+      await this.get().locator(`.nc-project-tree-tbl-${title}`).locator('.nc-icon.ant-dropdown-trigger').click();
+    } else {
+      await this.get().locator(`.nc-project-tree-tbl-${title}`).click({ button: 'right' });
+    }
+    await this.dashboard.get().locator('div.nc-project-menu-item:has-text("Delete"):visible').click();
 
     await this.waitForResponse({
       uiAction: () => this.dashboard.get().locator('button:has-text("Yes")').click(),
@@ -141,7 +146,11 @@ export class TreeViewPage extends BasePage {
   }
 
   async renameTable({ title, newTitle }: { title: string; newTitle: string }) {
-    await this.get().locator(`.nc-project-tree-tbl-${title}`).click({ button: 'right' });
+    if (isHub()) {
+      await this.get().locator(`.nc-project-tree-tbl-${title}`).locator('.nc-icon.ant-dropdown-trigger').click();
+    } else {
+      await this.get().locator(`.nc-project-tree-tbl-${title}`).click({ button: 'right' });
+    }
     await this.dashboard.get().locator('div.nc-project-menu-item:has-text("Rename")').click();
     await this.dashboard.get().locator('[placeholder="Enter table name"]').fill(newTitle);
     await this.dashboard.get().locator('button:has-text("Submit")').click();
@@ -186,17 +195,27 @@ export class TreeViewPage extends BasePage {
   // todo: Break this into smaller methods
   async validateRoleAccess(param: { role: string }) {
     // Add new table button
-    await expect(this.get().locator(`.nc-add-new-table`)).toHaveCount(param.role === 'creator' ? 1 : 0);
+    await expect(this.get().locator(`.nc-add-new-table:visible`)).toHaveCount(param.role === 'creator' ? 1 : 0);
     // Import menu
-    await expect(this.get().locator(`.nc-import-menu`)).toHaveCount(param.role === 'creator' ? 1 : 0);
-    // Team and Settings button
-    await expect(this.get().locator(`.nc-new-base`)).toHaveCount(param.role === 'creator' ? 1 : 0);
-    // Right click context menu
-    await this.get().locator(`.nc-project-tree-tbl-Country`).click({
-      button: 'right',
-    });
-    await expect(this.rootPage.locator(`.nc-dropdown-tree-view-context-menu:visible`)).toHaveCount(
-      param.role === 'creator' ? 1 : 0
-    );
+    await expect(this.get().locator(`.nc-import-menu:visible`)).toHaveCount(param.role === 'creator' ? 1 : 0);
+    if (isHub()) {
+      // Create project at bottom right of tree view (should be visible for everyone)
+      await expect(this.get().locator(`.nc-create-project-btn:visible`)).toHaveCount(1);
+    } else {
+      // Team and Settings button
+      await expect(this.get().locator(`.nc-new-base`)).toHaveCount(param.role === 'creator' ? 1 : 0);
+    }
+
+    // hub has 'reload' option across all 3 roles
+    // double check against options defined in nocodb
+    if (!isHub()) {
+      // Right click context menu
+      await this.get().locator(`.nc-project-tree-tbl-Country`).click({
+        button: 'right',
+      });
+      await expect(this.rootPage.locator(`.nc-dropdown-tree-view-context-menu:visible`)).toHaveCount(
+        param.role === 'creator' ? 1 : 0
+      );
+    }
   }
 }

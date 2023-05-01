@@ -113,7 +113,7 @@ export const useProject = defineStore('projectStore', () => {
   // todo: add force parameter
   async function loadTables() {
     if (project.value.id) {
-      projectsStore.loadProjectTables(project.value.id, true)
+      await projectsStore.loadProjectTables(project.value.id, true)
       // tables.value = projectsStore.projectTableList[project.value.id]
       //   await api.dbTable.list(project.value.id, {
       //   includeM2M: includeM2M.value,
@@ -123,21 +123,6 @@ export const useProject = defineStore('projectStore', () => {
       //   tables.value = tablesResponse.list
       // }
     }
-  }
-
-  async function loadBookProject(projectId?: string) {
-    if (projectId) {
-      forcedProjectId.value = projectId
-    }
-    projectId = projectId || (route.params.projectId as string)
-
-    if (!projectId) throw new Error('Project id not found')
-
-    const loadProj = async () => {
-      project.value = await api.project.read(projectId!)
-    }
-
-    await Promise.all([loadProj(), loadProjectRoles(projectId!)])
   }
 
   async function loadProject(withTheme = true, forcedId?: string) {
@@ -220,8 +205,8 @@ export const useProject = defineStore('projectStore', () => {
   }
 
   const reset = () => {
-    project.value = {}
-    tables.value = []
+    // project.value = {}
+    // tables.value = []
     projectMetaInfo.value = undefined
     projectRoles.value = {}
     setTheme()
@@ -268,7 +253,6 @@ export const useProject = defineStore('projectStore', () => {
     lastOpenedViewMap,
     isXcdbBase,
     hasEmptyOrNullFilters,
-    loadBookProject,
     setProject,
     projectUrl,
   }

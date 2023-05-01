@@ -17,6 +17,7 @@ import { ToolbarSearchDataPage } from './SearchData';
 import { RowHeight } from './RowHeight';
 import { MapPage } from '../../Map';
 import { getTextExcludeIconText } from '../../../../tests/utils/general';
+import { isHub } from '../../../../setup/db';
 
 export class ToolbarPage extends BasePage {
   readonly parent: GridPage | GalleryPage | FormPage | KanbanPage | MapPage;
@@ -219,6 +220,7 @@ export class ToolbarPage extends BasePage {
       role: param.role,
       mode: param.mode,
     });
+    if (!isHub()) await this.clickActions();
 
     const menuItems = {
       creator: ['Fields', 'Filter', 'Sort', 'Share View'],

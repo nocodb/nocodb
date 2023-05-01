@@ -1,9 +1,10 @@
-import { test } from '@playwright/test';
+import { expect, test } from '@playwright/test';
 import { ProjectType, ProjectTypes } from 'nocodb-sdk';
 import { DashboardPage } from '../../pages/Dashboard';
 import { SignupPage } from '../../pages/SignupPage';
 import { WorkspacePage } from '../../pages/WorkspacePage';
 import setup, { NcContext } from '../../setup';
+import { getDefaultPwd } from '../utils/general';
 
 test.describe('Docs ACL', () => {
   let dashboard: DashboardPage;
@@ -44,10 +45,10 @@ test.describe('Docs ACL', () => {
 
     await signUp.signUp({
       email: 'test@example.com',
-      password: 'password123.',
+      password: getDefaultPwd(),
     });
 
-    await workspace.selectProject({ title: project.title as any });
+    await workspace.projectOpen({ title: project.title });
 
     const newDashboard = new DashboardPage(newPage, project);
 
@@ -95,12 +96,12 @@ test.describe('Docs ACL', () => {
 
     await signUp.signUp({
       email: 'test@example.com',
-      password: 'password123.',
+      password: getDefaultPwd(),
     });
 
     await newPage.waitForTimeout(1000);
 
-    await workspace.selectProject({ title: project.title as any });
+    await workspace.projectOpen({ title: project.title as any });
 
     const newDashboard = new DashboardPage(newPage, project);
 
@@ -163,11 +164,9 @@ test.describe('Docs ACL', () => {
 
     await signUp.signUp({
       email: 'test@example.com',
-      password: 'password123.',
+      password: getDefaultPwd(),
     });
 
-    await workspace.verifyWorkspaceCount({
-      count: 0,
-    });
+    expect(await workspace.workspaceCount()).toBe(0);
   });
 });

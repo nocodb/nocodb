@@ -14,18 +14,19 @@ import { MapPage } from './Map';
 import { ImportAirtablePage } from './Import/Airtable';
 import { ImportTemplatePage } from './Import/ImportTemplate';
 import { WebhookFormPage } from './WebhookForm';
-import { ProjectsPage } from '../ProjectsPage';
 import { FindRowByScanOverlay } from './FindRowByScanOverlay';
 import { SidebarPage } from './Sidebar';
 import { DocsPageGroup } from './Docs';
 import { ShareProjectButtonPage } from './ShareProjectButton';
 import { ProjectTypes } from 'nocodb-sdk';
 import { WorkspacePage } from '../WorkspacePage';
+import { isHub } from '../../setup/db';
 
 export class DashboardPage extends BasePage {
   readonly project: any;
   readonly tablesSideBar: Locator;
   readonly projectMenuLink: Locator;
+  readonly workspaceMenuLink: Locator;
   readonly tabBar: Locator;
   readonly treeView: TreeViewPage;
   readonly grid: GridPage;
@@ -50,7 +51,12 @@ export class DashboardPage extends BasePage {
     super(rootPage);
     this.project = project;
     this.tablesSideBar = rootPage.locator('.nc-treeview-container');
-    this.projectMenuLink = rootPage.getByTestId('nc-project-menu');
+    if (isHub()) {
+      this.workspaceMenuLink = rootPage.getByTestId('nc-project-menu');
+      this.projectMenuLink = rootPage.locator('.project-title-node').locator('.nc-icon.ant-dropdown-trigger');
+    } else {
+      this.projectMenuLink = rootPage.getByTestId('nc-project-menu');
+    }
     this.tabBar = rootPage.locator('.nc-tab-bar');
     this.treeView = new TreeViewPage(this, project);
     this.grid = new GridPage(this);
@@ -76,7 +82,8 @@ export class DashboardPage extends BasePage {
   }
 
   async goto() {
-    await this.rootPage.goto(`/#/nc/${this.project.id}/auth`);
+    if (isHub()) await this.rootPage.goto(`/#/ws/${this.project.fk_workspace_id}/nc/${this.project.id}`);
+    else await this.rootPage.goto(`/#/nc/${this.project.id}/auth`);
   }
 
   getProjectMenuLink({ title }: { title: string }) {
@@ -98,12 +105,12 @@ export class DashboardPage extends BasePage {
   }
 
   async gotoSettings() {
-    await this.rootPage.getByTestId('nc-project-menu').click();
+    await this.projectMenuLink.click();
     await this.rootPage.locator('div.nc-project-menu-item:has-text(" Team & Settings")').click();
   }
 
   async gotoProjectSubMenu({ title }: { title: string }) {
-    await this.rootPage.getByTestId('nc-project-menu').click();
+    await this.projectMenuLink.click();
     await this.rootPage.locator(`div.nc-project-menu-item:has-text("${title}")`).click();
   }
 
@@ -112,18 +119,24 @@ export class DashboardPage extends BasePage {
   }
 
   async closeTab({ title }: { title: string }) {
+    if (title === 'Team & Auth' && isHub()) {
+      return;
+    }
+
     const tab = this.tabBar.locator(`.ant-tabs-tab:has-text("${title}")`);
     await tab.locator('button.ant-tabs-tab-remove').click();
 
     // fix me!
     // await tab.waitFor({ state: "detached" });
-    await this.rootPage.waitForTimeout(2000);
+    await this.rootPage.waitForTimeout(200);
   }
 
   async clickHome() {
     await this.rootPage.getByTestId('nc-noco-brand-icon').click();
+
+    // wait for workspace page to render
     const workspacePage = new WorkspacePage(this.rootPage);
-    await workspacePage.getWorkspaceContainer().waitFor({ state: 'visible' });
+    await workspacePage.waitFor({ state: 'visible' });
   }
 
   private async _waitForDBTabRender({ title, mode }: { title: string; mode: string }) {
@@ -156,9 +169,9 @@ export class DashboardPage extends BasePage {
 
     if (mode === 'standard') {
       if (title === 'Team & Auth') {
-        await expect(this.rootPage).toHaveURL(`/#/nc/${this.project.id}/auth`);
+        await expect(this.rootPage).toHaveURL(`/nc/${this.project.id}/auth`);
       } else {
-        await expect(this.rootPage).toHaveURL(new RegExp(`#/nc/${this.project.id}/table/md_.{14}`));
+        await expect(this.rootPage).toHaveURL(new RegExp(`/nc/${this.project.id}/table/md_.{14}`));
       }
     }
   }
@@ -218,10 +231,15 @@ export class DashboardPage extends BasePage {
   }
 
   async signOut() {
-    await this.rootPage.getByTestId('nc-project-menu').click();
-    const projMenu = this.rootPage.locator('.nc-dropdown-project-menu');
-    await projMenu.locator('[data-menu-id="account"]:visible').click();
-    await this.rootPage.locator('div.nc-project-menu-item:has-text("Sign Out"):visible').click();
+    if (isHub()) {
+      await this.grid.workspaceMenu.toggle();
+      await this.grid.workspaceMenu.click({ menu: 'Account', subMenu: 'Sign Out' });
+    } else {
+      await this.projectMenuLink.click();
+      const projMenu = this.rootPage.locator('.nc-dropdown-project-menu');
+      await projMenu.locator('[data-menu-id="account"]:visible').click();
+      await this.rootPage.locator('div.nc-project-menu-item:has-text("Sign Out"):visible').click();
+    }
     await this.rootPage.locator('[data-testid="nc-form-signin"]:visible').waitFor();
     await new Promise(resolve => setTimeout(resolve, 150));
   }
@@ -267,5 +285,53 @@ export class DashboardPage extends BasePage {
   // Wait for the loader i.e the loader than appears when rows are being fetched, saved etc on the top right of dashboard
   async waitForLoaderToDisappear() {
     await this.rootPage.locator('[data-testid="nc-loading"]').waitFor({ state: 'hidden' });
+  }
+
+  async closeAllTabs() {
+    const tab = await this.tabBar.locator(`.ant-tabs-tab`);
+    const tabCount = await tab.count();
+
+    for (let i = 0; i < tabCount; i++) {
+      await tab.nth(i).locator('button.ant-tabs-tab-remove').click();
+      await this.rootPage.waitForTimeout(200);
+    }
+  }
+
+  async validateWorkspaceMenu(param: { role: string; mode?: string }) {
+    await this.grid.workspaceMenu.toggle();
+    await this.grid.workspaceMenu.get().waitFor({ state: 'visible' });
+
+    const pMenu = this.grid.workspaceMenu.get();
+
+    // menu items
+    let menuItems = {
+      creator: ['Collaborators', 'Settings', 'Copy Auth Token', 'Themes', 'Preview as', 'Language', 'Account'],
+      editor: ['Collaborators', 'Settings', 'Copy Auth Token', 'Language', 'Account'],
+      commenter: ['Collaborators', 'Settings', 'Copy Auth Token', 'Language', 'Account'],
+      viewer: ['Collaborators', 'Settings', 'Copy Auth Token', 'Language', 'Account'],
+    };
+
+    if (param?.mode === 'shareBase') {
+      menuItems = {
+        creator: [],
+        commenter: [],
+        editor: ['Language'],
+        viewer: ['Language'],
+      };
+    }
+
+    // common items
+    for (const item of menuItems[param.role]) {
+      await expect(pMenu).toContainText(item);
+    }
+
+    // menuItems.creator is a super set. validate if the corresponding items missing in editor, commenter, viewer are not present
+    for (const item of menuItems.creator) {
+      if (!menuItems[param.role].includes(item)) {
+        await expect(pMenu).not.toContainText(item);
+      }
+    }
+
+    await this.grid.workspaceMenu.toggle();
   }
 }

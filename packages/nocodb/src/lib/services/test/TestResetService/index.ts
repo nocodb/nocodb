@@ -4,7 +4,7 @@ import NcConnectionMgrv2 from '../../../utils/common/NcConnectionMgrv2';
 import Noco from '../../../Noco';
 import User from '../../../models/User';
 import NocoCache from '../../../cache/NocoCache';
-import { CacheScope } from '../../../utils/globals';
+import { CacheScope, MetaTable } from '../../../utils/globals';
 import ProjectUser from '../../../models/ProjectUser';
 import { Workspace } from '../../../models';
 import resetPgSakilaProject from './resetPgSakilaProject';
@@ -78,7 +78,7 @@ export class TestResetService {
 
       const { token, user } = await loginRootUser();
 
-      const { project } = await this.resetProject({
+      const { project, workspace } = await this.resetProject({
         user,
         token,
         dbType: this.dbType,
@@ -94,7 +94,7 @@ export class TestResetService {
       }
 
       workerStatus[this.parallelId] = 'completed';
-      return { token, project, user };
+      return { token, project, user, workspace };
     } catch (e) {
       console.error('TestResetService:process', e);
       workerStatus[this.parallelId] = 'errored';
@@ -139,6 +139,18 @@ export class TestResetService {
           await NcConnectionMgrv2.deleteAwait(base);
           await base.delete(Noco.ncMeta, { force: true });
         }
+
+        const users = await ProjectUser.getUsersList({
+          project_id: project.id,
+          limit: 25,
+          offset: 0,
+        });
+        for (user of users) {
+          await ProjectUser.delete(project.id, user.id);
+        }
+
+        // clear audit table
+        await Noco.ncMeta.knexConnection(MetaTable.AUDIT).delete();
 
         await Project.delete(project.id);
       })

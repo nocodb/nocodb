@@ -78,3 +78,41 @@ export enum ModelTypes {
   TABLE = 'table',
   VIEW = 'view',
 }
+
+export enum TiptapNodesTypes {
+  doc = 'doc',
+  sec = 'sec',
+  paragraph = 'paragraph',
+  text = 'text',
+  heading = 'heading',
+  bullet = 'bullet',
+  ordered = 'ordered',
+  task = 'task',
+  quote = 'quote',
+  divider = 'divider',
+  codeBlock = 'codeBlock',
+  image = 'image',
+  attachment = 'attachment',
+  infoCallout = 'infoCallout',
+  warningCallout = 'warningCallout',
+  tipCallout = 'tipCallout',
+  table = 'table',
+  tableRow = 'tableRow',
+  tableCell = 'tableCell',
+  embed = 'embed',
+  collapsable = 'collapsable',
+  collapsableContent = 'collapsable_content',
+  collapsableHeader = 'collapsable_header',
+  column = 'column',
+  columnContent = 'columnContent',
+  linkToPage = 'linkToPage',
+}
+
+export enum TiptapMarksTypes {
+  strike = 'strike',
+  bold = 'bold',
+  italic = 'italic',
+  link = 'link',
+  code = 'code',
+  underline = 'underline',
+}

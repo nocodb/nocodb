@@ -1,10 +1,20 @@
 import type { EditorView } from 'prosemirror-view'
-import { Decoration, DecorationSet } from 'prosemirror-view'
 import { NodeSelection, Plugin } from 'prosemirror-state'
+import { getPositionOfSection, removeUploadingPlaceHolderOnUndo } from '../helper'
 
 export type UploadFn = (image: File) => Promise<string>
 
-export const addImage = async (image: File, view: EditorView, upload: any, replacePrevNodePos?: number) => {
+export const addImage = async ({
+  file,
+  view,
+  uploadFn,
+  toBeInsertedPos,
+}: {
+  file: File
+  view: EditorView
+  uploadFn: any
+  toBeInsertedPos?: number
+}) => {
   const { schema } = view.state
   const id = Math.random().toString(36).substr(2, 9)
   const emptyNode = schema.nodes.image.create({
@@ -13,18 +23,18 @@ export const addImage = async (image: File, view: EditorView, upload: any, repla
     id,
   })
 
-  const pos = replacePrevNodePos ?? view.state.selection.from - 2
+  const pos = toBeInsertedPos ?? getPositionOfSection(view.state)
 
-  view.dispatch(view.state.tr.setSelection(NodeSelection.create(view.state.doc, pos)).replaceSelectionWith(emptyNode))
+  view.dispatch(view.state.tr.insert(pos, emptyNode))
 
-  const url = (await upload(image)) as string
+  const url = (await uploadFn(file)) as string
   const node = schema.nodes.image.create({
     src: url,
   })
 
   // traverse the document to find the uploading image node
   // and replace it with the uploaded image node
-  let uploadPos = 0
+  let uploadPos
   view.state.doc.descendants((node, pos) => {
     if (node.attrs.id === id && node.attrs.isUploading) {
       uploadPos = pos
@@ -33,35 +43,29 @@ export const addImage = async (image: File, view: EditorView, upload: any, repla
 
     return true
   })
+  if (uploadPos === undefined) return
 
   const transaction = view.state.tr.setSelection(NodeSelection.create(view.state.doc, uploadPos)).replaceSelectionWith(node)
   view.dispatch(transaction)
 }
 
-export const dropImagePlugin = (upload: UploadFn) => {
+export const dropImagePlugin = (uploadFn: UploadFn) => {
   return new Plugin({
-    commands: {
-      insertImage: (attrs: { src: string }) => (state: any, dispatch: any) => {
-        const { selection, schema } = state
-        const position = selection.$cursor ? selection.$cursor.pos : selection.$to.pos
-        const node = schema.nodes.image.create({
-          src: attrs.src,
-        })
-        const transaction = state.tr.insert(position, node)
-        dispatch(transaction)
-      },
+    appendTransaction: (transactions, _, newState) => {
+      return removeUploadingPlaceHolderOnUndo(newState, transactions[0])
     },
     props: {
       handlePaste(view, event) {
-        const items = Array.from(event.clipboardData?.items || [])
         event.preventDefault()
+
+        const items = Array.from(event.clipboardData?.items || [])
         let isImageAdded = false
 
         for (const item of items) {
-          const image = item.getAsFile()
-          if (!image || item.type.indexOf('image') !== 0) continue
+          const file = item.getAsFile()
+          if (!file || item.type.indexOf('image') !== 0) continue
 
-          addImage(image, view, upload)
+          addImage({ file, view, uploadFn })
           isImageAdded = true
         }
 
@@ -69,16 +73,23 @@ export const dropImagePlugin = (upload: UploadFn) => {
       },
       handleDOMEvents: {
         drop: (view, event) => {
-          const hasFiles = event.dataTransfer && event.dataTransfer.files && event.dataTransfer.files.length
+          const domsFromEventPoint = document.elementsFromPoint(event.clientX, event.clientY)
 
+          const sectionDom = domsFromEventPoint.find((dom) => dom.hasAttribute('tiptap-draghandle-wrapper'))
+          if (!sectionDom) return false
+
+          const currentSectionPos = Number(sectionDom.getAttribute('pos'))
+
+          const hasFiles = event.dataTransfer && event.dataTransfer.files && event.dataTransfer.files.length
           if (!hasFiles) return false
 
-          const images = Array.from(event.dataTransfer?.files ?? []).filter((file) => /image/i.test(file.type))
-          if (images.length === 0) return false
           event.preventDefault()
 
-          images.forEach(async (image) => {
-            addImage(image, view, upload)
+          const files = Array.from(event.dataTransfer?.files ?? []).filter((file) => /image/i.test(file.type))
+          if (files.length === 0) return false
+
+          files.forEach(async (file) => {
+            addImage({ file, view, uploadFn, toBeInsertedPos: currentSectionPos })
           })
 
           return true

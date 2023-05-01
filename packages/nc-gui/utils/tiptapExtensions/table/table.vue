@@ -29,8 +29,23 @@ const selectRow = () => {
 const createRow = () => {
   selectRow()
 
+  // Select the first cell of the last added row
   setTimeout(() => {
     addRowAfter(editor.state, editor.view.dispatch)
+
+    setTimeout(() => {
+      editor
+        .chain()
+        .command(({ state, commands }) => {
+          const tableNodePos = getPos()
+          const tableNode = state.doc.nodeAt(tableNodePos)!
+          const lastRowNode = tableNode.lastChild!
+          const lastRowNodePos = tableNodePos + tableNode.nodeSize - lastRowNode.nodeSize
+
+          return commands.setTextSelection(lastRowNodePos + 2)
+        })
+        .run()
+    }, 0)
   }, 0)
 }
 
@@ -59,8 +74,23 @@ const selectColumn = () => {
 const appendColumn = () => {
   selectColumn()
 
+  // Select the header cell of the first added column
   setTimeout(() => {
     addColumnAfter(editor.state, editor.view.dispatch)
+
+    const tableNode = editor.state.doc.nodeAt(getPos())!
+    const firstHeader = tableNode.firstChild!
+    const firstHeaderLastCell = firstHeader.lastChild!
+    const firstHeaderLastCellPos = getPos() + firstHeader.nodeSize - firstHeaderLastCell.nodeSize + 1
+
+    setTimeout(() => {
+      editor
+        .chain()
+        .command(({ commands }) => {
+          return commands.setTextSelection(firstHeaderLastCellPos)
+        })
+        .run()
+    }, 0)
   }, 0)
 }
 </script>
@@ -133,8 +163,10 @@ const appendColumn = () => {
     tr:first-child {
       td {
         border-top: 1px solid #e5e5e5 !important;
-        @apply font-semibold;
         background-color: #fafbfb;
+        p {
+          font-weight: 500;
+        }
       }
     }
 

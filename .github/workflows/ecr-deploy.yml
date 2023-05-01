@@ -47,7 +47,7 @@ jobs:
         npm install
         npm run build
         npm run docker:build
-        docker build --no-cache -t "${{ github.ref_name }}" -f ./Dockerfile .
+        docker build -t "${{ github.ref_name }}" -f ./Dockerfile .
 
     - name: push ecr
       uses: Deep-Consulting-Solutions/ecr-deploy-action@main

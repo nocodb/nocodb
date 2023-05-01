@@ -16,6 +16,7 @@ import { GlobalModule } from './modules/global/global.module';
 import { LocalStrategy } from './strategies/local.strategy';
 import { AuthTokenStrategy } from './strategies/authtoken.strategy/authtoken.strategy';
 import { BaseViewStrategy } from './strategies/base-view.strategy/base-view.strategy';
+import NcConfigFactory from './utils/NcConfigFactory'
 import NcUpgrader from './version-upgrader/NcUpgrader';
 import { MetasModule } from './modules/metas/metas.module';
 import NocoCache from './cache/NocoCache';
@@ -68,6 +69,9 @@ export class AppModule implements OnApplicationBootstrap {
     await NocoCache.init();
 
     await this.connection.init();
+
+    await NcConfigFactory.metaDbCreateIfNotExist(Noco.config);
+
     await this.metaService.init();
 
     // todo: remove

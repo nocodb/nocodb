@@ -83,6 +83,7 @@ extraEnvs:
 
 extraSecretEnvs:
   NC_AUTH_JWT_SECRET: secretString
+  NC_DB: "mysql2://mysql:3306?u=nocodb&p=secretPass&d=nocodb"
 
 storage:
   size: 3Gi
@@ -95,4 +96,14 @@ postgresql:
     username: nocodb
     password: secretPass
   persistence:
+    size: 8Gi
+
+mysql:
+  enabled: false
+  auth:
+    database: nocodb
+    username: nocodb
+    password: secretPass
+  persistence:
+    enabled: false
     size: 8Gi

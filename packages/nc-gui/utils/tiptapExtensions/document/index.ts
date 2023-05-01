@@ -90,6 +90,8 @@ export const Document = Node.create({
         appendTransaction(_, __, newState) {
           const { selection } = newState
 
+          if (!selection.empty) return null
+
           // If selection is type of TextSelection but the node is not text node
           // then select the nearest text node or select the node itself(NodeSelection)
           if (selection instanceof TextSelection && !selection.$from.node().isTextblock) {

@@ -5,7 +5,7 @@ import { TiptapNodesTypes } from 'nocodb-sdk'
 import { useShortcuts } from '../utils'
 import tiptapExtensions from '~~/utils/tiptapExtensions'
 import { removeUploadingPlaceHolderAndEmptyLinkNode } from '~~/utils/tiptapExtensions/helper'
-
+import { selectSectionsInTextSelection } from '~~/utils/tiptapExtensions/section/helper'
 const { project } = useProject()
 useShortcuts()
 
@@ -170,6 +170,57 @@ const handleOutsideTiptapDrag = (e: DragEvent, type: 'drop' | 'dragover' | 'drag
   editorDom.dispatchEvent(newEvent)
 }
 
+const selectionBox = ref<
+  { left: number; right: number; top: number; bottom: number; anchorLeft: number; anchorTop: number } | undefined
+>()
+
+watchDebounced(
+  selectionBox,
+  () => {
+    if (!selectionBox.value) return
+
+    const { left, right, top, bottom } = selectionBox.value
+    const prosemirrorSectionDoms = document.querySelectorAll('.ProseMirror .draggable-block-wrapper')
+
+    const viewportWidth = Math.max(document.documentElement.clientWidth || 0, window.innerWidth || 0)
+    const viewportHeight = Math.max(document.documentElement.clientHeight || 0, window.innerHeight || 0)
+
+    const domsInsideSelectionBox = Array.from(prosemirrorSectionDoms).filter((dom) => {
+      const domRect = dom.getBoundingClientRect()
+      const domLeft = domRect.left
+      const domTop = domRect.top
+      const selectionRight = viewportWidth - right
+      const selectionBottom = viewportHeight - bottom
+
+      const isDomLeftInside = domLeft > left && domLeft < selectionRight
+      const isDomRightInside = domLeft + domRect.width > left && domLeft + domRect.width < selectionRight
+      const isDomTopInside = domTop > top && domTop < selectionBottom
+      const isDomBottomInside = domTop + domRect.height > top && domTop + domRect.height < selectionBottom
+
+      const isInsideSelectionBox = (isDomLeftInside || isDomRightInside) && (isDomTopInside || isDomBottomInside)
+
+      return isInsideSelectionBox
+    })
+
+    if (domsInsideSelectionBox.length === 0) return
+
+    const firstPos = Number(domsInsideSelectionBox[0]?.getAttribute('pos'))
+    const lastPos = Number(domsInsideSelectionBox[domsInsideSelectionBox.length - 1]?.getAttribute('pos'))
+    const lastNode = editor.value?.state.doc.nodeAt(lastPos)
+
+    editor.value
+      ?.chain()
+      .focus()
+      .setTextSelection({ from: firstPos, to: lastPos + lastNode!.nodeSize - 1 })
+      .run()
+  },
+  {
+    deep: true,
+    debounce: 100,
+    maxWait: 200,
+  },
+)
+
 watch(wrapperRef, () => {
   if (!wrapperRef.value) return
   const wrapper = wrapperRef.value
@@ -180,6 +231,76 @@ watch(wrapperRef, () => {
   wrapper.addEventListener('dragover', (e) => handleOutsideTiptapDrag(e, 'dragover'))
 
   wrapper.addEventListener('drop', (e) => handleOutsideTiptapDrag(e, 'drop'))
+
+  // Listen to mousedown event
+  wrapper.addEventListener('mousedown', async (e) => {
+    const x = e.clientX
+    const y = e.clientY
+
+    const domsInEvent = document.elementsFromPoint(x, y)
+    if (selectionBox.value) return
+    if (domsInEvent.some((dom) => dom.classList.contains('ProseMirror'))) return
+
+    e.stopPropagation()
+    e.preventDefault()
+
+    editor.value?.chain().setTextSelection(editor.value.view.state.selection.from).run()
+    // await new Promise((resolve) => setTimeout(resolve, 100))
+
+    const viewportWidth = Math.max(document.documentElement.clientWidth || 0, window.innerWidth || 0)
+    const viewportHeight = Math.max(document.documentElement.clientHeight || 0, window.innerHeight || 0)
+
+    selectionBox.value = {
+      left: x,
+      right: viewportWidth - x,
+      top: y,
+      bottom: viewportHeight - y,
+      anchorLeft: x,
+      anchorTop: y,
+    }
+  })
+
+  // Listen to mousemove event
+  wrapper.addEventListener('mousemove', (e) => {
+    if (!selectionBox.value) return
+
+    e.stopPropagation()
+    e.preventDefault()
+
+    const x = e.clientX
+    const y = e.clientY
+
+    const viewportWidth = Math.max(document.documentElement.clientWidth || 0, window.innerWidth || 0)
+    const viewportHeight = Math.max(document.documentElement.clientHeight || 0, window.innerHeight || 0)
+
+    if (x < selectionBox.value.anchorLeft) {
+      selectionBox.value.left = x
+    } else {
+      selectionBox.value.right = viewportWidth - x
+    }
+
+    if (y < selectionBox.value.anchorTop) {
+      selectionBox.value.top = y
+    } else if (y !== selectionBox.value.top && viewportHeight - y !== selectionBox.value.bottom) {
+      selectionBox.value.bottom = viewportHeight - y
+    }
+  })
+
+  // Listen to mouseup event
+  wrapper.addEventListener('mouseup', (e) => {
+    if (!selectionBox.value) return
+
+    e.stopPropagation()
+    e.preventDefault()
+
+    selectionBox.value = undefined
+    const selection = editor.value?.state.selection
+    if (!selection) return
+
+    setTimeout(() => {
+      selectSectionsInTextSelection(editor.value!.state)
+    }, 0)
+  })
 })
 </script>
 
@@ -194,6 +315,16 @@ watch(wrapperRef, () => {
         'pt-1': !isPublic,
       }"
     >
+      <div
+        v-if="selectionBox"
+        class="fixed bg-primary-selected opacity-55 z-50"
+        :style="{
+          left: `${selectionBox?.left}px`,
+          top: `${selectionBox?.top}px`,
+          bottom: `${selectionBox?.bottom}px`,
+          right: `${selectionBox?.right}px`,
+        }"
+      ></div>
       <div
         class="flex flex-col w-full"
         :class="{
@@ -252,7 +383,13 @@ watch(wrapperRef, () => {
             <div class="flex !mb-4.5"></div>
 
             <DocsPageLinkToPageSearch v-if="editor" :editor="editor" />
-            <DocsPageSelectedBubbleMenu v-if="editor" :editor="editor" />
+            <DocsPageSelectedBubbleMenu
+              v-if="editor"
+              :editor="editor"
+              :class="{
+                hidden: selectionBox,
+              }"
+            />
             <DocsPageLinkOptions v-if="editor" :editor="editor" />
             <a-skeleton-input
               v-if="isPageFetching && !isPublic"

@@ -8,6 +8,7 @@ import { User } from '../../models';
 import Noco from '../../Noco';
 import NocoCache from '../../cache/NocoCache';
 import { CacheGetType } from '../../utils/globals';
+import { UsersService } from '../../services/users/users.service';
 import type { FactoryProvider } from '@nestjs/common/interfaces/modules/provider.interface';
 
 @Injectable()
@@ -15,8 +16,13 @@ export class OpenidStrategy extends PassportStrategy(
   OpenIDConnectStrategy,
   'openid',
 ) {
-  constructor(@Optional() clientConfig: any) {
-    super(clientConfig);
+  constructor(
+    @Optional() clientConfig: any,
+    private usersService: UsersService,
+  ) {
+    super(clientConfig, (_issuer, _subject, profile, done) =>
+      this.validate(_issuer, _subject, profile, done),
+    );
   }
 
   async validate(_issuer, _subject, profile, done) {
@@ -34,7 +40,7 @@ export class OpenidStrategy extends PassportStrategy(
         } else {
           // if user not found create new user
           const salt = await promisify(bcrypt.genSalt)(10);
-          await this.userService
+          await this.usersService
             .registerNewUserIfAllowed({
               email,
               password: '',
@@ -66,7 +72,8 @@ export class OpenidStrategy extends PassportStrategy(
 
 export const OpenidStrategyProvider: FactoryProvider = {
   provide: OpenidStrategy,
-  useFactory: async () => {
+  inject: [UsersService],
+  useFactory: async (usersService: UsersService) => {
     // OpenID Connect
     if (
       process.env.NC_OIDC_ISSUER &&
@@ -117,7 +124,7 @@ export const OpenidStrategyProvider: FactoryProvider = {
         },
       };
 
-      return new OpenidStrategy(clientConfig);
+      return new OpenidStrategy(clientConfig, usersService);
     }
     return null;
   },

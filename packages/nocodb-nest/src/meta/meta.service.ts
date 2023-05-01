@@ -69,6 +69,7 @@ export enum MetaTable {
   WORKSPACE_USER = 'workspace_user',
   FOLLOWER = 'nc_follower',
   COWRITER = 'cowriter',
+  NOTIFICATION = 'notification',
 }
 
 export const orderedMetaTables = [
@@ -265,7 +266,7 @@ export class MetaService {
     return insertObj;
   }
 
-  private genNanoid(target: string) {
+  public genNanoid(target: string) {
     let prefix;
     switch (target) {
       case MetaTable.PROJECT:

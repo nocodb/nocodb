@@ -1,7 +1,7 @@
+import { Injectable } from '@nestjs/common';
 import Noco from '../../../Noco';
 import Page from '../../../models/Page';
 
-import { Injectable } from '@nestjs/common';
 import type { DocsPageType, UserType } from 'nocodb-sdk';
 
 @Injectable()

@@ -16,6 +16,7 @@ export class PagedResponseImpl<T> {
       l?: number;
       o?: number;
     } = {},
+    additionalProps?: Record<string, any>,
   ) {
     const limit = Math.max(
       Math.min(args.limit || args.l || config.limitDefault, config.limitMax),
@@ -40,6 +41,8 @@ export class PagedResponseImpl<T> {
         this.pageInfo.page ===
         (Math.ceil(this.pageInfo.totalRows / this.pageInfo.pageSize) || 1);
     }
+
+    if (additionalProps) Object.assign(this, additionalProps);
   }
 
   list: Array<T>;

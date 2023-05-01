@@ -2553,6 +2553,171 @@ export interface WorkspaceUserListType {
   pageInfo?: PaginatedType;
 }
 
+export type NotificationType = {
+  /** Unique ID */
+  id?: IdType;
+  /** Whether the notification has been read by the user */
+  is_read?: boolean;
+  /** Whether the notification has been deleted by the user */
+  is_deleted?: boolean;
+  /** Type of notification */
+  type?: string;
+  updated_at?: any;
+  created_at?: any;
+} & (
+  | ProjectInviteEventType
+  | ProjectEventType
+  | WorkspaceInviteEventType
+  | TableEventType
+  | ViewEventType
+  | ColumnEventType
+  | WelcomeEventType
+  | SortEventType
+  | FilterEventType
+);
+
+/**
+ * Model for Notification List
+ */
+export interface NotificationListType {
+  /** List of notification objects */
+  list: NotificationType[];
+  /** Model for Paginated */
+  pageInfo: PaginatedType;
+}
+
+export interface NotificationUpdateType {
+  is_read?: boolean;
+}
+
+export interface ProjectInviteEventType {
+  /** The ID of the user who receives the project invite */
+  fk_user_id: string;
+  /** The type of event, which should be set to 'PROJECT_INVITE' */
+  type: string;
+  body: {
+    /** The ID of the project being invited to */
+    id: string;
+    /** The title of the project being invited to */
+    title: string;
+    /** The type of the project being invited to */
+    type: string;
+    /** The email address of the user who invited the recipient */
+    invited_by: string;
+    /** The ID of the workspace that the project being invited to belongs to */
+    workspace_id: string;
+  };
+}
+
+export interface ProjectEventType {
+  /** The ID of the user */
+  fk_user_id: string;
+  type: string;
+  body: {
+    /** The ID of the project */
+    id: string;
+    /** The title of the project */
+    title: string;
+    /** The type of the project */
+    type: string;
+    /** The ID of the workspace that the project belongs to */
+    workspace_id: string;
+  };
+}
+
+export interface WorkspaceInviteEventType {
+  /** The ID of the user who receives the workspace invite */
+  fk_user_id: string;
+  /** The type of event, which should be set to 'WORKSPACE_INVITE' */
+  type: string;
+  body: {
+    /** The ID of the workspace being invited to */
+    id: string;
+    /** The email address of the user who invited the recipient */
+    invited_by: string;
+    /** The title of the workspace being invited to */
+    title: string;
+  };
+}
+
+export interface WelcomeEventType {
+  /** The ID of the user receiving the welcome message */
+  fk_user_id: string;
+  /** The type of event, which should be set to 'WELCOME' */
+  type: string;
+  /** An empty object */
+  body: object;
+}
+
+export interface SortEventType {
+  /** The ID of the user who created sort */
+  fk_user_id: string;
+  type: string;
+  body: object;
+}
+
+export interface FilterEventType {
+  /** The ID of the user who created filter */
+  fk_user_id: string;
+  type: string;
+  body: object;
+}
+
+export interface TableEventType {
+  /** The ID of the user who triggered the event */
+  fk_user_id: string;
+  /** The type of the event */
+  type: string;
+  body: {
+    /** The title of the table associated with the event */
+    title: string;
+    /** The ID of the project that the table belongs to */
+    project_id: string;
+    /** The ID of the base that the table belongs to */
+    base_id: string;
+    /** The ID of the table associated with the event */
+    id: string;
+  };
+}
+
+export interface ViewEventType {
+  /** The ID of the user who triggered the event */
+  fk_user_id: string;
+  /** The type of the event */
+  type: string;
+  body: {
+    /** The title of the view associated with the event */
+    title: string;
+    /** The ID of the project that the view belongs to */
+    project_id: string;
+    /** The ID of the base that the view belongs to */
+    base_id: string;
+    /** The ID of the view associated with the event */
+    id: string;
+    /** The ID of the model that the view is based on */
+    fk_model_id: string;
+  };
+}
+
+export interface ColumnEventType {
+  /** The ID of the user who triggered the event */
+  fk_user_id: string;
+  /** The type of the event */
+  type: string;
+  body: {
+    /** The title of the column associated with the event */
+    title: string;
+    /** The ID of the project that the column belongs to */
+    project_id: string;
+    /** The ID of the base that the column belongs to */
+    base_id: string;
+    /** The ID of the column associated with the event */
+    id: string;
+    /** The ID of the model that the column belongs to */
+    fk_model_id: string;
+  };
+}
+
 import axios, { AxiosInstance, AxiosRequestConfig, ResponseType } from 'axios';
 
 export type QueryParamsType = Record<string | number, any>;
@@ -10617,6 +10782,86 @@ export class Api<
         path: `/api/v1/workspaces/${toWorkspaceId}/projects/${projectId}/move`,
         method: 'POST',
         format: 'json',
+        ...params,
+      }),
+  };
+  notification = {
+    /**
+     * @description Workspace user read
+     *
+     * @tags Notification
+     * @name List
+     * @summary Notification list
+     * @request GET:/api/v1/notifications
+     * @response `200` `NotificationListType` OK
+     */
+    list: (
+      query?: {
+        is_read?: boolean;
+        limit?: number;
+        offset?: number;
+      },
+      params: RequestParams = {}
+    ) =>
+      this.request<NotificationListType, any>({
+        path: `/api/v1/notifications`,
+        method: 'GET',
+        query: query,
+        format: 'json',
+        ...params,
+      }),
+
+    /**
+     * @description Notificattion update
+     *
+     * @tags Notification
+     * @name Update
+     * @summary Notification update
+     * @request PATCH:/api/v1/notifications/{notificationId}
+     * @response `200` `void` OK
+     */
+    update: (
+      notificationId: string,
+      data: NotificationUpdateType,
+      params: RequestParams = {}
+    ) =>
+      this.request<void, any>({
+        path: `/api/v1/notifications/${notificationId}`,
+        method: 'PATCH',
+        body: data,
+        type: ContentType.Json,
+        ...params,
+      }),
+
+    /**
+     * @description Delete workspace user
+     *
+     * @tags Notification
+     * @name Delete
+     * @summary Delete workspace user
+     * @request DELETE:/api/v1/notifications/{notificationId}
+     * @response `200` `void` OK
+     */
+    delete: (notificationId: string, params: RequestParams = {}) =>
+      this.request<void, any>({
+        path: `/api/v1/notifications/${notificationId}`,
+        method: 'DELETE',
+        ...params,
+      }),
+
+    /**
+     * @description Mark all notifications as read
+     *
+     * @tags Notification
+     * @name MarkAllAsRead
+     * @summary Mark all notifications as read
+     * @request POST:/api/v1/notifications/mark-all-read
+     * @response `200` `void` OK
+     */
+    markAllAsRead: (params: RequestParams = {}) =>
+      this.request<void, any>({
+        path: `/api/v1/notifications/mark-all-read`,
+        method: 'POST',
         ...params,
       }),
   };

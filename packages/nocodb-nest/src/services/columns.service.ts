@@ -1,5 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import {
+  AppEvents,
   AuditOperationSubTypes,
   AuditOperationTypes,
   isVirtualCol,
@@ -38,14 +39,16 @@ import {
 import Noco from '../Noco';
 import NcConnectionMgrv2 from '../utils/common/NcConnectionMgrv2';
 import { MetaTable } from '../utils/globals';
-import type { LinkToAnotherRecordColumn, Project } from '../models';
+import { AppHooksService } from './app-hooks/app-hooks.service';
 import type { MetaService } from '../meta/meta.service';
 import type SqlMgrv2 from '../db/sql-mgr/v2/SqlMgrv2';
+import type { LinkToAnotherRecordColumn, Project } from '../models';
 import type {
   ColumnReqType,
   LinkToAnotherColumnReqType,
   LinkToAnotherRecordType,
   RelationTypes,
+  UserType,
 } from 'nocodb-sdk';
 
 // todo: move
@@ -57,11 +60,14 @@ export enum Altered {
 
 @Injectable()
 export class ColumnsService {
+  constructor(private appHooksService: AppHooksService) {}
+
   async columnUpdate(param: {
     req?: any;
     columnId: string;
     column: ColumnReqType & { colOptions?: any };
     cookie?: any;
+    user: UserType;
   }) {
     const { cookie } = param;
     const column = await Column.get({ colId: param.columnId });
@@ -838,6 +844,11 @@ export class ColumnsService {
     await table.getColumns();
     T.emit('evt', { evt_type: 'column:updated' });
 
+    this.appHooksService.emit(AppEvents.TABLE_UPDATE, {
+      table,
+      user: param.user,
+    });
+
     return table;
   }
 
@@ -850,7 +861,12 @@ export class ColumnsService {
     return Model.updatePrimaryColumn(column.fk_model_id, column.id);
   }
 
-  async columnAdd(param: { req: any; tableId: string; column: ColumnReqType }) {
+  async columnAdd(param: {
+    req: any;
+    tableId: string;
+    column: ColumnReqType;
+    user: UserType;
+  }) {
     validatePayload('swagger.json#/components/schemas/ColumnReq', param.column);
 
     const table = await Model.getWithInfo({
@@ -1139,10 +1155,15 @@ export class ColumnsService {
 
     T.emit('evt', { evt_type: 'column:created' });
 
+    this.appHooksService.emit(AppEvents.TABLE_CREATE, {
+      table,
+      user: param.user,
+    });
+
     return table;
   }
 
-  async columnDelete(param: { req?: any; columnId: string }) {
+  async columnDelete(param: { req?: any; columnId: string; user: UserType }) {
     const column = await Column.get({ colId: param.columnId });
     const table = await Model.getWithInfo({
       id: column.fk_model_id,
@@ -1359,6 +1380,11 @@ export class ColumnsService {
     }
 
     T.emit('evt', { evt_type: 'column:deleted' });
+
+    this.appHooksService.emit(AppEvents.TABLE_DELETE, {
+      table,
+      user: param.user,
+    });
 
     return table;
   }

@@ -1,16 +1,19 @@
 import { Injectable } from '@nestjs/common';
+import { AppEvents, ProjectRoles, WorkspaceUserRoles } from 'nocodb-sdk';
 import WorkspaceUser from '../../models/WorkspaceUser';
-import { ProjectRoles, WorkspaceUserRoles } from 'nocodb-sdk';
 import { PagedResponseImpl } from '../../helpers/PagedResponse';
 import Workspace from '../../models/Workspace';
 import validateParams from '../../helpers/validateParams';
 import { NcError } from '../../helpers/catchError';
 import { Project, ProjectUser } from '../../models';
 import { parseMetaProp } from '../../utils/modelUtils';
-import type { WorkspaceType } from 'nocodb-sdk';
+import { AppHooksService } from '../../services/app-hooks/app-hooks.service';
+import type { UserType, WorkspaceType } from 'nocodb-sdk';
 
 @Injectable()
 export class WorkspacesService {
+  constructor(private appHooksService: AppHooksService) {}
+
   async list(param: {
     user: {
       id: string;
@@ -28,10 +31,7 @@ export class WorkspacesService {
 
   // TODO: Break the bulk creation logic into a separate api
   async create(param: {
-    user: {
-      id: string;
-      roles: string[];
-    };
+    user: UserType;
     workspaces: WorkspaceType | WorkspaceType[];
   }) {
     const workspacePayloads = Array.isArray(param.workspaces)
@@ -58,6 +58,11 @@ export class WorkspacesService {
         roles: WorkspaceUserRoles.OWNER,
       });
 
+      this.appHooksService.emit(AppEvents.WORKSPACE_CREATE, {
+        workspace,
+        user: param.user,
+      });
+
       workspaces.push(workspace);
     }
     return Array.isArray(param.workspaces) ? workspaces : workspaces[0];
@@ -78,17 +83,20 @@ export class WorkspacesService {
   }
 
   async update(param: {
-    user: {
-      id: string;
-      roles: string[];
-    };
+    user: UserType;
     workspaceId: string;
     workspace: WorkspaceType;
   }) {
     const { workspace, user, workspaceId } = param;
+
+    const existingWorkspace = await Workspace.get(param.workspaceId);
+
+    if (!existingWorkspace) NcError.badRequest('Workspace not found');
+
     // todo: allow order update for all user
     //       and block rest of the options
     if ('order' in workspace) {
+      existingWorkspace.order = workspace.order;
       await WorkspaceUser.update(workspaceId, user.id, {
         order: workspace.order,
       });
@@ -100,22 +108,34 @@ export class WorkspacesService {
 
     const updatedWorkspace = await Workspace.update(workspaceId, workspace);
 
+    this.appHooksService.emit(AppEvents.WORKSPACE_UPDATE, {
+      workspace: {
+        ...existingWorkspace,
+        ...workspace,
+      },
+      user: param.user,
+    });
+
     return updatedWorkspace;
   }
 
-  async delete(param: {
-    user: {
-      id: string;
-      roles: string[];
-    };
-    workspaceId: string;
-  }) {
+  async delete(param: { user: UserType; workspaceId: string }) {
+    const workspace = await Workspace.get(param.workspaceId);
+
+    if (!workspace) NcError.badRequest('Workspace not found');
+
     // todo: avoid removing owner
 
     // block unauthorized user form deleting
 
     // todo: unlink any project linked
     await Workspace.delete(param.workspaceId);
+
+    this.appHooksService.emit(AppEvents.WORKSPACE_DELETE, {
+      workspace,
+      user: param.user,
+    });
+
     return true;
   }
 

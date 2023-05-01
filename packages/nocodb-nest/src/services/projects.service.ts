@@ -3,7 +3,7 @@ import { Injectable } from '@nestjs/common';
 import * as DOMPurify from 'isomorphic-dompurify';
 import { customAlphabet } from 'nanoid';
 import { T } from 'nc-help';
-import { OrgUserRoles } from 'nocodb-sdk';
+import { AppEvents, OrgUserRoles } from 'nocodb-sdk';
 import { populateMeta, validatePayload } from '../helpers';
 import { NcError } from '../helpers/catchError';
 import { extractPropsAndSanitize } from '../helpers/extractProps';
@@ -12,13 +12,19 @@ import { Project, ProjectUser } from '../models';
 import Noco from '../Noco';
 import extractRolesObj from '../utils/extractRolesObj';
 import NcConfigFactory from '../utils/NcConfigFactory';
-import type { ProjectUpdateReqType } from 'nocodb-sdk';
-import type { ProjectReqType } from 'nocodb-sdk';
+import { AppHooksService } from './app-hooks/app-hooks.service';
+import type {
+  ProjectReqType,
+  ProjectUpdateReqType,
+  UserType,
+} from 'nocodb-sdk';
 
 const nanoid = customAlphabet('1234567890abcdefghijklmnopqrstuvwxyz_', 4);
 
 @Injectable()
 export class ProjectsService {
+  constructor(private appEvents: AppHooksService) {}
+
   async projectList(param: {
     user: { id: string; roles: Record<string, boolean> };
     query?: any;
@@ -48,6 +54,7 @@ export class ProjectsService {
   async projectUpdate(param: {
     projectId: string;
     project: ProjectUpdateReqType;
+    user: UserType;
   }) {
     validatePayload(
       'swagger.json#/components/schemas/ProjectUpdateReq',
@@ -72,12 +79,29 @@ export class ProjectsService {
     const result = await Project.update(param.projectId, data);
     T.emit('evt', { evt_type: 'project:update' });
 
+    this.appEvents.emit(AppEvents.PROJECT_UPDATE, {
+      user: param.user,
+      project,
+    });
+
     return result;
   }
 
-  async projectSoftDelete(param: { projectId: any }) {
+  async projectSoftDelete(param: { projectId: any; user: UserType }) {
+    const project = await Project.get(param.projectId);
+
+    if (!project) {
+      NcError.badRequest('Project not found');
+    }
+
     await Project.softDelete(param.projectId);
     T.emit('evt', { evt_type: 'project:deleted' });
+
+    this.appEvents.emit(AppEvents.PROJECT_DELETE, {
+      user: param.user,
+      project,
+    });
+
     return true;
   }
 
@@ -177,6 +201,11 @@ export class ProjectsService {
     });
 
     T.emit('evt', { evt_type: 'project:rest' });
+
+    this.appEvents.emit(AppEvents.PROJECT_CREATE, {
+      user: param.user,
+      project,
+    });
 
     return project;
   }

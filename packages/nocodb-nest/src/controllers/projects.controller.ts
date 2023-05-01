@@ -11,16 +11,11 @@ import {
   Request,
   UseGuards,
 } from '@nestjs/common';
-import { AuthGuard } from '@nestjs/passport';
 import isDocker from 'is-docker';
 import { ProjectReqType } from 'nocodb-sdk';
 import { GlobalGuard } from '../guards/global/global.guard';
 import { PagedResponseImpl } from '../helpers/PagedResponse';
-import {
-  ExtractProjectIdMiddleware,
-  UseAclMiddleware,
-  UseProjectIdMiddleware,
-} from '../middlewares/extract-project-id/extract-project-id.middleware';
+import { UseAclMiddleware } from '../middlewares/extract-project-id/extract-project-id.middleware';
 import Noco from '../Noco';
 import { packageVersion } from '../utils/packageVersion';
 import { ProjectsService } from '../services/projects.service';
@@ -74,19 +69,22 @@ export class ProjectsController {
   async projectUpdate(
     @Param('projectId') projectId: string,
     @Body() body: Record<string, any>,
+    @Request() req,
   ) {
     const project = await this.projectsService.projectUpdate({
       projectId,
       project: body,
+      user: req.user,
     });
 
     return project;
   }
 
   @Delete('/api/v1/db/meta/projects/:projectId')
-  async projectDelete(@Param('projectId') projectId: string) {
+  async projectDelete(@Param('projectId') projectId: string, @Request() req) {
     const deleted = await this.projectsService.projectSoftDelete({
       projectId,
+      user: req.user,
     });
 
     return deleted;

@@ -11,11 +11,11 @@ import {
 import Noco from '../Noco';
 import { extractProps } from '../helpers/extractProps';
 import { NcError } from '../helpers/catchError';
+import NcConnectionMgrv2 from '../utils/common/NcConnectionMgrv2';
 import Model from './Model';
 import Project from './Project';
 import SyncSource from './SyncSource';
 import type { BaseType, BoolType } from 'nocodb-sdk';
-import NcConnectionMgrv2 from "../utils/common/NcConnectionMgrv2";
 
 export const DB_TYPES = <const>[
   'mysql2',

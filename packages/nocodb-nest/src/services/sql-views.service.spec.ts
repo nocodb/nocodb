@@ -1,5 +1,6 @@
-import { Test, TestingModule } from '@nestjs/testing';
+import { Test } from '@nestjs/testing';
 import { SqlViewsService } from './sql-views.service';
+import type { TestingModule } from '@nestjs/testing';
 
 describe('SqlViewsService', () => {
   let service: SqlViewsService;

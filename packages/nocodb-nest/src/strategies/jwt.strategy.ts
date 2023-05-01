@@ -1,4 +1,4 @@
-import { Injectable, } from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
 import { PassportStrategy } from '@nestjs/passport';
 import { Strategy } from 'passport-jwt';
 import { OrgUserRoles } from 'nocodb-sdk';
@@ -77,9 +77,7 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
     return {
       ...user,
       roles: extractRolesObj(
-        [user.roles, workspaceRoles, projectRoles]
-        .filter(Boolean)
-        .join(',')
+        [user.roles, workspaceRoles, projectRoles].filter(Boolean).join(','),
       ),
     };
   }

@@ -6,6 +6,7 @@ import {
   Param,
   Patch,
   Post,
+  Req,
   UseGuards,
 } from '@nestjs/common';
 import { ViewCreateReqType } from 'nocodb-sdk';
@@ -36,10 +37,12 @@ export class KanbansController {
   async kanbanViewCreate(
     @Param('tableId') tableId: string,
     @Body() body: ViewCreateReqType,
+    @Req() req: any,
   ) {
     return await this.kanbansService.kanbanViewCreate({
       tableId,
       kanban: body,
+      user: req.user,
     });
   }
 

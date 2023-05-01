@@ -6,6 +6,7 @@ import {
   Param,
   Patch,
   Post,
+  Req,
   UseGuards,
 } from '@nestjs/common';
 import { AuthGuard } from '@nestjs/passport';
@@ -79,10 +80,15 @@ export class WorkspaceUsersController {
   @UseAclMiddleware({
     permissionName: 'workspaceInvite',
   })
-  async invite(@Param('workspaceId') workspaceId: string, @Body() body: any) {
+  async invite(
+    @Param('workspaceId') workspaceId: string,
+    @Body() body: any,
+    @Req() req,
+  ) {
     return await this.workspaceUsersService.invite({
       workspaceId,
       body,
+      invitedBy: req.user,
     });
   }
 

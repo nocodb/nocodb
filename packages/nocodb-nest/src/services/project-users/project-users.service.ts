@@ -1,5 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import {
+  AppEvents,
   AuditOperationSubTypes,
   AuditOperationTypes,
   OrgUserRoles,
@@ -15,14 +16,17 @@ import { NcError } from '../../helpers/catchError';
 import NcPluginMgrv2 from '../../helpers/NcPluginMgrv2';
 import { PagedResponseImpl } from '../../helpers/PagedResponse';
 import { randomTokenString } from '../../helpers/stringHelpers';
-import { Audit, ProjectUser, User } from '../../models';
+import { Audit, Project, ProjectUser, User } from '../../models';
 
 import Noco from '../../Noco';
 import { CacheGetType, CacheScope, MetaTable } from '../../utils/globals';
+import { AppHooksService } from '../app-hooks/app-hooks.service';
 import type { ProjectUserReqType } from 'nocodb-sdk';
 
 @Injectable()
 export class ProjectUsersService {
+  constructor(private appHooksService: AppHooksService) {}
+
   async userList(param: { projectId: string; query: any }) {
     return new PagedResponseImpl(
       await ProjectUser.getUsersList({
@@ -70,6 +74,13 @@ export class ProjectUsersService {
       if (user) {
         // check if this user has been added to this project
         const projectUser = await ProjectUser.get(param.projectId, user.id);
+
+        const project = await Project.get(param.projectId);
+
+        if (!project) {
+          return NcError.badRequest('Invalid project id');
+        }
+
         if (projectUser) {
           NcError.badRequest(
             `${user.email} with role ${projectUser.roles} already exists in this project`,
@@ -80,6 +91,12 @@ export class ProjectUsersService {
           project_id: param.projectId,
           fk_user_id: user.id,
           roles: param.projectUser.roles || 'editor',
+        });
+
+        this.appHooksService.emit(AppEvents.PROJECT_INVITE, {
+          project,
+          user,
+          invitedBy: param.req.user,
         });
 
         const cachedUser = await NocoCache.get(

@@ -119,6 +119,6 @@ export const OpenidStrategyProvider: FactoryProvider = {
 
       return new OpenidStrategy(clientConfig);
     }
-    return null
+    return null;
   },
 };

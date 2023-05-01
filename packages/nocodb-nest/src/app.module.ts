@@ -27,6 +27,7 @@ import type {
   MiddlewareConsumer,
   OnApplicationBootstrap,
 } from '@nestjs/common';
+
 @Module({
   imports: [
     GlobalModule,
@@ -35,6 +36,8 @@ import type {
     MetasModule,
     DatasModule,
     TestModule,
+
+    // todo:combine and move to meta module
     WorkspacesModule,
     WorkspaceUsersModule,
     DocsModule,

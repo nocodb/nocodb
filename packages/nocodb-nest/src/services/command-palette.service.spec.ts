@@ -1,5 +1,6 @@
-import { Test, TestingModule } from '@nestjs/testing';
+import { Test } from '@nestjs/testing';
 import { CommandPaletteService } from './command-palette.service';
+import type { TestingModule } from '@nestjs/testing';
 
 describe('CommandPaletteService', () => {
   let service: CommandPaletteService;

@@ -7,6 +7,7 @@ import {
   Param,
   Patch,
   Post,
+  Req,
   UseGuards,
 } from '@nestjs/common';
 import { AuthGuard } from '@nestjs/passport';
@@ -42,10 +43,15 @@ export class SortsController {
   @UseAclMiddleware({
     permissionName: 'sortCreate',
   })
-  async sortCreate(@Param('viewId') viewId: string, @Body() body: SortReqType) {
+  async sortCreate(
+    @Param('viewId') viewId: string,
+    @Body() body: SortReqType,
+    @Req() req,
+  ) {
     const sort = await this.sortsService.sortCreate({
       sort: body,
       viewId,
+      user: req.user,
     });
     return sort;
   }
@@ -65,18 +71,24 @@ export class SortsController {
   @UseAclMiddleware({
     permissionName: 'sortUpdate',
   })
-  async sortUpdate(@Param('sortId') sortId: string, @Body() body: SortReqType) {
+  async sortUpdate(
+    @Param('sortId') sortId: string,
+    @Body() body: SortReqType,
+    @Req() req,
+  ) {
     const sort = await this.sortsService.sortUpdate({
       sortId,
       sort: body,
+      user: req.user,
     });
     return sort;
   }
 
   @Delete('/api/v1/db/meta/sorts/:sortId')
-  async sortDelete(@Param('sortId') sortId: string) {
+  async sortDelete(@Param('sortId') sortId: string, @Req() req) {
     const sort = await this.sortsService.sortDelete({
       sortId,
+      user: req.user,
     });
     return sort;
   }

@@ -3,12 +3,16 @@ import { NestFactory } from '@nestjs/core';
 import clear from 'clear';
 import * as express from 'express';
 import NcToolGui from 'nc-lib-gui';
+import { ExpressAdapter } from '@nestjs/platform-express';
+import { IoAdapter } from '@nestjs/platform-socket.io';
 import { AppModule } from './app.module';
 
 import { NC_LICENSE_KEY } from './constants';
 import Store from './models/Store';
 import type { Express } from 'express';
-import type * as http from 'http';
+// import type * as http from 'http';
+
+import type http from 'http';
 
 export default class Noco {
   private static _this: Noco;
@@ -92,13 +96,20 @@ export default class Noco {
   }
 
   static async init(param: any, httpServer: http.Server, server: Express) {
-    this._httpServer = httpServer;
+    const nestApp = await NestFactory.create(
+      AppModule,
+      // new ExpressAdapter(server),
+    );
+
+    nestApp.useWebSocketAdapter(new IoAdapter(httpServer));
+
+    this._httpServer = nestApp.getHttpAdapter().getInstance();
     this._server = server;
 
-    const nestApp = await NestFactory.create(AppModule);
     nestApp.use(
       express.json({ limit: process.env.NC_REQUEST_BODY_SIZE || '50mb' }),
     );
+
     await nestApp.init();
 
     const dashboardPath = process.env.NC_DASHBOARD_URL || '/dashboard';

@@ -14,8 +14,6 @@ jobs:
   deploy:
     name: Deploy
     runs-on: ubuntu-latest
-    env:
-      working-directory: ./packages/nocodb
 
     steps:
     - name: Checkout
@@ -33,15 +31,23 @@ jobs:
     - name: Build nocodb and docker files
       shell: bash
       run: |
+        export NODE_OPTIONS="--max_old_space_size=16384"
+        targetEnv=PROD targetVersion=0.106.1 node scripts/bumpNocodbSdkVersion.js
+        cd packages/nocodb-sdk
+        npm install && npm run build
         cd ../..
+        targetEnv=PROD node scripts/upgradeNocodbSdk.js && 
+        targetEnv=PROD targetVersion=0.106.1 node scripts/bumpNcGuiVersion.js &&
+        cd packages/nc-gui
         npm install
-        npm run install:common
-        npm run build:common
+        targetEnv=PROD targetVersion=0.106.1 npm run build:copy
+        cd ../..
+        targetEnv=PROD node scripts/upgradeNcGui.js
         cd packages/nocodb
+        npm install
         npm run build
         npm run docker:build
         docker build --no-cache -t "${{ github.ref_name }}" -f ./Dockerfile .
-      working-directory: ${{ env.working-directory }}
 
     - name: push ecr
       uses: Deep-Consulting-Solutions/ecr-deploy-action@main

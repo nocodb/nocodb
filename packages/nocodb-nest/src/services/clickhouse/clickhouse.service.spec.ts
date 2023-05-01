@@ -1,5 +1,6 @@
-import { Test, TestingModule } from '@nestjs/testing';
+import { Test } from '@nestjs/testing';
 import { ClickhouseService } from './clickhouse.service';
+import type { TestingModule } from '@nestjs/testing';
 
 describe('ClickhouseService', () => {
   let service: ClickhouseService;

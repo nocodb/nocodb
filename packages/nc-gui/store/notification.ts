@@ -6,11 +6,10 @@ import { useApi } from '#imports'
 
 export const useNotification = defineStore('notificationStore', () => {
   const notifications = ref<NotificationType[]>([])
-  // const readNotifications = ref<NotificationType[]>([])
+  const isOpened = ref(false)
 
   const pageInfo = ref()
   const unreadCount = ref(0)
-  // const readPageInfo = ref()
 
   const isRead = ref(false)
 
@@ -30,6 +29,7 @@ export const useNotification = defineStore('notificationStore', () => {
       notifications.value = [data, ...notifications.value]
       pageInfo.value.totalRows += 1
       unreadCount.value += 1
+      isOpened.value = false
     })
 
     socket.emit('subscribe', {})
@@ -45,23 +45,18 @@ export const useNotification = defineStore('notificationStore', () => {
   )
 
   const loadNotifications = async (loadMore = false) => {
-    // todo: pagination
     const response = await api.notification.list({
       is_read: isRead.value,
       limit: 10,
       offset: loadMore ? notifications.value.length : 0,
     })
+
     if (loadMore) {
-      // if (isRead.value) readNotifications.value = [...readNotifications.value, ...response.list]
-      // else
       notifications.value = [...notifications.value, ...response.list]
     } else {
-      // if (isRead.value) readNotifications.value = response.list
-      // else
       notifications.value = response.list
     }
-    // if (isRead.value) readPageInfo.value = response.pageInfo
-    // else
+
     pageInfo.value = response.pageInfo
     unreadCount.value = (response as any).unreadCount
   }
@@ -84,6 +79,10 @@ export const useNotification = defineStore('notificationStore', () => {
     await loadNotifications()
   }
 
+  const markAsOpened = async () => {
+    isOpened.value = true
+  }
+
   return {
     notifications,
     loadNotifications,
@@ -92,8 +91,8 @@ export const useNotification = defineStore('notificationStore', () => {
     pageInfo,
     markAsRead,
     markAllAsRead,
-    // readNotifications,
-    // readPageInfo,
     unreadCount,
+    isOpened,
+    markAsOpened,
   }
 })

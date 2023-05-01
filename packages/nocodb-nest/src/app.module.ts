@@ -23,13 +23,12 @@ import { WorkspaceUsersModule } from './modules/workspace-users/workspace-users.
 import { DocsModule } from './modules/docs/docs.module';
 import { PublicDocsModule } from './modules/public-docs/public-docs.module';
 import NocoCache from './cache/NocoCache';
+import { ClickhouseModule } from './modules/clickhouse.module';
+import { ClickhouseService } from './services/clickhouse/clickhouse.service';
 import type {
   MiddlewareConsumer,
   OnApplicationBootstrap,
 } from '@nestjs/common';
-import { ClickhouseModule } from './modules/clickhouse.module';
-import { ClickhouseService } from './services/clickhouse/clickhouse.service';
-
 
 @Module({
   imports: [

@@ -81,7 +81,7 @@ import { WorkspaceUsersModule } from '../workspace-users/workspace-users.module'
 import { DocsModule } from '../docs/docs.module';
 import { PublicDocsModule } from '../public-docs/public-docs.module';
 import { NotificationsGateway } from '../../gateways/notifications/notifications.gateway';
-import {ClickhouseService} from "../../services/clickhouse/clickhouse.service";
+import { ClickhouseService } from '../../services/clickhouse/clickhouse.service';
 
 @Module({
   imports: [

@@ -71,7 +71,7 @@ export default {
           </div>
 
           <div v-if="!isPublic" class="flex items-center">
-            <NotificationMenu class="mr-2"/>
+            <NotificationMenu class="mr-2" />
           </div>
 
           <a-dropdown v-if="!isPublic" :trigger="['click']" overlay-class-name="nc-dropdown-user-accounts-menu">

@@ -1,9 +1,8 @@
 <script lang="ts" setup>
 import { storeToRefs } from 'pinia'
 import { computed } from '@vue/reactivity'
-import { useNotification } from '#imports'
-
 import InfiniteLoading from 'v3-infinite-loading'
+import { useNotification } from '#imports'
 
 const notificationStore = useNotification()
 
@@ -44,29 +43,15 @@ const groupType = computed({
         </span>
         <div class="flex-grow"></div>
         <div
-            v-if="!isRead && notifications?.length"
-            class="cursor-pointer text-xs text-gray-500 hover:text-primary"
-            @click.stop="notificationStore.markAllAsRead"
+          v-if="!isRead && notifications?.length"
+          class="cursor-pointer text-xs text-gray-500 hover:text-primary"
+          @click.stop="notificationStore.markAllAsRead"
         >
           Mark all as read
         </div>
-<!--        <GeneralIcon class="cursor-pointer !text-16px" icon="settings" />-->
       </div>
     </div>
     <a-divider class="!my-0" />
-
-    <!--    <a-tabs v-model:activeKey="groupType"> -->
-    <!--      <a-tab-pane key="unread" tab="Unread"> -->
-    <!--        <span /> -->
-    <!--      </a-tab-pane> -->
-    <!--      <a-tab-pane key="read" tab="Read"> <span /></a-tab-pane> -->
-
-    <!--      <template #rightExtra> -->
-<!--    <div class="flex px-3">-->
-
-<!--    </div>-->
-    <!--      </template> -->
-    <!--    </a-tabs> -->
 
     <div
       class="overflow-y-auto max-h-[max(60vh,500px)] min-h-100"
@@ -87,8 +72,10 @@ const groupType = computed({
           <a-divider class="!my-0" />
         </template>
 
-
-        <InfiniteLoading v-if="notifications && pageInfo && pageInfo.totalRows > notifications.length" @infinite="notificationStore.loadNotifications(true)">
+        <InfiniteLoading
+          v-if="notifications && pageInfo && pageInfo.totalRows > notifications.length"
+          @infinite="notificationStore.loadNotifications(true)"
+        >
           <template #spinner>
             <div class="flex flex-row w-full justify-center mt-2">
               <a-spin />
@@ -98,9 +85,7 @@ const groupType = computed({
             <span></span>
           </template>
         </InfiniteLoading>
-
       </template>
-
     </div>
   </div>
 </template>

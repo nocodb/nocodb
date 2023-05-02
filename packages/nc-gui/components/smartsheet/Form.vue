@@ -100,8 +100,6 @@ const activeRow = ref('')
 
 const editEnabled = ref<boolean[]>([])
 
-const isHeaderContentSet = ref(false);
-
 const { t } = useI18n()
 
 const { betaFeatureToggleState } = useBetaFeatureToggle()
@@ -388,22 +386,6 @@ watch(view, (nextView) => {
     reloadEventHook.trigger()
   }
 })
-
-function selectAll(event: KeyboardEvent) {
-  if (event.target instanceof Node) {
-    if (event.metaKey && event.key === "a") {
-      const userAgent = navigator.userAgent;
-      if (/Macintosh/.test(userAgent)) {
-        window.getSelection()?.selectAllChildren(event.target)
-        event.preventDefault()
-      }
-    } else if (event.ctrlKey && event.key === "a") {
-      window.getSelection()?.selectAllChildren(event.target)
-      event.preventDefault()
-    }
-  }
-}
-
 </script>
 
 <template>
@@ -550,26 +532,18 @@ function selectAll(event: KeyboardEvent) {
             <!-- Header -->
             <div v-if="isEditable" class="px-4 lg:px-12">
               <a-form-item v-if="isEditable">
-                <div
-                  class="nc-form-heading input w-full !font-bold !text-4xl !border-0 !border-b-1 !border-dashed !rounded-none !border-gray-400"
-                  role="textbox"
-                  contenteditable="true"
-                  :style="{ borderRightWidth: '0px !important' }"
+                <a-textarea
+                  v-model:value="formViewData.heading"
+                  class="w-full !font-bold !text-4xl !border-0 !border-b-1 !border-dashed !rounded-none !border-gray-400"
+                  :style="{ borderRightWidth: '0px !important', 'height': '54px', 'min-height': '54px', resize: 'vertical' }"
+                  size="large"
+                  hide-details
+                  placeholder="Form Title"
+                  :bordered="false"
                   data-testid="nc-form-heading"
-                  @keydown="selectAll"
-                  @focus="isHeaderContentSet = false"
                   @blur="updateView"
-                  @keydown.enter.prevent="updateView"
-                >
-                  <span
-                    v-if="!isHeaderContentSet"
-                    class="placeholder"
-                    :style="{ color: '#A9A9A9' }"
-                  >
-                    Form Title
-                  </span>
-                  <span v-else>{{  formViewData.heading  }}</span>
-              </div>
+                  @keydown.enter="updateView"
+                />
               </a-form-item>
             </div>
             <div v-else class="px-4 ml-3 w-full text-bold text-4xl">{{ formViewData.heading }}</div>
@@ -577,10 +551,10 @@ function selectAll(event: KeyboardEvent) {
             <!-- Sub Header -->
             <div v-if="isEditable" class="px-4 lg:px-12">
               <a-form-item>
-                <a-input
+                <a-textarea
                   v-model:value="formViewData.subheading"
                   class="w-full !border-0 !border-b-1 !border-dashed !rounded-none !border-gray-400"
-                  :style="{ borderRightWidth: '0px !important' }"
+                  :style="{ borderRightWidth: '0px !important', height: '40px', 'min-height': '40px', resize: 'vertical' }"
                   size="large"
                   hide-details
                   :placeholder="$t('msg.info.formDesc')"
@@ -909,4 +883,3 @@ function selectAll(event: KeyboardEvent) {
   }
 }
 </style>
-

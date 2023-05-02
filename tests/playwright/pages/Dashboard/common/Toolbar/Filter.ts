@@ -56,7 +56,7 @@ export class ToolbarFilterPage extends BasePage {
   }) {
     if (!openModal) await this.get().locator(`button:has-text("Add Filter")`).first().click();
 
-    const selectedField = await this.rootPage.locator('.nc-filter-field-select').textContent();
+    const selectedField = await getTextExcludeIconText(await this.rootPage.locator('.nc-filter-field-select'));
     if (selectedField !== title) {
       await this.rootPage.locator('.nc-filter-field-select').last().click();
       await this.rootPage
@@ -65,7 +65,7 @@ export class ToolbarFilterPage extends BasePage {
         .click();
     }
 
-    const selectedOpType = await this.rootPage.locator('.nc-filter-operation-select').textContent();
+    const selectedOpType = await getTextExcludeIconText(await this.rootPage.locator('.nc-filter-operation-select'));
     if (selectedOpType !== operation) {
       await this.rootPage.locator('.nc-filter-operation-select').click();
       // first() : filter list has >, >=
@@ -78,7 +78,9 @@ export class ToolbarFilterPage extends BasePage {
 
     // subtype for date
     if (dataType === UITypes.Date && subOperation) {
-      const selectedSubType = await this.rootPage.locator('.nc-filter-sub_operation-select').textContent();
+      const selectedSubType = await getTextExcludeIconText(
+        await this.rootPage.locator('.nc-filter-sub_operation-select')
+      );
       if (selectedSubType !== subOperation) {
         await this.rootPage.locator('.nc-filter-sub_operation-select').click();
         // first() : filter list has >, >=
@@ -195,6 +197,18 @@ export class ToolbarFilterPage extends BasePage {
       await this.get().locator('.nc-filter-item-remove-btn').click();
     }
     await this.toolbar.clickFilter();
+  }
+
+  async remove({ networkValidation = true }: { networkValidation?: boolean } = {}) {
+    if (networkValidation) {
+      await this.waitForResponse({
+        uiAction: () => this.get().locator('.nc-filter-item-remove-btn').click(),
+        httpMethodsToMatch: ['DELETE'],
+        requestUrlPathToMatch: '/api/v1/db/meta/filters/',
+      });
+    } else {
+      await this.get().locator('.nc-filter-item-remove-btn').click();
+    }
   }
 
   async columnOperatorList(param: { columnTitle: string }) {

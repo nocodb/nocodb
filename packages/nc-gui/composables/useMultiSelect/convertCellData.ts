@@ -47,7 +47,8 @@ export default function convertCellData(
       }
       if (isXcdbBase) {
         if (isMysql) {
-          return parsedDateTime.format('YYYY-MM-DD HH:mm:ss')
+          // UTC + 'Z'
+          return parsedDateTime.format('YYYY-MM-DD HH:mm:ss') + 'Z'
         } else if (isMssql) {
           return parsedDateTime.format('YYYY-MM-DD HH:mm:ssZ')
         } else {

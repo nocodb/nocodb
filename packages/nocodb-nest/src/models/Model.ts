@@ -437,6 +437,8 @@ export default class Model implements TableType {
     clientMeta = {
       isMySQL: false,
       isSqlite: false,
+      isMssql: false,
+      isPg: false,
     },
   ) {
     const insertObj = {};
@@ -452,7 +454,7 @@ export default class Model implements TableType {
           val = JSON.stringify(val);
         }
         if (col.uidt === UITypes.DateTime && dayjs(val).isValid()) {
-          const { isMySQL, isSqlite } = clientMeta;
+          const { isMySQL, isSqlite, isMssql, isPg } = clientMeta;
           if (base.is_meta) {
             const d = new Date(val);
             if (isMySQL) {
@@ -478,7 +480,7 @@ export default class Model implements TableType {
                 .utc(val)
                 .utcOffset(d.getTimezoneOffset(), keepLocalTime)
                 .format('YYYY-MM-DD HH:mm:ss');
-            } else {
+            } else if (isPg) {
               let keepLocalTime = false;
               if (val.slice(-1) === 'Z' || val.slice(-6) === '+00:00') {
                 // from UI
@@ -488,6 +490,19 @@ export default class Model implements TableType {
                 .utc(val)
                 .utcOffset(d.getTimezoneOffset(), keepLocalTime)
                 .format('YYYY-MM-DD HH:mm:ssZ');
+            } else if (isMssql) {
+              if (val.slice(-1) === 'Z' || val.slice(-6) === '+00:00') {
+                // from UI
+                val = dayjs
+                  .utc(val)
+                  .utcOffset(d.getTimezoneOffset(), false)
+                  .format('YYYY-MM-DD HH:mm:ssZ');
+              } else {
+                val = dayjs
+                  .utc(val)
+                  .utcOffset(d.getTimezoneOffset() * -1, true)
+                  .format('YYYY-MM-DD HH:mm:ssZ');
+              }
             }
           } else {
             // TODO(timezone): keep ext db as it is

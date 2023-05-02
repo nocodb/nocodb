@@ -8,20 +8,6 @@ module.exports = {
   entry: './docker/index.js',
   module: {
     rules: [
-      // {
-      //   test: /\.tsx?$/,
-      //   exclude: /node_modules/,
-      //   use: [
-      //     {
-      //       loader: 'ts-loader',
-      //       options: {
-      //         transpileOnly : false,
-      //         happyPackMode : false,
-      //         configFile:"tsconfig.json"
-      //       }
-      //     }
-      //   ]
-      // },
     ],
   },
   resolve: {
@@ -44,16 +30,6 @@ module.exports = {
     new webpack.EnvironmentPlugin([
       'EE'
     ]),
-    // new JavaScriptObfuscator({
-    //   rotateStringArray: true,
-    //   splitStrings: true,
-    //   splitStringsChunkLength: 6
-    // }, []),
-    // new CopyPlugin({
-    //   patterns: [
-    //    "src/**/*.ejs"
-    //   ],
-    // })
   ],
   target: 'node',
   node: {

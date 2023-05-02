@@ -33,6 +33,7 @@ import PhSparkleFill from '~icons/ph/sparkle-fill'
 import MdiDatabaseSearch from '~icons/mdi/database-search'
 import MdiMagicStaff from '~icons/mdi/magic-staff'
 import PhCaretDoubleLeftThin from '~icons/ph/caret-double-left-light'
+import NcNotification from '~icons/ph/bell-simple-thin'
 
 // keep it for reference
 // todo: remove it after all icons are migrated
@@ -183,6 +184,7 @@ import PhCaretDoubleLeftThin from '~icons/ph/caret-double-left-light'
 
 export const iconMap = {
   info: h('span', { class: 'material-symbols-outlined' }, 'info'),
+  inbox: h('span', { class: 'material-symbols-outlined' }, 'inbox'),
   loading: h('span', { class: 'material-symbols-outlined' }, 'autorenew'),
   arrowCollapse: h('span', { class: 'material-symbols-outlined' }, 'keyboard_arrow_up'),
   markerAlert: h('span', { class: 'material-symbols-outlined' }, 'warning'),
@@ -335,6 +337,7 @@ export const iconMap = {
   magic: PhSparkleFill,
   magic1: MdiMagicStaff,
   workspace: h('span', { class: 'material-symbols-outlined' }, 'dataset'),
+  notification: NcNotification,
 }
 
 export const getMdiIcon = (type: string): any => {

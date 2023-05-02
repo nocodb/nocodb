@@ -69,7 +69,7 @@ jobs:
         working-directory: ./packages/nc-gui
         run: npm run ci:run
       - name: Run backend
-        working-directory: ./packages/nocodb
+        working-directory: ./packages/nocodb-nest
         run: |
           npm install
           npm run watch:run:playwright > ${{ inputs.db }}_${{ inputs.shard }}_test_backend.log &
@@ -109,13 +109,13 @@ jobs:
       # Quick tests (pg on sqlite shard 0 and sqlite on sqlite shard 1)
       - name: Run quick server and tests (pg)
         if: ${{ inputs.db == 'sqlite' && inputs.shard == '1' }}
-        working-directory: ./packages/nocodb
+        working-directory: ./packages/nocodb-nest
         run: |
           kill -9 $(lsof -t -i:8080)
           npm run watch:run:playwright:pg:cyquick &
       - name: Run quick server and tests (sqlite)
         if: ${{ inputs.db == 'sqlite' && inputs.shard == '2' }}
-        working-directory: ./packages/nocodb
+        working-directory: ./packages/nocodb-nest
         run: |
           kill -9 $(lsof -t -i:8080)
           npm run watch:run:playwright:quick > quick_${{ inputs.shard }}_test_backend.log &
@@ -132,7 +132,7 @@ jobs:
         if: ${{ inputs.db == 'sqlite' }}
         with:
           name: quick-backend-log-${{ inputs.shard }}
-          path: ./packages/nocodb/quick_${{ inputs.shard }}_test_backend.log
+          path: ./packages/nocodb-nest/quick_${{ inputs.shard }}_test_backend.log
           retention-days: 2
       - uses: actions/upload-artifact@v3
         if: ${{ inputs.db == 'sqlite' }}
@@ -157,5 +157,5 @@ jobs:
         if: always()
         with:
           name: backend-logs-${{ inputs.db }}-${{ inputs.shard }}
-          path: ./packages/nocodb/${{ inputs.db }}_${{ inputs.shard }}_test_backend.log
+          path: ./packages/nocodb-nest/${{ inputs.db }}_${{ inputs.shard }}_test_backend.log
           retention-days: 2

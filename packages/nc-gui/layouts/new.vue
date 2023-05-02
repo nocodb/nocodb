@@ -71,8 +71,7 @@ export default {
           </div>
 
           <div v-if="!isPublic" class="flex items-center">
-            <MdiBellOutline class="text-xl h-4" data-testid="nc-notification-bell-icon" />
-            <!-- <MaterialSymbolsKeyboardArrowDownRounded /> -->
+            <NotificationMenu class="mr-2" data-testid="nc-notification-bell-icon" />
           </div>
 
           <a-dropdown v-if="!isPublic" :trigger="['click']" overlay-class-name="nc-dropdown-user-accounts-menu">

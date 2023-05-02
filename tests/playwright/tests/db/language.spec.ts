@@ -58,7 +58,7 @@ test.describe('Common', () => {
     // Index is the order in which menu options appear
     for (let i = 1; i < langMenu.length; i++) {
       // scripts/playwright/tests/language.spec.ts
-      const json = require(`../../../packages/nc-gui/lang/${langMenu[i]}`);
+      const json = require(`../../../../packages/nc-gui/lang/${langMenu[i]}`);
       await projectsPage.openLanguageMenu();
       await projectsPage.selectLanguage({ index: i });
       await projectsPage.verifyLanguage({ json });

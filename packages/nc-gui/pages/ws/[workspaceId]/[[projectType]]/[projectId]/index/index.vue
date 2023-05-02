@@ -87,8 +87,8 @@ function onEdit(targetKey: number, action: 'add' | 'remove' | string) {
 
         <LazyGeneralShareBaseButton class="mb-1px" />
         <LazyGeneralFullScreen class="nc-fullscreen-icon mb-1px" />
-      </div> -->
-
+      </div>
+       -->
       <div class="w-full min-h-[300px] flex-auto">
         <NuxtPage />
       </div>

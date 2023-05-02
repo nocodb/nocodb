@@ -8,7 +8,7 @@ import ncMetaAclMw from '../../meta/helpers/ncMetaAclMw';
 import { Audit, User } from '../../models';
 import Noco from '../../Noco';
 import { userService } from '../../services';
-import { setTokenCookie } from '../../services/user/helpers';
+import { setTokenCookie } from '../../services/user';
 import type { Request } from 'express';
 
 export async function signup(req: Request<any, any>, res): Promise<any> {

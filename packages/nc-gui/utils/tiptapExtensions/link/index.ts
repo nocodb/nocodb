@@ -113,24 +113,29 @@ export const Link = ({ isPublic }: { isPublic?: boolean }) =>
           // Put cursor at the end of the link when we add a link
           //
           appendTransaction: (transactions, _, newState) => {
-            if (transactions.length !== 1) return null
-            const steps = transactions[0].steps
-            if (steps.length !== 1) return null
+            try {
+              if (transactions.length !== 1) return null
+              const steps = transactions[0].steps
+              if (steps.length !== 1) return null
 
-            const step: Step = steps[0] as Step
-            const stepJson = step.toJSON()
-            // Ignore we are not adding a mark(i.e link, bold, etc)
-            if (stepJson.stepType !== 'addMark') return null
+              const step: Step = steps[0] as Step
+              const stepJson = step.toJSON()
+              // Ignore we are not adding a mark(i.e link, bold, etc)
+              if (stepJson.stepType !== 'addMark') return null
 
-            const addMarkStep: AddMarkStep = step as AddMarkStep
-            if (!addMarkStep) return null
+              const addMarkStep: AddMarkStep = step as AddMarkStep
+              if (!addMarkStep) return null
 
-            if (addMarkStep.from === addMarkStep.to) return null
+              if (addMarkStep.from === addMarkStep.to) return null
 
-            if (addMarkStep.mark.type.name !== TiptapMarksTypes.link) return null
+              if (addMarkStep.mark.type.name !== TiptapMarksTypes.link) return null
 
-            const { tr } = newState
-            return tr.setSelection(new TextSelection(tr.doc.resolve(addMarkStep.to)))
+              const { tr } = newState
+              return tr.setSelection(new TextSelection(tr.doc.resolve(addMarkStep.to)))
+            } catch (e) {
+              console.error(e)
+              return null
+            }
           },
         }),
       ]

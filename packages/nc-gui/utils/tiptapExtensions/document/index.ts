@@ -88,36 +88,41 @@ export const Document = Node.create({
     return [
       new Plugin({
         appendTransaction(_, __, newState) {
-          const { selection } = newState
+          try {
+            const { selection } = newState
 
-          if (!selection.empty) return null
+            if (!selection.empty) return null
 
-          // If selection is type of TextSelection but the node is not text node
-          // then select the nearest text node or select the node itself(NodeSelection)
-          if (selection instanceof TextSelection && !selection.$from.node().isTextblock) {
-            const nextSectionPos = getPositionOfNextSection(newState)
-            if (!nextSectionPos) return null
+            // If selection is type of TextSelection but the node is not text node
+            // then select the nearest text node or select the node itself(NodeSelection)
+            if (selection instanceof TextSelection && !selection.$from.node().isTextblock) {
+              const nextSectionPos = getPositionOfNextSection(newState)
+              if (!nextSectionPos) return null
 
-            let childTextNodePos = -1
-            newState.doc.nodesBetween(selection.$from.pos, nextSectionPos, (node, pos) => {
-              if (node.isTextblock && childTextNodePos === -1) {
-                childTextNodePos = pos
-                return false
-              }
+              let childTextNodePos = -1
+              newState.doc.nodesBetween(selection.$from.pos, nextSectionPos, (node, pos) => {
+                if (node.isTextblock && childTextNodePos === -1) {
+                  childTextNodePos = pos
+                  return false
+                }
 
-              return true
-            })
+                return true
+              })
 
-            if (childTextNodePos !== -1) return newState.tr.setSelection(TextSelection.create(newState.doc, childTextNodePos))
+              if (childTextNodePos !== -1) return newState.tr.setSelection(TextSelection.create(newState.doc, childTextNodePos))
 
-            const nextNodeSelection = selection.$from.pos
-            const nextNode = newState.doc.nodeAt(nextNodeSelection)
-            if (!nextNode) return null
+              const nextNodeSelection = selection.$from.pos
+              const nextNode = newState.doc.nodeAt(nextNodeSelection)
+              if (!nextNode) return null
 
-            return newState.tr.setSelection(NodeSelection.create(newState.doc, selection.from))
+              return newState.tr.setSelection(NodeSelection.create(newState.doc, selection.from))
+            }
+
+            return null
+          } catch (error) {
+            console.error(error)
+            return null
           }
-
-          return null
         },
       }),
     ]

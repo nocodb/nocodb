@@ -65,42 +65,47 @@ export const ColumnNode = Node.create({
         // Automatically remove column toggle if its a single column
         // And insert the sections inside the column instead
         appendTransaction: (__, _, state) => {
-          let columnWithOneContentPos = -1
-          state.doc.descendants((node, pos) => {
-            if (nodeTypesContainingSection.includes(node.type.name as TiptapNodesTypes)) {
-              if (node.type.name === TiptapNodesTypes.column) {
-                if (node.content.childCount === 1) {
-                  columnWithOneContentPos = pos
+          try {
+            let columnWithOneContentPos = -1
+            state.doc.descendants((node, pos) => {
+              if (nodeTypesContainingSection.includes(node.type.name as TiptapNodesTypes)) {
+                if (node.type.name === TiptapNodesTypes.column) {
+                  if (node.content.childCount === 1) {
+                    columnWithOneContentPos = pos
+                  }
+                  return false
                 }
-                return false
+
+                return true
               }
+            })
+            if (columnWithOneContentPos === -1) return null
 
-              return true
+            const columnNode = state.doc.nodeAt(columnWithOneContentPos)
+            if (!columnNode) return null
+
+            const sectionPos = getPositionOfSection(state, columnWithOneContentPos)
+            const sectionNode = state.doc.nodeAt(sectionPos)
+            if (!sectionNode) return null
+
+            const columnNodeJson = columnNode.toJSON()
+            const newSliceJson = {
+              content: <any>[],
             }
-          })
-          if (columnWithOneContentPos === -1) return null
-
-          const columnNode = state.doc.nodeAt(columnWithOneContentPos)
-          if (!columnNode) return null
-
-          const sectionPos = getPositionOfSection(state, columnWithOneContentPos)
-          const sectionNode = state.doc.nodeAt(sectionPos)
-          if (!sectionNode) return null
-
-          const columnNodeJson = columnNode.toJSON()
-          const newSliceJson = {
-            content: <any>[],
-          }
-          for (const columnSectionNode of columnNodeJson.content) {
-            for (const sectionNode of columnSectionNode.content) {
-              newSliceJson.content.push(sectionNode)
+            for (const columnSectionNode of columnNodeJson.content) {
+              for (const sectionNode of columnSectionNode.content) {
+                newSliceJson.content.push(sectionNode)
+              }
             }
-          }
 
-          return state.tr
-            .setSelection(NodeSelection.create(state.doc, sectionPos))
-            .deleteSelection()
-            .insert(sectionPos, Slice.fromJSON(state.schema, newSliceJson).content)
+            return state.tr
+              .setSelection(NodeSelection.create(state.doc, sectionPos))
+              .deleteSelection()
+              .insert(sectionPos, Slice.fromJSON(state.schema, newSliceJson).content)
+          } catch (error) {
+            console.error(error)
+            return null
+          }
         },
       }),
     ]

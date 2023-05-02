@@ -34,7 +34,7 @@ export const LinkToPage = Node.create({
   },
 
   renderHTML({ HTMLAttributes, node }) {
-    return ['div', mergeAttributes(HTMLAttributes, { 'data-type': 'link-to-page', 'data-page-id': node.attrs.pageId }), 0]
+    return ['div', mergeAttributes(HTMLAttributes, { 'data-type': 'link-to-page', 'data-page-id': node.attrs.pageId })]
   },
 
   addNodeView() {
@@ -95,25 +95,30 @@ export const LinkToPage = Node.create({
       new Plugin({
         // Remove empty link-to-page node in page except the one in the selection
         appendTransaction: (_, __, state) => {
-          const emptyPageLinkNodePositions: number[] = []
-          state.doc.descendants((node, pos) => {
-            if (node.type.name === TiptapNodesTypes.linkToPage && !node.attrs.pageId && pos !== state.selection.from) {
-              emptyPageLinkNodePositions.push(pos)
-            }
+          try {
+            const emptyPageLinkNodePositions: number[] = []
+            state.doc.descendants((node, pos) => {
+              if (node.type.name === TiptapNodesTypes.linkToPage && !node.attrs.pageId && pos !== state.selection.from) {
+                emptyPageLinkNodePositions.push(pos)
+              }
 
-            if (nodeTypesContainingSection.includes(node.type.name as TiptapNodesTypes)) {
-              return true
-            }
+              if (nodeTypesContainingSection.includes(node.type.name as TiptapNodesTypes)) {
+                return true
+              }
 
-            return false
-          })
+              return false
+            })
 
-          const tr = state.tr
-          emptyPageLinkNodePositions.forEach((pos) => {
-            tr.delete(pos, pos + 1)
-          })
+            const tr = state.tr
+            emptyPageLinkNodePositions.forEach((pos) => {
+              tr.delete(pos, pos + 1)
+            })
 
-          return emptyPageLinkNodePositions.length === 0 ? null : tr
+            return emptyPageLinkNodePositions.length === 0 ? null : tr
+          } catch (e) {
+            console.error(e)
+            return null
+          }
         },
       }),
     ]

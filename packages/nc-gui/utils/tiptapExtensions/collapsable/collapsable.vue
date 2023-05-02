@@ -41,12 +41,14 @@ const headerChildNode = computed(() => {
   return headerNode?.content?.firstChild
 })
 
-const contentChildCount = computed(() => {
+const contentChildCount = ref(1)
+
+editor.on('update', () => {
   const currentNode = editor.state.doc.nodeAt(nodePos.value)
   if (!currentNode) return undefined
 
   // -1 because of the header node (first child)
-  return currentNode.childCount - 1
+  contentChildCount.value = currentNode.childCount - 1
 })
 </script>
 

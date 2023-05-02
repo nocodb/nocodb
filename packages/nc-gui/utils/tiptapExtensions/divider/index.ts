@@ -24,6 +24,7 @@ export const Divider = HorizontalTiptapRule.extend({
       },
       'Backspace': () => {
         const state = this.editor.state
+        if (!state.selection.empty) return false
 
         const prevSecPos = getPositionOfPreviousSection(state)
         if (

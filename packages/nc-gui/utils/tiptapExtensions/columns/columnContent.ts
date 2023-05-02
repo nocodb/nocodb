@@ -83,36 +83,41 @@ export const ColumnContentNode = Node.create({
     return [
       new Plugin({
         appendTransaction: (transactions, _, newState) => {
-          if (transactions.length !== 1) return null
+          try {
+            if (transactions.length !== 1) return null
 
-          const transaction = transactions[0]
-          if (transaction.steps.length !== 1) return null
+            const transaction = transactions[0]
+            if (transaction.steps.length !== 1) return null
 
-          const step = transaction.steps[0]
-          const stepJson = step.toJSON()
-          if (!stepJson.slice || stepJson.stepType !== 'replace') return null
+            const step = transaction.steps[0]
+            const stepJson = step.toJSON()
+            if (!stepJson.slice || stepJson.stepType !== 'replace') return null
 
-          const sectionPos = getPositionOfSection(newState)
-          const section = newState.doc.nodeAt(sectionPos)
-          const columnContent = newState.doc.resolve(sectionPos).parent
-          if (columnContent?.type.name !== TiptapNodesTypes.columnContent) return null
+            const sectionPos = getPositionOfSection(newState)
+            const section = newState.doc.nodeAt(sectionPos)
+            const columnContent = newState.doc.resolve(sectionPos).parent
+            if (columnContent?.type.name !== TiptapNodesTypes.columnContent) return null
 
-          const sectionPosIndex = newState.doc.resolve(sectionPos).index()
+            const sectionPosIndex = newState.doc.resolve(sectionPos).index()
 
-          if (sectionPosIndex !== columnContent.childCount - 1) return null
+            if (sectionPosIndex !== columnContent.childCount - 1) return null
 
-          const endOfCurrentSectionPos = sectionPos + section!.nodeSize - 1
+            const endOfCurrentSectionPos = sectionPos + section!.nodeSize - 1
 
-          const fragment = Slice.fromJSON(newState.schema, {
-            type: TiptapNodesTypes.sec,
-            content: [
-              {
-                type: TiptapNodesTypes.paragraph,
-              },
-            ],
-          }).content
+            const fragment = Slice.fromJSON(newState.schema, {
+              type: TiptapNodesTypes.sec,
+              content: [
+                {
+                  type: TiptapNodesTypes.paragraph,
+                },
+              ],
+            }).content
 
-          return newState.tr.insert(endOfCurrentSectionPos, fragment)
+            return newState.tr.insert(endOfCurrentSectionPos, fragment)
+          } catch (error) {
+            console.error(error)
+            return null
+          }
         },
       }),
     ]

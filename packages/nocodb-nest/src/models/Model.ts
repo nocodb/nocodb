@@ -454,12 +454,21 @@ export default class Model implements TableType {
         if (col.uidt === UITypes.DateTime && dayjs(val).isValid()) {
           const { isMySQL, isSqlite } = clientMeta;
           if (base.is_meta) {
+            const d = new Date(val);
             if (isMySQL) {
               val = dayjs(val)?.format('YYYY-MM-DD HH:mm:ss');
             } else if (isSqlite) {
               val = dayjs(val).utc().format('YYYY-MM-DD HH:mm:ss');
             } else {
-              val = dayjs(val).utc().format('YYYY-MM-DD HH:mm:ssZ');
+              let keepLocalTime = false;
+              if (val.slice(-1) === 'Z') {
+                // from UI
+                keepLocalTime = true;
+              }
+              val = dayjs
+                .utc(val)
+                .utcOffset(d.getTimezoneOffset(), keepLocalTime)
+                .format('YYYY-MM-DD HH:mm:ssZ');
             }
           } else {
             // TODO(timezone): keep ext db as it is

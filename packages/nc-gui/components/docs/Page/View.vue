@@ -21,7 +21,8 @@ const {
 
 const { updatePage, nestedUrl, openPage } = useDocStore()
 
-const wrapperRef = ref<HTMLDivElement | undefined>()
+const pageWrapperDomRef = ref<HTMLDivElement | undefined>()
+const pageContentDomRef = ref<HTMLDivElement | undefined>()
 
 const selectionBox = ref<
   { left: number; right: number; top: number; bottom: number; anchorLeft: number; anchorTop: number } | undefined
@@ -173,9 +174,9 @@ const handleOutsideTiptapDrag = (e: DragEvent, type: 'drop' | 'dragover' | 'drag
   editorDom.dispatchEvent(newEvent)
 }
 
-watch(wrapperRef, () => {
-  if (!wrapperRef.value) return
-  const wrapper = wrapperRef.value
+watch(pageWrapperDomRef, () => {
+  if (!pageWrapperDomRef.value) return
+  const wrapper = pageWrapperDomRef.value
 
   // Move all drag events to tiptap
   wrapper.addEventListener('dragend', (e) => handleOutsideTiptapDrag(e, 'dragend'))
@@ -205,7 +206,7 @@ watch(wrapperRef, () => {
 <template>
   <a-layout-content>
     <div
-      ref="wrapperRef"
+      ref="pageWrapperDomRef"
       data-testid="docs-opened-page"
       class="nc-docs-page h-full flex flex-row relative"
       :class="{
@@ -213,13 +214,6 @@ watch(wrapperRef, () => {
         'pt-1': !isPublic,
       }"
     >
-      <DocsPageMutliSectionSelector
-        v-if="isEditAllowed && editor && wrapperRef"
-        :editor="editor"
-        :wrapper-ref="wrapperRef"
-        :selection-box="selectionBox"
-        @update:selection-box="selectionBox = $event"
-      />
       <div
         class="flex flex-col w-full"
         :class="{
@@ -259,7 +253,15 @@ watch(wrapperRef, () => {
           </div>
           <div v-if="!isPublic" class="flex flex-row items-center"></div>
         </div>
-        <div class="nc-docs-page-content">
+        <div ref="pageContentDomRef" class="nc-docs-page-content relative">
+          <DocsPageMutliSectionSelector
+            v-if="isEditAllowed && editor && pageWrapperDomRef && pageContentDomRef"
+            :editor="editor"
+            :selection-box="selectionBox"
+            :page-wrapper-dom-ref="pageWrapperDomRef"
+            :page-content-dom-ref="pageContentDomRef"
+            @update:selection-box="selectionBox = $event"
+          />
           <div
             :key="openedPageId ?? ''"
             class="mx-auto pr-6 pt-16 flex flex-col"
@@ -334,7 +336,7 @@ watch(wrapperRef, () => {
         'top-1': !isPublic,
       }"
     >
-      <DocsPageOutline v-if="openedPage && wrapperRef" :key="openedPage.id" :wrapper-ref="wrapperRef" />
+      <DocsPageOutline v-if="openedPage && pageWrapperDomRef" :key="openedPage.id" :wrapper-ref="pageWrapperDomRef" />
     </div>
   </a-layout-content>
 </template>

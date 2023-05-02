@@ -13,7 +13,7 @@ const isMouseOverSection = ref(false)
 const dragDomRef = ref<HTMLDivElement | undefined>()
 const isDragging = ref(false)
 
-const pos = computed(() => getPos())
+const pos = ref(getPos())
 
 const parentNode = computed(() => {
   try {
@@ -123,6 +123,10 @@ watch(dragDomRef, () => {
   dragDomRef.value.addEventListener('mouseout', () => {
     isMouseOverSection.value = false
   })
+})
+
+editor.on('update', () => {
+  pos.value = getPos()
 })
 </script>
 

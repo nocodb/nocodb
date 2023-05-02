@@ -100,13 +100,11 @@ export default class FormViewColumn implements FormColumnType {
     await NocoCache.set(`${CacheScope.FORM_VIEW_COLUMN}:${fk_column_id}`, id);
 
     // if cache is not present skip pushing it into the list to avoid unexpected behaviour
-    if (
-      (
-        await NocoCache.getList(CacheScope.FORM_VIEW_COLUMN, [
-          column.fk_view_id,
-        ])
-      )?.length
-    )
+    const { list } = await NocoCache.getList(CacheScope.FORM_VIEW_COLUMN, [
+      column.fk_view_id,
+    ]);
+
+    if (list?.length)
       await NocoCache.appendToList(
         CacheScope.FORM_VIEW_COLUMN,
         [column.fk_view_id],
@@ -119,10 +117,12 @@ export default class FormViewColumn implements FormColumnType {
     viewId: string,
     ncMeta = Noco.ncMeta,
   ): Promise<FormViewColumn[]> {
-    let viewColumns = await NocoCache.getList(CacheScope.FORM_VIEW_COLUMN, [
+    const cachedList = await NocoCache.getList(CacheScope.FORM_VIEW_COLUMN, [
       viewId,
     ]);
-    if (!viewColumns.length) {
+    let { list: viewColumns } = cachedList;
+    const { isNoneList } = cachedList;
+    if (!isNoneList && !viewColumns.length) {
       viewColumns = await ncMeta.metaList2(
         null,
         null,

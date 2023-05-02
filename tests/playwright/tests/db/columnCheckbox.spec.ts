@@ -94,15 +94,6 @@ test.describe('Checkbox - cell, filter, sort', () => {
     // close 'Team & Auth' tab
     await dashboard.closeTab({ title: 'Team & Auth' });
 
-    // await dashboard.treeView.createTable({ title: 'Sheet1' });
-    //
-    // await dashboard.grid.addNewRow({ index: 0, value: '1a' });
-    // await dashboard.grid.addNewRow({ index: 1, value: '1b' });
-    // await dashboard.grid.addNewRow({ index: 2, value: '1c' });
-    // await dashboard.grid.addNewRow({ index: 3, value: '1d' });
-    // await dashboard.grid.addNewRow({ index: 4, value: '1e' });
-    // await dashboard.grid.addNewRow({ index: 5, value: '1f' });
-
     await dashboard.treeView.openTable({ title: 'Sheet-1' });
 
     // Create Checkbox column

@@ -85,8 +85,12 @@ export default class Hook implements HookType {
     },
     ncMeta = Noco.ncMeta,
   ) {
-    let hooks = await NocoCache.getList(CacheScope.HOOK, [param.fk_model_id]);
-    if (!hooks.length) {
+    const cachedList = await NocoCache.getList(CacheScope.HOOK, [
+      param.fk_model_id,
+    ]);
+    let { list: hooks } = cachedList;
+    const { isNoneList } = cachedList;
+    if (!isNoneList && !hooks.length) {
       hooks = await ncMeta.metaList(null, null, MetaTable.HOOKS, {
         condition: {
           fk_model_id: param.fk_model_id,

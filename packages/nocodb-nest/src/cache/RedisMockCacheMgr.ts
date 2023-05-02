@@ -114,7 +114,13 @@ export default class RedisMockCacheMgr extends CacheMgr {
     );
   }
 
-  async getList(scope: string, subKeys: string[]): Promise<any[]> {
+  async getList(
+    scope: string,
+    subKeys: string[],
+  ): Promise<{
+    list: any[];
+    isNoneList: boolean;
+  }> {
     // remove null from arrays
     subKeys = subKeys.filter((k) => k);
     // e.g. key = nc:<orgs>:<scope>:<project_id_1>:<base_id_1>:list
@@ -125,9 +131,21 @@ export default class RedisMockCacheMgr extends CacheMgr {
     // e.g. arr = ["nc:<orgs>:<scope>:<model_id_1>", "nc:<orgs>:<scope>:<model_id_2>"]
     const arr = (await this.get(key, CacheGetType.TYPE_ARRAY)) || [];
     log(`RedisMockCacheMgr::getList: getting list with key ${key}`);
-    return Promise.all(
-      arr.map(async (k) => await this.get(k, CacheGetType.TYPE_OBJECT)),
-    );
+    const isNoneList = arr.length && arr[0] === 'NONE';
+
+    if (isNoneList) {
+      return Promise.resolve({
+        list: [],
+        isNoneList,
+      });
+    }
+
+    return {
+      list: await Promise.all(
+        arr.map(async (k) => await this.get(k, CacheGetType.TYPE_OBJECT)),
+      ),
+      isNoneList,
+    };
   }
 
   async setList(
@@ -144,10 +162,8 @@ export default class RedisMockCacheMgr extends CacheMgr {
         ? `${this.prefix}:${scope}:list`
         : `${this.prefix}:${scope}:${subListKeys.join(':')}:list`;
     if (!list.length) {
-      log(
-        `RedisMockCacheMgr::setList: List is empty for ${listKey}. Skipping ...`,
-      );
-      return Promise.resolve(true);
+      // Set NONE here so that it won't hit the DB on each page load
+      return this.set(listKey, ['NONE']);
     }
     // fetch existing list
     const listOfGetKeys =
@@ -227,7 +243,11 @@ export default class RedisMockCacheMgr extends CacheMgr {
         ? `${this.prefix}:${scope}:list`
         : `${this.prefix}:${scope}:${subListKeys.join(':')}:list`;
     log(`RedisMockCacheMgr::appendToList: append key ${key} to ${listKey}`);
-    const list = (await this.get(listKey, CacheGetType.TYPE_ARRAY)) || [];
+    let list = (await this.get(listKey, CacheGetType.TYPE_ARRAY)) || [];
+    if (list.length && list[0] === 'NONE') {
+      list = [];
+      await this.del(listKey);
+    }
     list.push(key);
     return this.set(listKey, list);
   }

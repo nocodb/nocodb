@@ -5,7 +5,7 @@ import makeServer from '../../setup/server';
 import { WebhookFormPage } from '../../pages/Dashboard/WebhookForm';
 import { isSubset } from '../utils/general';
 import { Api, UITypes } from 'nocodb-sdk';
-import { isHub, isMysql, isSqlite } from '../../setup/db';
+import { isHub, isMysql, isPg, isSqlite } from '../../setup/db';
 
 const hookPath = 'http://localhost:9090/hook';
 let api: Api<any>;
@@ -297,7 +297,7 @@ test.describe.serial('Webhook', () => {
   });
 
   test('webhook Conditional webhooks', async ({ request }) => {
-    // test.slow();
+    test.slow();
 
     await clearServerData({ request });
     // close 'Team & Auth' tab

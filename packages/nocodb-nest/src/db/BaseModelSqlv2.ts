@@ -1943,8 +1943,8 @@ class BaseModelSqlv2 {
   public get clientMeta() {
     return {
       isSqlite: this.isSqlite,
-      // isMssql: this.isMssql,
-      // isPg: this.isPg,
+      isMssql: this.isMssql,
+      isPg: this.isPg,
       isMySQL: this.isMySQL,
       // isSnowflake: this.isSnowflake,
     };

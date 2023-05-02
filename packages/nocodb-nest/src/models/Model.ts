@@ -466,7 +466,15 @@ export default class Model implements TableType {
                   .format('YYYY-MM-DD HH:mm:ss');
               }
             } else if (isSqlite) {
-              val = dayjs(val).utc().format('YYYY-MM-DD HH:mm:ss');
+              let keepLocalTime = false;
+              if (val.slice(-1) === 'Z') {
+                // from UI
+                keepLocalTime = true;
+              }
+              val = dayjs
+                .utc(val)
+                .utcOffset(d.getTimezoneOffset(), keepLocalTime)
+                .format('YYYY-MM-DD HH:mm:ss');
             } else {
               let keepLocalTime = false;
               if (val.slice(-1) === 'Z') {

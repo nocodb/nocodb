@@ -50,7 +50,7 @@ export default function convertCellData(
           // UTC + 'Z'
           return parsedDateTime.format('YYYY-MM-DD HH:mm:ss') + 'Z'
         } else if (isMssql) {
-          return parsedDateTime.format('YYYY-MM-DD HH:mm:ssZ')
+          return parsedDateTime.utc().format('YYYY-MM-DD HH:mm:ssZ')
         } else {
           return parsedDateTime.utc(true).format('YYYY-MM-DD HH:mm:ssZ')
         }

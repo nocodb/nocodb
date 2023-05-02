@@ -456,7 +456,15 @@ export default class Model implements TableType {
           if (base.is_meta) {
             const d = new Date(val);
             if (isMySQL) {
-              val = dayjs(val)?.format('YYYY-MM-DD HH:mm:ss');
+              if (val.slice(-1) === 'Z') {
+                // from UI
+                val = dayjs(val).format('YYYY-MM-DD HH:mm:ss');
+              } else {
+                val = dayjs
+                  .utc(val)
+                  .utcOffset(d.getTimezoneOffset(), true)
+                  .format('YYYY-MM-DD HH:mm:ss');
+              }
             } else if (isSqlite) {
               val = dayjs(val).utc().format('YYYY-MM-DD HH:mm:ss');
             } else {

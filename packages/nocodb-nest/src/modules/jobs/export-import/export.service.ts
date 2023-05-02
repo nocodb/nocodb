@@ -535,7 +535,8 @@ export class ExportService {
     const project = await Project.get(base.project_id);
 
     const models = (await base.getModels()).filter(
-      (m) => !m.mm && m.type === 'table',
+      // TODO revert this when issue with cache is fixed
+      (m) => m.base_id === base.id && !m.mm && m.type === 'table',
     );
 
     const exportedModels = await this.serializeModels({

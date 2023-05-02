@@ -458,8 +458,11 @@ export default class Model implements TableType {
             if (isMySQL) {
               if (val.slice(-1) === 'Z') {
                 // from UI
+                // e.g. 2023-05-02 08:09:43Z
                 val = dayjs(val).format('YYYY-MM-DD HH:mm:ss');
               } else {
+                // from API
+                // e.g. 2021-01-01 04:00:00+04:00
                 val = dayjs
                   .utc(val)
                   .utcOffset(d.getTimezoneOffset(), true)
@@ -467,7 +470,7 @@ export default class Model implements TableType {
               }
             } else if (isSqlite) {
               let keepLocalTime = false;
-              if (val.slice(-1) === 'Z') {
+              if (val.slice(-1) === 'Z' || val.slice(-6) === '+00:00') {
                 // from UI
                 keepLocalTime = true;
               }
@@ -477,7 +480,7 @@ export default class Model implements TableType {
                 .format('YYYY-MM-DD HH:mm:ss');
             } else {
               let keepLocalTime = false;
-              if (val.slice(-1) === 'Z') {
+              if (val.slice(-1) === 'Z' || val.slice(-6) === '+00:00') {
                 // from UI
                 keepLocalTime = true;
               }

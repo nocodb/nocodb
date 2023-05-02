@@ -7,7 +7,7 @@ import { positionOfFirstChild } from '../helper'
 const { node, editor, getPos } = defineProps(nodeViewProps)
 
 const isCollapsed = ref(true)
-const nodePos = computed(() => getPos())
+const nodePos = ref(getPos())
 
 const toggleCollapsableContent = () => {
   const state = editor.state
@@ -44,11 +44,14 @@ const headerChildNode = computed(() => {
 const contentChildCount = ref(1)
 
 editor.on('update', () => {
-  const currentNode = editor.state.doc.nodeAt(nodePos.value)
-  if (!currentNode) return undefined
+  try {
+    nodePos.value = getPos()
+    const currentNode = editor.state.doc.nodeAt(getPos())
+    if (!currentNode) return undefined
 
-  // -1 because of the header node (first child)
-  contentChildCount.value = currentNode.childCount - 1
+    // -1 because of the header node (first child)
+    contentChildCount.value = currentNode.childCount - 1
+  } catch (e) {}
 })
 </script>
 

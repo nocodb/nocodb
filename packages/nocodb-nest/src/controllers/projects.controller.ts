@@ -15,7 +15,7 @@ import isDocker from 'is-docker';
 import { ProjectReqType } from 'nocodb-sdk';
 import { GlobalGuard } from '../guards/global/global.guard';
 import { PagedResponseImpl } from '../helpers/PagedResponse';
-import { UseAclMiddleware } from '../middlewares/extract-project-id/extract-project-id.middleware';
+import {Acl, UseAclMiddleware} from '../middlewares/extract-project-id/extract-project-id.middleware';
 import Noco from '../Noco';
 import { packageVersion } from '../utils/packageVersion';
 import { ProjectsService } from '../services/projects.service';
@@ -43,6 +43,7 @@ export class ProjectsController {
   }
 
   @Get('/api/v1/db/meta/projects/:projectId/info')
+  @Acl('projectInfoGet')
   async projectInfoGet() {
     return {
       Node: process.version,
@@ -55,6 +56,7 @@ export class ProjectsController {
   }
 
   @Get('/api/v1/db/meta/projects/:projectId')
+  @Acl('projectGet')
   async projectGet(@Param('projectId') projectId: string) {
     const project = await this.projectsService.getProjectWithInfo({
       projectId: projectId,
@@ -66,6 +68,7 @@ export class ProjectsController {
   }
 
   @Patch('/api/v1/db/meta/projects/:projectId')
+  @Acl('projectUpdate')
   async projectUpdate(
     @Param('projectId') projectId: string,
     @Body() body: Record<string, any>,
@@ -81,6 +84,7 @@ export class ProjectsController {
   }
 
   @Delete('/api/v1/db/meta/projects/:projectId')
+  @Acl('projectDelete')
   async projectDelete(@Param('projectId') projectId: string, @Request() req) {
     const deleted = await this.projectsService.projectSoftDelete({
       projectId,
@@ -92,6 +96,7 @@ export class ProjectsController {
 
   @Post('/api/v1/db/meta/projects')
   @HttpCode(200)
+  @Acl('projectCreate')
   async projectCreate(@Body() projectBody: ProjectReqType, @Request() req) {
     const project = await this.projectsService.projectCreate({
       project: projectBody,

@@ -188,7 +188,7 @@ onUnmounted(() => {
 <template>
   <div
     ref="elementToObserve"
-    class="nc-cell w-full h-full relative"
+    class="nc-cell w-full relative"
     :class="[
       `nc-cell-${(column?.uidt || 'default').toLowerCase()}`,
       { 'text-blue-600': isPrimary(column) && !props.virtual && !isForm },

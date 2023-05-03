@@ -306,7 +306,7 @@ onMounted(() => {
               />
 
               <div class="flex flex-col gap-2 text-slate-500 dark:text-slate-300 text-[0.75rem] my-2 px-1">
-                <div v-for="error of v$.localState[field.title]?.$errors" :key="error" class="text-red-500">
+                <div v-for="error of v$.localState[field.title]?.$errors" :key="error" class="nc-form-field-required-error text-red-500">
                   {{ error.$message }}
                 </div>
                 <div
@@ -499,9 +499,9 @@ onMounted(() => {
     }
   }
 
-  .nc-form-field-description {
-    white-space: pre-line;
+  .nc-form-field-description, .nc-form-field-required-error {
     word-break: break-all;
+
   }
 
   .nc-form-column-label__checkbox {

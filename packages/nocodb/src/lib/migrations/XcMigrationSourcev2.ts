@@ -46,7 +46,7 @@ export default class XcMigrationSourcev2 {
       'nc_027_add_comparison_sub_op',
       'nc_028_add_enable_scanner_in_form_columns_meta_table',
       'nc_029_webhook',
-      'nc_030_add_description_field'
+      'nc_030_add_description_field',
     ]);
   }
 

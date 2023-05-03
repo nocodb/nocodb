@@ -94,7 +94,7 @@ onMounted(() => {
     // Get doms with absolute position in the event
     const domsInEvent = document.elementsFromPoint(e.clientX, e.clientY)
 
-    if (domsInEvent.some((dom) => dom.classList.contains('ProseMirror'))) return
+    if (domsInEvent.some((dom) => dom.classList.contains('ProseMirror') || dom.classList.contains('tippy-box'))) return
 
     e.stopPropagation()
     e.preventDefault()

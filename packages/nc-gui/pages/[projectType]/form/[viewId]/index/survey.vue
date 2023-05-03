@@ -309,9 +309,8 @@ onMounted(() => {
                 <div v-for="error of v$.localState[field.title]?.$errors" :key="error" class="text-red-500">
                   {{ error.$message }}
                 </div>
-
                 <div
-                  class="block text-[14px]"
+                  class="nc-form-field-description block text-[14px]"
                   :class="field.uidt === UITypes.Checkbox ? 'text-center' : ''"
                   data-testid="nc-survey-form__field-description"
                 >
@@ -350,6 +349,7 @@ onMounted(() => {
                   :mouse-enter-delay="0.25"
                   :mouse-leave-delay="0"
                 >
+                <!-- Ok button for question -->
                   <button
                     class="bg-opacity-100 scaling-btn flex items-center gap-1"
                     data-testid="nc-survey-form__btn-next"
@@ -497,6 +497,11 @@ onMounted(() => {
     .nc-icon {
       @apply mr-2;
     }
+  }
+
+  .nc-form-field-description {
+    white-space: pre-line;
+    word-break: break-all;
   }
 
   .nc-form-column-label__checkbox {

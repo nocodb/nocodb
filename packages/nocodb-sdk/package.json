@@ -31,7 +31,7 @@
     "test:prettier": "prettier \"src/**/*.ts\" --list-different",
     "test:spelling": "cspell \"{README.md,.github/*.md,src/**/*.ts}\"",
     "watch:build": "tsc -p tsconfig.json -w",
-    "generate:sdk": "npx --yes swagger-typescript-api@10.0.3 -r -p ../nocodb-nest/src/schema/swagger.json -o ./src/lib/  --axios --unwrap-response-data  --module-name-first-tag --type-suffix=Type --templates ../../scripts/sdk/templates"
+    "generate:sdk": "npx --yes swagger-typescript-api@10.0.3 -r -p ../nocodb/src/schema/swagger.json -o ./src/lib/  --axios --unwrap-response-data  --module-name-first-tag --type-suffix=Type --templates ../../scripts/sdk/templates"
   },
   "dependencies": {
     "axios": "^0.21.1",

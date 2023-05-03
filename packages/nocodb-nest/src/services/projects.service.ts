@@ -171,9 +171,9 @@ export class ProjectsService {
       NcError.badRequest('Project title exceeds 50 characters');
     }
 
-    if (await Project.getByTitle(projectBody?.title)) {
-      NcError.badRequest('Project title already in use');
-    }
+    // if (await Project.getByTitle(projectBody?.title)) {
+    //   NcError.badRequest('Project title already in use');
+    // }
 
     projectBody.title = DOMPurify.sanitize(projectBody.title);
     projectBody.slug = projectBody.title;

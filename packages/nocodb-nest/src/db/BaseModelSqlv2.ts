@@ -67,27 +67,6 @@ const GROUP_COL = '__nc_group_id';
 
 const nanoidv2 = customAlphabet('1234567890abcdefghijklmnopqrstuvwxyz', 14);
 
-export async function getViewAndModelByAliasOrId(param: {
-  projectName: string;
-  tableName: string;
-  viewName?: string;
-}) {
-  const project = await Project.getWithInfoByTitleOrId(param.projectName);
-
-  const model = await Model.getByAliasOrId({
-    project_id: project.id,
-    aliasOrId: param.tableName,
-  });
-  const view =
-    param.viewName &&
-    (await View.getByTitleOrId({
-      titleOrId: param.viewName,
-      fk_model_id: model.id,
-    }));
-  if (!model) NcError.notFound('Table not found');
-  return { model, view };
-}
-
 async function populatePk(model: Model, insertObj: any) {
   await model.getColumns();
   for (const pkCol of model.primaryKeys) {
@@ -169,11 +148,9 @@ class BaseModelSqlv2 {
     }
 
     // retrieve virtual column data as well
-    const project = await Project.get(this.model.project_id);
-    const { model, view } = await getViewAndModelByAliasOrId({
-      projectName: project.title,
-      tableName: this.model.title,
-    });
+    const view = this.viewId && (await View.get(this.viewId));
+    const model = this.model;
+
     const { ast } = await getAst({ model, view });
     return data ? await nocoExecute(ast, data, {}) : {};
   }

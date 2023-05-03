@@ -674,6 +674,11 @@ watch(pageWrapperDomRef, () => {
     }
   }
 
+  .collapsable-header-wrapper {
+    [data-type='bullet'] {
+      margin-left: 1rem;
+    }
+  }
   .tiptap-table-cell {
     [data-type='bullet'] {
       margin-left: 0.7rem;

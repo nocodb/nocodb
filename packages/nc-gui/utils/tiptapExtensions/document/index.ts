@@ -130,17 +130,22 @@ export const Document = Node.create({
         appendTransaction(_, __, newState) {
           try {
             const currentSectionPos = getPositionOfSection(newState)
-
-            const domOfCurrentSection = document.querySelector(
-              `.ProseMirror .draggable-block-wrapper[pos="${currentSectionPos}"]`,
-            )
+            const prevSecPos = getPositionOfPreviousSection(newState)
+            const domOfCurrentSection =
+              document.querySelector(`.ProseMirror .draggable-block-wrapper[pos="${currentSectionPos}"]`) ||
+              (prevSecPos ? document.querySelector(`.ProseMirror .draggable-block-wrapper[pos="${prevSecPos}"]`) : null)
+            if (!domOfCurrentSection) return null
 
             const pageContentDom = document.querySelector('.nc-docs-page-content')
             if (!pageContentDom) return null
 
             // If dom is at the bottom of the editor, then scroll to the bottom
-            if (domOfCurrentSection && domOfCurrentSection.getBoundingClientRect().bottom >= window.innerHeight * 0.8) {
-              pageContentDom.scrollBy(0, 40)
+            const viewportHeight = Math.max(document.documentElement.clientHeight || 0, window.innerHeight || 0)
+            const domOfCurrentSectionRect = domOfCurrentSection.getBoundingClientRect()
+            const rem = parseFloat(getComputedStyle(document.documentElement).fontSize)
+
+            if (domOfCurrentSectionRect.top + rem * 2 >= viewportHeight * 0.8) {
+              pageContentDom.scrollBy(0, 2.5 * rem)
             }
 
             return null

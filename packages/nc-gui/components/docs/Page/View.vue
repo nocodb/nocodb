@@ -253,7 +253,7 @@ watch(pageWrapperDomRef, () => {
           </div>
           <div v-if="!isPublic" class="flex flex-row items-center"></div>
         </div>
-        <div ref="pageContentDomRef" class="nc-docs-page-content relative">
+        <div ref="pageContentDomRef" class="nc-docs-page-content relative pb-20">
           <DocsPageMutliSectionSelector
             v-if="isEditAllowed && editor && pageWrapperDomRef && pageContentDomRef"
             :editor="editor"
@@ -674,6 +674,11 @@ watch(pageWrapperDomRef, () => {
     }
   }
 
+  .collapsable-header-wrapper {
+    [data-type='bullet'] {
+      margin-left: 1rem;
+    }
+  }
   .tiptap-table-cell {
     [data-type='bullet'] {
       margin-left: 0.7rem;

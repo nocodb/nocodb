@@ -24,6 +24,7 @@ import type {
   MiddlewareConsumer,
   OnApplicationBootstrap,
 } from '@nestjs/common';
+import { HookHandlerService } from './services/hook-handler.service';
 
 @Module({
   imports: [
@@ -43,6 +44,7 @@ import type {
     LocalStrategy,
     AuthTokenStrategy,
     BaseViewStrategy,
+    HookHandlerService,
   ],
 })
 export class AppModule implements OnApplicationBootstrap {

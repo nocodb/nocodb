@@ -11,24 +11,17 @@ import {
   UITypes,
   ViewTypes,
 } from 'nocodb-sdk';
-import ejs from 'ejs';
 import Validator from 'validator';
 import { customAlphabet } from 'nanoid';
 import DOMPurify from 'isomorphic-dompurify';
 import { v4 as uuidv4 } from 'uuid';
 import { NcError } from '../helpers/catchError';
 import getAst from '../helpers/getAst';
-import NcPluginMgrv2 from '../helpers/NcPluginMgrv2';
-import {
-  _transformSubmittedFormDataForEmail,
-  invokeWebhook,
-} from '../helpers/webhookHelpers';
+
 import {
   Audit,
   Column,
   Filter,
-  FormView,
-  Hook,
   Model,
   Project,
   Sort,
@@ -40,7 +33,8 @@ import {
   COMPARISON_SUB_OPS,
   IS_WITHIN_COMPARISON_SUB_OPS,
 } from '../models/Filter';
-import formSubmissionEmailTemplate from '../utils/common/formSubmissionEmailTemplate';
+import Noco from '../Noco'
+import { HANDLE_WEBHOOK } from '../services/hook-handler.service'
 import formulaQueryBuilderv2 from './formulav2/formulaQueryBuilderv2';
 import genRollupSelectv2 from './genRollupSelectv2';
 import conditionV2 from './conditionV2';
@@ -2496,6 +2490,18 @@ class BaseModelSqlv2 {
   }
 
   private async handleHooks(hookName, prevData, newData, req): Promise<void> {
+
+    Noco.eventEmitter.emit(HANDLE_WEBHOOK, {
+      hookName,
+      prevData,
+      newData,
+      user: req?.user,
+      viewId: this.viewId,
+      modelId: this.model.id,
+      tnPath: this.tnPath,
+    })
+/*
+
     const view = await View.get(this.viewId);
 
     // handle form view data submission
@@ -2585,7 +2591,7 @@ class BaseModelSqlv2 {
       }
     } catch (e) {
       console.log('hooks :: error', hookName, e);
-    }
+    }*/
   }
 
   // @ts-ignore

@@ -133,7 +133,7 @@ onMounted(() => {
   <div
     class="pt-20 flex flex-col w-full mr-12 overflow-hidden sm:w-0 md:w-0 lg:w-24 xl:w-36 2xl:w-54"
     :class="{
-      'opacity-0': !showPageSubHeadings,
+      'hidden': !showPageSubHeadings,
       'opacity-100': showPageSubHeadings,
     }"
     data-testid="docs-page-outline-content"

@@ -72,12 +72,29 @@ export const createImageExtension = (uploadFn: UploadFn) => {
           }
         },
       },
+      {
+        tag: `div[data-type="${TiptapNodesTypes.image}"]`,
+        getAttrs: (dom) => {
+          if (typeof dom === 'string') return {}
+          const element = dom as HTMLImageElement
+
+          return {
+            src: element.getAttribute('data-src'),
+            title: element.getAttribute('data-title'),
+            alt: element.getAttribute('data-alt'),
+          }
+        },
+      },
     ],
-    renderHTML: ({ HTMLAttributes }) => [
+    renderHTML: ({ node, HTMLAttributes }) => [
       'div',
       {
         ...HTMLAttributes,
-        class: HTMLAttributes.class ? `image-wrapper cursor-pointer ${HTMLAttributes.class}` : 'image-wrapper cursor-pointer',
+        'data-type': TiptapNodesTypes.image,
+        'data-src': node.attrs.src,
+        'data-title': node.attrs.title,
+        'data-alt': node.attrs.alt,
+        'class': HTMLAttributes.class ? `image-wrapper cursor-pointer ${HTMLAttributes.class}` : 'image-wrapper cursor-pointer',
       },
     ],
 

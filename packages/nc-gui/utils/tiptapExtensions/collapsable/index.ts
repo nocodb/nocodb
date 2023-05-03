@@ -4,9 +4,9 @@ import type { ChainedCommands } from '@tiptap/vue-3'
 import { VueNodeViewRenderer } from '@tiptap/vue-3'
 import type { EditorState } from 'prosemirror-state'
 import { TiptapNodesTypes } from 'nocodb-sdk'
+import { Plugin, TextSelection } from 'prosemirror-state'
 import { getPosOfChildNodeOfType, getPositionOfSection, isCursorAtStartOfSelectedNode } from '../helper'
 import CollapsableComponent from './collapsable.vue'
-
 export interface CollapsableOptions {
   HTMLAttributes: Record<string, any>
 }
@@ -39,17 +39,17 @@ export const CollapsableNode = Node.create<CollapsableOptions>({
   parseHTML() {
     return [
       {
-        tag: 'div[data-type="collapsable"]',
-        attrs: { 'data-type': 'collapsable' },
+        tag: `div[data-type="${TiptapNodesTypes.collapsable}"]`,
+        attrs: { 'data-type': TiptapNodesTypes.collapsable },
       },
     ]
   },
 
-  renderHTML({ node, HTMLAttributes }) {
+  renderHTML({ HTMLAttributes }) {
     return [
       'div',
       mergeAttributes(this.options.HTMLAttributes, HTMLAttributes, {
-        'data-type': node.type.name,
+        'data-type': TiptapNodesTypes.collapsable,
         'class': 'w-full',
       }),
       0,
@@ -119,6 +119,43 @@ export const CollapsableNode = Node.create<CollapsableOptions>({
           })
         },
     } as any
+  },
+
+  addProseMirrorPlugins() {
+    return [
+      new Plugin({
+        // TODO:
+        // We use this to select the whole collapsable node when in non empty selection cursor is on collapsable header
+        // Otherwise if the selection contains partial selection of collapsable header, prosemirror will crash
+        appendTransaction: (_, __, newState) => {
+          try {
+            const selection = newState.selection
+            if (selection.empty) return null
+
+            const parentNodeOfFrom = newState.selection.$from.node(-1)
+            const parentNodeOfTo = newState.selection.$to.node(-1)
+            if (
+              parentNodeOfFrom?.type.name !== TiptapNodesTypes.collapsableHeader ||
+              parentNodeOfTo?.type.name === TiptapNodesTypes.collapsableHeader
+            ) {
+              return null
+            }
+
+            const sectionPos = getPositionOfSection(newState, selection.from)
+
+            // If selection is text selection
+            if (selection instanceof TextSelection) {
+              return newState.tr.setSelection(TextSelection.create(newState.doc, sectionPos + 1, selection.to))
+            } else {
+              return newState.tr.setSelection(TextSelection.create(newState.doc, sectionPos))
+            }
+          } catch (e) {
+            console.error(e)
+            return null
+          }
+        },
+      }),
+    ]
   },
 
   addKeyboardShortcuts() {

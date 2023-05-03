@@ -13,7 +13,7 @@ const isMouseOverSection = ref(false)
 const dragDomRef = ref<HTMLDivElement | undefined>()
 const isDragging = ref(false)
 
-const pos = computed(() => getPos())
+const pos = ref(getPos())
 
 const parentNode = computed(() => {
   try {
@@ -71,13 +71,7 @@ const createNodeAfter = () => {
 const onDragClick = () => {
   dragClicked.value = !dragClicked.value
 
-  editor.view.dispatch(editor.state.tr.setSelection(NodeSelection.create(editor.state.doc, getPos())))
-
-  // We use timeout as 'focused' class takes time to be added
-  setTimeout(() => {
-    const wrapperDom = document.querySelector(`.draggable-block-wrapper[pos="${getPos()}"]`)
-    wrapperDom?.classList.add('selected')
-  }, 100)
+  editor.view.dispatch(editor.state.tr.setSelection(NodeSelection.create(editor.state.doc, pos.value)))
 }
 
 onClickOutside(optionsPopoverRef, () => {
@@ -123,6 +117,10 @@ watch(dragDomRef, () => {
   dragDomRef.value.addEventListener('mouseout', () => {
     isMouseOverSection.value = false
   })
+})
+
+editor.on('update', () => {
+  pos.value = getPos()
 })
 </script>
 

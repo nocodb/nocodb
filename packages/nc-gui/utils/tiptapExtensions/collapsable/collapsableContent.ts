@@ -20,17 +20,17 @@ export const CollapsableContentNode = Node.create({
   parseHTML() {
     return [
       {
-        tag: 'div[data-type="collapsableContent"]',
-        attrs: { 'data-type': 'collapsableContent' },
+        tag: `div[data-type="${TiptapNodesTypes.collapsableContent}"]`,
+        attrs: { 'data-type': TiptapNodesTypes.collapsableContent },
       },
     ]
   },
 
-  renderHTML({ node, HTMLAttributes }) {
+  renderHTML({ HTMLAttributes }) {
     return [
       'div',
       mergeAttributes(this.options.HTMLAttributes, HTMLAttributes, {
-        'data-type': node.type.name,
+        'data-type': TiptapNodesTypes.collapsableContent,
       }),
       0,
     ]

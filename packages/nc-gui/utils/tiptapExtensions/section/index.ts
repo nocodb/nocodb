@@ -11,6 +11,7 @@ import {
   positionOfFirstChild,
 } from '../helper'
 import DraggableSectionComponent from './draggable-section.vue'
+import { selectSectionsInTextSelection } from './helper'
 
 export interface SecOptions {
   HTMLAttributes: Record<string, any>
@@ -79,8 +80,39 @@ export const SectionBlock = Node.create<SecOptions>({
     const { state } = this.editor
 
     focusCurrentSection(state)
+    selectSectionsInTextSelection(state)
 
     return false
+  },
+
+  addKeyboardShortcuts() {
+    return {
+      Backspace: () => {
+        const state = this.editor.state
+        const { selection } = state
+        if (selection.empty) return false
+
+        const from = selection.$from.pos === 2 ? 0 : selection.$from.pos
+        const to = selection.$to.pos
+
+        const fromNode = state.doc.nodeAt(from)!
+        const toNode = state.doc.nodeAt(to)!
+        if (!fromNode || !toNode) return false
+
+        if (fromNode.type.name !== TiptapNodesTypes.sec || toNode.type.name !== TiptapNodesTypes.sec) {
+          return false
+        }
+
+        // Delete the sections
+        this.editor
+          .chain()
+          .deleteRange({ from, to })
+          .setTextSelection(from + 2)
+          .run()
+
+        return true
+      },
+    }
   },
 
   addProseMirrorPlugins() {

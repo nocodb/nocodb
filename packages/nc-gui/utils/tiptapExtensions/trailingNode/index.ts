@@ -38,17 +38,22 @@ export const TrailingNode = Extension.create<TrailingNodeOptions>({
       new Plugin({
         key: plugin,
         appendTransaction: (_, __, state) => {
-          const { doc, tr, schema } = state
+          try {
+            const { doc, tr, schema } = state
 
-          const shouldInsertNodeAtEnd = plugin.getState(state)
+            const shouldInsertNodeAtEnd = plugin.getState(state)
 
-          const endPosition = doc.content.size
+            const endPosition = doc.content.size
 
-          const type = schema.nodes[this.options.node]
+            const type = schema.nodes[this.options.node]
 
-          if (!shouldInsertNodeAtEnd) return
+            if (!shouldInsertNodeAtEnd) return
 
-          return tr.insert(endPosition, type.create())
+            return tr.insert(endPosition, type.create())
+          } catch (error) {
+            console.error(error)
+            return null
+          }
         },
         state: {
           init: (_, state) => {

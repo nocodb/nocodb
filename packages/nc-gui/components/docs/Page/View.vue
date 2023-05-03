@@ -5,7 +5,6 @@ import { TiptapNodesTypes } from 'nocodb-sdk'
 import { useShortcuts } from '../utils'
 import tiptapExtensions from '~~/utils/tiptapExtensions'
 import { removeUploadingPlaceHolderAndEmptyLinkNode } from '~~/utils/tiptapExtensions/helper'
-
 const { project } = useProject()
 useShortcuts()
 
@@ -22,7 +21,12 @@ const {
 
 const { updatePage, nestedUrl, openPage } = useDocStore()
 
-const wrapperRef = ref<HTMLDivElement | undefined>()
+const pageWrapperDomRef = ref<HTMLDivElement | undefined>()
+const pageContentDomRef = ref<HTMLDivElement | undefined>()
+
+const selectionBox = ref<
+  { left: number; right: number; top: number; bottom: number; anchorLeft: number; anchorTop: number } | undefined
+>()
 
 const content = computed(() => {
   const emptyContent = {
@@ -170,14 +174,30 @@ const handleOutsideTiptapDrag = (e: DragEvent, type: 'drop' | 'dragover' | 'drag
   editorDom.dispatchEvent(newEvent)
 }
 
-watch(wrapperRef, () => {
-  if (!wrapperRef.value) return
-  const wrapper = wrapperRef.value
+watch(pageWrapperDomRef, () => {
+  if (!pageWrapperDomRef.value) return
+  const wrapper = pageWrapperDomRef.value
 
   // Move all drag events to tiptap
   wrapper.addEventListener('dragend', (e) => handleOutsideTiptapDrag(e, 'dragend'))
 
-  wrapper.addEventListener('dragover', (e) => handleOutsideTiptapDrag(e, 'dragover'))
+  wrapper.addEventListener('dragover', (e) => {
+    const viewportHeight = Math.max(document.documentElement.clientHeight || 0, window.innerHeight || 0)
+    const y = e.clientY
+
+    if (y > viewportHeight - viewportHeight * 0.3) {
+      const el = document.querySelector('.nc-docs-page-content')
+      el?.scrollBy(0, 10)
+    }
+
+    // If add the top of viewport, scroll up
+    if (y < viewportHeight * 0.3) {
+      const el = document.querySelector('.nc-docs-page-content')
+      el?.scrollBy(0, -10)
+    }
+
+    handleOutsideTiptapDrag(e, 'dragover')
+  })
 
   wrapper.addEventListener('drop', (e) => handleOutsideTiptapDrag(e, 'drop'))
 })
@@ -186,7 +206,7 @@ watch(wrapperRef, () => {
 <template>
   <a-layout-content>
     <div
-      ref="wrapperRef"
+      ref="pageWrapperDomRef"
       data-testid="docs-opened-page"
       class="nc-docs-page h-full flex flex-row relative"
       :class="{
@@ -233,7 +253,15 @@ watch(wrapperRef, () => {
           </div>
           <div v-if="!isPublic" class="flex flex-row items-center"></div>
         </div>
-        <div class="nc-docs-page-content">
+        <div ref="pageContentDomRef" class="nc-docs-page-content relative">
+          <DocsPageMutliSectionSelector
+            v-if="isEditAllowed && editor && pageWrapperDomRef && pageContentDomRef"
+            :editor="editor"
+            :selection-box="selectionBox"
+            :page-wrapper-dom-ref="pageWrapperDomRef"
+            :page-content-dom-ref="pageContentDomRef"
+            @update:selection-box="selectionBox = $event"
+          />
           <div
             :key="openedPageId ?? ''"
             class="mx-auto pr-6 pt-16 flex flex-col"
@@ -252,7 +280,13 @@ watch(wrapperRef, () => {
             <div class="flex !mb-4.5"></div>
 
             <DocsPageLinkToPageSearch v-if="editor" :editor="editor" />
-            <DocsPageSelectedBubbleMenu v-if="editor" :editor="editor" />
+            <DocsPageSelectedBubbleMenu
+              v-if="editor"
+              :editor="editor"
+              :class="{
+                hidden: selectionBox,
+              }"
+            />
             <DocsPageLinkOptions v-if="editor" :editor="editor" />
             <a-skeleton-input
               v-if="isPageFetching && !isPublic"
@@ -302,7 +336,7 @@ watch(wrapperRef, () => {
         'top-1': !isPublic,
       }"
     >
-      <DocsPageOutline v-if="openedPage && wrapperRef" :key="openedPage.id" :wrapper-ref="wrapperRef" />
+      <DocsPageOutline v-if="openedPage && pageWrapperDomRef" :key="openedPage.id" :wrapper-ref="pageWrapperDomRef" />
     </div>
   </a-layout-content>
 </template>

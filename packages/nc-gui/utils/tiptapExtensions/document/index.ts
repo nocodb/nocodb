@@ -88,34 +88,66 @@ export const Document = Node.create({
     return [
       new Plugin({
         appendTransaction(_, __, newState) {
-          const { selection } = newState
+          try {
+            const { selection } = newState
 
-          // If selection is type of TextSelection but the node is not text node
-          // then select the nearest text node or select the node itself(NodeSelection)
-          if (selection instanceof TextSelection && !selection.$from.node().isTextblock) {
-            const nextSectionPos = getPositionOfNextSection(newState)
-            if (!nextSectionPos) return null
+            if (!selection.empty) return null
 
-            let childTextNodePos = -1
-            newState.doc.nodesBetween(selection.$from.pos, nextSectionPos, (node, pos) => {
-              if (node.isTextblock && childTextNodePos === -1) {
-                childTextNodePos = pos
-                return false
-              }
+            // If selection is type of TextSelection but the node is not text node
+            // then select the nearest text node or select the node itself(NodeSelection)
+            if (selection instanceof TextSelection && !selection.$from.node().isTextblock) {
+              const nextSectionPos = getPositionOfNextSection(newState)
+              if (!nextSectionPos) return null
 
-              return true
-            })
+              let childTextNodePos = -1
+              newState.doc.nodesBetween(selection.$from.pos, nextSectionPos, (node, pos) => {
+                if (node.isTextblock && childTextNodePos === -1) {
+                  childTextNodePos = pos
+                  return false
+                }
 
-            if (childTextNodePos !== -1) return newState.tr.setSelection(TextSelection.create(newState.doc, childTextNodePos))
+                return true
+              })
 
-            const nextNodeSelection = selection.$from.pos
-            const nextNode = newState.doc.nodeAt(nextNodeSelection)
-            if (!nextNode) return null
+              if (childTextNodePos !== -1) return newState.tr.setSelection(TextSelection.create(newState.doc, childTextNodePos))
 
-            return newState.tr.setSelection(NodeSelection.create(newState.doc, selection.from))
+              const nextNodeSelection = selection.$from.pos
+              const nextNode = newState.doc.nodeAt(nextNodeSelection)
+              if (!nextNode) return null
+
+              return newState.tr.setSelection(NodeSelection.create(newState.doc, selection.from))
+            }
+
+            return null
+          } catch (error) {
+            console.error(error)
+            return null
           }
+        },
+      }),
+      new Plugin({
+        // This plugin is used to auto scroll when cursor is at the bottom of the editor
+        appendTransaction(_, __, newState) {
+          try {
+            const currentSectionPos = getPositionOfSection(newState)
 
-          return null
+            const domOfCurrentSection = document.querySelector(
+              `.ProseMirror .draggable-block-wrapper[pos="${currentSectionPos}"]`,
+            )
+
+            const pageContentDom = document.querySelector('.nc-docs-page-content')
+            if (!pageContentDom) return null
+
+            // If dom is at the bottom of the editor, then scroll to the bottom
+            if (domOfCurrentSection && domOfCurrentSection.getBoundingClientRect().bottom >= window.innerHeight * 0.8) {
+              pageContentDom.scrollBy(0, 40)
+            }
+
+            return null
+          } catch (error) {
+            console.error(error)
+            return null
+          }
         },
       }),
     ]

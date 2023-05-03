@@ -72,12 +72,6 @@ const onDragClick = () => {
   dragClicked.value = !dragClicked.value
 
   editor.view.dispatch(editor.state.tr.setSelection(NodeSelection.create(editor.state.doc, pos.value)))
-
-  // We use timeout as 'focused' class takes time to be added
-  setTimeout(() => {
-    const wrapperDom = document.querySelector(`.draggable-block-wrapper[pos="${pos.value}"]`)
-    wrapperDom?.classList.add('selected')
-  }, 100)
 }
 
 onClickOutside(optionsPopoverRef, () => {

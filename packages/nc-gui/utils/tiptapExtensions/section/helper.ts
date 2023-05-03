@@ -9,7 +9,7 @@ export function selectSectionsInTextSelection(state: EditorState) {
   const sectionDoms = document.querySelectorAll('.ProseMirror .draggable-block-wrapper')
   for (let i = 0; i < sectionDoms.length; i++) {
     const pos = Number(sectionDoms[i].getAttribute('pos'))
-    if (from <= pos && pos <= to && !selection.empty) {
+    if (from <= pos && pos < to && !selection.empty) {
       setTimeout(() => {
         sectionDoms[i].classList.add('selected')
       }, 0)

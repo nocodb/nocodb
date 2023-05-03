@@ -15,6 +15,7 @@ import type { Express } from 'express';
 // import type * as http from 'http';
 
 import type http from 'http';
+import { IEventEmitter } from './modules/event-emitter/event-emitter.interface'
 
 export default class Noco {
   private static _this: Noco;
@@ -36,6 +37,7 @@ export default class Noco {
   }
 
   public static config: any;
+  public static eventEmitter: IEventEmitter;
   public readonly router: express.Router;
   public readonly projectRouter: express.Router;
   public static _ncMeta: any;

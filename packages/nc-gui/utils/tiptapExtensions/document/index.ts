@@ -125,6 +125,31 @@ export const Document = Node.create({
           }
         },
       }),
+      new Plugin({
+        // This plugin is used to auto scroll when cursor is at the bottom of the editor
+        appendTransaction(_, __, newState) {
+          try {
+            const currentSectionPos = getPositionOfSection(newState)
+
+            const domOfCurrentSection = document.querySelector(
+              `.ProseMirror .draggable-block-wrapper[pos="${currentSectionPos}"]`,
+            )
+
+            const pageContentDom = document.querySelector('.nc-docs-page-content')
+            if (!pageContentDom) return null
+
+            // If dom is at the bottom of the editor, then scroll to the bottom
+            if (domOfCurrentSection && domOfCurrentSection.getBoundingClientRect().bottom >= window.innerHeight * 0.8) {
+              pageContentDom.scrollBy(0, 40)
+            }
+
+            return null
+          } catch (error) {
+            console.error(error)
+            return null
+          }
+        },
+      }),
     ]
   },
 })

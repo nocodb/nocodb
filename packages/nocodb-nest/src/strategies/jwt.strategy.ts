@@ -17,7 +17,9 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
   }
 
   async validate(req, jwtPayload) {
-    // todo: improve this
+    if (!jwtPayload?.email) return jwtPayload;
+
+    // todo: improve this, caching
     if (
       req.ncProjectId &&
       extractRolesObj(jwtPayload.roles)[OrgUserRoles.SUPER_ADMIN]

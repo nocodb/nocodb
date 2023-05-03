@@ -40,6 +40,7 @@ import { TelemetryService } from './services/telemetry.service';
 // todo: refactor to use config service
 const enableThrottler = !!process.env['NC_THROTTLER_REDIS'];
 
+import { HookHandlerService } from './services/hook-handler.service';
 
 @Module({
   imports: [
@@ -90,6 +91,7 @@ const enableThrottler = !!process.env['NC_THROTTLER_REDIS'];
     LocalStrategy,
     AuthTokenStrategy,
     BaseViewStrategy,
+    HookHandlerService,
     TelemetryService,
     AppHooksListenerService,
   ],

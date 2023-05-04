@@ -2,15 +2,12 @@
 // Manages the subheading list shown in the Page view.
 // Subheadings are extracted from the page content and active subheading is highlighted (the  that is currently in view)
 
-import AlignRightIcon from '~icons/tabler/align-right'
-
 const { wrapperRef } = defineProps<{
   wrapperRef: HTMLDivElement | undefined
 }>()
 
-const { openedPage, isPublic } = storeToRefs(useDocStore())
+const { openedPage } = storeToRefs(useDocStore())
 
-const showPageSubHeadings = ref(isPublic.value)
 const pageSubHeadings = ref<Array<{ type: string; text: string; active: boolean }>>([])
 // As there is a delay in the page content being rendered, we need to not show 'no content' message
 // when the page is being populated for the first time
@@ -116,26 +113,8 @@ onMounted(() => {
 </script>
 
 <template>
-  <div class="flex flex-row justify-end cursor-pointer rounded-md">
-    <div
-      data-testid="docs-page-outline-toggle"
-      class="flex p-1 cursor-pointer rounded-md pop-in-animation-med-delay"
-      :class="{
-        'bg-gray-100 hover:bg-gray-200': showPageSubHeadings,
-        'bg-white hover:bg-gray-100': !showPageSubHeadings,
-      }"
-      :aria-expanded="showPageSubHeadings"
-      @click="showPageSubHeadings = !showPageSubHeadings"
-    >
-      <AlignRightIcon />
-    </div>
-  </div>
   <div
-    class="pt-20 flex flex-col w-full mr-12 overflow-hidden sm:w-0 md:w-0 lg:w-24 xl:w-36 2xl:w-54"
-    :class="{
-      'hidden': !showPageSubHeadings,
-      'opacity-100': showPageSubHeadings,
-    }"
+    class="absolute top-10 right-2 pt-20 flex flex-col w-full mr-12 overflow-hidden sm:w-0 md:w-0 lg:w-24 xl:w-36 2xl:w-54"
     data-testid="docs-page-outline-content"
     :style="{
       transition: 'opacity 0.2s ease-in-out',

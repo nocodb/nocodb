@@ -4,7 +4,9 @@ import { Icon as IconifyIcon } from '@iconify/vue'
 import { TiptapNodesTypes } from 'nocodb-sdk'
 import { useShortcuts } from '../utils'
 import tiptapExtensions from '~~/utils/tiptapExtensions'
+import AlignRightIcon from '~icons/tabler/align-right'
 import { removeUploadingPlaceHolderAndEmptyLinkNode } from '~~/utils/tiptapExtensions/helper'
+
 const { project } = useProject()
 useShortcuts()
 
@@ -21,6 +23,7 @@ const {
 
 const { updatePage, nestedUrl, openPage } = useDocStore()
 
+const showOutline = ref(isPublic.value)
 const pageWrapperDomRef = ref<HTMLDivElement | undefined>()
 const pageContentDomRef = ref<HTMLDivElement | undefined>()
 
@@ -205,15 +208,7 @@ watch(pageWrapperDomRef, () => {
 
 <template>
   <a-layout-content>
-    <div
-      ref="pageWrapperDomRef"
-      data-testid="docs-opened-page"
-      class="nc-docs-page h-full flex flex-row relative"
-      :class="{
-        '!pt-0': isPublic,
-        'pt-1': !isPublic,
-      }"
-    >
+    <div ref="pageWrapperDomRef" data-testid="docs-opened-page" class="nc-docs-page h-full flex flex-row relative">
       <div
         class="flex flex-col w-full"
         :class="{
@@ -221,8 +216,8 @@ watch(pageWrapperDomRef, () => {
           editable: isEditAllowed,
         }"
       >
-        <div class="flex flex-row justify-between items-center pl-6 py-2.5">
-          <div class="flex flex-row h-6">
+        <div class="flex flex-row justify-between items-center pl-6 my-2 h-8">
+          <div class="flex flex-row">
             <template v-if="flattenedNestedPages.length !== 0">
               <div v-for="({ href, title, icon, id }, index) of breadCrumbs" :key="id" class="flex">
                 <NuxtLink
@@ -252,13 +247,33 @@ watch(pageWrapperDomRef, () => {
             </template>
           </div>
           <div v-if="!isPublic" class="flex flex-row items-center"></div>
+          <div class="flex flex-row items-center gap-x-1 mr-2 mt-0.25">
+            <div class="">
+              <LazyGeneralShareProject />
+            </div>
+            <div class="flex flex-row">
+              <div class="flex flex-row justify-end cursor-pointer rounded-md">
+                <div
+                  data-testid="docs-page-outline-toggle"
+                  class="flex p-1 cursor-pointer rounded-md pop-in-animation-med-delay"
+                  :class="{
+                    'bg-gray-100 hover:bg-gray-200': showOutline,
+                    'bg-white hover:bg-gray-100': !showOutline,
+                  }"
+                  :aria-expanded="showOutline"
+                  @click="showOutline = !showOutline"
+                >
+                  <AlignRightIcon />
+                </div>
+              </div>
+            </div>
+          </div>
         </div>
         <div ref="pageContentDomRef" class="nc-docs-page-content relative pb-20">
           <DocsPageMutliSectionSelector
-            v-if="isEditAllowed && editor && pageWrapperDomRef && pageContentDomRef"
+            v-if="isEditAllowed && editor && pageContentDomRef"
             :editor="editor"
             :selection-box="selectionBox"
-            :page-wrapper-dom-ref="pageWrapperDomRef"
             :page-content-dom-ref="pageContentDomRef"
             @update:selection-box="selectionBox = $event"
           />
@@ -326,18 +341,11 @@ watch(pageWrapperDomRef, () => {
         </div>
       </div>
     </div>
-    <div class="absolute right-10 top-2.25">
-      <LazyGeneralShareProject />
-    </div>
-    <div
-      class="absolute right-0 pt-2 mr-2.5"
-      :class="{
-        'top-0.25': isPublic,
-        'top-1': !isPublic,
-      }"
-    >
-      <DocsPageOutline v-if="openedPage && pageWrapperDomRef" :key="openedPage.id" :wrapper-ref="pageWrapperDomRef" />
-    </div>
+    <DocsPageOutline
+      v-if="showOutline && openedPage && pageWrapperDomRef"
+      :key="openedPage.id"
+      :wrapper-ref="pageWrapperDomRef"
+    />
   </a-layout-content>
 </template>
 

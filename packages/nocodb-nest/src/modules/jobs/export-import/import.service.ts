@@ -3,6 +3,8 @@ import { Injectable } from '@nestjs/common';
 import papaparse from 'papaparse';
 import {
   findWithIdentifier,
+  generateUniqueName,
+  getEntityIdentifier,
   getParentIdentifier,
   reverseGet,
   withoutId,
@@ -51,9 +53,11 @@ export class ImportService {
       | { models: { model: any; views: any[] }[] }
       | { model: any; views: any[] }[];
     req: any;
+    externalModels?: Model[];
   }) {
     // structured id to db id
     const idMap = new Map<string, string>();
+    const externalIdMap = new Map<string, string>();
 
     const project = await Project.get(param.projectId);
 
@@ -71,6 +75,22 @@ export class ImportService {
     const linkMap = new Map<string, string>();
 
     param.data = Array.isArray(param.data) ? param.data : param.data.models;
+
+    // allow existing models to be linked
+    if (param.externalModels) {
+      for (const model of param.externalModels) {
+        externalIdMap.set(
+          `${model.project_id}::${model.base_id}::${model.id}`,
+          model.id,
+        );
+
+        await model.getColumns();
+
+        for (const col of model.columns) {
+          externalIdMap.set(`${idMap.get(model.id)}::${col.id}`, col.id);
+        }
+      }
+    }
 
     // create tables with static columns
     for (const data of param.data) {
@@ -124,10 +144,7 @@ export class ImportService {
       for (const col of linkedColumnSet) {
         if (col.colOptions) {
           const colOptions = col.colOptions;
-          if (
-            col.uidt === UITypes.LinkToAnotherRecord &&
-            idMap.has(colOptions.fk_related_model_id)
-          ) {
+          if (idMap.has(colOptions.fk_related_model_id)) {
             if (colOptions.type === 'mm') {
               if (!linkMap.has(colOptions.fk_mm_model_id)) {
                 // delete col.column_name as it is not required and will cause ajv error (null for LTAR)
@@ -293,6 +310,395 @@ export class ImportService {
                     });
                   }
                   break;
+                }
+              }
+            }
+          } else if (externalIdMap.has(colOptions.fk_related_model_id)) {
+            if (colOptions.type === 'mm') {
+              if (!linkMap.has(colOptions.fk_mm_model_id)) {
+                // delete col.column_name as it is not required and will cause ajv error (null for LTAR)
+                delete col.column_name;
+
+                const freshModelData = await this.columnsService.columnAdd({
+                  tableId: table.id,
+                  column: withoutId({
+                    ...col,
+                    ...{
+                      parentId:
+                        idMap.get(
+                          getParentIdentifier(colOptions.fk_child_column_id),
+                        ) ||
+                        externalIdMap.get(
+                          getParentIdentifier(colOptions.fk_child_column_id),
+                        ),
+                      childId:
+                        idMap.get(
+                          getParentIdentifier(colOptions.fk_parent_column_id),
+                        ) ||
+                        externalIdMap.get(
+                          getParentIdentifier(colOptions.fk_parent_column_id),
+                        ),
+                      type: colOptions.type,
+                      virtual: colOptions.virtual,
+                      ur: colOptions.ur,
+                      dr: colOptions.dr,
+                    },
+                  }),
+                  req: param.req,
+                });
+
+                for (const nColumn of freshModelData.columns) {
+                  if (nColumn.title === col.title) {
+                    idMap.set(col.id, nColumn.id);
+                    linkMap.set(
+                      colOptions.fk_mm_model_id,
+                      nColumn.colOptions.fk_mm_model_id,
+                    );
+                    break;
+                  }
+                }
+
+                const childModel =
+                  getParentIdentifier(colOptions.fk_parent_column_id) ===
+                  modelData.id
+                    ? freshModelData
+                    : await Model.get(
+                        idMap.get(
+                          getParentIdentifier(colOptions.fk_parent_column_id),
+                        ) ||
+                          externalIdMap.get(
+                            getParentIdentifier(colOptions.fk_parent_column_id),
+                          ),
+                      );
+
+                if (
+                  getParentIdentifier(colOptions.fk_parent_column_id) !==
+                  modelData.id
+                )
+                  await childModel.getColumns();
+
+                const childColumn = (
+                  param.data.find(
+                    (a) =>
+                      a.model.id ===
+                      getParentIdentifier(colOptions.fk_parent_column_id),
+                  )?.model ||
+                  param.externalModels.find(
+                    (a) =>
+                      a.id ===
+                      getEntityIdentifier(
+                        getParentIdentifier(colOptions.fk_parent_column_id),
+                      ),
+                  )
+                ).columns.find(
+                  (a) =>
+                    (a.colOptions?.fk_mm_model_id ===
+                      colOptions.fk_mm_model_id &&
+                      a.id !== col.id) ||
+                    (a.colOptions?.fk_mm_model_id ===
+                      getEntityIdentifier(colOptions.fk_mm_model_id) &&
+                      a.id !== getEntityIdentifier(col.id)),
+                );
+
+                for (const nColumn of childModel.columns) {
+                  if (
+                    nColumn?.colOptions?.fk_mm_model_id ===
+                      linkMap.get(colOptions.fk_mm_model_id) &&
+                    nColumn.id !== idMap.get(col.id) &&
+                    nColumn.id !== externalIdMap.get(col.id)
+                  ) {
+                    if (childColumn.id.includes('::')) {
+                      idMap.set(childColumn.id, nColumn.id);
+                    } else {
+                      idMap.set(
+                        `${childColumn.project_id}::${childColumn.base_id}::${childColumn.fk_model_id}::${childColumn.id}`,
+                        nColumn.id,
+                      );
+                    }
+
+                    childColumn.title = `${childColumn.title} copy`;
+
+                    childColumn.title = generateUniqueName(
+                      childColumn.title,
+                      childModel.columns.map((a) => a.title),
+                    );
+
+                    if (nColumn.title !== childColumn.title) {
+                      await this.columnsService.columnUpdate({
+                        columnId: nColumn.id,
+                        column: {
+                          ...nColumn,
+                          column_name: childColumn.title,
+                          title: childColumn.title,
+                        },
+                      });
+                    }
+                    break;
+                  }
+                }
+              }
+            } else if (colOptions.type === 'hm') {
+              if (
+                !linkMap.has(
+                  `${colOptions.fk_parent_column_id}::${colOptions.fk_child_column_id}`,
+                )
+              ) {
+                // delete col.column_name as it is not required and will cause ajv error (null for LTAR)
+                delete col.column_name;
+
+                const freshModelData = await this.columnsService.columnAdd({
+                  tableId: table.id,
+                  column: withoutId({
+                    ...col,
+                    ...{
+                      parentId:
+                        idMap.get(
+                          getParentIdentifier(colOptions.fk_parent_column_id),
+                        ) ||
+                        externalIdMap.get(
+                          getParentIdentifier(colOptions.fk_parent_column_id),
+                        ),
+                      childId:
+                        idMap.get(
+                          getParentIdentifier(colOptions.fk_child_column_id),
+                        ) ||
+                        externalIdMap.get(
+                          getParentIdentifier(colOptions.fk_child_column_id),
+                        ),
+                      type: colOptions.type,
+                      virtual: colOptions.virtual,
+                      ur: colOptions.ur,
+                      dr: colOptions.dr,
+                    },
+                  }),
+                  req: param.req,
+                });
+
+                linkMap.set(
+                  `${colOptions.fk_parent_column_id}::${colOptions.fk_child_column_id}`,
+                  `${colOptions.fk_parent_column_id}::${colOptions.fk_child_column_id}`,
+                );
+
+                for (const nColumn of freshModelData.columns) {
+                  if (nColumn.title === col.title) {
+                    idMap.set(col.id, nColumn.id);
+                    idMap.set(
+                      colOptions.fk_parent_column_id,
+                      nColumn.colOptions.fk_parent_column_id,
+                    );
+                    idMap.set(
+                      colOptions.fk_child_column_id,
+                      nColumn.colOptions.fk_child_column_id,
+                    );
+                    break;
+                  }
+                }
+
+                const childModel =
+                  colOptions.fk_related_model_id === modelData.id
+                    ? freshModelData
+                    : await Model.get(
+                        idMap.get(colOptions.fk_related_model_id) ||
+                          externalIdMap.get(colOptions.fk_related_model_id),
+                      );
+
+                if (colOptions.fk_related_model_id !== modelData.id)
+                  await childModel.getColumns();
+
+                const childColumn = (
+                  param.data.find(
+                    (a) => a.model.id === colOptions.fk_related_model_id,
+                  )?.model ||
+                  param.externalModels.find(
+                    (a) =>
+                      a.id ===
+                      getEntityIdentifier(colOptions.fk_related_model_id),
+                  )
+                ).columns.find(
+                  (a) =>
+                    (a.colOptions?.fk_parent_column_id ===
+                      colOptions.fk_parent_column_id &&
+                      a.colOptions?.fk_child_column_id ===
+                        colOptions.fk_child_column_id &&
+                      a.id !== col.id) ||
+                    (a.colOptions?.fk_parent_column_id ===
+                      getEntityIdentifier(colOptions.fk_parent_column_id) &&
+                      a.colOptions?.fk_child_column_id ===
+                        getEntityIdentifier(colOptions.fk_child_column_id) &&
+                      a.id !== getEntityIdentifier(col.id)),
+                );
+
+                for (const nColumn of childModel.columns) {
+                  if (
+                    nColumn.id !== idMap.get(col.id) &&
+                    nColumn.id !== externalIdMap.get(col.id) &&
+                    (nColumn.colOptions?.fk_parent_column_id ===
+                      idMap.get(colOptions.fk_parent_column_id) ||
+                      externalIdMap.get(colOptions.fk_parent_column_id)) &&
+                    (nColumn.colOptions?.fk_child_column_id ===
+                      idMap.get(colOptions.fk_child_column_id) ||
+                      externalIdMap.get(colOptions.fk_child_column_id))
+                  ) {
+                    if (childColumn.id.includes('::')) {
+                      idMap.set(childColumn.id, nColumn.id);
+                    } else {
+                      idMap.set(
+                        `${childColumn.project_id}::${childColumn.base_id}::${childColumn.fk_model_id}::${childColumn.id}`,
+                        nColumn.id,
+                      );
+                    }
+
+                    childColumn.title = `${childColumn.title} copy`;
+
+                    childColumn.title = generateUniqueName(
+                      childColumn.title,
+                      childModel.columns.map((a) => a.title),
+                    );
+
+                    if (nColumn.title !== childColumn.title) {
+                      await this.columnsService.columnUpdate({
+                        columnId: nColumn.id,
+                        column: {
+                          ...nColumn,
+                          column_name: childColumn.title,
+                          title: childColumn.title,
+                        },
+                      });
+                    }
+                    break;
+                  }
+                }
+              }
+            } else if (colOptions.type === 'bt') {
+              if (
+                !linkMap.has(
+                  `${colOptions.fk_parent_column_id}::${colOptions.fk_child_column_id}`,
+                )
+              ) {
+                // delete col.column_name as it is not required and will cause ajv error (null for LTAR)
+                delete col.column_name;
+
+                const freshModelData = await this.columnsService.columnAdd({
+                  tableId: table.id,
+                  column: withoutId({
+                    ...col,
+                    ...{
+                      parentId:
+                        idMap.get(
+                          getParentIdentifier(colOptions.fk_parent_column_id),
+                        ) ||
+                        externalIdMap.get(
+                          getParentIdentifier(colOptions.fk_parent_column_id),
+                        ),
+                      childId:
+                        idMap.get(
+                          getParentIdentifier(colOptions.fk_child_column_id),
+                        ) ||
+                        externalIdMap.get(
+                          getParentIdentifier(colOptions.fk_child_column_id),
+                        ),
+                      type: colOptions.type,
+                      virtual: colOptions.virtual,
+                      ur: colOptions.ur,
+                      dr: colOptions.dr,
+                    },
+                  }),
+                  req: param.req,
+                });
+
+                linkMap.set(
+                  `${colOptions.fk_parent_column_id}::${colOptions.fk_child_column_id}`,
+                  `${colOptions.fk_parent_column_id}::${colOptions.fk_child_column_id}`,
+                );
+
+                for (const nColumn of freshModelData.columns) {
+                  if (nColumn.title === col.title) {
+                    idMap.set(col.id, nColumn.id);
+                    idMap.set(
+                      colOptions.fk_parent_column_id,
+                      nColumn.colOptions.fk_parent_column_id,
+                    );
+                    idMap.set(
+                      colOptions.fk_child_column_id,
+                      nColumn.colOptions.fk_child_column_id,
+                    );
+                    break;
+                  }
+                }
+
+                const childModel =
+                  colOptions.fk_related_model_id === modelData.id
+                    ? freshModelData
+                    : await Model.get(
+                        idMap.get(colOptions.fk_related_model_id) ||
+                          externalIdMap.get(colOptions.fk_related_model_id),
+                      );
+
+                if (colOptions.fk_related_model_id !== modelData.id)
+                  await childModel.getColumns();
+
+                const childColumn = (
+                  param.data.find(
+                    (a) => a.model.id === colOptions.fk_related_model_id,
+                  )?.model ||
+                  param.externalModels.find(
+                    (a) =>
+                      a.id ===
+                      getEntityIdentifier(colOptions.fk_related_model_id),
+                  )
+                ).columns.find(
+                  (a) =>
+                    (a.colOptions?.fk_parent_column_id ===
+                      colOptions.fk_parent_column_id &&
+                      a.colOptions?.fk_child_column_id ===
+                        colOptions.fk_child_column_id &&
+                      a.id !== col.id) ||
+                    (a.colOptions?.fk_parent_column_id ===
+                      getEntityIdentifier(colOptions.fk_parent_column_id) &&
+                      a.colOptions?.fk_child_column_id ===
+                        getEntityIdentifier(colOptions.fk_child_column_id) &&
+                      a.id !== getEntityIdentifier(col.id)),
+                );
+
+                for (const nColumn of childModel.columns) {
+                  if (
+                    nColumn.id !== idMap.get(col.id) &&
+                    nColumn.id !== externalIdMap.get(col.id) &&
+                    (nColumn.colOptions?.fk_parent_column_id ===
+                      idMap.get(colOptions.fk_parent_column_id) ||
+                      externalIdMap.get(colOptions.fk_parent_column_id)) &&
+                    (nColumn.colOptions?.fk_child_column_id ===
+                      idMap.get(colOptions.fk_child_column_id) ||
+                      externalIdMap.get(colOptions.fk_child_column_id))
+                  ) {
+                    if (childColumn.id.includes('::')) {
+                      idMap.set(childColumn.id, nColumn.id);
+                    } else {
+                      idMap.set(
+                        `${childColumn.project_id}::${childColumn.base_id}::${childColumn.fk_model_id}::${childColumn.id}`,
+                        nColumn.id,
+                      );
+                    }
+
+                    childColumn.title = `${childColumn.title} copy`;
+
+                    childColumn.title = generateUniqueName(
+                      childColumn.title,
+                      childModel.columns.map((a) => a.title),
+                    );
+
+                    if (nColumn.title !== childColumn.title) {
+                      await this.columnsService.columnUpdate({
+                        columnId: nColumn.id,
+                        column: {
+                          ...nColumn,
+                          column_name: childColumn.title,
+                          title: childColumn.title,
+                        },
+                      });
+                    }
+                    break;
+                  }
                 }
               }
             }

@@ -241,6 +241,7 @@ export class ExportService {
     modelId: string;
     viewId?: string;
     handledMmList?: string[];
+    _fieldIds?: string[];
   }) {
     const { dataStream, linkStream, handledMmList } = param;
 
@@ -254,13 +255,6 @@ export class ExportService {
 
     await model.getColumns();
 
-    const pkMap = new Map<string, string>();
-
-    const fields = model.columns
-      .filter((c) => c.uidt !== UITypes.LinkToAnotherRecord)
-      .map((c) => c.title)
-      .join(',');
-
     const btMap = new Map<string, string>();
 
     for (const column of model.columns.filter(
@@ -273,12 +267,29 @@ export class ExportService {
         (c) => c.id === column.colOptions?.fk_child_column_id,
       );
       if (fkCol) {
+        // replace bt column with fk column if it is in _fieldIds
+        if (param._fieldIds && param._fieldIds.includes(column.id)) {
+          param._fieldIds.push(fkCol.id);
+          const btIndex = param._fieldIds.indexOf(column.id);
+          param._fieldIds.splice(btIndex, 1);
+        }
+
         btMap.set(
           fkCol.id,
           `${column.project_id}::${column.base_id}::${column.fk_model_id}::${column.id}`,
         );
       }
     }
+
+    const fields = param._fieldIds
+      ? model.columns
+          .filter((c) => param._fieldIds?.includes(c.id))
+          .map((c) => c.title)
+          .join(',')
+      : model.columns
+          .filter((c) => c.uidt !== UITypes.LinkToAnotherRecord)
+          .map((c) => c.title)
+          .join(',');
 
     const mmColumns = model.columns.filter(
       (col) =>

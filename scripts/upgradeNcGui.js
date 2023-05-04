@@ -22,8 +22,8 @@ const replacePackageName = (filePath) => {
 
 const bumbVersionAndSave = () => {
     // upgrade nc-lib-gui version in nocodb
-    execSync(`cd packages/nocodb-nest && npm install --save --save-exact ${ncLibPackage.name}@${ncLibPackage.version}`, {});
-    const nocodbPackageFilePath = path.join(__dirname, '..', 'packages', 'nocodb-nest', 'package.json')
+    execSync(`cd packages/nocodb && npm install --save --save-exact ${ncLibPackage.name}@${ncLibPackage.version}`, {});
+    const nocodbPackageFilePath = path.join(__dirname, '..', 'packages', 'nocodb', 'package.json')
     const nocoLibPackage = JSON.parse(fs.readFileSync(nocodbPackageFilePath))
     if (process.env.targetEnv === 'DEV') {
         nocoLibPackage.name = `${nocoLibPackage.name}-daily`
@@ -35,12 +35,12 @@ const bumbVersionAndSave = () => {
 if (process.env.targetEnv === 'DEV') {
     // replace nc-lib-gui by nc-lib-gui-daily if it is nightly build / pr release
     const filePaths = [
-        path.join(__dirname, '..', 'packages', 'nocodb-nest', 'Dockerfile'),
-        path.join(__dirname, '..', 'packages', 'nocodb-nest', 'litestream', 'Dockerfile'),
-        path.join(__dirname, '..', 'packages', 'nocodb-nest', 'package.json'),
-        path.join(__dirname, '..', 'packages', 'nocodb-nest', 'src', 'Noco.ts'),
-        path.join(__dirname, '..', 'packages', 'nocodb-nest', 'src', 'nocobuild.ts'),
-        path.join(__dirname, '..', 'packages', 'nocodb-nest', 'src', 'middlewares', 'gui', 'gui.middleware.ts'),
+        path.join(__dirname, '..', 'packages', 'nocodb', 'Dockerfile'),
+        path.join(__dirname, '..', 'packages', 'nocodb', 'litestream', 'Dockerfile'),
+        path.join(__dirname, '..', 'packages', 'nocodb', 'package.json'),
+        path.join(__dirname, '..', 'packages', 'nocodb', 'src', 'Noco.ts'),
+        path.join(__dirname, '..', 'packages', 'nocodb', 'src', 'nocobuild.ts'),
+        path.join(__dirname, '..', 'packages', 'nocodb', 'src', 'middlewares', 'gui', 'gui.middleware.ts'),
     ]
     Promise.all(filePaths.map(filePath => { return replacePackageName(filePath) })).then(() => {
         bumbVersionAndSave();

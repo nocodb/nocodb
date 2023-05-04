@@ -39,7 +39,7 @@
     "signIn": "Zaloguj",
     "signOut": "Wyloguj",
     "required": "Wymagany",
-    "enableScanner": "Enable Scanner for filling",
+    "enableScanner": "Włącz skaner do wypełnienia",
     "preferred": "Preferowany",
     "mandatory": "Obowiązkowy",
     "loading": "Ładowanie ...",
@@ -76,7 +76,7 @@
     "hideField": "Ukryj pole",
     "sortAsc": "Sortowanie rosnące",
     "sortDesc": "Sortuj malejąco",
-    "geoDataField": "GeoData Field"
+    "geoDataField": "Pole GeoData"
   },
   "objects": {
     "project": "Projekt",
@@ -101,7 +101,7 @@
       "form": "Formularz",
       "kanban": "Kanban",
       "calendar": "Kalendarz",
-      "map": "Map"
+      "map": "Mapa"
     },
     "user": "Użytkownik",
     "users": "Użytkownicy",
@@ -210,8 +210,8 @@
     "advancedSettings": "Ustawienia zaawansowane",
     "codeSnippet": "Snippet",
     "keyboardShortcut": "Skróty klawiaturowe",
-    "generateRandomName": "Generate Random Name",
-    "findRowByScanningCode": "Find row by scanning a QR or Barcode"
+    "generateRandomName": "Wygeneruj losową nazwę",
+    "findRowByScanningCode": "Znajdź wiersz poprzez zeskanowanie kodu QR lub kodu kreskowego"
   },
   "labels": {
     "createdBy": "Stworzony przez",
@@ -221,7 +221,7 @@
     "viewName": "Nazwa widoku",
     "viewLink": "Zobacz link",
     "columnName": "Nazwa kolumny",
-    "columnToScanFor": "Column to scan",
+    "columnToScanFor": "Kolumna do skanowania",
     "columnType": "Typ kolumny",
     "roleName": "Nazwa roli",
     "roleDescription": "Opisy roli",
@@ -238,7 +238,7 @@
     "action": "Akcja",
     "actions": "Akcje",
     "operation": "Operacja",
-    "operationSub": "Sub Operation",
+    "operationSub": "Podoperacja",
     "operationType": "Typ operacji",
     "operationSubType": "Podtypowy akcji",
     "description": "Opis",
@@ -260,9 +260,9 @@
     "barcodeFormat": "Format kodu kreskowego",
     "qrCodeValueTooLong": "Zbyt wiele znaków dla kodu QR",
     "barcodeValueTooLong": "Zbyt wiele znaków dla kodu kreskowego",
-    "currentLocation": "Current Location",
-    "lng": "Lng",
-    "lat": "Lat",
+    "currentLocation": "Bieżąca lokalizacja",
+    "lng": "Długość",
+    "lat": "Szerokość",
     "aggregateFunction": "Funkcja agregacji",
     "dbCreateIfNotExists": "Baza danych: Utwórz, jeśli nie istnieje",
     "clientKey": "Klucz klienta",
@@ -390,13 +390,13 @@
     "renameTable": "Zmień nazwę tabeli.",
     "deleteTable": "Usuń tabelę",
     "addField": "Dodaj nowe pole do tej tabeli",
-    "setDisplay": "Set as Display value",
+    "setDisplay": "Ustaw jako wartość wyświetlana",
     "addRow": "Dodaj nowy rząd",
     "saveRow": "Zapisz wiersz",
     "saveAndExit": "Zapisz i wyjdź",
     "saveAndStay": "Oszczędzaj i zostań",
     "insertRow": "Wstaw nowy rząd",
-    "duplicateRow": "Duplicate Row",
+    "duplicateRow": "Duplikuj wiersz",
     "deleteRow": "Usuń rząd",
     "deleteSelectedRow": "Usuń wybrane wiersze",
     "importExcel": "Importuj Excel.",
@@ -412,8 +412,8 @@
     "changePwd": "Zmień hasło",
     "createView": "Utwórz widok",
     "shareView": "Widok udostępniania",
-    "findRowByCodeScan": "Find row by scan",
-    "fillByCodeScan": "Fill by scan",
+    "findRowByCodeScan": "Znajdź rząd przez skanowanie",
+    "fillByCodeScan": "Wypełnij przez skanowanie",
     "listSharedView": "Wspólna lista widoków",
     "ListView": "Lista widoków",
     "copyView": "Widok kopiowania",
@@ -429,10 +429,10 @@
     "openTab": "Otwórz nową kartę",
     "iFrame": "Skopiuj wbudowany kod HTML",
     "addWebhook": "Dodaj nowy webhook.",
-    "enableWebhook": "Enable Webhook",
-    "testWebhook": "Test Webhook",
-    "copyWebhook": "Copy Webhook",
-    "deleteWebhook": "Delete Webhook",
+    "enableWebhook": "Włącz Webhook",
+    "testWebhook": "Testuj Webhook",
+    "copyWebhook": "Skopiuj Webhook",
+    "deleteWebhook": "Usuń Webhook",
     "newToken": "Dodaj nowy token.",
     "exportZip": "Eksportuj Zip.",
     "importZip": "Importuj Zip.",
@@ -470,12 +470,12 @@
       "addOrEditStack": "Dodaj / Edytuj stos"
     },
     "map": {
-      "mappedBy": "Mapped By",
-      "chooseMappingField": "Choose a Mapping Field",
-      "openInGoogleMaps": "Google Maps",
+      "mappedBy": "Mapowany przez",
+      "chooseMappingField": "Wybierz pole mapowania",
+      "openInGoogleMaps": "Mapy Google",
       "openInOpenStreetMap": "OSM"
     },
-    "toggleMobileMode": "Toggle Mobile Mode"
+    "toggleMobileMode": "Przełącz tryb mobilny"
   },
   "tooltip": {
     "saveChanges": "Zapisz zmiany",
@@ -542,15 +542,15 @@
         "orgViewer": "Widz nie może tworzyć nowych projektów, ale może mieć dostęp do każdego zaproszonego projektu."
       },
       "codeScanner": {
-        "loadingScanner": "Loading the scanner...",
-        "selectColumn": "Select a column (QR code or Barcode) that you want to use for finding a row by scanning.",
-        "moreThanOneRowFoundForCode": "More than one row found for this code. Currently only unique codes are supported.",
-        "noRowFoundForCode": "No row found for this code for the selected column"
+        "loadingScanner": "Ładowanie skanera...",
+        "selectColumn": "Wybierz kolumnę (kod QR lub kod kreskowy), której chcesz użyć do znalezienia wiersza przez skanowanie.",
+        "moreThanOneRowFoundForCode": "Znaleziono więcej niż jeden wiersz dla tego kodu. Obecnie obsługiwane są tylko unikalne kody.",
+        "noRowFoundForCode": "Nie znaleziono wiersza dla tego kodu dla wybranej kolumny"
       },
       "map": {
-        "overLimit": "You're over the limit.",
-        "closeLimit": "You're getting close to the limit.",
-        "limitNumber": "The limit of markers shown in a Map View is 1000 records."
+        "overLimit": "Przekroczono limit.",
+        "closeLimit": "Zbliżasz się do limitu.",
+        "limitNumber": "Limit markerów pokazywanych w widoku mapy wynosi 1000 rekordów."
       },
       "footerInfo": "Wiersze na stronę",
       "upload": "Wybierz plik do przesłania",
@@ -634,7 +634,7 @@
         "gallery": "Dodaj widok galerii.",
         "form": "Dodaj widok formy",
         "kanban": "Dodaj widok Kanban.",
-        "map": "Add Map View",
+        "map": "Dodaj widok mapy",
         "calendar": "Dodaj widok kalendarza"
       },
       "tablesMetadataInSync": "Tabele Metadane są synchronizowane",
@@ -666,11 +666,11 @@
       "deleteViewConfirmation": "Czy na pewno chcesz usunąć ten widok?",
       "deleteTableConfirmation": "Czy chcesz usunąć tabelę",
       "showM2mTables": "Pokaż tabele M2M",
-      "showM2mTablesDesc": "Many-to-many relation is supported via a junction table & is hidden by default. Enable this option to list all such tables along with existing tables.",
-      "showNullInCells": "Show NULL in Cells",
-      "showNullInCellsDesc": "Display 'NULL' tag in cells holding NULL value. This helps differentiate against cells holding EMPTY string.",
-      "showNullAndEmptyInFilter": "Show NULL and EMPTY in Filter",
-      "showNullAndEmptyInFilterDesc": "Enable 'additional' filters to differentiate fields containing NULL & Empty Strings. Default support for Blank treats both NULL & Empty strings alike.",
+      "showM2mTablesDesc": "Relacja wiele do wielu jest obsługiwana przez tabelę łączącą i jest domyślnie ukryta. Proszę włączyć tę opcję, aby wyświetlić wszystkie takie tabele wraz z istniejącymi.",
+      "showNullInCells": "Pokaż NULL w komórkach",
+      "showNullInCellsDesc": "Wyświetlanie znacznika 'NULL' w komórkach posiadających wartość NULL. Pomaga to odróżnić się od komórek posiadających ciąg EMPTY.",
+      "showNullAndEmptyInFilter": "Pokaż NULL i EMPTY w filtrze",
+      "showNullAndEmptyInFilterDesc": "Włącz filtry 'dodatkowe' do różnicowania pól zawierających NULL i puste ciągi. Domyślna obsługa dla pustych kodów przetwarza zarówno NULL, jak i puste ciągi.",
       "deleteKanbanStackConfirmation": "Usunięcie tego stosu spowoduje również usunięcie wybranej opcji `{stackToBeDeleted}` z `{groupingField}`. Rekordy przeniosą się do nieskategoryzowanego stosu.",
       "computedFieldEditWarning": "Pole obliczeniowe: zawartość jest tylko do odczytu. Do rekonfiguracji należy użyć menu edycji kolumny",
       "computedFieldDeleteWarning": "Pole obliczeniowe: zawartość jest tylko do odczytu. Nie można wyczyścić zawartości.",
@@ -698,7 +698,7 @@
         "allowedSpecialCharList": "Dozwolona lista znaków specjalnych"
       },
       "invalidURL": "Nieprawidłowy adres URL",
-      "invalidEmail": "Invalid Email",
+      "invalidEmail": "Nieprawidłowy e-mail",
       "internalError": "Wystąpił błąd wewnętrzny",
       "templateGeneratorNotFound": "Nie można znaleźć generatora szablonów!",
       "fileUploadFailed": "Nie udało się przesłać pliku",
@@ -726,7 +726,7 @@
       "nameShouldStartWithAnAlphabetOr_": "Nazwa powinna zaczynać się od alfabetu lub od _",
       "followingCharactersAreNotAllowed": "Następujące znaki są niedozwolone",
       "columnNameRequired": "Nazwa kolumny jest wymagana",
-      "columnNameExceedsCharacters": "The length of column name exceeds the max {value} characters",
+      "columnNameExceedsCharacters": "Nazwa kolumny przekracza maksymalną długość {value} znaków",
       "projectNameExceeds50Characters": "Nazwa projektu przekracza 50 znaków",
       "projectNameCannotStartWithSpace": "Nazwa projektu nie może zaczynać się od spacji",
       "requiredField": "Pole wymagane",
@@ -759,7 +759,7 @@
     },
     "success": {
       "columnDuplicated": "Kolumna powielona z powodzeniem",
-      "rowDuplicatedWithoutSavedYet": "Row duplicated (not saved)",
+      "rowDuplicatedWithoutSavedYet": "Wiersz zduplikowany (niezapisany)",
       "updatedUIACL": "Pomyślnie zaktualizowano UI ACL dla tabel",
       "pluginUninstalled": "Wtyczka odinstalowana pomyślnie",
       "pluginSettingsSaved": "Ustawienia wtyczki zapisane pomyślnie",
@@ -779,7 +779,7 @@
       "userDeletedFromProject": "Użytkownik usunięty z projektu",
       "inviteEmailSent": "E-mail został wysłany pomyślnie",
       "inviteURLCopied": "Link z zaproszeniem skopiowany do schowka",
-      "commentCopied": "Comment copied to clipboard",
+      "commentCopied": "Komentarz skopiowany do schowka",
       "passwordResetURLCopied": "URL resetowania hasła skopiowany do schowka",
       "shareableURLCopied": "Skopiowano adres URL do schowka!",
       "embeddableHTMLCodeCopied": "Skopiowano kod HTML!",

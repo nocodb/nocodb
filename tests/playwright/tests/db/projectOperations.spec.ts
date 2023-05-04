@@ -1,4 +1,4 @@
-import { test } from '@playwright/test';
+import { expect, test } from '@playwright/test';
 import { DashboardPage } from '../../pages/Dashboard';
 import { airtableApiBase, airtableApiKey } from '../../constants';
 import { quickVerify } from '../../quickTests/commonTest';
@@ -6,6 +6,8 @@ import setup from '../../setup';
 import { ToolbarPage } from '../../pages/Dashboard/common/Toolbar';
 import { ProjectsPage } from '../../pages/ProjectsPage';
 import { Api } from 'nocodb-sdk';
+import { ProjectInfo, ProjectInfoOperator } from '../utils/projectInfoOperator';
+import { deepCompare } from '../utils/objectCompareUtil';
 
 test.describe('Project operations', () => {
   let dashboard: DashboardPage;
@@ -13,7 +15,7 @@ test.describe('Project operations', () => {
   let context: any;
   let api: Api<any>;
   let projectPage: ProjectsPage;
-  test.setTimeout(150000);
+  test.setTimeout(70000);
 
   async function deleteIfExists(name: string) {
     try {
@@ -76,6 +78,52 @@ test.describe('Project operations', () => {
     await projectPage.duplicateProject({ name: testProjectName, withoutPrefix: true });
     await projectPage.openProject({ title: dupeProjectName, withoutPrefix: true });
     await quickVerify({ dashboard, airtableImport: true, context });
+
+    // compare
+    const projectList = await api.project.list();
+    const testProjectId = await projectList.list.find((p: any) => p.title === testProjectName);
+    const dupeProjectId = await projectList.list.find((p: any) => p.title === dupeProjectName);
+    const projectInfoOp: ProjectInfoOperator = new ProjectInfoOperator(context.token);
+    const orginal: Promise<ProjectInfo> = projectInfoOp.extractProjectData(testProjectId.id);
+    const duplicate: Promise<ProjectInfo> = projectInfoOp.extractProjectData(dupeProjectId.id);
+    await Promise.all([orginal, duplicate]).then(arr => {
+      // TODO: support providing full json path instead of just last field name
+      const ignoredFields: Set<string> = new Set([
+        'id',
+        'prefix',
+        'project_id',
+        'fk_view_id',
+        'ptn',
+        'base_id',
+        'table_name',
+        'fk_model_id',
+        'fk_column_id',
+        'fk_cover_image_col_id',
+        // potential bugs
+        'created_at',
+        'updated_at',
+      ]);
+      const ignoredKeys: Set<string> = new Set([
+        '.project.is_meta.title',
+        // below are potential bugs
+        '.project.is_meta.title.status',
+        '.project.tables.0.table.shares.views.0.view._ptn.ptype.tn',
+        '.project.tables.0.table.shares.views.0.view._ptn.ptype.tn._tn',
+        '.project.tables.0.table.shares.views.0.view._ptn.ptype.tn._tn.table_meta.title',
+        '.project.tables.0.1.table.shares.views.0.view._ptn.ptype.tn',
+        '.project.tables.0.1.table.shares.views.0.view._ptn.ptype.tn._tn',
+        '.project.tables.0.1.table.shares.views.0.view._ptn.ptype.tn._tn.table_meta.title',
+        '.project.tables.0.1.2.table.shares.views.0.view._ptn.ptype.tn',
+        '.project.tables.0.1.2.table.shares.views.0.view._ptn.ptype.tn._tn',
+        '.project.tables.0.1.2.table.shares.views.0.view._ptn.ptype.tn._tn.table_meta.title',
+        '.project.tables.bases.0.alias.config',
+        '.project.tables.bases.users.0.1.email.invite_token.main_roles.roles',
+        '.project.tables.bases.users.0.1.2.email.invite_token.main_roles.roles',
+      ]);
+      const orginalProjectInfo: ProjectInfo = arr[0];
+      const duplicateProjectInfo: ProjectInfo = arr[1];
+      expect(deepCompare(orginalProjectInfo, duplicateProjectInfo, ignoredFields, ignoredKeys)).toBeTruthy();
+    });
 
     // cleanup test-data
     await cleanupTestData();

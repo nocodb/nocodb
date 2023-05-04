@@ -36,7 +36,7 @@ if (!vModel.value.parentColumn) vModel.value.parentColumn = vModel.value.rcn || 
 if (!vModel.value.type) vModel.value.type = 'mm'
 if (!vModel.value.onUpdate) vModel.value.onUpdate = onUpdateDeleteOptions[0]
 if (!vModel.value.onDelete) vModel.value.onDelete = onUpdateDeleteOptions[0]
-if (!vModel.value.virtual) vModel.value.virtual = appInfo.isCloud || sqlUi === SqliteUi
+if (!vModel.value.virtual) vModel.value.virtual = sqlUi === SqliteUi // appInfo.isCloud || sqlUi === SqliteUi
 if (!vModel.value.alias) vModel.value.alias = vModel.value.column_name
 
 const advancedOptions = $(ref(false))
@@ -57,7 +57,7 @@ const filterOption = (value: string, option: { key: string }) => option.key.toLo
     <div class="border-2 p-6">
       <a-form-item v-bind="validateInfos.type" class="nc-ltar-relation-type">
         <a-radio-group v-model:value="vModel.type" name="type" v-bind="validateInfos.type">
-          <a-radio value="hm" :disabled="appInfo.isCloud">Has Many</a-radio>
+          <a-radio value="hm">Has Many</a-radio>
           <a-radio value="mm">Many To Many</a-radio>
         </a-radio-group>
       </a-form-item>
@@ -129,7 +129,7 @@ const filterOption = (value: string, option: { key: string }) => option.key.toLo
 
       <div class="flex flex-row">
         <a-form-item>
-          <a-checkbox v-model:checked="vModel.virtual" :disabled="appInfo.isCloud" name="virtual" @change="onDataTypeChange"
+          <a-checkbox v-model:checked="vModel.virtual" name="virtual" @change="onDataTypeChange"
             >Virtual Relation</a-checkbox
           >
         </a-form-item>

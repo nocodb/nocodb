@@ -19186,7 +19186,7 @@
                 "type": "string"
               }
             ], 
-            "description": "Data Config JSON"
+            "description": "Appearance Config JSON"
           }
         },
         "required": ["id", "dashboard_id", "schema_version", "visualisation_type"],
@@ -19314,7 +19314,7 @@
                 "type": "string"
               }
             ],
-            "description": "Data Config JSON"
+            "description": "Appearance Config JSON"
           }
         },
         "required": [
@@ -19380,7 +19380,7 @@
                 "type": "string"
               }
             ],
-            "description": "Data Config JSON"
+            "description": "Appearance Config JSON"
           }
         }
       },

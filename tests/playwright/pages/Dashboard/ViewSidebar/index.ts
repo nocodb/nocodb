@@ -46,6 +46,7 @@ export class ViewSidebarPage extends BasePage {
 
   private async createView({ title, locator }: { title: string; locator: Locator }) {
     await locator.click();
+    await this.rootPage.locator('input[id="form_item_title"]:visible').waitFor({ state: 'visible' });
     await this.rootPage.locator('input[id="form_item_title"]:visible').fill(title);
     const submitAction = () =>
       this.rootPage.locator('.ant-modal-content').locator('button:has-text("Submit"):visible').click();

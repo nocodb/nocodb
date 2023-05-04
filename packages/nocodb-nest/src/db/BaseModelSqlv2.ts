@@ -15,10 +15,6 @@ import ejs from 'ejs';
 import Validator from 'validator';
 import { customAlphabet } from 'nanoid';
 import DOMPurify from 'isomorphic-dompurify';
-
-const GROUP_COL = '__nc_group_id';
-
-const nanoidv2 = customAlphabet('1234567890abcdefghijklmnopqrstuvwxyz', 14);
 import { v4 as uuidv4 } from 'uuid';
 import { NcError } from '../helpers/catchError';
 import getAst from '../helpers/getAst';
@@ -66,6 +62,10 @@ import type {
 } from '../models';
 import type { Knex } from 'knex';
 import type { SortType } from 'nocodb-sdk';
+
+const GROUP_COL = '__nc_group_id';
+
+const nanoidv2 = customAlphabet('1234567890abcdefghijklmnopqrstuvwxyz', 14);
 
 export async function getViewAndModelByAliasOrId(param: {
   projectName: string;
@@ -2434,6 +2434,7 @@ class BaseModelSqlv2 {
   ): Promise<void> {
     const id = this._extractPksValues(newData);
     let desc = `Record with ID ${id} has been updated in Table ${this.model.title}.`;
+    let details = '';
     if (updateObj) {
       updateObj = await this.model.mapColumnToAlias(updateObj);
       for (const k of Object.keys(updateObj)) {
@@ -2447,6 +2448,9 @@ class BaseModelSqlv2 {
             : newData[k];
         desc += `\n`;
         desc += `Column "${k}" got changed from "${prevValue}" to "${newValue}"`;
+        details += DOMPurify.sanitize(`<span class="">${k}</span>
+  : <span class="text-decoration-line-through red px-2 lighten-4 black--text">${prevValue}</span>
+  <span class="black--text green lighten-4 px-2">${newValue}</span>`);
       }
     }
     await Audit.insert({
@@ -2455,7 +2459,7 @@ class BaseModelSqlv2 {
       op_type: AuditOperationTypes.DATA,
       op_sub_type: AuditOperationSubTypes.UPDATE,
       description: DOMPurify.sanitize(desc),
-      // details: JSON.stringify(data),
+      details,
       ip: req?.clientIp,
       user: req?.user?.email,
     });

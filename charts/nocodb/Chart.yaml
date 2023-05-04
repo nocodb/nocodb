@@ -5,6 +5,10 @@ dependencies:
   name: postgresql
   repository: https://charts.bitnami.com/bitnami
   version: ~11.6.6
+- condition: mysql.enabled
+  name: mysql
+  repository: https://charts.bitnami.com/bitnami
+  version: ~9.4.6
 description: A Helm chart for Kubernetes
 maintainers: []
 name: nocodb

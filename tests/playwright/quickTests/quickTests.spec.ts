@@ -4,6 +4,7 @@ import { LoginPage } from '../pages/LoginPage';
 import { ProjectsPage } from '../pages/ProjectsPage';
 import { quickVerify } from './commonTest';
 import { NcContext } from '../setup';
+import { getDefaultPwd } from '../tests/utils/general';
 
 test.describe('Quick tests', () => {
   let dashboard: DashboardPage;
@@ -12,7 +13,7 @@ test.describe('Quick tests', () => {
     const loginPage = new LoginPage(page);
     await loginPage.goto();
     await loginPage.fillEmail({ email: 'user@nocodb.com', withoutPrefix: true });
-    await loginPage.fillPassword('Password123.');
+    await loginPage.fillPassword(getDefaultPwd());
     await loginPage.submit();
 
     const projectsPage = new ProjectsPage(page);

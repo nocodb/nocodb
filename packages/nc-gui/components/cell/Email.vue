@@ -1,6 +1,6 @@
 <script lang="ts" setup>
 import type { VNodeRef } from '@vue/runtime-core'
-import { EditModeInj, IsSurveyFormInj, computed, inject, useI18n, validateEmail } from '#imports'
+import { EditModeInj, IsExpandedFormOpenInj, IsSurveyFormInj, computed, inject, useI18n, validateEmail } from '#imports'
 
 interface Props {
   modelValue: string | null | undefined
@@ -35,7 +35,9 @@ const vModel = computed({
 
 const validEmail = computed(() => vModel.value && validateEmail(vModel.value))
 
-const focus: VNodeRef = (el) => (el as HTMLInputElement)?.focus()
+const isExpandedFormOpen = inject(IsExpandedFormOpenInj)!
+
+const focus: VNodeRef = (el) => !isExpandedFormOpen && (el as HTMLInputElement)?.focus()
 
 watch(
   () => editEnabled.value,

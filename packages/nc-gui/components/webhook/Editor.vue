@@ -66,7 +66,9 @@ const hook = reactive<
   version: 'v2',
 })
 
-const urlTabKey = ref('params')
+const isBodyShown = ref(hook.version === 'v1' || (hook.version === 'v2' && appInfo.ee))
+
+const urlTabKey = ref(isBodyShown.value ? 'body' : 'params')
 
 const apps: Record<string, any> = ref()
 
@@ -596,7 +598,7 @@ onMounted(async () => {
 
             <a-col :span="24">
               <a-tabs v-model:activeKey="urlTabKey" type="card" closeable="false" class="shadow-sm">
-                <a-tab-pane v-if="hook.version === 'v1'" key="body" tab="Body">
+                <a-tab-pane v-if="isBodyShown" key="body" tab="Body">
                   <LazyMonacoEditor
                     v-model="hook.notification.payload.body"
                     disable-deep-compare
@@ -716,7 +718,7 @@ onMounted(async () => {
 
           <a-row>
             <a-col :span="24">
-              <div v-if="!(hook.version === 'v2' && hook.notification.type === 'URL')" class="text-gray-600">
+              <div v-if="isBodyShown" class="text-gray-600">
                 <div class="flex items-center">
                   <em>Use context variable <strong>data</strong> to refer the record under consideration</em>
 

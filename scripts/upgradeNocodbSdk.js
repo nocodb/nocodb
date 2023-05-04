@@ -20,7 +20,7 @@ const replacePackageName = (filePath) => {
 
 const bumbVersionAndSave = () => {
     // upgrade nocodb-sdk version in nocodb
-    execSync(`cd packages/nocodb && npm install --save --save-exact ${nocodbSdkPackage.name}@${nocodbSdkPackage.version}`, {});
+    execSync(`cd packages/nocodb-nest && npm install --save --save-exact ${nocodbSdkPackage.name}@${nocodbSdkPackage.version}`, {});
     // upgrade nocodb-sdk version in nc-gui
     execSync(`cd packages/nc-gui && npm install --save --save-exact ${nocodbSdkPackage.name}@${nocodbSdkPackage.version}`, {});
 }
@@ -47,9 +47,9 @@ const dfs = function(dir) {
 const searchAndReplace = (target) => {
     let list = [
         ...dfs(path.resolve(path.join(__dirname, '..', 'packages', 'nc-gui'))),
-        ...dfs(path.resolve(path.join(__dirname, '..', 'packages', 'nocodb'))),
+        ...dfs(path.resolve(path.join(__dirname, '..', 'packages', 'nocodb-nest'))),
         path.join(__dirname, '..', 'packages', 'nc-gui', 'package.json'),
-        path.join(__dirname, '..', 'packages', 'nocodb', 'package.json')
+        path.join(__dirname, '..', 'packages', 'nocodb-nest', 'package.json')
     ]
     return Promise.all(list.map(d => {
         return new Promise((resolve, reject) => {

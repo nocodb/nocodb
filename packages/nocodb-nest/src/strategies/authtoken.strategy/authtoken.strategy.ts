@@ -2,53 +2,44 @@ import { Injectable } from '@nestjs/common';
 import { PassportStrategy } from '@nestjs/passport';
 import { Strategy } from 'passport-custom';
 import { ApiToken, ProjectUser, User } from '../../models';
-import type { Request } from 'express';
 
 @Injectable()
 export class AuthTokenStrategy extends PassportStrategy(Strategy, 'authtoken') {
-  constructor() {
-    super({
-      headerFields: ['xc-token'],
-      passReqToCallback: true,
-    });
-  }
-
   // eslint-disable-next-line @typescript-eslint/ban-types
-  async validate(req: Request, token: string, done: Function) {
+  async validate(req: any, callback: Function) {
     try {
-      const apiToken = await ApiToken.getByToken(token);
-      if (!apiToken) {
-        return done({ msg: 'Invalid token' });
-      }
+      let user;
+      if (req.headers['xc-token']) {
+        const apiToken = await ApiToken.getByToken(req.headers['xc-token']);
+        if (!apiToken) {
+          return callback({ msg: 'Invalid token' });
+        }
 
-      const user: any = {};
-      if (!apiToken.fk_user_id) {
-        user.roles = 'editor';
-        return done(null, user);
-      }
+        user = {};
+        if (!apiToken.fk_user_id) {
+          user.roles = 'editor';
+          return callback(null, user);
+        }
 
-      const dbUser: Record<string, any> = await User.get(apiToken.fk_user_id);
-      if (!dbUser) {
-        return done({ msg: 'User not found' });
-      }
+        const dbUser: Record<string, any> = await User.get(apiToken.fk_user_id);
+        if (!dbUser) {
+          return callback({ msg: 'User not found' });
+        }
 
-      dbUser.is_api_token = true;
-      if (req['ncProjectId']) {
-        const projectUser = await ProjectUser.get(
-          req['ncProjectId'],
-          dbUser.id,
-        );
-        user.roles = projectUser?.roles || dbUser.roles;
-        user.roles = user.roles === 'owner' ? 'owner,creator' : user.roles;
-        // + (user.roles ? `,${user.roles}` : '');
-        // todo : cache
-        // await NocoCache.set(`${CacheScope.USER}:${key}`, user);
-        return done(null, user);
+        dbUser.is_api_token = true;
+        if (req['ncProjectId']) {
+          const projectUser = await ProjectUser.get(
+            req['ncProjectId'],
+            dbUser.id,
+          );
+          user.roles = projectUser?.roles || dbUser.roles;
+          user.roles = user.roles === 'owner' ? 'owner,creator' : user.roles;
+          return callback(null, user);
+        }
       }
-
-      return done(null, dbUser);
+      return callback(null, user);
     } catch (error) {
-      return done(error);
+      return callback(error);
     }
   }
 }

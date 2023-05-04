@@ -5,6 +5,7 @@ import type { Ref } from 'vue'
 import {
   CellClickHookInj,
   FieldsInj,
+  IsExpandedFormOpenInj,
   IsFormInj,
   IsKanbanInj,
   MetaInj,
@@ -180,10 +181,14 @@ if (isKanban.value) {
   }
 }
 
-const cellWrapperEl = ref<HTMLElement>()
+provide(IsExpandedFormOpenInj, isExpanded)
+
+const cellWrapperEl = ref()
 
 onMounted(() => {
-  setTimeout(() => (cellWrapperEl.value?.querySelector('input,select,textarea') as HTMLInputElement)?.focus())
+  setTimeout(() => {
+    cellWrapperEl.value?.$el?.querySelector('input,select,textarea')?.focus()
+  }, 300)
 })
 
 const addNewRow = () => {

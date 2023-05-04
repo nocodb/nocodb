@@ -58,6 +58,11 @@ let localState = $computed({
       return undefined
     }
 
+    // ext db
+    if (!isXcdbBase(column.value.base_id)) {
+      return /^\d+$/.test(modelValue) ? dayjs(+modelValue) : dayjs(modelValue)
+    }
+
     if (isMssql(column.value.base_id)) {
       // e.g. 2023-04-29T11:41:53.000Z
       return dayjs(modelValue)

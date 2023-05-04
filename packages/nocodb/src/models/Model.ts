@@ -467,6 +467,7 @@ export default class Model implements TableType {
                 // e.g. 2021-01-01 04:00:00+04:00
                 val = dayjs
                   .utc(val)
+                  .local()
                   .utcOffset(d.getTimezoneOffset(), true)
                   .format('YYYY-MM-DD HH:mm:ss');
               }

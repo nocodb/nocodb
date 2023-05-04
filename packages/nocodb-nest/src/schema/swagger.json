@@ -145,7 +145,7 @@
             }
           }
         },
-        "description": "Update the given project",
+        "description": "Update the given Dashboard",
         "parameters": [
           {
             "$ref": "#/components/parameters/xc-auth"
@@ -295,7 +295,7 @@
             }
           }
         },
-        "description": "Update the given project",
+        "description": "Update the given Dashboard Widget",
         "parameters": [
           {
             "$ref": "#/components/parameters/xc-auth"
@@ -304,6 +304,30 @@
       }
     },
     "/api/v1/dashboards/{dashboardId}/data/widgets/{widgetId}": {
+      "parameters": [
+        {
+          "schema": {
+            "$ref": "#/components/schemas/Id",
+            "example": "p_124hhlkbeasewh",
+            "type": "string"
+          },
+          "name": "dashboardId",
+          "in": "path",
+          "required": true,
+          "description": "Unique Dashboard ID"
+        },
+        {
+          "schema": {
+            "$ref": "#/components/schemas/Id",
+            "example": "p_124hhlkbeasewh",
+            "type": "string"
+          },
+          "name": "widgetId",
+          "in": "path",
+          "required": true,
+          "description": "Dashboard Widget ID"
+        }
+      ],
       "get": {
         "summary": "Get widget data",
         "operationId": "get-widget-data",
@@ -321,26 +345,6 @@
         },
         "tags": [
           "Dashboard"
-        ],
-        "parameters": [
-          {
-            "name": "dashboardId",
-            "in": "path",
-            "description": "Dashboard id",
-            "required": true,
-            "schema": {
-              "type": "string"
-            }
-          },
-          {
-            "name": "widgetId",
-            "in": "path",
-            "description": "Widget id",
-            "required": true,
-            "schema": {
-              "type": "string"
-            }
-          }
         ],
         "description": "Get widget data"
       }

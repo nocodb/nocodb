@@ -3361,7 +3361,8 @@ function shouldSkipField(
         if (
           !(viewOrTableColumn as GridViewColumn)?.show &&
           !(column.rqd && !column.cdf && !column.ai) &&
-          !column.pk
+          !column.pk &&
+          column.uidt !== UITypes.ForeignKey
         )
           return true;
         if (

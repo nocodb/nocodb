@@ -9771,9 +9771,9 @@
         }
       ],
       "get": {
-        "summary": "Table Group by Column and apply choosen aggreate function to another column",
+        "summary": "Group by Column and apply choosen aggreate function to another column",
         "operationId": "db-view-row-grouped-by-aggregate-by-data-list",
-        "description": "Get the grouped data By Column ID and use the choosen aggregate function for the Aggregate Column ID.",
+        "description": "Get the grouped data, grouped by the Group By Column Id, and use the choosen aggregate function for the Aggregate Column ID.",
         "tags": ["DB View Row"],
         "parameters": [
           {

@@ -3044,27 +3044,6 @@ export class Api<
 > extends HttpClient<SecurityDataType> {
   dashboard = {
     /**
-     * @description Get widget data
-     *
-     * @tags Dashboard
-     * @name GetWidgetData
-     * @summary Get widget data
-     * @request GET:/api/v1/dashboards/{dashboardId}/data/widgets/{widgetId}
-     * @response `200` `object` OK
-     */
-    getWidgetData: (
-      dashboardId: string,
-      widgetId: string,
-      params: RequestParams = {}
-    ) =>
-      this.request<object, any>({
-        path: `/api/v1/dashboards/${dashboardId}/data/widgets/${widgetId}`,
-        method: 'GET',
-        format: 'json',
-        ...params,
-      }),
-
-    /**
      * @description Get Dashboard
      *
      * @tags Dashboard
@@ -3249,6 +3228,27 @@ export class Api<
         method: 'PATCH',
         body: data,
         type: ContentType.Json,
+        format: 'json',
+        ...params,
+      }),
+
+    /**
+     * @description Get widget data
+     *
+     * @tags Dashboard
+     * @name GetWidgetData
+     * @summary Get widget data
+     * @request GET:/api/v1/dashboards/{dashboardId}/data/widgets/{widgetId}
+     * @response `200` `object` OK
+     */
+    getWidgetData: (
+      dashboardId: string,
+      widgetId: string,
+      params: RequestParams = {}
+    ) =>
+      this.request<object, any>({
+        path: `/api/v1/dashboards/${dashboardId}/data/widgets/${widgetId}`,
+        method: 'GET',
         format: 'json',
         ...params,
       }),

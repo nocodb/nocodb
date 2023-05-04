@@ -64,6 +64,254 @@
     }
   ],
   "paths": {
+    "/api/v1/dashboards/{id}": {
+      "get": {
+        "summary": "Get dashboard",
+        "operationId": "get-dashboard",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Dashboard"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "Dashboard"
+        ],
+        "parameters": [
+          {
+            "name": "projectId",
+            "in": "query",
+            "description": "Project id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "description": "Get Dashboard"
+      },
+      "delete": {
+        "summary": "Delete Dashboard",
+        "operationId": "delete-dashboard",
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        },
+        "tags": [
+          "Dashboard"
+        ],
+        "parameters": [
+          {
+            "name": "projectId",
+            "in": "query",
+            "description": "Project id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "description": "Delete Dashboard"
+      },
+      "patch": {
+        "summary": "Update Dashboard",
+        "operationId": "update-dashboard",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "number",
+                  "example": 1
+                },
+                "examples": {
+                  "Example 1": {
+                    "value": 1
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          }
+        },
+        "tags": ["Dashboard"],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/DashboardUpdateReq"
+              }
+            }
+          }
+        },
+        "description": "Update the given project",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/xc-auth"
+          }
+        ]
+      }
+    },
+    "/api/v1/dashboards/{dashboardId}/widgets": {
+      "parameters": [
+              {
+        "schema": {
+          "$ref": "#/components/schemas/Id",
+          "example": "p_124hhlkbeasewh",
+          "type": "string"
+        },
+        "name": "dashboardId",
+        "in": "path",
+        "required": true,
+        "description": "Unique Dashboard ID"
+      }
+      ],
+      "get": {
+        "summary": "Get Widgets for Dashboard",
+        "operationId": "get-dashboard-widgets",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DashboardWidgetList"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "Dashboard"
+        ],
+        "description": "Get Widgets of the Dashboard"
+      },
+      "post": {
+        "summary": "Create Dashboard Widget",
+        "operationId": "dashboard-widgets-create",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DashboardWidget"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          }
+        },
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/DashboardWidgetReq"
+              }
+            }
+          }
+        },
+        "tags": ["Dashboard"],
+        "description": "Create a new Dashboard Widget in a given Dashboard",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/xc-auth"
+          }
+        ]
+      }
+    },
+    "/api/v1/dashboards/{dashboardId}/widgets/{widgetId}": {
+      "parameters": [
+        {
+          "schema": {
+            "$ref": "#/components/schemas/Id",
+            "example": "p_124hhlkbeasewh",
+            "type": "string"
+          },
+          "name": "dashboardId",
+          "in": "path",
+          "required": true,
+          "description": "Unique Dashboard ID"
+        },
+        {
+          "schema": {
+            "$ref": "#/components/schemas/Id",
+            "example": "p_124hhlkbeasewh",
+            "type": "string"
+          },
+          "name": "widgetId",
+          "in": "path",
+          "required": true,
+          "description": "Dashboard Widget ID"
+        }
+      ],
+      "delete": {
+        "summary": "Delete Dashboard Widget",
+        "operationId": "delete-dashboard-widget",
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        },
+        "tags": [
+          "Dashboard"
+        ],
+        "description": "Delete Dashboard Widget"
+      },
+      "patch": {
+        "summary": "Update Dashboard Widget",
+        "operationId": "update-dashboard-widget",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "number",
+                  "example": 1
+                },
+                "examples": {
+                  "Example 1": {
+                    "value": 1
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          }
+        },
+        "tags": ["Dashboard"],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/DashboardWidgetUpdateReq"
+              }
+            }
+          }
+        },
+        "description": "Update the given project",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/xc-auth"
+          }
+        ]
+      }
+    },
     "/api/v1/dashboards/{dashboardId}/data/widgets/{widgetId}": {
       "get": {
         "summary": "Get widget data",
@@ -5003,254 +5251,6 @@
         },
         "tags": [
           "Base"
-        ]
-      }
-    },
-    "/api/v1/dashboards/{id}": {
-      "get": {
-        "summary": "Get dashboard",
-        "operationId": "get-dashboard",
-        "responses": {
-          "200": {
-            "description": "OK",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/Dashboard"
-                }
-              }
-            }
-          }
-        },
-        "tags": [
-          "Dashboard"
-        ],
-        "parameters": [
-          {
-            "name": "projectId",
-            "in": "query",
-            "description": "Project id",
-            "required": true,
-            "schema": {
-              "type": "string"
-            }
-          }
-        ],
-        "description": "Get Dashboard"
-      },
-      "delete": {
-        "summary": "Delete Dashboard",
-        "operationId": "delete-dashboard",
-        "responses": {
-          "200": {
-            "description": "OK"
-          }
-        },
-        "tags": [
-          "Dashboard"
-        ],
-        "parameters": [
-          {
-            "name": "projectId",
-            "in": "query",
-            "description": "Project id",
-            "required": true,
-            "schema": {
-              "type": "string"
-            }
-          }
-        ],
-        "description": "Delete Dashboard"
-      },
-      "patch": {
-        "summary": "Update Dashboard",
-        "operationId": "update-dashboard",
-        "responses": {
-          "200": {
-            "description": "OK",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "number",
-                  "example": 1
-                },
-                "examples": {
-                  "Example 1": {
-                    "value": 1
-                  }
-                }
-              }
-            }
-          },
-          "400": {
-            "$ref": "#/components/responses/BadRequest"
-          }
-        },
-        "tags": ["Dashboard"],
-        "requestBody": {
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/DashboardUpdateReq"
-              }
-            }
-          }
-        },
-        "description": "Update the given project",
-        "parameters": [
-          {
-            "$ref": "#/components/parameters/xc-auth"
-          }
-        ]
-      }
-    },
-    "/api/v1/dashboards/{dashboardId}/widgets": {
-      "parameters": [
-              {
-        "schema": {
-          "$ref": "#/components/schemas/Id",
-          "example": "p_124hhlkbeasewh",
-          "type": "string"
-        },
-        "name": "dashboardId",
-        "in": "path",
-        "required": true,
-        "description": "Unique Dashboard ID"
-      }
-      ],
-      "get": {
-        "summary": "Get Widgets for Dashboard",
-        "operationId": "get-dashboard-widgets",
-        "responses": {
-          "200": {
-            "description": "OK",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/DashboardWidgetList"
-                }
-              }
-            }
-          }
-        },
-        "tags": [
-          "Dashboard"
-        ],
-        "description": "Get Widgets of the Dashboard"
-      },
-      "post": {
-        "summary": "Create Dashboard Widget",
-        "operationId": "dashboard-widgets-create",
-        "responses": {
-          "200": {
-            "description": "OK",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/DashboardWidget"
-                }
-              }
-            }
-          },
-          "400": {
-            "$ref": "#/components/responses/BadRequest"
-          }
-        },
-        "requestBody": {
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/DashboardWidgetReq"
-              }
-            }
-          }
-        },
-        "tags": ["Dashboard"],
-        "description": "Create a new Dashboard Widget in a given Dashboard",
-        "parameters": [
-          {
-            "$ref": "#/components/parameters/xc-auth"
-          }
-        ]
-      }
-    },
-    "/api/v1/dashboards/{dashboardId}/widgets/{widgetId}": {
-      "parameters": [
-        {
-          "schema": {
-            "$ref": "#/components/schemas/Id",
-            "example": "p_124hhlkbeasewh",
-            "type": "string"
-          },
-          "name": "dashboardId",
-          "in": "path",
-          "required": true,
-          "description": "Unique Dashboard ID"
-        },
-        {
-          "schema": {
-            "$ref": "#/components/schemas/Id",
-            "example": "p_124hhlkbeasewh",
-            "type": "string"
-          },
-          "name": "widgetId",
-          "in": "path",
-          "required": true,
-          "description": "Dashboard Widget ID"
-        }
-      ],
-      "delete": {
-        "summary": "Delete Dashboard Widget",
-        "operationId": "delete-dashboard-widget",
-        "responses": {
-          "200": {
-            "description": "OK"
-          }
-        },
-        "tags": [
-          "Dashboard"
-        ],
-        "description": "Delete Dashboard Widget"
-      },
-      "patch": {
-        "summary": "Update Dashboard Widget",
-        "operationId": "update-dashboard-widget",
-        "responses": {
-          "200": {
-            "description": "OK",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "number",
-                  "example": 1
-                },
-                "examples": {
-                  "Example 1": {
-                    "value": 1
-                  }
-                }
-              }
-            }
-          },
-          "400": {
-            "$ref": "#/components/responses/BadRequest"
-          }
-        },
-        "tags": ["Dashboard"],
-        "requestBody": {
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/DashboardWidgetUpdateReq"
-              }
-            }
-          }
-        },
-        "description": "Update the given project",
-        "parameters": [
-          {
-            "$ref": "#/components/parameters/xc-auth"
-          }
         ]
       }
     },
@@ -14051,11 +14051,6 @@
           }
         },
         "description": "Get the sample hook payload",
-        "parameters": [
-          {
-            "$ref": "#/components/parameters/xc-auth"
-          }
-        ],
         "tags": [
           "DB Table Webhook"
         ]

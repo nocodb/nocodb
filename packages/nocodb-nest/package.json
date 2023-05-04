@@ -1,7 +1,7 @@
 {
-  "name": "nocodb-nest",
-  "version": "0.0.1",
-  "description": "NocoDB Backend (Nest)",
+  "name": "nocodb",
+  "version": "0.106.1",
+  "description": "NocoDB Backend",
   "main": "dist/bundle.js",
   "author": {
     "name": "NocoDB Inc",
@@ -15,11 +15,11 @@
   "bugs": {
     "url": "https://github.com/nocodb/nocodb/issues"
   },
-  "private": true,
   "license": "AGPL-3.0-or-later",
   "scripts": {
     "build": "nest build",
     "build:obfuscate": "EE=true webpack  --config webpack.config.js",
+    "obfuscate:build:publish": "npm run build:obfuscate && npm publish .",
     "format": "prettier --write \"src/**/*.ts\" \"test/**/*.ts\"",
     "start": "nest start",
     "start:dev": "nest start --watch",

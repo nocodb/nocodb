@@ -13,13 +13,16 @@ export class GlobalGuard extends AuthGuard(['jwt']) {
 
   async canActivate(context: ExecutionContext) {
     let result;
-    try {
-      result = await this.extractBoolVal(super.canActivate(context));
-    } catch (e) {
-      console.log(e);
-    }
 
     const req = context.switchToHttp().getRequest();
+
+    if (req.headers?.['xc-auth']) {
+      try {
+        result = await this.extractBoolVal(super.canActivate(context));
+      } catch (e) {
+        console.log(e);
+      }
+    }
 
     if (result && !req.headers['xc-shared-base-id']) {
       if (

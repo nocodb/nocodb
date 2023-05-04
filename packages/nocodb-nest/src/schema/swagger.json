@@ -19219,6 +19219,13 @@
           "order": {
             "description": "The order of this Dashboard in the list of Dashboards",
             "type": "number"
+          }, 
+          "linked_db_projects": {
+            "description": "List of DB projects that this dashboard is linked to",
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/Project"
+            }
           }
         },
         "x-stoplight": {
@@ -19249,6 +19256,13 @@
                 "order": {
                   "description": "The order of this Dashboard in the list of Dashboards",
                   "type": "number"
+                },
+                "linked_db_project_ids": {
+                  "description": "List of DB projects IDs that this dashboard is linked to",
+                  "type": "array",
+                  "items": {
+                    "type": "string"
+                  }
                 }
               },
         "required": ["project_id", "title"]
@@ -19400,6 +19414,13 @@
                 "order": {
                   "description": "The order of this Dashboard in the list of Dashboards",
                   "type": "number"
+                },
+                "linked_db_project_ids": {
+                  "description": "List of DB projects IDs that this dashboard is linked to",
+                  "type": "array",
+                  "items": {
+                    "type": "string"
+                  }
                 }
               }
       },

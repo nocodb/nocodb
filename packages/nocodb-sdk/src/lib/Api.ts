@@ -1156,7 +1156,7 @@ export interface DashboardWidgetType {
   data_source?: null | object | string;
   /** Data Config JSON */
   data_config?: null | object | string;
-  /** Data Config JSON */
+  /** Appearance Config JSON */
   appearance_config?: null | object | string;
 }
 
@@ -1177,6 +1177,8 @@ export interface DashboardType {
   title?: string;
   /** The order of this Dashboard in the list of Dashboards */
   order?: number;
+  /** List of DB projects that this dashboard is linked to */
+  linked_db_projects?: ProjectType[];
 }
 
 /**
@@ -1194,6 +1196,8 @@ export interface DashboardReqType {
   title: string;
   /** The order of this Dashboard in the list of Dashboards */
   order?: number;
+  /** List of DB projects IDs that this dashboard is linked to */
+  linked_db_project_ids?: string[];
 }
 
 /**
@@ -1213,7 +1217,7 @@ export interface DashboardWidgetReqType {
   data_source?: null | object | string;
   /** Data Config JSON */
   data_config?: null | object | string;
-  /** Data Config JSON */
+  /** Appearance Config JSON */
   appearance_config?: null | object | string;
 }
 
@@ -1232,7 +1236,7 @@ export interface DashboardWidgetUpdateReqType {
   data_source?: null | object | string;
   /** Data Config JSON */
   data_config?: null | object | string;
-  /** Data Config JSON */
+  /** Appearance Config JSON */
   appearance_config?: null | object | string;
 }
 
@@ -1247,6 +1251,8 @@ export interface DashboardUpdateReqType {
   title?: string;
   /** The order of this Dashboard in the list of Dashboards */
   order?: number;
+  /** List of DB projects IDs that this dashboard is linked to */
+  linked_db_project_ids?: string[];
 }
 
 /**
@@ -1268,8 +1274,6 @@ export enum DashboardWidgetVisualisationTypeType {
 export interface DashboardWidgetListType {
   /** DashboardWidget objects */
   list: DashboardWidgetType[];
-  /** Model for Paginated */
-  pageInfo: PaginatedType;
 }
 
 /**

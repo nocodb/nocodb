@@ -287,7 +287,7 @@ onMounted(() => {
               <LazySmartsheetVirtualCell
                 v-if="isVirtualCol(field)"
                 v-model="formState[field.title]"
-                class="mt-0 nc-input"
+                class="mt-0 nc-input h-auto"
                 :row="{ row: {}, oldRow: {}, rowMeta: {} }"
                 :data-testid="`nc-survey-form__input-${field.title.replaceAll(' ', '')}`"
                 :column="field"
@@ -296,7 +296,7 @@ onMounted(() => {
               <LazySmartsheetCell
                 v-else
                 v-model="formState[field.title]"
-                class="nc-input"
+                class="nc-input h-auto"
                 :data-testid="`nc-survey-form__input-${field.title.replaceAll(' ', '')}`"
                 :column="field"
                 :edit-enabled="editEnabled[index]"

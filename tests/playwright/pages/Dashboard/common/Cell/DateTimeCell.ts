@@ -23,7 +23,7 @@ export class DateTimeCellPageObject extends BasePage {
   }
 
   async save() {
-    await this.rootPage.locator('button:has-text("Ok")').click();
+    await this.rootPage.locator('button:has-text("Ok"):visible').click();
   }
 
   async selectDate({
@@ -36,15 +36,15 @@ export class DateTimeCellPageObject extends BasePage {
     const [year, month, day] = date.split('-');
 
     // configure year
-    await this.rootPage.locator('.ant-picker-year-btn').click();
+    await this.rootPage.locator('.ant-picker-year-btn:visible').click();
     await this.rootPage.locator(`td[title="${year}"]`).click();
 
     // configure month
-    await this.rootPage.locator('.ant-picker-month-btn').click();
+    await this.rootPage.locator('.ant-picker-month-btn:visible').click();
     await this.rootPage.locator(`td[title="${year}-${month}"]`).click();
 
     // configure day
-    await this.rootPage.locator(`td[title="${year}-${month}-${day}"]`).click();
+    await this.rootPage.locator(`td[title="${year}-${month}-${day}"]:visible`).click();
   }
 
   async selectTime({
@@ -60,14 +60,20 @@ export class DateTimeCellPageObject extends BasePage {
     second?: number | null;
   }) {
     await this.rootPage
-      .locator(`.ant-picker-time-panel-column:nth-child(1) > .ant-picker-time-panel-cell:nth-child(${hour + 1})`)
+      .locator(
+        `.ant-picker-time-panel-column:nth-child(1) > .ant-picker-time-panel-cell:nth-child(${hour + 1}):visible`
+      )
       .click();
     await this.rootPage
-      .locator(`.ant-picker-time-panel-column:nth-child(2) > .ant-picker-time-panel-cell:nth-child(${minute + 1})`)
+      .locator(
+        `.ant-picker-time-panel-column:nth-child(2) > .ant-picker-time-panel-cell:nth-child(${minute + 1}):visible`
+      )
       .click();
     if (second != null) {
       await this.rootPage
-        .locator(`.ant-picker-time-panel-column:nth-child(3) > .ant-picker-time-panel-cell:nth-child(${second + 1})`)
+        .locator(
+          `.ant-picker-time-panel-column:nth-child(3) > .ant-picker-time-panel-cell:nth-child(${second + 1}):visible`
+        )
         .click();
     }
   }

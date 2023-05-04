@@ -46,6 +46,7 @@
     "body-parser": "^1.20.1",
     "dayjs": "^1.11.7",
     "express": "^4.18.2",
+    "knex": "^2.4.2",
     "nocodb-sdk": "file:../../packages/nocodb-sdk",
     "xlsx": "^0.18.5"
   }

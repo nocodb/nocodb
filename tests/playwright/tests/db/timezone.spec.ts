@@ -1,6 +1,7 @@
 import { expect, test } from '@playwright/test';
 import { DashboardPage } from '../../pages/Dashboard';
 import setup from '../../setup';
+import { knex } from 'knex';
 import { Api, UITypes } from 'nocodb-sdk';
 let api: Api<any>, records: any[];
 
@@ -25,7 +26,7 @@ const rowAttributes = [
   { Id: 3, DateTime: '2020-12-31 20:00:00-04:00' },
 ];
 
-test.describe('Timezone : Europe/Berlin', () => {
+test.describe('Timezone : Japan/Tokyo', () => {
   let dashboard: DashboardPage;
   let context: any;
 
@@ -57,14 +58,15 @@ test.describe('Timezone : Europe/Berlin', () => {
     await page.reload();
   });
 
+  // DST independent test
   test.use({
-    locale: 'de-DE', // Change to German locale
-    timezoneId: 'Europe/Berlin',
+    locale: 'ja-JP', // Change to Japanese locale
+    timezoneId: 'Asia/Tokyo', // Set timezone to Tokyo timezone
   });
 
   /*
    * This test is to verify the display value of DateTime column in the grid
-   * when the timezone is set to Europe/Berlin
+   * when the timezone is set to Asia/Tokyo
    *
    * The test inserts 3 rows using API
    * 1. DateTime inserted without timezone
@@ -72,24 +74,24 @@ test.describe('Timezone : Europe/Berlin', () => {
    * 3. DateTime inserted with timezone (UTC-4)
    *
    * Expected display values:
-   *  Display value is converted to Europe/Berlin
+   *  Display value is converted to Asia/Tokyo
    */
   test('API insert, verify display value', async () => {
     await dashboard.treeView.openTable({ title: 'dateTimeTable' });
 
     // DateTime inserted using API without timezone is converted to UTC
-    // Display value is converted to Europe/Berlin
-    await dashboard.grid.cell.verifyDateCell({ index: 0, columnHeader: 'DateTime', value: '2021-01-01 01:00' });
+    // Display value is converted to Asia/Tokyo
+    await dashboard.grid.cell.verifyDateCell({ index: 0, columnHeader: 'DateTime', value: '2021-01-01 09:00' });
 
     // DateTime inserted using API with timezone is converted to UTC
-    // Display value is converted to Europe/Berlin
-    await dashboard.grid.cell.verifyDateCell({ index: 1, columnHeader: 'DateTime', value: '2021-01-01 01:00' });
-    await dashboard.grid.cell.verifyDateCell({ index: 2, columnHeader: 'DateTime', value: '2021-01-01 01:00' });
+    // Display value is converted to Asia/Tokyo
+    await dashboard.grid.cell.verifyDateCell({ index: 1, columnHeader: 'DateTime', value: '2021-01-01 09:00' });
+    await dashboard.grid.cell.verifyDateCell({ index: 2, columnHeader: 'DateTime', value: '2021-01-01 09:00' });
   });
 
   /*
    * This test is to verify the API read response of DateTime column
-   * when the timezone is set to Europe/Berlin
+   * when the timezone is set to Asia/Tokyo
    *
    * The test inserts 3 rows using API
    * 1. DateTime inserted without timezone
@@ -311,5 +313,236 @@ test.describe('Timezone', () => {
     // DateTime inserted from cell is converted to UTC & stored
     // Display value is same as inserted value
     await dashboard.grid.cell.verifyDateCell({ index: 1, columnHeader: 'DateTime', value: '2021-01-01 08:00' });
+  });
+});
+
+async function createTableWithDateTimeColumn(database: string) {
+  if (database === 'pg') {
+    const config = {
+      client: 'pg',
+      connection: {
+        host: 'localhost',
+        port: 5432,
+        user: 'postgres',
+        password: 'password',
+        database: 'postgres',
+        multipleStatements: true,
+      },
+      searchPath: ['public', 'information_schema'],
+      pool: { min: 0, max: 5 },
+    };
+
+    const config2 = {
+      ...config,
+      connection: {
+        ...config.connection,
+        database: 'datetimetable',
+      },
+    };
+    const pgknex = knex(config);
+    await pgknex.raw(`DROP DATABASE IF EXISTS dateTimeTable`);
+    await pgknex.raw(`CREATE DATABASE dateTimeTable`);
+    await pgknex.destroy();
+
+    const pgknex2 = knex(config2);
+    await pgknex2.raw(`
+    CREATE TABLE my_table (
+      title SERIAL PRIMARY KEY,
+      datetime_without_tz TIMESTAMP WITHOUT TIME ZONE,
+      datetime_with_tz TIMESTAMP WITH TIME ZONE
+    );
+    SET timezone = 'Asia/Hong_Kong';
+    SELECT pg_sleep(1);
+    INSERT INTO my_table (datetime_without_tz, datetime_with_tz)
+    VALUES
+      ('2023-04-27 10:00:00', '2023-04-27 12:30:00'),
+      ('2023-04-27 10:00:00+05:30', '2023-04-27 10:00:00+05:30');
+  `);
+    await pgknex2.destroy();
+  } else if (database === 'mysql') {
+    const config = {
+      client: 'mysql',
+      connection: {
+        host: 'localhost',
+        port: 3306,
+        user: 'root',
+        password: 'password',
+        database: 'sakila',
+      },
+      pool: { min: 0, max: 5 },
+    };
+
+    const config2 = {
+      ...config,
+      connection: {
+        ...config.connection,
+        database: 'datetimetable',
+      },
+    };
+
+    const mysqlknex = knex(config);
+    await mysqlknex.raw(`DROP DATABASE IF EXISTS dateTimeTable`);
+    await mysqlknex.raw(`CREATE DATABASE dateTimeTable`);
+    await mysqlknex.destroy();
+
+    const mysqlknex2 = knex(config2);
+    await mysqlknex2.raw(`
+    CREATE TABLE my_table (
+      title INT AUTO_INCREMENT PRIMARY KEY,
+      datetime_without_tz DATETIME,
+      datetime_with_tz TIMESTAMP
+    );
+    SET time_zone = '+08:00';
+    SELECT sleep(1);
+    INSERT INTO my_table (datetime_without_tz, datetime_with_tz)
+    VALUES
+      ('2023-04-27 10:00:00', '2023-04-27 12:30:00'),
+      ('2023-04-27 10:00:00+05:30', '2023-04-27 10:00:00+05:30');
+    `);
+    await mysqlknex2.destroy();
+  } else if (database === 'sqlite') {
+    const config = {
+      client: 'sqlite3',
+      connection: {
+        filename: './mydb.sqlite3',
+      },
+      useNullAsDefault: true,
+      pool: { min: 0, max: 5 },
+    };
+
+    // SQLite supports just one type of datetime
+    // Timezone information, if specified is stored as is in the database
+    // https://www.sqlite.org/lang_datefunc.html
+
+    const sqliteknex = knex(config);
+    await sqliteknex.raw(`DROP TABLE IF EXISTS my_table`);
+    await sqliteknex.raw(`
+    CREATE TABLE my_table (
+      title INTEGER PRIMARY KEY AUTOINCREMENT,
+      datetime_without_tz DATETIME,
+      datetime_with_tz DATETIME
+    )
+`);
+    const datetimeData = [
+      ['2023-04-27 10:00:00', '2023-04-27 10:00:00'],
+      ['2023-04-27 10:00:00+05:30', '2023-04-27 10:00:00+05:30'],
+    ];
+    for (const data of datetimeData) {
+      await sqliteknex('my_table').insert({
+        datetime_without_tz: data[0],
+        datetime_with_tz: data[1],
+      });
+    }
+    await sqliteknex.destroy();
+  }
+}
+
+test.describe('External DB - DateTime column', async () => {
+  let dashboard: DashboardPage;
+  let context: any;
+
+  test.use({
+    locale: 'zh-HK',
+    timezoneId: 'Asia/Hong_Kong',
+  });
+
+  test.beforeEach(async ({ page }) => {
+    context = await setup({ page, isEmptyProject: true });
+    dashboard = new DashboardPage(page, context.project);
+
+    api = new Api({
+      baseURL: `http://localhost:8080/`,
+      headers: {
+        'xc-auth': context.token,
+      },
+    });
+
+    await createTableWithDateTimeColumn(context.dbType);
+
+    await api.base.create(context.project.id, {
+      alias: 'datetimetable',
+      type: 'pg',
+      config: {
+        client: 'pg',
+        connection: {
+          host: 'localhost',
+          port: '5432',
+          user: 'postgres',
+          password: 'password',
+          database: 'datetimetable',
+        },
+        searchPath: ['public'],
+      },
+      inflection_column: 'camelize',
+      inflection_table: 'camelize',
+    });
+
+    await dashboard.rootPage.reload();
+  });
+
+  test('Verify display value, UI insert, API response', async () => {
+    await dashboard.treeView.openBase({ title: 'datetimetable' });
+    await dashboard.treeView.openTable({ title: 'MyTable' });
+
+    // display value for datetime column without tz should be same as stored value
+    // display value for datetime column with tz should be converted to browser timezone (HK in this case)
+    await dashboard.grid.cell.verifyDateCell({
+      index: 0,
+      columnHeader: 'DatetimeWithoutTz',
+      value: '2023-04-27 10:00',
+    });
+    await dashboard.grid.cell.verifyDateCell({
+      index: 1,
+      columnHeader: 'DatetimeWithoutTz',
+      value: '2023-04-27 10:00',
+    });
+    await dashboard.grid.cell.verifyDateCell({
+      index: 0,
+      columnHeader: 'DatetimeWithTz',
+      value: '2023-04-27 12:30',
+    });
+    await dashboard.grid.cell.verifyDateCell({
+      index: 1,
+      columnHeader: 'DatetimeWithTz',
+      value: '2023-04-27 12:30',
+    });
+
+    // Insert new row
+    await dashboard.grid.cell.dateTime.setDateTime({
+      index: 2,
+      columnHeader: 'DatetimeWithoutTz',
+      dateTime: '2023-04-27 10:00:00',
+    });
+    await dashboard.rootPage.waitForTimeout(1000);
+    await dashboard.grid.cell.dateTime.setDateTime({
+      index: 2,
+      columnHeader: 'DatetimeWithTz',
+      dateTime: '2023-04-27 12:30:00',
+    });
+
+    // verify API response
+    // Note that, for UI inserted records - second part of datetime may be non-zero (though not shown in UI)
+    // Hence, we skip seconds from API response
+    //
+    const records = await api.dbTableRow.list('noco', context.project.id, 'MyTable', { limit: 10 });
+    let dateTimeWithoutTz = records.list.map(record => record.DatetimeWithoutTz);
+    let dateTimeWithTz = records.list.map(record => record.DatetimeWithTz);
+    const expectedDateTimeWithoutTz = ['2023-04-27 10:00:00', '2023-04-27 10:00:00', '2023-04-27 10:00:00'];
+    const expectedDateTimeWithTz = ['2023-04-27T04:30:00.000Z', '2023-04-27T04:30:00.000Z', '2023-04-27T04:30:00.000Z'];
+
+    dateTimeWithoutTz = dateTimeWithoutTz.map(dateTimeStr => {
+      const [datePart, timePart] = dateTimeStr.split(' ');
+      const updatedTimePart = timePart.split(':').slice(0, 2).join(':') + ':00';
+      return `${datePart} ${updatedTimePart}`;
+    });
+
+    dateTimeWithTz = dateTimeWithTz.map(dateTimeStr => {
+      const dateObj = new Date(dateTimeStr);
+      dateObj.setSeconds(0);
+      return dateObj.toISOString();
+    });
+
+    expect(dateTimeWithoutTz).toEqual(expectedDateTimeWithoutTz);
+    expect(dateTimeWithTz).toEqual(expectedDateTimeWithTz);
   });
 });

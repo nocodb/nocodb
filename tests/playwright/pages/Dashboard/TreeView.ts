@@ -48,6 +48,23 @@ export class TreeViewPage extends BasePage {
     await this.get().locator(`.nc-project-tree-tbl-${title}`).focus();
   }
 
+  async openBase({ title }: { title: string }) {
+    const nodes = await this.get().locator(`.ant-collapse`);
+    // loop through nodes.count() to find the node with title
+    for (let i = 0; i < (await nodes.count()); i++) {
+      const node = nodes.nth(i);
+      const nodeTitle = await node.innerText();
+      // check if nodeTitle contains title
+      if (nodeTitle.includes(title)) {
+        // click on node
+        await node.click();
+        break;
+      }
+    }
+
+    await this.rootPage.waitForTimeout(1000);
+  }
+
   // assumption: first view rendered is always GRID
   //
   async openTable({

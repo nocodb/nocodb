@@ -1,0 +1,18 @@
+node_modules
+coverage
+.nyc_output
+.DS_Store
+*.log
+.vscode
+.idea
+# ignore src besides src/lib/public
+src
+!src/lib/public
+server
+compiled
+.awcache
+.rpt2_cache
+docs
+help
+.serverless
+noco.db*

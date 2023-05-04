@@ -1601,17 +1601,16 @@ class BaseModelSqlv2 {
       // hide if column marked as hidden in view
       // of if column is system field and system field is hidden
       if (
-        fieldsSet
-          ? !fieldsSet.has(column.title)
-          : !extractPkAndPv &&
-            !(viewOrTableColumn instanceof Column) &&
-            (!(viewOrTableColumn as GridViewColumn)?.show ||
-              (!view?.show_system_fields &&
-                column.uidt !== UITypes.ForeignKey &&
-                !column.pk &&
-                isSystemColumn(column)))
-      )
+        shouldSkipField(
+          fieldsSet,
+          viewOrTableColumn,
+          view,
+          column,
+          extractPkAndPv,
+        )
+      ) {
         continue;
+      }
 
       if (!checkColumnRequired(column, fields, extractPkAndPv)) continue;
 
@@ -3345,6 +3344,38 @@ function getCompositePk(primaryKeys: Column[], row) {
 
 function haveFormulaColumn(columns: Column[]) {
   return columns.some((c) => c.uidt === UITypes.Formula);
+}
+
+function shouldSkipField(
+  fieldsSet,
+  viewOrTableColumn,
+  view,
+  column,
+  extractPkAndPv,
+) {
+  if (fieldsSet) {
+    return !fieldsSet.has(column.title);
+  } else {
+    if (!extractPkAndPv) {
+      if (!(viewOrTableColumn instanceof Column)) {
+        if (
+          !(viewOrTableColumn as GridViewColumn)?.show &&
+          !(column.rqd && !column.cdf && !column.ai) &&
+          !column.pk &&
+          column.uidt !== UITypes.ForeignKey
+        )
+          return true;
+        if (
+          !view?.show_system_fields &&
+          column.uidt !== UITypes.ForeignKey &&
+          !column.pk &&
+          isSystemColumn(column)
+        )
+          return true;
+      }
+    }
+    return false;
+  }
 }
 
 export { BaseModelSqlv2 };

@@ -1,6 +1,6 @@
 import { expect, test } from '@playwright/test';
-import { DashboardPage } from '../pages/Dashboard';
-import setup from '../setup';
+import { DashboardPage } from '../../pages/Dashboard';
+import setup from '../../setup';
 import { Api, UITypes } from 'nocodb-sdk';
 let api: Api<any>, records: any[];
 

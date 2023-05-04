@@ -1,5 +1,5 @@
+import { MetaTable } from '../../meta.service';
 import type { Knex } from 'knex';
-import { MetaTable } from '../../meta.service'
 
 const up = async (knex: Knex) => {
   await knex.schema.alterTable(MetaTable.BASES, (table) => {

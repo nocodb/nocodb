@@ -1283,17 +1283,6 @@ export interface DashboardListType {
 }
 
 /**
- * Aggregate Function
- */
-export enum AggregateFnType {
-  Avg = 'avg',
-  Max = 'max',
-  Min = 'min',
-  Count = 'count',
-  Sum = 'sum',
-}
-
-/**
  * Model for Hook
  */
 export interface HookType {
@@ -3052,18 +3041,10 @@ export class Api<
      * @request GET:/api/v1/dashboards/{id}
      * @response `200` `DashboardType` OK
      */
-    getDashboard: (
-      id: string,
-      query: {
-        /** Project id */
-        projectId: string;
-      },
-      params: RequestParams = {}
-    ) =>
+    getDashboard: (id: IdType, params: RequestParams = {}) =>
       this.request<DashboardType, any>({
         path: `/api/v1/dashboards/${id}`,
         method: 'GET',
-        query: query,
         format: 'json',
         ...params,
       }),
@@ -3077,23 +3058,15 @@ export class Api<
      * @request DELETE:/api/v1/dashboards/{id}
      * @response `200` `void` OK
      */
-    deleteDashboard: (
-      id: string,
-      query: {
-        /** Project id */
-        projectId: string;
-      },
-      params: RequestParams = {}
-    ) =>
+    deleteDashboard: (id: IdType, params: RequestParams = {}) =>
       this.request<void, any>({
         path: `/api/v1/dashboards/${id}`,
         method: 'DELETE',
-        query: query,
         ...params,
       }),
 
     /**
- * @description Update the given project
+ * @description Update the given Dashboard
  * 
  * @tags Dashboard
  * @name UpdateDashboard
@@ -3107,7 +3080,7 @@ export class Api<
 }`
  */
     updateDashboard: (
-      id: string,
+      id: IdType,
       data: DashboardUpdateReqType,
       params: RequestParams = {}
     ) =>
@@ -3198,7 +3171,7 @@ export class Api<
       }),
 
     /**
- * @description Update the given project
+ * @description Update the given Dashboard Widget
  * 
  * @tags Dashboard
  * @name UpdateWidget
@@ -3242,8 +3215,8 @@ export class Api<
      * @response `200` `object` OK
      */
     getWidgetData: (
-      dashboardId: string,
-      widgetId: string,
+      dashboardId: IdType,
+      widgetId: IdType,
       params: RequestParams = {}
     ) =>
       this.request<object, any>({
@@ -8687,51 +8660,6 @@ export class Api<
   };
   dbViewRow = {
     /**
- * @description Get the grouped data By Column ID and use the choosen aggregate function for the Aggregate Column ID.
- * 
- * @tags DB View Row
- * @name GroupedByAggregateByDataList
- * @summary Table Group by Column and apply choosen aggreate function to another column
- * @request GET:/api/v1/db/data/{orgs}/{projectName}/{tableName}/views/{viewName}/aggregate/{columnId}/{aggregateFn}
- * @response `200` `(any)[]` OK
- * @response `400` `{
-  \** @example BadRequest [Error]: <ERROR MESSAGE> *\
-  msg: string,
-
-}`
- */
-    groupedByAggregateByDataList: (
-      orgs: IdType,
-      projectName: string,
-      tableName: string,
-      viewName: string,
-      columnId: IdType,
-      aggregateFn: AggregateFnType,
-      query?: {
-        fields?: any[];
-        sort?: any[];
-        groupByColumnId?: string;
-        where?: string;
-        /** Query params for nested data */
-        nested?: any;
-      },
-      params: RequestParams = {}
-    ) =>
-      this.request<
-        any[],
-        {
-          /** @example BadRequest [Error]: <ERROR MESSAGE> */
-          msg: string;
-        }
-      >({
-        path: `/api/v1/db/data/${orgs}/${projectName}/${tableName}/views/${viewName}/aggregate/${columnId}/${aggregateFn}`,
-        method: 'GET',
-        query: query,
-        format: 'json',
-        ...params,
-      }),
-
-    /**
  * @description Get the grouped data By Column ID. Used in Kanban View.
  * 
  * @tags DB View Row
@@ -8908,7 +8836,7 @@ export class Api<
       }),
 
     /**
- * @description Get the table view rows groupe by the given query
+ * @description Get the table view rows grouped by the given query
  * 
  * @tags DB View Row
  * @name GroupBy

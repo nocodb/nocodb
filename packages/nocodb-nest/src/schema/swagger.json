@@ -19429,9 +19429,6 @@
             "items": {
               "$ref": "#/components/schemas/DashboardWidget"
             }
-          },
-          "pageInfo": {
-            "$ref": "#/components/schemas/Paginated"
           }
         },
         "required": ["list", "pageInfo"],

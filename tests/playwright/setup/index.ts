@@ -197,8 +197,12 @@ const setup = async ({
   }
   const token = response.data.token;
 
-  // Browser local storage configurations
-  //
+  try {
+    await axios.post(`http://localhost:8080/api/v1/license`, { key: '' }, { headers: { 'xc-auth': token } });
+  } catch (e) {
+    console.error(`Error resetting project: ${process.env.TEST_PARALLEL_INDEX}`, e);
+  }
+
   await page.addInitScript(
     async ({ token }) => {
       try {

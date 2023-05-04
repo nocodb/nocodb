@@ -8,8 +8,6 @@ import tableRowTests from './tests/tableRow.test';
 import viewRowTests from './tests/viewRow.test';
 import attachmentTests from './tests/attachment.test';
 import filterTest from './tests/filter.test';
-import nocoDocsTests from './tests/docs.test';
-import workspaceTests from './tests/workspace.test';
 
 function restTests() {
   authTests();
@@ -21,8 +19,6 @@ function restTests() {
   columnTypeSpecificTests();
   attachmentTests();
   filterTest();
-  nocoDocsTests();
-  workspaceTests();
 }
 
 export default function () {

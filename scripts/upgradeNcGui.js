@@ -38,8 +38,9 @@ if (process.env.targetEnv === 'DEV') {
         path.join(__dirname, '..', 'packages', 'nocodb', 'Dockerfile'),
         path.join(__dirname, '..', 'packages', 'nocodb', 'litestream', 'Dockerfile'),
         path.join(__dirname, '..', 'packages', 'nocodb', 'package.json'),
-        path.join(__dirname, '..', 'packages', 'nocodb', 'README.md'),
-        path.join(__dirname, '..', 'packages', 'nocodb', 'src', 'lib', 'Noco.ts'),
+        path.join(__dirname, '..', 'packages', 'nocodb', 'src', 'Noco.ts'),
+        path.join(__dirname, '..', 'packages', 'nocodb', 'src', 'nocobuild.ts'),
+        path.join(__dirname, '..', 'packages', 'nocodb', 'src', 'middlewares', 'gui', 'gui.middleware.ts'),
     ]
     Promise.all(filePaths.map(filePath => { return replacePackageName(filePath) })).then(() => {
         bumbVersionAndSave();

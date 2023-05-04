@@ -1,6 +1,5 @@
-import { ProjectType } from 'nocodb-sdk';
 import request from 'supertest';
-import Project from '../../../src/lib/models/Project';
+import Project from '../../../src/models/Project';
 
 const sakilaProjectConfig = (context) => {
   let base;
@@ -70,11 +69,7 @@ const createSakilaProject = async (context) => {
   return (await Project.getByTitleOrId(response.body.id)) as Project;
 };
 
-const createProject = async (context, args: Partial<ProjectType> = {}) => {
-  const projectArgs = {
-    ...defaultProjectValue,
-    ...args,
-  }
+const createProject = async (context, projectArgs = defaultProjectValue) => {
   const response = await request(context.app)
     .post('/api/v1/db/meta/projects/')
     .set('xc-auth', context.token)
@@ -83,14 +78,4 @@ const createProject = async (context, args: Partial<ProjectType> = {}) => {
   return (await Project.getByTitleOrId(response.body.id)) as Project;
 };
 
-const updateProject = async (context, projectId, args: Partial<ProjectType> = {}) => {
-  if(args.meta) {
-    args.meta = JSON.stringify(args.meta);
-  }
-
-  await Project.update(projectId, args as any);
-
-  return (await Project.getByTitleOrId(projectId)) as Project;
-};
-
-export { createProject, createSharedBase, createSakilaProject, updateProject };
+export { createProject, createSharedBase, createSakilaProject };

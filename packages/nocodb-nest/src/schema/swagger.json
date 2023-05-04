@@ -64,6 +64,48 @@
     }
   ],
   "paths": {
+    "/api/v1/dashboards/{dashboardId}/data/widgets/{widgetId}": {
+      "get": {
+        "summary": "Get widget data",
+        "operationId": "get-widget-data",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "Dashboard"
+        ],
+        "parameters": [
+          {
+            "name": "dashboardId",
+            "in": "path",
+            "description": "Dashboard id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "widgetId",
+            "in": "path",
+            "description": "Widget id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "description": "Get widget data"
+      }
+    },
     "/api/v1/public/docs/pages": {
       "get": {
         "summary": "list public pages",
@@ -4964,6 +5006,254 @@
         ]
       }
     },
+    "/api/v1/dashboards/{id}": {
+      "get": {
+        "summary": "Get dashboard",
+        "operationId": "get-dashboard",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Dashboard"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "Dashboard"
+        ],
+        "parameters": [
+          {
+            "name": "projectId",
+            "in": "query",
+            "description": "Project id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "description": "Get Dashboard"
+      },
+      "delete": {
+        "summary": "Delete Dashboard",
+        "operationId": "delete-dashboard",
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        },
+        "tags": [
+          "Dashboard"
+        ],
+        "parameters": [
+          {
+            "name": "projectId",
+            "in": "query",
+            "description": "Project id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "description": "Delete Dashboard"
+      },
+      "patch": {
+        "summary": "Update Dashboard",
+        "operationId": "update-dashboard",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "number",
+                  "example": 1
+                },
+                "examples": {
+                  "Example 1": {
+                    "value": 1
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          }
+        },
+        "tags": ["Dashboard"],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/DashboardUpdateReq"
+              }
+            }
+          }
+        },
+        "description": "Update the given project",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/xc-auth"
+          }
+        ]
+      }
+    },
+    "/api/v1/dashboards/{dashboardId}/widgets": {
+      "parameters": [
+              {
+        "schema": {
+          "$ref": "#/components/schemas/Id",
+          "example": "p_124hhlkbeasewh",
+          "type": "string"
+        },
+        "name": "dashboardId",
+        "in": "path",
+        "required": true,
+        "description": "Unique Dashboard ID"
+      }
+      ],
+      "get": {
+        "summary": "Get Widgets for Dashboard",
+        "operationId": "get-dashboard-widgets",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DashboardWidgetList"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "Dashboard"
+        ],
+        "description": "Get Widgets of the Dashboard"
+      },
+      "post": {
+        "summary": "Create Dashboard Widget",
+        "operationId": "dashboard-widgets-create",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DashboardWidget"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          }
+        },
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/DashboardWidgetReq"
+              }
+            }
+          }
+        },
+        "tags": ["Dashboard"],
+        "description": "Create a new Dashboard Widget in a given Dashboard",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/xc-auth"
+          }
+        ]
+      }
+    },
+    "/api/v1/dashboards/{dashboardId}/widgets/{widgetId}": {
+      "parameters": [
+        {
+          "schema": {
+            "$ref": "#/components/schemas/Id",
+            "example": "p_124hhlkbeasewh",
+            "type": "string"
+          },
+          "name": "dashboardId",
+          "in": "path",
+          "required": true,
+          "description": "Unique Dashboard ID"
+        },
+        {
+          "schema": {
+            "$ref": "#/components/schemas/Id",
+            "example": "p_124hhlkbeasewh",
+            "type": "string"
+          },
+          "name": "widgetId",
+          "in": "path",
+          "required": true,
+          "description": "Dashboard Widget ID"
+        }
+      ],
+      "delete": {
+        "summary": "Delete Dashboard Widget",
+        "operationId": "delete-dashboard-widget",
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        },
+        "tags": [
+          "Dashboard"
+        ],
+        "description": "Delete Dashboard Widget"
+      },
+      "patch": {
+        "summary": "Update Dashboard Widget",
+        "operationId": "update-dashboard-widget",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "number",
+                  "example": 1
+                },
+                "examples": {
+                  "Example 1": {
+                    "value": 1
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          }
+        },
+        "tags": ["Dashboard"],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/DashboardWidgetUpdateReq"
+              }
+            }
+          }
+        },
+        "description": "Update the given project",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/xc-auth"
+          }
+        ]
+      }
+    },
     "/api/v1/db/meta/tables/{tableId}": {
       "parameters": [
         {
@@ -9410,6 +9700,132 @@
         }
       }
     },
+    "/api/v1/db/data/{orgs}/{projectName}/{tableName}/views/{viewName}/aggregate/{columnId}/{aggregateFn}": {
+      "parameters": [
+        {
+          "schema": {
+            "$ref": "#/components/schemas/Id"
+          },
+          "name": "orgs",
+          "in": "path",
+          "required": true,
+          "description": "Organisation Name. Currently `noco` will be used."
+        },
+        {
+          "schema": {
+            "type": "string",
+            "example": "p_tbhl1hnycvhe5l"
+          },
+          "name": "projectName",
+          "in": "path",
+          "required": true,
+          "description": "Project Name"
+        },
+        {
+          "schema": {
+            "type": "string",
+            "example": "md_5hua2iqloqirhd"
+          },
+          "name": "tableName",
+          "in": "path",
+          "required": true,
+          "description": "Table Name"
+        },
+        {
+          "schema": {
+            "type": "string",
+            "example": "vw_mldv0a5mtwh1la"
+          },
+          "name": "viewName",
+          "in": "path",
+          "required": true,
+          "description": "View Name"
+        },
+        {
+          "schema": {
+            "$ref": "#/components/schemas/Id",
+            "example": "cl_8iw2o4ejzvdyna",
+            "type": "string"
+          },
+          "name": "columnId",
+          "in": "path",
+          "required": true,
+          "description": "ID of Column to be aggregated"
+        },
+        {
+          "schema": {
+            "$ref": "#/components/schemas/AggregateFn",
+            "example": "cl_8iw2o4ejzvdyna",
+            "type": "string"
+          },
+          "name": "aggregateFn",
+          "in": "path",
+          "required": true,
+          "description": "ID of Column to be aggregated"
+        }
+      ],
+      "get": {
+        "summary": "Table Group by Column and apply choosen aggreate function to another column",
+        "operationId": "db-view-row-grouped-by-aggregate-by-data-list",
+        "description": "Get the grouped data By Column ID and use the choosen aggregate function for the Aggregate Column ID.",
+        "tags": ["DB View Row"],
+        "parameters": [
+          {
+            "schema": {
+              "type": "array"
+            },
+            "in": "query",
+            "name": "fields"
+          },
+          {
+            "schema": {
+              "type": "array"
+            },
+            "in": "query",
+            "name": "sort"
+          },
+          {
+            "schema": {
+              "type": "string"
+            },
+            "in": "query",
+            "name": "groupByColumnId"
+          },
+          {
+            "schema": {
+              "type": "string"
+            },
+            "in": "query",
+            "name": "where"
+          },
+          {
+            "schema": {},
+            "in": "query",
+            "name": "nested",
+            "description": "Query params for nested data"
+          },
+          {
+            "$ref": "#/components/parameters/xc-auth"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {}
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          }
+        }
+      }
+    },
     "/api/v1/db/data/{orgs}/{projectName}/{tableName}/views/{viewName}/group/{columnId}": {
       "parameters": [
         {
@@ -13643,6 +14059,75 @@
         "tags": [
           "DB Table Webhook"
         ]
+      }
+    },
+    "/api/v1/db/meta/projects/{projectId}/dashboards": {
+      "parameters": [
+              {
+        "schema": {
+          "$ref": "#/components/schemas/Id",
+          "example": "p_124hhlkbeasewh",
+          "type": "string"
+        },
+        "name": "projectId",
+        "in": "path",
+        "required": true,
+        "description": "Unique Project ID"
+      }
+      ],
+      "post": {
+        "summary": "Create Dashboard",
+        "operationId": "dashboards-create",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Dashboard"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          }
+        },
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/DashboardReq"
+              }
+            }
+          }
+        },
+        "tags": ["Dashboard"],
+        "description": "Create a new Dashboard in a given project",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/xc-auth"
+          }
+        ]
+      },
+      "get": {
+        "summary": "List Dashboards",
+        "operationId": "dashboards-list",
+        "responses": {
+          "200": {
+            "$ref": "#/components/responses/DashboardList"
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          }
+        },
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/xc-auth"
+          }
+        ],
+        "tags": ["Dashboard"],
+        "description": "List all Dashboards in a given project"
       }
     },
     "/api/v1/db/meta/hooks/{hookId}": {
@@ -18774,6 +19259,355 @@
             "description": "Meta Info for grid view"
           }
         }
+      },
+      "DashboardWidget": {
+        "description": "Model for DashboardWidget",
+        "title": "DashboardWidget Model",
+        "type": "object",
+        "properties": {
+          "id": {
+            "$ref": "#/components/schemas/Id",
+            "description": "Unique ID"
+          },
+          "dashboard_id": {
+            "$ref": "#/components/schemas/Id",
+            "description": "Dashboard ID"
+          },
+          "schema_version": {
+            "type": "string",
+            "description": "Version of the schema",
+            "example": "v0.2"
+          },
+          "visualisation_type": {
+            "$ref": "#/components/schemas/DashboardWidgetVisualisationType",
+            "description": "Visualisation Type of the widget"
+          },
+          "data_source": {
+            "oneOf": [
+              {
+                "type": "null"
+              },
+              {
+                "type": "object"
+              },
+              {
+                "type": "string"
+              }
+            ], 
+            "description": "Data Source JSON"
+          },
+          "data_config": {
+            "oneOf": [
+              {
+                "type": "null"
+              },
+              {
+                "type": "object"
+              },
+              {
+                "type": "string"
+              }
+            ], 
+            "description": "Data Config JSON"
+          },
+          "appearance_config": {
+            "oneOf": [
+              {
+                "type": "null"
+              },
+              {
+                "type": "object"
+              },
+              {
+                "type": "string"
+              }
+            ], 
+            "description": "Data Config JSON"
+          }
+        },
+        "required": ["id", "dashboard_id", "schema_version", "visualisation_type"],
+        "x-stoplight": {
+          "id": "q8cxkpronjmyx"
+        }
+      },
+      "Dashboard": {
+        "description": "Model for Dashboard",
+        "title": "Dashboard Model",
+        "type": "object",
+        "properties": {
+          "id": {
+            "$ref": "#/components/schemas/Id",
+            "description": "Unique ID"
+          },
+          "base_id": {
+            "description": "Unique Base ID",
+            "type": "string"
+          },
+          "project_id": {
+            "description": "Unique Project ID",
+            "type": "string"
+          },
+          "title": {
+            "type": "string",
+            "description": "Dashboard Title",
+            "example": "My Dashboard"
+          },
+          "order": {
+            "description": "The order of this Dashboard in the list of Dashboards",
+            "type": "number"
+          }
+        },
+        "x-stoplight": {
+          "id": "q8cxkpronjmyx"
+        }
+      },
+      "DashboardReq": {
+        "description": "Model for Dashboard request",
+        "x-stoplight": {
+          "id": "4zlzrppfjxrqb"
+        },
+        "title": "Dashboard Request Model",
+        "type": "object",
+        "properties": {
+                "base_id": {
+                  "description": "Unique Base ID",
+                  "type": "string"
+                },
+                "project_id": {
+                  "description": "Unique Project ID",
+                  "type": "string"
+                },
+                "title": {
+                  "type": "string",
+                  "description": "Dashboard Title",
+                  "example": "My Dashboard"
+                },
+                "order": {
+                  "description": "The order of this Dashboard in the list of Dashboards",
+                  "type": "number"
+                }
+              },
+        "required": ["project_id", "title"]
+      },
+      "DashboardWidgetReq": {
+        "description": "Model for Dashboard Widget request",
+        "x-stoplight": {
+          "id": "4zlzrppfjxrqb"
+        },
+        "title": "Dashboard Widget Request Model",
+        "type": "object",
+        "properties": {
+          "dashboard_id": {
+            "description": "Unique Dashboard ID",
+            "type": "string"
+          },
+          "schema_version": {
+            "type": "string",
+            "description": "Version of the schema",
+            "example": "v0.2"
+          },
+          "visualisation_type": {
+            "$ref": "#/components/schemas/DashboardWidgetVisualisationType",
+            "description": "Visualisation Type of the widget"
+          },
+          "data_source": {
+            "oneOf": [
+              {
+                "type": "null"
+              },
+              {
+                "type": "object"
+              },
+              {
+                "type": "string"
+              }
+            ],
+            "description": "Data Source JSON"
+          },
+          "data_config": {
+            "oneOf": [
+              {
+                "type": "null"
+              },
+              {
+                "type": "object"
+              },
+              {
+                "type": "string"
+              }
+            ],
+            "description": "Data Config JSON"
+          },
+          "appearance_config": {
+            "oneOf": [
+              {
+                "type": "null"
+              },
+              {
+                "type": "object"
+              },
+              {
+                "type": "string"
+              }
+            ],
+            "description": "Data Config JSON"
+          }
+        },
+        "required": [
+          "dashboard_id",
+          "schema_version",
+          "visualisation_type"
+        ]
+      },
+      "DashboardWidgetUpdateReq": {
+        "description": "Model for Dashboard Widget Update request",
+        "x-stoplight": {
+          "id": "4zlzrppfjxrqb"
+        },
+        "title": "Dashboard Widget Update Request Model",
+        "type": "object",
+        "properties": {
+          "schema_version": {
+            "type": "string",
+            "description": "Version of the schema",
+            "example": "v0.2"
+          },
+          "visualisation_type": {
+            "$ref": "#/components/schemas/DashboardWidgetVisualisationType",
+            "description": "Visualisation Type of the widget"
+          },
+          "data_source": {
+            "oneOf": [
+              {
+                "type": "null"
+              },
+              {
+                "type": "object"
+              },
+              {
+                "type": "string"
+              }
+            ],
+            "description": "Data Source JSON"
+          },
+          "data_config": {
+            "oneOf": [
+              {
+                "type": "null"
+              },
+              {
+                "type": "object"
+              },
+              {
+                "type": "string"
+              }
+            ],
+            "description": "Data Config JSON"
+          },
+          "appearance_config": {
+            "oneOf": [
+              {
+                "type": "null"
+              },
+              {
+                "type": "object"
+              },
+              {
+                "type": "string"
+              }
+            ],
+            "description": "Data Config JSON"
+          }
+        }
+      },
+      "DashboardUpdateReq": {
+        "description": "Model for Dashboard Update request",
+        "x-stoplight": {
+          "id": "4zlzrppfjxrqb"
+        },
+        "title": "Dashboard Update Request Model",
+        "type": "object",
+        "properties": {
+                "title": {
+                  "type": "string",
+                  "description": "Dashboard Title",
+                  "example": "My Dashboard"
+                },
+                "order": {
+                  "description": "The order of this Dashboard in the list of Dashboards",
+                  "type": "number"
+                }
+              }
+      },
+      "DashboardWidgetVisualisationType": {
+        "description": "Visualisation Type of the DashboardWidget",
+        "enum": [
+          "number",
+          "static_text",
+          "line_chart",
+          "bar_chart",
+          "pie_chart",
+          "scatter_plot",
+          "button"
+        ],
+        "type": "string"
+      },
+      "DashboardWidgetList": {
+        "description": "Model for DashboardWidget List",
+        "title": "DashboardWidget List Model",
+        "type": "object",
+        "properties": {
+          "list": {
+            "minItems": 1,
+            "type": "array",
+            "uniqueItems": true,
+            "description": "DashboardWidget objects",
+            "items": {
+              "$ref": "#/components/schemas/DashboardWidget"
+            }
+          },
+          "pageInfo": {
+            "$ref": "#/components/schemas/Paginated"
+          }
+        },
+        "required": ["list", "pageInfo"],
+        "x-stoplight": {
+          "id": "2tsq8h6hjctju"
+        }
+      },
+      "DashboardList": {
+        "description": "Model for Dashboard List",
+        "title": "Dashboard List Model",
+        "type": "object",
+        "properties": {
+          "list": {
+            "minItems": 1,
+            "type": "array",
+            "uniqueItems": true,
+            "description": "Dashboard objects",
+            "items": {
+              "$ref": "#/components/schemas/Dashboard"
+            }
+          },
+          "pageInfo": {
+            "$ref": "#/components/schemas/Paginated"
+          }
+        },
+        "required": ["list", "pageInfo"],
+        "x-stoplight": {
+          "id": "2tsq8h6hjctju"
+        }
+      },
+      "AggregateFn": {
+        "description": "Aggregate Function",
+        "enum": [
+          "avg",
+          "max",
+          "min",
+          "count",
+          "sum"
+        ],
+        "type": "string"
       },
       "Hook": {
         "description": "Model for Hook",
@@ -23972,6 +24806,24 @@
           }
         },
         "headers": {}
+      },
+      "DashboardList": {
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/DashboardList"
+            }
+          }
+        }
+      },
+      "DashboardWidgetList": {
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/DashboardWidgetList"
+            }
+          }
+        }
       }
     },
     "securitySchemes": {

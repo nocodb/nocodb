@@ -1138,6 +1138,162 @@ export interface GridUpdateReqType {
 }
 
 /**
+ * Model for DashboardWidget
+ */
+export interface DashboardWidgetType {
+  /** Unique ID */
+  id: IdType;
+  /** Dashboard ID */
+  dashboard_id: IdType;
+  /**
+   * Version of the schema
+   * @example v0.2
+   */
+  schema_version: string;
+  /** Visualisation Type of the widget */
+  visualisation_type: DashboardWidgetVisualisationTypeType;
+  /** Data Source JSON */
+  data_source?: null | object | string;
+  /** Data Config JSON */
+  data_config?: null | object | string;
+  /** Data Config JSON */
+  appearance_config?: null | object | string;
+}
+
+/**
+ * Model for Dashboard
+ */
+export interface DashboardType {
+  /** Unique ID */
+  id?: IdType;
+  /** Unique Base ID */
+  base_id?: string;
+  /** Unique Project ID */
+  project_id?: string;
+  /**
+   * Dashboard Title
+   * @example My Dashboard
+   */
+  title?: string;
+  /** The order of this Dashboard in the list of Dashboards */
+  order?: number;
+}
+
+/**
+ * Model for Dashboard request
+ */
+export interface DashboardReqType {
+  /** Unique Base ID */
+  base_id?: string;
+  /** Unique Project ID */
+  project_id: string;
+  /**
+   * Dashboard Title
+   * @example My Dashboard
+   */
+  title: string;
+  /** The order of this Dashboard in the list of Dashboards */
+  order?: number;
+}
+
+/**
+ * Model for Dashboard Widget request
+ */
+export interface DashboardWidgetReqType {
+  /** Unique Dashboard ID */
+  dashboard_id: string;
+  /**
+   * Version of the schema
+   * @example v0.2
+   */
+  schema_version: string;
+  /** Visualisation Type of the widget */
+  visualisation_type: DashboardWidgetVisualisationTypeType;
+  /** Data Source JSON */
+  data_source?: null | object | string;
+  /** Data Config JSON */
+  data_config?: null | object | string;
+  /** Data Config JSON */
+  appearance_config?: null | object | string;
+}
+
+/**
+ * Model for Dashboard Widget Update request
+ */
+export interface DashboardWidgetUpdateReqType {
+  /**
+   * Version of the schema
+   * @example v0.2
+   */
+  schema_version?: string;
+  /** Visualisation Type of the widget */
+  visualisation_type?: DashboardWidgetVisualisationTypeType;
+  /** Data Source JSON */
+  data_source?: null | object | string;
+  /** Data Config JSON */
+  data_config?: null | object | string;
+  /** Data Config JSON */
+  appearance_config?: null | object | string;
+}
+
+/**
+ * Model for Dashboard Update request
+ */
+export interface DashboardUpdateReqType {
+  /**
+   * Dashboard Title
+   * @example My Dashboard
+   */
+  title?: string;
+  /** The order of this Dashboard in the list of Dashboards */
+  order?: number;
+}
+
+/**
+ * Visualisation Type of the DashboardWidget
+ */
+export enum DashboardWidgetVisualisationTypeType {
+  Number = 'number',
+  StaticText = 'static_text',
+  LineChart = 'line_chart',
+  BarChart = 'bar_chart',
+  PieChart = 'pie_chart',
+  ScatterPlot = 'scatter_plot',
+  Button = 'button',
+}
+
+/**
+ * Model for DashboardWidget List
+ */
+export interface DashboardWidgetListType {
+  /** DashboardWidget objects */
+  list: DashboardWidgetType[];
+  /** Model for Paginated */
+  pageInfo: PaginatedType;
+}
+
+/**
+ * Model for Dashboard List
+ */
+export interface DashboardListType {
+  /** Dashboard objects */
+  list: DashboardType[];
+  /** Model for Paginated */
+  pageInfo: PaginatedType;
+}
+
+/**
+ * Aggregate Function
+ */
+export enum AggregateFnType {
+  Avg = 'avg',
+  Max = 'max',
+  Min = 'min',
+  Count = 'count',
+  Sum = 'sum',
+}
+
+/**
  * Model for Hook
  */
 export interface HookType {
@@ -2886,6 +3042,278 @@ export class HttpClient<SecurityDataType = unknown> {
 export class Api<
   SecurityDataType extends unknown
 > extends HttpClient<SecurityDataType> {
+  dashboard = {
+    /**
+     * @description Get widget data
+     *
+     * @tags Dashboard
+     * @name GetWidgetData
+     * @summary Get widget data
+     * @request GET:/api/v1/dashboards/{dashboardId}/data/widgets/{widgetId}
+     * @response `200` `object` OK
+     */
+    getWidgetData: (
+      dashboardId: string,
+      widgetId: string,
+      params: RequestParams = {}
+    ) =>
+      this.request<object, any>({
+        path: `/api/v1/dashboards/${dashboardId}/data/widgets/${widgetId}`,
+        method: 'GET',
+        format: 'json',
+        ...params,
+      }),
+
+    /**
+     * @description Get Dashboard
+     *
+     * @tags Dashboard
+     * @name GetDashboard
+     * @summary Get dashboard
+     * @request GET:/api/v1/dashboards/{id}
+     * @response `200` `DashboardType` OK
+     */
+    getDashboard: (
+      id: string,
+      query: {
+        /** Project id */
+        projectId: string;
+      },
+      params: RequestParams = {}
+    ) =>
+      this.request<DashboardType, any>({
+        path: `/api/v1/dashboards/${id}`,
+        method: 'GET',
+        query: query,
+        format: 'json',
+        ...params,
+      }),
+
+    /**
+     * @description Delete Dashboard
+     *
+     * @tags Dashboard
+     * @name DeleteDashboard
+     * @summary Delete Dashboard
+     * @request DELETE:/api/v1/dashboards/{id}
+     * @response `200` `void` OK
+     */
+    deleteDashboard: (
+      id: string,
+      query: {
+        /** Project id */
+        projectId: string;
+      },
+      params: RequestParams = {}
+    ) =>
+      this.request<void, any>({
+        path: `/api/v1/dashboards/${id}`,
+        method: 'DELETE',
+        query: query,
+        ...params,
+      }),
+
+    /**
+ * @description Update the given project
+ * 
+ * @tags Dashboard
+ * @name UpdateDashboard
+ * @summary Update Dashboard
+ * @request PATCH:/api/v1/dashboards/{id}
+ * @response `200` `number` OK
+ * @response `400` `{
+  \** @example BadRequest [Error]: <ERROR MESSAGE> *\
+  msg: string,
+
+}`
+ */
+    updateDashboard: (
+      id: string,
+      data: DashboardUpdateReqType,
+      params: RequestParams = {}
+    ) =>
+      this.request<
+        number,
+        {
+          /** @example BadRequest [Error]: <ERROR MESSAGE> */
+          msg: string;
+        }
+      >({
+        path: `/api/v1/dashboards/${id}`,
+        method: 'PATCH',
+        body: data,
+        type: ContentType.Json,
+        format: 'json',
+        ...params,
+      }),
+
+    /**
+     * @description Get Widgets of the Dashboard
+     *
+     * @tags Dashboard
+     * @name GetWidgets
+     * @summary Get Widgets for Dashboard
+     * @request GET:/api/v1/dashboards/{dashboardId}/widgets
+     * @response `200` `DashboardWidgetListType` OK
+     */
+    getWidgets: (dashboardId: IdType, params: RequestParams = {}) =>
+      this.request<DashboardWidgetListType, any>({
+        path: `/api/v1/dashboards/${dashboardId}/widgets`,
+        method: 'GET',
+        format: 'json',
+        ...params,
+      }),
+
+    /**
+ * @description Create a new Dashboard Widget in a given Dashboard
+ * 
+ * @tags Dashboard
+ * @name WidgetsCreate
+ * @summary Create Dashboard Widget
+ * @request POST:/api/v1/dashboards/{dashboardId}/widgets
+ * @response `200` `DashboardWidgetType` OK
+ * @response `400` `{
+  \** @example BadRequest [Error]: <ERROR MESSAGE> *\
+  msg: string,
+
+}`
+ */
+    widgetsCreate: (
+      dashboardId: IdType,
+      data: DashboardWidgetReqType,
+      params: RequestParams = {}
+    ) =>
+      this.request<
+        DashboardWidgetType,
+        {
+          /** @example BadRequest [Error]: <ERROR MESSAGE> */
+          msg: string;
+        }
+      >({
+        path: `/api/v1/dashboards/${dashboardId}/widgets`,
+        method: 'POST',
+        body: data,
+        type: ContentType.Json,
+        format: 'json',
+        ...params,
+      }),
+
+    /**
+     * @description Delete Dashboard Widget
+     *
+     * @tags Dashboard
+     * @name DeleteWidget
+     * @summary Delete Dashboard Widget
+     * @request DELETE:/api/v1/dashboards/{dashboardId}/widgets/{widgetId}
+     * @response `200` `void` OK
+     */
+    deleteWidget: (
+      dashboardId: IdType,
+      widgetId: IdType,
+      params: RequestParams = {}
+    ) =>
+      this.request<void, any>({
+        path: `/api/v1/dashboards/${dashboardId}/widgets/${widgetId}`,
+        method: 'DELETE',
+        ...params,
+      }),
+
+    /**
+ * @description Update the given project
+ * 
+ * @tags Dashboard
+ * @name UpdateWidget
+ * @summary Update Dashboard Widget
+ * @request PATCH:/api/v1/dashboards/{dashboardId}/widgets/{widgetId}
+ * @response `200` `number` OK
+ * @response `400` `{
+  \** @example BadRequest [Error]: <ERROR MESSAGE> *\
+  msg: string,
+
+}`
+ */
+    updateWidget: (
+      dashboardId: IdType,
+      widgetId: IdType,
+      data: DashboardWidgetUpdateReqType,
+      params: RequestParams = {}
+    ) =>
+      this.request<
+        number,
+        {
+          /** @example BadRequest [Error]: <ERROR MESSAGE> */
+          msg: string;
+        }
+      >({
+        path: `/api/v1/dashboards/${dashboardId}/widgets/${widgetId}`,
+        method: 'PATCH',
+        body: data,
+        type: ContentType.Json,
+        format: 'json',
+        ...params,
+      }),
+
+    /**
+ * @description Create a new Dashboard in a given project
+ * 
+ * @tags Dashboard
+ * @name DashboardsCreate
+ * @summary Create Dashboard
+ * @request POST:/api/v1/db/meta/projects/{projectId}/dashboards
+ * @response `200` `DashboardType` OK
+ * @response `400` `{
+  \** @example BadRequest [Error]: <ERROR MESSAGE> *\
+  msg: string,
+
+}`
+ */
+    dashboardsCreate: (
+      projectId: IdType,
+      data: DashboardReqType,
+      params: RequestParams = {}
+    ) =>
+      this.request<
+        DashboardType,
+        {
+          /** @example BadRequest [Error]: <ERROR MESSAGE> */
+          msg: string;
+        }
+      >({
+        path: `/api/v1/db/meta/projects/${projectId}/dashboards`,
+        method: 'POST',
+        body: data,
+        type: ContentType.Json,
+        format: 'json',
+        ...params,
+      }),
+
+    /**
+ * @description List all Dashboards in a given project
+ * 
+ * @tags Dashboard
+ * @name DashboardsList
+ * @summary List Dashboards
+ * @request GET:/api/v1/db/meta/projects/{projectId}/dashboards
+ * @response `200` `DashboardListType`
+ * @response `400` `{
+  \** @example BadRequest [Error]: <ERROR MESSAGE> *\
+  msg: string,
+
+}`
+ */
+    dashboardsList: (projectId: IdType, params: RequestParams = {}) =>
+      this.request<
+        DashboardListType,
+        {
+          /** @example BadRequest [Error]: <ERROR MESSAGE> */
+          msg: string;
+        }
+      >({
+        path: `/api/v1/db/meta/projects/${projectId}/dashboards`,
+        method: 'GET',
+        ...params,
+      }),
+  };
   nocoDocs = {
     /**
      * No description
@@ -8258,6 +8686,51 @@ export class Api<
       }),
   };
   dbViewRow = {
+    /**
+ * @description Get the grouped data By Column ID and use the choosen aggregate function for the Aggregate Column ID.
+ * 
+ * @tags DB View Row
+ * @name GroupedByAggregateByDataList
+ * @summary Table Group by Column and apply choosen aggreate function to another column
+ * @request GET:/api/v1/db/data/{orgs}/{projectName}/{tableName}/views/{viewName}/aggregate/{columnId}/{aggregateFn}
+ * @response `200` `(any)[]` OK
+ * @response `400` `{
+  \** @example BadRequest [Error]: <ERROR MESSAGE> *\
+  msg: string,
+
+}`
+ */
+    groupedByAggregateByDataList: (
+      orgs: IdType,
+      projectName: string,
+      tableName: string,
+      viewName: string,
+      columnId: IdType,
+      aggregateFn: AggregateFnType,
+      query?: {
+        fields?: any[];
+        sort?: any[];
+        groupByColumnId?: string;
+        where?: string;
+        /** Query params for nested data */
+        nested?: any;
+      },
+      params: RequestParams = {}
+    ) =>
+      this.request<
+        any[],
+        {
+          /** @example BadRequest [Error]: <ERROR MESSAGE> */
+          msg: string;
+        }
+      >({
+        path: `/api/v1/db/data/${orgs}/${projectName}/${tableName}/views/${viewName}/aggregate/${columnId}/${aggregateFn}`,
+        method: 'GET',
+        query: query,
+        format: 'json',
+        ...params,
+      }),
+
     /**
  * @description Get the grouped data By Column ID. Used in Kanban View.
  * 

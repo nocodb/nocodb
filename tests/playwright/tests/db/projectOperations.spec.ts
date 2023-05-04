@@ -63,7 +63,7 @@ test.describe('Project operations', () => {
     await projectPage.deleteProject({ title: 'project-rename', withoutPrefix: true });
   });
 
-  test.only('project_duplicate', async () => {
+  test('project_duplicate', async () => {
     // if project already exists, delete it to avoid test failures due to residual data
     const testProjectName = 'project-to-imexp';
     const dupeProjectName: string = testProjectName + ' copy';

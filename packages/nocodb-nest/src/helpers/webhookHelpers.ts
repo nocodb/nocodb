@@ -136,6 +136,7 @@ export async function validateCondition(filters: Filter[], data: any) {
 }
 
 export function constructWebHookData(hook, model, view, prevData, newData) {
+  console.log('constructWebHookData', Noco.isEE(), hook.version);
   if (hook.version === 'v2' && !Noco.isEE()) {
     // extend in the future - currently only support records
     const scope = 'records';

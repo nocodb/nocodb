@@ -1,31 +1,25 @@
 const nodeExternals = require('webpack-node-externals');
-// const CopyPlugin = require('copy-webpack-plugin');
 const webpack = require('webpack')
 const TerserPlugin = require('terser-webpack-plugin');
-// const JavaScriptObfuscator = require('webpack-obfuscator');
 
 module.exports = {
-  entry: './docker/index.js',
+  entry: './src/run/dockerEntry.ts',
   module: {
     rules: [
-      // {
-      //   test: /\.tsx?$/,
-      //   exclude: /node_modules/,
-      //   use: [
-      //     {
-      //       loader: 'ts-loader',
-      //       options: {
-      //         transpileOnly : false,
-      //         happyPackMode : false,
-      //         configFile:"tsconfig.json"
-      //       }
-      //     }
-      //   ]
-      // },
+      {
+        test: /\.tsx?$/,
+        exclude: /node_modules/,
+        use: {
+          loader: 'ts-loader',
+          options: {
+            transpileOnly: true,
+          },
+        },
+      },
     ],
   },
   resolve: {
-    extensions: ['.js'],
+    extensions: ['.tsx', '.ts', '.js', '.json'],
   },
   output: {
     path: require('path').resolve("./docker"),
@@ -44,16 +38,6 @@ module.exports = {
     new webpack.EnvironmentPlugin([
       'EE'
     ]),
-    // new JavaScriptObfuscator({
-    //   rotateStringArray: true,
-    //   splitStrings: true,
-    //   splitStringsChunkLength: 6
-    // }, []),
-    // new CopyPlugin({
-    //   patterns: [
-    //    "src/**/*.ejs"
-    //   ],
-    // })
   ],
   target: 'node',
   node: {

@@ -68,12 +68,12 @@ function authTests() {
     expect(token).to.be.a('string');
   });
 
-  it('Signup without email and password', async () => {
+  it('Signin without email and password', async () => {
     await request(context.app)
       .post('/api/v1/auth/user/signin')
       // pass empty data in await request
       .send({})
-      .expect(400);
+      .expect(401);
   });
 
   it('Signin with invalid credentials', async () => {

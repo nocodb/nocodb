@@ -116,7 +116,7 @@ jobs:
       - name: Run quick server and tests (sqlite)
         if: ${{ inputs.db == 'sqlite' && inputs.shard == '2' }}
         working-directory: ./packages/nocodb
-        run: | 
+        run: |
           kill -9 $(lsof -t -i:8080)
           npm run watch:run:playwright:quick > quick_${{ inputs.shard }}_test_backend.log &
       - name: Wait for backend & run quick tests

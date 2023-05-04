@@ -17087,7 +17087,6 @@
             "description": "The license key",
             "example": "1234567890",
             "maxLength": 255,
-            "minLength": 10,
             "type": "string"
           }
         },

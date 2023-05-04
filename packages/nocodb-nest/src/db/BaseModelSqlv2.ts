@@ -2166,12 +2166,17 @@ class BaseModelSqlv2 {
     }
   }
 
-  async bulkUpdate(datas: any[], { cookie }: { cookie?: any } = {}) {
+  async bulkUpdate(
+    datas: any[],
+    { cookie, raw = false }: { cookie?: any; raw?: boolean } = {},
+  ) {
     let transaction;
     try {
-      const updateDatas = await Promise.all(
-        datas.map((d) => this.model.mapAliasToColumn(d)),
-      );
+      if (raw) await this.model.getColumns();
+
+      const updateDatas = raw
+        ? datas
+        : await Promise.all(datas.map((d) => this.model.mapAliasToColumn(d)));
 
       const prevData = [];
       const newData = [];
@@ -2179,13 +2184,13 @@ class BaseModelSqlv2 {
       const toBeUpdated = [];
       const res = [];
       for (const d of updateDatas) {
-        await this.validate(d);
+        if (!raw) await this.validate(d);
         const pkValues = await this._extractPksValues(d);
         if (!pkValues) {
           // pk not specified - bypass
           continue;
         }
-        prevData.push(await this.readByPk(pkValues));
+        if (!raw) prevData.push(await this.readByPk(pkValues));
         const wherePk = await this._wherePk(pkValues);
         res.push(wherePk);
         toBeUpdated.push({ d, wherePk });
@@ -2200,11 +2205,14 @@ class BaseModelSqlv2 {
 
       await transaction.commit();
 
-      for (const pkValues of updatePkValues) {
-        newData.push(await this.readByPk(pkValues));
+      if (!raw) {
+        for (const pkValues of updatePkValues) {
+          newData.push(await this.readByPk(pkValues));
+        }
       }
 
-      await this.afterBulkUpdate(prevData, newData, this.dbDriver, cookie);
+      if (!raw)
+        await this.afterBulkUpdate(prevData, newData, this.dbDriver, cookie);
 
       return res;
     } catch (e) {

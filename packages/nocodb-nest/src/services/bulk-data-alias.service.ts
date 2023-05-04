@@ -68,12 +68,13 @@ export class BulkDataAliasService {
     param: PathParams & {
       body: any;
       cookie: any;
+      raw?: boolean;
     },
   ) {
     return await this.executeBulkOperation({
       ...param,
       operation: 'bulkUpdate',
-      options: [param.body, { cookie: param.cookie }],
+      options: [param.body, { cookie: param.cookie, raw: param.raw }],
     });
   }
 

@@ -19462,17 +19462,6 @@
           "id": "2tsq8h6hjctju"
         }
       },
-      "AggregateFn": {
-        "description": "Aggregate Function",
-        "enum": [
-          "avg",
-          "max",
-          "min",
-          "count",
-          "sum"
-        ],
-        "type": "string"
-      },
       "Hook": {
         "description": "Model for Hook",
         "examples": [

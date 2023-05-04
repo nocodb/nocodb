@@ -98,7 +98,7 @@ async function buildExpectedResponseData(type, value, oldValue?) {
   return expectedData;
 }
 
-test.describe.serial.only('Webhook', () => {
+test.describe.serial('Webhook', () => {
   // start a server locally for webhook tests
 
   let dashboard: DashboardPage, webhook: WebhookFormPage;

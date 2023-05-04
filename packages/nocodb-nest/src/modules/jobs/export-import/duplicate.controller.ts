@@ -15,7 +15,7 @@ import {
   ExtractProjectIdMiddleware,
 } from '../../../middlewares/extract-project-id/extract-project-id.middleware';
 import { ProjectsService } from '../../../services/projects.service';
-import { Base, Project } from '../../../models';
+import { Base, Model, Project } from '../../../models';
 import { generateUniqueName } from '../../../helpers/exportImportHelpers';
 import { QueueService } from '../fallback-queue.service';
 import { JOBS_QUEUE, JobTypes } from '../../../interface/Jobs';
@@ -76,6 +76,49 @@ export class DuplicateController {
         user: req.user,
         clientIp: req.clientIp,
       },
+    });
+
+    return { id: job.id, name: job.name };
+  }
+
+  @Post('/api/v1/db/meta/duplicate/:projectId/model/:modelId')
+  @HttpCode(200)
+  @Acl('duplicateModel')
+  async duplicateModel(
+    @Request() req,
+    @Param('projectId') projectId: string,
+    @Param('modelId') modelId?: string,
+  ) {
+    const project = await Project.get(projectId);
+
+    if (!project) {
+      throw new Error(`Project not found for id '${projectId}'`);
+    }
+
+    const model = await Model.get(modelId);
+
+    if (!model) {
+      throw new Error(`Model not found!`);
+    }
+
+    const base = await Base.get(model.base_id);
+
+    const models = await base.getModels();
+
+    const uniqueTitle = generateUniqueName(
+      `${model.title} copy`,
+      models.map((p) => p.title),
+    );
+
+    const job = await this.activeQueue.add(JobTypes.DuplicateModel, {
+      projectId: project.id,
+      baseId: base.id,
+      modelId: model.id,
+      req: {
+        user: req.user,
+        clientIp: req.clientIp,
+      },
+      title: uniqueTitle,
     });
 
     return { id: job.id, name: job.name };

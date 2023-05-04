@@ -13,7 +13,6 @@ on:
       - "packages/nc-gui/**"
       - "packages/nc-plugin/**"
       - "packages/nocodb/**"
-      - "packages/nocodb-nest/**"
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}

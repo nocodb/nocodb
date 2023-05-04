@@ -34,7 +34,7 @@
   "scripts": {
     "lint:staged:playwright": "cd ./tests/playwright; npx lint-staged; cd -",
     "build:common": "cd ./packages/nocodb-sdk; npm install; npm run build",
-    "install:common": "cd ./packages/nocodb; npm install ../nocodb-sdk; cd ../nc-gui; npm install ../nocodb-sdk",
+    "install:common": "cd packages/nocodb-legacy; npm install ../nocodb-sdk; cd ../nc-gui; npm install ../nocodb-sdk",
     "start:web": "npm run build:common ; cd ./packages/nc-gui; npm install ../nocodb-sdk; npm install; ANT_MESSAGE_DURATION=0.5 npm run dev",
     "test:travis": "git log --pretty=format:'%h' -n 1 --skip 1 | xargs  lerna run test:travis --since",
     "lerna:install": "git log --pretty=format:'%h' -n 1 --skip 1 | xargs  lerna bootstrap --ignore nc-cli --since",

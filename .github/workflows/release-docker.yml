@@ -43,7 +43,7 @@ jobs:
   buildx:
     runs-on: ubuntu-latest
     env:
-      working-directory: ./packages/nocodb-nest
+      working-directory: ./packages/nocodb
     steps:
       - name: Get Docker Repository
         id: get-docker-repository

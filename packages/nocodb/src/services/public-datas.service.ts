@@ -305,7 +305,9 @@ export class PublicDatasService {
 
     if (!view) NcError.notFound('Not found');
 
-    if (view.type !== ViewTypes.FORM) NcError.notFound('Not found');
+    if (view.type !== ViewTypes.FORM && view.type !== ViewTypes.GALLERY) {
+      NcError.notFound('Not found');
+    }
 
     if (view.password && view.password !== param.password) {
       NcError.forbidden(ErrorMessages.INVALID_SHARED_VIEW_PASSWORD);
@@ -360,8 +362,13 @@ export class PublicDatasService {
     const view = await View.getByUUID(param.sharedViewUuid);
 
     if (!view) NcError.notFound('Not found');
-    if (view.type !== ViewTypes.GRID && view.type !== ViewTypes.KANBAN)
+    if (
+      view.type !== ViewTypes.GRID &&
+      view.type !== ViewTypes.KANBAN &&
+      view.type !== ViewTypes.GALLERY
+    ) {
       NcError.notFound('Not found');
+    }
 
     if (view.password && view.password !== param.password) {
       NcError.forbidden(ErrorMessages.INVALID_SHARED_VIEW_PASSWORD);
@@ -426,8 +433,13 @@ export class PublicDatasService {
     const view = await View.getByUUID(param.sharedViewUuid);
 
     if (!view) NcError.notFound('Not found');
-    if (view.type !== ViewTypes.GRID && view.type !== ViewTypes.KANBAN)
+    if (
+      view.type !== ViewTypes.GRID &&
+      view.type !== ViewTypes.KANBAN &&
+      view.type !== ViewTypes.GALLERY
+    ) {
       NcError.notFound('Not found');
+    }
 
     if (view.password && view.password !== param.password) {
       NcError.forbidden(ErrorMessages.INVALID_SHARED_VIEW_PASSWORD);

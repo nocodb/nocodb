@@ -39,7 +39,7 @@ export class AuthTokenStrategy extends PassportStrategy(Strategy, 'authtoken') {
       }
       return callback(null, user);
     } catch (error) {
-      callback(error);
+      return callback(error);
     }
   }
 }

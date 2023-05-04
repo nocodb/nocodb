@@ -4,6 +4,7 @@ import {
   CellUrlDisableOverlayInj,
   ColumnInj,
   EditModeInj,
+  IsExpandedFormOpenInj,
   IsSurveyFormInj,
   computed,
   inject,
@@ -62,7 +63,9 @@ const url = computed(() => {
 
 const { cellUrlOptions } = useCellUrlConfig(url)
 
-const focus: VNodeRef = (el) => (el as HTMLInputElement)?.focus()
+const isExpandedFormOpen = inject(IsExpandedFormOpenInj)!
+
+const focus: VNodeRef = (el) => !isExpandedFormOpen && (el as HTMLInputElement)?.focus()
 
 watch(
   () => editEnabled.value,

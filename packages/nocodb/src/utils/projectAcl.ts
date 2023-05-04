@@ -66,7 +66,7 @@ const viewerPermissions = {
     pagePaginate: true,
   },
 };
-export default {
+const rolePermissions = {
   owner: {
     exclude: {
       pluginList: true,
@@ -436,3 +436,11 @@ export default {
     },
   },
 };
+
+// include viewer project role permissions
+Object.assign(
+  rolePermissions[WorkspaceUserRoles.VIEWER].include,
+  rolePermissions['viewer'].include
+);
+
+export default rolePermissions;

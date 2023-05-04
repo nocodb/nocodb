@@ -9,7 +9,6 @@ on:
         paths:
             - "packages/nc-gui/**"
             - "packages/nocodb/**"
-            - "packages/nocodb-nest/**"
             - ".github/workflows/ci-cd.yml"
             - "tests/playwright/**"
     pull_request:
@@ -18,7 +17,6 @@ on:
         paths:
             - "packages/nc-gui/**"
             - "packages/nocodb/**"
-            - "packages/nocodb-nest/**"
             - ".github/workflows/ci-cd.yml"
             - "tests/playwright/**"
 
@@ -63,10 +61,10 @@ jobs:
           working-directory: ./packages/nocodb-sdk
           run: npm run build:main
         - name: Install dependencies
-          working-directory: ./packages/nocodb-nest
+          working-directory: ./packages/nocodb
           run: npm install
         - name: run unit tests
-          working-directory: ./packages/nocodb-nest
+          working-directory: ./packages/nocodb
           run: npm run test:unit:pg
     playwright-pg-shard-1:
       if: ${{ github.event_name == 'push' || contains(github.event.pull_request.labels.*.name, 'trigger-CI') || !github.event.pull_request.draft }}

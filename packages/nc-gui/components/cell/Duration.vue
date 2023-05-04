@@ -3,6 +3,7 @@ import type { VNodeRef } from '@vue/runtime-core'
 import {
   ColumnInj,
   EditModeInj,
+  IsExpandedFormOpenInj,
   computed,
   convertDurationToSeconds,
   convertMS2Duration,
@@ -73,7 +74,9 @@ const submitDuration = () => {
   isEdited.value = false
 }
 
-const focus: VNodeRef = (el) => (el as HTMLInputElement)?.focus()
+const isExpandedFormOpen = inject(IsExpandedFormOpenInj)!
+
+const focus: VNodeRef = (el) => !isExpandedFormOpen && (el as HTMLInputElement)?.focus()
 </script>
 
 <template>

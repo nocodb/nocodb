@@ -22,7 +22,7 @@ const serverInit = async () => {
   const serverInstance = express();
   serverInstance.enable('trust proxy');
   serverInstance.use(await Noco.init());
-  serverInstance.use(function(req, res, next){  
+  serverInstance.use(function(req, res, next){
     // 50 sec timeout
     req.setTimeout(500000, function(){
         console.log('Request has timed out.');
@@ -35,7 +35,7 @@ const serverInit = async () => {
 
 const isFirstTimeRun = () => !server
 
-export default async function () {  
+export default async function () {
   const {default: TestDbMngr} = await import('../TestDbMngr');
 
   NocoCache.init();

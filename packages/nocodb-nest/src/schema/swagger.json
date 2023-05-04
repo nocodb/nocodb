@@ -65,6 +65,19 @@
   ],
   "paths": {
     "/api/v1/dashboards/{id}": {
+      "parameters": [
+        {
+          "schema": {
+            "$ref": "#/components/schemas/Id",
+            "example": "us_b3xo2i44nx5y9l"
+          },
+          "name": "id",
+          "in": "path",
+          "required": true,
+          "description": "Unique Dashboard ID"
+
+        }
+      ],
       "get": {
         "summary": "Get dashboard",
         "operationId": "get-dashboard",
@@ -83,17 +96,6 @@
         "tags": [
           "Dashboard"
         ],
-        "parameters": [
-          {
-            "name": "projectId",
-            "in": "query",
-            "description": "Project id",
-            "required": true,
-            "schema": {
-              "type": "string"
-            }
-          }
-        ],
         "description": "Get Dashboard"
       },
       "delete": {
@@ -106,17 +108,6 @@
         },
         "tags": [
           "Dashboard"
-        ],
-        "parameters": [
-          {
-            "name": "projectId",
-            "in": "query",
-            "description": "Project id",
-            "required": true,
-            "schema": {
-              "type": "string"
-            }
-          }
         ],
         "description": "Delete Dashboard"
       },
@@ -164,17 +155,17 @@
     },
     "/api/v1/dashboards/{dashboardId}/widgets": {
       "parameters": [
-              {
-        "schema": {
-          "$ref": "#/components/schemas/Id",
-          "example": "p_124hhlkbeasewh",
-          "type": "string"
-        },
-        "name": "dashboardId",
-        "in": "path",
-        "required": true,
-        "description": "Unique Dashboard ID"
-      }
+        {
+          "schema": {
+            "$ref": "#/components/schemas/Id",
+            "example": "p_124hhlkbeasewh",
+            "type": "string"
+          },
+          "name": "dashboardId",
+          "in": "path",
+          "required": true,
+          "description": "Unique Dashboard ID"
+        }
       ],
       "get": {
         "summary": "Get Widgets for Dashboard",

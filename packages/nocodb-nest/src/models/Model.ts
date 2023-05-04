@@ -83,7 +83,7 @@ export default class Model implements TableType {
     const pCol = this.columns?.find((c) => c.pv);
     if (pCol) return pCol;
     const pkIndex = this.columns.indexOf(this.primaryKey);
-    if (pkIndex < this.columns.length - 1) return this.columns[pkIndex + 1];
+    if (pkIndex < this.columns.length - 1) return this.columns[pkIndex];
     return this.columns[0];
   }
 

@@ -9695,7 +9695,7 @@
         }
       }
     },
-    "/api/v1/db/data/{orgs}/{projectName}/{tableName}/views/{viewName}/aggregate/{columnId}/{aggregateFn}": {
+    "/api/v1/db/data/{orgs}/{projectName}/{tableName}/views/{viewName}/groupBy/{groupColumnId}/aggregate/{aggregateColumnId}/{aggregateFn}": {
       "parameters": [
         {
           "schema": {
@@ -9742,7 +9742,18 @@
             "example": "cl_8iw2o4ejzvdyna",
             "type": "string"
           },
-          "name": "columnId",
+          "name": "groupColumnId",
+          "in": "path",
+          "required": true,
+          "description": "ID of Column to be grouped by"
+        },
+        {
+          "schema": {
+            "$ref": "#/components/schemas/Id",
+            "example": "cl_8iw2o4ejzvdyna",
+            "type": "string"
+          },
+          "name": "aggregateColumnId",
           "in": "path",
           "required": true,
           "description": "ID of Column to be aggregated"
@@ -10554,7 +10565,7 @@
       "get": {
         "summary": "Group By Table View Row",
         "operationId": "db-view-row-group-by",
-        "description": "Get the table view rows groupe by the given query",
+        "description": "Get the table view rows grouped by the given query",
         "tags": [
           "DB View Row"
         ],

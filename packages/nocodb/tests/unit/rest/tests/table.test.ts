@@ -4,7 +4,7 @@ import init from '../../init';
 import { createTable, getAllTables } from '../../factory/table';
 import { createProject } from '../../factory/project';
 import { defaultColumns } from '../../factory/column';
-import Model from '../../../../src/lib/models/Model';
+import Model from '../../../../src/models/Model';
 import { expect } from 'chai';
 
 // Test case list

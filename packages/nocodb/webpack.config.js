@@ -1,13 +1,12 @@
+const path = require('path');
 const nodeExternals = require('webpack-node-externals');
 const webpack = require('webpack');
-const CopyPlugin = require("copy-webpack-plugin");
+const CopyPlugin = require('copy-webpack-plugin');
 //
 const TerserPlugin = require('terser-webpack-plugin');
-// const JavaScriptObfuscator = require('webpack-obfuscator');
-const path = require('path');
+
 module.exports = {
-  entry: './src/lib/index.ts',
-  // devtool: 'inline-source-map',
+  entry: './src/index.ts',
   module: {
     rules: [
       {
@@ -16,8 +15,8 @@ module.exports = {
         use: {
           loader: 'ts-loader',
           options: {
-            transpileOnly: true
-          }
+            transpileOnly: true,
+          },
         },
       },
     ],
@@ -26,7 +25,7 @@ module.exports = {
   optimization: {
     minimize: true, //Update this to true or false
     minimizer: [new TerserPlugin()],
-    nodeEnv:false
+    nodeEnv: false,
   },
   externals: [nodeExternals()],
   resolve: {
@@ -37,27 +36,17 @@ module.exports = {
     path: path.resolve(__dirname, 'dist'),
     library: 'libs',
     libraryTarget: 'umd',
-    globalObject: "typeof self !== 'undefined' ? self : this"
+    globalObject: "typeof self !== 'undefined' ? self : this",
   },
   node: {
-    fs: 'empty',
     __dirname: false,
   },
   plugins: [
-    new webpack.EnvironmentPlugin([
-      'EE'
-    ]),
+    new webpack.EnvironmentPlugin(['EE']),
     new CopyPlugin({
-      patterns: [
-        { from: 'src/lib/public', to: 'public' },
-      ]
-    })
-    // new JavaScriptObfuscator({
-    //   rotateStringArray: true,
-    //   splitStrings: true,
-    //   splitStringsChunkLength: 6
-    // }, []),
+      patterns: [{ from: 'public', to: 'public' }],
+    }),
   ],
 
-  target: 'node'
+  target: 'node',
 };

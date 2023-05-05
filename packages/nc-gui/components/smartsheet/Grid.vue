@@ -316,14 +316,14 @@ const {
       return
     }
 
-    // update/save cell value
-    await updateOrSaveRow(rowObj, ctx.updatedColumnTitle || columnObj.title)
-
     // See DateTimePicker.vue for details
-    data.value[ctx.row].rowMeta.isUpdateOutside = {
-      ...data.value[ctx.row].rowMeta.isUpdateOutside,
+    data.value[ctx.row].rowMeta.isUpdatedFromCopyNPaste = {
+      ...data.value[ctx.row].rowMeta.isUpdatedFromCopyNPaste,
       [ctx.updatedColumnTitle || columnObj.title]: true,
     }
+
+    // update/save cell value
+    await updateOrSaveRow(rowObj, ctx.updatedColumnTitle || columnObj.title)
   },
 )
 

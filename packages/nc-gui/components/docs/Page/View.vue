@@ -21,8 +21,10 @@ const {
   flattenedNestedPages,
 } = storeToRefs(useDocStore())
 
+const { currentHistory } = storeToRefs(useDocHistoryStore())
 const { updatePage, nestedUrl, openPage } = useDocStore()
 
+const showHistoryPanel = ref(false)
 const showOutline = ref(isPublic.value)
 const pageWrapperDomRef = ref<HTMLDivElement | undefined>()
 const pageContentDomRef = ref<HTMLDivElement | undefined>()
@@ -73,6 +75,7 @@ const editor = useEditor({
   extensions: tiptapExtensions(isPublic.value),
   onUpdate: ({ editor }) => {
     if (!openedPage.value) return
+    if (currentHistory.value) return
 
     openedPage.value.content = JSON.stringify(removeUploadingPlaceHolderAndEmptyLinkNode(editor.getJSON()))
   },
@@ -112,21 +115,34 @@ watch(
   },
 )
 
+const setEditorContent = (_content: any, _isEditAllowed?: boolean) => {
+  if (!editor.value) return
+  ;(editor.value.state as any).history$.prevRanges = null
+  ;(editor.value.state as any).history$.done.eventCount = 0
+
+  _isEditAllowed = _isEditAllowed ?? isEditAllowed.value
+
+  editor.value?.setOptions({
+    editable: _isEditAllowed,
+  })
+
+  const selection = editor.value.view.state.selection
+  editor.value.chain().setContent(_content).setTextSelection(selection.to).run()
+}
+
 watch(
   () => [openedPage.value?.id, editor.value],
   ([newId], oldVal) => {
     if (oldVal === undefined) return
+    if (currentHistory.value) return
+
     const [oldId, oldEditor] = oldVal
 
     if (!editor.value) return
     if (!openedPage.value?.id) return
 
     if (newId === oldId && oldEditor) return
-    ;(editor.value.state as any).history$.prevRanges = null
-    ;(editor.value.state as any).history$.done.eventCount = 0
-
-    const selection = editor.value.view.state.selection
-    editor.value.chain().setContent(content.value).setTextSelection(selection.to).run()
+    setEditorContent(content.value)
   },
   {
     immediate: true,
@@ -204,6 +220,21 @@ watch(pageWrapperDomRef, () => {
 
   wrapper.addEventListener('drop', (e) => handleOutsideTiptapDrag(e, 'drop'))
 })
+
+watch(
+  currentHistory,
+  () => {
+    if (!currentHistory.value) {
+      setEditorContent(content.value)
+      return
+    }
+
+    setEditorContent(JSON.parse(currentHistory.value.content), false)
+  },
+  {
+    deep: true,
+  },
+)
 </script>
 
 <template>
@@ -248,6 +279,12 @@ watch(pageWrapperDomRef, () => {
           </div>
           <div v-if="!isPublic" class="flex flex-row items-center"></div>
           <div class="flex flex-row items-center gap-x-1 mr-2 mt-0.25">
+            <div
+              class="p-1 flex items-center hover:bg-gray-100 cursor-pointer rounded-md mr-2"
+              @click="showHistoryPanel = !showHistoryPanel"
+            >
+              <MaterialSymbolsHistoryRounded />
+            </div>
             <div class="">
               <LazyGeneralShareProject />
             </div>
@@ -340,6 +377,7 @@ watch(pageWrapperDomRef, () => {
           </div>
         </div>
       </div>
+      <DocsPageHistory v-if="showHistoryPanel" @close="showHistoryPanel = false" />
     </div>
     <DocsPageOutline
       v-if="showOutline && openedPage && pageWrapperDomRef"

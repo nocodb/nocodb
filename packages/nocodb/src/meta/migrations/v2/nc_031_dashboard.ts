@@ -45,6 +45,10 @@ const up = async (knex: Knex) => {
       table.string('id', 20).primary().notNullable();
       table.string('widget_id', 20).notNullable();
       table.foreign('widget_id').references(`${MetaTable.WIDGET}.id`);
+      table.string('model_id', 20).notNullable();
+      table.foreign('model_id').references(`${MetaTable.MODELS}.id`);
+      table.string('view_id', 20).notNullable();
+      table.foreign('view_id').references(`${MetaTable.VIEWS}.id`);
       table.string('column_id', 20).notNullable();
       table.foreign('column_id').references(`${MetaTable.COLUMNS}.id`);
       table.timestamps(true, true);

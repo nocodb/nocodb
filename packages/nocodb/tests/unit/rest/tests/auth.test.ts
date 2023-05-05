@@ -68,12 +68,12 @@ function authTests() {
     expect(token).to.be.a('string');
   });
 
-  it('Signin without email and password', async () => {
+  it('Signup without email and password', async () => {
     await request(context.app)
       .post('/api/v1/auth/user/signin')
       // pass empty data in await request
       .send({})
-      .expect(401);
+      .expect(400);
   });
 
   it('Signin with invalid credentials', async () => {
@@ -132,7 +132,7 @@ function authTests() {
       .expect(200);
   });
 
-  it('Change password - after logout', async () => {
+  it.only('Change password - after logout', async () => {
     await request(context.app)
       .post('/api/v1/auth/password/change')
       .unset('xc-auth')

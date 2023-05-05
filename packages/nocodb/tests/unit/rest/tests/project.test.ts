@@ -1,11 +1,11 @@
 import 'mocha';
 import request from 'supertest';
-import { Project } from '../../../../src/models'
 import { createTable } from '../../factory/table';
-import init from '../../init';
+import init from '../../init/index';
 import { createProject, createSharedBase } from '../../factory/project';
 import { beforeEach } from 'mocha';
 import { Exception } from 'handlebars';
+import Project from '../../../../src/lib/models/Project';
 import { expect } from 'chai';
 
 // Test case list

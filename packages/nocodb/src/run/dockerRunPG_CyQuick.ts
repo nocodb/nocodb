@@ -1,7 +1,6 @@
 import cors from 'cors';
 import express from 'express';
-import Noco from '../Noco';
-import nocobuild from '../nocobuild';
+import Noco from '../lib/Noco';
 
 const server = express();
 server.enable('trust proxy');
@@ -10,7 +9,7 @@ server.disable('x-powered-by');
 server.use(
   cors({
     exposedHeaders: 'xc-db-response',
-  }),
+  })
 );
 
 server.set('view engine', 'ejs');

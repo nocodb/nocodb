@@ -20,8 +20,8 @@ import {
   createBulkRows,
 } from '../../factory/row';
 import { isMysql, isPg, isSqlite } from '../../init/db';
-import Model from '../../../../src/models/Model';
-import Project from '../../../../src/models/Project';
+import Model from '../../../../src/lib/models/Model';
+import Project from '../../../../src/lib/models/Project';
 import { expect } from 'chai';
 
 const isColumnsCorrectInResponse = (row, columns: ColumnType[]) => {

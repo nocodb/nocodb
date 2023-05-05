@@ -1,5 +1,5 @@
 import request from 'supertest';
-import { User } from '../../../src/models'
+import User from '../../../src/lib/models/User';
 
 const defaultUserArgs = {
   email: 'test@example.com',
@@ -11,7 +11,7 @@ const createUser = async (context, userArgs = {}) => {
   const response = await request(context.app)
     .post('/api/v1/auth/user/signup')
     .send(args);
-  const user = await User.getByEmail(args.email);
+  const user = User.getByEmail(args.email);
   return { token: response.body.token, user };
 };
 

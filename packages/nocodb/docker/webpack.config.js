@@ -1,25 +1,17 @@
 const nodeExternals = require('webpack-node-externals');
+// const CopyPlugin = require('copy-webpack-plugin');
 const webpack = require('webpack')
 const TerserPlugin = require('terser-webpack-plugin');
+// const JavaScriptObfuscator = require('webpack-obfuscator');
 
 module.exports = {
-  entry: './src/run/dockerEntry.ts',
+  entry: './docker/index.js',
   module: {
     rules: [
-      {
-        test: /\.tsx?$/,
-        exclude: /node_modules/,
-        use: {
-          loader: 'ts-loader',
-          options: {
-            transpileOnly: true,
-          },
-        },
-      },
     ],
   },
   resolve: {
-    extensions: ['.tsx', '.ts', '.js', '.json'],
+    extensions: ['.js'],
   },
   output: {
     path: require('path').resolve("./docker"),

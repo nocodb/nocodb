@@ -2,10 +2,10 @@ import 'mocha';
 import init from '../../init';
 import { createProject, createSakilaProject } from '../../factory/project';
 import request from 'supertest';
-import Project from '../../../../src/models/Project';
-import Model from '../../../../src/models/Model';
+import Project from '../../../../src/lib/models/Project';
+import Model from '../../../../src/lib/models/Model';
 import { createTable, getTable } from '../../factory/table';
-import View from '../../../../src/models/View';
+import View from '../../../../src/lib/models/View';
 import { ColumnType, UITypes, ViewTypes } from 'nocodb-sdk';
 import { createView } from '../../factory/view';
 import {

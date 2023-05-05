@@ -1,11 +1,11 @@
 import { ColumnType, UITypes } from 'nocodb-sdk';
 import request from 'supertest';
-import Column from '../../../src/models/Column';
-import Filter from '../../../src/models/Filter';
-import Model from '../../../src/models/Model';
-import Project from '../../../src/models/Project';
-import Sort from '../../../src/models/Sort';
-import NcConnectionMgrv2 from '../../../src/utils/common/NcConnectionMgrv2';
+import Column from '../../../src/lib/models/Column';
+import Filter from '../../../src/lib/models/Filter';
+import Model from '../../../src/lib/models/Model';
+import Project from '../../../src/lib/models/Project';
+import Sort from '../../../src/lib/models/Sort';
+import NcConnectionMgrv2 from '../../../src/lib/utils/common/NcConnectionMgrv2';
 
 const rowValue = (column: ColumnType, index: number) => {
   switch (column.uidt) {

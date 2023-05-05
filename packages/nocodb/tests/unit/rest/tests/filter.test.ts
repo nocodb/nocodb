@@ -1,11 +1,11 @@
 import 'mocha';
 import init from '../../init';
 import { createProject } from '../../factory/project';
-import Project from '../../../../src/models/Project';
+import Project from '../../../../src/lib/models/Project';
 import { createTable } from '../../factory/table';
 import { UITypes } from 'nocodb-sdk';
 import { createBulkRows, rowMixedValue, listRow } from '../../factory/row';
-import Model from '../../../../src/models/Model';
+import Model from '../../../../src/lib/models/Model';
 import { expect } from 'chai';
 import request from 'supertest';
 

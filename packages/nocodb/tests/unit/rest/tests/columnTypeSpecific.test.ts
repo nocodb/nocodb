@@ -1,15 +1,15 @@
 import 'mocha';
-import { title } from 'process';
-import request from 'supertest';
-import { UITypes } from 'nocodb-sdk';
-import { expect } from 'chai';
 import init from '../../init';
 import { createProject, createSakilaProject } from '../../factory/project';
-import { createColumn, createQrCodeColumn } from '../../factory/column';
+import request from 'supertest';
+import { UITypes } from 'nocodb-sdk';
+import { createQrCodeColumn, createColumn } from '../../factory/column';
 import { getTable } from '../../factory/table';
-import type Model from '../../../../src/models/Model';
-import type Project from '../../../../src/models/Project';
-import type Column from '../../../../src/models/Column';
+import Model from '../../../../src/lib/models/Model';
+import Project from '../../../../src/lib/models/Project';
+import { expect } from 'chai';
+import Column from '../../../../src/lib/models/Column';
+import { title } from 'process';
 
 // Test case list
 // 1. Qr Code Column
@@ -62,10 +62,10 @@ function columnTypeSpecificTests() {
           .set('xc-auth', context.token)
           .expect(200);
         expect(resp.body.list[0][qrValueReferenceColumnTitle]).to.eql(
-          resp.body.list[0][qrCodeReferenceColumnTitle],
+          resp.body.list[0][qrCodeReferenceColumnTitle]
         );
         expect(
-          resp.body.list.map((row) => row[qrValueReferenceColumnTitle]),
+          resp.body.list.map((row) => row[qrValueReferenceColumnTitle])
         ).to.eql(resp.body.list.map((row) => row[qrCodeReferenceColumnTitle]));
       });
 
@@ -76,8 +76,8 @@ function columnTypeSpecificTests() {
 
         expect(
           columnsBeforeReferencedColumnDeleted.some(
-            (col) => col['title'] === qrCodeReferenceColumnTitle,
-          ),
+            (col) => col['title'] === qrCodeReferenceColumnTitle
+          )
         ).to.eq(true);
 
         const response = await request(context.app)
@@ -89,8 +89,8 @@ function columnTypeSpecificTests() {
           await customerTable.getColumns();
         expect(
           columnsAfterReferencedColumnDeleted.some(
-            (col) => col['title'] === qrCodeReferenceColumnTitle,
-          ),
+            (col) => col['title'] === qrCodeReferenceColumnTitle
+          )
         ).to.eq(false);
       });
     });

@@ -1,12 +1,12 @@
 import { UITypes } from 'nocodb-sdk';
 import request from 'supertest';
-import Column from '../../../src/models/Column';
-import FormViewColumn from '../../../src/models/FormViewColumn';
-import GalleryViewColumn from '../../../src/models/GalleryViewColumn';
-import GridViewColumn from '../../../src/models/GridViewColumn';
-import Model from '../../../src/models/Model';
-import Project from '../../../src/models/Project';
-import View from '../../../src/models/View';
+import Column from '../../../src/lib/models/Column';
+import FormViewColumn from '../../../src/lib/models/FormViewColumn';
+import GalleryViewColumn from '../../../src/lib/models/GalleryViewColumn';
+import GridViewColumn from '../../../src/lib/models/GridViewColumn';
+import Model from '../../../src/lib/models/Model';
+import Project from '../../../src/lib/models/Project';
+import View from '../../../src/lib/models/View';
 import { isSqlite, isPg } from '../init/db';
 
 const defaultColumns = function (context) {

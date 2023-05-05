@@ -31,9 +31,9 @@ COPY ./package*.json ./
 COPY ./docker/main.js ./docker/main.js
 #COPY ./docker/start.sh /usr/src/appEntry/start.sh
 COPY ./docker/start-litestream.sh /usr/src/appEntry/start.sh
-COPY ./public/css/*.css ./docker/public/css/
-COPY ./public/js/*.js ./docker/public/js/
-COPY ./public/favicon.ico ./docker/public/
+COPY ./src/lib/public/css/*.css ./docker/public/css/
+COPY ./src/lib/public/js/*.js ./docker/public/js/
+COPY ./src/lib/public/favicon.ico ./docker/public/
 
 # install production dependencies,
 # reduce node_module size with modclean & removing sqlite deps,

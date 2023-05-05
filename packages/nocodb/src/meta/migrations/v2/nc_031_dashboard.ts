@@ -10,6 +10,7 @@ const up = async (knex: Knex) => {
     table.boolean('show');
     table.float('order');
     table.text('meta');
+    table.string('description', 255);
     table.timestamps(true, true);
   });
   await knex.schema.createTable(MetaTable.DASHBOARD_WIDGET, async (table) => {
@@ -20,6 +21,7 @@ const up = async (knex: Knex) => {
     table.text('data_source');
     table.text('data_config');
     table.text('appearance_config');
+    table.string('description', 255);
     table.timestamps(true, true);
   });
 };

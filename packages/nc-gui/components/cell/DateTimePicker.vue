@@ -18,10 +18,10 @@ import {
 interface Props {
   modelValue?: string | null
   isPk?: boolean
-  isUpdateOutside: Record<string, boolean>
+  isUpdatedFromCopyNPaste: Record<string, boolean>
 }
 
-const { modelValue, isPk, isUpdateOutside } = defineProps<Props>()
+const { modelValue, isPk, isUpdatedFromCopyNPaste } = defineProps<Props>()
 
 const emit = defineEmits(['update:modelValue'])
 
@@ -78,7 +78,7 @@ let localState = $computed({
     // when copying a datetime cell, the copied value would be local time
     // when pasting a datetime cell, UTC (xcdb) will be saved in DB
     // we convert back to local time
-    if (column.value.title! in (isUpdateOutside ?? {})) {
+    if (column.value.title! in (isUpdatedFromCopyNPaste ?? {})) {
       localModelValue = dayjs(modelValue).utc().local()
       return localModelValue
     }
@@ -86,7 +86,11 @@ let localState = $computed({
     // if localModelValue is defined, show localModelValue instead
     // localModelValue is set in setter below
     if (localModelValue) {
-      return localModelValue
+      const res = localModelValue
+      // resetting localModelValue here
+      // e.g. save in expanded form -> render the correct modelValue
+      localModelValue = undefined
+      return res
     }
 
     // empty cell - use modelValue in local time

@@ -4,7 +4,7 @@ import setup from '../../setup';
 import { knex } from 'knex';
 import { Api, UITypes } from 'nocodb-sdk';
 import { ProjectsPage } from '../../pages/ProjectsPage';
-import { isSqlite } from '../../setup/db';
+import { isMysql, isPg, isSqlite } from '../../setup/db';
 let api: Api<any>, records: any[];
 
 const columns = [
@@ -460,7 +460,7 @@ async function createTableWithDateTimeColumn(database: string) {
   }
 }
 
-test.describe.skip('External DB - DateTime column', async () => {
+test.describe('External DB - DateTime column', async () => {
   let dashboard: DashboardPage;
   let context: any;
 
@@ -482,22 +482,27 @@ test.describe.skip('External DB - DateTime column', async () => {
 
     await createTableWithDateTimeColumn(context.dbType);
 
-    await api.base.create(context.project.id, {
-      alias: 'datetimetable',
-      type: 'mysql2',
-      config: {
-        client: 'mysql',
-        connection: {
-          host: 'localhost',
-          port: '3306',
-          user: 'root',
-          password: 'password',
-          database: 'datetimetable',
+    if (isPg(context)) {
+      await api.base.create(context.project.id, {
+        alias: 'datetimetable',
+        type: 'pg',
+        config: {
+          client: 'pg',
+          connection: {
+            host: 'localhost',
+            port: '5432',
+            user: 'postgres',
+            password: 'password',
+            database: 'datetimetable',
+          },
+          searchPath: ['public'],
         },
-      },
-      inflection_column: 'camelize',
-      inflection_table: 'camelize',
-    });
+        inflection_column: 'camelize',
+        inflection_table: 'camelize',
+      });
+    } else if (isMysql(context)) {
+    } else if (isSqlite(context)) {
+    }
 
     await dashboard.rootPage.reload();
   });
@@ -542,6 +547,19 @@ test.describe.skip('External DB - DateTime column', async () => {
       dateTime: '2023-04-27 12:30:00',
     });
 
+    // reload page & verify if inserted values are shown correctly
+    await dashboard.rootPage.reload();
+    await dashboard.grid.cell.verifyDateCell({
+      index: 2,
+      columnHeader: 'DatetimeWithoutTz',
+      value: '2023-04-27 10:00',
+    });
+    await dashboard.grid.cell.verifyDateCell({
+      index: 2,
+      columnHeader: 'DatetimeWithTz',
+      value: '2023-04-27 12:30',
+    });
+
     // verify API response
     // Note that, for UI inserted records - second part of datetime may be non-zero (though not shown in UI)
     // Hence, we skip seconds from API response
@@ -552,12 +570,14 @@ test.describe.skip('External DB - DateTime column', async () => {
     const expectedDateTimeWithoutTz = ['2023-04-27 10:00:00', '2023-04-27 10:00:00', '2023-04-27 10:00:00'];
     const expectedDateTimeWithTz = ['2023-04-27T04:30:00.000Z', '2023-04-27T04:30:00.000Z', '2023-04-27T04:30:00.000Z'];
 
+    // reset seconds to 0
     dateTimeWithoutTz = dateTimeWithoutTz.map(dateTimeStr => {
       const [datePart, timePart] = dateTimeStr.split(' ');
       const updatedTimePart = timePart.split(':').slice(0, 2).join(':') + ':00';
       return `${datePart} ${updatedTimePart}`;
     });
 
+    // reset seconds to 0
     dateTimeWithTz = dateTimeWithTz.map(dateTimeStr => {
       const dateObj = new Date(dateTimeStr);
       dateObj.setSeconds(0);

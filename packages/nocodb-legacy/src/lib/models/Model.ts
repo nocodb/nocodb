@@ -741,7 +741,7 @@ export default class Model implements TableType {
     }: { table_name; project_id; base_id; exclude_id? },
     ncMeta = Noco.ncMeta
   ) {
-    const meta = await ncMeta.metaGet2(
+    return !(await ncMeta.metaGet2(
       project_id,
       base_id,
       MetaTable.MODELS,
@@ -750,16 +750,7 @@ export default class Model implements TableType {
       },
       null,
       exclude_id && { id: { neq: exclude_id } }
-    );
-
-    if (!meta) return true;
-    if (meta?.table_name || undefined == table_name) {
-      if (meta?.project_id == project_id) {
-        return false;
-      }
-      NcError.badRequest('Duplicate table name');
-    }
-    return true;
+    ));
   }
 
   static async checkAliasAvailable(

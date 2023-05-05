@@ -176,7 +176,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/DashboardWidgetList"
+                  "$ref": "#/components/schemas/WidgetList"
                 }
               }
             }
@@ -196,7 +196,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/DashboardWidget"
+                  "$ref": "#/components/schemas/Widget"
                 }
               }
             }
@@ -209,7 +209,7 @@
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/DashboardWidgetReq"
+                "$ref": "#/components/schemas/WidgetReq"
               }
             }
           }
@@ -290,7 +290,7 @@
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/DashboardWidgetUpdateReq"
+                "$ref": "#/components/schemas/WidgetUpdateReq"
               }
             }
           }
@@ -19129,9 +19129,9 @@
           }
         }
       },
-      "DashboardWidget": {
-        "description": "Model for DashboardWidget",
-        "title": "DashboardWidget Model",
+      "Widget": {
+        "description": "Model for Widget",
+        "title": "Widget Model",
         "type": "object",
         "properties": {
           "id": {
@@ -19147,8 +19147,8 @@
             "description": "Version of the schema",
             "example": "v0.2"
           },
-          "visualisation_type": {
-            "$ref": "#/components/schemas/DashboardWidgetVisualisationType",
+          "widget_type": {
+            "$ref": "#/components/schemas/WidgetType",
             "description": "Visualisation Type of the widget"
           },
           "data_source": {
@@ -19194,7 +19194,7 @@
             "description": "Appearance Config JSON"
           }
         },
-        "required": ["id", "dashboard_id", "schema_version", "visualisation_type"],
+        "required": ["id", "dashboard_id", "schema_version", "widget_type"],
         "x-stoplight": {
           "id": "q8cxkpronjmyx"
         }
@@ -19272,7 +19272,7 @@
               },
         "required": ["project_id", "title"]
       },
-      "DashboardWidgetReq": {
+      "WidgetReq": {
         "description": "Model for Dashboard Widget request",
         "x-stoplight": {
           "id": "4zlzrppfjxrqb"
@@ -19289,8 +19289,8 @@
             "description": "Version of the schema",
             "example": "v0.2"
           },
-          "visualisation_type": {
-            "$ref": "#/components/schemas/DashboardWidgetVisualisationType",
+          "widget_type": {
+            "$ref": "#/components/schemas/WidgetType",
             "description": "Visualisation Type of the widget"
           },
           "data_source": {
@@ -19339,10 +19339,10 @@
         "required": [
           "dashboard_id",
           "schema_version",
-          "visualisation_type"
+          "widget_type"
         ]
       },
-      "DashboardWidgetUpdateReq": {
+      "WidgetUpdateReq": {
         "description": "Model for Dashboard Widget Update request",
         "x-stoplight": {
           "id": "4zlzrppfjxrqb"
@@ -19355,8 +19355,8 @@
             "description": "Version of the schema",
             "example": "v0.2"
           },
-          "visualisation_type": {
-            "$ref": "#/components/schemas/DashboardWidgetVisualisationType",
+          "widget_type": {
+            "$ref": "#/components/schemas/WidgetType",
             "description": "Visualisation Type of the widget"
           },
           "data_source": {
@@ -19429,8 +19429,8 @@
                 }
               }
       },
-      "DashboardWidgetVisualisationType": {
-        "description": "Visualisation Type of the DashboardWidget",
+      "WidgetType": {
+        "description": "Visualisation Type of the Widget",
         "enum": [
           "number",
           "static_text",
@@ -19442,18 +19442,18 @@
         ],
         "type": "string"
       },
-      "DashboardWidgetList": {
-        "description": "Model for DashboardWidget List",
-        "title": "DashboardWidget List Model",
+      "WidgetList": {
+        "description": "Model for Widget List",
+        "title": "Widget List Model",
         "type": "object",
         "properties": {
           "list": {
             "minItems": 1,
             "type": "array",
             "uniqueItems": true,
-            "description": "DashboardWidget objects",
+            "description": "Widget objects",
             "items": {
-              "$ref": "#/components/schemas/DashboardWidget"
+              "$ref": "#/components/schemas/Widget"
             }
           }
         },
@@ -24692,11 +24692,11 @@
           }
         }
       },
-      "DashboardWidgetList": {
+      "WidgetList": {
         "content": {
           "application/json": {
             "schema": {
-              "$ref": "#/components/schemas/DashboardWidgetList"
+              "$ref": "#/components/schemas/WidgetList"
             }
           }
         }

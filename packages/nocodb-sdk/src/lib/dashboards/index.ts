@@ -1,4 +1,4 @@
-import { DashboardWidgetVisualisationTypeType } from '../Api';
+import { WidgetTypeType } from '../Api';
 
 export enum AggregateFnType {
   Avg = 'avg',
@@ -108,43 +108,43 @@ export type AppearanceConfig =
   | StaticTextAppearanceConfig
   | BaseAppearanceConfig;
 
-export interface DashboardWidget {
+export interface Widget {
   id: string;
   schema_version: string;
   data_config?: DataConfig;
   data_source?: DataSource;
-  visualisation_type: DashboardWidgetVisualisationTypeType;
+  widget_type: WidgetTypeType;
   appearance_config: AppearanceConfig;
 }
 
-export interface StaticTextDashboardWidget extends DashboardWidget {
+export interface StaticTextWidget extends Widget {
   appearance_config: StaticTextAppearanceConfig;
   data_config: StaticTextDataConfig;
   data_source: StaticContentDataSource;
-  visualisation_type: DashboardWidgetVisualisationTypeType.StaticText;
+  widget_type: WidgetTypeType.StaticText;
 }
 
-export interface NumberDashboardWidget extends DashboardWidget {
+export interface NumberWidget extends Widget {
   appearance_config: BaseAppearanceConfig;
   data_config: NumberDataConfig;
-  visualisation_type: DashboardWidgetVisualisationTypeType.Number;
+  widget_type: WidgetTypeType.Number;
 }
 
-export interface ChartDashboardWidget extends DashboardWidget {
+export interface ChartWidget extends Widget {
   appearance_config: BaseAppearanceConfig;
   data_config: Aggregated2DChartDataConfig;
-  visualisation_type:
-    | DashboardWidgetVisualisationTypeType.LineChart
-    | DashboardWidgetVisualisationTypeType.BarChart
-    | DashboardWidgetVisualisationTypeType.PieChart
-    | DashboardWidgetVisualisationTypeType.ScatterPlot;
+  widget_type:
+    | WidgetTypeType.LineChart
+    | WidgetTypeType.BarChart
+    | WidgetTypeType.PieChart
+    | WidgetTypeType.ScatterPlot;
 }
 
 export const chartVisualisationTypes = [
-  DashboardWidgetVisualisationTypeType.LineChart,
-  DashboardWidgetVisualisationTypeType.BarChart,
-  DashboardWidgetVisualisationTypeType.PieChart,
-  DashboardWidgetVisualisationTypeType.ScatterPlot,
+  WidgetTypeType.LineChart,
+  WidgetTypeType.BarChart,
+  WidgetTypeType.PieChart,
+  WidgetTypeType.ScatterPlot,
 ];
 
 export interface WidgetDataResult {

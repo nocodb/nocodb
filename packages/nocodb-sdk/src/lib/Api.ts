@@ -1138,9 +1138,9 @@ export interface GridUpdateReqType {
 }
 
 /**
- * Model for DashboardWidget
+ * Model for Widget
  */
-export interface DashboardWidgetType {
+export interface WidgetType {
   /** Unique ID */
   id: IdType;
   /** Dashboard ID */
@@ -1151,7 +1151,7 @@ export interface DashboardWidgetType {
    */
   schema_version: string;
   /** Visualisation Type of the widget */
-  visualisation_type: DashboardWidgetVisualisationTypeType;
+  widget_type: WidgetTypeType;
   /** Data Source JSON */
   data_source?: null | object | string;
   /** Data Config JSON */
@@ -1203,7 +1203,7 @@ export interface DashboardReqType {
 /**
  * Model for Dashboard Widget request
  */
-export interface DashboardWidgetReqType {
+export interface WidgetReqType {
   /** Unique Dashboard ID */
   dashboard_id: string;
   /**
@@ -1212,7 +1212,7 @@ export interface DashboardWidgetReqType {
    */
   schema_version: string;
   /** Visualisation Type of the widget */
-  visualisation_type: DashboardWidgetVisualisationTypeType;
+  widget_type: WidgetTypeType;
   /** Data Source JSON */
   data_source?: null | object | string;
   /** Data Config JSON */
@@ -1224,14 +1224,14 @@ export interface DashboardWidgetReqType {
 /**
  * Model for Dashboard Widget Update request
  */
-export interface DashboardWidgetUpdateReqType {
+export interface WidgetUpdateReqType {
   /**
    * Version of the schema
    * @example v0.2
    */
   schema_version?: string;
   /** Visualisation Type of the widget */
-  visualisation_type?: DashboardWidgetVisualisationTypeType;
+  widget_type?: WidgetTypeType;
   /** Data Source JSON */
   data_source?: null | object | string;
   /** Data Config JSON */
@@ -1256,9 +1256,9 @@ export interface DashboardUpdateReqType {
 }
 
 /**
- * Visualisation Type of the DashboardWidget
+ * Visualisation Type of the Widget
  */
-export enum DashboardWidgetVisualisationTypeType {
+export enum WidgetTypeType {
   Number = 'number',
   StaticText = 'static_text',
   LineChart = 'line_chart',
@@ -1269,11 +1269,11 @@ export enum DashboardWidgetVisualisationTypeType {
 }
 
 /**
- * Model for DashboardWidget List
+ * Model for Widget List
  */
-export interface DashboardWidgetListType {
-  /** DashboardWidget objects */
-  list: DashboardWidgetType[];
+export interface WidgetListType {
+  /** Widget objects */
+  list: WidgetType[];
 }
 
 /**
@@ -3110,10 +3110,10 @@ export class Api<
      * @name GetWidgets
      * @summary Get Widgets for Dashboard
      * @request GET:/api/v1/dashboards/{dashboardId}/widgets
-     * @response `200` `DashboardWidgetListType` OK
+     * @response `200` `WidgetListType` OK
      */
     getWidgets: (dashboardId: IdType, params: RequestParams = {}) =>
-      this.request<DashboardWidgetListType, any>({
+      this.request<WidgetListType, any>({
         path: `/api/v1/dashboards/${dashboardId}/widgets`,
         method: 'GET',
         format: 'json',
@@ -3127,7 +3127,7 @@ export class Api<
  * @name WidgetsCreate
  * @summary Create Dashboard Widget
  * @request POST:/api/v1/dashboards/{dashboardId}/widgets
- * @response `200` `DashboardWidgetType` OK
+ * @response `200` `WidgetType` OK
  * @response `400` `{
   \** @example BadRequest [Error]: <ERROR MESSAGE> *\
   msg: string,
@@ -3136,11 +3136,11 @@ export class Api<
  */
     widgetsCreate: (
       dashboardId: IdType,
-      data: DashboardWidgetReqType,
+      data: WidgetReqType,
       params: RequestParams = {}
     ) =>
       this.request<
-        DashboardWidgetType,
+        WidgetType,
         {
           /** @example BadRequest [Error]: <ERROR MESSAGE> */
           msg: string;
@@ -3191,7 +3191,7 @@ export class Api<
     updateWidget: (
       dashboardId: IdType,
       widgetId: IdType,
-      data: DashboardWidgetUpdateReqType,
+      data: WidgetUpdateReqType,
       params: RequestParams = {}
     ) =>
       this.request<

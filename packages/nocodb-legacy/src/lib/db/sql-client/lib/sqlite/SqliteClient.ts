@@ -409,7 +409,7 @@ class SqliteClient extends KnexClient {
         response[i].not_nullable = response[i].notnull === 1;
         response[i].rqd = response[i].notnull === 1;
         response[i].cdf = response[i].dflt_value;
-        response[i].pk = response[i].pk > 0;
+        response[i].pk = response[i].pk === 1;
         response[i].cop = response[i].cid;
 
         // https://stackoverflow.com/a/7906029

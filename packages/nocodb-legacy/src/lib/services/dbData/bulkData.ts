@@ -38,15 +38,12 @@ export async function bulkDataInsert(
   param: PathParams & {
     body: any;
     cookie: any;
-    chunkSize?: number;
-    foreign_key_checks?: boolean;
-    raw?: boolean;
   }
 ) {
   return await executeBulkOperation({
     ...param,
     operation: 'bulkInsert',
-    options: [param.body, { cookie: param.cookie, foreign_key_checks: param.foreign_key_checks, chunkSize: param.chunkSize, raw: param.raw }],
+    options: [param.body, { cookie: param.cookie }],
   });
 }
 

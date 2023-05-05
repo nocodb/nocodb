@@ -221,7 +221,7 @@
     "viewName": "Название представления",
     "viewLink": "Ссылка на представление",
     "columnName": "Название столбца",
-    "columnToScanFor": "Column to scan",
+    "columnToScanFor": "Колонка для сканирования",
     "columnType": "Тип столбца",
     "roleName": "Имя роли",
     "roleDescription": "Описание роли",
@@ -390,7 +390,7 @@
     "renameTable": "Переименовать таблицу",
     "deleteTable": "Удалить таблицу",
     "addField": "Добавить новое поле в эту таблицу",
-    "setDisplay": "Set as Display value",
+    "setDisplay": "Установить как значение отображения",
     "addRow": "Добавить новую строку",
     "saveRow": "Сохранить строку",
     "saveAndExit": "Сохранить и выйти",
@@ -413,7 +413,7 @@
     "createView": "Создать представление",
     "shareView": "Поделиться представлением",
     "findRowByCodeScan": "Найти строку путем сканирования",
-    "fillByCodeScan": "Fill by scan",
+    "fillByCodeScan": "Заполнить сканированием",
     "listSharedView": "Общий список представлений",
     "ListView": "Список представлений",
     "copyView": "Скопировать представление",
@@ -543,9 +543,9 @@
       },
       "codeScanner": {
         "loadingScanner": "Загрузка сканера...",
-        "selectColumn": "Select a column (QR code or Barcode) that you want to use for finding a row by scanning.",
-        "moreThanOneRowFoundForCode": "More than one row found for this code. Currently only unique codes are supported.",
-        "noRowFoundForCode": "No row found for this code for the selected column"
+        "selectColumn": "Выберите столбец (QR-код или штрих-код), который вы хотите использовать для поиска ряда путем сканирования.",
+        "moreThanOneRowFoundForCode": "Для этого кода найдено более одной строки. В настоящее время поддерживаются только уникальные коды.",
+        "noRowFoundForCode": "Не найдена строка для этого кода для выбранного столбца"
       },
       "map": {
         "overLimit": "Вы превысили лимит.",
@@ -726,7 +726,7 @@
       "nameShouldStartWithAnAlphabetOr_": "Имя должно начинаться с алфавита или _",
       "followingCharactersAreNotAllowed": "Нельзя использовать следующие символы",
       "columnNameRequired": "Требуется название столбца",
-      "columnNameExceedsCharacters": "The length of column name exceeds the max {value} characters",
+      "columnNameExceedsCharacters": "Длина имени колонки превышает максимальную {value} символов",
       "projectNameExceeds50Characters": "Название проекта превышает 50 символов",
       "projectNameCannotStartWithSpace": "Название проекта не может начинаться с пробела",
       "requiredField": "Обязательное поле",

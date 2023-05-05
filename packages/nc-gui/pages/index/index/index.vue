@@ -27,7 +27,7 @@ definePageMeta({
   title: 'title.myProject',
 })
 
-const { $api, $e } = useNuxtApp()
+const { $api, $e, $jobs } = useNuxtApp()
 
 const { api, isLoading } = useApi()
 
@@ -39,9 +39,17 @@ const filterQuery = ref('')
 
 const projects = ref<ProjectType[]>()
 
+const activePage = ref(1)
+
+const pageChange = (p: number) => {
+  activePage.value = p
+}
+
 const loadProjects = async () => {
+  const lastPage = activePage.value
   const response = await api.project.list({})
   projects.value = response.list
+  activePage.value = lastPage
 }
 
 const filteredProjects = computed(
@@ -67,6 +75,36 @@ const deleteProject = (project: ProjectType) => {
         $e('a:project:delete')
 
         projects.value?.splice(projects.value?.indexOf(project), 1)
+      } catch (e: any) {
+        message.error(await extractSdkResponseErrorMsg(e))
+      }
+    },
+  })
+}
+
+const duplicateProject = (project: ProjectType) => {
+  Modal.confirm({
+    title: `Do you want to duplicate '${project.title}' project?`,
+    wrapClassName: 'nc-modal-project-duplicate',
+    okText: 'Yes',
+    okType: 'primary',
+    cancelText: 'No',
+    async onOk() {
+      try {
+        const jobData = await api.project.duplicate(project.id as string)
+
+        await loadProjects()
+
+        $jobs.subscribe({ name: jobData.name, id: jobData.id }, null, async (status: string) => {
+          if (status === 'completed') {
+            await loadProjects()
+          } else if (status === 'failed') {
+            message.error('Failed to duplicate project')
+            await loadProjects()
+          }
+        })
+
+        $e('a:project:duplicate')
       } catch (e: any) {
         message.error(await extractSdkResponseErrorMsg(e))
       }
@@ -122,7 +160,7 @@ const getProjectPrimary = (project: ProjectType) => {
 
 const customRow = (record: ProjectType) => ({
   onClick: async () => {
-    await navigateTo(`/nc/${record.id}`)
+    if (record.status !== 'job') await navigateTo(`/nc/${record.id}`)
 
     $e('a:project:open')
   },
@@ -196,7 +234,7 @@ const copyProjectMeta = async () => {
       v-else
       :custom-row="customRow"
       :data-source="filteredProjects"
-      :pagination="{ position: ['bottomCenter'] }"
+      :pagination="{ 'position': ['bottomCenter'], 'current': activePage, 'onUpdate:current': pageChange }"
       :table-layout="md ? 'auto' : 'fixed'"
     >
       <template #emptyText>
@@ -249,8 +287,13 @@ const copyProjectMeta = async () => {
               </a-menu>
             </div>
             <div
-              class="capitalize color-transition group-hover:text-primary !w-[400px] h-full overflow-hidden overflow-ellipsis whitespace-nowrap pl-2"
+              class="flex capitalize color-transition group-hover:text-primary !w-[400px] h-full overflow-hidden overflow-ellipsis whitespace-nowrap pl-2"
             >
+              <component
+                :is="iconMap.reload"
+                v-if="record.status === 'job'"
+                :class="{ 'animate-infinite animate-spin text-gray-500': record.status === 'job' }"
+              />
               {{ text }}
             </div>
           </div>
@@ -260,7 +303,7 @@ const copyProjectMeta = async () => {
 
       <a-table-column key="id" :title="$t('labels.actions')" data-index="id">
         <template #default="{ text, record }">
-          <div class="flex items-center gap-2">
+          <div v-if="record.status !== 'job'" class="flex items-center gap-2">
             <component
               :is="iconMap.edit"
               v-e="['c:project:edit:rename']"
@@ -274,6 +317,21 @@ const copyProjectMeta = async () => {
               :data-testid="`delete-project-${record.title}`"
               @click.stop="deleteProject(record)"
             />
+
+            <a-dropdown :trigger="['click']" overlay-class-name="nc-dropdown-import-menu" @click.stop>
+              <GeneralIcon icon="threeDotVertical" class="nc-import-menu outline-0" :data-testid="`p-three-dot-${record.title}`"/>
+
+              <template #overlay>
+                <a-menu class="!py-0 rounded text-sm">
+                  <a-menu-item key="duplicate" v-e="['c:project:duplicate']" @click.stop="duplicateProject(record)">
+                    <div class="color-transition nc-project-menu-item group" :data-testid="`dupe-project-${record.title}`">
+                      <GeneralIcon icon="copy" class="group-hover:text-accent" />
+                      Duplicate
+                    </div>
+                  </a-menu-item>
+                </a-menu>
+              </template>
+            </a-dropdown>
           </div>
         </template>
       </a-table-column>

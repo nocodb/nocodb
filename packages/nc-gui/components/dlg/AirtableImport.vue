@@ -1,6 +1,4 @@
 <script setup lang="ts">
-import type { Socket } from 'socket.io-client'
-import io from 'socket.io-client'
 import type { Card as AntCard } from 'ant-design-vue'
 import {
   Form,
@@ -10,7 +8,6 @@ import {
   iconMap,
   message,
   nextTick,
-  onBeforeUnmount,
   onMounted,
   ref,
   storeToRefs,
@@ -31,7 +28,7 @@ const { appInfo } = $(useGlobal())
 
 const baseURL = appInfo.ncSiteUrl
 
-const { $state } = useNuxtApp()
+const { $state, $jobs } = useNuxtApp()
 
 const projectStore = useProject()
 
@@ -48,8 +45,6 @@ const progress = ref<Record<string, any>[]>([])
 const logRef = ref<typeof AntCard>()
 
 const enableAbort = ref(false)
-
-let socket: Socket | null
 
 const syncSource = ref({
   id: '',
@@ -71,6 +66,35 @@ const syncSource = ref({
     },
   },
 })
+
+const pushProgress = async (message: string, status: 'completed' | 'failed' | 'progress') => {
+  progress.value.push({ msg: message, status })
+
+  await nextTick(() => {
+    const container: HTMLDivElement = logRef.value?.$el?.firstElementChild
+    if (!container) return
+    container.scrollTop = container.scrollHeight
+  })
+}
+
+const onSubscribe = () => {
+  step.value = 2
+}
+
+const onStatus = async (status: 'active' | 'completed' | 'failed' | 'refresh', error?: any) => {
+  if (status === 'completed') {
+    showGoToDashboardButton.value = true
+    await loadTables()
+    pushProgress('Done!', status)
+    // TODO: add tab of the first table
+  } else if (status === 'failed') {
+    pushProgress(error, status)
+  }
+}
+
+const onLog = (data: { message: string }) => {
+  pushProgress(data.message, 'progress')
+}
 
 const validators = computed(() => ({
   'details.apiKey': [fieldRequiredValidator()],
@@ -130,7 +154,7 @@ async function loadSyncSrc() {
     srcs[0].details = srcs[0].details || {}
     syncSource.value = migrateSync(srcs[0])
     syncSource.value.details.syncSourceUrlOrId = srcs[0].details.shareId
-    socket?.emit('subscribe', syncSource.value.id)
+    $jobs.subscribe({ syncId: syncSource.value.id }, onSubscribe, onStatus, onLog)
   } else {
     syncSource.value = {
       id: '',
@@ -161,11 +185,8 @@ async function sync() {
       baseURL,
       method: 'POST',
       headers: { 'xc-auth': $state.token.value as string },
-      params: {
-        id: socket?.id,
-      },
     })
-    socket?.emit('subscribe', syncSource.value.id)
+    $jobs.subscribe({ syncId: syncSource.value.id }, onSubscribe, onStatus, onLog)
   } catch (e: any) {
     message.error(await extractSdkResponseErrorMsg(e))
   }
@@ -183,9 +204,6 @@ async function abort() {
           baseURL,
           method: 'POST',
           headers: { 'xc-auth': $state.token.value as string },
-          params: {
-            id: socket?.id,
-          },
         })
         step.value = 1
       } catch (e: any) {
@@ -223,66 +241,11 @@ watch(
 )
 
 onMounted(async () => {
-  socket = io(new URL(baseURL, window.location.href.split(/[?#]/)[0]).href, {
-    extraHeaders: { 'xc-auth': $state.token.value as string },
-  })
-
-  socket.on('progress', async (d: Record<string, any>) => {
-    progress.value.push(d)
-
-    await nextTick(() => {
-      const container: HTMLDivElement = logRef.value?.$el?.firstElementChild
-      if (!container) return
-      container.scrollTop = container.scrollHeight
-    })
-
-    if (d.status === 'COMPLETED') {
-      showGoToDashboardButton.value = true
-      await loadTables()
-      // TODO: add tab of the first table
-    }
-  })
-
-  socket.on('disconnect', () => {
-    console.log('socket disconnected')
-    const rcInterval = setInterval(() => {
-      if (socket?.connected) {
-        clearInterval(rcInterval)
-        socket?.emit('subscribe', syncSource.value.id)
-      } else {
-        socket?.connect()
-      }
-    }, 2000)
-  })
-
-  socket.on('job', () => {
-    step.value = 2
-  })
-
-  // connect event does not provide data
-  socket.on('connect', () => {
-    console.log('socket connected')
-    if (syncSource.value.id) {
-      socket?.emit('subscribe', syncSource.value.id)
-    }
-  })
-
-  socket?.io.on('reconnect', () => {
-    console.log('socket reconnected')
-    if (syncSource.value.id) {
-      socket?.emit('subscribe', syncSource.value.id)
-    }
-  })
+  if (syncSource.value.id) {
+    $jobs.subscribe({ syncId: syncSource.value.id }, onSubscribe, onStatus, onLog)
+  }
 
   await loadSyncSrc()
-})
-
-onBeforeUnmount(() => {
-  if (socket) {
-    socket.off('disconnect')
-    socket.disconnect()
-    socket.removeAllListeners()
-  }
 })
 </script>
 
@@ -407,7 +370,7 @@ onBeforeUnmount(() => {
 
         <a-card ref="logRef" :body-style="{ backgroundColor: '#000000', height: '400px', overflow: 'auto' }">
           <div v-for="({ msg, status }, i) in progress" :key="i">
-            <div v-if="status === 'FAILED'" class="flex items-center">
+            <div v-if="status === 'failed'" class="flex items-center">
               <component :is="iconMap.closeCircle" class="text-red-500" />
 
               <span class="text-red-500 ml-2">{{ msg }}</span>
@@ -424,7 +387,7 @@ onBeforeUnmount(() => {
             v-if="
               !progress ||
               !progress.length ||
-              (progress[progress.length - 1].status !== 'COMPLETED' && progress[progress.length - 1].status !== 'FAILED')
+              (progress[progress.length - 1].status !== 'completed' && progress[progress.length - 1].status !== 'failed')
             "
             class="flex items-center"
           >

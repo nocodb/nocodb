@@ -1892,6 +1892,11 @@ export interface ProjectReqType {
    * @example My Project
    */
   title: string;
+  /**
+   * Project Status
+   * @example locked
+   */
+  status?: StringOrNullType;
 }
 
 /**
@@ -1910,6 +1915,11 @@ export interface ProjectUpdateReqType {
    * @example My Project
    */
   title?: string;
+  /**
+   * Project Status
+   * @example locked
+   */
+  status?: StringOrNullType;
 }
 
 /**
@@ -3997,6 +4007,80 @@ export class Api<
         method: 'POST',
         body: data,
         type: ContentType.Json,
+        format: 'json',
+        ...params,
+      }),
+
+    /**
+ * @description Duplicate a project
+ * 
+ * @tags Project
+ * @name BaseDuplicate
+ * @summary Duplicate Project Base
+ * @request POST:/api/v1/db/meta/duplicate/{projectId}/{baseId}
+ * @response `200` `{
+  name?: string,
+  id?: string,
+
+}` OK
+ * @response `400` `{
+  \** @example BadRequest [Error]: <ERROR MESSAGE> *\
+  msg: string,
+
+}`
+ */
+    baseDuplicate: (
+      projectId: IdType,
+      baseId?: IdType,
+      params: RequestParams = {}
+    ) =>
+      this.request<
+        {
+          name?: string;
+          id?: string;
+        },
+        {
+          /** @example BadRequest [Error]: <ERROR MESSAGE> */
+          msg: string;
+        }
+      >({
+        path: `/api/v1/db/meta/duplicate/${projectId}/${baseId}`,
+        method: 'POST',
+        format: 'json',
+        ...params,
+      }),
+
+    /**
+ * @description Duplicate a project
+ * 
+ * @tags Project
+ * @name Duplicate
+ * @summary Duplicate Project
+ * @request POST:/api/v1/db/meta/duplicate/{projectId}
+ * @response `200` `{
+  name?: string,
+  id?: string,
+
+}` OK
+ * @response `400` `{
+  \** @example BadRequest [Error]: <ERROR MESSAGE> *\
+  msg: string,
+
+}`
+ */
+    duplicate: (projectId: IdType, params: RequestParams = {}) =>
+      this.request<
+        {
+          name?: string;
+          id?: string;
+        },
+        {
+          /** @example BadRequest [Error]: <ERROR MESSAGE> */
+          msg: string;
+        }
+      >({
+        path: `/api/v1/db/meta/duplicate/${projectId}`,
+        method: 'POST',
         format: 'json',
         ...params,
       }),

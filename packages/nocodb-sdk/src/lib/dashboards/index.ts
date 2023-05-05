@@ -15,63 +15,63 @@ export enum DataSourceType {
   STATIC_CONTENT = 'static_content',
 }
 
-export interface InternalDataSource {
+export interface DataSourceInternal {
   dataSourceType: DataSourceType.INTERNAL;
   projectId?: string;
   tableId?: string;
   viewId?: string;
 }
 
-export interface ExternalDataSource {
+export interface DataSourceExternal {
   dataSourceType: DataSourceType.EXTERNAL;
   endpointUrl?: string;
 }
 
-export interface SQLDataSource {
+export interface DataSourceSQL {
   dataSourceType: DataSourceType.SQL;
   sqlStatement?: string;
 }
 
-export interface StaticContentDataSource {
+export interface DataSourceStaticContent {
   dataSourceType: DataSourceType.STATIC_CONTENT;
 }
 
 export type DataSource =
-  | InternalDataSource
-  | ExternalDataSource
-  | SQLDataSource
-  | StaticContentDataSource;
+  | DataSourceInternal
+  | DataSourceExternal
+  | DataSourceSQL
+  | DataSourceStaticContent;
 
-export interface NumberDataConfig {
+export interface DataConfigNumber {
   colId?: string;
   aggregateFunction?: AggregateFnType;
 }
 
-export interface StaticTextDataConfig {
+export interface DataConfigStaticText {
   text?: string;
 }
 
-export interface Aggregated2DChartDataConfig {
+export interface DataConfigAggregated2DChart {
   xAxisColId?: string;
   yAxisColId?: string;
   aggregateFunction?: AggregateFnType;
 }
-export type BarChartDataConfig = Aggregated2DChartDataConfig;
-export type LineChartDataConfig = Aggregated2DChartDataConfig;
-export type PieChartDataConfig = Aggregated2DChartDataConfig;
+export type DataConfigBarChart = DataConfigAggregated2DChart;
+export type DataConfigLineChart = DataConfigAggregated2DChart;
+export type DataConfigPieChart = DataConfigAggregated2DChart;
 
-export interface ScatterPlotDataConfig {
+export interface DataConfigScatterPlot {
   xAxisColId?: string;
   yAxisColId?: string;
 }
 
 export type DataConfig =
-  | NumberDataConfig
-  | StaticTextDataConfig
-  | BarChartDataConfig
-  | LineChartDataConfig
-  | PieChartDataConfig
-  | ScatterPlotDataConfig;
+  | DataConfigNumber
+  | DataConfigStaticText
+  | DataConfigBarChart
+  | DataConfigLineChart
+  | DataConfigPieChart
+  | DataConfigScatterPlot;
 
 export interface ScreenPosition {
   x: number;
@@ -93,20 +93,20 @@ export enum FontType {
   CAPTION = 'caption',
 }
 
-export interface BaseAppearanceConfig {
+export interface AppearanceConfigBase {
   name: string;
   description?: string;
   screenDimensions: ScreenDimensions;
   screenPosition: ScreenPosition;
 }
 
-export interface StaticTextAppearanceConfig extends BaseAppearanceConfig {
+export interface AppearanceConfigStaticText extends AppearanceConfigBase {
   fontType?: FontType;
 }
 
 export type AppearanceConfig =
-  | StaticTextAppearanceConfig
-  | BaseAppearanceConfig;
+  | AppearanceConfigStaticText
+  | AppearanceConfigBase;
 
 export interface Widget {
   id: string;
@@ -118,21 +118,21 @@ export interface Widget {
 }
 
 export interface StaticTextWidget extends Widget {
-  appearance_config: StaticTextAppearanceConfig;
-  data_config: StaticTextDataConfig;
-  data_source: StaticContentDataSource;
+  appearance_config: AppearanceConfigStaticText;
+  data_config: DataConfigStaticText;
+  data_source: DataSourceStaticContent;
   widget_type: WidgetTypeType.StaticText;
 }
 
 export interface NumberWidget extends Widget {
-  appearance_config: BaseAppearanceConfig;
-  data_config: NumberDataConfig;
+  appearance_config: AppearanceConfigBase;
+  data_config: DataConfigNumber;
   widget_type: WidgetTypeType.Number;
 }
 
 export interface ChartWidget extends Widget {
-  appearance_config: BaseAppearanceConfig;
-  data_config: Aggregated2DChartDataConfig;
+  appearance_config: AppearanceConfigBase;
+  data_config: DataConfigAggregated2DChart;
   widget_type:
     | WidgetTypeType.LineChart
     | WidgetTypeType.BarChart

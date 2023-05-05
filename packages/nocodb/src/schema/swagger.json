@@ -19149,7 +19149,7 @@
           },
           "widget_type": {
             "$ref": "#/components/schemas/WidgetType",
-            "description": "Visualisation Type of the widget"
+            "description": "Type of the widget"
           },
           "data_source": {
             "oneOf": [
@@ -19291,7 +19291,7 @@
           },
           "widget_type": {
             "$ref": "#/components/schemas/WidgetType",
-            "description": "Visualisation Type of the widget"
+            "description": "Type of the widget"
           },
           "data_source": {
             "oneOf": [
@@ -19357,7 +19357,7 @@
           },
           "widget_type": {
             "$ref": "#/components/schemas/WidgetType",
-            "description": "Visualisation Type of the widget"
+            "description": "Type of the widget"
           },
           "data_source": {
             "oneOf": [
@@ -19430,7 +19430,7 @@
               }
       },
       "WidgetType": {
-        "description": "Visualisation Type of the Widget",
+        "description": "Type of the Widget",
         "enum": [
           "number",
           "static_text",

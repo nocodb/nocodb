@@ -1150,7 +1150,7 @@ export interface WidgetType {
    * @example v0.2
    */
   schema_version: string;
-  /** Visualisation Type of the widget */
+  /** Type of the widget */
   widget_type: WidgetTypeType;
   /** Data Source JSON */
   data_source?: null | object | string;
@@ -1211,7 +1211,7 @@ export interface WidgetReqType {
    * @example v0.2
    */
   schema_version: string;
-  /** Visualisation Type of the widget */
+  /** Type of the widget */
   widget_type: WidgetTypeType;
   /** Data Source JSON */
   data_source?: null | object | string;
@@ -1230,7 +1230,7 @@ export interface WidgetUpdateReqType {
    * @example v0.2
    */
   schema_version?: string;
-  /** Visualisation Type of the widget */
+  /** Type of the widget */
   widget_type?: WidgetTypeType;
   /** Data Source JSON */
   data_source?: null | object | string;
@@ -1256,7 +1256,7 @@ export interface DashboardUpdateReqType {
 }
 
 /**
- * Visualisation Type of the Widget
+ * Type of the Widget
  */
 export enum WidgetTypeType {
   Number = 'number',

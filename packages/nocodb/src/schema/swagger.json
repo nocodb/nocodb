@@ -19224,13 +19224,6 @@
           "order": {
             "description": "The order of this Dashboard in the list of Dashboards",
             "type": "number"
-          }, 
-          "linked_db_projects": {
-            "description": "List of DB projects that this dashboard is linked to",
-            "type": "array",
-            "items": {
-              "$ref": "#/components/schemas/Project"
-            }
           }
         },
         "x-stoplight": {
@@ -19261,13 +19254,6 @@
                 "order": {
                   "description": "The order of this Dashboard in the list of Dashboards",
                   "type": "number"
-                },
-                "linked_db_project_ids": {
-                  "description": "List of DB projects IDs that this dashboard is linked to",
-                  "type": "array",
-                  "items": {
-                    "type": "string"
-                  }
                 }
               },
         "required": ["project_id", "title"]
@@ -19419,13 +19405,6 @@
                 "order": {
                   "description": "The order of this Dashboard in the list of Dashboards",
                   "type": "number"
-                },
-                "linked_db_project_ids": {
-                  "description": "List of DB projects IDs that this dashboard is linked to",
-                  "type": "array",
-                  "items": {
-                    "type": "string"
-                  }
                 }
               }
       },
@@ -21335,6 +21314,13 @@
           "type": {
             "type": "string"
           },
+          "linked_db_projects": {
+            "description": "List of linked Database Projects that this project has access to (only used in Dashboard projects so far)",
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/Project"
+            }
+          },
           "status": {
             "type": "string"
           },
@@ -21491,6 +21477,13 @@
             "maxLength": 128,
             "minLength": 1,
             "type": "string"
+          },
+          "linked_db_project_ids": {
+            "description": "List of Linked Database Project IDs (only used for Dashboard Projects so far)",
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
           }
         },
         "required": [
@@ -21536,6 +21529,13 @@
             "maxLength": 128,
             "minLength": 1,
             "type": "string"
+          },
+          "linked_db_project_ids": {
+            "description": "List of Linked Database Project IDs (only used for Dashboard Projects so far)",
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
           }
         }
       },

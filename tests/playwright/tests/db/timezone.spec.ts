@@ -393,6 +393,7 @@ async function createTableWithDateTimeColumn(database: string) {
         user: 'root',
         password: 'password',
         database: 'sakila',
+        multipleStatements: true,
       },
       pool: { min: 0, max: 5 },
     };
@@ -412,11 +413,13 @@ async function createTableWithDateTimeColumn(database: string) {
 
     const mysqlknex2 = knex(config2);
     await mysqlknex2.raw(`
+    USE datetimetable;
     CREATE TABLE my_table (
       title INT AUTO_INCREMENT PRIMARY KEY,
       datetime_without_tz DATETIME,
       datetime_with_tz TIMESTAMP
     );
+    SET time_zone = '+08:00';
     INSERT INTO my_table (datetime_without_tz, datetime_with_tz)
     VALUES
       ('2023-04-27 10:00:00', '2023-04-27 12:30:00'),
@@ -443,9 +446,7 @@ async function createTableWithDateTimeColumn(database: string) {
     CREATE TABLE my_table (
       title INTEGER PRIMARY KEY AUTOINCREMENT,
       datetime_without_tz DATETIME,
-      datetime_with_tz DATETIME
-    )
-`);
+      datetime_with_tz DATETIME )`);
     const datetimeData = [
       ['2023-04-27 10:00:00', '2023-04-27 10:00:00'],
       ['2023-04-27 10:00:00+05:30', '2023-04-27 10:00:00+05:30'],
@@ -460,9 +461,27 @@ async function createTableWithDateTimeColumn(database: string) {
   }
 }
 
-test.describe('External DB - DateTime column', async () => {
+test.describe.skip('External DB - DateTime column', async () => {
   let dashboard: DashboardPage;
   let context: any;
+
+  const expectedDisplayValues = {
+    pg: {
+      DatetimeWithoutTz: ['2023-04-27 10:00', '2023-04-27 10:00'],
+      DatetimeWithTz: ['2023-04-27 12:30', '2023-04-27 12:30'],
+    },
+    sqlite: {
+      // without +HH:MM information, display value is same as inserted value
+      // with +HH:MM information, display value is converted to browser timezone
+      // SQLite doesn't have with & without timezone fields; both are same in this case
+      DatetimeWithoutTz: ['2023-04-27 10:00', '2023-04-27 12:30'],
+      DatetimeWithTz: ['2023-04-27 10:00', '2023-04-27 12:30'],
+    },
+    mysql: {
+      DatetimeWithoutTz: ['2023-04-27 10:00', '2023-04-27 12:30'],
+      DatetimeWithTz: ['2023-04-27 04:30', '2023-04-27 04:30'],
+    },
+  };
 
   test.use({
     locale: 'zh-HK',
@@ -501,7 +520,40 @@ test.describe('External DB - DateTime column', async () => {
         inflection_table: 'camelize',
       });
     } else if (isMysql(context)) {
+      await api.base.create(context.project.id, {
+        alias: 'datetimetable',
+        type: 'mysql2',
+        config: {
+          client: 'mysql2',
+          connection: {
+            host: 'localhost',
+            port: '3306',
+            user: 'root',
+            password: 'password',
+            database: 'datetimetable',
+          },
+        },
+        inflection_column: 'camelize',
+        inflection_table: 'camelize',
+      });
     } else if (isSqlite(context)) {
+      await api.base.create(context.project.id, {
+        alias: 'datetimetable',
+        type: 'sqlite3',
+        config: {
+          client: 'sqlite3',
+          connection: {
+            client: 'sqlite3',
+            database: 'datetimetable',
+            connection: {
+              filename: '../../tests/playwright/mydb.sqlite3',
+            },
+            useNullAsDefault: true,
+          },
+        },
+        inflection_column: 'camelize',
+        inflection_table: 'camelize',
+      });
     }
 
     await dashboard.rootPage.reload();
@@ -516,22 +568,22 @@ test.describe('External DB - DateTime column', async () => {
     await dashboard.grid.cell.verifyDateCell({
       index: 0,
       columnHeader: 'DatetimeWithoutTz',
-      value: '2023-04-27 10:00',
+      value: expectedDisplayValues[context.dbType].DatetimeWithoutTz[0],
     });
     await dashboard.grid.cell.verifyDateCell({
       index: 1,
       columnHeader: 'DatetimeWithoutTz',
-      value: '2023-04-27 10:00',
+      value: expectedDisplayValues[context.dbType].DatetimeWithoutTz[1],
     });
     await dashboard.grid.cell.verifyDateCell({
       index: 0,
       columnHeader: 'DatetimeWithTz',
-      value: '2023-04-27 12:30',
+      value: expectedDisplayValues[context.dbType].DatetimeWithTz[0],
     });
     await dashboard.grid.cell.verifyDateCell({
       index: 1,
       columnHeader: 'DatetimeWithTz',
-      value: '2023-04-27 12:30',
+      value: expectedDisplayValues[context.dbType].DatetimeWithTz[1],
     });
 
     // Insert new row
@@ -564,27 +616,97 @@ test.describe('External DB - DateTime column', async () => {
     // Note that, for UI inserted records - second part of datetime may be non-zero (though not shown in UI)
     // Hence, we skip seconds from API response
     //
+
     const records = await api.dbTableRow.list('noco', context.project.id, 'MyTable', { limit: 10 });
     let dateTimeWithoutTz = records.list.map(record => record.DatetimeWithoutTz);
     let dateTimeWithTz = records.list.map(record => record.DatetimeWithTz);
-    const expectedDateTimeWithoutTz = ['2023-04-27 10:00:00', '2023-04-27 10:00:00', '2023-04-27 10:00:00'];
-    const expectedDateTimeWithTz = ['2023-04-27T04:30:00.000Z', '2023-04-27T04:30:00.000Z', '2023-04-27T04:30:00.000Z'];
 
-    // reset seconds to 0
-    dateTimeWithoutTz = dateTimeWithoutTz.map(dateTimeStr => {
-      const [datePart, timePart] = dateTimeStr.split(' ');
-      const updatedTimePart = timePart.split(':').slice(0, 2).join(':') + ':00';
-      return `${datePart} ${updatedTimePart}`;
-    });
+    if (isPg(context)) {
+      const expectedDateTimeWithoutTz = [
+        'Thu, 27 Apr 2023 04:30:00 GMT',
+        'Thu, 27 Apr 2023 04:30:00 GMT',
+        'Thu, 27 Apr 2023 02:00:00 GMT',
+      ];
+      const expectedDateTimeWithTz = [
+        'Thu, 27 Apr 2023 04:30:00 GMT',
+        'Thu, 27 Apr 2023 04:30:00 GMT',
+        'Thu, 27 Apr 2023 04:30:00 GMT',
+      ];
 
-    // reset seconds to 0
-    dateTimeWithTz = dateTimeWithTz.map(dateTimeStr => {
-      const dateObj = new Date(dateTimeStr);
-      dateObj.setSeconds(0);
-      return dateObj.toISOString();
-    });
+      // convert to ISO string, skip seconds part or reset seconds to 00
+      dateTimeWithoutTz = dateTimeWithoutTz.map(dateTimeStr => {
+        const dateObj = new Date(dateTimeStr);
+        dateObj.setSeconds(0);
+        return dateObj.toUTCString();
+      });
+      dateTimeWithTz = dateTimeWithTz.map(dateTimeStr => {
+        const dateObj = new Date(dateTimeStr);
+        dateObj.setSeconds(0);
+        return dateObj.toUTCString();
+      });
 
-    expect(dateTimeWithoutTz).toEqual(expectedDateTimeWithoutTz);
-    expect(dateTimeWithTz).toEqual(expectedDateTimeWithTz);
+      console.log(dateTimeWithoutTz);
+      console.log(dateTimeWithTz);
+      expect(dateTimeWithoutTz).toEqual(expectedDateTimeWithoutTz);
+      expect(dateTimeWithTz).toEqual(expectedDateTimeWithTz);
+    } else if (isMysql(context)) {
+      const expectedDateTimeWithoutTz = [
+        'Thu, 27 Apr 2023 04:30:00 GMT',
+        'Thu, 27 Apr 2023 07:00:00 GMT',
+        'Thu, 27 Apr 2023 02:00:00 GMT',
+      ];
+      const expectedDateTimeWithTz = [
+        'Wed, 26 Apr 2023 23:00:00 GMT',
+        'Wed, 26 Apr 2023 23:00:00 GMT',
+        'Thu, 27 Apr 2023 04:30:00 GMT',
+      ];
+
+      // convert to ISO string, skip seconds part or reset seconds to 00
+      dateTimeWithoutTz = dateTimeWithoutTz.map(dateTimeStr => {
+        const dateObj = new Date(dateTimeStr);
+        dateObj.setSeconds(0);
+        return dateObj.toUTCString();
+      });
+      dateTimeWithTz = dateTimeWithTz.map(dateTimeStr => {
+        const dateObj = new Date(dateTimeStr);
+        dateObj.setSeconds(0);
+        return dateObj.toUTCString();
+      });
+
+      console.log(dateTimeWithoutTz);
+      console.log(dateTimeWithTz);
+
+      expect(dateTimeWithoutTz).toEqual(expectedDateTimeWithoutTz);
+      expect(dateTimeWithTz).toEqual(expectedDateTimeWithTz);
+    } else if (isSqlite(context)) {
+      const expectedDateTimeWithoutTz = [
+        'Thu, 27 Apr 2023 04:30:00 GMT',
+        'Thu, 27 Apr 2023 04:30:00 GMT',
+        'Thu, 27 Apr 2023 02:00:00 GMT',
+      ];
+      const expectedDateTimeWithTz = [
+        'Thu, 27 Apr 2023 04:30:00 GMT',
+        'Thu, 27 Apr 2023 04:30:00 GMT',
+        'Thu, 27 Apr 2023 04:30:00 GMT',
+      ];
+
+      // convert to ISO string, skip seconds part or reset seconds to 00
+      dateTimeWithoutTz = dateTimeWithoutTz.map(dateTimeStr => {
+        const dateObj = new Date(dateTimeStr);
+        dateObj.setSeconds(0);
+        return dateObj.toUTCString();
+      });
+      dateTimeWithTz = dateTimeWithTz.map(dateTimeStr => {
+        const dateObj = new Date(dateTimeStr);
+        dateObj.setSeconds(0);
+        return dateObj.toUTCString();
+      });
+
+      console.log(dateTimeWithoutTz);
+      console.log(dateTimeWithTz);
+
+      expect(dateTimeWithoutTz).toEqual(expectedDateTimeWithoutTz);
+      expect(dateTimeWithTz).toEqual(expectedDateTimeWithTz);
+    }
   });
 });

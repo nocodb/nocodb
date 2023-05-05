@@ -61,7 +61,7 @@ export interface Row {
     changed?: boolean
     saving?: boolean
     // use in datetime picker component
-    isUpdateOutside?: Record<string, boolean>
+    isUpdatedFromCopyNPaste?: Record<string, boolean>
   }
 }
 

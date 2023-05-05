@@ -213,7 +213,7 @@ onUnmounted(() => {
           v-else-if="isDateTime(column, abstractType)"
           v-model="vModel"
           :is-pk="isPrimaryKey(column)"
-          :is-update-outside="currentRow.rowMeta.isUpdateOutside"
+          :is-updated-from-copy-n-paste="currentRow.rowMeta.isUpdatedFromCopyNPaste"
         />
         <LazyCellTimePicker v-else-if="isTime(column, abstractType)" v-model="vModel" :is-pk="isPrimaryKey(column)" />
         <LazyCellRating v-else-if="isRating(column)" v-model="vModel" />

@@ -482,18 +482,10 @@ export default class Model implements TableType {
                 .utcOffset(d.getTimezoneOffset(), true)
                 .format('YYYY-MM-DD HH:mm:ssZ');
             } else if (isMssql) {
-              if (val.slice(-1) === 'Z' || val.slice(-6) === '+00:00') {
-                // from UI
-                val = dayjs
-                  .utc(val)
-                  .utcOffset(d.getTimezoneOffset(), false)
-                  .format('YYYY-MM-DD HH:mm:ssZ');
-              } else {
-                val = dayjs
-                  .utc(val)
-                  .utcOffset(d.getTimezoneOffset() * -1, true)
-                  .format('YYYY-MM-DD HH:mm:ssZ');
-              }
+              val = dayjs
+                .utc(val)
+                .utcOffset(d.getTimezoneOffset(), false)
+                .format('YYYY-MM-DD HH:mm:ssZ');
             }
           } else {
             // TODO(timezone): keep ext db as it is

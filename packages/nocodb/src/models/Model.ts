@@ -472,14 +472,9 @@ export default class Model implements TableType {
                   .format('YYYY-MM-DD HH:mm:ss');
               }
             } else if (isSqlite) {
-              let keepLocalTime = false;
-              if (val.slice(-1) === 'Z' || val.slice(-6) === '+00:00') {
-                // from UI
-                keepLocalTime = true;
-              }
               val = dayjs
                 .utc(val)
-                .utcOffset(d.getTimezoneOffset(), keepLocalTime)
+                .utcOffset(d.getTimezoneOffset(), true)
                 .format('YYYY-MM-DD HH:mm:ss');
             } else if (isPg) {
               val = dayjs

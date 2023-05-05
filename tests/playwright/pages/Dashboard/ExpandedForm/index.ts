@@ -100,6 +100,7 @@ export class ExpandedFormPage extends BasePage {
         const dateTimeObj = new DateTimeCellPageObject(this.dashboard.grid.cell);
         await dateTimeObj.selectDate({ date: value.slice(0, 10) });
         await dateTimeObj.selectTime({ hour: +value.slice(11, 13), minute: +value.slice(14, 16) });
+        await dateTimeObj.save();
         break;
     }
   }

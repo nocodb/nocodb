@@ -103,7 +103,7 @@ export class TreeViewPage extends BasePage {
     }
   }
 
-  async createTable({ title, skipOpeningModal }: { title: string; skipOpeningModal?: boolean }) {
+  async createTable({ title, skipOpeningModal, mode }: { title: string; skipOpeningModal?: boolean; mode?: string }) {
     if (!skipOpeningModal) await this.get().locator('.nc-add-new-table').click();
 
     await this.dashboard.get().locator('.nc-modal-table-create').locator('.ant-modal-body').waitFor();
@@ -118,7 +118,7 @@ export class TreeViewPage extends BasePage {
     });
 
     // Tab render is slow for playwright
-    await this.dashboard.waitForTabRender({ title });
+    await this.dashboard.waitForTabRender({ title, mode });
   }
 
   async verifyTable({ title, index, exists = true }: { title: string; index?: number; exists?: boolean }) {

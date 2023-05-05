@@ -461,7 +461,7 @@ async function createTableWithDateTimeColumn(database: string) {
   }
 }
 
-test.describe.skip('External DB - DateTime column', async () => {
+test.describe('External DB - DateTime column', async () => {
   let dashboard: DashboardPage;
   let context: any;
 

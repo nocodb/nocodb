@@ -140,7 +140,7 @@ export interface ChartWidget extends Widget {
     | WidgetTypeType.ScatterPlot;
 }
 
-export const chartVisualisationTypes = [
+export const chartTypes = [
   WidgetTypeType.LineChart,
   WidgetTypeType.BarChart,
   WidgetTypeType.PieChart,

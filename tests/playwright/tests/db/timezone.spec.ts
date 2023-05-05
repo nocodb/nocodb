@@ -295,7 +295,7 @@ test.describe('Timezone', () => {
 
     // DateTime inserted from cell is converted to UTC & stored
     // Display value is same as inserted value
-    await dashboard.grid.cell.verifyDateCell({ index: 0, columnHeader: 'DateTime', value: '2021-01-01 12:30' });
+    await dashboard.grid.cell.verifyDateCell({ index: 0, columnHeader: 'DateTime', value: '2021-02-02 12:30' });
   });
 
   /*

@@ -1,8 +1,8 @@
 /* eslint-disable no-async-promise-executor */
 import { RelationTypes, UITypes } from 'nocodb-sdk';
 import EntityMap from './EntityMap';
-import type { BulkDataAliasService } from '../../../../services/bulk-data-alias.service';
-import type { TablesService } from '../../../../services/tables.service';
+import type { BulkDataAliasService } from '../../../services/bulk-data-alias.service';
+import type { TablesService } from '../../../services/tables.service';
 // @ts-ignore
 import type { AirtableBase } from 'airtable/lib/airtable_base';
 import type { TableType } from 'nocodb-sdk';

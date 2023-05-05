@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import type { VNodeRef } from '@vue/runtime-core'
-import { EditModeInj, RowHeightInj, inject, useVModel } from '#imports'
+import { EditModeInj, IsExpandedFormOpenInj, RowHeightInj, inject, useVModel } from '#imports'
 
 const props = defineProps<{
   modelValue?: string | number
@@ -19,7 +19,9 @@ const { showNull } = useGlobal()
 
 const vModel = useVModel(props, 'modelValue', emits, { defaultValue: '' })
 
-const focus: VNodeRef = (el) => (el as HTMLTextAreaElement)?.focus()
+const isExpandedFormOpen = inject(IsExpandedFormOpenInj)!
+
+const focus: VNodeRef = (el) => !isExpandedFormOpen && (el as HTMLTextAreaElement)?.focus()
 </script>
 
 <template>

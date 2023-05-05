@@ -1,5 +1,5 @@
-import Audit from '../../../src/lib/models/Audit';
-import Project from '../../../src/lib/models/Project';
+
+import { Audit, Project } from '../../../src/models'
 import TestDbMngr from '../TestDbMngr';
 
 const dropTablesOfSakila = async () => {

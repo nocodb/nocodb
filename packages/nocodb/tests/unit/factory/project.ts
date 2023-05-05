@@ -1,5 +1,5 @@
 import request from 'supertest';
-import Project from '../../../src/lib/models/Project';
+import Project from '../../../src/models/Project';
 
 const sakilaProjectConfig = (context) => {
   let base;

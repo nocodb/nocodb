@@ -752,6 +752,23 @@ const closeAddColumnDropdown = () => {
   columnOrder.value = null
   addColumnDropdown.value = false
 }
+
+const confirmDeleteRow = (row: number) => {
+  Modal.confirm({
+    title: `Do you want to delete this row?`,
+    wrapClassName: 'nc-modal-row-delete',
+    okText: 'Yes',
+    okType: 'danger',
+    cancelText: 'No',
+    onOk() {
+      try {
+        deleteRow(row)
+      } catch (e: any) {
+        message.error(e.message)
+      }
+    },
+  })
+}
 </script>
 
 <template>
@@ -973,7 +990,7 @@ const closeAddColumnDropdown = () => {
 
         <template v-if="!isLocked && hasEditPermission" #overlay>
           <a-menu class="shadow !rounded !py-0" @click="contextMenu = false">
-            <a-menu-item v-if="contextMenuTarget" @click="deleteRow(contextMenuTarget.row)">
+            <a-menu-item v-if="contextMenuTarget" @click="confirmDeleteRow(contextMenuTarget.row)">
               <div v-e="['a:row:delete']" class="nc-project-menu-item">
                 <!-- Delete Row -->
                 {{ $t('activity.deleteRow') }}

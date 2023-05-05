@@ -39,7 +39,7 @@
     "signIn": "ВОЙТИ",
     "signOut": "Выход",
     "required": "Обязательно",
-    "enableScanner": "Enable Scanner for filling",
+    "enableScanner": "Включить сканер для заполнения",
     "preferred": "Рекомендовано",
     "mandatory": "Обязательный",
     "loading": "Загрузка ...",
@@ -76,7 +76,7 @@
     "hideField": "Скрыть поле",
     "sortAsc": "По Возрастанию",
     "sortDesc": "По убыванию",
-    "geoDataField": "GeoData Field"
+    "geoDataField": "Поле геоданных"
   },
   "objects": {
     "project": "Проект",
@@ -101,7 +101,7 @@
       "form": "Форма",
       "kanban": "Канбан",
       "calendar": "Календарь",
-      "map": "Map"
+      "map": "Карта"
     },
     "user": "Пользователь",
     "users": "Пользователи",
@@ -139,7 +139,7 @@
     "Currency": "Валюта",
     "Percent": "Процент",
     "Duration": "Интервал времени",
-    "GeoData": "GeoData",
+    "GeoData": "Геоданные",
     "Rating": "Рейтинг",
     "Formula": "Формула",
     "Rollup": "Итоги (Rollup)",
@@ -211,7 +211,7 @@
     "codeSnippet": "Сниппет кода",
     "keyboardShortcut": "Горячие клавиши",
     "generateRandomName": "Сгенерировать случайное имя",
-    "findRowByScanningCode": "Find row by scanning a QR or Barcode"
+    "findRowByScanningCode": "Найти строку путем сканирования QR или штрих-кода"
   },
   "labels": {
     "createdBy": "Автор",
@@ -260,9 +260,9 @@
     "barcodeFormat": "Формат штрих-кода",
     "qrCodeValueTooLong": "Слишком много символов для QR-кода",
     "barcodeValueTooLong": "Слишком много символов для штрихкода",
-    "currentLocation": "Current Location",
-    "lng": "Lng",
-    "lat": "Lat",
+    "currentLocation": "Текущее местоположение",
+    "lng": "Долг",
+    "lat": "Шир",
     "aggregateFunction": "Агрегатная функция",
     "dbCreateIfNotExists": "База данных: создать, если не существует",
     "clientKey": "Ключ клиента",
@@ -396,7 +396,7 @@
     "saveAndExit": "Сохранить и выйти",
     "saveAndStay": "Сохранить и остаться",
     "insertRow": "Вставить новую строку",
-    "duplicateRow": "Duplicate Row",
+    "duplicateRow": "Копировать запись",
     "deleteRow": "Удалить строку",
     "deleteSelectedRow": "Удалить выбранные строки",
     "importExcel": "Импорт из Excel",
@@ -412,7 +412,7 @@
     "changePwd": "Изменить пароль",
     "createView": "Создать представление",
     "shareView": "Поделиться представлением",
-    "findRowByCodeScan": "Find row by scan",
+    "findRowByCodeScan": "Найти строку путем сканирования",
     "fillByCodeScan": "Fill by scan",
     "listSharedView": "Общий список представлений",
     "ListView": "Список представлений",
@@ -429,10 +429,10 @@
     "openTab": "Открыть новую вкладку",
     "iFrame": "Копировать встраеваемый HTML-код",
     "addWebhook": "Добавить новый Web Hook",
-    "enableWebhook": "Enable Webhook",
-    "testWebhook": "Test Webhook",
-    "copyWebhook": "Copy Webhook",
-    "deleteWebhook": "Delete Webhook",
+    "enableWebhook": "Включить Webhook",
+    "testWebhook": "Проверить Webhook",
+    "copyWebhook": "Копировать Webhook",
+    "deleteWebhook": "Удалить Webhook",
     "newToken": "Добавить новый токен",
     "exportZip": "Экспорт в zip",
     "importZip": "Импорт из zip",
@@ -472,10 +472,10 @@
     "map": {
       "mappedBy": "Mapped By",
       "chooseMappingField": "Choose a Mapping Field",
-      "openInGoogleMaps": "Google Maps",
+      "openInGoogleMaps": "Google Карты",
       "openInOpenStreetMap": "OSM"
     },
-    "toggleMobileMode": "Toggle Mobile Mode"
+    "toggleMobileMode": "Переключить мобильный режим"
   },
   "tooltip": {
     "saveChanges": "Сохранить изменения",
@@ -542,15 +542,15 @@
         "orgViewer": "Наблюдатель не может создавать новые проекты, но может получить доступ к любому проекту по приглашению."
       },
       "codeScanner": {
-        "loadingScanner": "Loading the scanner...",
+        "loadingScanner": "Загрузка сканера...",
         "selectColumn": "Select a column (QR code or Barcode) that you want to use for finding a row by scanning.",
         "moreThanOneRowFoundForCode": "More than one row found for this code. Currently only unique codes are supported.",
         "noRowFoundForCode": "No row found for this code for the selected column"
       },
       "map": {
-        "overLimit": "You're over the limit.",
-        "closeLimit": "You're getting close to the limit.",
-        "limitNumber": "The limit of markers shown in a Map View is 1000 records."
+        "overLimit": "Вы превысили лимит.",
+        "closeLimit": "Вы приближаетесь к лимиту.",
+        "limitNumber": "Предельное количество маркеров, отображаемых в представлении карты, составляет 1000 записей."
       },
       "footerInfo": "Количество строк на странице",
       "upload": "Выберите файл для загрузки",
@@ -634,7 +634,7 @@
         "gallery": "Добавить представление галерея",
         "form": "Добавить представление форма",
         "kanban": "Добавить представление Канбан",
-        "map": "Add Map View",
+        "map": "Добавить представление карты",
         "calendar": "Добавить представление календарь"
       },
       "tablesMetadataInSync": "Таблицы метаданные синхронизируются",
@@ -667,9 +667,9 @@
       "deleteTableConfirmation": "Вы действительно хотите удалить эту таблицу",
       "showM2mTables": "Показать таблицы M2M",
       "showM2mTablesDesc": "Many-to-many relation is supported via a junction table & is hidden by default. Enable this option to list all such tables along with existing tables.",
-      "showNullInCells": "Show NULL in Cells",
-      "showNullInCellsDesc": "Display 'NULL' tag in cells holding NULL value. This helps differentiate against cells holding EMPTY string.",
-      "showNullAndEmptyInFilter": "Show NULL and EMPTY in Filter",
+      "showNullInCells": "Показывать NULL в ячейках",
+      "showNullInCellsDesc": "Отображайте тег 'NULL' в ячейках, содержащих значение NULL. Это помогает отличить ячейки, содержащие строку EMPTY.",
+      "showNullAndEmptyInFilter": "Показать NULL и EMPTY в фильтре",
       "showNullAndEmptyInFilterDesc": "Enable 'additional' filters to differentiate fields containing NULL & Empty Strings. Default support for Blank treats both NULL & Empty strings alike.",
       "deleteKanbanStackConfirmation": "Удаление этого стека также удалит опцию выбора `{stackToBeDeleted}` из `{groupingField}`. Записи переместятся в стек без категории.",
       "computedFieldEditWarning": "Вычисляемое поле: содержимое доступно только для чтения. Используйте меню редактирования столбцов для изменения конфигурации",
@@ -698,7 +698,7 @@
         "allowedSpecialCharList": "Список разрешенных специальных символов"
       },
       "invalidURL": "Неверный URL",
-      "invalidEmail": "Invalid Email",
+      "invalidEmail": "Неверный адрес электронной почты",
       "internalError": "Произошла какая-то внутренняя ошибка",
       "templateGeneratorNotFound": "Генератор шаблонов не найден!",
       "fileUploadFailed": "Не удалось загрузить файл",
@@ -759,7 +759,7 @@
     },
     "success": {
       "columnDuplicated": "Столбец успешно скопирован",
-      "rowDuplicatedWithoutSavedYet": "Row duplicated (not saved)",
+      "rowDuplicatedWithoutSavedYet": "Строка продублирована (не сохранена)",
       "updatedUIACL": "Успешно обновлен пользовательский интерфейс ACL для таблиц",
       "pluginUninstalled": "Плагин успешно удален",
       "pluginSettingsSaved": "Настройки плагина сохранены",
@@ -779,7 +779,7 @@
       "userDeletedFromProject": "Успешное удаление пользователя из проекта",
       "inviteEmailSent": "Приглашение по электронной почте отправлено успешно",
       "inviteURLCopied": "URL-адрес приглашения скопирован в буфер обмена",
-      "commentCopied": "Comment copied to clipboard",
+      "commentCopied": "Комментарий скопирован в буфер обмена",
       "passwordResetURLCopied": "URL-адрес сброса пароля скопирован в буфер обмена",
       "shareableURLCopied": "Копирование URL базы с возможностью совместного использования в буфер обмена!",
       "embeddableHTMLCodeCopied": "Скопированный встраиваемый HTML-код!",

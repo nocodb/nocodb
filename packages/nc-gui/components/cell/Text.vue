@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import type { VNodeRef } from '@vue/runtime-core'
-import { EditModeInj, ReadonlyInj, inject, ref, useVModel } from '#imports'
+import { EditModeInj, IsExpandedFormOpenInj, ReadonlyInj, inject, ref, useVModel } from '#imports'
 
 interface Props {
   modelValue?: string | null
@@ -23,9 +23,9 @@ const readonly = inject(ReadonlyInj, ref(false))
 
 const vModel = useVModel(props, 'modelValue', emits)
 
-const focus: VNodeRef = (el) => {
-  ;(el as HTMLInputElement)?.focus()
-}
+const isExpandedFormOpen = inject(IsExpandedFormOpenInj)!
+
+const focus: VNodeRef = (el) => !isExpandedFormOpen && (el as HTMLInputElement)?.focus()
 </script>
 
 <template>

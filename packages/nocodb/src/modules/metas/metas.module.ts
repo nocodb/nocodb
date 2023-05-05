@@ -82,6 +82,7 @@ import { DocsModule } from '../docs/docs.module';
 import { PublicDocsModule } from '../public-docs/public-docs.module';
 import { NotificationsGateway } from '../../gateways/notifications/notifications.gateway';
 import { ClickhouseService } from '../../services/clickhouse/clickhouse.service';
+import {ThrottlerExpiryListenerService} from "../../services/throttler-expiry-listener.service";
 
 @Module({
   imports: [
@@ -175,6 +176,8 @@ import { ClickhouseService } from '../../services/clickhouse/clickhouse.service'
     NotificationsService,
     NotificationsGateway,
     ClickhouseService,
+
+    ThrottlerExpiryListenerService,
   ],
 })
 export class MetasModule {}

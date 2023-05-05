@@ -1,5 +1,7 @@
-import { Module, RequestMethod } from '@nestjs/common';
-import { APP_FILTER } from '@nestjs/core';
+import { Inject, Injectable, Module, RequestMethod } from '@nestjs/common';
+import { APP_FILTER, APP_GUARD } from '@nestjs/core';
+import { ThrottlerGuard, ThrottlerModule } from '@nestjs/throttler';
+import { ThrottlerStorageRedisService } from 'nestjs-throttler-storage-redis';
 import { Connection } from './connection/connection';
 import { GlobalExceptionFilter } from './filters/global-exception/global-exception.filter';
 import NcPluginMgrv2 from './helpers/NcPluginMgrv2';
@@ -28,6 +30,17 @@ import type {
   MiddlewareConsumer,
   OnApplicationBootstrap,
 } from '@nestjs/common';
+import { ThrottlerExpiryListenerService } from './services/throttler-expiry-listener.service';
+
+@Injectable()
+export class CustomApiLimiterGuard extends ThrottlerGuard {
+  protected getTracker(req: Record<string, any>): string {
+    return req.headers['xc-auth'] as string;
+  }
+  generateKey(context, suffix) {
+    return `throttler:${suffix}`;
+  }
+}
 
 @Module({
   imports: [
@@ -43,12 +56,28 @@ import type {
     WorkspaceUsersModule,
     DocsModule,
     PublicDocsModule,
+
+    ThrottlerModule.forRoot({
+      ttl: 10,
+      limit: 2,
+      skipIf: (context) => {
+        // check request header contains 'xc-token', if missing skip throttling
+        return !context.switchToHttp().getRequest().headers['xc-auth'];
+      },
+
+      // connection url
+      storage: new ThrottlerStorageRedisService(),
+    }),
   ],
   providers: [
     AuthService,
     {
       provide: APP_FILTER,
       useClass: GlobalExceptionFilter,
+    },
+    {
+      provide: APP_GUARD,
+      useClass: CustomApiLimiterGuard,
     },
     LocalStrategy,
     AuthTokenStrategy,

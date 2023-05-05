@@ -117,10 +117,14 @@ export function useMultiSelect(
           }
 
           if (columnObj.uidt === UITypes.DateTime) {
-            if (isMssql(meta.value?.base_id)) {
-              textToCopy = dayjs(textToCopy).format(constructDateTimeFormat(columnObj))
+            if (isXcdbBase(meta.value?.base_id)) {
+              if (isMssql(meta.value?.base_id)) {
+                textToCopy = dayjs(textToCopy).format(constructDateTimeFormat(columnObj))
+              } else {
+                textToCopy = dayjs(textToCopy).utc(true).local().format(constructDateTimeFormat(columnObj))
+              }
             } else {
-              textToCopy = dayjs(textToCopy).utc(true).local().format(constructDateTimeFormat(columnObj))
+              textToCopy = dayjs(textToCopy).format(constructDateTimeFormat(columnObj))
             }
 
             if (!dayjs(textToCopy).isValid()) {

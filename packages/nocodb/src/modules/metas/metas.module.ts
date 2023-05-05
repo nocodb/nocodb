@@ -68,10 +68,10 @@ import { UtilsService } from '../../services/utils.service';
 import { ViewColumnsService } from '../../services/view-columns.service';
 import { ViewsService } from '../../services/views.service';
 import { ApiDocsService } from '../../services/api-docs/api-docs.service';
+import { EventEmitterModule } from '../event-emitter/event-emitter.module'
 import { GlobalModule } from '../global/global.module';
 import { ProjectUsersController } from '../../controllers/project-users.controller';
 import { ProjectUsersService } from '../../services/project-users/project-users.service';
-import { DatasModule } from '../datas/datas.module';
 
 @Module({
   imports: [

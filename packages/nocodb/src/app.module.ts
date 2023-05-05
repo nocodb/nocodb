@@ -1,4 +1,4 @@
-import { Inject, Module, RequestMethod } from '@nestjs/common'
+import { Inject, Module, RequestMethod } from '@nestjs/common';
 import { APP_FILTER, APP_GUARD, APP_INTERCEPTOR } from '@nestjs/core';
 import { ThrottlerModule } from '@nestjs/throttler';
 import { ConfigModule } from '@nestjs/config';
@@ -9,13 +9,15 @@ import { GlobalMiddleware } from './middlewares/global/global.middleware';
 import { GuiMiddleware } from './middlewares/gui/gui.middleware';
 import { PublicMiddleware } from './middlewares/public/public.middleware';
 import { DatasModule } from './modules/datas/datas.module';
-import { IEventEmitter } from './modules/event-emitter/event-emitter.interface'
+import { IEventEmitter } from './modules/event-emitter/event-emitter.interface';
+import { EventEmitterModule } from './modules/event-emitter/event-emitter.module';
 import { AuthService } from './services/auth.service';
 import { UsersModule } from './modules/users/users.module';
 import { MetaService } from './meta/meta.service';
 import Noco from './Noco';
 import { TestModule } from './modules/test/test.module';
 import { GlobalModule } from './modules/global/global.module';
+import { HookHandlerService } from './services/hook-handler.service';
 import { LocalStrategy } from './strategies/local.strategy';
 import { AuthTokenStrategy } from './strategies/authtoken.strategy/authtoken.strategy';
 import { BaseViewStrategy } from './strategies/base-view.strategy/base-view.strategy';
@@ -51,6 +53,7 @@ import { HookHandlerService } from './services/hook-handler.service';
     MetasModule,
     DatasModule,
     TestModule,
+    EventEmitterModule,
 
     // todo:combine and move to meta module
     WorkspacesModule,

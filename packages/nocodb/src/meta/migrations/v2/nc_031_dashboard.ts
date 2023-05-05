@@ -13,7 +13,7 @@ const up = async (knex: Knex) => {
     table.string('description', 255);
     table.timestamps(true, true);
   });
-  await knex.schema.createTable(MetaTable.DASHBOARD_WIDGET, async (table) => {
+  await knex.schema.createTable(MetaTable.WIDGET, async (table) => {
     table.string('id', 20).primary().notNullable();
     table.string('dashboard_id', 20);
     table.string('schema_version', 20);
@@ -24,11 +24,39 @@ const up = async (knex: Knex) => {
     table.string('description', 255);
     table.timestamps(true, true);
   });
+
+  await knex.schema.createTable(
+    MetaTable.DASHBOARD_PROJECT_DB_PROJECT_LINKINGS,
+    async (table) => {
+      table.string('id', 20).primary().notNullable();
+      table.string('dashboard_project_id', 20).notNullable();
+      table
+        .foreign('dashboard_project_id')
+        .references(`${MetaTable.PROJECT}.id`);
+      table.string('db_project_id', 20).notNullable();
+      table.foreign('db_project_id').references(`${MetaTable.PROJECT}.id`);
+      table.timestamps(true, true);
+    },
+  );
+
+  await knex.schema.createTable(
+    MetaTable.WIDGET_DB_DEPENDENCIES,
+    async (table) => {
+      table.string('id', 20).primary().notNullable();
+      table.string('widget_id', 20).notNullable();
+      table.foreign('widget_id').references(`${MetaTable.WIDGET}.id`);
+      table.string('column_id', 20).notNullable();
+      table.foreign('column_id').references(`${MetaTable.COLUMNS}.id`);
+      table.timestamps(true, true);
+    },
+  );
 };
 
 const down = async (knex: Knex) => {
   await knex.schema.dropTable(MetaTable.DASHBOARD);
-  await knex.schema.dropTable(MetaTable.DASHBOARD_WIDGET);
+  await knex.schema.dropTable(MetaTable.WIDGET);
+  await knex.schema.dropTable(MetaTable.DASHBOARD_PROJECT_DB_PROJECT_LINKINGS);
+  await knex.schema.dropTable(MetaTable.WIDGET_DB_DEPENDENCIES);
 };
 
 export { up, down };

@@ -447,7 +447,10 @@ test.describe('External DB - DateTime column', async () => {
   const expectedDisplayValues = {
     pg: {
       DatetimeWithoutTz: ['2023-04-27 10:00', '2023-04-27 10:00'],
-      DatetimeWithTz: ['2023-04-27 10:00', getDateTimeInLocalTimeZone('2023-04-27 04:30:00+00:00')],
+      DatetimeWithTz: [
+        getDateTimeInLocalTimeZone('2023-04-27 10:00:00+00:00'),
+        getDateTimeInLocalTimeZone('2023-04-27 04:30:00+00:00'),
+      ],
     },
     sqlite: {
       // without +HH:MM information, display value is same as inserted value
@@ -587,38 +590,30 @@ test.describe('External DB - DateTime column', async () => {
     let dateTimeWithoutTz = records.list.map(record => record.DatetimeWithoutTz);
     let dateTimeWithTz = records.list.map(record => record.DatetimeWithTz);
 
-    const expectedDateTimeWithoutTz = [
-      'Thu, 27 Apr 2023 10:00:00 GMT',
-      'Thu, 27 Apr 2023 10:00:00 GMT',
-      'Thu, 27 Apr 2023 10:00:00 GMT',
-    ];
-    const expectedDateTimeWithTz = [
-      'Thu, 27 Apr 2023 10:00:00 GMT',
-      'Thu, 27 Apr 2023 10:00:00 GMT',
-      'Thu, 27 Apr 2023 10:00:00 GMT',
-    ];
+    let expectedDateTimeWithoutTz = [];
+    let expectedDateTimeWithTz = [];
 
-    if (isMysql(context)) {
-      expectedDateTimeWithoutTz[1] = 'Thu, 27 Apr 2023 04:30:00 GMT';
-      expectedDateTimeWithTz[1] = 'Thu, 27 Apr 2023 04:30:00 GMT';
+    if (isSqlite(context)) {
+      expectedDateTimeWithoutTz = ['2023-04-27 10:00:00', '2023-04-27 10:00:00+05:30', '2023-04-27 10:00:00+05:30'];
+      expectedDateTimeWithTz = ['2023-04-27 10:00:00', '2023-04-27 10:00:00+05:30', '2023-04-27 10:00:00+05:30'];
+    } else if (isPg(context)) {
+      expectedDateTimeWithoutTz = ['2023-04-27 10:00:00', '2023-04-27 10:00:00', '2023-04-27 10:00:00'];
+      expectedDateTimeWithTz = ['2023-04-27T10:00:00.000Z', '2023-04-27T04:30:00.000Z', '2023-04-27T04:30:00.000Z'];
+    } else if (isMysql(context)) {
+      expectedDateTimeWithoutTz = ['2023-04-27 10:00:00', '2023-04-27 04:30:00', '2023-04-27 10:00:00'];
+      expectedDateTimeWithTz = ['2023-04-27 10:00:00', '2023-04-27 04:30:00', '2023-04-27 10:00:00'];
     }
 
-    // convert to ISO string, skip seconds part or reset seconds to 00
-    dateTimeWithoutTz = dateTimeWithoutTz.map(dateTimeStr => {
-      const dateObj = new Date(dateTimeStr);
-      dateObj.setSeconds(0);
-      dateObj.setMinutes(dateObj.getMinutes() - timezoneOffset);
-      return dateObj.toUTCString();
-    });
-    dateTimeWithTz = dateTimeWithTz.map(dateTimeStr => {
-      const dateObj = new Date(dateTimeStr);
-      dateObj.setSeconds(0);
-      dateObj.setMinutes(dateObj.getMinutes() - timezoneOffset);
-      return dateObj.toUTCString();
-    });
+    // reset seconds to 00 using string functions in dateTimeWithoutTz
+    dateTimeWithoutTz = dateTimeWithoutTz.map(
+      dateTimeString => dateTimeString.substring(0, 17) + '00' + dateTimeString.substring(19)
+    );
+    dateTimeWithTz = dateTimeWithTz.map(
+      dateTimeString => dateTimeString.substring(0, 17) + '00' + dateTimeString.substring(19)
+    );
 
-    console.log(dateTimeWithoutTz);
-    console.log(dateTimeWithTz);
+    console.log('dateTimeWithoutTz', dateTimeWithoutTz);
+    console.log('dateTimeWithTz', dateTimeWithTz);
 
     expect(dateTimeWithoutTz).toEqual(expectedDateTimeWithoutTz);
     expect(dateTimeWithTz).toEqual(expectedDateTimeWithTz);

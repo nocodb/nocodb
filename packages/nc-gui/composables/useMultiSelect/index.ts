@@ -117,16 +117,21 @@ export function useMultiSelect(
           }
 
           if (columnObj.uidt === UITypes.DateTime) {
+            let d = dayjs(textToCopy)
+            if (!d.isValid()) {
+              // e.g. textToCopy = 2023-05-06T05:12:29.000Z
+              // feed custom parse format
+              d = dayjs(textToCopy, isMysql(columnObj.base_id) ? 'YYYY-MM-DD HH:mm:ss' : 'YYYY-MM-DD HH:mm:ssZ')
+            }
             if (isXcdbBase(meta.value?.base_id)) {
               if (isMssql(meta.value?.base_id)) {
-                textToCopy = dayjs(textToCopy).format(constructDateTimeFormat(columnObj))
+                textToCopy = d.format(constructDateTimeFormat(columnObj))
               } else {
-                textToCopy = dayjs(textToCopy).utc(true).local().format(constructDateTimeFormat(columnObj))
+                textToCopy = d.utc(true).local().format(constructDateTimeFormat(columnObj))
               }
             } else {
-              textToCopy = dayjs(textToCopy).format(constructDateTimeFormat(columnObj))
+              textToCopy = d.format(constructDateTimeFormat(columnObj))
             }
-
             if (!dayjs(textToCopy).isValid()) {
               throw new Error('Invalid Date')
             }

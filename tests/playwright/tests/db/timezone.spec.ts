@@ -496,6 +496,9 @@ test.describe('External DB - DateTime column', async () => {
     }
 
     await dashboard.rootPage.reload();
+    // wait for 5 seconds for the base to be created
+    // hack for CI
+    await dashboard.rootPage.waitForTimeout(5000);
   });
 
   test('Verify display value, UI insert, API response', async () => {

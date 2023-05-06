@@ -44,7 +44,9 @@ export class ThrottlerConfigService implements ThrottlerOptionsFactory {
         return !context.switchToHttp().getRequest().headers['xc-auth'];
       },
 
-      storage: new CustomThrottlerStorageRedisService(),
+      storage: new CustomThrottlerStorageRedisService(
+        process.env['NC_THROTTLER_REDIS'],
+      ),
     };
   }
 }

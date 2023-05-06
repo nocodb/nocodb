@@ -176,7 +176,7 @@ export class NotificationsService implements OnModuleInit, OnModuleDestroy {
       Object.assign(existingRecord, param.body);
       return this.clickhouseService.execute(`
         INSERT INTO notification
-        (id, fk_user_id, type, body, is_read, is_deleted, created_at, updated_at)
+        (id, fk_user_id, type, body, is_read, is_deleted, created_at)
         VALUES (
           '${param.notificationId}',
           '${param.user.id}',
@@ -184,8 +184,7 @@ export class NotificationsService implements OnModuleInit, OnModuleDestroy {
           '${existingRecord.body}',
           ${existingRecord.is_read},
           ${existingRecord.is_deleted},
-          '${existingRecord.created_at}',
-          '${existingRecord.updated_at}'
+          '${existingRecord.created_at}'
         )`);
     }
   }
@@ -213,14 +212,13 @@ export class NotificationsService implements OnModuleInit, OnModuleDestroy {
         '${not.body}',
         true,
         ${not.is_deleted},
-        '${not.created_at}',
-        '${not.updated_at}'
+        '${not.created_at}'
       )`);
       }
 
       return await this.clickhouseService
         .execute(`INSERT INTO notification
-      (id, fk_user_id, type, body, is_read, is_deleted, created_at, updated_at)
+      (id, fk_user_id, type, body, is_read, is_deleted, created_at)
       VALUES ${updateQueries.join(',')}`);
     } catch (e) {
       console.log(e);

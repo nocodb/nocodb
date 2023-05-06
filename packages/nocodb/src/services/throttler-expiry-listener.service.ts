@@ -1,10 +1,10 @@
-import { Injectable } from '@nestjs/common';
+import {Injectable} from '@nestjs/common';
 import Client from 'ioredis';
 import Redlock from 'redlock';
-import { ConfigService } from '@nestjs/config';
-import { ClickhouseService } from './clickhouse/clickhouse.service';
-import type { OnModuleInit } from '@nestjs/common';
-import type { AppConfig } from '../interface/config';
+import {ConfigService} from '@nestjs/config';
+import {ClickhouseService} from './clickhouse/clickhouse.service';
+import type {OnModuleInit} from '@nestjs/common';
+import type {AppConfig} from '../interface/config';
 
 @Injectable()
 export class ThrottlerExpiryListenerService implements OnModuleInit {
@@ -56,7 +56,7 @@ export class ThrottlerExpiryListenerService implements OnModuleInit {
       }
 
       // Subscribe to expired events
-      this.subscriber.psubscribe(`__keyevent@0__:expired`);
+      this.subscriber.psubscribe(`__keyevent@${process.env['NC_THROTTLER_REDIS'].split('/').pop()}__:expired`);
 
       // Listen for expired events
       this.subscriber.on('pmessage', async (pattern, channel, expiredKey) => {

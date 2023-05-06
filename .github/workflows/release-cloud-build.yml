@@ -12,7 +12,7 @@ jobs:
   cloud-docker-build:
     runs-on: ubuntu-latest
     env:
-      working-directory: ./packages/nocodb-nest
+      working-directory: ./packages/nocodb
       AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
       AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
       AWS_DEFAULT_REGION: us-east-2
@@ -45,13 +45,13 @@ jobs:
           npm run generate &&
 
           # copy build to nocodb
-          rsync -rvzh ./dist/ ../nocodb-nest/docker/nc-gui/
+          rsync -rvzh ./dist/ ../nocodb/docker/nc-gui/
 
 
       - name: build nocodb
         run: |
           # build nocodb ( pack nocodb-sdk and nc-gui )
-          cd packages/nocodb-nest && npm install &&
+          cd packages/nocodb && npm install &&
           EE=true ./node_modules/.bin/webpack --config webpack.cloud.config.js &&
           # remove nocodb-sdk since it's packed with the build
           npm uninstall --save nocodb-sdk
@@ -89,7 +89,7 @@ jobs:
           CUSTOM_IMAGE_TAG_ARG: ${{ github.event.inputs.tag && format('-t {0}/nocohub:{1}', steps.login-ecr.outputs.registry, github.event.inputs.tag) || '' }}
           COMMIT_HASH: ${{ github.sha }}
         run: |
-          cd packages/nocodb-nest &&
+          cd packages/nocodb &&
           docker build -f Dockerfile-cloud $CUSTOM_IMAGE_TAG_ARG -t $ECR_REGISTRY/$ECR_REPOSITORY:$COMMIT_HASH -t $ECR_REGISTRY/$ECR_REPOSITORY:latest .
           [[ ! -z "$IMAGE_TAG" ]] && docker push $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
           docker push $ECR_REGISTRY/$ECR_REPOSITORY:$COMMIT_HASH

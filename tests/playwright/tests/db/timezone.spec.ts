@@ -421,6 +421,25 @@ async function createTableWithDateTimeColumn(database: string) {
   }
 }
 
+function getDateTimeInLocalTimeZone(dateString: string) {
+  // create a Date object with the input string
+  // assumes local system timezone
+  const date = new Date(dateString);
+
+  // get the timezone offset in minutes and convert to milliseconds
+  // subtract the offset from the provided time in milliseconds for IST
+  const offsetMs = date.getTimezoneOffset() * 60 * 1000;
+
+  // adjust the date by the offset
+  const adjustedDate = new Date(date.getTime() - offsetMs);
+
+  // format the adjusted date as a string in the desired format
+  const outputString = adjustedDate.toISOString().slice(0, 16).replace('T', ' ');
+
+  // output the result
+  return outputString;
+}
+
 test.describe('External DB - DateTime column', async () => {
   let dashboard: DashboardPage;
   let context: any;
@@ -428,14 +447,14 @@ test.describe('External DB - DateTime column', async () => {
   const expectedDisplayValues = {
     pg: {
       DatetimeWithoutTz: ['2023-04-27 10:00', '2023-04-27 10:00'],
-      DatetimeWithTz: ['2023-04-27 10:00', '2023-04-27 10:00'],
+      DatetimeWithTz: ['2023-04-27 10:00', getDateTimeInLocalTimeZone('2023-04-27 04:30:00+00:00')],
     },
     sqlite: {
       // without +HH:MM information, display value is same as inserted value
       // with +HH:MM information, display value is converted to browser timezone
       // SQLite doesn't have with & without timezone fields; both are same in this case
-      DatetimeWithoutTz: ['2023-04-27 10:00', '2023-04-27 10:00'],
-      DatetimeWithTz: ['2023-04-27 10:00', '2023-04-27 10:00'],
+      DatetimeWithoutTz: ['2023-04-27 10:00', getDateTimeInLocalTimeZone('2023-04-27 04:30:00+00:00')],
+      DatetimeWithTz: ['2023-04-27 10:00', getDateTimeInLocalTimeZone('2023-04-27 04:30:00+00:00')],
     },
     mysql: {
       DatetimeWithoutTz: ['2023-04-27 10:00', '2023-04-27 04:30'],

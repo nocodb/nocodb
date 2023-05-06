@@ -1,7 +1,10 @@
-export default {
-  port: process.env.PORT || 3000,
+import type { AppConfig } from './interface/config';
+
+const config: AppConfig = {
   throttler: {
-    ttl: 60,
-    limit: 100,
+    ttl: 10,
+    max_apis: 10,
   },
 };
+
+export default config;

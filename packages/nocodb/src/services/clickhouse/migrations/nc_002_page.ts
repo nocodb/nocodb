@@ -7,8 +7,8 @@ async function up(
   await client
     .query(
       `
-CREATE TABLE ${config.database}.page (
-  id String(20) PRIMARY KEY NOT NULL,
+CREATE TABLE IF NOT EXISTS ${config.database}.page (
+  id String(20) NOT NULL,
   project_id String(20) NOT NULL,
   fk_workspace_id String(20) NOT NULL,
   title String(150) NOT NULL,
@@ -31,7 +31,8 @@ CREATE TABLE ${config.database}.page (
   order Float32,
   icon String,
   created_at DateTime,
-  updated_at DateTime
+  updated_at DateTime,
+  PRIMARY KEY (id)
 ) ENGINE = ReplacingMergeTree
   ORDER BY id;
     `,

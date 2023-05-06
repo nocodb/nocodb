@@ -35,6 +35,9 @@ import type {
   OnApplicationBootstrap,
 } from '@nestjs/common';
 
+// todo: refactor to use config service
+const enableThrottler = !!process.env['NC_THROTTLER_REDIS'];
+
 @Module({
   imports: [
     GlobalModule,
@@ -49,20 +52,23 @@ import type {
     WorkspaceUsersModule,
     DocsModule,
     PublicDocsModule,
-
     ConfigModule.forRoot({
       load: [() => appConfig],
       isGlobal: true,
     }),
-    ThrottlerModule.forRootAsync({
-      useClass: ThrottlerConfigService,
-      imports: [
-        ConfigModule.forRoot({
-          isGlobal: true,
-          load: [() => appConfig],
-        }),
-      ],
-    }),
+    ...(enableThrottler
+      ? [
+          ThrottlerModule.forRootAsync({
+            useClass: ThrottlerConfigService,
+            imports: [
+              ConfigModule.forRoot({
+                isGlobal: true,
+                load: [() => appConfig],
+              }),
+            ],
+          }),
+        ]
+      : []),
   ],
   providers: [
     AuthService,
@@ -70,14 +76,17 @@ import type {
       provide: APP_FILTER,
       useClass: GlobalExceptionFilter,
     },
-    {
-      provide: APP_GUARD,
-      useClass: CustomApiLimiterGuard,
-    },
+    ...(enableThrottler
+      ? [
+          {
+            provide: APP_GUARD,
+            useClass: CustomApiLimiterGuard,
+          },
+        ]
+      : []),
     LocalStrategy,
     AuthTokenStrategy,
     BaseViewStrategy,
-    ThrottlerConfigService,
   ],
 })
 export class AppModule implements OnApplicationBootstrap {

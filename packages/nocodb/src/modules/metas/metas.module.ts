@@ -84,6 +84,9 @@ import { NotificationsGateway } from '../../gateways/notifications/notifications
 import { ClickhouseService } from '../../services/clickhouse/clickhouse.service';
 import {ThrottlerExpiryListenerService} from "../../services/throttler-expiry-listener.service";
 
+// todo: refactor to use config service
+const enableThrottler = !!process.env['NC_THROTTLER_REDIS'];
+
 @Module({
   imports: [
     MulterModule.register({
@@ -176,8 +179,7 @@ import {ThrottlerExpiryListenerService} from "../../services/throttler-expiry-li
     NotificationsService,
     NotificationsGateway,
     ClickhouseService,
-
-    ThrottlerExpiryListenerService,
+    ...(enableThrottler ? [ThrottlerExpiryListenerService] : []),
   ],
 })
 export class MetasModule {}

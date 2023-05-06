@@ -3,6 +3,8 @@ import Client from 'ioredis';
 import Redlock from 'redlock';
 import { ClickhouseService } from './clickhouse/clickhouse.service';
 import type { OnModuleInit } from '@nestjs/common';
+import { ConfigService } from '@nestjs/config';
+import { AppConfig } from '../interface/config';
 
 @Injectable()
 export class ThrottlerExpiryListenerService implements OnModuleInit {
@@ -10,7 +12,7 @@ export class ThrottlerExpiryListenerService implements OnModuleInit {
   private subscriber;
   private redlock: Redlock;
 
-  constructor(private readonly clickHouseService: ClickhouseService) {
+  constructor(private readonly clickHouseService: ClickhouseService, private readonly configService: ConfigService<AppConfig>) {
     this.client = new Client(process.env.NC_REDIS_URL);
     this.subscriber = new Client(process.env.NC_REDIS_URL);
 
@@ -54,39 +56,36 @@ export class ThrottlerExpiryListenerService implements OnModuleInit {
       this.subscriber.psubscribe(`__keyevent@0__:expired`);
 
       // Listen for expired events
-      this.subscriber.on(
-        'pmessage',
-        async (pattern, channel, expiredKey) => {
+      this.subscriber.on('pmessage', async (pattern, channel, expiredKey) => {
+        const count = await this.client.get(expiredKey + '_shadow');
 
-          const count = await this.client.get(expiredKey + '_shadow');
+        if (expiredKey.startsWith(keyPattern)) {
+          console.log(
+            `Key with pattern "${keyPattern}" has expired: ${expiredKey}`,
+          );
 
-          if (expiredKey.startsWith(keyPattern)) {
-            console.log(
-              `Key with pattern "${keyPattern}" has expired: ${expiredKey}`,
-            );
-
-            // Acquire a lock.
-            const lock = await this.redlock.acquire([this.client], 5000);
-            try {
-              // Do something...
-              await this.logDataToClickHouse(pattern, channel, expiredKey, count);
-            } finally {
-              // Release the lock.
-              await lock.release();
-            }
+          // Acquire a lock.
+          const lock = await this.redlock.acquire([this.client], 5000);
+          try {
+            // Do something...
+            await this.logDataToClickHouse(pattern, channel, expiredKey, count);
+          } finally {
+            // Release the lock.
+            await lock.release();
           }
-        },
-      );
+        }
+      });
     });
   }
 
   private async logDataToClickHouse(pattern, channel, expiredKey, count) {
+    const config = this.configService.get<AppConfig['throttler']>('throttler');
     const result: number | string = await this.client.call(
       'EVAL',
       `
-      local timeToExpire = tonumber(redis.call("GET", KEYS[1]))
+      local lasUpdated = tonumber(redis.call("GET", KEYS[1]))
       local sync = 0
-      if not timeToExpire or timeToExpire == 0 or timeToExpire <= tonumber(ARGV[2])
+      if not lasUpdated or lasUpdated == 0 or lasUpdated <= tonumber(ARGV[2])
         then
           redis.call("SET", KEYS[1], ARGV[1])
           sync = 1
@@ -98,13 +97,13 @@ export class ThrottlerExpiryListenerService implements OnModuleInit {
       1,
       `status|${pattern}`,
       Date.now(),
-      Date.now() - 10,
+      Date.now() - config.ttl,
     );
 
     if (+result) {
       this.clickHouseService.execute(`
-  INSERT INTO api_count (fk_workspace_id, fk_workspace_id,count)
-  VALUES ('${expiredKey}', '${expiredKey}', ${1})
+        INSERT INTO api_count (id,fk_workspace_id, api_token,count, created_at, ttl, max_apis)
+        VALUES (generateUUIDv4(), '${expiredKey}', '${expiredKey}', ${count}, now(), ${config.ttl}, ${config.max_apis})
       `);
     }
   }

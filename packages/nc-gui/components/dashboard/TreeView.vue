@@ -37,7 +37,7 @@ const { isMobileMode } = useGlobal()
 
 const { addTab, updateTab } = useTabs()
 
-const { $api, $e } = useNuxtApp()
+const { $api, $e, $jobs } = useNuxtApp()
 
 const projectStore = useProject()
 
@@ -389,6 +389,19 @@ const setIcon = async (icon: string, table: TableType) => {
     message.error(await extractSdkResponseErrorMsg(e))
   }
 }
+
+const duplicateTable = async (table: TableType) => {
+  if (!table || !table.id || !table.project_id) return
+  const jobData = await $api.dbTable.duplicate(table.project_id, table.id)
+  $jobs.subscribe({ name: jobData.name, id: jobData.id }, undefined, async (status: string) => {
+    if (status === 'completed') {
+      await loadTables()
+    } else if (status === 'failed') {
+      message.error('Failed to duplicate table')
+      await loadTables()
+    }
+  })
+}
 </script>
 
 <template>
@@ -734,6 +747,12 @@ const setIcon = async (icon: string, table: TableType) => {
                                 </div>
                               </a-menu-item>
 
+                              <a-menu-item v-if="isUIAllowed('table-duplicate') && !table.mm" @click="duplicateTable(table)">
+                                <div class="nc-project-menu-item">
+                                  {{ $t('general.duplicate') }}
+                                </div>
+                              </a-menu-item>
+
                               <a-menu-item
                                 v-if="isUIAllowed('table-delete')"
                                 :data-testid="`sidebar-table-delete-${table.title}`"
@@ -1050,6 +1069,12 @@ const setIcon = async (icon: string, table: TableType) => {
                                   </div>
                                 </a-menu-item>
 
+                                <a-menu-item v-if="isUIAllowed('table-duplicate') && !table.mm" @click="duplicateTable(table)">
+                                  <div class="nc-project-menu-item">
+                                    {{ $t('general.duplicate') }}
+                                  </div>
+                                </a-menu-item>
+
                                 <a-menu-item
                                   v-if="isUIAllowed('table-delete')"
                                   :data-testid="`sidebar-table-delete-${table.title}`"
@@ -1082,6 +1107,15 @@ const setIcon = async (icon: string, table: TableType) => {
             >
               <div class="nc-project-menu-item">
                 {{ $t('general.rename') }}
+              </div>
+            </a-menu-item>
+
+            <a-menu-item
+              v-if="isUIAllowed('table-duplicate') && !contextMenuTarget.value.mm"
+              @click="duplicateTable(contextMenuTarget.value)"
+            >
+              <div class="nc-project-menu-item">
+                {{ $t('general.duplicate') }}
               </div>
             </a-menu-item>
 

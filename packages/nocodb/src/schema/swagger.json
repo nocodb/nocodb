@@ -3881,6 +3881,64 @@
         ]
       }
     },
+    "/api/v1/db/meta/duplicate/{projectId}/table/{tableId}": {
+      "post": {
+        "summary": "Duplicate Table",
+        "operationId": "db-table-duplicate",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "name": {
+                      "type": "string"
+                    },
+                    "id": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          }
+        },
+        "tags": ["DB Table"],
+        "description": "Duplicate a table",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/xc-auth"
+          },
+          {
+            "schema": {
+              "$ref": "#/components/schemas/Id",
+              "example": "p_124hhlkbeasewh",
+              "type": "string"
+            },
+            "name": "projectId",
+            "in": "path",
+            "required": true,
+            "description": "Unique Project ID"
+          },
+          {
+            "schema": {
+              "$ref": "#/components/schemas/Id",
+              "example": "md_124hhlkbeasewh",
+              "type": "string"
+            },
+            "name": "tableId",
+            "in": "path",
+            "required": true,
+            "description": "Unique Table ID"
+          }
+        ]
+      }
+    },
     "/api/v1/db/meta/projects/{projectId}/{baseId}/tables": {
       "parameters": [
         {

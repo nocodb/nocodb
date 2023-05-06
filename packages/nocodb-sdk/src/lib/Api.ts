@@ -5080,6 +5080,45 @@ export class Api<
       }),
 
     /**
+ * @description Duplicate a table
+ * 
+ * @tags DB Table
+ * @name Duplicate
+ * @summary Duplicate Table
+ * @request POST:/api/v1/db/meta/duplicate/{projectId}/table/{tableId}
+ * @response `200` `{
+  name?: string,
+  id?: string,
+
+}` OK
+ * @response `400` `{
+  \** @example BadRequest [Error]: <ERROR MESSAGE> *\
+  msg: string,
+
+}`
+ */
+    duplicate: (
+      projectId: IdType,
+      tableId: IdType,
+      params: RequestParams = {}
+    ) =>
+      this.request<
+        {
+          name?: string;
+          id?: string;
+        },
+        {
+          /** @example BadRequest [Error]: <ERROR MESSAGE> */
+          msg: string;
+        }
+      >({
+        path: `/api/v1/db/meta/duplicate/${projectId}/table/${tableId}`,
+        method: 'POST',
+        format: 'json',
+        ...params,
+      }),
+
+    /**
  * @description Update the order of the given Table
  * 
  * @tags DB Table

@@ -81,7 +81,7 @@ export class DuplicateController {
     return { id: job.id, name: job.name };
   }
 
-  @Post('/api/v1/db/meta/duplicate/:projectId/model/:modelId')
+  @Post('/api/v1/db/meta/duplicate/:projectId/table/:modelId')
   @HttpCode(200)
   @Acl('duplicateModel')
   async duplicateModel(

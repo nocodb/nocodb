@@ -345,12 +345,13 @@ test.describe('Timezone', () => {
 async function createTableWithDateTimeColumn(database: string) {
   if (database === 'pg') {
     const config = getKnexConfig({ dbName: 'postgres', dbType: 'pg' });
-    const config2 = getKnexConfig({ dbName: 'datetimetable', dbType: 'pg' });
 
     const pgknex = knex(config);
     await pgknex.raw(`DROP DATABASE IF EXISTS datetimetable`);
     await pgknex.raw(`CREATE DATABASE datetimetable`);
     await pgknex.destroy();
+
+    const config2 = getKnexConfig({ dbName: 'datetimetable', dbType: 'pg' });
 
     const pgknex2 = knex(config2);
     await pgknex2.raw(`
@@ -369,12 +370,13 @@ async function createTableWithDateTimeColumn(database: string) {
     await pgknex2.destroy();
   } else if (database === 'mysql') {
     const config = getKnexConfig({ dbName: 'sakila', dbType: 'mysql' });
-    const config2 = getKnexConfig({ dbName: 'datetimetable', dbType: 'mysql' });
 
     const mysqlknex = knex(config);
     await mysqlknex.raw(`DROP DATABASE IF EXISTS datetimetable`);
     await mysqlknex.raw(`CREATE DATABASE datetimetable`);
     await mysqlknex.destroy();
+
+    const config2 = getKnexConfig({ dbName: 'datetimetable', dbType: 'mysql' });
 
     const mysqlknex2 = knex(config2);
     await mysqlknex2.raw(`

@@ -5,6 +5,7 @@ import { knex } from 'knex';
 import { Api, UITypes } from 'nocodb-sdk';
 import { ProjectsPage } from '../../pages/ProjectsPage';
 import { isMysql, isPg, isSqlite } from '../../setup/db';
+import { getKnexConfig } from '../utils/config';
 let api: Api<any>, records: any[];
 
 const columns = [
@@ -343,27 +344,9 @@ test.describe('Timezone', () => {
 
 async function createTableWithDateTimeColumn(database: string) {
   if (database === 'pg') {
-    const config = {
-      client: 'pg',
-      connection: {
-        host: 'localhost',
-        port: 5432,
-        user: 'postgres',
-        password: 'password',
-        database: 'postgres',
-        multipleStatements: true,
-      },
-      searchPath: ['public', 'information_schema'],
-      pool: { min: 0, max: 5 },
-    };
+    const config = getKnexConfig({ dbName: 'postgres', dbType: 'pg' });
+    const config2 = getKnexConfig({ dbName: 'datetimetable', dbType: 'pg' });
 
-    const config2 = {
-      ...config,
-      connection: {
-        ...config.connection,
-        database: 'datetimetable',
-      },
-    };
     const pgknex = knex(config);
     await pgknex.raw(`DROP DATABASE IF EXISTS datetimetable`);
     await pgknex.raw(`CREATE DATABASE datetimetable`);
@@ -385,26 +368,8 @@ async function createTableWithDateTimeColumn(database: string) {
   `);
     await pgknex2.destroy();
   } else if (database === 'mysql') {
-    const config = {
-      client: 'mysql2',
-      connection: {
-        host: 'localhost',
-        port: 3306,
-        user: 'root',
-        password: 'password',
-        database: 'sakila',
-        multipleStatements: true,
-      },
-      pool: { min: 0, max: 5 },
-    };
-
-    const config2 = {
-      ...config,
-      connection: {
-        ...config.connection,
-        database: 'datetimetable',
-      },
-    };
+    const config = getKnexConfig({ dbName: 'sakila', dbType: 'mysql' });
+    const config2 = getKnexConfig({ dbName: 'datetimetable', dbType: 'mysql' });
 
     const mysqlknex = knex(config);
     await mysqlknex.raw(`DROP DATABASE IF EXISTS datetimetable`);
@@ -427,14 +392,7 @@ async function createTableWithDateTimeColumn(database: string) {
     `);
     await mysqlknex2.destroy();
   } else if (database === 'sqlite') {
-    const config = {
-      client: 'sqlite3',
-      connection: {
-        filename: './mydb.sqlite3',
-      },
-      useNullAsDefault: true,
-      pool: { min: 0, max: 5 },
-    };
+    const config = getKnexConfig({ dbName: 'mydb', dbType: 'sqlite' });
 
     // SQLite supports just one type of datetime
     // Timezone information, if specified is stored as is in the database
@@ -479,7 +437,7 @@ test.describe('External DB - DateTime column', async () => {
     },
     mysql: {
       DatetimeWithoutTz: ['2023-04-27 10:00', '2023-04-27 10:00'],
-      DatetimeWithTz: ['2023-04-27 10:00', '2023-04-27 10:00'],
+      DatetimeWithTz: ['2023-04-27 04:30', '2023-04-27 04:30'],
     },
   };
 
@@ -505,17 +463,7 @@ test.describe('External DB - DateTime column', async () => {
       await api.base.create(context.project.id, {
         alias: 'datetimetable',
         type: 'pg',
-        config: {
-          client: 'pg',
-          connection: {
-            host: 'localhost',
-            port: '5432',
-            user: 'postgres',
-            password: 'password',
-            database: 'datetimetable',
-          },
-          searchPath: ['public'],
-        },
+        config: getKnexConfig({ dbName: 'datetimetable', dbType: 'pg' }),
         inflection_column: 'camelize',
         inflection_table: 'camelize',
       });
@@ -523,16 +471,7 @@ test.describe('External DB - DateTime column', async () => {
       await api.base.create(context.project.id, {
         alias: 'datetimetable',
         type: 'mysql2',
-        config: {
-          client: 'mysql2',
-          connection: {
-            host: 'localhost',
-            port: '3306',
-            user: 'root',
-            password: 'password',
-            database: 'datetimetable',
-          },
-        },
+        config: getKnexConfig({ dbName: 'datetimetable', dbType: 'mysql' }),
         inflection_column: 'camelize',
         inflection_table: 'camelize',
       });
@@ -634,6 +573,11 @@ test.describe('External DB - DateTime column', async () => {
       'Thu, 27 Apr 2023 10:00:00 GMT',
       'Thu, 27 Apr 2023 10:00:00 GMT',
     ];
+
+    if (isMysql(context)) {
+      expectedDateTimeWithoutTz[1] = 'Thu, 27 Apr 2023 04:30:00 GMT';
+      expectedDateTimeWithTz[1] = 'Thu, 27 Apr 2023 04:30:00 GMT';
+    }
 
     // convert to ISO string, skip seconds part or reset seconds to 00
     dateTimeWithoutTz = dateTimeWithoutTz.map(dateTimeStr => {

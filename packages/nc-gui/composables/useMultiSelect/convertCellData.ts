@@ -47,12 +47,22 @@ export default function convertCellData(
       }
       if (isXcdbBase) {
         if (isMysql) {
-          // UTC + 'Z'
-          return `${parsedDateTime.format('YYYY-MM-DD HH:mm:ss')}Z`
+          let res = `${parsedDateTime.format('YYYY-MM-DD HH:mm:ss')}`
+          if (!dayjs.isDayjs(value)) {
+            // UTC + 'Z'
+            res += 'Z'
+          }
+          return res
         } else if (isMssql) {
           return parsedDateTime.utc().format('YYYY-MM-DD HH:mm:ssZ')
         } else {
-          return parsedDateTime.utc(true).format('YYYY-MM-DD HH:mm:ssZ')
+          if (!dayjs.isDayjs(value)) {
+            // e.g. copy the existing cell - 2023-05-06 13:06:51 (UTC)
+            return parsedDateTime.utc(true).format('YYYY-MM-DD HH:mm:ssZ')
+          }
+          // e.g. copy right after setting by datepicker
+          // value includes timezone
+          return parsedDateTime
         }
       }
       // TODO(timezone): keep ext db as it is

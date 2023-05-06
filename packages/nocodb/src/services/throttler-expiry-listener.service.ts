@@ -104,9 +104,12 @@ export class ThrottlerExpiryListenerService implements OnModuleInit {
     );
 
     if (+result) {
+
+      const [_, workspaceId, token] = expiredKey.match(/throttler:(.+)\|(.+)/)
+
       this.clickHouseService.execute(`
         INSERT INTO api_count (id,fk_workspace_id, api_token,count, created_at, ttl, max_apis)
-        VALUES (generateUUIDv4(), '${expiredKey}', '${expiredKey}', ${count}, now(), ${config.ttl}, ${config.max_apis})
+        VALUES (generateUUIDv4(), '${workspaceId}', '${token}', ${count}, now(), ${config.ttl}, ${config.max_apis})
       `);
     }
   }

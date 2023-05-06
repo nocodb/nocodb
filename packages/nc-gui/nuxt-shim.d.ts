@@ -13,6 +13,20 @@ declare module '#app/nuxt' {
     /** {@link import('./plugins/tele') Telemetry} Emit telemetry event */
     $e: (event: string, data?: any) => void
     $state: UseGlobalReturn
+    $jobs: {
+      subscribe(
+        job:
+          | {
+              id: string
+              name: string
+            }
+          | any,
+        subscribedCb?: () => void,
+        statusCb?: ((status: 'active' | 'completed' | 'failed' | 'refresh', error?: any) => void) | undefined,
+        logCb?: ((data: { message: string }) => void) | undefined,
+      ): void
+      getStatus(name: string, id: string): Promise<string>
+    }
   }
 }
 

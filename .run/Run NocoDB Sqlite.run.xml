@@ -6,6 +6,9 @@
       <script value="watch:run" />
     </scripts>
     <node-interpreter value="project" />
+    <envs>
+      <env name="NC_CLICKHOUSE" value="http://localhost:8123" />
+    </envs>
     <method v="2" />
   </configuration>
 </component>

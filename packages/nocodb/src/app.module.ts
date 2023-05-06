@@ -34,10 +34,12 @@ import type {
   MiddlewareConsumer,
   OnApplicationBootstrap,
 } from '@nestjs/common';
+import { AppHooksListenerService } from './services/app-hooks-listener.service';
 import { TelemetryService } from './services/telemetry.service';
 
 // todo: refactor to use config service
 const enableThrottler = !!process.env['NC_THROTTLER_REDIS'];
+
 
 @Module({
   imports: [
@@ -89,6 +91,7 @@ const enableThrottler = !!process.env['NC_THROTTLER_REDIS'];
     AuthTokenStrategy,
     BaseViewStrategy,
     TelemetryService,
+    AppHooksListenerService,
   ],
 })
 export class AppModule implements OnApplicationBootstrap {

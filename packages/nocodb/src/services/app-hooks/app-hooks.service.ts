@@ -1,4 +1,11 @@
-import { Injectable } from '@nestjs/common';
+import { Inject, Injectable } from '@nestjs/common';
+import { IEventEmitter } from '../../modules/event-emitter/event-emitter.interface';
+import type {
+  ProjectUserResendInviteEvent,
+  ProjectUserUpdateEvent,
+  UserPasswordChangeEvent,
+  UserPasswordForgotEvent, UserPasswordResetEvent,
+} from './interfaces'
 import type { AppEvents, NotificationType } from 'nocodb-sdk';
 import type {
   ColumnEvent,
@@ -17,10 +24,16 @@ import type {
   WorkspaceInviteEvent,
 } from './interfaces';
 
+const ALL_EVENTS = '__nc_all_events__';
+
 @Injectable()
 export class AppHooksService {
-  private listeners = new Map<string, ((...args: any[]) => void)[]>();
-  private allListeners: ((...args: any[]) => void)[] = [];
+  private listenerUnsubscribers: Map<(...args: any[]) => void, () => void> =
+    new Map();
+
+  constructor(
+    @Inject('IEventEmitter') private readonly eventEmitter: IEventEmitter,
+  ) {}
 
   on(
     event: AppEvents.PROJECT_INVITE,
@@ -95,9 +108,10 @@ export class AppHooksService {
   // todo: remove this, it's a temporary hack
   on(event: 'notification', listener: (data: NotificationType) => void): void;
   on(event, listener): void {
-    const listeners = this.listeners.get(event) || [];
-    listeners.push(listener);
-    this.listeners.set(event, listeners);
+    this.listenerUnsubscribers.set(
+      listener,
+      this.eventEmitter.on(event, listener),
+    );
   }
 
   emit(event: AppEvents.PROJECT_INVITE, data: ProjectInviteEvent): void;
@@ -106,8 +120,28 @@ export class AppHooksService {
   emit(event: AppEvents.PROJECT_UPDATE, data: ProjectUpdateEvent): void;
   emit(event: AppEvents.USER_SIGNUP, data: UserSignupEvent): void;
   emit(event: AppEvents.USER_SIGNIN, data: UserSigninEvent): void;
+  emit(
+    event: AppEvents.USER_PASSWORD_CHANGE,
+    data: UserPasswordChangeEvent,
+  ): void;
+  emit(
+    event: AppEvents.USER_PASSWORD_FORGOT,
+    data: UserPasswordForgotEvent,
+  ): void;
+  emit(
+    event: AppEvents.USER_PASSWORD_RESET,
+    data: UserPasswordResetEvent,
+  ): void;
   emit(event: AppEvents.WORKSPACE_INVITE, data: WorkspaceInviteEvent): void;
   emit(event: AppEvents.WELCOME, data: WelcomeEvent): void;
+  emit(
+    event: AppEvents.PROJECT_USER_UPDATE,
+    data: ProjectUserUpdateEvent,
+  ): void;
+  emit(
+    event: AppEvents.PROJECT_USER_RESEND_INVITE,
+    data: ProjectUserResendInviteEvent,
+  ): void;
   emit(
     event:
       | AppEvents.VIEW_UPDATE
@@ -155,35 +189,37 @@ export class AppHooksService {
   ): void;
   // todo: remove this, it's a temporary hack
   emit(event: 'notification', data: NotificationType): void;
-  emit(event, arg): void {
-    const listeners = this.listeners.get(event) || [];
-    listeners.forEach((listener) => listener(arg));
-    this.allListeners.forEach((listener) => listener(event, arg));
+  emit(event, data): void {
+    this.eventEmitter.emit(event, data);
+    this.eventEmitter.emit(ALL_EVENTS, { event, data: data });
   }
 
   removeListener(
     event: AppEvents | 'notification',
-    listener: (...args: any[]) => void,
+    listener: (args: any) => void,
   ) {
-    const listeners = this.listeners.get(event) || [];
-    const index = listeners.indexOf(listener);
-    if (index > -1) {
-      listeners.splice(index, 1);
-    }
+    this.listenerUnsubscribers.get(listener)?.();
+    this.listenerUnsubscribers.delete(listener);
   }
 
-  removeAllListeners(event: AppEvents | 'notification') {
-    this.listeners.delete(event);
+  removeListeners(event: AppEvents | 'notification') {
+    return this.eventEmitter.removeAllListeners(event);
   }
 
-  onAll(listener: (event: AppEvents | 'notification', ...args: any[]) => void) {
-    this.allListeners.push(listener);
+  removeAllListener(listener) {
+    this.listenerUnsubscribers.get(listener)?.();
+    this.listenerUnsubscribers.delete(listener);
   }
 
-  removeAllListener(listener: (...args: any[]) => void) {
-    const allIndex = this.allListeners.indexOf(listener);
-    if (allIndex > -1) {
-      this.allListeners.splice(allIndex, 1);
-    }
+  onAll(
+    listener: (payload: {
+      event: AppEvents | 'notification';
+      data: any;
+    }) => void,
+  ) {
+    this.listenerUnsubscribers.set(
+      listener,
+      this.eventEmitter.on(ALL_EVENTS, listener),
+    );
   }
 }

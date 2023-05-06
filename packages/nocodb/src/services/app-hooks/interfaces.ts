@@ -2,17 +2,35 @@ import type {
   ColumnType,
   FilterType,
   ProjectType,
+  ProjectUserReqType,
   SortType,
   TableType,
   UserType,
   ViewType,
   WorkspaceType,
-} from 'nocodb-sdk';
+} from 'nocodb-sdk'
 
 export interface ProjectInviteEvent {
   project: ProjectType;
   user: UserType;
   invitedBy: UserType;
+  ip?: string;
+}
+
+export interface ProjectUserUpdateEvent {
+  project: ProjectType;
+  user: UserType;
+  projectUser: ProjectUserReqType;
+  updatedBy: UserType;
+  ip?: string;
+}
+
+export interface ProjectUserResendInviteEvent {
+  project: ProjectType;
+  user: UserType;
+  projectUser: ProjectUserReqType;
+  invitedBy: UserType;
+  ip?: string;
 }
 
 export interface ProjectCreateEvent {
@@ -42,10 +60,32 @@ export interface WelcomeEvent {
 
 export interface UserSignupEvent {
   user: UserType;
+  ip?: string;
 }
 
 export interface UserSigninEvent {
   user: UserType;
+  ip?: string;
+}
+
+export interface UserPasswordChangeEvent {
+  user: UserType;
+  ip?: string;
+}
+
+export interface UserPasswordForgotEvent {
+  user: UserType;
+  ip?: string;
+}
+
+export interface UserPasswordResetEvent {
+  user: UserType;
+  ip?: string;
+}
+
+export interface UserEmailVerificationEvent {
+  user: UserType;
+  ip?: string;
 }
 
 export interface TableEvent {

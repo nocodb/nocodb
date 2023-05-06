@@ -86,6 +86,14 @@ export class ImportService {
 
         await model.getColumns();
 
+        const primaryKey = model.primaryKey;
+        if (primaryKey) {
+          idMap.set(
+            `${model.project_id}::${model.base_id}::${model.id}::${primaryKey.id}`,
+            primaryKey.id,
+          );
+        }
+
         for (const col of model.columns) {
           externalIdMap.set(`${idMap.get(model.id)}::${col.id}`, col.id);
         }

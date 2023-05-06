@@ -536,7 +536,6 @@ export class DuplicateProcessor {
             },
             complete: async () => {
               if (chunk.length > 0) {
-                console.log('chunk', chunk);
                 try {
                   await this.bulkDataService.bulkDataUpdate({
                     projectName: destProject.id,

@@ -617,8 +617,8 @@ test.describe('External DB - DateTime column', async () => {
       return dateObj.toUTCString();
     });
 
-    // console.log(dateTimeWithoutTz);
-    // console.log(dateTimeWithTz);
+    console.log(dateTimeWithoutTz);
+    console.log(dateTimeWithTz);
 
     expect(dateTimeWithoutTz).toEqual(expectedDateTimeWithoutTz);
     expect(dateTimeWithTz).toEqual(expectedDateTimeWithTz);

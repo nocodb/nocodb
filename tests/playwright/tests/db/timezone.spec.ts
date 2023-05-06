@@ -530,7 +530,7 @@ test.describe('External DB - DateTime column', async () => {
     const timezoneOffset = new Date().getTimezoneOffset();
     const hours = Math.floor(Math.abs(timezoneOffset) / 60);
     const minutes = Math.abs(timezoneOffset % 60);
-    const sign = timezoneOffset < 0 ? '+' : '-';
+    const sign = timezoneOffset <= 0 ? '+' : '-';
     const formattedOffset = `${sign}${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}`;
 
     await dashboard.treeView.openBase({ title: 'datetimetable' });

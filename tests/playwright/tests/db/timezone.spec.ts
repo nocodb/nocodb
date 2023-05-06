@@ -436,8 +436,8 @@ test.describe('External DB - DateTime column', async () => {
       DatetimeWithTz: ['2023-04-27 10:00', '2023-04-27 10:00'],
     },
     mysql: {
-      DatetimeWithoutTz: ['2023-04-27 10:00', '2023-04-27 10:00'],
-      DatetimeWithTz: ['2023-04-27 04:30', '2023-04-27 04:30'],
+      DatetimeWithoutTz: ['2023-04-27 10:00', '2023-04-27 04:30'],
+      DatetimeWithTz: ['2023-04-27 10:00', '2023-04-27 04:30'],
     },
   };
 

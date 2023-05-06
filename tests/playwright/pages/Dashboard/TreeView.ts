@@ -57,6 +57,7 @@ export class TreeViewPage extends BasePage {
       // check if nodeTitle contains title
       if (nodeTitle.includes(title)) {
         // click on node
+        await node.waitFor({ state: 'visible' });
         await node.click();
         break;
       }
@@ -88,6 +89,8 @@ export class TreeViewPage extends BasePage {
         return;
       }
     }
+
+    await this.get().locator(`.nc-project-tree-tbl-${title}`).waitFor({ state: 'visible' });
 
     if (networkResponse === true) {
       await this.waitForResponse({

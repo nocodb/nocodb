@@ -528,6 +528,10 @@ test.describe('External DB - DateTime column', async () => {
   test('Verify display value, UI insert, API response', async () => {
     // get timezone offset
     const timezoneOffset = new Date().getTimezoneOffset();
+    const hours = Math.floor(Math.abs(timezoneOffset) / 60);
+    const minutes = Math.abs(timezoneOffset % 60);
+    const sign = timezoneOffset < 0 ? '+' : '-';
+    const formattedOffset = `${sign}${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}`;
 
     await dashboard.treeView.openBase({ title: 'datetimetable' });
     await dashboard.treeView.openTable({ title: 'MyTable' });
@@ -594,11 +598,23 @@ test.describe('External DB - DateTime column', async () => {
     let expectedDateTimeWithTz = [];
 
     if (isSqlite(context)) {
-      expectedDateTimeWithoutTz = ['2023-04-27 10:00:00', '2023-04-27 10:00:00+05:30', '2023-04-27 10:00:00+05:30'];
-      expectedDateTimeWithTz = ['2023-04-27 10:00:00', '2023-04-27 10:00:00+05:30', '2023-04-27 10:00:00+05:30'];
+      expectedDateTimeWithoutTz = [
+        '2023-04-27 10:00:00',
+        '2023-04-27 10:00:00+05:30',
+        `2023-04-27 10:00:00${formattedOffset}`,
+      ];
+      expectedDateTimeWithTz = [
+        '2023-04-27 10:00:00',
+        '2023-04-27 10:00:00+05:30',
+        `2023-04-27 10:00:00${formattedOffset}`,
+      ];
     } else if (isPg(context)) {
       expectedDateTimeWithoutTz = ['2023-04-27 10:00:00', '2023-04-27 10:00:00', '2023-04-27 10:00:00'];
-      expectedDateTimeWithTz = ['2023-04-27T10:00:00.000Z', '2023-04-27T04:30:00.000Z', '2023-04-27T04:30:00.000Z'];
+      expectedDateTimeWithTz = [
+        '2023-04-27T10:00:00.000Z',
+        '2023-04-27T04:30:00.000Z',
+        new Date('2023-04-27T10:00:00').toISOString(),
+      ];
     } else if (isMysql(context)) {
       expectedDateTimeWithoutTz = ['2023-04-27 10:00:00', '2023-04-27 04:30:00', '2023-04-27 10:00:00'];
       expectedDateTimeWithTz = ['2023-04-27 10:00:00', '2023-04-27 04:30:00', '2023-04-27 10:00:00'];

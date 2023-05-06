@@ -71,7 +71,7 @@ export class ThrottlerExpiryListenerService implements OnModuleInit {
           const lock = await this.redlock.acquire(['throttler'], 5000);
           try {
             // Do something...
-            await this.logDataToClickHouse(pattern, channel, expiredKey, count);
+            await this.logDataToClickHouse(expiredKey, count);
           } finally {
             // Release the lock.
             await lock.release();
@@ -81,7 +81,7 @@ export class ThrottlerExpiryListenerService implements OnModuleInit {
     });
   }
 
-  private async logDataToClickHouse(pattern, channel, expiredKey, count) {
+  private async logDataToClickHouse(expiredKey, count) {
     const config = this.configService.get<AppConfig['throttler']>('throttler');
     const result: number | string = await this.client.call(
       'EVAL',
@@ -98,9 +98,9 @@ export class ThrottlerExpiryListenerService implements OnModuleInit {
         .replace(/^\s+/gm, '')
         .trim(),
       1,
-      `status|${pattern}`,
+      `status|${expiredKey}`,
       Date.now(),
-      Date.now() - config.ttl,
+      Date.now() - (config.ttl * 1000),
     );
 
     if (+result) {

@@ -2,8 +2,8 @@ import type { AppConfig } from './interface/config';
 
 const config: AppConfig = {
   throttler: {
-    ttl: 10,
-    max_apis: 10,
+    ttl: 60,
+    max_apis: 100,
   },
 };
 

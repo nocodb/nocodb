@@ -47,6 +47,7 @@ export class ProjectUsersController {
       projectId,
       projectUser: body,
       req,
+      user: req.user,
     });
   }
 

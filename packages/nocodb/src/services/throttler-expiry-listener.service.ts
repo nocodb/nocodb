@@ -54,28 +54,33 @@ export class ThrottlerExpiryListenerService implements OnModuleInit {
       this.subscriber.psubscribe(`__keyevent@0__:expired`);
 
       // Listen for expired events
-      this.subscriber.on('pmessage', async (pattern, channel, expiredKey) => {
-        if (expiredKey.startsWith(keyPattern)) {
-          console.log(
-            `Key with pattern "${keyPattern}" has expired: ${expiredKey}`,
-          );
+      this.subscriber.on(
+        'pmessage',
+        async (pattern, channel, expiredKey) => {
 
-          // Acquire a lock.
-          const lock = await this.redlock.acquire(['a'], 5000);
-          try {
-            // Do something...
-            await this.logDataToClickHouse(pattern, channel, expiredKey);
-            await this.logDataToClickHouse(pattern, channel, expiredKey);
-          } finally {
-            // Release the lock.
-            await lock.release();
+          const count = await this.client.get(expiredKey + '_shadow');
+
+          if (expiredKey.startsWith(keyPattern)) {
+            console.log(
+              `Key with pattern "${keyPattern}" has expired: ${expiredKey}`,
+            );
+
+            // Acquire a lock.
+            const lock = await this.redlock.acquire([this.client], 5000);
+            try {
+              // Do something...
+              await this.logDataToClickHouse(pattern, channel, expiredKey, count);
+            } finally {
+              // Release the lock.
+              await lock.release();
+            }
           }
-        }
-      });
+        },
+      );
     });
   }
 
-  private async logDataToClickHouse(pattern, channel, expiredKey) {
+  private async logDataToClickHouse(pattern, channel, expiredKey, count) {
     const result: number | string = await this.client.call(
       'EVAL',
       `
@@ -97,7 +102,7 @@ export class ThrottlerExpiryListenerService implements OnModuleInit {
     );
 
     if (+result) {
-     await   this.clickHouseService.execute(`
+      this.clickHouseService.execute(`
   INSERT INTO api_count (fk_workspace_id, fk_workspace_id,count)
   VALUES ('${expiredKey}', '${expiredKey}', ${1})
       `);

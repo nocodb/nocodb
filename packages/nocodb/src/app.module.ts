@@ -1,7 +1,7 @@
-import { Inject, Injectable, Module, RequestMethod } from '@nestjs/common';
+import { Injectable, Module, RequestMethod } from '@nestjs/common';
 import { APP_FILTER, APP_GUARD } from '@nestjs/core';
 import { ThrottlerGuard, ThrottlerModule } from '@nestjs/throttler';
-import { ThrottlerStorageRedisService } from 'nestjs-throttler-storage-redis';
+import { ConfigModule, ConfigService } from '@nestjs/config';
 import { Connection } from './connection/connection';
 import { GlobalExceptionFilter } from './filters/global-exception/global-exception.filter';
 import NcPluginMgrv2 from './helpers/NcPluginMgrv2';
@@ -26,21 +26,14 @@ import { WorkspaceUsersModule } from './modules/workspace-users/workspace-users.
 import { DocsModule } from './modules/docs/docs.module';
 import { PublicDocsModule } from './modules/public-docs/public-docs.module';
 import NocoCache from './cache/NocoCache';
+import { ThrottlerConfigService } from './services/throttler-config/throttler-config.service';
+import { CustomApiLimiterGuard } from './guards/custom-api-limiter.guard';
+
+import appConfig from './app.config';
 import type {
   MiddlewareConsumer,
   OnApplicationBootstrap,
 } from '@nestjs/common';
-import { ThrottlerExpiryListenerService } from './services/throttler-expiry-listener.service';
-
-@Injectable()
-export class CustomApiLimiterGuard extends ThrottlerGuard {
-  protected getTracker(req: Record<string, any>): string {
-    return req.headers['xc-auth'] as string;
-  }
-  generateKey(context, suffix) {
-    return `throttler:${suffix}`;
-  }
-}
 
 @Module({
   imports: [
@@ -57,16 +50,18 @@ export class CustomApiLimiterGuard extends ThrottlerGuard {
     DocsModule,
     PublicDocsModule,
 
-    ThrottlerModule.forRoot({
-      ttl: 10,
-      limit: 2,
-      skipIf: (context) => {
-        // check request header contains 'xc-token', if missing skip throttling
-        return !context.switchToHttp().getRequest().headers['xc-auth'];
-      },
-
-      // connection url
-      storage: new ThrottlerStorageRedisService(),
+    ConfigModule.forRoot({
+      load: [() => appConfig],
+      isGlobal: true,
+    }),
+    ThrottlerModule.forRootAsync({
+      useClass: ThrottlerConfigService,
+      imports: [
+        ConfigModule.forRoot({
+          isGlobal: true,
+          load: [() => appConfig],
+        }),
+      ],
     }),
   ],
   providers: [
@@ -82,6 +77,7 @@ export class CustomApiLimiterGuard extends ThrottlerGuard {
     LocalStrategy,
     AuthTokenStrategy,
     BaseViewStrategy,
+    ThrottlerConfigService,
   ],
 })
 export class AppModule implements OnApplicationBootstrap {

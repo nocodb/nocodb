@@ -1,6 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { ThrottlerStorageRedisService } from 'nestjs-throttler-storage-redis';
 import { ConfigService } from '@nestjs/config';
+import type { AppConfig } from '../../interface/config';
 import type {
   ThrottlerModuleOptions,
   ThrottlerOptionsFactory,
@@ -29,16 +30,14 @@ class CustomThrottlerStorageRedisService extends ThrottlerStorageRedisService {
 
 @Injectable()
 export class ThrottlerConfigService implements ThrottlerOptionsFactory {
-  constructor(private readonly configService: ConfigService) {}
+  constructor(private readonly configService: ConfigService<AppConfig>) {}
 
   createThrottlerOptions(): ThrottlerModuleOptions {
-    const config = this.configService.get<{ ttl: number; limit: number }>(
-      'throttler',
-    );
+    const config = this.configService.get('throttler', { infer: true });
 
     return {
       ttl: config.ttl,
-      limit: config.limit,
+      limit: config.max_apis,
       skipIf: (context) => {
         // check request header contains 'xc-token', if missing skip throttling
         return !context.switchToHttp().getRequest().headers['xc-auth'];

@@ -68,7 +68,7 @@ export class ThrottlerExpiryListenerService implements OnModuleInit {
           );
 
           // Acquire a lock.
-          const lock = await this.redlock.acquire([this.client], 5000);
+          const lock = await this.redlock.acquire(['throttler'], 5000);
           try {
             // Do something...
             await this.logDataToClickHouse(pattern, channel, expiredKey, count);
@@ -104,7 +104,6 @@ export class ThrottlerExpiryListenerService implements OnModuleInit {
     );
 
     if (+result) {
-
       const [_, workspaceId, token] = expiredKey.match(/throttler:(.+)\|(.+)/)
 
       this.clickHouseService.execute(`

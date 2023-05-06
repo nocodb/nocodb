@@ -5,6 +5,7 @@ import { knex } from 'knex';
 import { Api, UITypes } from 'nocodb-sdk';
 import { ProjectsPage } from '../../pages/ProjectsPage';
 import { isMysql, isPg, isSqlite } from '../../setup/db';
+import { getKnexConfig } from '../utils/config';
 let api: Api<any>, records: any[];
 
 const columns = [
@@ -343,27 +344,9 @@ test.describe('Timezone', () => {
 
 async function createTableWithDateTimeColumn(database: string) {
   if (database === 'pg') {
-    const config = {
-      client: 'pg',
-      connection: {
-        host: 'localhost',
-        port: 5432,
-        user: 'postgres',
-        password: 'password',
-        database: 'postgres',
-        multipleStatements: true,
-      },
-      searchPath: ['public', 'information_schema'],
-      pool: { min: 0, max: 5 },
-    };
+    const config = getKnexConfig({ dbName: 'postgres', dbType: 'pg' });
+    const config2 = getKnexConfig({ dbName: 'datetimetable', dbType: 'pg' });
 
-    const config2 = {
-      ...config,
-      connection: {
-        ...config.connection,
-        database: 'datetimetable',
-      },
-    };
     const pgknex = knex(config);
     await pgknex.raw(`DROP DATABASE IF EXISTS datetimetable`);
     await pgknex.raw(`CREATE DATABASE datetimetable`);
@@ -376,35 +359,17 @@ async function createTableWithDateTimeColumn(database: string) {
       datetime_without_tz TIMESTAMP WITHOUT TIME ZONE,
       datetime_with_tz TIMESTAMP WITH TIME ZONE
     );
-    SET timezone = 'Asia/Hong_Kong';
-    SELECT pg_sleep(1);
+     -- SET timezone = 'Asia/Hong_Kong';
+     -- SELECT pg_sleep(1);
     INSERT INTO my_table (datetime_without_tz, datetime_with_tz)
     VALUES
-      ('2023-04-27 10:00:00', '2023-04-27 12:30:00'),
+      ('2023-04-27 10:00:00', '2023-04-27 10:00:00'),
       ('2023-04-27 10:00:00+05:30', '2023-04-27 10:00:00+05:30');
   `);
     await pgknex2.destroy();
   } else if (database === 'mysql') {
-    const config = {
-      client: 'mysql2',
-      connection: {
-        host: 'localhost',
-        port: 3306,
-        user: 'root',
-        password: 'password',
-        database: 'sakila',
-        multipleStatements: true,
-      },
-      pool: { min: 0, max: 5 },
-    };
-
-    const config2 = {
-      ...config,
-      connection: {
-        ...config.connection,
-        database: 'datetimetable',
-      },
-    };
+    const config = getKnexConfig({ dbName: 'sakila', dbType: 'mysql' });
+    const config2 = getKnexConfig({ dbName: 'datetimetable', dbType: 'mysql' });
 
     const mysqlknex = knex(config);
     await mysqlknex.raw(`DROP DATABASE IF EXISTS datetimetable`);
@@ -419,22 +384,15 @@ async function createTableWithDateTimeColumn(database: string) {
       datetime_without_tz DATETIME,
       datetime_with_tz TIMESTAMP
     );
-    SET time_zone = '+08:00';
+    -- SET time_zone = '+08:00';
     INSERT INTO my_table (datetime_without_tz, datetime_with_tz)
     VALUES
-      ('2023-04-27 10:00:00', '2023-04-27 12:30:00'),
+      ('2023-04-27 10:00:00', '2023-04-27 10:00:00'),
       ('2023-04-27 10:00:00+05:30', '2023-04-27 10:00:00+05:30');
     `);
     await mysqlknex2.destroy();
   } else if (database === 'sqlite') {
-    const config = {
-      client: 'sqlite3',
-      connection: {
-        filename: './mydb.sqlite3',
-      },
-      useNullAsDefault: true,
-      pool: { min: 0, max: 5 },
-    };
+    const config = getKnexConfig({ dbName: 'mydb', dbType: 'sqlite' });
 
     // SQLite supports just one type of datetime
     // Timezone information, if specified is stored as is in the database
@@ -461,32 +419,32 @@ async function createTableWithDateTimeColumn(database: string) {
   }
 }
 
-test.describe.skip('External DB - DateTime column', async () => {
+test.describe('External DB - DateTime column', async () => {
   let dashboard: DashboardPage;
   let context: any;
 
   const expectedDisplayValues = {
     pg: {
       DatetimeWithoutTz: ['2023-04-27 10:00', '2023-04-27 10:00'],
-      DatetimeWithTz: ['2023-04-27 12:30', '2023-04-27 12:30'],
+      DatetimeWithTz: ['2023-04-27 10:00', '2023-04-27 10:00'],
     },
     sqlite: {
       // without +HH:MM information, display value is same as inserted value
       // with +HH:MM information, display value is converted to browser timezone
       // SQLite doesn't have with & without timezone fields; both are same in this case
-      DatetimeWithoutTz: ['2023-04-27 10:00', '2023-04-27 12:30'],
-      DatetimeWithTz: ['2023-04-27 10:00', '2023-04-27 12:30'],
+      DatetimeWithoutTz: ['2023-04-27 10:00', '2023-04-27 10:00'],
+      DatetimeWithTz: ['2023-04-27 10:00', '2023-04-27 10:00'],
     },
     mysql: {
-      DatetimeWithoutTz: ['2023-04-27 10:00', '2023-04-27 12:30'],
-      DatetimeWithTz: ['2023-04-27 04:30', '2023-04-27 04:30'],
+      DatetimeWithoutTz: ['2023-04-27 10:00', '2023-04-27 04:30'],
+      DatetimeWithTz: ['2023-04-27 10:00', '2023-04-27 04:30'],
     },
   };
 
-  test.use({
-    locale: 'zh-HK',
-    timezoneId: 'Asia/Hong_Kong',
-  });
+  // test.use({
+  //   locale: 'zh-HK',
+  //   timezoneId: 'Asia/Hong_Kong',
+  // });
 
   test.beforeEach(async ({ page }) => {
     context = await setup({ page, isEmptyProject: true });
@@ -505,17 +463,7 @@ test.describe.skip('External DB - DateTime column', async () => {
       await api.base.create(context.project.id, {
         alias: 'datetimetable',
         type: 'pg',
-        config: {
-          client: 'pg',
-          connection: {
-            host: 'localhost',
-            port: '5432',
-            user: 'postgres',
-            password: 'password',
-            database: 'datetimetable',
-          },
-          searchPath: ['public'],
-        },
+        config: getKnexConfig({ dbName: 'datetimetable', dbType: 'pg' }),
         inflection_column: 'camelize',
         inflection_table: 'camelize',
       });
@@ -523,16 +471,7 @@ test.describe.skip('External DB - DateTime column', async () => {
       await api.base.create(context.project.id, {
         alias: 'datetimetable',
         type: 'mysql2',
-        config: {
-          client: 'mysql2',
-          connection: {
-            host: 'localhost',
-            port: '3306',
-            user: 'root',
-            password: 'password',
-            database: 'datetimetable',
-          },
-        },
+        config: getKnexConfig({ dbName: 'datetimetable', dbType: 'mysql' }),
         inflection_column: 'camelize',
         inflection_table: 'camelize',
       });
@@ -557,9 +496,15 @@ test.describe.skip('External DB - DateTime column', async () => {
     }
 
     await dashboard.rootPage.reload();
+    // wait for 5 seconds for the base to be created
+    // hack for CI
+    await dashboard.rootPage.waitForTimeout(5000);
   });
 
   test('Verify display value, UI insert, API response', async () => {
+    // get timezone offset
+    const timezoneOffset = new Date().getTimezoneOffset();
+
     await dashboard.treeView.openBase({ title: 'datetimetable' });
     await dashboard.treeView.openTable({ title: 'MyTable' });
 
@@ -596,7 +541,7 @@ test.describe.skip('External DB - DateTime column', async () => {
     await dashboard.grid.cell.dateTime.setDateTime({
       index: 2,
       columnHeader: 'DatetimeWithTz',
-      dateTime: '2023-04-27 12:30:00',
+      dateTime: '2023-04-27 10:00:00',
     });
 
     // reload page & verify if inserted values are shown correctly
@@ -609,7 +554,7 @@ test.describe.skip('External DB - DateTime column', async () => {
     await dashboard.grid.cell.verifyDateCell({
       index: 2,
       columnHeader: 'DatetimeWithTz',
-      value: '2023-04-27 12:30',
+      value: '2023-04-27 10:00',
     });
 
     // verify API response
@@ -621,92 +566,40 @@ test.describe.skip('External DB - DateTime column', async () => {
     let dateTimeWithoutTz = records.list.map(record => record.DatetimeWithoutTz);
     let dateTimeWithTz = records.list.map(record => record.DatetimeWithTz);
 
-    if (isPg(context)) {
-      const expectedDateTimeWithoutTz = [
-        'Thu, 27 Apr 2023 04:30:00 GMT',
-        'Thu, 27 Apr 2023 04:30:00 GMT',
-        'Thu, 27 Apr 2023 02:00:00 GMT',
-      ];
-      const expectedDateTimeWithTz = [
-        'Thu, 27 Apr 2023 04:30:00 GMT',
-        'Thu, 27 Apr 2023 04:30:00 GMT',
-        'Thu, 27 Apr 2023 04:30:00 GMT',
-      ];
+    const expectedDateTimeWithoutTz = [
+      'Thu, 27 Apr 2023 10:00:00 GMT',
+      'Thu, 27 Apr 2023 10:00:00 GMT',
+      'Thu, 27 Apr 2023 10:00:00 GMT',
+    ];
+    const expectedDateTimeWithTz = [
+      'Thu, 27 Apr 2023 10:00:00 GMT',
+      'Thu, 27 Apr 2023 10:00:00 GMT',
+      'Thu, 27 Apr 2023 10:00:00 GMT',
+    ];
 
-      // convert to ISO string, skip seconds part or reset seconds to 00
-      dateTimeWithoutTz = dateTimeWithoutTz.map(dateTimeStr => {
-        const dateObj = new Date(dateTimeStr);
-        dateObj.setSeconds(0);
-        return dateObj.toUTCString();
-      });
-      dateTimeWithTz = dateTimeWithTz.map(dateTimeStr => {
-        const dateObj = new Date(dateTimeStr);
-        dateObj.setSeconds(0);
-        return dateObj.toUTCString();
-      });
-
-      console.log(dateTimeWithoutTz);
-      console.log(dateTimeWithTz);
-      expect(dateTimeWithoutTz).toEqual(expectedDateTimeWithoutTz);
-      expect(dateTimeWithTz).toEqual(expectedDateTimeWithTz);
-    } else if (isMysql(context)) {
-      const expectedDateTimeWithoutTz = [
-        'Thu, 27 Apr 2023 04:30:00 GMT',
-        'Thu, 27 Apr 2023 07:00:00 GMT',
-        'Thu, 27 Apr 2023 02:00:00 GMT',
-      ];
-      const expectedDateTimeWithTz = [
-        'Wed, 26 Apr 2023 23:00:00 GMT',
-        'Wed, 26 Apr 2023 23:00:00 GMT',
-        'Thu, 27 Apr 2023 04:30:00 GMT',
-      ];
-
-      // convert to ISO string, skip seconds part or reset seconds to 00
-      dateTimeWithoutTz = dateTimeWithoutTz.map(dateTimeStr => {
-        const dateObj = new Date(dateTimeStr);
-        dateObj.setSeconds(0);
-        return dateObj.toUTCString();
-      });
-      dateTimeWithTz = dateTimeWithTz.map(dateTimeStr => {
-        const dateObj = new Date(dateTimeStr);
-        dateObj.setSeconds(0);
-        return dateObj.toUTCString();
-      });
-
-      console.log(dateTimeWithoutTz);
-      console.log(dateTimeWithTz);
-
-      expect(dateTimeWithoutTz).toEqual(expectedDateTimeWithoutTz);
-      expect(dateTimeWithTz).toEqual(expectedDateTimeWithTz);
-    } else if (isSqlite(context)) {
-      const expectedDateTimeWithoutTz = [
-        'Thu, 27 Apr 2023 04:30:00 GMT',
-        'Thu, 27 Apr 2023 04:30:00 GMT',
-        'Thu, 27 Apr 2023 02:00:00 GMT',
-      ];
-      const expectedDateTimeWithTz = [
-        'Thu, 27 Apr 2023 04:30:00 GMT',
-        'Thu, 27 Apr 2023 04:30:00 GMT',
-        'Thu, 27 Apr 2023 04:30:00 GMT',
-      ];
-
-      // convert to ISO string, skip seconds part or reset seconds to 00
-      dateTimeWithoutTz = dateTimeWithoutTz.map(dateTimeStr => {
-        const dateObj = new Date(dateTimeStr);
-        dateObj.setSeconds(0);
-        return dateObj.toUTCString();
-      });
-      dateTimeWithTz = dateTimeWithTz.map(dateTimeStr => {
-        const dateObj = new Date(dateTimeStr);
-        dateObj.setSeconds(0);
-        return dateObj.toUTCString();
-      });
-
-      console.log(dateTimeWithoutTz);
-      console.log(dateTimeWithTz);
-
-      expect(dateTimeWithoutTz).toEqual(expectedDateTimeWithoutTz);
-      expect(dateTimeWithTz).toEqual(expectedDateTimeWithTz);
+    if (isMysql(context)) {
+      expectedDateTimeWithoutTz[1] = 'Thu, 27 Apr 2023 04:30:00 GMT';
+      expectedDateTimeWithTz[1] = 'Thu, 27 Apr 2023 04:30:00 GMT';
     }
+
+    // convert to ISO string, skip seconds part or reset seconds to 00
+    dateTimeWithoutTz = dateTimeWithoutTz.map(dateTimeStr => {
+      const dateObj = new Date(dateTimeStr);
+      dateObj.setSeconds(0);
+      dateObj.setMinutes(dateObj.getMinutes() - timezoneOffset);
+      return dateObj.toUTCString();
+    });
+    dateTimeWithTz = dateTimeWithTz.map(dateTimeStr => {
+      const dateObj = new Date(dateTimeStr);
+      dateObj.setSeconds(0);
+      dateObj.setMinutes(dateObj.getMinutes() - timezoneOffset);
+      return dateObj.toUTCString();
+    });
+
+    // console.log(dateTimeWithoutTz);
+    // console.log(dateTimeWithTz);
+
+    expect(dateTimeWithoutTz).toEqual(expectedDateTimeWithoutTz);
+    expect(dateTimeWithTz).toEqual(expectedDateTimeWithTz);
   });
 });

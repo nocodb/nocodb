@@ -461,7 +461,7 @@ async function createTableWithDateTimeColumn(database: string) {
   }
 }
 
-test.describe.only('External DB - DateTime column', async () => {
+test.describe('External DB - DateTime column', async () => {
   let dashboard: DashboardPage;
   let context: any;
 

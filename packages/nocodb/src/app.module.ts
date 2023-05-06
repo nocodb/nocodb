@@ -34,6 +34,7 @@ import type {
   MiddlewareConsumer,
   OnApplicationBootstrap,
 } from '@nestjs/common';
+import {ExtractProjectAndWorkspaceIdMiddleware} from "./middlewares/extract-project-and-workspace-id/extract-project-and-workspace-id.middleware";
 
 // todo: refactor to use config service
 const enableThrottler = !!process.env['NC_THROTTLER_REDIS'];
@@ -80,7 +81,7 @@ const enableThrottler = !!process.env['NC_THROTTLER_REDIS'];
       ? [
           {
             provide: APP_GUARD,
-            useClass: CustomApiLimiterGuard,
+            useClass: CustomApiLimiterGuard
           },
         ]
       : []),

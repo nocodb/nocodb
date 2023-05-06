@@ -1,10 +1,10 @@
 import { Injectable } from '@nestjs/common';
 import Client from 'ioredis';
 import Redlock from 'redlock';
+import { ConfigService } from '@nestjs/config';
 import { ClickhouseService } from './clickhouse/clickhouse.service';
 import type { OnModuleInit } from '@nestjs/common';
-import { ConfigService } from '@nestjs/config';
-import { AppConfig } from '../interface/config';
+import type { AppConfig } from '../interface/config';
 
 @Injectable()
 export class ThrottlerExpiryListenerService implements OnModuleInit {
@@ -12,9 +12,12 @@ export class ThrottlerExpiryListenerService implements OnModuleInit {
   private subscriber;
   private redlock: Redlock;
 
-  constructor(private readonly clickHouseService: ClickhouseService, private readonly configService: ConfigService<AppConfig>) {
-    this.client = new Client(process.env.NC_REDIS_URL);
-    this.subscriber = new Client(process.env.NC_REDIS_URL);
+  constructor(
+    private readonly clickHouseService: ClickhouseService,
+    private readonly configService: ConfigService<AppConfig>,
+  ) {
+    this.client = new Client(process.env['NC_THROTTLER_REDIS']);
+    this.subscriber = new Client(process.env['NC_THROTTLER_REDIS']);
 
     this.redlock = new Redlock([this.client], {
       // The expected clock drift; for more details see:

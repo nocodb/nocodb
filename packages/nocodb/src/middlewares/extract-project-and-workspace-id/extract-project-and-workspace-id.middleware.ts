@@ -34,7 +34,6 @@ import type {
 export class ExtractProjectAndWorkspaceIdMiddleware
   implements NestMiddleware, CanActivate
 {
-  constructor(private reflector: Reflector) {}
 
   async use(req, res, next): Promise<any> {
     try {

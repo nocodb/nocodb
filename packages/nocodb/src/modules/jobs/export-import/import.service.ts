@@ -23,6 +23,7 @@ import { GridsService } from '../../../services/grids.service';
 import { FormsService } from '../../../services/forms.service';
 import { GalleriesService } from '../../../services/galleries.service';
 import { KanbansService } from '../../../services/kanbans.service';
+import { HooksService } from '../../../services/hooks.service';
 import NcPluginMgrv2 from '../../../helpers/NcPluginMgrv2';
 import { BulkDataAliasService } from '../../../services/bulk-data-alias.service';
 import type { ViewCreateReqType } from 'nocodb-sdk';
@@ -43,6 +44,7 @@ export class ImportService {
     private galleriesService: GalleriesService,
     private kanbansService: KanbansService,
     private bulkDataService: BulkDataAliasService,
+    private hooksService: HooksService,
   ) {}
 
   async importModels(param: {
@@ -50,8 +52,8 @@ export class ImportService {
     projectId: string;
     baseId: string;
     data:
-      | { models: { model: any; views: any[] }[] }
-      | { model: any; views: any[] }[];
+      | { models: { model: any; views: any[]; hooks?: any[] }[] }
+      | { model: any; views: any[]; hooks?: any[] }[];
     req: any;
     externalModels?: Model[];
   }) {
@@ -932,6 +934,48 @@ export class ImportService {
           case ViewTypes.GALLERY:
           case ViewTypes.KANBAN:
             break;
+        }
+      }
+    }
+
+    // create hooks
+    for (const data of param.data) {
+      if (!data?.hooks) break;
+      const modelData = data.model;
+      const hookData = data.hooks;
+
+      const table = tableReferences.get(modelData.id);
+
+      for (const hook of hookData) {
+        const { filters, ...rest } = hook;
+
+        const hookData = withoutId({
+          ...rest,
+        });
+
+        const hk = await this.hooksService.hookCreate({
+          tableId: table.id,
+          hook: {
+            ...hookData,
+          },
+        });
+
+        if (!hk) continue;
+
+        idMap.set(hook.id, hk.id);
+
+        // create filters
+        for (const fl of filters) {
+          const fg = await this.filtersService.hookFilterCreate({
+            hookId: hk.id,
+            filter: withoutId({
+              ...fl,
+              fk_column_id: idMap.get(fl.fk_column_id),
+              fk_parent_id: idMap.get(fl.fk_parent_id),
+            }),
+          });
+
+          idMap.set(fl.id, fg.id);
         }
       }
     }

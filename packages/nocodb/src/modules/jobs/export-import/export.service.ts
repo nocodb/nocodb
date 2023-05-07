@@ -10,7 +10,7 @@ import {
 } from '../../../helpers/exportImportHelpers';
 import NcPluginMgrv2 from '../../../helpers/NcPluginMgrv2';
 import { NcError } from '../../../helpers/catchError';
-import { Base, Model, Project } from '../../../models';
+import { Base, Hook, Model, Project } from '../../../models';
 import { DatasService } from '../../../services/datas.service';
 import type { BaseModelSqlv2 } from '../../../db/BaseModelSqlv2';
 import type { LinkToAnotherRecordColumn, View } from '../../../models';
@@ -27,6 +27,7 @@ export class ExportService {
     const { modelIds } = param;
 
     const excludeViews = param?.excludeViews || false;
+    const excludeHooks = param?.excludeHooks || false;
 
     const serializedModels = [];
 
@@ -182,6 +183,52 @@ export class ExportService {
         }
       }
 
+      const serializedHooks = [];
+
+      if (!excludeHooks) {
+        const hooks = await Hook.list({ fk_model_id: model.id });
+
+        for (const hook of hooks) {
+          idMap.set(hook.id, `${idMap.get(hook.fk_model_id)}::${hook.id}`);
+
+          const hookFilters = await hook.getFilters();
+          const export_filters = [];
+
+          if (hookFilters) {
+            for (const fl of hookFilters) {
+              const tempFl = {
+                id: `${idMap.get(hook.id)}::${fl.id}`,
+                fk_column_id: idMap.get(fl.fk_column_id),
+                fk_parent_id: fl.fk_parent_id,
+                is_group: fl.is_group,
+                logical_op: fl.logical_op,
+                comparison_op: fl.comparison_op,
+                comparison_sub_op: fl.comparison_sub_op,
+                value: fl.value,
+              };
+              if (tempFl.is_group) {
+                delete tempFl.comparison_op;
+                delete tempFl.comparison_sub_op;
+                delete tempFl.value;
+              }
+              export_filters.push(tempFl);
+            }
+          }
+
+          serializedHooks.push({
+            id: idMap.get(hook.id),
+            title: hook.title,
+            active: hook.active,
+            condition: hook.condition,
+            event: hook.event,
+            operation: hook.operation,
+            notification: hook.notification,
+            version: hook.version,
+            filters: export_filters,
+          });
+        }
+      }
+
       serializedModels.push({
         model: {
           id: idMap.get(model.id),
@@ -239,6 +286,7 @@ export class ExportService {
           }),
           view: view.view,
         })),
+        hooks: serializedHooks,
       });
     }
 

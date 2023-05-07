@@ -170,6 +170,7 @@ import { DatasModule } from '../datas/datas.module';
     ProjectsService,
     AttachmentsService,
     ProjectUsersService,
+    HooksService,
   ],
 })
 export class MetasModule {}

@@ -11,7 +11,6 @@ import {
   Request,
   UseGuards,
 } from '@nestjs/common';
-import { AuthGuard } from '@nestjs/passport';
 import { TableReqType } from 'nocodb-sdk';
 import { GlobalGuard } from '../guards/global/global.guard';
 import extractRolesObj from '../utils/extractRolesObj';
@@ -100,6 +99,7 @@ export class TablesController {
       tableId: tableId,
       table: body,
       projectId: req.ncProjectId,
+      user: req.user,
     });
     return { msg: 'The table has been updated successfully' };
   }

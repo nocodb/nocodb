@@ -1,12 +1,13 @@
 import { Injectable } from '@nestjs/common';
 import DOMPurify from 'isomorphic-dompurify';
 import {
+  AppEvents,
   AuditOperationSubTypes,
   AuditOperationTypes,
   isVirtualCol,
   ModelTypes,
   UITypes,
-} from 'nocodb-sdk';
+} from 'nocodb-sdk'
 import { T } from 'nc-help';
 import ProjectMgrv2 from '../db/sql-mgr/v2/ProjectMgrv2';
 import { NcError } from '../helpers/catchError';
@@ -23,13 +24,19 @@ import type {
   NormalColumnRequestType,
   TableReqType,
 } from 'nocodb-sdk';
+import { AppHooksService } from './app-hooks/app-hooks.service'
 
 @Injectable()
 export class TablesService {
+
+  constructor(private readonly appHooksService: AppHooksService) {
+  }
+
   async tableUpdate(param: {
     tableId: any;
     table: TableReqType & { project_id?: string };
     projectId?: string;
+    user: User;
   }) {
     const model = await Model.get(param.tableId);
 
@@ -130,7 +137,14 @@ export class TablesService {
       tn_old: model.table_name,
     });
 
-    T.emit('evt', { evt_type: 'table:updated' });
+
+
+    this.appHooksService.emit(AppEvents.TABLE_UPDATE, {
+      table: model,
+      user: param.user,
+    });
+
+    // T.emit('evt', { evt_type: 'table:updated' });
     return true;
   }
 
@@ -189,6 +203,14 @@ export class TablesService {
       description: `Deleted ${table.type} ${table.table_name} with alias ${table.title}  `,
       ip: param.req?.clientIp,
     }).then(() => {});
+
+
+
+    this.appHooksService.emit(AppEvents.TABLE_DELETE, {
+      table,
+      user: param.user,
+      ip: param.req?.clientIp,
+    });
 
     T.emit('evt', { evt_type: 'table:deleted' });
 

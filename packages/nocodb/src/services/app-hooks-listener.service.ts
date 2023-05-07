@@ -1,21 +1,19 @@
-import { Injectable } from '@nestjs/common';
-import {
-  AppEvents,
-  AuditOperationSubTypes,
-  AuditOperationTypes,
-} from 'nocodb-sdk';
-import { Audit } from '../models';
-import { AppHooksService } from './app-hooks/app-hooks.service';
+import type { OnModuleDestroy, OnModuleInit } from '@nestjs/common'
+import { Injectable } from '@nestjs/common'
+import { AppEvents, AuditOperationSubTypes, AuditOperationTypes } from 'nocodb-sdk'
+import { Audit } from '../models'
+import { AppHooksService } from './app-hooks/app-hooks.service'
 import type {
+  ProjectInviteEvent,
   ProjectUserResendInviteEvent,
   ProjectUserUpdateEvent,
   UserEmailVerificationEvent,
   UserPasswordChangeEvent,
   UserPasswordForgotEvent,
-  UserPasswordResetEvent,
-} from './app-hooks/interfaces';
-import type { OnModuleDestroy, OnModuleInit } from '@nestjs/common';
-import type { ProjectInviteEvent } from './app-hooks/interfaces';
+  UserPasswordResetEvent, ViewEvent,
+} from './app-hooks/interfaces'
+
+import {T} from 'nc-help'
 
 @Injectable()
 export class AppHooksListenerService implements OnModuleInit, OnModuleDestroy {
@@ -116,6 +114,28 @@ export class AppHooksListenerService implements OnModuleInit, OnModuleDestroy {
             ip: param.ip,
           });
         }
+        break;
+      case AppEvents.SHARED_VIEW_DELETE:
+          T.emit('evt', { evt_type: 'sharedView:deleted' });
+        break;
+        case AppEvents.SHARED_VIEW_CREATE:
+          T.emit('evt', { evt_type: 'sharedView:generated-link' });
+        break;
+        case AppEvents.SHARED_VIEW_UPDATE:
+          T.emit('evt', { evt_type: 'sharedView:updated' });
+        break;
+        case AppEvents.VIEW_UPDATE:
+        {
+          const param = data as ViewEvent;
+
+          T.emit('evt', { evt_type: 'vtable:updated', show_as: param.view.type });
+        }
+        break;
+      case AppEvents.VIEW_DELETE:
+        T.emit('evt', { evt_type: 'vtable:deleted' });
+        break;
+      case AppEvents.TABLE_UPDATE:
+        T.emit('evt', { evt_type: 'table:updated' });
         break;
     }
   }

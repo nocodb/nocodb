@@ -1169,14 +1169,16 @@ export class ImportService {
           elapsedTime('import models');
 
           if (idMap) {
-            const files = await storageAdapter.getDirectoryList(`${path}/data`);
+            const files = await (storageAdapter as any).getDirectoryList(
+              `${path}/data`,
+            );
             const dataFiles = files.filter(
               (file) => !file.match(/links\.csv$/),
             );
             const linkFile = `${path}/data/links.csv`;
 
             for (const file of dataFiles) {
-              const readStream = await storageAdapter.fileReadByStream(
+              const readStream = await (storageAdapter as any).fileReadByStream(
                 `${path}/data/${file}`,
               );
 
@@ -1281,9 +1283,9 @@ export class ImportService {
             // reset timer
             elapsedTime();
 
-            const linkReadStream = await storageAdapter.fileReadByStream(
-              linkFile,
-            );
+            const linkReadStream = await (
+              storageAdapter as any
+            ).fileReadByStream(linkFile);
 
             const lChunk: Record<string, any[]> = {}; // fk_mm_model_id: { rowId, childId }[]
 

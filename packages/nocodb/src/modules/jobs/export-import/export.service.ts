@@ -633,7 +633,7 @@ export class ExportService {
 
       readableStream.push(null);
 
-      await storageAdapter.fileCreateByStream(
+      await (storageAdapter as any).fileCreateByStream(
         `${destPath}/schema.json`,
         readableStream,
       );
@@ -644,7 +644,7 @@ export class ExportService {
         read() {},
       });
 
-      const uploadLinkPromise = storageAdapter.fileCreateByStream(
+      const uploadLinkPromise = (storageAdapter as any).fileCreateByStream(
         `${destPath}/data/links.csv`,
         combinedLinkStream,
       );
@@ -674,7 +674,7 @@ export class ExportService {
           });
         });
 
-        const uploadPromise = storageAdapter.fileCreateByStream(
+        const uploadPromise = (storageAdapter as any).fileCreateByStream(
           `${destPath}/data/${model.id}.csv`,
           dataStream,
         );

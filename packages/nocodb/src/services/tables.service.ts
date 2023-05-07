@@ -7,7 +7,7 @@ import {
   isVirtualCol,
   ModelTypes,
   UITypes,
-} from 'nocodb-sdk';
+} from 'nocodb-sdk'
 import { T } from 'nc-help';
 import { Configuration, OpenAIApi } from 'openai';
 import ProjectMgrv2 from '../db/sql-mgr/v2/ProjectMgrv2';
@@ -28,6 +28,7 @@ import type {
   TableReqType,
   UserType,
 } from 'nocodb-sdk';
+import { AppHooksService } from './app-hooks/app-hooks.service'
 
 const configuration = new Configuration({
   apiKey: process.env.OPENAI_API_KEY,
@@ -153,6 +154,14 @@ export class TablesService {
     });
 
     T.emit('evt', { evt_type: 'table:updated' });
+
+
+    this.appHooksService.emit(AppEvents.TABLE_UPDATE, {
+      table: model,
+      user: param.user,
+    });
+
+    // T.emit('evt', { evt_type: 'table:updated' });
     return true;
   }
 
@@ -211,6 +220,14 @@ export class TablesService {
       description: `Deleted ${table.type} ${table.table_name} with alias ${table.title}  `,
       ip: param.req?.clientIp,
     }).then(() => {});
+
+
+
+    this.appHooksService.emit(AppEvents.TABLE_DELETE, {
+      table,
+      user: param.user,
+      ip: param.req?.clientIp,
+    });
 
     T.emit('evt', { evt_type: 'table:deleted' });
 

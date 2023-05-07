@@ -23,7 +23,9 @@ const nanoid = customAlphabet('1234567890abcdefghijklmnopqrstuvwxyz_', 4);
 
 @Injectable()
 export class ProjectsService {
-  constructor(private appEvents: AppHooksService) {}
+
+  constructor(private readonly appHooksService: AppHooksService ) {
+  }
 
   async projectList(param: {
     user: { id: string; roles: Record<string, boolean> };
@@ -77,27 +79,36 @@ export class ProjectsService {
     }
 
     const result = await Project.update(param.projectId, data);
-    T.emit('evt', { evt_type: 'project:update' });
 
-    this.appEvents.emit(AppEvents.PROJECT_UPDATE, {
-      user: param.user,
+
+    this.appHooksService.emit(AppEvents.PROJECT_UPDATE, {
       project,
+      user: param.user,
     });
+
+    T.emit('evt', { evt_type: 'project:update' });
 
     return result;
   }
 
   async projectSoftDelete(param: { projectId: any; user: UserType }) {
-    const project = await Project.get(param.projectId);
 
-    if (!project) {
-      NcError.badRequest('Project not found');
+    const project = await Project.getWithInfo(param.projectId);
+
+    if(!project) {
+      NcError.notFound('Project not found');
     }
 
     await Project.softDelete(param.projectId);
+
+    this.appHooksService.emit(AppEvents.PROJECT_UPDATE, {
+      project,
+      user: param.user,
+    });
+
     T.emit('evt', { evt_type: 'project:deleted' });
 
-    this.appEvents.emit(AppEvents.PROJECT_DELETE, {
+    this.appHooksService.emit(AppEvents.PROJECT_DELETE, {
       user: param.user,
       project,
     });
@@ -198,6 +209,13 @@ export class ProjectsService {
       delete base.config;
     }
 
+
+    this.appHooksService.emit(AppEvents.PROJECT_CREATE, {
+      project,
+      user: param.user,
+      xcdb: !projectBody.external,
+    });
+
     T.emit('evt', {
       evt_type: 'project:created',
       xcdb: !projectBody.external,
@@ -205,10 +223,6 @@ export class ProjectsService {
 
     T.emit('evt', { evt_type: 'project:rest' });
 
-    this.appEvents.emit(AppEvents.PROJECT_CREATE, {
-      user: param.user,
-      project,
-    });
 
     return project;
   }

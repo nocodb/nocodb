@@ -21,8 +21,8 @@ import { Audit, Project, ProjectUser, User } from '../../models';
 import Noco from '../../Noco';
 import { CacheGetType, CacheScope, MetaTable } from '../../utils/globals';
 import { AppHooksService } from '../app-hooks/app-hooks.service';
+import { ProjectUserUpdateEvent } from '../app-hooks/interfaces';
 import type { ProjectUserReqType, UserType } from 'nocodb-sdk';
-import { ProjectUserUpdateEvent } from '../app-hooks/interfaces'
 
 @Injectable()
 export class ProjectUsersService {
@@ -149,7 +149,7 @@ export class ProjectUsersService {
           this.appHooksService.emit(AppEvents.PROJECT_INVITE, {
             project,
             user,
-            invitedBy: param.user,
+            invitedBy: param.req.user,
             ip: param.req.clientIp,
           });
 
@@ -337,7 +337,6 @@ export class ProjectUsersService {
     }
 
     await this.sendInviteEmail(user.email, invite_token, param.req);
-
 
     this.appHooksService.emit(AppEvents.PROJECT_USER_RESEND_INVITE, {
       project,

@@ -36,6 +36,7 @@ export interface ProjectUserResendInviteEvent {
 export interface ProjectCreateEvent {
   project: ProjectType;
   user: UserType;
+  xcdb: boolean;
 }
 
 export interface ProjectUpdateEvent {
@@ -91,31 +92,37 @@ export interface UserEmailVerificationEvent {
 export interface TableEvent {
   table: TableType;
   user: UserType;
+  ip?: string;
 }
 
 export interface ViewEvent {
   view: ViewType;
   user: UserType;
+  ip?: string;
 }
 
 export interface FilterEvent {
   filter: FilterType;
   user: UserType;
+  ip?: string;
 }
 
 export interface ColumnEvent {
   column: ColumnType;
   user: UserType;
+  ip?: string;
 }
 
 export interface SortEvent {
   sort: SortType;
   user: UserType;
+  ip?: string;
 }
 
 export interface WorkspaceEvent {
   workspace: WorkspaceType;
   user: UserType;
+  ip?: string;
 }
 
 export type AppEventPayload =

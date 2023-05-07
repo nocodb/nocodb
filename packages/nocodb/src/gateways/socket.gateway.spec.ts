@@ -1,5 +1,5 @@
 import { Test } from '@nestjs/testing';
-import { SocketGateway } from  './socket.gateway';
+import { SocketGateway } from './socket.gateway';
 import type { TestingModule } from '@nestjs/testing';
 
 describe('SocketGateway', () => {

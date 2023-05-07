@@ -4,7 +4,11 @@ import NcConnectionMgrv2 from '../../../utils/common/NcConnectionMgrv2';
 import Noco from '../../../Noco';
 import User from '../../../models/User';
 import NocoCache from '../../../cache/NocoCache';
-import { CacheScope } from '../../../utils/globals';
+import {
+  CacheDelDirection,
+  CacheScope,
+  MetaTable,
+} from '../../../utils/globals';
 import ProjectUser from '../../../models/ProjectUser';
 import resetPgSakilaProject from './resetPgSakilaProject';
 import resetMysqlSakilaProject from './resetMysqlSakilaProject';
@@ -80,6 +84,7 @@ export class TestResetService {
       try {
         await removeAllProjectCreatedByTheTest(this.parallelId);
         await removeAllPrefixedUsersExceptSuper(this.parallelId);
+        await removeAllTokensCreatedByTheTest();
       } catch (e) {
         console.log(`Error in cleaning up project: ${this.parallelId}`, e);
       }
@@ -171,6 +176,22 @@ const removeAllPrefixedUsersExceptSuper = async (parallelId: string) => {
       await NocoCache.del(`${CacheScope.USER}:${user.email}`);
       await User.delete(user.id);
     }
+  }
+};
+
+const removeAllTokensCreatedByTheTest = async () => {
+  const tokens = await Noco.ncMeta.metaList(null, null, MetaTable.API_TOKENS);
+
+  for (const token of tokens) {
+    await NocoCache.deepDel(
+      CacheScope.API_TOKEN,
+      `${CacheScope.API_TOKEN}:${token.token}`,
+      CacheDelDirection.CHILD_TO_PARENT,
+    );
+
+    await Noco.ncMeta.metaDelete(null, null, MetaTable.API_TOKENS, {
+      token: token.token,
+    });
   }
 };
 

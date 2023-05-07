@@ -38,4 +38,7 @@ lerna-debug.log*
 # export
 export/**
 
+# test dbs
+test_sakila_?.db
+
 /docker/main.js

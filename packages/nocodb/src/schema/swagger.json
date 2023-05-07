@@ -2127,6 +2127,38 @@
             "$ref": "#/components/responses/BadRequest"
           }
         },
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "excludeData": {
+                    "type": "boolean",
+                    "required": false
+                  },
+                  "excludeViews": {
+                    "type": "boolean",
+                    "required": false
+                  },
+                  "excludeHooks": {
+                    "type": "boolean",
+                    "required": false
+                  }
+                }
+              },
+              "examples": {
+                "Example 1": {
+                  "value": {
+                    "excludeData": true,
+                    "excludeViews": true,
+                    "excludeHooks": true
+                  }
+                }
+              }
+            }
+          }
+        },
         "tags": ["Project"],
         "description": "Duplicate a project",
         "parameters": [
@@ -2183,6 +2215,38 @@
           },
           "400": {
             "$ref": "#/components/responses/BadRequest"
+          }
+        },
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "excludeData": {
+                    "type": "boolean",
+                    "required": false
+                  },
+                  "excludeViews": {
+                    "type": "boolean",
+                    "required": false
+                  },
+                  "excludeHooks": {
+                    "type": "boolean",
+                    "required": false
+                  }
+                }
+              },
+              "examples": {
+                "Example 1": {
+                  "value": {
+                    "excludeData": true,
+                    "excludeViews": true,
+                    "excludeHooks": true
+                  }
+                }
+              }
+            }
           }
         },
         "tags": ["Project"],
@@ -3906,6 +3970,33 @@
           },
           "400": {
             "$ref": "#/components/responses/BadRequest"
+          }
+        },
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "excludeData": {
+                    "type": "boolean",
+                    "required": false
+                  },
+                  "excludeViews": {
+                    "type": "boolean",
+                    "required": false
+                  }
+                }
+              },
+              "examples": {
+                "Example 1": {
+                  "value": {
+                    "excludeData": true,
+                    "excludeViews": true
+                  }
+                }
+              }
+            }
           }
         },
         "tags": ["DB Table"],

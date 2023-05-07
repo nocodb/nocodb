@@ -41,6 +41,12 @@ export class DuplicateController {
     @Request() req,
     @Param('projectId') projectId: string,
     @Param('baseId') baseId?: string,
+    @Body()
+    options?: {
+      excludeData?: boolean;
+      excludeViews?: boolean;
+      excludeHooks?: boolean;
+    },
   ) {
     const project = await Project.get(projectId);
 
@@ -72,6 +78,7 @@ export class DuplicateController {
       projectId: project.id,
       baseId: base.id,
       dupProjectId: dupProject.id,
+      options,
       req: {
         user: req.user,
         clientIp: req.clientIp,
@@ -88,6 +95,12 @@ export class DuplicateController {
     @Request() req,
     @Param('projectId') projectId: string,
     @Param('modelId') modelId?: string,
+    @Body()
+    options?: {
+      excludeData?: boolean;
+      excludeViews?: boolean;
+      excludeHooks?: boolean;
+    },
   ) {
     const project = await Project.get(projectId);
 
@@ -114,11 +127,12 @@ export class DuplicateController {
       projectId: project.id,
       baseId: base.id,
       modelId: model.id,
+      title: uniqueTitle,
+      options,
       req: {
         user: req.user,
         clientIp: req.clientIp,
       },
-      title: uniqueTitle,
     });
 
     return { id: job.id, name: job.name };

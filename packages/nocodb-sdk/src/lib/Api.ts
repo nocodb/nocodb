@@ -4031,6 +4031,11 @@ export class Api<
  */
     baseDuplicate: (
       projectId: IdType,
+      data: {
+        excludeData?: boolean;
+        excludeViews?: boolean;
+        excludeHooks?: boolean;
+      },
       baseId?: IdType,
       params: RequestParams = {}
     ) =>
@@ -4046,6 +4051,8 @@ export class Api<
       >({
         path: `/api/v1/db/meta/duplicate/${projectId}/${baseId}`,
         method: 'POST',
+        body: data,
+        type: ContentType.Json,
         format: 'json',
         ...params,
       }),
@@ -4068,7 +4075,15 @@ export class Api<
 
 }`
  */
-    duplicate: (projectId: IdType, params: RequestParams = {}) =>
+    duplicate: (
+      projectId: IdType,
+      data: {
+        excludeData?: boolean;
+        excludeViews?: boolean;
+        excludeHooks?: boolean;
+      },
+      params: RequestParams = {}
+    ) =>
       this.request<
         {
           name?: string;
@@ -4081,6 +4096,8 @@ export class Api<
       >({
         path: `/api/v1/db/meta/duplicate/${projectId}`,
         method: 'POST',
+        body: data,
+        type: ContentType.Json,
         format: 'json',
         ...params,
       }),
@@ -5100,6 +5117,10 @@ export class Api<
     duplicate: (
       projectId: IdType,
       tableId: IdType,
+      data: {
+        excludeData?: boolean;
+        excludeViews?: boolean;
+      },
       params: RequestParams = {}
     ) =>
       this.request<
@@ -5114,6 +5135,8 @@ export class Api<
       >({
         path: `/api/v1/db/meta/duplicate/${projectId}/table/${tableId}`,
         method: 'POST',
+        body: data,
+        type: ContentType.Json,
         format: 'json',
         ...params,
       }),

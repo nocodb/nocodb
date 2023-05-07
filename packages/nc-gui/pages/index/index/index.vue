@@ -83,19 +83,16 @@ const deleteProject = (project: ProjectType) => {
 }
 
 const duplicateProject = (project: ProjectType) => {
-  Modal.confirm({
-    title: `Do you want to duplicate '${project.title}' project?`,
-    wrapClassName: 'nc-modal-project-duplicate',
-    okText: 'Yes',
-    okType: 'primary',
-    cancelText: 'No',
-    async onOk() {
-      try {
-        const jobData = await api.project.duplicate(project.id as string)
+  const isOpen = ref(true)
 
+  const { close } = useDialog(resolveComponent('DlgProjectDuplicate'), {
+    'modelValue': isOpen,
+    'project': project,
+    'onOk': async (jobData: { name: string; id: string }) => {
+      try {
         await loadProjects()
 
-        $jobs.subscribe({ name: jobData.name, id: jobData.id }, null, async (status: string) => {
+        $jobs.subscribe({ name: jobData.name, id: jobData.id }, undefined, async (status: string) => {
           if (status === 'completed') {
             await loadProjects()
           } else if (status === 'failed') {
@@ -109,7 +106,14 @@ const duplicateProject = (project: ProjectType) => {
         message.error(await extractSdkResponseErrorMsg(e))
       }
     },
+    'onUpdate:modelValue': closeDialog,
   })
+
+  function closeDialog() {
+    isOpen.value = false
+
+    close(1000)
+  }
 }
 
 const handleProjectColor = async (projectId: string, color: string) => {
@@ -319,7 +323,11 @@ const copyProjectMeta = async () => {
             />
 
             <a-dropdown :trigger="['click']" overlay-class-name="nc-dropdown-import-menu" @click.stop>
-              <GeneralIcon icon="threeDotVertical" class="nc-import-menu outline-0" :data-testid="`p-three-dot-${record.title}`"/>
+              <GeneralIcon
+                icon="threeDotVertical"
+                class="nc-import-menu outline-0"
+                :data-testid="`p-three-dot-${record.title}`"
+              />
 
               <template #overlay>
                 <a-menu class="!py-0 rounded text-sm">
@@ -340,7 +348,7 @@ const copyProjectMeta = async () => {
   </div>
 </template>
 
-<style scoped>
+<style lang="scss" scoped>
 .nc-action-btn {
   @apply text-gray-500 group-hover:text-accent active:(ring ring-accent ring-opacity-100) cursor-pointer p-2 w-[30px] h-[30px] hover:bg-gray-300/50 rounded-full;
 }

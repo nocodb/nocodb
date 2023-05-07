@@ -19,8 +19,14 @@ import type { LinkToAnotherRecordColumn, View } from '../../../models';
 export class ExportService {
   constructor(private datasService: DatasService) {}
 
-  async serializeModels(param: { modelIds: string[] }) {
+  async serializeModels(param: {
+    modelIds: string[];
+    excludeViews?: boolean;
+    excludeHooks?: boolean;
+  }) {
     const { modelIds } = param;
+
+    const excludeViews = param?.excludeViews || false;
 
     const serializedModels = [];
 
@@ -52,6 +58,11 @@ export class ExportService {
 
       await model.getColumns();
       await model.getViews();
+
+      // if views are excluded, filter all views except default
+      if (excludeViews) {
+        model.views = model.views.filter((v) => v.is_default);
+      }
 
       for (const column of model.columns) {
         await column.getColOptions();

@@ -49,7 +49,11 @@ export class DuplicateProcessor {
   async duplicateBase(job: Job) {
     const hrTime = initTime();
 
-    const { projectId, baseId, dupProjectId, req } = job.data;
+    const { projectId, baseId, dupProjectId, req, options } = job.data;
+
+    const excludeData = options?.excludeData || false;
+    const excludeHooks = options?.excludeHooks || false;
+    const excludeViews = options?.excludeViews || false;
 
     const project = await Project.get(projectId);
     const dupProject = await Project.get(dupProjectId);
@@ -69,6 +73,8 @@ export class DuplicateProcessor {
 
       const exportedModels = await this.exportService.serializeModels({
         modelIds: models.map((m) => m.id),
+        excludeViews,
+        excludeHooks,
       });
 
       elapsedTime(hrTime, 'serializeModels');
@@ -80,8 +86,6 @@ export class DuplicateProcessor {
       await dupProject.getBases();
 
       const dupBase = dupProject.bases[0];
-
-      elapsedTime(hrTime, 'projectCreate');
 
       const idMap = await this.importService.importModels({
         user,
@@ -97,14 +101,16 @@ export class DuplicateProcessor {
         throw new Error(`Import failed for base '${base.id}'`);
       }
 
-      await this.importModelsData({
-        idMap,
-        sourceProject: project,
-        sourceModels: models,
-        destProject: dupProject,
-        destBase: dupBase,
-        hrTime,
-      });
+      if (!excludeData) {
+        await this.importModelsData({
+          idMap,
+          sourceProject: project,
+          sourceModels: models,
+          destProject: dupProject,
+          destBase: dupBase,
+          hrTime,
+        });
+      }
 
       await this.projectsService.projectUpdate({
         projectId: dupProject.id,
@@ -126,7 +132,11 @@ export class DuplicateProcessor {
   async duplicateModel(job: Job) {
     const hrTime = initTime();
 
-    const { projectId, baseId, modelId, title, req } = job.data;
+    const { projectId, baseId, modelId, title, req, options } = job.data;
+
+    const excludeData = options?.excludeData || false;
+    const excludeHooks = options?.excludeHooks || false;
+    const excludeViews = options?.excludeViews || false;
 
     const project = await Project.get(projectId);
     const base = await Base.get(baseId);
@@ -151,6 +161,8 @@ export class DuplicateProcessor {
     const exportedModel = (
       await this.exportService.serializeModels({
         modelIds: [modelId],
+        excludeViews,
+        excludeHooks,
       })
     )[0];
 
@@ -178,38 +190,38 @@ export class DuplicateProcessor {
       throw new Error(`Import failed for model '${modelId}'`);
     }
 
-    const fields: Record<string, string[]> = {};
+    if (!excludeData) {
+      const fields: Record<string, string[]> = {};
 
-    for (const md of relatedModels) {
-      const bts = md.columns
-        .filter(
-          (c) =>
-            c.uidt === UITypes.LinkToAnotherRecord &&
-            c.colOptions.type === 'bt' &&
-            c.colOptions.fk_related_model_id === modelId,
-        )
-        .map((c) => c.id);
+      for (const md of relatedModels) {
+        const bts = md.columns
+          .filter(
+            (c) =>
+              c.uidt === UITypes.LinkToAnotherRecord &&
+              c.colOptions.type === 'bt' &&
+              c.colOptions.fk_related_model_id === modelId,
+          )
+          .map((c) => c.id);
 
-      if (bts.length > 0) {
-        fields[md.id] = [md.primaryKey.id];
-        fields[md.id].push(...bts);
+        if (bts.length > 0) {
+          fields[md.id] = [md.primaryKey.id];
+          fields[md.id].push(...bts);
+        }
       }
+
+      await this.importModelsData({
+        idMap,
+        sourceProject: project,
+        sourceModels: [sourceModel],
+        destProject: project,
+        destBase: base,
+        hrTime,
+        modelFieldIds: fields,
+        externalModels: relatedModels,
+      });
+
+      elapsedTime(hrTime, 'reimportModelData');
     }
-
-    await this.importModelsData({
-      idMap,
-      sourceProject: project,
-      sourceModels: [sourceModel],
-      destProject: project,
-      destBase: base,
-      hrTime,
-      modelFieldIds: fields,
-      externalModels: relatedModels,
-    });
-
-    elapsedTime(hrTime, 'reimportModelData');
-
-    // console.log('exportedModel', exportedModel);
   }
 
   async importModelsData(param: {

@@ -392,15 +392,30 @@ const setIcon = async (icon: string, table: TableType) => {
 
 const duplicateTable = async (table: TableType) => {
   if (!table || !table.id || !table.project_id) return
-  const jobData = await $api.dbTable.duplicate(table.project_id, table.id)
-  $jobs.subscribe({ name: jobData.name, id: jobData.id }, undefined, async (status: string) => {
-    if (status === 'completed') {
-      await loadTables()
-    } else if (status === 'failed') {
-      message.error('Failed to duplicate table')
-      await loadTables()
-    }
+
+  const isOpen = ref(true)
+
+  const { close } = useDialog(resolveComponent('DlgTableDuplicate'), {
+    'modelValue': isOpen,
+    'table': table,
+    'onOk': async (jobData: { name: string; id: string }) => {
+      $jobs.subscribe({ name: jobData.name, id: jobData.id }, undefined, async (status: string) => {
+        if (status === 'completed') {
+          await loadTables()
+        } else if (status === 'failed') {
+          message.error('Failed to duplicate table')
+          await loadTables()
+        }
+      })
+    },
+    'onUpdate:modelValue': closeDialog,
   })
+
+  function closeDialog() {
+    isOpen.value = false
+
+    close(1000)
+  }
 }
 </script>
 

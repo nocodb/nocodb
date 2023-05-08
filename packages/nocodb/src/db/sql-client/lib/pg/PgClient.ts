@@ -2699,12 +2699,20 @@ class PGClient extends KnexClient {
           query += this.genQuery(` ?? serial`, [n.cn], shouldSanitize);
         }
       } else {
-        query += this.genQuery(` ?? ${n.dt}`, [n.cn], shouldSanitize);
+        query += this.genQuery(
+          ` ?? ${this.sanitiseDataType(n.dt)}`,
+          [n.cn],
+          shouldSanitize,
+        );
         query += n.rqd ? ' NOT NULL' : ' NULL';
         query += defaultValue ? ` DEFAULT ${defaultValue}` : '';
       }
     } else if (change === 1) {
-      query += this.genQuery(` ADD ?? ${n.dt}`, [n.cn], shouldSanitize);
+      query += this.genQuery(
+        ` ADD ?? ${this.sanitiseDataType(n.dt)}`,
+        [n.cn],
+        shouldSanitize,
+      );
       query += n.rqd ? ' NOT NULL' : ' NULL';
       query += defaultValue ? ` DEFAULT ${defaultValue}` : '';
       query = this.genQuery(`ALTER TABLE ?? ${query};`, [t], shouldSanitize);
@@ -2719,7 +2727,9 @@ class PGClient extends KnexClient {
 
       if (n.dt !== o.dt) {
         query += this.genQuery(
-          `\nALTER TABLE ?? ALTER COLUMN ?? TYPE ${n.dt} USING ??::${n.dt};\n`,
+          `\nALTER TABLE ?? ALTER COLUMN ?? TYPE ${this.sanitiseDataType(
+            n.dt,
+          )} USING ??::${this.sanitiseDataType(n.dt)};\n`,
           [t, n.cn, n.cn],
           shouldSanitize,
         );
@@ -2740,7 +2750,9 @@ class PGClient extends KnexClient {
           [t, n.cn],
           shouldSanitize,
         );
-        query += n.cdf ? ` SET DEFAULT ${n.cdf};\n` : ` DROP DEFAULT;\n`;
+        query += n.cdf
+          ? ` SET DEFAULT ${this.sanitiseDefaultValue(n.cdf)};\n`
+          : ` DROP DEFAULT;\n`;
       }
     }
     return query;

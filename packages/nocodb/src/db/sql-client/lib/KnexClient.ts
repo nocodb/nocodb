@@ -2967,6 +2967,14 @@ class KnexClient extends SqlClient {
     return str.replace(/\\[?]/g, '?');
   }
 
+  sanitiseDataType(dt: string) {
+    // allow only alphanumeric and space
+    // eg: varchar, int, bigint, text, character varying, etc
+    if (/^[\w ]+$/.test(dt)) return dt;
+
+    throw new Error(`Invalid data type: ${dt}`);
+  }
+
   // todo: add support to complex default values with functions and expressions
   sanitiseDefaultValue(value: string | number | boolean) {
     if (value === null || value === undefined) return undefined;

@@ -2586,7 +2586,11 @@ class MssqlClient extends KnexClient {
 
     if (change === 0) {
       query = existingQuery ? ',' : '';
-      query += this.genQuery(`?? ${n.dt}`, [n.cn], shouldSanitize);
+      query += this.genQuery(
+        `?? ${this.sanitiseDataType(n.dt)}`,
+        [n.cn],
+        shouldSanitize,
+      );
       query += scaleAndPrecision;
       query += n.rqd ? ' NOT NULL' : ' NULL';
       query += n.ai ? ' IDENTITY(1,1)' : ' ';
@@ -2601,7 +2605,11 @@ class MssqlClient extends KnexClient {
         n.default_constraint_name = `DF_${t}_${n.cn}`;
       }
     } else if (change === 1) {
-      query += this.genQuery(` ADD ?? ${n.dt}`, [n.cn], shouldSanitize);
+      query += this.genQuery(
+        ` ADD ?? ${this.sanitiseDataType(n.dt)}`,
+        [n.cn],
+        shouldSanitize,
+      );
       query += scaleAndPrecision;
       query += n.rqd ? ' NOT NULL' : ' NULL';
       query += n.ai ? ' IDENTITY(1,1)' : ' ';
@@ -2639,7 +2647,9 @@ class MssqlClient extends KnexClient {
         n.rqd !== o.rqd
       ) {
         query += this.genQuery(
-          `\nALTER TABLE ?? ALTER COLUMN ?? ${n.dt}${scaleAndPrecision}`,
+          `\nALTER TABLE ?? ALTER COLUMN ?? ${this.sanitiseDataType(
+            n.dt,
+          )}${scaleAndPrecision}`,
           [this.getTnPath(t), n.cn],
           shouldSanitize,
         );
@@ -2655,7 +2665,9 @@ class MssqlClient extends KnexClient {
           );
         if (n.cdf) {
           query += this.genQuery(
-            `\nALTER TABLE ??  ADD CONSTRAINT ?? DEFAULT ${n.cdf} FOR ??;`,
+            `\nALTER TABLE ??  ADD CONSTRAINT ?? DEFAULT ${this.sanitiseDefaultValue(
+              n.cdf,
+            )} FOR ??;`,
             [this.getTnPath(t), `DF_${n.tn}_${n.cn}`, n.cn],
             shouldSanitize,
           );

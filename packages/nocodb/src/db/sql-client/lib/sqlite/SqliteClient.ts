@@ -2013,7 +2013,7 @@ class SqliteClient extends KnexClient {
 
       let addNewColumnQuery = '';
       addNewColumnQuery += this.genQuery(
-        ` ADD ?? ${n.dt}`,
+        ` ADD ?? ${this.sanitiseDataType(n.dt)}`,
         [n.cn],
         shouldSanitize,
       );
@@ -2045,15 +2045,27 @@ class SqliteClient extends KnexClient {
       query = `${backupOldColumnQuery}${addNewColumnQuery}${updateNewColumnQuery}${dropOldColumnQuery}`;
     } else if (change === 0) {
       query = existingQuery ? ',' : '';
-      query += this.genQuery(`?? ${n.dt}`, [n.cn], shouldSanitize);
+      query += this.genQuery(
+        `?? ${this.sanitiseDataType(n.dt)}`,
+        [n.cn],
+        shouldSanitize,
+      );
       query += n.dtxp && n.dt !== 'text' ? `(${n.dtxp})` : '';
       query += n.cdf ? ` DEFAULT ${this.sanitiseDefaultValue(n.cdf)}` : ' ';
       query += n.rqd ? ` NOT NULL` : ' ';
     } else if (change === 1) {
       shouldSanitize = true;
-      query += this.genQuery(` ADD ?? ${n.dt}`, [n.cn], shouldSanitize);
+      query += this.genQuery(
+        ` ADD ?? ${this.sanitiseDataType(n.dt)}`,
+        [n.cn],
+        shouldSanitize,
+      );
       query += n.dtxp && n.dt !== 'text' ? `(${n.dtxp})` : '';
-      query += n.cdf ? ` DEFAULT ${this.sanitiseDefaultValue(n.cdf)}` : !n.rqd ? ' ' : ` DEFAULT ''`;
+      query += n.cdf
+        ? ` DEFAULT ${this.sanitiseDefaultValue(n.cdf)}`
+        : !n.rqd
+        ? ' '
+        : ` DEFAULT ''`;
       query += n.rqd ? ` NOT NULL` : ' ';
       query = this.genQuery(`ALTER TABLE ?? ${query};`, [t], shouldSanitize);
     } else {

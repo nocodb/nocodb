@@ -2486,13 +2486,21 @@ class SnowflakeClient extends KnexClient {
           shouldSanitize,
         );
       } else {
-        query += this.genQuery(` ?? ${n.dt}`, [n.cn], shouldSanitize);
+        query += this.genQuery(
+          ` ?? ${this.sanitiseDataType(n.dt)}`,
+          [n.cn],
+          shouldSanitize,
+        );
         query += n.dtxp && n.dt !== 'text' ? `(${n.dtxp})` : '';
         query += n.rqd ? ' NOT NULL' : ' NULL';
         query += defaultValue ? ` DEFAULT ${defaultValue}` : '';
       }
     } else if (change === 1) {
-      query += this.genQuery(` ADD ?? ${n.dt}`, [n.cn], shouldSanitize);
+      query += this.genQuery(
+        ` ADD ?? ${this.sanitiseDataType(n.dt)}`,
+        [n.cn],
+        shouldSanitize,
+      );
       query += n.dtxp && n.dt !== 'text' ? `(${n.dtxp})` : '';
       query += n.rqd ? ' NOT NULL' : ' NULL';
       query += defaultValue ? ` DEFAULT ${defaultValue}` : '';
@@ -2512,7 +2520,9 @@ class SnowflakeClient extends KnexClient {
 
       if (n.dt !== o.dt) {
         query += this.genQuery(
-          `\nALTER TABLE ?? ALTER COLUMN ?? SET DATA TYPE ${n.dt}`,
+          `\nALTER TABLE ?? ALTER COLUMN ?? SET DATA TYPE ${this.sanitiseDataType(
+            n.dt,
+          )}`,
           [this.getTnPath(t), n.cn],
           shouldSanitize,
         );
@@ -2534,7 +2544,9 @@ class SnowflakeClient extends KnexClient {
           [this.getTnPath(t), n.cn],
           shouldSanitize,
         );
-        query += n.cdf ? ` SET DEFAULT ${this.sanitiseDefaultValue(n.cdf)};\n` : ` DROP DEFAULT;\n`;
+        query += n.cdf
+          ? ` SET DEFAULT ${this.sanitiseDefaultValue(n.cdf)};\n`
+          : ` DROP DEFAULT;\n`;
       }
     }
     return query;

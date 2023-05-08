@@ -2463,18 +2463,18 @@ class MysqlClient extends KnexClient {
       query += this.genQuery(
         `
     CHANGE
-    COLUMN ?? ?? ${n.dt}`,
+    COLUMN ?? ?? ${this.sanitiseDataType(n.dt)}`,
         [o.cn, n.cn],
       );
     } else if (change === 1) {
       query += this.genQuery(
         `
     ADD
-    COLUMN ?? ${n.dt}`,
+    COLUMN ?? ${this.sanitiseDataType(n.dt)}`,
         [n.cn],
       );
     } else {
-      query += this.genQuery(` ?? ${n.dt}`, [n.cn]);
+      query += this.genQuery(` ?? ${this.sanitiseDataType(n.dt)}`, [n.cn]);
     }
     if (!n.dt.endsWith('text')) {
       query += n.dtxp && n.dtxp !== ' ' ? `(${n.dtxp}` : '';

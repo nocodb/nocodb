@@ -24,6 +24,7 @@ import { FormsService } from '../../../services/forms.service';
 import { GalleriesService } from '../../../services/galleries.service';
 import { KanbansService } from '../../../services/kanbans.service';
 import { HooksService } from '../../../services/hooks.service';
+import { ViewsService } from '../../../services/views.service';
 import NcPluginMgrv2 from '../../../helpers/NcPluginMgrv2';
 import { BulkDataAliasService } from '../../../services/bulk-data-alias.service';
 import type { ViewCreateReqType } from 'nocodb-sdk';
@@ -45,6 +46,7 @@ export class ImportService {
     private kanbansService: KanbansService,
     private bulkDataService: BulkDataAliasService,
     private hooksService: HooksService,
+    private viewsService: ViewsService,
   ) {}
 
   async importModels(param: {
@@ -937,6 +939,16 @@ export class ImportService {
           case ViewTypes.GALLERY:
           case ViewTypes.KANBAN:
             break;
+        }
+
+        // fix view order (view insert will always put it at the end)
+        if (view.order !== vw.order) {
+          await this.viewsService.viewUpdate({
+            viewId: vw.id,
+            view: {
+              order: view.order,
+            },
+          });
         }
       }
     }

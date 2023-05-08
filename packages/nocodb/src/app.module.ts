@@ -30,6 +30,7 @@ import { ThrottlerConfigService } from './services/throttler-config/throttler-co
 import { CustomApiLimiterGuard } from './guards/custom-api-limiter.guard';
 
 import appConfig from './app.config';
+import { ExtractProjectAndWorkspaceIdMiddleware } from './middlewares/extract-project-and-workspace-id/extract-project-and-workspace-id.middleware';
 import type {
   MiddlewareConsumer,
   OnApplicationBootstrap,
@@ -76,14 +77,12 @@ const enableThrottler = !!process.env['NC_THROTTLER_REDIS'];
       provide: APP_FILTER,
       useClass: GlobalExceptionFilter,
     },
-    ...(enableThrottler
-      ? [
-          {
-            provide: APP_GUARD,
-            useClass: CustomApiLimiterGuard
-          },
-        ]
-      : []),
+    {
+      provide: APP_GUARD,
+      useClass: enableThrottler
+        ? CustomApiLimiterGuard
+        : ExtractProjectAndWorkspaceIdMiddleware,
+    },
     LocalStrategy,
     AuthTokenStrategy,
     BaseViewStrategy,

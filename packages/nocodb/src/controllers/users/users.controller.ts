@@ -25,7 +25,6 @@ import {
   setTokenCookie,
 } from '../../services/users/helpers';
 import { UsersService } from '../../services/users/users.service';
-import { ExtractProjectAndWorkspaceIdMiddleware } from '../../middlewares/extract-project-and-workspace-id/extract-project-and-workspace-id.middleware';
 
 @Controller()
 export class UsersController {
@@ -141,7 +140,7 @@ export class UsersController {
   }
 
   @Get(['/auth/user/me', '/api/v1/db/auth/user/me', '/api/v1/auth/user/me'])
-  @UseGuards(ExtractProjectAndWorkspaceIdMiddleware, GlobalGuard)
+  @UseGuards(GlobalGuard)
   async me(@Request() req) {
     const user = {
       ...req.user,

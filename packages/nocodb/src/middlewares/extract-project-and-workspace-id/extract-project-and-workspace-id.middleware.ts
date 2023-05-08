@@ -30,11 +30,11 @@ import type {
   NestMiddleware,
 } from '@nestjs/common';
 
+// todo: refactor name since we are using it as auth guard
 @Injectable()
 export class ExtractProjectAndWorkspaceIdMiddleware
   implements NestMiddleware, CanActivate
 {
-
   async use(req, res, next): Promise<any> {
     try {
       const { params } = req;

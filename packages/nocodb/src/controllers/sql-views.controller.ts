@@ -8,11 +8,10 @@ import {
 } from '@nestjs/common';
 import { Acl } from '../middlewares/extract-project-id/extract-project-id.middleware';
 import { SqlViewsService } from '../services/sql-views.service';
-import { ExtractProjectAndWorkspaceIdMiddleware } from '../middlewares/extract-project-and-workspace-id/extract-project-and-workspace-id.middleware';
 import { GlobalGuard } from '../guards/global/global.guard';
 
 @Controller()
-@UseGuards(ExtractProjectAndWorkspaceIdMiddleware, GlobalGuard)
+@UseGuards(GlobalGuard)
 export class SqlViewsController {
   constructor(private readonly sqlViewsService: SqlViewsService) {}
 

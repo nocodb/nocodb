@@ -11,7 +11,6 @@ import { AuthGuard } from '@nestjs/passport';
 import { GlobalGuard } from '../guards/global/global.guard';
 import extractRolesObj from '../utils/extractRolesObj';
 import { AuthService } from '../services/auth.service';
-import { ExtractProjectAndWorkspaceIdMiddleware } from '../middlewares/extract-project-and-workspace-id/extract-project-and-workspace-id.middleware';
 
 export class CreateUserDto {
   readonly username: string;
@@ -36,7 +35,7 @@ export class AuthController {
     return await this.authService.signup(createUserDto);
   }
 
-  @UseGuards(ExtractProjectAndWorkspaceIdMiddleware, GlobalGuard)
+  @UseGuards(GlobalGuard)
   @Get('/api/v1/auth/user/me')
   async me(@Request() req) {
     const user = {

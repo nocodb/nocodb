@@ -216,8 +216,7 @@ export class NotificationsService implements OnModuleInit, OnModuleDestroy {
       )`);
       }
 
-      return await this.clickhouseService
-        .execute(`INSERT INTO notification
+      return await this.clickhouseService.execute(`INSERT INTO notification
       (id, fk_user_id, type, body, is_read, is_deleted, created_at)
       VALUES ${updateQueries.join(',')}`);
     } catch (e) {

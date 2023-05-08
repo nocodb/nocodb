@@ -1,5 +1,6 @@
-import { Test, TestingModule } from '@nestjs/testing';
+import { Test } from '@nestjs/testing';
 import { ThrottlerConfigService } from './throttler-config.service';
+import type { TestingModule } from '@nestjs/testing';
 
 describe('ThrottlerConfigService', () => {
   let service: ThrottlerConfigService;

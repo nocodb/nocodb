@@ -15,14 +15,16 @@ import isDocker from 'is-docker';
 import { ProjectReqType } from 'nocodb-sdk';
 import { GlobalGuard } from '../guards/global/global.guard';
 import { PagedResponseImpl } from '../helpers/PagedResponse';
-import {Acl, UseAclMiddleware} from '../middlewares/extract-project-id/extract-project-id.middleware';
+import {
+  Acl,
+  UseAclMiddleware,
+} from '../middlewares/extract-project-id/extract-project-id.middleware';
 import Noco from '../Noco';
 import { packageVersion } from '../utils/packageVersion';
 import { ProjectsService } from '../services/projects.service';
-import { ExtractProjectAndWorkspaceIdMiddleware } from '../middlewares/extract-project-and-workspace-id/extract-project-and-workspace-id.middleware';
 import type { ProjectType } from 'nocodb-sdk';
 
-@UseGuards(ExtractProjectAndWorkspaceIdMiddleware, GlobalGuard)
+@UseGuards(GlobalGuard)
 @Controller()
 export class ProjectsController {
   constructor(private readonly projectsService: ProjectsService) {}

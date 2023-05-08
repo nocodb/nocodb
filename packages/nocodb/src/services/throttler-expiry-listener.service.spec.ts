@@ -1,5 +1,6 @@
-import { Test, TestingModule } from '@nestjs/testing';
+import { Test } from '@nestjs/testing';
 import { ThrottlerExpiryListenerService } from './throttler-expiry-listener.service';
+import type { TestingModule } from '@nestjs/testing';
 
 describe('ThrottlerExpiryListenerService', () => {
   let service: ThrottlerExpiryListenerService;
@@ -9,7 +10,9 @@ describe('ThrottlerExpiryListenerService', () => {
       providers: [ThrottlerExpiryListenerService],
     }).compile();
 
-    service = module.get<ThrottlerExpiryListenerService>(ThrottlerExpiryListenerService);
+    service = module.get<ThrottlerExpiryListenerService>(
+      ThrottlerExpiryListenerService,
+    );
   });
 
   it('should be defined', () => {

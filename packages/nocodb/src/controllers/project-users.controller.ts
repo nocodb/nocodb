@@ -18,9 +18,8 @@ import {
   ExtractProjectIdMiddleware,
 } from '../middlewares/extract-project-id/extract-project-id.middleware';
 import { ProjectUsersService } from '../services/project-users/project-users.service';
-import { ExtractProjectAndWorkspaceIdMiddleware } from '../middlewares/extract-project-and-workspace-id/extract-project-and-workspace-id.middleware';
 
-@UseGuards(ExtractProjectAndWorkspaceIdMiddleware, GlobalGuard)
+@UseGuards(GlobalGuard)
 @Controller()
 export class ProjectUsersController {
   constructor(private readonly projectUsersService: ProjectUsersService) {}

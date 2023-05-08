@@ -460,8 +460,8 @@ test.describe('External DB - DateTime column', async () => {
       DatetimeWithTz: ['2023-04-27 10:00', getDateTimeInLocalTimeZone('2023-04-27 04:30:00+00:00')],
     },
     mysql: {
-      DatetimeWithoutTz: ['2023-04-27 10:00', '2023-04-27 04:30'],
-      DatetimeWithTz: ['2023-04-27 10:00', '2023-04-27 04:30'],
+      DatetimeWithoutTz: ['2023-04-27 10:00', getDateTimeInLocalTimeZone('2023-04-27 04:30:00+00:00')],
+      DatetimeWithTz: ['2023-04-27 10:00', getDateTimeInLocalTimeZone('2023-04-27 04:30:00+00:00')],
     },
   };
 
@@ -616,8 +616,12 @@ test.describe('External DB - DateTime column', async () => {
         new Date('2023-04-27T10:00:00').toISOString(),
       ];
     } else if (isMysql(context)) {
-      expectedDateTimeWithoutTz = ['2023-04-27 10:00:00', '2023-04-27 04:30:00', '2023-04-27 10:00:00'];
-      expectedDateTimeWithTz = ['2023-04-27 10:00:00', '2023-04-27 04:30:00', '2023-04-27 10:00:00'];
+      expectedDateTimeWithoutTz = [
+        '2023-04-27 10:00:00+00:00',
+        '2023-04-27 04:30:00+00:00',
+        '2023-04-27 04:30:00+00:00',
+      ];
+      expectedDateTimeWithTz = ['2023-04-27 10:00:00+00:00', '2023-04-27 04:30:00+00:00', '2023-04-27 04:30:00+00:00'];
     }
 
     // reset seconds to 00 using string functions in dateTimeWithoutTz

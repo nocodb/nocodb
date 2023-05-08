@@ -3246,7 +3246,7 @@ class BaseModelSqlv2 {
   ) {
     // MySQL converts TIMESTAMP values from the current time zone to UTC for storage.
     // Then, MySQL converts those values back from UTC to the current time zone for retrieval.
-    // For xcdb base, to make it consistent with other DB types, we show the result in UTC instead
+    // To make it consistent with other DB types, we show the result in UTC instead
     // e.g. 2022-01-01 04:30:00+00:00
     if (data) {
       const dateTimeColumns = (

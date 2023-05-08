@@ -738,9 +738,12 @@ export class ImportService {
         relatedColIds.push(col.colOptions.fk_rollup_column_id);
       }
       if (col.colOptions?.formula) {
-        relatedColIds.push(
-          ...col.colOptions.formula.match(/(?<=\{\{).*?(?=\}\})/gm),
-        );
+        const colIds = col.colOptions.formula.match(/(?<=\{\{).*?(?=\}\})/gm);
+        if (colIds && colIds.length > 0) {
+          relatedColIds.push(
+            ...col.colOptions.formula.match(/(?<=\{\{).*?(?=\}\})/gm),
+          );
+        }
       }
 
       // find the last related column in the sorted array

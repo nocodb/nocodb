@@ -55,7 +55,7 @@ export function useMultiSelect(
 
   const { appInfo } = useGlobal()
 
-  const { isMssql, isMysql, isSqlite, isXcdbBase } = useProject()
+  const { isMssql, isMysql, isXcdbBase } = useProject()
 
   let clipboardContext = $ref<{ value: any; uidt: UITypes } | null>(null)
 
@@ -336,7 +336,6 @@ export function useMultiSelect(
                         appInfo: unref(appInfo),
                       },
                       isMysql(meta.value?.base_id),
-                      isSqlite(meta.value?.base_id),
                       isMssql(meta.value?.base_id),
                       isXcdbBase(meta.value?.base_id),
                     )
@@ -373,7 +372,6 @@ export function useMultiSelect(
                         appInfo: unref(appInfo),
                       },
                       isMysql(meta.value?.base_id),
-                      isSqlite(meta.value?.base_id),
                       isMssql(meta.value?.base_id),
                       isXcdbBase(meta.value?.base_id),
                     )

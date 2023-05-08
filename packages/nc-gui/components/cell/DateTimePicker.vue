@@ -25,7 +25,7 @@ const { modelValue, isPk, isUpdatedFromCopyNPaste } = defineProps<Props>()
 
 const emit = defineEmits(['update:modelValue'])
 
-const { isMssql, isMysql, isSqlite, isXcdbBase } = useProject()
+const { isMssql, isMysql, isXcdbBase } = useProject()
 
 const { showNull } = useGlobal()
 

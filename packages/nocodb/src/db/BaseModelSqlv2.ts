@@ -1,6 +1,8 @@
 import autoBind from 'auto-bind';
 import groupBy from 'lodash/groupBy';
 import DataLoader from 'dataloader';
+import dayjs from 'dayjs';
+import utc from 'dayjs/plugin/utc.js';
 import { nocoExecute } from 'nc-help';
 import {
   AuditOperationSubTypes,
@@ -63,6 +65,8 @@ import type {
 } from '../models';
 import type { Knex } from 'knex';
 import type { SortType } from 'nocodb-sdk';
+
+dayjs.extend(utc);
 
 const GROUP_COL = '__nc_group_id';
 
@@ -1949,6 +1953,11 @@ class BaseModelSqlv2 {
     };
   }
 
+  private async isXcdbBase() {
+    const base = await Base.get(this.model.base_id);
+    return base.is_meta;
+  }
+
   get isSqlite() {
     return this.clientType === 'sqlite3';
   }
@@ -3147,16 +3156,24 @@ class BaseModelSqlv2 {
     } else {
       query = sanitize(query);
     }
-    return this.convertAttachmentType(
+    let data =
       this.isPg || this.isSnowflake
         ? (await this.dbDriver.raw(query))?.rows
         : query.slice(0, 6) === 'select' && !this.isMssql
         ? await this.dbDriver.from(
             this.dbDriver.raw(query).wrap('(', ') __nc_alias'),
           )
-        : await this.dbDriver.raw(query),
-      childTable,
-    );
+        : await this.dbDriver.raw(query);
+
+    // update attachment fields
+    data = this.convertAttachmentType(data, childTable);
+
+    // update date time fields
+    if (this.isMySQL && !(await this.isXcdbBase())) {
+      data = this.convertDateFormat(data, childTable);
+    }
+
+    return data;
   }
 
   private _convertAttachmentType(
@@ -3195,9 +3212,47 @@ class BaseModelSqlv2 {
     return data;
   }
 
+  private _convertDateFormat(
+    dateTimeColumns: Record<string, any>[],
+    d: Record<string, any>,
+  ) {
+    try {
+      if (d) {
+        dateTimeColumns.forEach((col) => {
+          if (d[col.title] && typeof d[col.title] === 'string') {
+            // e.g. 2022-01-01 04:30:00+00:00
+            d[col.title] = dayjs(d[col.title])
+              .utc()
+              .format('YYYY-MM-DD HH:mm:ssZ');
+          }
+        });
+      }
+    } catch {}
+    return d;
+  }
+
+  private convertDateFormat(data: Record<string, any>, childTable?: Model) {
+    // MySQL converts TIMESTAMP values from the current time zone to UTC for storage.
+    // Then, MySQL converts those values back from UTC to the current time zone for retrieval.
+    // For xcdb base, to make it consistent with other DB types, we show the result in UTC instead
+    // e.g. 2022-01-01 04:30:00+00:00
+    if (data) {
+      const dateTimeColumns = (
+        childTable ? childTable.columns : this.model.columns
+      ).filter((c) => c.uidt === UITypes.DateTime);
+      if (dateTimeColumns.length) {
+        if (Array.isArray(data)) {
+          data = data.map((d) => this._convertDateFormat(dateTimeColumns, d));
+        } else {
+          this._convertDateFormat(dateTimeColumns, data);
+        }
+      }
+    }
+    return data;
+  }
+
   private async setUtcTimezoneForPg() {
-    const base = await Base.get(this.model.base_id);
-    if (this.isPg && base.is_meta) {
+    if (this.isPg && (await this.isXcdbBase())) {
       await this.dbDriver.raw(`SET TIME ZONE 'UTC'`);
     }
   }

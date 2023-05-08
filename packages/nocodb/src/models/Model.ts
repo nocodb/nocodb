@@ -488,7 +488,7 @@ export default class Model implements TableType {
                 .format('YYYY-MM-DD HH:mm:ssZ');
             }
           } else {
-            // TODO(timezone): keep ext db as it is
+            // External DB - keep it as it is
             val = dayjs(val).format(
               isMySQL ? 'YYYY-MM-DD HH:mm:ss' : 'YYYY-MM-DD HH:mm:ssZ',
             );

@@ -28,6 +28,11 @@ function getTnPath(knex: XKnex, tb: Model) {
   }
 }
 
+// This upgrader is to update all datetime fields in xcdb base due to the datetime changes
+// ref: https://github.com/nocodb/nocodb/pull/5505
+// Originally, for XCDB-based projects, we store the local time in DB and display local time in UI
+// After the above PR, we store UTC time in DB and display local time in UI
+// Therefore, we convert all the target datetime to UTC format in DB
 export default async function ({ ncMeta }: NcUpgraderCtx) {
   const bases: BaseType[] = await ncMeta.metaList2(null, null, MetaTable.BASES);
   for (const _base of bases) {

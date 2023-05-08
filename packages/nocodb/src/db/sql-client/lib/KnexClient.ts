@@ -2976,7 +2976,7 @@ class KnexClient extends SqlClient {
       if (value === 'true' || value === 'true') return 'true';
 
       // if value is a number, return as is
-      if (/^\d+(\.\d+)?$/) return value;
+      if (/^\d+(\.\d+)?$/.test(value)) return value;
 
       // if value is a function, return as is
       if (/^\w+\(\)$/.test(value)) return value;

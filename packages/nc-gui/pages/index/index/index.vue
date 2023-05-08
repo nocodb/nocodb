@@ -89,22 +89,18 @@ const duplicateProject = (project: ProjectType) => {
     'modelValue': isOpen,
     'project': project,
     'onOk': async (jobData: { name: string; id: string }) => {
-      try {
-        await loadProjects()
+      await loadProjects()
 
-        $jobs.subscribe({ name: jobData.name, id: jobData.id }, undefined, async (status: string) => {
-          if (status === 'completed') {
-            await loadProjects()
-          } else if (status === 'failed') {
-            message.error('Failed to duplicate project')
-            await loadProjects()
-          }
-        })
+      $jobs.subscribe({ name: jobData.name, id: jobData.id }, undefined, async (status: string) => {
+        if (status === 'completed') {
+          await loadProjects()
+        } else if (status === 'failed') {
+          message.error('Failed to duplicate project')
+          await loadProjects()
+        }
+      })
 
-        $e('a:project:duplicate')
-      } catch (e: any) {
-        message.error(await extractSdkResponseErrorMsg(e))
-      }
+      $e('a:project:duplicate')
     },
     'onUpdate:modelValue': closeDialog,
   })

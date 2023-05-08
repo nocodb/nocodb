@@ -33,8 +33,12 @@ const isLoading = ref(false)
 
 const _duplicate = async () => {
   isLoading.value = true
-  const jobData = await api.dbTable.duplicate(props.table.project_id!, props.table.id!, optionsToExclude.value)
-  props.onOk(jobData as any)
+  try {
+    const jobData = await api.dbTable.duplicate(props.table.project_id!, props.table.id!, optionsToExclude.value)
+    props.onOk(jobData as any)
+  } catch (e: any) {
+    message.error(await extractSdkResponseErrorMsg(e))
+  }
   isLoading.value = false
   dialogShow.value = false
 }

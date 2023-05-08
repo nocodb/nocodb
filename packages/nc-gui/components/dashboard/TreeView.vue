@@ -407,6 +407,8 @@ const duplicateTable = async (table: TableType) => {
           await loadTables()
         }
       })
+
+      $e('a:table:duplicate')
     },
     'onUpdate:modelValue': closeDialog,
   })
@@ -762,7 +764,11 @@ const duplicateTable = async (table: TableType) => {
                                 </div>
                               </a-menu-item>
 
-                              <a-menu-item v-if="isUIAllowed('table-duplicate') && !table.mm" @click="duplicateTable(table)">
+                              <a-menu-item
+                                v-if="isUIAllowed('table-duplicate') && !table.mm"
+                                v-e="['c:table:duplicate']"
+                                @click="duplicateTable(table)"
+                              >
                                 <div class="nc-project-menu-item">
                                   {{ $t('general.duplicate') }}
                                 </div>

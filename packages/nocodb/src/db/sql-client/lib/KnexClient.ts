@@ -2967,6 +2967,7 @@ class KnexClient extends SqlClient {
     return str.replace(/\\[?]/g, '?');
   }
 
+  // todo: add support to complex default values with functions and expressions
   validateAndSanitiseDefaultValue(value: string | number | boolean) {
     if (value === null || value === undefined) return undefined;
 
@@ -2982,7 +2983,7 @@ class KnexClient extends SqlClient {
       if (/^\w+\(\)$/.test(value)) return value;
 
       // if value is a CURRENT_TIMESTAMP, return as is
-      if (/^CURRENT_TIMESTAMP\([\w ]+\)$/.test(value.toUpperCase()))
+      if (/^CURRENT_TIMESTAMP[\w ]*$/.test(value.toUpperCase()))
         return value;
 
       // if value wrapped in single/double quotes, then extract value and sanitise

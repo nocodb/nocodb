@@ -2685,7 +2685,7 @@ class PGClient extends KnexClient {
   alterTableColumn(t, n, o, existingQuery, change = 2) {
     let query = '';
 
-    const defaultValue = this.validateAndSanitiseDefaultValue(n.cdf);
+    const defaultValue = this.sanitiseDefaultValue(n.cdf);
     const shouldSanitize = true;
 
     if (change === 0) {

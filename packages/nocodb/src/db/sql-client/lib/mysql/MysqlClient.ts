@@ -2484,7 +2484,7 @@ class MysqlClient extends KnexClient {
     query += n.un ? ' UNSIGNED' : '';
     query += n.rqd ? ' NOT NULL' : ' NULL';
     query += n.ai ? ' auto_increment' : '';
-    const defaultValue = this.validateAndSanitiseDefaultValue(n.cdf);
+    const defaultValue = this.sanitiseDefaultValue(n.cdf);
     query += defaultValue
       ? `
     DEFAULT ${defaultValue}`

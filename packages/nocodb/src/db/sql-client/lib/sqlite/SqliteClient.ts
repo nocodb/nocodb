@@ -2019,7 +2019,7 @@ class SqliteClient extends KnexClient {
       );
       addNewColumnQuery += n.dtxp && n.dt !== 'text' ? `(${n.dtxp})` : '';
       addNewColumnQuery += n.cdf
-        ? ` DEFAULT ${this.validateAndSanitiseDefaultValue(n.cdf)}`
+        ? ` DEFAULT ${this.sanitiseDefaultValue(n.cdf)}`
         : !n.rqd
         ? ' '
         : ` DEFAULT ''`;
@@ -2047,13 +2047,13 @@ class SqliteClient extends KnexClient {
       query = existingQuery ? ',' : '';
       query += this.genQuery(`?? ${n.dt}`, [n.cn], shouldSanitize);
       query += n.dtxp && n.dt !== 'text' ? `(${n.dtxp})` : '';
-      query += n.cdf ? ` DEFAULT ${this.validateAndSanitiseDefaultValue(n.cdf)}` : ' ';
+      query += n.cdf ? ` DEFAULT ${this.sanitiseDefaultValue(n.cdf)}` : ' ';
       query += n.rqd ? ` NOT NULL` : ' ';
     } else if (change === 1) {
       shouldSanitize = true;
       query += this.genQuery(` ADD ?? ${n.dt}`, [n.cn], shouldSanitize);
       query += n.dtxp && n.dt !== 'text' ? `(${n.dtxp})` : '';
-      query += n.cdf ? ` DEFAULT ${this.validateAndSanitiseDefaultValue(n.cdf)}` : !n.rqd ? ' ' : ` DEFAULT ''`;
+      query += n.cdf ? ` DEFAULT ${this.sanitiseDefaultValue(n.cdf)}` : !n.rqd ? ' ' : ` DEFAULT ''`;
       query += n.rqd ? ` NOT NULL` : ' ';
       query = this.genQuery(`ALTER TABLE ?? ${query};`, [t], shouldSanitize);
     } else {

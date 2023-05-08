@@ -2968,7 +2968,7 @@ class KnexClient extends SqlClient {
   }
 
   // todo: add support to complex default values with functions and expressions
-  validateAndSanitiseDefaultValue(value: string | number | boolean) {
+  sanitiseDefaultValue(value: string | number | boolean) {
     if (value === null || value === undefined) return undefined;
 
     if (typeof value === 'string') {

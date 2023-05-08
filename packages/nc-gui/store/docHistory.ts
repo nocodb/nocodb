@@ -1,7 +1,7 @@
 import { defineStore } from 'pinia'
 import type { DocsPageType } from 'nocodb-sdk'
 import { generateHTML } from '@tiptap/html'
-import diff from './diff'
+import diff from '~~/utils/htmlDiff'
 import tiptapExtensions from '~~/utils/tiptapExtensions'
 import { removeUploadingPlaceHolderAndEmptyLinkNode } from '~~/utils/tiptapExtensions/helper'
 

@@ -90,7 +90,7 @@ onMounted(() => {
   <span v-else-if="vModel === null && showNull" class="nc-null">NULL</span>
 
   <!-- only show the numeric value as previously string value was accepted -->
-  <span v-else-if="/^\d+(\.\d+)?$/.test(vModel)">{{ currency }}</span>
+  <span v-else-if="!isNaN(vModel)">{{ currency }}</span>
 
   <!-- possibly unexpected string / null with showNull == false  -->
   <span v-else />

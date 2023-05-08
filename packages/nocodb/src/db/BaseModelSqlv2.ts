@@ -7,6 +7,7 @@ import { nocoExecute } from 'nc-help';
 import {
   AuditOperationSubTypes,
   AuditOperationTypes,
+  BoolType,
   isSystemColumn,
   isVirtualCol,
   RelationTypes,
@@ -3169,9 +3170,8 @@ class BaseModelSqlv2 {
     data = this.convertAttachmentType(data, childTable);
 
     // update date time fields
-    if (this.isMySQL && !(await this.isXcdbBase())) {
-      data = this.convertDateFormat(data, childTable);
-    }
+    const isXcdbBase = await this.isXcdbBase();
+    data = this.convertDateFormat(data, isXcdbBase, childTable);
 
     return data;
   }
@@ -3215,15 +3215,23 @@ class BaseModelSqlv2 {
   private _convertDateFormat(
     dateTimeColumns: Record<string, any>[],
     d: Record<string, any>,
+    isXcdbBase: BoolType,
   ) {
     try {
       if (d) {
         dateTimeColumns.forEach((col) => {
           if (d[col.title] && typeof d[col.title] === 'string') {
-            // e.g. 2022-01-01 04:30:00+00:00
-            d[col.title] = dayjs(d[col.title])
-              .utc()
-              .format('YYYY-MM-DD HH:mm:ssZ');
+            if (isXcdbBase) {
+              // e.g. 01.01.2022 10:00:00+05:30 -> 2022-01-01 04:30:00+00:00
+              d[col.title] = dayjs(d[col.title])
+                .utc(true)
+                .format('YYYY-MM-DD HH:mm:ssZ');
+            } else {
+              // e.g. 01.01.2022 10:00:00+05:30 -> 2022-01-01 04:30:00+00:00
+              d[col.title] = dayjs(d[col.title])
+                .utc()
+                .format('YYYY-MM-DD HH:mm:ssZ');
+            }
           }
         });
       }
@@ -3231,7 +3239,11 @@ class BaseModelSqlv2 {
     return d;
   }
 
-  private convertDateFormat(data: Record<string, any>, childTable?: Model) {
+  private convertDateFormat(
+    data: Record<string, any>,
+    isXcdbBase: BoolType,
+    childTable?: Model,
+  ) {
     // MySQL converts TIMESTAMP values from the current time zone to UTC for storage.
     // Then, MySQL converts those values back from UTC to the current time zone for retrieval.
     // For xcdb base, to make it consistent with other DB types, we show the result in UTC instead
@@ -3242,9 +3254,11 @@ class BaseModelSqlv2 {
       ).filter((c) => c.uidt === UITypes.DateTime);
       if (dateTimeColumns.length) {
         if (Array.isArray(data)) {
-          data = data.map((d) => this._convertDateFormat(dateTimeColumns, d));
+          data = data.map((d) =>
+            this._convertDateFormat(dateTimeColumns, d, isXcdbBase),
+          );
         } else {
-          this._convertDateFormat(dateTimeColumns, data);
+          this._convertDateFormat(dateTimeColumns, data, isXcdbBase);
         }
       }
     }

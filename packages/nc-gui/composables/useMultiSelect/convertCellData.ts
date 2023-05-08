@@ -48,7 +48,7 @@ export default function convertCellData(
         if (isMysql) {
           let res = `${parsedDateTime.format('YYYY-MM-DD HH:mm:ss')}`
           if (!dayjs.isDayjs(value)) {
-            // UTC + 'Z'
+            // value is a UTC string, we append 'Z' to `res`
             res += 'Z'
           }
           return res
@@ -64,7 +64,7 @@ export default function convertCellData(
           return parsedDateTime
         }
       }
-      // TODO(timezone): keep ext db as it is
+      // External DB - keep it as it is
       return parsedDateTime.format(isMysql ? 'YYYY-MM-DD HH:mm:ss' : 'YYYY-MM-DD HH:mm:ssZ')
     }
     case UITypes.Time: {

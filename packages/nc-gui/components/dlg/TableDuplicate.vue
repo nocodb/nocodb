@@ -38,6 +38,8 @@ const _duplicate = async () => {
   isLoading.value = false
   dialogShow.value = false
 }
+
+const isEaster = ref(false)
 </script>
 
 <template>
@@ -58,7 +60,7 @@ const _duplicate = async () => {
     </template>
 
     <div class="pl-10 pr-10 pt-5">
-      <div class="prose-xl font-bold self-center my-4">{{ $t('general.duplicate') }}</div>
+      <div class="prose-xl font-bold self-center my-4" @dblclick="isEaster = !isEaster">{{ $t('general.duplicate') }}</div>
 
       <div class="mb-2">Are you sure you want to duplicate the `{{ table.title }}` table?</div>
 
@@ -69,7 +71,7 @@ const _duplicate = async () => {
       <div class="text-xs p-2">
         <a-checkbox v-model:checked="options.includeData">Include data</a-checkbox>
         <a-checkbox v-model:checked="options.includeViews">Include views</a-checkbox>
-        <a-checkbox v-model:checked="options.includeHooks">Include hooks</a-checkbox>
+        <a-checkbox v-show="isEaster" v-model:checked="options.includeHooks">Include hooks</a-checkbox>
       </div>
     </div>
   </a-modal>

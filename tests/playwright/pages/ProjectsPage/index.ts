@@ -55,7 +55,7 @@ export class ProjectsPage extends BasePage {
     await this.rootPage.getByTestId('dupe-project-' + name).click();
     // click duplicate confirmation "Do you want to duplicate 'sampleREST0' project?"
     // assert message on duplicate confirmation page
-    const dupeProjectSubmitAction = () => this.rootPage.getByRole('button', { name: 'Yes' }).click();
+    const dupeProjectSubmitAction = () => this.rootPage.getByRole('button', { name: 'Confirm' }).click();
 
     await this.waitForResponse({
       uiAction: dupeProjectSubmitAction,

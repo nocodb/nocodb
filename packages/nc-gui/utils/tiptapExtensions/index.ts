@@ -40,6 +40,8 @@ import { Paragraph } from './paragraph'
 import { CodeBlock } from './codeBlock'
 import { ColumnContentNode } from './columns/columnContent'
 import { ColumnNode } from './columns'
+import { HistoryDeletion } from './history/deletionMark'
+import { HistoryInsertion } from './history/insertionMark'
 
 const tiptapExtensions = (isPublic: boolean): Extensions => {
   const { uploadFile } = useDocStore()
@@ -108,6 +110,8 @@ const tiptapExtensions = (isPublic: boolean): Extensions => {
     ColumnContentNode,
     ColumnNode,
     LinkToPage,
+    HistoryDeletion,
+    HistoryInsertion,
   ]
 }
 

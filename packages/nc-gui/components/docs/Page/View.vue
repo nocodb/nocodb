@@ -2,6 +2,7 @@
 import { EditorContent, useEditor } from '@tiptap/vue-3'
 import { Icon as IconifyIcon } from '@iconify/vue'
 import { TiptapNodesTypes } from 'nocodb-sdk'
+import { generateJSON } from '@tiptap/html'
 import { useShortcuts } from '../utils'
 import tiptapExtensions from '~~/utils/tiptapExtensions'
 import AlignRightIcon from '~icons/tabler/align-right'
@@ -115,7 +116,7 @@ watch(
   },
 )
 
-const setEditorContent = (_content: any, _isEditAllowed?: boolean) => {
+const setEditorContent = (_content: any, _isEditAllowed?: boolean, isHtml?: boolean) => {
   if (!editor.value) return
   ;(editor.value.state as any).history$.prevRanges = null
   ;(editor.value.state as any).history$.done.eventCount = 0
@@ -127,6 +128,9 @@ const setEditorContent = (_content: any, _isEditAllowed?: boolean) => {
   })
 
   const selection = editor.value.view.state.selection
+  if (isHtml) {
+    _content = generateJSON(_content, tiptapExtensions(_isEditAllowed))
+  }
   editor.value.chain().setContent(_content).setTextSelection(selection.to).run()
 }
 
@@ -229,7 +233,7 @@ watch(
       return
     }
 
-    setEditorContent(JSON.parse(currentHistory.value.content), false)
+    setEditorContent(currentHistory.value.content, false, true)
   },
   {
     deep: true,
@@ -315,7 +319,7 @@ watch(
             @update:selection-box="selectionBox = $event"
           />
           <div
-            :key="openedPageId ?? ''"
+            :key="openedPageId ?? currentHistory?.content ?? ''"
             class="mx-auto pr-6 pt-16 flex flex-col"
             :style="{
               width: '64rem',
@@ -453,6 +457,42 @@ watch(
   .ProseMirror-focused {
     // remove all border
     outline: none;
+  }
+
+  [data-diff-node='ins'] {
+    @apply !bg-green-100 rounded-sm p-0.5 m-0.5;
+  }
+
+  [data-diff-node='del'] {
+    @apply !bg-red-100 rounded-sm p-0.5 m-0.5;
+  }
+
+  del {
+    @apply !bg-red-100 rounded-sm my-0.5;
+    text-decoration: none;
+  }
+  ins {
+    @apply !bg-green-100 rounded-sm my-0.5 mx-0.5;
+    text-decoration: none;
+  }
+
+  ins[isempty='true'] {
+    display: block;
+    color: transparent;
+    user-select: none;
+    @apply !w-full;
+  }
+  del[isempty='true'] {
+    display: block;
+    color: transparent;
+    user-select: none;
+    @apply !w-full;
+  }
+
+  td {
+    ins {
+      @apply !p-0 !m-0;
+    }
   }
 
   .draggable-block-wrapper.focused {

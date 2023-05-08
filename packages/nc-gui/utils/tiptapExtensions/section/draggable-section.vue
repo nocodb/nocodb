@@ -125,7 +125,11 @@ editor.on('update', () => {
 </script>
 
 <template>
-  <NodeViewWrapper class="vue-component draggable-block-wrapper" :pos="pos">
+  <NodeViewWrapper
+    class="vue-component draggable-block-wrapper"
+    :data-diff-node="node.attrs.isInsertedHistory ? 'ins' : node.attrs.isDeletedHistory ? 'del' : null"
+    :pos="pos"
+  >
     <div
       v-if="!isPublic"
       ref="dragDomRef"

@@ -11,7 +11,7 @@ const close = () => {
 </script>
 
 <template>
-  <div class="flex flex-col w-1/4 max-w-80 px-5 shadow-sm border-l-1 border-gray-100">
+  <div class="flex flex-col w-1/4 max-w-80 px-5 shadow-sm border-l-1 border-gray-100 overflow-y-auto">
     <div class="flex flex-row justify-between font-semibold text-base my-3 w-full items-center">
       <div>History</div>
       <div class="p-1 flex items-center hover:bg-gray-100 cursor-pointer rounded-md" @click="close">

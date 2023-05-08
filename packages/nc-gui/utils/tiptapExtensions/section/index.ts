@@ -55,6 +55,23 @@ export const SectionBlock = Node.create<SecOptions>({
 
   content: 'block',
 
+  addAttributes() {
+    return {
+      isInsertedHistory: {
+        default: false,
+        parseHTML: (element) => {
+          return element.getAttribute('data-diff-node') === 'ins'
+        },
+      },
+      isDeletedHistory: {
+        default: false,
+        parseHTML: (element) => {
+          return element.getAttribute('data-diff-node') === 'del'
+        },
+      },
+    }
+  },
+
   draggable: true,
 
   selectable: false,

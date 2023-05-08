@@ -64,7 +64,10 @@ const selectNode = () => {
 </script>
 
 <template>
-  <NodeViewWrapper class="vue-component image-wrapper">
+  <NodeViewWrapper
+    class="vue-component image-wrapper"
+    :data-diff-node="node.attrs.isInsertedHistory ? 'ins' : node.attrs.isDeletedHistory ? 'del' : null"
+  >
     <div v-if="!isEditAllowed">
       <img
         class="nc-docs-image bg-gray-50"

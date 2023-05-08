@@ -41,12 +41,13 @@ const currencyMeta = computed(() => {
 
 const currency = computed(() => {
   try {
-    return !vModel.value || isNaN(vModel.value)
-      ? vModel.value
-      : new Intl.NumberFormat(currencyMeta.value.currency_locale || 'en-US', {
-          style: 'currency',
-          currency: currencyMeta.value.currency_code || 'USD',
-        }).format(vModel.value)
+    if (vModel.value === null || vModel.value === undefined || isNaN(vModel.value)) {
+      return vModel.value
+    }
+    return new Intl.NumberFormat(currencyMeta.value.currency_locale || 'en-US', {
+      style: 'currency',
+      currency: currencyMeta.value.currency_code || 'USD',
+    }).format(vModel.value)
   } catch (e) {
     return vModel.value
   }

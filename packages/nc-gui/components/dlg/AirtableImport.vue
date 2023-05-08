@@ -82,14 +82,14 @@ const onSubscribe = () => {
   step.value = 2
 }
 
-const onStatus = async (status: JobStatus, error?: any) => {
+const onStatus = async (status: JobStatus, data?: any) => {
   if (status === JobStatus.COMPLETED) {
     showGoToDashboardButton.value = true
     await loadTables()
     pushProgress('Done!', status)
     // TODO: add tab of the first table
   } else if (status === JobStatus.FAILED) {
-    pushProgress(error, status)
+    pushProgress(data.error.message, status)
   }
 }
 

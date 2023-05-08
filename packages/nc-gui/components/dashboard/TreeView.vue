@@ -400,9 +400,11 @@ const duplicateTable = async (table: TableType) => {
     'modelValue': isOpen,
     'table': table,
     'onOk': async (jobData: { name: string; id: string }) => {
-      $jobs.subscribe({ name: jobData.name, id: jobData.id }, undefined, async (status: string) => {
+      $jobs.subscribe({ name: jobData.name, id: jobData.id }, undefined, async (status: string, data?: any) => {
         if (status === JobStatus.COMPLETED) {
           await loadTables()
+          const newTable = tables.value.find((el) => el.id === data?.result?.id)
+          if (newTable) addTableTab(newTable)
         } else if (status === JobStatus.FAILED) {
           message.error('Failed to duplicate table')
           await loadTables()

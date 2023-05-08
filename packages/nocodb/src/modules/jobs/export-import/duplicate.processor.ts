@@ -222,6 +222,8 @@ export class DuplicateProcessor {
 
       elapsedTime(hrTime, 'reimportModelData');
     }
+
+    return await Model.get(findWithIdentifier(idMap, sourceModel.id));
   }
 
   async importModelsData(param: {

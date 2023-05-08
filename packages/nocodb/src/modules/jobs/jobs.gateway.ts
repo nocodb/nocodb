@@ -96,13 +96,13 @@ export class JobsGateway implements OnModuleInit {
     name: string;
     id: string;
     status: JobStatus;
-    error?: any;
+    data?: any;
   }): Promise<void> {
     this.server.to(`${data.name}-${data.id}`).emit('status', {
       id: data.id,
       name: data.name,
       status: data.status,
-      error: data.error,
+      data: data.data,
     });
   }
 

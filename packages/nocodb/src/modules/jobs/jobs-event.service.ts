@@ -39,16 +39,23 @@ export class JobsEventService {
       name: job.name,
       id: job.id.toString(),
       status: JobStatus.FAILED,
-      error: error?.message,
+      data: {
+        error: {
+          message: error?.message,
+        },
+      },
     });
   }
 
   @OnQueueCompleted()
-  onCompleted(job: Job) {
+  onCompleted(job: Job, data: any) {
     this.eventEmitter.emit(JobEvents.STATUS, {
       name: job.name,
       id: job.id.toString(),
       status: JobStatus.COMPLETED,
+      data: {
+        result: data,
+      },
     });
   }
 

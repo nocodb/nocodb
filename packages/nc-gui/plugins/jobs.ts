@@ -41,7 +41,7 @@ export default defineNuxtPlugin(async (nuxtApp) => {
     subscribe(
       job: { id: string; name: string } | any,
       subscribedCb?: () => void,
-      statusCb?: (status: JobStatus, error?: any) => void,
+      statusCb?: (status: JobStatus, data?: any) => void,
       logCb?: (data: { message: string }) => void,
     ) {
       const logFn = (data: { id: string; name: string; data: { message: string } }) => {
@@ -51,7 +51,7 @@ export default defineNuxtPlugin(async (nuxtApp) => {
       }
       const statusFn = (data: any) => {
         if (data.id === job.id) {
-          if (statusCb) statusCb(data.status, data.error)
+          if (statusCb) statusCb(data.status, data.data)
           if (data.status === JobStatus.COMPLETED || data.status === JobStatus.FAILED) {
             socket?.off('status', statusFn)
             socket?.off('log', logFn)

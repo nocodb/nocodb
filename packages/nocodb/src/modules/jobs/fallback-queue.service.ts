@@ -26,20 +26,21 @@ export class QueueService {
     private readonly duplicateProcessor: DuplicateProcessor,
     private readonly atImportProcessor: AtImportProcessor,
   ) {
-    this.emitter.on(JobStatus.ACTIVE, (data: any) => {
+    this.emitter.on(JobStatus.ACTIVE, (data: { job: Job }) => {
       const job = this.queueMemory.find(
-        (job) => job.id === data.id && job.name === data.name,
+        (job) => job.id === data.job.id && job.name === data.job.name,
       );
       job.status = JobStatus.ACTIVE;
       this.jobsEventService.onActive.apply(this.jobsEventService, [job as any]);
     });
-    this.emitter.on(JobStatus.COMPLETED, (data: any) => {
+    this.emitter.on(JobStatus.COMPLETED, (data: { job: Job; result: any }) => {
       const job = this.queueMemory.find(
-        (job) => job.id === data.id && job.name === data.name,
+        (job) => job.id === data.job.id && job.name === data.job.name,
       );
       job.status = JobStatus.COMPLETED;
       this.jobsEventService.onCompleted.apply(this.jobsEventService, [
-        data as any,
+        job,
+        data.result,
       ]);
     });
     this.emitter.on(JobStatus.FAILED, (data: { job: Job; error: Error }) => {
@@ -48,7 +49,7 @@ export class QueueService {
       );
       job.status = JobStatus.FAILED;
       this.jobsEventService.onFailed.apply(this.jobsEventService, [
-        data.job as any,
+        job,
         data.error,
       ]);
     });
@@ -70,10 +71,13 @@ export class QueueService {
   };
 
   async jobWrapper(job: Job) {
-    this.emitter.emit(JobStatus.ACTIVE, job);
+    this.emitter.emit(JobStatus.ACTIVE, { job });
     try {
-      await this.jobMap[job.name].fn.apply(this.jobMap[job.name].this, [job]);
-      this.emitter.emit(JobStatus.COMPLETED, job);
+      const result = await this.jobMap[job.name].fn.apply(
+        this.jobMap[job.name].this,
+        [job],
+      );
+      this.emitter.emit(JobStatus.COMPLETED, { job, result });
     } catch (error) {
       this.emitter.emit(JobStatus.FAILED, { job, error });
     }

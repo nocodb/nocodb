@@ -46,10 +46,10 @@ const pageChange = (p: number) => {
 }
 
 const loadProjects = async () => {
-  const lastPage = activePage.value
+  const lastActivePage = activePage.value
   const response = await api.project.list({})
   projects.value = response.list
-  activePage.value = lastPage
+  activePage.value = lastActivePage
 }
 
 const filteredProjects = computed(

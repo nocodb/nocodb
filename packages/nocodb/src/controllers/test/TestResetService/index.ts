@@ -13,6 +13,7 @@ import ProjectUser from '../../../models/ProjectUser';
 import resetPgSakilaProject from './resetPgSakilaProject';
 import resetMysqlSakilaProject from './resetMysqlSakilaProject';
 import resetMetaSakilaSqliteProject from './resetMetaSakilaSqliteProject';
+import type ApiToken from '../../../models/ApiToken';
 
 const workerStatus = {};
 
@@ -84,7 +85,7 @@ export class TestResetService {
       try {
         await removeAllProjectCreatedByTheTest(this.parallelId);
         await removeAllPrefixedUsersExceptSuper(this.parallelId);
-        await removeAllTokensCreatedByTheTest();
+        await removeAllTokensCreatedByTheTest(this.parallelId);
       } catch (e) {
         console.log(`Error in cleaning up project: ${this.parallelId}`, e);
       }
@@ -179,19 +180,25 @@ const removeAllPrefixedUsersExceptSuper = async (parallelId: string) => {
   }
 };
 
-const removeAllTokensCreatedByTheTest = async () => {
-  const tokens = await Noco.ncMeta.metaList(null, null, MetaTable.API_TOKENS);
+const removeAllTokensCreatedByTheTest = async (parallelId: string) => {
+  const tokens: ApiToken[] = await Noco.ncMeta.metaList(
+    null,
+    null,
+    MetaTable.API_TOKENS,
+  );
 
   for (const token of tokens) {
-    await NocoCache.deepDel(
-      CacheScope.API_TOKEN,
-      `${CacheScope.API_TOKEN}:${token.token}`,
-      CacheDelDirection.CHILD_TO_PARENT,
-    );
+    if (token.description.startsWith(`nc_test_${parallelId}`)) {
+      await NocoCache.deepDel(
+        CacheScope.API_TOKEN,
+        `${CacheScope.API_TOKEN}:${token.token}`,
+        CacheDelDirection.CHILD_TO_PARENT,
+      );
 
-    await Noco.ncMeta.metaDelete(null, null, MetaTable.API_TOKENS, {
-      token: token.token,
-    });
+      await Noco.ncMeta.metaDelete(null, null, MetaTable.API_TOKENS, {
+        token: token.token,
+      });
+    }
   }
 };
 

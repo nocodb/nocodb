@@ -2972,19 +2972,19 @@ class KnexClient extends SqlClient {
     if (value === null || value === undefined) return undefined;
 
     if (typeof value === 'string') {
-      // i value is null or true or false, return as is
-      if (value === 'NULL' || value === 'null') return 'NULL';
-      if (value === 'true' || value === 'true') return 'true';
+      // if value is null/true/false return as is
+      if (['NULL', 'null', 'TRUE', 'true', 'FALSE', 'false'].includes(value))
+        return value;
 
       // if value is a number, return as is
       if (/^\d+(\.\d+)?$/.test(value)) return value;
 
       // if value is a function, return as is
+      // for example: CURRENT_TIMESTAMP(), NOW(), UUID(), etc
       if (/^\w+\(\)$/.test(value)) return value;
 
       // if value is a CURRENT_TIMESTAMP, return as is
-      if (/^CURRENT_TIMESTAMP[\w ]*$/.test(value.toUpperCase()))
-        return value;
+      if (/^CURRENT_TIMESTAMP[\w ]*$/.test(value.toUpperCase())) return value;
 
       // if value wrapped in single/double quotes, then extract value and sanitise
       const m = value.match(/^(['"])(.*)\1$/);

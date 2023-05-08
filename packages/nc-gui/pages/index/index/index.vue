@@ -4,6 +4,7 @@ import tinycolor from 'tinycolor2'
 import { breakpointsTailwind } from '@vueuse/core'
 import {
   Empty,
+  JobStatus,
   Modal,
   computed,
   definePageMeta,
@@ -92,9 +93,9 @@ const duplicateProject = (project: ProjectType) => {
       await loadProjects()
 
       $jobs.subscribe({ name: jobData.name, id: jobData.id }, undefined, async (status: string) => {
-        if (status === 'completed') {
+        if (status === JobStatus.COMPLETED) {
           await loadProjects()
-        } else if (status === 'failed') {
+        } else if (status === JobStatus.FAILED) {
           message.error('Failed to duplicate project')
           await loadProjects()
         }

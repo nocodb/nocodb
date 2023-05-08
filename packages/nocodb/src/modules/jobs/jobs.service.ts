@@ -1,7 +1,7 @@
 import { InjectQueue } from '@nestjs/bull';
 import { Injectable } from '@nestjs/common';
 import { Queue } from 'bull';
-import { JOBS_QUEUE } from '../../interface/Jobs';
+import { JOBS_QUEUE, JobStatus } from '../../interface/Jobs';
 import { QueueService } from './fallback-queue.service';
 
 @Injectable()
@@ -22,18 +22,23 @@ export class JobsService {
 
   async jobList(jobType: string) {
     return (
-      await this.activeQueue.getJobs(['active', 'waiting', 'delayed', 'paused'])
+      await this.activeQueue.getJobs([
+        JobStatus.ACTIVE,
+        JobStatus.WAITING,
+        JobStatus.DELAYED,
+        JobStatus.PAUSED,
+      ])
     ).filter((j) => j.name === jobType);
   }
 
   async getJobWithData(data: any) {
     const jobs = await this.activeQueue.getJobs([
       // 'completed',
-      'waiting',
-      'active',
-      'delayed',
+      JobStatus.WAITING,
+      JobStatus.ACTIVE,
+      JobStatus.DELAYED,
       // 'failed',
-      'paused',
+      JobStatus.PAUSED,
     ]);
 
     const job = jobs.find((j) => {

@@ -2,6 +2,7 @@
 import type { Card as AntCard } from 'ant-design-vue'
 import {
   Form,
+  JobStatus,
   computed,
   extractSdkResponseErrorMsg,
   fieldRequiredValidator,
@@ -67,7 +68,7 @@ const syncSource = ref({
   },
 })
 
-const pushProgress = async (message: string, status: 'completed' | 'failed' | 'progress') => {
+const pushProgress = async (message: string, status: JobStatus | 'progress') => {
   progress.value.push({ msg: message, status })
 
   await nextTick(() => {
@@ -81,13 +82,13 @@ const onSubscribe = () => {
   step.value = 2
 }
 
-const onStatus = async (status: 'active' | 'completed' | 'failed' | 'refresh', error?: any) => {
-  if (status === 'completed') {
+const onStatus = async (status: JobStatus, error?: any) => {
+  if (status === JobStatus.COMPLETED) {
     showGoToDashboardButton.value = true
     await loadTables()
     pushProgress('Done!', status)
     // TODO: add tab of the first table
-  } else if (status === 'failed') {
+  } else if (status === JobStatus.FAILED) {
     pushProgress(error, status)
   }
 }
@@ -370,7 +371,7 @@ onMounted(async () => {
 
         <a-card ref="logRef" :body-style="{ backgroundColor: '#000000', height: '400px', overflow: 'auto' }">
           <div v-for="({ msg, status }, i) in progress" :key="i">
-            <div v-if="status === 'failed'" class="flex items-center">
+            <div v-if="status === JobStatus.FAILED" class="flex items-center">
               <component :is="iconMap.closeCircle" class="text-red-500" />
 
               <span class="text-red-500 ml-2">{{ msg }}</span>
@@ -387,7 +388,8 @@ onMounted(async () => {
             v-if="
               !progress ||
               !progress.length ||
-              (progress[progress.length - 1].status !== 'completed' && progress[progress.length - 1].status !== 'failed')
+              (progress[progress.length - 1].status !== JobStatus.COMPLETED &&
+                progress[progress.length - 1].status !== JobStatus.FAILED)
             "
             class="flex items-center"
           >

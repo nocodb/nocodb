@@ -1,6 +1,6 @@
 import type { Socket } from 'socket.io-client'
 import io from 'socket.io-client'
-import { defineNuxtPlugin, useGlobal, watch } from '#imports'
+import { JobStatus, defineNuxtPlugin, useGlobal, watch } from '#imports'
 
 export default defineNuxtPlugin(async (nuxtApp) => {
   const { appInfo } = $(useGlobal())
@@ -41,7 +41,7 @@ export default defineNuxtPlugin(async (nuxtApp) => {
     subscribe(
       job: { id: string; name: string } | any,
       subscribedCb?: () => void,
-      statusCb?: (status: 'active' | 'completed' | 'failed' | 'refresh', error?: any) => void,
+      statusCb?: (status: JobStatus, error?: any) => void,
       logCb?: (data: { message: string }) => void,
     ) {
       const logFn = (data: { id: string; name: string; data: { message: string } }) => {
@@ -52,7 +52,7 @@ export default defineNuxtPlugin(async (nuxtApp) => {
       const statusFn = (data: any) => {
         if (data.id === job.id) {
           if (statusCb) statusCb(data.status, data.error)
-          if (data.status === 'completed' || data.status === 'failed') {
+          if (data.status === JobStatus.COMPLETED || data.status === JobStatus.FAILED) {
             socket?.off('status', statusFn)
             socket?.off('log', logFn)
           }

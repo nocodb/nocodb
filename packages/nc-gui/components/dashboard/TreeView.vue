@@ -9,6 +9,7 @@ import type { VNodeRef } from '#imports'
 import {
   ClientType,
   Empty,
+  JobStatus,
   TabType,
   computed,
   extractSdkResponseErrorMsg,
@@ -400,9 +401,9 @@ const duplicateTable = async (table: TableType) => {
     'table': table,
     'onOk': async (jobData: { name: string; id: string }) => {
       $jobs.subscribe({ name: jobData.name, id: jobData.id }, undefined, async (status: string) => {
-        if (status === 'completed') {
+        if (status === JobStatus.COMPLETED) {
           await loadTables()
-        } else if (status === 'failed') {
+        } else if (status === JobStatus.FAILED) {
           message.error('Failed to duplicate table')
           await loadTables()
         }

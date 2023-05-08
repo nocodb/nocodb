@@ -7,7 +7,7 @@ import {
 import { Job } from 'bull';
 import boxen from 'boxen';
 import { EventEmitter2 } from '@nestjs/event-emitter';
-import { JOBS_QUEUE } from '../../interface/Jobs';
+import { JobEvents, JOBS_QUEUE, JobStatus } from '../../interface/Jobs';
 
 @Processor(JOBS_QUEUE)
 export class JobsEventService {
@@ -15,10 +15,10 @@ export class JobsEventService {
 
   @OnQueueActive()
   onActive(job: Job) {
-    this.eventEmitter.emit('job.status', {
+    this.eventEmitter.emit(JobEvents.STATUS, {
       name: job.name,
       id: job.id.toString(),
-      status: 'active',
+      status: JobStatus.ACTIVE,
     });
   }
 
@@ -35,25 +35,25 @@ export class JobsEventService {
       ),
     );
 
-    this.eventEmitter.emit('job.status', {
+    this.eventEmitter.emit(JobEvents.STATUS, {
       name: job.name,
       id: job.id.toString(),
-      status: 'failed',
+      status: JobStatus.FAILED,
       error: error?.message,
     });
   }
 
   @OnQueueCompleted()
   onCompleted(job: Job) {
-    this.eventEmitter.emit('job.status', {
+    this.eventEmitter.emit(JobEvents.STATUS, {
       name: job.name,
       id: job.id.toString(),
-      status: 'completed',
+      status: JobStatus.COMPLETED,
     });
   }
 
   sendLog(job: Job, data: { message: string }) {
-    this.eventEmitter.emit('job.log', {
+    this.eventEmitter.emit(JobEvents.LOG, {
       name: job.name,
       id: job.id.toString(),
       data,

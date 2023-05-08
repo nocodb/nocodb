@@ -9,7 +9,9 @@ import { Server, Socket } from 'socket.io';
 import { ExecutionContextHost } from '@nestjs/core/helpers/execution-context-host';
 import { AuthGuard } from '@nestjs/passport';
 import { OnEvent } from '@nestjs/event-emitter';
+import { JobEvents } from '../../interface/Jobs';
 import { JobsService } from './jobs.service';
+import type { JobStatus } from '../../interface/Jobs';
 import type { OnModuleInit } from '@nestjs/common';
 
 @WebSocketGateway({
@@ -89,18 +91,11 @@ export class JobsGateway implements OnModuleInit {
     });
   }
 
-  @OnEvent('job.status')
+  @OnEvent(JobEvents.STATUS)
   async sendJobStatus(data: {
     name: string;
     id: string;
-    status:
-      | 'completed'
-      | 'waiting'
-      | 'active'
-      | 'delayed'
-      | 'failed'
-      | 'paused'
-      | 'refresh';
+    status: JobStatus;
     error?: any;
   }): Promise<void> {
     this.server.to(`${data.name}-${data.id}`).emit('status', {
@@ -111,7 +106,7 @@ export class JobsGateway implements OnModuleInit {
     });
   }
 
-  @OnEvent('job.log')
+  @OnEvent(JobEvents.LOG)
   async sendJobLog(data: {
     name: string;
     id: string;

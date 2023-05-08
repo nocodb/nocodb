@@ -1,7 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import PQueue from 'p-queue';
 import Emittery from 'emittery';
-import { JobTypes } from '../../interface/Jobs';
+import { JobStatus, JobTypes } from '../../interface/Jobs';
 import { DuplicateProcessor } from './export-import/duplicate.processor';
 import { JobsEventService } from './jobs-event.service';
 import { AtImportProcessor } from './at-import/at-import.processor';
@@ -26,27 +26,27 @@ export class QueueService {
     private readonly duplicateProcessor: DuplicateProcessor,
     private readonly atImportProcessor: AtImportProcessor,
   ) {
-    this.emitter.on('active', (data: any) => {
+    this.emitter.on(JobStatus.ACTIVE, (data: any) => {
       const job = this.queueMemory.find(
         (job) => job.id === data.id && job.name === data.name,
       );
-      job.status = 'active';
+      job.status = JobStatus.ACTIVE;
       this.jobsEventService.onActive.apply(this.jobsEventService, [job as any]);
     });
-    this.emitter.on('completed', (data: any) => {
+    this.emitter.on(JobStatus.COMPLETED, (data: any) => {
       const job = this.queueMemory.find(
         (job) => job.id === data.id && job.name === data.name,
       );
-      job.status = 'completed';
+      job.status = JobStatus.COMPLETED;
       this.jobsEventService.onCompleted.apply(this.jobsEventService, [
         data as any,
       ]);
     });
-    this.emitter.on('failed', (data: { job: Job; error: Error }) => {
+    this.emitter.on(JobStatus.FAILED, (data: { job: Job; error: Error }) => {
       const job = this.queueMemory.find(
         (job) => job.id === data.job.id && job.name === data.job.name,
       );
-      job.status = 'failed';
+      job.status = JobStatus.FAILED;
       this.jobsEventService.onFailed.apply(this.jobsEventService, [
         data.job as any,
         data.error,
@@ -70,12 +70,12 @@ export class QueueService {
   };
 
   async jobWrapper(job: Job) {
-    this.emitter.emit('active', job);
+    this.emitter.emit(JobStatus.ACTIVE, job);
     try {
       await this.jobMap[job.name].fn.apply(this.jobMap[job.name].this, [job]);
-      this.emitter.emit('completed', job);
+      this.emitter.emit(JobStatus.COMPLETED, job);
     } catch (error) {
-      this.emitter.emit('failed', { job, error });
+      this.emitter.emit(JobStatus.FAILED, { job, error });
     }
   }
 
@@ -101,7 +101,7 @@ export class QueueService {
 
   async add(name: string, data: any) {
     const id = `${this.queueIndex++}`;
-    const job = { id: `${id}`, name, status: 'waiting', data };
+    const job = { id: `${id}`, name, status: JobStatus.WAITING, data };
     this.queueMemory.push(job);
     this.queue.add(() => this.jobWrapper(job));
     return { id, name };

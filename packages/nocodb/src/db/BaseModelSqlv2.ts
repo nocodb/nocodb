@@ -3248,7 +3248,7 @@ class BaseModelSqlv2 {
     // Then, MySQL converts those values back from UTC to the current time zone for retrieval.
     // To make it consistent with other DB types, we show the result in UTC instead
     // e.g. 2022-01-01 04:30:00+00:00
-    if (data) {
+    if (this.isMySQL && data) {
       const dateTimeColumns = (
         childTable ? childTable.columns : this.model.columns
       ).filter((c) => c.uidt === UITypes.DateTime);

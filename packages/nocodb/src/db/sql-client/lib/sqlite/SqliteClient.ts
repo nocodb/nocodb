@@ -2001,8 +2001,6 @@ class SqliteClient extends KnexClient {
 
   alterTableColumn(t, n, o, existingQuery, change = 2) {
     let query = '';
-    // @ts-ignore
-    const defaultValue = getDefaultValue(n);
     let shouldSanitize = true;
     if (change === 2) {
       const suffix = nanoid();
@@ -2021,7 +2019,7 @@ class SqliteClient extends KnexClient {
       );
       addNewColumnQuery += n.dtxp && n.dt !== 'text' ? `(${n.dtxp})` : '';
       addNewColumnQuery += n.cdf
-        ? ` DEFAULT ${n.cdf}`
+        ? ` DEFAULT ${this.validateAndSanitiseDefaultValue(n.cdf)}`
         : !n.rqd
         ? ' '
         : ` DEFAULT ''`;
@@ -2049,13 +2047,13 @@ class SqliteClient extends KnexClient {
       query = existingQuery ? ',' : '';
       query += this.genQuery(`?? ${n.dt}`, [n.cn], shouldSanitize);
       query += n.dtxp && n.dt !== 'text' ? `(${n.dtxp})` : '';
-      query += n.cdf ? ` DEFAULT ${n.cdf}` : ' ';
+      query += n.cdf ? ` DEFAULT ${this.validateAndSanitiseDefaultValue(n.cdf)}` : ' ';
       query += n.rqd ? ` NOT NULL` : ' ';
     } else if (change === 1) {
       shouldSanitize = true;
       query += this.genQuery(` ADD ?? ${n.dt}`, [n.cn], shouldSanitize);
       query += n.dtxp && n.dt !== 'text' ? `(${n.dtxp})` : '';
-      query += n.cdf ? ` DEFAULT ${n.cdf}` : !n.rqd ? ' ' : ` DEFAULT ''`;
+      query += n.cdf ? ` DEFAULT ${this.validateAndSanitiseDefaultValue(n.cdf)}` : !n.rqd ? ' ' : ` DEFAULT ''`;
       query += n.rqd ? ` NOT NULL` : ' ';
       query = this.genQuery(`ALTER TABLE ?? ${query};`, [t], shouldSanitize);
     } else {
@@ -2116,56 +2114,6 @@ class SqliteClient extends KnexClient {
       log.api(`${func} :result: ${result}`);
     }
     return result;
-  }
-}
-
-function getDefaultValue(n) {
-  if (n.cdf === undefined || n.cdf === null) return n.cdf;
-  switch (n.dt) {
-    case 'boolean':
-    case 'bool':
-    case 'tinyint':
-    case 'int':
-    case 'samllint':
-    case 'bigint':
-    case 'integer':
-    case 'smallint':
-    case 'mediumint':
-    case 'int2':
-    case 'int4':
-    case 'int8':
-    case 'long':
-    case 'serial':
-    case 'bigserial':
-    case 'smallserial':
-    case 'number':
-    case 'float':
-    case 'double':
-    case 'decimal':
-    case 'numeric':
-    case 'real':
-    case 'double precision':
-    case 'money':
-    case 'smallmoney':
-    case 'dec':
-      return n.cdf;
-      break;
-
-    case 'datetime':
-    case 'timestamp':
-    case 'date':
-    case 'time':
-      if (
-        n.cdf.indexOf('CURRENT_TIMESTAMP') > -1 ||
-        /\(([\d\w'", ]*)\)$/.test(n.cdf)
-      ) {
-        return n.cdf;
-      }
-      return JSON.stringify(n.cdf);
-      break;
-    default:
-      return JSON.stringify(n.cdf);
-      break;
   }
 }
 

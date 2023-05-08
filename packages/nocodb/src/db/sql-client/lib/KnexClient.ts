@@ -2966,6 +2966,41 @@ class KnexClient extends SqlClient {
   unsanitize(str) {
     return str.replace(/\\[?]/g, '?');
   }
+
+  validateAndSanitiseDefaultValue(value: string | number | boolean) {
+    if (value === null || value === undefined) return undefined;
+
+    if (typeof value === 'string') {
+      // i value is null or true or false, return as is
+      if (value === 'NULL' || value === 'null') return 'NULL';
+      if (value === 'true' || value === 'true') return 'true';
+
+      // if value is a number, return as is
+      if (/^\d+(\.\d+)?$/) return value;
+
+      // if value is a function, return as is
+      if (/^\w+\(\)$/.test(value)) return value;
+
+      // if value is a CURRENT_TIMESTAMP, return as is
+      if (/^CURRENT_TIMESTAMP\([\w ]+\)$/.test(value.toUpperCase()))
+        return value;
+
+      // if value wrapped in single/double quotes, then extract value and sanitise
+      const m = value.match(/^(['"])(.*)\1$/);
+      if (m) {
+        return this.genQuery('?', [
+          // escape for single/double quotes no longer needed remove it
+          m[2].replace(m[1] === '"' ? /\\"/g : /\\'/g, m[1]),
+        ]);
+      }
+
+      // if any other type of string, just sanitise and return
+      return this.genQuery('?', [value]);
+    } else {
+      // if any other type of value, just sanitise and return
+      return this.genQuery('?', [value]);
+    }
+  }
 }
 
 // expose class

@@ -2577,7 +2577,7 @@ class MssqlClient extends KnexClient {
   alterTableColumn(t, n, o, existingQuery, change = 2) {
     let query = '';
 
-    const defaultValue = getDefaultValue(n);
+    const defaultValue = this.validateAndSanitiseDefaultValue(n.cdf);
     const shouldSanitize = true;
     const scaleAndPrecision =
       !getDefaultLengthIsDisabled(n.dt) && n.dtxp
@@ -2705,60 +2705,6 @@ class MssqlClient extends KnexClient {
       log.api(`${func} :result: ${result}`);
     }
     return result;
-  }
-}
-
-function getDefaultValue(n) {
-  if (n.cdf === undefined || n.cdf === null) return n.cdf;
-  switch (n.dt) {
-    case 'boolean':
-    case 'bool':
-    case 'tinyint':
-    case 'int':
-    case 'samllint':
-    case 'bigint':
-    case 'integer':
-    case 'smallint':
-    case 'mediumint':
-    case 'int2':
-    case 'int4':
-    case 'int8':
-    case 'long':
-    case 'serial':
-    case 'bigserial':
-    case 'smallserial':
-    case 'number':
-    case 'float':
-    case 'double':
-    case 'decimal':
-    case 'numeric':
-    case 'real':
-    case 'double precision':
-    case 'money':
-    case 'smallmoney':
-    case 'dec':
-      return n.cdf;
-      break;
-
-    case 'datetime':
-    case 'timestamp':
-    case 'date':
-    case 'time':
-      if (
-        n.cdf.toLowerCase().indexOf('getdate') > -1 ||
-        /\(([\d\w'", ]*)\)$/.test(n.cdf)
-      ) {
-        return n.cdf;
-      }
-      return JSON.stringify(n.cdf);
-      break;
-    case 'text':
-    case 'ntext':
-      return `'${n.cdf}'`;
-      break;
-    default:
-      return JSON.stringify(n.cdf);
-      break;
   }
 }
 

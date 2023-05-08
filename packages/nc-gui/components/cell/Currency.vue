@@ -74,6 +74,7 @@ onMounted(() => {
     v-if="editEnabled"
     :ref="focus"
     v-model="vModel"
+    type="number"
     class="w-full h-full border-none outline-none px-2"
     @blur="submitCurrency"
     @keydown.down.stop
@@ -88,7 +89,9 @@ onMounted(() => {
 
   <span v-else-if="vModel === null && showNull" class="nc-null">NULL</span>
 
-  <span v-else-if="vModel">{{ currency }}</span>
+  <!-- only show the numeric value as previously string value was accepted -->
+  <span v-else-if="/^\d+(\.\d+)?$/.test(vModel)">{{ currency }}</span>
 
+  <!-- possibly unexpected string / null with showNull == false  -->
   <span v-else />
 </template>

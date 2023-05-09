@@ -648,6 +648,8 @@ export interface FilterType {
   fk_column_id?: IdType;
   /** Foreign Key to Hook */
   fk_hook_id?: StringOrNullType;
+  /** Foreign Key to Widget */
+  fk_widget_id?: StringOrNullType;
   /** Foreign Key to Model */
   fk_model_id?: IdType;
   /** Foreign Key to parent group. */
@@ -3212,6 +3214,73 @@ export class Api<
       >({
         path: `/api/v1/layouts/${layoutId}/widgets/${widgetId}`,
         method: 'PATCH',
+        body: data,
+        type: ContentType.Json,
+        format: 'json',
+        ...params,
+      }),
+
+    /**
+ * @description Get the filter for a given Widget
+ * 
+ * @tags Dashboard
+ * @name WidgetFilterRead
+ * @summary Get Widget Filter
+ * @request GET:/api/v1/layouts/:layoutId/widgets/:widgetId/filters
+ * @response `200` `FilterListType` OK
+ * @response `400` `{
+  \** @example BadRequest [Error]: <ERROR MESSAGE> *\
+  msg: string,
+
+}`
+ */
+    widgetFilterRead: (
+      layoutId: string,
+      widgetId: string,
+      params: RequestParams = {}
+    ) =>
+      this.request<
+        FilterListType,
+        {
+          /** @example BadRequest [Error]: <ERROR MESSAGE> */
+          msg: string;
+        }
+      >({
+        path: `/api/v1/layouts/${layoutId}/widgets/${widgetId}/filters`,
+        method: 'GET',
+        format: 'json',
+        ...params,
+      }),
+
+    /**
+ * @description Update the filter for a given Widget
+ * 
+ * @tags Dashboard
+ * @name WidgetFilterCreate
+ * @summary Create Widget Filter
+ * @request POST:/api/v1/layouts/:layoutId/widgets/:widgetId/filters
+ * @response `200` `FilterType` OK
+ * @response `400` `{
+  \** @example BadRequest [Error]: <ERROR MESSAGE> *\
+  msg: string,
+
+}`
+ */
+    widgetFilterCreate: (
+      layoutId: string,
+      widgetId: string,
+      data: FilterReqType,
+      params: RequestParams = {}
+    ) =>
+      this.request<
+        FilterType,
+        {
+          /** @example BadRequest [Error]: <ERROR MESSAGE> */
+          msg: string;
+        }
+      >({
+        path: `/api/v1/layouts/${layoutId}/widgets/${widgetId}/filters`,
+        method: 'POST',
         body: data,
         type: ContentType.Json,
         format: 'json',

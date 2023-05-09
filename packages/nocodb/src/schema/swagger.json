@@ -13893,7 +13893,7 @@
         ]
       }
     },
-    "/api/v1/db/meta/projects/{projectId}/layouts": {
+    "/api/v1/dashboards/{dashboardId}/layouts": {
       "parameters": [
               {
         "schema": {
@@ -13901,10 +13901,10 @@
           "example": "p_124hhlkbeasewh",
           "type": "string"
         },
-        "name": "projectId",
+        "name": "dashboardId",
         "in": "path",
         "required": true,
-        "description": "Unique Project ID"
+        "description": "Unique Dashboard/Project ID"
       }
       ],
       "post": {
@@ -13935,7 +13935,7 @@
           }
         },
         "tags": ["Dashboard"],
-        "description": "Create a new Dashboard in a given project",
+        "description": "Create a new Layout in a given Dashboard project",
         "parameters": [
           {
             "$ref": "#/components/parameters/xc-auth"
@@ -13959,7 +13959,7 @@
           }
         ],
         "tags": ["Dashboard"],
-        "description": "List all Layouts in a given project"
+        "description": "List all Layouts in a given Dashboard project"
       }
     },
     "/api/v1/db/meta/hooks/{hookId}": {

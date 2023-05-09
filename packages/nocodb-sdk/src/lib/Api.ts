@@ -3219,12 +3219,12 @@ export class Api<
       }),
 
     /**
- * @description Create a new Dashboard in a given project
+ * @description Create a new Layout in a given Dashboard project
  * 
  * @tags Dashboard
  * @name LayoutCreate
  * @summary Create Layout
- * @request POST:/api/v1/db/meta/projects/{projectId}/layouts
+ * @request POST:/api/v1/dashboards/{dashboardId}/layouts
  * @response `200` `LayoutType` OK
  * @response `400` `{
   \** @example BadRequest [Error]: <ERROR MESSAGE> *\
@@ -3233,7 +3233,7 @@ export class Api<
 }`
  */
     layoutCreate: (
-      projectId: IdType,
+      dashboardId: IdType,
       data: LayoutReqType,
       params: RequestParams = {}
     ) =>
@@ -3244,7 +3244,7 @@ export class Api<
           msg: string;
         }
       >({
-        path: `/api/v1/db/meta/projects/${projectId}/layouts`,
+        path: `/api/v1/dashboards/${dashboardId}/layouts`,
         method: 'POST',
         body: data,
         type: ContentType.Json,
@@ -3253,12 +3253,12 @@ export class Api<
       }),
 
     /**
- * @description List all Layouts in a given project
+ * @description List all Layouts in a given Dashboard project
  * 
  * @tags Dashboard
  * @name LayoutList
  * @summary List Layouts
- * @request GET:/api/v1/db/meta/projects/{projectId}/layouts
+ * @request GET:/api/v1/dashboards/{dashboardId}/layouts
  * @response `200` `LayoutListType`
  * @response `400` `{
   \** @example BadRequest [Error]: <ERROR MESSAGE> *\
@@ -3266,7 +3266,7 @@ export class Api<
 
 }`
  */
-    layoutList: (projectId: IdType, params: RequestParams = {}) =>
+    layoutList: (dashboardId: IdType, params: RequestParams = {}) =>
       this.request<
         LayoutListType,
         {
@@ -3274,7 +3274,7 @@ export class Api<
           msg: string;
         }
       >({
-        path: `/api/v1/db/meta/projects/${projectId}/layouts`,
+        path: `/api/v1/dashboards/${dashboardId}/layouts`,
         method: 'GET',
         ...params,
       }),

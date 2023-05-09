@@ -55,10 +55,10 @@ const up = async (knex: Knex) => {
 };
 
 const down = async (knex: Knex) => {
-  await knex.schema.dropTable(MetaTable.DASHBOARD);
-  await knex.schema.dropTable(MetaTable.WIDGET);
-  await knex.schema.dropTable(MetaTable.DASHBOARD_PROJECT_DB_PROJECT_LINKINGS);
   await knex.schema.dropTable(MetaTable.WIDGET_DB_DEPENDENCIES);
+  await knex.schema.dropTable(MetaTable.DASHBOARD_PROJECT_DB_PROJECT_LINKINGS);
+  await knex.schema.dropTable(MetaTable.WIDGET);
+  await knex.schema.dropTable(MetaTable.DASHBOARD);
 };
 
 export { up, down };

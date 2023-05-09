@@ -45,20 +45,14 @@ export default function convertCellData(
         throw new Error('Not a valid datetime value')
       }
       if (isXcdbBase) {
+        // convert back to utc
+        // e.g. 2023-05-09T19:41:49+08:00 -> 2023-05-09 11:41:49
         if (isMysql) {
-          // convert back to utc
-          // e.g. 2023-05-09T19:41:49+08:00 -> 2023-05-09 11:41:49
           return `${parsedDateTime.utc().format('YYYY-MM-DD HH:mm:ss')}`
         } else if (isMssql) {
           return parsedDateTime.utc().format('YYYY-MM-DD HH:mm:ssZ')
         } else {
-          if (!dayjs.isDayjs(value)) {
-            // e.g. copy the existing cell - 2023-05-06 13:06:51 (UTC)
-            return parsedDateTime.utc(true).format('YYYY-MM-DD HH:mm:ssZ')
-          }
-          // e.g. copy right after setting by datepicker
-          // value includes timezone
-          return parsedDateTime
+          return parsedDateTime.utc().format('YYYY-MM-DD HH:mm:ssZ')
         }
       }
       // External DB - keep it as it is

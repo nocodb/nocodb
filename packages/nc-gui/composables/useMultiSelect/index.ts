@@ -123,15 +123,9 @@ export function useMultiSelect(
               // feed custom parse format
               d = dayjs(textToCopy, isMysql(columnObj.base_id) ? 'YYYY-MM-DD HH:mm:ss' : 'YYYY-MM-DD HH:mm:ssZ')
             }
-            if (isXcdbBase(meta.value?.base_id)) {
-              if (isMssql(meta.value?.base_id) || isMysql(meta.value?.base_id)) {
-                textToCopy = d.format(constructDateTimeFormat(columnObj))
-              } else {
-                textToCopy = d.utc(true).local().format(constructDateTimeFormat(columnObj))
-              }
-            } else {
-              textToCopy = d.format(constructDateTimeFormat(columnObj))
-            }
+
+            textToCopy = d.format(constructDateTimeFormat(columnObj))
+
             if (!dayjs(textToCopy).isValid()) {
               throw new Error('Invalid Date')
             }

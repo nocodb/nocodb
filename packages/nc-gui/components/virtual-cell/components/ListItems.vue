@@ -58,11 +58,7 @@ const linkRow = async (row: Record<string, any>) => {
   } else {
     await link(row)
   }
-  if (isAltKeyDown.value) {
-    loadChildrenExcludedList()
-  } else {
-    vModel.value = false
-  }
+  loadChildrenExcludedList()
 }
 
 /** reload list on modal open */

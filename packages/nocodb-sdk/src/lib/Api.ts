@@ -1143,7 +1143,7 @@ export interface GridUpdateReqType {
 export interface WidgetType {
   /** Unique ID */
   id: IdType;
-  /** Dashboard Layout ID */
+  /** Layout ID */
   layout_id: IdType;
   /**
    * Version of the schema
@@ -1161,7 +1161,7 @@ export interface WidgetType {
 }
 
 /**
- * Model for Dashboard Layout
+ * Model for Layout
  */
 export interface LayoutType {
   /** Unique ID */
@@ -1171,16 +1171,16 @@ export interface LayoutType {
   /** Unique Project ID */
   project_id?: string;
   /**
-   * Dashboard Layout Title
-   * @example My Dashboard Layout
+   * Layout Title
+   * @example My Layout
    */
   title?: string;
-  /** The order of this Dashboard Layout in the list of Dashboard Layouts */
+  /** The order of this Layout in the list of Layouts */
   order?: number;
 }
 
 /**
- * Model for Dashboard Layout request
+ * Model for Layout request
  */
 export interface LayoutReqType {
   /** Unique Base ID */
@@ -1188,16 +1188,16 @@ export interface LayoutReqType {
   /** Unique Project ID */
   project_id: string;
   /**
-   * Dashboard Layout Title
-   * @example My Dashboard Layout
+   * Layout Title
+   * @example My Layout
    */
   title: string;
-  /** The order of this Dashboard Layout in the list of Dashboard Layouts */
+  /** The order of this Layout in the list of Layouts */
   order?: number;
 }
 
 /**
- * Model for Dashboard Layout Widget request
+ * Model for Widget request
  */
 export interface WidgetReqType {
   /** Unique Layout ID */
@@ -1218,7 +1218,7 @@ export interface WidgetReqType {
 }
 
 /**
- * Model for Dashboard Layout Widget Update request
+ * Model for Widget Update request
  */
 export interface WidgetUpdateReqType {
   /**
@@ -1237,15 +1237,15 @@ export interface WidgetUpdateReqType {
 }
 
 /**
- * Model for Dashboard Layout Update request
+ * Model for Layout Update request
  */
 export interface LayoutUpdateReqType {
   /**
-   * Dashboard Layout Title
-   * @example My Dashboard Layout
+   * Layout Title
+   * @example My Layout
    */
   title?: string;
-  /** The order of this Dashboard Layout in the list of Dashboard Layouts */
+  /** The order of this Layout in the list of Layouts */
   order?: number;
 }
 
@@ -1271,10 +1271,10 @@ export interface WidgetListType {
 }
 
 /**
- * Model for Dashboard Layout List
+ * Model for Layout List
  */
 export interface LayoutListType {
-  /** Dashboard Layout objects */
+  /** Layout objects */
   list: LayoutType[];
   /** Model for Paginated */
   pageInfo: PaginatedType;
@@ -3037,11 +3037,11 @@ export class Api<
 > extends HttpClient<SecurityDataType> {
   dashboard = {
     /**
-     * @description Get Dashboard Layout
+     * @description Get Layout
      *
      * @tags Dashboard
      * @name LayoutGet
-     * @summary Get dashboard layout
+     * @summary Get Layout
      * @request GET:/api/v1/dashboards/{dashboardId}/layouts/{layoutId}
      * @response `200` `LayoutType` OK
      */
@@ -3058,11 +3058,11 @@ export class Api<
       }),
 
     /**
-     * @description Delete Dashboard Layout
+     * @description Delete Layout
      *
      * @tags Dashboard
      * @name LayoutDelete
-     * @summary Delete Dashboard Layout
+     * @summary Delete Layout
      * @request DELETE:/api/v1/dashboards/{dashboardId}/layouts/{layoutId}
      * @response `200` `void` OK
      */
@@ -3078,11 +3078,11 @@ export class Api<
       }),
 
     /**
- * @description Update the given Dashboard Layout
+ * @description Update the given Layout
  * 
  * @tags Dashboard
  * @name LayoutUpdate
- * @summary Update Dashboard Layout
+ * @summary Update Layout
  * @request PATCH:/api/v1/dashboards/{dashboardId}/layouts/{layoutId}
  * @response `200` `number` OK
  * @response `400` `{
@@ -3113,11 +3113,11 @@ export class Api<
       }),
 
     /**
-     * @description Get Widgets of the Dashboard Layout
+     * @description Get Widgets of the Layout
      *
      * @tags Dashboard
      * @name WidgetList
-     * @summary List Widgets for Dashboard Layout
+     * @summary List Widgets for Layout
      * @request GET:/api/v1/layouts/{layoutId}/widgets
      * @response `200` `WidgetListType` OK
      */
@@ -3130,11 +3130,11 @@ export class Api<
       }),
 
     /**
- * @description Create a new Widget in a given Dashboard Layout
+ * @description Create a new Widget in a given Layout
  * 
  * @tags Dashboard
  * @name WidgetCreate
- * @summary Create Dashboard Layout Widget
+ * @summary Create Widget
  * @request POST:/api/v1/layouts/{layoutId}/widgets
  * @response `200` `WidgetType` OK
  * @response `400` `{
@@ -3164,11 +3164,11 @@ export class Api<
       }),
 
     /**
-     * @description Delete Dashboard Layout Widget
+     * @description Delete Widget
      *
      * @tags Dashboard
      * @name WidgetDelete
-     * @summary Delete Dashboard Layout Widget
+     * @summary Delete Widget
      * @request DELETE:/api/v1/layouts/{layoutId}/widgets/{widgetId}
      * @response `200` `void` OK
      */
@@ -3184,11 +3184,11 @@ export class Api<
       }),
 
     /**
- * @description Update the given Dashboard Layout Widget
+ * @description Update the given Widget
  * 
  * @tags Dashboard
  * @name WidgetUpdate
- * @summary Update Dashboard Layout Widget
+ * @summary Update Widget
  * @request PATCH:/api/v1/layouts/{layoutId}/widgets/{widgetId}
  * @response `200` `number` OK
  * @response `400` `{
@@ -3223,7 +3223,7 @@ export class Api<
  * 
  * @tags Dashboard
  * @name LayoutCreate
- * @summary Create Dashboard Layout
+ * @summary Create Layout
  * @request POST:/api/v1/db/meta/projects/{projectId}/layouts
  * @response `200` `LayoutType` OK
  * @response `400` `{
@@ -3253,11 +3253,11 @@ export class Api<
       }),
 
     /**
- * @description List all Dashboard Layouts in a given project
+ * @description List all Layouts in a given project
  * 
  * @tags Dashboard
  * @name LayoutList
- * @summary List Dashboard Layouts
+ * @summary List Layouts
  * @request GET:/api/v1/db/meta/projects/{projectId}/layouts
  * @response `200` `LayoutListType`
  * @response `400` `{

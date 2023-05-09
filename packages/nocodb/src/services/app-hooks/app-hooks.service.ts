@@ -4,9 +4,10 @@ import type {
   ProjectUserResendInviteEvent,
   ProjectUserUpdateEvent,
   UserPasswordChangeEvent,
-  UserPasswordForgotEvent, UserPasswordResetEvent,
-} from './interfaces'
-import type { AppEvents, NotificationType } from 'nocodb-sdk';
+  UserPasswordForgotEvent,
+  UserPasswordResetEvent,
+} from './interfaces';
+import type { AppEvents } from 'nocodb-sdk';
 import type {
   ColumnEvent,
   FilterEvent,
@@ -38,35 +39,38 @@ export class AppHooksService {
   on(
     event: AppEvents.PROJECT_INVITE,
     listener: (data: ProjectInviteEvent) => void,
-  ): void;
+  ): () => void;
   on(
     event: AppEvents.PROJECT_CREATE,
     listener: (data: ProjectCreateEvent) => void,
-  ): void;
+  ): () => void;
   on(
     event: AppEvents.PROJECT_UPDATE,
     listener: (data: ProjectUpdateEvent) => void,
-  ): void;
+  ): () => void;
   on(
     event: AppEvents.PROJECT_DELETE,
     listener: (data: ProjectDeleteEvent) => void,
-  ): void;
+  ): () => void;
   on(
     event: AppEvents.USER_SIGNUP,
     listener: (data: UserSignupEvent) => void,
-  ): void;
+  ): () => void;
   on(
     event: AppEvents.USER_SIGNIN,
     listener: (data: UserSigninEvent) => void,
-  ): void;
-  on(event: AppEvents.WELCOME, listener: (data: WelcomeEvent) => void): void;
+  ): () => void;
+  on(
+    event: AppEvents.WELCOME,
+    listener: (data: WelcomeEvent) => void,
+  ): () => void;
   on(
     event:
       | AppEvents.TABLE_CREATE
       | AppEvents.TABLE_DELETE
       | AppEvents.TABLE_UPDATE,
     listener: (data: TableEvent) => void,
-  ): void;
+  ): () => void;
   on(
     event:
       | AppEvents.VIEW_UPDATE
@@ -76,42 +80,41 @@ export class AppHooksService {
       | AppEvents.SHARED_VIEW_DELETE
       | AppEvents.SHARED_VIEW_CREATE,
     listener: (data: ViewEvent) => void,
-  ): void;
+  ): () => void;
   on(
     event:
       | AppEvents.FILTER_UPDATE
       | AppEvents.FILTER_DELETE
       | AppEvents.FILTER_CREATE,
     listener: (data: FilterEvent) => void,
-  ): void;
+  ): () => void;
   on(
     event:
       | AppEvents.SORT_UPDATE
       | AppEvents.SORT_DELETE
       | AppEvents.SORT_CREATE,
     listener: (data: SortEvent) => void,
-  ): void;
+  ): () => void;
   on(
     event:
       | AppEvents.COLUMN_UPDATE
       | AppEvents.COLUMN_DELETE
       | AppEvents.COLUMN_CREATE,
     listener: (data: ColumnEvent) => void,
-  ): void;
+  ): () => void;
   on(
     event:
       | AppEvents.WORKSPACE_UPDATE
       | AppEvents.WORKSPACE_DELETE
       | AppEvents.WORKSPACE_CREATE,
     listener: (data: WorkspaceEvent) => void,
-  ): void;
-  // todo: remove this, it's a temporary hack
-  on(event: 'notification', listener: (data: NotificationType) => void): void;
-  on(event, listener): void {
-    this.listenerUnsubscribers.set(
-      listener,
-      this.eventEmitter.on(event, listener),
-    );
+  ): () => void;
+  on(event, listener): () => void {
+    const unsubscribe = this.eventEmitter.on(event, listener);
+
+    this.listenerUnsubscribers.set(listener, unsubscribe);
+
+    return unsubscribe;
   }
 
   emit(event: AppEvents.PROJECT_INVITE, data: ProjectInviteEvent): void;
@@ -187,8 +190,6 @@ export class AppHooksService {
       | AppEvents.COLUMN_DELETE,
     data: ColumnEvent,
   ): void;
-  // todo: remove this, it's a temporary hack
-  emit(event: 'notification', data: NotificationType): void;
   emit(event, data): void {
     this.eventEmitter.emit(event, data);
     this.eventEmitter.emit(ALL_EVENTS, { event, data: data });
@@ -217,9 +218,8 @@ export class AppHooksService {
       data: any;
     }) => void,
   ) {
-    this.listenerUnsubscribers.set(
-      listener,
-      this.eventEmitter.on(ALL_EVENTS, listener),
-    );
+    const unsubscribe = this.eventEmitter.on(ALL_EVENTS, listener);
+    this.listenerUnsubscribers.set(listener, unsubscribe);
+    return unsubscribe;
   }
 }

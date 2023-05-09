@@ -1,19 +1,25 @@
-import type { OnModuleDestroy, OnModuleInit } from '@nestjs/common'
-import { Injectable } from '@nestjs/common'
-import { AppEvents, AuditOperationSubTypes, AuditOperationTypes } from 'nocodb-sdk'
-import { Audit } from '../models'
-import { AppHooksService } from './app-hooks/app-hooks.service'
+import { Injectable } from '@nestjs/common';
+import {
+  AppEvents,
+  AuditOperationSubTypes,
+  AuditOperationTypes,
+} from 'nocodb-sdk';
+import { T } from 'nc-help';
+import { Audit } from '../models';
+import { AppHooksService } from './app-hooks/app-hooks.service';
 import type {
   ProjectInviteEvent,
   ProjectUserResendInviteEvent,
   ProjectUserUpdateEvent,
+  TableEvent,
   UserEmailVerificationEvent,
   UserPasswordChangeEvent,
   UserPasswordForgotEvent,
-  UserPasswordResetEvent, ViewEvent,
-} from './app-hooks/interfaces'
+  UserPasswordResetEvent,
+  ViewEvent,
+} from './app-hooks/interfaces';
 
-import {T} from 'nc-help'
+import type { OnModuleDestroy, OnModuleInit } from '@nestjs/common';
 
 @Injectable()
 export class AppHooksListenerService implements OnModuleInit, OnModuleDestroy {
@@ -116,19 +122,22 @@ export class AppHooksListenerService implements OnModuleInit, OnModuleDestroy {
         }
         break;
       case AppEvents.SHARED_VIEW_DELETE:
-          T.emit('evt', { evt_type: 'sharedView:deleted' });
+        T.emit('evt', { evt_type: 'sharedView:deleted' });
         break;
-        case AppEvents.SHARED_VIEW_CREATE:
-          T.emit('evt', { evt_type: 'sharedView:generated-link' });
+      case AppEvents.SHARED_VIEW_CREATE:
+        T.emit('evt', { evt_type: 'sharedView:generated-link' });
         break;
-        case AppEvents.SHARED_VIEW_UPDATE:
-          T.emit('evt', { evt_type: 'sharedView:updated' });
+      case AppEvents.SHARED_VIEW_UPDATE:
+        T.emit('evt', { evt_type: 'sharedView:updated' });
         break;
-        case AppEvents.VIEW_UPDATE:
+      case AppEvents.VIEW_UPDATE:
         {
           const param = data as ViewEvent;
 
-          T.emit('evt', { evt_type: 'vtable:updated', show_as: param.view.type });
+          T.emit('evt', {
+            evt_type: 'vtable:updated',
+            show_as: param.view.type,
+          });
         }
         break;
       case AppEvents.VIEW_DELETE:
@@ -137,6 +146,38 @@ export class AppHooksListenerService implements OnModuleInit, OnModuleDestroy {
       case AppEvents.TABLE_UPDATE:
         T.emit('evt', { evt_type: 'table:updated' });
         break;
+      case AppEvents.TABLE_CREATE:
+        {
+          const param = data as TableEvent;
+          await Audit.insert({
+            project_id: param.table.project_id,
+            base_id: param.table.base_id,
+            op_type: AuditOperationTypes.TABLE,
+            op_sub_type: AuditOperationSubTypes.CREATE,
+            user: param.user?.email,
+            description: `Table ${param.table.table_name} with alias ${param.table.title} has been created`,
+            ip: param.ip,
+          });
+
+          T.emit('evt', { evt_type: 'table:created' });
+        }
+        break;
+
+      case AppEvents.TABLE_DELETE: {
+        const { table, ip, user } = data as TableEvent;
+
+        await Audit.insert({
+          project_id: table.project_id,
+          base_id: table.base_id,
+          op_type: AuditOperationTypes.TABLE,
+          op_sub_type: AuditOperationSubTypes.DELETE,
+          user: user?.email,
+          description: `Deleted ${table.type} ${table.table_name} with alias ${table.title}  `,
+          ip,
+        });
+
+        T.emit('evt', { evt_type: 'table:deleted' });
+      }
     }
   }
 

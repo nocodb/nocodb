@@ -1,4 +1,3 @@
-import { InjectQueue } from '@nestjs/bull';
 import {
   Body,
   Controller,
@@ -8,7 +7,6 @@ import {
   Request,
   UseGuards,
 } from '@nestjs/common';
-import { Queue } from 'bull';
 import { GlobalGuard } from '../../../guards/global/global.guard';
 import {
   Acl,
@@ -17,22 +15,16 @@ import {
 import { ProjectsService } from '../../../services/projects.service';
 import { Base, Model, Project } from '../../../models';
 import { generateUniqueName } from '../../../helpers/exportImportHelpers';
-import { QueueService } from '../fallback-queue.service';
-import { JOBS_QUEUE, JobTypes } from '../../../interface/Jobs';
+import { JobsService } from '../jobs.service';
+import { JobTypes } from '../../../interface/Jobs';
 
 @Controller()
 @UseGuards(ExtractProjectIdMiddleware, GlobalGuard)
 export class DuplicateController {
-  activeQueue;
   constructor(
-    @InjectQueue(JOBS_QUEUE) private readonly jobsQueue: Queue,
-    private readonly fallbackQueueService: QueueService,
+    private readonly jobsService: JobsService,
     private readonly projectsService: ProjectsService,
-  ) {
-    this.activeQueue = process.env.NC_REDIS_URL
-      ? this.jobsQueue
-      : this.fallbackQueueService;
-  }
+  ) {}
 
   @Post('/api/v1/db/meta/duplicate/:projectId/:baseId?')
   @HttpCode(200)
@@ -74,7 +66,7 @@ export class DuplicateController {
       user: { id: req.user.id },
     });
 
-    const job = await this.activeQueue.add(JobTypes.DuplicateBase, {
+    const job = await this.jobsService.activeQueue.add(JobTypes.DuplicateBase, {
       projectId: project.id,
       baseId: base.id,
       dupProjectId: dupProject.id,
@@ -123,17 +115,20 @@ export class DuplicateController {
       models.map((p) => p.title),
     );
 
-    const job = await this.activeQueue.add(JobTypes.DuplicateModel, {
-      projectId: project.id,
-      baseId: base.id,
-      modelId: model.id,
-      title: uniqueTitle,
-      options,
-      req: {
-        user: req.user,
-        clientIp: req.clientIp,
+    const job = await this.jobsService.activeQueue.add(
+      JobTypes.DuplicateModel,
+      {
+        projectId: project.id,
+        baseId: base.id,
+        modelId: model.id,
+        title: uniqueTitle,
+        options,
+        req: {
+          user: req.user,
+          clientIp: req.clientIp,
+        },
       },
-    });
+    );
 
     return { id: job.id, name: job.name };
   }

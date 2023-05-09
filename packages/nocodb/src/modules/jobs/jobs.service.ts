@@ -6,7 +6,7 @@ import { QueueService } from './fallback-queue.service';
 
 @Injectable()
 export class JobsService {
-  activeQueue;
+  public activeQueue;
   constructor(
     @InjectQueue(JOBS_QUEUE) private readonly jobsQueue: Queue,
     private readonly fallbackQueueService: QueueService,

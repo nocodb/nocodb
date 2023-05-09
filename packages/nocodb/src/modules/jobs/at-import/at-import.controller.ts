@@ -1,32 +1,20 @@
-import { InjectQueue } from '@nestjs/bull';
 import { Controller, HttpCode, Post, Request, UseGuards } from '@nestjs/common';
-import { Queue } from 'bull';
 import { GlobalGuard } from '../../../guards/global/global.guard';
 import { ExtractProjectIdMiddleware } from '../../../middlewares/extract-project-id/extract-project-id.middleware';
 import { SyncSource } from '../../../models';
 import { NcError } from '../../../helpers/catchError';
-import { QueueService } from '../fallback-queue.service';
 import { JobsService } from '../jobs.service';
-import { JOBS_QUEUE, JobTypes } from '../../../interface/Jobs';
+import { JobTypes } from '../../../interface/Jobs';
 
 @Controller()
 @UseGuards(ExtractProjectIdMiddleware, GlobalGuard)
 export class AtImportController {
-  activeQueue;
-  constructor(
-    @InjectQueue(JOBS_QUEUE) private readonly jobsQueue: Queue,
-    private readonly fallbackQueueService: QueueService,
-    private readonly jobsService: JobsService,
-  ) {
-    this.activeQueue = process.env.NC_REDIS_URL
-      ? this.jobsQueue
-      : this.fallbackQueueService;
-  }
+  constructor(private readonly jobsService: JobsService) {}
 
   @Post('/api/v1/db/meta/import/airtable')
   @HttpCode(200)
   async importAirtable(@Request() req) {
-    const job = await this.activeQueue.add(JobTypes.AtImport, {
+    const job = await this.jobsService.activeQueue.add(JobTypes.AtImport, {
       ...req.body,
     });
 
@@ -56,7 +44,7 @@ export class AtImportController {
       baseURL = `http://localhost:${process.env.PORT || 8080}`;
     }
 
-    const job = await this.activeQueue.add(JobTypes.AtImport, {
+    const job = await this.jobsService.activeQueue.add(JobTypes.AtImport, {
       syncId: req.params.syncId,
       ...(syncSource?.details || {}),
       projectId: syncSource.project_id,

@@ -1,27 +1,29 @@
-import { Injectable } from '@nestjs/common'
-import * as DOMPurify from 'isomorphic-dompurify'
-import { customAlphabet } from 'nanoid'
-import { T } from 'nc-help'
-import type { ProjectReqType, ProjectUpdateReqType, UserType } from 'nocodb-sdk'
-import { AppEvents, OrgUserRoles } from 'nocodb-sdk'
-import { promisify } from 'util'
-import { populateMeta, validatePayload } from '../helpers'
-import { NcError } from '../helpers/catchError'
-import { extractPropsAndSanitize } from '../helpers/extractProps'
-import syncMigration from '../helpers/syncMigration'
-import { Project, ProjectUser } from '../models'
-import Noco from '../Noco'
-import extractRolesObj from '../utils/extractRolesObj'
-import NcConfigFactory from '../utils/NcConfigFactory'
-import { AppHooksService } from './app-hooks/app-hooks.service'
+import { promisify } from 'util';
+import { AppEvents, OrgUserRoles } from 'nocodb-sdk';
+import { T } from 'nc-help';
+import { customAlphabet } from 'nanoid';
+import * as DOMPurify from 'isomorphic-dompurify';
+import { Injectable } from '@nestjs/common';
+import { populateMeta, validatePayload } from '../helpers';
+import { NcError } from '../helpers/catchError';
+import { extractPropsAndSanitize } from '../helpers/extractProps';
+import syncMigration from '../helpers/syncMigration';
+import { Project, ProjectUser } from '../models';
+import Noco from '../Noco';
+import extractRolesObj from '../utils/extractRolesObj';
+import NcConfigFactory from '../utils/NcConfigFactory';
+import { AppHooksService } from './app-hooks/app-hooks.service';
+import type {
+  ProjectReqType,
+  ProjectUpdateReqType,
+  UserType,
+} from 'nocodb-sdk';
 
 const nanoid = customAlphabet('1234567890abcdefghijklmnopqrstuvwxyz_', 4);
 
 @Injectable()
 export class ProjectsService {
-
-  constructor(private readonly appHooksService: AppHooksService ) {
-  }
+  constructor(private readonly appHooksService: AppHooksService) {}
 
   async projectList(param: {
     user: { id: string; roles: Record<string, boolean> };
@@ -52,7 +54,7 @@ export class ProjectsService {
   async projectUpdate(param: {
     projectId: string;
     project: ProjectUpdateReqType;
-    user: UserType
+    user: UserType;
   }) {
     validatePayload(
       'swagger.json#/components/schemas/ProjectUpdateReq',
@@ -76,7 +78,6 @@ export class ProjectsService {
 
     const result = await Project.update(param.projectId, data);
 
-
     this.appHooksService.emit(AppEvents.PROJECT_UPDATE, {
       project,
       user: param.user,
@@ -88,10 +89,9 @@ export class ProjectsService {
   }
 
   async projectSoftDelete(param: { projectId: any; user: UserType }) {
-
     const project = await Project.getWithInfo(param.projectId);
 
-    if(!project) {
+    if (!project) {
       NcError.notFound('Project not found');
     }
 
@@ -195,7 +195,6 @@ export class ProjectsService {
       T.emit('evt_api_created', info);
       delete base.config;
     }
-
 
     this.appHooksService.emit(AppEvents.PROJECT_CREATE, {
       project,

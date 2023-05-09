@@ -1,12 +1,15 @@
 import { Injectable } from '@nestjs/common';
 import { T } from 'nc-help';
-import { AppEvents, UserType } from 'nocodb-sdk'
+import { AppEvents } from 'nocodb-sdk';
 import { validatePayload } from '../helpers';
-import { NcError } from '../helpers/catchError'
+import { NcError } from '../helpers/catchError';
 import { Model, ModelRoleVisibility, View } from '../models';
-import { AppHooksService } from './app-hooks/app-hooks.service'
-import { TablesService } from './tables.service';
-import type { SharedViewReqType, ViewUpdateReqType } from 'nocodb-sdk';
+import { AppHooksService } from './app-hooks/app-hooks.service';
+import type {
+  SharedViewReqType,
+  UserType,
+  ViewUpdateReqType,
+} from 'nocodb-sdk';
 
 // todo: move
 async function xcVisibilityMetaGet(param: {
@@ -106,7 +109,11 @@ export class ViewsService {
     return res;
   }
 
-  async viewUpdate(param: { viewId: string; view: ViewUpdateReqType; user: UserType }) {
+  async viewUpdate(param: {
+    viewId: string;
+    view: ViewUpdateReqType;
+    user: UserType;
+  }) {
     validatePayload(
       'swagger.json#/components/schemas/ViewUpdateReq',
       param.view,
@@ -141,12 +148,10 @@ export class ViewsService {
 
     await View.delete(param.viewId);
 
-
     this.appHooksService.emit(AppEvents.VIEW_DELETE, {
       view,
       user: param.user,
     });
-
 
     // T.emit('evt', { evt_type: 'vtable:deleted' });
     return true;
@@ -155,7 +160,7 @@ export class ViewsService {
   async shareViewUpdate(param: {
     viewId: string;
     sharedView: SharedViewReqType;
-    user:UserType
+    user: UserType;
   }) {
     validatePayload(
       'swagger.json#/components/schemas/SharedViewReq',

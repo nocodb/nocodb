@@ -1,13 +1,14 @@
 import type {
   ColumnType,
   FilterType,
-  ProjectType, ProjectUserReqType,
+  ProjectType,
+  ProjectUserReqType,
   SortType,
   TableType,
   UserType,
   ViewType,
   WorkspaceType,
-} from 'nocodb-sdk'
+} from 'nocodb-sdk';
 
 export interface ProjectInviteEvent {
   project: ProjectType;

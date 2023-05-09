@@ -45,7 +45,7 @@ const dateTimeFormat = $computed(() => {
   return `${dateFormat} ${timeFormat}`
 })
 
-let localModelValue = modelValue ? dayjs(modelValue).utc(true).local() : undefined
+let localModelValue = modelValue ? dayjs(modelValue).utc().local() : undefined
 
 let localState = $computed({
   get() {
@@ -79,7 +79,7 @@ let localState = $computed({
     // when pasting a datetime cell, UTC (xcdb) will be saved in DB
     // we convert back to local time
     if (column.value.title! in (isUpdatedFromCopyNPaste ?? {})) {
-      localModelValue = dayjs(modelValue).utc().local()
+      localModelValue = dayjs(modelValue).utc(true).local()
       return localModelValue
     }
 
@@ -94,7 +94,7 @@ let localState = $computed({
     }
 
     // empty cell - use modelValue in local time
-    return dayjs(modelValue).utc(true).local()
+    return dayjs(modelValue).utc().local()
   },
   set(val?: dayjs.Dayjs) {
     if (!val) {

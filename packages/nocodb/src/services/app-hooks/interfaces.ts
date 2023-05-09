@@ -108,6 +108,8 @@ export interface FilterEvent {
 }
 
 export interface ColumnEvent {
+  table: TableType;
+  oldColumn?: ColumnType;
   column: ColumnType;
   user: UserType;
   ip?: string;

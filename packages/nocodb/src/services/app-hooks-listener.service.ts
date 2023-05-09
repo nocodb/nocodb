@@ -8,6 +8,7 @@ import { T } from 'nc-help';
 import { Audit } from '../models';
 import { AppHooksService } from './app-hooks/app-hooks.service';
 import type {
+  ColumnEvent,
   ProjectInviteEvent,
   ProjectUserResendInviteEvent,
   ProjectUserUpdateEvent,
@@ -163,21 +164,70 @@ export class AppHooksListenerService implements OnModuleInit, OnModuleDestroy {
         }
         break;
 
-      case AppEvents.TABLE_DELETE: {
-        const { table, ip, user } = data as TableEvent;
+      case AppEvents.TABLE_DELETE:
+        {
+          const { table, ip, user } = data as TableEvent;
 
-        await Audit.insert({
-          project_id: table.project_id,
-          base_id: table.base_id,
-          op_type: AuditOperationTypes.TABLE,
-          op_sub_type: AuditOperationSubTypes.DELETE,
-          user: user?.email,
-          description: `Deleted ${table.type} ${table.table_name} with alias ${table.title}  `,
-          ip,
-        });
+          await Audit.insert({
+            project_id: table.project_id,
+            base_id: table.base_id,
+            op_type: AuditOperationTypes.TABLE,
+            op_sub_type: AuditOperationSubTypes.DELETE,
+            user: user?.email,
+            description: `Deleted ${table.type} ${table.table_name} with alias ${table.title}  `,
+            ip,
+          });
 
-        T.emit('evt', { evt_type: 'table:deleted' });
-      }
+          T.emit('evt', { evt_type: 'table:deleted' });
+        }
+        break;
+      case AppEvents.COLUMN_UPDATE:
+        {
+          const { column, ip, user, table } = data as ColumnEvent;
+
+          await Audit.insert({
+            // todo: type correction
+            project_id: (column as any).project_id,
+            op_type: AuditOperationTypes.TABLE_COLUMN,
+            op_sub_type: AuditOperationSubTypes.UPDATE,
+            user: user?.email,
+            description: `The column ${column.column_name} with alias ${column.title} from table ${table.table_name} has been updated`,
+            ip,
+          });
+
+          T.emit('evt', { evt_type: 'column:updated' });
+        }
+        break;
+      case AppEvents.COLUMN_CREATE:
+        {
+          const { column, ip, user, table } = data as ColumnEvent;
+          await Audit.insert({
+            project_id: (column as any).project_id,
+            op_type: AuditOperationTypes.TABLE_COLUMN,
+            op_sub_type: AuditOperationSubTypes.CREATE,
+            user: user?.email,
+            description: `The column ${column.column_name} with alias ${column.title} from table ${table.table_name} has been created`,
+            ip,
+          });
+
+          T.emit('evt', { evt_type: 'column:created' });
+        }
+        break;
+      case AppEvents.COLUMN_DELETE:
+        {
+          const { column, ip, user, table } = data as ColumnEvent;
+
+          await Audit.insert({
+            project_id: (column as any).project_id,
+            op_type: AuditOperationTypes.TABLE_COLUMN,
+            op_sub_type: AuditOperationSubTypes.DELETE,
+            user: user?.email,
+            description: `The column ${column.column_name} with alias ${column.title} from table ${table.table_name} has been deleted`,
+            ip,
+          });
+          T.emit('evt', { evt_type: 'column:deleted' });
+        }
+        break;
     }
   }
 

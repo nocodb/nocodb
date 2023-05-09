@@ -1,4 +1,5 @@
 import { Injectable } from '@nestjs/common';
+import { T } from 'nc-help';
 import {
   AppEvents,
   AuditOperationSubTypes,
@@ -8,7 +9,6 @@ import {
   substituteColumnIdWithAliasInFormula,
   UITypes,
 } from 'nocodb-sdk';
-import { T } from 'nc-help';
 import formulaQueryBuilderv2 from '../db/formulav2/formulaQueryBuilderv2';
 import ProjectMgrv2 from '../db/sql-mgr/v2/ProjectMgrv2';
 import {
@@ -40,6 +40,7 @@ import Noco from '../Noco';
 import NcConnectionMgrv2 from '../utils/common/NcConnectionMgrv2';
 import { MetaTable } from '../utils/globals';
 import { AppHooksService } from './app-hooks/app-hooks.service';
+import { AppHooksService } from './app-hooks/app-hooks.service';
 import type { MetaService } from '../meta/meta.service';
 import type SqlMgrv2 from '../db/sql-mgr/v2/SqlMgrv2';
 import type { LinkToAnotherRecordColumn, Project } from '../models';
@@ -60,7 +61,7 @@ export enum Altered {
 
 @Injectable()
 export class ColumnsService {
-  constructor(private appHooksService: AppHooksService) {}
+  constructor(private readonly appHooksService: AppHooksService) {}
 
   async columnUpdate(param: {
     req?: any;
@@ -832,17 +833,26 @@ export class ColumnsService {
         ...colBody,
       });
     }
-    await Audit.insert({
-      project_id: base.project_id,
-      op_type: AuditOperationTypes.TABLE_COLUMN,
-      op_sub_type: AuditOperationSubTypes.UPDATE,
-      user: param.req?.user?.email,
-      description: `The column ${column.column_name} with alias ${column.title} from table ${table.table_name} has been updated`,
+
+    await table.getColumns();
+
+    this.appHooksService.emit(AppEvents.COLUMN_UPDATE, {
+      table,
+      column,
+      user: param.req?.user,
       ip: param.req?.clientIp,
     });
 
-    await table.getColumns();
-    T.emit('evt', { evt_type: 'column:updated' });
+    // await Audit.insert({
+    //   project_id: base.project_id,
+    //   op_type: AuditOperationTypes.TABLE_COLUMN,
+    //   op_sub_type: AuditOperationSubTypes.UPDATE,
+    //   user: param.req?.user?.email,
+    //   description: `The column ${column.column_name} with alias ${column.title} from table ${table.table_name} has been updated`,
+    //   ip: param.req?.clientIp,
+    // });
+    //
+    // T.emit('evt', { evt_type: 'column:updated' });
 
     this.appHooksService.emit(AppEvents.TABLE_UPDATE, {
       table,
@@ -1144,16 +1154,27 @@ export class ColumnsService {
 
     await table.getColumns();
 
-    await Audit.insert({
-      project_id: base.project_id,
-      op_type: AuditOperationTypes.TABLE_COLUMN,
-      op_sub_type: AuditOperationSubTypes.CREATE,
-      user: param?.req.user?.email,
-      description: `The column ${colBody.column_name} with alias ${colBody.title} from table ${table.table_name} has been created`,
-      ip: param?.req.clientIp,
-    });
+    // await Audit.insert({
+    //   project_id: base.project_id,
+    //   op_type: AuditOperationTypes.TABLE_COLUMN,
+    //   op_sub_type: AuditOperationSubTypes.CREATE,
+    //   user: param?.req.user?.email,
+    //   description: `The column ${colBody.column_name} with alias ${colBody.title} from table ${table.table_name} has been created`,
+    //   ip: param?.req.clientIp,
+    // });
+    //
+    // T.emit('evt', { evt_type: 'column:created' });
 
-    T.emit('evt', { evt_type: 'column:created' });
+
+    this.appHooksService.emit(AppEvents.COLUMN_CREATE, {
+      table,
+      column: {
+        ...colBody,
+        fk_model_id: table.id,
+      },
+      user: param.req?.user,
+      ip: param.req?.clientIp,
+    });
 
     this.appHooksService.emit(AppEvents.TABLE_CREATE, {
       table,
@@ -1360,14 +1381,6 @@ export class ColumnsService {
       }
     }
 
-    await Audit.insert({
-      project_id: base.project_id,
-      op_type: AuditOperationTypes.TABLE_COLUMN,
-      op_sub_type: AuditOperationSubTypes.DELETE,
-      user: param?.req?.user?.email,
-      description: `The column ${column.column_name} with alias ${column.title} from table ${table.table_name} has been deleted`,
-      ip: param?.req.clientIp,
-    });
 
     await table.getColumns();
 
@@ -1379,7 +1392,14 @@ export class ColumnsService {
       );
     }
 
-    T.emit('evt', { evt_type: 'column:deleted' });
+
+
+    this.appHooksService.emit(AppEvents.COLUMN_DELETE, {
+      table,
+      column,
+      user: param.req?.user,
+      ip: param.req?.clientIp,
+    });
 
     this.appHooksService.emit(AppEvents.TABLE_DELETE, {
       table,

@@ -52,9 +52,18 @@ const up = async (knex: Knex) => {
       table.timestamps(true, true);
     },
   );
+  await knex.schema.alterTable(MetaTable.FILTER_EXP, (table) => {
+    // todo: add enum and sync existing projects
+    table.string('fk_widget_id', 200).nullable();
+    table.foreign('fk_widget_id').references(`${MetaTable.WIDGET}.id`);
+  });
 };
 
 const down = async (knex: Knex) => {
+  await knex.schema.alterTable(MetaTable.FILTER_EXP, (table) => {
+    table.dropForeign('fk_widget_id');
+    table.dropColumn('fk_widget_id');
+  });
   await knex.schema.dropTable(MetaTable.WIDGET_DB_DEPENDENCIES);
   await knex.schema.dropTable(MetaTable.DASHBOARD_PROJECT_DB_PROJECT_LINKINGS);
   await knex.schema.dropTable(MetaTable.WIDGET);

@@ -7495,6 +7495,7 @@
                       "created_at": "2023-03-02 18:18:05",
                       "fk_column_id": "cl_d7ah9n2qfupgys",
                       "fk_hook_id": null,
+                      "fk_widget_id": null,
                       "fk_parent_id": null,
                       "fk_view_id": "vw_b739e29vqmrxnf",
                       "id": "fi_xn647tpmdq8fu8",
@@ -7647,6 +7648,7 @@
                           "created_at": "2023-03-02 18:18:05",
                           "fk_column_id": "cl_d7ah9n2qfupgys",
                           "fk_hook_id": null,
+                          "fk_widget_id": null,
                           "fk_parent_id": null,
                           "fk_view_id": "vw_b739e29vqmrxnf",
                           "id": "fi_xn647tpmdq8fu8",
@@ -17625,6 +17627,7 @@
             "created_at": "2023-03-02 18:18:05",
             "fk_column_id": "cl_d7ah9n2qfupgys",
             "fk_hook_id": null,
+            "fk_widget_id": null,
             "fk_parent_id": null,
             "fk_view_id": "vw_b739e29vqmrxnf",
             "id": "fi_xn647tpmdq8fu8",
@@ -17723,6 +17726,10 @@
             "$ref": "#/components/schemas/StringOrNull",
             "description": "Foreign Key to Hook"
           },
+          "fk_widget_id": {
+            "$ref": "#/components/schemas/StringOrNull",
+            "description": "Foreign Key to Widget"
+          },
           "fk_model_id": {
             "$ref": "#/components/schemas/Id",
             "description": "Foreign Key to Model"
@@ -17790,6 +17797,7 @@
                 "created_at": "2023-03-02 18:18:05",
                 "fk_column_id": "cl_d7ah9n2qfupgys",
                 "fk_hook_id": null,
+                "fk_widget_id": null,
                 "fk_parent_id": null,
                 "fk_view_id": "vw_b739e29vqmrxnf",
                 "id": "fi_xn647tpmdq8fu8",

@@ -1177,8 +1177,6 @@ export interface DashboardType {
   title?: string;
   /** The order of this Dashboard in the list of Dashboards */
   order?: number;
-  /** List of DB projects that this dashboard is linked to */
-  linked_db_projects?: ProjectType[];
 }
 
 /**
@@ -1196,8 +1194,6 @@ export interface DashboardReqType {
   title: string;
   /** The order of this Dashboard in the list of Dashboards */
   order?: number;
-  /** List of DB projects IDs that this dashboard is linked to */
-  linked_db_project_ids?: string[];
 }
 
 /**
@@ -1251,8 +1247,6 @@ export interface DashboardUpdateReqType {
   title?: string;
   /** The order of this Dashboard in the list of Dashboards */
   order?: number;
-  /** List of DB projects IDs that this dashboard is linked to */
-  linked_db_project_ids?: string[];
 }
 
 /**
@@ -2063,6 +2057,8 @@ export interface ProjectType {
    */
   prefix?: string;
   type?: string;
+  /** List of linked Database Projects that this project has access to (only used in Dashboard projects so far) */
+  linked_db_projects?: ProjectType[];
   status?: string;
   /**
    * Project Title
@@ -2102,6 +2098,8 @@ export interface ProjectReqType {
    * @example My Project
    */
   title: string;
+  /** List of Linked Database Project IDs (only used for Dashboard Projects so far) */
+  linked_db_project_ids?: string[];
 }
 
 /**
@@ -2120,6 +2118,8 @@ export interface ProjectUpdateReqType {
    * @example My Project
    */
   title?: string;
+  /** List of Linked Database Project IDs (only used for Dashboard Projects so far) */
+  linked_db_project_ids?: string[];
 }
 
 /**
@@ -3040,12 +3040,12 @@ export class Api<
      * @description Get Dashboard
      *
      * @tags Dashboard
-     * @name GetDashboard
+     * @name Get
      * @summary Get dashboard
      * @request GET:/api/v1/dashboards/{id}
      * @response `200` `DashboardType` OK
      */
-    getDashboard: (id: IdType, params: RequestParams = {}) =>
+    get: (id: IdType, params: RequestParams = {}) =>
       this.request<DashboardType, any>({
         path: `/api/v1/dashboards/${id}`,
         method: 'GET',
@@ -3057,12 +3057,12 @@ export class Api<
      * @description Delete Dashboard
      *
      * @tags Dashboard
-     * @name DeleteDashboard
+     * @name Delete
      * @summary Delete Dashboard
      * @request DELETE:/api/v1/dashboards/{id}
      * @response `200` `void` OK
      */
-    deleteDashboard: (id: IdType, params: RequestParams = {}) =>
+    delete: (id: IdType, params: RequestParams = {}) =>
       this.request<void, any>({
         path: `/api/v1/dashboards/${id}`,
         method: 'DELETE',
@@ -3073,7 +3073,7 @@ export class Api<
  * @description Update the given Dashboard
  * 
  * @tags Dashboard
- * @name UpdateDashboard
+ * @name Update
  * @summary Update Dashboard
  * @request PATCH:/api/v1/dashboards/{id}
  * @response `200` `number` OK
@@ -3083,7 +3083,7 @@ export class Api<
 
 }`
  */
-    updateDashboard: (
+    update: (
       id: IdType,
       data: DashboardUpdateReqType,
       params: RequestParams = {}
@@ -3107,12 +3107,12 @@ export class Api<
      * @description Get Widgets of the Dashboard
      *
      * @tags Dashboard
-     * @name GetWidgets
-     * @summary Get Widgets for Dashboard
+     * @name WidgetList
+     * @summary List Widgets for Dashboard
      * @request GET:/api/v1/dashboards/{dashboardId}/widgets
      * @response `200` `WidgetListType` OK
      */
-    getWidgets: (dashboardId: IdType, params: RequestParams = {}) =>
+    widgetList: (dashboardId: IdType, params: RequestParams = {}) =>
       this.request<WidgetListType, any>({
         path: `/api/v1/dashboards/${dashboardId}/widgets`,
         method: 'GET',
@@ -3124,7 +3124,7 @@ export class Api<
  * @description Create a new Dashboard Widget in a given Dashboard
  * 
  * @tags Dashboard
- * @name WidgetsCreate
+ * @name WidgetCreate
  * @summary Create Dashboard Widget
  * @request POST:/api/v1/dashboards/{dashboardId}/widgets
  * @response `200` `WidgetType` OK
@@ -3134,7 +3134,7 @@ export class Api<
 
 }`
  */
-    widgetsCreate: (
+    widgetCreate: (
       dashboardId: IdType,
       data: WidgetReqType,
       params: RequestParams = {}
@@ -3158,12 +3158,12 @@ export class Api<
      * @description Delete Dashboard Widget
      *
      * @tags Dashboard
-     * @name DeleteWidget
+     * @name WidgetDelete
      * @summary Delete Dashboard Widget
      * @request DELETE:/api/v1/dashboards/{dashboardId}/widgets/{widgetId}
      * @response `200` `void` OK
      */
-    deleteWidget: (
+    widgetDelete: (
       dashboardId: IdType,
       widgetId: IdType,
       params: RequestParams = {}
@@ -3178,7 +3178,7 @@ export class Api<
  * @description Update the given Dashboard Widget
  * 
  * @tags Dashboard
- * @name UpdateWidget
+ * @name WidgetUpdate
  * @summary Update Dashboard Widget
  * @request PATCH:/api/v1/dashboards/{dashboardId}/widgets/{widgetId}
  * @response `200` `number` OK
@@ -3188,7 +3188,7 @@ export class Api<
 
 }`
  */
-    updateWidget: (
+    widgetUpdate: (
       dashboardId: IdType,
       widgetId: IdType,
       data: WidgetUpdateReqType,
@@ -3213,12 +3213,12 @@ export class Api<
      * @description Get widget data
      *
      * @tags Dashboard
-     * @name GetWidgetData
+     * @name WidgetDataGet
      * @summary Get widget data
      * @request GET:/api/v1/dashboards/{dashboardId}/data/widgets/{widgetId}
      * @response `200` `object` OK
      */
-    getWidgetData: (
+    widgetDataGet: (
       dashboardId: IdType,
       widgetId: IdType,
       params: RequestParams = {}
@@ -3234,7 +3234,7 @@ export class Api<
  * @description Create a new Dashboard in a given project
  * 
  * @tags Dashboard
- * @name DashboardsCreate
+ * @name Create
  * @summary Create Dashboard
  * @request POST:/api/v1/db/meta/projects/{projectId}/dashboards
  * @response `200` `DashboardType` OK
@@ -3244,7 +3244,7 @@ export class Api<
 
 }`
  */
-    dashboardsCreate: (
+    create: (
       projectId: IdType,
       data: DashboardReqType,
       params: RequestParams = {}
@@ -3268,7 +3268,7 @@ export class Api<
  * @description List all Dashboards in a given project
  * 
  * @tags Dashboard
- * @name DashboardsList
+ * @name List
  * @summary List Dashboards
  * @request GET:/api/v1/db/meta/projects/{projectId}/dashboards
  * @response `200` `DashboardListType`
@@ -3278,7 +3278,7 @@ export class Api<
 
 }`
  */
-    dashboardsList: (projectId: IdType, params: RequestParams = {}) =>
+    list: (projectId: IdType, params: RequestParams = {}) =>
       this.request<
         DashboardListType,
         {

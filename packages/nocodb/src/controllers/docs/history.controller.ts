@@ -1,0 +1,25 @@
+import { Controller, Get, Param, UseGuards } from '@nestjs/common';
+import { AuthGuard } from '@nestjs/passport';
+import { ExtractProjectAndWorkspaceIdMiddleware } from 'src/middlewares/extract-project-and-workspace-id/extract-project-and-workspace-id.middleware';
+import { UseAclMiddleware } from 'src/middlewares/extract-project-id/extract-project-id.middleware';
+import { DocsPageHistoryService } from 'src/services/docs/docs-page-history.service';
+
+@Controller()
+@UseGuards(ExtractProjectAndWorkspaceIdMiddleware, AuthGuard('jwt'))
+export class DocsPagesHistoryController {
+  constructor(private readonly pagesHistoryService: DocsPageHistoryService) {}
+
+  @Get('/api/v1/docs/project/:projectId/page/:pageId/history')
+  @UseAclMiddleware({
+    permissionName: 'pageHistoryList',
+  })
+  async list(
+    @Param('pageId') pageId: string,
+    @Param('projectId') projectId: string,
+  ) {
+    return await this.pagesHistoryService.list({
+      pageId,
+      projectId,
+    });
+  }
+}

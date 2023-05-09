@@ -2,7 +2,7 @@ import { Injectable } from '@nestjs/common';
 import { ClickHouse } from 'clickhouse';
 import NcConfigFactory from '../../utils/NcConfigFactory';
 import * as nc_001_notification from './migrations/nc_001_notification';
-import * as nc_002_page from './migrations/nc_002_page';
+import * as nc_002_page_history from './migrations/nc_002_page_history';
 import type { OnModuleDestroy, OnModuleInit } from '@nestjs/common';
 
 @Injectable()
@@ -45,7 +45,7 @@ export class ClickhouseService implements OnModuleInit, OnModuleDestroy {
 
     // Create a new ClickHouse client instance
     const clickhouse = new ClickHouse({ ...this.config, database: undefined });
-    for (const { up } of [nc_001_notification, nc_002_page]) {
+    for (const { up } of [nc_001_notification, nc_002_page_history]) {
       await up(clickhouse, this.config);
     }
 

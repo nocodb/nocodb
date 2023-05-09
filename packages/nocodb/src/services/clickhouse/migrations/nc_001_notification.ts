@@ -23,7 +23,6 @@ CREATE DATABASE IF NOT EXISTS ${config.database ?? 'nc'};
           is_deleted UInt8 DEFAULT 0,
           fk_user_id String(20),
           created_at DateTime DEFAULT now(),
-          updated_at DateTime DEFAULT now(),
           PRIMARY KEY (id)
       ) ENGINE = ReplacingMergeTree
       ORDER BY id;

@@ -80,7 +80,7 @@
       ],
       "get": {
         "summary": "Get dashboard",
-        "operationId": "get-dashboard",
+        "operationId": "dashboard-get",
         "responses": {
           "200": {
             "description": "OK",
@@ -100,7 +100,7 @@
       },
       "delete": {
         "summary": "Delete Dashboard",
-        "operationId": "delete-dashboard",
+        "operationId": "dashboard-delete",
         "responses": {
           "200": {
             "description": "OK"
@@ -113,7 +113,7 @@
       },
       "patch": {
         "summary": "Update Dashboard",
-        "operationId": "update-dashboard",
+        "operationId": "dashboard-update",
         "responses": {
           "200": {
             "description": "OK",
@@ -168,8 +168,8 @@
         }
       ],
       "get": {
-        "summary": "Get Widgets for Dashboard",
-        "operationId": "get-dashboard-widgets",
+        "summary": "List Widgets for Dashboard",
+        "operationId": "widget-list",
         "responses": {
           "200": {
             "description": "OK",
@@ -189,7 +189,7 @@
       },
       "post": {
         "summary": "Create Dashboard Widget",
-        "operationId": "dashboard-widgets-create",
+        "operationId": "widget-create",
         "responses": {
           "200": {
             "description": "OK",
@@ -250,7 +250,7 @@
       ],
       "delete": {
         "summary": "Delete Dashboard Widget",
-        "operationId": "delete-dashboard-widget",
+        "operationId": "widget-delete",
         "responses": {
           "200": {
             "description": "OK"
@@ -263,7 +263,7 @@
       },
       "patch": {
         "summary": "Update Dashboard Widget",
-        "operationId": "update-dashboard-widget",
+        "operationId": "widget-update",
         "responses": {
           "200": {
             "description": "OK",
@@ -330,7 +330,7 @@
       ],
       "get": {
         "summary": "Get widget data",
-        "operationId": "get-widget-data",
+        "operationId": "widget-data-get",
         "responses": {
           "200": {
             "description": "OK",
@@ -13946,7 +13946,7 @@
       ],
       "post": {
         "summary": "Create Dashboard",
-        "operationId": "dashboards-create",
+        "operationId": "dashboard-create",
         "responses": {
           "200": {
             "description": "OK",
@@ -13981,7 +13981,7 @@
       },
       "get": {
         "summary": "List Dashboards",
-        "operationId": "dashboards-list",
+        "operationId": "dashboard-list",
         "responses": {
           "200": {
             "$ref": "#/components/responses/DashboardList"

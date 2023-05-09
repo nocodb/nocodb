@@ -3238,11 +3238,9 @@ class BaseModelSqlv2 {
     isXcdbBase: BoolType,
     childTable?: Model,
   ) {
-    // MySQL converts TIMESTAMP values from the current time zone to UTC for storage.
-    // Then, MySQL converts those values back from UTC to the current time zone for retrieval.
-    // To make it consistent with other DB types, we show the result in UTC instead
+    // Show the date time in UTC format in API response
     // e.g. 2022-01-01 04:30:00+00:00
-    if (this.isMySQL && data) {
+    if (data) {
       const dateTimeColumns = (
         childTable ? childTable.columns : this.model.columns
       ).filter((c) => c.uidt === UITypes.DateTime);

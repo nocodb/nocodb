@@ -134,6 +134,11 @@ export interface OrgUserInviteEvent {
   ip?: string;
 }
 
+export interface ViewColumnEvent {
+  // todo: type
+  viewColumn: any;
+}
+
 export type AppEventPayload =
   | ProjectInviteEvent
   | ProjectCreateEvent

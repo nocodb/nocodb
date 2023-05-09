@@ -316,6 +316,16 @@ export class AppHooksListenerService implements OnModuleInit, OnModuleDestroy {
           T.emit('evt', { evt_type: 'sort:updated' });
         }
         break;
+      case AppEvents.VIEW_COLUMN_CREATE:
+        {
+          T.emit('evt', { evt_type: 'viewColumn:inserted' });
+        }
+        break;
+      case AppEvents.VIEW_COLUMN_UPDATE:
+        {
+          T.emit('evt', { evt_type: 'viewColumn:updated' });
+        }
+        break;
     }
   }
 

@@ -6,7 +6,7 @@ import type {
   ProjectUserUpdateEvent,
   UserPasswordChangeEvent,
   UserPasswordForgotEvent,
-  UserPasswordResetEvent,
+  UserPasswordResetEvent, ViewColumnEvent,
 } from './interfaces'
 import type { AppEvents } from 'nocodb-sdk';
 import type {
@@ -196,6 +196,9 @@ export class AppHooksService {
   ): void;
   emit(
     event: AppEvents.ORG_USER_RESEND_INVITE, data: OrgUserInviteEvent
+  ): void;
+  emit(
+    event: AppEvents.VIEW_COLUMN_CREATE | AppEvents.VIEW_COLUMN_UPDATE, data: ViewColumnEvent
   ): void;
   emit(event, data): void {
     this.eventEmitter.emit(event, data);

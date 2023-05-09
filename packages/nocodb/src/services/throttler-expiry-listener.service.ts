@@ -1,10 +1,10 @@
-import { Injectable } from '@nestjs/common';
+import {Injectable} from '@nestjs/common';
 import Client from 'ioredis';
 import Redlock from 'redlock';
-import { ConfigService } from '@nestjs/config';
-import { ClickhouseService } from './clickhouse/clickhouse.service';
-import type { OnModuleInit } from '@nestjs/common';
-import type { AppConfig } from '../interface/config';
+import {ConfigService} from '@nestjs/config';
+import {ClickhouseService} from './clickhouse/clickhouse.service';
+import type {OnModuleInit} from '@nestjs/common';
+import type {AppConfig} from '../interface/config';
 
 @Injectable()
 export class ThrottlerExpiryListenerService implements OnModuleInit {
@@ -67,15 +67,13 @@ export class ThrottlerExpiryListenerService implements OnModuleInit {
         const count = await this.client.get(expiredKey + '_shadow');
 
         if (expiredKey.startsWith(keyPattern)) {
-          console.log(
-            `Key with pattern "${keyPattern}" has expired: ${expiredKey}`,
-          );
-
           // Acquire a lock.
           const lock = await this.redlock.acquire(['throttler'], 5000);
           try {
             // Do something...
             await this.logDataToClickHouse(expiredKey, count);
+          } catch (e) {
+            console.log('Sync failed :', e);
           } finally {
             // Release the lock.
             await lock.release();

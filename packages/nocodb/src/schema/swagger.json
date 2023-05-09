@@ -88,7 +88,7 @@
         }
       ],
       "get": {
-        "summary": "Get dashboard layout",
+        "summary": "Get Layout",
         "operationId": "dashboard-layout-get",
         "responses": {
           "200": {
@@ -105,10 +105,10 @@
         "tags": [
           "Dashboard"
         ],
-        "description": "Get Dashboard Layout"
+        "description": "Get Layout"
       },
       "delete": {
-        "summary": "Delete Dashboard Layout",
+        "summary": "Delete Layout",
         "operationId": "dashboard-layout-delete",
         "responses": {
           "200": {
@@ -118,10 +118,10 @@
         "tags": [
           "Dashboard"
         ],
-        "description": "Delete Dashboard Layout"
+        "description": "Delete Layout"
       },
       "patch": {
-        "summary": "Update Dashboard Layout",
+        "summary": "Update Layout",
         "operationId": "dashboard-layout-update",
         "responses": {
           "200": {
@@ -154,7 +154,7 @@
             }
           }
         },
-        "description": "Update the given Dashboard Layout",
+        "description": "Update the given Layout",
         "parameters": [
           {
             "$ref": "#/components/parameters/xc-auth"
@@ -173,11 +173,11 @@
           "name": "layoutId",
           "in": "path",
           "required": true,
-          "description": "Unique Dashboard Layout ID"
+          "description": "Unique Layout ID"
         }
       ],
       "get": {
-        "summary": "List Widgets for Dashboard Layout",
+        "summary": "List Widgets for Layout",
         "operationId": "widget-list",
         "responses": {
           "200": {
@@ -194,10 +194,10 @@
         "tags": [
           "Dashboard"
         ],
-        "description": "Get Widgets of the Dashboard Layout"
+        "description": "Get Widgets of the Layout"
       },
       "post": {
-        "summary": "Create Dashboard Layout Widget",
+        "summary": "Create Widget",
         "operationId": "widget-create",
         "responses": {
           "200": {
@@ -224,7 +224,7 @@
           }
         },
         "tags": ["Dashboard"],
-        "description": "Create a new Widget in a given Dashboard Layout",
+        "description": "Create a new Widget in a given Layout",
         "parameters": [
           {
             "$ref": "#/components/parameters/xc-auth"
@@ -243,7 +243,7 @@
           "name": "layoutId",
           "in": "path",
           "required": true,
-          "description": "Unique Dashboard Layout ID"
+          "description": "Unique Layout ID"
         },
         {
           "schema": {
@@ -254,11 +254,11 @@
           "name": "widgetId",
           "in": "path",
           "required": true,
-          "description": "Dashboard Layout Widget ID"
+          "description": "Widget ID"
         }
       ],
       "delete": {
-        "summary": "Delete Dashboard Layout Widget",
+        "summary": "Delete Widget",
         "operationId": "widget-delete",
         "responses": {
           "200": {
@@ -268,10 +268,10 @@
         "tags": [
           "Dashboard"
         ],
-        "description": "Delete Dashboard Layout Widget"
+        "description": "Delete Widget"
       },
       "patch": {
-        "summary": "Update Dashboard Layout Widget",
+        "summary": "Update Widget",
         "operationId": "widget-update",
         "responses": {
           "200": {
@@ -304,7 +304,7 @@
             }
           }
         },
-        "description": "Update the given Dashboard Layout Widget",
+        "description": "Update the given Widget",
         "parameters": [
           {
             "$ref": "#/components/parameters/xc-auth"
@@ -13908,7 +13908,7 @@
       }
       ],
       "post": {
-        "summary": "Create Dashboard Layout",
+        "summary": "Create Layout",
         "operationId": "dashboard-layout-create",
         "responses": {
           "200": {
@@ -13943,7 +13943,7 @@
         ]
       },
       "get": {
-        "summary": "List Dashboard Layouts",
+        "summary": "List Layouts",
         "operationId": "dashboard-layout-list",
         "responses": {
           "200": {
@@ -13959,7 +13959,7 @@
           }
         ],
         "tags": ["Dashboard"],
-        "description": "List all Dashboard Layouts in a given project"
+        "description": "List all Layouts in a given project"
       }
     },
     "/api/v1/db/meta/hooks/{hookId}": {
@@ -19103,7 +19103,7 @@
           },
           "layout_id": {
             "$ref": "#/components/schemas/Id",
-            "description": "Dashboard Layout ID"
+            "description": "Layout ID"
           },
           "schema_version": {
             "type": "string",
@@ -19163,8 +19163,8 @@
         }
       },
       "Layout": {
-        "description": "Model for Dashboard Layout",
-        "title": "Dashboard Layout Model",
+        "description": "Model for Layout",
+        "title": "Layout Model",
         "type": "object",
         "properties": {
           "id": {
@@ -19181,11 +19181,11 @@
           },
           "title": {
             "type": "string",
-            "description": "Dashboard Layout Title",
-            "example": "My Dashboard Layout"
+            "description": "Layout Title",
+            "example": "My Layout"
           },
           "order": {
-            "description": "The order of this Dashboard Layout in the list of Dashboard Layouts",
+            "description": "The order of this Layout in the list of Layouts",
             "type": "number"
           }
         },
@@ -19194,11 +19194,11 @@
         }
       },
       "LayoutReq": {
-        "description": "Model for Dashboard Layout request",
+        "description": "Model for Layout request",
         "x-stoplight": {
           "id": "4zlzrppfjxrqb"
         },
-        "title": "Dashboard Layout Request Model",
+        "title": "Layout Request Model",
         "type": "object",
         "properties": {
                 "base_id": {
@@ -19211,22 +19211,22 @@
                 },
                 "title": {
                   "type": "string",
-                  "description": "Dashboard Layout Title",
-                  "example": "My Dashboard Layout"
+                  "description": "Layout Title",
+                  "example": "My Layout"
                 },
                 "order": {
-                  "description": "The order of this Dashboard Layout in the list of Dashboard Layouts",
+                  "description": "The order of this Layout in the list of Layouts",
                   "type": "number"
                 }
               },
         "required": ["project_id", "title"]
       },
       "WidgetReq": {
-        "description": "Model for Dashboard Layout Widget request",
+        "description": "Model for Widget request",
         "x-stoplight": {
           "id": "4zlzrppfjxrqb"
         },
-        "title": "Dashboard Layout Widget Request Model",
+        "title": "Widget Request Model",
         "type": "object",
         "properties": {
           "layout_id": {
@@ -19292,11 +19292,11 @@
         ]
       },
       "WidgetUpdateReq": {
-        "description": "Model for Dashboard Layout Widget Update request",
+        "description": "Model for Widget Update request",
         "x-stoplight": {
           "id": "4zlzrppfjxrqb"
         },
-        "title": "Dashboard Layout Widget Update Request Model",
+        "title": "Widget Update Request Model",
         "type": "object",
         "properties": {
           "schema_version": {
@@ -19353,20 +19353,20 @@
         }
       },
       "LayoutUpdateReq": {
-        "description": "Model for Dashboard Layout Update request",
+        "description": "Model for Layout Update request",
         "x-stoplight": {
           "id": "4zlzrppfjxrqb"
         },
-        "title": "Dashboard Layout Update Request Model",
+        "title": "Layout Update Request Model",
         "type": "object",
         "properties": {
                 "title": {
                   "type": "string",
-                  "description": "Dashboard Layout Title",
-                  "example": "My Dashboard Layout"
+                  "description": "Layout Title",
+                  "example": "My Layout"
                 },
                 "order": {
-                  "description": "The order of this Dashboard Layout in the list of Dashboard Layouts",
+                  "description": "The order of this Layout in the list of Layouts",
                   "type": "number"
                 }
               }
@@ -19405,15 +19405,15 @@
         }
       },
       "LayoutList": {
-        "description": "Model for Dashboard Layout List",
-        "title": "Dashboard Layout List Model",
+        "description": "Model for Layout List",
+        "title": "Layout List Model",
         "type": "object",
         "properties": {
           "list": {
             "minItems": 1,
             "type": "array",
             "uniqueItems": true,
-            "description": "Dashboard Layout objects",
+            "description": "Layout objects",
             "items": {
               "$ref": "#/components/schemas/Layout"
             }

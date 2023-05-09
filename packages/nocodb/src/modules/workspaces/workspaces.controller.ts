@@ -10,15 +10,11 @@ import {
   UseGuards,
 } from '@nestjs/common';
 import { AuthGuard } from '@nestjs/passport';
-import {
-  ExtractProjectIdMiddleware,
-  UseAclMiddleware,
-} from '../../middlewares/extract-project-id/extract-project-id.middleware';
-import { ExtractProjectAndWorkspaceIdMiddleware } from '../../middlewares/extract-project-and-workspace-id/extract-project-and-workspace-id.middleware';
+import { UseAclMiddleware } from '../../middlewares/extract-project-id/extract-project-id.middleware';
 import { WorkspacesService } from './workspaces.service';
 
 @Controller()
-@UseGuards(ExtractProjectAndWorkspaceIdMiddleware, AuthGuard('jwt'))
+@UseGuards(AuthGuard('jwt'))
 export class WorkspacesController {
   constructor(private readonly workspacesService: WorkspacesService) {}
 

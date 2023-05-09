@@ -440,7 +440,7 @@ const rolePermissions = {
 // include viewer project role permissions
 Object.assign(
   rolePermissions[WorkspaceUserRoles.VIEWER].include,
-  rolePermissions['viewer'].include
+  rolePermissions['viewer'].include,
 );
 
 export default rolePermissions;

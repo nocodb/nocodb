@@ -10,7 +10,6 @@ import {
 import { GlobalGuard } from '../guards/global/global.guard';
 import { Acl } from '../middlewares/extract-project-id/extract-project-id.middleware';
 import { UtilsService } from '../services/utils.service';
-import { ExtractProjectAndWorkspaceIdMiddleware } from '../middlewares/extract-project-and-workspace-id/extract-project-and-workspace-id.middleware';
 
 @Controller()
 export class UtilsController {
@@ -21,7 +20,7 @@ export class UtilsController {
     return this.utilsService.versionInfo();
   }
 
-  @UseGuards(ExtractProjectAndWorkspaceIdMiddleware, GlobalGuard)
+  @UseGuards(GlobalGuard)
   @Post('/api/v1/db/meta/connection/test')
   @Acl('testConnection')
   @HttpCode(200)
@@ -63,7 +62,7 @@ export class UtilsController {
   }
 
   @Post('/api/v1/db/meta/magic')
-  @UseGuards(ExtractProjectAndWorkspaceIdMiddleware, GlobalGuard)
+  @UseGuards(GlobalGuard)
   @Acl('genericGPT')
   async genericGPT(@Body() body: any) {
     return await this.utilsService.genericGPT({

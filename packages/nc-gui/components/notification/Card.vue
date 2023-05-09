@@ -6,11 +6,7 @@ import { useNotification } from '#imports'
 
 const notificationStore = useNotification()
 
-const {
-  notifications,
-  isRead,
-  pageInfo,
-} = storeToRefs(notificationStore)
+const { notifications, isRead, pageInfo } = storeToRefs(notificationStore)
 
 const groupType = computed({
   get() {

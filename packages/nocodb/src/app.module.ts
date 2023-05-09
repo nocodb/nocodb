@@ -1,5 +1,7 @@
-import { Module, RequestMethod } from '@nestjs/common';
-import { APP_FILTER } from '@nestjs/core';
+import { Injectable, Module, RequestMethod } from '@nestjs/common';
+import { APP_FILTER, APP_GUARD } from '@nestjs/core';
+import { ThrottlerGuard, ThrottlerModule } from '@nestjs/throttler';
+import { ConfigModule, ConfigService } from '@nestjs/config';
 import { Connection } from './connection/connection';
 import { GlobalExceptionFilter } from './filters/global-exception/global-exception.filter';
 import NcPluginMgrv2 from './helpers/NcPluginMgrv2';
@@ -24,10 +26,18 @@ import { WorkspaceUsersModule } from './modules/workspace-users/workspace-users.
 import { DocsModule } from './modules/docs/docs.module';
 import { PublicDocsModule } from './modules/public-docs/public-docs.module';
 import NocoCache from './cache/NocoCache';
+import { ThrottlerConfigService } from './services/throttler/throttler-config.service';
+import { CustomApiLimiterGuard } from './guards/custom-api-limiter.guard';
+
+import appConfig from './app.config';
+import { ExtractProjectAndWorkspaceIdMiddleware } from './middlewares/extract-project-and-workspace-id/extract-project-and-workspace-id.middleware';
 import type {
   MiddlewareConsumer,
   OnApplicationBootstrap,
 } from '@nestjs/common';
+
+// todo: refactor to use config service
+const enableThrottler = !!process.env['NC_THROTTLER_REDIS'];
 
 @Module({
   imports: [
@@ -43,12 +53,35 @@ import type {
     WorkspaceUsersModule,
     DocsModule,
     PublicDocsModule,
+    ConfigModule.forRoot({
+      load: [() => appConfig],
+      isGlobal: true,
+    }),
+    ...(enableThrottler
+      ? [
+          ThrottlerModule.forRootAsync({
+            useClass: ThrottlerConfigService,
+            imports: [
+              ConfigModule.forRoot({
+                isGlobal: true,
+                load: [() => appConfig],
+              }),
+            ],
+          }),
+        ]
+      : []),
   ],
   providers: [
     AuthService,
     {
       provide: APP_FILTER,
       useClass: GlobalExceptionFilter,
+    },
+    {
+      provide: APP_GUARD,
+      useClass: enableThrottler
+        ? CustomApiLimiterGuard
+        : ExtractProjectAndWorkspaceIdMiddleware,
     },
     LocalStrategy,
     AuthTokenStrategy,

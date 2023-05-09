@@ -85,6 +85,11 @@ export default class Model implements TableType {
     if (!this.columns) return null;
     const pCol = this.columns?.find((c) => c.pv);
     if (pCol) return pCol;
+    if (this.mm) {
+      // by default, there is no default value in m2m table
+      // take the first column instead
+      return this.columns[0];
+    }
     const pkIndex = this.columns.indexOf(this.primaryKey);
     if (pkIndex < this.columns.length - 1) return this.columns[pkIndex + 1];
     return this.columns[0];

@@ -16,7 +16,7 @@ interface Job {
 @Injectable()
 export class QueueService {
   static queue = new PQueue({ concurrency: 1 });
-  static queueIndex = 1;
+  static queueIdCounter = 1;
   static processed = 0;
   static queueMemory: Job[] = [];
   static emitter = new Emittery();
@@ -42,6 +42,8 @@ export class QueueService {
         job,
         data.result,
       ]);
+      // clear job from memory
+      this.removeJob(job);
     });
     this.emitter.on(JobStatus.FAILED, (data: { job: Job; error: Error }) => {
       const job = this.queueMemory.find(
@@ -52,6 +54,8 @@ export class QueueService {
         job,
         data.error,
       ]);
+      // clear job from memory
+      this.removeJob(job);
     });
   }
 
@@ -96,14 +100,14 @@ export class QueueService {
   }
 
   get queueIndex() {
-    return QueueService.queueIndex;
+    return QueueService.queueIdCounter;
   }
 
   set queueIndex(index: number) {
-    QueueService.queueIndex = index;
+    QueueService.queueIdCounter = index;
   }
 
-  async add(name: string, data: any) {
+  add(name: string, data: any) {
     const id = `${this.queueIndex++}`;
     const job = { id: `${id}`, name, status: JobStatus.WAITING, data };
     this.queueMemory.push(job);
@@ -111,12 +115,22 @@ export class QueueService {
     return { id, name };
   }
 
-  async getJobs(types: string[] | string) {
+  getJobs(types: string[] | string) {
     types = Array.isArray(types) ? types : [types];
     return this.queueMemory.filter((q) => types.includes(q.status));
   }
 
-  async getJob(id: string) {
+  getJob(id: string) {
     return this.queueMemory.find((q) => q.id === id);
+  }
+
+  // remove job from memory
+  private removeJob(job: Job) {
+    const fIndex = this.queueMemory.findIndex(
+      (q) => q.id === job.id && q.name === job.name,
+    );
+    if (fIndex) {
+      this.queueMemory.splice(fIndex, 1);
+    }
   }
 }

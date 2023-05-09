@@ -1,4 +1,4 @@
-import {Injectable} from '@nestjs/common';
+import {Injectable, Logger} from '@nestjs/common';
 import Client from 'ioredis';
 import Redlock from 'redlock';
 import {ConfigService} from '@nestjs/config';
@@ -11,6 +11,8 @@ export class ThrottlerExpiryListenerService implements OnModuleInit {
   private client;
   private subscriber;
   private redlock: Redlock;
+
+  private readonly logger = new Logger(ThrottlerExpiryListenerService.name);
 
   constructor(
     private readonly clickHouseService: ClickhouseService,
@@ -73,7 +75,7 @@ export class ThrottlerExpiryListenerService implements OnModuleInit {
             // Do something...
             await this.logDataToClickHouse(expiredKey, count);
           } catch (e) {
-            console.log('Sync failed :', e);
+            this.logger.error('Sync failed :', e);
           } finally {
             // Release the lock.
             await lock.release();

@@ -19,10 +19,9 @@ import {
 } from '../middlewares/extract-project-id/extract-project-id.middleware';
 import { Audit } from '../models';
 import { AuditsService } from '../services/audits.service';
-import { ExtractProjectAndWorkspaceIdMiddleware } from '../middlewares/extract-project-and-workspace-id/extract-project-and-workspace-id.middleware';
 
 @Controller()
-@UseGuards(ExtractProjectAndWorkspaceIdMiddleware, GlobalGuard)
+@UseGuards(GlobalGuard)
 export class AuditsController {
   constructor(private readonly auditsService: AuditsService) {}
 

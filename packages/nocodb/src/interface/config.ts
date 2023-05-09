@@ -291,3 +291,10 @@ export interface XcRoute {
   dbAlias?: string;
   isCustom?: boolean;
 }
+
+export interface AppConfig {
+  throttler: {
+    ttl: number;
+    max_apis: number;
+  };
+}

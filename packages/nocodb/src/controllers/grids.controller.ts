@@ -16,10 +16,9 @@ import {
   ExtractProjectIdMiddleware,
 } from '../middlewares/extract-project-id/extract-project-id.middleware';
 import { GridsService } from '../services/grids.service';
-import { ExtractProjectAndWorkspaceIdMiddleware } from '../middlewares/extract-project-and-workspace-id/extract-project-and-workspace-id.middleware';
 
 @Controller()
-@UseGuards(ExtractProjectAndWorkspaceIdMiddleware, GlobalGuard)
+@UseGuards(GlobalGuard)
 export class GridsController {
   get '/api/v1/db/meta/tables/:tableId/grids/'() {
     return this['_/api/v1/db/meta/tables/:tableId/grids/'];

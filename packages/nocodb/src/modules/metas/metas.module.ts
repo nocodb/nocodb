@@ -82,6 +82,10 @@ import { DocsModule } from '../docs/docs.module';
 import { PublicDocsModule } from '../public-docs/public-docs.module';
 import { NotificationsGateway } from '../../gateways/notifications/notifications.gateway';
 import { ClickhouseService } from '../../services/clickhouse/clickhouse.service';
+import { ThrottlerExpiryListenerService } from '../../services/throttler-expiry-listener.service';
+
+// todo: refactor to use config service
+const enableThrottler = !!process.env['NC_THROTTLER_REDIS'];
 
 @Module({
   imports: [
@@ -175,6 +179,7 @@ import { ClickhouseService } from '../../services/clickhouse/clickhouse.service'
     NotificationsService,
     NotificationsGateway,
     ClickhouseService,
+    ...(enableThrottler ? [ThrottlerExpiryListenerService] : []),
   ],
 })
 export class MetasModule {}

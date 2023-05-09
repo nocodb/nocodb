@@ -18,11 +18,10 @@ import {
   ExtractProjectIdMiddleware,
 } from '../middlewares/extract-project-id/extract-project-id.middleware';
 import { HooksService } from '../services/hooks.service';
-import { ExtractProjectAndWorkspaceIdMiddleware } from '../middlewares/extract-project-and-workspace-id/extract-project-and-workspace-id.middleware';
 import type { HookType } from 'nocodb-sdk';
 
 @Controller()
-@UseGuards(ExtractProjectAndWorkspaceIdMiddleware, GlobalGuard)
+@UseGuards(GlobalGuard)
 export class HooksController {
   constructor(private readonly hooksService: HooksService) {}
 

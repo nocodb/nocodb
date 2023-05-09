@@ -23,6 +23,9 @@ async function clearServerData({ request }) {
 async function getWebhookResponses({ request, count = 1 }) {
   let response;
 
+  // add delay ensuring the server has received the request
+  await new Promise(resolve => setTimeout(resolve, 1000));
+
   // retry since there can be lag between the time the hook is triggered and the time the server receives the request
   for (let i = 0; i < 20; i++) {
     response = await request.get(hookPath + '/count');
@@ -425,6 +428,9 @@ test.describe.serial('Webhook', () => {
 
   test('Bulk operations', async ({ request, page }) => {
     async function verifyBulkOperationTrigger(rsp, type) {
+      // add delay to make sure bulk operation is completed
+      await new Promise(resolve => setTimeout(resolve, 1000));
+
       for (let i = 0; i < rsp.length; i++) {
         expect(rsp[i].type).toBe(type);
         expect(rsp[i].data.table_name).toBe('Test');

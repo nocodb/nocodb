@@ -507,21 +507,22 @@ export class UsersService {
     });
 
     setTokenCookie(param.res, refreshToken);
-
     await this.createDefaultWorkspace(user);
 
-    await Audit.insert({
-      op_type: AuditOperationTypes.AUTHENTICATION,
-      op_sub_type: AuditOperationSubTypes.SIGNUP,
-      user: user.email,
-      description: `User has signed up`,
-      ip: (param.req as any).clientIp,
+
+    this.appHooksService.emit(AppEvents.USER_SIGNUP, {
+      user: user,
+      ip: param.req?.clientIp,
     });
+    // await Audit.insert({
+    //   op_type: AuditOperationTypes.AUTHENTICATION,
+    //   op_sub_type: AuditOperationSubTypes.SIGNUP,
+    //   user: user.email,
+    //   description: `User has signed up`,
+    //   ip: (param.req as any).clientIp,
+    // });
 
     this.appHooksService.emit(AppEvents.WELCOME, {
-      user,
-    });
-    this.appHooksService.emit(AppEvents.USER_SIGNUP, {
       user,
     });
 

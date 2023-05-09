@@ -83,6 +83,9 @@ export enum AppEvents {
   DATA_CREATE = 'data.create',
   DATA_DELETE = 'data.delete',
   DATA_UPDATE = 'data.update',
+
+  ORG_USER_INVITE = 'org.user.invite',
+  ORG_USER_RESEND_INVITE = 'org.user.resend.invite',
 }
 
 export enum WorkspaceUserRoles {

@@ -1,5 +1,5 @@
 import { promisify } from 'util';
-import { AuditOperationSubTypes, AuditOperationTypes } from 'nocodb-sdk';
+import { AppEvents, AuditOperationSubTypes, AuditOperationTypes } from 'nocodb-sdk';
 import {
   Body,
   Controller,
@@ -25,10 +25,14 @@ import {
   setTokenCookie,
 } from '../../services/users/helpers';
 import { UsersService } from '../../services/users/users.service';
+import { AppHooksService } from '../../services/app-hooks/app-hooks.service'
 
 @Controller()
 export class UsersController {
-  constructor(private readonly usersService: UsersService) {}
+  constructor(
+    private readonly usersService: UsersService,
+    private readonly appHooksService: AppHooksService,
+  ) {}
 
   @Post([
     '/auth/user/signup',
@@ -87,13 +91,18 @@ export class UsersController {
       });
       setTokenCookie(res, refreshToken);
 
-      await Audit.insert({
-        op_type: AuditOperationTypes.AUTHENTICATION,
-        op_sub_type: AuditOperationSubTypes.SIGNIN,
-        user: user.email,
+      this.appHooksService.emit(AppEvents.USER_SIGNIN, {
+        user,
         ip: req.clientIp,
-        description: auditDescription,
-      });
+         auditDescription,
+      })
+      // await Audit.insert({
+      //   op_type: AuditOperationTypes.AUTHENTICATION,
+      //   op_sub_type: AuditOperationSubTypes.SIGNIN,
+      //   user: user.email,
+      //   ip: req.clientIp,
+      //   description: auditDescription,
+      // });
 
       res.json({
         token: genJwt(user, Noco.getConfig()),

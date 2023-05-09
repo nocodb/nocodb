@@ -67,6 +67,7 @@ export interface UserSignupEvent {
 export interface UserSigninEvent {
   user: UserType;
   ip?: string;
+  auditDescription?: string;
 }
 
 export interface UserPasswordChangeEvent {
@@ -124,6 +125,13 @@ export interface SortEvent {
 export interface WorkspaceEvent {
   workspace: WorkspaceType;
   user: UserType;
+  ip?: string;
+}
+
+export interface OrgUserInviteEvent {
+  invitedBy: UserType;
+  user: UserType;
+  count?: number;
   ip?: string;
 }
 

@@ -11,9 +11,11 @@ export class JobsService {
     @InjectQueue(JOBS_QUEUE) private readonly jobsQueue: Queue,
     private readonly fallbackQueueService: QueueService,
   ) {
-    this.activeQueue = process.env.NC_REDIS_URL
-      ? this.jobsQueue
-      : this.fallbackQueueService;
+    this.activeQueue = this.fallbackQueueService;
+    /* process.env.NC_REDIS_URL
+        ? this.jobsQueue
+        : this.fallbackQueueService;
+    */
   }
 
   async jobStatus(jobId: string) {

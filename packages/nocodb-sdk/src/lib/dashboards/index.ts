@@ -148,7 +148,7 @@ export const chartTypes = [
 ];
 
 export interface WidgetDataResult {
-  dashboardId: string;
+  layoutId: string;
   widgetId: string;
 }
 

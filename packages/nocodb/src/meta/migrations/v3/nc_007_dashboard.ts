@@ -28,7 +28,6 @@ const up = async (knex: Knex) => {
   await knex.schema.createTable(
     MetaTable.DASHBOARD_PROJECT_DB_PROJECT_LINKINGS,
     async (table) => {
-      table.string('id', 20).primary().notNullable();
       table.string('dashboard_project_id', 20).notNullable();
       table
         .foreign('dashboard_project_id')
@@ -42,7 +41,6 @@ const up = async (knex: Knex) => {
   await knex.schema.createTable(
     MetaTable.WIDGET_DB_DEPENDENCIES,
     async (table) => {
-      table.string('id', 20).primary().notNullable();
       table.string('widget_id', 20).notNullable();
       table.foreign('widget_id').references(`${MetaTable.WIDGET}.id`);
       table.string('model_id', 20).notNullable();

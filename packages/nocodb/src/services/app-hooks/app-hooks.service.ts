@@ -1,12 +1,13 @@
 import { Inject, Injectable } from '@nestjs/common';
 import { IEventEmitter } from '../../modules/event-emitter/event-emitter.interface';
 import type {
+  OrgUserInviteEvent,
   ProjectUserResendInviteEvent,
   ProjectUserUpdateEvent,
   UserPasswordChangeEvent,
   UserPasswordForgotEvent,
   UserPasswordResetEvent,
-} from './interfaces';
+} from './interfaces'
 import type { AppEvents } from 'nocodb-sdk';
 import type {
   ColumnEvent,
@@ -189,6 +190,12 @@ export class AppHooksService {
       | AppEvents.COLUMN_CREATE
       | AppEvents.COLUMN_DELETE,
     data: ColumnEvent,
+  ): void;
+  emit(
+    event: AppEvents.ORG_USER_INVITE, data: OrgUserInviteEvent
+  ): void;
+  emit(
+    event: AppEvents.ORG_USER_RESEND_INVITE, data: OrgUserInviteEvent
   ): void;
   emit(event, data): void {
     this.eventEmitter.emit(event, data);

@@ -9,6 +9,7 @@ import { Audit } from '../models';
 import { AppHooksService } from './app-hooks/app-hooks.service';
 import type {
   ColumnEvent,
+  OrgUserInviteEvent,
   ProjectInviteEvent,
   ProjectUserResendInviteEvent,
   ProjectUserUpdateEvent,
@@ -17,6 +18,8 @@ import type {
   UserPasswordChangeEvent,
   UserPasswordForgotEvent,
   UserPasswordResetEvent,
+  UserSigninEvent,
+  UserSignupEvent,
   ViewEvent,
 } from './app-hooks/interfaces';
 
@@ -226,6 +229,57 @@ export class AppHooksListenerService implements OnModuleInit, OnModuleDestroy {
             ip,
           });
           T.emit('evt', { evt_type: 'column:deleted' });
+        }
+        break;
+
+      case AppEvents.USER_SIGNIN:
+        {
+          const param = data as UserSigninEvent;
+          await Audit.insert({
+            op_type: AuditOperationTypes.AUTHENTICATION,
+            op_sub_type: AuditOperationSubTypes.SIGNIN,
+            user: param.user.email,
+            ip: param.ip,
+            description: param.auditDescription,
+          });
+        }
+        break;
+      case AppEvents.USER_SIGNUP:
+        {
+          const param = data as UserSignupEvent;
+          await Audit.insert({
+            op_type: AuditOperationTypes.AUTHENTICATION,
+            op_sub_type: AuditOperationSubTypes.SIGNUP,
+            user: param.user.email,
+            description: `User has signed up`,
+            ip: param.ip,
+          });
+        }
+        break;
+      case AppEvents.ORG_USER_INVITE:
+        {
+          const param = data as OrgUserInviteEvent;
+          T.emit('evt', { evt_type: 'org:user:invite', count: param.count });
+
+          await Audit.insert({
+            op_type: AuditOperationTypes.ORG_USER,
+            op_sub_type: AuditOperationSubTypes.INVITE,
+            user: param.invitedBy.email,
+            description: `${param.user.email} has been invited to the organisation`,
+            ip: param.ip,
+          });
+        }
+        break;
+      case AppEvents.ORG_USER_RESEND_INVITE:
+        {
+          const param = data as OrgUserInviteEvent;
+          await Audit.insert({
+            op_type: AuditOperationTypes.ORG_USER,
+            op_sub_type: AuditOperationSubTypes.RESEND_INVITE,
+            user: param.invitedBy.email,
+            description: `${param.user.email} has been re-invited`,
+            ip: param.ip,
+          });
         }
         break;
     }

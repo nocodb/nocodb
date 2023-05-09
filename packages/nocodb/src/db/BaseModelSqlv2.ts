@@ -3215,23 +3215,17 @@ class BaseModelSqlv2 {
   private _convertDateFormat(
     dateTimeColumns: Record<string, any>[],
     d: Record<string, any>,
-    isXcdbBase: BoolType,
+    isXcdbBase: BoolType, // TODO(timezone): remove
   ) {
     try {
       if (d) {
         dateTimeColumns.forEach((col) => {
           if (d[col.title] && typeof d[col.title] === 'string') {
-            if (isXcdbBase) {
-              // e.g. 01.01.2022 10:00:00+05:30 -> 2022-01-01 04:30:00+00:00
-              d[col.title] = dayjs(d[col.title])
-                .utc(true)
-                .format('YYYY-MM-DD HH:mm:ssZ');
-            } else {
-              // e.g. 01.01.2022 10:00:00+05:30 -> 2022-01-01 04:30:00+00:00
-              d[col.title] = dayjs(d[col.title])
-                .utc()
-                .format('YYYY-MM-DD HH:mm:ssZ');
-            }
+            // e.g. 01.01.2022 10:00:00+05:30 -> 2022-01-01 04:30:00+00:00 (TBC)
+            // e.g. 2023-05-09 11:41:49 -> 2023-05-09 11:41:49+00:00
+            d[col.title] = dayjs(d[col.title])
+              .utc(true)
+              .format('YYYY-MM-DD HH:mm:ssZ');
           }
         });
       }

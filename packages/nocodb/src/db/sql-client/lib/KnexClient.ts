@@ -2970,7 +2970,7 @@ class KnexClient extends SqlClient {
   sanitiseDataType(dt: string) {
     // allow only alphanumeric and space
     // eg: varchar, int, bigint, text, character varying, etc
-    if (/^[\w -]+$/.test(dt)) return dt;
+    if (/^[\w -]+(?:\(\d+(?:\s?,\s?\d+)?\))?$/.test(dt)) return dt;
 
     throw new Error(`Invalid data type: ${dt}`);
   }

@@ -26,7 +26,7 @@ import { WorkspaceUsersModule } from './modules/workspace-users/workspace-users.
 import { DocsModule } from './modules/docs/docs.module';
 import { PublicDocsModule } from './modules/public-docs/public-docs.module';
 import NocoCache from './cache/NocoCache';
-import { ThrottlerConfigService } from './services/throttler-config/throttler-config.service';
+import { ThrottlerConfigService } from './services/throttler/throttler-config.service';
 import { CustomApiLimiterGuard } from './guards/custom-api-limiter.guard';
 
 import appConfig from './app.config';

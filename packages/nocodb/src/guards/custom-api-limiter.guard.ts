@@ -4,6 +4,7 @@ import { ExtractProjectAndWorkspaceIdMiddleware } from '../middlewares/extract-p
 import type { ExecutionContext } from '@nestjs/common';
 
 const HEADER_NAME = 'xc-token';
+const HEADER_NAME_2 = 'xc-auth';
 
 @Injectable()
 export class CustomApiLimiterGuard extends ThrottlerGuard {
@@ -14,15 +15,16 @@ export class CustomApiLimiterGuard extends ThrottlerGuard {
     } catch (e) {
       console.log(e);
     }
+    const req = context.switchToHttp().getRequest();
 
-    return !context.switchToHttp().getRequest().headers[HEADER_NAME]
+    return req.headers[HEADER_NAME] || req.headers[HEADER_NAME_2]
       ? super.canActivate(context)
       : true;
   }
 
   protected getTracker(req: Record<string, any>): string {
     return `${req.ncWorkspaceId ?? 'default'}|${
-      req.headers[HEADER_NAME]
+      req.headers[HEADER_NAME] ?? req.headers[HEADER_NAME_2]
     }` as string;
   }
   generateKey(context, suffix) {

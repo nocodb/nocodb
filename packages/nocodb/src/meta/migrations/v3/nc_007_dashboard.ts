@@ -53,7 +53,6 @@ const up = async (knex: Knex) => {
     },
   );
   await knex.schema.alterTable(MetaTable.FILTER_EXP, (table) => {
-    // todo: add enum and sync existing projects
     table.string('fk_widget_id', 200).nullable();
     table.foreign('fk_widget_id').references(`${MetaTable.WIDGET}.id`);
   });

@@ -89,7 +89,7 @@
       ],
       "get": {
         "summary": "Get Layout",
-        "operationId": "dashboard-layout-get",
+        "operationId": "layout-get",
         "responses": {
           "200": {
             "description": "OK",
@@ -109,7 +109,7 @@
       },
       "delete": {
         "summary": "Delete Layout",
-        "operationId": "dashboard-layout-delete",
+        "operationId": "layout-delete",
         "responses": {
           "200": {
             "description": "OK"
@@ -122,7 +122,7 @@
       },
       "patch": {
         "summary": "Update Layout",
-        "operationId": "dashboard-layout-update",
+        "operationId": "layout-update",
         "responses": {
           "200": {
             "description": "OK",
@@ -257,6 +257,26 @@
           "description": "Widget ID"
         }
       ],
+      "get": {
+        "summary": "Get Widget, including its data",
+        "operationId": "widget-get",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Widget"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "Dashboard"
+        ],
+        "description": "Get Layout"
+      },
       "delete": {
         "summary": "Delete Widget",
         "operationId": "widget-delete",
@@ -14067,7 +14087,7 @@
       ],
       "post": {
         "summary": "Create Layout",
-        "operationId": "dashboard-layout-create",
+        "operationId": "layout-create",
         "responses": {
           "200": {
             "description": "OK",
@@ -14102,7 +14122,7 @@
       },
       "get": {
         "summary": "List Layouts",
-        "operationId": "dashboard-layout-list",
+        "operationId": "layout-list",
         "responses": {
           "200": {
             "$ref": "#/components/responses/LayoutList"
@@ -19319,6 +19339,10 @@
               }
             ], 
             "description": "Appearance Config JSON"
+          },
+          "data": {
+            "type": "object",
+            "description": "The actual data for the widget"
           }
         },
         "required": ["id", "layout_id", "schema_version", "widget_type"],

@@ -1160,6 +1160,8 @@ export interface WidgetType {
   data_config?: null | object | string;
   /** Appearance Config JSON */
   appearance_config?: null | object | string;
+  /** The actual data for the widget */
+  data?: object;
 }
 
 /**
@@ -3161,6 +3163,27 @@ export class Api<
         method: 'POST',
         body: data,
         type: ContentType.Json,
+        format: 'json',
+        ...params,
+      }),
+
+    /**
+     * @description Get Layout
+     *
+     * @tags Dashboard
+     * @name WidgetGet
+     * @summary Get Widget, including its data
+     * @request GET:/api/v1/layouts/{layoutId}/widgets/{widgetId}
+     * @response `200` `WidgetType` OK
+     */
+    widgetGet: (
+      layoutId: IdType,
+      widgetId: IdType,
+      params: RequestParams = {}
+    ) =>
+      this.request<WidgetType, any>({
+        path: `/api/v1/layouts/${layoutId}/widgets/${widgetId}`,
+        method: 'GET',
         format: 'json',
         ...params,
       }),

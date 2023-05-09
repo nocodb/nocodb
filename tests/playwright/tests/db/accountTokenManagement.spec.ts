@@ -17,8 +17,9 @@ test.describe('User roles', () => {
 
   test('Create and Delete token', async () => {
     test.slow();
+    const parallelId = process.env.TEST_PARALLEL_INDEX ?? '0';
     await accountTokenPage.goto();
-    await accountTokenPage.createToken({ description: 'test token' });
-    await accountTokenPage.deleteToken({ description: 'test token' });
+    await accountTokenPage.createToken({ description: `nc_test_${parallelId} test token` });
+    await accountTokenPage.deleteToken({ description: `nc_test_${parallelId} test token` });
   });
 });

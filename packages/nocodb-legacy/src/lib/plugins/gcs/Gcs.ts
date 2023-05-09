@@ -7,6 +7,7 @@ import {
   waitForStreamClose,
 } from '../../utils/pluginUtils';
 import type { IStorageAdapterV2, XcFile } from 'nc-plugin';
+import type { Readable } from 'stream';
 import type { StorageOptions } from '@google-cloud/storage';
 
 export default class Gcs implements IStorageAdapterV2 {
@@ -122,8 +123,23 @@ export default class Gcs implements IStorageAdapterV2 {
             .save(body)
             .then((res) => resolve(res))
             .catch(reject);
-        }
+        },
       );
     });
+  }
+
+  // TODO - implement
+  fileCreateByStream(_key: string, _stream: Readable): Promise<void> {
+    return Promise.resolve(undefined);
+  }
+
+  // TODO - implement
+  fileReadByStream(_key: string): Promise<Readable> {
+    return Promise.resolve(undefined);
+  }
+
+  // TODO - implement
+  getDirectoryList(_path: string): Promise<string[]> {
+    return Promise.resolve(undefined);
   }
 }

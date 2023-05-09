@@ -1,5 +1,7 @@
 import { Inject, Module, RequestMethod } from '@nestjs/common';
 import { APP_FILTER } from '@nestjs/core';
+import { BullModule } from '@nestjs/bull';
+import { EventEmitterModule as NestJsEventEmitter } from '@nestjs/event-emitter';
 import { Connection } from './connection/connection';
 import { GlobalExceptionFilter } from './filters/global-exception/global-exception.filter';
 import NcPluginMgrv2 from './helpers/NcPluginMgrv2';
@@ -23,6 +25,7 @@ import NcConfigFactory from './utils/NcConfigFactory';
 import NcUpgrader from './version-upgrader/NcUpgrader';
 import { MetasModule } from './modules/metas/metas.module';
 import NocoCache from './cache/NocoCache';
+import { JobsModule } from './modules/jobs/jobs.module';
 import type {
   MiddlewareConsumer,
   OnApplicationBootstrap,
@@ -36,6 +39,15 @@ import type {
     MetasModule,
     DatasModule,
     EventEmitterModule,
+    JobsModule,
+    NestJsEventEmitter.forRoot(),
+    ...(process.env['NC_REDIS_URL']
+      ? [
+          BullModule.forRoot({
+            redis: process.env.NC_REDIS_URL,
+          }),
+        ]
+      : []),
   ],
   controllers: [],
   providers: [

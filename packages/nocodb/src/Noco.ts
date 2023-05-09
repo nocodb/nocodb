@@ -3,6 +3,7 @@ import { NestFactory } from '@nestjs/core';
 import clear from 'clear';
 import * as express from 'express';
 import NcToolGui from 'nc-lib-gui';
+import { IoAdapter } from '@nestjs/platform-socket.io';
 import { AppModule } from './app.module';
 
 import { NC_LICENSE_KEY } from './constants';
@@ -98,6 +99,9 @@ export default class Noco {
     this._server = server;
 
     const nestApp = await NestFactory.create(AppModule);
+
+    nestApp.useWebSocketAdapter(new IoAdapter(httpServer));
+
     nestApp.use(
       express.json({ limit: process.env.NC_REQUEST_BODY_SIZE || '50mb' }),
     );

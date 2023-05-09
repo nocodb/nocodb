@@ -37,6 +37,35 @@ export class ProjectsPage extends BasePage {
     await this.rootPage.locator('.nc-container').waitFor({ state: 'visible' });
   }
 
+  // duplicate project
+  async duplicateProject({
+    name = 'sample',
+    withoutPrefix,
+  }: {
+    name?: string;
+    type?: string;
+    withoutPrefix?: boolean;
+  }) {
+    if (!withoutPrefix) name = this.prefixTitle(name);
+    // click three-dot
+    await this.rootPage.getByTestId('p-three-dot-' + name).click();
+    // check duplicate visible
+    await expect(this.rootPage.getByTestId('dupe-project-' + name)).toBeVisible();
+    // click duplicate
+    await this.rootPage.getByTestId('dupe-project-' + name).click();
+    // click duplicate confirmation "Do you want to duplicate 'sampleREST0' project?"
+    // assert message on duplicate confirmation page
+    const dupeProjectSubmitAction = () => this.rootPage.getByRole('button', { name: 'Confirm' }).click();
+
+    await this.waitForResponse({
+      uiAction: dupeProjectSubmitAction,
+      httpMethodsToMatch: ['POST'],
+      requestUrlPathToMatch: 'api/v1/db/meta/duplicate/',
+    });
+    // wait for duplicate create completed and render kebab
+    await this.get().locator(`[data-testid="p-three-dot-${name} copy"]`).waitFor();
+  }
+
   async checkProjectCreateButton({ exists = true }) {
     await expect(this.rootPage.locator('.nc-new-project-menu:visible')).toHaveCount(exists ? 1 : 0);
   }

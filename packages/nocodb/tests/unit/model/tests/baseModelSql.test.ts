@@ -1,19 +1,19 @@
 import 'mocha';
+import { BaseModelSqlv2 } from '../../../../src/db/BaseModelSqlv2'
+import NcConnectionMgrv2 from '../../../../src/utils/common/NcConnectionMgrv2'
 import init from '../../init';
-import { BaseModelSqlv2 } from '../../../../src/lib/db/sql-data-mapper/lib/sql/BaseModelSqlv2';
 import { createProject } from '../../factory/project';
 import { createTable } from '../../factory/table';
-import NcConnectionMgrv2 from '../../../../src/lib/utils/common/NcConnectionMgrv2';
-import Base from '../../../../src/lib/models/Base';
-import Model from '../../../../src/lib/models/Model';
-import Project from '../../../../src/lib/models/Project';
-import View from '../../../../src/lib/models/View';
+import Base from '../../../../src/models/Base';
+import Model from '../../../../src/models/Model';
+import Project from '../../../../src/models/Project';
+import View from '../../../../src/models/View';
 import { createRow, generateDefaultRowAttributes } from '../../factory/row';
-import Audit from '../../../../src/lib/models/Audit';
+import Audit from '../../../../src/models/Audit';
 import { expect } from 'chai';
-import Filter from '../../../../src/lib/models/Filter';
+import Filter from '../../../../src/models/Filter';
 import { createLtarColumn } from '../../factory/column';
-import LinkToAnotherRecordColumn from '../../../../src/lib/models/LinkToAnotherRecordColumn';
+import LinkToAnotherRecordColumn from '../../../../src/models/LinkToAnotherRecordColumn';
 import { isPg, isSqlite } from '../../init/db';
 
 function baseModelSqlTests() {

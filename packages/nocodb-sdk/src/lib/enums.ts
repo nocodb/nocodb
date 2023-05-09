@@ -86,6 +86,10 @@ export enum AppEvents {
 
   ORG_USER_INVITE = 'org.user.invite',
   ORG_USER_RESEND_INVITE = 'org.user.resend.invite',
+
+
+  VIEW_COLUMN_CREATE = 'view.column.create',
+  VIEW_COLUMN_UPDATE = 'view.column.update',
 }
 
 export enum WorkspaceUserRoles {

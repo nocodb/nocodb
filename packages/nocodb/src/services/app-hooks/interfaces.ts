@@ -1,14 +1,13 @@
 import type {
   ColumnType,
-  FilterType,
+  FilterType, HookType,
   ProjectType,
   ProjectUserReqType,
   SortType,
   TableType,
   UserType,
   ViewType,
-  WorkspaceType,
-} from 'nocodb-sdk';
+} from 'nocodb-sdk'
 
 export interface ProjectInviteEvent {
   project: ProjectType;
@@ -104,8 +103,9 @@ export interface ViewEvent {
 
 export interface FilterEvent {
   filter: FilterType;
-  user: UserType;
   ip?: string;
+  hook?: HookType;
+  view?: ViewType;
 }
 
 export interface ColumnEvent {
@@ -118,7 +118,6 @@ export interface ColumnEvent {
 
 export interface SortEvent {
   sort: SortType;
-  user: UserType;
   ip?: string;
 }
 

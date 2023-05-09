@@ -9,6 +9,7 @@ import { Audit } from '../models';
 import { AppHooksService } from './app-hooks/app-hooks.service';
 import type {
   ColumnEvent,
+  FilterEvent,
   OrgUserInviteEvent,
   ProjectInviteEvent,
   ProjectUserResendInviteEvent,
@@ -280,6 +281,39 @@ export class AppHooksListenerService implements OnModuleInit, OnModuleDestroy {
             description: `${param.user.email} has been re-invited`,
             ip: param.ip,
           });
+        }
+        break;
+      case AppEvents.FILTER_CREATE:
+        {
+          const param = data as FilterEvent;
+          T.emit('evt', {
+            evt_type: param.hook ? 'hookFilter:created' : 'filter:created',
+          });
+        }
+        break;
+      case AppEvents.FILTER_DELETE:
+        {
+          T.emit('evt', { evt_type: 'filter:deleted' });
+        }
+        break;
+      case AppEvents.FILTER_UPDATE:
+        {
+          T.emit('evt', { evt_type: 'filter:updated' });
+        }
+        break;
+      case AppEvents.SORT_CREATE:
+        {
+          T.emit('evt', { evt_type: 'sort:created' });
+        }
+        break;
+      case AppEvents.SORT_DELETE:
+        {
+          T.emit('evt', { evt_type: 'sort:deleted' });
+        }
+        break;
+      case AppEvents.SORT_UPDATE:
+        {
+          T.emit('evt', { evt_type: 'sort:updated' });
         }
         break;
     }

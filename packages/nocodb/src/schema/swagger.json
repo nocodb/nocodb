@@ -64,30 +64,39 @@
     }
   ],
   "paths": {
-    "/api/v1/dashboards/{id}": {
+    "/api/v1/dashboards/{dashboardId}/layouts/{layoutId}": {
       "parameters": [
         {
           "schema": {
             "$ref": "#/components/schemas/Id",
             "example": "us_b3xo2i44nx5y9l"
           },
-          "name": "id",
+          "name": "dashboardId",
           "in": "path",
           "required": true,
           "description": "Unique Dashboard ID"
-
+        },
+        {
+          "schema": {
+            "$ref": "#/components/schemas/Id",
+            "example": "us_b3xo2i44nx5y9l"
+          },
+          "name": "layoutId",
+          "in": "path",
+          "required": true,
+          "description": "Unique Layout ID"
         }
       ],
       "get": {
-        "summary": "Get dashboard",
-        "operationId": "dashboard-get",
+        "summary": "Get dashboard layout",
+        "operationId": "dashboard-layout-get",
         "responses": {
           "200": {
             "description": "OK",
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/Dashboard"
+                  "$ref": "#/components/schemas/Layout"
                 }
               }
             }
@@ -96,11 +105,11 @@
         "tags": [
           "Dashboard"
         ],
-        "description": "Get Dashboard"
+        "description": "Get Dashboard Layout"
       },
       "delete": {
-        "summary": "Delete Dashboard",
-        "operationId": "dashboard-delete",
+        "summary": "Delete Dashboard Layout",
+        "operationId": "dashboard-layout-delete",
         "responses": {
           "200": {
             "description": "OK"
@@ -109,11 +118,11 @@
         "tags": [
           "Dashboard"
         ],
-        "description": "Delete Dashboard"
+        "description": "Delete Dashboard Layout"
       },
       "patch": {
-        "summary": "Update Dashboard",
-        "operationId": "dashboard-update",
+        "summary": "Update Dashboard Layout",
+        "operationId": "dashboard-layout-update",
         "responses": {
           "200": {
             "description": "OK",
@@ -140,12 +149,12 @@
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/DashboardUpdateReq"
+                "$ref": "#/components/schemas/LayoutUpdateReq"
               }
             }
           }
         },
-        "description": "Update the given Dashboard",
+        "description": "Update the given Dashboard Layout",
         "parameters": [
           {
             "$ref": "#/components/parameters/xc-auth"
@@ -153,7 +162,7 @@
         ]
       }
     },
-    "/api/v1/dashboards/{dashboardId}/widgets": {
+    "/api/v1/layouts/{layoutId}/widgets": {
       "parameters": [
         {
           "schema": {
@@ -161,14 +170,14 @@
             "example": "p_124hhlkbeasewh",
             "type": "string"
           },
-          "name": "dashboardId",
+          "name": "layoutId",
           "in": "path",
           "required": true,
-          "description": "Unique Dashboard ID"
+          "description": "Unique Dashboard Layout ID"
         }
       ],
       "get": {
-        "summary": "List Widgets for Dashboard",
+        "summary": "List Widgets for Dashboard Layout",
         "operationId": "widget-list",
         "responses": {
           "200": {
@@ -185,10 +194,10 @@
         "tags": [
           "Dashboard"
         ],
-        "description": "Get Widgets of the Dashboard"
+        "description": "Get Widgets of the Dashboard Layout"
       },
       "post": {
-        "summary": "Create Dashboard Widget",
+        "summary": "Create Dashboard Layout Widget",
         "operationId": "widget-create",
         "responses": {
           "200": {
@@ -215,7 +224,7 @@
           }
         },
         "tags": ["Dashboard"],
-        "description": "Create a new Dashboard Widget in a given Dashboard",
+        "description": "Create a new Widget in a given Dashboard Layout",
         "parameters": [
           {
             "$ref": "#/components/parameters/xc-auth"
@@ -223,7 +232,7 @@
         ]
       }
     },
-    "/api/v1/dashboards/{dashboardId}/widgets/{widgetId}": {
+    "/api/v1/layouts/{layoutId}/widgets/{widgetId}": {
       "parameters": [
         {
           "schema": {
@@ -231,10 +240,10 @@
             "example": "p_124hhlkbeasewh",
             "type": "string"
           },
-          "name": "dashboardId",
+          "name": "layoutId",
           "in": "path",
           "required": true,
-          "description": "Unique Dashboard ID"
+          "description": "Unique Dashboard Layout ID"
         },
         {
           "schema": {
@@ -245,11 +254,11 @@
           "name": "widgetId",
           "in": "path",
           "required": true,
-          "description": "Dashboard Widget ID"
+          "description": "Dashboard Layout Widget ID"
         }
       ],
       "delete": {
-        "summary": "Delete Dashboard Widget",
+        "summary": "Delete Dashboard Layout Widget",
         "operationId": "widget-delete",
         "responses": {
           "200": {
@@ -259,10 +268,10 @@
         "tags": [
           "Dashboard"
         ],
-        "description": "Delete Dashboard Widget"
+        "description": "Delete Dashboard Layout Widget"
       },
       "patch": {
-        "summary": "Update Dashboard Widget",
+        "summary": "Update Dashboard Layout Widget",
         "operationId": "widget-update",
         "responses": {
           "200": {
@@ -295,58 +304,12 @@
             }
           }
         },
-        "description": "Update the given Dashboard Widget",
+        "description": "Update the given Dashboard Layout Widget",
         "parameters": [
           {
             "$ref": "#/components/parameters/xc-auth"
           }
         ]
-      }
-    },
-    "/api/v1/dashboards/{dashboardId}/data/widgets/{widgetId}": {
-      "parameters": [
-        {
-          "schema": {
-            "$ref": "#/components/schemas/Id",
-            "example": "p_124hhlkbeasewh",
-            "type": "string"
-          },
-          "name": "dashboardId",
-          "in": "path",
-          "required": true,
-          "description": "Unique Dashboard ID"
-        },
-        {
-          "schema": {
-            "$ref": "#/components/schemas/Id",
-            "example": "p_124hhlkbeasewh",
-            "type": "string"
-          },
-          "name": "widgetId",
-          "in": "path",
-          "required": true,
-          "description": "Dashboard Widget ID"
-        }
-      ],
-      "get": {
-        "summary": "Get widget data",
-        "operationId": "widget-data-get",
-        "responses": {
-          "200": {
-            "description": "OK",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "object"
-                }
-              }
-            }
-          }
-        },
-        "tags": [
-          "Dashboard"
-        ],
-        "description": "Get widget data"
       }
     },
     "/api/v1/public/docs/pages": {
@@ -13930,7 +13893,7 @@
         ]
       }
     },
-    "/api/v1/db/meta/projects/{projectId}/dashboards": {
+    "/api/v1/db/meta/projects/{projectId}/layouts": {
       "parameters": [
               {
         "schema": {
@@ -13945,15 +13908,15 @@
       }
       ],
       "post": {
-        "summary": "Create Dashboard",
-        "operationId": "dashboard-create",
+        "summary": "Create Dashboard Layout",
+        "operationId": "dashboard-layout-create",
         "responses": {
           "200": {
             "description": "OK",
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/Dashboard"
+                  "$ref": "#/components/schemas/Layout"
                 }
               }
             }
@@ -13966,7 +13929,7 @@
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/DashboardReq"
+                "$ref": "#/components/schemas/LayoutReq"
               }
             }
           }
@@ -13980,11 +13943,11 @@
         ]
       },
       "get": {
-        "summary": "List Dashboards",
-        "operationId": "dashboard-list",
+        "summary": "List Dashboard Layouts",
+        "operationId": "dashboard-layout-list",
         "responses": {
           "200": {
-            "$ref": "#/components/responses/DashboardList"
+            "$ref": "#/components/responses/LayoutList"
           },
           "400": {
             "$ref": "#/components/responses/BadRequest"
@@ -13996,7 +13959,7 @@
           }
         ],
         "tags": ["Dashboard"],
-        "description": "List all Dashboards in a given project"
+        "description": "List all Dashboard Layouts in a given project"
       }
     },
     "/api/v1/db/meta/hooks/{hookId}": {
@@ -19138,9 +19101,9 @@
             "$ref": "#/components/schemas/Id",
             "description": "Unique ID"
           },
-          "dashboard_id": {
+          "layout_id": {
             "$ref": "#/components/schemas/Id",
-            "description": "Dashboard ID"
+            "description": "Dashboard Layout ID"
           },
           "schema_version": {
             "type": "string",
@@ -19194,14 +19157,14 @@
             "description": "Appearance Config JSON"
           }
         },
-        "required": ["id", "dashboard_id", "schema_version", "widget_type"],
+        "required": ["id", "layout_id", "schema_version", "widget_type"],
         "x-stoplight": {
           "id": "q8cxkpronjmyx"
         }
       },
-      "Dashboard": {
-        "description": "Model for Dashboard",
-        "title": "Dashboard Model",
+      "Layout": {
+        "description": "Model for Dashboard Layout",
+        "title": "Dashboard Layout Model",
         "type": "object",
         "properties": {
           "id": {
@@ -19218,11 +19181,11 @@
           },
           "title": {
             "type": "string",
-            "description": "Dashboard Title",
-            "example": "My Dashboard"
+            "description": "Dashboard Layout Title",
+            "example": "My Dashboard Layout"
           },
           "order": {
-            "description": "The order of this Dashboard in the list of Dashboards",
+            "description": "The order of this Dashboard Layout in the list of Dashboard Layouts",
             "type": "number"
           }
         },
@@ -19230,12 +19193,12 @@
           "id": "q8cxkpronjmyx"
         }
       },
-      "DashboardReq": {
-        "description": "Model for Dashboard request",
+      "LayoutReq": {
+        "description": "Model for Dashboard Layout request",
         "x-stoplight": {
           "id": "4zlzrppfjxrqb"
         },
-        "title": "Dashboard Request Model",
+        "title": "Dashboard Layout Request Model",
         "type": "object",
         "properties": {
                 "base_id": {
@@ -19248,26 +19211,26 @@
                 },
                 "title": {
                   "type": "string",
-                  "description": "Dashboard Title",
-                  "example": "My Dashboard"
+                  "description": "Dashboard Layout Title",
+                  "example": "My Dashboard Layout"
                 },
                 "order": {
-                  "description": "The order of this Dashboard in the list of Dashboards",
+                  "description": "The order of this Dashboard Layout in the list of Dashboard Layouts",
                   "type": "number"
                 }
               },
         "required": ["project_id", "title"]
       },
       "WidgetReq": {
-        "description": "Model for Dashboard Widget request",
+        "description": "Model for Dashboard Layout Widget request",
         "x-stoplight": {
           "id": "4zlzrppfjxrqb"
         },
-        "title": "Dashboard Widget Request Model",
+        "title": "Dashboard Layout Widget Request Model",
         "type": "object",
         "properties": {
-          "dashboard_id": {
-            "description": "Unique Dashboard ID",
+          "layout_id": {
+            "description": "Unique Layout ID",
             "type": "string"
           },
           "schema_version": {
@@ -19329,11 +19292,11 @@
         ]
       },
       "WidgetUpdateReq": {
-        "description": "Model for Dashboard Widget Update request",
+        "description": "Model for Dashboard Layout Widget Update request",
         "x-stoplight": {
           "id": "4zlzrppfjxrqb"
         },
-        "title": "Dashboard Widget Update Request Model",
+        "title": "Dashboard Layout Widget Update Request Model",
         "type": "object",
         "properties": {
           "schema_version": {
@@ -19389,21 +19352,21 @@
           }
         }
       },
-      "DashboardUpdateReq": {
-        "description": "Model for Dashboard Update request",
+      "LayoutUpdateReq": {
+        "description": "Model for Dashboard Layout Update request",
         "x-stoplight": {
           "id": "4zlzrppfjxrqb"
         },
-        "title": "Dashboard Update Request Model",
+        "title": "Dashboard Layout Update Request Model",
         "type": "object",
         "properties": {
                 "title": {
                   "type": "string",
-                  "description": "Dashboard Title",
-                  "example": "My Dashboard"
+                  "description": "Dashboard Layout Title",
+                  "example": "My Dashboard Layout"
                 },
                 "order": {
-                  "description": "The order of this Dashboard in the list of Dashboards",
+                  "description": "The order of this Dashboard Layout in the list of Dashboard Layouts",
                   "type": "number"
                 }
               }
@@ -19441,18 +19404,18 @@
           "id": "2tsq8h6hjctju"
         }
       },
-      "DashboardList": {
-        "description": "Model for Dashboard List",
-        "title": "Dashboard List Model",
+      "LayoutList": {
+        "description": "Model for Dashboard Layout List",
+        "title": "Dashboard Layout List Model",
         "type": "object",
         "properties": {
           "list": {
             "minItems": 1,
             "type": "array",
             "uniqueItems": true,
-            "description": "Dashboard objects",
+            "description": "Dashboard Layout objects",
             "items": {
-              "$ref": "#/components/schemas/Dashboard"
+              "$ref": "#/components/schemas/Layout"
             }
           },
           "pageInfo": {
@@ -24683,11 +24646,11 @@
         },
         "headers": {}
       },
-      "DashboardList": {
+      "LayoutList": {
         "content": {
           "application/json": {
             "schema": {
-              "$ref": "#/components/schemas/DashboardList"
+              "$ref": "#/components/schemas/LayoutList"
             }
           }
         }

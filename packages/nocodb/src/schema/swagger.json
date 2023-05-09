@@ -19474,7 +19474,7 @@
           }
         },
         "required": [
-          "dashboard_id",
+          "layout_id",
           "schema_version",
           "widget_type"
         ]

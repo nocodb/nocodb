@@ -1,5 +1,5 @@
-import { promisify } from 'util'
-import { Injectable } from '@nestjs/common'
+import { promisify } from 'util';
+import { Injectable } from '@nestjs/common';
 import {
   AppEvents,
   AuditOperationSubTypes,
@@ -29,22 +29,21 @@ import type {
   PasswordResetReqType,
   SignUpReqType,
   UserType,
-} from 'nocodb-sdk'
+} from 'nocodb-sdk';
 
 @Injectable()
 export class UsersService {
   constructor(
     private metaService: MetaService,
     private appHooksService: AppHooksService,
-  ) {
-  }
+  ) {}
 
   async findOne(email: string) {
     const user = await this.metaService.metaGet(null, null, MetaTable.USERS, {
       email,
-    })
+    });
 
-    return user
+    return user;
   }
 
   async insert(param: {
@@ -57,18 +56,18 @@ export class UsersService {
     email: string;
     lastname: any;
   }) {
-    return this.metaService.metaInsert2(null, null, MetaTable.USERS, param)
+    return this.metaService.metaInsert2(null, null, MetaTable.USERS, param);
   }
 
   async registerNewUserIfAllowed({
     avatar,
     display_name,
     user_name,
-                                   email,
-                                   salt,
-                                   password,
-                                   email_verification_token,
-                                 }: {
+    email,
+    salt,
+    password,
+    email_verification_token,
+  }: {
     avatar;
     display_name;
     user_name;
@@ -77,31 +76,30 @@ export class UsersService {
     password;
     email_verification_token;
   }) {
-    let roles: string = OrgUserRoles.CREATOR
+    let roles: string = OrgUserRoles.CREATOR;
 
     if (await User.isFirst()) {
-      roles = `${OrgUserRoles.CREATOR},${OrgUserRoles.SUPER_ADMIN}`
+      roles = `${OrgUserRoles.CREATOR},${OrgUserRoles.SUPER_ADMIN}`;
       // todo: update in nc_store
       // roles = 'owner,creator,editor'
       T.emit('evt', {
         evt_type: 'project:invite',
         count: 1,
-      })
+      });
     } else {
-      let settings: { invite_only_signup?: boolean } = {}
+      let settings: { invite_only_signup?: boolean } = {};
       try {
-        settings = JSON.parse((await Store.get(NC_APP_SETTINGS))?.value)
-      } catch {
-      }
+        settings = JSON.parse((await Store.get(NC_APP_SETTINGS))?.value);
+      } catch {}
 
       if (settings?.invite_only_signup) {
-        NcError.badRequest('Not allowed to signup, contact super admin.')
+        NcError.badRequest('Not allowed to signup, contact super admin.');
       } else {
-        roles = OrgUserRoles.VIEWER
+        roles = OrgUserRoles.VIEWER;
       }
     }
 
-    const token_version = randomTokenString()
+    const token_version = randomTokenString();
     const user = await User.insert({
       avatar,
       display_name,
@@ -125,49 +123,46 @@ export class UsersService {
     validatePayload(
       'swagger.json#/components/schemas/PasswordChangeReq',
       param.body,
-    )
+    );
 
-    const { currentPassword, newPassword } = param.body
+    const { currentPassword, newPassword } = param.body;
 
     if (!currentPassword || !newPassword) {
-      return NcError.badRequest('Missing new/old password')
+      return NcError.badRequest('Missing new/old password');
     }
 
     // validate password and throw error if password is satisfying the conditions
-    const { valid, error } = validatePassword(newPassword)
+    const { valid, error } = validatePassword(newPassword);
 
     if (!valid) {
-      NcError.badRequest(`Password : ${error}`)
+      NcError.badRequest(`Password : ${error}`);
     }
 
-    const user = await User.getByEmail(param.user.email)
+    const user = await User.getByEmail(param.user.email);
 
     const hashedPassword = await promisify(bcrypt.hash)(
       currentPassword,
       user.salt,
-    )
+    );
 
     if (hashedPassword !== user.password) {
-      return NcError.badRequest('Current password is wrong')
+      return NcError.badRequest('Current password is wrong');
     }
 
-    const salt = await promisify(bcrypt.genSalt)(10)
-    const password = await promisify(bcrypt.hash)(newPassword, salt)
+    const salt = await promisify(bcrypt.genSalt)(10);
+    const password = await promisify(bcrypt.hash)(newPassword, salt);
 
     await User.update(user.id, {
       salt,
       password,
       email: user.email,
       token_version: null,
-    })
+    });
 
-
-    this.appHooksService.emit(
-      AppEvents.USER_PASSWORD_CHANGE, {
-        user: user,
-        ip: param.req?.clientIp,
-      },
-    )
+    this.appHooksService.emit(AppEvents.USER_PASSWORD_CHANGE, {
+      user: user,
+      ip: param.req?.clientIp,
+    });
 
     // await Audit.insert({
     //   op_type: AuditOperationTypes.AUTHENTICATION,
@@ -177,7 +172,7 @@ export class UsersService {
     //   ip: param.req?.clientIp,
     // });
 
-    return true
+    return true;
   }
 
   async passwordForgot(param: {
@@ -188,31 +183,31 @@ export class UsersService {
     validatePayload(
       'swagger.json#/components/schemas/PasswordForgotReq',
       param.body,
-    )
+    );
 
-    const _email = param.body.email
+    const _email = param.body.email;
 
     if (!_email) {
-      NcError.badRequest('Please enter your email address.')
+      NcError.badRequest('Please enter your email address.');
     }
 
-    const email = _email.toLowerCase()
-    const user = await User.getByEmail(email)
+    const email = _email.toLowerCase();
+    const user = await User.getByEmail(email);
 
     if (user) {
-      const token = uuidv4()
+      const token = uuidv4();
       await User.update(user.id, {
         email: user.email,
         reset_password_token: token,
         reset_password_expires: new Date(Date.now() + 60 * 60 * 1000),
         token_version: null,
-      })
+      });
       try {
         const template = (
           await import(
             '../../controllers/users/ui/emailTemplates/forgotPassword'
-            )
-        ).default
+          )
+        ).default;
         await NcPluginMgrv2.emailAdapter().then((adapter) =>
           adapter.mailSend({
             to: user.email,
@@ -222,22 +217,18 @@ export class UsersService {
               resetLink: param.siteUrl + `/auth/password/reset/${token}`,
             }),
           }),
-        )
+        );
       } catch (e) {
-        console.log(e)
+        console.log(e);
         return NcError.badRequest(
           'Email Plugin is not found. Please contact administrators to configure it in App Store first.',
-        )
+        );
       }
 
-
-
-      this.appHooksService.emit(
-        AppEvents.USER_PASSWORD_FORGOT, {
-          user: user,
-          ip: param.req?.clientIp,
-        },
-      )
+      this.appHooksService.emit(AppEvents.USER_PASSWORD_FORGOT, {
+        user: user,
+        ip: param.req?.clientIp,
+      });
 
       // await Audit.insert({
       //   op_type: AuditOperationTypes.AUTHENTICATION,
@@ -247,27 +238,27 @@ export class UsersService {
       //   ip: param.req?.clientIp,
       // })
     } else {
-      return NcError.badRequest('Your email has not been registered.')
+      return NcError.badRequest('Your email has not been registered.');
     }
 
-    return true
+    return true;
   }
 
   async tokenValidate(param: { token: string }): Promise<any> {
-    const token = param.token
+    const token = param.token;
 
     const user = await Noco.ncMeta.metaGet(null, null, MetaTable.USERS, {
       reset_password_token: token,
-    })
+    });
 
     if (!user || !user.email) {
-      NcError.badRequest('Invalid reset url')
+      NcError.badRequest('Invalid reset url');
     }
     if (new Date(user.reset_password_expires) < new Date()) {
-      NcError.badRequest('Password reset url expired')
+      NcError.badRequest('Password reset url expired');
     }
 
-    return true
+    return true;
   }
 
   async passwordReset(param: {
@@ -279,32 +270,32 @@ export class UsersService {
     validatePayload(
       'swagger.json#/components/schemas/PasswordResetReq',
       param.body,
-    )
+    );
 
-    const { token, body, req } = param
+    const { token, body, req } = param;
 
     const user = await Noco.ncMeta.metaGet(null, null, MetaTable.USERS, {
       reset_password_token: token,
-    })
+    });
 
     if (!user) {
-      NcError.badRequest('Invalid reset url')
+      NcError.badRequest('Invalid reset url');
     }
     if (user.reset_password_expires < new Date()) {
-      NcError.badRequest('Password reset url expired')
+      NcError.badRequest('Password reset url expired');
     }
     if (user.provider && user.provider !== 'local') {
-      NcError.badRequest('Email registered via social account')
+      NcError.badRequest('Email registered via social account');
     }
 
     // validate password and throw error if password is satisfying the conditions
-    const { valid, error } = validatePassword(body.password)
+    const { valid, error } = validatePassword(body.password);
     if (!valid) {
-      NcError.badRequest(`Password : ${error}`)
+      NcError.badRequest(`Password : ${error}`);
     }
 
-    const salt = await promisify(bcrypt.genSalt)(10)
-    const password = await promisify(bcrypt.hash)(body.password, salt)
+    const salt = await promisify(bcrypt.genSalt)(10);
+    const password = await promisify(bcrypt.hash)(body.password, salt);
 
     await User.update(user.id, {
       salt,
@@ -313,15 +304,12 @@ export class UsersService {
       reset_password_expires: null,
       reset_password_token: '',
       token_version: null,
-    })
+    });
 
-
-    this.appHooksService.emit(
-      AppEvents.USER_PASSWORD_RESET, {
-        user: user,
-        ip: param.req?.clientIp,
-      },
-    )
+    this.appHooksService.emit(AppEvents.USER_PASSWORD_RESET, {
+      user: user,
+      ip: param.req?.clientIp,
+    });
 
     // await Audit.insert({
     //   op_type: AuditOperationTypes.AUTHENTICATION,
@@ -331,7 +319,7 @@ export class UsersService {
     //   ip: req.clientIp,
     // })
 
-    return true
+    return true;
   }
 
   async emailVerification(param: {
@@ -339,28 +327,26 @@ export class UsersService {
     // todo: exclude
     req: any;
   }): Promise<any> {
-    const { token, req } = param
+    const { token, req } = param;
 
     const user = await Noco.ncMeta.metaGet(null, null, MetaTable.USERS, {
       email_verification_token: token,
-    })
+    });
 
     if (!user) {
-      NcError.badRequest('Invalid verification url')
+      NcError.badRequest('Invalid verification url');
     }
 
     await User.update(user.id, {
       email: user.email,
       email_verification_token: '',
       email_verified: true,
-    })
+    });
 
-    this.appHooksService.emit(
-      AppEvents.USER_EMAIL_VERIFICATION, {
-        user: user,
-        ip: param.req?.clientIp,
-      },
-    )
+    this.appHooksService.emit(AppEvents.USER_EMAIL_VERIFICATION, {
+      user: user,
+      ip: param.req?.clientIp,
+    });
 
     // await Audit.insert({
     //   op_type: AuditOperationTypes.AUTHENTICATION,
@@ -370,7 +356,7 @@ export class UsersService {
     //   ip: req.clientIp,
     // })
 
-    return true
+    return true;
   }
 
   async refreshToken(param: {
@@ -380,31 +366,31 @@ export class UsersService {
   }): Promise<any> {
     try {
       if (!param.req?.cookies?.refresh_token) {
-        NcError.badRequest(`Missing refresh token`)
+        NcError.badRequest(`Missing refresh token`);
       }
 
       const user = await User.getByRefreshToken(
         param.req.cookies.refresh_token,
-      )
+      );
 
       if (!user) {
-        NcError.badRequest(`Invalid refresh token`)
+        NcError.badRequest(`Invalid refresh token`);
       }
 
-      const refreshToken = randomTokenString()
+      const refreshToken = randomTokenString();
 
       await User.update(user.id, {
         email: user.email,
         refresh_token: refreshToken,
-      })
+      });
 
-      setTokenCookie(param.res, refreshToken)
+      setTokenCookie(param.res, refreshToken);
 
       return {
         token: genJwt(user, Noco.getConfig()),
-      } as any
+      } as any;
     } catch (e) {
-      NcError.badRequest(e.message)
+      NcError.badRequest(e.message);
     }
   }
 
@@ -413,7 +399,7 @@ export class UsersService {
     req: any;
     res: any;
   }): Promise<any> {
-    validatePayload('swagger.json#/components/schemas/SignUpReq', param.body)
+    validatePayload('swagger.json#/components/schemas/SignUpReq', param.body);
 
     const {
       email: _email,
@@ -422,32 +408,32 @@ export class UsersService {
       user_name,
       token,
       ignore_subscribe,
-    } = param.req.body
+    } = param.req.body;
 
-    let { password } = param.req.body
+    let { password } = param.req.body;
 
     // validate password and throw error if password is satisfying the conditions
-    const { valid, error } = validatePassword(password)
+    const { valid, error } = validatePassword(password);
     if (!valid) {
-      NcError.badRequest(`Password : ${error}`)
+      NcError.badRequest(`Password : ${error}`);
     }
 
     if (!isEmail(_email)) {
-      NcError.badRequest(`Invalid email`)
+      NcError.badRequest(`Invalid email`);
     }
 
-    const email = _email.toLowerCase()
+    const email = _email.toLowerCase();
 
-    let user = await User.getByEmail(email)
+    let user = await User.getByEmail(email);
 
     if (user) {
       if (token) {
         if (token !== user.invite_token) {
-          NcError.badRequest(`Invalid invite url`)
+          NcError.badRequest(`Invalid invite url`);
         } else if (user.invite_token_expires < new Date()) {
           NcError.badRequest(
             'Expired invite url, Please contact super admin to get a new invite url',
-          )
+          );
         }
       } else {
         // todo : opening up signup for timebeing
@@ -455,12 +441,12 @@ export class UsersService {
       }
     }
 
-    const salt = await promisify(bcrypt.genSalt)(10)
-    password = await promisify(bcrypt.hash)(password, salt)
-    const email_verification_token = uuidv4()
+    const salt = await promisify(bcrypt.genSalt)(10);
+    password = await promisify(bcrypt.hash)(password, salt);
+    const email_verification_token = uuidv4();
 
     if (!ignore_subscribe) {
-      T.emit('evt_subscribe', email)
+      T.emit('evt_subscribe', email);
     }
 
     if (user) {
@@ -475,9 +461,9 @@ export class UsersService {
           invite_token: null,
           invite_token_expires: null,
           email: user.email,
-        })
+        });
       } else {
-        NcError.badRequest('User already exist')
+        NcError.badRequest('User already exist');
       }
     } else {
       await this.registerNewUserIfAllowed({
@@ -488,14 +474,14 @@ export class UsersService {
         salt,
         password,
         email_verification_token,
-      })
+      });
     }
-    user = await User.getByEmail(email)
+    user = await User.getByEmail(email);
 
     try {
       const template = (
         await import('../../controllers/users/ui/emailTemplates/verify')
-      ).default
+      ).default;
       await (
         await NcPluginMgrv2.emailAdapter()
       ).mailSend({
@@ -506,21 +492,21 @@ export class UsersService {
             (param.req as any).ncSiteUrl +
             `/email/verify/${user.email_verification_token}`,
         }),
-      })
+      });
     } catch (e) {
       console.log(
         'Warning : `mailSend` failed, Please configure emailClient configuration.',
-      )
+      );
     }
 
-    const refreshToken = randomTokenString()
+    const refreshToken = randomTokenString();
 
     await User.update(user.id, {
       refresh_token: refreshToken,
       email: user.email,
-    })
+    });
 
-    setTokenCookie(param.res, refreshToken)
+    setTokenCookie(param.res, refreshToken);
 
     await this.createDefaultWorkspace(user);
 
@@ -530,7 +516,7 @@ export class UsersService {
       user: user.email,
       description: `User has signed up`,
       ip: (param.req as any).clientIp,
-    })
+    });
 
     this.appHooksService.emit(AppEvents.WELCOME, {
       user,
@@ -539,7 +525,7 @@ export class UsersService {
       user,
     });
 
-    return this.login(user)
+    return this.login(user);
   }
 
   async login(user: any) {
@@ -548,21 +534,21 @@ export class UsersService {
     });
     return {
       token: genJwt(user, Noco.getConfig()), //this.jwtService.sign(payload),
-    }
+    };
   }
 
   async signout(param: { res: any; req: any }) {
     try {
-      param.res.clearCookie('refresh_token')
-      const user = (param.req as any).user
+      param.res.clearCookie('refresh_token');
+      const user = (param.req as any).user;
       if (user) {
         await User.update(user.id, {
           refresh_token: null,
-        })
+        });
       }
-      return { msg: 'Signed out successfully' }
+      return { msg: 'Signed out successfully' };
     } catch (e) {
-      NcError.badRequest(e.message)
+      NcError.badRequest(e.message);
     }
   }
 

@@ -8,7 +8,7 @@ import type {
   UserType,
   ViewType,
   WorkspaceType,
-} from 'nocodb-sdk'
+} from 'nocodb-sdk';
 
 export interface ProjectInviteEvent {
   project: ProjectType;

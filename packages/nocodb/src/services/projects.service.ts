@@ -23,9 +23,7 @@ const nanoid = customAlphabet('1234567890abcdefghijklmnopqrstuvwxyz_', 4);
 
 @Injectable()
 export class ProjectsService {
-
-  constructor(private readonly appHooksService: AppHooksService ) {
-  }
+  constructor(private readonly appHooksService: AppHooksService) {}
 
   async projectList(param: {
     user: { id: string; roles: Record<string, boolean> };
@@ -80,7 +78,6 @@ export class ProjectsService {
 
     const result = await Project.update(param.projectId, data);
 
-
     this.appHooksService.emit(AppEvents.PROJECT_UPDATE, {
       project,
       user: param.user,
@@ -92,10 +89,9 @@ export class ProjectsService {
   }
 
   async projectSoftDelete(param: { projectId: any; user: UserType }) {
-
     const project = await Project.getWithInfo(param.projectId);
 
-    if(!project) {
+    if (!project) {
       NcError.notFound('Project not found');
     }
 
@@ -208,7 +204,6 @@ export class ProjectsService {
 
       delete base.config;
     }
-
 
     this.appHooksService.emit(AppEvents.PROJECT_CREATE, {
       project,

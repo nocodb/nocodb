@@ -1,5 +1,6 @@
-import { Test, TestingModule } from '@nestjs/testing';
+import { Test } from '@nestjs/testing';
 import { AppHooksListenerService } from './app-hooks-listener.service';
+import type { TestingModule } from '@nestjs/testing';
 
 describe('HooksListenerService', () => {
   let service: AppHooksListenerService;

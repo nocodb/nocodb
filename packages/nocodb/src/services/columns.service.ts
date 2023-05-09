@@ -1165,7 +1165,6 @@ export class ColumnsService {
     //
     // T.emit('evt', { evt_type: 'column:created' });
 
-
     this.appHooksService.emit(AppEvents.COLUMN_CREATE, {
       table,
       column: {
@@ -1381,7 +1380,6 @@ export class ColumnsService {
       }
     }
 
-
     await table.getColumns();
 
     const displayValueColumn = mapDefaultDisplayValue(table.columns);
@@ -1391,8 +1389,6 @@ export class ColumnsService {
         displayValueColumn.id,
       );
     }
-
-
 
     this.appHooksService.emit(AppEvents.COLUMN_DELETE, {
       table,

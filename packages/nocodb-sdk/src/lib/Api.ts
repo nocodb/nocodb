@@ -1143,8 +1143,8 @@ export interface GridUpdateReqType {
 export interface WidgetType {
   /** Unique ID */
   id: IdType;
-  /** Dashboard ID */
-  dashboard_id: IdType;
+  /** Dashboard Layout ID */
+  layout_id: IdType;
   /**
    * Version of the schema
    * @example v0.2
@@ -1161,9 +1161,9 @@ export interface WidgetType {
 }
 
 /**
- * Model for Dashboard
+ * Model for Dashboard Layout
  */
-export interface DashboardType {
+export interface LayoutType {
   /** Unique ID */
   id?: IdType;
   /** Unique Base ID */
@@ -1171,37 +1171,37 @@ export interface DashboardType {
   /** Unique Project ID */
   project_id?: string;
   /**
-   * Dashboard Title
-   * @example My Dashboard
+   * Dashboard Layout Title
+   * @example My Dashboard Layout
    */
   title?: string;
-  /** The order of this Dashboard in the list of Dashboards */
+  /** The order of this Dashboard Layout in the list of Dashboard Layouts */
   order?: number;
 }
 
 /**
- * Model for Dashboard request
+ * Model for Dashboard Layout request
  */
-export interface DashboardReqType {
+export interface LayoutReqType {
   /** Unique Base ID */
   base_id?: string;
   /** Unique Project ID */
   project_id: string;
   /**
-   * Dashboard Title
-   * @example My Dashboard
+   * Dashboard Layout Title
+   * @example My Dashboard Layout
    */
   title: string;
-  /** The order of this Dashboard in the list of Dashboards */
+  /** The order of this Dashboard Layout in the list of Dashboard Layouts */
   order?: number;
 }
 
 /**
- * Model for Dashboard Widget request
+ * Model for Dashboard Layout Widget request
  */
 export interface WidgetReqType {
-  /** Unique Dashboard ID */
-  dashboard_id: string;
+  /** Unique Layout ID */
+  layout_id?: string;
   /**
    * Version of the schema
    * @example v0.2
@@ -1218,7 +1218,7 @@ export interface WidgetReqType {
 }
 
 /**
- * Model for Dashboard Widget Update request
+ * Model for Dashboard Layout Widget Update request
  */
 export interface WidgetUpdateReqType {
   /**
@@ -1237,15 +1237,15 @@ export interface WidgetUpdateReqType {
 }
 
 /**
- * Model for Dashboard Update request
+ * Model for Dashboard Layout Update request
  */
-export interface DashboardUpdateReqType {
+export interface LayoutUpdateReqType {
   /**
-   * Dashboard Title
-   * @example My Dashboard
+   * Dashboard Layout Title
+   * @example My Dashboard Layout
    */
   title?: string;
-  /** The order of this Dashboard in the list of Dashboards */
+  /** The order of this Dashboard Layout in the list of Dashboard Layouts */
   order?: number;
 }
 
@@ -1271,11 +1271,11 @@ export interface WidgetListType {
 }
 
 /**
- * Model for Dashboard List
+ * Model for Dashboard Layout List
  */
-export interface DashboardListType {
-  /** Dashboard objects */
-  list: DashboardType[];
+export interface LayoutListType {
+  /** Dashboard Layout objects */
+  list: LayoutType[];
   /** Model for Paginated */
   pageInfo: PaginatedType;
 }
@@ -3037,45 +3037,53 @@ export class Api<
 > extends HttpClient<SecurityDataType> {
   dashboard = {
     /**
-     * @description Get Dashboard
+     * @description Get Dashboard Layout
      *
      * @tags Dashboard
-     * @name Get
-     * @summary Get dashboard
-     * @request GET:/api/v1/dashboards/{id}
-     * @response `200` `DashboardType` OK
+     * @name LayoutGet
+     * @summary Get dashboard layout
+     * @request GET:/api/v1/dashboards/{dashboardId}/layouts/{layoutId}
+     * @response `200` `LayoutType` OK
      */
-    get: (id: IdType, params: RequestParams = {}) =>
-      this.request<DashboardType, any>({
-        path: `/api/v1/dashboards/${id}`,
+    layoutGet: (
+      dashboardId: IdType,
+      layoutId: IdType,
+      params: RequestParams = {}
+    ) =>
+      this.request<LayoutType, any>({
+        path: `/api/v1/dashboards/${dashboardId}/layouts/${layoutId}`,
         method: 'GET',
         format: 'json',
         ...params,
       }),
 
     /**
-     * @description Delete Dashboard
+     * @description Delete Dashboard Layout
      *
      * @tags Dashboard
-     * @name Delete
-     * @summary Delete Dashboard
-     * @request DELETE:/api/v1/dashboards/{id}
+     * @name LayoutDelete
+     * @summary Delete Dashboard Layout
+     * @request DELETE:/api/v1/dashboards/{dashboardId}/layouts/{layoutId}
      * @response `200` `void` OK
      */
-    delete: (id: IdType, params: RequestParams = {}) =>
+    layoutDelete: (
+      dashboardId: IdType,
+      layoutId: IdType,
+      params: RequestParams = {}
+    ) =>
       this.request<void, any>({
-        path: `/api/v1/dashboards/${id}`,
+        path: `/api/v1/dashboards/${dashboardId}/layouts/${layoutId}`,
         method: 'DELETE',
         ...params,
       }),
 
     /**
- * @description Update the given Dashboard
+ * @description Update the given Dashboard Layout
  * 
  * @tags Dashboard
- * @name Update
- * @summary Update Dashboard
- * @request PATCH:/api/v1/dashboards/{id}
+ * @name LayoutUpdate
+ * @summary Update Dashboard Layout
+ * @request PATCH:/api/v1/dashboards/{dashboardId}/layouts/{layoutId}
  * @response `200` `number` OK
  * @response `400` `{
   \** @example BadRequest [Error]: <ERROR MESSAGE> *\
@@ -3083,9 +3091,10 @@ export class Api<
 
 }`
  */
-    update: (
-      id: IdType,
-      data: DashboardUpdateReqType,
+    layoutUpdate: (
+      dashboardId: IdType,
+      layoutId: IdType,
+      data: LayoutUpdateReqType,
       params: RequestParams = {}
     ) =>
       this.request<
@@ -3095,7 +3104,7 @@ export class Api<
           msg: string;
         }
       >({
-        path: `/api/v1/dashboards/${id}`,
+        path: `/api/v1/dashboards/${dashboardId}/layouts/${layoutId}`,
         method: 'PATCH',
         body: data,
         type: ContentType.Json,
@@ -3104,29 +3113,29 @@ export class Api<
       }),
 
     /**
-     * @description Get Widgets of the Dashboard
+     * @description Get Widgets of the Dashboard Layout
      *
      * @tags Dashboard
      * @name WidgetList
-     * @summary List Widgets for Dashboard
-     * @request GET:/api/v1/dashboards/{dashboardId}/widgets
+     * @summary List Widgets for Dashboard Layout
+     * @request GET:/api/v1/layouts/{layoutId}/widgets
      * @response `200` `WidgetListType` OK
      */
-    widgetList: (dashboardId: IdType, params: RequestParams = {}) =>
+    widgetList: (layoutId: IdType, params: RequestParams = {}) =>
       this.request<WidgetListType, any>({
-        path: `/api/v1/dashboards/${dashboardId}/widgets`,
+        path: `/api/v1/layouts/${layoutId}/widgets`,
         method: 'GET',
         format: 'json',
         ...params,
       }),
 
     /**
- * @description Create a new Dashboard Widget in a given Dashboard
+ * @description Create a new Widget in a given Dashboard Layout
  * 
  * @tags Dashboard
  * @name WidgetCreate
- * @summary Create Dashboard Widget
- * @request POST:/api/v1/dashboards/{dashboardId}/widgets
+ * @summary Create Dashboard Layout Widget
+ * @request POST:/api/v1/layouts/{layoutId}/widgets
  * @response `200` `WidgetType` OK
  * @response `400` `{
   \** @example BadRequest [Error]: <ERROR MESSAGE> *\
@@ -3135,7 +3144,7 @@ export class Api<
 }`
  */
     widgetCreate: (
-      dashboardId: IdType,
+      layoutId: IdType,
       data: WidgetReqType,
       params: RequestParams = {}
     ) =>
@@ -3146,7 +3155,7 @@ export class Api<
           msg: string;
         }
       >({
-        path: `/api/v1/dashboards/${dashboardId}/widgets`,
+        path: `/api/v1/layouts/${layoutId}/widgets`,
         method: 'POST',
         body: data,
         type: ContentType.Json,
@@ -3155,32 +3164,32 @@ export class Api<
       }),
 
     /**
-     * @description Delete Dashboard Widget
+     * @description Delete Dashboard Layout Widget
      *
      * @tags Dashboard
      * @name WidgetDelete
-     * @summary Delete Dashboard Widget
-     * @request DELETE:/api/v1/dashboards/{dashboardId}/widgets/{widgetId}
+     * @summary Delete Dashboard Layout Widget
+     * @request DELETE:/api/v1/layouts/{layoutId}/widgets/{widgetId}
      * @response `200` `void` OK
      */
     widgetDelete: (
-      dashboardId: IdType,
+      layoutId: IdType,
       widgetId: IdType,
       params: RequestParams = {}
     ) =>
       this.request<void, any>({
-        path: `/api/v1/dashboards/${dashboardId}/widgets/${widgetId}`,
+        path: `/api/v1/layouts/${layoutId}/widgets/${widgetId}`,
         method: 'DELETE',
         ...params,
       }),
 
     /**
- * @description Update the given Dashboard Widget
+ * @description Update the given Dashboard Layout Widget
  * 
  * @tags Dashboard
  * @name WidgetUpdate
- * @summary Update Dashboard Widget
- * @request PATCH:/api/v1/dashboards/{dashboardId}/widgets/{widgetId}
+ * @summary Update Dashboard Layout Widget
+ * @request PATCH:/api/v1/layouts/{layoutId}/widgets/{widgetId}
  * @response `200` `number` OK
  * @response `400` `{
   \** @example BadRequest [Error]: <ERROR MESSAGE> *\
@@ -3189,7 +3198,7 @@ export class Api<
 }`
  */
     widgetUpdate: (
-      dashboardId: IdType,
+      layoutId: IdType,
       widgetId: IdType,
       data: WidgetUpdateReqType,
       params: RequestParams = {}
@@ -3201,7 +3210,7 @@ export class Api<
           msg: string;
         }
       >({
-        path: `/api/v1/dashboards/${dashboardId}/widgets/${widgetId}`,
+        path: `/api/v1/layouts/${layoutId}/widgets/${widgetId}`,
         method: 'PATCH',
         body: data,
         type: ContentType.Json,
@@ -3210,53 +3219,32 @@ export class Api<
       }),
 
     /**
-     * @description Get widget data
-     *
-     * @tags Dashboard
-     * @name WidgetDataGet
-     * @summary Get widget data
-     * @request GET:/api/v1/dashboards/{dashboardId}/data/widgets/{widgetId}
-     * @response `200` `object` OK
-     */
-    widgetDataGet: (
-      dashboardId: IdType,
-      widgetId: IdType,
-      params: RequestParams = {}
-    ) =>
-      this.request<object, any>({
-        path: `/api/v1/dashboards/${dashboardId}/data/widgets/${widgetId}`,
-        method: 'GET',
-        format: 'json',
-        ...params,
-      }),
-
-    /**
  * @description Create a new Dashboard in a given project
  * 
  * @tags Dashboard
- * @name Create
- * @summary Create Dashboard
- * @request POST:/api/v1/db/meta/projects/{projectId}/dashboards
- * @response `200` `DashboardType` OK
+ * @name LayoutCreate
+ * @summary Create Dashboard Layout
+ * @request POST:/api/v1/db/meta/projects/{projectId}/layouts
+ * @response `200` `LayoutType` OK
  * @response `400` `{
   \** @example BadRequest [Error]: <ERROR MESSAGE> *\
   msg: string,
 
 }`
  */
-    create: (
+    layoutCreate: (
       projectId: IdType,
-      data: DashboardReqType,
+      data: LayoutReqType,
       params: RequestParams = {}
     ) =>
       this.request<
-        DashboardType,
+        LayoutType,
         {
           /** @example BadRequest [Error]: <ERROR MESSAGE> */
           msg: string;
         }
       >({
-        path: `/api/v1/db/meta/projects/${projectId}/dashboards`,
+        path: `/api/v1/db/meta/projects/${projectId}/layouts`,
         method: 'POST',
         body: data,
         type: ContentType.Json,
@@ -3265,28 +3253,28 @@ export class Api<
       }),
 
     /**
- * @description List all Dashboards in a given project
+ * @description List all Dashboard Layouts in a given project
  * 
  * @tags Dashboard
- * @name List
- * @summary List Dashboards
- * @request GET:/api/v1/db/meta/projects/{projectId}/dashboards
- * @response `200` `DashboardListType`
+ * @name LayoutList
+ * @summary List Dashboard Layouts
+ * @request GET:/api/v1/db/meta/projects/{projectId}/layouts
+ * @response `200` `LayoutListType`
  * @response `400` `{
   \** @example BadRequest [Error]: <ERROR MESSAGE> *\
   msg: string,
 
 }`
  */
-    list: (projectId: IdType, params: RequestParams = {}) =>
+    layoutList: (projectId: IdType, params: RequestParams = {}) =>
       this.request<
-        DashboardListType,
+        LayoutListType,
         {
           /** @example BadRequest [Error]: <ERROR MESSAGE> */
           msg: string;
         }
       >({
-        path: `/api/v1/db/meta/projects/${projectId}/dashboards`,
+        path: `/api/v1/db/meta/projects/${projectId}/layouts`,
         method: 'GET',
         ...params,
       }),

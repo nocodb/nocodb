@@ -63,6 +63,10 @@ export class ImportService {
     const idMap = new Map<string, string>();
     const externalIdMap = new Map<string, string>();
 
+    const getIdOrExternalId = (k: string) => {
+      return idMap.get(k) || externalIdMap.get(k);
+    };
+
     const project = await Project.get(param.projectId);
 
     if (!project)
@@ -99,7 +103,10 @@ export class ImportService {
         }
 
         for (const col of model.columns) {
-          externalIdMap.set(`${idMap.get(model.id)}::${col.id}`, col.id);
+          externalIdMap.set(
+            `${model.project_id}::${model.base_id}::${model.id}::${col.id}`,
+            col.id,
+          );
         }
       }
     }
@@ -167,10 +174,10 @@ export class ImportService {
                   column: withoutId({
                     ...col,
                     ...{
-                      parentId: idMap.get(
+                      parentId: getIdOrExternalId(
                         getParentIdentifier(colOptions.fk_child_column_id),
                       ),
-                      childId: idMap.get(
+                      childId: getIdOrExternalId(
                         getParentIdentifier(colOptions.fk_parent_column_id),
                       ),
                       type: colOptions.type,
@@ -198,7 +205,7 @@ export class ImportService {
                   modelData.id
                     ? freshModelData
                     : await Model.get(
-                        idMap.get(
+                        getIdOrExternalId(
                           getParentIdentifier(colOptions.fk_parent_column_id),
                         ),
                       );
@@ -225,7 +232,7 @@ export class ImportService {
                   if (
                     nColumn?.colOptions?.fk_mm_model_id ===
                       linkMap.get(colOptions.fk_mm_model_id) &&
-                    nColumn.id !== idMap.get(col.id)
+                    nColumn.id !== getIdOrExternalId(col.id)
                   ) {
                     idMap.set(childColumn.id, nColumn.id);
 
@@ -252,10 +259,10 @@ export class ImportService {
                 column: withoutId({
                   ...col,
                   ...{
-                    parentId: idMap.get(
+                    parentId: getIdOrExternalId(
                       getParentIdentifier(colOptions.fk_parent_column_id),
                     ),
-                    childId: idMap.get(
+                    childId: getIdOrExternalId(
                       getParentIdentifier(colOptions.fk_child_column_id),
                     ),
                     type: colOptions.type,
@@ -285,7 +292,9 @@ export class ImportService {
               const childModel =
                 colOptions.fk_related_model_id === modelData.id
                   ? freshModelData
-                  : await Model.get(idMap.get(colOptions.fk_related_model_id));
+                  : await Model.get(
+                      getIdOrExternalId(colOptions.fk_related_model_id),
+                    );
 
               if (colOptions.fk_related_model_id !== modelData.id)
                 await childModel.getColumns();
@@ -303,11 +312,11 @@ export class ImportService {
 
               for (const nColumn of childModel.columns) {
                 if (
-                  nColumn.id !== idMap.get(col.id) &&
+                  nColumn.id !== getIdOrExternalId(col.id) &&
                   nColumn.colOptions?.fk_parent_column_id ===
-                    idMap.get(colOptions.fk_parent_column_id) &&
+                    getIdOrExternalId(colOptions.fk_parent_column_id) &&
                   nColumn.colOptions?.fk_child_column_id ===
-                    idMap.get(colOptions.fk_child_column_id)
+                    getIdOrExternalId(colOptions.fk_child_column_id)
                 ) {
                   idMap.set(childColumn.id, nColumn.id);
 
@@ -336,20 +345,12 @@ export class ImportService {
                   column: withoutId({
                     ...col,
                     ...{
-                      parentId:
-                        idMap.get(
-                          getParentIdentifier(colOptions.fk_child_column_id),
-                        ) ||
-                        externalIdMap.get(
-                          getParentIdentifier(colOptions.fk_child_column_id),
-                        ),
-                      childId:
-                        idMap.get(
-                          getParentIdentifier(colOptions.fk_parent_column_id),
-                        ) ||
-                        externalIdMap.get(
-                          getParentIdentifier(colOptions.fk_parent_column_id),
-                        ),
+                      parentId: getIdOrExternalId(
+                        getParentIdentifier(colOptions.fk_child_column_id),
+                      ),
+                      childId: getIdOrExternalId(
+                        getParentIdentifier(colOptions.fk_parent_column_id),
+                      ),
                       type: colOptions.type,
                       virtual: colOptions.virtual,
                       ur: colOptions.ur,
@@ -375,12 +376,9 @@ export class ImportService {
                   modelData.id
                     ? freshModelData
                     : await Model.get(
-                        idMap.get(
+                        getIdOrExternalId(
                           getParentIdentifier(colOptions.fk_parent_column_id),
-                        ) ||
-                          externalIdMap.get(
-                            getParentIdentifier(colOptions.fk_parent_column_id),
-                          ),
+                        ),
                       );
 
                 if (
@@ -416,8 +414,7 @@ export class ImportService {
                   if (
                     nColumn?.colOptions?.fk_mm_model_id ===
                       linkMap.get(colOptions.fk_mm_model_id) &&
-                    nColumn.id !== idMap.get(col.id) &&
-                    nColumn.id !== externalIdMap.get(col.id)
+                    nColumn.id !== getIdOrExternalId(col.id)
                   ) {
                     if (childColumn.id.includes('::')) {
                       idMap.set(childColumn.id, nColumn.id);
@@ -463,20 +460,12 @@ export class ImportService {
                   column: withoutId({
                     ...col,
                     ...{
-                      parentId:
-                        idMap.get(
-                          getParentIdentifier(colOptions.fk_parent_column_id),
-                        ) ||
-                        externalIdMap.get(
-                          getParentIdentifier(colOptions.fk_parent_column_id),
-                        ),
-                      childId:
-                        idMap.get(
-                          getParentIdentifier(colOptions.fk_child_column_id),
-                        ) ||
-                        externalIdMap.get(
-                          getParentIdentifier(colOptions.fk_child_column_id),
-                        ),
+                      parentId: getIdOrExternalId(
+                        getParentIdentifier(colOptions.fk_parent_column_id),
+                      ),
+                      childId: getIdOrExternalId(
+                        getParentIdentifier(colOptions.fk_child_column_id),
+                      ),
                       type: colOptions.type,
                       virtual: colOptions.virtual,
                       ur: colOptions.ur,
@@ -510,8 +499,7 @@ export class ImportService {
                   colOptions.fk_related_model_id === modelData.id
                     ? freshModelData
                     : await Model.get(
-                        idMap.get(colOptions.fk_related_model_id) ||
-                          externalIdMap.get(colOptions.fk_related_model_id),
+                        getIdOrExternalId(colOptions.fk_related_model_id),
                       );
 
                 if (colOptions.fk_related_model_id !== modelData.id)
@@ -542,14 +530,11 @@ export class ImportService {
 
                 for (const nColumn of childModel.columns) {
                   if (
-                    nColumn.id !== idMap.get(col.id) &&
-                    nColumn.id !== externalIdMap.get(col.id) &&
-                    (nColumn.colOptions?.fk_parent_column_id ===
-                      idMap.get(colOptions.fk_parent_column_id) ||
-                      externalIdMap.get(colOptions.fk_parent_column_id)) &&
-                    (nColumn.colOptions?.fk_child_column_id ===
-                      idMap.get(colOptions.fk_child_column_id) ||
-                      externalIdMap.get(colOptions.fk_child_column_id))
+                    nColumn.id !== getIdOrExternalId(col.id) &&
+                    nColumn.colOptions?.fk_parent_column_id ===
+                      getIdOrExternalId(colOptions.fk_parent_column_id) &&
+                    nColumn.colOptions?.fk_child_column_id ===
+                      getIdOrExternalId(colOptions.fk_child_column_id)
                   ) {
                     if (childColumn.id.includes('::')) {
                       idMap.set(childColumn.id, nColumn.id);
@@ -595,20 +580,12 @@ export class ImportService {
                   column: withoutId({
                     ...col,
                     ...{
-                      parentId:
-                        idMap.get(
-                          getParentIdentifier(colOptions.fk_parent_column_id),
-                        ) ||
-                        externalIdMap.get(
-                          getParentIdentifier(colOptions.fk_parent_column_id),
-                        ),
-                      childId:
-                        idMap.get(
-                          getParentIdentifier(colOptions.fk_child_column_id),
-                        ) ||
-                        externalIdMap.get(
-                          getParentIdentifier(colOptions.fk_child_column_id),
-                        ),
+                      parentId: getIdOrExternalId(
+                        getParentIdentifier(colOptions.fk_parent_column_id),
+                      ),
+                      childId: getIdOrExternalId(
+                        getParentIdentifier(colOptions.fk_child_column_id),
+                      ),
                       type: colOptions.type,
                       virtual: colOptions.virtual,
                       ur: colOptions.ur,
@@ -642,8 +619,7 @@ export class ImportService {
                   colOptions.fk_related_model_id === modelData.id
                     ? freshModelData
                     : await Model.get(
-                        idMap.get(colOptions.fk_related_model_id) ||
-                          externalIdMap.get(colOptions.fk_related_model_id),
+                        getIdOrExternalId(colOptions.fk_related_model_id),
                       );
 
                 if (colOptions.fk_related_model_id !== modelData.id)
@@ -674,14 +650,11 @@ export class ImportService {
 
                 for (const nColumn of childModel.columns) {
                   if (
-                    nColumn.id !== idMap.get(col.id) &&
-                    nColumn.id !== externalIdMap.get(col.id) &&
-                    (nColumn.colOptions?.fk_parent_column_id ===
-                      idMap.get(colOptions.fk_parent_column_id) ||
-                      externalIdMap.get(colOptions.fk_parent_column_id)) &&
-                    (nColumn.colOptions?.fk_child_column_id ===
-                      idMap.get(colOptions.fk_child_column_id) ||
-                      externalIdMap.get(colOptions.fk_child_column_id))
+                    nColumn.id !== getIdOrExternalId(col.id) &&
+                    nColumn.colOptions?.fk_parent_column_id ===
+                      getIdOrExternalId(colOptions.fk_parent_column_id) &&
+                    nColumn.colOptions?.fk_child_column_id ===
+                      getIdOrExternalId(colOptions.fk_child_column_id)
                   ) {
                     if (childColumn.id.includes('::')) {
                       idMap.set(childColumn.id, nColumn.id);
@@ -772,14 +745,16 @@ export class ImportService {
     for (const col of sortedReferencedColumnSet) {
       const { colOptions, ...flatCol } = col;
       if (col.uidt === UITypes.Lookup) {
-        if (!idMap.get(colOptions.fk_relation_column_id)) continue;
+        if (!getIdOrExternalId(colOptions.fk_relation_column_id)) continue;
         const freshModelData = await this.columnsService.columnAdd({
-          tableId: idMap.get(getParentIdentifier(col.id)),
+          tableId: getIdOrExternalId(getParentIdentifier(col.id)),
           column: withoutId({
             ...flatCol,
             ...{
-              fk_lookup_column_id: idMap.get(colOptions.fk_lookup_column_id),
-              fk_relation_column_id: idMap.get(
+              fk_lookup_column_id: getIdOrExternalId(
+                colOptions.fk_lookup_column_id,
+              ),
+              fk_relation_column_id: getIdOrExternalId(
                 colOptions.fk_relation_column_id,
               ),
             },
@@ -794,14 +769,16 @@ export class ImportService {
           }
         }
       } else if (col.uidt === UITypes.Rollup) {
-        if (!idMap.get(colOptions.fk_relation_column_id)) continue;
+        if (!getIdOrExternalId(colOptions.fk_relation_column_id)) continue;
         const freshModelData = await this.columnsService.columnAdd({
-          tableId: idMap.get(getParentIdentifier(col.id)),
+          tableId: getIdOrExternalId(getParentIdentifier(col.id)),
           column: withoutId({
             ...flatCol,
             ...{
-              fk_rollup_column_id: idMap.get(colOptions.fk_rollup_column_id),
-              fk_relation_column_id: idMap.get(
+              fk_rollup_column_id: getIdOrExternalId(
+                colOptions.fk_rollup_column_id,
+              ),
+              fk_relation_column_id: getIdOrExternalId(
                 colOptions.fk_relation_column_id,
               ),
               rollup_function: colOptions.rollup_function,
@@ -818,7 +795,7 @@ export class ImportService {
         }
       } else if (col.uidt === UITypes.Formula) {
         const freshModelData = await this.columnsService.columnAdd({
-          tableId: idMap.get(getParentIdentifier(col.id)),
+          tableId: getIdOrExternalId(getParentIdentifier(col.id)),
           column: withoutId({
             ...flatCol,
             ...{
@@ -866,8 +843,8 @@ export class ImportService {
             viewId: vw.id,
             filter: withoutId({
               ...fl,
-              fk_column_id: idMap.get(fl.fk_column_id),
-              fk_parent_id: idMap.get(fl.fk_parent_id),
+              fk_column_id: getIdOrExternalId(fl.fk_column_id),
+              fk_parent_id: getIdOrExternalId(fl.fk_parent_id),
             }),
           });
 
@@ -880,7 +857,7 @@ export class ImportService {
             viewId: vw.id,
             sort: withoutId({
               ...sr,
-              fk_column_id: idMap.get(sr.fk_column_id),
+              fk_column_id: getIdOrExternalId(sr.fk_column_id),
             }),
           });
         }
@@ -985,8 +962,8 @@ export class ImportService {
             hookId: hk.id,
             filter: withoutId({
               ...fl,
-              fk_column_id: idMap.get(fl.fk_column_id),
-              fk_parent_id: idMap.get(fl.fk_parent_id),
+              fk_column_id: getIdOrExternalId(fl.fk_column_id),
+              fk_parent_id: getIdOrExternalId(fl.fk_parent_id),
             }),
           });
 

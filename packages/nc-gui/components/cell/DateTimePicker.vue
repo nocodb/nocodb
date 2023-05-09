@@ -79,7 +79,7 @@ let localState = $computed({
     // when pasting a datetime cell, UTC (xcdb) will be saved in DB
     // we convert back to local time
     if (column.value.title! in (isUpdatedFromCopyNPaste ?? {})) {
-      localModelValue = dayjs(modelValue).utc(true).local()
+      localModelValue = dayjs(modelValue).utc(isMysql(column.value.base_id)).local()
       return localModelValue
     }
 

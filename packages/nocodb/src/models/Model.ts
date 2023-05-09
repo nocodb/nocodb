@@ -488,10 +488,14 @@ export default class Model implements TableType {
                 .format('YYYY-MM-DD HH:mm:ssZ');
             }
           } else {
-            // External DB - keep it as it is
-            val = dayjs(val).format(
-              isMySQL ? 'YYYY-MM-DD HH:mm:ss' : 'YYYY-MM-DD HH:mm:ssZ',
-            );
+            // External DB
+            if (isMySQL) {
+              // convert to utc
+              val = dayjs(val).utc().format('YYYY-MM-DD HH:mm:ss');
+            } else {
+              // keep it as it is
+              val = dayjs(val).format('YYYY-MM-DD HH:mm:ssZ');
+            }
           }
         }
         insertObj[sanitize(col.column_name)] = val;

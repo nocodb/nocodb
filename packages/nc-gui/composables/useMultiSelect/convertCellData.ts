@@ -46,12 +46,9 @@ export default function convertCellData(
       }
       if (isXcdbBase) {
         if (isMysql) {
-          let res = `${parsedDateTime.format('YYYY-MM-DD HH:mm:ss')}`
-          if (!dayjs.isDayjs(value)) {
-            // value is a UTC string, we append 'Z' to `res`
-            res += 'Z'
-          }
-          return res
+          // convert back to utc
+          // e.g. 2023-05-09T19:41:49+08:00 -> 2023-05-09 11:41:49
+          return `${parsedDateTime.utc().format('YYYY-MM-DD HH:mm:ss')}`
         } else if (isMssql) {
           return parsedDateTime.utc().format('YYYY-MM-DD HH:mm:ssZ')
         } else {

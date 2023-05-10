@@ -1,4 +1,4 @@
-import { ApiTokenReqType } from 'nocodb-sdk'
+import { ApiTokenReqType, PluginTestReqType, PluginType } from 'nocodb-sdk'
 import type {
   ColumnType,
   FilterType, HookType,
@@ -156,6 +156,14 @@ export interface ApiTokenCreateEvent {
 export interface ApiTokenDeleteEvent {
   userId: string;
   token: string
+}
+
+export interface PluginTestEvent {
+testBody: PluginTestReqType
+}
+
+export interface PluginEvent {
+  plugin: PluginType
 }
 
 export type AppEventPayload =

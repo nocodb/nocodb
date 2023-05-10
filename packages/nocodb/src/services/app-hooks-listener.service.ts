@@ -11,6 +11,7 @@ import type {
   ColumnEvent,
   FilterEvent,
   OrgUserInviteEvent,
+  PluginEvent,
   ProjectInviteEvent,
   ProjectUserResendInviteEvent,
   ProjectUserUpdateEvent,
@@ -344,6 +345,29 @@ export class AppHooksListenerService implements OnModuleInit, OnModuleDestroy {
       case AppEvents.API_TOKEN_DELETE:
         {
           T.emit('evt', { evt_type: 'apiToken:deleted' });
+        }
+        break;
+      case AppEvents.PLUGIN_TEST:
+        {
+          T.emit('evt', { evt_type: 'plugin:tested' });
+        }
+        break;
+      case AppEvents.PLUGIN_INSTALL:
+        {
+          const { plugin } = data as PluginEvent;
+          T.emit('evt', {
+            evt_type: 'plugin:installed',
+            title: plugin.title,
+          });
+        }
+        break;
+      case AppEvents.PLUGIN_UNINSTALL:
+        {
+          const { plugin } = data as PluginEvent;
+          T.emit('evt', {
+            evt_type: 'plugin:uninstalled',
+            title: plugin.title,
+          });
         }
         break;
     }

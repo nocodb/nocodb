@@ -400,6 +400,11 @@ export class AppHooksListenerService implements OnModuleInit, OnModuleDestroy {
           });
         }
         break;
+      case AppEvents.ATTACHMENT_UPLOAD:
+        {
+          T.emit('evt', { evt_type: 'image:uploaded', type: data?.type });
+        }
+        break;
     }
   }
 

@@ -3215,18 +3215,36 @@ class BaseModelSqlv2 {
   private _convertDateFormat(
     dateTimeColumns: Record<string, any>[],
     d: Record<string, any>,
+    isXcdbBase: BoolType,
   ) {
     if (d) {
       for (const col of dateTimeColumns) {
         if (d[col.title]) {
           if (col.dt === 'timestamp with time zone') {
+            // postgres - timezone already attached to input
+            // hence, skip it
             continue;
+          }
+          if (this.isSqlite) {
+            if (!col.cdf && !isXcdbBase) {
+              // for external db, timezone already attached to input
+              // e.g. xcdb: 2023-05-10 10:24:30
+              // e.g. ext : 2023-05-10 10:25:45+00:00
+              // hence, skip it
+              continue;
+            }
+          }
+          let keepLocalTime = true;
+          if (d[col.title] instanceof Date) {
+            // e.g. MSSQL
+            // Wed May 10 2023 17:47:46 GMT+0800 (Hong Kong Standard Time)
+            keepLocalTime = false;
           }
           // e.g. 01.01.2022 10:00:00+05:30 -> 2022-01-01 04:30:00+00:00
           // e.g. 2023-05-09 11:41:49 -> 2023-05-09 11:41:49+00:00
           d[col.title] = dayjs(d[col.title])
             // keep the local time
-            .utc(true)
+            .utc(keepLocalTime)
             // show the timezone even for Mysql
             .format('YYYY-MM-DD HH:mm:ssZ');
         }
@@ -3240,10 +3258,6 @@ class BaseModelSqlv2 {
     isXcdbBase: BoolType,
     childTable?: Model,
   ) {
-    // skip for the following cases
-    if (this.isSqlite && !isXcdbBase) {
-      return data;
-    }
     // Show the date time in UTC format in API response
     // e.g. 2022-01-01 04:30:00+00:00
     if (data) {
@@ -3252,9 +3266,11 @@ class BaseModelSqlv2 {
       ).filter((c) => c.uidt === UITypes.DateTime);
       if (dateTimeColumns.length) {
         if (Array.isArray(data)) {
-          data = data.map((d) => this._convertDateFormat(dateTimeColumns, d));
+          data = data.map((d) =>
+            this._convertDateFormat(dateTimeColumns, d, isXcdbBase),
+          );
         } else {
-          this._convertDateFormat(dateTimeColumns, data);
+          this._convertDateFormat(dateTimeColumns, data, isXcdbBase);
         }
       }
     }

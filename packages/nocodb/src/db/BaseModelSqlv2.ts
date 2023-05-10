@@ -3217,8 +3217,11 @@ class BaseModelSqlv2 {
     d: Record<string, any>,
   ) {
     if (d) {
-      dateTimeColumns.forEach((col) => {
+      for (const col of dateTimeColumns) {
         if (d[col.title]) {
+          if (col.dt === 'timestamp with time zone') {
+            continue;
+          }
           // e.g. 01.01.2022 10:00:00+05:30 -> 2022-01-01 04:30:00+00:00
           // e.g. 2023-05-09 11:41:49 -> 2023-05-09 11:41:49+00:00
           d[col.title] = dayjs(d[col.title])
@@ -3227,7 +3230,7 @@ class BaseModelSqlv2 {
             // show the timezone even for Mysql
             .format('YYYY-MM-DD HH:mm:ssZ');
         }
-      });
+      }
     }
     return d;
   }
@@ -3237,9 +3240,13 @@ class BaseModelSqlv2 {
     isXcdbBase: BoolType,
     childTable?: Model,
   ) {
+    // skip for the following cases
+    if (this.isSqlite && !isXcdbBase) {
+      return data;
+    }
     // Show the date time in UTC format in API response
     // e.g. 2022-01-01 04:30:00+00:00
-    if (isXcdbBase && data) {
+    if (data) {
       const dateTimeColumns = (
         childTable ? childTable.columns : this.model.columns
       ).filter((c) => c.uidt === UITypes.DateTime);
@@ -3258,7 +3265,7 @@ class BaseModelSqlv2 {
   // trigger before insert / update
   // TODO: refactor - maybe there is a better approach
   private async setUtcTimezoneForPg() {
-    if (this.isPg && (await this.isXcdbBase())) {
+    if (this.isPg) {
       await this.dbDriver.raw(`SET TIME ZONE 'UTC'`);
     }
   }

@@ -3234,7 +3234,18 @@ class BaseModelSqlv2 {
               continue;
             }
           }
+
           let keepLocalTime = true;
+
+          if (this.isMySQL) {
+            if (!isXcdbBase) {
+              if (d[col.title].indexOf('+') > -1) {
+                // timezone info found -> skip
+                continue;
+              }
+            }
+          }
+
           if (d[col.title] instanceof Date) {
             // e.g. MSSQL
             // Wed May 10 2023 17:47:46 GMT+0800 (Hong Kong Standard Time)

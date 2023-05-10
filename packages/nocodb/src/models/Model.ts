@@ -458,18 +458,22 @@ export default class Model implements TableType {
           if (base.is_meta) {
             const d = new Date(val);
             if (isMySQL) {
+              // MySQL converts TIMESTAMP values from the current time zone to UTC for storage.
+              // Hence, we need to convert it to local time
               if (val.slice(-1) === 'Z') {
                 // from UI
-                // e.g. 2023-05-02 08:09:43Z
+                // e.g. 2023-05-02 08:09:43Z -> 2023-05-10 18:45:30
                 val = dayjs(val).format('YYYY-MM-DD HH:mm:ss');
               } else {
                 // from API
-                // e.g. 2021-01-01 04:00:00+04:00
+                // e.g. 2023-05-10 18:45:30+08:00 -> 2023-05-10 18:45:30
+                console.log('before1', val);
                 val = dayjs
                   .utc(val)
                   .local()
                   .utcOffset(d.getTimezoneOffset(), true)
                   .format('YYYY-MM-DD HH:mm:ss');
+                console.log('after1', val);
               }
             } else if (isSqlite) {
               // e.g. 2023-05-10T10:38:50.000Z -> 2023-05-10 10:38:50
@@ -494,9 +498,26 @@ export default class Model implements TableType {
             }
           } else {
             // External DB - convert to utc
-            val = dayjs(val)
-              .utc()
-              .format(isMySQL ? 'YYYY-MM-DD HH:mm:ss' : 'YYYY-MM-DD HH:mm:ssZ');
+            if (isMySQL) {
+              if (val.slice(-1) === 'Z') {
+                // from UI
+                val = dayjs(val).utc().format('YYYY-MM-DD HH:mm:ss');
+              } else {
+                // from API
+                if (val.indexOf('+') === -1) {
+                  // no timezone info - considered as UTC
+                  val = dayjs(val).format('YYYY-MM-DD HH:mm:ss');
+                  if (val.slice(-1) !== 'Z') {
+                    val += 'Z';
+                  }
+                } else {
+                  // timezone info found - convert to UTC
+                  val = dayjs(val).utc().format('YYYY-MM-DD HH:mm:ss');
+                }
+              }
+            } else {
+              val = dayjs(val).utc().format('YYYY-MM-DD HH:mm:ssZ');
+            }
           }
         }
         insertObj[sanitize(col.column_name)] = val;

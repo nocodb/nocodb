@@ -11,7 +11,6 @@ export enum ProjectRoles {
   VIEWER = 'viewer',
 }
 
-
 export enum AppEvents {
   PROJECT_CREATE = 'project.create',
   PROJECT_INVITE = 'project.invite',
@@ -57,8 +56,6 @@ export enum AppEvents {
   SORT_DELETE = 'sort.delete',
   SORT_UPDATE = 'sort.update',
 
-
-
   COLUMN_CREATE = 'column.create',
   COLUMN_DELETE = 'column.delete',
   COLUMN_UPDATE = 'column.update',
@@ -70,10 +67,8 @@ export enum AppEvents {
   ORG_USER_INVITE = 'org.user.invite',
   ORG_USER_RESEND_INVITE = 'org.user.resend.invite',
 
-
   VIEW_COLUMN_CREATE = 'view.column.create',
   VIEW_COLUMN_UPDATE = 'view.column.update',
-
 
   API_TOKEN_CREATE = 'api.token.create',
   API_TOKEN_DELETE = 'api.token.delete',
@@ -118,7 +113,6 @@ export enum AppEvents {
   PLUGIN_INSTALL = 'plugin.install',
   PLUGIN_UNINSTALL = 'plugin.uninstall',
 
-
   SYNC_SOURCE_CREATE = 'sync.source.create',
   SYNC_SOURCE_UPDATE = 'sync.source.update',
   SYNC_SOURCE_DELETE = 'sync.source.delete',
@@ -129,6 +123,5 @@ export enum AppEvents {
   SHARED_BASE_GENERATE_LINK = 'shared.base.generate.link',
   SHARED_BASE_DELETE_LINK = 'shared.base.delete.link',
 
-
-
+  ATTACHMENT_UPLOAD = 'attachment.upload',
 }

@@ -178,6 +178,9 @@ export interface SharedBaseEvent {
 export interface BaseEvent {
   base: BaseType;
 }
+export interface AttachmentEvent {
+  type: 'url' | 'file';
+}
 
 export type AppEventPayload =
   | ProjectInviteEvent

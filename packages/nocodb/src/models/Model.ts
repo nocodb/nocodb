@@ -472,6 +472,7 @@ export default class Model implements TableType {
                   .format('YYYY-MM-DD HH:mm:ss');
               }
             } else if (isSqlite) {
+              // e.g. 2023-05-10T10:38:50.000Z -> 2023-05-10 10:38:50
               val = dayjs
                 .utc(val)
                 .utcOffset(d.getTimezoneOffset(), true)
@@ -485,23 +486,17 @@ export default class Model implements TableType {
                   .format('YYYY-MM-DD HH:mm:ssZ');
               }
             } else if (isMssql) {
+              // e.g. 2023-05-10T08:49:32.000Z -> 2023-05-10 08:49:32-08:00
               val = dayjs
                 .utc(val)
                 .utcOffset(d.getTimezoneOffset(), false)
                 .format('YYYY-MM-DD HH:mm:ssZ');
             }
           } else {
-            // External DB
-            if (isMySQL) {
-              // convert to utc
-              val = dayjs(val).utc().format('YYYY-MM-DD HH:mm:ss');
-            } else if (isPg) {
-              // convert to utc
-              val = dayjs(val).utc().format('YYYY-MM-DD HH:mm:ssZ');
-            } else {
-              // keep it as it is
-              val = dayjs(val).format('YYYY-MM-DD HH:mm:ssZ');
-            }
+            // External DB - convert to utc
+            val = dayjs(val)
+              .utc()
+              .format(isMySQL ? 'YYYY-MM-DD HH:mm:ss' : 'YYYY-MM-DD HH:mm:ssZ');
           }
         }
         insertObj[sanitize(col.column_name)] = val;

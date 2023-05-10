@@ -16,6 +16,7 @@ export class ExecutionTimeCalculatorInterceptor implements NestInterceptor {
   client: Redis;
 
   constructor(private readonly configService: ConfigService<AppConfig>) {
+    // todo: use a single redis connection
     this.client = new Client(process.env['NC_THROTTLER_REDIS']);
   }
 
@@ -35,7 +36,6 @@ export class ExecutionTimeCalculatorInterceptor implements NestInterceptor {
       tap(() => {
         const endTime = performance.now();
         const executionTime = endTime - startTime;
-        console.log(`Execution time: ${executionTime} ms`);
 
         const key = `exec:${req.ncWorkspaceId || 'default'}|${
           req.headers['xc-token'] || req.headers['xc-auth']

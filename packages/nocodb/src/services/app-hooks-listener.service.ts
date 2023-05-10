@@ -414,6 +414,18 @@ export class AppHooksListenerService implements OnModuleInit, OnModuleDestroy {
       case AppEvents.WEBHOOK_UPDATE:
         T.emit('evt', { evt_type: 'webhooks:updated' });
         break;
+      case AppEvents.FORM_COLUMN_UPDATE:
+        T.emit('evt', { evt_type: 'formViewColumn:updated' });
+        break;
+      case AppEvents.SYNC_SOURCE_CREATE:
+        T.emit('evt', { evt_type: 'syncSource:created' });
+        break;
+      case AppEvents.SYNC_SOURCE_DELETE:
+        T.emit('evt', { evt_type: 'syncSource:deleted' });
+        break;
+      case AppEvents.SYNC_SOURCE_UPDATE:
+        T.emit('evt', { evt_type: 'syncSource:updated' });
+        break;
     }
   }
 

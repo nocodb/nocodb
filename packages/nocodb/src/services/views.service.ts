@@ -92,7 +92,7 @@ export class ViewsService {
   }
 
   async shareView(param: { viewId: string; user: UserType }) {
-    T.emit('evt', { evt_type: 'sharedView:generated-link' });
+    // T.emit('evt', { evt_type: 'sharedView:generated-link' });
     const res = await View.share(param.viewId);
 
     const view = await View.get(param.viewId);

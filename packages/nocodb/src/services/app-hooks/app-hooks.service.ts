@@ -1,5 +1,5 @@
-import { Inject, Injectable } from '@nestjs/common';
-import { IEventEmitter } from '../../modules/event-emitter/event-emitter.interface';
+import { Inject, Injectable } from '@nestjs/common'
+import { IEventEmitter } from '../../modules/event-emitter/event-emitter.interface'
 import type {
   ApiTokenCreateEvent,
   ApiTokenDeleteEvent,
@@ -7,14 +7,14 @@ import type {
   OrgUserInviteEvent, PluginEvent, PluginTestEvent,
   ProjectUserResendInviteEvent,
   ProjectUserUpdateEvent,
-  RelationEvent,
+  RelationEvent, SharedBaseEvent,
   UserPasswordChangeEvent,
   UserPasswordForgotEvent,
   UserPasswordResetEvent,
   ViewColumnEvent,
   WebhookEvent,
 } from './interfaces'
-import type { AppEvents } from 'nocodb-sdk';
+import type { AppEvents } from 'nocodb-sdk'
 import type {
   ColumnEvent,
   FilterEvent,
@@ -30,18 +30,19 @@ import type {
   WelcomeEvent,
   WorkspaceEvent,
   WorkspaceInviteEvent,
-} from './interfaces';
+} from './interfaces'
 
-const ALL_EVENTS = '__nc_all_events__';
+const ALL_EVENTS = '__nc_all_events__'
 
 @Injectable()
 export class AppHooksService {
   private listenerUnsubscribers: Map<(...args: any[]) => void, () => void> =
-    new Map();
+    new Map()
 
   constructor(
     @Inject('IEventEmitter') private readonly eventEmitter: IEventEmitter,
-  ) {}
+  ) {
+  }
 
   on(
     event: AppEvents.PROJECT_INVITE,
@@ -117,11 +118,11 @@ export class AppHooksService {
     listener: (data: WorkspaceEvent) => void,
   ): () => void;
   on(event, listener): () => void {
-    const unsubscribe = this.eventEmitter.on(event, listener);
+    const unsubscribe = this.eventEmitter.on(event, listener)
 
-    this.listenerUnsubscribers.set(listener, unsubscribe);
+    this.listenerUnsubscribers.set(listener, unsubscribe)
 
-    return unsubscribe;
+    return unsubscribe
   }
 
   emit(event: AppEvents.PROJECT_INVITE, data: ProjectInviteEvent): void;
@@ -225,26 +226,30 @@ export class AppHooksService {
     event: AppEvents.PLUGIN_INSTALL | AppEvents.PLUGIN_UNINSTALL,
     data: PluginEvent,
   ): void;
+  emit(
+    event: AppEvents.SHARED_BASE_GENERATE_LINK | AppEvents.SHARED_BASE_DELETE_LINK,
+    data: SharedBaseEvent,
+  ): void;
   emit(event, data): void {
-    this.eventEmitter.emit(event, data);
-    this.eventEmitter.emit(ALL_EVENTS, { event, data: data });
+    this.eventEmitter.emit(event, data)
+    this.eventEmitter.emit(ALL_EVENTS, { event, data: data })
   }
 
   removeListener(
     event: AppEvents | 'notification',
     listener: (args: any) => void,
   ) {
-    this.listenerUnsubscribers.get(listener)?.();
-    this.listenerUnsubscribers.delete(listener);
+    this.listenerUnsubscribers.get(listener)?.()
+    this.listenerUnsubscribers.delete(listener)
   }
 
   removeListeners(event: AppEvents | 'notification') {
-    return this.eventEmitter.removeAllListeners(event);
+    return this.eventEmitter.removeAllListeners(event)
   }
 
   removeAllListener(listener) {
-    this.listenerUnsubscribers.get(listener)?.();
-    this.listenerUnsubscribers.delete(listener);
+    this.listenerUnsubscribers.get(listener)?.()
+    this.listenerUnsubscribers.delete(listener)
   }
 
   onAll(
@@ -253,8 +258,8 @@ export class AppHooksService {
       data: any;
     }) => void,
   ) {
-    const unsubscribe = this.eventEmitter.on(ALL_EVENTS, listener);
-    this.listenerUnsubscribers.set(listener, unsubscribe);
-    return unsubscribe;
+    const unsubscribe = this.eventEmitter.on(ALL_EVENTS, listener)
+    this.listenerUnsubscribers.set(listener, unsubscribe)
+    return unsubscribe
   }
 }

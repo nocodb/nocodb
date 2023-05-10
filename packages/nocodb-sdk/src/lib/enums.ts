@@ -126,6 +126,9 @@ export enum AppEvents {
   RELATION_DELETE = 'relation.delete',
   RELATION_CREATE = 'relation.create',
 
+  SHARED_BASE_GENERATE_LINK = 'shared.base.generate.link',
+  SHARED_BASE_DELETE_LINK = 'shared.base.delete.link',
+
 
 
 }

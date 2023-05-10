@@ -1,5 +1,5 @@
 import { UITypes, ViewTypes } from 'nocodb-sdk';
-import { Injectable } from '@nestjs/common';
+import { Injectable, Logger } from '@nestjs/common';
 import papaparse from 'papaparse';
 import {
   findWithIdentifier,
@@ -27,12 +27,15 @@ import { HooksService } from '../../../services/hooks.service';
 import { ViewsService } from '../../../services/views.service';
 import NcPluginMgrv2 from '../../../helpers/NcPluginMgrv2';
 import { BulkDataAliasService } from '../../../services/bulk-data-alias.service';
+import { elapsedTime, initTime } from '../helpers';
 import type { Readable } from 'stream';
 import type { ViewCreateReqType } from 'nocodb-sdk';
 import type { LinkToAnotherRecordColumn, User, View } from '../../../models';
 
 @Injectable()
 export class ImportService {
+  private readonly logger = new Logger(ImportService.name);
+
   constructor(
     private tablesService: TablesService,
     private columnsService: ColumnsService,
@@ -60,6 +63,8 @@ export class ImportService {
     req: any;
     externalModels?: Model[];
   }) {
+    const hrTime = initTime();
+
     // structured id to db id
     const idMap = new Map<string, string>();
     const externalIdMap = new Map<string, string>();
@@ -112,6 +117,8 @@ export class ImportService {
       }
     }
 
+    elapsedTime(hrTime, 'generate id map for external models', 'importModels');
+
     // create tables with static columns
     for (const data of param.data) {
       const modelData = data.model;
@@ -149,9 +156,11 @@ export class ImportService {
       tableReferences.set(modelData.id, table);
     }
 
+    elapsedTime(hrTime, 'create tables with static columns', 'importModels');
+
     const referencedColumnSet = [];
 
-    // create columns with reference to other columns
+    // create LTAR columns
     for (const data of param.data) {
       const modelData = data.model;
       const table = tableReferences.get(modelData.id);
@@ -160,7 +169,6 @@ export class ImportService {
         (a) => a.uidt === UITypes.LinkToAnotherRecord,
       );
 
-      // create columns with reference to other columns
       for (const col of linkedColumnSet) {
         if (col.colOptions) {
           const colOptions = col.colOptions;
@@ -702,6 +710,8 @@ export class ImportService {
       );
     }
 
+    elapsedTime(hrTime, 'create LTAR columns', 'importModels');
+
     const sortedReferencedColumnSet = [];
 
     // sort referenced columns to avoid referencing before creation
@@ -814,6 +824,8 @@ export class ImportService {
         }
       }
     }
+
+    elapsedTime(hrTime, 'create referenced columns', 'importModels');
 
     // create views
     for (const data of param.data) {
@@ -931,6 +943,8 @@ export class ImportService {
       }
     }
 
+    elapsedTime(hrTime, 'create views', 'importModels');
+
     // create hooks
     for (const data of param.data) {
       if (!data?.hooks) break;
@@ -972,6 +986,8 @@ export class ImportService {
         }
       }
     }
+
+    elapsedTime(hrTime, 'create hooks', 'importModels');
 
     return idMap;
   }
@@ -1115,16 +1131,10 @@ export class ImportService {
       file?: any;
     };
     req: any;
-    debug?: boolean;
   }) {
+    const hrTime = initTime();
+
     const { user, projectId, baseId, src, req } = param;
-
-    const debug = param?.debug === true;
-
-    const debugLog = (...args: any[]) => {
-      if (!debug) return;
-      console.log(...args);
-    };
 
     const destProject = await Project.get(projectId);
     const destBase = await Base.get(baseId);
@@ -1132,15 +1142,6 @@ export class ImportService {
     if (!destProject || !destBase) {
       throw NcError.badRequest('Project or Base not found');
     }
-
-    let start = process.hrtime();
-
-    const elapsedTime = function (label?: string) {
-      const elapsedS = process.hrtime(start)[0].toFixed(3);
-      const elapsedMs = process.hrtime(start)[1] / 1000000;
-      if (label) debugLog(`${label}: ${elapsedS}s ${elapsedMs}ms`);
-      start = process.hrtime();
-    };
 
     switch (src.type) {
       case 'local': {
@@ -1153,7 +1154,7 @@ export class ImportService {
             await storageAdapter.fileRead(`${path}/schema.json`),
           );
 
-          elapsedTime('read schema');
+          elapsedTime(hrTime, 'read schema from file', 'importBase');
 
           // store fk_mm_model_id (mm) to link once
           let handledLinks = [];
@@ -1166,7 +1167,7 @@ export class ImportService {
             req,
           });
 
-          elapsedTime('import models');
+          elapsedTime(hrTime, 'import models schema', 'importBase');
 
           if (idMap) {
             const files = await (storageAdapter as any).getDirectoryList(
@@ -1189,7 +1190,7 @@ export class ImportService {
 
               const model = await Model.get(modelId);
 
-              debugLog(`Importing ${model.title}...`);
+              this.logger.debug(`Importing ${model.title}...`);
 
               await this.importDataFromCsvStream({
                 idMap,
@@ -1197,14 +1198,17 @@ export class ImportService {
                 destProject,
                 destBase,
                 destModel: model,
-                debugLog,
               });
 
-              elapsedTime(`import ${model.title}`);
+              elapsedTime(
+                hrTime,
+                `import data for ${model.title}`,
+                'importBase',
+              );
             }
 
             // reset timer
-            elapsedTime();
+            elapsedTime(hrTime);
 
             const linkReadStream = await (
               storageAdapter as any
@@ -1216,8 +1220,9 @@ export class ImportService {
               destProject,
               destBase,
               handledLinks,
-              debugLog,
             });
+
+            elapsedTime(hrTime, `import links`, 'importBase');
           }
         } catch (e) {
           throw new Error(e);
@@ -1237,11 +1242,8 @@ export class ImportService {
     destProject: Project;
     destBase: Base;
     destModel: Model;
-    debugLog?: (...args: any[]) => void;
   }): Promise<void> {
     const { idMap, dataStream, destBase, destProject, destModel } = param;
-
-    const debugLog = param.debugLog || (() => {});
 
     const headers: string[] = [];
     let chunk = [];
@@ -1269,18 +1271,20 @@ export class ImportService {
                       headers.push(childCol.column_name);
                     } else {
                       headers.push(null);
-                      debugLog('child column not found', header);
+                      this.logger.error(
+                        `child column not found (${col.colOptions.fk_child_column_id})`,
+                      );
                     }
                   } else {
                     headers.push(col.column_name);
                   }
                 } else {
                   headers.push(null);
-                  debugLog('column not found', header);
+                  this.logger.error(`column not found (${id})`);
                 }
               } else {
                 headers.push(null);
-                debugLog('header not found', header);
+                this.logger.error(`id not found (${header})`);
               }
             }
             parser.resume();
@@ -1308,7 +1312,7 @@ export class ImportService {
                     raw: true,
                   });
                 } catch (e) {
-                  console.log(e);
+                  this.logger.error(e);
                 }
                 chunk = [];
                 parser.resume();
@@ -1329,7 +1333,7 @@ export class ImportService {
                 raw: true,
               });
             } catch (e) {
-              console.log(e);
+              this.logger.error(e);
             }
             chunk = [];
           }
@@ -1346,11 +1350,8 @@ export class ImportService {
     destProject: Project;
     destBase: Base;
     handledLinks: string[];
-    debugLog?: (...args: any[]) => void;
   }): Promise<string[]> {
     const { idMap, linkStream, destBase, destProject, handledLinks } = param;
-
-    const debugLog = param.debugLog || (() => {});
 
     const lChunks: Record<string, any[]> = {}; // fk_mm_model_id: { rowId, childId }[]
 
@@ -1369,7 +1370,7 @@ export class ImportService {
           });
           lChunks[k] = [];
         } catch (e) {
-          console.log(e);
+          this.logger.error(e);
         }
       }
     };
@@ -1452,7 +1453,7 @@ export class ImportService {
                       [mm.child]: child,
                     });
                   } else {
-                    debugLog('column not found', columnId);
+                    this.logger.error(`column not found (${columnId})`);
                   }
 
                   parser.resume();

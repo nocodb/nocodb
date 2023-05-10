@@ -3,41 +3,22 @@ import { Process, Processor } from '@nestjs/bull';
 import { Job } from 'bull';
 import papaparse from 'papaparse';
 import { UITypes } from 'nocodb-sdk';
+import { Logger } from '@nestjs/common';
 import { Base, Column, Model, Project } from '../../../models';
 import { ProjectsService } from '../../../services/projects.service';
 import { findWithIdentifier } from '../../../helpers/exportImportHelpers';
 import { BulkDataAliasService } from '../../../services/bulk-data-alias.service';
 import { JOBS_QUEUE, JobTypes } from '../../../interface/Jobs';
+import { elapsedTime, initTime } from '../helpers';
 import { ExportService } from './export.service';
 import { ImportService } from './import.service';
-import type { LinkToAnotherRecordColumn } from '../../../models';
-
-const DEBUG = false;
-
-const debugLog = function (...args: any[]) {
-  if (DEBUG) {
-    console.log(...args);
-  }
-};
-
-const initTime = function () {
-  return {
-    hrTime: process.hrtime(),
-  };
-};
-
-const elapsedTime = function (
-  time: { hrTime: [number, number] },
-  label?: string,
-) {
-  const elapsedS = process.hrtime(time.hrTime)[0].toFixed(3);
-  const elapsedMs = process.hrtime(time.hrTime)[1] / 1000000;
-  if (label) debugLog(`${label}: ${elapsedS}s ${elapsedMs}ms`);
-  time.hrTime = process.hrtime();
-};
 
 @Processor(JOBS_QUEUE)
 export class DuplicateProcessor {
+  private readonly logger = new Logger(
+    `${JOBS_QUEUE}:${DuplicateProcessor.name}`,
+  );
+
   constructor(
     private readonly exportService: ExportService,
     private readonly importService: ImportService,
@@ -77,7 +58,11 @@ export class DuplicateProcessor {
         excludeHooks,
       });
 
-      elapsedTime(hrTime, 'serializeModels');
+      elapsedTime(
+        hrTime,
+        `serialize models schema for ${base.project_id}::${base.id}`,
+        'duplicateBase',
+      );
 
       if (!exportedModels) {
         throw new Error(`Export failed for base '${base.id}'`);
@@ -95,7 +80,7 @@ export class DuplicateProcessor {
         req: req,
       });
 
-      elapsedTime(hrTime, 'importModels');
+      elapsedTime(hrTime, `import models schema`, 'duplicateBase');
 
       if (!idMap) {
         throw new Error(`Import failed for base '${base.id}'`);
@@ -166,7 +151,11 @@ export class DuplicateProcessor {
       })
     )[0];
 
-    elapsedTime(hrTime, 'serializeModel');
+    elapsedTime(
+      hrTime,
+      `serialize model schema for ${modelId}`,
+      'duplicateModel',
+    );
 
     if (!exportedModel) {
       throw new Error(`Export failed for base '${base.id}'`);
@@ -184,7 +173,7 @@ export class DuplicateProcessor {
       externalModels: relatedModels,
     });
 
-    elapsedTime(hrTime, 'reimportModelSchema');
+    elapsedTime(hrTime, 'import model schema', 'duplicateModel');
 
     if (!idMap) {
       throw new Error(`Import failed for model '${modelId}'`);
@@ -220,7 +209,7 @@ export class DuplicateProcessor {
         externalModels: relatedModels,
       });
 
-      elapsedTime(hrTime, 'reimportModelData');
+      elapsedTime(hrTime, 'import model data', 'duplicateModel');
     }
 
     return await Model.get(findWithIdentifier(idMap, sourceModel.id));
@@ -274,7 +263,6 @@ export class DuplicateProcessor {
         destProject,
         destBase,
         destModel: model,
-        debugLog,
       });
 
       handledLinks = await this.importService.importLinkFromCsvStream({
@@ -283,10 +271,13 @@ export class DuplicateProcessor {
         destProject,
         destBase,
         handledLinks,
-        debugLog,
       });
 
-      elapsedTime(hrTime, model.title);
+      elapsedTime(
+        hrTime,
+        `import data and links for ${model.title}`,
+        'importModelsData',
+      );
     }
 
     // update external models (has bt to this model)
@@ -341,18 +332,18 @@ export class DuplicateProcessor {
                           headers.push(childCol.column_name);
                         } else {
                           headers.push(null);
-                          debugLog('child column not found', id);
+                          this.logger.error(`child column not found (${id})`);
                         }
                       } else {
                         headers.push(col.column_name);
                       }
                     } else {
                       headers.push(null);
-                      debugLog('column not found', id);
+                      this.logger.error(`column not found (${id})`);
                     }
                   } else {
                     headers.push(null);
-                    debugLog('header not found', header);
+                    this.logger.error(`id not found (${header})`);
                   }
                 }
                 parser.resume();
@@ -378,7 +369,7 @@ export class DuplicateProcessor {
                         raw: true,
                       });
                     } catch (e) {
-                      console.log(e);
+                      this.logger.error(e);
                     }
                     chunk = [];
                     parser.resume();
@@ -397,7 +388,7 @@ export class DuplicateProcessor {
                     raw: true,
                   });
                 } catch (e) {
-                  console.log(e);
+                  this.logger.error(e);
                 }
                 chunk = [];
               }
@@ -406,7 +397,11 @@ export class DuplicateProcessor {
           });
         });
 
-        elapsedTime(hrTime, `external bt ${model.title}`);
+        elapsedTime(
+          hrTime,
+          `map existing links to ${model.title}`,
+          'importModelsData',
+        );
       }
     }
   }

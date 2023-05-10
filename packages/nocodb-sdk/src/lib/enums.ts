@@ -124,4 +124,6 @@ export enum AppEvents {
   SHARED_BASE_DELETE_LINK = 'shared.base.delete.link',
 
   ATTACHMENT_UPLOAD = 'attachment.upload',
+
+  APIS_CREATED = 'apis.created',
 }

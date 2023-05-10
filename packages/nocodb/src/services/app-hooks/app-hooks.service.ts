@@ -1,6 +1,7 @@
 import { Inject, Injectable } from '@nestjs/common';
 import { IEventEmitter } from '../../modules/event-emitter/event-emitter.interface';
 import type {
+  ApiCreatedEvent,
   ApiTokenCreateEvent,
   ApiTokenDeleteEvent,
   AttachmentEvent,
@@ -134,6 +135,7 @@ export class AppHooksService {
   emit(event: AppEvents.PROJECT_UPDATE, data: ProjectUpdateEvent): void;
   emit(event: AppEvents.USER_SIGNUP, data: UserSignupEvent): void;
   emit(event: AppEvents.USER_SIGNIN, data: UserSigninEvent): void;
+  emit(event: AppEvents.APIS_CREATED, data: ApiCreatedEvent): void;
   emit(
     event: AppEvents.USER_PASSWORD_CHANGE,
     data: UserPasswordChangeEvent,

@@ -198,6 +198,33 @@ export class TreeViewPage extends BasePage {
       requestUrlPathToMatch: `/api/v1/db/meta/duplicate/`,
       responseJsonMatcher: json => json.name === 'duplicate-model',
     });
+    await this.get().locator(`[data-testid="tree-view-table-${title} copy"]`).waitFor();
+  }
+
+  async duplicateTable(title: string, includeData = true, includeViews = true) {
+    await this.get().locator(`.nc-project-tree-tbl-${title}`).click({ button: 'right' });
+    await this.dashboard.get().locator('div.nc-project-menu-item:has-text("Duplicate")').click();
+
+    // Find the checkbox element with the label "Include data"
+    const includeDataCheckbox = await this.dashboard.get().getByText('Include data', { exact: true });
+    // Check the checkbox if it is not already checked
+    if ((await includeDataCheckbox.isChecked()) && !includeData) {
+      await includeDataCheckbox.click(); // click the checkbox to check it
+    }
+
+    // Find the checkbox element with the label "Include data"
+    const includeViewsCheckbox = await this.dashboard.get().getByText('Include views', { exact: true });
+    // Check the checkbox if it is not already checked
+    if ((await includeViewsCheckbox.isChecked()) && !includeViews) {
+      await includeViewsCheckbox.click(); // click the checkbox to check it
+    }
+
+    await this.waitForResponse({
+      uiAction: () => this.rootPage.getByRole('button', { name: 'Confirm' }).click(),
+      httpMethodsToMatch: ['POST'],
+      requestUrlPathToMatch: `/api/v1/db/meta/duplicate/`,
+      responseJsonMatcher: json => json.name === 'duplicate-model',
+    });
   }
 
   async verifyTabIcon({ title, icon }: { title: string; icon: string }) {

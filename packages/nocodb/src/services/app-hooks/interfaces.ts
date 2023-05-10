@@ -165,6 +165,10 @@ testBody: PluginTestReqType
 export interface PluginEvent {
   plugin: PluginType
 }
+export interface SharedBaseEvent {
+  link?: string
+  project?: ProjectType
+}
 
 export type AppEventPayload =
   | ProjectInviteEvent

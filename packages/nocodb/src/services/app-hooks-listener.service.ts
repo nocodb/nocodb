@@ -370,6 +370,17 @@ export class AppHooksListenerService implements OnModuleInit, OnModuleDestroy {
           });
         }
         break;
+
+      case AppEvents.SHARED_BASE_GENERATE_LINK:
+        {
+          T.emit('evt', { evt_type: 'sharedBase:generated-link' });
+        }
+        break;
+      case AppEvents.SHARED_BASE_DELETE_LINK:
+        {
+          T.emit('evt', { evt_type: 'sharedBase:generated-link' });
+        }
+        break;
     }
   }
 

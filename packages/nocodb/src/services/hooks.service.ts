@@ -51,29 +51,53 @@ export class HooksService {
       fk_model_id: param.tableId,
     } as any);
 
-    this.appHooksService.emit(AppEvents.HOOK_CREATE, {
+    this.appHooksService.emit(AppEvents.WEBHOOK_CREATE, {
       hook,
     })
 
-    T.emit('evt', { evt_type: 'webhooks:created' });
+    // T.emit('evt', { evt_type: 'webhooks:created' });
 
     return hook;
   }
 
   async hookDelete(param: { hookId: string }) {
-    T.emit('evt', { evt_type: 'webhooks:deleted' });
+    const hook = await Hook.get(param.hookId);
+
+    if(!hook) {
+      NcError.badRequest('Hook not found');
+    }
+
     await Hook.delete(param.hookId);
+    // T.emit('evt', { evt_type: 'webhooks:deleted' });
+    this.appHooksService.emit(AppEvents.WEBHOOK_DELETE, {
+      hook,
+    })
     return true;
   }
 
   async hookUpdate(param: { hookId: string; hook: HookReqType }) {
     validatePayload('swagger.json#/components/schemas/HookReq', param.hook);
 
-    T.emit('evt', { evt_type: 'webhooks:updated' });
+    const hook = await Hook.get(param.hookId);
+
+    if(!hook) {
+      NcError.badRequest('Hook not found');
+    }
+
+    // T.emit('evt', { evt_type: 'webhooks:updated' });
 
     this.validateHookPayload(param.hook.notification);
 
-    return await Hook.update(param.hookId, param.hook);
+    const res = await Hook.update(param.hookId, param.hook);
+
+    this.appHooksService.emit(AppEvents.WEBHOOK_UPDATE, {
+      hook: {
+        ...hook,
+        ...param.hook,
+      }
+    })
+
+    return res;
   }
 
   async hookTest(param: { tableId: string; hookTest: HookTestReqType }) {

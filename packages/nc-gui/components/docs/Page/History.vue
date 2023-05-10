@@ -1,4 +1,6 @@
 <script lang="ts" setup>
+import InfiniteLoading from 'v3-infinite-loading'
+
 const emit = defineEmits(['close'])
 
 const { $api } = useNuxtApp()
@@ -12,14 +14,33 @@ const close = () => {
   emit('close')
 }
 
+const pageNumber = ref(0)
+
 onMounted(async () => {
   const response = await $api.nocoDocs.listPageHistory(project.value!.id!, openedPage.value!.id!, {
     pageNumber: 0,
     pageSize: 10,
   })
 
-  setHistory(response.list!)
+  setHistory(response.snapshots!)
 })
+
+const loadListData = async ($state: any) => {
+  $state.loading()
+  pageNumber.value += 1
+  const response = await $api.nocoDocs.listPageHistory(project.value!.id!, openedPage.value!.id!, {
+    pageNumber: pageNumber.value,
+    pageSize: 10,
+  })
+
+  if (response.snapshots?.length === 0) {
+    $state.complete()
+    return
+  }
+
+  setHistory([...history.value, ...response.snapshots!])
+  $state.loaded()
+}
 </script>
 
 <template>
@@ -43,6 +64,16 @@ onMounted(async () => {
       >
         <div>{{ item.last_page_updated_time }}</div>
       </div>
+      <InfiniteLoading v-bind="$attrs" @infinite="loadListData">
+        <template #spinner>
+          <div class="flex flex-row w-full justify-center mt-2">
+            <a-spin />
+          </div>
+        </template>
+        <template #complete>
+          <span></span>
+        </template>
+      </InfiniteLoading>
     </div>
   </div>
 </template>

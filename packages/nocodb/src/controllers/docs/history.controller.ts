@@ -1,4 +1,4 @@
-import { Controller, Get, Param, UseGuards } from '@nestjs/common';
+import {Controller, Get, Param, Query, UseGuards} from '@nestjs/common';
 import { AuthGuard } from '@nestjs/passport';
 import { ExtractProjectAndWorkspaceIdMiddleware } from 'src/middlewares/extract-project-and-workspace-id/extract-project-and-workspace-id.middleware';
 import { UseAclMiddleware } from 'src/middlewares/extract-project-id/extract-project-id.middleware';
@@ -16,10 +16,14 @@ export class DocsPagesHistoryController {
   async list(
     @Param('pageId') pageId: string,
     @Param('projectId') projectId: string,
+    @Query('pageNumber') pageNumber: number,
+    @Query('pageSize') pageSize: number,
   ) {
     return await this.pagesHistoryService.list({
       pageId,
       projectId,
+      pageNumber,
+      pageSize,
     });
   }
 }

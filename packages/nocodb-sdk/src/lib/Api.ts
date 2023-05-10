@@ -3256,9 +3256,7 @@ export class Api<
  * @summary List page history
  * @request GET:/api/v1/docs/project/{projectId}/page/{pageId}/history
  * @response `200` `{
-  list?: (DocsPageSnapshotType)[],
-  \** Model for Paginated *\
-  pageInfo?: PaginatedType,
+  snapshots?: (DocsPageSnapshotType)[],
 
 }` OK
  */
@@ -3275,9 +3273,7 @@ export class Api<
     ) =>
       this.request<
         {
-          list?: DocsPageSnapshotType[];
-          /** Model for Paginated */
-          pageInfo?: PaginatedType;
+          snapshots?: DocsPageSnapshotType[];
         },
         any
       >({

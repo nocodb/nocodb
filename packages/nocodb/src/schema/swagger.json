@@ -609,14 +609,11 @@
               "schema": {
                 "type": "object",
                 "properties": {
-                  "list": {
+                  "snapshots": {
                     "type": "array",
                     "items": {
                         "$ref": "#/components/schemas/DocsPageSnapshot"
                     }
-                  },
-                  "pageInfo": {
-                    "$ref": "#/components/schemas/Paginated"
                   }
                 }
               }
@@ -628,7 +625,7 @@
           "Noco docs"
         ],
         "description": "List page history"
-      },
+      }
     },
     "/api/v1/auth/user/signup": {
       "post": {

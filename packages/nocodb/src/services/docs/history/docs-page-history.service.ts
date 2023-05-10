@@ -57,6 +57,8 @@ export class DocsPageHistoryService {
       .replaceAll('>Empty</del>', ' class="empty">__nc_empty__</del>')
       .replaceAll('<p #custom>Empty</p>', '<p></p>');
 
+    // TODO: Figure to properly store html as part of json(i.e 'content_html' in before_page_json, after_page_json)
+    // Issue is on frontend, JSON.parse() is not able to parse html string
     delete oldPage.content_html;
     delete newPage.content_html;
 
@@ -105,17 +107,22 @@ export class DocsPageHistoryService {
   FROM page_history
   WHERE fk_project_id = '${projectId}' AND fk_page_id = '${pageId}'
   ORDER BY last_page_updated_time DESC
+  
 `;
-    if (Number.isInteger(pageNumber) && Number.isInteger(pageSize)) {
-      if (pageNumber) query += ` OFFSET ${pageNumber * pageSize}`;
-      if (pageSize) query += ` LIMIT ${pageSize}`;
+
+    if (pageNumber) {
+      pageNumber = Number(pageNumber);
+      pageSize = Number(pageSize);
+
+      query += `LIMIT ${pageNumber * pageSize}, ${pageSize}`;
     }
 
-    const result = await this.clickhouseService.execute(query, true);
+    console.log(query);
 
-    return new PagedResponseImpl(result, {
-      limit: pageSize,
-      offset: pageNumber * pageSize,
-    });
+    const snapshots = await this.clickhouseService.execute(query, true);
+
+    return {
+      snapshots,
+    };
   }
 }

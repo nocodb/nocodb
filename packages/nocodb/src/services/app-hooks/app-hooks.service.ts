@@ -18,6 +18,7 @@ import type {
   SharedBaseEvent,
   SyncSourceEvent,
   UIAclEvent,
+  UserEmailVerificationEvent,
   UserPasswordChangeEvent,
   UserPasswordForgotEvent,
   UserPasswordResetEvent,
@@ -260,6 +261,10 @@ export class AppHooksService {
   emit(event: AppEvents.UI_ACL_UPDATE, data: UIAclEvent): void;
   emit(event: AppEvents.ORG_API_TOKEN_CREATE, data: ApiTokenCreateEvent): void;
   emit(event: AppEvents.ORG_API_TOKEN_DELETE, data: ApiTokenDeleteEvent): void;
+  emit(
+    event: AppEvents.USER_EMAIL_VERIFICATION,
+    data: UserEmailVerificationEvent,
+  ): void;
   emit(event, data): void {
     this.eventEmitter.emit(event, data);
     this.eventEmitter.emit(ALL_EVENTS, { event, data: data });

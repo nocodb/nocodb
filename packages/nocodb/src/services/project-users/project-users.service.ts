@@ -146,9 +146,9 @@ export class ProjectUsersService {
             invitedBy: param.req.user,
             ip: param.req.clientIp,
           });
-
-          const count = await User.count();
-          T.emit('evt', { evt_type: 'project:invite', count });
+          //
+          // const count = await User.count();
+          // T.emit('evt', { evt_type: 'project:invite', count });
 
           // await Audit.insert({
           //   project_id: param.projectId,

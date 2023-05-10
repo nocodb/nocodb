@@ -16,7 +16,6 @@ import { GalleriesController } from '../../controllers/galleries.controller';
 import { GridColumnsController } from '../../controllers/grid-columns.controller';
 import { GridsController } from '../../controllers/grids.controller';
 import { HooksController } from '../../controllers/hooks.controller';
-import { ImportController } from '../../controllers/imports/import.controller';
 import { KanbansController } from '../../controllers/kanbans.controller';
 import { MapsController } from '../../controllers/maps.controller';
 import { MetaDiffsController } from '../../controllers/meta-diffs.controller';
@@ -98,7 +97,6 @@ import { ProjectUsersService } from '../../services/project-users/project-users.
     GridColumnsController,
     GridsController,
     HooksController,
-    ImportController,
     KanbansController,
     MapsController,
     MetaDiffsController,
@@ -155,6 +153,24 @@ import { ProjectUsersService } from '../../services/project-users/project-users.
     SortsService,
     SharedBasesService,
     BulkDataAliasService,
+  ],
+  exports: [
+    TablesService,
+    ColumnsService,
+    FiltersService,
+    SortsService,
+    ViewsService,
+    ViewColumnsService,
+    GridsService,
+    GridColumnsService,
+    FormsService,
+    FormColumnsService,
+    GalleriesService,
+    KanbansService,
+    ProjectsService,
+    AttachmentsService,
+    ProjectUsersService,
+    HooksService,
   ],
 })
 export class MetasModule {}

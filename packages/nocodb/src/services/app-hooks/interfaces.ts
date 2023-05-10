@@ -196,6 +196,9 @@ export interface MetaDiffEvent {
   project: ProjectType;
   base?: BaseType;
 }
+export interface UIAclEvent {
+  project: ProjectType
+}
 
 export interface SyncSourceEvent {
   syncSource: Partial<SyncSource>;

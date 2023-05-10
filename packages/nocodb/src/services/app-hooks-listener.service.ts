@@ -454,6 +454,9 @@ export class AppHooksListenerService implements OnModuleInit, OnModuleDestroy {
       case AppEvents.PROJECT_UPDATE:
         T.emit('evt', { evt_type: 'project:update' });
         break;
+      case AppEvents.UI_ACL_UPDATE:
+        T.emit('evt', { evt_type: 'uiAcl:updated' });
+        break;
       case AppEvents.META_DIFF_SYNC:
         {
           const param = data as MetaDiffEvent;

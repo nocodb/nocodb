@@ -5,7 +5,7 @@ import type {
   ApiTokenDeleteEvent,
   ApiTokenEvent,
   AttachmentEvent,
-  BaseEvent, FormColumnEvent, GridColumnEvent,
+  BaseEvent, FormColumnEvent, GridColumnEvent, MetaDiffEvent,
   OrgUserInviteEvent,
   PluginEvent,
   PluginTestEvent,
@@ -251,6 +251,7 @@ export class AppHooksService {
   emit(event: AppEvents.FORM_COLUMN_UPDATE, data: FormColumnEvent): void;
   emit(event: AppEvents.GRID_COLUMN_UPDATE, data: GridColumnEvent): void;
   emit(event: AppEvents.META_DIFF_SYNC, data: MetaDiffEvent): void;
+  emit(event: AppEvents.UI_ACL_UPDATE, data: UIAclEvent): void;
   emit(event, data): void {
     this.eventEmitter.emit(event, data);
     this.eventEmitter.emit(ALL_EVENTS, { event, data: data });

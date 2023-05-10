@@ -3215,19 +3215,19 @@ class BaseModelSqlv2 {
     dateTimeColumns: Record<string, any>[],
     d: Record<string, any>,
   ) {
-    try {
-      if (d) {
-        dateTimeColumns.forEach((col) => {
-          if (d[col.title]) {
-            // e.g. 01.01.2022 10:00:00+05:30 -> 2022-01-01 04:30:00+00:00
-            // e.g. 2023-05-09 11:41:49 -> 2023-05-09 11:41:49+00:00
-            d[col.title] = dayjs(d[col.title])
-              .utc(true)
-              .format('YYYY-MM-DD HH:mm:ssZ');
-          }
-        });
-      }
-    } catch {}
+    if (d) {
+      dateTimeColumns.forEach((col) => {
+        if (d[col.title]) {
+          // e.g. 01.01.2022 10:00:00+05:30 -> 2022-01-01 04:30:00+00:00
+          // e.g. 2023-05-09 11:41:49 -> 2023-05-09 11:41:49+00:00
+          d[col.title] = dayjs(d[col.title])
+            // keep the local time
+            .utc(true)
+            // show the timezone even for Mysql
+            .format('YYYY-MM-DD HH:mm:ssZ');
+        }
+      });
+    }
     return d;
   }
 
@@ -3249,6 +3249,9 @@ class BaseModelSqlv2 {
     return data;
   }
 
+  // SET TIME ZONE only works for the current session
+  // trigger before insert / update
+  // TODO: refactor - maybe there is a better approach
   private async setUtcTimezoneForPg() {
     if (this.isPg && (await this.isXcdbBase())) {
       await this.dbDriver.raw(`SET TIME ZONE 'UTC'`);

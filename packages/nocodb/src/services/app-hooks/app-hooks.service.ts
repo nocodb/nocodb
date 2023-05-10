@@ -3,7 +3,6 @@ import { IEventEmitter } from '../../modules/event-emitter/event-emitter.interfa
 import type {
   ApiTokenCreateEvent,
   ApiTokenDeleteEvent,
-  ApiTokenEvent,
   AttachmentEvent,
   BaseEvent, FormColumnEvent, GridColumnEvent, MetaDiffEvent,
   OrgUserInviteEvent,
@@ -12,7 +11,7 @@ import type {
   ProjectUserResendInviteEvent,
   ProjectUserUpdateEvent,
   RelationEvent,
-  SharedBaseEvent, SyncSourceEvent,
+  SharedBaseEvent, SyncSourceEvent, UIAclEvent,
   UserPasswordChangeEvent,
   UserPasswordForgotEvent,
   UserPasswordResetEvent,
@@ -252,6 +251,8 @@ export class AppHooksService {
   emit(event: AppEvents.GRID_COLUMN_UPDATE, data: GridColumnEvent): void;
   emit(event: AppEvents.META_DIFF_SYNC, data: MetaDiffEvent): void;
   emit(event: AppEvents.UI_ACL_UPDATE, data: UIAclEvent): void;
+  emit(event: AppEvents.ORG_API_TOKEN_CREATE, data: ApiTokenCreateEvent): void;
+  emit(event: AppEvents.ORG_API_TOKEN_DELETE, data: ApiTokenDeleteEvent): void;
   emit(event, data): void {
     this.eventEmitter.emit(event, data);
     this.eventEmitter.emit(ALL_EVENTS, { event, data: data });

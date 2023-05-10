@@ -48,8 +48,12 @@ export default function convertCellData(
         // e.g. 2023-05-09T19:41:49+08:00 -> 2023-05-09 11:41:49
         return parsedDateTime.utc().format(isMysql ? 'YYYY-MM-DD HH:mm:ss' : 'YYYY-MM-DD HH:mm:ssZ')
       }
-      // External DB - keep it as it is
-      return parsedDateTime.format(isMysql ? 'YYYY-MM-DD HH:mm:ss' : 'YYYY-MM-DD HH:mm:ssZ')
+      // External DB
+      if (isMysql) {
+        // convert back to utc
+        return parsedDateTime.utc().format('YYYY-MM-DD HH:mm:ss')
+      }
+      return parsedDateTime.format('YYYY-MM-DD HH:mm:ssZ')
     }
     case UITypes.Time: {
       let parsedTime = dayjs(value)

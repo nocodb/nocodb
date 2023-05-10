@@ -4,7 +4,7 @@ import type {
   ApiTokenCreateEvent,
   ApiTokenDeleteEvent,
   ApiTokenEvent,
-  OrgUserInviteEvent,
+  OrgUserInviteEvent, PluginEvent, PluginTestEvent,
   ProjectUserResendInviteEvent,
   ProjectUserUpdateEvent,
   RelationEvent,
@@ -13,7 +13,7 @@ import type {
   UserPasswordResetEvent,
   ViewColumnEvent,
   WebhookEvent,
-} from './interfaces';
+} from './interfaces'
 import type { AppEvents } from 'nocodb-sdk';
 import type {
   ColumnEvent,
@@ -216,6 +216,14 @@ export class AppHooksService {
   emit(
     event: AppEvents.RELATION_DELETE | AppEvents.RELATION_CREATE,
     data: RelationEvent,
+  ): void;
+  emit(
+    event: AppEvents.PLUGIN_TEST,
+    data: PluginTestEvent,
+  ): void;
+  emit(
+    event: AppEvents.PLUGIN_INSTALL | AppEvents.PLUGIN_UNINSTALL,
+    data: PluginEvent,
   ): void;
   emit(event, data): void {
     this.eventEmitter.emit(event, data);

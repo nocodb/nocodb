@@ -192,6 +192,11 @@ export interface FormColumnEvent {}
 // eslint-disable-next-line @typescript-eslint/no-empty-interface
 export interface GridColumnEvent {}
 
+export interface MetaDiffEvent {
+  project: ProjectType;
+  base?: BaseType;
+}
+
 export interface SyncSourceEvent {
   syncSource: Partial<SyncSource>;
 }

@@ -1,5 +1,5 @@
 import { Injectable } from '@nestjs/common';
-import { isVirtualCol, ModelTypes, RelationTypes, UITypes } from 'nocodb-sdk';
+import { AppEvents, isVirtualCol, ModelTypes, RelationTypes, UITypes } from 'nocodb-sdk'
 import { T } from 'nc-help';
 import { Base, Column, Model, Project } from '../models';
 import ModelXcMetaFactory from '../db/sql-mgr/code/models/xc/ModelXcMetaFactory';
@@ -10,6 +10,7 @@ import mapDefaultDisplayValue from '../helpers/mapDefaultDisplayValue';
 import NcConnectionMgrv2 from '../utils/common/NcConnectionMgrv2';
 import NcHelp from '../utils/NcHelp';
 import type { LinkToAnotherRecordColumn } from '../models';
+import { AppHooksService } from './app-hooks/app-hooks.service'
 
 // todo:move enum and types
 export enum MetaDiffType {
@@ -107,6 +108,10 @@ type MetaDiffChange = {
 
 @Injectable()
 export class MetaDiffsService {
+
+  constructor(private appHooksService: AppHooksService) {
+  }
+
   async getMetaDiff(
     sqlClient,
     project: Project,
@@ -772,7 +777,11 @@ export class MetaDiffsService {
       await this.extractAndGenerateManyToManyRelations(await base.getModels());
     }
 
-    T.emit('evt', { evt_type: 'metaDiff:synced' });
+    this.appHooksService.emit(AppEvents.META_DIFF_SYNC, {
+      project
+    })
+
+    // T.emit('evt', { evt_type: 'metaDiff:synced' });
 
     return true;
   }
@@ -965,7 +974,13 @@ export class MetaDiffsService {
     // populate m2m relations
     await this.extractAndGenerateManyToManyRelations(await base.getModels());
 
-    T.emit('evt', { evt_type: 'baseMetaDiff:synced' });
+
+    this.appHooksService.emit(AppEvents.META_DIFF_SYNC, {
+      project,
+      base
+    })
+
+    // T.emit('evt', { evt_type: 'baseMetaDiff:synced' });
 
     return true;
   }

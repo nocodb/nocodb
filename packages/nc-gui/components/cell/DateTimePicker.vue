@@ -58,8 +58,21 @@ let localState = $computed({
       return undefined
     }
 
+    const isXcDB = isXcdbBase(column.value.base_id)
+
+    // cater copy and paste
+    // when copying a datetime cell, the copied value would be local time
+    // when pasting a datetime cell, UTC (xcdb) will be saved in DB
+    // we convert back to local time
+    if (column.value.title! in (isUpdatedFromCopyNPaste ?? {})) {
+      localModelValue = dayjs(modelValue + (isXcDB ? 'Z' : ''))
+        .utc(isMysql(column.value.base_id))
+        .local()
+      return localModelValue
+    }
+
     // ext db
-    if (!isXcdbBase(column.value.base_id)) {
+    if (!isXcDB) {
       return /^\d+$/.test(modelValue) ? dayjs(+modelValue) : dayjs(modelValue)
     }
 
@@ -72,15 +85,6 @@ let localState = $computed({
     // hence, show the local time
     if (column?.value?.cdf) {
       return dayjs(modelValue).utc(isMysql(column.value.base_id)).local()
-    }
-
-    // cater copy and paste
-    // when copying a datetime cell, the copied value would be local time
-    // when pasting a datetime cell, UTC (xcdb) will be saved in DB
-    // we convert back to local time
-    if (column.value.title! in (isUpdatedFromCopyNPaste ?? {})) {
-      localModelValue = dayjs(modelValue).utc(isMysql(column.value.base_id)).local()
-      return localModelValue
     }
 
     // if localModelValue is defined, show localModelValue instead

@@ -1,17 +1,15 @@
 import { Injectable } from '@nestjs/common';
 import { T } from 'nc-help';
-import { AppEvents } from 'nocodb-sdk'
+import { AppEvents } from 'nocodb-sdk';
 import { validatePayload } from '../helpers';
 import NcPluginMgrv2 from '../helpers/NcPluginMgrv2';
 import { Plugin } from '../models';
+import { AppHooksService } from './app-hooks/app-hooks.service';
 import type { PluginTestReqType, PluginType } from 'nocodb-sdk';
-import { AppHooksService } from './app-hooks/app-hooks.service'
 
 @Injectable()
 export class PluginsService {
-
-constructor(private readonly appHooksService: AppHooksService) {
-}
+  constructor(private readonly appHooksService: AppHooksService) {}
 
   async pluginList() {
     return await Plugin.list();
@@ -23,9 +21,9 @@ constructor(private readonly appHooksService: AppHooksService) {
       param.body,
     );
 
-    this.appHooksService.emit(AppEvents.PLUGIN_TEST,{
+    this.appHooksService.emit(AppEvents.PLUGIN_TEST, {
       testBody: param.body,
-    })
+    });
     // T.emit('evt', { evt_type: 'plugin:tested' });
     return await NcPluginMgrv2.test(param.body);
   }
@@ -38,10 +36,12 @@ constructor(private readonly appHooksService: AppHooksService) {
 
     const plugin = await Plugin.update(param.pluginId, param.plugin);
 
-
-    this.appHooksService.emit( plugin.active ? AppEvents.PLUGIN_INSTALL : AppEvents.PLUGIN_UNINSTALL,{
-      plugin
-    })
+    this.appHooksService.emit(
+      plugin.active ? AppEvents.PLUGIN_INSTALL : AppEvents.PLUGIN_UNINSTALL,
+      {
+        plugin,
+      },
+    );
 
     // T.emit('evt', {
     //   evt_type: plugin.active ? 'plugin:installed' : 'plugin:uninstalled',

@@ -1,16 +1,14 @@
 import { Injectable } from '@nestjs/common';
 import { T } from 'nc-help';
-import { AppEvents } from 'nocodb-sdk'
-import { NcError } from '../helpers/catchError'
+import { AppEvents } from 'nocodb-sdk';
+import { NcError } from '../helpers/catchError';
 import { PagedResponseImpl } from '../helpers/PagedResponse';
 import { Project, SyncSource } from '../models';
-import { AppHooksService } from './app-hooks/app-hooks.service'
+import { AppHooksService } from './app-hooks/app-hooks.service';
 
 @Injectable()
 export class SyncService {
-
-  constructor(private readonly appHooksService: AppHooksService) {
-  }
+  constructor(private readonly appHooksService: AppHooksService) {}
 
   async syncSourceList(param: { projectId: string; baseId?: string }) {
     return new PagedResponseImpl(
@@ -34,9 +32,9 @@ export class SyncService {
       project_id: param.projectId,
     });
 
-    this.appHooksService.emit(AppEvents.SYNC_SOURCE_CREATE,{
-syncSource: sync,
-    })
+    this.appHooksService.emit(AppEvents.SYNC_SOURCE_CREATE, {
+      syncSource: sync,
+    });
 
     return sync;
   }
@@ -46,15 +44,15 @@ syncSource: sync,
 
     const syncSource = await SyncSource.get(param.syncId);
 
-    if(!syncSource) {
-      NcError.badRequest('Sync source not found')
+    if (!syncSource) {
+      NcError.badRequest('Sync source not found');
     }
 
     const res = await SyncSource.delete(param.syncId);
 
-    this.appHooksService.emit(AppEvents.SYNC_SOURCE_DELETE,{
+    this.appHooksService.emit(AppEvents.SYNC_SOURCE_DELETE, {
       syncSource,
-    })
+    });
     return res;
   }
 
@@ -65,16 +63,15 @@ syncSource: sync,
     // T.emit('evt', { evt_type: 'syncSource:updated' });
     const syncSource = await SyncSource.get(param.syncId);
 
-    if(!syncSource) {
-      NcError.badRequest('Sync source not found')
+    if (!syncSource) {
+      NcError.badRequest('Sync source not found');
     }
 
     const res = await SyncSource.update(param.syncId, param.syncPayload);
 
-
-    this.appHooksService.emit(AppEvents.SYNC_SOURCE_UPDATE,{
+    this.appHooksService.emit(AppEvents.SYNC_SOURCE_UPDATE, {
       syncSource,
-    })
+    });
 
     return res;
   }

@@ -1,16 +1,14 @@
-import { Injectable } from '@nestjs/common'
-import { T } from 'nc-help'
-import type { ColumnReqType, LinkToAnotherColumnReqType, LinkToAnotherRecordType, RelationTypes } from 'nocodb-sdk'
+import { Injectable } from '@nestjs/common';
+import { T } from 'nc-help';
 import {
   AppEvents,
   isVirtualCol,
   substituteColumnAliasWithIdInFormula,
   substituteColumnIdWithAliasInFormula,
   UITypes,
-} from 'nocodb-sdk'
-import formulaQueryBuilderv2 from '../db/formulav2/formulaQueryBuilderv2'
-import ProjectMgrv2 from '../db/sql-mgr/v2/ProjectMgrv2'
-import type SqlMgrv2 from '../db/sql-mgr/v2/SqlMgrv2'
+} from 'nocodb-sdk';
+import formulaQueryBuilderv2 from '../db/formulav2/formulaQueryBuilderv2';
+import ProjectMgrv2 from '../db/sql-mgr/v2/ProjectMgrv2';
 import {
   createHmAndBtColumn,
   generateFkName,
@@ -19,19 +17,29 @@ import {
   validatePayload,
   validateRequiredField,
   validateRollupPayload,
-} from '../helpers'
-import { NcError } from '../helpers/catchError'
-import getColumnPropsFromUIDT from '../helpers/getColumnPropsFromUIDT'
-import { getUniqueColumnAliasName, getUniqueColumnName } from '../helpers/getUniqueName'
-import mapDefaultDisplayValue from '../helpers/mapDefaultDisplayValue'
-import validateParams from '../helpers/validateParams'
-import type { MetaService } from '../meta/meta.service'
-import type { LinkToAnotherRecordColumn, Project } from '../models'
-import { Base, Column, FormulaColumn, KanbanView, Model } from '../models'
-import Noco from '../Noco'
-import NcConnectionMgrv2 from '../utils/common/NcConnectionMgrv2'
-import { MetaTable } from '../utils/globals'
-import { AppHooksService } from './app-hooks/app-hooks.service'
+} from '../helpers';
+import { NcError } from '../helpers/catchError';
+import getColumnPropsFromUIDT from '../helpers/getColumnPropsFromUIDT';
+import {
+  getUniqueColumnAliasName,
+  getUniqueColumnName,
+} from '../helpers/getUniqueName';
+import mapDefaultDisplayValue from '../helpers/mapDefaultDisplayValue';
+import validateParams from '../helpers/validateParams';
+import { Base, Column, FormulaColumn, KanbanView, Model } from '../models';
+import Noco from '../Noco';
+import NcConnectionMgrv2 from '../utils/common/NcConnectionMgrv2';
+import { MetaTable } from '../utils/globals';
+import { AppHooksService } from './app-hooks/app-hooks.service';
+import type { LinkToAnotherRecordColumn, Project } from '../models';
+import type { MetaService } from '../meta/meta.service';
+import type SqlMgrv2 from '../db/sql-mgr/v2/SqlMgrv2';
+import type {
+  ColumnReqType,
+  LinkToAnotherColumnReqType,
+  LinkToAnotherRecordType,
+  RelationTypes,
+} from 'nocodb-sdk';
 
 // todo: move
 export enum Altered {
@@ -920,8 +928,13 @@ export class ColumnsService {
         await this.createLTARColumn({ ...param, base, project });
 
         this.appHooksService.emit(AppEvents.RELATION_DELETE, {
-          column: { ...colBody, fk_model_id: param.tableId, project_id: project.id, base_id: base.id },
-        })
+          column: {
+            ...colBody,
+            fk_model_id: param.tableId,
+            project_id: project.id,
+            base_id: base.id,
+          },
+        });
         // T.emit('evt', { evt_type: 'relation:created' });
         break;
 
@@ -1306,8 +1319,8 @@ export class ColumnsService {
           }
         }
         this.appHooksService.emit(AppEvents.RELATION_DELETE, {
-          column
-        })
+          column,
+        });
         // T.emit('evt', { evt_type: 'raltion:deleted' });
         break;
       case UITypes.ForeignKey: {

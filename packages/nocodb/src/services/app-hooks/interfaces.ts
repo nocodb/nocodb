@@ -77,8 +77,8 @@ export interface UserSigninEvent {
   auditDescription?: string;
 }
 
-export interface ApiCreatedEvent{
-  info: any
+export interface ApiCreatedEvent {
+  info: any;
 }
 
 export interface UserPasswordChangeEvent {
@@ -201,7 +201,7 @@ export interface MetaDiffEvent {
   base?: BaseType;
 }
 export interface UIAclEvent {
-  project: ProjectType
+  project: ProjectType;
 }
 
 export interface SyncSourceEvent {

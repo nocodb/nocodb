@@ -1,20 +1,17 @@
 import { Injectable } from '@nestjs/common';
 import { T } from 'nc-help';
-import { AppEvents, OrgUserRoles } from 'nocodb-sdk'
+import { AppEvents, OrgUserRoles } from 'nocodb-sdk';
 import { validatePayload } from '../helpers';
 import { NcError } from '../helpers/catchError';
 import { ApiToken } from '../models';
 import extractRolesObj from '../utils/extractRolesObj';
+import { AppHooksService } from './app-hooks/app-hooks.service';
 import type { User } from '../models';
 import type { ApiTokenReqType } from 'nocodb-sdk';
-import { AppHooksService } from './app-hooks/app-hooks.service'
 
 @Injectable()
 export class ApiTokensService {
-
-
-  constructor(private readonly appHooksService: AppHooksService) {
-  }
+  constructor(private readonly appHooksService: AppHooksService) {}
 
   async apiTokenList(param: { userId: string }) {
     return await ApiToken.list(param.userId);
@@ -25,10 +22,10 @@ export class ApiTokensService {
       param.tokenBody,
     );
 
-    this.appHooksService.emit(AppEvents.API_TOKEN_CREATE,{
+    this.appHooksService.emit(AppEvents.API_TOKEN_CREATE, {
       userId: param.userId,
       tokenBody: param.tokenBody,
-    })
+    });
 
     // T.emit('evt', { evt_type: 'apiToken:created' });
     return await ApiToken.insert({
@@ -46,12 +43,10 @@ export class ApiTokensService {
       NcError.notFound('Token not found');
     }
 
-
-
-    this.appHooksService.emit(AppEvents.API_TOKEN_DELETE,{
+    this.appHooksService.emit(AppEvents.API_TOKEN_DELETE, {
       userId: param.user?.id,
       token: param.token,
-    })
+    });
 
     // T.emit('evt', { evt_type: 'apiToken:deleted' });
 

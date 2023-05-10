@@ -195,8 +195,8 @@ export class ProjectsService {
       // T.emit('evt_api_created', info);
 
       this.appHooksService.emit(AppEvents.APIS_CREATED, {
-        info
-      })
+        info,
+      });
 
       delete base.config;
     }

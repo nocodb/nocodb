@@ -1,3 +1,4 @@
+import { ApiTokenReqType } from 'nocodb-sdk'
 import type {
   ColumnType,
   FilterType, HookType,
@@ -142,8 +143,19 @@ export interface ViewColumnEvent {
 export interface RelationEvent {
   column: ColumnType;
 }
+
 export interface WebhookEvent {
   hook: HookType;
+}
+
+export interface ApiTokenCreateEvent {
+  userId: string;
+  tokenBody: ApiTokenReqType;
+}
+
+export interface ApiTokenDeleteEvent {
+  userId: string;
+  token: string
 }
 
 export type AppEventPayload =

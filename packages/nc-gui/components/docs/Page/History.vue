@@ -1,13 +1,25 @@
 <script lang="ts" setup>
 const emit = defineEmits(['close'])
 
-const { history } = storeToRefs(useDocHistoryStore())
-const { setCurrentHistory } = useDocHistoryStore()
+const { $api } = useNuxtApp()
+const { project } = storeToRefs(useProject())
+const { openedPage } = storeToRefs(useDocStore())
+const { history, currentHistory } = storeToRefs(useDocHistoryStore())
+const { setCurrentHistory, setHistory } = useDocHistoryStore()
 
 const close = () => {
   setCurrentHistory(null)
   emit('close')
 }
+
+onMounted(async () => {
+  const response = await $api.nocoDocs.listPageHistory(project.value!.id!, openedPage.value!.id!, {
+    pageNumber: 0,
+    pageSize: 10,
+  })
+
+  setHistory(response.list!)
+})
 </script>
 
 <template>
@@ -24,9 +36,12 @@ const close = () => {
         v-for="item in history"
         :key="item.id"
         class="flex flex-row py-3 px-3 my-1.5 rounded-md hover:bg-gray-100 cursor-pointer border-1"
+        :class="{
+          'bg-gray-100': currentHistory && currentHistory.id === item.id,
+        }"
         @click="setCurrentHistory(item)"
       >
-        <div>{{ item.updated_at }}</div>
+        <div>{{ item.last_page_updated_time }}</div>
       </div>
     </div>
   </div>

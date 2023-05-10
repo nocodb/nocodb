@@ -3,7 +3,7 @@ import { MulterModule } from '@nestjs/platform-express';
 import multer from 'multer';
 import { DocsPagesHistoryController } from 'src/controllers/docs/history.controller';
 import { DocsPagesController } from 'src/controllers/docs/pages.controller';
-import { DocsPageHistoryService } from 'src/services/docs/docs-page-history.service';
+import { DocsPageHistoryService } from 'src/services/docs/history/docs-page-history.service';
 import { PageDao } from 'src/daos/page.dao';
 import { DocsPagesService } from 'src/services/docs/docs-pages.service';
 import { DocsPagesUpdateService } from 'src/services/docs/docs-page-update.service';

@@ -2,7 +2,7 @@ import { Injectable } from '@nestjs/common';
 import { MetaService } from 'src/meta/meta.service';
 
 import { PageDao } from 'src/daos/page.dao';
-import { DocsPageHistoryService } from './docs-page-history.service';
+import { DocsPageHistoryService } from './history/docs-page-history.service';
 import type { DocsPageType, UserType } from 'nocodb-sdk';
 
 @Injectable()
@@ -109,7 +109,7 @@ export class DocsPagesUpdateService {
 
     const updatedPage = await this.pageDao.get({ id: pageId, projectId });
 
-    this.pagesHistoryService.insert({
+    this.pagesHistoryService.maybeInsert({
       workspaceId,
       oldPage,
       newPage: updatedPage,

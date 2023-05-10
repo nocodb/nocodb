@@ -538,6 +538,7 @@ export interface DocsPageType {
   /** @format date */
   archived_date?: string;
   content: string;
+  content_html?: string;
   /** @format date */
   created_at?: string;
   created_by_id?: string;
@@ -562,6 +563,27 @@ export interface DocsPageType {
   title: string;
   /** @format date */
   updated_at?: string;
+  /** @format date */
+  last_snapshot_at?: string;
+}
+
+/**
+ * Snapshot of a DocsPage
+ */
+export interface DocsPageSnapshotType {
+  /** Unique identifier for the given page. */
+  id?: string;
+  fk_workspace_id?: string;
+  fk_project_id?: string;
+  fk_page_id?: string;
+  last_updated_by_id?: string;
+  /** @format date */
+  created_at?: string;
+  /** @format date */
+  last_page_updated_time?: string;
+  before_page_json?: string;
+  after_page_json?: string;
+  diff?: string;
 }
 
 /**
@@ -3222,6 +3244,46 @@ export class Api<
         method: 'POST',
         body: data,
         type: ContentType.Json,
+        format: 'json',
+        ...params,
+      }),
+
+    /**
+ * @description List page history
+ * 
+ * @tags Noco docs
+ * @name ListPageHistory
+ * @summary List page history
+ * @request GET:/api/v1/docs/project/{projectId}/page/{pageId}/history
+ * @response `200` `{
+  list?: (DocsPageSnapshotType)[],
+  \** Model for Paginated *\
+  pageInfo?: PaginatedType,
+
+}` OK
+ */
+    listPageHistory: (
+      projectId: string,
+      pageId: string,
+      query: {
+        /** Page Number for pagination */
+        pageNumber: number;
+        /** Page Size for pagination */
+        pageSize: number;
+      },
+      params: RequestParams = {}
+    ) =>
+      this.request<
+        {
+          list?: DocsPageSnapshotType[];
+          /** Model for Paginated */
+          pageInfo?: PaginatedType;
+        },
+        any
+      >({
+        path: `/api/v1/docs/project/${projectId}/page/${pageId}/history`,
+        method: 'GET',
+        query: query,
         format: 'json',
         ...params,
       }),

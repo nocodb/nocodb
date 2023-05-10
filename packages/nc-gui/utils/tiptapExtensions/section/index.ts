@@ -85,11 +85,11 @@ export const SectionBlock = Node.create<SecOptions>({
   },
 
   parseHTML() {
-    return [{ tag: 'div[data-type="sec"]' }]
+    return [{ tag: 'section[data-type="sec"]' }]
   },
 
   renderHTML({ HTMLAttributes }) {
-    return ['div', mergeAttributes(HTMLAttributes, { 'data-type': 'sec' }), 0]
+    return ['section', mergeAttributes(HTMLAttributes, { 'data-type': 'sec' }), 0]
   },
 
   onSelectionUpdate() {

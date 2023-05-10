@@ -79,6 +79,7 @@ const editor = useEditor({
     if (currentHistory.value) return
 
     openedPage.value.content = JSON.stringify(removeUploadingPlaceHolderAndEmptyLinkNode(editor.getJSON()))
+    openedPage.value.content_html = editor.getHTML()
   },
   editorProps: {
     handleKeyDown: (view, event) => {
@@ -160,7 +161,7 @@ watchDebounced(
     if (isEditAllowed && openedPage.value?.id && newId === oldId && newContent !== oldContent) {
       updatePage({
         pageId: openedPage.value?.id,
-        page: { content: openedPage.value!.content },
+        page: { content: openedPage.value!.content, content_html: openedPage.value!.content_html },
         disableLocalSync: true,
         projectId: project.id!,
       })
@@ -233,7 +234,7 @@ watch(
       return
     }
 
-    setEditorContent(currentHistory.value.content, false, true)
+    setEditorContent(currentHistory.value.diff, false, true)
   },
   {
     deep: true,

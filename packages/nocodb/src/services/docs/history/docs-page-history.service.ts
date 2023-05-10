@@ -1,0 +1,123 @@
+import { Injectable } from '@nestjs/common';
+
+import { ClickhouseService } from 'src/services/clickhouse/clickhouse.service';
+import { MetaService } from 'src/meta/meta.service';
+
+import { PagedResponseImpl } from 'src/helpers/PagedResponse';
+import { PageDao } from 'src/daos/page.dao';
+
+import dayjs from 'dayjs';
+import utc from 'dayjs/plugin/utc';
+import type { DocsPageType } from 'nocodb-sdk';
+import diff from "./htmlDiff";
+
+dayjs.extend(utc);
+
+// Snap shot window 5 seconds
+const SNAP_SHOT_WINDOW_SEC = 5;
+
+@Injectable()
+export class DocsPageHistoryService {
+  constructor(
+    private clickhouseService: ClickhouseService,
+    private metaService: MetaService,
+    private pageDao: PageDao,
+  ) {}
+
+  async maybeInsert(params: {
+    workspaceId: string;
+    oldPage: DocsPageType;
+    newPage: DocsPageType;
+  }) {
+    const { workspaceId, oldPage, newPage } = params;
+
+    const lastSnapshotDate =
+      newPage.last_snapshot_at && dayjs.utc(newPage.last_snapshot_at);
+    if (
+      lastSnapshotDate &&
+      dayjs().utc().unix() - lastSnapshotDate.unix() < SNAP_SHOT_WINDOW_SEC
+    ) {
+      return;
+    }
+
+    // Define the values to insert
+    const id = this.metaService.genNanoid('');
+    const projectId = newPage.project_id;
+    const pageId = newPage.id;
+    const last_updated_by_id = newPage.last_updated_by_id;
+    const last_page_updated_time = newPage.updated_at;
+    oldPage.content = oldPage.content ? JSON.parse(oldPage.content) : undefined;
+    newPage.content = newPage.content ? JSON.parse(newPage.content) : undefined;
+
+    if(!oldPage.content_html || !newPage.content_html) return;
+
+    // TODO: Hacky way of forcing html diff to detect empty paragraph
+    const _diff = diff(oldPage.content_html, newPage.content_html)
+      .replaceAll('>Empty</ins>', ' class="empty">__nc_empty__</ins>')
+      .replaceAll('>Empty</del>', ' class="empty">__nc_empty__</del>')
+      .replaceAll('<p #custom>Empty</p>', '<p></p>');
+
+    delete oldPage.content_html;
+    delete newPage.content_html;
+
+    const before_page_json = JSON.stringify(oldPage);
+    const after_page_json = JSON.stringify(newPage);
+
+    console.log(_diff);
+
+    // Define the SQL query to insert the row
+    const query = `
+  INSERT INTO page_history (id, fk_workspace_id, fk_project_id, fk_page_id, last_updated_by_id, last_page_updated_time, before_page_json, after_page_json, diff)
+  VALUES ('${id}', '${workspaceId}', '${projectId}', '${pageId}', '${last_updated_by_id}', '${last_page_updated_time}', '${before_page_json}', '${after_page_json}', '${_diff}')
+`;
+
+    await this.clickhouseService.execute(query, true);
+    await this.pageDao.updatePage({
+      pageId,
+      projectId,
+      attributes: {
+        last_snapshot_at: last_page_updated_time,
+      },
+    });
+  }
+
+  async list({
+    projectId,
+    pageId,
+    pageNumber,
+    pageSize,
+  }: {
+    projectId: string;
+    pageId: string;
+    pageNumber?: number | undefined;
+    pageSize?: number | undefined;
+  }) {
+    let query = `
+  SELECT
+    id,
+    fk_workspace_id,
+    fk_project_id,
+    fk_page_id,
+    last_updated_by_id,
+    last_page_updated_time,
+    before_page_json,
+    after_page_json,
+    diff,
+    created_at
+  FROM page_history
+  WHERE fk_project_id = '${projectId}' AND fk_page_id = '${pageId}'
+  ORDER BY last_page_updated_time DESC
+`;
+    if (Number.isInteger(pageNumber) && Number.isInteger(pageSize)) {
+      if (pageNumber) query += ` OFFSET ${pageNumber * pageSize}`;
+      if (pageSize) query += ` LIMIT ${pageSize}`;
+    }
+
+    const result = await this.clickhouseService.execute(query, true);
+
+    return new PagedResponseImpl(result, {
+      limit: pageSize,
+      offset: pageNumber * pageSize,
+    });
+  }
+}

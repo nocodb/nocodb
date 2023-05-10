@@ -10,6 +10,7 @@ import { AppHooksService } from './app-hooks/app-hooks.service';
 import type {
   ColumnEvent,
   FilterEvent,
+  MetaDiffEvent,
   OrgUserInviteEvent,
   PluginEvent,
   ProjectCreateEvent,
@@ -450,8 +451,19 @@ export class AppHooksListenerService implements OnModuleInit, OnModuleDestroy {
       case AppEvents.PROJECT_DELETE:
         T.emit('evt', { evt_type: 'project:deleted' });
         break;
-      case AppEvents.PROJECT_UPDATE
+      case AppEvents.PROJECT_UPDATE:
         T.emit('evt', { evt_type: 'project:update' });
+        break;
+      case AppEvents.META_DIFF_SYNC:
+        {
+          const param = data as MetaDiffEvent;
+
+          if (param.base) {
+            T.emit('evt', { evt_type: 'baseMetaDiff:synced' });
+          } else {
+            T.emit('evt', { evt_type: 'metaDiff:synced' });
+          }
+        }
         break;
     }
   }

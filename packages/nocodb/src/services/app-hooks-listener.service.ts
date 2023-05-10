@@ -326,6 +326,16 @@ export class AppHooksListenerService implements OnModuleInit, OnModuleDestroy {
           T.emit('evt', { evt_type: 'viewColumn:updated' });
         }
         break;
+      case AppEvents.RELATION_CREATE:
+        {
+          T.emit('evt', { evt_type: 'relation:created' });
+        }
+        break;
+      case AppEvents.RELATION_DELETE:
+        {
+          T.emit('evt', { evt_type: 'relation:deleted' });
+        }
+        break;
     }
   }
 

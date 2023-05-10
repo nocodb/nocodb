@@ -139,6 +139,13 @@ export interface ViewColumnEvent {
   viewColumn: any;
 }
 
+export interface RelationEvent {
+  column: ColumnType;
+}
+export interface WebhookEvent {
+  hook: HookType;
+}
+
 export type AppEventPayload =
   | ProjectInviteEvent
   | ProjectCreateEvent

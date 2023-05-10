@@ -1,16 +1,16 @@
-import { Injectable } from '@nestjs/common';
-import { T } from 'nc-help';
+import { Injectable } from '@nestjs/common'
+import { T } from 'nc-help'
+import type { ColumnReqType, LinkToAnotherColumnReqType, LinkToAnotherRecordType, RelationTypes } from 'nocodb-sdk'
 import {
   AppEvents,
-  AuditOperationSubTypes,
-  AuditOperationTypes,
   isVirtualCol,
   substituteColumnAliasWithIdInFormula,
   substituteColumnIdWithAliasInFormula,
   UITypes,
-} from 'nocodb-sdk';
-import formulaQueryBuilderv2 from '../db/formulav2/formulaQueryBuilderv2';
-import ProjectMgrv2 from '../db/sql-mgr/v2/ProjectMgrv2';
+} from 'nocodb-sdk'
+import formulaQueryBuilderv2 from '../db/formulav2/formulaQueryBuilderv2'
+import ProjectMgrv2 from '../db/sql-mgr/v2/ProjectMgrv2'
+import type SqlMgrv2 from '../db/sql-mgr/v2/SqlMgrv2'
 import {
   createHmAndBtColumn,
   generateFkName,
@@ -948,7 +948,11 @@ export class ColumnsService {
 
       case UITypes.LinkToAnotherRecord:
         await this.createLTARColumn({ ...param, base, project });
-        T.emit('evt', { evt_type: 'relation:created' });
+
+        this.appHooksService.emit(AppEvents.RELATION_DELETE, {
+          column: { ...colBody, fk_model_id: param.tableId, project_id: project.id, base_id: base.id },
+        })
+        // T.emit('evt', { evt_type: 'relation:created' });
         break;
 
       case UITypes.QrCode:
@@ -1334,7 +1338,10 @@ export class ColumnsService {
               break;
           }
         }
-        T.emit('evt', { evt_type: 'raltion:deleted' });
+        this.appHooksService.emit(AppEvents.RELATION_DELETE, {
+          column
+        })
+        // T.emit('evt', { evt_type: 'raltion:deleted' });
         break;
       case UITypes.ForeignKey: {
         NcError.notImplemented();

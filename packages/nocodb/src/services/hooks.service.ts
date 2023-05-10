@@ -1,5 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { T } from 'nc-help';
+import { AppEvents } from 'nocodb-sdk'
 import { validatePayload } from '../helpers';
 import { NcError } from '../helpers/catchError';
 import {
@@ -10,9 +11,14 @@ import { invokeWebhook } from '../helpers/webhookHelpers';
 import { Hook, HookLog, Model } from '../models';
 import Noco from '../Noco';
 import type { HookReqType, HookTestReqType, HookType } from 'nocodb-sdk';
+import { AppHooksService } from './app-hooks/app-hooks.service'
 
 @Injectable()
 export class HooksService {
+
+  constructor(private readonly appHooksService: AppHooksService) {
+  }
+
   validateHookPayload(notificationJsonOrObject: string | Record<string, any>) {
     let notification: { type?: string } = {};
     try {
@@ -44,6 +50,10 @@ export class HooksService {
       ...param.hook,
       fk_model_id: param.tableId,
     } as any);
+
+    this.appHooksService.emit(AppEvents.HOOK_CREATE, {
+      hook,
+    })
 
     T.emit('evt', { evt_type: 'webhooks:created' });
 

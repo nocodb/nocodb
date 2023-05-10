@@ -61,6 +61,10 @@ function baseModelSqlTests() {
 
       response.CreatedAt = new Date(response.CreatedAt).toISOString();
       response.UpdatedAt = new Date(response.UpdatedAt).toISOString();
+    } else if (isSqlite(context)) {
+      // append +00:00 to the date string
+      inputData.CreatedAt = `${inputData.CreatedAt}+00:00`;
+      inputData.UpdatedAt = `${inputData.UpdatedAt}+00:00`;
     }
 
     expect(insertedRow).to.include(inputData);

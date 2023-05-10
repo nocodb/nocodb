@@ -7,7 +7,6 @@ import { parseProp } from '#imports'
 export default function convertCellData(
   args: { from: UITypes; to: UITypes; value: any; column: ColumnType; appInfo: AppInfo },
   isMysql = false,
-  isMssql = false,
   isXcdbBase = false,
 ) {
   const { from, to, value } = args

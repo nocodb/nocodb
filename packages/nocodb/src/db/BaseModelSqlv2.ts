@@ -3170,7 +3170,8 @@ class BaseModelSqlv2 {
     data = this.convertAttachmentType(data, childTable);
 
     // update date time fields
-    data = this.convertDateFormat(data, childTable);
+    const isXcdbBase = await this.isXcdbBase();
+    data = this.convertDateFormat(data, isXcdbBase, childTable);
 
     return data;
   }
@@ -3231,10 +3232,14 @@ class BaseModelSqlv2 {
     return d;
   }
 
-  private convertDateFormat(data: Record<string, any>, childTable?: Model) {
+  private convertDateFormat(
+    data: Record<string, any>,
+    isXcdbBase: BoolType,
+    childTable?: Model,
+  ) {
     // Show the date time in UTC format in API response
     // e.g. 2022-01-01 04:30:00+00:00
-    if (data) {
+    if (isXcdbBase && data) {
       const dateTimeColumns = (
         childTable ? childTable.columns : this.model.columns
       ).filter((c) => c.uidt === UITypes.DateTime);

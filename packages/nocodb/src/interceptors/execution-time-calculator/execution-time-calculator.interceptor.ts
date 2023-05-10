@@ -1,6 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { tap } from 'rxjs';
 import Client from 'ioredis';
+import { ConfigService } from '@nestjs/config';
 import type {
   CallHandler,
   ExecutionContext,
@@ -8,26 +9,30 @@ import type {
 } from '@nestjs/common';
 import type { Observable } from 'rxjs';
 import type Redis from 'ioredis';
+import type { AppConfig } from '../../interface/config';
 
 @Injectable()
 export class ExecutionTimeCalculatorInterceptor implements NestInterceptor {
   client: Redis;
 
-  constructor() {
+  constructor(private readonly configService: ConfigService<AppConfig>) {
     this.client = new Client(process.env['NC_THROTTLER_REDIS']);
   }
 
   intercept(context: ExecutionContext, next: CallHandler): Observable<any> {
     const req = context.switchToHttp().getRequest();
-    // const response = context.switchToHttp().getResponse();
+
+    const enabled = this.configService.get('throttler.calc_execution_time', {
+      infer: true,
+    });
+    if (!enabled || (!req.headers['xc-token'] && !req.headers['xc-auth'])) {
+      return;
+    }
+
     const startTime = performance.now();
 
     return next.handle().pipe(
       tap(() => {
-        if( !req.headers['xc-token'] && !req.headers['xc-auth']){
-          return;
-        }
-
         const endTime = performance.now();
         const executionTime = endTime - startTime;
         console.log(`Execution time: ${executionTime} ms`);
@@ -37,7 +42,6 @@ export class ExecutionTimeCalculatorInterceptor implements NestInterceptor {
         }`;
 
         this.updateExecTime(key, Math.round(executionTime));
-
       }),
     );
   }

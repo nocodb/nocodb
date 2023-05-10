@@ -104,6 +104,9 @@ export default class Page {
 
       table.datetime('created_at', { useTz: true });
       table.datetime('updated_at', { useTz: true });
+
+      table.timestamp('last_snapshot_at').nullable();
+      table.text('content_html', 'longtext').defaultTo('');
     });
   }
 }

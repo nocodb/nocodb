@@ -8,8 +8,8 @@ import { PageDao } from 'src/daos/page.dao';
 
 import dayjs from 'dayjs';
 import utc from 'dayjs/plugin/utc';
+import diff from './htmlDiff';
 import type { DocsPageType } from 'nocodb-sdk';
-import diff from "./htmlDiff";
 
 dayjs.extend(utc);
 
@@ -49,7 +49,7 @@ export class DocsPageHistoryService {
     oldPage.content = oldPage.content ? JSON.parse(oldPage.content) : undefined;
     newPage.content = newPage.content ? JSON.parse(newPage.content) : undefined;
 
-    if(!oldPage.content_html || !newPage.content_html) return;
+    if (!oldPage.content_html || !newPage.content_html) return;
 
     // TODO: Hacky way of forcing html diff to detect empty paragraph
     const _diff = diff(oldPage.content_html, newPage.content_html)
@@ -62,8 +62,6 @@ export class DocsPageHistoryService {
 
     const before_page_json = JSON.stringify(oldPage);
     const after_page_json = JSON.stringify(newPage);
-
-    console.log(_diff);
 
     // Define the SQL query to insert the row
     const query = `

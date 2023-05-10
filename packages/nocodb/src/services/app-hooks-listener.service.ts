@@ -1,12 +1,13 @@
 import { Injectable } from '@nestjs/common';
+import { T } from 'nc-help';
 import {
   AppEvents,
   AuditOperationSubTypes,
   AuditOperationTypes,
 } from 'nocodb-sdk';
-import { T } from 'nc-help';
 import { Audit } from '../models';
 import { AppHooksService } from './app-hooks/app-hooks.service';
+import type { OnModuleDestroy, OnModuleInit } from '@nestjs/common';
 import type {
   ColumnEvent,
   FilterEvent,
@@ -26,8 +27,6 @@ import type {
   UserSignupEvent,
   ViewEvent,
 } from './app-hooks/interfaces';
-
-import type { OnModuleDestroy, OnModuleInit } from '@nestjs/common';
 
 @Injectable()
 export class AppHooksListenerService implements OnModuleInit, OnModuleDestroy {
@@ -467,6 +466,13 @@ export class AppHooksListenerService implements OnModuleInit, OnModuleDestroy {
             T.emit('evt', { evt_type: 'metaDiff:synced' });
           }
         }
+        break;
+
+      case AppEvents.ORG_API_TOKEN_DELETE:
+        T.emit('evt', { evt_type: 'org:apiToken:deleted' });
+        break;
+      case AppEvents.ORG_API_TOKEN_CREATE:
+        T.emit('evt', { evt_type: 'org:apiToken:created' });
         break;
     }
   }

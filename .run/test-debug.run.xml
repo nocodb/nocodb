@@ -6,9 +6,7 @@
       <script value="test:debug" />
     </scripts>
     <node-interpreter value="project" />
-    <envs>
-      <env name="E2E_DEV_DB_TYPE" value="mysql" />
-    </envs>
+    <envs />
     <method v="2" />
   </configuration>
 </component>

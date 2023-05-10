@@ -3,7 +3,7 @@ import { IEventEmitter } from '../../modules/event-emitter/event-emitter.interfa
 import type {
   OrgUserInviteEvent,
   ProjectUserResendInviteEvent,
-  ProjectUserUpdateEvent,
+  ProjectUserUpdateEvent, RelationEvent,
   UserPasswordChangeEvent,
   UserPasswordForgotEvent,
   UserPasswordResetEvent, ViewColumnEvent,
@@ -192,6 +192,14 @@ export class AppHooksService {
     data: ColumnEvent,
   ): void;
   emit(
+    event:
+      | AppEvents.WEBHOOK_UPDATE
+      | AppEvents.WEBHOOK_CREATE
+      | AppEvents.WEBHOOK_DELETE
+      | AppEvents.WEBHOOK_TEST,
+    data: WebhookEvent,
+  ): void;
+  emit(
     event: AppEvents.ORG_USER_INVITE, data: OrgUserInviteEvent
   ): void;
   emit(
@@ -199,6 +207,9 @@ export class AppHooksService {
   ): void;
   emit(
     event: AppEvents.VIEW_COLUMN_CREATE | AppEvents.VIEW_COLUMN_UPDATE, data: ViewColumnEvent
+  ): void;
+  emit(
+    event: AppEvents.RELATION_DELETE | AppEvents.RELATION_CREATE, data: RelationEvent
   ): void;
   emit(event, data): void {
     this.eventEmitter.emit(event, data);

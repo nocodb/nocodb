@@ -670,7 +670,7 @@
       "showNullInCells": "Показывать NULL в ячейках",
       "showNullInCellsDesc": "Отображайте тег 'NULL' в ячейках, содержащих значение NULL. Это помогает отличить ячейки, содержащие строку EMPTY.",
       "showNullAndEmptyInFilter": "Показать NULL и EMPTY в фильтре",
-      "showNullAndEmptyInFilterDesc": "Enable 'additional' filters to differentiate fields containing NULL & Empty Strings. Default support for Blank treats both NULL & Empty strings alike.",
+      "showNullAndEmptyInFilterDesc": "Включите \"дополнительные\" фильтры для различения полей, содержащих NULL и пустые строки. По умолчанию поддержка Blank одинаково обрабатывает строки NULL и Empty.",
       "deleteKanbanStackConfirmation": "Удаление этого стека также удалит опцию выбора `{stackToBeDeleted}` из `{groupingField}`. Записи переместятся в стек без категории.",
       "computedFieldEditWarning": "Вычисляемое поле: содержимое доступно только для чтения. Используйте меню редактирования столбцов для изменения конфигурации",
       "computedFieldDeleteWarning": "Вычисляемое поле: содержимое доступно только для чтения. Невозможно очистить содержимое.",

@@ -440,6 +440,25 @@ function getDateTimeInLocalTimeZone(dateString: string) {
   return outputString;
 }
 
+function getDateTimeInUTCTimeZone(dateString: string) {
+  // create a Date object with the input string
+  // assumes local system timezone
+  const date = new Date(dateString);
+
+  // get the timezone offset in minutes and convert to milliseconds
+  // subtract the offset from the provided time in milliseconds for IST
+  const offsetMs = date.getTimezoneOffset() * 60 * 1000;
+
+  // adjust the date by the offset
+  const adjustedDate = new Date(date.getTime() + offsetMs);
+
+  // format the adjusted date as a string in the desired format
+  const outputString = adjustedDate.toISOString().slice(0, 19).replace('T', ' ');
+
+  // output the result
+  return `${outputString}+00:00`;
+}
+
 test.describe('External DB - DateTime column', async () => {
   let dashboard: DashboardPage;
   let context: any;
@@ -625,9 +644,13 @@ test.describe('External DB - DateTime column', async () => {
       expectedDateTimeWithoutTz = [
         '2023-04-27 10:00:00+00:00',
         '2023-04-27 04:30:00+00:00',
-        '2023-04-27 04:30:00+00:00',
+        getDateTimeInUTCTimeZone('2023-04-27 10:00:00+00:00'),
       ];
-      expectedDateTimeWithTz = ['2023-04-27 10:00:00+00:00', '2023-04-27 04:30:00+00:00', '2023-04-27 04:30:00+00:00'];
+      expectedDateTimeWithTz = [
+        '2023-04-27 10:00:00+00:00',
+        '2023-04-27 04:30:00+00:00',
+        getDateTimeInUTCTimeZone('2023-04-27 10:00:00+00:00'),
+      ];
     }
 
     // reset seconds to 00 using string functions in dateTimeWithoutTz

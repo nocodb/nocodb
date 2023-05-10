@@ -1,20 +1,20 @@
 import 'mocha';
-import { BaseModelSqlv2 } from '../../../../src/db/BaseModelSqlv2'
-import NcConnectionMgrv2 from '../../../../src/utils/common/NcConnectionMgrv2'
+import { expect } from 'chai';
+import { BaseModelSqlv2 } from '../../../../src/db/BaseModelSqlv2';
+import NcConnectionMgrv2 from '../../../../src/utils/common/NcConnectionMgrv2';
 import init from '../../init';
 import { createProject } from '../../factory/project';
 import { createTable } from '../../factory/table';
 import Base from '../../../../src/models/Base';
-import Model from '../../../../src/models/Model';
-import Project from '../../../../src/models/Project';
-import View from '../../../../src/models/View';
 import { createRow, generateDefaultRowAttributes } from '../../factory/row';
 import Audit from '../../../../src/models/Audit';
-import { expect } from 'chai';
 import Filter from '../../../../src/models/Filter';
 import { createLtarColumn } from '../../factory/column';
-import LinkToAnotherRecordColumn from '../../../../src/models/LinkToAnotherRecordColumn';
 import { isPg, isSqlite } from '../../init/db';
+import type View from '../../../../src/models/View';
+import type Project from '../../../../src/models/Project';
+import type Model from '../../../../src/models/Model';
+import type LinkToAnotherRecordColumn from '../../../../src/models/LinkToAnotherRecordColumn';
 
 function baseModelSqlTests() {
   let context;
@@ -44,11 +44,11 @@ function baseModelSqlTests() {
     };
     const columns = await table.getColumns();
 
-    let inputData: any = generateDefaultRowAttributes({ columns });
+    const inputData: any = generateDefaultRowAttributes({ columns });
     const response = await baseModelSql.insert(
       generateDefaultRowAttributes({ columns }),
       undefined,
-      request
+      request,
     );
     const insertedRow = (await baseModelSql.list())[0];
 
@@ -106,6 +106,10 @@ function baseModelSqlTests() {
       if (isPg(context)) {
         inputData.CreatedAt = new Date(inputData.CreatedAt).toISOString();
         inputData.UpdatedAt = new Date(inputData.UpdatedAt).toISOString();
+      } else if (isSqlite(context)) {
+        // append +00:00 to the date string
+        inputData.CreatedAt = `${inputData.CreatedAt}+00:00`;
+        inputData.UpdatedAt = `${inputData.UpdatedAt}+00:00`;
       }
       expect(insertedRows[index]).to.include(inputData);
     });
@@ -145,7 +149,7 @@ function baseModelSqlTests() {
     expect(updatedRow).to.include({ Id: rowId, Title: 'test' });
 
     const rowUpdatedAudit = (await Audit.projectAuditList(project.id, {})).find(
-      (audit) => audit.op_sub_type === 'UPDATE'
+      (audit) => audit.op_sub_type === 'UPDATE',
     );
     expect(rowUpdatedAudit).to.include({
       user: 'test@example.com',
@@ -156,7 +160,8 @@ function baseModelSqlTests() {
       row_id: '1',
       op_type: 'DATA',
       op_sub_type: 'UPDATE',
-      description: 'Record with ID 1 has been updated in Table Table1_Title.\nColumn "Title" got changed from "test-0" to "test"',
+      description:
+        'Record with ID 1 has been updated in Table Table1_Title.\nColumn "Title" got changed from "test-0" to "test"',
     });
   });
 
@@ -178,7 +183,7 @@ function baseModelSqlTests() {
 
     await baseModelSql.bulkUpdate(
       insertedRows.map((row) => ({ ...row, Title: `new-${row['Title']}` })),
-      { cookie: request }
+      { cookie: request },
     );
 
     const updatedRows = await baseModelSql.list();
@@ -229,7 +234,7 @@ function baseModelSqlTests() {
         ],
       },
       { Title: 'new-1' },
-      { cookie: request }
+      { cookie: request },
     );
 
     const updatedRows = await baseModelSql.list();
@@ -277,7 +282,7 @@ function baseModelSqlTests() {
 
     console.log('Delete record', await Audit.projectAuditList(project.id, {}));
     const rowDeletedAudit = (await Audit.projectAuditList(project.id, {})).find(
-      (audit) => audit.op_sub_type === 'DELETE'
+      (audit) => audit.op_sub_type === 'DELETE',
     );
     expect(rowDeletedAudit).to.include({
       user: 'test@example.com',
@@ -309,7 +314,7 @@ function baseModelSqlTests() {
       insertedRows
         .filter((row) => row['Id'] < 5)
         .map((row) => ({ id: row['Id'] })),
-      { cookie: request }
+      { cookie: request },
     );
 
     const remainingRows = await baseModelSql.list();
@@ -359,7 +364,7 @@ function baseModelSqlTests() {
           }),
         ],
       },
-      { cookie: request }
+      { cookie: request },
     );
 
     const remainingRows = await baseModelSql.list();
@@ -414,7 +419,7 @@ function baseModelSqlTests() {
         [ltarColumn.title]: [{ Id: childRow['Id'] }],
       },
       undefined,
-      request
+      request,
     );
 
     const childBaseModel = new BaseModelSqlv2({
@@ -470,7 +475,7 @@ function baseModelSqlTests() {
     await baseModelSql.insert(
       generateDefaultRowAttributes({ columns }),
       undefined,
-      request
+      request,
     );
     const insertedRow = await baseModelSql.readByPk(1);
 
@@ -487,7 +492,7 @@ function baseModelSqlTests() {
       view,
     });
     const updatedChildRow = await childBaseModel.readByPk(
-      insertedChildRow['Id']
+      insertedChildRow['Id'],
     );
 
     expect(updatedChildRow[childCol.column_name]).to.equal(insertedRow['Id']);
@@ -538,7 +543,7 @@ function baseModelSqlTests() {
     await baseModelSql.insert(
       generateDefaultRowAttributes({ columns }),
       undefined,
-      request
+      request,
     );
     const insertedRow = await baseModelSql.readByPk(1);
 
@@ -562,7 +567,7 @@ function baseModelSqlTests() {
       view,
     });
     const updatedChildRow = await childBaseModel.readByPk(
-      insertedChildRow['Id']
+      insertedChildRow['Id'],
     );
 
     expect(updatedChildRow[childCol.column_name]).to.be.null;

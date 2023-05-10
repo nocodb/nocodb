@@ -2,13 +2,14 @@ import { Injectable } from '@nestjs/common';
 import { T } from 'nc-help';
 import { AppEvents, ViewTypes } from 'nocodb-sdk';
 import { validatePayload } from '../helpers';
+import { NcError } from '../helpers/catchError';
 import { MapView, View } from '../models';
 import { AppHooksService } from './app-hooks/app-hooks.service';
 import type { MapUpdateReqType, UserType, ViewCreateReqType } from 'nocodb-sdk';
 
 @Injectable()
 export class MapsService {
-  constructor(private appHooksService: AppHooksService) {}
+  constructor(private readonly appHooksService: AppHooksService) {}
 
   async mapViewGet(param: { mapViewId: string }) {
     return await MapView.get(param.mapViewId);
@@ -29,11 +30,11 @@ export class MapsService {
       fk_model_id: param.tableId,
       type: ViewTypes.MAP,
     });
-    T.emit('evt', { evt_type: 'vtable:created', show_as: 'map' });
+    // T.emit('evt', { evt_type: 'vtable:created', show_as: 'map' });
 
     this.appHooksService.emit(AppEvents.VIEW_CREATE, {
-      user: param.user,
       view,
+      showAs: 'map',
     });
 
     return view;
@@ -41,7 +42,21 @@ export class MapsService {
 
   async mapViewUpdate(param: { mapViewId: string; map: MapUpdateReqType }) {
     validatePayload('swagger.json#/components/schemas/MapUpdateReq', param.map);
-    T.emit('evt', { evt_type: 'view:updated', type: 'map' });
-    return await MapView.update(param.mapViewId, param.map);
+
+    const view = await View.get(param.mapViewId);
+
+    if (!view) {
+      NcError.badRequest('View not found');
+    }
+
+    // T.emit('evt', { evt_type: 'view:updated', type: 'map' });
+    const res = await MapView.update(param.mapViewId, param.map);
+
+    this.appHooksService.emit(AppEvents.VIEW_UPDATE, {
+      view,
+      showAs: 'map',
+    });
+
+    return res;
   }
 }

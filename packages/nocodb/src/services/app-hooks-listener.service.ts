@@ -142,7 +142,7 @@ export class AppHooksListenerService implements OnModuleInit, OnModuleDestroy {
 
           T.emit('evt', {
             evt_type: 'vtable:updated',
-            show_as: param.view.type,
+            show_as: param.view.type ?? param.showAs,
           });
         }
         break;
@@ -425,6 +425,12 @@ export class AppHooksListenerService implements OnModuleInit, OnModuleDestroy {
         break;
       case AppEvents.SYNC_SOURCE_UPDATE:
         T.emit('evt', { evt_type: 'syncSource:updated' });
+        break;
+      case AppEvents.VIEW_CREATE:
+        {
+          const param = data as ViewEvent;
+          T.emit('evt', { evt_type: 'vtable:created', show_as: param.showAs });
+        }
         break;
     }
   }

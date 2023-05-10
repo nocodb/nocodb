@@ -1,13 +1,19 @@
 import { Inject, Injectable } from '@nestjs/common';
 import { IEventEmitter } from '../../modules/event-emitter/event-emitter.interface';
 import type {
+  ApiTokenCreateEvent,
+  ApiTokenDeleteEvent,
+  ApiTokenEvent,
   OrgUserInviteEvent,
   ProjectUserResendInviteEvent,
-  ProjectUserUpdateEvent, RelationEvent,
+  ProjectUserUpdateEvent,
+  RelationEvent,
   UserPasswordChangeEvent,
   UserPasswordForgotEvent,
-  UserPasswordResetEvent, ViewColumnEvent,
-} from './interfaces'
+  UserPasswordResetEvent,
+  ViewColumnEvent,
+  WebhookEvent,
+} from './interfaces';
 import type { AppEvents } from 'nocodb-sdk';
 import type {
   ColumnEvent,
@@ -199,17 +205,17 @@ export class AppHooksService {
       | AppEvents.WEBHOOK_TEST,
     data: WebhookEvent,
   ): void;
+  emit(event: AppEvents.API_TOKEN_CREATE, data: ApiTokenCreateEvent): void;
+  emit(event: AppEvents.API_TOKEN_DELETE, data: ApiTokenDeleteEvent): void;
+  emit(event: AppEvents.ORG_USER_INVITE, data: OrgUserInviteEvent): void;
+  emit(event: AppEvents.ORG_USER_RESEND_INVITE, data: OrgUserInviteEvent): void;
   emit(
-    event: AppEvents.ORG_USER_INVITE, data: OrgUserInviteEvent
+    event: AppEvents.VIEW_COLUMN_CREATE | AppEvents.VIEW_COLUMN_UPDATE,
+    data: ViewColumnEvent,
   ): void;
   emit(
-    event: AppEvents.ORG_USER_RESEND_INVITE, data: OrgUserInviteEvent
-  ): void;
-  emit(
-    event: AppEvents.VIEW_COLUMN_CREATE | AppEvents.VIEW_COLUMN_UPDATE, data: ViewColumnEvent
-  ): void;
-  emit(
-    event: AppEvents.RELATION_DELETE | AppEvents.RELATION_CREATE, data: RelationEvent
+    event: AppEvents.RELATION_DELETE | AppEvents.RELATION_CREATE,
+    data: RelationEvent,
   ): void;
   emit(event, data): void {
     this.eventEmitter.emit(event, data);

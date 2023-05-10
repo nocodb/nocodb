@@ -7,6 +7,9 @@ import type { PluginTestReqType, PluginType } from 'nocodb-sdk';
 
 @Injectable()
 export class PluginsService {
+
+
+
   async pluginList() {
     return await Plugin.list();
   }

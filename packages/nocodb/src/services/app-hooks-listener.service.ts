@@ -336,6 +336,16 @@ export class AppHooksListenerService implements OnModuleInit, OnModuleDestroy {
           T.emit('evt', { evt_type: 'relation:deleted' });
         }
         break;
+      case AppEvents.API_TOKEN_CREATE:
+        {
+          T.emit('evt', { evt_type: 'apiToken:created' });
+        }
+        break;
+      case AppEvents.API_TOKEN_DELETE:
+        {
+          T.emit('evt', { evt_type: 'apiToken:deleted' });
+        }
+        break;
     }
   }
 

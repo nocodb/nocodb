@@ -5,7 +5,7 @@ import {
   AuditOperationSubTypes,
   AuditOperationTypes,
 } from 'nocodb-sdk';
-import { Audit } from '../models';
+import { Audit, User } from '../models';
 import { AppHooksService } from './app-hooks/app-hooks.service';
 import type { OnModuleDestroy, OnModuleInit } from '@nestjs/common';
 import type {
@@ -49,6 +49,10 @@ export class AppHooksListenerService implements OnModuleInit, OnModuleDestroy {
             description: `invited ${param.user.email} to ${param.project.id} project `,
             ip: param.ip,
           });
+
+          const count = await User.count();
+
+          T.emit('evt', { evt_type: 'project:invite', count });
         }
         break;
       case AppEvents.PROJECT_USER_UPDATE:

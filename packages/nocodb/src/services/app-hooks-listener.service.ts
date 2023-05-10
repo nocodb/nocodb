@@ -405,6 +405,15 @@ export class AppHooksListenerService implements OnModuleInit, OnModuleDestroy {
           T.emit('evt', { evt_type: 'image:uploaded', type: data?.type });
         }
         break;
+      case AppEvents.WEBHOOK_CREATE:
+        T.emit('evt', { evt_type: 'webhooks:created' });
+        break;
+      case AppEvents.WEBHOOK_DELETE:
+        T.emit('evt', { evt_type: 'webhooks:deleted' });
+        break;
+      case AppEvents.WEBHOOK_UPDATE:
+        T.emit('evt', { evt_type: 'webhooks:updated' });
+        break;
     }
   }
 

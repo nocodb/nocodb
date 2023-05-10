@@ -50,6 +50,7 @@ export class ApiTokensService {
 
     this.appHooksService.emit(AppEvents.API_TOKEN_DELETE,{
       userId: param.user?.id,
+      token: param.token,
     })
 
     // T.emit('evt', { evt_type: 'apiToken:deleted' });

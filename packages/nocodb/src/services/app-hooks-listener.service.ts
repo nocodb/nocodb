@@ -9,6 +9,7 @@ import { Audit } from '../models';
 import { AppHooksService } from './app-hooks/app-hooks.service';
 import type { OnModuleDestroy, OnModuleInit } from '@nestjs/common';
 import type {
+  ApiCreatedEvent,
   ColumnEvent,
   FilterEvent,
   MetaDiffEvent,
@@ -26,7 +27,7 @@ import type {
   UserSigninEvent,
   UserSignupEvent,
   ViewEvent,
-} from './app-hooks/interfaces';
+} from './app-hooks/interfaces'
 
 @Injectable()
 export class AppHooksListenerService implements OnModuleInit, OnModuleDestroy {
@@ -473,6 +474,12 @@ export class AppHooksListenerService implements OnModuleInit, OnModuleDestroy {
         break;
       case AppEvents.ORG_API_TOKEN_CREATE:
         T.emit('evt', { evt_type: 'org:apiToken:created' });
+        break;
+        case AppEvents.APIS_CREATED: {
+          const param = data as ApiCreatedEvent;
+          T.emit('evt_api_created',param. info);
+
+        }
         break;
     }
   }

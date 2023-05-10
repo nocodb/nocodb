@@ -81,7 +81,10 @@ export class BasesService {
 
     const info = await populateMeta(base, project);
 
-    T.emit('evt_api_created', info);
+    // T.emit('evt_api_created', info);
+    this.appHooksService.emit(AppEvents.APIS_CREATED, {
+      info
+    })
 
     delete base.config;
 

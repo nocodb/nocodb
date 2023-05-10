@@ -77,6 +77,10 @@ export interface UserSigninEvent {
   auditDescription?: string;
 }
 
+export interface ApiCreatedEvent{
+  info: any
+}
+
 export interface UserPasswordChangeEvent {
   user: UserType;
   ip?: string;

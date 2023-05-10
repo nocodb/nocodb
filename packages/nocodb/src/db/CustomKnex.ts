@@ -6,6 +6,9 @@ import Filter from '../models/Filter';
 import type { FilterType } from 'nocodb-sdk';
 import type { BaseModelSql } from './BaseModelSql';
 
+// For the code, check out
+// https://raw.githubusercontent.com/brianc/node-pg-types/master/lib/builtins.js
+
 // override parsing date column to Date()
 types.setTypeParser(1082, (val) => val);
 // override timestamp

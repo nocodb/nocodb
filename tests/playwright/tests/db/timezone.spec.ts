@@ -460,8 +460,14 @@ test.describe('External DB - DateTime column', async () => {
       DatetimeWithTz: ['2023-04-27 10:00', getDateTimeInLocalTimeZone('2023-04-27 04:30:00+00:00')],
     },
     mysql: {
-      DatetimeWithoutTz: ['2023-04-27 10:00', getDateTimeInLocalTimeZone('2023-04-27 04:30:00+00:00')],
-      DatetimeWithTz: ['2023-04-27 10:00', getDateTimeInLocalTimeZone('2023-04-27 04:30:00+00:00')],
+      DatetimeWithoutTz: [
+        getDateTimeInLocalTimeZone('2023-04-27 10:00:00+00:00'),
+        getDateTimeInLocalTimeZone('2023-04-27 04:30:00+00:00'),
+      ],
+      DatetimeWithTz: [
+        getDateTimeInLocalTimeZone('2023-04-27 10:00:00+00:00'),
+        getDateTimeInLocalTimeZone('2023-04-27 04:30:00+00:00'),
+      ],
     },
   };
 
@@ -632,8 +638,8 @@ test.describe('External DB - DateTime column', async () => {
       dateTimeString => dateTimeString.substring(0, 17) + '00' + dateTimeString.substring(19)
     );
 
-    // console.log('dateTimeWithoutTz', dateTimeWithoutTz);
-    // console.log('dateTimeWithTz', dateTimeWithTz);
+    console.log('dateTimeWithoutTz', dateTimeWithoutTz);
+    console.log('dateTimeWithTz', dateTimeWithTz);
 
     expect(dateTimeWithoutTz).toEqual(expectedDateTimeWithoutTz);
     expect(dateTimeWithTz).toEqual(expectedDateTimeWithTz);

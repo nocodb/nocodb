@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { T } from 'nc-help';
-import { AppEvents } from 'nocodb-sdk'
+import { AppEvents } from 'nocodb-sdk';
 import { validatePayload } from '../helpers';
 import { NcError } from '../helpers/catchError';
 import {
@@ -10,14 +10,12 @@ import {
 import { invokeWebhook } from '../helpers/webhookHelpers';
 import { Hook, HookLog, Model } from '../models';
 import Noco from '../Noco';
+import { AppHooksService } from './app-hooks/app-hooks.service';
 import type { HookReqType, HookTestReqType, HookType } from 'nocodb-sdk';
-import { AppHooksService } from './app-hooks/app-hooks.service'
 
 @Injectable()
 export class HooksService {
-
-  constructor(private readonly appHooksService: AppHooksService) {
-  }
+  constructor(private readonly appHooksService: AppHooksService) {}
 
   validateHookPayload(notificationJsonOrObject: string | Record<string, any>) {
     let notification: { type?: string } = {};
@@ -53,7 +51,7 @@ export class HooksService {
 
     this.appHooksService.emit(AppEvents.WEBHOOK_CREATE, {
       hook,
-    })
+    });
 
     // T.emit('evt', { evt_type: 'webhooks:created' });
 
@@ -63,7 +61,7 @@ export class HooksService {
   async hookDelete(param: { hookId: string }) {
     const hook = await Hook.get(param.hookId);
 
-    if(!hook) {
+    if (!hook) {
       NcError.badRequest('Hook not found');
     }
 
@@ -71,7 +69,7 @@ export class HooksService {
     // T.emit('evt', { evt_type: 'webhooks:deleted' });
     this.appHooksService.emit(AppEvents.WEBHOOK_DELETE, {
       hook,
-    })
+    });
     return true;
   }
 
@@ -80,7 +78,7 @@ export class HooksService {
 
     const hook = await Hook.get(param.hookId);
 
-    if(!hook) {
+    if (!hook) {
       NcError.badRequest('Hook not found');
     }
 
@@ -94,8 +92,8 @@ export class HooksService {
       hook: {
         ...hook,
         ...param.hook,
-      }
-    })
+      },
+    });
 
     return res;
   }
@@ -128,10 +126,10 @@ export class HooksService {
       );
     } catch (e) {
       throw e;
-    }finally {
+    } finally {
       this.appHooksService.emit(AppEvents.WEBHOOK_TEST, {
         hook,
-      })
+      });
 
       // T.emit('evt', { evt_type: 'webhooks:tested' });
     }

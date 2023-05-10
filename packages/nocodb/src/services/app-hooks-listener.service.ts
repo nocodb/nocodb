@@ -27,7 +27,7 @@ import type {
   UserSigninEvent,
   UserSignupEvent,
   ViewEvent,
-} from './app-hooks/interfaces'
+} from './app-hooks/interfaces';
 
 @Injectable()
 export class AppHooksListenerService implements OnModuleInit, OnModuleDestroy {
@@ -475,10 +475,10 @@ export class AppHooksListenerService implements OnModuleInit, OnModuleDestroy {
       case AppEvents.ORG_API_TOKEN_CREATE:
         T.emit('evt', { evt_type: 'org:apiToken:created' });
         break;
-        case AppEvents.APIS_CREATED: {
+      case AppEvents.APIS_CREATED:
+        {
           const param = data as ApiCreatedEvent;
-          T.emit('evt_api_created',param. info);
-
+          T.emit('evt_api_created', param.info);
         }
         break;
     }

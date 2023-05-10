@@ -1,15 +1,13 @@
 import { Injectable } from '@nestjs/common';
 import { T } from 'nc-help';
-import { AppEvents } from 'nocodb-sdk'
+import { AppEvents } from 'nocodb-sdk';
 import { validatePayload } from '../helpers';
 import { FormViewColumn } from '../models';
-import { AppHooksService } from './app-hooks/app-hooks.service'
+import { AppHooksService } from './app-hooks/app-hooks.service';
 
 @Injectable()
 export class FormColumnsService {
-
-  constructor(private readonly appHooksService: AppHooksService) {
-  }
+  constructor(private readonly appHooksService: AppHooksService) {}
 
   async columnUpdate(param: {
     formViewColumnId: string;
@@ -22,15 +20,13 @@ export class FormColumnsService {
     );
 
     // T.emit('evt', { evt_type: 'formViewColumn:updated' });
-   const res = await FormViewColumn.update(
+    const res = await FormViewColumn.update(
       param.formViewColumnId,
       param.formViewColumn,
     );
 
-   this.appHooksService.emit(AppEvents.FORM_COLUMN_UPDATE,{
+    this.appHooksService.emit(AppEvents.FORM_COLUMN_UPDATE, {});
 
-   })
-
-   return res;
+    return res;
   }
 }

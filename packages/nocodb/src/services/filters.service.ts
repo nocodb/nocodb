@@ -3,7 +3,7 @@ import { T } from 'nc-help';
 import { AppEvents } from 'nocodb-sdk';
 import { validatePayload } from '../helpers';
 import { NcError } from '../helpers/catchError';
-import { Filter, Hook, View } from '../models'
+import { Filter, Hook, View } from '../models';
 import { AppHooksService } from './app-hooks/app-hooks.service';
 import { NcError } from '../helpers/catchError';
 import { AppHooksService } from './app-hooks/app-hooks.service';
@@ -74,7 +74,7 @@ export class FiltersService {
 
     const view = await View.get(param.viewId);
 
-    if(!view) {
+    if (!view) {
       NcError.badRequest('View not found');
     }
 
@@ -87,7 +87,7 @@ export class FiltersService {
 
     this.appHooksService.emit(AppEvents.FILTER_CREATE, {
       filter,
-      view
+      view,
     });
 
     this.appHooksService.emit(AppEvents.FILTER_CREATE, {

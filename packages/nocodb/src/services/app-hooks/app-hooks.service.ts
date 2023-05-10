@@ -5,20 +5,25 @@ import type {
   ApiTokenCreateEvent,
   ApiTokenDeleteEvent,
   AttachmentEvent,
-  BaseEvent, FormColumnEvent, GridColumnEvent, MetaDiffEvent,
+  BaseEvent,
+  FormColumnEvent,
+  GridColumnEvent,
+  MetaDiffEvent,
   OrgUserInviteEvent,
   PluginEvent,
   PluginTestEvent,
   ProjectUserResendInviteEvent,
   ProjectUserUpdateEvent,
   RelationEvent,
-  SharedBaseEvent, SyncSourceEvent, UIAclEvent,
+  SharedBaseEvent,
+  SyncSourceEvent,
+  UIAclEvent,
   UserPasswordChangeEvent,
   UserPasswordForgotEvent,
   UserPasswordResetEvent,
   ViewColumnEvent,
   WebhookEvent,
-} from './interfaces'
+} from './interfaces';
 import type { AppEvents } from 'nocodb-sdk';
 import type {
   ColumnEvent,

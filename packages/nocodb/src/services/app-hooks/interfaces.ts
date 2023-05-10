@@ -105,8 +105,9 @@ export interface TableEvent {
 
 export interface ViewEvent {
   view: ViewType;
-  user: UserType;
+  user?: UserType;
   ip?: string;
+  showAs?: string;
 }
 
 export interface FilterEvent {

@@ -83,7 +83,7 @@ export class WebhookFormPage extends BasePage {
     }
 
     if (save) {
-      await this.save();
+      await this.save(true);
       await this.close();
     }
   }
@@ -91,18 +91,27 @@ export class WebhookFormPage extends BasePage {
   async deleteCondition(p: { save: boolean }) {
     await this.get().locator(`.nc-filter-item-remove-btn`).click();
     if (p.save) {
-      await this.save();
+      await this.save(true);
       await this.close();
     }
   }
 
-  async save() {
+  async save(condition = false) {
     const saveAction = () => this.saveButton.click();
     await this.waitForResponse({
       uiAction: saveAction,
       requestUrlPathToMatch: '/hooks',
       httpMethodsToMatch: ['POST', 'PATCH'],
     });
+
+    if (condition) {
+      await this.waitForResponse({
+        uiAction: saveAction,
+        requestUrlPathToMatch: '/filters',
+        httpMethodsToMatch: ['POST', 'PATCH', 'DELETE'],
+      });
+    }
+
     await this.verifyToast({ message: 'Webhook details updated successfully' });
   }
 

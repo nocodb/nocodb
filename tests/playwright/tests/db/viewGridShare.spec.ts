@@ -32,6 +32,8 @@ test.describe('Shared view', () => {
 
     // hide column
     await dashboard.grid.toolbar.fields.toggle({ title: 'Address2' });
+    await dashboard.grid.toolbar.fields.toggle({ title: 'Store List' });
+
     // sort
     await dashboard.grid.toolbar.sort.add({
       title: 'District',
@@ -73,6 +75,7 @@ test.describe('Shared view', () => {
       { title: 'LastUpdate', isVisible: true },
       { title: 'Customer List', isVisible: true },
       { title: 'Staff List', isVisible: true },
+      { title: 'Store List', isVisible: false },
       { title: 'City', isVisible: true },
     ];
     for (const column of expectedColumns) {
@@ -80,6 +83,7 @@ test.describe('Shared view', () => {
     }
 
     const expectedRecordsByDb = isSqlite(context) || isPg(context) ? sqliteExpectedRecords : expectedRecords;
+    await new Promise(resolve => setTimeout(resolve, 1000));
     // verify order of records (original sort & filter)
     for (const record of expectedRecordsByDb) {
       await sharedPage.grid.cell.verify(record);

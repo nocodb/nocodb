@@ -36,3 +36,5 @@ export * as syncService from './sync';
 export * from './public';
 export * as orgTokenService from './orgToken.svc';
 export * as orgTokenServiceEE from './ee/orgToken.svc';
+export * as exportService from './exportImport/export.svc';
+export * as importService from './exportImport/import.svc';

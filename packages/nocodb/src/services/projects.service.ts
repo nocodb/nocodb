@@ -58,7 +58,7 @@ export class ProjectsService {
 
     const data: Partial<Project> = extractPropsAndSanitize(
       param?.project as Project,
-      ['title', 'meta', 'color'],
+      ['title', 'meta', 'color', 'status'],
     );
 
     if (

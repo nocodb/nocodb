@@ -2463,18 +2463,18 @@ class MysqlClient extends KnexClient {
       query += this.genQuery(
         `
     CHANGE
-    COLUMN ?? ?? ${n.dt}`,
+    COLUMN ?? ?? ${this.sanitiseDataType(n.dt)}`,
         [o.cn, n.cn],
       );
     } else if (change === 1) {
       query += this.genQuery(
         `
     ADD
-    COLUMN ?? ${n.dt}`,
+    COLUMN ?? ${this.sanitiseDataType(n.dt)}`,
         [n.cn],
       );
     } else {
-      query += this.genQuery(` ?? ${n.dt}`, [n.cn]);
+      query += this.genQuery(` ?? ${this.sanitiseDataType(n.dt)}`, [n.cn]);
     }
     if (!n.dt.endsWith('text')) {
       query += n.dtxp && n.dtxp !== ' ' ? `(${n.dtxp}` : '';
@@ -2484,7 +2484,7 @@ class MysqlClient extends KnexClient {
     query += n.un ? ' UNSIGNED' : '';
     query += n.rqd ? ' NOT NULL' : ' NULL';
     query += n.ai ? ' auto_increment' : '';
-    const defaultValue = getDefaultValue(n);
+    const defaultValue = this.sanitiseDefaultValue(n.cdf);
     query += defaultValue
       ? `
     DEFAULT ${defaultValue}`
@@ -2573,56 +2573,6 @@ class MysqlClient extends KnexClient {
       log.api(`${func} :result: ${result}`);
     }
     return result;
-  }
-}
-
-function getDefaultValue(n) {
-  if (n.cdf === undefined || n.cdf === null) return n.cdf;
-  switch (n.dt) {
-    case 'boolean':
-    case 'bool':
-    case 'tinyint':
-    case 'int':
-    case 'samllint':
-    case 'bigint':
-    case 'integer':
-    case 'smallint':
-    case 'mediumint':
-    case 'int2':
-    case 'int4':
-    case 'int8':
-    case 'long':
-    case 'serial':
-    case 'bigserial':
-    case 'smallserial':
-    case 'number':
-    case 'float':
-    case 'double':
-    case 'decimal':
-    case 'numeric':
-    case 'real':
-    case 'double precision':
-    case 'money':
-    case 'smallmoney':
-    case 'dec':
-      return n.cdf;
-      break;
-
-    case 'datetime':
-    case 'timestamp':
-    case 'date':
-    case 'time':
-      if (
-        n.cdf.indexOf('CURRENT_TIMESTAMP') > -1 ||
-        /\(([\d\w'", ]*)\)$/.test(n.cdf)
-      ) {
-        return n.cdf;
-      }
-      return JSON.stringify(n.cdf);
-      break;
-    default:
-      return JSON.stringify(n.cdf);
-      break;
   }
 }
 

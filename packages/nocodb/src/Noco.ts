@@ -3,12 +3,14 @@ import { NestFactory } from '@nestjs/core';
 import clear from 'clear';
 import * as express from 'express';
 import NcToolGui from 'nc-lib-gui';
+import { IoAdapter } from '@nestjs/platform-socket.io';
 import { AppModule } from './app.module';
 
 import { NC_LICENSE_KEY } from './constants';
 import Store from './models/Store';
 import type { Express } from 'express';
 import type * as http from 'http';
+import { IEventEmitter } from './modules/event-emitter/event-emitter.interface'
 
 export default class Noco {
   private static _this: Noco;
@@ -30,6 +32,7 @@ export default class Noco {
   }
 
   public static config: any;
+  public static eventEmitter: IEventEmitter;
   public readonly router: express.Router;
   public readonly projectRouter: express.Router;
   public static _ncMeta: any;
@@ -96,6 +99,9 @@ export default class Noco {
     this._server = server;
 
     const nestApp = await NestFactory.create(AppModule);
+
+    nestApp.useWebSocketAdapter(new IoAdapter(httpServer));
+
     nestApp.use(
       express.json({ limit: process.env.NC_REQUEST_BODY_SIZE || '50mb' }),
     );

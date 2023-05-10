@@ -2066,13 +2066,18 @@ class BaseModelSqlv2 {
     {
       chunkSize: _chunkSize = 100,
       cookie,
+      foreign_key_checks = true,
+      raw = false,
     }: {
       chunkSize?: number;
       cookie?: any;
+      foreign_key_checks?: boolean;
+      raw?: boolean;
     } = {}
   ) {
     try {
-      const insertDatas = await Promise.all(
+      // TODO: ag column handling for raw bulk insert
+      const insertDatas = raw ? datas : await Promise.all(
         datas.map(async (d) => {
           await populatePk(this.model, d);
           return this.model.mapAliasToColumn(d);
@@ -2081,8 +2086,10 @@ class BaseModelSqlv2 {
 
       // await this.beforeInsertb(insertDatas, null);
 
-      for (const data of datas) {
-        await this.validate(data);
+      if (!raw) {
+        for (const data of datas) {
+          await this.validate(data);
+        } 
       }
 
       // fallbacks to `10` if database client is sqlite
@@ -2090,18 +2097,38 @@ class BaseModelSqlv2 {
       // refer : https://www.sqlite.org/limits.html
       const chunkSize = this.isSqlite ? 10 : _chunkSize;
 
+      const trx = await this.dbDriver.transaction();
+
+      if (!foreign_key_checks) {
+        if (this.isPg) {
+          await trx.raw('set session_replication_role to replica;');
+        } else if (this.isMySQL) {
+          await trx.raw('SET foreign_key_checks = 0;');
+        }
+      }
+
       const response =
         this.isPg || this.isMssql
-          ? await this.dbDriver
+          ? await trx
               .batchInsert(this.tnPath, insertDatas, chunkSize)
               .returning(this.model.primaryKey?.column_name)
-          : await this.dbDriver.batchInsert(
+          : await trx.batchInsert(
               this.tnPath,
               insertDatas,
               chunkSize
             );
 
-      await this.afterBulkInsert(insertDatas, this.dbDriver, cookie);
+      if (!foreign_key_checks) {
+        if (this.isPg) {
+          await trx.raw('set session_replication_role to origin;');
+        } else if (this.isMySQL) {
+          await trx.raw('SET foreign_key_checks = 1;');
+        }
+      }
+
+      await trx.commit();
+
+      if (!raw) await this.afterBulkInsert(insertDatas, this.dbDriver, cookie);
 
       return response;
     } catch (e) {
@@ -2719,7 +2746,7 @@ class BaseModelSqlv2 {
     await this.afterInsert(response, this.dbDriver, cookie);
     await this.afterAddChild(rowId, childId, cookie);
   }
-
+  
   public async afterAddChild(rowId, childId, req): Promise<void> {
     await Audit.insert({
       fk_model_id: this.model.id,

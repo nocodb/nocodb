@@ -79,7 +79,7 @@ test.describe('Column menu operations', () => {
     await dashboard.grid.column.create({
       title: 'InsertAfterColumn1',
       type: 'SingleLineText',
-      insertAfterColumnTitle: 'Store List',
+      insertAfterColumnTitle: 'Actor List',
     });
 
     await dashboard.closeTab({ title: 'Film' });
@@ -98,7 +98,7 @@ test.describe('Column menu operations', () => {
     await dashboard.grid.column.create({
       title: 'InsertBeforeColumn1',
       type: 'SingleLineText',
-      insertBeforeColumnTitle: 'Store List',
+      insertBeforeColumnTitle: 'Actor List',
     });
 
     await dashboard.closeTab({ title: 'Film' });
@@ -113,7 +113,7 @@ test.describe('Column menu operations', () => {
     });
 
     await dashboard.grid.column.hideColumn({
-      title: 'Store List',
+      title: 'Actor List',
     });
 
     await dashboard.closeTab({ title: 'Film' });

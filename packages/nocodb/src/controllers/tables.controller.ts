@@ -99,7 +99,7 @@ export class TablesController {
     await this.tablesService.tableUpdate({
       tableId: tableId,
       table: body,
-      projectId: req.user,
+      projectId: req.ncProjectId,
     });
     return { msg: 'The table has been updated successfully' };
   }

@@ -80,10 +80,18 @@ export default class Model implements TableType {
     return this.columns?.filter((c) => c.pk);
   }
 
+  // If there is no column marked as display value,
+  // we are getting the immediate next column to pk as display value
+  // or the first column(if pk is the last column).
   public get displayValue(): Column {
     if (!this.columns) return null;
     const pCol = this.columns?.find((c) => c.pv);
     if (pCol) return pCol;
+    if (this.mm) {
+      // by default, there is no default value in m2m table
+      // take the first column instead
+      return this.columns[0];
+    }
     const pkIndex = this.columns.indexOf(this.primaryKey);
     if (pkIndex < this.columns.length - 1) return this.columns[pkIndex + 1];
     return this.columns[0];

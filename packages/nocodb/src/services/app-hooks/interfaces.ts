@@ -1,14 +1,20 @@
-import { ApiTokenReqType, PluginTestReqType, PluginType } from 'nocodb-sdk'
+import type {
+  ApiTokenReqType,
+  BaseType,
+  PluginTestReqType,
+  PluginType,
+} from 'nocodb-sdk';
 import type {
   ColumnType,
-  FilterType, HookType,
+  FilterType,
+  HookType,
   ProjectType,
   ProjectUserReqType,
   SortType,
   TableType,
   UserType,
   ViewType,
-} from 'nocodb-sdk'
+} from 'nocodb-sdk';
 
 export interface ProjectInviteEvent {
   project: ProjectType;
@@ -155,19 +161,22 @@ export interface ApiTokenCreateEvent {
 
 export interface ApiTokenDeleteEvent {
   userId: string;
-  token: string
+  token: string;
 }
 
 export interface PluginTestEvent {
-testBody: PluginTestReqType
+  testBody: PluginTestReqType;
 }
 
 export interface PluginEvent {
-  plugin: PluginType
+  plugin: PluginType;
 }
 export interface SharedBaseEvent {
-  link?: string
-  project?: ProjectType
+  link?: string;
+  project?: ProjectType;
+}
+export interface BaseEvent {
+  base: BaseType;
 }
 
 export type AppEventPayload =

@@ -230,6 +230,10 @@ export class AppHooksService {
     event: AppEvents.SHARED_BASE_GENERATE_LINK | AppEvents.SHARED_BASE_DELETE_LINK,
     data: SharedBaseEvent,
   ): void;
+  emit(
+    event: AppEvents.BASE_UPDATE | AppEvents.BASE_DELETE | AppEvents.BASE_CREATE
+    data: BaseEvent,
+  ): void;
   emit(event, data): void {
     this.eventEmitter.emit(event, data)
     this.eventEmitter.emit(ALL_EVENTS, { event, data: data })

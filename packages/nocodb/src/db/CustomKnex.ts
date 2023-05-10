@@ -15,6 +15,10 @@ types.setTypeParser(1082, (val) => val);
 types.setTypeParser(1114, (val) => {
   return dayjs(val).format('YYYY-MM-DD HH:mm:ss');
 });
+// override timestampz
+types.setTypeParser(1184, (val) => {
+  return dayjs(val).format('YYYY-MM-DD HH:mm:ssZ');
+});
 
 const opMappingGen = {
   eq: '=',

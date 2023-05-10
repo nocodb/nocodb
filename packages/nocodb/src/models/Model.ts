@@ -467,13 +467,11 @@ export default class Model implements TableType {
               } else {
                 // from API
                 // e.g. 2023-05-10 18:45:30+08:00 -> 2023-05-10 18:45:30
-                console.log('before1', val);
                 val = dayjs
                   .utc(val)
                   .local()
                   .utcOffset(d.getTimezoneOffset(), true)
                   .format('YYYY-MM-DD HH:mm:ss');
-                console.log('after1', val);
               }
             } else if (isSqlite) {
               // e.g. 2023-05-10T10:38:50.000Z -> 2023-05-10 10:38:50

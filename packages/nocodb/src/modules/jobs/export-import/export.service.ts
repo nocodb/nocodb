@@ -293,7 +293,7 @@ export class ExportService {
     return serializedModels;
   }
 
-  async streamModelData(param: {
+  async streamModelDataAsCsv(param: {
     dataStream: Readable;
     linkStream: Readable;
     projectId: string;
@@ -679,7 +679,7 @@ export class ExportService {
           dataStream,
         );
 
-        this.streamModelData({
+        this.streamModelDataAsCsv({
           dataStream,
           linkStream,
           projectId: project.id,

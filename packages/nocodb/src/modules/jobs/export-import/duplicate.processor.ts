@@ -247,28 +247,7 @@ export class DuplicateProcessor {
       externalModels,
     } = param;
 
-    const handledLinks = [];
-    const lChunks: Record<string, any[]> = {}; // fk_mm_model_id: { rowId, childId }[]
-
-    const insertChunks = async () => {
-      for (const [k, v] of Object.entries(lChunks)) {
-        try {
-          if (v.length === 0) continue;
-          await this.bulkDataService.bulkDataInsert({
-            projectName: destProject.id,
-            tableName: k,
-            body: v,
-            cookie: null,
-            chunkSize: 1000,
-            foreign_key_checks: false,
-            raw: true,
-          });
-          lChunks[k] = [];
-        } catch (e) {
-          console.log(e);
-        }
-      }
-    };
+    let handledLinks = [];
 
     for (const sourceModel of sourceModels) {
       const dataStream = new Readable({
@@ -279,7 +258,7 @@ export class DuplicateProcessor {
         read() {},
       });
 
-      this.exportService.streamModelData({
+      this.exportService.streamModelDataAsCsv({
         dataStream,
         linkStream,
         projectId: sourceProject.id,
@@ -287,178 +266,24 @@ export class DuplicateProcessor {
         handledMmList: handledLinks,
       });
 
-      const headers: string[] = [];
-      let chunk = [];
-
       const model = await Model.get(findWithIdentifier(idMap, sourceModel.id));
 
-      await new Promise((resolve) => {
-        papaparse.parse(dataStream, {
-          newline: '\r\n',
-          step: async (results, parser) => {
-            if (!headers.length) {
-              parser.pause();
-              for (const header of results.data) {
-                const id = idMap.get(header);
-                if (id) {
-                  const col = await Column.get({
-                    base_id: destBase.id,
-                    colId: id,
-                  });
-                  if (col.colOptions?.type === 'bt') {
-                    const childCol = await Column.get({
-                      base_id: destBase.id,
-                      colId: col.colOptions.fk_child_column_id,
-                    });
-                    headers.push(childCol.column_name);
-                  } else {
-                    headers.push(col.column_name);
-                  }
-                } else {
-                  debugLog('header not found', header);
-                }
-              }
-              parser.resume();
-            } else {
-              if (results.errors.length === 0) {
-                const row = {};
-                for (let i = 0; i < headers.length; i++) {
-                  if (results.data[i] !== '') {
-                    row[headers[i]] = results.data[i];
-                  }
-                }
-                chunk.push(row);
-                if (chunk.length > 1000) {
-                  parser.pause();
-                  try {
-                    await this.bulkDataService.bulkDataInsert({
-                      projectName: destProject.id,
-                      tableName: model.id,
-                      body: chunk,
-                      cookie: null,
-                      chunkSize: chunk.length + 1,
-                      foreign_key_checks: false,
-                      raw: true,
-                    });
-                  } catch (e) {
-                    console.log(e);
-                  }
-                  chunk = [];
-                  parser.resume();
-                }
-              }
-            }
-          },
-          complete: async () => {
-            if (chunk.length > 0) {
-              try {
-                await this.bulkDataService.bulkDataInsert({
-                  projectName: destProject.id,
-                  tableName: model.id,
-                  body: chunk,
-                  cookie: null,
-                  chunkSize: chunk.length + 1,
-                  foreign_key_checks: false,
-                  raw: true,
-                });
-              } catch (e) {
-                console.log(e);
-              }
-              chunk = [];
-            }
-            resolve(null);
-          },
-        });
+      await this.importService.importDataFromCsvStream({
+        idMap,
+        dataStream,
+        destProject,
+        destBase,
+        destModel: model,
+        debugLog,
       });
 
-      let headersFound = false;
-
-      let childIndex = -1;
-      let parentIndex = -1;
-      let columnIndex = -1;
-
-      const mmColumns: Record<string, Column> = {};
-      const mmParentChild: any = {};
-
-      await new Promise((resolve) => {
-        papaparse.parse(linkStream, {
-          newline: '\r\n',
-          step: async (results, parser) => {
-            if (!headersFound) {
-              for (const [i, header] of Object.entries(results.data)) {
-                if (header === 'child') {
-                  childIndex = parseInt(i);
-                } else if (header === 'parent') {
-                  parentIndex = parseInt(i);
-                } else if (header === 'column') {
-                  columnIndex = parseInt(i);
-                }
-              }
-              headersFound = true;
-            } else {
-              if (results.errors.length === 0) {
-                const child = results.data[childIndex];
-                const parent = results.data[parentIndex];
-                const columnId = results.data[columnIndex];
-                if (child && parent && columnId) {
-                  if (mmColumns[columnId]) {
-                    // push to chunk
-                    const mmModelId =
-                      mmColumns[columnId].colOptions.fk_mm_model_id;
-                    const mm = mmParentChild[mmModelId];
-                    lChunks[mmModelId].push({
-                      [mm.parent]: parent,
-                      [mm.child]: child,
-                    });
-                  } else {
-                    // get column for the first time
-                    parser.pause();
-
-                    await insertChunks();
-
-                    const col = await Column.get({
-                      base_id: destBase.id,
-                      colId: findWithIdentifier(idMap, columnId),
-                    });
-
-                    const colOptions =
-                      await col.getColOptions<LinkToAnotherRecordColumn>();
-
-                    const vChildCol = await colOptions.getMMChildColumn();
-                    const vParentCol = await colOptions.getMMParentColumn();
-
-                    mmParentChild[col.colOptions.fk_mm_model_id] = {
-                      parent: vParentCol.column_name,
-                      child: vChildCol.column_name,
-                    };
-
-                    mmColumns[columnId] = col;
-
-                    handledLinks.push(col.colOptions.fk_mm_model_id);
-
-                    const mmModelId = col.colOptions.fk_mm_model_id;
-
-                    // create chunk
-                    lChunks[mmModelId] = [];
-
-                    // push to chunk
-                    const mm = mmParentChild[mmModelId];
-                    lChunks[mmModelId].push({
-                      [mm.parent]: parent,
-                      [mm.child]: child,
-                    });
-
-                    parser.resume();
-                  }
-                }
-              }
-            }
-          },
-          complete: async () => {
-            await insertChunks();
-            resolve(null);
-          },
-        });
+      handledLinks = await this.importService.importLinkFromCsvStream({
+        idMap,
+        linkStream,
+        destProject,
+        destBase,
+        handledLinks,
+        debugLog,
       });
 
       elapsedTime(hrTime, model.title);
@@ -479,7 +304,7 @@ export class DuplicateProcessor {
           read() {},
         });
 
-        this.exportService.streamModelData({
+        this.exportService.streamModelDataAsCsv({
           dataStream,
           linkStream,
           projectId: sourceProject.id,
@@ -506,16 +331,27 @@ export class DuplicateProcessor {
                       base_id: destBase.id,
                       colId: id,
                     });
-                    if (col.colOptions?.type === 'bt') {
-                      const childCol = await Column.get({
-                        base_id: destBase.id,
-                        colId: col.colOptions.fk_child_column_id,
-                      });
-                      headers.push(childCol.column_name);
+                    if (col) {
+                      if (col.colOptions?.type === 'bt') {
+                        const childCol = await Column.get({
+                          base_id: destBase.id,
+                          colId: col.colOptions.fk_child_column_id,
+                        });
+                        if (childCol) {
+                          headers.push(childCol.column_name);
+                        } else {
+                          headers.push(null);
+                          debugLog('child column not found', id);
+                        }
+                      } else {
+                        headers.push(col.column_name);
+                      }
                     } else {
-                      headers.push(col.column_name);
+                      headers.push(null);
+                      debugLog('column not found', id);
                     }
                   } else {
+                    headers.push(null);
                     debugLog('header not found', header);
                   }
                 }
@@ -524,8 +360,10 @@ export class DuplicateProcessor {
                 if (results.errors.length === 0) {
                   const row = {};
                   for (let i = 0; i < headers.length; i++) {
-                    if (results.data[i] !== '') {
-                      row[headers[i]] = results.data[i];
+                    if (headers[i]) {
+                      if (results.data[i] !== '') {
+                        row[headers[i]] = results.data[i];
+                      }
                     }
                   }
                   chunk.push(row);

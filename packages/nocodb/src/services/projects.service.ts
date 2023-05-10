@@ -83,7 +83,7 @@ export class ProjectsService {
       user: param.user,
     });
 
-    T.emit('evt', { evt_type: 'project:update' });
+    // T.emit('evt', { evt_type: 'project:update' });
 
     return result;
   }
@@ -102,7 +102,7 @@ export class ProjectsService {
       user: param.user,
     });
 
-    T.emit('evt', { evt_type: 'project:deleted' });
+    // T.emit('evt', { evt_type: 'project:deleted' });
     return true;
   }
 
@@ -202,12 +202,12 @@ export class ProjectsService {
       xcdb: !projectBody.external,
     });
 
-    T.emit('evt', {
-      evt_type: 'project:created',
-      xcdb: !projectBody.external,
-    });
-
-    T.emit('evt', { evt_type: 'project:rest' });
+    // T.emit('evt', {
+    //   evt_type: 'project:created',
+    //   xcdb: !projectBody.external,
+    // });
+    //
+    // T.emit('evt', { evt_type: 'project:rest' });
 
     return project;
   }

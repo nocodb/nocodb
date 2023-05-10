@@ -1,9 +1,10 @@
+import type { SyncSource } from '../../models';
 import type {
   ApiTokenReqType,
   BaseType,
   PluginTestReqType,
   PluginType,
-} from 'nocodb-sdk'
+} from 'nocodb-sdk';
 import type {
   ColumnType,
   FilterType,
@@ -14,8 +15,7 @@ import type {
   TableType,
   UserType,
   ViewType,
-} from 'nocodb-sdk'
-import { SyncSource } from '../../models'
+} from 'nocodb-sdk';
 
 export interface ProjectInviteEvent {
   project: ProjectType;
@@ -188,11 +188,12 @@ export interface AttachmentEvent {
 }
 
 // eslint-disable-next-line @typescript-eslint/no-empty-interface
-export interface FormColumnEvent {
-}
+export interface FormColumnEvent {}
+// eslint-disable-next-line @typescript-eslint/no-empty-interface
+export interface GridColumnEvent {}
 
 export interface SyncSourceEvent {
-  syncSource: Partial<SyncSource>
+  syncSource: Partial<SyncSource>;
 }
 
 export type AppEventPayload =

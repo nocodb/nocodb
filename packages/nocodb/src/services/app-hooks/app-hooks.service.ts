@@ -5,20 +5,20 @@ import type {
   ApiTokenDeleteEvent,
   ApiTokenEvent,
   AttachmentEvent,
-  BaseEvent,
+  BaseEvent, FormColumnEvent,
   OrgUserInviteEvent,
   PluginEvent,
   PluginTestEvent,
   ProjectUserResendInviteEvent,
   ProjectUserUpdateEvent,
   RelationEvent,
-  SharedBaseEvent,
+  SharedBaseEvent, SyncSourceEvent,
   UserPasswordChangeEvent,
   UserPasswordForgotEvent,
   UserPasswordResetEvent,
   ViewColumnEvent,
   WebhookEvent,
-} from './interfaces';
+} from './interfaces'
 import type { AppEvents } from 'nocodb-sdk';
 import type {
   ColumnEvent,
@@ -210,6 +210,13 @@ export class AppHooksService {
       | AppEvents.WEBHOOK_TEST,
     data: WebhookEvent,
   ): void;
+  emit(
+    event:
+      | AppEvents.SYNC_SOURCE_UPDATE
+      | AppEvents.SYNC_SOURCE_CREATE
+      | AppEvents.SYNC_SOURCE_DELETE,
+    data: SyncSourceEvent,
+  ): void;
   emit(event: AppEvents.API_TOKEN_CREATE, data: ApiTokenCreateEvent): void;
   emit(event: AppEvents.API_TOKEN_DELETE, data: ApiTokenDeleteEvent): void;
   emit(event: AppEvents.ORG_USER_INVITE, data: OrgUserInviteEvent): void;
@@ -241,6 +248,7 @@ export class AppHooksService {
     data: BaseEvent,
   ): void;
   emit(event: AppEvents.ATTACHMENT_UPLOAD, data: AttachmentEvent): void;
+  emit(event: AppEvents.FORM_COLUMN_UPDATE, data: FormColumnEvent): void;
   emit(event, data): void {
     this.eventEmitter.emit(event, data);
     this.eventEmitter.emit(ALL_EVENTS, { event, data: data });

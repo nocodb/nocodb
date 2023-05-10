@@ -3,7 +3,7 @@ import type {
   BaseType,
   PluginTestReqType,
   PluginType,
-} from 'nocodb-sdk';
+} from 'nocodb-sdk'
 import type {
   ColumnType,
   FilterType,
@@ -14,7 +14,8 @@ import type {
   TableType,
   UserType,
   ViewType,
-} from 'nocodb-sdk';
+} from 'nocodb-sdk'
+import { SyncSource } from '../../models'
 
 export interface ProjectInviteEvent {
   project: ProjectType;
@@ -171,15 +172,26 @@ export interface PluginTestEvent {
 export interface PluginEvent {
   plugin: PluginType;
 }
+
 export interface SharedBaseEvent {
   link?: string;
   project?: ProjectType;
 }
+
 export interface BaseEvent {
   base: BaseType;
 }
+
 export interface AttachmentEvent {
   type: 'url' | 'file';
+}
+
+// eslint-disable-next-line @typescript-eslint/no-empty-interface
+export interface FormColumnEvent {
+}
+
+export interface SyncSourceEvent {
+  syncSource: Partial<SyncSource>
 }
 
 export type AppEventPayload =

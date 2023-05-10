@@ -110,8 +110,6 @@ export class HooksService {
 
     const model = await Model.getByIdOrName({ id: param.tableId });
 
-    T.emit('evt', { evt_type: 'webhooks:tested' });
-
     const {
       hook,
       payload: { data, user },
@@ -130,6 +128,12 @@ export class HooksService {
       );
     } catch (e) {
       throw e;
+    }finally {
+      this.appHooksService.emit(AppEvents.WEBHOOK_TEST, {
+        hook,
+      })
+
+      // T.emit('evt', { evt_type: 'webhooks:tested' });
     }
 
     return true;

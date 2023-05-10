@@ -249,6 +249,7 @@ export class AppHooksService {
   ): void;
   emit(event: AppEvents.ATTACHMENT_UPLOAD, data: AttachmentEvent): void;
   emit(event: AppEvents.FORM_COLUMN_UPDATE, data: FormColumnEvent): void;
+  emit(event: AppEvents.GRID_COLUMN_UPDATE, data: GridColumnEvent): void;
   emit(event, data): void {
     this.eventEmitter.emit(event, data);
     this.eventEmitter.emit(ALL_EVENTS, { event, data: data });

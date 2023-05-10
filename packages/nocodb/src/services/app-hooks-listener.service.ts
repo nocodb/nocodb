@@ -12,6 +12,7 @@ import type {
   FilterEvent,
   OrgUserInviteEvent,
   PluginEvent,
+  ProjectCreateEvent,
   ProjectInviteEvent,
   ProjectUserResendInviteEvent,
   ProjectUserUpdateEvent,
@@ -423,14 +424,34 @@ export class AppHooksListenerService implements OnModuleInit, OnModuleDestroy {
       case AppEvents.SYNC_SOURCE_DELETE:
         T.emit('evt', { evt_type: 'syncSource:deleted' });
         break;
-      case AppEvents.SYNC_SOURCE_UPDATE:
-        T.emit('evt', { evt_type: 'syncSource:updated' });
-        break;
       case AppEvents.VIEW_CREATE:
         {
           const param = data as ViewEvent;
           T.emit('evt', { evt_type: 'vtable:created', show_as: param.showAs });
         }
+        break;
+      case AppEvents.GRID_COLUMN_UPDATE:
+        T.emit('evt', { evt_type: 'gridViewColumn:updated' });
+        break;
+      case AppEvents.WEBHOOK_TEST:
+        T.emit('evt', { evt_type: 'webhooks:tested' });
+        break;
+      case AppEvents.PROJECT_CREATE:
+        {
+          const { xcdb } = data as ProjectCreateEvent;
+          T.emit('evt', {
+            evt_type: 'project:created',
+            xcdb,
+          });
+
+          T.emit('evt', { evt_type: 'project:rest' });
+        }
+        break;
+      case AppEvents.PROJECT_DELETE:
+        T.emit('evt', { evt_type: 'project:deleted' });
+        break;
+      case AppEvents.PROJECT_UPDATE
+        T.emit('evt', { evt_type: 'project:update' });
         break;
     }
   }

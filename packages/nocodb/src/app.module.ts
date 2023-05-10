@@ -1,5 +1,5 @@
 import { Injectable, Module, RequestMethod } from '@nestjs/common';
-import { APP_FILTER, APP_GUARD } from '@nestjs/core';
+import {APP_FILTER, APP_GUARD, APP_INTERCEPTOR} from '@nestjs/core';
 import { ThrottlerGuard, ThrottlerModule } from '@nestjs/throttler';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { Connection } from './connection/connection';
@@ -33,6 +33,7 @@ import type {
   MiddlewareConsumer,
   OnApplicationBootstrap,
 } from '@nestjs/common';
+import {ExecutionTimeCalculatorInterceptor} from "./interceptors/execution-time-calculator/execution-time-calculator.interceptor";
 
 // todo: refactor to use config service
 const enableThrottler = !!process.env['NC_THROTTLER_REDIS'];
@@ -78,6 +79,10 @@ const enableThrottler = !!process.env['NC_THROTTLER_REDIS'];
       useClass: enableThrottler
         ? CustomApiLimiterGuard
         : ExtractProjectAndWorkspaceIdMiddleware,
+    },
+    {
+      provide: APP_INTERCEPTOR,
+      useClass: ExecutionTimeCalculatorInterceptor,
     },
     LocalStrategy,
     AuthTokenStrategy,

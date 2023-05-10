@@ -1,10 +1,10 @@
-import {Injectable, Logger} from '@nestjs/common';
+import { Injectable, Logger } from '@nestjs/common';
 import Client from 'ioredis';
 import Redlock from 'redlock';
-import {ConfigService} from '@nestjs/config';
-import {ClickhouseService} from '../clickhouse/clickhouse.service';
-import type {OnModuleInit} from '@nestjs/common';
-import type {AppConfig} from '../../interface/config';
+import { ConfigService } from '@nestjs/config';
+import { ClickhouseService } from '../clickhouse/clickhouse.service';
+import type { OnModuleInit } from '@nestjs/common';
+import type { AppConfig } from '../../interface/config';
 
 @Injectable()
 export class ThrottlerExpiryListenerService implements OnModuleInit {
@@ -87,32 +87,37 @@ export class ThrottlerExpiryListenerService implements OnModuleInit {
 
   private async logDataToClickHouse(expiredKey, count) {
     const config = this.configService.get<AppConfig['throttler']>('throttler');
-    const result: number | string = await this.client.call(
+    const result: (number | string)[] = await this.client.call(
       'EVAL',
       `
       local lasUpdated = tonumber(redis.call("GET", KEYS[1]))
+      local execTime = 0
       local sync = 0
       if not lasUpdated or lasUpdated == 0 or lasUpdated <= tonumber(ARGV[2])
         then
+          execTime = tonumber(redis.call("GET", KEYS[2]))
           redis.call("SET", KEYS[1], ARGV[1])
+          redis.call("SET", KEYS[2], 0)
           sync = 1
         end
-      return sync 
+      return {sync,execTime} 
     `
         .replace(/^\s+/gm, '')
         .trim(),
-      1,
+      2,
       `status|${expiredKey}`,
+      expiredKey.replace('throttler', 'exec'),
       Date.now(),
       Date.now() - config.ttl * 1000,
     );
 
-    if (+result) {
+    if (+result[0]) {
       const [_, workspaceId, token] = expiredKey.match(/throttler:(.+)\|(.+)/);
+      const execTime = +result[1] || 0;
 
       this.clickHouseService.execute(`
-        INSERT INTO api_count (id,fk_workspace_id, api_token,count, created_at, ttl, max_apis)
-        VALUES (generateUUIDv4(), '${workspaceId}', '${token}', ${count}, now(), ${config.ttl}, ${config.max_apis})
+        INSERT INTO api_count (id,fk_workspace_id, api_token,count, created_at, ttl, max_apis, exec_time)
+        VALUES (generateUUIDv4(), '${workspaceId}', '${token}', ${count}, now(), ${config.ttl}, ${config.max_apis}, ${execTime})
       `);
     }
   }

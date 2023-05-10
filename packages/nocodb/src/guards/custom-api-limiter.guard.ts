@@ -17,9 +17,7 @@ export class CustomApiLimiterGuard extends ThrottlerGuard {
     }
     const req = context.switchToHttp().getRequest();
 
-    return req.headers[HEADER_NAME] || req.headers[HEADER_NAME_2]
-      ? super.canActivate(context)
-      : true;
+    return (req.headers[HEADER_NAME] || req.headers[HEADER_NAME_2]) ? super.canActivate(context) : true;
   }
 
   protected getTracker(req: Record<string, any>): string {

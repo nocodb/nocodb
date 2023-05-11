@@ -466,20 +466,27 @@ export default class Model implements TableType {
           if (base.is_meta) {
             const d = new Date(val);
             if (isMySQL) {
-              // MySQL converts TIMESTAMP values from the current time zone to UTC for storage.
-              // Hence, we need to convert it to local time
               if (val.slice(-1) === 'Z') {
                 // from UI
-                // e.g. 2023-05-02 08:09:43Z -> 2023-05-10 18:45:30
-                val = dayjs(val).format('YYYY-MM-DD HH:mm:ss');
+                // e.g. 2023-05-11T08:55:09.000Z -> 2023-05-11 08:55:09
+                val = dayjs(val).utc().format('YYYY-MM-DD HH:mm:ss');
               } else {
                 // from API
                 // e.g. 2023-05-10 18:45:30+08:00 -> 2023-05-10 18:45:30
-                val = dayjs
-                  .utc(val)
-                  .local()
-                  .utcOffset(d.getTimezoneOffset(), true)
-                  .format('YYYY-MM-DD HH:mm:ss');
+                console.log(val);
+                if (val.indexOf('+') === -1) {
+                  // no timezone info - considered as UTC
+                  // e.g. 2023-05-11 12:00:00Z
+                  val = dayjs(val).format('YYYY-MM-DD HH:mm:ss');
+                  if (val.slice(-1) !== 'Z') {
+                    // e.g. 2023-05-11 12:00:00 -> 2023-05-11 12:00:00Z
+                    val += 'Z';
+                  }
+                } else {
+                  // timezone info found - convert to UTC
+                  // e.g. 2023-05-11 08:55:09+08:00 -> 2023-05-11 00:55:09
+                  val = dayjs(val).utc().format('YYYY-MM-DD HH:mm:ss');
+                }
               }
             } else if (isSqlite) {
               // e.g. 2023-05-10T10:38:50.000Z -> 2023-05-10 10:38:50

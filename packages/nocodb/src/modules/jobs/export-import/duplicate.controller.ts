@@ -7,6 +7,7 @@ import {
   Request,
   UseGuards,
 } from '@nestjs/common';
+import { ProjectStatus } from 'nocodb-sdk';
 import { GlobalGuard } from '../../../guards/global/global.guard';
 import {
   Acl,
@@ -62,7 +63,7 @@ export class DuplicateController {
     );
 
     const dupProject = await this.projectsService.projectCreate({
-      project: { title: uniqueTitle, status: 'job' },
+      project: { title: uniqueTitle, status: ProjectStatus.JOB },
       user: { id: req.user.id },
     });
 

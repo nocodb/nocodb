@@ -37,8 +37,8 @@ import {
   COMPARISON_SUB_OPS,
   IS_WITHIN_COMPARISON_SUB_OPS,
 } from '../models/Filter';
-import Noco from '../Noco'
-import { HANDLE_WEBHOOK } from '../services/hook-handler.service'
+import Noco from '../Noco';
+import { HANDLE_WEBHOOK } from '../services/hook-handler.service';
 import formulaQueryBuilderv2 from './formulav2/formulaQueryBuilderv2';
 import genRollupSelectv2 from './genRollupSelectv2';
 import conditionV2 from './conditionV2';
@@ -2206,7 +2206,9 @@ class BaseModelSqlv2 {
 
       const updateDatas = raw
         ? datas
-        : await Promise.all(datas.map((d) => this.model.mapAliasToColumn(d, this.clientMeta)));
+        : await Promise.all(
+            datas.map((d) => this.model.mapAliasToColumn(d, this.clientMeta)),
+          );
 
       const prevData = [];
       const newData = [];
@@ -2564,7 +2566,6 @@ class BaseModelSqlv2 {
   }
 
   private async handleHooks(hookName, prevData, newData, req): Promise<void> {
-
     Noco.eventEmitter.emit(HANDLE_WEBHOOK, {
       hookName,
       prevData,
@@ -2573,8 +2574,8 @@ class BaseModelSqlv2 {
       viewId: this.viewId,
       modelId: this.model.id,
       tnPath: this.tnPath,
-    })
-/*
+    });
+    /*
 
     const view = await View.get(this.viewId);
 
@@ -3259,11 +3260,6 @@ class BaseModelSqlv2 {
     if (d) {
       for (const col of dateTimeColumns) {
         if (d[col.title]) {
-          if (col.dt === 'timestamp with time zone') {
-            // postgres - timezone already attached to input
-            // hence, skip it
-            continue;
-          }
           if (this.isSqlite) {
             if (!col.cdf && !isXcdbBase) {
               // for external db, timezone already attached to input
@@ -3283,6 +3279,12 @@ class BaseModelSqlv2 {
                 continue;
               }
             }
+          }
+
+          if (col.dt === 'timestamp with time zone') {
+            // postgres - timezone already attached to input
+            // e.g. 2023-05-11 16:16:51+08:00
+            keepLocalTime = false;
           }
 
           if (d[col.title] instanceof Date) {

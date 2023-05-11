@@ -527,6 +527,20 @@ export default class Model implements TableType {
                   val = dayjs(val).utc().format('YYYY-MM-DD HH:mm:ss');
                 }
               }
+            } else if (isSqlite) {
+              if (val.slice(-1) === 'Z') {
+                // from UI
+                val = dayjs(val).utc().format('YYYY-MM-DD HH:mm:ssZ');
+              } else {
+                // from API
+                if (val.indexOf('+') === -1) {
+                  // no timezone info - considered as UTC
+                  val = dayjs(val).utc(true).format('YYYY-MM-DD HH:mm:ssZ');
+                } else {
+                  // timezone info found - convert to UTC
+                  val = dayjs(val).utc().format('YYYY-MM-DD HH:mm:ssZ');
+                }
+              }
             } else {
               val = dayjs(val).utc().format('YYYY-MM-DD HH:mm:ssZ');
             }

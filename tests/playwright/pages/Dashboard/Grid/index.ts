@@ -52,6 +52,7 @@ export class GridPage extends BasePage {
 
   private async _fillRow({ index, columnHeader, value }: { index: number; columnHeader: string; value: string }) {
     const cell = this.cell.get({ index, columnHeader });
+    await cell.waitFor({ state: 'visible' });
     await this.cell.dblclick({
       index,
       columnHeader,

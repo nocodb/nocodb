@@ -3273,7 +3273,20 @@ class BaseModelSqlv2 {
           let keepLocalTime = true;
 
           if (this.isMySQL) {
-            if (!isXcdbBase) {
+            if (isXcdbBase) {
+              if (d[col.title].indexOf('+') === -1) {
+                // no timezone info - considered as UTC
+                // e.g. 2023-05-11 12:00:00+00:00 (in DB)
+                // d[col.title] = 2023-05-11 04:00:00
+                d[col.title] = dayjs(d[col.title]).format(
+                  'YYYY-MM-DD HH:mm:ss',
+                );
+                if (d[col.title].slice(-1) !== 'Z') {
+                  // e.g. 2023-05-11 04:00:00 -> 2023-05-11 04:00:00Z
+                  d[col.title] += 'Z';
+                }
+              }
+            } else {
               if (d[col.title].indexOf('+') > -1) {
                 // timezone info found -> skip
                 continue;

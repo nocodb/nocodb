@@ -18,6 +18,8 @@ import { Base, Model, Project } from '../../../models';
 import { generateUniqueName } from '../../../helpers/exportImportHelpers';
 import { JobsService } from '../jobs.service';
 import { JobTypes } from '../../../interface/Jobs';
+import { ExportService } from './export.service';
+import { ImportService } from './import.service';
 
 @Controller()
 @UseGuards(ExtractProjectIdMiddleware, GlobalGuard)
@@ -25,6 +27,8 @@ export class DuplicateController {
   constructor(
     private readonly jobsService: JobsService,
     private readonly projectsService: ProjectsService,
+    private readonly exportService: ExportService,
+    private readonly importService: ImportService,
   ) {}
 
   @Post('/api/v1/db/meta/duplicate/:projectId/:baseId?')
@@ -132,5 +136,72 @@ export class DuplicateController {
     );
 
     return { id: job.id, name: job.name };
+  }
+
+  @Post('/api/v1/db/meta/export/:projectId/:baseId?')
+  @HttpCode(200)
+  @Acl('exportBase')
+  async exportBase(
+    @Request() req,
+    @Body() body,
+    @Param('projectId') projectId: string,
+    @Param('baseId') baseId?: string,
+  ) {
+    const project = await Project.get(projectId);
+
+    if (!project) {
+      throw new Error(`Project not found for id '${projectId}'`);
+    }
+
+    const path = body.path || 'export';
+
+    const base = baseId
+      ? await Base.get(baseId)
+      : (await project.getBases())[0];
+
+    if (!base) {
+      throw new Error(`Base not found!`);
+    }
+
+    return await this.exportService.exportBase({ path, baseId: base.id });
+  }
+
+  @Post('/api/v1/db/meta/import/:projectId/:baseId?')
+  @HttpCode(200)
+  @Acl('importBase')
+  async importBase(
+    @Request() req,
+    @Body() src,
+    @Param('projectId') projectId: string,
+    @Param('baseId') baseId?: string,
+  ) {
+    const project = await Project.get(projectId);
+
+    if (!project) {
+      throw new Error(`Project not found for id '${projectId}'`);
+    }
+
+    const base = baseId
+      ? await Base.get(baseId)
+      : (await project.getBases())[0];
+
+    if (!base) {
+      throw new Error(`Base not found!`);
+    }
+
+    src.type = src.type || 'local';
+
+    await this.importService.importBase({
+      projectId: project.id,
+      baseId: base.id,
+      user: req.user,
+      req,
+      src,
+    });
+
+    return {
+      projectId: project.id,
+      baseId: base.id,
+    };
   }
 }

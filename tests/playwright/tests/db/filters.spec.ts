@@ -336,7 +336,31 @@ test.describe('Filter Tests: Numerical', () => {
   });
 
   test('Filter: Time', async () => {
-    await numBasedFilterTest('Time', '02:02:00', '04:04:00');
+    const getTime = date => {
+      let hours = date.getHours();
+      let minutes = date.getMinutes();
+      let seconds = date.getSeconds();
+      // let ap = hours >= 12 ? 'pm' : 'am';
+      hours = hours % 12;
+      hours = hours ? hours : 12;
+      hours = hours.toString().padStart(2, '0');
+      minutes = minutes.toString().padStart(2, '0');
+      seconds = seconds.toString().padStart(2, '0');
+      return `${hours}:${minutes}:${seconds}`;
+    };
+
+    // compute timezone offset
+    const offset = new Date().getTimezoneOffset();
+    const timezoneOffset =
+      (offset <= 0 ? '+' : '-') +
+      String(Math.abs(Math.round(offset / 60))).padStart(2, '0') +
+      ':' +
+      String(Math.abs(offset % 60)).padStart(2, '0');
+
+    const date1 = new Date(`1999-01-01 02:02:00${timezoneOffset}`);
+    const date2 = new Date(`1999-01-01 04:04:00${timezoneOffset}`);
+
+    await numBasedFilterTest('Time', getTime(date1), getTime(date2));
   });
 });
 

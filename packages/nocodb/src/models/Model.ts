@@ -527,7 +527,7 @@ export default class Model implements TableType {
                   val = dayjs(val).utc().format('YYYY-MM-DD HH:mm:ss');
                 }
               }
-            } else if (isSqlite) {
+            } else if (isSqlite || isMssql) {
               if (val.slice(-1) === 'Z') {
                 // from UI
                 val = dayjs(val).utc().format('YYYY-MM-DD HH:mm:ssZ');

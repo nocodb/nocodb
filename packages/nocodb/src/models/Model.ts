@@ -473,7 +473,6 @@ export default class Model implements TableType {
               } else {
                 // from API
                 // e.g. 2023-05-10 18:45:30+08:00 -> 2023-05-10 18:45:30
-                console.log(val);
                 if (val.indexOf('+') === -1) {
                   // no timezone info - considered as UTC
                   // e.g. 2023-05-11 12:00:00Z

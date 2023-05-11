@@ -200,7 +200,7 @@ class SqliteClient extends KnexClient {
             table.integer('status').nullable();
             table.dateTime('created');
             table.timestamps();
-          },
+          }
         );
         log.debug('Table created:', `${args.tn}`, data);
       } else {
@@ -295,7 +295,7 @@ class SqliteClient extends KnexClient {
 
     try {
       const response = await this.sqlClient.raw(
-        `SELECT name as tn FROM sqlite_master where type = 'table'`,
+        `SELECT name as tn FROM sqlite_master where type = 'table'`
       );
 
       result.data.list = [];
@@ -359,7 +359,7 @@ class SqliteClient extends KnexClient {
 
     try {
       const response = await this.sqlClient.raw(
-        `PRAGMA table_info("${args.tn}")`,
+        `PRAGMA table_info("${args.tn}")`
       );
 
       const triggerList = (await this.triggerList(args)).data.list;
@@ -409,7 +409,7 @@ class SqliteClient extends KnexClient {
         response[i].not_nullable = response[i].notnull === 1;
         response[i].rqd = response[i].notnull === 1;
         response[i].cdf = response[i].dflt_value;
-        response[i].pk = response[i].pk === 1;
+        response[i].pk = response[i].pk > 0;
         response[i].cop = response[i].cid;
 
         // https://stackoverflow.com/a/7906029
@@ -420,8 +420,7 @@ class SqliteClient extends KnexClient {
         response[i].dtxs = '';
 
         response[i].au = !!triggerList.find(
-          ({ trigger }) =>
-            trigger === `xc_trigger_${args.tn}_${response[i].cn}`,
+          ({ trigger }) => trigger === `xc_trigger_${args.tn}_${response[i].cn}`
         );
       }
 
@@ -467,7 +466,7 @@ class SqliteClient extends KnexClient {
       // PRAGMA index_xinfo('idx_fk_original_language_id');
 
       const response = await this.sqlClient.raw(
-        `PRAGMA index_list("${args.tn}")`,
+        `PRAGMA index_list("${args.tn}")`
       );
 
       const rows = [];
@@ -479,7 +478,7 @@ class SqliteClient extends KnexClient {
         response[i].unique = response[i].unique === 1 ? 1 : 0;
 
         const colsInIndex = await this.sqlClient.raw(
-          `PRAGMA index_info('${response[i].key_name}')`,
+          `PRAGMA index_info('${response[i].key_name}')`
         );
 
         if (colsInIndex.length === 1) {
@@ -532,7 +531,7 @@ class SqliteClient extends KnexClient {
       args.databaseName = this.connectionConfig.connection.database;
 
       const response = await this.sqlClient.raw(
-        `PRAGMA foreign_key_list('${args.tn}')`,
+        `PRAGMA foreign_key_list('${args.tn}')`
       );
 
       for (let i = 0; i < response.length; ++i) {
@@ -583,7 +582,7 @@ class SqliteClient extends KnexClient {
 
       for (let i = 0; i < tables.length; ++i) {
         const response = await this.sqlClient.raw(
-          `PRAGMA foreign_key_list('${tables[i].tn}')`,
+          `PRAGMA foreign_key_list('${tables[i].tn}')`
         );
 
         for (let j = 0; j < response.length; ++j) {
@@ -634,7 +633,7 @@ class SqliteClient extends KnexClient {
       args.databaseName = this.connectionConfig.connection.database;
 
       const response = await this.sqlClient.raw(
-        `select *, name as trigger_name from sqlite_master where type = 'trigger' and tbl_name='${args.tn}';`,
+        `select *, name as trigger_name from sqlite_master where type = 'trigger' and tbl_name='${args.tn}';`
       );
 
       for (let i = 0; i < response.length; ++i) {
@@ -677,7 +676,7 @@ class SqliteClient extends KnexClient {
       args.databaseName = this.connectionConfig.connection.database;
 
       const response = await this.sqlClient.raw(
-        `show function status where db='${args.databaseName}'`,
+        `show function status where db='${args.databaseName}'`
       );
 
       if (response.length === 2) {
@@ -731,7 +730,7 @@ class SqliteClient extends KnexClient {
       args.databaseName = this.connectionConfig.connection.database;
 
       const response = await this.sqlClient.raw(
-        `show procedure status where db='${args.databaseName}'`,
+        `show procedure status where db='${args.databaseName}'`
       );
 
       if (response.length === 2) {
@@ -776,7 +775,7 @@ class SqliteClient extends KnexClient {
       args.databaseName = this.connectionConfig.connection.database;
 
       const response = await this.sqlClient.raw(
-        `SELECT * FROM sqlite_master WHERE type = 'view'`,
+        `SELECT * FROM sqlite_master WHERE type = 'view'`
       );
 
       for (let i = 0; i < response.length; ++i) {
@@ -814,7 +813,7 @@ class SqliteClient extends KnexClient {
       args.databaseName = this.connectionConfig.connection.database;
 
       const response = await this.sqlClient.raw(
-        `SHOW CREATE FUNCTION ${args.function_name};`,
+        `SHOW CREATE FUNCTION ${args.function_name};`
       );
 
       if (response.length === 2) {
@@ -866,7 +865,7 @@ class SqliteClient extends KnexClient {
       args.databaseName = this.connectionConfig.connection.database;
 
       const response = await this.sqlClient.raw(
-        `show create procedure ${args.procedure_name};`,
+        `show create procedure ${args.procedure_name};`
       );
 
       if (response.length === 2) {
@@ -912,7 +911,7 @@ class SqliteClient extends KnexClient {
 
     try {
       const response = await this.sqlClient.raw(
-        `SELECT * FROM sqlite_master WHERE type = 'view' AND name = '${args.view_name}'`,
+        `SELECT * FROM sqlite_master WHERE type = 'view' AND name = '${args.view_name}'`
       );
 
       for (let i = 0; i < response.length; ++i) {
@@ -939,7 +938,7 @@ class SqliteClient extends KnexClient {
       args.databaseName = this.connectionConfig.connection.database;
 
       const response = await this.sqlClient.raw(
-        `SHOW FULL TABLES IN ${args.databaseName} WHERE TABLE_TYPE LIKE 'VIEW';`,
+        `SHOW FULL TABLES IN ${args.databaseName} WHERE TABLE_TYPE LIKE 'VIEW';`
       );
 
       if (response.length === 2) {
@@ -971,7 +970,7 @@ class SqliteClient extends KnexClient {
     log.api(`${_func}:args:`, args);
 
     const rows = await this.sqlClient.raw(
-      `create database ${args.database_name}`,
+      `create database ${args.database_name}`
     );
     return rows;
   }
@@ -982,7 +981,7 @@ class SqliteClient extends KnexClient {
     log.api(`${_func}:args:`, args);
 
     const rows = await this.sqlClient.raw(
-      `drop database ${args.database_name}`,
+      `drop database ${args.database_name}`
     );
     return rows;
   }
@@ -1012,7 +1011,7 @@ class SqliteClient extends KnexClient {
     log.api(`${_func}:args:`, args);
 
     const rows = await this.sqlClient.raw(
-      `DROP FUNCTION IF EXISTS ${args.function_name}`,
+      `DROP FUNCTION IF EXISTS ${args.function_name}`
     );
     return rows;
   }
@@ -1023,7 +1022,7 @@ class SqliteClient extends KnexClient {
     log.api(`${_func}:args:`, args);
 
     const rows = await this.sqlClient.raw(
-      `DROP PROCEDURE IF EXISTS ${args.procedure_name}`,
+      `DROP PROCEDURE IF EXISTS ${args.procedure_name}`
     );
     return rows;
   }
@@ -1043,7 +1042,7 @@ class SqliteClient extends KnexClient {
         this._version = result.data.object;
         log.debug(
           `Version was empty for ${args.func}: population version for database as`,
-          this._version,
+          this._version
         );
       }
 
@@ -1074,7 +1073,7 @@ class SqliteClient extends KnexClient {
     log.api(`${func}:args:`, args);
     try {
       const rows = await this.sqlClient.raw(
-        `CREATE TRIGGER \`${args.function_name}\` \n${args.timing} ${args.event}\nON "${args.tn}" FOR EACH ROW\n${args.statement}`,
+        `CREATE TRIGGER \`${args.function_name}\` \n${args.timing} ${args.event}\nON "${args.tn}" FOR EACH ROW\n${args.statement}`
       );
       result.data.list = rows;
     } catch (e) {
@@ -1102,7 +1101,7 @@ class SqliteClient extends KnexClient {
     try {
       await this.sqlClient.raw(`DROP TRIGGER ${args.function_name}`);
       const rows = await this.sqlClient.raw(
-        `CREATE TRIGGER \`${args.function_name}\` \n${args.timing} ${args.event}\nON "${args.tn}" FOR EACH ROW\n${args.statement}`,
+        `CREATE TRIGGER \`${args.function_name}\` \n${args.timing} ${args.event}\nON "${args.tn}" FOR EACH ROW\n${args.statement}`
       );
       result.data.list = rows;
     } catch (e) {
@@ -1129,7 +1128,7 @@ class SqliteClient extends KnexClient {
     log.api(`${func}:args:`, args);
     try {
       const rows = await this.sqlClient.raw(
-        `CREATE TRIGGER \`${args.procedure_name}\` \n${args.timing} ${args.event}\nON "${args.tn}" FOR EACH ROW\n${args.statement}`,
+        `CREATE TRIGGER \`${args.procedure_name}\` \n${args.timing} ${args.event}\nON "${args.tn}" FOR EACH ROW\n${args.statement}`
       );
       result.data.list = rows;
     } catch (e) {
@@ -1157,7 +1156,7 @@ class SqliteClient extends KnexClient {
     try {
       await this.sqlClient.raw(`DROP TRIGGER ${args.procedure_name}`);
       const rows = await this.sqlClient.raw(
-        `CREATE TRIGGER \`${args.procedure_name}\` \n${args.timing} ${args.event}\nON "${args.tn}" FOR EACH ROW\n${args.statement}`,
+        `CREATE TRIGGER \`${args.procedure_name}\` \n${args.timing} ${args.event}\nON "${args.tn}" FOR EACH ROW\n${args.statement}`
       );
       result.data.list = rows;
     } catch (e) {
@@ -1217,7 +1216,7 @@ class SqliteClient extends KnexClient {
     try {
       await this.sqlClient.raw(`DROP TRIGGER ${args.trigger_name}`);
       await this.sqlClient.raw(
-        `CREATE TRIGGER \`${args.trigger_name}\` \n${args.timing} ${args.event}\nON "${args.tn}" FOR EACH ROW\n${args.statement}`,
+        `CREATE TRIGGER \`${args.trigger_name}\` \n${args.timing} ${args.event}\nON "${args.tn}" FOR EACH ROW\n${args.statement}`
       );
 
       const upQuery = `DROP TRIGGER ${args.trigger_name};\nCREATE TRIGGER \`${args.trigger_name}\` \n${args.timing} ${args.event}\nON "${args.tn}" FOR EACH ROW\n${args.statement}`;
@@ -1508,13 +1507,13 @@ class SqliteClient extends KnexClient {
             args.table,
             args.columns[i],
             oldColumn,
-            upQuery,
+            upQuery
           );
           downQuery += this.alterTableAddColumn(
             args.table,
             oldColumn,
             args.columns[i],
-            downQuery,
+            downQuery
           );
         } else if (args.columns[i].altered & 2 || args.columns[i].altered & 8) {
           // col edit
@@ -1522,7 +1521,7 @@ class SqliteClient extends KnexClient {
             args.table,
             args.columns[i],
             oldColumn,
-            upQuery,
+            upQuery
           );
           downQuery += ';';
           // downQuery += this.alterTableChangeColumn(
@@ -1538,7 +1537,7 @@ class SqliteClient extends KnexClient {
             args.table,
             args.columns[i],
             oldColumn,
-            upQuery,
+            upQuery
           );
           downQuery += ';';
           // downQuery += alterTableRemoveColumn(
@@ -1554,7 +1553,7 @@ class SqliteClient extends KnexClient {
       const pkQuery = this.alterTablePK(
         args.columns,
         args.originalColumns,
-        upQuery,
+        upQuery
       );
 
       await this.sqlClient.raw('PRAGMA foreign_keys = OFF;');
@@ -1573,7 +1572,7 @@ class SqliteClient extends KnexClient {
         if (pkQuery) {
           await trx.schema.alterTable(args.table, (table) => {
             for (const pk of pkQuery.oldPks.filter(
-              (el) => !pkQuery.newPks.includes(el),
+              (el) => !pkQuery.newPks.includes(el)
             )) {
               table.dropPrimary(pk);
             }
@@ -1859,7 +1858,7 @@ class SqliteClient extends KnexClient {
       /* Filter relations for current table */
       if (args.tn) {
         relations = relations.filter(
-          (r) => r.tn === args.tn || r.rtn === args.tn,
+          (r) => r.tn === args.tn || r.rtn === args.tn
         );
       }
 
@@ -1868,7 +1867,7 @@ class SqliteClient extends KnexClient {
         let columns: any = await this.columnList({ tn: tables[i].tn });
         columns = columns.data.list;
         console.log(
-          `Sequelize model created: ${tables[i].tn}(${columns.length})\n`,
+          `Sequelize model created: ${tables[i].tn}(${columns.length})\n`
         );
 
         // let SqliteSequelizeRender = require('./SqliteSequelizeRender');
@@ -1968,7 +1967,7 @@ class SqliteClient extends KnexClient {
     query += this.genQuery(
       `ALTER TABLE ?? DROP COLUMN ??`,
       [t, n.cn],
-      shouldSanitize,
+      shouldSanitize
     );
     return query;
   }
@@ -2001,8 +2000,6 @@ class SqliteClient extends KnexClient {
 
   alterTableColumn(t, n, o, existingQuery, change = 2) {
     let query = '';
-    // @ts-ignore
-    const defaultValue = getDefaultValue(n);
     let shouldSanitize = true;
     if (change === 2) {
       const suffix = nanoid();
@@ -2010,18 +2007,18 @@ class SqliteClient extends KnexClient {
       const backupOldColumnQuery = this.genQuery(
         `ALTER TABLE ?? RENAME COLUMN ?? TO ??;`,
         [t, o.cn, `${o.cno}_nc_${suffix}`],
-        shouldSanitize,
+        shouldSanitize
       );
 
       let addNewColumnQuery = '';
       addNewColumnQuery += this.genQuery(
-        ` ADD ?? ${n.dt}`,
+        ` ADD ?? ${this.sanitiseDataType(n.dt)}`,
         [n.cn],
-        shouldSanitize,
+        shouldSanitize
       );
       addNewColumnQuery += n.dtxp && n.dt !== 'text' ? `(${n.dtxp})` : '';
       addNewColumnQuery += n.cdf
-        ? ` DEFAULT ${n.cdf}`
+        ? ` DEFAULT ${this.sanitiseDefaultValue(n.cdf)}`
         : !n.rqd
         ? ' '
         : ` DEFAULT ''`;
@@ -2029,33 +2026,45 @@ class SqliteClient extends KnexClient {
       addNewColumnQuery = this.genQuery(
         `ALTER TABLE ?? ${addNewColumnQuery};`,
         [t],
-        shouldSanitize,
+        shouldSanitize
       );
 
       const updateNewColumnQuery = this.genQuery(
         `UPDATE ?? SET ?? = ??;`,
         [t, n.cn, `${o.cno}_nc_${suffix}`],
-        shouldSanitize,
+        shouldSanitize
       );
 
       const dropOldColumnQuery = this.genQuery(
         `ALTER TABLE ?? DROP COLUMN ??;`,
         [t, `${o.cno}_nc_${suffix}`],
-        shouldSanitize,
+        shouldSanitize
       );
 
       query = `${backupOldColumnQuery}${addNewColumnQuery}${updateNewColumnQuery}${dropOldColumnQuery}`;
     } else if (change === 0) {
       query = existingQuery ? ',' : '';
-      query += this.genQuery(`?? ${n.dt}`, [n.cn], shouldSanitize);
+      query += this.genQuery(
+        `?? ${this.sanitiseDataType(n.dt)}`,
+        [n.cn],
+        shouldSanitize,
+      );
       query += n.dtxp && n.dt !== 'text' ? `(${n.dtxp})` : '';
-      query += n.cdf ? ` DEFAULT ${n.cdf}` : ' ';
+      query += n.cdf ? ` DEFAULT ${this.sanitiseDefaultValue(n.cdf)}` : ' ';
       query += n.rqd ? ` NOT NULL` : ' ';
     } else if (change === 1) {
       shouldSanitize = true;
-      query += this.genQuery(` ADD ?? ${n.dt}`, [n.cn], shouldSanitize);
+      query += this.genQuery(
+        ` ADD ?? ${this.sanitiseDataType(n.dt)}`,
+        [n.cn],
+        shouldSanitize,
+      );
       query += n.dtxp && n.dt !== 'text' ? `(${n.dtxp})` : '';
-      query += n.cdf ? ` DEFAULT ${n.cdf}` : !n.rqd ? ' ' : ` DEFAULT ''`;
+      query += n.cdf
+        ? ` DEFAULT ${this.sanitiseDefaultValue(n.cdf)}`
+        : !n.rqd
+        ? ' '
+        : ` DEFAULT ''`;
       query += n.rqd ? ` NOT NULL` : ' ';
       query = this.genQuery(`ALTER TABLE ?? ${query};`, [t], shouldSanitize);
     } else {
@@ -2096,12 +2105,12 @@ class SqliteClient extends KnexClient {
 
     try {
       const tables = await this.sqlClient.raw(
-        `SELECT name FROM sqlite_master WHERE type='table';`,
+        `SELECT name FROM sqlite_master WHERE type='table';`
       );
       let count = 0;
       for (const tb of tables) {
         const tmp = await this.sqlClient.raw(
-          `SELECT COUNT(*) as ct FROM '${tb.name}';`,
+          `SELECT COUNT(*) as ct FROM '${tb.name}';`
         );
         if (tmp && tmp.length) {
           count += tmp[0].ct;
@@ -2116,56 +2125,6 @@ class SqliteClient extends KnexClient {
       log.api(`${func} :result: ${result}`);
     }
     return result;
-  }
-}
-
-function getDefaultValue(n) {
-  if (n.cdf === undefined || n.cdf === null) return n.cdf;
-  switch (n.dt) {
-    case 'boolean':
-    case 'bool':
-    case 'tinyint':
-    case 'int':
-    case 'samllint':
-    case 'bigint':
-    case 'integer':
-    case 'smallint':
-    case 'mediumint':
-    case 'int2':
-    case 'int4':
-    case 'int8':
-    case 'long':
-    case 'serial':
-    case 'bigserial':
-    case 'smallserial':
-    case 'number':
-    case 'float':
-    case 'double':
-    case 'decimal':
-    case 'numeric':
-    case 'real':
-    case 'double precision':
-    case 'money':
-    case 'smallmoney':
-    case 'dec':
-      return n.cdf;
-      break;
-
-    case 'datetime':
-    case 'timestamp':
-    case 'date':
-    case 'time':
-      if (
-        n.cdf.indexOf('CURRENT_TIMESTAMP') > -1 ||
-        /\(([\d\w'", ]*)\)$/.test(n.cdf)
-      ) {
-        return n.cdf;
-      }
-      return JSON.stringify(n.cdf);
-      break;
-    default:
-      return JSON.stringify(n.cdf);
-      break;
   }
 }
 

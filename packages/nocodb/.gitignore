@@ -35,4 +35,10 @@ lerna-debug.log*
 !.vscode/extensions.json
 /noco.db
 
+# export
+export/**
+
+# test dbs
+test_sakila_?.db
+
 /docker/main.js

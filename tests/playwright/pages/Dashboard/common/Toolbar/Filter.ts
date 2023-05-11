@@ -56,24 +56,34 @@ export class ToolbarFilterPage extends BasePage {
   }) {
     if (!openModal) await this.get().locator(`button:has-text("Add Filter")`).first().click();
 
-    const selectedField = await getTextExcludeIconText(await this.rootPage.locator('.nc-filter-field-select'));
+    const selectedField = await getTextExcludeIconText(await this.rootPage.locator('.nc-filter-field-select .ant-select-selection-item'));
     if (selectedField !== title) {
       await this.rootPage.locator('.nc-filter-field-select').last().click();
-      await this.rootPage
+
+      await this.waitForResponse({
+        uiAction: () => this.rootPage
         .locator('div.ant-select-dropdown.nc-dropdown-toolbar-field-list')
         .locator(`div[label="${title}"]:visible`)
-        .click();
+        .click(),
+        httpMethodsToMatch: ['GET'],
+        requestUrlPathToMatch: locallySaved ? `/api/v1/db/public/` : `/api/v1/db/data/noco/`,
+      });
     }
 
     const selectedOpType = await getTextExcludeIconText(await this.rootPage.locator('.nc-filter-operation-select'));
     if (selectedOpType !== operation) {
       await this.rootPage.locator('.nc-filter-operation-select').click();
       // first() : filter list has >, >=
-      await this.rootPage
+
+      await this.waitForResponse({
+        uiAction: () => this.rootPage
         .locator('.nc-dropdown-filter-comp-op')
         .locator(`.ant-select-item:has-text("${operation}")`)
         .first()
-        .click();
+        .click(),
+        httpMethodsToMatch: ['GET'],
+        requestUrlPathToMatch: locallySaved ? `/api/v1/db/public/` : `/api/v1/db/data/noco/`,
+      });
     }
 
     // subtype for date
@@ -84,11 +94,16 @@ export class ToolbarFilterPage extends BasePage {
       if (selectedSubType !== subOperation) {
         await this.rootPage.locator('.nc-filter-sub_operation-select').click();
         // first() : filter list has >, >=
-        await this.rootPage
+
+        await this.waitForResponse({
+          uiAction: () => this.rootPage
           .locator('.nc-dropdown-filter-comp-sub-op')
           .locator(`.ant-select-item:has-text("${subOperation}")`)
           .first()
-          .click();
+          .click(),
+          httpMethodsToMatch: ['GET'],
+          requestUrlPathToMatch: locallySaved ? `/api/v1/db/public/` : `/api/v1/db/data/noco/`,
+        });
       }
     }
 
@@ -120,7 +135,11 @@ export class ToolbarFilterPage extends BasePage {
           if (subOperation === 'exact date') {
             await this.get().locator('.nc-filter-value-select').click();
             await this.rootPage.locator(`.ant-picker-dropdown:visible`);
-            await this.rootPage.locator(`.ant-picker-cell-inner:has-text("${value}")`).click();
+            await this.waitForResponse({
+              uiAction: () => this.rootPage.locator(`.ant-picker-cell-inner:has-text("${value}")`).click(),
+              httpMethodsToMatch: ['GET'],
+              requestUrlPathToMatch: locallySaved ? `/api/v1/db/public/` : `/api/v1/db/data/noco/`,
+            });
           } else {
             fillFilter = () => this.rootPage.locator('.nc-filter-value-select > input').last().fill(value);
             await this.waitForResponse({
@@ -133,7 +152,11 @@ export class ToolbarFilterPage extends BasePage {
           }
           break;
         case UITypes.Duration:
-          await this.get().locator('.nc-filter-value-select').locator('input').fill(value);
+          await this.waitForResponse({
+            uiAction: () => this.get().locator('.nc-filter-value-select').locator('input').fill(value),
+            httpMethodsToMatch: ['GET'],
+            requestUrlPathToMatch: locallySaved ? `/api/v1/db/public/` : `/api/v1/db/data/noco/`,
+          });
           break;
         case UITypes.Rating:
           await this.get()

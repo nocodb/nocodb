@@ -4,6 +4,7 @@ import { promisify } from 'util';
 import mkdirp from 'mkdirp';
 import axios from 'axios';
 import NcConfigFactory from '../../../../utils/NcConfigFactory';
+import type { Readable } from 'stream';
 import type { IStorageAdapterV2, XcFile } from 'nc-plugin';
 
 export default class Local implements IStorageAdapterV2 {
@@ -64,6 +65,32 @@ export default class Local implements IStorageAdapterV2 {
         });
     });
   }
+
+  public async fileCreateByStream(key: string, stream: Readable): Promise<void> {
+    return new Promise(async (resolve, reject) => {
+      const destPath = path.join(NcConfigFactory.getToolDir(), ...key.split('/'));
+      try {
+        await mkdirp(path.dirname(destPath));
+        const writableStream = fs.createWriteStream(destPath);
+        writableStream.on('finish', () => resolve());
+        writableStream.on('error', (err) => reject(err));
+        stream.pipe(writableStream);
+      } catch (e) {
+        throw e;
+      }
+    });
+  }
+
+  public async fileReadByStream(key: string): Promise<Readable> {
+    const srcPath = path.join(NcConfigFactory.getToolDir(), ...key.split('/'));
+    return fs.createReadStream(srcPath, { encoding: 'utf8' });
+  }
+
+  public async getDirectoryList(key: string): Promise<string[]> {
+    const destDir = path.join(NcConfigFactory.getToolDir(), ...key.split('/'));
+    return fs.promises.readdir(destDir);
+  }
+
 
   // todo: implement
   fileDelete(_path: string): Promise<any> {

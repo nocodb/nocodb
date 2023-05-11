@@ -1,19 +1,19 @@
 import { Test } from '@nestjs/testing';
-import { SocketService } from './socket.service';
+import { SocketGateway } from './socket.gateway';
 import type { TestingModule } from '@nestjs/testing';
 
-describe('ClientService', () => {
-  let service: SocketService;
+describe('SocketGateway', () => {
+  let gateway: SocketGateway;
 
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
-      providers: [SocketService],
+      providers: [SocketGateway],
     }).compile();
 
-    service = module.get<SocketService>(SocketService);
+    gateway = module.get<SocketGateway>(SocketGateway);
   });
 
   it('should be defined', () => {
-    expect(service).toBeDefined();
+    expect(gateway).toBeDefined();
   });
 });

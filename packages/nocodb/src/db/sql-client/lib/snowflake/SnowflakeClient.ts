@@ -2474,7 +2474,7 @@ class SnowflakeClient extends KnexClient {
   alterTableColumn(t, n, o, existingQuery, change = 2) {
     let query = '';
 
-    const defaultValue = getDefaultValue(n);
+    const defaultValue = this.sanitiseDefaultValue(n);
     const shouldSanitize = true;
 
     if (change === 0) {
@@ -2486,13 +2486,21 @@ class SnowflakeClient extends KnexClient {
           shouldSanitize,
         );
       } else {
-        query += this.genQuery(` ?? ${n.dt}`, [n.cn], shouldSanitize);
+        query += this.genQuery(
+          ` ?? ${this.sanitiseDataType(n.dt)}`,
+          [n.cn],
+          shouldSanitize,
+        );
         query += n.dtxp && n.dt !== 'text' ? `(${n.dtxp})` : '';
         query += n.rqd ? ' NOT NULL' : ' NULL';
         query += defaultValue ? ` DEFAULT ${defaultValue}` : '';
       }
     } else if (change === 1) {
-      query += this.genQuery(` ADD ?? ${n.dt}`, [n.cn], shouldSanitize);
+      query += this.genQuery(
+        ` ADD ?? ${this.sanitiseDataType(n.dt)}`,
+        [n.cn],
+        shouldSanitize,
+      );
       query += n.dtxp && n.dt !== 'text' ? `(${n.dtxp})` : '';
       query += n.rqd ? ' NOT NULL' : ' NULL';
       query += defaultValue ? ` DEFAULT ${defaultValue}` : '';
@@ -2512,7 +2520,9 @@ class SnowflakeClient extends KnexClient {
 
       if (n.dt !== o.dt) {
         query += this.genQuery(
-          `\nALTER TABLE ?? ALTER COLUMN ?? SET DATA TYPE ${n.dt}`,
+          `\nALTER TABLE ?? ALTER COLUMN ?? SET DATA TYPE ${this.sanitiseDataType(
+            n.dt,
+          )}`,
           [this.getTnPath(t), n.cn],
           shouldSanitize,
         );
@@ -2534,7 +2544,9 @@ class SnowflakeClient extends KnexClient {
           [this.getTnPath(t), n.cn],
           shouldSanitize,
         );
-        query += n.cdf ? ` SET DEFAULT ${n.cdf};\n` : ` DROP DEFAULT;\n`;
+        query += n.cdf
+          ? ` SET DEFAULT ${this.sanitiseDefaultValue(n.cdf)};\n`
+          : ` DROP DEFAULT;\n`;
       }
     }
     return query;
@@ -2604,55 +2616,6 @@ class SnowflakeClient extends KnexClient {
     log.debug(res);
     return res;
   }
-}
-
-function getDefaultValue(n) {
-  if (n.cdf === undefined || n.cdf === null) return n.cdf;
-  switch (n.dt) {
-    case 'serial':
-    case 'bigserial':
-    case 'smallserial':
-      return '';
-      break;
-    case 'boolean':
-    case 'bool':
-    case 'tinyint':
-    case 'int':
-    case 'samllint':
-    case 'bigint':
-    case 'integer':
-    case 'mediumint':
-    case 'int2':
-    case 'int4':
-    case 'int8':
-    case 'long':
-    case 'number':
-    case 'float':
-    case 'double':
-    case 'decimal':
-    case 'numeric':
-    case 'real':
-    case 'double precision':
-    case 'money':
-    case 'smallmoney':
-    case 'dec':
-      return n.cdf;
-      break;
-    case 'datetime':
-    case 'timestamp':
-    case 'date':
-    case 'time':
-      if (
-        n.cdf.indexOf('CURRENT_TIMESTAMP') > -1 ||
-        /\(([\d\w'", ]*)\)$/.test(n.cdf)
-      ) {
-        return n.cdf;
-      }
-      break;
-    default:
-      break;
-  }
-  return n.cdf;
 }
 
 export default SnowflakeClient;

@@ -1,19 +1,19 @@
-Address,District,PostalCode,Phone,Customer List,Staff List,City,Staff List1
-1013 Tabuk Boulevard," ",96203," ",2,,Kanchrapara,
-1168 Najafabad Parkway," ",40301," ",1,,Kabul,
-1294 Firozabad Drive," ",70618," ",2,,Pingxiang,
-1342 Abha Boulevard," ",10714," ",2,,Bucuresti,
-1368 Maracabo Boulevard," ",32716," ",2,,South Hill,
-1427 Tabuk Place," ",31342," ",2,,Cape Coral,
-1519 Santiago de los Caballeros Loop," ",22025," ",2,,Mwene-Ditu,
-1661 Abha Drive," ",14400," ",1,,Pudukkottai,
-17 Kabul Boulevard," ",38594," ",1,,Nagareyama,
-1838 Tabriz Lane," ",1195," ",1,,Dhaka,
-1888 Kabul Drive," ",20936," ",1,,Ife,
-1892 Nabereznyje Telny Lane," ",28396," ",2,,Tafuna,
-1993 Tabuk Lane," ",64221," ",2,,Tambaram,
-217 Botshabelo Place," ",49521," ",2,,Davao,
-381 Kabul Way," ",87272," ",2,,Hsichuh,
-44 Najafabad Way," ",61391," ",2,,Donostia-San Sebastin,
-48 Maracabo Place," ",1570," ",1,,Talavera,
-669 Firozabad Loop," ",92265," ",1,,al-Ayn,
+Address,District,PostalCode,Phone,Customer List,Staff List,City
+1013 Tabuk Boulevard," ",96203," ",2,,Kanchrapara
+1168 Najafabad Parkway," ",40301," ",1,,Kabul
+1294 Firozabad Drive," ",70618," ",2,,Pingxiang
+1342 Abha Boulevard," ",10714," ",2,,Bucuresti
+1368 Maracabo Boulevard," ",32716," ",2,,South Hill
+1427 Tabuk Place," ",31342," ",2,,Cape Coral
+1519 Santiago de los Caballeros Loop," ",22025," ",2,,Mwene-Ditu
+1661 Abha Drive," ",14400," ",1,,Pudukkottai
+17 Kabul Boulevard," ",38594," ",1,,Nagareyama
+1838 Tabriz Lane," ",1195," ",1,,Dhaka
+1888 Kabul Drive," ",20936," ",1,,Ife
+1892 Nabereznyje Telny Lane," ",28396," ",2,,Tafuna
+1993 Tabuk Lane," ",64221," ",2,,Tambaram
+217 Botshabelo Place," ",49521," ",2,,Davao
+381 Kabul Way," ",87272," ",2,,Hsichuh
+44 Najafabad Way," ",61391," ",2,,Donostia-San Sebastin
+48 Maracabo Place," ",1570," ",1,,Talavera
+669 Firozabad Loop," ",92265," ",1,,al-Ayn

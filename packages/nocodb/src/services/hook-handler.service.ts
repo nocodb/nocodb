@@ -1,4 +1,4 @@
-import { Inject, Injectable } from '@nestjs/common'
+import { Inject, Injectable } from '@nestjs/common';
 import { UITypes, ViewTypes } from 'nocodb-sdk';
 import ejs from 'ejs';
 import NcPluginMgrv2 from '../helpers/NcPluginMgrv2';
@@ -18,7 +18,9 @@ export const HANDLE_WEBHOOK = '__nc_handleHooks';
 export class HookHandlerService implements OnModuleInit, OnModuleDestroy {
   private unsubscribe: () => void;
 
-  constructor(@Inject('IEventEmitter') private readonly eventEmitter: IEventEmitter) {}
+  constructor(
+    @Inject('IEventEmitter') private readonly eventEmitter: IEventEmitter,
+  ) {}
 
   private async handleHooks({
     hookName,

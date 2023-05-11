@@ -1,5 +1,5 @@
-import { EventEmitter2 } from '@nestjs/event-emitter';
-import { IEventEmitter } from './event-emitter.interface';
+import type { EventEmitter2 } from '@nestjs/event-emitter';
+import type { IEventEmitter } from './event-emitter.interface';
 
 export class NestjsEventEmitter implements IEventEmitter {
   constructor(private readonly eventEmitter: EventEmitter2) {}

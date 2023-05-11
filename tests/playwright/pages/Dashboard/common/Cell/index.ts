@@ -291,7 +291,11 @@ export class CellPageObject extends BasePage {
 
       // arrow expand doesn't exist for bt columns
       if (await arrow_expand.count()) {
-        await arrow_expand.click();
+        await this.waitForResponse({
+          uiAction: () => arrow_expand.click(),
+          requestUrlPathToMatch: '/api/v1/db',
+          httpMethodsToMatch: ['GET'],
+        });
 
         // wait for child list to open
         await this.rootPage.waitForSelector('.nc-modal-child-list:visible');
@@ -309,7 +313,11 @@ export class CellPageObject extends BasePage {
   async unlinkVirtualCell({ index, columnHeader }: CellProps) {
     const cell = this.get({ index, columnHeader });
     await cell.click();
-    await cell.locator('.unlink-icon').first().click();
+    await this.waitForResponse({
+      uiAction: () => cell.locator('.unlink-icon').first().click(),
+      requestUrlPathToMatch: '/api/v1/db/data/noco/',
+      httpMethodsToMatch: ['GET'],
+    });
   }
 
   async verifyRoleAccess(param: { role: string }) {

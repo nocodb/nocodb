@@ -45,6 +45,7 @@ export default function convertCellData(
       }
       if (isXcdbBase) {
         // convert back to utc
+        // e.g. (mysql) 2023-05-11 12:00:00+00:00 -> 2023-05-11 12:00:00
         // e.g. 2023-05-09T19:41:49+08:00 -> 2023-05-09 11:41:49
         return parsedDateTime.utc().format(isMysql ? 'YYYY-MM-DD HH:mm:ss' : 'YYYY-MM-DD HH:mm:ssZ')
       }

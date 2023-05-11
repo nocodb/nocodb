@@ -112,7 +112,14 @@
         "operationId": "layout-delete",
         "responses": {
           "200": {
-            "description": "OK"
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Layout"
+                }
+              }
+            }
           }
         },
         "tags": [
@@ -129,13 +136,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "type": "number",
-                  "example": 1
-                },
-                "examples": {
-                  "Example 1": {
-                    "value": 1
-                  }
+                  "$ref": "#/components/schemas/Layout"
                 }
               }
             }
@@ -282,7 +283,14 @@
         "operationId": "widget-delete",
         "responses": {
           "200": {
-            "description": "OK"
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Widget"
+                }
+              }
+            }
           }
         },
         "tags": [
@@ -299,13 +307,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "type": "number",
-                  "example": 1
-                },
-                "examples": {
-                  "Example 1": {
-                    "value": 1
-                  }
+                  "$ref": "#/components/schemas/Widget"
                 }
               }
             }

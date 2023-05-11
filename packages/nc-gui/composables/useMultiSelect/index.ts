@@ -123,9 +123,8 @@ export function useMultiSelect(
               // feed custom parse format
               d = dayjs(textToCopy, isMysql(columnObj.base_id) ? 'YYYY-MM-DD HH:mm:ss' : 'YYYY-MM-DD HH:mm:ssZ')
             }
-
             // users can change the datetime format in UI
-            // `textToCopy` would be always in YYYY-MM-DD HH:mm:ss(Z) format
+            // `textToCopy` would be always in YYYY-MM-DD HH:mm:ss(Z / +xx:yy) format
             // therefore, here we reformat to the correct datetime format based on the meta
             textToCopy = d.format(constructDateTimeFormat(columnObj))
 

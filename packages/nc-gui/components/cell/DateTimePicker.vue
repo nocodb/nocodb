@@ -65,7 +65,7 @@ let localState = $computed({
     // when pasting a datetime cell, UTC (xcdb) will be saved in DB
     // we convert back to local time
     if (column.value.title! in (isUpdatedFromCopyNPaste ?? {})) {
-      localModelValue = dayjs(modelValue + (isXcDB ? 'Z' : ''))
+      localModelValue = dayjs(modelValue)
         .utc(isMysql(column.value.base_id))
         .local()
       return localModelValue
@@ -84,7 +84,7 @@ let localState = $computed({
     // if cdf is defined, that means the value is auto-generated
     // hence, show the local time
     if (column?.value?.cdf) {
-      return dayjs(modelValue).utc(isMysql(column.value.base_id)).local()
+      return dayjs(modelValue).utc().local()
     }
 
     // if localModelValue is defined, show localModelValue instead

@@ -1,5 +1,11 @@
 <script lang="ts" setup>
 import InfiniteLoading from 'v3-infinite-loading'
+import {DocsPageSnapshotType} from "nocodb-sdk";
+
+import dayjs from 'dayjs'
+import utc from 'dayjs/plugin/utc'
+
+dayjs.extend(utc)
 
 const emit = defineEmits(['close'])
 
@@ -41,11 +47,21 @@ const loadListData = async ($state: any) => {
   setHistory([...history.value, ...response.snapshots!])
   $state.loaded()
 }
+
+const snapshotTypeLabel = (snapshot: DocsPageSnapshotType) => {
+  if (snapshot.type === 'content_update' || snapshot.type === 'title_update') {
+    return 'Edited'
+  } else if (snapshot.type === 'published') {
+    return 'Published'
+  } else if (snapshot.type === 'unpublished') {
+    return 'Unpublished'
+  }
+}
 </script>
 
 <template>
   <div class="flex flex-col w-1/4 max-w-80 px-5 shadow-sm border-l-1 border-gray-100 overflow-y-auto">
-    <div class="flex flex-row justify-between font-semibold text-base my-3 w-full items-center">
+    <div class="flex flex-row justify-between font-semibold text-base my-3 w-full items-center select-none">
       <div>History</div>
       <div class="p-1 flex items-center hover:bg-gray-100 cursor-pointer rounded-md" @click="close">
         <MdiArrowLeft />
@@ -58,11 +74,11 @@ const loadListData = async ($state: any) => {
         :key="item.id"
         class="flex flex-row py-3 px-3 my-1.5 rounded-md hover:bg-gray-100 cursor-pointer border-1"
         :class="{
-          'bg-gray-100': currentHistory && currentHistory.id === item.id,
+          'bg-gray-200': currentHistory && currentHistory.id === item.id,
         }"
         @click="setCurrentHistory(item)"
       >
-        <div>{{ item.last_page_updated_time }}</div>
+        <div>{{ snapshotTypeLabel(item)}} {{ dayjs.utc(item.last_page_updated_time).fromNow() }}</div>
       </div>
       <InfiniteLoading v-bind="$attrs" @infinite="loadListData">
         <template #spinner>

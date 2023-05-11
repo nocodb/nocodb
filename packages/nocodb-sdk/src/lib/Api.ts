@@ -584,6 +584,7 @@ export interface DocsPageSnapshotType {
   before_page_json?: string;
   after_page_json?: string;
   diff?: string;
+  type?: 'content_update' | 'title_update' | 'published' | 'unpublished';
 }
 
 /**

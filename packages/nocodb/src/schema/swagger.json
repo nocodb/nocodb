@@ -17390,6 +17390,15 @@
           },
           "diff": {
             "type": "string"
+          },
+          "type": {
+            "type": "string",
+            "enum": [
+              "content_update",
+              "title_update",
+              "published",
+              "unpublished"
+            ]
           }
         }
       },

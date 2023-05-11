@@ -9,7 +9,7 @@ import { PageDao } from 'src/daos/page.dao';
 import dayjs from 'dayjs';
 import utc from 'dayjs/plugin/utc';
 import diff from './htmlDiff';
-import type { DocsPageType } from 'nocodb-sdk';
+import type {DocsPageSnapshotType, DocsPageType} from 'nocodb-sdk';
 
 dayjs.extend(utc);
 
@@ -40,6 +40,9 @@ export class DocsPageHistoryService {
       return;
     }
 
+    const snapshotType = this.getSnapshotType(newPage, oldPage);
+    if(!snapshotType) return;
+
     // Define the values to insert
     const id = this.metaService.genNanoid('');
     const projectId = newPage.project_id;
@@ -67,8 +70,8 @@ export class DocsPageHistoryService {
 
     // Define the SQL query to insert the row
     const query = `
-  INSERT INTO page_history (id, fk_workspace_id, fk_project_id, fk_page_id, last_updated_by_id, last_page_updated_time, before_page_json, after_page_json, diff)
-  VALUES ('${id}', '${workspaceId}', '${projectId}', '${pageId}', '${last_updated_by_id}', '${last_page_updated_time}', '${before_page_json}', '${after_page_json}', '${_diff}')
+  INSERT INTO page_history (id, fk_workspace_id, fk_project_id, fk_page_id, last_updated_by_id, last_page_updated_time, before_page_json, after_page_json, diff, type)
+  VALUES ('${id}', '${workspaceId}', '${projectId}', '${pageId}', '${last_updated_by_id}', '${last_page_updated_time}', '${before_page_json}', '${after_page_json}', '${_diff}', '${snapshotType}')
 `;
 
     await this.clickhouseService.execute(query, true);
@@ -103,7 +106,8 @@ export class DocsPageHistoryService {
     before_page_json,
     after_page_json,
     diff,
-    created_at
+    created_at,
+    type
   FROM page_history
   WHERE fk_project_id = '${projectId}' AND fk_page_id = '${pageId}'
   ORDER BY last_page_updated_time DESC
@@ -117,12 +121,26 @@ export class DocsPageHistoryService {
       query += `LIMIT ${pageNumber * pageSize}, ${pageSize}`;
     }
 
-    console.log(query);
-
-    const snapshots = await this.clickhouseService.execute(query, true);
+    const snapshots = await this.clickhouseService.execute(query, true) as DocsPageSnapshotType[];
 
     return {
       snapshots,
     };
+  }
+
+  private getSnapshotType(newPage: DocsPageType, oldPage: DocsPageType): DocsPageSnapshotType['type'] | undefined {
+    if(oldPage.is_published !== newPage.is_published) {
+      return newPage.is_published ? 'published' : 'unpublished';
+    }
+
+    if(newPage.title !== oldPage.title) {
+      return 'title_update';
+    }
+
+    if(newPage.content !== oldPage.content) {
+        return 'content_update';
+    }
+
+    return undefined;
   }
 }

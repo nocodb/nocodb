@@ -17,13 +17,15 @@ const {
   openedPageInSidebar,
   openedPageWithParents,
   isPublic,
-  isEditAllowed,
+  isEditAllowed: _isEditAllowed,
   isPageFetching,
   flattenedNestedPages,
 } = storeToRefs(useDocStore())
 
 const { currentHistory } = storeToRefs(useDocHistoryStore())
 const { updatePage, nestedUrl, openPage } = useDocStore()
+
+const isEditAllowed = computed(() => _isEditAllowed.value && !currentHistory.value)
 
 const showHistoryPanel = ref(false)
 const showOutline = ref(isPublic.value)
@@ -333,7 +335,15 @@ watch(
               size="large"
               class="docs-page-title-skelton !mt-3 !max-w-156 mb-3 ml-8 docs-page-skeleton-loading"
             />
-            <DocsPageTitle v-else-if="openedPage" :key="openedPage.id" class="docs-page-title" @focus-editor="focusEditor" />
+            <DocsPageTitle v-else-if="openedPage && currentHistory?.type !== 'title_update'" :key="openedPage.id" class="docs-page-title" @focus-editor="focusEditor" />
+            <div v-else class="flex flex-col">
+              <div class="py-2 mb-1 bg-red-200 rounded-sm">
+                <DocsPageTitle class="docs-page-title" @focus-editor="focusEditor" :title="currentHistory.before_page.title" :key="currentHistory.before_page.title"/>
+              </div>
+              <div class="py-2 bg-green-200 rounded-sm">
+                <DocsPageTitle class="docs-page-title" @focus-editor="focusEditor" :title="currentHistory.after_page.title" :key="currentHistory.before_page.title"/>
+              </div>
+            </div>
             <div class="flex !mb-4.5"></div>
 
             <DocsPageLinkToPageSearch v-if="editor" :editor="editor" />

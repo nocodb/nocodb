@@ -18,6 +18,7 @@ CREATE TABLE IF NOT EXISTS ${config.database}.page_history (
   before_page_json String,
   after_page_json String,
   diff String,
+  type String NOT NULL,
 ) ENGINE = ReplacingMergeTree
   ORDER BY id;
     `,

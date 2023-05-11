@@ -465,10 +465,15 @@ test.describe('External DB - DateTime column', async () => {
 
   const expectedDisplayValues = {
     pg: {
-      DatetimeWithoutTz: ['2023-04-27 10:00', '2023-04-27 10:00'],
+      // PG ignores timezone information for datetime without timezone
+      DatetimeWithoutTz: [
+        getDateTimeInLocalTimeZone('2023-04-27 10:00:00+00:00'),
+        getDateTimeInLocalTimeZone('2023-04-27 10:00:00+00:00'),
+      ],
+      // PG stores datetime with timezone information in UTC
       DatetimeWithTz: [
         getDateTimeInLocalTimeZone('2023-04-27 10:00:00+00:00'),
-        getDateTimeInLocalTimeZone('2023-04-27 04:30:00+00:00'),
+        getDateTimeInLocalTimeZone('2023-04-27 10:00:00+05:30'),
       ],
     },
     sqlite: {
@@ -634,11 +639,15 @@ test.describe('External DB - DateTime column', async () => {
         getDateTimeInUTCTimeZone('2023-04-27 10:00:00+00:00'),
       ];
     } else if (isPg(context)) {
-      expectedDateTimeWithoutTz = ['2023-04-27 10:00:00', '2023-04-27 10:00:00', '2023-04-27 10:00:00'];
+      expectedDateTimeWithoutTz = [
+        '2023-04-27 10:00:00+00:00',
+        '2023-04-27 10:00:00+00:00',
+        getDateTimeInUTCTimeZone('2023-04-27 10:00:00+00:00'),
+      ];
       expectedDateTimeWithTz = [
-        '2023-04-27T10:00:00.000Z',
-        '2023-04-27T04:30:00.000Z',
-        new Date('2023-04-27T10:00:00').toISOString(),
+        '2023-04-27 10:00:00+00:00',
+        '2023-04-27 04:30:00+00:00',
+        getDateTimeInUTCTimeZone('2023-04-27 10:00:00+00:00'),
       ];
     } else if (isMysql(context)) {
       expectedDateTimeWithoutTz = [
@@ -647,9 +656,9 @@ test.describe('External DB - DateTime column', async () => {
         getDateTimeInUTCTimeZone('2023-04-27 10:00:00+00:00'),
       ];
       expectedDateTimeWithTz = [
-        '2023-04-27 10:00:00+00:00',
-        '2023-04-27 04:30:00+00:00',
-        getDateTimeInUTCTimeZone('2023-04-27 10:00:00+00:00'),
+        getDateTimeInLocalTimeZone('2023-04-27 10:00:00+00:00'),
+        getDateTimeInLocalTimeZone('2023-04-27 10:00:00+00:00'),
+        getDateTimeInLocalTimeZone('2023-04-27 10:00:00+00:00'),
       ];
     }
 

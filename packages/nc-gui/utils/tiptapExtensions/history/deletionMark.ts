@@ -18,7 +18,9 @@ export const HistoryDeletion = Mark.create({
 
   addOptions() {
     return {
-      HTMLAttributes: {},
+      HTMLAttributes: {
+        'data-is-diff': 'true',
+      },
     }
   },
 

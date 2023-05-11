@@ -106,6 +106,7 @@ export const createImageExtension = (uploadFn: UploadFn) => {
         'data-src': node.attrs.src,
         'data-title': node.attrs.title,
         'data-alt': node.attrs.alt,
+        'data-is-diff': node.attrs.isInsertedHistory || node.attrs.isDeletedHistory ? 'true' : null,
         'data-diff-node': node.attrs.isInsertedHistory ? 'ins' : node.attrs.isDeletedHistory ? 'del' : null,
         'class': HTMLAttributes.class ? `image-wrapper cursor-pointer ${HTMLAttributes.class}` : 'image-wrapper cursor-pointer',
       },

@@ -228,6 +228,18 @@ watch(pageWrapperDomRef, () => {
   wrapper.addEventListener('drop', (e) => handleOutsideTiptapDrag(e, 'drop'))
 })
 
+const focusOnFirstDiffedElement = () => {
+  const diffedElements = document.querySelectorAll('.nc-docs-page [data-is-diff="true"]')
+  if (diffedElements.length === 0) return
+
+  const firstDiffedElement = diffedElements[0] as HTMLElement
+  firstDiffedElement.scrollIntoView({
+    behavior: 'smooth',
+    block: 'center',
+    inline: 'center',
+  })
+}
+
 watch(
   currentHistory,
   () => {
@@ -237,6 +249,9 @@ watch(
     }
 
     setEditorContent(currentHistory.value.diff, false, true)
+    setTimeout(() => {
+      focusOnFirstDiffedElement()
+    }, 0)
   },
   {
     deep: true,
@@ -335,13 +350,30 @@ watch(
               size="large"
               class="docs-page-title-skelton !mt-3 !max-w-156 mb-3 ml-8 docs-page-skeleton-loading"
             />
-            <DocsPageTitle v-else-if="openedPage && currentHistory?.type !== 'title_update'" :key="openedPage.id" class="docs-page-title" @focus-editor="focusEditor" />
-            <div v-else class="flex flex-col">
+            <DocsPageTitle
+              v-else-if="openedPage && currentHistory?.type !== 'title_update'"
+              :key="openedPage.id"
+              class="docs-page-title"
+              @focus-editor="focusEditor"
+            />
+            <div v-else-if="currentHistory" class="flex flex-col">
               <div class="py-2 mb-1 bg-red-200 rounded-sm">
-                <DocsPageTitle class="docs-page-title" @focus-editor="focusEditor" :title="currentHistory.before_page.title" :key="currentHistory.before_page.title"/>
+                <DocsPageTitle
+                  :key="currentHistory.before_page!.title!"
+                  :data-is-diff="true"
+                  class="docs-page-title"
+                  :title="currentHistory.before_page!.title!"
+                  @focus-editor="focusEditor"
+                />
               </div>
               <div class="py-2 bg-green-200 rounded-sm">
-                <DocsPageTitle class="docs-page-title" @focus-editor="focusEditor" :title="currentHistory.after_page.title" :key="currentHistory.before_page.title"/>
+                <DocsPageTitle
+                  :key="currentHistory.before_page!.title!"
+                  :data-is-diff="true"
+                  class="docs-page-title"
+                  :title="currentHistory.after_page!.title!"
+                  @focus-editor="focusEditor"
+                />
               </div>
             </div>
             <div class="flex !mb-4.5"></div>
@@ -471,19 +503,19 @@ watch(
   }
 
   [data-diff-node='ins'] {
-    @apply !bg-green-100 rounded-sm p-0.5 m-0.5;
+    @apply !bg-green-200 rounded-sm p-0.5 m-0.5;
   }
 
   [data-diff-node='del'] {
-    @apply !bg-red-100 rounded-sm p-0.5 m-0.5;
+    @apply !bg-red-200 rounded-sm p-0.5 m-0.5;
   }
 
   del {
-    @apply !bg-red-100 rounded-sm my-0.5;
+    @apply !bg-red-200 rounded-sm my-0.5;
     text-decoration: none;
   }
   ins {
-    @apply !bg-green-100 rounded-sm my-0.5 mx-0.5;
+    @apply !bg-green-200 rounded-sm my-0.5 mx-0.5;
     text-decoration: none;
   }
 

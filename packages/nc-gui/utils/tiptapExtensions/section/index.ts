@@ -88,8 +88,15 @@ export const SectionBlock = Node.create<SecOptions>({
     return [{ tag: 'section[data-type="sec"]' }]
   },
 
-  renderHTML({ HTMLAttributes }) {
-    return ['section', mergeAttributes(HTMLAttributes, { 'data-type': 'sec' }), 0]
+  renderHTML({ node, HTMLAttributes }) {
+    return [
+      'section',
+      mergeAttributes(HTMLAttributes, {
+        'data-type': 'sec',
+        'data-is-diff': node.attrs.isInsertedHistory || node.attrs.isDeletedHistory ? 'true' : null,
+      }),
+      0,
+    ]
   },
 
   onSelectionUpdate() {

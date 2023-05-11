@@ -7,6 +7,7 @@ interface DocsPageSnapshotTypeWithPage extends DocsPageSnapshotType {
 }
 
 export const useDocHistoryStore = defineStore('docHistoryStore', () => {
+  const { openedPage } = storeToRefs(useDocStore())
   const history = ref<DocsPageSnapshotTypeWithPage[]>([])
   const currentHistory = ref<DocsPageSnapshotTypeWithPage | null>()
 
@@ -15,12 +16,20 @@ export const useDocHistoryStore = defineStore('docHistoryStore', () => {
   }
 
   const setCurrentHistory = (snapshot: DocsPageSnapshotTypeWithPage | null) => {
-    if(snapshot) {
-      snapshot.before_page = snapshot.before_page_json ? JSON.parse(snapshot.before_page_json as string): null
-      snapshot.after_page = snapshot.after_page_json ? JSON.parse(snapshot.after_page_json as string): null
+    if (snapshot) {
+      snapshot.before_page = snapshot.before_page_json ? JSON.parse(snapshot.before_page_json as string) : null
+      snapshot.after_page = snapshot.after_page_json ? JSON.parse(snapshot.after_page_json as string) : null
     }
+
     currentHistory.value = snapshot
   }
+
+  watch(
+    () => openedPage.value?.id,
+    async () => {
+      currentHistory.value = null
+    },
+  )
 
   return {
     history,

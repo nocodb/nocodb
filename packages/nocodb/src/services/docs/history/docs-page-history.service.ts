@@ -1,5 +1,5 @@
 import { Injectable } from '@nestjs/common';
-
+import HTMLParser, {JSONToHTML} from 'html-to-json-parser';
 import { ClickhouseService } from 'src/services/clickhouse/clickhouse.service';
 import { MetaService } from 'src/meta/meta.service';
 
@@ -9,7 +9,8 @@ import { PageDao } from 'src/daos/page.dao';
 import dayjs from 'dayjs';
 import utc from 'dayjs/plugin/utc';
 import diff from './htmlDiff';
-import type {DocsPageSnapshotType, DocsPageType} from 'nocodb-sdk';
+import type { DocsPageSnapshotType, DocsPageType } from 'nocodb-sdk';
+import {JSONContent} from "html-to-json-parser/dist/types";
 
 dayjs.extend(utc);
 
@@ -41,7 +42,7 @@ export class DocsPageHistoryService {
     }
 
     const snapshotType = this.getSnapshotType(newPage, oldPage);
-    if(!snapshotType) return;
+    if (!snapshotType) return;
 
     // Define the values to insert
     const id = this.metaService.genNanoid('');
@@ -55,10 +56,7 @@ export class DocsPageHistoryService {
     if (!oldPage.content_html || !newPage.content_html) return;
 
     // TODO: Hacky way of forcing html diff to detect empty paragraph
-    const _diff = diff(oldPage.content_html, newPage.content_html)
-      .replaceAll('>Empty</ins>', ' class="empty">__nc_empty__</ins>')
-      .replaceAll('>Empty</del>', ' class="empty">__nc_empty__</del>')
-      .replaceAll('<p #custom>Empty</p>', '<p></p>');
+    const _diffHtml = await this.getDiff(newPage, oldPage);
 
     // TODO: Figure to properly store html as part of json(i.e 'content_html' in before_page_json, after_page_json)
     // Issue is on frontend, JSON.parse() is not able to parse html string
@@ -71,7 +69,7 @@ export class DocsPageHistoryService {
     // Define the SQL query to insert the row
     const query = `
   INSERT INTO page_history (id, fk_workspace_id, fk_project_id, fk_page_id, last_updated_by_id, last_page_updated_time, before_page_json, after_page_json, diff, type)
-  VALUES ('${id}', '${workspaceId}', '${projectId}', '${pageId}', '${last_updated_by_id}', '${last_page_updated_time}', '${before_page_json}', '${after_page_json}', '${_diff}', '${snapshotType}')
+  VALUES ('${id}', '${workspaceId}', '${projectId}', '${pageId}', '${last_updated_by_id}', '${last_page_updated_time}', '${before_page_json}', '${after_page_json}', '${_diffHtml}', '${snapshotType}')
 `;
 
     await this.clickhouseService.execute(query, true);
@@ -121,26 +119,68 @@ export class DocsPageHistoryService {
       query += `LIMIT ${pageNumber * pageSize}, ${pageSize}`;
     }
 
-    const snapshots = await this.clickhouseService.execute(query, true) as DocsPageSnapshotType[];
+    const snapshots = (await this.clickhouseService.execute(
+      query,
+      true,
+    )) as DocsPageSnapshotType[];
 
     return {
       snapshots,
     };
   }
 
-  private getSnapshotType(newPage: DocsPageType, oldPage: DocsPageType): DocsPageSnapshotType['type'] | undefined {
-    if(oldPage.is_published !== newPage.is_published) {
+  private getSnapshotType(
+    newPage: DocsPageType,
+    oldPage: DocsPageType,
+  ): DocsPageSnapshotType['type'] | undefined {
+    if (oldPage.is_published !== newPage.is_published) {
       return newPage.is_published ? 'published' : 'unpublished';
     }
 
-    if(newPage.title !== oldPage.title) {
+    if (newPage.title !== oldPage.title) {
       return 'title_update';
     }
 
-    if(newPage.content !== oldPage.content) {
-        return 'content_update';
+    if (newPage.content !== oldPage.content) {
+      return 'content_update';
     }
 
     return undefined;
+  }
+
+  private async getDiff(newPage: DocsPageType, oldPage: DocsPageType) {
+    // TODO: Hacky way of forcing html diff to detect empty paragraph
+    const _diffHtml = diff(oldPage.content_html, newPage.content_html)
+        .replaceAll('>Empty</ins>', ' class="empty">__nc_empty__</ins>')
+        .replaceAll('>Empty</del>', ' class="empty">__nc_empty__</del>')
+        .replaceAll('<p #custom>Empty</p>', '<p></p>');
+
+    const htmlParse = (HTMLParser as any).default as typeof HTMLParser
+    const domJson = await htmlParse(`<html>${_diffHtml}</html>`) as JSONContent;
+
+    // domJson will have 'section' element, which should only have one child
+    // If it has more than one child, then remove that child and create a new 'section' element
+    // with that child
+    const formatNode = (node: JSONContent) => {
+      if(!node.content) return node;
+
+      if (node.type !== 'section' || node.content.length <= 1) {
+        node.content = node.content.map(formatNode).flat();
+        return node;
+      }
+
+      const newNode = { type: 'section', content: [node.content[0]].map(formatNode) };
+      const remainingNodes = node.content.slice(1);
+
+      return [newNode].concat(remainingNodes.map(node => ({ type: 'section', content: [node] })));
+    }
+
+    const processJson = formatNode(domJson)
+    const processedDiff = ((await JSONToHTML(processJson, true)) as string)
+        // Remove the <html> and </html> tags
+        .slice(6, -7)
+        .replaceAll('<br></br>', '<br>')
+
+    return processedDiff;
   }
 }

@@ -131,7 +131,7 @@ test.describe('Timezone : Japan/Tokyo', () => {
     if (!isSqlite(context)) return;
 
     // UTC expected response
-    const dateUTC = ['2021-01-01 00:00:00', '2021-01-01 00:00:00', '2021-01-01 00:00:00'];
+    const dateUTC = ['2021-01-01 00:00:00+00:00', '2021-01-01 00:00:00+00:00', '2021-01-01 00:00:00+00:00'];
 
     const readDate = records.list.map(record => record.DateTime);
 
@@ -623,16 +623,8 @@ test.describe('External DB - DateTime column', async () => {
     let expectedDateTimeWithTz = [];
 
     if (isSqlite(context)) {
-      expectedDateTimeWithoutTz = [
-        '2023-04-27 10:00:00',
-        '2023-04-27 10:00:00+05:30',
-        `2023-04-27 10:00:00${formattedOffset}`,
-      ];
-      expectedDateTimeWithTz = [
-        '2023-04-27 10:00:00',
-        '2023-04-27 10:00:00+05:30',
-        `2023-04-27 10:00:00${formattedOffset}`,
-      ];
+      expectedDateTimeWithoutTz = ['2023-04-27 10:00:00', '2023-04-27 10:00:00+05:30', `2023-04-27 04:30:00+00:00`];
+      expectedDateTimeWithTz = ['2023-04-27 10:00:00', '2023-04-27 10:00:00+05:30', `2023-04-27 04:30:00+00:00`];
     } else if (isPg(context)) {
       expectedDateTimeWithoutTz = ['2023-04-27 10:00:00', '2023-04-27 10:00:00', '2023-04-27 10:00:00'];
       expectedDateTimeWithTz = [

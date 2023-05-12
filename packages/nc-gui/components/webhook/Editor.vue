@@ -460,8 +460,8 @@ onMounted(async () => {
       </div>
     </div>
 
-    <div>
-      <a-button class="mr-3 nc-btn-webhook-test !rounded-md" size="middle" @click="testWebhook">
+    <div class="flex flex-row gap-2">
+      <a-button class="nc-btn-webhook-test !rounded-md" size="middle" @click="testWebhook">
         <div class="flex items-center">
           <MdiGestureDoubleTap class="mr-2" />
           {{ $t('activity.testWebhook') }}

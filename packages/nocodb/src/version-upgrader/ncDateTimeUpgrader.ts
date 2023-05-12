@@ -9,6 +9,7 @@ import type { BaseType } from 'nocodb-sdk';
 import type { NcUpgraderCtx } from './NcUpgrader';
 import type { XKnex } from '../db/CustomKnex';
 import type { Knex } from 'knex';
+import NcConnectionMgrv2 from '../utils/common/NcConnectionMgrv2';
 
 dayjs.extend(utc);
 
@@ -25,6 +26,22 @@ function getTnPath(knex: XKnex, tb: Model) {
     ].join('.');
   } else {
     return tb.table_name;
+  }
+}
+
+function getTriggerPath(knex: XKnex, trigger: any) {
+  const schema = (knex as any).searchPath?.();
+  const clientType = knex.clientType();
+  if (clientType === 'mssql' && schema) {
+    return knex.raw('??.??', [schema, trigger.trigger_name]).toQuery();
+  } else if (clientType === 'snowflake') {
+    return [
+      knex.client.config.connection.database,
+      knex.client.config.connection.schema,
+      trigger.trigger_name,
+    ].join('.');
+  } else {
+    return trigger.trigger_name;
   }
 }
 
@@ -70,6 +87,9 @@ export default async function ({ ncMeta }: NcUpgraderCtx) {
     };
 
     for (const model of models) {
+      let disableTriggers = [];
+      let enableTriggers = [];
+
       try {
         // if the table is missing in database, skip
         if (!(await knex.schema.hasTable(getTnPath(knex, model)))) {
@@ -115,8 +135,29 @@ export default async function ({ ncMeta }: NcUpgraderCtx) {
 
         // disable triggers for pg / mssql
         if (knex.clientType() === 'pg' || knex.clientType() === 'mssql') {
-          // TODO: get triggerList from client
-          // TODO: disable trigger
+          // get sql clients
+          const sqlClient = await NcConnectionMgrv2.getSqlClient(base);
+
+          const triggerList = (
+            await sqlClient.triggerList({
+              tn: model.table_name,
+            })
+          ).data.list;
+          for (const trigger of triggerList) {
+            disableTriggers.push(
+              knex.raw('ALTER TABLE ?? DISABLE TRIGGER ??', [
+                getTnPath(knex, model),
+                getTriggerPath(knex, trigger),
+              ]),
+            );
+            enableTriggers.push(
+              knex.raw('ALTER TABLE ?? ENABLE TRIGGER ??', [
+                getTnPath(knex, model),
+                getTriggerPath(knex, trigger),
+              ]),
+            );
+          }
+          await Promise.all(disableTriggers);
         }
 
         const records = await knex(getTnPath(knex, model)).select();
@@ -172,8 +213,7 @@ export default async function ({ ncMeta }: NcUpgraderCtx) {
       } finally {
         // enable triggers for pg / mssql back
         if (knex.clientType() === 'pg' || knex.clientType() === 'mssql') {
-          // TODO: get triggerList from client
-          // TODO: enable trigger
+          await Promise.all(enableTriggers);
         }
       }
     }

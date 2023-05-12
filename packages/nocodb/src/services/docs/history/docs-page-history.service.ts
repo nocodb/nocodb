@@ -1,8 +1,6 @@
 import { forwardRef, Inject, Injectable } from '@nestjs/common';
 import HTMLParser, { JSONToHTML } from 'html-to-json-parser';
-
 import { PageDao } from 'src/daos/page.dao';
-
 import dayjs from 'dayjs';
 import utc from 'dayjs/plugin/utc';
 import { PageSnapshotDao } from 'src/daos/pageSnapshot.dao';
@@ -98,10 +96,14 @@ export class DocsPageHistoryService {
     const { workspaceId, oldPage: _oldPage, newPage } = params;
     let oldPage = _oldPage;
 
+    const snapshotType = this.getSnapshotType(newPage, oldPage);
+    if (!snapshotType) return;
+
     const lastSnapshotDate =
       newPage.last_snapshot_at && dayjs.utc(newPage.last_snapshot_at);
+
     if (
-      this.getSnapshotType(newPage, oldPage) === 'updated' &&
+      snapshotType === 'updated' &&
       lastSnapshotDate &&
       dayjs().utc().unix() - lastSnapshotDate.unix() < SNAP_SHOT_WINDOW_SEC
     ) {
@@ -119,9 +121,6 @@ export class DocsPageHistoryService {
         oldPage = lastSnapshot.after_page;
       }
     }
-
-    const snapshotType = this.getSnapshotType(newPage, oldPage);
-    if (!snapshotType) return;
 
     const projectId = newPage.project_id;
     const pageId = newPage.id;
@@ -181,7 +180,14 @@ export class DocsPageHistoryService {
       return newPage.is_published ? 'published' : 'unpublished';
     }
 
-    return 'updated';
+    let updated = false;
+    if (oldPage.title !== newPage.title) updated = true;
+    if (oldPage.content !== newPage.content) updated = true;
+    if (oldPage.icon !== newPage.icon) updated = true;
+
+    if (updated) return 'updated';
+
+    return undefined;
   }
 
   private async getDiff(newPage: DocsPageType, oldPage: DocsPageType) {

@@ -1,19 +1,18 @@
-import { CustomTransportStrategy, Server } from '@nestjs/microservices';
+import {CustomTransportStrategy, Server} from '@nestjs/microservices';
 import * as AWS from 'aws-sdk';
 import * as Knex from 'knex';
 import NcConfigFactory from './helpers/NcConfigFactory';
-import { Kinesis } from 'aws-sdk';
+import {Kinesis} from 'aws-sdk';
 
 export default class KinesisConsumerServer
   extends Server
-  implements CustomTransportStrategy
-{
+  implements CustomTransportStrategy {
   private kinesis: AWS.Kinesis;
   private knex: Knex.Knex;
 
   constructor() {
     super();
-    this.kinesis = new AWS.Kinesis({ region: 'us-east-2' });
+    this.kinesis = new AWS.Kinesis({region: 'us-east-2'});
   }
 
   /**
@@ -45,8 +44,9 @@ export default class KinesisConsumerServer
         } else {
           const shardIterator = data.ShardIterator;
 
-          const params = {
+          const params: Kinesis.Types.GetRecordsInput = {
             ShardIterator: shardIterator,
+            Limit: 300,
           };
 
           const readRecords = () => {
@@ -56,7 +56,7 @@ export default class KinesisConsumerServer
               } else {
                 const records = data.Records;
                 if (records.length > 0) {
-                  this.logger.log('Received '+ records.length + ' records:');
+                  this.logger.log('Received ' + records.length + ' records:');
                   const parsedRecords = records
                     .map((record) => {
                       const decodedData = Buffer.from(
@@ -115,7 +115,7 @@ export default class KinesisConsumerServer
       .where('key', `last_ingested:${stream}`)
       .first();
     if (result) {
-      await this.knex('nc_store').update({ value: sequenceNum }).where({
+      await this.knex('nc_store').update({value: sequenceNum}).where({
         id: result.id,
       });
     } else {

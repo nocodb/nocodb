@@ -3262,11 +3262,12 @@ class BaseModelSqlv2 {
         if (d[col.title]) {
           if (this.isSqlite) {
             if (!col.cdf && !isXcdbBase) {
-              // for external db, timezone already attached to input
-              // e.g. xcdb: 2023-05-10 10:24:30
-              // e.g. ext : 2023-05-10 10:25:45+00:00
-              // hence, skip it
-              continue;
+              if (d[col.title].indexOf('+') > -1) {
+                // e.g. 2023-05-10 10:25:45+00:00
+                // timezone already attached to input
+                // hence, skip it
+                continue;
+              }
             }
           }
 

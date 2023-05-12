@@ -11,15 +11,11 @@ import {
   UseGuards,
 } from '@nestjs/common';
 import { AuthGuard } from '@nestjs/passport';
-import {
-  ExtractProjectIdMiddleware,
-  UseAclMiddleware,
-} from 'src/middlewares/extract-project-id/extract-project-id.middleware';
-import { ExtractProjectAndWorkspaceIdMiddleware } from 'src/middlewares/extract-project-and-workspace-id/extract-project-and-workspace-id.middleware';
+import { UseAclMiddleware } from 'src/middlewares/extract-project-id/extract-project-id.middleware';
 import { DocsPagesService } from 'src/services/docs/docs-pages.service';
 
 @Controller()
-@UseGuards(ExtractProjectAndWorkspaceIdMiddleware, AuthGuard('jwt'))
+@UseGuards(AuthGuard('jwt'))
 export class DocsPagesController {
   constructor(private readonly pagesService: DocsPagesService) {}
 

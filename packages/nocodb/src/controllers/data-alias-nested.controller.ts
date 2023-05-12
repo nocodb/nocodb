@@ -15,10 +15,9 @@ import {
   ExtractProjectIdMiddleware,
 } from '../middlewares/extract-project-id/extract-project-id.middleware';
 import { DataAliasNestedService } from '../services/data-alias-nested.service';
-import { ExtractProjectAndWorkspaceIdMiddleware } from '../middlewares/extract-project-and-workspace-id/extract-project-and-workspace-id.middleware';
 
 @Controller()
-@UseGuards(ExtractProjectAndWorkspaceIdMiddleware, GlobalGuard)
+@UseGuards(GlobalGuard)
 export class DataAliasNestedController {
   constructor(private dataAliasNestedService: DataAliasNestedService) {}
 

@@ -18,9 +18,8 @@ import {
 } from '../middlewares/extract-project-id/extract-project-id.middleware';
 import { OrgTokensEeService } from '../services/org-tokens-ee.service';
 import { OrgTokensService } from '../services/org-tokens.service';
-import { ExtractProjectAndWorkspaceIdMiddleware } from '../middlewares/extract-project-and-workspace-id/extract-project-and-workspace-id.middleware';
 
-@UseGuards(ExtractProjectAndWorkspaceIdMiddleware, AuthGuard('jwt'))
+@UseGuards(AuthGuard('jwt'))
 @Controller()
 export class OrgTokensController {
   constructor(

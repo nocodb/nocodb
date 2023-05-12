@@ -281,7 +281,11 @@ const projectListType = computed(() => {
         <div class="flex items-center uppercase !text-gray-400 text-xs font-weight-bold pt-2 px-4 pb-2 h-10">
           All workspaces
           <div class="flex-grow"></div>
-          <MdiPlus class="!text-gray-400 text-lg cursor-pointer" data-testid="nc-create-workspace" @click="isCreateDlgOpen = true" />
+          <MdiPlus
+            class="!text-gray-400 text-lg cursor-pointer"
+            data-testid="nc-create-workspace"
+            @click="isCreateDlgOpen = true"
+          />
         </div>
 
         <div class="overflow-auto min-h-25 flex-grow" style="flex-basis: 0">

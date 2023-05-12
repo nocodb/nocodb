@@ -117,18 +117,30 @@ export function useMultiSelect(
           }
 
           if (columnObj.uidt === UITypes.DateTime) {
+            // remove `"`
+            // e.g. "2023-05-12T08:03:53.000Z" -> 2023-05-12T08:03:53.000Z
+            textToCopy = textToCopy.replace(/["']/g, '')
+
+            const isMySQL = isMysql(columnObj.base_id)
+            if (isMySQL) {
+              if (textToCopy.indexOf('+') === -1) {
+                // insert a datatime cell -> copy and paste -> copy again
+                if (textToCopy.slice(-1) !== 'Z') {
+                  // e.g. 2023-05-11 12:00:00 -> 2023-05-11 12:00:00Z
+                  textToCopy += 'Z'
+                }
+              }
+            }
+
             let d = dayjs(textToCopy)
+
             if (!d.isValid()) {
-              const isMySQL = isMysql(columnObj.base_id)
               // insert a datetime value, copy the value without refreshing
               // e.g. textToCopy = 2023-05-12T03:49:25.000Z
               // feed custom parse format
               d = dayjs(textToCopy, isMySQL ? 'YYYY-MM-DD HH:mm:ss' : 'YYYY-MM-DD HH:mm:ssZ')
-              if (isMySQL) {
-                // convert to local time - e.g. 2023-05-12T11:49:25+08:00
-                d = dayjs(d).utc(true).local()
-              }
             }
+
             // users can change the datetime format in UI
             // `textToCopy` would be always in YYYY-MM-DD HH:mm:ss(Z / +xx:yy) format
             // therefore, here we reformat to the correct datetime format based on the meta

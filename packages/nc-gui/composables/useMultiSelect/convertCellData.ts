@@ -39,10 +39,22 @@ export default function convertCellData(
       return parsedDate.format('YYYY-MM-DD')
     }
     case UITypes.DateTime: {
-      const parsedDateTime = dayjs(value)
+      let parsedDateTime = dayjs(value)
       if (!parsedDateTime.isValid()) {
         throw new Error('Not a valid datetime value')
       }
+
+      if (isMysql && !dayjs.isDayjs(value)) {
+        if (value.indexOf('+') === -1) {
+          // insert a datatime cell -> copy and paste -> copy again -> paste
+          // e.g. value = 2023-05-12 08:06:54
+          if (value.slice(-1) !== 'Z') {
+            // e.g. 2023-05-11 12:00:00 -> 2023-05-11 12:00:00Z0
+            parsedDateTime = dayjs(value + 'Z')
+          }
+        }
+      }
+
       if (isXcdbBase) {
         // convert back to utc
         // e.g. (mysql) 2023-05-11 12:00:00+00:00 -> 2023-05-11 12:00:00

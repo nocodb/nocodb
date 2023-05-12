@@ -92,8 +92,8 @@ const columns = [
 <template>
   <div class="flex flex-col gap-4 w-full">
     <div v-if="!appInfo.auditEnabled" class="text-red-500">Audit logs are currently disabled by administrators.</div>
-    <div class="flex flex-row justify-between items-center">
-      <a-button class="self-start" @click="loadAudits">
+    <div class="flex flex-row justify-end items-center">
+      <a-button class="self-start !rounded-md" @click="loadAudits">
         <!-- Reload -->
         <div class="flex items-center gap-2 text-gray-600 font-light">
           <component :is="iconMap.reload" :class="{ 'animate-infinite animate-spin !text-success': isLoading }" />
@@ -101,14 +101,6 @@ const columns = [
           {{ $t('general.reload') }}
         </div>
       </a-button>
-
-      <a-pagination
-        v-model:current="currentPage"
-        v-model:page-size="currentLimit"
-        :total="totalRows"
-        show-less-items
-        @change="loadAudits"
-      />
     </div>
 
     <a-table
@@ -124,6 +116,15 @@ const columns = [
         <a-empty :image="Empty.PRESENTED_IMAGE_SIMPLE" :description="$t('labels.noData')" />
       </template>
     </a-table>
+    <div class="flex flex-row justify-center items-center">
+      <a-pagination
+        v-model:current="currentPage"
+        v-model:page-size="currentLimit"
+        :total="totalRows"
+        show-less-items
+        @change="loadAudits"
+      />
+    </div>
   </div>
 </template>
 

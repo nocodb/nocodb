@@ -1,6 +1,6 @@
 {
   "name": "nocodb",
-  "version": "0.107.0-beta.0",
+  "version": "0.107.0-beta.1",
   "description": "NocoDB Backend",
   "main": "dist/bundle.js",
   "author": {
@@ -113,7 +113,7 @@
     "mysql2": "^3.2.0",
     "nanoid": "^3.1.20",
     "nc-help": "^0.2.87",
-    "nc-lib-gui": "0.107.0-beta.0",
+    "nc-lib-gui": "0.107.0-beta.1",
     "nc-plugin": "^0.1.3",
     "ncp": "^2.0.0",
     "nocodb-sdk": "file:../nocodb-sdk",

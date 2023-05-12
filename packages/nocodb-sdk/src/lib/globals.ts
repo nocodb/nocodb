@@ -72,3 +72,7 @@ export enum ModelTypes {
   TABLE = 'table',
   VIEW = 'view',
 }
+
+export enum ProjectStatus {
+  JOB = 'job',
+}

@@ -1,4 +1,5 @@
 <script lang="ts" setup>
+import { ProjectStatus } from 'nocodb-sdk'
 import type { ProjectType } from 'nocodb-sdk'
 import tinycolor from 'tinycolor2'
 import { breakpointsTailwind } from '@vueuse/core'
@@ -161,7 +162,7 @@ const getProjectPrimary = (project: ProjectType) => {
 
 const customRow = (record: ProjectType) => ({
   onClick: async () => {
-    if (record.status !== 'job') await navigateTo(`/nc/${record.id}`)
+    if (record.status !== ProjectStatus.JOB) await navigateTo(`/nc/${record.id}`)
 
     $e('a:project:open')
   },
@@ -292,8 +293,8 @@ const copyProjectMeta = async () => {
             >
               <component
                 :is="iconMap.reload"
-                v-if="record.status === 'job'"
-                :class="{ 'animate-infinite animate-spin text-gray-500': record.status === 'job' }"
+                v-if="record.status === ProjectStatus.JOB"
+                :class="{ 'animate-infinite animate-spin text-gray-500': record.status === ProjectStatus.JOB }"
               />
               {{ text }}
             </div>
@@ -304,7 +305,7 @@ const copyProjectMeta = async () => {
 
       <a-table-column key="id" :title="$t('labels.actions')" data-index="id">
         <template #default="{ text, record }">
-          <div v-if="record.status !== 'job'" class="flex items-center gap-2">
+          <div v-if="record.status !== ProjectStatus.JOB" class="flex items-center gap-2">
             <component
               :is="iconMap.edit"
               v-e="['c:project:edit:rename']"

@@ -1,7 +1,7 @@
 import { Readable } from 'stream';
 import { UITypes, ViewTypes } from 'nocodb-sdk';
 import { unparse } from 'papaparse';
-import { Injectable } from '@nestjs/common';
+import { Injectable, Logger } from '@nestjs/common';
 import NcConnectionMgrv2 from '../../../utils/common/NcConnectionMgrv2';
 import { getViewAndModelByAliasOrId } from '../../../modules/datas/helpers';
 import {
@@ -12,11 +12,14 @@ import NcPluginMgrv2 from '../../../helpers/NcPluginMgrv2';
 import { NcError } from '../../../helpers/catchError';
 import { Base, Hook, Model, Project } from '../../../models';
 import { DatasService } from '../../../services/datas.service';
+import { elapsedTime, initTime } from '../helpers';
 import type { BaseModelSqlv2 } from '../../../db/BaseModelSqlv2';
-import type { LinkToAnotherRecordColumn, View } from '../../../models';
+import type { View } from '../../../models';
 
 @Injectable()
 export class ExportService {
+  private readonly logger = new Logger(ExportService.name);
+
   constructor(private datasService: DatasService) {}
 
   async serializeModels(param: {
@@ -293,7 +296,7 @@ export class ExportService {
     return serializedModels;
   }
 
-  async streamModelData(param: {
+  async streamModelDataAsCsv(param: {
     dataStream: Readable;
     linkStream: Readable;
     projectId: string;
@@ -422,7 +425,7 @@ export class ExportService {
         true,
       );
     } catch (e) {
-      console.error(e);
+      this.logger.error(e);
       throw e;
     }
 
@@ -488,7 +491,7 @@ export class ExportService {
             true,
           );
         } catch (e) {
-          console.error(e);
+          this.logger.error(e);
           throw e;
         }
 
@@ -597,6 +600,8 @@ export class ExportService {
   }
 
   async exportBase(param: { path: string; baseId: string }) {
+    const hrTime = initTime();
+
     const base = await Base.get(param.baseId);
 
     if (!base)
@@ -612,6 +617,12 @@ export class ExportService {
     const exportedModels = await this.serializeModels({
       modelIds: models.map((m) => m.id),
     });
+
+    elapsedTime(
+      hrTime,
+      `serialize models for ${base.project_id}::${base.id}`,
+      'exportBase',
+    );
 
     const exportData = {
       id: `${project.id}::${base.id}`,
@@ -669,7 +680,7 @@ export class ExportService {
           });
 
           linkStream.on('error', (e) => {
-            console.error(e);
+            this.logger.error(e);
             resolve(null);
           });
         });
@@ -679,7 +690,7 @@ export class ExportService {
           dataStream,
         );
 
-        this.streamModelData({
+        this.streamModelDataAsCsv({
           dataStream,
           linkStream,
           projectId: project.id,
@@ -693,6 +704,12 @@ export class ExportService {
       combinedLinkStream.push(null);
 
       await uploadLinkPromise;
+
+      elapsedTime(
+        hrTime,
+        `export base ${base.project_id}::${base.id}`,
+        'exportBase',
+      );
     } catch (e) {
       throw NcError.badRequest(e);
     }

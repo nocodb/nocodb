@@ -249,8 +249,8 @@ export class DocsPagesService {
         await this.handlePageJSON(page, undefined, user as UserType, projectId);
       }
     } catch (e) {
-      console.log(response?.data?.choices[0]?.text);
       console.log(e);
+      console.log(response?.data?.choices[0]?.text);
       NcError.badRequest('Failed to parse schema');
     }
     return true;

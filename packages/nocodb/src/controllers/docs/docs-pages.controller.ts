@@ -123,9 +123,9 @@ export class DocsPagesController {
     });
   }
 
-  @Post('/api/v1/docs/page/magic')
+  @Post('/api/v1/docs/pages/magic')
   @UseAclMiddleware({
-    permissionName: 'pageMagicCreate',
+    permissionName: 'pagesMagicCreate',
   })
   async magicCreate(
     @Body() body: { title: string; projectId: string; pageId: string },

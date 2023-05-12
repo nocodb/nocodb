@@ -690,7 +690,7 @@ export const useDocStore = defineStore('docStore', () => {
         title,
       } as any)
     } catch (e) {
-      message.warning('NocoAI failed for the demo reasons. Please try again.')
+      message.warning('Something went wrong')
     }
   }
 

@@ -13,8 +13,8 @@ import type { DocsPageSnapshotType, DocsPageType } from 'nocodb-sdk';
 
 dayjs.extend(utc);
 
-// Snap shot window 5 seconds
-const SNAP_SHOT_WINDOW_SEC = 5;
+// Snap shot window 5 minutes
+const SNAP_SHOT_WINDOW_SEC = 5 * 60;
 
 @Injectable()
 export class DocsPageHistoryService {
@@ -101,6 +101,7 @@ export class DocsPageHistoryService {
     const lastSnapshotDate =
       newPage.last_snapshot_at && dayjs.utc(newPage.last_snapshot_at);
     if (
+      this.getSnapshotType(newPage, oldPage) === 'updated' &&
       lastSnapshotDate &&
       dayjs().utc().unix() - lastSnapshotDate.unix() < SNAP_SHOT_WINDOW_SEC
     ) {

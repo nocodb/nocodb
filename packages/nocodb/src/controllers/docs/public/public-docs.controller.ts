@@ -1,5 +1,5 @@
 import { Controller, Get, Param, Query, Request } from '@nestjs/common';
-import { PublicDocsService } from './public-docs.service';
+import { PublicDocsService } from 'src/services/docs/public/public-docs.service';
 
 @Controller()
 export class PublicDocsController {

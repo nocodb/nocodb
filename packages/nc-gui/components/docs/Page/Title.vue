@@ -1,7 +1,14 @@
 <script lang="ts" setup>
 import { Icon as IconifyIcon } from '@iconify/vue'
 
+// If title is provided as prop, use it. Otherwise use the title from the store
+const props = defineProps<{
+  title?: string | undefined
+}>()
+
 const emit = defineEmits(['focusEditor'])
+
+const { title: propTitle } = props
 
 const MAX_TITLE_LENGTH = 150
 
@@ -15,7 +22,7 @@ const titleInputRef = ref<HTMLInputElement>()
 
 const _title = ref<string | undefined>(undefined)
 const title = computed({
-  get: () => _title.value,
+  get: () => propTitle || _title.value,
   set: (value) => {
     if (!value) return
 
@@ -141,7 +148,7 @@ onMounted(() => {
       data-testid="docs-page-title"
       class="!text-5xl font-semibold !p-0"
       :bordered="false"
-      :readonly="!isEditAllowed"
+      :readonly="!isEditAllowed || !!propTitle"
       placeholder="Title"
       auto-size
       @keydown="onTitleKeyDown"

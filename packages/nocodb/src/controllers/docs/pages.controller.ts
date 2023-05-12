@@ -11,16 +11,13 @@ import {
   UseGuards,
 } from '@nestjs/common';
 import { AuthGuard } from '@nestjs/passport';
-import {
-  ExtractProjectIdMiddleware,
-  UseAclMiddleware,
-} from '../../../middlewares/extract-project-id/extract-project-id.middleware';
-import { PagesService } from './pages.service';
+import { UseAclMiddleware } from 'src/middlewares/extract-project-id/extract-project-id.middleware';
+import { DocsPagesService } from 'src/services/docs/docs-pages.service';
 
 @Controller()
 @UseGuards(AuthGuard('jwt'))
-export class PagesController {
-  constructor(private readonly pagesService: PagesService) {}
+export class DocsPagesController {
+  constructor(private readonly pagesService: DocsPagesService) {}
 
   @Get('/api/v1/docs/page/:id')
   @UseAclMiddleware({
@@ -86,6 +83,7 @@ export class PagesController {
       attributes: body.attributes,
       projectId: body.projectId,
       user: req.user,
+      workspaceId: req.ncWorkspaceId,
     });
   }
 

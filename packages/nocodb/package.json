@@ -92,6 +92,7 @@
     "graphql-depth-limit": "^1.1.0",
     "graphql-type-json": "^0.3.2",
     "handlebars": "^4.7.6",
+    "html-to-json-parser": "^1.1.0",
     "import-fresh": "^3.2.1",
     "inflection": "^1.12.0",
     "ioredis": "^5.0.4",

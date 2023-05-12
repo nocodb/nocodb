@@ -49,6 +49,10 @@ export class ExtractProjectAndWorkspaceIdMiddleware
         req.ncProjectId = params.projectId;
       } else if (req.query.project_id) {
         req.ncProjectId = req.query.project_id;
+      }
+      // todo: Remove when docs apis params are updated
+      else if (req.body.projectId) {
+        req.ncProjectId = req.body.projectId;
       } else if (
         params.tableId ||
         req.query.fk_model_id ||

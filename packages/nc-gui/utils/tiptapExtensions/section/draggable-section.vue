@@ -125,7 +125,11 @@ editor.on('update', () => {
 </script>
 
 <template>
-  <NodeViewWrapper class="vue-component draggable-block-wrapper" :pos="pos">
+  <NodeViewWrapper
+    class="vue-component draggable-block-wrapper"
+    :data-diff-node="node.attrs.isInsertedHistory ? 'ins' : node.attrs.isDeletedHistory ? 'del' : null"
+    :pos="pos"
+  >
     <div
       v-if="!isPublic"
       ref="dragDomRef"
@@ -184,15 +188,16 @@ editor.on('update', () => {
 
       <NodeViewContent class="node-view-drag-content w-full" :data-testid="`nc-docs-tiptap-wrapper-${childNodeType}`" />
     </div>
-    <NodeViewContent
-      v-else
-      class="node-view-drag-content mb-2"
-      :class="{
-        '!ml-0.25': parentNode?.type.name === 'collapsable',
-        '': parentNode?.type.name !== 'collapsable',
-      }"
-      :data-testid="`nc-docs-tiptap-wrapper-${childNodeType}`"
-    />
+    <div v-else class="ml-7.5">
+      <NodeViewContent
+        class="node-view-drag-content mb-2"
+        :class="{
+          '!ml-0.25': parentNode?.type.name === 'collapsable',
+          '': parentNode?.type.name !== 'collapsable',
+        }"
+        :data-testid="`nc-docs-tiptap-wrapper-${childNodeType}`"
+      />
+    </div>
   </NodeViewWrapper>
 </template>
 

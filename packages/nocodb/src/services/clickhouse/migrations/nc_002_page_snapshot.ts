@@ -7,7 +7,7 @@ async function up(
   await client
     .query(
       `
-CREATE TABLE IF NOT EXISTS ${config.database}.page_history (
+CREATE TABLE IF NOT EXISTS ${config.database}.page_snapshot (
   id String(20) NOT NULL,
   fk_workspace_id String(20) NOT NULL,
   fk_project_id String(20) NOT NULL,

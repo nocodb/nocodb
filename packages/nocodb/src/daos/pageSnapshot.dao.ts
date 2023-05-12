@@ -43,7 +43,7 @@ export class PageSnapshotDao {
     const after_page_json = JSON.stringify(newPageBase64);
 
     const query = `
-    INSERT INTO page_history (id, fk_workspace_id, fk_project_id, fk_page_id, last_updated_by_id, last_page_updated_time, before_page_json, after_page_json, diff, type)
+    INSERT INTO page_snapshot (id, fk_workspace_id, fk_project_id, fk_page_id, last_updated_by_id, last_page_updated_time, before_page_json, after_page_json, diff, type)
     VALUES ('${id}', '${workspaceId}', '${projectId}', '${pageId}', '${lastUpdatedById}', '${lastPageUpdatedTime}', '${before_page_json}', '${after_page_json}', '${diffHtml}', '${type}')
   `;
 
@@ -71,7 +71,7 @@ export class PageSnapshotDao {
   async get({ id }: { id: string }) {
     let snapshot = (
       await this.clickhouseService.execute(
-        `SELECT * FROM page_history WHERE id = '${id}'`,
+        `SELECT * FROM page_snapshot WHERE id = '${id}'`,
       )
     )[0] as DocsPageSnapshotType;
 
@@ -106,7 +106,7 @@ export class PageSnapshotDao {
     diff,
     created_at,
     type
-  FROM page_history
+  FROM page_snapshot
   WHERE fk_project_id = '${projectId}' AND fk_page_id = '${pageId}'
   ORDER BY last_page_updated_time DESC
   

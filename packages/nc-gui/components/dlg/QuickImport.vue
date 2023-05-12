@@ -433,7 +433,7 @@ const beforeUpload = (file: UploadFile) => {
               </template>
 
               <div class="pr-10 pt-5">
-                <a-form :model="importState" name="quick-import-url-form" layout="horizontal" class="mb-0">
+                <a-form :model="importState" name="quick-import-url-form" layout="vertical" class="mb-0">
                   <a-form-item :label="importMeta.urlInputLabel" v-bind="validateInfos.url">
                     <a-input v-model:value="importState.url" size="large" />
                   </a-form-item>

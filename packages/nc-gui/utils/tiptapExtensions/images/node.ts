@@ -99,9 +99,10 @@ export const createImageExtension = (uploadFn: UploadFn) => {
       },
     ],
     renderHTML: ({ node, HTMLAttributes }) => [
-      'div',
+      'img',
       {
         ...HTMLAttributes,
+        'src': node.attrs.src,
         'data-type': TiptapNodesTypes.image,
         'data-src': node.attrs.src,
         'data-title': node.attrs.title,

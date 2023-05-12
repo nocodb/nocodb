@@ -12,7 +12,24 @@ import type { DocsPageSnapshotType, DocsPageType } from 'nocodb-sdk';
 dayjs.extend(utc);
 
 // Snap shot window 5 minutes
-const SNAP_SHOT_WINDOW_SEC = 5 * 60;
+const SNAP_SHOT_WINDOW_SEC = 5;
+
+const selfClosingHtmlTags = [
+  'area',
+  'base',
+  'br',
+  'col',
+  'embed',
+  'hr',
+  'img',
+  'input',
+  'link',
+  'meta',
+  'param',
+  'source',
+  'track',
+  'wbr',
+];
 
 @Injectable()
 export class DocsPageHistoryService {
@@ -191,13 +208,27 @@ export class DocsPageHistoryService {
   }
 
   private async getDiff(newPage: DocsPageType, oldPage: DocsPageType) {
+    // Remove img tags from content_html as diff will tag the img for diffs
+    // But we remove img tag before our post processing as self closing tags seems to trip
+    // up the html parser
+    const oldHtml = oldPage.content_html.replaceAll(
+      /<img[^>]*src="([^"]*)"[^>]*>/g,
+      '',
+    );
+
+    const newHtml = newPage.content_html.replaceAll(
+      /<img[^>]*src="([^"]*)"[^>]*>/g,
+      '',
+    );
+
     // TODO: Hacky way of forcing html diff to detect empty paragraph
-    const _diffHtml = diff(oldPage.content_html, newPage.content_html)
+    const _diffHtml = diff(oldHtml, newHtml)
       .replaceAll('>Empty</ins>', ' class="empty">__nc_empty__</ins>')
       .replaceAll('>Empty</del>', ' class="empty">__nc_empty__</del>')
       .replaceAll('<p #custom>Empty</p>', '<p></p>');
 
     const htmlParse = (HTMLParser as any).default as typeof HTMLParser;
+    console.log('getDiff', _diffHtml);
     const domJson = (await htmlParse(
       `<html>${_diffHtml}</html>`,
     )) as JSONContent;
@@ -206,6 +237,20 @@ export class DocsPageHistoryService {
     // If it has more than one child, then remove that child and create a new 'section' element
     // with that child
     const formatNode = (node: JSONContent) => {
+      if (node.attributes?.['data-type'] === 'image') {
+        // Add back img tags which we removed earlier
+        node.content = [
+          {
+            type: 'img',
+            attributes: {
+              src: node.attributes?.['data-src'],
+              alt: node.attributes?.['data-alt'],
+            },
+          } as JSONContent,
+        ];
+        return node;
+      }
+
       if (!node.content) return node;
 
       if (node.type !== 'section' || node.content.length <= 1) {
@@ -224,11 +269,15 @@ export class DocsPageHistoryService {
       );
     };
 
-    const processJson = formatNode(domJson);
-    const processedDiff = ((await JSONToHTML(processJson, true)) as string)
+    const processedJson = formatNode(domJson);
+    let processedDiff = ((await JSONToHTML(processedJson, true)) as string)
       // Remove the <html> and </html> tags
-      .slice(6, -7)
-      .replaceAll('<br></br>', '<br>');
+      .slice(6, -7);
+
+    // Process self-closing tags as JSONToHTML doesn't handle them properly
+    for (const tag of selfClosingHtmlTags) {
+      processedDiff = processedDiff.replaceAll(`></${tag}>`, `>`);
+    }
 
     return processedDiff;
   }

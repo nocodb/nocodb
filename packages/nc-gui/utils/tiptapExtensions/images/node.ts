@@ -99,10 +99,9 @@ export const createImageExtension = (uploadFn: UploadFn) => {
       },
     ],
     renderHTML: ({ node, HTMLAttributes }) => [
-      'img',
+      'div',
       {
         ...HTMLAttributes,
-        'src': node.attrs.src,
         'data-type': TiptapNodesTypes.image,
         'data-src': node.attrs.src,
         'data-title': node.attrs.title,
@@ -111,6 +110,15 @@ export const createImageExtension = (uploadFn: UploadFn) => {
         'data-diff-node': node.attrs.isInsertedHistory ? 'ins' : node.attrs.isDeletedHistory ? 'del' : null,
         'class': HTMLAttributes.class ? `image-wrapper cursor-pointer ${HTMLAttributes.class}` : 'image-wrapper cursor-pointer',
       },
+      [
+        'img',
+        {
+          src: node.attrs.src,
+          alt: node.attrs.alt,
+          title: node.attrs.title,
+          class: node.attrs.class,
+        },
+      ],
     ],
 
     addNodeView() {

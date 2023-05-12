@@ -119,9 +119,15 @@ export function useMultiSelect(
           if (columnObj.uidt === UITypes.DateTime) {
             let d = dayjs(textToCopy)
             if (!d.isValid()) {
-              // e.g. textToCopy = 2023-05-06T05:12:29.000Z
+              const isMySQL = isMysql(columnObj.base_id)
+              // insert a datetime value, copy the value without refreshing
+              // e.g. textToCopy = 2023-05-12T03:49:25.000Z
               // feed custom parse format
-              d = dayjs(textToCopy, isMysql(columnObj.base_id) ? 'YYYY-MM-DD HH:mm:ss' : 'YYYY-MM-DD HH:mm:ssZ')
+              d = dayjs(textToCopy, isMySQL ? 'YYYY-MM-DD HH:mm:ss' : 'YYYY-MM-DD HH:mm:ssZ')
+              if (isMySQL) {
+                // convert to local time - e.g. 2023-05-12T11:49:25+08:00
+                d = dayjs(d).utc(true).local()
+              }
             }
             // users can change the datetime format in UI
             // `textToCopy` would be always in YYYY-MM-DD HH:mm:ss(Z / +xx:yy) format

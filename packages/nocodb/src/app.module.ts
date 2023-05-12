@@ -31,8 +31,6 @@ import { CustomApiLimiterGuard } from './guards/custom-api-limiter.guard';
 import appConfig from './app.config';
 import { ExtractProjectAndWorkspaceIdMiddleware } from './middlewares/extract-project-and-workspace-id/extract-project-and-workspace-id.middleware';
 import { ExecutionTimeCalculatorInterceptor } from './interceptors/execution-time-calculator/execution-time-calculator.interceptor';
-import { KafkaConsumer } from './modules/kafka/kafka-consumer';
-import { KafkaProducer } from './modules/kafka/kafka-producer';
 import type {
   MiddlewareConsumer,
   OnApplicationBootstrap,

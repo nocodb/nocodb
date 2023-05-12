@@ -17,8 +17,7 @@ export class ThrottlerExpiryListenerService implements OnModuleInit {
 
   constructor(
     private readonly clickHouseService: ClickhouseService,
-    private readonly configService: ConfigService<AppConfig>,
-    private readonly kafkaProducer: KafkaProducer,
+    private readonly configService: ConfigService<AppConfig>, // private readonly kafkaProducer: KafkaProducer,
   ) {
     this.client = new Client(process.env['NC_THROTTLER_REDIS']);
     this.subscriber = new Client(process.env['NC_THROTTLER_REDIS']);
@@ -52,38 +51,38 @@ export class ThrottlerExpiryListenerService implements OnModuleInit {
 
     // Listen for the client to be ready
     // this.client.on('ready', async () => {
-      // Enable keyspace notifications for expired events
-      try {
-        await this.client.config('SET', 'notify-keyspace-events', 'Ex');
-      } catch (err) {
-        console.error('Failed to enable keyspace notifications:', err);
-      }
+    // Enable keyspace notifications for expired events
+    try {
+      await this.client.config('SET', 'notify-keyspace-events', 'Ex');
+    } catch (err) {
+      console.error('Failed to enable keyspace notifications:', err);
+    }
 
-      // Subscribe to expired events
-      this.subscriber.psubscribe(
-        `__keyevent@${process.env['NC_THROTTLER_REDIS']
-          .split('/')
-          .pop()}__:expired`,
-      );
+    // Subscribe to expired events
+    this.subscriber.psubscribe(
+      `__keyevent@${process.env['NC_THROTTLER_REDIS']
+        .split('/')
+        .pop()}__:expired`,
+    );
 
-      // Listen for expired events
-      this.subscriber.on('pmessage', async (pattern, channel, expiredKey) => {
-        const count = await this.client.get(expiredKey + '_shadow');
+    // Listen for expired events
+    this.subscriber.on('pmessage', async (pattern, channel, expiredKey) => {
+      const count = await this.client.get(expiredKey + '_shadow');
 
-        if (expiredKey.startsWith(keyPattern)) {
-          // Acquire a lock.
-          const lock = await this.redlock.acquire(['throttler'], 5000);
-          try {
-            // Do something...
-            await this.logDataToClickHouse(expiredKey, count);
-          } catch (e) {
-            this.logger.error('Sync failed :', e);
-          } finally {
-            // Release the lock.
-            await lock.release();
-          }
+      if (expiredKey.startsWith(keyPattern)) {
+        // Acquire a lock.
+        const lock = await this.redlock.acquire(['throttler'], 5000);
+        try {
+          // Do something...
+          await this.logDataToClickHouse(expiredKey, count);
+        } catch (e) {
+          this.logger.error('Sync failed :', e);
+        } finally {
+          // Release the lock.
+          await lock.release();
         }
-      });
+      }
+    });
     // });
   }
 
@@ -117,22 +116,22 @@ export class ThrottlerExpiryListenerService implements OnModuleInit {
       const [_, workspaceId, token] = expiredKey.match(/throttler:(.+)\|(.+)/);
       const execTime = +result[1] || 0;
 
-      await this.kafkaProducer.sendMessage(
-        'test',
-        JSON.stringify({
-          fk_workspace_id: workspaceId,
-          api_token: token,
-          count,
-          ttl: config.ttl,
-          max_apis: config.max_apis,
-          exec_time: execTime,
-        }),
-      );
+      // await this.kafkaProducer.sendMessage(
+      //   'test',
+      //   JSON.stringify({
+      //     fk_workspace_id: workspaceId,
+      //     api_token: token,
+      //     count,
+      //     ttl: config.ttl,
+      //     max_apis: config.max_apis,
+      //     exec_time: execTime,
+      //   }),
+      // );
 
-      // this.clickHouseService.execute(`
-      //   INSERT INTO api_count (id,fk_workspace_id, api_token,count, created_at, ttl, max_apis, exec_time)
-      //   VALUES (generateUUIDv4(), '${workspaceId}', '${token}', ${count}, now(), ${config.ttl}, ${config.max_apis}, ${execTime})
-      // `);
+      this.clickHouseService.execute(`
+        INSERT INTO api_count (id,fk_workspace_id, api_token,count, created_at, ttl, max_apis, exec_time)
+        VALUES (generateUUIDv4(), '${workspaceId}', '${token}', ${count}, now(), ${config.ttl}, ${config.max_apis}, ${execTime})
+      `);
     }
   }
 }

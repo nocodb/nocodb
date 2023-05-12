@@ -482,13 +482,14 @@ const beforeUpload = (file: UploadFile) => {
       </div>
     </a-spin>
     <template #footer>
-      <a-button v-if="templateEditorModal" key="back" @click="templateEditorModal = false">Back</a-button>
+      <a-button v-if="templateEditorModal" key="back" class="!rounded-md" @click="templateEditorModal = false">Back</a-button>
 
-      <a-button v-else key="cancel" @click="dialogShow = false">{{ $t('general.cancel') }}</a-button>
+      <a-button v-else key="cancel" class="!rounded-md" @click="dialogShow = false">{{ $t('general.cancel') }}</a-button>
 
       <a-button
         v-if="activeKey === 'jsonEditorTab' && !templateEditorModal"
         key="format"
+        class="!rounded-md"
         :disabled="disableFormatJsonButton"
         @click="formatJson"
       >
@@ -499,7 +500,7 @@ const beforeUpload = (file: UploadFile) => {
         v-if="!templateEditorModal"
         key="pre-import"
         type="primary"
-        class="nc-btn-import"
+        class="nc-btn-import !rounded-md"
         :loading="preImportLoading"
         :disabled="disablePreImportButton"
         @click="handlePreImport"
@@ -507,7 +508,15 @@ const beforeUpload = (file: UploadFile) => {
         {{ $t('activity.import') }}
       </a-button>
 
-      <a-button v-else key="import" type="primary" :loading="importLoading" :disabled="disableImportButton" @click="handleImport">
+      <a-button
+        v-else
+        key="import"
+        type="primary"
+        class="!rounded-md"
+        :loading="importLoading"
+        :disabled="disableImportButton"
+        @click="handleImport"
+      >
         {{ $t('activity.import') }}
       </a-button>
     </template>

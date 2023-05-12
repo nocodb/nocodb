@@ -35,6 +35,7 @@ export class DocsPageHistoryService {
     const { workspaceId, projectId, pageId, snapshotId, user } = params;
 
     const snapshot = await this.pageSnapshotDao.get({ id: snapshotId });
+    if (!snapshot) throw new Error('Snapshot not found');
 
     const snapshotAfterPage = snapshot.after_page;
 

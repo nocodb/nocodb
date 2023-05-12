@@ -68,14 +68,14 @@ export class PageSnapshotDao {
     return snapshot;
   }
 
-  async get({ id }: { id: string }) {
+  async get({ id }: { id: string }): Promise<DocsPageSnapshotType | undefined> {
     let snapshot = (
       await this.clickhouseService.execute(
         `SELECT * FROM page_snapshot WHERE id = '${id}'`,
       )
     )[0] as DocsPageSnapshotType;
 
-    if (!snapshot) throw new Error('Snapshot not found');
+    if (!snapshot) return undefined;
 
     snapshot = this.deserializeSnapshot(snapshot);
 

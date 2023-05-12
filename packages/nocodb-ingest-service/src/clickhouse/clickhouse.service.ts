@@ -105,7 +105,7 @@ export class ClickhouseService implements OnModuleInit, OnModuleDestroy {
       this.client = new ClickHouse(this.config);
     } catch (e) {
       this.logger.error(e);
-      process.exit(1);
+      // process.exit(1);
     }
   }
 }

@@ -22,6 +22,7 @@ const {
   flattenedNestedPages,
 } = storeToRefs(useDocStore())
 
+useDocHistoryStore()
 const { currentHistory, isHistoryPaneOpen } = storeToRefs(useDocHistoryStore())
 const { updatePage, nestedUrl, openPage } = useDocStore()
 
@@ -354,7 +355,7 @@ watch(
               class="docs-page-title-skelton !mt-3 !max-w-156 mb-3 ml-8 docs-page-skeleton-loading"
             />
             <div
-              v-if="
+              v-else-if="
                 openedPage &&
                 currentHistory &&
                 currentHistory.before_page &&

@@ -72,7 +72,7 @@ const snapshotTypeLabel = (snapshot: DocsPageSnapshotType) => {
 
     <div class="flex flex-col">
       <div
-        class="flex flex-row py-3 px-3 my-1.5 rounded-md hover:bg-gray-100 cursor-pointer border-1 select-none"
+        class="flex flex-row py-3 px-3 my-1.5 rounded-md hover:bg-gray-100 cursor-pointer border-1 border-gray-100 select-none"
         :class="{
           'bg-gray-100': !currentHistory,
         }"
@@ -83,7 +83,7 @@ const snapshotTypeLabel = (snapshot: DocsPageSnapshotType) => {
       <div
         v-for="item in history"
         :key="item.id"
-        class="flex flex-row py-3 px-3 my-1.5 rounded-md hover:bg-gray-100 cursor-pointer border-1 select-none"
+        class="flex flex-row py-3 px-3 my-1.5 rounded-md hover:bg-gray-100 cursor-pointer border-1 border-gray-100 select-none"
         :class="{
           'bg-gray-100': currentHistory && currentHistory.id === item.id,
         }"

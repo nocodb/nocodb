@@ -256,7 +256,9 @@ export const removeUploadingPlaceHolderAndEmptyLinkNode = (pageContent: any) => 
     const childNode = node.content?.length > 0 ? node.content[0] : null
     if (!childNode) return true
 
-    const isUploading = (childNode.type !== 'image' || childNode.type === 'attachment') && childNode.attrs?.isUploading
+    const isUploading =
+      childNode.attrs?.isUploading &&
+      (childNode.type === TiptapNodesTypes.image || childNode.type === TiptapNodesTypes.attachment)
     const isEmptyLink = childNode.type === TiptapNodesTypes.linkToPage && !childNode.attrs?.pageId
 
     return !isUploading && !isEmptyLink

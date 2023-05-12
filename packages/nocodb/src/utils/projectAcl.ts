@@ -272,8 +272,8 @@ const rolePermissions = {
       pageMagicExpand: true,
       pageMagicOutline: true,
       pagePaginate: true,
-      pageMagicCreate: true,
       pageDirectoryImport: true,
+      pagesMagicCreate: true,
     },
   },
   commenter: {

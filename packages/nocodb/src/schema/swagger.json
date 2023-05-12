@@ -847,6 +847,71 @@
       },
       "parameters": []
     },
+    "/api/v1/docs/project/{projectId}/page/{pageId}/history": {
+      "get": {
+        "summary": "List page history",
+        "operationId": "list-page-history",
+        "parameters": [
+          {
+            "name": "pageNumber",
+            "in": "query",
+            "description": "Page Number for pagination",
+            "required": true,
+            "schema": {
+              "type": "number"
+            }
+          },
+          {
+            "name": "pageSize",
+            "in": "query",
+            "description": "Page Size for pagination",
+            "required": true,
+            "schema": {
+              "type": "number"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "snapshots": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/DocsPageSnapshot"
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "Noco docs"
+        ],
+        "description": "List page history"
+      }
+    },
+    "/api/v1/docs/project/{projectId}/page/{pageId}/history/{snapshotId}/restore": {
+      "post": {
+        "summary": "Restore page history",
+        "operationId": "restore-page-history",
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        },
+        "tags": [
+          "Noco docs"
+        ],
+        "description": "Restore page history"
+      }
+    },
     "/api/v1/auth/user/signup": {
       "post": {
         "summary": "Signup",
@@ -17716,6 +17781,9 @@
           "content": {
             "type": "string"
           },
+          "content_html": {
+            "type": "string"
+          },
           "created_at": {
             "format": "date",
             "type": "string"
@@ -17785,6 +17853,13 @@
           "updated_at": {
             "format": "date",
             "type": "string"
+          },
+          "last_snapshot_at": {
+            "format": "date",
+            "type": "string"
+          },
+          "last_snapshot_id": {
+            "type": "string"
           }
         },
         "required": [
@@ -17794,6 +17869,61 @@
         "title": "DocsPage",
         "type": "object",
         "x-internal": false
+      },
+      "DocsPageSnapshot": {
+        "description": "Snapshot of a DocsPage",
+        "properties": {
+          "id": {
+            "description": "Unique identifier for the given page.",
+            "type": "string"
+          },
+          "fk_workspace_id": {
+            "type": "string"
+          },
+          "fk_project_id": {
+            "type": "string"
+          },
+          "fk_page_id": {
+            "type": "string"
+          },
+          "last_updated_by_id": {
+            "type": "string"
+          },
+          "created_at": {
+            "format": "date",
+            "type": "string"
+          },
+          "last_page_updated_time": {
+            "format": "date",
+            "type": "string"
+          },
+          "before_page": {
+            "$ref": "#/components/schemas/DocsPage",
+            "required": "false"
+          },
+          "before_page_json": {
+            "type": "string"
+          },
+          "after_page": {
+            "$ref": "#/components/schemas/DocsPage",
+            "required": "false"
+          },
+          "after_page_json": {
+            "type": "string"
+          },
+          "diff": {
+            "type": "string"
+          },
+          "type": {
+            "type": "string",
+            "enum": [
+              "updated",
+              "published",
+              "unpublished",
+              "restored"
+            ]
+          }
+        }
       },
       "Filter": {
         "description": "Model for Filter",

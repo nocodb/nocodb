@@ -2,9 +2,12 @@
 import { EditorContent, useEditor } from '@tiptap/vue-3'
 import { Icon as IconifyIcon } from '@iconify/vue'
 import { TiptapNodesTypes } from 'nocodb-sdk'
+import { generateJSON } from '@tiptap/html'
 import { useShortcuts } from '../utils'
 import tiptapExtensions from '~~/utils/tiptapExtensions'
+import AlignRightIcon from '~icons/tabler/align-right'
 import { removeUploadingPlaceHolderAndEmptyLinkNode } from '~~/utils/tiptapExtensions/helper'
+
 const { project } = useProject()
 useShortcuts()
 
@@ -14,13 +17,18 @@ const {
   openedPageInSidebar,
   openedPageWithParents,
   isPublic,
-  isEditAllowed,
+  isEditAllowed: _isEditAllowed,
   isPageFetching,
   flattenedNestedPages,
 } = storeToRefs(useDocStore())
 
+useDocHistoryStore()
+const { currentHistory, isHistoryPaneOpen } = storeToRefs(useDocHistoryStore())
 const { updatePage, nestedUrl, openPage } = useDocStore()
 
+const isEditAllowed = computed(() => _isEditAllowed.value && !currentHistory.value)
+
+const showOutline = ref(isPublic.value)
 const pageWrapperDomRef = ref<HTMLDivElement | undefined>()
 const pageContentDomRef = ref<HTMLDivElement | undefined>()
 
@@ -70,8 +78,10 @@ const editor = useEditor({
   extensions: tiptapExtensions(isPublic.value),
   onUpdate: ({ editor }) => {
     if (!openedPage.value) return
+    if (currentHistory.value) return
 
     openedPage.value.content = JSON.stringify(removeUploadingPlaceHolderAndEmptyLinkNode(editor.getJSON()))
+    openedPage.value.content_html = editor.getHTML()
   },
   editorProps: {
     handleKeyDown: (view, event) => {
@@ -109,21 +119,37 @@ watch(
   },
 )
 
+const setEditorContent = (_content: any, _isEditAllowed?: boolean, isHtml?: boolean) => {
+  if (!editor.value) return
+  ;(editor.value.state as any).history$.prevRanges = null
+  ;(editor.value.state as any).history$.done.eventCount = 0
+
+  _isEditAllowed = _isEditAllowed ?? isEditAllowed.value
+
+  editor.value?.setOptions({
+    editable: _isEditAllowed,
+  })
+
+  const selection = editor.value.view.state.selection
+  if (isHtml) {
+    _content = generateJSON(_content, tiptapExtensions(_isEditAllowed))
+  }
+  editor.value.chain().setContent(_content).setTextSelection(selection.to).run()
+}
+
 watch(
   () => [openedPage.value?.id, editor.value],
   ([newId], oldVal) => {
     if (oldVal === undefined) return
+    if (currentHistory.value) return
+
     const [oldId, oldEditor] = oldVal
 
     if (!editor.value) return
     if (!openedPage.value?.id) return
 
     if (newId === oldId && oldEditor) return
-    ;(editor.value.state as any).history$.prevRanges = null
-    ;(editor.value.state as any).history$.done.eventCount = 0
-
-    const selection = editor.value.view.state.selection
-    editor.value.chain().setContent(content.value).setTextSelection(selection.to).run()
+    setEditorContent(content.value)
   },
   {
     immediate: true,
@@ -137,7 +163,7 @@ watchDebounced(
     if (isEditAllowed && openedPage.value?.id && newId === oldId && newContent !== oldContent) {
       updatePage({
         pageId: openedPage.value?.id,
-        page: { content: openedPage.value!.content },
+        page: { content: openedPage.value!.content, content_html: openedPage.value!.content_html },
         disableLocalSync: true,
         projectId: project.id!,
       })
@@ -201,19 +227,41 @@ watch(pageWrapperDomRef, () => {
 
   wrapper.addEventListener('drop', (e) => handleOutsideTiptapDrag(e, 'drop'))
 })
+
+const focusOnFirstDiffedElement = () => {
+  const diffedElements = document.querySelectorAll('.nc-docs-page [data-is-diff="true"]')
+  if (diffedElements.length === 0) return
+
+  const firstDiffedElement = diffedElements[0] as HTMLElement
+  firstDiffedElement.scrollIntoView({
+    behavior: 'smooth',
+    block: 'center',
+    inline: 'center',
+  })
+}
+
+watch(
+  currentHistory,
+  () => {
+    if (!currentHistory.value) {
+      setEditorContent(content.value)
+      return
+    }
+
+    setEditorContent(currentHistory.value.diff, false, true)
+    setTimeout(() => {
+      focusOnFirstDiffedElement()
+    }, 0)
+  },
+  {
+    deep: true,
+  },
+)
 </script>
 
 <template>
   <a-layout-content>
-    <div
-      ref="pageWrapperDomRef"
-      data-testid="docs-opened-page"
-      class="nc-docs-page h-full flex flex-row relative"
-      :class="{
-        '!pt-0': isPublic,
-        'pt-1': !isPublic,
-      }"
-    >
+    <div ref="pageWrapperDomRef" data-testid="docs-opened-page" class="nc-docs-page h-full flex flex-row relative">
       <div
         class="flex flex-col w-full"
         :class="{
@@ -221,8 +269,8 @@ watch(pageWrapperDomRef, () => {
           editable: isEditAllowed,
         }"
       >
-        <div class="flex flex-row justify-between items-center pl-6 py-2.5">
-          <div class="flex flex-row h-6">
+        <div class="flex flex-row justify-between items-center pl-6 my-2 h-8">
+          <div class="flex flex-row">
             <template v-if="flattenedNestedPages.length !== 0">
               <div v-for="({ href, title, icon, id }, index) of breadCrumbs" :key="id" class="flex">
                 <NuxtLink
@@ -252,18 +300,48 @@ watch(pageWrapperDomRef, () => {
             </template>
           </div>
           <div v-if="!isPublic" class="flex flex-row items-center"></div>
+          <div class="flex flex-row items-center gap-x-1 mr-2 mt-0.25">
+            <div
+              class="mt-0.25 p-1.75 flex items-center hover:bg-gray-100 cursor-pointer rounded-md mr-2"
+              :class="{
+                'bg-gray-100': isHistoryPaneOpen,
+              }"
+              @click="isHistoryPaneOpen = !isHistoryPaneOpen"
+            >
+              <MaterialSymbolsHistoryRounded class="!h-4.5" />
+            </div>
+            <div class="">
+              <LazyGeneralShareProject v-if="!currentHistory" />
+              <DocsPageRestoreButton v-else />
+            </div>
+            <div class="flex flex-row">
+              <div class="flex flex-row justify-end cursor-pointer rounded-md">
+                <div
+                  data-testid="docs-page-outline-toggle"
+                  class="flex p-1 cursor-pointer rounded-md pop-in-animation-med-delay"
+                  :class="{
+                    'bg-gray-100 hover:bg-gray-200': showOutline,
+                    'bg-white hover:bg-gray-100': !showOutline,
+                  }"
+                  :aria-expanded="showOutline"
+                  @click="showOutline = !showOutline"
+                >
+                  <AlignRightIcon />
+                </div>
+              </div>
+            </div>
+          </div>
         </div>
-        <div ref="pageContentDomRef" class="nc-docs-page-content relative pb-20">
+        <div ref="pageContentDomRef" :key="isEditAllowed" class="nc-docs-page-content relative pb-20">
           <DocsPageMutliSectionSelector
-            v-if="isEditAllowed && editor && pageWrapperDomRef && pageContentDomRef"
+            v-if="isEditAllowed && editor && pageContentDomRef"
             :editor="editor"
             :selection-box="selectionBox"
-            :page-wrapper-dom-ref="pageWrapperDomRef"
             :page-content-dom-ref="pageContentDomRef"
             @update:selection-box="selectionBox = $event"
           />
           <div
-            :key="openedPageId ?? ''"
+            :key="openedPageId ?? currentHistory?.id ?? ''"
             class="mx-auto pr-6 pt-16 flex flex-col"
             :style="{
               width: '64rem',
@@ -276,7 +354,44 @@ watch(pageWrapperDomRef, () => {
               size="large"
               class="docs-page-title-skelton !mt-3 !max-w-156 mb-3 ml-8 docs-page-skeleton-loading"
             />
+            <div
+              v-else-if="
+                openedPage &&
+                currentHistory &&
+                currentHistory.before_page &&
+                currentHistory.after_page &&
+                currentHistory.before_page.title !== currentHistory.after_page.title
+              "
+              class="flex flex-col"
+            >
+              <div class="py-2 mb-1 bg-red-200 rounded-sm">
+                <DocsPageTitle
+                  :key="currentHistory.id + currentHistory.before_page!.title!"
+                  :data-is-diff="true"
+                  class="docs-page-title"
+                  :title="currentHistory.before_page!.title!"
+                  @focus-editor="focusEditor"
+                />
+              </div>
+              <div class="py-2 bg-green-200 rounded-sm">
+                <DocsPageTitle
+                  :key="currentHistory.id + currentHistory.before_page!.title!"
+                  :data-is-diff="true"
+                  class="docs-page-title"
+                  :title="currentHistory.after_page!.title!"
+                  @focus-editor="focusEditor"
+                />
+              </div>
+            </div>
+            <DocsPageTitle
+              v-else-if="openedPage && currentHistory"
+              :key="currentHistory.id + currentHistory.after_page!.title!"
+              class="docs-page-title"
+              :title="currentHistory.after_page!.title!"
+              @focus-editor="focusEditor"
+            />
             <DocsPageTitle v-else-if="openedPage" :key="openedPage.id" class="docs-page-title" @focus-editor="focusEditor" />
+
             <div class="flex !mb-4.5"></div>
 
             <DocsPageLinkToPageSearch v-if="editor" :editor="editor" />
@@ -325,19 +440,13 @@ watch(pageWrapperDomRef, () => {
           </div>
         </div>
       </div>
+      <DocsPageHistory v-if="isHistoryPaneOpen" @close="isHistoryPaneOpen = false" />
     </div>
-    <div class="absolute right-10 top-2.25">
-      <LazyGeneralShareProject />
-    </div>
-    <div
-      class="absolute right-0 pt-2 mr-2.5"
-      :class="{
-        'top-0.25': isPublic,
-        'top-1': !isPublic,
-      }"
-    >
-      <DocsPageOutline v-if="openedPage && pageWrapperDomRef" :key="openedPage.id" :wrapper-ref="pageWrapperDomRef" />
-    </div>
+    <DocsPageOutline
+      v-if="showOutline && openedPage && pageWrapperDomRef"
+      :key="openedPage.id"
+      :wrapper-ref="pageWrapperDomRef"
+    />
   </a-layout-content>
 </template>
 
@@ -407,6 +516,42 @@ watch(pageWrapperDomRef, () => {
   .ProseMirror-focused {
     // remove all border
     outline: none;
+  }
+
+  [data-diff-node='ins'] {
+    @apply !bg-green-200 rounded-sm p-0.5 m-0.5;
+  }
+
+  [data-diff-node='del'] {
+    @apply !bg-red-200 rounded-sm p-0.5 m-0.5;
+  }
+
+  del {
+    @apply !bg-red-200 rounded-sm my-0.5;
+    text-decoration: none;
+  }
+  ins {
+    @apply !bg-green-200 rounded-sm my-0.5 mx-0.5;
+    text-decoration: none;
+  }
+
+  ins[isempty='true'] {
+    display: block;
+    color: transparent;
+    user-select: none;
+    @apply !w-full;
+  }
+  del[isempty='true'] {
+    display: block;
+    color: transparent;
+    user-select: none;
+    @apply !w-full;
+  }
+
+  td {
+    ins {
+      @apply !p-0 !m-0;
+    }
   }
 
   .draggable-block-wrapper.focused {

@@ -1,10 +1,13 @@
 import { Injectable } from '@nestjs/common';
-import { NcError } from '../../helpers/catchError';
-import { Project } from '../../models';
-import Page from '../../models/Page';
+import { NcError } from '../../../helpers/catchError';
+import { Project } from '../../../models';
+import { PageDao } from '../../../daos/page.dao';
+import type { DocsPageType } from 'nocodb-sdk';
 
 @Injectable()
 export class PublicDocsService {
+  constructor(private readonly pageDao: PageDao) {}
+
   async getPublicPageAndProject(param: { projectId: string; pageId: string }) {
     const project = await Project.getWithInfo(param.projectId as string);
     const projectMeta =
@@ -12,7 +15,7 @@ export class PublicDocsService {
         ? JSON.parse(project?.meta)
         : project?.meta;
 
-    const page = await Page.get({
+    const page = await this.pageDao.get({
       id: param.pageId,
       projectId: param?.projectId,
     });
@@ -40,7 +43,7 @@ export class PublicDocsService {
         parent_page_id: page.parent_page_id,
         order: page.order,
         icon: page.icon,
-      } as Partial<Page>,
+      } as Partial<DocsPageType>,
       project: {
         id: project.id,
         title: project.title,
@@ -57,12 +60,12 @@ export class PublicDocsService {
         : project?.meta;
 
     if (projectMeta?.isPublic) {
-      return await Page.nestedListAll({
+      return await this.pageDao.nestedListAll({
         projectId: param.projectId,
       });
     }
 
-    const page = await Page.get({
+    const page = await this.pageDao.get({
       id: param.parentPageId,
       projectId: param.projectId,
     });
@@ -75,7 +78,7 @@ export class PublicDocsService {
 
     await new Promise((resolve) => setTimeout(resolve, 2000));
 
-    return await Page.nestedList({
+    return await this.pageDao.nestedList({
       projectId: param.projectId,
       parent_page_id: page.nested_published_parent_id ?? param.parentPageId,
     });

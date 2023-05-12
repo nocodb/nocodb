@@ -13,7 +13,6 @@ interface SelectionBox {
 
 interface Props {
   editor: Editor
-  pageWrapperDomRef: HTMLElement
   pageContentDomRef: HTMLElement
   selectionBox: SelectionBox | undefined
 }
@@ -21,7 +20,7 @@ interface Props {
 const props = defineProps<Props>()
 const emits = defineEmits(['update:selectionBox'])
 
-const { editor, pageWrapperDomRef, pageContentDomRef } = toRefs(props)
+const { editor, pageContentDomRef } = toRefs(props)
 
 const selectionBox = useVModel(props, 'selectionBox', emits)
 
@@ -79,15 +78,15 @@ watchDebounced(
 )
 
 onMounted(() => {
-  if (!pageWrapperDomRef.value) return
-  const wrapper = pageWrapperDomRef.value
+  if (!pageContentDomRef.value) return
+  const pageContentDom = pageContentDomRef.value
 
   // Listen to mousedown event
-  wrapper.addEventListener('mousedown', async (e) => {
+  pageContentDom.addEventListener('mousedown', async (e) => {
     if (selectionBox.value) return
 
     // x as relative to the page content
-    const x = e.clientX - wrapper.getBoundingClientRect().left
+    const x = e.clientX - pageContentDom.getBoundingClientRect().left
     // y as relative to the page content
     const y = e.clientY + pageContentDomRef.value.scrollTop - pageContentDomRef.value.getBoundingClientRect().top
 
@@ -123,14 +122,14 @@ onMounted(() => {
   })
 
   // Listen to mousemove event
-  wrapper.addEventListener('mousemove', (e) => {
+  pageContentDom.addEventListener('mousemove', (e) => {
     if (!selectionBox.value) return
 
     e.stopPropagation()
     e.preventDefault()
 
     const pageContentTop = pageContentDomRef.value.getBoundingClientRect().top
-    const wrapperLeftOffset = wrapper.getBoundingClientRect().left
+    const pageContentDomLeftOffset = pageContentDom.getBoundingClientRect().left
 
     const x = e.clientX
     const relativeX = x - pageContentDomRef.value.getBoundingClientRect().left
@@ -152,7 +151,7 @@ onMounted(() => {
       selectionBox.value.bottom = pageContentDivBottom - y
     }
 
-    if (x === selectionBox.value.anchorLeft + wrapperLeftOffset && y === selectionBox.value.anchorTop) {
+    if (x === selectionBox.value.anchorLeft + pageContentDomLeftOffset && y === selectionBox.value.anchorTop) {
       return
     }
 
@@ -175,7 +174,7 @@ onMounted(() => {
   })
 
   // Listen to mouseup event
-  wrapper.addEventListener('mouseup', (e) => {
+  pageContentDom.addEventListener('mouseup', (e) => {
     if (!selectionBox.value) return
 
     e.stopPropagation()

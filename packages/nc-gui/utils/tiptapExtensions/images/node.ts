@@ -56,6 +56,18 @@ export const createImageExtension = (uploadFn: UploadFn) => {
           return height ? parseInt(height, 10) : undefined
         },
       },
+      isInsertedHistory: {
+        default: false,
+        parseHTML: (element) => {
+          return element.getAttribute('data-diff-node') === 'ins'
+        },
+      },
+      isDeletedHistory: {
+        default: false,
+        parseHTML: (element) => {
+          return element.getAttribute('data-diff-node') === 'del'
+        },
+      },
     }),
     parseHTML: () => [
       {
@@ -94,8 +106,19 @@ export const createImageExtension = (uploadFn: UploadFn) => {
         'data-src': node.attrs.src,
         'data-title': node.attrs.title,
         'data-alt': node.attrs.alt,
+        'data-is-diff': node.attrs.isInsertedHistory || node.attrs.isDeletedHistory ? 'true' : null,
+        'data-diff-node': node.attrs.isInsertedHistory ? 'ins' : node.attrs.isDeletedHistory ? 'del' : null,
         'class': HTMLAttributes.class ? `image-wrapper cursor-pointer ${HTMLAttributes.class}` : 'image-wrapper cursor-pointer',
       },
+      [
+        'img',
+        {
+          src: node.attrs.src,
+          alt: node.attrs.alt,
+          title: node.attrs.title,
+          class: node.attrs.class,
+        },
+      ],
     ],
 
     addNodeView() {

@@ -23,8 +23,6 @@ import NcUpgrader from './version-upgrader/NcUpgrader';
 import { MetasModule } from './modules/metas/metas.module';
 import { WorkspacesModule } from './modules/workspaces/workspaces.module';
 import { WorkspaceUsersModule } from './modules/workspace-users/workspace-users.module';
-import { DocsModule } from './modules/docs/docs.module';
-import { PublicDocsModule } from './modules/public-docs/public-docs.module';
 import NocoCache from './cache/NocoCache';
 import { ThrottlerConfigService } from './services/throttler/throttler-config.service';
 import { CustomApiLimiterGuard } from './guards/custom-api-limiter.guard';
@@ -51,8 +49,6 @@ const enableThrottler = !!process.env['NC_THROTTLER_REDIS'];
     // todo:combine and move to meta module
     WorkspacesModule,
     WorkspaceUsersModule,
-    DocsModule,
-    PublicDocsModule,
     ConfigModule.forRoot({
       load: [() => appConfig],
       isGlobal: true,

@@ -405,7 +405,7 @@ watch(
       :footer="null"
       :centered="true"
     >
-      <div class="flex flex-col px-2.5">
+      <div class="flex flex-col px-1">
         <div class="flex flex-row items-center justify-between mx-1.5 border-b-1 border-gray-100 pb-2 pt-0.5">
           <div class="flex flex-row ml-1 font-semibold items-center">
             <div class="flex">Create pages with prompt</div>
@@ -428,7 +428,7 @@ watch(
           <a-input v-model:value="magicFormData.title" class="!rounded-md !bg-gray-50" placeholder="Enter prompt" />
         </div>
 
-        <div class="flex flex-row justify-end mr-2 mt-3.5 mb-2">
+        <div class="flex flex-row justify-end mr-2 mt-5 mb-1">
           <a-button
             :loading="isMagicLoading"
             :disabled="magicFormData.title?.length === 0"
@@ -555,10 +555,7 @@ watch(
 
 .docs-magic-modal {
   .ant-modal-content {
-    @apply !rounded-md;
-  }
-  .ant-modal-body {
-    @apply !py-2.5 !px-0;
+    @apply !rounded-md !py-3 px-1;
   }
   .ant-btn-loading-icon {
     @apply !pb-1;

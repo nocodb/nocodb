@@ -1,8 +1,8 @@
 import { Controller, Get, Param, Query, Request } from '@nestjs/common';
-import { PublicDocsService } from './public-docs.service';
+import { PublicDocsService } from '../../../services/docs/public/public-docs.service';
 
 @Controller()
-export class PublicDocsController {
+export class DocsPublicController {
   constructor(private readonly publicDocsService: PublicDocsService) {}
 
   @Get('/api/v1/public/docs/page/:id')

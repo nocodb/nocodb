@@ -1,11 +1,15 @@
 import { Injectable } from '@nestjs/common';
 import { Configuration, OpenAIApi } from 'openai';
 import JSON5 from 'json5';
-import { NcError } from '../../../helpers/catchError';
-import Page from '../../../models/Page';
-import { Project } from '../../../models';
-import { fetchGHDocs } from './helper/import';
-import type { UserType } from 'nocodb-sdk';
+import axios from 'axios';
+import listContent from 'list-github-dir-content';
+import { marked } from 'marked';
+import { Project } from '../../models';
+
+import { NcError } from '../../helpers/catchError';
+import { PageDao } from '../../daos/page.dao';
+import { DocsPagesUpdateService } from './docs-page-update.service';
+import type { DocsPageType, UserType } from 'nocodb-sdk';
 
 const configuration = new Configuration({
   apiKey: process.env.OPENAI_API_KEY,
@@ -14,7 +18,12 @@ const configuration = new Configuration({
 const openai = new OpenAIApi(configuration);
 
 @Injectable()
-export class PagesService {
+export class DocsPagesService {
+  constructor(
+    private readonly pagesDao: PageDao,
+    private readonly pageUpdateService: DocsPagesUpdateService,
+  ) {}
+
   async get(param: {
     fields?: string[] | string;
     projectId: string;
@@ -24,7 +33,7 @@ export class PagesService {
     if (fields) {
       fields = Array.isArray(fields) ? fields : [fields];
     }
-    const page = await Page.get({
+    const page = await this.pagesDao.get({
       id: param.id,
       projectId: param?.projectId as string,
       fields: fields as string[],
@@ -36,30 +45,44 @@ export class PagesService {
   }
 
   async list(param: { projectId: string }) {
-    return await Page.nestedListAll({
+    return await this.pagesDao.nestedListAll({
       projectId: param.projectId as string,
     });
   }
 
   async create(param: {
-    attributes: Parameters<typeof Page.create>[0]['attributes'];
+    attributes: Partial<DocsPageType>;
     projectId: string;
     user: UserType;
   }) {
-    return await Page.create(param);
+    return await this.pagesDao.create(param);
   }
 
-  async update(param: {
-    attributes: Parameters<typeof Page.create>[0]['attributes'];
+  async update({
+    attributes,
+    projectId,
+    user,
+    pageId,
+    workspaceId,
+  }: {
+    attributes: Partial<DocsPageType>;
     projectId: string;
     user: UserType;
     pageId: string;
+    workspaceId: string;
   }) {
-    return await Page.update(param);
+    const service = this.pageUpdateService;
+    return await service.process({
+      pageId,
+      projectId,
+      attributes,
+      user,
+      workspaceId,
+    });
   }
 
   async delete(param: { id: string; projectId: string }) {
-    await Page.delete(param);
+    await this.pagesDao.delete(param);
 
     return true;
   }
@@ -75,13 +98,13 @@ export class PagesService {
     if (!project) NcError.notFound('Project not found');
 
     const parentPagesTitles = (
-      await Page.parents({
+      await this.pagesDao.parents({
         pageId: param.pageId,
         projectId: param.projectId,
       })
     ).map((p) => p.title);
 
-    const page = await Page.get({
+    const page = await this.pagesDao.get({
       id: param.pageId,
       projectId: param.projectId,
     });
@@ -121,13 +144,13 @@ export class PagesService {
     if (!project) throw new Error('Project not found');
 
     const parentPagesTitles = (
-      await Page.parents({
+      await this.pagesDao.parents({
         pageId: param.pageId,
         projectId: param.projectId,
       })
     ).map((p) => p.title);
 
-    const page = await Page.get({
+    const page = await this.pagesDao.get({
       id: param.pageId,
       projectId: param.projectId,
     });
@@ -161,7 +184,7 @@ export class PagesService {
   async pageParents(param: { pageId: string; projectId: string }) {
     const { pageId, projectId } = param;
 
-    return await Page.parents({
+    return await this.pagesDao.parents({
       pageId,
       projectId,
     });
@@ -173,7 +196,7 @@ export class PagesService {
     user: UserType,
     projectId: string,
   ) {
-    const parentPage = await Page.create({
+    const parentPage = await this.pagesDao.create({
       attributes: {
         title: pg?.title,
         description: pg?.description,
@@ -226,8 +249,8 @@ export class PagesService {
         await this.handlePageJSON(page, undefined, user as UserType, projectId);
       }
     } catch (e) {
-      console.log(response?.data?.choices[0]?.text);
       console.log(e);
+      console.log(response?.data?.choices[0]?.text);
       NcError.badRequest('Failed to parse schema');
     }
     return true;
@@ -279,4 +302,193 @@ export class PagesService {
     }
     return true;
   }
+}
+
+async function listDirectory(
+  user: string,
+  repository: string,
+  ref: string,
+  dir: string,
+  token = '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',
+) {
+  const files = await listContent.viaTreesApi({
+    user,
+    repository,
+    ref,
+    directory: decodeURIComponent(dir),
+    token: token,
+    getFullData: true,
+  });
+
+  return files;
+}
+
+async function getMarkdownFiles(
+  files: Array<{
+    path: string;
+    mode: string;
+    type: string;
+    sha: string;
+    size: number;
+    url: string;
+  }>,
+) {
+  const markdownFiles = files.filter((file) => file.path.endsWith('.md'));
+  return markdownFiles;
+}
+
+async function fetchMarkdownContent(
+  user: string,
+  repository: string,
+  ref: string,
+  path: string,
+): Promise<string> {
+  return new Promise((resolve, reject) => {
+    axios(
+      `https://raw.githubusercontent.com/${user}/${repository}/${ref}/${escapeFilepath(
+        path,
+      )}`,
+    )
+      .then((response) => {
+        resolve(response.data);
+      })
+      .catch((error) => {
+        reject(error);
+      });
+  });
+}
+
+export async function fetchGHDocs(
+  user: string,
+  repository: string,
+  ref: string,
+  dir: string,
+  type = 'md',
+) {
+  const files = await listDirectory(user, repository, ref, dir);
+  const markdownFiles = await getMarkdownFiles(files);
+
+  const docs = [];
+
+  if (type === 'md') {
+    for (const file of markdownFiles) {
+      const relPath = file.path.replace(dir, '').replace(/^\//, '');
+      const pathParts = relPath.split('/').filter((part) => part !== '');
+      pathParts.pop();
+      let activePath = docs;
+
+      for (const pathPart of pathParts) {
+        const fnd = activePath.find((page) => page.title === pathPart);
+        if (!fnd) {
+          activePath.push({
+            title: pathPart,
+            content: '',
+            pages: [],
+          });
+          activePath = activePath.find((page) => page.title === pathPart).pages;
+        } else {
+          activePath = fnd.pages;
+        }
+      }
+
+      activePath.push({
+        title: file.path.split('/').pop().replace('.md', ''),
+        ...processContent(
+          await fetchMarkdownContent(user, repository, ref, file.path),
+          type,
+        ),
+        pages: [],
+      });
+
+      activePath.sort((a, b) => (a.order ?? Infinity) - (b.order ?? Infinity));
+    }
+  } else if (type === 'nuxt') {
+    for (const file of markdownFiles) {
+      const processedContent = processContent(
+        await fetchMarkdownContent(user, repository, ref, file.path),
+        type,
+      );
+      if (processedContent?.category) {
+        let fnd = docs.find((page) => page.title === processedContent.category);
+
+        if (!fnd) {
+          docs.push({
+            title: processedContent.category,
+            order: processedContent.order,
+            content: '',
+            pages: [],
+          });
+          fnd = docs.find((page) => page.title === processedContent.category);
+        }
+
+        fnd.pages.push({
+          title: file.path.split('/').pop().replace('.md', ''),
+          ...processedContent,
+          pages: [],
+        });
+
+        fnd.pages.sort((a, b) => (a.order ?? Infinity) - (b.order ?? Infinity));
+      } else {
+        docs.push({
+          title: file.path.split('/').pop().replace('.md', ''),
+          content: '',
+          order: processedContent.order,
+          pages: [
+            {
+              title: file.path.split('/').pop().replace('.md', ''),
+              ...processedContent,
+              pages: [],
+            },
+          ],
+        });
+      }
+
+      docs.sort((a, b) => (a.order ?? Infinity) - (b.order ?? Infinity));
+    }
+  }
+
+  return docs;
+}
+
+function processContent(content: string, type: string): any {
+  switch (type) {
+    case 'nuxt': {
+      const metaObj = {};
+      if (content.startsWith('---')) {
+        const meta = content.split('---')[1];
+        meta.split('\n').forEach((line) => {
+          if (!line.includes(':')) return;
+          const [key, value] = line.split(':');
+          metaObj[key.trim()] = value.trim();
+        });
+        content = content.split('---')[2];
+      }
+      const tempArgs = {
+        category: metaObj['category']?.replace(/^["'](.+(?=["']$))["']$/, '$1'),
+        content: marked(content),
+        order: metaObj['position'] || null,
+        description: metaObj['description']?.replace(
+          /^["'](.+(?=["']$))["']$/,
+          '$1',
+        ),
+      };
+
+      if (metaObj['menuTitle'])
+        tempArgs['title'] = metaObj['title'].replace(
+          /^["'](.+(?=["']$))["']$/,
+          '$1',
+        );
+
+      return tempArgs;
+    }
+    case 'md':
+    default:
+      return {
+        content: marked(content),
+      };
+  }
+}
+
+function escapeFilepath(path) {
+  return path.replaceAll('#', '%23');
 }

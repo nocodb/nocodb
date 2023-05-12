@@ -108,9 +108,9 @@ onMounted(() => {
 
       <a-button
         v-e="['c:webhook:add']"
-        class="float-right nc-btn-create-webhook"
+        class="float-right !rounded-md nc-btn-create-webhook"
         type="primary"
-        size="large"
+        size="middle"
         @click="emit('add')"
       >
         {{ $t('activity.addWebhook') }}

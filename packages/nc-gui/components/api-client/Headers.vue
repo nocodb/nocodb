@@ -74,11 +74,11 @@ const filterOption = (input: string, option: Option) => {
           </th>
 
           <th>
-            <div class="text-center font-normal mb-2">Header Name</div>
+            <div class="text-left font-normal ml-2">Header Name</div>
           </th>
 
           <th>
-            <div class="text-center font-normal mb-2">Value</div>
+            <div class="text-left font-normal ml-2">Value</div>
           </th>
 
           <th>

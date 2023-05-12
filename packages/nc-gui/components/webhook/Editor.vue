@@ -461,14 +461,14 @@ onMounted(async () => {
     </div>
 
     <div>
-      <a-button class="mr-3 nc-btn-webhook-test" size="large" @click="testWebhook">
+      <a-button class="mr-3 nc-btn-webhook-test !rounded-md" size="middle" @click="testWebhook">
         <div class="flex items-center">
           <MdiGestureDoubleTap class="mr-2" />
           {{ $t('activity.testWebhook') }}
         </div>
       </a-button>
 
-      <a-button class="nc-btn-webhook-save" type="primary" size="large" @click.prevent="saveHooks">
+      <a-button class="nc-btn-webhook-save !rounded-md" type="primary" size="middle" @click.prevent="saveHooks">
         <div class="flex items-center">
           <component :is="iconMap.save" class="mr-2" />
           <!-- Save -->

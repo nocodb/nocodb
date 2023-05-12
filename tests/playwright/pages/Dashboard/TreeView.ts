@@ -63,7 +63,7 @@ export class TreeViewPage extends BasePage {
       }
     }
 
-    await this.rootPage.waitForTimeout(5000);
+    await this.rootPage.waitForTimeout(2000);
   }
 
   // assumption: first view rendered is always GRID

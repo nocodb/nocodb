@@ -552,7 +552,7 @@ test.describe('External DB - DateTime column', async () => {
     await dashboard.rootPage.reload();
     // wait for 5 seconds for the base to be created
     // hack for CI
-    await dashboard.rootPage.waitForTimeout(5000);
+    await dashboard.rootPage.waitForTimeout(2000);
   });
 
   test('Verify display value, UI insert, API response', async () => {
@@ -661,6 +661,104 @@ test.describe('External DB - DateTime column', async () => {
         getDateTimeInUTCTimeZone('2023-04-27 10:00:00+00:00'),
       ];
     }
+
+    // reset seconds to 00 using string functions in dateTimeWithoutTz
+    dateTimeWithoutTz = dateTimeWithoutTz.map(
+      dateTimeString => dateTimeString.substring(0, 17) + '00' + dateTimeString.substring(19)
+    );
+    dateTimeWithTz = dateTimeWithTz.map(
+      dateTimeString => dateTimeString.substring(0, 17) + '00' + dateTimeString.substring(19)
+    );
+
+    console.log('dateTimeWithoutTz', dateTimeWithoutTz);
+    console.log('dateTimeWithTz', dateTimeWithTz);
+
+    expect(dateTimeWithoutTz).toEqual(expectedDateTimeWithoutTz);
+    expect(dateTimeWithTz).toEqual(expectedDateTimeWithTz);
+  });
+
+  test('Ext DB MySQL : DB Timezone configured as HKT', async () => {
+    if (!isMysql(context)) {
+      return;
+    }
+    // set DB timezone to HKT
+    // Note that, TZ value is changed after DateTime field is created; hence the values in it will not change
+    // Only values for TimeStamp will change
+    const config = getKnexConfig({ dbName: 'sakila', dbType: 'mysql' });
+    const mysqlknex = knex(config);
+    await mysqlknex.raw(`SET GLOBAL time_zone = '+08:00'`);
+    await mysqlknex.destroy();
+
+    await dashboard.treeView.openBase({ title: 'datetimetable' });
+    await dashboard.treeView.openTable({ title: 'MyTable' });
+
+    // display value for datetime column without tz should be same as stored value
+    // display value for datetime column with tz should be converted to browser timezone (HK in this case)
+    await dashboard.grid.cell.verifyDateCell({
+      index: 0,
+      columnHeader: 'DatetimeWithoutTz',
+      value: '2023-04-27 07:30',
+    });
+    await dashboard.grid.cell.verifyDateCell({
+      index: 1,
+      columnHeader: 'DatetimeWithoutTz',
+      value: '2023-04-27 10:00',
+    });
+    await dashboard.grid.cell.verifyDateCell({
+      index: 0,
+      columnHeader: 'DatetimeWithTz',
+      value: '2023-04-27 15:30',
+    });
+    await dashboard.grid.cell.verifyDateCell({
+      index: 1,
+      columnHeader: 'DatetimeWithTz',
+      value: '2023-04-27 10:00',
+    });
+
+    // Insert new row
+    await dashboard.grid.cell.dateTime.setDateTime({
+      index: 2,
+      columnHeader: 'DatetimeWithoutTz',
+      dateTime: '2023-04-27 10:00:00',
+    });
+    await dashboard.grid.cell.dateTime.setDateTime({
+      index: 2,
+      columnHeader: 'DatetimeWithTz',
+      dateTime: '2023-04-27 10:00:00',
+    });
+
+    // reload page & verify if inserted values are shown correctly
+    await dashboard.rootPage.reload();
+    await dashboard.grid.cell.verifyDateCell({
+      index: 2,
+      columnHeader: 'DatetimeWithoutTz',
+      value: '2023-04-27 10:00',
+    });
+    await dashboard.grid.cell.verifyDateCell({
+      index: 2,
+      columnHeader: 'DatetimeWithTz',
+      value: '2023-04-27 10:00',
+    });
+
+    // verify API response
+    // Note that, for UI inserted records - second part of datetime may be non-zero (though not shown in UI)
+    // Hence, we skip seconds from API response
+    //
+
+    const records = await api.dbTableRow.list('sakila', context.project.id, 'MyTable', { limit: 10 });
+    let dateTimeWithoutTz = records.list.map(record => record.DatetimeWithoutTz);
+    let dateTimeWithTz = records.list.map(record => record.DatetimeWithTz);
+
+    const expectedDateTimeWithoutTz = [
+      '2023-04-27 10:00:00+08:00',
+      '2023-04-27 04:30:00+08:00',
+      '2023-04-27 12:30:00+08:00',
+    ];
+    const expectedDateTimeWithTz = [
+      '2023-04-27 10:00:00+08:00',
+      '2023-04-27 12:30:00+08:00',
+      '2023-04-27 12:30:00+08:00',
+    ];
 
     // reset seconds to 00 using string functions in dateTimeWithoutTz
     dateTimeWithoutTz = dateTimeWithoutTz.map(

@@ -76,7 +76,9 @@ export default async function ({ ncMeta }: NcUpgraderCtx) {
           continue;
         }
 
+        // for normal date time fields
         const updateRecords = [];
+        // for fields with auto update (e.g. updated_at)
         const updatedAtRecords = [];
 
         // get all date times columns
@@ -121,6 +123,10 @@ export default async function ({ ncMeta }: NcUpgraderCtx) {
             .reduce((acc, val) => Object.assign(acc, val), {});
 
           for (const dateTimeColumn of dateTimeColumns) {
+            if (!record[dateTimeColumn.column_name]) {
+              // skip null case
+              continue;
+            }
             const action = knex(getTnPath(knex, model))
               .update({
                 [dateTimeColumn.column_name]: dayjs(
@@ -144,7 +150,10 @@ export default async function ({ ncMeta }: NcUpgraderCtx) {
             }
           }
         }
+        // update those general date time fields first
         await Promise.all(updateRecords);
+        // updated_at will be modified due to above change
+        // update those right here
         await Promise.all(updatedAtRecords);
       } catch (e) {
         // ignore the error related to deleted project

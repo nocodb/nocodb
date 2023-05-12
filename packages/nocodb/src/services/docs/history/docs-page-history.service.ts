@@ -12,7 +12,7 @@ import type { DocsPageSnapshotType, DocsPageType } from 'nocodb-sdk';
 dayjs.extend(utc);
 
 // Snap shot window 5 minutes
-const SNAP_SHOT_WINDOW_SEC = 5;
+const SNAP_SHOT_WINDOW_SEC = 5 * 60;
 
 const selfClosingHtmlTags = [
   'area',
@@ -228,7 +228,7 @@ export class DocsPageHistoryService {
       .replaceAll('<p #custom>Empty</p>', '<p></p>');
 
     const htmlParse = (HTMLParser as any).default as typeof HTMLParser;
-    console.log('getDiff', _diffHtml);
+
     const domJson = (await htmlParse(
       `<html>${_diffHtml}</html>`,
     )) as JSONContent;

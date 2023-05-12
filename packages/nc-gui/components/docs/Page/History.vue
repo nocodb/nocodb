@@ -49,7 +49,7 @@ const loadListData = async ($state: any) => {
 }
 
 const snapshotTypeLabel = (snapshot: DocsPageSnapshotType) => {
-  if (snapshot.type === 'content_update' || snapshot.type === 'title_update') {
+  if (snapshot.type === 'updated') {
     return 'Edited'
   } else if (snapshot.type === 'published') {
     return 'Published'

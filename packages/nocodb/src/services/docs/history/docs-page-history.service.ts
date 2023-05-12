@@ -39,14 +39,8 @@ export class DocsPageHistoryService {
     const snapshotAfterPage = snapshot.after_page;
 
     let updateAttrs: Partial<DocsPageType> = {};
-    if (snapshot.type === 'content_update') {
-      updateAttrs = {
-        content: JSON.stringify(snapshotAfterPage.content),
-      };
-    } else if (snapshot.type === 'title_update') {
-      updateAttrs = {
-        title: snapshotAfterPage.title,
-      };
+    if (snapshot.type === 'updated') {
+      updateAttrs = snapshotAfterPage;
     } else if (
       snapshot.type === 'published' ||
       snapshot.type === 'unpublished'
@@ -185,15 +179,7 @@ export class DocsPageHistoryService {
       return newPage.is_published ? 'published' : 'unpublished';
     }
 
-    if (newPage.title !== oldPage.title) {
-      return 'title_update';
-    }
-
-    if (newPage.content !== oldPage.content) {
-      return 'content_update';
-    }
-
-    return undefined;
+    return 'updated';
   }
 
   private async getDiff(newPage: DocsPageType, oldPage: DocsPageType) {

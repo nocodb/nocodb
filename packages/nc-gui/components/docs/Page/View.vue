@@ -350,13 +350,16 @@ watch(
               size="large"
               class="docs-page-title-skelton !mt-3 !max-w-156 mb-3 ml-8 docs-page-skeleton-loading"
             />
-            <DocsPageTitle
-              v-else-if="openedPage && currentHistory?.type !== 'title_update'"
-              :key="openedPage.id"
-              class="docs-page-title"
-              @focus-editor="focusEditor"
-            />
-            <div v-else-if="currentHistory" class="flex flex-col">
+            <div
+              v-if="
+                openedPage &&
+                currentHistory &&
+                currentHistory.before_page &&
+                currentHistory.after_page &&
+                currentHistory.before_page.title !== currentHistory.after_page.title
+              "
+              class="flex flex-col"
+            >
               <div class="py-2 mb-1 bg-red-200 rounded-sm">
                 <DocsPageTitle
                   :key="currentHistory.before_page!.title!"
@@ -376,6 +379,8 @@ watch(
                 />
               </div>
             </div>
+            <DocsPageTitle v-else-if="openedPage" :key="openedPage.id" class="docs-page-title" @focus-editor="focusEditor" />
+
             <div class="flex !mb-4.5"></div>
 
             <DocsPageLinkToPageSearch v-if="editor" :editor="editor" />

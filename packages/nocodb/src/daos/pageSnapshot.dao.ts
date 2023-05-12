@@ -25,12 +25,7 @@ export class PageSnapshotDao {
     newPage: DocsPageType;
     oldPage: DocsPageType;
     diffHtml;
-    type:
-      | 'content_update'
-      | 'title_update'
-      | 'published'
-      | 'unpublished'
-      | 'restored';
+    type: DocsPageSnapshotType['type'];
   }): Promise<string> {
     const id = this.meta.genNanoid('');
 
@@ -58,7 +53,6 @@ export class PageSnapshotDao {
   }
 
   private deserializeSnapshot(snapshot: DocsPageSnapshotType) {
-    console.log(snapshot);
     snapshot.before_page_json = Buffer.from(
       snapshot.before_page_json,
       'base64',

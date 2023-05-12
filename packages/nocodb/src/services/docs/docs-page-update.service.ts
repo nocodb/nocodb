@@ -197,6 +197,20 @@ export class DocsPagesUpdateService {
 
     if ('project_id' in attributes) delete attributes.project_id;
 
+    if ('content' in attributes) {
+      if (typeof attributes.content !== 'string') {
+        attributes.content = JSON.stringify(attributes.content);
+      }
+    }
+
+    if ('published_content' in attributes) {
+      if (typeof attributes.published_content !== 'string') {
+        attributes.published_content = JSON.stringify(
+          attributes.published_content,
+        );
+      }
+    }
+
     return attributes;
   }
 

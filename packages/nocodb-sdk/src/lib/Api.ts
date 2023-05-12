@@ -589,12 +589,7 @@ export interface DocsPageSnapshotType {
   after_page?: DocsPageType;
   after_page_json?: string;
   diff?: string;
-  type?:
-    | 'content_update'
-    | 'title_update'
-    | 'published'
-    | 'unpublished'
-    | 'restored';
+  type?: 'updated' | 'published' | 'unpublished' | 'restored';
 }
 
 /**

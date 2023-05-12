@@ -108,6 +108,7 @@ const snapshotTypeLabel = (snapshot: DocsPageSnapshotType) => {
 <style lang="scss" scoped>
 .history-pane {
   overflow-y: overlay;
+  overflow-x: hidden;
   // scrollbar reduce width and gray color
   &::-webkit-scrollbar {
     width: 6px !important;

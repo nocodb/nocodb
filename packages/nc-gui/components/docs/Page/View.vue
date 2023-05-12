@@ -332,7 +332,7 @@ watch(
             </div>
           </div>
         </div>
-        <div ref="pageContentDomRef" class="nc-docs-page-content relative pb-20">
+        <div ref="pageContentDomRef" :key="isEditAllowed" class="nc-docs-page-content relative pb-20">
           <DocsPageMutliSectionSelector
             v-if="isEditAllowed && editor && pageContentDomRef"
             :editor="editor"

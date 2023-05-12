@@ -5,4 +5,5 @@ export declare class ClickhouseService implements OnModuleInit, OnModuleDestroy 
     execute(query: string, isInsert?: boolean): Promise<any>;
     onModuleDestroy(): any;
     onModuleInit(): Promise<any>;
+    static metaUrlToDbConfig(urlString: any): any;
 }

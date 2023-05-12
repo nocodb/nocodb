@@ -22,4 +22,4 @@ CREATE TABLE IF NOT EXISTS  ${config.database}.api_calls (
 exports.up = up;
 async function down(client) { }
 exports.down = down;
-//# sourceMappingURL=nc_004_api_exec.js.map
+//# sourceMappingURL=nc_004_api_calls.js.map

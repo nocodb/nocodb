@@ -20,38 +20,26 @@ let AppController = class AppController {
     constructor(clickhouseService) {
         this.clickhouseService = clickhouseService;
     }
-    syncApiExecTime(message) {
-        return this.clickhouseService.execute(`
-        INSERT INTO api_exec_time
-        (
-          timestamp,
-          workspace_id,
-          project_id,
-          user_id,
-          token,
-          url,
-          method,
-          exec_time
-        )
-        VALUES (
-          NOW(),
-          '${message.workspace_id}',
-          '${message.project_id}',
-          '${message.user_id}',
-          '${message.token}',
-          '${message.url}',
-          '${message.method}',
-          ${message.exec_time}
-          )
-        `);
+    async syncApiExecTime(messages) {
+        const rows = [];
+        messages.forEach((data) => {
+            var _a;
+            if (!data.url)
+                return;
+            const { workspace_id, user_id, project_id, url, method, status, exec_time, timestamp, } = data;
+            rows.push(`(${(_a = Math.round(timestamp / 1000)) !== null && _a !== void 0 ? _a : 'NOW()'}, '${workspace_id}', '${user_id}', '${project_id}', '${url}', '${method}', ${exec_time}, ${status !== null && status !== void 0 ? status : 'NULL'})`);
+        });
+        const insertQuery = `INSERT INTO api_calls (timestamp, workspace_id, user_id, project_id, url, method, exec_time, status) 
+                         VALUES ${rows.join(',')}`;
+        await this.clickhouseService.execute(insertQuery);
     }
 };
 __decorate([
-    (0, microservices_1.MessagePattern)('api_exec_time'),
+    (0, microservices_1.MessagePattern)(process.env.NC_KINESIS_STREAM || 'nocohub-dev-input-stream'),
     __param(0, (0, microservices_1.Payload)()),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", [Object]),
-    __metadata("design:returntype", Object)
+    __metadata("design:paramtypes", [Array]),
+    __metadata("design:returntype", Promise)
 ], AppController.prototype, "syncApiExecTime", null);
 AppController = __decorate([
     (0, common_1.Controller)(),

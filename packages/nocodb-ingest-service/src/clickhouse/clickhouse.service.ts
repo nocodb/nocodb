@@ -1,11 +1,49 @@
 import { Injectable } from '@nestjs/common';
 import { ClickHouse } from 'clickhouse';
-// import NcConfigFactory from '../../utils/NcConfigFactory';
 import * as nc_001_notification from './migrations/nc_001_notification';
 import * as nc_002_page from './migrations/nc_002_page';
 import * as nc_003_api_count from './migrations/nc_003_api_count';
 import * as nc_004_api_exec from './migrations/nc_004_api_calls';
 import type { OnModuleDestroy, OnModuleInit } from '@nestjs/common';
+
+const knownQueryParams = [
+  {
+    parameter: 'database',
+    aliases: ['d', 'db'],
+  },
+  {
+    parameter: 'password',
+    aliases: ['p'],
+  },
+  {
+    parameter: 'user',
+    aliases: ['u'],
+  },
+  {
+    parameter: 'title',
+    aliases: ['t'],
+  },
+  {
+    parameter: 'keyFilePath',
+    aliases: [],
+  },
+  {
+    parameter: 'certFilePath',
+    aliases: [],
+  },
+  {
+    parameter: 'caFilePath',
+    aliases: [],
+  },
+  {
+    parameter: 'ssl',
+    aliases: [],
+  },
+  {
+    parameter: 'options',
+    aliases: ['opt', 'opts'],
+  },
+];
 
 @Injectable()
 export class ClickhouseService implements OnModuleInit, OnModuleDestroy {
@@ -33,21 +71,12 @@ export class ClickhouseService implements OnModuleInit, OnModuleDestroy {
     //   return;
     // }
 
-    // const { connection, client } = await NcConfigFactory.metaUrlToDbConfig(
-    //   process.env.NC_CLICKHOUSE,
-    // );
-
-    const client = 'http';
-    const connection = {
-      host: 'localhost',
-      port: 8123,
-      database: 'nc',
-      user: null,
-      password: null,
-    };
+    const { connection, protocol } = await ClickhouseService.metaUrlToDbConfig(
+      process.env.NC_CLICKHOUSE,
+    );
 
     this.config = {
-      host: `${client}://${connection.host}` ?? 'http://localhost',
+      host: `${protocol ?? 'http'}://${connection.host ?? 'localhost'}` ?? 'http://localhost',
       port: connection.port ?? 8123,
       username: connection.user,
       password: connection.password,
@@ -66,5 +95,31 @@ export class ClickhouseService implements OnModuleInit, OnModuleDestroy {
     }
 
     this.client = new ClickHouse(this.config);
+  }
+
+  static metaUrlToDbConfig(urlString) {
+    const url = new URL(urlString);
+
+    const parsedQuery: Record<string, any> = {};
+    for (const [key, value] of url.searchParams.entries()) {
+      const fnd = knownQueryParams.find(
+        (param) => param.parameter === key || param.aliases.includes(key),
+      );
+      if (fnd) {
+        parsedQuery[fnd.parameter] = value;
+      } else {
+        parsedQuery[key] = value;
+      }
+    }
+
+    return {
+      protocol: url.protocol.replace(':', ''),
+      connection: {
+        ...parsedQuery,
+        host: url.hostname,
+        port: +url.port,
+      },
+    } as any
+
   }
 }

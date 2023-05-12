@@ -6,7 +6,6 @@
       <script value="watch:run" />
     </scripts>
     <node-interpreter value="project" />
-    <envs />
     <method v="2" />
   </configuration>
 </component>

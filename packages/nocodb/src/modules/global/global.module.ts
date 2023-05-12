@@ -13,6 +13,7 @@ import {KafkaConsumer} from "../kafka/kafka-consumer";
 import {KafkaProducer} from "../kafka/kafka-producer";
 // import {KafkaModule} from "nestjs-kafka";
 import {KafkaService} from "../../services/kafka/kafka.service";
+import {KinesisProducer} from "../kinesis/kinesis-producer";
 
 export const JwtStrategyProvider: Provider = {
   provide: JwtStrategy,
@@ -51,9 +52,10 @@ export const JwtStrategyProvider: Provider = {
     SocketService,
     AppHooksService,
 
-    KafkaConsumer,
-    KafkaProducer,
-    KafkaService,
+    // KafkaConsumer,
+    // KafkaProducer,
+    // KafkaService,
+    KinesisProducer
   ],
   exports: [
     Connection,
@@ -64,8 +66,9 @@ export const JwtStrategyProvider: Provider = {
     SocketService,
     AppHooksService,
 
-    KafkaConsumer,
-    KafkaProducer,
+    // KafkaConsumer,
+    // KafkaProducer,
+    KinesisProducer
   ],
 })
 export class GlobalModule {}

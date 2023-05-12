@@ -11,6 +11,7 @@ import type {
 import type { Observable } from 'rxjs';
 import type Redis from 'ioredis';
 import type { AppConfig } from '../../interface/config';
+import {KinesisProducer} from "../../modules/kinesis/kinesis-producer";
 
 @Injectable()
 export class ExecutionTimeCalculatorInterceptor implements NestInterceptor {
@@ -18,7 +19,8 @@ export class ExecutionTimeCalculatorInterceptor implements NestInterceptor {
 
   constructor(
     private readonly configService: ConfigService<AppConfig>,
-    private readonly kafkaProducer: KafkaProducer,
+    // private readonly kafkaProducer: KafkaProducer,
+    private kinesisProducer: KinesisProducer
   ) {
     // todo: use a single redis connection
     // this.client = new Client(process.env['NC_THROTTLER_REDIS']);
@@ -27,6 +29,7 @@ export class ExecutionTimeCalculatorInterceptor implements NestInterceptor {
   intercept(context: ExecutionContext, next: CallHandler): Observable<any> {
     const req = context.switchToHttp().getRequest();
     const res = context.switchToHttp().getResponse();
+    const timestamp = Date.now();
 
     const enabled = this.configService.get('throttler.calc_execution_time', {
       infer: true,
@@ -48,9 +51,10 @@ export class ExecutionTimeCalculatorInterceptor implements NestInterceptor {
         const method = req.method;
         const status = +res?.statusCode || 0;
 
-        this.kafkaProducer.sendMessage(
-          'api_exec_time',
+        this.kinesisProducer.sendMessage(
+          process.env.NC_KINESIS_STREAM || 'nocohub-dev-input-stream',
           JSON.stringify({
+            timestamp,
             workspace_id,
             user_id,
             project_id,

@@ -24,8 +24,13 @@
     "@nestjs/core": "^9.0.0",
     "@nestjs/microservices": "^9.4.0",
     "@nestjs/platform-express": "^9.0.0",
+    "aws-kcl": "^2.2.2",
+    "aws-sdk": "^2.1377.0",
     "clickhouse": "^2.6.0",
     "kafkajs": "^2.2.4",
+    "knex": "^2.4.2",
+    "parse-database-url": "^0.3.0",
+    "pg": "^8.10.0",
     "reflect-metadata": "^0.1.13",
     "rxjs": "^7.2.0"
   },

@@ -178,13 +178,9 @@ watch(
       <!-- Side tabs -->
       <a-layout-sider>
         <a-menu v-model:selected-keys="selectedTabKeys" class="tabs-menu h-full" :open-keys="[]">
-          <a-menu-item
-            v-for="(tab, key) of tabsInfo"
-            :key="key"
-            class="group active:(!ring-0) hover:(!bg-primary !bg-opacity-25)"
-          >
+          <a-menu-item v-for="(tab, key) of tabsInfo" :key="key" class="active:(!ring-0) hover:(!bg-primary !bg-opacity-25)">
             <div class="flex items-center space-x-2" @click="tab.onClick">
-              <component :is="tab.icon" class="group-hover:text-accent" />
+              <component :is="tab.icon" />
 
               <div class="select-none">
                 {{ tab.title }}
@@ -223,10 +219,10 @@ watch(
             <div v-if="vDataState === ''" class="flex flex-row justify-end items-center w-full gap-1">
               <a-button
                 v-if="dataSourcesAwakened"
-                class="self-start nc-btn-new-datasource"
+                class="self-start !rounded-md nc-btn-new-datasource"
                 @click="vDataState = DataSourcesSubTab.New"
               >
-                <div v-if="vDataState === ''" class="flex items-center gap-2 text-primary font-light">
+                <div v-if="vDataState === ''" class="flex items-center gap-2 font-light">
                   <component :is="iconMap.plusCircle" class="group-hover:text-accent" />
                   New
                 </div>
@@ -234,7 +230,8 @@ watch(
               <!--        Reload -->
               <a-button
                 v-e="['a:proj-meta:data-sources:reload']"
-                class="self-start nc-btn-metasync-reload"
+                type="text"
+                class="self-start !rounded-md nc-btn-metasync-reload"
                 @click="dataSourcesReload = true"
               >
                 <div class="flex items-center gap-2 text-gray-600 font-light">

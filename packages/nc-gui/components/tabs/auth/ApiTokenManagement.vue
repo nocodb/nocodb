@@ -164,7 +164,7 @@ onMounted(() => {
       </div>
     </a-modal>
 
-    <div class="flex flex-col px-10 mt-6">
+    <div class="flex flex-col px-10">
       <div class="flex flex-row justify-end">
         <div class="flex flex-row space-x-1">
           <a-button size="middle" type="text" @click="loadApiTokens()">

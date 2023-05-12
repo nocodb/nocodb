@@ -1,4 +1,4 @@
-import Page from 'src/models/Page';
+import Page from '../../../models/Page';
 import { MetaTable } from '../../meta.service';
 import type { Knex } from 'knex';
 

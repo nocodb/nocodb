@@ -11,8 +11,8 @@ import {
   UseGuards,
 } from '@nestjs/common';
 import { AuthGuard } from '@nestjs/passport';
-import { UseAclMiddleware } from 'src/middlewares/extract-project-id/extract-project-id.middleware';
-import { DocsPagesService } from 'src/services/docs/docs-pages.service';
+import { UseAclMiddleware } from '../../middlewares/extract-project-id/extract-project-id.middleware';
+import { DocsPagesService } from '../../services/docs/docs-pages.service';
 
 @Controller()
 @UseGuards(AuthGuard('jwt'))

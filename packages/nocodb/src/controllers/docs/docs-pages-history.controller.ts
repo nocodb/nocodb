@@ -8,12 +8,11 @@ import {
   UseGuards,
 } from '@nestjs/common';
 import { AuthGuard } from '@nestjs/passport';
-import { ExtractProjectAndWorkspaceIdMiddleware } from 'src/middlewares/extract-project-and-workspace-id/extract-project-and-workspace-id.middleware';
-import { UseAclMiddleware } from 'src/middlewares/extract-project-id/extract-project-id.middleware';
-import { DocsPageHistoryService } from 'src/services/docs/history/docs-page-history.service';
+import { UseAclMiddleware } from '../../middlewares/extract-project-id/extract-project-id.middleware';
+import { DocsPageHistoryService } from '../../services/docs/history/docs-page-history.service';
 
 @Controller()
-@UseGuards(ExtractProjectAndWorkspaceIdMiddleware, AuthGuard('jwt'))
+@UseGuards(AuthGuard('jwt'))
 export class DocsPagesHistoryController {
   constructor(private readonly pagesHistoryService: DocsPageHistoryService) {}
 

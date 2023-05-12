@@ -1,7 +1,7 @@
 import { Injectable } from '@nestjs/common';
-import { PageDao } from 'src/daos/page.dao';
-import { NcError } from 'src/helpers/catchError';
-import { Project } from 'src/models';
+import { NcError } from '../../../helpers/catchError';
+import { Project } from '../../../models';
+import { PageDao } from '../../../daos/page.dao';
 import type { DocsPageType } from 'nocodb-sdk';
 
 @Injectable()

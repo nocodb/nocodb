@@ -365,7 +365,7 @@ watch(
             >
               <div class="py-2 mb-1 bg-red-200 rounded-sm">
                 <DocsPageTitle
-                  :key="currentHistory.before_page!.title!"
+                  :key="currentHistory.id + currentHistory.before_page!.title!"
                   :data-is-diff="true"
                   class="docs-page-title"
                   :title="currentHistory.before_page!.title!"
@@ -374,7 +374,7 @@ watch(
               </div>
               <div class="py-2 bg-green-200 rounded-sm">
                 <DocsPageTitle
-                  :key="currentHistory.before_page!.title!"
+                  :key="currentHistory.id + currentHistory.before_page!.title!"
                   :data-is-diff="true"
                   class="docs-page-title"
                   :title="currentHistory.after_page!.title!"
@@ -382,6 +382,13 @@ watch(
                 />
               </div>
             </div>
+            <DocsPageTitle
+              v-else-if="openedPage && currentHistory"
+              :key="currentHistory.id + currentHistory.after_page!.title!"
+              class="docs-page-title"
+              :title="currentHistory.after_page!.title!"
+              @focus-editor="focusEditor"
+            />
             <DocsPageTitle v-else-if="openedPage" :key="openedPage.id" class="docs-page-title" @focus-editor="focusEditor" />
 
             <div class="flex !mb-4.5"></div>

@@ -50,6 +50,7 @@ export const useDocHistoryStore = defineStore('docHistoryStore', () => {
     () => openedPage.value?.id,
     async () => {
       currentHistory.value = null
+      isHistoryPaneOpen.value = false
     },
   )
 

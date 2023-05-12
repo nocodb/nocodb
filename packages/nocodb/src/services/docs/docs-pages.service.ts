@@ -1,13 +1,13 @@
 import { Injectable } from '@nestjs/common';
 import { Configuration, OpenAIApi } from 'openai';
 import JSON5 from 'json5';
-import { PageDao } from 'src/daos/page.dao';
 import axios from 'axios';
 import listContent from 'list-github-dir-content';
 import { marked } from 'marked';
-import { Project } from 'src/models';
+import { Project } from '../../models';
 
-import { NcError } from 'src/helpers/catchError';
+import { NcError } from '../../helpers/catchError';
+import { PageDao } from '../../daos/page.dao';
 import { DocsPagesUpdateService } from './docs-page-update.service';
 import type { DocsPageType, UserType } from 'nocodb-sdk';
 

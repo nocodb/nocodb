@@ -1,7 +1,7 @@
 import slugify from 'slug';
 import { Injectable } from '@nestjs/common';
-import { Project } from 'src/models';
-import { NcError } from 'src/helpers/catchError';
+import { Project } from '../models';
+import { NcError } from '../helpers/catchError';
 
 import {
   CacheDelDirection,

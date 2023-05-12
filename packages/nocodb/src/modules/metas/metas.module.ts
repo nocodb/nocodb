@@ -1,15 +1,15 @@
 import { Module } from '@nestjs/common';
 import { MulterModule } from '@nestjs/platform-express';
 import multer from 'multer';
-import { DocsPagesHistoryController } from 'src/controllers/docs/history.controller';
-import { DocsPagesController } from 'src/controllers/docs/pages.controller';
-import { DocsPageHistoryService } from 'src/services/docs/history/docs-page-history.service';
-import { PageDao } from 'src/daos/page.dao';
-import { DocsPagesService } from 'src/services/docs/docs-pages.service';
-import { DocsPagesUpdateService } from 'src/services/docs/docs-page-update.service';
-import { PublicDocsController } from 'src/controllers/docs/public/public-docs.controller';
-import { PublicDocsService } from 'src/services/docs/public/public-docs.service';
-import { PageSnapshotDao } from 'src/daos/pageSnapshot.dao';
+import { DocsPagesHistoryController } from '../../controllers/docs/docs-pages-history.controller';
+import { DocsPagesController } from '../../controllers/docs/docs-pages.controller';
+import { DocsPageHistoryService } from '../../services/docs/history/docs-page-history.service';
+import { PageDao } from '../../daos/page.dao';
+import { DocsPagesService } from '../../services/docs/docs-pages.service';
+import { DocsPagesUpdateService } from '../../services/docs/docs-page-update.service';
+import { DocsPublicController } from '../../controllers/docs/public/docs-public.controller';
+import { PublicDocsService } from '../../services/docs/public/public-docs.service';
+import { PageSnapshotDao } from '../../daos/page-snapshot.dao';
 import { NC_ATTACHMENT_FIELD_SIZE } from '../../constants';
 import { ApiDocsController } from '../../controllers/api-docs/api-docs.controller';
 import { ApiTokensController } from '../../controllers/api-tokens.controller';
@@ -144,7 +144,7 @@ const enableThrottler = !!process.env['NC_THROTTLER_REDIS'];
     NotificationsController,
     DocsPagesHistoryController,
     DocsPagesController,
-    PublicDocsController,
+    DocsPublicController,
   ],
   providers: [
     /** DAOs */

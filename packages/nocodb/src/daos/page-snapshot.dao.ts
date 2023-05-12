@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
-import { ClickhouseService } from 'src/services/clickhouse/clickhouse.service';
-import { MetaService } from 'src/meta/meta.service';
+import { ClickhouseService } from '../services/clickhouse/clickhouse.service';
+import { MetaService } from '../meta/meta.service';
 import type { DocsPageSnapshotType, DocsPageType } from 'nocodb-sdk';
 
 @Injectable()

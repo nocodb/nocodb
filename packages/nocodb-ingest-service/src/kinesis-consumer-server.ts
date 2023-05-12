@@ -52,11 +52,11 @@ export default class KinesisConsumerServer
           const readRecords = () => {
             this.kinesis.getRecords(params, async (err, data) => {
               if (err) {
-                console.log(err, err.stack);
+                this.logger.log(err, err.stack);
               } else {
                 const records = data.Records;
                 if (records.length > 0) {
-                  console.log('Received', records.length, 'records:');
+                  this.logger.log('Received '+ records.length + ' records:');
                   const parsedRecords = records
                     .map((record) => {
                       const decodedData = Buffer.from(
@@ -66,7 +66,7 @@ export default class KinesisConsumerServer
                       try {
                         return JSON.parse(decodedData);
                       } catch (error) {
-                        console.error('Error parsing record data:', error);
+                        this.logger.error('Error parsing record data:', error);
                         return null;
                       }
                     })
@@ -78,6 +78,9 @@ export default class KinesisConsumerServer
                   );
                 }
                 params.ShardIterator = data.NextShardIterator;
+
+                await new Promise((resolve) => setTimeout(resolve, 1000));
+
                 readRecords();
               }
             });
@@ -92,7 +95,9 @@ export default class KinesisConsumerServer
   /**
    * This method is triggered on application shutdown.
    */
-  close() {}
+  close() {
+
+  }
 
   async getLastIngestedSequenceKey(stream = '') {
     const result = await this.knex('nc_store')

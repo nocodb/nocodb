@@ -65,13 +65,13 @@ const resetError = () => {
 </script>
 
 <template>
-  <div class="mx-auto relative flex flex-col justify-center gap-2 w-full px-8 md:(bg-white) max-w-[900px]">
-    <div class="text-xl mt-4 mb-8 text-center font-weight-bold">{{ $t('activity.changePwd') }}</div>
+  <div class="mx-auto relative flex flex-col justify-start gap-2 w-full px-8 md:(bg-white) max-w-[900px]">
+    <div class="text-xl my-4 text-left font-weight-bold">{{ $t('activity.changePwd') }}</div>
     <a-form
       ref="formValidator"
       data-testid="nc-user-settings-form"
       layout="vertical"
-      class="change-password lg:max-w-3/4 w-full !mx-auto"
+      class="change-password lg:max-w-3/4 w-full"
       no-style
       :model="form"
       @finish="passwordChange"
@@ -118,13 +118,13 @@ const resetError = () => {
         />
       </a-form-item>
 
-      <div class="text-center">
-        <button data-testid="nc-user-settings-form__submit" class="scaling-btn bg-opacity-100" type="submit">
-          <span class="flex items-center gap-2">
+      <div class="text-right">
+        <a-button size="middle" data-testid="nc-user-settings-form__submit" class="!rounded-md !h-[2.5rem]" type="primary">
+          <div class="flex justify-center items-center gap-2">
             <component :is="iconMap.passwordChange" />
             {{ $t('activity.changePwd') }}
-          </span>
-        </button>
+          </div>
+        </a-button>
       </div>
     </a-form>
   </div>

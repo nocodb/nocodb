@@ -100,8 +100,8 @@ const descriptionInput: VNodeRef = (el) => (el as HTMLInputElement)?.focus()
 
 <template>
   <div class="h-full overflow-y-scroll scrollbar-thin-dull pt-2">
-    <div class="text-xl mt-4 mb-8 text-center font-weight-bold">Token Management</div>
     <div class="max-w-[900px] mx-auto p-4" data-testid="nc-token-list">
+      <div class="text-xl my-4 text-left font-weight-bold">Token Management</div>
       <div class="py-2 flex gap-4 items-center">
         <div class="flex-grow"></div>
         <component :is="iconMap.reload" class="cursor-pointer" @click="loadTokens" />

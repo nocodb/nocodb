@@ -113,6 +113,12 @@ export default async function ({ ncMeta }: NcUpgraderCtx) {
           .filter((c) => c.pk)
           .map((c) => c.column_name);
 
+        // disable triggers for pg / mssql
+        if (knex.clientType() === 'pg' || knex.clientType() === 'mssql') {
+          // TODO: get triggerList from client
+          // TODO: disable trigger
+        }
+
         const records = await knex(getTnPath(knex, model)).select();
 
         for (const record of records) {
@@ -162,6 +168,12 @@ export default async function ({ ncMeta }: NcUpgraderCtx) {
           throwTimeoutError(e, timeoutErrorInfo);
           // throw general error
           throw e;
+        }
+      } finally {
+        // enable triggers for pg / mssql back
+        if (knex.clientType() === 'pg' || knex.clientType() === 'mssql') {
+          // TODO: get triggerList from client
+          // TODO: enable trigger
         }
       }
     }

@@ -77,6 +77,7 @@ export default async function ({ ncMeta }: NcUpgraderCtx) {
         }
 
         const updateRecords = [];
+        const updatedAtRecords = [];
 
         // get all date times columns
         // and filter out the columns that are missing in database
@@ -98,9 +99,9 @@ export default async function ({ ncMeta }: NcUpgraderCtx) {
             return filteredColumns;
           });
 
-        const dateTimeColumns = columns
-          .filter((c) => c.uidt === UITypes.DateTime)
-          .map((c) => c.column_name);
+        const dateTimeColumns = columns.filter(
+          (c) => c.uidt === UITypes.DateTime,
+        );
 
         if (dateTimeColumns.length === 0) {
           continue;
@@ -120,22 +121,31 @@ export default async function ({ ncMeta }: NcUpgraderCtx) {
             .reduce((acc, val) => Object.assign(acc, val), {});
 
           for (const dateTimeColumn of dateTimeColumns) {
-            updateRecords.push(
-              await knex(getTnPath(knex, model))
-                .update({
-                  [dateTimeColumn]: dayjs(record[dateTimeColumn])
-                    .utc()
-                    .format(
-                      knex.clientType().startsWith('mysql')
-                        ? 'YYYY-MM-DD HH:mm:ss'
-                        : 'YYYY-MM-DD HH:mm:ssZ',
-                    ),
-                })
-                .where(where),
-            );
+            const action = knex(getTnPath(knex, model))
+              .update({
+                [dateTimeColumn.column_name]: dayjs(
+                  record[dateTimeColumn.column_name],
+                )
+                  .utc()
+                  .format(
+                    knex.clientType().startsWith('mysql')
+                      ? 'YYYY-MM-DD HH:mm:ss'
+                      : 'YYYY-MM-DD HH:mm:ssZ',
+                  ),
+              })
+              .where(where);
+            if (
+              dateTimeColumn.cdf ===
+              'CURRENT_TIMESTAMP on update CURRENT_TIMESTAMP'
+            ) {
+              updatedAtRecords.push(action);
+            } else {
+              updateRecords.push(action);
+            }
           }
         }
         await Promise.all(updateRecords);
+        await Promise.all(updatedAtRecords);
       } catch (e) {
         // ignore the error related to deleted project
         if (!isProjectDeleted) {

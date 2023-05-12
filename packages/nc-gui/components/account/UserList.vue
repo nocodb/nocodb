@@ -136,9 +136,9 @@ const copyPasswordResetUrl = async (user: User) => {
       <div class="py-2 flex gap-4 items-center">
         <a-input-search
           v-model:value="searchText"
-          size="small"
+          size="middle"
           class="max-w-[300px]"
-          placeholder="Filter by email"
+          placeholder="Search Users"
           @blur="loadUsers"
           @keydown.enter="loadUsers"
         >
@@ -147,7 +147,8 @@ const copyPasswordResetUrl = async (user: User) => {
         <component :is="iconMap.reload" class="cursor-pointer" @click="loadUsers" />
         <a-button
           data-testid="nc-super-user-invite"
-          size="small"
+          size="middle"
+          class="!rounded-md"
           type="primary"
           @click="
             () => {

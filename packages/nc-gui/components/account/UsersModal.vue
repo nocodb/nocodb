@@ -125,13 +125,13 @@ const emailInput: VNodeRef = (el) => (el as HTMLInputElement)?.focus()
 
       <div class="px-2 mt-1.5">
         <template v-if="usersData.invitationToken">
-          <div class="flex flex-col mt-1 border-b-1 pb-5">
+          <div class="flex flex-col mt-1=pb-5">
             <div class="flex flex-row items-center pl-1.5 pb-1 h-[1.1rem]">
               <component :is="iconMap.account" />
               <div class="text-xs ml-0.5 mt-0.5">Copy Invite Token</div>
             </div>
 
-            <a-alert class="mt-1" type="success" show-icon>
+            <a-alert class="!mt-2" type="success" show-icon>
               <template #message>
                 <div class="flex flex-row justify-between items-center py-1">
                   <div class="flex pl-2 text-green-700 text-xs">
@@ -152,8 +152,8 @@ const emailInput: VNodeRef = (el) => (el as HTMLInputElement)?.focus()
               {{ usersData.invitationToken && usersData.emails }}
             </div>
 
-            <div class="flex flex-row justify-start mt-4 ml-2">
-              <a-button size="small" outlined @click="clickInviteMore">
+            <div class="flex flex-row justify-end mt-4 ml-2">
+              <a-button size="middle" outlined @click="clickInviteMore">
                 <div class="flex flex-row justify-center items-center space-x-0.5">
                   <MaterialSymbolsSendOutline class="flex mx-auto text-gray-600 h-[0.8rem]" />
 
@@ -165,11 +165,6 @@ const emailInput: VNodeRef = (el) => (el as HTMLInputElement)?.focus()
         </template>
 
         <div v-else class="flex flex-col pb-4">
-          <div class="flex flex-row items-center pl-2 pb-1 h-[1rem]">
-            <component :is="iconMap.account" />
-            <div class="text-xs ml-0.5 mt-0.5">{{ $t('activity.inviteUser') }}</div>
-          </div>
-
           <div class="border-1 py-3 px-4 rounded-md mt-1">
             <a-form
               ref="formRef"
@@ -190,6 +185,7 @@ const emailInput: VNodeRef = (el) => (el as HTMLInputElement)?.focus()
 
                     <a-input
                       :ref="emailInput"
+                      size="middle"
                       v-model:value="usersData.emails"
                       validate-trigger="onBlur"
                       :placeholder="$t('labels.email')"
@@ -228,8 +224,8 @@ const emailInput: VNodeRef = (el) => (el as HTMLInputElement)?.focus()
                 </div>
               </div>
 
-              <div class="flex flex-row justify-center">
-                <a-button type="primary" html-type="submit">
+              <div class="flex flex-row justify-end">
+                <a-button type="primary" class="!rounded-md" html-type="submit">
                   <div class="flex flex-row justify-center items-center space-x-1.5">
                     <MaterialSymbolsSendOutline class="flex h-[0.8rem]" />
                     <div>{{ $t('activity.invite') }}</div>

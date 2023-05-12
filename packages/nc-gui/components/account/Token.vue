@@ -105,7 +105,13 @@ const descriptionInput: VNodeRef = (el) => (el as HTMLInputElement)?.focus()
       <div class="py-2 flex gap-4 items-center">
         <div class="flex-grow"></div>
         <component :is="iconMap.reload" class="cursor-pointer" @click="loadTokens" />
-        <a-button data-testid="nc-token-create" size="small" type="primary" @click="showNewTokenModal = true">
+        <a-button
+          class="!rounded-md"
+          data-testid="nc-token-create"
+          size="middle"
+          type="primary"
+          @click="showNewTokenModal = true"
+        >
           <div class="flex items-center gap-1">
             <component :is="iconMap.plus" />
             Add new token
@@ -197,9 +203,9 @@ const descriptionInput: VNodeRef = (el) => (el as HTMLInputElement)?.focus()
                 <template #overlay>
                   <a-menu data-testid="nc-token-row-action-icon">
                     <a-menu-item>
-                      <div class="flex flex-row items-center py-3 h-[1rem] nc-delete-token" @click="deleteToken(record.token)">
+                      <div class="flex flex-row items-center py-3 h-[2rem] nc-delete-token" @click="deleteToken(record.token)">
                         <component :is="iconMap.delete" class="flex" />
-                        <div class="text-xs pl-2">{{ $t('general.remove') }}</div>
+                        <div class="text-sm pl-2">{{ $t('general.remove') }}</div>
                       </div>
                     </a-menu-item>
                   </a-menu>
@@ -228,7 +234,7 @@ const descriptionInput: VNodeRef = (el) => (el as HTMLInputElement)?.focus()
         </a-button>
 
         <!-- Generate Token -->
-        <div class="flex flex-row justify-center w-full -mt-1 mb-3">
+        <div class="flex flex-row w-full -mt-1 mb-3">
           <a-typography-title :level="5">{{ $t('title.generateToken') }}</a-typography-title>
         </div>
 
@@ -248,11 +254,12 @@ const descriptionInput: VNodeRef = (el) => (el as HTMLInputElement)?.focus()
             v-model:value="selectedTokenData.description"
             data-testid="nc-token-modal-description"
             :placeholder="$t('labels.description')"
+            class="h-9 rounded-md"
           />
 
           <!-- Generate -->
-          <div class="flex flex-row justify-center">
-            <a-button type="primary" html-type="submit" data-testid="nc-token-modal-save">
+          <div class="flex flex-row justify-end">
+            <a-button size="middle" class="!rounded-md" type="primary" html-type="submit" data-testid="nc-token-modal-save">
               {{ $t('general.generate') }}
             </a-button>
           </div>

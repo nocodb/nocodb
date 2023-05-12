@@ -175,7 +175,7 @@ onMounted(() => {
           </a-button>
 
           <!--        Add New Token -->
-          <a-button size="middle" class="!rounded-md" @click="openNewTokenModal">
+          <a-button type="primary" size="middle" class="!rounded-md" @click="openNewTokenModal">
             <div class="flex flex-row justify-center items-center caption capitalize space-x-1">
               <component :is="iconMap.plus" />
               <div>{{ $t('activity.newToken') }}</div>

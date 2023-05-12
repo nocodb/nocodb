@@ -219,6 +219,7 @@ watch(
             <div v-if="vDataState === ''" class="flex flex-row justify-end items-center w-full gap-1">
               <a-button
                 v-if="dataSourcesAwakened"
+                type="primary"
                 class="self-start !rounded-md nc-btn-new-datasource"
                 @click="vDataState = DataSourcesSubTab.New"
               >

@@ -240,7 +240,7 @@ const isSuperAdmin = (user: { main_roles?: string }) => {
           v-if="isUIAllowed('newUser')"
           v-e="['c:user:invite']"
           size="middle"
-          type="default"
+          type="primary"
           class="nc-invite-team !rounded-md"
           @click="onInvite"
         >

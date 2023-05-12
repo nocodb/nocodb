@@ -8,9 +8,9 @@ import { AppModule } from './app.module';
 
 import { NC_LICENSE_KEY } from './constants';
 import Store from './models/Store';
+import type { IEventEmitter } from './modules/event-emitter/event-emitter.interface';
 import type { Express } from 'express';
 import type * as http from 'http';
-import { IEventEmitter } from './modules/event-emitter/event-emitter.interface'
 
 export default class Noco {
   private static _this: Noco;

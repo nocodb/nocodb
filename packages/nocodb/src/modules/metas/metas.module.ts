@@ -9,6 +9,7 @@ import { DocsPagesService } from 'src/services/docs/docs-pages.service';
 import { DocsPagesUpdateService } from 'src/services/docs/docs-page-update.service';
 import { PublicDocsController } from 'src/controllers/docs/public/public-docs.controller';
 import { PublicDocsService } from 'src/services/docs/public/public-docs.service';
+import { PageSnapshotDao } from 'src/daos/pageSnapshot.dao';
 import { NC_ATTACHMENT_FIELD_SIZE } from '../../constants';
 import { ApiDocsController } from '../../controllers/api-docs/api-docs.controller';
 import { ApiTokensController } from '../../controllers/api-tokens.controller';
@@ -144,6 +145,7 @@ import { ClickhouseService } from '../../services/clickhouse/clickhouse.service'
   providers: [
     /** DAOs */
     PageDao,
+    PageSnapshotDao,
     /** Services */
     ApiDocsService,
     ApiTokensService,

@@ -1,16 +1,15 @@
-import { Injectable } from '@nestjs/common';
-import HTMLParser, {JSONToHTML} from 'html-to-json-parser';
-import { ClickhouseService } from 'src/services/clickhouse/clickhouse.service';
-import { MetaService } from 'src/meta/meta.service';
+import { forwardRef, Inject, Injectable } from '@nestjs/common';
+import HTMLParser, { JSONToHTML } from 'html-to-json-parser';
 
-import { PagedResponseImpl } from 'src/helpers/PagedResponse';
 import { PageDao } from 'src/daos/page.dao';
 
 import dayjs from 'dayjs';
 import utc from 'dayjs/plugin/utc';
+import { PageSnapshotDao } from 'src/daos/pageSnapshot.dao';
+import { DocsPagesUpdateService } from '../docs-page-update.service';
 import diff from './htmlDiff';
+import type { JSONContent } from 'html-to-json-parser/dist/types';
 import type { DocsPageSnapshotType, DocsPageType } from 'nocodb-sdk';
-import {JSONContent} from "html-to-json-parser/dist/types";
 
 dayjs.extend(utc);
 
@@ -20,17 +19,89 @@ const SNAP_SHOT_WINDOW_SEC = 5;
 @Injectable()
 export class DocsPageHistoryService {
   constructor(
-    private clickhouseService: ClickhouseService,
-    private metaService: MetaService,
     private pageDao: PageDao,
+    @Inject(forwardRef(() => DocsPagesUpdateService))
+    private readonly pageUpdateService: DocsPagesUpdateService,
+    private readonly pageSnapshotDao: PageSnapshotDao,
   ) {}
+
+  async restore(params: {
+    workspaceId: string;
+    projectId: string;
+    pageId: string;
+    snapshotId: string;
+    user: any;
+  }) {
+    const { workspaceId, projectId, pageId, snapshotId, user } = params;
+
+    const snapshot = await this.pageSnapshotDao.get({ id: snapshotId });
+
+    const snapshotAfterPage = snapshot.after_page;
+
+    let updateAttrs: Partial<DocsPageType> = {};
+    if (snapshot.type === 'content_update') {
+      updateAttrs = {
+        content: JSON.stringify(snapshotAfterPage.content),
+      };
+    } else if (snapshot.type === 'title_update') {
+      updateAttrs = {
+        title: snapshotAfterPage.title,
+      };
+    } else if (
+      snapshot.type === 'published' ||
+      snapshot.type === 'unpublished'
+    ) {
+      updateAttrs = {
+        is_published: snapshotAfterPage.is_published,
+      };
+    } else if (snapshot.type === 'restored') {
+      const beforePage = snapshot.before_page;
+
+      updateAttrs = beforePage;
+    }
+
+    const oldPage = await this.pageDao.get({ id: pageId, projectId });
+
+    const service = this.pageUpdateService;
+    await service.process({
+      workspaceId,
+      projectId,
+      pageId,
+      attributes: updateAttrs,
+      user,
+      snapshotDisabled: true,
+    });
+
+    const newPage = await this.pageDao.get({ id: pageId, projectId });
+    const diffHtml = await this.getDiff(newPage, oldPage);
+
+    const snapId = await this.pageSnapshotDao.create({
+      workspaceId,
+      projectId,
+      pageId,
+      type: 'restored',
+      oldPage: oldPage,
+      newPage: newPage,
+      diffHtml,
+    });
+
+    await this.pageDao.updatePage({
+      pageId,
+      projectId,
+      attributes: {
+        last_snapshot_at: newPage.updated_at,
+        last_snapshot_id: snapId,
+      },
+    });
+  }
 
   async maybeInsert(params: {
     workspaceId: string;
     oldPage: DocsPageType;
     newPage: DocsPageType;
   }) {
-    const { workspaceId, oldPage, newPage } = params;
+    const { workspaceId, oldPage: _oldPage, newPage } = params;
+    let oldPage = _oldPage;
 
     const lastSnapshotDate =
       newPage.last_snapshot_at && dayjs.utc(newPage.last_snapshot_at);
@@ -41,43 +112,48 @@ export class DocsPageHistoryService {
       return;
     }
 
-    const snapshotType = this.getSnapshotType(newPage, oldPage);
-    if (!snapshotType) return;
-
-    // Define the values to insert
-    const id = this.metaService.genNanoid('');
-    const projectId = newPage.project_id;
-    const pageId = newPage.id;
-    const last_updated_by_id = newPage.last_updated_by_id;
-    const last_page_updated_time = newPage.updated_at;
     oldPage.content = oldPage.content ? JSON.parse(oldPage.content) : undefined;
     newPage.content = newPage.content ? JSON.parse(newPage.content) : undefined;
 
+    if (newPage.last_snapshot_id) {
+      const lastSnapshot = await this.pageSnapshotDao.get({
+        id: newPage.last_snapshot_id,
+      });
+      if (lastSnapshot && lastSnapshot.after_page) {
+        oldPage = lastSnapshot.after_page;
+      }
+    }
+
+    const snapshotType = this.getSnapshotType(newPage, oldPage);
+    if (!snapshotType) return;
+
+    const projectId = newPage.project_id;
+    const pageId = newPage.id;
+    const last_page_updated_time = newPage.updated_at;
+
     if (!oldPage.content_html || !newPage.content_html) return;
 
-    // TODO: Hacky way of forcing html diff to detect empty paragraph
-    const _diffHtml = await this.getDiff(newPage, oldPage);
+    const diffHtml =
+      oldPage.content === newPage.content
+        ? newPage.content_html
+        : await this.getDiff(newPage, oldPage);
 
-    // TODO: Figure to properly store html as part of json(i.e 'content_html' in before_page_json, after_page_json)
-    // Issue is on frontend, JSON.parse() is not able to parse html string
-    delete oldPage.content_html;
-    delete newPage.content_html;
+    const snapId = await this.pageSnapshotDao.create({
+      workspaceId,
+      projectId,
+      pageId,
+      type: snapshotType,
+      oldPage: oldPage,
+      newPage: newPage,
+      diffHtml,
+    });
 
-    const before_page_json = JSON.stringify(oldPage);
-    const after_page_json = JSON.stringify(newPage);
-
-    // Define the SQL query to insert the row
-    const query = `
-  INSERT INTO page_history (id, fk_workspace_id, fk_project_id, fk_page_id, last_updated_by_id, last_page_updated_time, before_page_json, after_page_json, diff, type)
-  VALUES ('${id}', '${workspaceId}', '${projectId}', '${pageId}', '${last_updated_by_id}', '${last_page_updated_time}', '${before_page_json}', '${after_page_json}', '${_diffHtml}', '${snapshotType}')
-`;
-
-    await this.clickhouseService.execute(query, true);
     await this.pageDao.updatePage({
       pageId,
       projectId,
       attributes: {
         last_snapshot_at: last_page_updated_time,
+        last_snapshot_id: snapId,
       },
     });
   }
@@ -93,40 +169,12 @@ export class DocsPageHistoryService {
     pageNumber?: number | undefined;
     pageSize?: number | undefined;
   }) {
-    let query = `
-  SELECT
-    id,
-    fk_workspace_id,
-    fk_project_id,
-    fk_page_id,
-    last_updated_by_id,
-    last_page_updated_time,
-    before_page_json,
-    after_page_json,
-    diff,
-    created_at,
-    type
-  FROM page_history
-  WHERE fk_project_id = '${projectId}' AND fk_page_id = '${pageId}'
-  ORDER BY last_page_updated_time DESC
-  
-`;
-
-    if (pageNumber) {
-      pageNumber = Number(pageNumber);
-      pageSize = Number(pageSize);
-
-      query += `LIMIT ${pageNumber * pageSize}, ${pageSize}`;
-    }
-
-    const snapshots = (await this.clickhouseService.execute(
-      query,
-      true,
-    )) as DocsPageSnapshotType[];
-
-    return {
-      snapshots,
-    };
+    return this.pageSnapshotDao.list({
+      projectId,
+      pageId,
+      pageNumber,
+      pageSize,
+    });
   }
 
   private getSnapshotType(
@@ -151,35 +199,42 @@ export class DocsPageHistoryService {
   private async getDiff(newPage: DocsPageType, oldPage: DocsPageType) {
     // TODO: Hacky way of forcing html diff to detect empty paragraph
     const _diffHtml = diff(oldPage.content_html, newPage.content_html)
-        .replaceAll('>Empty</ins>', ' class="empty">__nc_empty__</ins>')
-        .replaceAll('>Empty</del>', ' class="empty">__nc_empty__</del>')
-        .replaceAll('<p #custom>Empty</p>', '<p></p>');
+      .replaceAll('>Empty</ins>', ' class="empty">__nc_empty__</ins>')
+      .replaceAll('>Empty</del>', ' class="empty">__nc_empty__</del>')
+      .replaceAll('<p #custom>Empty</p>', '<p></p>');
 
-    const htmlParse = (HTMLParser as any).default as typeof HTMLParser
-    const domJson = await htmlParse(`<html>${_diffHtml}</html>`) as JSONContent;
+    const htmlParse = (HTMLParser as any).default as typeof HTMLParser;
+    const domJson = (await htmlParse(
+      `<html>${_diffHtml}</html>`,
+    )) as JSONContent;
 
     // domJson will have 'section' element, which should only have one child
     // If it has more than one child, then remove that child and create a new 'section' element
     // with that child
     const formatNode = (node: JSONContent) => {
-      if(!node.content) return node;
+      if (!node.content) return node;
 
       if (node.type !== 'section' || node.content.length <= 1) {
         node.content = node.content.map(formatNode).flat();
         return node;
       }
 
-      const newNode = { type: 'section', content: [node.content[0]].map(formatNode) };
+      const newNode = {
+        type: 'section',
+        content: [node.content[0]].map(formatNode),
+      };
       const remainingNodes = node.content.slice(1);
 
-      return [newNode].concat(remainingNodes.map(node => ({ type: 'section', content: [node] })));
-    }
+      return [newNode].concat(
+        remainingNodes.map((node) => ({ type: 'section', content: [node] })),
+      );
+    };
 
-    const processJson = formatNode(domJson)
+    const processJson = formatNode(domJson);
     const processedDiff = ((await JSONToHTML(processJson, true)) as string)
-        // Remove the <html> and </html> tags
-        .slice(6, -7)
-        .replaceAll('<br></br>', '<br>')
+      // Remove the <html> and </html> tags
+      .slice(6, -7)
+      .replaceAll('<br></br>', '<br>');
 
     return processedDiff;
   }

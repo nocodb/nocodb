@@ -200,6 +200,7 @@ declare module '@vue/runtime-core' {
     MdiPlusOutline: typeof import('~icons/mdi/plus-outline')['default']
     MdiRefresh: typeof import('~icons/mdi/refresh')['default']
     MdiReload: typeof import('~icons/mdi/reload')['default']
+    MdiRestore: typeof import('~icons/mdi/restore')['default']
     MdiRocketLaunchOutline: typeof import('~icons/mdi/rocket-launch-outline')['default']
     MdiScriptTextOutline: typeof import('~icons/mdi/script-text-outline')['default']
     MdiShieldKeyOutline: typeof import('~icons/mdi/shield-key-outline')['default']

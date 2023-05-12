@@ -106,6 +106,7 @@ export default class Page {
       table.datetime('updated_at', { useTz: true });
 
       table.timestamp('last_snapshot_at').nullable();
+      table.string('last_snapshot_id').nullable();
       table.text('content_html', 'longtext').defaultTo('');
     });
   }

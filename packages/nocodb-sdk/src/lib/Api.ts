@@ -565,6 +565,7 @@ export interface DocsPageType {
   updated_at?: string;
   /** @format date */
   last_snapshot_at?: string;
+  last_snapshot_id?: string;
 }
 
 /**
@@ -581,10 +582,19 @@ export interface DocsPageSnapshotType {
   created_at?: string;
   /** @format date */
   last_page_updated_time?: string;
+  /** Page of Noco docs */
+  before_page?: DocsPageType;
   before_page_json?: string;
+  /** Page of Noco docs */
+  after_page?: DocsPageType;
   after_page_json?: string;
   diff?: string;
-  type?: 'content_update' | 'title_update' | 'published' | 'unpublished';
+  type?:
+    | 'content_update'
+    | 'title_update'
+    | 'published'
+    | 'unpublished'
+    | 'restored';
 }
 
 /**
@@ -3282,6 +3292,27 @@ export class Api<
         method: 'GET',
         query: query,
         format: 'json',
+        ...params,
+      }),
+
+    /**
+     * @description Restore page history
+     *
+     * @tags Noco docs
+     * @name RestorePageHistory
+     * @summary Restore page history
+     * @request POST:/api/v1/docs/project/{projectId}/page/{pageId}/history/{snapshotId}/restore
+     * @response `200` `void` OK
+     */
+    restorePageHistory: (
+      projectId: string,
+      pageId: string,
+      snapshotId: string,
+      params: RequestParams = {}
+    ) =>
+      this.request<void, any>({
+        path: `/api/v1/docs/project/${projectId}/page/${pageId}/history/${snapshotId}/restore`,
+        method: 'POST',
         ...params,
       }),
   };

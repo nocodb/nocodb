@@ -22,12 +22,11 @@ const {
   flattenedNestedPages,
 } = storeToRefs(useDocStore())
 
-const { currentHistory } = storeToRefs(useDocHistoryStore())
+const { currentHistory, isHistoryPaneOpen } = storeToRefs(useDocHistoryStore())
 const { updatePage, nestedUrl, openPage } = useDocStore()
 
 const isEditAllowed = computed(() => _isEditAllowed.value && !currentHistory.value)
 
-const showHistoryPanel = ref(false)
 const showOutline = ref(isPublic.value)
 const pageWrapperDomRef = ref<HTMLDivElement | undefined>()
 const pageContentDomRef = ref<HTMLDivElement | undefined>()
@@ -303,12 +302,13 @@ watch(
           <div class="flex flex-row items-center gap-x-1 mr-2 mt-0.25">
             <div
               class="p-1 flex items-center hover:bg-gray-100 cursor-pointer rounded-md mr-2"
-              @click="showHistoryPanel = !showHistoryPanel"
+              @click="isHistoryPaneOpen = !isHistoryPaneOpen"
             >
               <MaterialSymbolsHistoryRounded />
             </div>
             <div class="">
-              <LazyGeneralShareProject />
+              <LazyGeneralShareProject v-if="!currentHistory" />
+              <DocsPageRestoreButton v-else />
             </div>
             <div class="flex flex-row">
               <div class="flex flex-row justify-end cursor-pointer rounded-md">
@@ -337,7 +337,7 @@ watch(
             @update:selection-box="selectionBox = $event"
           />
           <div
-            :key="openedPageId ?? currentHistory?.content ?? ''"
+            :key="openedPageId ?? currentHistory?.id ?? ''"
             class="mx-auto pr-6 pt-16 flex flex-col"
             :style="{
               width: '64rem',
@@ -424,7 +424,7 @@ watch(
           </div>
         </div>
       </div>
-      <DocsPageHistory v-if="showHistoryPanel" @close="showHistoryPanel = false" />
+      <DocsPageHistory v-if="isHistoryPaneOpen" @close="isHistoryPaneOpen = false" />
     </div>
     <DocsPageOutline
       v-if="showOutline && openedPage && pageWrapperDomRef"

@@ -7,7 +7,12 @@ interface DocsPageSnapshotTypeWithPage extends DocsPageSnapshotType {
 }
 
 export const useDocHistoryStore = defineStore('docHistoryStore', () => {
-  const { openedPage } = storeToRefs(useDocStore())
+  const { $api } = useNuxtApp()
+  const { openedPage, openedProjectId } = storeToRefs(useDocStore())
+  const { fetchPage } = useDocStore()
+
+  const isHistoryPaneOpen = ref(false)
+  const isRestoring = ref(false)
   const history = ref<DocsPageSnapshotTypeWithPage[]>([])
   const currentHistory = ref<DocsPageSnapshotTypeWithPage | null>()
 
@@ -24,6 +29,28 @@ export const useDocHistoryStore = defineStore('docHistoryStore', () => {
     currentHistory.value = snapshot
   }
 
+  const restore = async () => {
+    const snapshot = currentHistory.value
+    if (!snapshot) return
+
+    isRestoring.value = true
+    try {
+      isRestoring.value = true
+      await $api.nocoDocs.restorePageHistory(openedProjectId.value, openedPage.value?.id as string, snapshot.id!)
+
+      openedPage.value = (await fetchPage({
+        projectId: openedProjectId.value,
+        doNotSetProject: true,
+      })) as any
+
+      currentHistory.value = null
+
+      isHistoryPaneOpen.value = false
+    } finally {
+      isRestoring.value = false
+    }
+  }
+
   watch(
     () => openedPage.value?.id,
     async () => {
@@ -36,5 +63,8 @@ export const useDocHistoryStore = defineStore('docHistoryStore', () => {
     currentHistory,
     setCurrentHistory,
     setHistory,
+    restore,
+    isHistoryPaneOpen,
+    isRestoring,
   }
 })

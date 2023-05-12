@@ -605,26 +605,41 @@
           "200": {
             "description": "OK",
             "content": {
-            "application/json": {
-              "schema": {
-                "type": "object",
-                "properties": {
-                  "snapshots": {
-                    "type": "array",
-                    "items": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "snapshots": {
+                      "type": "array",
+                      "items": {
                         "$ref": "#/components/schemas/DocsPageSnapshot"
+                      }
                     }
                   }
                 }
               }
             }
           }
-          }
         },
         "tags": [
           "Noco docs"
         ],
         "description": "List page history"
+      }
+    },
+    "/api/v1/docs/project/{projectId}/page/{pageId}/history/{snapshotId}/restore": {
+      "post": {
+        "summary": "Restore page history",
+        "operationId": "restore-page-history",
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        },
+        "tags": [
+          "Noco docs"
+        ],
+        "description": "Restore page history"
       }
     },
     "/api/v1/auth/user/signup": {
@@ -17345,6 +17360,9 @@
           "last_snapshot_at": {
             "format": "date",
             "type": "string"
+          },
+          "last_snapshot_id": {
+            "type": "string"
           }
         },
         "required": [
@@ -17382,8 +17400,16 @@
             "format": "date",
             "type": "string"
           },
+          "before_page": {
+            "$ref": "#/components/schemas/DocsPage",
+            "required": "false"
+          },
           "before_page_json": {
             "type": "string"
+          },
+          "after_page": {
+            "$ref": "#/components/schemas/DocsPage",
+            "required": "false"
           },
           "after_page_json": {
             "type": "string"
@@ -17397,7 +17423,8 @@
               "content_update",
               "title_update",
               "published",
-              "unpublished"
+              "unpublished",
+              "restored"
             ]
           }
         }

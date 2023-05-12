@@ -301,10 +301,13 @@ watch(
           <div v-if="!isPublic" class="flex flex-row items-center"></div>
           <div class="flex flex-row items-center gap-x-1 mr-2 mt-0.25">
             <div
-              class="p-1 flex items-center hover:bg-gray-100 cursor-pointer rounded-md mr-2"
+              class="mt-0.25 p-1.75 flex items-center hover:bg-gray-100 cursor-pointer rounded-md mr-2"
+              :class="{
+                'bg-gray-100': isHistoryPaneOpen,
+              }"
               @click="isHistoryPaneOpen = !isHistoryPaneOpen"
             >
-              <MaterialSymbolsHistoryRounded />
+              <MaterialSymbolsHistoryRounded class="!h-4.5" />
             </div>
             <div class="">
               <LazyGeneralShareProject v-if="!currentHistory" />

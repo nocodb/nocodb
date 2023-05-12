@@ -1,7 +1,8 @@
 import { Injectable, Module, RequestMethod } from '@nestjs/common';
-import {APP_FILTER, APP_GUARD, APP_INTERCEPTOR} from '@nestjs/core';
+import { APP_FILTER, APP_GUARD, APP_INTERCEPTOR } from '@nestjs/core';
 import { ThrottlerGuard, ThrottlerModule } from '@nestjs/throttler';
 import { ConfigModule, ConfigService } from '@nestjs/config';
+// import { KafkaModule } from 'nestjs-kafka';
 import { Connection } from './connection/connection';
 import { GlobalExceptionFilter } from './filters/global-exception/global-exception.filter';
 import NcPluginMgrv2 from './helpers/NcPluginMgrv2';
@@ -29,11 +30,14 @@ import { CustomApiLimiterGuard } from './guards/custom-api-limiter.guard';
 
 import appConfig from './app.config';
 import { ExtractProjectAndWorkspaceIdMiddleware } from './middlewares/extract-project-and-workspace-id/extract-project-and-workspace-id.middleware';
+import { ExecutionTimeCalculatorInterceptor } from './interceptors/execution-time-calculator/execution-time-calculator.interceptor';
+import { KafkaConsumer } from './modules/kafka/kafka-consumer';
+import { KafkaProducer } from './modules/kafka/kafka-producer';
 import type {
   MiddlewareConsumer,
   OnApplicationBootstrap,
 } from '@nestjs/common';
-import {ExecutionTimeCalculatorInterceptor} from "./interceptors/execution-time-calculator/execution-time-calculator.interceptor";
+import { KafkaService } from './services/kafka/kafka.service';
 
 // todo: refactor to use config service
 const enableThrottler = !!process.env['NC_THROTTLER_REDIS'];

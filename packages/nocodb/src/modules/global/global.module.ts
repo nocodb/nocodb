@@ -9,6 +9,10 @@ import NcConfigFactory from '../../utils/NcConfigFactory';
 import { UsersService } from '../../services/users/users.service';
 import { AppHooksService } from '../../services/app-hooks/app-hooks.service';
 import type { Provider } from '@nestjs/common';
+import {KafkaConsumer} from "../kafka/kafka-consumer";
+import {KafkaProducer} from "../kafka/kafka-producer";
+// import {KafkaModule} from "nestjs-kafka";
+import {KafkaService} from "../../services/kafka/kafka.service";
 
 export const JwtStrategyProvider: Provider = {
   provide: JwtStrategy,
@@ -31,7 +35,13 @@ export const JwtStrategyProvider: Provider = {
 
 @Global()
 @Module({
-  imports: [],
+  imports: [
+    // KafkaModule.register({
+    //   brokers: ['127.0.0.1:9092'],
+    //   groupId: 'consumer-group-1-48714', // Consumer group ID
+    //   clientId: null, // Client ID
+    // }),
+  ],
   providers: [
     Connection,
     MetaService,
@@ -40,6 +50,10 @@ export const JwtStrategyProvider: Provider = {
     GlobalGuard,
     SocketService,
     AppHooksService,
+
+    KafkaConsumer,
+    KafkaProducer,
+    KafkaService,
   ],
   exports: [
     Connection,
@@ -49,6 +63,9 @@ export const JwtStrategyProvider: Provider = {
     GlobalGuard,
     SocketService,
     AppHooksService,
+
+    KafkaConsumer,
+    KafkaProducer,
   ],
 })
 export class GlobalModule {}

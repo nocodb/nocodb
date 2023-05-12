@@ -204,6 +204,7 @@ const isSuperAdmin = (user: { main_roles?: string }) => {
       :closable="false"
       width="28rem"
       centered
+      class="!rounded-md"
       :footer="null"
       wrap-class-name="nc-modal-delete-user"
     >
@@ -211,9 +212,9 @@ const isSuperAdmin = (user: { main_roles?: string }) => {
         <div class="flex flex-row justify-center mt-2 text-center w-full text-base">
           This action will remove this user from this project
         </div>
-        <div class="flex mt-6 justify-center space-x-2">
-          <a-button @click="showUserDeleteModal = false"> {{ $t('general.cancel') }}</a-button>
-          <a-button type="primary" danger @click="deleteUser"> {{ $t('general.confirm') }}</a-button>
+        <div class="flex mt-6 justify-end space-x-2">
+          <a-button class="!rounded-md" @click="showUserDeleteModal = false"> {{ $t('general.cancel') }}</a-button>
+          <a-button class="!rounded-md" type="primary" danger @click="deleteUser"> {{ $t('general.confirm') }}</a-button>
         </div>
       </div>
     </a-modal>
@@ -239,9 +240,8 @@ const isSuperAdmin = (user: { main_roles?: string }) => {
           v-if="isUIAllowed('newUser')"
           v-e="['c:user:invite']"
           size="middle"
-          type="primary"
-          ghost
-          class="nc-invite-team"
+          type="default"
+          class="nc-invite-team !rounded-md"
           @click="onInvite"
         >
           <div class="flex flex-row justify-center items-center caption capitalize space-x-1">
@@ -254,12 +254,12 @@ const isSuperAdmin = (user: { main_roles?: string }) => {
 
     <div class="px-5">
       <div class="flex flex-row border-b-1 pb-2 px-2">
-        <div class="flex flex-row w-4/6 space-x-1 items-center pl-1">
+        <div class="flex flex-row w-3/6 space-x-1 items-center pl-1">
           <component :is="iconMap.email" class="flex text-gray-500 -mt-0.5" />
 
           <div class="text-gray-600 text-xs space-x-1">{{ $t('labels.email') }}</div>
         </div>
-        <div class="flex flex-row justify-center w-1/6 space-x-1 items-center pl-1">
+        <div class="flex flex-row justify-start w-2/6 space-x-1 items-center pl-1">
           <component :is="iconMap.role" class="flex text-gray-500 -mt-0.5" />
 
           <div class="text-gray-600 text-xs">{{ $t('objects.role') }}</div>
@@ -270,21 +270,21 @@ const isSuperAdmin = (user: { main_roles?: string }) => {
       </div>
 
       <div v-for="(user, index) of users" :key="index" class="flex flex-row items-center border-b-1 py-2 px-2 nc-user-row">
-        <div class="flex w-4/6 flex-wrap nc-user-email">
+        <div class="flex w-3/6 flex-wrap nc-user-email">
           {{ user.email }}
         </div>
 
-        <div class="flex w-1/6 justify-center flex-wrap ml-4">
+        <div class="flex w-2/6 justify-start gap-2 flex-wrap ml-4">
           <div
             v-if="isSuperAdmin(user)"
-            class="rounded-full px-2 py-1 nc-user-role"
+            class="rounded-full px-3 py-1 nc-user-role"
             :style="{ backgroundColor: projectRoleTagColors[OrgUserRoles.SUPER_ADMIN] }"
           >
             Super Admin
           </div>
           <div
             v-if="user.roles"
-            class="rounded-full px-2 py-1 nc-user-role"
+            class="rounded-full px-3 py-1 nc-user-role"
             :style="{ backgroundColor: projectRoleTagColors[user.roles] }"
           >
             {{ $t(`objects.roleType.${user.roles}`) }}

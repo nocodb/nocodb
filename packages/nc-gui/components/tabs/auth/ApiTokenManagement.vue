@@ -119,7 +119,7 @@ onMounted(() => {
         </a-button>
 
         <!-- Generate Token -->
-        <div class="flex flex-row justify-center w-full -mt-1 mb-3">
+        <div class="flex flex-row justify-start w-full -mt-1 mb-3">
           <a-typography-title :level="5">{{ $t('title.generateToken') }}</a-typography-title>
         </div>
 
@@ -129,16 +129,16 @@ onMounted(() => {
           :model="selectedTokenData"
           name="basic"
           layout="vertical"
-          class="flex flex-col justify-center space-y-6"
+          class="flex flex-col justify-center space-y-3"
           no-style
           autocomplete="off"
           @finish="generateToken"
         >
-          <a-input v-model:value="selectedTokenData.description" :placeholder="$t('labels.description')" />
+          <a-input v-model:value="selectedTokenData.description" size="middle" :placeholder="$t('labels.description')" />
 
           <!-- Generate -->
-          <div class="flex flex-row justify-center">
-            <a-button type="primary" html-type="submit">
+          <div class="flex flex-row justify-end">
+            <a-button type="primary" html-type="submit" class="!rounded-md">
               {{ $t('general.generate') }}
             </a-button>
           </div>
@@ -157,9 +157,9 @@ onMounted(() => {
       <div class="flex flex-col h-full">
         <div class="flex flex-row justify-center mt-2 text-center w-full text-base">This action will remove this API Token</div>
 
-        <div class="flex mt-6 justify-center space-x-2">
-          <a-button @click="showDeleteTokenModal = false"> {{ $t('general.cancel') }}</a-button>
-          <a-button type="primary" danger @click="deleteToken()"> {{ $t('general.confirm') }}</a-button>
+        <div class="flex mt-6 justify-end space-x-2">
+          <a-button class="!rounded-md" @click="showDeleteTokenModal = false"> {{ $t('general.cancel') }}</a-button>
+          <a-button class="!rounded-md" type="primary" danger @click="deleteToken()"> {{ $t('general.confirm') }}</a-button>
         </div>
       </div>
     </a-modal>
@@ -175,7 +175,7 @@ onMounted(() => {
           </a-button>
 
           <!--        Add New Token -->
-          <a-button size="middle" type="primary" ghost @click="openNewTokenModal">
+          <a-button size="middle" class="!rounded-md" @click="openNewTokenModal">
             <div class="flex flex-row justify-center items-center caption capitalize space-x-1">
               <component :is="iconMap.plus" />
               <div>{{ $t('activity.newToken') }}</div>
@@ -244,7 +244,7 @@ onMounted(() => {
                 <template #overlay>
                   <a-menu>
                     <a-menu-item>
-                      <div class="flex flex-row items-center py-3 h-[1rem]" @click="openDeleteModal(item)">
+                      <div class="flex flex-row items-center py-4 h-[1rem]" @click="openDeleteModal(item)">
                         <component :is="iconMap.delete" class="flex" />
                         <div class="text-xs pl-2">{{ $t('general.remove') }}</div>
                       </div>

@@ -1,9 +1,7 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { ClickHouse } from 'clickhouse';
-import * as nc_001_notification from './migrations/nc_001_notification';
-import * as nc_002_page from './migrations/nc_002_page';
-import * as nc_003_api_count from './migrations/nc_003_api_count';
-import * as nc_004_api_exec from './migrations/nc_004_api_calls';
+import * as nc_001_db_create from './migrations/nc_001_db_create';
+import * as nc_002_api_calls from './migrations/nc_002_api_calls';
 import type { OnModuleDestroy, OnModuleInit } from '@nestjs/common';
 import NcConfigFactory from '../helpers/NcConfigFactory';
 
@@ -97,10 +95,8 @@ export class ClickhouseService implements OnModuleInit, OnModuleDestroy {
         database: undefined,
       });
       for (const { up } of [
-        nc_001_notification,
-        nc_002_page,
-        nc_003_api_count,
-        nc_004_api_exec,
+        nc_001_db_create,
+        nc_002_api_calls,
       ]) {
         await up(clickhouse, this.config);
       }

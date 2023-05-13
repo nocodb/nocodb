@@ -77,6 +77,9 @@ export default defineNuxtConfig({
       pages: true,
       layouts: true,
     },
+    parallel: true,
+    cache: true,
+    hardSource: true,
   },
 
   vite: {

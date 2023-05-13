@@ -64,6 +64,276 @@
     }
   ],
   "paths": {
+    "/api/v1/dashboards/{dashboardId}/layouts/{layoutId}": {
+      "parameters": [
+        {
+          "schema": {
+            "$ref": "#/components/schemas/Id",
+            "example": "us_b3xo2i44nx5y9l"
+          },
+          "name": "dashboardId",
+          "in": "path",
+          "required": true,
+          "description": "Unique Dashboard ID"
+        },
+        {
+          "schema": {
+            "$ref": "#/components/schemas/Id",
+            "example": "us_b3xo2i44nx5y9l"
+          },
+          "name": "layoutId",
+          "in": "path",
+          "required": true,
+          "description": "Unique Layout ID"
+        }
+      ],
+      "get": {
+        "summary": "Get Layout",
+        "operationId": "layout-get",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Layout"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "Dashboard"
+        ],
+        "description": "Get Layout"
+      },
+      "delete": {
+        "summary": "Delete Layout",
+        "operationId": "layout-delete",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Layout"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "Dashboard"
+        ],
+        "description": "Delete Layout"
+      },
+      "patch": {
+        "summary": "Update Layout",
+        "operationId": "layout-update",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Layout"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          }
+        },
+        "tags": ["Dashboard"],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/LayoutUpdateReq"
+              }
+            }
+          }
+        },
+        "description": "Update the given Layout",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/xc-auth"
+          }
+        ]
+      }
+    },
+    "/api/v1/layouts/{layoutId}/widgets": {
+      "parameters": [
+        {
+          "schema": {
+            "$ref": "#/components/schemas/Id",
+            "example": "p_124hhlkbeasewh",
+            "type": "string"
+          },
+          "name": "layoutId",
+          "in": "path",
+          "required": true,
+          "description": "Unique Layout ID"
+        }
+      ],
+      "get": {
+        "summary": "List Widgets for Layout",
+        "operationId": "widget-list",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/WidgetList"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "Dashboard"
+        ],
+        "description": "Get Widgets of the Layout"
+      },
+      "post": {
+        "summary": "Create Widget",
+        "operationId": "widget-create",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Widget"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          }
+        },
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/WidgetReq"
+              }
+            }
+          }
+        },
+        "tags": ["Dashboard"],
+        "description": "Create a new Widget in a given Layout",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/xc-auth"
+          }
+        ]
+      }
+    },
+    "/api/v1/layouts/{layoutId}/widgets/{widgetId}": {
+      "parameters": [
+        {
+          "schema": {
+            "$ref": "#/components/schemas/Id",
+            "example": "p_124hhlkbeasewh",
+            "type": "string"
+          },
+          "name": "layoutId",
+          "in": "path",
+          "required": true,
+          "description": "Unique Layout ID"
+        },
+        {
+          "schema": {
+            "$ref": "#/components/schemas/Id",
+            "example": "p_124hhlkbeasewh",
+            "type": "string"
+          },
+          "name": "widgetId",
+          "in": "path",
+          "required": true,
+          "description": "Widget ID"
+        }
+      ],
+      "get": {
+        "summary": "Get Widget, including its data",
+        "operationId": "widget-get",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Widget"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "Dashboard"
+        ],
+        "description": "Get Layout"
+      },
+      "delete": {
+        "summary": "Delete Widget",
+        "operationId": "widget-delete",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Widget"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "Dashboard"
+        ],
+        "description": "Delete Widget"
+      },
+      "patch": {
+        "summary": "Update Widget",
+        "operationId": "widget-update",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Widget"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          }
+        },
+        "tags": ["Dashboard"],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/WidgetUpdateReq"
+              }
+            }
+          }
+        },
+        "description": "Update the given Widget",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/xc-auth"
+          }
+        ]
+      }
+    },
     "/api/v1/public/docs/pages": {
       "get": {
         "summary": "list public pages",
@@ -7047,6 +7317,162 @@
         ]
       }
     },
+    "/api/v1/layouts/:layoutId/widgets/:widgetId/filters": {
+      "parameters": [
+        {
+          "schema": {
+            "type": "string",
+            "example": "vw_wtdg2meyig5l4q"
+          },
+          "name": "layoutId",
+          "in": "path",
+          "required": true,
+          "description": "Unique Layout ID"
+        },
+        {
+          "schema": {
+            "type": "string",
+            "example": "vw_wtdg2meyig5l4q"
+          },
+          "name": "widgetId",
+          "in": "path",
+          "required": true,
+          "description": "Unique Widget ID"
+        }
+      ],
+      "get": {
+        "summary": "Get Widget Filter",
+        "operationId": "widget-filter-read",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/FilterList"
+                },
+                "examples": {
+                  "Example 1": {
+                    "value": {
+                      "list": [
+                        {
+                          "base_id": "ds_g4ccx6e77h1dmi",
+                          "comparison_op": "eq",
+                          "comparison_sub_op": null,
+                          "created_at": "2023-03-02 18:18:05",
+                          "fk_column_id": "cl_d7ah9n2qfupgys",
+                          "fk_hook_id": null,
+                          "fk_widget_id": "ad_943rjowiejdis",
+                          "fk_parent_id": null,
+                          "fk_view_id": "vw_b739e29vqmrxnf",
+                          "id": "fi_xn647tpmdq8fu8",
+                          "is_group": null,
+                          "logical_op": "and",
+                          "order": 1,
+                          "project_id": "p_xm3thidrblw4n7",
+                          "updated_at": "2023-03-02 18:18:05",
+                          "value": "foo"
+                        }
+                      ],
+                      "pageInfo": {
+                        "isFirstPage": true,
+                        "isLastPage": true,
+                        "page": 1,
+                        "pageSize": 10,
+                        "totalRows": 1
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          }
+        },
+        "tags": [
+          "Dashboard"
+        ],
+        "description": "Get the filter for a given Widget",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/xc-auth"
+          }
+        ]
+      },
+      "post": {
+        "summary": "Create Widget Filter",
+        "operationId": "widget-filter-create",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Filter"
+                },
+                "examples": {
+                  "Example 1": {
+                    "value": {
+                      "base_id": "ds_g4ccx6e77h1dmi",
+                      "comparison_op": "eq",
+                      "comparison_sub_op": null,
+                      "created_at": "2023-03-02 18:18:05",
+                      "fk_column_id": "cl_d7ah9n2qfupgys",
+                      "fk_hook_id": null,
+                      "fk_widget_id": "aw_t5393oijsd",
+                      "fk_parent_id": null,
+                      "fk_view_id": "vw_b739e29vqmrxnf",
+                      "id": "fi_xn647tpmdq8fu8",
+                      "is_group": null,
+                      "logical_op": "and",
+                      "order": 1,
+                      "project_id": "p_xm3thidrblw4n7",
+                      "updated_at": "2023-03-02 18:18:05",
+                      "value": "foo"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          }
+        },
+        "tags": [
+          "Dashboard"
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/FilterReq"
+              },
+              "examples": {
+                "Example 1": {
+                  "value": {
+                    "comparison_op": "eq",
+                    "comparison_sub_op": null,
+                    "fk_column_id": "cl_d7ah9n2qfupgys",
+                    "is_group": false,
+                    "logical_op": "and",
+                    "value": "foo"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "description": "Update the filter for a given Widget",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/xc-auth"
+          }
+        ]
+      }
+    },
     "/api/v1/db/meta/hooks/{hookId}/filters": {
       "parameters": [
         {
@@ -7312,6 +7738,7 @@
                       "created_at": "2023-03-02 18:18:05",
                       "fk_column_id": "cl_d7ah9n2qfupgys",
                       "fk_hook_id": null,
+                      "fk_widget_id": null,
                       "fk_parent_id": null,
                       "fk_view_id": "vw_b739e29vqmrxnf",
                       "id": "fi_xn647tpmdq8fu8",
@@ -7464,6 +7891,7 @@
                           "created_at": "2023-03-02 18:18:05",
                           "fk_column_id": "cl_d7ah9n2qfupgys",
                           "fk_hook_id": null,
+                          "fk_widget_id": null,
                           "fk_parent_id": null,
                           "fk_view_id": "vw_b739e29vqmrxnf",
                           "id": "fi_xn647tpmdq8fu8",
@@ -10208,7 +10636,7 @@
       "get": {
         "summary": "Group By Table View Row",
         "operationId": "db-view-row-group-by",
-        "description": "Get the table view rows groupe by the given query",
+        "description": "Get the table view rows grouped by the given query",
         "tags": [
           "DB View Row"
         ],
@@ -13708,6 +14136,75 @@
         "tags": [
           "DB Table Webhook"
         ]
+      }
+    },
+    "/api/v1/dashboards/{dashboardId}/layouts": {
+      "parameters": [
+              {
+        "schema": {
+          "$ref": "#/components/schemas/Id",
+          "example": "p_124hhlkbeasewh",
+          "type": "string"
+        },
+        "name": "dashboardId",
+        "in": "path",
+        "required": true,
+        "description": "Unique Dashboard/Project ID"
+      }
+      ],
+      "post": {
+        "summary": "Create Layout",
+        "operationId": "layout-create",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Layout"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          }
+        },
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/LayoutReq"
+              }
+            }
+          }
+        },
+        "tags": ["Dashboard"],
+        "description": "Create a new Layout in a given Dashboard project",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/xc-auth"
+          }
+        ]
+      },
+      "get": {
+        "summary": "List Layouts",
+        "operationId": "layout-list",
+        "responses": {
+          "200": {
+            "$ref": "#/components/responses/LayoutList"
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          }
+        },
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/xc-auth"
+          }
+        ],
+        "tags": ["Dashboard"],
+        "description": "List all Layouts in a given Dashboard project"
       }
     },
     "/api/v1/db/meta/hooks/{hookId}": {
@@ -17438,6 +17935,7 @@
             "created_at": "2023-03-02 18:18:05",
             "fk_column_id": "cl_d7ah9n2qfupgys",
             "fk_hook_id": null,
+            "fk_widget_id": null,
             "fk_parent_id": null,
             "fk_view_id": "vw_b739e29vqmrxnf",
             "id": "fi_xn647tpmdq8fu8",
@@ -17536,6 +18034,10 @@
             "$ref": "#/components/schemas/StringOrNull",
             "description": "Foreign Key to Hook"
           },
+          "fk_widget_id": {
+            "$ref": "#/components/schemas/StringOrNull",
+            "description": "Foreign Key to Widget"
+          },
           "fk_model_id": {
             "$ref": "#/components/schemas/Id",
             "description": "Foreign Key to Model"
@@ -17603,6 +18105,7 @@
                 "created_at": "2023-03-02 18:18:05",
                 "fk_column_id": "cl_d7ah9n2qfupgys",
                 "fk_hook_id": null,
+                "fk_widget_id": null,
                 "fk_parent_id": null,
                 "fk_view_id": "vw_b739e29vqmrxnf",
                 "id": "fi_xn647tpmdq8fu8",
@@ -18905,6 +19408,345 @@
           }
         }
       },
+      "Widget": {
+        "description": "Model for Widget",
+        "title": "Widget Model",
+        "type": "object",
+        "properties": {
+          "id": {
+            "$ref": "#/components/schemas/Id",
+            "description": "Unique ID"
+          },
+          "layout_id": {
+            "$ref": "#/components/schemas/Id",
+            "description": "Layout ID"
+          },
+          "schema_version": {
+            "type": "string",
+            "description": "Version of the schema",
+            "example": "v0.2"
+          },
+          "widget_type": {
+            "$ref": "#/components/schemas/WidgetType",
+            "description": "Type of the widget"
+          },
+          "data_source": {
+            "oneOf": [
+              {
+                "type": "null"
+              },
+              {
+                "type": "object"
+              },
+              {
+                "type": "string"
+              }
+            ], 
+            "description": "Data Source JSON"
+          },
+          "data_config": {
+            "oneOf": [
+              {
+                "type": "null"
+              },
+              {
+                "type": "object"
+              },
+              {
+                "type": "string"
+              }
+            ], 
+            "description": "Data Config JSON"
+          },
+          "appearance_config": {
+            "oneOf": [
+              {
+                "type": "null"
+              },
+              {
+                "type": "object"
+              },
+              {
+                "type": "string"
+              }
+            ], 
+            "description": "Appearance Config JSON"
+          },
+          "data": {
+            "type": "object",
+            "description": "The actual data for the widget"
+          }
+        },
+        "required": ["id", "layout_id", "schema_version", "widget_type"],
+        "x-stoplight": {
+          "id": "q8cxkpronjmyx"
+        }
+      },
+      "Layout": {
+        "description": "Model for Layout",
+        "title": "Layout Model",
+        "type": "object",
+        "properties": {
+          "id": {
+            "$ref": "#/components/schemas/Id",
+            "description": "Unique ID"
+          },
+          "base_id": {
+            "description": "Unique Base ID",
+            "type": "string"
+          },
+          "project_id": {
+            "description": "Unique Project ID",
+            "type": "string"
+          },
+          "title": {
+            "type": "string",
+            "description": "Layout Title",
+            "example": "My Layout"
+          },
+          "order": {
+            "description": "The order of this Layout in the list of Layouts",
+            "type": "number"
+          }
+        },
+        "x-stoplight": {
+          "id": "q8cxkpronjmyx"
+        }
+      },
+      "LayoutReq": {
+        "description": "Model for Layout request",
+        "x-stoplight": {
+          "id": "4zlzrppfjxrqb"
+        },
+        "title": "Layout Request Model",
+        "type": "object",
+        "properties": {
+                "base_id": {
+                  "description": "Unique Base ID",
+                  "type": "string"
+                },
+                "project_id": {
+                  "description": "Unique Project ID",
+                  "type": "string"
+                },
+                "title": {
+                  "type": "string",
+                  "description": "Layout Title",
+                  "example": "My Layout"
+                },
+                "order": {
+                  "description": "The order of this Layout in the list of Layouts",
+                  "type": "number"
+                }
+              },
+        "required": ["project_id", "title"]
+      },
+      "WidgetReq": {
+        "description": "Model for Widget request",
+        "x-stoplight": {
+          "id": "4zlzrppfjxrqb"
+        },
+        "title": "Widget Request Model",
+        "type": "object",
+        "properties": {
+          "layout_id": {
+            "description": "Unique Layout ID",
+            "type": "string"
+          },
+          "schema_version": {
+            "type": "string",
+            "description": "Version of the schema",
+            "example": "v0.2"
+          },
+          "widget_type": {
+            "$ref": "#/components/schemas/WidgetType",
+            "description": "Type of the widget"
+          },
+          "data_source": {
+            "oneOf": [
+              {
+                "type": "null"
+              },
+              {
+                "type": "object"
+              },
+              {
+                "type": "string"
+              }
+            ],
+            "description": "Data Source JSON"
+          },
+          "data_config": {
+            "oneOf": [
+              {
+                "type": "null"
+              },
+              {
+                "type": "object"
+              },
+              {
+                "type": "string"
+              }
+            ],
+            "description": "Data Config JSON"
+          },
+          "appearance_config": {
+            "oneOf": [
+              {
+                "type": "null"
+              },
+              {
+                "type": "object"
+              },
+              {
+                "type": "string"
+              }
+            ],
+            "description": "Appearance Config JSON"
+          }
+        },
+        "required": [
+          "layout_id",
+          "schema_version",
+          "widget_type"
+        ]
+      },
+      "WidgetUpdateReq": {
+        "description": "Model for Widget Update request",
+        "x-stoplight": {
+          "id": "4zlzrppfjxrqb"
+        },
+        "title": "Widget Update Request Model",
+        "type": "object",
+        "properties": {
+          "schema_version": {
+            "type": "string",
+            "description": "Version of the schema",
+            "example": "v0.2"
+          },
+          "widget_type": {
+            "$ref": "#/components/schemas/WidgetType",
+            "description": "Type of the widget"
+          },
+          "data_source": {
+            "oneOf": [
+              {
+                "type": "null"
+              },
+              {
+                "type": "object"
+              },
+              {
+                "type": "string"
+              }
+            ],
+            "description": "Data Source JSON"
+          },
+          "data_config": {
+            "oneOf": [
+              {
+                "type": "null"
+              },
+              {
+                "type": "object"
+              },
+              {
+                "type": "string"
+              }
+            ],
+            "description": "Data Config JSON"
+          },
+          "appearance_config": {
+            "oneOf": [
+              {
+                "type": "null"
+              },
+              {
+                "type": "object"
+              },
+              {
+                "type": "string"
+              }
+            ],
+            "description": "Appearance Config JSON"
+          }
+        }
+      },
+      "LayoutUpdateReq": {
+        "description": "Model for Layout Update request",
+        "x-stoplight": {
+          "id": "4zlzrppfjxrqb"
+        },
+        "title": "Layout Update Request Model",
+        "type": "object",
+        "properties": {
+                "title": {
+                  "type": "string",
+                  "description": "Layout Title",
+                  "example": "My Layout"
+                },
+                "order": {
+                  "description": "The order of this Layout in the list of Layouts",
+                  "type": "number"
+                }
+              }
+      },
+      "WidgetType": {
+        "description": "Type of the Widget",
+        "enum": [
+          "number",
+          "static_text",
+          "line_chart",
+          "bar_chart",
+          "pie_chart",
+          "scatter_plot",
+          "button"
+        ],
+        "type": "string"
+      },
+      "WidgetList": {
+        "description": "Model for Widget List",
+        "title": "Widget List Model",
+        "type": "object",
+        "properties": {
+          "list": {
+            "minItems": 1,
+            "type": "array",
+            "uniqueItems": true,
+            "description": "Widget objects",
+            "items": {
+              "$ref": "#/components/schemas/Widget"
+            }
+          }
+        },
+        "required": ["list", "pageInfo"],
+        "x-stoplight": {
+          "id": "2tsq8h6hjctju"
+        }
+      },
+      "LayoutList": {
+        "description": "Model for Layout List",
+        "title": "Layout List Model",
+        "type": "object",
+        "properties": {
+          "list": {
+            "minItems": 1,
+            "type": "array",
+            "uniqueItems": true,
+            "description": "Layout objects",
+            "items": {
+              "$ref": "#/components/schemas/Layout"
+            }
+          },
+          "pageInfo": {
+            "$ref": "#/components/schemas/Paginated"
+          }
+        },
+        "required": ["list", "pageInfo"],
+        "x-stoplight": {
+          "id": "2tsq8h6hjctju"
+        }
+      },
       "Hook": {
         "description": "Model for Hook",
         "examples": [
@@ -19702,6 +20544,7 @@
             "description": "The license key",
             "example": "1234567890",
             "maxLength": 255,
+            "minLength": 10,
             "type": "string"
           }
         },
@@ -20754,6 +21597,13 @@
           "type": {
             "type": "string"
           },
+          "linked_db_projects": {
+            "description": "List of linked Database Projects that this project has access to (only used in Dashboard projects so far)",
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/Project"
+            }
+          },
           "status": {
             "type": "string"
           },
@@ -20910,6 +21760,13 @@
             "maxLength": 128,
             "minLength": 1,
             "type": "string"
+          },
+          "linked_db_project_ids": {
+            "description": "List of Linked Database Project IDs (only used for Dashboard Projects so far)",
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
           }
         },
         "required": [
@@ -20955,6 +21812,13 @@
             "maxLength": 128,
             "minLength": 1,
             "type": "string"
+          },
+          "linked_db_project_ids": {
+            "description": "List of Linked Database Project IDs (only used for Dashboard Projects so far)",
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
           }
         }
       },
@@ -24101,6 +24965,24 @@
           }
         },
         "headers": {}
+      },
+      "LayoutList": {
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/LayoutList"
+            }
+          }
+        }
+      },
+      "WidgetList": {
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/WidgetList"
+            }
+          }
+        }
       }
     },
     "securitySchemes": {

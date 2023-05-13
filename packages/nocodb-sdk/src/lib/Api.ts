@@ -676,6 +676,8 @@ export interface FilterType {
   fk_column_id?: IdType;
   /** Foreign Key to Hook */
   fk_hook_id?: StringOrNullType;
+  /** Foreign Key to Widget */
+  fk_widget_id?: StringOrNullType;
   /** Foreign Key to Model */
   fk_model_id?: IdType;
   /** Foreign Key to parent group. */
@@ -1163,6 +1165,151 @@ export interface GridUpdateReqType {
   row_height?: number;
   /** Meta Info for grid view */
   meta?: MetaType;
+}
+
+/**
+ * Model for Widget
+ */
+export interface WidgetType {
+  /** Unique ID */
+  id: IdType;
+  /** Layout ID */
+  layout_id: IdType;
+  /**
+   * Version of the schema
+   * @example v0.2
+   */
+  schema_version: string;
+  /** Type of the widget */
+  widget_type: WidgetTypeType;
+  /** Data Source JSON */
+  data_source?: null | object | string;
+  /** Data Config JSON */
+  data_config?: null | object | string;
+  /** Appearance Config JSON */
+  appearance_config?: null | object | string;
+  /** The actual data for the widget */
+  data?: object;
+}
+
+/**
+ * Model for Layout
+ */
+export interface LayoutType {
+  /** Unique ID */
+  id?: IdType;
+  /** Unique Base ID */
+  base_id?: string;
+  /** Unique Project ID */
+  project_id?: string;
+  /**
+   * Layout Title
+   * @example My Layout
+   */
+  title?: string;
+  /** The order of this Layout in the list of Layouts */
+  order?: number;
+}
+
+/**
+ * Model for Layout request
+ */
+export interface LayoutReqType {
+  /** Unique Base ID */
+  base_id?: string;
+  /** Unique Project ID */
+  project_id: string;
+  /**
+   * Layout Title
+   * @example My Layout
+   */
+  title: string;
+  /** The order of this Layout in the list of Layouts */
+  order?: number;
+}
+
+/**
+ * Model for Widget request
+ */
+export interface WidgetReqType {
+  /** Unique Layout ID */
+  layout_id?: string;
+  /**
+   * Version of the schema
+   * @example v0.2
+   */
+  schema_version: string;
+  /** Type of the widget */
+  widget_type: WidgetTypeType;
+  /** Data Source JSON */
+  data_source?: null | object | string;
+  /** Data Config JSON */
+  data_config?: null | object | string;
+  /** Appearance Config JSON */
+  appearance_config?: null | object | string;
+}
+
+/**
+ * Model for Widget Update request
+ */
+export interface WidgetUpdateReqType {
+  /**
+   * Version of the schema
+   * @example v0.2
+   */
+  schema_version?: string;
+  /** Type of the widget */
+  widget_type?: WidgetTypeType;
+  /** Data Source JSON */
+  data_source?: null | object | string;
+  /** Data Config JSON */
+  data_config?: null | object | string;
+  /** Appearance Config JSON */
+  appearance_config?: null | object | string;
+}
+
+/**
+ * Model for Layout Update request
+ */
+export interface LayoutUpdateReqType {
+  /**
+   * Layout Title
+   * @example My Layout
+   */
+  title?: string;
+  /** The order of this Layout in the list of Layouts */
+  order?: number;
+}
+
+/**
+ * Type of the Widget
+ */
+export enum WidgetTypeType {
+  Number = 'number',
+  StaticText = 'static_text',
+  LineChart = 'line_chart',
+  BarChart = 'bar_chart',
+  PieChart = 'pie_chart',
+  ScatterPlot = 'scatter_plot',
+  Button = 'button',
+}
+
+/**
+ * Model for Widget List
+ */
+export interface WidgetListType {
+  /** Widget objects */
+  list: WidgetType[];
+}
+
+/**
+ * Model for Layout List
+ */
+export interface LayoutListType {
+  /** Layout objects */
+  list: LayoutType[];
+  /** Model for Paginated */
+  pageInfo: PaginatedType;
 }
 
 /**
@@ -1942,6 +2089,8 @@ export interface ProjectType {
    */
   prefix?: string;
   type?: string;
+  /** List of linked Database Projects that this project has access to (only used in Dashboard projects so far) */
+  linked_db_projects?: ProjectType[];
   status?: string;
   /**
    * Project Title
@@ -1981,6 +2130,8 @@ export interface ProjectReqType {
    * @example My Project
    */
   title: string;
+  /** List of Linked Database Project IDs (only used for Dashboard Projects so far) */
+  linked_db_project_ids?: string[];
 }
 
 /**
@@ -1999,6 +2150,8 @@ export interface ProjectUpdateReqType {
    * @example My Project
    */
   title?: string;
+  /** List of Linked Database Project IDs (only used for Dashboard Projects so far) */
+  linked_db_project_ids?: string[];
 }
 
 /**
@@ -2914,6 +3067,338 @@ export class HttpClient<SecurityDataType = unknown> {
 export class Api<
   SecurityDataType extends unknown
 > extends HttpClient<SecurityDataType> {
+  dashboard = {
+    /**
+     * @description Get Layout
+     *
+     * @tags Dashboard
+     * @name LayoutGet
+     * @summary Get Layout
+     * @request GET:/api/v1/dashboards/{dashboardId}/layouts/{layoutId}
+     * @response `200` `LayoutType` OK
+     */
+    layoutGet: (
+      dashboardId: IdType,
+      layoutId: IdType,
+      params: RequestParams = {}
+    ) =>
+      this.request<LayoutType, any>({
+        path: `/api/v1/dashboards/${dashboardId}/layouts/${layoutId}`,
+        method: 'GET',
+        format: 'json',
+        ...params,
+      }),
+
+    /**
+     * @description Delete Layout
+     *
+     * @tags Dashboard
+     * @name LayoutDelete
+     * @summary Delete Layout
+     * @request DELETE:/api/v1/dashboards/{dashboardId}/layouts/{layoutId}
+     * @response `200` `void` OK
+     */
+    layoutDelete: (
+      dashboardId: IdType,
+      layoutId: IdType,
+      params: RequestParams = {}
+    ) =>
+      this.request<void, any>({
+        path: `/api/v1/dashboards/${dashboardId}/layouts/${layoutId}`,
+        method: 'DELETE',
+        ...params,
+      }),
+
+    /**
+ * @description Update the given Layout
+ * 
+ * @tags Dashboard
+ * @name LayoutUpdate
+ * @summary Update Layout
+ * @request PATCH:/api/v1/dashboards/{dashboardId}/layouts/{layoutId}
+ * @response `200` `number` OK
+ * @response `400` `{
+  \** @example BadRequest [Error]: <ERROR MESSAGE> *\
+  msg: string,
+
+}`
+ */
+    layoutUpdate: (
+      dashboardId: IdType,
+      layoutId: IdType,
+      data: LayoutUpdateReqType,
+      params: RequestParams = {}
+    ) =>
+      this.request<
+        number,
+        {
+          /** @example BadRequest [Error]: <ERROR MESSAGE> */
+          msg: string;
+        }
+      >({
+        path: `/api/v1/dashboards/${dashboardId}/layouts/${layoutId}`,
+        method: 'PATCH',
+        body: data,
+        type: ContentType.Json,
+        format: 'json',
+        ...params,
+      }),
+
+    /**
+     * @description Get Widgets of the Layout
+     *
+     * @tags Dashboard
+     * @name WidgetList
+     * @summary List Widgets for Layout
+     * @request GET:/api/v1/layouts/{layoutId}/widgets
+     * @response `200` `WidgetListType` OK
+     */
+    widgetList: (layoutId: IdType, params: RequestParams = {}) =>
+      this.request<WidgetListType, any>({
+        path: `/api/v1/layouts/${layoutId}/widgets`,
+        method: 'GET',
+        format: 'json',
+        ...params,
+      }),
+
+    /**
+ * @description Create a new Widget in a given Layout
+ * 
+ * @tags Dashboard
+ * @name WidgetCreate
+ * @summary Create Widget
+ * @request POST:/api/v1/layouts/{layoutId}/widgets
+ * @response `200` `WidgetType` OK
+ * @response `400` `{
+  \** @example BadRequest [Error]: <ERROR MESSAGE> *\
+  msg: string,
+
+}`
+ */
+    widgetCreate: (
+      layoutId: IdType,
+      data: WidgetReqType,
+      params: RequestParams = {}
+    ) =>
+      this.request<
+        WidgetType,
+        {
+          /** @example BadRequest [Error]: <ERROR MESSAGE> */
+          msg: string;
+        }
+      >({
+        path: `/api/v1/layouts/${layoutId}/widgets`,
+        method: 'POST',
+        body: data,
+        type: ContentType.Json,
+        format: 'json',
+        ...params,
+      }),
+
+    /**
+     * @description Get Layout
+     *
+     * @tags Dashboard
+     * @name WidgetGet
+     * @summary Get Widget, including its data
+     * @request GET:/api/v1/layouts/{layoutId}/widgets/{widgetId}
+     * @response `200` `WidgetType` OK
+     */
+    widgetGet: (
+      layoutId: IdType,
+      widgetId: IdType,
+      params: RequestParams = {}
+    ) =>
+      this.request<WidgetType, any>({
+        path: `/api/v1/layouts/${layoutId}/widgets/${widgetId}`,
+        method: 'GET',
+        format: 'json',
+        ...params,
+      }),
+
+    /**
+     * @description Delete Widget
+     *
+     * @tags Dashboard
+     * @name WidgetDelete
+     * @summary Delete Widget
+     * @request DELETE:/api/v1/layouts/{layoutId}/widgets/{widgetId}
+     * @response `200` `void` OK
+     */
+    widgetDelete: (
+      layoutId: IdType,
+      widgetId: IdType,
+      params: RequestParams = {}
+    ) =>
+      this.request<void, any>({
+        path: `/api/v1/layouts/${layoutId}/widgets/${widgetId}`,
+        method: 'DELETE',
+        ...params,
+      }),
+
+    /**
+ * @description Update the given Widget
+ * 
+ * @tags Dashboard
+ * @name WidgetUpdate
+ * @summary Update Widget
+ * @request PATCH:/api/v1/layouts/{layoutId}/widgets/{widgetId}
+ * @response `200` `number` OK
+ * @response `400` `{
+  \** @example BadRequest [Error]: <ERROR MESSAGE> *\
+  msg: string,
+
+}`
+ */
+    widgetUpdate: (
+      layoutId: IdType,
+      widgetId: IdType,
+      data: WidgetUpdateReqType,
+      params: RequestParams = {}
+    ) =>
+      this.request<
+        number,
+        {
+          /** @example BadRequest [Error]: <ERROR MESSAGE> */
+          msg: string;
+        }
+      >({
+        path: `/api/v1/layouts/${layoutId}/widgets/${widgetId}`,
+        method: 'PATCH',
+        body: data,
+        type: ContentType.Json,
+        format: 'json',
+        ...params,
+      }),
+
+    /**
+ * @description Get the filter for a given Widget
+ * 
+ * @tags Dashboard
+ * @name WidgetFilterRead
+ * @summary Get Widget Filter
+ * @request GET:/api/v1/layouts/:layoutId/widgets/:widgetId/filters
+ * @response `200` `FilterListType` OK
+ * @response `400` `{
+  \** @example BadRequest [Error]: <ERROR MESSAGE> *\
+  msg: string,
+
+}`
+ */
+    widgetFilterRead: (
+      layoutId: string,
+      widgetId: string,
+      params: RequestParams = {}
+    ) =>
+      this.request<
+        FilterListType,
+        {
+          /** @example BadRequest [Error]: <ERROR MESSAGE> */
+          msg: string;
+        }
+      >({
+        path: `/api/v1/layouts/${layoutId}/widgets/${widgetId}/filters`,
+        method: 'GET',
+        format: 'json',
+        ...params,
+      }),
+
+    /**
+ * @description Update the filter for a given Widget
+ * 
+ * @tags Dashboard
+ * @name WidgetFilterCreate
+ * @summary Create Widget Filter
+ * @request POST:/api/v1/layouts/:layoutId/widgets/:widgetId/filters
+ * @response `200` `FilterType` OK
+ * @response `400` `{
+  \** @example BadRequest [Error]: <ERROR MESSAGE> *\
+  msg: string,
+
+}`
+ */
+    widgetFilterCreate: (
+      layoutId: string,
+      widgetId: string,
+      data: FilterReqType,
+      params: RequestParams = {}
+    ) =>
+      this.request<
+        FilterType,
+        {
+          /** @example BadRequest [Error]: <ERROR MESSAGE> */
+          msg: string;
+        }
+      >({
+        path: `/api/v1/layouts/${layoutId}/widgets/${widgetId}/filters`,
+        method: 'POST',
+        body: data,
+        type: ContentType.Json,
+        format: 'json',
+        ...params,
+      }),
+
+    /**
+ * @description Create a new Layout in a given Dashboard project
+ * 
+ * @tags Dashboard
+ * @name LayoutCreate
+ * @summary Create Layout
+ * @request POST:/api/v1/dashboards/{dashboardId}/layouts
+ * @response `200` `LayoutType` OK
+ * @response `400` `{
+  \** @example BadRequest [Error]: <ERROR MESSAGE> *\
+  msg: string,
+
+}`
+ */
+    layoutCreate: (
+      dashboardId: IdType,
+      data: LayoutReqType,
+      params: RequestParams = {}
+    ) =>
+      this.request<
+        LayoutType,
+        {
+          /** @example BadRequest [Error]: <ERROR MESSAGE> */
+          msg: string;
+        }
+      >({
+        path: `/api/v1/dashboards/${dashboardId}/layouts`,
+        method: 'POST',
+        body: data,
+        type: ContentType.Json,
+        format: 'json',
+        ...params,
+      }),
+
+    /**
+ * @description List all Layouts in a given Dashboard project
+ * 
+ * @tags Dashboard
+ * @name LayoutList
+ * @summary List Layouts
+ * @request GET:/api/v1/dashboards/{dashboardId}/layouts
+ * @response `200` `LayoutListType`
+ * @response `400` `{
+  \** @example BadRequest [Error]: <ERROR MESSAGE> *\
+  msg: string,
+
+}`
+ */
+    layoutList: (dashboardId: IdType, params: RequestParams = {}) =>
+      this.request<
+        LayoutListType,
+        {
+          /** @example BadRequest [Error]: <ERROR MESSAGE> */
+          msg: string;
+        }
+      >({
+        path: `/api/v1/dashboards/${dashboardId}/layouts`,
+        method: 'GET',
+        ...params,
+      }),
+  };
   nocoDocs = {
     /**
      * No description
@@ -8520,7 +9005,7 @@ export class Api<
       }),
 
     /**
- * @description Get the table view rows groupe by the given query
+ * @description Get the table view rows grouped by the given query
  * 
  * @tags DB View Row
  * @name GroupBy

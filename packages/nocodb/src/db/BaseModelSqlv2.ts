@@ -1757,8 +1757,6 @@ class BaseModelSqlv2 {
       let response;
       // const driver = trx ? trx : this.dbDriver;
 
-      await this.setUtcTimezoneForPg();
-
       const query = this.dbDriver(this.tnPath).insert(insertObj);
       if ((this.isPg || this.isMssql) && this.model.primaryKey) {
         query.returning(
@@ -1895,8 +1893,6 @@ class BaseModelSqlv2 {
       await this.beforeUpdate(data, trx, cookie);
 
       const prevData = await this.readByPk(id);
-
-      await this.setUtcTimezoneForPg();
 
       const query = this.dbDriver(this.tnPath)
         .update(updateObj)
@@ -2158,8 +2154,6 @@ class BaseModelSqlv2 {
       // refer : https://www.sqlite.org/limits.html
       const chunkSize = this.isSqlite ? 10 : _chunkSize;
 
-      await this.setUtcTimezoneForPg();
-
       const trx = await this.dbDriver.transaction();
 
       if (!foreign_key_checks) {
@@ -2169,6 +2163,10 @@ class BaseModelSqlv2 {
           await trx.raw('SET foreign_key_checks = 0;');
         }
       }
+
+      // set the session timezone
+      // see the comments in function for details
+      await this.setUtcTimezone(trx);
 
       const response =
         this.isPg || this.isMssql
@@ -2229,9 +2227,11 @@ class BaseModelSqlv2 {
         updatePkValues.push(pkValues);
       }
 
-      await this.setUtcTimezoneForPg();
-
       transaction = await this.dbDriver.transaction();
+
+      // set the session timezone
+      // see the comments in function for details
+      await this.setUtcTimezone(transaction);
 
       for (const o of toBeUpdated) {
         await transaction(this.tnPath).update(o.d).where(o.wherePk);
@@ -3197,6 +3197,11 @@ class BaseModelSqlv2 {
     } else {
       query = sanitize(query);
     }
+
+    // set the session timezone
+    // see the comments in function for details
+    await this.setUtcTimezone(this.dbDriver);
+
     let data =
       this.isPg || this.isSnowflake
         ? (await this.dbDriver.raw(query))?.rows
@@ -3343,12 +3348,19 @@ class BaseModelSqlv2 {
     return data;
   }
 
-  // SET TIME ZONE only works for the current session
-  // trigger before insert / update
-  // TODO: refactor - maybe there is a better approach
-  private async setUtcTimezoneForPg() {
-    if (this.isPg) {
-      await this.dbDriver.raw(`SET TIME ZONE 'UTC'`);
+  private async setUtcTimezone(knex) {
+    if (this.isMySQL) {
+      // MySQL stores timestamp in UTC but display in timezone
+      // To verify the timezone, run `SELECT @@global.time_zone, @@session.time_zone;`
+      // If it's SYSTEM, then the timezone is read from the configuration file
+      // if a timezone is set in a DB, the retrieved value would be converted to the corresponding timezone
+      // for example, let's say the global timezone is +08:00 in DB
+      // the value 2023-01-01 10:00:00 (UTC) would display as 2023-01-01 18:00:00 (UTC+8)
+      // our existing logic is based on UTC, during the query, we need to take the UTC value
+      // hence, set the session timezone here
+      await knex.raw(`SET SESSION time_zone = '+00:00';`);
+    } else if (this.isPg) {
+      await knex.raw(`SET TIME ZONE 'UTC'`);
     }
   }
 }

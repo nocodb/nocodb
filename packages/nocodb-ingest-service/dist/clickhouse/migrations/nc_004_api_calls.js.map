@@ -1,1 +1,0 @@
-{"version":3,"file":"nc_004_api_calls.js","sourceRoot":"","sources":["../../../src/clickhouse/migrations/nc_004_api_calls.ts"],"names":[],"mappings":";;;AAEA,KAAK,UAAU,EAAE,CACf,MAAkB,EAClB,MAA6B;IAE7B,MAAM,MAAM;SACT,KAAK,CACJ;8BACwB,MAAM,CAAC,QAAQ;;;;;;;;;;;;KAYxC,CACA;SACA,SAAS,EAAE,CAAC;AACjB,CAAC;AAIQ,gBAAE;AAFX,KAAK,UAAU,IAAI,CAAC,MAAkB,IAAkB,CAAC;AAE5C,oBAAI"}

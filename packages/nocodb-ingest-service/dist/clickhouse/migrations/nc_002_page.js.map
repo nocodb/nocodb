@@ -1,1 +1,0 @@
-{"version":3,"file":"nc_002_page.js","sourceRoot":"","sources":["../../../src/clickhouse/migrations/nc_002_page.ts"],"names":[],"mappings":";;;AAEA,KAAK,UAAU,EAAE,CACf,MAAkB,EAClB,MAA6B;IAE7B,MAAM,MAAM;SACT,KAAK,CACJ;6BACuB,MAAM,CAAC,QAAQ;;;;;;;;;;;;;;;;;;;;;;;;;;;;KA4BvC,CACA;SACA,SAAS,EAAE,CAAC;AACjB,CAAC;AAIQ,gBAAE;AAFX,KAAK,UAAU,IAAI,CAAC,MAAkB,IAAkB,CAAC;AAE5C,oBAAI"}

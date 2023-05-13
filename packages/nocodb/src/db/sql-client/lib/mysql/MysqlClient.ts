@@ -653,13 +653,17 @@ class MysqlClient extends KnexClient {
           if (column.dt === 'timestamp' || column.dt === 'datetime') {
             if (response[0][i].cdf && response[0][i].ext) {
               const str = response[0][i].ext;
-              // column.cdf_sequelize = response[0][i].cdf;
-              column.cdf =
-                response[0][i].cdf +
-                str.substring(
-                  str.lastIndexOf('DEFAULT_GENERATED') +
-                    'DEFAULT_GENERATED'.length,
-                );
+              if (str.includes('DEFAULT_GENERATED')) {
+                // column.cdf_sequelize = response[0][i].cdf;
+                column.cdf =
+                  response[0][i].cdf +
+                  str.substring(
+                    str.lastIndexOf('DEFAULT_GENERATED') +
+                      'DEFAULT_GENERATED'.length,
+                  );
+              } else {
+                column.cdf = `${response[0][i].cdf} ${str}`;
+              }
             } else {
               column.cdf = response[0][i].cdf;
             }

@@ -480,8 +480,14 @@ test.describe('External DB - DateTime column', async () => {
       // without +HH:MM information, display value is same as inserted value
       // with +HH:MM information, display value is converted to browser timezone
       // SQLite doesn't have with & without timezone fields; both are same in this case
-      DatetimeWithoutTz: ['2023-04-27 10:00', getDateTimeInLocalTimeZone('2023-04-27 04:30:00+00:00')],
-      DatetimeWithTz: ['2023-04-27 10:00', getDateTimeInLocalTimeZone('2023-04-27 04:30:00+00:00')],
+      DatetimeWithoutTz: [
+        getDateTimeInLocalTimeZone('2023-04-27 10:00:00+00:00'),
+        getDateTimeInLocalTimeZone('2023-04-27 04:30:00+00:00'),
+      ],
+      DatetimeWithTz: [
+        getDateTimeInLocalTimeZone('2023-04-27 10:00:00+00:00'),
+        getDateTimeInLocalTimeZone('2023-04-27 04:30:00+00:00'),
+      ],
     },
     mysql: {
       DatetimeWithoutTz: [
@@ -629,12 +635,12 @@ test.describe('External DB - DateTime column', async () => {
 
     if (isSqlite(context)) {
       expectedDateTimeWithoutTz = [
-        '2023-04-27 10:00:00',
+        '2023-04-27 10:00:00+00:00',
         '2023-04-27 10:00:00+05:30',
         getDateTimeInUTCTimeZone('2023-04-27 10:00:00+00:00'),
       ];
       expectedDateTimeWithTz = [
-        '2023-04-27 10:00:00',
+        '2023-04-27 10:00:00+00:00',
         '2023-04-27 10:00:00+05:30',
         getDateTimeInUTCTimeZone('2023-04-27 10:00:00+00:00'),
       ];

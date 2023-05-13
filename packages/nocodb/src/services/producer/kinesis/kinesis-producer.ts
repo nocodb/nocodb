@@ -27,9 +27,9 @@ export class KinesisProducer extends Producer {
         StreamName: streamName,
       };
       const result = await this.kinesis.putRecord(params).promise();
-      // this.logger.log(
-      //   `Data pushed successfully with sequence number: ${result.SequenceNumber}`,
-      // );
+      this.logger.verbose(
+        `Data pushed successfully with sequence number: ${result.SequenceNumber}`,
+      );
     } catch (error) {
       this.logger.error(`Error pushing data: ${error}`);
     }

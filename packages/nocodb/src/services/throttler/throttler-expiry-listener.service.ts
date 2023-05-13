@@ -3,7 +3,6 @@ import Client from 'ioredis';
 import Redlock from 'redlock';
 import { ConfigService } from '@nestjs/config';
 import { ClickhouseService } from '../clickhouse/clickhouse.service';
-import { KafkaProducer } from '../../modules/kafka/kafka-producer';
 import type { OnModuleInit } from '@nestjs/common';
 import type { AppConfig } from '../../interface/config';
 

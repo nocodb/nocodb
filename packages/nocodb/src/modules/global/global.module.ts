@@ -1,16 +1,16 @@
-import {Global, Module} from '@nestjs/common';
-import {ExtractJwt} from 'passport-jwt';
-import {Connection} from '../../connection/connection';
-import {GlobalGuard} from '../../guards/global/global.guard';
-import {MetaService} from '../../meta/meta.service';
-import {SocketService} from '../../services/socket.service';
-import {JwtStrategy} from '../../strategies/jwt.strategy';
+import { Global, Module } from '@nestjs/common';
+import { ExtractJwt } from 'passport-jwt';
+import { Connection } from '../../connection/connection';
+import { GlobalGuard } from '../../guards/global/global.guard';
+import { MetaService } from '../../meta/meta.service';
+import { SocketService } from '../../services/socket.service';
+import { JwtStrategy } from '../../strategies/jwt.strategy';
 import NcConfigFactory from '../../utils/NcConfigFactory';
-import {UsersService} from '../../services/users/users.service';
-import {AppHooksService} from '../../services/app-hooks/app-hooks.service';
-import type {Provider} from '@nestjs/common';
-import {Producer} from "../../services/producer/producer";
-import {ProducerProvider} from "../../services/producer";
+import { UsersService } from '../../services/users/users.service';
+import { AppHooksService } from '../../services/app-hooks/app-hooks.service';
+import { Producer } from '../../services/producer/producer';
+import { ProducerProvider } from '../../services/producer';
+import type { Provider } from '@nestjs/common';
 
 export const JwtStrategyProvider: Provider = {
   provide: JwtStrategy,
@@ -33,13 +33,6 @@ export const JwtStrategyProvider: Provider = {
 
 @Global()
 @Module({
-  imports: [
-    // KafkaModule.register({
-    //   brokers: ['127.0.0.1:9092'],
-    //   groupId: 'consumer-group-1-48714', // Consumer group ID
-    //   clientId: null, // Client ID
-    // }),
-  ],
   providers: [
     Connection,
     MetaService,
@@ -48,6 +41,7 @@ export const JwtStrategyProvider: Provider = {
     GlobalGuard,
     SocketService,
     AppHooksService,
+    ProducerProvider,
   ],
   exports: [
     Connection,
@@ -57,8 +51,7 @@ export const JwtStrategyProvider: Provider = {
     GlobalGuard,
     SocketService,
     AppHooksService,
-    ProducerProvider,
+    Producer,
   ],
 })
-export class GlobalModule {
-}
+export class GlobalModule {}

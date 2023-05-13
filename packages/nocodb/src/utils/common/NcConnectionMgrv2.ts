@@ -3,7 +3,7 @@ import { XKnex } from '../../db/CustomKnex';
 import {
   defaultConnectionConfig,
   defaultConnectionOptions,
-} from '../NcConfigFactory';
+} from '../nc-config';
 import Noco from '../../Noco';
 import type Base from '../../models/Base';
 

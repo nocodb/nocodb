@@ -1,37 +1,29 @@
-import { Global, Injectable, Scope } from '@nestjs/common';
+import { Injectable, Scope } from '@nestjs/common';
 
 import { XKnex } from '../db/CustomKnex';
-import NcConfigFactory from '../utils/NcConfigFactory';
+import { NcConfig } from '../utils/nc-config';
 import type * as knex from 'knex';
 
 @Injectable({
   scope: Scope.DEFAULT,
 })
 export class Connection {
-  public static knex: knex.Knex;
-  public static _config: any;
+  private knex: knex.Knex;
+  private _config: any;
+
+  constructor(config: NcConfig) {
+    this._config = config;
+    this.knex = XKnex({
+      ...this._config.meta.db,
+      useNullAsDefault: true,
+    });
+  }
 
   get knexInstance(): knex.Knex {
-    return Connection.knex;
+    return this.knex;
   }
 
-  get config(): knex.Knex {
-    return Connection._config;
-  }
-
-  // init metadb connection
-  static async init(): Promise<void> {
-    Connection._config = await NcConfigFactory.make();
-    if (!Connection.knex) {
-      Connection.knex = XKnex({
-        ...this._config.meta.db,
-        useNullAsDefault: true,
-      });
-    }
-  }
-
-  // init metadb connection
-  async init(): Promise<void> {
-    return await Connection.init();
+  get config(): NcConfig {
+    return this._config;
   }
 }

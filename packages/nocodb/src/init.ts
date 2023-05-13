@@ -6,7 +6,8 @@ import Noco from './Noco';
 import NcUpgrader from './version-upgrader/NcUpgrader';
 
 export default async () => {
-  await Connection.init();
-  Noco._ncMeta = new MetaService(new Connection());
-  await NcUpgrader.upgrade({ ncMeta: Noco._ncMeta });
+  // TODO fix
+  // await Connection.init();
+  // Noco._ncMeta = new MetaService(new Connection());
+  // await NcUpgrader.upgrade({ ncMeta: Noco._ncMeta });
 };

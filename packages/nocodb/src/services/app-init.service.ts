@@ -7,7 +7,6 @@ import { MetaService } from '../meta/meta.service';
 import { User } from '../models';
 import Noco from '../Noco';
 import getInstance from '../utils/getInstance';
-import NcConfigFactory from '../utils/NcConfigFactory';
 import NcUpgrader from '../version-upgrader/NcUpgrader';
 import type { IEventEmitter } from '../modules/event-emitter/event-emitter.interface';
 import type { Provider } from '@nestjs/common';
@@ -41,10 +40,6 @@ export const appInitServiceProvider: Provider = {
     process.env.NC_VERSION = '0107004';
 
     await NocoCache.init();
-
-    await connection.init();
-
-    await NcConfigFactory.metaDbCreateIfNotExist(connection.config);
 
     await metaService.init();
 

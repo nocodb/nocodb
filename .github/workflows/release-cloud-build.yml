@@ -93,7 +93,7 @@ jobs:
           docker build -f Dockerfile-cloud $CUSTOM_IMAGE_TAG_ARG -t $ECR_REGISTRY/$ECR_REPOSITORY:$COMMIT_HASH -t $ECR_REGISTRY/$ECR_REPOSITORY:latest .
           [[ ! -z "$IMAGE_TAG" ]] && docker push $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
           docker push $ECR_REGISTRY/$ECR_REPOSITORY:$COMMIT_HASH
-#          docker push $ECR_REGISTRY/$ECR_REPOSITORY:latest
+          docker push $ECR_REGISTRY/$ECR_REPOSITORY:latest
 
   microservice-cloud-docker-build:
     runs-on: ubuntu-latest

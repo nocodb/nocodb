@@ -29,7 +29,6 @@ export default class KinesisConsumerServer
       const startingSequenceNum = await this.getLastIngestedSequenceKey(topic);
 
       const params: Kinesis.Types.GetShardIteratorInput = {
-        // ShardIteratorType: 'TRIM_HORIZON',
         ShardIteratorType: startingSequenceNum
           ? 'AFTER_SEQUENCE_NUMBER'
           : 'TRIM_HORIZON',
@@ -96,7 +95,6 @@ export default class KinesisConsumerServer
    * This method is triggered on application shutdown.
    */
   close() {
-
   }
 
   async getLastIngestedSequenceKey(stream = '') {

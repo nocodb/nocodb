@@ -1,19 +1,16 @@
-import { Global, Module } from '@nestjs/common';
-import { ExtractJwt } from 'passport-jwt';
-import { Connection } from '../../connection/connection';
-import { GlobalGuard } from '../../guards/global/global.guard';
-import { MetaService } from '../../meta/meta.service';
-import { SocketService } from '../../services/socket.service';
-import { JwtStrategy } from '../../strategies/jwt.strategy';
+import {Global, Module} from '@nestjs/common';
+import {ExtractJwt} from 'passport-jwt';
+import {Connection} from '../../connection/connection';
+import {GlobalGuard} from '../../guards/global/global.guard';
+import {MetaService} from '../../meta/meta.service';
+import {SocketService} from '../../services/socket.service';
+import {JwtStrategy} from '../../strategies/jwt.strategy';
 import NcConfigFactory from '../../utils/NcConfigFactory';
-import { UsersService } from '../../services/users/users.service';
-import { AppHooksService } from '../../services/app-hooks/app-hooks.service';
-import type { Provider } from '@nestjs/common';
-import {KafkaConsumer} from "../kafka/kafka-consumer";
-import {KafkaProducer} from "../kafka/kafka-producer";
-// import {KafkaModule} from "nestjs-kafka";
-import {KafkaService} from "../../services/kafka/kafka.service";
-import {KinesisProducer} from "../kinesis/kinesis-producer";
+import {UsersService} from '../../services/users/users.service';
+import {AppHooksService} from '../../services/app-hooks/app-hooks.service';
+import type {Provider} from '@nestjs/common';
+import {Producer} from "../../services/producer/producer";
+import {ProducerProvider} from "../../services/producer";
 
 export const JwtStrategyProvider: Provider = {
   provide: JwtStrategy,
@@ -51,11 +48,6 @@ export const JwtStrategyProvider: Provider = {
     GlobalGuard,
     SocketService,
     AppHooksService,
-
-    // KafkaConsumer,
-    // KafkaProducer,
-    // KafkaService,
-    KinesisProducer
   ],
   exports: [
     Connection,
@@ -65,10 +57,8 @@ export const JwtStrategyProvider: Provider = {
     GlobalGuard,
     SocketService,
     AppHooksService,
-
-    // KafkaConsumer,
-    // KafkaProducer,
-    KinesisProducer
+    ProducerProvider,
   ],
 })
-export class GlobalModule {}
+export class GlobalModule {
+}

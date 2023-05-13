@@ -13,6 +13,9 @@ describe('ExecutionTimeCalculatorInterceptor', () => {
             calc_execution_time: true,
           },
         }),
+        {
+          sendMessage: jest.fn(),
+        },
       ),
     ).toBeDefined();
   });

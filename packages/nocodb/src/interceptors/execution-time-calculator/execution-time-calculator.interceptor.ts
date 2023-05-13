@@ -1,8 +1,8 @@
-import { Injectable } from '@nestjs/common';
+import { Inject, Injectable } from '@nestjs/common';
 import { tap } from 'rxjs';
 import Client from 'ioredis';
 import { ConfigService } from '@nestjs/config';
-import { KafkaProducer } from '../../modules/kafka/kafka-producer';
+import { Producer } from '../../services/producer/producer';
 import type {
   CallHandler,
   ExecutionContext,
@@ -11,19 +11,19 @@ import type {
 import type { Observable } from 'rxjs';
 import type Redis from 'ioredis';
 import type { AppConfig } from '../../interface/config';
-import {KinesisProducer} from "../../modules/kinesis/kinesis-producer";
 
 @Injectable()
 export class ExecutionTimeCalculatorInterceptor implements NestInterceptor {
-  client: Redis;
+  private client: Redis;
 
   constructor(
     private readonly configService: ConfigService<AppConfig>,
-    // private readonly kafkaProducer: KafkaProducer,
-    private kinesisProducer: KinesisProducer
+    @Inject(Producer) private producer: Producer,
   ) {
-    // todo: use a single redis connection
-    // this.client = new Client(process.env['NC_THROTTLER_REDIS']);
+    if (process.env['NC_THROTTLER_REDIS']) {
+      // todo: use a single redis connection
+      this.client = new Client(process.env['NC_THROTTLER_REDIS']);
+    }
   }
 
   intercept(context: ExecutionContext, next: CallHandler): Observable<any> {
@@ -50,8 +50,9 @@ export class ExecutionTimeCalculatorInterceptor implements NestInterceptor {
         const url = req.route?.path ?? req.url;
         const method = req.method;
         const status = +res?.statusCode || 0;
+        const ip = req.clientIp;
 
-        this.kinesisProducer.sendMessage(
+        this.producer.sendMessage(
           process.env.NC_KINESIS_STREAM || 'nocohub-dev-input-stream',
           JSON.stringify({
             timestamp,
@@ -63,10 +64,15 @@ export class ExecutionTimeCalculatorInterceptor implements NestInterceptor {
             method,
             exec_time,
             status,
+            ip,
           }),
         );
 
-        if (!this.client || !enabled || (!req.headers['xc-token'] && !req.headers['xc-auth'])) {
+        if (
+          !this.client ||
+          !enabled ||
+          (!req.headers['xc-token'] && !req.headers['xc-auth'])
+        ) {
           return;
         }
 

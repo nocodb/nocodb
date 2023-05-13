@@ -119,7 +119,12 @@ const resetError = () => {
       </a-form-item>
 
       <div class="text-right">
-        <a-button size="middle" data-testid="nc-user-settings-form__submit" class="!rounded-md !h-[2.5rem]" type="primary">
+        <a-button
+          size="middle"
+          data-testid="nc-user-settings-form__submit"
+          class="!rounded-md scaling-btn !h-[2.5rem]"
+          type="primary"
+        >
           <div class="flex justify-center items-center gap-2">
             <component :is="iconMap.passwordChange" />
             {{ $t('activity.changePwd') }}

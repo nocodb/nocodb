@@ -125,7 +125,7 @@ const emailInput: VNodeRef = (el) => (el as HTMLInputElement)?.focus()
 
       <div class="px-2 mt-1.5">
         <template v-if="usersData.invitationToken">
-          <div class="flex flex-col mt-1=pb-5">
+          <div class="flex flex-col mt-1 pb-5">
             <div class="flex flex-row items-center pl-1.5 pb-1 h-[1.1rem]">
               <component :is="iconMap.account" />
               <div class="text-xs ml-0.5 mt-0.5">Copy Invite Token</div>

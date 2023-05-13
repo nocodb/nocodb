@@ -206,7 +206,7 @@ export class MysqlUi {
 
       case 'datetime':
       case 'timestamp':
-        return 6;
+        return '';
 
       case 'time':
         return '';

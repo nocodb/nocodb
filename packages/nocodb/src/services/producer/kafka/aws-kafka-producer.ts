@@ -1,7 +1,8 @@
-import { Injectable } from '@nestjs/common';
-import { Kafka } from 'kafkajs';
-import { Producer as NcProducer } from '../producer';
-import type { Producer } from 'kafkajs';
+import {Injectable} from '@nestjs/common';
+import {Admin, Kafka} from 'kafkajs';
+import {createMechanism} from '@jm18457/kafkajs-msk-iam-authentication-mechanism';
+import {Producer as NcProducer} from '../producer';
+import type {Producer} from 'kafkajs';
 
 @Injectable()
 export class AwsKafkaProducer extends NcProducer {
@@ -11,25 +12,24 @@ export class AwsKafkaProducer extends NcProducer {
   constructor() {
     super();
     this.kafka = new Kafka({
-      brokers: [
-        'b-2.nocohub001apublic.oo62lh.c2.kafka.us-east-2.amazonaws.com:9098',
-        'b-1.nocohub001apublic.oo62lh.c2.kafka.us-east-2.amazonaws.com:9098',
-      ],
-
-      // process.env.NC_KAFKA_BROKER ?? 'localhost:9092'],
+      brokers: process.env.AWS_KAFKA_BROKERS.split(/\s*,\s*/),
       ssl: true,
-      sasl: {
-        mechanism: 'aws',
-        accessKeyId: 'AKIATUJCOBWTOYIVVMFD',
-        secretAccessKey: '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',
-        authorizationIdentity: 'arn:aws:iam::249717198246:user/pranavxc',
-      },
+      sasl: createMechanism({
+        region: process.env.AWS_KAFKA_REGION,
+        credentials: {
+          accessKeyId: process.env.AWS_KAFKA_CLIENT_ID,
+          secretAccessKey: process.env.AWS_KAFKA_CLIENT_SECRET,
+        },
+      }),
     });
   }
 
-  onModuleDestroy(): any {}
+  async onModuleDestroy(): Promise<void>{
+    this.producer && await this.producer.disconnect()
+  }
 
   async onModuleInit() {
+
     this.producer = this.kafka.producer({
       allowAutoTopicCreation: true,
     });
@@ -40,7 +40,9 @@ export class AwsKafkaProducer extends NcProducer {
   async sendMessage(topic, message) {
     await this.producer.send({
       topic,
-      messages: [{ value: message }],
+      messages: [{value: message}],
     });
   }
+
+
 }

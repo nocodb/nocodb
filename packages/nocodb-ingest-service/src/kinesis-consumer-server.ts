@@ -16,22 +16,22 @@ export default class KinesisConsumerServer
 
     if (
       !(
-        process.env.NC_KINESIS_CLIENT_ID &&
-        process.env.NC_KINESIS_CLIENT_SECRET &&
-        process.env.NC_KINESIS_REGION
+        process.env.AWS_KINESIS_CLIENT_ID &&
+        process.env.AWS_KINESIS_CLIENT_SECRET &&
+        process.env.AWS_KINESIS_REGION
       )
     ) {
       this.logger.error(
-        `Kinesis client id, secret and region are required. Please define following env variables: NC_KINESIS_CLIENT_ID, NC_KINESIS_CLIENT_SECRET and NC_KINESIS_REGION`,
+        `Kinesis client id, secret and region are required. Please define following env variables: AWS_KINESIS_CLIENT_ID, AWS_KINESIS_CLIENT_SECRET and AWS_KINESIS_REGION`,
       );
       process.exit(1);
     }
 
     this.kinesis = new AWS.Kinesis({
-      region: process.env.NC_KINESIS_REGION,
+      region: process.env.AWS_KINESIS_REGION,
       credentials: {
-        accessKeyId: process.env.NC_KINESIS_CLIENT_ID,
-        secretAccessKey: process.env.NC_KINESIS_CLIENT_SECRET,
+        accessKeyId: process.env.AWS_KINESIS_CLIENT_ID,
+        secretAccessKey: process.env.AWS_KINESIS_CLIENT_SECRET,
       },
     })
   }

@@ -5,9 +5,9 @@ import KinesisConsumerServer from './kinesis-consumer-server';
 import KafkaConsumerServer from './kafka-consumer-server';
 
 function getServiceStrategy(): any {
-  if (process.env.NC_KAFKA_BROKER) {
+  if (process.env.AWS_KAFKA_BROKERS) {
     return new KafkaConsumerServer();
-  } else if (process.env.NC_KINESIS_CLIENT_ID) {
+  } else if (process.env.AWS_KINESIS_CLIENT_ID) {
     return new KinesisConsumerServer();
   } else {
     throw new Error('No service strategy configured');

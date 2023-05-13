@@ -10,10 +10,10 @@ export class KinesisProducer extends Producer {
   constructor() {
     super();
     this.kinesis = new AWS.Kinesis({
-      region: process.env.NC_KINESIS_REGION,
+      region: process.env.AWS_KINESIS_REGION,
       credentials: {
-        accessKeyId: process.env.NC_KINESIS_CLIENT_ID,
-        secretAccessKey: process.env.NC_KINESIS_CLIENT_SECRET,
+        accessKeyId: process.env.AWS_KINESIS_CLIENT_ID,
+        secretAccessKey: process.env.AWS_KINESIS_CLIENT_SECRET,
       },
     });
   }
@@ -23,7 +23,7 @@ export class KinesisProducer extends Producer {
       const params = {
         Data: message,
         // todo: use different partition key to avoid hot shard
-        PartitionKey: process.env.NC_KINESIS_PARTITION_KEY ?? 'partition-key-1',
+        PartitionKey: process.env.AWS_KINESIS_PARTITION_KEY ?? 'partition-key-1',
         StreamName: streamName,
       };
       const result = await this.kinesis.putRecord(params).promise();

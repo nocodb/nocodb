@@ -21,7 +21,7 @@ export class AppController {
   constructor(private readonly clickhouseService: ClickhouseService) {}
 
   @MessagePattern(
-    process.env.NC_KINESIS_STREAM ||
+    process.env.AWS_KINESIS_STREAM ||
       process.env.NC_KAFKA_TOPIC ||
       'nocohub-dev-input-stream',
   )

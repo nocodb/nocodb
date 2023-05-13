@@ -53,7 +53,9 @@ export class ExecutionTimeCalculatorInterceptor implements NestInterceptor {
         const ip = req.clientIp;
 
         this.producer.sendMessage(
-          process.env.NC_KINESIS_STREAM || 'nocohub-dev-input-stream',
+          process.env.NC_KINESIS_STREAM ||
+            process.env.NC_KAFKA_TOPIC ||
+            'nocohub-dev-input-stream',
           JSON.stringify({
             timestamp,
             workspace_id,

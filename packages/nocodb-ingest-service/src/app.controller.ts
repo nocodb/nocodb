@@ -20,7 +20,11 @@ export class AppController {
 
   constructor(private readonly clickhouseService: ClickhouseService) {}
 
-  @MessagePattern(process.env.NC_KINESIS_STREAM || 'nocohub-dev-input-stream')
+  @MessagePattern(
+    process.env.NC_KINESIS_STREAM ||
+      process.env.NC_KAFKA_TOPIC ||
+      'nocohub-dev-input-stream',
+  )
   async syncApiExecTime(@Payload() messages: any[]) {
     try {
       const rows = [];

@@ -12,8 +12,8 @@ export default class KafkaConsumerServer
   constructor() {
     super();
     this.kafka = new Kafka({
-      clientId: 'my-consumer',
-      brokers: ['localhost:9092'],
+      clientId: process.env.NC_KAFKA_CLIENT_ID ?? 'nc-consumer',
+      brokers: [process.env.NC_KAFKA_BROKER ?? 'localhost:9092'],
     });
   }
 
@@ -24,18 +24,19 @@ export default class KafkaConsumerServer
     // Create a new ClickHouse client instance
     this.consumer = this.kafka.consumer({
       groupId: 'my-group',
-      minBytes: 1000,
+      minBytes: 10000,
     });
     await this.consumer.connect();
 
-
-    for(const topic of this.messageHandlers.keys()){
+    for (const topic of this.messageHandlers.keys()) {
       await this.consumer.subscribe({ topic, fromBeginning: true });
     }
 
     await this.consumer.run({
       eachBatch: async ({ batch }) => {
-        console.log(`Received batch with ${batch.messages.length} messages`);
+        this.logger.log(
+          `Received batch with ${batch.messages.length} messages`,
+        );
 
         const rows = [];
 

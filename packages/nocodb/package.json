@@ -41,6 +41,7 @@
     "docker:build": "EE=\"true-xc-test\" webpack  --config docker/webpack.config.js"
   },
   "dependencies": {
+    "@aws-sdk/client-kafka": "^3.332.0",
     "@google-cloud/storage": "^5.7.2",
     "@graphql-tools/merge": "^6.0.12",
     "@nestjs/common": "^9.4.0",

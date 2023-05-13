@@ -5,9 +5,13 @@ import type { Provider } from '@nestjs/common';
 
 export const ProducerProvider: Provider = {
   useFactory: async () => {
-    if (process.env.NC_PRODUCER_TYPE === 'kinesis') {
+    if (
+      process.env.NC_KINESIS_CLIENT_ID &&
+      process.env.NC_KINESIS_CLIENT_SECRET &&
+      process.env.NC_KINESIS_REGION
+    ) {
       return new KinesisProducer();
-    } else if (process.env.NC_PRODUCER_TYPE === 'kafka') {
+    } else if (process.env.NC_KAFKA_BROKER) {
       return new KafkaProducer();
     } else {
       return {

@@ -1,6 +1,6 @@
 import { Injectable, Logger } from '@nestjs/common';
 import AWS from 'aws-sdk';
-import  { Producer } from '../producer';
+import { Producer } from '../producer';
 
 @Injectable()
 export class KinesisProducer extends Producer {
@@ -10,8 +10,12 @@ export class KinesisProducer extends Producer {
   constructor() {
     super();
     this.kinesis = new AWS.Kinesis({
-      region: process.env.NC_KINESIS_REGION ?? 'us-east-2',
-    }); // Replace with your region
+      region: process.env.NC_KINESIS_REGION,
+      credentials: {
+        accessKeyId: process.env.NC_KINESIS_CLIENT_ID,
+        secretAccessKey: process.env.NC_KINESIS_CLIENT_SECRET,
+      },
+    });
   }
 
   async sendMessage(streamName: string, message: string) {

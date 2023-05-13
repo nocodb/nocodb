@@ -291,7 +291,11 @@ export class CellPageObject extends BasePage {
 
       // arrow expand doesn't exist for bt columns
       if (await arrow_expand.count()) {
-        await arrow_expand.click();
+        await this.waitForResponse({
+          uiAction: () => arrow_expand.click(),
+          requestUrlPathToMatch: '/api/v1/db',
+          httpMethodsToMatch: ['GET'],
+        });
 
         // wait for child list to open
         await this.rootPage.waitForSelector('.nc-modal-child-list:visible');
@@ -309,7 +313,11 @@ export class CellPageObject extends BasePage {
   async unlinkVirtualCell({ index, columnHeader }: CellProps) {
     const cell = this.get({ index, columnHeader });
     await cell.click();
-    await cell.locator('.unlink-icon').first().click();
+    await this.waitForResponse({
+      uiAction: () => cell.locator('.unlink-icon').first().click(),
+      requestUrlPathToMatch: '/api/v1/db/data/noco/',
+      httpMethodsToMatch: ['GET'],
+    });
   }
 
   async verifyRoleAccess(param: { role: string }) {
@@ -351,13 +359,5 @@ export class CellPageObject extends BasePage {
 
     await this.get({ index, columnHeader }).press((await this.isMacOs()) ? 'Meta+C' : 'Control+C');
     await this.verifyToast({ message: 'Copied to clipboard' });
-  }
-
-  async pasteFromClipboard({ index, columnHeader }: CellProps, ...clickOptions: Parameters<Locator['click']>) {
-    await this.get({ index, columnHeader }).scrollIntoViewIfNeeded();
-    await this.get({ index, columnHeader }).click(...clickOptions);
-    await (await this.get({ index, columnHeader }).elementHandle()).waitForElementState('stable');
-
-    await this.get({ index, columnHeader }).press((await this.isMacOs()) ? 'Meta+V' : 'Control+V');
   }
 }

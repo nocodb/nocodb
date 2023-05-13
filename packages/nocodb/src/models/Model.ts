@@ -341,6 +341,11 @@ export default class Model implements TableType {
   ): Promise<BaseModelSqlv2> {
     const model = args?.model || (await this.get(args.id, ncMeta));
 
+    if (!args?.viewId) {
+      const view = await View.getDefaultView(model.id, ncMeta);
+      args.viewId = view.id;
+    }
+
     return new BaseModelSqlv2({
       dbDriver: args.dbDriver,
       viewId: args.viewId,

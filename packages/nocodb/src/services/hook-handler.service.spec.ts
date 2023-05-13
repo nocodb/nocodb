@@ -1,5 +1,6 @@
-import { Test, TestingModule } from '@nestjs/testing';
+import { Test } from '@nestjs/testing';
 import { HookHandlerService } from './hook-handler.service';
+import type { TestingModule } from '@nestjs/testing';
 
 describe('HookHandlerService', () => {
   let service: HookHandlerService;

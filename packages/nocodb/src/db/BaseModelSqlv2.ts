@@ -12,7 +12,6 @@ import {
   isVirtualCol,
   RelationTypes,
   UITypes,
-  ViewTypes,
 } from 'nocodb-sdk';
 import Validator from 'validator';
 import { customAlphabet } from 'nanoid';
@@ -20,17 +19,7 @@ import DOMPurify from 'isomorphic-dompurify';
 import { v4 as uuidv4 } from 'uuid';
 import { NcError } from '../helpers/catchError';
 import getAst from '../helpers/getAst';
-
-import {
-  Audit,
-  Base,
-  Column,
-  Filter,
-  Model,
-  Project,
-  Sort,
-  View,
-} from '../models';
+import { Audit, Column, Filter, Model, Project, Sort, View } from '../models';
 import { sanitize, unsanitize } from '../helpers/sqlSanitize';
 import {
   COMPARISON_OPS,
@@ -2575,8 +2564,8 @@ class BaseModelSqlv2 {
       modelId: this.model.id,
       tnPath: this.tnPath,
     });
-    /*
 
+    /*
     const view = await View.get(this.viewId);
 
     // handle form view data submission
@@ -3478,7 +3467,6 @@ function validateFilterComparison(uidt: UITypes, op: any, sub_op?: any) {
 
 function extractCondition(nestedArrayConditions, aliasColObjMap) {
   return nestedArrayConditions?.map((str) => {
-    // eslint-disable-next-line prefer-const
     let [logicOp, alias, op, value] =
       str.match(/(?:~(and|or|not))?\((.*?),(\w+),(.*)\)/)?.slice(1) || [];
 

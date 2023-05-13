@@ -38,6 +38,7 @@ _site/
 *.pid
 *.gz
 *.tmp
+*.tmp.md
 *.bak
 *.swp
 logs/

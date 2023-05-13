@@ -273,15 +273,19 @@ test.describe('Undo Redo', () => {
     }
 
     await toolbar.clickFilter();
-    await toolbar.filter.add({ title: 'Number', operation: '=', value: '33' });
+    await toolbar.filter.add({ title: 'Number', operation: '=', value: '33', skipWaitingResponse: true });
     await toolbar.clickFilter();
 
     await verifyRecords({ filtered: true });
     await toolbar.filter.reset();
     await verifyRecords({ filtered: false });
 
+    // undo: remove filter
     await undo({ page });
     await verifyRecords({ filtered: true });
+    // undo: update filter
+    await undo({ page });
+    // undo: add filter
     await undo({ page });
     await verifyRecords({ filtered: false });
   });

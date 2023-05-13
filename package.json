@@ -21,6 +21,16 @@
     "husky": "^8.0.0",
     "xlsx": "^0.17.4"
   },
+  "husky": {
+    "hooks": {
+      "pre-commit": "npx lint-staged"
+    }
+  },
+  "lint-staged": {
+    "scripts/playwright/**/*.{ts,tsx,js,json}": [
+      "npm run lint:staged:playwright"
+    ]
+  },
   "scripts": {
     "lint:staged:playwright": "cd ./tests/playwright; npx lint-staged; cd -",
     "build:common": "cd ./packages/nocodb-sdk; npm install; npm run build",

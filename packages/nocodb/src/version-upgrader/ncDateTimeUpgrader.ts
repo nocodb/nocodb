@@ -4,12 +4,12 @@ import { UITypes } from 'nocodb-sdk';
 import { MetaTable } from '../utils/globals';
 import Base from '../models/Base';
 import Model from '../models/Model';
+import NcConnectionMgrv2 from '../utils/common/NcConnectionMgrv2';
 import { throwTimeoutError } from './ncUpgradeErrors';
 import type { BaseType } from 'nocodb-sdk';
 import type { NcUpgraderCtx } from './NcUpgrader';
 import type { XKnex } from '../db/CustomKnex';
 import type { Knex } from 'knex';
-import NcConnectionMgrv2 from '../utils/common/NcConnectionMgrv2';
 
 dayjs.extend(utc);
 
@@ -87,8 +87,8 @@ export default async function ({ ncMeta }: NcUpgraderCtx) {
     };
 
     for (const model of models) {
-      let disableTriggers = [];
-      let enableTriggers = [];
+      const disableTriggers = [];
+      const enableTriggers = [];
 
       try {
         // if the table is missing in database, skip

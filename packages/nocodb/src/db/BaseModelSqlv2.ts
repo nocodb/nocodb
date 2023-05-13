@@ -7,7 +7,6 @@ import { nocoExecute } from 'nc-help';
 import {
   AuditOperationSubTypes,
   AuditOperationTypes,
-  BoolType,
   isSystemColumn,
   isVirtualCol,
   RelationTypes,
@@ -57,7 +56,7 @@ import type {
   SelectOption,
 } from '../models';
 import type { Knex } from 'knex';
-import type { SortType } from 'nocodb-sdk';
+import type { BoolType, SortType } from 'nocodb-sdk';
 
 dayjs.extend(utc);
 

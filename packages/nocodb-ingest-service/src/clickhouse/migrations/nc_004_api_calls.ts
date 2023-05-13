@@ -16,7 +16,8 @@ CREATE TABLE IF NOT EXISTS  ${config.database}.api_calls (
     method String,
     status UInt16,
     exec_time UInt64,
-    ip String
+    req_ipv4 IPv4,
+    req_ipv6 IPv6
   ) ENGINE = MergeTree
   ORDER BY timestamp
   ;

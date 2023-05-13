@@ -39,19 +39,29 @@ export class AppController {
           status,
           exec_time,
           timestamp,
+          ip,
         } = data;
+
+        let ipv4 = 'NULL';
+        let ipv6 = 'NULL';
+
+        if (/^([0-9a-fA-F]{1,4}:){7}[0-9a-fA-F]{1,4}$/.test(ip)) {
+          ipv6 = `'${ip}'`;
+        } else if (/^([0-9]{1,3}\.){3}[0-9]{1,3}$/.test(ip)) {
+          ipv4 = `'${ip}'`;
+        }
 
         rows.push(
           `(${
             Math.round(timestamp / 1000) ?? 'NOW()'
           }, '${workspace_id}', '${user_id}', '${project_id}', '${url}', '${method}', ${exec_time}, ${
             status ?? 'NULL'
-          })`,
+          }, ${ipv4}, ${ipv6})`,
         );
       });
 
       // Generate the ClickHouse insert query
-      const insertQuery = `INSERT INTO api_calls (timestamp, workspace_id, user_id, project_id, url, method, exec_time, status) 
+      const insertQuery = `INSERT INTO api_calls (timestamp, workspace_id, user_id, project_id, url, method, exec_time, status, req_ipv4, req_ipv6) 
                          VALUES ${rows.join(',')}`;
 
       await this.clickhouseService.execute(insertQuery);

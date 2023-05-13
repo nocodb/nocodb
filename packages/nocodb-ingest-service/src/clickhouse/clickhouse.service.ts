@@ -70,9 +70,12 @@ export class ClickhouseService implements OnModuleInit, OnModuleDestroy {
   onModuleDestroy(): any {}
 
   async onModuleInit(): Promise<any> {
-    // if (!process.env.NC_CLICKHOUSE) {
-    //   return;
-    // }
+    if (!process.env.NC_CLICKHOUSE) {
+      this.logger.error(
+        'NC_CLICKHOUSE environment variable is not set. Please set it to a valid ClickHouse connection string.',
+      );
+      process.exit(1);
+    }
 
     const { connection, client } = await NcConfigFactory.metaUrlToDbConfig(
       process.env.NC_CLICKHOUSE,
@@ -105,7 +108,7 @@ export class ClickhouseService implements OnModuleInit, OnModuleDestroy {
       this.client = new ClickHouse(this.config);
     } catch (e) {
       this.logger.error(e);
-      // process.exit(1);
+      process.exit(1);
     }
   }
 }

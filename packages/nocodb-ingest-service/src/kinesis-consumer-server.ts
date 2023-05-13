@@ -1,18 +1,39 @@
-import {CustomTransportStrategy, Server} from '@nestjs/microservices';
+import { CustomTransportStrategy, Server } from '@nestjs/microservices';
 import * as AWS from 'aws-sdk';
 import * as Knex from 'knex';
 import NcConfigFactory from './helpers/NcConfigFactory';
-import {Kinesis} from 'aws-sdk';
+import { Kinesis } from 'aws-sdk';
 
 export default class KinesisConsumerServer
   extends Server
-  implements CustomTransportStrategy {
+  implements CustomTransportStrategy
+{
   private kinesis: AWS.Kinesis;
   private knex: Knex.Knex;
 
   constructor() {
     super();
-    this.kinesis = new AWS.Kinesis({region: 'us-east-2'});
+
+    if (
+      !(
+        process.env.NC_KINESIS_CLIENT_ID &&
+        process.env.NC_KINESIS_CLIENT_SECRET &&
+        process.env.NC_KINESIS_REGION
+      )
+    ) {
+      this.logger.error(
+        `Kinesis client id, secret and region are required. Please define following env variables: NC_KINESIS_CLIENT_ID, NC_KINESIS_CLIENT_SECRET and NC_KINESIS_REGION`,
+      );
+      process.exit(1);
+    }
+
+    this.kinesis = new AWS.Kinesis({
+      region: process.env.NC_KINESIS_REGION,
+      credentials: {
+        accessKeyId: process.env.NC_KINESIS_CLIENT_ID,
+        secretAccessKey: process.env.NC_KINESIS_CLIENT_SECRET,
+      },
+    })
   }
 
   /**
@@ -94,8 +115,7 @@ export default class KinesisConsumerServer
   /**
    * This method is triggered on application shutdown.
    */
-  close() {
-  }
+  close() {}
 
   async getLastIngestedSequenceKey(stream = '') {
     const result = await this.knex('nc_store')
@@ -113,7 +133,7 @@ export default class KinesisConsumerServer
       .where('key', `last_ingested:${stream}`)
       .first();
     if (result) {
-      await this.knex('nc_store').update({value: sequenceNum}).where({
+      await this.knex('nc_store').update({ value: sequenceNum }).where({
         id: result.id,
       });
     } else {

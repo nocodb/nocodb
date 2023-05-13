@@ -5,6 +5,8 @@ import * as express from 'express';
 import NcToolGui from 'nc-lib-gui';
 import { ExpressAdapter } from '@nestjs/platform-express';
 import { IoAdapter } from '@nestjs/platform-socket.io';
+import requestIp from 'request-ip';
+import cookieParser from 'cookie-parser';
 import { AppModule } from './app.module';
 
 import { NC_LICENSE_KEY } from './constants';
@@ -106,6 +108,8 @@ export default class Noco {
     this._httpServer = nestApp.getHttpAdapter().getInstance();
     this._server = server;
 
+    nestApp.use(requestIp.mw());
+    nestApp.use(cookieParser());
     nestApp.use(
       express.json({ limit: process.env.NC_REQUEST_BODY_SIZE || '50mb' }),
     );

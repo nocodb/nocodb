@@ -296,5 +296,6 @@ export interface AppConfig {
   throttler: {
     ttl: number;
     max_apis: number;
+    calc_execution_time: boolean
   };
 }

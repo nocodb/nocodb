@@ -1,7 +1,7 @@
-import { Injectable, Module, RequestMethod } from '@nestjs/common';
-import { APP_FILTER, APP_GUARD } from '@nestjs/core';
-import { ThrottlerGuard, ThrottlerModule } from '@nestjs/throttler';
-import { ConfigModule, ConfigService } from '@nestjs/config';
+import { Module, RequestMethod } from '@nestjs/common';
+import { APP_FILTER, APP_GUARD, APP_INTERCEPTOR } from '@nestjs/core';
+import { ThrottlerModule } from '@nestjs/throttler';
+import { ConfigModule } from '@nestjs/config';
 import { Connection } from './connection/connection';
 import { GlobalExceptionFilter } from './filters/global-exception/global-exception.filter';
 import NcPluginMgrv2 from './helpers/NcPluginMgrv2';
@@ -29,6 +29,7 @@ import { CustomApiLimiterGuard } from './guards/custom-api-limiter.guard';
 
 import appConfig from './app.config';
 import { ExtractProjectAndWorkspaceIdMiddleware } from './middlewares/extract-project-and-workspace-id/extract-project-and-workspace-id.middleware';
+import { ExecutionTimeCalculatorInterceptor } from './interceptors/execution-time-calculator/execution-time-calculator.interceptor';
 import type {
   MiddlewareConsumer,
   OnApplicationBootstrap,
@@ -78,6 +79,10 @@ const enableThrottler = !!process.env['NC_THROTTLER_REDIS'];
       useClass: enableThrottler
         ? CustomApiLimiterGuard
         : ExtractProjectAndWorkspaceIdMiddleware,
+    },
+    {
+      provide: APP_INTERCEPTOR,
+      useClass: ExecutionTimeCalculatorInterceptor,
     },
     LocalStrategy,
     AuthTokenStrategy,

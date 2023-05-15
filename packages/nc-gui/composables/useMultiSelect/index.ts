@@ -116,10 +116,17 @@ export function useMultiSelect(
             textToCopy = JSON.stringify(textToCopy)
           }
 
-          if (columnObj.uidt === UITypes.DateTime) {
+          if (columnObj.uidt === UITypes.DateTime || columnObj.uidt === UITypes.Formula) {
             // remove `"`
             // e.g. "2023-05-12T08:03:53.000Z" -> 2023-05-12T08:03:53.000Z
             textToCopy = textToCopy.replace(/["']/g, '')
+
+            // TODO(timezone): handle date in string
+            if (columnObj.uidt === UITypes.Formula) {
+              if (!dayjs(textToCopy).isValid()) {
+                return
+              }
+            }
 
             const isMySQL = isMysql(columnObj.base_id)
             if (isMySQL) {

@@ -150,6 +150,36 @@ const onToggleLink = () => {
     }, 100)
   }
 }
+
+const handleEditorMouseDown = (e: MouseEvent) => {
+  const domsInEvent = document.elementsFromPoint(e.clientX, e.clientY) as HTMLElement[]
+  const isBubble = domsInEvent.some((dom) => dom?.classList?.contains('bubble-menu'))
+  if (isBubble) return
+
+  const pageContent = document.querySelector('.nc-docs-page')
+  pageContent?.classList.add('bubble-menu-hidden')
+}
+
+const handleEditorMouseUp = (e: MouseEvent) => {
+  const domsInEvent = document.elementsFromPoint(e.clientX, e.clientY) as HTMLElement[]
+  const isBubble = domsInEvent.some((dom) => dom?.classList?.contains('bubble-menu'))
+  if (isBubble) return
+
+  setTimeout(() => {
+    const pageContent = document.querySelector('.nc-docs-page')
+    pageContent?.classList.remove('bubble-menu-hidden')
+  }, 100)
+}
+
+onMounted(() => {
+  document.addEventListener('mouseup', handleEditorMouseUp)
+  document.addEventListener('mousedown', handleEditorMouseDown)
+})
+
+onUnmounted(() => {
+  document.removeEventListener('mouseup', handleEditorMouseUp)
+  document.removeEventListener('mousedown', handleEditorMouseDown)
+})
 </script>
 
 <template>
@@ -319,6 +349,12 @@ const onToggleLink = () => {
 </template>
 
 <style lang="scss">
+.bubble-menu-hidden {
+  [data-tippy-root] {
+    opacity: 0;
+  }
+}
+
 .bubble-text-format-button-icon {
   @apply px-1.5 py-0 border-1 border-gray-300 rounded-sm items-center justify-center;
   font-size: 0.8rem;

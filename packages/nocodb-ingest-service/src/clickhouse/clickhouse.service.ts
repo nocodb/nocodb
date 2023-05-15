@@ -1,51 +1,10 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { ClickHouse } from 'clickhouse';
-import * as nc_001_db_create from './migrations/nc_001_db_create';
-import * as nc_002_api_calls from './migrations/nc_002_api_calls';
-import type { OnModuleDestroy, OnModuleInit } from '@nestjs/common';
+import type { OnModuleInit } from '@nestjs/common';
 import NcConfigFactory from '../helpers/NcConfigFactory';
 
-const knownQueryParams = [
-  {
-    parameter: 'database',
-    aliases: ['d', 'db'],
-  },
-  {
-    parameter: 'password',
-    aliases: ['p'],
-  },
-  {
-    parameter: 'user',
-    aliases: ['u'],
-  },
-  {
-    parameter: 'title',
-    aliases: ['t'],
-  },
-  {
-    parameter: 'keyFilePath',
-    aliases: [],
-  },
-  {
-    parameter: 'certFilePath',
-    aliases: [],
-  },
-  {
-    parameter: 'caFilePath',
-    aliases: [],
-  },
-  {
-    parameter: 'ssl',
-    aliases: [],
-  },
-  {
-    parameter: 'options',
-    aliases: ['opt', 'opts'],
-  },
-];
-
 @Injectable()
-export class ClickhouseService implements OnModuleInit, OnModuleDestroy {
+export class ClickhouseService implements OnModuleInit {
   private client: ClickHouse;
   private logger: Logger = new Logger(ClickhouseService.name);
 
@@ -65,8 +24,6 @@ export class ClickhouseService implements OnModuleInit, OnModuleDestroy {
       : this.client.query(query).toPromise();
   }
 
-  onModuleDestroy(): any {}
-
   async onModuleInit(): Promise<any> {
     if (!process.env.NC_CLICKHOUSE) {
       this.logger.error(
@@ -80,27 +37,13 @@ export class ClickhouseService implements OnModuleInit, OnModuleDestroy {
     );
 
     this.config = {
-      host:
-        `${client ?? 'http'}://${connection.host ?? 'localhost'}` ??
-        'http://localhost',
+      host: `${client ?? 'http'}://${connection.host ?? 'localhost'}`,
       port: connection.port ?? 8123,
       username: connection.user,
       password: connection.password,
       database: connection.database ?? 'nc',
     };
     try {
-      // Create a new ClickHouse client instance
-      const clickhouse = new ClickHouse({
-        ...this.config,
-        database: undefined,
-      });
-      for (const { up } of [
-        nc_001_db_create,
-        nc_002_api_calls,
-      ]) {
-        await up(clickhouse, this.config);
-      }
-
       this.client = new ClickHouse(this.config);
     } catch (e) {
       this.logger.error(e);

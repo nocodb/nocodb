@@ -1,9 +1,8 @@
-import { Injectable } from '@nestjs/common';
+import path from 'path';
+import { Injectable, Logger } from '@nestjs/common';
 import { ClickHouse } from 'clickhouse';
+import { migration } from 'clickhouse-migrations/lib/migrate';
 import NcConfigFactory from '../../utils/NcConfigFactory';
-import * as nc_001_notification from './migrations/nc_001_notification';
-import * as nc_002_page_snapshot from './migrations/nc_002_page_snapshot';
-import * as nc_003_api_count from './migrations/nc_003_api_count';
 import type { OnModuleDestroy, OnModuleInit } from '@nestjs/common';
 
 @Injectable()
@@ -16,6 +15,7 @@ export class ClickhouseService implements OnModuleInit, OnModuleDestroy {
     port?: number;
     database?: string;
   };
+  private logger = new Logger(ClickhouseService.name);
 
   async execute(query: string, isInsert = false): Promise<any> {
     if (!this.client) return;
@@ -44,16 +44,18 @@ export class ClickhouseService implements OnModuleInit, OnModuleDestroy {
       database: connection.database ?? 'nc',
     };
 
-    // Create a new ClickHouse client instance
-    const clickhouse = new ClickHouse({ ...this.config, database: undefined });
-    for (const { up } of [
-      nc_001_notification,
-      nc_002_page_snapshot,
-      nc_003_api_count,
-    ]) {
-      await up(clickhouse, this.config);
+    try {
+      await migration(
+        path.join(__dirname, 'migrations'),
+        `${this.config.host}:${this.config.port}`,
+        this.config.username,
+        this.config.password,
+        this.config.database,
+      );
+    } catch (e) {
+      this.logger.error(e);
+      this.logger.error('Check your Clickhouse configuration');
     }
-
     this.client = new ClickHouse(this.config);
   }
 }

@@ -11,7 +11,7 @@ const cellValue = inject(CellValueInj)
 
 const { isPg } = useProject()
 
-const result = computed(() => (isPg(column.value.base_id) ? handleTZ(cellValue?.value) : cellValue?.value))
+const result = computed(() => (isPg(column.value.base_id) ? renderResult(handleTZ(cellValue?.value)) : renderResult(cellValue?.value)))
 
 const urls = computed(() => replaceUrlsWithLink(result.value))
 
@@ -21,10 +21,10 @@ const { showEditNonEditableFieldWarning, showClearNonEditableFieldWarning, activ
 const renderResult = (result: string) => {
   // convert all date time values to local time
   // the input is always YYYY-MM-DD hh:mm:ss+00:00
-  return result.replace(/^\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}\+00:00$/, (d) => {
+  return result.replace(/\b(\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}\+00:00)\b/g, (d) => {
     // TODO(timezone): retrieve the format from the corresponding column meta
     // assume hh:mm at this moment
-    return dayjs(d).utc().local().format('YYYY-MM-DD hh:mm')
+    return dayjs(d).utc().local().format('YYYY-MM-DD HH:mm')
   })
 }
 </script>
@@ -41,7 +41,7 @@ const renderResult = (result: string) => {
     <div v-else class="p-2" @dblclick="activateShowEditNonEditableFieldWarning">
       <div v-if="urls" v-html="urls" />
 
-      <div v-else>{{ renderResult(result) }}</div>
+      <div v-else>{{ result }}</div>
 
       <div v-if="showEditNonEditableFieldWarning" class="text-left text-wrap mt-2 text-[#e65100] text-xs">
         {{ $t('msg.info.computedFieldEditWarning') }}

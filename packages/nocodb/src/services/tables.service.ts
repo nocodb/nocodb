@@ -1,11 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import DOMPurify from 'isomorphic-dompurify';
-import {
-  AppEvents,
-  isVirtualCol,
-  ModelTypes,
-  UITypes,
-} from 'nocodb-sdk'
+import { AppEvents, isVirtualCol, ModelTypes, UITypes } from 'nocodb-sdk';
 import { T } from 'nc-help';
 import { Configuration, OpenAIApi } from 'openai';
 import ProjectMgrv2 from '../db/sql-mgr/v2/ProjectMgrv2';
@@ -205,7 +200,6 @@ export class TablesService {
       user: param.user,
       ip: param.req?.clientIp,
     });
-
 
     return table.delete();
   }

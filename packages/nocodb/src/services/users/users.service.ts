@@ -19,7 +19,7 @@ import { NcError } from '../../helpers/catchError';
 import NcPluginMgrv2 from '../../helpers/NcPluginMgrv2';
 import { randomTokenString } from '../../helpers/stringHelpers';
 import { MetaService, MetaTable } from '../../meta/meta.service';
-import { Audit, Store, User, Workspace, WorkspaceUser} from '../../models';
+import { Audit, Store, User, Workspace, WorkspaceUser } from '../../models';
 import Noco from '../../Noco';
 import { AppHooksService } from '../app-hooks/app-hooks.service';
 import { genJwt, setTokenCookie } from './helpers';
@@ -509,7 +509,6 @@ export class UsersService {
     setTokenCookie(param.res, refreshToken);
     await this.createDefaultWorkspace(user);
 
-
     this.appHooksService.emit(AppEvents.USER_SIGNUP, {
       user: user,
       ip: param.req?.clientIp,
@@ -553,7 +552,6 @@ export class UsersService {
     }
   }
 
-
   private async createDefaultWorkspace(user: User) {
     const title = `${user.email?.split('@')?.[0]}`;
     // create new workspace for user
@@ -571,5 +569,4 @@ export class UsersService {
 
     return workspace;
   }
-
 }

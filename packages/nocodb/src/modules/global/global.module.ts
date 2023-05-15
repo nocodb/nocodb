@@ -4,11 +4,10 @@ import { Connection } from '../../connection/connection';
 import { GlobalGuard } from '../../guards/global/global.guard';
 import { MetaService } from '../../meta/meta.service';
 import { SocketService } from '../../services/socket.service';
-import { AppHooksService } from '../../services/app-hooks/app-hooks.service'
+import { AppHooksService } from '../../services/app-hooks/app-hooks.service';
 import { JwtStrategy } from '../../strategies/jwt.strategy';
 import NcConfigFactory from '../../utils/NcConfigFactory';
 import { UsersService } from '../../services/users/users.service';
-import { AppHooksService } from '../../services/app-hooks/app-hooks.service';
 import { Producer } from '../../services/producer/producer';
 import { ProducerProvider } from '../../services/producer';
 import { EventEmitterModule } from '../event-emitter/event-emitter.module';

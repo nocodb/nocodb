@@ -7,7 +7,8 @@ import { Model, ModelRoleVisibility, View } from '../models';
 import { AppHooksService } from './app-hooks/app-hooks.service';
 import type {
   SharedViewReqType,
- UserType, ViewUpdateReqType,
+  UserType,
+  ViewUpdateReqType,
 } from 'nocodb-sdk';
 
 // todo: move

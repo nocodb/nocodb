@@ -2,9 +2,7 @@ import { Injectable } from '@nestjs/common';
 import { T } from 'nc-help';
 import { AppEvents } from 'nocodb-sdk';
 import { validatePayload } from '../helpers';
-import { NcError } from '../helpers/catchError';
 import { Filter, Hook, View } from '../models';
-import { AppHooksService } from './app-hooks/app-hooks.service';
 import { NcError } from '../helpers/catchError';
 import { AppHooksService } from './app-hooks/app-hooks.service';
 import type { FilterReqType, UserType } from 'nocodb-sdk';
@@ -13,7 +11,7 @@ import type { FilterReqType, UserType } from 'nocodb-sdk';
 export class FiltersService {
   constructor(private readonly appHooksService: AppHooksService) {}
 
-   async hookFilterCreate(param: {
+  async hookFilterCreate(param: {
     filter: FilterReqType;
     hookId: any;
     user: UserType;
@@ -39,7 +37,6 @@ export class FiltersService {
 
     this.appHooksService.emit(AppEvents.FILTER_CREATE, {
       filter,
-      user: param.user,
     });
     return filter;
   }
@@ -88,7 +85,6 @@ export class FiltersService {
 
     this.appHooksService.emit(AppEvents.FILTER_CREATE, {
       filter,
-      user: param.user,
     });
 
     return filter;
@@ -111,7 +107,6 @@ export class FiltersService {
 
     this.appHooksService.emit(AppEvents.FILTER_CREATE, {
       filter,
-      user: param.user
     });
 
     // T.emit('evt', { evt_type: 'filter:updated' });

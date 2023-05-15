@@ -17,7 +17,6 @@ import { MetaService } from './meta/meta.service';
 import Noco from './Noco';
 import { TestModule } from './modules/test/test.module';
 import { GlobalModule } from './modules/global/global.module';
-import { HookHandlerService } from './services/hook-handler.service';
 import { LocalStrategy } from './strategies/local.strategy';
 import { AuthTokenStrategy } from './strategies/authtoken.strategy/authtoken.strategy';
 import { BaseViewStrategy } from './strategies/base-view.strategy/base-view.strategy';

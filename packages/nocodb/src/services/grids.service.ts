@@ -36,7 +36,6 @@ export class GridsService {
     });
 
     this.appHooksService.emit(AppEvents.VIEW_CREATE, {
-      user: param.user,
       view,
     });
 

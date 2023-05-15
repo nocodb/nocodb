@@ -1,7 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { Kafka } from 'kafkajs';
-import type { Producer } from 'kafkajs';
 import { Producer as NcProducer } from '../producer';
+import type { Producer } from 'kafkajs';
 
 @Injectable()
 export class KafkaProducer extends NcProducer {

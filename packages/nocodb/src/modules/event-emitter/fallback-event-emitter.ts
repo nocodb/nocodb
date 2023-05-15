@@ -1,5 +1,5 @@
 import Emittery from 'emittery';
-import { IEventEmitter } from './event-emitter.interface';
+import type { IEventEmitter } from './event-emitter.interface';
 
 export class FallbackEventEmitter implements IEventEmitter {
   private readonly emitter: Emittery;

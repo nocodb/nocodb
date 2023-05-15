@@ -38,7 +38,6 @@ import Noco from '../Noco';
 import NcConnectionMgrv2 from '../utils/common/NcConnectionMgrv2';
 import { MetaTable } from '../utils/globals';
 import { AppHooksService } from './app-hooks/app-hooks.service';
-import { AppHooksService } from './app-hooks/app-hooks.service';
 import type { MetaService } from '../meta/meta.service';
 import type SqlMgrv2 from '../db/sql-mgr/v2/SqlMgrv2';
 import type { LinkToAnotherRecordColumn, Project } from '../models';

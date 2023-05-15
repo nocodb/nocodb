@@ -31,7 +31,7 @@ export class SortsService {
     return true;
   }
 
-  async sortUpdate(param: { sortId: any; sort: SortReqType; user: UserType }) {
+  async sortUpdate(param: { sortId: any; sort: SortReqType }) {
     validatePayload('swagger.json#/components/schemas/SortReq', param.sort);
 
     const sort = await Sort.get(param.sortId);
@@ -51,7 +51,7 @@ export class SortsService {
     return res;
   }
 
-  async sortCreate(param: { viewId: any; sort: SortReqType; user: UserType }) {
+  async sortCreate(param: { viewId: any; sort: SortReqType }) {
     validatePayload('swagger.json#/components/schemas/SortReq', param.sort);
 
     const sort = await Sort.insert({

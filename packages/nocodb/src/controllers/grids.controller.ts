@@ -36,7 +36,6 @@ export class GridsController {
     const view = await this.gridsService.gridViewCreate({
       grid: body,
       tableId,
-      user: req.user,
     });
     return view;
   }

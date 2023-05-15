@@ -23,7 +23,8 @@ export class NotificationsService implements OnModuleInit, OnModuleDestroy {
   ) {}
 
   private async insertNotification(insertData: NotificationType) {
-    this.appHooks.emit('notification', insertData);
+    // todo: fix
+    this.appHooks.emit('notification' as any, insertData);
     // Define the values to insert
     const id = this.metaService.genNanoid('');
     const body = JSON.stringify(insertData.body);

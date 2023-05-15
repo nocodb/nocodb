@@ -6,10 +6,6 @@
       <script value="watch:run" />
     </scripts>
     <node-interpreter value="project" />
-    <envs>
-      <env name="NC_DISABLE_CACHE1" value="true" />
-      <env name="NC_DISABLE_TELE" value="true" />
-    </envs>
     <method v="2" />
   </configuration>
 </component>

@@ -5,7 +5,7 @@ import {
   AuditOperationSubTypes,
   AuditOperationTypes,
   OrgUserRoles,
-  validatePassword,
+  validatePassword, WorkspaceUserRoles,
 } from 'nocodb-sdk';
 import { v4 as uuidv4 } from 'uuid';
 import { isEmail } from 'validator';
@@ -18,7 +18,7 @@ import { NcError } from '../../helpers/catchError';
 import NcPluginMgrv2 from '../../helpers/NcPluginMgrv2';
 import { randomTokenString } from '../../helpers/stringHelpers';
 import { MetaService, MetaTable } from '../../meta/meta.service';
-import { Audit, Store, User } from '../../models';
+import {Audit, Store, User, Workspace, WorkspaceUser} from '../../models';
 import Noco from '../../Noco';
 import { AppHooksService } from '../app-hooks/app-hooks.service';
 import { genJwt, setTokenCookie } from './helpers';
@@ -487,6 +487,8 @@ export class UsersService {
 
     setTokenCookie(param.res, refreshToken);
 
+    await this.createDefaultWorkspace(user);
+
     await Audit.insert({
       op_type: AuditOperationTypes.AUTHENTICATION,
       op_sub_type: AuditOperationSubTypes.SIGNUP,
@@ -528,4 +530,24 @@ export class UsersService {
       NcError.badRequest(e.message);
     }
   }
+
+
+  private async createDefaultWorkspace(user: User) {
+    const title = `${user.email?.split('@')?.[0]}`;
+    // create new workspace for user
+    const workspace = await Workspace.insert({
+      title,
+      description: 'Default workspace',
+      fk_user_id: user.id,
+    });
+
+    await WorkspaceUser.insert({
+      fk_user_id: user.id,
+      fk_workspace_id: workspace.id,
+      roles: WorkspaceUserRoles.OWNER,
+    });
+
+    return workspace;
+  }
+
 }

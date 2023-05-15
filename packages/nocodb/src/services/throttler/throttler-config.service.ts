@@ -40,7 +40,7 @@ export class ThrottlerConfigService implements ThrottlerOptionsFactory {
       limit: config.max_apis,
       skipIf: (context) => {
         // check request header contains 'xc-token', if missing skip throttling
-        return true; //!context.switchToHttp().getRequest().headers['xc-auth'];
+        return false; //!context.switchToHttp().getRequest().headers['xc-auth'];
       },
 
       storage: new CustomThrottlerStorageRedisService(

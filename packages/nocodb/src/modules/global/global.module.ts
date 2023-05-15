@@ -8,6 +8,8 @@ import { JwtStrategy } from '../../strategies/jwt.strategy';
 import NcConfigFactory from '../../utils/NcConfigFactory';
 import { UsersService } from '../../services/users/users.service';
 import { AppHooksService } from '../../services/app-hooks/app-hooks.service';
+import { Producer } from '../../services/producer/producer';
+import { ProducerProvider } from '../../services/producer';
 import type { Provider } from '@nestjs/common';
 
 export const JwtStrategyProvider: Provider = {
@@ -31,7 +33,6 @@ export const JwtStrategyProvider: Provider = {
 
 @Global()
 @Module({
-  imports: [],
   providers: [
     Connection,
     MetaService,
@@ -40,6 +41,7 @@ export const JwtStrategyProvider: Provider = {
     GlobalGuard,
     SocketService,
     AppHooksService,
+    ProducerProvider,
   ],
   exports: [
     Connection,
@@ -49,6 +51,7 @@ export const JwtStrategyProvider: Provider = {
     GlobalGuard,
     SocketService,
     AppHooksService,
+    Producer,
   ],
 })
 export class GlobalModule {}

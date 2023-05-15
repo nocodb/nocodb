@@ -176,6 +176,7 @@ export class DocsPageHistoryService {
 
     if (!oldPage.content_html || !newPage.content_html) return;
     if (
+      oldSnapshot &&
       snapshotType === 'updated' &&
       oldPage.content_html === newPage.content_html &&
       oldPage.title === newPage.title &&

@@ -40,7 +40,7 @@ export class DocsOpenedPagePage extends BasePage {
     await this.get().getByTestId('docs-page-title').press('Backspace');
 
     await this.waitForResponse({
-      uiAction: () => this.get().getByTestId('docs-page-title').type(title),
+      uiAction: () => this.get().getByTestId('docs-page-title').type(title, { delay: 0 }),
       httpMethodsToMatch: ['PUT'],
       requestUrlPathToMatch: `api/v1/docs/page`,
     });

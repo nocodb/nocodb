@@ -59,10 +59,6 @@ export class FiltersService {
 
     const view = await View.get(param.viewId);
 
-    if (!view) {
-      NcError.badRequest('View not found');
-    }
-
     const filter = await Filter.insert({
       ...param.filter,
       fk_view_id: param.viewId,

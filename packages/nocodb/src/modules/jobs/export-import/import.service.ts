@@ -938,6 +938,7 @@ export class ImportService {
             view: {
               order: view.order,
             },
+            user: param.user,
           });
         }
       }

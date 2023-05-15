@@ -410,6 +410,7 @@ export class AtImportProcessor {
       if (sampleProj) {
         await this.projectsService.projectSoftDelete({
           projectId: sampleProj.id,
+          user: syncDB.user,
         });
       }
       logDetailed('Init');
@@ -698,6 +699,7 @@ export class AtImportProcessor {
         await this.viewsService.viewUpdate({
           viewId: view.list[0].id,
           view: { title: aTbl_grid.name },
+          user: syncDB.user,
         });
         recordPerfStats(_perfStart, 'dbView.update');
 

@@ -102,11 +102,13 @@ export class DuplicateProcessor {
         project: {
           status: null,
         },
+        user: req.user,
       });
     } catch (e) {
       if (dupProject?.id) {
         await this.projectsService.projectSoftDelete({
           projectId: dupProject.id,
+          user: req.user,
         });
       }
       throw e;

@@ -3263,12 +3263,14 @@ class BaseModelSqlv2 {
       for (const col of dateTimeColumns) {
         if (d[col.title]) {
           if (col.uidt === UITypes.Formula) {
-            // d[col.title] will be in UTC without timezone
-            // append the timezone info here
-            // e.g. 2021-12-30 04:00:00 -> 2021-12-30 04:00:00+00:00
-            d[col.title] = dayjs(d[col.title])
-              .utc(true)
-              .format('YYYY-MM-DD HH:mm:ssZ');
+            if (dayjs(d[col.title]).isValid()) {
+              // d[col.title] will be in UTC without timezone
+              // append the timezone info here
+              // e.g. 2021-12-30 04:00:00 -> 2021-12-30 04:00:00+00:00
+              d[col.title] = dayjs(d[col.title])
+                .utc(true)
+                .format('YYYY-MM-DD HH:mm:ssZ');
+            }
             continue;
           }
 

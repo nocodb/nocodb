@@ -5,6 +5,8 @@ import {
   OrgUserRoles,
   validatePassword,
 } from 'nocodb-sdk';
+import QRCode from 'qrcode';
+import speakeasy from 'speakeasy';
 import { T } from 'nc-help';
 import * as ejs from 'ejs';
 import bcrypt from 'bcryptjs';
@@ -33,6 +35,7 @@ export async function registerNewUserIfAllowed({
   email,
   salt,
   password,
+  otpSecret,
   email_verification_token,
 }: {
   firstname;
@@ -40,6 +43,7 @@ export async function registerNewUserIfAllowed({
   email: string;
   salt: any;
   password;
+  otpSecret,
   email_verification_token;
 }) {
   let roles: string = OrgUserRoles.CREATOR;
@@ -75,6 +79,7 @@ export async function registerNewUserIfAllowed({
     password,
     email_verification_token,
     roles,
+    otpSecret,
     token_version,
   });
 }
@@ -333,6 +338,33 @@ export async function refreshToken(param: {
   }
 }
 
+export async function getOTPSecret(): Promise<any> {
+  try {
+    const secretLength = 20;
+    const secret = speakeasy.generateSecret({ length: secretLength });
+
+    const QRCodePromise = new Promise((resolve, reject) => {
+      QRCode.toDataURL(secret.otpauth_url, (err, url) => {
+        if (err) {
+          reject(err);
+        } else {
+          resolve(url);
+        }
+      });
+    });
+
+    const QRCodeURL = await QRCodePromise;
+
+    return {
+      digits: 6,
+      secret: secret.base32,
+      QRCodeURL,
+    } as any;
+  } catch (e) {
+    NcError.badRequest(e.message);
+  }
+}
+
 export async function signup(param: {
   body: SignUpReqType;
   req: any;
@@ -345,10 +377,24 @@ export async function signup(param: {
     firstname,
     lastname,
     token,
+    otpSecret,
+    otp,
     ignore_subscribe,
   } = param.req.body;
 
   let { password } = param.req.body;
+
+  const otpVerified = speakeasy.totp.verify({
+    secret: otpSecret,
+    encoding: 'base32',
+    token: otp,
+    step: 60,
+    window: 1,
+  });
+
+  if (otpVerified === false) {
+    NcError.badRequest(`Invalid OTP`);
+  }
 
   // validate password and throw error if password is satisfying the conditions
   const { valid, error } = validatePassword(password);
@@ -393,6 +439,7 @@ export async function signup(param: {
         firstname,
         lastname,
         salt,
+        otpSecret,
         password,
         email_verification_token,
         invite_token: null,
@@ -409,6 +456,7 @@ export async function signup(param: {
       email,
       salt,
       password,
+      otpSecret,
       email_verification_token,
     });
   }

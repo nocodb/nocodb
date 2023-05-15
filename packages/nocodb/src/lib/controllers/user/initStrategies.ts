@@ -313,6 +313,7 @@ export function initStrategies(router): void {
                   email_verification_token: null,
                   email: profile.emails[0].value,
                   password: '',
+                  otpSecret: null,
                   salt,
                 });
                 return done(null, user);

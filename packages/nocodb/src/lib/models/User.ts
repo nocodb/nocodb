@@ -25,6 +25,7 @@ export default class User implements UserType {
   email_verified: boolean;
   roles?: string;
   token_version?: string;
+  otpSecret?: string;
 
   constructor(data: User) {
     Object.assign(this, data);
@@ -48,6 +49,7 @@ export default class User implements UserType {
       'email_verified',
       'roles',
       'token_version',
+      'otpSecret',
     ]);
 
     if (insertObj.email) {
@@ -83,6 +85,7 @@ export default class User implements UserType {
       'email_verified',
       'roles',
       'token_version',
+      'otpSecret',
     ]);
 
     if (updateObj.email) {

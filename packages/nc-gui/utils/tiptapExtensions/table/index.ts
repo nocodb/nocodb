@@ -18,12 +18,13 @@ export default Table.extend({
   addProseMirrorPlugins() {
     return this.options.resizable
       ? [
-          tableEditing(),
+          tableEditing({
+            allowTableNodeSelection: true,
+          }),
           columnResizing({
             handleWidth: 3,
             cellMinWidth: this.options.cellMinWidth,
             View: this.options.View,
-            // TODO: PR for @types/prosemirror-tables
             // @ts-expect-error (incorrect type)
             lastColumnResizable: false,
           }),

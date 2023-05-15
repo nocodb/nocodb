@@ -1,7 +1,10 @@
 import { defineStore } from 'pinia'
 import type { DocsPageType } from 'nocodb-sdk'
 import gh from 'parse-github-url'
+import { generateHTML } from '@tiptap/html'
 import type { PageSidebarNode } from '~~/lib'
+import { emptyDocContent } from '~~/utils/tiptapExtensions/helper'
+import tiptapExtensions from '~~/utils/tiptapExtensions'
 
 export const useDocStore = defineStore('docStore', () => {
   const router = useRouter()
@@ -30,6 +33,9 @@ export const useDocStore = defineStore('docStore', () => {
    */
 
   const isPublic = computed<boolean>(() => !!route.meta.public)
+
+  const tiptapExts = tiptapExtensions(isPublic.value)
+
   const openedProjectId = computed<string>(() =>
     isPublic.value ? projectIdFromCompositePageId(route.params.compositePageId as string)! : (route.params.projectId as string),
   )
@@ -423,6 +429,9 @@ export const useDocStore = defineStore('docStore', () => {
     const nestedPages = nestedPagesOfProjects.value[projectId]
     openedPage.value = undefined
     isPageFetching.value = true
+
+    page.content = JSON.stringify(emptyDocContent)
+    page.content_html = generateHTML(emptyDocContent, tiptapExts)
 
     try {
       let createdPageData = await $api.nocoDocs.createPage({

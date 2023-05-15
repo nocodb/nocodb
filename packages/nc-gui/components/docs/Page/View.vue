@@ -841,7 +841,6 @@ watch(
     }
     .tiptap-list-item-content {
       @apply flex flex-grow;
-      line-break: anywhere;
     }
   }
 

@@ -24,7 +24,7 @@ const _title = ref<string | undefined>(undefined)
 const title = computed({
   get: () => propTitle || _title.value,
   set: (value) => {
-    if (!value) return
+    if (value === undefined) return
 
     if (value.length > MAX_TITLE_LENGTH) {
       value = value?.slice(0, MAX_TITLE_LENGTH)

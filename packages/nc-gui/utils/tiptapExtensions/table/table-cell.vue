@@ -271,20 +271,27 @@ onMounted(() => {
 .tiptap-table-wrapper {
   // First cell
   tr:hover > td:first-child .row-drag-handle {
-    display: block !important;
+    display: block;
   }
 
   tr:first-child > td:hover .tiptap-column-options {
-    display: flex !important;
+    display: flex;
   }
 
   tr:first-child > td:only-child:hover .tiptap-column-options {
-    display: none !important;
+    display: none;
   }
 }
 
 .selectedCell {
   @apply !bg-primary-selected;
+
+  .tiptap-column-options {
+    display: none !important;
+  }
+  .row-drag-handle {
+    display: none !important;
+  }
 }
 
 .docs-table-row-options {

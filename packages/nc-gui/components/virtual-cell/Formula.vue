@@ -1,4 +1,5 @@
 <script lang="ts" setup>
+import dayjs from 'dayjs'
 import type { ColumnType } from 'nocodb-sdk'
 import type { Ref } from 'vue'
 import { CellValueInj, ColumnInj, computed, handleTZ, inject, replaceUrlsWithLink, useProject } from '#imports'
@@ -16,6 +17,14 @@ const urls = computed(() => replaceUrlsWithLink(result.value))
 
 const { showEditNonEditableFieldWarning, showClearNonEditableFieldWarning, activateShowEditNonEditableFieldWarning } =
   useShowNotEditableWarning()
+
+const renderResult = (result: string) => {
+  // convert all date time values to local time
+  // the input is always YYYY-MM-DD hh:mm:ss+00:00
+  return result.replace(/^\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}\+00:00$/, (match) => {
+    return dayjs(match).utc().local().format('YYYY-MM-DD hh:mm:ss')
+  })
+}
 </script>
 
 <template>
@@ -30,7 +39,7 @@ const { showEditNonEditableFieldWarning, showClearNonEditableFieldWarning, activ
     <div v-else class="p-2" @dblclick="activateShowEditNonEditableFieldWarning">
       <div v-if="urls" v-html="urls" />
 
-      <div v-else>{{ result }}</div>
+      <div v-else>{{ renderResult(result) }}</div>
 
       <div v-if="showEditNonEditableFieldWarning" class="text-left text-wrap mt-2 text-[#e65100] text-xs">
         {{ $t('msg.info.computedFieldEditWarning') }}

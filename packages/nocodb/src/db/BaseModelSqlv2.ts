@@ -3262,6 +3262,16 @@ class BaseModelSqlv2 {
     if (d) {
       for (const col of dateTimeColumns) {
         if (d[col.title]) {
+          if (col.uidt === UITypes.Formula) {
+            // d[col.title] will be in UTC without timezone
+            // append the timezone info here
+            // e.g. 2021-12-30 04:00:00 -> 2021-12-30 04:00:00+00:00
+            d[col.title] = dayjs(d[col.title])
+              .utc(true)
+              .format('YYYY-MM-DD HH:mm:ssZ');
+            continue;
+          }
+
           if (this.isSqlite) {
             if (!col.cdf && !isXcdbBase) {
               if (d[col.title].indexOf('+') > -1) {
@@ -3297,7 +3307,7 @@ class BaseModelSqlv2 {
             }
           }
 
-          if (col.dt === 'timestamp with time zone') {
+          if (this.isPg && col.dt === 'timestamp with time zone') {
             // postgres - timezone already attached to input
             // e.g. 2023-05-11 16:16:51+08:00
             keepLocalTime = false;
@@ -3331,7 +3341,9 @@ class BaseModelSqlv2 {
     if (data) {
       const dateTimeColumns = (
         childTable ? childTable.columns : this.model.columns
-      ).filter((c) => c.uidt === UITypes.DateTime);
+      ).filter(
+        (c) => c.uidt === UITypes.DateTime || c.uidt === UITypes.Formula,
+      );
       if (dateTimeColumns.length) {
         if (Array.isArray(data)) {
           data = data.map((d) =>

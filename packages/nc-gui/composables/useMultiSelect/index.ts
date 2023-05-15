@@ -120,7 +120,7 @@ export function useMultiSelect(
             textToCopy = textToCopy.replace(/\b(\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}\+00:00)\b/g, (d: string) => {
               // TODO(timezone): retrieve the format from the corresponding column meta
               // assume hh:mm at this moment
-              return dayjs(d).utc().local().format('YYYY-MM-DD hh:mm')
+              return dayjs(d).utc().local().format('YYYY-MM-DD HH:mm')
             })
           }
 

@@ -23,6 +23,7 @@ const close = () => {
 const pageNumber = ref(0)
 
 onMounted(async () => {
+  await $api.nocoDocs.syncPageHistory(project.value!.id!, openedPage.value!.id!)
   const response = await $api.nocoDocs.listPageHistory(project.value!.id!, openedPage.value!.id!, {
     pageNumber: 0,
     pageSize: 10,
@@ -57,6 +58,8 @@ const snapshotTypeLabel = (snapshot: DocsPageSnapshotType) => {
     return 'Unpublished'
   } else if (snapshot.type === 'restored') {
     return 'Restored'
+  } else if (snapshot.type === 'created') {
+    return 'Created'
   }
 }
 </script>

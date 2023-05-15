@@ -577,6 +577,30 @@
       },
       "parameters": []
     },
+    "/api/v1/docs/project/{projectId}/page/{pageId}/history-sync": {
+      "post": {
+        "summary": "Sync page history",
+        "operationId": "sync-page-history",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "properties": {
+                  "hadChanges": {
+                    "type": "boolean"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "Noco docs"
+        ],
+        "description": "Sync page history"
+      }
+    },
     "/api/v1/docs/project/{projectId}/page/{pageId}/history": {
       "get": {
         "summary": "List page history",
@@ -17361,8 +17385,13 @@
             "format": "date",
             "type": "string"
           },
-          "last_snapshot_id": {
-            "type": "string"
+          "last_snapshot_json": {
+            "type": "string",
+            "required": "false"
+          },
+          "last_snapshot": {
+            "$ref": "#/components/schemas/DocsPageSnapshot",
+            "required": "false"
           }
         },
         "required": [
@@ -17423,7 +17452,8 @@
               "updated",
               "published",
               "unpublished",
-              "restored"
+              "restored",
+              "created"
             ]
           }
         }

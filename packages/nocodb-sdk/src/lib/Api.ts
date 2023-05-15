@@ -565,7 +565,9 @@ export interface DocsPageType {
   updated_at?: string;
   /** @format date */
   last_snapshot_at?: string;
-  last_snapshot_id?: string;
+  last_snapshot_json?: string;
+  /** Snapshot of a DocsPage */
+  last_snapshot?: DocsPageSnapshotType;
 }
 
 /**
@@ -589,7 +591,7 @@ export interface DocsPageSnapshotType {
   after_page?: DocsPageType;
   after_page_json?: string;
   diff?: string;
-  type?: 'updated' | 'published' | 'unpublished' | 'restored';
+  type?: 'updated' | 'published' | 'unpublished' | 'restored' | 'created';
 }
 
 /**
@@ -3250,6 +3252,27 @@ export class Api<
         method: 'POST',
         body: data,
         type: ContentType.Json,
+        format: 'json',
+        ...params,
+      }),
+
+    /**
+     * @description Sync page history
+     *
+     * @tags Noco docs
+     * @name SyncPageHistory
+     * @summary Sync page history
+     * @request POST:/api/v1/docs/project/{projectId}/page/{pageId}/history-sync
+     * @response `200` `void` OK
+     */
+    syncPageHistory: (
+      projectId: string,
+      pageId: string,
+      params: RequestParams = {}
+    ) =>
+      this.request<void, any>({
+        path: `/api/v1/docs/project/${projectId}/page/${pageId}/history-sync`,
+        method: 'POST',
         format: 'json',
         ...params,
       }),

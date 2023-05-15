@@ -87,7 +87,7 @@ export class DocsPageHistoryService {
     const newPage = await this.pageDao.get({ id: pageId, projectId });
     const diffHtml = await this.getDiff(newPage, oldPage);
 
-    const snapId = await this.pageSnapshotDao.create({
+    const snap = await this.pageSnapshotDao.create({
       workspaceId,
       projectId,
       pageId,
@@ -97,25 +97,57 @@ export class DocsPageHistoryService {
       diffHtml,
     });
 
-    await this.pageDao.updatePage({
+    await this.pageDao.addSnapshot({
       pageId,
       projectId,
-      attributes: {
-        last_snapshot_at: newPage.updated_at,
-        last_snapshot_id: snapId,
-      },
+      lastSnapshotAt: newPage.updated_at,
+      snapshot: snap,
     });
+  }
+
+  async snapshotTimeWindowExpired(params: {
+    page: DocsPageType;
+  }): Promise<boolean> {
+    const { page } = params;
+
+    const lastSnapshotDate =
+      page.last_snapshot_at && dayjs.utc(page.last_snapshot_at);
+
+    if (
+      lastSnapshotDate &&
+      dayjs().utc().unix() - lastSnapshotDate.unix() < SNAP_SHOT_WINDOW_SEC
+    ) {
+      return false;
+    }
+
+    return true;
   }
 
   async maybeInsert(params: {
     workspaceId: string;
-    oldPage: DocsPageType;
     newPage: DocsPageType;
+    snapshotType?: DocsPageSnapshotType['type'];
   }) {
-    const { workspaceId, oldPage: _oldPage, newPage } = params;
-    let oldPage = _oldPage;
+    const { workspaceId, newPage, snapshotType: _snapshotType } = params;
+    const projectId = newPage.project_id;
 
-    const snapshotType = this.getSnapshotType(newPage, oldPage);
+    const _oldSnapshotFromPage = this.pageDao.deserializeSnapshot({
+      page: newPage,
+    });
+    const oldSnapshot = _oldSnapshotFromPage
+      ? this.pageSnapshotDao.deserializeSnapshot(
+          this.pageDao.deserializeSnapshot({ page: newPage }),
+        )
+      : undefined;
+
+    // If this is the first snapshot, create a snapshot with old page as new page
+    const oldPage: DocsPageType = oldSnapshot?.after_page || newPage;
+
+    // Handle the case where there is no last snapshot page
+    // And if there is one, only create a snapshot if the page has been updated, published or unpublished
+    const snapshotType: DocsPageSnapshotType['type'] = oldSnapshot
+      ? this.getSnapshotType(newPage, oldPage)
+      : _snapshotType ?? 'updated';
     if (!snapshotType) return;
 
     const lastSnapshotDate =
@@ -129,46 +161,50 @@ export class DocsPageHistoryService {
       return;
     }
 
-    oldPage.content = oldPage.content ? JSON.parse(oldPage.content) : undefined;
-    newPage.content = newPage.content ? JSON.parse(newPage.content) : undefined;
-
-    if (newPage.last_snapshot_id) {
-      const lastSnapshot = await this.pageSnapshotDao.get({
-        id: newPage.last_snapshot_id,
-      });
-      if (lastSnapshot && lastSnapshot.after_page) {
-        oldPage = lastSnapshot.after_page;
-      }
-    }
-
-    const projectId = newPage.project_id;
     const pageId = newPage.id;
-    const last_page_updated_time = newPage.updated_at;
+
+    oldPage.content = oldPage.content
+      ? typeof oldPage.content === 'string'
+        ? JSON.parse(oldPage.content)
+        : oldPage.content
+      : undefined;
+    newPage.content = newPage.content
+      ? typeof newPage.content === 'string'
+        ? JSON.parse(newPage.content)
+        : newPage.content
+      : undefined;
 
     if (!oldPage.content_html || !newPage.content_html) return;
+    if (
+      snapshotType === 'updated' &&
+      oldPage.content_html === newPage.content_html &&
+      oldPage.title === newPage.title &&
+      oldPage.icon === newPage.icon &&
+      oldPage.description === newPage.description
+    ) {
+      return;
+    }
 
     const diffHtml =
       oldPage.content === newPage.content
         ? newPage.content_html
         : await this.getDiff(newPage, oldPage);
 
-    const snapId = await this.pageSnapshotDao.create({
+    const snap = await this.pageSnapshotDao.create({
       workspaceId,
       projectId,
       pageId,
       type: snapshotType,
-      oldPage: oldPage,
-      newPage: newPage,
+      oldPage,
+      newPage,
       diffHtml,
     });
 
-    await this.pageDao.updatePage({
+    await this.pageDao.addSnapshot({
       pageId,
       projectId,
-      attributes: {
-        last_snapshot_at: last_page_updated_time,
-        last_snapshot_id: snapId,
-      },
+      lastSnapshotAt: newPage.updated_at,
+      snapshot: snap,
     });
   }
 
@@ -183,7 +219,7 @@ export class DocsPageHistoryService {
     pageNumber?: number | undefined;
     pageSize?: number | undefined;
   }) {
-    return this.pageSnapshotDao.list({
+    return await this.pageSnapshotDao.list({
       projectId,
       pageId,
       pageNumber,

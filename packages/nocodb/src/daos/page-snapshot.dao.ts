@@ -14,8 +14,8 @@ export class PageSnapshotDao {
     workspaceId,
     projectId,
     pageId,
-    newPage,
-    oldPage,
+    newPage: _newPage,
+    oldPage: _oldPage,
     type,
     diffHtml,
   }: {
@@ -26,8 +26,17 @@ export class PageSnapshotDao {
     oldPage: DocsPageType;
     diffHtml;
     type: DocsPageSnapshotType['type'];
-  }): Promise<string> {
+  }): Promise<DocsPageSnapshotType> {
     const id = this.meta.genNanoid('');
+
+    const oldPage = { ..._oldPage };
+    const newPage = { ..._newPage };
+
+    delete oldPage.last_snapshot;
+    delete oldPage.last_snapshot_json;
+
+    delete newPage.last_snapshot;
+    delete newPage.last_snapshot_json;
 
     const lastUpdatedById = newPage.last_updated_by_id;
     const lastPageUpdatedTime = newPage.updated_at;
@@ -42,17 +51,30 @@ export class PageSnapshotDao {
     const before_page_json = JSON.stringify(oldPageBase64);
     const after_page_json = JSON.stringify(newPageBase64);
 
+    const snapshot: DocsPageSnapshotType = {
+      id,
+      fk_workspace_id: workspaceId,
+      fk_project_id: projectId,
+      fk_page_id: pageId,
+      last_updated_by_id: lastUpdatedById,
+      last_page_updated_time: lastPageUpdatedTime,
+      before_page_json,
+      after_page_json,
+      diff: diffHtml,
+      type,
+    };
+
     const query = `
     INSERT INTO page_snapshot (id, fk_workspace_id, fk_project_id, fk_page_id, last_updated_by_id, last_page_updated_time, before_page_json, after_page_json, diff, type)
-    VALUES ('${id}', '${workspaceId}', '${projectId}', '${pageId}', '${lastUpdatedById}', '${lastPageUpdatedTime}', '${before_page_json}', '${after_page_json}', '${diffHtml}', '${type}')
+    VALUES ('${snapshot.id}', '${snapshot.fk_workspace_id}', '${snapshot.fk_project_id}', '${snapshot.fk_page_id}', '${snapshot.last_updated_by_id}', '${snapshot.last_page_updated_time}', '${snapshot.before_page_json}', '${snapshot.after_page_json}', '${snapshot.diff}', '${snapshot.type}')
   `;
 
     await this.clickhouseService.execute(query, true);
 
-    return id;
+    return snapshot;
   }
 
-  private deserializeSnapshot(snapshot: DocsPageSnapshotType) {
+  deserializeSnapshot(snapshot: DocsPageSnapshotType) {
     snapshot.before_page_json = Buffer.from(
       snapshot.before_page_json,
       'base64',

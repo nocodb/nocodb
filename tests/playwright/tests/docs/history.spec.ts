@@ -18,20 +18,24 @@ test.describe('Page history', () => {
     const openedPage = await dashboard.docs.openedPage;
     await dashboard.sidebar.docsSidebar.createPage({
       projectTitle: project.title as any,
-      title: 'page',
+      title: 'Page title',
     });
 
+    await page.waitForTimeout(3500);
+
     await openedPage.fillTitle({
-      title: 'Page title',
+      title: 'New Page title',
     });
 
     await openedPage.tiptap.fillContent({
       content: 'Page content',
+      waitForNetwork: false,
     });
 
     await openedPage.tiptap.fillContent({
       index: 1,
       content: 'Page content 2',
+      waitForNetwork: false,
     });
 
     await page.waitForTimeout(3500);
@@ -39,7 +43,7 @@ test.describe('Page history', () => {
     await openedPage.history.clickHistoryButton();
 
     await openedPage.history.verifyHistoryList({
-      count: 2,
+      count: 4,
       items: [
         {
           title: 'Current version',
@@ -49,6 +53,14 @@ test.describe('Page history', () => {
         {
           title: 'Edited a few seconds ago',
           index: 1,
+        },
+        {
+          title: 'Edited a few seconds ago',
+          index: 2,
+        },
+        {
+          title: 'Created a few seconds ago',
+          index: 3,
         },
       ],
     });
@@ -57,7 +69,7 @@ test.describe('Page history', () => {
       index: 1,
     });
     await openedPage.history.verifyHistoryList({
-      count: 2,
+      count: 4,
       items: [
         {
           title: 'Current version',
@@ -68,19 +80,27 @@ test.describe('Page history', () => {
           index: 1,
           active: true,
         },
+        {
+          title: 'Edited a few seconds ago',
+          index: 2,
+        },
+        {
+          title: 'Created a few seconds ago',
+          index: 3,
+        },
       ],
     });
 
     await openedPage.tiptap.verifyNode({
-      index: 1,
-      content: 'Page content 2',
+      index: 0,
+      content: 'Page content',
       history: {
         added: true,
       },
     });
     await openedPage.tiptap.verifyNode({
-      index: 2,
-      content: '',
+      index: 1,
+      content: 'Page content 2',
       history: {
         added: true,
       },
@@ -90,7 +110,7 @@ test.describe('Page history', () => {
       index: 0,
     });
     await openedPage.history.verifyHistoryList({
-      count: 2,
+      count: 4,
       items: [
         {
           title: 'Current version',

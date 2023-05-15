@@ -5,7 +5,7 @@ import * as nc_004_profile_account from './v3/nc_004_profile_account';
 import * as nc_005_cowriter from './v3/nc_005_cowriter';
 import * as nc_006_shared_erd from './v3/nc_006_shared_erd';
 import * as nc_007_add_last_snapshot_at_and_content_html_to_page from './v3/nc_007_add_last_snapshot_at_and_content_html_to_page';
-
+import * as nc_008_add_last_snapshot_to_page from './v3/nc_008_add_last_snapshot_to_page';
 // Create a custom migration source class
 export default class XcMigrationSourcev3 {
   // Must return a Promise containing a list of migrations.
@@ -21,6 +21,7 @@ export default class XcMigrationSourcev3 {
       'nc_005_cowriter',
       'nc_006_shared_erd',
       'nc_007_add_last_snapshot_at_and_content_html_to_page',
+      'nc_008_add_last_snapshot_to_page',
     ]);
   }
 
@@ -44,6 +45,8 @@ export default class XcMigrationSourcev3 {
         return nc_006_shared_erd;
       case 'nc_007_add_last_snapshot_at_and_content_html_to_page':
         return nc_007_add_last_snapshot_at_and_content_html_to_page;
+      case 'nc_008_add_last_snapshot_to_page':
+        return nc_008_add_last_snapshot_to_page;
     }
   }
 }

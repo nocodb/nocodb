@@ -2,15 +2,18 @@ import { expect } from '@playwright/test';
 import { DashboardPage } from '../..';
 import BasePage from '../../../Base';
 import { TiptapPage } from './Tiptap';
+import { DocsHistoryPage } from './History';
 
 export class DocsOpenedPagePage extends BasePage {
   readonly dashboard: DashboardPage;
   readonly tiptap: TiptapPage;
+  readonly history: DocsHistoryPage;
 
   constructor(dashboard: DashboardPage) {
     super(dashboard.rootPage);
     this.dashboard = dashboard;
     this.tiptap = new TiptapPage(this);
+    this.history = new DocsHistoryPage(this);
   }
 
   get() {

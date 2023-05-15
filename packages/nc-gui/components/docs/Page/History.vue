@@ -62,7 +62,10 @@ const snapshotTypeLabel = (snapshot: DocsPageSnapshotType) => {
 </script>
 
 <template>
-  <div class="history-pane flex flex-col w-1/4 max-w-80 px-5 shadow-sm border-l-1 border-gray-100">
+  <div
+    class="history-pane flex flex-col w-1/4 max-w-80 px-5 shadow-sm border-l-1 border-gray-100"
+    data-testid="nc-doc-page-history-pane"
+  >
     <div class="flex flex-row justify-between font-semibold text-base my-3 ml-1 w-full items-center select-none">
       <div>History</div>
       <div class="p-1 flex items-center hover:bg-gray-100 cursor-pointer rounded-md" @click="close">
@@ -70,23 +73,25 @@ const snapshotTypeLabel = (snapshot: DocsPageSnapshotType) => {
       </div>
     </div>
 
-    <div class="flex flex-col">
+    <div class="flex flex-col" data-testid="nc-doc-page-history-pane-list">
       <div
-        class="flex flex-row py-3 px-3 my-1.5 rounded-md hover:bg-gray-100 cursor-pointer border-1 border-gray-100 select-none"
+        class="nc-doc-page-history-pane-list-item flex flex-row py-3 px-3 my-1.5 rounded-md hover:bg-gray-100 cursor-pointer border-1 border-gray-100 select-none"
         :class="{
           'bg-gray-100': !currentHistory,
         }"
-        @click="currentHistory = null"
+        :aria-selected="!currentHistory"
+        @click="currentHistory = undefined"
       >
         <div>Current version</div>
       </div>
       <div
         v-for="item in history"
         :key="item.id"
-        class="flex flex-row py-3 px-3 my-1.5 rounded-md hover:bg-gray-100 cursor-pointer border-1 border-gray-100 select-none"
+        class="nc-doc-page-history-pane-list-item flex flex-row py-3 px-3 my-1.5 rounded-md hover:bg-gray-100 cursor-pointer border-1 border-gray-100 select-none"
         :class="{
           'bg-gray-100': currentHistory && currentHistory.id === item.id,
         }"
+        :aria-selected="currentHistory && currentHistory.id === item.id"
         @click="setCurrentHistory(item)"
       >
         <div>{{ snapshotTypeLabel(item) }} {{ dayjs.utc(item.last_page_updated_time).fromNow() }}</div>

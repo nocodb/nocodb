@@ -9,7 +9,7 @@ export const useDocHistoryStore = defineStore('docHistoryStore', () => {
   const isHistoryPaneOpen = ref(false)
   const isRestoring = ref(false)
   const history = ref<DocsPageSnapshotType[]>([])
-  const currentHistory = ref<DocsPageSnapshotType | null>()
+  const currentHistory = ref<DocsPageSnapshotType | undefined>()
 
   const setHistory = (snapshots: DocsPageSnapshotType[]) => {
     history.value = snapshots

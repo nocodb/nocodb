@@ -128,6 +128,7 @@ editor.on('update', () => {
   <NodeViewWrapper
     class="vue-component draggable-block-wrapper"
     :data-diff-node="node.attrs.isInsertedHistory ? 'ins' : node.attrs.isDeletedHistory ? 'del' : null"
+    :data-is-diff="!!node.attrs.isInsertedHistory || !!node.attrs.isDeletedHistory"
     :pos="pos"
   >
     <div

@@ -303,6 +303,7 @@ watch(
           <div class="flex flex-row items-center gap-x-1 mr-2 mt-0.25">
             <div
               class="mt-0.25 p-1.75 flex items-center hover:bg-gray-100 cursor-pointer rounded-md mr-2"
+              data-testid="nc-doc-page-history-button"
               :class="{
                 'bg-gray-100': isHistoryPaneOpen,
               }"
@@ -332,7 +333,7 @@ watch(
             </div>
           </div>
         </div>
-        <div ref="pageContentDomRef" :key="isEditAllowed" class="nc-docs-page-content relative pb-20">
+        <div ref="pageContentDomRef" :key="String(isEditAllowed)" class="nc-docs-page-content relative pb-20">
           <DocsPageMutliSectionSelector
             v-if="isEditAllowed && editor && pageContentDomRef"
             :editor="editor"

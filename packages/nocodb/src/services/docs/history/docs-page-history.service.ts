@@ -11,8 +11,10 @@ import type { DocsPageSnapshotType, DocsPageType } from 'nocodb-sdk';
 
 dayjs.extend(utc);
 
-// Snap shot window 5 minutes
-const SNAP_SHOT_WINDOW_SEC = 5 * 60;
+// Snap shot window default 5 minutes
+const SNAP_SHOT_WINDOW_SEC = process.env.NC_SNAPSHOT_WINDOW_SEC
+  ? Number(process.env.NC_SNAPSHOT_WINDOW_SEC)
+  : 5 * 60;
 
 const selfClosingHtmlTags = [
   'area',

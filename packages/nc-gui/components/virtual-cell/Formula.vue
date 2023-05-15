@@ -21,8 +21,10 @@ const { showEditNonEditableFieldWarning, showClearNonEditableFieldWarning, activ
 const renderResult = (result: string) => {
   // convert all date time values to local time
   // the input is always YYYY-MM-DD hh:mm:ss+00:00
-  return result.replace(/^\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}\+00:00$/, (match) => {
-    return dayjs(match).utc().local().format('YYYY-MM-DD hh:mm:ss')
+  return result.replace(/^\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}\+00:00$/, (d) => {
+    // TODO(timezone): retrieve the format from the corresponding column meta
+    // assume hh:mm at this moment
+    return dayjs(d).utc().local().format('YYYY-MM-DD hh:mm')
   })
 }
 </script>

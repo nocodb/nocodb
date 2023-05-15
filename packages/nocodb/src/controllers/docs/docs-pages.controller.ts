@@ -11,13 +11,17 @@ import {
   UseGuards,
 } from '@nestjs/common';
 import { AuthGuard } from '@nestjs/passport';
+import { DocsPageHistoryService } from '../../services/docs/history/docs-page-history.service';
 import { UseAclMiddleware } from '../../middlewares/extract-project-id/extract-project-id.middleware';
 import { DocsPagesService } from '../../services/docs/docs-pages.service';
 
 @Controller()
 @UseGuards(AuthGuard('jwt'))
 export class DocsPagesController {
-  constructor(private readonly pagesService: DocsPagesService) {}
+  constructor(
+    private readonly pagesService: DocsPagesService,
+    private readonly pageHistoryService: DocsPageHistoryService,
+  ) {}
 
   @Get('/api/v1/docs/page/:id')
   @UseAclMiddleware({
@@ -62,11 +66,19 @@ export class DocsPagesController {
     @Body() body: { attributes: any; projectId: string },
     @Request() req,
   ) {
-    return await this.pagesService.create({
+    const page = await this.pagesService.create({
       attributes: body.attributes,
       projectId: body.projectId,
       user: req.user,
     });
+
+    await this.pageHistoryService.maybeInsert({
+      newPage: page,
+      workspaceId: req.ncWorkspaceId,
+      snapshotType: 'created',
+    });
+
+    return page;
   }
 
   @Put('/api/v1/docs/page/:id')

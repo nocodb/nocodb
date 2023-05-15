@@ -30,6 +30,20 @@ export const tiptapTextColor = {
   red: 'rgba(212, 76, 71, 1)',
 }
 
+export const emptyDocContent = {
+  type: TiptapNodesTypes.doc,
+  content: [
+    {
+      type: TiptapNodesTypes.sec,
+      content: [
+        {
+          type: TiptapNodesTypes.paragraph,
+        },
+      ],
+    },
+  ],
+}
+
 /**
  * Gets position of section node which contains the cursor or the given position which is inside the section
  */

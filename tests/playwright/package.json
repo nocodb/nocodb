@@ -40,7 +40,8 @@
     "mysql2": "^2.3.3",
     "pg": "^8.8.0",
     "prettier": "^2.7.1",
-    "promised-sqlite3": "^1.2.0"
+    "promised-sqlite3": "^1.2.0",
+    "knex": "2.2.0"
   },
   "dependencies": {
     "body-parser": "^1.20.1",

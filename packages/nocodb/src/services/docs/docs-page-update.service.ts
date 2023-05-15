@@ -115,7 +115,6 @@ export class DocsPagesUpdateService {
     if (!snapshotDisabled) {
       this.pagesHistoryService.maybeInsert({
         workspaceId,
-        oldPage,
         newPage: updatedPage,
       });
     }

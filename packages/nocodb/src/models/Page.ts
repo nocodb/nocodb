@@ -107,6 +107,8 @@ export default class Page {
 
       table.timestamp('last_snapshot_at').nullable();
       table.string('last_snapshot_id').nullable();
+      table.text('last_snapshot_json', 'longtext').defaultTo('');
+
       table.text('content_html', 'longtext').defaultTo('');
     });
   }

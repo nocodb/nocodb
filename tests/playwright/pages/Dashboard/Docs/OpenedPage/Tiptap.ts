@@ -102,7 +102,7 @@ export class TiptapPage extends BasePage {
     if (type === 'Image') {
       await this.attachFile({
         filePath: [filePath],
-        filePickUIAction: this._click(this.rootPage.getByTestId(`nc-docs-command-list-item-${type}`)),
+        filePickUIAction: this.rootPage.getByTestId(`nc-docs-command-list-item-${type}`).click(),
       });
 
       return;
@@ -288,6 +288,47 @@ export class TiptapPage extends BasePage {
       });
   }
 
+  private async verifyHistory({
+    node,
+    history,
+    nodeType,
+    content,
+  }: {
+    node: Locator;
+    nodeType: TipTapNodes;
+    content: string;
+    history: {
+      added?: boolean;
+      removed?: boolean;
+    };
+  }) {
+    const diffType = history.added ? 'ins' : 'del';
+
+    let found = false;
+    // In case of text diff, section node diff attribute is not set
+    for (let i = 0; i < 3; i++) {
+      if ((await node.getAttribute('data-diff-node')) === diffType) {
+        found = true;
+        break;
+      }
+      await this.rootPage.waitForTimeout(200);
+    }
+
+    // As text diff is shown in a different way, we need to check if it's visible
+    if (!found) {
+      const textDiffHtmlTag = diffType;
+      if (nodeType === 'Paragraph') {
+        await expect(node.locator(textDiffHtmlTag)).toBeVisible();
+        await expect(node.locator(textDiffHtmlTag)).toHaveText(content);
+      } else {
+        await expect(node.locator(`[data-diff-node="${textDiffHtmlTag}"]`)).toBeVisible();
+      }
+      return;
+    }
+
+    await expect(node).toHaveAttribute('data-diff-node', diffType);
+  }
+
   async verifyNode({
     index,
     type,
@@ -296,6 +337,7 @@ export class TiptapPage extends BasePage {
     childParagraph,
     isUploading,
     placeholder,
+    history,
   }: {
     index: number;
     type?: TipTapNodes;
@@ -304,9 +346,17 @@ export class TiptapPage extends BasePage {
     childParagraph?: { index: number; content: string };
     isUploading?: boolean;
     placeholder?: string;
+    history?: {
+      added?: boolean;
+      removed?: boolean;
+    } | null;
   }) {
     type = type || 'Paragraph';
     const node = this.get().locator(`.draggable-block-wrapper:nth-child(${index + 1})`);
+
+    if (history) {
+      await this.verifyHistory({ node, history, nodeType: type, content });
+    }
 
     if (type === 'Embed iframe') {
       await expect(node.locator('.external-content-wrapper').locator('iframe')).toHaveAttribute('src', content);

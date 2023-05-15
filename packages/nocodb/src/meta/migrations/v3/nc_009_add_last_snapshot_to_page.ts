@@ -13,9 +13,8 @@ const up = async (knex: Knex) => {
       }),
       (table) => {
         // Add last_snapshot_at column
-        table.timestamp('last_snapshot_at').nullable();
-        table.string('last_snapshot_id').nullable();
-        table.text('content_html', 'longtext').defaultTo('');
+        table.dropColumn('last_snapshot_id');
+        table.text('last_snapshot_json', 'longtext').nullable();
       },
     );
   }
@@ -32,9 +31,8 @@ const down = async (knex: Knex) => {
       }),
       (table) => {
         // Add last_snapshot_at column
-        table.dropColumn('last_snapshot_at');
-        table.dropColumn('last_snapshot_id');
-        table.dropColumn('content_html');
+        table.string('last_snapshot_id').nullable();
+        table.dropColumn('last_snapshot_json');
       },
     );
   }

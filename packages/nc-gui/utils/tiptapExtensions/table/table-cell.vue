@@ -282,6 +282,11 @@ onMounted(() => {
     display: none !important;
   }
 }
+
+.selectedCell {
+  @apply !bg-primary-selected;
+}
+
 .docs-table-row-options {
   @apply !shadow-none;
   .ant-popover-inner-content {

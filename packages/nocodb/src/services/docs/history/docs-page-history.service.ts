@@ -249,21 +249,21 @@ export class DocsPageHistoryService {
     // Remove img tags from content_html as diff will tag the img for diffs
     // But we remove img tag before our post processing as self closing tags seems to trip
     // up the html parser
-    const oldHtml = oldPage.content_html.replaceAll(
-      /<img[^>]*src="([^"]*)"[^>]*>/g,
-      '',
-    );
+    const oldHtml = oldPage.content_html
+      .replace(/<p><\/p>/g, '<p #custom>Empty</p>')
+      .replaceAll(/<img[^>]*src="([^"]*)"[^>]*>/g, '');
 
-    const newHtml = newPage.content_html.replaceAll(
-      /<img[^>]*src="([^"]*)"[^>]*>/g,
-      '',
-    );
+    const newHtml = newPage.content_html
+      .replaceAll(/<p><\/p>/g, '<p #custom>Empty</p>')
+      .replaceAll(/<img[^>]*src="([^"]*)"[^>]*>/g, '');
 
     // TODO: Hacky way of forcing html diff to detect empty paragraph
-    const _diffHtml = diff(oldHtml, newHtml)
-      .replaceAll('>Empty</ins>', ' class="empty">__nc_empty__</ins>')
-      .replaceAll('>Empty</del>', ' class="empty">__nc_empty__</del>')
-      .replaceAll('<p #custom>Empty</p>', '<p></p>');
+    let _diffHtml = diff(oldHtml, newHtml);
+    _diffHtml = _diffHtml
+      .replaceAll('>Empty</ins>', ' class="empty">Empty</ins>')
+      .replaceAll('>Empty</del>', ' class="empty">Empty</del>')
+      .replaceAll('<p #custom>Empty</p>', '<p></p>')
+      .replaceAll('<p #custom', '<p');
 
     const htmlParse = (HTMLParser as any).default as typeof HTMLParser;
 

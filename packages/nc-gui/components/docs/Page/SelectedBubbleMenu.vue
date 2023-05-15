@@ -5,6 +5,7 @@ import { BubbleMenu } from '@tiptap/vue-3'
 import { generateHTML, generateJSON } from '@tiptap/html'
 import showdown from 'showdown'
 import type { Mark } from 'prosemirror-model'
+import { CellSelection } from '@tiptap/prosemirror-tables'
 import MdiFormatBulletList from '~icons/mdi/format-list-bulleted'
 import MdiFormatStrikeThrough from '~icons/mdi/format-strikethrough'
 import MdiFormatListNumber from '~icons/mdi/format-list-numbered'
@@ -33,13 +34,21 @@ const isImageNode = computed(() => {
 })
 const isImageNodeDebounced = ref(isImageNode.value)
 
+const isTableCellSelected = computed(() => {
+  if (!editor) return false
+
+  const selection = editor.state.selection
+
+  return selection instanceof CellSelection
+})
+
 // Debounce show menu to prevent flickering
 const showMenu = computed(() => {
   if (!editor) return false
 
-  const isNonSelectableNodesSelected =
-    isImageNodeDebounced.value || (editor.isActive('table') && !editor.isActive('tableCell') && !editor.isActive('tableHeader'))
-  return editor.state.selection.visible && !editor.state.selection.empty && !isNonSelectableNodesSelected
+  const isNonSelectableNodesSelected = isImageNodeDebounced.value
+
+  return !editor.state.selection.empty && !isNonSelectableNodesSelected
 })
 const showMenuDebounced = ref(false)
 
@@ -226,53 +235,55 @@ onUnmounted(() => {
         <MdiFormatStrikeThrough />
       </a-button>
       <div class="divider"></div>
-      <a-button
-        type="text"
-        :class="{ 'is-active': isCheckboxActive }"
-        :aria-active="isCheckboxActive"
-        class="menu-button"
-        data-testid="nc-docs-editor-task-button"
-        @click="editor!.chain().focus().toggleTask().run()"
-      >
-        <MdiFormatListCheckbox />
-      </a-button>
-      <a-button
-        type="text"
-        :class="{ 'is-active': isBulletActive }"
-        :aria-active="isBulletActive"
-        class="menu-button"
-        data-testid="nc-docs-editor-bullet-button"
-        @click="editor!.chain().focus().toggleBullet().run()"
-      >
-        <MdiFormatBulletList />
-      </a-button>
-      <a-button
-        type="text"
-        :class="{ 'is-active': isOrderedActive }"
-        :aria-active="isOrderedActive"
-        class="menu-button"
-        data-testid="nc-docs-editor-ordered-button"
-        @click="editor!.chain().focus().toggleOrdered().run()"
-      >
-        <MdiFormatListNumber />
-      </a-button>
-      <div class="divider"></div>
+      <template v-if="!isTableCellSelected">
+        <a-button
+          type="text"
+          :class="{ 'is-active': isCheckboxActive }"
+          :aria-active="isCheckboxActive"
+          class="menu-button"
+          data-testid="nc-docs-editor-task-button"
+          @click="editor!.chain().focus().toggleTask().run()"
+        >
+          <MdiFormatListCheckbox />
+        </a-button>
+        <a-button
+          type="text"
+          :class="{ 'is-active': isBulletActive }"
+          :aria-active="isBulletActive"
+          class="menu-button"
+          data-testid="nc-docs-editor-bullet-button"
+          @click="editor!.chain().focus().toggleBullet().run()"
+        >
+          <MdiFormatBulletList />
+        </a-button>
+        <a-button
+          type="text"
+          :class="{ 'is-active': isOrderedActive }"
+          :aria-active="isOrderedActive"
+          class="menu-button"
+          data-testid="nc-docs-editor-ordered-button"
+          @click="editor!.chain().focus().toggleOrdered().run()"
+        >
+          <MdiFormatListNumber />
+        </a-button>
+        <div class="divider"></div>
 
-      <a-button
-        type="text"
-        :class="{ 'is-active': editor.isActive('link') }"
-        :aria-active="editor.isActive('link')"
-        class="menu-button"
-        data-testid="nc-docs-editor-link-button"
-        @click="onToggleLink"
-      >
-        <div class="flex flex-row items-center px-0.5">
-          <MdiLink />
-          <div class="!text-xs !ml-1">Link</div>
-        </div>
-      </a-button>
+        <a-button
+          type="text"
+          :class="{ 'is-active': editor.isActive('link') }"
+          :aria-active="editor.isActive('link')"
+          class="menu-button"
+          data-testid="nc-docs-editor-link-button"
+          @click="onToggleLink"
+        >
+          <div class="flex flex-row items-center px-0.5">
+            <MdiLink />
+            <div class="!text-xs !ml-1">Link</div>
+          </div>
+        </a-button>
 
-      <div class="divider"></div>
+        <div class="divider"></div>
+      </template>
 
       <a-dropdown class="flex">
         <div class="flex flex-row items-center cursor-pointer menu-button rounded-md px-0.5">
@@ -326,24 +337,26 @@ onUnmounted(() => {
         </template>
       </a-dropdown>
 
-      <div class="divider"></div>
+      <template v-if="!isTableCellSelected">
+        <div class="divider"></div>
 
-      <a-button
-        type="text"
-        :loading="isMagicExpandLoading"
-        class="menu-button !flex !flex-row !items-center"
-        :class="{
-          '!hover:bg-inherit !cursor-not-allowed': isMagicExpandLoading,
-        }"
-        :aria-active="isMagicExpandLoading"
-        data-testid="nc-docs-editor-expand-button"
-        @click="expandText"
-      >
-        <div class="flex flex-row items-center pr-0.5">
-          <GeneralIcon v-if="!isMagicExpandLoading" icon="magic" class="text-orange-400 h-3.5" />
-          <div class="!text-xs !ml-1">Expand</div>
-        </div>
-      </a-button>
+        <a-button
+          type="text"
+          :loading="isMagicExpandLoading"
+          class="menu-button !flex !flex-row !items-center"
+          :class="{
+            '!hover:bg-inherit !cursor-not-allowed': isMagicExpandLoading,
+          }"
+          :aria-active="isMagicExpandLoading"
+          data-testid="nc-docs-editor-expand-button"
+          @click="expandText"
+        >
+          <div class="flex flex-row items-center pr-0.5">
+            <GeneralIcon v-if="!isMagicExpandLoading" icon="magic" class="text-orange-400 h-3.5" />
+            <div class="!text-xs !ml-1">Expand</div>
+          </div>
+        </a-button>
+      </template>
     </div>
   </BubbleMenu>
 </template>

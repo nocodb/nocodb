@@ -92,6 +92,7 @@ declare module '@vue/runtime-core' {
     IcBaselineArrowOutward: typeof import('~icons/ic/baseline-arrow-outward')['default']
     IcBaselineDragIndicator: typeof import('~icons/ic/baseline-drag-indicator')['default']
     IcBaselineErrorOutline: typeof import('~icons/ic/baseline-error-outline')['default']
+    IcBaselineFormatAlignCenter: typeof import('~icons/ic/baseline-format-align-center')['default']
     IcBaselineMoreVert: typeof import('~icons/ic/baseline-more-vert')['default']
     IcBaselineVisibilityOff: typeof import('~icons/ic/baseline-visibility-off')['default']
     IcOutlineInfo: typeof import('~icons/ic/outline-info')['default']

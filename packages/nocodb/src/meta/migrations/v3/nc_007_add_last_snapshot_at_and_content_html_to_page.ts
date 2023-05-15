@@ -33,7 +33,7 @@ const down = async (knex: Knex) => {
       (table) => {
         // Add last_snapshot_at column
         table.dropColumn('last_snapshot_at');
-        table.string('last_snapshot_id').nullable();
+        table.dropColumn('last_snapshot_id');
         table.dropColumn('content_html');
       },
     );

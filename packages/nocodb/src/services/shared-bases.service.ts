@@ -53,11 +53,6 @@ export class SharedBasesService {
 
     // T.emit('evt', { evt_type: 'sharedBase:generated-link' });
 
-    this.appHooksService.emit(AppEvents.SHARED_BASE_GENERATE_LINK, {
-      link: data.url,
-      project,
-    });
-
     return data;
   }
 

@@ -41,10 +41,14 @@ export class ProjectsPage extends BasePage {
   async duplicateProject({
     name = 'sample',
     withoutPrefix,
+    includeData = true,
+    includeViews = true,
   }: {
     name?: string;
     type?: string;
     withoutPrefix?: boolean;
+    includeData: boolean;
+    includeViews: boolean;
   }) {
     if (!withoutPrefix) name = this.prefixTitle(name);
     // click three-dot
@@ -53,8 +57,22 @@ export class ProjectsPage extends BasePage {
     await expect(this.rootPage.getByTestId('dupe-project-' + name)).toBeVisible();
     // click duplicate
     await this.rootPage.getByTestId('dupe-project-' + name).click();
+
+    // Find the checkbox element with the label "Include data"
+    const includeDataCheckbox = await this.rootPage.getByText('Include data', { exact: true });
+    // Check the checkbox if it is not already checked
+    if ((await includeDataCheckbox.isChecked()) && !includeData) {
+      await includeDataCheckbox.click(); // click the checkbox to check it
+    }
+
+    // Find the checkbox element with the label "Include data"
+    const includeViewsCheckbox = await this.rootPage.getByText('Include views', { exact: true });
+    // Check the checkbox if it is not already checked
+    if ((await includeViewsCheckbox.isChecked()) && !includeViews) {
+      await includeViewsCheckbox.click(); // click the checkbox to check it
+    }
+
     // click duplicate confirmation "Do you want to duplicate 'sampleREST0' project?"
-    // assert message on duplicate confirmation page
     const dupeProjectSubmitAction = () => this.rootPage.getByRole('button', { name: 'Confirm' }).click();
 
     await this.waitForResponse({

@@ -116,17 +116,18 @@ export function useMultiSelect(
             textToCopy = JSON.stringify(textToCopy)
           }
 
-          if (columnObj.uidt === UITypes.DateTime || columnObj.uidt === UITypes.Formula) {
+          if (columnObj.uidt === UITypes.Formula) {
+            textToCopy = textToCopy.replace(/\b(\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}\+00:00)\b/g, (d: string) => {
+              // TODO(timezone): retrieve the format from the corresponding column meta
+              // assume hh:mm at this moment
+              return dayjs(d).utc().local().format('YYYY-MM-DD hh:mm')
+            })
+          }
+
+          if (columnObj.uidt === UITypes.DateTime) {
             // remove `"`
             // e.g. "2023-05-12T08:03:53.000Z" -> 2023-05-12T08:03:53.000Z
             textToCopy = textToCopy.replace(/["']/g, '')
-
-            // TODO(timezone): handle date in string
-            if (columnObj.uidt === UITypes.Formula) {
-              if (!dayjs(textToCopy).isValid()) {
-                return
-              }
-            }
 
             const isMySQL = isMysql(columnObj.base_id)
             if (isMySQL) {

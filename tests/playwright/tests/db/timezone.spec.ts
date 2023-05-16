@@ -56,6 +56,44 @@ async function timezoneSuite(token?: string, skipTableCreate?: boolean) {
   return { project, table };
 }
 
+async function connectToExtDb(context: any) {
+  if (isPg(context)) {
+    await api.base.create(context.project.id, {
+      alias: 'datetimetable',
+      type: 'pg',
+      config: getKnexConfig({ dbName: 'datetimetable', dbType: 'pg' }),
+      inflection_column: 'camelize',
+      inflection_table: 'camelize',
+    });
+  } else if (isMysql(context)) {
+    await api.base.create(context.project.id, {
+      alias: 'datetimetable',
+      type: 'mysql2',
+      config: getKnexConfig({ dbName: 'datetimetable', dbType: 'mysql' }),
+      inflection_column: 'camelize',
+      inflection_table: 'camelize',
+    });
+  } else if (isSqlite(context)) {
+    await api.base.create(context.project.id, {
+      alias: 'datetimetable',
+      type: 'sqlite3',
+      config: {
+        client: 'sqlite3',
+        connection: {
+          client: 'sqlite3',
+          database: 'datetimetable',
+          connection: {
+            filename: '../../tests/playwright/mydb.sqlite3',
+          },
+          useNullAsDefault: true,
+        },
+      },
+      inflection_column: 'camelize',
+      inflection_table: 'camelize',
+    });
+  }
+}
+
 test.describe('Timezone : Japan/Tokyo', () => {
   let dashboard: DashboardPage;
   let context: any;
@@ -342,7 +380,7 @@ test.describe('Timezone', () => {
   });
 });
 
-async function createTableWithDateTimeColumn(database: string) {
+async function createTableWithDateTimeColumn(database: string, setTz = false) {
   if (database === 'pg') {
     const config = getKnexConfig({ dbName: 'postgres', dbType: 'pg' });
 
@@ -374,6 +412,12 @@ async function createTableWithDateTimeColumn(database: string) {
     const mysqlknex = knex(config);
     await mysqlknex.raw(`DROP DATABASE IF EXISTS datetimetable`);
     await mysqlknex.raw(`CREATE DATABASE datetimetable`);
+
+    if (setTz) {
+      await mysqlknex.raw(`SET GLOBAL time_zone = '+08:00'`);
+      // wait for 1 second for the timezone to be set
+      await mysqlknex.raw(`SELECT SLEEP(1)`);
+    }
     await mysqlknex.destroy();
 
     const config2 = getKnexConfig({ dbName: 'datetimetable', dbType: 'mysql' });
@@ -386,7 +430,6 @@ async function createTableWithDateTimeColumn(database: string) {
       datetime_without_tz DATETIME,
       datetime_with_tz TIMESTAMP
     );
-    -- SET time_zone = '+08:00';
     INSERT INTO my_table (datetime_without_tz, datetime_with_tz)
     VALUES
       ('2023-04-27 10:00:00', '2023-04-27 10:00:00'),
@@ -501,49 +544,6 @@ test.describe.serial('External DB - DateTime column', async () => {
     },
   };
 
-  async function connectToExtDb() {
-    if (isPg(context)) {
-      await api.base.create(context.project.id, {
-        alias: 'datetimetable',
-        type: 'pg',
-        config: getKnexConfig({ dbName: 'datetimetable', dbType: 'pg' }),
-        inflection_column: 'camelize',
-        inflection_table: 'camelize',
-      });
-    } else if (isMysql(context)) {
-      await api.base.create(context.project.id, {
-        alias: 'datetimetable',
-        type: 'mysql2',
-        config: getKnexConfig({ dbName: 'datetimetable', dbType: 'mysql' }),
-        inflection_column: 'camelize',
-        inflection_table: 'camelize',
-      });
-    } else if (isSqlite(context)) {
-      await api.base.create(context.project.id, {
-        alias: 'datetimetable',
-        type: 'sqlite3',
-        config: {
-          client: 'sqlite3',
-          connection: {
-            client: 'sqlite3',
-            database: 'datetimetable',
-            connection: {
-              filename: '../../tests/playwright/mydb.sqlite3',
-            },
-            useNullAsDefault: true,
-          },
-        },
-        inflection_column: 'camelize',
-        inflection_table: 'camelize',
-      });
-    }
-
-    await dashboard.rootPage.reload();
-    // wait for 5 seconds for the base to be created
-    // hack for CI
-    await dashboard.rootPage.waitForTimeout(2000);
-  }
-
   test.beforeEach(async ({ page }) => {
     context = await setup({ page, isEmptyProject: true });
     dashboard = new DashboardPage(page, context.project);
@@ -558,18 +558,10 @@ test.describe.serial('External DB - DateTime column', async () => {
     await createTableWithDateTimeColumn(context.dbType);
   });
 
-  test.afterEach(async () => {
-    if (isMysql(context)) {
-      // Reset DB Timezone
-      const config = getKnexConfig({ dbName: 'sakila', dbType: 'mysql' });
-      const mysqlknex = knex(config);
-      await mysqlknex.raw(`SET GLOBAL time_zone = '+00:00'`);
-      await mysqlknex.destroy();
-    }
-  });
-
   test.skip('Formula, verify display value', async () => {
-    await connectToExtDb();
+    await connectToExtDb(context);
+    await dashboard.rootPage.reload();
+    await dashboard.rootPage.waitForTimeout(2000);
 
     api = new Api({
       baseURL: `http://localhost:8080/`,
@@ -616,7 +608,9 @@ test.describe.serial('External DB - DateTime column', async () => {
   });
 
   test('Verify display value, UI insert, API response', async () => {
-    await connectToExtDb();
+    await connectToExtDb(context);
+    await dashboard.rootPage.reload();
+    await dashboard.rootPage.waitForTimeout(2000);
 
     // get timezone offset
     const timezoneOffset = new Date().getTimezoneOffset();
@@ -738,22 +732,50 @@ test.describe.serial('External DB - DateTime column', async () => {
     expect(dateTimeWithoutTz).toEqual(expectedDateTimeWithoutTz);
     expect(dateTimeWithTz).toEqual(expectedDateTimeWithTz);
   });
+});
+
+test.describe('Ext DB MySQL : DB Timezone configured as HKT', () => {
+  let dashboard: DashboardPage;
+  let context: any;
+
+  if (!isMysql(context)) {
+    return;
+  }
+
+  test.beforeEach(async ({ page }) => {
+    context = await setup({ page, isEmptyProject: true });
+    dashboard = new DashboardPage(page, context.project);
+
+    api = new Api({
+      baseURL: `http://localhost:8080/`,
+      headers: {
+        'xc-auth': context.token,
+      },
+    });
+
+    await createTableWithDateTimeColumn(context.dbType, true);
+  });
+
+  test.afterEach(async () => {
+    if (isMysql(context)) {
+      // Reset DB Timezone
+      const config = getKnexConfig({ dbName: 'sakila', dbType: 'mysql' });
+      const mysqlknex = knex(config);
+      await mysqlknex.raw(`SET GLOBAL time_zone = '+00:00'`);
+      await mysqlknex.destroy();
+    }
+  });
 
   test('Ext DB MySQL : DB Timezone configured as HKT', async () => {
     if (!isMysql(context)) {
       return;
     }
 
-    // set DB timezone to HKT
-    // Note that, TZ value is changed after DateTime field is created; hence the values in it will not change
-    // Only values for TimeStamp will change
-    const config = getKnexConfig({ dbName: 'sakila', dbType: 'mysql' });
-    const mysqlknex = knex(config);
-    await mysqlknex.raw(`SET GLOBAL time_zone = '+08:00'`);
-    await mysqlknex.destroy();
-
     // connect after timezone is set
-    await connectToExtDb();
+    await connectToExtDb(context);
+
+    await dashboard.rootPage.reload();
+    await dashboard.rootPage.waitForTimeout(2000);
 
     await dashboard.treeView.openBase({ title: 'datetimetable' });
     await dashboard.treeView.openTable({ title: 'MyTable' });
@@ -763,22 +785,22 @@ test.describe.serial('External DB - DateTime column', async () => {
     await dashboard.grid.cell.verifyDateCell({
       index: 0,
       columnHeader: 'DatetimeWithoutTz',
-      value: '2023-04-27 07:30',
+      value: getDateTimeInLocalTimeZone('2023-04-27 10:00+08:00'),
     });
     await dashboard.grid.cell.verifyDateCell({
       index: 1,
       columnHeader: 'DatetimeWithoutTz',
-      value: '2023-04-27 10:00',
+      value: getDateTimeInLocalTimeZone('2023-04-27 10:00+05:30'),
     });
     await dashboard.grid.cell.verifyDateCell({
       index: 0,
       columnHeader: 'DatetimeWithTz',
-      value: '2023-04-27 07:30',
+      value: getDateTimeInLocalTimeZone('2023-04-27 10:00+08:00'),
     });
     await dashboard.grid.cell.verifyDateCell({
       index: 1,
       columnHeader: 'DatetimeWithTz',
-      value: '2023-04-27 10:00',
+      value: getDateTimeInLocalTimeZone('2023-04-27 10:00+05:30'),
     });
 
     // Insert new row

@@ -122,8 +122,9 @@ const resetError = () => {
         <a-button
           size="middle"
           data-testid="nc-user-settings-form__submit"
-          class="!rounded-md scaling-btn !h-[2.5rem]"
+          class="!rounded-md !h-[2.5rem]"
           type="primary"
+          html-type="submit"
         >
           <div class="flex justify-center items-center gap-2">
             <component :is="iconMap.passwordChange" />

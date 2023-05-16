@@ -471,27 +471,17 @@ export default class Model implements TableType {
           if (base.is_meta) {
             const d = new Date(val);
             if (isMySQL) {
-              if (val.slice(-1) === 'Z') {
-                // from UI
-                // e.g. 2023-05-11T08:55:09.000Z -> 2023-05-11 08:55:09
-                val = dayjs(val).utc().format('YYYY-MM-DD HH:mm:ss');
-              } else {
-                // from API
-                // e.g. 2023-05-10 18:45:30+08:00 -> 2023-05-10 18:45:30
-                if (val.indexOf('+') === -1) {
-                  // no timezone info - considered as UTC
-                  // e.g. 2023-05-11 12:00:00Z
-                  val = dayjs(val).format('YYYY-MM-DD HH:mm:ss');
-                  if (val.slice(-1) !== 'Z') {
-                    // e.g. 2023-05-11 12:00:00 -> 2023-05-11 12:00:00Z
-                    val += 'Z';
-                  }
-                } else {
-                  // timezone info found - convert to UTC
-                  // e.g. 2023-05-11 08:55:09+08:00 -> 2023-05-11 00:55:09
-                  val = dayjs(val).utc().format('YYYY-MM-DD HH:mm:ss');
-                }
-              }
+              // from UI - convert to local time (e.g. UTC+8)
+              // e.g. 2023-05-16T12:00:00.000Z -> 2023-05-16 20:00:00
+              // from API - convert to local time (e.g. UTC+8)
+              // e.g. 2023-05-10 18:45:30+08:00 -> 2023-05-10 18:45:30
+              // if timezone info is not found - considered as local time
+              // e.g. 2022-01-01 20:00:00 -> 2022-01-01 20:00:00
+              // if timezone info is found - convert to local time (e.g. UTC+8)
+              // e.g. 2022-01-01 20:00:00Z -> 2022-01-02 04:00:00
+              // e.g. 2022-01-01 20:00:00+00:00 -> 2022-01-02 04:00:00
+              // e.g. 2022-01-01 20:00:00+08:00 -> 2022-01-01 20:00:00
+              val = dayjs(val).format('YYYY-MM-DD HH:mm:ss');
             } else if (isSqlite) {
               // e.g. 2023-05-10T10:38:50.000Z -> 2023-05-10 10:38:50
               val = dayjs
@@ -514,24 +504,14 @@ export default class Model implements TableType {
                 .format('YYYY-MM-DD HH:mm:ssZ');
             }
           } else {
-            // External DB - convert to utc
+            // External DB
             if (isMySQL) {
-              if (val.slice(-1) === 'Z') {
-                // from UI
-                val = dayjs(val).utc().format('YYYY-MM-DD HH:mm:ss');
-              } else {
-                // from API
-                if (val.indexOf('+') === -1) {
-                  // no timezone info - considered as UTC
-                  val = dayjs(val).format('YYYY-MM-DD HH:mm:ss');
-                  if (val.slice(-1) !== 'Z') {
-                    val += 'Z';
-                  }
-                } else {
-                  // timezone info found - convert to UTC
-                  val = dayjs(val).utc().format('YYYY-MM-DD HH:mm:ss');
-                }
-              }
+              // assuming local time = UTC+8
+              // e.g. 2022-01-01 20:00:00+08:00 -> 2022-01-01 20:00:00
+              // e.g. 2022-01-01 20:00:00 -> 2022-01-01 20:00:00
+              // e.g. 2022-01-01 20:00:00Z -> 2022-01-02 04:00:00
+              // e.g. 2022-01-01 20:00:00+00:00 -> 2022-01-02 04:00:00
+              val = dayjs(val).format('YYYY-MM-DD HH:mm:ss');
             } else if (isSqlite || isMssql) {
               if (val.slice(-1) === 'Z') {
                 // from UI

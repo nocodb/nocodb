@@ -84,40 +84,31 @@ export class AppController {
         if (!data.url) return;
 
         // Extract the necessary data from the message
-        const {
-          workspace_id,
-          user_id,
-          project_id,
-          url,
-          method,
-          status,
-          exec_time,
-          timestamp,
-          ip,
+        const { timestamp, event, properties } = data;
 
-          props,
-        } = data;
-
-        let ipv4 = 'NULL';
-        let ipv6 = 'NULL';
-
-        if (/^([0-9a-fA-F]{1,4}:){7}[0-9a-fA-F]{1,4}$/.test(ip)) {
-          ipv6 = `'${ip}'`;
-        } else if (/^([0-9]{1,3}\.){3}[0-9]{1,3}$/.test(ip)) {
-          ipv4 = `'${ip}'`;
-        }
+        // let ipv4 = 'NULL';
+        // let ipv6 = 'NULL';
+        //
+        // if (/^([0-9a-fA-F]{1,4}:){7}[0-9a-fA-F]{1,4}$/.test(ip)) {
+        //   ipv6 = `'${ip}'`;
+        // } else if (/^([0-9]{1,3}\.){3}[0-9]{1,3}$/.test(ip)) {
+        //   ipv4 = `'${ip}'`;
+        // }
 
         rows.push(
           `(${
             Math.round(timestamp / 1000) ?? 'NOW()'
-          }, '${workspace_id}', '${user_id}', '${project_id}', '${url}', '${method}', ${exec_time}, ${
-            status ?? 'NULL'
-          }, ${ipv4}, ${ipv6})`,
+          }, '${event}', '${JSON.stringify(properties, (key, val) => {
+            if (typeof val === 'string') {
+              return val.replace(/'/g, "'");
+            }
+            return val;
+          })}')`,
         );
       });
 
       // Generate the ClickHouse insert query
-      const insertQuery = `INSERT INTO api_calls (timestamp, workspace_id, user_id, project_id, url, method, exec_time, status, req_ipv4, req_ipv6, props) 
+      const insertQuery = `INSERT INTO api_calls (timestamp,event, properties) 
                          VALUES ${rows.join(',')}`;
 
       await this.clickhouseService.execute(insertQuery);

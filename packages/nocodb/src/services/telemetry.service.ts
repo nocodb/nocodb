@@ -13,17 +13,25 @@ export class TelemetryService {
     };
   }
 
-  public async sendEvent(event: string, payload: any = {}) {
-    try {
-      await this.producer.sendMessage(
+  public sendEvent({
+    evt_type: event,
+    ...payload
+  }: {
+    evt_type: string;
+    [key: string]: any;
+  }) {
+    this.producer
+      .sendMessage(
         'cloud-telemetry',
         JSON.stringify({
+          timestamp: Date.now(),
+          event,
           ...this.defaultPayload,
           ...payload,
         }),
-      );
-    } catch (e) {
-      this.logger.error(e);
-    }
+      )
+      .catch((err) => {
+        this.logger.error(err);
+      });
   }
 }

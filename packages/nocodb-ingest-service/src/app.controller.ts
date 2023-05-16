@@ -81,8 +81,6 @@ export class AppController {
 
       // Process the batch of messages
       messages.forEach((data) => {
-        if (!data.url) return;
-
         // Extract the necessary data from the message
         const { timestamp, event, properties } = data;
 

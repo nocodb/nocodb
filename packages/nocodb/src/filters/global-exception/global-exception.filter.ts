@@ -1,4 +1,4 @@
-import { Catch, HttpException } from '@nestjs/common';
+import { Catch, Logger } from '@nestjs/common';
 import {
   AjvError,
   BadRequest,
@@ -14,11 +14,12 @@ import type { Response } from 'express';
 
 @Catch()
 export class GlobalExceptionFilter implements ExceptionFilter {
+  private logger = new Logger(GlobalExceptionFilter.name);
   catch(exception: any, host: ArgumentsHost) {
     const ctx = host.switchToHttp();
     const response = ctx.getResponse<Response>();
 
-    // todo: error log
+    this.logger.error(exception.message, exception.stack);
 
     const dbError = extractDBError(exception);
 

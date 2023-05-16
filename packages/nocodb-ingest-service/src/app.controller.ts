@@ -133,7 +133,7 @@ export class AppController {
       // Generate the ClickHouse insert query
       const insertQuery = `INSERT INTO ${
         ClickhouseTables.AUDIT
-      } (id,timestamp,event,email,user_id,req_ipv4,req_ipv6,base_id,project_id,workspace_id,fk_model_id,row_id,op_type,sub_op_type,status,description,details) 
+      } (id,timestamp,event,email,user_id,req_ipv4,req_ipv6,base_id,project_id,workspace_id,fk_model_id,row_id,op_type,op_sub_type,status,description,details) 
                          VALUES ${rows.join(',')}`;
 
       await this.clickhouseService.execute(insertQuery);

@@ -459,7 +459,7 @@ function getDateTimeInUTCTimeZone(dateString: string) {
   return `${outputString}+00:00`;
 }
 
-test.describe('External DB - DateTime column', async () => {
+test.describe.serial('External DB - DateTime column', async () => {
   let dashboard: DashboardPage;
   let context: any;
 
@@ -559,6 +559,55 @@ test.describe('External DB - DateTime column', async () => {
     // wait for 5 seconds for the base to be created
     // hack for CI
     await dashboard.rootPage.waitForTimeout(2000);
+  });
+
+  test.skip('Formula, verify display value', async () => {
+    try {
+      api = new Api({
+        baseURL: `http://localhost:8080/`,
+        headers: {
+          'xc-auth': context.token,
+        },
+      });
+      const projectList = await api.project.list();
+      const table = await api.dbTable.list(projectList.list[0].id);
+      await api.dbTableColumn.create(table.list[0].id, {
+        title: 'formula-1',
+        uidt: UITypes.Formula,
+        formula_raw: 'DATEADD(DatetimeWithoutTz, 1, "day")',
+      });
+      const table2 = await api.dbTableColumn.create(table.list[0].id, {
+        title: 'formula-2',
+        uidt: UITypes.Formula,
+        formula_raw: 'DATEADD(DatetimeWithTz, 1, "day")',
+      });
+
+      await api.dbTableColumn.update(table2.columns[3].id, {
+        title: 'formula-23',
+        column_name: 'formula-23',
+        uidt: UITypes.Formula,
+        formula_raw: 'DATEADD(DatetimeWithTz, 1, "month")',
+      });
+    } catch (e) {
+      console.log(e);
+    }
+
+    await dashboard.treeView.openBase({ title: 'datetimetable' });
+    await dashboard.treeView.openTable({ title: 'MyTable' });
+    // Insert new row
+    await dashboard.grid.cell.dateTime.setDateTime({
+      index: 2,
+      columnHeader: 'DatetimeWithoutTz',
+      dateTime: '2023-04-27 10:00:00',
+    });
+    await dashboard.rootPage.waitForTimeout(1000);
+    await dashboard.grid.cell.dateTime.setDateTime({
+      index: 2,
+      columnHeader: 'DatetimeWithTz',
+      dateTime: '2023-04-27 10:00:00',
+    });
+
+    console.log(table);
   });
 
   test('Verify display value, UI insert, API response', async () => {

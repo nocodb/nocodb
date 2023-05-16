@@ -38,7 +38,6 @@ export class SocketService implements OnModuleInit {
 
   constructor(
     private readonly jwtStrategy: JwtStrategy,
-    @Optional()
     @Inject(HttpAdapterHost)
     private readonly httpAdapterHost: HttpAdapterHost,
     private readonly telemetryService: TelemetryService,

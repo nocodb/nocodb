@@ -11,6 +11,7 @@ import { UsersService } from '../../services/users/users.service';
 import { Producer } from '../../services/producer/producer';
 import { ProducerProvider } from '../../services/producer';
 import { EventEmitterModule } from '../event-emitter/event-emitter.module';
+import { TelemetryService } from '../../services/telemetry.service';
 import type { Provider } from '@nestjs/common';
 
 export const JwtStrategyProvider: Provider = {
@@ -36,6 +37,7 @@ export const JwtStrategyProvider: Provider = {
 @Module({
   imports: [EventEmitterModule],
   providers: [
+    TelemetryService,
     AppHooksService,
     Connection,
     MetaService,
@@ -47,6 +49,7 @@ export const JwtStrategyProvider: Provider = {
     ProducerProvider,
   ],
   exports: [
+    TelemetryService,
     AppHooksService,
     Connection,
     MetaService,

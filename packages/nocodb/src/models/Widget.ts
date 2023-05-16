@@ -43,38 +43,6 @@ export default class Widget implements WidgetType {
     return widget && new Widget(widget);
   }
 
-  // static async list(
-  //   param: {
-  //     project_id: string;
-  //   },
-  //   ncMeta = Noco.ncMeta
-  // ) {
-  //   let layouts;
-  //   // TODO: Caching
-  //   if (!layouts?.length) {
-  //     layouts = await ncMeta.metaList(
-  //       param.project_id,
-  //       null,
-  //       MetaTable.LAYOUT,
-  //       {
-  //         // condition: {
-  //         //   fk_model_id: param.fk_model_id,
-  //         //   // ...(param.event ? { event: param.event?.toLowerCase?.() } : {}),
-  //         //   // ...(param.operation
-  //         //   //   ? { operation: param.operation?.toLowerCase?.() }
-  //         //   //   : {})
-  //         // },
-  //         orderBy: {
-  //           created_at: 'asc',
-  //         },
-  //       }
-  //     );
-
-  //     // TODO: Caching
-  //   }
-  //   return layouts?.map((h) => new Widget(h));
-  // }
-
   public static async insert(widget: Partial<Widget>, ncMeta = Noco.ncMeta) {
     const insertObj = extractProps(widget, [
       'layout_id',
@@ -110,14 +78,7 @@ export default class Widget implements WidgetType {
       widgets = await ncMeta.metaList(null, null, MetaTable.WIDGET, {
         condition: {
           layout_id: param.layout_id,
-          // ...(param.event ? { event: param.event?.toLowerCase?.() } : {}),
-          // ...(param.operation
-          //   ? { operation: param.operation?.toLowerCase?.() }
-          //   : {})
         },
-        // orderBy: {
-        //   created_at: 'asc',
-        // },
       });
 
       // TODO: Caching

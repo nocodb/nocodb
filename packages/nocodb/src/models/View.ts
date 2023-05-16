@@ -664,7 +664,6 @@ export default class View implements ViewType {
       { fk_model_id: view.fk_model_id },
       ncMeta,
     );
-    // console.log('columnsMetaData', columnsMetaData);
     const viewColumnEnrichedWithTitleAndName = columns.map((col) => {
       const columnMetaData = columnsMetaData.find(
         (c) => c.id === col.fk_column_id,

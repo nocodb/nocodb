@@ -34,8 +34,4 @@ export class DashboardFilterService {
 
     return widget;
   }
-
-  // export async function WidgetList(param: { projectId: string }) {
-  //   return await Widget.list({ project_id: param.projectId });
-  // }
 }

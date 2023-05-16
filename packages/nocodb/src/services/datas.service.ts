@@ -215,11 +215,8 @@ export class DatasService {
     const data = await baseModel.groupByAndAggregate(
       param.aggregateColumnName,
       param.aggregateFunction,
-      { groupByColumnId: param.groupByColumnId, ...query },
+      { groupByColumnName: param.groupByColumnId, ...query },
     );
-    console.log('data', data);
-    // const count = await baseModel.count(listArgs);
-
     return new PagedResponseImpl(data, {
       ...query,
     });

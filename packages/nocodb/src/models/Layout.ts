@@ -46,13 +46,6 @@ export default class Layout implements LayoutType {
         null,
         MetaTable.LAYOUT,
         {
-          // condition: {
-          //   fk_model_id: param.fk_model_id,
-          //   // ...(param.event ? { event: param.event?.toLowerCase?.() } : {}),
-          //   // ...(param.operation
-          //   //   ? { operation: param.operation?.toLowerCase?.() }
-          //   //   : {})
-          // },
           orderBy: {
             created_at: 'asc',
           },

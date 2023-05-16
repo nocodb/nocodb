@@ -543,8 +543,6 @@ export default class Filter implements FilterType {
         },
       },
     );
-    // await NocoCache.setList(CacheScope.FILTER_EXP, [widgetId], filterObjs);
-    // }
     return filterObjs?.map((f) => new Filter(f));
   }
 

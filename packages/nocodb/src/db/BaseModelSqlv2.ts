@@ -419,7 +419,7 @@ class BaseModelSqlv2 {
       limit?;
       offset?;
       sort?: string | string[];
-      groupByColumnId?: string;
+      groupByColumnName?: string;
       widgetFilterArr?: Filter[];
     },
   ) {
@@ -434,7 +434,7 @@ class BaseModelSqlv2 {
       throw new Error(`Unsupported aggregate function: ${aggregateFn}`);
     }
 
-    qb.select(args.groupByColumnId);
+    qb.select(args.groupByColumnName);
 
     if (+rest?.shuffle) {
       await this.shuffle({ qb });
@@ -461,8 +461,8 @@ class BaseModelSqlv2 {
       qb,
       this.dbDriver,
     );
-    if (args?.groupByColumnId) {
-      qb.groupBy(args?.groupByColumnId);
+    if (args?.groupByColumnName) {
+      qb.groupBy(args?.groupByColumnName);
     }
     if (sorts) await sortV2(sorts, qb, this.dbDriver);
     applyPaginate(qb, rest);

@@ -73,35 +73,16 @@ export default class DashboardProjectDBProject {
     dbProjectId: string,
     ncMeta = Noco.ncMeta,
   ) {
-    let dashboardProjectDbProject;
-    // =
-    // dashboardProjectId &
-    // &
-    // dbProjectId &
-    // &
-    // (await NocoCache.get
-    // (
-    //   `${CacheScope.DASHBOARD_PROJECT_DB_PROJECT_LINKING}:${dashboardProjectId}:${dbProjectId}`
-    // ,
-    //   CacheGetType.TYPE_OBJECT
-    // ,
-    // ))
-    // ;
-    if (!dashboardProjectDbProject) {
-      dashboardProjectDbProject = await ncMeta.metaGet2(
-        null,
-        null,
-        MetaTable.DASHBOARD_PROJECT_DB_PROJECT_LINKINGS,
-        {
-          dashboard_project_id: dashboardProjectId,
-          db_project_id: dbProjectId,
-        },
-      );
-      // await NocoCache.set(
-      //   `${CacheScope.DASHBOARD_PROJECT_DB_PROJECT_LINKING}:${dashboardProjectId}:${dbProjectId}`,
-      //   dashboardProjectDbProject,
-      // );
-    }
+    // TODO: add cache logic
+    const dashboardProjectDbProject = await ncMeta.metaGet2(
+      null,
+      null,
+      MetaTable.DASHBOARD_PROJECT_DB_PROJECT_LINKINGS,
+      {
+        dashboard_project_id: dashboardProjectId,
+        db_project_id: dbProjectId,
+      },
+    );
     return dashboardProjectDbProject;
   }
 
@@ -153,33 +134,7 @@ export default class DashboardProjectDBProject {
     dbProjectId: string,
     ncMeta = Noco.ncMeta,
   ) {
-    // const { email } = await ncMeta.metaGet2(null, null, MetaTable.USERS, {
-    //   id: dbProjectId,
-    // });
-    // if (email) {
-    //   await NocoCache.delAll(CacheScope., `${email}*`);
-    // }
-
-    // remove from list cache
-    // const cachedList = await NocoCache.getList(CacheScope.USER_PROJECT, [
-    //   dbProjectId,
-    // ]);
-    // let { list: cachedProjectList } = cachedList;
-    // const { isNoneList } = cachedList;
-    // if (!isNoneList && cachedProjectList?.length) {
-    //   cachedProjectList = cachedProjectList.filter(
-    //     (p) => p.id !== dashboardProjectId,
-    //   );
-    //   await NocoCache.setList(
-    //     CacheScope.USER_PROJECT,
-    //     [dbProjectId],
-    //     cachedProjectList,
-    //   );
-    // }
-
-    // await NocoCache.del(
-    //   `${CacheScope.PROJECT_USER}:${dashboardProjectId}:${dbProjectId}`,
-    // );
+    // TODO: cache cleanup
     return await ncMeta.metaDelete(
       null,
       null,
@@ -210,7 +165,6 @@ export default class DashboardProjectDBProject {
     _params?: any,
     ncMeta = Noco.ncMeta,
   ): Promise<ProjectType[]> {
-    // todo: pagination
     // const cachedList = await NocoCache.getList(
     //   CacheScope.DASHBOARD_PROJECT_DB_PROJECT_LINKING,
     //   [dbProjectId],
@@ -240,14 +194,6 @@ export default class DashboardProjectDBProject {
           `${MetaTable.PROJECT}.deleted`,
         );
       });
-
-    // if (dashboardProjectList?.length) {
-    //   await NocoCache.setList(
-    //     CacheScope.DASHBOARD_PROJECT_DB_PROJECT_LINKING,
-    //     [dbProjectId],
-    //     dashboardProjectList,
-    //   );
-    // }
 
     return dashboardProjectList;
   }

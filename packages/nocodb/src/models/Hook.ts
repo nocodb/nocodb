@@ -94,10 +94,6 @@ export default class Hook implements HookType {
       hooks = await ncMeta.metaList(null, null, MetaTable.HOOKS, {
         condition: {
           fk_model_id: param.fk_model_id,
-          // ...(param.event ? { event: param.event?.toLowerCase?.() } : {}),
-          // ...(param.operation
-          //   ? { operation: param.operation?.toLowerCase?.() }
-          //   : {})
         },
         orderBy: {
           created_at: 'asc',

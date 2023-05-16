@@ -45,8 +45,6 @@ export class WidgetsService {
       param.widgetReq,
     );
 
-    // validateLayoutPayload(param.layout);
-
     const widget = await Widget.insert({
       ...param.widgetReq,
     } as any);
@@ -55,8 +53,4 @@ export class WidgetsService {
 
     return widget;
   }
-
-  // export async function WidgetList(param: { projectId: string }) {
-  //   return await Widget.list({ project_id: param.projectId });
-  // }
 }

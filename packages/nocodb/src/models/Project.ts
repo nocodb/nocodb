@@ -152,24 +152,6 @@ export default class Project implements ProjectType {
         },
         ncMeta,
       ));
-    // return (this.linkedDbProjects = await Project.list({ type: 'linked' }));
-
-    // const projectListQb = ncMeta
-    //   .knex(MetaTable.PROJECT)
-    //   .select(`${MetaTable.PROJECT}.*`)
-    //   .leftJoin(MetaTable.DASHBOARD_PROJECT_DB_PROJECT_LINKINGS, function () {
-    //     this.on(
-    //       `${MetaTable.DASHBOARD_PROJECT_DB_PROJECT_LINKINGS}.db_project_id`,
-    //       '=',
-    //       `${MetaTable.PROJECT}.id`,
-    //     ).andOn(
-    //       `${MetaTable.DASHBOARD_PROJECT_DB_PROJECT_LINKINGS}.project_id`,
-    //       '=',
-    //       ncMeta.knex.raw('?', [this.id]),
-    //     );
-    //   });
-
-    // return await projectListQb;
   }
 
   // todo: hide credentials

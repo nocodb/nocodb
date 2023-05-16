@@ -69,8 +69,6 @@ export interface DataConfigButtonExternalUrl
   actionType: ButtonActionType.OPEN_EXTERNAL_URL;
 }
 
-// BUTTON END
-
 export interface DataConfigNumber {
   colId?: string;
   aggregateFunction?: AggregateFnType;

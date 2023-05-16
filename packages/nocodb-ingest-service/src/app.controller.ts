@@ -108,7 +108,7 @@ export class AppController {
       });
 
       // Generate the ClickHouse insert query
-      const insertQuery = `INSERT INTO api_calls (timestamp,event, properties) 
+      const insertQuery = `INSERT INTO telemetry (timestamp,event, properties) 
                          VALUES ${rows.join(',')}`;
 
       await this.clickhouseService.execute(insertQuery);

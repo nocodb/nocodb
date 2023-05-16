@@ -469,17 +469,17 @@ export default class Model implements TableType {
         if (col.uidt === UITypes.DateTime && dayjs(val).isValid()) {
           const { isMySQL, isSqlite, isMssql, isPg } = clientMeta;
           if (isMySQL) {
-            // from UI - convert to local time (e.g. UTC+8)
-            // e.g. 2023-05-16T12:00:00.000Z -> 2023-05-16 20:00:00
-            // from API - convert to local time (e.g. UTC+8)
-            // e.g. 2023-05-10 18:45:30+08:00 -> 2023-05-10 18:45:30
-            // if timezone info is not found - considered as local time
+            // from UI - convert to utc
+            // e.g. 2022-01-01 20:00:00Z -> 2022-01-01 20:00:00
+            // from API - convert to utc
+            // e.g. 2022-01-01 20:00:00+08:00 -> 2022-01-01 12:00:00
+            // if timezone info is not found - considered as utc
             // e.g. 2022-01-01 20:00:00 -> 2022-01-01 20:00:00
-            // if timezone info is found - convert to local time (e.g. UTC+8)
-            // e.g. 2022-01-01 20:00:00Z -> 2022-01-02 04:00:00
-            // e.g. 2022-01-01 20:00:00+00:00 -> 2022-01-02 04:00:00
-            // e.g. 2022-01-01 20:00:00+08:00 -> 2022-01-01 20:00:00
-            val = dayjs(val).format('YYYY-MM-DD HH:mm:ss');
+            // if timezone info is found - convert to utc
+            // e.g. 2022-01-01 20:00:00Z -> 2022-01-01 20:00:00
+            // e.g. 2022-01-01 20:00:00+00:00 -> 2022-01-01 20:00:00
+            // e.g. 2022-01-01 20:00:00+08:00 -> 2022-01-01 12:00:00
+            val = dayjs(val).utc().format('YYYY-MM-DD HH:mm:ss');
           } else if (isSqlite) {
             // e.g. 2022-01-01T10:00:00.000Z -> 2022-01-01 10:00:00
             val = dayjs(val).utc().format('YYYY-MM-DD HH:mm:ss');

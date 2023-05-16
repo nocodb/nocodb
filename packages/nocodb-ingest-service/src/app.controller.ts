@@ -82,7 +82,7 @@ export class AppController {
       // Process the batch of messages
       messages.forEach((data) => {
         // Extract the necessary data from the message
-        const { timestamp, event, ...properties } = data;
+        const { timestamp, event, package_id, ...properties } = data;
 
         // let ipv4 = 'NULL';
         // let ipv6 = 'NULL';
@@ -96,17 +96,21 @@ export class AppController {
         rows.push(
           `(generateUUIDv4(),${
             Math.round(timestamp / 1000) ?? 'NOW()'
-          }, '${event}', '${JSON.stringify(properties, (key, val) => {
-            if (typeof val === 'string') {
-              return val.replace(/'/g, "'");
-            }
-            return val;
-          })}')`,
+          }, '${event}','${package_id}', '${JSON.stringify(
+            properties,
+            // escape single quotes
+            (key, val) => {
+              if (typeof val === 'string') {
+                return val.replace(/'/g, "'");
+              }
+              return val;
+            },
+          )}')`,
         );
       });
 
       // Generate the ClickHouse insert query
-      const insertQuery = `INSERT INTO telemetry (id,timestamp,event,properties) 
+      const insertQuery = `INSERT INTO telemetry (id,timestamp,event,package_id,properties) 
                          VALUES ${rows.join(',')}`;
 
       await this.clickhouseService.execute(insertQuery);

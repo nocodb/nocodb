@@ -1,7 +1,7 @@
 SET allow_experimental_object_type = 1;
 
 CREATE TABLE IF NOT EXISTS telemetry (
-    id UUID DEFAULT,
+    id UUID,
     timestamp DateTime,
     event String,
 

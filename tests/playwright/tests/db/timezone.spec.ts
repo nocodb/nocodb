@@ -738,13 +738,12 @@ test.describe('Ext DB MySQL : DB Timezone configured as HKT', () => {
   let dashboard: DashboardPage;
   let context: any;
 
-  if (!isMysql(context)) {
-    return;
-  }
-
   test.beforeEach(async ({ page }) => {
     context = await setup({ page, isEmptyProject: true });
     dashboard = new DashboardPage(page, context.project);
+    if (!isMysql(context)) {
+      return;
+    }
 
     api = new Api({
       baseURL: `http://localhost:8080/`,

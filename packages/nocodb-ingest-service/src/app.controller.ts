@@ -26,6 +26,35 @@ enum ClickhouseTables {
   AUDIT = 'nc_audit',
 }
 
+function sanitiseVal(val: any) {
+  switch (typeof val) {
+    case 'string':
+      return `'${val.replace(/'/g, "''")}'`;
+    case 'number':
+      return val;
+    case 'boolean':
+      return val ? 1 : 0;
+    case 'undefined':
+      return 'NULL';
+    case 'object':
+      if (val === null) {
+        return 'NULL';
+      }
+      return `'${JSON.stringify(
+        val,
+        // escape single quotes
+        (key, val) => {
+          if (typeof val === 'string') {
+            return val.replace(/'/g, "'");
+          }
+          return val;
+        },
+      )}'`;
+    default:
+      return `'${val}'`;
+  }
+}
+
 @Controller()
 export class AppController {
   private logger = new Logger(AppController.name);
@@ -68,18 +97,24 @@ export class AppController {
         }
 
         rows.push(
-          `(${
-            Math.round(timestamp / 1000) ?? 'NOW()'
-          }, '${workspace_id}', '${user_id}', '${project_id}', '${url}', '${method}', ${exec_time}, ${
-            status ?? 'NULL'
-          }, ${ipv4}, ${ipv6})`,
+          `(${Math.round(timestamp / 1000) ?? 'NOW()'}, ${[
+            workspace_id,
+            user_id,
+            project_id,
+            url,
+            method,
+            exec_time,
+            status,
+          ]
+            .map(sanitiseVal)
+            .join(',')}, ${ipv4}, ${ipv6})`,
         );
       });
 
       // Generate the ClickHouse insert query
       const insertQuery = `INSERT INTO ${
         ClickhouseTables.API_CALLS
-      } (timestamp, workspace_id, user_id, project_id, url, method, exec_time, status, req_ipv4, req_ipv6) 
+      } (timestamp, workspace_id, user_id, project_id, url, method, exec_time, status, req_ipv4, req_ipv6)
                          VALUES ${rows.join(',')}`;
 
       await this.clickhouseService.execute(insertQuery);
@@ -124,16 +159,30 @@ export class AppController {
         }
 
         rows.push(
-          `(generateUUIDv4(),${
-            Math.round(timestamp / 1000) ?? 'NOW()'
-          }, '${event}','${email}','${user_id}',${ipv4},${ipv6},'${base_id}','${project_id}','${workspace_id}','${fk_model_id}','${row_id}','${op_type}','${op_sub_type}','${status}','${description}','${details}')`,
+          `(generateUUIDv4(),${Math.round(timestamp / 1000) ?? 'NOW()'}, ${[
+            event,
+            email,
+            user_id,
+            base_id,
+            project_id,
+            workspace_id,
+            fk_model_id,
+            row_id,
+            op_type,
+            op_sub_type,
+            status,
+            description,
+            details,
+          ]
+            .map(sanitiseVal)
+            .join(',')},${ipv4},${ipv6})`,
         );
       });
 
       // Generate the ClickHouse insert query
       const insertQuery = `INSERT INTO ${
         ClickhouseTables.AUDIT
-      } (id,timestamp,event,email,user_id,req_ipv4,req_ipv6,base_id,project_id,workspace_id,fk_model_id,row_id,op_type,op_sub_type,status,description,details) 
+      } (id,timestamp,event,email,user_id,base_id,project_id,workspace_id,fk_model_id,row_id,op_type,op_sub_type,status,description,details,req_ipv4,req_ipv6)
                          VALUES ${rows.join(',')}`;
 
       await this.clickhouseService.execute(insertQuery);

@@ -1,7 +1,11 @@
 import { Injectable } from '@nestjs/common';
+import dayjs from 'dayjs';
+import utc from 'dayjs/plugin/utc';
 import { ClickhouseService } from '../services/clickhouse/clickhouse.service';
 import { MetaService } from '../meta/meta.service';
 import type { DocsPageSnapshotType, DocsPageType } from 'nocodb-sdk';
+
+dayjs.extend(utc);
 
 @Injectable()
 export class PageSnapshotDao {
@@ -39,7 +43,7 @@ export class PageSnapshotDao {
     delete newPage.last_snapshot_json;
 
     const lastUpdatedById = newPage.last_updated_by_id;
-    const lastPageUpdatedTime = newPage.updated_at;
+    const lastPageUpdatedTime = dayjs.utc(newPage.updated_at);
 
     const oldPageBase64 = Buffer.from(JSON.stringify(oldPage)).toString(
       'base64',
@@ -57,16 +61,16 @@ export class PageSnapshotDao {
       fk_project_id: projectId,
       fk_page_id: pageId,
       last_updated_by_id: lastUpdatedById,
-      last_page_updated_time: lastPageUpdatedTime,
+      last_page_updated_time: lastPageUpdatedTime.unix().toString(),
       before_page_json,
       after_page_json,
-      diff: diffHtml,
+      diff: Buffer.from(JSON.stringify(diffHtml)).toString('base64'),
       type,
     };
 
     const query = `
     INSERT INTO page_snapshot (id, fk_workspace_id, fk_project_id, fk_page_id, last_updated_by_id, last_page_updated_time, before_page_json, after_page_json, diff, type)
-    VALUES ('${snapshot.id}', '${snapshot.fk_workspace_id}', '${snapshot.fk_project_id}', '${snapshot.fk_page_id}', '${snapshot.last_updated_by_id}', '${snapshot.last_page_updated_time}', '${snapshot.before_page_json}', '${snapshot.after_page_json}', '${snapshot.diff}', '${snapshot.type}')
+    VALUES ('${snapshot.id}', '${snapshot.fk_workspace_id}', '${snapshot.fk_project_id}', '${snapshot.fk_page_id}', '${snapshot.last_updated_by_id}', toDateTime('${snapshot.last_page_updated_time}'), '${snapshot.before_page_json}', '${snapshot.after_page_json}', '${snapshot.diff}', '${snapshot.type}')
   `;
 
     await this.clickhouseService.execute(query, true);
@@ -86,6 +90,11 @@ export class PageSnapshotDao {
       'base64',
     ).toString('utf-8');
     snapshot.after_page = JSON.parse(snapshot.after_page_json);
+
+    snapshot.diff = Buffer.from(snapshot.diff, 'base64')
+      .toString('utf-8')
+      // As this will be wrapped with quotes, we need to remove them
+      .slice(1, -1);
 
     return snapshot;
   }

@@ -123,11 +123,17 @@ export class DocsPageHistoryService {
     return true;
   }
 
+  isClickHouseConfigured() {
+    return !!process.env.NC_CLICKHOUSE;
+  }
+
   async maybeInsert(params: {
     workspaceId: string;
     newPage: DocsPageType;
     snapshotType?: DocsPageSnapshotType['type'];
   }) {
+    if (!this.isClickHouseConfigured()) return;
+
     const { workspaceId, newPage, snapshotType: _snapshotType } = params;
     const projectId = newPage.project_id;
 
@@ -219,7 +225,14 @@ export class DocsPageHistoryService {
     pageId: string;
     pageNumber?: number | undefined;
     pageSize?: number | undefined;
-  }) {
+  }): Promise<{
+    snapshots: DocsPageSnapshotType[];
+  }> {
+    if (!this.isClickHouseConfigured())
+      return {
+        snapshots: [],
+      };
+
     return await this.pageSnapshotDao.list({
       projectId,
       pageId,

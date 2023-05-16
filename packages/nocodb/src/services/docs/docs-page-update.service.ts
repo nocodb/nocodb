@@ -1,4 +1,4 @@
-import { forwardRef, Inject, Injectable } from '@nestjs/common';
+import { forwardRef, Inject, Injectable, Logger } from '@nestjs/common';
 import { MetaService } from '../../meta/meta.service';
 
 import { PageDao } from '../../daos/page.dao';
@@ -7,6 +7,7 @@ import type { DocsPageType, UserType } from 'nocodb-sdk';
 
 @Injectable()
 export class DocsPagesUpdateService {
+  private logger = new Logger(DocsPagesUpdateService.name);
   constructor(
     @Inject(forwardRef(() => DocsPageHistoryService))
     private readonly pagesHistoryService: DocsPageHistoryService,
@@ -113,10 +114,14 @@ export class DocsPagesUpdateService {
     const updatedPage = await this.pageDao.get({ id: pageId, projectId });
 
     if (!snapshotDisabled) {
-      this.pagesHistoryService.maybeInsert({
-        workspaceId,
-        newPage: updatedPage,
-      });
+      this.pagesHistoryService
+        .maybeInsert({
+          workspaceId,
+          newPage: updatedPage,
+        })
+        .catch((e) => {
+          this.logger.error(e);
+        });
     }
 
     return updatedPage;

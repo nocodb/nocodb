@@ -483,11 +483,8 @@ export default class Model implements TableType {
               // e.g. 2022-01-01 20:00:00+08:00 -> 2022-01-01 20:00:00
               val = dayjs(val).format('YYYY-MM-DD HH:mm:ss');
             } else if (isSqlite) {
-              // e.g. 2023-05-10T10:38:50.000Z -> 2023-05-10 10:38:50
-              val = dayjs
-                .utc(val)
-                .utcOffset(d.getTimezoneOffset(), true)
-                .format('YYYY-MM-DD HH:mm:ss');
+              // e.g. 2022-01-01T10:00:00.000Z -> 2022-01-01 10:00:00
+              val = dayjs(val).utc().format('YYYY-MM-DD HH:mm:ss');
             } else if (isPg) {
               // e.g. 2023-01-01T12:00:00.000Z -> 2023-01-01 20:00:00+08:00
               val = dayjs(val).format('YYYY-MM-DD HH:mm:ssZ');
@@ -507,7 +504,9 @@ export default class Model implements TableType {
               // e.g. 2022-01-01 20:00:00Z -> 2022-01-02 04:00:00
               // e.g. 2022-01-01 20:00:00+00:00 -> 2022-01-02 04:00:00
               val = dayjs(val).format('YYYY-MM-DD HH:mm:ss');
-            } else if (isSqlite || isMssql) {
+            } else if (isSqlite) {
+              val = dayjs(val).utc().format('YYYY-MM-DD HH:mm:ss');
+            } else if (isMssql) {
               if (val.slice(-1) === 'Z') {
                 // from UI
                 val = dayjs(val).utc().format('YYYY-MM-DD HH:mm:ssZ');

@@ -1612,6 +1612,33 @@ class BaseModelSqlv2 {
       if (!checkColumnRequired(column, fields, extractPkAndPv)) continue;
 
       switch (column.uidt) {
+        case UITypes.DateTime:
+          if (this.isMySQL) {
+            // MySQL stores timestamp in UTC but display in timezone
+            // To verify the timezone, run `SELECT @@global.time_zone, @@session.time_zone;`
+            // If it's SYSTEM, then the timezone is read from the configuration file
+            // if a timezone is set in a DB, the retrieved value would be converted to the corresponding timezone
+            // for example, let's say the global timezone is +08:00 in DB
+            // the value 2023-01-01 10:00:00 (UTC) would display as 2023-01-01 18:00:00 (UTC+8)
+            // our existing logic is based on UTC, during the query, we need to take the UTC value
+            // hence, we use CONVERT_TZ to convert back to UTC value
+            res[sanitize(column.title || column.column_name)] =
+              this.dbDriver.raw(
+                `CONVERT_TZ(??, @@GLOBAL.time_zone, '+00:00')`,
+                [
+                  `${sanitize(alias || this.model.table_name)}.${
+                    column.column_name
+                  }`,
+                ],
+              );
+          } else if (this.isPg) {
+            // TODO
+          } else {
+            res[sanitize(column.title || column.column_name)] = sanitize(
+              `${alias || this.model.table_name}.${column.column_name}`,
+            );
+          }
+          break;
         case 'LinkToAnotherRecord':
         case 'Lookup':
           break;
@@ -3361,17 +3388,7 @@ class BaseModelSqlv2 {
   }
 
   private async setUtcTimezone(knex) {
-    if (this.isMySQL) {
-      // MySQL stores timestamp in UTC but display in timezone
-      // To verify the timezone, run `SELECT @@global.time_zone, @@session.time_zone;`
-      // If it's SYSTEM, then the timezone is read from the configuration file
-      // if a timezone is set in a DB, the retrieved value would be converted to the corresponding timezone
-      // for example, let's say the global timezone is +08:00 in DB
-      // the value 2023-01-01 10:00:00 (UTC) would display as 2023-01-01 18:00:00 (UTC+8)
-      // our existing logic is based on UTC, during the query, we need to take the UTC value
-      // hence, set the session timezone here
-      await knex.raw(`SET SESSION time_zone = '+00:00';`);
-    } else if (this.isPg) {
+    if (this.isPg) {
       await knex.raw(`SET TIME ZONE 'UTC'`);
     }
   }

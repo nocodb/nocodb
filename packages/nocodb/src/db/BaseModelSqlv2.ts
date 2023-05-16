@@ -1633,6 +1633,9 @@ class BaseModelSqlv2 {
               );
           } else if (this.isPg) {
             // TODO
+            res[sanitize(column.title || column.column_name)] = sanitize(
+              `${alias || this.model.table_name}.${column.column_name}`,
+            );
           } else {
             res[sanitize(column.title || column.column_name)] = sanitize(
               `${alias || this.model.table_name}.${column.column_name}`,

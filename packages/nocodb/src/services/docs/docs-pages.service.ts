@@ -181,15 +181,6 @@ export class DocsPagesService {
     return { text: response.data?.choices[0]?.text };
   }
 
-  async pageParents(param: { pageId: string; projectId: string }) {
-    const { pageId, projectId } = param;
-
-    return await this.pagesDao.parents({
-      pageId,
-      projectId,
-    });
-  }
-
   async handlePageJSON(
     pg: any,
     parentPageId: string | undefined,
@@ -216,7 +207,6 @@ export class DocsPagesService {
 
   async magicCreatePages(param: {
     projectId: string;
-    pageId: string;
     title: string;
     user: UserType;
   }) {

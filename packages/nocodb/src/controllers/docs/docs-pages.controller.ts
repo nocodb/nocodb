@@ -7,7 +7,6 @@ import {
   Param,
   Post,
   Put,
-  Query,
   Request,
   UseGuards,
 } from '@nestjs/common';
@@ -26,52 +25,39 @@ export class DocsPagesController {
     private readonly pageHistoryService: DocsPageHistoryService,
   ) {}
 
-  @Get('/api/v1/docs/page/:id')
+  @Get('/api/v1/docs/project/:projectId/page/:id')
   @UseAclMiddleware({
     permissionName: 'pageGet',
   })
-  async get(@Param('id') id: string, @Query('projectId') projectId: string) {
+  async get(@Param('id') id: string, @Param('projectId') projectId: string) {
     return await this.pagesService.get({
       id,
       projectId,
     });
   }
 
-  @Get('/api/v1/docs/page-parents')
-  @UseAclMiddleware({
-    permissionName: 'pageParents',
-  })
-  async parents(
-    @Query('projectId') projectId: string,
-    @Query('pageId') pageId: string,
-  ) {
-    return await this.pagesService.pageParents({
-      projectId,
-      pageId,
-    });
-  }
-
-  @Get('/api/v1/docs/pages')
+  @Get('/api/v1/docs/project/:projectId/pages')
   @UseAclMiddleware({
     permissionName: 'pageList',
   })
-  async list(@Query('projectId') projectId: string) {
+  async list(@Param('projectId') projectId: string) {
     return await this.pagesService.list({
       projectId,
     });
   }
 
-  @Post('/api/v1/docs/page/')
+  @Post('/api/v1/docs/project/:projectId/page')
   @UseAclMiddleware({
     permissionName: 'pageCreate',
   })
   async create(
-    @Body() body: { attributes: any; projectId: string },
+    @Param('projectId') projectId: string,
+    @Body() body: { attributes: any },
     @Request() req,
   ) {
     const page = await this.pagesService.create({
       attributes: body.attributes,
-      projectId: body.projectId,
+      projectId,
       user: req.user,
     });
 
@@ -88,81 +74,88 @@ export class DocsPagesController {
     return page;
   }
 
-  @Put('/api/v1/docs/page/:id')
+  @Put('/api/v1/docs/project/:projectId/page/:id')
   @UseAclMiddleware({
     permissionName: 'pageUpdate',
   })
   async update(
     @Param('id') id: string,
-    @Body() body: { attributes: any; projectId: string },
+    @Param('projectId') projectId: string,
+    @Body() body: { attributes: any },
     @Request() req,
   ) {
     return await this.pagesService.update({
       pageId: id,
       attributes: body.attributes,
-      projectId: body.projectId,
+      projectId,
       user: req.user,
       workspaceId: req.ncWorkspaceId,
     });
   }
 
-  @Delete('/api/v1/docs/page/:id')
+  @Delete('/api/v1/docs/project/:projectId/page/:id')
   @UseAclMiddleware({
     permissionName: 'pageDelete',
   })
-  async delete(@Param('id') id: string, @Query('projectId') projectId: string) {
+  async delete(@Param('id') id: string, @Param('projectId') projectId: string) {
     return await this.pagesService.delete({
       id,
       projectId,
     });
   }
 
-  @Post('/api/v1/docs/page/magic-expand')
+  @Post('/api/v1/docs/project/:projectId/page/:id/magic-expand')
   @UseAclMiddleware({
     permissionName: 'pageMagicExpand',
   })
   async magicExpand(
-    @Body() body: { projectId: string; pageId: string; text: string },
+    @Param('id') id: string,
+    @Param('projectId') projectId: string,
+    @Body() body: { text: string },
   ) {
     return await this.pagesService.magicExpand({
       text: body.text,
-      projectId: body.projectId,
-      pageId: body.pageId,
+      pageId: id,
+      projectId,
     });
   }
 
-  @Post('/api/v1/docs/page/magic-outline')
+  @Post('/api/v1/docs/project/:projectId/page/:id/magic-outline')
   @UseAclMiddleware({
     permissionName: 'pageMagicOutline',
   })
-  async magicOutline(@Body() body: { projectId: string; pageId: string }) {
+  async magicOutline(
+    @Param('id') id: string,
+    @Param('projectId') projectId: string,
+  ) {
     return await this.pagesService.magicOutline({
-      projectId: body.projectId,
-      pageId: body.pageId,
+      pageId: id,
+      projectId,
     });
   }
 
-  @Post('/api/v1/docs/pages/magic')
+  @Post('/api/v1/docs/project/:projectId/pages/magic-create-pages')
   @UseAclMiddleware({
-    permissionName: 'pagesMagicCreate',
+    permissionName: 'docsMagicCreatePages',
   })
   async magicCreate(
-    @Body() body: { title: string; projectId: string; pageId: string },
+    @Param('projectId') projectId: string,
+    @Body() body: { title: string },
     @Request() req,
   ) {
     return await this.pagesService.magicCreatePages({
-      projectId: body.projectId,
-      pageId: body.pageId,
+      projectId,
       title: body.title,
       user: req.user,
     });
   }
 
-  @Post('/api/v1/docs/page/import')
+  @Post('/api/v1/docs/project/:projectId/page/import')
   @UseAclMiddleware({
     permissionName: 'pageImport',
   })
   async import(
+    @Param('projectId') projectId: string,
     @Body()
     body: {
       user: string;
@@ -171,12 +164,11 @@ export class DocsPagesController {
       from: string;
       repo: string;
       branch: string;
-      projectId: string;
     },
     @Request() req,
   ) {
     return await this.pagesService.directoryImport({
-      projectId: body.projectId,
+      projectId,
       body,
       user: req.user,
     });

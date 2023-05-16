@@ -273,7 +273,7 @@ const rolePermissions = {
       pageMagicOutline: true,
       pagePaginate: true,
       pageDirectoryImport: true,
-      pagesMagicCreate: true,
+      docsMagicCreatePages: true,
     },
   },
   commenter: {

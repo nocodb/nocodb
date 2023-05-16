@@ -3465,171 +3465,18 @@ export class Api<
       }),
 
     /**
-     * @description Create book
-     *
-     * @tags Noco docs
-     * @name CreateNestedPagesMagic
-     * @summary Create nested pages magic
-     * @request POST:/api/v1/docs/pages/magic
-     * @response `200` `void` OK
-     */
-    createNestedPagesMagic: (
-      data: {
-        /** Project id */
-        projectId: string;
-        /** Title */
-        title: string;
-      },
-      params: RequestParams = {}
-    ) =>
-      this.request<void, any>({
-        path: `/api/v1/docs/pages/magic`,
-        method: 'POST',
-        body: data,
-        type: ContentType.Json,
-        ...params,
-      }),
-
-    /**
-     * @description Import pages
-     *
-     * @tags Noco docs
-     * @name ImportPages
-     * @summary Import pages
-     * @request POST:/api/v1/docs/pages/import
-     * @response `200` `void` OK
-     */
-    importPages: (
-      data: {
-        /** Project id */
-        user: string;
-        /** Project id */
-        repo: string;
-        /** Project id */
-        branch: string;
-        /** Project id */
-        path: string;
-        /** Project id */
-        projectId: string;
-        /** Project id */
-        type: string;
-        /** Project id */
-        from: string;
-      },
-      params: RequestParams = {}
-    ) =>
-      this.request<void, any>({
-        path: `/api/v1/docs/pages/import`,
-        method: 'POST',
-        body: data,
-        type: ContentType.Json,
-        ...params,
-      }),
-
-    /**
-     * @description Magic page content
-     *
-     * @tags Noco docs
-     * @name MagicOutlinePage
-     * @summary Magic outline page
-     * @request POST:/api/v1/docs/page/magic-outline
-     * @response `200` `object` OK
-     */
-    magicOutlinePage: (
-      data: {
-        /** Page id */
-        pageId: string;
-        /** Project id */
-        projectId: string;
-      },
-      params: RequestParams = {}
-    ) =>
-      this.request<object, any>({
-        path: `/api/v1/docs/page/magic-outline`,
-        method: 'POST',
-        body: data,
-        type: ContentType.Json,
-        format: 'json',
-        ...params,
-      }),
-
-    /**
-     * @description Magic page content
-     *
-     * @tags Noco docs
-     * @name MagicExpandText
-     * @summary Magic expand text
-     * @request POST:/api/v1/docs/page/magic-expand
-     * @response `200` `object` OK
-     */
-    magicExpandText: (
-      data: {
-        /** Page id */
-        pageId: string;
-        /** Project id */
-        projectId: string;
-        /** Text */
-        text: string;
-      },
-      params: RequestParams = {}
-    ) =>
-      this.request<object, any>({
-        path: `/api/v1/docs/page/magic-expand`,
-        method: 'POST',
-        body: data,
-        type: ContentType.Json,
-        format: 'json',
-        ...params,
-      }),
-
-    /**
      * @description List pages
      *
      * @tags Noco docs
      * @name ListPages
-     * @summary List pages
-     * @request GET:/api/v1/docs/pages
+     * @summary List all pages
+     * @request GET:/api/v1/docs/project/{projectId}/pages
      * @response `200` `(DocsPageType)[]` OK
      */
-    listPages: (
-      query: {
-        /** Page number */
-        projectId: string;
-        /** Parent page id */
-        parent_page_id?: string;
-      },
-      params: RequestParams = {}
-    ) =>
+    listPages: (projectId: string, params: RequestParams = {}) =>
       this.request<DocsPageType[], any>({
-        path: `/api/v1/docs/pages`,
+        path: `/api/v1/docs/project/${projectId}/pages`,
         method: 'GET',
-        query: query,
-        format: 'json',
-        ...params,
-      }),
-
-    /**
-     * @description Paginate pages
-     *
-     * @tags Noco docs
-     * @name ParentPages
-     * @summary Parent pages
-     * @request GET:/api/v1/docs/page-parents
-     * @response `200` `(DocsPageType)[]` OK
-     */
-    parentPages: (
-      query: {
-        /** Page number */
-        projectId: string;
-        /** pageId */
-        pageId: string;
-      },
-      params: RequestParams = {}
-    ) =>
-      this.request<DocsPageType[], any>({
-        path: `/api/v1/docs/page-parents`,
-        method: 'GET',
-        query: query,
         format: 'json',
         ...params,
       }),
@@ -3639,22 +3486,14 @@ export class Api<
      *
      * @tags Noco docs
      * @name GetPage
-     * @summary Get page
-     * @request GET:/api/v1/docs/page/{id}
+     * @summary Get page by id
+     * @request GET:/api/v1/docs/project/{projectId}/page/{id}
      * @response `200` `DocsPageType` OK
      */
-    getPage: (
-      id: string,
-      query: {
-        /** Project id */
-        projectId: string;
-      },
-      params: RequestParams = {}
-    ) =>
+    getPage: (projectId: string, id: string, params: RequestParams = {}) =>
       this.request<DocsPageType, any>({
-        path: `/api/v1/docs/page/${id}`,
+        path: `/api/v1/docs/project/${projectId}/page/${id}`,
         method: 'GET',
-        query: query,
         format: 'json',
         ...params,
       }),
@@ -3665,21 +3504,13 @@ export class Api<
      * @tags Noco docs
      * @name DeletePage
      * @summary Delete page
-     * @request DELETE:/api/v1/docs/page/{id}
+     * @request DELETE:/api/v1/docs/project/{projectId}/page/{id}
      * @response `200` `void` OK
      */
-    deletePage: (
-      id: string,
-      query: {
-        /** Project id */
-        projectId: string;
-      },
-      params: RequestParams = {}
-    ) =>
+    deletePage: (projectId: string, id: string, params: RequestParams = {}) =>
       this.request<void, any>({
-        path: `/api/v1/docs/page/${id}`,
+        path: `/api/v1/docs/project/${projectId}/page/${id}`,
         method: 'DELETE',
-        query: query,
         ...params,
       }),
 
@@ -3689,21 +3520,20 @@ export class Api<
      * @tags Noco docs
      * @name UpdatePage
      * @summary Update page
-     * @request PUT:/api/v1/docs/page/{id}
+     * @request PUT:/api/v1/docs/project/{projectId}/page/{id}
      * @response `200` `DocsPageType` OK
      */
     updatePage: (
+      projectId: string,
       id: string,
       data: {
         /** Page of Noco docs */
         attributes?: DocsPageType;
-        /** Project id */
-        projectId: string;
       },
       params: RequestParams = {}
     ) =>
       this.request<DocsPageType, any>({
-        path: `/api/v1/docs/page/${id}`,
+        path: `/api/v1/docs/project/${projectId}/page/${id}`,
         method: 'PUT',
         body: data,
         type: ContentType.Json,
@@ -3717,24 +3547,129 @@ export class Api<
      * @tags Noco docs
      * @name CreatePage
      * @summary Create page
-     * @request POST:/api/v1/docs/page
+     * @request POST:/api/v1/docs/project/{projectId}/page
      * @response `200` `DocsPageType` OK
      */
     createPage: (
+      projectId: string,
       data: {
         /** Page of Noco docs */
         attributes?: DocsPageType;
-        /** Project id */
-        projectId: string;
       },
       params: RequestParams = {}
     ) =>
       this.request<DocsPageType, any>({
-        path: `/api/v1/docs/page`,
+        path: `/api/v1/docs/project/${projectId}/page`,
         method: 'POST',
         body: data,
         type: ContentType.Json,
         format: 'json',
+        ...params,
+      }),
+
+    /**
+     * @description Magic page content
+     *
+     * @tags Noco docs
+     * @name MagicExpandText
+     * @summary Returns ai suggested page content using its title, parent page's and project's tiles. Does not update page content.
+     * @request POST:/api/v1/docs/project/{projectId}/page/{id}/magic-expand
+     * @response `200` `object` OK
+     */
+    magicExpandText: (
+      projectId: string,
+      id: string,
+      data: {
+        /** Text */
+        text: string;
+      },
+      params: RequestParams = {}
+    ) =>
+      this.request<object, any>({
+        path: `/api/v1/docs/project/${projectId}/page/${id}/magic-expand`,
+        method: 'POST',
+        body: data,
+        type: ContentType.Json,
+        format: 'json',
+        ...params,
+      }),
+
+    /**
+     * No description
+     *
+     * @tags Noco docs
+     * @name MagicOutlinePage
+     * @summary Gives ai suggested page outline/skeleton (subheadings) for the page based on its, parent page's and project's title
+     * @request POST:/api/v1/docs/project/{projectId}/page/{id}/magic-outline
+     * @response `200` `object` OK
+     */
+    magicOutlinePage: (
+      projectId: string,
+      id: string,
+      params: RequestParams = {}
+    ) =>
+      this.request<object, any>({
+        path: `/api/v1/docs/project/${projectId}/page/${id}/magic-outline`,
+        method: 'POST',
+        format: 'json',
+        ...params,
+      }),
+
+    /**
+     * @description Import pages
+     *
+     * @tags Noco docs
+     * @name ImportPages
+     * @summary Import pages
+     * @request POST:/api/v1/docs/project/{projectId}/page/import
+     * @response `200` `void` OK
+     */
+    importPages: (
+      projectId: string,
+      data: {
+        /** Github user */
+        user: string;
+        /** Github repo */
+        repo: string;
+        /** Github branch */
+        branch: string;
+        /** Github path */
+        path: string;
+        type: string;
+        from: string;
+      },
+      params: RequestParams = {}
+    ) =>
+      this.request<void, any>({
+        path: `/api/v1/docs/project/${projectId}/page/import`,
+        method: 'POST',
+        body: data,
+        type: ContentType.Json,
+        ...params,
+      }),
+
+    /**
+     * No description
+     *
+     * @tags Noco docs
+     * @name CreateNestedPagesMagic
+     * @summary Create nested pages using AI with project title. Will create and insert pages in the project
+     * @request POST:/api/v1/docs/project/{projectId}/pages/magic-create-pages
+     * @response `200` `void` OK
+     */
+    createNestedPagesMagic: (
+      projectId: string,
+      data: {
+        /** Title */
+        title: string;
+      },
+      params: RequestParams = {}
+    ) =>
+      this.request<void, any>({
+        path: `/api/v1/docs/project/${projectId}/pages/magic-create-pages`,
+        method: 'POST',
+        body: data,
+        type: ContentType.Json,
         ...params,
       }),
 

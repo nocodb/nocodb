@@ -83,11 +83,11 @@ export class AppController {
 
       await this.clickhouseService.execute(insertQuery);
     } catch (e) {
-      this.logger.log(e);
+      throw e;
     }
   }
 
-  @MessagePattern('cloud-telemetry')
+  @MessagePattern('cloud-audit')
   async teleEvent(@Payload() messages: any[]) {
     try {
       const rows = [];
@@ -95,21 +95,87 @@ export class AppController {
       // Process the batch of messages
       messages.forEach((data) => {
         // Extract the necessary data from the message
-        const { timestamp, event, package_id, ...properties } = data;
+        const {
+          timestamp,
+          event,
+          email,
+          user_id,
+          ip,
+          base_id,
+          project_id,
+          workspace_id,
+          fk_model_id,
+          row_id,
+          op_type,
+          op_sub_type,
+          status,
+          description,
+          details,
+        } = data;
 
-        // let ipv4 = 'NULL';
-        // let ipv6 = 'NULL';
-        //
-        // if (/^([0-9a-fA-F]{1,4}:){7}[0-9a-fA-F]{1,4}$/.test(ip)) {
-        //   ipv6 = `'${ip}'`;
-        // } else if (/^([0-9]{1,3}\.){3}[0-9]{1,3}$/.test(ip)) {
-        //   ipv4 = `'${ip}'`;
-        // }
+        let ipv4 = 'NULL';
+        let ipv6 = 'NULL';
+
+        if (/^([0-9a-fA-F]{1,4}:){7}[0-9a-fA-F]{1,4}$/.test(ip)) {
+          ipv6 = `'${ip}'`;
+        } else if (/^([0-9]{1,3}\.){3}[0-9]{1,3}$/.test(ip)) {
+          ipv4 = `'${ip}'`;
+        }
+
+        rows.push(
+          `(generateUUIDv4(),${Math.round(timestamp / 1000) ?? 'NOW()'}, 
+          '${event}',
+          '${email}',
+          '${user_id}',
+          '${ip}',
+          '${base_id}',
+          '${project_id}',
+          '${workspace_id}',
+          '${fk_model_id}',
+          '${row_id}',
+          '${op_type}',
+          '${op_sub_type}',
+          '${status}',
+          '${description}',
+          '${details}')`,
+        );
+      });
+
+      // Generate the ClickHouse insert query
+      const insertQuery = `INSERT INTO ${
+        ClickhouseTables.TELEMETRY
+      } (id,timestamp,event,package_id,url,ipv4,ipv6,properties) 
+                         VALUES ${rows.join(',')}`;
+
+      await this.clickhouseService.execute(insertQuery);
+    } catch (e) {
+      throw e;
+    }
+  }
+
+  @MessagePattern('cloud-telemetry')
+  async audit(@Payload() messages: any[]) {
+    try {
+      const rows = [];
+
+      // Process the batch of messages
+      messages.forEach((data) => {
+        // Extract the necessary data from the message
+        const { timestamp, event, package_id, path, ip, ...properties } = data;
+
+        let ipv4 = 'NULL';
+        let ipv6 = 'NULL';
+
+        if (/^([0-9a-fA-F]{1,4}:){7}[0-9a-fA-F]{1,4}$/.test(ip)) {
+          ipv6 = `'${ip}'`;
+        } else if (/^([0-9]{1,3}\.){3}[0-9]{1,3}$/.test(ip)) {
+          ipv4 = `'${ip}'`;
+        }
 
         rows.push(
           `(generateUUIDv4(),${
             Math.round(timestamp / 1000) ?? 'NOW()'
-          }, '${event}','${package_id}', '${JSON.stringify(
+          },'${event}','${package_id}','${path}',${ipv4},${ipv6},'${JSON.stringify(
             properties,
             // escape single quotes
             (key, val) => {
@@ -125,12 +191,12 @@ export class AppController {
       // Generate the ClickHouse insert query
       const insertQuery = `INSERT INTO ${
         ClickhouseTables.TELEMETRY
-      } (id,timestamp,event,package_id,properties) 
+      } (id,timestamp,event,package_id,url,ipv4,ipv6,properties) 
                          VALUES ${rows.join(',')}`;
 
       await this.clickhouseService.execute(insertQuery);
     } catch (e) {
-      this.logger.log(e);
+      throw e;
     }
   }
 }

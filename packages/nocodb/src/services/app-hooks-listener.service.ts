@@ -1,12 +1,15 @@
-import { Injectable } from '@nestjs/common';
+import { Inject, Injectable, Logger } from '@nestjs/common';
 import {
   AppEvents,
   AuditOperationSubTypes,
   AuditOperationTypes,
 } from 'nocodb-sdk';
-import { Audit, User } from '../models';
+import { User } from '../models';
 import { AppHooksService } from './app-hooks/app-hooks.service';
 import { TelemetryService } from './telemetry.service';
+import { Producer } from './producer/producer';
+import type { Audit } from '../models';
+import type { AuditType } from 'nocodb-sdk';
 import type { OnModuleDestroy, OnModuleInit } from '@nestjs/common';
 import type {
   ApiCreatedEvent,
@@ -32,10 +35,12 @@ import type {
 @Injectable()
 export class AppHooksListenerService implements OnModuleInit, OnModuleDestroy {
   private unsubscribe: () => void;
+  private logger = new Logger(AppHooksListenerService.name);
 
   constructor(
     private readonly appHooksService: AppHooksService,
     private readonly telemetryService: TelemetryService,
+    @Inject(Producer) private readonly producer: Producer,
   ) {}
 
   private async hookHandler({ event, data }: { event: AppEvents; data: any }) {
@@ -44,7 +49,7 @@ export class AppHooksListenerService implements OnModuleInit, OnModuleDestroy {
         {
           const param = data as ProjectInviteEvent;
 
-          await Audit.insert({
+          await this.auditInsert({
             project_id: param.project.id,
             op_type: AuditOperationTypes.AUTHENTICATION,
             op_sub_type: AuditOperationSubTypes.INVITE,
@@ -65,7 +70,7 @@ export class AppHooksListenerService implements OnModuleInit, OnModuleDestroy {
         {
           const param = data as ProjectUserUpdateEvent;
 
-          await Audit.insert({
+          await this.auditInsert({
             op_type: AuditOperationTypes.AUTHENTICATION,
             op_sub_type: AuditOperationSubTypes.ROLES_MANAGEMENT,
             user: param.updatedBy.email,
@@ -78,7 +83,7 @@ export class AppHooksListenerService implements OnModuleInit, OnModuleDestroy {
         {
           const param = data as ProjectUserResendInviteEvent;
 
-          await Audit.insert({
+          await this.auditInsert({
             op_type: AuditOperationTypes.AUTHENTICATION,
             op_sub_type: AuditOperationSubTypes.RESEND_INVITE,
             user: param.user.email,
@@ -92,7 +97,7 @@ export class AppHooksListenerService implements OnModuleInit, OnModuleDestroy {
         {
           const param = data as UserPasswordChangeEvent;
 
-          await Audit.insert({
+          await this.auditInsert({
             op_type: AuditOperationTypes.AUTHENTICATION,
             op_sub_type: AuditOperationSubTypes.PASSWORD_CHANGE,
             user: param.user.email,
@@ -104,7 +109,7 @@ export class AppHooksListenerService implements OnModuleInit, OnModuleDestroy {
       case AppEvents.USER_PASSWORD_FORGOT:
         {
           const param = data as UserPasswordForgotEvent;
-          await Audit.insert({
+          await this.auditInsert({
             op_type: AuditOperationTypes.AUTHENTICATION,
             op_sub_type: AuditOperationSubTypes.PASSWORD_FORGOT,
             user: param.user.email,
@@ -117,7 +122,7 @@ export class AppHooksListenerService implements OnModuleInit, OnModuleDestroy {
         {
           const param = data as UserPasswordResetEvent;
 
-          await Audit.insert({
+          await this.auditInsert({
             op_type: AuditOperationTypes.AUTHENTICATION,
             op_sub_type: AuditOperationSubTypes.PASSWORD_RESET,
             user: param.user.email,
@@ -130,7 +135,7 @@ export class AppHooksListenerService implements OnModuleInit, OnModuleDestroy {
         {
           const param = data as UserEmailVerificationEvent;
 
-          await Audit.insert({
+          await this.auditInsert({
             op_type: AuditOperationTypes.AUTHENTICATION,
             op_sub_type: AuditOperationSubTypes.EMAIL_VERIFICATION,
             user: param.user.email,
@@ -169,7 +174,7 @@ export class AppHooksListenerService implements OnModuleInit, OnModuleDestroy {
       case AppEvents.TABLE_CREATE:
         {
           const param = data as TableEvent;
-          await Audit.insert({
+          await this.auditInsert({
             project_id: param.table.project_id,
             base_id: param.table.base_id,
             op_type: AuditOperationTypes.TABLE,
@@ -187,7 +192,7 @@ export class AppHooksListenerService implements OnModuleInit, OnModuleDestroy {
         {
           const { table, ip, user } = data as TableEvent;
 
-          await Audit.insert({
+          await this.auditInsert({
             project_id: table.project_id,
             base_id: table.base_id,
             op_type: AuditOperationTypes.TABLE,
@@ -204,7 +209,7 @@ export class AppHooksListenerService implements OnModuleInit, OnModuleDestroy {
         {
           const { column, ip, user, table } = data as ColumnEvent;
 
-          await Audit.insert({
+          await this.auditInsert({
             // todo: type correction
             project_id: (column as any).project_id,
             op_type: AuditOperationTypes.TABLE_COLUMN,
@@ -220,7 +225,7 @@ export class AppHooksListenerService implements OnModuleInit, OnModuleDestroy {
       case AppEvents.COLUMN_CREATE:
         {
           const { column, ip, user, table } = data as ColumnEvent;
-          await Audit.insert({
+          await this.auditInsert({
             project_id: (column as any).project_id,
             op_type: AuditOperationTypes.TABLE_COLUMN,
             op_sub_type: AuditOperationSubTypes.CREATE,
@@ -236,7 +241,7 @@ export class AppHooksListenerService implements OnModuleInit, OnModuleDestroy {
         {
           const { column, ip, user, table } = data as ColumnEvent;
 
-          await Audit.insert({
+          await this.auditInsert({
             project_id: (column as any).project_id,
             op_type: AuditOperationTypes.TABLE_COLUMN,
             op_sub_type: AuditOperationSubTypes.DELETE,
@@ -251,7 +256,7 @@ export class AppHooksListenerService implements OnModuleInit, OnModuleDestroy {
       case AppEvents.USER_SIGNIN:
         {
           const param = data as UserSigninEvent;
-          await Audit.insert({
+          await this.auditInsert({
             op_type: AuditOperationTypes.AUTHENTICATION,
             op_sub_type: AuditOperationSubTypes.SIGNIN,
             user: param.user.email,
@@ -263,7 +268,7 @@ export class AppHooksListenerService implements OnModuleInit, OnModuleDestroy {
       case AppEvents.USER_SIGNUP:
         {
           const param = data as UserSignupEvent;
-          await Audit.insert({
+          await this.auditInsert({
             op_type: AuditOperationTypes.AUTHENTICATION,
             op_sub_type: AuditOperationSubTypes.SIGNUP,
             user: param.user.email,
@@ -280,7 +285,7 @@ export class AppHooksListenerService implements OnModuleInit, OnModuleDestroy {
             count: param.count,
           });
 
-          await Audit.insert({
+          await this.auditInsert({
             op_type: AuditOperationTypes.ORG_USER,
             op_sub_type: AuditOperationSubTypes.INVITE,
             user: param.invitedBy.email,
@@ -292,7 +297,7 @@ export class AppHooksListenerService implements OnModuleInit, OnModuleDestroy {
       case AppEvents.ORG_USER_RESEND_INVITE:
         {
           const param = data as OrgUserInviteEvent;
-          await Audit.insert({
+          await this.auditInsert({
             op_type: AuditOperationTypes.ORG_USER,
             op_sub_type: AuditOperationSubTypes.RESEND_INVITE,
             user: param.invitedBy.email,
@@ -518,5 +523,14 @@ export class AppHooksListenerService implements OnModuleInit, OnModuleDestroy {
 
   onModuleInit(): any {
     this.unsubscribe = this.appHooksService.onAll(this.hookHandler.bind(this));
+  }
+
+  private async auditInsert(param: Partial<Audit | AuditType>) {
+    // await Audit.insert(param)
+    try {
+      await this.producer.sendMessage('cloud-audit', JSON.stringify(param));
+    } catch (e) {
+      this.logger.error(e);
+    }
   }
 }

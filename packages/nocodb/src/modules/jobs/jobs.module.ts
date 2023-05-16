@@ -24,7 +24,11 @@ import { AtImportProcessor } from './at-import/at-import.processor';
       name: JOBS_QUEUE,
     }),
   ],
-  controllers: [DuplicateController, AtImportController],
+  controllers: [
+    ...(!process.env['NC_WORKER_CONTAINER']
+      ? [DuplicateController, AtImportController]
+      : []),
+  ],
   providers: [
     QueueService,
     JobsGateway,

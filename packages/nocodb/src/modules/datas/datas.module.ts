@@ -27,14 +27,18 @@ import { PublicDatasService } from '../../services/public-datas.service';
     }),
   ],
   controllers: [
-    DatasController,
-    BulkDataAliasController,
-    DataAliasController,
-    DataAliasNestedController,
-    DataAliasExportController,
-    OldDatasController,
-    PublicDatasController,
-    PublicDatasExportController,
+    ...(!process.env['NC_WORKER_CONTAINER']
+      ? [
+          DatasController,
+          BulkDataAliasController,
+          DataAliasController,
+          DataAliasNestedController,
+          DataAliasExportController,
+          OldDatasController,
+          PublicDatasController,
+          PublicDatasExportController,
+        ]
+      : []),
   ],
   providers: [
     DatasService,

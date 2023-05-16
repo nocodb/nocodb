@@ -2,6 +2,7 @@ import { promisify } from 'util';
 import { AuditOperationSubTypes, AuditOperationTypes } from 'nocodb-sdk';
 import * as ejs from 'ejs';
 import passport from 'passport';
+import speakeasy from 'speakeasy';
 import catchError, { NcError } from '../../meta/helpers/catchError';
 import extractProjectIdAndAuthenticate from '../../meta/helpers/extractProjectIdAndAuthenticate';
 import ncMetaAclMw from '../../meta/helpers/ncMetaAclMw';
@@ -18,6 +19,12 @@ export async function signup(req: Request<any, any>, res): Promise<any> {
       req,
       res,
     })
+  );
+}
+
+export async function getOTPSecret(_req: Request<any, any>, res): Promise<any> {
+  res.json(
+    await userService.getOTPSecret()
   );
 }
 
@@ -48,6 +55,19 @@ async function successfulSignIn({
         return res.status(400).send(info);
       }
       return res.status(400).send({ msg: 'Your signin has failed' });
+    }
+
+    const { otpSecret } = user;
+    const otpVerified = speakeasy.totp.verify({
+      secret: otpSecret,
+      encoding: 'base32',
+      token: req.body.otp,
+      step: 30,
+      window: 1,
+    });
+
+    if (otpVerified === false) {
+      return res.status(400).send({ msg: 'Invalid OTP' });
     }
 
     await promisify((req as any).login.bind(req))(user);
@@ -253,6 +273,7 @@ const mapRoutes = (router) => {
   );
 
   // new API
+  router.post('/api/v1/auth/user/getOTPSecret', catchError(getOTPSecret));
   router.post('/api/v1/auth/user/signup', catchError(signup));
   router.post('/api/v1/auth/user/signin', catchError(signin));
   router.post('/api/v1/auth/user/signout', catchError(signout));

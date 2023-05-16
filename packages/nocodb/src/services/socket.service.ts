@@ -8,6 +8,7 @@ import { ExecutionContextHost } from '@nestjs/core/helpers/execution-context-hos
 import { WebSocketGateway, WebSocketServer } from '@nestjs/websockets';
 import Noco from '../Noco';
 import { JwtStrategy } from '../strategies/jwt.strategy';
+import { TelemetryService } from './telemetry.service';
 import type { OnModuleInit } from '@nestjs/common';
 import type { Socket } from 'socket.io';
 
@@ -31,8 +32,9 @@ export class SocketService implements OnModuleInit {
   private _io: Server;
 
   constructor(
-    private jwtStrategy: JwtStrategy,
-    @Inject(HttpAdapterHost) private httpAdapterHost: HttpAdapterHost,
+    private readonly jwtStrategy: JwtStrategy,
+    @Inject(HttpAdapterHost) private readonly httpAdapterHost: HttpAdapterHost,
+    private readonly telemetryService: TelemetryService,
   ) {}
 
   async onModuleInit() {
@@ -64,10 +66,16 @@ export class SocketService implements OnModuleInit {
         );
 
         socket.on('page', (args) => {
-          T.page({ ...args, id });
+          // T.page({ ...args, id });
+          this.telemetryService.sendEvent({
+            evt_type: '$pageview',
+            ...args,
+            id,
+          });
         });
-        socket.on('event', (args) => {
-          T.event({ ...args, id });
+        socket.on('event', ({ event, ...args }) => {
+          // T.event({ ...args, id });
+          this.telemetryService.sendEvent({ evt_type: event, ...args, id });
         });
         socket.on('subscribe', (room) => {
           if (room in this.jobs) {

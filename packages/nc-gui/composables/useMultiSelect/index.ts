@@ -130,15 +130,6 @@ export function useMultiSelect(
             textToCopy = textToCopy.replace(/["']/g, '')
 
             const isMySQL = isMysql(columnObj.base_id)
-            if (isMySQL) {
-              if (textToCopy.indexOf('+') === -1) {
-                // insert a datatime cell -> copy and paste -> copy again
-                if (textToCopy.slice(-1) !== 'Z') {
-                  // e.g. 2023-05-11 12:00:00 -> 2023-05-11 12:00:00Z
-                  textToCopy += 'Z'
-                }
-              }
-            }
 
             let d = dayjs(textToCopy)
 

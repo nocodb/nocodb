@@ -12,11 +12,11 @@ dayjs.extend(utc)
 const { $api } = useNuxtApp()
 const { project } = storeToRefs(useProject())
 const { openedPage } = storeToRefs(useDocStore())
-const { history, currentHistory } = storeToRefs(useDocHistoryStore())
-const { setCurrentHistory, setHistory } = useDocHistoryStore()
+const { history, currentSnapshot } = storeToRefs(useDocHistoryStore())
+const { setCurrentSnapshotIndex, setHistory } = useDocHistoryStore()
 
 const close = () => {
-  setCurrentHistory(null)
+  setCurrentSnapshotIndex(undefined)
   emit('close')
 }
 
@@ -31,6 +31,10 @@ onMounted(async () => {
 
   setHistory(response.snapshots!)
 })
+
+const clearCurrentSnapshot = () => {
+  setCurrentSnapshotIndex(undefined)
+}
 
 const loadListData = async ($state: any) => {
   $state.loading()
@@ -80,24 +84,24 @@ const snapshotTypeLabel = (snapshot: DocsPageSnapshotType) => {
       <div
         class="nc-doc-page-history-pane-list-item flex flex-row py-3 px-3 my-1.5 rounded-md hover:bg-gray-100 cursor-pointer border-1 border-gray-100 select-none"
         :class="{
-          'bg-gray-100': !currentHistory,
+          'bg-gray-100': !currentSnapshot,
         }"
-        :aria-selected="!currentHistory"
-        @click="currentHistory = undefined"
+        :aria-selected="!currentSnapshot"
+        @click="clearCurrentSnapshot"
       >
         <div>Current version</div>
       </div>
       <div
-        v-for="item in history"
+        v-for="(item, index) in history"
         :key="item.id"
         class="nc-doc-page-history-pane-list-item flex flex-row py-3 px-3 my-1.5 rounded-md hover:bg-gray-100 cursor-pointer border-1 border-gray-100 select-none"
         :class="{
-          'bg-gray-100': currentHistory && currentHistory.id === item.id,
+          'bg-gray-100': currentSnapshot && currentSnapshot.id === item.id,
         }"
-        :aria-selected="currentHistory && currentHistory.id === item.id"
-        @click="setCurrentHistory(item)"
+        :aria-selected="currentSnapshot && currentSnapshot.id === item.id"
+        @click="setCurrentSnapshotIndex(index)"
       >
-        <div>{{ snapshotTypeLabel(item) }} {{ dayjs.utc(item.last_page_updated_time).fromNow() }}</div>
+        <div>{{ snapshotTypeLabel(item) }} {{ dayjs.utc(item.created_at).fromNow() }}</div>
       </div>
       <InfiniteLoading v-bind="$attrs" @infinite="loadListData">
         <template #spinner>

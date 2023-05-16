@@ -9,23 +9,30 @@ export const useDocHistoryStore = defineStore('docHistoryStore', () => {
   const isHistoryPaneOpen = ref(false)
   const isRestoring = ref(false)
   const history = ref<DocsPageSnapshotType[]>([])
-  const currentHistory = ref<DocsPageSnapshotType | undefined>()
+  const currentSnapshotIndex = ref<number | undefined>()
+
+  const currentSnapshot = computed(() => {
+    if (currentSnapshotIndex.value === undefined) return undefined
+    return history.value[currentSnapshotIndex.value]
+  })
+  // Next index in history as history is stored in reverse order
+  const prevSnapshot = computed(() => {
+    if (currentSnapshotIndex.value === undefined) return undefined
+    if (currentSnapshotIndex.value + 1 === history.value.length) return null
+
+    return history.value[currentSnapshotIndex.value + 1]
+  })
 
   const setHistory = (snapshots: DocsPageSnapshotType[]) => {
     history.value = snapshots
   }
 
-  const setCurrentHistory = (snapshot: DocsPageSnapshotType | null) => {
-    if (snapshot) {
-      snapshot.before_page = snapshot.before_page_json ? JSON.parse(snapshot.before_page_json as string) : null
-      snapshot.after_page = snapshot.after_page_json ? JSON.parse(snapshot.after_page_json as string) : null
-    }
-
-    currentHistory.value = snapshot
+  const setCurrentSnapshotIndex = (index: number | undefined) => {
+    currentSnapshotIndex.value = index
   }
 
   const restore = async () => {
-    const snapshot = currentHistory.value
+    const snapshot = currentSnapshot.value
     if (!snapshot) return
 
     isRestoring.value = true
@@ -38,7 +45,7 @@ export const useDocHistoryStore = defineStore('docHistoryStore', () => {
         doNotSetProject: true,
       })) as any
 
-      currentHistory.value = null
+      currentSnapshotIndex.value = undefined
 
       isHistoryPaneOpen.value = false
     } finally {
@@ -49,15 +56,16 @@ export const useDocHistoryStore = defineStore('docHistoryStore', () => {
   watch(
     () => openedPage.value?.id,
     async () => {
-      currentHistory.value = null
+      currentSnapshotIndex.value = undefined
       isHistoryPaneOpen.value = false
     },
   )
 
   return {
     history,
-    currentHistory,
-    setCurrentHistory,
+    currentSnapshot,
+    prevSnapshot,
+    setCurrentSnapshotIndex,
     setHistory,
     restore,
     isHistoryPaneOpen,

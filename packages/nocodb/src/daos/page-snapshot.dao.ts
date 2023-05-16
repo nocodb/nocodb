@@ -18,42 +18,28 @@ export class PageSnapshotDao {
     workspaceId,
     projectId,
     pageId,
-    newPage: _newPage,
-    oldPage: _oldPage,
+    page: _page,
     type,
     diffHtml,
   }: {
     workspaceId: string;
     projectId: string;
     pageId: string;
-    newPage: DocsPageType;
-    oldPage: DocsPageType;
+    page: DocsPageType;
     diffHtml;
     type: DocsPageSnapshotType['type'];
   }): Promise<DocsPageSnapshotType> {
     const id = this.meta.genNanoid('');
 
-    const oldPage = { ..._oldPage };
-    const newPage = { ..._newPage };
+    const page = { ..._page };
 
-    delete oldPage.last_snapshot;
-    delete oldPage.last_snapshot_json;
+    delete page.last_snapshot;
+    delete page.last_snapshot_json;
 
-    delete newPage.last_snapshot;
-    delete newPage.last_snapshot_json;
-
-    const lastUpdatedById = newPage.last_updated_by_id;
-    const lastPageUpdatedTime = dayjs.utc(newPage.updated_at);
-
-    const oldPageBase64 = Buffer.from(JSON.stringify(oldPage)).toString(
-      'base64',
-    );
-    const newPageBase64 = Buffer.from(JSON.stringify(newPage)).toString(
-      'base64',
-    );
-
-    const before_page_json = JSON.stringify(oldPageBase64);
-    const after_page_json = JSON.stringify(newPageBase64);
+    const lastUpdatedById = page.last_updated_by_id;
+    const lastPageUpdatedTime = dayjs.utc(page.updated_at);
+    const pageBase64 = Buffer.from(JSON.stringify(page)).toString('base64');
+    const page_json = JSON.stringify(pageBase64);
 
     const snapshot: DocsPageSnapshotType = {
       id,
@@ -61,16 +47,15 @@ export class PageSnapshotDao {
       fk_project_id: projectId,
       fk_page_id: pageId,
       last_updated_by_id: lastUpdatedById,
-      last_page_updated_time: lastPageUpdatedTime.unix().toString(),
-      before_page_json,
-      after_page_json,
+      created_at: lastPageUpdatedTime.unix().toString(),
+      page_json,
       diff: Buffer.from(JSON.stringify(diffHtml)).toString('base64'),
       type,
     };
 
     const query = `
-    INSERT INTO page_snapshot (id, fk_workspace_id, fk_project_id, fk_page_id, last_updated_by_id, last_page_updated_time, before_page_json, after_page_json, diff, type)
-    VALUES ('${snapshot.id}', '${snapshot.fk_workspace_id}', '${snapshot.fk_project_id}', '${snapshot.fk_page_id}', '${snapshot.last_updated_by_id}', toDateTime('${snapshot.last_page_updated_time}'), '${snapshot.before_page_json}', '${snapshot.after_page_json}', '${snapshot.diff}', '${snapshot.type}')
+    INSERT INTO docs_page_snapshot (id, fk_workspace_id, fk_project_id, fk_page_id, last_updated_by_id, created_at, page_json, diff, type)
+    VALUES ('${snapshot.id}', '${snapshot.fk_workspace_id}', '${snapshot.fk_project_id}', '${snapshot.fk_page_id}', '${snapshot.last_updated_by_id}', toDateTime('${snapshot.created_at}'), '${snapshot.page_json}', '${snapshot.diff}', '${snapshot.type}')
   `;
 
     await this.clickhouseService.execute(query, true);
@@ -79,17 +64,10 @@ export class PageSnapshotDao {
   }
 
   deserializeSnapshot(snapshot: DocsPageSnapshotType) {
-    snapshot.before_page_json = Buffer.from(
-      snapshot.before_page_json,
-      'base64',
-    ).toString('utf-8');
-    snapshot.before_page = JSON.parse(snapshot.before_page_json);
-
-    snapshot.after_page_json = Buffer.from(
-      snapshot.after_page_json,
-      'base64',
-    ).toString('utf-8');
-    snapshot.after_page = JSON.parse(snapshot.after_page_json);
+    snapshot.page_json = Buffer.from(snapshot.page_json, 'base64').toString(
+      'utf-8',
+    );
+    snapshot.page = JSON.parse(snapshot.page_json);
 
     snapshot.diff = Buffer.from(snapshot.diff, 'base64')
       .toString('utf-8')
@@ -102,7 +80,7 @@ export class PageSnapshotDao {
   async get({ id }: { id: string }): Promise<DocsPageSnapshotType | undefined> {
     let snapshot = (
       await this.clickhouseService.execute(
-        `SELECT * FROM page_snapshot WHERE id = '${id}'`,
+        `SELECT * FROM docs_page_snapshot WHERE id = '${id}'`,
       )
     )[0] as DocsPageSnapshotType;
 
@@ -131,15 +109,13 @@ export class PageSnapshotDao {
     fk_project_id,
     fk_page_id,
     last_updated_by_id,
-    last_page_updated_time,
-    before_page_json,
-    after_page_json,
+    page_json,
     diff,
     created_at,
     type
-  FROM page_snapshot
+  FROM docs_page_snapshot
   WHERE fk_project_id = '${projectId}' AND fk_page_id = '${pageId}'
-  ORDER BY last_page_updated_time DESC
+  ORDER BY created_at DESC
   
 `;
 

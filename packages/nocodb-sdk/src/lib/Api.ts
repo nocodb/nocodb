@@ -582,14 +582,9 @@ export interface DocsPageSnapshotType {
   last_updated_by_id?: string;
   /** @format date */
   created_at?: string;
-  /** @format date */
-  last_page_updated_time?: string;
   /** Page of Noco docs */
-  before_page?: DocsPageType;
-  before_page_json?: string;
-  /** Page of Noco docs */
-  after_page?: DocsPageType;
-  after_page_json?: string;
+  page?: DocsPageType;
+  page_json?: string;
   diff?: string;
   type?: 'updated' | 'published' | 'unpublished' | 'restored' | 'created';
 }
@@ -1235,7 +1230,7 @@ export interface LayoutReqType {
  */
 export interface WidgetReqType {
   /** Unique Layout ID */
-  layout_id?: string;
+  layout_id: string;
   /**
    * Version of the schema
    * @example v0.2
@@ -3098,16 +3093,17 @@ export class Api<
      * @name LayoutDelete
      * @summary Delete Layout
      * @request DELETE:/api/v1/dashboards/{dashboardId}/layouts/{layoutId}
-     * @response `200` `void` OK
+     * @response `200` `LayoutType` OK
      */
     layoutDelete: (
       dashboardId: IdType,
       layoutId: IdType,
       params: RequestParams = {}
     ) =>
-      this.request<void, any>({
+      this.request<LayoutType, any>({
         path: `/api/v1/dashboards/${dashboardId}/layouts/${layoutId}`,
         method: 'DELETE',
+        format: 'json',
         ...params,
       }),
 
@@ -3118,7 +3114,7 @@ export class Api<
  * @name LayoutUpdate
  * @summary Update Layout
  * @request PATCH:/api/v1/dashboards/{dashboardId}/layouts/{layoutId}
- * @response `200` `number` OK
+ * @response `200` `LayoutType` OK
  * @response `400` `{
   \** @example BadRequest [Error]: <ERROR MESSAGE> *\
   msg: string,
@@ -3132,7 +3128,7 @@ export class Api<
       params: RequestParams = {}
     ) =>
       this.request<
-        number,
+        LayoutType,
         {
           /** @example BadRequest [Error]: <ERROR MESSAGE> */
           msg: string;
@@ -3225,16 +3221,17 @@ export class Api<
      * @name WidgetDelete
      * @summary Delete Widget
      * @request DELETE:/api/v1/layouts/{layoutId}/widgets/{widgetId}
-     * @response `200` `void` OK
+     * @response `200` `WidgetType` OK
      */
     widgetDelete: (
       layoutId: IdType,
       widgetId: IdType,
       params: RequestParams = {}
     ) =>
-      this.request<void, any>({
+      this.request<WidgetType, any>({
         path: `/api/v1/layouts/${layoutId}/widgets/${widgetId}`,
         method: 'DELETE',
+        format: 'json',
         ...params,
       }),
 
@@ -3245,7 +3242,7 @@ export class Api<
  * @name WidgetUpdate
  * @summary Update Widget
  * @request PATCH:/api/v1/layouts/{layoutId}/widgets/{widgetId}
- * @response `200` `number` OK
+ * @response `200` `WidgetType` OK
  * @response `400` `{
   \** @example BadRequest [Error]: <ERROR MESSAGE> *\
   msg: string,
@@ -3259,7 +3256,7 @@ export class Api<
       params: RequestParams = {}
     ) =>
       this.request<
-        number,
+        WidgetType,
         {
           /** @example BadRequest [Error]: <ERROR MESSAGE> */
           msg: string;

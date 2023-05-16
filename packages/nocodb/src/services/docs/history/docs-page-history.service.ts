@@ -54,10 +54,10 @@ export class DocsPageHistoryService {
     const snapshot = await this.pageSnapshotDao.get({ id: snapshotId });
     if (!snapshot) throw new Error('Snapshot not found');
 
-    const snapshotAfterPage = snapshot.after_page;
+    const snapshotAfterPage = snapshot.page;
 
     let updateAttrs: Partial<DocsPageType> = {};
-    if (snapshot.type === 'updated') {
+    if (snapshot.type === 'updated' || snapshot.type === 'restored') {
       updateAttrs = snapshotAfterPage;
     } else if (
       snapshot.type === 'published' ||
@@ -66,10 +66,6 @@ export class DocsPageHistoryService {
       updateAttrs = {
         is_published: snapshotAfterPage.is_published,
       };
-    } else if (snapshot.type === 'restored') {
-      const beforePage = snapshot.before_page;
-
-      updateAttrs = beforePage;
     }
 
     const oldPage = await this.pageDao.get({ id: pageId, projectId });
@@ -84,23 +80,22 @@ export class DocsPageHistoryService {
       snapshotDisabled: true,
     });
 
-    const newPage = await this.pageDao.get({ id: pageId, projectId });
-    const diffHtml = await this.getDiff(newPage, oldPage);
+    const page = await this.pageDao.get({ id: pageId, projectId });
+    const diffHtml = await this.getDiff(page, oldPage);
 
     const snap = await this.pageSnapshotDao.create({
       workspaceId,
       projectId,
       pageId,
       type: 'restored',
-      oldPage: oldPage,
-      newPage: newPage,
+      page,
       diffHtml,
     });
 
     await this.pageDao.addSnapshot({
       pageId,
       projectId,
-      lastSnapshotAt: newPage.updated_at,
+      lastSnapshotAt: page.updated_at,
       snapshot: snap,
     });
   }
@@ -137,20 +132,13 @@ export class DocsPageHistoryService {
     const { workspaceId, newPage, snapshotType: _snapshotType } = params;
     const projectId = newPage.project_id;
 
-    const _oldSnapshotFromPage = this.pageDao.deserializeSnapshot({
-      page: newPage,
-    });
-    const oldSnapshot = _oldSnapshotFromPage
-      ? this.pageSnapshotDao.deserializeSnapshot(
-          this.pageDao.deserializeSnapshot({ page: newPage }),
-        )
-      : undefined;
+    const oldSnapshot = this.oldSnapshotFromPage(newPage);
 
     // If this is the first snapshot, create a snapshot with old page as new page
-    const oldPage: DocsPageType = oldSnapshot?.after_page || newPage;
+    const oldPage: DocsPageType = oldSnapshot?.page || newPage;
 
     // Handle the case where there is no last snapshot page
-    // And if there is one, only create a snapshot if the page has been updated, published or unpublished
+    // Or if there is one, only create a snapshot if the page has been updated, published or unpublished
     const snapshotType: DocsPageSnapshotType['type'] = oldSnapshot
       ? this.getSnapshotType(newPage, oldPage)
       : _snapshotType ?? 'updated';
@@ -202,8 +190,7 @@ export class DocsPageHistoryService {
       projectId,
       pageId,
       type: snapshotType,
-      oldPage,
-      newPage,
+      page: newPage,
       diffHtml,
     });
 
@@ -239,6 +226,21 @@ export class DocsPageHistoryService {
       pageNumber,
       pageSize,
     });
+  }
+
+  private oldSnapshotFromPage(
+    page: DocsPageType,
+  ): DocsPageSnapshotType | undefined {
+    const _oldSnapshotFromPage = page.last_snapshot_json
+      ? this.pageDao.deserializeSnapshot({
+          snapshotJson: page.last_snapshot_json,
+        })
+      : undefined;
+    const oldSnapshot = _oldSnapshotFromPage?.page_json
+      ? this.pageSnapshotDao.deserializeSnapshot(_oldSnapshotFromPage)
+      : undefined;
+
+    return oldSnapshot;
   }
 
   private getSnapshotType(

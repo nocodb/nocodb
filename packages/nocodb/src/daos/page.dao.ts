@@ -284,16 +284,10 @@ export class PageDao {
     });
   }
 
-  public deserializeSnapshot({ page }: { page: DocsPageType }) {
-    if (!page.last_snapshot_json) {
-      return null;
-    }
-
-    const snapshot = JSON.parse(
-      Buffer.from(page.last_snapshot_json, 'base64').toString(),
-    );
-
-    return snapshot;
+  public deserializeSnapshot({ snapshotJson }: { snapshotJson: string }) {
+    return JSON.parse(
+      Buffer.from(snapshotJson, 'base64').toString(),
+    ) as DocsPageSnapshotType;
   }
 
   public async getChildPages({

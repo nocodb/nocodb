@@ -23,10 +23,10 @@ const {
 } = storeToRefs(useDocStore())
 
 useDocHistoryStore()
-const { currentHistory, isHistoryPaneOpen } = storeToRefs(useDocHistoryStore())
+const { currentSnapshot, isHistoryPaneOpen, prevSnapshot } = storeToRefs(useDocHistoryStore())
 const { updatePage, nestedUrl, openPage } = useDocStore()
 
-const isEditAllowed = computed(() => _isEditAllowed.value && !currentHistory.value)
+const isEditAllowed = computed(() => _isEditAllowed.value && !currentSnapshot.value)
 
 const showOutline = ref(isPublic.value)
 const pageWrapperDomRef = ref<HTMLDivElement | undefined>()
@@ -78,7 +78,7 @@ const editor = useEditor({
   extensions: tiptapExtensions(isPublic.value),
   onUpdate: ({ editor }) => {
     if (!openedPage.value) return
-    if (currentHistory.value) return
+    if (currentSnapshot.value) return
 
     openedPage.value.content = JSON.stringify(removeUploadingPlaceHolderAndEmptyLinkNode(editor.getJSON()))
     openedPage.value.content_html = editor.getHTML()
@@ -141,7 +141,7 @@ watch(
   () => [openedPage.value?.id, editor.value],
   ([newId], oldVal) => {
     if (oldVal === undefined) return
-    if (currentHistory.value) return
+    if (currentSnapshot.value) return
 
     const [oldId, oldEditor] = oldVal
 
@@ -241,14 +241,14 @@ const focusOnFirstDiffedElement = () => {
 }
 
 watch(
-  currentHistory,
+  currentSnapshot,
   () => {
-    if (!currentHistory.value) {
+    if (!currentSnapshot.value) {
       setEditorContent(content.value)
       return
     }
 
-    setEditorContent(currentHistory.value.diff, false, true)
+    setEditorContent(currentSnapshot.value.diff, false, true)
     setTimeout(() => {
       focusOnFirstDiffedElement()
     }, 0)
@@ -312,7 +312,7 @@ watch(
               <MaterialSymbolsHistoryRounded class="!h-4.5" />
             </div>
             <div class="">
-              <LazyGeneralShareProject v-if="!currentHistory" />
+              <LazyGeneralShareProject v-if="!currentSnapshot" />
               <DocsPageRestoreButton v-else />
             </div>
             <div class="flex flex-row">
@@ -342,7 +342,7 @@ watch(
             @update:selection-box="selectionBox = $event"
           />
           <div
-            :key="openedPageId ?? currentHistory?.id ?? ''"
+            :key="openedPageId ?? currentSnapshot?.id ?? ''"
             class="mx-auto pr-6 pt-16 flex flex-col"
             :style="{
               width: '64rem',
@@ -356,39 +356,33 @@ watch(
               class="docs-page-title-skelton !mt-3 !max-w-156 mb-3 ml-8 docs-page-skeleton-loading"
             />
             <div
-              v-else-if="
-                openedPage &&
-                currentHistory &&
-                currentHistory.before_page &&
-                currentHistory.after_page &&
-                currentHistory.before_page.title !== currentHistory.after_page.title
-              "
+              v-else-if="openedPage && currentSnapshot && prevSnapshot && currentSnapshot!.page!.title !== prevSnapshot!.page!.title"
               class="flex flex-col"
             >
               <div class="py-2 mb-1 bg-red-200 rounded-sm">
                 <DocsPageTitle
-                  :key="currentHistory.id + currentHistory.before_page!.title!"
+                  :key="currentSnapshot.id"
                   :data-is-diff="true"
                   class="docs-page-title"
-                  :title="currentHistory.before_page!.title!"
+                  :title="currentSnapshot.page!.title!"
                   @focus-editor="focusEditor"
                 />
               </div>
               <div class="py-2 bg-green-200 rounded-sm">
                 <DocsPageTitle
-                  :key="currentHistory.id + currentHistory.before_page!.title!"
+                  :key="prevSnapshot.id"
                   :data-is-diff="true"
                   class="docs-page-title"
-                  :title="currentHistory.after_page!.title!"
+                  :title="prevSnapshot.page!.title!"
                   @focus-editor="focusEditor"
                 />
               </div>
             </div>
             <DocsPageTitle
-              v-else-if="openedPage && currentHistory"
-              :key="currentHistory.id + currentHistory.after_page!.title!"
+              v-else-if="openedPage && currentSnapshot"
+              :key="currentSnapshot.id"
               class="docs-page-title"
-              :title="currentHistory.after_page!.title!"
+              :title="currentSnapshot.page!.title!"
               @focus-editor="focusEditor"
             />
             <DocsPageTitle v-else-if="openedPage" :key="openedPage.id" class="docs-page-title" @focus-editor="focusEditor" />

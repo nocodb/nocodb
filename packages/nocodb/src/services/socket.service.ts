@@ -1,5 +1,10 @@
 import crypto from 'crypto';
-import { Inject, Injectable, UnauthorizedException } from '@nestjs/common';
+import {
+  Inject,
+  Injectable,
+  Optional,
+  UnauthorizedException,
+} from '@nestjs/common';
 import { HttpAdapterHost } from '@nestjs/core';
 import { T } from 'nc-help';
 import { Server } from 'socket.io';
@@ -33,7 +38,9 @@ export class SocketService implements OnModuleInit {
 
   constructor(
     private readonly jwtStrategy: JwtStrategy,
-    @Inject(HttpAdapterHost) private readonly httpAdapterHost: HttpAdapterHost,
+    @Optional()
+    @Inject(HttpAdapterHost)
+    private readonly httpAdapterHost: HttpAdapterHost,
     private readonly telemetryService: TelemetryService,
   ) {}
 

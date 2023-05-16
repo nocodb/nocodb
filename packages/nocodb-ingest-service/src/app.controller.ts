@@ -13,6 +13,17 @@ import {
   Transport,
 } from '@nestjs/microservices';
 import { ClickhouseService } from './clickhouse/clickhouse.service';
+// import { ClickhouseTables } from 'nocodb-sdk';
+
+// todo: replace with nocodb-sdk
+//    add nocodb-sdk dependency and update docker build
+enum ClickhouseTables {
+  API_CALLS = 'usage_api_calls',
+  API_COUNT = 'usage_api_count',
+  NOTIFICATION = 'nc_notification',
+  PAGE_SNAPSHOT = 'docs_page_snapshot',
+  TELEMETRY = 'usage_telemetry',
+}
 
 @Controller()
 export class AppController {
@@ -65,7 +76,9 @@ export class AppController {
       });
 
       // Generate the ClickHouse insert query
-      const insertQuery = `INSERT INTO api_calls (timestamp, workspace_id, user_id, project_id, url, method, exec_time, status, req_ipv4, req_ipv6) 
+      const insertQuery = `INSERT INTO ${
+        ClickhouseTables.API_CALLS
+      } (timestamp, workspace_id, user_id, project_id, url, method, exec_time, status, req_ipv4, req_ipv6) 
                          VALUES ${rows.join(',')}`;
 
       await this.clickhouseService.execute(insertQuery);
@@ -110,7 +123,9 @@ export class AppController {
       });
 
       // Generate the ClickHouse insert query
-      const insertQuery = `INSERT INTO telemetry (id,timestamp,event,package_id,properties) 
+      const insertQuery = `INSERT INTO ${
+        ClickhouseTables.TELEMETRY
+      } (id,timestamp,event,package_id,properties) 
                          VALUES ${rows.join(',')}`;
 
       await this.clickhouseService.execute(insertQuery);

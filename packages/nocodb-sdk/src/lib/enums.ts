@@ -12,7 +12,6 @@ export enum ProjectRoles {
   VIEWER = 'viewer',
 }
 
-
 export enum WorkspaceUserRoles {
   OWNER = 'workspace-level-owner',
   CREATOR = 'workspace-level-creator',
@@ -63,8 +62,6 @@ export enum AppEvents {
   SORT_CREATE = 'sort.create',
   SORT_DELETE = 'sort.delete',
   SORT_UPDATE = 'sort.update',
-
-
 
   COLUMN_CREATE = 'column.create',
   COLUMN_DELETE = 'column.delete',
@@ -123,7 +120,6 @@ export enum AppEvents {
   PLUGIN_INSTALL = 'plugin.install',
   PLUGIN_UNINSTALL = 'plugin.uninstall',
 
-
   SYNC_SOURCE_CREATE = 'sync.source.create',
   SYNC_SOURCE_UPDATE = 'sync.source.update',
   SYNC_SOURCE_DELETE = 'sync.source.delete',
@@ -137,4 +133,13 @@ export enum AppEvents {
   ATTACHMENT_UPLOAD = 'attachment.upload',
 
   APIS_CREATED = 'apis.created',
+}
+
+export enum ClickhouseTables {
+  API_CALLS = 'usage_api_calls',
+  API_COUNT = 'usage_api_count',
+  NOTIFICATION = 'nc_notification',
+  PAGE_SNAPSHOT = 'docs_page_snapshot',
+  TELEMETRY = 'usage_telemetry',
+  AUDIT = 'nc_audit',
 }

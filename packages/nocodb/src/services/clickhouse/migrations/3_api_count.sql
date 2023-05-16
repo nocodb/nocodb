@@ -1,4 +1,4 @@
-CREATE TABLE IF NOT EXISTS api_count (
+CREATE TABLE IF NOT EXISTS usage_api_count (
   id UUID,
   fk_workspace_id String(20) NOT NULL,
   api_token String(150) NOT NULL,

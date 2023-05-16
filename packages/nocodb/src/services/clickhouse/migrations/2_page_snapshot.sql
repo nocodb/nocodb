@@ -1,4 +1,4 @@
-CREATE TABLE IF NOT EXISTS page_snapshot (
+CREATE TABLE IF NOT EXISTS docs_page_snapshot (
   id String(20) NOT NULL,
   fk_workspace_id String(20) NOT NULL,
   fk_project_id String(20) NOT NULL,

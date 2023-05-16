@@ -1,4 +1,4 @@
-CREATE TABLE IF NOT EXISTS api_calls (
+CREATE TABLE IF NOT EXISTS usage_api_calls (
     timestamp DateTime,
     workspace_id String,
   	user_id String,

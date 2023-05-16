@@ -1,4 +1,4 @@
-CREATE TABLE IF NOT EXISTS notification (
+CREATE TABLE IF NOT EXISTS nc_notification (
           id String(20) NOT NULL,
           body Text,
           type String,

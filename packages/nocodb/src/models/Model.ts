@@ -453,6 +453,7 @@ export default class Model implements TableType {
       isMssql: false,
       isPg: false,
     },
+    knex,
   ) {
     const insertObj = {};
     const base = await Base.get(this.base_id);
@@ -469,17 +470,21 @@ export default class Model implements TableType {
         if (col.uidt === UITypes.DateTime && dayjs(val).isValid()) {
           const { isMySQL, isSqlite, isMssql, isPg } = clientMeta;
           if (isMySQL) {
-            // from UI - convert to utc
+            // first convert the value to utc
+            // from UI
             // e.g. 2022-01-01 20:00:00Z -> 2022-01-01 20:00:00
-            // from API - convert to utc
+            // from API
             // e.g. 2022-01-01 20:00:00+08:00 -> 2022-01-01 12:00:00
             // if timezone info is not found - considered as utc
             // e.g. 2022-01-01 20:00:00 -> 2022-01-01 20:00:00
-            // if timezone info is found - convert to utc
+            // if timezone info is found
             // e.g. 2022-01-01 20:00:00Z -> 2022-01-01 20:00:00
             // e.g. 2022-01-01 20:00:00+00:00 -> 2022-01-01 20:00:00
             // e.g. 2022-01-01 20:00:00+08:00 -> 2022-01-01 12:00:00
-            val = dayjs(val).utc().format('YYYY-MM-DD HH:mm:ss');
+            // then we use CONVERT_TZ to convert that in the db timezone
+            val = knex.raw(`CONVERT_TZ(?, '+00:00', @@GLOBAL.time_zone)`, [
+              dayjs(val).utc().format('YYYY-MM-DD HH:mm:ss'),
+            ]);
           } else if (isSqlite) {
             // e.g. 2022-01-01T10:00:00.000Z -> 2022-01-01 10:00:00
             val = dayjs(val).utc().format('YYYY-MM-DD HH:mm:ss');

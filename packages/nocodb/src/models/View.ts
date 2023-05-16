@@ -26,6 +26,19 @@ import MapViewColumn from './MapViewColumn';
 import type { BoolType, ColumnReqType, ViewType } from 'nocodb-sdk';
 
 const { v4: uuidv4 } = require('uuid');
+
+type ViewColumn =
+  | GridViewColumn
+  | FormViewColumn
+  | GalleryViewColumn
+  | KanbanViewColumn
+  | MapViewColumn;
+
+type ViewColumnEnrichedWithTitleAndName = ViewColumn & {
+  title: string;
+  name: string;
+  dt: string;
+};
 export default class View implements ViewType {
   id?: string;
   title: string;
@@ -611,6 +624,7 @@ export default class View implements ViewType {
   static async getColumns(
     viewId: string,
     ncMeta = Noco.ncMeta,
+    enrichWithColTitleAndName = false,
   ): Promise<
     Array<
       | GridViewColumn
@@ -642,7 +656,29 @@ export default class View implements ViewType {
         break;
     }
 
-    return columns;
+    if (!enrichWithColTitleAndName) {
+      return columns;
+    }
+
+    const columnsMetaData = await Column.list(
+      { fk_model_id: view.fk_model_id },
+      ncMeta,
+    );
+    // console.log('columnsMetaData', columnsMetaData);
+    const viewColumnEnrichedWithTitleAndName = columns.map((col) => {
+      const columnMetaData = columnsMetaData.find(
+        (c) => c.id === col.fk_column_id,
+      );
+      return {
+        ...col,
+        title: columnMetaData?.title,
+        column_name: columnMetaData?.column_name,
+        dt: columnMetaData?.dt,
+        uidt: columnMetaData?.uidt,
+      } as ViewColumnEnrichedWithTitleAndName;
+    });
+
+    return viewColumnEnrichedWithTitleAndName;
   }
 
   async getColumns(ncMeta = Noco.ncMeta) {

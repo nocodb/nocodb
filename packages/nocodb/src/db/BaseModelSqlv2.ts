@@ -411,6 +411,65 @@ class BaseModelSqlv2 {
   }
 
   // todo: add support for sortArrJson and filterArrJson
+  async groupByAndAggregate(
+    aggregateColumnName: string,
+    aggregateFn: string,
+    args: {
+      where?: string;
+      limit?;
+      offset?;
+      sort?: string | string[];
+      groupByColumnId?: string;
+      widgetFilterArr?: Filter[];
+    },
+  ) {
+    const { where, ...rest } = this._getListArgs(args as any);
+
+    const qb = this.dbDriver(this.tnPath);
+    const aggregateStatement = `${aggregateColumnName} as ${aggregateFn}__${aggregateColumnName}`;
+
+    if (typeof qb[aggregateFn] === 'function') {
+      qb[aggregateFn](aggregateStatement);
+    } else {
+      throw new Error(`Unsupported aggregate function: ${aggregateFn}`);
+    }
+
+    qb.select(args.groupByColumnId);
+
+    if (+rest?.shuffle) {
+      await this.shuffle({ qb });
+    }
+
+    const aliasColObjMap = await this.model.getAliasColObjMap();
+
+    const sorts = extractSortsObject(rest?.sort, aliasColObjMap);
+
+    const filterObj = extractFilterFromXwhere(where, aliasColObjMap);
+    await conditionV2(
+      [
+        new Filter({
+          children: args.widgetFilterArr || [],
+          is_group: true,
+          logical_op: 'and',
+        }),
+        new Filter({
+          children: filterObj,
+          is_group: true,
+          logical_op: 'and',
+        }),
+      ],
+      qb,
+      this.dbDriver,
+    );
+    if (args?.groupByColumnId) {
+      qb.groupBy(args?.groupByColumnId);
+    }
+    if (sorts) await sortV2(sorts, qb, this.dbDriver);
+    applyPaginate(qb, rest);
+    return await qb;
+  }
+
+  // todo: add support for sortArrJson and filterArrJson
   async groupBy(
     args: {
       where?: string;

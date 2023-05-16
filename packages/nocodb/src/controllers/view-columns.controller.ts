@@ -6,6 +6,7 @@ import {
   Param,
   Patch,
   Post,
+  Query,
   UseGuards,
 } from '@nestjs/common';
 import { ColumnReqType, ViewColumnReqType } from 'nocodb-sdk';
@@ -25,9 +26,15 @@ export class ViewColumnsController {
 
   @Get('/api/v1/db/meta/views/:viewId/columns/')
   @Acl('columnList')
-  async columnList(@Param('viewId') viewId: string) {
+  async columnList(
+    @Param('viewId') viewId: string,
+    @Query('enrichWithColTitleAndName') enrichWithColTitleAndName: boolean,
+  ) {
     return new PagedResponseImpl(
-      await this.viewColumnsService.columnList({ viewId }),
+      await this.viewColumnsService.columnList({
+        viewId,
+        enrichWithColTitleAndName,
+      }),
     );
   }
 

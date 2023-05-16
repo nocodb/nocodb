@@ -18,6 +18,9 @@ export class GlobalExceptionFilter implements ExceptionFilter {
   catch(exception: any, host: ArgumentsHost) {
     const ctx = host.switchToHttp();
     const response = ctx.getResponse<Response>();
+    const logger = new Logger(GlobalExceptionFilter.name);
+
+    logger.error(exception.message, exception.stack);
 
     this.logger.error(exception.message, exception.stack);
 

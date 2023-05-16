@@ -1,0 +1,271 @@
+import { Injectable } from '@nestjs/common';
+import { DataSourceType, WidgetTypeType } from 'nocodb-sdk';
+import { PagedResponseImpl } from '../../helpers/PagedResponse';
+import NcConnectionMgrv2 from '../../utils/common/NcConnectionMgrv2';
+import Widget from '../../models/Widget';
+import { Base, Column, Filter, Model, View } from '../../models';
+import { DatasService } from '../../services/datas.service';
+import { getViewAndModelByAliasOrId } from '../datas/helpers';
+import type { PathParams } from '../datas/helpers';
+import type {
+  AppearanceConfig,
+  ChartWidget,
+  ChartWidgetDataResult,
+  DataConfig,
+  DataSource,
+  DataSourceInternal,
+  NumberWidget,
+  NumberWidgetDataResult,
+  WidgetType,
+} from 'nocodb-sdk';
+
+const _parseWidgetFromAPI = (widgetFromAPI: WidgetType): Widget => {
+  // TODO: improve parsing, e.g. via 3rd party library (is AJV a candidate here?)
+  // TODO: Also, consider to move this parsing logic into SDK so it can also be used by the BE
+  console.log(widgetFromAPI);
+  const dataConfig: DataConfig =
+    typeof widgetFromAPI.data_config === 'object'
+      ? widgetFromAPI.data_config
+      : JSON.parse(widgetFromAPI.data_config || '{}');
+
+  const dataSource: DataSource =
+    typeof widgetFromAPI.data_source === 'object'
+      ? widgetFromAPI.data_source
+      : JSON.parse(widgetFromAPI.data_source || '{}');
+
+  const appearanceConfig: AppearanceConfig =
+    typeof widgetFromAPI.appearance_config === 'object'
+      ? widgetFromAPI.appearance_config
+      : JSON.parse(widgetFromAPI.appearance_config || '{}');
+
+  return {
+    ...widgetFromAPI,
+    data_config: dataConfig,
+    data_source: dataSource,
+    appearance_config: appearanceConfig,
+  };
+};
+
+@Injectable()
+export class WidgetDataService {
+  constructor(private datasService: DatasService) {}
+  async getWidgetData({
+    layoutId,
+    widgetId,
+  }: {
+    layoutId: string;
+    widgetId: string;
+    req?: any;
+  }) {
+    const rawWidget = await Widget.get(widgetId);
+    const widget = _parseWidgetFromAPI(rawWidget);
+    // const widget = Widgets.find((w) => w.id === widgetId);
+
+    // console.log('FOO widget', widget);
+
+    // * find widget by widgetId (LATER THIS WILL COME DIRECTLY FROM A DEDICATED TABLE)
+    // TODO: later apply here better structure / something like command pattern etc
+    if (widget.data_source.dataSourceType === DataSourceType.INTERNAL) {
+      const data_source: DataSourceInternal = widget.data_source;
+      console.log('FOO data_source', data_source);
+      // * check which view is used for the widget
+      // THE FOLLOWING BLOCK COULD BE MINIFIED FOR NOW / POC SAKE
+      // * check if layout editor (OR THE Dashboard Project?) has acces to DB project of the view
+      //   * for that it's probably needed to save either
+      //     * a) the layout editor user-id in the Layout
+      //     * b) to somehow save the project-ids that the Layout should have access to already now
+      //          => that way, the access right is not tied to one particular layout editor user
+      //             (who could be removed from the layout project at some point)
+      //             and the whole project could indpendently of one user be reconfigured regarding which resources it has access to
+
+      // * identify widget type and do type TS coersion
+      switch (widget.widget_type) {
+        case WidgetTypeType.Number: {
+          const numberWidget: NumberWidget = widget as NumberWidget;
+          console.log('FOO numberWidget:', numberWidget);
+          const { projectId, tableId, viewId } = data_source;
+          const { colId, aggregateFunction } = numberWidget.data_config;
+
+          const view = await View.get(viewId);
+          await view.getColumns();
+          const aggregateColumnId = colId;
+
+          const aggregateColumn = await Column.get({
+            colId: aggregateColumnId,
+          });
+
+          // TODO: resolve column id of ViewColumn
+          const aggregateColumnName = aggregateColumn?.column_name;
+
+          // TODO: probably better to do the following in the service, not in the model
+          const widgetData = await this.dataGroupAndAggregateBy({
+            widget,
+            query: undefined,
+            projectName: projectId,
+            tableName: tableId,
+            viewName: viewId,
+            aggregateColumnName,
+            aggregateFunction,
+          });
+
+          // TODO: instead of (ab)using here the existing dataService: implement directly on model level and then return also
+          // the single value directly as 'value', instead of a pseudo-list with the constructed column name
+          const result =
+            widgetData.list[0][`${aggregateFunction}__${aggregateColumnName}`];
+
+          console.log('FOO result', result);
+
+          return {
+            value: result,
+            widgetId,
+            layoutId,
+            aggregateFunction,
+            // widget_type: VisualisationType.NUMBER,
+            // colId,
+            columnName: aggregateColumnName,
+            // aggregateFunction,
+          } as NumberWidgetDataResult;
+        }
+        case WidgetTypeType.BarChart:
+        case WidgetTypeType.LineChart:
+        case WidgetTypeType.PieChart:
+        case WidgetTypeType.ScatterPlot: {
+          const chartWidget = widget as ChartWidget;
+          console.log('FOO chartWidget:', chartWidget);
+          const { projectId, tableId, viewId } = data_source;
+          const { xAxisColId, yAxisColId, aggregateFunction } =
+            chartWidget.data_config;
+
+          const view = await View.get(viewId);
+          await view.getColumns();
+          const aggregateColumnId = yAxisColId;
+
+          const aggregateColumn = await Column.get({
+            colId: aggregateColumnId,
+          });
+
+          // TODO: resolve column id of ViewColumn
+          const aggregateColumnName = aggregateColumn?.column_name;
+
+          const groupByColumnId = xAxisColId;
+
+          const groupByColumn = await Column.get({
+            colId: groupByColumnId,
+          });
+
+          // TODO: resolve column id of ViewColumn
+          const groupByColumnName = groupByColumn?.column_name;
+
+          // TODO: probably better to do the following in the service, not in the model
+          // const widgetData = await this.datasService.dataGroupAndAggregateBy({
+          //   query: undefined,
+          //   projectName: projectId,
+          //   tableName: tableId,
+          //   viewName: viewId,
+          //   aggregateColumnName,
+          //   aggregateFunction,
+          //   groupByColumnId: groupByColumnName,
+          //   // groupByColumnId,
+          // });
+
+          const widgetData = await this.dataGroupAndAggregateBy({
+            widget,
+            query: undefined,
+            projectName: projectId,
+            tableName: tableId,
+            viewName: viewId,
+            aggregateColumnName,
+            aggregateFunction,
+            groupByColumnId: groupByColumnName,
+            // query: undefined,
+            // projectName: projectId,
+            // tableName: tableId,
+            // viewName: viewId,
+            // aggregateColumnName,
+            // aggregateFunction,
+            // groupByColumnId: groupByColumnName,
+            // groupByColumnId,
+          });
+
+          // TODO: instead of (ab)using here the existing dataService: implement directly on model level and then return also
+          // the single value directly as 'value', instead of a pseudo-list with the constructed column name
+          const result = widgetData.list; //[0][`${aggregateFunction}__${aggregateColumnName}`];
+
+          console.log('FOO result', result);
+
+          return {
+            aggregateFunction,
+            xColumnName: groupByColumnName,
+            yColumnName: aggregateColumnName,
+            values: result,
+            // widget_type: VisualisationType.NUMBER,
+            // colId,
+            // aggregateFunction,
+          } as ChartWidgetDataResult;
+        }
+      }
+
+      // * QUICKLY/TIMEBOXED consider to use JSON parsing/validation library
+
+      // * do data resolving
+      //   * more details here, e.g. regarding type specifics / command pattern etc?
+      // * return data
+    }
+
+    throw new Error(
+      'Not implemented yet for this VisualisationType/DataSource combination',
+    );
+    console.log('--------END------');
+  }
+
+  async dataGroupAndAggregateBy(
+    param: PathParams & {
+      widget: Widget;
+      query: any;
+      groupByColumnId?: string;
+      aggregateColumnName: string;
+      aggregateFunction: string;
+    },
+  ) {
+    const { model, view } = await getViewAndModelByAliasOrId(param);
+    return await this.getDataAggregateBy({ model, view, ...param });
+  }
+
+  async getDataAggregateBy(param: {
+    widget: Widget;
+    model: Model;
+    view: View;
+    query?: any;
+    aggregateColumnName: string;
+    aggregateFunction: string;
+    groupByColumnId?: string;
+  }) {
+    const { model, view, query = {} } = param;
+
+    const base = await Base.get(model.base_id);
+
+    const baseModel = await Model.getBaseModelSQL({
+      id: model.id,
+      viewId: view?.id,
+      dbDriver: await NcConnectionMgrv2.get(base),
+    });
+
+    const widgetFilterArr = await Filter.rootFilterListByWidget({
+      widgetId: param.widget.id,
+    });
+
+    // const listArgs: any = { ...query };
+    const data = await baseModel.groupByAndAggregate(
+      param.aggregateColumnName,
+      param.aggregateFunction,
+      { groupByColumnId: param.groupByColumnId, widgetFilterArr, ...query },
+      // { groupByColumnId: param.groupByColumnId, ...query },
+    );
+    console.log('data', data);
+    // const count = await baseModel.count(listArgs);
+
+    return new PagedResponseImpl(data, {
+      ...query,
+    });
+  }
+}

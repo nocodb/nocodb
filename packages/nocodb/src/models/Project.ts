@@ -1,3 +1,4 @@
+import { ProjectTypes } from 'nocodb-sdk';
 import Noco from '../Noco';
 import {
   CacheDelDirection,
@@ -8,6 +9,7 @@ import {
 import { extractProps } from '../helpers/extractProps';
 import NocoCache from '../cache/NocoCache';
 import Base from './/Base';
+import DashboardProjectDBProject from './DashboardProjectDBProject';
 import type { BoolType, MetaType, ProjectType } from 'nocodb-sdk';
 import type { DB_TYPES } from './/Base';
 
@@ -23,6 +25,7 @@ export default class Project implements ProjectType {
   public order: number;
   public is_meta = false;
   public bases?: Base[];
+  public linked_db_projects?: Project[];
   public type: string;
   public fk_workspace_id?: string;
 
@@ -141,6 +144,34 @@ export default class Project implements ProjectType {
     return (this.bases = await Base.list({ projectId: this.id }, ncMeta));
   }
 
+  async getLinkedDbProjects(ncMeta = Noco.ncMeta): Promise<Project[]> {
+    return (this.linked_db_projects =
+      await DashboardProjectDBProject.getDbProjectsList(
+        {
+          dashboard_project_id: this.id,
+        },
+        ncMeta,
+      ));
+    // return (this.linkedDbProjects = await Project.list({ type: 'linked' }));
+
+    // const projectListQb = ncMeta
+    //   .knex(MetaTable.PROJECT)
+    //   .select(`${MetaTable.PROJECT}.*`)
+    //   .leftJoin(MetaTable.DASHBOARD_PROJECT_DB_PROJECT_LINKINGS, function () {
+    //     this.on(
+    //       `${MetaTable.DASHBOARD_PROJECT_DB_PROJECT_LINKINGS}.db_project_id`,
+    //       '=',
+    //       `${MetaTable.PROJECT}.id`,
+    //     ).andOn(
+    //       `${MetaTable.DASHBOARD_PROJECT_DB_PROJECT_LINKINGS}.project_id`,
+    //       '=',
+    //       ncMeta.knex.raw('?', [this.id]),
+    //     );
+    //   });
+
+    // return await projectListQb;
+  }
+
   // todo: hide credentials
   // @ts-ignore
   static async getWithInfo(
@@ -173,6 +204,9 @@ export default class Project implements ProjectType {
     if (projectData) {
       const project = new Project(projectData);
       await project.getBases(ncMeta);
+      if (project.type === ProjectTypes.DASHBOARD) {
+        await project.getLinkedDbProjects(ncMeta);
+      }
       return project;
     }
     return null;

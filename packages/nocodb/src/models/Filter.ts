@@ -13,6 +13,7 @@ import Model from './Model';
 import Column from './Column';
 import Hook from './Hook';
 import View from './View';
+import Widget from './Widget';
 import type { BoolType, FilterType } from 'nocodb-sdk';
 
 export const COMPARISON_OPS = <const>[
@@ -116,6 +117,7 @@ export default class Filter implements FilterType {
       'id',
       'fk_view_id',
       'fk_hook_id',
+      'fk_widget_id',
       'fk_column_id',
       'comparison_op',
       'comparison_sub_op',
@@ -128,10 +130,13 @@ export default class Filter implements FilterType {
       'order',
     ]);
 
+    const referencedModelColName = filter.fk_hook_id
+      ? 'fk_hook_id'
+      : filter.fk_view_id
+      ? 'fk_view_id'
+      : 'fk_widget_id';
     insertObj.order = await ncMeta.metaGetNextOrder(MetaTable.FILTER_EXP, {
-      [filter.fk_hook_id ? 'fk_hook_id' : 'fk_view_id']: filter.fk_hook_id
-        ? filter.fk_hook_id
-        : filter.fk_view_id,
+      [referencedModelColName]: filter[referencedModelColName],
     });
 
     if (!(filter.project_id && filter.base_id)) {
@@ -145,8 +150,13 @@ export default class Filter implements FilterType {
       } else {
         NcError.badRequest('Invalid filter');
       }
-      insertObj.project_id = model.project_id;
-      insertObj.base_id = model.base_id;
+      // TODO: consider to imporve this logic
+      // currently this null check is done because filters for Dashboard Widgets do not have a project_id and base_id atm
+      // but just a widget_id (which is potentially not the best approach)
+      if (model != null) {
+        insertObj.project_id = model.project_id;
+        insertObj.base_id = model.base_id;
+      }
     }
 
     const row = await ncMeta.metaInsert2(
@@ -178,9 +188,11 @@ export default class Filter implements FilterType {
     filter: Partial<FilterType>,
     ncMeta = Noco.ncMeta,
   ) {
-    if (!(id && (filter.fk_view_id || filter.fk_hook_id))) {
+    if (
+      !(id && (filter.fk_view_id || filter.fk_hook_id || filter.fk_widget_id))
+    ) {
       throw new Error(
-        `Mandatory fields missing in FITLER_EXP cache population : id(${id}), fk_view_id(${filter.fk_view_id}), fk_hook_id(${filter.fk_hook_id})`,
+        `Mandatory fields missing in FITLER_EXP cache population : id(${id}), fk_view_id(${filter.fk_view_id}), fk_hook_id(${filter.fk_hook_id}, fk_widget_id(${filter.fk_widget_id})`,
       );
     }
     const key = `${CacheScope.FILTER_EXP}:${id}`;
@@ -217,6 +229,15 @@ export default class Filter implements FilterType {
             NocoCache.appendToList(
               CacheScope.FILTER_EXP,
               [filter.fk_view_id, filter.fk_parent_id],
+              key,
+            ),
+          );
+        }
+        if (filter.fk_widget_id) {
+          p.push(
+            NocoCache.appendToList(
+              CacheScope.FILTER_EXP,
+              [filter.fk_widget_id, filter.fk_parent_id],
               key,
             ),
           );
@@ -499,6 +520,32 @@ export default class Filter implements FilterType {
     return filterObjs
       ?.filter((f) => !f.fk_parent_id)
       ?.map((f) => new Filter(f));
+  }
+
+  static async rootFilterListByWidget(
+    { widgetId }: { widgetId: string },
+    ncMeta = Noco.ncMeta,
+  ) {
+    // const cachedList = await NocoCache.getList(CacheScope.FILTER_EXP, [
+    //   widgetId,
+    // ]);
+    // let { list: filterObjs } = cachedList;
+    // const { isNoneList } = cachedList;
+    // if (!isNoneList && !filterObjs.length) {
+    const filterObjs = await ncMeta.metaList2(
+      null,
+      null,
+      MetaTable.FILTER_EXP,
+      {
+        condition: { fk_widget_id: widgetId },
+        orderBy: {
+          order: 'asc',
+        },
+      },
+    );
+    // await NocoCache.setList(CacheScope.FILTER_EXP, [widgetId], filterObjs);
+    // }
+    return filterObjs?.map((f) => new Filter(f));
   }
 
   static async rootFilterListByHook(

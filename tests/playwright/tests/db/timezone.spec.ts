@@ -501,24 +501,7 @@ test.describe.serial('External DB - DateTime column', async () => {
     },
   };
 
-  // test.use({
-  //   locale: 'zh-HK',
-  //   timezoneId: 'Asia/Hong_Kong',
-  // });
-
-  test.beforeEach(async ({ page }) => {
-    context = await setup({ page, isEmptyProject: true });
-    dashboard = new DashboardPage(page, context.project);
-
-    api = new Api({
-      baseURL: `http://localhost:8080/`,
-      headers: {
-        'xc-auth': context.token,
-      },
-    });
-
-    await createTableWithDateTimeColumn(context.dbType);
-
+  async function connectToExtDb() {
     if (isPg(context)) {
       await api.base.create(context.project.id, {
         alias: 'datetimetable',
@@ -559,38 +542,60 @@ test.describe.serial('External DB - DateTime column', async () => {
     // wait for 5 seconds for the base to be created
     // hack for CI
     await dashboard.rootPage.waitForTimeout(2000);
+  }
+
+  test.beforeEach(async ({ page }) => {
+    context = await setup({ page, isEmptyProject: true });
+    dashboard = new DashboardPage(page, context.project);
+
+    api = new Api({
+      baseURL: `http://localhost:8080/`,
+      headers: {
+        'xc-auth': context.token,
+      },
+    });
+
+    await createTableWithDateTimeColumn(context.dbType);
+  });
+
+  test.afterEach(async () => {
+    if (isMysql(context)) {
+      // Reset DB Timezone
+      const config = getKnexConfig({ dbName: 'sakila', dbType: 'mysql' });
+      const mysqlknex = knex(config);
+      await mysqlknex.raw(`SET GLOBAL time_zone = '+00:00'`);
+      await mysqlknex.destroy();
+    }
   });
 
   test.skip('Formula, verify display value', async () => {
-    try {
-      api = new Api({
-        baseURL: `http://localhost:8080/`,
-        headers: {
-          'xc-auth': context.token,
-        },
-      });
-      const projectList = await api.project.list();
-      const table = await api.dbTable.list(projectList.list[0].id);
-      await api.dbTableColumn.create(table.list[0].id, {
-        title: 'formula-1',
-        uidt: UITypes.Formula,
-        formula_raw: 'DATEADD(DatetimeWithoutTz, 1, "day")',
-      });
-      const table2 = await api.dbTableColumn.create(table.list[0].id, {
-        title: 'formula-2',
-        uidt: UITypes.Formula,
-        formula_raw: 'DATEADD(DatetimeWithTz, 1, "day")',
-      });
+    await connectToExtDb();
 
-      await api.dbTableColumn.update(table2.columns[3].id, {
-        title: 'formula-23',
-        column_name: 'formula-23',
-        uidt: UITypes.Formula,
-        formula_raw: 'DATEADD(DatetimeWithTz, 1, "month")',
-      });
-    } catch (e) {
-      console.log(e);
-    }
+    api = new Api({
+      baseURL: `http://localhost:8080/`,
+      headers: {
+        'xc-auth': context.token,
+      },
+    });
+    const projectList = await api.project.list();
+    const table = await api.dbTable.list(projectList.list[0].id);
+    await api.dbTableColumn.create(table.list[0].id, {
+      title: 'formula-1',
+      uidt: UITypes.Formula,
+      formula_raw: 'DATEADD(DatetimeWithoutTz, 1, "day")',
+    });
+    const table2 = await api.dbTableColumn.create(table.list[0].id, {
+      title: 'formula-2',
+      uidt: UITypes.Formula,
+      formula_raw: 'DATEADD(DatetimeWithTz, 1, "day")',
+    });
+
+    await api.dbTableColumn.update(table2.columns[3].id, {
+      title: 'formula-23',
+      column_name: 'formula-23',
+      uidt: UITypes.Formula,
+      formula_raw: 'DATEADD(DatetimeWithTz, 1, "month")',
+    });
 
     await dashboard.treeView.openBase({ title: 'datetimetable' });
     await dashboard.treeView.openTable({ title: 'MyTable' });
@@ -611,6 +616,8 @@ test.describe.serial('External DB - DateTime column', async () => {
   });
 
   test('Verify display value, UI insert, API response', async () => {
+    await connectToExtDb();
+
     // get timezone offset
     const timezoneOffset = new Date().getTimezoneOffset();
     const hours = Math.floor(Math.abs(timezoneOffset) / 60);
@@ -736,6 +743,7 @@ test.describe.serial('External DB - DateTime column', async () => {
     if (!isMysql(context)) {
       return;
     }
+
     // set DB timezone to HKT
     // Note that, TZ value is changed after DateTime field is created; hence the values in it will not change
     // Only values for TimeStamp will change
@@ -743,6 +751,9 @@ test.describe.serial('External DB - DateTime column', async () => {
     const mysqlknex = knex(config);
     await mysqlknex.raw(`SET GLOBAL time_zone = '+08:00'`);
     await mysqlknex.destroy();
+
+    // connect after timezone is set
+    await connectToExtDb();
 
     await dashboard.treeView.openBase({ title: 'datetimetable' });
     await dashboard.treeView.openTable({ title: 'MyTable' });
@@ -762,7 +773,7 @@ test.describe.serial('External DB - DateTime column', async () => {
     await dashboard.grid.cell.verifyDateCell({
       index: 0,
       columnHeader: 'DatetimeWithTz',
-      value: '2023-04-27 15:30',
+      value: '2023-04-27 07:30',
     });
     await dashboard.grid.cell.verifyDateCell({
       index: 1,
@@ -805,14 +816,14 @@ test.describe.serial('External DB - DateTime column', async () => {
     let dateTimeWithTz = records.list.map(record => record.DatetimeWithTz);
 
     const expectedDateTimeWithoutTz = [
-      '2023-04-27 10:00:00+08:00',
-      '2023-04-27 04:30:00+08:00',
-      '2023-04-27 12:30:00+08:00',
+      '2023-04-27 02:00:00+00:00',
+      '2023-04-27 04:30:00+00:00',
+      '2023-04-27 04:30:00+00:00',
     ];
     const expectedDateTimeWithTz = [
-      '2023-04-27 10:00:00+08:00',
-      '2023-04-27 12:30:00+08:00',
-      '2023-04-27 12:30:00+08:00',
+      '2023-04-27 02:00:00+00:00',
+      '2023-04-27 04:30:00+00:00',
+      '2023-04-27 04:30:00+00:00',
     ];
 
     // reset seconds to 00 using string functions in dateTimeWithoutTz

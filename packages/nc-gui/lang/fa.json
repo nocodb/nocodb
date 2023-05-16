@@ -452,30 +452,30 @@
     "linkRecord": "لینک کردن رکورد",
     "addNewRecord": "افزودن رکورد جدید",
     "useConnectionUrl": "استفاده از لینک اتصال",
-    "toggleCommentsDraw": "Toggle comments draw",
-    "expandRecord": "Expand Record",
-    "deleteRecord": "Delete Record",
+    "toggleCommentsDraw": "تعویض حالت نظرات",
+    "expandRecord": "بسط دادن رکورد",
+    "deleteRecord": "حذف رکورد",
     "erd": {
-      "showColumns": "Show Columns",
-      "showPkAndFk": "Show Primary and Foreign Keys",
-      "showSqlViews": "Show SQL Views",
-      "showMMTables": "Show Many to Many tables",
-      "showJunctionTableNames": "Show Junction Table Names"
+      "showColumns": "نمایش ستون",
+      "showPkAndFk": "نمایش کلید های اصلی و خارجی",
+      "showSqlViews": "نمایش نماهای SQL",
+      "showMMTables": "نمایش جدول‌های بسیار به بسیار",
+      "showJunctionTableNames": "نمایش نام جدول های اتصال"
     },
     "kanban": {
-      "collapseStack": "Collapse Stack",
-      "deleteStack": "Delete Stack",
-      "stackedBy": "Stacked By",
-      "chooseGroupingField": "Choose a Grouping Field",
-      "addOrEditStack": "Add / Edit Stack"
+      "collapseStack": "جمع کردن دسته",
+      "deleteStack": "حذف دسته",
+      "stackedBy": "دسته‌بندی با",
+      "chooseGroupingField": "انتخاب فیلد گروه‌بندی",
+      "addOrEditStack": "اضافه/ویرایش دسته"
     },
     "map": {
-      "mappedBy": "Mapped By",
-      "chooseMappingField": "Choose a Mapping Field",
-      "openInGoogleMaps": "Google Maps",
+      "mappedBy": "نگاشته شده با",
+      "chooseMappingField": "انتخاب فیلد نگاشتن",
+      "openInGoogleMaps": "گوگل مپس",
       "openInOpenStreetMap": "OSM"
     },
-    "toggleMobileMode": "Toggle Mobile Mode"
+    "toggleMobileMode": "تغییر وضعیت حالت موبایل"
   },
   "tooltip": {
     "saveChanges": "ذخیره تغییرات",
@@ -522,21 +522,21 @@
     "noItemsFound": "مواردی یافت نشد",
     "defaultValue": "مقدار پیش‌فرض",
     "filterByEmail": "فیلترکردن بر مبنای پست الکترونیکی",
-    "filterQuery": "Filter query",
-    "selectField": "Select field"
+    "filterQuery": "فیلتر کردن پرسش",
+    "selectField": "انتخاب فیلد"
   },
   "msg": {
     "warning": {
       "barcode": {
-        "renderError": "Barcode error - please check compatibility between input and barcode type"
+        "renderError": "خطای بارکد - لطفا سازگاری بین ورودی و نوع بارکد را بررسی کنید"
       },
       "nonEditableFields": {
-        "computedFieldUnableToClear": "Warning: Computed field - unable to clear text",
-        "qrFieldsCannotBeDirectlyChanged": "Warning: QR fields cannot be directly changed."
+        "computedFieldUnableToClear": "اخطار: فیلد محاسبه شده - نمیتوان متن را خالی کرد",
+        "qrFieldsCannotBeDirectlyChanged": "اخطار: فیلدهای QR نمیتوانند به طور مستقیم ویرایش شوند."
       }
     },
     "info": {
-      "pasteNotSupported": "Paste operation is not supported on the active cell",
+      "pasteNotSupported": "عملیات جای‌گذاری در سلول فعال پشتیبانی نمی‌شود",
       "roles": {
         "orgCreator": "Creator can create new projects and access any invited project.",
         "orgViewer": "Viewer is not allowed to create new projects but they can access any invited project."

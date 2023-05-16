@@ -1781,6 +1781,7 @@ class BaseModelSqlv2 {
       const insertObj = await this.model.mapAliasToColumn(
         data,
         this.clientMeta,
+        this.dbDriver,
       );
 
       await this.validate(insertObj);
@@ -1922,6 +1923,7 @@ class BaseModelSqlv2 {
       const updateObj = await this.model.mapAliasToColumn(
         data,
         this.clientMeta,
+        this.dbDriver,
       );
 
       await this.validate(data);
@@ -2016,6 +2018,7 @@ class BaseModelSqlv2 {
       const insertObj = await this.model.mapAliasToColumn(
         data,
         this.clientMeta,
+        this.dbDriver,
       );
 
       let rowId = null;
@@ -2173,7 +2176,11 @@ class BaseModelSqlv2 {
         : await Promise.all(
             datas.map(async (d) => {
               await populatePk(this.model, d);
-              return this.model.mapAliasToColumn(d, this.clientMeta);
+              return this.model.mapAliasToColumn(
+                d,
+                this.clientMeta,
+                this.dbDriver,
+              );
             }),
           );
 
@@ -2237,7 +2244,9 @@ class BaseModelSqlv2 {
       const updateDatas = raw
         ? datas
         : await Promise.all(
-            datas.map((d) => this.model.mapAliasToColumn(d, this.clientMeta)),
+            datas.map((d) =>
+              this.model.mapAliasToColumn(d, this.clientMeta, this.dbDriver),
+            ),
           );
 
       const prevData = [];
@@ -2293,6 +2302,7 @@ class BaseModelSqlv2 {
       const updateData = await this.model.mapAliasToColumn(
         data,
         this.clientMeta,
+        this.dbDriver,
       );
       await this.validate(updateData);
       const pkValues = await this._extractPksValues(updateData);
@@ -2339,7 +2349,9 @@ class BaseModelSqlv2 {
     let transaction;
     try {
       const deleteIds = await Promise.all(
-        ids.map((d) => this.model.mapAliasToColumn(d, this.clientMeta)),
+        ids.map((d) =>
+          this.model.mapAliasToColumn(d, this.clientMeta, this.dbDriver),
+        ),
       );
 
       const deleted = [];

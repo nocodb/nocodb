@@ -23,6 +23,7 @@ enum ClickhouseTables {
   NOTIFICATION = 'nc_notification',
   PAGE_SNAPSHOT = 'docs_page_snapshot',
   TELEMETRY = 'usage_telemetry',
+  AUDIT = 'nc_audit',
 }
 
 @Controller()
@@ -131,7 +132,7 @@ export class AppController {
 
       // Generate the ClickHouse insert query
       const insertQuery = `INSERT INTO ${
-        ClickhouseTables.TELEMETRY
+        ClickhouseTables.AUDIT
       } (id,timestamp,event,email,user_id,req_ipv4,req_ipv6,base_id,project_id,workspace_id,fk_model_id,row_id,op_type,sub_op_type,status,description,details) 
                          VALUES ${rows.join(',')}`;
 

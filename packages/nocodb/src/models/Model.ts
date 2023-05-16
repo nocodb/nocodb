@@ -489,13 +489,8 @@ export default class Model implements TableType {
                 .utcOffset(d.getTimezoneOffset(), true)
                 .format('YYYY-MM-DD HH:mm:ss');
             } else if (isPg) {
-              if (col.dt !== 'timestamp with time zone') {
-                // e.g. 2023-05-10T08:49:32.000Z -> 2023-05-10 08:49:32-08:00
-                val = dayjs
-                  .utc(val)
-                  .utcOffset(d.getTimezoneOffset(), true)
-                  .format('YYYY-MM-DD HH:mm:ssZ');
-              }
+              // e.g. 2023-01-01T12:00:00.000Z -> 2023-01-01 20:00:00+08:00
+              val = dayjs(val).format('YYYY-MM-DD HH:mm:ssZ');
             } else if (isMssql) {
               // e.g. 2023-05-10T08:49:32.000Z -> 2023-05-10 08:49:32-08:00
               val = dayjs
@@ -527,7 +522,8 @@ export default class Model implements TableType {
                 }
               }
             } else {
-              val = dayjs(val).utc().format('YYYY-MM-DD HH:mm:ssZ');
+              // e.g. 2023-01-01T12:00:00.000Z -> 2023-01-01 20:00:00+08:00
+              val = dayjs(val).format('YYYY-MM-DD HH:mm:ssZ');
             }
           }
         }

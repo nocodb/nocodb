@@ -1631,16 +1631,25 @@ class BaseModelSqlv2 {
                   }`,
                 ],
               );
+            break;
           } else if (this.isPg) {
-            // TODO
-            res[sanitize(column.title || column.column_name)] = sanitize(
-              `${alias || this.model.table_name}.${column.column_name}`,
-            );
-          } else {
-            res[sanitize(column.title || column.column_name)] = sanitize(
-              `${alias || this.model.table_name}.${column.column_name}`,
-            );
+            // if there is no timezone info, convert it to UTC
+            if (column.dt !== 'timestamp with time zone') {
+              res[sanitize(column.title || column.column_name)] =
+                this.dbDriver.raw(
+                  `?? AT TIME ZONE CURRENT_SETTING('timezone') AT TIME ZONE 'UTC'`,
+                  [
+                    `${sanitize(alias || this.model.table_name)}.${
+                      column.column_name
+                    }`,
+                  ],
+                );
+              break;
+            }
           }
+          res[sanitize(column.title || column.column_name)] = sanitize(
+            `${alias || this.model.table_name}.${column.column_name}`,
+          );
           break;
         case 'LinkToAnotherRecord':
         case 'Lookup':
@@ -2191,10 +2200,6 @@ class BaseModelSqlv2 {
         }
       }
 
-      // set the session timezone
-      // see the comments in function for details
-      await this.setUtcTimezone(trx);
-
       const response =
         this.isPg || this.isMssql
           ? await trx
@@ -2255,10 +2260,6 @@ class BaseModelSqlv2 {
       }
 
       transaction = await this.dbDriver.transaction();
-
-      // set the session timezone
-      // see the comments in function for details
-      await this.setUtcTimezone(transaction);
 
       for (const o of toBeUpdated) {
         await transaction(this.tnPath).update(o.d).where(o.wherePk);
@@ -3225,10 +3226,6 @@ class BaseModelSqlv2 {
       query = sanitize(query);
     }
 
-    // set the session timezone
-    // see the comments in function for details
-    await this.setUtcTimezone(this.dbDriver);
-
     let data =
       this.isPg || this.isSnowflake
         ? (await this.dbDriver.raw(query))?.rows
@@ -3390,12 +3387,6 @@ class BaseModelSqlv2 {
       }
     }
     return data;
-  }
-
-  private async setUtcTimezone(knex) {
-    if (this.isPg) {
-      await knex.raw(`SET TIME ZONE 'UTC'`);
-    }
   }
 }
 

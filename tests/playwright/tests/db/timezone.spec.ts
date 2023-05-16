@@ -482,21 +482,21 @@ test.describe.serial('External DB - DateTime column', async () => {
       // SQLite doesn't have with & without timezone fields; both are same in this case
       DatetimeWithoutTz: [
         getDateTimeInLocalTimeZone('2023-04-27 10:00:00+00:00'),
-        getDateTimeInLocalTimeZone('2023-04-27 04:30:00+00:00'),
+        getDateTimeInLocalTimeZone('2023-04-27 10:00:00+05:30'),
       ],
       DatetimeWithTz: [
         getDateTimeInLocalTimeZone('2023-04-27 10:00:00+00:00'),
-        getDateTimeInLocalTimeZone('2023-04-27 04:30:00+00:00'),
+        getDateTimeInLocalTimeZone('2023-04-27 10:00:00+05:30'),
       ],
     },
     mysql: {
       DatetimeWithoutTz: [
         getDateTimeInLocalTimeZone('2023-04-27 10:00:00+00:00'),
-        getDateTimeInLocalTimeZone('2023-04-27 04:30:00+00:00'),
+        getDateTimeInLocalTimeZone('2023-04-27 10:00:00+05:30'),
       ],
       DatetimeWithTz: [
         getDateTimeInLocalTimeZone('2023-04-27 10:00:00+00:00'),
-        getDateTimeInLocalTimeZone('2023-04-27 04:30:00+00:00'),
+        getDateTimeInLocalTimeZone('2023-04-27 10:00:00+05:30'),
       ],
     },
   };

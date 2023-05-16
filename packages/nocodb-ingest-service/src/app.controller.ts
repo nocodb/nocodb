@@ -88,7 +88,7 @@ export class AppController {
   }
 
   @MessagePattern('cloud-audit')
-  async teleEvent(@Payload() messages: any[]) {
+  async audit(@Payload() messages: any[]) {
     try {
       const rows = [];
 
@@ -123,28 +123,16 @@ export class AppController {
         }
 
         rows.push(
-          `(generateUUIDv4(),${Math.round(timestamp / 1000) ?? 'NOW()'}, 
-          '${event}',
-          '${email}',
-          '${user_id}',
-          '${ip}',
-          '${base_id}',
-          '${project_id}',
-          '${workspace_id}',
-          '${fk_model_id}',
-          '${row_id}',
-          '${op_type}',
-          '${op_sub_type}',
-          '${status}',
-          '${description}',
-          '${details}')`,
+          `(generateUUIDv4(),${
+            Math.round(timestamp / 1000) ?? 'NOW()'
+          }, '${event}','${email}','${user_id}',${ipv4},${ipv6},'${base_id}','${project_id}','${workspace_id}','${fk_model_id}','${row_id}','${op_type}','${op_sub_type}','${status}','${description}','${details}')`,
         );
       });
 
       // Generate the ClickHouse insert query
       const insertQuery = `INSERT INTO ${
         ClickhouseTables.TELEMETRY
-      } (id,timestamp,event,package_id,url,ipv4,ipv6,properties) 
+      } (id,timestamp,event,email,user_id,req_ipv4,req_ipv6,base_id,project_id,workspace_id,fk_model_id,row_id,op_type,sub_op_type,status,description,details) 
                          VALUES ${rows.join(',')}`;
 
       await this.clickhouseService.execute(insertQuery);
@@ -154,7 +142,7 @@ export class AppController {
   }
 
   @MessagePattern('cloud-telemetry')
-  async audit(@Payload() messages: any[]) {
+  async teleEvent(@Payload() messages: any[]) {
     try {
       const rows = [];
 
@@ -191,7 +179,7 @@ export class AppController {
       // Generate the ClickHouse insert query
       const insertQuery = `INSERT INTO ${
         ClickhouseTables.TELEMETRY
-      } (id,timestamp,event,package_id,url,ipv4,ipv6,properties) 
+      } (id,timestamp,event,package_id,url,req_ipv4,req_ipv6,properties) 
                          VALUES ${rows.join(',')}`;
 
       await this.clickhouseService.execute(insertQuery);

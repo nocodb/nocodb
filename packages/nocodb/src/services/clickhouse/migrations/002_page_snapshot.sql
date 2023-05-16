@@ -6,7 +6,7 @@ CREATE TABLE IF NOT EXISTS docs_page_snapshot (
   last_updated_by_id String(20) NOT NULL,
   created_at DateTime DEFAULT now(),
   page_json String,
-  diff String(20),
-  type String NOT NULL,
+  diff String,
+  type String(20) NOT NULL,
 ) ENGINE = ReplacingMergeTree
   ORDER BY id;

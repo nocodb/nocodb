@@ -50,7 +50,7 @@ export default class KafkaConsumerServer
     await this.consumer.run({
       eachBatch: async ({ batch }) => {
         this.logger.log(
-          `Received batch with ${batch.messages.length} messages`,
+          `Received '${batch.topic}' batch with ${batch.messages.length} messages`,
         );
 
         const rows = [];

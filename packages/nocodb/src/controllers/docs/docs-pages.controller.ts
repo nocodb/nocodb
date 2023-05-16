@@ -3,6 +3,7 @@ import {
   Controller,
   Delete,
   Get,
+  Logger,
   Param,
   Post,
   Put,
@@ -18,6 +19,8 @@ import { DocsPagesService } from '../../services/docs/docs-pages.service';
 @Controller()
 @UseGuards(AuthGuard('jwt'))
 export class DocsPagesController {
+  private logger = new Logger(DocsPagesController.name);
+
   constructor(
     private readonly pagesService: DocsPagesService,
     private readonly pageHistoryService: DocsPageHistoryService,
@@ -72,11 +75,15 @@ export class DocsPagesController {
       user: req.user,
     });
 
-    await this.pageHistoryService.maybeInsert({
-      newPage: page,
-      workspaceId: req.ncWorkspaceId,
-      snapshotType: 'created',
-    });
+    try {
+      await this.pageHistoryService.maybeInsert({
+        newPage: page,
+        workspaceId: req.ncWorkspaceId,
+        snapshotType: 'created',
+      });
+    } catch (e) {
+      this.logger.error(e);
+    }
 
     return page;
   }

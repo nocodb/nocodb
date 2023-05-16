@@ -53,8 +53,8 @@ export class ClickhouseService implements OnModuleInit, OnModuleDestroy {
         this.config.database,
       );
     } catch (e) {
-      this.logger.error(e);
       this.logger.error('Check your Clickhouse configuration');
+      throw e;
     }
     this.client = new ClickHouse(this.config);
   }

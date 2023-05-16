@@ -528,7 +528,10 @@ export class AppHooksListenerService implements OnModuleInit, OnModuleDestroy {
   private async auditInsert(param: Partial<Audit | AuditType>) {
     // await Audit.insert(param)
     try {
-      await this.producer.sendMessage('cloud-audit', JSON.stringify(param));
+      await this.producer.sendMessage(
+        'cloud-audit',
+        JSON.stringify({ ...param, timestamp: Date.now() }),
+      );
     } catch (e) {
       this.logger.error(e);
     }

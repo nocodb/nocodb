@@ -11,6 +11,7 @@ import {
   useLTARStoreOrThrow,
   useUIPermission,
 } from '#imports'
+import { renderValue } from "./utils";
 
 interface Props {
   value?: string | number | boolean
@@ -60,7 +61,7 @@ export default {
     :class="{ active }"
     @click="openExpandedForm"
   >
-    <span class="name">{{ value }}</span>
+    <span class="name">{{ renderValue(value) }}</span>
 
     <div v-show="active || isForm" v-if="!readOnly && !isLocked && isUIAllowed('xcDatatableEditable')" class="flex items-center">
       <component

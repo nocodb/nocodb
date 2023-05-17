@@ -340,9 +340,9 @@
         ]
       }
     },
-    "/api/v1/public/docs/pages": {
+    "api/v1/public/docs/project/{projectId}/pages/{parentPageId}": {
       "get": {
-        "summary": "list public pages",
+        "summary": "List tree of public pages of given parent page and its children. If the given parent page is published under a different parent page, the tree's top level will be that parent page",
         "operationId": "list-public-pages",
         "responses": {
           "200": {
@@ -362,32 +362,13 @@
         "tags": [
           "Noco docs"
         ],
-        "parameters": [
-          {
-            "name": "projectId",
-            "in": "query",
-            "description": "Project id",
-            "required": true,
-            "schema": {
-              "type": "string"
-            }
-          },
-          {
-            "name": "parent_page_id",
-            "in": "query",
-            "description": "parent_page_id",
-            "schema": {
-              "type": "string"
-            }
-          }
-        ],
         "description": ""
       }
     },
-    "/api/v1/public/docs/page/{id}": {
+    "/api/v1/public/docs/project/{projectId}/page/{id}": {
       "get": {
-        "summary": "get public page",
-        "operationId": "get-public-page",
+        "summary": "Get public page and its project",
+        "operationId": "get-public-page-and-project",
         "responses": {
           "200": {
             "description": "OK",
@@ -410,17 +391,6 @@
         },
         "tags": [
           "Noco docs"
-        ],
-        "parameters": [
-          {
-            "name": "projectId",
-            "in": "query",
-            "description": "Project id",
-            "required": true,
-            "schema": {
-              "type": "string"
-            }
-          }
         ],
         "description": ""
       }

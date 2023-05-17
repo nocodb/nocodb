@@ -3404,23 +3404,18 @@ export class Api<
      *
      * @tags Noco docs
      * @name ListPublicPages
-     * @summary list public pages
-     * @request GET:/api/v1/public/docs/pages
+     * @summary List tree of public pages of given parent page and its children. If the given parent page is published under a different parent page, the tree's top level will be that parent page
+     * @request GET:api/v1/public/docs/project/{projectId}/pages/{parentPageId}
      * @response `200` `(DocsPageType)[]` OK
      */
     listPublicPages: (
-      query: {
-        /** Project id */
-        projectId: string;
-        /** parent_page_id */
-        parent_page_id?: string;
-      },
+      projectId: string,
+      parentPageId: string,
       params: RequestParams = {}
     ) =>
       this.request<DocsPageType[], any>({
-        path: `/api/v1/public/docs/pages`,
+        path: `api/v1/public/docs/project/${projectId}/pages/${parentPageId}`,
         method: 'GET',
-        query: query,
         format: 'json',
         ...params,
       }),
@@ -3429,9 +3424,9 @@ export class Api<
  * No description
  * 
  * @tags Noco docs
- * @name GetPublicPage
- * @summary get public page
- * @request GET:/api/v1/public/docs/page/{id}
+ * @name GetPublicPageAndProject
+ * @summary Get public page and its project
+ * @request GET:/api/v1/public/docs/project/{projectId}/page/{id}
  * @response `200` `{
   \** Page of Noco docs *\
   page?: DocsPageType,
@@ -3440,12 +3435,9 @@ export class Api<
 
 }` OK
  */
-    getPublicPage: (
+    getPublicPageAndProject: (
+      projectId: string,
       id: string,
-      query: {
-        /** Project id */
-        projectId: string;
-      },
       params: RequestParams = {}
     ) =>
       this.request<
@@ -3457,9 +3449,8 @@ export class Api<
         },
         any
       >({
-        path: `/api/v1/public/docs/page/${id}`,
+        path: `/api/v1/public/docs/project/${projectId}/page/${id}`,
         method: 'GET',
-        query: query,
         format: 'json',
         ...params,
       }),

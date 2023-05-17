@@ -294,10 +294,7 @@ export const useDocStore = defineStore('docStore', () => {
     if (!withoutLoading) isNestedPageFetching.value[projectId] = true
     try {
       const nestedDocTree = isPublic.value
-        ? await $api.nocoDocs.listPublicPages({
-            projectId: projectId!,
-            parent_page_id: openedPageId.value!,
-          })
+        ? await $api.nocoDocs.listPublicPages(projectId, openedPageId.value!)
         : await $api.nocoDocs.listPages(projectId!)
 
       // traverse tree and add `isLeaf` and `key` properties
@@ -394,9 +391,7 @@ export const useDocStore = defineStore('docStore', () => {
 
     try {
       if (isPublic.value) {
-        const response = await $api.nocoDocs.getPublicPage(pageId, {
-          projectId: projectId!,
-        })
+        const response = await $api.nocoDocs.getPublicPageAndProject(projectId, pageId)
         if (!doNotSetProject) {
           setProject(response.project!)
         }
@@ -797,9 +792,7 @@ export const useDocStore = defineStore('docStore', () => {
 
     isPageFetching.value = true
     try {
-      const response = await $api.nocoDocs.getPublicPage(openedPageId.value!, {
-        projectId,
-      })
+      const response = await $api.nocoDocs.getPublicPageAndProject(projectId, openedPageId.value!)
 
       openedPage.value = response.page as any
       // project.value = response.project as any

@@ -30,10 +30,9 @@ export class DashboardFilterController {
   ) {}
 
   @Get(['/api/v1/layouts/:layoutId/widgets/:widgetId/filters'])
-  // TODO: Configure ACL here AND for all other new endpoints related to Layout
-  // @UseAclMiddleware({
-  //   permissionName: 'layoutListlayoutList',
-  // })
+  @UseAclMiddleware({
+    permissionName: 'filterList',
+  })
   async filterList(
     @Param('layoutId') layoutId: string,
     @Param('widgetId') widgetId: string,
@@ -49,10 +48,9 @@ export class DashboardFilterController {
 
   @Post(['/api/v1/layouts/:layoutId/widgets/:widgetId/filters'])
   @HttpCode(200)
-  // TODO: Configure ACL here AND for all other new endpoints related to Layout
-  // @UseAclMiddleware({
-  //   permissionName: 'tableCreate',
-  // })
+  @UseAclMiddleware({
+    permissionName: 'filterCreate',
+  })
   async filterCreate(
     @Param('layoutId') layoutId: string,
     @Param('widgetId') widgetId: string,

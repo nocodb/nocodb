@@ -36,8 +36,6 @@ export class LayoutsService {
   }) {
     validatePayload('swagger.json#/components/schemas/LayoutReq', param.layout);
 
-    // validateLayoutPayload(param.layout);
-
     const layout = await Layout.insert({
       ...param.layout,
     } as any);

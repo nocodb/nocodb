@@ -41,7 +41,7 @@ export class DatasService {
   async dataGroupAndAggregateBy(
     param: PathParams & {
       query: any;
-      groupByColumnId?: string;
+      groupByColumnName?: string;
       aggregateColumnName: string;
       aggregateFunction: string;
     },
@@ -199,7 +199,7 @@ export class DatasService {
     query?: any;
     aggregateColumnName: string;
     aggregateFunction: string;
-    groupByColumnId?: string;
+    groupByColumnName?: string;
   }) {
     const { model, view, query = {} } = param;
 
@@ -211,11 +211,10 @@ export class DatasService {
       dbDriver: await NcConnectionMgrv2.get(base),
     });
 
-    // const listArgs: any = { ...query };
     const data = await baseModel.groupByAndAggregate(
       param.aggregateColumnName,
       param.aggregateFunction,
-      { groupByColumnName: param.groupByColumnId, ...query },
+      { groupByColumnName: param.groupByColumnName, ...query },
     );
     return new PagedResponseImpl(data, {
       ...query,

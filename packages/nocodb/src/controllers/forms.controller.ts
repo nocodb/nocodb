@@ -11,10 +11,7 @@ import {
 } from '@nestjs/common';
 import { ViewCreateReqType } from 'nocodb-sdk';
 import { GlobalGuard } from '../guards/global/global.guard';
-import {
-  Acl,
-  ExtractProjectIdMiddleware,
-} from '../middlewares/extract-project-id/extract-project-id.middleware';
+import { Acl } from '../middlewares/extract-project-id/extract-project-id.middleware';
 import { FormsService } from '../services/forms.service';
 
 @Controller()

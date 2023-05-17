@@ -58,9 +58,8 @@ export class WidgetDataService {
   }) {
     const rawWidget = await Widget.get(widgetId);
     const widget = _parseWidgetFromAPI(rawWidget);
-
-    // * find widget by widgetId (LATER THIS WILL COME DIRECTLY FROM A DEDICATED TABLE)
     // TODO: later apply here better structure / something like command pattern etc
+    // * QUICKLY/TIMEBOXED consider to use JSON parsing/validation library
     if (widget.data_source.dataSourceType === DataSourceType.INTERNAL) {
       const data_source: DataSourceInternal = widget.data_source;
       // * check which view is used for the widget
@@ -87,10 +86,8 @@ export class WidgetDataService {
             colId: aggregateColumnId,
           });
 
-          // TODO: resolve column id of ViewColumn
           const aggregateColumnName = aggregateColumn?.column_name;
 
-          // TODO: probably better to do the following in the service, not in the model
           const widgetData = await this.dataGroupAndAggregateBy({
             widget,
             query: undefined,
@@ -129,7 +126,6 @@ export class WidgetDataService {
             colId: aggregateColumnId,
           });
 
-          // TODO: resolve column id of ViewColumn
           const aggregateColumnName = aggregateColumn?.column_name;
 
           const groupByColumnId = xAxisColId;

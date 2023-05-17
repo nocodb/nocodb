@@ -145,9 +145,7 @@
             "$ref": "#/components/responses/BadRequest"
           }
         },
-        "tags": [
-          "Dashboard"
-        ],
+        "tags": ["Dashboard"],
         "requestBody": {
           "content": {
             "application/json": {
@@ -226,9 +224,7 @@
             }
           }
         },
-        "tags": [
-          "Dashboard"
-        ],
+        "tags": ["Dashboard"],
         "description": "Create a new Widget in a given Layout",
         "parameters": [
           {
@@ -320,9 +316,7 @@
             "$ref": "#/components/responses/BadRequest"
           }
         },
-        "tags": [
-          "Dashboard"
-        ],
+        "tags": ["Dashboard"],
         "requestBody": {
           "content": {
             "application/json": {
@@ -14170,17 +14164,17 @@
     },
     "/api/v1/dashboards/{dashboardId}/layouts": {
       "parameters": [
-        {
-          "schema": {
-            "$ref": "#/components/schemas/Id",
-            "example": "p_124hhlkbeasewh",
-            "type": "string"
-          },
-          "name": "dashboardId",
-          "in": "path",
-          "required": true,
-          "description": "Unique Dashboard/Project ID"
-        }
+              {
+        "schema": {
+          "$ref": "#/components/schemas/Id",
+          "example": "p_124hhlkbeasewh",
+          "type": "string"
+        },
+        "name": "dashboardId",
+        "in": "path",
+        "required": true,
+        "description": "Unique Dashboard/Project ID"
+      }
       ],
       "post": {
         "summary": "Create Layout",
@@ -14209,9 +14203,7 @@
             }
           }
         },
-        "tags": [
-          "Dashboard"
-        ],
+        "tags": ["Dashboard"],
         "description": "Create a new Layout in a given Dashboard project",
         "parameters": [
           {
@@ -14235,9 +14227,7 @@
             "$ref": "#/components/parameters/xc-auth"
           }
         ],
-        "tags": [
-          "Dashboard"
-        ],
+        "tags": ["Dashboard"],
         "description": "List all Layouts in a given Dashboard project"
       }
     },
@@ -17932,11 +17922,22 @@
             "format": "date",
             "type": "string"
           },
-          "page": {
+          "last_page_updated_time": {
+            "format": "date",
+            "type": "string"
+          },
+          "before_page": {
             "$ref": "#/components/schemas/DocsPage",
             "required": "false"
           },
-          "page_json": {
+          "before_page_json": {
+            "type": "string"
+          },
+          "after_page": {
+            "$ref": "#/components/schemas/DocsPage",
+            "required": "false"
+          },
+          "after_page_json": {
             "type": "string"
           },
           "diff": {
@@ -19440,81 +19441,500 @@
       "Widget": {
         "description": "Model for Widget",
         "title": "Widget Model",
+        "required": ["id", "layout_id", "schema_version", "widget_type"],
+        "x-stoplight": {
+          "id": "q8cxkpronjmyx"
+        },
+        "anyOf": [
+          {
+            "$ref": "#/components/schemas/ChartWidget"
+          },
+          {
+            "$ref": "#/components/schemas/NumberWidget"
+          },
+          {
+            "$ref": "#/components/schemas/ButtonWidget"
+          },
+          {
+            "$ref": "#/components/schemas/StaticTextWidget"
+          }
+        ]
+      },
+      "ChartWidget": {
         "type": "object",
         "properties": {
           "id": {
-            "$ref": "#/components/schemas/Id",
-            "description": "Unique ID"
-          },
-          "layout_id": {
-            "$ref": "#/components/schemas/Id",
-            "description": "Layout ID"
+            "type": "string"
           },
           "schema_version": {
-            "type": "string",
-            "description": "Version of the schema",
-            "example": "v0.2"
+            "type": "string"
           },
-          "widget_type": {
-            "$ref": "#/components/schemas/WidgetType",
-            "description": "Type of the widget"
-          },
-          "data_source": {
-            "oneOf": [
-              {
-                "type": "null"
-              },
-              {
-                "type": "object"
-              },
-              {
-                "type": "string"
-              }
-            ],
-            "description": "Data Source JSON"
-          },
-          "data_config": {
-            "oneOf": [
-              {
-                "type": "null"
-              },
-              {
-                "type": "object"
-              },
-              {
-                "type": "string"
-              }
-            ],
-            "description": "Data Config JSON"
-          },
-          "appearance_config": {
-            "oneOf": [
-              {
-                "type": "null"
-              },
-              {
-                "type": "object"
-              },
-              {
-                "type": "string"
-              }
-            ],
-            "description": "Appearance Config JSON"
+          "layout_id": {
+            "type": "string"
           },
           "data": {
-            "type": "object",
-            "description": "The actual data for the widget"
+            "$ref": "#/components/schemas/ChartWidgetDataResult"
+          },
+          "data_config": {
+            "$ref": "#/components/schemas/DataConfigAggregated2DChart"
+          },
+          "data_source": {
+            "$ref": "#/components/schemas/DataSource"
+          },
+          "widget_type": {
+            "type": "string",
+            "enum": [
+              "line_chart",
+              "bar_chart",
+              "pie_chart",
+              "scatter_plot"
+            ]
+          },
+          "appearance_config": {
+            "$ref": "#/components/schemas/AppearanceConfigBase"
           }
         },
         "required": [
+          "appearance_config",
+          "data_config",
           "id",
           "layout_id",
           "schema_version",
           "widget_type"
         ],
-        "x-stoplight": {
-          "id": "q8cxkpronjmyx"
-        }
+        "additionalProperties": false
+      },
+      "ChartWidgetDataResult": {
+        "type": "object",
+        "properties": {
+          "layoutId": {
+            "type": "string"
+          },
+          "widgetId": {
+            "type": "string"
+          },
+          "xColumnName": {
+            "type": "string"
+          },
+          "yColumnName": {
+            "type": "string"
+          },
+          "aggregateFunction": {
+            "$ref": "#/components/schemas/AggregateFnType"
+          },
+          "values": {
+            "type": "array",
+            "items": {
+              "type": "number"
+            }
+          }
+        },
+        "required": [
+          "aggregateFunction",
+          "layoutId",
+          "values",
+          "widgetId",
+          "xColumnName",
+          "yColumnName"
+        ],
+        "additionalProperties": false
+      },
+      "AggregateFnType": {
+        "type": "string",
+        "enum": [
+          "avg",
+          "max",
+          "min",
+          "count",
+          "sum"
+        ]
+      },
+      "DataConfigAggregated2DChart": {
+        "type": "object",
+        "properties": {
+          "xAxisColId": {
+            "type": "string"
+          },
+          "yAxisColId": {
+            "type": "string"
+          },
+          "aggregateFunction": {
+            "$ref": "#/components/schemas/AggregateFnType"
+          }
+        },
+        "additionalProperties": false
+      },
+      "DataSource": {
+        "anyOf": [
+          {
+            "$ref": "#/components/schemas/DataSourceInternal"
+          },
+          {
+            "$ref": "#/components/schemas/DataSourceExternal"
+          },
+          {
+            "$ref": "#/components/schemas/DataSourceSQL"
+          },
+          {
+            "$ref": "#/components/schemas/DataSourceStaticContent"
+          }
+        ]
+      },
+      "DataSourceInternal": {
+        "type": "object",
+        "properties": {
+          "dataSourceType": {
+            "type": "string",
+            "const": "internal"
+          },
+          "projectId": {
+            "type": "string"
+          },
+          "tableId": {
+            "type": "string"
+          },
+          "viewId": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "dataSourceType"
+        ],
+        "additionalProperties": false
+      },
+      "DataSourceExternal": {
+        "type": "object",
+        "properties": {
+          "dataSourceType": {
+            "type": "string",
+            "const": "external"
+          },
+          "endpointUrl": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "dataSourceType"
+        ],
+        "additionalProperties": false
+      },
+      "DataSourceSQL": {
+        "type": "object",
+        "properties": {
+          "dataSourceType": {
+            "type": "string",
+            "const": "sql"
+          },
+          "sqlStatement": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "dataSourceType"
+        ],
+        "additionalProperties": false
+      },
+      "DataSourceStaticContent": {
+        "type": "object",
+        "properties": {
+          "dataSourceType": {
+            "type": "string",
+            "const": "static_content"
+          }
+        },
+        "required": [
+          "dataSourceType"
+        ],
+        "additionalProperties": false
+      },
+      "AppearanceConfigBase": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string"
+          },
+          "description": {
+            "type": "string"
+          },
+          "screenDimensions": {
+            "$ref": "#/components/schemas/ScreenDimensions"
+          },
+          "screenPosition": {
+            "$ref": "#/components/schemas/ScreenPosition"
+          }
+        },
+        "required": [
+          "name",
+          "screenDimensions",
+          "screenPosition"
+        ],
+        "additionalProperties": false
+      },
+      "ScreenDimensions": {
+        "type": "object",
+        "properties": {
+          "height": {
+            "type": "number"
+          },
+          "width": {
+            "type": "number"
+          }
+        },
+        "required": [
+          "height",
+          "width"
+        ],
+        "additionalProperties": false
+      },
+      "ScreenPosition": {
+        "type": "object",
+        "properties": {
+          "x": {
+            "type": "number"
+          },
+          "y": {
+            "type": "number"
+          }
+        },
+        "required": [
+          "x",
+          "y"
+        ],
+        "additionalProperties": false
+      },
+      "NumberWidget": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "schema_version": {
+            "type": "string"
+          },
+          "layout_id": {
+            "type": "string"
+          },
+          "data": {
+            "$ref": "#/components/schemas/NumberWidgetDataResult"
+          },
+          "data_config": {
+            "$ref": "#/components/schemas/DataConfigNumber"
+          },
+          "data_source": {
+            "$ref": "#/components/schemas/DataSource"
+          },
+          "widget_type": {
+            "type": "string",
+            "const": "number"
+          },
+          "appearance_config": {
+            "$ref": "#/components/schemas/AppearanceConfigBase"
+          }
+        },
+        "required": [
+          "appearance_config",
+          "data_config",
+          "id",
+          "layout_id",
+          "schema_version",
+          "widget_type"
+        ],
+        "additionalProperties": false
+      },
+      "NumberWidgetDataResult": {
+        "type": "object",
+        "properties": {
+          "layoutId": {
+            "type": "string"
+          },
+          "widgetId": {
+            "type": "string"
+          },
+          "columnName": {
+            "type": "string"
+          },
+          "aggregateFunction": {
+            "$ref": "#/components/schemas/AggregateFnType"
+          },
+          "value": {
+            "type": "number"
+          }
+        },
+        "required": [
+          "aggregateFunction",
+          "columnName",
+          "layoutId",
+          "value",
+          "widgetId"
+        ],
+        "additionalProperties": false
+      },
+      "DataConfigNumber": {
+        "type": "object",
+        "properties": {
+          "colId": {
+            "type": "string"
+          },
+          "aggregateFunction": {
+            "$ref": "#/components/schemas/AggregateFnType"
+          }
+        },
+        "additionalProperties": false
+      },
+      "ButtonWidget": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "schema_version": {
+            "type": "string"
+          },
+          "layout_id": {
+            "type": "string"
+          },
+          "data": {
+            "not": {}
+          },
+          "data_config": {
+            "$ref": "#/components/schemas/DataConfigButton"
+          },
+          "data_source": {
+            "$ref": "#/components/schemas/DataSource"
+          },
+          "widget_type": {
+            "type": "string",
+            "const": "button"
+          },
+          "appearance_config": {
+            "$ref": "#/components/schemas/AppearanceConfigBase"
+          }
+        },
+        "required": [
+          "appearance_config",
+          "data_config",
+          "id",
+          "layout_id",
+          "schema_version",
+          "widget_type"
+        ],
+        "additionalProperties": false
+      },
+      "DataConfigButton": {
+        "type": "object",
+        "properties": {
+          "actionType": {
+            "$ref": "#/components/schemas/ButtonActionType"
+          },
+          "url": {
+            "type": "string"
+          },
+          "buttonText": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "actionType",
+          "buttonText",
+          "url"
+        ],
+        "additionalProperties": false
+      },
+      "ButtonActionType": {
+        "type": "string",
+        "enum": [
+          "open_external_url",
+          "delete_record",
+          "update_record",
+          "open_layout"
+        ]
+      },
+      "StaticTextWidget": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "schema_version": {
+            "type": "string"
+          },
+          "layout_id": {
+            "type": "string"
+          },
+          "data": {
+            "not": {}
+          },
+          "data_config": {
+            "$ref": "#/components/schemas/DataConfigStaticText"
+          },
+          "data_source": {
+            "$ref": "#/components/schemas/DataSourceStaticContent"
+          },
+          "widget_type": {
+            "type": "string",
+            "const": "static_text"
+          },
+          "appearance_config": {
+            "$ref": "#/components/schemas/AppearanceConfigStaticText"
+          }
+        },
+        "required": [
+          "appearance_config",
+          "data_config",
+          "data_source",
+          "id",
+          "layout_id",
+          "schema_version",
+          "widget_type"
+        ],
+        "additionalProperties": false
+      },
+      "DataConfigStaticText": {
+        "type": "object",
+        "properties": {
+          "text": {
+            "type": "string"
+          }
+        },
+        "additionalProperties": false
+      },
+      "AppearanceConfigStaticText": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string"
+          },
+          "description": {
+            "type": "string"
+          },
+          "screenDimensions": {
+            "$ref": "#/components/schemas/ScreenDimensions"
+          },
+          "screenPosition": {
+            "$ref": "#/components/schemas/ScreenPosition"
+          },
+          "fontType": {
+            "$ref": "#/components/schemas/FontType"
+          }
+        },
+        "additionalProperties": false,
+        "required": [
+          "name",
+          "screenDimensions",
+          "screenPosition"
+        ]
+      },
+      "FontType": {
+        "type": "string",
+        "enum": [
+          "heading1",
+          "heading2",
+          "heading3",
+          "subHeading1",
+          "subHeading2",
+          "body",
+          "caption"
+        ]
       },
       "Layout": {
         "description": "Model for Layout",
@@ -19555,28 +19975,25 @@
         "title": "Layout Request Model",
         "type": "object",
         "properties": {
-          "base_id": {
-            "description": "Unique Base ID",
-            "type": "string"
-          },
-          "project_id": {
-            "description": "Unique Project ID",
-            "type": "string"
-          },
-          "title": {
-            "type": "string",
-            "description": "Layout Title",
-            "example": "My Layout"
-          },
-          "order": {
-            "description": "The order of this Layout in the list of Layouts",
-            "type": "number"
-          }
-        },
-        "required": [
-          "project_id",
-          "title"
-        ]
+                "base_id": {
+                  "description": "Unique Base ID",
+                  "type": "string"
+                },
+                "project_id": {
+                  "description": "Unique Project ID",
+                  "type": "string"
+                },
+                "title": {
+                  "type": "string",
+                  "description": "Layout Title",
+                  "example": "My Layout"
+                },
+                "order": {
+                  "description": "The order of this Layout in the list of Layouts",
+                  "type": "number"
+                }
+              },
+        "required": ["project_id", "title"]
       },
       "WidgetReq": {
         "description": "Model for Widget request",
@@ -19717,16 +20134,16 @@
         "title": "Layout Update Request Model",
         "type": "object",
         "properties": {
-          "title": {
-            "type": "string",
-            "description": "Layout Title",
-            "example": "My Layout"
-          },
-          "order": {
-            "description": "The order of this Layout in the list of Layouts",
-            "type": "number"
-          }
-        }
+                "title": {
+                  "type": "string",
+                  "description": "Layout Title",
+                  "example": "My Layout"
+                },
+                "order": {
+                  "description": "The order of this Layout in the list of Layouts",
+                  "type": "number"
+                }
+              }
       },
       "WidgetType": {
         "description": "Type of the Widget",
@@ -19756,10 +20173,7 @@
             }
           }
         },
-        "required": [
-          "list",
-          "pageInfo"
-        ],
+        "required": ["list", "pageInfo"],
         "x-stoplight": {
           "id": "2tsq8h6hjctju"
         }
@@ -19782,10 +20196,7 @@
             "$ref": "#/components/schemas/Paginated"
           }
         },
-        "required": [
-          "list",
-          "pageInfo"
-        ],
+        "required": ["list", "pageInfo"],
         "x-stoplight": {
           "id": "2tsq8h6hjctju"
         }

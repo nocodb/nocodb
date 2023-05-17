@@ -4,6 +4,7 @@ import { storeToRefs } from 'pinia'
 import {
   ColumnInj,
   EditModeInj,
+  IsFormInj,
   ReadonlyInj,
   computed,
   isBoolean,
@@ -182,6 +183,10 @@ const hasExtraPadding = $computed(() => {
       isYear(column.value, abstractType))
   )
 })
+
+// provide the following to override the default behavior and enable input fields like in form
+provide(EditModeInj, ref(true))
+provide(IsFormInj, ref(true))
 </script>
 
 <template>

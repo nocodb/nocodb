@@ -3359,9 +3359,7 @@ class BaseModelSqlv2 {
     if (data) {
       const dateTimeColumns = (
         childTable ? childTable.columns : this.model.columns
-      ).filter(
-        (c) => c.uidt === UITypes.DateTime || c.uidt === UITypes.Formula,
-      );
+      ).filter((c) => c.uidt === UITypes.DateTime);
       if (dateTimeColumns.length) {
         if (Array.isArray(data)) {
           data = data.map((d) =>

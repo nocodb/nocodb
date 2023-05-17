@@ -907,12 +907,12 @@ test.describe('Ext DB MySQL : DB Timezone configured as HKT', () => {
     const expectedDateTimeWithoutTz = [
       '2023-04-27 02:00:00+00:00',
       '2023-04-27 04:30:00+00:00',
-      '2023-04-27 04:30:00+00:00',
+      getDateTimeInUTCTimeZone('2023-04-27 10:00:00+00:00'),
     ];
     const expectedDateTimeWithTz = [
       '2023-04-27 02:00:00+00:00',
       '2023-04-27 04:30:00+00:00',
-      '2023-04-27 04:30:00+00:00',
+      getDateTimeInUTCTimeZone('2023-04-27 10:00:00+00:00'),
     ];
 
     // reset seconds to 00 using string functions in dateTimeWithoutTz

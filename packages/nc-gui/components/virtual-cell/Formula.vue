@@ -11,7 +11,9 @@ const cellValue = inject(CellValueInj)
 
 const { isPg } = useProject()
 
-const result = computed(() => (isPg(column.value.base_id) ? renderResult(handleTZ(cellValue?.value)) : renderResult(cellValue?.value)))
+const result = computed(() =>
+  isPg(column.value.base_id) ? renderResult(handleTZ(cellValue?.value)) : renderResult(cellValue?.value),
+)
 
 const urls = computed(() => replaceUrlsWithLink(result.value))
 

@@ -14,7 +14,7 @@ export class AtImportController {
   @Post('/api/v1/db/meta/import/airtable')
   @HttpCode(200)
   async importAirtable(@Request() req) {
-    const job = await this.jobsService.activeQueue.add(JobTypes.AtImport, {
+    const job = await this.jobsService.add(JobTypes.AtImport, {
       ...req.body,
     });
 
@@ -44,7 +44,7 @@ export class AtImportController {
       baseURL = `http://localhost:${process.env.PORT || 8080}`;
     }
 
-    const job = await this.jobsService.activeQueue.add(JobTypes.AtImport, {
+    const job = await this.jobsService.add(JobTypes.AtImport, {
       syncId: req.params.syncId,
       ...(syncSource?.details || {}),
       projectId: syncSource.project_id,

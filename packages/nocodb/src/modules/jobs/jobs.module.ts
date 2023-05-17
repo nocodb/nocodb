@@ -34,9 +34,9 @@ import { AtImportProcessor } from './at-import/at-import.processor';
     JobsGateway,
     JobsService,
     JobsEventService,
-    DuplicateProcessor,
     ExportService,
     ImportService,
+    DuplicateProcessor,
     AtImportProcessor,
   ],
 })

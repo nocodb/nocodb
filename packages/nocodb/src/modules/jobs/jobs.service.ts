@@ -2,6 +2,7 @@ import { InjectQueue } from '@nestjs/bull';
 import { Injectable } from '@nestjs/common';
 import { Queue } from 'bull';
 import { JOBS_QUEUE, JobStatus } from '../../interface/Jobs';
+import Noco from '../../Noco';
 import { QueueService } from './fallback-queue.service';
 
 @Injectable()
@@ -11,11 +12,16 @@ export class JobsService {
     @InjectQueue(JOBS_QUEUE) private readonly jobsQueue: Queue,
     private readonly fallbackQueueService: QueueService,
   ) {
-    this.activeQueue = this.fallbackQueueService;
-    /* process.env.NC_REDIS_URL
-        ? this.jobsQueue
-        : this.fallbackQueueService;
-    */
+    this.activeQueue = process.env['NC_REDIS_URL']
+      ? this.jobsQueue
+      : this.fallbackQueueService;
+    if (process.env['NC_REDIS_URL'] && !process.env['NC_WORKER_CONTAINER']) {
+      this.jobsQueue.pause(true);
+    }
+  }
+
+  async add(name: string, data: any) {
+    return this.activeQueue.add(name, data);
   }
 
   async jobStatus(jobId: string) {

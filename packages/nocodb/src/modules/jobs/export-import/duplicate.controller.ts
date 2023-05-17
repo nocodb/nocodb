@@ -67,7 +67,7 @@ export class DuplicateController {
       user: { id: req.user.id },
     });
 
-    const job = await this.jobsService.activeQueue.add(JobTypes.DuplicateBase, {
+    const job = await this.jobsService.add(JobTypes.DuplicateBase, {
       projectId: project.id,
       baseId: base.id,
       dupProjectId: dupProject.id,
@@ -116,20 +116,17 @@ export class DuplicateController {
       models.map((p) => p.title),
     );
 
-    const job = await this.jobsService.activeQueue.add(
-      JobTypes.DuplicateModel,
-      {
-        projectId: project.id,
-        baseId: base.id,
-        modelId: model.id,
-        title: uniqueTitle,
-        options,
-        req: {
-          user: req.user,
-          clientIp: req.clientIp,
-        },
+    const job = await this.jobsService.add(JobTypes.DuplicateModel, {
+      projectId: project.id,
+      baseId: base.id,
+      modelId: model.id,
+      title: uniqueTitle,
+      options,
+      req: {
+        user: req.user,
+        clientIp: req.clientIp,
       },
-    );
+    });
 
     return { id: job.id, name: job.name };
   }

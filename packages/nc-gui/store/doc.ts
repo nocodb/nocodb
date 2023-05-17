@@ -294,13 +294,8 @@ export const useDocStore = defineStore('docStore', () => {
     if (!withoutLoading) isNestedPageFetching.value[projectId] = true
     try {
       const nestedDocTree = isPublic.value
-        ? await $api.nocoDocs.listPublicPages({
-            projectId: projectId!,
-            parent_page_id: openedPageId.value!,
-          })
-        : await $api.nocoDocs.listPages({
-            projectId: projectId!,
-          })
+        ? await $api.nocoDocs.listPublicPages(projectId, openedPageId.value!)
+        : await $api.nocoDocs.listPages(projectId!)
 
       // traverse tree and add `isLeaf` and `key` properties
       const traverse = (parentNode: any, pages: PageSidebarNode[], level: number) => {
@@ -396,18 +391,14 @@ export const useDocStore = defineStore('docStore', () => {
 
     try {
       if (isPublic.value) {
-        const response = await $api.nocoDocs.getPublicPage(pageId, {
-          projectId: projectId!,
-        })
+        const response = await $api.nocoDocs.getPublicPageAndProject(projectId, pageId)
         if (!doNotSetProject) {
           setProject(response.project!)
         }
 
         return response.page
       }
-      return await $api.nocoDocs.getPage(pageId, {
-        projectId: projectId!,
-      })
+      return await $api.nocoDocs.getPage(projectId, pageId)
     } catch (e) {
       console.log(e, !doNotSetProject)
       if (doNotSetProject) return undefined
@@ -434,9 +425,8 @@ export const useDocStore = defineStore('docStore', () => {
     page.content_html = generateHTML(emptyDocContent, tiptapExts)
 
     try {
-      let createdPageData = await $api.nocoDocs.createPage({
+      let createdPageData = await $api.nocoDocs.createPage(projectId, {
         attributes: page,
-        projectId: projectId!,
       })
 
       if (nodeOverrides) createdPageData = { ...createdPageData, ...nodeOverrides }
@@ -521,7 +511,7 @@ export const useDocStore = defineStore('docStore', () => {
       const nestedPages = nestedPagesOfProjects.value[projectId!]
 
       const page = findPage(nestedPages, pageId)
-      await $api.nocoDocs.deletePage(pageId, { projectId: projectId! })
+      await $api.nocoDocs.deletePage(projectId, pageId)
 
       const { closeTab } = useTabs()
       await closeTab({ id: pageId })
@@ -565,9 +555,8 @@ export const useDocStore = defineStore('docStore', () => {
     if (page.title) foundPage.title = page.title
     if (page?.title?.length === 0) page.title = foundPage.title
 
-    const updatedPage = await $api.nocoDocs.updatePage(pageId, {
+    const updatedPage = await $api.nocoDocs.updatePage(projectId, pageId, {
       attributes: page as any,
-      projectId: projectId!,
     })
 
     if (page.title) {
@@ -694,10 +683,9 @@ export const useDocStore = defineStore('docStore', () => {
 
   const createMagic = async ({ title, projectId }: { title: string; projectId: string }) => {
     try {
-      await $api.nocoDocs.createNestedPagesMagic({
-        projectId: projectId!,
+      await $api.nocoDocs.createNestedPagesMagic(projectId, {
         title,
-      } as any)
+      })
     } catch (e) {
       message.warning('Something went wrong')
     }
@@ -711,15 +699,14 @@ export const useDocStore = defineStore('docStore', () => {
   ) => {
     try {
       const rs = gh(url)
-      await $api.nocoDocs.importPages({
+      await $api.nocoDocs.importPages(projectId, {
         user: rs!.owner!,
         repo: rs!.name!,
         branch: rs!.branch!,
         path: rs!.path!.replace(`${rs?.repo}/tree/${rs?.branch}/`, ''),
-        projectId: projectId!,
         type,
         from,
-      } as any)
+      })
     } catch (e) {
       console.log(e)
       message.error(await extractSdkResponseErrorMsg(e as any))
@@ -773,9 +760,7 @@ export const useDocStore = defineStore('docStore', () => {
 
   const magicExpand = async ({ projectId, text, pageId }: { text: string; pageId?: string; projectId: string }) => {
     const id = pageId || openedPageInSidebar.value!.id!
-    const response = await $api.nocoDocs.magicExpandText({
-      projectId: projectId!,
-      pageId: id,
+    const response = await $api.nocoDocs.magicExpandText(projectId, id, {
       text,
     })
     return response
@@ -807,9 +792,7 @@ export const useDocStore = defineStore('docStore', () => {
 
     isPageFetching.value = true
     try {
-      const response = await $api.nocoDocs.getPublicPage(openedPageId.value!, {
-        projectId,
-      })
+      const response = await $api.nocoDocs.getPublicPageAndProject(projectId, openedPageId.value!)
 
       openedPage.value = response.page as any
       // project.value = response.project as any
@@ -823,10 +806,7 @@ export const useDocStore = defineStore('docStore', () => {
 
   const magicOutline = async ({ pageId, projectId }: { pageId?: string; projectId: string }) => {
     const id = pageId || openedPageInSidebar.value!.id!
-    const response = await $api.nocoDocs.magicOutlinePage({
-      projectId: projectId!,
-      pageId: id,
-    })
+    const response = await $api.nocoDocs.magicOutlinePage(projectId, id)
     return response
   }
 

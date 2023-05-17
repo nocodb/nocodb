@@ -133,8 +133,7 @@ export class AppController {
         // Extract the necessary data from the message
         const {
           timestamp,
-          event,
-          email,
+          user: email,
           user_id,
           ip,
           base_id,
@@ -160,7 +159,6 @@ export class AppController {
 
         rows.push(
           `(generateUUIDv4(),${Math.round(timestamp / 1000) ?? 'NOW()'}, ${[
-            event,
             email,
             user_id,
             base_id,
@@ -182,7 +180,7 @@ export class AppController {
       // Generate the ClickHouse insert query
       const insertQuery = `INSERT INTO ${
         ClickhouseTables.AUDIT
-      } (id,timestamp,event,email,user_id,base_id,project_id,workspace_id,fk_model_id,row_id,op_type,op_sub_type,status,description,details,req_ipv4,req_ipv6)
+      } (id,timestamp,email,user_id,base_id,project_id,workspace_id,fk_model_id,row_id,op_type,op_sub_type,status,description,details,req_ipv4,req_ipv6)
                          VALUES ${rows.join(',')}`;
 
       await this.clickhouseService.execute(insertQuery);

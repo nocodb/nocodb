@@ -558,37 +558,13 @@ test.describe.serial('External DB - DateTime column', async () => {
     await createTableWithDateTimeColumn(context.dbType);
   });
 
-  test.skip('Formula, verify display value', async () => {
+  test('Formula, verify display value', async () => {
     await connectToExtDb(context);
     await dashboard.rootPage.reload();
     await dashboard.rootPage.waitForTimeout(2000);
 
-    api = new Api({
-      baseURL: `http://localhost:8080/`,
-      headers: {
-        'xc-auth': context.token,
-      },
-    });
-    const projectList = await api.project.list();
-    const table = await api.dbTable.list(projectList.list[0].id);
-    await api.dbTableColumn.create(table.list[0].id, {
-      title: 'formula-1',
-      uidt: UITypes.Formula,
-      formula_raw: 'DATEADD(DatetimeWithoutTz, 1, "day")',
-    });
-    const table2 = await api.dbTableColumn.create(table.list[0].id, {
-      title: 'formula-2',
-      uidt: UITypes.Formula,
-      formula_raw: 'DATEADD(DatetimeWithTz, 1, "day")',
-    });
-
-    await api.dbTableColumn.update(table2.columns[3].id, {
-      title: 'formula-23',
-      column_name: 'formula-23',
-      uidt: UITypes.Formula,
-      formula_raw: 'DATEADD(DatetimeWithTz, 1, "month")',
-    });
-
+    // insert a record to work with formula experiments
+    //
     await dashboard.treeView.openBase({ title: 'datetimetable' });
     await dashboard.treeView.openTable({ title: 'MyTable' });
     // Insert new row
@@ -604,7 +580,99 @@ test.describe.serial('External DB - DateTime column', async () => {
       dateTime: '2023-04-27 10:00:00',
     });
 
-    console.log(table);
+    // Create formula column (dummy)
+    api = new Api({
+      baseURL: `http://localhost:8080/`,
+      headers: {
+        'xc-auth': context.token,
+      },
+    });
+    const projectList = await api.project.list();
+    const table = await api.dbTable.list(projectList.list[0].id);
+    let table_data: any;
+    table_data = await api.dbTableColumn.create(table.list[0].id, {
+      title: 'formula-1',
+      uidt: UITypes.Formula,
+      formula_raw: '0',
+    });
+    table_data = await api.dbTableColumn.create(table.list[0].id, {
+      title: 'formula-2',
+      uidt: UITypes.Formula,
+      formula_raw: '0',
+    });
+
+    async function verifyFormula({
+      formula,
+      expectedDisplayValue,
+    }: {
+      formula: string[];
+      expectedDisplayValue: string[];
+    }) {
+      // Update formula column to compute "month" instead of "day"
+      await api.dbTableColumn.update(table_data.columns[3].id, {
+        title: 'formula-1',
+        column_name: 'formula-1',
+        uidt: UITypes.Formula,
+        formula_raw: formula[0],
+      });
+      await dashboard.rootPage.waitForTimeout(1000);
+      await api.dbTableColumn.update(table_data.columns[4].id, {
+        title: 'formula-2',
+        column_name: 'formula-2',
+        uidt: UITypes.Formula,
+        formula_raw: formula[1],
+      });
+
+      // reload page
+      await dashboard.rootPage.reload();
+
+      await dashboard.grid.cell.verify({
+        index: 2,
+        columnHeader: 'formula-1',
+        value: expectedDisplayValue[0],
+      });
+      await dashboard.grid.cell.verify({
+        index: 2,
+        columnHeader: 'formula-2',
+        value: expectedDisplayValue[1],
+      });
+    }
+
+    // verify display value for formula columns (formula-1, formula-2)
+    await verifyFormula({
+      formula: ['DATEADD(DatetimeWithoutTz, 1, "day")', 'DATEADD(DatetimeWithTz, 1, "day")'],
+      expectedDisplayValue: ['2023-04-28 10:00', '2023-04-28 10:00'],
+    });
+    await verifyFormula({
+      formula: ['DATEADD(DatetimeWithoutTz, 1, "month")', 'DATEADD(DatetimeWithTz, 1, "month")'],
+      expectedDisplayValue: ['2023-05-28 10:00', '2023-05-28 10:00'],
+    });
+    await verifyFormula({
+      formula: ['DATEADD(DatetimeWithoutTz, 1, "year")', 'DATEADD(DatetimeWithTz, 1, "year")'],
+      expectedDisplayValue: ['2024-05-28 10:00', '2024-05-28 10:00'],
+    });
+
+    await dashboard.grid.cell.dateTime.setDateTime({
+      index: 2,
+      columnHeader: 'DatetimeWithTz',
+      dateTime: '2024-04-27 10:00:00',
+    });
+
+    await verifyFormula({
+      formula: [
+        'DATETIME_DIFF({DatetimeWithoutTz}, {DatetimeWithTz}, "days")',
+        'DATETIME_DIFF({DatetimeWithTz}, {DatetimeWithoutTz}, "days")',
+      ],
+      expectedDisplayValue: ['-366', '366'],
+    });
+
+    await verifyFormula({
+      formula: [
+        'DATETIME_DIFF({DatetimeWithoutTz}, {DatetimeWithTz}, "months")',
+        'DATETIME_DIFF({DatetimeWithTz}, {DatetimeWithoutTz}, "months")',
+      ],
+      expectedDisplayValue: ['-12', '12'],
+    });
   });
 
   test('Verify display value, UI insert, API response', async () => {

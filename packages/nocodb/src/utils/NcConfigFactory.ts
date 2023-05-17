@@ -3,8 +3,6 @@ import { URL } from 'url';
 import { promisify } from 'util';
 import * as path from 'path';
 import parseDbUrl from 'parse-database-url';
-import dayjs from 'dayjs';
-import utc from 'dayjs/plugin/utc';
 import { SqlClientFactory } from '../db/sql-client/lib/SqlClientFactory';
 // import SqlClientFactory from '../db/sql-client/lib/SqlClientFactory';
 // import type {
@@ -20,8 +18,6 @@ import { SqlClientFactory } from '../db/sql-client/lib/SqlClientFactory';
 //   adjectives,
 //   animals,
 // } = require('unique-names-generator');
-
-dayjs.extend(utc);
 
 type NcConfig = any;
 type DbConfig = any;
@@ -240,11 +236,6 @@ export default class NcConfigFactory {
         acquireConnectionTimeout: 600000,
       } as any;
 
-      dbConfig.connection = this.addTypeCastConfig(
-        url.protocol,
-        dbConfig.connection,
-      );
-
       if (process.env.NODE_TLS_REJECT_UNAUTHORIZED) {
         dbConfig.connection.ssl = true;
       }
@@ -306,16 +297,6 @@ export default class NcConfigFactory {
       .replace(/[ -]/g, '_');*/
   }
 
-  private static addTypeCastConfig(clientType: string, connection) {
-    if (clientType.startsWith('mysql')) {
-      connection = {
-        ...connection,
-        ...this.mysqlConnectionTypeCastConfig,
-      };
-    }
-    return connection;
-  }
-
   static async metaUrlToDbConfig(urlString) {
     const url = new URL(urlString);
 
@@ -367,12 +348,6 @@ export default class NcConfigFactory {
             }
           : {}),
       };
-
-      dbConfig.connection = this.addTypeCastConfig(
-        url.protocol,
-        dbConfig.connection,
-      );
-
       if (process.env.NODE_TLS_REJECT_UNAUTHORIZED) {
         dbConfig.connection.ssl = true;
       }
@@ -535,11 +510,6 @@ export default class NcConfigFactory {
         },
       };
     }
-
-    dbConfig.connection = this.addTypeCastConfig(
-      dbConfig.client,
-      dbConfig.connection,
-    );
 
     // todo:
     const key = '';
@@ -773,22 +743,6 @@ export default class NcConfigFactory {
 
     return res;
   }
-
-  // mysql driver will cast mysql types into native JavaScript types by default
-  // hence we use typeCast to convert to the expected value (UTC) for date time fields
-  private static mysqlConnectionTypeCastConfig = {
-    typeCast: function (field, next) {
-      if (field.type === 'DATETIME' || field.type === 'TIMESTAMP') {
-        const d = dayjs(field.string());
-        if (!d.isValid()) {
-          return null;
-        }
-        return d.utc().format('YYYY-MM-DD HH:mm:ss');
-      }
-      return next();
-    },
-    timezone: '+00:00',
-  };
 
   // public static initOneClickDeployment() {
   //   if (process.env.NC_ONE_CLICK) {

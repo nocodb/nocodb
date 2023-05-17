@@ -645,11 +645,11 @@ test.describe.serial('External DB - DateTime column', async () => {
     });
     await verifyFormula({
       formula: ['DATEADD(DatetimeWithoutTz, 1, "month")', 'DATEADD(DatetimeWithTz, 1, "month")'],
-      expectedDisplayValue: ['2023-05-28 10:00', '2023-05-28 10:00'],
+      expectedDisplayValue: ['2023-05-27 10:00', '2023-05-27 10:00'],
     });
     await verifyFormula({
       formula: ['DATEADD(DatetimeWithoutTz, 1, "year")', 'DATEADD(DatetimeWithTz, 1, "year")'],
-      expectedDisplayValue: ['2024-05-28 10:00', '2024-05-28 10:00'],
+      expectedDisplayValue: ['2024-04-27 10:00', '2024-04-27 10:00'],
     });
 
     await dashboard.grid.cell.dateTime.setDateTime({

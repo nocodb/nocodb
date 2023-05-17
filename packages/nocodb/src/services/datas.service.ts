@@ -38,18 +38,6 @@ export class DatasService {
     return await this.getDataGroupBy({ model, view, query: param.query });
   }
 
-  async dataGroupAndAggregateBy(
-    param: PathParams & {
-      query: any;
-      groupByColumnName?: string;
-      aggregateColumnName: string;
-      aggregateFunction: string;
-    },
-  ) {
-    const { model, view } = await getViewAndModelByAliasOrId(param);
-    return await this.getDataAggregateBy({ model, view, ...param });
-  }
-
   async dataCount(param: PathParams & { query: any }) {
     const { model, view } = await getViewAndModelByAliasOrId(param);
 
@@ -191,34 +179,6 @@ export class DatasService {
 
     const data = await baseModel.findOne({ ...args, dependencyFields });
     return data ? await nocoExecute(ast, data, {}, {}) : {};
-  }
-
-  async getDataAggregateBy(param: {
-    model: Model;
-    view: View;
-    query?: any;
-    aggregateColumnName: string;
-    aggregateFunction: string;
-    groupByColumnName?: string;
-  }) {
-    const { model, view, query = {} } = param;
-
-    const base = await Base.get(model.base_id);
-
-    const baseModel = await Model.getBaseModelSQL({
-      id: model.id,
-      viewId: view?.id,
-      dbDriver: await NcConnectionMgrv2.get(base),
-    });
-
-    const data = await baseModel.groupByAndAggregate(
-      param.aggregateColumnName,
-      param.aggregateFunction,
-      { groupByColumnName: param.groupByColumnName, ...query },
-    );
-    return new PagedResponseImpl(data, {
-      ...query,
-    });
   }
 
   async getDataGroupBy(param: { model: Model; view: View; query?: any }) {

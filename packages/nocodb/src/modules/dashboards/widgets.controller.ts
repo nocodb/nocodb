@@ -7,20 +7,15 @@ import {
   Param,
   Patch,
   Post,
-  Query,
   Request,
   UseGuards,
 } from '@nestjs/common';
-import { LayoutReqType, WidgetReqType, WidgetUpdateReqType } from 'nocodb-sdk';
+import { WidgetReqType, WidgetUpdateReqType } from 'nocodb-sdk';
 import { ExtractProjectAndWorkspaceIdMiddleware } from '../../middlewares/extract-project-and-workspace-id/extract-project-and-workspace-id.middleware';
 import Widget from '../../models/Widget';
 import { GlobalGuard } from '../../guards/global/global.guard';
-import extractRolesObj from '../../utils/extractRolesObj';
 import { PagedResponseImpl } from '../../helpers/PagedResponse';
-import {
-  Acl,
-  UseAclMiddleware,
-} from '../../middlewares/extract-project-id/extract-project-id.middleware';
+import { UseAclMiddleware } from '../../middlewares/extract-project-id/extract-project-id.middleware';
 import { WidgetsService } from './widgets.service';
 import { WidgetDataService } from './widgetData.service';
 
@@ -33,35 +28,30 @@ export class WidgetsController {
   ) {}
 
   @Get(['/api/v1/layouts/:layoutId/widgets'])
-  // TODO: Configure ACL here AND for all other new endpoints related to Layout
-  // @UseAclMiddleware({
-  //   permissionName: 'layoutListlayoutList',
-  // })
+  @UseAclMiddleware({
+    permissionName: 'widgetsList',
+  })
   async widgetsList(@Param('layoutId') layoutId: string, @Request() req) {
     return new PagedResponseImpl(
       await this.widgetsService.getWidgets({
         layoutId,
-        // roles: extractRolesObj(req.user.roles),
       }),
     );
   }
 
   @Get(['api/v1/layouts/:layoutId/widgets/:widgetId'])
-  // TODO: Configure ACL here AND for all other new endpoints related to Layout
-  // @UseAclMiddleware({
-  //   permissionName: 'layoutListlayoutList',
-  // })
-  async WidgetsList(
+  @UseAclMiddleware({
+    permissionName: 'widgetGet',
+  })
+  async widgetGet(
     @Param('layoutId') layoutId: string,
     @Param('widgetId') widgetId: string,
-    @Request() req,
   ) {
     const widgetConfigData = await Widget.get(widgetId);
 
     const widgetData = await this.widgetDataService.getWidgetData({
       layoutId,
       widgetId,
-      // roles: extractRolesObj(req.user.roles),
     });
 
     return {
@@ -72,10 +62,9 @@ export class WidgetsController {
 
   @Post(['/api/v1/layouts/:layoutId/widgets'])
   @HttpCode(200)
-  // TODO: Configure ACL here AND for all other new endpoints related to Layout
-  // @UseAclMiddleware({
-  //   permissionName: 'tableCreate',
-  // })
+  @UseAclMiddleware({
+    permissionName: 'widgetCreate',
+  })
   async widgetCreate(
     @Param('layoutId') layoutId: string,
     @Body() body: WidgetReqType,
@@ -85,7 +74,6 @@ export class WidgetsController {
     const result = await this.widgetsService.widgetCreate({
       layoutId,
       widgetReq: body,
-      // user: req.user,
     });
 
     return result;
@@ -93,6 +81,9 @@ export class WidgetsController {
 
   @Patch(['/api/v1/layouts/:layoutId/widgets/:widgetId'])
   @HttpCode(200)
+  @UseAclMiddleware({
+    permissionName: 'widgetUpdate',
+  })
   async widgetUpdate(
     @Param('layoutId') layoutId: string,
     @Param('widgetId') widgetId: string,
@@ -103,7 +94,6 @@ export class WidgetsController {
     const result = await this.widgetsService.widgetUpdate({
       widgetId,
       widgetUpdateReq: body,
-      // user: req.user,
     });
 
     return result;
@@ -111,6 +101,9 @@ export class WidgetsController {
 
   @Delete(['/api/v1/layouts/:layoutId/widgets/:widgetId'])
   @HttpCode(200)
+  @UseAclMiddleware({
+    permissionName: 'widgetDelete',
+  })
   async widgetDelete(
     @Param('layoutId') layoutId: string,
     @Param('widgetId') widgetId: string,
@@ -118,7 +111,6 @@ export class WidgetsController {
   ) {
     const result = await this.widgetsService.widgetDelete({
       widgetId,
-      // user: req.user,
     });
 
     return result;

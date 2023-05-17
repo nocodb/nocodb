@@ -95,7 +95,6 @@ import { TelemetryController } from './controllers/telemetry.controller';
     AuthTokenStrategy,
     BaseViewStrategy,
     HookHandlerService,
-    AppHooksListenerService,
   ],
   controllers: [TelemetryController],
 })

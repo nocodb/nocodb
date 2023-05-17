@@ -525,7 +525,7 @@ export class AppHooksListenerService implements OnModuleInit, OnModuleDestroy {
     this.unsubscribe = this.appHooksService.onAll(this.hookHandler.bind(this));
   }
 
-  private async auditInsert(param: Partial<Audit | AuditType>) {
+  async auditInsert(param: Partial<Audit | AuditType>) {
     // await Audit.insert(param)
     try {
       await this.producer.sendMessage(

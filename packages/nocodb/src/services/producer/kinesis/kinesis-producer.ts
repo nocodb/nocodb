@@ -4,6 +4,10 @@ import { Producer } from '../producer';
 
 @Injectable()
 export class KinesisProducer extends Producer {
+  sendMessages(topic: string, messages: string[]): Promise<void> {
+    throw new Error('Method not implemented.');
+  }
+
   private kinesis: AWS.Kinesis;
   private logger = new Logger(KinesisProducer.name);
 

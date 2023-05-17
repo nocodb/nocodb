@@ -3301,21 +3301,6 @@ class BaseModelSqlv2 {
     if (d) {
       for (const col of dateTimeColumns) {
         if (d[col.title]) {
-          if (col.uidt === UITypes.Formula) {
-            if (this.isMySQL) {
-              d[col.title] = d[col.title].replace(
-                /\b(\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2})\b/g,
-                (match) => {
-                  // d[col.title] will be in UTC without timezone
-                  // append the timezone info here
-                  // e.g. 2021-12-30 04:00:00 -> 2021-12-30 04:00:00+00:00
-                  return dayjs(match).utc(true).format('YYYY-MM-DD HH:mm:ssZ');
-                },
-              );
-            }
-            continue;
-          }
-
           if (this.isSqlite) {
             if (!col.cdf && !isXcdbBase) {
               if (d[col.title].indexOf('+') > -1) {

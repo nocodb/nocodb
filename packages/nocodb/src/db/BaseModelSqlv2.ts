@@ -3306,6 +3306,7 @@ class BaseModelSqlv2 {
           if (this.isSqlite) {
             if (!col.cdf) {
               if (
+                d[col.title].indexOf('-') === -1 &&
                 d[col.title].indexOf('+') === -1 &&
                 d[col.title].slice(-1) !== 'Z'
               ) {

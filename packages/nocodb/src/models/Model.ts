@@ -469,7 +469,11 @@ export default class Model implements TableType {
         }
         if (col.uidt === UITypes.DateTime && dayjs(val).isValid()) {
           const { isMySQL, isSqlite, isMssql, isPg } = clientMeta;
-          if (val.indexOf('+') < 0 && val.slice(-1) !== 'Z') {
+          if (
+            val.indexOf('-') < 0 &&
+            val.indexOf('+') < 0 &&
+            val.slice(-1) !== 'Z'
+          ) {
             // if no timezone is given,
             // then append +00:00 to make it as UTC
             val += '+00:00';
@@ -494,11 +498,11 @@ export default class Model implements TableType {
             // e.g. 2022-01-01T10:00:00.000Z -> 2022-01-01 04:30:00+00:00
             val = dayjs(val).utc().format('YYYY-MM-DD HH:mm:ssZ');
           } else if (isPg) {
-            // convert to local time
-            // e.g. 2023-01-01T12:00:00.000Z -> 2023-01-01 20:00:00+08:00
-            // convert to db timezone
+            // convert to UTC
+            // e.g. 2023-01-01T12:00:00.000Z -> 2023-01-01 12:00:00+00:00
+            // then convert to db timezone
             val = knex.raw(`? AT TIME ZONE CURRENT_SETTING('timezone')`, [
-              dayjs(val).format('YYYY-MM-DD HH:mm:ssZ'),
+              dayjs(val).utc().format('YYYY-MM-DD HH:mm:ssZ'),
             ]);
           } else if (isMssql) {
             // e.g. 2023-05-10T08:49:32.000Z -> 2023-05-10 08:49:32-08:00

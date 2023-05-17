@@ -538,19 +538,19 @@
     "info": {
       "pasteNotSupported": "عملیات جای‌گذاری در سلول فعال پشتیبانی نمی‌شود",
       "roles": {
-        "orgCreator": "Creator can create new projects and access any invited project.",
-        "orgViewer": "Viewer is not allowed to create new projects but they can access any invited project."
+        "orgCreator": "تولید کننده می تواند پروژه های جدید ایجاد کند و به هر پروژه ی دعوت شده دسترسی داشته باشد.",
+        "orgViewer": "بیننده اجازه ندارد پروژه های جدید ایجاد کند اما میتواند به هر پروژه دعوت شده دسترسی داشته باشد."
       },
       "codeScanner": {
-        "loadingScanner": "Loading the scanner...",
-        "selectColumn": "Select a column (QR code or Barcode) that you want to use for finding a row by scanning.",
-        "moreThanOneRowFoundForCode": "More than one row found for this code. Currently only unique codes are supported.",
-        "noRowFoundForCode": "No row found for this code for the selected column"
+        "loadingScanner": "در حال بارگزاری اسکنر...",
+        "selectColumn": "یک ستون (QR Code یا Barcode) که میخواهید با اسکن کردن پیدا کنید را انتخاب کنید.",
+        "moreThanOneRowFoundForCode": "بیش از یک ردیف برای این کد پیدا شد. در حال حاضر تنها کد های یکتا پشتیبانی می شوند.",
+        "noRowFoundForCode": "برای این کد در ستون انتخاب شده ردیفی پیدا نشد"
       },
       "map": {
-        "overLimit": "You're over the limit.",
-        "closeLimit": "You're getting close to the limit.",
-        "limitNumber": "The limit of markers shown in a Map View is 1000 records."
+        "overLimit": "از محدودیت فراتر رفته اید.",
+        "closeLimit": "به محدودیت نزدیک می شوید.",
+        "limitNumber": "محدودیت نشانگر های نمایش داده شده در نمای نقشه 1000 رکورد می باشد."
       },
       "footerInfo": "تعداد ردیف‌ها در هر صفحه",
       "upload": "فایل را برای بارگذاری انتخاب کنید",
@@ -634,7 +634,7 @@
         "gallery": "افزودن نمایش گالری",
         "form": "افزودن نمایش فرم",
         "kanban": "افزودن نمایش کانبان",
-        "map": "Add Map View",
+        "map": "اضافه کردن نمای نقشه",
         "calendar": "افزودن نمایش تقویم"
       },
       "tablesMetadataInSync": "متاداده جداول در حالت همگام‌سازی است",
@@ -643,14 +643,14 @@
       "addDefaultColumns": "افزودن ستون‌های پیش‌فرض",
       "tableNameInDb": "نام جدول به عنوان ذخیره شده در پایگاه داده",
       "airtable": {
-        "credentials": "Where to find this?"
+        "credentials": "این را کجا می توان یافت?"
       },
       "import": {
-        "clickOrDrag": "Click or drag file to this area to upload"
+        "clickOrDrag": "برای آپلود کلیک کنید یا فایل را در این ناحیه بکشید"
       },
-      "metaDataRecreated": "Table metadata recreated successfully",
-      "invalidCredentials": "Invalid credentials",
-      "downloadingMoreFiles": "Downloading more files",
+      "metaDataRecreated": "فراداده جدول با موفقیت بازآفرینی شد",
+      "invalidCredentials": "اطلاعات اشتباه",
+      "downloadingMoreFiles": "در حال دانلود فایل های بیشتر",
       "copiedToClipboard": "Copied to clipboard",
       "requriedFieldsCantBeMoved": "Required field can't be moved",
       "updateNotAllowedWithoutPK": "Update not allowed for table which doesn't have primary key",

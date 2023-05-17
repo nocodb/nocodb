@@ -20,9 +20,9 @@ const urls = computed(() => replaceUrlsWithLink(result.value))
 const { showEditNonEditableFieldWarning, showClearNonEditableFieldWarning, activateShowEditNonEditableFieldWarning } =
   useShowNotEditableWarning()
 
-const renderResult = (result?: string | null) => {
-  if (!result) {
-    return ''
+const renderResult = (result?: any) => {
+  if (!result || typeof result !== 'string') {
+    return result
   }
   // convert all date time values to local time
   // the input is always YYYY-MM-DD hh:mm:ss+xx:yy

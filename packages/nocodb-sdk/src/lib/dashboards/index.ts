@@ -136,42 +136,35 @@ export type AppearanceConfig =
   | AppearanceConfigStaticText
   | AppearanceConfigBase;
 
-export interface BaseWidget {
+export interface Widget {
   id: string;
   schema_version: string;
-  /** Layout ID */
-  layout_id: string;
-  /** The actual data for the widget */
-  data?: WidgetDataResult;
   data_config?: DataConfig;
   data_source?: DataSource;
   widget_type: WidgetTypeType;
   appearance_config: AppearanceConfig;
 }
 
-export interface StaticTextWidget extends BaseWidget {
+export interface StaticTextWidget extends Widget {
   appearance_config: AppearanceConfigStaticText;
   data_config: DataConfigStaticText;
   data_source: DataSourceStaticContent;
   widget_type: WidgetTypeType.StaticText;
-  data: undefined;
 }
 
-export interface ButtonWidget extends BaseWidget {
+export interface ButtonWidget extends Widget {
   appearance_config: AppearanceConfigBase;
   data_config: DataConfigButton;
   widget_type: WidgetTypeType.Button;
-  data: undefined;
 }
 
-export interface NumberWidget extends BaseWidget {
+export interface NumberWidget extends Widget {
   appearance_config: AppearanceConfigBase;
   data_config: DataConfigNumber;
   widget_type: WidgetTypeType.Number;
-  data?: NumberWidgetDataResult;
 }
 
-export interface ChartWidget extends BaseWidget {
+export interface ChartWidget extends Widget {
   appearance_config: AppearanceConfigBase;
   data_config: DataConfigAggregated2DChart;
   widget_type:
@@ -179,14 +172,7 @@ export interface ChartWidget extends BaseWidget {
     | WidgetTypeType.BarChart
     | WidgetTypeType.PieChart
     | WidgetTypeType.ScatterPlot;
-  data?: ChartWidgetDataResult;
 }
-
-export type Widget =
-  | ChartWidget
-  | NumberWidget
-  | ButtonWidget
-  | StaticTextWidget;
 
 export const chartTypes = [
   WidgetTypeType.LineChart,
@@ -195,22 +181,20 @@ export const chartTypes = [
   WidgetTypeType.ScatterPlot,
 ];
 
-export interface WidgetDataResultBase {
+export interface WidgetDataResult {
   layoutId: string;
   widgetId: string;
 }
 
-export interface NumberWidgetDataResult extends WidgetDataResultBase {
+export interface NumberWidgetDataResult extends WidgetDataResult {
   columnName: string;
   aggregateFunction: AggregateFnType;
   value: number;
 }
 
-export interface ChartWidgetDataResult extends WidgetDataResultBase {
+export interface ChartWidgetDataResult extends WidgetDataResult {
   xColumnName: string;
   yColumnName: string;
   aggregateFunction: AggregateFnType;
   values: number[];
 }
-
-export type WidgetDataResult = NumberWidgetDataResult | ChartWidgetDataResult;

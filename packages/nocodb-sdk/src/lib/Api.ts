@@ -1167,201 +1167,26 @@ export interface GridUpdateReqType {
 /**
  * Model for Widget
  */
-export type WidgetType =
-  | UtilRequiredKeys<
-      ChartWidgetType,
-      'id' | 'schema_version' | 'layout_id' | 'widget_type'
-    >
-  | UtilRequiredKeys<
-      NumberWidgetType,
-      'id' | 'schema_version' | 'layout_id' | 'widget_type'
-    >
-  | UtilRequiredKeys<
-      ButtonWidgetType,
-      'id' | 'schema_version' | 'layout_id' | 'widget_type'
-    >
-  | UtilRequiredKeys<
-      StaticTextWidgetType,
-      'id' | 'schema_version' | 'layout_id' | 'widget_type'
-    >
-  | (UtilRequiredKeys<
-      ChartWidgetType,
-      'id' | 'schema_version' | 'layout_id' | 'widget_type'
-    > &
-      UtilRequiredKeys<
-        NumberWidgetType,
-        'id' | 'schema_version' | 'layout_id' | 'widget_type'
-      > &
-      UtilRequiredKeys<
-        ButtonWidgetType,
-        'id' | 'schema_version' | 'layout_id' | 'widget_type'
-      > &
-      UtilRequiredKeys<
-        StaticTextWidgetType,
-        'id' | 'schema_version' | 'layout_id' | 'widget_type'
-      >);
-
-export interface ChartWidgetType {
-  id: string;
+export interface WidgetType {
+  /** Unique ID */
+  id: IdType;
+  /** Layout ID */
+  layout_id: IdType;
+  /**
+   * Version of the schema
+   * @example v0.2
+   */
   schema_version: string;
-  layout_id: string;
-  data?: ChartWidgetDataResultType;
-  data_config: DataConfigAggregated2DChartType;
-  data_source?: DataSourceType;
-  widget_type: 'line_chart' | 'bar_chart' | 'pie_chart' | 'scatter_plot';
-  appearance_config: AppearanceConfigBaseType;
-}
-
-export interface ChartWidgetDataResultType {
-  layoutId: string;
-  widgetId: string;
-  xColumnName: string;
-  yColumnName: string;
-  aggregateFunction: AggregateFnTypeType;
-  values: number[];
-}
-
-export enum AggregateFnTypeType {
-  Avg = 'avg',
-  Max = 'max',
-  Min = 'min',
-  Count = 'count',
-  Sum = 'sum',
-}
-
-export interface DataConfigAggregated2DChartType {
-  xAxisColId?: string;
-  yAxisColId?: string;
-  aggregateFunction?: AggregateFnTypeType;
-}
-
-export type DataSourceType =
-  | DataSourceInternalType
-  | DataSourceExternalType
-  | DataSourceSQLType
-  | DataSourceStaticContentType
-  | (DataSourceInternalType &
-      DataSourceExternalType &
-      DataSourceSQLType &
-      DataSourceStaticContentType);
-
-export interface DataSourceInternalType {
-  dataSourceType: string;
-  projectId?: string;
-  tableId?: string;
-  viewId?: string;
-}
-
-export interface DataSourceExternalType {
-  dataSourceType: string;
-  endpointUrl?: string;
-}
-
-export interface DataSourceSQLType {
-  dataSourceType: string;
-  sqlStatement?: string;
-}
-
-export interface DataSourceStaticContentType {
-  dataSourceType: string;
-}
-
-export interface AppearanceConfigBaseType {
-  name: string;
-  description?: string;
-  screenDimensions: ScreenDimensionsType;
-  screenPosition: ScreenPositionType;
-}
-
-export interface ScreenDimensionsType {
-  height: number;
-  width: number;
-}
-
-export interface ScreenPositionType {
-  x: number;
-  y: number;
-}
-
-export interface NumberWidgetType {
-  id: string;
-  schema_version: string;
-  layout_id: string;
-  data?: NumberWidgetDataResultType;
-  data_config: DataConfigNumberType;
-  data_source?: DataSourceType;
-  widget_type: string;
-  appearance_config: AppearanceConfigBaseType;
-}
-
-export interface NumberWidgetDataResultType {
-  layoutId: string;
-  widgetId: string;
-  columnName: string;
-  aggregateFunction: AggregateFnTypeType;
-  value: number;
-}
-
-export interface DataConfigNumberType {
-  colId?: string;
-  aggregateFunction?: AggregateFnTypeType;
-}
-
-export interface ButtonWidgetType {
-  id: string;
-  schema_version: string;
-  layout_id: string;
-  data?: any;
-  data_config: DataConfigButtonType;
-  data_source?: DataSourceType;
-  widget_type: string;
-  appearance_config: AppearanceConfigBaseType;
-}
-
-export interface DataConfigButtonType {
-  actionType: ButtonActionTypeType;
-  url: string;
-  buttonText: string;
-}
-
-export enum ButtonActionTypeType {
-  OpenExternalUrl = 'open_external_url',
-  DeleteRecord = 'delete_record',
-  UpdateRecord = 'update_record',
-  OpenLayout = 'open_layout',
-}
-
-export interface StaticTextWidgetType {
-  id: string;
-  schema_version: string;
-  layout_id: string;
-  data?: any;
-  data_config: DataConfigStaticTextType;
-  data_source: DataSourceStaticContentType;
-  widget_type: string;
-  appearance_config: AppearanceConfigStaticTextType;
-}
-
-export interface DataConfigStaticTextType {
-  text?: string;
-}
-
-export interface AppearanceConfigStaticTextType {
-  name: string;
-  description?: string;
-  screenDimensions: ScreenDimensionsType;
-  screenPosition: ScreenPositionType;
-  fontType?: FontTypeType;
-}
-
-export enum FontTypeType {
-  Heading1 = 'heading1',
-  Heading2 = 'heading2',
-  Heading3 = 'heading3',
-  SubHeading1 = 'subHeading1',
-  SubHeading2 = 'subHeading2',
-  Body = 'body',
-  Caption = 'caption',
+  /** Type of the widget */
+  widget_type: WidgetTypeType;
+  /** Data Source JSON */
+  data_source?: null | object | string;
+  /** Data Config JSON */
+  data_config?: null | object | string;
+  /** Appearance Config JSON */
+  appearance_config?: null | object | string;
+  /** The actual data for the widget */
+  data?: object;
 }
 
 /**

@@ -537,6 +537,33 @@ async function _formulaQueryBuilder(
             };
         };
         break;
+      case UITypes.DateTime:
+        if (knex.clientType().startsWith('mysql')) {
+          aliasToColumn[col.id] = async (): Promise<any> => {
+            return {
+              builder: knex.raw(
+                `CONVERT_TZ(??, @@GLOBAL.time_zone, '+00:00')`,
+                [col.column_name],
+              ),
+            };
+          };
+        } else if (
+          knex.clientType() === 'pg' &&
+          col.dt !== 'timestamp with time zone'
+        ) {
+          aliasToColumn[col.id] = async (): Promise<any> => {
+            return {
+              builder: knex.raw(
+                `?? AT TIME ZONE CURRENT_SETTING('timezone') AT TIME ZONE 'UTC'`,
+                [col.column_name],
+              ),
+            };
+          };
+        } else {
+          aliasToColumn[col.id] = () =>
+            Promise.resolve({ builder: col.column_name });
+        }
+        break;
       default:
         aliasToColumn[col.id] = () =>
           Promise.resolve({ builder: col.column_name });

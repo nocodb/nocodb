@@ -681,7 +681,7 @@
     },
     "/api/v1/docs/project/{projectId}/page/{pageId}/history-sync": {
       "post": {
-        "summary": "Sync page history",
+        "summary": "When called will snapshot the page if there is any page change needed to be snapshoted",
         "operationId": "sync-page-history",
         "responses": {
           "200": {
@@ -705,7 +705,7 @@
     },
     "/api/v1/docs/project/{projectId}/page/{pageId}/history": {
       "get": {
-        "summary": "List page history",
+        "summary": "List snapshots of the page (paginated)",
         "operationId": "list-page-history",
         "parameters": [
           {
@@ -749,13 +749,12 @@
         },
         "tags": [
           "Noco docs"
-        ],
-        "description": "List page history"
+        ]
       }
     },
     "/api/v1/docs/project/{projectId}/page/{pageId}/history/{snapshotId}/restore": {
       "post": {
-        "summary": "Restore page history",
+        "summary": "Restore page to a given snapshot",
         "operationId": "restore-page-history",
         "responses": {
           "200": {
@@ -764,8 +763,7 @@
         },
         "tags": [
           "Noco docs"
-        ],
-        "description": "Restore page history"
+        ]
       }
     },
     "/api/v1/auth/user/signup": {

@@ -469,6 +469,11 @@ export default class Model implements TableType {
         }
         if (col.uidt === UITypes.DateTime && dayjs(val).isValid()) {
           const { isMySQL, isSqlite, isMssql, isPg } = clientMeta;
+          if (val.indexOf('+') < 0 && val.slice(-1) !== 'Z') {
+            // if no timezone is given,
+            // then append +00:00 to make it as UTC
+            val += '+00:00';
+          }
           if (isMySQL) {
             // first convert the value to utc
             // from UI

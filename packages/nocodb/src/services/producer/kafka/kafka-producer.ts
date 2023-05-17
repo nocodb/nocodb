@@ -31,4 +31,11 @@ export class KafkaProducer extends NcProducer {
       messages: [{ value: message }],
     });
   }
+
+  async sendMessages(topic: string, messages: string[]): Promise<void> {
+    await this.producer.send({
+      topic,
+      messages: messages.map((message) => ({ value: message })),
+    });
+  }
 }

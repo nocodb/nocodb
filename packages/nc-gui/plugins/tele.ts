@@ -19,8 +19,7 @@ const fpPromise = FingerprintJS.load()
 
 // Usage example:
 const debounceTime = 1000 // Debounce time: 1000ms
-const maxWaitTime = 5000 // Max wait time: 5000ms
-const batchSize = 5 // Batch size: 5
+const maxWaitTime = 10000 // Max wait time: 10000ms
 
 class EventBatcher {
   private queue: any[] = []
@@ -38,14 +37,14 @@ class EventBatcher {
 
     // Check if the queue size reaches the batch size
     // if (this.queue.length >= this.batchSize) {
-      this.processQueue()
+    this.processQueue()
     // }
   }
 
   private processQueue = useDebounceFn(
-    async () => {
+    () => {
       const eventsToProcess = this.queue.splice(0, this.queue.length)
-      await this.batchProcessor?.(eventsToProcess)
+      this.batchProcessor?.(eventsToProcess)
     },
     debounceTime,
     { maxWait: maxWaitTime },
@@ -53,10 +52,9 @@ class EventBatcher {
 
   private batchProcessor = async (events: any[]) => {
     if (!this.nuxtApp.$state.signedIn.value) return
-    // process data
-    // push to kafka queue
     await this.nuxtApp.$api.instance.post('/api/v1/tele', {
       events,
+      clientId,
     })
   }
 }
@@ -94,7 +92,7 @@ export default defineNuxtPlugin(async (nuxtApp) => {
   //   // await init(nuxtApp.$state.token.value)
   // }
 
-  router.afterEach((to, from) => {
+  router.afterEach((to) => {
     // if (!socket || (to.path === from.path && (to.query && to.query.type) === (from.query && from.query.type))) return
 
     // socket.emit('page', {

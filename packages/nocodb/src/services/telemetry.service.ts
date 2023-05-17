@@ -1,7 +1,6 @@
-import {Inject, Injectable, Logger} from '@nestjs/common';
-import {packageInfo} from 'nc-help';
-import {Producer} from './producer/producer';
-import {Request} from 'express';
+import { Inject, Injectable, Logger } from '@nestjs/common';
+import { packageInfo } from 'nc-help';
+import { Producer } from './producer/producer';
 
 @Injectable()
 export class TelemetryService {
@@ -15,9 +14,9 @@ export class TelemetryService {
   }
 
   public sendEvent({
-                     evt_type: event,
-                     ...payload
-                   }: {
+    evt_type: event,
+    ...payload
+  }: {
     evt_type: string;
     [key: string]: any;
   }) {
@@ -36,8 +35,27 @@ export class TelemetryService {
       });
   }
 
-  async trackEvents(param: { events: any[]; req: Request }) {
-    // process data
-    // push to kafka queue
+  async trackEvents(param: {
+    body: { clientId: string; events: any[] };
+    req: any;
+  }) {
+    const messages = [];
+
+    for (const event of param.body.events) {
+      const payload = {
+        ...event,
+        client_id: param.body.clientId,
+        project_id: event?.pid ?? undefined,
+        ip: param.req.clientIp,
+        userId: param.req.user?.id,
+        user_agent: param.req.headers['user-agent'],
+        timestamp: Date.now(),
+        ...this.defaultPayload,
+      };
+
+      messages.push(JSON.stringify(payload));
+    }
+
+    await this.producer.sendMessages('cloud-telemetry', messages);
   }
 }

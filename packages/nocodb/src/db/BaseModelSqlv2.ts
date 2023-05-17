@@ -410,7 +410,6 @@ class BaseModelSqlv2 {
       .count;
   }
 
-  // todo: add support for sortArrJson and filterArrJson
   async groupByAndAggregate(
     aggregateColumnName: string,
     aggregateFn: string,

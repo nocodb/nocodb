@@ -1,12 +1,6 @@
 import { ProjectTypes } from 'nocodb-sdk';
-import {
-  // CacheDelDirection,
-  CacheGetType,
-  CacheScope,
-  MetaTable,
-} from '../utils/globals';
+import { CacheGetType, CacheScope, MetaTable } from '../utils/globals';
 import Noco from '../Noco';
-// import NocoCache from '../cache/NocoCache';
 import { extractProps } from '../helpers/extractProps';
 import type { ProjectType } from 'nocodb-sdk';
 
@@ -60,11 +54,6 @@ export default class DashboardProjectDBProject {
       true,
     );
 
-    // await NocoCache.delAll(
-    //   CacheScope.DASHBOARD_PROJECT_DB_PROJECT_LINKING,
-    //   `${dashboardProjectDBProject.db_project_id}:*`,
-    // );
-
     return this.get(dashboard_project_id, db_project_id, ncMeta);
   }
 
@@ -98,9 +87,7 @@ export default class DashboardProjectDBProject {
     },
     ncMeta = Noco.ncMeta,
   ) {
-    // TODO: consider to also do checks here that the projects are actually of type
-    // * Dashboard and
-    // * DB
+    // TODO: consider to also do checks here that the projects are actually of type Dashboard and DB
     const queryBuilder = ncMeta
       .knex(MetaTable.PROJECT)
       .select(
@@ -165,16 +152,6 @@ export default class DashboardProjectDBProject {
     _params?: any,
     ncMeta = Noco.ncMeta,
   ): Promise<ProjectType[]> {
-    // const cachedList = await NocoCache.getList(
-    //   CacheScope.DASHBOARD_PROJECT_DB_PROJECT_LINKING,
-    //   [dbProjectId],
-    // );
-    // let { list: dashboardProjectList } = cachedList;
-    // const { isNoneList } = cachedList;
-
-    // if (!isNoneList && dashboardProjectList.length) {
-    //   return dashboardProjectList;
-    // }
 
     const dashboardProjectList = await ncMeta
       .knex(MetaTable.PROJECT)

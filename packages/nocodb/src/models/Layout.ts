@@ -16,19 +16,14 @@ export default class Layout implements LayoutType {
   }
 
   public static async get(layoutId: string, ncMeta = Noco.ncMeta) {
-    let layout;
     // TODO: Caching
-    if (!layout) {
-      layout = await ncMeta.metaGet2(null, null, MetaTable.LAYOUT, layoutId, [
-        'id',
-        'title',
-        'project_id',
-        'base_id',
-        'show',
-        'order',
-      ]);
-      // TODO: Caching
-    }
+    const layout = await ncMeta.metaGet2(
+      null,
+      null,
+      MetaTable.LAYOUT,
+      layoutId,
+      ['id', 'title', 'project_id', 'base_id', 'show', 'order'],
+    );
     return layout && new Layout(layout);
   }
 
@@ -38,22 +33,18 @@ export default class Layout implements LayoutType {
     },
     ncMeta = Noco.ncMeta,
   ) {
-    let dashboards;
     // TODO: Caching
-    if (!dashboards?.length) {
-      dashboards = await ncMeta.metaList(
-        param.dashboard_id,
-        null,
-        MetaTable.LAYOUT,
-        {
-          orderBy: {
-            created_at: 'asc',
-          },
+    const dashboards = await ncMeta.metaList(
+      param.dashboard_id,
+      null,
+      MetaTable.LAYOUT,
+      {
+        orderBy: {
+          created_at: 'asc',
         },
-      );
+      },
+    );
 
-      // TODO: Caching
-    }
     return dashboards?.map((h) => new Layout(h));
   }
 

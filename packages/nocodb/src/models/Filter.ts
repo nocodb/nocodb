@@ -526,12 +526,6 @@ export default class Filter implements FilterType {
     { widgetId }: { widgetId: string },
     ncMeta = Noco.ncMeta,
   ) {
-    // const cachedList = await NocoCache.getList(CacheScope.FILTER_EXP, [
-    //   widgetId,
-    // ]);
-    // let { list: filterObjs } = cachedList;
-    // const { isNoneList } = cachedList;
-    // if (!isNoneList && !filterObjs.length) {
     const filterObjs = await ncMeta.metaList2(
       null,
       null,

@@ -25,11 +25,15 @@ const renderResult = (result?: any) => {
     return result
   }
   // convert all date time values to local time
-  // the input is always YYYY-MM-DD hh:mm:ss+xx:yy
-  return result.replace(/\b(\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}\+\d{2}:\d{2})\b/g, (d) => {
+  // the datetime is either YYYY-MM-DD hh:mm:ss (xcdb)
+  // or YYYY-MM-DD hh:mm:ss+xx:yy (ext)
+  return result.replace('.000000', '').replace(/\b(\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2})(\+\d{2}:\d{2})?\b/g, (d) => {
     // TODO(timezone): retrieve the format from the corresponding column meta
     // assume hh:mm at this moment
-    return dayjs(d).utc().local().format('YYYY-MM-DD HH:mm')
+    return dayjs(d)
+      .utc(result.indexOf('+') === -1)
+      .local()
+      .format('YYYY-MM-DD HH:mm')
   })
 }
 </script>

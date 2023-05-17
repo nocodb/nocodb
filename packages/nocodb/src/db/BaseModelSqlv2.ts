@@ -3301,18 +3301,29 @@ class BaseModelSqlv2 {
     if (d) {
       for (const col of dateTimeColumns) {
         if (d[col.title]) {
+          let keepLocalTime = true;
+
           if (this.isSqlite) {
-            if (!col.cdf && !isXcdbBase) {
-              if (d[col.title].indexOf('+') > -1) {
-                // e.g. 2023-05-10 10:25:45+00:00
-                // timezone already attached to input
-                // hence, skip it
+            if (!col.cdf) {
+              if (
+                d[col.title].indexOf('+') === -1 &&
+                d[col.title].slice(-1) !== 'Z'
+              ) {
+                // if there is no timezone info,
+                // we assume the input is on NocoDB server timezone
+                // then we convert to UTC from server timezone
+                // e.g. 2023-04-27 10:00:00 (IST) -> 2023-04-27 04:30:00+00:00
+                d[col.title] = dayjs(d[col.title])
+                  .tz(Intl.DateTimeFormat().resolvedOptions().timeZone)
+                  .utc()
+                  .format('YYYY-MM-DD HH:mm:ssZ');
                 continue;
+              } else {
+                // otherwise, we convert from the given timezone to UTC
+                keepLocalTime = false;
               }
             }
           }
-
-          let keepLocalTime = true;
 
           if (this.isPg && col.dt === 'timestamp with time zone') {
             // postgres - timezone already attached to input

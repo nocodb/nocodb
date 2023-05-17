@@ -491,8 +491,8 @@ export default class Model implements TableType {
               dayjs(val).utc().format('YYYY-MM-DD HH:mm:ss'),
             ]);
           } else if (isSqlite) {
-            // e.g. 2022-01-01T10:00:00.000Z -> 2022-01-01 10:00:00
-            val = dayjs(val).utc().format('YYYY-MM-DD HH:mm:ss');
+            // e.g. 2022-01-01T10:00:00.000Z -> 2022-01-01 04:30:00+00:00
+            val = dayjs(val).utc().format('YYYY-MM-DD HH:mm:ssZ');
           } else if (isPg) {
             // convert to local time
             // e.g. 2023-01-01T12:00:00.000Z -> 2023-01-01 20:00:00+08:00

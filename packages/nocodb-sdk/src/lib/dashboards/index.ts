@@ -161,7 +161,7 @@ export interface ButtonWidget extends BaseWidget {
   appearance_config: AppearanceConfigBase;
   data_config: DataConfigButton;
   widget_type: WidgetTypeType.Button;
-  data?: undefined;
+  data: undefined;
 }
 
 export interface NumberWidget extends BaseWidget {

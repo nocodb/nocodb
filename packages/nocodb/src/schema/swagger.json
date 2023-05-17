@@ -19501,8 +19501,7 @@
           "layout_id",
           "schema_version",
           "widget_type"
-        ],
-        "additionalProperties": false
+        ]
       },
       "ChartWidgetDataResult": {
         "type": "object",
@@ -19536,8 +19535,7 @@
           "widgetId",
           "xColumnName",
           "yColumnName"
-        ],
-        "additionalProperties": false
+        ]
       },
       "AggregateFnType": {
         "type": "string",
@@ -19599,8 +19597,7 @@
         },
         "required": [
           "dataSourceType"
-        ],
-        "additionalProperties": false
+        ]
       },
       "DataSourceExternal": {
         "type": "object",
@@ -19615,8 +19612,7 @@
         },
         "required": [
           "dataSourceType"
-        ],
-        "additionalProperties": false
+        ]
       },
       "DataSourceSQL": {
         "type": "object",
@@ -19631,8 +19627,7 @@
         },
         "required": [
           "dataSourceType"
-        ],
-        "additionalProperties": false
+        ]
       },
       "DataSourceStaticContent": {
         "type": "object",
@@ -19644,8 +19639,7 @@
         },
         "required": [
           "dataSourceType"
-        ],
-        "additionalProperties": false
+        ]
       },
       "AppearanceConfigBase": {
         "type": "object",
@@ -19667,8 +19661,7 @@
           "name",
           "screenDimensions",
           "screenPosition"
-        ],
-        "additionalProperties": false
+        ]
       },
       "ScreenDimensions": {
         "type": "object",
@@ -19683,8 +19676,7 @@
         "required": [
           "height",
           "width"
-        ],
-        "additionalProperties": false
+        ]
       },
       "ScreenPosition": {
         "type": "object",
@@ -19699,8 +19691,7 @@
         "required": [
           "x",
           "y"
-        ],
-        "additionalProperties": false
+        ]
       },
       "NumberWidget": {
         "type": "object",
@@ -19738,8 +19729,7 @@
           "layout_id",
           "schema_version",
           "widget_type"
-        ],
-        "additionalProperties": false
+        ]
       },
       "NumberWidgetDataResult": {
         "type": "object",
@@ -19766,8 +19756,7 @@
           "layoutId",
           "value",
           "widgetId"
-        ],
-        "additionalProperties": false
+        ]
       },
       "DataConfigNumber": {
         "type": "object",
@@ -19817,8 +19806,7 @@
           "layout_id",
           "schema_version",
           "widget_type"
-        ],
-        "additionalProperties": false
+        ]
       },
       "DataConfigButton": {
         "type": "object",
@@ -19837,8 +19825,7 @@
           "actionType",
           "buttonText",
           "url"
-        ],
-        "additionalProperties": false
+        ]
       },
       "ButtonActionType": {
         "type": "string",
@@ -19886,8 +19873,7 @@
           "layout_id",
           "schema_version",
           "widget_type"
-        ],
-        "additionalProperties": false
+        ]
       },
       "DataConfigStaticText": {
         "type": "object",

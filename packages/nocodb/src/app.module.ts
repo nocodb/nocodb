@@ -42,6 +42,7 @@ import { AppHooksListenerService } from './services/app-hooks-listener.service';
 const enableThrottler = !!process.env['NC_THROTTLER_REDIS'];
 
 import { HookHandlerService } from './services/hook-handler.service';
+import { TelemetryController } from './controllers/telemetry.controller';
 
 @Module({
   imports: [
@@ -96,6 +97,7 @@ import { HookHandlerService } from './services/hook-handler.service';
     HookHandlerService,
     AppHooksListenerService,
   ],
+  controllers: [TelemetryController],
 })
 export class AppModule implements OnApplicationBootstrap {
   constructor(

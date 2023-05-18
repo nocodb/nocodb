@@ -1,6 +1,6 @@
 CREATE TABLE IF NOT EXISTS usage_api_calls (
     id UUID,
-    timestamp DateTime,
+    created_at DateTime,
     workspace_id String(20),
   	user_id String(20),
     project_id String(120),

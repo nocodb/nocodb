@@ -2,7 +2,7 @@ SET allow_experimental_object_type = 1;
 
 CREATE TABLE IF NOT EXISTS usage_telemetry (
     id UUID,
-    timestamp DateTime,
+    created_at DateTime,
     event String,
 
     url String,

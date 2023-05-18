@@ -33,7 +33,10 @@ class EventBatcher {
   }
 
   enqueueEvent(event: any) {
-    this.queue.push(event)
+    this.queue.push({
+      created_at: Date.now(),
+      ...event,
+    })
 
     // Check if the queue size reaches the batch size
     // if (this.queue.length >= this.batchSize) {

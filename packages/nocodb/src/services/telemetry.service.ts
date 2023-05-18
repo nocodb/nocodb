@@ -43,13 +43,13 @@ export class TelemetryService {
 
     for (const event of param.body.events) {
       const payload = {
+        created_at: Date.now(),
         ...event,
         client_id: param.body.clientId,
         project_id: event?.pid ?? undefined,
         ip: param.req.clientIp,
         userId: param.req.user?.id,
         user_agent: param.req.headers['user-agent'],
-        timestamp: Date.now(),
         ...this.defaultPayload,
       };
 

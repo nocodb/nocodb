@@ -1,6 +1,6 @@
 CREATE TABLE IF NOT EXISTS nc_audit (
     id UUID,
-    timestamp DateTime,
+    created_at DateTime,
     email String(255),
     user_id String(20),
     req_ipv4 IPv4,

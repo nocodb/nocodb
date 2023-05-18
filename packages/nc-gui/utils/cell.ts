@@ -73,7 +73,7 @@ export const renderValue = (result?: any) => {
   // convert all date time values to local time
   // the datetime is either YYYY-MM-DD hh:mm:ss (xcdb)
   // or YYYY-MM-DD hh:mm:ss+xx:yy (ext)
-  return result.replace(/\b(\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2})(\+\d{2}:\d{2})?\b/g, (d: string) => {
+  return result.replace(/\b(\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2})(\[+-]\d{2}:\d{2})?\b/g, (d: string) => {
     // TODO(timezone): retrieve the format from the corresponding column meta
     // assume hh:mm at this moment
     return dayjs(d).utc(!result.includes('+')).local().format('YYYY-MM-DD HH:mm')

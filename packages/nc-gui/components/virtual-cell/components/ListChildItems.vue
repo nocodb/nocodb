@@ -13,18 +13,21 @@ import {
   iconMap,
   inject,
   ref,
+  renderCellValue,
   useLTARStoreOrThrow,
+  useProject,
   useSmartsheetRowStoreOrThrow,
   useVModel,
-  watch,
+  renderValue
 } from '#imports'
-import { renderValue } from "./utils";
 
 const props = defineProps<{ modelValue?: boolean; cellValue: any }>()
 
 const emit = defineEmits(['update:modelValue', 'attachRecord'])
 
 const vModel = useVModel(props, 'modelValue', emit)
+
+const { isMssql } = useProject()
 
 const isForm = inject(IsFormInj, ref(false))
 
@@ -149,7 +152,7 @@ const onClick = (row: Row) => {
           >
             <div class="flex items-center">
               <div class="flex-1 overflow-hidden min-w-0">
-                {{ renderValue(row[relatedTableDisplayValueProp]) }}
+                {{ renderValue(isMssql(column.value.base_id), row[relatedTableDisplayValueProp]) }}
                 <span class="text-gray-400 text-[11px] ml-1">(Primary key : {{ getRelatedTableRowId(row) }})</span>
               </div>
 

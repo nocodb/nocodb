@@ -12,19 +12,22 @@ import {
   inject,
   isDrawerExist,
   ref,
+  renderCellValue,
   useLTARStoreOrThrow,
+  useProject,
   useSelectedCellKeyupListener,
   useSmartsheetRowStoreOrThrow,
   useVModel,
-  watch,
+  renderValue
 } from '#imports'
-import { renderValue } from "./utils";
 
 const props = defineProps<{ modelValue: boolean }>()
 
 const emit = defineEmits(['update:modelValue', 'addNewRecord'])
 
 const vModel = useVModel(props, 'modelValue', emit)
+
+const { isMssql } = useProject()
 
 const column = inject(ColumnInj)
 
@@ -230,7 +233,7 @@ watch(vModel, (nextVal) => {
             :class="{ 'nc-selected-row': selectedRowIndex === i }"
             @click="linkRow(refRow)"
           >
-            {{ renderValue(refRow[relatedTableDisplayValueProp]) }}
+            {{ renderValue(isMssql(column.value.base_id), refRow[relatedTableDisplayValueProp]) }}
             <span class="hidden group-hover:(inline) text-gray-400 text-[11px] ml-1">
               ({{ $t('labels.primaryKey') }} : {{ getRelatedTableRowId(refRow) }})
             </span>

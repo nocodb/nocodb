@@ -1,41 +1,26 @@
 <script lang="ts" setup>
-import dayjs from 'dayjs'
 import type { ColumnType } from 'nocodb-sdk'
 import type { Ref } from 'vue'
-import { CellValueInj, ColumnInj, computed, handleTZ, inject, replaceUrlsWithLink, useProject } from '#imports'
+import { CellValueInj, ColumnInj, computed, handleTZ, inject, renderCellValue, replaceUrlsWithrenderValuet } from '#imports'
 
 // todo: column type doesn't have required property `error` - throws in typecheck
 const column = inject(ColumnInj) as Ref<ColumnType & { colOptions: { error: any } }>
 
 const cellValue = inject(CellValueInj)
 
-const { isPg } = useProject()
+const { isPg, isMssql } = useProject()
 
-const result = computed(() =>
-  isPg(column.value.base_id) ? renderResult(handleTZ(cellValue?.value)) : renderResult(cellValue?.value),
-)
+const result = computed(() => {
+  const isMSSQL = isMssql(column.value.base_id)
+  return isPg(column.value.base_id)
+    ? renderValue(isMSSQL, handleTZ(cellValue?.value))
+    : renderValue(isMSSQL, cellValue?.value)
+})
 
 const urls = computed(() => replaceUrlsWithLink(result.value))
 
 const { showEditNonEditableFieldWarning, showClearNonEditableFieldWarning, activateShowEditNonEditableFieldWarning } =
   useShowNotEditableWarning()
-
-const renderResult = (result?: any) => {
-  if (!result || typeof result !== 'string') {
-    return result
-  }
-  // convert all date time values to local time
-  // the datetime is either YYYY-MM-DD hh:mm:ss (xcdb)
-  // or YYYY-MM-DD hh:mm:ss+xx:yy (ext)
-  return result.replace('.000000', '').replace(/\b(\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2})(\+\d{2}:\d{2})?\b/g, (d) => {
-    // TODO(timezone): retrieve the format from the corresponding column meta
-    // assume hh:mm at this moment
-    return dayjs(d)
-      .utc(result.indexOf('+') === -1)
-      .local()
-      .format('YYYY-MM-DD HH:mm')
-  })
-}
 </script>
 
 <template>

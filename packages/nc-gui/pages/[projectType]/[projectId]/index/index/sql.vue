@@ -7,7 +7,7 @@ import { storeToRefs } from 'pinia'
 import MdiHammer from '~icons/mdi/hammer'
 import { useNuxtApp, useProject, useSqlEditor, useUIPermission } from '#imports'
 
-const { bases, tables } = storeToRefs(useProject())
+const { project, bases, tables } = storeToRefs(useProject())
 
 const { metas, getMeta } = useMetas()
 
@@ -15,9 +15,28 @@ const { isUIAllowed } = useUIPermission()
 
 const { $api, $e } = useNuxtApp()
 
-const { rawSql, sqlPrompt, selectedBase, promptHistory } = useSqlEditor()
+const { sqlEditors, promptHistory } = useSqlEditor()
 
-const activePrompt = computed(() => promptHistory.find((p) => selectedBase.value === p.baseId && p.prompt === sqlPrompt.value))
+const activeSqlEditor = computed(() => {
+  if (project.value.id! in sqlEditors.value) {
+    return sqlEditors.value[project.value.id!]
+  } else {
+    sqlEditors.value[project.value.id!] = {
+      selectedBase: bases.value[0]?.id,
+      sqlPrompt: '',
+      rawSql: '',
+    }
+    return sqlEditors.value[project.value.id!]
+  }
+})
+
+const tabStore = useTabs()
+const { addSqlEditorTab } = tabStore
+const { activeTab } = storeToRefs(tabStore)
+
+const activePrompt = computed(() =>
+  promptHistory.find((p) => activeSqlEditor.value.selectedBase === p.baseId && p.prompt === activeSqlEditor.value.sqlPrompt),
+)
 
 const historyDrawer = ref(false)
 
@@ -38,13 +57,13 @@ const handleResizeColumn = (w: number, col: any) => {
 }
 
 const loadPrompt = (pr: { prompt: string; query?: string }) => {
-  sqlPrompt.value = pr.prompt
-  rawSql.value = pr.query || ' '
+  activeSqlEditor.value.sqlPrompt = pr.prompt
+  activeSqlEditor.value.rawSql = pr.query || ' '
 }
 
 const addHistory = (prompt: string, query: string, status: boolean | null = null, error = '') => {
   if (!prompt.length) return
-  const fnd = promptHistory.find((p) => p.baseId === selectedBase.value && p.prompt === prompt)
+  const fnd = promptHistory.find((p) => p.baseId === activeSqlEditor.value.selectedBase && p.prompt === prompt)
   if (fnd) {
     fnd.query = query
     fnd.status = status
@@ -52,17 +71,17 @@ const addHistory = (prompt: string, query: string, status: boolean | null = null
     promptHistory.splice(promptHistory.indexOf(fnd), 1)
     promptHistory.unshift(fnd)
   } else {
-    promptHistory.unshift({ baseId: selectedBase.value, prompt, query, status, error })
+    promptHistory.unshift({ baseId: activeSqlEditor.value.selectedBase, prompt, query, status, error })
   }
 }
 
 const generateSQL = async () => {
   if (!isUIAllowed('sqlEditorAi') || loadMagic.value) return
-  if (!sqlPrompt.value.length) return message.warning('Please enter a prompt first!')
+  if (!activeSqlEditor.value.sqlPrompt.length) return message.warning('Please enter a prompt first!')
 
   loadMagic.value = true
 
-  const base = bases.value.find((b) => b.id === selectedBase.value)
+  const base = bases.value.find((b) => b.id === activeSqlEditor.value.selectedBase)
   const baseTables = tables.value.filter((t) => t.base_id === base?.id && t.type === 'table' && t.table_name)
 
   for (const table of baseTables) {
@@ -72,7 +91,7 @@ const generateSQL = async () => {
   if (!base) return
 
   const req = {
-    prompt: sqlPrompt.value,
+    prompt: activeSqlEditor.value.sqlPrompt,
     base: {
       type: base.type,
       tables: baseTables.map((t) => ({
@@ -91,8 +110,8 @@ const generateSQL = async () => {
     })
     .then((res: { data: Array<{ description: string; query: string }> }) => {
       if (res.data.length === 1) {
-        rawSql.value = res.data[0].query
-        addHistory(sqlPrompt.value, rawSql.value)
+        activeSqlEditor.value.rawSql = res.data[0].query
+        addHistory(activeSqlEditor.value.sqlPrompt, activeSqlEditor.value.rawSql)
       } else {
         for (const q of res.data.reverse()) {
           addHistory(q.description, q.query)
@@ -113,7 +132,7 @@ const generatePrompt = async (mode: 'KPI' | 'dashboard', max = 5) => {
 
   loadMagic.value = true
 
-  const base = bases.value.find((b) => b.id === selectedBase.value)
+  const base = bases.value.find((b) => b.id === activeSqlEditor.value.selectedBase)
   const baseTables = tables.value.filter((t) => t.base_id === base?.id && t.type === 'table' && t.table_name)
 
   for (const table of baseTables) {
@@ -145,7 +164,7 @@ const generatePrompt = async (mode: 'KPI' | 'dashboard', max = 5) => {
       for (const p of res.data) {
         addHistory(p.description, p.query)
       }
-      if (!sqlPrompt.value.length) loadPrompt(promptHistory[0])
+      if (!activeSqlEditor.value.sqlPrompt.length) loadPrompt(promptHistory[0])
       historyDrawer.value = true
     })
     .catch(async (e) => {
@@ -161,7 +180,7 @@ const repairSQL = async () => {
 
   loadSQL.value = true
 
-  const base = bases.value.find((b) => b.id === selectedBase.value)
+  const base = bases.value.find((b) => b.id === activeSqlEditor.value.selectedBase)
   const baseTables = tables.value.filter((t) => t.base_id === base?.id && t.type === 'table' && t.table_name)
 
   for (const table of baseTables) {
@@ -171,7 +190,7 @@ const repairSQL = async () => {
   if (!base) return
 
   const req = {
-    sql: rawSql.value,
+    sql: activeSqlEditor.value.rawSql,
     base: {
       type: base.type,
       tables: baseTables.map((t) => ({
@@ -189,8 +208,8 @@ const repairSQL = async () => {
       data: req,
     })
     .then((res) => {
-      addHistory(sqlPrompt.value, res.data.query)
-      rawSql.value = res.data.query
+      addHistory(activeSqlEditor.value.sqlPrompt, res.data.query)
+      activeSqlEditor.value.rawSql = res.data.query
     })
     .catch(async (e) => {
       message.error(await extractSdkResponseErrorMsg(e))
@@ -240,17 +259,17 @@ const runSQL = async () => {
 
   await $api.utils
     .selectQuery({
-      baseId: selectedBase.value,
-      query: rawSql.value,
+      baseId: activeSqlEditor.value.selectedBase,
+      query: activeSqlEditor.value.rawSql,
     })
     .then((res: { data: Record<string, any>[] }) => {
-      addHistory(sqlPrompt.value, rawSql.value, true)
-      dataQuery.value = rawSql.value
+      addHistory(activeSqlEditor.value.sqlPrompt, activeSqlEditor.value.rawSql, true)
+      dataQuery.value = activeSqlEditor.value.rawSql
       data.value = Array.isArray(res.data) ? res.data : []
     })
     .catch(async (e) => {
       const error_msg = await extractSdkResponseErrorMsg(e)
-      addHistory(sqlPrompt.value, rawSql.value, false, error_msg)
+      addHistory(activeSqlEditor.value.sqlPrompt, activeSqlEditor.value.rawSql, false, error_msg)
       await repairModal(error_msg)
     })
     .finally(() => {
@@ -299,7 +318,10 @@ watch(
 )
 
 onMounted(() => {
-  selectedBase.value = selectedBase.value || bases.value[0]?.id
+  if (!activeTab.value) {
+    addSqlEditorTab(project.value)
+  }
+  activeSqlEditor.value.selectedBase = activeSqlEditor.value.selectedBase || bases.value[0]?.id
 })
 </script>
 
@@ -308,7 +330,7 @@ onMounted(() => {
     <div class="flex flex-col h-full w-full text-gray-60" :class="[historyDrawer ? 'col-span-9' : 'col-span-12']">
       <div class="flex flex-col h-[500px]">
         <div class="flex p-4">
-          <a-select v-model:value="selectedBase" :options="baseOptions" class="w-[200px] !mr-4" />
+          <a-select v-model:value="activeSqlEditor.selectedBase" :options="baseOptions" class="w-[200px] !mr-4" />
           <a-dropdown-button class="!mr-4" @click="generateSQL()">
             Generate Query
             <template #overlay>
@@ -331,12 +353,18 @@ onMounted(() => {
               ><GeneralIcon icon="magic" :class="{ 'nc-animation-pulse': loadMagic }" class="text-orange-400"
             /></template>
           </a-dropdown-button>
-          <a-button type="primary" class="!flex items-center" :loading="loadSQL" :disabled="!rawSql?.length" @click="runSQL">
+          <a-button
+            type="primary"
+            class="!flex items-center"
+            :loading="loadSQL"
+            :disabled="!activeSqlEditor.rawSql?.length"
+            @click="runSQL"
+          >
             <template #icon><MdiPlay class="mr-1" /></template>
             Run
           </a-button>
           <MdiHistory
-            v-if="loadMagic || promptHistory.filter((p) => p.baseId === selectedBase).length"
+            v-if="loadMagic || promptHistory.filter((p) => p.baseId === activeSqlEditor.selectedBase).length"
             id="history"
             class="my-auto ml-2 text-xl text-gray-400 cursor-pointer"
             :class="{ 'animate-spin': loadMagic }"
@@ -345,7 +373,7 @@ onMounted(() => {
         </div>
         <div class="flex w-full items-center p-4">
           <a-input
-            v-model:value="sqlPrompt"
+            v-model:value="activeSqlEditor.sqlPrompt"
             placeholder="Enter your plain prompt here"
             style="width: 100%"
             :bordered="false"
@@ -354,7 +382,7 @@ onMounted(() => {
         </div>
         <div class="flex-1 w-full">
           <LazyMonacoEditor
-            v-model="rawSql"
+            v-model="activeSqlEditor.rawSql"
             class="w-full h-full"
             lang="sql"
             :hide-minimap="true"
@@ -375,7 +403,7 @@ onMounted(() => {
           v-if="dataQuery && data.length"
           type="primary"
           class="!flex items-center absolute z-5 bottom-[50px]"
-          @click="openSqlViewCreateDialog(selectedBase)"
+          @click="openSqlViewCreateDialog(activeSqlEditor.selectedBase)"
         >
           <MdiEyeCircleOutline class="mr-2" />
           Create SQL View
@@ -390,7 +418,7 @@ onMounted(() => {
       <div class="flex p-4">
         <a-steps progress-dot :current="-1" direction="vertical" size="small">
           <a-step
-            v-for="pr of promptHistory.filter((p) => p.baseId === selectedBase)"
+            v-for="pr of promptHistory.filter((p) => p.baseId === activeSqlEditor.selectedBase)"
             :key="pr.prompt"
             :class="{ 'ant-steps-item-worked': pr.status && activePrompt?.prompt !== pr.prompt }"
             :status="pr.status === false ? 'error' : activePrompt?.prompt === pr.prompt ? 'process' : 'wait'"

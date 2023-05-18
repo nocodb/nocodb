@@ -57,7 +57,7 @@ const [searchActive, toggleSearchActive] = useToggle()
 
 const { appInfo } = useGlobal()
 
-const { selectedBase } = useSqlEditor()
+const { selectBase } = useSqlEditor()
 
 const { addUndo, defineProjectScope } = useUndoRedo()
 
@@ -337,7 +337,7 @@ function openSchemaMagicDialog(baseId?: string) {
 
 function openSqlEditor(base?: BaseType) {
   if (!base) base = bases.value?.filter((base: BaseType) => base.enabled)[0]
-  selectedBase.value = base.id
+  selectBase(project.value.id!, base.id!)
   navigateTo(`/${route.params.projectType}/${route.params.projectId}/sql`)
 }
 

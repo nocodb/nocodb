@@ -506,10 +506,14 @@ export default class Model implements TableType {
             ]);
           } else if (isMssql) {
             // e.g. 2023-05-10T08:49:32.000Z -> 2023-05-10 08:49:32-08:00
-            val = dayjs(val).utc().format('YYYY-MM-DD HH:mm:ssZ');
+            // then convert to db timezone
+            val = knex.raw(
+              `SWITCHOFFSET(? AT TIME ZONE 'UTC', SYSDATETIMEOFFSET()`,
+              [dayjs(val).utc().format('YYYY-MM-DD HH:mm:ssZ')],
+            );
           } else {
-            // e.g. 2023-01-01T12:00:00.000Z -> 2023-01-01 20:00:00+08:00
-            val = dayjs(val).format('YYYY-MM-DD HH:mm:ssZ');
+            // e.g. 2023-01-01T12:00:00.000Z -> 2023-01-01 12:00:00+00:00
+            val = dayjs(val).utc().format('YYYY-MM-DD HH:mm:ssZ');
           }
         }
         insertObj[sanitize(col.column_name)] = val;

@@ -1647,6 +1647,18 @@ class BaseModelSqlv2 {
                 .wrap('(', ')');
               break;
             }
+          } else if (this.isMssql) {
+            // if there is no timezone info, convert to database timezone, then convert to UTC
+            if (column.dt !== 'datetime2') {
+              const col = `${sanitize(alias || this.model.table_name)}.${
+                column.column_name
+              }`;
+              res[sanitize(column.title || column.column_name)] =
+                this.dbDriver.raw(
+                  `SWITCHOFFSET(??, DATEPART(TZOFFSET, ??)) AT TIME ZONE 'UTC'`,
+                  [col, col],
+                );
+            }
           }
           res[sanitize(column.title || column.column_name)] = sanitize(
             `${alias || this.model.table_name}.${column.column_name}`,

@@ -1634,7 +1634,10 @@ class BaseModelSqlv2 {
             break;
           } else if (this.isPg) {
             // if there is no timezone info, convert it to UTC
-            if (column.dt !== 'timestamp with time zone') {
+            if (
+              column.dt !== 'timestamp with time zone' &&
+              column.dt !== 'timestamptz'
+            ) {
               res[sanitize(column.title || column.column_name)] = this.dbDriver
                 .raw(
                   `?? AT TIME ZONE CURRENT_SETTING('timezone') AT TIME ZONE 'UTC'`,
@@ -3339,7 +3342,10 @@ class BaseModelSqlv2 {
             }
           }
 
-          if (this.isPg && col.dt === 'timestamp with time zone') {
+          if (
+            this.isPg &&
+            (col.dt === 'timestamp with time zone' || col.dt === 'timestamptz')
+          ) {
             // postgres - timezone already attached to input
             // e.g. 2023-05-11 16:16:51+08:00
             keepLocalTime = false;

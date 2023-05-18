@@ -587,15 +587,14 @@ test.describe.serial('External DB - DateTime column', async () => {
         'xc-auth': context.token,
       },
     });
-    const projectList = await api.project.list();
-    const table = await api.dbTable.list(projectList.list[0].id);
+    const table = await api.dbTable.list(context.project.id);
     let table_data: any;
-    table_data = await api.dbTableColumn.create(table.list[0].id, {
+    table_data = await api.dbTableColumn.create(table.list.find(x => x.title === 'MyTable').id, {
       title: 'formula-1',
       uidt: UITypes.Formula,
       formula_raw: '0',
     });
-    table_data = await api.dbTableColumn.create(table.list[0].id, {
+    table_data = await api.dbTableColumn.create(table.list.find(x => x.title === 'MyTable').id, {
       title: 'formula-2',
       uidt: UITypes.Formula,
       formula_raw: '0',

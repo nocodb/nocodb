@@ -485,15 +485,15 @@ function getDateTimeInLocalTimeZone(dateString: string) {
 
 function getDateTimeInUTCTimeZone(dateString: string) {
   // create a Date object with the input string
-  // assumes local system timezone
   const date = new Date(dateString);
 
   // get the timezone offset in minutes and convert to milliseconds
   // subtract the offset from the provided time in milliseconds for IST
-  const offsetMs = date.getTimezoneOffset() * 60 * 1000;
+  // const offsetMs = date.getTimezoneOffset() * 60 * 1000;
 
   // adjust the date by the offset
-  const adjustedDate = new Date(date.getTime() + offsetMs);
+  // const adjustedDate = new Date(date.getTime() + offsetMs);
+  const adjustedDate = new Date(date.getTime());
 
   // format the adjusted date as a string in the desired format
   const outputString = adjustedDate.toISOString().slice(0, 19).replace('T', ' ');
@@ -524,11 +524,11 @@ test.describe.serial('External DB - DateTime column', async () => {
       // with +HH:MM information, display value is converted to browser timezone
       // SQLite doesn't have with & without timezone fields; both are same in this case
       DatetimeWithoutTz: [
-        getDateTimeInLocalTimeZone('2023-04-27 10:00:00+00:00'),
+        getDateTimeInLocalTimeZone(`2023-04-27 10:00:00`),
         getDateTimeInLocalTimeZone('2023-04-27 10:00:00+05:30'),
       ],
       DatetimeWithTz: [
-        getDateTimeInLocalTimeZone('2023-04-27 10:00:00+00:00'),
+        getDateTimeInLocalTimeZone(`2023-04-27 10:00:00`),
         getDateTimeInLocalTimeZone('2023-04-27 10:00:00+05:30'),
       ],
     },
@@ -692,6 +692,15 @@ test.describe.serial('External DB - DateTime column', async () => {
     await dashboard.treeView.openBase({ title: 'datetimetable' });
     await dashboard.treeView.openTable({ title: 'MyTable' });
 
+    if (isSqlite(context)) {
+      expectedDisplayValues['sqlite'].DatetimeWithoutTz[0] = getDateTimeInLocalTimeZone(
+        `2023-04-27 10:00:00${formattedOffset}`
+      );
+      expectedDisplayValues['sqlite'].DatetimeWithTz[0] = getDateTimeInLocalTimeZone(
+        `2023-04-27 10:00:00${formattedOffset}`
+      );
+    }
+
     // display value for datetime column without tz should be same as stored value
     // display value for datetime column with tz should be converted to browser timezone (HK in this case)
     await dashboard.grid.cell.verifyDateCell({
@@ -755,36 +764,36 @@ test.describe.serial('External DB - DateTime column', async () => {
 
     if (isSqlite(context)) {
       expectedDateTimeWithoutTz = [
-        '2023-04-27 10:00:00+00:00',
-        '2023-04-27 10:00:00+05:30',
-        getDateTimeInUTCTimeZone('2023-04-27 10:00:00+00:00'),
+        getDateTimeInUTCTimeZone(`2023-04-27 10:00:00${formattedOffset}`),
+        getDateTimeInUTCTimeZone('2023-04-27 10:00:00+05:30'),
+        getDateTimeInUTCTimeZone(`2023-04-27 10:00:00${formattedOffset}`),
       ];
       expectedDateTimeWithTz = [
-        '2023-04-27 10:00:00+00:00',
-        '2023-04-27 10:00:00+05:30',
-        getDateTimeInUTCTimeZone('2023-04-27 10:00:00+00:00'),
+        getDateTimeInUTCTimeZone(`2023-04-27 10:00:00${formattedOffset}`),
+        getDateTimeInUTCTimeZone('2023-04-27 10:00:00+05:30'),
+        getDateTimeInUTCTimeZone(`2023-04-27 10:00:00${formattedOffset}`),
       ];
     } else if (isPg(context)) {
       expectedDateTimeWithoutTz = [
         '2023-04-27 10:00:00+00:00',
         '2023-04-27 10:00:00+00:00',
-        getDateTimeInUTCTimeZone('2023-04-27 10:00:00+00:00'),
+        getDateTimeInUTCTimeZone(`2023-04-27 10:00:00${formattedOffset}`),
       ];
       expectedDateTimeWithTz = [
         '2023-04-27 10:00:00+00:00',
         '2023-04-27 04:30:00+00:00',
-        getDateTimeInUTCTimeZone('2023-04-27 10:00:00+00:00'),
+        getDateTimeInUTCTimeZone(`2023-04-27 10:00:00${formattedOffset}`),
       ];
     } else if (isMysql(context)) {
       expectedDateTimeWithoutTz = [
         '2023-04-27 10:00:00+00:00',
         '2023-04-27 04:30:00+00:00',
-        getDateTimeInUTCTimeZone('2023-04-27 10:00:00+00:00'),
+        getDateTimeInUTCTimeZone(`2023-04-27 10:00:00${formattedOffset}`),
       ];
       expectedDateTimeWithTz = [
         '2023-04-27 10:00:00+00:00',
         '2023-04-27 04:30:00+00:00',
-        getDateTimeInUTCTimeZone('2023-04-27 10:00:00+00:00'),
+        getDateTimeInUTCTimeZone(`2023-04-27 10:00:00${formattedOffset}`),
       ];
     }
 
@@ -839,6 +848,13 @@ test.describe('Ext DB MySQL : DB Timezone configured as HKT', () => {
     if (!isMysql(context)) {
       return;
     }
+
+    // get timezone offset
+    const timezoneOffset = new Date().getTimezoneOffset();
+    const hours = Math.floor(Math.abs(timezoneOffset) / 60);
+    const minutes = Math.abs(timezoneOffset % 60);
+    const sign = timezoneOffset <= 0 ? '+' : '-';
+    const formattedOffset = `${sign}${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}`;
 
     // connect after timezone is set
     await connectToExtDb(context);
@@ -909,12 +925,12 @@ test.describe('Ext DB MySQL : DB Timezone configured as HKT', () => {
     const expectedDateTimeWithoutTz = [
       '2023-04-27 02:00:00+00:00',
       '2023-04-27 04:30:00+00:00',
-      getDateTimeInUTCTimeZone('2023-04-27 10:00:00+00:00'),
+      getDateTimeInUTCTimeZone(`2023-04-27 10:00:00${formattedOffset}`),
     ];
     const expectedDateTimeWithTz = [
       '2023-04-27 02:00:00+00:00',
       '2023-04-27 04:30:00+00:00',
-      getDateTimeInUTCTimeZone('2023-04-27 10:00:00+00:00'),
+      getDateTimeInUTCTimeZone(`2023-04-27 10:00:00${formattedOffset}`),
     ];
 
     // reset seconds to 00 using string functions in dateTimeWithoutTz

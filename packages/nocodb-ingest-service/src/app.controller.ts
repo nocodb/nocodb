@@ -97,7 +97,7 @@ export class AppController {
         }
 
         rows.push(
-          `(${Math.round(timestamp / 1000) ?? 'NOW()'}, ${[
+          `(generateUUIDv4(),${Math.round(timestamp / 1000) ?? 'NOW()'}, ${[
             workspace_id,
             user_id,
             project_id,
@@ -114,7 +114,7 @@ export class AppController {
       // Generate the ClickHouse insert query
       const insertQuery = `INSERT INTO ${
         ClickhouseTables.API_CALLS
-      } (timestamp, workspace_id, user_id, project_id, url, method, exec_time, status, req_ipv4, req_ipv6)
+      } (id,timestamp, workspace_id, user_id, project_id, url, method, exec_time, status, req_ipv4, req_ipv6)
                          VALUES ${rows.join(',')}`;
 
       await this.clickhouseService.execute(insertQuery);

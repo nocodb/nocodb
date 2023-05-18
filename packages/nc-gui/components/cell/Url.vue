@@ -63,7 +63,7 @@ const url = computed(() => {
 
 const { cellUrlOptions } = useCellUrlConfig(url)
 
-const isExpandedFormOpen = inject(IsExpandedFormOpenInj, ref(false))!
+const isExpandedFormOpen = inject(IsExpandedFormOpenInj)!
 
 const focus: VNodeRef = (el) => !isExpandedFormOpen && (el as HTMLInputElement)?.focus()
 

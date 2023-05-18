@@ -35,7 +35,7 @@ const vModel = computed({
 
 const validEmail = computed(() => vModel.value && validateEmail(vModel.value))
 
-const isExpandedFormOpen = inject(IsExpandedFormOpenInj, ref(false))!
+const isExpandedFormOpen = inject(IsExpandedFormOpenInj)!
 
 const focus: VNodeRef = (el) => !isExpandedFormOpen && (el as HTMLInputElement)?.focus()
 

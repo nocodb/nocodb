@@ -23,7 +23,7 @@ const readonly = inject(ReadonlyInj, ref(false))
 
 const vModel = useVModel(props, 'modelValue', emits)
 
-const isExpandedFormOpen = inject(IsExpandedFormOpenInj, ref(false))!
+const isExpandedFormOpen = inject(IsExpandedFormOpenInj)!
 
 const focus: VNodeRef = (el) => !isExpandedFormOpen && (el as HTMLInputElement)?.focus()
 </script>

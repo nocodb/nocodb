@@ -54,7 +54,7 @@ class ClickhouseLock {
   public async isLockAcquired(): Promise<boolean> {
     const query = `SELECT count() as count FROM ${this.database}.${this.table}`;
     const result = await this.client.query(query);
-    const rowCount = result[0].count;
+    const rowCount = result?.[0]?.count;
 
     if (rowCount === 0) {
       // No entry in the lock table, lock is not acquired
@@ -62,7 +62,7 @@ class ClickhouseLock {
     }
 
     const lockResult = await this.client.query(`SELECT is_locked FROM ${this.database}.${this.table}`);
-    return lockResult[0].is_locked === 1;
+    return lockResult?.[0]?.is_locked === 1;
   }
 
   public async executeWithLock(

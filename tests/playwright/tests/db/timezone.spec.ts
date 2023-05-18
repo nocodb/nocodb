@@ -658,21 +658,24 @@ test.describe.serial('External DB - DateTime column', async () => {
       dateTime: '2024-04-27 10:00:00',
     });
 
-    await verifyFormula({
-      formula: [
-        'DATETIME_DIFF({DatetimeWithoutTz}, {DatetimeWithTz}, "days")',
-        'DATETIME_DIFF({DatetimeWithTz}, {DatetimeWithoutTz}, "days")',
-      ],
-      expectedDisplayValue: ['-366', '366'],
-    });
+    if (!isSqlite(context)) {
+      // SQLite : output is in decimal format; MySQL & Postgres : output is in integer format
+      await verifyFormula({
+        formula: [
+          'DATETIME_DIFF({DatetimeWithoutTz}, {DatetimeWithTz}, "days")',
+          'DATETIME_DIFF({DatetimeWithTz}, {DatetimeWithoutTz}, "days")',
+        ],
+        expectedDisplayValue: ['-366', '366'],
+      });
 
-    await verifyFormula({
-      formula: [
-        'DATETIME_DIFF({DatetimeWithoutTz}, {DatetimeWithTz}, "months")',
-        'DATETIME_DIFF({DatetimeWithTz}, {DatetimeWithoutTz}, "months")',
-      ],
-      expectedDisplayValue: ['-12', '12'],
-    });
+      await verifyFormula({
+        formula: [
+          'DATETIME_DIFF({DatetimeWithoutTz}, {DatetimeWithTz}, "months")',
+          'DATETIME_DIFF({DatetimeWithTz}, {DatetimeWithoutTz}, "months")',
+        ],
+        expectedDisplayValue: ['-12', '12'],
+      });
+    }
   });
 
   test('Verify display value, UI insert, API response', async () => {

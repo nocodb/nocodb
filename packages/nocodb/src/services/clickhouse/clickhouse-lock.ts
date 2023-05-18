@@ -24,13 +24,14 @@ class ClickhouseLock {
       CREATE TABLE IF NOT EXISTS migrations_lock (
         is_locked UInt8 DEFAULT 0
       ) ENGINE = MergeTree()
+      ORDER BY is_locked
     `;
     await this.client.query(query).toPromise();
   }
 
   private async updateLockStatus(isLocked: number): Promise<void> {
     await this.client
-      .query(`DELETE FROM ${this.database}.${this.table} WHERE TRUE`)
+      .query(`DELETE FROM ${this.config.database}.${this.table} WHERE TRUE`)
       .toPromise();
   }
 
@@ -42,7 +43,7 @@ class ClickhouseLock {
     if (!isLockAcquired) {
       await this.client
         .query(
-          `INSERT INTO ${this.database}.${this.table} (is_locked) VALUES (1)`,
+          `INSERT INTO ${this.config.database}.${this.table} (is_locked) VALUES (1)`,
         )
         .toPromise();
     } else {
@@ -55,7 +56,7 @@ class ClickhouseLock {
   }
 
   public async isLockAcquired(): Promise<boolean> {
-    const query = `SELECT count() as count FROM ${this.database}.${this.table}`;
+    const query = `SELECT count() as count FROM ${this.config.database}.${this.table}`;
     const result: any = await this.client.query(query).toPromise();
     const rowCount = result?.[0]?.count;
 
@@ -65,7 +66,7 @@ class ClickhouseLock {
     }
 
     const lockResult: any = await this.client
-      .query(`SELECT is_locked FROM ${this.database}.${this.table}`)
+      .query(`SELECT is_locked FROM ${this.config.database}.${this.table}`)
       .toPromise();
     return lockResult?.[0]?.is_locked === 1;
   }

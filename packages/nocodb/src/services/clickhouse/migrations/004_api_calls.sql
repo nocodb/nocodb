@@ -9,6 +9,7 @@ CREATE TABLE IF NOT EXISTS usage_api_calls (
     status UInt16,
     exec_time UInt64,
     req_ipv4 IPv4,
-    req_ipv6 IPv6
-  ) ENGINE = MergeTree
-  ORDER BY timestamp;
+    req_ipv6 IPv6,
+
+    PRIMARY KEY (id)
+  ) ENGINE = MergeTree;

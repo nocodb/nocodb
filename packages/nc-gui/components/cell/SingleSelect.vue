@@ -68,6 +68,10 @@ const { isPg, isMysql } = useProject()
 // temporary until it's add the option to column meta
 const tempSelectedOptState = ref<string>()
 
+const isNewOptionCreateEnabled = computed(
+  () => !isPublic.value && !disableOptionCreation && (hasRole('owner', true) || hasRole('creator', true)),
+)
+
 const options = computed<(SelectOptionType & { value: string })[]>(() => {
   if (column?.value.colOptions) {
     const opts = column.value.colOptions
@@ -93,11 +97,9 @@ const editAllowed = computed(() => (hasEditRoles.value || isForm.value) && (acti
 const vModel = computed({
   get: () => tempSelectedOptState.value ?? modelValue,
   set: (val) => {
-    if (isOptionMissing.value && val === searchVal.value) {
+    if (isNewOptionCreateEnabled.value && (options.value ?? []).every((op) => op.title !== val)) {
       tempSelectedOptState.value = val
-      return addIfMissingAndSave().finally(() => {
-        tempSelectedOptState.value = undefined
-      })
+      return addIfMissingAndSave()
     }
     emit('update:modelValue', val || null)
   },
@@ -146,10 +148,11 @@ useSelectedCellKeyupListener(isOpen, (e) => {
 })
 
 async function addIfMissingAndSave() {
-  if (!searchVal.value || isPublic.value) return false
+  if (!tempSelectedOptState.value || isPublic.value) return false
 
-  const newOptValue = searchVal.value
+  const newOptValue = tempSelectedOptState.value
   searchVal.value = ''
+  tempSelectedOptState.value = undefined
 
   if (newOptValue && !options.value.some((o) => o.title === newOptValue)) {
     try {
@@ -305,17 +308,7 @@ const selectedOpt = computed(() => {
           </span>
         </a-tag>
       </a-select-option>
-      <a-select-option
-        v-if="
-          searchVal &&
-          isOptionMissing &&
-          !isPublic &&
-          !disableOptionCreation &&
-          (hasRole('owner', true) || hasRole('creator', true))
-        "
-        :key="searchVal"
-        :value="searchVal"
-      >
+      <a-select-option v-if="searchVal && isOptionMissing && isNewOptionCreateEnabled" :key="searchVal" :value="searchVal">
         <div class="flex gap-2 text-gray-500 items-center h-full">
           <component :is="iconMap.plusThick" class="min-w-4" />
           <div class="text-xs whitespace-normal">
@@ -349,12 +342,6 @@ const selectedOpt = computed(() => {
 
 :deep(.ant-select-selector) {
   @apply !px-0;
-}
-
-:deep(.ant-select-selection-search) {
-  // following a-select with mode = multiple | tags
-  // initial width will block @mouseover in Grid.vue
-  @apply !w-[5px];
 }
 
 :deep(.ant-select-selection-search-input) {

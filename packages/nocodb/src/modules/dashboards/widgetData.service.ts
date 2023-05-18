@@ -6,6 +6,7 @@ import Widget from '../../models/Widget';
 import { Base, Column, Filter, Model, View } from '../../models';
 import { DatasService } from '../../services/datas.service';
 import { getViewAndModelByAliasOrId } from '../datas/helpers';
+import { WidgetsService } from './widgets.service';
 import type { PathParams } from '../datas/helpers';
 import type {
   AppearanceConfig,
@@ -87,6 +88,11 @@ export class WidgetDataService {
           });
 
           const aggregateColumnName = aggregateColumn?.column_name;
+
+          WidgetsService.validateWidgetDataSourceConfig(
+            widget.data_source,
+            layoutId,
+          );
 
           const widgetData = await this.dataGroupAndAggregateBy({
             widget,

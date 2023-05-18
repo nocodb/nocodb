@@ -70,7 +70,6 @@ export class WidgetsController {
     @Body() body: WidgetReqType,
     @Request() req,
   ) {
-    // TODO: ensure here that the assigned data source is in the list of linked DB projects for this Layout Project
     const result = await this.widgetsService.widgetCreate({
       layoutId,
       widgetReq: body,
@@ -90,7 +89,6 @@ export class WidgetsController {
     @Body() body: WidgetUpdateReqType,
     @Request() req,
   ) {
-    // TODO: ensure here that the assigned data source is in the list of linked DB projects for this Layout Project
     const result = await this.widgetsService.widgetUpdate({
       widgetId,
       widgetUpdateReq: body,

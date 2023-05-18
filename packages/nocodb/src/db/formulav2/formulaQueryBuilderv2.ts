@@ -549,7 +549,8 @@ async function _formulaQueryBuilder(
           };
         } else if (
           knex.clientType() === 'pg' &&
-          col.dt !== 'timestamp with time zone'
+          col.dt !== 'timestamp with time zone' &&
+          col.dt !== 'timestamptz'
         ) {
           aliasToColumn[col.id] = async (): Promise<any> => {
             return {

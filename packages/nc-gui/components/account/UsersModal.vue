@@ -185,8 +185,8 @@ const emailInput: VNodeRef = (el) => (el as HTMLInputElement)?.focus()
 
                     <a-input
                       :ref="emailInput"
-                      size="middle"
                       v-model:value="usersData.emails"
+                      size="middle"
                       validate-trigger="onBlur"
                       :placeholder="$t('labels.email')"
                     />

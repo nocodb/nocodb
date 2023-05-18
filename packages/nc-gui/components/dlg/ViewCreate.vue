@@ -219,7 +219,7 @@ async function onSubmit() {
 
     <a-form ref="formValidator" layout="vertical" :model="form">
       <a-form-item :label="$t('labels.viewName')" name="title" :rules="viewNameRules">
-        <a-input ref="inputEl" size="large" v-model:value="form.title" autofocus @keydown.enter="onSubmit" />
+        <a-input ref="inputEl" v-model:value="form.title" size="large" autofocus @keydown.enter="onSubmit" />
       </a-form-item>
       <a-form-item
         v-if="form.type === ViewTypes.KANBAN"

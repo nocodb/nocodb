@@ -74,7 +74,7 @@ const submitDuration = () => {
   isEdited.value = false
 }
 
-const isExpandedFormOpen = inject(IsExpandedFormOpenInj)!
+const isExpandedFormOpen = inject(IsExpandedFormOpenInj, ref(false))!
 
 const focus: VNodeRef = (el) => !isExpandedFormOpen && (el as HTMLInputElement)?.focus()
 </script>

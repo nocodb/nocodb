@@ -3,6 +3,7 @@ import { Injectable, Logger } from '@nestjs/common';
 import { ClickHouse } from 'clickhouse';
 import { migration } from 'clickhouse-migrations/lib/migrate';
 import NcConfigFactory from '../../utils/NcConfigFactory';
+import RedlockWrapper from './redlock-wrapper';
 import type { OnModuleDestroy, OnModuleInit } from '@nestjs/common';
 
 @Injectable()
@@ -45,12 +46,26 @@ export class ClickhouseService implements OnModuleInit, OnModuleDestroy {
     };
 
     try {
-      await migration(
-        path.join(__dirname, 'migrations'),
-        `${this.config.host}:${this.config.port}`,
-        this.config.username,
-        this.config.password,
-        this.config.database,
+      const redlock = new RedlockWrapper({
+        retryCount: 10,
+        retryDelay: 1000,
+        retryJitter: 200,
+        driftFactor: 0.01,
+        automaticExtensionThreshold: 500, // time in ms
+      });
+
+      await redlock.executeWithLock(
+        ['nc-clickhouse-migration'],
+        10000,
+        async () => {
+          await migration(
+            path.join(__dirname, 'migrations'),
+            `${this.config.host}:${this.config.port}`,
+            this.config.username,
+            this.config.password,
+            this.config.database,
+          );
+        },
       );
     } catch (e) {
       this.logger.error('Check Clickhouse configuration');

@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import DOMPurify from 'isomorphic-dompurify';
-import { AuditOperationSubTypes, AuditOperationTypes } from 'nocodb-sdk';
+import {AuditOperationSubTypes, AuditOperationTypes, ClickhouseTables} from 'nocodb-sdk';
 import { validatePayload } from '../helpers';
 import { NcError } from '../helpers/catchError';
 import { Audit, Model } from '../models';
@@ -73,7 +73,7 @@ export class AuditsService {
   async auditList(param: { query: any; projectId: string }) {
     // return await Audit.projectAuditList(param.projectId, param.query);
     return await this.clickHouseService.execute(
-      `SELECT * FROM ${MetaTable.AUDIT} WHERE project_id = '${
+      `SELECT * FROM ${ClickhouseTables.AUDIT} WHERE project_id = '${
         param.projectId
       }' ORDER BY created_at DESC LIMIT ${param.query?.limit || 10} OFFSET ${
         param.query?.offset || 0
@@ -84,7 +84,7 @@ export class AuditsService {
   async auditCount(param: { query?: any; projectId: string }) {
     // return await Audit.projectAuditList(param.projectId, param.query);
     const res = await this.clickHouseService.execute(
-      `SELECT count(id) as count FROM ${MetaTable.AUDIT} WHERE project_id = '${param.projectId}'`,
+      `SELECT count(id) as count FROM ${ClickhouseTables.AUDIT} WHERE project_id = '${param.projectId}'`,
     );
 
     return res?.[0]?.count;

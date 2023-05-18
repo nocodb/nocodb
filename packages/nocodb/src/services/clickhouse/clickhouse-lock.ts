@@ -3,14 +3,19 @@ import { ClickHouse } from 'clickhouse';
 class ClickhouseLock {
   private client: ClickHouse;
   private database: string;
+  private config: any;
 
-  constructor(opts: object) {
-    this.client = new ClickHouse(opts);
-    this.database = opts['database'];
+  constructor(config: object) {
+    this.config = config;
+    this.client = new ClickHouse(config);
   }
   private async createDatabase(): Promise<void> {
-    const query = `CREATE DATABASE IF NOT EXISTS ${this.database}`;
-    await this.client.query(query);
+    const client = new ClickHouse({
+      ...this.config,
+      database: undefined,
+    });
+    const query = `CREATE DATABASE IF NOT EXISTS ${this.config.database}`;
+    await client.query(query);
   }
 
   private async createLockTable(): Promise<void> {

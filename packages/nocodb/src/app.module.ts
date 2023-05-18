@@ -82,7 +82,7 @@ export class AppModule implements OnApplicationBootstrap {
 
   // app init
   async onApplicationBootstrap(): Promise<void> {
-    process.env.NC_VERSION = '0106001';
+    process.env.NC_VERSION = '0105004';
 
     await NocoCache.init();
 

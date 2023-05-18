@@ -2,8 +2,8 @@
 import type { ColumnType } from 'nocodb-sdk'
 import { storeToRefs } from 'pinia'
 import {
+  ActiveCellInj,
   ColumnInj,
-  EditModeInj,
   IsFormInj,
   ReadonlyInj,
   computed,
@@ -185,7 +185,7 @@ const hasExtraPadding = $computed(() => {
 })
 
 // provide the following to override the default behavior and enable input fields like in form
-provide(EditModeInj, ref(true))
+provide(ActiveCellInj, ref(true))
 provide(IsFormInj, ref(true))
 </script>
 

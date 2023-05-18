@@ -4,6 +4,7 @@ class ClickhouseLock {
   private client: ClickHouse;
   private database: string;
   private config: any;
+  private table = 'migrations_lock'
 
   constructor(config: object) {
     this.config = config;
@@ -29,16 +30,21 @@ class ClickhouseLock {
 
   private async updateLockStatus(isLocked: number): Promise<void> {
     await this.client.query(
-      `ALTER TABLE migrations_lock UPDATE is_locked = ${isLocked} WHERE is_locked = ${
-        1 - isLocked
-      }`,
+      `DELETE FROM ${this.database}.${this.table} WHERE TRUE`,
     );
   }
+
 
   public async acquireLock(): Promise<void> {
     await this.createDatabase();
     await this.createLockTable();
-    await this.updateLockStatus(1);
+
+    const isLockAcquired = await this.isLockAcquired();
+    if (!isLockAcquired) {
+      await this.client.query(`INSERT INTO ${this.database}.${this.table} (is_locked) VALUES (1)`);
+    } else {
+      throw new Error('Lock is already acquired by another process.');
+    }
   }
 
   public async releaseLock(): Promise<void> {
@@ -46,10 +52,17 @@ class ClickhouseLock {
   }
 
   public async isLockAcquired(): Promise<boolean> {
-    const result = await this.client.query(
-      'SELECT is_locked FROM migrations_lock',
-    );
-    return result[0].is_locked === 1;
+    const query = `SELECT count() as count FROM ${this.database}.${this.table}`;
+    const result = await this.client.query(query);
+    const rowCount = result[0].count;
+
+    if (rowCount === 0) {
+      // No entry in the lock table, lock is not acquired
+      return false;
+    }
+
+    const lockResult = await this.client.query(`SELECT is_locked FROM ${this.database}.${this.table}`);
+    return lockResult[0].is_locked === 1;
   }
 
   public async executeWithLock(

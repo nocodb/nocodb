@@ -4,7 +4,7 @@ class ClickhouseLock {
   private client: ClickHouse;
   private database: string;
   private config: any;
-  private table = 'migrations_lock'
+  private table = 'migrations_lock';
 
   constructor(config: object) {
     this.config = config;
@@ -16,7 +16,7 @@ class ClickhouseLock {
       database: undefined,
     });
     const query = `CREATE DATABASE IF NOT EXISTS ${this.config.database}`;
-    await client.query(query);
+    await client.query(query).toPromise();
   }
 
   private async createLockTable(): Promise<void> {
@@ -25,15 +25,14 @@ class ClickhouseLock {
         is_locked UInt8 DEFAULT 0
       )
     `;
-    await this.client.query(query);
+    await this.client.query(query).toPromise();
   }
 
   private async updateLockStatus(isLocked: number): Promise<void> {
-    await this.client.query(
-      `DELETE FROM ${this.database}.${this.table} WHERE TRUE`,
-    );
+    await this.client
+      .query(`DELETE FROM ${this.database}.${this.table} WHERE TRUE`)
+      .toPromise();
   }
-
 
   public async acquireLock(): Promise<void> {
     await this.createDatabase();
@@ -41,7 +40,11 @@ class ClickhouseLock {
 
     const isLockAcquired = await this.isLockAcquired();
     if (!isLockAcquired) {
-      await this.client.query(`INSERT INTO ${this.database}.${this.table} (is_locked) VALUES (1)`);
+      await this.client
+        .query(
+          `INSERT INTO ${this.database}.${this.table} (is_locked) VALUES (1)`,
+        )
+        .toPromise();
     } else {
       throw new Error('Lock is already acquired by another process.');
     }
@@ -53,7 +56,7 @@ class ClickhouseLock {
 
   public async isLockAcquired(): Promise<boolean> {
     const query = `SELECT count() as count FROM ${this.database}.${this.table}`;
-    const result = await this.client.query(query);
+    const result: any = await this.client.query(query).toPromise();
     const rowCount = result?.[0]?.count;
 
     if (rowCount === 0) {
@@ -61,15 +64,20 @@ class ClickhouseLock {
       return false;
     }
 
-    const lockResult = await this.client.query(`SELECT is_locked FROM ${this.database}.${this.table}`);
+    const lockResult: any = await this.client
+      .query(`SELECT is_locked FROM ${this.database}.${this.table}`)
+      .toPromise();
     return lockResult?.[0]?.is_locked === 1;
   }
 
   public async executeWithLock(
     callback: () => Promise<void>,
     maxWaitTime: number,
-    pollInterval = 1000
+    pollInterval = 1000,
   ): Promise<void> {
+    await this.createDatabase();
+    await this.createLockTable();
+
     const startTime = Date.now();
 
     while (await this.isLockAcquired()) {

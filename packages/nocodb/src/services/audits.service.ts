@@ -75,7 +75,7 @@ export class AuditsService {
     return await this.clickHouseService.execute(
       `SELECT * FROM ${ClickhouseTables.AUDIT} WHERE project_id = '${
         param.projectId
-      }' ORDER BY timestamp DESC LIMIT ${param.query?.limit || 10} OFFSET ${
+      }' ORDER BY created_at DESC LIMIT ${param.query?.limit || 10} OFFSET ${
         param.query?.offset || 0
       }`,
     );

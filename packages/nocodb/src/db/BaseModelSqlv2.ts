@@ -3314,57 +3314,56 @@ class BaseModelSqlv2 {
     d: Record<string, any>,
     isXcdbBase: BoolType,
   ) {
-    if (d) {
-      for (const col of dateTimeColumns) {
-        if (d[col.title]) {
-          let keepLocalTime = true;
+    if (!d) return d;
+    for (const col of dateTimeColumns) {
+      if (!d[col.title]) continue;
 
-          if (this.isSqlite) {
-            if (!col.cdf) {
-              if (
-                d[col.title].indexOf('-') === -1 &&
-                d[col.title].indexOf('+') === -1 &&
-                d[col.title].slice(-1) !== 'Z'
-              ) {
-                // if there is no timezone info,
-                // we assume the input is on NocoDB server timezone
-                // then we convert to UTC from server timezone
-                // e.g. 2023-04-27 10:00:00 (IST) -> 2023-04-27 04:30:00+00:00
-                d[col.title] = dayjs(d[col.title])
-                  .tz(Intl.DateTimeFormat().resolvedOptions().timeZone)
-                  .utc()
-                  .format('YYYY-MM-DD HH:mm:ssZ');
-                continue;
-              } else {
-                // otherwise, we convert from the given timezone to UTC
-                keepLocalTime = false;
-              }
-            }
-          }
+      let keepLocalTime = true;
 
+      if (this.isSqlite) {
+        if (!col.cdf) {
           if (
-            this.isPg &&
-            (col.dt === 'timestamp with time zone' || col.dt === 'timestamptz')
+            d[col.title].indexOf('-') === -1 &&
+            d[col.title].indexOf('+') === -1 &&
+            d[col.title].slice(-1) !== 'Z'
           ) {
-            // postgres - timezone already attached to input
-            // e.g. 2023-05-11 16:16:51+08:00
+            // if there is no timezone info,
+            // we assume the input is on NocoDB server timezone
+            // then we convert to UTC from server timezone
+            // e.g. 2023-04-27 10:00:00 (IST) -> 2023-04-27 04:30:00+00:00
+            d[col.title] = dayjs(d[col.title])
+              .tz(Intl.DateTimeFormat().resolvedOptions().timeZone)
+              .utc()
+              .format('YYYY-MM-DD HH:mm:ssZ');
+            continue;
+          } else {
+            // otherwise, we convert from the given timezone to UTC
             keepLocalTime = false;
           }
-
-          if (d[col.title] instanceof Date) {
-            // e.g. MSSQL
-            // Wed May 10 2023 17:47:46 GMT+0800 (Hong Kong Standard Time)
-            keepLocalTime = false;
-          }
-          // e.g. 01.01.2022 10:00:00+05:30 -> 2022-01-01 04:30:00+00:00
-          // e.g. 2023-05-09 11:41:49 -> 2023-05-09 11:41:49+00:00
-          d[col.title] = dayjs(d[col.title])
-            // keep the local time
-            .utc(keepLocalTime)
-            // show the timezone even for Mysql
-            .format('YYYY-MM-DD HH:mm:ssZ');
         }
       }
+
+      if (
+        this.isPg &&
+        (col.dt === 'timestamp with time zone' || col.dt === 'timestamptz')
+      ) {
+        // postgres - timezone already attached to input
+        // e.g. 2023-05-11 16:16:51+08:00
+        keepLocalTime = false;
+      }
+
+      if (d[col.title] instanceof Date) {
+        // e.g. MSSQL
+        // Wed May 10 2023 17:47:46 GMT+0800 (Hong Kong Standard Time)
+        keepLocalTime = false;
+      }
+      // e.g. 01.01.2022 10:00:00+05:30 -> 2022-01-01 04:30:00+00:00
+      // e.g. 2023-05-09 11:41:49 -> 2023-05-09 11:41:49+00:00
+      d[col.title] = dayjs(d[col.title])
+        // keep the local time
+        .utc(keepLocalTime)
+        // show the timezone even for Mysql
+        .format('YYYY-MM-DD HH:mm:ssZ');
     }
     return d;
   }

@@ -553,10 +553,12 @@ async function _formulaQueryBuilder(
         ) {
           aliasToColumn[col.id] = async (): Promise<any> => {
             return {
-              builder: knex.raw(
-                `?? AT TIME ZONE CURRENT_SETTING('timezone') AT TIME ZONE 'UTC'`,
-                [col.column_name],
-              ),
+              builder: knex
+                .raw(
+                  `?? AT TIME ZONE CURRENT_SETTING('timezone') AT TIME ZONE 'UTC'`,
+                  [col.column_name],
+                )
+                .wrap('(', ')'),
             };
           };
         } else {

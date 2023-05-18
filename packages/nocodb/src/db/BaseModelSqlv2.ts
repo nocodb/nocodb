@@ -1635,15 +1635,16 @@ class BaseModelSqlv2 {
           } else if (this.isPg) {
             // if there is no timezone info, convert it to UTC
             if (column.dt !== 'timestamp with time zone') {
-              res[sanitize(column.title || column.column_name)] =
-                this.dbDriver.raw(
+              res[sanitize(column.title || column.column_name)] = this.dbDriver
+                .raw(
                   `?? AT TIME ZONE CURRENT_SETTING('timezone') AT TIME ZONE 'UTC'`,
                   [
                     `${sanitize(alias || this.model.table_name)}.${
                       column.column_name
                     }`,
                   ],
-                );
+                )
+                .wrap('(', ')');
               break;
             }
           }

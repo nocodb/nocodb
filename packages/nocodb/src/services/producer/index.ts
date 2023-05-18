@@ -25,6 +25,9 @@ export const ProducerProvider: Provider = {
         sendMessage: async () => {
           // do nothing
         },
+        sendMessages: async () => {
+          // do nothing
+        }
       };
     }
   },

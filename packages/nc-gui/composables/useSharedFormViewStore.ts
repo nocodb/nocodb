@@ -1,7 +1,7 @@
 import useVuelidate from '@vuelidate/core'
 import { helpers, minLength, required } from '@vuelidate/validators'
 import type { Ref } from 'vue'
-import type { BoolType, ColumnType, FormType, LinkToAnotherRecordType, StringOrNullType, TableType, ViewType } from 'nocodb-sdk'
+import type { BoolType, ColumnType, FormType, LinkToAnotherRecordType, StringOrNullType, TableType, ViewType, FormColumnType } from 'nocodb-sdk'
 import { ErrorMessages, RelationTypes, UITypes, isVirtualCol } from 'nocodb-sdk'
 import { isString } from '@vueuse/core'
 import {
@@ -83,7 +83,27 @@ const [useProvideSharedFormStore, useSharedFormStore] = useInjectionState((share
       sharedView.value = viewMeta
       sharedFormView.value = viewMeta.view
       meta.value = viewMeta.model
-      columns.value = viewMeta.model?.columns
+
+      const fieldById = (viewMeta.columns || []).reduce(
+        (o: Record<string, any>, f: Record<string, any>) => ({
+          ...o,
+          [f.fk_column_id]: f,
+        }),
+        {} as Record<string, FormColumnType>,
+      )
+
+      let order = 1
+
+      columns.value = meta?.value?.columns
+        ?.map((c: Record<string, any>) => ({
+          ...c,
+          fk_column_id: c.id,
+          fk_view_id: viewMeta.id,
+          ...(fieldById[c.id] ? fieldById[c.id] : {}),
+          order: (fieldById[c.id] && fieldById[c.id].order) || order++,
+          id: fieldById[c.id] && fieldById[c.id].id,
+        }))
+        .sort((a: Record<string, any>, b: Record<string, any>) => a.order - b.order) as Record<string, any>[]
 
       const _sharedViewMeta = (viewMeta as any).meta
       sharedViewMeta.value = isString(_sharedViewMeta) ? JSON.parse(_sharedViewMeta) : _sharedViewMeta

@@ -391,6 +391,7 @@ watch(
             <div class="flex !mb-4.5"></div>
 
             <DocsPageLinkToPageSearch v-if="editor" :editor="editor" />
+            <DocsPageAiOptions v-if="editor" :editor="editor" />
             <DocsPageSelectedBubbleMenu
               v-if="editor"
               :editor="editor"

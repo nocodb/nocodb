@@ -30,8 +30,8 @@ import { AtImportProcessor } from './at-import/at-import.processor';
       : []),
   ],
   providers: [
+    ...(!process.env['NC_WORKER_CONTAINER'] ? [JobsGateway] : []),
     QueueService,
-    JobsGateway,
     JobsService,
     JobsEventService,
     ExportService,

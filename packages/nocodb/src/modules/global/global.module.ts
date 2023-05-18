@@ -47,7 +47,7 @@ export const JwtStrategyProvider: Provider = {
     UsersService,
     JwtStrategyProvider,
     GlobalGuard,
-    SocketGateway,
+    ...(!process.env['NC_WORKER_CONTAINER'] ? [SocketGateway] : []),
   ],
   exports: [
     AppInitService,
@@ -56,7 +56,7 @@ export const JwtStrategyProvider: Provider = {
     JwtStrategyProvider,
     UsersService,
     GlobalGuard,
-    SocketGateway,
+    ...(!process.env['NC_WORKER_CONTAINER'] ? [SocketGateway] : []),
   ],
 })
 export class GlobalModule {}

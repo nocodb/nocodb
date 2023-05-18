@@ -8,6 +8,7 @@ import {
   Post,
   Put,
   Request,
+  Response,
   UseGuards,
 } from '@nestjs/common';
 import { AuthGuard } from '@nestjs/passport';
@@ -112,11 +113,15 @@ export class DocsPagesController {
     @Param('id') id: string,
     @Param('projectId') projectId: string,
     @Body() body: { text: string },
+    @Response() response,
+    @Request() req,
   ) {
+    const text = req.headers['nc-magic-text'] || body.text;
     return await this.pagesService.magicExpand({
       text: body.text,
       pageId: id,
       projectId,
+      response,
     });
   }
 

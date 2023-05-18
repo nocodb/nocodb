@@ -1,36 +1,33 @@
 <script lang="ts" setup>
-import type { VNode } from 'vue'
 import { defineProps, h } from 'vue'
 import type { Editor } from '@tiptap/vue-3'
 import { BubbleMenu } from '@tiptap/vue-3'
-import { TiptapNodesTypes } from 'nocodb-sdk'
 import { Slice } from 'prosemirror-model'
-import { generateHTML, generateJSON } from '@tiptap/html'
+import { generateJSON } from '@tiptap/html'
 import showdown from 'showdown'
 import { LoadingOutlined } from '@ant-design/icons-vue'
-import { TextSelection } from 'prosemirror-state'
-
+import { undo } from 'prosemirror-history'
 import { AISelection } from '~/utils/tiptapExtensions/AISelection'
-
-const { editor } = defineProps<Props>()
-const sampleHtml = `
-<p>Overall, marketing is an essential part of any business. It is important to understand the different types of marketing strategies and find the right mix of strategies that works best for your business. By understanding your target audience and creating valuable content for them, you can create successful marketing campaigns that will help you
-<h1 id="hahaha">Hahaha</h1><h2 id="marketing">Marketing</h2>
-`
-
-const indicator = h(LoadingOutlined, {
-  style: {
-    fontSize: '24px',
-  },
-  spin: true,
-})
 
 interface Props {
   editor: Editor
 }
+const { editor } = defineProps<Props>()
+
+const converter = new showdown.Converter()
+converter.setOption('noHeaderId', true)
+
+const indicator = h(LoadingOutlined, {
+  style: {
+    fontSize: '20px',
+  },
+  spin: true,
+})
+
+const state = useGlobal()
 
 const { project } = storeToRefs(useProject())
-const { magicExpand } = useDocStore()
+const { openedPage } = storeToRefs(useDocStore())
 
 const inputRef = ref<HTMLInputElement>()
 const searchText = ref('')
@@ -39,6 +36,8 @@ const isLoading = ref(false)
 const drafts = ref<any[]>([])
 const draftActiveIndex = ref(0)
 const isSelectionEmpty = ref(false)
+const suggestedMarkdown = ref('')
+const pageContentWidth = ref(0)
 
 const checkIsAiOptionVisible = (editor: Editor) => {
   const selection = editor.state.selection
@@ -94,58 +93,67 @@ const handleKeyDown = (e: any) => {
   }
 }
 
-const pageContentWidth = ref(0)
 async function updatePageContentWidth() {
   const dom = document.querySelector('.ProseMirror')
 
   pageContentWidth.value = Number(dom!.clientWidth)
 }
 
-const expandText = async (getFromDrafts?: boolean) => {
+async function streamExpand() {
+  const response = await fetch(
+    `${state.appInfo.value.ncSiteUrl}/api/v1/docs/project/${project.value!.id!}/page/${openedPage.value!.id}/magic-expand`,
+    {
+      method: 'POST',
+      headers: {
+        'xc-auth': state.token.value!,
+        'nc-magic-text': searchText.value,
+      },
+    },
+  )
+
+  if (response.ok && response.body) {
+    const reader = response.body.pipeThrough(new TextDecoderStream()).getReader()
+
+    const readStream: any = () =>
+      reader.read().then(({ value, done }) => {
+        if (done) {
+          reader.cancel()
+          return Promise.resolve()
+        }
+
+        // parse the data
+        const data = /{.*}/.exec(value)
+        if (!data || !data[0]) {
+          return readStream()
+        }
+
+        const res = JSON.parse(data[0])
+
+        if (res?.choices?.[0]?.text) {
+          suggestedMarkdown.value = suggestedMarkdown.value + res.choices[0].text
+        }
+
+        return readStream()
+      })
+    return readStream()
+  } else {
+    return Promise.reject(response)
+  }
+}
+
+const expandText = async () => {
   if (isLoading.value) return
-  const state = editor.state
-  const selection = state.selection
 
   isLoading.value = true
   try {
-    const converter = new showdown.Converter()
+    await streamExpand()
 
-    // const selectedContent = editor?.state?.selection?.content().content.toJSON()
-    // const selectedHtml = generateHTML({ type: 'doc', content: selectedContent }, editor.extensionManager.extensions)
+    const html = converter.makeHtml(suggestedMarkdown.value).replace('>\n<', '><')
+    const json = generateJSON(html, editor.extensionManager.extensions)
 
-    // converter.setOption('noHeaderId', true)
-
-    // const markdown = converter.makeMarkdown(selectedHtml)
-    // const response: any = await magicExpand({ text: searchText.value, projectId: project.value.id! })
-
-    // const html = converter.makeHtml(response.text).replace('>\n<', '><')
-    const html = sampleHtml.replace('Overall', `Overall ${draftActiveIndex.value}`)
-    const json = getFromDrafts ? drafts.value[draftActiveIndex.value] : generateJSON(html, editor.extensionManager.extensions)
-
-    const slice = Slice.fromJSON(state.schema, json)
-    const tr = state.tr
-    const from = selection.$from.pos
-
-    tr.replaceSelection(slice)
-    const newFrom = from - 2 > 0 ? from - 2 : 0
-    const newTo = tr.doc.nodeSize - 2 < selection.to + 2 ? tr.doc.nodeSize - 2 : selection.to + 2
-    tr.setSelection(AISelection.create(tr.doc, newFrom, newTo))
-    editor.view.dispatch(tr)
-
-    setTimeout(() => {
-      const tr = editor.state.tr
-
-      tr.setSelection(AISelection.create(editor.state.doc, newFrom, from + slice.size + 2))
-
-      editor.view.dispatch(tr)
-      isSelectionEmpty.value = false
-
-      if (getFromDrafts) return
-
-      drafts.value.push(json)
-      draftActiveIndex.value = drafts.value.length - 1
-      searchText.value = ''
-    }, 0)
+    drafts.value.push(json)
+    draftActiveIndex.value = drafts.value.length - 1
+    searchText.value = ''
   } finally {
     isLoading.value = false
   }
@@ -157,18 +165,53 @@ const onInputBoxEnter = () => {
   expandText()
 }
 
+function renderContent(json: any) {
+  const state = editor.state
+  const selection = state.selection
+  const slice = Slice.fromJSON(state.schema, json)
+  const tr = state.tr
+  const from = selection.$from.pos
+
+  undo(state)
+
+  tr.replaceSelection(slice)
+  const newFrom = from - 2 > 0 ? from - 2 : 0
+  const newTo = tr.doc.nodeSize - 2 < selection.to + 2 ? tr.doc.nodeSize - 2 : selection.to + 2
+  tr.setSelection(AISelection.create(tr.doc, newFrom, newTo))
+
+  setTimeout(() => {
+    const tr = editor.state.tr
+    tr.setSelection(AISelection.create(tr.doc, newFrom, newFrom + slice.size))
+    editor.view.dispatch(tr)
+  }, 0)
+  editor.view.dispatch(tr)
+}
+
 const goBackInDraft = () => {
   draftActiveIndex.value = draftActiveIndex.value - 1 < 0 ? 0 : draftActiveIndex.value - 1
 
-  expandText(true)
+  renderContent(drafts.value[draftActiveIndex.value])
 }
 
 const goForwardInDraft = () => {
   draftActiveIndex.value =
     draftActiveIndex.value + 1 > drafts.value.length - 1 ? drafts.value.length - 1 : draftActiveIndex.value + 1
 
-  expandText(true)
+  renderContent(drafts.value[draftActiveIndex.value])
 }
+
+watchDebounced(
+  suggestedMarkdown,
+  () => {
+    const html = converter.makeHtml(suggestedMarkdown.value).replace('>\n<', '><')
+    const json = generateJSON(html, editor.extensionManager.extensions)
+
+    renderContent(json)
+  },
+  {
+    debounce: 100,
+  },
+)
 </script>
 
 <template>
@@ -190,10 +233,12 @@ const goForwardInDraft = () => {
       @keydown="handleKeyDown"
       @mousedown.stop
     >
-      <div class="flex flex-row items-center gap-x-1.5 !z-10">
+      <div class="flex flex-row items-center gap-x-1.5 !z-10 items-center">
         <div v-if="!isLoading" class="select-none">✨</div>
-        <a-spin v-else :indicator="indicator" />
+        <a-spin v-else class="flex" :indicator="indicator" />
+        <div v-if="isLoading" class="flex py-1.5 ml-1.5">AI is writing...</div>
         <a-input
+          v-else
           ref="inputRef"
           v-model:value="searchText"
           class="docs-link-option-input flex-1 !py-1 !rounded-md z-10 !px-0"

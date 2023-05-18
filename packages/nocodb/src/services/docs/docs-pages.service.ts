@@ -91,9 +91,9 @@ export class DocsPagesService {
     projectId: string;
     pageId: string;
     text: string;
+    response: any;
   }) {
-    let response;
-
+    const response = param.response;
     const project = await Project.getByTitleOrId(param.projectId);
     if (!project) NcError.notFound('Project not found');
 
@@ -111,30 +111,50 @@ export class DocsPagesService {
 
     const markDownText = param.text;
 
-    try {
-      response = await openai.createCompletion({
-        model: 'text-davinci-003',
-        prompt: `On a page named '${page.title}', with categories as '${
-          project.title
-        }/${parentPagesTitles.join(
-          '/',
-        )}', expand on the following text(given in markdown) and output(should be in markdown): '${markDownText}'`,
-        temperature: 0.7,
-        max_tokens: 1500,
-        top_p: 1,
-        frequency_penalty: 0,
-        presence_penalty: 0,
-      });
+    const prompt = `On a page named '${page.title}', with categories as '${
+      project.title
+    }/${parentPagesTitles.join(
+      '/',
+    )}', give a small content piece to start on with the following text(given in markdown) and output(should be in markdown): '${markDownText}'`;
 
-      if (response.data.choices.length === 0)
-        NcError.badRequest('Could not generate data');
+    try {
+      const aiRes: any = await openai.createCompletion(
+        {
+          model: 'text-davinci-003',
+          prompt: prompt,
+          temperature: 0.7,
+          max_tokens: 1500,
+          top_p: 1,
+          frequency_penalty: 0,
+          presence_penalty: 0,
+          stream: true,
+        },
+        {
+          responseType: 'stream',
+        },
+      );
+
+      new Promise((resolve) => {
+        aiRes.data.on('end', () => {
+          resolve(true);
+        });
+
+        aiRes.data.on('data', (chunk) => {
+          if (chunk === '[DONE]') {
+            resolve(true); // Stream finished
+          }
+
+          response.write(chunk.toString());
+        });
+      }).then(() => {
+        response.end();
+      });
     } catch (e) {
-      console.log(response?.data?.choices[0]?.text);
       console.log(e);
       NcError.badRequest('Could not generate data');
     }
 
-    return { text: response.data?.choices[0]?.text };
+    return response;
   }
 
   async magicOutline(param: { projectId: string; pageId: string }) {

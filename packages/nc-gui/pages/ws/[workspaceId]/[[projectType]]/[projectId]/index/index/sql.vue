@@ -30,10 +30,6 @@ const activeSqlEditor = computed(() => {
   }
 })
 
-const tabStore = useTabs()
-const { addSqlEditorTab } = tabStore
-const { activeTab } = storeToRefs(tabStore)
-
 const activePrompt = computed(() =>
   promptHistory.find((p) => activeSqlEditor.value.selectedBase === p.baseId && p.prompt === activeSqlEditor.value.sqlPrompt),
 )
@@ -318,9 +314,6 @@ watch(
 )
 
 onMounted(() => {
-  if (!activeTab.value) {
-    addSqlEditorTab(project.value)
-  }
   activeSqlEditor.value.selectedBase = activeSqlEditor.value.selectedBase || bases.value[0]?.id
 })
 </script>

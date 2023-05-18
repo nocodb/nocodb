@@ -32,10 +32,6 @@ import {
 
 import { useRouter } from '#app'
 
-const router = useRouter()
-
-const route = $(router.currentRoute)
-
 const { addTab, updateTab, addSqlEditorTab } = useTabs()
 
 const { $api, $e } = useNuxtApp()
@@ -347,8 +343,7 @@ function openErdView(base: BaseType) {
 
 async function openProjectSqlEditor(project: ProjectType) {
   if (!project.id) return
-  if (!projects.value[project.id]) await loadProject(project.id)
-  addSqlEditorTab(projects.value[project.id])
+  navigateTo(`/ws/${route.params.workspaceId}/nc/${project.id}/sql`)
 }
 
 async function openProjectErdView(project: ProjectType) {

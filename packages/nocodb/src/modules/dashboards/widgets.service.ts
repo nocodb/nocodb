@@ -1,11 +1,39 @@
 import { T } from 'nc-help';
 import { Injectable } from '@nestjs/common';
+import { DataSourceType } from 'nocodb-sdk';
+import { NcError } from '../../helpers/catchError';
+import Layout from '../../models/Layout';
+import Project from '../../models/Project';
 import { validatePayload } from '../../helpers';
 import Widget from '../../models/Widget';
 import type { WidgetReqType, WidgetUpdateReqType } from 'nocodb-sdk';
 
 Injectable();
 export class WidgetsService {
+  static async validateWidgetDataSourceConfig(
+    dataSource: null | object | string,
+    layoutIdOfWidget: string,
+  ) {
+    const layoutOfWidget = await Layout.get(layoutIdOfWidget);
+    const dashboardProject = await Project.get(layoutOfWidget.project_id);
+    const linkedDbProjectIds = (
+      await dashboardProject.getLinkedDbProjects()
+    ).map((linkedDbProject) => linkedDbProject.id);
+    const parsedDataSource =
+      typeof dataSource === 'object' ? dataSource : JSON.parse(dataSource);
+    if (parsedDataSource?.dataSourceType === DataSourceType.INTERNAL) {
+      // TODO: ensure there are tests for this edge case
+      if (
+        parsedDataSource.projectId &&
+        !linkedDbProjectIds.includes(parsedDataSource.projectId)
+      )
+        NcError.forbidden(
+          `DB Project with id '${parsedDataSource.projectId}' is not linked to this Dashboard Project`,
+        );
+      // TODO: here we will also have to add respective entries into the table `nc_ds_widget_db_dependencies_v2`
+    }
+  }
+
   async widgetUpdate(param: {
     widgetId: string;
     widgetUpdateReq: WidgetUpdateReqType;
@@ -16,6 +44,11 @@ export class WidgetsService {
       param.widgetUpdateReq,
     );
 
+    const layoutIdOfWidget = (await Widget.get(param.widgetId)).layout_id;
+    WidgetsService.validateWidgetDataSourceConfig(
+      param.widgetUpdateReq,
+      layoutIdOfWidget,
+    );
     const widget = await Widget.update(param.widgetId, param.widgetUpdateReq);
 
     T.emit('evt', { evt_type: 'layout:updated' });
@@ -43,6 +76,11 @@ export class WidgetsService {
     validatePayload(
       'swagger.json#/components/schemas/WidgetReq',
       param.widgetReq,
+    );
+
+    WidgetsService.validateWidgetDataSourceConfig(
+      param.widgetReq.data_source,
+      param.layoutId,
     );
 
     const widget = await Widget.insert({

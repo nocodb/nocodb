@@ -178,7 +178,7 @@ useEventListener('keydown', (e: KeyboardEvent) => {
             <a-select-option v-for="opt of uiTypesOptions" :key="opt.name" :value="opt.name" v-bind="validateInfos.uidt">
               <div class="flex gap-1 items-center">
                 <component :is="opt.icon" class="text-grey" />
-                {{ opt.name }}
+                {{ $t(`datatype.${opt.name}`) !== `datatype.${opt.name}` ? $t(`datatype.${opt.name}`) : opt.name }}
               </div>
             </a-select-option>
           </a-select>

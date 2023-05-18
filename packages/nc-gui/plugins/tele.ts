@@ -18,7 +18,7 @@ const fpPromise = FingerprintJS.load()
 })().catch(() => {})
 
 // Usage example:
-const debounceTime = 1000 // Debounce time: 1000ms
+const debounceTime = 3000 // Debounce time: 1000ms
 const maxWaitTime = 10000 // Max wait time: 10000ms
 
 class EventBatcher {

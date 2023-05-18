@@ -197,7 +197,18 @@ export class AppController {
       // Process the batch of messages
       messages.forEach((data) => {
         // Extract the necessary data from the message
-        const { timestamp, event, package_id, path, ip, ...properties } = data;
+        const {
+          timestamp,
+          event,
+          package_id,
+          path,
+          ip,
+          client_id,
+          project_id,
+          workspace_id,
+          user_id,
+          ...properties
+        } = data;
 
         let ipv4 = 'NULL';
         let ipv6 = 'NULL';
@@ -209,9 +220,17 @@ export class AppController {
         }
 
         rows.push(
-          `(generateUUIDv4(),${
-            Math.round(timestamp / 1000) ?? 'NOW()'
-          },'${event}','${package_id}','${path}',${ipv4},${ipv6},'${JSON.stringify(
+          `(generateUUIDv4(),${Math.round(timestamp / 1000) ?? 'NOW()'},${[
+            event,
+            package_id,
+            path,
+            client_id,
+            project_id,
+            workspace_id,
+            user_id,
+          ]
+            .map(sanitiseVal)
+            .join(',')},${ipv4},${ipv6},'${JSON.stringify(
             properties,
             // escape single quotes
             (key, val) => {
@@ -227,7 +246,7 @@ export class AppController {
       // Generate the ClickHouse insert query
       const insertQuery = `INSERT INTO ${
         ClickhouseTables.TELEMETRY
-      } (id,timestamp,event,package_id,url,req_ipv4,req_ipv6,properties) 
+      } (id,timestamp,event,package_id,url,client_id,project_id,workspace_id,user_id,req_ipv4,req_ipv6,properties) 
                          VALUES ${rows.join(',')}`;
 
       await this.clickhouseService.execute(insertQuery);

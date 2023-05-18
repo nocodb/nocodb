@@ -23,7 +23,7 @@ class ClickhouseLock {
     const query = `
       CREATE TABLE IF NOT EXISTS migrations_lock (
         is_locked UInt8 DEFAULT 0
-      )
+      ) ENGINE = MergeTree()
     `;
     await this.client.query(query).toPromise();
   }

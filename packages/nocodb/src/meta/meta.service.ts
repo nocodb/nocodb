@@ -1043,10 +1043,9 @@ export class MetaService {
   }
 
   private now(): any {
-    if (this.isMySQL()) {
-      return dayjs().format('YYYY-MM-DD HH:mm:ss');
-    }
-    return dayjs().utc().format('YYYY-MM-DD HH:mm:ssZ');
+    return dayjs()
+      .utc()
+      .format(this.isMySQL() ? 'YYYY-MM-DD HH:mm:ss' : 'YYYY-MM-DD HH:mm:ssZ');
   }
 
   public async audit(

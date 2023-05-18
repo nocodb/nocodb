@@ -1,18 +1,15 @@
 <script lang="ts" setup>
 import {
   ActiveCellInj,
-  ColumnInj,
   IsFormInj,
   IsLockedInj,
   ReadonlyInj,
   iconMap,
   inject,
   ref,
-  renderCellValue,
+  renderValue,
   useExpandedFormDetached,
   useLTARStoreOrThrow,
-  useProject,
-  renderValue,
 } from '#imports'
 
 interface Props {
@@ -37,10 +34,6 @@ const isForm = inject(IsFormInj)!
 const isLocked = inject(IsLockedInj, ref(false))
 
 const { open } = useExpandedFormDetached()
-
-const { isMssql } = useProject()
-
-const column = inject(ColumnInj)
 
 function openExpandedForm() {
   if (!readOnly && !isLocked.value) {
@@ -67,7 +60,7 @@ export default {
     :class="{ active }"
     @click="openExpandedForm"
   >
-    <span class="name">{{ renderValue(isMssql(column.value.base_id), value) }}</span>
+    <span class="name">{{ renderValue(value) }}</span>
 
     <div v-show="active || isForm" v-if="!readOnly && !isLocked && isUIAllowed('xcDatatableEditable')" class="flex items-center">
       <component

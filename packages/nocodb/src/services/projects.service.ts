@@ -1,18 +1,17 @@
-import {promisify} from 'util';
-import {Injectable} from '@nestjs/common';
+import { promisify } from 'util';
+import { Injectable } from '@nestjs/common';
 import * as DOMPurify from 'isomorphic-dompurify';
-import {customAlphabet} from 'nanoid';
-import {T} from 'nc-help';
-import {AppEvents, OrgUserRoles} from 'nocodb-sdk';
-import {populateMeta, validatePayload} from '../helpers';
-import {NcError} from '../helpers/catchError';
-import {extractPropsAndSanitize} from '../helpers/extractProps';
+import { customAlphabet } from 'nanoid';
+import { AppEvents, OrgUserRoles } from 'nocodb-sdk';
+import { populateMeta, validatePayload } from '../helpers';
+import { NcError } from '../helpers/catchError';
+import { extractPropsAndSanitize } from '../helpers/extractProps';
 import syncMigration from '../helpers/syncMigration';
-import {Project, ProjectUser} from '../models';
+import { Project, ProjectUser } from '../models';
 import Noco from '../Noco';
 import extractRolesObj from '../utils/extractRolesObj';
 import NcConfigFactory from '../utils/NcConfigFactory';
-import {AppHooksService} from './app-hooks/app-hooks.service';
+import { AppHooksService } from './app-hooks/app-hooks.service';
 import type {
   ProjectReqType,
   ProjectUpdateReqType,
@@ -23,8 +22,7 @@ const nanoid = customAlphabet('1234567890abcdefghijklmnopqrstuvwxyz_', 4);
 
 @Injectable()
 export class ProjectsService {
-  constructor(private readonly appHooksService: AppHooksService) {
-  }
+  constructor(private readonly appHooksService: AppHooksService) {}
 
   async projectList(param: {
     user: { id: string; roles: Record<string, boolean> };
@@ -32,7 +30,7 @@ export class ProjectsService {
   }) {
     const projects = extractRolesObj(param.user?.roles)[
       OrgUserRoles.SUPER_ADMIN
-      ]
+    ]
       ? await Project.list(param.query)
       : await ProjectUser.getProjectsList(param.user.id, param.query);
 
@@ -45,7 +43,7 @@ export class ProjectsService {
   }
 
   sanitizeProject(project: any) {
-    const sanitizedProject = {...project};
+    const sanitizedProject = { ...project };
     sanitizedProject.bases?.forEach((b: any) => {
       ['config'].forEach((k) => delete b[k]);
     });
@@ -202,9 +200,7 @@ export class ProjectsService {
 
         delete base.config;
       }
-
     }
-
 
     this.appHooksService.emit(AppEvents.PROJECT_CREATE, {
       project,

@@ -26,6 +26,19 @@ import MapViewColumn from './MapViewColumn';
 import type { BoolType, ColumnReqType, ViewType } from 'nocodb-sdk';
 
 const { v4: uuidv4 } = require('uuid');
+
+type ViewColumn =
+  | GridViewColumn
+  | FormViewColumn
+  | GalleryViewColumn
+  | KanbanViewColumn
+  | MapViewColumn;
+
+type ViewColumnEnrichedWithTitleAndName = ViewColumn & {
+  title: string;
+  name: string;
+  dt: string;
+};
 export default class View implements ViewType {
   id?: string;
   title: string;

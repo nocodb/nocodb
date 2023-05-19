@@ -1,0 +1,66 @@
+import {
+  Body,
+  Controller,
+  Get,
+  HttpCode,
+  Param,
+  Post,
+  Request,
+  UseGuards,
+} from '@nestjs/common';
+import { LayoutReqType } from 'nocodb-sdk';
+import { ExtractProjectAndWorkspaceIdMiddleware } from '../../middlewares/extract-project-and-workspace-id/extract-project-and-workspace-id.middleware';
+import { GlobalGuard } from '../../guards/global/global.guard';
+import { PagedResponseImpl } from '../../helpers/PagedResponse';
+import { UseAclMiddleware } from '../../middlewares/extract-project-id/extract-project-id.middleware';
+import { LayoutsService } from '../../services/dashboards/layouts.service';
+
+@Controller()
+@UseGuards(ExtractProjectAndWorkspaceIdMiddleware, GlobalGuard)
+export class LayoutsController {
+  constructor(private readonly layoutService: LayoutsService) {}
+
+  @Get([
+    '/api/v1/dashboards/:dashboardId/layouts/:layoutId',
+    '/api/v1/layouts/:layoutId',
+  ])
+  @UseAclMiddleware({
+    permissionName: 'layoutGet',
+  })
+  async layoutGet(@Param('layoutId') layoutId: string, @Request() req) {
+    const layout = await this.layoutService.getLayout({
+      layoutId,
+    });
+
+    return layout;
+  }
+
+  @Get(['/api/v1/dashboards/:dashboardId/layouts'])
+  @UseAclMiddleware({
+    permissionName: 'layoutList',
+  })
+  async layoutList(@Param('dashboardId') dashboardId: string, @Request() req) {
+    return new PagedResponseImpl(
+      await this.layoutService.getLayouts({
+        dashboardId,
+      }),
+    );
+  }
+
+  @Post(['/api/v1/dashboards/:dashboardId/layouts'])
+  @HttpCode(200)
+  @UseAclMiddleware({
+    permissionName: 'layoutCreate',
+  })
+  async layoutCreate(
+    @Param('dashboardId') dashboardId: string,
+    @Body() body: LayoutReqType,
+  ) {
+    const result = await this.layoutService.layoutCreate({
+      dashboardId: dashboardId,
+      layout: body,
+    });
+
+    return result;
+  }
+}

@@ -42,6 +42,33 @@ export type DataSource =
   | DataSourceSQL
   | DataSourceStaticContent;
 
+// BUTTON START
+export enum ButtonActionType {
+  OPEN_EXTERNAL_URL = 'open_external_url',
+  DELETE_RECORD = 'delete_record',
+  UPDATE_RECORD = 'update_record',
+  OPEN_LAYOUT = 'open_layout',
+  // ...
+}
+
+export interface ButtonActionBase {
+  actionType: ButtonActionType;
+}
+export interface ButtonActionExternalUrl extends ButtonActionBase {
+  url: string;
+}
+export type ButtonAction = ButtonActionExternalUrl;
+
+export interface DataConfigButton extends ButtonAction {
+  actionType: ButtonActionType;
+  buttonText: string;
+}
+export interface DataConfigButtonExternalUrl
+  extends DataConfigButton,
+    ButtonActionExternalUrl {
+  actionType: ButtonActionType.OPEN_EXTERNAL_URL;
+}
+
 export interface DataConfigNumber {
   colId?: string;
   aggregateFunction?: AggregateFnType;
@@ -71,7 +98,8 @@ export type DataConfig =
   | DataConfigBarChart
   | DataConfigLineChart
   | DataConfigPieChart
-  | DataConfigScatterPlot;
+  | DataConfigScatterPlot
+  | DataConfigButton;
 
 export interface ScreenPosition {
   x: number;
@@ -122,6 +150,12 @@ export interface StaticTextWidget extends Widget {
   data_config: DataConfigStaticText;
   data_source: DataSourceStaticContent;
   widget_type: WidgetTypeType.StaticText;
+}
+
+export interface ButtonWidget extends Widget {
+  appearance_config: AppearanceConfigBase;
+  data_config: DataConfigButton;
+  widget_type: WidgetTypeType.Button;
 }
 
 export interface NumberWidget extends Widget {

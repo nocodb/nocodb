@@ -135,6 +135,16 @@ const rolePermissions = {
       tableList: true,
       tableGet: true,
 
+      // dashboards
+      layoutGet: true,
+      layoutList: true,
+      layoutCreate: true,
+      widgetsList: true,
+      widgetGet: true,
+      widgetCreate: true,
+      widgetUpdate: true,
+      widgetDelete: true,
+
       // data
       dataList: true,
       dataUpdate: true,

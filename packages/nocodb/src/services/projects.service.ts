@@ -95,7 +95,7 @@ export class ProjectsService {
 
     await Project.softDelete(param.projectId);
 
-    this.appHooksService.emit(AppEvents.PROJECT_UPDATE, {
+    this.appHooksService.emit(AppEvents.PROJECT_DELETE, {
       project,
       user: param.user,
     });

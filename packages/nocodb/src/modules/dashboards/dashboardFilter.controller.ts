@@ -41,7 +41,6 @@ export class DashboardFilterController {
     return new PagedResponseImpl(
       await this.dashboardFilterService.getFilters({
         widgetId,
-        // roles: extractRolesObj(req.user.roles),
       }),
     );
   }

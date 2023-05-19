@@ -24,7 +24,6 @@ export class GalleriesService {
       param.gallery,
     );
 
-    // T.emit('evt', { evt_type: 'vtable:created', show_as: 'gallery' });
     const view = await View.insert({
       ...param.gallery,
       // todo: sanitize
@@ -54,7 +53,6 @@ export class GalleriesService {
       NcError.badRequest('View not found');
     }
 
-    // T.emit('evt', { evt_type: 'view:updated', type: 'gallery' });
     const res = await GalleryView.update(param.galleryViewId, param.gallery);
 
     this.appHooksService.emit(AppEvents.VIEW_UPDATE, {

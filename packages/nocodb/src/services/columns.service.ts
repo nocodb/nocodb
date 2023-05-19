@@ -831,17 +831,6 @@ export class ColumnsService {
       ip: param.req?.clientIp,
     });
 
-    // await Audit.insert({
-    //   project_id: base.project_id,
-    //   op_type: AuditOperationTypes.TABLE_COLUMN,
-    //   op_sub_type: AuditOperationSubTypes.UPDATE,
-    //   user: param.req?.user?.email,
-    //   description: `The column ${column.column_name} with alias ${column.title} from table ${table.table_name} has been updated`,
-    //   ip: param.req?.clientIp,
-    // });
-    //
-    // T.emit('evt', { evt_type: 'column:updated' });
-
     return table;
   }
 
@@ -935,7 +924,6 @@ export class ColumnsService {
             base_id: base.id,
           },
         });
-        // T.emit('evt', { evt_type: 'relation:created' });
         break;
 
       case UITypes.QrCode:
@@ -1141,17 +1129,6 @@ export class ColumnsService {
 
     await table.getColumns();
 
-    // await Audit.insert({
-    //   project_id: base.project_id,
-    //   op_type: AuditOperationTypes.TABLE_COLUMN,
-    //   op_sub_type: AuditOperationSubTypes.CREATE,
-    //   user: param?.req.user?.email,
-    //   description: `The column ${colBody.column_name} with alias ${colBody.title} from table ${table.table_name} has been created`,
-    //   ip: param?.req.clientIp,
-    // });
-    //
-    // T.emit('evt', { evt_type: 'column:created' });
-
     this.appHooksService.emit(AppEvents.COLUMN_CREATE, {
       table,
       column: {
@@ -1321,7 +1298,6 @@ export class ColumnsService {
         this.appHooksService.emit(AppEvents.RELATION_DELETE, {
           column,
         });
-        // T.emit('evt', { evt_type: 'raltion:deleted' });
         break;
       case UITypes.ForeignKey: {
         NcError.notImplemented();

@@ -27,7 +27,6 @@ export class SortsService {
     this.appHooksService.emit(AppEvents.SORT_CREATE, {
       sort,
     });
-    // T.emit('evt', { evt_type: 'sort:deleted' });
     return true;
   }
 
@@ -46,7 +45,6 @@ export class SortsService {
       sort,
     });
 
-    // T.emit('evt', { evt_type: 'sort:updated' });
     return res;
   }
 
@@ -62,7 +60,6 @@ export class SortsService {
       sort,
     });
 
-    // T.emit('evt', { evt_type: 'sort:created' });
     return sort;
   }
 

@@ -22,7 +22,6 @@ export class SyncService {
     userId: string;
     syncPayload: Partial<SyncSource>;
   }) {
-    // T.emit('evt', { evt_type: 'syncSource:created' });
     const project = await Project.getWithInfo(param.projectId);
 
     const sync = await SyncSource.insert({
@@ -40,8 +39,6 @@ export class SyncService {
   }
 
   async syncDelete(param: { syncId: string }) {
-    // T.emit('evt', { evt_type: 'syncSource:deleted' });
-
     const syncSource = await SyncSource.get(param.syncId);
 
     if (!syncSource) {
@@ -60,7 +57,6 @@ export class SyncService {
     syncId: string;
     syncPayload: Partial<SyncSource>;
   }) {
-    // T.emit('evt', { evt_type: 'syncSource:updated' });
     const syncSource = await SyncSource.get(param.syncId);
 
     if (!syncSource) {

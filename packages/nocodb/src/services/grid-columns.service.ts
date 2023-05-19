@@ -23,7 +23,6 @@ export class GridColumnsService {
       param.grid,
     );
 
-    // T.emit('evt', { evt_type: 'gridViewColumn:updated' });
     const res = await GridViewColumn.update(param.gridViewColumnId, param.grid);
 
     this.appHooksService.emit(AppEvents.GRID_COLUMN_UPDATE, {});

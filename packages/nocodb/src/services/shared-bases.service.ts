@@ -51,8 +51,6 @@ export class SharedBasesService {
       project,
     });
 
-    // T.emit('evt', { evt_type: 'sharedBase:generated-link' });
-
     return data;
   }
 
@@ -84,7 +82,6 @@ export class SharedBasesService {
 
     data.url = `${param.siteUrl}${config.dashboardPath}#/nc/base/${data.uuid}`;
     delete data.password;
-    // T.emit('evt', { evt_type: 'sharedBase:generated-link' });
     this.appHooksService.emit(AppEvents.SHARED_BASE_GENERATE_LINK, {
       link: data.url,
       project,
@@ -104,7 +101,6 @@ export class SharedBasesService {
 
     await Project.update(project.id, data);
 
-    // T.emit('evt', { evt_type: 'sharedBase:disable-link' });
     this.appHooksService.emit(AppEvents.SHARED_BASE_DELETE_LINK, {
       project,
     });

@@ -83,8 +83,6 @@ export class ProjectsService {
       user: param.user,
     });
 
-    // T.emit('evt', { evt_type: 'project:update' });
-
     return result;
   }
 
@@ -102,7 +100,6 @@ export class ProjectsService {
       user: param.user,
     });
 
-    // T.emit('evt', { evt_type: 'project:deleted' });
     return true;
   }
 
@@ -192,8 +189,6 @@ export class ProjectsService {
     for (const base of await project.getBases()) {
       const info = await populateMeta(base, project);
 
-      // T.emit('evt_api_created', info);
-
       this.appHooksService.emit(AppEvents.APIS_CREATED, {
         info,
       });
@@ -206,13 +201,6 @@ export class ProjectsService {
       user: param.user,
       xcdb: !projectBody.external,
     });
-
-    // T.emit('evt', {
-    //   evt_type: 'project:created',
-    //   xcdb: !projectBody.external,
-    // });
-    //
-    // T.emit('evt', { evt_type: 'project:rest' });
 
     return project;
   }

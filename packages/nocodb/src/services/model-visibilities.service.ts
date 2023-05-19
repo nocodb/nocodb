@@ -61,8 +61,6 @@ export class ModelVisibilitiesService {
       project,
     });
 
-    // T.emit('evt', { evt_type: 'uiAcl:updated' })
-
     return true;
   }
 

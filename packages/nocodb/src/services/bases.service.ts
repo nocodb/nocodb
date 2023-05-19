@@ -40,9 +40,6 @@ export class BasesService {
     this.appHooksService.emit(AppEvents.BASE_UPDATE, {
       base,
     });
-    // T.emit('evt', {
-    //   evt_type: 'base:updated',
-    // });
 
     return base;
   }
@@ -59,7 +56,6 @@ export class BasesService {
     this.appHooksService.emit(AppEvents.BASE_DELETE, {
       base,
     });
-    // T.emit('evt', { evt_type: 'base:deleted' });
     return true;
   }
 
@@ -79,16 +75,11 @@ export class BasesService {
 
     const info = await populateMeta(base, project);
 
-    // T.emit('evt_api_created', info);
     this.appHooksService.emit(AppEvents.APIS_CREATED, {
       info,
     });
 
     delete base.config;
-
-    // T.emit('evt', {
-    //   evt_type: 'base:created',
-    // });
 
     this.appHooksService.emit(AppEvents.BASE_CREATE, {
       base,

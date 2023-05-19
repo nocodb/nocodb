@@ -26,11 +26,11 @@ import NcUpgrader from './version-upgrader/NcUpgrader';
 import { MetasModule } from './modules/metas/metas.module';
 import NocoCache from './cache/NocoCache';
 import { JobsModule } from './modules/jobs/jobs.module';
+import { AppHooksListenerService } from './services/app-hooks-listener.service';
 import type {
   MiddlewareConsumer,
   OnApplicationBootstrap,
 } from '@nestjs/common';
-import { AppHooksListenerService } from './services/app-hooks-listener.service';
 
 @Module({
   imports: [

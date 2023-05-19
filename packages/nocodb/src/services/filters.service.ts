@@ -29,7 +29,6 @@ export class FiltersService {
       filter,
       hook,
     });
-    // T.emit('evt', { evt_type: 'hookFilter:created' });
     return filter;
   }
 
@@ -45,7 +44,6 @@ export class FiltersService {
     }
 
     await Filter.delete(param.filterId);
-    // T.emit('evt', { evt_type: 'filter:deleted' });
 
     this.appHooksService.emit(AppEvents.FILTER_DELETE, {
       filter,
@@ -63,8 +61,6 @@ export class FiltersService {
       ...param.filter,
       fk_view_id: param.viewId,
     });
-
-    // T.emit('evt', { evt_type: 'filter:created' });
 
     this.appHooksService.emit(AppEvents.FILTER_CREATE, {
       filter,
@@ -88,8 +84,6 @@ export class FiltersService {
     this.appHooksService.emit(AppEvents.FILTER_CREATE, {
       filter,
     });
-
-    // T.emit('evt', { evt_type: 'filter:updated' });
 
     return res;
   }

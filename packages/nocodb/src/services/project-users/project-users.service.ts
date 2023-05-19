@@ -113,15 +113,6 @@ export class ProjectUsersService {
             cachedUser,
           );
         }
-
-        // await Audit.insert({
-        //   project_id: param.projectId,
-        //   op_type: AuditOperationTypes.AUTHENTICATION,
-        //   op_sub_type: AuditOperationSubTypes.INVITE,
-        //   user: param.req.user.email,
-        //   description: `${email} has been invited to ${param.projectId} project`,
-        //   ip: param.req.clientIp,
-        // });
       } else {
         try {
           // create new user with invite token
@@ -146,18 +137,7 @@ export class ProjectUsersService {
             invitedBy: param.req.user,
             ip: param.req.clientIp,
           });
-          //
-          // const count = await User.count();
-          // T.emit('evt', { evt_type: 'project:invite', count });
 
-          // await Audit.insert({
-          //   project_id: param.projectId,
-          //   op_type: AuditOperationTypes.AUTHENTICATION,
-          //   op_sub_type: AuditOperationSubTypes.INVITE,
-          //   user: param.req.user.email,
-          //   description: `invited ${email} to ${param.projectId} project `,
-          //   ip: param.req.clientIp,
-          // });
           // in case of single user check for smtp failure
           // and send back token if failed
           if (
@@ -247,14 +227,6 @@ export class ProjectUsersService {
       projectUser: param.projectUser,
     });
 
-    // await Audit.insert({
-    //   op_type: AuditOperationTypes.AUTHENTICATION,
-    //   op_sub_type: AuditOperationSubTypes.ROLES_MANAGEMENT,
-    //   user: param.req.user.email,
-    //   description: `Roles for ${user.email} with has been updated to ${param.projectUser.roles}`,
-    //   ip: param.req.clientIp,
-    // });
-
     return {
       msg: 'User has been updated successfully',
     };
@@ -339,15 +311,6 @@ export class ProjectUsersService {
       ip: param.req.clientIp,
       projectUser: param.projectUser,
     });
-
-    // await Audit.insert({
-    //   op_type: AuditOperationTypes.AUTHENTICATION,
-    //   op_sub_type: AuditOperationSubTypes.RESEND_INVITE,
-    //   user: user.email,
-    //   description: `${user.email} has been re-invited`,
-    //   ip: param.req.clientIp,
-    //   project_id: param.projectId,
-    // });
 
     return true;
   }

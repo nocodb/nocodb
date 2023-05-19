@@ -30,8 +30,6 @@ export class FormsService {
       type: ViewTypes.FORM,
     });
 
-    // T.emit('evt', { evt_type: 'vtable:created', show_as: 'form' });
-
     this.appHooksService.emit(AppEvents.VIEW_CREATE, {
       view,
       showAs: 'form',
@@ -50,8 +48,6 @@ export class FormsService {
     if (!view) {
       NcError.badRequest('View not found');
     }
-
-    // T.emit('evt', { evt_type: 'view:updated', type: 'form' });
 
     const res = await FormView.update(param.formViewId, param.form);
 

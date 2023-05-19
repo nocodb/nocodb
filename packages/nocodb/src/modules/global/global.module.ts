@@ -5,7 +5,7 @@ import { SocketGateway } from '../../gateways/socket.gateway';
 import { Connection } from '../../connection/connection';
 import { GlobalGuard } from '../../guards/global/global.guard';
 import { MetaService } from '../../meta/meta.service';
-import { AppHooksService } from '../../services/app-hooks/app-hooks.service'
+import { AppHooksService } from '../../services/app-hooks/app-hooks.service';
 import { JwtStrategy } from '../../strategies/jwt.strategy';
 import NcConfigFactory from '../../utils/NcConfigFactory';
 import { UsersService } from '../../services/users/users.service';

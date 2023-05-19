@@ -48,8 +48,6 @@ export class OrgTokensService {
       fk_user_id: param['user'].id,
     });
 
-    // T.emit('evt', { evt_type: 'org:apiToken:created' });
-
     this.appHooksService.emit(AppEvents.ORG_API_TOKEN_CREATE, {
       tokenBody: param.apiToken,
       userId: param.user?.id,
@@ -67,8 +65,6 @@ export class OrgTokensService {
     ) {
       NcError.notFound('Token not found');
     }
-    // T.emit('evt', { evt_type: 'org:apiToken:deleted' });
-
     const res = await ApiToken.delete(param.token);
 
     this.appHooksService.emit(AppEvents.ORG_API_TOKEN_DELETE, {

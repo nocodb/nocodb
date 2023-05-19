@@ -27,8 +27,6 @@ export class ViewColumnsService {
         show: param.column.show,
       },
     );
-    // T.emit('evt', { evt_type: 'viewColumn:inserted' });
-
     this.appHooksService.emit(AppEvents.VIEW_COLUMN_CREATE, {
       viewColumn,
     });
@@ -51,7 +49,6 @@ export class ViewColumnsService {
       param.columnId,
       param.column,
     );
-    // T.emit('evt', { evt_type: 'viewColumn:updated' });
 
     this.appHooksService.emit(AppEvents.VIEW_COLUMN_UPDATE, {
       viewColumn: param.column,

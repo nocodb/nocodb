@@ -132,7 +132,6 @@ export class TablesService {
       user: param.user,
     });
 
-    // T.emit('evt', { evt_type: 'table:updated' });
     return true;
   }
 
@@ -433,18 +432,6 @@ export class TablesService {
     });
 
     mapDefaultDisplayValue(param.table.columns);
-
-    // await Audit.insert({
-    //   project_id: project.id,
-    //   base_id: base.id,
-    //   op_type: AuditOperationTypes.TABLE,
-    //   op_sub_type: AuditOperationSubTypes.CREATE,
-    //   user: param.user?.email,
-    //   description: `Table ${tableCreatePayLoad.table_name} with alias ${tableCreatePayLoad.title} has been created`,
-    //   ip: param.req?.clientIp,
-    // }).then(() => {});
-    //
-    // T.emit('evt', { evt_type: 'table:created' });
 
     // todo: type correction
     const result = await Model.insert(project.id, base.id, {

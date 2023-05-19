@@ -92,7 +92,6 @@ export class ViewsService {
   }
 
   async shareView(param: { viewId: string; user: UserType }) {
-    // T.emit('evt', { evt_type: 'sharedView:generated-link' });
     const res = await View.share(param.viewId);
 
     const view = await View.get(param.viewId);
@@ -126,7 +125,6 @@ export class ViewsService {
     }
 
     const result = await View.update(param.viewId, param.view);
-    // T.emit('evt', { evt_type: 'vtable:updated', show_as: result.type });
 
     this.appHooksService.emit(AppEvents.VIEW_UPDATE, {
       view: {
@@ -153,7 +151,6 @@ export class ViewsService {
       user: param.user,
     });
 
-    // T.emit('evt', { evt_type: 'vtable:deleted' });
     return true;
   }
 
@@ -173,7 +170,6 @@ export class ViewsService {
       NcError.badRequest('View not found');
     }
 
-    // T.emit('evt', { evt_type: 'sharedView:updated' });
     const result = await View.update(param.viewId, param.sharedView);
 
     this.appHooksService.emit(AppEvents.SHARED_VIEW_UPDATE, {
@@ -185,8 +181,6 @@ export class ViewsService {
   }
 
   async shareViewDelete(param: { viewId: string; user: UserType }) {
-    // T.emit('evt', { evt_type: 'sharedView:deleted' });
-
     const view = await View.get(param.viewId);
 
     if (!view) {

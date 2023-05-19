@@ -159,14 +159,6 @@ export class UsersService {
       ip: param.req?.clientIp,
     });
 
-    // await Audit.insert({
-    //   op_type: AuditOperationTypes.AUTHENTICATION,
-    //   op_sub_type: AuditOperationSubTypes.PASSWORD_CHANGE,
-    //   user: user.email,
-    //   description: `Password has been changed`,
-    //   ip: param.req?.clientIp,
-    // });
-
     return true;
   }
 
@@ -224,14 +216,6 @@ export class UsersService {
         user: user,
         ip: param.req?.clientIp,
       });
-
-      // await Audit.insert({
-      //   op_type: AuditOperationTypes.AUTHENTICATION,
-      //   op_sub_type: AuditOperationSubTypes.PASSWORD_FORGOT,
-      //   user: user.email,
-      //   description: `Password Reset has been requested`,
-      //   ip: param.req?.clientIp,
-      // })
     } else {
       return NcError.badRequest('Your email has not been registered.');
     }
@@ -306,14 +290,6 @@ export class UsersService {
       ip: param.req?.clientIp,
     });
 
-    // await Audit.insert({
-    //   op_type: AuditOperationTypes.AUTHENTICATION,
-    //   op_sub_type: AuditOperationSubTypes.PASSWORD_RESET,
-    //   user: user.email,
-    //   description: `Password has been reset`,
-    //   ip: req.clientIp,
-    // })
-
     return true;
   }
 
@@ -342,14 +318,6 @@ export class UsersService {
       user: user,
       ip: param.req?.clientIp,
     });
-
-    // await Audit.insert({
-    //   op_type: AuditOperationTypes.AUTHENTICATION,
-    //   op_sub_type: AuditOperationSubTypes.EMAIL_VERIFICATION,
-    //   user: user.email,
-    //   description: `Email has been verified`,
-    //   ip: req.clientIp,
-    // })
 
     return true;
   }
@@ -504,13 +472,6 @@ export class UsersService {
       user: user,
       ip: param.req?.clientIp,
     });
-    // await Audit.insert({
-    //   op_type: AuditOperationTypes.AUTHENTICATION,
-    //   op_sub_type: AuditOperationSubTypes.SIGNUP,
-    //   user: user.email,
-    //   description: `User has signed up`,
-    //   ip: (param.req as any).clientIp,
-    // });
 
     return this.login(user);
   }

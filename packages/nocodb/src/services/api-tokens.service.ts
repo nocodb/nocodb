@@ -27,7 +27,6 @@ export class ApiTokensService {
       tokenBody: param.tokenBody,
     });
 
-    // T.emit('evt', { evt_type: 'apiToken:created' });
     return await ApiToken.insert({
       ...param.tokenBody,
       fk_user_id: param.userId,
@@ -47,8 +46,6 @@ export class ApiTokensService {
       userId: param.user?.id,
       token: param.token,
     });
-
-    // T.emit('evt', { evt_type: 'apiToken:deleted' });
 
     // todo: verify token belongs to the user
     return await ApiToken.delete(param.token);

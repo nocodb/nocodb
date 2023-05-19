@@ -26,7 +26,6 @@ export class MapsService {
       fk_model_id: param.tableId,
       type: ViewTypes.MAP,
     });
-    // T.emit('evt', { evt_type: 'vtable:created', show_as: 'map' });
 
     this.appHooksService.emit(AppEvents.VIEW_CREATE, {
       view,
@@ -45,7 +44,6 @@ export class MapsService {
       NcError.badRequest('View not found');
     }
 
-    // T.emit('evt', { evt_type: 'view:updated', type: 'map' });
     const res = await MapView.update(param.mapViewId, param.map);
 
     this.appHooksService.emit(AppEvents.VIEW_UPDATE, {

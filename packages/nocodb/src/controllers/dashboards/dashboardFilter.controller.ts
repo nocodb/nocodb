@@ -1,29 +1,18 @@
 import {
   Body,
   Controller,
-  Delete,
   Get,
   HttpCode,
   Param,
-  Patch,
   Post,
-  Query,
   Request,
-  UseGuards,
 } from '@nestjs/common';
 import { FilterReqType } from 'nocodb-sdk';
-import { ExtractProjectAndWorkspaceIdMiddleware } from '../../middlewares/extract-project-and-workspace-id/extract-project-and-workspace-id.middleware';
-import { GlobalGuard } from '../../guards/global/global.guard';
-import extractRolesObj from '../../utils/extractRolesObj';
 import { PagedResponseImpl } from '../../helpers/PagedResponse';
-import {
-  Acl,
-  UseAclMiddleware,
-} from '../../middlewares/extract-project-id/extract-project-id.middleware';
+import { UseAclMiddleware } from '../../middlewares/extract-project-id/extract-project-id.middleware';
 import { DashboardFilterService } from '../../services/dashboards/dashboardFilter.service';
 
 @Controller()
-@UseGuards(ExtractProjectAndWorkspaceIdMiddleware, GlobalGuard)
 export class DashboardFilterController {
   constructor(
     private readonly dashboardFilterService: DashboardFilterService,

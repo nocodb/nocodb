@@ -15,7 +15,6 @@ export class LayoutsService {
     layout: LayoutUpdateReqType;
     req?: any;
   }) {
-    console.log(param.layout);
     validatePayload(
       'swagger.json#/components/schemas/LayoutUpdateReq',
       param.layout,

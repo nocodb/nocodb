@@ -27,7 +27,7 @@ export const ProducerProvider: Provider = {
         },
         sendMessages: async () => {
           // do nothing
-        }
+        },
       };
     }
   },

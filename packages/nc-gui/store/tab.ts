@@ -1,4 +1,4 @@
-import type { BaseType, ProjectType } from 'nocodb-sdk';
+import type { BaseType, ProjectType } from 'nocodb-sdk'
 import type { WritableComputedRef } from '@vue/reactivity'
 import { defineStore, storeToRefs } from 'pinia'
 import { computed, navigateTo, ref, useProject, useProjects, useRouter, watch } from '#imports'

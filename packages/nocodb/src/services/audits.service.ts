@@ -1,6 +1,10 @@
 import { Injectable } from '@nestjs/common';
 import DOMPurify from 'isomorphic-dompurify';
-import {AuditOperationSubTypes, AuditOperationTypes, ClickhouseTables} from 'nocodb-sdk';
+import {
+  AuditOperationSubTypes,
+  AuditOperationTypes,
+  ClickhouseTables,
+} from 'nocodb-sdk';
 import { validatePayload } from '../helpers';
 import { NcError } from '../helpers/catchError';
 import { Audit, Model } from '../models';

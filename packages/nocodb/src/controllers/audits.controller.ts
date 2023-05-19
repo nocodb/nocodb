@@ -76,7 +76,7 @@ export class AuditsController {
         projectId,
       }),
       {
-        count: this.auditsService.auditCount({projectId}),
+        count: this.auditsService.auditCount({ projectId }),
         ...req.query,
       },
     );

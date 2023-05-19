@@ -32,17 +32,16 @@ import { CustomApiLimiterGuard } from './guards/custom-api-limiter.guard';
 import appConfig from './app.config';
 import { ExtractProjectAndWorkspaceIdMiddleware } from './middlewares/extract-project-and-workspace-id/extract-project-and-workspace-id.middleware';
 import { ExecutionTimeCalculatorInterceptor } from './interceptors/execution-time-calculator/execution-time-calculator.interceptor';
+
+import { HookHandlerService } from './services/hook-handler.service';
+import { TelemetryController } from './controllers/telemetry.controller';
 import type {
   MiddlewareConsumer,
   OnApplicationBootstrap,
 } from '@nestjs/common';
-import { AppHooksListenerService } from './services/app-hooks-listener.service';
 
 // todo: refactor to use config service
 const enableThrottler = !!process.env['NC_THROTTLER_REDIS'];
-
-import { HookHandlerService } from './services/hook-handler.service';
-import { TelemetryController } from './controllers/telemetry.controller';
 
 @Module({
   imports: [

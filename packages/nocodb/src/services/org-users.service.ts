@@ -143,7 +143,7 @@ export class OrgUsersService {
       } else {
         try {
           // create new user with invite token
-           user = await User.insert({
+          user = await User.insert({
             invite_token,
             invite_token_expires: new Date(Date.now() + 24 * 60 * 60 * 1000),
             email,

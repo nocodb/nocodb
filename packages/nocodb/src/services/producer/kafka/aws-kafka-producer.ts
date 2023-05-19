@@ -1,8 +1,8 @@
-import {Injectable, Logger} from '@nestjs/common';
-import {Admin, Kafka} from 'kafkajs';
-import {createMechanism} from '@jm18457/kafkajs-msk-iam-authentication-mechanism';
-import {Producer as NcProducer} from '../producer';
-import type {Producer} from 'kafkajs';
+import { Injectable, Logger } from '@nestjs/common';
+import { Admin, Kafka } from 'kafkajs';
+import { createMechanism } from '@jm18457/kafkajs-msk-iam-authentication-mechanism';
+import { Producer as NcProducer } from '../producer';
+import type { Producer } from 'kafkajs';
 
 @Injectable()
 export class AwsKafkaProducer extends NcProducer {
@@ -41,7 +41,7 @@ export class AwsKafkaProducer extends NcProducer {
     try {
       await this.producer.send({
         topic,
-        messages: [{value: message}],
+        messages: [{ value: message }],
       });
     } catch (error) {
       this.logger.error(`Error pushing data: ${error}`);
@@ -50,9 +50,9 @@ export class AwsKafkaProducer extends NcProducer {
 
   async sendMessages(topic: string, messages: string[]): Promise<void> {
     try {
-     await this.producer.send({
+      await this.producer.send({
         topic,
-        messages: messages.map((message) => ({value: message})),
+        messages: messages.map((message) => ({ value: message })),
       });
     } catch (error) {
       this.logger.error(`Error pushing data: ${error}`);

@@ -340,9 +340,9 @@
         ]
       }
     },
-    "/api/v1/public/docs/pages": {
+    "api/v1/public/docs/project/{projectId}/pages/{parentPageId}": {
       "get": {
-        "summary": "list public pages",
+        "summary": "List tree of public pages of given parent page and its children. If the given parent page is published under a different parent page, the tree's top level will be that parent page",
         "operationId": "list-public-pages",
         "responses": {
           "200": {
@@ -362,32 +362,13 @@
         "tags": [
           "Noco docs"
         ],
-        "parameters": [
-          {
-            "name": "projectId",
-            "in": "query",
-            "description": "Project id",
-            "required": true,
-            "schema": {
-              "type": "string"
-            }
-          },
-          {
-            "name": "parent_page_id",
-            "in": "query",
-            "description": "parent_page_id",
-            "schema": {
-              "type": "string"
-            }
-          }
-        ],
         "description": ""
       }
     },
-    "/api/v1/public/docs/page/{id}": {
+    "/api/v1/public/docs/project/{projectId}/page/{id}": {
       "get": {
-        "summary": "get public page",
-        "operationId": "get-public-page",
+        "summary": "Get public page and its project",
+        "operationId": "get-public-page-and-project",
         "responses": {
           "200": {
             "description": "OK",
@@ -411,219 +392,12 @@
         "tags": [
           "Noco docs"
         ],
-        "parameters": [
-          {
-            "name": "projectId",
-            "in": "query",
-            "description": "Project id",
-            "required": true,
-            "schema": {
-              "type": "string"
-            }
-          }
-        ],
         "description": ""
       }
     },
-    "/api/v1/docs/pages/magic": {
-      "post": {
-        "summary": "Create nested pages magic",
-        "operationId": "create-nested-pages-magic",
-        "responses": {
-          "200": {
-            "description": "OK"
-          }
-        },
-        "tags": [
-          "Noco docs"
-        ],
-        "requestBody": {
-          "content": {
-            "application/json": {
-              "schema": {
-                "type": "object",
-                "properties": {
-                  "projectId": {
-                    "type": "string",
-                    "description": "Project id",
-                    "required": true
-                  },
-                  "title": {
-                    "type": "string",
-                    "description": "Title",
-                    "required": true
-                  }
-                }
-              }
-            }
-          },
-          "required": true
-        },
-        "description": "Create book"
-      },
-      "parameters": []
-    },
-    "/api/v1/docs/pages/import": {
-      "post": {
-        "summary": "Import pages",
-        "operationId": "import-pages",
-        "responses": {
-          "200": {
-            "description": "OK"
-          }
-        },
-        "tags": [
-          "Noco docs"
-        ],
-        "requestBody": {
-          "content": {
-            "application/json": {
-              "schema": {
-                "type": "object",
-                "properties": {
-                  "user": {
-                    "type": "string",
-                    "description": "Project id",
-                    "required": true
-                  },
-                  "repo": {
-                    "type": "string",
-                    "description": "Project id",
-                    "required": true
-                  },
-                  "branch": {
-                    "type": "string",
-                    "description": "Project id",
-                    "required": true
-                  },
-                  "path": {
-                    "type": "string",
-                    "description": "Project id",
-                    "required": true
-                  },
-                  "projectId": {
-                    "type": "string",
-                    "description": "Project id",
-                    "required": true
-                  },
-                  "type": {
-                    "type": "string",
-                    "description": "Project id",
-                    "required": true
-                  },
-                  "from": {
-                    "type": "string",
-                    "description": "Project id",
-                    "required": true
-                  }
-                }
-              }
-            }
-          },
-          "required": true
-        },
-        "description": "Import pages"
-      },
-      "parameters": []
-    },
-    "/api/v1/docs/page/magic-outline": {
-      "post": {
-        "summary": "Magic outline page",
-        "operationId": "magic-outline-page",
-        "responses": {
-          "200": {
-            "description": "OK",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "object"
-                }
-              }
-            }
-          }
-        },
-        "tags": [
-          "Noco docs"
-        ],
-        "requestBody": {
-          "content": {
-            "application/json": {
-              "schema": {
-                "type": "object",
-                "properties": {
-                  "pageId": {
-                    "type": "string",
-                    "description": "Page id",
-                    "required": true
-                  },
-                  "projectId": {
-                    "type": "string",
-                    "description": "Project id",
-                    "required": true
-                  }
-                }
-              }
-            }
-          },
-          "required": true
-        },
-        "description": "Magic page content"
-      },
-      "parameters": []
-    },
-    "/api/v1/docs/page/magic-expand": {
-      "post": {
-        "summary": "Magic expand text",
-        "operationId": "magic-expand-text",
-        "responses": {
-          "200": {
-            "description": "OK",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "object"
-                }
-              }
-            }
-          }
-        },
-        "tags": [
-          "Noco docs"
-        ],
-        "requestBody": {
-          "content": {
-            "application/json": {
-              "schema": {
-                "type": "object",
-                "properties": {
-                  "pageId": {
-                    "type": "string",
-                    "description": "Page id",
-                    "required": true
-                  },
-                  "projectId": {
-                    "type": "string",
-                    "description": "Project id",
-                    "required": true
-                  },
-                  "text": {
-                    "type": "string",
-                    "description": "Text",
-                    "required": true
-                  }
-                }
-              }
-            }
-          },
-          "required": true
-        },
-        "description": "Magic page content"
-      },
-      "parameters": []
-    },
-    "/api/v1/docs/pages": {
+    "/api/v1/docs/project/{projectId}/pages": {
       "get": {
-        "summary": "List pages",
+        "summary": "List all pages",
         "operationId": "list-pages",
         "responses": {
           "200": {
@@ -643,79 +417,13 @@
         "tags": [
           "Noco docs"
         ],
-        "parameters": [
-          {
-            "name": "projectId",
-            "in": "query",
-            "description": "Page number",
-            "required": true,
-            "schema": {
-              "type": "string"
-            }
-          },
-          {
-            "name": "parent_page_id",
-            "in": "query",
-            "description": "Parent page id",
-            "required": false,
-            "schema": {
-              "type": "string"
-            }
-          }
-        ],
         "description": "List pages"
       },
       "parameters": []
     },
-    "/api/v1/docs/page-parents": {
+    "/api/v1/docs/project/{projectId}/page/{id}": {
       "get": {
-        "summary": "Parent pages",
-        "operationId": "parent-pages",
-        "responses": {
-          "200": {
-            "description": "OK",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "array",
-                  "items": {
-                    "$ref": "#/components/schemas/DocsPage"
-                  }
-                }
-              }
-            }
-          }
-        },
-        "tags": [
-          "Noco docs"
-        ],
-        "parameters": [
-          {
-            "name": "projectId",
-            "in": "query",
-            "description": "Page number",
-            "required": true,
-            "schema": {
-              "type": "string"
-            }
-          },
-          {
-            "name": "pageId",
-            "in": "query",
-            "description": "pageId",
-            "required": true,
-            "schema": {
-              "type": "string"
-            }
-          }
-        ],
-        "description": "Paginate pages"
-      },
-      "parameters": []
-    },
-    "/api/v1/docs/page/{id}": {
-      "get": {
-        "summary": "Get page",
+        "summary": "Get page by id",
         "operationId": "get-page",
         "responses": {
           "200": {
@@ -732,17 +440,6 @@
         "tags": [
           "Noco docs"
         ],
-        "parameters": [
-          {
-            "name": "projectId",
-            "in": "query",
-            "description": "Project id",
-            "required": true,
-            "schema": {
-              "type": "string"
-            }
-          }
-        ],
         "description": "Get page"
       },
       "delete": {
@@ -755,17 +452,6 @@
         },
         "tags": [
           "Noco docs"
-        ],
-        "parameters": [
-          {
-            "name": "projectId",
-            "in": "query",
-            "description": "Project id",
-            "required": true,
-            "schema": {
-              "type": "string"
-            }
-          }
         ],
         "description": "Delete page"
       },
@@ -795,11 +481,6 @@
                 "properties": {
                   "attributes": {
                     "$ref": "#/components/schemas/DocsPage"
-                  },
-                  "projectId": {
-                    "type": "string",
-                    "description": "Project id",
-                    "required": true
                   }
                 }
               }
@@ -810,7 +491,7 @@
         "description": "Update page"
       }
     },
-    "/api/v1/docs/page": {
+    "/api/v1/docs/project/{projectId}/page": {
       "post": {
         "summary": "Create page",
         "operationId": "create-page",
@@ -837,11 +518,6 @@
                 "properties": {
                   "attributes": {
                     "$ref": "#/components/schemas/DocsPage"
-                  },
-                  "projectId": {
-                    "type": "string",
-                    "description": "Project id",
-                    "required": true
                   }
                 }
               }
@@ -853,9 +529,159 @@
       },
       "parameters": []
     },
+    "/api/v1/docs/project/{projectId}/page/{id}/magic-expand": {
+      "post": {
+        "summary": "Returns ai suggested page content using its title, parent page's and project's tiles. Does not update page content.",
+        "operationId": "magic-expand-text",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "Noco docs"
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "text": {
+                    "type": "string",
+                    "description": "Text",
+                    "required": true
+                  }
+                }
+              }
+            }
+          },
+          "required": true
+        },
+        "description": "Magic page content"
+      },
+      "parameters": []
+    },
+    "/api/v1/docs/project/{projectId}/page/{id}/magic-outline": {
+      "post": {
+        "summary": "Gives ai suggested page outline/skeleton (subheadings) for the page based on its, parent page's and project's title",
+        "operationId": "magic-outline-page",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "Noco docs"
+        ]
+      },
+      "parameters": []
+    },
+    "/api/v1/docs/project/{projectId}/page/import": {
+      "post": {
+        "summary": "Import pages",
+        "operationId": "import-pages",
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        },
+        "tags": [
+          "Noco docs"
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "user": {
+                    "type": "string",
+                    "description": "Github user",
+                    "required": true
+                  },
+                  "repo": {
+                    "type": "string",
+                    "description": "Github repo",
+                    "required": true
+                  },
+                  "branch": {
+                    "type": "string",
+                    "description": "Github branch",
+                    "required": true
+                  },
+                  "path": {
+                    "type": "string",
+                    "description": "Github path",
+                    "required": true
+                  },
+                  "type": {
+                    "type": "string",
+                    "required": true
+                  },
+                  "from": {
+                    "type": "string",
+                    "required": true
+                  }
+                }
+              }
+            }
+          },
+          "required": true
+        },
+        "description": "Import pages"
+      },
+      "parameters": []
+    },
+    "/api/v1/docs/project/{projectId}/pages/magic-create-pages": {
+      "post": {
+        "summary": "Create nested pages using AI with project title. Will create and insert pages in the project",
+        "operationId": "create-nested-pages-magic",
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        },
+        "tags": [
+          "Noco docs"
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "title": {
+                    "type": "string",
+                    "description": "Title",
+                    "required": true
+                  }
+                }
+              }
+            }
+          },
+          "required": true
+        }
+      },
+      "parameters": []
+    },
     "/api/v1/docs/project/{projectId}/page/{pageId}/history-sync": {
       "post": {
-        "summary": "Sync page history",
+        "summary": "When called will snapshot the page if there is any page change needed to be snapshoted",
         "operationId": "sync-page-history",
         "responses": {
           "200": {
@@ -879,7 +705,7 @@
     },
     "/api/v1/docs/project/{projectId}/page/{pageId}/history": {
       "get": {
-        "summary": "List page history",
+        "summary": "List snapshots of the page (paginated)",
         "operationId": "list-page-history",
         "parameters": [
           {
@@ -923,13 +749,12 @@
         },
         "tags": [
           "Noco docs"
-        ],
-        "description": "List page history"
+        ]
       }
     },
     "/api/v1/docs/project/{projectId}/page/{pageId}/history/{snapshotId}/restore": {
       "post": {
-        "summary": "Restore page history",
+        "summary": "Restore page to a given snapshot",
         "operationId": "restore-page-history",
         "responses": {
           "200": {
@@ -938,8 +763,7 @@
         },
         "tags": [
           "Noco docs"
-        ],
-        "description": "Restore page history"
+        ]
       }
     },
     "/api/v1/auth/user/signup": {

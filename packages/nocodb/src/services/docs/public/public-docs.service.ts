@@ -27,8 +27,6 @@ export class PublicDocsService {
       NcError.notFound('Page is not found.');
     }
 
-    await new Promise((resolve) => setTimeout(resolve, 1000));
-
     return {
       page: {
         id: page.id,
@@ -75,8 +73,6 @@ export class PublicDocsService {
     if (!page.is_published) {
       NcError.notFound('Page is not found.');
     }
-
-    await new Promise((resolve) => setTimeout(resolve, 2000));
 
     return await this.pageDao.nestedList({
       projectId: param.projectId,

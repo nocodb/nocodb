@@ -11,13 +11,13 @@ import {
   UseGuards,
 } from '@nestjs/common';
 import { WidgetReqType, WidgetUpdateReqType } from 'nocodb-sdk';
+import { WidgetsService } from '../../services/dashboards/widgets.service';
 import { ExtractProjectAndWorkspaceIdMiddleware } from '../../middlewares/extract-project-and-workspace-id/extract-project-and-workspace-id.middleware';
 import Widget from '../../models/Widget';
 import { GlobalGuard } from '../../guards/global/global.guard';
 import { PagedResponseImpl } from '../../helpers/PagedResponse';
 import { UseAclMiddleware } from '../../middlewares/extract-project-id/extract-project-id.middleware';
-import { WidgetsService } from './widgets.service';
-import { WidgetDataService } from './widgetData.service';
+import { WidgetDataService } from '../../services/dashboards/widgetData.service';
 
 @Controller()
 @UseGuards(ExtractProjectAndWorkspaceIdMiddleware, GlobalGuard)

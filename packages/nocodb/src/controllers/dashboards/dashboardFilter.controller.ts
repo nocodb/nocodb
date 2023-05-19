@@ -20,7 +20,7 @@ import {
   Acl,
   UseAclMiddleware,
 } from '../../middlewares/extract-project-id/extract-project-id.middleware';
-import { DashboardFilterService } from './dashboardFilter.service';
+import { DashboardFilterService } from '../../services/dashboards/dashboardFilter.service';
 
 @Controller()
 @UseGuards(ExtractProjectAndWorkspaceIdMiddleware, GlobalGuard)

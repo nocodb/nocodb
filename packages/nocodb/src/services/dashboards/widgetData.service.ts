@@ -1,13 +1,12 @@
 import { Injectable } from '@nestjs/common';
 import { DataSourceType, WidgetTypeType } from 'nocodb-sdk';
+import { getViewAndModelByAliasOrId } from '../../modules/datas/helpers';
 import { PagedResponseImpl } from '../../helpers/PagedResponse';
 import NcConnectionMgrv2 from '../../utils/common/NcConnectionMgrv2';
 import Widget from '../../models/Widget';
 import { Base, Column, Filter, Model, View } from '../../models';
-import { DatasService } from '../../services/datas.service';
-import { getViewAndModelByAliasOrId } from '../datas/helpers';
 import { WidgetsService } from './widgets.service';
-import type { PathParams } from '../datas/helpers';
+import type { PathParams } from '../../modules/datas/helpers';
 import type {
   AppearanceConfig,
   ChartWidget,
@@ -48,7 +47,6 @@ const _parseWidgetFromAPI = (widgetFromAPI: WidgetType): Widget => {
 
 @Injectable()
 export class WidgetDataService {
-  constructor(private datasService: DatasService) {}
   async getWidgetData({
     layoutId,
     widgetId,

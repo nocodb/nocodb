@@ -13,7 +13,7 @@ import { ExtractProjectAndWorkspaceIdMiddleware } from '../../middlewares/extrac
 import { GlobalGuard } from '../../guards/global/global.guard';
 import { PagedResponseImpl } from '../../helpers/PagedResponse';
 import { UseAclMiddleware } from '../../middlewares/extract-project-id/extract-project-id.middleware';
-import { LayoutsService } from './layouts.service';
+import { LayoutsService } from '../../services/dashboards/layouts.service';
 
 @Controller()
 @UseGuards(ExtractProjectAndWorkspaceIdMiddleware, GlobalGuard)

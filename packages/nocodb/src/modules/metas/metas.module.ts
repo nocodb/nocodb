@@ -1,6 +1,11 @@
 import { Module } from '@nestjs/common';
 import { MulterModule } from '@nestjs/platform-express';
 import multer from 'multer';
+import { WidgetDataService } from '../../services/dashboards/widgetData.service';
+import { WidgetsService } from '../../services/dashboards/widgets.service';
+import { LayoutsService } from '../../services/dashboards/layouts.service';
+import { WidgetsController } from '../../controllers/dashboards/widgets.controller';
+import { LayoutsController } from '../../controllers/dashboards/layouts.controller';
 import { DocsPagesHistoryController } from '../../controllers/docs/docs-pages-history.controller';
 import { DocsPagesController } from '../../controllers/docs/docs-pages.controller';
 import { DocsPageHistoryService } from '../../services/docs/history/docs-page-history.service';
@@ -90,6 +95,8 @@ import { WorkspaceUsersModule } from '../workspace-users/workspace-users.module'
 import { NotificationsGateway } from '../../gateways/notifications/notifications.gateway';
 import { ClickhouseService } from '../../services/clickhouse/clickhouse.service';
 import { ThrottlerExpiryListenerService } from '../../services/throttler/throttler-expiry-listener.service';
+import { DashboardFilterController } from '../../controllers/dashboards/dashboardFilter.controller';
+import { DashboardFilterService } from '../../services/dashboards/dashboardFilter.service';
 
 // todo: refactor to use config service
 const enableThrottler = !!process.env['NC_THROTTLER_REDIS'];
@@ -114,6 +121,7 @@ const enableThrottler = !!process.env['NC_THROTTLER_REDIS'];
     BasesController,
     CachesController,
     ColumnsController,
+    DashboardFilterController,
     FiltersController,
     FormColumnsController,
     FormsController,
@@ -123,6 +131,7 @@ const enableThrottler = !!process.env['NC_THROTTLER_REDIS'];
     HooksController,
     ImportController,
     KanbansController,
+    LayoutsController,
     MapsController,
     MetaDiffsController,
     ModelVisibilitiesController,
@@ -135,6 +144,7 @@ const enableThrottler = !!process.env['NC_THROTTLER_REDIS'];
     PublicMetasController,
     ViewsController,
     ViewColumnsController,
+    WidgetsController,
     UtilsController,
     TablesController,
     SyncController,
@@ -158,6 +168,7 @@ const enableThrottler = !!process.env['NC_THROTTLER_REDIS'];
     BasesService,
     CachesService,
     ColumnsService,
+    DashboardFilterService,
     FiltersService,
     FormColumnsService,
     FormsService,
@@ -166,6 +177,7 @@ const enableThrottler = !!process.env['NC_THROTTLER_REDIS'];
     GridsService,
     HooksService,
     KanbansService,
+    LayoutsService,
     MapsService,
     MetaDiffsService,
     ModelVisibilitiesService,
@@ -181,6 +193,8 @@ const enableThrottler = !!process.env['NC_THROTTLER_REDIS'];
     PublicMetasService,
     ViewsService,
     ViewColumnsService,
+    WidgetsService,
+    WidgetDataService,
     UtilsService,
     TablesService,
     SyncService,

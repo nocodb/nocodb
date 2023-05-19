@@ -152,7 +152,6 @@ export default class DashboardProjectDBProject {
     _params?: any,
     ncMeta = Noco.ncMeta,
   ): Promise<ProjectType[]> {
-
     const dashboardProjectList = await ncMeta
       .knex(MetaTable.PROJECT)
       .select(`${MetaTable.PROJECT}.*`)

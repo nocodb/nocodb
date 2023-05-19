@@ -74,6 +74,7 @@ import { TelemetryController } from './controllers/telemetry.controller';
           }),
         ]
       : []),
+    TestModule,
   ],
   providers: [
     AuthService,

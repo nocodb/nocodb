@@ -100,7 +100,6 @@ const { isSharedBase } = useProject()
 
 <template>
   <div
-    v-e="['a:table:open']"
     class="nc-tree-item text-sm cursor-pointer group"
     :data-order="table.order"
     :data-id="table.id"

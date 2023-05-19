@@ -213,7 +213,7 @@ export class AppHooksListenerService implements OnModuleInit, OnModuleDestroy {
         {
           const { column, ip, user, table } = data as ColumnEvent;
           await Audit.insert({
-            project_id: (column as any).project_id,
+            project_id: table.project_id,
             op_type: AuditOperationTypes.TABLE_COLUMN,
             op_sub_type: AuditOperationSubTypes.CREATE,
             user: user?.email,

@@ -1,7 +1,16 @@
 import useVuelidate from '@vuelidate/core'
 import { helpers, minLength, required } from '@vuelidate/validators'
 import type { Ref } from 'vue'
-import type { BoolType, ColumnType, FormType, LinkToAnotherRecordType, StringOrNullType, TableType, ViewType, FormColumnType } from 'nocodb-sdk'
+import type {
+  BoolType,
+  ColumnType,
+  FormColumnType,
+  FormType,
+  LinkToAnotherRecordType,
+  StringOrNullType,
+  TableType,
+  ViewType,
+} from 'nocodb-sdk'
 import { ErrorMessages, RelationTypes, UITypes, isVirtualCol } from 'nocodb-sdk'
 import { isString } from '@vueuse/core'
 import {

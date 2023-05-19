@@ -97,7 +97,7 @@ const editAllowed = computed(() => (hasEditRoles.value || isForm.value) && (acti
 const vModel = computed({
   get: () => tempSelectedOptState.value ?? modelValue,
   set: (val) => {
-    if (isNewOptionCreateEnabled.value && (options.value ?? []).every((op) => op.title !== val)) {
+    if (val && isNewOptionCreateEnabled.value && (options.value ?? []).every((op) => op.title !== val)) {
       tempSelectedOptState.value = val
       return addIfMissingAndSave()
     }

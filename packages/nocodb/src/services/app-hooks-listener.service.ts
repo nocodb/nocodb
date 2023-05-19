@@ -122,7 +122,7 @@ export class AppHooksListenerService implements OnModuleInit, OnModuleDestroy {
         {
           const param = data as UserPasswordResetEvent;
 
-          await Audit.insert({
+          await this.auditInsert({
             op_type: AuditOperationTypes.AUTHENTICATION,
             op_sub_type: AuditOperationSubTypes.PASSWORD_RESET,
             user: param.user.email,

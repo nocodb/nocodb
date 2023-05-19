@@ -81,7 +81,7 @@ export class FiltersService {
     // todo: type correction
     const res = await Filter.update(param.filterId, param.filter as Filter);
 
-    this.appHooksService.emit(AppEvents.FILTER_CREATE, {
+    this.appHooksService.emit(AppEvents.FILTER_UPDATE, {
       filter,
     });
 

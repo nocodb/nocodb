@@ -131,7 +131,7 @@
     "rmdir": "^1.2.0",
     "slash": "^3.0.0",
     "socket.io": "^4.4.1",
-    "sqlite3": "5.1.2",
+    "sqlite3": "5.1.5",
     "tedious": "^15.0.0",
     "tinycolor2": "^1.4.2",
     "twilio": "^3.55.1",

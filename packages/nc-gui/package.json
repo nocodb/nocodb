@@ -33,6 +33,7 @@
   },
   "dependencies": {
     "@ckpack/vue-color": "^1.2.0",
+    "@fingerprintjs/fingerprintjs": "^3.4.1",
     "@iconify/vue": "^4.0.1",
     "@pinia/nuxt": "^0.4.7",
     "@tiptap/extension-bullet-list": "^2.0.0-beta.207",

@@ -3,6 +3,7 @@ import { Injectable } from '@nestjs/common';
 import { T } from 'nc-help';
 import { AppEvents, ViewTypes } from 'nocodb-sdk';
 import { validatePayload } from '../helpers';
+import { NcError } from '../helpers/catchError';
 import { FormView, View } from '../models';
 import { AppHooksService } from './app-hooks/app-hooks.service';
 import type {
@@ -13,7 +14,7 @@ import type {
 
 @Injectable()
 export class FormsService {
-  constructor(private appHooksService: AppHooksService) {}
+  constructor(private readonly appHooksService: AppHooksService) {}
 
   async formViewGet(param: { formViewId: string }) {
     const formViewData = await FormView.getWithInfo(param.formViewId);
@@ -37,7 +38,10 @@ export class FormsService {
       type: ViewTypes.FORM,
     });
 
-    T.emit('evt', { evt_type: 'vtable:created', show_as: 'form' });
+    this.appHooksService.emit(AppEvents.VIEW_CREATE, {
+      view,
+      showAs: 'form',
+    });
 
     this.appHooksService.emit(AppEvents.VIEW_CREATE, {
       user: param.user,
@@ -52,8 +56,19 @@ export class FormsService {
       'swagger.json#/components/schemas/FormUpdateReq',
       param.form,
     );
+    const view = await View.get(param.formViewId);
 
-    T.emit('evt', { evt_type: 'view:updated', type: 'form' });
-    return await FormView.update(param.formViewId, param.form);
+    if (!view) {
+      NcError.badRequest('View not found');
+    }
+
+    const res = await FormView.update(param.formViewId, param.form);
+
+    this.appHooksService.emit(AppEvents.VIEW_UPDATE, {
+      view,
+      showAs: 'form',
+    });
+
+    return res;
   }
 }

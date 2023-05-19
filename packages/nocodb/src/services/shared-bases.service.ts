@@ -1,9 +1,11 @@
 import { Injectable } from '@nestjs/common';
 import { T } from 'nc-help';
+import { AppEvents } from 'nocodb-sdk';
 import { v4 as uuidv4 } from 'uuid';
 import { validatePayload } from '../helpers';
 import { NcError } from '../helpers/catchError';
 import { Project } from '../models';
+import { AppHooksService } from './app-hooks/app-hooks.service';
 
 // todo: load from config
 const config = {
@@ -12,6 +14,8 @@ const config = {
 
 @Injectable()
 export class SharedBasesService {
+  constructor(private readonly appHooksService: AppHooksService) {}
+
   async createSharedBaseLink(param: {
     projectId: string;
     roles: string;
@@ -41,7 +45,12 @@ export class SharedBasesService {
 
     data.url = `${param.siteUrl}${config.dashboardPath}#/nc/base/${data.uuid}`;
     delete data.password;
-    T.emit('evt', { evt_type: 'sharedBase:generated-link' });
+
+    this.appHooksService.emit(AppEvents.SHARED_BASE_GENERATE_LINK, {
+      link: data.url,
+      project,
+    });
+
     return data;
   }
 
@@ -73,7 +82,10 @@ export class SharedBasesService {
 
     data.url = `${param.siteUrl}${config.dashboardPath}#/nc/base/${data.uuid}`;
     delete data.password;
-    T.emit('evt', { evt_type: 'sharedBase:generated-link' });
+    this.appHooksService.emit(AppEvents.SHARED_BASE_GENERATE_LINK, {
+      link: data.url,
+      project,
+    });
     return data;
   }
 
@@ -89,8 +101,9 @@ export class SharedBasesService {
 
     await Project.update(project.id, data);
 
-    T.emit('evt', { evt_type: 'sharedBase:disable-link' });
-
+    this.appHooksService.emit(AppEvents.SHARED_BASE_DELETE_LINK, {
+      project,
+    });
     return { uuid: null };
   }
 

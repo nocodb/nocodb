@@ -3669,7 +3669,7 @@ export class Api<
      *
      * @tags Noco docs
      * @name SyncPageHistory
-     * @summary Sync page history
+     * @summary When called will snapshot the page if there is any page change needed to be snapshoted
      * @request POST:/api/v1/docs/project/{projectId}/page/{pageId}/history-sync
      * @response `200` `void` OK
      */
@@ -3686,11 +3686,11 @@ export class Api<
       }),
 
     /**
- * @description List page history
+ * No description
  * 
  * @tags Noco docs
  * @name ListPageHistory
- * @summary List page history
+ * @summary List snapshots of the page (paginated)
  * @request GET:/api/v1/docs/project/{projectId}/page/{pageId}/history
  * @response `200` `{
   snapshots?: (DocsPageSnapshotType)[],
@@ -3722,11 +3722,11 @@ export class Api<
       }),
 
     /**
-     * @description Restore page history
+     * No description
      *
      * @tags Noco docs
      * @name RestorePageHistory
-     * @summary Restore page history
+     * @summary Restore page to a given snapshot
      * @request POST:/api/v1/docs/project/{projectId}/page/{pageId}/history/{snapshotId}/restore
      * @response `200` `void` OK
      */

@@ -21,7 +21,8 @@ import { Audit, Project, ProjectUser, User } from '../../models';
 import Noco from '../../Noco';
 import { CacheGetType, CacheScope, MetaTable } from '../../utils/globals';
 import { AppHooksService } from '../app-hooks/app-hooks.service';
-import type { ProjectUserReqType } from 'nocodb-sdk';
+import { ProjectUserUpdateEvent } from '../app-hooks/interfaces';
+import type { ProjectUserReqType, UserType } from 'nocodb-sdk';
 
 @Injectable()
 export class ProjectUsersService {
@@ -71,6 +72,12 @@ export class ProjectUsersService {
       // add user to project if user already exist
       const user = await User.getByEmail(email);
 
+      const project = await Project.get(param.projectId);
+
+      if (!project) {
+        return NcError.badRequest('Invalid project id');
+      }
+
       if (user) {
         // check if this user has been added to this project
         const projectUser = await ProjectUser.get(param.projectId, user.id);
@@ -97,6 +104,7 @@ export class ProjectUsersService {
           project,
           user,
           invitedBy: param.req.user,
+          ip: param.req.clientIp,
         });
 
         const cachedUser = await NocoCache.get(
@@ -111,19 +119,10 @@ export class ProjectUsersService {
             cachedUser,
           );
         }
-
-        await Audit.insert({
-          project_id: param.projectId,
-          op_type: AuditOperationTypes.AUTHENTICATION,
-          op_sub_type: AuditOperationSubTypes.INVITE,
-          user: param.req.user.email,
-          description: `${email} has been invited to ${param.projectId} project`,
-          ip: param.req.clientIp,
-        });
       } else {
         try {
           // create new user with invite token
-          const { id } = await User.insert({
+          const user = await User.insert({
             invite_token,
             invite_token_expires: new Date(Date.now() + 24 * 60 * 60 * 1000),
             email,
@@ -134,21 +133,17 @@ export class ProjectUsersService {
           // add user to project
           await ProjectUser.insert({
             project_id: param.projectId,
-            fk_user_id: id,
+            fk_user_id: user.id,
             roles: param.projectUser.roles,
           });
 
-          const count = await User.count();
-          T.emit('evt', { evt_type: 'project:invite', count });
-
-          await Audit.insert({
-            project_id: param.projectId,
-            op_type: AuditOperationTypes.AUTHENTICATION,
-            op_sub_type: AuditOperationSubTypes.INVITE,
-            user: param.req.user.email,
-            description: `invited ${email} to ${param.projectId} project `,
+          this.appHooksService.emit(AppEvents.PROJECT_INVITE, {
+            project,
+            user,
+            invitedBy: param.req.user,
             ip: param.req.clientIp,
           });
+
           // in case of single user check for smtp failure
           // and send back token if failed
           if (
@@ -197,6 +192,12 @@ export class ProjectUsersService {
       NcError.badRequest('Missing project id in request body.');
     }
 
+    const project = await Project.get(param.projectId);
+
+    if (!project) {
+      return NcError.badRequest('Invalid project id');
+    }
+
     if (
       param.req.session?.passport?.user?.roles?.owner &&
       param.req.session?.passport?.user?.id === param.userId &&
@@ -224,12 +225,12 @@ export class ProjectUsersService {
       param.projectUser.roles,
     );
 
-    await Audit.insert({
-      op_type: AuditOperationTypes.AUTHENTICATION,
-      op_sub_type: AuditOperationSubTypes.ROLES_MANAGEMENT,
-      user: param.req.user.email,
-      description: `Roles for ${user.email} with has been updated to ${param.projectUser.roles}`,
+    this.appHooksService.emit(AppEvents.PROJECT_USER_UPDATE, {
+      project,
+      user,
+      updatedBy: param.req.user,
       ip: param.req.clientIp,
+      projectUser: param.projectUser,
     });
 
     return {
@@ -278,6 +279,12 @@ export class ProjectUsersService {
       NcError.badRequest(`User with id '${param.userId}' not found`);
     }
 
+    const project = await Project.get(param.projectId);
+
+    if (!project) {
+      return NcError.badRequest('Invalid project id');
+    }
+
     const invite_token = uuidv4();
 
     await User.update(user.id, {
@@ -303,13 +310,12 @@ export class ProjectUsersService {
 
     await this.sendInviteEmail(user.email, invite_token, param.req);
 
-    await Audit.insert({
-      op_type: AuditOperationTypes.AUTHENTICATION,
-      op_sub_type: AuditOperationSubTypes.RESEND_INVITE,
-      user: user.email,
-      description: `${user.email} has been re-invited`,
+    this.appHooksService.emit(AppEvents.PROJECT_USER_RESEND_INVITE, {
+      project,
+      user,
+      invitedBy: param.req.user,
       ip: param.req.clientIp,
-      project_id: param.projectId,
+      projectUser: param.projectUser,
     });
 
     return true;

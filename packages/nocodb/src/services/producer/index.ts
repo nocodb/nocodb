@@ -1,9 +1,9 @@
-import {Producer} from './producer';
-import {KinesisProducer} from './kinesis/kinesis-producer';
-import {KafkaProducer} from './kafka/kafka-producer';
-import {AwsKafkaProducer} from './kafka/aws-kafka-producer';
-import type {Provider} from '@nestjs/common';
-import {createMechanism} from "@jm18457/kafkajs-msk-iam-authentication-mechanism";
+import { createMechanism } from '@jm18457/kafkajs-msk-iam-authentication-mechanism';
+import { Producer } from './producer';
+import { KinesisProducer } from './kinesis/kinesis-producer';
+import { KafkaProducer } from './kafka/kafka-producer';
+import { AwsKafkaProducer } from './kafka/aws-kafka-producer';
+import type { Provider } from '@nestjs/common';
 
 export const ProducerProvider: Provider = {
   useFactory: async () => {
@@ -23,6 +23,9 @@ export const ProducerProvider: Provider = {
     } else {
       return {
         sendMessage: async () => {
+          // do nothing
+        },
+        sendMessages: async () => {
           // do nothing
         },
       };

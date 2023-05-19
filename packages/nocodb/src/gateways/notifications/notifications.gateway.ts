@@ -45,7 +45,11 @@ export class NotificationsGateway implements OnModuleInit {
           this.clients[(socket?.handshake as any)?.user?.id] = socket;
       });
 
-    this.appHooks.on('notification', this.notificationHandler.bind(this));
+    // todo:  fix
+    this.appHooks.on(
+      'notification' as any,
+      this.notificationHandler.bind(this),
+    );
   }
 
   // todo: verify if this is the right way to do it, since we are binding this context to the handler

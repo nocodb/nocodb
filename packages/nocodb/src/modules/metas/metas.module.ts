@@ -82,6 +82,7 @@ import { UtilsService } from '../../services/utils.service';
 import { ViewColumnsService } from '../../services/view-columns.service';
 import { ViewsService } from '../../services/views.service';
 import { ApiDocsService } from '../../services/api-docs/api-docs.service';
+import { EventEmitterModule } from '../event-emitter/event-emitter.module';
 import { GlobalModule } from '../global/global.module';
 import { ProjectUsersController } from '../../controllers/project-users.controller';
 import { ProjectUsersService } from '../../services/project-users/project-users.service';
@@ -97,6 +98,7 @@ import { ClickhouseService } from '../../services/clickhouse/clickhouse.service'
 import { ThrottlerExpiryListenerService } from '../../services/throttler/throttler-expiry-listener.service';
 import { DashboardFilterController } from '../../controllers/dashboards/dashboardFilter.controller';
 import { DashboardFilterService } from '../../services/dashboards/dashboardFilter.service';
+import {TelemetryController} from "../../controllers/telemetry.controller";
 
 // todo: refactor to use config service
 const enableThrottler = !!process.env['NC_THROTTLER_REDIS'];
@@ -155,6 +157,7 @@ const enableThrottler = !!process.env['NC_THROTTLER_REDIS'];
     DocsPagesHistoryController,
     DocsPagesController,
     DocsPublicController,
+    TelemetryController
   ],
   providers: [
     /** DAOs */

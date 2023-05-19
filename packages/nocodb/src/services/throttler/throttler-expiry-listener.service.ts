@@ -2,6 +2,7 @@ import { Injectable, Logger } from '@nestjs/common';
 import Client from 'ioredis';
 import Redlock from 'redlock';
 import { ConfigService } from '@nestjs/config';
+import { ClickhouseTables } from 'nocodb-sdk';
 import { ClickhouseService } from '../clickhouse/clickhouse.service';
 import type { OnModuleInit } from '@nestjs/common';
 import type { AppConfig } from '../../interface/config';
@@ -128,7 +129,7 @@ export class ThrottlerExpiryListenerService implements OnModuleInit {
       // );
 
       this.clickHouseService.execute(`
-        INSERT INTO api_count (id,fk_workspace_id, api_token,count, created_at, ttl, max_apis, exec_time)
+        INSERT INTO ${ClickhouseTables.API_COUNT} (id,fk_workspace_id, api_token,count, created_at, ttl, max_apis, exec_time)
         VALUES (generateUUIDv4(), '${workspaceId}', '${token}', ${count}, now(), ${config.ttl}, ${config.max_apis}, ${execTime})
       `);
     }

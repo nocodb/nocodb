@@ -1797,7 +1797,6 @@ export default async (
             grid: {
               title: viewName,
             },
-            user: syncDB.user,
           });
           recordPerfStats(_perfStart, 'dbView.gridCreate');
 
@@ -2179,7 +2178,6 @@ export default async (
             fk_column_id: columnId,
             direction: s.sortSet[i].ascending ? 'asc' : 'desc',
           },
-          user: syncDB.user,
         });
         recordPerfStats(_perfStart, 'dbTableSort.create');
       }

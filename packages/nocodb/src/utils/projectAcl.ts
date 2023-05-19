@@ -64,6 +64,7 @@ const viewerPermissions = {
     pageSearch: true,
     pageParents: true,
     pagePaginate: true,
+    trackEvents: true,
   },
 };
 const rolePermissions = {
@@ -283,7 +284,9 @@ const rolePermissions = {
       pageMagicOutline: true,
       pagePaginate: true,
       pageDirectoryImport: true,
+      pagesMagicCreate: true,
       docsMagicCreatePages: true,
+      trackEvents: true,
     },
   },
   commenter: {
@@ -347,6 +350,7 @@ const rolePermissions = {
       swaggerJson: true,
 
       commandPalette: true,
+      trackEvents: true,
     },
   },
   viewer: viewerPermissions,
@@ -362,6 +366,7 @@ const rolePermissions = {
       workspaceGet: true,
       workspaceCreate: true,
       commandPalette: true,
+      trackEvents: true,
     },
   },
   [OrgUserRoles.SUPER_ADMIN]: '*',
@@ -407,6 +412,8 @@ const rolePermissions = {
       pagePaginate: true,
       pageMagicCreate: true,
       pageDirectoryImport: true,
+
+      trackEvents: true,
     },
   },
 

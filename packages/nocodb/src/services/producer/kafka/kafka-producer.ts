@@ -1,7 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { Kafka } from 'kafkajs';
-import type { Producer } from 'kafkajs';
 import { Producer as NcProducer } from '../producer';
+import type { Producer } from 'kafkajs';
 
 @Injectable()
 export class KafkaProducer extends NcProducer {
@@ -29,6 +29,13 @@ export class KafkaProducer extends NcProducer {
     await this.producer.send({
       topic,
       messages: [{ value: message }],
+    });
+  }
+
+  async sendMessages(topic: string, messages: string[]): Promise<void> {
+    await this.producer.send({
+      topic,
+      messages: messages.map((message) => ({ value: message })),
     });
   }
 }

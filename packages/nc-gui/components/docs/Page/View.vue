@@ -302,6 +302,7 @@ watch(
           <div v-if="!isPublic" class="flex flex-row items-center"></div>
           <div class="flex flex-row items-center gap-x-1 mr-2 mt-0.25">
             <div
+              v-if="!isPublic"
               class="mt-0.25 p-1.75 flex items-center hover:bg-gray-100 cursor-pointer rounded-md mr-2"
               data-testid="nc-doc-page-history-button"
               :class="{

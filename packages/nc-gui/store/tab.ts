@@ -1,3 +1,4 @@
+import type { BaseType, ProjectType } from 'nocodb-sdk';
 import type { WritableComputedRef } from '@vue/reactivity'
 import { defineStore, storeToRefs } from 'pinia'
 import { computed, navigateTo, ref, useProject, useProjects, useRouter, watch } from '#imports'
@@ -92,7 +93,7 @@ export const useTabs = defineStore('tabStore', () => {
       } else if (routeName.includes('projectType-projectId-index-index-auth')) {
         return tabs.value.findIndex((t) => t.type === TabType.AUTH)
       } else if (routeName.includes('projectType-projectId-index-index-sql')) {
-        return tabs.value.findIndex((t) => t.type === TabType.SQL)
+        return tabs.value.findIndex((t) => t.id === `${TabType.SQL}-${route.params.projectId}`)
       } else if (routeName.includes('projectType-projectId-index-index-erd-baseId')) {
         return tabs.value.findIndex((t) => t.id === `${TabType.ERD}-${route.params.baseId}`)
       } else if (routeName.includes('projectType-projectId-index-index-doc')) {
@@ -179,6 +180,26 @@ export const useTabs = defineStore('tabStore', () => {
       tabs.value = [...(tabs.value || []), tabMeta]
       activeTabIndex.value = tabs.value.length - 1
     }
+  }
+
+  const addErdTab = async (base: BaseType, fallback_title?: string) => {
+    return addTab({
+      id: `${TabType.ERD}-${base?.id}`,
+      type: TabType.ERD,
+      title: `ERD${base?.alias ? ` (${base.alias})` : `(${fallback_title})`}`,
+      tabMeta: { base },
+      projectId: base.project_id as string,
+    })
+  }
+
+  const addSqlEditorTab = async (project: ProjectType) => {
+    return addTab({
+      id: `${TabType.SQL}-${project.id}`,
+      type: TabType.SQL,
+      title: `SQL Editor (${project.title})`,
+      tabMeta: { project },
+      projectId: project.id as string,
+    })
   }
 
   const clearTabs = () => {
@@ -283,9 +304,6 @@ export const useTabs = defineStore('tabStore', () => {
       if (!n || !/projectType-projectId-index-index/.test(n.toString())) return
       const activeTabRoute = n.toString().replace(/ws-workspaceId-projectType-projectId-index-index-/, '')
       switch (activeTabRoute) {
-        case TabType.SQL:
-          addTab({ id: TabType.SQL, type: TabType.SQL, title: 'SQL Editor', projectId: route.params.projectId as string })
-          break
         case TabType.AUTH:
           if (isUIAllowed('teamAndAuth'))
             addTab({
@@ -302,5 +320,5 @@ export const useTabs = defineStore('tabStore', () => {
     { immediate: true },
   )
 
-  return { tabs, addTab, activeTabIndex, activeTab, clearTabs, closeTab, updateTab }
+  return { tabs, addTab, activeTabIndex, activeTab, clearTabs, closeTab, updateTab, addErdTab, addSqlEditorTab }
 })

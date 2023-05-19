@@ -7,7 +7,7 @@ import { populateMeta, validatePayload } from '../helpers';
 import { NcError } from '../helpers/catchError';
 import { extractPropsAndSanitize } from '../helpers/extractProps';
 import syncMigration from '../helpers/syncMigration';
-import { Project, ProjectUser } from '../models';
+import { DashboardProjectDBProject, Project, ProjectUser } from '../models';
 import Noco from '../Noco';
 import extractRolesObj from '../utils/extractRolesObj';
 import NcConfigFactory from '../utils/NcConfigFactory';
@@ -179,6 +179,21 @@ export class ProjectsService {
     projectBody.slug = projectBody.title;
 
     const project = await Project.createProject(projectBody);
+
+    // TODO: consider to also include check if the project is of type Dashboard
+    // (because probably also in the future no other project types will be tied to db projects)
+    if (projectBody.linked_db_project_ids?.length > 0) {
+      await Promise.all(
+        projectBody.linked_db_project_ids?.map(async (dbProjectId: string) => {
+          await DashboardProjectDBProject.insert({
+            dashboard_project_id: project.id,
+            db_project_id: dbProjectId,
+          });
+        }),
+      );
+    }
+
+    // TODO: create n:m instances here
     await ProjectUser.insert({
       fk_user_id: (param as any).user.id,
       project_id: project.id,

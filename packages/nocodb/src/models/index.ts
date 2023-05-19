@@ -3,6 +3,7 @@ export { default as Audit } from './Audit';
 export { default as BarcodeColumn } from './BarcodeColumn';
 export { default as Base } from './Base';
 export { default as Column } from './Column';
+export { default as DashboardProjectDBProject } from './DashboardProjectDBProject';
 export { default as Filter } from './Filter';
 export { default as FormulaColumn } from './FormulaColumn';
 export { default as FormView } from './FormView';

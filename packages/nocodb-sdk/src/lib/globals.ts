@@ -10,6 +10,7 @@ export enum ProjectTypes {
   DATABASE = 'database',
   DOCUMENTATION = 'documentation',
   COWRITER = 'cowriter',
+  DASHBOARD = 'dashboard',
 }
 
 export enum RelationTypes {

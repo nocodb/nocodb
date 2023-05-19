@@ -6,11 +6,10 @@ import { Dropdown, Tooltip, message } from 'ant-design-vue'
 import { storeToRefs } from 'pinia'
 import { useUIPermission } from '~/composables/useUIPermission'
 
-import MdiView from '~icons/mdi/eye-circle-outline'
-import PhTableThin from '~icons/ph/table-thin'
 import { useTabs } from '~/store/tab'
 import { useNuxtApp } from '#app'
 import { ProjectRoleInj } from '~/context'
+import { TreeViewSetMenuContextInj } from '#imports'
 
 const props = withDefaults(
   defineProps<{
@@ -39,6 +38,8 @@ const { deleteTable } = useTableNew({
 })
 
 const projectRole = inject(ProjectRoleInj)
+
+const setMenuContext = inject(TreeViewSetMenuContextInj)!
 
 // todo: temp
 const { projectTableList } = storeToRefs(useProjects())

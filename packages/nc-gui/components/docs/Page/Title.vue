@@ -104,14 +104,7 @@ onMounted(() => {
 </script>
 
 <template>
-  <div
-    class="flex flex-row gap-x-2 items-end"
-    :class="{
-      'ml-7': !isPublic,
-      '-ml-0.5': isPublic,
-    }"
-    data-testid="docs-page-title-wrapper"
-  >
+  <div class="flex flex-row gap-x-2 items-end ml-7" data-testid="docs-page-title-wrapper">
     <a-dropdown v-if="isEditAllowed && openedPage?.icon" placement="bottom" trigger="click">
       <div
         class="flex flex-col justify-center h-16 px-2 text-gray-500 rounded-md hover:bg-gray-100 cursor-pointer"

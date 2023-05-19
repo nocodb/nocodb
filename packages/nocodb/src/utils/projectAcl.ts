@@ -136,6 +136,16 @@ const rolePermissions = {
       tableList: true,
       tableGet: true,
 
+      // dashboards
+      layoutGet: true,
+      layoutList: true,
+      layoutCreate: true,
+      widgetsList: true,
+      widgetGet: true,
+      widgetCreate: true,
+      widgetUpdate: true,
+      widgetDelete: true,
+
       // data
       dataList: true,
       dataUpdate: true,
@@ -275,7 +285,7 @@ const rolePermissions = {
       pagePaginate: true,
       pageDirectoryImport: true,
       pagesMagicCreate: true,
-
+      docsMagicCreatePages: true,
       trackEvents: true,
     },
   },

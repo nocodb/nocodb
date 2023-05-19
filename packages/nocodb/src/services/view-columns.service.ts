@@ -11,7 +11,7 @@ export class ViewColumnsService {
   constructor(private appHooksService: AppHooksService) {}
 
   async columnList(param: { viewId: string }) {
-    return await View.getColumns(param.viewId);
+    return await View.getColumns(param.viewId, undefined);
   }
   async columnAdd(param: { viewId: string; column: ViewColumnReqType }) {
     validatePayload(

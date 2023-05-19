@@ -49,6 +49,7 @@ import { AppHooksListenerService } from './services/app-hooks-listener.service';
           }),
         ]
       : []),
+    TestModule,
   ],
   controllers: [],
   providers: [

@@ -136,14 +136,14 @@ export class OrgUsersService {
 
     for (const email of emails) {
       // add user to project if user already exist
-      const user = await User.getByEmail(email);
+      let user = await User.getByEmail(email);
 
       if (user) {
         NcError.badRequest('User already exist');
       } else {
         try {
           // create new user with invite token
-          await User.insert({
+           user = await User.insert({
             invite_token,
             invite_token_expires: new Date(Date.now() + 24 * 60 * 60 * 1000),
             email,

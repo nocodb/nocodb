@@ -4,13 +4,15 @@ import clear from 'clear';
 import * as express from 'express';
 import NcToolGui from 'nc-lib-gui';
 import { IoAdapter } from '@nestjs/platform-socket.io';
+import requestIp from 'request-ip';
+import cookieParser from 'cookie-parser';
 import { AppModule } from './app.module';
 
 import { NC_LICENSE_KEY } from './constants';
 import Store from './models/Store';
+import type { IEventEmitter } from './modules/event-emitter/event-emitter.interface';
 import type { Express } from 'express';
 import type * as http from 'http';
-import { IEventEmitter } from './modules/event-emitter/event-emitter.interface'
 
 export default class Noco {
   private static _this: Noco;
@@ -101,6 +103,9 @@ export default class Noco {
     const nestApp = await NestFactory.create(AppModule);
 
     nestApp.useWebSocketAdapter(new IoAdapter(httpServer));
+
+    nestApp.use(requestIp.mw());
+    nestApp.use(cookieParser());
 
     nestApp.use(
       express.json({ limit: process.env.NC_REQUEST_BODY_SIZE || '50mb' }),

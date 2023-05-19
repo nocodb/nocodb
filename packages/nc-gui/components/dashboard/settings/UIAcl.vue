@@ -125,15 +125,15 @@ const columns = [
           </template>
         </a-input>
 
-        <a-button class="self-start nc-acl-reload" @click="loadTableList">
+        <a-button type="text" ghost class="self-start !rounded-md nc-acl-reload" @click="loadTableList">
           <div class="flex items-center gap-2 text-gray-600 font-light">
             <component :is="iconMap.reload" :class="{ 'animate-infinite animate-spin !text-success': isLoading }" />
             Reload
           </div>
         </a-button>
 
-        <a-button class="self-start nc-acl-save" @click="saveUIAcl">
-          <div class="flex items-center gap-2 text-gray-600 font-light">
+        <a-button type="primary" class="!rounded-md self-start nc-acl-save" @click="saveUIAcl">
+          <div class="flex items-center gap-2 text-white font-light">
             <component :is="iconMap.save" />
             Save
           </div>

@@ -52,7 +52,7 @@ export class ProjectInfo {
   tables: TableInfo[];
 }
 
-export class ProjectInfoOperator {
+export class ProjectInfoApiUtil {
   api: Api<any>;
 
   constructor(token: string) {
@@ -69,7 +69,7 @@ export class ProjectInfoOperator {
    * @param projectId
    * @returns
    */
-  async extractProjectData(projectId: string): Promise<ProjectInfo> {
+  async extractProjectInfo(projectId: string): Promise<ProjectInfo> {
     // TODO: capture apiTokens, projectSettings, ACLVisibilityRules, UI ACL (discuss before adding)
     const project: ProjectType = await this.api.project.read(projectId);
     // bases
@@ -86,27 +86,37 @@ export class ProjectInfoOperator {
 
     const tables: TableListType = await this.api.dbTable.list(projectId);
     for (const table of tables.list) {
-      const tableInfo: TableInfo = { table: table, shares: [], views: [], webhooks: [] };
-      const views: ViewListType = await this.api.dbView.list(table.id);
-      for (const v of views.list) {
-        const filters: FilterListType = await this.api.dbTableFilter.read(v.id);
-        const sorts: SortListType = await this.api.dbTableSort.list(v.id);
-
-        // create ViewData and push to array
-        const viewInfo: ViewInfo = { view: v, filters: [], sorts: [] };
-        viewInfo.firstPageData = await this.api.dbViewRow.list('noco', projectId, table.id, v.id);
-        viewInfo.filters = filters.list;
-        viewInfo.sorts = sorts.list;
-        tableInfo.views.push(viewInfo);
-      }
-      const shares: SharedViewListType = await this.api.dbViewShare.list(table.id);
-      const webhooks: HookListType = await this.api.dbTableWebhook.list(table.id);
-      tableInfo.shares = shares.list;
-      tableInfo.webhooks = webhooks.list;
+      const tableInfo: TableInfo = await this.extractTableInfo(table, projectId);
       projectInfo.tables.push(tableInfo);
-      tableInfo.firstPageData = await this.api.dbTableRow.list('noco', projectId, table.id);
     }
     return projectInfo;
+  }
+
+  async extractTableInfo(table: TableType, projectId: string) {
+    const tableInfo: TableInfo = { table: table, shares: [], views: [], webhooks: [] };
+    const views: ViewListType = await this.api.dbView.list(table.id);
+    for (const v of views.list) {
+      const viewInfo: ViewInfo = await this.extractViewInfo(v, projectId, table.id);
+      tableInfo.views.push(viewInfo);
+    }
+    const shares: SharedViewListType = await this.api.dbViewShare.list(table.id);
+    const webhooks: HookListType = await this.api.dbTableWebhook.list(table.id);
+    tableInfo.shares = shares.list;
+    tableInfo.webhooks = webhooks.list;
+    tableInfo.firstPageData = await this.api.dbTableRow.list('noco', projectId, table.id);
+    return tableInfo;
+  }
+
+  private async extractViewInfo(v: ViewType, projectId: string, tableId: string) {
+    const filters: FilterListType = await this.api.dbTableFilter.read(v.id);
+    const sorts: SortListType = await this.api.dbTableSort.list(v.id);
+
+    // create ViewData and push to array
+    const viewInfo: ViewInfo = { view: v, filters: [], sorts: [] };
+    viewInfo.firstPageData = await this.api.dbViewRow.list('noco', projectId, tableId, v.id);
+    viewInfo.filters = filters.list;
+    viewInfo.sorts = sorts.list;
+    return viewInfo;
   }
 
   /**

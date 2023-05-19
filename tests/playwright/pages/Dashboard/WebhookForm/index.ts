@@ -83,7 +83,7 @@ export class WebhookFormPage extends BasePage {
     }
 
     if (save) {
-      await this.save(true);
+      await this.save();
       await this.close();
     }
   }
@@ -91,26 +91,19 @@ export class WebhookFormPage extends BasePage {
   async deleteCondition(p: { save: boolean }) {
     await this.get().locator(`.nc-filter-item-remove-btn`).click();
     if (p.save) {
-      await this.save(true);
+      await this.save();
       await this.close();
     }
   }
 
-  async save(condition = false) {
+  async save() {
     const saveAction = () => this.saveButton.click();
+
     await this.waitForResponse({
       uiAction: saveAction,
       requestUrlPathToMatch: '/hooks',
       httpMethodsToMatch: ['POST', 'PATCH'],
     });
-
-    if (condition) {
-      await this.waitForResponse({
-        uiAction: saveAction,
-        requestUrlPathToMatch: '/filters',
-        httpMethodsToMatch: ['POST', 'PATCH', 'DELETE'],
-      });
-    }
 
     await this.verifyToast({ message: 'Webhook details updated successfully' });
   }
@@ -142,6 +135,7 @@ export class WebhookFormPage extends BasePage {
     await this.toolbar.clickActions();
     await this.toolbar.actions.click('Webhooks');
     await this.dashboard.get().locator(`.nc-hook`).nth(index).click();
+    await this.get().locator('.nc-check-box-enable-webhook').waitFor({ state: 'visible' });
   }
 
   async openForm({ index }: { index: number }) {

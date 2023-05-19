@@ -64,6 +64,7 @@ const {
   () => reloadDataHook.trigger(showLoading),
   modelValue || nestedFilters.value,
   !modelValue,
+  webHook,
 )
 
 const localNestedFilters = ref()
@@ -249,6 +250,7 @@ defineExpose({
                 :parent-id="filter.id"
                 nested
                 :auto-save="autoSave"
+                :web-hook="webHook"
               />
             </div>
           </template>

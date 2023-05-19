@@ -50,29 +50,24 @@ const isEaster = ref(false)
   <a-modal
     v-model:visible="dialogShow"
     :class="{ active: dialogShow }"
-    width="max(30vw, 600px)"
     centered
     wrap-class-name="nc-modal-table-duplicate"
     @keydown.esc="dialogShow = false"
   >
     <template #footer>
-      <a-button key="back" size="large" @click="dialogShow = false">{{ $t('general.cancel') }}</a-button>
+      <a-button key="back" size="middle" class="!rounded-md" @click="dialogShow = false">{{ $t('general.cancel') }}</a-button>
 
-      <a-button key="submit" size="large" type="primary" :loading="isLoading" @click="_duplicate"
+      <a-button key="submit" size="middle" type="primary" class="!rounded-md" :loading="isLoading" @click="_duplicate"
         >{{ $t('general.confirm') }}
       </a-button>
     </template>
 
-    <div class="pl-10 pr-10 pt-5">
-      <div class="prose-xl font-bold self-center my-4" @dblclick="isEaster = !isEaster">{{ $t('general.duplicate') }}</div>
+    <div>
+      <div class="prose-xl font-bold self-center my-4" @dblclick="isEaster = !isEaster">
+        {{ $t('general.duplicate') }} {{ table.title }}
+      </div>
 
-      <div class="mb-2">Are you sure you want to duplicate the `{{ table.title }}` table?</div>
-
-      <div class="prose-md self-center text-gray-500 mt-4">{{ $t('title.advancedSettings') }}</div>
-
-      <a-divider class="!m-0 !p-0 !my-2" />
-
-      <div class="text-xs p-2">
+      <div class="text-xs">
         <a-checkbox v-model:checked="options.includeData">Include data</a-checkbox>
         <a-checkbox v-model:checked="options.includeViews">Include views</a-checkbox>
         <a-checkbox v-show="isEaster" v-model:checked="options.includeHooks">Include hooks</a-checkbox>

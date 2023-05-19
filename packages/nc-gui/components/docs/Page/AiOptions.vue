@@ -1,7 +1,7 @@
 <script lang="ts" setup>
 import { defineProps, h } from 'vue'
 import type { Editor } from '@tiptap/vue-3'
-import { BubbleMenu } from '@tiptap/vue-3'
+import { BubbleMenu, generateHTML } from '@tiptap/vue-3'
 import { Slice } from 'prosemirror-model'
 import { generateJSON } from '@tiptap/html'
 import showdown from 'showdown'
@@ -42,8 +42,8 @@ const pageContentWidth = ref(0)
 const checkIsAiOptionVisible = (editor: Editor) => {
   const selection = editor.state.selection
   if (!(selection instanceof AISelection)) {
-    // isAiOptionsVisible.value = false
-    // drafts.value = []
+    isAiOptionsVisible.value = false
+    drafts.value = []
 
     return false
   }
@@ -99,15 +99,18 @@ async function updatePageContentWidth() {
   pageContentWidth.value = Number(dom!.clientWidth)
 }
 
-async function streamExpand() {
+async function streamExpand(selectionMd: string | undefined) {
   const response = await fetch(
     `${state.appInfo.value.ncSiteUrl}/api/v1/docs/project/${project.value!.id!}/page/${openedPage.value!.id}/magic-expand`,
     {
       method: 'POST',
       headers: {
         'xc-auth': state.token.value!,
-        'nc-magic-text': searchText.value,
       },
+      body: JSON.stringify({
+        promptText: searchText.value,
+        ...(selectionMd ? { selectedPageText: selectionMd } : {}),
+      }),
     },
   )
 
@@ -145,8 +148,35 @@ const expandText = async () => {
   if (isLoading.value) return
 
   isLoading.value = true
+
+  const selection = editor.state.selection
+  let selectionMd
+  if (!selection.empty) {
+    drafts.value.push(selection.content().toJSON())
+    draftActiveIndex.value = drafts.value.length - 1
+
+    const selectionHtml = generateHTML({ type: 'doc', ...selection.content().toJSON() }, editor.extensionManager.extensions)
+    const htmlWithSectionTagRemoved = selectionHtml.replace(/<section.*?>|<\/section>/g, '')
+    selectionMd = converter.makeMarkdown(htmlWithSectionTagRemoved)
+
+    const tr = editor.state.tr
+    const slice = Slice.fromJSON(editor.state.schema, {
+      type: 'doc',
+      content: [
+        {
+          type: 'paragraph',
+        },
+      ],
+    })
+    tr.replace(selection.from, selection.to, slice)
+    tr.setSelection(AISelection.create(tr.doc, selection.from, selection.from + 2))
+
+    editor.view.dispatch(tr)
+  }
+
   try {
-    await streamExpand()
+    suggestedMarkdown.value = ''
+    await streamExpand(selectionMd)
 
     const html = converter.makeHtml(suggestedMarkdown.value).replace('>\n<', '><')
     const json = generateJSON(html, editor.extensionManager.extensions)
@@ -174,17 +204,19 @@ function renderContent(json: any) {
 
   undo(state)
 
-  tr.replaceSelection(slice)
-  const newFrom = from - 2 > 0 ? from - 2 : 0
+  const newFrom = from > 0 ? from : 0
   const newTo = tr.doc.nodeSize - 2 < selection.to + 2 ? tr.doc.nodeSize - 2 : selection.to + 2
+
+  tr.replaceSelection(slice)
   tr.setSelection(AISelection.create(tr.doc, newFrom, newTo))
+
+  editor.view.dispatch(tr)
 
   setTimeout(() => {
     const tr = editor.state.tr
     tr.setSelection(AISelection.create(tr.doc, newFrom, newFrom + slice.size))
     editor.view.dispatch(tr)
   }, 0)
-  editor.view.dispatch(tr)
 }
 
 const goBackInDraft = () => {
@@ -226,7 +258,7 @@ watchDebounced(
         width: `${pageContentWidth}px`,
       }"
       :class="{
-        '-mt-2.5 ml-6': !isSelectionEmpty,
+        '-mt-1.5 ml-6': !isSelectionEmpty,
         '-ml-1 -mt-10': isSelectionEmpty,
       }"
       data-testid="nc-docs-ai-options"
@@ -251,58 +283,14 @@ watchDebounced(
           placeholder="Ask AI to write anything"
           @press-enter="onInputBoxEnter"
         />
-        <div v-if="drafts.length > 1" class="flex text-xs text-gray-400 items-center space-x-1">
-          <MdiArrowLeft @click="goBackInDraft" />
+        <div v-if="drafts.length > 1" class="flex text-xs text-gray-400 items-center space-x-1 select-none">
+          <MdiArrowLeft class="hover:bg-gray-100 h-5 w-5 p-0.5 rounded-sm cursor-pointer" @click="goBackInDraft" />
           <div class="flex">{{ draftActiveIndex + 1 }} / {{ drafts.length }}</div>
-          <MdiArrowRight @click="goForwardInDraft" />
+          <MdiArrowRight class="hover:bg-gray-100 h-5 w-5 p-0.5 rounded-sm cursor-pointer" @click="goForwardInDraft" />
         </div>
       </div>
     </div>
   </BubbleMenu>
 </template>
 
-<style lang="scss">
-.docs-ai-options-drafts {
-  overflow-y: overlay;
-  // scrollbar reduce width and gray color
-  &::-webkit-scrollbar {
-    width: 4px;
-  }
-
-  /* Track */
-  &::-webkit-scrollbar-track {
-    background: #f6f6f600 !important;
-  }
-
-  /* Handle */
-  &::-webkit-scrollbar-thumb {
-    background: #f6f6f600;
-  }
-
-  /* Handle on hover */
-  &::-webkit-scrollbar-thumb:hover {
-    background: #f6f6f600;
-  }
-}
-.docs-ai-options-drafts:hover {
-  // scrollbar reduce width and gray color
-  &::-webkit-scrollbar {
-    width: 4px;
-  }
-
-  /* Track */
-  &::-webkit-scrollbar-track {
-    background: #f6f6f600 !important;
-  }
-
-  /* Handle */
-  &::-webkit-scrollbar-thumb {
-    background: rgb(215, 215, 215);
-  }
-
-  /* Handle on hover */
-  &::-webkit-scrollbar-thumb:hover {
-    background: rgb(203, 203, 203);
-  }
-}
-</style>
+<style lang="scss"></style>

@@ -2,8 +2,6 @@
 import { defineProps } from 'vue'
 import type { Editor } from '@tiptap/vue-3'
 import { BubbleMenu } from '@tiptap/vue-3'
-import { generateHTML, generateJSON } from '@tiptap/html'
-import showdown from 'showdown'
 import type { Mark } from 'prosemirror-model'
 import { CellSelection } from '@tiptap/prosemirror-tables'
 import MdiFormatBulletList from '~icons/mdi/format-list-bulleted'
@@ -11,12 +9,9 @@ import MdiFormatStrikeThrough from '~icons/mdi/format-strikethrough'
 import MdiFormatListNumber from '~icons/mdi/format-list-numbered'
 import MdiFormatListCheckbox from '~icons/mdi/format-list-checkbox'
 import { tiptapTextColor } from '~/utils/tiptapExtensions/helper'
+import { AISelection } from '~~/utils/tiptapExtensions/AISelection'
 
 const { editor } = defineProps<Props>()
-
-const { project } = storeToRefs(useProject())
-
-const { magicExpand } = useDocStore()
 
 interface Props {
   editor: Editor
@@ -68,38 +63,17 @@ const isCheckboxActive = computed(() => {
 })
 
 const expandText = async () => {
-  if (isMagicExpandLoading.value) return
+  const selection = editor?.state?.selection
 
-  isMagicExpandLoading.value = true
-  try {
-    const selectedContent = editor?.state?.selection?.content().content.toJSON()
-    const selectedHtml = generateHTML({ type: 'doc', content: selectedContent }, editor.extensionManager.extensions)
+  if (!selection) return
 
-    const converter = new showdown.Converter()
-    converter.setOption('noHeaderId', true)
+  const tr = editor.state.tr
 
-    const markdown = converter.makeMarkdown(selectedHtml)
-    const response: any = await magicExpand({ text: markdown, projectId: project.value.id! })
+  const fromSec = getPositionOfSection(editor.state, selection.from + 1, 'start')
+  const toSec = getPositionOfSection(editor.state, selection.to, 'end')
 
-    editor
-      ?.chain()
-      .deleteRange({
-        from: editor.state.selection.from,
-        to: editor.state.selection.to,
-      })
-      .run()
-
-    const html = converter.makeHtml(response.text).replace('>\n<', '><')
-    const tiptapNewNodeJSON = generateJSON(html, editor.extensionManager.extensions)
-
-    for (const node of tiptapNewNodeJSON.content) {
-      const proseNode = editor.schema.nodeFromJSON(node)
-      const transaction = editor?.state.tr.insert(editor.state.selection.from - 1, proseNode)
-      editor?.view.dispatch(transaction)
-    }
-  } finally {
-    isMagicExpandLoading.value = false
-  }
+  tr.setSelection(AISelection.create(editor.state.doc, fromSec, toSec))
+  editor.view.dispatch(tr)
 }
 
 watch(
@@ -194,6 +168,25 @@ onUnmounted(() => {
 <template>
   <BubbleMenu :editor="editor" :update-delay="300" :tippy-options="{ duration: 100, maxWidth: 600 }">
     <div v-if="showMenuDebounced" class="bubble-menu flex flex-row gap-x-1 bg-gray-100 py-1 rounded-lg px-1">
+      <template v-if="!isTableCellSelected">
+        <a-button
+          type="text"
+          :loading="isMagicExpandLoading"
+          class="menu-button !flex !flex-row !items-center"
+          :class="{
+            '!hover:bg-inherit !cursor-not-allowed': isMagicExpandLoading,
+          }"
+          :aria-active="isMagicExpandLoading"
+          data-testid="nc-docs-editor-expand-button"
+          @click="expandText"
+        >
+          <div class="flex flex-row items-center pr-0.5">
+            <GeneralIcon v-if="!isMagicExpandLoading" icon="magic" class="text-orange-400 h-3.5" />
+            <div class="!ml-1">Ask AI</div>
+          </div>
+        </a-button>
+        <div class="divider"></div>
+      </template>
       <a-button
         type="text"
         :class="{ 'is-active': editor.isActive('bold') }"
@@ -336,27 +329,6 @@ onUnmounted(() => {
           </div>
         </template>
       </a-dropdown>
-
-      <template v-if="!isTableCellSelected">
-        <div class="divider"></div>
-
-        <a-button
-          type="text"
-          :loading="isMagicExpandLoading"
-          class="menu-button !flex !flex-row !items-center"
-          :class="{
-            '!hover:bg-inherit !cursor-not-allowed': isMagicExpandLoading,
-          }"
-          :aria-active="isMagicExpandLoading"
-          data-testid="nc-docs-editor-expand-button"
-          @click="expandText"
-        >
-          <div class="flex flex-row items-center pr-0.5">
-            <GeneralIcon v-if="!isMagicExpandLoading" icon="magic" class="text-orange-400 h-3.5" />
-            <div class="!text-xs !ml-1">Expand</div>
-          </div>
-        </a-button>
-      </template>
     </div>
   </BubbleMenu>
 </template>

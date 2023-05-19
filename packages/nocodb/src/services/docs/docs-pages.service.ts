@@ -90,32 +90,46 @@ export class DocsPagesService {
   async magicExpand(param: {
     projectId: string;
     pageId: string;
-    text: string;
+    promptText: string;
+    selectedPageText: string;
     response: any;
   }) {
     const response = param.response;
     const project = await Project.getByTitleOrId(param.projectId);
     if (!project) NcError.notFound('Project not found');
 
-    const parentPagesTitles = (
-      await this.pagesDao.parents({
-        pageId: param.pageId,
-        projectId: param.projectId,
-      })
-    ).map((p) => p.title);
+    const { promptText, selectedPageText } = param;
 
     const page = await this.pagesDao.get({
       id: param.pageId,
       projectId: param.projectId,
     });
+    const parentPage = page.parent_page_id
+      ? await this.pagesDao.get({
+          id: page.parent_page_id,
+          projectId: param.projectId,
+        })
+      : null;
 
-    const markDownText = param.text;
+    const pageParentInfo = `which is under a '${
+      parentPage ? `parent page '${parentPage.title} and ` : ''
+    }' project '${project.title}'`;
 
-    const prompt = `On a page named '${page.title}', with categories as '${
-      project.title
-    }/${parentPagesTitles.join(
-      '/',
-    )}', give a small content piece to start on with the following text(given in markdown) and output(should be in markdown): '${markDownText}'`;
+    let prompt;
+    if (selectedPageText) {
+      prompt = `On a page named '${page.title}', ${pageParentInfo}, 
+      
+      Output should be in markdown format.
+      ${promptText} is given as prompt input.
+      As an expert concise writer, what will you write which should convey the following information: 
+      '${selectedPageText}'`;
+    } else {
+      prompt = `On a page named '${page.title}', ${pageParentInfo}, 
+      
+      Output should be in markdown format.
+      ${promptText} is given as prompt input.
+      As an expert concise writer, what will you write in a document. `;
+    }
 
     try {
       const aiRes: any = await openai.createCompletion(

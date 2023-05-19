@@ -1,6 +1,7 @@
 import { Node } from '@tiptap/core'
 import { TiptapNodesTypes } from 'nocodb-sdk'
 import { NodeSelection, Plugin, TextSelection } from 'prosemirror-state'
+import { AISelection } from '../AISelection'
 
 export const Document = Node.create({
   name: TiptapNodesTypes.doc,
@@ -11,6 +12,21 @@ export const Document = Node.create({
 
   addKeyboardShortcuts() {
     return {
+      // Open AI options when user presses space if there is an active selection
+      Space: () => {
+        const editor = this.editor
+        const selection = editor.state.selection
+        if (selection.empty) return false
+
+        const fromSecPos = getPositionOfSection(editor.state, selection.from)
+        const toSecPos = getPositionOfSection(editor.state, selection.to, 'end')
+
+        const tr = editor.state.tr
+        tr.setSelection(AISelection.create(editor.state.doc, fromSecPos, toSecPos))
+        editor.view.dispatch(tr)
+
+        return true
+      },
       Tab: () => {
         let nextPos = this.editor.state.selection.$from.pos
 

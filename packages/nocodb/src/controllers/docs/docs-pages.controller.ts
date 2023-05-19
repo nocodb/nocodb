@@ -112,13 +112,34 @@ export class DocsPagesController {
   async magicExpand(
     @Param('id') id: string,
     @Param('projectId') projectId: string,
-    @Body() body: { text: string },
     @Response() response,
     @Request() req,
   ) {
-    const text = req.headers['nc-magic-text'] || body.text;
+    let body: {
+      promptText: string;
+      selectedPageText?: string;
+    } = {
+      promptText: '',
+    };
+
+    await new Promise((resolve) => {
+      req.on('data', (chunk) => {
+        try {
+          const bodyChunk = JSON.parse(chunk.toString());
+          body = { ...body, ...bodyChunk };
+        } catch (e) {
+          console.error(e);
+        }
+      });
+
+      req.on('end', () => {
+        resolve(true);
+      });
+    });
+
     return await this.pagesService.magicExpand({
-      text: body.text,
+      promptText: body.promptText,
+      selectedPageText: body.selectedPageText,
       pageId: id,
       projectId,
       response,

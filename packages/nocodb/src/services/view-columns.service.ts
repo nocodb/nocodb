@@ -6,15 +6,8 @@ import type { ViewColumnReqType, ViewColumnUpdateReqType } from 'nocodb-sdk';
 
 @Injectable()
 export class ViewColumnsService {
-  async columnList(param: {
-    viewId: string;
-    enrichWithColTitleAndName?: boolean;
-  }) {
-    return await View.getColumns(
-      param.viewId,
-      undefined,
-      param.enrichWithColTitleAndName,
-    );
+  async columnList(param: { viewId: string }) {
+    return await View.getColumns(param.viewId, undefined);
   }
   async columnAdd(param: { viewId: string; column: ViewColumnReqType }) {
     validatePayload(

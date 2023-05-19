@@ -38,7 +38,6 @@ export const JwtStrategyProvider: Provider = {
 @Module({
   imports: [EventEmitterModule],
   providers: [
-    TelemetryService,
     AppHooksService,
     Connection,
     MetaService,

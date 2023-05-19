@@ -103,13 +103,6 @@ export class UsersController {
         ip: req.clientIp,
         auditDescription,
       });
-      // await Audit.insert({
-      //   op_type: AuditOperationTypes.AUTHENTICATION,
-      //   op_sub_type: AuditOperationSubTypes.SIGNIN,
-      //   user: user.email,
-      //   ip: req.clientIp,
-      //   description: auditDescription,
-      // });
 
       res.json({
         token: genJwt(user, Noco.getConfig()),

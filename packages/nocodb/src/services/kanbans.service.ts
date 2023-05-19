@@ -39,13 +39,7 @@ export class KanbansService {
     this.appHooksService.emit(AppEvents.VIEW_CREATE, {
       view,
       showAs: 'kanban',
-    });
-
-    // T.emit('evt', { evt_type: 'vtable:created', show_as: 'kanban' });
-
-    this.appHooksService.emit(AppEvents.VIEW_CREATE, {
       user: param.user,
-      view,
     });
 
     return view;
@@ -66,7 +60,6 @@ export class KanbansService {
       NcError.badRequest('View not found');
     }
 
-    // T.emit('evt', { evt_type: 'view:updated', type: 'kanban' });
     const res = await KanbanView.update(param.kanbanViewId, param.kanban);
 
     this.appHooksService.emit(AppEvents.VIEW_UPDATE, {

@@ -75,6 +75,7 @@ const enableThrottler = !!process.env['NC_THROTTLER_REDIS'];
       : []),
     TestModule,
   ],
+  controllers: [],
   providers: [
     AuthService,
     {

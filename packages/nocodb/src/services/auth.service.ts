@@ -146,14 +146,6 @@ export class AuthService {
     //
     // user = (param.req as any).user;
 
-    // await Audit.insert({
-    //   op_type: 'AUTHENTICATION',
-    //   op_sub_type: 'SIGNUP',
-    //   user: user.email,
-    //   description: `signed up `,
-    //   ip: (param.req as any).clientIp,
-    // });
-
     return this.login(user);
   }
 

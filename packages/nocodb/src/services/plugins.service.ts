@@ -24,7 +24,6 @@ export class PluginsService {
     this.appHooksService.emit(AppEvents.PLUGIN_TEST, {
       testBody: param.body,
     });
-    // T.emit('evt', { evt_type: 'plugin:tested' });
     return await NcPluginMgrv2.test(param.body);
   }
 
@@ -43,10 +42,6 @@ export class PluginsService {
       },
     );
 
-    // T.emit('evt', {
-    //   evt_type: plugin.active ? 'plugin:installed' : 'plugin:uninstalled',
-    //   title: plugin.title,
-    // });
     return plugin;
   }
   async isPluginActive(param: { pluginTitle: string }) {

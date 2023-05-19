@@ -160,15 +160,6 @@ export class OrgUsersService {
             ip: param.req.clientIp,
           });
 
-          // T.emit('evt', { evt_type: 'org:user:invite', count });
-          //
-          // await Audit.insert({
-          //   op_type: AuditOperationTypes.ORG_USER,
-          //   op_sub_type: AuditOperationSubTypes.INVITE,
-          //   user: param.req.user.email,
-          //   description: `${email} has been invited to the organisation`,
-          //   ip: param.req.clientIp,
-          // });
           // in case of single user check for smtp failure
           // and send back token if failed
           if (
@@ -252,14 +243,6 @@ export class OrgUsersService {
       user,
       ip: param.req.clientIp,
     });
-
-    // await Audit.insert({
-    //   op_type: AuditOperationTypes.ORG_USER,
-    //   op_sub_type: AuditOperationSubTypes.RESEND_INVITE,
-    //   user: user.email,
-    //   description: `${user.email} has been re-invited`,
-    //   ip: param.req.clientIp,
-    // });
 
     return true;
   }

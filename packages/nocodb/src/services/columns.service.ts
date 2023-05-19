@@ -840,22 +840,6 @@ export class ColumnsService {
       ip: param.req?.clientIp,
     });
 
-    // await Audit.insert({
-    //   project_id: base.project_id,
-    //   op_type: AuditOperationTypes.TABLE_COLUMN,
-    //   op_sub_type: AuditOperationSubTypes.UPDATE,
-    //   user: param.req?.user?.email,
-    //   description: `The column ${column.column_name} with alias ${column.title} from table ${table.table_name} has been updated`,
-    //   ip: param.req?.clientIp,
-    // });
-    //
-    // T.emit('evt', { evt_type: 'column:updated' });
-
-    this.appHooksService.emit(AppEvents.TABLE_UPDATE, {
-      table,
-      user: param.user,
-    });
-
     return table;
   }
 
@@ -954,7 +938,6 @@ export class ColumnsService {
             base_id: base.id,
           },
         });
-        // T.emit('evt', { evt_type: 'relation:created' });
         break;
 
       case UITypes.QrCode:
@@ -1160,17 +1143,6 @@ export class ColumnsService {
 
     await table.getColumns();
 
-    // await Audit.insert({
-    //   project_id: base.project_id,
-    //   op_type: AuditOperationTypes.TABLE_COLUMN,
-    //   op_sub_type: AuditOperationSubTypes.CREATE,
-    //   user: param?.req.user?.email,
-    //   description: `The column ${colBody.column_name} with alias ${colBody.title} from table ${table.table_name} has been created`,
-    //   ip: param?.req.clientIp,
-    // });
-    //
-    // T.emit('evt', { evt_type: 'column:created' });
-
     this.appHooksService.emit(AppEvents.COLUMN_CREATE, {
       table,
       column: {
@@ -1179,11 +1151,6 @@ export class ColumnsService {
       },
       user: param.req?.user,
       ip: param.req?.clientIp,
-    });
-
-    this.appHooksService.emit(AppEvents.TABLE_CREATE, {
-      table,
-      user: param.user,
     });
 
     return table;
@@ -1334,6 +1301,8 @@ export class ColumnsService {
                 // ignore deleting table if it has more than 2 columns
                 // the expected 2 columns would be table1_id & table2_id
                 if (mmTable.columns.length === 2) {
+                  (mmTable as any).tn = mmTable.table_name;
+                  await sqlMgr.sqlOpPlus(base, 'tableDelete', mmTable);
                   await mmTable.delete();
                 }
               }
@@ -1343,7 +1312,6 @@ export class ColumnsService {
         this.appHooksService.emit(AppEvents.RELATION_DELETE, {
           column,
         });
-        // T.emit('evt', { evt_type: 'raltion:deleted' });
         break;
       case UITypes.ForeignKey: {
         NcError.notImplemented();
@@ -1404,11 +1372,6 @@ export class ColumnsService {
       column,
       user: param.req?.user,
       ip: param.req?.clientIp,
-    });
-
-    this.appHooksService.emit(AppEvents.TABLE_DELETE, {
-      table,
-      user: param.user,
     });
 
     return table;

@@ -19,7 +19,6 @@ export class FormColumnsService {
       param.formViewColumn,
     );
 
-    // T.emit('evt', { evt_type: 'formViewColumn:updated' });
     const res = await FormViewColumn.update(
       param.formViewColumnId,
       param.formViewColumn,

@@ -60,8 +60,6 @@ export class AttachmentsService {
       type: 'file',
     });
 
-    // T.emit('evt', { evt_type: 'image:uploaded' });
-
     return attachments;
   }
 
@@ -112,8 +110,6 @@ export class AttachmentsService {
         };
       }),
     );
-
-    // T.emit('evt', { evt_type: 'image:uploaded' });
 
     this.appHooksService.emit(AppEvents.ATTACHMENT_UPLOAD, {
       type: 'url',

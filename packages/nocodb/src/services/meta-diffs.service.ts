@@ -785,8 +785,6 @@ export class MetaDiffsService {
       project,
     });
 
-    // T.emit('evt', { evt_type: 'metaDiff:synced' });
-
     return true;
   }
 
@@ -982,8 +980,6 @@ export class MetaDiffsService {
       project,
       base,
     });
-
-    // T.emit('evt', { evt_type: 'baseMetaDiff:synced' });
 
     return true;
   }

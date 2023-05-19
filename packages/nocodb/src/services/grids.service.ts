@@ -28,8 +28,6 @@ export class GridsService {
       type: ViewTypes.GRID,
     });
 
-    // T.emit('evt', { evt_type: 'vtable:created', show_as: 'grid' });
-
     this.appHooksService.emit(AppEvents.VIEW_CREATE, {
       view,
       showAs: 'grid',
@@ -54,7 +52,6 @@ export class GridsService {
       NcError.badRequest('View not found');
     }
 
-    // T.emit('evt', { evt_type: 'view:updated', type: 'grid' });
     const res = await GridView.update(param.viewId, param.grid);
 
     this.appHooksService.emit(AppEvents.VIEW_UPDATE, {

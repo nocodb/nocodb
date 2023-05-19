@@ -1,5 +1,4 @@
 import { Injectable } from '@nestjs/common';
-import { T } from 'nc-help';
 import { AppEvents } from 'nocodb-sdk';
 import { validatePayload } from '../helpers';
 import { Filter, Hook, View } from '../models';
@@ -33,11 +32,6 @@ export class FiltersService {
       filter,
       hook,
     });
-    // T.emit('evt', { evt_type: 'hookFilter:created' });
-
-    this.appHooksService.emit(AppEvents.FILTER_CREATE, {
-      filter,
-    });
     return filter;
   }
 
@@ -53,7 +47,6 @@ export class FiltersService {
     }
 
     await Filter.delete(param.filterId);
-    // T.emit('evt', { evt_type: 'filter:deleted' });
 
     this.appHooksService.emit(AppEvents.FILTER_DELETE, {
       filter,
@@ -76,15 +69,9 @@ export class FiltersService {
       fk_view_id: param.viewId,
     });
 
-    // T.emit('evt', { evt_type: 'filter:created' });
-
     this.appHooksService.emit(AppEvents.FILTER_CREATE, {
       filter,
       view,
-    });
-
-    this.appHooksService.emit(AppEvents.FILTER_CREATE, {
-      filter,
     });
 
     return filter;
@@ -108,8 +95,6 @@ export class FiltersService {
     this.appHooksService.emit(AppEvents.FILTER_CREATE, {
       filter,
     });
-
-    // T.emit('evt', { evt_type: 'filter:updated' });
 
     return res;
   }

@@ -53,8 +53,6 @@ export class HooksService {
       hook,
     });
 
-    // T.emit('evt', { evt_type: 'webhooks:created' });
-
     return hook;
   }
 
@@ -66,7 +64,6 @@ export class HooksService {
     }
 
     await Hook.delete(param.hookId);
-    // T.emit('evt', { evt_type: 'webhooks:deleted' });
     this.appHooksService.emit(AppEvents.WEBHOOK_DELETE, {
       hook,
     });
@@ -81,8 +78,6 @@ export class HooksService {
     if (!hook) {
       NcError.badRequest('Hook not found');
     }
-
-    // T.emit('evt', { evt_type: 'webhooks:updated' });
 
     this.validateHookPayload(param.hook.notification);
 
@@ -130,8 +125,6 @@ export class HooksService {
       this.appHooksService.emit(AppEvents.WEBHOOK_TEST, {
         hook,
       });
-
-      // T.emit('evt', { evt_type: 'webhooks:tested' });
     }
 
     return true;

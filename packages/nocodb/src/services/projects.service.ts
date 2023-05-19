@@ -64,7 +64,7 @@ export class ProjectsService {
 
     const data: Partial<Project> = extractPropsAndSanitize(
       param?.project as Project,
-      ['title', 'meta', 'color'],
+      ['title', 'meta', 'color', 'status'],
     );
 
     if (
@@ -82,8 +82,6 @@ export class ProjectsService {
       user: param.user,
     });
 
-    // T.emit('evt', { evt_type: 'project:update' });
-
     return result;
   }
 
@@ -96,12 +94,11 @@ export class ProjectsService {
 
     await Project.softDelete(param.projectId);
 
-    // T.emit('evt', { evt_type: 'project:deleted' });
-
     this.appHooksService.emit(AppEvents.PROJECT_DELETE, {
-      user: param.user,
       project,
+      user: param.user,
     });
+
     return true;
   }
 
@@ -207,8 +204,6 @@ export class ProjectsService {
       if (process.env.NC_CLOUD !== 'true' && !project.is_meta) {
         const info = await populateMeta(base, project);
 
-        // T.emit('evt_api_created', info);
-
         this.appHooksService.emit(AppEvents.APIS_CREATED, {
           info,
         });
@@ -222,13 +217,6 @@ export class ProjectsService {
       user: param.user,
       xcdb: !projectBody.external,
     });
-
-    // T.emit('evt', {
-    //   evt_type: 'project:created',
-    //   xcdb: !projectBody.external,
-    // });
-    //
-    // T.emit('evt', { evt_type: 'project:rest' });
 
     return project;
   }

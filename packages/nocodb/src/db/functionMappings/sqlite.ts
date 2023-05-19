@@ -188,7 +188,7 @@ const sqlite3 = {
       default:
         sql = '';
     }
-    return { builder: knex.raw(`${sql} ${colAlias}`) };
+    return { builder: knex.raw(`ROUND(${sql}) ${colAlias}`) };
   },
   WEEKDAY: async ({ fn, knex, pt, colAlias }: MapFnArgs) => {
     // strftime('%w', date) - day of week 0 - 6 with Sunday == 0

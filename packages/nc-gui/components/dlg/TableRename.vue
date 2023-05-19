@@ -177,31 +177,33 @@ const renameTable = async (undo = false) => {
     :class="{ active: dialogShow }"
     :title="$t('activity.renameTable')"
     :mask-closable="false"
+    centered
     wrap-class-name="nc-modal-table-rename"
     @keydown.esc="dialogShow = false"
     @finish="renameTable"
   >
     <template #footer>
-      <a-button key="back" @click="dialogShow = false">{{ $t('general.cancel') }}</a-button>
+      <a-button key="back" class="!rounded-md" @click="dialogShow = false">{{ $t('general.cancel') }}</a-button>
 
-      <a-button key="submit" type="primary" :loading="loading" @click="renameTable()">{{ $t('general.submit') }}</a-button>
+      <a-button key="submit" class="!rounded-md" type="primary" :loading="loading" @click="renameTable()">{{
+        $t('general.submit')
+      }}</a-button>
     </template>
 
-    <div class="pl-10 pr-10 pt-5">
-      <a-form :model="formState" name="create-new-table-form">
-        <!-- hint="Enter table name" -->
-        <div class="mb-2">{{ $t('msg.info.enterTableName') }}</div>
+    <a-form :model="formState" name="create-new-table-form">
+      <!-- hint="Enter table name" -->
+      <div class="mb-2">{{ $t('msg.info.enterTableName') }}</div>
 
-        <a-form-item v-bind="validateInfos.title">
-          <a-input
-            ref="inputEl"
-            v-model:value="formState.title"
-            hide-details
-            :placeholder="$t('msg.info.enterTableName')"
-            @keydown.enter="renameTable()"
-          />
-        </a-form-item>
-      </a-form>
-    </div>
+      <a-form-item v-bind="validateInfos.title">
+        <a-input
+          ref="inputEl"
+          v-model:value="formState.title"
+          hide-details
+          size="large"
+          :placeholder="$t('msg.info.enterTableName')"
+          @keydown.enter="renameTable()"
+        />
+      </a-form-item>
+    </a-form>
   </a-modal>
 </template>

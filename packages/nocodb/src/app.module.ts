@@ -34,7 +34,6 @@ import { ExtractProjectAndWorkspaceIdMiddleware } from './middlewares/extract-pr
 import { ExecutionTimeCalculatorInterceptor } from './interceptors/execution-time-calculator/execution-time-calculator.interceptor';
 
 import { HookHandlerService } from './services/hook-handler.service';
-import { TelemetryController } from './controllers/telemetry.controller';
 import type {
   MiddlewareConsumer,
   OnApplicationBootstrap,
@@ -75,7 +74,6 @@ const enableThrottler = !!process.env['NC_THROTTLER_REDIS'];
       : []),
     TestModule,
   ],
-  controllers: [],
   providers: [
     AuthService,
     {
@@ -97,7 +95,6 @@ const enableThrottler = !!process.env['NC_THROTTLER_REDIS'];
     BaseViewStrategy,
     HookHandlerService,
   ],
-  controllers: [TelemetryController],
 })
 export class AppModule implements OnApplicationBootstrap {
   constructor(

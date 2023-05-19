@@ -48,9 +48,9 @@ export const JwtStrategyProvider: Provider = {
     AppHooksService,
     ProducerProvider,
     AppHooksListenerService,
+    TelemetryService,
   ],
   exports: [
-    TelemetryService,
     AppHooksService,
     Connection,
     MetaService,
@@ -61,6 +61,7 @@ export const JwtStrategyProvider: Provider = {
     AppHooksService,
     Producer,
     AppHooksListenerService,
+    TelemetryService,
   ],
 })
 export class GlobalModule {}

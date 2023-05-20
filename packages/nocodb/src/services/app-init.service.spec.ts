@@ -1,5 +1,6 @@
-import { Test, TestingModule } from '@nestjs/testing';
+import { Test } from '@nestjs/testing';
 import { AppInitService } from './app-init.service';
+import type { TestingModule } from '@nestjs/testing';
 
 describe('AppInitService', () => {
   let service: AppInitService;

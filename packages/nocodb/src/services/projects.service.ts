@@ -28,11 +28,11 @@ export class ProjectsService {
     user: { id: string; roles: Record<string, boolean> };
     query?: any;
   }) {
-    const projects = extractRolesObj(param.user?.roles)[
-      OrgUserRoles.SUPER_ADMIN
-    ]
-      ? await Project.list(param.query)
-      : await ProjectUser.getProjectsList(param.user.id, param.query);
+    const projects =
+      extractRolesObj(param.user?.roles)[OrgUserRoles.SUPER_ADMIN] &&
+      !['shared', 'starred', 'recent'].some((k) => k in param.query)
+        ? await Project.list(param.query)
+        : await ProjectUser.getProjectsList(param.user.id, param.query);
 
     return projects;
   }

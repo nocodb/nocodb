@@ -360,4 +360,12 @@ export class CellPageObject extends BasePage {
     await this.get({ index, columnHeader }).press((await this.isMacOs()) ? 'Meta+C' : 'Control+C');
     await this.verifyToast({ message: 'Copied to clipboard' });
   }
+
+  async pasteFromClipboard({ index, columnHeader }: CellProps, ...clickOptions: Parameters<Locator['click']>) {
+    await this.get({ index, columnHeader }).scrollIntoViewIfNeeded();
+    await this.get({ index, columnHeader }).click(...clickOptions);
+    await (await this.get({ index, columnHeader }).elementHandle()).waitForElementState('stable');
+
+    await this.get({ index, columnHeader }).press((await this.isMacOs()) ? 'Meta+V' : 'Control+V');
+  }
 }

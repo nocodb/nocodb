@@ -48,6 +48,24 @@ export class TreeViewPage extends BasePage {
     await this.get().locator(`.nc-project-tree-tbl-${title}`).focus();
   }
 
+  async openBase({ title }: { title: string }) {
+    const nodes = await this.get().locator(`.ant-collapse`);
+    // loop through nodes.count() to find the node with title
+    for (let i = 0; i < (await nodes.count()); i++) {
+      const node = nodes.nth(i);
+      const nodeTitle = await node.innerText();
+      // check if nodeTitle contains title
+      if (nodeTitle.includes(title)) {
+        // click on node
+        await node.waitFor({ state: 'visible' });
+        await node.click();
+        break;
+      }
+    }
+
+    await this.rootPage.waitForTimeout(2000);
+  }
+
   // assumption: first view rendered is always GRID
   //
   async openTable({
@@ -72,6 +90,8 @@ export class TreeViewPage extends BasePage {
       }
     }
 
+    await this.get().locator(`.nc-project-tree-tbl-${title}`).waitFor({ state: 'visible' });
+
     if (networkResponse === true) {
       await this.waitForResponse({
         uiAction: () => this.get().locator(`.nc-project-tree-tbl-${title}`).click(),
@@ -86,7 +106,7 @@ export class TreeViewPage extends BasePage {
     }
   }
 
-  async createTable({ title, skipOpeningModal }: { title: string; skipOpeningModal?: boolean }) {
+  async createTable({ title, skipOpeningModal, mode }: { title: string; skipOpeningModal?: boolean; mode?: string }) {
     if (!skipOpeningModal) await this.get().locator('.nc-add-new-table').click();
 
     await this.dashboard.get().locator('.nc-modal-table-create').locator('.ant-modal-body').waitFor();
@@ -101,7 +121,7 @@ export class TreeViewPage extends BasePage {
     });
 
     // Tab render is slow for playwright
-    await this.dashboard.waitForTabRender({ title });
+    await this.dashboard.waitForTabRender({ title, mode });
   }
 
   async verifyTable({ title, index, exists = true }: { title: string; index?: number; exists?: boolean }) {

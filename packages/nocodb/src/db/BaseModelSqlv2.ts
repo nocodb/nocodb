@@ -3298,7 +3298,7 @@ class BaseModelSqlv2 {
             this._convertAttachmentType(attachmentColumns, d),
           );
         } else {
-          this._convertAttachmentType(attachmentColumns, data);
+          data = this._convertAttachmentType(attachmentColumns, data);
         }
       }
     }
@@ -3374,7 +3374,7 @@ class BaseModelSqlv2 {
         if (Array.isArray(data)) {
           data = data.map((d) => this._convertDateFormat(dateTimeColumns, d));
         } else {
-          this._convertDateFormat(dateTimeColumns, data);
+          data = this._convertDateFormat(dateTimeColumns, data);
         }
       }
     }

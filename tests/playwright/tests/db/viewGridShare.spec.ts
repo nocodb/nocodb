@@ -83,7 +83,7 @@ test.describe('Shared view', () => {
     }
 
     const expectedRecordsByDb = isSqlite(context) || isPg(context) ? sqliteExpectedRecords : expectedRecords;
-    await new Promise(resolve => setTimeout(resolve, 1000));
+    await new Promise((resolve) => setTimeout(resolve, 1000));
     // verify order of records (original sort & filter)
     for (const record of expectedRecordsByDb) {
       await sharedPage.grid.cell.verify(record);

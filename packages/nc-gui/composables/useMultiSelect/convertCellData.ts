@@ -7,7 +7,6 @@ import { parseProp } from '#imports'
 export default function convertCellData(
   args: { from: UITypes; to: UITypes; value: any; column: ColumnType; appInfo: AppInfo },
   isMysql = false,
-  isXcdbBase = false,
 ) {
   const { from, to, value } = args
   if (from === to && ![UITypes.Attachment, UITypes.Date, UITypes.DateTime, UITypes.Time, UITypes.Year].includes(to)) {
@@ -43,7 +42,7 @@ export default function convertCellData(
       if (!parsedDateTime.isValid()) {
         throw new Error('Not a valid datetime value')
       }
-      return parsedDateTime.format('YYYY-MM-DD HH:mm:ssZ')
+      return parsedDateTime.format(dateFormat)
     }
     case UITypes.Time: {
       let parsedTime = dayjs(value)

@@ -98,6 +98,9 @@ export class AppModule implements OnApplicationBootstrap {
     Noco.config = this.connection.config;
     Noco.eventEmitter = this.eventEmitter;
 
+    // init jwt secret
+    await Noco.initJwt();
+
     // init plugin manager
     await NcPluginMgrv2.init(Noco.ncMeta);
     await Noco.loadEEState();

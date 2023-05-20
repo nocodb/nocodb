@@ -16,6 +16,7 @@ import { MetaTable } from './utils/globals';
 import type { IEventEmitter } from './modules/event-emitter/event-emitter.interface';
 import type { Express } from 'express';
 import type * as http from 'http';
+require('dotenv').config();
 
 export default class Noco {
   private static _this: Noco;

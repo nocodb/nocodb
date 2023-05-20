@@ -227,6 +227,7 @@ declare module '@vue/runtime-core' {
     PhFileCsv: typeof import('~icons/ph/file-csv')['default']
     PhFlowArrowThin: typeof import('~icons/ph/flow-arrow-thin')['default']
     PhPencilCircleThin: typeof import('~icons/ph/pencil-circle-thin')['default']
+    PhPenThin: typeof import('~icons/ph/pen-thin')['default']
     PhPlusThin: typeof import('~icons/ph/plus-thin')['default']
     PhUserCircleThin: typeof import('~icons/ph/user-circle-thin')['default']
     PhXCircleLight: typeof import('~icons/ph/x-circle-light')['default']

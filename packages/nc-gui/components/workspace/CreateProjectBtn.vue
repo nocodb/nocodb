@@ -74,6 +74,14 @@ useEventListener(document, 'keydown', async (e: KeyboardEvent) => {
               <GeneralShortcutLabel class="justify-center" :keys="['Alt', 'D']" />
             </div>
           </a-menu-item>
+          <a-menu-item @click="navigateToCreateProject(NcProjectType.DASHBOARD)">
+            <div class="py-4 px-1 flex items-center gap-4">
+              <GeneralProjectIcon :type="NcProjectType.DASHBOARD" class="text-[#2824FB] text-lg" />
+              Dashboard
+              <span class="flex-grow" />
+              <GeneralShortcutLabel class="justify-center" :keys="['Alt', 'D']" />
+            </div>
+          </a-menu-item>
           <a-menu-item @click="navigateToCreateProject(NcProjectType.DOCS)">
             <div class="py-4 px-1 flex items-center gap-4 nc-create-project-btn-docs">
               <GeneralProjectIcon :type="NcProjectType.DOCS" class="text-[#247727] text-lg" />

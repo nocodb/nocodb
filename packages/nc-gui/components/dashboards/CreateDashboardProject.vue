@@ -5,6 +5,9 @@ import type { RuleObject } from 'ant-design-vue/es/form'
 import type { VNodeRef } from '@vue/runtime-core'
 import type { ProjectType } from 'nocodb-sdk'
 import tinycolor from 'tinycolor2'
+import type { ComputedRef } from 'nuxt/dist/app/compat/capi'
+import Fuse from 'fuse.js'
+import type { IdAndTitle } from './types'
 import {
   extractSdkResponseErrorMsg,
   generateUniqueName,
@@ -50,6 +53,52 @@ const nameValidationRules = [
 
 const form = ref<typeof Form>()
 
+const workspaceStore = useWorkspace()
+const { loadWorkspaceList } = workspaceStore
+const { projects } = storeToRefs(workspaceStore)
+const availableDbProjects: ComputedRef<Array<IdAndTitle>> = computed(() => {
+  return (
+    projects.value
+      ?.filter((project) => project.type === 'database')
+      .map((project) => ({
+        id: project.id!,
+        title: project.title || 'unknown',
+      })) || []
+  )
+})
+
+type ToggableDBProject = Array<IdAndTitle & { isToggle: boolean }>
+
+const dbProjectSearchTerm = ref('')
+// const fuse = ref<ToggableDBProject | null>(null)
+const fuse = ref<Fuse<{
+  id: string
+  title: string
+  isToggle: boolean
+}> | null>(null)
+
+const dbProjectsWithToggleStatus = ref<ToggableDBProject>([])
+
+watch(availableDbProjects, (projects) => {
+  dbProjectsWithToggleStatus.value = projects.map((project) => ({
+    ...project,
+    isToggle: false,
+  }))
+  fuse.value = new Fuse(dbProjectsWithToggleStatus.value, {
+    keys: ['title'],
+    includeScore: true,
+    threshold: 0.0,
+  })
+})
+
+const filteredDbProjects = computed(() => {
+  if (!dbProjectSearchTerm.value) {
+    return dbProjectsWithToggleStatus.value
+  }
+  const results = fuse.value?.search(dbProjectSearchTerm.value)
+  return results?.map((result) => result.item) || []
+})
+
 const formState = reactive({
   title: '',
 })
@@ -72,6 +121,7 @@ const createProject = async () => {
     const result = (await api.project.create({
       title: formState.title,
       fk_workspace_id: route.query.workspaceId,
+      linked_db_project_ids: filteredDbProjects.value.filter((project) => project.isToggle).map((project) => project.id),
       type: route.query.type ?? NcProjectType.DB,
       color,
       meta: JSON.stringify({
@@ -115,70 +165,60 @@ const createProject = async () => {
 
 const input: VNodeRef = ref<typeof Input>()
 
+// computed(() => {
+//   return availableDbProjects.value.map((project) => ({
+//     ...project,
+//     isToggle: false,
+//   }))
+// })
+
 onMounted(async () => {
+  await loadWorkspaceList()
   formState.title = await generateUniqueName()
   await nextTick()
   input.value?.$el?.focus()
   input.value?.$el?.select()
 })
-
-const isDashboardProject = computed(() => route.query.type === NcProjectType.DASHBOARD)
 </script>
 
 <template>
-  <NuxtLayout name="new">
-    <div class="mt-20">
-      <div
-        class="min-w-2/4 xl:max-w-2/4 w-full mx-auto create relative flex flex-col justify-center gap-2 w-full p-8 md:(bg-white rounded-lg border-1 border-gray-200 shadow)"
-      >
-        <LazyGeneralNocoIcon class="color-transition hover:(ring ring-accent)" :animate="isLoading" />
+  <a-form
+    ref="form"
+    :model="formState"
+    name="basic"
+    layout="vertical"
+    class="lg:max-w-3/4 w-full !mx-auto"
+    no-style
+    autocomplete="off"
+    @finish="createProject"
+  >
+    <h2 class="prose-2xl font-bold self-center my-4">New Dashboard Project</h2>
+    <a-form-item :label="$t('labels.projName')" name="title" :rules="nameValidationRules" class="m-10">
+      <a-input ref="input" v-model:value="formState.title" name="title" class="nc-metadb-project-name" />
+    </a-form-item>
 
-        <div
-          class="color-transition transform group absolute top-5 left-5 text-4xl rounded-full cursor-pointer"
-          @click="navigateTo('/')"
-        >
-          <component :is="iconMap.chevronLeft" class="text-black group-hover:(text-accent scale-110)" />
-        </div>
-
-        <h1 class="prose-2xl font-bold self-center my-4">{{ $t('activity.createProject') }}</h1>
-
-        <DashboardsCreateDashboardProject v-if="isDashboardProject">Dashboard</DashboardsCreateDashboardProject>
-        <template v-else>
-          <a-form
-            ref="form"
-            :model="formState"
-            name="basic"
-            layout="vertical"
-            class="lg:max-w-3/4 w-full !mx-auto"
-            no-style
-            autocomplete="off"
-            @finish="createProject"
-          >
-            <a-form-item :label="$t('labels.projName')" name="title" :rules="nameValidationRules" class="m-10">
-              <a-input ref="input" v-model:value="formState.title" name="title" class="nc-metadb-project-name" />
-            </a-form-item>
-
-            <div class="text-center">
-              <a-spin v-if="creating" spinning />
-              <button v-else class="scaling-btn bg-opacity-100" type="submit">
-                <span class="flex items-center gap-2">
-                  <MaterialSymbolsRocketLaunchOutline />
-                  {{ $t('general.create') }}
-                </span>
-              </button>
-            </div>
-          </a-form>
+    <div class="text-center">
+      <a-form-item name="search" class="m-10">
+        <a-input v-model:value="dbProjectSearchTerm" name="search" :placeholder="$t('labels.searchProjects')"></a-input>
+      </a-form-item>
+      <a-list item-layout="horizontal" :data-source="filteredDbProjects">
+        <template #renderItem="{ item }">
+          <a-list-item>
+            <template #actions>
+              <a-switch :key="item.id" v-model:checked="item.isToggle" />
+            </template>
+            {{ item.title }}
+          </a-list-item>
         </template>
-      </div>
-    </div>
-  </NuxtLayout>
-</template>
+      </a-list>
 
-<style lang="scss">
-.create {
-  .ant-input-affix-wrapper,
-  .ant-input {
-    @apply !appearance-none my-1 border-1 border-solid border-primary border-opacity-50 rounded;
-  }
-}
-</style>
+      <a-spin v-if="creating" spinning />
+      <button v-else class="scaling-btn bg-opacity-100" type="submit">
+        <span class="flex items-center gap-2">
+          <MaterialSymbolsRocketLaunchOutline />
+          {{ $t('general.create') }}
+        </span>
+      </button>
+    </div>
+  </a-form>
+</template>

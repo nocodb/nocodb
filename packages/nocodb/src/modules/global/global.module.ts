@@ -15,8 +15,11 @@ import type { Provider } from '@nestjs/common';
 
 export const JwtStrategyProvider: Provider = {
   provide: JwtStrategy,
-  useFactory: async (usersService: UsersService) => {
-    const config = Noco.config;
+  useFactory: async (
+    usersService: UsersService,
+    appInitService: AppInitService,
+  ) => {
+    const config = appInitService.appConfig;
 
     await Noco.initJwt();
 

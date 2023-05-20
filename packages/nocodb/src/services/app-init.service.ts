@@ -9,11 +9,27 @@ import NcUpgrader from '../version-upgrader/NcUpgrader';
 import type { IEventEmitter } from '../modules/event-emitter/event-emitter.interface';
 import type { Provider } from '@nestjs/common';
 
-@Injectable()
-export class AppInitService {}
+export class AppInitService {
+  private readonly config: any;
+
+  constructor(config) {
+    this.config = config;
+  }
+
+  get appConfig(): any {
+    return this.config;
+  }
+}
 
 export const appInitServiceProvider: Provider = {
   provide: AppInitService,
+  // initialize app,
+  // 1. init cache
+  // 2. init db connection and create if not exist
+  // 3. init meta and set to Noco
+  // 4. init jwt
+  // 5. init plugin manager
+  // 6. run upgrader
   useFactory: async (
     connection: Connection,
     metaService: MetaService,
@@ -46,7 +62,7 @@ export const appInitServiceProvider: Provider = {
     await NcUpgrader.upgrade({ ncMeta: Noco._ncMeta });
 
     // todo: move app config to app-init service
-    return new AppInitService();
+    return new AppInitService(connection.config);
   },
   inject: [Connection, MetaService, 'IEventEmitter'],
 };

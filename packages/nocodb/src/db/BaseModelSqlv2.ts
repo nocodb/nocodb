@@ -3305,6 +3305,7 @@ class BaseModelSqlv2 {
     return data;
   }
 
+  // TODO(timezone): retrieve the format from the corresponding column meta
   private _convertDateFormat(
     dateTimeColumns: Record<string, any>[],
     d: Record<string, any>,
@@ -3312,6 +3313,60 @@ class BaseModelSqlv2 {
     if (!d) return d;
     for (const col of dateTimeColumns) {
       if (!d[col.title]) continue;
+
+      if (col.uidt === UITypes.Formula) {
+        if (!d[col.title] || typeof d[col.title] !== 'string') {
+          continue;
+        }
+
+        // cater MYSQL
+        d[col.title] = d[col.title].replace(/\.000000/g, '');
+
+        if (/\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}.\d{3}Z/g.test(d[col.title])) {
+          // convert ISO string (e.g. in MSSQL) to YYYY-MM-DD hh:mm:ssZ
+          // e.g. 2023-05-18T05:30:00.000Z -> 2023-05-18 11:00:00+05:30
+          d[col.title] = d[col.title].replace(
+            /\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}.\d{3}Z/g,
+            (d: string) => {
+              return dayjs(d).isValid()
+                ? dayjs(d).utc(true).format('YYYY-MM-DD HH:mm:ssZ')
+                : d;
+            },
+          );
+          continue;
+        }
+
+        // convert all date time values to utc
+        // the datetime is either YYYY-MM-DD hh:mm:ss (xcdb)
+        // or YYYY-MM-DD hh:mm:ss+/-xx:yy (ext)
+        d[col.title] = d[col.title].replace(
+          /\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}(?:[+-]\d{2}:\d{2})?/g,
+          (d: string) => {
+            if (!dayjs(d).isValid()) {
+              return d;
+            }
+
+            if (this.isSqlite) {
+              // if there is no timezone info,
+              // we assume the input is on NocoDB server timezone
+              // then we convert to UTC from server timezone
+              // e.g. 2023-04-27 10:00:00 (IST) -> 2023-04-27 04:30:00+00:00
+              return dayjs(d)
+                .tz(Intl.DateTimeFormat().resolvedOptions().timeZone)
+                .utc()
+                .format('YYYY-MM-DD HH:mm:ssZ');
+            }
+
+            // set keepLocalTime to true if timezone info is not found
+            const keepLocalTime = /^\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}$/g.test(
+              d,
+            );
+
+            return dayjs(d).utc(keepLocalTime).format('YYYY-MM-DD HH:mm:ssZ');
+          },
+        );
+        continue;
+      }
 
       let keepLocalTime = true;
 
@@ -3369,7 +3424,9 @@ class BaseModelSqlv2 {
     if (data) {
       const dateTimeColumns = (
         childTable ? childTable.columns : this.model.columns
-      ).filter((c) => c.uidt === UITypes.DateTime);
+      ).filter(
+        (c) => c.uidt === UITypes.DateTime || c.uidt === UITypes.Formula,
+      );
       if (dateTimeColumns.length) {
         if (Array.isArray(data)) {
           data = data.map((d) => this._convertDateFormat(dateTimeColumns, d));

@@ -1652,15 +1652,17 @@ class BaseModelSqlv2 {
             }
           } else if (this.isMssql) {
             // if there is no timezone info, convert to database timezone, then convert to UTC
-            if (column.dt !== 'datetime2') {
-              const col = `${sanitize(alias || this.model.table_name)}.${
-                column.column_name
-              }`;
+            if (column.dt !== 'datetimeoffset') {
               res[sanitize(column.title || column.column_name)] =
                 this.dbDriver.raw(
-                  `SWITCHOFFSET(??, DATEPART(TZOFFSET, ??)) AT TIME ZONE 'UTC'`,
-                  [col, col],
+                  `CONVERT(DATETIMEOFFSET, ?? AT TIME ZONE 'UTC')`,
+                  [
+                    `${sanitize(alias || this.model.table_name)}.${
+                      column.column_name
+                    }`,
+                  ],
                 );
+              break;
             }
           }
           res[sanitize(column.title || column.column_name)] = sanitize(

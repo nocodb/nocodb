@@ -12,6 +12,7 @@ import { v4 as uuidv4 } from 'uuid';
 import { AppModule } from './app.module';
 import { NC_LICENSE_KEY } from './constants';
 import Store from './models/Store';
+import { MetaTable } from './utils/globals';
 import type { IEventEmitter } from './modules/event-emitter/event-emitter.interface';
 import type { Express } from 'express';
 import type * as http from 'http';
@@ -45,7 +46,6 @@ export default class Noco {
   public readonly metaMgrv2: any;
   public env: string;
 
-  private ncToolApi;
   private config: any;
   private requestContext: any;
 
@@ -138,12 +138,12 @@ export default class Noco {
     if (this.config?.auth?.jwt) {
       if (!this.config.auth.jwt.secret) {
         let secret = (
-          await Noco._ncMeta.metaGet('', '', 'nc_store', {
+          await Noco._ncMeta.metaGet('', '', MetaTable.STORE, {
             key: 'nc_auth_jwt_secret',
           })
         )?.value;
         if (!secret) {
-          await Noco._ncMeta.metaInsert('', '', 'nc_store', {
+          await Noco._ncMeta.metaInsert('', '', MetaTable.STORE, {
             key: 'nc_auth_jwt_secret',
             value: (secret = uuidv4()),
           });
@@ -158,12 +158,12 @@ export default class Noco {
       }
     }
     let serverId = (
-      await Noco._ncMeta.metaGet('', '', 'nc_store', {
+      await Noco._ncMeta.metaGet('', '', MetaTable.STORE, {
         key: 'nc_server_id',
       })
     )?.value;
     if (!serverId) {
-      await Noco._ncMeta.metaInsert('', '', 'nc_store', {
+      await Noco._ncMeta.metaInsert('', '', MetaTable.STORE, {
         key: 'nc_server_id',
         value: (serverId = T.id),
       });

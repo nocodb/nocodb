@@ -508,7 +508,7 @@ export default class Model implements TableType {
             // e.g. 2023-05-10T08:49:32.000Z -> 2023-05-10 08:49:32-08:00
             // then convert to db timezone
             val = knex.raw(
-              `SWITCHOFFSET(? AT TIME ZONE 'UTC', SYSDATETIMEOFFSET()`,
+              `SWITCHOFFSET(CONVERT(datetimeoffset, ?), DATENAME(TzOffset, SYSDATETIMEOFFSET()))`,
               [dayjs(val).utc().format('YYYY-MM-DD HH:mm:ssZ')],
             );
           } else {

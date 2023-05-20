@@ -61,21 +61,18 @@ export const renderValue = (result?: any) => {
     return result
   }
 
-  // cater MYSQL
-  result = result.replace('.000000', '')
-
   // convert ISO string (e.g. in MSSQL) to YYYY-MM-DD hh:mm:ssZ
   // e.g. 2023-05-18T05:30:00.000Z -> 2023-05-18 11:00:00+05:30
-  result = result.replace(/\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}.\d{3}Z/, (d: string) => {
-    return dayjs(d).format('YYYY-MM-DD HH:mm:ssZ')
+  result = result.replace(/\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}.\d{3}Z/g, (d: string) => {
+    return dayjs(d).isValid() ? dayjs(d).format('YYYY-MM-DD HH:mm:ssZ') : d
   })
 
   // convert all date time values to local time
   // the datetime is either YYYY-MM-DD hh:mm:ss (xcdb)
-  // or YYYY-MM-DD hh:mm:ss+xx:yy (ext)
-  return result.replace(/\b(\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2})(\[+-]\d{2}:\d{2})?\b/g, (d: string) => {
+  // or YYYY-MM-DD hh:mm:ss+/-xx:yy (ext)
+  return result.replace(/\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}(?:[+-]\d{2}:\d{2})?/g, (d: string) => {
     // TODO(timezone): retrieve the format from the corresponding column meta
     // assume hh:mm at this moment
-    return dayjs(d).utc(!result.includes('+')).local().format('YYYY-MM-DD HH:mm')
+    return dayjs(d).isValid() ? dayjs(d).format('YYYY-MM-DD HH:mm') : d
   })
 }

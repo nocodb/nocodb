@@ -105,10 +105,9 @@ let localState = $computed({
     }
 
     if (val.isValid()) {
-      const formattedValue = dayjs(val?.format(isMysql(column.value.base_id) ? 'YYYY-MM-DD HH:mm:ss' : 'YYYY-MM-DD HH:mm:ssZ'))
       // setting localModelValue to cater NOW function in date picker
-      localModelValue = formattedValue
-      emit('update:modelValue', formattedValue)
+      localModelValue = dayjs(val)
+      emit('update:modelValue', dayjs(val).format(isMysql(column.value.base_id) ? 'YYYY-MM-DD HH:mm:ss' : 'YYYY-MM-DD HH:mm:ssZ'))
     }
   },
 })

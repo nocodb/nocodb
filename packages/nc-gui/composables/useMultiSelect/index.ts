@@ -83,9 +83,17 @@ export function useMultiSelect(
   }
 
   function constructDateTimeFormat(column: ColumnType) {
-    const dateFormat = parseProp(column?.meta)?.date_format ?? dateFormats[0]
-    const timeFormat = parseProp(column?.meta)?.time_format ?? timeFormats[0]
+    const dateFormat = constructDateFormat(column)
+    const timeFormat = constructTimeFormat(column)
     return `${dateFormat} ${timeFormat}`
+  }
+
+  function constructDateFormat(column: ColumnType) {
+    return parseProp(column?.meta)?.date_format ?? dateFormats[0]
+  }
+
+  function constructTimeFormat(column: ColumnType) {
+    return parseProp(column?.meta)?.time_format ?? timeFormats[0]
   }
 
   async function copyValue(ctx?: Cell) {
@@ -124,7 +132,7 @@ export function useMultiSelect(
             })
           }
 
-          if (columnObj.uidt === UITypes.DateTime) {
+          if (columnObj.uidt === UITypes.DateTime || columnObj.uidt === UITypes.Time) {
             // remove `"`
             // e.g. "2023-05-12T08:03:53.000Z" -> 2023-05-12T08:03:53.000Z
             textToCopy = textToCopy.replace(/["']/g, '')
@@ -143,10 +151,12 @@ export function useMultiSelect(
             // users can change the datetime format in UI
             // `textToCopy` would be always in YYYY-MM-DD HH:mm:ss(Z / +xx:yy) format
             // therefore, here we reformat to the correct datetime format based on the meta
-            textToCopy = d.format(constructDateTimeFormat(columnObj))
+            textToCopy = d.format(
+              columnObj.uidt === UITypes.DateTime ? constructDateTimeFormat(columnObj) : constructTimeFormat(columnObj),
+            )
 
-            if (!dayjs(textToCopy).isValid()) {
-              throw new Error('Invalid Date')
+            if (columnObj.uidt === UITypes.DateTime && !dayjs(textToCopy).isValid()) {
+              throw new Error('Invalid DateTime')
             }
           }
 

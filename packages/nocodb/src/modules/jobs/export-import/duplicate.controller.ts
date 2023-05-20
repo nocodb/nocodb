@@ -78,7 +78,7 @@ export class DuplicateController {
       },
     });
 
-    return { id: job.id, name: job.name };
+    return { id: job.id };
   }
 
   @Post('/api/v1/db/meta/duplicate/:projectId/table/:modelId')
@@ -128,6 +128,6 @@ export class DuplicateController {
       },
     });
 
-    return { id: job.id, name: job.name };
+    return { id: job.id };
   }
 }

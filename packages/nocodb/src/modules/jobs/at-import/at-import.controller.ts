@@ -18,13 +18,13 @@ export class AtImportController {
       ...req.body,
     });
 
-    return { id: job.id, name: job.name };
+    return { id: job.id };
   }
 
   @Post('/api/v1/db/meta/syncs/:syncId/trigger')
   @HttpCode(200)
   async triggerSync(@Request() req) {
-    const jobs = await this.jobsService.jobList(JobTypes.AtImport);
+    const jobs = await this.jobsService.jobList();
     const fnd = jobs.find((j) => j.data.syncId === req.params.syncId);
 
     if (fnd) {
@@ -54,7 +54,7 @@ export class AtImportController {
       user: user,
     });
 
-    return { id: job.id, name: job.name };
+    return { id: job.id };
   }
 
   @Post('/api/v1/db/meta/syncs/:syncId/abort')

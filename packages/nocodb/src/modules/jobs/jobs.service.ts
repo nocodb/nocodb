@@ -28,15 +28,13 @@ export class JobsService {
     return await (await this.activeQueue.getJob(jobId)).getState();
   }
 
-  async jobList(jobType: string) {
-    return (
-      await this.activeQueue.getJobs([
-        JobStatus.ACTIVE,
-        JobStatus.WAITING,
-        JobStatus.DELAYED,
-        JobStatus.PAUSED,
-      ])
-    ).filter((j) => j.name === jobType);
+  async jobList() {
+    return await this.activeQueue.getJobs([
+      JobStatus.ACTIVE,
+      JobStatus.WAITING,
+      JobStatus.DELAYED,
+      JobStatus.PAUSED,
+    ]);
   }
 
   async getJobWithData(data: any) {

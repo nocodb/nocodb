@@ -90,10 +90,10 @@ const duplicateProject = (project: ProjectType) => {
   const { close } = useDialog(resolveComponent('DlgProjectDuplicate'), {
     'modelValue': isOpen,
     'project': project,
-    'onOk': async (jobData: { name: string; id: string }) => {
+    'onOk': async (jobData: { id: string }) => {
       await loadProjects()
 
-      $jobs.subscribe({ name: jobData.name, id: jobData.id }, undefined, async (status: string) => {
+      $jobs.subscribe({ id: jobData.id }, undefined, async (status: string) => {
         if (status === JobStatus.COMPLETED) {
           await loadProjects()
         } else if (status === JobStatus.FAILED) {

@@ -16,7 +16,6 @@ export class JobsEventService {
   @OnQueueActive()
   onActive(job: Job) {
     this.eventEmitter.emit(JobEvents.STATUS, {
-      name: job.name,
       id: job.id.toString(),
       status: JobStatus.ACTIVE,
     });
@@ -26,7 +25,7 @@ export class JobsEventService {
   onFailed(job: Job, error: Error) {
     console.error(
       boxen(
-        `---- !! JOB FAILED !! ----\nname: ${job.name}\nid:${job.id}\nerror:${error.name} (${error.message})\n\nstack: ${error.stack}`,
+        `---- !! JOB FAILED !! ----\nid:${job.id}\nerror:${error.name} (${error.message})\n\nstack: ${error.stack}`,
         {
           padding: 1,
           borderStyle: 'double',
@@ -36,7 +35,6 @@ export class JobsEventService {
     );
 
     this.eventEmitter.emit(JobEvents.STATUS, {
-      name: job.name,
       id: job.id.toString(),
       status: JobStatus.FAILED,
       data: {
@@ -50,7 +48,6 @@ export class JobsEventService {
   @OnQueueCompleted()
   onCompleted(job: Job, data: any) {
     this.eventEmitter.emit(JobEvents.STATUS, {
-      name: job.name,
       id: job.id.toString(),
       status: JobStatus.COMPLETED,
       data: {
@@ -61,7 +58,6 @@ export class JobsEventService {
 
   sendLog(job: Job, data: { message: string }) {
     this.eventEmitter.emit(JobEvents.LOG, {
-      name: job.name,
       id: job.id.toString(),
       data,
     });

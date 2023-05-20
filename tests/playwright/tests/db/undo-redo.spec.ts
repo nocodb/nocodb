@@ -178,6 +178,10 @@ test.describe('Undo Redo', () => {
     await dashboard.closeTab({ title: 'Team & Auth' });
     await dashboard.treeView.openTable({ title: 'numberBased' });
 
+    // hack: wait for grid to load
+    // https://github.com/nocodb/nocodb/actions/runs/5025773509/jobs/9013176970
+    await page.waitForTimeout(1000);
+
     await verifyFieldsOrder(['Number', 'Decimal', 'Currency']);
 
     // Hide Decimal

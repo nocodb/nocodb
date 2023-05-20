@@ -219,11 +219,16 @@ export class ProjectsService {
       NcError.badRequest('Project title exceeds 50 characters');
     }
 
-    // // TODO: check that the current user has at leas reading permissions for all linked_db_projects
-    await validateUserHasReadPermissionsForLinkedDbProjects(
-      projectBody.linked_db_project_ids,
-      param.user,
-    );
+    // TODO: check that the current user has at leas reading permissions for all linked_db_projects
+    if (
+      param.project.type === 'dashboard' &&
+      projectBody.linked_db_project_ids?.length > 0
+    ) {
+      await validateUserHasReadPermissionsForLinkedDbProjects(
+        projectBody.linked_db_project_ids,
+        param.user,
+      );
+    }
 
     projectBody.title = DOMPurify.sanitize(projectBody.title);
     projectBody.slug = projectBody.title;

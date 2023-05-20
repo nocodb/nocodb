@@ -2127,6 +2127,7 @@ export interface ProjectReqType {
    * @example My Project
    */
   title: string;
+  type?: string;
   /** List of Linked Database Project IDs (only used for Dashboard Projects so far) */
   linked_db_project_ids?: string[];
 }

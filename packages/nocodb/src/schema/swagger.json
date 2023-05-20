@@ -21628,6 +21628,9 @@
             "minLength": 1,
             "type": "string"
           },
+          "type": {
+            "type": "string"
+          },
           "linked_db_project_ids": {
             "description": "List of Linked Database Project IDs (only used for Dashboard Projects so far)",
             "type": "array",

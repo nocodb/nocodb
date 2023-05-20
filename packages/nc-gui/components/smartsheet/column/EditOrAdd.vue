@@ -35,7 +35,7 @@ const { formState, generateNewColumnMeta, addOrUpdate, onAlter, onUidtOrIdTypeCh
 
 const { getMeta } = useMetas()
 
-const { t } = useI18n()
+const { t, locale } = useI18n()
 
 const { $e } = useNuxtApp()
 
@@ -79,6 +79,8 @@ const uiTypesOptions = computed<typeof uiTypes>(() => {
 })
 
 const renderColumnType = (columnType: string) => {
+  if (locale.value === 'en') return columnType
+
   // when no translation is found, the value of t(`key`) would be `key`
   if (t(`datatype.${columnType}`) !== `datatype.${columnType}`) {
     // if the target translation is available, then use it

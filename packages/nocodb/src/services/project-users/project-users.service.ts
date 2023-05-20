@@ -22,6 +22,7 @@ import Noco from '../../Noco';
 import { CacheGetType, CacheScope, MetaTable } from '../../utils/globals';
 import { AppHooksService } from '../app-hooks/app-hooks.service';
 import { ProjectUserUpdateEvent } from '../app-hooks/interfaces';
+import { extractProps } from '../../helpers/extractProps';
 import type { ProjectUserReqType, UserType } from 'nocodb-sdk';
 
 @Injectable()
@@ -219,7 +220,7 @@ export class ProjectUsersService {
       NcError.forbidden('Insufficient privilege to add super admin role.');
     }
 
-    await ProjectUser.update(
+    await ProjectUser.updateRoles(
       param.projectId,
       param.userId,
       param.projectUser.roles,
@@ -353,5 +354,37 @@ export class ProjectUsersService {
       );
       throw e;
     }
+  }
+
+  async projectUserMetaUpdate(param: {
+    body: any;
+    projectId: string;
+    user: UserType;
+  }) {
+    // update project user data
+    const projectUserData = extractProps(param.body, [
+      'starred',
+      'order',
+      'hidden',
+    ]);
+
+    if (Object.keys(projectUserData).length) {
+      // create new project user if it doesn't exist
+      if (!(await ProjectUser.get(param.projectId, param.user?.id))) {
+        await ProjectUser.insert({
+          ...projectUserData,
+          project_id: param.projectId,
+          fk_user_id: param.user?.id,
+        });
+      } else {
+        await ProjectUser.update(
+          param.projectId,
+          param.user?.id,
+          projectUserData,
+        );
+      }
+    }
+
+    return true;
   }
 }

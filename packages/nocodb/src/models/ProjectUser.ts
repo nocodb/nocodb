@@ -1,3 +1,4 @@
+import { ProjectRoles, WorkspaceUserRoles } from 'nocodb-sdk';
 import {
   // CacheDelDirection,
   CacheGetType,
@@ -133,7 +134,12 @@ export default class ProjectUser {
     return (await qb.count('id', { as: 'count' }).first()).count;
   }
 
-  static async update(projectId, userId, roles: string, ncMeta = Noco.ncMeta) {
+  static async updateRoles(
+    projectId,
+    userId,
+    roles: string,
+    ncMeta = Noco.ncMeta,
+  ) {
     // get existing cache
     const key = `${CacheScope.PROJECT_USER}:${projectId}:${userId}`;
     const o = await NocoCache.get(key, CacheGetType.TYPE_OBJECT);
@@ -166,6 +172,51 @@ export default class ProjectUser {
       {
         roles,
       },
+      {
+        fk_user_id: userId,
+        project_id: projectId,
+      },
+    );
+  }
+
+  static async update(
+    projectId,
+    userId,
+    projectUser: Partial<ProjectUser>,
+    ncMeta = Noco.ncMeta,
+  ) {
+    const updateObj = extractProps(projectUser, ['starred', 'hidden', 'order']);
+
+    // get existing cache
+    const key = `${CacheScope.PROJECT_USER}:${projectId}:${userId}`;
+    const o = await NocoCache.get(key, CacheGetType.TYPE_OBJECT);
+    if (o) {
+      Object.assign(o, updateObj);
+      // set cache
+      await NocoCache.set(key, o);
+    }
+    // update user cache
+    const user = await User.get(userId);
+    if (user) {
+      const email = user.email;
+      for (const key of [
+        `${CacheScope.USER}:${email}`,
+        `${CacheScope.USER}:${email}___${projectId}`,
+      ]) {
+        const o = await NocoCache.get(key, CacheGetType.TYPE_OBJECT);
+        if (o) {
+          Object.assign(o, updateObj);
+          // set cache
+          await NocoCache.set(key, o);
+        }
+      }
+    }
+    // set meta
+    return await ncMeta.metaUpdate(
+      null,
+      null,
+      MetaTable.PROJECT_USERS,
+      updateObj,
       {
         fk_user_id: userId,
         project_id: projectId,
@@ -219,29 +270,60 @@ export default class ProjectUser {
 
   static async getProjectsList(
     userId: string,
-    _params?: any,
+    params: any,
     ncMeta = Noco.ncMeta,
   ): Promise<ProjectType[]> {
+    // let projectList: ProjectType[];
+
     // todo: pagination
-    const cachedList = await NocoCache.getList(CacheScope.USER_PROJECT, [
-      userId,
-    ]);
-    let { list: projectList } = cachedList;
-    const { isNoneList } = cachedList;
+    // todo: caching based on filter type
+    //   = await NocoCache.getList(CacheScope.USER_PROJECT, [
+    //   userId,
+    // ]);
 
-    if (!isNoneList && projectList.length) {
-      return projectList;
-    }
+    // if (projectList.length) {
+    //   return projectList;
+    // }
 
-    projectList = await ncMeta
+    const qb = ncMeta
       .knex(MetaTable.PROJECT)
       .select(`${MetaTable.PROJECT}.*`)
-      .innerJoin(MetaTable.PROJECT_USERS, function () {
+      .select(`${MetaTable.WORKSPACE_USER}.roles as workspace_role`)
+      .select(`${MetaTable.WORKSPACE}.title as workspace_title`)
+      .select(`${MetaTable.PROJECT_USERS}.starred`)
+      .select(`${MetaTable.PROJECT_USERS}.roles as project_role`)
+      .select(`${MetaTable.PROJECT_USERS}.updated_at as last_accessed`)
+      .leftJoin(MetaTable.PROJECT_USERS, function () {
         this.on(
           `${MetaTable.PROJECT_USERS}.project_id`,
           `${MetaTable.PROJECT}.id`,
         );
         this.andOn(
+          `${MetaTable.PROJECT_USERS}.fk_user_id`,
+          ncMeta.knex.raw('?', [userId]),
+        );
+      })
+      .leftJoin(MetaTable.WORKSPACE_USER, function () {
+        this.on(
+          `${MetaTable.WORKSPACE_USER}.fk_workspace_id`,
+          `${MetaTable.PROJECT}.fk_workspace_id`,
+        );
+        this.andOn(
+          `${MetaTable.WORKSPACE_USER}.fk_user_id`,
+          ncMeta.knex.raw('?', [userId]),
+        );
+      })
+      .leftJoin(MetaTable.WORKSPACE, function () {
+        this.on(
+          `${MetaTable.WORKSPACE}.id`,
+          `${MetaTable.PROJECT}.fk_workspace_id`,
+        );
+      })
+      .where(function () {
+        this.where(
+          `${MetaTable.WORKSPACE_USER}.fk_user_id`,
+          ncMeta.knex.raw('?', [userId]),
+        ).orWhere(
           `${MetaTable.PROJECT_USERS}.fk_user_id`,
           ncMeta.knex.raw('?', [userId]),
         );
@@ -252,10 +334,58 @@ export default class ProjectUser {
         );
       });
 
+    // filter starred projects
+    if (params.starred) {
+      qb.where(`${MetaTable.PROJECT_USERS}.starred`, true);
+    }
+
+    // filter shared with me projects
+    if (params.shared) {
+      qb.where(function () {
+        // include projects belongs project_user in which user is not owner
+        this.where(function () {
+          this.where(`${MetaTable.PROJECT_USERS}.fk_user_id`, userId)
+            .whereNot(`${MetaTable.PROJECT_USERS}.roles`, ProjectRoles.OWNER)
+            .whereNotNull(`${MetaTable.PROJECT_USERS}.roles`);
+        })
+          // include projects belongs workspace in which user is not owner
+          .orWhere(function () {
+            this.where(`${MetaTable.WORKSPACE_USER}.fk_user_id`, userId)
+              .whereNot(
+                `${MetaTable.WORKSPACE_USER}.roles`,
+                WorkspaceUserRoles.OWNER,
+              )
+              .whereNotNull(`${MetaTable.WORKSPACE_USER}.roles`);
+          });
+      });
+    }
+
+    // order based on recently accessed
+    if (params.recent) {
+      qb.orderBy(`${MetaTable.PROJECT_USERS}.updated_at`, 'desc');
+    }
+
+    qb.whereNot(`${MetaTable.PROJECT}.deleted`, true);
+
+    const projectList = await qb;
     if (projectList?.length) {
       await NocoCache.setList(CacheScope.USER_PROJECT, [userId], projectList);
     }
 
-    return projectList;
+    return projectList.filter((p) => !params?.type || p.type === params.type);
+  }
+  static async updateOrInsert(
+    projectId,
+    userId,
+    projectUser: Partial<ProjectUser>,
+    ncMeta = Noco.ncMeta,
+  ) {
+    const existingProjectUser = await this.get(projectId, userId, ncMeta);
+
+    if (existingProjectUser) {
+      return await this.update(projectId, userId, projectUser, ncMeta);
+    } else {
+      return await this.insert({ project_id: projectId, fk_user_id: userId });
+    }
   }
 }

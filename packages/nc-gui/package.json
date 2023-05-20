@@ -145,6 +145,7 @@
     "@types/tinycolor2": "^1.4.3",
     "@types/validator": "^13.7.10",
     "@types/vue-barcode-reader": "^0.0.0",
+    "@unocss/nuxt": "^0.51.12",
     "@vitest/ui": "^0.18.0",
     "@vue/compiler-sfc": "^3.2.37",
     "@vue/test-utils": "^2.0.2",

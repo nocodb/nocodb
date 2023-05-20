@@ -562,6 +562,19 @@ async function _formulaQueryBuilder(
                 .wrap('(', ')'),
             };
           };
+        } else if (
+          knex.clientType() === 'mssql' &&
+          col.dt !== 'datetimeoffset'
+        ) {
+          // if there is no timezone info, convert to database timezone, then convert to UTC
+          aliasToColumn[col.id] = async (): Promise<any> => {
+            return {
+              builder: knex.raw(
+                `CONVERT(DATETIMEOFFSET, ?? AT TIME ZONE 'UTC')`,
+                [col.column_name],
+              ),
+            };
+          };
         } else {
           aliasToColumn[col.id] = () =>
             Promise.resolve({ builder: col.column_name });

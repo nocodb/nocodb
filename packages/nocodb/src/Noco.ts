@@ -1,4 +1,5 @@
-// import * as Sentry from '@sentry/node';
+import Sentry, { Handlers } from '@sentry/node';
+import { Logger } from '@nestjs/common';
 import { NestFactory } from '@nestjs/core';
 import clear from 'clear';
 import * as express from 'express';
@@ -21,6 +22,7 @@ export default class Noco {
   public static readonly env: string = '_noco';
   private static _httpServer: http.Server;
   private static _server: Express;
+  private static logger = new Logger(Noco.name);
 
   public static get dashboardUrl(): string {
     let siteUrl = `http://localhost:${process.env.PORT || 8080}`;
@@ -103,6 +105,8 @@ export default class Noco {
 
     const nestApp = await NestFactory.create(AppModule);
 
+    this.initSentry(nestApp);
+
     nestApp.useWebSocketAdapter(new IoAdapter(httpServer));
 
     nestApp.use(requestIp.mw());
@@ -116,6 +120,9 @@ export default class Noco {
     const dashboardPath = process.env.NC_DASHBOARD_URL || '/dashboard';
     server.use(NcToolGui.expressMiddleware(dashboardPath));
     server.get('/', (_req, res) => res.redirect(dashboardPath));
+
+    this.initSentryErrorHandler(server);
+
     return nestApp.getHttpAdapter().getInstance();
   }
 
@@ -162,5 +169,20 @@ export default class Noco {
       });
     }
     process.env.NC_SERVER_UUID = serverId;
+  }
+
+  private static initSentryErrorHandler(router) {
+    if (process.env.NC_SENTRY_DSN) {
+      router.use(Handlers.errorHandler());
+    }
+  }
+
+  private static initSentry(router) {
+    if (process.env.NC_SENTRY_DSN) {
+      Sentry.init({ dsn: process.env.NC_SENTRY_DSN });
+
+      // The request handler must be the first middleware on the app
+      router.use(Handlers.requestHandler());
+    }
   }
 }

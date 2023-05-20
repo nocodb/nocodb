@@ -1,5 +1,4 @@
 import { isVirtualCol, ModelTypes, UITypes, ViewTypes } from 'nocodb-sdk';
-import dayjs from 'dayjs';
 import { BaseModelSqlv2 } from '../db/BaseModelSqlv2';
 import Noco from '../Noco';
 import { parseMetaProp } from '../utils/modelUtils';
@@ -16,7 +15,6 @@ import { sanitize } from '../helpers/sqlSanitize';
 import { extractProps } from '../helpers/extractProps';
 import Audit from './Audit';
 import View from './View';
-import Base from './Base';
 import Column from './Column';
 import type { BoolType, TableReqType, TableType } from 'nocodb-sdk';
 import type { XKnex } from '../db/CustomKnex';
@@ -445,18 +443,8 @@ export default class Model implements TableType {
     return true;
   }
 
-  async mapAliasToColumn(
-    data,
-    clientMeta = {
-      isMySQL: false,
-      isSqlite: false,
-      isMssql: false,
-      isPg: false,
-    },
-    knex,
-  ) {
+  async mapAliasToColumn(data) {
     const insertObj = {};
-    const base = await Base.get(this.base_id);
     for (const col of await this.getColumns()) {
       if (isVirtualCol(col)) continue;
       let val =
@@ -466,55 +454,6 @@ export default class Model implements TableType {
       if (val !== undefined) {
         if (col.uidt === UITypes.Attachment && typeof val !== 'string') {
           val = JSON.stringify(val);
-        }
-        if (col.uidt === UITypes.DateTime && dayjs(val).isValid()) {
-          const { isMySQL, isSqlite, isMssql, isPg } = clientMeta;
-          if (
-            val.indexOf('-') < 0 &&
-            val.indexOf('+') < 0 &&
-            val.slice(-1) !== 'Z'
-          ) {
-            // if no timezone is given,
-            // then append +00:00 to make it as UTC
-            val += '+00:00';
-          }
-          if (isMySQL) {
-            // first convert the value to utc
-            // from UI
-            // e.g. 2022-01-01 20:00:00Z -> 2022-01-01 20:00:00
-            // from API
-            // e.g. 2022-01-01 20:00:00+08:00 -> 2022-01-01 12:00:00
-            // if timezone info is not found - considered as utc
-            // e.g. 2022-01-01 20:00:00 -> 2022-01-01 20:00:00
-            // if timezone info is found
-            // e.g. 2022-01-01 20:00:00Z -> 2022-01-01 20:00:00
-            // e.g. 2022-01-01 20:00:00+00:00 -> 2022-01-01 20:00:00
-            // e.g. 2022-01-01 20:00:00+08:00 -> 2022-01-01 12:00:00
-            // then we use CONVERT_TZ to convert that in the db timezone
-            val = knex.raw(`CONVERT_TZ(?, '+00:00', @@GLOBAL.time_zone)`, [
-              dayjs(val).utc().format('YYYY-MM-DD HH:mm:ss'),
-            ]);
-          } else if (isSqlite) {
-            // e.g. 2022-01-01T10:00:00.000Z -> 2022-01-01 04:30:00+00:00
-            val = dayjs(val).utc().format('YYYY-MM-DD HH:mm:ssZ');
-          } else if (isPg) {
-            // convert to UTC
-            // e.g. 2023-01-01T12:00:00.000Z -> 2023-01-01 12:00:00+00:00
-            // then convert to db timezone
-            val = knex.raw(`? AT TIME ZONE CURRENT_SETTING('timezone')`, [
-              dayjs(val).utc().format('YYYY-MM-DD HH:mm:ssZ'),
-            ]);
-          } else if (isMssql) {
-            // e.g. 2023-05-10T08:49:32.000Z -> 2023-05-10 08:49:32-08:00
-            // then convert to db timezone
-            val = knex.raw(
-              `SWITCHOFFSET(? AT TIME ZONE 'UTC', SYSDATETIMEOFFSET()`,
-              [dayjs(val).utc().format('YYYY-MM-DD HH:mm:ssZ')],
-            );
-          } else {
-            // e.g. 2023-01-01T12:00:00.000Z -> 2023-01-01 12:00:00+00:00
-            val = dayjs(val).utc().format('YYYY-MM-DD HH:mm:ssZ');
-          }
         }
         insertObj[sanitize(col.column_name)] = val;
       }

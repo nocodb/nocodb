@@ -1,4 +1,3 @@
-import dayjs from 'dayjs'
 import type { MaybeRef } from '@vueuse/core'
 import type { ColumnType, LinkToAnotherRecordType, TableType } from 'nocodb-sdk'
 import { RelationTypes, UITypes, isVirtualCol } from 'nocodb-sdk'
@@ -8,7 +7,6 @@ import convertCellData from './convertCellData'
 import type { Nullable, Row } from '~/lib'
 import {
   copyTable,
-  dateFormats,
   extractPkFromRow,
   extractSdkResponseErrorMsg,
   isMac,
@@ -16,7 +14,6 @@ import {
   message,
   reactive,
   ref,
-  timeFormats,
   unref,
   useCopy,
   useEventListener,
@@ -55,7 +52,7 @@ export function useMultiSelect(
 
   const { appInfo } = useGlobal()
 
-  const { isMysql, isXcdbBase } = useProject()
+  const { isMysql } = useProject()
 
   let clipboardContext = $ref<{ value: any; uidt: UITypes } | null>(null)
 
@@ -80,12 +77,6 @@ export function useMultiSelect(
 
     activeCell.row = row
     activeCell.col = col
-  }
-
-  function constructDateTimeFormat(column: ColumnType) {
-    const dateFormat = parseProp(column?.meta)?.date_format ?? dateFormats[0]
-    const timeFormat = parseProp(column?.meta)?.time_format ?? timeFormats[0]
-    return `${dateFormat} ${timeFormat}`
   }
 
   async function copyValue(ctx?: Cell) {
@@ -115,41 +106,6 @@ export function useMultiSelect(
           if (typeof textToCopy === 'object') {
             textToCopy = JSON.stringify(textToCopy)
           }
-
-          if (columnObj.uidt === UITypes.Formula) {
-            textToCopy = textToCopy.replace(/\b(\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}\+\d{2}:\d{2})\b/g, (d: string) => {
-              // TODO(timezone): retrieve the format from the corresponding column meta
-              // assume hh:mm at this moment
-              return dayjs(d).utc().local().format('YYYY-MM-DD HH:mm')
-            })
-          }
-
-          if (columnObj.uidt === UITypes.DateTime) {
-            // remove `"`
-            // e.g. "2023-05-12T08:03:53.000Z" -> 2023-05-12T08:03:53.000Z
-            textToCopy = textToCopy.replace(/["']/g, '')
-
-            const isMySQL = isMysql(columnObj.base_id)
-
-            let d = dayjs(textToCopy)
-
-            if (!d.isValid()) {
-              // insert a datetime value, copy the value without refreshing
-              // e.g. textToCopy = 2023-05-12T03:49:25.000Z
-              // feed custom parse format
-              d = dayjs(textToCopy, isMySQL ? 'YYYY-MM-DD HH:mm:ss' : 'YYYY-MM-DD HH:mm:ssZ')
-            }
-
-            // users can change the datetime format in UI
-            // `textToCopy` would be always in YYYY-MM-DD HH:mm:ss(Z / +xx:yy) format
-            // therefore, here we reformat to the correct datetime format based on the meta
-            textToCopy = d.format(constructDateTimeFormat(columnObj))
-
-            if (!dayjs(textToCopy).isValid()) {
-              throw new Error('Invalid Date')
-            }
-          }
-
           await copy(textToCopy)
           message.success(t('msg.info.copiedToClipboard'))
         }
@@ -349,7 +305,6 @@ export function useMultiSelect(
                         appInfo: unref(appInfo),
                       },
                       isMysql(meta.value?.base_id),
-                      isXcdbBase(meta.value?.base_id),
                     )
                     e.preventDefault()
 
@@ -384,7 +339,6 @@ export function useMultiSelect(
                         appInfo: unref(appInfo),
                       },
                       isMysql(meta.value?.base_id),
-                      isXcdbBase(meta.value?.base_id),
                     )
                     e.preventDefault()
                     syncCellData?.(activeCell)

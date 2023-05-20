@@ -1,7 +1,7 @@
 <script lang="ts" setup>
 import type { ColumnType } from 'nocodb-sdk'
 import type { Ref } from 'vue'
-import { CellValueInj, ColumnInj, computed, handleTZ, inject, renderValue, replaceUrlsWithLink, useProject } from '#imports'
+import { CellValueInj, ColumnInj, computed, handleTZ, inject, replaceUrlsWithLink, useProject } from '#imports'
 
 // todo: column type doesn't have required property `error` - throws in typecheck
 const column = inject(ColumnInj) as Ref<ColumnType & { colOptions: { error: any } }>
@@ -10,9 +10,7 @@ const cellValue = inject(CellValueInj)
 
 const { isPg } = useProject()
 
-const result = computed(() =>
-  isPg(column.value.base_id) ? renderValue(handleTZ(cellValue?.value)) : renderValue(cellValue?.value),
-)
+const result = computed(() => (isPg(column.value.base_id) ? handleTZ(cellValue?.value) : cellValue?.value))
 
 const urls = computed(() => replaceUrlsWithLink(result.value))
 

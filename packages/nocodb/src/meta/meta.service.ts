@@ -6,9 +6,7 @@ import {
   OnModuleInit,
   Optional,
 } from '@nestjs/common';
-import dayjs from 'dayjs';
-import utc from 'dayjs/plugin/utc';
-import timezone from 'dayjs/plugin/timezone';
+
 import { customAlphabet } from 'nanoid';
 import CryptoJS from 'crypto-js';
 import { Connection } from '../connection/connection';
@@ -17,9 +15,6 @@ import NocoCache from '../cache/NocoCache';
 import XcMigrationSourcev2 from './migrations/XcMigrationSourcev2';
 import XcMigrationSource from './migrations/XcMigrationSource';
 import type { Knex } from 'knex';
-
-dayjs.extend(utc);
-dayjs.extend(timezone);
 
 const nanoid = customAlphabet('1234567890abcdefghijklmnopqrstuvwxyz_', 4);
 
@@ -261,8 +256,8 @@ export class MetaService {
 
     await this.knexConnection(target).insert({
       ...insertObj,
-      created_at: this.now(),
-      updated_at: this.now(),
+      created_at: data?.created_at || this.knexConnection?.fn?.now(),
+      updated_at: data?.updated_at || this.knexConnection?.fn?.now(),
     });
     return insertObj;
   }
@@ -544,9 +539,9 @@ export class MetaService {
     return this.knexConnection(target).insert({
       db_alias: dbAlias,
       project_id,
+      created_at: this.knexConnection?.fn?.now(),
+      updated_at: this.knexConnection?.fn?.now(),
       ...data,
-      created_at: this.now(),
-      updated_at: this.now(),
     });
   }
 
@@ -694,7 +689,7 @@ export class MetaService {
 
     delete data.created_at;
 
-    query.update({ ...data, updated_at: this.now() });
+    query.update({ ...data, updated_at: this.knexConnection?.fn?.now() });
     if (typeof idOrCondition !== 'object') {
       query.where('id', idOrCondition);
     } else if (idOrCondition) {
@@ -815,8 +810,8 @@ export class MetaService {
       // todo: check project name used or not
       await this.knexConnection('nc_projects').insert({
         ...project,
-        created_at: this.now(),
-        updated_at: this.now(),
+        created_at: this.knexConnection?.fn?.now(),
+        updated_at: this.knexConnection?.fn?.now(),
       });
 
       // todo
@@ -1033,19 +1028,6 @@ export class MetaService {
 
   private getNanoId() {
     return nanoid();
-  }
-
-  private isMySQL(): boolean {
-    return (
-      this.connection.clientType() === 'mysql' ||
-      this.connection.clientType() === 'mysql2'
-    );
-  }
-
-  private now(): any {
-    return dayjs()
-      .utc()
-      .format(this.isMySQL() ? 'YYYY-MM-DD HH:mm:ss' : 'YYYY-MM-DD HH:mm:ssZ');
   }
 
   public async audit(

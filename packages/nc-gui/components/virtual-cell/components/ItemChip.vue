@@ -7,9 +7,9 @@ import {
   iconMap,
   inject,
   ref,
-  renderValue,
   useExpandedFormDetached,
   useLTARStoreOrThrow,
+  useUIPermission,
 } from '#imports'
 
 interface Props {
@@ -60,7 +60,7 @@ export default {
     :class="{ active }"
     @click="openExpandedForm"
   >
-    <span class="name">{{ renderValue(value) }}</span>
+    <span class="name">{{ value }}</span>
 
     <div v-show="active || isForm" v-if="!readOnly && !isLocked && isUIAllowed('xcDatatableEditable')" class="flex items-center">
       <component

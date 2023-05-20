@@ -4,7 +4,6 @@ import customParseFormat from 'dayjs/plugin/customParseFormat.js'
 import duration from 'dayjs/plugin/duration.js'
 import utc from 'dayjs/plugin/utc.js'
 import weekday from 'dayjs/plugin/weekday.js'
-import timezone from 'dayjs/plugin/timezone.js'
 import { defineNuxtPlugin } from '#imports'
 
 export default defineNuxtPlugin(() => {
@@ -13,5 +12,4 @@ export default defineNuxtPlugin(() => {
   extend(customParseFormat)
   extend(duration)
   extend(weekday)
-  extend(timezone)
 })

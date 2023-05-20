@@ -18,14 +18,13 @@ import {
 interface Props {
   modelValue?: string | null
   isPk?: boolean
-  isUpdatedFromCopyNPaste: Record<string, boolean>
 }
 
-const { modelValue, isPk, isUpdatedFromCopyNPaste } = defineProps<Props>()
+const { modelValue, isPk } = defineProps<Props>()
 
 const emit = defineEmits(['update:modelValue'])
 
-const { isMssql, isMysql, isXcdbBase } = useProject()
+const { isMysql } = useProject()
 
 const { showNull } = useGlobal()
 
@@ -45,8 +44,6 @@ const dateTimeFormat = $computed(() => {
   return `${dateFormat} ${timeFormat}`
 })
 
-let localModelValue = modelValue ? dayjs(modelValue).utc().local() : undefined
-
 let localState = $computed({
   get() {
     if (!modelValue) {
@@ -58,45 +55,7 @@ let localState = $computed({
       return undefined
     }
 
-    const isXcDB = isXcdbBase(column.value.base_id)
-
-    // cater copy and paste
-    // when copying a datetime cell, the copied value would be local time
-    // when pasting a datetime cell, UTC (xcdb) will be saved in DB
-    // we convert back to local time
-    if (column.value.title! in (isUpdatedFromCopyNPaste ?? {})) {
-      localModelValue = dayjs(modelValue).utc().local()
-      return localModelValue
-    }
-
-    // ext db
-    if (!isXcDB) {
-      return /^\d+$/.test(modelValue) ? dayjs(+modelValue) : dayjs(modelValue)
-    }
-
-    if (isMssql(column.value.base_id)) {
-      // e.g. 2023-04-29T11:41:53.000Z
-      return dayjs(modelValue)
-    }
-
-    // if cdf is defined, that means the value is auto-generated
-    // hence, show the local time
-    if (column?.value?.cdf) {
-      return dayjs(modelValue).utc().local()
-    }
-
-    // if localModelValue is defined, show localModelValue instead
-    // localModelValue is set in setter below
-    if (localModelValue) {
-      const res = localModelValue
-      // resetting localModelValue here
-      // e.g. save in expanded form -> render the correct modelValue
-      localModelValue = undefined
-      return res
-    }
-
-    // empty cell - use modelValue in local time
-    return dayjs(modelValue).utc().local()
+    return /^\d+$/.test(modelValue) ? dayjs(+modelValue) : dayjs(modelValue)
   },
   set(val?: dayjs.Dayjs) {
     if (!val) {
@@ -105,10 +64,7 @@ let localState = $computed({
     }
 
     if (val.isValid()) {
-      const formattedValue = dayjs(val?.format(isMysql(column.value.base_id) ? 'YYYY-MM-DD HH:mm:ss' : 'YYYY-MM-DD HH:mm:ssZ'))
-      // setting localModelValue to cater NOW function in date picker
-      localModelValue = formattedValue
-      emit('update:modelValue', formattedValue)
+      emit('update:modelValue', val?.format(isMysql(column.value.base_id) ? 'YYYY-MM-DD HH:mm:ss' : 'YYYY-MM-DD HH:mm:ssZ'))
     }
   },
 })

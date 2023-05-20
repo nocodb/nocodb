@@ -9,6 +9,7 @@ import requestIp from 'request-ip';
 import cookieParser from 'cookie-parser';
 import { T } from 'nc-help';
 import { v4 as uuidv4 } from 'uuid';
+import dotenv from 'dotenv';
 import { AppModule } from './app.module';
 import { NC_LICENSE_KEY } from './constants';
 import Store from './models/Store';
@@ -16,6 +17,8 @@ import { MetaTable } from './utils/globals';
 import type { IEventEmitter } from './modules/event-emitter/event-emitter.interface';
 import type { Express } from 'express';
 import type * as http from 'http';
+
+dotenv.config();
 
 export default class Noco {
   private static _this: Noco;

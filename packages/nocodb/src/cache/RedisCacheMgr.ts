@@ -12,8 +12,12 @@ export default class RedisCacheMgr extends CacheMgr {
   constructor(config: any) {
     super();
     this.client = new Redis(config);
-    // flush the existing db with selected key (Default: 0)
-    this.client.flushdb();
+
+    // avoid flushing db in worker container
+    if (!process.env['NC_WORKER_CONTAINER']) {
+      // flush the existing db with selected key (Default: 0)
+      this.client.flushdb();
+    }
 
     // TODO(cache): fetch orgs once it's implemented
     const orgs = 'noco';

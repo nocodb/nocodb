@@ -2,28 +2,28 @@ import {
   Body,
   Controller,
   HttpCode,
+  Inject,
   Param,
   Post,
   Request,
   UseGuards,
 } from '@nestjs/common';
 import { ProjectStatus } from 'nocodb-sdk';
-import { GlobalGuard } from '../../../guards/global/global.guard';
+import { GlobalGuard } from '../../../../guards/global/global.guard';
 import {
   Acl,
   ExtractProjectIdMiddleware,
-} from '../../../middlewares/extract-project-id/extract-project-id.middleware';
-import { ProjectsService } from '../../../services/projects.service';
-import { Base, Model, Project } from '../../../models';
-import { generateUniqueName } from '../../../helpers/exportImportHelpers';
-import { JobsService } from '../jobs.service';
-import { JobTypes } from '../../../interface/Jobs';
+} from '../../../../middlewares/extract-project-id/extract-project-id.middleware';
+import { ProjectsService } from '../../../../services/projects.service';
+import { Base, Model, Project } from '../../../../models';
+import { generateUniqueName } from '../../../../helpers/exportImportHelpers';
+import { JobTypes } from '../../../../interface/Jobs';
 
 @Controller()
 @UseGuards(ExtractProjectIdMiddleware, GlobalGuard)
 export class DuplicateController {
   constructor(
-    private readonly jobsService: JobsService,
+    @Inject('JobsService') private readonly jobsService,
     private readonly projectsService: ProjectsService,
   ) {}
 

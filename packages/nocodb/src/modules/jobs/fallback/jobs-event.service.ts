@@ -7,7 +7,7 @@ import {
 import { Job } from 'bull';
 import boxen from 'boxen';
 import { EventEmitter2 } from '@nestjs/event-emitter';
-import { JobEvents, JOBS_QUEUE, JobStatus } from '../../interface/Jobs';
+import { JobEvents, JOBS_QUEUE, JobStatus } from '../../../interface/Jobs';
 
 @Processor(JOBS_QUEUE)
 export class JobsEventService {
@@ -53,13 +53,6 @@ export class JobsEventService {
       data: {
         result: data,
       },
-    });
-  }
-
-  sendLog(job: Job, data: { message: string }) {
-    this.eventEmitter.emit(JobEvents.LOG, {
-      id: job.id.toString(),
-      data,
     });
   }
 }

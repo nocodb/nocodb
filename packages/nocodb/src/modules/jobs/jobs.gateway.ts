@@ -9,10 +9,10 @@ import { Server, Socket } from 'socket.io';
 import { ExecutionContextHost } from '@nestjs/core/helpers/execution-context-host';
 import { AuthGuard } from '@nestjs/passport';
 import { OnEvent } from '@nestjs/event-emitter';
+import { Inject } from '@nestjs/common';
 import { JobEvents } from '../../interface/Jobs';
-import { JobsService } from './jobs.service';
-import type { JobStatus } from '../../interface/Jobs';
 import type { OnModuleInit } from '@nestjs/common';
+import type { JobStatus } from '../../interface/Jobs';
 
 @WebSocketGateway({
   cors: {
@@ -23,7 +23,7 @@ import type { OnModuleInit } from '@nestjs/common';
   namespace: 'jobs',
 })
 export class JobsGateway implements OnModuleInit {
-  constructor(private readonly jobsService: JobsService) {}
+  constructor(@Inject('JobsService') private readonly jobsService) {}
 
   @WebSocketServer()
   server: Server;

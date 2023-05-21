@@ -2,7 +2,6 @@ import { NestFactory } from '@nestjs/core';
 import cors from 'cors';
 import express from 'express';
 import { AppModule } from './app.module';
-import { AppModule as WorkerModule } from './worker.module';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
@@ -20,7 +19,7 @@ async function bootstrap() {
     if (!process.env['NC_REDIS_URL']) {
       throw new Error('NC_REDIS_URL is required');
     }
-    const app = await NestFactory.create(WorkerModule);
+    const app = await NestFactory.create(AppModule);
     await app.init();
   }
 }

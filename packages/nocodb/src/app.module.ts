@@ -1,6 +1,5 @@
 import { Module, RequestMethod } from '@nestjs/common';
 import { APP_FILTER } from '@nestjs/core';
-import { BullModule } from '@nestjs/bull';
 import { EventEmitterModule as NestJsEventEmitter } from '@nestjs/event-emitter';
 import { GlobalExceptionFilter } from './filters/global-exception/global-exception.filter';
 import { GlobalMiddleware } from './middlewares/global/global.middleware';
@@ -30,13 +29,6 @@ import type { MiddlewareConsumer } from '@nestjs/common';
     EventEmitterModule,
     JobsModule,
     NestJsEventEmitter.forRoot(),
-    ...(process.env['NC_REDIS_URL']
-      ? [
-          BullModule.forRoot({
-            url: process.env.NC_REDIS_URL,
-          }),
-        ]
-      : []),
   ],
   controllers: [],
   providers: [

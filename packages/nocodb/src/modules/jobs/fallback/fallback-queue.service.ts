@@ -1,12 +1,12 @@
 import { Injectable } from '@nestjs/common';
 import PQueue from 'p-queue';
 import Emittery from 'emittery';
-import { JobStatus, JobTypes } from '../../interface/Jobs';
-import { DuplicateProcessor } from './export-import/duplicate.processor';
+import { JobStatus, JobTypes } from '../../../interface/Jobs';
+import { DuplicateProcessor } from '../jobs/export-import/duplicate.processor';
+import { AtImportProcessor } from '../jobs/at-import/at-import.processor';
 import { JobsEventService } from './jobs-event.service';
-import { AtImportProcessor } from './at-import/at-import.processor';
 
-interface Job {
+export interface Job {
   id: string;
   name: string;
   status: string;

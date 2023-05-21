@@ -13,6 +13,7 @@ import {
   getViewAndModelByAliasOrId,
   serializeCellValue,
 } from '../modules/datas/helpers';
+import type { BaseModelSqlv2 } from '../db/BaseModelSqlv2';
 import type { PathParams } from '../modules/datas/helpers';
 import type { LinkToAnotherRecordColumn, LookupColumn } from '../models';
 
@@ -110,16 +111,23 @@ export class DatasService {
     return await baseModel.delByPk(param.rowId, null, param.cookie);
   }
 
-  async getDataList(param: { model: Model; view: View; query: any }) {
+  async getDataList(param: {
+    model: Model;
+    view: View;
+    query: any;
+    baseModel?: BaseModelSqlv2;
+  }) {
     const { model, view, query = {} } = param;
 
     const base = await Base.get(model.base_id);
 
-    const baseModel = await Model.getBaseModelSQL({
-      id: model.id,
-      viewId: view?.id,
-      dbDriver: await NcConnectionMgrv2.get(base),
-    });
+    const baseModel =
+      param.baseModel ||
+      (await Model.getBaseModelSQL({
+        id: model.id,
+        viewId: view?.id,
+        dbDriver: await NcConnectionMgrv2.get(base),
+      }));
 
     const { ast, dependencyFields } = await getAst({ model, query, view });
 

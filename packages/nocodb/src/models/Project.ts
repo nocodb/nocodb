@@ -48,6 +48,7 @@ export default class Project implements ProjectType {
       'prefix',
       'description',
       'is_meta',
+      'status',
       'type',
       'fk_workspace_id',
       'meta',

@@ -40,7 +40,9 @@ loadLicense()
       <div>
         <a-textarea v-model:value="key" placeholder="License key" class="!mt-2 !max-w-[600px]"></a-textarea>
       </div>
-      <div class="text-center"><a-button class="mt-4" @click="setLicense" type="primary">Save license key</a-button></div>
+      <div class="text-center">
+        <a-button class="mt-4 !h-[2.2rem] !rounded-md" @click="setLicense" type="primary">Save license key</a-button>
+      </div>
     </div>
   </div>
 </template>

@@ -152,13 +152,55 @@ onMounted(() => {
 </script>
 
 <template>
-  <div class="flex flex-col w-full" data-testid="nc-share-base-sub-modal">
-    <div class="flex flex-row items-center space-x-0.5 pl-2 h-[0.8rem]">
-      <component :is="iconMap.share" />
+  <div class="flex flex-col gap-2 w-full" data-testid="nc-share-base-sub-modal">
+    <!--    Generate publicly shareable readonly base -->
+    <div class="flex text-xs text-gray-500 justify-start ml-1">{{ $t('msg.info.generatePublicShareableReadonlyBase') }}</div>
 
-      <div class="text-xs">{{ $t('activity.shareBase.link') }}</div>
+    <div class="flex flex-row justify-between mx-1">
+      <a-dropdown v-model="showEditBaseDropdown" class="flex" overlay-class-name="nc-dropdown-shared-base-toggle">
+        <a-button>
+          <div class="flex flex-row rounded-md items-center space-x-2 nc-disable-shared-base">
+            <div v-if="base?.uuid">{{ $t('activity.shareBase.enable') }}</div>
+            <div v-else>{{ $t('activity.shareBase.disable') }}</div>
+            <IcRoundKeyboardArrowDown class="h-[1rem]" />
+          </div>
+        </a-button>
+
+        <template #overlay>
+          <a-menu>
+            <a-menu-item>
+              <div v-if="base?.uuid" class="py-3" @click="disableSharedBase">{{ $t('activity.shareBase.disable') }}</div>
+              <div v-else class="py-3" @click="createShareBase(ShareBaseRole.Viewer)">{{ $t('activity.shareBase.enable') }}</div>
+            </a-menu-item>
+          </a-menu>
+        </template>
+      </a-dropdown>
+
+      <a-select
+        v-if="base?.uuid"
+        v-model:value="base.role"
+        class="flex nc-shared-base-role"
+        dropdown-class-name="nc-dropdown-share-base-role"
+      >
+        <template #suffixIcon>
+          <div class="flex flex-row">
+            <IcRoundKeyboardArrowDown class="text-black -mt-0.5 h-[1rem]" />
+          </div>
+        </template>
+
+        <a-select-option
+          v-for="(role, index) in [ShareBaseRole.Editor, ShareBaseRole.Viewer]"
+          :key="index"
+          :value="role"
+          dropdown-class-name="capitalize"
+          @click="createShareBase(role)"
+        >
+          <div class="w-full px-2 capitalize">
+            {{ role }}
+          </div>
+        </a-select-option>
+      </a-select>
     </div>
-
     <div v-if="base?.uuid" class="flex flex-row mt-2 bg-red-50 py-4 mx-1 px-2 items-center rounded-sm w-full justify-between">
       <span class="flex text-xs overflow-x-hidden overflow-ellipsis text-gray-700 pl-2 nc-url">{{ url }}</span>
 
@@ -211,55 +253,6 @@ onMounted(() => {
           </a-button>
         </a-tooltip>
       </div>
-    </div>
-
-    <!--    Generate publicly shareable readonly base -->
-    <div class="flex text-xs text-gray-500 mt-2 justify-start ml-2">{{ $t('msg.info.generatePublicShareableReadonlyBase') }}</div>
-
-    <div class="mt-4 flex flex-row justify-between mx-1">
-      <a-dropdown v-model="showEditBaseDropdown" class="flex" overlay-class-name="nc-dropdown-shared-base-toggle">
-        <a-button>
-          <div class="flex flex-row items-center space-x-2 nc-disable-shared-base">
-            <div v-if="base?.uuid">{{ $t('activity.shareBase.enable') }}</div>
-            <div v-else>{{ $t('activity.shareBase.disable') }}</div>
-            <IcRoundKeyboardArrowDown class="h-[1rem]" />
-          </div>
-        </a-button>
-
-        <template #overlay>
-          <a-menu>
-            <a-menu-item>
-              <div v-if="base?.uuid" class="py-3" @click="disableSharedBase">{{ $t('activity.shareBase.disable') }}</div>
-              <div v-else class="py-3" @click="createShareBase(ShareBaseRole.Viewer)">{{ $t('activity.shareBase.enable') }}</div>
-            </a-menu-item>
-          </a-menu>
-        </template>
-      </a-dropdown>
-
-      <a-select
-        v-if="base?.uuid"
-        v-model:value="base.role"
-        class="flex nc-shared-base-role"
-        dropdown-class-name="nc-dropdown-share-base-role"
-      >
-        <template #suffixIcon>
-          <div class="flex flex-row">
-            <IcRoundKeyboardArrowDown class="text-black -mt-0.5 h-[1rem]" />
-          </div>
-        </template>
-
-        <a-select-option
-          v-for="(role, index) in [ShareBaseRole.Editor, ShareBaseRole.Viewer]"
-          :key="index"
-          :value="role"
-          dropdown-class-name="capitalize"
-          @click="createShareBase(role)"
-        >
-          <div class="w-full px-2 capitalize">
-            {{ role }}
-          </div>
-        </a-select-option>
-      </a-select>
     </div>
   </div>
 </template>

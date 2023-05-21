@@ -1,8 +1,9 @@
 <script setup lang="ts">
 import type { ColumnType } from 'nocodb-sdk'
 import {
+  ActiveCellInj,
   ColumnInj,
-  EditModeInj,
+  IsFormInj,
   ReadonlyInj,
   computed,
   isBoolean,
@@ -182,6 +183,10 @@ const hasExtraPadding = $computed(() => {
       isYear(column.value, abstractType))
   )
 })
+
+// provide the following to override the default behavior and enable input fields like in form
+provide(ActiveCellInj, ref(true))
+provide(IsFormInj, ref(true))
 </script>
 
 <template>

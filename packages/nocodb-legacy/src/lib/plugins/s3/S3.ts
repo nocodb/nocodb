@@ -7,6 +7,7 @@ import {
   waitForStreamClose,
 } from '../../utils/pluginUtils';
 import type { IStorageAdapterV2, XcFile } from 'nc-plugin';
+import type { Readable } from 'stream';
 
 export default class S3 implements IStorageAdapterV2 {
   private s3Client: AWS.S3;
@@ -72,9 +73,24 @@ export default class S3 implements IStorageAdapterV2 {
               resolve(data.Location);
             }
           });
-        }
+        },
       );
     });
+  }
+
+  // TODO - implement
+  fileCreateByStream(_key: string, _stream: Readable): Promise<void> {
+    return Promise.resolve(undefined);
+  }
+
+  // TODO - implement
+  fileReadByStream(_key: string): Promise<Readable> {
+    return Promise.resolve(undefined);
+  }
+
+  // TODO - implement
+  getDirectoryList(_path: string): Promise<string[]> {
+    return Promise.resolve(undefined);
   }
 
   public async fileDelete(_path: string): Promise<any> {

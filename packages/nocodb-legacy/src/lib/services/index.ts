@@ -36,6 +36,8 @@ export * as syncService from './sync';
 export * from './public';
 export * as orgTokenService from './orgToken.svc';
 export * as orgTokenServiceEE from './ee/orgToken.svc';
+export * as exportService from './exportImport/export.svc';
+export * as importService from './exportImport/import.svc';
 export * as docsPageService from './docs/page.svc';
 export * as commandPaletteService from './commandPalette.svc';
 export * as workspaceService from './workspace.svc';

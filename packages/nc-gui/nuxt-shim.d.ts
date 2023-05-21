@@ -1,6 +1,6 @@
 import type { Api as BaseAPI } from 'nocodb-sdk'
 import type { UseGlobalReturn } from './composables/useGlobal/types'
-import type { NocoI18n } from './lib'
+import type { JobStatus, NocoI18n } from './lib'
 import type { TabType } from './composables'
 
 declare module '#app/nuxt' {
@@ -13,6 +13,20 @@ declare module '#app/nuxt' {
     /** {@link import('./plugins/tele') Telemetry} Emit telemetry event */
     $e: (event: string, data?: any) => void
     $state: UseGlobalReturn
+    $jobs: {
+      subscribe(
+        job:
+          | {
+              id: string
+              name: string
+            }
+          | any,
+        subscribedCb?: () => void,
+        statusCb?: ((status: JobStatus, error?: any) => void) | undefined,
+        logCb?: ((data: { message: string }) => void) | undefined,
+      ): void
+      getStatus(name: string, id: string): Promise<string>
+    }
   }
 }
 

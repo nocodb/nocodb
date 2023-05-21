@@ -59,7 +59,7 @@ async function onDelete() {
 <template>
   <a-modal
     v-model:visible="vModel"
-    class="!top-[35%]"
+    centered
     :class="{ active: vModel }"
     :confirm-loading="isLoading"
     wrap-class-name="nc-modal-view-delete"
@@ -69,9 +69,9 @@ async function onDelete() {
     {{ $t('msg.info.deleteViewConfirmation') }}
 
     <template #footer>
-      <a-button key="back" @click="vModel = false">{{ $t('general.cancel') }}</a-button>
+      <a-button key="back" class="!rounded-md" @click="vModel = false">{{ $t('general.cancel') }}</a-button>
 
-      <a-button key="submit" danger html-type="submit" :loading="isLoading" @click="onDelete">
+      <a-button key="submit" class="!rounded-md" danger html-type="submit" :loading="isLoading" @click="onDelete">
         {{ $t('general.submit') }}
       </a-button>
     </template>

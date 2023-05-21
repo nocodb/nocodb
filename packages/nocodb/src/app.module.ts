@@ -2,9 +2,9 @@ import { Inject, Module, RequestMethod } from '@nestjs/common';
 import { APP_FILTER, APP_GUARD, APP_INTERCEPTOR } from '@nestjs/core';
 import { ThrottlerModule } from '@nestjs/throttler';
 import { ConfigModule } from '@nestjs/config';
-import { Connection } from './connection/connection';
+import { BullModule } from '@nestjs/bull';
+import { EventEmitterModule as NestJsEventEmitter } from '@nestjs/event-emitter';
 import { GlobalExceptionFilter } from './filters/global-exception/global-exception.filter';
-import NcPluginMgrv2 from './helpers/NcPluginMgrv2';
 import { GlobalMiddleware } from './middlewares/global/global.middleware';
 import { GuiMiddleware } from './middlewares/gui/gui.middleware';
 import { PublicMiddleware } from './middlewares/public/public.middleware';
@@ -13,19 +13,16 @@ import { IEventEmitter } from './modules/event-emitter/event-emitter.interface';
 import { EventEmitterModule } from './modules/event-emitter/event-emitter.module';
 import { AuthService } from './services/auth.service';
 import { UsersModule } from './modules/users/users.module';
-import { MetaService } from './meta/meta.service';
-import Noco from './Noco';
 import { TestModule } from './modules/test/test.module';
 import { GlobalModule } from './modules/global/global.module';
+import { HookHandlerService } from './services/hook-handler.service';
 import { LocalStrategy } from './strategies/local.strategy';
 import { AuthTokenStrategy } from './strategies/authtoken.strategy/authtoken.strategy';
 import { BaseViewStrategy } from './strategies/base-view.strategy/base-view.strategy';
-import NcConfigFactory from './utils/NcConfigFactory';
-import NcUpgrader from './version-upgrader/NcUpgrader';
 import { MetasModule } from './modules/metas/metas.module';
 import { WorkspacesModule } from './modules/workspaces/workspaces.module';
 import { WorkspaceUsersModule } from './modules/workspace-users/workspace-users.module';
-import NocoCache from './cache/NocoCache';
+import { JobsModule } from './modules/jobs/jobs.module';
 import { ThrottlerConfigService } from './services/throttler/throttler-config.service';
 import { CustomApiLimiterGuard } from './guards/custom-api-limiter.guard';
 
@@ -34,10 +31,8 @@ import { ExtractProjectAndWorkspaceIdMiddleware } from './middlewares/extract-pr
 import { ExecutionTimeCalculatorInterceptor } from './interceptors/execution-time-calculator/execution-time-calculator.interceptor';
 
 import { HookHandlerService } from './services/hook-handler.service';
-import type {
-  MiddlewareConsumer,
-  OnApplicationBootstrap,
-} from '@nestjs/common';
+import { AppInitService } from './services/app-init.service';
+import type { MiddlewareConsumer } from '@nestjs/common';
 
 // todo: refactor to use config service
 const enableThrottler = !!process.env['NC_THROTTLER_REDIS'];
@@ -49,7 +44,16 @@ const enableThrottler = !!process.env['NC_THROTTLER_REDIS'];
     ...(process.env['PLAYWRIGHT_TEST'] === 'true' ? [TestModule] : []),
     MetasModule,
     DatasModule,
-    TestModule,
+    EventEmitterModule,
+    JobsModule,
+    NestJsEventEmitter.forRoot(),
+    ...(process.env['NC_REDIS_URL']
+      ? [
+          BullModule.forRoot({
+            redis: process.env.NC_REDIS_URL,
+          }),
+        ]
+      : []),
     EventEmitterModule,
 
     // todo:combine and move to meta module
@@ -94,15 +98,11 @@ const enableThrottler = !!process.env['NC_THROTTLER_REDIS'];
     AuthTokenStrategy,
     BaseViewStrategy,
     HookHandlerService,
+    AppInitService,
+    HookHandlerService,
   ],
 })
 export class AppModule implements OnApplicationBootstrap {
-  constructor(
-    private readonly connection: Connection,
-    private readonly metaService: MetaService,
-    @Inject('IEventEmitter') private readonly eventEmitter: IEventEmitter,
-  ) {}
-
   // Global Middleware
   configure(consumer: MiddlewareConsumer) {
     consumer
@@ -112,31 +112,5 @@ export class AppModule implements OnApplicationBootstrap {
       .forRoutes({ path: '*', method: RequestMethod.GET })
       .apply(GlobalMiddleware)
       .forRoutes({ path: '*', method: RequestMethod.ALL });
-  }
-
-  // app init
-  async onApplicationBootstrap(): Promise<void> {
-    process.env.NC_VERSION = '0105004';
-
-    await NocoCache.init();
-
-    await this.connection.init();
-
-    await NcConfigFactory.metaDbCreateIfNotExist(this.connection.config);
-
-    await this.metaService.init();
-
-    // todo: remove
-    // temporary hack
-    Noco._ncMeta = this.metaService;
-    Noco.config = this.connection.config;
-    Noco.eventEmitter = this.eventEmitter;
-
-    // init plugin manager
-    await NcPluginMgrv2.init(Noco.ncMeta);
-    await Noco.loadEEState();
-
-    // run upgrader
-    await NcUpgrader.upgrade({ ncMeta: Noco._ncMeta });
   }
 }

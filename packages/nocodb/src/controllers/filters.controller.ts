@@ -76,7 +76,7 @@ export class FiltersController {
 
   @Get('/api/v1/db/meta/filters/:filterParentId/children')
   @Acl('filterChildrenList')
-  async filterChildrenRead(filterParentId: string) {
+  async filterChildrenRead(@Param('filterParentId') filterParentId: string) {
     return new PagedResponseImpl(
       await this.filtersService.filterChildrenList({
         filterId: filterParentId,

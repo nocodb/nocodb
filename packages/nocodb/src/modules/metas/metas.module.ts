@@ -30,7 +30,6 @@ import { GalleriesController } from '../../controllers/galleries.controller';
 import { GridColumnsController } from '../../controllers/grid-columns.controller';
 import { GridsController } from '../../controllers/grids.controller';
 import { HooksController } from '../../controllers/hooks.controller';
-import { ImportController } from '../../controllers/imports/import.controller';
 import { KanbansController } from '../../controllers/kanbans.controller';
 import { MapsController } from '../../controllers/maps.controller';
 import { MetaDiffsController } from '../../controllers/meta-diffs.controller';
@@ -98,7 +97,7 @@ import { ClickhouseService } from '../../services/clickhouse/clickhouse.service'
 import { ThrottlerExpiryListenerService } from '../../services/throttler/throttler-expiry-listener.service';
 import { DashboardFilterController } from '../../controllers/dashboards/dashboardFilter.controller';
 import { DashboardFilterService } from '../../services/dashboards/dashboardFilter.service';
-import {TelemetryController} from "../../controllers/telemetry.controller";
+import { TelemetryController } from '../../controllers/telemetry.controller';
 
 // todo: refactor to use config service
 const enableThrottler = !!process.env['NC_THROTTLER_REDIS'];
@@ -131,7 +130,6 @@ const enableThrottler = !!process.env['NC_THROTTLER_REDIS'];
     GridColumnsController,
     GridsController,
     HooksController,
-    ImportController,
     KanbansController,
     LayoutsController,
     MapsController,
@@ -157,7 +155,7 @@ const enableThrottler = !!process.env['NC_THROTTLER_REDIS'];
     DocsPagesHistoryController,
     DocsPagesController,
     DocsPublicController,
-    TelemetryController
+    TelemetryController,
   ],
   providers: [
     /** DAOs */
@@ -213,6 +211,24 @@ const enableThrottler = !!process.env['NC_THROTTLER_REDIS'];
     DocsPagesUpdateService,
     PublicDocsService,
     ...(enableThrottler ? [ThrottlerExpiryListenerService] : []),
+  ],
+  exports: [
+    TablesService,
+    ColumnsService,
+    FiltersService,
+    SortsService,
+    ViewsService,
+    ViewColumnsService,
+    GridsService,
+    GridColumnsService,
+    FormsService,
+    FormColumnsService,
+    GalleriesService,
+    KanbansService,
+    ProjectsService,
+    AttachmentsService,
+    ProjectUsersService,
+    HooksService,
   ],
 })
 export class MetasModule {}

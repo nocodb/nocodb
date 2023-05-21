@@ -247,14 +247,20 @@ const quickVerify = async ({
   }
 
   if (airtableImport) {
-    // Delete project
+    // Delete default context project
     await dashboard.clickHome();
     if (isHub()) {
       const workspacePage = new WorkspacePage(dashboard.rootPage);
       await workspacePage.projectDelete({ title: context.project.title });
     } else {
       const projectsPage = new ProjectsPage(dashboard.rootPage);
-      await projectsPage.deleteProject({ title: context.project.title, withoutPrefix: true });
+      const projExists: boolean = await projectsPage
+        .get()
+        .locator(`[data-testid="delete-project-${context.project.title}"]`)
+        .isVisible();
+      if (projExists) {
+        await projectsPage.deleteProject({ title: context.project.title, withoutPrefix: true });
+      }
     }
   }
 };

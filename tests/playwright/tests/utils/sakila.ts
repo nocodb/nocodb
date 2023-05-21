@@ -11,6 +11,8 @@ const mysqlSakilaTables = [
   'payment',
   'rental',
   'staff',
+  'inventory',
+  'store',
 ];
 
 const mysqlSakilaSqlViews = [
@@ -41,6 +43,8 @@ const pgSakilaTables = [
   'payment_p2007_06',
   'rental',
   'staff',
+  'inventory',
+  'store',
 ];
 
 const pgSakilaSqlViews = [

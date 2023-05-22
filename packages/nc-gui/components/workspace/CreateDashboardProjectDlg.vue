@@ -5,6 +5,8 @@ import type { VNodeRef } from '@vue/runtime-core'
 import { computed } from '@vue/reactivity'
 import type { ComputedRef } from 'nuxt/dist/app/compat/capi'
 import Fuse from 'fuse.js'
+import type { ProjectType } from 'nocodb-sdk'
+import tinycolor from 'tinycolor2'
 import type { IdAndTitle } from '../dashboards/types'
 import { NcProjectType, extractSdkResponseErrorMsg } from '~/utils'
 import { ref, useVModel } from '#imports'
@@ -40,36 +42,8 @@ const formState = reactive({
   title: '',
 })
 
-// const route = useRoute()
+const route = useRoute()
 const creating = ref(false)
-
-const createDashboardProject = async () => {
-  creating.value = true
-  try {
-    const project = await _createProject({
-      type: NcProjectType.DASHBOARD,
-      title: formState.title,
-      workspaceId: workspaceStore.workspace!.id!,
-    })
-
-    await workspaceStore.loadProjects()
-    navigateTo(`/ws/${workspaceStore.workspace!.id!}/project/${project.id!}`)
-
-    dialogShow.value = false
-  } catch (e: any) {
-    message.error(await extractSdkResponseErrorMsg(e))
-  } finally {
-    creating.value = false
-  }
-}
-
-watch(dialogShow, async (n, o) => {
-  if (n === o && !n) return
-  formState.title = await generateUniqueName()
-  await nextTick()
-  input.value?.$el?.focus()
-  input.value?.$el?.select()
-})
 
 // const { $e } = useNuxtApp()
 
@@ -77,7 +51,7 @@ watch(dialogShow, async (n, o) => {
 
 // const { refreshCommandPalette } = useCommandPalette()
 
-// const { api, isLoading } = useApi({ useGlobalInstance: true })
+const { api, isLoading } = useApi({ useGlobalInstance: true })
 
 useSidebar('nc-left-sidebar', { hasSidebar: false })
 
@@ -124,6 +98,71 @@ const filteredDbProjects = computed(() => {
   }
   const results = fuse.value?.search(dbProjectSearchTerm.value)
   return results?.map((result) => result.item) || []
+})
+
+const createDashboardProject = async () => {
+  creating.value = true
+  try {
+    debugger
+
+    const color = projectThemeColors[Math.floor(Math.random() * 1000) % projectThemeColors.length]
+    const tcolor = tinycolor(color)
+    const complement = tcolor.complement()
+
+    const result = (await api.project.create({
+      title: 'projectPayload.title',
+      // @ts-expect-error todo: include in swagger
+      fk_workspace_id: projectPayload.workspaceId,
+      type: 'projectPayload.type ?? NcProjectType.DB',
+      // color,
+      // meta: JSON.stringify({
+      //   theme: {
+      //     primaryColor: color,
+      //     accentColor: complement.toHex8String(),
+      //   },
+      //   ...(route.query.type === NcProjectType.COWRITER && {prompt_statement: ''}),
+      // }),
+    })(
+      // const result =
+      await api.project.create({
+        title: formState.title,
+        // fk_workspace_id: route.query.workspaceId,
+        linked_db_project_ids: filteredDbProjects.value.filter((project) => project.isToggle).map((project) => project.id),
+        // type: NcProjectType.DASHBOARD,
+        color,
+        // meta: JSON.stringify({
+        //   theme: {
+        //     primaryColor: color,
+        //     accentColor: complement.toHex8String(),
+        //   },
+        //   ...(route.query.type === NcProjectType.COWRITER && { prompt_statement: '' }),
+        // }),
+      }),
+    )) as Partial<ProjectType>
+
+    const project = await _createProject({
+      type: NcProjectType.DASHBOARD,
+      title: formState.title,
+      workspaceId: workspaceStore.workspace!.id!,
+    })
+
+    await workspaceStore.loadProjects()
+    navigateTo(`/ws/${workspaceStore.workspace!.id!}/project/${project.id!}/layout`)
+
+    dialogShow.value = false
+  } catch (e: any) {
+    message.error(await extractSdkResponseErrorMsg(e))
+  } finally {
+    creating.value = false
+  }
+}
+
+watch(dialogShow, async (n, o) => {
+  if (n === o && !n) return
+  formState.title = await generateUniqueName()
+  await nextTick()
+  input.value?.$el?.focus()
+  input.value?.$el?.select()
 })
 
 // const createProject = async () => {
@@ -208,7 +247,7 @@ onMounted(async () => {
           <a-form-item name="search" class="m-10">
             <a-input v-model:value="dbProjectSearchTerm" name="search" :placeholder="$t('labels.searchProjects')"></a-input>
           </a-form-item>
-          <a-list item-layout="horizontal" :data-source="filteredDbProjects">
+          <a-list item-layout="horizontal" :data-source="filteredDbProjects" class="nc-create-dashboard-project-modal-db-list">
             <template #renderItem="{ item }">
               <a-list-item>
                 <template #actions>
@@ -246,4 +285,8 @@ onMounted(async () => {
   </a-modal>
 </template>
 
-<style scoped lang="scss"></style>
+<style scoped lang="scss">
+.nc-create-dashboard-project-modal-db-list {
+  min-height: 180px;
+}
+</style>

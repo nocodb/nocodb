@@ -495,6 +495,7 @@ export default class Model implements TableType {
               dayjs(val).utc().format('YYYY-MM-DD HH:mm:ss'),
             ]);
           } else if (isSqlite) {
+            // convert to UTC
             // e.g. 2022-01-01T10:00:00.000Z -> 2022-01-01 04:30:00+00:00
             val = dayjs(val).utc().format('YYYY-MM-DD HH:mm:ssZ');
           } else if (isPg) {
@@ -505,6 +506,7 @@ export default class Model implements TableType {
               dayjs(val).utc().format('YYYY-MM-DD HH:mm:ssZ'),
             ]);
           } else if (isMssql) {
+            // convert ot UTC
             // e.g. 2023-05-10T08:49:32.000Z -> 2023-05-10 08:49:32-08:00
             // then convert to db timezone
             val = knex.raw(

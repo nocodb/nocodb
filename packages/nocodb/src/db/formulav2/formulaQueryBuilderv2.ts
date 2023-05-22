@@ -541,6 +541,7 @@ async function _formulaQueryBuilder(
         if (knex.clientType().startsWith('mysql')) {
           aliasToColumn[col.id] = async (): Promise<any> => {
             return {
+              // convert from DB timezone to UTC
               builder: knex.raw(
                 `CONVERT_TZ(??, @@GLOBAL.time_zone, '+00:00')`,
                 [col.column_name],
@@ -554,6 +555,7 @@ async function _formulaQueryBuilder(
         ) {
           aliasToColumn[col.id] = async (): Promise<any> => {
             return {
+              // convert from DB timezone to UTC
               builder: knex
                 .raw(
                   `?? AT TIME ZONE CURRENT_SETTING('timezone') AT TIME ZONE 'UTC'`,
@@ -566,7 +568,7 @@ async function _formulaQueryBuilder(
           knex.clientType() === 'mssql' &&
           col.dt !== 'datetimeoffset'
         ) {
-          // if there is no timezone info, convert to database timezone, then convert to UTC
+          // convert from DB timezone to UTC
           aliasToColumn[col.id] = async (): Promise<any> => {
             return {
               builder: knex.raw(

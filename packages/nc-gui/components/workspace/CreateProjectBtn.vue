@@ -14,6 +14,7 @@ const emit = defineEmits<{
 const router = useRouter()
 
 const projectCreateDlg = ref(false)
+const dashboardProjectCreateDlg = ref(false)
 const projectType = ref(NcProjectType.DB)
 
 const navigateToCreateProject = (type: NcProjectType) => {
@@ -33,6 +34,10 @@ const navigateToCreateProject = (type: NcProjectType) => {
       })
     }
   }
+}
+
+const openCreateDashboardProjectOverlay = () => {
+  dashboardProjectCreateDlg.value = true
 }
 
 useEventListener(document, 'keydown', async (e: KeyboardEvent) => {
@@ -74,7 +79,8 @@ useEventListener(document, 'keydown', async (e: KeyboardEvent) => {
               <GeneralShortcutLabel class="justify-center" :keys="['Alt', 'D']" />
             </div>
           </a-menu-item>
-          <a-menu-item @click="navigateToCreateProject(NcProjectType.DASHBOARD)">
+          <!-- <a-menu-item @click="navigateToCreateProject(NcProjectType.DASHBOARD)"> -->
+          <a-menu-item @click="openCreateDashboardProjectOverlay()">
             <div class="py-4 px-1 flex items-center gap-4">
               <GeneralProjectIcon :type="NcProjectType.DASHBOARD" class="text-[#2824FB] text-lg" />
               Dashboard
@@ -106,6 +112,7 @@ useEventListener(document, 'keydown', async (e: KeyboardEvent) => {
       </template>
     </a-dropdown>
     <WorkspaceCreateProjectDlg v-model="projectCreateDlg" :type="projectType" />
+    <WorkspaceCreateDashboardProjectDlg v-model="dashboardProjectCreateDlg" />
   </div>
 </template>
 

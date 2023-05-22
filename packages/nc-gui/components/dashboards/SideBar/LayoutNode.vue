@@ -26,9 +26,7 @@ const { isUIAllowed } = useUIPermission()
 
 const { $e, $api } = useNuxtApp()
 
-// const { deleteTable } = useTableNew({
-//   projectId: project.id!,
-// })
+const { deleteLayout } = useDashboardStore()
 
 const projectRole = inject(ProjectRoleInj)
 
@@ -37,13 +35,13 @@ const setMenuContext = inject(TreeViewSetMenuContextInj)!
 const openeLayoutId = computed(() => route.params.layoutId)
 
 function openRenameLayoutDialog(layout: LayoutType, baseId?: string, rightClick = false) {
-  $e(rightClick ? 'c:table:rename:navdraw:right-click' : 'c:table:rename:navdraw:options')
+  $e(rightClick ? 'c:layout:rename:navdraw:right-click' : 'c:layout:rename:navdraw:options')
 
   const isOpen = ref(true)
 
-  const { close } = useDialog(resolveComponent('DlgTableRename'), {
+  const { close } = useDialog(resolveComponent('DlgLayoutRename'), {
     'modelValue': isOpen,
-    'tableMeta': layout,
+    'layoutMeta': layout,
     'baseId': baseId,
     'onUpdate:modelValue': closeDialog,
   })
@@ -65,7 +63,7 @@ const { isSharedBase } = useProject()
     class="nc-tree-item text-sm cursor-pointer group"
     :data-order="layout.order"
     :data-id="layout.id"
-    :data-testid="`tree-view-table-${layout.title}`"
+    :data-testid="`tree-view-layout-${layout.title}`"
     :class="[
       // todo: table filter
       // { hidden: !filteredTables?.includes(table), active: openedTableId === table.id },
@@ -81,7 +79,7 @@ const { isSharedBase } = useProject()
       modifier-key="Alt"
     >
       <template #title>{{ layout.title }}</template>
-      <div class="table-context flex items-center gap-2 h-full" @contextmenu="setMenuContext('table', layout)">
+      <div class="layout-context flex items-center gap-2 h-full" @contextmenu="setMenuContext('layout', layout)">
         <div class="nc-tbl-title flex-1">
           <GeneralTruncateText :key="layout.title" :length="openeLayoutId === layout.id ? 18 : 20"
             >{{ layout.title }}
@@ -90,7 +88,8 @@ const { isSharedBase } = useProject()
 
         <a-dropdown
           v-if="
-            !isSharedBase && (isUIAllowed('table-rename', false, projectRole) || isUIAllowed('table-delete', false, projectRole))
+            !isSharedBase &&
+            (isUIAllowed('layout-rename', false, projectRole) || isUIAllowed('layout-delete', false, projectRole))
           "
           :trigger="['click']"
           @click.stop
@@ -106,18 +105,18 @@ const { isSharedBase } = useProject()
           <template #overlay>
             <a-menu class="!py-0 rounded text-sm">
               <a-menu-item
-                v-if="isUIAllowed('table-rename', false, projectRole)"
+                v-if="isUIAllowed('layout-rename', false, projectRole)"
                 @click="openRenameLayoutDialog(layout, project.bases[baseIndex].id)"
               >
-                <div class="nc-project-menu-item" :data-testid="`sidebar-table-rename-${layout.title}`">
+                <div class="nc-project-menu-item" :data-testid="`sidebar-layout-rename-${layout.title}`">
                   {{ $t('general.rename') }}
                 </div>
               </a-menu-item>
 
               <a-menu-item
-                v-if="isUIAllowed('table-delete', false, projectRole)"
-                :data-testid="`sidebar-table-delete-${layout.title}`"
-                @click="deleteTable(layout)"
+                v-if="isUIAllowed('layout-delete', false, projectRole)"
+                :data-testid="`sidebar-layout-delete-${layout.title}`"
+                @click="deleteLayout(layout)"
               >
                 <div class="nc-project-menu-item">
                   {{ $t('general.delete') }}

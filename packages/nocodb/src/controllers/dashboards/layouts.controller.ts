@@ -1,6 +1,7 @@
 import {
   Body,
   Controller,
+  Delete,
   Get,
   HttpCode,
   Param,
@@ -33,6 +34,23 @@ export class LayoutsController {
     });
 
     return layout;
+  }
+
+  @Delete([
+    '/api/v1/dashboards/:dashboardId/layouts/:layoutId',
+    '/api/v1/layouts/:layoutId',
+  ])
+  @UseAclMiddleware({
+    permissionName: 'layoutDelete',
+  })
+  async layoutDelete(@Param('layoutId') layoutId: string, @Request() req) {
+    const result = await this.layoutService.layoutDelete({
+      layoutId: req.params.tableId,
+      user: (req as any).user,
+      req,
+    });
+
+    return result;
   }
 
   @Get(['/api/v1/dashboards/:dashboardId/layouts'])

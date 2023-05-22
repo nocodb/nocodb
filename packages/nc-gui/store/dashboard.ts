@@ -219,7 +219,26 @@ export const useDashboardStore = defineStore('dashboardStore', () => {
     })
   }
 
-  const openLayout = async ({ layout, projectId }: { layout: LayoutSidebarNode; projectId: string }) => {
+  const deleteLayout = async (dashboardId: string, layoutId: string) => {
+    alert('delete')
+    try {
+      const deletedLayoutData = await $api.dashboard.layoutDelete(dashboardId, layoutId)
+
+      const path = route.path.split('/')
+
+      // Remove the last segment
+      path.pop()
+
+      const newPath = path.join('/')
+      await navigateTo(newPath)
+      // await router.push(newPath)
+    } catch (e) {
+      console.error(e)
+      message.error(await extractSdkResponseErrorMsg(e as any))
+    }
+  }
+
+  const openLayout = async ({ layout, projectId }: { layout: LayoutType; projectId: string }) => {
     const url = layoutUrl({ id: layout.id!, projectId })
 
     await navigateTo(url)
@@ -260,6 +279,7 @@ export const useDashboardStore = defineStore('dashboardStore', () => {
     fetchLayouts,
     openLayout,
     addNewLayout,
+    deleteLayout,
     dashboardProjectUrl,
   }
 })

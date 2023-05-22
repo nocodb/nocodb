@@ -15,21 +15,21 @@ const { layoutsOfProjects, openedLayoutSidebarNode } = storeToRefs(dashboardStor
 
 const { fetchLayouts, addNewLayout, openLayout } = dashboardStore
 
-const dashboards = computed(() => layoutsOfProjects.value[project.value.id!])
+const layouts = computed(() => layoutsOfProjects.value[project.value.id!])
 
 const openPageTabKeys = computed({
   get: () => (openedLayoutSidebarNode.value?.id ? [openedLayoutSidebarNode.value?.id] : null),
   set: () => {},
 })
 
-const onTabSelect = (_: any, e: { selected: boolean; selectedNodes: any; node: any; event: any; nativeEvent: any }) => {
-  if (!e.selected) return
+// const onTabSelect = (_: any, e: { selected: boolean; selectedNodes: any; node: any; event: any; nativeEvent: any }) => {
+//   if (!e.selected) return
 
-  openLayout({
-    layout: e.node.dataRef,
-    projectId: project.value.id!,
-  })
-}
+//   openLayout({
+//     layout: e.node.dataRef,
+//     projectId: project.value.id!,
+//   })
+// }
 
 onMounted(async () => {
   await fetchLayouts({ projectId: project.value.id! })
@@ -49,9 +49,9 @@ onMounted(async () => {
     collapsible
     theme="light"
   >
-    <a-tree
+    <!-- <a-tree
       v-model:selectedKeys="openPageTabKeys"
-      :tree-data="dashboards"
+      :tree-data="layouts"
       class="!w-full h-full overflow-y-scroll !overflow-x-hidden !bg-inherit"
       @select="onTabSelect"
     >
@@ -70,7 +70,36 @@ onMounted(async () => {
           </div>
         </div>
       </template>
-    </a-tree>
+    </a-tree> -->
+
+    <div class="border-none sortable-list">
+      <!-- <div
+        v-if="project.bases[baseIndex] && project.bases[baseIndex].enabled"
+        :ref="menuRef"
+        :key="key"
+        :nc-base="project.bases[baseIndex].id"
+      > -->
+      <DashboardsSideBarLayoutNode
+        v-for="layout of layouts ?? [].filter((layout) => layout.base_id === project.bases[baseIndex].id)"
+        :key="layout.id"
+        v-e="['a:table:open']"
+        class="nc-tree-item text-sm cursor-pointer group"
+        :data-order="layout.order"
+        :data-id="layout.id"
+        :data-testid="`tree-view-table-${layout.title}`"
+        :layout="layout"
+        :project="project"
+        :base-index="baseIndex"
+        @click="
+          openLayout({
+            layout,
+            projectId: project.id!,
+          })
+        "
+      >
+      </DashboardsSideBarLayoutNode>
+      <!-- </div> -->
+    </div>
 
     <div
       class="py-1 flex flex-row pl-7 items-center gap-x-2 cursor-pointer hover:text-black text-gray-600 text-sm"

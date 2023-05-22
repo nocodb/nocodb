@@ -52,6 +52,8 @@ const { loadProjectTables, loadProject, createProject: _createProject } = projec
 
 const { projectTableList, projects } = storeToRefs(projectsStore)
 
+const { dashboardProjectUrl } = useDashboardStore()
+
 const activeProjectId = computed(() => route.params.projectId as string | undefined)
 
 const projectElRefs = ref()
@@ -81,13 +83,13 @@ const loadProjectAndTableList = async (project: ProjectType, projIndex: number) 
     return
   }
 
-  // if document project, add a document tab and route to the page
+  // if dashboard or document project, add a document tab and route to the respective page
   switch (project.type) {
     case 'dashboard':
       addTab({
         id: project.id,
         title: project.title,
-        type: TabType.DASHBOARD,
+        type: TabType.LAYOUT,
         projectId: project.id,
       })
       console.log('open dashboard project', project.id)

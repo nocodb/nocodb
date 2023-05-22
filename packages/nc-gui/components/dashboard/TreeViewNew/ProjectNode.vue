@@ -122,7 +122,6 @@ const isSharedBase = ref(false)
 <template>
   <div class="project-title-node group flex items-center w-full px-0.5 py-0.5">
     <!--    <GeneralProjectIcon class="mx-2" :type="project.type" /> -->
-FOO
     <component
       :is="isUIAllowed('projectIconCustomisation', false, projectRole) ? Dropdown : 'div'"
       trigger="click"
@@ -164,7 +163,6 @@ FOO
       {{ project.title }}
     </span>
     <span :class="{ 'flex-grow': !editMode }"></span>
-BAR
     <a-dropdown>
       <GeneralIcon icon="threeDotVertical" class="mr-1.5 opacity-0 group-hover:opacity-100" @click.stop />
       <template #overlay>

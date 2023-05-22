@@ -114,6 +114,14 @@ export const useDashboardStore = defineStore('dashboardStore', () => {
       deep: true,
     },
   )
+
+  function dashboardProjectUrl(projectId: string, { completeUrl }: { completeUrl?: boolean; publicMode?: boolean } = {}) {
+    const path = `/ws/${_openedWorkspaceId.value}/nc/${projectId}/layout`
+    if (completeUrl) return `${window.location.origin}/#${path}`
+
+    return path
+  }
+
   async function fetchLayouts({ withoutLoading, projectId }: { projectId: string; withoutLoading?: boolean }) {
     if (!withoutLoading) isLayoutFetching.value[projectId] = true
     try {
@@ -252,5 +260,6 @@ export const useDashboardStore = defineStore('dashboardStore', () => {
     fetchLayouts,
     openLayout,
     addNewLayout,
+    dashboardProjectUrl,
   }
 })

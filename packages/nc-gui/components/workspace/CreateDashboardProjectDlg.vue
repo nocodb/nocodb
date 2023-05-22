@@ -5,8 +5,6 @@ import type { VNodeRef } from '@vue/runtime-core'
 import { computed } from '@vue/reactivity'
 import type { ComputedRef } from 'nuxt/dist/app/compat/capi'
 import Fuse from 'fuse.js'
-import type { ProjectType } from 'nocodb-sdk'
-import tinycolor from 'tinycolor2'
 import type { IdAndTitle } from '../dashboards/types'
 import { NcProjectType, extractSdkResponseErrorMsg } from '~/utils'
 import { ref, useVModel } from '#imports'
@@ -42,16 +40,7 @@ const formState = reactive({
   title: '',
 })
 
-const route = useRoute()
 const creating = ref(false)
-
-// const { $e } = useNuxtApp()
-
-// const { loadProject } = useProject()
-
-// const { refreshCommandPalette } = useCommandPalette()
-
-const { api, isLoading } = useApi({ useGlobalInstance: true })
 
 useSidebar('nc-left-sidebar', { hasSidebar: false })
 
@@ -71,7 +60,6 @@ const availableDbProjects: ComputedRef<Array<IdAndTitle>> = computed(() => {
 type ToggableDBProject = Array<IdAndTitle & { isToggle: boolean }>
 
 const dbProjectSearchTerm = ref('')
-// const fuse = ref<ToggableDBProject | null>(null)
 const fuse = ref<Fuse<{
   id: string
   title: string
@@ -101,52 +89,15 @@ const filteredDbProjects = computed(() => {
 })
 
 const createDashboardProject = async () => {
-  await workspaceStore.loadProjects()
   creating.value = true
   try {
-    debugger
-
-    const color = projectThemeColors[Math.floor(Math.random() * 1000) % projectThemeColors.length]
-    // const tcolor = tinycolor(color)
-    // const complement = tcolor.complement()
-
-    // const result = (await api.project.create({
-    //   title: 'projectPayload.title',
-    //   // @ts-expect-error todo: include in swagger
-    //   fk_workspace_id: projectPayload.workspaceId,
-    //   type: 'projectPayload.type ?? NcProjectType.DB',
-    //   // color,
-    //   // meta: JSON.stringify({
-    //   //   theme: {
-    //   //     primaryColor: color,
-    //   //     accentColor: complement.toHex8String(),
-    //   //   },
-    //   //   ...(route.query.type === NcProjectType.COWRITER && {prompt_statement: ''}),
-    //   // }),
-    // })(
-    // const result =
-    const project = await api.project.create({
+    const project = await _createProject({
+      type: NcProjectType.DASHBOARD,
       title: formState.title,
-      // fk_workspace_id: route.query.workspaceId,
-      linked_db_project_ids: filteredDbProjects.value.filter((project) => project.isToggle).map((project) => project.id),
-      // type: NcProjectType.DASHBOARD,
-      color,
-      // meta: JSON.stringify({
-      //   theme: {
-      //     primaryColor: color,
-      //     accentColor: complement.toHex8String(),
-      //   },
-      //   ...(route.query.type === NcProjectType.COWRITER && { prompt_statement: '' }),
-      // }),
+      workspaceId: workspaceStore.workspace!.id!,
     })
-    //   ,
-    // )) as Partial<ProjectType>
+    await workspaceStore.loadProjects()
 
-    // const project = await _createProject({
-    //   type: NcProjectType.DASHBOARD,
-    //   title: formState.title,
-    //   workspaceId: workspaceStore.workspace!.id!,
-    // })
     navigateTo(`/ws/${workspaceStore.workspace!.id!}/project/${project.id!}/layout`)
 
     dialogShow.value = false
@@ -164,47 +115,6 @@ watch(dialogShow, async (n, o) => {
   input.value?.$el?.focus()
   input.value?.$el?.select()
 })
-
-// const createProject = async () => {
-//   $e('a:project:create:xcdb')
-//   try {
-//     // pick a random color from array and assign to project
-//     const color = projectThemeColors[Math.floor(Math.random() * 1000) % projectThemeColors.length]
-//     const tcolor = tinycolor(color)
-
-//     const complement = tcolor.complement()
-
-//     creating.value = true
-
-//     const result = (await api.project.create({
-//       title: formState.title,
-//       fk_workspace_id: route.query.workspaceId,
-//       linked_db_project_ids: filteredDbProjects.value.filter((project) => project.isToggle).map((project) => project.id),
-//       type: NcProjectType.DASHBOARD,
-//       color,
-//       meta: JSON.stringify({
-//         theme: {
-//           primaryColor: color,
-//           accentColor: complement.toHex8String(),
-//         },
-//         ...(route.query.type === NcProjectType.COWRITER && { prompt_statement: '' }),
-//       }),
-//     })) as Partial<ProjectType>
-
-//     refreshCommandPalette()
-
-//     switch (route.query.type) {
-//       case NcProjectType.DASHBOARD:
-//         await loadProject(true, result.id)
-//         await navigateTo(`/ws/${route.query.workspaceId}/nc/${result.id}/layout`)
-//         break
-//     }
-//   } catch (e: any) {
-//     message.error(await extractSdkResponseErrorMsg(e))
-//   } finally {
-//     creating.value = false
-//   }
-// }
 
 onMounted(async () => {
   await loadWorkspaceList()
@@ -274,13 +184,6 @@ onMounted(async () => {
         @click="createDashboardProject"
         >{{ $t('general.create') }}
       </a-button>
-
-      <!-- <button class="scaling-btn bg-opacity-100" type="submit">
-        <span class="flex items-center gap-2">
-          <MaterialSymbolsRocketLaunchOutline />
-          {{ $t('general.create') }}
-        </span>
-      </button> -->
     </template>
   </a-modal>
 </template>

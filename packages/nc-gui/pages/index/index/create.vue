@@ -142,33 +142,30 @@ const isDashboardProject = computed(() => route.query.type === NcProjectType.DAS
 
         <h1 class="prose-2xl font-bold self-center my-4">{{ $t('activity.createProject') }}</h1>
 
-        <DashboardsCreateDashboardProject v-if="isDashboardProject">Dashboard</DashboardsCreateDashboardProject>
-        <template v-else>
-          <a-form
-            ref="form"
-            :model="formState"
-            name="basic"
-            layout="vertical"
-            class="lg:max-w-3/4 w-full !mx-auto"
-            no-style
-            autocomplete="off"
-            @finish="createProject"
-          >
-            <a-form-item :label="$t('labels.projName')" name="title" :rules="nameValidationRules" class="m-10">
-              <a-input ref="input" v-model:value="formState.title" name="title" class="nc-metadb-project-name" />
-            </a-form-item>
+        <a-form
+          ref="form"
+          :model="formState"
+          name="basic"
+          layout="vertical"
+          class="lg:max-w-3/4 w-full !mx-auto"
+          no-style
+          autocomplete="off"
+          @finish="createProject"
+        >
+          <a-form-item :label="$t('labels.projName')" name="title" :rules="nameValidationRules" class="m-10">
+            <a-input ref="input" v-model:value="formState.title" name="title" class="nc-metadb-project-name" />
+          </a-form-item>
 
-            <div class="text-center">
-              <a-spin v-if="creating" spinning />
-              <button v-else class="scaling-btn bg-opacity-100" type="submit">
-                <span class="flex items-center gap-2">
-                  <MaterialSymbolsRocketLaunchOutline />
-                  {{ $t('general.create') }}
-                </span>
-              </button>
-            </div>
-          </a-form>
-        </template>
+          <div class="text-center">
+            <a-spin v-if="creating" spinning />
+            <button v-else class="scaling-btn bg-opacity-100" type="submit">
+              <span class="flex items-center gap-2">
+                <MaterialSymbolsRocketLaunchOutline />
+                {{ $t('general.create') }}
+              </span>
+            </button>
+          </div>
+        </a-form>
       </div>
     </div>
   </NuxtLayout>

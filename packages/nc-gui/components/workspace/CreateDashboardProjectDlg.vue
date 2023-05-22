@@ -101,52 +101,52 @@ const filteredDbProjects = computed(() => {
 })
 
 const createDashboardProject = async () => {
+  await workspaceStore.loadProjects()
   creating.value = true
   try {
     debugger
 
     const color = projectThemeColors[Math.floor(Math.random() * 1000) % projectThemeColors.length]
-    const tcolor = tinycolor(color)
-    const complement = tcolor.complement()
+    // const tcolor = tinycolor(color)
+    // const complement = tcolor.complement()
 
-    const result = (await api.project.create({
-      title: 'projectPayload.title',
-      // @ts-expect-error todo: include in swagger
-      fk_workspace_id: projectPayload.workspaceId,
-      type: 'projectPayload.type ?? NcProjectType.DB',
-      // color,
+    // const result = (await api.project.create({
+    //   title: 'projectPayload.title',
+    //   // @ts-expect-error todo: include in swagger
+    //   fk_workspace_id: projectPayload.workspaceId,
+    //   type: 'projectPayload.type ?? NcProjectType.DB',
+    //   // color,
+    //   // meta: JSON.stringify({
+    //   //   theme: {
+    //   //     primaryColor: color,
+    //   //     accentColor: complement.toHex8String(),
+    //   //   },
+    //   //   ...(route.query.type === NcProjectType.COWRITER && {prompt_statement: ''}),
+    //   // }),
+    // })(
+    // const result =
+    const project = await api.project.create({
+      title: formState.title,
+      // fk_workspace_id: route.query.workspaceId,
+      linked_db_project_ids: filteredDbProjects.value.filter((project) => project.isToggle).map((project) => project.id),
+      // type: NcProjectType.DASHBOARD,
+      color,
       // meta: JSON.stringify({
       //   theme: {
       //     primaryColor: color,
       //     accentColor: complement.toHex8String(),
       //   },
-      //   ...(route.query.type === NcProjectType.COWRITER && {prompt_statement: ''}),
+      //   ...(route.query.type === NcProjectType.COWRITER && { prompt_statement: '' }),
       // }),
-    })(
-      // const result =
-      await api.project.create({
-        title: formState.title,
-        // fk_workspace_id: route.query.workspaceId,
-        linked_db_project_ids: filteredDbProjects.value.filter((project) => project.isToggle).map((project) => project.id),
-        // type: NcProjectType.DASHBOARD,
-        color,
-        // meta: JSON.stringify({
-        //   theme: {
-        //     primaryColor: color,
-        //     accentColor: complement.toHex8String(),
-        //   },
-        //   ...(route.query.type === NcProjectType.COWRITER && { prompt_statement: '' }),
-        // }),
-      }),
-    )) as Partial<ProjectType>
-
-    const project = await _createProject({
-      type: NcProjectType.DASHBOARD,
-      title: formState.title,
-      workspaceId: workspaceStore.workspace!.id!,
     })
+    //   ,
+    // )) as Partial<ProjectType>
 
-    await workspaceStore.loadProjects()
+    // const project = await _createProject({
+    //   type: NcProjectType.DASHBOARD,
+    //   title: formState.title,
+    //   workspaceId: workspaceStore.workspace!.id!,
+    // })
     navigateTo(`/ws/${workspaceStore.workspace!.id!}/project/${project.id!}/layout`)
 
     dialogShow.value = false

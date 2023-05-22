@@ -119,7 +119,7 @@ const createProject = async () => {
 
     const result = (await api.project.create({
       title: formState.title,
-      fk_workspace_id: route.query.workspaceId,
+      fk_workspace_id: workspaceStore.workspace!.id!,
       linked_db_project_ids: filteredDbProjects.value.filter((project) => project.isToggle).map((project) => project.id),
       type: NcProjectType.DASHBOARD,
       color,

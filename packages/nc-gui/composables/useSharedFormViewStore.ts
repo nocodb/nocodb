@@ -101,18 +101,10 @@ const [useProvideSharedFormStore, useSharedFormStore] = useInjectionState((share
         {} as Record<string, FormColumnType>,
       )
 
-      let order = 1
-
-      columns.value = meta?.value?.columns
-        ?.map((c: Record<string, any>) => ({
-          ...c,
-          fk_column_id: c.id,
-          fk_view_id: viewMeta.id,
-          ...(fieldById[c.id] ? fieldById[c.id] : {}),
-          order: (fieldById[c.id] && fieldById[c.id].order) || order++,
-          id: fieldById[c.id] && fieldById[c.id].id,
-        }))
-        .sort((a: Record<string, any>, b: Record<string, any>) => a.order - b.order) as Record<string, any>[]
+      columns.value = viewMeta.model?.columns?.map((c) => ({
+        ...c,
+        description: fieldById[c.id].description,
+      }))
 
       const _sharedViewMeta = (viewMeta as any).meta
       sharedViewMeta.value = isString(_sharedViewMeta) ? JSON.parse(_sharedViewMeta) : _sharedViewMeta

@@ -72,7 +72,7 @@ export const renderValue = (result?: any) => {
   // or YYYY-MM-DD hh:mm:ss+/-xx:yy (ext)
   return result.replace(/\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}(?:[+-]\d{2}:\d{2})?/g, (d: string) => {
     // TODO(timezone): retrieve the format from the corresponding column meta
-    // assume hh:mm at this moment
+    // assume HH:mm at this moment
     return dayjs(d).isValid() ? dayjs(d).format('YYYY-MM-DD HH:mm') : d
   })
 }

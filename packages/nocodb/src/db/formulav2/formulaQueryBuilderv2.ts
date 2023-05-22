@@ -548,11 +548,11 @@ async function _formulaQueryBuilder(
     const colAlias = a ? ` as ${a}` : '';
     pt.arguments?.forEach?.((arg) => {
       if (arg.fnName) return;
-      arg.fnName = pt.callee.name;
+      arg.fnName = pt.callee.name.toUpperCase();
       arg.argsCount = pt.arguments?.length;
     });
     if (pt.type === 'CallExpression') {
-      switch (pt.callee.name) {
+      switch (pt.callee.name.toUpperCase()) {
         case 'ADD':
         case 'SUM':
           if (pt.arguments.length > 1) {
@@ -631,13 +631,14 @@ async function _formulaQueryBuilder(
           break;
       }
 
+      const calleeName = pt.callee.name.toUpperCase();
       return {
         builder: knex.raw(
-          `${pt.callee.name}(${(
+          `${calleeName}(${(
             await Promise.all(
               pt.arguments.map(async (arg) => {
                 let query = (await fn(arg)).builder.toQuery();
-                if (pt.callee.name === 'CONCAT') {
+                if (calleeName === 'CONCAT') {
                   if (knex.clientType() !== 'sqlite3') {
                     query = await convertDateFormatForConcat(
                       arg,

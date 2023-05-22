@@ -104,7 +104,6 @@ export class FiltersController {
   async filterDelete(@Param('filterId') filterId: string, @Req() req) {
     const filter = await this.filtersService.filterDelete({
       filterId,
-      user: req.user,
     });
     return filter;
   }

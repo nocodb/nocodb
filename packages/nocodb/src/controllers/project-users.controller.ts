@@ -50,6 +50,7 @@ export class ProjectUsersController {
     });
   }
 
+
   @Patch('/api/v1/db/meta/projects/:projectId/users/:userId')
   async projectUserUpdate(
     @Param('projectId') projectId: string,
@@ -106,5 +107,19 @@ export class ProjectUsersController {
     return {
       msg: 'The invitation has been sent to the user',
     };
+  }
+
+  @Patch('/api/v1/db/meta/projects/:projectId/user')
+  @Acl('projectUserMetaUpdate')
+  async projectUserMetaUpdate(
+    @Param('projectId') projectId: string,
+    @Request() req,
+    @Body() body: ProjectUserReqType,
+  ): Promise<any> {
+    return await this.projectUsersService.projectUserMetaUpdate({
+      projectId,
+      body,
+      user: req.user,
+    });
   }
 }

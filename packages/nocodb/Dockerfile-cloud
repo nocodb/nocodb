@@ -12,6 +12,7 @@ RUN apk add --no-cache python3 make g++
 # Copying this separately prevents re-running npm ci on every code change.
 COPY ./package*.json ./
 COPY ./docker/nc-gui/ ./docker/nc-gui/
+COPY ./src/services/clickhouse/migrations/ ./docker/migrations/
 COPY ./docker/main.js ./docker/index.js
 COPY ./docker/configure.sh /usr/src/appEntry/configure.sh
 # COPY ./docker/start.sh /usr/src/appEntry/start.sh

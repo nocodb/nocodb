@@ -1,12 +1,16 @@
 import { Injectable } from '@nestjs/common';
 import { T } from 'nc-help';
+import { AppEvents } from 'nocodb-sdk';
 import { populateMeta, validatePayload } from '../helpers';
 import { syncBaseMigration } from '../helpers/syncMigration';
 import { Base, Project } from '../models';
+import { AppHooksService } from './app-hooks/app-hooks.service';
 import type { BaseReqType } from 'nocodb-sdk';
 
 @Injectable()
 export class BasesService {
+  constructor(private readonly appHooksService: AppHooksService) {}
+
   async baseGetWithConfig(param: { baseId: any }) {
     const base = await Base.get(param.baseId);
 
@@ -33,8 +37,8 @@ export class BasesService {
 
     delete base.config;
 
-    T.emit('evt', {
-      evt_type: 'base:updated',
+    this.appHooksService.emit(AppEvents.BASE_UPDATE, {
+      base,
     });
 
     return base;
@@ -49,7 +53,9 @@ export class BasesService {
   async baseDelete(param: { baseId: string }) {
     const base = await Base.get(param.baseId);
     await base.delete();
-    T.emit('evt', { evt_type: 'base:deleted' });
+    this.appHooksService.emit(AppEvents.BASE_DELETE, {
+      base,
+    });
     return true;
   }
 
@@ -69,12 +75,14 @@ export class BasesService {
 
     const info = await populateMeta(base, project);
 
-    T.emit('evt_api_created', info);
+    this.appHooksService.emit(AppEvents.APIS_CREATED, {
+      info,
+    });
 
     delete base.config;
 
-    T.emit('evt', {
-      evt_type: 'base:created',
+    this.appHooksService.emit(AppEvents.BASE_CREATE, {
+      base,
     });
 
     return base;

@@ -1,5 +1,4 @@
 import { promisify } from 'util';
-import { AuditOperationSubTypes, AuditOperationTypes } from 'nocodb-sdk';
 import {
   Body,
   Controller,
@@ -11,24 +10,36 @@ import {
   Response,
   UseGuards,
 } from '@nestjs/common';
-import * as ejs from 'ejs';
 import { AuthGuard } from '@nestjs/passport';
+import * as ejs from 'ejs';
+import {
+  AppEvents,
+  AuditOperationSubTypes,
+  AuditOperationTypes,
+} from 'nocodb-sdk';
 import { GlobalGuard } from '../../guards/global/global.guard';
 import { NcError } from '../../helpers/catchError';
-import { Acl } from '../../middlewares/extract-project-id/extract-project-id.middleware';
-import Noco from '../../Noco';
-import extractRolesObj from '../../utils/extractRolesObj';
+import {
+  Acl,
+  ExtractProjectIdMiddleware,
+} from '../../middlewares/extract-project-id/extract-project-id.middleware';
 import { Audit, User } from '../../models';
+import Noco from '../../Noco';
+import { AppHooksService } from '../../services/app-hooks/app-hooks.service';
 import {
   genJwt,
   randomTokenString,
   setTokenCookie,
 } from '../../services/users/helpers';
 import { UsersService } from '../../services/users/users.service';
+import extractRolesObj from '../../utils/extractRolesObj';
 
 @Controller()
 export class UsersController {
-  constructor(private readonly usersService: UsersService) {}
+  constructor(
+    private readonly usersService: UsersService,
+    private readonly appHooksService: AppHooksService,
+  ) {}
 
   @Post([
     '/auth/user/signup',
@@ -87,12 +98,10 @@ export class UsersController {
       });
       setTokenCookie(res, refreshToken);
 
-      await Audit.insert({
-        op_type: AuditOperationTypes.AUTHENTICATION,
-        op_sub_type: AuditOperationSubTypes.SIGNIN,
-        user: user.email,
+      this.appHooksService.emit(AppEvents.USER_SIGNIN, {
+        user,
         ip: req.clientIp,
-        description: auditDescription,
+        auditDescription,
       });
 
       res.json({

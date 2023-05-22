@@ -2,7 +2,6 @@ import { promisify } from 'util';
 import { Injectable } from '@nestjs/common';
 import * as DOMPurify from 'isomorphic-dompurify';
 import { customAlphabet } from 'nanoid';
-import { T } from 'nc-help';
 import { AppEvents, OrgUserRoles } from 'nocodb-sdk';
 import { populateMeta, validatePayload } from '../helpers';
 import { NcError } from '../helpers/catchError';
@@ -71,17 +70,17 @@ const validateUserHasReadPermissionsForLinkedDbProjects = async (
 
 @Injectable()
 export class ProjectsService {
-  constructor(private appEvents: AppHooksService) {}
+  constructor(private readonly appHooksService: AppHooksService) {}
 
   async projectList(param: {
     user: { id: string; roles: Record<string, boolean> };
     query?: any;
   }) {
-    const projects = extractRolesObj(param.user?.roles)[
-      OrgUserRoles.SUPER_ADMIN
-    ]
-      ? await Project.list(param.query)
-      : await ProjectUser.getProjectsList(param.user.id, param.query);
+    const projects =
+      extractRolesObj(param.user?.roles)[OrgUserRoles.SUPER_ADMIN] &&
+      !['shared', 'starred', 'recent'].some((k) => k in param.query)
+        ? await Project.list(param.query)
+        : await ProjectUser.getProjectsList(param.user.id, param.query);
 
     return projects;
   }
@@ -113,7 +112,7 @@ export class ProjectsService {
 
     const data: Partial<Project> = extractPropsAndSanitize(
       param?.project as Project,
-      ['title', 'meta', 'color'],
+      ['title', 'meta', 'color', 'status'],
     );
 
     if (
@@ -125,29 +124,27 @@ export class ProjectsService {
     }
 
     const result = await Project.update(param.projectId, data);
-    T.emit('evt', { evt_type: 'project:update' });
 
-    this.appEvents.emit(AppEvents.PROJECT_UPDATE, {
-      user: param.user,
+    this.appHooksService.emit(AppEvents.PROJECT_UPDATE, {
       project,
+      user: param.user,
     });
 
     return result;
   }
 
   async projectSoftDelete(param: { projectId: any; user: UserType }) {
-    const project = await Project.get(param.projectId);
+    const project = await Project.getWithInfo(param.projectId);
 
     if (!project) {
-      NcError.badRequest('Project not found');
+      NcError.notFound('Project not found');
     }
 
     await Project.softDelete(param.projectId);
-    T.emit('evt', { evt_type: 'project:deleted' });
 
-    this.appEvents.emit(AppEvents.PROJECT_DELETE, {
-      user: param.user,
+    this.appHooksService.emit(AppEvents.PROJECT_DELETE, {
       project,
+      user: param.user,
     });
 
     return true;
@@ -262,22 +259,18 @@ export class ProjectsService {
       if (process.env.NC_CLOUD !== 'true' && !project.is_meta) {
         const info = await populateMeta(base, project);
 
-        T.emit('evt_api_created', info);
-      }
+        this.appHooksService.emit(AppEvents.APIS_CREATED, {
+          info,
+        });
 
-      delete base.config;
+        delete base.config;
+      }
     }
 
-    T.emit('evt', {
-      evt_type: 'project:created',
-      xcdb: !projectBody.external,
-    });
-
-    T.emit('evt', { evt_type: 'project:rest' });
-
-    this.appEvents.emit(AppEvents.PROJECT_CREATE, {
-      user: param.user,
+    this.appHooksService.emit(AppEvents.PROJECT_CREATE, {
       project,
+      user: param.user,
+      xcdb: !projectBody.external,
     });
 
     return project;

@@ -34,7 +34,7 @@ export default class KafkaConsumerServer
     // Create a new ClickHouse client instance
     this.consumer = this.kafka.consumer({
       groupId: 'my-group',
-      minBytes: +process.env.AWS_KAFKA_MIN_BYTES ?? 100000,
+      minBytes: +process.env.AWS_KAFKA_MIN_BYTES || 100000,
     });
     await this.consumer.connect();
 
@@ -50,7 +50,7 @@ export default class KafkaConsumerServer
     await this.consumer.run({
       eachBatch: async ({ batch }) => {
         this.logger.log(
-          `Received batch with ${batch.messages.length} messages`,
+          `Received '${batch.topic}' batch with ${batch.messages.length} messages`,
         );
 
         const rows = [];

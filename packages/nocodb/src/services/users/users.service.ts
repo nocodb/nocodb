@@ -5,7 +5,8 @@ import {
   AuditOperationSubTypes,
   AuditOperationTypes,
   OrgUserRoles,
-  validatePassword, WorkspaceUserRoles,
+  validatePassword,
+  WorkspaceUserRoles,
 } from 'nocodb-sdk';
 import { v4 as uuidv4 } from 'uuid';
 import { isEmail } from 'validator';
@@ -18,7 +19,7 @@ import { NcError } from '../../helpers/catchError';
 import NcPluginMgrv2 from '../../helpers/NcPluginMgrv2';
 import { randomTokenString } from '../../helpers/stringHelpers';
 import { MetaService, MetaTable } from '../../meta/meta.service';
-import {Audit, Store, User, Workspace, WorkspaceUser} from '../../models';
+import { Audit, Store, User, Workspace, WorkspaceUser } from '../../models';
 import Noco from '../../Noco';
 import { AppHooksService } from '../app-hooks/app-hooks.service';
 import { genJwt, setTokenCookie } from './helpers';
@@ -158,11 +159,8 @@ export class UsersService {
       token_version: null,
     });
 
-    await Audit.insert({
-      op_type: AuditOperationTypes.AUTHENTICATION,
-      op_sub_type: AuditOperationSubTypes.PASSWORD_CHANGE,
-      user: user.email,
-      description: `Password has been changed`,
+    this.appHooksService.emit(AppEvents.USER_PASSWORD_CHANGE, {
+      user: user,
       ip: param.req?.clientIp,
     });
 
@@ -219,11 +217,8 @@ export class UsersService {
         );
       }
 
-      await Audit.insert({
-        op_type: AuditOperationTypes.AUTHENTICATION,
-        op_sub_type: AuditOperationSubTypes.PASSWORD_FORGOT,
-        user: user.email,
-        description: `Password Reset has been requested`,
+      this.appHooksService.emit(AppEvents.USER_PASSWORD_FORGOT, {
+        user: user,
         ip: param.req?.clientIp,
       });
     } else {
@@ -295,12 +290,9 @@ export class UsersService {
       token_version: null,
     });
 
-    await Audit.insert({
-      op_type: AuditOperationTypes.AUTHENTICATION,
-      op_sub_type: AuditOperationSubTypes.PASSWORD_RESET,
-      user: user.email,
-      description: `Password has been reset`,
-      ip: req.clientIp,
+    this.appHooksService.emit(AppEvents.USER_PASSWORD_RESET, {
+      user: user,
+      ip: param.req?.clientIp,
     });
 
     return true;
@@ -327,12 +319,9 @@ export class UsersService {
       email_verified: true,
     });
 
-    await Audit.insert({
-      op_type: AuditOperationTypes.AUTHENTICATION,
-      op_sub_type: AuditOperationSubTypes.EMAIL_VERIFICATION,
-      user: user.email,
-      description: `Email has been verified`,
-      ip: req.clientIp,
+    this.appHooksService.emit(AppEvents.USER_EMAIL_VERIFICATION, {
+      user: user,
+      ip: param.req?.clientIp,
     });
 
     return true;
@@ -486,21 +475,14 @@ export class UsersService {
     });
 
     setTokenCookie(param.res, refreshToken);
-
     await this.createDefaultWorkspace(user);
 
-    await Audit.insert({
-      op_type: AuditOperationTypes.AUTHENTICATION,
-      op_sub_type: AuditOperationSubTypes.SIGNUP,
-      user: user.email,
-      description: `User has signed up`,
-      ip: (param.req as any).clientIp,
+    this.appHooksService.emit(AppEvents.USER_SIGNUP, {
+      user: user,
+      ip: param.req?.clientIp,
     });
 
     this.appHooksService.emit(AppEvents.WELCOME, {
-      user,
-    });
-    this.appHooksService.emit(AppEvents.USER_SIGNUP, {
       user,
     });
 
@@ -531,7 +513,6 @@ export class UsersService {
     }
   }
 
-
   private async createDefaultWorkspace(user: User) {
     const title = `${user.email?.split('@')?.[0]}`;
     // create new workspace for user
@@ -549,5 +530,4 @@ export class UsersService {
 
     return workspace;
   }
-
 }

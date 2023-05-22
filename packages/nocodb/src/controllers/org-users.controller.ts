@@ -74,15 +74,10 @@ export class OrgUsersController {
     allowedRoles: [OrgUserRoles.SUPER_ADMIN],
     blockApiTokenAccess: true,
   })
-  async userAdd(
-    @Body() body,
-    @Request() req,
-    @Param('projectId') projectId: string,
-  ) {
+  async userAdd(@Body() body, @Request() req) {
     const result = await this.orgUsersService.userAdd({
       user: req.body,
       req,
-      projectId,
     });
 
     return result;

@@ -1,4 +1,5 @@
 import path from 'path';
+import { AppEvents } from 'nocodb-sdk';
 import { Injectable } from '@nestjs/common';
 import { nanoid } from 'nanoid';
 import slash from 'slash';
@@ -6,9 +7,12 @@ import { T } from 'nc-help';
 import NcPluginMgrv2 from '../helpers/NcPluginMgrv2';
 import Local from '../plugins/storage/Local';
 import mimetypes, { mimeIcons } from '../utils/mimeTypes';
+import { AppHooksService } from './app-hooks/app-hooks.service';
 
 @Injectable()
 export class AttachmentsService {
+  constructor(private readonly appHooksService: AppHooksService) {}
+
   async upload(param: {
     path?: string;
     // todo: proper type
@@ -52,7 +56,9 @@ export class AttachmentsService {
       }),
     );
 
-    T.emit('evt', { evt_type: 'image:uploaded' });
+    this.appHooksService.emit(AppEvents.ATTACHMENT_UPLOAD, {
+      type: 'file',
+    });
 
     return attachments;
   }
@@ -105,8 +111,9 @@ export class AttachmentsService {
       }),
     );
 
-    T.emit('evt', { evt_type: 'image:uploaded' });
-
+    this.appHooksService.emit(AppEvents.ATTACHMENT_UPLOAD, {
+      type: 'url',
+    });
     return attachments;
   }
 

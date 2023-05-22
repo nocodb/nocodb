@@ -1,13 +1,14 @@
 import { Injectable } from '@nestjs/common';
+import { T } from 'nc-help';
 import {
+  AppEvents,
   AuditOperationSubTypes,
   AuditOperationTypes,
   OrgUserRoles,
   PluginCategory,
 } from 'nocodb-sdk';
-import validator from 'validator';
 import { v4 as uuidv4 } from 'uuid';
-import { T } from 'nc-help';
+import validator from 'validator';
 import { NC_APP_SETTINGS } from '../constants';
 import { validatePayload } from '../helpers';
 import { NcError } from '../helpers/catchError';
@@ -18,12 +19,16 @@ import { Audit, ProjectUser, Store, SyncSource, User } from '../models';
 import Noco from '../Noco';
 import extractRolesObj from '../utils/extractRolesObj';
 import { MetaTable } from '../utils/globals';
+import { AppHooksService } from './app-hooks/app-hooks.service';
 import { ProjectUsersService } from './project-users/project-users.service';
 import type { UserType } from 'nocodb-sdk';
 
 @Injectable()
 export class OrgUsersService {
-  constructor(private projectUSerService: ProjectUsersService) {}
+  constructor(
+    private readonly projectUSerService: ProjectUsersService,
+    private readonly appHooksService: AppHooksService,
+  ) {}
 
   async userList(param: {
     // todo: add better typing
@@ -95,7 +100,6 @@ export class OrgUsersService {
 
   async userAdd(param: {
     user: UserType;
-    projectId: string;
     // todo: refactor
     req: any;
   }) {
@@ -132,14 +136,14 @@ export class OrgUsersService {
 
     for (const email of emails) {
       // add user to project if user already exist
-      const user = await User.getByEmail(email);
+      let user = await User.getByEmail(email);
 
       if (user) {
         NcError.badRequest('User already exist');
       } else {
         try {
           // create new user with invite token
-          await User.insert({
+          user = await User.insert({
             invite_token,
             invite_token_expires: new Date(Date.now() + 24 * 60 * 60 * 1000),
             email,
@@ -148,15 +152,14 @@ export class OrgUsersService {
           });
 
           const count = await User.count();
-          T.emit('evt', { evt_type: 'org:user:invite', count });
 
-          await Audit.insert({
-            op_type: AuditOperationTypes.ORG_USER,
-            op_sub_type: AuditOperationSubTypes.INVITE,
-            user: param.req.user.email,
-            description: `${email} has been invited to ${param.projectId} project`,
+          this.appHooksService.emit(AppEvents.ORG_USER_INVITE, {
+            invitedBy: param.req.user,
+            user,
+            count,
             ip: param.req.clientIp,
           });
+
           // in case of single user check for smtp failure
           // and send back token if failed
           if (
@@ -235,11 +238,9 @@ export class OrgUsersService {
       param.req,
     );
 
-    await Audit.insert({
-      op_type: AuditOperationTypes.ORG_USER,
-      op_sub_type: AuditOperationSubTypes.RESEND_INVITE,
-      user: user.email,
-      description: `${user.email} has been re-invited`,
+    this.appHooksService.emit(AppEvents.ORG_USER_RESEND_INVITE, {
+      invitedBy: param.req.user,
+      user,
       ip: param.req.clientIp,
     });
 

@@ -15,6 +15,7 @@ describe('ExecutionTimeCalculatorInterceptor', () => {
         }),
         {
           sendMessage: jest.fn(),
+          sendMessages: jest.fn(),
         },
       ),
     ).toBeDefined();

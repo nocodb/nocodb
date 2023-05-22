@@ -115,17 +115,17 @@ export const useUndoRedo = createSharedComposable(() => {
     if (param.model) {
       return [
         { key: 'projectId', param: param.model.project_id! },
-        { key: 'title', param: param.model.id! },
+        { key: 'viewId', param: param.model.id! },
       ]
     } else if (param.view) {
       return [
         { key: 'projectId', param: param.view.project_id! },
-        { key: 'title', param: param.view.fk_model_id! },
+        { key: 'viewId', param: param.view.fk_model_id! },
       ]
     } else {
       return [
         { key: 'projectId', param: param.project_id! },
-        { key: 'title', param: param.model_id! },
+        { key: 'viewId', param: param.model_id! },
       ]
     }
   }
@@ -134,13 +134,13 @@ export const useUndoRedo = createSharedComposable(() => {
     if (param.view) {
       return [
         { key: 'projectId', param: param.view.project_id! },
-        { key: 'title', param: param.view.fk_model_id! },
+        { key: 'viewId', param: param.view.fk_model_id! },
         { key: 'viewTitle', param: param.view.title! },
       ]
     } else {
       return [
         { key: 'projectId', param: param.project_id! },
-        { key: 'title', param: param.model_id! },
+        { key: 'viewId', param: param.model_id! },
         { key: 'viewTitle', param: param.title! },
       ]
     }

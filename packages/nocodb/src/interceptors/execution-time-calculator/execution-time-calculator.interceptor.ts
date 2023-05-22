@@ -57,7 +57,7 @@ export class ExecutionTimeCalculatorInterceptor implements NestInterceptor {
             process.env.NC_KAFKA_TOPIC ||
             'nocohub-dev-input-stream',
           JSON.stringify({
-            timestamp,
+            created_at: timestamp,
             workspace_id,
             user_id,
             project_id,

@@ -2,6 +2,7 @@ import { Injectable } from '@nestjs/common';
 import { AppEvents, ViewTypes } from 'nocodb-sdk';
 import { T } from 'nc-help';
 import { validatePayload } from '../helpers';
+import { NcError } from '../helpers/catchError';
 import { KanbanView, View } from '../models';
 import { AppHooksService } from './app-hooks/app-hooks.service';
 import type {
@@ -12,7 +13,7 @@ import type {
 
 @Injectable()
 export class KanbansService {
-  constructor(private appHooksService: AppHooksService) {}
+  constructor(private readonly appHooksService: AppHooksService) {}
 
   async kanbanViewGet(param: { kanbanViewId: string }) {
     return await KanbanView.get(param.kanbanViewId);
@@ -35,11 +36,10 @@ export class KanbansService {
       type: ViewTypes.KANBAN,
     });
 
-    T.emit('evt', { evt_type: 'vtable:created', show_as: 'kanban' });
-
     this.appHooksService.emit(AppEvents.VIEW_CREATE, {
-      user: param.user,
       view,
+      showAs: 'kanban',
+      user: param.user,
     });
 
     return view;
@@ -52,8 +52,21 @@ export class KanbansService {
     validatePayload(
       'swagger.json#/components/schemas/KanbanUpdateReq',
       param.kanban,
-    ),
-      T.emit('evt', { evt_type: 'view:updated', type: 'kanban' });
-    return await KanbanView.update(param.kanbanViewId, param.kanban);
+    );
+
+    const view = await View.get(param.kanbanViewId);
+
+    if (!view) {
+      NcError.badRequest('View not found');
+    }
+
+    const res = await KanbanView.update(param.kanbanViewId, param.kanban);
+
+    this.appHooksService.emit(AppEvents.VIEW_UPDATE, {
+      view,
+      showAs: 'kanban',
+    });
+
+    return res;
   }
 }

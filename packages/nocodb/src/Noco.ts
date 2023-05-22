@@ -11,6 +11,7 @@ import { AppModule } from './app.module';
 
 import { NC_LICENSE_KEY } from './constants';
 import Store from './models/Store';
+import type { IEventEmitter } from './modules/event-emitter/event-emitter.interface';
 import type { Express } from 'express';
 // import type * as http from 'http';
 
@@ -36,6 +37,7 @@ export default class Noco {
   }
 
   public static config: any;
+  public static eventEmitter: IEventEmitter;
   public readonly router: express.Router;
   public readonly projectRouter: express.Router;
   public static _ncMeta: any;

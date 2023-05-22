@@ -115,14 +115,13 @@ const createProject = async () => {
 
     const complement = tcolor.complement()
 
-    // todo: provide proper project type
     creating.value = true
 
     const result = (await api.project.create({
       title: formState.title,
       fk_workspace_id: route.query.workspaceId,
       linked_db_project_ids: filteredDbProjects.value.filter((project) => project.isToggle).map((project) => project.id),
-      type: route.query.type ?? NcProjectType.DB,
+      type: NcProjectType.DASHBOARD,
       color,
       meta: JSON.stringify({
         theme: {
@@ -136,25 +135,10 @@ const createProject = async () => {
     refreshCommandPalette()
 
     switch (route.query.type) {
-      case NcProjectType.DOCS:
+      case NcProjectType.DASHBOARD:
         await loadProject(true, result.id)
-        await navigateTo(`/ws/${route.query.workspaceId}/nc/${result.id}/doc`)
+        await navigateTo(`/ws/${route.query.workspaceId}/nc/${result.id}/layout`)
         break
-      case NcProjectType.COWRITER: {
-        // force load project so that baseId is available in useTable
-        await loadProject(true, result.id)
-        // Create a table for the COWRITER form
-        const nanoidV2 = customAlphabet('1234567890abcdefghijklmnopqrstuvwxyz', 14)
-        table.table_name = `nc_cowriter_${nanoidV2()}`
-        // exclude title
-        table.columns = ['id', 'created_at', 'updated_at']
-        await createTable()
-
-        await navigateTo(`/nc/cowriter/${result.id}`)
-        break
-      }
-      default:
-        await navigateTo(`/ws/${route.query.workspaceId}/nc/${result.id}`)
     }
   } catch (e: any) {
     message.error(await extractSdkResponseErrorMsg(e))
@@ -164,13 +148,6 @@ const createProject = async () => {
 }
 
 const input: VNodeRef = ref<typeof Input>()
-
-// computed(() => {
-//   return availableDbProjects.value.map((project) => ({
-//     ...project,
-//     isToggle: false,
-//   }))
-// })
 
 onMounted(async () => {
   await loadWorkspaceList()
@@ -192,7 +169,7 @@ onMounted(async () => {
     autocomplete="off"
     @finish="createProject"
   >
-    <h2 class="prose-2xl font-bold self-center my-4">New Dashboard Project</h2>
+    <h2 class="prose-2xl font-bold self-center my-4">{{ $t('dashboards.create_new_dashboard_project') }}</h2>
     <a-form-item :label="$t('labels.projName')" name="title" :rules="nameValidationRules" class="m-10">
       <a-input ref="input" v-model:value="formState.title" name="title" class="nc-metadb-project-name" />
     </a-form-item>

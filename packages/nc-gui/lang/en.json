@@ -1,5 +1,6 @@
 {
   "dashboards": {
+    "create_new_dashboard_project": "New Dashboard Project",
     "buttonActionTypes": {
       "open_external_url": "External link",
       "delete_record": "Delete record",

@@ -1633,7 +1633,9 @@ class BaseModelSqlv2 {
               );
             break;
           } else if (this.isPg) {
-            // if there is no timezone info, convert it to UTC
+            // if there is no timezone info,
+            // convert to database timezone,
+            // then convert to UTC
             if (
               column.dt !== 'timestamp with time zone' &&
               column.dt !== 'timestamptz'
@@ -1651,7 +1653,9 @@ class BaseModelSqlv2 {
               break;
             }
           } else if (this.isMssql) {
-            // if there is no timezone info, convert to database timezone, then convert to UTC
+            // if there is no timezone info,
+            // convert to database timezone,
+            // then convert to UTC
             if (column.dt !== 'datetimeoffset') {
               res[sanitize(column.title || column.column_name)] =
                 this.dbDriver.raw(
@@ -3319,8 +3323,12 @@ class BaseModelSqlv2 {
           continue;
         }
 
-        // cater MYSQL
-        d[col.title] = d[col.title].replace(/\.000000/g, '');
+        // remove milliseconds
+        if (this.isMySQL) {
+          d[col.title] = d[col.title].replace(/\.000000/g, '');
+        } else if (this.isMssql) {
+          d[col.title] = d[col.title].replace(/\.0000000 \+00:00/g, '');
+        }
 
         if (/\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}.\d{3}Z/g.test(d[col.title])) {
           // convert ISO string (e.g. in MSSQL) to YYYY-MM-DD hh:mm:ssZ

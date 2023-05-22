@@ -1,6 +1,7 @@
-import { join } from 'path';
+import path, { join } from 'path';
 import { Injectable } from '@nestjs/common';
 import express from 'express';
+import isDocker from 'is-docker';
 import type { NestMiddleware } from '@nestjs/common';
 
 @Injectable()
@@ -13,6 +14,10 @@ export class PublicMiddleware implements NestMiddleware {
     }
 
     // serve static files from public folder
-    express.static(join(process.cwd(), 'public'))(req, res, next);
+    if (isDocker()) {
+      express.static(join(process.cwd(), 'docker', 'public'))(req, res, next);
+    } else {
+      express.static(join(process.cwd(), 'public'))(req, res, next);
+    }
   }
 }

@@ -70,9 +70,9 @@ const expandText = async () => {
   const tr = editor.state.tr
 
   const fromSec = getPositionOfSection(editor.state, selection.from + 1, 'start')
-  const toSec = getPositionOfSection(editor.state, selection.to, 'end')
+  const toSec = getPositionOfNextSection(editor.state, selection.to - 1, 'start') ?? editor.state.doc.content.size
 
-  tr.setSelection(AISelection.create(editor.state.doc, fromSec, toSec))
+  tr.setSelection(AISelection.create(editor.state.doc, fromSec, toSec - 2))
   editor.view.dispatch(tr)
 }
 

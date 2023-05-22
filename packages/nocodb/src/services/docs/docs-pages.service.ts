@@ -128,7 +128,7 @@ export class DocsPagesService {
       
       Output should be in markdown format.
       ${promptText} is given as prompt input.
-      As an expert concise writer, what will you write in a document. `;
+      Expand on this. `;
     }
 
     try {
@@ -158,7 +158,8 @@ export class DocsPagesService {
             resolve(true); // Stream finished
           }
 
-          response.write(chunk.toString());
+          chunk = chunk.toString();
+          response.write(chunk);
         });
       }).then(() => {
         response.end();

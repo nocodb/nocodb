@@ -88,7 +88,7 @@ export const Paragraph = TiptapParagraph.extend({
         }
 
         const tr = editor.state.tr
-        tr.setSelection(new AISelection(selection.$anchor, selection.$head))
+        tr.setSelection(AISelection.create(editor.state.doc, selection.$anchor.pos, selection.$anchor.pos))
         editor.view.dispatch(tr)
 
         return true

@@ -6,7 +6,7 @@
 import type { Node, ResolvedPos } from 'prosemirror-model'
 import { Slice } from 'prosemirror-model'
 import type { Transaction } from 'prosemirror-state'
-import { NodeSelection, Selection } from 'prosemirror-state'
+import { Selection } from 'prosemirror-state'
 
 import type { Mappable } from 'prosemirror-transform'
 
@@ -35,6 +35,7 @@ export class AISelection extends Selection {
   constructor($anchorCell: ResolvedPos, $headCell: ResolvedPos = $anchorCell) {
     super($anchorCell, $headCell)
 
+    this.visible = true
     this.$anchorCell = $anchorCell
     this.$headCell = $headCell
   }
@@ -51,23 +52,25 @@ export class AISelection extends Selection {
   }
 
   map(doc: Node, mapping: Mappable): Selection {
-    const { deleted, pos } = mapping.mapResult(this.anchor)
-    const $pos = doc.resolve(pos)
-    if (deleted) return Selection.near($pos)
-    return new NodeSelection($pos)
+    const $head = doc.resolve(mapping.map(this.head))
+    if (!$head.parent.inlineContent) return Selection.near($head)
+    const $anchor = doc.resolve(mapping.map(this.anchor))
+    return new AISelection($anchor.parent.inlineContent ? $anchor : $head, $head)
   }
 
   eq(other: Selection): boolean {
-    return other instanceof NodeSelection && other.anchor === this.anchor
+    return other instanceof AISelection && other.anchor === this.anchor && other.head === this.head
   }
 
   toJSON(): any {
-    return { type: 'ai', anchor: this.anchor }
+    return { type: 'ai', anchor: this.anchor, head: this.head }
   }
 
   static fromJSON(doc: Node, json: any) {
     if (typeof json.anchor != 'number') throw new RangeError('Invalid input for NodeSelection.fromJSON')
-    return new NodeSelection(doc.resolve(json.anchor))
+    const $anchor = doc.resolve(json.anchor)
+    const $head = doc.resolve(json.head)
+    return new AISelection($anchor, $head)
   }
 
   /// Replace the selection with a slice or, if no slice is given,
@@ -87,7 +90,7 @@ export class AISelection extends Selection {
     for (let i = 0; i < ranges.length; i++) {
       const { $from, $to } = ranges[i]
       const mapping = tr.mapping.slice(mapFrom)
-      tr.replaceRange(mapping.map($from.pos), mapping.map($to.pos), i ? Slice.empty : content)
+      tr.replace(mapping.map($from.pos), mapping.map($to.pos), i ? Slice.empty : content)
     }
   }
 
@@ -114,3 +117,5 @@ export class AISelection extends Selection {
 }
 
 Selection.jsonID('ai', AISelection)
+
+AISelection.prototype.visible = true

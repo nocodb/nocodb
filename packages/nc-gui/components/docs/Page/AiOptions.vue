@@ -38,11 +38,11 @@ const draftActiveIndex = ref(0)
 const isSelectionEmpty = ref(false)
 const suggestedMarkdown = ref('')
 const pageContentWidth = ref(0)
+const lastFrom = ref(0)
 
 const checkIsAiOptionVisible = (editor: Editor) => {
   const selection = editor.state.selection
   if (!(selection instanceof AISelection)) {
-    isAiOptionsVisible.value = false
     drafts.value = []
 
     return false
@@ -150,6 +150,8 @@ const expandText = async () => {
   isLoading.value = true
 
   const selection = editor.state.selection
+  lastFrom.value = selection.from - 2
+
   let selectionMd
   if (!selection.empty) {
     drafts.value.push(selection.content().toJSON())
@@ -197,26 +199,37 @@ const onInputBoxEnter = () => {
 
 function renderContent(json: any) {
   const state = editor.state
-  const selection = state.selection
   const slice = Slice.fromJSON(state.schema, json)
   const tr = state.tr
-  const from = selection.$from.pos
 
   undo(state)
 
-  const newFrom = from > 0 ? from : 0
-  const newTo = tr.doc.nodeSize - 2 < selection.to + 2 ? tr.doc.nodeSize - 2 : selection.to + 2
-
   tr.replaceSelection(slice)
-  tr.setSelection(AISelection.create(tr.doc, newFrom, newTo))
-
-  editor.view.dispatch(tr)
 
   setTimeout(() => {
     const tr = editor.state.tr
-    tr.setSelection(AISelection.create(tr.doc, newFrom, newFrom + slice.size))
+    const newFrom = lastFrom.value
+
+    tr.setSelection(AISelection.create(tr.doc, newFrom, newFrom + slice.size + 2))
     editor.view.dispatch(tr)
+
+    scrollToSelectionEnd(newFrom + slice.size)
   }, 0)
+
+  editor.view.dispatch(tr)
+}
+
+function scrollToSelectionEnd(to: number) {
+  setTimeout(() => {
+    const sectionDoms = document.querySelectorAll('.ProseMirror .draggable-block-wrapper')
+    for (let i = 0; i < sectionDoms.length; i++) {
+      const pos = Number(sectionDoms[i].getAttribute('pos'))
+      if (to <= pos) {
+        sectionDoms[i].scrollIntoView({ behavior: 'smooth', block: 'center' })
+        break
+      }
+    }
+  }, 100)
 }
 
 const goBackInDraft = () => {

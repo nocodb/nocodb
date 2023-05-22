@@ -83,6 +83,17 @@ const loadProjectAndTableList = async (project: ProjectType, projIndex: number) 
 
   // if document project, add a document tab and route to the page
   switch (project.type) {
+    case 'dashboard':
+      addTab({
+        id: project.id,
+        title: project.title,
+        type: TabType.DASHBOARD,
+        projectId: project.id,
+      })
+      console.log('open dashboard project', project.id)
+      $e('c:dashboard:open', project.id)
+      navigateTo(dashboardProjectUrl(project.id!))
+      break
     case 'documentation':
       addTab({
         id: project.id,

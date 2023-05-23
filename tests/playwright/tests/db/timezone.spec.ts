@@ -57,6 +57,8 @@ async function timezoneSuite(token?: string, skipTableCreate?: boolean) {
   return { project, table };
 }
 
+// with appropriate credentials, connect to external db
+//
 async function connectToExtDb(context: any) {
   if (isPg(context)) {
     await api.base.create(context.project.id, {
@@ -95,6 +97,8 @@ async function connectToExtDb(context: any) {
   }
 }
 
+////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
 test.describe('Timezone : Japan/Tokyo', () => {
   let dashboard: DashboardPage;
   let context: any;
@@ -124,10 +128,10 @@ test.describe('Timezone : Japan/Tokyo', () => {
 
   /*
    * This test is to verify the display value of DateTime column in the grid
-   * when the timezone is set to Asia/Tokyo
+   * when the timezone is set to Asia/Tokyo (UTC+9)
    *
    * The test inserts 3 rows using API
-   * 1. DateTime inserted without timezone
+   * 1. DateTime inserted without timezone (treated as UTC)
    * 2. DateTime inserted with timezone (UTC+4)
    * 3. DateTime inserted with timezone (UTC-4)
    *
@@ -155,10 +159,10 @@ test.describe('Timezone : Japan/Tokyo', () => {
 
   /*
    * This test is to verify the API read response of DateTime column
-   * when the timezone is set to Asia/Tokyo
+   * when the timezone is set to Asia/Tokyo (UTC+9)
    *
    * The test inserts 3 rows using API
-   * 1. DateTime inserted without timezone
+   * 1. DateTime inserted without timezone (treated as UTC)
    * 2. DateTime inserted with timezone (UTC+4)
    * 3. DateTime inserted with timezone (UTC-4)
    *
@@ -178,6 +182,8 @@ test.describe('Timezone : Japan/Tokyo', () => {
     expect(readDate).toEqual(dateUTC);
   });
 });
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 // Change browser timezone & locale to Asia/Hong-Kong
 //
@@ -206,10 +212,10 @@ test.describe('Timezone : Asia/Hong-kong', () => {
 
   /*
    * This test is to verify the display value of DateTime column in the grid
-   * when the timezone is set to Asia/Hong-Kong
+   * when the timezone is set to Asia/Hong-Kong (UTC+8)
    *
    * The test inserts 3 rows using API
-   * 1. DateTime inserted without timezone
+   * 1. DateTime inserted without timezone (treated as UTC)
    * 2. DateTime inserted with timezone (UTC+4)
    * 3. DateTime inserted with timezone (UTC-4)
    *
@@ -234,7 +240,9 @@ test.describe('Timezone : Asia/Hong-kong', () => {
   });
 });
 
-test.describe('Timezone', () => {
+////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+test.describe('XCDB Timezone', () => {
   let dashboard: DashboardPage;
   let context: any;
 
@@ -246,12 +254,14 @@ test.describe('Timezone', () => {
   test.beforeEach(async ({ page }) => {
     context = await setup({ page, isEmptyProject: true });
     dashboard = new DashboardPage(page, context.project);
+
+    // Apply only for sqlite, as currently- root DB for all instances is SQLite
     if (!isSqlite(context)) return;
 
     const { project } = await timezoneSuite(context.token, true);
     context.project = project;
 
-    // Using API for test preparation was not working
+    // Kludge: Using API for test preparation was not working
     // Hence switched over to UI based table creation
 
     await dashboard.clickHome();
@@ -271,15 +281,13 @@ test.describe('Timezone', () => {
       columnHeader: 'DateTime',
       dateTime: '2021-01-01 08:00:00',
     });
-
-    // await dashboard.rootPage.reload();
   });
 
   /*
    * This test is to verify the display value & API response of DateTime column in the grid
    * when the value inserted is from the UI
    *
-   * Note: Timezone for this test is set as Asia/Hong-Kong
+   * Note: Timezone for this test is set as Asia/Hong-Kong (UTC+8)
    *
    * 1. Create table with DateTime column
    * 2. Insert DateTime value from UI '2021-01-01 08:00:00'
@@ -380,6 +388,8 @@ test.describe('Timezone', () => {
     await dashboard.grid.cell.verifyDateCell({ index: 1, columnHeader: 'DateTime', value: '2021-01-01 08:00' });
   });
 });
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 async function createTableWithDateTimeColumn(database: string, setTz = false) {
   if (database === 'pg') {
@@ -484,17 +494,12 @@ function getDateTimeInLocalTimeZone(dateString: string) {
   return outputString;
 }
 
+// sample
+//  input:    2021-01-01 10:00:00+05:30
+//  output:   2021-01-01 04:30:00+00:00
 function getDateTimeInUTCTimeZone(dateString: string) {
   // create a Date object with the input string
-  const date = new Date(dateString);
-
-  // get the timezone offset in minutes and convert to milliseconds
-  // subtract the offset from the provided time in milliseconds for IST
-  // const offsetMs = date.getTimezoneOffset() * 60 * 1000;
-
-  // adjust the date by the offset
-  // const adjustedDate = new Date(date.getTime() + offsetMs);
-  const adjustedDate = new Date(date.getTime());
+  const adjustedDate = new Date(dateString);
 
   // format the adjusted date as a string in the desired format
   const outputString = adjustedDate.toISOString().slice(0, 19).replace('T', ' ');
@@ -559,6 +564,10 @@ test.describe.serial('External DB - DateTime column', async () => {
     await createTableWithDateTimeColumn(context.dbType);
   });
 
+  // ExtDB : DateAdd, DateTime_Diff verification
+  //  - verify display value
+  //  - verify API response value
+  //
   test('Formula, verify display value', async () => {
     await connectToExtDb(context);
     await dashboard.rootPage.reload();
@@ -656,6 +665,7 @@ test.describe.serial('External DB - DateTime column', async () => {
     }
 
     // verify display value for formula columns (formula-1, formula-2)
+    // source data : ['2023-04-27 10:00', '2023-04-27 10:00']
     await verifyFormula({
       formula: ['DATEADD(DatetimeWithoutTz, 1, "day")', 'DATEADD(DatetimeWithTz, 1, "day")'],
       expectedDisplayValue: ['2023-04-28 10:00', '2023-04-28 10:00'],
@@ -706,6 +716,8 @@ test.describe.serial('External DB - DateTime column', async () => {
     await dashboard.treeView.openTable({ title: 'MyTable' });
 
     if (isSqlite(context)) {
+      // For SQLite, we assume that the browser timezone is the same as the server timezone
+      //
       expectedDisplayValues['sqlite'].DatetimeWithoutTz[0] = getDateTimeInLocalTimeZone(
         `2023-04-27 10:00:00${formattedOffset}`
       );
@@ -830,6 +842,9 @@ test.describe('Ext DB MySQL : DB Timezone configured as HKT', () => {
   test.beforeEach(async ({ page }) => {
     context = await setup({ page, isEmptyProject: true });
     dashboard = new DashboardPage(page, context.project);
+
+    // for PG, we need to restart server after reconfiguring timezone in .conf file
+    // SQLite, does not support timezone configuration
     if (!isMysql(context)) {
       return;
     }

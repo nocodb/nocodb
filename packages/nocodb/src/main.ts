@@ -19,7 +19,6 @@ async function bootstrap() {
     if (!process.env['NC_REDIS_URL']) {
       throw new Error('NC_REDIS_URL is required');
     }
-    const app = await NestFactory.create(AppModule);
     await app.init();
   }
 }

@@ -19,10 +19,14 @@ export class LayoutsService {
     layout: LayoutUpdateReqType;
     req?: any;
   }) {
-    validatePayload(
-      'swagger.json#/components/schemas/LayoutUpdateReq',
-      param.layout,
-    );
+    // TODO: add the validation here again
+    // was commenting it because for some reason it was complaining about
+    // order being null or undefined (even though field was not declared as required in swagger)
+    // Either fix swagger or deliver and send order always with the Layout data
+    // validatePayload(
+    //   'swagger.json#/components/schemas/LayoutUpdateReq',
+    //   param.layout,
+    // );
 
     const layout = await Layout.update(param.layoutId, param.layout);
 

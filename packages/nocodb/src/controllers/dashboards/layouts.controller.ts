@@ -5,6 +5,7 @@ import {
   Get,
   HttpCode,
   Param,
+  Patch,
   Post,
   Request,
   UseGuards,
@@ -44,7 +45,6 @@ export class LayoutsController {
     permissionName: 'layoutDelete',
   })
   async layoutDelete(@Param('layoutId') layoutId: string, @Request() req) {
-    console.log('FOO DELETE LAYOUT - layoutId', layoutId);
     const result = await this.layoutService.layoutDelete({
       layoutId: layoutId,
       user: (req as any).user,
@@ -77,6 +77,27 @@ export class LayoutsController {
   ) {
     const result = await this.layoutService.layoutCreate({
       dashboardId: dashboardId,
+      layout: body,
+    });
+
+    return result;
+  }
+
+  @Patch([
+    '/api/v1/dashboards/:dashboardId/layouts/:layoutId',
+    '/api/v1/layouts/:layoutId',
+  ])
+  @HttpCode(200)
+  @UseAclMiddleware({
+    permissionName: 'layoutUpdate',
+  })
+  async layoutUpdate(
+    @Param('layoutId') layoutId: string,
+    @Body() body: LayoutReqType,
+    @Request() req,
+  ) {
+    const result = await this.layoutService.layoutUpdate({
+      layoutId,
       layout: body,
     });
 

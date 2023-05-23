@@ -106,7 +106,7 @@ onMounted(async () => {
       @click="() => addNewLayout({ projectId: project.id })"
     >
       <MdiPlus />
-      <div class="flex">Create New Dashboard</div>
+      <div class="flex">Create New Layout</div>
     </div>
   </a-layout-sider>
 </template>

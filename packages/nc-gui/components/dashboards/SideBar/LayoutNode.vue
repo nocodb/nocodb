@@ -18,13 +18,12 @@ const props = withDefaults(
 
 const project = $(toRef(props, 'project'))
 const layout = $(toRef(props, 'layout'))
-const baseIndex = $(toRef(props, 'baseIndex'))
 
 const route = useRoute()
 
 const { isUIAllowed } = useUIPermission()
 
-const { $e, $api } = useNuxtApp()
+const { $e } = useNuxtApp()
 
 const { deleteLayout } = useDashboardStore()
 
@@ -65,12 +64,7 @@ const { isSharedBase } = useProject()
     :data-order="layout.order"
     :data-id="layout.id"
     :data-testid="`tree-view-layout-${layout.title}`"
-    :class="[
-      // todo: table filter
-      // { hidden: !filteredTables?.includes(table), active: openedTableId === table.id },
-      `nc-project-tree-tbl nc-project-tree-tbl-${layout.title}`,
-      { active: openeLayoutId === layout.id },
-    ]"
+    :class="[`nc-project-tree-tbl nc-project-tree-tbl-${layout.title}`, { active: openeLayoutId === layout.id }]"
   >
     <GeneralTooltip
       class="pl-4 pr-3 py-1.5 mt-0.65 rounded-md"

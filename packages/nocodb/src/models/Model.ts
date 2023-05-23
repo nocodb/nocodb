@@ -169,7 +169,10 @@ export default class Model implements TableType {
     },
     ncMeta = Noco.ncMeta,
   ): Promise<Model[]> {
-    const cachedList = await NocoCache.getList(CacheScope.MODEL, [project_id]);
+    const cachedList = await NocoCache.getList(CacheScope.MODEL, [
+      project_id,
+      base_id,
+    ]);
     let { list: modelList } = cachedList;
     const { isNoneList } = cachedList;
     if (!isNoneList && !modelList.length) {
@@ -189,7 +192,11 @@ export default class Model implements TableType {
         model.meta = parseMetaProp(model);
       }
 
-      await NocoCache.setList(CacheScope.MODEL, [project_id], modelList);
+      await NocoCache.setList(
+        CacheScope.MODEL,
+        [project_id, base_id],
+        modelList,
+      );
     }
     modelList.sort(
       (a, b) =>

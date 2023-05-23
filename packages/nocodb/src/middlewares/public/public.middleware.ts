@@ -1,7 +1,7 @@
 import path, { join } from 'path';
 import { Injectable } from '@nestjs/common';
 import express from 'express';
-import isDocker from 'is-docker';
+import isDocker from 'is-inside-container';
 import type { NestMiddleware } from '@nestjs/common';
 
 @Injectable()

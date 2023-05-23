@@ -6,6 +6,7 @@ import { Api, UITypes } from 'nocodb-sdk';
 import { ProjectsPage } from '../../pages/ProjectsPage';
 import { isMysql, isPg, isSqlite } from '../../setup/db';
 import { getKnexConfig } from '../utils/config';
+import { getBrowserTimezoneOffset } from '../utils/general';
 let api: Api<any>, records: any[];
 
 const columns = [
@@ -603,9 +604,11 @@ test.describe.serial('External DB - DateTime column', async () => {
     async function verifyFormula({
       formula,
       expectedDisplayValue,
+      verifyApiResponse = true,
     }: {
       formula: string[];
       expectedDisplayValue: string[];
+      verifyApiResponse?: boolean;
     }) {
       // Update formula column to compute "month" instead of "day"
       await api.dbTableColumn.update(table_data.columns[3].id, {
@@ -635,6 +638,22 @@ test.describe.serial('External DB - DateTime column', async () => {
         columnHeader: 'formula-2',
         value: expectedDisplayValue[1],
       });
+
+      // verify API response
+      if (verifyApiResponse) {
+        const records = await api.dbTableRow.list('noco', context.project.id, table_data.id, { limit: 10 });
+        const formattedOffset = getBrowserTimezoneOffset();
+
+        // console.log(getDateTimeInUTCTimeZone(`${expectedDisplayValue[0]}${formattedOffset}`));
+        // console.log(getDateTimeInUTCTimeZone(`${expectedDisplayValue[1]}${formattedOffset}`));
+
+        expect(records.list[2]['formula-1']).toEqual(
+          getDateTimeInUTCTimeZone(`${expectedDisplayValue[0]}${formattedOffset}`)
+        );
+        expect(records.list[2]['formula-2']).toEqual(
+          getDateTimeInUTCTimeZone(`${expectedDisplayValue[1]}${formattedOffset}`)
+        );
+      }
     }
 
     // verify display value for formula columns (formula-1, formula-2)
@@ -657,24 +676,23 @@ test.describe.serial('External DB - DateTime column', async () => {
       dateTime: '2024-04-27 10:00:00',
     });
 
-    if (!isSqlite(context)) {
-      // SQLite : output is in decimal format; MySQL & Postgres : output is in integer format
-      await verifyFormula({
-        formula: [
-          'DATETIME_DIFF({DatetimeWithoutTz}, {DatetimeWithTz}, "days")',
-          'DATETIME_DIFF({DatetimeWithTz}, {DatetimeWithoutTz}, "days")',
-        ],
-        expectedDisplayValue: ['-366', '366'],
-      });
+    await verifyFormula({
+      formula: [
+        'DATETIME_DIFF({DatetimeWithoutTz}, {DatetimeWithTz}, "days")',
+        'DATETIME_DIFF({DatetimeWithTz}, {DatetimeWithoutTz}, "days")',
+      ],
+      expectedDisplayValue: ['-366', '366'],
+      verifyApiResponse: false,
+    });
 
-      await verifyFormula({
-        formula: [
-          'DATETIME_DIFF({DatetimeWithoutTz}, {DatetimeWithTz}, "months")',
-          'DATETIME_DIFF({DatetimeWithTz}, {DatetimeWithoutTz}, "months")',
-        ],
-        expectedDisplayValue: ['-12', '12'],
-      });
-    }
+    await verifyFormula({
+      formula: [
+        'DATETIME_DIFF({DatetimeWithoutTz}, {DatetimeWithTz}, "months")',
+        'DATETIME_DIFF({DatetimeWithTz}, {DatetimeWithoutTz}, "months")',
+      ],
+      expectedDisplayValue: ['-12', '12'],
+      verifyApiResponse: false,
+    });
   });
 
   test('Verify display value, UI insert, API response', async () => {
@@ -683,11 +701,7 @@ test.describe.serial('External DB - DateTime column', async () => {
     await dashboard.rootPage.waitForTimeout(2000);
 
     // get timezone offset
-    const timezoneOffset = new Date().getTimezoneOffset();
-    const hours = Math.floor(Math.abs(timezoneOffset) / 60);
-    const minutes = Math.abs(timezoneOffset % 60);
-    const sign = timezoneOffset <= 0 ? '+' : '-';
-    const formattedOffset = `${sign}${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}`;
+    const formattedOffset = getBrowserTimezoneOffset();
 
     await dashboard.treeView.openBase({ title: 'datetimetable' });
     await dashboard.treeView.openTable({ title: 'MyTable' });
@@ -805,9 +819,6 @@ test.describe.serial('External DB - DateTime column', async () => {
       dateTimeString => dateTimeString.substring(0, 17) + '00' + dateTimeString.substring(19)
     );
 
-    console.log('dateTimeWithoutTz', dateTimeWithoutTz);
-    console.log('dateTimeWithTz', dateTimeWithTz);
-
     expect(dateTimeWithoutTz).toEqual(expectedDateTimeWithoutTz);
     expect(dateTimeWithTz).toEqual(expectedDateTimeWithTz);
   });
@@ -850,11 +861,7 @@ test.describe('Ext DB MySQL : DB Timezone configured as HKT', () => {
     }
 
     // get timezone offset
-    const timezoneOffset = new Date().getTimezoneOffset();
-    const hours = Math.floor(Math.abs(timezoneOffset) / 60);
-    const minutes = Math.abs(timezoneOffset % 60);
-    const sign = timezoneOffset <= 0 ? '+' : '-';
-    const formattedOffset = `${sign}${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}`;
+    const formattedOffset = getBrowserTimezoneOffset();
 
     // connect after timezone is set
     await connectToExtDb(context);
@@ -940,9 +947,6 @@ test.describe('Ext DB MySQL : DB Timezone configured as HKT', () => {
     dateTimeWithTz = dateTimeWithTz.map(
       dateTimeString => dateTimeString.substring(0, 17) + '00' + dateTimeString.substring(19)
     );
-
-    console.log('dateTimeWithoutTz', dateTimeWithoutTz);
-    console.log('dateTimeWithTz', dateTimeWithTz);
 
     expect(dateTimeWithoutTz).toEqual(expectedDateTimeWithoutTz);
     expect(dateTimeWithTz).toEqual(expectedDateTimeWithTz);

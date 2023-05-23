@@ -43,7 +43,7 @@ export default function convertCellData(
       if (!parsedDateTime.isValid()) {
         throw new Error('Not a valid datetime value')
       }
-      return parsedDateTime.format('YYYY-MM-DD HH:mm:ssZ')
+      return parsedDateTime.utc().format('YYYY-MM-DD HH:mm:ssZ')
     }
     case UITypes.Time: {
       let parsedTime = dayjs(value)

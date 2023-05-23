@@ -1,9 +1,10 @@
 import { T } from 'nc-help';
 import { Injectable } from '@nestjs/common';
 import { Model } from 'src/models';
-import Noco from 'src/Noco';
+import Widget from 'src/models/Widget';
 import { validatePayload } from '../../helpers';
 import Layout from '../../models/Layout';
+import Noco from '../../Noco';
 import type User from 'src/models/User';
 import type { LayoutReqType, LayoutUpdateReqType } from 'nocodb-sdk';
 
@@ -55,19 +56,9 @@ export class LayoutsService {
     param: { layoutId: string; user: User; req?: any },
     ncMeta = Noco.ncMeta,
   ) {
-    const layout = await Layout.get(param.layoutId);
+    const layout = await Layout.delete(param.layoutId, ncMeta);
 
-    const view = await this.get(viewId);
-    await Sort.deleteAll(viewId);
-    await Filter.deleteAll(viewId);
-    const table = this.extractViewTableName(view);
-    const tableScope = this.extractViewTableNameScope(view);
-    const columnTable = this.extractViewColumnsTableName(view);
-    const columnTableScope = this.extractViewColumnsTableNameScope(view);
-    await ncMeta.metaDelete(null, null, columnTable, {
-      fk_view_id: viewId,
-    });
-
-    return layout.delete();
+    // TODO: remove 'nc_ds_widget_db_dependencies_v2' entries here (or in the model) as well
+    return layout;
   }
 }

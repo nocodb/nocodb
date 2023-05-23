@@ -34,15 +34,16 @@ const setMenuContext = inject(TreeViewSetMenuContextInj)!
 
 const openeLayoutId = computed(() => route.params.layoutId)
 
-function openRenameLayoutDialog(layout: LayoutType, baseId?: string, rightClick = false) {
+function openRenameLayoutDialog(layout: LayoutType, rightClick = false) {
   $e(rightClick ? 'c:layout:rename:navdraw:right-click' : 'c:layout:rename:navdraw:options')
 
   const isOpen = ref(true)
 
   const { close } = useDialog(resolveComponent('DlgLayoutRename'), {
     'modelValue': isOpen,
-    'layoutMeta': layout,
-    'baseId': baseId,
+    'layout': layout,
+    // 'baseId': baseId,
+    'dashboardProject': project,
     'onUpdate:modelValue': closeDialog,
   })
 
@@ -104,10 +105,7 @@ const { isSharedBase } = useProject()
 
           <template #overlay>
             <a-menu class="!py-0 rounded text-sm">
-              <a-menu-item
-                v-if="isUIAllowed('layout-rename', false, projectRole)"
-                @click="openRenameLayoutDialog(layout, project.bases[baseIndex].id)"
-              >
+              <a-menu-item v-if="isUIAllowed('layout-rename', false, projectRole)" @click="openRenameLayoutDialog(layout)">
                 <div class="nc-project-menu-item" :data-testid="`sidebar-layout-rename-${layout.title}`">
                   {{ $t('general.rename') }}
                 </div>
@@ -116,7 +114,7 @@ const { isSharedBase } = useProject()
               <a-menu-item
                 v-if="isUIAllowed('layout-delete', false, projectRole)"
                 :data-testid="`sidebar-layout-delete-${layout.title}`"
-                @click="deleteLayout(layout)"
+                @click="deleteLayout(project, layout)"
               >
                 <div class="nc-project-menu-item">
                   {{ $t('general.delete') }}

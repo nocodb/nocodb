@@ -1,6 +1,6 @@
 import { defineStore } from 'pinia'
-import type { LayoutType } from 'nocodb-sdk'
-import { AggregateFnType, ButtonActionType } from 'nocodb-sdk'
+import type { LayoutType, ProjectType } from 'nocodb-sdk'
+import { AggregateFnType } from 'nocodb-sdk'
 import { computed, extractSdkResponseErrorMsg, message, navigateTo, ref, useNuxtApp, useRouter, useTabs, watch } from '#imports'
 import type { LayoutSidebarNode } from '~~/lib'
 import { TabType } from '~~/lib'
@@ -25,7 +25,8 @@ export const useDashboardStore = defineStore('dashboardStore', () => {
   const router = useRouter()
   const route = $(router.currentRoute)
 
-  const { $api } = useNuxtApp()
+  const { $api, $e } = useNuxtApp()
+  const { t } = useI18n()
 
   /***
    *
@@ -219,23 +220,27 @@ export const useDashboardStore = defineStore('dashboardStore', () => {
     })
   }
 
-  const deleteLayout = async (dashboardId: string, layoutId: string) => {
-    alert('delete')
-    try {
-      const deletedLayoutData = await $api.dashboard.layoutDelete(dashboardId, layoutId)
-
-      const path = route.path.split('/')
-
-      // Remove the last segment
-      path.pop()
-
-      const newPath = path.join('/')
-      await navigateTo(newPath)
-      // await router.push(newPath)
-    } catch (e) {
-      console.error(e)
-      message.error(await extractSdkResponseErrorMsg(e as any))
-    }
+  const deleteLayout = async (dashboard: ProjectType, layout: LayoutType) => {
+    $e('c:layout:delete')
+    Modal.confirm({
+      title: `${t('msg.info.deleteLayoutConfirmation')} (${layout.title})?`,
+      wrapClassName: 'nc-modal-layout-delete',
+      okText: t('general.yes'),
+      okType: 'danger',
+      cancelText: t('general.no'),
+      width: 450,
+      async onOk() {
+        try {
+          await $api.dashboard.layoutDelete(dashboard.id!, layout.id!)
+          await fetchLayouts({ projectId: dashboard.id! })
+          message.info(t('msg.info.layoutDeleted'))
+          $e('a:layout:delete')
+        } catch (e) {
+          message.error(await extractSdkResponseErrorMsg(e))
+          console.error(e)
+        }
+      },
+    })
   }
 
   const openLayout = async ({ layout, projectId }: { layout: LayoutType; projectId: string }) => {

@@ -1,6 +1,7 @@
 import { extractProps } from '../helpers/extractProps';
 import { MetaTable } from '../utils/globals';
 import Noco from '../Noco';
+import Widget from './Widget';
 import type { LayoutReqType, LayoutType } from 'nocodb-sdk';
 
 export default class Layout implements LayoutType {
@@ -13,6 +14,24 @@ export default class Layout implements LayoutType {
 
   constructor(layout: Partial<LayoutType | LayoutReqType>) {
     Object.assign(this, layout);
+  }
+
+  public static async delete(layoutId: string, ncMeta = Noco.ncMeta) {
+    const layout = await this.get(layoutId, ncMeta);
+
+    await ncMeta.metaDelete(null, null, MetaTable.LAYOUT, {
+      id: layoutId,
+    });
+
+    const widgetsOfLayout = await Widget.list({
+      layout_id: layoutId,
+    });
+
+    for (const widget of widgetsOfLayout) {
+      await Widget.delete(widget.id);
+    }
+
+    return layout;
   }
 
   public static async get(layoutId: string, ncMeta = Noco.ncMeta) {

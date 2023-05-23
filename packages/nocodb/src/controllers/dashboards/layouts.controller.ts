@@ -44,10 +44,11 @@ export class LayoutsController {
     permissionName: 'layoutDelete',
   })
   async layoutDelete(@Param('layoutId') layoutId: string, @Request() req) {
+    console.log('FOO DELETE LAYOUT - layoutId', layoutId);
     const result = await this.layoutService.layoutDelete({
-      layoutId: req.params.tableId,
+      layoutId: layoutId,
       user: (req as any).user,
-      req,
+      // req,
     });
 
     return result;

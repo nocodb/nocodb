@@ -19,7 +19,6 @@ interface Props {
   modelValue?: boolean
   layout: LayoutType
   dashboardProject: ProjectType
-  // baseId: string
 }
 
 const { layout, dashboardProject, ...props } = defineProps<Props>()
@@ -30,13 +29,7 @@ const { t } = useI18n()
 
 const { $e, $api } = useNuxtApp()
 
-// const { setMeta } = useMetas()
-
 const dialogShow = useVModel(props, 'modelValue', emit)
-
-// const { updateTab } = useTabs()
-
-// const projectsStore = useProjects()
 
 const dashboardStore = useDashboardStore()
 const { fetchLayouts } = dashboardStore
@@ -55,7 +48,6 @@ const formState = reactive({
 const validators = computed(() => {
   return {
     title: [
-      // layoutTitleValidator,
       {
         validator: (rule: any, value: any) => {
           return new Promise<void>((resolve, reject) => {
@@ -70,14 +62,12 @@ const validators = computed(() => {
       },
       {
         validator: (rule: any, value: any) => {
-          debugger
           return new Promise<void>((resolve, reject) => {
             if (/^\s+|\s+$/.test(value)) {
               return reject(new Error('Leading or trailing whitespace not allowed in Layout name'))
             }
             if (
               !(layoutsOfProjects?.value[dashboardProject.id!] || []).every((t) => {
-                debugger
                 return t.id === layout.id || t.title.toLowerCase() !== (value || '').toLowerCase()
               })
             ) {
@@ -114,22 +104,13 @@ const renameLayout = async () => {
 
   loading = true
   try {
-    debugger
     await $api.dashboard.layoutUpdate(dashboardProject.id!, layout.id as string, {
       ...layout,
       title: formState.title,
     })
 
     dialogShow.value = false
-
-    debugger
     await fetchLayouts({ projectId: dashboardProject.id! })
-
-    // update metas
-    // const newMeta = await $api.dbTable.read(tableMeta.id as string)
-    // await setMeta(newMeta)
-
-    // updateTab({ id: tableMeta.id }, { title: newMeta.title })
 
     message.success(t('msg.success.layoutRenamed'))
 
@@ -162,7 +143,6 @@ const renameLayout = async () => {
 
     <div class="pl-10 pr-10 pt-5">
       <a-form :model="formState" name="create-new-layout-form">
-        <!-- hint="Enter table name" -->
         <div class="mb-2">{{ $t('msg.info.enterLayoutName') }}</div>
 
         <a-form-item v-bind="validateInfos.title">

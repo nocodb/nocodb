@@ -11,25 +11,11 @@ const project = toRef(props, 'project')
 
 const dashboardStore = useDashboardStore()
 
-const { layoutsOfProjects, openedLayoutSidebarNode } = storeToRefs(dashboardStore)
+const { layoutsOfProjects } = storeToRefs(dashboardStore)
 
 const { fetchLayouts, addNewLayout, openLayout } = dashboardStore
 
 const layouts = computed(() => layoutsOfProjects.value[project.value.id!])
-
-const openPageTabKeys = computed({
-  get: () => (openedLayoutSidebarNode.value?.id ? [openedLayoutSidebarNode.value?.id] : null),
-  set: () => {},
-})
-
-// const onTabSelect = (_: any, e: { selected: boolean; selectedNodes: any; node: any; event: any; nativeEvent: any }) => {
-//   if (!e.selected) return
-
-//   openLayout({
-//     layout: e.node.dataRef,
-//     projectId: project.value.id!,
-//   })
-// }
 
 onMounted(async () => {
   await fetchLayouts({ projectId: project.value.id! })
@@ -49,36 +35,7 @@ onMounted(async () => {
     collapsible
     theme="light"
   >
-    <!-- <a-tree
-      v-model:selectedKeys="openPageTabKeys"
-      :tree-data="layouts"
-      class="!w-full h-full overflow-y-scroll !overflow-x-hidden !bg-inherit"
-      @select="onTabSelect"
-    >
-      <template #title="{ title }">
-        <div class="flex flex-row items-center justify-between group pt-1">
-          <div
-            class="flex flex-row gap-x-1 text-ellipsis overflow-clip min-w-0 transition-all duration-200 ease-in-out"
-            :class="{}"
-          >
-            <span
-              class="text-ellipsis overflow-hidden"
-              :style="{ wordBreak: 'keep-all', whiteSpace: 'nowrap', display: 'inline' }"
-            >
-              {{ title }}
-            </span>
-          </div>
-        </div>
-      </template>
-    </a-tree> -->
-
     <div class="border-none sortable-list">
-      <!-- <div
-        v-if="project.bases[baseIndex] && project.bases[baseIndex].enabled"
-        :ref="menuRef"
-        :key="key"
-        :nc-base="project.bases[baseIndex].id"
-      > -->
       <DashboardsSideBarLayoutNode
         v-for="layout of layouts ?? [].filter((layout) => layout.base_id === project.bases[baseIndex].id)"
         :key="layout.id"
@@ -98,7 +55,6 @@ onMounted(async () => {
         "
       >
       </DashboardsSideBarLayoutNode>
-      <!-- </div> -->
     </div>
 
     <div
@@ -213,9 +169,6 @@ onMounted(async () => {
       @apply !bg-primary-selected-sidebar !hover: bg-primary-selected-sidebar;
     }
 
-    // .ant-tree-treenode-selected {
-    //   @apply !bg-primary-selected-sidebar;
-    // }
     .ant-tree-indent-unit {
       @apply w-4 !important;
     }
@@ -224,16 +177,5 @@ onMounted(async () => {
   .nc-dashboards-menu .ant-dropdown-menu-item {
     @apply p-0 !important;
   }
-
-  // .page-search {
-  //   @apply !rounded-md !bg-gray-100;
-  //   input.ant-input {
-  //     @apply !bg-gray-100;
-  //     // placeholder
-  //     &::placeholder {
-  //       @apply !text-black text-xs pl-1;
-  //     }
-  //   }
-  // }
 }
 </style>

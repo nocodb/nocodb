@@ -134,6 +134,20 @@ const formulaDataByDbType = (context: NcContext) => [
     formula: `IF((SEARCH({Address List}, "Parkway") != 0), "2.0","WRONG")`,
     result: ['WRONG', 'WRONG', 'WRONG', '2.0', '2.0'],
   },
+
+  // additional tests for formula case-insensitivity
+  {
+    formula: `weekday("2022-07-19")`,
+    result: ['1', '1', '1', '1', '1'],
+  },
+  {
+    formula: `Weekday("2022-07-19")`,
+    result: ['1', '1', '1', '1', '1'],
+  },
+  {
+    formula: `WeekDay("2022-07-19")`,
+    result: ['1', '1', '1', '1', '1'],
+  },
 ];
 
 test.describe('Virtual Columns', () => {

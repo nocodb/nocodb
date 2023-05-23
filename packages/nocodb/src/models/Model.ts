@@ -138,7 +138,7 @@ export default class Model implements TableType {
 
     await NocoCache.appendToList(
       CacheScope.MODEL,
-      [projectId],
+      [projectId, baseId],
       `${CacheScope.MODEL}:${id}`,
     );
 

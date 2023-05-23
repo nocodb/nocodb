@@ -25,7 +25,7 @@ const { modelValue, isPk, isUpdatedFromCopyNPaste } = defineProps<Props>()
 
 const emit = defineEmits(['update:modelValue'])
 
-const { isMssql, isMysql, isXcdbBase } = useProject()
+const { isMssql, isXcdbBase } = useProject()
 
 const { showNull } = useGlobal()
 
@@ -107,7 +107,8 @@ let localState = $computed({
     if (val.isValid()) {
       // setting localModelValue to cater NOW function in date picker
       localModelValue = dayjs(val)
-      emit('update:modelValue', dayjs(val).format(isMysql(column.value.base_id) ? 'YYYY-MM-DD HH:mm:ss' : 'YYYY-MM-DD HH:mm:ssZ'))
+      // send the payload in UTC format
+      emit('update:modelValue', dayjs(val).utc().format('YYYY-MM-DD HH:mm:ssZ'))
     }
   },
 })

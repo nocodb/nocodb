@@ -1,13 +1,12 @@
-import { Connection } from './connection/connection';
 import { MetaService } from './meta/meta.service';
+import { NcConfig } from './utils/nc-config';
 import Noco from './Noco';
 
 // run upgrader
 import NcUpgrader from './version-upgrader/NcUpgrader';
 
 export default async () => {
-  // TODO fix
-  // await Connection.init();
-  // Noco._ncMeta = new MetaService(new Connection());
-  // await NcUpgrader.upgrade({ ncMeta: Noco._ncMeta });
+  const config = await NcConfig.createByEnv();
+  Noco._ncMeta = new MetaService(config);
+  await NcUpgrader.upgrade({ ncMeta: Noco._ncMeta });
 };

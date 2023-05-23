@@ -1,22 +1,15 @@
-import {
-  Global,
-  Inject,
-  Injectable,
-  OnApplicationBootstrap,
-  OnModuleInit,
-  Optional,
-} from '@nestjs/common';
+import { Injectable, Optional } from '@nestjs/common';
 import dayjs from 'dayjs';
 import utc from 'dayjs/plugin/utc';
 import timezone from 'dayjs/plugin/timezone';
 import { customAlphabet } from 'nanoid';
 import CryptoJS from 'crypto-js';
-import { Connection } from '../connection/connection';
-import Noco from '../Noco';
-import NocoCache from '../cache/NocoCache';
+import { XKnex } from '../db/CustomKnex';
+import { NcConfig } from '../utils/nc-config';
 import XcMigrationSourcev2 from './migrations/XcMigrationSourcev2';
 import XcMigrationSource from './migrations/XcMigrationSource';
 import type { Knex } from 'knex';
+import type * as knex from 'knex';
 
 dayjs.extend(utc);
 dayjs.extend(timezone);
@@ -192,16 +185,36 @@ const nanoidv2 = customAlphabet('1234567890abcdefghijklmnopqrstuvwxyz', 14);
 
 @Injectable()
 export class MetaService {
-  constructor(private metaConnection: Connection, @Optional() trx = null) {
+  private _knex: knex.Knex;
+  private _config: any;
+
+  constructor(config: NcConfig, @Optional() trx = null) {
+    this._config = config;
+    this._knex = XKnex({
+      ...this._config.meta.db,
+      useNullAsDefault: true,
+    });
     this.trx = trx;
   }
 
+  get knexInstance(): knex.Knex {
+    return this._knex;
+  }
+
+  get config(): NcConfig {
+    return this._config;
+  }
+
   public get connection() {
-    return this.trx ?? this.metaConnection.knexInstance;
+    return this.trx ?? this.knexInstance;
   }
 
   get knexConnection() {
     return this.connection;
+  }
+
+  public get knex(): any {
+    return this.knexConnection;
   }
 
   public async metaGet(
@@ -758,7 +771,7 @@ export class MetaService {
     });
 
     // todo: tobe done
-    return new MetaService(this.metaConnection, trx);
+    return new MetaService(this.config, trx);
   }
 
   async metaReset(
@@ -1025,10 +1038,6 @@ export class MetaService {
         id: userId,
       })
       .delete();
-  }
-
-  public get knex(): any {
-    return this.knexConnection;
   }
 
   private getNanoId() {

@@ -70,7 +70,7 @@ export class NcConfig {
 
     ncConfig.auth = {
       jwt: {
-        secret: secret ?? 'temporary-key',
+        secret: secret,
       },
     };
 

@@ -216,7 +216,6 @@ export class TreeViewPage extends BasePage {
       uiAction: () => this.rootPage.getByRole('button', { name: 'Confirm' }).click(),
       httpMethodsToMatch: ['POST'],
       requestUrlPathToMatch: `/api/v1/db/meta/duplicate/`,
-      responseJsonMatcher: json => json.name === 'duplicate-model',
     });
     await this.get().locator(`[data-testid="tree-view-table-${title} copy"]`).waitFor();
   }

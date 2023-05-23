@@ -95,7 +95,7 @@ const sqlite3 = {
       builder: knex.raw(
         `CASE
       WHEN ${(await fn(pt.arguments[0])).builder} LIKE '%:%' THEN
-        STRFTIME('%Y-%m-%d %H:%M', DATETIME(DATETIME(${
+        STRFTIME('%Y-%m-%d %H:%M:%S', DATETIME(DATETIME(${
           (await fn(pt.arguments[0])).builder
         }, 'localtime'),
         ${dateIN > 0 ? '+' : ''}${

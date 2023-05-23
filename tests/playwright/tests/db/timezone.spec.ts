@@ -802,9 +802,6 @@ test.describe.serial('External DB - DateTime column', async () => {
       dateTimeString => dateTimeString.substring(0, 17) + '00' + dateTimeString.substring(19)
     );
 
-    console.log('dateTimeWithoutTz', dateTimeWithoutTz);
-    console.log('dateTimeWithTz', dateTimeWithTz);
-
     expect(dateTimeWithoutTz).toEqual(expectedDateTimeWithoutTz);
     expect(dateTimeWithTz).toEqual(expectedDateTimeWithTz);
   });
@@ -937,9 +934,6 @@ test.describe('Ext DB MySQL : DB Timezone configured as HKT', () => {
     dateTimeWithTz = dateTimeWithTz.map(
       dateTimeString => dateTimeString.substring(0, 17) + '00' + dateTimeString.substring(19)
     );
-
-    console.log('dateTimeWithoutTz', dateTimeWithoutTz);
-    console.log('dateTimeWithTz', dateTimeWithTz);
 
     expect(dateTimeWithoutTz).toEqual(expectedDateTimeWithoutTz);
     expect(dateTimeWithTz).toEqual(expectedDateTimeWithTz);

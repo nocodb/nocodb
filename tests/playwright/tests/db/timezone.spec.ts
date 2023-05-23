@@ -6,6 +6,7 @@ import { Api, UITypes } from 'nocodb-sdk';
 import { ProjectsPage } from '../../pages/ProjectsPage';
 import { isMysql, isPg, isSqlite } from '../../setup/db';
 import { getKnexConfig } from '../utils/config';
+import { getBrowserTimezoneOffset } from '../utils/general';
 let api: Api<any>, records: any[];
 
 const columns = [
@@ -680,11 +681,7 @@ test.describe.serial('External DB - DateTime column', async () => {
     await dashboard.rootPage.waitForTimeout(2000);
 
     // get timezone offset
-    const timezoneOffset = new Date().getTimezoneOffset();
-    const hours = Math.floor(Math.abs(timezoneOffset) / 60);
-    const minutes = Math.abs(timezoneOffset % 60);
-    const sign = timezoneOffset <= 0 ? '+' : '-';
-    const formattedOffset = `${sign}${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}`;
+    const formattedOffset = getBrowserTimezoneOffset();
 
     await dashboard.treeView.openBase({ title: 'datetimetable' });
     await dashboard.treeView.openTable({ title: 'MyTable' });
@@ -844,11 +841,7 @@ test.describe('Ext DB MySQL : DB Timezone configured as HKT', () => {
     }
 
     // get timezone offset
-    const timezoneOffset = new Date().getTimezoneOffset();
-    const hours = Math.floor(Math.abs(timezoneOffset) / 60);
-    const minutes = Math.abs(timezoneOffset % 60);
-    const sign = timezoneOffset <= 0 ? '+' : '-';
-    const formattedOffset = `${sign}${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}`;
+    const formattedOffset = getBrowserTimezoneOffset();
 
     // connect after timezone is set
     await connectToExtDb(context);

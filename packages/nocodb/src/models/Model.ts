@@ -135,7 +135,15 @@ export default class Model implements TableType {
       MetaTable.MODELS,
       insertObj,
     );
-
+    if (baseId) {
+      await NocoCache.appendToList(
+        CacheScope.MODEL,
+        [projectId, baseId],
+        `${CacheScope.MODEL}:${id}`,
+      );
+    }
+    // cater cases where baseId is not required
+    // e.g. xcVisibilityMetaGet
     await NocoCache.appendToList(
       CacheScope.MODEL,
       [projectId],
@@ -169,7 +177,10 @@ export default class Model implements TableType {
     },
     ncMeta = Noco.ncMeta,
   ): Promise<Model[]> {
-    const cachedList = await NocoCache.getList(CacheScope.MODEL, [project_id]);
+    const cachedList = await NocoCache.getList(CacheScope.MODEL, [
+      project_id,
+      base_id,
+    ]);
     let { list: modelList } = cachedList;
     const { isNoneList } = cachedList;
     if (!isNoneList && !modelList.length) {
@@ -189,7 +200,11 @@ export default class Model implements TableType {
         model.meta = parseMetaProp(model);
       }
 
-      await NocoCache.setList(CacheScope.MODEL, [project_id], modelList);
+      await NocoCache.setList(
+        CacheScope.MODEL,
+        [project_id, base_id],
+        modelList,
+      );
     }
     modelList.sort(
       (a, b) =>
@@ -683,13 +698,13 @@ export default class Model implements TableType {
     },
     ncMeta = Noco.ncMeta,
   ) {
+    const cacheKey = base_id
+      ? `${CacheScope.MODEL}:${project_id}:${base_id}:${aliasOrId}`
+      : `${CacheScope.MODEL}:${project_id}:${aliasOrId}`;
     const modelId =
       project_id &&
       aliasOrId &&
-      (await NocoCache.get(
-        `${CacheScope.MODEL}:${project_id}:${aliasOrId}`,
-        CacheGetType.TYPE_OBJECT,
-      ));
+      (await NocoCache.get(cacheKey, CacheGetType.TYPE_OBJECT));
     if (!modelId) {
       const model = base_id
         ? await ncMeta.metaGet2(
@@ -735,10 +750,7 @@ export default class Model implements TableType {
             },
           );
       if (model) {
-        await NocoCache.set(
-          `${CacheScope.MODEL}:${project_id}:${aliasOrId}`,
-          model.id,
-        );
+        await NocoCache.set(cacheKey, model.id);
         await NocoCache.set(`${CacheScope.MODEL}:${model.id}`, model);
       }
       return model && new Model(model);

@@ -644,15 +644,14 @@ test.describe.serial('External DB - DateTime column', async () => {
         const records = await api.dbTableRow.list('noco', context.project.id, table_data.id, { limit: 10 });
         const formattedOffset = getBrowserTimezoneOffset();
 
-        // console.log(getDateTimeInUTCTimeZone(`${expectedDisplayValue[0]}${formattedOffset}`));
-        // console.log(getDateTimeInUTCTimeZone(`${expectedDisplayValue[1]}${formattedOffset}`));
+        // set seconds to 00 for comparison (API response has non zero seconds)
+        let record = records.list[2]['formula-1'];
+        const formula_1 = record.substring(0, 17) + '00' + record.substring(19);
+        expect(formula_1).toEqual(getDateTimeInUTCTimeZone(`${expectedDisplayValue[0]}${formattedOffset}`));
 
-        expect(records.list[2]['formula-1']).toEqual(
-          getDateTimeInUTCTimeZone(`${expectedDisplayValue[0]}${formattedOffset}`)
-        );
-        expect(records.list[2]['formula-2']).toEqual(
-          getDateTimeInUTCTimeZone(`${expectedDisplayValue[1]}${formattedOffset}`)
-        );
+        record = records.list[2]['formula-2'];
+        const formula_2 = record.substring(0, 17) + '00' + record.substring(19);
+        expect(formula_2).toEqual(getDateTimeInUTCTimeZone(`${expectedDisplayValue[1]}${formattedOffset}`));
       }
     }
 

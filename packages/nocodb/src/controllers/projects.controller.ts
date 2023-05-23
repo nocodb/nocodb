@@ -12,7 +12,7 @@ import {
   UseGuards,
 } from '@nestjs/common';
 import { AuthGuard } from '@nestjs/passport';
-import isDocker from 'is-inside-container';
+import isInsideContainer from 'is-inside-container';
 import { ProjectReqType } from 'nocodb-sdk';
 import { GlobalGuard } from '../guards/global/global.guard';
 import { PagedResponseImpl } from '../helpers/PagedResponse';
@@ -52,7 +52,7 @@ export class ProjectsController {
       Node: process.version,
       Arch: process.arch,
       Platform: process.platform,
-      Docker: isDocker(),
+      Docker: isInsideContainer(),
       RootDB: Noco.getConfig()?.meta?.db?.client,
       PackageVersion: packageVersion,
     };

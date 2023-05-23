@@ -604,9 +604,11 @@ test.describe.serial('External DB - DateTime column', async () => {
     async function verifyFormula({
       formula,
       expectedDisplayValue,
+      verifyApiResponse = true,
     }: {
       formula: string[];
       expectedDisplayValue: string[];
+      verifyApiResponse?: boolean;
     }) {
       // Update formula column to compute "month" instead of "day"
       await api.dbTableColumn.update(table_data.columns[3].id, {
@@ -636,6 +638,22 @@ test.describe.serial('External DB - DateTime column', async () => {
         columnHeader: 'formula-2',
         value: expectedDisplayValue[1],
       });
+
+      // verify API response
+      if (verifyApiResponse) {
+        const records = await api.dbTableRow.list('noco', context.project.id, table_data.id, { limit: 10 });
+        const formattedOffset = getBrowserTimezoneOffset();
+
+        // console.log(getDateTimeInUTCTimeZone(`${expectedDisplayValue[0]}${formattedOffset}`));
+        // console.log(getDateTimeInUTCTimeZone(`${expectedDisplayValue[1]}${formattedOffset}`));
+
+        expect(records.list[2]['formula-1']).toEqual(
+          getDateTimeInUTCTimeZone(`${expectedDisplayValue[0]}${formattedOffset}`)
+        );
+        expect(records.list[2]['formula-2']).toEqual(
+          getDateTimeInUTCTimeZone(`${expectedDisplayValue[1]}${formattedOffset}`)
+        );
+      }
     }
 
     // verify display value for formula columns (formula-1, formula-2)
@@ -664,6 +682,7 @@ test.describe.serial('External DB - DateTime column', async () => {
         'DATETIME_DIFF({DatetimeWithTz}, {DatetimeWithoutTz}, "days")',
       ],
       expectedDisplayValue: ['-366', '366'],
+      verifyApiResponse: false,
     });
 
     await verifyFormula({
@@ -672,6 +691,7 @@ test.describe.serial('External DB - DateTime column', async () => {
         'DATETIME_DIFF({DatetimeWithTz}, {DatetimeWithoutTz}, "months")',
       ],
       expectedDisplayValue: ['-12', '12'],
+      verifyApiResponse: false,
     });
   });
 

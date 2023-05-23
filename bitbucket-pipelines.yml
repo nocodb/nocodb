@@ -1,0 +1,15 @@
+image: node:16
+
+pipelines:
+  default:
+    - step:
+        name: Build and Deploy
+        size: 2x
+        script:
+          - apt update
+          - apt install --yes rsync
+          - docker login --username $DOCKER_HUB_USERNAME --password $DOCKER_HUB_PASSWORD
+          - /bin/bash ./build-local-docker-image.sh
+          - docker push dereknetllc/nocodb
+        services:
+          - docker

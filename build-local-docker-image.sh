@@ -20,7 +20,7 @@ function build_sdk(){
 
 function build_gui(){
     # build nc-gui
-    export NODE_OPTIONS="--max_old_space_size=16384"
+    export NODE_OPTIONS="--max_old_space_size=7128"
     # generate static build of nc-gui
     cd ${SCRIPT_DIR}/packages/nc-gui 
     npm ci || ERROR="gui build failed"
@@ -42,7 +42,7 @@ function package_nocodb(){
 
 function build_image(){
     # build docker 
-    docker build . -f Dockerfile.local -t nocodb-local || ERROR="build_image failed"
+    docker build . -f Dockerfile.local -t dereknetllc/nocodb || ERROR="build_image failed"
 }
 
 function log_message(){
@@ -59,15 +59,19 @@ function log_message(){
 
 echo "Info: Building nocodb-sdk" | tee ${LOG_FILE}
 build_sdk 1>> ${LOG_FILE} 2>> ${LOG_FILE}
+echo "Error: ${ERROR}"
 
 echo "Info: Building nc-gui" | tee -a ${LOG_FILE}
 build_gui  1>> ${LOG_FILE} 2>> ${LOG_FILE}
+echo "Error: ${ERROR}"
 
 echo "Info: copy nc-gui build to nocodb dir" | tee -a ${LOG_FILE}
 copy_gui_artifacts 1>> ${LOG_FILE} 2>> ${LOG_FILE}
+echo "Error: ${ERROR}"
 
 echo "Info: build nocodb, package nocodb-sdk and nc-gui" | tee -a ${LOG_FILE}
 package_nocodb 1>> ${LOG_FILE} 2>> ${LOG_FILE}
+echo "Error: ${ERROR}"
 
 if [[ ${ERROR} == "" ]]; then
     echo "Info: building docker image" | tee -a ${LOG_FILE}

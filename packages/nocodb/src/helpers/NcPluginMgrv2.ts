@@ -17,6 +17,7 @@ import TwilioPluginConfig from '../plugins/twilio';
 import TwilioWhatsappPluginConfig from '../plugins/twilioWhatsapp';
 import UpcloudPluginConfig from '../plugins/upcloud';
 import VultrPluginConfig from '../plugins/vultr';
+import R2PluginConfig from '../plugins/r2';
 import SESPluginConfig from '../plugins/ses';
 import Noco from '../Noco';
 import Local from '../plugins/storage/Local';
@@ -46,6 +47,7 @@ const defaultPlugins = [
   SpacesPluginConfig,
   BackblazePluginConfig,
   VultrPluginConfig,
+  R2PluginConfig,
   OvhCloudPluginConfig,
   LinodePluginConfig,
   UpcloudPluginConfig,

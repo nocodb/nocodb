@@ -57,12 +57,18 @@ export const useProjects = defineStore('projectsStore', () => {
     await loadProject(projectId, true)
   }
 
-  const createProject = async (projectPayload: { title: string; workspaceId: string; type: string }) => {
+  const createProject = async (projectPayload: {
+    title: string
+    workspaceId: string
+    type: string
+    linkedDbProjectIds?: string[]
+  }) => {
     const result = await api.project.create({
       title: projectPayload.title,
       // @ts-expect-error todo: include in swagger
       fk_workspace_id: projectPayload.workspaceId,
       type: projectPayload.type ?? NcProjectType.DB,
+      linked_db_project_ids: projectPayload.linkedDbProjectIds,
       // color,
       // meta: JSON.stringify({
       //   theme: {

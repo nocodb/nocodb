@@ -122,7 +122,6 @@ const isSharedBase = ref(false)
 <template>
   <div class="project-title-node group flex items-center w-full px-0.5 py-0.5">
     <!--    <GeneralProjectIcon class="mx-2" :type="project.type" /> -->
-
     <component
       :is="isUIAllowed('projectIconCustomisation', false, projectRole) ? Dropdown : 'div'"
       trigger="click"

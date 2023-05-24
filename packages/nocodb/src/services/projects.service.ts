@@ -7,7 +7,12 @@ import { populateMeta, validatePayload } from '../helpers';
 import { NcError } from '../helpers/catchError';
 import { extractPropsAndSanitize } from '../helpers/extractProps';
 import syncMigration from '../helpers/syncMigration';
-import { DashboardProjectDBProject, Project, ProjectUser } from '../models';
+import {
+  DashboardProjectDBProject,
+  Project,
+  ProjectUser,
+  WorkspaceUser,
+} from '../models';
 import Noco from '../Noco';
 import extractRolesObj from '../utils/extractRolesObj';
 import NcConfigFactory from '../utils/NcConfigFactory';
@@ -19,6 +24,48 @@ import type {
 } from 'nocodb-sdk';
 
 const nanoid = customAlphabet('1234567890abcdefghijklmnopqrstuvwxyz_', 4);
+
+const validateUserHasReadPermissionsForLinkedDbProjects = async (
+  dbProjectIds: string[],
+  user: {
+    id: string;
+    roles: string[];
+  },
+) => {
+  await Promise.all(
+    dbProjectIds?.map(async (dbProjectId: string) => {
+      const dbProject = await Project.get(dbProjectId);
+      if (!dbProject) {
+        NcError.badRequest(
+          `Linked db project with id ${dbProjectId} not found`,
+        );
+      }
+
+      // Find the workspace-user association for the current user and the workspace of the linked db project
+      const workspaceUser = await WorkspaceUser.get(
+        dbProject.fk_workspace_id,
+        user.id,
+      );
+
+      if (!workspaceUser) {
+        NcError.forbidden(
+          'User does not have read permissions for workspace of the linked db project',
+        );
+      }
+
+      // TODO: double check with team whether checking the ProjectUser table is meaningful or sufficient
+      // Background: checked if I still can access DB projects via NocoDB UI after I removed all entries from ProjectUser table
+      // and restarted server. I could still access the DB projects via NocoDB UI.
+      // After removing the workspace-user association though, I coudln't access it anymore.
+      const dbProjectUser = await ProjectUser.get(dbProjectId, user.id);
+      if (!dbProjectUser) {
+        NcError.forbidden(
+          'User does not have read permissions for linked db project',
+        );
+      }
+    }),
+  );
+};
 
 @Injectable()
 export class ProjectsService {
@@ -168,9 +215,16 @@ export class ProjectsService {
       NcError.badRequest('Project title exceeds 50 characters');
     }
 
-    // if (await Project.getByTitle(projectBody?.title)) {
-    //   NcError.badRequest('Project title already in use');
-    // }
+    // TODO: check that the current user has at leas reading permissions for all linked_db_projects
+    if (
+      param.project.type === 'dashboard' &&
+      projectBody.linked_db_project_ids?.length > 0
+    ) {
+      await validateUserHasReadPermissionsForLinkedDbProjects(
+        projectBody.linked_db_project_ids,
+        param.user,
+      );
+    }
 
     projectBody.title = DOMPurify.sanitize(projectBody.title);
     projectBody.slug = projectBody.title;

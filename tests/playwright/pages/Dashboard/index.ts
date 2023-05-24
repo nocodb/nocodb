@@ -218,7 +218,8 @@ export class DashboardPage extends BasePage {
     type?: ProjectTypes;
   }) {
     if (type === ProjectTypes.DATABASE) {
-      await this._waitForDBTabRender({ title, mode });
+      // 0523: Tabs are disabled & hence below checks are not required
+      // await this._waitForDBTabRender({ title, mode });
     } else if (type === ProjectTypes.DOCUMENTATION) {
       await this._waitForDocsTabRender({ title, mode });
     }

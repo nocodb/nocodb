@@ -1,4 +1,36 @@
 {
+  "dashboards": {
+    "create_new_dashboard_project": "New Dashboard Project",
+    "buttonActionTypes": {
+      "open_external_url": "External link",
+      "delete_record": "Delete record",
+      "update_record": "Update record",
+      "open_layout": "Open layout"
+    },
+    "widgets": {
+      "static_text": "Text",
+      "chart": "Chart",
+      "table": "Table",
+      "image": "Image",
+      "map": "Map",
+      "button": "Button",
+      "number": "Number",
+      "bar_chart": "Bar Chart",
+      "line_chart": "Line Chart",
+      "area_chart": "Area Chart",
+      "pie_chart": "Pie Chart",
+      "donut_chart": "Donut Chart",
+      "scatter_chart": "Scatter Chart",
+      "bubble_chart": "Bubble Chart",
+      "radar_chart": "Radar Chart",
+      "polar_area_chart": "Polar Area Chart",
+      "radial_bar_chart": "Radial Bar Chart",
+      "heatmap_chart": "Heatmap Chart",
+      "treemap_chart": "Treemap Chart",
+      "box_plot_chart": "Box Plot Chart",
+      "candlestick_chart": "Candlestick Chart"
+    }
+  },
   "general": {
     "home": "Home",
     "load": "Load",
@@ -215,10 +247,12 @@
     "findRowByScanningCode": "Find row by scanning a QR or Barcode"
   },
   "labels": {
+    "searchProjects": "Search Projects",
     "createdBy": "Created By",
     "notifyVia": "Notify Via",
     "projName": "Project name",
     "tableName": "Table name",
+    "dashboardName": "Dashboard name",
     "viewName": "View name",
     "viewLink": "View Link",
     "columnName": "Column Name",
@@ -388,9 +422,11 @@
     "previousRecord": "Previous record",
     "copyApiURL": "Copy API URL",
     "createTable": "Create New Table",
+    "createDashboard": "Create Dashboard",
     "createWorkspace": "Workspace Create",
     "refreshTable": "Tables Refresh",
     "renameTable": "Rename Table",
+    "renameLayout": "Layout Rename",
     "deleteTable": "Delete Table",
     "addField": "Add new field to this table",
     "setDisplay": "Set as Display value",
@@ -491,6 +527,7 @@
       "light": "Does it come in Black ? (^⇧B)"
     },
     "addTable": "Add new table",
+    "addDashboard": "Add new Dashboard",
     "inviteMore": "Invite more users",
     "toggleNavDraw": "Toggle navigation drawer",
     "reloadApiToken": "Reload API tokens",
@@ -643,6 +680,8 @@
       "tablesMetadataInSync": "Tables metadata is in Sync",
       "addMultipleUsers": "You can add multiple comma(,) separated emails",
       "enterTableName": "Enter table name",
+      "enterLayoutName": "Enter Layout name",
+      "enterDashboardName": "Enter Dashboard name",
       "addDefaultColumns": "Add default columns",
       "tableNameInDb": "Table name as saved in database",
       "airtable": {
@@ -665,8 +704,10 @@
       "valueAlreadyInList": "This value is already in the list",
       "noColumnsToUpdate": "No columns to update",
       "tableDeleted": "Deleted table successfully",
+      "layoutDeleted": "Deleted layout successfully",
       "generatePublicShareableReadonlyBase": "Generate publicly shareable readonly base",
       "deleteViewConfirmation": "Are you sure you want to delete this view?",
+      "deleteLayoutConfirmation": "Are you sure you want to delete this Layout?",
       "deleteTableConfirmation": "Do you want to delete the table",
       "showM2mTables": "Show M2M Tables",
       "showM2mTablesDesc": "Many-to-many relation is supported via a junction table & is hidden by default. Enable this option to list all such tables along with existing tables.",
@@ -768,6 +809,7 @@
       "pluginSettingsSaved": "Plugin settings saved successfully",
       "pluginTested": "Successfully tested plugin settings",
       "tableRenamed": "Table renamed successfully",
+      "layoutRenamed": "Layout renamed successfully",
       "viewDeleted": "View deleted successfully",
       "primaryColumnUpdated": "Successfully updated as primary column",
       "tableDataExported": "Successfully exported all table data",

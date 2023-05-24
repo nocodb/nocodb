@@ -88,6 +88,7 @@ export enum TabType {
   SQL = 'sql',
   ERD = 'erd',
   DOCUMENT = 'doc',
+  LAYOUT = 'layout',
   DB = 'db',
 }
 

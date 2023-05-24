@@ -4,7 +4,7 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "test": "TRACE=true npx playwright test --workers=4",
+    "test": "TRACE=true npx playwright test --workers=1",
     "test:fast": "npx playwright test --workers=6",
     "test:shard:1": "TRACE=true npx playwright test --workers=4 --shard=1/2",
     "test:shard:2": "TRACE=true npx playwright test --workers=4 --shard=2/2",

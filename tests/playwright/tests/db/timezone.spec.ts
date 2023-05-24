@@ -835,6 +835,104 @@ test.describe.serial('External DB - DateTime column', async () => {
   });
 });
 
+test.describe.serial('External DB - DateTime column, Browser Timezone set to HKT', async () => {
+  let dashboard: DashboardPage;
+  let context: any;
+
+  test.use({
+    locale: 'zh-HK',
+    timezoneId: 'Asia/Hong_Kong',
+  });
+
+  test.beforeEach(async ({ page }) => {
+    context = await setup({ page, isEmptyProject: true });
+    dashboard = new DashboardPage(page, context.project);
+
+    api = new Api({
+      baseURL: `http://localhost:8080/`,
+      headers: {
+        'xc-auth': context.token,
+      },
+    });
+
+    await createTableWithDateTimeColumn(context.dbType);
+  });
+
+  // ExtDB : DateAdd, DateTime_Diff verification
+  //  - verify display value
+  //  - verify API response value
+  //
+  test('Formula, verify display value', async () => {
+    await connectToExtDb(context);
+    await dashboard.rootPage.reload();
+    await dashboard.rootPage.waitForTimeout(2000);
+
+    // insert a record to work with formula experiments
+    //
+    await dashboard.treeView.openBase({ title: 'datetimetable' });
+    await dashboard.treeView.openTable({ title: 'MyTable' });
+    // Insert new row
+    await dashboard.grid.cell.dateTime.setDateTime({
+      index: 2,
+      columnHeader: 'DatetimeWithoutTz',
+      dateTime: '2023-04-27 12:30:00',
+    });
+    await dashboard.rootPage.waitForTimeout(1000);
+    await dashboard.grid.cell.dateTime.setDateTime({
+      index: 2,
+      columnHeader: 'DatetimeWithTz',
+      dateTime: '2023-04-27 12:30:00',
+    });
+
+    // Create formula column (dummy)
+    api = new Api({
+      baseURL: `http://localhost:8080/`,
+      headers: {
+        'xc-auth': context.token,
+      },
+    });
+    const table = await api.dbTable.list(context.project.id);
+    let table_data: any;
+    table_data = await api.dbTableColumn.create(table.list.find(x => x.title === 'MyTable').id, {
+      title: 'formula-1',
+      uidt: UITypes.Formula,
+      formula_raw: 'DATEADD(DatetimeWithoutTz, 1, "day")',
+    });
+    table_data = await api.dbTableColumn.create(table.list.find(x => x.title === 'MyTable').id, {
+      title: 'formula-2',
+      uidt: UITypes.Formula,
+      formula_raw: 'DATEADD(DatetimeWithTz, 1, "day")',
+    });
+    // reload page
+    await dashboard.rootPage.reload();
+    const records = await api.dbTableRow.list('noco', context.project.id, table_data.id, { limit: 10 });
+    const formattedOffset = getBrowserTimezoneOffset();
+
+    // verify display value
+    for (let index = 0; index < 3; index++) {
+      await dashboard.grid.cell.verify({
+        index,
+        columnHeader: 'formula-1',
+        value: '2023-04-28 12:30',
+      });
+      await dashboard.grid.cell.verify({
+        index,
+        columnHeader: 'formula-2',
+        value: '2023-04-28 12:30',
+      });
+
+      // set seconds to 00 for comparison (API response has non zero seconds)
+      let record = records.list[index]['formula-1'];
+      const formula_1 = record.substring(0, 17) + '00' + record.substring(19);
+      expect(formula_1).toEqual(getDateTimeInUTCTimeZone(`2023-04-28 12:30${formattedOffset}`));
+
+      record = records.list[index]['formula-2'];
+      const formula_2 = record.substring(0, 17) + '00' + record.substring(19);
+      expect(formula_2).toEqual(getDateTimeInUTCTimeZone(`2023-04-28 12:30${formattedOffset}`));
+    }
+  });
+});
+
 test.describe('Ext DB MySQL : DB Timezone configured as HKT', () => {
   let dashboard: DashboardPage;
   let context: any;

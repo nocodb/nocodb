@@ -59,8 +59,6 @@ export class AppModule {
     consumer
       .apply(GuiMiddleware)
       .forRoutes({ path: '*', method: RequestMethod.GET })
-      .apply(PublicMiddleware)
-      .forRoutes({ path: '*', method: RequestMethod.GET })
       .apply(GlobalMiddleware)
       .forRoutes({ path: '*', method: RequestMethod.ALL });
   }

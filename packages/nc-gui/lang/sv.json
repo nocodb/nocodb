@@ -211,7 +211,12 @@
     "codeSnippet": "Kodutdrag",
     "keyboardShortcut": "Tangentbordsgenvägar",
     "generateRandomName": "Generate Random Name",
-    "findRowByScanningCode": "Find row by scanning a QR or Barcode"
+    "findRowByScanningCode": "Find row by scanning a QR or Barcode",
+    "tokenManagement": "Token-hantering",
+    "addNewToken": "Lägg till ny token",
+    "accountSettings": "Kontoinställningar",
+    "resetPasswordMenu": "Återställ lösenord",
+    "tokens": "Polletter"
   },
   "labels": {
     "createdBy": "Skapad av",

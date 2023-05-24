@@ -211,7 +211,12 @@
     "codeSnippet": "Сниппет кода",
     "keyboardShortcut": "Горячие клавиши",
     "generateRandomName": "Сгенерировать случайное имя",
-    "findRowByScanningCode": "Найти строку путем сканирования QR или штрих-кода"
+    "findRowByScanningCode": "Найти строку путем сканирования QR или штрих-кода",
+    "tokenManagement": "Управление токенами",
+    "addNewToken": "Добавить новый токен",
+    "accountSettings": "Настройки учетной записи",
+    "resetPasswordMenu": "Сброс пароля",
+    "tokens": "Токены"
   },
   "labels": {
     "createdBy": "Автор",

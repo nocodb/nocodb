@@ -30,13 +30,13 @@ const openKeys = ref([/^\/account\/users/.test($route.fullPath) && 'users'])
             class="tabs-menu h-full"
             mode="inline"
           >
-            <div class="text-xs text-gray-500 ml-4 pt-4 pb-2 font-weight-bold">Account Settings</div>
+            <div class="text-xs text-gray-500 ml-4 pt-4 pb-2 font-weight-bold">{{ $t('title.accountSettings') }}</div>
 
             <a-sub-menu key="users" class="!bg-white">
               <template #icon>
                 <MdiAccountSupervisorOutline />
               </template>
-              <template #title>Users</template>
+              <template #title>{{ $t('objects.users') }}</template>
 
               <a-menu-item
                 v-if="isUIAllowed('superAdminUserManagement')"
@@ -47,7 +47,7 @@ const openKeys = ref([/^\/account\/users/.test($route.fullPath) && 'users'])
                 <span class="ml-4">User Management</span>
               </a-menu-item>
               <a-menu-item key="password-reset" class="text-xs" @click="navigateTo('/account/users/password-reset')">
-                <span class="ml-4">Reset Password</span>
+                <span class="ml-4">{{ $t('title.resetPasswordMenu') }}</span>
               </a-menu-item>
               <a-menu-item
                 v-if="isUIAllowed('superAdminAppSettings')"
@@ -67,7 +67,7 @@ const openKeys = ref([/^\/account\/users/.test($route.fullPath) && 'users'])
               <div class="flex items-center space-x-2">
                 <MdiShieldKeyOutline />
 
-                <div class="select-none">Tokens</div>
+                <div class="select-none">{{ $t('title.tokens') }}</div>
               </div>
             </a-menu-item>
             <a-menu-item

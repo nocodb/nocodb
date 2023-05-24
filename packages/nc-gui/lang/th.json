@@ -211,7 +211,12 @@
     "codeSnippet": "Code Snippet",
     "keyboardShortcut": "Keyboard Shortcuts",
     "generateRandomName": "Generate Random Name",
-    "findRowByScanningCode": "Find row by scanning a QR or Barcode"
+    "findRowByScanningCode": "Find row by scanning a QR or Barcode",
+    "tokenManagement": "การจัดการโทเค็น",
+    "addNewToken": "เพิ่มโทเค็นใหม่",
+    "accountSettings": "การตั้งค่าบัญชี",
+    "resetPasswordMenu": "รีเซ็ตรหัสผ่าน",
+    "tokens": "โทเค็น"
   },
   "labels": {
     "createdBy": "Created By",

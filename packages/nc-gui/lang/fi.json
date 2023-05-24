@@ -211,7 +211,12 @@
     "codeSnippet": "Koodinpätkä",
     "keyboardShortcut": "Näppäimistön pikanäppäimet",
     "generateRandomName": "Generate Random Name",
-    "findRowByScanningCode": "Find row by scanning a QR or Barcode"
+    "findRowByScanningCode": "Find row by scanning a QR or Barcode",
+    "tokenManagement": "Tokenin hallinta",
+    "addNewToken": "Lisää uusi tunnus",
+    "accountSettings": "Tilin asetukset",
+    "resetPasswordMenu": "Nollaa salasana",
+    "tokens": "Tokenit"
   },
   "labels": {
     "createdBy": "Luonut",

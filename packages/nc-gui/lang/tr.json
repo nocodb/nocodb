@@ -211,7 +211,12 @@
     "codeSnippet": "Kod Parçacığı",
     "keyboardShortcut": "Klavye Kısayolları",
     "generateRandomName": "Generate Random Name",
-    "findRowByScanningCode": "Find row by scanning a QR or Barcode"
+    "findRowByScanningCode": "Find row by scanning a QR or Barcode",
+    "tokenManagement": "Jeton Yönetimi",
+    "addNewToken": "Yeni belirteç ekle",
+    "accountSettings": "Hesap ayarları",
+    "resetPasswordMenu": "Şifreyi yenile",
+    "tokens": "Jetonlar"
   },
   "labels": {
     "createdBy": "Tarafından Oluşturuldu",

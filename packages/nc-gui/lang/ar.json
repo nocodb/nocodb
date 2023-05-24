@@ -211,7 +211,12 @@
     "codeSnippet": "كتلة برمجية",
     "keyboardShortcut": "Keyboard Shortcuts",
     "generateRandomName": "Generate Random Name",
-    "findRowByScanningCode": "Find row by scanning a QR or Barcode"
+    "findRowByScanningCode": "Find row by scanning a QR or Barcode",
+    "tokenManagement": "إدارة الرموز",
+    "addNewToken": "إضافة رمز جديد",
+    "accountSettings": " إعدادت الحساب",
+    "resetPasswordMenu": "إعادة تعيين كلمة المرور",
+    "tokens": "الرموز"
   },
   "labels": {
     "createdBy": "Created By",

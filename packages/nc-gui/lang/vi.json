@@ -211,7 +211,12 @@
     "codeSnippet": "Thư viện mã",
     "keyboardShortcut": "Keyboard Shortcuts",
     "generateRandomName": "Generate Random Name",
-    "findRowByScanningCode": "Find row by scanning a QR or Barcode"
+    "findRowByScanningCode": "Find row by scanning a QR or Barcode",
+    "tokenManagement": "Quản lý mã thông báo",
+    "addNewToken": "Thêm mã thông báo mới",
+    "accountSettings": "Cài đặt tài khoản",
+    "resetPasswordMenu": "Đặt lại mật khẩu",
+    "tokens": "mã thông báo"
   },
   "labels": {
     "createdBy": "Đã tạo bởi",

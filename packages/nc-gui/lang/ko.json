@@ -211,7 +211,12 @@
     "codeSnippet": "Code Snippet",
     "keyboardShortcut": "Keyboard Shortcuts",
     "generateRandomName": "Generate Random Name",
-    "findRowByScanningCode": "Find row by scanning a QR or Barcode"
+    "findRowByScanningCode": "Find row by scanning a QR or Barcode",
+    "tokenManagement": "토큰 관리",
+    "addNewToken": "새 토큰 추가",
+    "accountSettings": "계정 설정",
+    "resetPasswordMenu": "암호를 재설정",
+    "tokens": "토큰"
   },
   "labels": {
     "createdBy": "Created By",

@@ -211,7 +211,12 @@
     "codeSnippet": "Kode-zatiak",
     "keyboardShortcut": "Teklatuko laster-markak",
     "generateRandomName": "Generate Random Name",
-    "findRowByScanningCode": "Find row by scanning a QR or Barcode"
+    "findRowByScanningCode": "Find row by scanning a QR or Barcode",
+    "tokenManagement": "Token kudeaketa",
+    "addNewToken": "Gehitu token berria",
+    "accountSettings": "Kontu ezarpenak",
+    "resetPasswordMenu": "Berrezarri pasahitza",
+    "tokens": "Tokens"
   },
   "labels": {
     "createdBy": "Sortzailea:",
@@ -433,7 +438,7 @@
     "testWebhook": "Test Webhook",
     "copyWebhook": "Copy Webhook",
     "deleteWebhook": "Delete Webhook",
-    "newToken": "Add New Token",
+    "newToken": "Gehitu token berria",
     "exportZip": "Export zip",
     "importZip": "Import zip",
     "metaSync": "Sync Now",

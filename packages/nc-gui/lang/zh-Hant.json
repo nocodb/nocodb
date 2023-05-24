@@ -211,7 +211,12 @@
     "codeSnippet": "程式碼片段",
     "keyboardShortcut": "Keyboard Shortcuts",
     "generateRandomName": "Generate Random Name",
-    "findRowByScanningCode": "Find row by scanning a QR or Barcode"
+    "findRowByScanningCode": "Find row by scanning a QR or Barcode",
+    "tokenManagement": "代币管理",
+    "addNewToken": "添加新令牌",
+    "accountSettings": "帐号设定",
+    "resetPasswordMenu": "重设密码",
+    "tokens": "代币"
   },
   "labels": {
     "createdBy": "Created By",

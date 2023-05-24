@@ -211,7 +211,12 @@
     "codeSnippet": "Úryvek kódu",
     "keyboardShortcut": "Klávesové zkratky",
     "generateRandomName": "Vytvořit náhodné jméno",
-    "findRowByScanningCode": "Find row by scanning a QR or Barcode"
+    "findRowByScanningCode": "Find row by scanning a QR or Barcode",
+    "tokenManagement": "Správa tokenů",
+    "addNewToken": "Pridať nový token",
+    "accountSettings": "Nastavení účtu",
+    "resetPasswordMenu": "Obnovit heslo",
+    "tokens": "Tokeny"
   },
   "labels": {
     "createdBy": "Vytvořil/a",

@@ -211,7 +211,12 @@
     "codeSnippet": "Code Snippet",
     "keyboardShortcut": "Keyboard Shortcuts",
     "generateRandomName": "Generate Random Name",
-    "findRowByScanningCode": "Find row by scanning a QR or Barcode"
+    "findRowByScanningCode": "Find row by scanning a QR or Barcode",
+    "tokenManagement": "Upravljanje tokenima",
+    "addNewToken": "Dodaj novi token",
+    "accountSettings": "Postavke računa",
+    "resetPasswordMenu": "Ponastavitev gesla",
+    "tokens": "Tokeni"
   },
   "labels": {
     "createdBy": "Created By",

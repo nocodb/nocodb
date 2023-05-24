@@ -211,7 +211,12 @@
     "codeSnippet": "Codefragment",
     "keyboardShortcut": "Sneltoetsen",
     "generateRandomName": "Generate Random Name",
-    "findRowByScanningCode": "Find row by scanning a QR or Barcode"
+    "findRowByScanningCode": "Find row by scanning a QR or Barcode",
+    "tokenManagement": "Token-beheer",
+    "addNewToken": "Voeg een nieuw token toe",
+    "accountSettings": "Account instellingen",
+    "resetPasswordMenu": "Wachtwoord opnieuw instellen",
+    "tokens": "Munten"
   },
   "labels": {
     "createdBy": "Gemaakt door",

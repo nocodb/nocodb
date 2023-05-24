@@ -211,7 +211,12 @@
     "codeSnippet": "Snippet di codice",
     "keyboardShortcut": "Scorciatoie da tastiera",
     "generateRandomName": "Generate Random Name",
-    "findRowByScanningCode": "Find row by scanning a QR or Barcode"
+    "findRowByScanningCode": "Find row by scanning a QR or Barcode",
+    "tokenManagement": "Gestione dei token",
+    "addNewToken": "Aggiungi nuovo token",
+    "accountSettings": "Impostazioni dell'account",
+    "resetPasswordMenu": "Resetta la password",
+    "tokens": "Gettoni"
   },
   "labels": {
     "createdBy": "Creato da",

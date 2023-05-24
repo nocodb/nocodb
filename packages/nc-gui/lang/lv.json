@@ -211,7 +211,12 @@
     "codeSnippet": "Koda fragments",
     "keyboardShortcut": "Tastatūras saīsnes",
     "generateRandomName": "Generate Random Name",
-    "findRowByScanningCode": "Find row by scanning a QR or Barcode"
+    "findRowByScanningCode": "Find row by scanning a QR or Barcode",
+    "tokenManagement": "Žetonu pārvaldība",
+    "addNewToken": "Pievienojiet jaunu marķieri",
+    "accountSettings": "Konta iestatījumi",
+    "resetPasswordMenu": "Atiestatīt paroli",
+    "tokens": "Žetoni"
   },
   "labels": {
     "createdBy": "Izveidoja",

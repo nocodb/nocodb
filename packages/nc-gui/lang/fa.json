@@ -211,7 +211,12 @@
     "codeSnippet": "تکه کد",
     "keyboardShortcut": "میانبر های کیبورد",
     "generateRandomName": "ایجاد نام تصادفی",
-    "findRowByScanningCode": "پیدا کردن ردیف با اسکن کیو آر کد یا بارکد"
+    "findRowByScanningCode": "پیدا کردن ردیف با اسکن کیو آر کد یا بارکد",
+    "tokenManagement": "مدیریت توکن",
+    "addNewToken": "توکن جدید اضافه کنید",
+    "accountSettings": "تنظیمات حساب",
+    "resetPasswordMenu": "بازنشانی رمز عبور",
+    "tokens": "توکن ها"
   },
   "labels": {
     "createdBy": "ایجاد شده توسط",

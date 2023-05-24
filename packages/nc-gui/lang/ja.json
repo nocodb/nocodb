@@ -211,7 +211,12 @@
     "codeSnippet": "コードスニペット",
     "keyboardShortcut": "キーボードショートカット",
     "generateRandomName": "Generate Random Name",
-    "findRowByScanningCode": "Find row by scanning a QR or Barcode"
+    "findRowByScanningCode": "Find row by scanning a QR or Barcode",
+    "tokenManagement": "トークン管理",
+    "addNewToken": "新しいトークンを追加する",
+    "accountSettings": "アカウント設定",
+    "resetPasswordMenu": "パスワードを再設定する",
+    "tokens": "トークン"
   },
   "labels": {
     "createdBy": "クリエイティッド バイ",

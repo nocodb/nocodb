@@ -182,7 +182,7 @@
     "teamAndAuth": "Tim & AUTH.",
     "rolesUserMgmt": "Manajemen Peran & Pengguna",
     "userMgmt": "Manajemen Pengguna",
-    "apiTokenMgmt": "API Token Management.",
+    "apiTokenMgmt": "API Pengurusan Token.",
     "rolesMgmt": "Manajemen peran.",
     "projMeta": "Metadata proyek",
     "metaMgmt": "Meta Management.",
@@ -197,7 +197,7 @@
     "advancedParameters": "SSL & Parameter Lanjutan",
     "headCreateProject": "Buat Proyek | Nocodb.",
     "headLogin": "Masuk | Nocodb.",
-    "resetPassword": "Mereset password Anda",
+    "resetPassword": "MeAtur Ulang Kata Sandi Anda",
     "teamAndSettings": "Tim & Pengaturan",
     "apiDocs": "Dokumen API",
     "importFromAirtable": "Impor Dari Airtable",
@@ -211,7 +211,12 @@
     "codeSnippet": "Cuplikan Kode",
     "keyboardShortcut": "Pintasan Papan Ketik",
     "generateRandomName": "Generate Random Name",
-    "findRowByScanningCode": "Find row by scanning a QR or Barcode"
+    "findRowByScanningCode": "Find row by scanning a QR or Barcode",
+    "tokenManagement": "Pengurusan Token",
+    "addNewToken": "Tambahkan token baru",
+    "accountSettings": "Pengaturan akun",
+    "resetPasswordMenu": "Atur Ulang Kata Sandi",
+    "tokens": "Token"
   },
   "labels": {
     "createdBy": "Dibuat oleh",

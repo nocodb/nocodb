@@ -211,7 +211,12 @@
     "codeSnippet": "Code Snippet",
     "keyboardShortcut": "Keyboard Shortcuts",
     "generateRandomName": "Generate Random Name",
-    "findRowByScanningCode": "Find row by scanning a QR or Barcode"
+    "findRowByScanningCode": "Find row by scanning a QR or Barcode",
+    "tokenManagement": "टोकन प्रबंधन",
+    "addNewToken": "नया टोकन जोड़ें",
+    "accountSettings": "अकाउंट सेटिंग",
+    "resetPasswordMenu": "पासवर्ड रीसेट",
+    "tokens": "टोकन"
   },
   "labels": {
     "createdBy": "Created By",

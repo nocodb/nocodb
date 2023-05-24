@@ -211,7 +211,12 @@
     "codeSnippet": "Code Snippet",
     "keyboardShortcut": "Keyboard Shortcuts",
     "generateRandomName": "Generate Random Name",
-    "findRowByScanningCode": "Find row by scanning a QR or Barcode"
+    "findRowByScanningCode": "Find row by scanning a QR or Barcode",
+    "tokenManagement": "Token-administrasjon",
+    "addNewToken": "Legg til nytt token",
+    "accountSettings": "Kontoinnstillinger",
+    "resetPasswordMenu": "Tilbakestille passord",
+    "tokens": "Tokens"
   },
   "labels": {
     "createdBy": "Created By",

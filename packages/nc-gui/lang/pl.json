@@ -211,7 +211,12 @@
     "codeSnippet": "Snippet",
     "keyboardShortcut": "Skróty klawiaturowe",
     "generateRandomName": "Wygeneruj losową nazwę",
-    "findRowByScanningCode": "Znajdź wiersz poprzez zeskanowanie kodu QR lub kodu kreskowego"
+    "findRowByScanningCode": "Znajdź wiersz poprzez zeskanowanie kodu QR lub kodu kreskowego",
+    "tokenManagement": "Zarządzanie tokenami",
+    "addNewToken": "Dodaj nowy token",
+    "accountSettings": "Ustawienia konta",
+    "resetPasswordMenu": "Zresetuj hasło",
+    "tokens": "Żetony"
   },
   "labels": {
     "createdBy": "Stworzony przez",

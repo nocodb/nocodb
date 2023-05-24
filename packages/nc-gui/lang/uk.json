@@ -211,7 +211,12 @@
     "codeSnippet": "Фрагмент коду",
     "keyboardShortcut": "Клавіатурні скорочення",
     "generateRandomName": "Згенерувати випадкове імʼя",
-    "findRowByScanningCode": "Знайти рядок, відсканувавши QR-код або штрих-код"
+    "findRowByScanningCode": "Знайти рядок, відсканувавши QR-код або штрих-код",
+    "tokenManagement": "Токен-менеджмент",
+    "addNewToken": "Додати новий маркер",
+    "accountSettings": "Налаштування аккаунта",
+    "resetPasswordMenu": "Скинути пароль",
+    "tokens": "Жетони"
   },
   "labels": {
     "createdBy": "Автор",

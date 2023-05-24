@@ -17,7 +17,6 @@ interface Emits {
   (event: 'setFocus'): void
   (event: 'updatePosition', data: { newPosition: ScreenPosition }): void
   (event: 'updateScreenDimensions', data: { newScreenDimensions: ScreenDimensions }): void
-  // (event: 'openModal', data: { type: ViewTypes; title?: string }): void
 }
 
 const nodeRef = ref<HTMLElement | null>(null)
@@ -43,19 +42,12 @@ const onUpdateScreenDimensions = (newScreenDimensions: ScreenDimensions) => {
     :class="{ 'nc-dashboard-ui-element-has-focus': props.hasFocus }"
     @click.stop="emit('setFocus')"
   >
-    <DashboardsResizable :screen-dimensions="screenDimensions" @update:screen-dimensions="onUpdateScreenDimensions">
+    <DashboardsLayoutsResizable :screen-dimensions="screenDimensions" @update:screen-dimensions="onUpdateScreenDimensions">
       <div class="nc-dashboard-ui-resizable-container">
-        <!-- <a-card hoverable class="nc-dashboard-ui-resizable-card">
-            <template #cover> -->
         <slot />
-        <!-- </template>
-            <template #actions>
-              <MdiTrashCanCircleOutline class="text-lg mr-2" @click="emit('remove')" />
-            </template>
-          </a-card> -->
         <MdiTrashCanCircleOutline class="text-lg mr-2" @click="emit('remove')" />
       </div>
-    </DashboardsResizable>
+    </DashboardsLayoutsResizable>
   </div>
 </template>
 

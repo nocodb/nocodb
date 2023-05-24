@@ -108,7 +108,7 @@ interface WidgetMeta {
     <a-layout-content ref="mainArea" class="main-area" :min-width="200" @click="resetFocus">
       <div>
         <template v-for="widget in openedWidgets" :key="widget.id">
-          <DashboardsDraggableResizableContainer
+          <DashboardsLayoutsDraggableResizableContainer
             :has-focus="widget.id === focusedWidget?.id"
             :screen-position="widget.appearance_config.screenPosition"
             :screen-dimensions="widget.appearance_config.screenDimensions"
@@ -118,7 +118,7 @@ interface WidgetMeta {
             @remove="removeWidgetById(widget.id)"
           >
             <DashboardsWidgetsWidget :widget="widget" />
-          </DashboardsDraggableResizableContainer>
+          </DashboardsLayoutsDraggableResizableContainer>
         </template>
       </div>
     </a-layout-content>

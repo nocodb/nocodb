@@ -798,6 +798,7 @@ export class AtImportProcessor {
                   user: syncDB.user.email,
                   clientIp: '',
                 },
+                user: syncDB.user,
               });
               recordPerfStats(_perfStart, 'dbTableColumn.create');
 
@@ -940,6 +941,7 @@ export class AtImportProcessor {
                   title: ncName.title,
                   column_name: ncName.column_name,
                 },
+                user: syncDB.user,
               });
               recordPerfStats(_perfStart, 'dbTableColumn.update');
 
@@ -1033,6 +1035,7 @@ export class AtImportProcessor {
                 user: syncDB.user.email,
                 clientIp: '',
               },
+              user: syncDB.user,
             });
             recordPerfStats(_perfStart, 'dbTableColumn.create');
 
@@ -1120,6 +1123,7 @@ export class AtImportProcessor {
               user: syncDB.user.email,
               clientIp: '',
             },
+            user: syncDB.user,
           });
           recordPerfStats(_perfStart, 'dbTableColumn.create');
 
@@ -1269,6 +1273,7 @@ export class AtImportProcessor {
                 user: syncDB.user.email,
                 clientIp: '',
               },
+              user: syncDB.user,
             });
             recordPerfStats(_perfStart, 'dbTableColumn.create');
 
@@ -1335,6 +1340,7 @@ export class AtImportProcessor {
             user: syncDB.user.email,
             clientIp: '',
           },
+          user: syncDB.user,
         });
         recordPerfStats(_perfStart, 'dbTableColumn.create');
 
@@ -1667,6 +1673,7 @@ export class AtImportProcessor {
             gallery: {
               title: viewName,
             },
+            user: syncDB.user,
           });
           recordPerfStats(_perfStart, 'dbView.galleryCreate');
 
@@ -1732,6 +1739,7 @@ export class AtImportProcessor {
           const f = await this.formsService.formViewCreate({
             tableId: tblId,
             body: formData,
+            user: syncDB.user,
           });
           recordPerfStats(_perfStart, 'dbView.formCreate');
 
@@ -2170,6 +2178,7 @@ export class AtImportProcessor {
           await this.filtersService.filterCreate({
             viewId: viewId,
             filter: ncFilters[i],
+            user: syncDB.user,
           });
           recordPerfStats(_perfStart, 'dbTableFilter.create');
 

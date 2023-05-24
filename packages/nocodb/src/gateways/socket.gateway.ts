@@ -8,7 +8,7 @@ import { ExecutionContextHost } from '@nestjs/core/helpers/execution-context-hos
 import { WebSocketGateway, WebSocketServer } from '@nestjs/websockets';
 import Noco from '../Noco';
 import { JwtStrategy } from '../strategies/jwt.strategy';
-import { TelemetryService } from './telemetry.service';
+import { TelemetryService } from '../services/telemetry.service';
 import type { OnModuleInit } from '@nestjs/common';
 import type { Socket } from 'socket.io';
 
@@ -33,6 +33,7 @@ export class SocketGateway implements OnModuleInit {
 
   constructor(
     private jwtStrategy: JwtStrategy,
+    private telemetryService: TelemetryService,
     @Inject(HttpAdapterHost) private httpAdapterHost: HttpAdapterHost,
   ) {}
 

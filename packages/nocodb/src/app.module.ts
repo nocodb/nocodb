@@ -15,7 +15,6 @@ import { AuthService } from './services/auth.service';
 import { UsersModule } from './modules/users/users.module';
 import { TestModule } from './modules/test/test.module';
 import { GlobalModule } from './modules/global/global.module';
-import { HookHandlerService } from './services/hook-handler.service';
 import { LocalStrategy } from './strategies/local.strategy';
 import { AuthTokenStrategy } from './strategies/authtoken.strategy/authtoken.strategy';
 import { BaseViewStrategy } from './strategies/base-view.strategy/base-view.strategy';
@@ -102,7 +101,7 @@ const enableThrottler = !!process.env['NC_THROTTLER_REDIS'];
     HookHandlerService,
   ],
 })
-export class AppModule implements OnApplicationBootstrap {
+export class AppModule {
   // Global Middleware
   configure(consumer: MiddlewareConsumer) {
     consumer

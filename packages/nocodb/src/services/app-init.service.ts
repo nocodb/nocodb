@@ -35,7 +35,7 @@ export const appInitServiceProvider: Provider = {
     metaService: MetaService,
     eventEmitter: IEventEmitter,
   ) => {
-    process.env.NC_VERSION = '0105004';
+    process.env.NC_VERSION = '0107004';
 
     await NocoCache.init();
 

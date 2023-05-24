@@ -1,9 +1,11 @@
 import {
   Body,
   Controller,
+  Delete,
   Get,
   HttpCode,
   Param,
+  Patch,
   Post,
   Request,
   UseGuards,
@@ -35,6 +37,22 @@ export class LayoutsController {
     return layout;
   }
 
+  @Delete([
+    '/api/v1/dashboards/:dashboardId/layouts/:layoutId',
+    '/api/v1/layouts/:layoutId',
+  ])
+  @UseAclMiddleware({
+    permissionName: 'layoutDelete',
+  })
+  async layoutDelete(@Param('layoutId') layoutId: string, @Request() req) {
+    const result = await this.layoutService.layoutDelete({
+      layoutId: layoutId,
+      user: (req as any).user,
+    });
+
+    return result;
+  }
+
   @Get(['/api/v1/dashboards/:dashboardId/layouts'])
   @UseAclMiddleware({
     permissionName: 'layoutList',
@@ -58,6 +76,27 @@ export class LayoutsController {
   ) {
     const result = await this.layoutService.layoutCreate({
       dashboardId: dashboardId,
+      layout: body,
+    });
+
+    return result;
+  }
+
+  @Patch([
+    '/api/v1/dashboards/:dashboardId/layouts/:layoutId',
+    '/api/v1/layouts/:layoutId',
+  ])
+  @HttpCode(200)
+  @UseAclMiddleware({
+    permissionName: 'layoutUpdate',
+  })
+  async layoutUpdate(
+    @Param('layoutId') layoutId: string,
+    @Body() body: LayoutReqType,
+    @Request() req,
+  ) {
+    const result = await this.layoutService.layoutUpdate({
+      layoutId,
       layout: body,
     });
 

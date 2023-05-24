@@ -53,6 +53,24 @@ export const validateColumnName = {
   },
 }
 
+export const layoutTitleValidator = {
+  validator: (rule: any, value: any) => {
+    const { t } = getI18n().global
+
+    return new Promise((resolve, reject) => {
+      if (value?.length > 250) {
+        reject(new Error(t('msg.error.layoutNameExceeds50Characters')))
+      }
+
+      if (value[0] === ' ') {
+        reject(new Error(t('msg.error.layoutNameCannotStartWithSpace')))
+      }
+
+      resolve(true)
+    })
+  },
+}
+
 export const projectTitleValidator = {
   validator: (rule: any, value: any) => {
     const { t } = getI18n().global

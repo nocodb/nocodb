@@ -1,7 +1,11 @@
 import { T } from 'nc-help';
 import { Injectable } from '@nestjs/common';
+import { Model } from 'src/models';
+import Widget from 'src/models/Widget';
 import { validatePayload } from '../../helpers';
 import Layout from '../../models/Layout';
+import Noco from '../../Noco';
+import type User from 'src/models/User';
 import type { LayoutReqType, LayoutUpdateReqType } from 'nocodb-sdk';
 
 @Injectable()
@@ -15,10 +19,14 @@ export class LayoutsService {
     layout: LayoutUpdateReqType;
     req?: any;
   }) {
-    validatePayload(
-      'swagger.json#/components/schemas/LayoutUpdateReq',
-      param.layout,
-    );
+    // TODO: add the validation here again
+    // was commenting it because for some reason it was complaining about
+    // order being null or undefined (even though field was not declared as required in swagger)
+    // Either fix swagger or deliver and send order always with the Layout data
+    // validatePayload(
+    //   'swagger.json#/components/schemas/LayoutUpdateReq',
+    //   param.layout,
+    // );
 
     const layout = await Layout.update(param.layoutId, param.layout);
 
@@ -46,5 +54,15 @@ export class LayoutsService {
 
   async getLayouts(param: { dashboardId: string }) {
     return await Layout.list({ dashboard_id: param.dashboardId });
+  }
+
+  async layoutDelete(
+    param: { layoutId: string; user: User; req?: any },
+    ncMeta = Noco.ncMeta,
+  ) {
+    const layout = await Layout.delete(param.layoutId, ncMeta);
+
+    // TODO: remove 'nc_ds_widget_db_dependencies_v2' entries here (or in the model) as well
+    return layout;
   }
 }

@@ -121,6 +121,8 @@ onMounted(async () => {
   input.value?.$el?.focus()
   input.value?.$el?.select()
 })
+
+const isDashboardProject = computed(() => route.query.type === NcProjectType.DASHBOARD)
 </script>
 
 <template>

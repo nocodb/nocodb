@@ -33,18 +33,6 @@ const props = defineProps<{
   widgetConfig: ChartWidget
 }>()
 
-// const chartColorsSequence = [
-//   {
-//     borderColor: '#36A2EB',
-//     backgroundColor: '#9BD0F5',
-//   },
-//   {
-//     borderColor: '#FF6384',
-//     backgroundColor: '#FFB1C1',
-//   },
-
-// ]
-
 ChartJS.register(
   ArcElement,
   BarElement,
@@ -103,12 +91,11 @@ const aggregateFunction = ref<string | undefined>()
 
 const dashboardStore = useDashboardStore()
 const { reloadWidgetDataEventBus } = dashboardStore
-const { openedWidgets: openedDashboardMetaData } = storeToRefs(dashboardStore)
+const { focusedWidget } = storeToRefs(dashboardStore)
 
 const dataLinkConfigIsMissing = computed(() => {
   const data_source = chartWidget.value?.data_source as DataSourceInternal
   const data_config = toRef(chartWidget.value, 'data_config') as Ref<DataConfigAggregated2DChart>
-  console.log(data_source)
   return (
     !data_source ||
     !data_source?.projectId ||
@@ -125,19 +112,18 @@ const getData = async () => {
     console.error('Tried to get data for Chart Visualisation without complete data link configuration')
     return
   }
-  // TODO switch here and in the BE from columnTitle to columnId (the BE parameters are anyway already named columnId)
-
-  const dashboardData: any = await (
-    await api.dashboard.widgetGet(openedDashboardMetaData.value!.dashboardId!, chartWidget.value.id)
-  ).data
-  console.log('dashboardData', dashboardData)
-  aggregateFunction.value = dashboardData.aggregateFunction
+  const widgetData: any = await (await api.dashboard.widgetGet(focusedWidget.value!.id, chartWidget.value.id)).data
+  if (widgetData == null) {
+    console.error('Chart#getData: widgetData null/undefined')
+    return
+  }
+  aggregateFunction.value = widgetData.aggregateFunction
   chartData.value = {
-    labels: dashboardData.values.map((r: any) => r[dashboardData.xColumnName]),
+    labels: widgetData.values.map((r: any) => r[widgetData.xColumnName]),
     datasets: [
       {
-        label: `${dashboardData.yColumnName} (${aggregateFunction.value}) per ${dashboardData.xColumnName}`,
-        data: dashboardData.values.map((r: any) => r[`${dashboardData.aggregateFunction}__${dashboardData.yColumnName}`]),
+        label: `${widgetData.yColumnName} (${aggregateFunction.value}) per ${widgetData.xColumnName}`,
+        data: widgetData.values.map((r: any) => r[`${widgetData.aggregateFunction}__${widgetData.yColumnName}`]),
       },
     ],
   }
@@ -152,16 +138,11 @@ reloadWidgetDataEventBus.on(async (ev) => {
 
 onMounted(async () => {
   await getData()
-  console.log('onMounted')
-  // console.log(JSON.stringify(data_source))
 })
 
 watch(
   chartWidget,
   async () => {
-    console.log('watch in ChartVisualisation')
-    // console.log(JSON.stringify(data_source))
-    // console.log(JSON.stringify(data_config))
     if (!dataLinkConfigIsMissing.value) {
       await getData()
     }

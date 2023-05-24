@@ -78,7 +78,7 @@ interface WidgetMeta {
         <a-list :grid="{ gutter: 10, column: 3 }" :data-source="widgetsLibrary">
           <template #renderItem="{ item }">
             <a-list-item>
-              <button class="nc-dashboard-element" @click="addWidget(item.type)">
+              <button class="nc-widget-template" @click="addWidget(item.type)">
                 <div>
                   <component :is="item.icon" class="text-grey" />
                   <span class="ml-2">{{ item.title }}</span>
@@ -94,7 +94,7 @@ interface WidgetMeta {
         <a-list :grid="{ gutter: 10, column: 3 }" :data-source="dataVisualisationsLibrary">
           <template #renderItem="{ item }">
             <a-list-item>
-              <button class="nc-dashboard-element" @click="addWidget(item.type)">
+              <button class="nc-widget-template" @click="addWidget(item.type)">
                 <div>
                   <component :is="item.icon" class="text-grey" />
                   <span class="ml-2">{{ item.title }}</span>
@@ -158,7 +158,7 @@ interface WidgetMeta {
   padding: 1rem;
 }
 
-.nc-dashboard-element {
+.nc-widget-template {
   @apply w-18;
   @apply h-18;
   @apply border;

@@ -74,67 +74,6 @@ export const useDashboardStore = defineStore('dashboardStore', () => {
   const openedLayoutId = computed<string | null>(() => route.params.layoutId as string)
   const _openedWorkspaceId = computed<string>(() => route.params.workspaceId as string)
 
-  // watch(
-  //   openedLayoutId,
-  //   async (newLayoutId, previousLayoutId) => {
-  //     //
-  //     // Helper functions/props
-  //     //
-  //     const __isLayoutNewButAlreadyOpen = openedLayoutSidebarNode.value?.new && openedLayoutSidebarNode.value.id === newLayoutId
-
-  //     const __setPreviousLayoutdAsOld = () => {
-  //       if (previousLayoutId) {
-  //         const previousLayout = _findSingleLayout(layoutsOfProjects.value[openedProjectId.value], previousLayoutId)
-  //         if (previousLayout?.new) {
-  //           previousLayout.new = false
-  //         }
-  //       }
-  //     }
-
-  //     const __noNewLayoutId = newLayoutId == null
-
-  //     if (__noNewLayoutId) {
-  //       openedLayoutSidebarNode.value = undefined
-  //       return
-  //     }
-
-  //     if (__isLayoutNewButAlreadyOpen) return
-
-  //     __setPreviousLayoutdAsOld()
-
-  //     openedLayoutSidebarNode.value = undefined
-
-  //     const fetchedLayout: LayoutType | undefined = await _fetchSingleLayout({
-  //       layoutId: newLayoutId,
-  //       projectId: openedProjectId.value,
-  //     })
-
-  //     if (fetchedLayout == null) {
-  //       console.error('fetchedLayout is undefined')
-  //       return
-  //     }
-
-  //     if (fetchedLayout?.id !== openedLayoutId.value) {
-  //       console.error('fetchedLayout.id !== openedLayoutId.value')
-  //       return
-  //     }
-
-  //     const mandatorySidebarNodeProps = {
-  //       isLeaf: true,
-  //       key: fetchedLayout.id,
-  //     }
-  //     openedLayoutSidebarNode.value = { ...fetchedLayout, ...mandatorySidebarNodeProps }
-
-  //     _addTabWhenNestedLayoutIsPopulated({
-  //       projectId: openedProjectId.value,
-  //     })
-  //   },
-  //   {
-  //     immediate: true,
-  //     deep: true,
-  //   },
-  // )
-
   watch(
     openedLayoutId,
     async (newLayoutId, previousDashboardId) => {
@@ -476,6 +415,7 @@ export const useDashboardStore = defineStore('dashboardStore', () => {
   const addWidget = async (widget_type: WidgetTypeType) => {
     const newElement: Widget = {
       id: Date.now().toString(),
+      layout_id: openedLayoutId.value!,
       schema_version: '1.0.0',
       appearance_config: {
         name: 'New element',
@@ -490,15 +430,6 @@ export const useDashboardStore = defineStore('dashboardStore', () => {
         },
       },
       widget_type,
-      // data_config: {
-      // aggregateFunction: AggregateFnType.Sum,
-      // ...(widget_type !== VisualisationType.STATIC_TEXT && {
-      //   dataLink: {
-      //     // ...initialDataLinkConfig,
-      //   },
-      // }),
-      // },
-      // widget_type,
       data_source: {
         dataSourceType: DataSourceType.INTERNAL,
       },
@@ -508,11 +439,7 @@ export const useDashboardStore = defineStore('dashboardStore', () => {
           : {}),
       },
       // TODO: make this (and similar rubber ducking checks) cleaner
-      // appearance_config: {},
     }
-
-    // dashboardWidgets.value = [...dashboardWidgets.value, newElement]
-    // focusedWidgetId.value = newElement.id
 
     const dashboardWidgetReqType: WidgetReqType = {
       appearance_config: newElement.appearance_config,

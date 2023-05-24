@@ -38,12 +38,12 @@ const onUpdateScreenDimensions = (newScreenDimensions: ScreenDimensions) => {
 <template>
   <div
     ref="nodeRef"
-    class="box block absolute nc-dashboard-ui-element"
-    :class="{ 'nc-dashboard-ui-element-has-focus': props.hasFocus }"
+    class="box block absolute nc-layout-ui-element"
+    :class="{ 'nc-layout-ui-element-has-focus': props.hasFocus }"
     @click.stop="emit('setFocus')"
   >
     <DashboardsLayoutsResizable :screen-dimensions="screenDimensions" @update:screen-dimensions="onUpdateScreenDimensions">
-      <div class="nc-dashboard-ui-resizable-container">
+      <div class="nc-layout-ui-resizable-container">
         <slot />
         <MdiTrashCanCircleOutline class="text-lg mr-2" @click="emit('remove')" />
       </div>
@@ -52,20 +52,17 @@ const onUpdateScreenDimensions = (newScreenDimensions: ScreenDimensions) => {
 </template>
 
 <style>
-.nc-dashboard-ui-resizable-card {
+.nc-layout-ui-resizable-card {
   width: 100%;
   height: 100%;
 }
-.nc-dashboard-ui-resizable-container {
+.nc-layout-ui-resizable-container {
   padding: 20px;
-  /* background-color: #f9f9f9; */
-  /* border: 1px solid #ccc; */
   height: 100%;
   width: 100%;
 }
 
-.nc-dashboard-ui-element-has-focus {
-  /* border-color: #1890ff; */
+.nc-layout-ui-element-has-focus {
   outline: 2px dotted rgb(119, 119, 221);
 }
 </style>

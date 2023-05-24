@@ -5,9 +5,9 @@ const props = defineProps<{
   widgetConfig: StaticTextWidget
 }>()
 
-const { widgetConfig: textVisualizationElementMetaData } = toRefs(props)
-const text = computed(() => textVisualizationElementMetaData.value.data_config.text)
-const fontType = computed(() => textVisualizationElementMetaData.value.appearance_config.fontType)
+const { widgetConfig } = toRefs(props)
+const text = computed(() => widgetConfig.value.data_config.text)
+const fontType = computed(() => widgetConfig.value.appearance_config.fontType)
 
 const fontTypeToElement = (fontType: FontType | undefined) => {
   switch (fontType) {
@@ -35,47 +35,47 @@ const elementTag = computed(() => fontTypeToElement(fontType.value))
 
 <template>
   <a-card>
-    <component :is="elementTag" class="nc-dashboard-text-element">{{ text }}</component>
+    <component :is="elementTag" class="nc-layout-text-element">{{ text }}</component>
   </a-card>
 </template>
 
 <style>
-h1.nc-dashboard-text-element {
+h1.nc-layout-text-element {
   font-size: 2.5rem;
   font-weight: 700;
   line-height: 1.2;
 }
-h2.nc-dashboard-text-element {
+h2.nc-layout-text-element {
   font-size: 2rem;
   font-weight: 700;
   line-height: 1.2;
 }
-h3.nc-dashboard-text-element {
+h3.nc-layout-text-element {
   font-size: 1.75rem;
   font-weight: 700;
   line-height: 1.2;
 }
-h4.nc-dashboard-text-element {
+h4.nc-layout-text-element {
   font-size: 1.5rem;
   font-weight: 700;
   line-height: 1.2;
 }
-h5.nc-dashboard-text-element {
+h5.nc-layout-text-element {
   font-size: 1.25rem;
   font-weight: 700;
   line-height: 1.2;
 }
-p.nc-dashboard-text-element {
+p.nc-layout-text-element {
   font-size: 1rem;
   font-weight: 400;
   line-height: 1.5;
 }
-figcaption.nc-dashboard-text-element {
+figcaption.nc-layout-text-element {
   font-size: 0.875rem;
   font-weight: 400;
   line-height: 1.5;
 }
-span.nc-dashboard-text-element {
+span.nc-layout-text-element {
   font-size: 1rem;
   font-weight: 400;
   line-height: 1.5;

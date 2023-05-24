@@ -5,7 +5,6 @@ import { ButtonWidget, ChartWidget, NumberWidget, StaticTextWidget, WidgetTypeTy
 const props = defineProps<{
   widget: Widget
 }>()
-// const { metaData } = props
 
 const isChart = computed(() => chartTypes.includes(props.widget.widget_type))
 const isNumber = computed(() => props.widget.widget_type === WidgetTypeType.Number)

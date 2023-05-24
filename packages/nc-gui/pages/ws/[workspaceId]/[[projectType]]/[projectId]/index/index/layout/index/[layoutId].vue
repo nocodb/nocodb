@@ -1,7 +1,10 @@
-<script setup lang="ts"></script>
+<script setup lang="ts">
+const { project } = storeToRefs(useProject())
+const { openedLayoutSidebarNode } = storeToRefs(useDashboardStore())
+</script>
 
 <template>
-  <div><h1>Temporary Layout Page Placeholder</h1></div>
+  <DashboardsLayoutsView v-if="project?.id && openedLayoutSidebarNode" />
 </template>
 
 <style>

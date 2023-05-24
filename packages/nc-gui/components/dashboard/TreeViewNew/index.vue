@@ -52,7 +52,7 @@ const { loadProjectTables, loadProject, createProject: _createProject } = projec
 
 const { projectTableList, projects } = storeToRefs(projectsStore)
 
-const { dashboardProjectUrl } = useDashboardStore()
+const { getDashboardProjectUrl: dashboardProjectUrl } = useDashboardStore()
 
 const activeProjectId = computed(() => route.params.projectId as string | undefined)
 

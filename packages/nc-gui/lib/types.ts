@@ -1,4 +1,4 @@
-import type { DashboardType, DocsPageType, FilterType, MetaType, ViewTypes } from 'nocodb-sdk'
+import type { DocsPageType, FilterType, LayoutType, MetaType, ViewTypes } from 'nocodb-sdk'
 import type { I18n } from 'vue-i18n'
 import type { Theme as AntTheme } from 'ant-design-vue/es/config-provider'
 import type { UploadFile } from 'ant-design-vue'
@@ -121,7 +121,7 @@ export interface AntSidebarNode {
 }
 
 export type PageSidebarNode = DocsPageType & AntSidebarNode
-export type LayoutSidebarNode = Omit<DashboardType, 'meta'> & AntSidebarNode
+export type LayoutSidebarNode = Omit<LayoutType, 'meta'> & AntSidebarNode
 export type PublishTreeNode = PageSidebarNode & { isSelected: boolean; key: string }
 
 export interface UndoRedoAction {

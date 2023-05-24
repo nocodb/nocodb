@@ -1,6 +1,17 @@
 import { defineStore } from 'pinia'
-import type { LayoutType, ProjectType } from 'nocodb-sdk'
-import { AggregateFnType } from 'nocodb-sdk'
+import type {
+  AppearanceConfig,
+  DataConfig,
+  DataSource,
+  LayoutType,
+  ProjectType,
+  ScreenDimensions,
+  ScreenPosition,
+  Widget,
+  WidgetReqType,
+  WidgetType,
+} from 'nocodb-sdk'
+import { AggregateFnType, ButtonActionType, DataSourceType, WidgetTypeType } from 'nocodb-sdk'
 import { computed, extractSdkResponseErrorMsg, message, navigateTo, ref, useNuxtApp, useRouter, useTabs, watch } from '#imports'
 import type { LayoutSidebarNode } from '~~/lib'
 import { TabType } from '~~/lib'
@@ -43,6 +54,14 @@ export const useDashboardStore = defineStore('dashboardStore', () => {
 
   const projectStore = useProject()
   const { project } = storeToRefs(projectStore)
+
+  const focusedWidgetId = ref<string | undefined>(undefined)
+
+  const openedWidgets = reactive<Widget[]>([])
+
+  const focusedWidget = computed(() =>
+    openedWidgets.find((widget: { id: string | undefined }) => widget.id === focusedWidgetId.value),
+  )
 
   /***
    *
@@ -116,7 +135,7 @@ export const useDashboardStore = defineStore('dashboardStore', () => {
     },
   )
 
-  function dashboardProjectUrl(projectId: string, { completeUrl }: { completeUrl?: boolean; publicMode?: boolean } = {}) {
+  function getDashboardProjectUrl(projectId: string, { completeUrl }: { completeUrl?: boolean; publicMode?: boolean } = {}) {
     const path = `/ws/${_openedWorkspaceId.value}/nc/${projectId}/layout`
     if (completeUrl) return `${window.location.origin}/#${path}`
 
@@ -179,7 +198,7 @@ export const useDashboardStore = defineStore('dashboardStore', () => {
       })
 
       openedLayoutSidebarNode.value = _findSingleLayout(layouts, createdLayoutData.id!)
-      await navigateTo(layoutUrl({ id: createdLayoutData.id!, projectId: projectId! }))
+      await navigateTo(_getLayoutUrl({ id: createdLayoutData.id!, projectId: projectId! }))
 
       const openedTabs = layoutsOfProjects.value[projectId].map((p: any) => p.id)
       if (!openedTabs.includes(createdLayoutData.id!)) {
@@ -198,6 +217,10 @@ export const useDashboardStore = defineStore('dashboardStore', () => {
       console.error(e)
       message.error(await extractSdkResponseErrorMsg(e as any))
     }
+  }
+
+  const resetFocus = () => {
+    focusedWidgetId.value = undefined
   }
 
   const addNewLayout = async ({ projectId }: { projectId: string }) => {
@@ -244,9 +267,31 @@ export const useDashboardStore = defineStore('dashboardStore', () => {
   }
 
   const openLayout = async ({ layout, projectId }: { layout: LayoutType; projectId: string }) => {
-    const url = layoutUrl({ id: layout.id!, projectId })
+    const url = _getLayoutUrl({ id: layout.id!, projectId })
 
     await navigateTo(url)
+  }
+
+  const _parseWidgetFromAPI = (widgetFromAPI: WidgetType): Widget => {
+    // TODO: improve parsing, e.g. via 3rd party library (is AJV a candidate here?)
+    // TODO: Also, consider to move this parsing logic into SDK so it can also be used by the BE
+    const dataConfig: DataConfig =
+      typeof widgetFromAPI.data_config === 'object' ? widgetFromAPI.data_config : JSON.parse(widgetFromAPI.data_config || '{}')
+
+    const dataSource: DataSource =
+      typeof widgetFromAPI.data_source === 'object' ? widgetFromAPI.data_source : JSON.parse(widgetFromAPI.data_source || '{}')
+
+    const appearanceConfig: AppearanceConfig =
+      typeof widgetFromAPI.appearance_config === 'object'
+        ? widgetFromAPI.appearance_config
+        : JSON.parse(widgetFromAPI.appearance_config || '{}')
+
+    return {
+      ...widgetFromAPI,
+      data_config: dataConfig,
+      data_source: dataSource,
+      appearance_config: appearanceConfig,
+    }
   }
 
   async function _addTabWhenNestedLayoutIsPopulated({ projectId }: { projectId: string }) {
@@ -270,7 +315,7 @@ export const useDashboardStore = defineStore('dashboardStore', () => {
     })
   }
 
-  function layoutUrl({ projectId, id, completeUrl }: { projectId: string; id: string; completeUrl?: boolean }) {
+  function _getLayoutUrl({ projectId, id, completeUrl }: { projectId: string; id: string; completeUrl?: boolean }) {
     projectId = projectId || openedProjectId.value
 
     const url = `/ws/${_openedWorkspaceId.value}/nc/${projectId}/layout/${id}`
@@ -278,13 +323,163 @@ export const useDashboardStore = defineStore('dashboardStore', () => {
     return completeUrl ? `${window.location.origin}/#${url}` : url
   }
 
+  const updatePositionOfWidgetById = (id: string, newPosition: ScreenPosition) => {
+    if (openedWidgets == null) {
+      console.error('Could not find UI element to update position')
+      return
+    }
+
+    const elementToUpdate = openedWidgets.find((widget: Widget) => widget.id === id)
+    if (elementToUpdate == null) {
+      console.error('Could not find UI element to update position')
+      return
+    }
+
+    const updatedElement: Widget = {
+      ...elementToUpdate,
+      appearance_config: {
+        ...elementToUpdate.appearance_config,
+        screenPosition: newPosition,
+      },
+    }
+
+    openedWidgets.splice(
+      0,
+      openedWidgets.length,
+      ...openedWidgets.map((element: any) => {
+        if (element.id === id) {
+          return updatedElement
+        }
+        return element
+      }),
+    )
+    $api.dashboard.widgetUpdate(openedLayoutId.value!, updatedElement.id, updatedElement)
+  }
+
+  const updateScreenDimensionsOfWidgetById = (id: string, newScreenDimensions: ScreenDimensions) => {
+    console.log('updateScreenDimensionsOfElementById', id, newScreenDimensions)
+    if (openedWidgets == null) {
+      console.error('Could not find UI element to update screen dimensions')
+      return
+    }
+
+    const elementToUpdate = openedWidgets.find((widget: Widget) => widget.id === id)
+    if (elementToUpdate == null) {
+      console.error('Could not find UI element to update dimensions')
+      return
+    }
+
+    const updatedElement: Widget = {
+      ...elementToUpdate,
+      appearance_config: {
+        ...elementToUpdate.appearance_config,
+        screenDimensions: newScreenDimensions,
+      },
+    }
+
+    openedWidgets.splice(
+      0,
+      openedWidgets.length,
+      ...openedWidgets.map((element: any) => {
+        if (element.id === id) {
+          return updatedElement
+        }
+        return element
+      }),
+    )
+
+    $api.dashboard.widgetUpdate(openedLayoutId.value!, updatedElement.id, updatedElement)
+  }
+
+  const addWidget = async (widget_type: WidgetTypeType) => {
+    // , initialDataLinkConfig?: DeepPartial<DataLink>) => {
+    const newElement: Widget = {
+      id: Date.now().toString(),
+      schema_version: '1.0.0',
+      appearance_config: {
+        name: 'New element',
+        description: 'Empty description',
+        screenPosition: {
+          x: 10,
+          y: 20,
+        },
+        screenDimensions: {
+          width: 100,
+          height: 100,
+        },
+      },
+      widget_type,
+      // data_config: {
+      // aggregateFunction: AggregateFnType.Sum,
+      // ...(widget_type !== VisualisationType.STATIC_TEXT && {
+      //   dataLink: {
+      //     // ...initialDataLinkConfig,
+      //   },
+      // }),
+      // },
+      // widget_type,
+      data_source: {
+        dataSourceType: DataSourceType.INTERNAL,
+      },
+      data_config: {
+        ...(widget_type === WidgetTypeType.Button
+          ? { buttonText: '[My Button]', actionType: ButtonActionType.OPEN_EXTERNAL_URL, url: 'http://example.com' }
+          : {}),
+      },
+      // TODO: make this (and similar rubber ducking checks) cleaner
+      // appearance_config: {},
+    }
+
+    // dashboardWidgets.value = [...dashboardWidgets.value, newElement]
+    // focusedWidgetId.value = newElement.id
+
+    const dashboardWidgetReqType: WidgetReqType = {
+      appearance_config: newElement.appearance_config,
+      layout_id: openedLayoutId.value!,
+      data_config: newElement.data_config,
+      data_source: newElement.data_source,
+      schema_version: newElement.schema_version,
+      widget_type: newElement.widget_type,
+    }
+
+    const widgetFromAPI = await $api.dashboard.widgetCreate(openedLayoutId.value!, dashboardWidgetReqType)
+    const parsedWidgetFromAPI = _parseWidgetFromAPI(widgetFromAPI)
+    openedWidgets.push(parsedWidgetFromAPI)
+    focusedWidgetId.value = parsedWidgetFromAPI.id
+  }
+
+  const removeWidgetById = async (id: string) => {
+    const idxOfElementToRemove = openedWidgets.findIndex((element: { id: string }) => element.id === id)
+    const elementToRemove = openedWidgets[idxOfElementToRemove]
+    if (idxOfElementToRemove == null) {
+      console.error('Could not find UI element to remove')
+      return
+    }
+    await $api.dashboard.widgetDelete(openedLayoutId.value!, elementToRemove.id)
+    // TODO: regarding refs/reactivity: double-check whether there is indeed a difference between splice
+    // 0and reassignment of the array
+    openedWidgets.splice(idxOfElementToRemove, 1)
+  }
+
+  const updateFocusedWidgetByElementId = async (elementId: string) => {
+    focusedWidgetId.value = elementId
+  }
+
   return {
-    openedLayoutSidebarNode,
+    openedLayoutSidebarNode: readonly(openedLayoutSidebarNode),
     layoutsOfProjects: readonly(layoutsOfProjects),
+    focusedWidget: readonly(focusedWidget),
+    openedWidgets: readonly(openedWidgets),
+    updateScreenDimensionsOfWidgetById,
     fetchLayouts,
     openLayout,
     addNewLayout,
     deleteLayout,
-    dashboardProjectUrl,
+    getDashboardProjectUrl,
+    updatePositionOfWidgetById,
+    removeWidgetById,
+    addWidget,
+    resetFocus,
+    updateFocusedWidgetByElementId,
   }
 })

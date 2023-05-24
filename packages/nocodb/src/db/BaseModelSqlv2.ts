@@ -3,6 +3,7 @@ import groupBy from 'lodash/groupBy';
 import DataLoader from 'dataloader';
 import dayjs from 'dayjs';
 import utc from 'dayjs/plugin/utc.js';
+import timezone from 'dayjs/plugin/timezone';
 import { nocoExecute } from 'nc-help';
 import {
   AuditOperationSubTypes,
@@ -59,6 +60,7 @@ import type { Knex } from 'knex';
 import type { BoolType, SortType } from 'nocodb-sdk';
 
 dayjs.extend(utc);
+dayjs.extend(timezone);
 
 const GROUP_COL = '__nc_group_id';
 
@@ -3358,7 +3360,13 @@ class BaseModelSqlv2 {
               // if there is no timezone info,
               // we assume the input is on NocoDB server timezone
               // then we convert to UTC from server timezone
-              // e.g. 2023-04-27 10:00:00 (IST) -> 2023-04-27 04:30:00+00:00
+              // example: datetime without timezone
+              // we need to display 2023-04-27 10:00:00 (in HKT)
+              // we convert d (e.g. 2023-04-27 18:00:00) to utc, i.e. 2023-04-27 02:00:00+00:00
+              // if there is timezone info,
+              // we simply convert it to UTC
+              // example: datetime with timezone
+              // e.g. 2023-04-27 10:00:00+05:30  -> 2023-04-27 04:30:00+00:00
               return dayjs(d)
                 .tz(Intl.DateTimeFormat().resolvedOptions().timeZone)
                 .utc()

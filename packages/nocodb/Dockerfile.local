@@ -14,9 +14,7 @@ COPY ./package*.json ./
 COPY ./docker/nc-gui/ ./docker/nc-gui/
 COPY ./docker/main.js ./docker/index.js
 COPY ./docker/start-local.sh /usr/src/appEntry/start.sh
-COPY src/public/css/*.css ./docker/public/css/
-COPY src/public/js/*.js ./docker/public/js/
-COPY src/public/favicon.ico ./docker/public/
+COPY src/public/ ./docker/public/
 
 # install production dependencies,
 # reduce node_module size with modclean & removing sqlite deps,

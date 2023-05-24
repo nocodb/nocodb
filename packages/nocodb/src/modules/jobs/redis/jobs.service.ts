@@ -7,21 +7,18 @@ import { JobsRedisService } from './jobs-redis.service';
 
 @Injectable()
 export class JobsService {
-  private localJobs: string[] = [];
-
   constructor(
     @InjectQueue(JOBS_QUEUE) private readonly jobsQueue: Queue,
     private jobsRedisService: JobsRedisService,
     private eventEmitter: EventEmitter2,
   ) {
-    if (process.env['NC_REDIS_URL'] && !process.env['NC_WORKER_CONTAINER']) {
+    if (!process.env['NC_WORKER_CONTAINER']) {
       this.jobsQueue.pause(true);
     }
   }
 
   async add(name: string, data: any) {
     const job = await this.jobsQueue.add(name, data);
-    this.localJobs.push(job.id.toString());
     this.jobsRedisService.subscribe(`jobs-${job.id.toString()}`, (data) => {
       const cmd = data.cmd;
       delete data.cmd;
@@ -38,14 +35,6 @@ export class JobsService {
       }
     });
     return job;
-  }
-
-  async isLocalJob(jobId: string) {
-    return this.localJobs.includes(jobId);
-  }
-
-  async removeLocalJob(jobId: string) {
-    this.localJobs = this.localJobs.filter((j) => j !== jobId);
   }
 
   async jobStatus(jobId: string) {

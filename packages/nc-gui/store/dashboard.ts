@@ -74,56 +74,125 @@ export const useDashboardStore = defineStore('dashboardStore', () => {
   const openedLayoutId = computed<string | null>(() => route.params.layoutId as string)
   const _openedWorkspaceId = computed<string>(() => route.params.workspaceId as string)
 
+  // watch(
+  //   openedLayoutId,
+  //   async (newLayoutId, previousLayoutId) => {
+  //     //
+  //     // Helper functions/props
+  //     //
+  //     const __isLayoutNewButAlreadyOpen = openedLayoutSidebarNode.value?.new && openedLayoutSidebarNode.value.id === newLayoutId
+
+  //     const __setPreviousLayoutdAsOld = () => {
+  //       if (previousLayoutId) {
+  //         const previousLayout = _findSingleLayout(layoutsOfProjects.value[openedProjectId.value], previousLayoutId)
+  //         if (previousLayout?.new) {
+  //           previousLayout.new = false
+  //         }
+  //       }
+  //     }
+
+  //     const __noNewLayoutId = newLayoutId == null
+
+  //     if (__noNewLayoutId) {
+  //       openedLayoutSidebarNode.value = undefined
+  //       return
+  //     }
+
+  //     if (__isLayoutNewButAlreadyOpen) return
+
+  //     __setPreviousLayoutdAsOld()
+
+  //     openedLayoutSidebarNode.value = undefined
+
+  //     const fetchedLayout: LayoutType | undefined = await _fetchSingleLayout({
+  //       layoutId: newLayoutId,
+  //       projectId: openedProjectId.value,
+  //     })
+
+  //     if (fetchedLayout == null) {
+  //       console.error('fetchedLayout is undefined')
+  //       return
+  //     }
+
+  //     if (fetchedLayout?.id !== openedLayoutId.value) {
+  //       console.error('fetchedLayout.id !== openedLayoutId.value')
+  //       return
+  //     }
+
+  //     const mandatorySidebarNodeProps = {
+  //       isLeaf: true,
+  //       key: fetchedLayout.id,
+  //     }
+  //     openedLayoutSidebarNode.value = { ...fetchedLayout, ...mandatorySidebarNodeProps }
+
+  //     _addTabWhenNestedLayoutIsPopulated({
+  //       projectId: openedProjectId.value,
+  //     })
+  //   },
+  //   {
+  //     immediate: true,
+  //     deep: true,
+  //   },
+  // )
+
   watch(
     openedLayoutId,
-    async (newLayoutId, previousLayoutId) => {
+    async (newLayoutId, previousDashboardId) => {
       //
       // Helper functions/props
       //
-      const __isLayoutNewButAlreadyOpen = openedLayoutSidebarNode.value?.new && openedLayoutSidebarNode.value.id === newLayoutId
+      const __isDashboardNewButAlreadyOpen =
+        openedLayoutSidebarNode.value?.new && openedLayoutSidebarNode.value.id === newLayoutId
 
-      const __setPreviousLayoutdAsOld = () => {
-        if (previousLayoutId) {
-          const previousLayout = _findSingleLayout(layoutsOfProjects.value[openedProjectId.value], previousLayoutId)
-          if (previousLayout?.new) {
-            previousLayout.new = false
+      const __setPreviousDashboardAsOld = () => {
+        if (previousDashboardId) {
+          const previousDashboard = _findSingleLayout(layoutsOfProjects.value[openedProjectId.value], previousDashboardId)
+          if (previousDashboard?.new) {
+            previousDashboard.new = false
           }
         }
       }
 
       const __noNewLayoutId = newLayoutId == null
 
+      //
+      // Main function flow
+      //
       if (__noNewLayoutId) {
         openedLayoutSidebarNode.value = undefined
         return
       }
 
-      if (__isLayoutNewButAlreadyOpen) return
+      if (__isDashboardNewButAlreadyOpen) return
 
-      __setPreviousLayoutdAsOld()
+      __setPreviousDashboardAsOld()
 
       openedLayoutSidebarNode.value = undefined
 
-      const fetchedLayout: LayoutType | undefined = await _fetchSingleLayout({
+      // TODO extract that out in a seperate function START
+      const fetchedDashboard: LayoutType | undefined = await _fetchSingleLayout({
         layoutId: newLayoutId,
         projectId: openedProjectId.value,
       })
 
-      if (fetchedLayout == null) {
+      if (fetchedDashboard == null) {
         console.error('fetchedLayout is undefined')
         return
       }
 
-      if (fetchedLayout?.id !== openedLayoutId.value) {
+      if (fetchedDashboard?.id !== openedLayoutId.value) {
         console.error('fetchedLayout.id !== openedLayoutId.value')
         return
       }
 
       const mandatorySidebarNodeProps = {
         isLeaf: true,
-        key: fetchedLayout.id,
+        key: fetchedDashboard.id,
       }
-      openedLayoutSidebarNode.value = { ...fetchedLayout, ...mandatorySidebarNodeProps }
+      openedLayoutSidebarNode.value = { ...fetchedDashboard, ...mandatorySidebarNodeProps }
+      // TODO extract that out in a seperate function END
+
+      _fetchAndSetWidgetsOfOpenedLayoutId(openedLayoutId.value)
 
       _addTabWhenNestedLayoutIsPopulated({
         projectId: openedProjectId.value,
@@ -179,6 +248,57 @@ export const useDashboardStore = defineStore('dashboardStore', () => {
       console.log(e)
       return undefined
     }
+  }
+
+  const _parseWidgetFromAPI = (widgetFromAPI: WidgetType): Widget => {
+    // TODO: improve parsing, e.g. via 3rd party library (is AJV a candidate here?)
+    // TODO: Also, consider to move this parsing logic into SDK so it can also be used by the BE
+    const dataConfig: DataConfig =
+      typeof widgetFromAPI.data_config === 'object' ? widgetFromAPI.data_config : JSON.parse(widgetFromAPI.data_config || '{}')
+
+    const dataSource: DataSource =
+      typeof widgetFromAPI.data_source === 'object' ? widgetFromAPI.data_source : JSON.parse(widgetFromAPI.data_source || '{}')
+
+    const appearanceConfig: AppearanceConfig =
+      typeof widgetFromAPI.appearance_config === 'object'
+        ? widgetFromAPI.appearance_config
+        : JSON.parse(widgetFromAPI.appearance_config || '{}')
+
+    return {
+      ...widgetFromAPI,
+      data_config: dataConfig,
+      data_source: dataSource,
+      appearance_config: appearanceConfig,
+    }
+  }
+
+  async function _addTabWhenNestedLayoutIsPopulated({ projectId }: { projectId: string }) {
+    const layoutsOfProject = layoutsOfProjects.value[projectId]
+    if (!layoutsOfProject) {
+      setTimeout(() => {
+        _addTabWhenNestedLayoutIsPopulated({ projectId })
+      }, 100)
+      return
+    }
+
+    if (!openedLayoutId.value) return
+
+    const { addTab } = useTabs()
+
+    addTab({
+      id: openedLayoutSidebarNode.value!.id!,
+      title: openedLayoutSidebarNode.value!.title || 'NO TITLE',
+      type: TabType.LAYOUT,
+      projectId: openedProjectId.value,
+    })
+  }
+
+  function _getLayoutUrl({ projectId, id, completeUrl }: { projectId: string; id: string; completeUrl?: boolean }) {
+    projectId = projectId || openedProjectId.value
+
+    const url = `/ws/${_openedWorkspaceId.value}/nc/${projectId}/layout/${id}`
+
+    return completeUrl ? `${window.location.origin}/#${url}` : url
   }
 
   async function _createLayout({ layoutTitle, projectId }: { layoutTitle: string; projectId: string }) {
@@ -266,61 +386,23 @@ export const useDashboardStore = defineStore('dashboardStore', () => {
     })
   }
 
+  async function _fetchAndSetWidgetsOfOpenedLayoutId(layoutId: string) {
+    const widgets = await $api.dashboard.widgetList(layoutId)
+
+    if (widgets == null) {
+      console.error('widgetsData is undefined')
+    }
+
+    // TODO: fix typing/implementation mismatch here: type expects there is a 'list' property where the widgets are stored in
+    const parsedWidgets = widgets.list.map(_parseWidgetFromAPI)
+
+    openedWidgets.splice(0, openedWidgets.length, ...parsedWidgets)
+  }
+
   const openLayout = async ({ layout, projectId }: { layout: LayoutType; projectId: string }) => {
     const url = _getLayoutUrl({ id: layout.id!, projectId })
 
     await navigateTo(url)
-  }
-
-  const _parseWidgetFromAPI = (widgetFromAPI: WidgetType): Widget => {
-    // TODO: improve parsing, e.g. via 3rd party library (is AJV a candidate here?)
-    // TODO: Also, consider to move this parsing logic into SDK so it can also be used by the BE
-    const dataConfig: DataConfig =
-      typeof widgetFromAPI.data_config === 'object' ? widgetFromAPI.data_config : JSON.parse(widgetFromAPI.data_config || '{}')
-
-    const dataSource: DataSource =
-      typeof widgetFromAPI.data_source === 'object' ? widgetFromAPI.data_source : JSON.parse(widgetFromAPI.data_source || '{}')
-
-    const appearanceConfig: AppearanceConfig =
-      typeof widgetFromAPI.appearance_config === 'object'
-        ? widgetFromAPI.appearance_config
-        : JSON.parse(widgetFromAPI.appearance_config || '{}')
-
-    return {
-      ...widgetFromAPI,
-      data_config: dataConfig,
-      data_source: dataSource,
-      appearance_config: appearanceConfig,
-    }
-  }
-
-  async function _addTabWhenNestedLayoutIsPopulated({ projectId }: { projectId: string }) {
-    const layoutsOfProject = layoutsOfProjects.value[projectId]
-    if (!layoutsOfProject) {
-      setTimeout(() => {
-        _addTabWhenNestedLayoutIsPopulated({ projectId })
-      }, 100)
-      return
-    }
-
-    if (!openedLayoutId.value) return
-
-    const { addTab } = useTabs()
-
-    addTab({
-      id: openedLayoutSidebarNode.value!.id!,
-      title: openedLayoutSidebarNode.value!.title || 'NO TITLE',
-      type: TabType.LAYOUT,
-      projectId: openedProjectId.value,
-    })
-  }
-
-  function _getLayoutUrl({ projectId, id, completeUrl }: { projectId: string; id: string; completeUrl?: boolean }) {
-    projectId = projectId || openedProjectId.value
-
-    const url = `/ws/${_openedWorkspaceId.value}/nc/${projectId}/layout/${id}`
-
-    return completeUrl ? `${window.location.origin}/#${url}` : url
   }
 
   const updatePositionOfWidgetById = (id: string, newPosition: ScreenPosition) => {
@@ -392,7 +474,6 @@ export const useDashboardStore = defineStore('dashboardStore', () => {
   }
 
   const addWidget = async (widget_type: WidgetTypeType) => {
-    // , initialDataLinkConfig?: DeepPartial<DataLink>) => {
     const newElement: Widget = {
       id: Date.now().toString(),
       schema_version: '1.0.0',

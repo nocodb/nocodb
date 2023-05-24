@@ -1,12 +1,7 @@
 <script lang="ts" setup>
-// import VueJsonPretty from 'vue-json-pretty'
 import type { RendererElement, RendererNode, VNode } from 'vue'
-import 'vue-json-pretty/lib/styles.css'
 import { WidgetTypeType } from 'nocodb-sdk'
 import { useDashboardStore } from '~~/store/dashboard'
-// import type { DeepPartial } from '~~/lib/types'
-
-// const jsonViewCollapsed = ref(false)
 const dashboardStore = useDashboardStore()
 const { openedWidgets, focusedWidget, openedLayoutSidebarNode } = storeToRefs(dashboardStore)
 const {
@@ -40,33 +35,21 @@ const dataVisualisationsLibrary: WidgetMeta[] = [
     title: 'Bar',
     icon: iconMap.text,
     type: WidgetTypeType.BarChart,
-    // initialDataLinkConfig: {
-    //   chartType: ChartType.BAR,
-    // },
   },
   {
     title: 'Line',
     icon: iconMap.number,
     type: WidgetTypeType.LineChart,
-    // initialDataLinkConfig: {
-    //   chartType: ChartType.LINE,
-    // },
   },
   {
     title: 'Pie',
     icon: iconMap.plus,
     type: WidgetTypeType.PieChart,
-    // initialDataLinkConfig: {
-    //   chartType: ChartType.PIE,
-    // },
   },
   {
     title: 'Scatter',
     icon: iconMap.plus,
     type: WidgetTypeType.ScatterPlot,
-    // initialDataLinkConfig: {
-    //   chartType: ChartType.SCATTER,
-    // },
   },
 ]
 interface WidgetMeta {
@@ -79,6 +62,7 @@ interface WidgetMeta {
     }
   >
   type: WidgetTypeType
+}
 </script>
 
 <template>
@@ -123,7 +107,7 @@ interface WidgetMeta {
     </a-layout-sider>
     <a-layout-content ref="mainArea" class="main-area" :min-width="200" @click="resetFocus">
       <div>
-        <template v-for="widget in openedWidgets" :key="element.id">
+        <template v-for="widget in openedWidgets" :key="widget.id">
           <DashboardsDraggableResizableContainer
             :has-focus="widget.id === focusedWidget?.id"
             :screen-position="widget.appearance_config.screenPosition"
@@ -133,7 +117,6 @@ interface WidgetMeta {
             @update-screen-dimensions="updateScreenDimensionsOfWidgetById(widget.id, $event.newScreenDimensions)"
             @remove="removeWidgetById(widget.id)"
           >
-            <!-- element: {{ JSON.stringify(element) }} -->
             <DashboardsWidgetsWidget :widget="widget" />
           </DashboardsDraggableResizableContainer>
         </template>
@@ -141,7 +124,7 @@ interface WidgetMeta {
     </a-layout-content>
     <!-- TODO: decide / change again to rem for width and overall: use consistent styling -->
     <a-layout-sider class="right-sidebar flex" width="500px" theme="light">
-      <DashboardsWidgetsPropertiesPanel />
+      <DashboardsLayoutsWidgetsPropertiesPanel />
     </a-layout-sider>
   </a-layout>
 </template>

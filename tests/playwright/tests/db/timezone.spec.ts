@@ -619,20 +619,24 @@ test.describe.serial('External DB - DateTime column', async () => {
       expectedDisplayValue: string[];
       verifyApiResponse?: boolean;
     }) {
-      // Update formula column to compute "month" instead of "day"
-      await api.dbTableColumn.update(table_data.columns[3].id, {
-        title: 'formula-1',
-        column_name: 'formula-1',
-        uidt: UITypes.Formula,
-        formula_raw: formula[0],
-      });
-      await dashboard.rootPage.waitForTimeout(1000);
-      await api.dbTableColumn.update(table_data.columns[4].id, {
-        title: 'formula-2',
-        column_name: 'formula-2',
-        uidt: UITypes.Formula,
-        formula_raw: formula[1],
-      });
+      try {
+        // Update formula column to compute "month" instead of "day"
+        await api.dbTableColumn.update(table_data.columns[3].id, {
+          title: 'formula-1',
+          column_name: 'formula-1',
+          uidt: UITypes.Formula,
+          formula_raw: formula[0],
+        });
+        await dashboard.rootPage.waitForTimeout(1000);
+        await api.dbTableColumn.update(table_data.columns[4].id, {
+          title: 'formula-2',
+          column_name: 'formula-2',
+          uidt: UITypes.Formula,
+          formula_raw: formula[1],
+        });
+      } catch (e) {
+        console.log('formula column create', e);
+      }
 
       // reload page
       await dashboard.rootPage.reload();
@@ -650,8 +654,16 @@ test.describe.serial('External DB - DateTime column', async () => {
 
       // verify API response
       if (verifyApiResponse) {
-        const records = await api.dbTableRow.list('noco', context.project.id, table_data.id, { limit: 10 });
+        let records;
+        try {
+          records = await api.dbTableRow.list('noco', context.project.id, table_data.id, { limit: 10 });
+        } catch (e) {
+          console.log('api.dbTableRow.list', e);
+        }
+
         const formattedOffset = getBrowserTimezoneOffset();
+
+        console.log('records', records);
 
         // set seconds to 00 for comparison (API response has non zero seconds)
         let record = records.list[2]['formula-1'];
@@ -933,7 +945,7 @@ test.describe.serial('External DB - DateTime column, Browser Timezone set to HKT
   });
 });
 
-test.describe('Ext DB MySQL : DB Timezone configured as HKT', () => {
+test.describe.serial('Ext DB MySQL : DB Timezone configured as HKT', () => {
   let dashboard: DashboardPage;
   let context: any;
 

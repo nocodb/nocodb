@@ -640,6 +640,7 @@ test.describe.serial('External DB - DateTime column', async () => {
 
       // reload page
       await dashboard.rootPage.reload();
+      await dashboard.rootPage.waitForTimeout(2000);
 
       await dashboard.grid.cell.verify({
         index: 2,
@@ -776,6 +777,8 @@ test.describe.serial('External DB - DateTime column', async () => {
 
     // reload page & verify if inserted values are shown correctly
     await dashboard.rootPage.reload();
+    await dashboard.rootPage.waitForTimeout(2000);
+
     await dashboard.grid.cell.verifyDateCell({
       index: 2,
       columnHeader: 'DatetimeWithoutTz',
@@ -917,6 +920,8 @@ test.describe.serial('External DB - DateTime column, Browser Timezone set to HKT
     });
     // reload page
     await dashboard.rootPage.reload();
+    await dashboard.rootPage.waitForTimeout(2000);
+
     const records = await api.dbTableRow.list('noco', context.project.id, table_data.id, { limit: 10 });
     const formattedOffset = getBrowserTimezoneOffset();
 
@@ -1033,6 +1038,8 @@ test.describe.serial('Ext DB MySQL : DB Timezone configured as HKT', () => {
 
     // reload page & verify if inserted values are shown correctly
     await dashboard.rootPage.reload();
+    await dashboard.rootPage.waitForTimeout(2000);
+
     await dashboard.grid.cell.verifyDateCell({
       index: 2,
       columnHeader: 'DatetimeWithoutTz',

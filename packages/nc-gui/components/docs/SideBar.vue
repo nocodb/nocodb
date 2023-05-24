@@ -393,9 +393,6 @@ onMounted(async () => {
       transition: none !important;
       @apply !bg-primary-selected-sidebar !hover:bg-primary-selected-sidebar;
     }
-    // .ant-tree-treenode-selected {
-    //   @apply !bg-primary-selected-sidebar;
-    // }
     .ant-tree-indent-unit {
       @apply w-4 !important;
     }
@@ -404,16 +401,5 @@ onMounted(async () => {
   .nc-docs-menu .ant-dropdown-menu-item {
     @apply p-0 !important;
   }
-
-  // .page-search {
-  //   @apply !rounded-md !bg-gray-100;
-  //   input.ant-input {
-  //     @apply !bg-gray-100;
-  //     // placeholder
-  //     &::placeholder {
-  //       @apply !text-black text-xs pl-1;
-  //     }
-  //   }
-  // }
 }
 </style>

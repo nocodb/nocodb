@@ -135,9 +135,6 @@ onMounted(async () => {
     @keydown.esc="dialogShow = false"
   >
     <div class="pl-10 pr-10 pt-5">
-      <!-- Create A New Table -->
-      <!-- <div class="prose-xl font-bold self-center my-4">FFCreate {{ typeLabel }} Project</div> -->
-
       <a-form
         ref="form"
         :model="formState"

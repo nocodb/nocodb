@@ -47,7 +47,6 @@ const validateUserHasReadPermissionsForLinkedDbProjects = async (
         user.id,
       );
 
-      // If the current user is a super admin, then he has read permissions for all linked db projects
       if (!workspaceUser) {
         NcError.forbidden(
           'User does not have read permissions for workspace of the linked db project',

@@ -7,14 +7,10 @@ import { useNuxtApp } from '#app'
 import { ProjectRoleInj } from '~/context'
 import { TreeViewSetMenuContextInj } from '#imports'
 
-const props = withDefaults(
-  defineProps<{
-    project: ProjectType
-    layout: LayoutType
-    baseIndex: number
-  }>(),
-  { baseIndex: 0 },
-)
+const props = defineProps<{
+  project: ProjectType
+  layout: LayoutType
+}>()
 
 const project = $(toRef(props, 'project'))
 const layout = $(toRef(props, 'layout'))
@@ -41,7 +37,6 @@ function openRenameLayoutDialog(layout: LayoutType, rightClick = false) {
   const { close } = useDialog(resolveComponent('DlgLayoutRename'), {
     'modelValue': isOpen,
     'layout': layout,
-    // 'baseId': baseId,
     'dashboardProject': project,
     'onUpdate:modelValue': closeDialog,
   })
@@ -52,8 +47,6 @@ function openRenameLayoutDialog(layout: LayoutType, rightClick = false) {
     close(1000)
   }
 }
-
-// Todo: temp
 
 const { isSharedBase } = useProject()
 </script>
@@ -133,7 +126,6 @@ const { isSharedBase } = useProject()
 
 .nc-tree-item.active {
   @apply !bg-primary-selected-sidebar font-weight-bold rounded-md;
-  //@apply border-r-3 border-primary;
 
   svg {
     @apply !text-opacity-100;

@@ -48,7 +48,6 @@ export class LayoutsController {
     const result = await this.layoutService.layoutDelete({
       layoutId: layoutId,
       user: (req as any).user,
-      // req,
     });
 
     return result;

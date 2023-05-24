@@ -27,10 +27,6 @@ onMounted(async () => {
     :collapsed="false"
     collapsed-width="50"
     class="relative h-full z-1 nc-dashboards-left-sidebar !min-w-56.5 pb-1 !bg-inherit pl-2"
-    :class="{
-      // 'px-1 !min-w-61.5': isPublic,
-      // '!min-w-56.5': !isPublic,
-    }"
     :trigger="null"
     collapsible
     theme="light"
@@ -39,11 +35,11 @@ onMounted(async () => {
       <DashboardsSideBarLayoutNode
         v-for="layout of layouts ?? [].filter((layout) => layout.base_id === project.bases[baseIndex].id)"
         :key="layout.id"
-        v-e="['a:table:open']"
+        v-e="['a:layout:open']"
         class="nc-tree-item text-sm cursor-pointer group"
         :data-order="layout.order"
         :data-id="layout.id"
-        :data-testid="`tree-view-table-${layout.title}`"
+        :data-testid="`tree-view-layout-${layout.title}`"
         :layout="layout"
         :project="project"
         :base-index="baseIndex"

@@ -40,7 +40,7 @@ const { isUIAllowed } = useUIPermission()
 
 const { state, isNew, removeLTARRef } = useSmartsheetRowStoreOrThrow()
 
-const { loadRelatedTableMeta, relatedTableDisplayValueProp, unlink } = useProvideLTARStore(
+const { relatedTableMeta, loadRelatedTableMeta, relatedTableDisplayValueProp, unlink } = useProvideLTARStore(
   column as Ref<Required<ColumnType>>,
   row,
   isNew,
@@ -78,6 +78,11 @@ const unlinkRef = async (rec: Record<string, any>) => {
   }
 }
 
+const hasManyColumn = computed(
+  () =>
+    relatedTableMeta.value?.columns?.find((c: any) => c.title === relatedTableDisplayValueProp.value) as ColumnType | undefined,
+)
+
 const onAttachRecord = () => {
   childListDlg.value = false
   listItemsDlg.value = true
@@ -103,6 +108,7 @@ useSelectedCellKeyupListener(inject(ActiveCellInj, ref(false)), (e: KeyboardEven
             :key="i"
             :item="cell.item"
             :value="cell.value"
+            :column="hasManyColumn"
             @unlink="unlinkRef(cell.item)"
           />
 

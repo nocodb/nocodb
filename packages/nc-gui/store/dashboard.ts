@@ -447,7 +447,7 @@ export const useDashboardStore = defineStore('dashboardStore', () => {
 
     const elementToUpdate = openedWidgets.find((widget: Widget) => widget.id === id)
     if (elementToUpdate == null) {
-      console.error('Could not find UI element to update dimensions')
+      console.error('Could not find widget to update dimensions for')
       return
     }
 
@@ -546,11 +546,14 @@ export const useDashboardStore = defineStore('dashboardStore', () => {
     focusedWidgetId.value = elementId
   }
 
+  const reloadWidgetDataEventBus = useEventBus('ReloadWidgetData')
+
   return {
     openedLayoutSidebarNode: readonly(openedLayoutSidebarNode),
     layoutsOfProjects: readonly(layoutsOfProjects),
     focusedWidget: readonly(focusedWidget),
     openedWidgets: readonly(openedWidgets),
+    reloadWidgetDataEventBus: readonly(reloadWidgetDataEventBus),
     updateScreenDimensionsOfWidgetById,
     fetchLayouts,
     openLayout,

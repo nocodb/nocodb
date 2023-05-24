@@ -14,10 +14,9 @@ const isButton = computed(() => props.widget.widget_type === WidgetTypeType.Butt
 </script>
 
 <template>
-  <div>TEST</div>
-  <!-- <DashboardsWidgetsChart v-if="isChart" :widget-config="widget as ChartWidget" />
+  <DashboardsWidgetsChart v-if="isChart" :widget-config="widget as ChartWidget" />
   <DashboardsWidgetsNumber v-else-if="isNumber" :widget-config="widget as NumberWidget" />
   <DashboardsWidgetsText v-else-if="isStaticText" :widget-config="widget as StaticTextWidget" />
   <DashboardsWidgetsButton v-else-if="isButton" :widget-config="widget as ButtonWidget" />
-  <div v-else>Visualisation Type '{{ widget.widget_type }}' not yet implemented</div> -->
+  <div v-else>Visualisation Type '{{ widget.widget_type }}' not yet implemented</div>
 </template>

@@ -42,6 +42,7 @@ export default async function ({ ncMeta }: NcUpgraderCtx) {
           id: base.id,
           projectId: base.project_id,
           config,
+          skipReorder: true,
         },
         ncMeta,
       ),

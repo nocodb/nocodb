@@ -38,6 +38,7 @@ export const useDashboardStore = defineStore('dashboardStore', () => {
 
   const { $api, $e } = useNuxtApp()
   const { t } = useI18n()
+  const reloadWidgetDataEventBus = useEventBus('ReloadWidgetData')
 
   /***
    *
@@ -65,7 +66,6 @@ export const useDashboardStore = defineStore('dashboardStore', () => {
 
   /***
    *
-   *
    * Computed
    *
    */
@@ -74,102 +74,11 @@ export const useDashboardStore = defineStore('dashboardStore', () => {
   const openedLayoutId = computed<string | null>(() => route.params.layoutId as string)
   const _openedWorkspaceId = computed<string>(() => route.params.workspaceId as string)
 
-  watch(
-    openedLayoutId,
-    async (newLayoutId, previousDashboardId) => {
-      //
-      // Helper functions/props
-      //
-      const __isDashboardNewButAlreadyOpen =
-        openedLayoutSidebarNode.value?.new && openedLayoutSidebarNode.value.id === newLayoutId
-
-      const __setPreviousDashboardAsOld = () => {
-        if (previousDashboardId) {
-          const previousDashboard = _findSingleLayout(layoutsOfProjects.value[openedProjectId.value], previousDashboardId)
-          if (previousDashboard?.new) {
-            previousDashboard.new = false
-          }
-        }
-      }
-
-      const __noNewLayoutId = newLayoutId == null
-
-      //
-      // Main function flow
-      //
-      if (__noNewLayoutId) {
-        openedLayoutSidebarNode.value = undefined
-        return
-      }
-
-      if (__isDashboardNewButAlreadyOpen) return
-
-      __setPreviousDashboardAsOld()
-
-      openedLayoutSidebarNode.value = undefined
-
-      // TODO extract that out in a seperate function START
-      const fetchedDashboard: LayoutType | undefined = await _fetchSingleLayout({
-        layoutId: newLayoutId,
-        projectId: openedProjectId.value,
-      })
-
-      if (fetchedDashboard == null) {
-        console.error('fetchedLayout is undefined')
-        return
-      }
-
-      if (fetchedDashboard?.id !== openedLayoutId.value) {
-        console.error('fetchedLayout.id !== openedLayoutId.value')
-        return
-      }
-
-      const mandatorySidebarNodeProps = {
-        isLeaf: true,
-        key: fetchedDashboard.id,
-      }
-      openedLayoutSidebarNode.value = { ...fetchedDashboard, ...mandatorySidebarNodeProps }
-      // TODO extract that out in a seperate function END
-
-      _fetchAndSetWidgetsOfOpenedLayoutId(openedLayoutId.value)
-
-      _addTabWhenNestedLayoutIsPopulated({
-        projectId: openedProjectId.value,
-      })
-    },
-    {
-      immediate: true,
-      deep: true,
-    },
-  )
-
-  function getDashboardProjectUrl(projectId: string, { completeUrl }: { completeUrl?: boolean; publicMode?: boolean } = {}) {
-    const path = `/ws/${_openedWorkspaceId.value}/nc/${projectId}/layout`
-    if (completeUrl) return `${window.location.origin}/#${path}`
-
-    return path
-  }
-
-  async function fetchLayouts({ withoutLoading, projectId }: { projectId: string; withoutLoading?: boolean }) {
-    if (!withoutLoading) isLayoutFetching.value[projectId] = true
-    try {
-      const fetchedLayouts = (await $api.dashboard.layoutList(projectId)).list
-
-      layoutsOfProjects.value[projectId] = fetchedLayouts.map((layout) => {
-        return {
-          ...layout,
-          isLeaf: true,
-          key: layout.id!,
-        }
-      })
-    } catch (e) {
-      console.error(e)
-      message.error(await extractSdkResponseErrorMsg(e as any))
-    } finally {
-      if (!withoutLoading) isLayoutFetching.value[projectId] = false
-    }
-  }
-
+  /***
+   *
+   * Private functions
+   *
+   */
   function _findSingleLayout(layouts: LayoutSidebarNode[], layoutId: string) {
     if (!layouts) {
       console.error('layouts is undefined:')
@@ -190,8 +99,6 @@ export const useDashboardStore = defineStore('dashboardStore', () => {
   }
 
   const _parseWidgetFromAPI = (widgetFromAPI: WidgetType): Widget => {
-    // TODO: improve parsing, e.g. via 3rd party library (is AJV a candidate here?)
-    // TODO: Also, consider to move this parsing logic into SDK so it can also be used by the BE
     const dataConfig: DataConfig =
       typeof widgetFromAPI.data_config === 'object' ? widgetFromAPI.data_config : JSON.parse(widgetFromAPI.data_config || '{}')
 
@@ -275,6 +182,111 @@ export const useDashboardStore = defineStore('dashboardStore', () => {
     } catch (e) {
       console.error(e)
       message.error(await extractSdkResponseErrorMsg(e as any))
+    }
+  }
+
+  /***
+   *
+   * watchers
+   *
+   */
+  watch(
+    openedLayoutId,
+    async (newLayoutId, previousDashboardId) => {
+      //
+      // Helper functions/props
+      //
+      const isDashboardNewButAlreadyOpen = openedLayoutSidebarNode.value?.new && openedLayoutSidebarNode.value.id === newLayoutId
+
+      const setPreviousDashboardAsOld = () => {
+        if (previousDashboardId) {
+          const previousDashboard = _findSingleLayout(layoutsOfProjects.value[openedProjectId.value], previousDashboardId)
+          if (previousDashboard?.new) {
+            previousDashboard.new = false
+          }
+        }
+      }
+
+      const noNewLayoutId = newLayoutId == null
+
+      //
+      // Main function flow
+      //
+      if (noNewLayoutId) {
+        openedLayoutSidebarNode.value = undefined
+        return
+      }
+
+      if (isDashboardNewButAlreadyOpen) return
+
+      setPreviousDashboardAsOld()
+
+      openedLayoutSidebarNode.value = undefined
+
+      // TODO extract that out in a seperate function START
+      const fetchedDashboard: LayoutType | undefined = await _fetchSingleLayout({
+        layoutId: newLayoutId,
+        projectId: openedProjectId.value,
+      })
+
+      if (fetchedDashboard == null) {
+        console.error('fetchedLayout is undefined')
+        return
+      }
+
+      if (fetchedDashboard?.id !== openedLayoutId.value) {
+        console.error('fetchedLayout.id !== openedLayoutId.value')
+        return
+      }
+
+      const mandatorySidebarNodeProps = {
+        isLeaf: true,
+        key: fetchedDashboard.id,
+      }
+      openedLayoutSidebarNode.value = { ...fetchedDashboard, ...mandatorySidebarNodeProps }
+      // TODO extract that out in a seperate function END
+
+      _fetchAndSetWidgetsOfOpenedLayoutId(openedLayoutId.value)
+
+      _addTabWhenNestedLayoutIsPopulated({
+        projectId: openedProjectId.value,
+      })
+    },
+    {
+      immediate: true,
+      deep: true,
+    },
+  )
+
+  /***
+   *
+   * Public functions
+   *
+   */
+  function getDashboardProjectUrl(projectId: string, { completeUrl }: { completeUrl?: boolean; publicMode?: boolean } = {}) {
+    const path = `/ws/${_openedWorkspaceId.value}/nc/${projectId}/layout`
+    if (completeUrl) return `${window.location.origin}/#${path}`
+
+    return path
+  }
+
+  async function fetchLayouts({ withoutLoading, projectId }: { projectId: string; withoutLoading?: boolean }) {
+    if (!withoutLoading) isLayoutFetching.value[projectId] = true
+    try {
+      const fetchedLayouts = (await $api.dashboard.layoutList(projectId)).list
+
+      layoutsOfProjects.value[projectId] = fetchedLayouts.map((layout) => {
+        return {
+          ...layout,
+          isLeaf: true,
+          key: layout.id!,
+        }
+      })
+    } catch (e) {
+      console.error(e)
+      message.error(await extractSdkResponseErrorMsg(e as any))
+    } finally {
+      if (!withoutLoading) isLayoutFetching.value[projectId] = false
     }
   }
 
@@ -464,8 +476,6 @@ export const useDashboardStore = defineStore('dashboardStore', () => {
       return
     }
     await $api.dashboard.widgetDelete(openedLayoutId.value!, elementToRemove.id)
-    // TODO: regarding refs/reactivity: double-check whether there is indeed a difference between splice
-    // 0and reassignment of the array
     openedWidgets.splice(idxOfElementToRemove, 1)
   }
 
@@ -473,24 +483,22 @@ export const useDashboardStore = defineStore('dashboardStore', () => {
     focusedWidgetId.value = elementId
   }
 
-  const reloadWidgetDataEventBus = useEventBus('ReloadWidgetData')
-
   return {
     openedLayoutSidebarNode: readonly(openedLayoutSidebarNode),
     layoutsOfProjects: readonly(layoutsOfProjects),
-    focusedWidget: readonly(focusedWidget),
     openedWidgets: readonly(openedWidgets),
+    focusedWidget: readonly(focusedWidget),
     reloadWidgetDataEventBus: readonly(reloadWidgetDataEventBus),
-    updateScreenDimensionsOfWidgetById,
+    getDashboardProjectUrl,
     fetchLayouts,
     openLayout,
     addNewLayout,
     deleteLayout,
-    getDashboardProjectUrl,
-    updatePositionOfWidgetById,
-    removeWidgetById,
     addWidget,
-    resetFocus,
     updateFocusedWidgetByElementId,
+    updatePositionOfWidgetById,
+    updateScreenDimensionsOfWidgetById,
+    removeWidgetById,
+    resetFocus,
   }
 })

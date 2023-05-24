@@ -9,5 +9,6 @@ export class PublicMiddleware implements NestMiddleware {
       const dashboardPath = process.env.NC_DASHBOARD_URL || '/dashboard';
       return res.redirect(dashboardPath);
     }
+    next();
   }
 }

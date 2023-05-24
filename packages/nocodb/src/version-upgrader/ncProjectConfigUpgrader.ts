@@ -36,11 +36,15 @@ export default async function ({ ncMeta }: NcUpgraderCtx) {
 
     // Update the base config with the new secret key
     actions.push(
-      Base.updateBase(base.id, {
-        id: base.id,
-        projectId: base.project_id,
-        config: base.config,
-      }),
+      Base.updateBase(
+        base.id,
+        {
+          id: base.id,
+          projectId: base.project_id,
+          config,
+        },
+        ncMeta,
+      ),
     );
   }
   await Promise.all(actions);

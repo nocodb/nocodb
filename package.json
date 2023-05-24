@@ -17,8 +17,8 @@
   "license": "AGPL-3.0-or-later",
   "devDependencies": {
     "fs": "0.0.1-security",
-    "lerna": "^6.4.1",
     "husky": "^8.0.0",
+    "lerna": "^6.4.1",
     "xlsx": "^0.17.4"
   },
   "husky": {
@@ -49,6 +49,7 @@
     "stop:pg": "docker-compose -f ./tests/playwright/scripts/docker-compose-pg.yml down"
   },
   "dependencies": {
+    "@braks/revue-draggable": "^0.4.3",
     "express": "^4.18.1",
     "mysql2": "^2.3.3",
     "pg": "^8.7.3",

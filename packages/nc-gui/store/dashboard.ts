@@ -93,7 +93,7 @@ export const useDashboardStore = defineStore('dashboardStore', () => {
     try {
       return await $api.dashboard.layoutGet(project.value!.id!, layoutId)
     } catch (e) {
-      console.log(e)
+      console.error(e)
       return undefined
     }
   }
@@ -390,7 +390,6 @@ export const useDashboardStore = defineStore('dashboardStore', () => {
   }
 
   const updateScreenDimensionsOfWidgetById = (id: string, newScreenDimensions: ScreenDimensions) => {
-    console.log('updateScreenDimensionsOfElementById', id, newScreenDimensions)
     if (openedWidgets == null) {
       console.error('Could not find UI element to update screen dimensions')
       return

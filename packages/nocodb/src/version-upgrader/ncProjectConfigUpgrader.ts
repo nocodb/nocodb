@@ -26,27 +26,23 @@ export default async function ({ ncMeta }: NcUpgraderCtx) {
       config = JSON.parse(
         CryptoJS.AES.decrypt(base.config, TEMP_KEY).toString(CryptoJS.enc.Utf8),
       );
+
+      // Update the base config with the new secret key
+      actions.push(
+        Base.updateBase(
+          base.id,
+          {
+            id: base.id,
+            projectId: base.project_id,
+            config,
+            skipReorder: true,
+          },
+          ncMeta,
+        ),
+      );
     } catch (e) {
-      continue;
+      // ignore the error
     }
-
-    if (!config) {
-      continue;
-    }
-
-    // Update the base config with the new secret key
-    actions.push(
-      Base.updateBase(
-        base.id,
-        {
-          id: base.id,
-          projectId: base.project_id,
-          config,
-          skipReorder: true,
-        },
-        ncMeta,
-      ),
-    );
   }
   await Promise.all(actions);
 }

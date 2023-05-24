@@ -5,7 +5,6 @@ import { EventEmitterModule as NestJsEventEmitter } from '@nestjs/event-emitter'
 import { GlobalExceptionFilter } from './filters/global-exception/global-exception.filter';
 import { GlobalMiddleware } from './middlewares/global/global.middleware';
 import { GuiMiddleware } from './middlewares/gui/gui.middleware';
-import { PublicMiddleware } from './middlewares/public/public.middleware';
 import { DatasModule } from './modules/datas/datas.module';
 import { EventEmitterModule } from './modules/event-emitter/event-emitter.module';
 import { AuthService } from './services/auth.service';

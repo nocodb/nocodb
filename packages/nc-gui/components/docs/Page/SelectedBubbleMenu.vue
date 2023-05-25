@@ -365,6 +365,10 @@ onUnmounted(() => {
 .bubble-menu-hidden {
   [data-tippy-root] {
     opacity: 0;
+    height: 0;
+    overflow: hidden;
+    z-index: -1;
+    user-select: none;
   }
 }
 

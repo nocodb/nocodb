@@ -27,7 +27,7 @@ export const Heading = TiptapHeading.extend({
   },
 }).configure({
   HTMLAttributes: {
-    'data-tiptap-heading': true,
+    'data-tiptap-heading-group': true,
   },
   levels: [1, 2, 3],
 })

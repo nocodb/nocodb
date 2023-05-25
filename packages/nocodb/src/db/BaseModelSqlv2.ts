@@ -197,7 +197,7 @@ class BaseModelSqlv2 {
   ): Promise<any> {
     const { where, ...rest } = this._getListArgs(args as any);
     const qb = this.dbDriver(this.tnPath);
-    await this.selectObject({ qb, validateFormula });
+    await this.selectObject({ ...args, qb, validateFormula });
 
     const aliasColObjMap = await this.model.getAliasColObjMap();
     const sorts = extractSortsObject(rest?.sort, aliasColObjMap);

@@ -186,7 +186,7 @@ export class DatasService {
     });
 
     const data = await baseModel.findOne({ ...args, dependencyFields });
-    return data ? await nocoExecute(ast, data, {}, {}) : {};
+    return data ? await nocoExecute(ast, data, {}, dependencyFields) : {};
   }
 
   async getDataGroupBy(param: { model: Model; view: View; query?: any }) {
@@ -272,9 +272,9 @@ export class DatasService {
       dbDriver: await NcConnectionMgrv2.get(base),
     });
 
-    const { ast } = await getAst({ model, query, view });
+    const { ast, dependencyFields } = await getAst({ model, query, view });
 
-    const listArgs: any = { ...query };
+    const listArgs: any = { ...dependencyFields };
     try {
       listArgs.filterArr = JSON.parse(listArgs.filterArrJson);
     } catch (e) {}

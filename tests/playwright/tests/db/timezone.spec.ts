@@ -675,9 +675,6 @@ test.describe.serial('Timezone- ExtDB : DateTime column, Browser Timezone same a
 
         const formattedOffset = getBrowserTimezoneOffset();
 
-        console.log('records', records);
-        console.log(formattedOffset);
-
         // set seconds to 00 for comparison (API response has non zero seconds)
         let record = records.list[2]['formula-1'];
         const formula_1 = record.substring(0, 17) + '00' + record.substring(19);
@@ -939,6 +936,17 @@ test.describe.serial('Timezone- ExtDB : DateTime column, Browser Timezone set to
     const records = await api.dbTableRow.list('noco', context.project.id, table_data.id, { limit: 10 });
     const formattedOffset = '+08:00';
 
+    console.log('records', records);
+    console.log(formattedOffset);
+
+    const sqliteDate = new Date(`2023-04-28 10:00:00${getBrowserTimezoneOffset()}`);
+    // convert sqliteDate to UTC
+    const sqliteDateUTC = new Date(sqliteDate.getTime()).toISOString();
+    // convert sqliteDateUTC to HKT using setHours
+    const sqliteDateHKT = new Date(sqliteDateUTC).setHours(sqliteDate.getHours() + 8);
+    // print sqliteDateHKT in YYYY-MM-DD HH:MM format
+    const sqliteDateHKTString = new Date(sqliteDateHKT).toISOString().substring(0, 16).replace('T', ' ');
+
     const expectedValues = {
       pg: [
         { 'formula-1': '2023-04-28 18:00', 'formula-2': '2023-04-28 18:00' },
@@ -951,7 +959,10 @@ test.describe.serial('Timezone- ExtDB : DateTime column, Browser Timezone set to
         { 'formula-1': '2023-04-28 12:30', 'formula-2': '2023-04-28 12:30' },
       ],
       sqlite: [
-        { 'formula-1': '2023-04-28 12:30', 'formula-2': '2023-04-28 12:30' },
+        {
+          'formula-1': sqliteDateHKTString,
+          'formula-2': sqliteDateHKTString,
+        },
         { 'formula-1': '2023-04-28 12:30', 'formula-2': '2023-04-28 12:30' },
         { 'formula-1': '2023-04-28 12:30', 'formula-2': '2023-04-28 12:30' },
       ],

@@ -173,7 +173,7 @@ export function jsepTreeToFormula(node) {
       'SWITCH',
       'URL',
     ];
-    if (!formulas.includes(node.name)) return '{' + node.name + '}';
+    if (!formulas.includes(node.name.toUpperCase())) return '{' + node.name + '}';
     return node.name;
   }
 

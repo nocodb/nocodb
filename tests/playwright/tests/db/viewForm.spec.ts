@@ -5,6 +5,8 @@ import { FormPage } from '../../pages/Dashboard/Form';
 import { SharedFormPage } from '../../pages/SharedForm';
 import { AccountPage } from '../../pages/Account';
 import { AccountAppStorePage } from '../../pages/Account/AppStore';
+import { Api, UITypes } from 'nocodb-sdk';
+let api: Api<any>;
 
 // todo: Move most of the ui actions to page object and await on the api response
 test.describe('Form view', () => {
@@ -240,5 +242,129 @@ test.describe('Form view', () => {
 
     await sharedForm.submit();
     await sharedForm.verifySuccessMessage();
+  });
+});
+
+test.describe('Form view with LTAR', () => {
+  let dashboard: DashboardPage;
+  let form: FormPage;
+  let context: any;
+
+  let cityTable: any, countryTable: any;
+
+  test.beforeEach(async ({ page }) => {
+    context = await setup({ page, isEmptyProject: true });
+    dashboard = new DashboardPage(page, context.project);
+    form = dashboard.form;
+
+    api = new Api({
+      baseURL: `http://localhost:8080/`,
+      headers: {
+        'xc-auth': context.token,
+      },
+    });
+
+    const cityColumns = [
+      {
+        column_name: 'Id',
+        title: 'Id',
+        uidt: UITypes.ID,
+      },
+      {
+        column_name: 'City',
+        title: 'City',
+        uidt: UITypes.SingleLineText,
+        pv: true,
+      },
+    ];
+    const countryColumns = [
+      {
+        column_name: 'Id',
+        title: 'Id',
+        uidt: UITypes.ID,
+      },
+      {
+        column_name: 'Country',
+        title: 'Country',
+        uidt: UITypes.SingleLineText,
+        pv: true,
+      },
+    ];
+
+    try {
+      const project = await api.project.read(context.project.id);
+      cityTable = await api.base.tableCreate(context.project.id, project.bases?.[0].id, {
+        table_name: 'City',
+        title: 'City',
+        columns: cityColumns,
+      });
+      countryTable = await api.base.tableCreate(context.project.id, project.bases?.[0].id, {
+        table_name: 'Country',
+        title: 'Country',
+        columns: countryColumns,
+      });
+
+      const cityRowAttributes = [{ City: 'Atlanta' }, { City: 'Pune' }, { City: 'London' }, { City: 'Sydney' }];
+      await api.dbTableRow.bulkCreate('noco', context.project.id, cityTable.id, cityRowAttributes);
+
+      const countryRowAttributes = [{ Country: 'India' }, { Country: 'UK' }, { Country: 'Australia' }];
+      await api.dbTableRow.bulkCreate('noco', context.project.id, countryTable.id, countryRowAttributes);
+
+      // create LTAR Country has-many City
+      await api.dbTableColumn.create(countryTable.id, {
+        column_name: 'CityList',
+        title: 'CityList',
+        uidt: UITypes.LinkToAnotherRecord,
+        parentId: countryTable.id,
+        childId: cityTable.id,
+        type: 'hm',
+      });
+
+      // await api.dbTableRow.nestedAdd('noco', context.project.id, countryTable.id, '1', 'hm', 'CityList', '1');
+    } catch (e) {
+      console.log(e);
+    }
+
+    // reload page after api calls
+    await page.reload();
+  });
+
+  test('Form view with LTAR', async () => {
+    await dashboard.treeView.openTable({ title: 'Country' });
+
+    const url = dashboard.rootPage.url();
+
+    await dashboard.viewSidebar.createFormView({ title: 'NewForm' });
+    await dashboard.form.toolbar.clickShareView();
+    const formLink = await dashboard.form.toolbar.shareView.getShareLink();
+
+    await dashboard.rootPage.goto(formLink);
+
+    const sharedForm = new SharedFormPage(dashboard.rootPage);
+    await sharedForm.cell.fillText({
+      columnHeader: 'Country',
+      text: 'USA',
+    });
+    await sharedForm.clickLinkToChildList();
+    await sharedForm.verifyChildList(['Atlanta', 'Pune', 'London', 'Sydney']);
+    await sharedForm.selectChildList('Atlanta');
+
+    await sharedForm.submit();
+    await sharedForm.verifySuccessMessage();
+
+    await dashboard.rootPage.goto(url);
+    await dashboard.viewSidebar.openView({ title: 'Country' });
+
+    await dashboard.grid.cell.verify({
+      index: 3,
+      columnHeader: 'Country',
+      value: 'USA',
+    });
+    await dashboard.grid.cell.verifyVirtualCell({
+      index: 3,
+      columnHeader: 'CityList',
+      count: 1,
+      value: ['Atlanta'],
+    });
   });
 });

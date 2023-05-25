@@ -47,10 +47,7 @@ import { JobsEventService as FallbackJobsEventService } from './fallback/jobs-ev
   providers: [
     ...(!process.env['NC_WORKER_CONTAINER'] ? [JobsGateway] : []),
     ...(process.env['NC_REDIS_URL']
-      ? [
-          JobsRedisService,
-          ...(process.env['NC_WORKER_CONTAINER'] ? [JobsEventService] : []),
-        ]
+      ? [JobsRedisService, JobsEventService]
       : [FallbackQueueService, FallbackJobsEventService]),
     {
       provide: 'JobsService',

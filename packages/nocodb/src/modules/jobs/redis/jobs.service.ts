@@ -4,21 +4,39 @@ import { Queue } from 'bull';
 import { EventEmitter2 } from '@nestjs/event-emitter';
 import { JobEvents, JOBS_QUEUE, JobStatus } from '../../../interface/Jobs';
 import { JobsRedisService } from './jobs-redis.service';
+import type { OnModuleInit } from '@nestjs/common';
 
 @Injectable()
-export class JobsService {
+export class JobsService implements OnModuleInit {
   constructor(
     @InjectQueue(JOBS_QUEUE) private readonly jobsQueue: Queue,
     private jobsRedisService: JobsRedisService,
     private eventEmitter: EventEmitter2,
-  ) {
+  ) {}
+
+  // pause primary instance queue
+  async onModuleInit() {
     if (!process.env['NC_WORKER_CONTAINER']) {
-      this.jobsQueue.pause(true);
+      await this.jobsQueue.pause(true);
     }
   }
 
   async add(name: string, data: any) {
+    // resume primary instance queue if there is no worker
+    const workerCount = (await this.jobsQueue.getWorkers()).length;
+    const localWorkerPaused = await this.jobsQueue.isPaused(true);
+
+    // if there is no worker and primary instance queue is paused, resume it
+    // if there is any worker and primary instance queue is not paused, pause it
+    if (workerCount < 1 && localWorkerPaused) {
+      await this.jobsQueue.resume(true);
+    } else if (workerCount > 0 && !localWorkerPaused) {
+      await this.jobsQueue.pause(true);
+    }
+
     const job = await this.jobsQueue.add(name, data);
+
+    // subscribe to job events
     this.jobsRedisService.subscribe(`jobs-${job.id.toString()}`, (data) => {
       const cmd = data.cmd;
       delete data.cmd;
@@ -34,6 +52,7 @@ export class JobsService {
           break;
       }
     });
+
     return job;
   }
 

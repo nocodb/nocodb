@@ -5,7 +5,7 @@ import type { XcPluginConfig } from 'nc-plugin';
 const config: XcPluginConfig = {
   builder: S3Plugin,
   title: 'S3',
-  version: '0.0.1',
+  version: '0.0.2',
   logo: 'plugins/s3.png',
   description:
     'Amazon Simple Storage Service (Amazon S3) is an object storage service that offers industry-leading scalability, data availability, security, and performance.',

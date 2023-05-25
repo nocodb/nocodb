@@ -5,7 +5,7 @@ import type { XcPluginConfig } from 'nc-plugin';
 const config: XcPluginConfig = {
   builder: BackblazePlugin,
   title: 'Backblaze B2',
-  version: '0.0.2',
+  version: '0.0.3',
   logo: 'plugins/backblaze.jpeg',
   tags: 'Storage',
   description:

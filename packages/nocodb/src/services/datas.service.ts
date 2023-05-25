@@ -221,15 +221,13 @@ export class DatasService {
       dbDriver: await NcConnectionMgrv2.get(base),
     });
 
-    const row = await baseModel.readByPk(param.rowId);
+    const row = await baseModel.readByPk(param.rowId, false, param.query);
 
     if (!row) {
       NcError.notFound('Row not found');
     }
 
-    const { ast } = await getAst({ model, query: param.query, view });
-
-    return await nocoExecute(ast, row, {}, param.query);
+    return row;
   }
 
   async dataExist(param: PathParams & { rowId: string; query: any }) {
@@ -637,13 +635,16 @@ export class DatasService {
         dbDriver: await NcConnectionMgrv2.get(base),
       });
 
-      const { ast } = await getAst({ model, query: param.query });
+      const { ast, dependencyFields } = await getAst({
+        model,
+        query: param.query,
+      });
 
       return await nocoExecute(
         ast,
-        await baseModel.readByPk(param.rowId),
+        await baseModel.readByPk(param.rowId, false),
         {},
-        {},
+        dependencyFields,
       );
     } catch (e) {
       console.log(e);

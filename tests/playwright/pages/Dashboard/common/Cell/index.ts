@@ -114,6 +114,11 @@ export class CellPageObject extends BasePage {
       // if text is found, return
       // if text is not found, throw error
       let count = 0;
+
+      if (!(this.parent instanceof SharedFormPage)) {
+        await this.rootPage.locator(`td[data-testid="cell-${columnHeader}-${index}"]`).waitFor({ state: 'visible' });
+      }
+
       await this.get({
         index,
         columnHeader,

@@ -590,6 +590,9 @@ test.describe.serial('Timezone- ExtDB : DateTime column, Browser Timezone same a
       dateTime: '2023-04-27 10:00:00',
     });
 
+    await dashboard.rootPage.reload();
+    await dashboard.rootPage.waitForTimeout(2000);
+
     // Create formula column (dummy)
     api = new Api({
       baseURL: `http://localhost:8080/`,
@@ -665,6 +668,7 @@ test.describe.serial('Timezone- ExtDB : DateTime column, Browser Timezone same a
         const formattedOffset = getBrowserTimezoneOffset();
 
         console.log('records', records);
+        console.log(formattedOffset);
 
         // set seconds to 00 for comparison (API response has non zero seconds)
         let record = records.list[2]['formula-1'];

@@ -32,6 +32,7 @@
     "ci:run": "export NODE_OPTIONS=\"--max_old_space_size=16384\"; npm install; NUXT_PAGE_TRANSITION_DISABLE=true npm run build; NUXT_PUBLIC_NC_BACKEND_URL=http://localhost:8080 npm run start &"
   },
   "dependencies": {
+    "@braks/revue-draggable": "^0.4.3",
     "@ckpack/vue-color": "^1.2.0",
     "@fingerprintjs/fingerprintjs": "^3.4.1",
     "@iconify/vue": "^4.0.1",
@@ -98,6 +99,7 @@
     "v3-infinite-loading": "^1.2.2",
     "validator": "^13.7.0",
     "vue-barcode-reader": "^1.0.3",
+    "vue-chartjs": "^5.2.0",
     "vue-dompurify-html": "^3.0.0",
     "vue-github-button": "^3.0.3",
     "vue-i18n": "^9.2.2",

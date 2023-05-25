@@ -86,7 +86,7 @@ async function connectToExtDb(context: any, dbName: string) {
           client: 'sqlite3',
           database: dbName,
           connection: {
-            filename: '../../tests/playwright/mydb.sqlite3',
+            filename: `../../tests/playwright/${dbName}.sqlite3`,
           },
           useNullAsDefault: true,
         },
@@ -448,7 +448,7 @@ async function createTableWithDateTimeColumn(database: string, dbName: string, s
     `);
     await mysqlknex2.destroy();
   } else if (database === 'sqlite') {
-    const config = getKnexConfig({ dbName: 'mydb', dbType: 'sqlite' });
+    const config = getKnexConfig({ dbName, dbType: 'sqlite' });
 
     // SQLite supports just one type of datetime
     // Timezone information, if specified is stored as is in the database

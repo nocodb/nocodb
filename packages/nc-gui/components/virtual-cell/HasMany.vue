@@ -134,11 +134,12 @@ useSelectedCellKeyupListener(inject(ActiveCellInj, ref(false)), (e: KeyboardEven
       </div>
     </template>
 
-    <LazyVirtualCellComponentsListItems v-model="listItemsDlg" />
+    <LazyVirtualCellComponentsListItems v-model="listItemsDlg" :column="hasManyColumn" />
 
     <LazyVirtualCellComponentsListChildItems
       v-model="childListDlg"
       :cell-value="localCellValue"
+      :column="hasManyColumn"
       @attach-record="onAttachRecord"
     />
   </div>

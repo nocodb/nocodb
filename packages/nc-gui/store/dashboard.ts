@@ -423,7 +423,21 @@ export const useDashboardStore = defineStore('dashboardStore', () => {
     $api.dashboard.widgetUpdate(openedLayoutId.value!, updatedElement.id, updatedElement)
   }
 
-  const addWidget = async (widget_type: WidgetTypeType) => {
+  const addWidget = async (
+    widget_type: WidgetTypeType,
+    screenPosition: {
+      x: number
+      y: number
+    } = {
+      x: 50,
+      y: 100,
+    },
+  ) => {
+    const defaultScreenDimensions = {
+      width: 100,
+      height: 100,
+    }
+
     const newElement: Widget = {
       id: Date.now().toString(),
       layout_id: openedLayoutId.value!,
@@ -432,13 +446,10 @@ export const useDashboardStore = defineStore('dashboardStore', () => {
         name: 'New element',
         description: 'Empty description',
         screenPosition: {
-          x: 10,
-          y: 20,
+          x: screenPosition.x - defaultScreenDimensions.width / 2,
+          y: screenPosition.y - defaultScreenDimensions.height / 2,
         },
-        screenDimensions: {
-          width: 100,
-          height: 100,
-        },
+        screenDimensions: defaultScreenDimensions,
       },
       widget_type,
       data_source: {

@@ -1,6 +1,7 @@
 <script lang="ts" setup>
 import type { RendererElement, RendererNode, VNode } from 'vue'
 import { WidgetTypeType } from 'nocodb-sdk'
+import { toRaw } from 'vue'
 import { useDashboardStore } from '~~/store/dashboard'
 const dashboardStore = useDashboardStore()
 const { openedWidgets, focusedWidget, openedLayoutSidebarNode } = storeToRefs(dashboardStore)
@@ -12,6 +13,20 @@ const {
   resetFocus,
   updateFocusedWidgetByElementId,
 } = dashboardStore
+
+interface WidgetMeta {
+  title: string
+  icon: VNode<
+    RendererNode,
+    RendererElement,
+    {
+      [key: string]: any
+    }
+  >
+  type: WidgetTypeType
+}
+
+const mainArea = ref<any>()
 
 const widgetsLibrary: WidgetMeta[] = [
   {
@@ -52,16 +67,21 @@ const dataVisualisationsLibrary: WidgetMeta[] = [
     type: WidgetTypeType.ScatterPlot,
   },
 ]
-interface WidgetMeta {
-  title: string
-  icon: VNode<
-    RendererNode,
-    RendererElement,
-    {
-      [key: string]: any
-    }
-  >
-  type: WidgetTypeType
+
+const dragStart = (ev: DragEvent, item: WidgetMeta) => {
+  ev.dataTransfer?.setData('text/plain', JSON.stringify(item))
+}
+
+const drop = (ev: DragEvent) => {
+  const item = JSON.parse(ev.dataTransfer?.getData('text/plain') || '{}') as WidgetMeta
+  const rect = mainArea.value?.$el?.getBoundingClientRect()
+  const x = ev.clientX - (rect?.left || 0)
+  const y = ev.clientY - (rect?.top || 0)
+
+  addWidget(item.type, {
+    x,
+    y,
+  })
 }
 </script>
 
@@ -78,7 +98,12 @@ interface WidgetMeta {
         <a-list :grid="{ gutter: 10, column: 3 }" :data-source="widgetsLibrary">
           <template #renderItem="{ item }">
             <a-list-item>
-              <button class="nc-widget-template" @click="addWidget(item.type)">
+              <button
+                class="nc-widget-template"
+                draggable="true"
+                @click="addWidget(item.type)"
+                @dragstart="dragStart($event, toRaw(item))"
+              >
                 <div>
                   <component :is="item.icon" class="text-grey" />
                   <span class="ml-2">{{ item.title }}</span>
@@ -94,7 +119,12 @@ interface WidgetMeta {
         <a-list :grid="{ gutter: 10, column: 3 }" :data-source="dataVisualisationsLibrary">
           <template #renderItem="{ item }">
             <a-list-item>
-              <button class="nc-widget-template" @click="addWidget(item.type)">
+              <button
+                class="nc-widget-template"
+                draggable="true"
+                @click="addWidget(item.type)"
+                @dragstart="dragStart($event, toRaw(item))"
+              >
                 <div>
                   <component :is="item.icon" class="text-grey" />
                   <span class="ml-2">{{ item.title }}</span>
@@ -105,7 +135,7 @@ interface WidgetMeta {
         </a-list>
       </div>
     </a-layout-sider>
-    <a-layout-content ref="mainArea" class="main-area" :min-width="200" @click="resetFocus">
+    <a-layout-content ref="mainArea" class="main-area" :min-width="200" @click="resetFocus" @dragover.prevent @drop="drop">
       <div>
         <template v-for="widget in openedWidgets" :key="widget.id">
           <DashboardsLayoutsDraggableResizableContainer

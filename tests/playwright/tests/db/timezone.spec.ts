@@ -577,6 +577,30 @@ test.describe.serial('Timezone- ExtDB : DateTime column, Browser Timezone same a
     //
     await dashboard.treeView.openBase({ title: 'datetimetable01' });
     await dashboard.treeView.openTable({ title: 'MyTable' });
+
+    // Create formula column (dummy)
+    api = new Api({
+      baseURL: `http://localhost:8080/`,
+      headers: {
+        'xc-auth': context.token,
+      },
+    });
+    const table = await api.dbTable.list(context.project.id);
+    let table_data: any;
+    table_data = await api.dbTableColumn.create(table.list.find(x => x.title === 'MyTable').id, {
+      title: 'formula-1',
+      uidt: UITypes.Formula,
+      formula_raw: '0',
+    });
+    table_data = await api.dbTableColumn.create(table.list.find(x => x.title === 'MyTable').id, {
+      title: 'formula-2',
+      uidt: UITypes.Formula,
+      formula_raw: '0',
+    });
+
+    await dashboard.rootPage.reload();
+    await dashboard.rootPage.waitForTimeout(2000);
+
     // Insert new row
     await dashboard.grid.cell.dateTime.setDateTime({
       index: 2,
@@ -590,9 +614,6 @@ test.describe.serial('Timezone- ExtDB : DateTime column, Browser Timezone same a
       dateTime: '2023-04-27 10:00:00',
     });
 
-    await dashboard.rootPage.reload();
-    await dashboard.rootPage.waitForTimeout(2000);
-
     // verify display value
     await dashboard.grid.cell.verifyDateCell({ index: 2, columnHeader: 'DatetimeWithTz', value: '2023-04-27 10:00' });
     await dashboard.grid.cell.verifyDateCell({
@@ -601,133 +622,113 @@ test.describe.serial('Timezone- ExtDB : DateTime column, Browser Timezone same a
       value: '2023-04-27 10:00',
     });
 
-    //
-    // // Create formula column (dummy)
-    // api = new Api({
-    //   baseURL: `http://localhost:8080/`,
-    //   headers: {
-    //     'xc-auth': context.token,
-    //   },
-    // });
-    // const table = await api.dbTable.list(context.project.id);
-    // let table_data: any;
-    // table_data = await api.dbTableColumn.create(table.list.find(x => x.title === 'MyTable').id, {
-    //   title: 'formula-1',
-    //   uidt: UITypes.Formula,
-    //   formula_raw: '0',
-    // });
-    // table_data = await api.dbTableColumn.create(table.list.find(x => x.title === 'MyTable').id, {
-    //   title: 'formula-2',
-    //   uidt: UITypes.Formula,
-    //   formula_raw: '0',
-    // });
-    //
-    // async function verifyFormula({
-    //   formula,
-    //   expectedDisplayValue,
-    //   verifyApiResponse = true,
-    // }: {
-    //   formula: string[];
-    //   expectedDisplayValue: string[];
-    //   verifyApiResponse?: boolean;
-    // }) {
-    //   try {
-    //     // Update formula column to compute "month" instead of "day"
-    //     await api.dbTableColumn.update(table_data.columns[3].id, {
-    //       title: 'formula-1',
-    //       column_name: 'formula-1',
-    //       uidt: UITypes.Formula,
-    //       formula_raw: formula[0],
-    //     });
-    //     await dashboard.rootPage.waitForTimeout(1000);
-    //     await api.dbTableColumn.update(table_data.columns[4].id, {
-    //       title: 'formula-2',
-    //       column_name: 'formula-2',
-    //       uidt: UITypes.Formula,
-    //       formula_raw: formula[1],
-    //     });
-    //   } catch (e) {
-    //     console.log('formula column create', e);
-    //   }
-    //
-    //   // reload page
-    //   await dashboard.rootPage.reload();
-    //   await dashboard.rootPage.waitForTimeout(2000);
-    //
-    //   await dashboard.grid.cell.verify({
-    //     index: 2,
-    //     columnHeader: 'formula-1',
-    //     value: expectedDisplayValue[0],
-    //   });
-    //   await dashboard.grid.cell.verify({
-    //     index: 2,
-    //     columnHeader: 'formula-2',
-    //     value: expectedDisplayValue[1],
-    //   });
-    //
-    //   // verify API response
-    //   if (verifyApiResponse) {
-    //     let records;
-    //     try {
-    //       records = await api.dbTableRow.list('noco', context.project.id, table_data.id, { limit: 10 });
-    //     } catch (e) {
-    //       console.log('api.dbTableRow.list', e);
-    //     }
-    //
-    //     const formattedOffset = getBrowserTimezoneOffset();
-    //
-    //     console.log('records', records);
-    //     console.log(formattedOffset);
-    //
-    //     // set seconds to 00 for comparison (API response has non zero seconds)
-    //     let record = records.list[2]['formula-1'];
-    //     const formula_1 = record.substring(0, 17) + '00' + record.substring(19);
-    //     expect(formula_1).toEqual(getDateTimeInUTCTimeZone(`${expectedDisplayValue[0]}${formattedOffset}`));
-    //
-    //     record = records.list[2]['formula-2'];
-    //     const formula_2 = record.substring(0, 17) + '00' + record.substring(19);
-    //     expect(formula_2).toEqual(getDateTimeInUTCTimeZone(`${expectedDisplayValue[1]}${formattedOffset}`));
-    //   }
-    // }
-    //
-    // // verify display value for formula columns (formula-1, formula-2)
-    // // source data : ['2023-04-27 10:00', '2023-04-27 10:00']
-    // await verifyFormula({
-    //   formula: ['DATEADD(DatetimeWithoutTz, 1, "day")', 'DATEADD(DatetimeWithTz, 1, "day")'],
-    //   expectedDisplayValue: ['2023-04-28 10:00', '2023-04-28 10:00'],
-    // });
-    // await verifyFormula({
-    //   formula: ['DATEADD(DatetimeWithoutTz, 1, "month")', 'DATEADD(DatetimeWithTz, 1, "month")'],
-    //   expectedDisplayValue: ['2023-05-27 10:00', '2023-05-27 10:00'],
-    // });
-    // await verifyFormula({
-    //   formula: ['DATEADD(DatetimeWithoutTz, 1, "year")', 'DATEADD(DatetimeWithTz, 1, "year")'],
-    //   expectedDisplayValue: ['2024-04-27 10:00', '2024-04-27 10:00'],
-    // });
-    //
-    // await dashboard.grid.cell.dateTime.setDateTime({
-    //   index: 2,
-    //   columnHeader: 'DatetimeWithTz',
-    //   dateTime: '2024-04-27 10:00:00',
-    // });
-    //
-    // await verifyFormula({
-    //   formula: [
-    //     'DATETIME_DIFF({DatetimeWithoutTz}, {DatetimeWithTz}, "days")',
-    //     'DATETIME_DIFF({DatetimeWithTz}, {DatetimeWithoutTz}, "days")',
-    //   ],
-    //   expectedDisplayValue: ['-366', '366'],
-    //   verifyApiResponse: false,
-    // });
-    //
-    // await verifyFormula({
-    //   formula: [
-    //     'DATETIME_DIFF({DatetimeWithoutTz}, {DatetimeWithTz}, "months")',
-    //     'DATETIME_DIFF({DatetimeWithTz}, {DatetimeWithoutTz}, "months")',
-    //   ],
-    //   expectedDisplayValue: ['-12', '12'],
-    //   verifyApiResponse: false,
-    // });
+    async function verifyFormula({
+      formula,
+      expectedDisplayValue,
+      verifyApiResponse = true,
+    }: {
+      formula: string[];
+      expectedDisplayValue: string[];
+      verifyApiResponse?: boolean;
+    }) {
+      try {
+        await api.dbTableColumn.update(table_data.columns[3].id, {
+          title: 'formula-1',
+          column_name: 'formula-1',
+          uidt: UITypes.Formula,
+          formula_raw: formula[0],
+        });
+        await dashboard.rootPage.waitForTimeout(1000);
+        await api.dbTableColumn.update(table_data.columns[4].id, {
+          title: 'formula-2',
+          column_name: 'formula-2',
+          uidt: UITypes.Formula,
+          formula_raw: formula[1],
+        });
+      } catch (e) {
+        console.log('formula column create', e);
+      }
+
+      // reload page
+      await dashboard.rootPage.reload();
+      await dashboard.rootPage.waitForTimeout(2000);
+
+      await dashboard.grid.cell.verify({
+        index: 2,
+        columnHeader: 'formula-1',
+        value: expectedDisplayValue[0],
+      });
+      await dashboard.grid.cell.verify({
+        index: 2,
+        columnHeader: 'formula-2',
+        value: expectedDisplayValue[1],
+      });
+
+      // verify API response
+      if (verifyApiResponse) {
+        let records;
+        try {
+          records = await api.dbTableRow.list('noco', context.project.id, table_data.id, { limit: 10 });
+        } catch (e) {
+          console.log('api.dbTableRow.list', e);
+        }
+
+        const formattedOffset = getBrowserTimezoneOffset();
+
+        console.log('records', records);
+        console.log(formattedOffset);
+
+        // set seconds to 00 for comparison (API response has non zero seconds)
+        let record = records.list[2]['formula-1'];
+        const formula_1 = record.substring(0, 17) + '00' + record.substring(19);
+        expect(formula_1).toEqual(getDateTimeInUTCTimeZone(`${expectedDisplayValue[0]}${formattedOffset}`));
+
+        record = records.list[2]['formula-2'];
+        const formula_2 = record.substring(0, 17) + '00' + record.substring(19);
+        expect(formula_2).toEqual(getDateTimeInUTCTimeZone(`${expectedDisplayValue[1]}${formattedOffset}`));
+      }
+    }
+
+    // verify display value for formula columns (formula-1, formula-2)
+    // source data : ['2023-04-27 10:00', '2023-04-27 10:00']
+    await verifyFormula({
+      formula: ['DATEADD(DatetimeWithoutTz, 1, "day")', 'DATEADD(DatetimeWithTz, 1, "day")'],
+      expectedDisplayValue: ['2023-04-28 10:00', '2023-04-28 10:00'],
+    });
+
+    await verifyFormula({
+      formula: ['DATEADD(DatetimeWithoutTz, 1, "month")', 'DATEADD(DatetimeWithTz, 1, "month")'],
+      expectedDisplayValue: ['2023-05-27 10:00', '2023-05-27 10:00'],
+    });
+
+    await verifyFormula({
+      formula: ['DATEADD(DatetimeWithoutTz, 1, "year")', 'DATEADD(DatetimeWithTz, 1, "year")'],
+      expectedDisplayValue: ['2024-04-27 10:00', '2024-04-27 10:00'],
+    });
+
+    await dashboard.grid.cell.dateTime.setDateTime({
+      index: 2,
+      columnHeader: 'DatetimeWithTz',
+      dateTime: '2024-04-27 10:00:00',
+    });
+
+    await verifyFormula({
+      formula: [
+        'DATETIME_DIFF({DatetimeWithoutTz}, {DatetimeWithTz}, "days")',
+        'DATETIME_DIFF({DatetimeWithTz}, {DatetimeWithoutTz}, "days")',
+      ],
+      expectedDisplayValue: ['-366', '366'],
+      verifyApiResponse: false,
+    });
+
+    await verifyFormula({
+      formula: [
+        'DATETIME_DIFF({DatetimeWithoutTz}, {DatetimeWithTz}, "months")',
+        'DATETIME_DIFF({DatetimeWithTz}, {DatetimeWithoutTz}, "months")',
+      ],
+      expectedDisplayValue: ['-12', '12'],
+      verifyApiResponse: false,
+    });
   });
 
   test('Verify display value, UI insert, API response', async () => {

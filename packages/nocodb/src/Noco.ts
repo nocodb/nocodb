@@ -1,5 +1,6 @@
 import Sentry, { Handlers } from '@sentry/node';
 import { Logger } from '@nestjs/common';
+import path from 'path';
 import { NestFactory } from '@nestjs/core';
 import clear from 'clear';
 import * as express from 'express';
@@ -133,6 +134,7 @@ export default class Noco {
 
     const dashboardPath = process.env.NC_DASHBOARD_URL || '/dashboard';
     server.use(NcToolGui.expressMiddleware(dashboardPath));
+    server.use(express.static(path.join(__dirname, 'public')));
     server.get('/', (_req, res) => res.redirect(dashboardPath));
 
     this.initSentryErrorHandler(server);

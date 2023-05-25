@@ -26,6 +26,11 @@ export class AuthTokenStrategy extends PassportStrategy(Strategy, 'authtoken') {
           return callback({ msg: 'User not found' });
         }
 
+        Object.assign(user, {
+          id: dbUser.id,
+          roles: dbUser.roles,
+        });
+
         dbUser.is_api_token = true;
         if (req['ncProjectId']) {
           const projectUser = await ProjectUser.get(

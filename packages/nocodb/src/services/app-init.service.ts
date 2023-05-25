@@ -1,9 +1,12 @@
-import { Inject, Injectable } from '@nestjs/common';
+import { T } from 'nc-help';
 import NocoCache from '../cache/NocoCache';
 import { Connection } from '../connection/connection';
+import initAdminFromEnv from '../helpers/initAdminFromEnv';
 import NcPluginMgrv2 from '../helpers/NcPluginMgrv2';
 import { MetaService } from '../meta/meta.service';
+import { User } from '../models'
 import Noco from '../Noco';
+import getInstance from '../utils/getInstance';
 import NcConfigFactory from '../utils/NcConfigFactory';
 import NcUpgrader from '../version-upgrader/NcUpgrader';
 import type { IEventEmitter } from '../modules/event-emitter/event-emitter.interface';
@@ -35,7 +38,7 @@ export const appInitServiceProvider: Provider = {
     metaService: MetaService,
     eventEmitter: IEventEmitter,
   ) => {
-    process.env.NC_VERSION = '0105004';
+    process.env.NC_VERSION = '0107004';
 
     await NocoCache.init();
 
@@ -54,12 +57,20 @@ export const appInitServiceProvider: Provider = {
     // init jwt secret
     await Noco.initJwt();
 
+    // load super admin user from env if env is set
+    await initAdminFromEnv(metaService);
+
     // init plugin manager
     await NcPluginMgrv2.init(Noco.ncMeta);
     await Noco.loadEEState();
 
     // run upgrader
     await NcUpgrader.upgrade({ ncMeta: Noco._ncMeta });
+
+    T.init({
+      instance: getInstance,
+    });
+    T.emit('evt_app_started', await User.count());
 
     // todo: move app config to app-init service
     return new AppInitService(connection.config);

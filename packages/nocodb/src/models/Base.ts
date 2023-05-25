@@ -91,6 +91,7 @@ export default class Base implements BaseType {
     base: BaseType & {
       id: string;
       projectId: string;
+      skipReorder?: boolean;
     },
     ncMeta = Noco.ncMeta,
   ) {
@@ -144,7 +145,8 @@ export default class Base implements BaseType {
     // call before reorder to update cache
     const returnBase = await this.get(oldBase.id, ncMeta);
 
-    await this.reorderBases(base.projectId, returnBase.id, ncMeta);
+    if (!base.skipReorder)
+      await this.reorderBases(base.projectId, returnBase.id, ncMeta);
 
     return returnBase;
   }

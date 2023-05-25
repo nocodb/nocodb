@@ -439,9 +439,9 @@ watch(
       <DocsPageHistory v-if="isHistoryPaneOpen" @close="isHistoryPaneOpen = false" />
     </div>
     <DocsPageOutline
-      v-if="showOutline && openedPage && pageWrapperDomRef"
+      v-if="showOutline && openedPage && pageContentDomRef"
       :key="openedPage.id"
-      :wrapper-ref="pageWrapperDomRef"
+      :wrapper-ref="pageContentDomRef"
     />
   </a-layout-content>
 </template>
@@ -466,6 +466,7 @@ watch(
 
 .nc-docs-page-content {
   overflow-y: overlay;
+  overflow-x: hidden;
   // scrollbar reduce width and gray color
   &::-webkit-scrollbar {
     width: 6px;

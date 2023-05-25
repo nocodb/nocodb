@@ -92,11 +92,7 @@ export const onEnter = (editor: Editor, nodeType: ListNodeType) => {
     .deleteRange({ from: selection.from, to: currentParaNodeEndPos })
     .run()
 
-  if (isOnEndOfLine && currentSectionNode.type.name !== 'sec') {
-    return false
-  }
-
-  if (isOnEndOfLine) {
+  if (isOnEndOfLine && currentSectionNode.type.name === 'sec') {
     // TODO: Remove hard coding
     const pos = currentParaNodeEndPos + 6
     editor.chain().focus().setTextSelection(pos).run()

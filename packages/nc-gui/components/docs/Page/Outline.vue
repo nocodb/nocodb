@@ -22,7 +22,7 @@ const selectActiveSubHeading = (event?: Event) => {
   if (Date.now() - lastPageScrollTime < 10 && event?.type === 'scroll') return
   lastPageScrollTime = Date.now()
 
-  const _subHeadingDoms = document.querySelectorAll('.ProseMirror [data-tiptap-heading]')
+  const _subHeadingDoms = document.querySelectorAll('.ProseMirror [data-tiptap-heading-group]')
   const subHeadingDomsWithIndex = [..._subHeadingDoms].map((dom, index) => ({ dom, index }))
 
   const subHeadingsThatCouldBeActive = [...subHeadingDomsWithIndex]
@@ -51,7 +51,7 @@ const selectActiveSubHeading = (event?: Event) => {
 
 // Extract subheadings from the page content and populate the subheading list
 const populatedPageSubheadings = () => {
-  const subHeadingDoms = document.querySelectorAll('.ProseMirror [data-tiptap-heading]')
+  const subHeadingDoms = document.querySelectorAll('.ProseMirror [data-tiptap-heading-group]')
 
   pageSubHeadings.value = []
   for (let i = 0; i < subHeadingDoms.length; i++) {

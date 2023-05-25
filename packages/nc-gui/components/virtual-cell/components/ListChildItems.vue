@@ -19,7 +19,7 @@ import {
   watch,
 } from '#imports'
 
-const props = defineProps<{ modelValue?: boolean; cellValue: any }>()
+const props = defineProps<{ modelValue?: boolean; cellValue: any; column: any }>()
 
 const emit = defineEmits(['update:modelValue', 'attachRecord'])
 
@@ -148,7 +148,7 @@ const onClick = (row: Row) => {
           >
             <div class="flex items-center">
               <div class="flex-1 overflow-hidden min-w-0">
-                {{ row[relatedTableDisplayValueProp] }}
+                <VirtualCellComponentsItemChip :value="row[relatedTableDisplayValueProp]" :column="props.column" />
                 <span class="text-gray-400 text-[11px] ml-1">(Primary key : {{ getRelatedTableRowId(row) }})</span>
               </div>
 

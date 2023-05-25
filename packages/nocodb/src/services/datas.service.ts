@@ -185,7 +185,7 @@ export class DatasService {
       view,
     });
 
-    const data = await baseModel.findOne({ ...args, dependencyFields });
+    const data = await baseModel.findOne({ ...args, ...dependencyFields });
     return data ? await nocoExecute(ast, data, {}, dependencyFields) : {};
   }
 

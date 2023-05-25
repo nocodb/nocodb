@@ -86,7 +86,7 @@ async function connectToExtDb(context: any, dbName: string) {
           client: 'sqlite3',
           database: dbName,
           connection: {
-            filename: '../../tests/playwright/mydb.sqlite3',
+            filename: `../../tests/playwright/${dbName}.sqlite3`,
           },
           useNullAsDefault: true,
         },
@@ -448,7 +448,7 @@ async function createTableWithDateTimeColumn(database: string, dbName: string, s
     `);
     await mysqlknex2.destroy();
   } else if (database === 'sqlite') {
-    const config = getKnexConfig({ dbName: 'mydb', dbType: 'sqlite' });
+    const config = getKnexConfig({ dbName, dbType: 'sqlite' });
 
     // SQLite supports just one type of datetime
     // Timezone information, if specified is stored as is in the database
@@ -577,18 +577,6 @@ test.describe.serial('Timezone- ExtDB : DateTime column, Browser Timezone same a
     //
     await dashboard.treeView.openBase({ title: 'datetimetable01' });
     await dashboard.treeView.openTable({ title: 'MyTable' });
-    // Insert new row
-    await dashboard.grid.cell.dateTime.setDateTime({
-      index: 2,
-      columnHeader: 'DatetimeWithoutTz',
-      dateTime: '2023-04-27 10:00:00',
-    });
-    await dashboard.rootPage.waitForTimeout(1000);
-    await dashboard.grid.cell.dateTime.setDateTime({
-      index: 2,
-      columnHeader: 'DatetimeWithTz',
-      dateTime: '2023-04-27 10:00:00',
-    });
 
     // Create formula column (dummy)
     api = new Api({
@@ -610,6 +598,30 @@ test.describe.serial('Timezone- ExtDB : DateTime column, Browser Timezone same a
       formula_raw: '0',
     });
 
+    await dashboard.rootPage.reload();
+    await dashboard.rootPage.waitForTimeout(2000);
+
+    // Insert new row
+    await dashboard.grid.cell.dateTime.setDateTime({
+      index: 2,
+      columnHeader: 'DatetimeWithoutTz',
+      dateTime: '2023-04-27 10:00:00',
+    });
+    await dashboard.rootPage.waitForTimeout(1000);
+    await dashboard.grid.cell.dateTime.setDateTime({
+      index: 2,
+      columnHeader: 'DatetimeWithTz',
+      dateTime: '2023-04-27 10:00:00',
+    });
+
+    // verify display value
+    await dashboard.grid.cell.verifyDateCell({ index: 2, columnHeader: 'DatetimeWithTz', value: '2023-04-27 10:00' });
+    await dashboard.grid.cell.verifyDateCell({
+      index: 2,
+      columnHeader: 'DatetimeWithoutTz',
+      value: '2023-04-27 10:00',
+    });
+
     async function verifyFormula({
       formula,
       expectedDisplayValue,
@@ -620,7 +632,6 @@ test.describe.serial('Timezone- ExtDB : DateTime column, Browser Timezone same a
       verifyApiResponse?: boolean;
     }) {
       try {
-        // Update formula column to compute "month" instead of "day"
         await api.dbTableColumn.update(table_data.columns[3].id, {
           title: 'formula-1',
           column_name: 'formula-1',
@@ -664,8 +675,6 @@ test.describe.serial('Timezone- ExtDB : DateTime column, Browser Timezone same a
 
         const formattedOffset = getBrowserTimezoneOffset();
 
-        console.log('records', records);
-
         // set seconds to 00 for comparison (API response has non zero seconds)
         let record = records.list[2]['formula-1'];
         const formula_1 = record.substring(0, 17) + '00' + record.substring(19);
@@ -683,10 +692,12 @@ test.describe.serial('Timezone- ExtDB : DateTime column, Browser Timezone same a
       formula: ['DATEADD(DatetimeWithoutTz, 1, "day")', 'DATEADD(DatetimeWithTz, 1, "day")'],
       expectedDisplayValue: ['2023-04-28 10:00', '2023-04-28 10:00'],
     });
+
     await verifyFormula({
       formula: ['DATEADD(DatetimeWithoutTz, 1, "month")', 'DATEADD(DatetimeWithTz, 1, "month")'],
       expectedDisplayValue: ['2023-05-27 10:00', '2023-05-27 10:00'],
     });
+
     await verifyFormula({
       formula: ['DATEADD(DatetimeWithoutTz, 1, "year")', 'DATEADD(DatetimeWithTz, 1, "year")'],
       expectedDisplayValue: ['2024-04-27 10:00', '2024-04-27 10:00'],
@@ -925,6 +936,17 @@ test.describe.serial('Timezone- ExtDB : DateTime column, Browser Timezone set to
     const records = await api.dbTableRow.list('noco', context.project.id, table_data.id, { limit: 10 });
     const formattedOffset = '+08:00';
 
+    // Note that, for SQLite ExtDB connection, the timezone if not specified in the datetime string, it will be server timezone
+    // getBrowserTimezoneOffset() in this case actually returns server timezone offset
+    // Browser timezone is HKT
+    const sqliteDate = new Date(`2023-04-28 10:00:00${getBrowserTimezoneOffset()}`);
+    // convert sqliteDate to UTC
+    const sqliteDateUTC = new Date(sqliteDate.getTime()).toISOString();
+    // convert sqliteDateUTC to HKT
+    const sqliteDateHKT = new Date(sqliteDateUTC).setHours(sqliteDate.getHours() + 8);
+    // print sqliteDateHKT in YYYY-MM-DD HH:MM format
+    const sqliteDateHKTString = new Date(sqliteDateHKT).toISOString().substring(0, 16).replace('T', ' ');
+
     const expectedValues = {
       pg: [
         { 'formula-1': '2023-04-28 18:00', 'formula-2': '2023-04-28 18:00' },
@@ -937,7 +959,10 @@ test.describe.serial('Timezone- ExtDB : DateTime column, Browser Timezone set to
         { 'formula-1': '2023-04-28 12:30', 'formula-2': '2023-04-28 12:30' },
       ],
       sqlite: [
-        { 'formula-1': '2023-04-28 12:30', 'formula-2': '2023-04-28 12:30' },
+        {
+          'formula-1': sqliteDateHKTString,
+          'formula-2': sqliteDateHKTString,
+        },
         { 'formula-1': '2023-04-28 12:30', 'formula-2': '2023-04-28 12:30' },
         { 'formula-1': '2023-04-28 12:30', 'formula-2': '2023-04-28 12:30' },
       ],

@@ -49,7 +49,7 @@ const defaultConnectionConfig: any = {
 const defaultConnectionOptions = {
   pool: {
     min: 0,
-    max: 10,
+    max: 1,
   },
 };
 
@@ -141,7 +141,7 @@ export default class NcConfigFactory {
         client: 'sqlite3',
         connection: ':memory:',
         pool: {
-          min: 1,
+          min: 0,
           max: 1,
           // disposeTimeout: 360000*1000,
           idleTimeoutMillis: 360000 * 1000,
@@ -312,7 +312,7 @@ export default class NcConfigFactory {
         ...(db === ':memory:'
           ? {
               pool: {
-                min: 1,
+                min: 0,
                 max: 1,
                 // disposeTimeout: 360000*1000,
                 idleTimeoutMillis: 360000 * 1000,
@@ -451,7 +451,7 @@ export default class NcConfigFactory {
         client: 'sqlite3',
         connection: ':memory:',
         pool: {
-          min: 1,
+          min: 0,
           max: 1,
           // disposeTimeout: 360000*1000,
           idleTimeoutMillis: 360000 * 1000,
@@ -566,7 +566,7 @@ export default class NcConfigFactory {
         client: 'sqlite3',
         connection: ':memory:',
         pool: {
-          min: 1,
+          min: 0,
           max: 1,
           // disposeTimeout: 360000*1000,
           idleTimeoutMillis: 360000 * 1000,

@@ -1,6 +1,6 @@
 <script lang="ts" setup>
 import { useTitle } from '@vueuse/core'
-import { useGlobal, useI18n, useRoute, useSidebar } from '#imports'
+import { useGlobal, useI18n, useRoute } from '#imports'
 
 const route = useRoute()
 
@@ -8,7 +8,10 @@ useShare()
 
 const { te, t } = useI18n()
 
-const { hasSidebar, isOpen } = useSidebar('nc-left-sidebar')
+// todo: fix this
+// const { hasSidebar, isOpen } = useSidebar('nc-left-sidebar')
+const hasSidebar = ref(true)
+const isOpen = ref(true)
 
 const { signOut, user } = useGlobal()
 
@@ -132,7 +135,6 @@ export default {
         </div>
       </div>
     </a-layout-header>
-
     <!--    todo: change class name -->
     <a-layout class="nc-root">
       <a-layout-sider

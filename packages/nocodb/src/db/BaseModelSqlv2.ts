@@ -3341,8 +3341,7 @@ class BaseModelSqlv2 {
               if (!dayjs(d).isValid()) return d;
               if (this.isSqlite) {
                 // e.g. DATEADD formula
-                // d = 2023-04-29T04:30:00.000Z
-                return dayjs(d).format('YYYY-MM-DD HH:mm:ssZ');
+                return dayjs(d).utc().format('YYYY-MM-DD HH:mm:ssZ');
               }
               return dayjs(d).utc(true).format('YYYY-MM-DD HH:mm:ssZ');
             },

@@ -3338,9 +3338,13 @@ class BaseModelSqlv2 {
           d[col.title] = d[col.title].replace(
             /\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}.\d{3}Z/g,
             (d: string) => {
-              return dayjs(d).isValid()
-                ? dayjs(d).utc(true).format('YYYY-MM-DD HH:mm:ssZ')
-                : d;
+              if (!dayjs(d).isValid()) return d;
+              if (this.isSqlite) {
+                // e.g. DATEADD formula
+                // d = 2023-04-29T04:30:00.000Z
+                return dayjs(d).format('YYYY-MM-DD HH:mm:ssZ');
+              }
+              return dayjs(d).utc(true).format('YYYY-MM-DD HH:mm:ssZ');
             },
           );
           continue;

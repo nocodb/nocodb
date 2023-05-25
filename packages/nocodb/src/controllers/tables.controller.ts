@@ -99,7 +99,7 @@ export class TablesController {
       tableId: tableId,
       table: body,
       projectId: req.ncProjectId,
-      user: req.user,
+      user: req.ncProjectId,
     });
     return { msg: 'The table has been updated successfully' };
   }

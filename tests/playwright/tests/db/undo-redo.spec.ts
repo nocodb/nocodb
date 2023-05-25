@@ -178,6 +178,10 @@ test.describe('Undo Redo', () => {
     await dashboard.closeTab({ title: 'Team & Auth' });
     await dashboard.treeView.openTable({ title: 'numberBased' });
 
+    // hack: wait for grid to load
+    // https://github.com/nocodb/nocodb/actions/runs/5025773509/jobs/9013176970
+    await page.waitForTimeout(1000);
+
     await verifyFieldsOrder(['Number', 'Decimal', 'Currency']);
 
     // Hide Decimal
@@ -273,15 +277,19 @@ test.describe('Undo Redo', () => {
     }
 
     await toolbar.clickFilter();
-    await toolbar.filter.add({ title: 'Number', operation: '=', value: '33' });
+    await toolbar.filter.add({ title: 'Number', operation: '=', value: '33', skipWaitingResponse: true });
     await toolbar.clickFilter();
 
     await verifyRecords({ filtered: true });
     await toolbar.filter.reset();
     await verifyRecords({ filtered: false });
 
+    // undo: remove filter
     await undo({ page });
     await verifyRecords({ filtered: true });
+    // undo: update filter
+    await undo({ page });
+    // undo: add filter
     await undo({ page });
     await verifyRecords({ filtered: false });
   });

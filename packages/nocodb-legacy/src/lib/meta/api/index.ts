@@ -51,6 +51,7 @@ import {
 import swaggerController from '../../controllers/apiDocs';
 import { importController, syncSourceController } from '../../controllers/sync';
 import mapViewController from '../../controllers/views/mapView.ctl';
+import exportImportController from '../../controllers/exportImport'
 import commandPaletteController from '../../controllers/commandPalette.ctl';
 import workspaceController from '../../controllers/workspace.ctl';
 import cowriterController from '../../controllers/cowriter.ctl';
@@ -109,6 +110,8 @@ export default function (router: Router, server) {
   router.use(syncSourceController);
   router.use(kanbanViewController);
   router.use(mapViewController);
+  router.use(exportImportController.exportController);
+  router.use(exportImportController.importController);
   router.use(commandPaletteController);
   router.use(workspaceController);
   router.use(cowriterController);

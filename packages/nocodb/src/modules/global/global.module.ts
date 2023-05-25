@@ -1,12 +1,16 @@
 import { Global, Module } from '@nestjs/common';
 import { ExtractJwt } from 'passport-jwt';
+import {
+  AppInitService,
+  appInitServiceProvider,
+} from '../../services/app-init.service';
+import { SocketGateway } from '../../gateways/socket.gateway';
 import { Connection } from '../../connection/connection';
 import { GlobalGuard } from '../../guards/global/global.guard';
 import { MetaService } from '../../meta/meta.service';
-import { SocketService } from '../../services/socket.service';
+import Noco from '../../Noco';
 import { AppHooksService } from '../../services/app-hooks/app-hooks.service';
 import { JwtStrategy } from '../../strategies/jwt.strategy';
-import NcConfigFactory from '../../utils/NcConfigFactory';
 import { UsersService } from '../../services/users/users.service';
 import { Producer } from '../../services/producer/producer';
 import { ProducerProvider } from '../../services/producer';
@@ -17,8 +21,13 @@ import type { Provider } from '@nestjs/common';
 
 export const JwtStrategyProvider: Provider = {
   provide: JwtStrategy,
-  useFactory: async (usersService: UsersService) => {
-    const config = await NcConfigFactory.make();
+  useFactory: async (
+    usersService: UsersService,
+    appInitService: AppInitService,
+  ) => {
+    const config = appInitService.appConfig;
+
+    await Noco.initJwt();
 
     const options = {
       // ignoreExpiration: false,
@@ -31,33 +40,35 @@ export const JwtStrategyProvider: Provider = {
 
     return new JwtStrategy(options, usersService);
   },
-  inject: [UsersService],
+  inject: [UsersService, AppInitService],
 };
 
 @Global()
 @Module({
   imports: [EventEmitterModule],
   providers: [
+    appInitServiceProvider,
     AppHooksService,
     Connection,
     MetaService,
     UsersService,
     JwtStrategyProvider,
     GlobalGuard,
-    SocketService,
+    SocketGateway,
     AppHooksService,
     ProducerProvider,
     AppHooksListenerService,
     TelemetryService,
   ],
   exports: [
+    AppInitService,
     AppHooksService,
     Connection,
     MetaService,
     JwtStrategyProvider,
     UsersService,
     GlobalGuard,
-    SocketService,
+    SocketGateway,
     AppHooksService,
     Producer,
     AppHooksListenerService,

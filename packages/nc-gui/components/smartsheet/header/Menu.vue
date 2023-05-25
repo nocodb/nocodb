@@ -14,9 +14,11 @@ import {
   iconMap,
   inject,
   message,
+  useGlobal,
   useI18n,
   useMetas,
   useNuxtApp,
+  useProject,
   useSmartsheetStoreOrThrow,
   useUndoRedo,
 } from '#imports'
@@ -27,6 +29,10 @@ const { virtual = false } = defineProps<{ virtual?: boolean }>()
 const emit = defineEmits(['edit', 'addColumn'])
 
 const { eventBus } = useSmartsheetStoreOrThrow()
+
+const { includeM2M } = useGlobal()
+
+const { loadTables } = useProject()
 
 const column = inject(ColumnInj)
 
@@ -62,6 +68,11 @@ const deleteColumn = () =>
         /** force-reload related table meta if deleted column is a LTAR and not linked to same table */
         if (column?.value?.uidt === UITypes.LinkToAnotherRecord && column.value?.colOptions) {
           await getMeta((column.value?.colOptions as LinkToAnotherRecordType).fk_related_model_id!, true)
+
+          // reload tables if deleted column is mm and include m2m is true
+          if (includeM2M.value && (column.value?.colOptions as LinkToAnotherRecordType).type === RelationTypes.MANY_TO_MANY) {
+            loadTables()
+          }
         }
 
         $e('a:column:delete')

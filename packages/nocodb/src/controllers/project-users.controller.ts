@@ -50,7 +50,6 @@ export class ProjectUsersController {
     });
   }
 
-
   @Patch('/api/v1/db/meta/projects/:projectId/users/:userId')
   async projectUserUpdate(
     @Param('projectId') projectId: string,

@@ -1,10 +1,5 @@
 import crypto from 'crypto';
-import {
-  Inject,
-  Injectable,
-  Optional,
-  UnauthorizedException,
-} from '@nestjs/common';
+import { Inject, Injectable, UnauthorizedException } from '@nestjs/common';
 import { HttpAdapterHost } from '@nestjs/core';
 import { T } from 'nc-help';
 import { Server } from 'socket.io';
@@ -13,7 +8,7 @@ import { ExecutionContextHost } from '@nestjs/core/helpers/execution-context-hos
 import { WebSocketGateway, WebSocketServer } from '@nestjs/websockets';
 import Noco from '../Noco';
 import { JwtStrategy } from '../strategies/jwt.strategy';
-import { TelemetryService } from './telemetry.service';
+import { TelemetryService } from '../services/telemetry.service';
 import type { OnModuleInit } from '@nestjs/common';
 import type { Socket } from 'socket.io';
 
@@ -29,7 +24,7 @@ function getHash(str) {
   },
 })
 @Injectable()
-export class SocketService implements OnModuleInit {
+export class SocketGateway implements OnModuleInit {
   // private server: HttpServer;
   private clients: { [id: string]: Socket } = {};
   private _jobs: { [id: string]: { last_message: any } } = {};
@@ -37,24 +32,16 @@ export class SocketService implements OnModuleInit {
   private _io: Server;
 
   constructor(
-    private readonly jwtStrategy: JwtStrategy,
-    @Inject(HttpAdapterHost)
-    private readonly httpAdapterHost: HttpAdapterHost,
-    private readonly telemetryService: TelemetryService,
+    private jwtStrategy: JwtStrategy,
+    private telemetryService: TelemetryService,
+    @Inject(HttpAdapterHost) private httpAdapterHost: HttpAdapterHost,
   ) {}
 
+  @WebSocketServer()
+  server: Server;
+
   async onModuleInit() {
-    // this._io = new Server(
-    //   Noco.httpServer ?? this.httpAdapterHost.httpAdapter.getHttpServer(),
-    //   {
-    //     cors: {
-    //       origin: '*',
-    //       allowedHeaders: ['xc-auth'],
-    //       credentials: true,
-    //     },
-    //   },
-    // );
-    this.io
+    this.server
       .use(async (socket, next) => {
         try {
           const context = new ExecutionContextHost([socket.handshake as any]);
@@ -83,21 +70,10 @@ export class SocketService implements OnModuleInit {
           // T.event({ ...args, id });
           this.telemetryService.sendEvent({ evt_type: event, ...args, id });
         });
-        socket.on('subscribe', (room) => {
-          if (room in this.jobs) {
-            socket.join(room);
-            socket.emit('job');
-            socket.emit('progress', this.jobs[room].last_message);
-          }
-        });
       });
   }
 
   public get io() {
-    return this._io;
-  }
-
-  public get jobs() {
-    return this._jobs;
+    return this.server;
   }
 }

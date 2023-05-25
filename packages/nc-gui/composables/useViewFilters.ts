@@ -29,6 +29,7 @@ export function useViewFilters(
   reloadData?: () => void,
   _currentFilters?: Filter[],
   isNestedRoot?: boolean,
+  isWebhook?: boolean,
 ) {
   let currentFilters = $ref(_currentFilters)
 
@@ -238,7 +239,7 @@ export function useViewFilters(
         }
       }
 
-      reloadData?.()
+      if (!isWebhook) reloadData?.()
     } catch (e: any) {
       console.log(e)
       message.error(await extractSdkResponseErrorMsg(e))
@@ -308,7 +309,7 @@ export function useViewFilters(
 
     lastFilters.value = clone(filters.value)
 
-    reloadData?.()
+    if (!isWebhook) reloadData?.()
   }
 
   const deleteFilter = async (filter: Filter, i: number, undo = false) => {
@@ -335,7 +336,7 @@ export function useViewFilters(
     if (nestedMode.value) {
       filters.value.splice(i, 1)
       filters.value = [...filters.value]
-      reloadData?.()
+      if (!isWebhook) reloadData?.()
     } else {
       if (filter.id) {
         // if auto-apply disabled mark it as disabled
@@ -346,7 +347,7 @@ export function useViewFilters(
         } else {
           try {
             await $api.dbTableFilter.delete(filter.id)
-            reloadData?.()
+            if (!isWebhook) reloadData?.()
             filters.value.splice(i, 1)
           } catch (e: any) {
             console.log(e)

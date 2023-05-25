@@ -80,6 +80,10 @@ export enum ModelTypes {
   VIEW = 'view',
 }
 
+export enum ProjectStatus {
+  JOB = 'job',
+}
+
 export enum TiptapNodesTypes {
   doc = 'doc',
   sec = 'sec',

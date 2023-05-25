@@ -29,7 +29,7 @@ import NcPluginMgrv2 from '../../../helpers/NcPluginMgrv2';
 import { BulkDataAliasService } from '../../../services/bulk-data-alias.service';
 import { elapsedTime, initTime } from '../helpers';
 import type { Readable } from 'stream';
-import type { ViewCreateReqType } from 'nocodb-sdk';
+import type { UserType, ViewCreateReqType } from 'nocodb-sdk';
 import type { LinkToAnotherRecordColumn, User, View } from '../../../models';
 
 @Injectable()
@@ -196,6 +196,7 @@ export class ImportService {
                     },
                   }),
                   req: param.req,
+                  user: param.user,
                 });
 
                 for (const nColumn of freshModelData.columns) {
@@ -253,6 +254,7 @@ export class ImportService {
                           column_name: childColumn.title,
                           title: childColumn.title,
                         },
+                        user: param.user,
                       });
                     }
                     break;
@@ -281,6 +283,7 @@ export class ImportService {
                   },
                 }),
                 req: param.req,
+                user: param.user,
               });
 
               for (const nColumn of freshModelData.columns) {
@@ -337,6 +340,7 @@ export class ImportService {
                         column_name: childColumn.title,
                         title: childColumn.title,
                       },
+                      user: param.user,
                     });
                   }
                   break;
@@ -367,6 +371,7 @@ export class ImportService {
                     },
                   }),
                   req: param.req,
+                  user: param.user,
                 });
 
                 for (const nColumn of freshModelData.columns) {
@@ -449,6 +454,7 @@ export class ImportService {
                           column_name: childColumn.title,
                           title: childColumn.title,
                         },
+                        user: param.user,
                       });
                     }
                     break;
@@ -482,6 +488,7 @@ export class ImportService {
                     },
                   }),
                   req: param.req,
+                  user: param.user,
                 });
 
                 linkMap.set(
@@ -569,6 +576,7 @@ export class ImportService {
                           column_name: childColumn.title,
                           title: childColumn.title,
                         },
+                        user: param.user,
                       });
                     }
                     break;
@@ -602,6 +610,7 @@ export class ImportService {
                     },
                   }),
                   req: param.req,
+                  user: param.user,
                 });
 
                 linkMap.set(
@@ -689,6 +698,7 @@ export class ImportService {
                           column_name: childColumn.title,
                           title: childColumn.title,
                         },
+                        user: param.user,
                       });
                     }
                     break;
@@ -771,6 +781,7 @@ export class ImportService {
             },
           }),
           req: param.req,
+          user: param.user,
         });
 
         for (const nColumn of freshModelData.columns) {
@@ -796,6 +807,7 @@ export class ImportService {
             },
           }),
           req: param.req,
+          user: param.user,
         });
 
         for (const nColumn of freshModelData.columns) {
@@ -814,6 +826,7 @@ export class ImportService {
             },
           }),
           req: param.req,
+          user: param.user,
         });
 
         for (const nColumn of freshModelData.columns) {
@@ -842,7 +855,13 @@ export class ImportService {
           ...view,
         });
 
-        const vw = await this.createView(idMap, table, viewData, table.views);
+        const vw = await this.createView(
+          idMap,
+          table,
+          viewData,
+          table.views,
+          param.user,
+        );
 
         if (!vw) continue;
 
@@ -859,6 +878,7 @@ export class ImportService {
               fk_column_id: getIdOrExternalId(fl.fk_column_id),
               fk_parent_id: getIdOrExternalId(fl.fk_parent_id),
             }),
+            user: param.user,
           });
 
           idMap.set(fl.id, fg.id);
@@ -981,6 +1001,7 @@ export class ImportService {
               fk_column_id: getIdOrExternalId(fl.fk_column_id),
               fk_parent_id: getIdOrExternalId(fl.fk_parent_id),
             }),
+            user: param.user,
           });
 
           idMap.set(fl.id, fg.id);
@@ -998,6 +1019,7 @@ export class ImportService {
     md: Model,
     vw: Partial<View>,
     views: View[],
+    user: UserType,
   ): Promise<View> {
     if (vw.is_default) {
       const view = views.find((a) => a.is_default);
@@ -1032,6 +1054,7 @@ export class ImportService {
         const fview = await this.formsService.formViewCreate({
           tableId: md.id,
           body: vw as ViewCreateReqType,
+          user,
         });
         const formData = withoutNull(vw.view);
         if (formData) {
@@ -1046,6 +1069,7 @@ export class ImportService {
         const glview = await this.galleriesService.galleryViewCreate({
           tableId: md.id,
           gallery: vw as ViewCreateReqType,
+          user,
         });
         const galleryData = withoutNull(vw.view);
         if (galleryData) {
@@ -1067,6 +1091,7 @@ export class ImportService {
         const kview = await this.kanbansService.kanbanViewCreate({
           tableId: md.id,
           kanban: vw as ViewCreateReqType,
+          user,
         });
         const kanbanData = withoutNull(vw.view);
         if (kanbanData) {

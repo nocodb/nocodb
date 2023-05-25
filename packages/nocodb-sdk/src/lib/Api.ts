@@ -2036,7 +2036,7 @@ export interface PluginReqType {
   /** Is Plugin Active? */
   active?: BoolType;
   /** Plugin Input */
-  input?: StringOrNullType;
+  input?: string | null;
 }
 
 /**
@@ -2127,6 +2127,11 @@ export interface ProjectReqType {
    * @example My Project
    */
   title: string;
+  /**
+   * Project Status
+   * @example locked
+   */
+  status?: StringOrNullType;
   type?: string;
   /** List of Linked Database Project IDs (only used for Dashboard Projects so far) */
   linked_db_project_ids?: string[];
@@ -2148,6 +2153,11 @@ export interface ProjectUpdateReqType {
    * @example My Project
    */
   title?: string;
+  /**
+   * Project Status
+   * @example locked
+   */
+  status?: StringOrNullType;
   /** List of Linked Database Project IDs (only used for Dashboard Projects so far) */
   linked_db_project_ids?: string[];
 }
@@ -5319,6 +5329,97 @@ export class Api<
       }),
 
     /**
+ * @description Duplicate a project
+ * 
+ * @tags Project
+ * @name BaseDuplicate
+ * @summary Duplicate Project Base
+ * @request POST:/api/v1/db/meta/duplicate/{projectId}/{baseId}
+ * @response `200` `{
+  name?: string,
+  id?: string,
+
+}` OK
+ * @response `400` `{
+  \** @example BadRequest [Error]: <ERROR MESSAGE> *\
+  msg: string,
+
+}`
+ */
+    baseDuplicate: (
+      projectId: IdType,
+      data: {
+        excludeData?: boolean;
+        excludeViews?: boolean;
+        excludeHooks?: boolean;
+      },
+      baseId?: IdType,
+      params: RequestParams = {}
+    ) =>
+      this.request<
+        {
+          name?: string;
+          id?: string;
+        },
+        {
+          /** @example BadRequest [Error]: <ERROR MESSAGE> */
+          msg: string;
+        }
+      >({
+        path: `/api/v1/db/meta/duplicate/${projectId}/${baseId}`,
+        method: 'POST',
+        body: data,
+        type: ContentType.Json,
+        format: 'json',
+        ...params,
+      }),
+
+    /**
+ * @description Duplicate a project
+ * 
+ * @tags Project
+ * @name Duplicate
+ * @summary Duplicate Project
+ * @request POST:/api/v1/db/meta/duplicate/{projectId}
+ * @response `200` `{
+  name?: string,
+  id?: string,
+
+}` OK
+ * @response `400` `{
+  \** @example BadRequest [Error]: <ERROR MESSAGE> *\
+  msg: string,
+
+}`
+ */
+    duplicate: (
+      projectId: IdType,
+      data: {
+        excludeData?: boolean;
+        excludeViews?: boolean;
+        excludeHooks?: boolean;
+      },
+      params: RequestParams = {}
+    ) =>
+      this.request<
+        {
+          name?: string;
+          id?: string;
+        },
+        {
+          /** @example BadRequest [Error]: <ERROR MESSAGE> */
+          msg: string;
+        }
+      >({
+        path: `/api/v1/db/meta/duplicate/${projectId}`,
+        method: 'POST',
+        body: data,
+        type: ContentType.Json,
+        format: 'json',
+        ...params,
+      }),
+
+    /**
  * @description Get the info of a given project
  * 
  * @tags Project
@@ -6445,6 +6546,51 @@ export class Api<
       >({
         path: `/api/v1/db/meta/tables/${tableId}`,
         method: 'DELETE',
+        format: 'json',
+        ...params,
+      }),
+
+    /**
+ * @description Duplicate a table
+ * 
+ * @tags DB Table
+ * @name Duplicate
+ * @summary Duplicate Table
+ * @request POST:/api/v1/db/meta/duplicate/{projectId}/table/{tableId}
+ * @response `200` `{
+  name?: string,
+  id?: string,
+
+}` OK
+ * @response `400` `{
+  \** @example BadRequest [Error]: <ERROR MESSAGE> *\
+  msg: string,
+
+}`
+ */
+    duplicate: (
+      projectId: IdType,
+      tableId: IdType,
+      data: {
+        excludeData?: boolean;
+        excludeViews?: boolean;
+      },
+      params: RequestParams = {}
+    ) =>
+      this.request<
+        {
+          name?: string;
+          id?: string;
+        },
+        {
+          /** @example BadRequest [Error]: <ERROR MESSAGE> */
+          msg: string;
+        }
+      >({
+        path: `/api/v1/db/meta/duplicate/${projectId}/table/${tableId}`,
+        method: 'POST',
+        body: data,
+        type: ContentType.Json,
         format: 'json',
         ...params,
       }),

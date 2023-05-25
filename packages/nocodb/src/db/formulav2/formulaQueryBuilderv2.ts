@@ -805,11 +805,9 @@ async function _formulaQueryBuilder(
       return { builder: query };
     } else if (pt.type === 'UnaryExpression') {
       const query = knex.raw(
-        `${pt.operator}${fn(
-          pt.argument,
-          null,
-          pt.operator,
-        ).toQuery()}${colAlias}`,
+        `${pt.operator}${(
+          await fn(pt.argument, null, pt.operator)
+        ).builder.toQuery()}${colAlias}`,
       );
       if (prevBinaryOp && pt.operator !== prevBinaryOp) {
         query.wrap('(', ')');

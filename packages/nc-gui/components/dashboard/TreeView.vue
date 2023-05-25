@@ -9,6 +9,7 @@ import type { VNodeRef } from '#imports'
 import {
   ClientType,
   Empty,
+  JobStatus,
   TabType,
   computed,
   extractSdkResponseErrorMsg,
@@ -38,7 +39,7 @@ const { isMobileMode } = useGlobal()
 
 const { addTab, updateTab } = useTabs()
 
-const { $api, $e } = useNuxtApp()
+const { $api, $e, $jobs } = useNuxtApp()
 
 const projectStore = useProject()
 
@@ -447,6 +448,38 @@ const handleContext = (e: MouseEvent) => {
 }
 
 useEventListener(document, 'contextmenu', handleContext, true)
+
+const duplicateTable = async (table: TableType) => {
+  if (!table || !table.id || !table.project_id) return
+
+  const isOpen = ref(true)
+
+  const { close } = useDialog(resolveComponent('DlgTableDuplicate'), {
+    'modelValue': isOpen,
+    'table': table,
+    'onOk': async (jobData: { name: string; id: string }) => {
+      $jobs.subscribe({ name: jobData.name, id: jobData.id }, undefined, async (status: string, data?: any) => {
+        if (status === JobStatus.COMPLETED) {
+          await loadTables()
+          const newTable = tables.value.find((el) => el.id === data?.result?.id)
+          if (newTable) addTableTab(newTable)
+        } else if (status === JobStatus.FAILED) {
+          message.error('Failed to duplicate table')
+          await loadTables()
+        }
+      })
+
+      $e('a:table:duplicate')
+    },
+    'onUpdate:modelValue': closeDialog,
+  })
+
+  function closeDialog() {
+    isOpen.value = false
+
+    close(1000)
+  }
+}
 </script>
 
 <template>
@@ -1185,6 +1218,12 @@ useEventListener(document, 'contextmenu', handleContext, true)
                                   </div>
                                 </a-menu-item>
 
+                                <a-menu-item v-if="isUIAllowed('table-duplicate') && !table.mm" @click="duplicateTable(table)">
+                                  <div class="nc-project-menu-item">
+                                    {{ $t('general.duplicate') }}
+                                  </div>
+                                </a-menu-item>
+
                                 <a-menu-item
                                   v-if="isUIAllowed('table-delete')"
                                   :data-testid="`sidebar-table-delete-${table.title}`"
@@ -1227,6 +1266,15 @@ useEventListener(document, 'contextmenu', handleContext, true)
             >
               <div class="nc-project-menu-item">
                 {{ $t('general.rename') }}
+              </div>
+            </a-menu-item>
+
+            <a-menu-item
+              v-if="isUIAllowed('table-duplicate') && !contextMenuTarget.value.mm"
+              @click="duplicateTable(contextMenuTarget.value)"
+            >
+              <div class="nc-project-menu-item">
+                {{ $t('general.duplicate') }}
               </div>
             </a-menu-item>
 

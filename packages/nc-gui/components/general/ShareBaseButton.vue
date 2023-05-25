@@ -37,13 +37,13 @@ useEventListener(document, 'keydown', async (e: KeyboardEvent) => {
 </script>
 
 <template>
-  <div class="flex items-center" @click="showUserModal = true">
+  <div class="flex items-center h-full" @click="showUserModal = true">
     <div v-if="isShareBaseAllowed">
       <a-tooltip placement="left">
         <template #title>
           <span class="text-xs">{{ $t('activity.inviteTeam') }}</span>
         </template>
-        <a-button type="primary" class="!rounded-md mr-1 !h-7 mt-1">
+        <a-button type="primary" class="!rounded-md mr-1" size="middle">
           <div class="flex items-center space-x-1 cursor-pointer text-xs font-weight-bold">
             <component :is="iconMap.accountPlus" class="mr-1 nc-share-base hover:text-accent text-sm" />
             {{ $t('activity.share') }}

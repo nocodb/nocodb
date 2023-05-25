@@ -70,16 +70,16 @@ test.describe('Erd', () => {
     if (isPg(context)) {
       await erd.verifyNodesCount(sakilaTables.length);
       await erd.verifyEdgesCount({
-        count: 32,
-        circleCount: 29,
-        rectangleCount: 35,
+        count: 38,
+        circleCount: 36,
+        rectangleCount: 40,
       });
     } else {
       await erd.verifyNodesCount(mysqlSakilaTables.length);
       await erd.verifyEdgesCount({
-        count: 14,
-        circleCount: 11,
-        rectangleCount: 17,
+        count: 20,
+        circleCount: 18,
+        rectangleCount: 22,
       });
     }
     for (const tableName of sakilaTables) {
@@ -132,16 +132,16 @@ test.describe('Erd', () => {
     if (isPg(context)) {
       await erd.verifyNodesCount(sakilaTables.length + sakilaSqlViews.length);
       await erd.verifyEdgesCount({
-        count: 32,
-        circleCount: 29,
-        rectangleCount: 35,
+        count: 38,
+        circleCount: 36,
+        rectangleCount: 40,
       });
     } else {
       await erd.verifyNodesCount(sakilaTables.length + sakilaSqlViews.length);
       await erd.verifyEdgesCount({
-        count: 14,
-        circleCount: 11,
-        rectangleCount: 17,
+        count: 20,
+        circleCount: 18,
+        rectangleCount: 22,
       });
     }
 
@@ -157,7 +157,7 @@ test.describe('Erd', () => {
 
     await erd.clickShowSqlViews(); // disable sql views
 
-    await erd.verifyNodeDoesNotExist({ tableName: `store` });
+    await erd.verifyNodeDoesNotExist({ tableName: `film_actor` });
 
     // // Verify MM tables
     await erd.clickShowMMTables();
@@ -166,12 +166,12 @@ test.describe('Erd', () => {
 
     await erd.verifyNodesCount(isPg(context) ? 21 : 16);
     await erd.verifyEdgesCount({
-      count: isPg(context) ? 44 : 26,
+      count: isPg(context) ? 42 : 24,
       circleCount: isPg(context) ? 40 : 22,
-      rectangleCount: isPg(context) ? 48 : 30,
+      rectangleCount: isPg(context) ? 44 : 26,
     });
 
-    await erd.verifyNode({ tableName: `store` });
+    await erd.verifyNode({ tableName: `film_actor` });
 
     // Verify show junction table names
     await erd.clickShowJunctionTableNames();

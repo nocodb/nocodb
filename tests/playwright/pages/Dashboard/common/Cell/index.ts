@@ -41,7 +41,9 @@ export class CellPageObject extends BasePage {
     if (this.parent instanceof SharedFormPage) {
       return this.parent.get().locator(`[data-testid="nc-form-input-cell-${columnHeader}"]`);
     } else {
-      return this.parent.get().locator(`td[data-testid="cell-${columnHeader}-${index}"]`);
+      // parent.get() fails in CI; kludge to see if this fixes it
+      // return this.parent.get().locator(`td[data-testid="cell-${columnHeader}-${index}"]`);
+      return this.rootPage.locator(`td[data-testid="cell-${columnHeader}-${index}"]`);
     }
   }
 

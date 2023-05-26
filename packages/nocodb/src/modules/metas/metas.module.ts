@@ -82,7 +82,7 @@ import { ProjectUsersService } from '../../services/project-users/project-users.
     GlobalModule,
   ],
   controllers: [
-    ...(!process.env['NC_WORKER_CONTAINER']
+    ...(process.env.NC_WORKER_CONTAINER !== 'true'
       ? [
           ApiDocsController,
           ApiTokensController,

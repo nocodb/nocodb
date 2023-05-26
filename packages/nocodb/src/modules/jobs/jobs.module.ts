@@ -28,7 +28,7 @@ import { JobsEventService as FallbackJobsEventService } from './fallback/jobs-ev
     GlobalModule,
     DatasModule,
     MetasModule,
-    ...(process.env['NC_REDIS_URL']
+    ...(process.env.NC_REDIS_URL
       ? [
           BullModule.forRoot({
             url: process.env.NC_REDIS_URL,
@@ -40,18 +40,18 @@ import { JobsEventService as FallbackJobsEventService } from './fallback/jobs-ev
       : []),
   ],
   controllers: [
-    ...(!process.env['NC_WORKER_CONTAINER']
+    ...(process.env.NC_WORKER_CONTAINER !== 'true'
       ? [DuplicateController, AtImportController]
       : []),
   ],
   providers: [
-    ...(!process.env['NC_WORKER_CONTAINER'] ? [JobsGateway] : []),
-    ...(process.env['NC_REDIS_URL']
+    ...(process.env.NC_WORKER_CONTAINER !== 'true' ? [JobsGateway] : []),
+    ...(process.env.NC_REDIS_URL
       ? [JobsRedisService, JobsEventService]
       : [FallbackQueueService, FallbackJobsEventService]),
     {
       provide: 'JobsService',
-      useClass: process.env['NC_REDIS_URL'] ? JobsService : FallbackJobsService,
+      useClass: process.env.NC_REDIS_URL ? JobsService : FallbackJobsService,
     },
     JobsLogService,
     ExportService,

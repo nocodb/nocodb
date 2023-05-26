@@ -14,7 +14,7 @@ export default class RedisCacheMgr extends CacheMgr {
     this.client = new Redis(config);
 
     // avoid flushing db in worker container
-    if (!process.env['NC_WORKER_CONTAINER']) {
+    if (process.env.NC_WORKER_CONTAINER !== 'true') {
       // flush the existing db with selected key (Default: 0)
       this.client.flushdb();
     }

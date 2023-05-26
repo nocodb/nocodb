@@ -27,7 +27,7 @@ import { PublicDatasService } from '../../services/public-datas.service';
     }),
   ],
   controllers: [
-    ...(!process.env['NC_WORKER_CONTAINER']
+    ...(process.env.NC_WORKER_CONTAINER !== 'true'
       ? [
           DatasController,
           BulkDataAliasController,

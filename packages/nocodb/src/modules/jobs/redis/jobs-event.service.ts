@@ -19,7 +19,7 @@ export class JobsEventService {
 
   @OnQueueActive()
   onActive(job: Job) {
-    if (process.env['NC_WORKER_CONTAINER']) {
+    if (process.env.NC_WORKER_CONTAINER === 'true') {
       this.jobsRedisService.publish(`jobs-${job.id.toString()}`, {
         cmd: JobEvents.STATUS,
         id: job.id.toString(),
@@ -46,7 +46,7 @@ export class JobsEventService {
       ),
     );
 
-    if (process.env['NC_WORKER_CONTAINER']) {
+    if (process.env.NC_WORKER_CONTAINER === 'true') {
       this.jobsRedisService.publish(`jobs-${job.id.toString()}`, {
         cmd: JobEvents.STATUS,
         id: job.id.toString(),
@@ -73,7 +73,7 @@ export class JobsEventService {
 
   @OnQueueCompleted()
   onCompleted(job: Job, data: any) {
-    if (process.env['NC_WORKER_CONTAINER']) {
+    if (process.env.NC_WORKER_CONTAINER === 'true') {
       this.jobsRedisService.publish(`jobs-${job.id.toString()}`, {
         cmd: JobEvents.STATUS,
         id: job.id.toString(),
@@ -96,7 +96,7 @@ export class JobsEventService {
 
   @OnEvent(JobEvents.LOG)
   onLog(data: { id: string; data: { message: string } }) {
-    if (process.env['NC_WORKER_CONTAINER']) {
+    if (process.env.NC_WORKER_CONTAINER === 'true') {
       this.jobsRedisService.publish(`jobs-${data.id}`, {
         cmd: JobEvents.LOG,
         id: data.id,

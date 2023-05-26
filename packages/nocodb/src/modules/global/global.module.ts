@@ -97,14 +97,14 @@ export const JwtStrategyProvider: Provider = {
     UsersService,
     JwtStrategyProvider,
     GlobalGuard,
-    ...(!process.env['NC_WORKER_CONTAINER'] ? [SocketGateway] : []),
+    ...(process.env.NC_WORKER_CONTAINER !== 'true' ? [SocketGateway] : []),
   ],
   exports: [
     MetaService,
     JwtStrategyProvider,
     UsersService,
     GlobalGuard,
-    ...(!process.env['NC_WORKER_CONTAINER'] ? [SocketGateway] : []),
+    ...(process.env.NC_WORKER_CONTAINER !== 'true' ? [SocketGateway] : []),
   ],
 })
 export class GlobalModule {}

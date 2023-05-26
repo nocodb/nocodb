@@ -1,21 +1,29 @@
 import { Global, Module } from '@nestjs/common';
-import { JwtModule, JwtService } from '@nestjs/jwt';
 import { ExtractJwt } from 'passport-jwt';
+import {
+  AppInitService,
+  appInitServiceProvider,
+} from '../../services/app-init.service';
 import { SocketGateway } from '../../gateways/socket.gateway';
 import { Connection } from '../../connection/connection';
 import { GlobalGuard } from '../../guards/global/global.guard';
 import { MetaService } from '../../meta/meta.service';
 import { AppHooksService } from '../../services/app-hooks/app-hooks.service';
+import Noco from '../../Noco';
 import { JwtStrategy } from '../../strategies/jwt.strategy';
-import NcConfigFactory from '../../utils/NcConfigFactory';
 import { UsersService } from '../../services/users/users.service';
 import { EventEmitterModule } from '../event-emitter/event-emitter.module';
 import type { Provider } from '@nestjs/common';
 
 export const JwtStrategyProvider: Provider = {
   provide: JwtStrategy,
-  useFactory: async (usersService: UsersService) => {
-    const config = await NcConfigFactory.make();
+  useFactory: async (
+    usersService: UsersService,
+    appInitService: AppInitService,
+  ) => {
+    const config = appInitService.appConfig;
+
+    await Noco.initJwt();
 
     const options = {
       // ignoreExpiration: false,
@@ -28,7 +36,7 @@ export const JwtStrategyProvider: Provider = {
 
     return new JwtStrategy(options, usersService);
   },
-  inject: [UsersService],
+  inject: [UsersService, AppInitService],
 };
 
 @Global()
@@ -36,6 +44,7 @@ export const JwtStrategyProvider: Provider = {
   imports: [EventEmitterModule],
   providers: [
     AppHooksService,
+    appInitServiceProvider,
     Connection,
     MetaService,
     UsersService,
@@ -45,6 +54,7 @@ export const JwtStrategyProvider: Provider = {
   ],
   exports: [
     AppHooksService,
+    AppInitService,
     Connection,
     MetaService,
     JwtStrategyProvider,

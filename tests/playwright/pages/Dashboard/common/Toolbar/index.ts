@@ -66,6 +66,7 @@ export class ToolbarPage extends BasePage {
 
     // Wait for the menu to close
     if (menuOpen) await this.fields.get().waitFor({ state: 'hidden' });
+    else await this.fields.get().waitFor({ state: 'visible' });
   }
 
   async clickFindRowByScanButton() {

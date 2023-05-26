@@ -6,7 +6,7 @@ const props = defineProps<{
   title?: string | undefined
 }>()
 
-const emit = defineEmits(['focusEditor'])
+const emit = defineEmits(['insertEmptyEditorTop', 'focusEditor'])
 
 const { title: propTitle } = props
 
@@ -37,9 +37,16 @@ const title = computed({
 })
 
 const onTitleKeyDown = (e: KeyboardEvent) => {
-  if (e.key === 'Enter') {
+  // Down arrow
+  if (e.key === 'ArrowDown') {
+    // get cursor position
+    const cursorPosition = window.getSelection()
+    if (cursorPosition?.anchorOffset === title.value?.length) {
+      emit('focusEditor')
+    }
+  } else if (e.key === 'Enter') {
     e.preventDefault()
-    emit('focusEditor')
+    emit('insertEmptyEditorTop')
   } else if (e.key === 'Backspace' || e.key === 'Delete') {
     const textSelection = window.getSelection()?.toString()
 
@@ -135,17 +142,19 @@ onMounted(() => {
         ></IconifyIcon>
       </div>
     </template>
-    <a-textarea
+    <div
       ref="titleInputRef"
-      v-model:value="title"
+      contenteditable="true"
       data-testid="docs-page-title"
-      class="!text-5xl font-semibold !p-0"
-      :bordered="false"
+      class="!text-5xl font-semibold !p-0 outline-none break-all"
       :readonly="!isEditAllowed || !!propTitle"
       placeholder="Title"
       auto-size
+      @input="title = $event.target.innerText"
       @keydown="onTitleKeyDown"
-    />
+    >
+      {{ title }}
+    </div>
   </div>
 </template>
 

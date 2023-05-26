@@ -6,7 +6,7 @@ import { generateJSON } from '@tiptap/html'
 import { useShortcuts } from '../utils'
 import tiptapExtensions from '~~/utils/tiptapExtensions'
 import AlignRightIcon from '~icons/tabler/align-right'
-import { removeUploadingPlaceHolderAndEmptyLinkNode } from '~~/utils/tiptapExtensions/helper'
+import { emptySectionContent, removeUploadingPlaceHolderAndEmptyLinkNode } from '~~/utils/tiptapExtensions/helper'
 
 const { project } = useProject()
 useShortcuts()
@@ -103,8 +103,12 @@ const editor = useEditor({
   editable: isEditAllowed.value,
 })
 
+const insertEmptyEditorTop = () => {
+  editor?.value?.chain().insertContentAt(0, [emptySectionContent]).focus().run()
+}
+
 const focusEditor = () => {
-  editor?.value?.commands.focus('start')
+  editor?.value?.chain().focus('start').run()
 }
 
 watch(
@@ -366,6 +370,7 @@ watch(
                   :data-is-diff="true"
                   class="docs-page-title"
                   :title="currentSnapshot.page!.title!"
+                  @insert-empty-editor-top="insertEmptyEditorTop"
                   @focus-editor="focusEditor"
                 />
               </div>
@@ -375,6 +380,7 @@ watch(
                   :data-is-diff="true"
                   class="docs-page-title"
                   :title="prevSnapshot.page!.title!"
+                  @insert-empty-editor-top="insertEmptyEditorTop"
                   @focus-editor="focusEditor"
                 />
               </div>
@@ -384,9 +390,16 @@ watch(
               :key="currentSnapshot.id"
               class="docs-page-title"
               :title="currentSnapshot.page!.title!"
+              @insert-empty-editor-top="insertEmptyEditorTop"
               @focus-editor="focusEditor"
             />
-            <DocsPageTitle v-else-if="openedPage" :key="openedPage.id" class="docs-page-title" @focus-editor="focusEditor" />
+            <DocsPageTitle
+              v-else-if="openedPage"
+              :key="openedPage.id"
+              class="docs-page-title"
+              @insert-empty-editor-top="insertEmptyEditorTop"
+              @focus-editor="focusEditor"
+            />
 
             <div class="flex !mb-4.5"></div>
 
@@ -726,46 +739,6 @@ watch(
     @apply rounded-md px-2 py-1;
     color: inherit;
     font-size: 0.8rem;
-  }
-
-  ul[data-type='taskList'] {
-    list-style: none;
-    padding: 0;
-
-    p {
-      margin: 0;
-    }
-
-    li {
-      display: flex;
-      padding-top: 0.25rem;
-      padding-bottom: 0.25rem;
-
-      > label {
-        margin-right: 0.5rem;
-        user-select: none;
-      }
-
-      > label > input {
-        // margin-top: 0.1rem !important;
-        margin-bottom: 0.2rem !important;
-        // height: max-content;
-      }
-
-      > div {
-        flex: 1 1 auto;
-      }
-    }
-  }
-
-  ul,
-  ol {
-    padding-left: 1rem;
-
-    li > p {
-      margin-top: 0.25rem !important;
-      margin-bottom: 0.25rem !important;
-    }
   }
 
   [data-type='bullet'] {

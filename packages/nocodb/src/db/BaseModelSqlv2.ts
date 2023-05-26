@@ -2091,6 +2091,7 @@ class BaseModelSqlv2 {
       raw?: boolean;
     } = {},
   ) {
+    let trx;
     try {
       // TODO: ag column handling for raw bulk insert
       const insertDatas = raw
@@ -2115,7 +2116,7 @@ class BaseModelSqlv2 {
       // refer : https://www.sqlite.org/limits.html
       const chunkSize = this.isSqlite ? 10 : _chunkSize;
 
-      const trx = await this.dbDriver.transaction();
+      trx = await this.dbDriver.transaction();
 
       if (!foreign_key_checks) {
         if (this.isPg) {
@@ -2146,6 +2147,7 @@ class BaseModelSqlv2 {
 
       return response;
     } catch (e) {
+      await trx?.rollback();
       // await this.errorInsertb(e, data, null);
       throw e;
     }

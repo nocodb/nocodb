@@ -168,7 +168,7 @@ export const useCommandList = ({
       shortCutText: isMacOS() ? '⌥ ⌘ C' : 'Alt Ctrl C',
     },
     {
-      title: 'Attachment',
+      title: 'File',
       class: 'text-xs',
       command: () => {
         fileInputDomRef.value?.[0]?.click()

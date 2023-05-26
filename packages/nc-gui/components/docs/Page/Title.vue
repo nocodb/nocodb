@@ -59,6 +59,10 @@ const onTitleKeyDown = (e: KeyboardEvent) => {
   }
 }
 
+const onTitleInput = (e: Event) => {
+  title.value = (e.target as HTMLInputElement).innerText
+}
+
 const setIcon = async (icon: string) => {
   try {
     openedPage.value!.icon = icon
@@ -144,13 +148,21 @@ onMounted(() => {
     </template>
     <div
       ref="titleInputRef"
-      contenteditable="true"
+      :contenteditable="isEditAllowed && !propTitle"
       data-testid="docs-page-title"
-      class="!text-5xl font-semibold !p-0 outline-none break-all"
+      class=""
+      :style="{
+        fontWeight: 600,
+        fontSize: '3rem',
+        lineHeight: 1,
+        wordBreak: 'break-all',
+        outline: 'none',
+        padding: 0,
+      }"
       :readonly="!isEditAllowed || !!propTitle"
       placeholder="Title"
       auto-size
-      @input="title = $event.target.innerText"
+      @input="onTitleInput"
       @keydown="onTitleKeyDown"
     >
       {{ title }}

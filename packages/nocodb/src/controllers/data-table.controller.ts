@@ -41,6 +41,7 @@ export class DataTableController {
       query: req.query,
       projectId: projectId,
       modelId: modelId,
+      viewId: viewId,
     });
     const elapsedSeconds = parseHrtimeToSeconds(process.hrtime(startTime));
     res.setHeader('xc-db-response', elapsedSeconds);
@@ -59,6 +60,7 @@ export class DataTableController {
     const countResult = await this.dataTableService.dataCount({
       query: req.query,
       modelId,
+      viewId,
       projectId,
     });
 
@@ -79,6 +81,7 @@ export class DataTableController {
       projectId: projectId,
       modelId: modelId,
       body: body,
+      viewId,
       cookie: req,
     });
   }
@@ -97,6 +100,7 @@ export class DataTableController {
       modelId: modelId,
       body: req.body,
       cookie: req,
+      viewId,
       rowId: rowId,
     });
   }
@@ -114,6 +118,7 @@ export class DataTableController {
       projectId: projectId,
       modelId: modelId,
       cookie: req,
+      viewId,
       rowId: rowId,
     });
   }
@@ -132,6 +137,7 @@ export class DataTableController {
       projectId,
       rowId: rowId,
       query: req.query,
+      viewId
     });
   }
 }

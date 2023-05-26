@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { NcError } from '../helpers/catchError';
-import { Base, Model } from '../models';
+import { Base, Model, View } from '../models';
 import NcConnectionMgrv2 from '../utils/common/NcConnectionMgrv2';
 import { DatasService } from './datas.service';
 
@@ -8,11 +8,17 @@ import { DatasService } from './datas.service';
 export class DataTableService {
   constructor(private datasService: DatasService) {}
 
-  async dataList(param: { projectId?: string; modelId: string; query: any }) {
-    const model = await this.getModelAndValidate(param);
+  async dataList(param: {
+    projectId?: string;
+    modelId: string;
+    query: any;
+    viewId?: string;
+  }) {
+    const { model, view } = await this.getModelAndView(param);
 
     return await this.datasService.getDataList({
       model,
+      view,
       query: param.query,
     });
   }
@@ -21,14 +27,16 @@ export class DataTableService {
     projectId?: string;
     modelId: string;
     rowId: string;
+    viewId?: string;
     query: any;
   }) {
-    const model = await this.getModelAndValidate(param);
+    const { model, view } = await this.getModelAndView(param);
 
     const base = await Base.get(model.base_id);
 
     const baseModel = await Model.getBaseModelSQL({
       id: model.id,
+      viewId: view?.id,
       dbDriver: await NcConnectionMgrv2.get(base),
     });
 
@@ -43,15 +51,17 @@ export class DataTableService {
 
   async dataInsert(param: {
     projectId?: string;
+    viewId?: string;
     modelId: string;
     body: any;
     cookie: any;
   }) {
-    const model = await this.getModelAndValidate(param);
+    const { model, view } = await this.getModelAndView(param);
     const base = await Base.get(model.base_id);
 
     const baseModel = await Model.getBaseModelSQL({
       id: model.id,
+      viewId: view?.id,
       dbDriver: await NcConnectionMgrv2.get(base),
     });
 
@@ -61,16 +71,18 @@ export class DataTableService {
   async dataUpdate(param: {
     projectId?: string;
     modelId: string;
+    viewId?: string;
     rowId: string;
     body: any;
     cookie: any;
   }) {
-    const model = await this.getModelAndValidate(param);
+    const { model, view } = await this.getModelAndView(param);
 
     const base = await Base.get(model.base_id);
 
     const baseModel = await Model.getBaseModelSQL({
       id: model.id,
+      viewId: view?.id,
       dbDriver: await NcConnectionMgrv2.get(base),
     });
 
@@ -85,13 +97,15 @@ export class DataTableService {
   async dataDelete(param: {
     projectId?: string;
     modelId: string;
+    viewId?: string;
     rowId: string;
     cookie: any;
   }) {
-    const model = await this.getModelAndValidate(param);
+    const { model, view } = await this.getModelAndView(param);
     const base = await Base.get(model.base_id);
     const baseModel = await Model.getBaseModelSQL({
       id: model.id,
+      viewId: view?.id,
       dbDriver: await NcConnectionMgrv2.get(base),
     });
 
@@ -103,27 +117,42 @@ export class DataTableService {
     return await baseModel.delByPk(param.rowId, null, param.cookie);
   }
 
-  private async getModelAndValidate(param: {
+  private async getModelAndView(param: {
     projectId?: string;
+    viewId?: string;
     modelId: string;
-    query: any;
   }) {
     const model = await Model.get(param.modelId);
 
     if (model.project_id && model.project_id !== param.projectId) {
-      throw new Error('Model not found in project');
+      throw new Error('Model not belong to project');
     }
-    return model;
+
+    let view: View;
+
+    if (param.viewId) {
+      view = await View.get(param.viewId);
+      if (view.fk_model_id && view.fk_model_id !== param.modelId) {
+        throw new Error('View not belong to model');
+      }
+    }
+
+    return { model, view };
   }
 
- async dataCount(param: { projectId?: string; modelId: string; query: any }) {
-
-    const model = await this.getModelAndValidate(param);
+  async dataCount(param: {
+    projectId?: string;
+    viewId?: string;
+    modelId: string;
+    query: any;
+  }) {
+    const { model, view } = await this.getModelAndView(param);
 
     const base = await Base.get(model.base_id);
 
     const baseModel = await Model.getBaseModelSQL({
       id: model.id,
+      viewId: view?.id,
       dbDriver: await NcConnectionMgrv2.get(base),
     });
 
@@ -135,6 +164,5 @@ export class DataTableService {
     const count: number = await baseModel.count(countArgs);
 
     return { count };
-
   }
 }

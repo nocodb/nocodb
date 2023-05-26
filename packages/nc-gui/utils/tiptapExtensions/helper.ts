@@ -30,6 +30,25 @@ export const tiptapTextColor = {
   red: 'rgba(212, 76, 71, 1)',
 }
 
+export const paragraphContent = (text = '') => ({
+  type: TiptapNodesTypes.sec,
+  content: [
+    {
+      type: TiptapNodesTypes.paragraph,
+      ...(text.length > 0
+        ? {
+            content: [
+              {
+                type: TiptapNodesTypes.text,
+                text,
+              },
+            ],
+          }
+        : {}),
+    },
+  ],
+})
+
 export const emptySectionContent = {
   type: TiptapNodesTypes.sec,
   content: [

@@ -42,12 +42,12 @@ const onUpdateScreenDimensions = (newScreenDimensions: ScreenDimensions) => {
     :class="{ 'nc-layout-ui-element-has-focus': props.hasFocus }"
     @click.stop="emit('setFocus')"
   >
-    <DashboardsLayoutsResizable :screen-dimensions="screenDimensions" @update:screen-dimensions="onUpdateScreenDimensions">
+    <LayoutsResizable :screen-dimensions="screenDimensions" @update:screen-dimensions="onUpdateScreenDimensions">
       <div class="nc-layout-ui-resizable-container">
         <slot />
         <MdiTrashCanCircleOutline class="text-lg mr-2" @click="emit('remove')" />
       </div>
-    </DashboardsLayoutsResizable>
+    </LayoutsResizable>
   </div>
 </template>
 

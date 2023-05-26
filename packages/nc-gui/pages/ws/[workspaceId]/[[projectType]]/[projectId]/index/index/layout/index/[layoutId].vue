@@ -4,7 +4,7 @@ const { openedLayoutSidebarNode } = storeToRefs(useDashboardStore())
 </script>
 
 <template>
-  <DashboardsLayoutsView v-if="project?.id && openedLayoutSidebarNode" />
+  <LayoutsView v-if="project?.id && openedLayoutSidebarNode" />
 </template>
 
 <style>

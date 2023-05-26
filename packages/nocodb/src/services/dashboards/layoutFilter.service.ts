@@ -9,7 +9,7 @@ import type {
 } from 'nocodb-sdk';
 
 Injectable();
-export class DashboardFilterService {
+export class LayoutFilterService {
   async getFilters(param: { widgetId: string }) {
     return Filter.rootFilterListByWidget({ widgetId: param.widgetId });
   }

@@ -5,7 +5,7 @@ import type { VNodeRef } from '@vue/runtime-core'
 import { computed } from '@vue/reactivity'
 import type { ComputedRef } from 'nuxt/dist/app/compat/capi'
 import Fuse from 'fuse.js'
-import type { IdAndTitle } from '../dashboards/types'
+import type { IdAndTitle } from '../layouts/types'
 import { NcProjectType, extractSdkResponseErrorMsg } from '~/utils'
 import { ref, useVModel } from '#imports'
 import { useWorkspace } from '~/store/workspace'
@@ -95,6 +95,7 @@ const createDashboardProject = async () => {
       type: NcProjectType.DASHBOARD,
       title: formState.title,
       workspaceId: workspaceStore.workspace!.id!,
+      linkedDbProjectIds: filteredDbProjects.value.map(p => p.id)
     })
     await workspaceStore.loadProjects()
 

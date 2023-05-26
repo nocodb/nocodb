@@ -519,7 +519,7 @@ const isClearMode = computed(() => route.query.clear === '1' && route.params.pro
                   <DocsSideBar v-if="activeProjectId === project.id" :project="project" />
                 </div>
                 <div v-else-if="project.type === 'dashboard'">
-                  <DashboardsSideBar v-if="activeProjectId === project.id" :project="project" />
+                  <LayoutsSideBar v-if="activeProjectId === project.id" :project="project" />
                 </div>
                 <template v-else-if="project && projects[project.id] && projects[project.id].bases">
                   <div class="pt-1.5 pl-1 pb-1 flex-1 overflow-y-auto flex flex-col" :class="{ 'mb-[20px]': isSharedBase }">

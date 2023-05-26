@@ -95,8 +95,8 @@ import { WorkspaceUsersModule } from '../workspace-users/workspace-users.module'
 import { NotificationsGateway } from '../../gateways/notifications/notifications.gateway';
 import { ClickhouseService } from '../../services/clickhouse/clickhouse.service';
 import { ThrottlerExpiryListenerService } from '../../services/throttler/throttler-expiry-listener.service';
-import { DashboardFilterController } from '../../controllers/dashboards/dashboardFilter.controller';
-import { DashboardFilterService } from '../../services/dashboards/dashboardFilter.service';
+import { LayoutFilterController } from '../../controllers/dashboards/layoutFilter.controller';
+import { LayoutFilterService } from '../../services/dashboards/layoutFilter.service';
 import { TelemetryController } from '../../controllers/telemetry.controller';
 
 // todo: refactor to use config service
@@ -122,7 +122,7 @@ const enableThrottler = !!process.env['NC_THROTTLER_REDIS'];
     BasesController,
     CachesController,
     ColumnsController,
-    DashboardFilterController,
+    LayoutFilterController,
     FiltersController,
     FormColumnsController,
     FormsController,
@@ -169,7 +169,7 @@ const enableThrottler = !!process.env['NC_THROTTLER_REDIS'];
     BasesService,
     CachesService,
     ColumnsService,
-    DashboardFilterService,
+    LayoutFilterService,
     FiltersService,
     FormColumnsService,
     FormsService,

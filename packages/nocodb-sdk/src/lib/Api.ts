@@ -3287,7 +3287,7 @@ export class Api<
  * @tags Dashboard
  * @name WidgetFilterRead
  * @summary Get Widget Filter
- * @request GET:/api/v1/layouts/:layoutId/widgets/:widgetId/filters
+ * @request GET:/api/v1/dashboards/{dashboardId}/layouts/{layoutId}/widgets/{widgetId}/filters
  * @response `200` `FilterListType` OK
  * @response `400` `{
   \** @example BadRequest [Error]: <ERROR MESSAGE> *\
@@ -3296,6 +3296,7 @@ export class Api<
 }`
  */
     widgetFilterRead: (
+      dashboardId: string,
       layoutId: string,
       widgetId: string,
       params: RequestParams = {}
@@ -3307,7 +3308,7 @@ export class Api<
           msg: string;
         }
       >({
-        path: `/api/v1/layouts/${layoutId}/widgets/${widgetId}/filters`,
+        path: `/api/v1/dashboards/${dashboardId}/layouts/${layoutId}/widgets/${widgetId}/filters`,
         method: 'GET',
         format: 'json',
         ...params,
@@ -3319,7 +3320,7 @@ export class Api<
  * @tags Dashboard
  * @name WidgetFilterCreate
  * @summary Create Widget Filter
- * @request POST:/api/v1/layouts/:layoutId/widgets/:widgetId/filters
+ * @request POST:/api/v1/dashboards/{dashboardId}/layouts/{layoutId}/widgets/{widgetId}/filters
  * @response `200` `FilterType` OK
  * @response `400` `{
   \** @example BadRequest [Error]: <ERROR MESSAGE> *\
@@ -3328,6 +3329,7 @@ export class Api<
 }`
  */
     widgetFilterCreate: (
+      dashboardId: string,
       layoutId: string,
       widgetId: string,
       data: FilterReqType,
@@ -3340,7 +3342,7 @@ export class Api<
           msg: string;
         }
       >({
-        path: `/api/v1/layouts/${layoutId}/widgets/${widgetId}/filters`,
+        path: `/api/v1/dashboards/${dashboardId}/layouts/${layoutId}/widgets/${widgetId}/filters`,
         method: 'POST',
         body: data,
         type: ContentType.Json,

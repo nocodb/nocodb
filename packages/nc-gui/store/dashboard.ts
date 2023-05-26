@@ -1,20 +1,27 @@
 import { defineStore } from 'pinia'
 import type {
   AppearanceConfig,
+  ColumnType,
   DataConfig,
+  DataConfigAggregated2DChart,
+  DataConfigNumber,
   DataSource,
+  DataSourceInternal,
   LayoutType,
   ProjectType,
   ScreenDimensions,
   ScreenPosition,
+  ViewType,
   Widget,
   WidgetReqType,
   WidgetType,
 } from 'nocodb-sdk'
-import { AggregateFnType, ButtonActionType, DataSourceType, WidgetTypeType } from 'nocodb-sdk'
+import { AggregateFnType, ButtonActionType, DataSourceType, FontType, WidgetTypeType, chartTypes } from 'nocodb-sdk'
+import type { ComputedRef } from 'nuxt/dist/app/compat/capi'
 import { computed, extractSdkResponseErrorMsg, message, navigateTo, ref, useNuxtApp, useRouter, useTabs, watch } from '#imports'
 import type { LayoutSidebarNode } from '~~/lib'
 import { TabType } from '~~/lib'
+import type { IdAndTitle, TableWithProject } from '~~/components/layouts/types'
 
 export const availableAggregateFunctions = [
   AggregateFnType.Sum,
@@ -23,6 +30,28 @@ export const availableAggregateFunctions = [
   AggregateFnType.Max,
   AggregateFnType.Min,
 ]
+
+export const availableButtonActionTypes = [
+  ButtonActionType.OPEN_EXTERNAL_URL,
+  ButtonActionType.DELETE_RECORD,
+  ButtonActionType.OPEN_LAYOUT,
+  ButtonActionType.UPDATE_RECORD,
+]
+
+const availableFontTypes = [
+  FontType.HEADING1,
+  FontType.HEADING2,
+  FontType.HEADING3,
+  FontType.SUB_HEADING_1,
+  FontType.SUB_HEADING_2,
+  FontType.BODY,
+  FontType.CAPTION,
+]
+export const availableFontTypesWithIdAndTitle = availableFontTypes?.map((fontType) => ({
+  id: fontType,
+  // TODO: use i18n here
+  title: fontType,
+}))
 
 export const availableAggregateFunctionsWithIdAndTitle = availableAggregateFunctions.map((aggregateFn) => {
   return {
@@ -47,6 +76,8 @@ export const useDashboardStore = defineStore('dashboardStore', () => {
    *
    *
    */
+  const availableTablesOfAllDBProjectsLinkedWithDashboardProject = ref<TableWithProject[] | undefined>()
+
   const isLayoutFetching = ref<Record<string, boolean>>({})
 
   const layoutsOfProjects = ref<Record<string, LayoutSidebarNode[]>>({})
@@ -56,13 +87,17 @@ export const useDashboardStore = defineStore('dashboardStore', () => {
   const projectStore = useProject()
   const { project } = storeToRefs(projectStore)
 
+  const projectsStore = useProjects()
+  const { loadProjectTables } = projectsStore
+  const { projectTableList } = storeToRefs(projectsStore)
+
   const focusedWidgetId = ref<string | undefined>(undefined)
 
   const openedWidgets = reactive<Widget[]>([])
 
-  const focusedWidget = computed(() =>
-    openedWidgets.find((widget: { id: string | undefined }) => widget.id === focusedWidgetId.value),
-  )
+  const availableColumnsOfSelectedView = ref<Array<ColumnType>>()
+
+  const availableViewsOfSelectedTable = ref<IdAndTitle[] | undefined>()
 
   /***
    *
@@ -70,15 +105,58 @@ export const useDashboardStore = defineStore('dashboardStore', () => {
    *
    */
 
+  const focusedWidget = computed(() =>
+    openedWidgets.find((widget: { id: string | undefined }) => widget.id === focusedWidgetId.value),
+  )
+
+  const linkedDbProjects = computed(() => project.value?.linked_db_projects)
+
+  const availableDbProjects = computed(
+    () =>
+      linkedDbProjects.value?.map((project) => ({
+        id: project.id!,
+        title: project.title || 'unknown',
+      })) || [],
+  )
+
   const openedProjectId = computed<string>(() => route.params.projectId as string)
   const openedLayoutId = computed<string | null>(() => route.params.layoutId as string)
   const _openedWorkspaceId = computed<string>(() => route.params.workspaceId as string)
+  const availableNumericColumnsOfSelectedView = computed(() => {
+    if (!availableColumnsOfSelectedView.value) {
+      return undefined
+    }
+
+    // TODO: check also for other numeric types here (like float)
+    return availableColumnsOfSelectedView.value.filter((column) => column.dt && ['integer'].includes(column.dt))
+  })
 
   /***
    *
    * Private functions
    *
    */
+
+  const _updateWidgetInAPIAndLocally = async (updatedWidget: Widget) => {
+    // 1. Update the API
+    await $api.dashboard.widgetUpdate(openedLayoutId.value!, updatedWidget.id, updatedWidget)
+    // 2. Update the local object in collection
+    // Question here: regarding reactivity,
+    //   * better to replace the whole object in the collection?
+    //   * or to update the respective props of the same object only
+    openedWidgets.splice(
+      0,
+      openedWidgets.length,
+      ...openedWidgets.map((wid: Widget) => {
+        if (wid.id === updatedWidget.id) {
+          return updatedWidget
+        } else {
+          return wid
+        }
+      }),
+    )
+  }
+
   function _findSingleLayout(layouts: LayoutSidebarNode[], layoutId: string) {
     if (!layouts) {
       console.error('layouts is undefined:')
@@ -185,11 +263,91 @@ export const useDashboardStore = defineStore('dashboardStore', () => {
     }
   }
 
+  const _resetDepsOfSelectedView = () => {
+    availableColumnsOfSelectedView.value = undefined
+    if (focusedWidget.value?.data_config) {
+      switch (focusedWidget.value?.widget_type) {
+        case WidgetTypeType.LineChart:
+        case WidgetTypeType.PieChart:
+        case WidgetTypeType.BarChart: {
+          ;(focusedWidget.value.data_config as DataConfigAggregated2DChart).xAxisColId = undefined
+          // ;(focusedWidget.value.dataLink as ChartDataLink).xDataColumnTitle = undefined
+          ;(focusedWidget.value.data_config as DataConfigAggregated2DChart).yAxisColId = undefined
+          // ;(focusedWidget.value.dataLink as ChartDataLink).yDataColumnTitle = undefined
+          break
+        }
+        case WidgetTypeType.Number: {
+          ;(focusedWidget.value.data_config as DataConfigNumber).colId = undefined
+
+          break
+        }
+        default: {
+          alert('_resetDepsOfSelectedView handing not yet implemented for this visualisation type')
+          break
+        }
+      }
+      // TODO: handle other dataSourceTypes as well, probably via command pattern etc
+      if (focusedWidget.value.data_source?.dataSourceType === DataSourceType.INTERNAL) {
+        ;(focusedWidget.value.data_source as DataSourceInternal).viewId = undefined
+      }
+    }
+  }
+
+  const _resetDepsOfSelectedTable = () => {
+    availableViewsOfSelectedTable.value = undefined
+    if (focusedWidget.value?.data_config) {
+      // TODO: handle other dataSourceTypes as well, probably via command pattern etc
+      if (focusedWidget.value.data_source?.dataSourceType === DataSourceType.INTERNAL) {
+        ;(focusedWidget.value.data_source as DataSourceInternal).viewId = undefined
+      }
+    }
+    _resetDepsOfSelectedView()
+  }
+
   /***
    *
    * watchers
    *
    */
+  watch(
+    () => (focusedWidget.value?.data_source as DataSourceInternal)?.tableId,
+    async () => {
+      availableViewsOfSelectedTable.value = undefined
+      const currentTableId = (focusedWidget.value?.data_source as DataSourceInternal)?.tableId
+      if (currentTableId) {
+        const response = (await $api.dbView.list(currentTableId)).list as ViewType[]
+        if (response) {
+          availableViewsOfSelectedTable.value = response
+            .sort((a, b) => a.order! - b.order!)
+            .map((view) => ({
+              id: view.id!,
+              title: view.title || 'unknown',
+            }))
+        }
+      }
+    },
+  )
+
+  watch(availableDbProjects, async () => {
+    if (availableDbProjects.value == null || availableDbProjects.value.length === 0) {
+      availableTablesOfAllDBProjectsLinkedWithDashboardProject.value = []
+      return
+    }
+    await Promise.all(availableDbProjects.value.map(async (project) => await loadProjectTables(project.id)))
+
+    availableTablesOfAllDBProjectsLinkedWithDashboardProject.value = Object.values(projectTableList.value)
+      .flat()
+      .filter((t) => t != null)
+      .map((table) => ({
+        id: table.id!,
+        title: table.title || 'unknown',
+        project: {
+          id: table.project_id!,
+          title: availableDbProjects.value.find((p) => p.id === table.project_id)?.title || 'unknown',
+        },
+      }))
+  })
+
   watch(
     openedLayoutId,
     async (newLayoutId, previousDashboardId) => {
@@ -255,6 +413,20 @@ export const useDashboardStore = defineStore('dashboardStore', () => {
     {
       immediate: true,
       deep: true,
+    },
+  )
+
+  watch(
+    [
+      () => (focusedWidget.value?.data_source as DataSourceInternal)?.tableId,
+      () => (focusedWidget.value?.data_source as DataSourceInternal)?.viewId,
+    ],
+    async ([newTableId, newViewId], [_oldTableId, _oldViewId]) => {
+      availableColumnsOfSelectedView.value = undefined
+      if (newViewId && newTableId) {
+        const columnsOfTable = (await $api.dbTable.read(newTableId)).columns
+        availableColumnsOfSelectedView.value = columnsOfTable
+      }
     },
   )
 
@@ -493,12 +665,111 @@ export const useDashboardStore = defineStore('dashboardStore', () => {
     focusedWidgetId.value = elementId
   }
 
+  // Widget Data Config methods
+
+  const changeSelectedProjectIdAndTableIdOfFocusedWidget = (newProjectId: string, newTableId: string) => {
+    _resetDepsOfSelectedTable()
+    if (focusedWidget.value?.data_source) {
+      // TODO: handle other dataSourceTypes as well, probably via command pattern etc
+      if (focusedWidget.value.data_source?.dataSourceType === DataSourceType.INTERNAL) {
+        const updatedWidget = reactive({
+          ...focusedWidget.value!,
+          data_source: reactive({
+            ...focusedWidget.value.data_source,
+            tableId: newTableId,
+            projectId: newProjectId,
+          }),
+        })
+        _updateWidgetInAPIAndLocally(updatedWidget)
+      }
+    }
+  }
+
+  const changeSelectedViewIdOfFocusedWidget = (newViewId: string) => {
+    _resetDepsOfSelectedView()
+    if (focusedWidget.value?.data_source) {
+      // TODO: handle other dataSourceTypes as well, probably via command pattern etc
+      if (focusedWidget.value.data_source?.dataSourceType === DataSourceType.INTERNAL) {
+        const updatedWidget = {
+          ...focusedWidget.value!,
+          data_source: {
+            ...focusedWidget.value.data_source,
+            viewId: newViewId,
+          },
+        }
+        _updateWidgetInAPIAndLocally(updatedWidget)
+      }
+    }
+  }
+
+  const changeSelectedNumberColumnIdOfFocusedWidget = (newNumberColumnId: string) => {
+    if (!focusedWidget.value || ![WidgetTypeType.Number].includes(focusedWidget.value.widget_type)) {
+      console.error('changeSelectedNumberColumnIdOfFocusedWidget: focusedWidget.value is undefined or not a chart')
+      return
+    }
+    _updateWidgetInAPIAndLocally({
+      ...focusedWidget.value!,
+      data_config: {
+        ...focusedWidget.value!.data_config,
+        colId: newNumberColumnId,
+      },
+    })
+  }
+
+  const changeAggregateFunctionOfFocusedWidget = (newAggregateFunctionId: string) => {
+    if (
+      !focusedWidget.value ||
+      ![WidgetTypeType.Number, WidgetTypeType.LineChart, WidgetTypeType.BarChart, WidgetTypeType.PieChart].includes(
+        focusedWidget.value.widget_type,
+      )
+    ) {
+      console.error('changeAggregateFunctionOfFocusedWidget: focusedWidget.value is undefined or not a chart')
+      return
+    }
+    if (!Object.values(AggregateFnType).includes(newAggregateFunctionId as AggregateFnType)) {
+      console.error(`changeAggregateFunctionOfFocusedWidget: '${newAggregateFunctionId}' is not a valid AggregateFnType`)
+      return
+    }
+    if ([WidgetTypeType.Number, ...chartTypes].includes(focusedWidget.value.widget_type)) {
+      _updateWidgetInAPIAndLocally({
+        ...focusedWidget.value,
+        data_config: {
+          ...focusedWidget.value.data_config,
+          aggregateFunction: newAggregateFunctionId as AggregateFnType,
+        },
+      })
+    }
+  }
+
+  const changeChartTypeOfFocusedChartElement = (newChartType: string) => {
+    if (!focusedWidget.value || !chartTypes.includes(focusedWidget.value.widget_type)) {
+      console.error('changeChartTypeOfFocusedChartElement: focusedWidget.value is undefined or not a chart')
+      return
+    }
+    if (!newChartType || !chartTypes.includes(newChartType as WidgetTypeType)) {
+      console.error('changeChartTypeOfFocusedChartElement: newChartType is undefined or not a valid chart type')
+      return
+    }
+    const updatedWidget = {
+      ...focusedWidget.value!,
+      widget_type: newChartType as WidgetTypeType,
+    }
+    _updateWidgetInAPIAndLocally(updatedWidget)
+  }
+
   return {
     openedLayoutSidebarNode: readonly(openedLayoutSidebarNode),
+    openedLayoutId: readonly(openedLayoutId),
     layoutsOfProjects: readonly(layoutsOfProjects),
     openedWidgets: readonly(openedWidgets),
     focusedWidget: readonly(focusedWidget),
     reloadWidgetDataEventBus: readonly(reloadWidgetDataEventBus),
+    availableTablesOfAllDBProjectsLinkedWithDashboardProject: readonly(availableTablesOfAllDBProjectsLinkedWithDashboardProject),
+    availableViewsOfSelectedTable: readonly(availableViewsOfSelectedTable),
+    availableColumnsOfSelectedView: readonly(availableColumnsOfSelectedView),
+    availableNumericColumnsOfSelectedView: readonly(availableNumericColumnsOfSelectedView),
+    // project: readonly(project),
+    // availableDbProjects: readonly(availableDbProjects),
     getDashboardProjectUrl,
     fetchLayouts,
     openLayout,
@@ -510,5 +781,10 @@ export const useDashboardStore = defineStore('dashboardStore', () => {
     updateScreenDimensionsOfWidgetById,
     removeWidgetById,
     resetFocus,
+    changeSelectedProjectIdAndTableIdOfFocusedWidget,
+    changeSelectedNumberColumnIdOfFocusedWidget,
+    changeSelectedViewIdOfFocusedWidget,
+    changeAggregateFunctionOfFocusedWidget,
+    changeChartTypeOfFocusedChartElement,
   }
 })

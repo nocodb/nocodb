@@ -145,6 +145,8 @@ const rolePermissions = {
       widgetCreate: true,
       widgetUpdate: true,
       widgetDelete: true,
+      widgetFilterList: true,
+      widgetFilterCreate: true,
 
       // data
       dataList: true,

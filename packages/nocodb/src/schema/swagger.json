@@ -7936,8 +7936,18 @@
         ]
       }
     },
-    "/api/v1/layouts/:layoutId/widgets/:widgetId/filters": {
+    "/api/v1/dashboards/{dashboardId}/layouts/{layoutId}/widgets/{widgetId}/filters": {
       "parameters": [
+        {
+          "schema": {
+            "type": "string",
+            "example": "vw_wtdg2meyig5l4q"
+          },
+          "name": "dashboardId",
+          "in": "path",
+          "required": true,
+          "description": "Unique Dashboard Project ID"
+        },
         {
           "schema": {
             "type": "string",

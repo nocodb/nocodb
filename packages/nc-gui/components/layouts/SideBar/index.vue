@@ -32,8 +32,8 @@ onMounted(async () => {
     theme="light"
   >
     <div class="border-none sortable-list">
-      <DashboardsSideBarLayoutNode
-        v-for="layout of layouts ?? [].filter((layout) => layout.base_id === project.bases[baseIndex].id)"
+      <LayoutsSideBarLayoutNode
+        v-for="layout of layouts ?? []"
         :key="layout.id"
         v-e="['a:layout:open']"
         class="nc-tree-item text-sm cursor-pointer group"
@@ -42,7 +42,6 @@ onMounted(async () => {
         :data-testid="`tree-view-layout-${layout.title}`"
         :layout="layout"
         :project="project"
-        :base-index="baseIndex"
         @click="
           openLayout({
             layout,
@@ -50,7 +49,7 @@ onMounted(async () => {
           })
         "
       >
-      </DashboardsSideBarLayoutNode>
+      </LayoutsSideBarLayoutNode>
     </div>
 
     <div

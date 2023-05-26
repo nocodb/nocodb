@@ -138,7 +138,7 @@ const drop = (ev: DragEvent) => {
     <a-layout-content ref="mainArea" class="main-area" :min-width="200" @click="resetFocus" @dragover.prevent @drop="drop">
       <div>
         <template v-for="widget in openedWidgets" :key="widget.id">
-          <DashboardsLayoutsDraggableResizableContainer
+          <LayoutsDraggableResizableContainer
             :has-focus="widget.id === focusedWidget?.id"
             :screen-position="widget.appearance_config.screenPosition"
             :screen-dimensions="widget.appearance_config.screenDimensions"
@@ -147,14 +147,14 @@ const drop = (ev: DragEvent) => {
             @update-screen-dimensions="updateScreenDimensionsOfWidgetById(widget.id, $event.newScreenDimensions)"
             @remove="removeWidgetById(widget.id)"
           >
-            <DashboardsWidgetsWidget :widget="widget" />
-          </DashboardsLayoutsDraggableResizableContainer>
+            <LayoutsWidgetsWidget :widget="widget" />
+          </LayoutsDraggableResizableContainer>
         </template>
       </div>
     </a-layout-content>
     <!-- TODO: decide / change again to rem for width and overall: use consistent styling -->
     <a-layout-sider class="right-sidebar flex" width="500px" theme="light">
-      <DashboardsLayoutsWidgetsPropertiesPanel />
+      <LayoutsWidgetsPropertiesPanel />
     </a-layout-sider>
   </a-layout>
 </template>

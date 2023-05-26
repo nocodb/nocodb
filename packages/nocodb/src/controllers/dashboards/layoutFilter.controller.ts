@@ -6,21 +6,25 @@ import {
   Param,
   Post,
   Request,
+  UseGuards,
 } from '@nestjs/common';
 import { FilterReqType } from 'nocodb-sdk';
+import { GlobalGuard } from '../../guards/global/global.guard';
+import { ExtractProjectAndWorkspaceIdMiddleware } from '../../middlewares/extract-project-and-workspace-id/extract-project-and-workspace-id.middleware';
 import { PagedResponseImpl } from '../../helpers/PagedResponse';
 import { UseAclMiddleware } from '../../middlewares/extract-project-id/extract-project-id.middleware';
-import { DashboardFilterService } from '../../services/dashboards/dashboardFilter.service';
+import { LayoutFilterService } from '../../services/dashboards/layoutFilter.service';
 
 @Controller()
-export class DashboardFilterController {
-  constructor(
-    private readonly dashboardFilterService: DashboardFilterService,
-  ) {}
+@UseGuards(ExtractProjectAndWorkspaceIdMiddleware, GlobalGuard)
+export class LayoutFilterController {
+  constructor(private readonly dashboardFilterService: LayoutFilterService) {}
 
-  @Get(['/api/v1/layouts/:layoutId/widgets/:widgetId/filters'])
+  @Get([
+    '/api/v1/dashboards/:dashboardId/layouts/:layoutId/widgets/:widgetId/filters',
+  ])
   @UseAclMiddleware({
-    permissionName: 'filterList',
+    permissionName: 'widgetFilterList',
   })
   async filterList(
     @Param('layoutId') layoutId: string,
@@ -34,10 +38,12 @@ export class DashboardFilterController {
     );
   }
 
-  @Post(['/api/v1/layouts/:layoutId/widgets/:widgetId/filters'])
+  @Post([
+    '/api/v1/dashboards/:dashboardId/layouts/:layoutId/widgets/:widgetId/filters',
+  ])
   @HttpCode(200)
   @UseAclMiddleware({
-    permissionName: 'filterCreate',
+    permissionName: 'widgetFilterCreate',
   })
   async filterCreate(
     @Param('layoutId') layoutId: string,

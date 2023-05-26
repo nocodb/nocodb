@@ -37,7 +37,6 @@ const formState = reactive({
   title: '',
 })
 
-const route = useRoute()
 const creating = ref(false)
 
 const createProject = async () => {

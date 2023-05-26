@@ -1,8 +1,9 @@
 import 'mocha';
+import request from 'supertest';
+import { UITypes } from 'nocodb-sdk';
+import { expect } from 'chai';
 import init from '../../init';
 import { createProject, createSakilaProject } from '../../factory/project';
-import request from 'supertest';
-import { ColumnType, UITypes } from 'nocodb-sdk';
 import {
   createColumn,
   createLookupColumn,
@@ -11,18 +12,18 @@ import {
 } from '../../factory/column';
 import { createTable, getTable } from '../../factory/table';
 import {
+  createBulkRows,
   createChildRow,
   createRow,
   generateDefaultRowAttributes,
   getOneRow,
   getRow,
   listRow,
-  createBulkRows,
 } from '../../factory/row';
 import { isMysql, isPg, isSqlite } from '../../init/db';
-import Model from '../../../../src/models/Model';
-import Project from '../../../../src/models/Project';
-import { expect } from 'chai';
+import type { ColumnType } from 'nocodb-sdk';
+import type Model from '../../../../src/models/Model';
+import type Project from '../../../../src/models/Project';
 
 const isColumnsCorrectInResponse = (row, columns: ColumnType[]) => {
   const responseColumnsListStr = Object.keys(row).sort().join(',');
@@ -160,7 +161,7 @@ function tableTest() {
 
   it('Get desc sorted table data list with required columns', async function () {
     const firstNameColumn = customerColumns.find(
-      (col) => col.title === 'FirstName'
+      (col) => col.title === 'FirstName',
     );
     const visibleColumns = [firstNameColumn];
     const sortInfo = [{ fk_column_id: firstNameColumn.id, direction: 'desc' }];
@@ -214,7 +215,7 @@ function tableTest() {
 
   it('Get asc sorted table data list with required columns', async function () {
     const firstNameColumn = customerColumns.find(
-      (col) => col.title === 'FirstName'
+      (col) => col.title === 'FirstName',
     );
     const visibleColumns = [firstNameColumn];
     const sortInfo = [{ fk_column_id: firstNameColumn.id, direction: 'asc' }];
@@ -427,7 +428,7 @@ function tableTest() {
     });
 
     const paymentListColumn = (await rentalTable.getColumns()).find(
-      (c) => c.title === 'Payment List'
+      (c) => c.title === 'Payment List',
     );
 
     const nestedFilter = {
@@ -513,11 +514,11 @@ function tableTest() {
     });
 
     const paymentListColumn = (await rentalTable.getColumns()).find(
-      (c) => c.title === 'Payment List'
+      (c) => c.title === 'Payment List',
     );
 
     const returnDateColumn = (await rentalTable.getColumns()).find(
-      (c) => c.title === 'ReturnDate'
+      (c) => c.title === 'ReturnDate',
     );
 
     const nestedFilter = {
@@ -630,15 +631,15 @@ function tableTest() {
     });
 
     const paymentListColumn = (await customerTable.getColumns()).find(
-      (c) => c.title === 'Payment List'
+      (c) => c.title === 'Payment List',
     );
 
     const activeColumn = (await customerTable.getColumns()).find(
-      (c) => c.title === 'Active'
+      (c) => c.title === 'Active',
     );
 
     const addressColumn = (await customerTable.getColumns()).find(
-      (c) => c.title === 'Address'
+      (c) => c.title === 'Address',
     );
 
     const nestedFilter = [
@@ -786,11 +787,11 @@ function tableTest() {
     });
 
     const paymentListColumn = (await customerTable.getColumns()).find(
-      (c) => c.title === 'Payment List'
+      (c) => c.title === 'Payment List',
     );
 
     const activeColumn = (await customerTable.getColumns()).find(
-      (c) => c.title === 'Active'
+      (c) => c.title === 'Active',
     );
 
     const nestedFields = {
@@ -866,7 +867,7 @@ function tableTest() {
     }
 
     const nestedRentalResponse = Object.keys(
-      ascResponse.body.list[0]['Rental List']
+      ascResponse.body.list[0]['Rental List'],
     );
     if (
       nestedRentalResponse.includes('ReturnDate') &&
@@ -914,7 +915,7 @@ function tableTest() {
     if (
       (response.body.list as Array<any>).every(
         (row) =>
-          parseInt(row['Formula']) !== parseInt(row[rollupColumnTitle]) + 10
+          parseInt(row['Formula']) !== parseInt(row[rollupColumnTitle]) + 10,
       )
     ) {
       throw new Error('Wrong formula');
@@ -998,13 +999,13 @@ function tableTest() {
 
   it('Find one sorted table data list with required columns', async function () {
     const firstNameColumn = customerColumns.find(
-      (col) => col.title === 'FirstName'
+      (col) => col.title === 'FirstName',
     );
     const visibleColumns = [firstNameColumn];
 
     let response = await request(context.app)
       .get(
-        `/api/v1/db/data/noco/${sakilaProject.id}/${customerTable.id}/find-one`
+        `/api/v1/db/data/noco/${sakilaProject.id}/${customerTable.id}/find-one`,
       )
       .set('xc-auth', context.token)
       .query({
@@ -1025,7 +1026,7 @@ function tableTest() {
 
     response = await request(context.app)
       .get(
-        `/api/v1/db/data/noco/${sakilaProject.id}/${customerTable.id}/find-one`
+        `/api/v1/db/data/noco/${sakilaProject.id}/${customerTable.id}/find-one`,
       )
       .set('xc-auth', context.token)
       .query({
@@ -1047,7 +1048,7 @@ function tableTest() {
 
   it('Find one desc sorted and with rollup table data  list with required columns', async function () {
     const firstNameColumn = customerColumns.find(
-      (col) => col.title === 'FirstName'
+      (col) => col.title === 'FirstName',
     );
 
     const rollupColumn = await createRollupColumn(context, {
@@ -1064,7 +1065,7 @@ function tableTest() {
 
     const response = await request(context.app)
       .get(
-        `/api/v1/db/data/noco/${sakilaProject.id}/${customerTable.id}/find-one`
+        `/api/v1/db/data/noco/${sakilaProject.id}/${customerTable.id}/find-one`,
       )
       .set('xc-auth', context.token)
       .query({
@@ -1095,15 +1096,17 @@ function tableTest() {
     });
 
     const paymentListColumn = (await customerTable.getColumns()).find(
-      (c) => c.title === 'Payment List'
+      (c) => c.title === 'Payment List',
     );
 
     const activeColumn = (await customerTable.getColumns()).find(
-      (c) => c.title === 'Active'
+      (c) => c.title === 'Active',
     );
 
     const nestedFields = {
-      'Rental List': ['RentalDate', 'ReturnDate'],
+      'Rental List': {
+        f: 'RentalDate,ReturnDate',
+      },
     };
 
     const nestedFilter = [
@@ -1152,7 +1155,7 @@ function tableTest() {
 
     const ascResponse = await request(context.app)
       .get(
-        `/api/v1/db/data/noco/${sakilaProject.id}/${customerTable.id}/find-one`
+        `/api/v1/db/data/noco/${sakilaProject.id}/${customerTable.id}/find-one`,
       )
       .set('xc-auth', context.token)
       .query({
@@ -1179,7 +1182,7 @@ function tableTest() {
 
   it('Groupby desc sorted and with rollup table data  list with required columns', async function () {
     const firstNameColumn = customerColumns.find(
-      (col) => col.title === 'FirstName'
+      (col) => col.title === 'FirstName',
     );
 
     const rollupColumn = await createRollupColumn(context, {
@@ -1196,7 +1199,7 @@ function tableTest() {
 
     const response = await request(context.app)
       .get(
-        `/api/v1/db/data/noco/${sakilaProject.id}/${customerTable.id}/groupby`
+        `/api/v1/db/data/noco/${sakilaProject.id}/${customerTable.id}/groupby`,
       )
       .set('xc-auth', context.token)
       .query({
@@ -1215,7 +1218,7 @@ function tableTest() {
 
   it('Groupby desc sorted and with rollup table data  list with required columns', async function () {
     const firstNameColumn = customerColumns.find(
-      (col) => col.title === 'FirstName'
+      (col) => col.title === 'FirstName',
     );
 
     const rollupColumn = await createRollupColumn(context, {
@@ -1232,7 +1235,7 @@ function tableTest() {
 
     const response = await request(context.app)
       .get(
-        `/api/v1/db/data/noco/${sakilaProject.id}/${customerTable.id}/groupby`
+        `/api/v1/db/data/noco/${sakilaProject.id}/${customerTable.id}/groupby`,
       )
       .set('xc-auth', context.token)
       .query({
@@ -1260,7 +1263,7 @@ function tableTest() {
 
     const readResponse = await request(context.app)
       .get(
-        `/api/v1/db/data/noco/${sakilaProject.id}/${customerTable.id}/${row['CustomerId']}`
+        `/api/v1/db/data/noco/${sakilaProject.id}/${customerTable.id}/${row['CustomerId']}`,
       )
       .set('xc-auth', context.token)
       .expect(200);
@@ -1270,6 +1273,39 @@ function tableTest() {
       row['FirstName'] !== readResponse.body['FirstName']
     ) {
       throw new Error('Wrong read');
+    }
+  });
+
+  it('Read table row with nested fields', async () => {
+    const rowId = 1;
+    const actorTable = await getTable({
+      project: sakilaProject,
+      name: 'actor',
+    });
+    const response = await request(context.app)
+      .get(
+        `/api/v1/db/data/noco/${sakilaProject.id}/${actorTable.id}/${rowId}/`,
+      )
+      .set('xc-auth', context.token)
+      .query({
+        'nested[Film List][fields]': 'Title,ReleaseYear,Language',
+      })
+      .expect(200);
+
+    const record = response.body;
+    expect(record['Film List']).length(19);
+    expect(record['Film List'][0]).to.have.all.keys(
+      'Title',
+      'ReleaseYear',
+      'Language',
+    );
+
+    // for SQLite Sakila, Language is null
+    if (isPg(context)) {
+      expect(record['Film List'][0]['Language']).to.have.all.keys(
+        'Name',
+        'LanguageId',
+      );
     }
   });
 
@@ -1396,7 +1432,7 @@ function tableTest() {
 
     if (
       !(response.body.message[0] as string).includes(
-        'is a LinkToAnotherRecord of'
+        'is a LinkToAnotherRecord of',
       )
     ) {
       throw new Error('Should give ltar foreign key error');
@@ -1411,7 +1447,7 @@ function tableTest() {
 
     const response = await request(context.app)
       .get(
-        `/api/v1/db/data/noco/${sakilaProject.id}/${customerTable.id}/${row['CustomerId']}/exist`
+        `/api/v1/db/data/noco/${sakilaProject.id}/${customerTable.id}/${row['CustomerId']}/exist`,
       )
       .set('xc-auth', context.token)
       .expect(200);
@@ -1424,7 +1460,7 @@ function tableTest() {
   it('Exist should be false table row when it does not exists', async function () {
     const response = await request(context.app)
       .get(
-        `/api/v1/db/data/noco/${sakilaProject.id}/${customerTable.id}/998546/exist`
+        `/api/v1/db/data/noco/${sakilaProject.id}/${customerTable.id}/998546/exist`,
       )
       .set('xc-auth', context.token)
       .expect(200);
@@ -1531,7 +1567,7 @@ function tableTest() {
       .patch(`/api/v1/db/data/bulk/noco/${project.id}/${table.id}`)
       .set('xc-auth', context.token)
       .send(
-        rows.map((row) => ({ title: `new-${row['Title']}`, id: row['Id'] }))
+        rows.map((row) => ({ title: `new-${row['Title']}`, id: row['Id'] })),
       )
       .expect(200);
     const updatedRows: Array<any> = await listRow({ project, table });
@@ -1612,7 +1648,7 @@ function tableTest() {
   it('Export csv', async () => {
     const response = await request(context.app)
       .get(
-        `/api/v1/db/data/noco/${sakilaProject.id}/${customerTable.title}/export/csv`
+        `/api/v1/db/data/noco/${sakilaProject.id}/${customerTable.title}/export/csv`,
       )
       .set('xc-auth', context.token)
       .expect(200);
@@ -1631,14 +1667,14 @@ function tableTest() {
   it('Export excel', async () => {
     const response = await request(context.app)
       .get(
-        `/api/v1/db/data/noco/${sakilaProject.id}/${customerTable.title}/export/excel`
+        `/api/v1/db/data/noco/${sakilaProject.id}/${customerTable.title}/export/excel`,
       )
       .set('xc-auth', context.token)
       .expect(200);
 
     if (
       !response['header']['content-disposition'].includes(
-        'Customer-export.xlsx'
+        'Customer-export.xlsx',
       )
     ) {
       throw new Error('Wrong file name');
@@ -1653,11 +1689,11 @@ function tableTest() {
   it('Nested row list hm', async () => {
     const rowId = 1;
     const rentalListColumn = (await customerTable.getColumns()).find(
-      (column) => column.title === 'Rental List'
+      (column) => column.title === 'Rental List',
     )!;
     const response = await request(context.app)
       .get(
-        `/api/v1/db/data/noco/${sakilaProject.id}/${customerTable.id}/${rowId}/hm/${rentalListColumn.id}`
+        `/api/v1/db/data/noco/${sakilaProject.id}/${customerTable.id}/${rowId}/hm/${rentalListColumn.id}`,
       )
       .set('xc-auth', context.token)
       .expect(200);
@@ -1672,11 +1708,11 @@ function tableTest() {
   it('Nested row list hm with limit and offset', async () => {
     const rowId = 1;
     const rentalListColumn = (await customerTable.getColumns()).find(
-      (column) => column.title === 'Rental List'
+      (column) => column.title === 'Rental List',
     )!;
     const response = await request(context.app)
       .get(
-        `/api/v1/db/data/noco/${sakilaProject.id}/${customerTable.id}/${rowId}/hm/${rentalListColumn.id}`
+        `/api/v1/db/data/noco/${sakilaProject.id}/${customerTable.id}/${rowId}/hm/${rentalListColumn.id}`,
       )
       .set('xc-auth', context.token)
       .query({
@@ -1698,11 +1734,11 @@ function tableTest() {
   it('Row list hm with invalid table id', async () => {
     const rowId = 1;
     const rentalListColumn = (await customerTable.getColumns()).find(
-      (column) => column.title === 'Rental List'
+      (column) => column.title === 'Rental List',
     )!;
     const response = await request(context.app)
       .get(
-        `/api/v1/db/data/noco/${sakilaProject.id}/wrong-id/${rowId}/hm/${rentalListColumn.id}`
+        `/api/v1/db/data/noco/${sakilaProject.id}/wrong-id/${rowId}/hm/${rentalListColumn.id}`,
       )
       .set('xc-auth', context.token)
       .expect(404);
@@ -1750,11 +1786,11 @@ function tableTest() {
     });
     const filmTable = await getTable({ project: sakilaProject, name: 'film' });
     const filmListColumn = (await actorTable.getColumns()).find(
-      (column) => column.title === 'Film List'
+      (column) => column.title === 'Film List',
     )!;
     const response = await request(context.app)
       .get(
-        `/api/v1/db/data/noco/${sakilaProject.id}/${actorTable.id}/${rowId}/mm/${filmListColumn.id}`
+        `/api/v1/db/data/noco/${sakilaProject.id}/${actorTable.id}/${rowId}/mm/${filmListColumn.id}`,
       )
       .set('xc-auth', context.token)
       .expect(200);
@@ -1774,11 +1810,11 @@ function tableTest() {
     });
     const filmTable = await getTable({ project: sakilaProject, name: 'film' });
     const filmListColumn = (await actorTable.getColumns()).find(
-      (column) => column.title === 'Film List'
+      (column) => column.title === 'Film List',
     )!;
     const response = await request(context.app)
       .get(
-        `/api/v1/db/data/noco/${sakilaProject.id}/${actorTable.id}/${rowId}/mm/${filmListColumn.id}`
+        `/api/v1/db/data/noco/${sakilaProject.id}/${actorTable.id}/${rowId}/mm/${filmListColumn.id}`,
       )
       .set('xc-auth', context.token)
       .query({
@@ -1805,11 +1841,11 @@ function tableTest() {
       name: 'actor',
     });
     const filmListColumn = (await actorTable.getColumns()).find(
-      (column) => column.title === 'Film List'
+      (column) => column.title === 'Film List',
     )!;
     const response = await request(context.app)
       .get(
-        `/api/v1/db/data/noco/${sakilaProject.id}/invalid-table-id/${rowId}/mm/${filmListColumn.id}`
+        `/api/v1/db/data/noco/${sakilaProject.id}/invalid-table-id/${rowId}/mm/${filmListColumn.id}`,
       )
       .set('xc-auth', context.token)
       .expect(404);
@@ -1823,12 +1859,12 @@ function tableTest() {
   it('Create hm relation with invalid table id', async () => {
     const rowId = 1;
     const rentalListColumn = (await customerTable.getColumns()).find(
-      (column) => column.title === 'Rental List'
+      (column) => column.title === 'Rental List',
     )!;
     const refId = 1;
     const response = await request(context.app)
       .post(
-        `/api/v1/db/data/noco/${sakilaProject.id}/invalid-table-id/${rowId}/hm/${rentalListColumn.id}/${refId}`
+        `/api/v1/db/data/noco/${sakilaProject.id}/invalid-table-id/${rowId}/hm/${rentalListColumn.id}/${refId}`,
       )
       .set('xc-auth', context.token)
       .expect(404);
@@ -1841,12 +1877,12 @@ function tableTest() {
   it('Create hm relation with non ltar column', async () => {
     const rowId = 1;
     const firstNameColumn = (await customerTable.getColumns()).find(
-      (column) => column.title === 'FirstName'
+      (column) => column.title === 'FirstName',
     )!;
     const refId = 1;
     const response = await request(context.app)
       .post(
-        `/api/v1/db/data/noco/${sakilaProject.id}/${customerTable.id}/${rowId}/hm/${firstNameColumn.id}/${refId}`
+        `/api/v1/db/data/noco/${sakilaProject.id}/${customerTable.id}/${rowId}/hm/${firstNameColumn.id}/${refId}`,
       )
       .set('xc-auth', context.token)
       .expect(404);
@@ -1863,7 +1899,7 @@ function tableTest() {
 
     const response = await request(context.app)
       .post(
-        `/api/v1/db/data/noco/${sakilaProject.id}/${customerTable.id}/${rowId}/hm/invalid-column/${refId}`
+        `/api/v1/db/data/noco/${sakilaProject.id}/${customerTable.id}/${rowId}/hm/invalid-column/${refId}`,
       )
       .set('xc-auth', context.token)
       .expect(404);
@@ -1898,20 +1934,20 @@ function tableTest() {
   it('Create list hm', async () => {
     const rowId = 1;
     const rentalListColumn = (await customerTable.getColumns()).find(
-      (column) => column.title === 'Rental List'
+      (column) => column.title === 'Rental List',
     )!;
     const refId = 1;
 
     const lisResponseBeforeUpdate = await request(context.app)
       .get(
-        `/api/v1/db/data/noco/${sakilaProject.id}/${customerTable.id}/${rowId}/hm/${rentalListColumn.id}`
+        `/api/v1/db/data/noco/${sakilaProject.id}/${customerTable.id}/${rowId}/hm/${rentalListColumn.id}`,
       )
       .set('xc-auth', context.token)
       .expect(200);
 
     await request(context.app)
       .post(
-        `/api/v1/db/data/noco/${sakilaProject.id}/${customerTable.id}/${rowId}/hm/${rentalListColumn.id}/${refId}`
+        `/api/v1/db/data/noco/${sakilaProject.id}/${customerTable.id}/${rowId}/hm/${rentalListColumn.id}/${refId}`,
       )
       .set('xc-auth', context.token)
       .expect(200);
@@ -1919,7 +1955,7 @@ function tableTest() {
 
     const lisResponseAfterUpdate = await request(context.app)
       .get(
-        `/api/v1/db/data/noco/${sakilaProject.id}/${customerTable.id}/${rowId}/hm/${rentalListColumn.id}`
+        `/api/v1/db/data/noco/${sakilaProject.id}/${customerTable.id}/${rowId}/hm/${rentalListColumn.id}`,
       )
       .set('xc-auth', context.token)
       .expect(200);
@@ -1942,7 +1978,7 @@ function tableTest() {
 
     const response = await request(context.app)
       .post(
-        `/api/v1/db/data/noco/${sakilaProject.id}/${actorTable.id}/${rowId}/mm/invalid-column/${refId}`
+        `/api/v1/db/data/noco/${sakilaProject.id}/${actorTable.id}/${rowId}/mm/invalid-column/${refId}`,
       )
       .set('xc-auth', context.token)
       .expect(404);
@@ -1962,12 +1998,12 @@ function tableTest() {
       name: 'actor',
     });
     const firstNameColumn = (await actorTable.getColumns()).find(
-      (column) => column.title === 'FirstName'
+      (column) => column.title === 'FirstName',
     )!;
     const refId = 1;
     const response = await request(context.app)
       .post(
-        `/api/v1/db/data/noco/${sakilaProject.id}/${actorTable.id}/${rowId}/mm/${firstNameColumn.id}/${refId}`
+        `/api/v1/db/data/noco/${sakilaProject.id}/${actorTable.id}/${rowId}/mm/${firstNameColumn.id}/${refId}`,
       )
       .set('xc-auth', context.token)
       .expect(404);
@@ -1985,13 +2021,13 @@ function tableTest() {
       name: 'actor',
     });
     const filmListColumn = (await actorTable.getColumns()).find(
-      (column) => column.title === 'Film List'
+      (column) => column.title === 'Film List',
     )!;
     const refId = 1;
 
     await request(context.app)
       .post(
-        `/api/v1/db/data/noco/${sakilaProject.id}/${actorTable.id}/${rowId}/mm/${filmListColumn.id}/${refId}`
+        `/api/v1/db/data/noco/${sakilaProject.id}/${actorTable.id}/${rowId}/mm/${filmListColumn.id}/${refId}`,
       )
       .set('xc-auth', context.token)
       .expect(400);
@@ -2007,20 +2043,20 @@ function tableTest() {
       name: 'actor',
     });
     const filmListColumn = (await actorTable.getColumns()).find(
-      (column) => column.title === 'Film List'
+      (column) => column.title === 'Film List',
     )!;
     const refId = 2;
 
     const lisResponseBeforeUpdate = await request(context.app)
       .get(
-        `/api/v1/db/data/noco/${sakilaProject.id}/${actorTable.id}/${rowId}/mm/${filmListColumn.id}`
+        `/api/v1/db/data/noco/${sakilaProject.id}/${actorTable.id}/${rowId}/mm/${filmListColumn.id}`,
       )
       .set('xc-auth', context.token)
       .expect(200);
 
     await request(context.app)
       .post(
-        `/api/v1/db/data/noco/${sakilaProject.id}/${actorTable.id}/${rowId}/mm/${filmListColumn.id}/${refId}`
+        `/api/v1/db/data/noco/${sakilaProject.id}/${actorTable.id}/${rowId}/mm/${filmListColumn.id}/${refId}`,
       )
       .set('xc-auth', context.token)
       .expect(200);
@@ -2028,7 +2064,7 @@ function tableTest() {
 
     const lisResponseAfterUpdate = await request(context.app)
       .get(
-        `/api/v1/db/data/noco/${sakilaProject.id}/${actorTable.id}/${rowId}/mm/${filmListColumn.id}`
+        `/api/v1/db/data/noco/${sakilaProject.id}/${actorTable.id}/${rowId}/mm/${filmListColumn.id}`,
       )
       .set('xc-auth', context.token)
       .expect(200);
@@ -2044,12 +2080,12 @@ function tableTest() {
   it('List hm with non ltar column', async () => {
     const rowId = 1;
     const firstNameColumn = (await customerTable.getColumns()).find(
-      (column) => column.title === 'FirstName'
+      (column) => column.title === 'FirstName',
     )!;
 
     await request(context.app)
       .get(
-        `/api/v1/db/data/noco/${sakilaProject.id}/${customerTable.id}/${rowId}/hm/${firstNameColumn.id}`
+        `/api/v1/db/data/noco/${sakilaProject.id}/${customerTable.id}/${rowId}/hm/${firstNameColumn.id}`,
       )
       .set('xc-auth', context.token)
       .expect(400);
@@ -2058,12 +2094,12 @@ function tableTest() {
   it('List mm with non ltar column', async () => {
     const rowId = 1;
     const firstNameColumn = (await customerTable.getColumns()).find(
-      (column) => column.title === 'FirstName'
+      (column) => column.title === 'FirstName',
     )!;
 
     await request(context.app)
       .get(
-        `/api/v1/db/data/noco/${sakilaProject.id}/${customerTable.id}/${rowId}/mm/${firstNameColumn.id}`
+        `/api/v1/db/data/noco/${sakilaProject.id}/${customerTable.id}/${rowId}/mm/${firstNameColumn.id}`,
       )
       .set('xc-auth', context.token)
       .expect(400);
@@ -2076,20 +2112,20 @@ function tableTest() {
       name: 'actor',
     });
     const filmListColumn = (await actorTable.getColumns()).find(
-      (column) => column.title === 'Film List'
+      (column) => column.title === 'Film List',
     )!;
     const refId = 1;
 
     const lisResponseBeforeDelete = await request(context.app)
       .get(
-        `/api/v1/db/data/noco/${sakilaProject.id}/${actorTable.id}/${rowId}/mm/${filmListColumn.id}`
+        `/api/v1/db/data/noco/${sakilaProject.id}/${actorTable.id}/${rowId}/mm/${filmListColumn.id}`,
       )
       .set('xc-auth', context.token)
       .expect(200);
 
     await request(context.app)
       .delete(
-        `/api/v1/db/data/noco/${sakilaProject.id}/${actorTable.id}/${rowId}/mm/${filmListColumn.id}/${refId}`
+        `/api/v1/db/data/noco/${sakilaProject.id}/${actorTable.id}/${rowId}/mm/${filmListColumn.id}/${refId}`,
       )
       .set('xc-auth', context.token)
       .expect(200);
@@ -2097,7 +2133,7 @@ function tableTest() {
 
     const lisResponseAfterDelete = await request(context.app)
       .get(
-        `/api/v1/db/data/noco/${sakilaProject.id}/${actorTable.id}/${rowId}/mm/${filmListColumn.id}`
+        `/api/v1/db/data/noco/${sakilaProject.id}/${actorTable.id}/${rowId}/mm/${filmListColumn.id}`,
       )
       .set('xc-auth', context.token)
       .expect(200);
@@ -2116,13 +2152,13 @@ function tableTest() {
 
     const rowId = 1;
     const rentalListColumn = (await customerTable.getColumns()).find(
-      (column) => column.title === 'Rental List'
+      (column) => column.title === 'Rental List',
     )!;
     const refId = 76;
 
     const response = await request(context.app)
       .delete(
-        `/api/v1/db/data/noco/${sakilaProject.id}/${customerTable.id}/${rowId}/hm/${rentalListColumn.id}/${refId}`
+        `/api/v1/db/data/noco/${sakilaProject.id}/${customerTable.id}/${rowId}/hm/${rentalListColumn.id}/${refId}`,
       )
       .set('xc-auth', context.token)
       .expect(400);
@@ -2130,7 +2166,7 @@ function tableTest() {
     // todo: only keep generic error message once updated in noco catchError middleware
     if (
       !response.body.message?.includes(
-        "The column 'customer_id' cannot be null"
+        "The column 'customer_id' cannot be null",
       ) &&
       !response.body.message?.includes("Column 'customer_id' cannot be null") &&
       !response.body.message?.includes('Cannot add or update a child row') &&
@@ -2139,7 +2175,7 @@ function tableTest() {
     ) {
       console.log(
         'Delete list hm with existing ref row id with non nullable clause',
-        response.body
+        response.body,
       );
       throw new Error('Wrong error message');
     }
@@ -2169,7 +2205,7 @@ function tableTest() {
 
     const response = await request(context.app)
       .delete(
-        `/api/v1/db/data/noco/${project.id}/${table.id}/${row['Id']}/hm/${ltarColumn.id}/${childRow['Id']}`
+        `/api/v1/db/data/noco/${project.id}/${table.id}/${row['Id']}/hm/${ltarColumn.id}/${childRow['Id']}`,
       )
       .set('xc-auth', context.token)
       .expect(200);
@@ -2180,7 +2216,9 @@ function tableTest() {
       throw new Error('Was not deleted');
     }
 
-    if (response.body['msg'] !== 'The relation data has been deleted successfully') {
+    if (
+      response.body['msg'] !== 'The relation data has been deleted successfully'
+    ) {
       throw new Error('Response incorrect');
     }
   });
@@ -2188,12 +2226,12 @@ function tableTest() {
   it('Exclude list hm', async () => {
     const rowId = 1;
     const rentalListColumn = (await customerTable.getColumns()).find(
-      (column) => column.title === 'Rental List'
+      (column) => column.title === 'Rental List',
     )!;
 
     const response = await request(context.app)
       .get(
-        `/api/v1/db/data/noco/${sakilaProject.id}/${customerTable.id}/${rowId}/hm/${rentalListColumn.id}/exclude`
+        `/api/v1/db/data/noco/${sakilaProject.id}/${customerTable.id}/${rowId}/hm/${rentalListColumn.id}/exclude`,
       )
       .set('xc-auth', context.token)
       .expect(200);
@@ -2207,12 +2245,12 @@ function tableTest() {
   it('Exclude list hm with limit and offset', async () => {
     const rowId = 1;
     const rentalListColumn = (await customerTable.getColumns()).find(
-      (column) => column.title === 'Rental List'
+      (column) => column.title === 'Rental List',
     )!;
 
     const response = await request(context.app)
       .get(
-        `/api/v1/db/data/noco/${sakilaProject.id}/${customerTable.id}/${rowId}/hm/${rentalListColumn.id}/exclude`
+        `/api/v1/db/data/noco/${sakilaProject.id}/${customerTable.id}/${rowId}/hm/${rentalListColumn.id}/exclude`,
       )
       .set('xc-auth', context.token)
       .query({
@@ -2239,12 +2277,12 @@ function tableTest() {
       name: 'actor',
     });
     const filmListColumn = (await actorTable.getColumns()).find(
-      (column) => column.title === 'Film List'
+      (column) => column.title === 'Film List',
     )!;
 
     const response = await request(context.app)
       .get(
-        `/api/v1/db/data/noco/${sakilaProject.id}/${actorTable.id}/${rowId}/mm/${filmListColumn.id}/exclude`
+        `/api/v1/db/data/noco/${sakilaProject.id}/${actorTable.id}/${rowId}/mm/${filmListColumn.id}/exclude`,
       )
       .set('xc-auth', context.token)
       .expect(200);
@@ -2262,12 +2300,12 @@ function tableTest() {
       name: 'actor',
     });
     const filmListColumn = (await actorTable.getColumns()).find(
-      (column) => column.title === 'Film List'
+      (column) => column.title === 'Film List',
     )!;
 
     const response = await request(context.app)
       .get(
-        `/api/v1/db/data/noco/${sakilaProject.id}/${actorTable.id}/${rowId}/mm/${filmListColumn.id}/exclude`
+        `/api/v1/db/data/noco/${sakilaProject.id}/${actorTable.id}/${rowId}/mm/${filmListColumn.id}/exclude`,
       )
       .set('xc-auth', context.token)
       .query({
@@ -2294,12 +2332,12 @@ function tableTest() {
       name: 'address',
     });
     const cityColumn = (await addressTable.getColumns()).find(
-      (column) => column.title === 'City'
+      (column) => column.title === 'City',
     )!;
 
     const response = await request(context.app)
       .get(
-        `/api/v1/db/data/noco/${sakilaProject.id}/${addressTable.id}/${rowId}/bt/${cityColumn.id}/exclude`
+        `/api/v1/db/data/noco/${sakilaProject.id}/${addressTable.id}/${rowId}/bt/${cityColumn.id}/exclude`,
       )
       .set('xc-auth', context.token)
       .expect(200);
@@ -2315,12 +2353,12 @@ function tableTest() {
       name: 'address',
     });
     const cityColumn = (await addressTable.getColumns()).find(
-      (column) => column.title === 'City'
+      (column) => column.title === 'City',
     )!;
 
     const response = await request(context.app)
       .get(
-        `/api/v1/db/data/noco/${sakilaProject.id}/${addressTable.id}/${rowId}/bt/${cityColumn.id}/exclude`
+        `/api/v1/db/data/noco/${sakilaProject.id}/${addressTable.id}/${rowId}/bt/${cityColumn.id}/exclude`,
       )
       .set('xc-auth', context.token)
       .query({
@@ -2336,12 +2374,12 @@ function tableTest() {
   it('Create nested hm relation with invalid table id', async () => {
     const rowId = 1;
     const rentalListColumn = (await customerTable.getColumns()).find(
-      (column) => column.title === 'Rental List'
+      (column) => column.title === 'Rental List',
     )!;
     const refId = 1;
     const response = await request(context.app)
       .post(
-        `/api/v1/db/data/noco/${sakilaProject.id}/invalid-table-id/${rowId}/hm/${rentalListColumn.id}/exclude`
+        `/api/v1/db/data/noco/${sakilaProject.id}/invalid-table-id/${rowId}/hm/${rentalListColumn.id}/exclude`,
       )
       .set('xc-auth', context.token)
       .expect(404);
@@ -2359,11 +2397,11 @@ function tableTest() {
       name: 'actor',
     });
     const filmListColumn = (await actorTable.getColumns()).find(
-      (column) => column.title === 'Film List'
+      (column) => column.title === 'Film List',
     )!;
     const response = await request(context.app)
       .post(
-        `/api/v1/db/data/noco/${sakilaProject.id}/invalid-table-id/${rowId}/mm/${filmListColumn.id}/exclude`
+        `/api/v1/db/data/noco/${sakilaProject.id}/invalid-table-id/${rowId}/mm/${filmListColumn.id}/exclude`,
       )
       .set('xc-auth', context.token)
       .expect(404);
@@ -2383,7 +2421,7 @@ function tableTest() {
 
     const response = await request(context.app)
       .get(
-        `/api/v1/db/data/noco/${sakilaProject.id}/Film/group/${ratingColumn.id}`
+        `/api/v1/db/data/noco/${sakilaProject.id}/Film/group/${ratingColumn.id}`,
       )
       .set('xc-auth', context.token)
       .expect(200);

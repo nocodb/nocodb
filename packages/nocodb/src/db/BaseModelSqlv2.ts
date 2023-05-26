@@ -130,10 +130,24 @@ class BaseModelSqlv2 {
     autoBind(this);
   }
 
-  public async readByPk(id?: any, validateFormula = false): Promise<any> {
+  public async readByPk(
+    id?: any,
+    validateFormula = false,
+    query: any = {},
+  ): Promise<any> {
     const qb = this.dbDriver(this.tnPath);
 
-    await this.selectObject({ qb, validateFormula });
+    const { ast, dependencyFields } = await getAst({
+      query,
+      model: this.model,
+      view: this.viewId && (await View.get(this.viewId)),
+    });
+
+    await this.selectObject({
+      ...(dependencyFields ?? {}),
+      qb,
+      validateFormula,
+    });
 
     qb.where(_wherePk(this.model.primaryKeys, id));
 
@@ -153,14 +167,7 @@ class BaseModelSqlv2 {
       data.__proto__ = proto;
     }
 
-    // retrieve virtual column data as well
-    const project = await Project.get(this.model.project_id);
-    const { model, view } = await getViewAndModelByAliasOrId({
-      projectName: project.title,
-      tableName: this.model.title,
-    });
-    const { ast } = await getAst({ model, view });
-    return data ? await nocoExecute(ast, data, {}) : {};
+    return data ? await nocoExecute(ast, data, {}, query) : {};
   }
 
   public async exist(id?: any): Promise<any> {
@@ -190,7 +197,7 @@ class BaseModelSqlv2 {
   ): Promise<any> {
     const { where, ...rest } = this._getListArgs(args as any);
     const qb = this.dbDriver(this.tnPath);
-    await this.selectObject({ qb, validateFormula });
+    await this.selectObject({ ...args, qb, validateFormula });
 
     const aliasColObjMap = await this.model.getAliasColObjMap();
     const sorts = extractSortsObject(rest?.sort, aliasColObjMap);

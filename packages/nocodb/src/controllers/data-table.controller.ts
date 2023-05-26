@@ -27,7 +27,7 @@ export class DataTableController {
   constructor(private readonly dataTableService: DataTableService) {}
 
   // todo: Handle the error case where view doesnt belong to model
-  @Get('/api/v1/db/:projectId/tables/:modelId')
+  @Get('/api/v1/base/:projectId/tables/:modelId')
   @Acl('dataList')
   async dataList(
     @Request() req,
@@ -48,7 +48,7 @@ export class DataTableController {
     res.json(responseData);
   }
 
-  @Get(['/api/v1/db/:projectId/tables/:modelId/count'])
+  @Get(['/api/v1/base/:projectId/tables/:modelId/count'])
   @Acl('dataCount')
   async dataCount(
     @Request() req,
@@ -67,7 +67,7 @@ export class DataTableController {
     res.json(countResult);
   }
 
-  @Post(['/api/v1/db/:projectId/tables/:modelId'])
+  @Post(['/api/v1/base/:projectId/tables/:modelId'])
   @HttpCode(200)
   @Acl('dataInsert')
   async dataInsert(
@@ -86,17 +86,15 @@ export class DataTableController {
     });
   }
 
-  @Patch(['/api/v1/db/:projectId/tables/:modelId/:rowId'])
+  @Patch(['/api/v1/db/tables/:modelId/rows/:rowId'])
   @Acl('dataUpdate')
   async dataUpdate(
     @Request() req,
-    @Param('projectId') projectId: string,
     @Param('modelId') modelId: string,
     @Query('viewId') viewId: string,
     @Param('rowId') rowId: string,
   ) {
     return await this.dataTableService.dataUpdate({
-      projectId: projectId,
       modelId: modelId,
       body: req.body,
       cookie: req,
@@ -105,7 +103,7 @@ export class DataTableController {
     });
   }
 
-  @Delete(['/api/v1/db/:projectId/tables/:modelId/:rowId'])
+  @Delete(['/api/v1/db/tables/:modelId/rows/:rowId'])
   @Acl('dataDelete')
   async dataDelete(
     @Request() req,
@@ -123,7 +121,7 @@ export class DataTableController {
     });
   }
 
-  @Get(['/api/v1/db/:projectId/tables/:modelId/:rowId'])
+  @Get(['/api/v1/db/tables/:modelId/rows/:rowId'])
   @Acl('dataRead')
   async dataRead(
     @Request() req,

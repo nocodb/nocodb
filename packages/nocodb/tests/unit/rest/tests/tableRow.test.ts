@@ -1299,10 +1299,14 @@ function tableTest() {
       'ReleaseYear',
       'Language',
     );
-    expect(record['Film List'][0]['Language']).to.have.all.keys(
-      'Name',
-      'LanguageId',
-    );
+
+    // for SQLite Sakila, Language is null
+    if (isPg(context)) {
+      expect(record['Film List'][0]['Language']).to.have.all.keys(
+        'Name',
+        'LanguageId',
+      );
+    }
   });
 
   it('Update table row', async function () {

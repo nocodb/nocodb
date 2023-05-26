@@ -19,6 +19,9 @@ import { MetasModule } from './modules/metas/metas.module';
 import { JobsModule } from './modules/jobs/jobs.module';
 import { AppInitService } from './services/app-init.service';
 import type { MiddlewareConsumer } from '@nestjs/common';
+import { DataTableController } from './controllers/data-table.controller';
+import { DataTableController } from './servicess/data-table.controller';
+import { DataTableService } from './services/data-table.service';
 
 @Module({
   imports: [
@@ -38,7 +41,7 @@ import type { MiddlewareConsumer } from '@nestjs/common';
         ]
       : []),
   ],
-  controllers: [],
+  controllers: [DataTableController],
   providers: [
     AuthService,
     {
@@ -50,6 +53,7 @@ import type { MiddlewareConsumer } from '@nestjs/common';
     BaseViewStrategy,
     HookHandlerService,
     AppInitService,
+    DataTableService,
   ],
 })
 export class AppModule {

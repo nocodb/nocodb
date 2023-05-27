@@ -19,7 +19,6 @@ import {
   ExtractProjectIdMiddleware,
 } from '../middlewares/extract-project-id/extract-project-id.middleware';
 import { DataTableService } from '../services/data-table.service';
-import { DatasService } from '../services/datas.service';
 
 @Controller()
 @UseGuards(ExtractProjectIdMiddleware, GlobalGuard)
@@ -135,7 +134,7 @@ export class DataTableController {
       projectId,
       rowId: rowId,
       query: req.query,
-      viewId
+      viewId,
     });
   }
 }

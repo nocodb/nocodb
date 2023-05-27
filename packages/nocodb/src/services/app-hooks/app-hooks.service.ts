@@ -39,8 +39,6 @@ import type {
   UserSignupEvent,
   ViewEvent,
   WelcomeEvent,
-  WorkspaceEvent,
-  WorkspaceInviteEvent,
 } from './interfaces';
 
 const ALL_EVENTS = '__nc_all_events__';
@@ -120,13 +118,6 @@ export class AppHooksService {
       | AppEvents.COLUMN_CREATE,
     listener: (data: ColumnEvent) => void,
   ): () => void;
-  on(
-    event:
-      | AppEvents.WORKSPACE_UPDATE
-      | AppEvents.WORKSPACE_DELETE
-      | AppEvents.WORKSPACE_CREATE,
-    listener: (data: WorkspaceEvent) => void,
-  ): () => void;
   on(event, listener): () => void {
     const unsubscribe = this.eventEmitter.on(event, listener);
 
@@ -154,7 +145,6 @@ export class AppHooksService {
     event: AppEvents.USER_PASSWORD_RESET,
     data: UserPasswordResetEvent,
   ): void;
-  emit(event: AppEvents.WORKSPACE_INVITE, data: WorkspaceInviteEvent): void;
   emit(event: AppEvents.WELCOME, data: WelcomeEvent): void;
   emit(
     event: AppEvents.PROJECT_USER_UPDATE,
@@ -194,13 +184,6 @@ export class AppHooksService {
       | AppEvents.SORT_CREATE
       | AppEvents.SORT_DELETE,
     data: SortEvent,
-  ): void;
-  emit(
-    event:
-      | AppEvents.WORKSPACE_UPDATE
-      | AppEvents.WORKSPACE_CREATE
-      | AppEvents.WORKSPACE_DELETE,
-    data: WorkspaceEvent,
   ): void;
   emit(
     event:

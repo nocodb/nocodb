@@ -14,7 +14,7 @@ export const InfoCallout = Node.create<InfoCalloutOptions>({
   addOptions() {
     return {
       HTMLAttributes: {
-        class: 'info-callout items-baseline',
+        class: 'callout info-callout items-baseline',
       },
     }
   },

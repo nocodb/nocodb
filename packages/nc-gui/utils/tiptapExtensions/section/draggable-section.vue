@@ -5,7 +5,7 @@ import { dragOptionStyle } from './dragOptionStyle'
 
 const { node, getPos, editor } = defineProps(nodeViewProps)
 
-const isPublic = !editor.view.editable
+const isEditable = !editor.view.editable
 
 const dragClicked = ref(false)
 const optionsPopoverRef = ref()
@@ -132,7 +132,7 @@ editor.on('update', () => {
     :pos="pos"
   >
     <div
-      v-if="!isPublic"
+      v-if="!isEditable"
       ref="dragDomRef"
       class="flex flex-row gap-0.5 w-full items-start"
       tiptap-draghandle-wrapper="true"
@@ -189,7 +189,7 @@ editor.on('update', () => {
 
       <NodeViewContent class="node-view-drag-content w-full" :data-testid="`nc-docs-tiptap-wrapper-${childNodeType}`" />
     </div>
-    <div v-else class="ml-7.5">
+    <div v-else class="ml-7.75">
       <NodeViewContent
         class="node-view-drag-content mb-2"
         :class="{

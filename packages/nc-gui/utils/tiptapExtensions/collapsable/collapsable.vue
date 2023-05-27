@@ -76,6 +76,7 @@ editor.on('update', () => {
           '!mt-1.75': headerChildNode?.type.name === 'heading' && headerChildNode?.attrs.level === 2,
           '!mt-0.5': headerChildNode?.type.name === 'heading' && headerChildNode?.attrs.level === 3,
         }"
+        contenteditable="false"
         @click.stop="toggleCollapsableContent"
       >
         <MdiTriangle

@@ -14,7 +14,7 @@ export const TipCallout = Node.create<TipCalloutOptions>({
   addOptions() {
     return {
       HTMLAttributes: {
-        class: 'tip-callout items-baseline',
+        class: 'callout tip-callout items-baseline',
       },
     }
   },

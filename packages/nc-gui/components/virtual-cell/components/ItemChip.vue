@@ -18,9 +18,10 @@ interface Props {
   value?: string | number | boolean
   item?: any
   column: any
+  showUnlinkButton: boolean
 }
 
-const { value, item, column } = defineProps<Props>()
+const { value, item, column, showUnlinkButton } = defineProps<Props>()
 
 const emit = defineEmits(['unlink'])
 
@@ -59,7 +60,7 @@ export default {
 
 <template>
   <div
-    class="chip group py-1 px-2 mr-1 my-1 flex items-center bg-blue-100/60 hover:bg-blue-100/40 rounded-[2px]"
+    class="chip group py-1 px-2 mr-1 my-1 flex items-center border-1 rounded-[2px] flex-row"
     :class="{ active }"
     @click="openExpandedForm"
   >
@@ -94,7 +95,11 @@ export default {
       </template>
     </span>
 
-    <div v-show="active || isForm" v-if="!readOnly && !isLocked && isUIAllowed('xcDatatableEditable')" class="flex items-center">
+    <div
+      v-show="active || isForm"
+      v-if="showUnlinkButton && !readOnly && !isLocked && isUIAllowed('xcDatatableEditable')"
+      class="flex items-center"
+    >
       <component
         :is="iconMap.closeThick"
         class="nc-icon unlink-icon text-xs text-gray-500/50 group-hover:text-gray-500"

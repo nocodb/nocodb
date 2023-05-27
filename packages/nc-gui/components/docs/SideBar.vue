@@ -220,6 +220,8 @@ onMounted(async () => {
                 {{ page.title }}
               </span>
             </div>
+            <!-- Select page when clicked on the empty area in the sidebar node -->
+            <div class="flex flex-grow h-6" @click="() => onTabSelect(page)"></div>
             <DocsSidebarPageOption
               :level="page.level"
               @open-delete-modal="isDeleteModalOpen = true"

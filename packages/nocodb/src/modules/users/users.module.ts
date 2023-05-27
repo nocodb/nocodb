@@ -8,7 +8,9 @@ import { OpenidStrategyProvider } from '../../strategies/openid.strategy/openid.
 
 @Module({
   imports: [GlobalModule, PassportModule],
-  controllers: [UsersController],
+  controllers: [
+    ...(process.env.NC_WORKER_CONTAINER !== 'true' ? [UsersController] : []),
+  ],
   providers: [UsersService, GoogleStrategyProvider, OpenidStrategyProvider],
   exports: [UsersService],
 })

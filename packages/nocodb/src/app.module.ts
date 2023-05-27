@@ -1,14 +1,12 @@
-import { Inject, Module, RequestMethod } from '@nestjs/common';
+import { Module, RequestMethod } from '@nestjs/common';
 import { APP_FILTER, APP_GUARD, APP_INTERCEPTOR } from '@nestjs/core';
 import { ThrottlerModule } from '@nestjs/throttler';
 import { ConfigModule } from '@nestjs/config';
-import { BullModule } from '@nestjs/bull';
 import { EventEmitterModule as NestJsEventEmitter } from '@nestjs/event-emitter';
 import { GlobalExceptionFilter } from './filters/global-exception/global-exception.filter';
 import { GlobalMiddleware } from './middlewares/global/global.middleware';
 import { GuiMiddleware } from './middlewares/gui/gui.middleware';
 import { DatasModule } from './modules/datas/datas.module';
-import { IEventEmitter } from './modules/event-emitter/event-emitter.interface';
 import { EventEmitterModule } from './modules/event-emitter/event-emitter.module';
 import { AuthService } from './services/auth.service';
 import { UsersModule } from './modules/users/users.module';
@@ -29,7 +27,6 @@ import { ExtractProjectAndWorkspaceIdMiddleware } from './middlewares/extract-pr
 import { ExecutionTimeCalculatorInterceptor } from './interceptors/execution-time-calculator/execution-time-calculator.interceptor';
 
 import { HookHandlerService } from './services/hook-handler.service';
-import { AppInitService } from './services/app-init.service';
 import type { MiddlewareConsumer } from '@nestjs/common';
 
 // todo: refactor to use config service
@@ -45,14 +42,6 @@ const enableThrottler = !!process.env['NC_THROTTLER_REDIS'];
     EventEmitterModule,
     JobsModule,
     NestJsEventEmitter.forRoot(),
-    ...(process.env['NC_REDIS_URL']
-      ? [
-          BullModule.forRoot({
-            redis: process.env.NC_REDIS_URL,
-          }),
-        ]
-      : []),
-    EventEmitterModule,
 
     // todo:combine and move to meta module
     WorkspacesModule,
@@ -95,8 +84,6 @@ const enableThrottler = !!process.env['NC_THROTTLER_REDIS'];
     LocalStrategy,
     AuthTokenStrategy,
     BaseViewStrategy,
-    HookHandlerService,
-    AppInitService,
     HookHandlerService,
   ],
 })

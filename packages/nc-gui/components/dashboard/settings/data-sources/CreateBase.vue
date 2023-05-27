@@ -499,7 +499,7 @@ watch(
         </a-form-item>
         <div class="flex items-right justify-end gap-2">
           <!--                Use Connection URL -->
-          <a-button type="primary" class="nc-extdb-btn-import-url !rounded-md" @click.stop="importURLDlg = true">
+          <a-button class="nc-extdb-btn-import-url !rounded-md" @click.stop="importURLDlg = true">
             {{ $t('activity.useConnectionUrl') }}
           </a-button>
         </div>
@@ -615,7 +615,7 @@ watch(
 
       <a-form-item class="flex justify-end !mt-5">
         <div class="flex justify-end gap-2">
-          <a-button type="text" class="nc-extdb-btn-test-connection !rounded-md" @click="testConnection">
+          <a-button type="primary" class="nc-extdb-btn-test-connection !rounded-md" @click="testConnection">
             {{ $t('activity.testDbConn') }}
           </a-button>
 

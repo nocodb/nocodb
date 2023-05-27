@@ -15,7 +15,7 @@ import {
 } from '../models';
 import Noco from '../Noco';
 import extractRolesObj from '../utils/extractRolesObj';
-import NcConfigFactory from '../utils/NcConfigFactory';
+import { getToolDir } from '../utils/nc-config';
 import { AppHooksService } from './app-hooks/app-hooks.service';
 import type {
   ProjectReqType,
@@ -164,7 +164,7 @@ export class ProjectsService {
         // if env variable NC_MINIMAL_DBS is set, then create a SQLite file/connection for each project
         // each file will be named as nc_<random_id>.db
         const fs = require('fs');
-        const toolDir = NcConfigFactory.getToolDir();
+        const toolDir = getToolDir();
         const nanoidv2 = customAlphabet(
           '1234567890abcdefghijklmnopqrstuvwxyz',
           14,

@@ -3,7 +3,7 @@ import path from 'path';
 import { promisify } from 'util';
 import mkdirp from 'mkdirp';
 import axios from 'axios';
-import NcConfigFactory from '../../utils/NcConfigFactory';
+import { getToolDir } from '../../utils/nc-config';
 import type { IStorageAdapterV2, XcFile } from 'nc-plugin';
 import type { Readable } from 'stream';
 
@@ -11,7 +11,7 @@ export default class Local implements IStorageAdapterV2 {
   constructor() {}
 
   public async fileCreate(key: string, file: XcFile): Promise<any> {
-    const destPath = path.join(NcConfigFactory.getToolDir(), ...key.split('/'));
+    const destPath = path.join(getToolDir(), ...key.split('/'));
     try {
       await mkdirp(path.dirname(destPath));
       const data = await promisify(fs.readFile)(file.path);
@@ -24,7 +24,7 @@ export default class Local implements IStorageAdapterV2 {
   }
 
   async fileCreateByUrl(key: string, url: string): Promise<any> {
-    const destPath = path.join(NcConfigFactory.getToolDir(), ...key.split('/'));
+    const destPath = path.join(getToolDir(), ...key.split('/'));
     return new Promise((resolve, reject) => {
       axios
         .get(url, {
@@ -71,10 +71,7 @@ export default class Local implements IStorageAdapterV2 {
     stream: Readable,
   ): Promise<void> {
     return new Promise((resolve, reject) => {
-      const destPath = path.join(
-        NcConfigFactory.getToolDir(),
-        ...key.split('/'),
-      );
+      const destPath = path.join(getToolDir(), ...key.split('/'));
       try {
         mkdirp(path.dirname(destPath)).then(() => {
           const writableStream = fs.createWriteStream(destPath);
@@ -89,12 +86,12 @@ export default class Local implements IStorageAdapterV2 {
   }
 
   public async fileReadByStream(key: string): Promise<Readable> {
-    const srcPath = path.join(NcConfigFactory.getToolDir(), ...key.split('/'));
+    const srcPath = path.join(getToolDir(), ...key.split('/'));
     return fs.createReadStream(srcPath, { encoding: 'utf8' });
   }
 
   public async getDirectoryList(key: string): Promise<string[]> {
-    const destDir = path.join(NcConfigFactory.getToolDir(), ...key.split('/'));
+    const destDir = path.join(getToolDir(), ...key.split('/'));
     return fs.promises.readdir(destDir);
   }
 
@@ -106,7 +103,7 @@ export default class Local implements IStorageAdapterV2 {
   public async fileRead(filePath: string): Promise<any> {
     try {
       const fileData = await fs.promises.readFile(
-        path.join(NcConfigFactory.getToolDir(), ...filePath.split('/')),
+        path.join(getToolDir(), ...filePath.split('/')),
       );
       return fileData;
     } catch (e) {

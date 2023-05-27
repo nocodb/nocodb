@@ -6,7 +6,6 @@ import { nextTick } from '@vue/runtime-core'
 import { WorkspaceUserRoles } from 'nocodb-sdk'
 import tinycolor from 'tinycolor2'
 import Sortable from 'sortablejs'
-import { useRoute } from 'vue-router'
 import {
   computed,
   extractSdkResponseErrorMsg,

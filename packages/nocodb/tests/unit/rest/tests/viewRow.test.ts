@@ -901,7 +901,7 @@ function viewRowTests() {
     );
 
     const nestedFields = {
-      'Rental List': ['RentalDate', 'ReturnDate'],
+      'Rental List': { f: 'RentalDate,ReturnDate' },
     };
 
     const nestedFilter = [

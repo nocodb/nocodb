@@ -1,11 +1,6 @@
 import { Global, Module } from '@nestjs/common';
 import { ExtractJwt } from 'passport-jwt';
-import {
-  AppInitService,
-  appInitServiceProvider,
-} from '../../services/app-init.service';
 import { SocketGateway } from '../../gateways/socket.gateway';
-import { Connection } from '../../connection/connection';
 import { GlobalGuard } from '../../guards/global/global.guard';
 import { MetaService } from '../../meta/meta.service';
 import Noco from '../../Noco';
@@ -17,15 +12,13 @@ import { ProducerProvider } from '../../services/producer';
 import { EventEmitterModule } from '../event-emitter/event-emitter.module';
 import { TelemetryService } from '../../services/telemetry.service';
 import { AppHooksListenerService } from '../../services/app-hooks-listener.service';
+import { InitMetaServiceProvider } from './init-meta-service.provider';
 import type { Provider } from '@nestjs/common';
 
 export const JwtStrategyProvider: Provider = {
   provide: JwtStrategy,
-  useFactory: async (
-    usersService: UsersService,
-    appInitService: AppInitService,
-  ) => {
-    const config = appInitService.appConfig;
+  useFactory: async (usersService: UsersService, metaService: MetaService) => {
+    const config = metaService.config;
 
     await Noco.initJwt();
 
@@ -40,16 +33,15 @@ export const JwtStrategyProvider: Provider = {
 
     return new JwtStrategy(options, usersService);
   },
-  inject: [UsersService, AppInitService],
+  inject: [UsersService, MetaService],
 };
 
 @Global()
 @Module({
   imports: [EventEmitterModule],
   providers: [
-    appInitServiceProvider,
+    InitMetaServiceProvider,
     AppHooksService,
-    Connection,
     MetaService,
     UsersService,
     JwtStrategyProvider,
@@ -61,18 +53,15 @@ export const JwtStrategyProvider: Provider = {
     TelemetryService,
   ],
   exports: [
-    AppInitService,
-    AppHooksService,
-    Connection,
     MetaService,
     JwtStrategyProvider,
     UsersService,
     GlobalGuard,
-    SocketGateway,
     AppHooksService,
     Producer,
     AppHooksListenerService,
     TelemetryService,
+    ...(process.env.NC_WORKER_CONTAINER !== 'true' ? [SocketGateway] : []),
   ],
 })
 export class GlobalModule {}

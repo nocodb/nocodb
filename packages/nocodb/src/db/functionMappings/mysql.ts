@@ -62,7 +62,7 @@ const mysql2 = {
         DATE_FORMAT(DATE_ADD(${(await fn(pt.arguments[0])).builder}, INTERVAL
         ${(await fn(pt.arguments[1])).builder} ${String(
           (await fn(pt.arguments[2])).builder,
-        ).replace(/["']/g, '')}), '%Y-%m-%d %H:%i')
+        ).replace(/["']/g, '')}), '%Y-%m-%d %H:%i:%s')
       ELSE
         DATE(DATE_ADD(${(await fn(pt.arguments[0])).builder}, INTERVAL
         ${(await fn(pt.arguments[1])).builder} ${String(

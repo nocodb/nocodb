@@ -74,6 +74,12 @@ Currently, the default value for {orgs} is <b>noco</b>. Users will be able to ch
 | Data | Delete| dbViewRow | delete | /api/v1/db/data/{orgs}/{projectName}/{tableName}/views/{viewName}/{rowId} |
 | Data | Get | dbViewRow | count | /api/v1/db/data/{orgs}/{projectName}/{tableName}/views/{viewName}/count |
 | Data | Get | dbViewRow | groupedDataList | /api/v1/db/data/{orgs}/{projectName}/{tableName}/views/{viewName}/group/{columnId} |
+| Data | Get | dbTableRow | tableRowList | /api/v1/base/{baseId}/tables/{tableId} |
+| Data | Post | dbTableRow | tableRowCreate | /api/v1/base/{baseId}/tables/{tableId} |
+| Data | Get | dbTableRow | tableRowRead | /api/v1/db/tables/{tableId}/rows/{rowId} |
+| Data | Patch | dbTableRow | tableRowUpdate | /api/v1/db/tables/{tableId}/rows/{rowId} |
+| Data | Delete| dbTableRow | tableRowDelete | /api/v1/db/tables/{tableId}/rows/{rowId} |
+| Data | Get | dbTableRow | tableRowCount | /api/v1/base/{baseId}/tables/{tableId}/count |
 
 ### Meta APIs
 

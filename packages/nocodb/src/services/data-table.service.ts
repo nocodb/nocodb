@@ -117,29 +117,6 @@ export class DataTableService {
     return await baseModel.delByPk(param.rowId, null, param.cookie);
   }
 
-  private async getModelAndView(param: {
-    projectId?: string;
-    viewId?: string;
-    modelId: string;
-  }) {
-    const model = await Model.get(param.modelId);
-
-    if (model.project_id && model.project_id !== param.projectId) {
-      throw new Error('Model not belong to project');
-    }
-
-    let view: View;
-
-    if (param.viewId) {
-      view = await View.get(param.viewId);
-      if (view.fk_model_id && view.fk_model_id !== param.modelId) {
-        throw new Error('View not belong to model');
-      }
-    }
-
-    return { model, view };
-  }
-
   async dataCount(param: {
     projectId?: string;
     viewId?: string;
@@ -165,4 +142,34 @@ export class DataTableService {
 
     return { count };
   }
+
+
+
+  private async getModelAndView(param: {
+    projectId?: string;
+    viewId?: string;
+    modelId: string;
+  }) {
+    const model = await Model.get(param.modelId);
+
+    if(!model) {
+      throw new Error('Model not found');
+    }
+
+    if (model.project_id && model.project_id !== param.projectId) {
+      throw new Error('Model not belong to project');
+    }
+
+    let view: View;
+
+    if (param.viewId) {
+      view = await View.get(param.viewId);
+      if (view.fk_model_id && view.fk_model_id !== param.modelId) {
+        throw new Error('View not belong to model');
+      }
+    }
+
+    return { model, view };
+  }
+
 }

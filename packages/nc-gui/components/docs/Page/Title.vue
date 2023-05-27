@@ -37,8 +37,17 @@ const title = computed({
 })
 
 const onTitleKeyDown = (e: KeyboardEvent) => {
+  // Ctrl/Cmd + A
+  if (e.key === 'a' && (e.ctrlKey || e.metaKey)) {
+    e.preventDefault()
+    const range = document.createRange()
+    range.selectNodeContents(e.target as Node)
+    const selection = window.getSelection()
+    selection?.removeAllRanges()
+    selection?.addRange(range)
+  }
   // Down arrow
-  if (e.key === 'ArrowDown') {
+  else if (e.key === 'ArrowDown') {
     // get cursor position
     const cursorPosition = window.getSelection()
     if (cursorPosition?.anchorOffset === title.value?.length) {
@@ -160,7 +169,7 @@ onMounted(() => {
       :style="{
         fontWeight: 600,
         fontSize: '3rem',
-        lineHeight: 1,
+        lineHeight: 1.25,
         wordBreak: 'break-all',
         outline: 'none',
         padding: 0,

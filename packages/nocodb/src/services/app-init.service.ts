@@ -4,7 +4,7 @@ import { Connection } from '../connection/connection';
 import initAdminFromEnv from '../helpers/initAdminFromEnv';
 import NcPluginMgrv2 from '../helpers/NcPluginMgrv2';
 import { MetaService } from '../meta/meta.service';
-import { User } from '../models'
+import { User } from '../models';
 import Noco from '../Noco';
 import getInstance from '../utils/getInstance';
 import NcConfigFactory from '../utils/NcConfigFactory';

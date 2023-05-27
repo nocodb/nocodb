@@ -111,6 +111,7 @@ const m2mColumn = computed(
             :item="cell.item"
             :value="cell.value"
             :column="m2mColumn"
+            :show-unlink-button="true"
             @unlink="unlinkRef(cell.item)"
           />
 

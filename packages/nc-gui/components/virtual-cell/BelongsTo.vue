@@ -93,6 +93,7 @@ const belongsToColumn = computed(
           :item="value"
           :value="value[relatedTableDisplayValueProp]"
           :column="belongsToColumn"
+          :show-unlink-button="true"
           @unlink="unlinkRef(value)"
         />
       </template>

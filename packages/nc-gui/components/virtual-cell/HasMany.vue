@@ -109,6 +109,7 @@ useSelectedCellKeyupListener(inject(ActiveCellInj, ref(false)), (e: KeyboardEven
             :item="cell.item"
             :value="cell.value"
             :column="hasManyColumn"
+            :show-unlink-button="true"
             @unlink="unlinkRef(cell.item)"
           />
 

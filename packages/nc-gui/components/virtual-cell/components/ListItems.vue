@@ -229,7 +229,11 @@ watch(vModel, (nextVal) => {
             :class="{ 'nc-selected-row': selectedRowIndex === i }"
             @click="linkRow(refRow)"
           >
-            <VirtualCellComponentsItemChip :value="refRow[relatedTableDisplayValueProp]" :column="props.column" />
+            <VirtualCellComponentsItemChip
+              :value="refRow[relatedTableDisplayValueProp]"
+              :column="props.column"
+              :show-unlink-button="false"
+            />
             <span class="hidden group-hover:(inline) text-gray-400 text-[11px] ml-1">
               ({{ $t('labels.primaryKey') }} : {{ getRelatedTableRowId(refRow) }})
             </span>

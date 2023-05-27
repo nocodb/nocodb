@@ -157,7 +157,7 @@ onMounted(() => {
 
     const viewportHeight = Math.max(document.documentElement.clientHeight || 0, window.innerHeight || 0)
     // If add the end of viewport, scroll down
-    if (e.clientY > viewportHeight - viewportHeight * 0.2) {
+    if (e.clientY > viewportHeight - viewportHeight * 0.1) {
       pageContentDomRef.value.scrollBy(0, 10)
       setTimeout(() => {
         pageContentDomRef.value.scrollBy(0, 5)
@@ -165,7 +165,7 @@ onMounted(() => {
     }
 
     // If add the top of viewport, scroll up
-    if (e.clientY < pageContentDivBottom * 0.2) {
+    if (e.clientY < pageContentDivBottom * 0.1) {
       pageContentDomRef.value.scrollBy(0, -10)
       setTimeout(() => {
         pageContentDomRef.value.scrollBy(0, -5)

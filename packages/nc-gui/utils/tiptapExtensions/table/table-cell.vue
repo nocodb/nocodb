@@ -249,7 +249,7 @@ onMounted(() => {
         </div>
       </div>
 
-      <NodeViewContent class="node-view-content py-1.5 px-3 !w-full" />
+      <NodeViewContent class="node-view-content !w-full" />
     </div>
   </NodeViewWrapper>
 </template>
@@ -264,52 +264,5 @@ onMounted(() => {
 }
 .tiptap-column-options {
   color: rgb(184, 184, 184);
-}
-</style>
-
-<style lang="scss">
-.tiptap-table-wrapper {
-  // First cell
-  tr:hover > td:first-child .row-drag-handle {
-    display: block;
-  }
-
-  tr:first-child > td:hover .tiptap-column-options {
-    display: flex;
-  }
-
-  tr:first-child > td:only-child:hover .tiptap-column-options {
-    display: none;
-  }
-}
-
-.selectedCell {
-  @apply !bg-primary-selected;
-
-  .tiptap-column-options {
-    display: none !important;
-  }
-  .row-drag-handle {
-    display: none !important;
-  }
-}
-
-.docs-table-row-options {
-  @apply !shadow-none;
-  .ant-popover-inner-content {
-    @apply !shadow-none !p-0;
-  }
-  .ant-popover-arrow {
-    @apply !shadow-none;
-    .ant-popover-arrow-content {
-      @apply !shadow-none !bg-gray-100;
-    }
-  }
-  .ant-popover-inner {
-    @apply !shadow-none !bg-gray-100 !p-1 !rounded-md;
-  }
-}
-.tiptap-table-cell {
-  @apply w-full;
 }
 </style>

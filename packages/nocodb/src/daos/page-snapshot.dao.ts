@@ -73,7 +73,9 @@ export class PageSnapshotDao {
     snapshot.diff = Buffer.from(snapshot.diff, 'base64')
       .toString('utf-8')
       // As this will be wrapped with quotes, we need to remove them
-      .slice(1, -1);
+      .slice(1, -1)
+      // And then escape the quotes
+      .replaceAll('\\"', '"');
 
     return snapshot;
   }

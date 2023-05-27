@@ -27,7 +27,6 @@ export const dragOptionStyle = ({
   } else if (nodeType === TiptapNodesTypes.bullet) {
     style = {
       marginTop: '0.2rem',
-      marginRight: '1.1rem',
     }
   } else if (nodeType === TiptapNodesTypes.ordered) {
     style = {

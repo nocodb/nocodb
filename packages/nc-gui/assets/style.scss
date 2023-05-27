@@ -11,6 +11,17 @@
   --navbar-border: #e0e0e0;
 }
 
+::-moz-selection {
+  /* Code for Firefox */
+  color: inherit;
+  background-color: #1c26b820;
+}
+
+::selection {
+  color: inherit;
+  background-color: #1c26b820;
+}
+
 .ant-layout-header {
   height: var(--header-height) !important;
 }

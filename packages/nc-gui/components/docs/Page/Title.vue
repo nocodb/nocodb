@@ -14,7 +14,7 @@ const MAX_TITLE_LENGTH = 150
 
 const { project } = useProject()
 
-const { openedPage, isPublic, isEditAllowed, isPageFetching } = storeToRefs(useDocStore())
+const { openedPage, isEditAllowed, isPageFetching } = storeToRefs(useDocStore())
 
 const { updatePage } = useDocStore()
 
@@ -125,7 +125,7 @@ onMounted(() => {
 
 <template>
   <div
-    class="flex flex-row gap-x-2 items-end ml-7 nc-page-title-wrapper"
+    class="flex flex-row gap-x-2 items-end ml-7.5 mb-3.5 nc-page-title-wrapper"
     :class="{
       empty: title?.length === 0,
     }"
@@ -166,14 +166,6 @@ onMounted(() => {
       :contenteditable="isEditAllowed && !propTitle"
       data-testid="docs-page-title"
       class="nc-docs-page-title"
-      :style="{
-        fontWeight: 600,
-        fontSize: '3rem',
-        lineHeight: 1.25,
-        wordBreak: 'break-all',
-        outline: 'none',
-        padding: 0,
-      }"
       :readonly="!isEditAllowed || !!propTitle"
       @input="onTitleInput"
       @keydown="onTitleKeyDown"
@@ -184,10 +176,6 @@ onMounted(() => {
 </template>
 
 <style lang="scss" scoped>
-textarea {
-  overflow-y: hidden;
-  line-height: 125% !important;
-}
 .nc-page-title-wrapper.empty {
   .nc-docs-page-title::after {
     content: 'Title' !important;

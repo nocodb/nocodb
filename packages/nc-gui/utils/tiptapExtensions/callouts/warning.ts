@@ -14,7 +14,7 @@ export const WarningCallout = Node.create<WarningCalloutOptions>({
   addOptions() {
     return {
       HTMLAttributes: {
-        class: 'warning-callout items-baseline',
+        class: 'callout warning-callout items-baseline',
       },
     }
   },

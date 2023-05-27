@@ -7,6 +7,7 @@ import { useShortcuts } from '../utils'
 import tiptapExtensions from '~~/utils/tiptapExtensions'
 import AlignRightIcon from '~icons/tabler/align-right'
 import { emptySectionContent, removeUploadingPlaceHolderAndEmptyLinkNode } from '~~/utils/tiptapExtensions/helper'
+import '~/assets/docsPage.scss'
 
 const { project } = useProject()
 useShortcuts()
@@ -215,14 +216,16 @@ watch(pageWrapperDomRef, () => {
     const viewportHeight = Math.max(document.documentElement.clientHeight || 0, window.innerHeight || 0)
     const y = e.clientY
 
-    if (y > viewportHeight - viewportHeight * 0.3) {
-      const el = document.querySelector('.nc-docs-page-content')
+    const dragAreaPortion = 0.1
+
+    if (y > viewportHeight - viewportHeight * dragAreaPortion) {
+      const el = document.querySelector('.nc-docs-page')
       el?.scrollBy(0, 10)
     }
 
     // If add the top of viewport, scroll up
-    if (y < viewportHeight * 0.3) {
-      const el = document.querySelector('.nc-docs-page-content')
+    if (y < viewportHeight * dragAreaPortion) {
+      const el = document.querySelector('.nc-docs-page')
       el?.scrollBy(0, -10)
     }
 
@@ -265,7 +268,12 @@ watch(
 
 <template>
   <a-layout-content>
-    <div ref="pageWrapperDomRef" data-testid="docs-opened-page" class="nc-docs-page h-full flex flex-row relative">
+    <div
+      id="nc-docs-page-wrapper"
+      ref="pageWrapperDomRef"
+      data-testid="docs-opened-page"
+      class="nc-docs-page-wrapper h-full flex flex-row relative"
+    >
       <div
         class="flex flex-col w-full"
         :class="{
@@ -274,7 +282,7 @@ watch(
         }"
       >
         <div class="flex flex-row justify-between items-center pl-6 my-2 h-8">
-          <div class="flex flex-row">
+          <div class="flex flex-row items-center">
             <template v-if="flattenedNestedPages.length !== 0">
               <div v-for="({ href, title, icon, id }, index) of breadCrumbs" :key="id" class="flex">
                 <NuxtLink
@@ -338,7 +346,7 @@ watch(
             </div>
           </div>
         </div>
-        <div ref="pageContentDomRef" :key="String(isEditAllowed)" class="nc-docs-page-content relative pb-20">
+        <div ref="pageContentDomRef" :key="String(isEditAllowed)" class="nc-docs-page relative pb-20">
           <DocsPageMutliSectionSelector
             v-if="isEditAllowed && editor && pageContentDomRef"
             :editor="editor"
@@ -401,8 +409,6 @@ watch(
               @focus-editor="focusEditor"
             />
 
-            <div class="flex !mb-4.5"></div>
-
             <DocsPageLinkToPageSearch v-if="editor" :editor="editor" />
             <DocsPageSelectedBubbleMenu
               v-if="editor"
@@ -418,7 +424,13 @@ watch(
               size="small"
               class="docs-page-title-skelton !max-w-102 mb-3 mt-1 ml-8 docs-page-skeleton-loading"
             />
-            <EditorContent v-else :key="isEditAllowed ? 'edit' : 'view'" data-testid="docs-page-content" :editor="editor" />
+            <EditorContent
+              v-else
+              :key="isEditAllowed ? 'edit' : 'view'"
+              data-testid="docs-page-content"
+              :editor="editor"
+              class="nc-docs-page-content"
+            />
             <div
               v-if="(openedPageInSidebar?.children ?? []).length > 0 && !isPageFetching"
               class="docs-page-child-pages flex flex-col py-12 border-b-1 border-t-1 border-gray-200 mt-12 mb-4 gap-y-6 pop-in-animation"
@@ -458,479 +470,3 @@ watch(
     />
   </a-layout-content>
 </template>
-
-<style lang="scss">
-::-moz-selection {
-  /* Code for Firefox */
-  color: inherit;
-  background-color: #1c26b820;
-}
-
-::selection {
-  color: inherit;
-  background-color: #1c26b820;
-}
-
-.docs-page-title-skelton {
-  .ant-skeleton-input {
-    @apply !rounded-md;
-  }
-}
-
-.nc-docs-page-content {
-  overflow-y: overlay;
-  overflow-x: hidden;
-  // scrollbar reduce width and gray color
-  &::-webkit-scrollbar {
-    width: 6px;
-  }
-
-  /* Track */
-  &::-webkit-scrollbar-track {
-    background: #f6f6f600 !important;
-  }
-
-  /* Handle */
-  &::-webkit-scrollbar-thumb {
-    background: #f6f6f600;
-  }
-
-  /* Handle on hover */
-  &::-webkit-scrollbar-thumb:hover {
-    background: #f6f6f600;
-  }
-}
-.nc-docs-page-content:hover {
-  // scrollbar reduce width and gray color
-  &::-webkit-scrollbar {
-    width: 6px;
-  }
-
-  /* Track */
-  &::-webkit-scrollbar-track {
-    background: #f6f6f600 !important;
-  }
-
-  /* Handle */
-  &::-webkit-scrollbar-thumb {
-    background: rgb(215, 215, 215);
-  }
-
-  /* Handle on hover */
-  &::-webkit-scrollbar-thumb:hover {
-    background: rgb(203, 203, 203);
-  }
-}
-
-.nc-docs-page {
-  .ProseMirror-focused {
-    // remove all border
-    outline: none;
-  }
-
-  [data-diff-node='ins'] {
-    @apply !bg-green-200 rounded-sm p-0.5 m-0.5;
-  }
-
-  [data-diff-node='del'] {
-    @apply !bg-red-200 rounded-sm p-0.5 m-0.5;
-  }
-
-  del {
-    @apply !bg-red-200 rounded-sm my-0.5;
-    text-decoration: none;
-  }
-  ins {
-    @apply !bg-green-200 rounded-sm my-0.5 mx-0.5;
-    text-decoration: none;
-  }
-
-  ins[isempty='true'] {
-    display: block;
-    color: transparent;
-    user-select: none;
-    @apply !w-full;
-  }
-  del[isempty='true'] {
-    display: block;
-    color: transparent;
-    user-select: none;
-    @apply !w-full;
-  }
-
-  td {
-    ins {
-      @apply !p-0 !m-0;
-    }
-  }
-
-  .draggable-block-wrapper.focused {
-    .attachment-wrapper .attachment {
-      @apply !bg-primary-selected;
-    }
-  }
-
-  .draggable-block-wrapper.selected {
-    table {
-      @apply !bg-primary-selected;
-      tr:first-child td {
-        @apply !bg-primary-selected;
-      }
-    }
-    .attachment-wrapper .attachment {
-      @apply !bg-primary-selected;
-    }
-    p,
-    h1,
-    h2,
-    h3,
-    h4,
-    h5,
-    h6,
-    li,
-    blockquote,
-    pre,
-    code,
-    img,
-    .link-to-page-wrapper {
-      @apply !bg-primary-selected;
-    }
-
-    .node-view-drag-content > ul {
-      @apply !bg-primary-selected;
-    }
-  }
-
-  div[contenteditable='false'].ProseMirror {
-    user-select: text !important;
-  }
-
-  p.is-empty::after,
-  h1.is-empty::after,
-  h2.is-empty::after,
-  h3.is-empty::after {
-    content: attr(data-placeholder);
-    float: left;
-    color: #afafaf;
-    pointer-events: none;
-    margin-top: -1.55rem;
-    margin-left: 0.01rem;
-  }
-
-  [data-one-content='true'] [data-type='collapsable_content'] {
-    p.is-empty::after {
-      content: 'Empty collapsable. Press / to open the command menu or start writing';
-    }
-  }
-
-  p.is-empty::after {
-    margin-top: -1.55rem;
-  }
-  h1.is-empty::after {
-    margin-top: -2.85rem;
-  }
-  h2.is-empty::after {
-    margin-top: -2.25rem;
-  }
-  h3.is-empty::after {
-    margin-top: -1.8rem;
-  }
-  .collapsable-wrapper {
-    h1,
-    h2,
-    h3 {
-      margin-top: 0;
-      margin-bottom: 0;
-    }
-  }
-
-  .editable {
-    .focused {
-      div[data-is-empty='true'] {
-        p::after {
-          content: 'Press / to open the command menu or start writing' !important;
-          float: left;
-          color: #afafaf;
-          pointer-events: none;
-          margin-top: -1.55rem;
-          margin-left: 0.01rem;
-        }
-      }
-    }
-    div.is-empty.focused {
-      p::after {
-        content: 'Press / to open the command menu or start writing' !important;
-        float: left;
-        color: #afafaf;
-        pointer-events: none;
-        margin-top: -1.55rem;
-        margin-left: 0.01rem;
-      }
-    }
-  }
-
-  h1.is-empty::before,
-  h2.is-empty::before,
-  h3.is-empty::before {
-    color: #d6d6d6;
-  }
-
-  .nc-docs-list-item > p {
-    margin-top: 0.25rem !important;
-    margin-bottom: 0.25rem !important;
-  }
-
-  p {
-    font-weight: 400;
-    color: #000000;
-    font-size: 1rem;
-    margin-top: 0.25rem;
-    margin-bottom: 0.25rem;
-  }
-
-  h1 {
-    font-weight: 600;
-    font-size: 1.85rem;
-    margin-bottom: 0.6em;
-  }
-
-  h2 {
-    font-weight: 600;
-    font-size: 1.45rem;
-    margin-bottom: 0.5em;
-  }
-
-  h3 {
-    font-weight: 600;
-    font-size: 1.15rem;
-    margin-bottom: 0.3em;
-  }
-
-  h4 {
-    font-size: 1.2rem;
-  }
-
-  h5 {
-    font-size: 1rem;
-  }
-
-  h6 {
-    font-size: 1rem;
-  }
-
-  // Pre tag is the parent wrapper for Code block
-  pre {
-    background: #f2f4f7;
-    border-color: #d0d5dd;
-    border: 1px;
-    color: black;
-    font-family: 'JetBrainsMono', monospace;
-    padding: 1rem;
-    border-radius: 0.5rem;
-    @apply overflow-auto mt-3;
-
-    code {
-      @apply !px-0;
-    }
-  }
-
-  code {
-    background: #f2f4f7;
-    @apply rounded-md px-2 py-1;
-    color: inherit;
-    font-size: 0.8rem;
-  }
-
-  [data-type='bullet'] {
-    .tiptap-list-item-content {
-      display: list-item;
-      list-style: disc;
-      padding-left: '1rem' !important;
-
-      p {
-        margin-top: '0.01rem';
-        margin-bottom: '0.01rem';
-      }
-    }
-  }
-
-  .readonly {
-    [data-type='bullet'] {
-      @apply !ml-3.5;
-    }
-  }
-
-  [data-disc-style='disc'] {
-    .tiptap-list-item-content {
-      list-style: disc;
-    }
-  }
-  [data-disc-style='circle'] {
-    .tiptap-list-item-content {
-      list-style: none;
-      &::before {
-        font-size: 1.2em;
-        margin-right: 4px;
-        margin-left: -1rem;
-        line-height: 1.3;
-        content: '◦';
-        float: left;
-      }
-      // Thicker circle
-    }
-    .tiptap-list-item-content::marker {
-      border: 4px solid black;
-      border-radius: 90%;
-    }
-  }
-  [data-disc-style='square'] {
-    .tiptap-list-item-content {
-      list-style: square;
-    }
-  }
-
-  .collapsable-header-wrapper {
-    [data-type='bullet'] {
-      margin-left: 1rem;
-    }
-  }
-  .tiptap-table-cell {
-    [data-type='bullet'] {
-      margin-left: 0.7rem;
-    }
-  }
-
-  [data-type='ordered'] {
-    @apply flex flex-row items-start gap-x-1;
-    .tiptap-list-item-start > span::before {
-      margin-top: 6px;
-      content: attr(data-number) '. ';
-      display: inline-block;
-      white-space: nowrap;
-    }
-    .tiptap-list-item-content {
-      @apply flex flex-grow;
-    }
-  }
-
-  [data-type='task'] {
-    @apply flex flex-row items-start gap-x-2;
-    label {
-      @apply flex mt-2;
-    }
-    input {
-      @apply rounded-sm;
-    }
-    // Unchecked
-    input:not(:checked) {
-      // Add border to checkbox
-      border-width: 1.5px;
-      @apply border-gray-700;
-    }
-  }
-
-  ul {
-    // bullet color black
-    list-style: disc;
-  }
-
-  hr {
-    border: 0;
-    border-top: 1px solid #ccc;
-    margin: 1.5em 0;
-  }
-
-  hr.ProseMirror-selectednode {
-    // outline with rounded corners
-    outline: 4px solid #e8eafd;
-    border-radius: 4px;
-  }
-  .focused {
-    hr {
-      // outline with rounded corners
-      outline: 4px solid #e8eafd;
-      border-radius: 4px;
-    }
-  }
-  .selected {
-    hr {
-      // outline with rounded corners
-      outline: 4px solid #e8eafd;
-      border-radius: 4px;
-    }
-  }
-
-  .selected {
-    .external-content-wrapper {
-      // outline with rounded corners
-      outline: 2px solid #e8eafd;
-      border-radius: 1px;
-    }
-  }
-
-  .external-content-wrapper.ProseMirror-selectednode {
-    // outline with rounded corners
-    outline: 2px solid #e8eafd;
-    border-radius: 1px;
-  }
-
-  blockquote {
-    border-left: 3px solid #d0d5dd;
-    padding: 0 1em;
-    color: #666;
-    margin: 1em 0;
-    font-style: italic;
-  }
-
-  div.callout-wrapper {
-    @apply my-2.5;
-  }
-
-  div.callout {
-    [data-type='bullet'] {
-      margin-left: 0.7rem;
-    }
-  }
-
-  div.info-callout {
-    @apply px-2 py-2 rounded-md border-1;
-    border-color: rgb(166, 222, 254);
-    background-color: rgb(230, 246, 255);
-    color: #666;
-  }
-
-  div.tip-callout {
-    @apply px-2 py-2 rounded-md border-1;
-    border-color: #fee088;
-    background-color: #fef7d7;
-    color: #666;
-  }
-
-  div.warning-callout {
-    @apply px-2 py-2 rounded-md border-1;
-    border-color: #ffa58b;
-    background-color: #ffe7d8;
-    color: #666;
-  }
-
-  .column-resize-handle {
-    background-color: #e3e5ff !important;
-    width: 6px;
-    cursor: col-resize;
-    z-index: 1;
-  }
-
-  .resize-cursor {
-    cursor: ew-resize;
-    cursor: col-resize;
-  }
-
-  .external-content-wrapper {
-    @apply bg-gray-100 my-2;
-  }
-
-  div[data-type='column'] {
-    @apply flex flex-row gap-x-12 justify-between;
-  }
-}
-</style>

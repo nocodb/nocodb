@@ -9,9 +9,11 @@ const { node, editor, getPos } = defineProps(nodeViewProps)
 const isCollapsed = ref(true)
 const nodePos = ref(getPos())
 
-const toggleCollapsableContent = () => {
+const toggleCollapsableContent = (e: MouseEvent) => {
+  e.preventDefault()
+  e.stopPropagation()
+
   const state = editor.state
-  const selection = state.selection
   const tr = editor.state.tr
 
   if (isCollapsed.value) {
@@ -19,13 +21,14 @@ const toggleCollapsableContent = () => {
     const collapsableContentPos = getPosOfChildNodeOfType({
       state,
       nodeType: TiptapNodesTypes.collapsableContent,
+      nodePos: nodePos.value,
     })!
     const firstChildOfCollapseContentPos = positionOfFirstChild(state, collapsableContentPos, 'start')!
 
     tr.setSelection(TextSelection.create(tr.doc, firstChildOfCollapseContentPos + 2))
   } else {
     // Put cursor on the start of the collapsable node
-    tr.setSelection(TextSelection.create(tr.doc, selection.from))
+    tr.setSelection(TextSelection.create(tr.doc, nodePos.value + 2))
   }
   editor.view.dispatch(tr)
 
@@ -70,12 +73,13 @@ editor.on('update', () => {
       :collapsable-pos="nodePos"
     >
       <div
-        class="mt-1 flex items-center px-1 cursor-pointer hover:bg-gray-100 h-6 rounded-md z-10 group"
+        class="mt-1 flex items-center px-1 cursor-pointer hover:bg-gray-100 h-6 rounded-md group"
         :class="{
           '!mt-3': headerChildNode?.type.name === 'heading' && headerChildNode?.attrs.level === 1,
           '!mt-1.75': headerChildNode?.type.name === 'heading' && headerChildNode?.attrs.level === 2,
           '!mt-0.5': headerChildNode?.type.name === 'heading' && headerChildNode?.attrs.level === 3,
         }"
+        contenteditable="false"
         @click.stop="toggleCollapsableContent"
       >
         <MdiTriangle

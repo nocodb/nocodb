@@ -1,30 +1,36 @@
-import { Controller, HttpCode, Post, Request, UseGuards } from '@nestjs/common';
-import { GlobalGuard } from '../../../guards/global/global.guard';
-import { ExtractProjectIdMiddleware } from '../../../middlewares/extract-project-id/extract-project-id.middleware';
-import { SyncSource } from '../../../models';
-import { NcError } from '../../../helpers/catchError';
-import { JobsService } from '../jobs.service';
-import { JobTypes } from '../../../interface/Jobs';
+import {
+  Controller,
+  HttpCode,
+  Inject,
+  Post,
+  Request,
+  UseGuards,
+} from '@nestjs/common';
+import { GlobalGuard } from '../../../../guards/global/global.guard';
+import { ExtractProjectIdMiddleware } from '../../../../middlewares/extract-project-id/extract-project-id.middleware';
+import { SyncSource } from '../../../../models';
+import { NcError } from '../../../../helpers/catchError';
+import { JobTypes } from '../../../../interface/Jobs';
 
 @Controller()
 @UseGuards(ExtractProjectIdMiddleware, GlobalGuard)
 export class AtImportController {
-  constructor(private readonly jobsService: JobsService) {}
+  constructor(@Inject('JobsService') private readonly jobsService) {}
 
   @Post('/api/v1/db/meta/import/airtable')
   @HttpCode(200)
   async importAirtable(@Request() req) {
-    const job = await this.jobsService.activeQueue.add(JobTypes.AtImport, {
+    const job = await this.jobsService.add(JobTypes.AtImport, {
       ...req.body,
     });
 
-    return { id: job.id, name: job.name };
+    return { id: job.id };
   }
 
   @Post('/api/v1/db/meta/syncs/:syncId/trigger')
   @HttpCode(200)
   async triggerSync(@Request() req) {
-    const jobs = await this.jobsService.jobList(JobTypes.AtImport);
+    const jobs = await this.jobsService.jobList();
     const fnd = jobs.find((j) => j.data.syncId === req.params.syncId);
 
     if (fnd) {
@@ -44,7 +50,7 @@ export class AtImportController {
       baseURL = `http://localhost:${process.env.PORT || 8080}`;
     }
 
-    const job = await this.jobsService.activeQueue.add(JobTypes.AtImport, {
+    const job = await this.jobsService.add(JobTypes.AtImport, {
       syncId: req.params.syncId,
       ...(syncSource?.details || {}),
       projectId: syncSource.project_id,
@@ -54,7 +60,7 @@ export class AtImportController {
       user: user,
     });
 
-    return { id: job.id, name: job.name };
+    return { id: job.id };
   }
 
   @Post('/api/v1/db/meta/syncs/:syncId/abort')

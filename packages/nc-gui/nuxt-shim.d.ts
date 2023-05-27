@@ -18,7 +18,6 @@ declare module '#app/nuxt' {
         job:
           | {
               id: string
-              name: string
             }
           | any,
         subscribedCb?: () => void,

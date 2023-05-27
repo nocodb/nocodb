@@ -60,8 +60,8 @@ export default {
 
 <template>
   <div
-    class="chip group py-1 px-2 mr-1 my-1 flex items-center border-1 rounded-[2px] flex-row"
-    :class="{ active }"
+    class="chip group mr-1 my-1 flex items-center rounded-[2px] flex-row"
+    :class="{ active, 'border-1 py-1 px-2': isAttachment(column) }"
     @click="openExpandedForm"
   >
     <span class="name">
@@ -83,7 +83,7 @@ export default {
           <div
             class="min-w-max"
             :class="{
-              'bg-gray-100 px-1 rounded-full flex-1': !isAttachment(column),
+              'px-1 rounded-full flex-1': !isAttachment(column),
               'border-gray-200 rounded border-1': ![UITypes.Attachment, UITypes.MultiSelect, UITypes.SingleSelect].includes(
                 column.uidt,
               ),

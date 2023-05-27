@@ -5,6 +5,7 @@ import type { AntTreeNodeDropEvent } from 'ant-design-vue/lib/tree'
 import { Icon as IconifyIcon } from '@iconify/vue'
 import type { ProjectType } from 'nocodb-sdk'
 import { onMounted, toRef } from '@vue/runtime-core'
+import type { PageSidebarNode } from '~~/lib'
 
 const props = defineProps<{
   project: ProjectType
@@ -12,13 +13,12 @@ const props = defineProps<{
 
 const project = toRef(props, 'project')
 
-const MAX_NESTED_LEVEL = 5
-
-const { isPublic, openedPageInSidebar, nestedPagesOfProjects, isEditAllowed, openedTabsOfProjects } = storeToRefs(useDocStore())
+const { isPublic, openedPageInSidebar, nestedPagesOfProjects, isEditAllowed, openedTabsOfProjects, openedPage } = storeToRefs(
+  useDocStore(),
+)
 
 const {
   fetchNestedPages,
-  nestedUrl,
   deletePage,
   reorderPages,
   updatePage,
@@ -33,7 +33,7 @@ const nestedPages = computed(() => nestedPagesOfProjects.value[project.value.id!
 
 const openedTabs = ref<string[]>([])
 
-const deleteModalOpen = ref(false)
+const isDeleteModalOpen = ref(false)
 const selectedPageId = ref()
 
 const onLoadData: TreeProps['loadData'] = async (treeNode) => {
@@ -49,17 +49,11 @@ const openPageTabKeys = computed({
   set: () => {},
 })
 
-const openDeleteModal = ({ pageId }: { pageId: string }) => {
-  selectedPageId.value = pageId
-
-  deleteModalOpen.value = true
-}
-
 const onDeletePage = async () => {
   await deletePage({ pageId: selectedPageId.value })
 
   selectedPageId.value = undefined
-  deleteModalOpen.value = false
+  isDeleteModalOpen.value = false
 }
 
 const onDragEnter = () => {
@@ -91,23 +85,11 @@ const onDrop = async (info: AntTreeNodeDropEvent) => {
   })
 }
 
-const onTabSelect = (_: any, e: { selected: boolean; selectedNodes: any; node: any; event: any; nativeEvent: any }) => {
-  if (!e.selected) return
-  const eventBubblePath: any[] = e.nativeEvent?.path ?? []
-  if (
-    eventBubblePath.some((el: any) => {
-      if (typeof el?.classList?.contains === 'function') {
-        return el.classList.contains('nc-docs-sidebar-page-options')
-      }
-
-      return false
-    })
-  ) {
-    return
-  }
+const onTabSelect = (page: PageSidebarNode) => {
+  if (openedPage.value?.id === page.id) return
 
   openPage({
-    page: e.node.dataRef,
+    page,
     projectId: project.value.id!,
   })
 }
@@ -146,7 +128,7 @@ watch(
 )
 
 onKeyStroke('Enter', () => {
-  if (deleteModalOpen.value) {
+  if (isDeleteModalOpen.value) {
     onDeletePage()
   }
 })
@@ -186,13 +168,12 @@ onMounted(async () => {
         :on-drop="onDrop"
         class="!w-full h-full overflow-y-scroll !overflow-x-hidden !bg-inherit"
         @dragenter="onDragEnter"
-        @select="onTabSelect"
       >
-        <template #title="{ title, id, icon, level }">
+        <template #title="page">
           <div
             class="flex flex-row items-center justify-between group pt-1"
-            :data-testid="`docs-sidebar-page-${project.title}-${title}`"
-            :data-level="level"
+            :data-testid="`docs-sidebar-page-${project.title}-${page.title}`"
+            :data-level="page.level"
           >
             <div
               class="flex flex-row gap-x-1 text-ellipsis overflow-clip min-w-0 transition-all duration-200 ease-in-out"
@@ -215,17 +196,17 @@ onMounted(async () => {
                       data-testid="docs-sidebar-emoji-selector"
                     >
                       <IconifyIcon
-                        v-if="icon"
-                        :key="icon"
-                        :data-testid="`nc-doc-page-icon-${icon}`"
+                        v-if="page.icon"
+                        :key="page.icon"
+                        :data-testid="`nc-doc-page-icon-${page.icon}`"
                         class="text-lg"
-                        :icon="icon"
+                        :icon="page.icon"
                       ></IconifyIcon>
                       <MdiFileDocumentOutline v-else />
                     </div>
                     <template #overlay>
                       <div class="flex flex-col p-1 bg-gray-50 rounded-md">
-                        <GeneralEmojiIcons class="shadow p-2" @select-icon="setIcon(id, $event)" />
+                        <GeneralEmojiIcons class="shadow p-2" @select-icon="setIcon(page.id, $event)" />
                       </div>
                     </template>
                   </a-dropdown>
@@ -234,50 +215,17 @@ onMounted(async () => {
               <span
                 class="text-ellipsis overflow-hidden nc-docs-sidebar-page-title"
                 :style="{ wordBreak: 'keep-all', whiteSpace: 'nowrap', display: 'inline' }"
+                @click="() => onTabSelect(page)"
               >
-                {{ title }}
+                {{ page.title }}
               </span>
             </div>
-            <div v-if="isEditAllowed" class="flex flex-row justify-start items-center pl-2 gap-x-1 h-3">
-              <a-dropdown placement="bottom" trigger="click">
-                <div
-                  class="nc-docs-sidebar-page-options flex px-0.5 hover:( !bg-gray-300 !bg-opacity-30 rounded-md) cursor-pointer select-none hidden group-hover:block"
-                  data-testid="docs-sidebar-page-options"
-                >
-                  <MdiDotsHorizontal />
-                </div>
-                <template #overlay>
-                  <div class="flex flex-col p-1 bg-gray-50 rounded-md w-28 gap-y-0.5 border-1 border-gray-100">
-                    <div
-                      class="flex items-center cursor-pointer select-none px-1.5 py-1.5 text-xs gap-x-2.5 hover:bg-gray-100 rounded-md !text-red-500"
-                      data-testid="docs-sidebar-page-delete"
-                      @click="() => openDeleteModal({ pageId: id })"
-                    >
-                      <MdiDeleteOutline class="h-3.5" />
-                      <div class="flex font-semibold">Delete</div>
-                    </div>
-                  </div>
-                  <a-menu>
-                    <a-menu-item class="!py-2">
-                      <div
-                        class="flex flex-row items-center space-x-2 text-red-500"
-                        @click="() => openDeleteModal({ pageId: id })"
-                      >
-                        <MdiDeleteOutline class="flex" />
-                        <div class="flex">Delete</div>
-                      </div>
-                    </a-menu-item>
-                  </a-menu>
-                </template>
-              </a-dropdown>
-              <div
-                v-if="level < MAX_NESTED_LEVEL"
-                class="nc-docs-add-child-page flex px-0.5 hover:( !bg-gray-300 !bg-opacity-30 rounded-md) cursor-pointer select-none hidden group-hover:block"
-                @click="() => addNewPage({parentPageId: id, projectId: project.id!})"
-              >
-                <MdiPlus />
-              </div>
-            </div>
+            <DocsSidebarPageOption
+              :level="page.level"
+              @open-delete-modal="isDeleteModalOpen = true"
+              @update-selected-page-id="selectedPageId = page.id"
+              @add-new-page="() => addNewPage({ parentPageId: page.id, projectId: project.id! })"
+            />
           </div>
         </template>
       </a-tree>
@@ -291,11 +239,11 @@ onMounted(async () => {
         <div class="flex">Create New Page</div>
       </div>
     </a-layout-sider>
-    <a-modal v-model:visible="deleteModalOpen" centered :closable="false" :footer="false">
+    <a-modal v-model:visible="isDeleteModalOpen" centered :closable="false" :footer="false">
       <div class="flex flex-col ml-2">
         <div class="flex ml-1">Are you sure you want to delete this page?</div>
         <div class="flex flex-row mt-4 space-x-3">
-          <a-button type="text" @click="deleteModalOpen = false">Cancel</a-button>
+          <a-button type="text" @click="isDeleteModalOpen = false">Cancel</a-button>
           <a-button type="danger" data-testid="docs-page-delete-confirmation" @click="onDeletePage">Delete</a-button>
         </div>
       </div>

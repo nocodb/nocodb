@@ -42,7 +42,6 @@ export const JwtStrategyProvider: Provider = {
   providers: [
     InitMetaServiceProvider,
     AppHooksService,
-    MetaService,
     UsersService,
     JwtStrategyProvider,
     GlobalGuard,

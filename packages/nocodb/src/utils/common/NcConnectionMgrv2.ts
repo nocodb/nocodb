@@ -1,8 +1,9 @@
 import SqlClientFactory from '../../db/sql-client/lib/SqlClientFactory';
 import { XKnex } from '../../db/CustomKnex';
-import NcConfigFactory, {
+import {
   defaultConnectionConfig,
   defaultConnectionOptions,
+  metaUrlToDbConfig,
 } from '../nc-config';
 import Noco from '../../Noco';
 import type Base from '../../models/Base';
@@ -94,9 +95,7 @@ export default class NcConnectionMgrv2 {
   public static async getDataConfig() {
     if (process.env.NC_DATA_DB) {
       if (!this.dataConfig)
-        this.dataConfig = await NcConfigFactory.metaUrlToDbConfig(
-          process.env.NC_DATA_DB,
-        );
+        this.dataConfig = await metaUrlToDbConfig(process.env.NC_DATA_DB);
       return this.dataConfig;
     } else {
       if (!this.dataConfig) {

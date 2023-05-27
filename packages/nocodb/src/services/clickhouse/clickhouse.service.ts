@@ -2,7 +2,7 @@ import path from 'path';
 import { Injectable, Logger } from '@nestjs/common';
 import { ClickHouse } from 'clickhouse';
 import { migration } from 'clickhouse-migrations/lib/migrate';
-import NcConfigFactory from '../../utils/NcConfigFactory';
+import { metaUrlToDbConfig } from '../../utils/nc-config';
 import RedlockWrapper from './redlock-wrapper';
 import ClickhouseLock from './clickhouse-lock';
 import type { OnModuleDestroy, OnModuleInit } from '@nestjs/common';
@@ -34,7 +34,7 @@ export class ClickhouseService implements OnModuleInit, OnModuleDestroy {
       return;
     }
 
-    const { connection, client } = await NcConfigFactory.metaUrlToDbConfig(
+    const { connection, client } = await metaUrlToDbConfig(
       process.env.NC_CLICKHOUSE,
     );
 

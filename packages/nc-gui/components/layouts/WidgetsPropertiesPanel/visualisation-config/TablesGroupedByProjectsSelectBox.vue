@@ -50,10 +50,10 @@ const allDataIsReady = computed(() => {
 
 <template>
   <div class="nc-tables-grouped-by-projects-select-box-container">
-    <label class="nc-tables-grouped-by-projects-select-box-label">Table</label>
     <a-select
       v-if="allDataIsReady"
-      :value="selectedProjectIdAndTableId"
+      v-model:value="selectedProjectIdAndTableId"
+      show-search
       class="nc-tables-grouped-by-projects-select-box"
       @change="handleChange"
     >
@@ -83,16 +83,18 @@ const allDataIsReady = computed(() => {
 
 <style>
 .nc-tables-grouped-by-projects-select-box {
-  min-width: 10rem;
-}
-
-.nc-tables-grouped-by-projects-select-box-label {
-  min-width: 5rem;
+  /* min-width: 10rem; */
+  @apply flex-1 my-1 rounded-full;
 }
 
 .nc-tables-grouped-by-projects-select-box-container {
-  margin-bottom: 1rem;
+  /* margin-bottom: 1rem;
   display: flex;
-  flex-direction: row;
+  flex-direction: row; */
+  @apply w-full flex pb-4;
+}
+
+:deep(.ant-select) {
+  @apply rounded-full;
 }
 </style>

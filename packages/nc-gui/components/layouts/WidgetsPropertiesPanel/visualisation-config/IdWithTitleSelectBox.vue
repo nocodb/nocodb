@@ -5,7 +5,7 @@ import type { IdAndTitle } from '../../types'
 const props = defineProps<{
   idAndTitleTupleList?: Readonly<IdAndTitle[] | null>
   modelValue?: string
-  labelText: string
+  id?: string
 }>()
 const emit = defineEmits<Emits>()
 interface Emits {
@@ -42,30 +42,26 @@ const allDataIsReady = computed(() => {
 </script>
 
 <template>
-  <div v-if="allDataIsReady" class="nc-id-with-title-select-box-label-container">
-    <label class="nc-id-with-title-select-box-label">{{ labelText }}</label>
-    <a-select ref="select" v-model:value="selectedId" show-search class="nc-id-with-title-select-box" @change="handleChange">
+  <template v-if="allDataIsReady">
+    <a-select
+      :id="props.id"
+      ref="select"
+      v-model:value="selectedId"
+      show-search
+      class="nc-id-with-title-select-box"
+      @change="handleChange"
+    >
       <a-select-option v-for="opt of optionsForSelectBoxes" :key="opt.name" :value="opt.value">
         <div class="flex gap-1 items-center">
           {{ opt.name }}
         </div>
       </a-select-option>
     </a-select>
-  </div>
+  </template>
 </template>
 
 <style>
 .nc-id-with-title-select-box {
   min-width: 5rem;
-}
-
-.nc-id-with-title-select-box-label {
-  min-width: 5rem;
-}
-
-.nc-id-with-title-select-box-label-container {
-  margin-bottom: 1rem;
-  display: flex;
-  flex-direction: row;
 }
 </style>

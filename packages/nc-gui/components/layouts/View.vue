@@ -153,7 +153,7 @@ const drop = (ev: DragEvent) => {
       </div>
     </a-layout-content>
     <!-- TODO: decide / change again to rem for width and overall: use consistent styling -->
-    <a-layout-sider class="right-sidebar flex" width="500px" theme="light">
+    <a-layout-sider class="right-sidebar flex" width="20rem" theme="light">
       <LayoutsWidgetsPropertiesPanel />
     </a-layout-sider>
   </a-layout>

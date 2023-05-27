@@ -1,6 +1,6 @@
+import path from 'path';
 import Sentry, { Handlers } from '@sentry/node';
 import { Logger } from '@nestjs/common';
-import path from 'path';
 import { NestFactory } from '@nestjs/core';
 import clear from 'clear';
 import * as express from 'express';

@@ -17834,10 +17834,13 @@
           "dtxp": {
             "oneOf": [
               {
-                "$ref": "#/components/schemas/StringOrNull"
+                "type": "string"
               },
               {
                 "type": "number"
+              },
+              {
+                "type": "null"
               }
             ],
             "description": "Data Type Extra Precision"

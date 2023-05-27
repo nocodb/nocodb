@@ -125,7 +125,7 @@ export function useMultiSelect(
           }
 
           if (columnObj.uidt === UITypes.Formula) {
-            textToCopy = textToCopy.replace(/\b(\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}\+\d{2}:\d{2})\b/g, (d: string) => {
+            textToCopy = textToCopy.replace(/\b(\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}[+-]\d{2}:\d{2})\b/g, (d: string) => {
               // TODO(timezone): retrieve the format from the corresponding column meta
               // assume hh:mm at this moment
               return dayjs(d).utc().local().format('YYYY-MM-DD HH:mm')

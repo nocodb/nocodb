@@ -1,5 +1,5 @@
 <script lang="ts" setup>
-import { RelationTypes, UITypes, isVirtualCol } from 'nocodb-sdk'
+import { UITypes, isVirtualCol } from 'nocodb-sdk'
 import {
   ActiveCellInj,
   IsFormInj,

@@ -1106,7 +1106,9 @@ function tableTest() {
     );
 
     const nestedFields = {
-      'Rental List': ['RentalDate', 'ReturnDate'],
+      'Rental List': {
+        f: 'RentalDate,ReturnDate',
+      },
     };
 
     const nestedFilter = [
@@ -1273,6 +1275,39 @@ function tableTest() {
       row['FirstName'] !== readResponse.body['FirstName']
     ) {
       throw new Error('Wrong read');
+    }
+  });
+
+  it('Read table row with nested fields', async () => {
+    const rowId = 1;
+    const actorTable = await getTable({
+      project: sakilaProject,
+      name: 'actor',
+    });
+    const response = await request(context.app)
+      .get(
+        `/api/v1/db/data/noco/${sakilaProject.id}/${actorTable.id}/${rowId}/`,
+      )
+      .set('xc-auth', context.token)
+      .query({
+        'nested[Film List][fields]': 'Title,ReleaseYear,Language',
+      })
+      .expect(200);
+
+    const record = response.body;
+    expect(record['Film List']).length(19);
+    expect(record['Film List'][0]).to.have.all.keys(
+      'Title',
+      'ReleaseYear',
+      'Language',
+    );
+
+    // for SQLite Sakila, Language is null
+    if (isPg(context)) {
+      expect(record['Film List'][0]['Language']).to.have.all.keys(
+        'Name',
+        'LanguageId',
+      );
     }
   });
 

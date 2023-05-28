@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import tinycolor from 'tinycolor2'
 import type { ProjectType } from 'nocodb-sdk'
 import { useVModel } from '#imports'
 
@@ -34,7 +35,26 @@ const isLoading = ref(false)
 const _duplicate = async () => {
   isLoading.value = true
   try {
-    const jobData = await api.project.duplicate(props.project.id as string, optionsToExclude.value)
+    // pick a random color from array and assign to project
+    const color = projectThemeColors[Math.floor(Math.random() * 1000) % projectThemeColors.length]
+    const tcolor = tinycolor(color)
+
+    const complement = tcolor.complement()
+
+    const jobData = await api.project.duplicate(props.project.id as string, {
+      options: optionsToExclude.value,
+      project: {
+        fk_workspace_id: props.project.fk_workspace_id,
+        type: props.project.type,
+        color,
+        meta: JSON.stringify({
+          theme: {
+            primaryColor: color,
+            accentColor: complement.toHex8String(),
+          },
+        }),
+      },
+    })
     props.onOk(jobData as any)
   } catch (e: any) {
     message.error(await extractSdkResponseErrorMsg(e))
@@ -48,6 +68,7 @@ const isEaster = ref(false)
 
 <template>
   <a-modal
+    v-if="project"
     v-model:visible="dialogShow"
     :class="{ active: dialogShow }"
     width="max(30vw, 600px)"

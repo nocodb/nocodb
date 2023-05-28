@@ -79,7 +79,7 @@ export class DuplicateController {
       projectId: project.id,
       baseId: base.id,
       dupProjectId: dupProject.id,
-      options: body.options,
+      options: body.options || {},
       req: {
         user: req.user,
         clientIp: req.clientIp,
@@ -131,7 +131,7 @@ export class DuplicateController {
       baseId: base.id,
       modelId: model.id,
       title: uniqueTitle,
-      options: body.options,
+      options: body.options || {},
       req: {
         user: req.user,
         clientIp: req.clientIp,

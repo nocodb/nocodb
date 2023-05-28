@@ -9,7 +9,7 @@ import ProjectWrapper from './ProjectWrapper.vue'
 
 import {
   TabType,
-  TreeViewSetMenuContextInj,
+  TreeViewFunctions,
   computed,
   extractSdkResponseErrorMsg,
   isDrawerOrModalExist,
@@ -34,7 +34,7 @@ import { useRouter } from '#app'
 
 const { addTab, updateTab, addSqlEditorTab } = useTabs()
 
-const { $api, $e } = useNuxtApp()
+const { $api, $e, $jobs } = useNuxtApp()
 
 const router = useRouter()
 
@@ -115,9 +115,10 @@ const loadProjectAndTableList = async (project: ProjectType, projIndex: number) 
 }
 
 const projectStore = useProject()
-//
-// const { loadTables } = projectStore
-const { isSharedBase } = storeToRefs(projectStore)
+
+const { loadTables } = projectStore
+
+const { isSharedBase, tables } = storeToRefs(projectStore)
 
 const { activeTab } = storeToRefs(useTabs())
 
@@ -222,7 +223,7 @@ watchEffect(() => {
   }
 })
 
-const contextMenuTarget = reactive<{ type?: 'project' | 'base' | 'table' | 'main'; value?: any }>({})
+const contextMenuTarget = reactive<{ type?: 'project' | 'base' | 'table' | 'main' | 'layout'; value?: any }>({})
 
 const setMenuContext = (type: 'project' | 'base' | 'table' | 'main', value?: any) => {
   contextMenuTarget.type = type
@@ -336,6 +337,38 @@ function openSchemaMagicDialog(baseId?: string) {
   const { close } = useDialog(resolveComponent('DlgSchemaMagic'), {
     'modelValue': isOpen,
     'baseId': baseId, // || bases.value[0].id,
+    'onUpdate:modelValue': closeDialog,
+  })
+
+  function closeDialog() {
+    isOpen.value = false
+
+    close(1000)
+  }
+}
+
+const duplicateTable = async (table: TableType) => {
+  if (!table || !table.id || !table.project_id) return
+
+  const isOpen = ref(true)
+
+  const { close } = useDialog(resolveComponent('DlgTableDuplicate'), {
+    'modelValue': isOpen,
+    'table': table,
+    'onOk': async (jobData: { id: string }) => {
+      $jobs.subscribe({ id: jobData.id }, undefined, async (status: string, data?: any) => {
+        if (status === JobStatus.COMPLETED) {
+          await loadTables()
+          const newTable = tables.value.find((el) => el.id === data?.result?.id)
+          if (newTable) addTab({ title: newTable.title, id: newTable.id, type: newTable.type as TabType })
+        } else if (status === JobStatus.FAILED) {
+          message.error('Failed to duplicate table')
+          await loadTables()
+        }
+      })
+
+      $e('a:table:duplicate')
+    },
     'onUpdate:modelValue': closeDialog,
   })
 
@@ -468,7 +501,7 @@ const handleContext = (e: MouseEvent) => {
   }
 }
 
-provide(TreeViewSetMenuContextInj, setMenuContext)
+provide(TreeViewFunctions, { setMenuContext, duplicateTable, openRenameTableDialog })
 
 useEventListener(document, 'contextmenu', handleContext, true)
 
@@ -633,6 +666,12 @@ const isClearMode = computed(() => route.query.clear === '1' && route.params.pro
                   <a-menu-item v-if="isUIAllowed('table-rename')" @click="openRenameTableDialog(contextMenuTarget.value, true)">
                     <div class="nc-project-menu-item">
                       {{ $t('general.rename') }}
+                    </div>
+                  </a-menu-item>
+
+                  <a-menu-item v-if="isUIAllowed('table-duplicate')" @click="duplicateTable(contextMenuTarget.value)">
+                    <div class="nc-project-menu-item">
+                      {{ $t('general.duplicate') }}
                     </div>
                   </a-menu-item>
 

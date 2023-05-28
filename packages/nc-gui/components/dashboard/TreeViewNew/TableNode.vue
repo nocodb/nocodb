@@ -9,7 +9,7 @@ import { useUIPermission } from '~/composables/useUIPermission'
 import { useTabs } from '~/store/tab'
 import { useNuxtApp } from '#app'
 import { ProjectRoleInj } from '~/context'
-import { TreeViewSetMenuContextInj } from '#imports'
+import { TreeViewFunctions } from '#imports'
 
 const props = withDefaults(
   defineProps<{
@@ -30,7 +30,7 @@ const { isUIAllowed } = useUIPermission()
 
 const tabStore = useTabs()
 const { updateTab } = tabStore
-const { activeTab } = storeToRefs(tabStore)
+
 const { $e, $api } = useNuxtApp()
 
 const { deleteTable } = useTableNew({
@@ -39,7 +39,7 @@ const { deleteTable } = useTableNew({
 
 const projectRole = inject(ProjectRoleInj)
 
-const setMenuContext = inject(TreeViewSetMenuContextInj)!
+const { setMenuContext, openRenameTableDialog, duplicateTable } = inject(TreeViewFunctions)!
 
 // todo: temp
 const { projectTableList } = storeToRefs(useProjects())
@@ -72,25 +72,6 @@ const setIcon = async (icon: string, table: TableType) => {
     $e('a:table:icon:navdraw', { icon })
   } catch (e) {
     message.error(await extractSdkResponseErrorMsg(e))
-  }
-}
-
-function openRenameTableDialog(table: TableType, baseId?: string, rightClick = false) {
-  $e(rightClick ? 'c:table:rename:navdraw:right-click' : 'c:table:rename:navdraw:options')
-
-  const isOpen = ref(true)
-
-  const { close } = useDialog(resolveComponent('DlgTableRename'), {
-    'modelValue': isOpen,
-    'tableMeta': table,
-    'baseId': baseId,
-    'onUpdate:modelValue': closeDialog,
-  })
-
-  function closeDialog() {
-    isOpen.value = false
-
-    close(1000)
   }
 }
 
@@ -184,6 +165,12 @@ const { isSharedBase } = useProject()
               >
                 <div class="nc-project-menu-item" :data-testid="`sidebar-table-rename-${table.title}`">
                   {{ $t('general.rename') }}
+                </div>
+              </a-menu-item>
+
+              <a-menu-item v-if="isUIAllowed('table-duplicate')" @click="duplicateTable(table)">
+                <div class="nc-project-menu-item" :data-testid="`sidebar-table-duplicate-${table.title}`">
+                  {{ $t('general.duplicate') }}
                 </div>
               </a-menu-item>
 

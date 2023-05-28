@@ -4,8 +4,6 @@ import type { ProjectType, TableType } from 'nocodb-sdk'
 import { storeToRefs } from 'pinia'
 import Sortable from 'sortablejs'
 import TableNode from './TableNode.vue'
-import { useTabs } from '~/store/tab'
-import type { TabType } from '~/lib'
 import { useProjects } from '~/store/projects'
 import { useNuxtApp } from '#app'
 
@@ -21,8 +19,6 @@ const props = withDefaults(
 
 const project = toRef(props, 'project')
 const baseIndex = toRef(props, 'baseIndex')
-
-const { addTab } = useTabs()
 
 const projectsStore = useProjects()
 

@@ -209,7 +209,7 @@ const icon = (table: TableType) => {
   }
 }
 
-const contextMenuTarget = reactive<{ type?: 'base' | 'table' | 'main'; value?: any }>({})
+const contextMenuTarget = reactive<{ type?: 'base' | 'table' | 'main' | 'layout'; value?: any }>({})
 
 const setMenuContext = (type: 'base' | 'table' | 'main', value?: any) => {
   contextMenuTarget.type = type
@@ -845,6 +845,12 @@ const duplicateTable = async (table: TableType) => {
                               <a-menu-item v-if="isUIAllowed('table-rename')" @click="openRenameTableDialog(table, bases[0].id)">
                                 <div class="nc-project-menu-item" :data-testid="`sidebar-table-rename-${table.title}`">
                                   {{ $t('general.rename') }}
+                                </div>
+                              </a-menu-item>
+
+                              <a-menu-item v-if="isUIAllowed('table-duplicate')" @click="duplicateTable(table)">
+                                <div class="nc-project-menu-item" :data-testid="`sidebar-table-duplicate-${table.title}`">
+                                  {{ $t('general.duplicate') }}
                                 </div>
                               </a-menu-item>
 

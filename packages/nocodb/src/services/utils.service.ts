@@ -12,7 +12,7 @@ import { Base, Project, User } from '../models';
 import Noco from '../Noco';
 import NcConnectionMgrv2 from '../utils/common/NcConnectionMgrv2';
 import { MetaTable } from '../utils/globals';
-import NcConfigFactory from '../utils/NcConfigFactory';
+import { jdbcToXcConfig } from '../utils/nc-config/helpers';
 import { packageVersion } from '../utils/packageVersion';
 
 const versionCache = {
@@ -195,7 +195,7 @@ export class UtilsService {
   }) {
     const { url } = param.body;
     try {
-      const connectionConfig = NcConfigFactory.extractXcUrlFromJdbc(url, true);
+      const connectionConfig = jdbcToXcConfig(url);
       return connectionConfig;
     } catch (error) {
       return NcError.internalServerError(

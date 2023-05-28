@@ -1,19 +1,19 @@
 <script lang="ts" setup>
 import { Empty } from 'ant-design-vue'
 import type { ProjectType } from 'nocodb-sdk'
-import { WorkspaceUserRoles } from 'nocodb-sdk'
+import { ProjectStatus, WorkspaceUserRoles } from 'nocodb-sdk'
 import tinycolor from 'tinycolor2'
 import { nextTick } from '@vue/runtime-core'
 import { NcProjectType, navigateTo, projectThemeColors, storeToRefs, timeAgo, useWorkspace } from '#imports'
 import { useNuxtApp } from '#app'
 
 const workspaceStore = useWorkspace()
-const { addToFavourite, removeFromFavourite, updateProjectTitle } = workspaceStore
+const { addToFavourite, removeFromFavourite, updateProjectTitle, loadProjects } = workspaceStore
 const { projects, activePage } = storeToRefs(workspaceStore)
 
 // const filteredProjects = computed(() => projects.value?.filter((p) => !p.deleted) || [])
 
-const { $e, $api } = useNuxtApp()
+const { $e, $api, $jobs } = useNuxtApp()
 
 const { isUIAllowed } = useUIPermission()
 
@@ -208,6 +208,34 @@ const moveProject = (project: ProjectType) => {
   isMoveDlgOpen.value = true
 }
 
+const isDuplicateDlgOpen = ref(false)
+const selectedProjectToDuplicate = ref()
+
+useDialog(resolveComponent('DlgProjectDuplicate'), {
+  'modelValue': isDuplicateDlgOpen,
+  'project': selectedProjectToDuplicate,
+  'onUpdate:modelValue': (isOpen: boolean) => (isDuplicateDlgOpen.value = isOpen),
+  'onOk': async (jobData: { id: string }) => {
+    await loadProjects('workspace')
+
+    $jobs.subscribe({ id: jobData.id }, undefined, async (status: string) => {
+      if (status === JobStatus.COMPLETED) {
+        await loadProjects('workspace')
+      } else if (status === JobStatus.FAILED) {
+        message.error('Failed to duplicate project')
+        await loadProjects('workspace')
+      }
+    })
+
+    $e('a:project:duplicate')
+  },
+})
+
+const duplicateProject = (project: ProjectType) => {
+  selectedProjectToDuplicate.value = project
+  isDuplicateDlgOpen.value = true
+}
+
 let clickCount = 0
 let timer: any = null
 const delay = 250
@@ -353,7 +381,10 @@ function onProjectTitleClick(index: number) {
               :trigger="['click']"
             >
               <div @click.stop>
-                <GeneralIcon icon="threeDotHorizontal" class="outline-0 nc-workspace-menu nc-click-transition" />
+                <template v-if="record.status === ProjectStatus.JOB">
+                  <component :is="iconMap.reload" class="animate-infinite animate-spin" />
+                </template>
+                <GeneralIcon v-else icon="threeDotHorizontal" class="outline-0 nc-workspace-menu nc-click-transition" />
               </div>
               <template #overlay>
                 <a-menu>
@@ -361,6 +392,18 @@ function onProjectTitleClick(index: number) {
                     <div class="nc-menu-item-wrapper">
                       <GeneralIcon icon="edit" class="text-gray-500" />
                       Rename Project
+                    </div>
+                  </a-menu-item>
+                  <a-menu-item
+                    v-if="
+                      record.type === NcProjectType.DB &&
+                      isUIAllowed('duplicateProject', true, [record.workspace_role, record.project_role].join())
+                    "
+                    @click="duplicateProject(record)"
+                  >
+                    <div class="nc-menu-item-wrapper">
+                      <GeneralIcon icon="duplicate" class="text-gray-500" />
+                      Duplicate Project
                     </div>
                   </a-menu-item>
                   <a-menu-item

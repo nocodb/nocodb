@@ -1835,7 +1835,7 @@ export interface NormalColumnRequestType {
   /** Data Type Extra */
   dtx?: StringOrNullType;
   /** Data Type Extra Precision */
-  dtxp?: StringOrNullType | number;
+  dtxp?: string | number | null;
   /** Data Type Extra Scale */
   dtxs?: StringOrNullType | number;
   /** Numeric Precision */
@@ -5351,9 +5351,12 @@ export class Api<
     baseDuplicate: (
       projectId: IdType,
       data: {
-        excludeData?: boolean;
-        excludeViews?: boolean;
-        excludeHooks?: boolean;
+        options?: {
+          excludeData?: boolean;
+          excludeViews?: boolean;
+          excludeHooks?: boolean;
+        };
+        project?: object;
       },
       baseId?: IdType,
       params: RequestParams = {}
@@ -5397,9 +5400,12 @@ export class Api<
     duplicate: (
       projectId: IdType,
       data: {
-        excludeData?: boolean;
-        excludeViews?: boolean;
-        excludeHooks?: boolean;
+        options?: {
+          excludeData?: boolean;
+          excludeViews?: boolean;
+          excludeHooks?: boolean;
+        };
+        project?: object;
       },
       params: RequestParams = {}
     ) =>
@@ -6574,8 +6580,10 @@ export class Api<
       projectId: IdType,
       tableId: IdType,
       data: {
-        excludeData?: boolean;
-        excludeViews?: boolean;
+        options?: {
+          excludeData?: boolean;
+          excludeViews?: boolean;
+        };
       },
       params: RequestParams = {}
     ) =>

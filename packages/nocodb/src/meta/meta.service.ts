@@ -1,18 +1,19 @@
-import {
-  Global,
-  Inject,
-  Injectable,
-  OnApplicationBootstrap,
-  OnModuleInit,
-  Optional,
-} from '@nestjs/common';
+import { Injectable, Optional } from '@nestjs/common';
 import { customAlphabet } from 'nanoid';
 import CryptoJS from 'crypto-js';
-import { Connection } from '../connection/connection';
-import XcMigrationSourcev3 from './migrations/XcMigrationSourcev3';
-import XcMigrationSourcev2 from './migrations/XcMigrationSourcev2';
+import dayjs from 'dayjs';
+import utc from 'dayjs/plugin/utc';
+import timezone from 'dayjs/plugin/timezone';
+import { XKnex } from '../db/CustomKnex';
+import { NcConfig } from '../utils/nc-config';
 import XcMigrationSource from './migrations/XcMigrationSource';
+import XcMigrationSourcev2 from './migrations/XcMigrationSourcev2';
+import XcMigrationSourcev3 from './migrations/XcMigrationSourcev3';
 import type { Knex } from 'knex';
+import type * as knex from 'knex';
+
+dayjs.extend(utc);
+dayjs.extend(timezone);
 
 const nanoid = customAlphabet('1234567890abcdefghijklmnopqrstuvwxyz_', 4);
 
@@ -191,16 +192,36 @@ const nanoidv2 = customAlphabet('1234567890abcdefghijklmnopqrstuvwxyz', 14);
 
 @Injectable()
 export class MetaService {
-  constructor(private metaConnection: Connection, @Optional() trx = null) {
+  private _knex: knex.Knex;
+  private _config: any;
+
+  constructor(config: NcConfig, @Optional() trx = null) {
+    this._config = config;
+    this._knex = XKnex({
+      ...this._config.meta.db,
+      useNullAsDefault: true,
+    });
     this.trx = trx;
   }
 
+  get knexInstance(): knex.Knex {
+    return this._knex;
+  }
+
+  get config(): NcConfig {
+    return this._config;
+  }
+
   public get connection() {
-    return this.trx ?? this.metaConnection.knexInstance;
+    return this.trx ?? this.knexInstance;
   }
 
   get knexConnection() {
     return this.connection;
+  }
+
+  public get knex(): any {
+    return this.knexConnection;
   }
 
   public async metaGet(
@@ -260,8 +281,8 @@ export class MetaService {
 
     await this.knexConnection(target).insert({
       ...insertObj,
-      created_at: data?.created_at || this.knexConnection?.fn?.now(),
-      updated_at: data?.updated_at || this.knexConnection?.fn?.now(),
+      created_at: this.now(),
+      updated_at: this.now(),
     });
     return insertObj;
   }
@@ -541,9 +562,9 @@ export class MetaService {
     return this.knexConnection(target).insert({
       db_alias: dbAlias,
       project_id,
-      created_at: this.knexConnection?.fn?.now(),
-      updated_at: this.knexConnection?.fn?.now(),
       ...data,
+      created_at: this.now(),
+      updated_at: this.now(),
     });
   }
 
@@ -691,7 +712,7 @@ export class MetaService {
 
     delete data.created_at;
 
-    query.update({ ...data, updated_at: this.knexConnection?.fn?.now() });
+    query.update({ ...data, updated_at: this.now() });
     if (typeof idOrCondition !== 'object') {
       query.where('id', idOrCondition);
     } else if (idOrCondition) {
@@ -755,7 +776,7 @@ export class MetaService {
     });
 
     // todo: tobe done
-    return new MetaService(this.metaConnection, trx);
+    return new MetaService(this.config, trx);
   }
 
   async metaReset(
@@ -812,8 +833,8 @@ export class MetaService {
       // todo: check project name used or not
       await this.knexConnection('nc_projects').insert({
         ...project,
-        created_at: this.knexConnection?.fn?.now(),
-        updated_at: this.knexConnection?.fn?.now(),
+        created_at: this.now(),
+        updated_at: this.now(),
       });
 
       // todo
@@ -1024,12 +1045,21 @@ export class MetaService {
       .delete();
   }
 
-  public get knex(): any {
-    return this.knexConnection;
-  }
-
   private getNanoId() {
     return nanoid();
+  }
+
+  private isMySQL(): boolean {
+    return (
+      this.connection.clientType() === 'mysql' ||
+      this.connection.clientType() === 'mysql2'
+    );
+  }
+
+  private now(): any {
+    return dayjs()
+      .utc()
+      .format(this.isMySQL() ? 'YYYY-MM-DD HH:mm:ss' : 'YYYY-MM-DD HH:mm:ssZ');
   }
 
   public async audit(

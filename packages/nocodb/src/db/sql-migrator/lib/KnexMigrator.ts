@@ -10,7 +10,7 @@ import Debug from '../../util/Debug';
 import Emit from '../../util/emit';
 import Result from '../../util/Result';
 import * as fileHelp from '../../util/file.help';
-import NcConfigFactory from '../../../utils/NcConfigFactory';
+import { getToolDir, NcConfig } from '../../../utils/nc-config';
 import SqlMigrator from './SqlMigrator';
 
 const evt = new Emit();
@@ -39,7 +39,7 @@ export default class KnexMigrator extends SqlMigrator {
     this.project_id = projectObj?.project_id;
     this.project = projectObj?.config;
     this.metaDb = projectObj?.metaDb;
-    this.toolDir = NcConfigFactory.getToolDir();
+    this.toolDir = getToolDir();
   }
 
   emit(data, _args?) {
@@ -312,8 +312,12 @@ export default class KnexMigrator extends SqlMigrator {
       if (exists) {
         await this._readProjectJson(projJsonFilePath);
         this.emit('Migrator for project initalised successfully');
-      } else if (NcConfigFactory.hasDbUrl()) {
-        this.project = await NcConfigFactory.make();
+      } else if (
+        Object.keys(process.env).some((envKey) =>
+          envKey.startsWith('NC_DB_URL'),
+        )
+      ) {
+        this.project = await NcConfig.createByEnv();
       } else {
         args.type = args.type || 'sqlite';
 

@@ -2133,16 +2133,25 @@
               "schema": {
                 "type": "object",
                 "properties": {
-                  "excludeData": {
-                    "type": "boolean",
-                    "required": false
+                  "options": {
+                    "type": "object",
+                    "properties": {
+                      "excludeData": {
+                        "type": "boolean",
+                        "required": false
+                      },
+                      "excludeViews": {
+                        "type": "boolean",
+                        "required": false
+                      },
+                      "excludeHooks": {
+                        "type": "boolean",
+                        "required": false
+                      }
+                    }
                   },
-                  "excludeViews": {
-                    "type": "boolean",
-                    "required": false
-                  },
-                  "excludeHooks": {
-                    "type": "boolean",
+                  "project": {
+                    "type": "object",
                     "required": false
                   }
                 }
@@ -2223,16 +2232,25 @@
               "schema": {
                 "type": "object",
                 "properties": {
-                  "excludeData": {
-                    "type": "boolean",
-                    "required": false
+                  "options": {
+                    "type": "object",
+                    "properties": {
+                      "excludeData": {
+                        "type": "boolean",
+                        "required": false
+                      },
+                      "excludeViews": {
+                        "type": "boolean",
+                        "required": false
+                      },
+                      "excludeHooks": {
+                        "type": "boolean",
+                        "required": false
+                      }
+                    }
                   },
-                  "excludeViews": {
-                    "type": "boolean",
-                    "required": false
-                  },
-                  "excludeHooks": {
-                    "type": "boolean",
+                  "project": {
+                    "type": "object",
                     "required": false
                   }
                 }
@@ -3978,13 +3996,22 @@
               "schema": {
                 "type": "object",
                 "properties": {
-                  "excludeData": {
-                    "type": "boolean",
-                    "required": false
-                  },
-                  "excludeViews": {
-                    "type": "boolean",
-                    "required": false
+                  "options": {
+                    "type": "object",
+                    "properties": {
+                      "excludeData": {
+                        "type": "boolean",
+                        "required": false
+                      },
+                      "excludeViews": {
+                        "type": "boolean",
+                        "required": false
+                      },
+                      "excludeHooks": {
+                        "type": "boolean",
+                        "required": false
+                      }
+                    }
                   }
                 }
               },

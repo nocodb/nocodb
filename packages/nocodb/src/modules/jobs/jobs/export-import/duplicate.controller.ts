@@ -35,10 +35,14 @@ export class DuplicateController {
     @Param('projectId') projectId: string,
     @Param('baseId') baseId?: string,
     @Body()
-    options?: {
-      excludeData?: boolean;
-      excludeViews?: boolean;
-      excludeHooks?: boolean;
+    body?: {
+      options?: {
+        excludeData?: boolean;
+        excludeViews?: boolean;
+        excludeHooks?: boolean;
+      };
+      // override duplicated project
+      project?: any;
     },
   ) {
     const project = await Project.get(projectId);
@@ -63,7 +67,11 @@ export class DuplicateController {
     );
 
     const dupProject = await this.projectsService.projectCreate({
-      project: { title: uniqueTitle, status: ProjectStatus.JOB },
+      project: {
+        title: uniqueTitle,
+        status: ProjectStatus.JOB,
+        ...(body.project || {}),
+      },
       user: { id: req.user.id },
     });
 
@@ -71,7 +79,7 @@ export class DuplicateController {
       projectId: project.id,
       baseId: base.id,
       dupProjectId: dupProject.id,
-      options,
+      options: body.options || {},
       req: {
         user: req.user,
         clientIp: req.clientIp,
@@ -89,10 +97,12 @@ export class DuplicateController {
     @Param('projectId') projectId: string,
     @Param('modelId') modelId?: string,
     @Body()
-    options?: {
-      excludeData?: boolean;
-      excludeViews?: boolean;
-      excludeHooks?: boolean;
+    body?: {
+      options?: {
+        excludeData?: boolean;
+        excludeViews?: boolean;
+        excludeHooks?: boolean;
+      };
     },
   ) {
     const project = await Project.get(projectId);
@@ -121,7 +131,7 @@ export class DuplicateController {
       baseId: base.id,
       modelId: model.id,
       title: uniqueTitle,
-      options,
+      options: body.options || {},
       req: {
         user: req.user,
         clientIp: req.clientIp,

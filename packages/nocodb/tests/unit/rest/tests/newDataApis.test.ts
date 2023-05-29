@@ -136,8 +136,8 @@ async function ncAxiosGet({
     .get(url)
     .set('xc-auth', context.token)
     .query(query)
-    .send({})
-    .expect(status);
+    .send({});
+  expect(response.status).to.equal(status);
   return response;
 }
 async function ncAxiosPost({
@@ -149,7 +149,7 @@ async function ncAxiosPost({
     .post(url)
     .set('xc-auth', context.token)
     .send(body);
-  // .expect(status);
+  expect(response.status).to.equal(status);
   return response;
 }
 async function ncAxiosPatch({
@@ -160,8 +160,8 @@ async function ncAxiosPatch({
   const response = await request(context.app)
     .patch(url)
     .set('xc-auth', context.token)
-    .send(body)
-    .expect(status);
+    .send(body);
+  expect(response.status).to.equal(status);
   return response;
 }
 async function ncAxiosDelete({
@@ -172,8 +172,8 @@ async function ncAxiosDelete({
   const response = await request(context.app)
     .delete(url)
     .set('xc-auth', context.token)
-    .send(body)
-    .expect(status);
+    .send(body);
+  expect(response.status).to.equal(status);
   return response;
 }
 
@@ -736,14 +736,18 @@ function textBased() {
 
   it('Update: all fields', async function () {
     const rsp = await ncAxiosPatch({
-      body: {
-        Id: 1,
-        ...newRecord,
+      body: [
+        {
+          Id: 1,
+          ...newRecord,
+        },
+      ],
+    });
+    expect(rsp.body).to.deep.equal([
+      {
+        Id: '1',
       },
-    });
-    expect(rsp.body).to.deep.equal({
-      Id: 1,
-    });
+    ]);
   });
 
   it('Update: partial', async function () {
@@ -752,15 +756,19 @@ function textBased() {
     });
 
     const rsp = await ncAxiosPatch({
-      body: {
-        Id: 1,
-        SingleLineText: 'some text',
-        MultiLineText: 'some more text',
+      body: [
+        {
+          Id: 1,
+          SingleLineText: 'some text',
+          MultiLineText: 'some more text',
+        },
+      ],
+    });
+    expect(rsp.body).to.deep.equal([
+      {
+        Id: '1',
       },
-    });
-    expect(rsp.body).to.deep.equal({
-      Id: 1,
-    });
+    ]);
 
     const recordAfterUpdate = await ncAxiosGet({
       url: `/api/v1/base/tables/${table.id}/rows/1`,
@@ -787,7 +795,7 @@ function textBased() {
         },
       ],
     });
-    expect(rsp.body).to.deep.equal([{ Id: 1 }, { Id: 2 }]);
+    expect(rsp.body).to.deep.equal([{ Id: '1' }, { Id: '2' }]);
   });
 
   // Error handling
@@ -818,10 +826,10 @@ function textBased() {
   /////////////////////////////////////////////////////////////////////////////
 
   it('Delete: single', async function () {
-    const rsp = await ncAxiosDelete({ body: { Id: 1 } });
-    expect(rsp.body).to.deep.equal({ Id: 1 });
+    const rsp = await ncAxiosDelete({ body: [{ Id: 1 }] });
+    expect(rsp.body).to.deep.equal([{ Id: '1' }]);
 
-    // check that it's gone
+    // // check that it's gone
     await ncAxiosGet({
       url: `/api/v1/base/tables/${table.id}/rows/1`,
       status: 400,
@@ -830,7 +838,7 @@ function textBased() {
 
   it('Delete: bulk', async function () {
     const rsp = await ncAxiosDelete({ body: [{ Id: 1 }, { Id: 2 }] });
-    expect(rsp.body).to.deep.equal([{ Id: 1 }, { Id: 2 }]);
+    expect(rsp.body).to.deep.equal([{ Id: '1' }, { Id: '2' }]);
 
     // check that it's gone
     await ncAxiosGet({
@@ -901,6 +909,196 @@ function numberBased() {
 
     // verify length of unfiltered records to be 400
     expect(insertedRecords.length).to.equal(400);
+  });
+
+  const records = [
+    {
+      Id: 1,
+      Number: 33,
+      Decimal: 33.3,
+      Currency: 33.3,
+      Percent: 33,
+      Duration: 10,
+      Rating: 0,
+    },
+    {
+      Id: 2,
+      Number: null,
+      Decimal: 456.34,
+      Currency: 456.34,
+      Percent: null,
+      Duration: 20,
+      Rating: 1,
+    },
+    {
+      Id: 3,
+      Number: 456,
+      Decimal: 333.3,
+      Currency: 333.3,
+      Percent: 456,
+      Duration: 30,
+      Rating: 2,
+    },
+    {
+      Id: 4,
+      Number: 333,
+      Decimal: null,
+      Currency: null,
+      Percent: 333,
+      Duration: 40,
+      Rating: 3,
+    },
+    {
+      Id: 5,
+      Number: 267,
+      Decimal: 267.5674,
+      Currency: 267.5674,
+      Percent: 267,
+      Duration: 50,
+      Rating: null,
+    },
+    {
+      Id: 6,
+      Number: 34,
+      Decimal: 34,
+      Currency: 34,
+      Percent: 34,
+      Duration: 60,
+      Rating: 0,
+    },
+    {
+      Id: 7,
+      Number: 8754,
+      Decimal: 8754,
+      Currency: 8754,
+      Percent: 8754,
+      Duration: null,
+      Rating: 4,
+    },
+    {
+      Id: 8,
+      Number: 3234,
+      Decimal: 3234.547,
+      Currency: 3234.547,
+      Percent: 3234,
+      Duration: 70,
+      Rating: 5,
+    },
+    {
+      Id: 9,
+      Number: 44,
+      Decimal: 44.2647,
+      Currency: 44.2647,
+      Percent: 44,
+      Duration: 80,
+      Rating: 0,
+    },
+    {
+      Id: 10,
+      Number: 33,
+      Decimal: 33.98,
+      Currency: 33.98,
+      Percent: 33,
+      Duration: 90,
+      Rating: 1,
+    },
+  ];
+
+  it('Number based- List & CRUD', async function () {
+    // list 10 records
+    let rsp = await ncAxiosGet({
+      query: {
+        limit: 10,
+      },
+    });
+    const pageInfo = {
+      totalRows: 400,
+      page: 1,
+      pageSize: 10,
+      isFirstPage: true,
+      isLastPage: false,
+    };
+    expect(rsp.body.pageInfo).to.deep.equal(pageInfo);
+    expect(rsp.body.list).to.deep.equal(records);
+
+    ///////////////////////////////////////////////////////////////////////////
+
+    // insert 10 records
+    // remove Id's from record array
+    records.forEach((r) => delete r.Id);
+    rsp = await ncAxiosPost({
+      body: records,
+    });
+
+    // prepare array with 10 Id's, from 401 to 410
+    const ids = [];
+    for (let i = 401; i <= 410; i++) {
+      ids.push({ Id: i });
+    }
+    expect(rsp.body).to.deep.equal(ids);
+
+    ///////////////////////////////////////////////////////////////////////////
+
+    // read record with Id 401
+    rsp = await ncAxiosGet({
+      url: `/api/v1/base/${project.id}/tables/${table.id}/rows/401`,
+    });
+    expect(rsp.body).to.deep.equal(records[0]);
+
+    ///////////////////////////////////////////////////////////////////////////
+
+    // update record with Id 401 to 404
+    const updatedRecord = {
+      Number: 55,
+      Decimal: 55.5,
+      Currency: 55.5,
+      Percent: 55,
+      Duration: 55,
+      Rating: 5,
+    };
+    const updatedRecords = [
+      {
+        id: 401,
+        ...updatedRecord,
+      },
+      {
+        id: 402,
+        ...updatedRecord,
+      },
+      {
+        id: 403,
+        ...updatedRecord,
+      },
+      {
+        id: 404,
+        ...updatedRecord,
+      },
+    ];
+    rsp = await ncAxiosPatch({
+      body: updatedRecords,
+    });
+    expect(rsp.body).to.deep.equal(
+      updatedRecords.map((record) => ({ id: record.id })),
+    );
+
+    // verify updated records
+    rsp = await ncAxiosGet({
+      query: {
+        limit: 4,
+        offset: 400,
+      },
+    });
+    expect(rsp.body.list).to.deep.equal(updatedRecords);
+
+    ///////////////////////////////////////////////////////////////////////////
+
+    // delete record with ID 401 to 404
+    rsp = await ncAxiosDelete({
+      body: updatedRecords.map((record) => ({ id: record.id })),
+    });
+    expect(rsp.body).to.deep.equal(
+      updatedRecords.map((record) => ({ id: record.id })),
+    );
   });
 }
 

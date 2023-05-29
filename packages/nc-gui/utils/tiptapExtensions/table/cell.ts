@@ -1,9 +1,9 @@
 import { Node, mergeAttributes } from '@tiptap/core'
 import { VueNodeViewRenderer } from '@tiptap/vue-3'
-import { Plugin, PluginKey } from 'prosemirror-state'
+import { Plugin, PluginKey, TextSelection } from 'prosemirror-state'
 import { TiptapNodesTypes } from 'nocodb-sdk'
+import { CellSelection } from '@tiptap/prosemirror-tables'
 import TableCellNodeView from './table-cell.vue'
-
 export interface TableCellOptions {
   HTMLAttributes: Record<string, any>
 }
@@ -87,6 +87,22 @@ export const TableCell = Node.create<TableCellOptions>({
       new Plugin({
         key: new PluginKey(TiptapNodesTypes.tableCell),
         props: {},
+        // On column resize mouse click event goes to cells as well which cause the cell to be selected (possible explanation)
+        // This is a workaround to prevent the cell from being selected
+        appendTransaction: (_, __, newState) => {
+          const columnResizingPluginKey = this.editor.state.plugins.find((p) => (p as any).key.includes('tableColumnResizing'))!
+
+          const colResizePluginState = columnResizingPluginKey.getState(newState)
+          if (
+            colResizePluginState.dragging &&
+            // Handle the case where column resizing selects cells
+            newState.selection instanceof CellSelection
+          ) {
+            return newState.tr.setSelection(TextSelection.create(newState.doc, newState.selection.from))
+          }
+
+          return null
+        },
       }),
     ]
   },

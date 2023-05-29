@@ -3,7 +3,6 @@ on:
     tags:
       - v[0-9]+.[0-9]+.[0-9]+
 
-
 name: Deploy to Amazon ECR in the dev environment
 permissions:
   id-token: write
@@ -16,43 +15,43 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-    - name: Checkout
-      uses: actions/checkout@v2
+      - name: Checkout
+        uses: actions/checkout@v2
 
-    - name: Use Node.js 16
-      uses: actions/setup-node@v3
-      with:
-        node-version: 16.15.0
+      - name: Use Node.js 16
+        uses: actions/setup-node@v3
+        with:
+          node-version: 16.15.0
 
-    # - uses: bahmutov/npm-install@v1
-    #   with:
-    #     working-directory: ${{ env.working-directory }}
+      # - uses: bahmutov/npm-install@v1
+      #   with:
+      #     working-directory: ${{ env.working-directory }}
 
-    - name: Build nocodb and docker files
-      shell: bash
-      run: |
-        export NODE_OPTIONS="--max_old_space_size=16384"
-        targetEnv=PROD targetVersion=0.106.1 node scripts/bumpNocodbSdkVersion.js
-        cd packages/nocodb-sdk
-        npm install && npm run build
-        cd ../..
-        targetEnv=PROD node scripts/upgradeNocodbSdk.js && 
-        cd packages/nc-gui
-        npm install
-        targetEnv=PROD targetVersion=0.106.1 npm run build:copy
-        cd ../..
-        targetEnv=PROD node scripts/upgradeNcGui.js
-        cd packages/nocodb
-        printf "@deep-consulting-solutions:registry=https://npm.pkg.github.com/\nalways-auth=true\n//npm.pkg.github.com/:_authToken=%s" ${{ secrets.GITHUB_TOKEN }} > .npmrc
-        npm install
-        npm run build
-        npm run docker:build
-        docker build --build-arg ACCESS_TOKEN=${{ secrets.GITHUB_TOKEN }} -t "${{ github.ref_name }}" -f ./Dockerfile .
+      - name: Build nocodb and docker files
+        shell: bash
+        run: |
+          export NODE_OPTIONS="--max_old_space_size=16384"
+          targetEnv=PROD targetVersion=0.106.1 node scripts/bumpNocodbSdkVersion.js
+          cd packages/nocodb-sdk
+          npm install && npm run build
+          cd ../..
+          targetEnv=PROD node scripts/upgradeNocodbSdk.js && 
+          cd packages/nc-gui
+          npm install
+          targetEnv=PROD targetVersion=0.106.1 npm run build:copy
+          cd ../..
+          targetEnv=PROD node scripts/upgradeNcGui.js
+          cd packages/nocodb
+          echo '@deep-consulting-solutions:registry=https://npm.pkg.github.com/\nalways-auth=true\n//npm.pkg.github.com/:_authToken=${{ secrets.GITHUB_TOKEN }}' >> .npmrc
+          npm install
+          npm run build
+          npm run docker:build
+          docker build --build-arg ACCESS_TOKEN=${{ secrets.GITHUB_TOKEN }} -t "${{ github.ref_name }}" -f ./Dockerfile .
 
-    - name: push ecr
-      uses: Deep-Consulting-Solutions/ecr-deploy-action@main
-      with:
-        service-key: 'nocodb' 
-        account: ${{ secrets.DCS_AWS_ACCOUNT }}
-        source-image: ${{ github.ref_name }}
-        tag: ${{ github.ref_name }}
+      - name: push ecr
+        uses: Deep-Consulting-Solutions/ecr-deploy-action@main
+        with:
+          service-key: "nocodb"
+          account: ${{ secrets.DCS_AWS_ACCOUNT }}
+          source-image: ${{ github.ref_name }}
+          tag: ${{ github.ref_name }}

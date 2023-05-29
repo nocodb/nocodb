@@ -37,7 +37,6 @@ jobs:
         npm install && npm run build
         cd ../..
         targetEnv=PROD node scripts/upgradeNocodbSdk.js && 
-        targetEnv=PROD targetVersion=0.106.1 node scripts/bumpNcGuiVersion.js &&
         cd packages/nc-gui
         npm install
         targetEnv=PROD targetVersion=0.106.1 npm run build:copy

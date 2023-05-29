@@ -1,6 +1,6 @@
 {
-  "name": "nc-lib-gui",
-  "version": "0.106.1",
+  "name": "@deep-consulting-solutions/nc-lib-gui",
+  "version": "0.0.1",
   "description": "NocoDB GUI",
   "author": {
     "name": "NocoDB",
@@ -18,7 +18,7 @@
   ],
   "repository": {
     "type": "git",
-    "url": "git+ssh://git@github.com:nocodb/nocodb.git"
+    "url": "git+ssh://git@github.com:Deep-Consulting-Solutions/nocodb.git"
   },
   "scripts": {
     "test": "echo \"Error: run tests from root\" && exit 1"

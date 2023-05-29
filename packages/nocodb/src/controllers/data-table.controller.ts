@@ -85,7 +85,7 @@ export class DataTableController {
     });
   }
 
-  @Patch(['/api/v1/db/tables/:modelId/rows/:rowId'])
+  @Patch(['/api/v1/base/tables/:modelId/rows/:rowId'])
   @Acl('dataUpdate')
   async dataUpdate(
     @Request() req,
@@ -102,7 +102,7 @@ export class DataTableController {
     });
   }
 
-  @Delete(['/api/v1/db/tables/:modelId/rows/:rowId'])
+  @Delete(['/api/v1/base/tables/:modelId/rows/:rowId'])
   @Acl('dataDelete')
   async dataDelete(
     @Request() req,
@@ -118,7 +118,7 @@ export class DataTableController {
     });
   }
 
-  @Get(['/api/v1/db/tables/:modelId/rows/:rowId'])
+  @Get(['/api/v1/base/tables/:modelId/rows/:rowId'])
   @Acl('dataRead')
   async dataRead(
     @Request() req,

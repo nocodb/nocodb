@@ -14263,7 +14263,7 @@
         }
       }
     },
-    "/api/v1/db/tables/{tableId}/rows/{rowId}": {
+    "/api/v1/base/tables/{tableId}/rows/{rowId}": {
       "parameters": [
         {
           "schema": {

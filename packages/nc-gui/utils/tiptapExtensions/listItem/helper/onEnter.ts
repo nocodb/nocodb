@@ -52,7 +52,7 @@ export const onEnter = (editor: Editor, nodeType: ListNodeType) => {
       {
         type: nodeType,
         attrs: {
-          number: nodeType === 'ordered' ? String(Number(currentListNode.attrs.number) + 1) : undefined,
+          number: nodeType === 'ordered' ? 1 : undefined,
           checked: nodeType === 'task' ? false : undefined,
           level,
         },
@@ -76,7 +76,8 @@ export const onEnter = (editor: Editor, nodeType: ListNodeType) => {
         : {
             type: nodeType,
             attrs: {
-              number: nodeType === 'ordered' ? String(Number(currentListNode.attrs.number) + 1) : undefined,
+              // For ordered list, we fix the ordered list numbering on each page update
+              number: nodeType === 'ordered' ? 1 : undefined,
               checked: nodeType === 'task' ? false : undefined,
               level,
             },

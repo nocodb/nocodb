@@ -128,22 +128,10 @@ export const useDocStore = defineStore('docStore', () => {
 
   watch(
     openedPageId,
-    async (_, oldId) => {
+    async () => {
       if (!openedPageId.value) {
         openedPage.value = undefined
         return
-      }
-
-      // if the page is new, don't fetch it
-      if (openedPage.value?.new && openedPage.value.id === openedPageId.value) return
-
-      const nestedPages = nestedPagesOfProjects.value[openedProjectId.value]
-
-      if (oldId) {
-        const page = findPage(nestedPages, oldId)
-        if (page?.new) {
-          page.new = false
-        }
       }
 
       isPageFetching.value = true
@@ -178,10 +166,6 @@ export const useDocStore = defineStore('docStore', () => {
     () => {
       if (!openedPage.value) return
       if (isPublic.value) return
-      if (openedPage.value?.new) {
-        openedPage.value.icon = openedPageInSidebar.value?.icon
-        return
-      }
 
       openedPage.value = {
         ...openedPage.value,
@@ -414,7 +398,7 @@ export const useDocStore = defineStore('docStore', () => {
     projectId,
   }: {
     page: DocsPageType
-    nodeOverrides?: Record<string, any>
+    nodeOverrides?: Partial<PageSidebarNode>
     projectId: string
   }) {
     const nestedPages = nestedPagesOfProjects.value[projectId]
@@ -481,26 +465,12 @@ export const useDocStore = defineStore('docStore', () => {
   }
 
   const addNewPage = async ({ parentPageId, projectId }: { parentPageId?: string; projectId: string }) => {
-    const nestedPages = nestedPagesOfProjects.value[projectId]
-    let dummyTitle = 'Page'
-    let conflictCount = 0
-    const parentPage = parentPageId && findPage(nestedPages, parentPageId)
-    const _pages = parentPage ? parentPage.children : nestedPages
-
-    while (_pages?.find((page) => page.title === dummyTitle)) {
-      conflictCount++
-      dummyTitle = `Page ${conflictCount}`
-    }
-
     await createPage({
       projectId,
       page: {
-        title: dummyTitle,
+        title: '',
         parent_page_id: parentPageId,
         content: '',
-      },
-      nodeOverrides: {
-        new: true,
       },
     })
   }
@@ -552,8 +522,6 @@ export const useDocStore = defineStore('docStore', () => {
     const nestedPages = nestedPagesOfProjects.value[projectId!]
 
     const foundPage = findPage(nestedPages, pageId)!
-    if (page.title) foundPage.title = page.title
-    if (page?.title?.length === 0) page.title = foundPage.title
 
     const updatedPage = await $api.nocoDocs.updatePage(projectId, pageId, {
       attributes: page as any,
@@ -564,8 +532,6 @@ export const useDocStore = defineStore('docStore', () => {
       foundPage.slug = updatedPage.slug
       foundPage.updated_at = updatedPage.updated_at
       foundPage.last_updated_by_id = updatedPage.last_updated_by_id
-
-      if (foundPage.new) foundPage.new = false
 
       await navigateTo(nestedUrl({ projectId, id: updatedPage.id! }))
     } else if (!disableLocalSync) {

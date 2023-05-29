@@ -193,7 +193,7 @@ onUnmounted(() => {
 
 <template>
   <BubbleMenu :editor="editor" :update-delay="300" :tippy-options="{ duration: 100, maxWidth: 600 }">
-    <div v-if="showMenuDebounced" class="bubble-menu flex flex-row gap-x-1 bg-gray-100 py-1 rounded-lg px-1">
+    <div v-if="showMenuDebounced" class="bubble-menu flex flex-row gap-x-1 bg-white py-1 rounded-lg px-1">
       <a-button
         type="text"
         :class="{ 'is-active': editor.isActive('bold') }"
@@ -381,28 +381,24 @@ onUnmounted(() => {
   @apply rounded-md py-1 my-0 pl-2.5 pr-3 cursor-pointer items-center gap-x-2.5;
 
   &:hover {
-    background-color: #e5e5e5;
+    background-color: #eaeaea;
   }
 }
 
 .bubble-menu {
   // shadow
-  @apply shadow-gray-200 shadow-sm;
+  @apply border-gray-200;
+  border-width: 1px;
+  box-shadow: 0px 0px 1.2rem 0 rgb(215, 215, 215) !important;
 
   .is-active {
-    @apply border-1;
-    border-color: rgb(216, 216, 216);
-    background-color: #dddddd !important;
+    @apply border-1 hover:bg-gray-200 border-1 border-gray-200 bg-gray-100;
   }
   .menu-button {
-    @apply rounded-md !py-0 !my-0 !px-1.5 !h-8;
-
-    &:hover {
-      background-color: #e5e5e5;
-    }
+    @apply rounded-md !py-0 !my-0 !px-1.5 !h-8 hover:bg-gray-200;
   }
   .divider {
-    @apply border-r border-gray-200 !h-6 !mx-0.5 my-1;
+    @apply border-r-1 border-gray-200 !h-6 !mx-0.5 my-1;
   }
   .ant-select-selector {
     @apply !rounded-md;

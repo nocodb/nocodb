@@ -303,7 +303,7 @@ watch(
                       :icon="icon"
                     ></IconifyIcon>
                     <div class="pop-in-animation">
-                      {{ title }}
+                      {{ !title ? EMPTY_TITLE_PLACEHOLDER_DOCS : title }}
                     </div>
                   </div>
                 </NuxtLink>
@@ -470,3 +470,9 @@ watch(
     />
   </a-layout-content>
 </template>
+
+<style lang="scss">
+.docs-page-title-skelton .ant-skeleton-input {
+  @apply !rounded-md;
+}
+</style>

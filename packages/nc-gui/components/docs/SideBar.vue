@@ -217,7 +217,7 @@ onMounted(async () => {
                 :style="{ wordBreak: 'keep-all', whiteSpace: 'nowrap', display: 'inline' }"
                 @click="() => onTabSelect(page)"
               >
-                {{ page.title }}
+                {{ !page.title ? EMPTY_TITLE_PLACEHOLDER_DOCS : page.title }}
               </span>
             </div>
             <!-- Select page when clicked on the empty area in the sidebar node -->

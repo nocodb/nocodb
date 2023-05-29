@@ -186,6 +186,40 @@ export const Ordered = Node.create<OrderItemsOptions>({
     return [
       new Plugin({
         key: plugin,
+        // Fix the order number of ordered list when page is updated
+        appendTransaction(_, __, newState) {
+          const tr = newState.tr
+          const { doc } = newState
+          let currentNumber = 1
+          let found = false
+
+          doc.descendants((node, pos) => {
+            if (
+              nodeTypesContainingSection.includes(node.type.name as TiptapNodesTypes) ||
+              node.type.name === TiptapNodesTypes.ordered
+            ) {
+              if (node.type.name === TiptapNodesTypes.ordered) {
+                const number = node.attrs.number
+                if (number !== currentNumber) {
+                  found = true
+                  tr.setNodeMarkup(pos, undefined, {
+                    number: String(currentNumber),
+                  })
+                }
+                currentNumber++
+              }
+
+              // Should to traverse deeper in tree if the node is not a nodeTypesContainingSection
+              return node.type.name !== TiptapNodesTypes.ordered
+            } else {
+              // Reset the current number as ordered list group is over i.e current node is a normal paragraph
+              currentNumber = 1
+              return false
+            }
+          })
+
+          return found ? tr : undefined
+        },
         state: {
           init() {
             return {

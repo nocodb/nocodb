@@ -164,7 +164,7 @@ onMounted(() => {
     <div ref="cellRef" class="group tiptap-table-cell overflow-visible flex">
       <div
         v-if="isFirstCell && !isPublic && !isFirstRowCell"
-        class="flex flex-col justify-center absolute h-full -left-3 z-50 min-w-4 min-h-4 !group-[.tiptap-table-cell]:hover:opacity-100"
+        class="flex flex-col justify-center absolute h-full -left-3 top-0 z-50 min-w-4 min-h-4 !group-[.tiptap-table-cell]:hover:opacity-100"
       >
         <div
           class="absolute flex border-gray-200 border-1 bg-white hover:bg-gray-100 py-0.5 rounded-md row-drag-handle hidden cursor-pointer"
@@ -205,7 +205,7 @@ onMounted(() => {
       </div>
       <div
         v-if="isFirstRowCell && !isPublic && !isSingleColumn"
-        class="flex flex-row justify-center absolute h-8 z-50 -top-4 !w-full justify-center min-w-4 min-h-4 !group-[.tiptap-table-cell]:hover:opacity-100"
+        class="flex flex-row justify-center absolute h-8 z-50 left-0 -top-4 !w-full justify-center min-w-4 min-h-4 !group-[.tiptap-table-cell]:hover:opacity-100"
       >
         <div
           class="flex flex-row absolute tiptap-column-options mt-1.5"

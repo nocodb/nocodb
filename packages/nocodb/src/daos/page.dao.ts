@@ -61,8 +61,6 @@ export class PageDao {
     projectId: string;
     user: UserType;
   }): Promise<DocsPageType> {
-    if (!title) throw NcError.badRequest('Title is required');
-
     const { id: createdPageId } = await this.meta.metaInsert2(
       null,
       null,

@@ -30,8 +30,6 @@ jobs:
 
     - name: Build nocodb and docker files
       shell: bash
-      env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       run: |
         export NODE_OPTIONS="--max_old_space_size=16384"
         targetEnv=PROD targetVersion=0.106.1 node scripts/bumpNocodbSdkVersion.js
@@ -43,13 +41,14 @@ jobs:
         npm install
         targetEnv=PROD targetVersion=0.106.1 npm run build:copy
         cd ../..
+        echo '@deep-consulting-solutions:registry=https://npm.pkg.github.com/\nalways-auth=true\n//npm.pkg.github.com/:_authToken=${{ secrets.GITHUB_TOKEN }}' >> .npmrc
         targetEnv=PROD node scripts/upgradeNcGui.js
         cd packages/nocodb
-        echo '@deep-consulting-solutions:registry=https://npm.pkg.github.com/\nalways-auth=true\n//npm.pkg.github.com/:_authToken="$GITHUB_TOKEN"' > .npmrc
+        echo '@deep-consulting-solutions:registry=https://npm.pkg.github.com/\nalways-auth=true\n//npm.pkg.github.com/:_authToken=${{ secrets.GITHUB_TOKEN }}' >> .npmrc
         npm install
         npm run build
         npm run docker:build
-        docker build --build-arg ACCESS_TOKEN="$GITHUB_TOKEN" -t "${{ github.ref_name }}" -f ./Dockerfile .
+        docker build --build-arg ACCESS_TOKEN=${{ secrets.GITHUB_TOKEN }} -t "${{ github.ref_name }}" -f ./Dockerfile .
 
     - name: push ecr
       uses: Deep-Consulting-Solutions/ecr-deploy-action@main

@@ -413,6 +413,8 @@ export default function (
         return res.status(501).json({ msg: e.message });
       } else if (e instanceof AjvError) {
         return res.status(400).json({ msg: e.message, errors: e.errors });
+      } else if (e instanceof UnprocessableEntity) {
+        return res.status(422).json({ msg: e.message });
       }
       next(e);
     }
@@ -430,6 +432,8 @@ export class NotFound extends Error {}
 export class InternalServerError extends Error {}
 
 export class NotImplemented extends Error {}
+
+export class UnprocessableEntity extends Error {}
 
 export class AjvError extends Error {
   constructor(param: { message: string; errors: ErrorObject[] }) {
@@ -467,5 +471,9 @@ export class NcError {
 
   static ajvValidationError(param: { message: string; errors: ErrorObject[] }) {
     throw new AjvError(param);
+  }
+
+  static unprocessableEntity(message = 'Unprocessable entity') {
+    throw new UnprocessableEntity(message);
   }
 }

@@ -2,7 +2,6 @@ import { Injectable } from '@nestjs/common';
 import { NcError } from '../helpers/catchError';
 import { Base, Model, View } from '../models';
 import NcConnectionMgrv2 from '../utils/common/NcConnectionMgrv2';
-import projectAcl from '../utils/projectAcl';
 import { DatasService } from './datas.service';
 
 @Injectable()
@@ -173,7 +172,7 @@ export class DataTableService {
     const model = await Model.get(param.modelId);
 
     if (!model) {
-      throw new Error('Model not found');
+      NcError.notFound('Model not found');
     }
 
     if (param.projectId && model.project_id !== param.projectId) {
@@ -184,8 +183,8 @@ export class DataTableService {
 
     if (param.viewId) {
       view = await View.get(param.viewId);
-      if (view.fk_model_id && view.fk_model_id !== param.modelId) {
-        throw new Error('View not belong to model');
+      if (!view || (view.fk_model_id && view.fk_model_id !== param.modelId)) {
+        NcError.unprocessableEntity('View not belong to model');
       }
     }
 

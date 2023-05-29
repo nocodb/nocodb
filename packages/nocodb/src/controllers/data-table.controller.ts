@@ -26,19 +26,17 @@ export class DataTableController {
   constructor(private readonly dataTableService: DataTableService) {}
 
   // todo: Handle the error case where view doesnt belong to model
-  @Get('/api/v1/base/:projectId/tables/:modelId')
+  @Get('/api/v1/tables/:modelId')
   @Acl('dataList')
   async dataList(
     @Request() req,
     @Response() res,
-    @Param('projectId') projectId: string,
     @Param('modelId') modelId: string,
     @Query('viewId') viewId: string,
   ) {
     const startTime = process.hrtime();
     const responseData = await this.dataTableService.dataList({
       query: req.query,
-      projectId: projectId,
       modelId: modelId,
       viewId: viewId,
     });
@@ -47,12 +45,11 @@ export class DataTableController {
     res.json(responseData);
   }
 
-  @Get(['/api/v1/base/:projectId/tables/:modelId/count'])
+  @Get(['/api/v1/tables/:modelId/count'])
   @Acl('dataCount')
   async dataCount(
     @Request() req,
     @Response() res,
-    @Param('projectId') projectId: string,
     @Param('modelId') modelId: string,
     @Query('viewId') viewId: string,
   ) {
@@ -60,24 +57,21 @@ export class DataTableController {
       query: req.query,
       modelId,
       viewId,
-      projectId,
     });
 
     res.json(countResult);
   }
 
-  @Post(['/api/v1/base/:projectId/tables/:modelId'])
+  @Post(['/api/v1/tables/:modelId'])
   @HttpCode(200)
   @Acl('dataInsert')
   async dataInsert(
     @Request() req,
-    @Param('projectId') projectId: string,
     @Param('modelId') modelId: string,
     @Query('viewId') viewId: string,
     @Body() body: any,
   ) {
     return await this.dataTableService.dataInsert({
-      projectId: projectId,
       modelId: modelId,
       body: body,
       viewId,
@@ -85,41 +79,35 @@ export class DataTableController {
     });
   }
 
-  @Patch(['/api/v1/base/:projectId/tables/:modelId'])
+  @Patch(['/api/v1/tables/:modelId'])
   @Acl('dataUpdate')
   async dataUpdate(
     @Request() req,
     @Param('modelId') modelId: string,
     @Query('viewId') viewId: string,
     @Param('rowId') rowId: string,
-    @Param('projectId') projectId: string,
   ) {
     return await this.dataTableService.dataUpdate({
       modelId: modelId,
       body: req.body,
       cookie: req,
       viewId,
-      // rowId: rowId,
-      projectId,
     });
   }
 
-  @Delete(['/api/v1/base/:projectId/tables/:modelId'])
+  @Delete(['/api/v1/tables/:modelId'])
   @Acl('dataDelete')
   async dataDelete(
     @Request() req,
     @Param('modelId') modelId: string,
     @Query('viewId') viewId: string,
     @Param('rowId') rowId: string,
-    @Param('projectId') projectId: string,
   ) {
     return await this.dataTableService.dataDelete({
       modelId: modelId,
       cookie: req,
       viewId,
       body: req.body,
-      // rowId: rowId,
-      projectId,
     });
   }
 

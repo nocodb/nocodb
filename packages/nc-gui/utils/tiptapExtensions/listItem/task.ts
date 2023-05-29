@@ -4,7 +4,7 @@ import { TiptapNodesTypes } from 'nocodb-sdk'
 
 import { Plugin, PluginKey } from 'prosemirror-state'
 import type { ListNodeType } from './helper'
-import { changeLevel, isSelectionOfType, listItemPasteRule, onBackspaceWithNestedList, onEnter, toggleItem } from './helper'
+import { changeLevel, isSelectionOfType, listItemPasteRule, onBackspace, onEnter, toggleItem } from './helper'
 
 export interface TaskOptions {
   HTMLAttributes: Record<string, any>
@@ -168,7 +168,7 @@ export const Task = Node.create<TaskOptions>({
   addKeyboardShortcuts() {
     return {
       'Backspace': () => {
-        if (onBackspaceWithNestedList(this.editor as any, this.name as any)) return true
+        if (onBackspace(this.editor as any, this.name as any)) return true
 
         return false
       },

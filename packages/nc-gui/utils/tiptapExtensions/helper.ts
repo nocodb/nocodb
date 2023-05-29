@@ -18,6 +18,13 @@ export const nodeTypesContainingSection = [
   TiptapNodesTypes.columnContent,
 ]
 
+export const nodeTypesContainingListItems = [
+  ...nodeTypesContainingSection,
+  TiptapNodesTypes.table,
+  TiptapNodesTypes.tableRow,
+  TiptapNodesTypes.tableCell,
+]
+
 export const tiptapTextColor = {
   gray: 'rgba(120, 119, 116, 1)',
   brown: 'rgba(159, 107, 83, 1)',

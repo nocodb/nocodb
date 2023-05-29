@@ -13,10 +13,10 @@ import {
   iconMap,
   inject,
   ref,
+  renderValue,
   useLTARStoreOrThrow,
   useSmartsheetRowStoreOrThrow,
   useVModel,
-  watch,
 } from '#imports'
 
 const props = defineProps<{ modelValue?: boolean; cellValue: any }>()
@@ -148,7 +148,7 @@ const onClick = (row: Row) => {
           >
             <div class="flex items-center">
               <div class="flex-1 overflow-hidden min-w-0">
-                {{ row[relatedTableDisplayValueProp] }}
+                {{ renderValue(row[relatedTableDisplayValueProp]) }}
                 <span class="text-gray-400 text-[11px] ml-1">(Primary key : {{ getRelatedTableRowId(row) }})</span>
               </div>
 

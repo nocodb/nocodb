@@ -34,7 +34,7 @@ const isLoading = ref(false)
 const _duplicate = async () => {
   isLoading.value = true
   try {
-    const jobData = await api.project.duplicate(props.project.id as string, { 
+    const jobData = await api.project.duplicate(props.project.id as string, {
       options: optionsToExclude.value,
       project: {
         meta: props.project.meta,

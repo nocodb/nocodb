@@ -85,13 +85,14 @@ export class DataTableController {
     });
   }
 
-  @Patch(['/api/v1/base/tables/:modelId/rows'])
+  @Patch(['/api/v1/base/:projectId/tables/:modelId'])
   @Acl('dataUpdate')
   async dataUpdate(
     @Request() req,
     @Param('modelId') modelId: string,
     @Query('viewId') viewId: string,
     @Param('rowId') rowId: string,
+    @Param('projectId') projectId: string,
   ) {
     return await this.dataTableService.dataUpdate({
       modelId: modelId,
@@ -99,16 +100,18 @@ export class DataTableController {
       cookie: req,
       viewId,
       // rowId: rowId,
+      projectId,
     });
   }
 
-  @Delete(['/api/v1/base/tables/:modelId/rows'])
+  @Delete(['/api/v1/base/:projectId/tables/:modelId'])
   @Acl('dataDelete')
   async dataDelete(
     @Request() req,
     @Param('modelId') modelId: string,
     @Query('viewId') viewId: string,
     @Param('rowId') rowId: string,
+    @Param('projectId') projectId: string,
   ) {
     return await this.dataTableService.dataDelete({
       modelId: modelId,
@@ -116,6 +119,7 @@ export class DataTableController {
       viewId,
       body: req.body,
       // rowId: rowId,
+      projectId,
     });
   }
 

@@ -34,7 +34,12 @@ const isLoading = ref(false)
 const _duplicate = async () => {
   isLoading.value = true
   try {
-    const jobData = await api.project.duplicate(props.project.id as string, optionsToExclude.value)
+    const jobData = await api.project.duplicate(props.project.id as string, { 
+      options: optionsToExclude.value,
+      project: {
+        meta: props.project.meta,
+      },
+    })
     props.onOk(jobData as any)
   } catch (e: any) {
     message.error(await extractSdkResponseErrorMsg(e))

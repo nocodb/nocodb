@@ -12,11 +12,11 @@ import {
   inject,
   isDrawerExist,
   ref,
+  renderValue,
   useLTARStoreOrThrow,
   useSelectedCellKeyupListener,
   useSmartsheetRowStoreOrThrow,
   useVModel,
-  watch,
 } from '#imports'
 
 const props = defineProps<{ modelValue: boolean; column: any }>()
@@ -213,7 +213,7 @@ watch(vModel, (nextVal) => {
 
         <component :is="iconMap.reload" class="cursor-pointer text-gray-500 nc-reload" @click="loadChildrenExcludedList" />
 
-        <!--        Add new record -->
+        <!-- Add new record -->
         <a-button v-if="!isPublic" type="primary" size="small" @click="expandedFormDlg = true">
           {{ $t('activity.addNewRecord') }}
         </a-button>

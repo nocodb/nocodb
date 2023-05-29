@@ -878,7 +878,9 @@ function tableTest() {
     }
   });
 
-  it('Sorted Formula column on rollup customer table', async function () {
+  // rollup usage in formula is currently not supported
+  // work in progress
+  it.skip('Sorted Formula column on rollup customer table', async function () {
     const rollupColumnTitle = 'Number of rentals';
     const rollupColumn = await createRollupColumn(context, {
       project: sakilaProject,

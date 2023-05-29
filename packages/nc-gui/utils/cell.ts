@@ -1,5 +1,6 @@
 import type { ColumnType } from 'nocodb-sdk'
 import { UITypes } from 'nocodb-sdk'
+import dayjs from 'dayjs'
 
 export const dataTypeLow = (column: ColumnType) => column.dt?.toLowerCase()
 export const isBoolean = (column: ColumnType, abstractType?: any) =>
@@ -53,3 +54,25 @@ export const isManualSaved = (column: ColumnType) => [UITypes.Currency].includes
 export const isPrimary = (column: ColumnType) => !!column.pv
 
 export const isPrimaryKey = (column: ColumnType) => !!column.pk
+
+// used for LTAR and Formula
+export const renderValue = (result?: any) => {
+  if (!result || typeof result !== 'string') {
+    return result
+  }
+
+  // convert ISO string (e.g. in MSSQL) to YYYY-MM-DD hh:mm:ssZ
+  // e.g. 2023-05-18T05:30:00.000Z -> 2023-05-18 11:00:00+05:30
+  result = result.replace(/\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}.\d{3}Z/g, (d: string) => {
+    return dayjs(d).isValid() ? dayjs(d).format('YYYY-MM-DD HH:mm:ssZ') : d
+  })
+
+  // convert all date time values to local time
+  // the datetime is either YYYY-MM-DD hh:mm:ss (xcdb)
+  // or YYYY-MM-DD hh:mm:ss+/-xx:yy (ext)
+  return result.replace(/\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}(?:[+-]\d{2}:\d{2})?/g, (d: string) => {
+    // TODO(timezone): retrieve the format from the corresponding column meta
+    // assume HH:mm at this moment
+    return dayjs(d).isValid() ? dayjs(d).format('YYYY-MM-DD HH:mm') : d
+  })
+}

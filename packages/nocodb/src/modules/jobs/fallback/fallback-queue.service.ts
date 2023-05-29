@@ -1,12 +1,12 @@
 import { Injectable } from '@nestjs/common';
 import PQueue from 'p-queue';
 import Emittery from 'emittery';
-import { JobStatus, JobTypes } from '../../interface/Jobs';
-import { DuplicateProcessor } from './export-import/duplicate.processor';
+import { JobStatus, JobTypes } from '../../../interface/Jobs';
+import { DuplicateProcessor } from '../jobs/export-import/duplicate.processor';
+import { AtImportProcessor } from '../jobs/at-import/at-import.processor';
 import { JobsEventService } from './jobs-event.service';
-import { AtImportProcessor } from './at-import/at-import.processor';
 
-interface Job {
+export interface Job {
   id: string;
   name: string;
   status: string;
@@ -27,16 +27,12 @@ export class QueueService {
     private readonly atImportProcessor: AtImportProcessor,
   ) {
     this.emitter.on(JobStatus.ACTIVE, (data: { job: Job }) => {
-      const job = this.queueMemory.find(
-        (job) => job.id === data.job.id && job.name === data.job.name,
-      );
+      const job = this.queueMemory.find((job) => job.id === data.job.id);
       job.status = JobStatus.ACTIVE;
       this.jobsEventService.onActive.apply(this.jobsEventService, [job as any]);
     });
     this.emitter.on(JobStatus.COMPLETED, (data: { job: Job; result: any }) => {
-      const job = this.queueMemory.find(
-        (job) => job.id === data.job.id && job.name === data.job.name,
-      );
+      const job = this.queueMemory.find((job) => job.id === data.job.id);
       job.status = JobStatus.COMPLETED;
       this.jobsEventService.onCompleted.apply(this.jobsEventService, [
         job,
@@ -46,9 +42,7 @@ export class QueueService {
       this.removeJob(job);
     });
     this.emitter.on(JobStatus.FAILED, (data: { job: Job; error: Error }) => {
-      const job = this.queueMemory.find(
-        (job) => job.id === data.job.id && job.name === data.job.name,
-      );
+      const job = this.queueMemory.find((job) => job.id === data.job.id);
       job.status = JobStatus.FAILED;
       this.jobsEventService.onFailed.apply(this.jobsEventService, [
         job,
@@ -126,9 +120,7 @@ export class QueueService {
 
   // remove job from memory
   private removeJob(job: Job) {
-    const fIndex = this.queueMemory.findIndex(
-      (q) => q.id === job.id && q.name === job.name,
-    );
+    const fIndex = this.queueMemory.findIndex((q) => q.id === job.id);
     if (fIndex) {
       this.queueMemory.splice(fIndex, 1);
     }

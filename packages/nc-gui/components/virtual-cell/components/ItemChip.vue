@@ -9,9 +9,9 @@ import {
   inject,
   isAttachment,
   ref,
+  renderValue,
   useExpandedFormDetached,
   useLTARStoreOrThrow,
-  useUIPermission,
 } from '#imports'
 
 interface Props {

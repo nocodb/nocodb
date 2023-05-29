@@ -2,9 +2,9 @@ import fs from 'fs';
 import process from 'process';
 import { knex } from 'knex';
 import SqlMgrv2 from '../../src/db/sql-mgr/v2/SqlMgrv2';
+import { jdbcToXcUrl, xcUrlToDbConfig } from '../../src/utils/nc-config';
 import type { Knex } from 'knex';
 import type { DbConfig } from '../../src/interface/config';
-import NcConfigFactory from '../../src/utils/NcConfigFactory'
 
 export default class TestDbMngr {
   public static readonly dbName = 'test_meta';
@@ -75,7 +75,7 @@ export default class TestDbMngr {
 
   private static async isDbConfigured() {
     const { user, password, host, port, client } = TestDbMngr.connection;
-    const config = NcConfigFactory.urlToDbConfig(
+    const config = xcUrlToDbConfig(
       `${client}://${user}:${password}@${host}:${port}`,
     );
     config.connection = {
@@ -84,7 +84,7 @@ export default class TestDbMngr {
       host,
       port,
     };
-    const result = await TestDbMngr.testConnection(config);
+    const result = await TestDbMngr.testConnection(config as any);
     return result.code !== -1;
   }
   static async connectDb() {
@@ -95,9 +95,9 @@ export default class TestDbMngr {
       ] = `${client}://${user}:${password}@${host}:${port}/${TestDbMngr.dbName}`;
     }
 
-    TestDbMngr.dbConfig = NcConfigFactory.urlToDbConfig(
-      NcConfigFactory.extractXcUrlFromJdbc(process.env[`DATABASE_URL`]),
-    );
+    TestDbMngr.dbConfig = xcUrlToDbConfig(
+      jdbcToXcUrl(process.env[`DATABASE_URL`]),
+    ) as any;
     this.dbConfig.meta = {
       tn: 'nc_evolutions',
       dbAlias: 'db',

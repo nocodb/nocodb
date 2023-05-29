@@ -201,7 +201,7 @@ export const Ordered = Node.create<OrderItemsOptions>({
             ) {
               if (node.type.name === TiptapNodesTypes.ordered) {
                 const number = node.attrs.number
-                if (number !== currentNumber) {
+                if (String(number) !== String(currentNumber)) {
                   found = true
                   tr.setNodeMarkup(pos, undefined, {
                     number: String(currentNumber),

@@ -485,6 +485,9 @@
   .selectedCell {
     @apply !bg-primary-selected;
 
+    // transition for white to blue background with delay as row/column creation causes cell selection for a moment which causes flicker
+    transition: background-color 1ms ease-out 1ms;
+
     .tiptap-column-options {
       display: none !important;
     }

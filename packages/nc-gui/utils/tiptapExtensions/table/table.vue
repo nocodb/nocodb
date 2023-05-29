@@ -1,8 +1,8 @@
 <script lang="ts" setup>
 import { NodeViewContent, NodeViewWrapper, nodeViewProps } from '@tiptap/vue-3'
 import type { EditorState } from 'prosemirror-state'
-import { NodeSelection } from 'prosemirror-state'
-import { CellSelection, addColumnAfter, addRowAfter } from '@tiptap/prosemirror-tables'
+import { NodeSelection, TextSelection } from 'prosemirror-state'
+import { CellSelection, addColumn, addRow, selectedRect } from '@tiptap/prosemirror-tables'
 
 const { getPos, editor } = defineProps(nodeViewProps)
 const isPublic = !editor.view.editable
@@ -31,22 +31,20 @@ const createRow = () => {
 
   // Select the first cell of the last added row
   setTimeout(() => {
-    addRowAfter(editor.state, editor.view.dispatch)
+    const state = editor.state
+    const tr = state.tr
+    const rect = selectedRect(state)
+    addRow(tr, rect, rect.bottom)
 
-    setTimeout(() => {
-      editor
-        .chain()
-        .command(({ state, commands }) => {
-          const tableNodePos = getPos()
-          const tableNode = state.doc.nodeAt(tableNodePos)!
-          const lastRowNode = tableNode.lastChild!
-          const lastRowNodePos = tableNodePos + tableNode.nodeSize - lastRowNode.nodeSize
+    const tableNodePos = getPos()
+    const tableNode = tr.doc.nodeAt(tableNodePos)!
+    const lastRowNode = tableNode.lastChild!
+    const lastRowNodePos = tableNodePos + tableNode.nodeSize - lastRowNode.nodeSize
 
-          return commands.setTextSelection(lastRowNodePos + 2)
-        })
-        .run()
-    }, 0)
-  }, 0)
+    tr.setSelection(TextSelection.create(tr.doc, lastRowNodePos + 2))
+
+    editor.view.dispatch(tr)
+  })
 }
 
 const selectColumn = () => {
@@ -76,21 +74,19 @@ const appendColumn = () => {
 
   // Select the header cell of the first added column
   setTimeout(() => {
-    addColumnAfter(editor.state, editor.view.dispatch)
+    const state = editor.state
+    const rect = selectedRect(state)
+    const tr = state.tr
+    addColumn(tr, rect, rect.right)
 
-    const tableNode = editor.state.doc.nodeAt(getPos())!
+    const tableNode = tr.doc.nodeAt(getPos())!
     const firstHeader = tableNode.firstChild!
     const firstHeaderLastCell = firstHeader.lastChild!
     const firstHeaderLastCellPos = getPos() + firstHeader.nodeSize - firstHeaderLastCell.nodeSize + 1
 
-    setTimeout(() => {
-      editor
-        .chain()
-        .command(({ commands }) => {
-          return commands.setTextSelection(firstHeaderLastCellPos)
-        })
-        .run()
-    }, 0)
+    tr.setSelection(TextSelection.create(tr.doc, firstHeaderLastCellPos))
+
+    editor.view.dispatch(tr)
   }, 0)
 }
 </script>

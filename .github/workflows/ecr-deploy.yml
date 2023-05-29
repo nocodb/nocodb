@@ -41,10 +41,11 @@ jobs:
         npm install
         targetEnv=PROD targetVersion=0.106.1 npm run build:copy
         cd ../..
-        echo '@deep-consulting-solutions:registry=https://npm.pkg.github.com/\nalways-auth=true\n//npm.pkg.github.com/:_authToken=${{ secrets.GITHUB_TOKEN }}' >> .npmrc
-        targetEnv=PROD node scripts/upgradeNcGui.js
         cd packages/nocodb
         echo '@deep-consulting-solutions:registry=https://npm.pkg.github.com/\nalways-auth=true\n//npm.pkg.github.com/:_authToken=${{ secrets.GITHUB_TOKEN }}' >> .npmrc
+        cd ../..
+        targetEnv=PROD node scripts/upgradeNcGui.js
+        cd packages/nocodb
         npm install
         npm run build
         npm run docker:build

@@ -389,7 +389,7 @@ onUnmounted(() => {
   // shadow
   @apply border-gray-200;
   border-width: 1px;
-  box-shadow: 0px 0px 1.2rem 0 rgba(33, 33, 33, 0.176) !important;
+  box-shadow: 0px 0px 1.2rem 0 rgb(215, 215, 215) !important;
 
   .is-active {
     @apply border-1 hover:bg-gray-200 border-1 border-gray-200 bg-gray-100;

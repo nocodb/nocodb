@@ -43,6 +43,16 @@ export const Heading = TiptapHeading.extend({
         const posEndToBeDeleted = headerPos + headerNode.nodeSize - 1
         const relatedFrom = from - headerPos - 1
 
+        // If cursor is on the begining of the heading, move the heading to the next section
+        if (relatedFrom === 0) {
+          const nextSectionPos = getPositionOfPreviousSection(this.editor.state) ?? 0
+          return this.editor
+            .chain()
+            .insertContentAt(nextSectionPos, paragraphContent())
+            .setTextSelection(from + 3)
+            .run()
+        }
+
         // If heading is empty, replace it with a paragraph
         if (headerNode.textContent.length === 0) {
           const sectionPos = getPositionOfSection(this.editor.state)
@@ -63,14 +73,12 @@ export const Heading = TiptapHeading.extend({
 
         // If cursor is inside a header, get the text after the cursor and insert it into a new paragraph
         const textToBeMoved = headerNode.textContent.slice(relatedFrom)
-        this.editor
+        return this.editor
           .chain()
           .deleteRange({ to: posEndToBeDeleted, from })
           .insertContentAt(from + 1, paragraphContent(textToBeMoved))
           .setTextSelection(from + 2)
           .run()
-
-        return true
       },
     }
   },

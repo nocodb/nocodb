@@ -71,7 +71,7 @@ const createNodeAfter = () => {
 const onDragClick = () => {
   dragClicked.value = !dragClicked.value
 
-  editor.view.dispatch(editor.state.tr.setSelection(NodeSelection.create(editor.state.doc, pos.value)))
+  editor.view.dispatch(editor.state.tr.setSelection(NodeSelection.create(editor.state.doc, getPos())))
 }
 
 onClickOutside(optionsPopoverRef, () => {

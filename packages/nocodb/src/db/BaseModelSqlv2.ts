@@ -1513,7 +1513,7 @@ class BaseModelSqlv2 {
 
   _getListArgs(args: XcFilterWithAlias): XcFilter {
     const obj: XcFilter = {};
-    obj.where = args.where || args.w || '';
+    obj.where = args.filter || args.where || args.w || '';
     obj.having = args.having || args.h || '';
     obj.shuffle = args.shuffle || args.r || '';
     obj.condition = args.condition || args.c || {};

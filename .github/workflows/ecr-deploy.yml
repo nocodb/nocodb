@@ -43,7 +43,7 @@ jobs:
         cd ../..
         targetEnv=PROD node scripts/upgradeNcGui.js
         cd packages/nocodb
-        RUN printf "@deep-consulting-solutions:registry=https://npm.pkg.github.com/\nalways-auth=true\n//npm.pkg.github.com/:_authToken=%s" ${{ secrets.GITHUB_TOKEN }} > .npmrc
+        printf "@deep-consulting-solutions:registry=https://npm.pkg.github.com/\nalways-auth=true\n//npm.pkg.github.com/:_authToken=%s" ${{ secrets.GITHUB_TOKEN }} > .npmrc
         npm install
         npm run build
         npm run docker:build

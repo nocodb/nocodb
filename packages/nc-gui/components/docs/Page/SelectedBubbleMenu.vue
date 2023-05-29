@@ -40,11 +40,11 @@ const parentIsTableCell = computed(() => {
 
   let parent = editor.state.selection.$from.node(-1)
   parent =
-    parent.type.name === TiptapNodesTypes.tableCell && editor.state.selection.$from.depth > 4
+    parent?.type.name === TiptapNodesTypes.tableCell && editor.state.selection.$from.depth > 4
       ? parent
       : editor.state.selection.$from.node(-2)
 
-  return parent.type.name === TiptapNodesTypes.tableCell
+  return parent?.type.name === TiptapNodesTypes.tableCell
 })
 
 const isTableCellSelected = computed(() => {
@@ -206,7 +206,7 @@ onUnmounted(() => {
 
 <template>
   <BubbleMenu :editor="editor" :update-delay="300" :tippy-options="{ duration: 100, maxWidth: 600 }">
-    <div v-if="showMenuDebounced" class="bubble-menu flex flex-row gap-x-1 bg-white py-1 rounded-lg px-1">
+    <div v-if="showMenuDebounced" class="bubble-menu flex flex-row gap-x-1 py-1 rounded-lg px-1">
       <a-button
         type="text"
         :class="{ 'is-active': editor.isActive('bold') }"
@@ -304,7 +304,7 @@ onUnmounted(() => {
           <MaterialSymbolsKeyboardArrowDownRounded class="!h-3 !w-3" />
         </div>
         <template #overlay>
-          <div v-if="showMenuDebounced" class="mt-1 shadow-sm flex flex-col bg-gray-100 rounded-md p-1 gap-y-1 w-40">
+          <div v-if="showMenuDebounced" class="bubble-menu mt-1 flex flex-col rounded-md p-1 gap-y-1 w-40">
             <div class="flex my-1 ml-2 text-xs text-gray-600">Color</div>
             <div class="flex bubble-text-format-button" @click="editor!.chain().focus().unsetColor().run()">
               <div class="bubble-text-format-button-icon">A</div>
@@ -391,24 +391,20 @@ onUnmounted(() => {
   font-weight: 600;
 }
 .bubble-text-format-button {
-  @apply rounded-md py-1 my-0 pl-2.5 pr-3 cursor-pointer items-center gap-x-2.5;
-
-  &:hover {
-    background-color: #eaeaea;
-  }
+  @apply rounded-md py-1 my-0 pl-2.5 pr-3 cursor-pointer items-center gap-x-2.5 hover:bg-gray-100;
 }
 
 .bubble-menu {
   // shadow
-  @apply border-gray-200;
+  @apply border-gray-200 bg-white;
   border-width: 1px;
   box-shadow: 0px 0px 1.2rem 0 rgb(230, 230, 230) !important;
 
   .is-active {
-    @apply border-1 hover:bg-gray-200 border-1 border-gray-200 bg-gray-100;
+    @apply border-1 !hover:bg-gray-200 border-1 border-gray-200 bg-gray-100;
   }
   .menu-button {
-    @apply rounded-md !py-0 !my-0 !px-1.5 !h-8 hover:bg-gray-200;
+    @apply rounded-md !py-0 !my-0 !px-1.5 !h-8 hover:bg-gray-100;
   }
   .divider {
     @apply border-r-1 border-gray-200 !h-6 !mx-0.5 my-1;

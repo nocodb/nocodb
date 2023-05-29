@@ -65,7 +65,12 @@ export class DataTableService {
       dbDriver: await NcConnectionMgrv2.get(base),
     });
 
-    return await baseModel.insert(param.body, null, param.cookie);
+    // if array then do bulk insert
+    if (Array.isArray(param.body)) {
+      return await baseModel.bulkInsert(param.body, { cookie: param.cookie });
+    } else {
+      return await baseModel.insert(param.body, null, param.cookie);
+    }
   }
 
   async dataUpdate(param: {

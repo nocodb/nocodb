@@ -4,7 +4,7 @@ on: push
 
 jobs:
   publish-gpr:
-    if: github.event.ref == 'refs/heads/nc-gui-lib'
+    if: github.event.ref == 'refs/heads/nc-lib-gui'
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2

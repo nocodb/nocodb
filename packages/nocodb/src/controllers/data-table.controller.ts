@@ -26,7 +26,7 @@ export class DataTableController {
   constructor(private readonly dataTableService: DataTableService) {}
 
   // todo: Handle the error case where view doesnt belong to model
-  @Get('/api/v1/tables/:modelId')
+  @Get('/api/v1/tables/:modelId/rows')
   @Acl('dataList')
   async dataList(
     @Request() req,
@@ -45,7 +45,7 @@ export class DataTableController {
     res.json(responseData);
   }
 
-  @Get(['/api/v1/tables/:modelId/count'])
+  @Get(['/api/v1/tables/:modelId/rows/count'])
   @Acl('dataCount')
   async dataCount(
     @Request() req,
@@ -62,7 +62,7 @@ export class DataTableController {
     res.json(countResult);
   }
 
-  @Post(['/api/v1/tables/:modelId'])
+  @Post(['/api/v1/tables/:modelId/rows'])
   @HttpCode(200)
   @Acl('dataInsert')
   async dataInsert(
@@ -79,7 +79,7 @@ export class DataTableController {
     });
   }
 
-  @Patch(['/api/v1/tables/:modelId'])
+  @Patch(['/api/v1/tables/:modelId/rows'])
   @Acl('dataUpdate')
   async dataUpdate(
     @Request() req,
@@ -95,7 +95,7 @@ export class DataTableController {
     });
   }
 
-  @Delete(['/api/v1/tables/:modelId'])
+  @Delete(['/api/v1/tables/:modelId/rows'])
   @Acl('dataDelete')
   async dataDelete(
     @Request() req,

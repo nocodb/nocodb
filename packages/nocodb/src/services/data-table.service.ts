@@ -66,11 +66,12 @@ export class DataTableService {
     });
 
     // if array then do bulk insert
-    if (Array.isArray(param.body)) {
-      return await baseModel.bulkInsert(param.body, { cookie: param.cookie });
-    } else {
-      return await baseModel.insert(param.body, null, param.cookie);
-    }
+    const result = await baseModel.bulkInsert(
+      Array.isArray(param.body) ? param.body : [param.body],
+      { cookie: param.cookie, insertOneByOneAsFallback: true },
+    );
+
+    return Array.isArray(param.body) ? result : result[0];
   }
 
   async dataUpdate(param: {
@@ -119,7 +120,7 @@ export class DataTableService {
     const baseModel = await Model.getBaseModelSQL({
       id: model.id,
       viewId: view?.id,
-      dbDriver: await NcConnectionMgrv2.get(base)
+      dbDriver: await NcConnectionMgrv2.get(base),
     });
     //
     // // todo: Should have error http status code
@@ -128,7 +129,6 @@ export class DataTableService {
     //   return { message };
     // }
     // return await baseModel.delByPk(param.rowId, null, param.cookie);
-
 
     const res = await baseModel.bulkUpdate(
       Array.isArray(param.body) ? param.body : [param.body],
@@ -189,5 +189,30 @@ export class DataTableService {
     }
 
     return { model, view };
+  }
+
+  private async extractPks({ model, rows }: { rows: any[]; model?: Model }) {
+    return await Promise.all(
+      rows.map(async (row) => {
+        // if not object then return the value
+        if (typeof row !== 'object') return row;
+
+        let pk;
+
+        // if model is passed then use the model to get the pk columns and extract the pk values
+        if (model) {
+          pk = await model.getColumns().then((cols) =>
+            cols
+              .filter((col) => col.pk)
+              .map((col) => row[col.title])
+              .join('___'),
+          );
+        } else {
+          // if model is not passed then get all the values and join them
+          pk = Object.values(row).join('___');
+        }
+        return pk;
+      }),
+    );
   }
 }

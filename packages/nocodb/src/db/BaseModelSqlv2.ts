@@ -2091,11 +2091,13 @@ class BaseModelSqlv2 {
       cookie,
       foreign_key_checks = true,
       raw = false,
+      insertOneByOneAsFallback = false,
     }: {
       chunkSize?: number;
       cookie?: any;
       foreign_key_checks?: boolean;
       raw?: boolean;
+      insertOneByOneAsFallback?: boolean;
     } = {},
   ) {
     let trx;
@@ -2135,14 +2137,17 @@ class BaseModelSqlv2 {
 
       let response;
 
-      if (this.isSqlite) {
-        // sqlite doesnt support returning, so insert one by one and return ids
+      // insert one by one as fallback to get ids for sqlite and mysql
+      if (insertOneByOneAsFallback && (this.isSqlite || this.isMySQL)) {
+        // sqlite and mysql doesnt support returning, so insert one by one and return ids
         response = [];
+
+        const aiPkCol = this.model.primaryKeys.find((pk) => pk.ai);
 
         for (const insertData of insertDatas) {
           const query = trx(this.tnPath).insert(insertData);
           const id = (await query)[0];
-          response.push(id);
+          response.push(aiPkCol ? { [aiPkCol.title]: id } : id);
         }
       } else {
         response =

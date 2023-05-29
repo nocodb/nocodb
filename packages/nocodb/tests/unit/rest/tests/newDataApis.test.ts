@@ -559,19 +559,19 @@ function textBased() {
     // Invalid table ID
     await ncAxiosGet({
       url: `/api/v1/base/${project.id}/tables/123456789`,
-      status: 400,
+      status: 404,
     });
     // Invalid project ID
     await ncAxiosGet({
       url: `/api/v1/base/123456789/tables/123456789`,
-      status: 400,
+      status: 404,
     });
     // Invalid view ID
     await ncAxiosGet({
       query: {
         viewId: '123456789',
       },
-      status: 400,
+      status: 422,
     });
   });
 
@@ -607,7 +607,7 @@ function textBased() {
       query: {
         offset: 10000,
       },
-      status: 200,
+      status: 422,
     });
   });
 
@@ -680,17 +680,17 @@ function textBased() {
     // Invalid table ID
     await ncAxiosPost({
       url: `/api/v1/base/${project.id}/tables/123456789`,
-      status: 400,
+      status: 404,
     });
     // Invalid project ID
     await ncAxiosPost({
       url: `/api/v1/base/123456789/tables/123456789`,
-      status: 400,
+      status: 404,
     });
-    // Invalid data - repeated ID
+    // Invalid data - create should not specify ID
     await ncAxiosPost({
       body: { ...newRecord, Id: 300 },
-      status: 400,
+      status: 422,
     });
     // Invalid data - number instead of string
     // await ncAxiosPost({
@@ -718,12 +718,12 @@ function textBased() {
     // Invalid table ID
     await ncAxiosGet({
       url: `/api/v1/base/tables/123456789/rows/100`,
-      status: 400,
+      status: 404,
     });
     // Invalid row ID
     await ncAxiosGet({
       url: `/api/v1/base/tables/${table.id}/rows/1000`,
-      status: 400,
+      status: 404,
     });
   });
 
@@ -804,17 +804,17 @@ function textBased() {
     // Invalid project ID
     await ncAxiosPatch({
       url: `/api/v1/base/123456789/tables/${table.id}`,
-      status: 400,
+      status: 404,
     });
     // Invalid table ID
     await ncAxiosPatch({
       url: `/api/v1/base/${project.id}/tables/123456789`,
-      status: 400,
+      status: 404,
     });
     // Invalid row ID
     await ncAxiosPatch({
       body: { Id: 123456789, SingleLineText: 'some text' },
-      status: 400,
+      status: 422,
     });
   });
 
@@ -832,7 +832,7 @@ function textBased() {
     // // check that it's gone
     await ncAxiosGet({
       url: `/api/v1/base/tables/${table.id}/rows/1`,
-      status: 400,
+      status: 404,
     });
   });
 
@@ -843,11 +843,11 @@ function textBased() {
     // check that it's gone
     await ncAxiosGet({
       url: `/api/v1/base/tables/${table.id}/rows/1`,
-      status: 400,
+      status: 404,
     });
     await ncAxiosGet({
       url: `/api/v1/base/tables/${table.id}/rows/2`,
-      status: 400,
+      status: 404,
     });
   });
 
@@ -857,15 +857,15 @@ function textBased() {
     // Invalid project ID
     await ncAxiosDelete({
       url: `/api/v1/base/123456789/tables/${table.id}`,
-      status: 400,
+      status: 404,
     });
     // Invalid table ID
     await ncAxiosDelete({
       url: `/api/v1/base/${project.id}/tables/123456789`,
-      status: 400,
+      status: 404,
     });
     // Invalid row ID
-    await ncAxiosDelete({ body: { Id: 123456789 }, status: 400 });
+    await ncAxiosDelete({ body: { Id: 123456789 }, status: 422 });
   });
 }
 

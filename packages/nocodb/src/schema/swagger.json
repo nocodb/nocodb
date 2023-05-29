@@ -13964,17 +13964,8 @@
         ]
       }
     },
-    "/api/v1/base/{projectId}/tables/{tableId}": {
+    "/api/v1/tables/{tableId}/rows": {
       "parameters": [
-        {
-          "schema": {
-            "type": "string"
-          },
-          "name": "projectId",
-          "in": "path",
-          "required": true,
-          "description": "Project Id"
-        },
         {
           "schema": {
             "type": "string"
@@ -13989,8 +13980,7 @@
             "type": "string"
           },
           "name": "viewId",
-          "in": "query",
-          "required": true
+          "in": "query"
         }
       ],
       "get": {
@@ -14182,17 +14172,8 @@
         "description": "Create a new row in the given Table View"
       }
     },
-    "/api/v1/base/{projectId}/tables/{tableId}/count": {
+    "/api/v1/tables/{tableId}/rows/count": {
       "parameters": [
-        {
-          "schema": {
-            "type": "string"
-          },
-          "name": "projectId",
-          "in": "path",
-          "required": true,
-          "description": "Project Id"
-        },
         {
           "schema": {
             "type": "string"
@@ -14207,8 +14188,7 @@
             "type": "string"
           },
           "name": "viewId",
-          "in": "query",
-          "required": true
+          "in": "query"
         }
       ],
       "get": {
@@ -14261,131 +14241,9 @@
             }
           }
         }
-      },
-
-      "patch": {
-        "summary": "Update Table View Row",
-        "operationId": "table-row-update",
-        "responses": {
-          "200": {
-            "description": "OK",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "object"
-                },
-                "examples": {
-                  "Example 1": {
-                    "value": {
-                      "Id": 1,
-                      "Title": "bar",
-                      "CreatedAt": "2023-03-11T09:11:47.437Z",
-                      "UpdatedAt": "2023-03-11T09:20:21.133Z"
-                    }
-                  }
-                }
-              }
-            }
-          },
-          "400": {
-            "$ref": "#/components/responses/BadRequest"
-          }
-        },
-        "tags": ["DB Table Row"],
-        "requestBody": {
-          "content": {
-            "application/json": {
-              "schema": {
-                "oneOf": [
-                  {
-                    "type": "object"
-                  },
-                  {
-                    "type": "array",
-                    "items": {
-                      "type": "object"
-                    }
-                  }
-                ]
-              },
-              "examples": {
-                "Example 1": {
-                  "value": {
-                    "Id": 1,
-                    "Title": "bar"
-                  }
-                }
-              }
-            }
-          }
-        },
-        "description": "Update the target Table View Row",
-        "parameters": [
-          {
-            "$ref": "#/components/parameters/xc-auth"
-          }
-        ]
-      },
-      "delete": {
-        "summary": "Delete Table View Row",
-        "operationId": "table-row-delete",
-        "responses": {
-          "200": {
-            "description": "OK",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "number"
-                },
-                "examples": {
-                  "Example 1": {
-                    "value": 1
-                  }
-                }
-              }
-            }
-          },
-          "400": {
-            "$ref": "#/components/responses/BadRequest"
-          }
-        },
-
-        "requestBody": {
-          "content": {
-            "application/json": {
-              "schema": {
-                "oneOf": [
-                  {
-                    "type": "object"
-                  },
-                  {
-                    "type": "array",
-                    "items": {
-                      "type": "object"
-                    }
-                  }
-                ]
-              },
-              "examples": {
-                "Example 1": {
-                  "value": {
-                    "Id": 1
-                  }
-                }
-              }
-            }
-          }
-        },
-        "tags": ["DB Table Row"],
-        "description": "Delete the target Table View Row",
-        "parameters": [
-          {
-            "$ref": "#/components/parameters/xc-auth"
-          }
-        ]
       }
     },
-    "/api/v1/base/tables/{tableId}/rows/{rowId}": {
+    "/api/v1/tables/{tableId}/rows/{rowId}": {
       "parameters": [
         {
           "schema": {
@@ -14401,8 +14259,7 @@
             "type": "string"
           },
           "name": "viewId",
-          "in": "query",
-          "required": true
+          "in": "query"
         },
         {
           "schema": {

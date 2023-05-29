@@ -140,6 +140,22 @@ async function ncAxiosPost(url: string, body = {}, status = 200) {
   const response = await request(context.app)
     .post(url)
     .set('xc-auth', context.token)
+    .send(body);
+  // .expect(status);
+  return response;
+}
+async function ncAxiosPatch(url: string, body = {}, status = 200) {
+  const response = await request(context.app)
+    .patch(url)
+    .set('xc-auth', context.token)
+    .send(body)
+    .expect(status);
+  return response;
+}
+async function ncAxiosDelete(url: string, body = {}, status = 200) {
+  const response = await request(context.app)
+    .delete(url)
+    .set('xc-auth', context.token)
     .send(body)
     .expect(status);
   return response;
@@ -597,6 +613,228 @@ function textBased() {
       fields: 'abc',
     });
   });
+
+  /////////////////////////////////////////////////////////////////////////////
+
+  // CREATE
+  //
+
+  /////////////////////////////////////////////////////////////////////////////
+  const newRecord = {
+    SingleLineText: 'abc',
+    MultiLineText: 'abc abc \n abc \r abc \t abc 1234!@#$%^&*()_+',
+    Email: 'a@b.com',
+    Url: 'https://www.abc.com',
+    Phone: '1-234-567-8910',
+  };
+
+  it('Create: all fields', async function () {
+    const rsp = await ncAxiosPost(
+      `/api/v1/base/${project.id}/tables/${table.id}`,
+      newRecord,
+    );
+
+    expect(rsp.body).to.deep.equal({
+      Id: 401,
+      ...newRecord,
+    });
+  });
+
+  it('Create: few fields left out', async function () {
+    const newRecord = {
+      SingleLineText: 'abc',
+      MultiLineText: 'abc abc \n abc \r abc \t abc 1234!@#$%^&*()_+',
+    };
+    const rsp = await ncAxiosPost(
+      `/api/v1/base/${project.id}/tables/${table.id}`,
+      newRecord,
+    );
+
+    // fields left out should be null
+    expect(rsp.body).to.deep.equal({
+      Id: 401,
+      ...newRecord,
+      Email: null,
+      Url: null,
+      Phone: null,
+    });
+  });
+
+  it('Create: bulk', async function () {
+    const rsp = await ncAxiosPost(
+      `/api/v1/base/${project.id}/tables/${table.id}`,
+      [newRecord, newRecord, newRecord],
+    );
+
+    expect(rsp.body).to.deep.equal([{ Id: 401 }, { Id: 402 }, { Id: 403 }]);
+  });
+
+  // Error handling
+  it('Create: invalid ID', async function () {
+    // Invalid table ID
+    await ncAxiosPost(`/api/v1/base/${project.id}/tables/123456789`, {}, 400);
+    // Invalid project ID
+    await ncAxiosPost(`/api/v1/base/123456789/tables/123456789`, {}, 400);
+    // Invalid data - repeated ID
+    await ncAxiosPost(
+      `/api/v1/base/${project.id}/tables/${table.id}`,
+      { ...newRecord, Id: 300 },
+      400,
+    );
+    // Invalid data - number instead of string
+    // await ncAxiosPost(
+    //   `/api/v1/base/${project.id}/tables/${table.id}`,
+    //   { ...newRecord, SingleLineText: 300 },
+    //   400,
+    // );
+  });
+
+  // TBD : default value handling
+
+  /////////////////////////////////////////////////////////////////////////////
+
+  // READ
+  //
+
+  /////////////////////////////////////////////////////////////////////////////
+
+  it.only('Read: all fields', async function () {
+    const rsp = await ncAxiosGet(`/api/v1/db/tables/${table.id}/rows/100`);
+  });
+
+  it('Read: invalid ID', async function () {
+    // Invalid table ID
+    await ncAxiosGet(`/api/v1/db/tables/123456789/rows/100`, {}, 400);
+    // Invalid row ID
+    await ncAxiosGet(`/api/v1/db/tables/${table.id}/rows/1000`, {}, 400);
+  });
+
+  /////////////////////////////////////////////////////////////////////////////
+
+  // UPDATE
+  //
+
+  /////////////////////////////////////////////////////////////////////////////
+
+  it('Update: all fields', async function () {
+    const rsp = await ncAxiosPatch(
+      `/api/v1/base/${project.id}/tables/${table.id}`,
+      {
+        Id: 1,
+        ...newRecord,
+      },
+    );
+    expect(rsp.body).to.deep.equal({
+      Id: 1,
+    });
+  });
+
+  it('Update: partial', async function () {
+    const recordBeforeUpdate = await ncAxiosGet(
+      `/api/v1/base/tables/${table.id}/rows/1`,
+    );
+
+    const rsp = await ncAxiosPatch(
+      `/api/v1/base/${project.id}/tables/${table.id}`,
+      {
+        Id: 1,
+        SingleLineText: 'some text',
+        MultiLineText: 'some more text',
+      },
+    );
+    expect(rsp.body).to.deep.equal({
+      Id: 1,
+    });
+
+    const recordAfterUpdate = await ncAxiosGet(
+      `/api/v1/base/tables/${table.id}/rows/1`,
+    );
+    expect(recordAfterUpdate.body).to.deep.equal({
+      ...recordBeforeUpdate.body,
+      SingleLineText: 'some text',
+      MultiLineText: 'some more text',
+    });
+  });
+
+  it('Update: bulk', async function () {
+    const rsp = await ncAxiosPatch(
+      `/api/v1/base/${project.id}/tables/${table.id}`,
+      [
+        {
+          Id: 1,
+          SingleLineText: 'some text',
+          MultiLineText: 'some more text',
+        },
+        {
+          Id: 2,
+          SingleLineText: 'some text',
+          MultiLineText: 'some more text',
+        },
+      ],
+    );
+    expect(rsp.body).to.deep.equal([{ Id: 1 }, { Id: 2 }]);
+  });
+
+  // Error handling
+
+  it('Update: invalid ID', async function () {
+    // Invalid project ID
+    await ncAxiosPatch(`/api/v1/base/123456789/tables/${table.id}`, {}, 400);
+    // Invalid table ID
+    await ncAxiosPatch(`/api/v1/base/${project.id}/tables/123456789`, {}, 400);
+    // Invalid row ID
+    await ncAxiosPatch(
+      `/api/v1/base/${project.id}/tables/${table.id}`,
+      { Id: 123456789, SingleLineText: 'some text' },
+      400,
+    );
+  });
+
+  /////////////////////////////////////////////////////////////////////////////
+
+  // DELETE
+  //
+
+  /////////////////////////////////////////////////////////////////////////////
+
+  it('Delete: single', async function () {
+    const rsp = await ncAxiosDelete(
+      `/api/v1/base/${project.id}/tables/${table.id}`,
+      { Id: 1 },
+    );
+    expect(rsp.body).to.deep.equal({ Id: 1 });
+
+    // check that it's gone
+    await ncAxiosGet(`/api/v1/db/tables/${table.id}/rows/1`, {}, 400);
+
+  });
+
+  it('Delete: bulk', async function () {
+    const rsp = await ncAxiosDelete(
+      `/api/v1/base/${project.id}/tables/${table.id}`,
+      [{ Id: 1 }, { Id: 2 }],
+    );
+    expect(rsp.body).to.deep.equal([{ Id: 1 }, { Id: 2 }]);
+
+    // check that it's gone
+    await ncAxiosGet(`/api/v1/db/tables/${table.id}/rows/1`, {}, 400);
+    await ncAxiosGet(`/api/v1/db/tables/${table.id}/rows/2`, {}, 400);
+  });
+
+  // Error handling
+
+  it('Delete: invalid ID', async function () {
+    // Invalid project ID
+    await ncAxiosDelete(`/api/v1/base/123456789/tables/${table.id}`, {}, 400);
+    // Invalid table ID
+    await ncAxiosDelete(`/api/v1/base/${project.id}/tables/123456789`, {}, 400);
+    // Invalid row ID
+    await ncAxiosDelete(
+      `/api/v1/base/${project.id}/tables/${table.id}`,
+      { Id: 123456789 },
+      400,
+    );
+  }
 }
 
 function numberBased() {

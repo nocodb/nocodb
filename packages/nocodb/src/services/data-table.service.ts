@@ -2,6 +2,7 @@ import { Injectable } from '@nestjs/common';
 import { NcError } from '../helpers/catchError';
 import { Base, Model, View } from '../models';
 import NcConnectionMgrv2 from '../utils/common/NcConnectionMgrv2';
+import projectAcl from '../utils/projectAcl';
 import { DatasService } from './datas.service';
 
 @Injectable()
@@ -77,7 +78,7 @@ export class DataTableService {
     projectId?: string;
     modelId: string;
     viewId?: string;
-    rowId: string;
+    // rowId: string;
     body: any;
     cookie: any;
   }) {
@@ -91,35 +92,51 @@ export class DataTableService {
       dbDriver: await NcConnectionMgrv2.get(base),
     });
 
-    return await baseModel.updateByPk(
-      param.rowId,
-      param.body,
-      null,
-      param.cookie,
+    // return await baseModel.updateByPk(
+    //   param.rowId,
+    //   param.body,
+    //   null,
+    //   param.cookie,
+    // );
+
+    const res = await baseModel.bulkUpdate(
+      Array.isArray(param.body) ? param.body : [param.body],
+      { cookie: param.cookie },
     );
+
+    return Array.isArray(param.body) ? res : res[0];
   }
 
   async dataDelete(param: {
     projectId?: string;
     modelId: string;
     viewId?: string;
-    rowId: string;
+    // rowId: string;
     cookie: any;
+    body: any;
   }) {
     const { model, view } = await this.getModelAndView(param);
     const base = await Base.get(model.base_id);
     const baseModel = await Model.getBaseModelSQL({
       id: model.id,
       viewId: view?.id,
-      dbDriver: await NcConnectionMgrv2.get(base),
+      dbDriver: await NcConnectionMgrv2.get(base)
     });
+    //
+    // // todo: Should have error http status code
+    // const message = await baseModel.hasLTARData(param.rowId, model);
+    // if (message.length) {
+    //   return { message };
+    // }
+    // return await baseModel.delByPk(param.rowId, null, param.cookie);
 
-    // todo: Should have error http status code
-    const message = await baseModel.hasLTARData(param.rowId, model);
-    if (message.length) {
-      return { message };
-    }
-    return await baseModel.delByPk(param.rowId, null, param.cookie);
+
+    const res = await baseModel.bulkUpdate(
+      Array.isArray(param.body) ? param.body : [param.body],
+      { cookie: param.cookie },
+    );
+
+    return Array.isArray(param.body) ? res : res[0];
   }
 
   async dataCount(param: {

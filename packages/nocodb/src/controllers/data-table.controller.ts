@@ -85,7 +85,7 @@ export class DataTableController {
     });
   }
 
-  @Patch(['/api/v1/base/tables/:modelId/rows/:rowId'])
+  @Patch(['/api/v1/base/tables/:modelId/rows'])
   @Acl('dataUpdate')
   async dataUpdate(
     @Request() req,
@@ -98,11 +98,11 @@ export class DataTableController {
       body: req.body,
       cookie: req,
       viewId,
-      rowId: rowId,
+      // rowId: rowId,
     });
   }
 
-  @Delete(['/api/v1/base/tables/:modelId/rows/:rowId'])
+  @Delete(['/api/v1/base/tables/:modelId/rows'])
   @Acl('dataDelete')
   async dataDelete(
     @Request() req,
@@ -114,7 +114,8 @@ export class DataTableController {
       modelId: modelId,
       cookie: req,
       viewId,
-      rowId: rowId,
+      body: req.body,
+      // rowId: rowId,
     });
   }
 

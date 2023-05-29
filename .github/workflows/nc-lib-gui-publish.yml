@@ -13,9 +13,7 @@ jobs:
           node-version: 16.17
           registry-url: https://npm.pkg.github.com/
       - run: echo $'@Deep-Consulting-Solutions:registry=https://npm.pkg.github.com/\n@deep-consulting-solutions:registry=https://npm.pkg.github.com/\nalways-auth=true\n//npm.pkg.github.com/:_authToken=${{secrets.GITHUB_TOKEN}}' > .npmrc
-      - run: cd packages/nc-gui
-      - run: npm install
-      - run: npm run build:copy:publish
+      - run: cd packages/nc-gui && npm install && npm run build:copy:publish
 
         env:
           NODE_AUTH_TOKEN: ${{secrets.GITHUB_TOKEN}}

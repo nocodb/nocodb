@@ -2,6 +2,7 @@ import type { ChainedCommands } from '@tiptap/core'
 import { Node, mergeAttributes, wrappingInputRule } from '@tiptap/core'
 import { Plugin, PluginKey } from 'prosemirror-state'
 import { TiptapNodesTypes } from 'nocodb-sdk'
+import { nodeTypesContainingListItems } from '../helper'
 import type { ListNodeType } from './helper'
 import { changeLevel, isSelectionOfType, listItemPasteRule, onBackspace, onEnter } from './helper'
 export interface OrderItemsOptions {
@@ -195,7 +196,7 @@ export const Ordered = Node.create<OrderItemsOptions>({
 
           doc.descendants((node, pos) => {
             if (
-              nodeTypesContainingSection.includes(node.type.name as TiptapNodesTypes) ||
+              nodeTypesContainingListItems.includes(node.type.name as TiptapNodesTypes) ||
               node.type.name === TiptapNodesTypes.ordered
             ) {
               if (node.type.name === TiptapNodesTypes.ordered) {
@@ -209,7 +210,7 @@ export const Ordered = Node.create<OrderItemsOptions>({
                 currentNumber++
               }
 
-              // Should to traverse deeper in tree if the node is not a nodeTypesContainingSection
+              // Should to traverse deeper in tree if the node is not a nodeTypesContainingListItems
               return node.type.name !== TiptapNodesTypes.ordered
             } else {
               // Reset the current number as ordered list group is over i.e current node is a normal paragraph

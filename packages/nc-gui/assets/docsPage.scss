@@ -414,6 +414,9 @@
       overflow: visible;
     }
     td {
+      .tiptap-list-item-start {
+        @apply -mt-1;
+      }
       position: relative;
       min-width: 1em;
       border: 1px solid #e5e5e5;

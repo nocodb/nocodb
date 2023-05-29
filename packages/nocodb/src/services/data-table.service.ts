@@ -143,8 +143,6 @@ export class DataTableService {
     return { count };
   }
 
-
-
   private async getModelAndView(param: {
     projectId?: string;
     viewId?: string;
@@ -152,11 +150,11 @@ export class DataTableService {
   }) {
     const model = await Model.get(param.modelId);
 
-    if(!model) {
+    if (!model) {
       throw new Error('Model not found');
     }
 
-    if (model.project_id && model.project_id !== param.projectId) {
+    if (param.projectId && model.project_id !== param.projectId) {
       throw new Error('Model not belong to project');
     }
 
@@ -171,5 +169,4 @@ export class DataTableService {
 
     return { model, view };
   }
-
 }

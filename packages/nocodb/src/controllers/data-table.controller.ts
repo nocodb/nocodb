@@ -106,13 +106,11 @@ export class DataTableController {
   @Acl('dataDelete')
   async dataDelete(
     @Request() req,
-    @Param('projectId') projectId: string,
     @Param('modelId') modelId: string,
     @Query('viewId') viewId: string,
     @Param('rowId') rowId: string,
   ) {
     return await this.dataTableService.dataDelete({
-      projectId: projectId,
       modelId: modelId,
       cookie: req,
       viewId,
@@ -124,14 +122,12 @@ export class DataTableController {
   @Acl('dataRead')
   async dataRead(
     @Request() req,
-    @Param('projectId') projectId: string,
     @Param('modelId') modelId: string,
     @Query('viewId') viewId: string,
     @Param('rowId') rowId: string,
   ) {
     return await this.dataTableService.dataRead({
       modelId,
-      projectId,
       rowId: rowId,
       query: req.query,
       viewId,

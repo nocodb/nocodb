@@ -76,6 +76,7 @@ export const onEnter = (editor: Editor, nodeType: ListNodeType) => {
         : {
             type: nodeType,
             attrs: {
+              // For ordered list, we fix the ordered list numbering on each page update
               number: nodeType === 'ordered' ? 1 : undefined,
               checked: nodeType === 'task' ? false : undefined,
               level,

@@ -10,7 +10,7 @@ import debug from 'debug';
 import * as express from 'express';
 import importFresh from 'import-fresh';
 import morgan from 'morgan';
-import NcToolGui from 'nc-lib-gui';
+import NcToolGui from '@deep-consulting-solutions/nc-lib-gui';
 import requestIp from 'request-ip';
 import { v4 as uuidv4 } from 'uuid';
 import { T } from 'nc-help';

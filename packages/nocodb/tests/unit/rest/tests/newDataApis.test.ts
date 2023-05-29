@@ -128,7 +128,7 @@ const verifyColumnsInRsp = (row, columns: ColumnType[]) => {
 };
 
 async function ncAxiosGet({
-  url = `/api/v1/base/${project.id}/tables/${table.id}`,
+  url = `/api/v1/tables/${table.id}/rows`,
   query = {},
   status = 200,
 }: { url?: string; query?: any; status?: number } = {}) {
@@ -141,7 +141,7 @@ async function ncAxiosGet({
   return response;
 }
 async function ncAxiosPost({
-  url = `/api/v1/base/${project.id}/tables/${table.id}`,
+  url = `/api/v1/tables/${table.id}/rows`,
   body = {},
   status = 200,
 }: { url?: string; body?: any; status?: number } = {}) {
@@ -153,7 +153,7 @@ async function ncAxiosPost({
   return response;
 }
 async function ncAxiosPatch({
-  url = `/api/v1/base/${project.id}/tables/${table.id}`,
+  url = `/api/v1/tables/${table.id}`,
   body = {},
   status = 200,
 }: { url?: string; body?: any; status?: number } = {}) {
@@ -165,7 +165,7 @@ async function ncAxiosPatch({
   return response;
 }
 async function ncAxiosDelete({
-  url = `/api/v1/base/${project.id}/tables/${table.id}`,
+  url = `/api/v1/tables/${table.id}/rows`,
   body = {},
   status = 200,
 }: { url?: string; body?: any; status?: number } = {}) {
@@ -558,12 +558,12 @@ function textBased() {
   it('List: invalid ID', async function () {
     // Invalid table ID
     await ncAxiosGet({
-      url: `/api/v1/base/${project.id}/tables/123456789`,
+      url: `/api/v1/tables/123456789`,
       status: 404,
     });
     // Invalid project ID
     await ncAxiosGet({
-      url: `/api/v1/base/123456789/tables/123456789`,
+      url: `/api/v1/tables/123456789/rows`,
       status: 404,
     });
     // Invalid view ID
@@ -679,12 +679,12 @@ function textBased() {
   it('Create: invalid ID', async function () {
     // Invalid table ID
     await ncAxiosPost({
-      url: `/api/v1/base/${project.id}/tables/123456789`,
+      url: `/api/v1/tables/123456789`,
       status: 404,
     });
     // Invalid project ID
     await ncAxiosPost({
-      url: `/api/v1/base/123456789/tables/123456789`,
+      url: `/api/v1/tables/123456789`,
       status: 404,
     });
     // Invalid data - create should not specify ID
@@ -710,19 +710,19 @@ function textBased() {
 
   it('Read: all fields', async function () {
     const rsp = await ncAxiosGet({
-      url: `/api/v1/base/tables/${table.id}/rows/100`,
+      url: `/api/v1/tables/${table.id}/rows/100`,
     });
   });
 
   it('Read: invalid ID', async function () {
     // Invalid table ID
     await ncAxiosGet({
-      url: `/api/v1/base/tables/123456789/rows/100`,
+      url: `/api/v1/tables/123456789/rows/100`,
       status: 404,
     });
     // Invalid row ID
     await ncAxiosGet({
-      url: `/api/v1/base/tables/${table.id}/rows/1000`,
+      url: `/api/v1/tables/${table.id}/rows/1000`,
       status: 404,
     });
   });
@@ -752,7 +752,7 @@ function textBased() {
 
   it('Update: partial', async function () {
     const recordBeforeUpdate = await ncAxiosGet({
-      url: `/api/v1/base/tables/${table.id}/rows/1`,
+      url: `/api/v1/tables/${table.id}/rows/1`,
     });
 
     const rsp = await ncAxiosPatch({
@@ -771,7 +771,7 @@ function textBased() {
     ]);
 
     const recordAfterUpdate = await ncAxiosGet({
-      url: `/api/v1/base/tables/${table.id}/rows/1`,
+      url: `/api/v1/tables/${table.id}/rows/1`,
     });
     expect(recordAfterUpdate.body).to.deep.equal({
       ...recordBeforeUpdate.body,
@@ -803,12 +803,12 @@ function textBased() {
   it('Update: invalid ID', async function () {
     // Invalid project ID
     await ncAxiosPatch({
-      url: `/api/v1/base/123456789/tables/${table.id}`,
+      url: `/api/v1/tables/${table.id}`,
       status: 404,
     });
     // Invalid table ID
     await ncAxiosPatch({
-      url: `/api/v1/base/${project.id}/tables/123456789`,
+      url: `/api/v1/tables/123456789`,
       status: 404,
     });
     // Invalid row ID
@@ -831,7 +831,7 @@ function textBased() {
 
     // // check that it's gone
     await ncAxiosGet({
-      url: `/api/v1/base/tables/${table.id}/rows/1`,
+      url: `/api/v1/tables/${table.id}/rows/1`,
       status: 404,
     });
   });
@@ -842,11 +842,11 @@ function textBased() {
 
     // check that it's gone
     await ncAxiosGet({
-      url: `/api/v1/base/tables/${table.id}/rows/1`,
+      url: `/api/v1/tables/${table.id}/rows/1`,
       status: 404,
     });
     await ncAxiosGet({
-      url: `/api/v1/base/tables/${table.id}/rows/2`,
+      url: `/api/v1/tables/${table.id}/rows/2`,
       status: 404,
     });
   });
@@ -856,12 +856,12 @@ function textBased() {
   it('Delete: invalid ID', async function () {
     // Invalid project ID
     await ncAxiosDelete({
-      url: `/api/v1/base/123456789/tables/${table.id}`,
+      url: `/api/v1/tables/${table.id}`,
       status: 404,
     });
     // Invalid table ID
     await ncAxiosDelete({
-      url: `/api/v1/base/${project.id}/tables/123456789`,
+      url: `/api/v1/tables/123456789`,
       status: 404,
     });
     // Invalid row ID
@@ -1041,7 +1041,7 @@ function numberBased() {
 
     // read record with Id 401
     rsp = await ncAxiosGet({
-      url: `/api/v1/base/${project.id}/tables/${table.id}/rows/401`,
+      url: `/api/v1/tables/${table.id}/rows/401`,
     });
     expect(rsp.body).to.deep.equal(records[0]);
 

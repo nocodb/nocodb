@@ -59,11 +59,13 @@ export const TableCell = Node.create<TableCellOptions>({
         // Do not delete the cell if the cell is empty
         const selectedCellContent = this.editor.view.state.selection.$head.node(-1)
         const parentNode = this.editor.view.state.selection.$anchor.node(-1)
+        const selection = this.editor.view.state.selection
+
+        if (!selection.empty) return false
 
         if (parentNode?.type.name !== TiptapNodesTypes.tableCell) {
           return false
         }
-        const selection = this.editor.view.state.selection
 
         const doc = this.editor.view.state.doc
 

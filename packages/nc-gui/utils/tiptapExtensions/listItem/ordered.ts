@@ -3,7 +3,7 @@ import { Node, mergeAttributes, wrappingInputRule } from '@tiptap/core'
 import { Plugin, PluginKey } from 'prosemirror-state'
 import { TiptapNodesTypes } from 'nocodb-sdk'
 import type { ListNodeType } from './helper'
-import { changeLevel, isSelectionOfType, listItemPasteRule, onBackspaceWithNestedList, onEnter } from './helper'
+import { changeLevel, isSelectionOfType, listItemPasteRule, onBackspace, onEnter } from './helper'
 export interface OrderItemsOptions {
   number: string
   HTMLAttributes: Record<string, any>
@@ -151,7 +151,7 @@ export const Ordered = Node.create<OrderItemsOptions>({
         return changeLevel(this.editor as any, this.name as ListNodeType, 'backward')
       },
       'Backspace': () => {
-        return onBackspaceWithNestedList(this.editor as any, this.name as any)
+        return onBackspace(this.editor as any, this.name as any)
       },
     }
   },

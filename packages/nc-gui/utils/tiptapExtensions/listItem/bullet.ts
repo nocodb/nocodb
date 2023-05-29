@@ -2,7 +2,7 @@ import { Node, mergeAttributes, wrappingInputRule } from '@tiptap/core'
 import { Plugin, PluginKey } from 'prosemirror-state'
 import { TiptapNodesTypes } from 'nocodb-sdk'
 import type { ListNodeType } from './helper'
-import { changeLevel, isSelectionOfType, listItemPasteRule, onBackspaceWithNestedList, onEnter, toggleItem } from './helper'
+import { changeLevel, isSelectionOfType, listItemPasteRule, onBackspace, onEnter, toggleItem } from './helper'
 
 export interface ListOptions {
   HTMLAttributes: Record<string, any>
@@ -137,7 +137,7 @@ export const Bullet = Node.create<ListOptions>({
         return changeLevel(this.editor as any, this.name as ListNodeType, 'backward')
       },
       'Backspace': () => {
-        return onBackspaceWithNestedList(this.editor as any, this.name as any)
+        return onBackspace(this.editor as any, this.name as any)
       },
     }
   },

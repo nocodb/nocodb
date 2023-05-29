@@ -5,6 +5,8 @@ export const NOCO = 'noco'
 
 export const SYSTEM_COLUMNS = ['id', 'title', 'created_at', 'updated_at']
 
+export const EMPTY_TITLE_PLACEHOLDER_DOCS = 'Untitled'
+
 export const BASE_FALLBACK_URL = process.env.NODE_ENV === 'production' ? '..' : 'http://localhost:8080'
 /**
  * Each permission value means the following

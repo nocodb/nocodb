@@ -32,7 +32,7 @@ const title = computed({
 
     _title.value = value
 
-    openedPage.value = { ...openedPage.value!, title: value, new: false }
+    openedPage.value = { ...openedPage.value!, title: value }
   },
 })
 
@@ -100,7 +100,7 @@ watch(title, async (newTitle, oldTitle) => {
 watch(
   isPageFetching,
   (isFetching) => {
-    if (!isFetching && openedPage.value?.new) {
+    if (!isFetching && openedPage.value?.title.length === 0) {
       for (let i = 0; i < 6; i++) {
         setTimeout(() => {
           focusTitle()
@@ -114,12 +114,7 @@ watch(
 )
 
 onMounted(() => {
-  if (openedPage.value?.new) {
-    // So that we do not reset `new` flag of opened page to false
-    _title.value = ''
-  } else {
-    title.value = openedPage.value!.title
-  }
+  title.value = openedPage.value!.title
 })
 </script>
 
@@ -178,7 +173,7 @@ onMounted(() => {
 <style lang="scss" scoped>
 .nc-page-title-wrapper.empty {
   .nc-docs-page-title::after {
-    content: 'Title' !important;
+    content: 'Untitled' !important;
     float: left;
     color: #afafaf;
     pointer-events: none;

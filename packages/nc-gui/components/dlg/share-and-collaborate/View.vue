@@ -120,7 +120,10 @@ watch(showShareModal, (val) => {
             <div class="flex flex-row items-center gap-x-2">
               <IonDocumentOutline />
               <div data-testid="docs-share-dlg-share-page">
-                Share Page <span class="ml-10.5 py-1 px-2 rounded-md bg-gray-100 capitalize">{{ page.title }}</span>
+                Share Page
+                <span class="ml-10.5 py-1 px-2 rounded-md bg-gray-100 capitalize">{{
+                  !page.title ? EMPTY_TITLE_PLACEHOLDER_DOCS : page.title
+                }}</span>
               </div>
             </div>
           </template>

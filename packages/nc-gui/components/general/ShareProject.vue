@@ -1,6 +1,12 @@
 <script setup lang="ts">
 import { isDrawerOrModalExist, isMac, useNuxtApp } from '#imports'
 
+interface Props {
+  disabled?: boolean
+}
+
+const { disabled } = defineProps<Props>()
+
 const { visibility, showShareModal } = storeToRefs(useShare())
 
 const { $e } = useNuxtApp()
@@ -29,17 +35,20 @@ useEventListener(document, 'keydown', async (e: KeyboardEvent) => {
     data-testid="share-project-button"
     :data-sharetype="visibility"
   >
-    <div
+    <button
       class="flex flex-row items-center gap-x-1.5 bg-primary text-white hover:bg-opacity-80 py-1 px-2.5 rounded-md cursor-pointer z-10"
       :class="{
         '!pl-3': visibility === 'none',
+        'cursor-not-allowed opacity-65': disabled,
       }"
+      type="button"
+      :disabled="disabled"
       @click="showShareModal = true"
     >
       <MaterialSymbolsPublic v-if="visibility === 'public'" class="h-3.5" />
       <MaterialSymbolsLockOutline v-else-if="visibility === 'private'" class="h-3.5" />
       <div class="flex">Share</div>
-    </div>
+    </button>
   </div>
 
   <LazyDlgShareAndCollaborateView />

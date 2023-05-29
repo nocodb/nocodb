@@ -112,8 +112,6 @@ export interface AntSidebarNode {
   isLeaf: boolean
   key: string
   style?: string | Record<string, string>
-  // If `new` is set, the page will have the title on focus
-  new?: boolean
   isBook?: boolean
   children?: PageSidebarNode[]
   level?: number

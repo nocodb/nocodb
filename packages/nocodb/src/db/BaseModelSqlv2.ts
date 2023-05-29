@@ -2142,7 +2142,7 @@ class BaseModelSqlv2 {
         for (const insertData of insertDatas) {
           const query = trx(this.tnPath).insert(insertData);
           const id = (await query)[0];
-          response.push(await this.readByPk(id));
+          response.push(id);
         }
       } else {
         response =

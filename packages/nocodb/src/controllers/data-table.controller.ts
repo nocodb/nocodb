@@ -111,7 +111,7 @@ export class DataTableController {
     });
   }
 
-  @Get(['/api/v1/base/tables/:modelId/rows/:rowId'])
+  @Get(['/api/v1/tables/:modelId/rows/:rowId'])
   @Acl('dataRead')
   async dataRead(
     @Request() req,

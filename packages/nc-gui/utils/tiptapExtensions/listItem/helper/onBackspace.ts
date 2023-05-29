@@ -18,7 +18,7 @@ export const onBackspace = (editor: Editor, nodeType: ListNodeType) => {
 
   if (listItemNode?.type.name !== nodeType) return false
 
-  handleNonEmptySelection(editor, listItemNodePos)
+  if (handleNonEmptySelection(editor, listItemNodePos)) return true
 
   if (!selection.empty) return false
 

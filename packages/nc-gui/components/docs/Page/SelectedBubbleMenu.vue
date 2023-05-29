@@ -6,6 +6,7 @@ import { generateHTML, generateJSON } from '@tiptap/html'
 import showdown from 'showdown'
 import type { Mark } from 'prosemirror-model'
 import { CellSelection } from '@tiptap/prosemirror-tables'
+import { TiptapNodesTypes } from 'nocodb-sdk'
 import MdiFormatBulletList from '~icons/mdi/format-list-bulleted'
 import MdiFormatStrikeThrough from '~icons/mdi/format-strikethrough'
 import MdiFormatListNumber from '~icons/mdi/format-list-numbered'
@@ -33,6 +34,18 @@ const isImageNode = computed(() => {
   return activeNode?.type?.name === 'image'
 })
 const isImageNodeDebounced = ref(isImageNode.value)
+
+const parentIsTableCell = computed(() => {
+  if (!editor) return false
+
+  let parent = editor.state.selection.$from.node(-1)
+  parent =
+    parent.type.name === TiptapNodesTypes.tableCell && editor.state.selection.$from.depth > 4
+      ? parent
+      : editor.state.selection.$from.node(-2)
+
+  return parent.type.name === TiptapNodesTypes.tableCell
+})
 
 const isTableCellSelected = computed(() => {
   if (!editor) return false
@@ -337,7 +350,7 @@ onUnmounted(() => {
         </template>
       </a-dropdown>
 
-      <template v-if="!isTableCellSelected">
+      <template v-if="!isTableCellSelected && !parentIsTableCell">
         <div class="divider"></div>
 
         <a-button

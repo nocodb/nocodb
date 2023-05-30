@@ -92,19 +92,12 @@ export class DataTableService {
       dbDriver: await NcConnectionMgrv2.get(base),
     });
 
-    // return await baseModel.updateByPk(
-    //   param.rowId,
-    //   param.body,
-    //   null,
-    //   param.cookie,
-    // );
-
     const res = await baseModel.bulkUpdate(
       Array.isArray(param.body) ? param.body : [param.body],
       { cookie: param.cookie },
     );
 
-    return Array.isArray(param.body) ? res : res[0];
+    return this.extractIdObj(param.body)
   }
 
   async dataDelete(param: {
@@ -122,20 +115,13 @@ export class DataTableService {
       viewId: view?.id,
       dbDriver: await NcConnectionMgrv2.get(base),
     });
-    //
-    // // todo: Should have error http status code
-    // const message = await baseModel.hasLTARData(param.rowId, model);
-    // if (message.length) {
-    //   return { message };
-    // }
-    // return await baseModel.delByPk(param.rowId, null, param.cookie);
 
-    const res = await baseModel.bulkUpdate(
+    await baseModel.bulkUpdate(
       Array.isArray(param.body) ? param.body : [param.body],
       { cookie: param.cookie },
     );
 
-    return Array.isArray(param.body) ? res : res[0];
+    return this.extractIdObj(param.body);
   }
 
   async dataCount(param: {
@@ -191,28 +177,16 @@ export class DataTableService {
     return { model, view };
   }
 
-  private async extractPks({ model, rows }: { rows: any[]; model?: Model }) {
-    return await Promise.all(
-      rows.map(async (row) => {
-        // if not object then return the value
-        if (typeof row !== 'object') return row;
+  private async extractIdObj({ model, body }: { body: Record<string,any> | Record<string,any>[]; model: Model }) {
+    const pkColumns = await model.getColumns().then((cols) => cols.filter((col) => col.pk));
 
-        let pk;
+    const result = (Array.isArray(body) ? body : [body]).map((row) => {
+      return  pkColumns.reduce((acc, col) => {
+        acc[col.title] = row[col.title];
+        return acc;
+      })
+    })
 
-        // if model is passed then use the model to get the pk columns and extract the pk values
-        if (model) {
-          pk = await model.getColumns().then((cols) =>
-            cols
-              .filter((col) => col.pk)
-              .map((col) => row[col.title])
-              .join('___'),
-          );
-        } else {
-          // if model is not passed then get all the values and join them
-          pk = Object.values(row).join('___');
-        }
-        return pk;
-      }),
-    );
+    return Array.isArray(body) ? result : result[0];
   }
 }

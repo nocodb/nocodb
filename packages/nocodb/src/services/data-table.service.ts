@@ -84,6 +84,8 @@ export class DataTableService {
   }) {
     const { model, view } = await this.getModelAndView(param);
 
+    await this.checkForDuplicateRow({ rows: param.body, model });
+
     const base = await Base.get(model.base_id);
 
     const baseModel = await Model.getBaseModelSQL({
@@ -109,6 +111,9 @@ export class DataTableService {
     body: any;
   }) {
     const { model, view } = await this.getModelAndView(param);
+
+    await this.checkForDuplicateRow({ rows: param.body, model });
+
     const base = await Base.get(model.base_id);
     const baseModel = await Model.getBaseModelSQL({
       id: model.id,
@@ -196,5 +201,34 @@ export class DataTableService {
     });
 
     return Array.isArray(body) ? result : result[0];
+  }
+
+  private async checkForDuplicateRow({
+    rows,
+    model,
+  }: {
+    rows: any[] | any;
+    model: Model;
+  }) {
+    if (!rows || !Array.isArray(rows) || rows.length === 1) {
+      return;
+    }
+
+    await model.getColumns();
+
+    const keys = new Set();
+
+    for (const row of rows) {
+      let pk;
+      // if only one primary key then extract the value
+      if (model.primaryKeys.length === 1) pk = row[model.primaryKey.title];
+      // if composite primary key then join the values with ___
+      else pk = model.primaryKeys.map((pk) => row[pk.title]).join('___');
+      // if duplicate then throw error
+      if (keys.has(pk)) {
+        NcError.unprocessableEntity('Duplicate row with id ' + pk);
+      }
+      keys.add(pk);
+    }
   }
 }

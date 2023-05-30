@@ -1031,7 +1031,7 @@ function numberBased() {
     rsp = await ncAxiosGet({
       url: `/api/v1/tables/${table.id}/rows/401`,
     });
-    expect(rsp.body).to.deep.equal(records[0]);
+    expect(rsp.body).to.deep.equal({ Id: 401, ...records[0] });
 
     ///////////////////////////////////////////////////////////////////////////
 
@@ -1046,19 +1046,19 @@ function numberBased() {
     };
     const updatedRecords = [
       {
-        id: 401,
+        Id: 401,
         ...updatedRecord,
       },
       {
-        id: 402,
+        Id: 402,
         ...updatedRecord,
       },
       {
-        id: 403,
+        Id: 403,
         ...updatedRecord,
       },
       {
-        id: 404,
+        Id: 404,
         ...updatedRecord,
       },
     ];
@@ -1066,7 +1066,7 @@ function numberBased() {
       body: updatedRecords,
     });
     expect(rsp.body).to.deep.equal(
-      updatedRecords.map((record) => ({ id: record.id })),
+      updatedRecords.map((record) => ({ Id: record.Id })),
     );
 
     // verify updated records
@@ -1082,10 +1082,10 @@ function numberBased() {
 
     // delete record with ID 401 to 404
     rsp = await ncAxiosDelete({
-      body: updatedRecords.map((record) => ({ id: record.id })),
+      body: updatedRecords.map((record) => ({ Id: record.Id })),
     });
     expect(rsp.body).to.deep.equal(
-      updatedRecords.map((record) => ({ id: record.id })),
+      updatedRecords.map((record) => ({ Id: record.Id })),
     );
   });
 }
@@ -1220,7 +1220,7 @@ function selectBased() {
     rsp = await ncAxiosGet({
       url: `/api/v1/tables/${table.id}/rows/401`,
     });
-    expect(rsp.body).to.deep.equal(records[0]);
+    expect(rsp.body).to.deep.equal({ Id: 401, ...records[0] });
 
     ///////////////////////////////////////////////////////////////////////////
 
@@ -1231,19 +1231,19 @@ function selectBased() {
     };
     const updatedRecords = [
       {
-        id: 401,
+        Id: 401,
         ...updatedRecord,
       },
       {
-        id: 402,
+        Id: 402,
         ...updatedRecord,
       },
       {
-        id: 403,
+        Id: 403,
         ...updatedRecord,
       },
       {
-        id: 404,
+        Id: 404,
         ...updatedRecord,
       },
     ];
@@ -1251,7 +1251,7 @@ function selectBased() {
       body: updatedRecords,
     });
     expect(rsp.body).to.deep.equal(
-      updatedRecords.map((record) => ({ id: record.id })),
+      updatedRecords.map((record) => ({ Id: record.Id })),
     );
 
     // verify updated records
@@ -1267,10 +1267,10 @@ function selectBased() {
 
     // delete record with ID 401 to 404
     rsp = await ncAxiosDelete({
-      body: updatedRecords.map((record) => ({ id: record.id })),
+      body: updatedRecords.map((record) => ({ Id: record.Id })),
     });
     expect(rsp.body).to.deep.equal(
-      updatedRecords.map((record) => ({ id: record.id })),
+      updatedRecords.map((record) => ({ Id: record.Id })),
     );
   });
 }
@@ -1375,7 +1375,7 @@ function dateBased() {
       },
     });
     const pageInfo = {
-      totalRows: 400,
+      totalRows: 800,
       page: 1,
       pageSize: 10,
       isFirstPage: true,
@@ -1393,43 +1393,43 @@ function dateBased() {
       body: records,
     });
 
-    // prepare array with 10 Id's, from 401 to 410
+    // prepare array with 10 Id's, from 801 to 810
     const ids = [];
-    for (let i = 401; i <= 410; i++) {
+    for (let i = 801; i <= 810; i++) {
       ids.push({ Id: i });
     }
     expect(rsp.body).to.deep.equal(ids);
 
     ///////////////////////////////////////////////////////////////////////////
 
-    // read record with Id 401
+    // read record with Id 801
     rsp = await ncAxiosGet({
-      url: `/api/v1/tables/${table.id}/rows/401`,
+      url: `/api/v1/tables/${table.id}/rows/801`,
     });
-    expect(rsp.body).to.deep.equal(records[0]);
+    expect(rsp.body).to.deep.equal({ Id: 801, ...records[0] });
 
     ///////////////////////////////////////////////////////////////////////////
 
-    // update record with Id 401 to 404
+    // update record with Id 801 to 804
     const updatedRecord = {
       Date: '2022-04-25',
       DateTime: '2022-04-25T06:30:00.000Z',
     };
     const updatedRecords = [
       {
-        id: 401,
+        Id: 801,
         ...updatedRecord,
       },
       {
-        id: 402,
+        Id: 802,
         ...updatedRecord,
       },
       {
-        id: 403,
+        Id: 803,
         ...updatedRecord,
       },
       {
-        id: 404,
+        Id: 804,
         ...updatedRecord,
       },
     ];
@@ -1437,26 +1437,26 @@ function dateBased() {
       body: updatedRecords,
     });
     expect(rsp.body).to.deep.equal(
-      updatedRecords.map((record) => ({ id: record.id })),
+      updatedRecords.map((record) => ({ Id: record.Id })),
     );
 
     // verify updated records
     rsp = await ncAxiosGet({
       query: {
         limit: 4,
-        offset: 400,
+        offset: 800,
       },
     });
     expect(rsp.body.list).to.deep.equal(updatedRecords);
 
     ///////////////////////////////////////////////////////////////////////////
 
-    // delete record with ID 401 to 404
+    // delete record with ID 801 to 804
     rsp = await ncAxiosDelete({
-      body: updatedRecords.map((record) => ({ id: record.id })),
+      body: updatedRecords.map((record) => ({ Id: record.Id })),
     });
     expect(rsp.body).to.deep.equal(
-      updatedRecords.map((record) => ({ id: record.id })),
+      updatedRecords.map((record) => ({ Id: record.Id })),
     );
   });
 }

@@ -1,5 +1,5 @@
 import Table from '@tiptap/extension-table'
-import { CellSelection, columnResizing, tableEditing } from '@tiptap/prosemirror-tables'
+import { CellSelection, columnResizing, tableEditing } from '@tiptap/pm/tables'
 import { VueNodeViewRenderer } from '@tiptap/vue-3'
 import { TiptapNodesTypes } from 'nocodb-sdk'
 import { TableNodeView } from './TableNodeView'

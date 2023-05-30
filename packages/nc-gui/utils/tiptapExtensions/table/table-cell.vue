@@ -10,7 +10,7 @@ import {
   addRowBefore,
   deleteColumn as deleteColumnTiptap,
   goToNextCell,
-} from '@tiptap/prosemirror-tables'
+} from '@tiptap/pm/tables'
 
 const { getPos, editor } = defineProps(nodeViewProps)
 

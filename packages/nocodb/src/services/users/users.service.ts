@@ -489,7 +489,7 @@ export class UsersService {
     return this.login(user);
   }
 
-  async login(user: any) {
+  login(user: any) {
     this.appHooksService.emit(AppEvents.USER_SIGNIN, {
       user,
     });

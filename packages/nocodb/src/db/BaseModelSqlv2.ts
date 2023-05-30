@@ -14,7 +14,7 @@ import Validator from 'validator';
 import { customAlphabet } from 'nanoid';
 import DOMPurify from 'isomorphic-dompurify';
 import { v4 as uuidv4 } from 'uuid';
-import { extractLimitAndOffset } from '../helpers'
+import { extractLimitAndOffset } from '../helpers';
 import { NcError } from '../helpers/catchError';
 import getAst from '../helpers/getAst';
 
@@ -2173,7 +2173,11 @@ class BaseModelSqlv2 {
 
   async bulkUpdate(
     datas: any[],
-    { cookie, raw = false }: { cookie?: any; raw?: boolean } = {},
+    {
+      cookie,
+      raw = false,
+      throwExceptionIfNotExist = false,
+    }: { cookie?: any; raw?: boolean; throwExceptionIfNotExist?: boolean } = {},
   ) {
     let transaction;
     try {
@@ -2212,7 +2216,12 @@ class BaseModelSqlv2 {
 
       if (!raw) {
         for (const pkValues of updatePkValues) {
-          newData.push(await this.readByPk(pkValues));
+          const oldRecord = await this.readByPk(pkValues);
+          if (!oldRecord && throwExceptionIfNotExist)
+            NcError.unprocessableEntity(
+              `Record with pk ${JSON.stringify(pkValues)} not found`,
+            );
+          newData.push(oldRecord);
         }
       }
 
@@ -2275,7 +2284,13 @@ class BaseModelSqlv2 {
     }
   }
 
-  async bulkDelete(ids: any[], { cookie }: { cookie?: any } = {}) {
+  async bulkDelete(
+    ids: any[],
+    {
+      cookie,
+      throwExceptionIfNotExist = false,
+    }: { cookie?: any; throwExceptionIfNotExist?: boolean } = {},
+  ) {
     let transaction;
     try {
       const deleteIds = await Promise.all(
@@ -2290,7 +2305,14 @@ class BaseModelSqlv2 {
           // pk not specified - bypass
           continue;
         }
-        deleted.push(await this.readByPk(pkValues));
+
+        const oldRecord = await this.readByPk(pkValues);
+        if (!oldRecord && throwExceptionIfNotExist)
+          NcError.unprocessableEntity(
+            `Record with pk ${JSON.stringify(pkValues)} not found`,
+          );
+        deleted.push(oldRecord);
+
         res.push(d);
       }
 

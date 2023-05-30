@@ -94,7 +94,7 @@ export class DataTableService {
 
     const res = await baseModel.bulkUpdate(
       Array.isArray(param.body) ? param.body : [param.body],
-      { cookie: param.cookie },
+      { cookie: param.cookie, throwExceptionIfNotExist: true },
     );
 
     return this.extractIdObj({ body: param.body, model });
@@ -118,7 +118,7 @@ export class DataTableService {
 
     await baseModel.bulkUpdate(
       Array.isArray(param.body) ? param.body : [param.body],
-      { cookie: param.cookie },
+      { cookie: param.cookie, throwExceptionIfNotExist: true },
     );
 
     return this.extractIdObj({ body: param.body, model });

@@ -7,6 +7,7 @@ import {
   Param,
   Post,
   Put,
+  Query,
   Request,
   UseGuards,
 } from '@nestjs/common';
@@ -25,7 +26,7 @@ export class DocsPagesController {
     private readonly pageHistoryService: DocsPageHistoryService,
   ) {}
 
-  @Get('/api/v1/docs/project/:projectId/page/:id')
+  @Get('/api/v1/docs/:projectId/pages/:id')
   @UseAclMiddleware({
     permissionName: 'pageGet',
   })
@@ -36,7 +37,7 @@ export class DocsPagesController {
     });
   }
 
-  @Get('/api/v1/docs/project/:projectId/pages')
+  @Get('/api/v1/docs/:projectId/pages')
   @UseAclMiddleware({
     permissionName: 'pageList',
   })
@@ -46,7 +47,7 @@ export class DocsPagesController {
     });
   }
 
-  @Post('/api/v1/docs/project/:projectId/page')
+  @Post('/api/v1/docs/:projectId/pages')
   @UseAclMiddleware({
     permissionName: 'pageCreate',
   })
@@ -74,7 +75,7 @@ export class DocsPagesController {
     return page;
   }
 
-  @Put('/api/v1/docs/project/:projectId/page/:id')
+  @Put('/api/v1/docs/:projectId/pages/:id')
   @UseAclMiddleware({
     permissionName: 'pageUpdate',
   })
@@ -93,7 +94,7 @@ export class DocsPagesController {
     });
   }
 
-  @Delete('/api/v1/docs/project/:projectId/page/:id')
+  @Delete('/api/v1/docs/:projectId/pages/:id')
   @UseAclMiddleware({
     permissionName: 'pageDelete',
   })
@@ -104,53 +105,49 @@ export class DocsPagesController {
     });
   }
 
-  @Post('/api/v1/docs/project/:projectId/page/:id/magic-expand')
+  @Post('/api/v1/docs/:projectId/pages/:id/gpt')
   @UseAclMiddleware({
-    permissionName: 'pageMagicExpand',
+    permissionName: 'pageGpt',
   })
-  async magicExpand(
+  async gpt(
     @Param('id') id: string,
     @Param('projectId') projectId: string,
     @Body() body: { text: string },
+    @Query('type') type: 'outline' | 'expand',
   ) {
-    return await this.pagesService.magicExpand({
-      text: body.text,
-      pageId: id,
-      projectId,
-    });
+    if (type === 'expand') {
+      return await this.pagesService.magicExpand({
+        text: body.text,
+        pageId: id,
+        projectId,
+      });
+    } else if (type === 'outline') {
+      return await this.pagesService.magicOutline({
+        pageId: id,
+        projectId,
+      });
+    }
+
+    throw new Error('Invalid type');
   }
 
-  @Post('/api/v1/docs/project/:projectId/page/:id/magic-outline')
-  @UseAclMiddleware({
-    permissionName: 'pageMagicOutline',
-  })
-  async magicOutline(
-    @Param('id') id: string,
-    @Param('projectId') projectId: string,
-  ) {
-    return await this.pagesService.magicOutline({
-      pageId: id,
-      projectId,
-    });
-  }
-
-  @Post('/api/v1/docs/project/:projectId/pages/magic-create-pages')
+  @Post('/api/v1/docs/:projectId/gpt')
   @UseAclMiddleware({
     permissionName: 'docsMagicCreatePages',
   })
-  async magicCreate(
+  async gptCreatePages(
     @Param('projectId') projectId: string,
-    @Body() body: { title: string },
+    @Body() body: { text: string },
     @Request() req,
   ) {
     return await this.pagesService.magicCreatePages({
       projectId,
-      title: body.title,
+      title: body.text,
       user: req.user,
     });
   }
 
-  @Post('/api/v1/docs/project/:projectId/page/import')
+  @Post('/api/v1/docs/:projectId/import')
   @UseAclMiddleware({
     permissionName: 'pageImport',
   })

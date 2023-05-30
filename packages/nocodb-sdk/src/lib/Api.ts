@@ -3418,7 +3418,7 @@ export class Api<
      * @tags Noco docs
      * @name ListPublicPages
      * @summary List tree of public pages of given parent page and its children. If the given parent page is published under a different parent page, the tree's top level will be that parent page
-     * @request GET:api/v1/public/docs/project/{projectId}/pages/{parentPageId}
+     * @request GET:api/v1/public/docs/{projectId}/pages/{parentPageId}
      * @response `200` `(DocsPageType)[]` OK
      */
     listPublicPages: (
@@ -3427,7 +3427,7 @@ export class Api<
       params: RequestParams = {}
     ) =>
       this.request<DocsPageType[], any>({
-        path: `api/v1/public/docs/project/${projectId}/pages/${parentPageId}`,
+        path: `api/v1/public/docs/${projectId}/pages/${parentPageId}`,
         method: 'GET',
         format: 'json',
         ...params,
@@ -3439,7 +3439,7 @@ export class Api<
  * @tags Noco docs
  * @name GetPublicPageAndProject
  * @summary Get public page and its project
- * @request GET:/api/v1/public/docs/project/{projectId}/page/{id}
+ * @request GET:/api/v1/public/docs/{projectId}/pages/{id}
  * @response `200` `{
   \** Page of Noco docs *\
   page?: DocsPageType,
@@ -3462,7 +3462,7 @@ export class Api<
         },
         any
       >({
-        path: `/api/v1/public/docs/project/${projectId}/page/${id}`,
+        path: `/api/v1/public/docs/${projectId}/pages/${id}`,
         method: 'GET',
         format: 'json',
         ...params,
@@ -3474,13 +3474,39 @@ export class Api<
      * @tags Noco docs
      * @name ListPages
      * @summary List all pages
-     * @request GET:/api/v1/docs/project/{projectId}/pages
+     * @request GET:/api/v1/docs/{projectId}/pages
      * @response `200` `(DocsPageType)[]` OK
      */
     listPages: (projectId: string, params: RequestParams = {}) =>
       this.request<DocsPageType[], any>({
-        path: `/api/v1/docs/project/${projectId}/pages`,
+        path: `/api/v1/docs/${projectId}/pages`,
         method: 'GET',
+        format: 'json',
+        ...params,
+      }),
+
+    /**
+     * @description Create page
+     *
+     * @tags Noco docs
+     * @name CreatePage
+     * @summary Create page
+     * @request POST:/api/v1/docs/{projectId}/pages
+     * @response `200` `DocsPageType` OK
+     */
+    createPage: (
+      projectId: string,
+      data: {
+        /** Page of Noco docs */
+        attributes?: DocsPageType;
+      },
+      params: RequestParams = {}
+    ) =>
+      this.request<DocsPageType, any>({
+        path: `/api/v1/docs/${projectId}/pages`,
+        method: 'POST',
+        body: data,
+        type: ContentType.Json,
         format: 'json',
         ...params,
       }),
@@ -3491,12 +3517,12 @@ export class Api<
      * @tags Noco docs
      * @name GetPage
      * @summary Get page by id
-     * @request GET:/api/v1/docs/project/{projectId}/page/{id}
+     * @request GET:/api/v1/docs/{projectId}/pages/{id}
      * @response `200` `DocsPageType` OK
      */
     getPage: (projectId: string, id: string, params: RequestParams = {}) =>
       this.request<DocsPageType, any>({
-        path: `/api/v1/docs/project/${projectId}/page/${id}`,
+        path: `/api/v1/docs/${projectId}/pages/${id}`,
         method: 'GET',
         format: 'json',
         ...params,
@@ -3508,12 +3534,12 @@ export class Api<
      * @tags Noco docs
      * @name DeletePage
      * @summary Delete page
-     * @request DELETE:/api/v1/docs/project/{projectId}/page/{id}
+     * @request DELETE:/api/v1/docs/{projectId}/pages/{id}
      * @response `200` `void` OK
      */
     deletePage: (projectId: string, id: string, params: RequestParams = {}) =>
       this.request<void, any>({
-        path: `/api/v1/docs/project/${projectId}/page/${id}`,
+        path: `/api/v1/docs/${projectId}/pages/${id}`,
         method: 'DELETE',
         ...params,
       }),
@@ -3524,7 +3550,7 @@ export class Api<
      * @tags Noco docs
      * @name UpdatePage
      * @summary Update page
-     * @request PUT:/api/v1/docs/project/{projectId}/page/{id}
+     * @request PUT:/api/v1/docs/{projectId}/pages/{id}
      * @response `200` `DocsPageType` OK
      */
     updatePage: (
@@ -3537,7 +3563,7 @@ export class Api<
       params: RequestParams = {}
     ) =>
       this.request<DocsPageType, any>({
-        path: `/api/v1/docs/project/${projectId}/page/${id}`,
+        path: `/api/v1/docs/${projectId}/pages/${id}`,
         method: 'PUT',
         body: data,
         type: ContentType.Json,
@@ -3546,43 +3572,21 @@ export class Api<
       }),
 
     /**
-     * @description Create page
+     * @description Page gpt
      *
      * @tags Noco docs
-     * @name CreatePage
-     * @summary Create page
-     * @request POST:/api/v1/docs/project/{projectId}/page
-     * @response `200` `DocsPageType` OK
-     */
-    createPage: (
-      projectId: string,
-      data: {
-        /** Page of Noco docs */
-        attributes?: DocsPageType;
-      },
-      params: RequestParams = {}
-    ) =>
-      this.request<DocsPageType, any>({
-        path: `/api/v1/docs/project/${projectId}/page`,
-        method: 'POST',
-        body: data,
-        type: ContentType.Json,
-        format: 'json',
-        ...params,
-      }),
-
-    /**
-     * @description Magic page content
-     *
-     * @tags Noco docs
-     * @name MagicExpandText
-     * @summary Returns ai suggested page content using its title, parent page's and project's tiles. Does not update page content.
-     * @request POST:/api/v1/docs/project/{projectId}/page/{id}/magic-expand
+     * @name DocsPageGpt
+     * @summary Returns ai suggested page content. Does not update page content.
+     * @request POST:/api/v1/docs/{projectId}/pages/{id}/gpt
      * @response `200` `object` OK
      */
-    magicExpandText: (
+    docsPageGpt: (
       projectId: string,
       id: string,
+      query: {
+        /** Gpt type, expand is for expanding the page content, outline is for generating page outline */
+        type: 'expand' | 'outline';
+      },
       data: {
         /** Text */
         text: string;
@@ -3590,8 +3594,9 @@ export class Api<
       params: RequestParams = {}
     ) =>
       this.request<object, any>({
-        path: `/api/v1/docs/project/${projectId}/page/${id}/magic-expand`,
+        path: `/api/v1/docs/${projectId}/pages/${id}/gpt`,
         method: 'POST',
+        query: query,
         body: data,
         type: ContentType.Json,
         format: 'json',
@@ -3602,20 +3607,24 @@ export class Api<
      * No description
      *
      * @tags Noco docs
-     * @name MagicOutlinePage
-     * @summary Gives ai suggested page outline/skeleton (subheadings) for the page based on its, parent page's and project's title
-     * @request POST:/api/v1/docs/project/{projectId}/page/{id}/magic-outline
-     * @response `200` `object` OK
+     * @name DocsGpt
+     * @summary Create nested pages using AI with project title. Will create and insert pages in the project
+     * @request POST:/api/v1/docs/{projectId}/pages/gpt
+     * @response `200` `void` OK
      */
-    magicOutlinePage: (
+    docsGpt: (
       projectId: string,
-      id: string,
+      data: {
+        /** Prompt text */
+        text: string;
+      },
       params: RequestParams = {}
     ) =>
-      this.request<object, any>({
-        path: `/api/v1/docs/project/${projectId}/page/${id}/magic-outline`,
+      this.request<void, any>({
+        path: `/api/v1/docs/${projectId}/pages/gpt`,
         method: 'POST',
-        format: 'json',
+        body: data,
+        type: ContentType.Json,
         ...params,
       }),
 
@@ -3625,7 +3634,7 @@ export class Api<
      * @tags Noco docs
      * @name ImportPages
      * @summary Import pages
-     * @request POST:/api/v1/docs/project/{projectId}/page/import
+     * @request POST:/api/v1/docs/{projectId}/pages/import
      * @response `200` `void` OK
      */
     importPages: (
@@ -3645,32 +3654,7 @@ export class Api<
       params: RequestParams = {}
     ) =>
       this.request<void, any>({
-        path: `/api/v1/docs/project/${projectId}/page/import`,
-        method: 'POST',
-        body: data,
-        type: ContentType.Json,
-        ...params,
-      }),
-
-    /**
-     * No description
-     *
-     * @tags Noco docs
-     * @name CreateNestedPagesMagic
-     * @summary Create nested pages using AI with project title. Will create and insert pages in the project
-     * @request POST:/api/v1/docs/project/{projectId}/pages/magic-create-pages
-     * @response `200` `void` OK
-     */
-    createNestedPagesMagic: (
-      projectId: string,
-      data: {
-        /** Title */
-        title: string;
-      },
-      params: RequestParams = {}
-    ) =>
-      this.request<void, any>({
-        path: `/api/v1/docs/project/${projectId}/pages/magic-create-pages`,
+        path: `/api/v1/docs/${projectId}/pages/import`,
         method: 'POST',
         body: data,
         type: ContentType.Json,
@@ -3683,7 +3667,7 @@ export class Api<
      * @tags Noco docs
      * @name SyncPageHistory
      * @summary When called will snapshot the page if there is any page change needed to be snapshoted
-     * @request POST:/api/v1/docs/project/{projectId}/page/{pageId}/history-sync
+     * @request POST:/api/v1/docs/{projectId}/pages/{pageId}/history/sync
      * @response `200` `void` OK
      */
     syncPageHistory: (
@@ -3692,7 +3676,7 @@ export class Api<
       params: RequestParams = {}
     ) =>
       this.request<void, any>({
-        path: `/api/v1/docs/project/${projectId}/page/${pageId}/history-sync`,
+        path: `/api/v1/docs/${projectId}/pages/${pageId}/history/sync`,
         method: 'POST',
         format: 'json',
         ...params,
@@ -3704,7 +3688,7 @@ export class Api<
  * @tags Noco docs
  * @name ListPageHistory
  * @summary List snapshots of the page (paginated)
- * @request GET:/api/v1/docs/project/{projectId}/page/{pageId}/history
+ * @request GET:/api/v1/docs/{projectId}/pages/{pageId}/history
  * @response `200` `{
   snapshots?: (DocsPageSnapshotType)[],
 
@@ -3727,7 +3711,7 @@ export class Api<
         },
         any
       >({
-        path: `/api/v1/docs/project/${projectId}/page/${pageId}/history`,
+        path: `/api/v1/docs/${projectId}/pages/${pageId}/history`,
         method: 'GET',
         query: query,
         format: 'json',
@@ -3740,7 +3724,7 @@ export class Api<
      * @tags Noco docs
      * @name RestorePageHistory
      * @summary Restore page to a given snapshot
-     * @request POST:/api/v1/docs/project/{projectId}/page/{pageId}/history/{snapshotId}/restore
+     * @request POST:/api/v1/docs/{projectId}/pages/{pageId}/history/{snapshotId}/restore
      * @response `200` `void` OK
      */
     restorePageHistory: (
@@ -3750,7 +3734,7 @@ export class Api<
       params: RequestParams = {}
     ) =>
       this.request<void, any>({
-        path: `/api/v1/docs/project/${projectId}/page/${pageId}/history/${snapshotId}/restore`,
+        path: `/api/v1/docs/${projectId}/pages/${pageId}/history/${snapshotId}/restore`,
         method: 'POST',
         ...params,
       }),

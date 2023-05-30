@@ -20,7 +20,7 @@ export class DocsPagesHistoryController {
     private readonly pagesHistoryService: DocsPageHistoryService,
   ) {}
 
-  @Get('/api/v1/docs/project/:projectId/page/:pageId/history')
+  @Get('/api/v1/docs/:projectId/pages/:pageId/history')
   @UseAclMiddleware({
     permissionName: 'pageHistoryList',
   })
@@ -38,9 +38,9 @@ export class DocsPagesHistoryController {
     });
   }
 
-  @Post('/api/v1/docs/project/:projectId/page/:pageId/history-sync')
+  @Post('/api/v1/docs/:projectId/pages/:pageId/history/sync')
   @UseAclMiddleware({
-    permissionName: 'pageHistoryList',
+    permissionName: 'pageHistorySync',
   })
   async sync(
     @Param('pageId') pageId: string,
@@ -63,9 +63,7 @@ export class DocsPagesHistoryController {
     });
   }
 
-  @Post(
-    '/api/v1/docs/project/:projectId/page/:pageId/history/:snapshotId/restore',
-  )
+  @Post('/api/v1/docs/:projectId/pages/:pageId/history/:snapshotId/restore')
   @UseAclMiddleware({
     permissionName: 'pageHistoryRestore',
   })

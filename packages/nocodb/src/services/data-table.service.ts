@@ -192,7 +192,7 @@ export class DataTableService {
       return pkColumns.reduce((acc, col) => {
         acc[col.title] = row[col.title];
         return acc;
-      });
+      }, {});
     });
 
     return Array.isArray(body) ? result : result[0];

@@ -2,7 +2,7 @@ import { Injectable } from '@nestjs/common';
 import { ErrorMessages, RelationTypes, UITypes } from 'nocodb-sdk';
 import { NcError } from '../helpers/catchError';
 import { Base, Column, Model, Project, View } from '../models';
-import type { LinkToAnotherRecordColumn } from '../models';
+import type { LinkToAnotherRecordColumn, LookupColumn } from '../models';
 import type { LinkToAnotherRecordType } from 'nocodb-sdk';
 
 @Injectable()
@@ -73,6 +73,11 @@ export class PublicMetasService {
             id: colOpt.fk_mm_model_id,
           });
         }
+      } else if (UITypes.Lookup === col.uidt) {
+        await this.extractLookupRelatedMetas({
+          lookupColOption: await col.getColOptions<LookupColumn>(),
+          relatedMetas,
+        });
       }
     }
 
@@ -80,6 +85,40 @@ export class PublicMetasService {
 
     return view;
   }
+
+  private async extractLookupRelatedMetas({
+    lookupColOption,
+    relatedMetas = {},
+  }: {
+    lookupColOption: LookupColumn;
+    relatedMetas: { [key: string]: Model };
+  }) {
+    const relationCol = await Column.get({
+      colId: lookupColOption.fk_relation_column_id,
+    });
+    const lookupCol = await Column.get({
+      colId: lookupColOption.fk_lookup_column_id,
+    });
+
+    if (!relatedMetas[relationCol.fk_model_id]) {
+      relatedMetas[relationCol.fk_model_id] = await Model.getWithInfo({
+        id: lookupCol.fk_model_id,
+      });
+    }
+    if (!relatedMetas[lookupCol.fk_model_id]) {
+      relatedMetas[lookupCol.fk_model_id] = await Model.getWithInfo({
+        id: lookupCol.fk_model_id,
+      });
+    }
+
+    if (lookupCol.uidt === UITypes.Lookup) {
+      await this.extractLookupRelatedMetas({
+        lookupColOption: await lookupCol.getColOptions<LookupColumn>(),
+        relatedMetas,
+      });
+    }
+  }
+
   async publicSharedBaseGet(param: { sharedBaseUuid: string }): Promise<any> {
     const project = await Project.getByUuid(param.sharedBaseUuid);
 

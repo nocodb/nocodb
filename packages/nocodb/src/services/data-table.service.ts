@@ -97,7 +97,7 @@ export class DataTableService {
       { cookie: param.cookie },
     );
 
-    return this.extractIdObj(param.body)
+    return this.extractIdObj({ body: param.body, model });
   }
 
   async dataDelete(param: {
@@ -121,7 +121,7 @@ export class DataTableService {
       { cookie: param.cookie },
     );
 
-    return this.extractIdObj(param.body);
+    return this.extractIdObj({ body: param.body, model });
   }
 
   async dataCount(param: {
@@ -177,15 +177,23 @@ export class DataTableService {
     return { model, view };
   }
 
-  private async extractIdObj({ model, body }: { body: Record<string,any> | Record<string,any>[]; model: Model }) {
-    const pkColumns = await model.getColumns().then((cols) => cols.filter((col) => col.pk));
+  private async extractIdObj({
+    model,
+    body,
+  }: {
+    body: Record<string, any> | Record<string, any>[];
+    model: Model;
+  }) {
+    const pkColumns = await model
+      .getColumns()
+      .then((cols) => cols.filter((col) => col.pk));
 
     const result = (Array.isArray(body) ? body : [body]).map((row) => {
-      return  pkColumns.reduce((acc, col) => {
+      return pkColumns.reduce((acc, col) => {
         acc[col.title] = row[col.title];
         return acc;
-      })
-    })
+      });
+    });
 
     return Array.isArray(body) ? result : result[0];
   }

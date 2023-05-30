@@ -2,12 +2,16 @@
 import type { NumberWidget } from 'nocodb-sdk'
 import { availableAggregateFunctionsWithIdAndTitle } from '~~/store/dashboard'
 const dashboardStore = useDashboardStore()
-const { changeAggregateFunctionOfFocusedWidget, changeSelectedNumberColumnIdOfFocusedWidget } = dashboardStore
+const {
+  changeAggregateFunctionOfFocusedWidget,
+  changeSelectedNumberColumnIdOfFocusedWidget,
+  changeRecordCountOrFieldSummaryForNumberWidgetDataConfig,
+} = dashboardStore
 
 const { focusedWidget, availableNumericColumnsOfSelectedView } = storeToRefs(dashboardStore)
 
 const numberWidget = computed(() => focusedWidget.value as NumberWidget | undefined)
-const activeSection = ref<number>(1)
+const recordCountOrFieldSummary = computed(() => numberWidget.value?.data_config.recordCountOrFieldSummary)
 
 const availableColumnsOfSelectedViewWithTitles = computed(() => {
   return availableNumericColumnsOfSelectedView.value?.map((column) => ({
@@ -15,10 +19,6 @@ const availableColumnsOfSelectedViewWithTitles = computed(() => {
     title: column.column_name,
   }))
 })
-
-const changeActiveSection = (section: number) => {
-  activeSection.value = section
-}
 </script>
 
 <template>
@@ -32,15 +32,23 @@ const changeActiveSection = (section: number) => {
     <a-collapse-panel class="nc-collapse-panel !rounded-lg" header="Step 3: Rollup function">
       <div class="flex flex-col m-0">
         <div class="bg-gray-100 rounded-lg p-2 mb-2">
-          <a-radio :checked="activeSection === 1" @change="changeActiveSection(1)"><h3>Record count</h3></a-radio>
+          <a-radio
+            :checked="recordCountOrFieldSummary === 'record_count'"
+            @change="changeRecordCountOrFieldSummaryForNumberWidgetDataConfig('record_count')"
+            ><h3>Record count</h3></a-radio
+          >
           <h3 class="text-gray-500">Number of records in the table</h3>
-          <div v-if="activeSection === 1"></div>
+          <div v-if="recordCountOrFieldSummary === 'record_count'"></div>
         </div>
 
         <div class="bg-gray-100 rounded-lg p-2">
-          <a-radio :checked="activeSection === 2" @change="changeActiveSection(2)"><h3>Field summary</h3></a-radio>
+          <a-radio
+            :checked="recordCountOrFieldSummary === 'field_summary'"
+            @change="changeRecordCountOrFieldSummaryForNumberWidgetDataConfig('field_summary')"
+            ><h3>Field summary</h3></a-radio
+          >
           <h3 class="text-gray-500">Number of records in the table, from:</h3>
-          <div v-if="activeSection === 2">
+          <div v-if="recordCountOrFieldSummary === 'field_summary'">
             <div class="flex justify-between items-center mb-2">
               <label for="field">Field</label>
               <LayoutsWidgetsPropertiesPanelVisualisationConfigIdWithTitleSelectBox

@@ -684,7 +684,6 @@ export const useDashboardStore = defineStore('dashboardStore', () => {
       }
     }
   }
-
   const changeSelectedViewIdOfFocusedWidget = (newViewId: string) => {
     _resetDepsOfSelectedView()
     if (focusedWidget.value?.data_source) {
@@ -741,6 +740,36 @@ export const useDashboardStore = defineStore('dashboardStore', () => {
     }
   }
 
+  const changeSelectRecordsModeForNumberWidgetDataConfig = (newVal: string) => {
+    if (!focusedWidget.value || ![WidgetTypeType.Number].includes(focusedWidget.value.widget_type)) {
+      console.error('changeSelectRecordsModeForNumberWidgetDataConfig: focusedWidget.value is undefined or not a Number widget')
+      return
+    }
+    _updateWidgetInAPIAndLocally({
+      ...focusedWidget.value,
+      data_config: {
+        ...focusedWidget.value.data_config,
+        selectRecordsMode: newVal,
+      },
+    })
+  }
+
+  const changeRecordCountOrFieldSummaryForNumberWidgetDataConfig = (newVal: string) => {
+    if (!focusedWidget.value || ![WidgetTypeType.Number].includes(focusedWidget.value.widget_type)) {
+      console.error(
+        'changeRecordCountOrFieldSummaryForNumberWidgetDataConfig: focusedWidget.value is undefined or not a Number widget',
+      )
+      return
+    }
+    _updateWidgetInAPIAndLocally({
+      ...focusedWidget.value,
+      data_config: {
+        ...focusedWidget.value.data_config,
+        recordCountOrFieldSummary: newVal,
+      },
+    })
+  }
+
   const changeChartTypeOfFocusedChartElement = (newChartType: string) => {
     if (!focusedWidget.value || !chartTypes.includes(focusedWidget.value.widget_type)) {
       console.error('changeChartTypeOfFocusedChartElement: focusedWidget.value is undefined or not a chart')
@@ -784,6 +813,8 @@ export const useDashboardStore = defineStore('dashboardStore', () => {
     changeSelectedProjectIdAndTableIdOfFocusedWidget,
     changeSelectedNumberColumnIdOfFocusedWidget,
     changeSelectedViewIdOfFocusedWidget,
+    changeRecordCountOrFieldSummaryForNumberWidgetDataConfig,
+    changeSelectRecordsModeForNumberWidgetDataConfig,
     changeAggregateFunctionOfFocusedWidget,
     changeChartTypeOfFocusedChartElement,
   }

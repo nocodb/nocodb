@@ -75,31 +75,41 @@ export class WidgetDataService {
         case WidgetTypeType.Number: {
           const numberWidget: NumberWidget = widget as NumberWidget;
           const { projectId, tableId, viewId } = data_source;
-          const { colId, aggregateFunction } = numberWidget.data_config;
+          const { recordCountOrFieldSummary } = numberWidget.data_config;
 
-          const view = await View.get(viewId);
-          await view.getColumns();
-          const aggregateColumnId = colId;
+          let aggregateColumnName, aggregateFunction;
+          if (recordCountOrFieldSummary === 'field_summary') {
+            aggregateFunction = numberWidget.data_config.aggregateFunction;
 
-          const aggregateColumn = await Column.get({
-            colId: aggregateColumnId,
-          });
+            const view = await View.get(viewId);
+            await view.getColumns();
 
-          const aggregateColumnName = aggregateColumn?.column_name;
+            const aggregateColumn = await Column.get({
+              colId: numberWidget.data_config.colId,
+            });
+
+            aggregateColumnName = aggregateColumn?.column_name;
+          } else {
+            aggregateFunction = 'count';
+            aggregateColumnName = '*';
+          }
+
+          const ignoreFilters =
+            numberWidget.data_config.selectRecordsMode === 'all_records';
 
           WidgetsService.validateWidgetDataSourceConfig(
             widget.data_source,
             layoutId,
           );
-
           const widgetData = await this.dataGroupAndAggregateBy({
             widget,
             query: undefined,
             projectName: projectId,
             tableName: tableId,
             viewName: viewId,
-            aggregateColumnName,
-            aggregateFunction,
+            aggregateColumnName: aggregateColumnName,
+            aggregateFunction: aggregateFunction,
+            ignoreFilters,
           });
 
           const result =
@@ -173,10 +183,15 @@ export class WidgetDataService {
       groupByColumnName?: string;
       aggregateColumnName: string;
       aggregateFunction: string;
+      ignoreFilters?: boolean;
     },
   ) {
     const { model, view } = await getViewAndModelByAliasOrId(param);
-    return await this.getDataAggregateBy({ model, view, ...param });
+    return await this.getDataAggregateBy({
+      model,
+      view,
+      ...param,
+    });
   }
 
   async getDataAggregateBy(param: {
@@ -187,6 +202,7 @@ export class WidgetDataService {
     aggregateColumnName: string;
     aggregateFunction: string;
     groupByColumnName?: string;
+    ignoreFilters?: boolean;
   }) {
     const { model, view, query = {} } = param;
 
@@ -198,9 +214,11 @@ export class WidgetDataService {
       dbDriver: await NcConnectionMgrv2.get(base),
     });
 
-    const widgetFilterArr = await Filter.rootFilterListByWidget({
-      widgetId: param.widget.id,
-    });
+    const widgetFilterArr = param.ignoreFilters
+      ? []
+      : await Filter.rootFilterListByWidget({
+          widgetId: param.widget.id,
+        });
 
     const data = await baseModel.groupByAndAggregate(
       param.aggregateColumnName,

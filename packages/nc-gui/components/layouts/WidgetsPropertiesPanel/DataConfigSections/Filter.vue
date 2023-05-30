@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import type { BaseType, DataSourceInternal, FilterType } from 'nocodb-sdk'
+import type { BaseType, DataSourceInternal, FilterType, NumberWidget } from 'nocodb-sdk'
 import { UITypes } from 'nocodb-sdk'
 import useWidgetFilters from './useWidgetFilters'
 import { iconMap, ref } from '#imports'
@@ -23,17 +23,10 @@ const logicalOps = [
 
 const dashboardStore = useDashboardStore()
 const { availableColumnsOfSelectedView, focusedWidget } = storeToRefs(dashboardStore)
+const { changeSelectRecordsModeForNumberWidgetDataConfig } = dashboardStore
 
-const {
-  filters,
-  addFilter,
-  isComparisonOpAllowed,
-  isComparisonSubOpAllowed,
-  deleteFilter,
-  saveOrUpdate,
-  loadFilters,
-  filterOptionsAvailable,
-} = useWidgetFilters(focusedWidget, parentId)
+const { filters, addFilter, isComparisonOpAllowed, isComparisonSubOpAllowed, deleteFilter, saveOrUpdate, loadFilters } =
+  useWidgetFilters(focusedWidget, parentId)
 
 const updateFilterValue = (value: string, filter: Filter, index: number) => {
   filter.value = value
@@ -150,23 +143,28 @@ const filterUpdateCondition = (filter: FilterType, i: number) => {
     comparison_sub_op: filter.comparison_sub_op,
   })
 }
+
+const selectRecordsMode = computed(() => (focusedWidget.value as NumberWidget)?.data_config?.selectRecordsMode)
 </script>
 
 <template>
-  <div
-    class="menu-filter-dropdown !border-none"
-    :class="{
-      'shadow max-h-[max(80vh,500px)] overflow-auto': !nested,
-      'border-1 w-full': nested,
-    }"
-  >
-    <h3 class="text-gray-500 text-sm">Select records that you want to show in this element</h3>
-    <a-radio-group class="flex flex-col">
-      <a-radio class="bg-gray-100 rounded-lg p-2 mb-2">All records</a-radio>
+  <div class="flex flex-col m-0">
+    <div class="bg-gray-100 rounded-lg p-2 mb-2">
+      <a-radio
+        :checked="selectRecordsMode === 'all_records'"
+        @change="changeSelectRecordsModeForNumberWidgetDataConfig('all_records')"
+        ><h3>All records</h3></a-radio
+      >
+    </div>
 
-      <a-radio class="bg-gray-100 rounded-lg p-2">
-        <h3>Specific records</h3>
-        <h3 class="text-gray-500">Show records with conditions</h3>
+    <div class="bg-gray-100 rounded-lg p-2">
+      <a-radio
+        :checked="selectRecordsMode === 'specific_records'"
+        @change="changeSelectRecordsModeForNumberWidgetDataConfig('specific_records')"
+        ><h3>Specific records</h3></a-radio
+      >
+      <h3 class="text-gray-500">Show records with conditions</h3>
+      <div v-if="selectRecordsMode === 'specific_records'">
         <div
           v-if="filters && filters.length"
           class="nc-filter-grid mb-2"
@@ -284,7 +282,7 @@ const filterUpdateCondition = (filter: FilterType, i: number) => {
           </template>
         </div>
         <div class="flex flex-wrap">
-          <a-button class="elevation-0 text-capitalize p-0 m-0 pr-2" type="text" ghost @click.stop="addFilter()">
+          <a-button class="elevation-0 text-capitalize p-0 m-0 pr-2" type="text" @click.stop="addFilter()">
             <div class="flex items-center gap-1">
               <component :is="iconMap.plus" />
               <!-- Add Filter -->
@@ -300,9 +298,9 @@ const filterUpdateCondition = (filter: FilterType, i: number) => {
             </div>
           </a-button>
         </div>
-      </a-radio>
-    </a-radio-group>
-    <slot />
+        <slot />
+      </div>
+    </div>
   </div>
 </template>
 

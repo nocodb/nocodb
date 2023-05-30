@@ -15,16 +15,17 @@ const dashboardStore = useDashboardStore()
 const { reloadWidgetDataEventBus } = dashboardStore
 const { openedLayoutSidebarNode } = storeToRefs(dashboardStore)
 
+const data_source = computed(() => widgetConfig.value?.data_source as DataSourceInternal)
+const data_config = computed(() => widgetConfig.value?.data_config as DataConfigNumber)
+
 const dataLinkConfigIsMissing = computed(() => {
-  const data_source = widgetConfig.value?.data_source as DataSourceInternal
-  const data_config = widgetConfig.value?.data_config as DataConfigNumber
   return (
-    !data_source ||
-    !data_source?.projectId ||
-    !data_source?.tableId ||
-    !data_source.viewId ||
-    !data_config.colId ||
-    !data_config.aggregateFunction
+    !data_source.value ||
+    !data_source?.value.projectId ||
+    !data_source?.value.tableId ||
+    !data_source.value.viewId ||
+    !data_config.value.colId ||
+    !data_config.value.aggregateFunction
   )
 })
 
@@ -63,7 +64,9 @@ watch(
   },
 )
 const columnTitleWithAggregateFnLabel = computed(() => {
-  return `${numberColumnTitle.value} (${aggregateFunction.value})`
+  return data_config.value.recordCountOrFieldSummary === 'field_summary'
+    ? `${numberColumnTitle.value} (${aggregateFunction.value})`
+    : 'Record count'
 })
 </script>
 

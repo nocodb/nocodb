@@ -6583,6 +6583,7 @@ export class Api<
         options?: {
           excludeData?: boolean;
           excludeViews?: boolean;
+          excludeHooks?: boolean;
         };
       },
       params: RequestParams = {}

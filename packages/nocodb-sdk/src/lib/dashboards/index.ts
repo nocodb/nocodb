@@ -70,6 +70,8 @@ export interface DataConfigButtonExternalUrl
 }
 
 export interface DataConfigNumber {
+  recordCountOrFieldSummary?: 'record_count' | 'field_summary';
+  selectRecordsMode?: 'all_records' | 'specific_records';
   colId?: string;
   aggregateFunction?: AggregateFnType;
 }

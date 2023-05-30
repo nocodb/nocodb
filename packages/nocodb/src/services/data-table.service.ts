@@ -116,7 +116,7 @@ export class DataTableService {
       dbDriver: await NcConnectionMgrv2.get(base),
     });
 
-    await baseModel.bulkUpdate(
+    await baseModel.bulkDelete(
       Array.isArray(param.body) ? param.body : [param.body],
       { cookie: param.cookie, throwExceptionIfNotExist: true },
     );

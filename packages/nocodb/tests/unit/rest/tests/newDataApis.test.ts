@@ -672,7 +672,7 @@ function textBased() {
   it('Create: bulk', async function () {
     const rsp = await ncAxiosPost({ body: [newRecord, newRecord, newRecord] });
 
-    expect(rsp.body).to.deep.equal([401, 402, 403]);
+    expect(rsp.body).to.deep.equal([{ Id: 401 }, { Id: 402 }, { Id: 403 }]);
   });
 
   // Error handling

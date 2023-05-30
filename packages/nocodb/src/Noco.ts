@@ -124,8 +124,6 @@ export default class Noco {
 
     nestApp.useWebSocketAdapter(new IoAdapter(httpServer));
 
-    nestApp.use(requestIp.mw());
-    nestApp.use(cookieParser());
     nestApp.use(
       express.json({ limit: process.env.NC_REQUEST_BODY_SIZE || '50mb' }),
     );
@@ -170,7 +168,7 @@ export default class Noco {
       this.config.auth.jwt.options = this.config.auth.jwt.options || {};
       if (!this.config.auth.jwt.options?.expiresIn) {
         this.config.auth.jwt.options.expiresIn =
-          process.env.NC_JWT_EXPIRES_IN ?? '10h';
+          process.env.NC_JWT_EXPIRES_IN ?? '3m';
       }
     }
     let serverId = (

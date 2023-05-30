@@ -1,4 +1,3 @@
-import { promisify } from 'util';
 import {
   Body,
   Controller,
@@ -12,22 +11,12 @@ import {
 } from '@nestjs/common';
 import { AuthGuard } from '@nestjs/passport';
 import * as ejs from 'ejs';
-import {
-  AppEvents,
-  AuditOperationSubTypes,
-  AuditOperationTypes,
-} from 'nocodb-sdk';
 import { GlobalGuard } from '../../guards/global/global.guard';
 import { NcError } from '../../helpers/catchError';
-import {
-  Acl,
-  ExtractProjectIdMiddleware,
-} from '../../middlewares/extract-project-id/extract-project-id.middleware';
-import { Audit, User } from '../../models';
-import Noco from '../../Noco';
+import { Acl } from '../../middlewares/extract-project-id/extract-project-id.middleware';
+import { User } from '../../models';
 import { AppHooksService } from '../../services/app-hooks/app-hooks.service';
 import {
-  genJwt,
   randomTokenString,
   setTokenCookie,
 } from '../../services/users/helpers';
@@ -63,54 +52,14 @@ export class UsersController {
     '/api/v1/auth/token/refresh',
   ])
   @HttpCode(200)
-  async refreshToken(@Request() req: any, @Request() res: any): Promise<any> {
-    return await this.usersService.refreshToken({
-      body: req.body,
-      req,
-      res,
-    });
-  }
-
-  async successfulSignIn({ user, err, info, req, res, auditDescription }) {
-    try {
-      if (!user || !user.email) {
-        if (err) {
-          return res.status(400).send(err);
-        }
-        if (info) {
-          return res.status(400).send(info);
-        }
-        return res.status(400).send({ msg: 'Your signin has failed' });
-      }
-
-      await promisify((req as any).login.bind(req))(user);
-
-      const refreshToken = randomTokenString();
-
-      if (!user.token_version) {
-        user.token_version = randomTokenString();
-      }
-
-      await User.update(user.id, {
-        refresh_token: refreshToken,
-        email: user.email,
-        token_version: user.token_version,
-      });
-      setTokenCookie(res, refreshToken);
-
-      this.appHooksService.emit(AppEvents.USER_SIGNIN, {
-        user,
-        ip: req.clientIp,
-        auditDescription,
-      });
-
-      res.json({
-        token: genJwt(user, Noco.getConfig()),
-      } as any);
-    } catch (e) {
-      console.log(e);
-      throw e;
-    }
+  async refreshToken(@Request() req: any, @Response() res: any): Promise<any> {
+    res.json(
+      await this.usersService.refreshToken({
+        body: req.body,
+        req,
+        res,
+      }),
+    );
   }
 
   @Post([
@@ -120,8 +69,9 @@ export class UsersController {
   ])
   @UseGuards(AuthGuard('local'))
   @HttpCode(200)
-  async signin(@Request() req) {
-    return this.usersService.login(req.user);
+  async signin(@Request() req, @Response() res) {
+    await this.setRefreshToken({ req, res });
+    res.json(this.usersService.login(req.user));
   }
 
   @Post('/api/v1/auth/user/signout')
@@ -138,8 +88,9 @@ export class UsersController {
   @Post(`/auth/google/genTokenByCode`)
   @HttpCode(200)
   @UseGuards(AuthGuard('google'))
-  async googleSignin(@Request() req) {
-    return this.usersService.login(req.user);
+  async googleSignin(@Request() req, @Response() res) {
+    await this.setRefreshToken({ req, res });
+    res.json(this.usersService.login(req.user));
   }
 
   @Get('/auth/google')
@@ -272,13 +223,37 @@ export class UsersController {
   /* OpenID Connect APIs */
   @Post('/auth/oidc/genTokenByCode')
   @UseGuards(AuthGuard('openid'))
-  async oidcSignin(@Request() req) {
-    return this.usersService.login(req.user);
+  async oidcSignin(@Request() req, @Response() res) {
+    await this.setRefreshToken({ req, res });
+    res.json(this.usersService.login(req.user));
   }
 
   @Get('/auth/oidc')
   @UseGuards(AuthGuard('openid'))
   openidAuth() {
     // openid strategy will take care the request
+  }
+
+  async setRefreshToken({ res, req }) {
+    const userId = req.user?.id;
+
+    if (!userId) return;
+
+    const user: any = await User.get(userId);
+
+    if (!user) return;
+
+    const refreshToken = randomTokenString();
+
+    if (!user.token_version) {
+      user.token_version = randomTokenString();
+    }
+
+    await User.update(user.id, {
+      refresh_token: refreshToken,
+      email: user.email,
+      token_version: user.token_version,
+    });
+    setTokenCookie(res, refreshToken);
   }
 }

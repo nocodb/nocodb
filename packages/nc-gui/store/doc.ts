@@ -486,13 +486,14 @@ export const useDocStore = defineStore('docStore', () => {
       const { closeTab } = useTabs()
       await closeTab({ id: pageId })
 
+      let toBeRedirectedPageId: string | undefined
       if (page?.parent_page_id) {
         const parentPage = findPage(nestedPages, page.parent_page_id)
         if (!parentPage) return
 
         parentPage.children = parentPage.children?.filter((p) => p.id !== pageId)
         parentPage.isLeaf = parentPage.children?.length === 0
-        navigateTo(nestedUrl({ id: page?.parent_page_id, projectId }))
+        toBeRedirectedPageId = page?.parent_page_id
       } else {
         nestedPagesOfProjects.value[projectId!] = nestedPages.filter((p) => p.id !== pageId)
         const updatedNestedPages = nestedPagesOfProjects.value[projectId!]
@@ -500,8 +501,13 @@ export const useDocStore = defineStore('docStore', () => {
         if (updatedNestedPages.length === 0) return navigateTo(projectUrl(projectId))
 
         const siblingPage = updatedNestedPages[0]
-        navigateTo(nestedUrl({ id: siblingPage.id!, projectId }))
+        toBeRedirectedPageId = siblingPage.id!
       }
+
+      // Don't redirect if the deleted page is not the opened page
+      if (pageId !== openedPageId.value) return
+
+      navigateTo(nestedUrl({ id: toBeRedirectedPageId, projectId }))
     } catch (e) {
       console.log(e)
       message.error(await extractSdkResponseErrorMsg(e as any))

@@ -98,7 +98,8 @@ onMounted(() => {
         (dom) =>
           dom.classList.contains('ProseMirror') ||
           dom.classList.contains('tippy-box') ||
-          dom.classList.contains('docs-page-title'),
+          dom.classList.contains('docs-page-title') ||
+          dom.classList.contains('tiptap-vue-component'),
       )
     )
       return

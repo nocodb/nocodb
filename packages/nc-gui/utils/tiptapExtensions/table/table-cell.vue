@@ -160,7 +160,7 @@ onMounted(() => {
 </script>
 
 <template>
-  <NodeViewWrapper class="vue-component group relative p-0" as="td">
+  <NodeViewWrapper class="tiptap-vue-component group relative p-0" as="td">
     <div ref="cellRef" class="group tiptap-table-cell overflow-visible flex">
       <div
         v-if="isFirstCell && !isPublic && !isFirstRowCell"

@@ -6,7 +6,7 @@ const { node } = defineProps(nodeViewProps)
 </script>
 
 <template>
-  <NodeViewWrapper class="vue-component callout-wrapper">
+  <NodeViewWrapper class="tiptap-vue-component callout-wrapper">
     <div
       class="flex flex-row items-center gap-x-3 callout break-words"
       :class="{

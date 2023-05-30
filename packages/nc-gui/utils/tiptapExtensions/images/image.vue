@@ -66,7 +66,7 @@ const selectNode = () => {
 
 <template>
   <NodeViewWrapper
-    class="vue-component image-wrapper"
+    class="tiptap-vue-component image-wrapper"
     :data-type="TiptapNodesTypes.image"
     :data-diff-node="node.attrs.isInsertedHistory ? 'ins' : node.attrs.isDeletedHistory ? 'del' : null"
   >

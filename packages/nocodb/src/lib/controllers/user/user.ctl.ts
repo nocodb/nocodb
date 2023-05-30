@@ -23,9 +23,7 @@ export async function signup(req: Request<any, any>, res): Promise<any> {
 }
 
 export async function getOTPSecret(_req: Request<any, any>, res): Promise<any> {
-  res.json(
-    await userService.getOTPSecret()
-  );
+  res.json(await userService.getOTPSecret());
 }
 
 export async function refreshToken(req: Request<any, any>, res): Promise<any> {
@@ -62,8 +60,6 @@ async function successfulSignIn({
       secret: otpSecret,
       encoding: 'base32',
       token: req.body.otp,
-      step: 30,
-      window: 1,
     });
 
     if (otpVerified === false) {

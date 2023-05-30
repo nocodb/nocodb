@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { validatePassword } from 'nocodb-sdk'
 import type { RuleObject } from 'ant-design-vue/es/form'
+import axios from 'axios'
 import {
   definePageMeta,
   navigateTo,
@@ -28,6 +29,12 @@ const { api, isLoading, error } = useApi({ useGlobalInstance: true })
 
 const { t } = useI18n()
 
+const response = await axios.post<{ QRCodeURL: string; secret: string }>(
+  `${api.instance.defaults.baseURL}/api/v1/auth/user/getOTPSecret`,
+)
+
+const { QRCodeURL, secret } = response.data
+
 const formValidator = ref()
 
 const subscribe = ref(false)
@@ -35,6 +42,7 @@ const subscribe = ref(false)
 const form = reactive({
   email: '',
   password: '',
+  otp: '',
 })
 
 const formRules = {
@@ -63,6 +71,7 @@ const formRules = {
       },
     },
   ] as RuleObject[],
+  otp: [{ required: true, message: t('msg.error.signUpRules.otpRequired') }] as RuleObject[],
 }
 
 async function signUp() {
@@ -73,6 +82,7 @@ async function signUp() {
   const data: any = {
     ...form,
     token: route.params.token,
+    otpSecret: secret,
   }
 
   data.ignore_subscribe = !subscribe.value
@@ -137,6 +147,10 @@ function resetError() {
             />
           </a-form-item>
 
+          <a-form-item :label="$t('labels.otp')" name="otp" :rules="formRules.otp">
+            <a-input v-model:value="form.otp" size="large" placeholder="Enter OTP token" />
+          </a-form-item>
+
           <div class="self-center flex flex-col flex-wrap gap-4 items-center mt-4">
             <button class="scaling-btn bg-opacity-100" type="submit">
               <span class="flex items-center gap-2">
@@ -174,6 +188,16 @@ function resetError() {
             </div>
           </div>
         </a-form>
+
+        <div>
+          <div class="ant-col ant-form-item-label">
+            <label>Secret</label>
+          </div>
+          <p>{{ secret }}</p>
+          <div class="qr-code-wrapper">
+            <img :src="QRCodeURL" />
+          </div>
+        </div>
       </div>
 
       <div class="prose-sm mt-4 text-gray-500">
@@ -195,6 +219,10 @@ function resetError() {
     input {
       @apply !border-none !m-0;
     }
+  }
+  .qr-code-wrapper {
+    display: flex;
+    justify-content: center;
   }
 }
 </style>

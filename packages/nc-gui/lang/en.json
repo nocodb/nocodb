@@ -248,6 +248,7 @@
     "cache": "Cache",
     "chat": "Chat",
     "email": "E-mail",
+    "otp": "OTP",
     "storage": "Storage",
     "uiAcl": "UI-ACL",
     "models": "Models",
@@ -686,6 +687,7 @@
       "dbConnectionFailed": "Connection Failure:",
       "signUpRules": {
         "emailReqd": "E-mail is required",
+        "otpRequired": "OTP is required",
         "emailInvalid": "E-mail must be valid",
         "passwdRequired": "Password is required",
         "passwdLength": "You password must be atleast 8 characters",

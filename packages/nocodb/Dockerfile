@@ -44,6 +44,7 @@ COPY ./src/lib/public/favicon.ico ./docker/public/
 # reduce node_module size with modclean & removing sqlite deps,
 # package built code into app.tar.gz & add execute permission to start.sh
 RUN printf "@deep-consulting-solutions:registry=https://npm.pkg.github.com/\nalways-auth=true\n//npm.pkg.github.com/:_authToken=%s" $TOKEN_FOR_PACKAGES >> .npmrc
+
 RUN npm ci --omit=dev --quiet \
     && npx modclean --patterns="default:*" --ignore="nc-lib-gui/**,dayjs/**,express-status-monitor/**,@azure/msal-node/dist/**" --run  \
     && rm -rf ./node_modules/sqlite3/deps \

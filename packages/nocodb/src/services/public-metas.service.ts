@@ -100,17 +100,22 @@ export class PublicMetasService {
       colId: lookupColOption.fk_lookup_column_id,
     });
 
+    // extract meta for table which belongs the relation column
+    // if not already extracted
     if (!relatedMetas[relationCol.fk_model_id]) {
       relatedMetas[relationCol.fk_model_id] = await Model.getWithInfo({
         id: lookupCol.fk_model_id,
       });
     }
+    // extract meta for table in which looked up column belongs
+    // if not already extracted
     if (!relatedMetas[lookupCol.fk_model_id]) {
       relatedMetas[lookupCol.fk_model_id] = await Model.getWithInfo({
         id: lookupCol.fk_model_id,
       });
     }
 
+    // if looked up column is a lookup column do the same for it by recursion
     if (lookupCol.uidt === UITypes.Lookup) {
       await this.extractLookupRelatedMetas({
         lookupColOption: await lookupCol.getColOptions<LookupColumn>(),

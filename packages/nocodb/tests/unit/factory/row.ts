@@ -184,6 +184,8 @@ const rowMixedValue = (column: ColumnType, index: number) => {
       // eslint-disable-next-line no-case-declarations
       const d2 = new Date();
       d2.setDate(d2.getDate() - 400 + index);
+      // set time to 12:00:00
+      d2.setHours(12, 0, 0, 0);
       return d2.toISOString();
     case UITypes.URL:
       return urls[index % urls.length];

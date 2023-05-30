@@ -153,7 +153,7 @@ async function ncAxiosPost({
   return response;
 }
 async function ncAxiosPatch({
-  url = `/api/v1/tables/${table.id}`,
+  url = `/api/v1/tables/${table.id}/rows`,
   body = {},
   status = 200,
 }: { url?: string; body?: any; status?: number } = {}) {
@@ -558,14 +558,14 @@ function textBased() {
   it('List: invalid ID', async function () {
     // Invalid table ID
     await ncAxiosGet({
-      url: `/api/v1/tables/123456789`,
-      status: 404,
-    });
-    // Invalid project ID
-    await ncAxiosGet({
       url: `/api/v1/tables/123456789/rows`,
       status: 404,
     });
+    // Invalid project ID
+    // await ncAxiosGet({
+    //   url: `/api/v1/base/123456789/tables/123456789`,
+    //   status: 404,
+    // });
     // Invalid view ID
     await ncAxiosGet({
       query: {
@@ -595,13 +595,13 @@ function textBased() {
       query: {
         offset: -100,
       },
-      status: 200,
+      status: 422,
     });
     await ncAxiosGet({
       query: {
         offset: 'abc',
       },
-      status: 200,
+      status: 422,
     });
     await ncAxiosGet({
       query: {
@@ -672,25 +672,25 @@ function textBased() {
   it('Create: bulk', async function () {
     const rsp = await ncAxiosPost({ body: [newRecord, newRecord, newRecord] });
 
-    expect(rsp.body).to.deep.equal([{ Id: 401 }, { Id: 402 }, { Id: 403 }]);
+    expect(rsp.body).to.deep.equal([401, 402, 403]);
   });
 
   // Error handling
   it('Create: invalid ID', async function () {
     // Invalid table ID
     await ncAxiosPost({
-      url: `/api/v1/tables/123456789`,
+      url: `/api/v1/tables/123456789/rows`,
       status: 404,
     });
     // Invalid project ID
-    await ncAxiosPost({
-      url: `/api/v1/tables/123456789`,
-      status: 404,
-    });
+    // await ncAxiosPost({
+    //   url: `/api/v1/base/123456789/tables/123456789`,
+    //   status: 404,
+    // });
     // Invalid data - create should not specify ID
     await ncAxiosPost({
       body: { ...newRecord, Id: 300 },
-      status: 422,
+      status: 400,
     });
     // Invalid data - number instead of string
     // await ncAxiosPost({
@@ -801,20 +801,21 @@ function textBased() {
   // Error handling
 
   it('Update: invalid ID', async function () {
-    // Invalid project ID
-    await ncAxiosPatch({
-      url: `/api/v1/tables/${table.id}`,
-      status: 404,
-    });
+    // // Invalid project ID
+    // await ncAxiosPatch({
+    //   url: `/api/v1/base/123456789/tables/${table.id}`,
+    //   status: 404,
+    // });
     // Invalid table ID
     await ncAxiosPatch({
-      url: `/api/v1/tables/123456789`,
+      url: `/api/v1/tables/123456789/rows`,
+      body: { Id: 100, SingleLineText: 'some text' },
       status: 404,
     });
     // Invalid row ID
     await ncAxiosPatch({
       body: { Id: 123456789, SingleLineText: 'some text' },
-      status: 422,
+      status: 400,
     });
   });
 
@@ -854,18 +855,19 @@ function textBased() {
   // Error handling
 
   it('Delete: invalid ID', async function () {
-    // Invalid project ID
-    await ncAxiosDelete({
-      url: `/api/v1/tables/${table.id}`,
-      status: 404,
-    });
+    // // Invalid project ID
+    // await ncAxiosDelete({
+    //   url: `/api/v1/tables/${table.id}/rows`,
+    //   status: 404,
+    // });
     // Invalid table ID
     await ncAxiosDelete({
-      url: `/api/v1/tables/123456789`,
+      url: `/api/v1/tables/123456789/rows`,
+      body: { Id: 100 },
       status: 404,
     });
     // Invalid row ID
-    await ncAxiosDelete({ body: { Id: 123456789 }, status: 422 });
+    await ncAxiosDelete({ body: { Id: 123456789 }, status: 400 });
   });
 }
 
@@ -1139,6 +1141,152 @@ function selectBased() {
     // verify length of unfiltered records to be 400
     expect(insertedRecords.length).to.equal(400);
   });
+
+  const records = [
+    {
+      Id: 1,
+      SingleSelect: 'jan',
+      MultiSelect: 'jan,feb,mar',
+    },
+    {
+      Id: 2,
+      SingleSelect: 'feb',
+      MultiSelect: 'apr,may,jun',
+    },
+    {
+      Id: 3,
+      SingleSelect: 'mar',
+      MultiSelect: 'jul,aug,sep',
+    },
+    {
+      Id: 4,
+      SingleSelect: 'apr',
+      MultiSelect: 'oct,nov,dec',
+    },
+    {
+      Id: 5,
+      SingleSelect: 'may',
+      MultiSelect: 'jan,feb,mar',
+    },
+    {
+      Id: 6,
+      SingleSelect: 'jun',
+      MultiSelect: null,
+    },
+    {
+      Id: 7,
+      SingleSelect: 'jul',
+      MultiSelect: 'jan,feb,mar',
+    },
+    {
+      Id: 8,
+      SingleSelect: 'aug',
+      MultiSelect: 'apr,may,jun',
+    },
+    {
+      Id: 9,
+      SingleSelect: 'sep',
+      MultiSelect: 'jul,aug,sep',
+    },
+    {
+      Id: 10,
+      SingleSelect: 'oct',
+      MultiSelect: 'oct,nov,dec',
+    },
+  ];
+
+  it('Select based- List & CRUD', async function () {
+    // list 10 records
+    let rsp = await ncAxiosGet({
+      query: {
+        limit: 10,
+      },
+    });
+    const pageInfo = {
+      totalRows: 400,
+      page: 1,
+      pageSize: 10,
+      isFirstPage: true,
+      isLastPage: false,
+    };
+    expect(rsp.body.pageInfo).to.deep.equal(pageInfo);
+    expect(rsp.body.list).to.deep.equal(records);
+
+    ///////////////////////////////////////////////////////////////////////////
+
+    // insert 10 records
+    // remove Id's from record array
+    records.forEach((r) => delete r.Id);
+    rsp = await ncAxiosPost({
+      body: records,
+    });
+
+    // prepare array with 10 Id's, from 401 to 410
+    const ids = [];
+    for (let i = 401; i <= 410; i++) {
+      ids.push({ Id: i });
+    }
+    expect(rsp.body).to.deep.equal(ids);
+
+    ///////////////////////////////////////////////////////////////////////////
+
+    // read record with Id 401
+    rsp = await ncAxiosGet({
+      url: `/api/v1/tables/${table.id}/rows/401`,
+    });
+    expect(rsp.body).to.deep.equal(records[0]);
+
+    ///////////////////////////////////////////////////////////////////////////
+
+    // update record with Id 401 to 404
+    const updatedRecord = {
+      SingleSelect: 'jan',
+      MultiSelect: 'jan,feb,mar',
+    };
+    const updatedRecords = [
+      {
+        id: 401,
+        ...updatedRecord,
+      },
+      {
+        id: 402,
+        ...updatedRecord,
+      },
+      {
+        id: 403,
+        ...updatedRecord,
+      },
+      {
+        id: 404,
+        ...updatedRecord,
+      },
+    ];
+    rsp = await ncAxiosPatch({
+      body: updatedRecords,
+    });
+    expect(rsp.body).to.deep.equal(
+      updatedRecords.map((record) => ({ id: record.id })),
+    );
+
+    // verify updated records
+    rsp = await ncAxiosGet({
+      query: {
+        limit: 4,
+        offset: 400,
+      },
+    });
+    expect(rsp.body.list).to.deep.equal(updatedRecords);
+
+    ///////////////////////////////////////////////////////////////////////////
+
+    // delete record with ID 401 to 404
+    rsp = await ncAxiosDelete({
+      body: updatedRecords.map((record) => ({ id: record.id })),
+    });
+    expect(rsp.body).to.deep.equal(
+      updatedRecords.map((record) => ({ id: record.id })),
+    );
+  });
 }
 
 function dateBased() {
@@ -1161,6 +1309,7 @@ function dateBased() {
     for (let i = 0; i < 800; i++) {
       const row = {
         Date: rowMixedValue(columns[1], i),
+        DateTime: rowMixedValue(columns[2], i),
       };
       rowAttributes.push(row);
     }
@@ -1178,6 +1327,152 @@ function dateBased() {
     // verify length of unfiltered records to be 800
     expect(insertedRecords.length).to.equal(800);
   });
+
+  const records = [
+    {
+      Id: 1,
+      Date: '2022-04-25',
+      DateTime: '2022-04-25T06:30:00.000Z',
+    },
+    {
+      Id: 2,
+      Date: '2022-04-26',
+      DateTime: '2022-04-26T06:30:00.000Z',
+    },
+    {
+      Id: 3,
+      Date: '2022-04-27',
+      DateTime: '2022-04-27T06:30:00.000Z',
+    },
+    {
+      Id: 4,
+      Date: '2022-04-28',
+      DateTime: '2022-04-28T06:30:00.000Z',
+    },
+    {
+      Id: 5,
+      Date: '2022-04-29',
+      DateTime: '2022-04-29T06:30:00.000Z',
+    },
+    {
+      Id: 6,
+      Date: '2022-04-30',
+      DateTime: '2022-04-30T06:30:00.000Z',
+    },
+    {
+      Id: 7,
+      Date: '2022-05-01',
+      DateTime: '2022-05-01T06:30:00.000Z',
+    },
+    {
+      Id: 8,
+      Date: '2022-05-02',
+      DateTime: '2022-05-02T06:30:00.000Z',
+    },
+    {
+      Id: 9,
+      Date: '2022-05-03',
+      DateTime: '2022-05-03T06:30:00.000Z',
+    },
+    {
+      Id: 10,
+      Date: '2022-05-04',
+      DateTime: '2022-05-04T06:30:00.000Z',
+    },
+  ];
+
+  it('Date based- List & CRUD', async function () {
+    // list 10 records
+    let rsp = await ncAxiosGet({
+      query: {
+        limit: 10,
+      },
+    });
+    const pageInfo = {
+      totalRows: 400,
+      page: 1,
+      pageSize: 10,
+      isFirstPage: true,
+      isLastPage: false,
+    };
+    expect(rsp.body.pageInfo).to.deep.equal(pageInfo);
+    expect(rsp.body.list).to.deep.equal(records);
+
+    ///////////////////////////////////////////////////////////////////////////
+
+    // insert 10 records
+    // remove Id's from record array
+    records.forEach((r) => delete r.Id);
+    rsp = await ncAxiosPost({
+      body: records,
+    });
+
+    // prepare array with 10 Id's, from 401 to 410
+    const ids = [];
+    for (let i = 401; i <= 410; i++) {
+      ids.push({ Id: i });
+    }
+    expect(rsp.body).to.deep.equal(ids);
+
+    ///////////////////////////////////////////////////////////////////////////
+
+    // read record with Id 401
+    rsp = await ncAxiosGet({
+      url: `/api/v1/tables/${table.id}/rows/401`,
+    });
+    expect(rsp.body).to.deep.equal(records[0]);
+
+    ///////////////////////////////////////////////////////////////////////////
+
+    // update record with Id 401 to 404
+    const updatedRecord = {
+      Date: '2022-04-25',
+      DateTime: '2022-04-25T06:30:00.000Z',
+    };
+    const updatedRecords = [
+      {
+        id: 401,
+        ...updatedRecord,
+      },
+      {
+        id: 402,
+        ...updatedRecord,
+      },
+      {
+        id: 403,
+        ...updatedRecord,
+      },
+      {
+        id: 404,
+        ...updatedRecord,
+      },
+    ];
+    rsp = await ncAxiosPatch({
+      body: updatedRecords,
+    });
+    expect(rsp.body).to.deep.equal(
+      updatedRecords.map((record) => ({ id: record.id })),
+    );
+
+    // verify updated records
+    rsp = await ncAxiosGet({
+      query: {
+        limit: 4,
+        offset: 400,
+      },
+    });
+    expect(rsp.body.list).to.deep.equal(updatedRecords);
+
+    ///////////////////////////////////////////////////////////////////////////
+
+    // delete record with ID 401 to 404
+    rsp = await ncAxiosDelete({
+      body: updatedRecords.map((record) => ({ id: record.id })),
+    });
+    expect(rsp.body).to.deep.equal(
+      updatedRecords.map((record) => ({ id: record.id })),
+    );
+  });
 }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -1187,9 +1482,9 @@ function dateBased() {
 export default function () {
   // describe('General', generalDb);
   describe('Text based', textBased);
-  // describe('Numerical', numberBased);
-  // describe('Select based', selectBased);
-  // describe('Date based', dateBased);
+  describe('Numerical', numberBased);
+  describe('Select based', selectBased);
+  describe('Date based', dateBased);
 }
 
 ///////////////////////////////////////////////////////////////////////////////

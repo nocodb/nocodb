@@ -43,7 +43,7 @@ export async function registerNewUserIfAllowed({
   email: string;
   salt: any;
   password;
-  otpSecret,
+  otpSecret;
   email_verification_token;
 }) {
   let roles: string = OrgUserRoles.CREATOR;
@@ -388,8 +388,6 @@ export async function signup(param: {
     secret: otpSecret,
     encoding: 'base32',
     token: otp,
-    step: 60,
-    window: 1,
   });
 
   if (otpVerified === false) {

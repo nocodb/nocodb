@@ -31,6 +31,7 @@ const formValidator = ref()
 const form = reactive({
   email: '',
   password: '',
+  otp: '',
 })
 
 const formRules: Record<string, RuleObject[]> = {
@@ -53,6 +54,7 @@ const formRules: Record<string, RuleObject[]> = {
     // Password is required
     { required: true, message: t('msg.error.signUpRules.passwdRequired') },
   ],
+  otp: [{ required: true, message: t('msg.error.signUpRules.otpRequired') }] as RuleObject[],
 }
 
 async function signIn() {
@@ -114,6 +116,10 @@ function resetError() {
               :placeholder="$t('msg.info.signUp.enterPassword')"
               @focus="resetError"
             />
+          </a-form-item>
+
+          <a-form-item :label="$t('labels.otp')" name="otp" :rules="formRules.otp">
+            <a-input v-model:value="form.otp" size="large" placeholder="Enter OTP token" />
           </a-form-item>
 
           <div class="hidden md:block text-right">

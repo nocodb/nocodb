@@ -340,7 +340,7 @@
         ]
       }
     },
-    "api/v1/public/docs/project/{projectId}/pages/{parentPageId}": {
+    "api/v1/public/docs/{projectId}/pages/{parentPageId}": {
       "get": {
         "summary": "List tree of public pages of given parent page and its children. If the given parent page is published under a different parent page, the tree's top level will be that parent page",
         "operationId": "list-public-pages",
@@ -365,7 +365,7 @@
         "description": ""
       }
     },
-    "/api/v1/public/docs/project/{projectId}/page/{id}": {
+    "/api/v1/public/docs/{projectId}/pages/{id}": {
       "get": {
         "summary": "Get public page and its project",
         "operationId": "get-public-page-and-project",
@@ -395,7 +395,7 @@
         "description": ""
       }
     },
-    "/api/v1/docs/project/{projectId}/pages": {
+    "/api/v1/docs/{projectId}/pages": {
       "get": {
         "summary": "List all pages",
         "operationId": "list-pages",
@@ -419,9 +419,44 @@
         ],
         "description": "List pages"
       },
+      "post": {
+        "summary": "Create page",
+        "operationId": "create-page",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DocsPage"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "Noco docs"
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "attributes": {
+                    "$ref": "#/components/schemas/DocsPage"
+                  }
+                }
+              }
+            }
+          },
+          "required": true
+        },
+        "description": "Create page"
+      },
       "parameters": []
     },
-    "/api/v1/docs/project/{projectId}/page/{id}": {
+    "/api/v1/docs/{projectId}/pages/{id}": {
       "get": {
         "summary": "Get page by id",
         "operationId": "get-page",
@@ -491,48 +526,10 @@
         "description": "Update page"
       }
     },
-    "/api/v1/docs/project/{projectId}/page": {
+    "/api/v1/docs/{projectId}/pages/{id}/gpt": {
       "post": {
-        "summary": "Create page",
-        "operationId": "create-page",
-        "responses": {
-          "200": {
-            "description": "OK",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/DocsPage"
-                }
-              }
-            }
-          }
-        },
-        "tags": [
-          "Noco docs"
-        ],
-        "requestBody": {
-          "content": {
-            "application/json": {
-              "schema": {
-                "type": "object",
-                "properties": {
-                  "attributes": {
-                    "$ref": "#/components/schemas/DocsPage"
-                  }
-                }
-              }
-            }
-          },
-          "required": true
-        },
-        "description": "Create page"
-      },
-      "parameters": []
-    },
-    "/api/v1/docs/project/{projectId}/page/{id}/magic-expand": {
-      "post": {
-        "summary": "Returns ai suggested page content using its title, parent page's and project's tiles. Does not update page content.",
-        "operationId": "magic-expand-text",
+        "summary": "Returns ai suggested page content. Does not update page content.",
+        "operationId": "docs-page-gpt",
         "responses": {
           "200": {
             "description": "OK",
@@ -565,33 +562,59 @@
           },
           "required": true
         },
-        "description": "Magic page content"
-      },
-      "parameters": []
-    },
-    "/api/v1/docs/project/{projectId}/page/{id}/magic-outline": {
-      "post": {
-        "summary": "Gives ai suggested page outline/skeleton (subheadings) for the page based on its, parent page's and project's title",
-        "operationId": "magic-outline-page",
-        "responses": {
-          "200": {
-            "description": "OK",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "object"
-                }
-              }
+        "description": "Page gpt",
+        "parameters": [
+          {
+            "name": "type",
+            "in": "query",
+            "description": "Gpt type",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "enum": [
+                "expand",
+                "outline"
+              ],
+              "description": "Gpt type, expand is for expanding the page content, outline is for generating page outline"
             }
           }
-        },
-        "tags": [
-          "Noco docs"
         ]
       },
       "parameters": []
     },
-    "/api/v1/docs/project/{projectId}/page/import": {
+    "/api/v1/docs/{projectId}/pages/gpt": {
+      "post": {
+        "summary": "Create nested pages using AI with project title. Will create and insert pages in the project",
+        "operationId": "docs-gpt",
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        },
+        "tags": [
+          "Noco docs"
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "text": {
+                    "type": "string",
+                    "description": "Prompt text",
+                    "required": true
+                  }
+                }
+              }
+            }
+          },
+          "required": true
+        }
+      },
+      "parameters": []
+    },
+    "/api/v1/docs/{projectId}/pages/import": {
       "post": {
         "summary": "Import pages",
         "operationId": "import-pages",
@@ -647,39 +670,7 @@
       },
       "parameters": []
     },
-    "/api/v1/docs/project/{projectId}/pages/magic-create-pages": {
-      "post": {
-        "summary": "Create nested pages using AI with project title. Will create and insert pages in the project",
-        "operationId": "create-nested-pages-magic",
-        "responses": {
-          "200": {
-            "description": "OK"
-          }
-        },
-        "tags": [
-          "Noco docs"
-        ],
-        "requestBody": {
-          "content": {
-            "application/json": {
-              "schema": {
-                "type": "object",
-                "properties": {
-                  "title": {
-                    "type": "string",
-                    "description": "Title",
-                    "required": true
-                  }
-                }
-              }
-            }
-          },
-          "required": true
-        }
-      },
-      "parameters": []
-    },
-    "/api/v1/docs/project/{projectId}/page/{pageId}/history-sync": {
+    "/api/v1/docs/{projectId}/pages/{pageId}/history/sync": {
       "post": {
         "summary": "When called will snapshot the page if there is any page change needed to be snapshoted",
         "operationId": "sync-page-history",
@@ -703,7 +694,7 @@
         "description": "Sync page history"
       }
     },
-    "/api/v1/docs/project/{projectId}/page/{pageId}/history": {
+    "/api/v1/docs/{projectId}/pages/{pageId}/history": {
       "get": {
         "summary": "List snapshots of the page (paginated)",
         "operationId": "list-page-history",
@@ -752,7 +743,7 @@
         ]
       }
     },
-    "/api/v1/docs/project/{projectId}/page/{pageId}/history/{snapshotId}/restore": {
+    "/api/v1/docs/{projectId}/pages/{pageId}/history/{snapshotId}/restore": {
       "post": {
         "summary": "Restore page to a given snapshot",
         "operationId": "restore-page-history",
@@ -3183,7 +3174,9 @@
             }
           }
         },
-        "tags": ["Project"],
+        "tags": [
+          "Project"
+        ],
         "description": "Duplicate a project",
         "parameters": [
           {
@@ -3273,7 +3266,9 @@
             }
           }
         },
-        "tags": ["Project"],
+        "tags": [
+          "Project"
+        ],
         "description": "Duplicate a project",
         "parameters": [
           {
@@ -5019,7 +5014,9 @@
             "$ref": "#/components/responses/BadRequest"
           }
         },
-        "tags": ["DB Table"],
+        "tags": [
+          "DB Table"
+        ],
         "description": "Read the table meta data by the given table ID",
         "parameters": [
           {
@@ -5061,7 +5058,9 @@
             "$ref": "#/components/responses/BadRequest"
           }
         },
-        "tags": ["DB Table"],
+        "tags": [
+          "DB Table"
+        ],
         "requestBody": {
           "content": {
             "application/json": {
@@ -5131,7 +5130,9 @@
             "$ref": "#/components/responses/BadRequest"
           }
         },
-        "tags": ["DB Table"],
+        "tags": [
+          "DB Table"
+        ],
         "description": "Delete the table meta data by the given table ID",
         "parameters": [
           {
@@ -5194,7 +5195,9 @@
             }
           }
         },
-        "tags": ["DB Table"],
+        "tags": [
+          "DB Table"
+        ],
         "description": "Duplicate a table",
         "parameters": [
           {

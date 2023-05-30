@@ -17,7 +17,7 @@ const { editor } = defineProps<Props>()
 
 const { project } = storeToRefs(useProject())
 
-const { magicExpand } = useDocStore()
+const { gptPageExpand } = useDocStore()
 
 interface Props {
   editor: Editor
@@ -92,7 +92,7 @@ const expandText = async () => {
     converter.setOption('noHeaderId', true)
 
     const markdown = converter.makeMarkdown(selectedHtml)
-    const response: any = await magicExpand({ text: markdown, projectId: project.value.id! })
+    const response: any = await gptPageExpand({ text: markdown, projectId: project.value.id! })
 
     editor
       ?.chain()

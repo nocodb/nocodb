@@ -653,10 +653,10 @@ export const useDocStore = defineStore('docStore', () => {
     return page.children || []
   }
 
-  const createMagic = async ({ title, projectId }: { title: string; projectId: string }) => {
+  const createPagesGpt = async ({ text, projectId }: { text: string; projectId: string }) => {
     try {
-      await $api.nocoDocs.createNestedPagesMagic(projectId, {
-        title,
+      await $api.nocoDocs.docsGpt(projectId, {
+        text,
       })
     } catch (e) {
       message.warning('Something went wrong')
@@ -730,11 +730,18 @@ export const useDocStore = defineStore('docStore', () => {
     return slugs
   }
 
-  const magicExpand = async ({ projectId, text, pageId }: { text: string; pageId?: string; projectId: string }) => {
+  const gptPageExpand = async ({ projectId, text, pageId }: { text: string; pageId?: string; projectId: string }) => {
     const id = pageId || openedPageInSidebar.value!.id!
-    const response = await $api.nocoDocs.magicExpandText(projectId, id, {
-      text,
-    })
+    const response = await $api.nocoDocs.docsPageGpt(
+      projectId,
+      id,
+      {
+        type: 'expand',
+      },
+      {
+        text,
+      },
+    )
     return response
   }
 
@@ -776,9 +783,18 @@ export const useDocStore = defineStore('docStore', () => {
     }
   }
 
-  const magicOutline = async ({ pageId, projectId }: { pageId?: string; projectId: string }) => {
+  const gptPageOutline = async ({ pageId, projectId }: { pageId?: string; projectId: string }) => {
     const id = pageId || openedPageInSidebar.value!.id!
-    const response = await $api.nocoDocs.magicOutlinePage(projectId, id)
+    const response = await $api.nocoDocs.docsPageGpt(
+      projectId,
+      id,
+      {
+        type: 'outline',
+      },
+      {
+        text: '',
+      },
+    )
     return response
   }
 
@@ -838,7 +854,7 @@ export const useDocStore = defineStore('docStore', () => {
     isEditAllowed,
     expandTabOfOpenedPage,
     getChildrenOfPage,
-    createMagic,
+    createPagesGpt,
     createImport,
     openPage,
     openChildPageTabsOfRootPages,
@@ -849,12 +865,12 @@ export const useDocStore = defineStore('docStore', () => {
     getParentOfPage,
     flattenedNestedPages,
     nestedSlugsFromPageId,
-    magicExpand,
+    gptPageExpand,
     uploadFile,
     loadPublicPageAndProject,
     isNestedPublicPage,
     isOpenedNestedPageLoading,
-    magicOutline,
+    gptPageOutline,
     navigateToFirstPage,
     isNestedFetchErrored,
     isPageErrored,

@@ -20,7 +20,7 @@ const { isEditAllowed, flattenedNestedPages, isOpenedNestedPageLoading } = store
 const {
   fetchNestedPages,
   addNewPage: _addNewPage,
-  createMagic,
+  createPagesGpt,
   createImport,
   openPage,
   openChildPageTabsOfRootPages,
@@ -126,7 +126,7 @@ const openImportModal = () => {
 const onMagic = async () => {
   isMagicLoading.value = true
   try {
-    await createMagic({ title: magicFormData.value.title, projectId: project.value.id! })
+    await createPagesGpt({ text: magicFormData.value.title, projectId: project.value.id! })
     magicFormData.value.title = ''
     await fetchNestedPages({ projectId: project.value.id! })
     await openChildPageTabsOfRootPages({ projectId: project.value.id! })

@@ -32,6 +32,7 @@ jobs:
       shell: bash
       run: |
         export NODE_OPTIONS="--max_old_space_size=16384"
+        echo $'@Deep-Consulting-Solutions:registry=https://npm.pkg.github.com/\n@deep-consulting-solutions:registry=https://npm.pkg.github.com/\nalways-auth=true\n//npm.pkg.github.com/:_authToken=${{secrets.GITHUB_TOKEN}}' > .npmrc
         targetEnv=PROD targetVersion=0.106.1 node scripts/bumpNocodbSdkVersion.js
         cd packages/nocodb-sdk
         npm install && npm run build

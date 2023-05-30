@@ -87,7 +87,7 @@ watch(isDragging, () => {
 
 <template>
   <NodeViewWrapper
-    class="vue-component relative column-content"
+    class="tiptap-vue-component relative column-content"
     data-type="column-content"
     :style="{
       width: `${node.attrs.widthPercent}%`,

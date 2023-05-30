@@ -5,7 +5,7 @@ const { node } = defineProps(nodeViewProps)
 </script>
 
 <template>
-  <NodeViewWrapper class="vue-component">
+  <NodeViewWrapper class="tiptap-vue-component">
     <div class="collapsable-header-wrapper">
       <NodeViewContent class="w-full" :data-is-empty="node.textContent.length === 0" />
     </div>

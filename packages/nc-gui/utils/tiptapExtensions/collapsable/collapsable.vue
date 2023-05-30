@@ -60,7 +60,7 @@ editor.on('update', () => {
 
 <template>
   <NodeViewWrapper
-    class="vue-component collapsable-wrapper mt-2 w-full"
+    class="tiptap-vue-component collapsable-wrapper mt-2 w-full"
     :class="{
       '!mt-0': headerChildNode?.type.name === 'heading' && headerChildNode?.attrs.level === 1,
     }"
@@ -96,7 +96,7 @@ editor.on('update', () => {
 </template>
 
 <style lang="scss">
-.ProseMirror .vue-component.collapsable-wrapper {
+.ProseMirror .tiptap-vue-component.collapsable-wrapper {
   .collapsed {
     [data-type='collapsable_content'] {
       display: none;

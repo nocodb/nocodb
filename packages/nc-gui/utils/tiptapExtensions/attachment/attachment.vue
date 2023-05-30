@@ -17,7 +17,7 @@ const handleClick = () => {
 </script>
 
 <template>
-  <NodeViewWrapper class="vue-component attachment-wrapper h-10 my-1.5 w-full">
+  <NodeViewWrapper class="tiptap-vue-component attachment-wrapper h-10 my-1.5 w-full">
     <div v-if="node.attrs.isUploading" class="flex flex-row space-x-4 px-4 py-2.5 bg-gray-100 rounded-md w-full items-baseline">
       <a-spin :indicator="indicator" class="!text-gray-500 flex" />
       <div class="flex text-sm text-gray-600">Uploading</div>

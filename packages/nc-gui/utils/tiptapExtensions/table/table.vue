@@ -2,7 +2,7 @@
 import { NodeViewContent, NodeViewWrapper, nodeViewProps } from '@tiptap/vue-3'
 import type { EditorState } from 'prosemirror-state'
 import { NodeSelection, TextSelection } from 'prosemirror-state'
-import { CellSelection, addColumn, addRow, selectedRect } from '@tiptap/prosemirror-tables'
+import { CellSelection, addColumn, addRow, selectedRect } from '@tiptap/pm/tables'
 
 const { getPos, editor } = defineProps(nodeViewProps)
 const isPublic = !editor.view.editable

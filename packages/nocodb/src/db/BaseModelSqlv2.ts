@@ -14,6 +14,7 @@ import Validator from 'validator';
 import { customAlphabet } from 'nanoid';
 import DOMPurify from 'isomorphic-dompurify';
 import { v4 as uuidv4 } from 'uuid';
+import { extractLimitAndOffset } from '../helpers'
 import { NcError } from '../helpers/catchError';
 import getAst from '../helpers/getAst';
 
@@ -1512,31 +1513,12 @@ class BaseModelSqlv2 {
   }
 
   _getListArgs(args: XcFilterWithAlias): XcFilter {
-    const obj: XcFilter = {};
+    const obj: XcFilter = extractLimitAndOffset(args);
     obj.where = args.filter || args.where || args.w || '';
     obj.having = args.having || args.h || '';
     obj.shuffle = args.shuffle || args.r || '';
     obj.condition = args.condition || args.c || {};
     obj.conditionGraph = args.conditionGraph || {};
-
-    // use default value if invalid limit
-    // for example, if limit is not a number, it will be ignored
-    // if limit is less than 1, it will be ignored
-    const limit = +(args.limit || args.l);
-    obj.limit = Math.max(
-      Math.min(
-        limit && limit > 0 && Number.isInteger(limit)
-          ? limit
-          : this.config.limitDefault,
-        this.config.limitMax,
-      ),
-      this.config.limitMin,
-    );
-
-    // skip any invalid offset, ignore negative and non-integer values
-    const offset = +(args.offset || args.o) || 0;
-    obj.offset = Math.max(Number.isInteger(offset) ? offset : 0, 0);
-
     obj.fields = args.fields || args.f;
     obj.sort = args.sort || args.s;
     return obj;

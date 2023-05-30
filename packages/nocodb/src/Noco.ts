@@ -168,7 +168,7 @@ export default class Noco {
       this.config.auth.jwt.options = this.config.auth.jwt.options || {};
       if (!this.config.auth.jwt.options?.expiresIn) {
         this.config.auth.jwt.options.expiresIn =
-          process.env.NC_JWT_EXPIRES_IN ?? '3m';
+          process.env.NC_JWT_EXPIRES_IN ?? '10h';
       }
     }
     let serverId = (

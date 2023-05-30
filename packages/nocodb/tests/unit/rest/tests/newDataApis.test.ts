@@ -89,7 +89,11 @@ import init from '../../init';
 import { createProject, createSakilaProject } from '../../factory/project';
 import { createTable, getTable } from '../../factory/table';
 import { createBulkRows, listRow, rowMixedValue } from '../../factory/row';
-import { customColumns } from '../../factory/column';
+import {
+  createLookupColumn,
+  createRollupColumn,
+  customColumns,
+} from '../../factory/column';
 import { createView, updateView } from '../../factory/view';
 import type { Api } from 'nocodb-sdk';
 
@@ -110,6 +114,12 @@ let insertedRecords: any[] = [];
 let sakilaProject: Project;
 let customerTable: Model;
 let customerColumns;
+let actorTable: Model;
+let actorColumns;
+let countryTable: Model;
+let countryColumns;
+let cityTable: Model;
+let cityColumns;
 
 // Optimisation scope for time reduction
 // 1. BeforeEach can be changed to BeforeAll for List and Read APIs
@@ -192,10 +202,179 @@ function generalDb() {
       name: 'customer',
     });
     customerColumns = await customerTable.getColumns();
+
+    actorTable = await getTable({
+      project: sakilaProject,
+      name: 'actor',
+    });
+    actorColumns = await actorTable.getColumns();
+
+    countryTable = await getTable({
+      project: sakilaProject,
+      name: 'country',
+    });
+    countryColumns = await countryTable.getColumns();
+
+    cityTable = await getTable({
+      project: sakilaProject,
+      name: 'city',
+    });
+    cityColumns = await cityTable.getColumns();
   });
 
-  it('should list all records', async function () {
-    console.log('should list all records');
+  it('Nested List - Link to another record', async function () {
+    const expectedRecords = [
+      [
+        {
+          CityId: 251,
+          City: 'Kabul',
+        },
+      ],
+      [
+        {
+          CityId: 59,
+          City: 'Batna',
+        },
+        {
+          CityId: 63,
+          City: 'Bchar',
+        },
+        {
+          CityId: 483,
+          City: 'Skikda',
+        },
+      ],
+      [
+        {
+          CityId: 516,
+          City: 'Tafuna',
+        },
+      ],
+      [
+        {
+          CityId: 67,
+          City: 'Benguela',
+        },
+        {
+          CityId: 360,
+          City: 'Namibe',
+        },
+      ],
+    ];
+
+    // read first 4 records
+    const records = await ncAxiosGet({
+      url: `/api/v1/tables/${countryTable.id}/rows`,
+      query: {
+        limit: 4,
+      },
+    });
+    expect(records.body.list.length).to.equal(4);
+
+    // extract LTAR column "City List"
+    const cityList = records.body.list.map((r) => r['City List']);
+    expect(cityList).to.deep.equal(expectedRecords);
+  });
+
+  it('Nested List - Lookup', async function () {
+    const lookupColumn = await createLookupColumn(context, {
+      project: sakilaProject,
+      title: 'Lookup',
+      table: countryTable,
+      relatedTableName: cityTable.table_name,
+      relatedTableColumnTitle: 'City',
+    });
+
+    const expectedRecords = [
+      ['Kabul'],
+      ['Batna', 'Bchar', 'Skikda'],
+      ['Tafuna'],
+      ['Benguela', 'Namibe'],
+    ];
+
+    // read first 4 records
+    const records = await ncAxiosGet({
+      url: `/api/v1/tables/${countryTable.id}/rows`,
+      query: {
+        limit: 4,
+      },
+    });
+    expect(records.body.list.length).to.equal(4);
+
+    // extract Lookup column
+    const lookupData = records.body.list.map((record) => record.Lookup);
+    expect(lookupData).to.deep.equal(expectedRecords);
+  });
+
+  it('Nested List - Rollup', async function () {
+    const rollupColumn = await createRollupColumn(context, {
+      project: sakilaProject,
+      title: 'Rollup',
+      table: countryTable,
+      relatedTableName: cityTable.table_name,
+      relatedTableColumnTitle: 'City',
+      rollupFunction: 'count',
+    });
+
+    const expectedRecords = [1, 3, 1, 2];
+
+    // read first 4 records
+    const records = await ncAxiosGet({
+      url: `/api/v1/tables/${countryTable.id}/rows`,
+      query: {
+        limit: 4,
+      },
+    });
+    expect(records.body.list.length).to.equal(4);
+
+    // extract Lookup column
+    const rollupData = records.body.list.map((record) => record.Rollup);
+    expect(rollupData).to.deep.equal(expectedRecords);
+  });
+
+  it('Nested Read - Link to another record', async function () {
+    const records = await ncAxiosGet({
+      url: `/api/v1/tables/${countryTable.id}/rows/1`,
+    });
+
+    // extract LTAR column "City List"
+    expect(records.body['City List']).to.deep.equal([
+      {
+        CityId: 251,
+        City: 'Kabul',
+      },
+    ]);
+  });
+
+  it('Nested Read - Lookup', async function () {
+    const lookupColumn = await createLookupColumn(context, {
+      project: sakilaProject,
+      title: 'Lookup',
+      table: countryTable,
+      relatedTableName: cityTable.table_name,
+      relatedTableColumnTitle: 'City',
+    });
+
+    const records = await ncAxiosGet({
+      url: `/api/v1/tables/${countryTable.id}/rows/1`,
+    });
+    expect(records.body.Lookup).to.deep.equal(['Kabul']);
+  });
+
+  it('Nested Read - Rollup', async function () {
+    const rollupColumn = await createRollupColumn(context, {
+      project: sakilaProject,
+      title: 'Rollup',
+      table: countryTable,
+      relatedTableName: cityTable.table_name,
+      relatedTableColumnTitle: 'City',
+      rollupFunction: 'count',
+    });
+
+    const records = await ncAxiosGet({
+      url: `/api/v1/tables/${countryTable.id}/rows/1`,
+    });
+    expect(records.body.Rollup).to.equal(1);
   });
 }
 
@@ -1466,11 +1645,14 @@ function dateBased() {
 ///////////////////////////////////////////////////////////////////////////////
 
 export default function () {
+  // based out of sakila db, for link based tests
+  describe('General', generalDb);
+
+  // standalone tables
   describe('Text based', textBased);
   describe('Numerical', numberBased);
   describe('Select based', selectBased);
   describe('Date based', dateBased);
-  // describe('General', generalDb);
 }
 
 ///////////////////////////////////////////////////////////////////////////////

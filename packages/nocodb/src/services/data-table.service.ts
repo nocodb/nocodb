@@ -158,7 +158,7 @@ export class DataTableService {
     const model = await Model.get(param.modelId);
 
     if (!model) {
-      NcError.notFound('Model not found');
+      NcError.notFound(`Table '${param.modelId}' not found`);
     }
 
     if (param.projectId && model.project_id !== param.projectId) {
@@ -170,7 +170,7 @@ export class DataTableService {
     if (param.viewId) {
       view = await View.get(param.viewId);
       if (!view || (view.fk_model_id && view.fk_model_id !== param.modelId)) {
-        NcError.unprocessableEntity('View not belong to model');
+        NcError.unprocessableEntity(`View '${param.viewId}' not found`);
       }
     }
 

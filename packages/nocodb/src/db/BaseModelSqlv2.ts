@@ -1518,14 +1518,25 @@ class BaseModelSqlv2 {
     obj.shuffle = args.shuffle || args.r || '';
     obj.condition = args.condition || args.c || {};
     obj.conditionGraph = args.conditionGraph || {};
+
+    // use default value if invalid limit
+    // for example, if limit is not a number, it will be ignored
+    // if limit is less than 1, it will be ignored
+    const limit = +(args.limit || args.l);
     obj.limit = Math.max(
       Math.min(
-        args.limit || args.l || this.config.limitDefault,
+        limit && limit > 0 && Number.isInteger(limit)
+          ? limit
+          : this.config.limitDefault,
         this.config.limitMax,
       ),
       this.config.limitMin,
     );
-    obj.offset = Math.max(+(args.offset || args.o) || 0, 0);
+
+    // skip any invalid offset, ignore negative and non-integer values
+    const offset = +(args.offset || args.o) || 0;
+    obj.offset = Math.max(Number.isInteger(offset) ? offset : 0, 0);
+
     obj.fields = args.fields || args.f;
     obj.sort = args.sort || args.s;
     return obj;

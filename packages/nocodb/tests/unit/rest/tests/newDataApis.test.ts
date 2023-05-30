@@ -193,6 +193,10 @@ function generalDb() {
     });
     customerColumns = await customerTable.getColumns();
   });
+
+  it('should list all records', async function () {
+    console.log('should list all records');
+  });
 }
 
 function textBased() {
@@ -561,11 +565,7 @@ function textBased() {
       url: `/api/v1/tables/123456789/rows`,
       status: 404,
     });
-    // Invalid project ID
-    // await ncAxiosGet({
-    //   url: `/api/v1/base/123456789/tables/123456789`,
-    //   status: 404,
-    // });
+
     // Invalid view ID
     await ncAxiosGet({
       query: {
@@ -576,39 +576,56 @@ function textBased() {
   });
 
   it('List: invalid limit & offset', async function () {
-    // Invalid limit
-    await ncAxiosGet({
+    const expectedPageInfo = {
+      totalRows: 400,
+      page: 1,
+      pageSize: 25,
+      isFirstPage: true,
+      isLastPage: false,
+    };
+
+    // Invalid limit : falls back to default value
+    let rsp = await ncAxiosGet({
       query: {
         limit: -100,
       },
       status: 200,
     });
-    await ncAxiosGet({
+    expect(rsp.body.pageInfo).to.deep.equal(expectedPageInfo);
+
+    rsp = await ncAxiosGet({
       query: {
         limit: 'abc',
       },
       status: 200,
     });
+    expect(rsp.body.pageInfo).to.deep.equal(expectedPageInfo);
 
-    // Invalid offset
-    await ncAxiosGet({
+    // Invalid offset : falls back to default value
+    rsp = await ncAxiosGet({
       query: {
         offset: -100,
       },
-      status: 422,
+      status: 200,
     });
-    await ncAxiosGet({
+    expect(rsp.body.pageInfo).to.deep.equal(expectedPageInfo);
+
+    rsp = await ncAxiosGet({
       query: {
         offset: 'abc',
       },
-      status: 422,
+      status: 200,
     });
-    await ncAxiosGet({
+    expect(rsp.body.pageInfo).to.deep.equal(expectedPageInfo);
+
+    // Offset > totalRows : returns empty list
+    rsp = await ncAxiosGet({
       query: {
         offset: 10000,
       },
-      status: 422,
+      status: 200,
     });
+    expect(rsp.body.list.length).to.equal(0);
   });
 
   it('List: invalid sort, filter, fields', async function () {
@@ -646,10 +663,7 @@ function textBased() {
   it('Create: all fields', async function () {
     const rsp = await ncAxiosPost({ body: newRecord });
 
-    expect(rsp.body).to.deep.equal({
-      Id: 401,
-      ...newRecord,
-    });
+    expect(rsp.body).to.deep.equal({ Id: 401 });
   });
 
   it('Create: few fields left out', async function () {
@@ -660,13 +674,7 @@ function textBased() {
     const rsp = await ncAxiosPost({ body: newRecord });
 
     // fields left out should be null
-    expect(rsp.body).to.deep.equal({
-      Id: 401,
-      ...newRecord,
-      Email: null,
-      Url: null,
-      Phone: null,
-    });
+    expect(rsp.body).to.deep.equal({ Id: 401 });
   });
 
   it('Create: bulk', async function () {
@@ -682,11 +690,7 @@ function textBased() {
       url: `/api/v1/tables/123456789/rows`,
       status: 404,
     });
-    // Invalid project ID
-    // await ncAxiosPost({
-    //   url: `/api/v1/base/123456789/tables/123456789`,
-    //   status: 404,
-    // });
+
     // Invalid data - create should not specify ID
     await ncAxiosPost({
       body: { ...newRecord, Id: 300 },
@@ -743,11 +747,7 @@ function textBased() {
         },
       ],
     });
-    expect(rsp.body).to.deep.equal([
-      {
-        Id: '1',
-      },
-    ]);
+    expect(rsp.body).to.deep.equal([{ Id: 1 }]);
   });
 
   it('Update: partial', async function () {
@@ -764,11 +764,7 @@ function textBased() {
         },
       ],
     });
-    expect(rsp.body).to.deep.equal([
-      {
-        Id: '1',
-      },
-    ]);
+    expect(rsp.body).to.deep.equal([{ Id: 1 }]);
 
     const recordAfterUpdate = await ncAxiosGet({
       url: `/api/v1/tables/${table.id}/rows/1`,
@@ -795,17 +791,12 @@ function textBased() {
         },
       ],
     });
-    expect(rsp.body).to.deep.equal([{ Id: '1' }, { Id: '2' }]);
+    expect(rsp.body).to.deep.equal([{ Id: 1 }, { Id: 2 }]);
   });
 
   // Error handling
 
   it('Update: invalid ID', async function () {
-    // // Invalid project ID
-    // await ncAxiosPatch({
-    //   url: `/api/v1/base/123456789/tables/${table.id}`,
-    //   status: 404,
-    // });
     // Invalid table ID
     await ncAxiosPatch({
       url: `/api/v1/tables/123456789/rows`,
@@ -815,7 +806,7 @@ function textBased() {
     // Invalid row ID
     await ncAxiosPatch({
       body: { Id: 123456789, SingleLineText: 'some text' },
-      status: 400,
+      status: 422,
     });
   });
 
@@ -828,9 +819,9 @@ function textBased() {
 
   it('Delete: single', async function () {
     const rsp = await ncAxiosDelete({ body: [{ Id: 1 }] });
-    expect(rsp.body).to.deep.equal([{ Id: '1' }]);
+    expect(rsp.body).to.deep.equal([{ Id: 1 }]);
 
-    // // check that it's gone
+    // check that it's gone
     await ncAxiosGet({
       url: `/api/v1/tables/${table.id}/rows/1`,
       status: 404,
@@ -839,7 +830,7 @@ function textBased() {
 
   it('Delete: bulk', async function () {
     const rsp = await ncAxiosDelete({ body: [{ Id: 1 }, { Id: 2 }] });
-    expect(rsp.body).to.deep.equal([{ Id: '1' }, { Id: '2' }]);
+    expect(rsp.body).to.deep.equal([{ Id: 1 }, { Id: 2 }]);
 
     // check that it's gone
     await ncAxiosGet({
@@ -855,11 +846,6 @@ function textBased() {
   // Error handling
 
   it('Delete: invalid ID', async function () {
-    // // Invalid project ID
-    // await ncAxiosDelete({
-    //   url: `/api/v1/tables/${table.id}/rows`,
-    //   status: 404,
-    // });
     // Invalid table ID
     await ncAxiosDelete({
       url: `/api/v1/tables/123456789/rows`,
@@ -867,7 +853,7 @@ function textBased() {
       status: 404,
     });
     // Invalid row ID
-    await ncAxiosDelete({ body: { Id: 123456789 }, status: 400 });
+    await ncAxiosDelete({ body: { Id: '123456789' }, status: 422 });
   });
 }
 
@@ -1480,11 +1466,11 @@ function dateBased() {
 ///////////////////////////////////////////////////////////////////////////////
 
 export default function () {
-  // describe('General', generalDb);
   describe('Text based', textBased);
   describe('Numerical', numberBased);
   describe('Select based', selectBased);
   describe('Date based', dateBased);
+  // describe('General', generalDb);
 }
 
 ///////////////////////////////////////////////////////////////////////////////

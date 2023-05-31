@@ -46,7 +46,7 @@ COPY ./src/lib/public/favicon.ico ./docker/public/
 RUN printf "@deep-consulting-solutions:registry=https://npm.pkg.github.com/\nalways-auth=true\n//npm.pkg.github.com/:_authToken=%s" $TOKEN_FOR_PACKAGES >> .npmrc
 
 RUN npm ci --omit=dev --quiet \
-    && npx modclean --patterns="default:*" --ignore="nc-lib-gui/**,dayjs/**,express-status-monitor/**,@azure/msal-node/dist/**" --run  \
+    && npx modclean --patterns="default:*" --ignore="@deep-consulting-solutions/nc-lib-gui/**,nc-lib-gui/**,dayjs/**,express-status-monitor/**,@azure/msal-node/dist/**" --run  \
     && rm -rf ./node_modules/sqlite3/deps \
     && tar -czf ../appEntry/app.tar.gz ./* \
     && chmod +x /usr/src/appEntry/start.sh

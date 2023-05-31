@@ -546,7 +546,39 @@ export interface FilterType {
     | 'notchecked'
     | 'notempty'
     | 'notnull'
-    | 'null';
+    | 'null'
+    | null
+    | (
+        | 'allof'
+        | 'anyof'
+        | 'blank'
+        | 'btw'
+        | 'checked'
+        | 'empty'
+        | 'eq'
+        | 'ge'
+        | 'gt'
+        | 'gte'
+        | 'in'
+        | 'is'
+        | 'isWithin'
+        | 'isnot'
+        | 'le'
+        | 'like'
+        | 'lt'
+        | 'lte'
+        | 'nallof'
+        | 'nanyof'
+        | 'nbtw'
+        | 'neq'
+        | 'nlike'
+        | 'not'
+        | 'notblank'
+        | 'notchecked'
+        | 'notempty'
+        | 'notnull'
+        | ('null' & null)
+      );
   /** Comparison Sub-Operator */
   comparison_sub_op?:
     | 'daysAgo'
@@ -589,7 +621,7 @@ export interface FilterType {
         | ('yesterday' & null)
       );
   /** Foreign Key to Column */
-  fk_column_id?: IdType;
+  fk_column_id?: StringOrNullType;
   /** Foreign Key to Hook */
   fk_hook_id?: StringOrNullType;
   /** Foreign Key to Model */
@@ -664,7 +696,39 @@ export interface FilterReqType {
     | 'notchecked'
     | 'notempty'
     | 'notnull'
-    | 'null';
+    | 'null'
+    | null
+    | (
+        | 'allof'
+        | 'anyof'
+        | 'blank'
+        | 'btw'
+        | 'checked'
+        | 'empty'
+        | 'eq'
+        | 'ge'
+        | 'gt'
+        | 'gte'
+        | 'in'
+        | 'is'
+        | 'isWithin'
+        | 'isnot'
+        | 'le'
+        | 'like'
+        | 'lt'
+        | 'lte'
+        | 'nallof'
+        | 'nanyof'
+        | 'nbtw'
+        | 'neq'
+        | 'nlike'
+        | 'not'
+        | 'notblank'
+        | 'notchecked'
+        | 'notempty'
+        | 'notnull'
+        | ('null' & null)
+      );
   /** Comparison Sub-Operator */
   comparison_sub_op?:
     | 'daysAgo'
@@ -707,7 +771,7 @@ export interface FilterReqType {
         | ('yesterday' & null)
       );
   /** Foreign Key to Column */
-  fk_column_id?: IdType;
+  fk_column_id?: StringOrNullType;
   /** Belong to which filter ID */
   fk_parent_id?: StringOrNullType;
   /** Is this filter grouped? */
@@ -1603,7 +1667,7 @@ export interface NormalColumnRequestType {
   /** Data Type Extra */
   dtx?: StringOrNullType;
   /** Data Type Extra Precision */
-  dtxp?: StringOrNullType | number;
+  dtxp?: string | number | null;
   /** Data Type Extra Scale */
   dtxs?: StringOrNullType | number;
   /** Numeric Precision */
@@ -1804,7 +1868,7 @@ export interface PluginReqType {
   /** Is Plugin Active? */
   active?: BoolType;
   /** Plugin Input */
-  input?: StringOrNullType;
+  input?: string | null;
 }
 
 /**
@@ -1892,6 +1956,11 @@ export interface ProjectReqType {
    * @example My Project
    */
   title: string;
+  /**
+   * Project Status
+   * @example locked
+   */
+  status?: StringOrNullType;
 }
 
 /**
@@ -1910,6 +1979,11 @@ export interface ProjectUpdateReqType {
    * @example My Project
    */
   title?: string;
+  /**
+   * Project Status
+   * @example locked
+   */
+  status?: StringOrNullType;
 }
 
 /**
@@ -4002,6 +4076,103 @@ export class Api<
       }),
 
     /**
+ * @description Duplicate a project
+ * 
+ * @tags Project
+ * @name BaseDuplicate
+ * @summary Duplicate Project Base
+ * @request POST:/api/v1/db/meta/duplicate/{projectId}/{baseId}
+ * @response `200` `{
+  name?: string,
+  id?: string,
+
+}` OK
+ * @response `400` `{
+  \** @example BadRequest [Error]: <ERROR MESSAGE> *\
+  msg: string,
+
+}`
+ */
+    baseDuplicate: (
+      projectId: IdType,
+      data: {
+        options?: {
+          excludeData?: boolean;
+          excludeViews?: boolean;
+          excludeHooks?: boolean;
+        };
+        project?: object;
+      },
+      baseId?: IdType,
+      params: RequestParams = {}
+    ) =>
+      this.request<
+        {
+          name?: string;
+          id?: string;
+        },
+        {
+          /** @example BadRequest [Error]: <ERROR MESSAGE> */
+          msg: string;
+        }
+      >({
+        path: `/api/v1/db/meta/duplicate/${projectId}/${baseId}`,
+        method: 'POST',
+        body: data,
+        type: ContentType.Json,
+        format: 'json',
+        ...params,
+      }),
+
+    /**
+ * @description Duplicate a project
+ * 
+ * @tags Project
+ * @name Duplicate
+ * @summary Duplicate Project
+ * @request POST:/api/v1/db/meta/duplicate/{projectId}
+ * @response `200` `{
+  name?: string,
+  id?: string,
+
+}` OK
+ * @response `400` `{
+  \** @example BadRequest [Error]: <ERROR MESSAGE> *\
+  msg: string,
+
+}`
+ */
+    duplicate: (
+      projectId: IdType,
+      data: {
+        options?: {
+          excludeData?: boolean;
+          excludeViews?: boolean;
+          excludeHooks?: boolean;
+        };
+        project?: object;
+      },
+      params: RequestParams = {}
+    ) =>
+      this.request<
+        {
+          name?: string;
+          id?: string;
+        },
+        {
+          /** @example BadRequest [Error]: <ERROR MESSAGE> */
+          msg: string;
+        }
+      >({
+        path: `/api/v1/db/meta/duplicate/${projectId}`,
+        method: 'POST',
+        body: data,
+        type: ContentType.Json,
+        format: 'json',
+        ...params,
+      }),
+
+    /**
  * @description Get the info of a given project
  * 
  * @tags Project
@@ -4991,6 +5162,54 @@ export class Api<
       >({
         path: `/api/v1/db/meta/tables/${tableId}`,
         method: 'DELETE',
+        format: 'json',
+        ...params,
+      }),
+
+    /**
+ * @description Duplicate a table
+ * 
+ * @tags DB Table
+ * @name Duplicate
+ * @summary Duplicate Table
+ * @request POST:/api/v1/db/meta/duplicate/{projectId}/table/{tableId}
+ * @response `200` `{
+  name?: string,
+  id?: string,
+
+}` OK
+ * @response `400` `{
+  \** @example BadRequest [Error]: <ERROR MESSAGE> *\
+  msg: string,
+
+}`
+ */
+    duplicate: (
+      projectId: IdType,
+      tableId: IdType,
+      data: {
+        options?: {
+          excludeData?: boolean;
+          excludeViews?: boolean;
+          excludeHooks?: boolean;
+        };
+      },
+      params: RequestParams = {}
+    ) =>
+      this.request<
+        {
+          name?: string;
+          id?: string;
+        },
+        {
+          /** @example BadRequest [Error]: <ERROR MESSAGE> */
+          msg: string;
+        }
+      >({
+        path: `/api/v1/db/meta/duplicate/${projectId}/table/${tableId}`,
+        method: 'POST',
+        body: data,
+        type: ContentType.Json,
         format: 'json',
         ...params,
       }),

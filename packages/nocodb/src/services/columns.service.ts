@@ -1287,6 +1287,8 @@ export class ColumnsService {
                 // ignore deleting table if it has more than 2 columns
                 // the expected 2 columns would be table1_id & table2_id
                 if (mmTable.columns.length === 2) {
+                  (mmTable as any).tn = mmTable.table_name;
+                  await sqlMgr.sqlOpPlus(base, 'tableDelete', mmTable);
                   await mmTable.delete();
                 }
               }

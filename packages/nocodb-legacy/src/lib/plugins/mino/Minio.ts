@@ -7,6 +7,7 @@ import {
   waitForStreamClose,
 } from '../../utils/pluginUtils';
 import type { IStorageAdapterV2, XcFile } from 'nc-plugin';
+import type { Readable } from 'stream';
 
 export default class Minio implements IStorageAdapterV2 {
   private minioClient: MinioClient;
@@ -39,7 +40,7 @@ export default class Minio implements IStorageAdapterV2 {
           resolve(
             `http${this.input.useSSL ? 's' : ''}://${this.input.endPoint}:${
               this.input.port
-            }/${this.input.bucket}/${key}`
+            }/${this.input.bucket}/${key}`,
           );
         })
         .catch(reject);
@@ -123,12 +124,27 @@ export default class Minio implements IStorageAdapterV2 {
               resolve(
                 `http${this.input.useSSL ? 's' : ''}://${this.input.endPoint}:${
                   this.input.port
-                }/${this.input.bucket}/${key}`
+                }/${this.input.bucket}/${key}`,
               );
             })
             .catch(reject);
-        }
+        },
       );
     });
+  }
+
+  // TODO - implement
+  fileCreateByStream(_key: string, _stream: Readable): Promise<void> {
+    return Promise.resolve(undefined);
+  }
+
+  // TODO - implement
+  fileReadByStream(_key: string): Promise<Readable> {
+    return Promise.resolve(undefined);
+  }
+
+  // TODO - implement
+  getDirectoryList(_path: string): Promise<string[]> {
+    return Promise.resolve(undefined);
   }
 }

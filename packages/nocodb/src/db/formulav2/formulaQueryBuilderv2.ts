@@ -537,6 +537,51 @@ async function _formulaQueryBuilder(
             };
         };
         break;
+      case UITypes.DateTime:
+        if (knex.clientType().startsWith('mysql')) {
+          aliasToColumn[col.id] = async (): Promise<any> => {
+            return {
+              // convert from DB timezone to UTC
+              builder: knex.raw(
+                `CONVERT_TZ(??, @@GLOBAL.time_zone, '+00:00')`,
+                [col.column_name],
+              ),
+            };
+          };
+        } else if (
+          knex.clientType() === 'pg' &&
+          col.dt !== 'timestamp with time zone' &&
+          col.dt !== 'timestamptz'
+        ) {
+          aliasToColumn[col.id] = async (): Promise<any> => {
+            return {
+              // convert from DB timezone to UTC
+              builder: knex
+                .raw(
+                  `?? AT TIME ZONE CURRENT_SETTING('timezone') AT TIME ZONE 'UTC'`,
+                  [col.column_name],
+                )
+                .wrap('(', ')'),
+            };
+          };
+        } else if (
+          knex.clientType() === 'mssql' &&
+          col.dt !== 'datetimeoffset'
+        ) {
+          // convert from DB timezone to UTC
+          aliasToColumn[col.id] = async (): Promise<any> => {
+            return {
+              builder: knex.raw(
+                `CONVERT(DATETIMEOFFSET, ?? AT TIME ZONE 'UTC')`,
+                [col.column_name],
+              ),
+            };
+          };
+        } else {
+          aliasToColumn[col.id] = () =>
+            Promise.resolve({ builder: col.column_name });
+        }
+        break;
       default:
         aliasToColumn[col.id] = () =>
           Promise.resolve({ builder: col.column_name });
@@ -548,11 +593,11 @@ async function _formulaQueryBuilder(
     const colAlias = a ? ` as ${a}` : '';
     pt.arguments?.forEach?.((arg) => {
       if (arg.fnName) return;
-      arg.fnName = pt.callee.name;
+      arg.fnName = pt.callee.name.toUpperCase();
       arg.argsCount = pt.arguments?.length;
     });
     if (pt.type === 'CallExpression') {
-      switch (pt.callee.name) {
+      switch (pt.callee.name.toUpperCase()) {
         case 'ADD':
         case 'SUM':
           if (pt.arguments.length > 1) {
@@ -631,13 +676,14 @@ async function _formulaQueryBuilder(
           break;
       }
 
+      const calleeName = pt.callee.name.toUpperCase();
       return {
         builder: knex.raw(
-          `${pt.callee.name}(${(
+          `${calleeName}(${(
             await Promise.all(
               pt.arguments.map(async (arg) => {
                 let query = (await fn(arg)).builder.toQuery();
-                if (pt.callee.name === 'CONCAT') {
+                if (calleeName === 'CONCAT') {
                   if (knex.clientType() !== 'sqlite3') {
                     query = await convertDateFormatForConcat(
                       arg,
@@ -805,11 +851,9 @@ async function _formulaQueryBuilder(
       return { builder: query };
     } else if (pt.type === 'UnaryExpression') {
       const query = knex.raw(
-        `${pt.operator}${fn(
-          pt.argument,
-          null,
-          pt.operator,
-        ).toQuery()}${colAlias}`,
+        `${pt.operator}${(
+          await fn(pt.argument, null, pt.operator)
+        ).builder.toQuery()}${colAlias}`,
       );
       if (prevBinaryOp && pt.operator !== prevBinaryOp) {
         query.wrap('(', ')');

@@ -98,11 +98,13 @@ export class WebhookFormPage extends BasePage {
 
   async save() {
     const saveAction = () => this.saveButton.click();
+
     await this.waitForResponse({
       uiAction: saveAction,
       requestUrlPathToMatch: '/hooks',
       httpMethodsToMatch: ['POST', 'PATCH'],
     });
+
     await this.verifyToast({ message: 'Webhook details updated successfully' });
   }
 
@@ -133,6 +135,7 @@ export class WebhookFormPage extends BasePage {
     await this.toolbar.clickActions();
     await this.toolbar.actions.click('Webhooks');
     await this.dashboard.get().locator(`.nc-hook`).nth(index).click();
+    await this.get().locator('.nc-check-box-enable-webhook').waitFor({ state: 'visible' });
   }
 
   async openForm({ index }: { index: number }) {

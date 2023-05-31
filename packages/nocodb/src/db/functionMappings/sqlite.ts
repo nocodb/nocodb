@@ -95,9 +95,9 @@ const sqlite3 = {
       builder: knex.raw(
         `CASE
       WHEN ${(await fn(pt.arguments[0])).builder} LIKE '%:%' THEN
-        STRFTIME('%Y-%m-%d %H:%M', DATETIME(DATETIME(${fn(
-          pt.arguments[0],
-        )}, 'localtime'),
+        STRFTIME('%Y-%m-%dT%H:%M:%fZ', DATETIME(DATETIME(${
+          (await fn(pt.arguments[0])).builder
+        }, 'utc'),
         ${dateIN > 0 ? '+' : ''}${
           (await fn(pt.arguments[1])).builder
         } || ' ${String((await fn(pt.arguments[2])).builder).replace(
@@ -105,7 +105,7 @@ const sqlite3 = {
           '',
         )}'))
       ELSE
-        DATE(DATETIME(${(await fn(pt.arguments[0])).builder}, 'localtime'),
+        DATE(DATETIME(${(await fn(pt.arguments[0])).builder}),
         ${dateIN > 0 ? '+' : ''}${
           (await fn(pt.arguments[1])).builder
         } || ' ${String((await fn(pt.arguments[2])).builder).replace(
@@ -188,7 +188,7 @@ const sqlite3 = {
       default:
         sql = '';
     }
-    return { builder: knex.raw(`${sql} ${colAlias}`) };
+    return { builder: knex.raw(`ROUND(${sql}) ${colAlias}`) };
   },
   WEEKDAY: async ({ fn, knex, pt, colAlias }: MapFnArgs) => {
     // strftime('%w', date) - day of week 0 - 6 with Sunday == 0

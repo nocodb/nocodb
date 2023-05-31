@@ -1014,7 +1014,11 @@ export class MetaDiffsService {
       }
 
       // todo: impl better method to identify m2m relation
-      if (belongsToCols?.length === 2 && normalColumns.length < 5) {
+      if (
+        belongsToCols?.length === 2 &&
+        normalColumns.length < 5 &&
+        assocModel.primaryKeys.length === 2
+      ) {
         const modelA = await belongsToCols[0].colOptions.getRelatedTable();
         const modelB = await belongsToCols[1].colOptions.getRelatedTable();
 

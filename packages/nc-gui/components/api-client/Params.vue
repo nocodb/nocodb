@@ -15,7 +15,7 @@ const deleteParamRow = (i: number) => vModel.value.splice(i, 1)
 </script>
 
 <template>
-  <div class="flex flex-row justify-center">
+  <div class="flex flex-row justify-start">
     <table>
       <thead>
         <tr>
@@ -24,11 +24,11 @@ const deleteParamRow = (i: number) => vModel.value.splice(i, 1)
           </th>
 
           <th>
-            <div class="text-center font-normal mb-2">Param Name</div>
+            <div class="text-left font-normal ml-2">Param Name</div>
           </th>
 
           <th>
-            <div class="text-center font-normal mb-2">Value</div>
+            <div class="text-left font-normal ml-2">Value</div>
           </th>
 
           <th>

@@ -43,6 +43,7 @@ export default class Project implements ProjectType {
       'prefix',
       'description',
       'is_meta',
+      'status',
     ]);
 
     const { id: projectId } = await ncMeta.metaInsert2(

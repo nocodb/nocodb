@@ -51,7 +51,7 @@ export class FiltersService {
     return filter;
   }
 
-  async filterChildrenList(param: { filterId: any }) {
+  async filterChildrenList(param: { filterId: string }) {
     return Filter.parentFilterList({
       parentId: param.filterId,
     });

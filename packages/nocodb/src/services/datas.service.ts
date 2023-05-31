@@ -13,6 +13,7 @@ import {
   getViewAndModelByAliasOrId,
   serializeCellValue,
 } from '../modules/datas/helpers';
+import type { BaseModelSqlv2 } from '../db/BaseModelSqlv2';
 import type { PathParams } from '../modules/datas/helpers';
 import type { LinkToAnotherRecordColumn, LookupColumn } from '../models';
 
@@ -110,16 +111,23 @@ export class DatasService {
     return await baseModel.delByPk(param.rowId, null, param.cookie);
   }
 
-  async getDataList(param: { model: Model; view: View; query: any }) {
+  async getDataList(param: {
+    model: Model;
+    view: View;
+    query: any;
+    baseModel?: BaseModelSqlv2;
+  }) {
     const { model, view, query = {} } = param;
 
     const base = await Base.get(model.base_id);
 
-    const baseModel = await Model.getBaseModelSQL({
-      id: model.id,
-      viewId: view?.id,
-      dbDriver: await NcConnectionMgrv2.get(base),
-    });
+    const baseModel =
+      param.baseModel ||
+      (await Model.getBaseModelSQL({
+        id: model.id,
+        viewId: view?.id,
+        dbDriver: await NcConnectionMgrv2.get(base),
+      }));
 
     const { ast, dependencyFields } = await getAst({ model, query, view });
 
@@ -177,8 +185,8 @@ export class DatasService {
       view,
     });
 
-    const data = await baseModel.findOne({ ...args, dependencyFields });
-    return data ? await nocoExecute(ast, data, {}, {}) : {};
+    const data = await baseModel.findOne({ ...args, ...dependencyFields });
+    return data ? await nocoExecute(ast, data, {}, dependencyFields) : {};
   }
 
   async getDataGroupBy(param: { model: Model; view: View; query?: any }) {
@@ -213,15 +221,13 @@ export class DatasService {
       dbDriver: await NcConnectionMgrv2.get(base),
     });
 
-    const row = await baseModel.readByPk(param.rowId);
+    const row = await baseModel.readByPk(param.rowId, false, param.query);
 
     if (!row) {
       NcError.notFound('Row not found');
     }
 
-    const { ast } = await getAst({ model, query: param.query, view });
-
-    return await nocoExecute(ast, row, {}, param.query);
+    return row;
   }
 
   async dataExist(param: PathParams & { rowId: string; query: any }) {
@@ -266,9 +272,9 @@ export class DatasService {
       dbDriver: await NcConnectionMgrv2.get(base),
     });
 
-    const { ast } = await getAst({ model, query, view });
+    const { ast, dependencyFields } = await getAst({ model, query, view });
 
-    const listArgs: any = { ...query };
+    const listArgs: any = { ...dependencyFields };
     try {
       listArgs.filterArr = JSON.parse(listArgs.filterArrJson);
     } catch (e) {}
@@ -629,13 +635,16 @@ export class DatasService {
         dbDriver: await NcConnectionMgrv2.get(base),
       });
 
-      const { ast } = await getAst({ model, query: param.query });
+      const { ast, dependencyFields } = await getAst({
+        model,
+        query: param.query,
+      });
 
       return await nocoExecute(
         ast,
-        await baseModel.readByPk(param.rowId),
+        await baseModel.readByPk(param.rowId, false),
         {},
-        {},
+        dependencyFields,
       );
     } catch (e) {
       console.log(e);

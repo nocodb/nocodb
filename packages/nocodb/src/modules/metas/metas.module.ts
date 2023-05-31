@@ -16,7 +16,6 @@ import { GalleriesController } from '../../controllers/galleries.controller';
 import { GridColumnsController } from '../../controllers/grid-columns.controller';
 import { GridsController } from '../../controllers/grids.controller';
 import { HooksController } from '../../controllers/hooks.controller';
-import { ImportController } from '../../controllers/imports/import.controller';
 import { KanbansController } from '../../controllers/kanbans.controller';
 import { MapsController } from '../../controllers/maps.controller';
 import { MetaDiffsController } from '../../controllers/meta-diffs.controller';
@@ -71,7 +70,6 @@ import { ApiDocsService } from '../../services/api-docs/api-docs.service';
 import { GlobalModule } from '../global/global.module';
 import { ProjectUsersController } from '../../controllers/project-users.controller';
 import { ProjectUsersService } from '../../services/project-users/project-users.service';
-import { DatasModule } from '../datas/datas.module';
 
 @Module({
   imports: [
@@ -84,39 +82,42 @@ import { DatasModule } from '../datas/datas.module';
     GlobalModule,
   ],
   controllers: [
-    ApiDocsController,
-    ApiTokensController,
-    AttachmentsController,
-    AuditsController,
-    BasesController,
-    CachesController,
-    ColumnsController,
-    FiltersController,
-    FormColumnsController,
-    FormsController,
-    GalleriesController,
-    GridColumnsController,
-    GridsController,
-    HooksController,
-    ImportController,
-    KanbansController,
-    MapsController,
-    MetaDiffsController,
-    ModelVisibilitiesController,
-    OrgLcenseController,
-    OrgTokensController,
-    OrgUsersController,
-    PluginsController,
-    ProjectUsersController,
-    ProjectsController,
-    PublicMetasController,
-    ViewsController,
-    ViewColumnsController,
-    UtilsController,
-    TablesController,
-    SyncController,
-    SortsController,
-    SharedBasesController,
+    ...(process.env.NC_WORKER_CONTAINER !== 'true'
+      ? [
+          ApiDocsController,
+          ApiTokensController,
+          AttachmentsController,
+          AuditsController,
+          BasesController,
+          CachesController,
+          ColumnsController,
+          FiltersController,
+          FormColumnsController,
+          FormsController,
+          GalleriesController,
+          GridColumnsController,
+          GridsController,
+          HooksController,
+          KanbansController,
+          MapsController,
+          MetaDiffsController,
+          ModelVisibilitiesController,
+          OrgLcenseController,
+          OrgTokensController,
+          OrgUsersController,
+          PluginsController,
+          ProjectUsersController,
+          ProjectsController,
+          PublicMetasController,
+          ViewsController,
+          ViewColumnsController,
+          UtilsController,
+          TablesController,
+          SyncController,
+          SortsController,
+          SharedBasesController,
+        ]
+      : []),
   ],
   providers: [
     ApiDocsService,
@@ -155,6 +156,24 @@ import { DatasModule } from '../datas/datas.module';
     SortsService,
     SharedBasesService,
     BulkDataAliasService,
+  ],
+  exports: [
+    TablesService,
+    ColumnsService,
+    FiltersService,
+    SortsService,
+    ViewsService,
+    ViewColumnsService,
+    GridsService,
+    GridColumnsService,
+    FormsService,
+    FormColumnsService,
+    GalleriesService,
+    KanbansService,
+    ProjectsService,
+    AttachmentsService,
+    ProjectUsersService,
+    HooksService,
   ],
 })
 export class MetasModule {}

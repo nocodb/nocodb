@@ -50,6 +50,7 @@ import {
 import swaggerController from '../../controllers/apiDocs';
 import { importController, syncSourceController } from '../../controllers/sync';
 import mapViewController from '../../controllers/views/mapView.ctl';
+import exportImportController from '../../controllers/exportImport'
 import type { Socket } from 'socket.io';
 import type { Router } from 'express';
 
@@ -103,6 +104,8 @@ export default function (router: Router, server) {
   router.use(syncSourceController);
   router.use(kanbanViewController);
   router.use(mapViewController);
+  router.use(exportImportController.exportController);
+  router.use(exportImportController.importController);
 
   userController(router);
 

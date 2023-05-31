@@ -1,4 +1,5 @@
 import { isVirtualCol, ModelTypes, UITypes, ViewTypes } from 'nocodb-sdk';
+import dayjs from 'dayjs';
 import { BaseModelSqlv2 } from '../db/BaseModelSqlv2';
 import Noco from '../Noco';
 import { parseMetaProp } from '../utils/modelUtils';
@@ -15,6 +16,7 @@ import { sanitize } from '../helpers/sqlSanitize';
 import { extractProps } from '../helpers/extractProps';
 import Audit from './Audit';
 import View from './View';
+import Base from './Base';
 import Column from './Column';
 import type { BoolType, TableReqType, TableType } from 'nocodb-sdk';
 import type { XKnex } from '../db/CustomKnex';
@@ -78,10 +80,18 @@ export default class Model implements TableType {
     return this.columns?.filter((c) => c.pk);
   }
 
+  // If there is no column marked as display value,
+  // we are getting the immediate next column to pk as display value
+  // or the first column(if pk is the last column).
   public get displayValue(): Column {
     if (!this.columns) return null;
     const pCol = this.columns?.find((c) => c.pv);
     if (pCol) return pCol;
+    if (this.mm) {
+      // by default, there is no default value in m2m table
+      // take the first column instead
+      return this.columns[0];
+    }
     const pkIndex = this.columns.indexOf(this.primaryKey);
     if (pkIndex < this.columns.length - 1) return this.columns[pkIndex + 1];
     return this.columns[0];
@@ -127,7 +137,15 @@ export default class Model implements TableType {
       MetaTable.MODELS,
       insertObj,
     );
-
+    if (baseId) {
+      await NocoCache.appendToList(
+        CacheScope.MODEL,
+        [projectId, baseId],
+        `${CacheScope.MODEL}:${id}`,
+      );
+    }
+    // cater cases where baseId is not required
+    // e.g. xcVisibilityMetaGet
     await NocoCache.appendToList(
       CacheScope.MODEL,
       [projectId],
@@ -161,7 +179,10 @@ export default class Model implements TableType {
     },
     ncMeta = Noco.ncMeta,
   ): Promise<Model[]> {
-    const cachedList = await NocoCache.getList(CacheScope.MODEL, [project_id]);
+    const cachedList = await NocoCache.getList(CacheScope.MODEL, [
+      project_id,
+      base_id,
+    ]);
     let { list: modelList } = cachedList;
     const { isNoneList } = cachedList;
     if (!isNoneList && !modelList.length) {
@@ -181,7 +202,11 @@ export default class Model implements TableType {
         model.meta = parseMetaProp(model);
       }
 
-      await NocoCache.setList(CacheScope.MODEL, [project_id], modelList);
+      await NocoCache.setList(
+        CacheScope.MODEL,
+        [project_id, base_id],
+        modelList,
+      );
     }
     modelList.sort(
       (a, b) =>
@@ -331,6 +356,11 @@ export default class Model implements TableType {
   ): Promise<BaseModelSqlv2> {
     const model = args?.model || (await this.get(args.id, ncMeta));
 
+    if (!args?.viewId) {
+      const view = await View.getDefaultView(model.id, ncMeta);
+      args.viewId = view.id;
+    }
+
     return new BaseModelSqlv2({
       dbDriver: args.dbDriver,
       viewId: args.viewId,
@@ -430,8 +460,18 @@ export default class Model implements TableType {
     return true;
   }
 
-  async mapAliasToColumn(data) {
+  async mapAliasToColumn(
+    data,
+    clientMeta = {
+      isMySQL: false,
+      isSqlite: false,
+      isMssql: false,
+      isPg: false,
+    },
+    knex,
+  ) {
     const insertObj = {};
+    const base = await Base.get(this.base_id);
     for (const col of await this.getColumns()) {
       if (isVirtualCol(col)) continue;
       let val =
@@ -441,6 +481,57 @@ export default class Model implements TableType {
       if (val !== undefined) {
         if (col.uidt === UITypes.Attachment && typeof val !== 'string') {
           val = JSON.stringify(val);
+        }
+        if (col.uidt === UITypes.DateTime && dayjs(val).isValid()) {
+          const { isMySQL, isSqlite, isMssql, isPg } = clientMeta;
+          if (
+            val.indexOf('-') < 0 &&
+            val.indexOf('+') < 0 &&
+            val.slice(-1) !== 'Z'
+          ) {
+            // if no timezone is given,
+            // then append +00:00 to make it as UTC
+            val += '+00:00';
+          }
+          if (isMySQL) {
+            // first convert the value to utc
+            // from UI
+            // e.g. 2022-01-01 20:00:00Z -> 2022-01-01 20:00:00
+            // from API
+            // e.g. 2022-01-01 20:00:00+08:00 -> 2022-01-01 12:00:00
+            // if timezone info is not found - considered as utc
+            // e.g. 2022-01-01 20:00:00 -> 2022-01-01 20:00:00
+            // if timezone info is found
+            // e.g. 2022-01-01 20:00:00Z -> 2022-01-01 20:00:00
+            // e.g. 2022-01-01 20:00:00+00:00 -> 2022-01-01 20:00:00
+            // e.g. 2022-01-01 20:00:00+08:00 -> 2022-01-01 12:00:00
+            // then we use CONVERT_TZ to convert that in the db timezone
+            val = knex.raw(`CONVERT_TZ(?, '+00:00', @@GLOBAL.time_zone)`, [
+              dayjs(val).utc().format('YYYY-MM-DD HH:mm:ss'),
+            ]);
+          } else if (isSqlite) {
+            // convert to UTC
+            // e.g. 2022-01-01T10:00:00.000Z -> 2022-01-01 04:30:00+00:00
+            val = dayjs(val).utc().format('YYYY-MM-DD HH:mm:ssZ');
+          } else if (isPg) {
+            // convert to UTC
+            // e.g. 2023-01-01T12:00:00.000Z -> 2023-01-01 12:00:00+00:00
+            // then convert to db timezone
+            val = knex.raw(`? AT TIME ZONE CURRENT_SETTING('timezone')`, [
+              dayjs(val).utc().format('YYYY-MM-DD HH:mm:ssZ'),
+            ]);
+          } else if (isMssql) {
+            // convert ot UTC
+            // e.g. 2023-05-10T08:49:32.000Z -> 2023-05-10 08:49:32-08:00
+            // then convert to db timezone
+            val = knex.raw(
+              `SWITCHOFFSET(CONVERT(datetimeoffset, ?), DATENAME(TzOffset, SYSDATETIMEOFFSET()))`,
+              [dayjs(val).utc().format('YYYY-MM-DD HH:mm:ssZ')],
+            );
+          } else {
+            // e.g. 2023-01-01T12:00:00.000Z -> 2023-01-01 12:00:00+00:00
+            val = dayjs(val).utc().format('YYYY-MM-DD HH:mm:ssZ');
+          }
         }
         insertObj[sanitize(col.column_name)] = val;
       }
@@ -670,13 +761,13 @@ export default class Model implements TableType {
     },
     ncMeta = Noco.ncMeta,
   ) {
+    const cacheKey = base_id
+      ? `${CacheScope.MODEL}:${project_id}:${base_id}:${aliasOrId}`
+      : `${CacheScope.MODEL}:${project_id}:${aliasOrId}`;
     const modelId =
       project_id &&
       aliasOrId &&
-      (await NocoCache.get(
-        `${CacheScope.MODEL}:${project_id}:${aliasOrId}`,
-        CacheGetType.TYPE_OBJECT,
-      ));
+      (await NocoCache.get(cacheKey, CacheGetType.TYPE_OBJECT));
     if (!modelId) {
       const model = base_id
         ? await ncMeta.metaGet2(
@@ -722,10 +813,7 @@ export default class Model implements TableType {
             },
           );
       if (model) {
-        await NocoCache.set(
-          `${CacheScope.MODEL}:${project_id}:${aliasOrId}`,
-          model.id,
-        );
+        await NocoCache.set(cacheKey, model.id);
         await NocoCache.set(`${CacheScope.MODEL}:${model.id}`, model);
       }
       return model && new Model(model);

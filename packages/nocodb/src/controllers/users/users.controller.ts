@@ -13,7 +13,10 @@ import * as ejs from 'ejs';
 import { AuthGuard } from '@nestjs/passport';
 import { GlobalGuard } from '../../guards/global/global.guard';
 import { NcError } from '../../helpers/catchError';
-import { Acl } from '../../middlewares/extract-project-id/extract-project-id.middleware';
+import {
+  Acl,
+  ExtractProjectIdMiddleware,
+} from '../../middlewares/extract-project-id/extract-project-id.middleware';
 import { User } from '../../models';
 import {
   randomTokenString,
@@ -96,7 +99,7 @@ export class UsersController {
   }
 
   @Get(['/auth/user/me', '/api/v1/db/auth/user/me', '/api/v1/auth/user/me'])
-  @UseGuards(GlobalGuard)
+  @UseGuards(ExtractProjectIdMiddleware, GlobalGuard)
   async me(@Request() req) {
     const user = {
       ...req.user,

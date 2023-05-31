@@ -174,11 +174,6 @@ export default class ProjectUser {
   }
 
   static async delete(projectId: string, userId: string, ncMeta = Noco.ncMeta) {
-    // await NocoCache.deepDel(
-    //   CacheScope.PROJECT_USER,
-    //   `${CacheScope.PROJECT_USER}:${projectId}:${userId}`,
-    //   CacheDelDirection.CHILD_TO_PARENT
-    // );
     const { email } = await ncMeta.metaGet2(null, null, MetaTable.USERS, {
       id: userId,
     });

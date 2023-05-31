@@ -9,7 +9,6 @@ import {
   UseGuards,
 } from '@nestjs/common';
 import { GalleryUpdateReqType, ViewCreateReqType } from 'nocodb-sdk';
-import { AuthGuard } from '@nestjs/passport';
 import { GlobalGuard } from '../guards/global/global.guard';
 import {
   Acl,

@@ -21,14 +21,12 @@ async function readAllData({
   fields,
   base,
   logBasic = (_str) => {},
-  services,
 }: {
   table: { title?: string };
   fields?;
   base: AirtableBase;
   logBasic?: (string) => void;
   logDetailed?: (string) => void;
-  services: AirtableImportContext;
 }): Promise<EntityMap> {
   return new Promise((resolve, reject) => {
     let data = null;

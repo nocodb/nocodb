@@ -1,10 +1,7 @@
-import { promisify } from 'util';
 import { Injectable, SetMetadata, UseInterceptors } from '@nestjs/common';
 import { Reflector } from '@nestjs/core';
-import { NextFunction, Request, Response } from 'express';
 import { OrgUserRoles } from 'nocodb-sdk';
-import passport from 'passport';
-import { map, throwError } from 'rxjs';
+import { map } from 'rxjs';
 import {
   Column,
   Filter,
@@ -19,8 +16,7 @@ import {
 } from '../../models';
 import extractRolesObj from '../../utils/extractRolesObj';
 import projectAcl from '../../utils/projectAcl';
-import catchError, { NcError } from '../catchError';
-import extractProjectIdAndAuthenticate from '../extractProjectIdAndAuthenticate';
+import { NcError } from '../catchError';
 import type { Observable } from 'rxjs';
 import type {
   CallHandler,

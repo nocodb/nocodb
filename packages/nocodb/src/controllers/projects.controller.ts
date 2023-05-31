@@ -11,7 +11,6 @@ import {
   Request,
   UseGuards,
 } from '@nestjs/common';
-import { AuthGuard } from '@nestjs/passport';
 import isDocker from 'is-docker';
 import { ProjectReqType } from 'nocodb-sdk';
 import { GlobalGuard } from '../guards/global/global.guard';
@@ -19,7 +18,6 @@ import { PagedResponseImpl } from '../helpers/PagedResponse';
 import {
   ExtractProjectIdMiddleware,
   UseAclMiddleware,
-  UseProjectIdMiddleware,
 } from '../middlewares/extract-project-id/extract-project-id.middleware';
 import Noco from '../Noco';
 import { packageVersion } from '../utils/packageVersion';

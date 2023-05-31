@@ -19,16 +19,7 @@ import DOMPurify from 'isomorphic-dompurify';
 import { v4 as uuidv4 } from 'uuid';
 import { NcError } from '../helpers/catchError';
 import getAst from '../helpers/getAst';
-import {
-  Audit,
-  Base,
-  Column,
-  Filter,
-  Model,
-  Project,
-  Sort,
-  View,
-} from '../models';
+import { Audit, Column, Filter, Model, Project, Sort, View } from '../models';
 import { sanitize, unsanitize } from '../helpers/sqlSanitize';
 import {
   COMPARISON_OPS,

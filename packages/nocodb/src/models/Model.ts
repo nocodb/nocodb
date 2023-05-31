@@ -471,7 +471,6 @@ export default class Model implements TableType {
     knex,
   ) {
     const insertObj = {};
-    const base = await Base.get(this.base_id);
     for (const col of await this.getColumns()) {
       if (isVirtualCol(col)) continue;
       let val =

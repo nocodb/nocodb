@@ -3,7 +3,6 @@ import { ErrorMessages, RelationTypes, UITypes } from 'nocodb-sdk';
 import { NcError } from '../helpers/catchError';
 import { Base, Column, Model, Project, View } from '../models';
 import type { LinkToAnotherRecordColumn, LookupColumn } from '../models';
-import type { LinkToAnotherRecordType } from 'nocodb-sdk';
 
 @Injectable()
 export class PublicMetasService {

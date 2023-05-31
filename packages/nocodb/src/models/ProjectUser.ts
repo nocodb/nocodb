@@ -194,11 +194,16 @@ export default class ProjectUser {
     const { isNoneList } = cachedList;
     if (!isNoneList && cachedProjectList?.length) {
       cachedProjectList = cachedProjectList.filter((p) => p.id !== projectId);
-      await NocoCache.setList(
-        CacheScope.USER_PROJECT,
-        [userId],
-        cachedProjectList,
-      );
+      // delete the whole list first so that the old one won't be included
+      await NocoCache.del(`${CacheScope.USER_PROJECT}:${userId}:list`);
+      if (cachedProjectList.length > 0) {
+        // set the updated list (i.e. excluding the to-be-deleted project id)
+        await NocoCache.setList(
+          CacheScope.USER_PROJECT,
+          [userId],
+          cachedProjectList,
+        );
+      }
     }
 
     await NocoCache.del(`${CacheScope.PROJECT_USER}:${projectId}:${userId}`);

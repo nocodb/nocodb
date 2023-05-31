@@ -1,4 +1,3 @@
-import debug from 'debug';
 import { Router } from 'express';
 import GqlXcSchemaFactory from '../../../db/sql-mgr/code/gql-schema/xc-ts/GqlXcSchemaFactory';
 import BaseApiBuilder from '../BaseApiBuilder';

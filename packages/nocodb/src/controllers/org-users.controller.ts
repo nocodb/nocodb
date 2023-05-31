@@ -10,7 +10,6 @@ import {
   Request,
   UseGuards,
 } from '@nestjs/common';
-import { AuthGuard } from '@nestjs/passport';
 import { OrgUserRoles } from 'nocodb-sdk';
 import { GlobalGuard } from '../guards/global/global.guard';
 import { PagedResponseImpl } from '../helpers/PagedResponse';

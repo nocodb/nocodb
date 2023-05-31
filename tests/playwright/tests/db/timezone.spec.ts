@@ -147,9 +147,16 @@ test.describe('Timezone-XCDB : Japan/Tokyo', () => {
 
     await dashboard.treeView.openTable({ title: 'dateTimeTable' });
 
-    // DateTime inserted using API without timezone is converted to UTC
+    // DateTime inserted using API without timezone is converted to db-timezone (server timezone in case of sqlite)
     // Display value is converted to Asia/Tokyo
-    await dashboard.grid.cell.verifyDateCell({ index: 0, columnHeader: 'DateTime', value: '2021-01-01 09:00' });
+    const dateInserted = new Date(`2021-01-01 00:00:00${getBrowserTimezoneOffset()}`);
+    // convert dateInserted to Japan/Tokyo timezone in YYYY-MM-DD HH:mm format
+    const dateInsertedInJapan = new Date(dateInserted.getTime() + 9 * 60 * 60 * 1000)
+      .toISOString()
+      .slice(0, 16)
+      .replace('T', ' ');
+
+    await dashboard.grid.cell.verifyDateCell({ index: 0, columnHeader: 'DateTime', value: dateInsertedInJapan });
 
     // DateTime inserted using API with timezone is converted to UTC
     // Display value is converted to Asia/Tokyo
@@ -173,8 +180,16 @@ test.describe('Timezone-XCDB : Japan/Tokyo', () => {
   test('API Insert, verify API read response', async () => {
     if (!isSqlite(context)) return;
 
+    const dateInserted = new Date(`2021-01-01 00:00:00${getBrowserTimezoneOffset()}`);
+    // translate dateInserted to UTC in YYYY-MM-DD HH:mm format
+    const dateInsertedInUTC = dateInserted.toISOString().replace('T', ' ').replace('Z', '');
+
     // UTC expected response
-    const dateUTC = ['2021-01-01 00:00:00+00:00', '2021-01-01 00:00:00+00:00', '2021-01-01 00:00:00+00:00'];
+    const dateUTC = [
+      `${dateInsertedInUTC.slice(0, 19)}+00:00`,
+      '2021-01-01 00:00:00+00:00',
+      '2021-01-01 00:00:00+00:00',
+    ];
 
     const readDate = records.list.map(record => record.DateTime);
 
@@ -231,7 +246,18 @@ test.describe('Timezone-XCDB : Asia/Hong-kong', () => {
 
     // DateTime inserted using API without timezone is converted to UTC
     // Display value is converted to Asia/Hong_Kong
-    await dashboard.grid.cell.verifyDateCell({ index: 0, columnHeader: 'DateTime', value: '2021-01-01 08:00' });
+    const dateInserted = new Date(`2021-01-01 00:00:00${getBrowserTimezoneOffset()}`);
+    // convert dateInserted to Asia/Hong-kong timezone using offset
+    const dateInsertedInHK = new Date(dateInserted.getTime() + 8 * 60 * 60 * 1000)
+      .toISOString()
+      .slice(0, 16)
+      .replace('T', ' ');
+
+    await dashboard.grid.cell.verifyDateCell({
+      index: 0,
+      columnHeader: 'DateTime',
+      value: dateInsertedInHK,
+    });
 
     // DateTime inserted using API with timezone is converted to UTC
     // Display value is converted to Asia/Hong_Kong

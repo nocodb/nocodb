@@ -7,6 +7,7 @@ import {
   ColumnInj,
   IsFormInj,
   IsLockedInj,
+  IsUnderLookupInj,
   ReadonlyInj,
   ReloadRowDataHookInj,
   RowInj,
@@ -35,6 +36,8 @@ const readOnly = inject(ReadonlyInj, ref(false))
 const isForm = inject(IsFormInj, ref(false))
 
 const isLocked = inject(IsLockedInj, ref(false))
+
+const isUnderLookup = inject(IsUnderLookupInj, ref(false))
 
 const { isUIAllowed } = useUIPermission()
 
@@ -89,7 +92,7 @@ useSelectedCellKeyupListener(active, (e: KeyboardEvent) => {
     </div>
 
     <div
-      v-if="!readOnly && !isLocked && (isUIAllowed('xcDatatableEditable') || isForm)"
+      v-if="!readOnly && !isLocked && (isUIAllowed('xcDatatableEditable') || isForm) && !isUnderLookup"
       class="flex justify-end gap-1 min-h-[30px] items-center"
     >
       <GeneralIcon

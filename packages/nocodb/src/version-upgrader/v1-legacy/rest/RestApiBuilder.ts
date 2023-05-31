@@ -1,16 +1,13 @@
-import debug from 'debug';
 import autoBind from 'auto-bind';
 import SwaggerXc from '../../../db/sql-mgr/code/routers/xc-ts/SwaggerXc';
 import ExpressXcTsRoutes from '../../../db/sql-mgr/code/routes/xc-ts/ExpressXcTsRoutes';
 import NcHelp from '../../../utils/NcHelp';
-import BaseApiBuilder, { XcTablesPopulateParams } from '../BaseApiBuilder';
+import BaseApiBuilder from '../BaseApiBuilder';
 import type { MetaService } from '../../../meta/meta.service';
 import type Noco from '../../../Noco';
 import type { Router } from 'express';
 import type { DbConfig, NcConfig } from '../../../interface/config';
 import type NcProjectBuilder from '../NcProjectBuilder';
-
-const log = debug('nc:api:rest');
 
 export class RestApiBuilder extends BaseApiBuilder<Noco> {
   public readonly type = 'rest';

@@ -65,6 +65,13 @@ const viewerPermissions = {
     pageParents: true,
     pagePaginate: true,
     trackEvents: true,
+
+    // dashboards
+    layoutGet: true,
+    layoutList: true,
+    widgetsList: true,
+    widgetGet: true,
+    widgetFilterList: true,
   },
 };
 const rolePermissions = {
@@ -135,18 +142,6 @@ const rolePermissions = {
       //table
       tableList: true,
       tableGet: true,
-
-      // dashboards
-      layoutGet: true,
-      layoutList: true,
-      layoutCreate: true,
-      widgetsList: true,
-      widgetGet: true,
-      widgetCreate: true,
-      widgetUpdate: true,
-      widgetDelete: true,
-      widgetFilterList: true,
-      widgetFilterCreate: true,
 
       // data
       dataList: true,
@@ -287,6 +282,18 @@ const rolePermissions = {
       pageDirectoryImport: true,
       docsMagicCreatePages: true,
       trackEvents: true,
+
+      // dashboards
+      layoutGet: true,
+      layoutList: true,
+      layoutCreate: true,
+      widgetsList: true,
+      widgetGet: true,
+      widgetCreate: true,
+      widgetUpdate: true,
+      widgetDelete: true,
+      widgetFilterList: true,
+      widgetFilterCreate: true,
     },
   },
   commenter: {
@@ -413,6 +420,18 @@ const rolePermissions = {
       pageDirectoryImport: true,
 
       trackEvents: true,
+
+      // dashboards
+      layoutGet: true,
+      layoutList: true,
+      layoutCreate: true,
+      widgetsList: true,
+      widgetGet: true,
+      widgetCreate: true,
+      widgetUpdate: true,
+      widgetDelete: true,
+      widgetFilterList: true,
+      widgetFilterCreate: true,
     },
   },
 

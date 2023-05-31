@@ -2,7 +2,7 @@ import { Injectable } from '@nestjs/common';
 import { ErrorMessages, RelationTypes, UITypes } from 'nocodb-sdk';
 import { NcError } from '../helpers/catchError';
 import { Base, Column, Model, Project, View } from '../models';
-import type { LinkToAnotherRecordColumn } from '../models';
+import type { LinkToAnotherRecordColumn, LookupColumn } from '../models';
 import type { LinkToAnotherRecordType } from 'nocodb-sdk';
 
 @Injectable()
@@ -63,23 +63,88 @@ export class PublicMetasService {
 
     // load related table metas
     for (const col of view.model.columns) {
-      if (UITypes.LinkToAnotherRecord === col.uidt) {
-        const colOpt = await col.getColOptions<LinkToAnotherRecordType>();
-        relatedMetas[colOpt.fk_related_model_id] = await Model.getWithInfo({
-          id: colOpt.fk_related_model_id,
-        });
-        if (colOpt.type === 'mm') {
-          relatedMetas[colOpt.fk_mm_model_id] = await Model.getWithInfo({
-            id: colOpt.fk_mm_model_id,
-          });
-        }
-      }
+      await this.extractRelatedMetas({ col, relatedMetas });
     }
 
     view.relatedMetas = relatedMetas;
 
     return view;
   }
+
+  private async extractRelatedMetas({
+    col,
+    relatedMetas = {},
+  }: {
+    col: Column<any>;
+    relatedMetas: Record<string, Model>;
+  }) {
+    if (UITypes.LinkToAnotherRecord === col.uidt) {
+      await this.extractLTARRelatedMetas({
+        ltarColOption: await col.getColOptions<LinkToAnotherRecordColumn>(),
+        relatedMetas,
+      });
+    } else if (UITypes.Lookup === col.uidt) {
+      await this.extractLookupRelatedMetas({
+        lookupColOption: await col.getColOptions<LookupColumn>(),
+        relatedMetas,
+      });
+    }
+  }
+
+  private async extractLTARRelatedMetas({
+    ltarColOption,
+    relatedMetas = {},
+  }: {
+    ltarColOption: LinkToAnotherRecordColumn;
+    relatedMetas: { [key: string]: Model };
+  }) {
+    relatedMetas[ltarColOption.fk_related_model_id] = await Model.getWithInfo({
+      id: ltarColOption.fk_related_model_id,
+    });
+    if (ltarColOption.type === 'mm') {
+      relatedMetas[ltarColOption.fk_mm_model_id] = await Model.getWithInfo({
+        id: ltarColOption.fk_mm_model_id,
+      });
+    }
+  }
+
+  private async extractLookupRelatedMetas({
+    lookupColOption,
+    relatedMetas = {},
+  }: {
+    lookupColOption: LookupColumn;
+    relatedMetas: { [key: string]: Model };
+  }) {
+    const relationCol = await Column.get({
+      colId: lookupColOption.fk_relation_column_id,
+    });
+    const lookedUpCol = await Column.get({
+      colId: lookupColOption.fk_lookup_column_id,
+    });
+
+    // extract meta for table which belongs the relation column
+    // if not already extracted
+    if (!relatedMetas[relationCol.fk_model_id]) {
+      relatedMetas[relationCol.fk_model_id] = await Model.getWithInfo({
+        id: relationCol.fk_model_id,
+      });
+    }
+
+    // extract meta for table in which looked up column belongs
+    // if not already extracted
+    if (!relatedMetas[lookedUpCol.fk_model_id]) {
+      relatedMetas[lookedUpCol.fk_model_id] = await Model.getWithInfo({
+        id: lookedUpCol.fk_model_id,
+      });
+    }
+
+    // extract metas related to the looked up column
+    await this.extractRelatedMetas({
+      col: lookedUpCol,
+      relatedMetas,
+    });
+  }
+
   async publicSharedBaseGet(param: { sharedBaseUuid: string }): Promise<any> {
     const project = await Project.getByUuid(param.sharedBaseUuid);
 

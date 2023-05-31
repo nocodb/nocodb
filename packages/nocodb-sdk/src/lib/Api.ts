@@ -546,7 +546,39 @@ export interface FilterType {
     | 'notchecked'
     | 'notempty'
     | 'notnull'
-    | 'null';
+    | 'null'
+    | null
+    | (
+        | 'allof'
+        | 'anyof'
+        | 'blank'
+        | 'btw'
+        | 'checked'
+        | 'empty'
+        | 'eq'
+        | 'ge'
+        | 'gt'
+        | 'gte'
+        | 'in'
+        | 'is'
+        | 'isWithin'
+        | 'isnot'
+        | 'le'
+        | 'like'
+        | 'lt'
+        | 'lte'
+        | 'nallof'
+        | 'nanyof'
+        | 'nbtw'
+        | 'neq'
+        | 'nlike'
+        | 'not'
+        | 'notblank'
+        | 'notchecked'
+        | 'notempty'
+        | 'notnull'
+        | ('null' & null)
+      );
   /** Comparison Sub-Operator */
   comparison_sub_op?:
     | 'daysAgo'
@@ -589,7 +621,7 @@ export interface FilterType {
         | ('yesterday' & null)
       );
   /** Foreign Key to Column */
-  fk_column_id?: IdType;
+  fk_column_id?: StringOrNullType;
   /** Foreign Key to Hook */
   fk_hook_id?: StringOrNullType;
   /** Foreign Key to Model */
@@ -664,7 +696,39 @@ export interface FilterReqType {
     | 'notchecked'
     | 'notempty'
     | 'notnull'
-    | 'null';
+    | 'null'
+    | null
+    | (
+        | 'allof'
+        | 'anyof'
+        | 'blank'
+        | 'btw'
+        | 'checked'
+        | 'empty'
+        | 'eq'
+        | 'ge'
+        | 'gt'
+        | 'gte'
+        | 'in'
+        | 'is'
+        | 'isWithin'
+        | 'isnot'
+        | 'le'
+        | 'like'
+        | 'lt'
+        | 'lte'
+        | 'nallof'
+        | 'nanyof'
+        | 'nbtw'
+        | 'neq'
+        | 'nlike'
+        | 'not'
+        | 'notblank'
+        | 'notchecked'
+        | 'notempty'
+        | 'notnull'
+        | ('null' & null)
+      );
   /** Comparison Sub-Operator */
   comparison_sub_op?:
     | 'daysAgo'
@@ -707,7 +771,7 @@ export interface FilterReqType {
         | ('yesterday' & null)
       );
   /** Foreign Key to Column */
-  fk_column_id?: IdType;
+  fk_column_id?: StringOrNullType;
   /** Belong to which filter ID */
   fk_parent_id?: StringOrNullType;
   /** Is this filter grouped? */

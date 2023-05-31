@@ -126,6 +126,8 @@ export class NcConfig {
 
     if (dashboardPath) {
       ncConfig.dashboardPath = dashboardPath;
+    } else {
+      ncConfig.dashboardPath = '/dashboard';
     }
 
     try {

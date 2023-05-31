@@ -68,8 +68,7 @@ export function addAxiosInterceptors(api: Api<any>) {
         .catch(async (error) => {
           await state.signOut()
 
-          // todo: handle new user
-          navigateTo('/signIn')
+          if (!route.meta.public) navigateTo('/signIn')
 
           return Promise.reject(error)
         })

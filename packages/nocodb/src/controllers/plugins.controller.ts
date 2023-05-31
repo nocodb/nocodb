@@ -14,11 +14,11 @@ import { Acl } from '../middlewares/extract-project-id/extract-project-id.middle
 import { PluginsService } from '../services/plugins.service';
 
 // todo: move to a interceptor
-const blockInCloudMw = (_req, res, next) => {
-  if (process.env.NC_CLOUD === 'true') {
-    res.status(403).send('Not allowed');
-  } else next();
-};
+// const blockInCloudMw = (_req, res, next) => {
+//   if (process.env.NC_CLOUD === 'true') {
+//     res.status(403).send('Not allowed');
+//   } else next();
+// };
 
 @Controller()
 @UseGuards(GlobalGuard)

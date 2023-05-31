@@ -74,6 +74,8 @@ export interface DataConfigNumber {
   selectRecordsMode?: 'all_records' | 'specific_records';
   colId?: string;
   aggregateFunction?: AggregateFnType;
+  name?: string;
+  description?: string;
 }
 
 export interface DataConfigStaticText {
@@ -82,8 +84,15 @@ export interface DataConfigStaticText {
 
 export interface DataConfigAggregated2DChart {
   xAxisColId?: string;
+  xAxisOrderBy?: 'x_val' | 'y_val';
+  xAxisOrderDirection?: 'asc' | 'desc';
+  xAxisIncludeEmptyRecords?: boolean;
+  recordCountOrFieldSummary?: 'record_count' | 'field_summary';
+  yAxisRecordCountMode?: 'count' | 'distinct';
   yAxisColId?: string;
   aggregateFunction?: AggregateFnType;
+  yAxisGroupByColId?: string;
+  yAxisStartAtZero?: boolean;
 }
 export type DataConfigBarChart = DataConfigAggregated2DChart;
 export type DataConfigLineChart = DataConfigAggregated2DChart;
@@ -124,8 +133,6 @@ export enum FontType {
 }
 
 export interface AppearanceConfigBase {
-  name: string;
-  description?: string;
   screenDimensions: ScreenDimensions;
   screenPosition: ScreenPosition;
 }

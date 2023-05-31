@@ -19,13 +19,16 @@ const data_source = computed(() => widgetConfig.value?.data_source as DataSource
 const data_config = computed(() => widgetConfig.value?.data_config as DataConfigNumber)
 
 const dataLinkConfigIsMissing = computed(() => {
+  debugger
   return (
     !data_source.value ||
     !data_source?.value.projectId ||
     !data_source?.value.tableId ||
     !data_source.value.viewId ||
-    !data_config.value.colId ||
-    !data_config.value.aggregateFunction
+    !(
+      (data_config.value.colId && data_config.value.aggregateFunction) ||
+      data_config.value.recordCountOrFieldSummary === 'record_count'
+    )
   )
 })
 

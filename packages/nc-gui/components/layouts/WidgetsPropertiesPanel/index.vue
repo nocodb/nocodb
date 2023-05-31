@@ -35,8 +35,7 @@ const chartTypesForDropdown = computed(() =>
     <div v-else-if="focusedWidget?.widget_type">
       {{ $t(`dashboards.widgets.${focusedWidget.widget_type}`) }}
     </div>
-    <input placeholder="Value" class="nc-value-input" />
-    <textarea placeholder="Description" class="nc-description-input"></textarea>
+    <LayoutsWidgetsPropertiesPanelTopSectionsNumber v-if="isNumber" />
     <a-radio-group v-model:value="dataOrAppearanceMode" class="nc-radio-group">
       <a-radio-button class="nc-radio-button" value="data">Data</a-radio-button>
       <a-radio-button class="nc-radio-button" value="appearance">Appearance</a-radio-button>
@@ -57,14 +56,6 @@ const chartTypesForDropdown = computed(() =>
 </template>
 
 <style scoped lang="scss">
-.nc-value-input {
-  @apply flex-grow py-1 px-3 border-grey-light border border-solid rounded-lg text-sm w-full my-2;
-}
-
-.nc-description-input {
-  @apply flex-grow py-1 px-3 !border-gray-200 border border-solid rounded-lg text-sm w-full my-2;
-}
-
 .nc-radio-group {
   @apply flex w-full bg-gray-200 p-1 rounded-lg;
 }

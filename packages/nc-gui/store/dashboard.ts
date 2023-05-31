@@ -615,8 +615,6 @@ export const useDashboardStore = defineStore('dashboardStore', () => {
       layout_id: openedLayoutId.value!,
       schema_version: '1.0.0',
       appearance_config: {
-        name: 'New element',
-        description: 'Empty description',
         screenPosition: {
           x: screenPosition.x - defaultScreenDimensions.width / 2,
           y: screenPosition.y - defaultScreenDimensions.height / 2,
@@ -741,7 +739,16 @@ export const useDashboardStore = defineStore('dashboardStore', () => {
   }
 
   const changeSelectRecordsModeForNumberWidgetDataConfig = (newVal: string) => {
-    if (!focusedWidget.value || ![WidgetTypeType.Number].includes(focusedWidget.value.widget_type)) {
+    if (
+      !focusedWidget.value ||
+      ![
+        WidgetTypeType.Number,
+        WidgetTypeType.BarChart,
+        WidgetTypeType.LineChart,
+        WidgetTypeType.PieChart,
+        WidgetTypeType.ScatterPlot,
+      ].includes(focusedWidget.value.widget_type)
+    ) {
       console.error('changeSelectRecordsModeForNumberWidgetDataConfig: focusedWidget.value is undefined or not a Number widget')
       return
     }
@@ -755,9 +762,9 @@ export const useDashboardStore = defineStore('dashboardStore', () => {
   }
 
   const changeRecordCountOrFieldSummaryForNumberWidgetDataConfig = (newVal: string) => {
-    if (!focusedWidget.value || ![WidgetTypeType.Number].includes(focusedWidget.value.widget_type)) {
+    if (!focusedWidget.value || ![WidgetTypeType.Number, ...chartTypes].includes(focusedWidget.value.widget_type)) {
       console.error(
-        'changeRecordCountOrFieldSummaryForNumberWidgetDataConfig: focusedWidget.value is undefined or not a Number widget',
+        'changeRecordCountOrFieldSummaryForNumberWidgetDataConfig: focusedWidget.value is undefined or not a Number/Chart widget',
       )
       return
     }
@@ -766,6 +773,34 @@ export const useDashboardStore = defineStore('dashboardStore', () => {
       data_config: {
         ...focusedWidget.value.data_config,
         recordCountOrFieldSummary: newVal,
+      },
+    })
+  }
+
+  const changeDescriptionOfNumberWidget = (newDescription: string) => {
+    if (!focusedWidget.value || ![WidgetTypeType.Number].includes(focusedWidget.value.widget_type)) {
+      console.error('changeDescriptionOfNumberWidget: focusedWidget.value is undefined or not a Number widget')
+      return
+    }
+    _updateWidgetInAPIAndLocally({
+      ...focusedWidget.value,
+      data_config: {
+        ...focusedWidget.value.data_config,
+        description: newDescription,
+      },
+    })
+  }
+
+  const changeNameOfNumberWidget = (newName: string) => {
+    if (!focusedWidget.value || ![WidgetTypeType.Number].includes(focusedWidget.value.widget_type)) {
+      console.error('changeNameOfNumberWidget: focusedWidget.value is undefined or not a Number widget')
+      return
+    }
+    _updateWidgetInAPIAndLocally({
+      ...focusedWidget.value,
+      data_config: {
+        ...focusedWidget.value.data_config,
+        name: newName,
       },
     })
   }
@@ -782,6 +817,67 @@ export const useDashboardStore = defineStore('dashboardStore', () => {
     const updatedWidget = {
       ...focusedWidget.value!,
       widget_type: newChartType as WidgetTypeType,
+    }
+    _updateWidgetInAPIAndLocally(updatedWidget)
+  }
+
+  const changeSelectedXColumnIdOfFocusedWidget = (newXColumnId: string) => {
+    if (!focusedWidget.value || !chartTypes.includes(focusedWidget.value.widget_type)) {
+      console.error('changeSelectedXColumnIfOfFocusedWidget: focusedWidget.value is undefined or not a chart')
+      return
+    }
+    const updatedWidget = {
+      ...focusedWidget.value!,
+      data_config: {
+        ...focusedWidget.value.data_config,
+        xAxisColId: newXColumnId,
+      },
+    }
+    _updateWidgetInAPIAndLocally(updatedWidget)
+  }
+
+  const changeSelectedXAxisOrderByOfFocusedWidget = (newXAxisOrderBy: 'x_val' | 'y_val') => {
+    if (!focusedWidget.value || !chartTypes.includes(focusedWidget.value.widget_type)) {
+      console.error('changeSelectedXColumnIfOfFocusedWidget: focusedWidget.value is undefined or not a chart')
+      return
+    }
+    const updatedWidget = {
+      ...focusedWidget.value!,
+      data_config: {
+        ...focusedWidget.value.data_config,
+        xAxisOrderBy: newXAxisOrderBy,
+      },
+    }
+    _updateWidgetInAPIAndLocally(updatedWidget)
+  }
+
+  const changexAxisOrderDirectionOfFocusedWidget = (newXAxisOrderDirection: 'asc' | 'desc') => {
+    if (!focusedWidget.value || !chartTypes.includes(focusedWidget.value.widget_type)) {
+      console.error('changeSelectedXColumnIfOfFocusedWidget: focusedWidget.value is undefined or not a chart')
+      return
+    }
+    const updatedWidget = {
+      ...focusedWidget.value!,
+      data_config: {
+        ...focusedWidget.value.data_config,
+        xAxisOrderDirection: newXAxisOrderDirection,
+      },
+    }
+    _updateWidgetInAPIAndLocally(updatedWidget)
+  }
+
+  const changeSelectedYColumnIdOfFocusedWidget = (newYColumnId: string) => {
+    if (!focusedWidget.value || !chartTypes.includes(focusedWidget.value.widget_type)) {
+      console.error('changeSelectedXColumnIfOfFocusedWidget: focusedWidget.value is undefined or not a chart')
+      return
+    }
+    // ;(focusedWidget.value.data_config as DataConfigAggregated2DChart).yAxisColId = newYColumnId
+    const updatedWidget = {
+      ...focusedWidget.value!,
+      data_config: {
+        ...focusedWidget.value.data_config,
+        yAxisColId: newYColumnId,
+      },
     }
     _updateWidgetInAPIAndLocally(updatedWidget)
   }
@@ -813,9 +909,15 @@ export const useDashboardStore = defineStore('dashboardStore', () => {
     changeSelectedProjectIdAndTableIdOfFocusedWidget,
     changeSelectedNumberColumnIdOfFocusedWidget,
     changeSelectedViewIdOfFocusedWidget,
+    changeSelectedXColumnIdOfFocusedWidget,
+    changeSelectedYColumnIdOfFocusedWidget,
     changeRecordCountOrFieldSummaryForNumberWidgetDataConfig,
     changeSelectRecordsModeForNumberWidgetDataConfig,
     changeAggregateFunctionOfFocusedWidget,
     changeChartTypeOfFocusedChartElement,
+    changeNameOfNumberWidget,
+    changeDescriptionOfNumberWidget,
+    changeSelectedXAxisOrderByOfFocusedWidget,
+    changexAxisOrderDirectionOfFocusedWidget,
   }
 })

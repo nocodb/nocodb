@@ -22,12 +22,12 @@ const availableColumnsOfSelectedViewWithTitles = computed(() => {
 </script>
 
 <template>
-  <a-collapse expand-icon-position="right" accordion :bordered="false" class="collapse-panel-custom">
+  <a-collapse expand-icon-position="right" accordion :bordered="false" class="nc-collapse-panel-custom">
     <a-collapse-panel class="nc-collapse-panel" header="Step 1: Select Table and View">
       <LayoutsWidgetsPropertiesPanelProjectTableViewSelectorSection />
     </a-collapse-panel>
     <a-collapse-panel class="nc-collapse-panel" header="Step 2: Select Records">
-      <div><LayoutsWidgetsPropertiesPanelDataConfigSectionsFilter /></div>
+      <LayoutsWidgetsPropertiesPanelDataConfigSectionsFilter />
     </a-collapse-panel>
     <a-collapse-panel class="nc-collapse-panel !rounded-lg" header="Step 3: Rollup function">
       <div class="flex flex-col m-0">
@@ -78,8 +78,7 @@ const availableColumnsOfSelectedViewWithTitles = computed(() => {
 .nc-collapse-panel {
   @apply border border-solid border-grey-light rounded-lg my-2;
 }
-
-.collapse-panel-custom {
+.nc-collapse-panel-custom {
   background-color: transparent;
 }
 :deep(.ant-collapse-content-box) {

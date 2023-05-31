@@ -16,7 +16,6 @@ import { sanitize } from '../helpers/sqlSanitize';
 import { extractProps } from '../helpers/extractProps';
 import Audit from './Audit';
 import View from './View';
-import Base from './Base';
 import Column from './Column';
 import type { BoolType, TableReqType, TableType } from 'nocodb-sdk';
 import type { XKnex } from '../db/CustomKnex';

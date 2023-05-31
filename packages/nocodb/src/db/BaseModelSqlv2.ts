@@ -48,7 +48,7 @@ import type {
   SelectOption,
 } from '../models';
 import type { Knex } from 'knex';
-import type { BoolType, SortType } from 'nocodb-sdk';
+import type { SortType } from 'nocodb-sdk';
 
 dayjs.extend(utc);
 dayjs.extend(timezone);
@@ -1352,12 +1352,6 @@ class BaseModelSqlv2 {
     const columns = await this.model.getColumns();
     for (const column of columns) {
       switch (column.uidt) {
-        case UITypes.Rollup:
-          {
-            // @ts-ignore
-            const colOptions: RollupColumn = await column.getColOptions();
-          }
-          break;
         case UITypes.Lookup:
           {
             // @ts-ignore

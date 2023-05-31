@@ -94,7 +94,7 @@ export class UsersController {
 
   @Get('/auth/google')
   @UseGuards(AuthGuard('google'))
-  googleAuthenticate(@Request() req) {
+  googleAuthenticate() {
     // google strategy will take care the request
   }
 
@@ -116,7 +116,7 @@ export class UsersController {
   @UseGuards(GlobalGuard)
   @Acl('passwordChange')
   @HttpCode(200)
-  async passwordChange(@Request() req: any, @Body() body: any): Promise<any> {
+  async passwordChange(@Request() req: any): Promise<any> {
     if (!(req as any).isAuthenticated()) {
       NcError.forbidden('Not allowed');
     }
@@ -136,7 +136,7 @@ export class UsersController {
     '/api/v1/auth/password/forgot',
   ])
   @HttpCode(200)
-  async passwordForgot(@Request() req: any, @Body() body: any): Promise<any> {
+  async passwordForgot(@Request() req: any): Promise<any> {
     await this.usersService.passwordForgot({
       siteUrl: (req as any).ncSiteUrl,
       body: req.body,

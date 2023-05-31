@@ -212,7 +212,6 @@ export class AclMiddleware implements NestInterceptor {
     );
 
     const req = context.switchToHttp().getRequest();
-    const res = context.switchToHttp().getResponse();
     req.customProperty = 'This is a custom property';
 
     const roles: Record<string, boolean> = extractRolesObj(req.user?.roles);

@@ -67,9 +67,8 @@ export function addAxiosInterceptors(api: Api<any>) {
         })
         .catch(async (error) => {
           await state.signOut()
-          // todo: handle new user
 
-          debugger
+          // todo: handle new user
           navigateTo('/signIn')
 
           return Promise.reject(error)

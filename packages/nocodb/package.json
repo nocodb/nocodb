@@ -51,7 +51,7 @@
     "node": ">=8.9"
   },
   "dependencies": {
-    "@deep-consulting-solutions/nc-lib-gui": "^0.0.1",
+    "@deep-consulting-solutions/nc-lib-gui": "0.0.2",
     "@google-cloud/storage": "^5.7.2",
     "@graphql-tools/merge": "^6.0.12",
     "@sentry/node": "^6.3.5",

@@ -69,6 +69,7 @@ module.exports = {
         argsIgnorePattern: '^_',
         varsIgnorePattern: '^_',
         caughtErrorsIgnorePattern: '^_',
+        ignoreRestSiblings: true,
       },
     ],
     '@typescript-eslint/no-this-alias': 'off',

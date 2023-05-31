@@ -845,6 +845,7 @@ export default class Model implements TableType {
   static async checkAliasAvailable(
     {
       title,
+      table_name,
       project_id,
       base_id,
       exclude_id,

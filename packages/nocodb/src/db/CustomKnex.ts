@@ -1,12 +1,24 @@
 import { Knex, knex } from 'knex';
 import { SnowflakeClient } from 'nc-help';
 import { types } from 'pg';
+import dayjs from 'dayjs';
 import Filter from '../models/Filter';
 import type { FilterType } from 'nocodb-sdk';
 import type { BaseModelSql } from './BaseModelSql';
 
+// For the code, check out
+// https://raw.githubusercontent.com/brianc/node-pg-types/master/lib/builtins.js
+
 // override parsing date column to Date()
 types.setTypeParser(1082, (val) => val);
+// override timestamp
+types.setTypeParser(1114, (val) => {
+  return dayjs(val).format('YYYY-MM-DD HH:mm:ss');
+});
+// override timestampz
+types.setTypeParser(1184, (val) => {
+  return dayjs(val).format('YYYY-MM-DD HH:mm:ssZ');
+});
 
 const opMappingGen = {
   eq: '=',

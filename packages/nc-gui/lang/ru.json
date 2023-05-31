@@ -354,7 +354,7 @@
     "account": {
       "authToken": "Скопировать токен авторизации",
       "swagger": "Swagger: REST APIs",
-      "projInfo": "Скопировать информацию о проекте",
+      "projInfo": "Информация о проекте",
       "themes": "Темы"
     },
     "sort": "Сортировать",
@@ -385,10 +385,10 @@
     "nextRecord": "Следующая запись",
     "previousRecord": "Предыдущая запись",
     "copyApiURL": "Скопируйте URL API",
-    "createTable": "Create New Table",
+    "createTable": "Создать новую таблицу",
     "refreshTable": "Обновление таблицы",
-    "renameTable": "Rename Table",
-    "deleteTable": "Delete Table",
+    "renameTable": "Переименовать таблицу",
+    "deleteTable": "Удалить таблицу",
     "addField": "Добавить новое поле в эту таблицу",
     "setDisplay": "Установить как значение отображения",
     "addRow": "Добавить новую строку",

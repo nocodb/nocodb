@@ -546,7 +546,39 @@ export interface FilterType {
     | 'notchecked'
     | 'notempty'
     | 'notnull'
-    | 'null';
+    | 'null'
+    | null
+    | (
+        | 'allof'
+        | 'anyof'
+        | 'blank'
+        | 'btw'
+        | 'checked'
+        | 'empty'
+        | 'eq'
+        | 'ge'
+        | 'gt'
+        | 'gte'
+        | 'in'
+        | 'is'
+        | 'isWithin'
+        | 'isnot'
+        | 'le'
+        | 'like'
+        | 'lt'
+        | 'lte'
+        | 'nallof'
+        | 'nanyof'
+        | 'nbtw'
+        | 'neq'
+        | 'nlike'
+        | 'not'
+        | 'notblank'
+        | 'notchecked'
+        | 'notempty'
+        | 'notnull'
+        | ('null' & null)
+      );
   /** Comparison Sub-Operator */
   comparison_sub_op?:
     | 'daysAgo'
@@ -589,7 +621,7 @@ export interface FilterType {
         | ('yesterday' & null)
       );
   /** Foreign Key to Column */
-  fk_column_id?: IdType;
+  fk_column_id?: StringOrNullType;
   /** Foreign Key to Hook */
   fk_hook_id?: StringOrNullType;
   /** Foreign Key to Model */
@@ -664,7 +696,39 @@ export interface FilterReqType {
     | 'notchecked'
     | 'notempty'
     | 'notnull'
-    | 'null';
+    | 'null'
+    | null
+    | (
+        | 'allof'
+        | 'anyof'
+        | 'blank'
+        | 'btw'
+        | 'checked'
+        | 'empty'
+        | 'eq'
+        | 'ge'
+        | 'gt'
+        | 'gte'
+        | 'in'
+        | 'is'
+        | 'isWithin'
+        | 'isnot'
+        | 'le'
+        | 'like'
+        | 'lt'
+        | 'lte'
+        | 'nallof'
+        | 'nanyof'
+        | 'nbtw'
+        | 'neq'
+        | 'nlike'
+        | 'not'
+        | 'notblank'
+        | 'notchecked'
+        | 'notempty'
+        | 'notnull'
+        | ('null' & null)
+      );
   /** Comparison Sub-Operator */
   comparison_sub_op?:
     | 'daysAgo'
@@ -707,7 +771,7 @@ export interface FilterReqType {
         | ('yesterday' & null)
       );
   /** Foreign Key to Column */
-  fk_column_id?: IdType;
+  fk_column_id?: StringOrNullType;
   /** Belong to which filter ID */
   fk_parent_id?: StringOrNullType;
   /** Is this filter grouped? */
@@ -1603,7 +1667,7 @@ export interface NormalColumnRequestType {
   /** Data Type Extra */
   dtx?: StringOrNullType;
   /** Data Type Extra Precision */
-  dtxp?: StringOrNullType | number;
+  dtxp?: string | number | null;
   /** Data Type Extra Scale */
   dtxs?: StringOrNullType | number;
   /** Numeric Precision */
@@ -1804,7 +1868,7 @@ export interface PluginReqType {
   /** Is Plugin Active? */
   active?: BoolType;
   /** Plugin Input */
-  input?: StringOrNullType;
+  input?: string | null;
 }
 
 /**
@@ -2255,6 +2319,8 @@ export interface UserType {
    * @example org-level-viewer
    */
   roles?: string;
+  /** Access token version */
+  token_version?: string;
 }
 
 /**
@@ -4032,9 +4098,12 @@ export class Api<
     baseDuplicate: (
       projectId: IdType,
       data: {
-        excludeData?: boolean;
-        excludeViews?: boolean;
-        excludeHooks?: boolean;
+        options?: {
+          excludeData?: boolean;
+          excludeViews?: boolean;
+          excludeHooks?: boolean;
+        };
+        project?: object;
       },
       baseId?: IdType,
       params: RequestParams = {}
@@ -4078,9 +4147,12 @@ export class Api<
     duplicate: (
       projectId: IdType,
       data: {
-        excludeData?: boolean;
-        excludeViews?: boolean;
-        excludeHooks?: boolean;
+        options?: {
+          excludeData?: boolean;
+          excludeViews?: boolean;
+          excludeHooks?: boolean;
+        };
+        project?: object;
       },
       params: RequestParams = {}
     ) =>
@@ -5118,8 +5190,11 @@ export class Api<
       projectId: IdType,
       tableId: IdType,
       data: {
-        excludeData?: boolean;
-        excludeViews?: boolean;
+        options?: {
+          excludeData?: boolean;
+          excludeViews?: boolean;
+          excludeHooks?: boolean;
+        };
       },
       params: RequestParams = {}
     ) =>

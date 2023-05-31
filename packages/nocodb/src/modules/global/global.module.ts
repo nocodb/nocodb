@@ -1,19 +1,20 @@
 import { Global, Module } from '@nestjs/common';
-import { JwtModule, JwtService } from '@nestjs/jwt';
 import { ExtractJwt } from 'passport-jwt';
 import { SocketGateway } from '../../gateways/socket.gateway';
-import { Connection } from '../../connection/connection';
 import { GlobalGuard } from '../../guards/global/global.guard';
 import { MetaService } from '../../meta/meta.service';
 import { JwtStrategy } from '../../strategies/jwt.strategy';
-import NcConfigFactory from '../../utils/NcConfigFactory';
 import { UsersService } from '../../services/users/users.service';
+import Noco from '../../Noco';
+import { InitMetaServiceProvider } from './init-meta-service.provider';
 import type { Provider } from '@nestjs/common';
 
 export const JwtStrategyProvider: Provider = {
   provide: JwtStrategy,
-  useFactory: async (usersService: UsersService) => {
-    const config = await NcConfigFactory.make();
+  useFactory: async (usersService: UsersService, metaService: MetaService) => {
+    const config = metaService.config;
+
+    await Noco.initJwt();
 
     const options = {
       // ignoreExpiration: false,
@@ -26,27 +27,25 @@ export const JwtStrategyProvider: Provider = {
 
     return new JwtStrategy(options, usersService);
   },
-  inject: [UsersService],
+  inject: [UsersService, MetaService],
 };
 
 @Global()
 @Module({
   imports: [],
   providers: [
-    Connection,
-    MetaService,
+    InitMetaServiceProvider,
     UsersService,
     JwtStrategyProvider,
     GlobalGuard,
-    SocketGateway,
+    ...(process.env.NC_WORKER_CONTAINER !== 'true' ? [SocketGateway] : []),
   ],
   exports: [
-    Connection,
     MetaService,
     JwtStrategyProvider,
     UsersService,
     GlobalGuard,
-    SocketGateway,
+    ...(process.env.NC_WORKER_CONTAINER !== 'true' ? [SocketGateway] : []),
   ],
 })
 export class GlobalModule {}

@@ -12,8 +12,12 @@ export default class RedisCacheMgr extends CacheMgr {
   constructor(config: any) {
     super();
     this.client = new Redis(config);
-    // flush the existing db with selected key (Default: 0)
-    this.client.flushdb();
+
+    // avoid flushing db in worker container
+    if (process.env.NC_WORKER_CONTAINER !== 'true') {
+      // flush the existing db with selected key (Default: 0)
+      this.client.flushdb();
+    }
 
     // TODO(cache): fetch orgs once it's implemented
     const orgs = 'noco';
@@ -41,7 +45,7 @@ export default class RedisCacheMgr extends CacheMgr {
   }
 
   // @ts-ignore
-  async get(key: string, type: string, config?: any): Promise<any> {
+  async get(key: string, type: string): Promise<any> {
     log(`RedisCacheMgr::get: getting key ${key} with type ${type}`);
     if (type === CacheGetType.TYPE_ARRAY) {
       return this.client.smembers(key);
@@ -131,7 +135,7 @@ export default class RedisCacheMgr extends CacheMgr {
     // e.g. arr = ["nc:<orgs>:<scope>:<model_id_1>", "nc:<orgs>:<scope>:<model_id_2>"]
     const arr = (await this.get(key, CacheGetType.TYPE_ARRAY)) || [];
     log(`RedisCacheMgr::getList: getting list with key ${key}`);
-    const isNoneList = arr.length && arr[0] === 'NONE';
+    const isNoneList = arr.length && arr.includes('NONE');
 
     if (isNoneList) {
       return Promise.resolve({
@@ -244,7 +248,7 @@ export default class RedisCacheMgr extends CacheMgr {
         : `${this.prefix}:${scope}:${subListKeys.join(':')}:list`;
     log(`RedisCacheMgr::appendToList: append key ${key} to ${listKey}`);
     let list = (await this.get(listKey, CacheGetType.TYPE_ARRAY)) || [];
-    if (list.length && list[0] === 'NONE') {
+    if (list.length && list.includes('NONE')) {
       list = [];
       await this.del(listKey);
     }

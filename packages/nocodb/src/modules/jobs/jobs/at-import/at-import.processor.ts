@@ -9,23 +9,23 @@ import utc from 'dayjs/plugin/utc';
 import tinycolor from 'tinycolor2';
 import { Process, Processor } from '@nestjs/bull';
 import { Job } from 'bull';
-import extractRolesObj from '../../../utils/extractRolesObj';
-import { AttachmentsService } from '../../../services/attachments.service';
-import { ColumnsService } from '../../../services/columns.service';
-import { BulkDataAliasService } from '../../../services/bulk-data-alias.service';
-import { FiltersService } from '../../../services/filters.service';
-import { FormColumnsService } from '../../../services/form-columns.service';
-import { GalleriesService } from '../../../services/galleries.service';
-import { GridsService } from '../../../services/grids.service';
-import { ProjectUsersService } from '../../../services/project-users/project-users.service';
-import { ProjectsService } from '../../../services/projects.service';
-import { SortsService } from '../../../services/sorts.service';
-import { TablesService } from '../../../services/tables.service';
-import { ViewColumnsService } from '../../../services/view-columns.service';
-import { ViewsService } from '../../../services/views.service';
-import { FormsService } from '../../../services/forms.service';
-import { JobsEventService } from '../jobs-event.service';
-import { JOBS_QUEUE, JobTypes } from '../../../interface/Jobs';
+import extractRolesObj from '../../../../utils/extractRolesObj';
+import { AttachmentsService } from '../../../../services/attachments.service';
+import { ColumnsService } from '../../../../services/columns.service';
+import { BulkDataAliasService } from '../../../../services/bulk-data-alias.service';
+import { FiltersService } from '../../../../services/filters.service';
+import { FormColumnsService } from '../../../../services/form-columns.service';
+import { GalleriesService } from '../../../../services/galleries.service';
+import { GridsService } from '../../../../services/grids.service';
+import { ProjectUsersService } from '../../../../services/project-users/project-users.service';
+import { ProjectsService } from '../../../../services/projects.service';
+import { SortsService } from '../../../../services/sorts.service';
+import { TablesService } from '../../../../services/tables.service';
+import { ViewColumnsService } from '../../../../services/view-columns.service';
+import { ViewsService } from '../../../../services/views.service';
+import { FormsService } from '../../../../services/forms.service';
+import { JOBS_QUEUE, JobTypes } from '../../../../interface/Jobs';
+import { JobsLogService } from '../jobs-log.service';
 import FetchAT from './helpers/fetchAT';
 import { importData, importLTARData } from './helpers/readAndProcessData';
 import EntityMap from './helpers/EntityMap';
@@ -99,7 +99,7 @@ export class AtImportProcessor {
     private readonly viewColumnsService: ViewColumnsService,
     private readonly sortsService: SortsService,
     private readonly bulkDataAliasService: BulkDataAliasService,
-    private readonly jobsEventService: JobsEventService,
+    private readonly jobsLogService: JobsLogService,
   ) {}
 
   @Process(JobTypes.AtImport)
@@ -135,11 +135,11 @@ export class AtImportProcessor {
     };
 
     const logBasic = (log) => {
-      this.jobsEventService.sendLog(job, { message: log });
+      this.jobsLogService.sendLog(job, { message: log });
     };
 
     const logDetailed = (log) => {
-      if (debugMode) this.jobsEventService.sendLog(job, { message: log });
+      if (debugMode) this.jobsLogService.sendLog(job, { message: log });
     };
 
     const perfStats = [];

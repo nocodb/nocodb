@@ -13,7 +13,7 @@ import {
   watch,
 } from '#imports'
 
-export function useGridViewColumnWidth(view: Ref<ViewType | undefined>) {
+export function useGridViewColumnWidth(view: Ref<(ViewType & { columns?: GridColumnType[] }) | undefined>) {
   const { css, load: loadCss, unload: unloadCss } = useStyleTag('')
 
   const { isUIAllowed } = useUIPermission()
@@ -52,7 +52,9 @@ export function useGridViewColumnWidth(view: Ref<ViewType | undefined>) {
   const loadGridViewColumns = async () => {
     if (!view.value?.id && !isPublic.value) return
 
-    const colsData: GridColumnType[] = (isPublic.value ? columns.value : await $api.dbView.gridColumnsList(view.value!.id!)) ?? []
+    const colsData: GridColumnType[] =
+      (isPublic.value ? view.value?.columns : await $api.dbView.gridColumnsList(view.value!.id!)) ?? []
+
     gridViewCols.value = colsData.reduce<Record<string, GridColumnType>>(
       (o, col) => ({
         ...o,

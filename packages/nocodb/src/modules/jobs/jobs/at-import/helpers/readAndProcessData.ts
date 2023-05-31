@@ -1,8 +1,8 @@
 /* eslint-disable no-async-promise-executor */
 import { RelationTypes, UITypes } from 'nocodb-sdk';
 import EntityMap from './EntityMap';
-import type { BulkDataAliasService } from '../../../../services/bulk-data-alias.service';
-import type { TablesService } from '../../../../services/tables.service';
+import type { BulkDataAliasService } from '../../../../../services/bulk-data-alias.service';
+import type { TablesService } from '../../../../../services/tables.service';
 // @ts-ignore
 import type { AirtableBase } from 'airtable/lib/airtable_base';
 import type { TableType } from 'nocodb-sdk';
@@ -21,14 +21,12 @@ async function readAllData({
   fields,
   base,
   logBasic = (_str) => {},
-  services,
 }: {
   table: { title?: string };
   fields?;
   base: AirtableBase;
   logBasic?: (string) => void;
   logDetailed?: (string) => void;
-  services: AirtableImportContext;
 }): Promise<EntityMap> {
   return new Promise((resolve, reject) => {
     let data = null;
@@ -229,7 +227,6 @@ export async function importLTARData({
       base,
       logDetailed,
       logBasic,
-      services,
     }));
 
   const modelMeta: any =

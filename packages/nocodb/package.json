@@ -1,6 +1,6 @@
 {
   "name": "nocodb",
-  "version": "0.107.0-beta.1",
+  "version": "0.108.0",
   "description": "NocoDB Backend",
   "main": "dist/bundle.js",
   "author": {
@@ -32,6 +32,8 @@
     "test:debug": "node --inspect-brk -r tsconfig-paths/register -r ts-node/register node_modules/.bin/jest --runInBand",
     "test:e2e": "jest --config ./test/jest-e2e.json",
     "watch:run": "cross-env NC_DISABLE_TELE=true EE=true nodemon -e ts,js -w ./src -x \"ts-node src/run/docker --log-error --project tsconfig.json\"",
+    "watch:run:mysql": "cross-env  NC_DISABLE_TELE=true EE=true nodemon -e ts,js -w ./src -x \"ts-node src/run/dockerRunMysql --log-error --project tsconfig.json\"",
+    "watch:run:pg": "cross-env  NC_DISABLE_TELE=true EE=true nodemon -e ts,js -w ./src -x \"ts-node src/run/dockerRunPG --log-error --project tsconfig.json\"",
     "watch:run:playwright": "rm -f ./test_noco.db; cross-env DATABASE_URL=sqlite:./test_noco.db PLAYWRIGHT_TEST=true NC_DISABLE_TELE=true EE=true nodemon -e ts,js -w ./src -x \"ts-node src/run/testDocker --log-error --project tsconfig.json\"",
     "watch:run:playwright:quick": "rm -f ./test_noco.db; cp ../../tests/playwright/fixtures/noco_0_91_7.db ./test_noco.db; cross-env DATABASE_URL=sqlite:./test_noco.db NC_DISABLE_TELE=true EE=true nodemon -e ts,js -w ./src -x \"ts-node src/run/docker --log-error --project tsconfig.json\"",
     "watch:run:playwright:pg:cyquick": "rm -f ./test_noco.db; cp ../../tests/playwright/fixtures/noco_0_91_7.db ./test_noco.db; cross-env NC_DISABLE_TELE=true EE=true nodemon -e ts,js -w ./src -x \"ts-node src/run/dockerRunPG_CyQuick.ts --log-error --project tsconfig.json\"",
@@ -111,7 +113,7 @@
     "mysql2": "^3.2.0",
     "nanoid": "^3.1.20",
     "nc-help": "^0.2.87",
-    "nc-lib-gui": "0.107.0-beta.1",
+    "nc-lib-gui": "0.108.0",
     "nc-plugin": "^0.1.3",
     "ncp": "^2.0.0",
     "nocodb-sdk": "file:../nocodb-sdk",

@@ -114,6 +114,11 @@ export class CellPageObject extends BasePage {
       // if text is found, return
       // if text is not found, throw error
       let count = 0;
+
+      if (!(this.parent instanceof SharedFormPage)) {
+        await this.rootPage.locator(`td[data-testid="cell-${columnHeader}-${index}"]`).waitFor({ state: 'visible' });
+      }
+
       await this.get({
         index,
         columnHeader,
@@ -359,5 +364,13 @@ export class CellPageObject extends BasePage {
 
     await this.get({ index, columnHeader }).press((await this.isMacOs()) ? 'Meta+C' : 'Control+C');
     await this.verifyToast({ message: 'Copied to clipboard' });
+  }
+
+  async pasteFromClipboard({ index, columnHeader }: CellProps, ...clickOptions: Parameters<Locator['click']>) {
+    await this.get({ index, columnHeader }).scrollIntoViewIfNeeded();
+    await this.get({ index, columnHeader }).click(...clickOptions);
+    await (await this.get({ index, columnHeader }).elementHandle()).waitForElementState('stable');
+
+    await this.get({ index, columnHeader }).press((await this.isMacOs()) ? 'Meta+V' : 'Control+V');
   }
 }

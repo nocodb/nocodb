@@ -227,7 +227,6 @@ export async function importLTARData({
       base,
       logDetailed,
       logBasic,
-      services,
     }));
 
   const modelMeta: any =

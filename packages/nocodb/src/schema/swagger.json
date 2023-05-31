@@ -20000,6 +20000,10 @@
             "description": "The roles of the user",
             "example": "org-level-viewer",
             "type": "string"
+          },
+          "token_version": {
+            "description": "Access token version",
+            "type": "string"
           }
         },
         "required": ["email", "email_verified", "firstname", "id", "lastname"],

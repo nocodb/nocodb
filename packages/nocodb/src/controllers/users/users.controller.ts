@@ -220,7 +220,7 @@ export class UsersController {
 
     if (!userId) return;
 
-    const user: any = await User.get(userId);
+    const user = await User.get(userId);
 
     if (!user) return;
 

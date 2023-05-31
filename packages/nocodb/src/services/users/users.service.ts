@@ -486,7 +486,7 @@ export class UsersService {
     return this.login(user);
   }
 
-  login(user: any) {
+  login(user: UserType) {
     return {
       token: genJwt(user, Noco.getConfig()),
     };

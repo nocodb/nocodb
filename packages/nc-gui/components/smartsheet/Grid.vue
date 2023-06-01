@@ -178,7 +178,8 @@ const getContainerScrollForElement = (
    * If the element is below the container, scroll down (positive)
    * If the element is above the container, scroll up (negative)
    */
-  scroll.top = relativePos.bottom + (offset?.bottom || 0) > 0
+  scroll.top =
+    relativePos.bottom + (offset?.bottom || 0) > 0
       ? container.scrollTop + relativePos.bottom + (offset?.bottom || 0) + extraOffset
       : relativePos.top - (offset?.top || 0) < 0
       ? container.scrollTop + relativePos.top - (offset?.top || 0) - extraOffset
@@ -350,6 +351,12 @@ function scrollToCell(row?: number | null, col?: number | null) {
 
     const { height: headerHeight } = tableHead.value!.getBoundingClientRect()
     const tdScroll = getContainerScrollForElement(td, gridWrapper.value, { top: headerHeight, bottom: 9, right: 9 })
+
+    // if first column set left to 0 since it's sticky it will be visible and calculated value will be wrong
+    // setting left to 0 will make it scroll to the left
+    if (col === 0) {
+      tdScroll.left = 0
+    }
 
     if (rows && row === rows.length - 2) {
       // if last row make 'Add New Row' visible

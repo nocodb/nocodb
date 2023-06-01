@@ -37,6 +37,75 @@ export class ToolbarFilterPage extends BasePage {
     await this.get().locator(`button:has-text("Add Filter")`).first().click();
   }
 
+  // can reuse code for addFilterGroup and addFilter
+  // support for subOperation & datatype specific filter operations not supported yet
+  async addFilterGroup({
+    title,
+    operation,
+    _subOperation: _subOperation,
+    value,
+    _locallySaved: _locallySaved = false,
+    _dataType: _dataType,
+    _openModal: _openModal = false,
+    _skipWaitingResponse: _skipWaitingResponse = false, // used for undo (single request, less stable)
+    filterGroupIndex = 0,
+    filterLogicalOperator = 'AND',
+  }: {
+    title: string;
+    operation: string;
+    _subOperation?: string; // for date datatype
+    value?: string;
+    _locallySaved?: boolean;
+    _dataType?: string;
+    _openModal?: boolean;
+    _skipWaitingResponse?: boolean;
+    filterGroupIndex?: number;
+    filterLogicalOperator?: string;
+  }) {
+    await this.get().locator(`button:has-text("Add Filter Group")`).last().click();
+    const filterDropdown = await this.get().locator('.menu-filter-dropdown').nth(filterGroupIndex);
+    await filterDropdown.waitFor({ state: 'visible' });
+    await filterDropdown.locator(`button:has-text("Add Filter")`).first().click();
+    const selectField = await filterDropdown.locator('.nc-filter-field-select').last();
+    const selectOperation = await filterDropdown.locator('.nc-filter-operation-select').last();
+    const selectValue = await filterDropdown.locator('.nc-filter-value-select > input').last();
+
+    await selectField.waitFor({ state: 'visible' });
+    await selectField.click();
+    const fieldDropdown = await this.rootPage
+      .locator('div.ant-select-dropdown.nc-dropdown-toolbar-field-list')
+      .last()
+      .locator(`div[label="${title}"]:visible`);
+    await fieldDropdown.waitFor({ state: 'visible' });
+    await fieldDropdown.click();
+
+    await selectOperation.waitFor({ state: 'visible' });
+    await selectOperation.click();
+    const operationDropdown = await this.rootPage
+      .locator('div.ant-select-dropdown.nc-dropdown-filter-comp-op')
+      .last()
+      .locator(`.ant-select-item:has-text("${operation}")`);
+    await operationDropdown.waitFor({ state: 'visible' });
+    await operationDropdown.click();
+
+    await selectValue.waitFor({ state: 'visible' });
+    await selectValue.fill(value);
+
+    if (filterGroupIndex) {
+      if (filterLogicalOperator === 'OR') {
+        const logicalButton = await this.rootPage.locator('div.flex.bob').nth(filterGroupIndex - 1);
+        await logicalButton.waitFor({ state: 'visible' });
+        await logicalButton.click();
+
+        const logicalDropdown = await this.rootPage.locator(
+          'div.ant-select-dropdown.nc-dropdown-filter-logical-op-group'
+        );
+        await logicalDropdown.waitFor({ state: 'visible' });
+        await logicalDropdown.locator(`.ant-select-item:has-text("${filterLogicalOperator}")`).click();
+      }
+    }
+  }
+
   async add({
     title,
     operation,

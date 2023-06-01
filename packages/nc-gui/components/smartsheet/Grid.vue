@@ -1,4 +1,5 @@
 <script lang="ts" setup>
+import { nextTick } from '@vue/runtime-core'
 import type { ColumnReqType, ColumnType, GridType, PaginatedType, TableType, ViewType } from 'nocodb-sdk'
 import { UITypes, isVirtualCol } from 'nocodb-sdk'
 import {
@@ -631,6 +632,9 @@ const onNavigate = (dir: NavigateDir) => {
       }
       break
   }
+  nextTick(() => {
+    scrollToCell()
+  })
 }
 
 const showContextMenu = (e: MouseEvent, target?: { row: number; col: number }) => {

@@ -21,7 +21,7 @@ const vModel = useVModel(props, 'modelValue', emits, { defaultValue: '' })
 
 const isExpandedFormOpen = inject(IsExpandedFormOpenInj, ref(false))!
 
-const focus: VNodeRef = (el) => !isExpandedFormOpen && (el as HTMLTextAreaElement)?.focus()
+const focus: VNodeRef = (el) => !isExpandedFormOpen.value && (el as HTMLTextAreaElement)?.focus()
 </script>
 
 <template>

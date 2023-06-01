@@ -3,10 +3,8 @@ const route = useRoute()
 </script>
 
 <template>
-  <NuxtLayout name="dashboard">
-    <template #content>
-      <DocsBookView v-if="!route.params.pageId" />
-      <NuxtPage v-else />
-    </template>
+  <NuxtLayout>
+    <DocsBookView v-if="!route.params.pageId" />
+    <NuxtPage v-else />
   </NuxtLayout>
 </template>

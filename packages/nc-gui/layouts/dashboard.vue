@@ -66,10 +66,10 @@ document.addEventListener('mousemove', (e) => {
     return
   }
 
-  if (e.clientX < sidebarWidth.value) {
+  if (e.clientX < viewportWidth.value * 0.075) {
     isSidebarHidden.value = false
     isMouseOverShowSidebarZone.value = true
-  } else {
+  } else if (e.clientX > sidebarWidth.value + 10) {
     isSidebarHidden.value = true
     isMouseOverShowSidebarZone.value = false
   }

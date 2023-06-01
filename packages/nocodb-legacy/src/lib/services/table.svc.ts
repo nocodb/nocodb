@@ -70,11 +70,15 @@ export async function tableUpdate(param: {
     );
   }
 
-  const shouldRename = await Model.checkTitleAvailable({
-    table_name: param.table.table_name,
-    project_id: project.id,
-    base_id: base.id,
-  });
+  if (
+    !(await Model.checkTitleAvailable({
+      table_name: param.table.table_name,
+      project_id: project.id,
+      base_id: base.id,
+    }))
+  ) {
+    NcError.badRequest('Duplicate table name');
+  }
 
   if (!param.table.title) {
     param.table.title = getTableNameAlias(
@@ -84,18 +88,14 @@ export async function tableUpdate(param: {
     );
   }
 
-  await Model.checkAliasAvailable({
-    title: param.table.title,
-    table_name: param.table.table_name,
-    project_id: project.id,
-    base_id: base.id,
-  });
-
   if (
-    !shouldRename &&
-    model.table_name.toLowerCase() !== param.table.table_name.toLowerCase()
+    !(await Model.checkAliasAvailable({
+      title: param.table.title,
+      project_id: project.id,
+      base_id: base.id,
+    }))
   ) {
-    NcError.badRequest(`Table name ${param.table.title} already exists!`);
+    NcError.badRequest('Duplicate table alias');
   }
 
   const sqlMgr = await ProjectMgrv2.getSqlMgr(project);
@@ -121,13 +121,11 @@ export async function tableUpdate(param: {
     param.table.table_name
   );
 
-  if (shouldRename) {
-    await sqlMgr.sqlOpPlus(base, 'tableRename', {
-      ...param.table,
-      tn: param.table.table_name,
-      tn_old: model.table_name,
-    });
-  }
+  await sqlMgr.sqlOpPlus(base, 'tableRename', {
+    ...param.table,
+    tn: param.table.table_name,
+    tn_old: model.table_name,
+  });
 
   T.emit('evt', { evt_type: 'table:updated' });
   return true;
@@ -368,12 +366,15 @@ export async function tableCreate(param: {
     );
   }
 
-  await Model.checkAliasAvailable({
-    title: tableCreatePayLoad.title,
-    table_name: tableCreatePayLoad.table_name,
-    project_id: project.id,
-    base_id: base.id,
-  });
+  if (
+    !(await Model.checkAliasAvailable({
+      title: tableCreatePayLoad.title,
+      project_id: project.id,
+      base_id: base.id,
+    }))
+  ) {
+    NcError.badRequest('Duplicate table alias');
+  }
 
   const sqlMgr = await ProjectMgrv2.getSqlMgr(project);
 

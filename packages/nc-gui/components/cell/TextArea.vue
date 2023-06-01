@@ -19,7 +19,7 @@ const { showNull } = useGlobal()
 
 const vModel = useVModel(props, 'modelValue', emits, { defaultValue: '' })
 
-const isExpandedFormOpen = inject(IsExpandedFormOpenInj)!
+const isExpandedFormOpen = inject(IsExpandedFormOpenInj, ref(false))!
 
 const focus: VNodeRef = (el) => !isExpandedFormOpen && (el as HTMLTextAreaElement)?.focus()
 </script>

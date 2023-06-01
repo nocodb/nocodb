@@ -142,11 +142,20 @@ const getContainerScrollForElement = (
 ) => {
   const childPos = el.getBoundingClientRect()
   const parentPos = container.getBoundingClientRect()
+
+  // provide an extra offset to show the prev/next/up/bottom cell
+  const extraOffset = 15
+
+  const numColWidth = container.querySelector('thead th:nth-child(1)')?.getBoundingClientRect().width ?? 0
+  const primaryColWidth = container.querySelector('thead th:nth-child(2)')?.getBoundingClientRect().width ?? 0
+
+  const stickyColsWidth = numColWidth + primaryColWidth
+
   const relativePos = {
     top: childPos.top - parentPos.top,
     right: childPos.right - parentPos.right,
     bottom: childPos.bottom - parentPos.bottom,
-    left: childPos.left - parentPos.left,
+    left: childPos.left - parentPos.left - stickyColsWidth,
   }
 
   const scroll = {
@@ -160,20 +169,19 @@ const getContainerScrollForElement = (
    */
   scroll.left =
     relativePos.right + (offset?.right || 0) > 0
-      ? container.scrollLeft + relativePos.right + (offset?.right || 0)
+      ? container.scrollLeft + relativePos.right + (offset?.right || 0) + extraOffset
       : relativePos.left - (offset?.left || 0) < 0
-      ? container.scrollLeft + relativePos.left - (offset?.left || 0)
+      ? container.scrollLeft + relativePos.left - (offset?.left || 0) - extraOffset
       : container.scrollLeft
 
   /*
    * If the element is below the container, scroll down (positive)
    * If the element is above the container, scroll up (negative)
    */
-  scroll.top =
-    relativePos.bottom + (offset?.bottom || 0) > 0
-      ? container.scrollTop + relativePos.bottom + (offset?.bottom || 0)
+  scroll.top = relativePos.bottom + (offset?.bottom || 0) > 0
+      ? container.scrollTop + relativePos.bottom + (offset?.bottom || 0) + extraOffset
       : relativePos.top - (offset?.top || 0) < 0
-      ? container.scrollTop + relativePos.top - (offset?.top || 0)
+      ? container.scrollTop + relativePos.top - (offset?.top || 0) - extraOffset
       : container.scrollTop
 
   return scroll

@@ -65,7 +65,7 @@ export class ToolbarFilterPage extends BasePage {
       await this.rootPage.locator('.nc-filter-field-select').last().click();
 
       if (skipWaitingResponse) {
-        this.rootPage
+        await this.rootPage
           .locator('div.ant-select-dropdown.nc-dropdown-toolbar-field-list')
           .locator(`div[label="${title}"]:visible`)
           .click();
@@ -88,7 +88,7 @@ export class ToolbarFilterPage extends BasePage {
       // first() : filter list has >, >=
 
       if (skipWaitingResponse) {
-        this.rootPage
+        await this.rootPage
           .locator('.nc-dropdown-filter-comp-op')
           .locator(`.ant-select-item:has-text("${operation}")`)
           .first()
@@ -117,7 +117,7 @@ export class ToolbarFilterPage extends BasePage {
         // first() : filter list has >, >=
 
         if (skipWaitingResponse) {
-          this.rootPage
+          await this.rootPage
             .locator('.nc-dropdown-filter-comp-sub-op')
             .locator(`.ant-select-item:has-text("${subOperation}")`)
             .first()
@@ -167,7 +167,7 @@ export class ToolbarFilterPage extends BasePage {
             await this.rootPage.locator(`.ant-picker-dropdown:visible`);
 
             if (skipWaitingResponse) {
-              this.rootPage.locator(`.ant-picker-cell-inner:has-text("${value}")`).click();
+              await this.rootPage.locator(`.ant-picker-cell-inner:has-text("${value}")`).click();
             } else {
               await this.waitForResponse({
                 uiAction: () => this.rootPage.locator(`.ant-picker-cell-inner:has-text("${value}")`).click(),
@@ -188,7 +188,7 @@ export class ToolbarFilterPage extends BasePage {
           break;
         case UITypes.Duration:
           if (skipWaitingResponse) {
-            this.get().locator('.nc-filter-value-select').locator('input').fill(value);
+            await this.get().locator('.nc-filter-value-select').locator('input').fill(value);
           } else {
             await this.waitForResponse({
               uiAction: () => this.get().locator('.nc-filter-value-select').locator('input').fill(value),

@@ -5,6 +5,7 @@ import {
   CellUrlDisableOverlayInj,
   CellValueInj,
   ColumnInj,
+  IsUnderLookupInj,
   MetaInj,
   computed,
   inject,
@@ -69,6 +70,8 @@ const arrValue = computed(() => {
 })
 
 provide(MetaInj, lookupTableMeta)
+
+provide(IsUnderLookupInj, ref(true))
 
 provide(CellUrlDisableOverlayInj, ref(true))
 

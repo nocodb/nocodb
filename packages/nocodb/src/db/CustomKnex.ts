@@ -1,6 +1,6 @@
 import { Knex, knex } from 'knex';
 import { SnowflakeClient } from 'nc-help';
-import pg, { types } from 'pg';
+import { types } from 'pg';
 import dayjs from 'dayjs';
 import Filter from '../models/Filter';
 import type { FilterType } from 'nocodb-sdk';

@@ -15197,38 +15197,45 @@
           },
           "comparison_op": {
             "description": "Comparison Operator",
-            "enum": [
-              "allof",
-              "anyof",
-              "blank",
-              "btw",
-              "checked",
-              "empty",
-              "eq",
-              "ge",
-              "gt",
-              "gte",
-              "in",
-              "is",
-              "isWithin",
-              "isnot",
-              "le",
-              "like",
-              "lt",
-              "lte",
-              "nallof",
-              "nanyof",
-              "nbtw",
-              "neq",
-              "nlike",
-              "not",
-              "notblank",
-              "notchecked",
-              "notempty",
-              "notnull",
-              "null"
-            ],
-            "type": "string"
+            "anyOf": [
+              {
+                "enum": [
+                  "allof",
+                  "anyof",
+                  "blank",
+                  "btw",
+                  "checked",
+                  "empty",
+                  "eq",
+                  "ge",
+                  "gt",
+                  "gte",
+                  "in",
+                  "is",
+                  "isWithin",
+                  "isnot",
+                  "le",
+                  "like",
+                  "lt",
+                  "lte",
+                  "nallof",
+                  "nanyof",
+                  "nbtw",
+                  "neq",
+                  "nlike",
+                  "not",
+                  "notblank",
+                  "notchecked",
+                  "notempty",
+                  "notnull",
+                  "null"
+                ],
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ]
           },
           "comparison_sub_op": {
             "anyOf": [
@@ -15262,7 +15269,7 @@
             "description": "Comparison Sub-Operator"
           },
           "fk_column_id": {
-            "$ref": "#/components/schemas/Id",
+            "$ref": "#/components/schemas/StringOrNull",
             "description": "Foreign Key to Column"
           },
           "fk_hook_id": {
@@ -15518,38 +15525,45 @@
         "properties": {
           "comparison_op": {
             "description": "Comparison Operator",
-            "enum": [
-              "allof",
-              "anyof",
-              "blank",
-              "btw",
-              "checked",
-              "empty",
-              "eq",
-              "ge",
-              "gt",
-              "gte",
-              "in",
-              "is",
-              "isWithin",
-              "isnot",
-              "le",
-              "like",
-              "lt",
-              "lte",
-              "nallof",
-              "nanyof",
-              "nbtw",
-              "neq",
-              "nlike",
-              "not",
-              "notblank",
-              "notchecked",
-              "notempty",
-              "notnull",
-              "null"
-            ],
-            "type": "string"
+            "anyOf": [
+              {
+                "enum": [
+                  "allof",
+                  "anyof",
+                  "blank",
+                  "btw",
+                  "checked",
+                  "empty",
+                  "eq",
+                  "ge",
+                  "gt",
+                  "gte",
+                  "in",
+                  "is",
+                  "isWithin",
+                  "isnot",
+                  "le",
+                  "like",
+                  "lt",
+                  "lte",
+                  "nallof",
+                  "nanyof",
+                  "nbtw",
+                  "neq",
+                  "nlike",
+                  "not",
+                  "notblank",
+                  "notchecked",
+                  "notempty",
+                  "notnull",
+                  "null"
+                ],
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ]
           },
           "comparison_sub_op": {
             "anyOf": [
@@ -15583,7 +15597,7 @@
             "description": "Comparison Sub-Operator"
           },
           "fk_column_id": {
-            "$ref": "#/components/schemas/Id",
+            "$ref": "#/components/schemas/StringOrNull",
             "description": "Foreign Key to Column"
           },
           "fk_parent_id": {
@@ -19999,6 +20013,10 @@
           "roles": {
             "description": "The roles of the user",
             "example": "org-level-viewer",
+            "type": "string"
+          },
+          "token_version": {
+            "description": "Access token version",
             "type": "string"
           }
         },

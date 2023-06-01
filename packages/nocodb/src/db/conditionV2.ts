@@ -1,5 +1,5 @@
 import { isNumericCol, RelationTypes, UITypes } from 'nocodb-sdk';
-import dayjs, { extend } from 'dayjs';
+import dayjs from 'dayjs';
 // import customParseFormat from 'dayjs/plugin/customParseFormat.js';
 import Filter from '../models/Filter';
 import { sanitize } from '../helpers/sqlSanitize';

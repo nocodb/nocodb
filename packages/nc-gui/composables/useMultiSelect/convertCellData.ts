@@ -7,7 +7,6 @@ import { parseProp } from '#imports'
 export default function convertCellData(
   args: { from: UITypes; to: UITypes; value: any; column: ColumnType; appInfo: AppInfo },
   isMysql = false,
-  isXcdbBase = false,
 ) {
   const { from, to, value } = args
   if (from === to && ![UITypes.Attachment, UITypes.Date, UITypes.DateTime, UITypes.Time, UITypes.Year].includes(to)) {

@@ -350,15 +350,15 @@ export const useDashboardStore = defineStore('dashboardStore', () => {
 
   watch(
     openedLayoutId,
-    async (newLayoutId, previousDashboardId) => {
+    async (newLayoutId, previousLayoutId) => {
       //
       // Helper functions/props
       //
       const isDashboardNewButAlreadyOpen = openedLayoutSidebarNode.value?.new && openedLayoutSidebarNode.value.id === newLayoutId
 
       const setPreviousDashboardAsOld = () => {
-        if (previousDashboardId) {
-          const previousDashboard = _findSingleLayout(layoutsOfProjects.value[openedProjectId.value], previousDashboardId)
+        if (previousLayoutId) {
+          const previousDashboard = _findSingleLayout(layoutsOfProjects.value[openedProjectId.value], previousLayoutId)
           if (previousDashboard?.new) {
             previousDashboard.new = false
           }

@@ -11,14 +11,16 @@ import {
   UseGuards,
 } from '@nestjs/common';
 import { LayoutReqType } from 'nocodb-sdk';
-import { ExtractProjectAndWorkspaceIdMiddleware } from '../../middlewares/extract-project-and-workspace-id/extract-project-and-workspace-id.middleware';
+import {
+  ExtractProjectIdMiddleware,
+  UseAclMiddleware,
+} from '../../middlewares/extract-project-id/extract-project-id.middleware';
 import { GlobalGuard } from '../../guards/global/global.guard';
 import { PagedResponseImpl } from '../../helpers/PagedResponse';
-import { UseAclMiddleware } from '../../middlewares/extract-project-id/extract-project-id.middleware';
 import { LayoutsService } from '../../services/dashboards/layouts.service';
 
 @Controller()
-@UseGuards(ExtractProjectAndWorkspaceIdMiddleware, GlobalGuard)
+@UseGuards(ExtractProjectIdMiddleware, GlobalGuard)
 export class LayoutsController {
   constructor(private readonly layoutService: LayoutsService) {}
 

@@ -10,13 +10,15 @@ import {
 } from '@nestjs/common';
 import { FilterReqType } from 'nocodb-sdk';
 import { GlobalGuard } from '../../guards/global/global.guard';
-import { ExtractProjectAndWorkspaceIdMiddleware } from '../../middlewares/extract-project-and-workspace-id/extract-project-and-workspace-id.middleware';
+import {
+  ExtractProjectIdMiddleware,
+  UseAclMiddleware,
+} from '../../middlewares/extract-project-id/extract-project-id.middleware';
 import { PagedResponseImpl } from '../../helpers/PagedResponse';
-import { UseAclMiddleware } from '../../middlewares/extract-project-id/extract-project-id.middleware';
 import { LayoutFilterService } from '../../services/dashboards/layoutFilter.service';
 
 @Controller()
-@UseGuards(ExtractProjectAndWorkspaceIdMiddleware, GlobalGuard)
+@UseGuards(ExtractProjectIdMiddleware, GlobalGuard)
 export class LayoutFilterController {
   constructor(private readonly dashboardFilterService: LayoutFilterService) {}
 

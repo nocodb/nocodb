@@ -18,7 +18,7 @@ import {
 interface Props {
   modelValue?: string | null
   isPk?: boolean
-  isUpdatedFromCopyNPaste: Record<string, boolean>
+  isUpdatedFromCopyNPaste?: Record<string, boolean>
 }
 
 const { modelValue, isPk, isUpdatedFromCopyNPaste } = defineProps<Props>()

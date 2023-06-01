@@ -10,6 +10,7 @@ import { emptySectionContent, removeUploadingPlaceHolderAndEmptyLinkNode } from 
 import '~/assets/docsPage.scss'
 
 const { project } = useProject()
+const { isOpen: isSidebarOpen } = storeToRefs(useSidebarStore())
 useShortcuts()
 
 const {
@@ -281,7 +282,13 @@ watch(
           editable: isEditAllowed,
         }"
       >
-        <div class="flex flex-row justify-between items-center pl-6 my-2 h-8">
+        <div
+          class="flex flex-row justify-between items-center my-2 h-8"
+          :class="{
+            'pl-6': isSidebarOpen,
+            'pl-2': !isSidebarOpen,
+          }"
+        >
           <div class="flex flex-row items-center">
             <template v-if="flattenedNestedPages.length !== 0">
               <div v-for="({ href, title, icon, id }, index) of breadCrumbs" :key="id" class="flex">

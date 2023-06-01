@@ -43,6 +43,7 @@ import type NcMetaIO from './meta/NcMetaIO';
 import type { GqlApiBuilder } from './v1-legacy/gql/GqlApiBuilder';
 import type { NcConfig } from '../interface/config';
 import type { Router } from 'express';
+import { PSQLRecordOperationWatcher } from './elitesoftwareautomation/db/PSQLRecordOperationWatcher';
 
 const log = debug('nc:app');
 require('dotenv').config();
@@ -278,6 +279,24 @@ export default class Noco {
     T.emit('evt_app_started', await User.count());
     console.log(`App started successfully.\nVisit -> ${Noco.dashboardUrl}`);
     weAreHiring();
+
+    if(process.env.ESA_SKIP_DB_RECORD_ACTION_EVENT_WATCHER_FOR_WEBHOOK !== 'true' ){
+      try{
+        await PSQLRecordOperationWatcher.watchForWebhook(Noco._ncMeta);
+      }
+      catch(e){
+        const message = `PSQLRecordOperationWatcher could not be setup`;
+        // TODO: report as incident
+
+        console.error(message, e);
+
+        process.stderr.write('', function () {
+          // this is critical, as events needs to be fired to meet app requirements especially for business. It is better the program is down so this should be taken more seriously.
+          process.exit(1);
+        });
+      }
+    }
+
     return this.router;
   }
 

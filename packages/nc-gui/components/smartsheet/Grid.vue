@@ -142,11 +142,17 @@ const getContainerScrollForElement = (
 ) => {
   const childPos = el.getBoundingClientRect()
   const parentPos = container.getBoundingClientRect()
+
+  const numColWidth = container.querySelector('thead th:nth-child(1)')?.getBoundingClientRect().width ?? 0
+  const primaryColWidth = container.querySelector('thead th:nth-child(2)')?.getBoundingClientRect().width ?? 0
+
+  const stickyColsWidth = numColWidth + primaryColWidth
+
   const relativePos = {
     top: childPos.top - parentPos.top,
     right: childPos.right - parentPos.right,
     bottom: childPos.bottom - parentPos.bottom,
-    left: childPos.left - parentPos.left,
+    left: childPos.left - parentPos.left - stickyColsWidth,
   }
 
   const scroll = {

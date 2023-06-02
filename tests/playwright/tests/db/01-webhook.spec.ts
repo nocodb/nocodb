@@ -681,8 +681,8 @@ test.describe.serial('Webhook', () => {
           {
             Id: 1,
             Country: 'India',
-            CountryCode: '1',
-            CityCodeRollup: '2',
+            CountryCode: 1,
+            CityCodeRollup: 2,
             CityCodeFormula: 100,
             CityList: [
               {
@@ -694,15 +694,15 @@ test.describe.serial('Webhook', () => {
                 City: 'Pune',
               },
             ],
-            CityCodeLookup: ['23', '33'],
+            CityCodeLookup: [23, 33],
           },
         ],
         rows: [
           {
             Id: 1,
             Country: 'INDIA',
-            CountryCode: '1',
-            CityCodeRollup: '2',
+            CountryCode: 1,
+            CityCodeRollup: 2,
             CityCodeFormula: 100,
             CityList: [
               {
@@ -714,7 +714,7 @@ test.describe.serial('Webhook', () => {
                 City: 'Pune',
               },
             ],
-            CityCodeLookup: ['23', '33'],
+            CityCodeLookup: [23, 33],
           },
         ],
       },
@@ -741,6 +741,9 @@ test.describe.serial('Webhook', () => {
         expectedData.data.rows[0].CityCodeFormula = '100';
       }
     }
+
+    console.log('rsp', rsp[0]);
+    console.log('expectedData', expectedData);
 
     await expect(isSubset(rsp[0], expectedData)).toBe(true);
   });

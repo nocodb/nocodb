@@ -1004,23 +1004,17 @@ const deleteSelectedRangeOfRows = () => {
               </template>
             </LazySmartsheetRow>
 
-            <tr
-              v-if="isAddingEmptyRowAllowed"
-              v-e="['c:row:add:grid-bottom']"
-              class="!sticky bottom-0 left-0 z-6 cursor-pointer"
-              @click="addEmptyRow()"
-            >
-              <td       style="border-top: 1px solid #eee !important;" :colspan="2" class="text-left pointer nc-grid-add-new-cell !sticky lef-0 !border-0">
-                <div class="px-2 w-full flex items-center text-gray-500 !z-5">
+            <tr v-if="isAddingEmptyRowAllowed">
+              <td
+                v-e="['c:row:add:grid-bottom']"
+                :colspan="visibleColLength + 1"
+                class="text-left pointer nc-grid-add-new-cell cursor-pointer"
+                @click="addEmptyRow()"
+              >
+                <div class="px-2 w-full flex items-center text-gray-500">
                   <component :is="iconMap.plus" class="text-pint-500 text-xs ml-2 text-primary" />
-
-                  <span class="ml-1">
-                    {{ $t('activity.addRow') }}
-                  </span>
                 </div>
               </td>
-
-              <td       style="border-top: 1px solid #eee !important;" v-e="['c:row:add:grid-bottom']" class="!z-0 !border-0" :colspan="visibleColLength - 1"></td>
             </tr>
           </tbody>
         </table>
@@ -1082,8 +1076,18 @@ const deleteSelectedRangeOfRows = () => {
       </a-dropdown>
     </div>
 
-    <LazySmartsheetPagination />
+    <div class="absolute bottom-4 left-4 z-4" @click="addEmptyRow()">
+      <a-button v-e="['c:row:add:grid-bottom', { footer: true }]" class="!rounded-xl">
+        <div class="flex items-center">
+          <component :is="iconMap.plus" class="text-pint-500 text-xs ml-2 text-primary" />
+          <span class="ml-1">
+            {{ $t('activity.addRow') }}
+          </span>
+        </div>
+      </a-button>
+    </div>
 
+    <LazySmartsheetPagination align-count-on-right> </LazySmartsheetPagination>
     <Suspense>
       <LazySmartsheetExpandedForm
         v-if="expandedFormRow && expandedFormDlg"

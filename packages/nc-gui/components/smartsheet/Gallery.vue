@@ -239,9 +239,9 @@ watch(view, async (nextView) => {
               hoverable
               class="!rounded-lg h-full overflow-hidden break-all max-w-[450px]"
               :data-testid="`nc-gallery-card-${record.row.id}`"
+              :style="isPublic ? { cursor: 'default' } : { cursor: 'pointer' }"
               @click="expandFormClick($event, record)"
               @contextmenu="showContextMenu($event, { row: rowIndex })"
-              :style="isPublic ? { cursor: 'default' } : { cursor: 'pointer' }"
             >
               <template v-if="galleryData?.fk_cover_image_col_id" #cover>
                 <a-carousel v-if="!reloadAttachments && attachments(record).length" autoplay class="gallery-carousel" arrows>

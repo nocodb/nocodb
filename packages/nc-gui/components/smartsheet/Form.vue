@@ -599,7 +599,7 @@ watch(view, (nextView) => {
                   >
                     <component
                       :is="iconMap.eyeSlash"
-                      class=" opacity-0 nc-field-remove-icon"
+                      class="opacity-0 nc-field-remove-icon"
                       data-testid="nc-field-remove-icon"
                       @click.stop="hideColumn(index)"
                     />
@@ -837,7 +837,7 @@ watch(view, (nextView) => {
 
 <style scoped lang="scss">
 .nc-editable:hover {
-   :deep(.nc-field-remove-icon) {
+  :deep(.nc-field-remove-icon) {
     @apply opacity-100;
   }
 }

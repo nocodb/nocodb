@@ -1,5 +1,5 @@
 <script lang="ts" setup>
-import type { ColumnReqType } from 'nocodb-sdk'
+import type { ColumnReqType, ColumnType } from 'nocodb-sdk'
 import { UITypes, isVirtualCol } from 'nocodb-sdk'
 import {
   IsFormInj,
@@ -25,6 +25,7 @@ import MdiMinusIcon from '~icons/mdi/minus-circle-outline'
 import MdiIdentifierIcon from '~icons/mdi/identifier'
 
 const props = defineProps<{
+  preload?: Partial<ColumnType>
   columnPosition?: Pick<ColumnReqType, 'column_order'>
 }>()
 
@@ -125,6 +126,18 @@ watchEffect(() => {
 onMounted(() => {
   if (!isEdit.value) {
     generateNewColumnMeta()
+    const { colOptions, ...others } = props.preload || {}
+    formState.value = {
+      ...formState.value,
+      ...others,
+    }
+    if (colOptions) {
+      onUidtOrIdTypeChange()
+      formState.value = {
+        ...formState.value,
+        ...colOptions,
+      }
+    }
   } else {
     if (formState.value.pk) {
       message.info(t('msg.info.editingPKnotSupported'))

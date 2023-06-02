@@ -428,6 +428,8 @@ const showLoading = ref(true)
 
 const skipRowRemovalOnCancel = ref(false)
 
+const preloadColumn = ref<Partial<any>>()
+
 function expandForm(row: Row, state?: Record<string, any>, fromToolbar = false) {
   const rowId = extractPkFromRow(row.row, meta.value?.columns as ColumnType[])
 
@@ -457,6 +459,13 @@ const onXcResizing = (cn: string, event: any) => {
 
 defineExpose({
   loadData,
+  openColumnCreate: (data) => {
+    tableHead.value?.querySelector('th:last-child')?.scrollIntoView({ behavior: 'smooth' })
+    setTimeout(() => {
+      addColumnDropdown.value = true
+      preloadColumn.value = data
+    }, 500)
+  },
 })
 
 // reset context menu target on hide
@@ -869,6 +878,7 @@ const confirmDeleteRow = (row: number) => {
                   <template #overlay>
                     <SmartsheetColumnEditOrAddProvider
                       v-if="addColumnDropdown"
+                      :preload="preloadColumn"
                       :column-position="columnOrder"
                       @submit="closeAddColumnDropdown"
                       @cancel="closeAddColumnDropdown"

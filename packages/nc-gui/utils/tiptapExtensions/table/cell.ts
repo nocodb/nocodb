@@ -90,6 +90,8 @@ export const TableCell = Node.create<TableCellOptions>({
         // On column resize mouse click event goes to cells as well which cause the cell to be selected (possible explanation)
         // This is a workaround to prevent the cell from being selected
         appendTransaction: (_, __, newState) => {
+          if (!this.editor.isEditable) return null
+
           const columnResizingPluginKey = this.editor.state.plugins.find((p) => (p as any).key.includes('tableColumnResizing'))!
 
           const colResizePluginState = columnResizingPluginKey.getState(newState)

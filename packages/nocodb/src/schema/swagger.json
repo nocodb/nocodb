@@ -340,7 +340,7 @@
         ]
       }
     },
-    "api/v1/public/docs/{projectId}/pages/{parentPageId}": {
+    "api/v1/public/docs/{projectId}/pages/{parentPageId}/nested": {
       "get": {
         "summary": "List tree of public pages of given parent page and its children. If the given parent page is published under a different parent page, the tree's top level will be that parent page",
         "operationId": "list-public-pages",

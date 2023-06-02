@@ -16,7 +16,7 @@ export class DocsPublicController {
     });
   }
 
-  @Get('/api/v1/public/docs/:projectId/pages/:parentPageId')
+  @Get('/api/v1/public/docs/:projectId/pages/:parentPageId/nested')
   async listPublicPages(
     @Param('projectId') projectId: string,
     @Param('parentPageId') parentPageId: string,

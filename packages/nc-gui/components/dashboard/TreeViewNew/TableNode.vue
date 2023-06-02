@@ -96,7 +96,7 @@ const { isSharedBase } = useProject()
     <GeneralTooltip
       class="pl-4 pr-3 py-1.5 mt-0.65 rounded-md"
       :class="{
-        'hover:bg-gray-200': openedTableId !== table.id,
+        'hover:bg-hover': openedTableId !== table.id,
       }"
       modifier-key="Alt"
     >
@@ -149,8 +149,7 @@ const { isSharedBase } = useProject()
           :trigger="['click']"
           @click.stop
         >
-          <GeneralIcon
-            icon="threeDotVertical"
+          <MdiDotsVertical
             class="transition-opacity opacity-0 group-hover:opacity-100 outline-0"
             :class="{
               '!text-gray-600': openedTableId !== table.id,
@@ -193,7 +192,7 @@ const { isSharedBase } = useProject()
 
 <style scoped lang="scss">
 .nc-tree-item {
-  @apply mr-2 relative cursor-pointer after:(pointer-events-none content-[''] rounded absolute top-0 left-0  w-full h-full right-0 !bg-current transition transition-opactity duration-100 opacity-0);
+  @apply relative cursor-pointer after:(pointer-events-none content-[''] rounded absolute top-0 left-0  w-full h-full right-0 !bg-current transition transition-opactity duration-100 opacity-0);
 }
 
 .nc-tree-item svg {
@@ -201,7 +200,7 @@ const { isSharedBase } = useProject()
 }
 
 .nc-tree-item.active {
-  @apply !bg-primary-selected-sidebar font-weight-bold rounded-md;
+  @apply !bg-primary-selected rounded-md;
   //@apply border-r-3 border-primary;
 
   svg {

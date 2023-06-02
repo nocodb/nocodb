@@ -264,7 +264,6 @@ onMounted(async () => {
 .ant-tree {
   // scrollbar reduce width and gray color
   overflow: overlay;
-  @apply px-2.5;
   &::-webkit-scrollbar {
     width: 4px;
   }
@@ -306,7 +305,7 @@ onMounted(async () => {
   }
 }
 .ant-tree-treenode {
-  @apply w-full rounded-md mt-0.65 !important;
+  @apply w-full rounded-md mt-0.65 pl-6 !important;
 }
 .ant-tree-node-content-wrapper {
   @apply w-full mr-2 pl-0.5 bg-inherit transition-none !important;
@@ -321,19 +320,22 @@ onMounted(async () => {
     @apply !text-gray-300;
   }
   .ant-tree-treenode {
-    @apply !hover:bg-gray-200;
+    @apply hover:bg-hover;
     transition: none !important;
   }
   .ant-tree-treenode-selected {
-    @apply !bg-primary-selected-sidebar !hover:bg-primary-selected-sidebar;
+    @apply !bg-primary-selected;
     transition: none !important;
   }
   .ant-tree-node-selected {
     transition: none !important;
-    @apply !bg-primary-selected-sidebar !hover:bg-primary-selected-sidebar;
+    @apply !bg-primary-selected !hover:bg-primary-selected;
   }
   .ant-tree-indent-unit {
-    @apply w-4 !important;
+    @apply w-5 !important;
+  }
+  .ant-tree-switcher.ant-tree-switcher-noop {
+    @apply w-6;
   }
 }
 

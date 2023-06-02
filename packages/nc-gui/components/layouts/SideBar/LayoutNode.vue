@@ -125,7 +125,7 @@ const { isSharedBase } = useProject()
 }
 
 .nc-tree-item.active {
-  @apply !bg-primary-selected-sidebar font-weight-bold rounded-md;
+  @apply !bg-primary-selected font-weight-bold rounded-md;
 
   svg {
     @apply !text-opacity-100;

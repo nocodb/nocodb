@@ -67,7 +67,7 @@ document.addEventListener('mousemove', (e) => {
     return
   }
 
-  if (e.clientX < viewportWidth.value * 0.075) {
+  if (e.clientX < 4) {
     isSidebarHidden.value = false
     isMouseOverShowSidebarZone.value = true
   } else if (e.clientX > sidebarWidth.value + 10) {
@@ -133,10 +133,23 @@ export default {
 
 <style lang="scss">
 .splitpanes__splitter {
-  @apply w-0.25 mr-0.75 h-full bg-gray-200 hover:w-1 hover:mr-0;
-  &:hover {
-    cursor: ew-resize;
-  }
+  position: relative;
+  overflow: visible;
+}
+.splitpanes__splitter:before {
+  @apply bg-border w-0.25;
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 0;
+  height: 100vh;
+  z-index: 40;
+}
+
+.splitpanes__splitter:hover:before {
+  @apply bg-scrollbar;
+  width: 4px !important;
+  left: -4px;
 }
 
 .sidebar-short {

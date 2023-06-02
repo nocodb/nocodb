@@ -159,12 +159,12 @@ const isSharedBase = ref(false)
       @keyup.enter="updateProjectTitle"
       @keyup.esc="closeEditMode"
     />
-    <span v-else class="capitalize min-w-5 text-ellipsis overflow-clip">
+    <span v-else class="capitalize min-w-5 text-ellipsis overflow-clip select-none">
       {{ project.title }}
     </span>
     <span :class="{ 'flex-grow': !editMode }"></span>
     <a-dropdown>
-      <GeneralIcon icon="threeDotVertical" class="mr-1.5 opacity-0 group-hover:opacity-100" @click.stop />
+      <MdiDotsVertical class="mr-1.5 opacity-0 group-hover:opacity-100" @click.stop />
       <template #overlay>
         <a-menu>
           <!--          <a-menu class="!ml-1 !w-[300px] !text-sm"> -->

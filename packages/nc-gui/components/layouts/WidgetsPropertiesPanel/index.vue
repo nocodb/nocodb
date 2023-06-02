@@ -36,6 +36,7 @@ const chartTypesForDropdown = computed(() =>
       {{ $t(`dashboards.widgets.${focusedWidget.widget_type}`) }}
     </div>
     <LayoutsWidgetsPropertiesPanelTopSectionsNumber v-if="isNumber" />
+    <LayoutsWidgetsPropertiesPanelTopSectionsText v-if="isText" />
     <a-radio-group v-model:value="dataOrAppearanceMode" class="nc-radio-group">
       <a-radio-button class="nc-radio-button" value="data">Data</a-radio-button>
       <a-radio-button class="nc-radio-button" value="appearance">Appearance</a-radio-button>

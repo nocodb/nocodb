@@ -7,7 +7,12 @@ const props = defineProps<{
 
 const { widgetConfig } = toRefs(props)
 const text = computed(() => widgetConfig.value.data_config.text)
+const url = computed(() => widgetConfig.value.data_config.staticTextFunction?.url)
 const fontType = computed(() => widgetConfig.value.appearance_config.fontType)
+
+const isLink = computed(() => {
+  return widgetConfig.value.data_config.hasFunction && widgetConfig.value.data_config.staticTextFunction?.type === 'url'
+})
 
 const fontTypeToElement = (fontType: FontType | undefined) => {
   switch (fontType) {
@@ -35,7 +40,12 @@ const elementTag = computed(() => fontTypeToElement(fontType.value))
 
 <template>
   <a-card>
-    <component :is="elementTag" class="nc-layout-text-element">{{ text }}</component>
+    <component :is="elementTag" class="nc-layout-text-element">
+      <a v-if="isLink" :href="url" target="_blank">{{ text }}</a>
+      <span v-else>
+        {{ text }}
+      </span>
+    </component>
   </a-card>
 </template>
 

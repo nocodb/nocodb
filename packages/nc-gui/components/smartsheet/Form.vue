@@ -837,7 +837,7 @@ watch(view, (nextView) => {
 
 <style scoped lang="scss">
 .nc-editable:hover {
-  .nc-field-remove-icon {
+  :deep(.nc-field-remove-icon) {
     @apply opacity-100;
   }
 }

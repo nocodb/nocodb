@@ -115,12 +115,7 @@ export default {
             overflow: isMouseOverShowSidebarZone ? 'visible' : undefined,
           }"
         >
-          <DashboardSidebar
-            :style="{
-              transition: 'all 0.3s ease-in-out',
-              width: '100%',
-            }"
-          />
+          <slot name="sidebar" />
         </div>
       </Pane>
       <div v-if="!isOpen" class="relative pl-2 flex flex-col h-full z-40">
@@ -163,34 +158,34 @@ export default {
 }
 
 .nc-sidebar-wrapper.close {
-  .nc-sidebar {
+  > * {
     height: 80vh;
   }
 }
 
 .nc-sidebar-wrapper.sidebar-short {
-  .nc-sidebar {
+  > * {
     height: 80vh !important;
   }
 }
 
 .nc-sidebar-wrapper.open {
   height: 100vh;
-  .nc-sidebar {
+  > * {
     height: 100vh;
   }
 }
 
-.nc-sidebar {
+.nc-sidebar-wrapper > * {
   height: calc(100% - var(--header-height));
 }
 
-.nc-sidebar-wrapper.hide-sidebar .nc-sidebar {
+.nc-sidebar-wrapper.hide-sidebar > * {
   position: absolute;
   transform: translateX(-100%);
   opacity: 0;
 }
-.nc-sidebar-wrapper.sidebar-short .nc-sidebar {
+.nc-sidebar-wrapper.sidebar-short > * {
   @apply !(rounded-lg border-1 border-gray-100 shadow-lg);
 }
 </style>

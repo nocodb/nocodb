@@ -3418,7 +3418,7 @@ export class Api<
      * @tags Noco docs
      * @name ListPublicPages
      * @summary List tree of public pages of given parent page and its children. If the given parent page is published under a different parent page, the tree's top level will be that parent page
-     * @request GET:api/v1/public/docs/{projectId}/pages/{parentPageId}
+     * @request GET:api/v1/public/docs/{projectId}/pages/{parentPageId}/nested
      * @response `200` `(DocsPageType)[]` OK
      */
     listPublicPages: (
@@ -3427,7 +3427,7 @@ export class Api<
       params: RequestParams = {}
     ) =>
       this.request<DocsPageType[], any>({
-        path: `api/v1/public/docs/${projectId}/pages/${parentPageId}`,
+        path: `api/v1/public/docs/${projectId}/pages/${parentPageId}/nested`,
         method: 'GET',
         format: 'json',
         ...params,

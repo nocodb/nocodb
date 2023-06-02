@@ -183,7 +183,6 @@ function onDropZoneClick(e: MouseEvent) {
 
       <div class="flex flex-col gap-6 items-center justify-center md:w-1/2 mx-auto text-center">
         <div class="text-3xl">Welcome to NocoDB!</div>
-
         <div class="flex items-center flex-wrap justify-center gap-2 prose-lg leading-8">
           To get started, either drop a <span class="flex items-center gap-2"><PhFileCsv /> CSV,</span>
 

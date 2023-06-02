@@ -8,7 +8,6 @@ definePageMeta({
 })
 const { project } = storeToRefs(useProject())
 const { setProject } = useProject()
-const { isOpen: isSidebarOpen, toggleHasSidebar, toggle } = useSidebar('nc-left-sidebar')
 
 const route = useRoute()
 
@@ -26,6 +25,7 @@ const {
 const { fetchNestedPages, navigateToFirstPage } = useDocStore()
 
 const isFetching = ref(true)
+const isSidebarOpen = ref(false)
 
 const isErrored = computed(() => {
   return isNestedFetchErrored.value || isPageErrored.value
@@ -53,20 +53,15 @@ watch(
       console.error(e)
     }
 
-    if (isSidebarOpen.value) return
-
     if ((meta as any).isPublic) {
-      toggle(true)
-      toggleHasSidebar(true)
+      isSidebarOpen.value = true
       navigateToFirstPage()
     }
 
     if (isNestedPublicPage.value) {
-      toggle(true)
-      toggleHasSidebar(true)
+      isSidebarOpen.value = true
     } else {
-      toggle(false)
-      toggleHasSidebar(false)
+      isSidebarOpen.value = false
     }
   },
   {
@@ -78,8 +73,7 @@ watch(
   () => flattenedNestedPages.value?.length ?? 0,
   () => {
     if (flattenedNestedPages.value?.length > 1) {
-      toggle(true)
-      toggleHasSidebar(true)
+      isSidebarOpen.value = true
     }
 
     if (flattenedNestedPages.value?.length > 0 && !openedPageId.value) {
@@ -90,15 +84,19 @@ watch(
 </script>
 
 <template>
-  <NuxtLayout id="content" :key="route.params.projectId as string" class="flex">
-    <template v-if="isSidebarOpen && !isFetching" #sidebar>
-      <DocsSideBar :project="project" />
+  <NuxtLayout id="content" :key="route.params.projectId as string" name="dashboard">
+    <template #sidebar>
+      <DocsSideBar v-if="isSidebarOpen && !isFetching" :project="project" />
     </template>
-    <div v-if="isErrored">
-      <DocsError />
-    </div>
-    <template v-else>
-      <DocsPageView />
+    <template #content>
+      <div class="flex flex-row">
+        <div v-if="isErrored">
+          <DocsError />
+        </div>
+        <template v-else>
+          <DocsPageView />
+        </template>
+      </div>
     </template>
   </NuxtLayout>
 </template>

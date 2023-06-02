@@ -542,6 +542,12 @@ const projectViewOpen = computed(() => {
   const routeNameAfterProjectView = routeNameSplit[routeNameSplit.length - 1]
   return routeNameAfterProjectView.split('-').length === 2 || routeNameAfterProjectView.split('-').length === 1
 })
+
+onMounted(() => {
+  if (activeProjectId.value) {
+    openedProjectsIds.value.set(activeProjectId.value, true)
+  }
+})
 </script>
 
 <template>
@@ -557,7 +563,7 @@ const projectViewOpen = computed(() => {
           <a-dropdown :trigger="['contextmenu']" overlay-class-name="nc-dropdown-tree-view-context-menu">
             <div
               ref="projectElRefs"
-              class="m-1 nc-project-sub-menu rounded-md"
+              class="mx-1 nc-project-sub-menu rounded-md"
               :class="{ active: openedProjectsIds.has(project.id!) }"
             >
               <div
@@ -567,7 +573,7 @@ const projectViewOpen = computed(() => {
               >
                 <DashboardTreeViewNewProjectNode
                   ref="projectNodeRefs"
-                  class="flex-grow !py-0.75 rounded-md"
+                  class="flex-grow rounded-md py-1.5 pl-2"
                   :class="{
                     'bg-primary-selected': activeProjectId === project.id && projectViewOpen,
                     'hover:bg-hover': !(activeProjectId === project.id && projectViewOpen),
@@ -729,14 +735,14 @@ const projectViewOpen = computed(() => {
         <WorkspaceCreateProjectBtn
           modal
           type="ghost"
-          class="h-auto w-full nc-create-project-btn"
+          class="h-auto w-full nc-create-project-btn !rounded-lg"
           :active-workspace-id="route.params.workspaceId"
         >
           <PhPlusThin />
-          Add New
+          Create new Project
         </WorkspaceCreateProjectBtn>
       </div>
-      <div class="flex items-start flex-col justify-start px-2 py-3 gap-2">
+      <div class="flex items-start flex-row justify-center px-2 py-3 gap-2">
         <GeneralJoinCloud class="color-transition px-2 text-gray-500 cursor-pointer select-none hover:text-accent" />
       </div>
     </div>
@@ -857,6 +863,7 @@ const projectViewOpen = computed(() => {
 }
 
 .nc-treeview {
+  @apply pt-0.5;
   &::-webkit-scrollbar {
     width: 4px;
   }

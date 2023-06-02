@@ -1,5 +1,14 @@
 <script setup lang="ts">
 const route = useRoute()
+
+const { openedProjectId } = storeToRefs(useDocStore())
+const { fetchNestedPages } = useDocStore()
+
+onMounted(() => {
+  fetchNestedPages({
+    projectId: openedProjectId.value,
+  })
+})
 </script>
 
 <template>

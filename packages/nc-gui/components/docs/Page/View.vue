@@ -286,7 +286,7 @@ watch(
           class="flex flex-row justify-between items-center my-2 h-8"
           :class="{
             'pl-6': isSidebarOpen,
-            'pl-2': !isSidebarOpen,
+            'pl-12': !isSidebarOpen,
           }"
         >
           <div class="flex flex-row items-center">

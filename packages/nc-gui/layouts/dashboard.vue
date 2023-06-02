@@ -5,12 +5,12 @@ import 'splitpanes/dist/splitpanes.css'
 const { isOpen } = storeToRefs(useSidebarStore())
 const wrapperRef = ref<HTMLDivElement>()
 const sideBarSize = ref({
-  old: 25,
-  current: 25,
+  old: 20,
+  current: 20,
 })
 const contentSize = ref({
-  old: 75,
-  current: 75,
+  old: 80,
+  current: 80,
 })
 const isSidebarShort = ref(false)
 const animationDuration = 300
@@ -58,7 +58,7 @@ watch(isOpen, () => {
   }
 })
 
-document.addEventListener('mousemove', (e) => {
+function handleMouseMove(e: MouseEvent) {
   if (!wrapperRef.value) return
   if (isOpen.value && !isSidebarHidden.value && !isMouseOverShowSidebarZone.value) return
   if (isOpen.value) {
@@ -74,14 +74,22 @@ document.addEventListener('mousemove', (e) => {
     isSidebarHidden.value = true
     isMouseOverShowSidebarZone.value = false
   }
+}
+
+function onWindowResize() {
+  viewportWidth.value = window.innerWidth
+}
+
+onMounted(() => {
+  document.addEventListener('mousemove', handleMouseMove)
+
+  window.addEventListener('resize', onWindowResize)
 })
 
-watch(
-  () => window.innerWidth,
-  () => {
-    viewportWidth.value = window.innerWidth
-  },
-)
+onBeforeUnmount(() => {
+  document.removeEventListener('mousemove', handleMouseMove)
+  window.removeEventListener('resize', onWindowResize)
+})
 </script>
 
 <script lang="ts">
@@ -118,7 +126,7 @@ export default {
           <slot name="sidebar" />
         </div>
       </Pane>
-      <div v-if="!isOpen" class="relative pl-2 flex flex-col h-full z-40">
+      <div v-if="!isOpen" class="absolute top-0 left-0 pl-2 flex flex-col h-full z-40">
         <div class="mt-2 p-1 px-1.5 rounded-md hover:bg-gray-100 cursor-pointer" @click="isOpen = true">
           <MdiMenu v-if="isSidebarHidden" />
           <IcBaselineKeyboardDoubleArrowRight v-else />

@@ -138,9 +138,9 @@ onMounted(async () => {
 
   await fetchNestedPages({ projectId: project.value.id! })
 
-  await openChildPageTabsOfRootPages({
-    projectId: project.value.id!,
-  })
+  // await openChildPageTabsOfRootPages({
+  //   projectId: project.value.id!,
+  // })
 })
 </script>
 
@@ -219,15 +219,6 @@ onMounted(async () => {
           </div>
         </template>
       </a-tree>
-      <div
-        v-if="isEditAllowed"
-        class="py-1 flex flex-row pl-7 items-center gap-x-2 cursor-pointer hover:text-black text-gray-600 text-sm"
-        data-testid="nc-docs-sidebar-add-page"
-        @click="() => addNewPage({parentPageId: undefined, projectId: project.id!})"
-      >
-        <MdiPlus />
-        <div class="flex">Create New Page</div>
-      </div>
     </div>
 
     <a-modal v-model:visible="isDeleteModalOpen" centered :closable="false" :footer="false">
@@ -305,14 +296,14 @@ onMounted(async () => {
   }
 }
 .ant-tree-treenode {
-  @apply w-full rounded-md mt-0.65 pl-6 !important;
+  @apply w-full rounded-md mb-0.65 pl-6 !important;
 }
 .ant-tree-node-content-wrapper {
   @apply w-full mr-2 pl-0.5 bg-inherit transition-none !important;
   transition: none !important;
 }
 .ant-tree-list {
-  @apply pt-0.5 last:pb-1;
+  @apply last:pb-1 mt-0.5;
   .ant-tree-switcher {
     @apply mt-1 !important;
   }
@@ -332,7 +323,7 @@ onMounted(async () => {
     @apply !bg-primary-selected !hover:bg-primary-selected;
   }
   .ant-tree-indent-unit {
-    @apply w-5 !important;
+    @apply w-8 !important;
   }
   .ant-tree-switcher.ant-tree-switcher-noop {
     @apply w-6;

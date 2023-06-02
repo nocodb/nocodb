@@ -119,7 +119,7 @@ const modalVisible = false
             <div v-else class="text-md truncate capitalize">{{ workspace?.title }}</div>
           </div>
 
-          <PhCodeSimpleThin class="min-w-[17px] text-md transform rotate-90" />
+          <MdiCodeTags class="min-w-[17px] text-md transform rotate-90" />
         </template>
 
         <template v-else>

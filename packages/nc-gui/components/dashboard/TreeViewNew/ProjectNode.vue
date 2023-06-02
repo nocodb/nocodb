@@ -31,6 +31,8 @@ const projectRole = inject(ProjectRoleInj)
 
 const toggleDialog = inject(ToggleDialogInj)
 
+const { addNewPage } = useDocStore()
+
 const { $e } = useNuxtApp()
 
 const enableEditMode = () => {
@@ -120,16 +122,16 @@ const isSharedBase = ref(false)
 </script>
 
 <template>
-  <div class="project-title-node group flex items-center w-full px-0.5 py-0.5">
+  <div class="project-title-node group flex items-center w-full">
     <!--    <GeneralProjectIcon class="mx-2" :type="project.type" /> -->
     <component
       :is="isUIAllowed('projectIconCustomisation', false, projectRole) ? Dropdown : 'div'"
       trigger="click"
       destroy-popup-on-hide
-      class="flex items-center mx-2"
+      class="flex items-center mx-2 py-1.15"
       @click.stop
     >
-      <div class="flex items-center" @click.stop>
+      <div class="flex items-center py-2" @click.stop>
         <component :is="isUIAllowed('projectIconCustomisation', false, projectRole) ? Tooltip : 'div'">
           <span v-if="project.meta?.icon" :key="project.meta?.icon" class="nc-table-icon flex items-center">
             <IconifyIcon
@@ -163,6 +165,16 @@ const isSharedBase = ref(false)
       {{ project.title }}
     </span>
     <span :class="{ 'flex-grow': !editMode }"></span>
+    <template v-if="project.type === NcProjectType.DOCS">
+      <div
+        class="flex flex-row pr-1 items-center gap-x-2 cursor-pointer hover:text-black text-gray-600 text-sm invisible !group-hover:visible"
+        data-testid="nc-docs-sidebar-add-page"
+        @click="() => addNewPage({parentPageId: undefined, projectId: project.id!})"
+      >
+        <MdiPlus />
+      </div>
+    </template>
+
     <a-dropdown>
       <MdiDotsVertical class="mr-1.5 opacity-0 group-hover:opacity-100" @click.stop />
       <template #overlay>

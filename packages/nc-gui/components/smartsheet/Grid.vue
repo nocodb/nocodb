@@ -827,7 +827,7 @@ const deleteSelectedRangeOfRows = () => {
         >
           <thead ref="tableHead">
             <tr class="nc-grid-header">
-              <th class="w-[80px] min-w-[80px]" data-testid="grid-id-column">
+              <th class="w-[85px] min-w-[85px]" data-testid="grid-id-column">
                 <div class="w-full h-full bg-gray-100 flex pl-5 pr-1 items-center" data-testid="nc-check-all">
                   <template v-if="!readOnly">
                     <div class="nc-no-label text-gray-500" :class="{ hidden: selectedAllRecords }">#</div>
@@ -1010,7 +1010,7 @@ const deleteSelectedRangeOfRows = () => {
               class="!sticky bottom-0 left-0 z-6 cursor-pointer"
               @click="addEmptyRow()"
             >
-              <td :colspan="2" class="text-left pointer nc-grid-add-new-cell !sticky lef-0 !border-0">
+              <td       style="border-top: 1px solid #eee !important;" :colspan="2" class="text-left pointer nc-grid-add-new-cell !sticky lef-0 !border-0">
                 <div class="px-2 w-full flex items-center text-gray-500 !z-5">
                   <component :is="iconMap.plus" class="text-pint-500 text-xs ml-2 text-primary" />
 
@@ -1020,7 +1020,7 @@ const deleteSelectedRangeOfRows = () => {
                 </div>
               </td>
 
-              <td v-e="['c:row:add:grid-bottom']" class="z-0 !border-0" :colspan="visibleColLength - 1"></td>
+              <td       style="border-top: 1px solid #eee !important;" v-e="['c:row:add:grid-bottom']" class="!z-0 !border-0" :colspan="visibleColLength - 1"></td>
             </tr>
           </tbody>
         </table>

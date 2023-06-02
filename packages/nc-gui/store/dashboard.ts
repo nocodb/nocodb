@@ -11,6 +11,7 @@ import type {
   ProjectType,
   ScreenDimensions,
   ScreenPosition,
+  StaticTextWidget,
   ViewType,
   Widget,
   WidgetReqType,
@@ -738,7 +739,7 @@ export const useDashboardStore = defineStore('dashboardStore', () => {
     }
   }
 
-  const changeSelectRecordsModeForNumberWidgetDataConfig = (newVal: string) => {
+  const changeSelectRecordsModeForNumberWidgetDataConfig = (newVal: 'all_records' | 'specific_records') => {
     if (
       !focusedWidget.value ||
       ![
@@ -761,7 +762,7 @@ export const useDashboardStore = defineStore('dashboardStore', () => {
     })
   }
 
-  const changeRecordCountOrFieldSummaryForNumberWidgetDataConfig = (newVal: string) => {
+  const changeRecordCountOrFieldSummaryForNumberWidgetDataConfig = (newVal: 'record_count' | 'field_summary') => {
     if (!focusedWidget.value || ![WidgetTypeType.Number, ...chartTypes].includes(focusedWidget.value.widget_type)) {
       console.error(
         'changeRecordCountOrFieldSummaryForNumberWidgetDataConfig: focusedWidget.value is undefined or not a Number/Chart widget',
@@ -882,6 +883,80 @@ export const useDashboardStore = defineStore('dashboardStore', () => {
     _updateWidgetInAPIAndLocally(updatedWidget)
   }
 
+  const changeTextOfFocusedTextElement = (newText: string) => {
+    if (!focusedWidget.value || ![WidgetTypeType.StaticText].includes(focusedWidget.value.widget_type)) {
+      console.error('changeTextOfFocusedTextElement: focusedWidget.value is undefined or not a Text widget')
+      return
+    }
+    const updatedWidget = {
+      ...focusedWidget.value!,
+      data_config: {
+        ...focusedWidget.value.data_config,
+        text: newText,
+      },
+    }
+    _updateWidgetInAPIAndLocally(updatedWidget)
+  }
+
+  const changeUrlOfFocusedTextElement = (newUrl: string) => {
+    if (!focusedWidget.value || ![WidgetTypeType.StaticText].includes(focusedWidget.value.widget_type)) {
+      console.error('changeUrlOfFocusedTextElement: focusedWidget.value is undefined or not a Text widget')
+      return
+    }
+
+    const currentWidgetConf = focusedWidget.value as StaticTextWidget
+
+    if (currentWidgetConf.data_config.staticTextFunction?.type !== 'url') {
+      console.error('changeUrlOfFocusedTextElement: staticTextFunction.type is not url')
+      return
+    }
+    const updatedWidget: StaticTextWidget = {
+      ...currentWidgetConf,
+      data_config: {
+        ...currentWidgetConf.data_config,
+        staticTextFunction: {
+          type: 'url',
+          url: newUrl,
+        },
+      },
+    }
+    _updateWidgetInAPIAndLocally(updatedWidget)
+  }
+
+  // TODO: use types from skd for function signature
+  const changeFunctionTypeOfStaticTextWidget = (newFunctionType: false | 'url') => {
+    // if (!focusedWidget.value || ![WidgetTypeType.StaticText].includes(focusedWidget.value.widget_type)) {
+    if (!focusedWidget.value || focusedWidget.value.widget_type !== WidgetTypeType.StaticText) {
+      console.error('changeFunctionTypeOfStaticTextWidget: focusedWidget.value is undefined or not a Text widget')
+      return
+    }
+
+    const currentWidgetConf = focusedWidget.value as StaticTextWidget
+    let updatedWidget: StaticTextWidget
+    if (newFunctionType === false) {
+      updatedWidget = {
+        ...currentWidgetConf!,
+        data_config: {
+          ...currentWidgetConf.data_config,
+          hasFunction: false,
+        },
+      }
+    } else {
+      updatedWidget = {
+        ...currentWidgetConf!,
+        data_config: {
+          ...currentWidgetConf.data_config,
+          hasFunction: true,
+          staticTextFunction: currentWidgetConf.data_config.staticTextFunction || {
+            type: 'url',
+            url: '',
+          },
+        },
+      }
+    }
+    _updateWidgetInAPIAndLocally(updatedWidget)
+  }
+
   return {
     openedLayoutSidebarNode: readonly(openedLayoutSidebarNode),
     openedLayoutId: readonly(openedLayoutId),
@@ -919,5 +994,8 @@ export const useDashboardStore = defineStore('dashboardStore', () => {
     changeDescriptionOfNumberWidget,
     changeSelectedXAxisOrderByOfFocusedWidget,
     changexAxisOrderDirectionOfFocusedWidget,
+    changeTextOfFocusedTextElement,
+    changeFunctionTypeOfStaticTextWidget,
+    changeUrlOfFocusedTextElement,
   }
 })

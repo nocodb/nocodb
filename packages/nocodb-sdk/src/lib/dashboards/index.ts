@@ -78,8 +78,26 @@ export interface DataConfigNumber {
   description?: string;
 }
 
+export interface StaticTextFunctionBase {
+  type: 'url'; // | ... More Functions to come?;
+}
+export interface StatictTextFunctionUrl extends StaticTextFunctionBase {
+  type: 'url';
+  url: string;
+}
+
+export type StaticTextFunction = StatictTextFunctionUrl;
+
 export interface DataConfigStaticText {
   text?: string;
+  hasFunction?: boolean;
+  staticTextFunction?: StaticTextFunction;
+}
+
+export interface DataConfigStaticText {
+  text?: string;
+  hasFunction?: boolean;
+  staticTextFunction?: StaticTextFunction;
 }
 
 export interface DataConfigAggregated2DChart {

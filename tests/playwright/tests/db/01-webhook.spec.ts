@@ -299,7 +299,7 @@ test.describe.serial('Webhook', () => {
     await verifyHookTrigger(0, '', request);
   });
 
-  test('webhook Conditional webhooks', async ({ request }) => {
+  test('Conditional webhooks', async ({ request }) => {
     test.slow();
 
     await clearServerData({ request });

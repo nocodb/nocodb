@@ -117,7 +117,7 @@ const {
   formattedData: data,
   updateOrSaveRow,
   changePage,
-  addEmptyRow,
+  addEmptyRow: _addEmptyRow,
   deleteRow,
   deleteSelectedRows,
   selectedAllRecords,
@@ -200,6 +200,7 @@ const {
   isCellActive,
   tbodyEl,
   resetSelectedRange,
+  makeActive,
   selectedRange,
 } = useMultiSelect(
   meta,
@@ -804,6 +805,14 @@ const deleteSelectedRangeOfRows = () => {
     activeCell.col = null
   })
 }
+
+function addEmptyRow(row?: number) {
+  _addEmptyRow(row)
+  nextTick().then(() => {
+    makeActive(row ?? data.value.length - 1, 0)
+    scrollToCell?.()
+  })
+}
 </script>
 
 <template>
@@ -1009,6 +1018,7 @@ const deleteSelectedRangeOfRows = () => {
                 v-e="['c:row:add:grid-bottom']"
                 :colspan="visibleColLength + 1"
                 class="text-left pointer nc-grid-add-new-cell cursor-pointer"
+                @mouseup.stop
                 @click="addEmptyRow()"
               >
                 <div class="px-2 w-full flex items-center text-gray-500">

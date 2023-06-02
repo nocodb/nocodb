@@ -208,6 +208,7 @@ export function useMultiSelect(
     selectedRange.startRange({ row, col })
     selectedRange.endRange({ row, col })
     makeActive(row, col)
+    scrollToActiveCell?.()
     isMouseDown = false
   }
 

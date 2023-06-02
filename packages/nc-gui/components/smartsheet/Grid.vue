@@ -1182,14 +1182,14 @@ const deleteSelectedRangeOfRows = () => {
 
   thead th:nth-child(2) {
     position: sticky !important;
-    left: 80px;
+    left: 85px;
     z-index: 5;
     @apply border-r-2 border-r-gray-300;
   }
 
   tbody td:nth-child(2) {
     position: sticky !important;
-    left: 80px;
+    left: 85px;
     z-index: 4;
     background: white;
     @apply border-r-2 border-r-gray-300;

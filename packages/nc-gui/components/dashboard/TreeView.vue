@@ -1,10 +1,10 @@
 <script setup lang="ts">
+import { nextTick } from '@vue/runtime-core'
 import type { TableType } from 'nocodb-sdk'
 import type { Input } from 'ant-design-vue'
 import { Dropdown, Tooltip, message } from 'ant-design-vue'
 import Sortable from 'sortablejs'
 import GithubButton from 'vue-github-button'
-import { Icon } from '@iconify/vue'
 import type { VNodeRef } from '#imports'
 import {
   ClientType,
@@ -279,6 +279,15 @@ function openAirtableImportDialog(baseId?: string) {
   }
 }
 
+function scrollToTable(table: TableType) {
+  // get the table node in the tree view using the data-id attribute
+  const el = document.querySelector(`.nc-tree-item[data-id="${table?.id}"]`)
+  // scroll to the table node if found
+  if (el) {
+    el.scrollIntoView({ behavior: 'smooth' })
+  }
+}
+
 function openTableCreateDialog(baseId?: string) {
   $e('c:table:create:navdraw')
 
@@ -288,6 +297,12 @@ function openTableCreateDialog(baseId?: string) {
     'modelValue': isOpen,
     'baseId': baseId || bases.value[0].id,
     'onUpdate:modelValue': closeDialog,
+    'onCreate': (table: TableType) => {
+      // on new table created scroll to the table in the tree view
+      nextTick(() => {
+        scrollToTable(table)
+      })
+    },
   })
 
   function closeDialog() {
@@ -405,6 +420,9 @@ const duplicateTable = async (table: TableType) => {
           await loadTables()
           const newTable = tables.value.find((el) => el.id === data?.result?.id)
           if (newTable) addTableTab(newTable)
+          await nextTick(() => {
+            scrollToTable(newTable)
+          })
         } else if (status === JobStatus.FAILED) {
           message.error('Failed to duplicate table')
           await loadTables()

@@ -308,6 +308,7 @@ const copyProjectMeta = async () => {
           <div v-if="record.status !== ProjectStatus.JOB" class="flex items-center gap-2">
             <component
               :is="iconMap.edit"
+              v-if="isUIAllowed('projectUpdate', true)"
               v-e="['c:project:edit:rename']"
               class="nc-action-btn"
               @click.stop="navigateTo(`/${text}`)"
@@ -315,12 +316,18 @@ const copyProjectMeta = async () => {
 
             <component
               :is="iconMap.delete"
+              v-if="isUIAllowed('projectDelete', true)"
               class="nc-action-btn"
               :data-testid="`delete-project-${record.title}`"
               @click.stop="deleteProject(record)"
             />
 
-            <a-dropdown :trigger="['click']" overlay-class-name="nc-dropdown-import-menu" @click.stop>
+            <a-dropdown
+              v-if="isUIAllowed('duplicateProject', true)"
+              :trigger="['click']"
+              overlay-class-name="nc-dropdown-import-menu"
+              @click.stop
+            >
               <GeneralIcon
                 icon="threeDotVertical"
                 class="nc-import-menu outline-0"

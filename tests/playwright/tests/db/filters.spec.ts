@@ -1339,3 +1339,52 @@ test.describe('Filter Tests: Toggle button', () => {
     await dashboard.settings.toggleNullEmptyFilters();
   });
 });
+
+test.describe('Filter Tests: Filter groups', () => {
+  /**
+   *  Steps
+   *
+   * 1. Open table
+   * 2. Verify filter options : should not include NULL & EMPTY options
+   * 3. Enable `Show NULL & EMPTY in Filter` in Project Settings
+   * 4. Verify filter options : should include NULL & EMPTY options
+   * 5. Add NULL & EMPTY filters
+   * 6. Disable `Show NULL & EMPTY in Filter` in Project Settings : should not be allowed
+   * 7. Remove the NULL & EMPTY filters
+   * 8. Disable `Show NULL & EMPTY in Filter` in Project Settings again : should be allowed
+   *
+   */
+
+  test.beforeEach(async ({ page }) => {
+    context = await setup({ page, isEmptyProject: false });
+    dashboard = new DashboardPage(page, context.project);
+    toolbar = dashboard.grid.toolbar;
+  });
+
+  test('Filter: Empty filters', async () => {
+    await dashboard.closeTab({ title: 'Team & Auth' });
+    await dashboard.treeView.openTable({ title: 'Country', networkResponse: false });
+
+    await toolbar.clickFilter({ networkValidation: false });
+    await toolbar.filter.addFilterGroup({
+      title: 'Country',
+      operation: 'is equal',
+      value: 'Argentina',
+    });
+    await toolbar.clickFilter({ networkValidation: false });
+
+    await toolbar.clickFilter({ networkValidation: false });
+    await toolbar.filter.addFilterGroup({
+      title: 'Country',
+      operation: 'is equal',
+      value: 'Indonesia',
+      filterGroupIndex: 1,
+      filterLogicalOperator: 'OR',
+    });
+    await toolbar.clickFilter({ networkValidation: false });
+
+    await validateRowArray({
+      rowCount: 2,
+    });
+  });
+});

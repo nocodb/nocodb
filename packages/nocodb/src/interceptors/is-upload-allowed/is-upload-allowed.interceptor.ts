@@ -1,6 +1,5 @@
 import { Injectable } from '@nestjs/common';
 import { OrgUserRoles, ProjectRoles } from 'nocodb-sdk';
-import { throwError } from 'rxjs';
 import { NcError } from '../../helpers/catchError';
 import Noco from '../../Noco';
 import extractRolesObj from '../../utils/extractRolesObj';

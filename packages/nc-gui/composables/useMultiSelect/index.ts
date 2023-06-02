@@ -55,7 +55,7 @@ export function useMultiSelect(
 
   const { appInfo } = useGlobal()
 
-  const { isMysql, isXcdbBase } = useProject()
+  const { isMysql } = useProject()
 
   let clipboardContext = $ref<{ value: any; uidt: UITypes } | null>(null)
 
@@ -208,6 +208,7 @@ export function useMultiSelect(
     selectedRange.startRange({ row, col })
     selectedRange.endRange({ row, col })
     makeActive(row, col)
+    scrollToActiveCell?.()
     isMouseDown = false
   }
 
@@ -359,7 +360,6 @@ export function useMultiSelect(
                         appInfo: unref(appInfo),
                       },
                       isMysql(meta.value?.base_id),
-                      isXcdbBase(meta.value?.base_id),
                     )
                     e.preventDefault()
 
@@ -394,7 +394,6 @@ export function useMultiSelect(
                         appInfo: unref(appInfo),
                       },
                       isMysql(meta.value?.base_id),
-                      isXcdbBase(meta.value?.base_id),
                     )
                     e.preventDefault()
                     syncCellData?.(activeCell)

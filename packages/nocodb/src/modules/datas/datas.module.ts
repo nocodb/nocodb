@@ -29,15 +29,19 @@ import { PublicDatasService } from '../../services/public-datas.service';
     }),
   ],
   controllers: [
-    DataTableController,
-    DatasController,
-    BulkDataAliasController,
-    DataAliasController,
-    DataAliasNestedController,
-    DataAliasExportController,
-    OldDatasController,
-    PublicDatasController,
-    PublicDatasExportController,
+    process.env.NC_WORKER_CONTAINER !== 'true'
+      ? [
+          DataTableController,
+          DatasController,
+          BulkDataAliasController,
+          DataAliasController,
+          DataAliasNestedController,
+          DataAliasExportController,
+          OldDatasController,
+          PublicDatasController,
+          PublicDatasExportController,
+        ]
+      : []),
   ],
   providers: [
     DataTableService,

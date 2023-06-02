@@ -1,6 +1,5 @@
 import { Module, RequestMethod } from '@nestjs/common';
 import { APP_FILTER } from '@nestjs/core';
-import { BullModule } from '@nestjs/bull';
 import { EventEmitterModule as NestJsEventEmitter } from '@nestjs/event-emitter';
 import { GlobalExceptionFilter } from './filters/global-exception/global-exception.filter';
 import { GlobalMiddleware } from './middlewares/global/global.middleware';
@@ -17,7 +16,6 @@ import { AuthTokenStrategy } from './strategies/authtoken.strategy/authtoken.str
 import { BaseViewStrategy } from './strategies/base-view.strategy/base-view.strategy';
 import { MetasModule } from './modules/metas/metas.module';
 import { JobsModule } from './modules/jobs/jobs.module';
-import { AppInitService } from './services/app-init.service';
 import type { MiddlewareConsumer } from '@nestjs/common';
 
 @Module({
@@ -30,13 +28,6 @@ import type { MiddlewareConsumer } from '@nestjs/common';
     EventEmitterModule,
     JobsModule,
     NestJsEventEmitter.forRoot(),
-    ...(process.env['NC_REDIS_URL']
-      ? [
-          BullModule.forRoot({
-            redis: process.env.NC_REDIS_URL,
-          }),
-        ]
-      : []),
   ],
   providers: [
     AuthService,
@@ -48,7 +39,6 @@ import type { MiddlewareConsumer } from '@nestjs/common';
     AuthTokenStrategy,
     BaseViewStrategy,
     HookHandlerService,
-    AppInitService,
   ],
 })
 export class AppModule {

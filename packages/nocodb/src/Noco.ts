@@ -1,6 +1,6 @@
+import path from 'path';
 import Sentry, { Handlers } from '@sentry/node';
 import { Logger } from '@nestjs/common';
-import path from 'path';
 import { NestFactory } from '@nestjs/core';
 import clear from 'clear';
 import * as express from 'express';
@@ -30,13 +30,7 @@ export default class Noco {
   private static logger = new Logger(Noco.name);
 
   public static get dashboardUrl(): string {
-    let siteUrl = `http://localhost:${process.env.PORT || 8080}`;
-    // if (Noco._this?.config?.envs?.[Noco._this?.env]?.publicUrl) {
-    //   siteUrl = Noco._this?.config?.envs?.[Noco._this?.env]?.publicUrl;
-    // }
-    if (Noco._this?.config?.envs?.['_noco']?.publicUrl) {
-      siteUrl = Noco._this?.config?.envs?.['_noco']?.publicUrl;
-    }
+    const siteUrl = `http://localhost:${process.env.PORT || 8080}`;
 
     return `${siteUrl}${Noco._this?.config?.dashboardPath}`;
   }

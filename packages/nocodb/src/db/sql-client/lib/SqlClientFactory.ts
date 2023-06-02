@@ -1,7 +1,5 @@
 import fs from 'fs';
 import { promisify } from 'util';
-import Noco from '../../../Noco';
-import SqlClientFactoryEE from './ee/SqlClientFactoryEE';
 import MySqlClient from './mysql/MysqlClient';
 import MssqlClient from './mssql/MssqlClient';
 import OracleClient from './oracle/OracleClient';

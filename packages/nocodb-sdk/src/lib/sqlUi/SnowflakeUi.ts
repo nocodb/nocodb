@@ -572,7 +572,7 @@ export class SnowflakeUi {
   }
 
   static getAbstractType(col): any {
-    switch (col.dt.toUpperCase()) {
+    switch (col.dt?.toUpperCase()) {
       case 'NUMBER':
       case 'DECIMAL':
       case 'NUMERIC':

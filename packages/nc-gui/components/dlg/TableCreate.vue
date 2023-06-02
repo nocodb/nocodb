@@ -19,7 +19,7 @@ const props = defineProps<{
   baseId: string
 }>()
 
-const emit = defineEmits(['update:modelValue'])
+const emit = defineEmits(['update:modelValue', 'create'])
 
 const dialogShow = useVModel(props, 'modelValue', emit)
 
@@ -40,6 +40,7 @@ const { table, createTable, generateUniqueTitle, tables, project } = useTable(as
     type: TabType.TABLE,
   })
 
+  emit('create', table)
   dialogShow.value = false
 }, props.baseId)
 

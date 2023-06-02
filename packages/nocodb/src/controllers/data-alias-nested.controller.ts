@@ -130,7 +130,6 @@ export class DataAliasNestedController {
     @Param('projectName') projectName: string,
     @Param('tableName') tableName: string,
     @Param('refRowId') refRowId: string,
-    @Param('relationType') relationType: string,
   ) {
     await this.dataAliasNestedService.relationDataRemove({
       columnName: columnName,
@@ -157,7 +156,6 @@ export class DataAliasNestedController {
     @Param('projectName') projectName: string,
     @Param('tableName') tableName: string,
     @Param('refRowId') refRowId: string,
-    @Param('relationType') relationType: string,
   ) {
     await this.dataAliasNestedService.relationDataAdd({
       columnName: columnName,

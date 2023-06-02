@@ -1,4 +1,5 @@
 <script lang="ts" setup>
+import { nextTick } from '@vue/runtime-core'
 import type { ColumnReqType, ColumnType, GridType, PaginatedType, TableType, ViewType } from 'nocodb-sdk'
 import { UITypes, isVirtualCol } from 'nocodb-sdk'
 import {
@@ -141,11 +142,20 @@ const getContainerScrollForElement = (
 ) => {
   const childPos = el.getBoundingClientRect()
   const parentPos = container.getBoundingClientRect()
+
+  // provide an extra offset to show the prev/next/up/bottom cell
+  const extraOffset = 15
+
+  const numColWidth = container.querySelector('thead th:nth-child(1)')?.getBoundingClientRect().width ?? 0
+  const primaryColWidth = container.querySelector('thead th:nth-child(2)')?.getBoundingClientRect().width ?? 0
+
+  const stickyColsWidth = numColWidth + primaryColWidth
+
   const relativePos = {
     top: childPos.top - parentPos.top,
     right: childPos.right - parentPos.right,
     bottom: childPos.bottom - parentPos.bottom,
-    left: childPos.left - parentPos.left,
+    left: childPos.left - parentPos.left - stickyColsWidth,
   }
 
   const scroll = {
@@ -159,9 +169,9 @@ const getContainerScrollForElement = (
    */
   scroll.left =
     relativePos.right + (offset?.right || 0) > 0
-      ? container.scrollLeft + relativePos.right + (offset?.right || 0)
+      ? container.scrollLeft + relativePos.right + (offset?.right || 0) + extraOffset
       : relativePos.left - (offset?.left || 0) < 0
-      ? container.scrollLeft + relativePos.left - (offset?.left || 0)
+      ? container.scrollLeft + relativePos.left - (offset?.left || 0) - extraOffset
       : container.scrollLeft
 
   /*
@@ -170,9 +180,9 @@ const getContainerScrollForElement = (
    */
   scroll.top =
     relativePos.bottom + (offset?.bottom || 0) > 0
-      ? container.scrollTop + relativePos.bottom + (offset?.bottom || 0)
+      ? container.scrollTop + relativePos.bottom + (offset?.bottom || 0) + extraOffset
       : relativePos.top - (offset?.top || 0) < 0
-      ? container.scrollTop + relativePos.top - (offset?.top || 0)
+      ? container.scrollTop + relativePos.top - (offset?.top || 0) - extraOffset
       : container.scrollTop
 
   return scroll
@@ -316,6 +326,12 @@ const {
       return
     }
 
+    // See DateTimePicker.vue for details
+    data.value[ctx.row].rowMeta.isUpdatedFromCopyNPaste = {
+      ...data.value[ctx.row].rowMeta.isUpdatedFromCopyNPaste,
+      [ctx.updatedColumnTitle || columnObj.title]: true,
+    }
+
     // update/save cell value
     await updateOrSaveRow(rowObj, ctx.updatedColumnTitle || columnObj.title)
   },
@@ -335,6 +351,12 @@ function scrollToCell(row?: number | null, col?: number | null) {
 
     const { height: headerHeight } = tableHead.value!.getBoundingClientRect()
     const tdScroll = getContainerScrollForElement(td, gridWrapper.value, { top: headerHeight, bottom: 9, right: 9 })
+
+    // if first column set left to 0 since it's sticky it will be visible and calculated value will be wrong
+    // setting left to 0 will make it scroll to the left
+    if (col === 0) {
+      tdScroll.left = 0
+    }
 
     if (rows && row === rows.length - 2) {
       // if last row make 'Add New Row' visible
@@ -625,6 +647,9 @@ const onNavigate = (dir: NavigateDir) => {
       }
       break
   }
+  nextTick(() => {
+    scrollToCell()
+  })
 }
 
 const showContextMenu = (e: MouseEvent, target?: { row: number; col: number }) => {

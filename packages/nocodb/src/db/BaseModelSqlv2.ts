@@ -1,6 +1,9 @@
 import autoBind from 'auto-bind';
 import groupBy from 'lodash/groupBy';
 import DataLoader from 'dataloader';
+import dayjs from 'dayjs';
+import utc from 'dayjs/plugin/utc.js';
+import timezone from 'dayjs/plugin/timezone';
 import { nocoExecute } from 'nc-help';
 import {
   AuditOperationSubTypes,
@@ -17,7 +20,6 @@ import { v4 as uuidv4 } from 'uuid';
 import { extractLimitAndOffset } from '../helpers';
 import { NcError } from '../helpers/catchError';
 import getAst from '../helpers/getAst';
-
 import { Audit, Column, Filter, Model, Project, Sort, View } from '../models';
 import { sanitize, unsanitize } from '../helpers/sqlSanitize';
 import {
@@ -48,6 +50,9 @@ import type {
 } from '../models';
 import type { Knex } from 'knex';
 import type { SortType } from 'nocodb-sdk';
+
+dayjs.extend(utc);
+dayjs.extend(timezone);
 
 const GROUP_COL = '__nc_group_id';
 
@@ -1348,12 +1353,6 @@ class BaseModelSqlv2 {
     const columns = await this.model.getColumns();
     for (const column of columns) {
       switch (column.uidt) {
-        case UITypes.Rollup:
-          {
-            // @ts-ignore
-            const colOptions: RollupColumn = await column.getColOptions();
-          }
-          break;
         case UITypes.Lookup:
           {
             // @ts-ignore
@@ -1600,6 +1599,67 @@ class BaseModelSqlv2 {
       if (!checkColumnRequired(column, fields, extractPkAndPv)) continue;
 
       switch (column.uidt) {
+        case UITypes.DateTime:
+          if (this.isMySQL) {
+            // MySQL stores timestamp in UTC but display in timezone
+            // To verify the timezone, run `SELECT @@global.time_zone, @@session.time_zone;`
+            // If it's SYSTEM, then the timezone is read from the configuration file
+            // if a timezone is set in a DB, the retrieved value would be converted to the corresponding timezone
+            // for example, let's say the global timezone is +08:00 in DB
+            // the value 2023-01-01 10:00:00 (UTC) would display as 2023-01-01 18:00:00 (UTC+8)
+            // our existing logic is based on UTC, during the query, we need to take the UTC value
+            // hence, we use CONVERT_TZ to convert back to UTC value
+            res[sanitize(column.title || column.column_name)] =
+              this.dbDriver.raw(
+                `CONVERT_TZ(??, @@GLOBAL.time_zone, '+00:00')`,
+                [
+                  `${sanitize(alias || this.model.table_name)}.${
+                    column.column_name
+                  }`,
+                ],
+              );
+            break;
+          } else if (this.isPg) {
+            // if there is no timezone info,
+            // convert to database timezone,
+            // then convert to UTC
+            if (
+              column.dt !== 'timestamp with time zone' &&
+              column.dt !== 'timestamptz'
+            ) {
+              res[sanitize(column.title || column.column_name)] = this.dbDriver
+                .raw(
+                  `?? AT TIME ZONE CURRENT_SETTING('timezone') AT TIME ZONE 'UTC'`,
+                  [
+                    `${sanitize(alias || this.model.table_name)}.${
+                      column.column_name
+                    }`,
+                  ],
+                )
+                .wrap('(', ')');
+              break;
+            }
+          } else if (this.isMssql) {
+            // if there is no timezone info,
+            // convert to database timezone,
+            // then convert to UTC
+            if (column.dt !== 'datetimeoffset') {
+              res[sanitize(column.title || column.column_name)] =
+                this.dbDriver.raw(
+                  `CONVERT(DATETIMEOFFSET, ?? AT TIME ZONE 'UTC')`,
+                  [
+                    `${sanitize(alias || this.model.table_name)}.${
+                      column.column_name
+                    }`,
+                  ],
+                );
+              break;
+            }
+          }
+          res[sanitize(column.title || column.column_name)] = sanitize(
+            `${alias || this.model.table_name}.${column.column_name}`,
+          );
+          break;
         case 'LinkToAnotherRecord':
         case 'Lookup':
           break;
@@ -1727,7 +1787,11 @@ class BaseModelSqlv2 {
       await populatePk(this.model, data);
 
       // todo: filter based on view
-      const insertObj = await this.model.mapAliasToColumn(data);
+      const insertObj = await this.model.mapAliasToColumn(
+        data,
+        this.clientMeta,
+        this.dbDriver,
+      );
 
       await this.validate(insertObj);
 
@@ -1865,7 +1929,11 @@ class BaseModelSqlv2 {
 
   async updateByPk(id, data, trx?, cookie?) {
     try {
-      const updateObj = await this.model.mapAliasToColumn(data);
+      const updateObj = await this.model.mapAliasToColumn(
+        data,
+        this.clientMeta,
+        this.dbDriver,
+      );
 
       await this.validate(data);
 
@@ -1913,6 +1981,16 @@ class BaseModelSqlv2 {
     return this.getTnPath(this.model);
   }
 
+  public get clientMeta() {
+    return {
+      isSqlite: this.isSqlite,
+      isMssql: this.isMssql,
+      isPg: this.isPg,
+      isMySQL: this.isMySQL,
+      // isSnowflake: this.isSnowflake,
+    };
+  }
+
   get isSqlite() {
     return this.clientType === 'sqlite3';
   }
@@ -1941,7 +2019,11 @@ class BaseModelSqlv2 {
     // const driver = trx ? trx : await this.dbDriver.transaction();
     try {
       await populatePk(this.model, data);
-      const insertObj = await this.model.mapAliasToColumn(data);
+      const insertObj = await this.model.mapAliasToColumn(
+        data,
+        this.clientMeta,
+        this.dbDriver,
+      );
 
       let rowId = null;
       const postInsertOps = [];
@@ -2101,7 +2183,11 @@ class BaseModelSqlv2 {
         : await Promise.all(
             datas.map(async (d) => {
               await populatePk(this.model, d);
-              return this.model.mapAliasToColumn(d);
+              return this.model.mapAliasToColumn(
+                d,
+                this.clientMeta,
+                this.dbDriver,
+              );
             }),
           );
 
@@ -2185,7 +2271,11 @@ class BaseModelSqlv2 {
 
       const updateDatas = raw
         ? datas
-        : await Promise.all(datas.map((d) => this.model.mapAliasToColumn(d)));
+        : await Promise.all(
+            datas.map((d) =>
+              this.model.mapAliasToColumn(d, this.clientMeta, this.dbDriver),
+            ),
+          );
 
       const prevData = [];
       const newData = [];
@@ -2242,7 +2332,11 @@ class BaseModelSqlv2 {
   ) {
     try {
       let count = 0;
-      const updateData = await this.model.mapAliasToColumn(data);
+      const updateData = await this.model.mapAliasToColumn(
+        data,
+        this.clientMeta,
+        this.dbDriver,
+      );
       await this.validate(updateData);
       const pkValues = await this._extractPksValues(updateData);
       if (pkValues) {
@@ -2294,7 +2388,9 @@ class BaseModelSqlv2 {
     let transaction;
     try {
       const deleteIds = await Promise.all(
-        ids.map((d) => this.model.mapAliasToColumn(d)),
+        ids.map((d) =>
+          this.model.mapAliasToColumn(d, this.clientMeta, this.dbDriver),
+        ),
       );
 
       const deleted = [];
@@ -3187,16 +3283,23 @@ class BaseModelSqlv2 {
     } else {
       query = sanitize(query);
     }
-    return this.convertAttachmentType(
+
+    let data =
       this.isPg || this.isSnowflake
         ? (await this.dbDriver.raw(query))?.rows
         : query.slice(0, 6) === 'select' && !this.isMssql
         ? await this.dbDriver.from(
             this.dbDriver.raw(query).wrap('(', ') __nc_alias'),
           )
-        : await this.dbDriver.raw(query),
-      childTable,
-    );
+        : await this.dbDriver.raw(query);
+
+    // update attachment fields
+    data = this.convertAttachmentType(data, childTable);
+
+    // update date time fields
+    data = this.convertDateFormat(data, childTable);
+
+    return data;
   }
 
   private _convertAttachmentType(
@@ -3228,7 +3331,153 @@ class BaseModelSqlv2 {
             this._convertAttachmentType(attachmentColumns, d),
           );
         } else {
-          this._convertAttachmentType(attachmentColumns, data);
+          data = this._convertAttachmentType(attachmentColumns, data);
+        }
+      }
+    }
+    return data;
+  }
+
+  // TODO(timezone): retrieve the format from the corresponding column meta
+  private _convertDateFormat(
+    dateTimeColumns: Record<string, any>[],
+    d: Record<string, any>,
+  ) {
+    if (!d) return d;
+    for (const col of dateTimeColumns) {
+      if (!d[col.title]) continue;
+
+      if (col.uidt === UITypes.Formula) {
+        if (!d[col.title] || typeof d[col.title] !== 'string') {
+          continue;
+        }
+
+        // remove milliseconds
+        if (this.isMySQL) {
+          d[col.title] = d[col.title].replace(/\.000000/g, '');
+        } else if (this.isMssql) {
+          d[col.title] = d[col.title].replace(/\.0000000 \+00:00/g, '');
+        }
+
+        if (/\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}.\d{3}Z/g.test(d[col.title])) {
+          // convert ISO string (e.g. in MSSQL) to YYYY-MM-DD hh:mm:ssZ
+          // e.g. 2023-05-18T05:30:00.000Z -> 2023-05-18 11:00:00+05:30
+          d[col.title] = d[col.title].replace(
+            /\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}.\d{3}Z/g,
+            (d: string) => {
+              if (!dayjs(d).isValid()) return d;
+              if (this.isSqlite) {
+                // e.g. DATEADD formula
+                return dayjs(d).utc().format('YYYY-MM-DD HH:mm:ssZ');
+              }
+              return dayjs(d).utc(true).format('YYYY-MM-DD HH:mm:ssZ');
+            },
+          );
+          continue;
+        }
+
+        // convert all date time values to utc
+        // the datetime is either YYYY-MM-DD hh:mm:ss (xcdb)
+        // or YYYY-MM-DD hh:mm:ss+/-xx:yy (ext)
+        d[col.title] = d[col.title].replace(
+          /\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}(?:[+-]\d{2}:\d{2})?/g,
+          (d: string) => {
+            if (!dayjs(d).isValid()) {
+              return d;
+            }
+
+            if (this.isSqlite) {
+              // if there is no timezone info,
+              // we assume the input is on NocoDB server timezone
+              // then we convert to UTC from server timezone
+              // example: datetime without timezone
+              // we need to display 2023-04-27 10:00:00 (in HKT)
+              // we convert d (e.g. 2023-04-27 18:00:00) to utc, i.e. 2023-04-27 02:00:00+00:00
+              // if there is timezone info,
+              // we simply convert it to UTC
+              // example: datetime with timezone
+              // e.g. 2023-04-27 10:00:00+05:30  -> 2023-04-27 04:30:00+00:00
+              return dayjs(d)
+                .tz(Intl.DateTimeFormat().resolvedOptions().timeZone)
+                .utc()
+                .format('YYYY-MM-DD HH:mm:ssZ');
+            }
+
+            // set keepLocalTime to true if timezone info is not found
+            const keepLocalTime = /^\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}$/g.test(
+              d,
+            );
+
+            return dayjs(d).utc(keepLocalTime).format('YYYY-MM-DD HH:mm:ssZ');
+          },
+        );
+        continue;
+      }
+
+      let keepLocalTime = true;
+
+      if (this.isSqlite) {
+        if (!col.cdf) {
+          if (
+            d[col.title].indexOf('-') === -1 &&
+            d[col.title].indexOf('+') === -1 &&
+            d[col.title].slice(-1) !== 'Z'
+          ) {
+            // if there is no timezone info,
+            // we assume the input is on NocoDB server timezone
+            // then we convert to UTC from server timezone
+            // e.g. 2023-04-27 10:00:00 (IST) -> 2023-04-27 04:30:00+00:00
+            d[col.title] = dayjs(d[col.title])
+              .tz(Intl.DateTimeFormat().resolvedOptions().timeZone)
+              .utc()
+              .format('YYYY-MM-DD HH:mm:ssZ');
+            continue;
+          } else {
+            // otherwise, we convert from the given timezone to UTC
+            keepLocalTime = false;
+          }
+        }
+      }
+
+      if (
+        this.isPg &&
+        (col.dt === 'timestamp with time zone' || col.dt === 'timestamptz')
+      ) {
+        // postgres - timezone already attached to input
+        // e.g. 2023-05-11 16:16:51+08:00
+        keepLocalTime = false;
+      }
+
+      if (d[col.title] instanceof Date) {
+        // e.g. MSSQL
+        // Wed May 10 2023 17:47:46 GMT+0800 (Hong Kong Standard Time)
+        keepLocalTime = false;
+      }
+      // e.g. 01.01.2022 10:00:00+05:30 -> 2022-01-01 04:30:00+00:00
+      // e.g. 2023-05-09 11:41:49 -> 2023-05-09 11:41:49+00:00
+      d[col.title] = dayjs(d[col.title])
+        // keep the local time
+        .utc(keepLocalTime)
+        // show the timezone even for Mysql
+        .format('YYYY-MM-DD HH:mm:ssZ');
+    }
+    return d;
+  }
+
+  private convertDateFormat(data: Record<string, any>, childTable?: Model) {
+    // Show the date time in UTC format in API response
+    // e.g. 2022-01-01 04:30:00+00:00
+    if (data) {
+      const dateTimeColumns = (
+        childTable ? childTable.columns : this.model.columns
+      ).filter(
+        (c) => c.uidt === UITypes.DateTime || c.uidt === UITypes.Formula,
+      );
+      if (dateTimeColumns.length) {
+        if (Array.isArray(data)) {
+          data = data.map((d) => this._convertDateFormat(dateTimeColumns, d));
+        } else {
+          data = this._convertDateFormat(dateTimeColumns, data);
         }
       }
     }

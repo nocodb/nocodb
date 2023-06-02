@@ -17,7 +17,7 @@ const { type } = defineProps<{
   <img
     v-else-if="type === NcProjectType.DASHBOARD"
     src="~/assets/nc-icons/dashboard.svg"
-    class="text-[#DDB00F] text-lg p-2px rounded bg-opacity-5"
+    class="text-[#DDB00F] text-lg p-2px rounded bg-opacity-5 mx-0.5"
   />
   <img v-else src="~/assets/nc-icons/database.svg" class="text-[#2824FB] text-lg p-1px rounded bg-opacity-5 !px-1" />
 </template>

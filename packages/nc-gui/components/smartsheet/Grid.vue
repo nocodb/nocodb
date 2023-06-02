@@ -1020,7 +1020,7 @@ const deleteSelectedRangeOfRows = () => {
                 </div>
               </td>
 
-              <td v-e="['c:row:add:grid-bottom']" class="nc-grid-add-new-cell z-0 !border-0" :colspan="visibleColLength - 1"></td>
+              <td v-e="['c:row:add:grid-bottom']" class="z-0 !border-0" :colspan="visibleColLength - 1"></td>
             </tr>
           </tbody>
         </table>

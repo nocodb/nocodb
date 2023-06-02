@@ -689,7 +689,7 @@ export class OracleUi {
   }
 
   static getAbstractType(col): any {
-    switch ((col.dt || col.dt).toLowerCase()) {
+    switch (col.dt?.toLowerCase()) {
       case 'integer':
         return 'integer';
       case 'bfile':

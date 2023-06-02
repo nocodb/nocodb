@@ -1,6 +1,7 @@
 import { defineStore } from 'pinia'
 import type {
   AppearanceConfig,
+  ButtonWidget,
   ColumnType,
   DataConfig,
   DataConfigAggregated2DChart,
@@ -8,6 +9,7 @@ import type {
   DataSource,
   DataSourceInternal,
   LayoutType,
+  NumberWidget,
   ProjectType,
   ScreenDimensions,
   ScreenPosition,
@@ -957,6 +959,91 @@ export const useDashboardStore = defineStore('dashboardStore', () => {
     _updateWidgetInAPIAndLocally(updatedWidget)
   }
 
+  const changeButtonActionTypeOfFocusedWidget = (newActionType: ButtonActionType) => {
+    if (!focusedWidget.value || ![WidgetTypeType.Button].includes(focusedWidget.value.widget_type)) {
+      console.error('changeButtonActionTypeOfFocusedWidget: focusedWidget.value is undefined or not a button')
+      return
+    }
+    const updatedWidget = {
+      ...focusedWidget.value!,
+      data_config: {
+        ...(focusedWidget.value as ButtonWidget).data_config,
+        actionType: newActionType,
+      },
+    }
+    _updateWidgetInAPIAndLocally(updatedWidget)
+  }
+
+  const changeButtonTextOfFocusedButtonWidget = (newButtonText: string) => {
+    if (!focusedWidget.value || ![WidgetTypeType.Button].includes(focusedWidget.value.widget_type)) {
+      console.error('changeButtonActionTypeOfFocusedWidget: focusedWidget.value is undefined or not a button')
+      return
+    }
+    const updatedWidget = {
+      ...focusedWidget.value!,
+      data_config: {
+        ...(focusedWidget.value as ButtonWidget).data_config,
+        buttonText: newButtonText,
+      },
+    }
+    _updateWidgetInAPIAndLocally(updatedWidget)
+  }
+
+  const changeExternalUrlOfFocusedButtonWidget = (newExternalUrl: string) => {
+    if (!focusedWidget.value || ![WidgetTypeType.Button].includes(focusedWidget.value.widget_type)) {
+      console.error('changeButtonActionTypeOfFocusedWidget: focusedWidget.value is undefined or not a button')
+      return
+    }
+    if ((focusedWidget.value as ButtonWidget).data_config.actionType !== ButtonActionType.OPEN_EXTERNAL_URL) {
+      console.error('Trying to change external url of a button which is not of correct ActionType')
+      return
+    }
+    const updatedWidget = {
+      ...focusedWidget.value!,
+      data_config: {
+        ...(focusedWidget.value as ButtonWidget).data_config,
+        url: newExternalUrl,
+      },
+    }
+    _updateWidgetInAPIAndLocally(updatedWidget)
+  }
+
+  const _changeColorPropertyOfFocusedWidget = (
+    newColor: string,
+    colorPropertyName: 'fillColor' | 'textColor' | 'borderColor' | 'iconColor',
+  ) => {
+    if (!focusedWidget.value || ![WidgetTypeType.Number].includes(focusedWidget.value.widget_type)) {
+      console.error(
+        `_changeColorPropertyOfFocusedWidget (for property ${colorPropertyName}): focusedWidget.value is undefined or not a button`,
+      )
+      return
+    }
+    const updatedWidget = {
+      ...focusedWidget.value!,
+      appearance_config: {
+        ...(focusedWidget.value as NumberWidget).appearance_config,
+        [colorPropertyName]: newColor,
+      },
+    }
+    _updateWidgetInAPIAndLocally(updatedWidget)
+  }
+
+  const changeFillColorOfFocusedWidget = (newFillColor: string) => {
+    _changeColorPropertyOfFocusedWidget(newFillColor, 'fillColor')
+  }
+
+  const changeBorderColorOfFocusedWidget = (newBorderColor: string) => {
+    _changeColorPropertyOfFocusedWidget(newBorderColor, 'borderColor')
+  }
+
+  const changeTextColorOfFocusedWidget = (newTextColor: string) => {
+    _changeColorPropertyOfFocusedWidget(newTextColor, 'textColor')
+  }
+
+  const changeIconColorOfFocusedWidget = (newIconColor: string) => {
+    _changeColorPropertyOfFocusedWidget(newIconColor, 'iconColor')
+  }
+
   return {
     openedLayoutSidebarNode: readonly(openedLayoutSidebarNode),
     openedLayoutId: readonly(openedLayoutId),
@@ -997,5 +1084,12 @@ export const useDashboardStore = defineStore('dashboardStore', () => {
     changeTextOfFocusedTextElement,
     changeFunctionTypeOfStaticTextWidget,
     changeUrlOfFocusedTextElement,
+    changeButtonActionTypeOfFocusedWidget,
+    changeButtonTextOfFocusedButtonWidget,
+    changeExternalUrlOfFocusedButtonWidget,
+    changeFillColorOfFocusedWidget,
+    changeBorderColorOfFocusedWidget,
+    changeTextColorOfFocusedWidget,
+    changeIconColorOfFocusedWidget,
   }
 })

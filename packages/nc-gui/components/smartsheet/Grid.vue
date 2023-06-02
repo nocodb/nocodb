@@ -1004,14 +1004,14 @@ const deleteSelectedRangeOfRows = () => {
               </template>
             </LazySmartsheetRow>
 
-            <tr v-if="isAddingEmptyRowAllowed">
-              <td
-                v-e="['c:row:add:grid-bottom']"
-                :colspan="visibleColLength + 1"
-                class="text-left pointer nc-grid-add-new-cell cursor-pointer"
-                @click="addEmptyRow()"
-              >
-                <div class="px-2 w-full flex items-center text-gray-500">
+            <tr
+              v-if="isAddingEmptyRowAllowed"
+              v-e="['c:row:add:grid-bottom']"
+              class="!sticky bottom-0 left-0 z-6 cursor-pointer"
+              @click="addEmptyRow()"
+            >
+              <td :colspan="2" class="text-left pointer nc-grid-add-new-cell !sticky lef-0 !border-0">
+                <div class="px-2 w-full flex items-center text-gray-500 !z-5">
                   <component :is="iconMap.plus" class="text-pint-500 text-xs ml-2 text-primary" />
 
                   <span class="ml-1">
@@ -1019,6 +1019,8 @@ const deleteSelectedRangeOfRows = () => {
                   </span>
                 </div>
               </td>
+
+              <td v-e="['c:row:add:grid-bottom']" class="nc-grid-add-new-cell z-0 !border-0" :colspan="visibleColLength - 1"></td>
             </tr>
           </tbody>
         </table>

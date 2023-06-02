@@ -22,6 +22,7 @@ const currentSidebarSize = computed({
   get: () => sideBarSize.value.current,
   set: (val) => {
     sideBarSize.value.current = val
+    sideBarSize.value.old = val
   },
 })
 
@@ -96,6 +97,7 @@ export default {
       :class="{
         'sidebar-short': isSidebarShort,
       }"
+      @resize="currentSidebarSize = $event[0].size"
     >
       <Pane min-size="15%" :size="currentSidebarSize" max-size="40%" class="relative !overflow-visible">
         <div
@@ -109,13 +111,14 @@ export default {
             'hide-sidebar': isSidebarHidden,
           }"
           :style="{
-            width: isMouseOverShowSidebarZone ? `${sidebarWidth}px` : '100%',
+            width: `${sidebarWidth}px`,
             overflow: isMouseOverShowSidebarZone ? 'visible' : undefined,
           }"
         >
           <DashboardSidebar
             :style="{
               transition: 'all 0.3s ease-in-out',
+              width: '100%',
             }"
           />
         </div>

@@ -120,7 +120,7 @@ export class DashboardPage extends BasePage {
   }
 
   async closeTab({ title }: { title: string }) {
-    if (title === 'Team & Auth' && isHub()) {
+    if (isHub()) {
       return;
     }
 

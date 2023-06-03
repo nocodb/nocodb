@@ -43,6 +43,7 @@ export function useMultiSelect(
   scrollToActiveCell?: (row?: number | null, col?: number | null) => void,
   keyEventHandler?: Function,
   syncCellData?: Function,
+  updateMultipleRows?: Function,
 ) {
   const meta = ref(_meta)
 
@@ -344,73 +345,6 @@ export function useMultiSelect(
                 }
                 await copyValue()
                 break
-              // paste - ctrl/cmd + v
-              case 86:
-                try {
-                  // if edit permission is not there, return
-                  if (!hasEditPermission) return
-
-                  // handle belongs to column
-                  if (
-                    columnObj.uidt === UITypes.LinkToAnotherRecord &&
-                    (columnObj.colOptions as LinkToAnotherRecordType)?.type === RelationTypes.BELONGS_TO
-                  ) {
-                    if (!clipboardContext || typeof clipboardContext.value !== 'object') {
-                      return message.info('Invalid data')
-                    }
-                    rowObj.row[columnObj.title!] = convertCellData(
-                      {
-                        value: clipboardContext.value,
-                        from: clipboardContext.uidt,
-                        to: columnObj.uidt as UITypes,
-                        column: columnObj,
-                        appInfo: unref(appInfo),
-                      },
-                      isMysql(meta.value?.base_id),
-                    )
-                    e.preventDefault()
-
-                    const foreignKeyColumn = meta.value?.columns?.find(
-                      (column: ColumnType) => column.id === (columnObj.colOptions as LinkToAnotherRecordType)?.fk_child_column_id,
-                    )
-
-                    const relatedTableMeta = await getMeta((columnObj.colOptions as LinkToAnotherRecordType).fk_related_model_id!)
-
-                    if (!foreignKeyColumn) return
-
-                    rowObj.row[foreignKeyColumn.title!] = extractPkFromRow(
-                      clipboardContext.value,
-                      (relatedTableMeta as any)!.columns!,
-                    )
-
-                    return await syncCellData?.({ ...activeCell, updatedColumnTitle: foreignKeyColumn.title })
-                  }
-
-                  // if it's a virtual column excluding belongs to cell type skip paste
-                  if (isVirtualCol(columnObj)) {
-                    return message.info(t('msg.info.pasteNotSupported'))
-                  }
-
-                  if (clipboardContext) {
-                    rowObj.row[columnObj.title!] = convertCellData(
-                      {
-                        value: clipboardContext.value,
-                        from: clipboardContext.uidt,
-                        to: columnObj.uidt as UITypes,
-                        column: columnObj,
-                        appInfo: unref(appInfo),
-                      },
-                      isMysql(meta.value?.base_id),
-                    )
-                    e.preventDefault()
-                    syncCellData?.(activeCell)
-                  } else {
-                    clearCell(activeCell as { row: number; col: number }, true)
-                    makeEditable(rowObj, columnObj)
-                  }
-                } catch (error: any) {
-                  message.error(await extractSdkResponseErrorMsg(error))
-                }
             }
           }
 
@@ -438,8 +372,131 @@ export function useMultiSelect(
 
   const clearSelectedRange = selectedRange.clear.bind(selectedRange)
 
+  const handlePaste = async (e: ClipboardEvent) => {
+    if (!isCellActive.value) {
+      return
+    }
+
+    if (unref(editEnabled)) {
+      return
+    }
+
+    const clipboardData = e.clipboardData?.getData('text/plain')
+
+    const rowObj = unref(data)[activeCell.row]
+    const columnObj = unref(fields)[activeCell.col]
+
+    try {
+      // handle belongs to column
+      if (
+        columnObj.uidt === UITypes.LinkToAnotherRecord &&
+        (columnObj.colOptions as LinkToAnotherRecordType)?.type === RelationTypes.BELONGS_TO
+      ) {
+        if (!clipboardContext || typeof clipboardContext.value !== 'object') {
+          return message.info('Invalid data')
+        }
+        rowObj.row[columnObj.title!] = convertCellData(
+          {
+            value: clipboardContext.value,
+            from: clipboardContext.uidt,
+            to: columnObj.uidt as UITypes,
+            column: columnObj,
+            appInfo: unref(appInfo),
+          },
+          isMysql(meta.value?.base_id),
+        )
+        e.preventDefault()
+
+        const foreignKeyColumn = meta.value?.columns?.find(
+          (column: ColumnType) => column.id === (columnObj.colOptions as LinkToAnotherRecordType)?.fk_child_column_id,
+        )
+
+        const relatedTableMeta = await getMeta((columnObj.colOptions as LinkToAnotherRecordType).fk_related_model_id!)
+
+        if (!foreignKeyColumn) return
+
+        rowObj.row[foreignKeyColumn.title!] = extractPkFromRow(clipboardContext.value, (relatedTableMeta as any)!.columns!)
+
+        return await syncCellData?.({ ...activeCell, updatedColumnTitle: foreignKeyColumn.title })
+      }
+
+      // if it's a virtual column excluding belongs to cell type skip paste
+      if (isVirtualCol(columnObj)) {
+        return message.info(t('msg.info.pasteNotSupported'))
+      }
+
+      if (clipboardContext) {
+        rowObj.row[columnObj.title!] = convertCellData(
+          {
+            value: clipboardContext.value,
+            from: clipboardContext.uidt,
+            to: columnObj.uidt as UITypes,
+            column: columnObj,
+            appInfo: unref(appInfo),
+          },
+          isMysql(meta.value?.base_id),
+        )
+        e.preventDefault()
+        syncCellData?.(activeCell)
+      } else {
+        e.preventDefault()
+        if (clipboardData?.includes('\n') || clipboardData?.includes('\t')) {
+          const pasteMatrix = clipboardData.split('\n').map((row) => row.split('\t'))
+
+          const pasteMatrixRows = pasteMatrix.length
+          const pasteMatrixCols = pasteMatrix[0].length
+
+          const colsToPaste = unref(fields).slice(activeCell.col, activeCell.col + pasteMatrixCols)
+          const rowsToPaste = unref(data).slice(activeCell.row, activeCell.row + pasteMatrixRows)
+
+          for (let i = 0; i < pasteMatrixRows; i++) {
+            for (let j = 0; j < pasteMatrixCols; j++) {
+              const pasteRow = rowsToPaste[i]
+              const pasteCol = colsToPaste[j]
+
+              if (!pasteRow || !pasteCol) {
+                continue
+              }
+
+              pasteRow.row[pasteCol.title!] = convertCellData(
+                {
+                  value: pasteMatrix[i][j],
+                  from: UITypes.SingleLineText,
+                  to: pasteCol.uidt as UITypes,
+                  column: pasteCol,
+                  appInfo: unref(appInfo),
+                },
+                isMysql(meta.value?.base_id),
+              )
+            }
+          }
+          console.log(pasteMatrix)
+
+          await updateMultipleRows?.(rowsToPaste)
+        } else {
+          rowObj.row[columnObj.title!] = convertCellData(
+            {
+              value: clipboardData,
+              from: UITypes.SingleLineText,
+              to: columnObj.uidt as UITypes,
+              column: columnObj,
+              appInfo: unref(appInfo),
+            },
+            isMysql(meta.value?.base_id),
+          )
+          syncCellData?.(activeCell)
+        }
+        // clearCell(activeCell as { row: number; col: number }, true)
+        // makeEditable(rowObj, columnObj)
+      }
+    } catch (error: any) {
+      message.error(await extractSdkResponseErrorMsg(error))
+    }
+  }
+
   useEventListener(document, 'keydown', handleKeyDown)
   useEventListener(tbodyEl, 'mouseup', handleMouseUp)
+  useEventListener(document, 'paste', handlePaste)
 
   return {
     isCellActive,

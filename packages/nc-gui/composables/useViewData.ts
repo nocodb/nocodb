@@ -448,6 +448,117 @@ export function useViewData(
     }
   }
 
+  async function updateMultipleRows(
+    rows: Row[],
+    { metaValue = meta.value, viewMetaValue = viewMeta.value }: { metaValue?: TableType; viewMetaValue?: ViewType } = {},
+    undo = false,
+  ) {
+    const promises = []
+
+    for (const row of rows) {
+      // update changed status
+      if (row.rowMeta) row.rowMeta.changed = false
+
+      // if new row and save is in progress then wait until the save is complete
+      promises.push(until(() => !(row.rowMeta?.new && row.rowMeta?.saving)).toMatch((v) => v))
+    }
+
+    await Promise.all(promises)
+
+    const updateArray = []
+
+    for (const row of rows) {
+      if (row.rowMeta) row.rowMeta.saving = true
+
+      const pk = rowPkData(row.row, metaValue?.columns as ColumnType[])
+
+      updateArray.push({ ...row.row, ...pk })
+    }
+
+    if (!undo) {
+      addUndo({
+        redo: {
+          fn: async function redo(redoRows: Row[], pg: { page: number; pageSize: number }) {
+            await updateMultipleRows(redoRows, { metaValue, viewMetaValue }, true)
+            if (pg.page === paginationData.value.page && pg.pageSize === paginationData.value.pageSize) {
+              for (const toUpdate of redoRows) {
+                const rowIndex = findIndexByPk(rowPkData(toUpdate.row, meta?.value?.columns as ColumnType[]))
+                if (rowIndex !== -1) {
+                  const row = formattedData.value[rowIndex]
+                  Object.assign(row.row, toUpdate.row)
+                  Object.assign(row.oldRow, toUpdate.row)
+                } else {
+                  await loadData()
+                  break
+                }
+              }
+            } else {
+              await changePage(pg.page)
+            }
+          },
+          args: [clone(rows), { page: paginationData.value.page, pageSize: paginationData.value.pageSize }],
+        },
+        undo: {
+          fn: async function undo(undoRows: Row[], pg: { page: number; pageSize: number }) {
+            await updateMultipleRows(undoRows, { metaValue, viewMetaValue }, true)
+            if (pg.page === paginationData.value.page && pg.pageSize === paginationData.value.pageSize) {
+              for (const toUpdate of undoRows) {
+                const rowIndex = findIndexByPk(rowPkData(toUpdate.row, meta?.value?.columns as ColumnType[]))
+                if (rowIndex !== -1) {
+                  const row = formattedData.value[rowIndex]
+                  Object.assign(row.row, toUpdate.row)
+                  Object.assign(row.oldRow, toUpdate.row)
+                } else {
+                  await loadData()
+                  break
+                }
+              }
+            } else {
+              await changePage(pg.page)
+            }
+          },
+          args: [
+            clone(
+              rows.map((row) => {
+                return { row: row.oldRow, oldRow: row.row, rowMeta: row.rowMeta }
+              }),
+            ),
+            { page: paginationData.value.page, pageSize: paginationData.value.pageSize },
+          ],
+        },
+        scope: defineViewScope({ view: viewMetaValue }),
+      })
+    }
+
+    await $api.dbTableRow.bulkUpdate(NOCO, metaValue?.project_id as string, metaValue?.id as string, updateArray)
+
+    for (const row of rows) {
+      if (!undo) {
+        /** update row data(to sync formula and other related columns)
+         * update only formula, rollup and auto updated datetime columns data to avoid overwriting any changes made by user
+         */
+        Object.assign(
+          row.row,
+          metaValue!.columns!.reduce<Record<string, any>>((acc: Record<string, any>, col: ColumnType) => {
+            if (
+              col.uidt === UITypes.Formula ||
+              col.uidt === UITypes.QrCode ||
+              col.uidt === UITypes.Barcode ||
+              col.uidt === UITypes.Rollup ||
+              col.au ||
+              col.cdf?.includes(' on update ')
+            )
+              acc[col.title!] = row.row[col.title!]
+            return acc
+          }, {} as Record<string, any>),
+        )
+        Object.assign(row.oldRow, row.row)
+      }
+
+      if (row.rowMeta) row.rowMeta.saving = false
+    }
+  }
+
   async function changePage(page: number) {
     paginationData.value.page = page
     await loadData({
@@ -807,6 +918,7 @@ export function useViewData(
     deleteSelectedRows,
     deleteRangeOfRows,
     updateOrSaveRow,
+    updateMultipleRows,
     selectedAllRecords,
     syncCount,
     syncPagination,

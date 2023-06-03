@@ -31,6 +31,12 @@ export default function convertCellData(
       return parsedNumber
     }
     case UITypes.Checkbox:
+      if (typeof value === 'boolean') return value
+      if (typeof value === 'string') {
+        const strval = value.trim().toLowerCase()
+        if (strval === 'true' || strval === '1') return true
+        if (strval === 'false' || strval === '0' || strval === '') return false
+      }
       return Boolean(value)
     case UITypes.Date: {
       const parsedDate = dayjs(value)

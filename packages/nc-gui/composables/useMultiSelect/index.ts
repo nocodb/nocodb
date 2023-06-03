@@ -445,5 +445,6 @@ export function useMultiSelect(
     handleCellClick,
     tbodyEl,
     resetSelectedRange,
+    selectedRange,
   }
 }

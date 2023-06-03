@@ -124,6 +124,7 @@ const {
   removeRowIfNew,
   navigateToSiblingRow,
   getExpandedRowIndex,
+  deleteRangeOfRows,
 } = useViewData(meta, view, xWhere)
 
 const { getMeta } = useMetas()
@@ -199,6 +200,7 @@ const {
   isCellActive,
   tbodyEl,
   resetSelectedRange,
+  selectedRange,
 } = useMultiSelect(
   meta,
   fields,
@@ -794,6 +796,14 @@ const confirmDeleteRow = (row: number) => {
     },
   })
 }
+
+const deleteSelectedRangeOfRows = () => {
+  deleteRangeOfRows(selectedRange).then(() => {
+    clearSelectedRange()
+    activeCell.row = null
+    activeCell.col = null
+  })
+}
 </script>
 
 <template>
@@ -1022,6 +1032,13 @@ const confirmDeleteRow = (row: number) => {
               <div v-e="['a:row:delete']" class="nc-project-menu-item">
                 <!-- Delete Row -->
                 {{ $t('activity.deleteRow') }}
+              </div>
+            </a-menu-item>
+
+            <a-menu-item v-else-if="contextMenuTarget" @click="deleteSelectedRangeOfRows">
+              <div v-e="['a:row:delete']" class="nc-project-menu-item">
+                <!-- Delete Rows -->
+                Delete Rows
               </div>
             </a-menu-item>
 

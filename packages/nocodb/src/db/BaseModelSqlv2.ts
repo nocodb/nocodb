@@ -17,6 +17,7 @@ import Validator from 'validator';
 import { customAlphabet } from 'nanoid';
 import DOMPurify from 'isomorphic-dompurify';
 import { v4 as uuidv4 } from 'uuid';
+import { Knex } from 'knex';
 import { NcError } from '../helpers/catchError';
 import getAst from '../helpers/getAst';
 import { Audit, Column, Filter, Model, Project, Sort, View } from '../models';
@@ -47,8 +48,8 @@ import type {
   RollupColumn,
   SelectOption,
 } from '../models';
-import type { Knex } from 'knex';
 import type { SortType } from 'nocodb-sdk';
+import Transaction = Knex.Transaction;
 
 dayjs.extend(utc);
 dayjs.extend(timezone);
@@ -1875,11 +1876,66 @@ class BaseModelSqlv2 {
     }
   }
 
-  async delByPk(id, trx?, cookie?) {
+  async delByPk(id, _trx?, cookie?) {
+    const trx: Transaction = _trx;
     try {
       // retrieve data for handling params in hook
       const data = await this.readByPk(id);
       await this.beforeDelete(id, trx, cookie);
+
+      // todo: use transaction
+      // if (!trx) {
+      //   trx = await this.dbDriver.transaction();
+      // }
+
+      // start a transaction if not already in one
+      for (const column of this.model.columns) {
+        if (column.uidt !== UITypes.LinkToAnotherRecord) continue;
+
+        const colOptions =
+          await column.getColOptions<LinkToAnotherRecordColumn>();
+
+        switch (colOptions.type) {
+          case 'mm':
+            {
+              const mmTable = await Model.get(colOptions.fk_mm_model_id);
+              const mmParentColumn = await Column.get({
+                colId: colOptions.fk_mm_child_column_id,
+              });
+
+              await this.dbDriver(mmTable.table_name)
+                .del()
+                .where(mmParentColumn.column_name, id);
+            }
+            break;
+          case 'hm':
+            {
+              const relatedTable = await Model.get(
+                colOptions.fk_related_model_id,
+              );
+              const childColumn = await Column.get({
+                colId: colOptions.fk_child_column_id,
+              });
+
+              await this.dbDriver(relatedTable.table_name)
+                .update({
+                  [childColumn.column_name]: null,
+                })
+                .where(childColumn.column_name, id);
+            }
+            break;
+          case 'bt':
+            {
+              // nothing to do
+            }
+            break;
+        }
+
+        await trx(this.model.table_name).where(column.column_name, id).del();
+      }
+
+      // iterate over all columns and unlink all LTAR data
+
       const response = await this.dbDriver(this.tnPath)
         .del()
         .where(await this._wherePk(id));

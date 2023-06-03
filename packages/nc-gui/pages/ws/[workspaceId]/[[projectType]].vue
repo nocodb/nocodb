@@ -49,12 +49,7 @@ const currentVersion = ref('')
 <template>
   <NuxtLayout name="dashboard">
     <template #sidebar>
-      <DashboardSidebar
-        :style="{
-          transition: 'all 0.3s ease-in-out',
-          width: '100%',
-        }"
-      />
+      <DashboardSidebar />
     </template>
     <template #content>
       <NuxtPage />

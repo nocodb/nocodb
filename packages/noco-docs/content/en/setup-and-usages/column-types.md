@@ -54,7 +54,7 @@ menuTitle: 'Column Types'
 
 ### LinkToAnotherRecord
 
-For more about Link To Another Record, please visit [here](./link-to-another-record).
+For more about Link To Another Record, please visit <NuxtLink to="/setup-and-usages/link-to-another-record" target="_blank">here</NuxtLink>.
 
 <!-- ### ForeignKey
 #### Available Database Types
@@ -261,7 +261,7 @@ For more about Link To Another Record, please visit [here](./link-to-another-rec
 
 ### Formula
 
-For more about formula, please visit [here](./formulas).
+For more about Formulas, please visit <NuxtLink to="/setup-and-usages/formulas" target="_blank">here</NuxtLink>.
 
 ### QR-Code
 
@@ -289,7 +289,7 @@ Since it's a virtual column, the cell content (Barcode) cannot be changed direct
 
 ### Rollup
 
-For more about rollup, please visit [here](./rollup).
+For more about Rollup, please visit <NuxtLink to="/setup-and-usages/rollup" target="_blank">here</NuxtLink>.
 
 ### DateTime
 

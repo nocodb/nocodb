@@ -1553,6 +1553,11 @@ export class ColumnsService {
 
         childColumn = await Column.get({ colId: id });
 
+        // if xcdb base then treat as virtual relation to avoid creating foreign key
+        if (param.base.is_meta) {
+          (param.column as LinkToAnotherColumnReqType).virtual = true;
+        }
+
         // ignore relation creation if virtual
         if (!(param.column as LinkToAnotherColumnReqType).virtual) {
           foreignKeyName = generateFkName(parent, child);
@@ -1570,7 +1575,7 @@ export class ColumnsService {
         }
 
         // todo: create index for virtual relations as well
-        // create index for foreign key in pg
+        //       create index for foreign key in pg
         if (
           param.base.type === 'pg' ||
           (param.column as LinkToAnotherColumnReqType).virtual

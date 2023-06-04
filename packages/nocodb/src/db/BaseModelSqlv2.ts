@@ -1945,10 +1945,13 @@ class BaseModelSqlv2 {
         .del()
         .where(await this._wherePk(id));
 
+      if (!_trx) await trx.commit();
+
       await this.afterDelete(data, trx, cookie);
       return response;
     } catch (e) {
       console.log(e);
+      if (!_trx) await trx.rollback();
       await this.errorDelete(e, id, trx, cookie);
       throw e;
     }

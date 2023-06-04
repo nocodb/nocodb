@@ -1877,16 +1877,13 @@ class BaseModelSqlv2 {
   }
 
   async delByPk(id, _trx?, cookie?) {
-    const trx: Transaction = _trx;
+    let trx: Transaction = _trx;
     try {
       // retrieve data for handling params in hook
       const data = await this.readByPk(id);
       await this.beforeDelete(id, trx, cookie);
 
-      // todo: use transaction
-      // if (!trx) {
-      //   trx = await this.dbDriver.transaction();
-      // }
+      const execQueries: ((trx: Transaction) => Promise<any>)[] = [];
 
       // start a transaction if not already in one
       for (const column of this.model.columns) {
@@ -1903,9 +1900,11 @@ class BaseModelSqlv2 {
                 colId: colOptions.fk_mm_child_column_id,
               });
 
-              await this.dbDriver(mmTable.table_name)
-                .del()
-                .where(mmParentColumn.column_name, id);
+              execQueries.push((trx) =>
+                trx(mmTable.table_name)
+                  .del()
+                  .where(mmParentColumn.column_name, id),
+              );
             }
             break;
           case 'hm':
@@ -1917,11 +1916,13 @@ class BaseModelSqlv2 {
                 colId: colOptions.fk_child_column_id,
               });
 
-              await this.dbDriver(relatedTable.table_name)
-                .update({
-                  [childColumn.column_name]: null,
-                })
-                .where(childColumn.column_name, id);
+              execQueries.push((trx) =>
+                trx(relatedTable.table_name)
+                  .update({
+                    [childColumn.column_name]: null,
+                  })
+                  .where(childColumn.column_name, id),
+              );
             }
             break;
           case 'bt':
@@ -1931,14 +1932,19 @@ class BaseModelSqlv2 {
             break;
         }
 
-        await trx(this.model.table_name).where(column.column_name, id).del();
+        // await trx(this.model.table_name).where(column.column_name, id).del();
       }
 
-      // iterate over all columns and unlink all LTAR data
+      if (!trx) {
+        trx = await this.dbDriver.transaction();
+      }
 
-      const response = await this.dbDriver(this.tnPath)
+      await Promise.all(execQueries.map((q) => q(trx)));
+
+      const response = await trx(this.tnPath)
         .del()
         .where(await this._wherePk(id));
+
       await this.afterDelete(data, trx, cookie);
       return response;
     } catch (e) {

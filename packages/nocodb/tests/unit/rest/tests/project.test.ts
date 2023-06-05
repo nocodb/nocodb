@@ -1,6 +1,6 @@
 import 'mocha';
 import request from 'supertest';
-import { Project } from '../../../../src/models'
+import { Project } from '../../../../src/models';
 import { createTable } from '../../factory/table';
 import init from '../../init';
 import { createProject, createSharedBase } from '../../factory/project';

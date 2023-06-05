@@ -33,6 +33,11 @@ test.describe('User roles', () => {
   });
 
   test('Invite user, update role and delete user', async () => {
+    // hub will not have this feature
+    if (isHub()) {
+      test.skip();
+    }
+
     test.slow();
 
     await accountUsersPage.goto();

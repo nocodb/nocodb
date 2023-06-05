@@ -34,6 +34,12 @@ test.describe('User roles', () => {
   });
 
   test('Create role', async () => {
+    if (isHub()) {
+      // ACL is not supported in Hub
+      // User role management UX needs to be frozen
+      test.skip();
+    }
+
     test.slow();
 
     // close 'Team & Auth' tab

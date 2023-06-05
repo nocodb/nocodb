@@ -8,6 +8,11 @@ import { isHub } from '../../setup/db';
 const roles = ['Editor', 'Commenter', 'Viewer'];
 
 test.describe('Preview Mode', () => {
+  if (isHub()) {
+    // Role preview not supported in Hub
+    test.skip();
+  }
+
   test.slow();
 
   let dashboard: DashboardPage;

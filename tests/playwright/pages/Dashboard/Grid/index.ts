@@ -78,12 +78,17 @@ export class GridPage extends BasePage {
     const rowValue = value ?? `Row ${index}`;
     // wait for render to complete before count
     if (index !== 0) await this.get().locator('.nc-grid-row').nth(0).waitFor({ state: 'attached' });
-    const rowCount = await this.get().locator('.nc-grid-row').count();
 
     await (await this.get().locator('.nc-grid-add-new-cell').elementHandle())?.waitForElementState('stable');
+    await this.rootPage.waitForTimeout(100);
+
+    const rowCount = await this.get().locator('.nc-grid-row').count();
+
     await this.get().locator('.nc-grid-add-new-cell').click();
 
-    await expect(await this.get().locator('.nc-grid-row')).toHaveCount(rowCount + 1);
+    // add delay for UI to render (can wait for count to stabilize by reading it multiple times)
+    await this.rootPage.waitForTimeout(100);
+    await expect(await this.get().locator('.nc-grid-row').count()).toBe(rowCount + 1);
 
     await this._fillRow({ index, columnHeader, value: rowValue });
 

@@ -1,6 +1,5 @@
 <script lang="ts" setup>
-import { onMounted, storeToRefs, useRouter, useWorkspace } from '#imports'
-import { useProject } from '~/store/project'
+import { onMounted, useRouter, useWorkspace } from '#imports'
 
 definePageMeta({
   hideHeader: true,
@@ -10,11 +9,8 @@ definePageMeta({
 const router = useRouter()
 const route = $(router.currentRoute)
 
-const { project } = storeToRefs(useProject())
 useProjects()
-const workspaceStore = useWorkspace()
-
-const { workspace } = storeToRefs(workspaceStore)
+const { loadWorkspace } = useWorkspace()
 const { loadProjects } = useProjects()
 
 const dialogOpen = ref(false)
@@ -35,12 +31,9 @@ function toggleDialog(value?: boolean, key?: string, dsState?: string, pId?: str
 provide(ToggleDialogInj, toggleDialog)
 
 onMounted(async () => {
-  await workspaceStore.loadWorkspace(route.params.workspaceId as string)
+  await loadWorkspace(route.params.workspaceId as string)
   await loadProjects()
 })
-
-// create a new sidebar state
-const { isOpen, toggle } = useSidebar('nc-left-sidebar', { hasSidebar: true, isOpen: true })
 
 // todo:
 const isSharedBase = ref(false)

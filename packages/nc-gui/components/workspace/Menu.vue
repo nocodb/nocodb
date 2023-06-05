@@ -153,7 +153,7 @@ const modalVisible = false
             <div class="nc-menu-sub-head">Workspaces</div>
 
             <div class="max-h-300px overflow-y-auto">
-              <a-menu-item v-for="workspace of workspaces" @click="navigateTo(`/ws/${workspace.id}`)">
+              <a-menu-item v-for="workspace of workspaces" :key="workspace.id!" @click="navigateTo(`/ws/${workspace.id}`)">
                 <div class="nc-workspace-menu-item group">
                   <GeneralIcon icon="workspace" />
 

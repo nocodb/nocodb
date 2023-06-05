@@ -30,7 +30,7 @@ export function useTableNew(param: { onTableCreate?: (tableMeta: TableType) => v
 
   const { $e, $api } = useNuxtApp()
 
-  const { getMeta, removeMeta, metas } = useMetas()
+  const { getMeta, removeMeta } = useMetas()
 
   const { closeTab } = useTabs()
 

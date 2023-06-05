@@ -20,7 +20,7 @@ const dialogShow = useVModel(props, 'modelValue', emit)
 const projectsStore = useProjects()
 
 const workspaceStore = useWorkspace()
-
+const { loadProjects } = useProjects()
 const { createProject: _createProject } = projectsStore
 
 const nameValidationRules = [
@@ -48,7 +48,7 @@ const createProject = async () => {
       workspaceId: workspaceStore.workspace!.id!,
     })
 
-    await workspaceStore.loadProjects()
+    await loadProjects()
     navigateToProject({
       projectId: project.id!,
       workspaceId: workspaceStore.workspace!.id!,

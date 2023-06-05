@@ -8,8 +8,11 @@ import { NcProjectType, navigateTo, projectThemeColors, storeToRefs, timeAgo, us
 import { useNuxtApp } from '#app'
 
 const workspaceStore = useWorkspace()
-const { addToFavourite, removeFromFavourite, updateProjectTitle, loadProjects } = workspaceStore
-const { projects, activePage } = storeToRefs(workspaceStore)
+const { addToFavourite, removeFromFavourite, updateProjectTitle } = workspaceStore
+const { activePage } = storeToRefs(workspaceStore)
+
+const { loadProjects } = useProjects()
+const { projects, projectsList } = storeToRefs(useProjects())
 
 // const filteredProjects = computed(() => projects.value?.filter((p) => !p.deleted) || [])
 
@@ -57,7 +60,7 @@ const deleteProject = (project: ProjectType) => {
 
         $e('a:project:delete')
 
-        projects.value?.splice(projects.value?.indexOf(project), 1)
+        projects.value.delete(project!.id!)
       } catch (e: any) {
         message.error(await extractSdkResponseErrorMsg(e))
       }
@@ -87,7 +90,7 @@ const handleProjectColor = async (projectId: string, color: string) => {
     })
 
     // Update local project
-    const localProject = projects.value?.find((p) => p.id === projectId)
+    const localProject = projects.value.get(projectId)
 
     if (localProject) {
       localProject.color = color
@@ -113,16 +116,16 @@ const getProjectPrimary = (project: ProjectType) => {
 
 const renameInput = ref<HTMLInputElement>()
 const enableEdit = (index: number) => {
-  projects.value![index]!.temp_title = projects.value![index].title
-  projects.value![index]!.edit = true
+  projectsList.value![index]!.temp_title = projectsList.value![index].title
+  projectsList.value![index]!.edit = true
   nextTick(() => {
     renameInput.value?.focus()
     renameInput.value?.select()
   })
 }
 const disableEdit = (index: number) => {
-  projects.value![index]!.temp_title = null
-  projects.value![index]!.edit = false
+  projectsList.value![index]!.temp_title = undefined
+  projectsList.value![index]!.edit = false
 }
 
 const customRow = (record: ProjectType) => ({
@@ -244,7 +247,7 @@ function onProjectTitleClick(index: number) {
   clickCount++
   if (clickCount === 1) {
     timer = setTimeout(function () {
-      openProject(projects.value![index])
+      openProject(projectsList.value![index])
       clickCount = 0
     }, delay)
   } else {
@@ -258,7 +261,7 @@ function onProjectTitleClick(index: number) {
 <template>
   <div>
     <a-table
-      v-model:data-source="projects"
+      v-model:data-source="projectsList"
       class="h-full"
       :custom-row="customRow"
       :columns="columns"

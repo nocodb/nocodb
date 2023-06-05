@@ -16,6 +16,7 @@ const isSidebarShort = ref(false)
 const animationDuration = 300
 const viewportWidth = ref(window.innerWidth)
 const isMouseOverShowSidebarZone = ref(false)
+const isAnimationEndAfterSidebarHide = ref(false)
 
 const sidebarWidth = computed(() => (sideBarSize.value.old * viewportWidth.value) / 100)
 const currentSidebarSize = computed({
@@ -50,11 +51,13 @@ watch(isOpen, () => {
     contentSize.value.current = 100
 
     isSidebarShort.value = true
+    isAnimationEndAfterSidebarHide.value = false
 
     setTimeout(() => {
       isSidebarHidden.value = true
       sideBarSize.value.current = 0
-    }, animationDuration)
+      isAnimationEndAfterSidebarHide.value = true
+    }, animationDuration * 1.75)
   }
 })
 
@@ -70,9 +73,14 @@ function handleMouseMove(e: MouseEvent) {
   if (e.clientX < 4) {
     isSidebarHidden.value = false
     isMouseOverShowSidebarZone.value = true
-  } else if (e.clientX > sidebarWidth.value + 10) {
+  } else if (e.clientX > sidebarWidth.value + 10 && !isSidebarHidden.value) {
     isSidebarHidden.value = true
     isMouseOverShowSidebarZone.value = false
+    isAnimationEndAfterSidebarHide.value = false
+
+    setTimeout(() => {
+      isAnimationEndAfterSidebarHide.value = true
+    }, animationDuration * 1.75)
   }
 }
 
@@ -107,7 +115,7 @@ export default {
       }"
       @resize="currentSidebarSize = $event[0].size"
     >
-      <Pane min-size="15%" :size="currentSidebarSize" max-size="40%" class="relative !overflow-visible">
+      <Pane min-size="15%" :size="currentSidebarSize" max-size="40%" class="nc-sidebar-splitpane relative !overflow-visible">
         <div
           ref="wrapperRef"
           class="nc-sidebar-wrapper relative z-10"
@@ -119,7 +127,7 @@ export default {
             'hide-sidebar': isSidebarHidden,
           }"
           :style="{
-            width: `${sidebarWidth}px`,
+            width: isAnimationEndAfterSidebarHide && isSidebarHidden ? '0px' : `${sidebarWidth}px`,
             overflow: isMouseOverShowSidebarZone ? 'visible' : undefined,
           }"
         >
@@ -199,6 +207,11 @@ export default {
 
 .nc-sidebar-wrapper > * {
   height: calc(100% - var(--header-height));
+}
+
+.nc-sidebar-wrapper > * {
+  width: 100%;
+  transition: all 0.3s ease-in-out;
 }
 
 .nc-sidebar-wrapper.hide-sidebar > * {

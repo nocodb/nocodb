@@ -103,8 +103,10 @@ const dataLinkConfigIsMissing = computed(() => {
     !data_source?.tableId ||
     !data_source.viewId ||
     !data_config.value.xAxisColId ||
-    !data_config.value.yAxisColId ||
-    !data_config.value.aggregateFunction
+    !(
+      (data_config.value.yAxisColId && data_config.value.aggregateFunction) ||
+      data_config.value.recordCountOrFieldSummary === 'record_count'
+    )
   )
 })
 

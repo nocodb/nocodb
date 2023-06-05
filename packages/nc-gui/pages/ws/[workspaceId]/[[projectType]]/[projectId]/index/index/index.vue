@@ -195,6 +195,7 @@ watch(
         inline
         style="top: 20%; left: 20%; right: 20%; bottom: 20%"
         class="text-3xl flex items-center justify-center gap-2 border-1 border-dashed rounded hover:border-primary"
+        :z-index="1"
         @click="onDropZoneClick"
       >
         <template v-if="isOverDropZone"> <MaterialSymbolsFileCopyOutline class="text-accent" /> Drop here </template>
@@ -202,7 +203,6 @@ watch(
 
       <div class="flex flex-col gap-6 items-center justify-center md:w-1/2 mx-auto text-center">
         <div class="text-3xl">Welcome to NocoDB!</div>
-
         <div class="flex items-center flex-wrap justify-center gap-2 prose-lg leading-8">
           To get started, either drop a <span class="flex items-center gap-2"><PhFileCsv /> CSV,</span>
 

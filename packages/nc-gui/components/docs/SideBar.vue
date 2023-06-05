@@ -138,27 +138,15 @@ onMounted(async () => {
 
   await fetchNestedPages({ projectId: project.value.id! })
 
-  await openChildPageTabsOfRootPages({
-    projectId: project.value.id!,
-  })
+  // await openChildPageTabsOfRootPages({
+  //   projectId: project.value.id!,
+  // })
 })
 </script>
 
 <template>
   <template v-if="nestedPages">
-    <a-layout-sider
-      :collapsed="false"
-      collapsed-width="50"
-      class="relative h-full z-1 nc-docs-left-sidebar !min-w-56.5 pb-1 !bg-inherit pl-2"
-      :class="{
-        'px-1 !min-w-61.5': isPublic,
-        '!min-w-56.5': !isPublic,
-      }"
-      :data-testid="`docs-sidebar-${project.title}`"
-      :trigger="null"
-      collapsible
-      theme="light"
-    >
+    <div class="nc-docs-sidebar mb-1">
       <a-tree
         v-model:expanded-keys="openedTabs"
         v-model:selectedKeys="openPageTabKeys"
@@ -231,16 +219,8 @@ onMounted(async () => {
           </div>
         </template>
       </a-tree>
-      <div
-        v-if="isEditAllowed"
-        class="py-1 flex flex-row pl-7 items-center gap-x-2 cursor-pointer hover:text-black text-gray-600 text-sm"
-        data-testid="nc-docs-sidebar-add-page"
-        @click="() => addNewPage({parentPageId: undefined, projectId: project.id!})"
-      >
-        <MdiPlus />
-        <div class="flex">Create New Page</div>
-      </div>
-    </a-layout-sider>
+    </div>
+
     <a-modal v-model:visible="isDeleteModalOpen" centered :closable="false" :footer="false">
       <div class="flex flex-col ml-2">
         <div class="flex ml-1">Are you sure you want to delete this page?</div>
@@ -268,88 +248,89 @@ onMounted(async () => {
   }
 }
 
-.nc-docs-left-sidebar {
-  .ant-tree-node-content-wrapper {
-    min-width: 0 !important;
+.ant-tree-node-content-wrapper {
+  min-width: 0 !important;
+}
+
+.ant-tree {
+  // scrollbar reduce width and gray color
+  overflow: overlay;
+  &::-webkit-scrollbar {
+    width: 4px;
   }
 
-  .ant-tree {
-    // scrollbar reduce width and gray color
-    overflow: overlay;
-    &::-webkit-scrollbar {
-      width: 4px;
-    }
-
-    /* Track */
-    &::-webkit-scrollbar-track {
-      background: #f6f6f600 !important;
-    }
-
-    /* Handle */
-    &::-webkit-scrollbar-thumb {
-      background: #f6f6f600;
-    }
-
-    /* Handle on hover */
-    &::-webkit-scrollbar-thumb:hover {
-      background: #f6f6f600;
-    }
+  /* Track */
+  &::-webkit-scrollbar-track {
+    background: #f6f6f600 !important;
   }
-  .ant-tree:hover {
-    // scrollbar reduce width and gray color
-    &::-webkit-scrollbar {
-      width: 4px;
-    }
 
-    /* Track */
-    &::-webkit-scrollbar-track {
-      background: #f6f6f600 !important;
-    }
+  /* Handle */
+  &::-webkit-scrollbar-thumb {
+    background: #f6f6f600;
+  }
 
-    /* Handle */
-    &::-webkit-scrollbar-thumb {
-      background: rgb(234, 234, 234);
-    }
+  /* Handle on hover */
+  &::-webkit-scrollbar-thumb:hover {
+    background: #f6f6f600;
+  }
+}
+.ant-tree:hover {
+  // scrollbar reduce width and gray color
+  &::-webkit-scrollbar {
+    width: 4px;
+  }
 
-    /* Handle on hover */
-    &::-webkit-scrollbar-thumb:hover {
-      background: rgb(203, 203, 203);
-    }
+  /* Track */
+  &::-webkit-scrollbar-track {
+    background: #f6f6f600 !important;
+  }
+
+  /* Handle */
+  &::-webkit-scrollbar-thumb {
+    background: rgb(234, 234, 234);
+  }
+
+  /* Handle on hover */
+  &::-webkit-scrollbar-thumb:hover {
+    background: rgb(203, 203, 203);
+  }
+}
+.ant-tree-treenode {
+  @apply w-full rounded-md mb-0.65 pl-6 !important;
+}
+.ant-tree-node-content-wrapper {
+  @apply w-full mr-2 pl-0.5 bg-inherit transition-none !important;
+  transition: none !important;
+}
+.ant-tree-list {
+  @apply last:pb-1 mt-0.5;
+  .ant-tree-switcher {
+    @apply mt-1 !important;
+  }
+  .ant-tree-switcher-icon {
+    @apply !text-gray-300;
   }
   .ant-tree-treenode {
-    @apply w-full rounded-md mt-0.65 !important;
-  }
-  .ant-tree-node-content-wrapper {
-    @apply w-full mr-2 pl-0.5 bg-inherit transition-none !important;
+    @apply hover:bg-hover;
     transition: none !important;
   }
-  .ant-tree-list {
-    @apply pt-0.5 last:pb-1;
-    .ant-tree-switcher {
-      @apply mt-1 !important;
-    }
-    .ant-tree-switcher-icon {
-      @apply !text-gray-300;
-    }
-    .ant-tree-treenode {
-      @apply !hover:bg-gray-200;
-      transition: none !important;
-    }
-    .ant-tree-treenode-selected {
-      @apply !bg-primary-selected-sidebar !hover:bg-primary-selected-sidebar;
-      transition: none !important;
-    }
-    .ant-tree-node-selected {
-      transition: none !important;
-      @apply !bg-primary-selected-sidebar !hover:bg-primary-selected-sidebar;
-    }
-    .ant-tree-indent-unit {
-      @apply w-4 !important;
-    }
+  .ant-tree-treenode-selected {
+    @apply !bg-primary-selected;
+    transition: none !important;
   }
+  .ant-tree-node-selected {
+    transition: none !important;
+    @apply !bg-primary-selected !hover:bg-primary-selected;
+  }
+  .ant-tree-indent-unit {
+    @apply w-8 !important;
+  }
+  .ant-tree-switcher.ant-tree-switcher-noop {
+    @apply w-6;
+  }
+}
 
-  .nc-docs-menu .ant-dropdown-menu-item {
-    @apply p-0 !important;
-  }
+.nc-docs-menu .ant-dropdown-menu-item {
+  @apply p-0 !important;
 }
 </style>

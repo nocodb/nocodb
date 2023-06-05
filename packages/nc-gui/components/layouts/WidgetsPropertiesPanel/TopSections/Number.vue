@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import type { DataConfigNumber } from 'nocodb-sdk'
 import { ref, watch } from 'vue'
+import { Icon } from '@iconify/vue'
 
 const dashboardStore = useDashboardStore()
 const { changeNameOfNumberWidget, changeDescriptionOfNumberWidget } = dashboardStore
@@ -18,18 +19,21 @@ watch(dataConfig, (newConfig) => {
 </script>
 
 <template>
-  <a-input
-    v-model:value="localName"
-    placeholder="Value"
-    class="nc-value-input"
-    @blur="() => changeNameOfNumberWidget(localName)"
-  />
-  <textarea
-    v-model="localDescription"
+  <a-input v-model:value="localName" placeholder="Value" class="nc-value-input" @blur="() => changeNameOfNumberWidget(localName)">
+    <template #suffix>
+      <Icon class="text-xl iconify" icon="material-symbols:edit-outline" color="#565B66"></Icon>
+    </template>
+  </a-input>
+  <a-textarea
+    v-model:value="localDescription"
     placeholder="Description"
     class="nc-description-input"
     @blur="() => changeDescriptionOfNumberWidget(localDescription)"
-  ></textarea>
+  >
+    <template #suffix>
+      <Icon class="text-xl iconify" icon="material-symbols:edit-outline" color="#565B66"></Icon>
+    </template>
+  </a-textarea>
 </template>
 
 <style>

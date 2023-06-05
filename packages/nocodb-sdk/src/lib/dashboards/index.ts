@@ -159,9 +159,16 @@ export interface AppearanceConfigStaticText extends AppearanceConfigBase {
   fontType?: FontType;
 }
 
+export interface AppearanceConfigNumber extends AppearanceConfigBase {
+  fillColor?: string;
+  textColor?: string;
+  borderColor?: string;
+  iconColor?: string;
+}
+
 export type AppearanceConfig =
   | AppearanceConfigStaticText
-  | AppearanceConfigBase;
+  | AppearanceConfigNumber;
 
 export interface Widget {
   id: string;
@@ -186,7 +193,7 @@ export interface ButtonWidget extends Widget {
 }
 
 export interface NumberWidget extends Widget {
-  appearance_config: AppearanceConfigBase;
+  appearance_config: AppearanceConfigNumber;
   data_config: DataConfigNumber;
   widget_type: WidgetTypeType.Number;
 }

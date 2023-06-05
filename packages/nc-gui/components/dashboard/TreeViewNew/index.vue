@@ -60,18 +60,26 @@ const projectElRefs = ref()
 
 const { projectUrl: docsProjectUrl } = useDocStore()
 
+const openedProjectsIds = ref<Map<string, boolean>>(new Map())
+
 const loadProjectAndTableList = async (project: ProjectType, projIndex: number) => {
   if (!project) {
     return
   }
 
-  nextTick(() => {
-    const el = projectElRefs.value[projIndex]
+  if (openedProjectsIds.value.has(project.id!)) {
+    openedProjectsIds.value.delete(project.id!)
+  } else {
+    openedProjectsIds.value.set(project.id!, true)
+  }
 
-    if (el) {
-      el.scrollIntoView({ block: 'nearest' })
-    }
-  })
+  // nextTick(() => {
+  //   const el = projectElRefs.value[projIndex]
+
+  //   if (el) {
+  //     el.scrollIntoView({ block: 'nearest' })
+  //   }
+  // })
 
   if (project.type === 'database') {
     await navigateTo(
@@ -516,12 +524,35 @@ watch(
   { immediate: true },
 )
 
+watch(workspaceProjects, () => {
+  for (const projectId of openedProjectsIds.value.keys()) {
+    if (!workspaceProjects.value?.find((p) => p.id === projectId)) {
+      openedProjectsIds.value.delete(projectId)
+    }
+  }
+})
+
 const isClearMode = computed(() => route.query.clear === '1' && route.params.projectId)
+
+// If only project is open, i.e in case of docs, project view is open and not the page view
+const projectViewOpen = computed(() => {
+  const routeNameSplit = String(route?.name).split('projectId-index-index')
+  if (routeNameSplit.length <= 1) return false
+
+  const routeNameAfterProjectView = routeNameSplit[routeNameSplit.length - 1]
+  return routeNameAfterProjectView.split('-').length === 2 || routeNameAfterProjectView.split('-').length === 1
+})
+
+onMounted(() => {
+  if (activeProjectId.value) {
+    openedProjectsIds.value.set(activeProjectId.value, true)
+  }
+})
 </script>
 
 <template>
-  <div class="nc-treeview-container flex flex-col">
-    <div mode="inline" class="flex-grow min-h-50 overflow-y-auto overflow-x-hidden">
+  <div class="nc-treeview-container flex flex-col justify-between">
+    <div mode="inline" class="nc-treeview flex-grow min-h-50 overflow-y-auto overflow-x-hidden">
       <template v-if="workspaceProjects?.length">
         <ProjectWrapper
           v-for="(project, i) of workspaceProjects.filter((p) => !isClearMode || p.id === activeProjectId)"
@@ -532,30 +563,37 @@ const isClearMode = computed(() => route.query.clear === '1' && route.params.pro
           <a-dropdown :trigger="['contextmenu']" overlay-class-name="nc-dropdown-tree-view-context-menu">
             <div
               ref="projectElRefs"
-              class="m-2 py-1 nc-project-sub-menu hover:bg-gray-100 rounded-md"
-              :class="{ active: project.id === activeProjectId }"
+              class="mx-1 nc-project-sub-menu rounded-md"
+              :class="{ active: openedProjectsIds.has(project.id!) }"
             >
               <div
-                class="flex items-center gap-2 py-0.5 cursor-pointer"
+                class="flex items-center gap-0.75 py-0.25 cursor-pointer"
                 @click="loadProjectAndTableList(project, i)"
                 @contextmenu="setMenuContext('project', project)"
               >
-                <DashboardTreeViewNewProjectNode ref="projectNodeRefs" class="flex-grow" />
+                <DashboardTreeViewNewProjectNode
+                  ref="projectNodeRefs"
+                  class="flex-grow rounded-md py-1.5 pl-2"
+                  :class="{
+                    'bg-primary-selected': activeProjectId === project.id && projectViewOpen,
+                    'hover:bg-hover': !(activeProjectId === project.id && projectViewOpen),
+                  }"
+                />
               </div>
 
               <div
                 key="g1"
                 class="overflow-y-auto overflow-x-hidden transition-max-height"
-                :class="{ 'max-h-0': activeProjectId !== project.id, 'max-h-500': activeProjectId === project.id }"
+                :class="{ 'max-h-0': !openedProjectsIds.has(project.id!), 'max-h-500': openedProjectsIds.has(project.id!) }"
               >
                 <div v-if="project.type === 'documentation'">
-                  <DocsSideBar v-if="activeProjectId === project.id" :project="project" />
+                  <DocsSideBar v-if="openedProjectsIds.has(project.id!)" :project="project" />
                 </div>
                 <div v-else-if="project.type === 'dashboard'">
-                  <LayoutsSideBar v-if="activeProjectId === project.id" :project="project" />
+                  <LayoutsSideBar v-if="openedProjectsIds.has(project.id!)" :project="project" />
                 </div>
                 <template v-else-if="project && projects[project.id] && projects[project.id].bases">
-                  <div class="pt-1.5 pl-1 pb-1 flex-1 overflow-y-auto flex flex-col" :class="{ 'mb-[20px]': isSharedBase }">
+                  <div class="pt-1.5 pl-6 pb-1 flex-1 overflow-y-auto flex flex-col" :class="{ 'mb-[20px]': isSharedBase }">
                     <div
                       v-if="
                         projects[project.id].bases[0] &&
@@ -572,13 +610,6 @@ const isClearMode = computed(() => route.query.clear === '1' && route.params.pro
 
                       <div class="transition-height duration-200">
                         <TableList :project="projects[project.id]" :base-index="0" />
-                      </div>
-
-                      <div
-                        v-if="!projectTableList[project.id]?.length"
-                        class="mt-0.5 pt-16 mx-3 flex flex-col items-center border-t-1 border-gray-50"
-                      >
-                        <a-empty :image="Empty.PRESENTED_IMAGE_SIMPLE" description="Empty Database" />
                       </div>
                     </div>
 
@@ -698,27 +729,29 @@ const isClearMode = computed(() => route.query.clear === '1' && route.params.pro
       <WorkspaceEmptyPlaceholder v-else />
     </div>
 
-    <a-divider class="!my-0" />
-    <div class="flex items-center mt-4 justify-center mx-2">
-      <WorkspaceCreateProjectBtn
-        modal
-        type="ghost"
-        class="h-auto w-full nc-create-project-btn"
-        :active-workspace-id="route.params.workspaceId"
-      >
-        <PhPlusThin />
-        Add New
-      </WorkspaceCreateProjectBtn>
-    </div>
-    <div class="flex items-start flex-col justify-start px-2 py-3 gap-2">
-      <GeneralJoinCloud class="color-transition px-2 text-gray-500 cursor-pointer select-none hover:text-accent" />
+    <div class="flex flex-col">
+      <a-divider class="!my-0" />
+      <div class="flex items-center mt-4 justify-center mx-2">
+        <WorkspaceCreateProjectBtn
+          modal
+          type="ghost"
+          class="h-auto w-full nc-create-project-btn !rounded-lg"
+          :active-workspace-id="route.params.workspaceId"
+        >
+          <PhPlusThin />
+          Create new Project
+        </WorkspaceCreateProjectBtn>
+      </div>
+      <div class="flex items-start flex-row justify-center px-2 py-3 gap-2">
+        <GeneralJoinCloud class="color-transition px-2 text-gray-500 cursor-pointer select-none hover:text-accent" />
+      </div>
     </div>
   </div>
 </template>
 
 <style scoped lang="scss">
 .nc-treeview-container {
-  @apply h-[calc(100vh_-_var(--header-height))];
+  height: calc(100% - var(--header-height));
 }
 
 .nc-treeview-footer-item {
@@ -817,7 +850,6 @@ const isClearMode = computed(() => route.query.clear === '1' && route.params.pro
 }
 
 :deep(.nc-project-sub-menu.active) {
-  @apply !bg-gray-400 bg-opacity-8 rounded-lg;
 }
 
 .nc-create-project-btn {
@@ -827,6 +859,22 @@ const isClearMode = computed(() => route.query.clear === '1' && route.params.pro
     & > div {
       @apply !justify-center;
     }
+  }
+}
+
+.nc-treeview {
+  @apply pt-0.5;
+  &::-webkit-scrollbar {
+    width: 4px;
+  }
+  &::-webkit-scrollbar-track {
+    @apply bg-white;
+  }
+  &::-webkit-scrollbar-thumb {
+    @apply bg-scrollbar;
+  }
+  &::-webkit-scrollbar-thumb:hover {
+    @apply bg-scrollbar-hover;
   }
 }
 </style>

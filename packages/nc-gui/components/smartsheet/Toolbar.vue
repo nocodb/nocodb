@@ -5,6 +5,8 @@ const { isGrid, isForm, isGallery, isKanban, isMap, isSqlView } = useSmartsheetS
 
 const isPublic = inject(IsPublicInj, ref(false))
 
+const { isOpen: isSidebarOpen } = storeToRefs(useSidebarStore())
+
 const { isMobileMode } = useGlobal()
 
 const { isUIAllowed } = useUIPermission()
@@ -17,7 +19,7 @@ const { allowCSVDownload } = useSharedView()
 <template>
   <div
     class="nc-table-toolbar w-full py-1 flex gap-2 items-center px-2 border-b overflow-x-hidden"
-    :class="{ 'nc-table-toolbar-mobile': isMobileMode, 'h-[var(--toolbar-height)]': !isMobileMode }"
+    :class="{ 'nc-table-toolbar-mobile': isMobileMode, 'h-[var(--toolbar-height)]': !isMobileMode, 'pl-8': !isSidebarOpen }"
     style="z-index: 7"
   >
     <LazySmartsheetToolbarViewActions

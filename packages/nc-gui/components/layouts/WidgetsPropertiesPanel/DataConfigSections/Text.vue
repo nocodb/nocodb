@@ -30,25 +30,12 @@ const localUrl = ref(staticTextWidget.value?.data_config.staticTextFunction?.url
           <h3 class="text-gray-500">Set hyperlink to text</h3>
           <div v-if="staticTextFunctionType === 'url'">
             <div class="flex justify-between items-center mb-2">
-              <!-- <label for="xAxisOrderBy">Order by</label>
-    <LayoutsWidgetsPropertiesPanelVisualisationConfigIdWithTitleSelectBox
-      id="xAxisOrderBy"
-      v-model="dataConfig.xAxisOrderBy"
-      :id-and-title-tuple-list="idAndTitlesForxAxisOrderBy"
-      @change-selected-value="changeSelectedXAxisOrderByOfFocusedWidget($event)"
-    /> -->
               <a-input
                 v-model:value="localUrl"
                 placeholder="URL"
                 class="nc-value-input"
                 @blur="() => changeUrlOfFocusedTextElement(localUrl)"
               />
-              <!-- <a-input
-  
-                id="nc-dashboard-property-panel-text-value"
-                :value="(focusedWidget as StaticTextWidget).data_config.text"
-                @update:value="changeTextOfFocusedTextElement($event)"
-              ></a-textarea> -->
             </div>
           </div>
         </div>

@@ -155,13 +155,13 @@ onMounted(async () => {
     }
 
     .ant-tree-treenode-selected {
-      @apply !bg-primary-selected-sidebar !hover: bg-primary-selected-sidebar;
+      @apply !bg-primary-selected !hover: bg-primary-selected;
       transition: none !important;
     }
 
     .ant-tree-node-selected {
       transition: none !important;
-      @apply !bg-primary-selected-sidebar !hover: bg-primary-selected-sidebar;
+      @apply !bg-primary-selected !hover: bg-primary-selected;
     }
 
     .ant-tree-indent-unit {

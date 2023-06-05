@@ -11,7 +11,9 @@ export const useProjects = defineStore('projectsStore', () => {
   const { $api } = useNuxtApp()
 
   const projects = ref<Map<string, NcProject>>(new Map())
-  const projectsList = computed<NcProject[]>(() => Array.from(projects.value.values()))
+  const projectsList = computed<NcProject[]>(() =>
+    Array.from(projects.value.values()).sort((a, b) => a.updated_at - b.updated_at),
+  )
 
   const workspaceStore = useWorkspace()
   const tableStore = useTablesStore()
@@ -45,16 +47,42 @@ export const useProjects = defineStore('projectsStore', () => {
     }
 
     for (const project of _projects) {
-      projects.value.set(project.id!, { ...project, isExpanded: route.params.projectId === project.id, isLoading: false })
+      if (projects.value.has(project.id!)) {
+        const _project = projects.value.get(project.id!)!
+      } else {
+        projects.value.set(project.id!, {
+          ...project,
+          isExpanded: route.params.projectId === project.id,
+          isLoading: false,
+        })
+      }
+    }
+  }
+
+  const isProjectPopulated = (projectId: string) => {
+    const dashboardStore = useDashboardStore()
+    const docsStore = useDocStore()
+
+    const project = projects.value.get(projectId)
+    if (!project) return false
+
+    switch (project.type) {
+      case NcProjectType.DB:
+        return !!(project.bases && tableStore.projectTables.get(projectId))
+      case NcProjectType.DOCS:
+        return !!docsStore.nestedPagesOfProjects[projectId]
+      case NcProjectType.DASHBOARD:
+        return !!dashboardStore.layoutsOfProjects[projectId]
     }
   }
 
   // actions
   const loadProject = async (projectId: string, force = false) => {
-    if (!force && projects.value.get(projectId)) return projects.value.get(projectId)
+    if (!force && isProjectPopulated(projectId)) return projects.value.get(projectId)
 
+    const existingProject = projects.value.get(projectId)!
     const _project = await api.project.read(projectId)
-    const project = { ..._project, isExpanded: route.params.projectId === projectId, isLoading: false }
+    const project = { ...existingProject, ..._project, isExpanded: route.params.projectId === projectId, isLoading: false }
 
     projects.value.set(projectId, project)
   }
@@ -102,7 +130,8 @@ export const useProjects = defineStore('projectsStore', () => {
       // }),
     })
 
-    projects.value.set(result.id!, { ...result, isExpanded: true, isLoading: false })
+    const count = projects.value.size
+    projects.value.set(result.id!, { ...result, isExpanded: true, isLoading: false, order: count })
     return result
   }
 

@@ -11,6 +11,8 @@ export const useWorkspace = defineStore('workspaceStore', () => {
 
   // const activeWorkspace = ref<WorkspaceType | null>()
 
+  const isWorkspaceLoading = ref(true)
+
   // todo: update type in swagger
   const projectsStore = useProjects()
 
@@ -167,19 +169,17 @@ export const useWorkspace = defineStore('workspaceStore', () => {
     await loadCollaborators()
   }
 
-  // load projects and collaborators list on active workspace change
-  watch(activeWorkspace, async (workspace) => {
-    // skip and reset if workspace not selected
-    console.log('workspace changed', workspace?.id)
-    if (!workspace?.id) {
-      console.log('workspace not selected', projectsStore)
-      projectsStore.clearProjects()
-      collaborators.value = []
-      return
-    }
+  const loadWorkspace = async (workspaceId: string) => {
+    workspace.value = await $api.workspace.read(workspaceId)
+    workspaces.value = [workspace.value, ...workspaces.value.filter((w) => w.id !== workspaceId)]
+  }
 
+  async function loadActiveWorkspace() {
+    isWorkspaceLoading.value = true
+    await loadWorkspace(route.params.workspaceId as string)
     await Promise.all([loadCollaborators(), projectsStore.loadProjects()])
-  })
+    isWorkspaceLoading.value = false
+  }
 
   // load projects and collaborators list on active workspace change
   watch(activePage, async (page) => {
@@ -241,11 +241,6 @@ export const useWorkspace = defineStore('workspaceStore', () => {
     }
   }
 
-  const loadWorkspace = async (workspaceId: string) => {
-    workspace.value = await $api.workspace.read(workspaceId)
-    setTheme(workspaceMeta.value?.theme)
-  }
-
   async function saveTheme(_theme: Partial<ThemeConfig>) {
     const fullTheme = {
       primaryColor: theme.value.primaryColor,
@@ -288,5 +283,7 @@ export const useWorkspace = defineStore('workspaceStore', () => {
     workspace,
     saveTheme,
     workspaceMeta,
+    isWorkspaceLoading,
+    loadActiveWorkspace,
   }
 })

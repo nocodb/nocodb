@@ -66,16 +66,6 @@ const loadProjectAndTableList = async (project: NcProject) => {
 
   project.isExpanded = !project.isExpanded
 
-  if (project.type === 'database') {
-    await navigateTo(
-      projectUrl({
-        id: project.id!,
-        type: 'database',
-      }),
-    )
-    return
-  }
-
   // if dashboard or document project, add a document tab and route to the respective page
   switch (project.type) {
     case 'dashboard':
@@ -85,7 +75,6 @@ const loadProjectAndTableList = async (project: NcProject) => {
         type: TabType.LAYOUT,
         projectId: project.id,
       })
-      console.log('open dashboard project', project.id)
       $e('c:dashboard:open', project.id)
       navigateTo(dashboardProjectUrl(project.id!))
       break
@@ -96,14 +85,21 @@ const loadProjectAndTableList = async (project: NcProject) => {
         type: TabType.DOCUMENT,
         projectId: project.id,
       })
-      console.log('open doc', project.id)
       $e('c:document:open', project.id)
       navigateTo(docsProjectUrl(project.id!))
       break
-    default:
+    case 'database':
+      await navigateTo(
+        projectUrl({
+          id: project.id!,
+          type: 'database',
+        }),
+      )
       await loadProject(project.id!)
       await loadProjectTables(project.id!)
       break
+    default:
+      throw new Error(`Unknown project type: ${project.type}`)
   }
 }
 

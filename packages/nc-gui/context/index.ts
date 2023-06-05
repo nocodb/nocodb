@@ -2,7 +2,7 @@ import type { ColumnType, ProjectType, TableType, ViewType } from 'nocodb-sdk'
 import type { ComputedRef, InjectionKey, Ref } from 'vue'
 import type { EventHook } from '@vueuse/core'
 import type { useViewData } from '#imports'
-import type { PageSidebarNode, Row, TabItem } from '~/lib'
+import type { NcProject, PageSidebarNode, Row, TabItem } from '~/lib'
 
 export const ActiveCellInj: InjectionKey<Ref<boolean>> = Symbol('active-cell')
 export const IsPublicInj: InjectionKey<Ref<boolean>> = Symbol('is-public')
@@ -40,7 +40,7 @@ export const SaveRowInj: InjectionKey<(() => void) | undefined> = Symbol('save-r
 export const CurrentCellInj: InjectionKey<Ref<Element | undefined>> = Symbol('current-cell-injection')
 export const DocsLocalPageInj: InjectionKey<Ref<PageSidebarNode | undefined>> = Symbol('docs-local-page-injection')
 export const ProjectRoleInj: InjectionKey<Ref<string>> = Symbol('project-roles-injection')
-export const ProjectInj: InjectionKey<Ref<ProjectType>> = Symbol('project-injection')
+export const ProjectInj: InjectionKey<Ref<NcProject>> = Symbol('project-injection')
 export const ProjectIdInj: InjectionKey<Ref<string>> = Symbol('project-id-injection')
 export const TreeViewFunctions: InjectionKey<{
   setMenuContext: (type: 'project' | 'base' | 'table' | 'main' | 'layout', value?: any) => void

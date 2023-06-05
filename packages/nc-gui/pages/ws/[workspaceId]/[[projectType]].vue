@@ -1,17 +1,8 @@
 <script lang="ts" setup>
-import { onMounted, useRouter, useWorkspace } from '#imports'
-
 definePageMeta({
   hideHeader: true,
   hasSidebar: true,
 })
-
-const router = useRouter()
-const route = $(router.currentRoute)
-
-useProjects()
-const { loadWorkspace } = useWorkspace()
-const { loadProjects } = useProjects()
 
 const dialogOpen = ref(false)
 
@@ -30,10 +21,15 @@ function toggleDialog(value?: boolean, key?: string, dsState?: string, pId?: str
 
 provide(ToggleDialogInj, toggleDialog)
 
-onMounted(async () => {
-  await loadWorkspace(route.params.workspaceId as string)
-  await loadProjects()
-})
+// onMounted(async () => {
+//   isLoading.value = true
+//   try {
+//     await loadWorkspace(route.params.workspaceId as string)
+//     await loadProjects()
+//   } finally {
+//     isLoading.value = false
+//   }
+// })
 
 // todo:
 const isSharedBase = ref(false)

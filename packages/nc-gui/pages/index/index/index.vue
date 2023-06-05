@@ -318,7 +318,7 @@ const projectListType = computed(() => {
                         :colors="projectThemeColors"
                         :row-size="9"
                         :advanced="false"
-                        @input="handleWorkspaceColor(workspace.id, $event)"
+                        @input="handleWorkspaceColor(workspace.id!, $event)"
                       />
                       <a-sub-menu key="pick-primary">
                         <template #title>
@@ -330,7 +330,7 @@ const projectListType = computed(() => {
 
                         <template #expandIcon></template>
 
-                        <LazyGeneralChromeWrapper @input="handleWorkspaceColor(workspace.id, $event)" />
+                        <LazyGeneralChromeWrapper @input="handleWorkspaceColor(workspace.id!, $event)" />
                       </a-sub-menu>
                     </a-menu>
                   </template>

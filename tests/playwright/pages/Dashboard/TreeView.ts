@@ -50,13 +50,19 @@ export class TreeViewPage extends BasePage {
   }
 
   async openBase({ title }: { title: string }) {
-    const nodes = await this.get().locator(`.ant-collapse`);
+    let nodes: Locator;
+    if (isHub()) {
+      nodes = await this.get().locator(`.nc-project-sub-menu`);
+    } else {
+      nodes = await this.get().locator(`.ant-collapse`);
+    }
+
     // loop through nodes.count() to find the node with title
     for (let i = 0; i < (await nodes.count()); i++) {
       const node = nodes.nth(i);
       const nodeTitle = await node.innerText();
       // check if nodeTitle contains title
-      if (nodeTitle.includes(title)) {
+      if (nodeTitle.toLowerCase().includes(title.toLowerCase())) {
         // click on node
         await node.waitFor({ state: 'visible' });
         await node.click();

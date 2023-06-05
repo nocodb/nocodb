@@ -46,7 +46,14 @@ async function timezoneSuite(token?: string, skipTableCreate?: boolean) {
     }
   }
 
-  const project = await api.project.create({ title: 'xcdb' });
+  // get current workspace information if in hub
+  let workspaceId = '';
+  if (isHub()) {
+    const workspaces = await api.workspace.list();
+    workspaceId = workspaces.list[0].id;
+  }
+
+  const project = await api.project.create({ title: 'xcdb', fk_workspace_id: workspaceId });
   if (skipTableCreate) return { project };
   const table = await api.base.tableCreate(project.id, project.bases?.[0].id, {
     table_name: 'dateTimeTable',
@@ -141,10 +148,14 @@ test.describe('Timezone-XCDB : Japan/Tokyo', () => {
   test('API insert, verify display value', async () => {
     if (!isSqlite(context) && !isHub()) return;
 
-    await dashboard.clickHome();
-    const projectsPage = new ProjectsPage(dashboard.rootPage);
-    await projectsPage.openProject({ title: 'xcdb', withoutPrefix: true });
+    if (isHub()) {
+      await dashboard.treeView.openBase({ title: 'xcdb' });
+    } else {
+      await dashboard.clickHome();
 
+      const projectsPage = new ProjectsPage(dashboard.rootPage);
+      await projectsPage.openProject({ title: 'xcdb', withoutPrefix: true });
+    }
     await dashboard.treeView.openTable({ title: 'dateTimeTable' });
 
     // DateTime inserted using API without timezone is converted to UTC

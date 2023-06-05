@@ -1909,9 +1909,12 @@ class BaseModelSqlv2 {
             break;
           case 'hm':
             {
-              const relatedTable = await Model.get(
-                colOptions.fk_related_model_id,
-              );
+              // skip if it's an mm table column
+              const relatedTable = await colOptions.getRelatedTable();
+              if (relatedTable.mm) {
+                break;
+              }
+
               const childColumn = await Column.get({
                 colId: colOptions.fk_child_column_id,
               });
@@ -1931,8 +1934,6 @@ class BaseModelSqlv2 {
             }
             break;
         }
-
-        // await trx(this.model.table_name).where(column.column_name, id).del();
       }
 
       if (!trx) {

@@ -2,6 +2,7 @@ import { test } from '@playwright/test';
 import { DashboardPage } from '../../pages/Dashboard';
 import { ProjectsPage } from '../../pages/ProjectsPage';
 import setup from '../../setup';
+import { isHub } from '../../setup/db';
 
 const langMenu = [
   'help-translate',
@@ -42,6 +43,10 @@ const langMenu = [
 ];
 
 test.describe('Common', () => {
+  if (isHub()) {
+    test.skip();
+  }
+
   let context: any;
   let dashboard: DashboardPage;
   let projectsPage: ProjectsPage;

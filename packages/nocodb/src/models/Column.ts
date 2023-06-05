@@ -65,10 +65,13 @@ export default class Column<T = any> implements ColumnType {
     Object.assign(this, data);
   }
 
-  public async getModel(): Promise<Model> {
-    return Model.getByIdOrName({
-      id: this.fk_model_id,
-    });
+  public async getModel(ncMeta = Noco.ncMeta): Promise<Model> {
+    return Model.getByIdOrName(
+      {
+        id: this.fk_model_id,
+      },
+      ncMeta,
+    );
   }
 
   public static async insert<T>(

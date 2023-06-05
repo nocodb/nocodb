@@ -5,6 +5,7 @@ import { SettingsPage, SettingTab } from '../../pages/Dashboard/Settings';
 import { deepCompare } from '../utils/objectCompareUtil';
 import setup from '../../setup';
 import { ProjectInfoApiUtil, TableInfo } from '../utils/projectInfoApiUtil';
+import { isHub } from '../../setup/db';
 
 test.describe('Table Operations', () => {
   let dashboard: DashboardPage, settings: SettingsPage;
@@ -23,21 +24,24 @@ test.describe('Table Operations', () => {
     await dashboard.treeView.deleteTable({ title: 'tablex' });
     await dashboard.treeView.verifyTable({ title: 'tablex', exists: false });
 
-    await dashboard.gotoSettings();
-    await settings.selectTab({ tab: SettingTab.Audit });
-    await settings.audit.verifyRow({
-      index: 0,
-      opType: 'TABLE',
-      opSubtype: 'DELETE',
-      user: 'user@nocodb.com',
-    });
-    await settings.audit.verifyRow({
-      index: 1,
-      opType: 'TABLE',
-      opSubtype: 'CREATE',
-      user: 'user@nocodb.com',
-    });
-    await settings.close();
+    if (!isHub()) {
+      // Audit logs in clickhouse; locally wont be accessible
+      await dashboard.gotoSettings();
+      await settings.selectTab({ tab: SettingTab.Audit });
+      await settings.audit.verifyRow({
+        index: 0,
+        opType: 'TABLE',
+        opSubtype: 'DELETE',
+        user: 'user@nocodb.com',
+      });
+      await settings.audit.verifyRow({
+        index: 1,
+        opType: 'TABLE',
+        opSubtype: 'CREATE',
+        user: 'user@nocodb.com',
+      });
+      await settings.close();
+    }
 
     await dashboard.treeView.renameTable({ title: 'City', newTitle: 'Cityx' });
     await dashboard.treeView.verifyTable({ title: 'Cityx' });

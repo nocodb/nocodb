@@ -11,6 +11,11 @@ import { deepCompare } from '../utils/objectCompareUtil';
 import { isHub } from '../../setup/db';
 
 test.describe('Project operations', () => {
+  if (isHub()) {
+    // tests covered under tests/playwright/tests/nocohub/hubDashboard.spec.ts
+    test.skip();
+  }
+
   let dashboard: DashboardPage;
   let toolbar: ToolbarPage;
   let context: any;

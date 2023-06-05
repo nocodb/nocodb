@@ -4,7 +4,7 @@ import setup from '../../setup';
 import { knex } from 'knex';
 import { Api, UITypes } from 'nocodb-sdk';
 import { ProjectsPage } from '../../pages/ProjectsPage';
-import { isMysql, isPg, isSqlite } from '../../setup/db';
+import { isHub, isMysql, isPg, isSqlite } from '../../setup/db';
 import { getKnexConfig } from '../utils/config';
 import { getBrowserTimezoneOffset } from '../utils/general';
 let api: Api<any>, records: any[];
@@ -106,7 +106,7 @@ test.describe('Timezone-XCDB : Japan/Tokyo', () => {
   test.beforeEach(async ({ page }) => {
     context = await setup({ page, isEmptyProject: true });
     dashboard = new DashboardPage(page, context.project);
-    if (!isSqlite(context)) return;
+    if (!isSqlite(context) && !isHub()) return;
 
     try {
       const { project, table } = await timezoneSuite(context.token);
@@ -139,7 +139,7 @@ test.describe('Timezone-XCDB : Japan/Tokyo', () => {
    *  Display value is converted to Asia/Tokyo
    */
   test('API insert, verify display value', async () => {
-    if (!isSqlite(context)) return;
+    if (!isSqlite(context) && !isHub()) return;
 
     await dashboard.clickHome();
     const projectsPage = new ProjectsPage(dashboard.rootPage);
@@ -171,7 +171,7 @@ test.describe('Timezone-XCDB : Japan/Tokyo', () => {
    */
 
   test('API Insert, verify API read response', async () => {
-    if (!isSqlite(context)) return;
+    if (!isSqlite(context) && !isHub()) return;
 
     // UTC expected response
     const dateUTC = ['2021-01-01 00:00:00+00:00', '2021-01-01 00:00:00+00:00', '2021-01-01 00:00:00+00:00'];

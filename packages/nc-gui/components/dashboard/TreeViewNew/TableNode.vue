@@ -42,7 +42,8 @@ const projectRole = inject(ProjectRoleInj)
 const { setMenuContext, openRenameTableDialog, duplicateTable } = inject(TreeViewFunctions)!
 
 // todo: temp
-const { projectTableList } = storeToRefs(useProjects())
+const { projectTables } = storeToRefs(useTablesStore())
+const tables = computed(() => projectTables.value.get(project.id!) ?? [])
 
 const openedTableId = computed(() => route.params.viewId)
 
@@ -61,7 +62,7 @@ const setIcon = async (icon: string, table: TableType) => {
       ...((table.meta as object) || {}),
       icon,
     }
-    projectTableList.value[project.id!].splice(projectTableList.value[project.id!].indexOf(table), 1, { ...table })
+    tables.value.splice(tables.value.indexOf(table), 1, { ...table })
 
     updateTab({ id: table.id }, { meta: table.meta })
 

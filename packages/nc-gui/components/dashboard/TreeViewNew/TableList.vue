@@ -20,9 +20,8 @@ const props = withDefaults(
 const project = toRef(props, 'project')
 const baseIndex = toRef(props, 'baseIndex')
 
-const projectsStore = useProjects()
-
-const { projectTableList } = storeToRefs(projectsStore)
+const { projectTables } = storeToRefs(useTablesStore())
+const tables = computed(() => projectTables.value.get(project.value.id!) ?? [])
 
 const { $api } = useNuxtApp()
 
@@ -31,7 +30,7 @@ const { openTable } = useTableNew({
 })
 
 const tablesById = $computed(() =>
-  projectTableList.value[project.value.id!]?.reduce<Record<string, TableType>>((acc, table) => {
+  tables.value.reduce<Record<string, TableType>>((acc, table) => {
     acc[table.id!] = table
 
     return acc
@@ -49,14 +48,12 @@ const initSortable = (el: Element) => {
   if (sortable) sortable.destroy()
   Sortable.create(el as HTMLLIElement, {
     onEnd: async (evt) => {
-      const offset = projectTableList.value[project.value.id!].findIndex(
-        (table) => table.base_id === project.value.bases![baseIndex.value].id,
-      )
+      const offset = tables.value.findIndex((table) => table.base_id === project.value.bases![baseIndex.value].id)
 
       const { newIndex = 0, oldIndex = 0 } = evt
 
       const itemEl = evt.item as HTMLLIElement
-      const item = tablesById[itemEl.dataset.id as string]
+      const item = tablesById[itemEl.dataset.id as string]!
 
       // get the html collection of all list items
       const children: HTMLCollection = evt.to.children
@@ -83,11 +80,7 @@ const initSortable = (el: Element) => {
 
       // todo: move to action
       // update the order of the moved item
-      projectTableList.value[project.value.id!]?.splice(
-        newIndex + offset,
-        0,
-        ...projectTableList.value[project.value.id!]?.splice(oldIndex + offset, 1),
-      )
+      tables.value?.splice(newIndex + offset, 0, ...tables.value!.splice(oldIndex + offset, 1))
 
       // force re-render the list
       key++
@@ -110,26 +103,28 @@ const menuRef = (divEl: HTMLDivElement) => {
 
 <template>
   <div class="border-none sortable-list">
-    <div
-      v-if="project.bases[baseIndex] && project.bases[baseIndex].enabled"
-      :ref="menuRef"
-      :key="key"
-      :nc-base="project.bases[baseIndex].id"
-    >
-      <TableNode
-        v-for="table of (projectTableList[project.id] ?? []).filter((table) => table.base_id === project.bases[baseIndex].id)"
-        :key="table.id"
-        v-e="['a:table:open']"
-        class="nc-tree-item text-sm cursor-pointer group"
-        :data-order="table.order"
-        :data-id="table.id"
-        :data-testid="`tree-view-table-${table.title}`"
-        :table="table"
-        :project="project"
-        :base-index="baseIndex"
-        @click="openTable(table)"
+    <template v-if="project">
+      <div
+        v-if="project.bases?.[baseIndex] && project!.bases[baseIndex].enabled"
+        :ref="menuRef"
+        :key="key"
+        :nc-base="project.bases[baseIndex].id"
       >
-      </TableNode>
-    </div>
+        <TableNode
+          v-for="table of tables.filter((table) => table.base_id === project?.bases?.[baseIndex].id)"
+          :key="table.id"
+          v-e="['a:table:open']"
+          class="nc-tree-item text-sm cursor-pointer group"
+          :data-order="table.order"
+          :data-id="table.id"
+          :data-testid="`tree-view-table-${table.title}`"
+          :table="table"
+          :project="project"
+          :base-index="baseIndex"
+          @click="openTable(table)"
+        >
+        </TableNode>
+      </div>
+    </template>
   </div>
 </template>

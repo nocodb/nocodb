@@ -13,7 +13,6 @@ export const useWorkspace = defineStore('workspaceStore', () => {
 
   // todo: update type in swagger
   const projectsStore = useProjects()
-  const { loadProjects } = projectsStore
 
   const collaborators = ref<WorkspaceUserType[] | null>()
 
@@ -169,37 +168,31 @@ export const useWorkspace = defineStore('workspaceStore', () => {
   }
 
   // load projects and collaborators list on active workspace change
-  watch(
-    activeWorkspace,
-    async (workspace) => {
-      // skip and reset if workspace not selected
-      if (!workspace?.id) {
-        projectsStore.projects = {}
-        collaborators.value = []
-        return
-      }
+  watch(activeWorkspace, async (workspace) => {
+    // skip and reset if workspace not selected
+    console.log('workspace changed', workspace?.id)
+    if (!workspace?.id) {
+      console.log('workspace not selected', projectsStore)
+      projectsStore.clearProjects()
+      collaborators.value = []
+      return
+    }
 
-      await Promise.all([loadCollaborators(), loadProjects()])
-    },
-    { immediate: true },
-  )
+    await Promise.all([loadCollaborators(), projectsStore.loadProjects()])
+  })
 
   // load projects and collaborators list on active workspace change
-  watch(
-    activePage,
-    async (page) => {
-      if (page === 'workspace') {
-        return
-      }
-      await loadProjects(page)
-    },
-    { immediate: true },
-  )
+  watch(activePage, async (page) => {
+    if (page === 'workspace') {
+      return
+    }
+    await projectsStore.loadProjects(page)
+  })
 
   const addToFavourite = async (projectId: string) => {
     try {
       const projects = projectsStore.projects
-      const project = projects[projectId]
+      const project = projects.get(projectId)
       if (!project) return
 
       // todo: update the type
@@ -212,17 +205,13 @@ export const useWorkspace = defineStore('workspaceStore', () => {
       message.error(await extractSdkResponseErrorMsg(e))
     }
   }
+
   const removeFromFavourite = async (projectId: string) => {
     try {
-      const project = projectsStore.projects[projectId]
+      const project = projectsStore.projects.get(projectId)
       if (!project) return
 
       project.starred = false
-
-      // if active page is starred then remove the project from the list
-      if (activePage.value === 'starred') {
-        delete projectsStore.projects[projectId]
-      }
 
       await $api.project.userMetaUpdate(projectId, {
         starred: false,

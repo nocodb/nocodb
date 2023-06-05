@@ -38,12 +38,14 @@ export const useProject = defineStore('projectStore', () => {
 
   const projectsStore = useProjects()
 
+  const tablesStore = useTablesStore()
+
   // todo: refactor
   let sharedProject = $ref<ProjectType>()
 
   // todo: new-layout
-  const project = computed<ProjectType>(() => projectsStore.projects[projectId.value] || sharedProject || {})
-  const tables = computed<TableType[]>(() => projectsStore.projectTableList[projectId.value] || [])
+  const project = computed<ProjectType>(() => projectsStore.projects.get(projectId.value) || sharedProject || {})
+  const tables = computed<TableType[]>(() => tablesStore.projectTables.get(projectId.value) || [])
 
   const projectLoadedHook = createEventHook<ProjectType>()
 
@@ -117,7 +119,7 @@ export const useProject = defineStore('projectStore', () => {
   // todo: add force parameter
   async function loadTables() {
     if (project.value.id) {
-      await projectsStore.loadProjectTables(project.value.id, true)
+      await tablesStore.loadProjectTables(project.value.id, true)
       // tables.value = projectsStore.projectTableList[project.value.id]
       //   await api.dbTable.list(project.value.id, {
       //   includeM2M: includeM2M.value,

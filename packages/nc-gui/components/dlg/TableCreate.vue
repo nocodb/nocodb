@@ -7,7 +7,7 @@ import {
   onMounted,
   ref,
   useProject,
-  useProjects,
+  useTablesStore,
   useTabs,
   useVModel,
   validateTableName,
@@ -33,7 +33,7 @@ const { addTab } = useTabs()
 
 const { loadTables, isMysql, isMssql, isPg, loadProject } = useProject()
 
-const { loadProjectTables } = useProjects()
+const { loadProjectTables } = useTablesStore()
 
 const { table, createTable, generateUniqueTitle, tables, project } = useTableNew({
   async onTableCreate(table) {

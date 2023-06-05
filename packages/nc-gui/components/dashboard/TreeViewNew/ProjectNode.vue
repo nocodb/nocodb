@@ -3,9 +3,16 @@ import { Icon as IconifyIcon } from '@iconify/vue'
 import { nextTick } from '@vue/runtime-core'
 import { Dropdown, Tooltip, message } from 'ant-design-vue'
 import type { ProjectType } from 'nocodb-sdk'
+import { LoadingOutlined } from '@ant-design/icons-vue'
 import { openLink, useProjects } from '#imports'
 import { extractSdkResponseErrorMsg } from '~/utils'
 import { ProjectInj, ProjectRoleInj, ToggleDialogInj } from '~/context'
+const indicator = h(LoadingOutlined, {
+  style: {
+    fontSize: '1rem',
+  },
+  spin: true,
+})
 
 const project = inject(ProjectInj, ref({}))!
 
@@ -132,6 +139,7 @@ const isSharedBase = ref(false)
       @click.stop
     >
       <div class="flex items-center py-2" @click.stop>
+        <a-spin v-if="project.isLoading" :indicator="indicator" />
         <component :is="isUIAllowed('projectIconCustomisation', false, projectRole) ? Tooltip : 'div'">
           <span v-if="project.meta?.icon" :key="project.meta?.icon" class="nc-table-icon flex items-center">
             <IconifyIcon

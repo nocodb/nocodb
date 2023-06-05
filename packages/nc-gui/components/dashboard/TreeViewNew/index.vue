@@ -10,7 +10,6 @@ import {
   TabType,
   TreeViewFunctions,
   computed,
-  extractSdkResponseErrorMsg,
   isDrawerOrModalExist,
   isMac,
   reactive,
@@ -22,17 +21,17 @@ import {
   useProject,
   useProjects,
   useTable,
+  useTablesStore,
   useTabs,
   useToggle,
   useUIPermission,
-  useWorkspace,
   watchEffect,
 } from '#imports'
 
 import { useRouter } from '#app'
 import type { NcProject } from '~~/lib'
 
-const { addTab, updateTab, addSqlEditorTab } = useTabs()
+const { addTab, addSqlEditorTab } = useTabs()
 
 const { $api, $e, $jobs } = useNuxtApp()
 
@@ -44,9 +43,13 @@ const { projectUrl } = useProject()
 
 const projectsStore = useProjects()
 
-const { loadProjectTables, loadProject, createProject: _createProject } = projectsStore
+const { loadProject, createProject: _createProject } = projectsStore
 
-const { projectTableList, projects, projectsList } = storeToRefs(projectsStore)
+const { loadProjectTables } = useTablesStore()
+
+const { projects, projectsList } = storeToRefs(projectsStore)
+
+const { projectTables } = storeToRefs(useTablesStore())
 
 const { getDashboardProjectUrl: dashboardProjectUrl } = useDashboardStore()
 
@@ -129,20 +132,13 @@ const filterQuery = $ref('')
 const activeTable = computed(() => ([TabType.TABLE, TabType.VIEW].includes(activeTab.value?.type) ? activeTab.value.id : null))
 
 const tablesById = $computed(() =>
-  Object.values(projectTableList.value)
+  Object.values(projectTables.value.get(activeProjectId.value!) || {})
     .flat()
     ?.reduce<Record<string, TableType>>((acc, table) => {
       acc[table.id!] = table
 
       return acc
     }, {}),
-)
-
-const filteredTables = $computed(
-  () => [],
-  // tables.value?.filter(
-  //   (table) => !searchActive.value || !filterQuery || table.title.toLowerCase().includes(filterQuery.toLowerCase()),
-  // ),
 )
 
 const sortables: Record<string, Sortable> = {}
@@ -290,7 +286,7 @@ function openTableCreateDialog(baseId?: string, projectId?: string) {
   const { close } = useDialog(resolveComponent('DlgTableCreate'), {
     'modelValue': isOpen,
     'baseId': baseId, // || bases.value[0].id,
-    'projectId': projectId || projects.value[0].id,
+    'projectId': projectId || projectsList.value[0].id,
     'onUpdate:modelValue': closeDialog,
   })
 
@@ -370,7 +366,7 @@ const duplicateTable = async (table: TableType) => {
 }
 
 function openSqlEditor(base: BaseType) {
-  addSqlEditorTab(projects.value[base.project_id!])
+  addSqlEditorTab(projects.value.get(base.project_id!)!)
 }
 
 function openErdView(base: BaseType) {
@@ -382,10 +378,13 @@ async function openProjectSqlEditor(project: ProjectType) {
   navigateTo(`/ws/${route.params.workspaceId}/nc/${project.id}/sql`)
 }
 
-async function openProjectErdView(project: ProjectType) {
-  if (!project.id) return
-  if (!projects.value[project.id]) await loadProject(project.id)
-  const base = projects.value[project.id]?.bases?.[0]
+async function openProjectErdView(_project: ProjectType) {
+  if (!_project.id) return
+
+  const project = projects.value.get(_project.id)
+  if (!project) await loadProject(_project.id!)
+
+  const base = project?.bases?.[0]
   if (!base) return
   navigateTo(`/ws/${route.params.workspaceId}/nc/${base.project_id}/erd/${base.id}`)
 }
@@ -427,7 +426,10 @@ useEventListener(document, 'keydown', async (e: KeyboardEvent) => {
           e.preventDefault()
           $e('c:shortcut', { key: 'ALT + T' })
           const projectId = activeProjectId.value
-          if (projectId) openTableCreateDialog(projects.value?.[projectId]?.bases?.[0].id, projectId)
+          const project = projectId ? projects.value.get(projectId) : undefined
+          if (!project) return
+
+          if (projectId) openTableCreateDialog(project.bases?.[0].id, projectId)
         }
         break
       }
@@ -510,8 +512,6 @@ watch(
   { immediate: true },
 )
 
-const isClearMode = computed(() => route.query.clear === '1' && route.params.projectId)
-
 // If only project is open, i.e in case of docs, project view is open and not the page view
 const projectViewOpen = computed(() => {
   const routeNameSplit = String(route?.name).split('projectId-index-index')
@@ -527,16 +527,16 @@ const projectViewOpen = computed(() => {
     <div mode="inline" class="nc-treeview flex-grow min-h-50 overflow-y-auto overflow-x-hidden">
       <template v-if="projectsList?.length">
         <ProjectWrapper
-          v-for="(project, i) of projectsList"
+          v-for="project of projectsList"
           :key="project.id"
           :project-role="[project.project_role, project.role]"
-          :project="projects[project.id!] ?? project"
+          :project="project"
         >
           <a-dropdown :trigger="['contextmenu']" overlay-class-name="nc-dropdown-tree-view-context-menu">
             <div ref="projectElRefs" class="mx-1 nc-project-sub-menu rounded-md" :class="{ active: project.isExpanded }">
               <div
                 class="flex items-center gap-0.75 py-0.25 cursor-pointer"
-                @click="loadProjectAndTableList(project, i)"
+                @click="loadProjectAndTableList(project)"
                 @contextmenu="setMenuContext('project', project)"
               >
                 <DashboardTreeViewNewProjectNode
@@ -561,36 +561,30 @@ const projectViewOpen = computed(() => {
                 <div v-else-if="project.type === 'dashboard'">
                   <LayoutsSideBar v-if="project.isExpanded" :project="project" />
                 </div>
-                <template v-else-if="project && projects[project.id] && projects[project.id].bases">
+                <template v-else-if="project && project?.bases">
                   <div class="pt-1.5 pl-6 pb-1 flex-1 overflow-y-auto flex flex-col" :class="{ 'mb-[20px]': isSharedBase }">
                     <div
-                      v-if="
-                        projects[project.id]?.bases?.[0] &&
-                        projects[project.id]?.bases?.[0].enabled &&
-                        !projects[project.id]?.bases?.slice(1).filter((el) => el.enabled)?.length
-                      "
+                      v-if="project?.bases?.[0]?.enabled && !project?.bases?.slice(1).filter((el) => el.enabled)?.length"
                       class="flex-1 ml-1"
                     >
                       <AddNewTableNode
-                        :project="projects[project.id]"
+                        :project="project"
                         :base-index="0"
-                        @open-table-create-dialog="openTableCreateDialog(projects[project.id]?.bases?.[0].id, project.id)"
+                        @open-table-create-dialog="openTableCreateDialog(project?.bases?.[0].id, project.id)"
                       />
 
                       <div class="transition-height duration-200">
-                        <TableList :project="projects[project.id]" :base-index="0" />
+                        <TableList :project="project" :base-index="0" />
                       </div>
                     </div>
 
                     <div v-else class="transition-height duration-200">
                       <div class="border-none sortable-list">
-                        <div v-for="(base, baseIndex) of projects[project.id].bases" :key="`base-${base.id}`">
+                        <div v-for="(base, baseIndex) of project.bases" :key="`base-${base.id}`">
                           <a-collapse
                             v-if="base && base.enabled"
                             v-model:activeKey="activeKey"
-                            :class="[
-                              { hidden: searchActive && !!filterQuery && !filteredTables?.find((el) => el.base_id === base.id) },
-                            ]"
+                            :class="[{ hidden: searchActive && !!filterQuery }]"
                             expand-icon-position="right"
                             :bordered="false"
                             :accordion="!searchActive"
@@ -605,7 +599,7 @@ const projectViewOpen = computed(() => {
                                 >
                                   <GeneralBaseLogo :base-type="base.type" />
                                   Default ({{
-                                    projectTableList[project.id]?.filter((table) => table.base_id === base.id).length || '0'
+                                    projectTables.get(project.id)?.filter((table) => table.base_id === base.id).length || '0'
                                   }})
                                 </div>
                                 <div
@@ -615,11 +609,13 @@ const projectViewOpen = computed(() => {
                                 >
                                   <GeneralBaseLogo :base-type="base.type" />
                                   {{ base.alias || '' }}
-                                  ({{ projectTableList[project.id]?.filter((table) => table.base_id === base.id).length || '0' }})
+                                  ({{
+                                    projectTables.get(project.id)?.filter((table) => table.base_id === base.id).length || '0'
+                                  }})
                                 </div>
                               </template>
                               <AddNewTableNode
-                                :project="projects[project.id]"
+                                :project="project"
                                 :base-index="baseIndex"
                                 @open-table-create-dialog="openTableCreateDialog(base.id, project.id)"
                               />
@@ -629,7 +625,7 @@ const projectViewOpen = computed(() => {
                                 :key="`sortable-${base.id}-${base.id && base.id in keys ? keys[base.id] : '0'}`"
                                 :nc-base="base.id"
                               >
-                                <TableList class="pl-2" :project="projects[project.id]" :base-index="baseIndex" />
+                                <TableList class="pl-2" :project="project" :base-index="baseIndex" />
                               </div>
                             </a-collapse-panel>
                           </a-collapse>

@@ -1885,7 +1885,6 @@ class BaseModelSqlv2 {
 
       const execQueries: ((trx: Transaction) => Promise<any>)[] = [];
 
-      // start a transaction if not already in one
       for (const column of this.model.columns) {
         if (column.uidt !== UITypes.LinkToAnotherRecord) continue;
 
@@ -2445,7 +2444,68 @@ class BaseModelSqlv2 {
         res.push(d);
       }
 
+      const execQueries: ((trx: Transaction, ids: any[]) => Promise<any>)[] =
+        [];
+
+      for (const column of this.model.columns) {
+        if (column.uidt !== UITypes.LinkToAnotherRecord) continue;
+
+        const colOptions =
+          await column.getColOptions<LinkToAnotherRecordColumn>();
+
+        switch (colOptions.type) {
+          case 'mm':
+            {
+              const mmTable = await Model.get(colOptions.fk_mm_model_id);
+              const mmParentColumn = await Column.get({
+                colId: colOptions.fk_mm_child_column_id,
+              });
+
+              execQueries.push((trx, ids) =>
+                trx(mmTable.table_name)
+                  .del()
+                  .whereIn(mmParentColumn.column_name, ids),
+              );
+            }
+            break;
+          case 'hm':
+            {
+              // skip if it's an mm table column
+              const relatedTable = await colOptions.getRelatedTable();
+              if (relatedTable.mm) {
+                break;
+              }
+
+              const childColumn = await Column.get({
+                colId: colOptions.fk_child_column_id,
+              });
+
+              execQueries.push((trx, ids) =>
+                trx(relatedTable.table_name)
+                  .update({
+                    [childColumn.column_name]: null,
+                  })
+                  .whereIn(childColumn.column_name, ids),
+              );
+            }
+            break;
+          case 'bt':
+            {
+              // nothing to do
+            }
+            break;
+        }
+      }
+
+      const idsVals = res.map((d) => d[this.model.primaryKey.column_name]);
+
       transaction = await this.dbDriver.transaction();
+
+      if (execQueries.length > 0) {
+        for (const execQuery of execQueries) {
+          await execQuery(transaction, idsVals);
+        }
+      }
 
       for (const d of res) {
         await transaction(this.tnPath).del().where(d);

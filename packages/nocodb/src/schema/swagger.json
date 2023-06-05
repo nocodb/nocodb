@@ -22462,6 +22462,10 @@
             "items": {
               "type": "string"
             }
+          },
+          "fk_workspace_id": {
+            "description": "Workspace ID",
+            "type": "string"
           }
         },
         "required": [

@@ -2540,20 +2540,23 @@ class BaseModelSqlv2 {
       }
     }
 
-    try {
-      const [event, operation] = hookName.split('.');
-      const hooks = await Hook.list({
-        fk_model_id: this.model.id,
-        event,
-        operation,
-      });
-      for (const hook of hooks) {
-        if (hook.active) {
-          invokeWebhook(hook, this.model, view, prevData, newData, req?.user);
+    // only execute if webhook call wont be handled
+    if(process.env.ESA_SKIP_DB_RECORD_ACTION_EVENT_WATCHER_FOR_WEBHOOK === 'true' ) {
+      try {
+        const [event, operation] = hookName.split('.');
+        const hooks = await Hook.list({
+          fk_model_id: this.model.id,
+          event,
+          operation,
+        });
+        for (const hook of hooks) {
+          if (hook.active) {
+            invokeWebhook(hook, this.model, view, prevData, newData, req?.user);
+          }
         }
+      } catch (e) {
+        console.log('hooks :: error', hookName, e);
       }
-    } catch (e) {
-      console.log('hooks :: error', hookName, e);
     }
   }
 

@@ -11,10 +11,11 @@ const router = useRouter()
 const route = $(router.currentRoute)
 
 const { project } = storeToRefs(useProject())
-
+useProjects()
 const workspaceStore = useWorkspace()
 
 const { workspace } = storeToRefs(workspaceStore)
+const { loadProjects } = useProjects()
 
 const dialogOpen = ref(false)
 
@@ -35,7 +36,7 @@ provide(ToggleDialogInj, toggleDialog)
 
 onMounted(async () => {
   await workspaceStore.loadWorkspace(route.params.workspaceId as string)
-  await workspaceStore.loadProjects()
+  await loadProjects()
 })
 
 // create a new sidebar state

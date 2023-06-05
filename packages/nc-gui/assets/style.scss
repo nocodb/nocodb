@@ -421,4 +421,15 @@ ninja-keys {
   @apply rounded py-2 px-4 border-gray-200 h-auto
 }
 
+.ant-popover-inner {
+  padding: 0 !important;
+}
+.ant-popover-inner-content {
+  @apply !px-1.5 !py-1 text-xs text-white bg-black;
+}
+.ant-tooltip-inner {
+  @apply !px-1.5 !py-1 text-xs text-white bg-black;
+  min-height: 0 !important;
+}
+
 

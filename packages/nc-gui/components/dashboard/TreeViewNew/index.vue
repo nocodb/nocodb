@@ -2,7 +2,6 @@
 import type { BaseType, ProjectType, TableType } from 'nocodb-sdk'
 import { message } from 'ant-design-vue'
 import Sortable from 'sortablejs'
-import { nextTick } from '@vue/runtime-core'
 import AddNewTableNode from './AddNewTableNode'
 import TableList from './TableList'
 import ProjectWrapper from './ProjectWrapper.vue'
@@ -31,6 +30,7 @@ import {
 } from '#imports'
 
 import { useRouter } from '#app'
+import type { NcProject } from '~~/lib'
 
 const { addTab, updateTab, addSqlEditorTab } = useTabs()
 
@@ -40,17 +40,13 @@ const router = useRouter()
 
 const route = $(router.currentRoute)
 
-const workspaceStore = useWorkspace()
-
-const { projects: workspaceProjects } = storeToRefs(workspaceStore)
-
 const { projectUrl } = useProject()
 
 const projectsStore = useProjects()
 
 const { loadProjectTables, loadProject, createProject: _createProject } = projectsStore
 
-const { projectTableList, projects } = storeToRefs(projectsStore)
+const { projectTableList, projects, projectsList } = storeToRefs(projectsStore)
 
 const { getDashboardProjectUrl: dashboardProjectUrl } = useDashboardStore()
 
@@ -60,26 +56,12 @@ const projectElRefs = ref()
 
 const { projectUrl: docsProjectUrl } = useDocStore()
 
-const openedProjectsIds = ref<Map<string, boolean>>(new Map())
-
-const loadProjectAndTableList = async (project: ProjectType, projIndex: number) => {
+const loadProjectAndTableList = async (project: NcProject) => {
   if (!project) {
     return
   }
 
-  if (openedProjectsIds.value.has(project.id!)) {
-    openedProjectsIds.value.delete(project.id!)
-  } else {
-    openedProjectsIds.value.set(project.id!, true)
-  }
-
-  // nextTick(() => {
-  //   const el = projectElRefs.value[projIndex]
-
-  //   if (el) {
-  //     el.scrollIntoView({ block: 'nearest' })
-  //   }
-  // })
+  project.isExpanded = !project.isExpanded
 
   if (project.type === 'database') {
     await navigateTo(
@@ -96,7 +78,7 @@ const loadProjectAndTableList = async (project: ProjectType, projIndex: number) 
     case 'dashboard':
       addTab({
         id: project.id,
-        title: project.title,
+        title: project.title!,
         type: TabType.LAYOUT,
         projectId: project.id,
       })
@@ -107,7 +89,7 @@ const loadProjectAndTableList = async (project: ProjectType, projIndex: number) 
     case 'documentation':
       addTab({
         id: project.id,
-        title: project.title,
+        title: project.title!,
         type: TabType.DOCUMENT,
         projectId: project.id,
       })
@@ -134,7 +116,7 @@ const { deleteTable } = useTable()
 
 const { isUIAllowed } = useUIPermission()
 
-const [searchActive, toggleSearchActive] = useToggle()
+const [searchActive] = useToggle()
 
 const keys = $ref<Record<string, number>>({})
 
@@ -233,7 +215,7 @@ watchEffect(() => {
 
 const contextMenuTarget = reactive<{ type?: 'project' | 'base' | 'table' | 'main' | 'layout'; value?: any }>({})
 
-const setMenuContext = (type: 'project' | 'base' | 'table' | 'main', value?: any) => {
+const setMenuContext = (type: 'project' | 'base' | 'table' | 'main' | 'layout', value?: any) => {
   contextMenuTarget.type = type
   contextMenuTarget.value = value
 }
@@ -263,42 +245,42 @@ function openRenameTableDialog(table: TableType, rightClick = false) {
   }
 }
 
-function openQuickImportDialog(type: string, baseId?: string) {
-  $e(`a:actions:import-${type}`)
+// function openQuickImportDialog(type: string, baseId?: string) {
+//   $e(`a:actions:import-${type}`)
 
-  const isOpen = ref(true)
+//   const isOpen = ref(true)
 
-  const { close } = useDialog(resolveComponent('DlgQuickImport'), {
-    'modelValue': isOpen,
-    'importType': type,
-    'baseId': baseId, // || bases.value[0].id,
-    'onUpdate:modelValue': closeDialog,
-  })
+//   const { close } = useDialog(resolveComponent('DlgQuickImport'), {
+//     'modelValue': isOpen,
+//     'importType': type,
+//     'baseId': baseId, // || bases.value[0].id,
+//     'onUpdate:modelValue': closeDialog,
+//   })
 
-  function closeDialog() {
-    isOpen.value = false
+//   function closeDialog() {
+//     isOpen.value = false
 
-    close(1000)
-  }
-}
+//     close(1000)
+//   }
+// }
 
-function openAirtableImportDialog(baseId?: string) {
-  $e('a:actions:import-airtable')
+// function openAirtableImportDialog(baseId?: string) {
+//   $e('a:actions:import-airtable')
 
-  const isOpen = ref(true)
+//   const isOpen = ref(true)
 
-  const { close } = useDialog(resolveComponent('DlgAirtableImport'), {
-    'modelValue': isOpen,
-    'baseId': baseId, // || bases.value[0].id,
-    'onUpdate:modelValue': closeDialog,
-  })
+//   const { close } = useDialog(resolveComponent('DlgAirtableImport'), {
+//     'modelValue': isOpen,
+//     'baseId': baseId, // || bases.value[0].id,
+//     'onUpdate:modelValue': closeDialog,
+//   })
 
-  function closeDialog() {
-    isOpen.value = false
+//   function closeDialog() {
+//     isOpen.value = false
 
-    close(1000)
-  }
-}
+//     close(1000)
+//   }
+// }
 
 function openTableCreateDialog(baseId?: string, projectId?: string) {
   $e('c:table:create:navdraw')
@@ -319,41 +301,41 @@ function openTableCreateDialog(baseId?: string, projectId?: string) {
   }
 }
 
-function openTableCreateMagicDialog(baseId?: string) {
-  $e('c:table:create:navdraw')
+// function openTableCreateMagicDialog(baseId?: string) {
+//   $e('c:table:create:navdraw')
 
-  const isOpen = ref(true)
+//   const isOpen = ref(true)
 
-  const { close } = useDialog(resolveComponent('DlgTableMagic'), {
-    'modelValue': isOpen,
-    'baseId': baseId, // || bases.value[0].id,
-    'onUpdate:modelValue': closeDialog,
-  })
+//   const { close } = useDialog(resolveComponent('DlgTableMagic'), {
+//     'modelValue': isOpen,
+//     'baseId': baseId, // || bases.value[0].id,
+//     'onUpdate:modelValue': closeDialog,
+//   })
 
-  function closeDialog() {
-    isOpen.value = false
+//   function closeDialog() {
+//     isOpen.value = false
 
-    close(1000)
-  }
-}
+//     close(1000)
+//   }
+// }
 
-function openSchemaMagicDialog(baseId?: string) {
-  $e('c:table:create:navdraw')
+// function openSchemaMagicDialog(baseId?: string) {
+//   $e('c:table:create:navdraw')
 
-  const isOpen = ref(true)
+//   const isOpen = ref(true)
 
-  const { close } = useDialog(resolveComponent('DlgSchemaMagic'), {
-    'modelValue': isOpen,
-    'baseId': baseId, // || bases.value[0].id,
-    'onUpdate:modelValue': closeDialog,
-  })
+//   const { close } = useDialog(resolveComponent('DlgSchemaMagic'), {
+//     'modelValue': isOpen,
+//     'baseId': baseId, // || bases.value[0].id,
+//     'onUpdate:modelValue': closeDialog,
+//   })
 
-  function closeDialog() {
-    isOpen.value = false
+//   function closeDialog() {
+//     isOpen.value = false
 
-    close(1000)
-  }
-}
+//     close(1000)
+//   }
+// }
 
 const duplicateTable = async (table: TableType) => {
   if (!table || !table.id || !table.project_id) return
@@ -410,7 +392,7 @@ async function openProjectErdView(project: ProjectType) {
 
 // const searchInputRef: VNodeRef = (vnode: typeof Input) => vnode?.$el?.focus()
 
-const beforeSearch = ref<string[]>([])
+// const beforeSearch = ref<string[]>([])
 //
 // const onSearchCloseIconClick = () => {
 //   filterQuery = ''
@@ -483,25 +465,25 @@ watch(
   { immediate: true },
 )
 
-const setIcon = async (icon: string, table: TableType) => {
-  try {
-    table.meta = {
-      ...(table.meta || {}),
-      icon,
-    }
-    tables.value.splice(tables.value.indexOf(table), 1, { ...table })
+// const setIcon = async (icon: string, table: TableType) => {
+//   try {
+//     table.meta = {
+//       ...(table.meta || {}),
+//       icon,
+//     }
+//     tables.value.splice(tables.value.indexOf(table), 1, { ...table })
 
-    updateTab({ id: table.id }, { meta: table.meta })
+//     updateTab({ id: table.id }, { meta: table.meta })
 
-    $api.dbTable.update(table.id as string, {
-      meta: table.meta,
-    })
+//     $api.dbTable.update(table.id as string, {
+//       meta: table.meta,
+//     })
 
-    $e('a:table:icon:navdraw', { icon })
-  } catch (e) {
-    message.error(await extractSdkResponseErrorMsg(e))
-  }
-}
+//     $e('a:table:icon:navdraw', { icon })
+//   } catch (e) {
+//     message.error(await extractSdkResponseErrorMsg(e))
+//   }
+// }
 
 const handleContext = (e: MouseEvent) => {
   if (!document.querySelector('.base-context, .table-context')?.contains(e.target as Node)) {
@@ -509,7 +491,11 @@ const handleContext = (e: MouseEvent) => {
   }
 }
 
-provide(TreeViewFunctions, { setMenuContext, duplicateTable, openRenameTableDialog })
+provide(TreeViewFunctions, {
+  setMenuContext,
+  duplicateTable,
+  openRenameTableDialog,
+})
 
 useEventListener(document, 'contextmenu', handleContext, true)
 
@@ -524,14 +510,6 @@ watch(
   { immediate: true },
 )
 
-watch(workspaceProjects, () => {
-  for (const projectId of openedProjectsIds.value.keys()) {
-    if (!workspaceProjects.value?.find((p) => p.id === projectId)) {
-      openedProjectsIds.value.delete(projectId)
-    }
-  }
-})
-
 const isClearMode = computed(() => route.query.clear === '1' && route.params.projectId)
 
 // If only project is open, i.e in case of docs, project view is open and not the page view
@@ -542,30 +520,20 @@ const projectViewOpen = computed(() => {
   const routeNameAfterProjectView = routeNameSplit[routeNameSplit.length - 1]
   return routeNameAfterProjectView.split('-').length === 2 || routeNameAfterProjectView.split('-').length === 1
 })
-
-onMounted(() => {
-  if (activeProjectId.value) {
-    openedProjectsIds.value.set(activeProjectId.value, true)
-  }
-})
 </script>
 
 <template>
   <div class="nc-treeview-container flex flex-col justify-between">
     <div mode="inline" class="nc-treeview flex-grow min-h-50 overflow-y-auto overflow-x-hidden">
-      <template v-if="workspaceProjects?.length">
+      <template v-if="projectsList?.length">
         <ProjectWrapper
-          v-for="(project, i) of workspaceProjects.filter((p) => !isClearMode || p.id === activeProjectId)"
+          v-for="(project, i) of projectsList"
           :key="project.id"
           :project-role="[project.project_role, project.role]"
-          :project="projects[project.id] ?? project"
+          :project="projects[project.id!] ?? project"
         >
           <a-dropdown :trigger="['contextmenu']" overlay-class-name="nc-dropdown-tree-view-context-menu">
-            <div
-              ref="projectElRefs"
-              class="mx-1 nc-project-sub-menu rounded-md"
-              :class="{ active: openedProjectsIds.has(project.id!) }"
-            >
+            <div ref="projectElRefs" class="mx-1 nc-project-sub-menu rounded-md" :class="{ active: project.isExpanded }">
               <div
                 class="flex items-center gap-0.75 py-0.25 cursor-pointer"
                 @click="loadProjectAndTableList(project, i)"
@@ -573,7 +541,7 @@ onMounted(() => {
               >
                 <DashboardTreeViewNewProjectNode
                   ref="projectNodeRefs"
-                  class="flex-grow rounded-md py-1.5 pl-2"
+                  class="flex-grow rounded-md pl-2"
                   :class="{
                     'bg-primary-selected': activeProjectId === project.id && projectViewOpen,
                     'hover:bg-hover': !(activeProjectId === project.id && projectViewOpen),
@@ -582,30 +550,31 @@ onMounted(() => {
               </div>
 
               <div
+                v-if="project.id"
                 key="g1"
                 class="overflow-y-auto overflow-x-hidden transition-max-height"
-                :class="{ 'max-h-0': !openedProjectsIds.has(project.id!), 'max-h-500': openedProjectsIds.has(project.id!) }"
+                :class="{ 'max-h-0': !project.isExpanded, 'max-h-500': project.isExpanded }"
               >
                 <div v-if="project.type === 'documentation'">
-                  <DocsSideBar v-if="openedProjectsIds.has(project.id!)" :project="project" />
+                  <DocsSideBar v-if="project.isExpanded" :project="project" />
                 </div>
                 <div v-else-if="project.type === 'dashboard'">
-                  <LayoutsSideBar v-if="openedProjectsIds.has(project.id!)" :project="project" />
+                  <LayoutsSideBar v-if="project.isExpanded" :project="project" />
                 </div>
                 <template v-else-if="project && projects[project.id] && projects[project.id].bases">
                   <div class="pt-1.5 pl-6 pb-1 flex-1 overflow-y-auto flex flex-col" :class="{ 'mb-[20px]': isSharedBase }">
                     <div
                       v-if="
-                        projects[project.id].bases[0] &&
-                        projects[project.id].bases[0].enabled &&
-                        !projects[project.id].bases.slice(1).filter((el) => el.enabled)?.length
+                        projects[project.id]?.bases?.[0] &&
+                        projects[project.id]?.bases?.[0].enabled &&
+                        !projects[project.id]?.bases?.slice(1).filter((el) => el.enabled)?.length
                       "
                       class="flex-1 ml-1"
                     >
                       <AddNewTableNode
                         :project="projects[project.id]"
                         :base-index="0"
-                        @open-table-create-dialog="openTableCreateDialog(projects[project.id].bases[0].id, project.id)"
+                        @open-table-create-dialog="openTableCreateDialog(projects[project.id]?.bases?.[0].id, project.id)"
                       />
 
                       <div class="transition-height duration-200">

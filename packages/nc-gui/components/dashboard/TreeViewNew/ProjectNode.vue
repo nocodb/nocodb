@@ -144,7 +144,9 @@ const isSharedBase = ref(false)
 
           <GeneralProjectIcon v-else :type="project.type" />
 
-          <template v-if="isUIAllowed('projectIconCustomisation', false, projectRole)" #title>Change icon</template>
+          <template v-if="isUIAllowed('projectIconCustomisation', false, projectRole)" #title>
+            <span class="text-xs"> Change icon </span>
+          </template>
         </component>
       </div>
       <template v-if="isUIAllowed('projectIconCustomisation', false, projectRole)" #overlay>

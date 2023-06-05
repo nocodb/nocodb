@@ -12,7 +12,8 @@ export const useWorkspace = defineStore('workspaceStore', () => {
   // const activeWorkspace = ref<WorkspaceType | null>()
 
   // todo: update type in swagger
-  const projects = ref<(ProjectType & { temp_title?: string; edit?: boolean; starred?: boolean })[] | null>()
+  const projectsStore = useProjects()
+  const { loadProjects } = projectsStore
 
   const collaborators = ref<WorkspaceUserType[] | null>()
 
@@ -121,28 +122,6 @@ export const useWorkspace = defineStore('workspaceStore', () => {
     refreshCommandPalette()
   }
 
-  const loadProjects = async (page?: 'recent' | 'shared' | 'starred' | 'workspace') => {
-    if ((!page || page === 'workspace') && !workspace.value?.id && !activeWorkspace.value?.id) {
-      throw new Error('Workspace not selected')
-    }
-
-    if (activeWorkspace.value?.id) {
-      const { list } = await $api.workspaceProject.list(activeWorkspace.value?.id ?? workspace.value?.id)
-      projects.value = list
-    } else {
-      const { list } = await $api.project.list(
-        page
-          ? {
-              query: {
-                [page]: true,
-              },
-            }
-          : {},
-      )
-      projects.value = list
-    }
-  }
-
   const loadCollaborators = async (params?: { offset?: number; limit?: number }) => {
     if (!activeWorkspace.value?.id) {
       throw new Error('Workspace not selected')
@@ -195,7 +174,7 @@ export const useWorkspace = defineStore('workspaceStore', () => {
     async (workspace) => {
       // skip and reset if workspace not selected
       if (!workspace?.id) {
-        projects.value = []
+        projectsStore.projects = {}
         collaborators.value = []
         return
       }
@@ -219,7 +198,8 @@ export const useWorkspace = defineStore('workspaceStore', () => {
 
   const addToFavourite = async (projectId: string) => {
     try {
-      const project = projects.value?.find(({ id }) => id === projectId)
+      const projects = projectsStore.projects
+      const project = projects[projectId]
       if (!project) return
 
       // todo: update the type
@@ -234,16 +214,14 @@ export const useWorkspace = defineStore('workspaceStore', () => {
   }
   const removeFromFavourite = async (projectId: string) => {
     try {
-      const projectIndex = projects.value?.findIndex(({ id }) => id === projectId)
-      if (projectIndex === -1) return
-
-      const project = projects.value![projectIndex!]
+      const project = projectsStore.projects[projectId]
+      if (!project) return
 
       project.starred = false
 
       // if active page is starred then remove the project from the list
       if (activePage.value === 'starred') {
-        projects.value!.splice(projectIndex!, 1)
+        delete projectsStore.projects[projectId]
       }
 
       await $api.project.userMetaUpdate(projectId, {
@@ -305,12 +283,10 @@ export const useWorkspace = defineStore('workspaceStore', () => {
     deleteWorkspace,
     updateWorkspace,
     activeWorkspace,
-    loadProjects,
     loadCollaborators,
     inviteCollaborator,
     removeCollaborator,
     updateCollaborator,
-    projects,
     collaborators,
     isWorkspaceCreator,
     isWorkspaceOwner,

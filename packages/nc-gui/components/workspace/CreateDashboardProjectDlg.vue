@@ -45,10 +45,10 @@ const creating = ref(false)
 useSidebar('nc-left-sidebar', { hasSidebar: false })
 
 const { loadWorkspaceList } = workspaceStore
-const { projects } = storeToRefs(workspaceStore)
+const { projectsList } = storeToRefs(useProjects())
 const availableDbProjects: ComputedRef<Array<IdAndTitle>> = computed(() => {
   return (
-    projects.value
+    projectsList.value
       ?.filter((project) => project.type === 'database')
       .map((project) => ({
         id: project.id!,
@@ -95,7 +95,7 @@ const createDashboardProject = async () => {
       type: NcProjectType.DASHBOARD,
       title: formState.title,
       workspaceId: workspaceStore.workspace!.id!,
-      linkedDbProjectIds: filteredDbProjects.value.map(p => p.id)
+      linkedDbProjectIds: filteredDbProjects.value.map((p) => p.id),
     })
     await workspaceStore.loadProjects()
 

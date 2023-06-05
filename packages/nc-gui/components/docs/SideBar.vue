@@ -239,15 +239,6 @@ onMounted(async () => {
   background: transparent !important;
 }
 
-.docs-page-icon-change-popover {
-  .ant-popover-inner {
-    padding: 0 !important;
-  }
-  .ant-popover-inner-content {
-    @apply !px-1.5 !py-1 text-xs text-white bg-black;
-  }
-}
-
 .ant-tree-node-content-wrapper {
   min-width: 0 !important;
 }

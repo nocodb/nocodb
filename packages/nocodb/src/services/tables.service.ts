@@ -184,6 +184,11 @@ export class TablesService {
       // delete all relations
       await Promise.all(
         relationColumns.map((c) => {
+          // skip if column is hasmany relation to mm table
+          if (c.system) {
+            return;
+          }
+
           return this.columnsService.columnDelete(
             {
               req: param.req,
@@ -194,7 +199,7 @@ export class TablesService {
         }),
       );
 
-      const sqlMgr = await ProjectMgrv2.getSqlMgr(project);
+      const sqlMgr = await ProjectMgrv2.getSqlMgr(project, ncMeta);
       (table as any).tn = table.table_name;
       table.columns = table.columns.filter((c) => !isVirtualCol(c));
       table.columns.forEach((c) => {
@@ -210,15 +215,18 @@ export class TablesService {
         });
       }
 
-      await Audit.insert({
-        project_id: project.id,
-        base_id: base.id,
-        op_type: AuditOperationTypes.TABLE,
-        op_sub_type: AuditOperationSubTypes.DELETE,
-        user: param.user?.email,
-        description: `Deleted ${table.type} ${table.table_name} with alias ${table.title}  `,
-        ip: param.req?.clientIp,
-      }).then(() => {});
+      await Audit.insert(
+        {
+          project_id: project.id,
+          base_id: base.id,
+          op_type: AuditOperationTypes.TABLE,
+          op_sub_type: AuditOperationSubTypes.DELETE,
+          user: param.user?.email,
+          description: `Deleted ${table.type} ${table.table_name} with alias ${table.title}  `,
+          ip: param.req?.clientIp,
+        },
+        ncMeta,
+      ).then(() => {});
 
       T.emit('evt', { evt_type: 'table:deleted' });
 

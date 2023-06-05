@@ -1157,7 +1157,10 @@ export class ColumnsService {
     );
     const base = await Base.get(table.base_id, ncMeta);
 
-    const sqlMgr = await ProjectMgrv2.getSqlMgr({ id: base.project_id });
+    const sqlMgr = await ProjectMgrv2.getSqlMgr(
+      { id: base.project_id },
+      ncMeta,
+    );
 
     switch (column.uidt) {
       case UITypes.Lookup:
@@ -1271,7 +1274,7 @@ export class ColumnsService {
                   const colOpt =
                     await c.getColOptions<LinkToAnotherRecordColumn>(ncMeta);
                   if (colOpt.fk_related_model_id === mmTable.id) {
-                    await Column.delete(c.id);
+                    await Column.delete(c.id, ncMeta);
                   }
                 }
 
@@ -1403,35 +1406,37 @@ export class ColumnsService {
     if (!relationColOpt) {
       foreignKeyName = (
         (
-          await childTable.getColumns(ncMeta).then((cols) => {
-            return cols?.find((c) => {
-              return (
-                c.uidt === UITypes.LinkToAnotherRecord &&
-                c.colOptions.fk_related_model_id === parentTable.id &&
-                (c.colOptions as LinkToAnotherRecordType).fk_child_column_id ===
-                  childColumn.id &&
-                (c.colOptions as LinkToAnotherRecordType)
-                  .fk_parent_column_id === parentColumn.id
-              );
-            });
+          await childTable.getColumns(ncMeta).then(async (cols) => {
+            for (const col of cols) {
+              if (col.uidt === UITypes.LinkToAnotherRecord) {
+                const colOptions =
+                  await col.getColOptions<LinkToAnotherRecordColumn>(ncMeta);
+                console.log(colOptions);
+                if (colOptions.fk_related_model_id === parentTable.id) {
+                  return { colOptions };
+                }
+              }
+            }
           })
-        ).colOptions as LinkToAnotherRecordType
+        )?.colOptions as LinkToAnotherRecordType
       ).fk_index_name;
     } else {
       foreignKeyName = relationColOpt.fk_index_name;
     }
 
-    // todo: handle relation delete exception
-    try {
-      await sqlMgr.sqlOpPlus(base, 'relationDelete', {
-        childColumn: childColumn.column_name,
-        childTable: childTable.table_name,
-        parentTable: parentTable.table_name,
-        parentColumn: parentColumn.column_name,
-        foreignKeyName,
-      });
-    } catch (e) {
-      console.log(e);
+    if (!relationColOpt?.virtual) {
+      // todo: handle relation delete exception
+      try {
+        await sqlMgr.sqlOpPlus(base, 'relationDelete', {
+          childColumn: childColumn.column_name,
+          childTable: childTable.table_name,
+          parentTable: parentTable.table_name,
+          parentColumn: parentColumn.column_name,
+          foreignKeyName,
+        });
+      } catch (e) {
+        console.log(e);
+      }
     }
 
     if (!relationColOpt) return;
@@ -1462,6 +1467,28 @@ export class ColumnsService {
         },
         ncMeta,
       );
+
+      // if virtual column delete all index before deleting the column
+      if (relationColOpt?.virtual) {
+        const indexes =
+          (
+            await sqlMgr.sqlOp(base, 'indexList', {
+              tn: cTable.table_name,
+            })
+          )?.data?.list ?? [];
+
+        for (const index of indexes) {
+          if (index.cn !== childColumn.column_name) continue;
+
+          await sqlMgr.sqlOpPlus(base, 'indexDelete', {
+           ...index,
+            tn: cTable.table_name,
+            columns: [childColumn.column_name],
+            indexName: index.index_name,
+          });
+        }
+      }
+
       const tableUpdateBody = {
         ...cTable,
         tn: cTable.table_name,
@@ -1511,6 +1538,12 @@ export class ColumnsService {
     const sqlMgr = await ProjectMgrv2.getSqlMgr({
       id: param.base.project_id,
     });
+
+    // if xcdb base then treat as virtual relation to avoid creating foreign key
+    if (param.base.is_meta) {
+      (param.column as LinkToAnotherColumnReqType).virtual = true;
+    }
+
     if (
       (param.column as LinkToAnotherColumnReqType).type === 'hm' ||
       (param.column as LinkToAnotherColumnReqType).type === 'bt'
@@ -1564,11 +1597,6 @@ export class ColumnsService {
         });
 
         childColumn = await Column.get({ colId: id });
-
-        // if xcdb base then treat as virtual relation to avoid creating foreign key
-        if (param.base.is_meta) {
-          (param.column as LinkToAnotherColumnReqType).virtual = true;
-        }
 
         // ignore relation creation if virtual
         if (!(param.column as LinkToAnotherColumnReqType).virtual) {
@@ -1746,6 +1774,7 @@ export class ColumnsService {
         fk_mm_child_column_id: childCol.id,
         fk_mm_parent_column_id: parentCol.id,
         fk_related_model_id: parent.id,
+        virtual: (param.column as LinkToAnotherColumnReqType).virtual,
       });
       await Column.insert({
         title: getUniqueColumnAliasName(
@@ -1765,6 +1794,7 @@ export class ColumnsService {
         fk_mm_child_column_id: parentCol.id,
         fk_mm_parent_column_id: childCol.id,
         fk_related_model_id: child.id,
+        virtual: (param.column as LinkToAnotherColumnReqType).virtual,
       });
 
       // todo: create index for virtual relations as well

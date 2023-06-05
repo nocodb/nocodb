@@ -368,10 +368,10 @@ export default class Model implements TableType {
   }
 
   async delete(ncMeta = Noco.ncMeta, force = false): Promise<boolean> {
-    await Audit.deleteRowComments(this.id);
+    await Audit.deleteRowComments(this.id, ncMeta);
 
-    for (const view of await this.getViews(true)) {
-      await view.delete();
+    for (const view of await this.getViews(true, ncMeta)) {
+      await view.delete(ncMeta);
     }
 
     for (const col of await this.getColumns(ncMeta)) {

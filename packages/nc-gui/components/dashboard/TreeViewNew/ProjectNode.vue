@@ -7,18 +7,22 @@ import { LoadingOutlined } from '@ant-design/icons-vue'
 import { openLink, useProjects } from '#imports'
 import { extractSdkResponseErrorMsg } from '~/utils'
 import { ProjectInj, ProjectRoleInj, ToggleDialogInj } from '~/context'
+import { NcProject } from '~~/lib'
 const indicator = h(LoadingOutlined, {
+  class: '!text-gray-400',
   style: {
-    fontSize: '1rem',
+    fontSize: '0.85rem',
   },
   spin: true,
 })
 
-const project = inject(ProjectInj, ref({}))!
+const project = inject(ProjectInj)!
 
 const projectsStore = useProjects()
 
 const { updateProject, deleteProject, getProjectMetaInfo } = projectsStore
+
+const { addNewLayout } = useDashboardStore()
 
 const { appInfo } = useGlobal()
 
@@ -76,7 +80,7 @@ const confirmDeleteProject = () => {
     onOk: async () => {
       try {
         await deleteProject(project.value.id!)
-        await closeTab(project.value.id!)
+        await closeTab(project.value.id as any)
         message.success('Project deleted successfully')
       } catch (e: any) {
         message.error(await extractSdkResponseErrorMsg(e))
@@ -99,7 +103,7 @@ const copyProjectInfo = async () => {
       // Copied to clipboard
       message.info(t('msg.info.copiedToClipboard'))
     }
-  } catch (e) {
+  } catch (e: any) {
     console.error(e)
     message.error(e.message)
   }
@@ -119,8 +123,42 @@ const setIcon = async (icon: string, project: ProjectType) => {
     projectsStore.updateProject(project.id!, { meta: JSON.stringify(meta) })
 
     $e('a:project:icon:navdraw', { icon })
-  } catch (e) {
+  } catch (e: any) {
     message.error(await extractSdkResponseErrorMsg(e))
+  }
+}
+
+function openTableCreateDialog() {
+  $e('c:table:create:navdraw')
+
+  const isOpen = ref(true)
+  const baseId = project.value!.bases?.[0].id
+
+  const { close } = useDialog(resolveComponent('DlgTableCreate'), {
+    'modelValue': isOpen,
+    'baseId': baseId, // || bases.value[0].id,
+    'projectId': project.value!.id,
+    'onUpdate:modelValue': closeDialog,
+  })
+
+  function closeDialog() {
+    isOpen.value = false
+
+    close(1000)
+  }
+}
+
+const addNewProjectChildEntity = () => {
+  switch (project.value.type) {
+    case NcProjectType.DASHBOARD:
+      addNewLayout({ projectId: project.value!.id! })
+      break
+    case NcProjectType.DOCS:
+      addNewPage({ parentPageId: undefined, projectId: project.value!.id! })
+      break
+    case NcProjectType.DB:
+      openTableCreateDialog()
+      break
   }
 }
 
@@ -129,19 +167,29 @@ const isSharedBase = ref(false)
 </script>
 
 <template>
-  <div class="project-title-node group flex items-center w-full">
-    <!--    <GeneralProjectIcon class="mx-2" :type="project.type" /> -->
+  <div class="project-title-node group flex items-center w-full pl-2">
+    <div class="nc-sidebar-expand">
+      <PhTriangleFill
+        class="invisible group-hover:visible cursor-pointer transform transition-transform duration-500 h-1.25 w-1.75 text-gray-500 rotate-90"
+        :class="{ '!rotate-180': project.isExpanded }"
+        @click.stop="project.isExpanded = !project.isExpanded"
+      />
+    </div>
     <component
       :is="isUIAllowed('projectIconCustomisation', false, projectRole) ? Dropdown : 'div'"
       trigger="click"
       destroy-popup-on-hide
-      class="flex items-center mx-2 py-1.15"
+      class="flex items-center mx-1"
       @click.stop
     >
-      <div class="flex items-center py-2" @click.stop>
-        <a-spin v-if="project.isLoading" :indicator="indicator" />
-        <component :is="isUIAllowed('projectIconCustomisation', false, projectRole) ? Tooltip : 'div'">
-          <span v-if="project.meta?.icon" :key="project.meta?.icon" class="nc-table-icon flex items-center">
+      <div class="flex items-center select-none h-8" @click.stop>
+        <a-spin
+          v-if="project.isLoading"
+          class="nc-sidebar-icon !flex !flex-row !items-center !my-0.5 !ml-1.5 !mr-1.5 w-8"
+          :indicator="indicator"
+        />
+        <component :is="isUIAllowed('projectIconCustomisation', false, projectRole) ? Tooltip : 'div'" v-else>
+          <span v-if="project.meta?.icon" :key="project.meta?.icon" class="nc-sidebar-icon flex items-center">
             <IconifyIcon
               :key="project.meta?.icon"
               :data-testid="`nc-icon-${project.meta?.icon}`"
@@ -175,15 +223,14 @@ const isSharedBase = ref(false)
       {{ project.title }}
     </span>
     <span :class="{ 'flex-grow': !editMode }"></span>
-    <template v-if="project.type === NcProjectType.DOCS">
-      <div
-        class="flex flex-row pr-1 items-center gap-x-2 cursor-pointer hover:text-black text-gray-600 text-sm invisible !group-hover:visible"
-        data-testid="nc-docs-sidebar-add-page"
-        @click="() => addNewPage({parentPageId: undefined, projectId: project.id!})"
-      >
-        <MdiPlus />
-      </div>
-    </template>
+
+    <div
+      class="flex flex-row pr-1 items-center gap-x-2 cursor-pointer hover:text-black text-gray-600 text-sm invisible !group-hover:visible"
+      data-testid="nc-docs-sidebar-add-page"
+      @click="addNewProjectChildEntity"
+    >
+      <MdiPlus />
+    </div>
 
     <a-dropdown>
       <MdiDotsVertical class="mr-1.5 opacity-0 group-hover:opacity-100" @click.stop />
@@ -269,3 +316,9 @@ const isSharedBase = ref(false)
     </a-dropdown>
   </div>
 </template>
+
+<style lang="scss" scoped>
+.nc-sidebar-icon {
+  @apply ml-0.5 mr-1;
+}
+</style>

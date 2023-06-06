@@ -43,7 +43,7 @@ const { projectUrl } = useProject()
 
 const projectsStore = useProjects()
 
-const { loadProject, createProject: _createProject } = projectsStore
+const { loadProject, createProject: _createProject, isProjectEmpty } = projectsStore
 
 const { loadProjectTables } = useTablesStore()
 
@@ -520,7 +520,7 @@ const projectViewOpen = computed(() => {
 
 <template>
   <div class="nc-treeview-container flex flex-col justify-between">
-    <div mode="inline" class="nc-treeview flex-grow min-h-50 overflow-y-auto overflow-x-hidden">
+    <div mode="inline" class="nc-treeview flex-grow pt-0.25 min-h-50 overflow-x-hidden">
       <template v-if="projectsList?.length">
         <ProjectWrapper
           v-for="project of projectsList"
@@ -537,7 +537,7 @@ const projectViewOpen = computed(() => {
               >
                 <DashboardTreeViewNewProjectNode
                   ref="projectNodeRefs"
-                  class="flex-grow rounded-md pl-2"
+                  class="flex-grow rounded-md"
                   :class="{
                     'bg-primary-selected': activeProjectId === project.id && projectViewOpen,
                     'hover:bg-hover': !(activeProjectId === project.id && projectViewOpen),
@@ -546,29 +546,24 @@ const projectViewOpen = computed(() => {
               </div>
 
               <div
-                v-if="project.id"
+                v-if="project.id && !project.isLoading"
                 key="g1"
                 class="overflow-y-auto overflow-x-hidden transition-max-height"
                 :class="{ 'max-h-0': !project.isExpanded, 'max-h-500': project.isExpanded }"
               >
-                <div v-if="project.type === 'documentation'">
+                <div v-if="isProjectEmpty(project.id)" class="flex ml-12.25 my-1 text-gray-500 select-none">Empty</div>
+                <div v-else-if="project.type === 'documentation'">
                   <DocsSideBar v-if="project.isExpanded" :project="project" />
                 </div>
                 <div v-else-if="project.type === 'dashboard'">
                   <LayoutsSideBar v-if="project.isExpanded" :project="project" />
                 </div>
                 <template v-else-if="project && project?.bases">
-                  <div class="pt-1.5 pl-6 pb-1 flex-1 overflow-y-auto flex flex-col" :class="{ 'mb-[20px]': isSharedBase }">
+                  <div class="pb-0.5 flex-1 overflow-y-auto flex flex-col" :class="{ 'mb-[20px]': isSharedBase }">
                     <div
                       v-if="project?.bases?.[0]?.enabled && !project?.bases?.slice(1).filter((el) => el.enabled)?.length"
-                      class="flex-1 ml-1"
+                      class="flex-1"
                     >
-                      <AddNewTableNode
-                        :project="project"
-                        :base-index="0"
-                        @open-table-create-dialog="openTableCreateDialog(project?.bases?.[0].id, project.id)"
-                      />
-
                       <div class="transition-height duration-200">
                         <TableList :project="project" :base-index="0" />
                       </div>
@@ -824,9 +819,9 @@ const projectViewOpen = computed(() => {
 }
 
 .nc-treeview {
-  @apply pt-0.5;
+  overflow-y: overlay;
   &::-webkit-scrollbar {
-    width: 4px;
+    width: 3px;
   }
   &::-webkit-scrollbar-track {
     @apply bg-white;

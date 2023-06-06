@@ -47,19 +47,38 @@ export const useProjects = defineStore('projectsStore', () => {
     }
 
     for (const project of _projects) {
-      if (projects.value.has(project.id!)) {
-        const _project = projects.value.get(project.id!)!
-      } else {
-        projects.value.set(project.id!, {
-          ...project,
-          isExpanded: route.params.projectId === project.id,
-          isLoading: false,
-        })
-      }
+      if (projects.value.has(project.id!)) continue
+
+      projects.value.set(project.id!, {
+        ...project,
+        isExpanded: route.params.projectId === project.id,
+        isLoading: false,
+      })
     }
   }
 
-  const isProjectPopulated = (projectId: string) => {
+  function isProjectEmpty(projectId: string) {
+    if (!isProjectPopulated(projectId)) return true
+
+    const dashboardStore = useDashboardStore()
+    const docsStore = useDocStore()
+
+    const project = projects.value.get(projectId)
+    if (!project) return false
+
+    switch (project.type) {
+      case NcProjectType.DB:
+        return tableStore.projectTables.get(projectId)!.length === 0
+      case NcProjectType.DOCS:
+        return docsStore.nestedPagesOfProjects[projectId]!.length === 0
+      case NcProjectType.DASHBOARD:
+        return dashboardStore.layoutsOfProjects[projectId]!.length === 0
+    }
+
+    return false
+  }
+
+  function isProjectPopulated(projectId: string) {
     const dashboardStore = useDashboardStore()
     const docsStore = useDocStore()
 
@@ -182,5 +201,6 @@ export const useProjects = defineStore('projectsStore', () => {
     getProjectMeta,
     setProject,
     clearProjects,
+    isProjectEmpty,
   }
 })

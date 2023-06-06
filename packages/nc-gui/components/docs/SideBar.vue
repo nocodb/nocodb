@@ -157,9 +157,17 @@ onMounted(async () => {
         class="!w-full h-full overflow-y-scroll !overflow-x-hidden !bg-inherit"
         @dragenter="onDragEnter"
       >
+        <template #switcherIcon="{ expanded }">
+          <div class="nc-sidebar-expand">
+            <PhTriangleFill
+              class="cursor-pointer transform transition-transform duration-500 h-1.25 w-1.75 text-gray-500"
+              :class="{ 'rotate-180': expanded, 'rotate-90': !expanded }"
+            />
+          </div>
+        </template>
         <template #title="page">
           <div
-            class="flex flex-row items-center justify-between group pt-1"
+            class="flex flex-row items-center justify-between group"
             :data-testid="`docs-sidebar-page-${project.title}-${page.title}`"
             :data-level="page.level"
           >
@@ -287,20 +295,25 @@ onMounted(async () => {
   }
 }
 .ant-tree-treenode {
-  @apply w-full rounded-md mb-0.65 pl-6 !important;
+  @apply flex flex-row items-center !pb-0;
+}
+.ant-tree-treenode {
+  @apply flex flex-row items-center w-full rounded-md pl-4.5 py-0.75 !important;
 }
 .ant-tree-node-content-wrapper {
   @apply w-full mr-2 pl-0.5 bg-inherit transition-none !important;
   transition: none !important;
 }
+.ant-tree-treenode:hover {
+  .nc-sidebar-expand {
+    @apply !text-gray-500 !visible;
+  }
+}
+.nc-sidebar-expand {
+  @apply invisible;
+}
 .ant-tree-list {
   @apply last:pb-1 mt-0.5;
-  .ant-tree-switcher {
-    @apply mt-1 !important;
-  }
-  .ant-tree-switcher-icon {
-    @apply !text-gray-300;
-  }
   .ant-tree-treenode {
     @apply hover:bg-hover;
     transition: none !important;

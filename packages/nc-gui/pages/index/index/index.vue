@@ -67,6 +67,13 @@ const menu = (el?: typeof Menu) => {
   }
 }
 
+onMounted(() => {
+  console.log('workspaces')
+  toggle(true)
+  toggleHasSidebar(true)
+  loadWorkspaceList()
+})
+
 useDialog(resolveComponent('WorkspaceCreateDlg'), {
   'modelValue': isCreateDlgOpen,
   'onUpdate:modelValue': (isOpen: boolean) => (isCreateDlgOpen.value = isOpen),
@@ -89,12 +96,6 @@ const { loadScope } = useCommandPalette()
 loadWorkspaceList()
 
 loadScope('workspace')
-
-onMounted(async () => {
-  toggle(true)
-  toggleHasSidebar(true)
-  await loadWorkspaceList()
-})
 
 const deleteWorkspace = (workspace: WorkspaceType) => {
   Modal.confirm({

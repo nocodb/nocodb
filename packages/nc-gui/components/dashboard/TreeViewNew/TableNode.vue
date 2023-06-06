@@ -83,7 +83,7 @@ const { isSharedBase } = useProject()
 
 <template>
   <div
-    class="nc-tree-item text-sm cursor-pointer group"
+    class="nc-tree-item text-sm cursor-pointer group select-none"
     :data-order="table.order"
     :data-id="table.id"
     :data-testid="`tree-view-table-${table.title}`"
@@ -95,7 +95,7 @@ const { isSharedBase } = useProject()
     ]"
   >
     <GeneralTooltip
-      class="pl-4 pr-3 py-1.5 mt-0.65 rounded-md"
+      class="pl-11.5 pr-1.5 py-1 mt-0.25 rounded-md"
       :class="{
         'hover:bg-hover': openedTableId !== table.id,
       }"

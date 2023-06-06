@@ -1096,7 +1096,7 @@ function addEmptyRow(row?: number) {
       </a-dropdown>
     </div>
 
-    <div v-f="isAddingEmptyRowAllowed" class="absolute bottom-1px left-2 z-4" @click="addEmptyRow()">
+    <div v-if="isAddingEmptyRowAllowed" class="absolute bottom-1px left-2 z-4" @click="addEmptyRow()">
       <a-button v-e="['c:row:add:grid-bottom', { footer: true }]" class="!rounded-xl" size="small">
         <div class="flex items-center">
           <component :is="iconMap.plus" class="text-pint-500 text-xs" />

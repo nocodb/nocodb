@@ -96,6 +96,8 @@ const initSortable = (el: Element) => {
     onEnd: async (evt) => {
       const { newIndex = 0, oldIndex = 0 } = evt
 
+      if(newIndex === oldIndex) return
+
       const itemEl = evt.item as HTMLLIElement
       const item = tablesById[itemEl.dataset.id as string]
 
@@ -193,6 +195,7 @@ const initSortable = (el: Element) => {
         }),
       )
     },
+    revertOnSpill: true,
   })
 }
 

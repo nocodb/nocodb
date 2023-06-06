@@ -2454,6 +2454,8 @@ class BaseModelSqlv2 {
       const execQueries: ((trx: Transaction, ids: any[]) => Promise<any>)[] =
         [];
 
+      const base = await Base.get(this.model.base_id);
+
       for (const column of this.model.columns) {
         if (column.uidt !== UITypes.LinkToAnotherRecord) continue;
 
@@ -2508,7 +2510,7 @@ class BaseModelSqlv2 {
 
       transaction = await this.dbDriver.transaction();
 
-      if (execQueries.length > 0) {
+      if (base.is_meta && execQueries.length > 0) {
         for (const execQuery of execQueries) {
           await execQuery(transaction, idsVals);
         }

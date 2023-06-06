@@ -815,7 +815,7 @@ const deleteSelectedRangeOfRows = () => {
 }
 
 function addEmptyRow(row?: number) {
-  const rowObj = _addEmptyRow(row);
+  const rowObj = _addEmptyRow(row)
   nextTick().then(() => {
     makeActive(row ?? data.value.length - 1, 0)
     scrollToCell?.()
@@ -1022,18 +1022,19 @@ function addEmptyRow(row?: number) {
               </template>
             </LazySmartsheetRow>
 
-            <tr v-if="isAddingEmptyRowAllowed">
-              <td
-                v-e="['c:row:add:grid-bottom']"
-                :colspan="visibleColLength + 1"
-                class="text-left pointer nc-grid-add-new-cell cursor-pointer"
-                @mouseup.stop
-                @click="addEmptyRow()"
-              >
+            <tr
+              v-if="isAddingEmptyRowAllowed"
+              v-e="['c:row:add:grid-bottom']"
+              class="cursor-pointer"
+              @mouseup.stop
+              @click="addEmptyRow()"
+            >
+              <td class="text-left pointer nc-grid-add-new-cell sticky left-0 !z-5 !border-r-0">
                 <div class="px-2 w-full flex items-center text-gray-500">
                   <component :is="iconMap.plus" class="text-pint-500 text-xs ml-2 text-primary" />
                 </div>
               </td>
+              <td :colspan="visibleColLength"></td>
             </tr>
           </tbody>
         </table>

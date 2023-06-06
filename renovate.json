@@ -21,5 +21,14 @@
       "groupName": "all non-major dependencies",
       "groupSlug": "all-minor-patch"
     }
+  ],
+  "ignorePaths": [
+    "**/node_modules/**",
+    "**/nc-cli/**",
+    "**/nc-lib-gui/**",
+    "**/nc-plugin/**",
+    "**/nocodb-legacy/**",
+    "**/test/**",
+    "**/tests/**"
   ]
 }

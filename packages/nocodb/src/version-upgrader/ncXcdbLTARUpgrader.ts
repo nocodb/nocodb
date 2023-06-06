@@ -1,6 +1,8 @@
 import { RelationTypes, UITypes } from 'nocodb-sdk';
+import NocoCache from '../cache/NocoCache';
 import { MetaTable } from '../meta/meta.service';
 import NcConnectionMgrv2 from '../utils/common/NcConnectionMgrv2';
+import { CacheGetType, CacheScope } from '../utils/globals';
 import type { MetaService } from '../meta/meta.service';
 import type { LinkToAnotherRecordColumn, Model } from '../models';
 import type { NcUpgraderCtx } from './NcUpgrader';
@@ -87,6 +89,19 @@ async function upgradeModelRelations({
       { virtual: true },
       colOptions.id,
     );
+
+    // update the cache as well
+    const cachedData = await NocoCache.get(
+      `${CacheScope.COL_RELATION}:${colOptions.fk_column_id}`,
+      CacheGetType.TYPE_OBJECT,
+    );
+    if (cachedData) {
+      cachedData.virtual = true;
+      await NocoCache.set(
+        `${CacheScope.COL_RELATION}:${colOptions.fk_column_id}`,
+        cachedData,
+      );
+    }
   }
 }
 

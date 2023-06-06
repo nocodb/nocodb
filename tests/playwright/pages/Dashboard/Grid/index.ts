@@ -182,6 +182,11 @@ export class GridPage extends BasePage {
     await (await this.rootPage.locator('.ant-drawer-body').elementHandle())?.waitForElementState('stable');
   }
 
+  async selectRow(index: number) {
+    await this.get().locator(`td[data-testid="cell-Id-${index}"]`).locator('span.ant-checkbox').click();
+    await this.rootPage.waitForTimeout(300);
+  }
+
   async selectAll() {
     await this.get().locator('[data-testid="nc-check-all"]').hover();
 
@@ -198,13 +203,17 @@ export class GridPage extends BasePage {
     await this.rootPage.waitForTimeout(300);
   }
 
-  async deleteAll() {
-    await this.selectAll();
+  async deleteSelectedRows() {
     await this.get().locator('[data-testid="nc-check-all"]').nth(0).click({
       button: 'right',
     });
     await this.rootPage.locator('text=Delete Selected Rows').click();
     await this.dashboard.waitForLoaderToDisappear();
+  }
+
+  async deleteAll() {
+    await this.selectAll();
+    await this.deleteSelectedRows();
   }
 
   async verifyTotalRowCount({ count }: { count: number }) {

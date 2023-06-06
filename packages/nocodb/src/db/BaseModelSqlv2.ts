@@ -2633,9 +2633,10 @@ class BaseModelSqlv2 {
         }
       }
 
+      const base = await Base.get(this.model.base_id);
+
       trx = await this.dbDriver.transaction();
 
-      const base = await Base.get(this.model.base_id);
       // unlink LTAR data
       if (base.is_meta) {
         for (const execQuery of execQueries) {

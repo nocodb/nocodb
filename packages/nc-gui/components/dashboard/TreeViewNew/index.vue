@@ -2,8 +2,7 @@
 import type { BaseType, ProjectType, TableType } from 'nocodb-sdk'
 import { message } from 'ant-design-vue'
 import Sortable from 'sortablejs'
-import AddNewTableNode from './AddNewTableNode'
-import TableList from './TableList'
+
 import ProjectWrapper from './ProjectWrapper.vue'
 
 import {
@@ -20,18 +19,17 @@ import {
   useNuxtApp,
   useProject,
   useProjects,
-  useTable,
   useTablesStore,
   useTabs,
-  useToggle,
   useUIPermission,
   watchEffect,
 } from '#imports'
 
 import { useRouter } from '#app'
-import type { NcProject } from '~~/lib'
 
-const { addTab, addSqlEditorTab } = useTabs()
+const { isUIAllowed } = useUIPermission()
+
+const { addTab } = useTabs()
 
 const { $api, $e, $jobs } = useNuxtApp()
 
@@ -39,11 +37,9 @@ const router = useRouter()
 
 const route = $(router.currentRoute)
 
-const { projectUrl } = useProject()
-
 const projectsStore = useProjects()
 
-const { loadProject, createProject: _createProject, isProjectEmpty } = projectsStore
+const { loadProject, createProject: _createProject } = projectsStore
 
 const { loadProjectTables } = useTablesStore()
 
@@ -51,79 +47,19 @@ const { projects, projectsList } = storeToRefs(projectsStore)
 
 const { projectTables } = storeToRefs(useTablesStore())
 
-const { getDashboardProjectUrl: dashboardProjectUrl } = useDashboardStore()
-
 const activeProjectId = computed(() => route.params.projectId as string | undefined)
-
-const projectElRefs = ref()
-
-const { projectUrl: docsProjectUrl } = useDocStore()
-
-const loadProjectAndTableList = async (project: NcProject) => {
-  if (!project) {
-    return
-  }
-
-  project.isExpanded = !project.isExpanded
-
-  // if dashboard or document project, add a document tab and route to the respective page
-  switch (project.type) {
-    case 'dashboard':
-      addTab({
-        id: project.id,
-        title: project.title!,
-        type: TabType.LAYOUT,
-        projectId: project.id,
-      })
-      $e('c:dashboard:open', project.id)
-      navigateTo(dashboardProjectUrl(project.id!))
-      break
-    case 'documentation':
-      addTab({
-        id: project.id,
-        title: project.title!,
-        type: TabType.DOCUMENT,
-        projectId: project.id,
-      })
-      $e('c:document:open', project.id)
-      navigateTo(docsProjectUrl(project.id!))
-      break
-    case 'database':
-      await navigateTo(
-        projectUrl({
-          id: project.id!,
-          type: 'database',
-        }),
-      )
-      await loadProject(project.id!)
-      await loadProjectTables(project.id!)
-      break
-    default:
-      throw new Error(`Unknown project type: ${project.type}`)
-  }
-}
 
 const projectStore = useProject()
 
 const { loadTables } = projectStore
 
-const { isSharedBase, tables } = storeToRefs(projectStore)
+const { tables } = storeToRefs(projectStore)
 
 const { activeTab } = storeToRefs(useTabs())
 
-const { deleteTable } = useTable()
-
-const { isUIAllowed } = useUIPermission()
-
-const [searchActive] = useToggle()
-
 const keys = $ref<Record<string, number>>({})
 
-const activeKey = ref<string[]>([])
-
 const menuRefs = $ref<HTMLElement[] | HTMLElement>()
-
-const filterQuery = $ref('')
 
 const activeTable = computed(() => ([TabType.TABLE, TabType.VIEW].includes(activeTab.value?.type) ? activeTab.value.id : null))
 
@@ -210,12 +146,6 @@ const contextMenuTarget = reactive<{ type?: 'project' | 'base' | 'table' | 'main
 const setMenuContext = (type: 'project' | 'base' | 'table' | 'main' | 'layout', value?: any) => {
   contextMenuTarget.type = type
   contextMenuTarget.value = value
-}
-
-const reloadTables = async () => {
-  $e('a:table:refresh:navdraw')
-
-  // await loadTables()
 }
 
 function openRenameTableDialog(table: TableType, rightClick = false) {
@@ -361,30 +291,6 @@ const duplicateTable = async (table: TableType) => {
   }
 }
 
-function openSqlEditor(base: BaseType) {
-  addSqlEditorTab(projects.value.get(base.project_id!)!)
-}
-
-function openErdView(base: BaseType) {
-  navigateTo(`/ws/${route.params.workspaceId}/nc/${base.project_id}/erd/${base.id}`)
-}
-
-async function openProjectSqlEditor(project: ProjectType) {
-  if (!project.id) return
-  navigateTo(`/ws/${route.params.workspaceId}/nc/${project.id}/sql`)
-}
-
-async function openProjectErdView(_project: ProjectType) {
-  if (!_project.id) return
-
-  const project = projects.value.get(_project.id)
-  if (!project) await loadProject(_project.id!)
-
-  const base = project?.bases?.[0]
-  if (!base) return
-  navigateTo(`/ws/${route.params.workspaceId}/nc/${base.project_id}/erd/${base.id}`)
-}
-
 // const searchInputRef: VNodeRef = (vnode: typeof Input) => vnode?.$el?.focus()
 
 // const beforeSearch = ref<string[]>([])
@@ -507,15 +413,6 @@ watch(
   },
   { immediate: true },
 )
-
-// If only project is open, i.e in case of docs, project view is open and not the page view
-const projectViewOpen = computed(() => {
-  const routeNameSplit = String(route?.name).split('projectId-index-index')
-  if (routeNameSplit.length <= 1) return false
-
-  const routeNameAfterProjectView = routeNameSplit[routeNameSplit.length - 1]
-  return routeNameAfterProjectView.split('-').length === 2 || routeNameAfterProjectView.split('-').length === 1
-})
 </script>
 
 <template>
@@ -528,157 +425,7 @@ const projectViewOpen = computed(() => {
           :project-role="[project.project_role, project.role]"
           :project="project"
         >
-          <a-dropdown :trigger="['contextmenu']" overlay-class-name="nc-dropdown-tree-view-context-menu">
-            <div ref="projectElRefs" class="mx-1 nc-project-sub-menu rounded-md" :class="{ active: project.isExpanded }">
-              <div
-                class="flex items-center gap-0.75 py-0.25 cursor-pointer"
-                @click="loadProjectAndTableList(project)"
-                @contextmenu="setMenuContext('project', project)"
-              >
-                <DashboardTreeViewNewProjectNode
-                  ref="projectNodeRefs"
-                  class="flex-grow rounded-md"
-                  :class="{
-                    'bg-primary-selected': activeProjectId === project.id && projectViewOpen,
-                    'hover:bg-hover': !(activeProjectId === project.id && projectViewOpen),
-                  }"
-                />
-              </div>
-
-              <div
-                v-if="project.id && !project.isLoading"
-                key="g1"
-                class="overflow-y-auto overflow-x-hidden transition-max-height"
-                :class="{ 'max-h-0': !project.isExpanded, 'max-h-500': project.isExpanded }"
-              >
-                <div v-if="isProjectEmpty(project.id)" class="flex ml-12.25 my-1 text-gray-500 select-none">Empty</div>
-                <div v-else-if="project.type === 'documentation'">
-                  <DocsSideBar v-if="project.isExpanded" :project="project" />
-                </div>
-                <div v-else-if="project.type === 'dashboard'">
-                  <LayoutsSideBar v-if="project.isExpanded" :project="project" />
-                </div>
-                <template v-else-if="project && project?.bases">
-                  <div class="pb-0.5 flex-1 overflow-y-auto flex flex-col" :class="{ 'mb-[20px]': isSharedBase }">
-                    <div
-                      v-if="project?.bases?.[0]?.enabled && !project?.bases?.slice(1).filter((el) => el.enabled)?.length"
-                      class="flex-1"
-                    >
-                      <div class="transition-height duration-200">
-                        <TableList :project="project" :base-index="0" />
-                      </div>
-                    </div>
-
-                    <div v-else class="transition-height duration-200">
-                      <div class="border-none sortable-list">
-                        <div v-for="(base, baseIndex) of project.bases" :key="`base-${base.id}`">
-                          <a-collapse
-                            v-if="base && base.enabled"
-                            v-model:activeKey="activeKey"
-                            :class="[{ hidden: searchActive && !!filterQuery }]"
-                            expand-icon-position="right"
-                            :bordered="false"
-                            :accordion="!searchActive"
-                            ghost
-                          >
-                            <a-collapse-panel :key="`collapse-${base.id}`">
-                              <template #header>
-                                <div
-                                  v-if="baseIndex === 0"
-                                  class="base-context flex items-center gap-2 text-gray-500 font-bold"
-                                  @contextmenu="setMenuContext('base', base)"
-                                >
-                                  <GeneralBaseLogo :base-type="base.type" />
-                                  Default ({{
-                                    projectTables.get(project.id)?.filter((table) => table.base_id === base.id).length || '0'
-                                  }})
-                                </div>
-                                <div
-                                  v-else
-                                  class="base-context flex items-center gap-2 text-gray-500 font-bold"
-                                  @contextmenu="setMenuContext('base', base)"
-                                >
-                                  <GeneralBaseLogo :base-type="base.type" />
-                                  {{ base.alias || '' }}
-                                  ({{
-                                    projectTables.get(project.id)?.filter((table) => table.base_id === base.id).length || '0'
-                                  }})
-                                </div>
-                              </template>
-                              <AddNewTableNode
-                                :project="project"
-                                :base-index="baseIndex"
-                                @open-table-create-dialog="openTableCreateDialog(base.id, project.id)"
-                              />
-
-                              <div
-                                ref="menuRefs"
-                                :key="`sortable-${base.id}-${base.id && base.id in keys ? keys[base.id] : '0'}`"
-                                :nc-base="base.id"
-                              >
-                                <TableList class="pl-2" :project="project" :base-index="baseIndex" />
-                              </div>
-                            </a-collapse-panel>
-                          </a-collapse>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                </template>
-              </div>
-            </div>
-            <template v-if="!isSharedBase" #overlay>
-              <a-menu class="!py-0 rounded text-sm">
-                <template v-if="contextMenuTarget.type === 'project' && project.type === 'database'">
-                  <a-menu-item v-if="isUIAllowed('sqlEditor')" @click="openProjectSqlEditor(contextMenuTarget.value)">
-                    <div class="nc-project-menu-item">SQL Editor</div>
-                  </a-menu-item>
-
-                  <a-menu-item @click="openProjectErdView(contextMenuTarget.value)">
-                    <div class="nc-project-menu-item">ERD View</div>
-                  </a-menu-item>
-                </template>
-
-                <template v-else-if="contextMenuTarget.type === 'base'">
-                  <a-menu-item v-if="isUIAllowed('sqlEditor')" @click="openSqlEditor(contextMenuTarget.value)">
-                    <div class="nc-project-menu-item">SQL Editor</div>
-                  </a-menu-item>
-
-                  <a-menu-item @click="openErdView(contextMenuTarget.value)">
-                    <div class="nc-project-menu-item">ERD View</div>
-                  </a-menu-item>
-                </template>
-
-                <template v-else-if="contextMenuTarget.type === 'table'">
-                  <a-menu-item v-if="isUIAllowed('table-rename')" @click="openRenameTableDialog(contextMenuTarget.value, true)">
-                    <div class="nc-project-menu-item">
-                      {{ $t('general.rename') }}
-                    </div>
-                  </a-menu-item>
-
-                  <a-menu-item v-if="isUIAllowed('table-duplicate')" @click="duplicateTable(contextMenuTarget.value)">
-                    <div class="nc-project-menu-item">
-                      {{ $t('general.duplicate') }}
-                    </div>
-                  </a-menu-item>
-
-                  <a-menu-item v-if="isUIAllowed('table-delete')" @click="deleteTable(contextMenuTarget.value)">
-                    <div class="nc-project-menu-item">
-                      {{ $t('general.delete') }}
-                    </div>
-                  </a-menu-item>
-                </template>
-
-                <template v-else>
-                  <a-menu-item @click="reloadTables">
-                    <div class="nc-project-menu-item">
-                      {{ $t('general.reload') }}
-                    </div>
-                  </a-menu-item>
-                </template>
-              </a-menu>
-            </template>
-          </a-dropdown>
+          <DashboardTreeViewNewProjectNode />
         </ProjectWrapper>
       </template>
 

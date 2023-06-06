@@ -63,7 +63,7 @@ test.describe('Test table', () => {
     for (let i = 0; i < recordCount * 10; i++) {
       rows.push({
         Id: i + 1,
-        SingleLineText: `${i + 1}`,
+        Title: `${i + 1}`,
       });
     }
 

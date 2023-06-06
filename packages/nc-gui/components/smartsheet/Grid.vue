@@ -776,9 +776,17 @@ eventBus.on(async (event, payload) => {
   }
 })
 
-const closeAddColumnDropdown = () => {
+const closeAddColumnDropdown = (scrollToLastAddNewRowHeader = false) => {
   columnOrder.value = null
   addColumnDropdown.value = false
+  if (scrollToLastAddNewRowHeader) {
+    setTimeout(() => {
+      const lastAddNewRowHeader = tableHead.value?.querySelector('th:last-child')
+      if (lastAddNewRowHeader) {
+        lastAddNewRowHeader.scrollIntoView({ behavior: 'smooth' })
+      }
+    }, 200)
+  }
 }
 
 const confirmDeleteRow = (row: number) => {
@@ -889,8 +897,8 @@ function addEmptyRow(row?: number) {
                     <SmartsheetColumnEditOrAddProvider
                       v-if="addColumnDropdown"
                       :column-position="columnOrder"
-                      @submit="closeAddColumnDropdown"
-                      @cancel="closeAddColumnDropdown"
+                      @submit="closeAddColumnDropdown(true)"
+                      @cancel="closeAddColumnDropdown()"
                       @click.stop
                       @keydown.stop
                     />

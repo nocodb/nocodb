@@ -776,10 +776,10 @@ eventBus.on(async (event, payload) => {
   }
 })
 
-const closeAddColumnDropdown = (scrollToLastAddNewRowHeader = false) => {
+const closeAddColumnDropdown = (scrollToLastCol = false) => {
   columnOrder.value = null
   addColumnDropdown.value = false
-  if (scrollToLastAddNewRowHeader) {
+  if (scrollToLastCol) {
     setTimeout(() => {
       const lastAddNewRowHeader = tableHead.value?.querySelector('th:last-child')
       if (lastAddNewRowHeader) {

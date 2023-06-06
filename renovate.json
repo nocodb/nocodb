@@ -30,6 +30,8 @@
     "**/nc-plugin/**",
     "**/nocodb-legacy/**",
     "**/test/**",
-    "**/tests/**"
+    "**/tests/**",
+    "**/workflows/**",
+    "**/charts/**"
   ]
 }

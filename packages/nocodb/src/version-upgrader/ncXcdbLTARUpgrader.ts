@@ -1,10 +1,12 @@
 import { RelationTypes, UITypes } from 'nocodb-sdk';
 import NocoCache from '../cache/NocoCache';
 import { MetaTable } from '../meta/meta.service';
+import { Base } from '../models';
 import NcConnectionMgrv2 from '../utils/common/NcConnectionMgrv2';
 import { CacheGetType, CacheScope } from '../utils/globals';
+import { Model } from '../models';
+import type { LinkToAnotherRecordColumn } from '../models';
 import type { MetaService } from '../meta/meta.service';
-import type { LinkToAnotherRecordColumn, Model } from '../models';
 import type { NcUpgraderCtx } from './NcUpgrader';
 
 // An upgrader for upgrading LTAR relations in XCDB bases
@@ -67,7 +69,12 @@ async function upgradeModelRelations({
 
           // delete the relation
           if (relation) {
-            await sqlClient.relationDelete(relation);
+            await sqlClient.relationDelete({
+              parentColumn: relation.rcn,
+              childColumn: relation.cn,
+              parentTable: relation.rtn,
+              childTable: relation.tn,
+            });
           }
 
           // create a new index for the column
@@ -121,18 +128,23 @@ async function upgradeBaseRelations({
   const relations = (await sqlClient.relationListAll())?.data?.list;
 
   // get models for the base
-  const models = await ncMeta.metaList2(null, base.id, 'models');
+  const models = await ncMeta.metaList2(null, base.id, MetaTable.MODELS);
 
   // get all columns and filter out relations and upgrade
   for (const model of models) {
-    await upgradeModelRelations({ ncMeta, model, sqlClient, relations });
+    await upgradeModelRelations({
+      ncMeta,
+      model: new Model(model),
+      sqlClient,
+      relations,
+    });
   }
 }
 
 // database to virtual relation and create an index for it
 export default async function ({ ncMeta }: NcUpgraderCtx) {
   // get all xcdb bases
-  const bases = await ncMeta.metaList2(null, null, 'bases', {
+  const bases = await ncMeta.metaList2(null, null, MetaTable.BASES, {
     condition: {
       is_meta: 1,
     },
@@ -143,7 +155,7 @@ export default async function ({ ncMeta }: NcUpgraderCtx) {
   for (const base of bases) {
     await upgradeBaseRelations({
       ncMeta,
-      base,
+      base: new Base(base),
     });
   }
 }

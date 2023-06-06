@@ -20,7 +20,16 @@ import { v4 as uuidv4 } from 'uuid';
 import { Knex } from 'knex';
 import { NcError } from '../helpers/catchError';
 import getAst from '../helpers/getAst';
-import { Audit, Column, Filter, Model, Project, Sort, View } from '../models';
+import {
+  Audit,
+  Base,
+  Column,
+  Filter,
+  Model,
+  Project,
+  Sort,
+  View,
+} from '../models';
 import { sanitize, unsanitize } from '../helpers/sqlSanitize';
 import {
   COMPARISON_OPS,
@@ -2527,6 +2536,7 @@ class BaseModelSqlv2 {
     args: { where?: string; filterArr?: Filter[] } = {},
     { cookie }: { cookie?: any } = {},
   ) {
+    let trx: Transaction;
     try {
       await this.model.getColumns();
       const { where } = this._getListArgs(args);
@@ -2551,14 +2561,101 @@ class BaseModelSqlv2 {
         this.dbDriver,
       );
 
-      qb.del();
+      const execQueries: ((trx: Transaction, qb: any) => Promise<any>)[] = [];
 
-      const count = (await qb) as any;
+      for (const column of this.model.columns) {
+        if (column.uidt !== UITypes.LinkToAnotherRecord) continue;
+
+        const colOptions =
+          await column.getColOptions<LinkToAnotherRecordColumn>();
+
+        if (colOptions.type === 'bt') {
+          continue;
+        }
+
+        const childColumn = await colOptions.getChildColumn();
+        const parentColumn = await colOptions.getParentColumn();
+        const parentTable = await parentColumn.getModel();
+        const childTable = await childColumn.getModel();
+        await childTable.getColumns();
+        await parentTable.getColumns();
+
+        const childTn = this.getTnPath(childTable);
+        const parentTn = this.getTnPath(parentTable);
+
+        switch (colOptions.type) {
+          case 'mm':
+            {
+              const vChildCol = await colOptions.getMMChildColumn();
+              const vParentCol = await colOptions.getMMParentColumn();
+              const vTable = await colOptions.getMMModel();
+
+              const vTn = this.getTnPath(vTable);
+
+              execQueries.push((trx, qb) =>
+                this.dbDriver(vTn)
+                  .where({
+                    [vChildCol.column_name]: this.dbDriver(childTn)
+                      .select(childColumn.column_name)
+                      .first(),
+                  })
+                  .delete(),
+              );
+            }
+            break;
+          case 'hm':
+            {
+              // skip if it's an mm table column
+              const relatedTable = await colOptions.getRelatedTable();
+              if (relatedTable.mm) {
+                break;
+              }
+
+              const childColumn = await Column.get({
+                colId: colOptions.fk_child_column_id,
+              });
+
+              execQueries.push((trx, qb) =>
+                trx(childTn)
+                  .where({
+                    [childColumn.column_name]: this.dbDriver.from(
+                      qb
+                        .select(parentColumn.column_name)
+                        // .where(_wherePk(parentTable.primaryKeys, rowId))
+                        .first()
+                        .as('___cn_alias'),
+                    ),
+                  })
+                  .update({
+                    [childColumn.column_name]: null,
+                  }),
+              );
+            }
+            break;
+        }
+      }
+
+      trx = await this.dbDriver.transaction();
+
+      const base = await Base.get(this.model.base_id);
+      // unlink LTAR data
+      if (base.is_meta) {
+        for (const execQuery of execQueries) {
+          await execQuery(trx, qb.clone());
+        }
+      }
+
+      const deleteQb = qb.clone().transacting(trx).del();
+
+      const count = (await deleteQb) as any;
+
+      await trx.commit();
 
       await this.afterBulkDelete(count, this.dbDriver, cookie, true);
 
       return count;
     } catch (e) {
+      if (trx) await trx.rollback();
       throw e;
     }
   }

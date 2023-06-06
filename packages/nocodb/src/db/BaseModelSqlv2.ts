@@ -1943,16 +1943,14 @@ class BaseModelSqlv2 {
             break;
         }
       }
-
+      const where = await this._wherePk(id);
       if (!trx) {
         trx = await this.dbDriver.transaction();
       }
 
       await Promise.all(execQueries.map((q) => q(trx)));
 
-      const response = await trx(this.tnPath)
-        .del()
-        .where(await this._wherePk(id));
+      const response = await trx(this.tnPath).del().where(where);
 
       if (!_trx) await trx.commit();
 

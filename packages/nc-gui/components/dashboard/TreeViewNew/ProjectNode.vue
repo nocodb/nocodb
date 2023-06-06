@@ -208,12 +208,16 @@ const addNewProjectChildEntity = () => {
 // todo: temp
 const isSharedBase = ref(false)
 
-const loadProjectAndTableList = async (project: NcProject) => {
+const onProjectClick = async (project: NcProject) => {
   if (!project) {
     return
   }
 
   project.isExpanded = !project.isExpanded
+
+  const isProjectPopulated = projectsStore.isProjectPopulated(project.id!)
+
+  if (!isProjectPopulated) project.isLoading = true
 
   // if dashboard or document project, add a document tab and route to the respective page
   switch (project.type) {
@@ -225,7 +229,7 @@ const loadProjectAndTableList = async (project: NcProject) => {
       //   projectId: project.id,
       // })
       $e('c:dashboard:open', project.id)
-      navigateTo(dashboardProjectUrl(project.id!))
+      await navigateTo(dashboardProjectUrl(project.id!))
       break
     case 'documentation':
       // addTab({
@@ -235,7 +239,7 @@ const loadProjectAndTableList = async (project: NcProject) => {
       //   projectId: project.id,
       // })
       $e('c:document:open', project.id)
-      navigateTo(docsProjectUrl(project.id!))
+      await navigateTo(docsProjectUrl(project.id!))
       break
     case 'database':
       await navigateTo(
@@ -244,11 +248,19 @@ const loadProjectAndTableList = async (project: NcProject) => {
           type: 'database',
         }),
       )
-      await loadProject(project.id!)
-      await loadProjectTables(project.id!)
+
+      if (!isProjectPopulated) {
+        await loadProject(project.id!)
+        await loadProjectTables(project.id!)
+      }
       break
     default:
       throw new Error(`Unknown project type: ${project.type}`)
+  }
+
+  if (!isProjectPopulated) {
+    const updatedProject = projects.value.get(project.id!)!
+    updatedProject.isLoading = false
   }
 }
 
@@ -285,10 +297,10 @@ const reloadTables = async () => {
 
 <template>
   <a-dropdown :trigger="['contextmenu']" overlay-class-name="nc-dropdown-tree-view-context-menu">
-    <div ref="projectElRefs" class="mx-1 nc-project-sub-menu rounded-md" :class="{ active: project.isExpanded }">
+    <div class="mx-1 nc-project-sub-menu rounded-md" :class="{ active: project.isExpanded }">
       <div
         class="flex items-center gap-0.75 py-0.25 cursor-pointer"
-        @click="loadProjectAndTableList(project)"
+        @click="onProjectClick(project)"
         @contextmenu="setMenuContext('project', project)"
       >
         <div
@@ -303,7 +315,6 @@ const reloadTables = async () => {
             <PhTriangleFill
               class="invisible group-hover:visible cursor-pointer transform transition-transform duration-500 h-1.25 w-1.75 text-gray-500 rotate-90"
               :class="{ '!rotate-180': project.isExpanded }"
-              @click.stop="project.isExpanded = !project.isExpanded"
             />
           </div>
           <component
@@ -313,7 +324,7 @@ const reloadTables = async () => {
             class="flex items-center mx-1"
             @click.stop
           >
-            <div class="flex items-center select-none h-8" @click.stop>
+            <div class="flex items-center select-none w-6 h-8" @click.stop>
               <a-spin
                 v-if="project.isLoading"
                 class="nc-sidebar-icon !flex !flex-row !items-center !my-0.5 !ml-1.5 !mr-1.5 w-8"

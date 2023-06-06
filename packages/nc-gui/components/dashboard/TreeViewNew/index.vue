@@ -39,9 +39,7 @@ const route = $(router.currentRoute)
 
 const projectsStore = useProjects()
 
-const { loadProject, createProject: _createProject } = projectsStore
-
-const { loadProjectTables } = useTablesStore()
+const { createProject: _createProject } = projectsStore
 
 const { projects, projectsList } = storeToRefs(projectsStore)
 
@@ -402,17 +400,6 @@ provide(TreeViewFunctions, {
 })
 
 useEventListener(document, 'contextmenu', handleContext, true)
-
-watch(
-  () => route.params.projectId,
-  async (newId, oldId) => {
-    if (newId && newId !== oldId) {
-      await loadProject(newId as string)
-      await loadProjectTables(newId as string)
-    }
-  },
-  { immediate: true },
-)
 </script>
 
 <template>

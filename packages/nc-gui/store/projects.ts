@@ -101,7 +101,13 @@ export const useProjects = defineStore('projectsStore', () => {
 
     const existingProject = projects.value.get(projectId)!
     const _project = await api.project.read(projectId)
-    const project = { ...existingProject, ..._project, isExpanded: route.params.projectId === projectId, isLoading: false }
+    const project = {
+      ...existingProject,
+      ..._project,
+      isExpanded: route.params.projectId === projectId,
+      // isLoading is managed by Sidebar
+      isLoading: existingProject.isLoading,
+    }
 
     projects.value.set(projectId, project)
   }
@@ -202,5 +208,6 @@ export const useProjects = defineStore('projectsStore', () => {
     setProject,
     clearProjects,
     isProjectEmpty,
+    isProjectPopulated,
   }
 })

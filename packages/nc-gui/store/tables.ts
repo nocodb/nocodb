@@ -10,25 +10,23 @@ export const useTablesStore = defineStore('tablesStore', () => {
 
   const loadProjectTables = async (projectId: string, force = false) => {
     const projects = projectsStore.projects
-    if (!force && projectTables.value.get(projectId)) return projectTables.value.get(projectId)
+    if (!force && projectTables.value.get(projectId)) {
+      return
+    }
 
     const workspaceProject = projects.get(projectId)
     if (!workspaceProject) throw new Error('Project not found')
 
     const existingTables = projectTables.value.get(projectId)
     if (existingTables) {
-      if (workspaceProject.isLoading) workspaceProject.isLoading = false
-
       return
     }
 
-    workspaceProject.isLoading = true
     const tables = await api.dbTable.list(projectId, {
       includeM2M: includeM2M.value,
     })
 
     projectTables.value.set(projectId, tables.list || [])
-    workspaceProject.isLoading = false
   }
 
   return {

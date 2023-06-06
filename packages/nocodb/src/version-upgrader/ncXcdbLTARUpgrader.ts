@@ -1,41 +1,92 @@
 import { RelationTypes, UITypes } from 'nocodb-sdk';
-import ProjectMgrv2 from '../db/sql-mgr/v2/ProjectMgrv2';
-import type SqlMgrv2 from '../db/sql-mgr/v2/SqlMgrv2';
+import { MetaTable } from '../meta/meta.service';
+import NcConnectionMgrv2 from '../utils/common/NcConnectionMgrv2';
 import type { MetaService } from '../meta/meta.service';
 import type { LinkToAnotherRecordColumn, Model } from '../models';
 import type { NcUpgraderCtx } from './NcUpgrader';
 
+// An upgrader for upgrading LTAR relations in XCDB bases
+// it will delete all the foreign keys and create a new index
+// and treat all the LTAR as virtual
+
 async function upgradeModelRelations({
   model,
-  sqlMgr,
+  relations,
   ncMeta,
+  sqlClient,
 }: {
   ncMeta: MetaService;
   model: Model;
-  sqlMgr: SqlMgrv2;
+  sqlClient: ReturnType<
+    (typeof NcConnectionMgrv2)['getSqlClient']
+  > extends Promise<infer U>
+    ? U
+    : ReturnType<(typeof NcConnectionMgrv2)['getSqlClient']>;
+  relations: {
+    tn: string;
+    rtn: string;
+    cn: string;
+    rcn: string;
+  }[];
 }) {
   // Iterate over each column and upgrade LTAR
-  for (const column of await model.getColumns()) {
+  for (const column of await model.getColumns(ncMeta)) {
     if (column.uidt !== UITypes.LinkToAnotherRecord) {
       continue;
     }
 
-    const colOptions = await column.getColOptions<LinkToAnotherRecordColumn>();
+    const colOptions = await column.getColOptions<LinkToAnotherRecordColumn>(
+      ncMeta,
+    );
 
     switch (colOptions.type) {
-      // case RelationTypes.MANY_TO_MANY:
-      //
-      //   break;
       case RelationTypes.HAS_MANY:
         {
-          // delete the foreign key constraint if exists
-          // create a new index for the column
-        }
+          // skip if virtual
+          if (colOptions.virtual) {
+            break;
+          }
 
+          const parentCol = await colOptions.getParentColumn(ncMeta);
+          const childCol = await colOptions.getChildColumn(ncMeta);
+
+          const parentModel = await parentCol.getModel(ncMeta);
+          const childModel = await childCol.getModel(ncMeta);
+
+          // delete the foreign key constraint if exists
+          const relation = relations.find((r) => {
+            return (
+              parentCol.column_name === r.rcn &&
+              childCol.column_name === r.cn &&
+              parentModel.table_name === r.rtn &&
+              childModel.table_name === r.tn
+            );
+          });
+
+          // delete the relation
+          if (relation) {
+            await sqlClient.relationDelete(relation);
+          }
+
+          // create a new index for the column
+          const indexArgs = {
+            columns: [relation.cn],
+            tn: relation.tn,
+            non_unique: true,
+          };
+          await sqlClient.indexCreate(indexArgs);
+        }
         break;
-      // case RelationTypes.BELONGS_TO:
-      //   break;
     }
+
+    // update the relation as virtual
+    await ncMeta.metaUpdate(
+      null,
+      null,
+      MetaTable.COL_RELATIONS,
+      { virtual: true },
+      colOptions.id,
+    );
   }
 }
 
@@ -47,14 +98,19 @@ async function upgradeBaseRelations({
   ncMeta: MetaService;
   base: any;
 }) {
-  const sqlMgr = ProjectMgrv2.getSqlMgr({ id: base.project_id }, ncMeta);
+  // const sqlMgr = ProjectMgrv2.getSqlMgr({ id: base.project_id }, ncMeta);
+
+  const sqlClient = await NcConnectionMgrv2.getSqlClient(base, ncMeta.knex);
+
+  // get all relations
+  const relations = (await sqlClient.relationListAll())?.data?.list;
 
   // get models for the base
   const models = await ncMeta.metaList2(null, base.id, 'models');
 
   // get all columns and filter out relations and upgrade
   for (const model of models) {
-    await upgradeModelRelations({ ncMeta, model, sqlMgr });
+    await upgradeModelRelations({ ncMeta, model, sqlClient, relations });
   }
 }
 

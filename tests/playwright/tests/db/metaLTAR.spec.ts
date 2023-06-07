@@ -24,6 +24,9 @@ import setup from '../../setup';
 import { Api, UITypes } from 'nocodb-sdk';
 import { DashboardPage } from '../../pages/Dashboard';
 import { GridPage } from '../../pages/Dashboard/Grid';
+import { createXcdb, deleteXcdb } from '../../setup/xcdbProject';
+import { ProjectsPage } from '../../pages/ProjectsPage';
+import { isSqlite } from '../../setup/db';
 let api: Api<any>;
 const recordCount = 10;
 
@@ -33,10 +36,29 @@ test.describe('Test table', () => {
   let grid: GridPage;
   const tables = [];
 
+  test.afterEach(async () => {
+    try {
+      if (context) {
+        await deleteXcdb(context.token);
+      }
+    } catch (e) {
+      console.log(e);
+    }
+
+    // reset tables array
+    tables.length = 0;
+  });
+
   test.beforeEach(async ({ page }) => {
     context = await setup({ page, isEmptyProject: true });
     dashboard = new DashboardPage(page, context.project);
     grid = dashboard.grid;
+
+    // create a new xcdb project
+    const xcdb = await createXcdb(context.token);
+    await dashboard.clickHome();
+    const projectsPage = new ProjectsPage(dashboard.rootPage);
+    await projectsPage.openProject({ title: 'xcdb', withoutPrefix: true });
 
     api = new Api({
       baseURL: `http://localhost:8080/`,
@@ -67,17 +89,14 @@ test.describe('Test table', () => {
       });
     }
 
-    // Create tables
-    const project = await api.project.read(context.project.id);
-
     for (let i = 0; i < 5; i++) {
-      const table = await api.base.tableCreate(context.project.id, project.bases?.[0].id, {
+      const table = await api.base.tableCreate(xcdb.id, xcdb.bases?.[0].id, {
         table_name: `Table${i}`,
         title: `Table${i}`,
         columns: columns,
       });
       tables.push(table);
-      await api.dbTableRow.bulkCreate('noco', context.project.id, tables[i].id, rows);
+      await api.dbTableRow.bulkCreate('noco', xcdb.id, tables[i].id, rows);
     }
 
     // Create links
@@ -141,123 +160,51 @@ test.describe('Test table', () => {
     // TableA <hm> TableB <hm> TableC
     // Link every record in tableA to 3 records in tableB
     for (let i = 1; i <= recordCount; i++) {
-      await api.dbTableRow.nestedAdd(
-        'noco',
-        context.project.id,
-        tables[0].id,
-        i,
-        'hm',
-        'TableA:hm:TableB',
-        `${i * 3 - 2}`
-      );
-      await api.dbTableRow.nestedAdd(
-        'noco',
-        context.project.id,
-        tables[0].id,
-        i,
-        'hm',
-        'TableA:hm:TableB',
-        `${i * 3 - 1}`
-      );
-      await api.dbTableRow.nestedAdd(
-        'noco',
-        context.project.id,
-        tables[0].id,
-        i,
-        'hm',
-        'TableA:hm:TableB',
-        `${i * 3 - 0}`
-      );
+      await api.dbTableRow.nestedAdd('noco', xcdb.id, tables[0].id, i, 'hm', 'TableA:hm:TableB', `${i * 3 - 2}`);
+      await api.dbTableRow.nestedAdd('noco', xcdb.id, tables[0].id, i, 'hm', 'TableA:hm:TableB', `${i * 3 - 1}`);
+      await api.dbTableRow.nestedAdd('noco', xcdb.id, tables[0].id, i, 'hm', 'TableA:hm:TableB', `${i * 3 - 0}`);
     }
     // Link every record in tableB to 3 records in tableC
     for (let i = 1; i <= recordCount; i++) {
-      await api.dbTableRow.nestedAdd(
-        'noco',
-        context.project.id,
-        tables[1].id,
-        i,
-        'hm',
-        'TableB:hm:TableC',
-        `${i * 3 - 2}`
-      );
-      await api.dbTableRow.nestedAdd(
-        'noco',
-        context.project.id,
-        tables[1].id,
-        i,
-        'hm',
-        'TableB:hm:TableC',
-        `${i * 3 - 1}`
-      );
-      await api.dbTableRow.nestedAdd(
-        'noco',
-        context.project.id,
-        tables[1].id,
-        i,
-        'hm',
-        'TableB:hm:TableC',
-        `${i * 3 - 0}`
-      );
+      await api.dbTableRow.nestedAdd('noco', xcdb.id, tables[1].id, i, 'hm', 'TableB:hm:TableC', `${i * 3 - 2}`);
+      await api.dbTableRow.nestedAdd('noco', xcdb.id, tables[1].id, i, 'hm', 'TableB:hm:TableC', `${i * 3 - 1}`);
+      await api.dbTableRow.nestedAdd('noco', xcdb.id, tables[1].id, i, 'hm', 'TableB:hm:TableC', `${i * 3 - 0}`);
     }
 
     // TableA <mm> TableD <mm> TableE
     // Link every record in tableA to 5 records in tableD
     for (let i = 1; i <= recordCount; i++) {
-      await api.dbTableRow.nestedAdd('noco', context.project.id, tables[0].id, i, 'mm', 'TableA:mm:TableD', `${i}`);
-      await api.dbTableRow.nestedAdd('noco', context.project.id, tables[0].id, i, 'mm', 'TableA:mm:TableD', `${i + 1}`);
-      await api.dbTableRow.nestedAdd('noco', context.project.id, tables[0].id, i, 'mm', 'TableA:mm:TableD', `${i + 2}`);
-      await api.dbTableRow.nestedAdd('noco', context.project.id, tables[0].id, i, 'mm', 'TableA:mm:TableD', `${i + 3}`);
-      await api.dbTableRow.nestedAdd('noco', context.project.id, tables[0].id, i, 'mm', 'TableA:mm:TableD', `${i + 4}`);
+      await api.dbTableRow.nestedAdd('noco', xcdb.id, tables[0].id, i, 'mm', 'TableA:mm:TableD', `${i}`);
+      await api.dbTableRow.nestedAdd('noco', xcdb.id, tables[0].id, i, 'mm', 'TableA:mm:TableD', `${i + 1}`);
+      await api.dbTableRow.nestedAdd('noco', xcdb.id, tables[0].id, i, 'mm', 'TableA:mm:TableD', `${i + 2}`);
+      await api.dbTableRow.nestedAdd('noco', xcdb.id, tables[0].id, i, 'mm', 'TableA:mm:TableD', `${i + 3}`);
+      await api.dbTableRow.nestedAdd('noco', xcdb.id, tables[0].id, i, 'mm', 'TableA:mm:TableD', `${i + 4}`);
     }
     // Link every record in tableD to 5 records in tableE
     for (let i = 1; i <= recordCount; i++) {
-      await api.dbTableRow.nestedAdd('noco', context.project.id, tables[3].id, i, 'mm', 'TableD:mm:TableE', `${i}`);
-      await api.dbTableRow.nestedAdd('noco', context.project.id, tables[3].id, i, 'mm', 'TableD:mm:TableE', `${i + 1}`);
-      await api.dbTableRow.nestedAdd('noco', context.project.id, tables[3].id, i, 'mm', 'TableD:mm:TableE', `${i + 2}`);
-      await api.dbTableRow.nestedAdd('noco', context.project.id, tables[3].id, i, 'mm', 'TableD:mm:TableE', `${i + 3}`);
-      await api.dbTableRow.nestedAdd('noco', context.project.id, tables[3].id, i, 'mm', 'TableD:mm:TableE', `${i + 4}`);
+      await api.dbTableRow.nestedAdd('noco', xcdb.id, tables[3].id, i, 'mm', 'TableD:mm:TableE', `${i}`);
+      await api.dbTableRow.nestedAdd('noco', xcdb.id, tables[3].id, i, 'mm', 'TableD:mm:TableE', `${i + 1}`);
+      await api.dbTableRow.nestedAdd('noco', xcdb.id, tables[3].id, i, 'mm', 'TableD:mm:TableE', `${i + 2}`);
+      await api.dbTableRow.nestedAdd('noco', xcdb.id, tables[3].id, i, 'mm', 'TableD:mm:TableE', `${i + 3}`);
+      await api.dbTableRow.nestedAdd('noco', xcdb.id, tables[3].id, i, 'mm', 'TableD:mm:TableE', `${i + 4}`);
     }
 
     // TableA <hm> TableA : self relation
     // Link every record in tableA to 3 records in tableA
     for (let i = 1; i <= recordCount; i++) {
-      await api.dbTableRow.nestedAdd(
-        'noco',
-        context.project.id,
-        tables[0].id,
-        i,
-        'hm',
-        'TableA:hm:TableA',
-        `${i * 3 - 2}`
-      );
-      await api.dbTableRow.nestedAdd(
-        'noco',
-        context.project.id,
-        tables[0].id,
-        i,
-        'hm',
-        'TableA:hm:TableA',
-        `${i * 3 - 1}`
-      );
-      await api.dbTableRow.nestedAdd(
-        'noco',
-        context.project.id,
-        tables[0].id,
-        i,
-        'hm',
-        'TableA:hm:TableA',
-        `${i * 3 - 0}`
-      );
+      await api.dbTableRow.nestedAdd('noco', xcdb.id, tables[0].id, i, 'hm', 'TableA:hm:TableA', `${i * 3 - 2}`);
+      await api.dbTableRow.nestedAdd('noco', xcdb.id, tables[0].id, i, 'hm', 'TableA:hm:TableA', `${i * 3 - 1}`);
+      await api.dbTableRow.nestedAdd('noco', xcdb.id, tables[0].id, i, 'hm', 'TableA:hm:TableA', `${i * 3 - 0}`);
     }
 
     // TableA <mm> TableA : self relation
     // Link every record in tableA to 5 records in tableA
     for (let i = 1; i <= recordCount; i++) {
-      await api.dbTableRow.nestedAdd('noco', context.project.id, tables[0].id, i, 'mm', 'TableA:mm:TableA', `${i}`);
-      await api.dbTableRow.nestedAdd('noco', context.project.id, tables[0].id, i, 'mm', 'TableA:mm:TableA', `${i + 1}`);
-      await api.dbTableRow.nestedAdd('noco', context.project.id, tables[0].id, i, 'mm', 'TableA:mm:TableA', `${i + 2}`);
-      await api.dbTableRow.nestedAdd('noco', context.project.id, tables[0].id, i, 'mm', 'TableA:mm:TableA', `${i + 3}`);
-      await api.dbTableRow.nestedAdd('noco', context.project.id, tables[0].id, i, 'mm', 'TableA:mm:TableA', `${i + 4}`);
+      await api.dbTableRow.nestedAdd('noco', xcdb.id, tables[0].id, i, 'mm', 'TableA:mm:TableA', `${i}`);
+      await api.dbTableRow.nestedAdd('noco', xcdb.id, tables[0].id, i, 'mm', 'TableA:mm:TableA', `${i + 1}`);
+      await api.dbTableRow.nestedAdd('noco', xcdb.id, tables[0].id, i, 'mm', 'TableA:mm:TableA', `${i + 2}`);
+      await api.dbTableRow.nestedAdd('noco', xcdb.id, tables[0].id, i, 'mm', 'TableA:mm:TableA', `${i + 3}`);
+      await api.dbTableRow.nestedAdd('noco', xcdb.id, tables[0].id, i, 'mm', 'TableA:mm:TableA', `${i + 4}`);
     }
 
     // refresh page
@@ -276,6 +223,30 @@ test.describe('Test table', () => {
       await dashboard.treeView.openTable({ title: `Table${i}` });
       await dashboard.grid.verifyTotalRowCount({ count: 100 });
     }
+
+    // has-many removal verification
+    await dashboard.treeView.openTable({ title: 'Table1' });
+    await dashboard.grid.cell.verifyVirtualCell({ index: 0, columnHeader: 'Table0', count: 0, value: [] });
+    await dashboard.grid.cell.verifyVirtualCell({ index: 1, columnHeader: 'Table0', count: 0, value: [] });
+    await dashboard.grid.cell.verifyVirtualCell({ index: 2, columnHeader: 'Table0', count: 0, value: [] });
+
+    // many-many removal verification
+    await dashboard.treeView.openTable({ title: 'Table3' });
+    await dashboard.grid.cell.verifyVirtualCell({ index: 0, columnHeader: 'Table0 List', count: 0, value: [] });
+    await dashboard.grid.cell.verifyVirtualCell({ index: 1, columnHeader: 'Table0 List', count: 1, value: ['2'] });
+    await dashboard.grid.cell.verifyVirtualCell({ index: 2, columnHeader: 'Table0 List', count: 2, value: ['2', '3'] });
+    await dashboard.grid.cell.verifyVirtualCell({
+      index: 3,
+      columnHeader: 'Table0 List',
+      count: 3,
+      value: ['2', '3', '4'],
+    });
+    await dashboard.grid.cell.verifyVirtualCell({
+      index: 4,
+      columnHeader: 'Table0 List',
+      count: 4,
+      value: ['2', '3', '4', '5'],
+    });
   });
 
   test('Delete record - bulk, over UI', async () => {

@@ -75,9 +75,18 @@ const onDecode = async (scannedCodeValue: string) => {
       class="color-transition relative flex flex-col justify-center gap-2 w-full max-w-[max(33%,600px)] m-auto py-4 pb-8 px-16 md:(bg-white dark:bg-slate-700 rounded-lg border-1 border-gray-200 shadow-xl)"
     >
       <template v-if="sharedFormView">
-        <h1 class="prose-2xl font-bold self-center my-4">{{ sharedFormView.heading }}</h1>
+        <h1
+          class="prose-2xl font-bold self-center my-4"
+          style="word-break: break-all"
+        >
+          {{ sharedFormView.heading }}
+        </h1>
 
-        <h2 v-if="sharedFormView.subheading" class="prose-lg text-slate-500 dark:text-slate-300 self-center mb-4 leading-6">
+        <h2
+          v-if="sharedFormView.subheading"
+          class="prose-lg text-slate-500 dark:text-slate-300 self-center mb-4 leading-6"
+          style="word-break: break-all"
+        >
           {{ sharedFormView.subheading }}
         </h2>
 
@@ -180,7 +189,7 @@ const onDecode = async (scannedCodeValue: string) => {
                       </a-button>
                     </LazySmartsheetDivDataCell>
 
-                    <div class="flex flex-col gap-2 text-slate-500 dark:text-slate-300 text-[0.75rem] my-2 px-1">
+                    <div class="flex flex-col gap-2 text-slate-500 dark:text-slate-300 text-[0.75rem] my-2 px-1" style="word-break: break-all">
                       <div v-for="error of v$.localState[field.title]?.$errors" :key="error" class="text-red-500">
                         {{ error.$message }}
                       </div>

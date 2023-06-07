@@ -1,3 +1,4 @@
+import { title } from 'process';
 import { isSystemColumn, UITypes, ViewTypes } from 'nocodb-sdk';
 import Noco from '../Noco';
 import {
@@ -165,13 +166,19 @@ export default class View implements ViewType {
           ],
         },
       );
-      view.meta = parseMetaProp(view);
-      // todo: cache - titleOrId can be viewId so we need a different scope here
-      await NocoCache.set(
-        `${CacheScope.VIEW}:${fk_model_id}:${titleOrId}`,
-        view.id,
-      );
-      await NocoCache.set(`${CacheScope.VIEW}:${fk_model_id}:${view.id}`, view);
+
+      if (view) {
+        await NocoCache.set(
+          `${CacheScope.VIEW}:${fk_model_id}:${view.id}`,
+          view,
+        );
+        view.meta = parseMetaProp(view);
+        // todo: cache - titleOrId can be viewId so we need a different scope here
+        await NocoCache.set(
+          `${CacheScope.VIEW}:${fk_model_id}:${titleOrId}`,
+          view.id,
+        );
+      }
       return view && new View(view);
     }
     return viewId && this.get(viewId?.id || viewId);
@@ -952,6 +959,7 @@ export default class View implements ViewType {
     // get existing cache
     const key = `${CacheScope.VIEW}:${viewId}`;
     let o = await NocoCache.get(key, CacheGetType.TYPE_OBJECT);
+    let oldView = { ...o };
     if (o) {
       // update data
       o = {
@@ -963,7 +971,14 @@ export default class View implements ViewType {
       }
       // set cache
       await NocoCache.set(key, o);
+    } else {
+      oldView = await this.get(viewId);
     }
+
+    // reset alias cache
+    await NocoCache.del(
+      `${CacheScope.VIEW}:${oldView.fk_model_id}:${oldView.title}`,
+    );
 
     // if meta data defined then stringify it
     if ('meta' in updateObj) {

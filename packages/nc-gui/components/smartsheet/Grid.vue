@@ -124,6 +124,7 @@ const {
   removeRowIfNew,
   navigateToSiblingRow,
   getExpandedRowIndex,
+  deleteRangeOfRows,
 } = useViewData(meta, view, xWhere)
 
 const { getMeta } = useMetas()
@@ -199,6 +200,7 @@ const {
   isCellActive,
   tbodyEl,
   resetSelectedRange,
+  selectedRange,
 } = useMultiSelect(
   meta,
   fields,
@@ -794,6 +796,14 @@ const confirmDeleteRow = (row: number) => {
     },
   })
 }
+
+const deleteSelectedRangeOfRows = () => {
+  deleteRangeOfRows(selectedRange).then(() => {
+    clearSelectedRange()
+    activeCell.row = null
+    activeCell.col = null
+  })
+}
 </script>
 
 <template>
@@ -1015,14 +1025,24 @@ const confirmDeleteRow = (row: number) => {
 
         <template v-if="!isLocked && hasEditPermission" #overlay>
           <a-menu class="shadow !rounded !py-0" @click="contextMenu = false">
-            <a-menu-item v-if="contextMenuTarget" @click="confirmDeleteRow(contextMenuTarget.row)">
+            <a-menu-item
+              v-if="contextMenuTarget && (selectedRange.isSingleCell() || selectedRange.isSingleRow())"
+              @click="confirmDeleteRow(contextMenuTarget.row)"
+            >
               <div v-e="['a:row:delete']" class="nc-project-menu-item">
                 <!-- Delete Row -->
                 {{ $t('activity.deleteRow') }}
               </div>
             </a-menu-item>
 
-            <a-menu-item @click="deleteSelectedRows">
+            <a-menu-item v-else-if="contextMenuTarget" @click="deleteSelectedRangeOfRows">
+              <div v-e="['a:row:delete']" class="nc-project-menu-item">
+                <!-- Delete Rows -->
+                Delete Rows
+              </div>
+            </a-menu-item>
+
+            <a-menu-item v-if="data.some((r) => r.rowMeta.selected)" @click="deleteSelectedRows">
               <div v-e="['a:row:delete-bulk']" class="nc-project-menu-item">
                 <!-- Delete Selected Rows -->
                 {{ $t('activity.deleteSelectedRow') }}
@@ -1033,6 +1053,7 @@ const confirmDeleteRow = (row: number) => {
             <a-menu-item
               v-if="
                 contextMenuTarget &&
+                selectedRange.isSingleCell() &&
                 (fields[contextMenuTarget.col].uidt === UITypes.LinkToAnotherRecord ||
                   !isVirtualCol(fields[contextMenuTarget.col]))
               "
@@ -1041,7 +1062,7 @@ const confirmDeleteRow = (row: number) => {
               <div v-e="['a:row:clear']" class="nc-project-menu-item">{{ $t('activity.clearCell') }}</div>
             </a-menu-item>
 
-            <a-menu-item v-if="contextMenuTarget" @click="addEmptyRow(contextMenuTarget.row + 1)">
+            <a-menu-item v-if="contextMenuTarget && selectedRange.isSingleCell()" @click="addEmptyRow(contextMenuTarget.row + 1)">
               <div v-e="['a:row:insert']" class="nc-project-menu-item">
                 <!-- Insert New Row -->
                 {{ $t('activity.insertRow') }}

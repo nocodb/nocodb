@@ -18,8 +18,8 @@
   "devDependencies": {
     "fs": "0.0.1-security",
     "lerna": "^6.6.2",
-    "husky": "^8.0.3",
-    "xlsx": "^0.17.5"
+    "husky": "^8.0.0",
+    "xlsx": "^0.18.5"
   },
   "husky": {
     "hooks": {

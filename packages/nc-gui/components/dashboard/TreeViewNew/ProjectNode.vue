@@ -347,11 +347,15 @@ const reloadTables = async () => {
                 :indicator="indicator"
               />
               <component :is="isUIAllowed('projectIconCustomisation', false, projectRole) ? Tooltip : 'div'" v-else>
-                <span v-if="project.meta?.icon" :key="project.meta?.icon" class="nc-sidebar-icon flex items-center">
+                <span
+                  v-if="project.meta?.icon"
+                  :key="project.meta?.icon"
+                  class="flex items-center hover:bg-gray-200 p-1 rounded-md h-6 w-6"
+                >
                   <IconifyIcon
                     :key="project.meta?.icon"
                     :data-testid="`nc-icon-${project.meta?.icon}`"
-                    class="text-xl"
+                    class="text-lg"
                     :icon="project.meta?.icon"
                   ></IconifyIcon>
                 </span>

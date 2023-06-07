@@ -20,6 +20,6 @@ const { type } = defineProps<{
 
 <style scoped>
 .nc-project-icon {
-  @apply h-6 px-1.5 py-1 text-lg rounded !hover:bg-gray-300 !hover:bg-opacity-50;
+  @apply h-6 px-1.5 py-1 text-lg rounded-md !hover:bg-gray-300 !hover:bg-opacity-50;
 }
 </style>

@@ -60,7 +60,7 @@ const { isSharedBase } = useProject()
     :class="[`nc-project-tree-tbl nc-project-tree-tbl-${layout.title}`, { active: openeLayoutId === layout.id }]"
   >
     <GeneralTooltip
-      class="pl-4 pr-3 mb-0.25 rounded-md h-7.25 select-none"
+      class="pl-4 pr-2 mb-0.25 rounded-md h-7.25 select-none"
       :class="{
         'hover:bg-gray-100': openeLayoutId !== layout.id,
       }"
@@ -83,8 +83,7 @@ const { isSharedBase } = useProject()
           :trigger="['click']"
           @click.stop
         >
-          <MdiDotsVertical
-            icon="threeDotVertical"
+          <MdiDotsHorizontal
             class="transition-opacity opacity-0 group-hover:opacity-100 outline-0"
             :class="{
               '!text-gray-600': openeLayoutId !== layout.id,

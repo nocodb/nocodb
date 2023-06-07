@@ -149,7 +149,7 @@ const { isSharedBase } = useProject()
           :trigger="['click']"
           @click.stop
         >
-          <MdiDotsVertical
+          <MdiDotsHorizontal
             class="transition-opacity opacity-0 group-hover:opacity-100 outline-0"
             :class="{
               '!text-gray-600': openedTableId !== table.id,

@@ -182,22 +182,25 @@ export class TablesService {
     let result;
     try {
       // delete all relations
-      await Promise.all(
-        relationColumns.map((c) => {
-          // skip if column is hasmany relation to mm table
-          if (c.system) {
-            return;
-          }
+      for (const c of relationColumns) {
+        // skip if column is hasmany relation to mm table
+        if (c.system) {
+          continue;
+        }
 
-          return this.columnsService.columnDelete(
-            {
-              req: param.req,
-              columnId: c.id,
-            },
-            ncMeta,
-          );
-        }),
-      );
+        // verify column exist or not and based on that delete the column
+        if (!(await Column.get({ colId: c.id }))) {
+          continue;
+        }
+
+        await this.columnsService.columnDelete(
+          {
+            req: param.req,
+            columnId: c.id,
+          },
+          ncMeta,
+        );
+      }
 
       const sqlMgr = await ProjectMgrv2.getSqlMgr(project, ncMeta);
       (table as any).tn = table.table_name;

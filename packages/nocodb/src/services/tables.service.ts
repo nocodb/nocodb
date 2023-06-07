@@ -189,7 +189,7 @@ export class TablesService {
         }
 
         // verify column exist or not and based on that delete the column
-        if (!(await Column.get({ colId: c.id }))) {
+        if (!(await Column.get({ colId: c.id }, ncMeta))) {
           continue;
         }
 

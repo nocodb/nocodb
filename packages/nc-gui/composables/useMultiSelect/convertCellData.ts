@@ -1,14 +1,14 @@
 import dayjs from 'dayjs'
-import type { ColumnType } from 'nocodb-sdk'
+import type { ColumnType, SelectOptionsType } from 'nocodb-sdk'
 import { UITypes } from 'nocodb-sdk'
 import type { AppInfo } from '~/composables/useGlobal'
 import { parseProp } from '#imports'
 
 export default function convertCellData(
-  args: { to: UITypes; value: any; column: ColumnType; appInfo: AppInfo },
+  args: { to: UITypes; value: string; column: ColumnType; appInfo: AppInfo },
   isMysql = false,
 ) {
-  const { to, value } = args
+  const { to, value, column } = args
 
   const dateFormat = isMysql ? 'YYYY-MM-DD HH:mm:ss' : 'YYYY-MM-DD HH:mm:ssZ'
 
@@ -98,7 +98,7 @@ export default function convertCellData(
 
       const attachmentMeta = {
         ...defaultAttachmentMeta,
-        ...parseProp(args.column?.meta),
+        ...parseProp(column?.meta),
       }
 
       const attachments = []
@@ -136,6 +136,20 @@ export default function convertCellData(
       }
 
       return JSON.stringify(attachments)
+    }
+    case UITypes.SingleSelect:
+    case UITypes.MultiSelect: {
+      // return null if value is empty
+      if (value === '') return null
+
+      const availableOptions = ((column.colOptions as SelectOptionsType)?.options || []).map((o) => o.title)
+      const vals = value.split(',')
+      const validVals = vals.filter((v) => availableOptions.includes(v))
+
+      // return null if no valid values
+      if (validVals.length === 0) return null
+
+      return validVals.join(',')
     }
     case UITypes.LinkToAnotherRecord:
     case UITypes.Lookup:

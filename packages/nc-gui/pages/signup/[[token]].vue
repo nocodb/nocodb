@@ -90,9 +90,10 @@ async function signUp() {
     signIn(token!)
 
 
-    const redirectTo = sessionStorage.getItem('redirectTo')
-    sessionStorage.removeItem('redirectTo')
-    await navigateTo(redirectTo ?? '/')
+    const redirectTo = sessionStorage.getItem('redirectTo') ?? '/'
+    if(/^https?:\/\//.test(redirectTo)) location.href = redirectTo
+    else
+      await navigateTo(redirectTo)
 
     $e('a:auth:sign-up')
   })

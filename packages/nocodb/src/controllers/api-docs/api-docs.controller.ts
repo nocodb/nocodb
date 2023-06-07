@@ -15,6 +15,8 @@ import { ApiDocsService } from '../../services/api-docs/api-docs.service';
 import getSwaggerHtml from './template/swaggerHtml';
 import getRedocHtml from './template/redocHtml';
 
+const dashboardUrl = (process.env.NC_PUBLIC_URL || '') + (process.env.NC_DASHBOARD_URL || '/dashboard');
+
 @Controller()
 export class ApiDocsController {
   constructor(private readonly apiDocsService: ApiDocsService) {}
@@ -33,11 +35,11 @@ export class ApiDocsController {
 
   @Get('/api/v1/db/meta/projects/:projectId/swagger')
   swaggerHtml(@Param('projectId') projectId: string, @Response() res) {
-    res.send(getSwaggerHtml({ ncSiteUrl: process.env.NC_PUBLIC_URL || '' }));
+    res.send(getSwaggerHtml({ ncSiteUrl: process.env.NC_PUBLIC_URL || '',dashboardUrl }));
   }
 
   @Get('/api/v1/db/meta/projects/:projectId/redoc')
   redocHtml(@Param('projectId') projectId: string, @Response() res) {
-    res.send(getRedocHtml({ ncSiteUrl: process.env.NC_PUBLIC_URL || '' }));
+    res.send(getRedocHtml({ ncSiteUrl: process.env.NC_PUBLIC_URL || '' , dashboardUrl }));
   }
 }

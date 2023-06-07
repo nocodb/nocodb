@@ -1,7 +1,9 @@
 export default ({
   ncSiteUrl,
+  dashboardUrl
 }: {
   ncSiteUrl: string;
+  dashboardUrl: string;
 }): string => `<!DOCTYPE html>
 <html>
 <head>
@@ -28,6 +30,12 @@ xmlhttp.open("GET", "./swagger.json");
 xmlhttp.setRequestHeader("Content-Type", "application/json;charset=UTF-8");
 xmlhttp.setRequestHeader("xc-auth", initialLocalStorage && initialLocalStorage.token);
 xmlhttp.onload = function () {
+  
+   if (xmlhttp.status == 401) {
+     location.href = '${dashboardUrl}#/signIn?redirectTo=' + location.href;
+     return;
+   }
+
 
   const ui = SwaggerUIBundle({
     // url: ,
@@ -39,6 +47,7 @@ xmlhttp.onload = function () {
     ],
   })
 }
+
 xmlhttp.send();
 
   

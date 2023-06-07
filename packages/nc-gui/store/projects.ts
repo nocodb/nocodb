@@ -99,12 +99,13 @@ export const useProjects = defineStore('projectsStore', () => {
   const loadProject = async (projectId: string, force = false) => {
     if (!force && isProjectPopulated(projectId)) return projects.value.get(projectId)
 
-    const existingProject = projects.value.get(projectId)!
+    const existingProject = projects.value.get(projectId) ?? ({} as any)
     const _project = await api.project.read(projectId)
+    _project.meta = typeof _project.meta === 'string' ? JSON.parse(_project.meta) : {}
     const project = {
       ...existingProject,
       ..._project,
-      isExpanded: route.params.projectId === projectId,
+      isExpanded: route.params.projectId === projectId || existingProject.isExpanded,
       // isLoading is managed by Sidebar
       isLoading: existingProject.isLoading,
     }

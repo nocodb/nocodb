@@ -31,9 +31,13 @@ const roleAlias = {
 
 const workspaceStore = useWorkspace()
 
-const { deleteWorkspace: _deleteWorkspace, loadWorkspaceList, updateWorkspace } = workspaceStore
+const { deleteWorkspace: _deleteWorkspace, loadWorkspaceList, updateWorkspace, populateActiveWorkspace } = workspaceStore
 
-const { workspaces, activeWorkspace, isWorkspaceOwner, activePage } = storeToRefs(workspaceStore)
+const projectsStore = useProjects()
+
+const { workspaces, activeWorkspace, isWorkspaceOwner, activePage, collaborators } = storeToRefs(workspaceStore)
+
+const { loadProjects } = useProjects()
 
 const { $e } = useNuxtApp()
 
@@ -67,12 +71,36 @@ const menu = (el?: typeof Menu) => {
   }
 }
 
-onMounted(() => {
-  console.log('workspaces')
+onMounted(async () => {
   toggle(true)
   toggleHasSidebar(true)
-  loadWorkspaceList()
+  await loadWorkspaceList()
+
+  if (!route.query.workspaceId && workspaces.value?.length) {
+    await router.push({ query: { workspaceId: workspaces.value[0].id, page: 'workspace' } })
+  } else {
+    selectedWorkspaceIndex.value = [workspaces.value?.findIndex((workspace) => workspace.id === route.query.workspaceId)]
+  }
+
+  await loadProjects()
 })
+
+watch(
+  () => route.query.workspaceId,
+  async (newId, oldId) => {
+    if (!newId || (oldId !== newId && oldId)) {
+      projectsStore.clearProjects()
+      collaborators.value = []
+    }
+
+    if (newId) {
+      populateActiveWorkspace()
+    }
+  },
+  {
+    immediate: true,
+  },
+)
 
 useDialog(resolveComponent('WorkspaceCreateDlg'), {
   'modelValue': isCreateDlgOpen,

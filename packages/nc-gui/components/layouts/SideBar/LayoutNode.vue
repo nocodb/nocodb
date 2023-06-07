@@ -60,14 +60,15 @@ const { isSharedBase } = useProject()
     :class="[`nc-project-tree-tbl nc-project-tree-tbl-${layout.title}`, { active: openeLayoutId === layout.id }]"
   >
     <GeneralTooltip
-      class="pl-4 pr-3 py-1.5 mt-0.65 rounded-md"
+      class="pl-4 pr-3 mb-0.25 rounded-md h-7.25"
       :class="{
-        'hover:bg-gray-200': openeLayoutId !== layout.id,
+        'hover:bg-gray-100': openeLayoutId !== layout.id,
       }"
       modifier-key="Alt"
     >
       <template #title>{{ layout.title }}</template>
-      <div class="layout-context flex items-center gap-2 h-full" @contextmenu="setMenuContext('layout', layout)">
+      <div class="layout-context flex items-center gap-2 h-full ml-7.25" @contextmenu="setMenuContext('layout', layout)">
+        <MaterialSymbolsSpaceDashboardOutlineRounded class="flex !text-gray-500" />
         <div class="nc-tbl-title flex-1">
           <GeneralTruncateText :key="layout.title" :length="openeLayoutId === layout.id ? 18 : 20"
             >{{ layout.title }}
@@ -82,7 +83,7 @@ const { isSharedBase } = useProject()
           :trigger="['click']"
           @click.stop
         >
-          <GeneralIcon
+          <MdiDotsVertical
             icon="threeDotVertical"
             class="transition-opacity opacity-0 group-hover:opacity-100 outline-0"
             :class="{
@@ -117,7 +118,7 @@ const { isSharedBase } = useProject()
 
 <style scoped lang="scss">
 .nc-tree-item {
-  @apply mr-2 relative cursor-pointer after:(pointer-events-none content-[''] rounded absolute top-0 left-0  w-full h-full right-0 !bg-current transition transition-opactity duration-100 opacity-0);
+  @apply relative cursor-pointer after:(pointer-events-none content-[''] rounded absolute top-0 left-0  w-full h-full right-0 !bg-current transition transition-opactity duration-100 opacity-0);
 }
 
 .nc-tree-item svg {
@@ -125,7 +126,7 @@ const { isSharedBase } = useProject()
 }
 
 .nc-tree-item.active {
-  @apply !bg-primary-selected font-weight-bold rounded-md;
+  @apply !bg-primary-selected rounded-md;
 
   svg {
     @apply !text-opacity-100;

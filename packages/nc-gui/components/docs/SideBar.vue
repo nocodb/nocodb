@@ -136,7 +136,7 @@ onKeyStroke('Enter', () => {
 onMounted(async () => {
   if (isPublic.value) return
 
-  await fetchNestedPages({ projectId: project.value.id! })
+  // await fetchNestedPages({ projectId: project.value.id! })
 
   // await openChildPageTabsOfRootPages({
   //   projectId: project.value.id!,
@@ -146,7 +146,7 @@ onMounted(async () => {
 
 <template>
   <template v-if="nestedPages">
-    <div class="nc-docs-sidebar mb-1">
+    <div class="nc-docs-sidebar">
       <a-tree
         v-model:expanded-keys="openedTabs"
         v-model:selectedKeys="openPageTabKeys"
@@ -158,7 +158,7 @@ onMounted(async () => {
         @dragenter="onDragEnter"
       >
         <template #switcherIcon="{ expanded }">
-          <div class="nc-sidebar-expand">
+          <div class="flex flex-row nc-sidebar-expand h-full items-center">
             <PhTriangleFill
               class="cursor-pointer transform transition-transform duration-500 h-1.25 w-1.75 text-gray-500"
               :class="{ 'rotate-180': expanded, 'rotate-90': !expanded }"
@@ -187,7 +187,7 @@ onMounted(async () => {
                     <div
                       class="flex px-0.75 pt-0.75 text-gray-500 rounded-md"
                       :class="{
-                        'hover:bg-gray-300 cursor-pointer': isEditAllowed,
+                        'hover:bg-gray-200 cursor-pointer': isEditAllowed,
                       }"
                       data-testid="docs-sidebar-emoji-selector"
                     >
@@ -294,30 +294,29 @@ onMounted(async () => {
     background: rgb(203, 203, 203);
   }
 }
+
 .ant-tree-treenode {
-  @apply flex flex-row items-center !pb-0;
-}
-.ant-tree-treenode {
-  @apply flex flex-row items-center w-full rounded-md pl-4.5 py-0.75 !important;
-}
-.ant-tree-node-content-wrapper {
-  @apply w-full mr-2 pl-0.5 bg-inherit transition-none !important;
+  @apply flex flex-row items-center w-full rounded-md pl-4 pb-0 h-7.25 hover:bg-hover mb-0.25 !important;
   transition: none !important;
 }
+
 .ant-tree-treenode:hover {
   .nc-sidebar-expand {
     @apply !text-gray-500 !visible;
   }
 }
+.ant-tree-treenode:last-child {
+  @apply !mb-0;
+}
 .nc-sidebar-expand {
   @apply invisible;
 }
+.ant-tree-node-content-wrapper {
+  @apply w-full mr-2 pl-0.5 bg-inherit transition-none !important;
+  transition: none !important;
+}
+
 .ant-tree-list {
-  @apply last:pb-1 mt-0.5;
-  .ant-tree-treenode {
-    @apply hover:bg-hover;
-    transition: none !important;
-  }
   .ant-tree-treenode-selected {
     @apply !bg-primary-selected;
     transition: none !important;

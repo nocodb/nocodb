@@ -63,9 +63,9 @@ const { projectUrl } = useProject()
 
 const toggleDialog = inject(ToggleDialogInj)
 
-const { addNewPage } = useDocStore()
+const { addNewPage, populatedNestedPages } = useDocStore()
 
-const { getDashboardProjectUrl: dashboardProjectUrl } = useDashboardStore()
+const { getDashboardProjectUrl: dashboardProjectUrl, populateLayouts } = useDashboardStore()
 
 const activeProjectId = computed(() => route.params.projectId as string | undefined)
 
@@ -191,17 +191,31 @@ function openTableCreateDialog() {
   }
 }
 
-const addNewProjectChildEntity = () => {
-  switch (project.value.type) {
-    case NcProjectType.DASHBOARD:
-      addNewLayout({ projectId: project.value!.id! })
-      break
-    case NcProjectType.DOCS:
-      addNewPage({ parentPageId: undefined, projectId: project.value!.id! })
-      break
-    case NcProjectType.DB:
-      openTableCreateDialog()
-      break
+const isAddNewProjectChildEntityLoading = ref(false)
+const addNewProjectChildEntity = async () => {
+  if (isAddNewProjectChildEntityLoading.value) return
+
+  isAddNewProjectChildEntityLoading.value = true
+  try {
+    switch (project.value.type) {
+      case NcProjectType.DASHBOARD:
+        await populateLayouts({ projectId: project.value.id! })
+        await addNewLayout({ projectId: project.value!.id! })
+        break
+      case NcProjectType.DOCS:
+        await populatedNestedPages({ projectId: project.value.id! })
+        await addNewPage({ parentPageId: undefined, projectId: project.value!.id! })
+        break
+      case NcProjectType.DB:
+        openTableCreateDialog()
+        break
+    }
+
+    if (!project.value.isExpanded) {
+      project.value.isExpanded = true
+    }
+  } finally {
+    isAddNewProjectChildEntityLoading.value = false
   }
 }
 
@@ -229,6 +243,7 @@ const onProjectClick = async (project: NcProject) => {
       //   projectId: project.id,
       // })
       $e('c:dashboard:open', project.id)
+      await populateLayouts({ projectId: project.id! })
       await navigateTo(dashboardProjectUrl(project.id!))
       break
     case 'documentation':
@@ -239,6 +254,7 @@ const onProjectClick = async (project: NcProject) => {
       //   projectId: project.id,
       // })
       $e('c:document:open', project.id)
+      await populatedNestedPages({ projectId: project.id! })
       await navigateTo(docsProjectUrl(project.id!))
       break
     case 'database':
@@ -309,7 +325,7 @@ const reloadTables = async () => {
             'bg-primary-selected': activeProjectId === project.id && projectViewOpen,
             'hover:bg-hover': !(activeProjectId === project.id && projectViewOpen),
           }"
-          class="project-title-node flex-grow rounded-md group flex items-center w-full pl-2"
+          class="project-title-node h-7.25 flex-grow rounded-md group flex items-center w-full pl-2"
         >
           <div class="nc-sidebar-expand">
             <PhTriangleFill
@@ -324,7 +340,7 @@ const reloadTables = async () => {
             class="flex items-center mx-1"
             @click.stop
           >
-            <div class="flex items-center select-none w-6 h-8" @click.stop>
+            <div class="flex items-center select-none w-6 h-full" @click.stop>
               <a-spin
                 v-if="project.isLoading"
                 class="nc-sidebar-icon !flex !flex-row !items-center !my-0.5 !ml-1.5 !mr-1.5 w-8"
@@ -366,16 +382,8 @@ const reloadTables = async () => {
           </span>
           <span :class="{ 'flex-grow': !editMode }"></span>
 
-          <div
-            class="flex flex-row pr-1 items-center gap-x-2 cursor-pointer hover:text-black text-gray-600 text-sm invisible !group-hover:visible"
-            data-testid="nc-docs-sidebar-add-page"
-            @click="addNewProjectChildEntity"
-          >
-            <MdiPlus />
-          </div>
-
           <a-dropdown>
-            <MdiDotsVertical class="mr-1.5 opacity-0 group-hover:opacity-100" @click.stop />
+            <MdiDotsHorizontal class="mr-1.5 opacity-0 group-hover:opacity-100 hover:text-black text-gray-600" @click.stop />
             <template #overlay>
               <a-menu>
                 <!--          <a-menu class="!ml-1 !w-[300px] !text-sm"> -->
@@ -460,6 +468,18 @@ const reloadTables = async () => {
               </a-menu>
             </template>
           </a-dropdown>
+
+          <div
+            class="mr-1 flex flex-row pr-1 items-center gap-x-2 cursor-pointer hover:text-black text-gray-600 text-sm invisible !group-hover:visible"
+            data-testid="nc-docs-sidebar-add-page"
+            :class="{ '!text-black !visible': isAddNewProjectChildEntityLoading }"
+            @click.stop="addNewProjectChildEntity"
+          >
+            <div v-if="isAddNewProjectChildEntityLoading" class="flex flex-row items-center">
+              <a-spin class="!flex !flex-row !items-center !my-0.5" :indicator="indicator" />
+            </div>
+            <MdiPlus v-else />
+          </div>
         </div>
       </div>
 
@@ -469,7 +489,7 @@ const reloadTables = async () => {
         class="overflow-y-auto overflow-x-hidden transition-max-height"
         :class="{ 'max-h-0': !project.isExpanded, 'max-h-500': project.isExpanded }"
       >
-        <div v-if="isProjectEmpty(project.id)" class="flex ml-12.25 my-1 text-gray-500 select-none">Empty</div>
+        <div v-if="isProjectEmpty(project.id)" class="flex ml-11.75 my-1 text-gray-500 select-none">Empty</div>
         <div v-else-if="project.type === 'documentation'">
           <DocsSideBar v-if="project.isExpanded" :project="project" />
         </div>
@@ -477,7 +497,7 @@ const reloadTables = async () => {
           <LayoutsSideBar v-if="project.isExpanded" :project="project" />
         </div>
         <template v-else-if="project && project?.bases">
-          <div class="pb-0.5 flex-1 overflow-y-auto flex flex-col" :class="{ 'mb-[20px]': isSharedBase }">
+          <div class="flex-1 overflow-y-auto flex flex-col" :class="{ 'mb-[20px]': isSharedBase }">
             <div
               v-if="project?.bases?.[0]?.enabled && !project?.bases?.slice(1).filter((el) => el.enabled)?.length"
               class="flex-1"

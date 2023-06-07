@@ -441,6 +441,12 @@ export const useDashboardStore = defineStore('dashboardStore', () => {
     return path
   }
 
+  async function populateLayouts({ projectId }: { projectId: string }) {
+    if (layoutsOfProjects.value[projectId]) return
+
+    await fetchLayouts({ projectId })
+  }
+
   async function fetchLayouts({ withoutLoading, projectId }: { projectId: string; withoutLoading?: boolean }) {
     if (!withoutLoading) isLayoutFetching.value[projectId] = true
     try {
@@ -816,5 +822,6 @@ export const useDashboardStore = defineStore('dashboardStore', () => {
     changeSelectRecordsModeForNumberWidgetDataConfig,
     changeAggregateFunctionOfFocusedWidget,
     changeChartTypeOfFocusedChartElement,
+    populateLayouts,
   }
 })

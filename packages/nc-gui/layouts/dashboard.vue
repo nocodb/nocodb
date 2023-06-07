@@ -164,8 +164,14 @@ export default {
 
 .splitpanes__splitter:hover:before {
   @apply bg-scrollbar;
-  width: 4px !important;
-  left: -4px;
+  width: 3px !important;
+  left: -3px;
+}
+
+.splitpanes--dragging .splitpanes__splitter:before {
+  @apply bg-scrollbar;
+  width: 3px !important;
+  left: -3px;
 }
 
 .sidebar-short {

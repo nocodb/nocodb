@@ -2,10 +2,10 @@
 const route = useRoute()
 
 const { openedProjectId } = storeToRefs(useDocStore())
-const { fetchNestedPages } = useDocStore()
+const { populatedNestedPages } = useDocStore()
 
 onMounted(() => {
-  fetchNestedPages({
+  populatedNestedPages({
     projectId: openedProjectId.value,
   })
 })

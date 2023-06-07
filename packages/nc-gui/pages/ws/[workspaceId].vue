@@ -3,25 +3,20 @@ const router = useRouter()
 
 const route = $(router.currentRoute)
 
-const { isWorkspaceLoading, collaborators, workspaces } = storeToRefs(useWorkspace())
-const { loadActiveWorkspace } = useWorkspace()
+const { isWorkspaceLoading, collaborators } = storeToRefs(useWorkspace())
+const { populateActiveWorkspace } = useWorkspace()
 const projectsStore = useProjects()
 
 watch(
   () => route.params.workspaceId,
   async (newId, oldId) => {
-    // skip and reset if workspace not selected
-    const workspace = workspaces.value.find((w) => w.id === newId)
-
     if (!newId || (oldId !== newId && oldId)) {
       projectsStore.clearProjects()
       collaborators.value = []
       return
     }
 
-    if (!workspace) {
-      loadActiveWorkspace()
-    }
+    populateActiveWorkspace()
   },
   {
     immediate: true,

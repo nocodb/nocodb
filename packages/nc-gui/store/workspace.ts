@@ -174,9 +174,13 @@ export const useWorkspace = defineStore('workspaceStore', () => {
     workspaces.value = [workspace.value, ...workspaces.value.filter((w) => w.id !== workspaceId)]
   }
 
-  async function loadActiveWorkspace() {
+  async function populateActiveWorkspace({ force }: { force?: boolean } = {}) {
     isWorkspaceLoading.value = true
-    await loadWorkspace(route.params.workspaceId as string)
+    const workspaceId = (route.params.workspaceId ?? route.query.workspaceId) as string
+    const workspace = workspaces.value?.find((w) => w.id === workspaceId)
+    if (force || !workspace) {
+      await loadWorkspace(workspaceId)
+    }
     await Promise.all([loadCollaborators(), projectsStore.loadProjects()])
     isWorkspaceLoading.value = false
   }
@@ -284,6 +288,6 @@ export const useWorkspace = defineStore('workspaceStore', () => {
     saveTheme,
     workspaceMeta,
     isWorkspaceLoading,
-    loadActiveWorkspace,
+    populateActiveWorkspace,
   }
 })

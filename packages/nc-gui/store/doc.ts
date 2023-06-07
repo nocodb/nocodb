@@ -274,6 +274,14 @@ export const useDocStore = defineStore('docStore', () => {
    *
    */
 
+  async function populatedNestedPages({ projectId }: { projectId: string }) {
+    if (!projectId) return
+
+    if (nestedPagesOfProjects.value[projectId]) return
+
+    await fetchNestedPages({ projectId })
+  }
+
   async function fetchNestedPages({ withoutLoading, projectId }: { projectId: string; withoutLoading?: boolean }) {
     if (!withoutLoading) isNestedPageFetching.value[projectId] = true
     try {
@@ -448,14 +456,14 @@ export const useDocStore = defineStore('docStore', () => {
       }
 
       if (isPublic.value) return
-      const { addTab } = useTabs()
+      // const { addTab } = useTabs()
 
-      addTab({
-        id: createdPageData.id!,
-        title: createdPageData.title,
-        type: TabType.DOCUMENT,
-        projectId,
-      })
+      // addTab({
+      //   id: createdPageData.id!,
+      //   title: createdPageData.title,
+      //   type: TabType.DOCUMENT,
+      //   projectId,
+      // })
     } catch (e) {
       console.log(e)
       message.error(await extractSdkResponseErrorMsg(e as any))
@@ -874,6 +882,7 @@ export const useDocStore = defineStore('docStore', () => {
     navigateToFirstPage,
     isNestedFetchErrored,
     isPageErrored,
+    populatedNestedPages,
   }
 })
 

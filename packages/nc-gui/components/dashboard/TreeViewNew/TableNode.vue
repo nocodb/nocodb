@@ -95,7 +95,7 @@ const { isSharedBase } = useProject()
     ]"
   >
     <GeneralTooltip
-      class="pl-11.5 pr-1.5 py-1 mt-0.25 rounded-md"
+      class="pl-11 pr-1.5 py-1 mb-0.25 rounded-md"
       :class="{
         'hover:bg-hover': openedTableId !== table.id,
       }"
@@ -121,10 +121,9 @@ const { isSharedBase } = useProject()
                     :icon="table.meta?.icon"
                   ></IconifyIcon>
                 </span>
-                <component
-                  :is="icon(table)"
+                <MdiTable
                   v-else
-                  class="nc-table-icon nc-view-icon w-5"
+                  class="w-5 !text-gray-500"
                   :class="{ 'group-hover:text-gray-500': isUIAllowed('treeview-drag-n-drop', false, projectRole) }"
                 />
 
